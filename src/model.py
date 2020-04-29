@@ -114,4 +114,4 @@ class SingleGroupODEPipeline:
         for i in np.range(self.num_sub_models):
             df_result[f'draw_{i}'] = self.beta[i]
         
-        return beta
+        return df_result
