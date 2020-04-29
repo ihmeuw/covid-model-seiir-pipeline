@@ -7,8 +7,7 @@ import json
 import numpy as np
 import pandas as pd
 from odeopt.ode import RK4
-# from .ode_process import SingleGroupODEProcess
-from ode_process import SingleGroupODEProcess
+from .ode_process import SingleGroupODEProcess
 
 
 class SingleGroupODEPipeline:

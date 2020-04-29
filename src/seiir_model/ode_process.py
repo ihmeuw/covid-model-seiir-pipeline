@@ -8,8 +8,7 @@ from odeopt.ode import ODESys
 from odeopt.ode import RK4
 from odeopt.ode import LinearFirstOrder
 from odeopt.core.utils import linear_interpolate
-# from .spline_fit import SplineFit
-from spline_fit import SplineFit
+from .spline_fit import SplineFit
 
 
 class SingleGroupODEProcess:
