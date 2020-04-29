@@ -40,9 +40,8 @@ def submit_models(input_dir, output_dir):
             output_path=f'{output_dir}/{location_id}.csv'
         )
 
-        print(qsub_str)
-        # job_str = os.popen(qsub_str).read()
-        # print(job_str)
+        job_str = os.popen(qsub_str).read()
+        print(job_str)
 
 if __name__ == '__main__':
     submit_models(sys.argv[1], sys.argv[2])
