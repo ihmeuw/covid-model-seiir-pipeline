@@ -115,7 +115,6 @@ class SingleGroupODEPipeline:
         
         return df_result
 
-
 def main():
     '''
     args = argparse.Namespace(
@@ -125,13 +124,7 @@ def main():
     '''
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        '--input_dir', help='Name of location-specific input file.', type=str
-    )
-    parser.add_argument(
-        '--location_id', help='`location_id` for job.', type=str
-    )
-    parser.add_argument(
-        '--location_map_path', help='File that contains location name mapping.', type=str
+        '--input_path', help='Name of location-specific input file.', type=str
     )
     parser.add_argument(
         '--output_path', help='Name of location-specific output file.', type=str
@@ -152,10 +145,8 @@ def main():
         [1/3, 1/2]
     )
     df_result = pipeline.run()
-    df_result = df_result.rename(index=str, columns={'loc_id':'location_id'})
     
-    df_result.to_csv(args.output_path, index=False)
-
+    df.to_csv(args.output_path, index=False)
 
 if __name__ == '__main__':
     main()
