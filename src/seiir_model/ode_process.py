@@ -60,7 +60,7 @@ class SingleGroupODEProcess:
         self.params = None
         self.components = None
         self.create_ode_sys()
-        
+
         # spline solver setup
         self.spline_options = {
             'spline_knots': np.linspace(0.0, 1.0, 7),
@@ -128,7 +128,7 @@ class SingleGroupODEProcess:
         assert self.obs.size == obs.size
         self.obs = obs
         self.create_spline()
-        
+
     def fit_spline(self):
         """Fit spline.
         """

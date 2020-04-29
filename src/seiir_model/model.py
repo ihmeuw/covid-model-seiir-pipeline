@@ -2,6 +2,8 @@
 """
     Runner script for the ODE optimization to obtain the estimation of the beta.
 """
+import argparse
+import json
 import numpy as np
 import pandas as pd
 from odeopt.ode import RK4
@@ -111,5 +113,61 @@ class SingleGroupODEPipeline:
         })
         for i in range(self.num_sub_models):
             df_result[f'draw_{i}'] = self.beta[i]
-        
+
         return df_result
+
+
+def main():
+    '''
+    args = argparse.Namespace(
+        input_dir='/ihme/covid-19/seir-inputs/2020_04_25.04',
+        location_id=523,
+        location_map_path='/ihme/homes/rmbarber/covid-19/seir_test_2020_04_29/_location_map.json',
+        output_path='/ihme/homes/rmbarber/covid-19/seir_test_2020_04_28/523.csv'
+    )
+    '''
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        '--input_dir', help='Name of location-specific input file.', type=str
+    )
+    parser.add_argument(
+        '--location_id', help='`location_id` for job.', type=str
+    )
+    parser.add_argument(
+        '--location_map_path', help='File that contains location name mapping.', type=str
+    )
+    parser.add_argument(
+        '--output_path', help='Name of location-specific output file.', type=str
+    )
+    args = parser.parse_args()
+
+    # identify location file naming
+    with open(args.location_map_path, 'r') as fread:
+        location_map = json.load(fread)
+    location_dir = location_map[str(args.location_id)]['location_dir']
+    file_name = location_map[str(args.location_id)]['file_name']
+
+    # read data frame
+    df = pd.read_csv(f'{args.input_dir}/{location_dir}/{file_name}')
+
+    # run pipeline
+    pipeline = SingleGroupODEPipeline(
+        df,
+        'date',
+        [col for col in df if col.startswith('case_draw')],
+        'pop',
+        'loc_id',
+        [0.9, 1.0],
+        [1/6, 1/4],
+        [0.5, 0.5],
+        [1/3, 1/2]
+    )
+    df_result = pipeline.run()
+    df_result = df_result.rename(index=str, columns={'loc_id':'location_id'})
+
+    # store results
+    df_result.to_csv(args.output_path, index=False)
+
+
+if __name__ == '__main__':
+    main()
