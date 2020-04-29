@@ -4,6 +4,7 @@
 """
 import numpy as np
 import pandas as pd
+from . import SingleGroupODEProcess
 
 
 class SingleGroupODEPipeline:
@@ -75,15 +76,10 @@ class SingleGroupODEPipeline:
         self.create_process()
 
     def create_process(self):
-        self.process = BetaSEIIR_SingleGroupODEProcess(
+        self.process = SingleGroupODEProcess(
             self.days,
             self.cases[0],
             *self.params[0], self.N,
-            {'S': self.N,
-             'E': float(self.df[COL_CASES].values[0]),
-             'I1': 1.0,
-             'I2': 0.0,
-             'R': 0.0},
             spline_options={
                 'spline_degree': 3,
                 'spline_knots': np.linspace(0.0, 1.0, 7)
