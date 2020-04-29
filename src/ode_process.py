@@ -16,8 +16,7 @@ class SingleGroupODEProcess:
                  alpha, sigma, gamma1, gamma2, N,
                  solver_class=RK4,
                  solver_dt=1e-1,
-                 spline_options=None,
-                 **kwargs):
+                 spline_options=None):
         """Constructor of the SingleGroupODEProcess
 
         Args:
@@ -27,7 +26,11 @@ class SingleGroupODEProcess:
             sigma (float): ODE parameter.
             gamma1 (float): ODE parameter.
             gamma2 (float): ODE parameter.
-
+            N (float): ODE parameter.
+            solver_class (ODESolver, optional): Solver for the ODE system.
+            solver_dt (float, optional): Step size for the ODE system.
+            spline_options (dict | None, optional):
+                Dictionary of spline prior options.
         """
         # observations
         self.t = t
