@@ -1,0 +1,8 @@
+*.egg-info
+# directories created by install procedure
+/dist/
+/build/
+# vim editor swap files in any directory
+*.swp
+# python compiled files in any directory
+*.pyc

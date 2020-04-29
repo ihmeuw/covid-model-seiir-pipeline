@@ -4,7 +4,8 @@
 """
 import numpy as np
 import pandas as pd
-from . import SingleGroupODEProcess
+from odeopt.ode import RK4
+from .ode_process import SingleGroupODEProcess
 
 
 class SingleGroupODEPipeline:
@@ -45,10 +46,10 @@ class SingleGroupODEPipeline:
         df.sort_values(self.col_date, inplace=True)
 
         self.N = df[self.col_pop].values[0]
-        self.loc_id = df[self.col_loc_id].values
-        self.date = pd.to_datetime(self.df[self.col_date])
+        self.loc_id = df[self.col_loc_id].values[0]
+        self.date = pd.to_datetime(df[self.col_date])
         self.days = (df[self.col_date] -
-                     df[self.col_date].min()).dt.days.values.astype(float)
+                     df[self.col_date].min()).dt.days.values
         self.cases = np.ascontiguousarray(df[self.col_cases].values.T)
 
         # process parameter
@@ -85,29 +86,30 @@ class SingleGroupODEPipeline:
                 'spline_knots': np.linspace(0.0, 1.0, 7)
             },
             solver_class=RK4,
-            solver_dt=1e0)
+            solver_dt=1e-1)
 
     def run(self):
-        print(f'{self.loc}')
+        print(f'loc_id: {self.loc_id}')
         print('\t', f'there are {self.num_sub_models} sub-models')
         self.process.fit_spline()
         self.beta = []
         for i, param in enumerate(self.params):
             print('\t', f'progress: {(i+1)/self.num_sub_models:.2f}', end='\r')
             self.process.update_data(self.cases[i])
-            self.process.update_params(alpha=param[0],
-                                       sigma=param[1],
-                                       gamma1=param[2],
-                                       gamma2=param[3])
+            self.process.update_ode_params(alpha=param[0],
+                                           sigma=param[1],
+                                           gamma1=param[2],
+                                           gamma2=param[3])
             self.process.process(fit_spline=False)
             self.beta.append(self.process.predict(self.days)[0][0])
 
+        print('\t', f'progress: done')
         df_result = pd.DataFrame({
             'loc_id': self.loc_id,
             'date': self.date,
             'days': self.days,
         })
-        for i in np.range(self.num_sub_models):
+        for i in range(self.num_sub_models):
             df_result[f'draw_{i}'] = self.beta[i]
         
         return df_result

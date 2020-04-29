@@ -8,7 +8,7 @@ from odeopt.ode import ODESys
 from odeopt.ode import RK4
 from odeopt.ode import LinearFirstOrder
 from odeopt.core.utils import linear_interpolate
-from .splinefit import SplineFit
+from .spline_fit import SplineFit
 
 
 class SingleGroupODEProcess:
@@ -51,6 +51,8 @@ class SingleGroupODEProcess:
         }
 
         # ode solver setup
+        self.solver_class = solver_class
+        self.solver_dt = solver_dt
         self.t_span = np.array([np.min(self.t), np.max(self.t)])
         self.t_params = np.arange(self.t_span[0],
                                   self.t_span[1] + self.solver_dt,
@@ -154,7 +156,7 @@ class SingleGroupODEProcess:
         # modify initial condition of I1
         I1_org = self.init_cond['I1']
         self.init_cond.update({
-            'I1': max(I1_org, self.rhs_newE[0]/3.0)
+            'I1': max(I1_org, (self.rhs_newE[0]/3.0)**(1.0/self.alpha))
         })
         I1 = self.step_ode_sys.simulate(self.t_params,
                                         np.array([self.init_cond['I1']]),
@@ -194,3 +196,11 @@ class SingleGroupODEProcess:
         self.params = (self.rhs_newE/
                        ((S/self.N)*
                         ((I1 + I2)**self.alpha)))[None, :]
+
+    def predict(self, t):
+        params = linear_interpolate(t, self.t_params, self.params)
+        components = {
+            c: linear_interpolate(t, self.t_params, self.components[c])
+            for c in self.components
+        }
+        return params, components
