@@ -13,10 +13,7 @@ def get_args():
     """
     parser = ArgumentParser()
     parser.add_argument("--n-draws", type=int, required=True)
-    parser.add_argument("--infection-version", type=str, required=True)
-    parser.add_argument("--covariate-version", type=str, required=True)
     parser.add_argument("--output-version", type=str, required=True)
-    parser.add_argument("--covariates", nargs="+", required=True)
     parser.add_argument("--warm-start", action='store_true', required=False)
 
     return parser.parse_args()
@@ -27,16 +24,14 @@ def main():
 
     log.info("Initiating SEIIR modeling pipeline.")
     log.info(f"Running for {args.n_draws}.")
-    log.info(f"Getting infection version from {args.infection_version}.")
-    log.info(f"Getting covariate data version from {args.covariate_version}.")
-    log.info(f"This will be output version {args.output_version}.")
-    log.info(f"Using {args.covariates.join(', ')} as regression covariates for beta.")
+    log.info(f"Run for output version {args.output_version}.")
     if args.warm_start:
         log.info("Will resume from after beta regression.")
 
     directories = args_to_directories(args)
+
     wf = SEIIRWorkFlow(directories=directories)
-    wf.attach_tasks(n_draws=args.n_draws, covariates=args.covariates, warm_start=args.warm_start)
+    wf.attach_tasks(n_draws=args.n_draws, warm_start=args.warm_start)
     wf.run()
 
 

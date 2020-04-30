@@ -5,8 +5,11 @@ import os
 
 BASE_DIR = Path('/ihme')
 
+# Dependency directories
 INPUT_DIR = BASE_DIR / 'covid-19/seir-inputs'
 COVARIATE_DIR = BASE_DIR / 'fake/covariate/input/dir'
+
+# Output directories
 DIAGNOSTIC_DIR = BASE_DIR / 'fake/diagnostics/dir'
 DRAW_DIR = BASE_DIR / 'fake/draw/dir'
 OUTPUT_DIR = BASE_DIR / 'fake/output/dir'
@@ -102,6 +105,8 @@ class Directories:
 
         self.error_dir = self.log_dir / 'errors'
         self.output_dir = self.log_dir / 'output'
+
+        self.settings_file = self.output_dir / 'settings.json'
 
     def make_dirs(self):
         for directory in [

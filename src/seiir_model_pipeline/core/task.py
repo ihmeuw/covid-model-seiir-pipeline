@@ -14,18 +14,14 @@ class DrawTask(BashTask):
     """
     A draw task, subclass of jobmon BashTask
     """
-    def __init__(self, directories, draw_id, covariates, warm_start):
+    def __init__(self, draw_id, directories, output_version, warm_start):
 
-        self.directories = directories
         self.draw_id = draw_id
 
         command = (
-            "run_draw " +
+            "run_one_draw " +
             f"--draw-id {self.draw_id} " +
-            f"--infection-version {directories.infection_version} " +
-            f"--covariate-version {directories.covariate_version} " +
-            f"--output-version {directories.output_version} " +
-            f"--covariates {covariates.join(' ')} "
+            f"--output-version {output_version} "
         )
         if warm_start:
             command += "--warm-start"

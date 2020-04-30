@@ -33,18 +33,16 @@ class SEIIRWorkFlow(Workflow):
             resume=True
         )
 
-    def attach_tasks(self, n_draws, covariates, warm_start):
+    def attach_tasks(self, n_draws, **kwargs):
         """
         Attach n_draws DrawTasks.
 
         :param n_draws: (int)
-        :param covariates: (List[str])
-        :param warm_start: (bool)
+        **kwargs: keyword arguments to DrawTask
         :return: self
         """
         for i in range(n_draws):
             self.add_tasks(
-                DrawTask(draw_id=i, directories=self.directories,
-                         covariates=covariates, warm_start=warm_start)
+                DrawTask(draw_id=i, **kwargs)
             )
         return self
