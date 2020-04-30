@@ -41,7 +41,7 @@ class ModelVersion:
     - `covariates (List[str])`: list of covariate names to use in regression
     - `initial_conditions (Dict[str: float])`: initial conditions for the ODE;
         requires keys 'S', 'E', 'I1', '12', and 'R'
-    - `dt (float)`: step size for the ODE
+    - `solver_dt (float)`: step size for the ODE solver
     """
 
     version_name: str
@@ -52,7 +52,7 @@ class ModelVersion:
     covariates: List[str]
 
     initial_conditions: Dict[str: float]
-    dt: float = field(default=0.1)
+    solver_dt: float = field(default=0.1)
 
     directories: Directories = field(init=False)
 
