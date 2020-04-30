@@ -18,6 +18,10 @@ LOG_DIR = BASE_DIR / 'fake/log/dir'
 
 INFECTION_FILE_PATTERN = 'draw{draw_id}_prepped_deaths_and_cases_all_age.csv'
 PEAK_DATE_FILE = '/ihme/scratch/projects/covid/seir_research_test_run/death_model_peaks.csv'
+PEAK_DATE_COL_DICT = {
+    'COL_LOC_ID': 'location_id',
+    'COL_DATE': 'peaked_date'
+}
 
 INFECTION_COL_DICT = {
     'COL_DATE': 'date',
