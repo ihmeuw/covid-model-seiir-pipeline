@@ -1,5 +1,5 @@
 from dataclasses import dataclass, asdict, field
-from typing import List, Dict
+from typing import List, Dict, Union
 import os
 import json
 import numpy as np
@@ -62,17 +62,14 @@ class ModelVersion:
     day_shift: int
 
     # Regression Arguments
-    covariates: Dict[str: Dict[str: bool, str: np.array, str: np.array, str: float]]
+    covariates: Dict[Dict[str, Union[bool, np.ndarray, float]]]
 
     # Optimization Arguments
-    alpha: List[float] = field(default=[0.95, 0.95])
-    sigma: List[float] = field(default=[0.20, 0.20])
-    gamma1: List[float] = field(default=[0.50, 0.50])
-    gamma2: List[float] = field(default=[0.50, 0.50])
+    alpha: List[float] = field(default_factory=[0.95, 0.95])
+    sigma: List[float] = field(default_factory=[0.20, 0.20])
+    gamma1: List[float] = field(default_factory=[0.50, 0.50])
+    gamma2: List[float] = field(default_factory=[0.50, 0.50])
     solver_dt: float = field(default=0.1)
-
-    def __post_init__(self):
-        pass
 
     def create_version(self):
         directories = Directories(
