@@ -1,17 +1,15 @@
+import pandas as pd
+import numpy as np
+
+from seiir_model_pipeline.core.file_master import PEAK_DATE_FILE
 
 
-def create_settings_json(arguments_to_model_runner, directories):
-    # Take in all arguments to Model Runner
-    # format them for a json
-
-    # Save them to directory
-    pass
-
-
-def load_settings_json(output_version):
-    return None
+def get_peaked_dates_from_file():
+    df = pd.read_csv(PEAK_DATE_FILE)
+    # convert date to numpy
+    df.set_index('location')
+    return df.to_dict()
 
 
-def settings_json_to_model_runner_args(json):
-    # return keyword arguments for ModelRunner
-    return None
+def sample_params_from_bounds():
+    return 1.

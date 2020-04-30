@@ -2,9 +2,9 @@ from dataclasses import dataclass, asdict, field
 from typing import List, Dict
 import os
 import json
+import numpy as np
 
 from seiir_model_pipeline.core.file_master import Directories, OUTPUT_DIR
-from seiir_model.utils import SEIIR_COMPARTMENTS
 
 
 class VersionAlreadyExists(RuntimeError):
@@ -42,6 +42,13 @@ class ModelVersion:
     - `initial_conditions (Dict[str: float])`: initial conditions for the ODE;
         requires keys 'S', 'E', 'I1', '12', and 'R'
     - `solver_dt (float)`: step size for the ODE solver
+
+    - `covariates (Dict[str: Dict]):
+        - Elements of the inner dict:
+            - "use_re": (bool)
+            - "gprior": (np.array)
+            - "bounds": (np.array)
+            - "re_var": (float)
     """
 
     version_name: str
@@ -49,28 +56,34 @@ class ModelVersion:
     infection_version: str
     covariate_version: str
 
-    covariates: List[str]
+    # Spline Arguments
+    degree: int
+    knots: np.array
+    day_shift: int
 
-    initial_conditions: Dict[str: float]
+    # Regression Arguments
+    covariates: Dict[str: Dict[str: bool, str: np.array, str: np.array, str: float]]
+
+    # Optimization Arguments
+    alpha: List[float] = field(default=[0.95, 0.95])
+    sigma: List[float] = field(default=[0.20, 0.20])
+    gamma1: List[float] = field(default=[0.50, 0.50])
+    gamma2: List[float] = field(default=[0.50, 0.50])
     solver_dt: float = field(default=0.1)
 
-    directories: Directories = field(init=False)
-
     def __post_init__(self):
-        for key in SEIIR_COMPARTMENTS:
-            assert key in self.initial_conditions
+        pass
 
-        self.directories = Directories(
+    def create_version(self):
+        directories = Directories(
             infection_version=self.infection_version,
             covariate_version=self.covariate_version,
             output_version=self.version_name
         )
-
-    def create_version(self):
         _available_output_version(self.version_name)
-        self._settings_to_json()
+        self._settings_to_json(directories)
 
-    def _settings_to_json(self):
+    def _settings_to_json(self, directories):
         settings = asdict(self)
-        with open(self.directories.settings_file, "w") as f:
+        with open(directories.settings_file, "w") as f:
             json.dump(settings, f)

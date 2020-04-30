@@ -17,6 +17,14 @@ OUTPUT_DIR = BASE_DIR / 'fake/output/dir'
 LOG_DIR = BASE_DIR / 'fake/log/dir'
 
 INFECTION_FILE_PATTERN = 'draw{draw_id}_prepped_deaths_and_cases_all_age.csv'
+PEAK_DATE_FILE = '/ihme/scratch/projects/covid/seir_research_test_run/death_model_peaks.csv'
+
+INFECTION_COL_DICT = {
+    'COL_DATE': 'date',
+    'COL_CASES': 'cases',
+    'COL_POP': 'pop',
+    'COL_LOC_ID': 'loc_id'
+}
 
 
 def _get_infection_folder_from_location_id(location_id, input_dir):
