@@ -72,10 +72,10 @@ def main():
         mr.regress(
             cov_model_set=cov_model_set
         )
-        mr.save_regression_outputs(directories)
-    if args.warm_start:
-        mr.load_regression_outputs(directories)
-    mr.predict()
+        coefficients = mr.get_regression_outputs(directories)
+    else:
+        coefficients = load(directories)
+    mr.predict(coefficients)
     mr.ode()
 
 
