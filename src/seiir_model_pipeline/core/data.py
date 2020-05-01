@@ -90,9 +90,8 @@ def cache_covariates(directories, covariate_names, col_loc_id, col_date, col_obs
     df.to_csv(directories.get_cached_covariates_file())
 
 
-def load_mr_coefficients(directories, draw_id, location_id):
+def load_mr_coefficients(directories, draw_id):
     df = pd.read_csv(directories.get_draw_coefficient_file(draw_id))
-    df = df.loc[COVARIATE_COL_DICT['COL_LOC_ID'] == location_id].copy()
     return df
 
 
