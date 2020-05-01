@@ -75,7 +75,10 @@ def main():
     # Convert inputs for regression
     covmodel_set = convert_to_covmodel(settings.covariates)
     mr_data = convert_inputs_for_beta_model(
-        data_cov=covariate_data,
+        data_cov=(
+            covariate_data, COVARIATE_COL_DICT['COL_DATE'],
+            COVARIATE_COL_DICT['COL_LOC_ID']
+        ),
         df_beta=mr.get_beta_ode_fit(),
         covmodel_set=covmodel_set
     )
