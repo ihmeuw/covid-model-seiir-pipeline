@@ -243,8 +243,7 @@ class RegressionVersion(Version):
     day_shift: int
 
     # Regression Arguments
-    # covariates: Dict[Dict[str, Union[bool, np.ndarray, float]]]
-    covariates: int
+    covariates: Dict[Dict[str, Union[bool, np.ndarray, float]]]
 
     def __post_init__(self):
         pass
