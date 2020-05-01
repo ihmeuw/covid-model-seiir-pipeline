@@ -74,22 +74,23 @@ def main():
     beta_params = load_beta_params(
         directories, draw_id=args.draw_id
     )
-    init_cond = get_ode_init_cond(
+    init_cond, N = get_ode_init_cond(
         beta_ode_fit=beta_fit,
-        current_date=covariate_data[COVARIATE_COL_DICT['COL_DATE']].min()
+        current_date=covariate_data[COVARIATE_COL_DICT['COL_DATE']].min(),
+        location_id=[args.location_id]
     )
     model_specs = SiierdModelSpecs(
         alpha=beta_params['alpha'],
         sigma=beta_params['beta'],
         gamma1=beta_params['gamma1'],
         gamma2=beta_params['gamma2'],
-        N=None
+        N=N
     )
     mr.forecast(
         model_specs=model_specs,
-        init_cond=None,
+        init_cond=init_cond,
         times=times,
-        betas=forecasts.beta_pred.values,
+        betas=betas,
         dt=regression_settings.solver_dt
     )
 

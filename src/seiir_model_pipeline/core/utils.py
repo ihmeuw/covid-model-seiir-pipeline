@@ -98,6 +98,17 @@ def get_df(file):
         return pd.read_csv(file)
 
 
+def get_ode_init_cond_location(beta_ode_fit, current_date, location_id, col_components=None):
+    df = get_ode_init_cond(beta_ode_fit=beta_ode_fit,
+                           current_date=current_date,
+                           location_id=[location_id],
+                           col_components=col_components)
+    assert len(df) == 1
+    dictionary = df.to_dict(orient='columns')
+    components = np.array([dictionary[comp] for comp in SEIIR_COMPARTMENTS])
+    return components.ravel(), np.array(dictionary['N']).ravel()[0]
+
+
 def get_ode_init_cond(beta_ode_fit, current_date,
                       location_id=None,
                       col_components=None):
