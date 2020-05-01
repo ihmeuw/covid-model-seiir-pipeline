@@ -334,7 +334,7 @@ class ForecastVersion(Version):
     def _settings_to_json(self):
         settings = asdict(self)
         _confirm_version_exists(FORECAST_OUTPUT / self.version_name)
-        file = _get_regression_settings_file(self.version_name)
+        file = _get_forecast_settings_file(self.version_name)
         with open(file, "w") as f:
             json.dump(settings, f)
 
