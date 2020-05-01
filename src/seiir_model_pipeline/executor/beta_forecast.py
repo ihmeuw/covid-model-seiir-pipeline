@@ -13,7 +13,7 @@ from seiir_model_pipeline.core.data import load_covariates, load_beta_fit, load_
 from seiir_model_pipeline.core.data import load_mr_coefficients
 from seiir_model_pipeline.core.utils import convert_to_covmodel
 from seiir_model_pipeline.core.versioner import OBSERVED_DICT
-from seiir_model_pipeline.core.utils import get_ode_init_cond_location
+from seiir_model_pipeline.core.utils import get_ode_init_cond
 from seiir_model_pipeline.core.utils import date_to_days
 
 log = logging.getLogger(__name__)
@@ -83,7 +83,7 @@ def main():
     days = forecasts[COVARIATE_COL_DICT['COL_DATE']].values
     times = date_to_days(days)
 
-    init_cond, N = get_ode_init_cond_location(
+    init_cond, N = get_ode_init_cond(
         beta_ode_fit=beta_fit,
         current_date=CURRENT_DATE,
         location_id=args.location_id
