@@ -3,6 +3,8 @@ import logging
 
 from seiir_model_pipeline.core.versioner import args_to_directories
 from seiir_model_pipeline.core.versioner import load_regression_settings
+from seiir_model_pipeline.core.data import cache_covariates
+from seiir_model_pipeline.core.versioner import COVARIATE_COL_DICT
 from seiir_model_pipeline.core.workflow import SEIIRWorkFlow
 from seiir_model_pipeline.core.utils import get_locations
 
@@ -43,6 +45,14 @@ def main():
             location_metadata_file=directories.get_location_metadata_file(
                 location_set_version_id=regression_settings.location_set_version_id
             )
+        )
+        cache_covariates(
+            directories=directories,
+            covariate_names=list(regression_settings.covariates.keys()),
+            location_id=location_ids,
+            col_loc_id=COVARIATE_COL_DICT['COL_LOC_ID'],
+            col_date=COVARIATE_COL_DICT['COL_DATE'],
+            col_observed=COVARIATE_COL_DICT['COL_OBSERVED']
         )
         regression_tasks = wf.attach_regression_tasks(
             n_draws=args.n_draws,

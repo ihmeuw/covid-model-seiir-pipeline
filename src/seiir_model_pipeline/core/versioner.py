@@ -22,6 +22,10 @@ FORECAST_OUTPUT = OUTPUT_DIR / 'forecast'
 INFECTION_FILE_PATTERN = 'draw{draw_id:04}_prepped_deaths_and_cases_all_age.csv'
 PEAK_DATE_FILE = '/ihme/scratch/projects/covid/seir_research_test_run/death_model_peaks_2020_04_29_add_locs.csv'
 LOCATION_METADATA_FILE_PATTERN = 'location_metadata_{lsvid}.csv'
+CACHED_COVARIATES_FILE = 'cached_covariates.csv'
+
+MISSING_INFECTION_LOC_FILES = 'missing_infection_locations_{draw_id:04}.txt'
+MISSING_COVARIATE_LOC_FILE = 'missing_covariate_locations.txt'
 
 PEAK_DATE_COL_DICT = {
     'COL_LOC_ID': 'location_id',
@@ -39,6 +43,11 @@ COVARIATE_COL_DICT = {
     'COL_DATE': 'date',
     'COL_OBSERVED': 'observed',
     'COL_LOC_ID': 'location_id'
+}
+
+OBSERVED_DICT = {
+    'observed': 1.,
+    'forecasted': 0.
 }
 
 
@@ -181,6 +190,15 @@ class Directories:
 
     def get_covariate_file(self, covariate_name):
         return self.covariate_dir / f'{covariate_name}.csv'
+
+    def get_missing_infection_locations_file(self, draw_id):
+        return self.regression_output_dir / MISSING_INFECTION_LOC_FILES.format(draw_id)
+
+    def get_missing_covariate_locations_file(self):
+        return self.regression_output_dir / MISSING_COVARIATE_LOC_FILE
+
+    def get_cached_covariates_file(self):
+        return self.regression_output_dir / CACHED_COVARIATES_FILE
 
     @staticmethod
     def get_location_metadata_file(location_set_version_id):
