@@ -55,8 +55,8 @@ def convert_to_covmodel(cov_dict):
         cov_models.append(CovModel(
             name,
             use_re=dct['use_re'],
-            bounds=dct['bounds'],
-            gprior=dct['gprior'],
+            bounds=np.array(dct['bounds']),
+            gprior=np.array(dct['gprior']),
             re_var=dct['re_var'],
         ))
     covmodel_set = CovModelSet(cov_models)
