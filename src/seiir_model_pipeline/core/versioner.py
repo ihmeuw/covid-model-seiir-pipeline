@@ -146,12 +146,17 @@ class Directories:
 
             self.regression_output_dir = REGRESSION_OUTPUT / rv.version_name
 
+            self.regression_beta_fit_dir = self.regression_output_dir / 'betas'
+            self.regression_parameters_dir = self.regression_output_dir / 'parameters'
             self.regression_coefficient_dir = self.regression_output_dir / 'coefficients'
             self.regression_diagnostic_dir = self.regression_output_dir / 'diagnostics'
+
         else:
             self.infection_dir = None
             self.covariate_dir = None
             self.regression_output_dir = None
+            self.regression_beta_fit_dir = None
+            self.regression_parameters_dir = None
             self.regression_coefficient_dir = None
             self.regression_diagnostic_dir = None
 
@@ -171,17 +176,21 @@ class Directories:
         for directory in [
             self.regression_output_dir, self.forecast_output_dir,
             self.regression_coefficient_dir, self.regression_diagnostic_dir,
+            self.regression_beta_fit_dir, self.regression_parameters_dir,
             self.forecast_draw_dir, self.forecast_diagnostic_dir,
             self.log_dir
         ]:
             if directory is not None:
                 os.makedirs(str(directory), exist_ok=True)
 
-    def draw_ode_fit_file(self, draw_id):
-        return self.regression_output_dir / f'fit_draw_{draw_id}.csv'
+    def get_draw_beta_fit_file(self, draw_id):
+        return self.regression_beta_fit_dir / f'fit_draw_{draw_id}.csv'
 
-    def draw_ode_param_file(self, draw_id):
-        return self.regression_output_dir / f'params_draw_{draw_id}.csv'
+    def get_draw_beta_param_file(self, draw_id):
+        return self.regression_parameters_dir / f'params_draw_{draw_id}.csv'
+
+    def get_draw_coefficient_file(self, draw_id):
+        return self.regression_coefficient_dir / f'coefficients_{draw_id}.csv'
 
     def location_draw_forecast_file(self, location_id, draw_id):
         os.makedirs(self.forecast_output_dir / str(location_id), exist_ok=True)
