@@ -30,7 +30,8 @@ def main():
     log.info(f"Running for {args.n_draws}.")
 
     directories = args_to_directories(args)
-
+    directories.make_dirs()
+    
     run_regression = args.regression_version is not None
     run_forecasts = args.forecast_version is not None
 
