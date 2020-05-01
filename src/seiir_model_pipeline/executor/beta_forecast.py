@@ -6,8 +6,11 @@ from seiir_model.model_runner import ModelRunner
 
 from seiir_model_pipeline.core.versioner import args_to_directories
 from seiir_model_pipeline.core.versioner import load_forecast_settings, load_regression_settings
+from seiir_model_pipeline.core.versioner import PEAK_DATE_FILE, PEAK_DATE_COL_DICT, COVARIATE_COL_DICT, OBSERVED_DICT
 from seiir_model_pipeline.core.data import load_covariates
 from seiir_model_pipeline.core.data import load_mr_coefficients
+from seiir_model_pipeline.core.utils import convert_to_covmodel
+from seiir_model_pipeline.core.versioner import OBSERVED_DICT
 
 log = logging.getLogger(__name__)
 
@@ -34,10 +37,24 @@ def main():
     directories = args_to_directories(args)
     regression_settings = load_regression_settings(directories)
     forecast_settings = load_forecast_settings(directories)
-
-    coefficients = load_mr_coefficients(directories)
-    covariate_forecasts = load_covariates(
-        directories, covariate_names=list(regression_settings.covariates.keys())
+    covmodel_set = convert_to_covmodel(regression_settings.covariates)
+    covariate_data = load_covariates(
+        directories,
+        location_id=args.location_id,
+        col_loc_id=COVARIATE_COL_DICT['COL_LOC_ID'],
+        col_observed=COVARIATE_COL_DICT['COL_OBSERVED'],
+        forecasted=OBSERVED_DICT['forecasted']
+    )
+    mr = ModelRunner()
+    regression_fit = load_mr_coefficients(
+        directories=directories,
+        location_id=args.location_id,
+        draw_id=args.draw_id
+    )
+    mr.predict_beta_forward(
+        covmodel_set=covmodel_set,
+        df_cov=covariate_data,
+        col_t=COVARIATE_COL_DICT['COL_DATE'],
+        col_group=COVARIATE_COL_DICT['COL_LOC_ID']
     )
 
-    mr = ModelRunner()

@@ -1,9 +1,9 @@
 import pandas as pd
-import os
 import numpy as np
 from typing import List
 
 from seiir_model_pipeline.core.versioner import FileDoesNotExist
+from seiir_model_pipeline.core.versioner import COVARIATE_COL_DICT
 
 
 def write_missing_infection_locations_file(directories, draw_id, location_ids):
@@ -91,11 +91,9 @@ def cache_covariates(directories, covariate_names, col_loc_id, col_date, col_obs
 
 
 def load_mr_coefficients(directories, draw_id, location_id):
-    return pd.DataFrame()
-
-
-def save_mr_coefficients(directories):
-    pass
+    df = pd.read_csv(directories.get_draw_coefficient_file(draw_id))
+    df = df.loc[COVARIATE_COL_DICT['COL_LOC_ID'] == location_id].copy()
+    return df
 
 
 def load_peaked_dates(filepath, col_loc_id, col_date):
