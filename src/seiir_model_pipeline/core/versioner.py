@@ -184,7 +184,7 @@ class Directories:
 
     @staticmethod
     def get_location_metadata_file(location_set_version_id):
-        return LOCATION_METADATA_FILE_PATTERN.format(lsvid=location_set_version_id)
+        return METADATA_DIR / LOCATION_METADATA_FILE_PATTERN.format(lsvid=location_set_version_id)
 
 
 class VersionAlreadyExists(RuntimeError):
