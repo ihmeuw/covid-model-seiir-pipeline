@@ -257,6 +257,7 @@ class RegressionVersion(Version):
 
     def create_version(self):
         _available_version(REGRESSION_OUTPUT / self.version_name)
+        os.makedirs(REGRESSION_OUTPUT / self.version_name)
         self._settings_to_json()
 
 
@@ -292,4 +293,5 @@ class ForecastVersion(Version):
 
     def create_version(self):
         _available_version(FORECAST_OUTPUT / self.version_name)
+        os.makedirs(FORECAST_OUTPUT / self.version_name)
         self._settings_to_json()
