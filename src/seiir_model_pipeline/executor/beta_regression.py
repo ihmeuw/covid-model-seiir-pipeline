@@ -69,7 +69,7 @@ def main():
     )
     mr = ModelRunner()
     mr.fit_beta_ode(beta_fit_inputs)
-    mr.save_beta_ode_fit(
+    mr.save_beta_ode_result(
         fit_file=directories.draw_ode_fit_file(args.draw_id),
         params_file=directories.draw_ode_param_file(args.draw_id)
     )
