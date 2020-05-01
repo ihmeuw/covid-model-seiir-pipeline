@@ -20,3 +20,8 @@ def load_mr_coefficients(directories, draw_id, location_id):
 
 def save_mr_coefficients(directories):
     pass
+
+
+def load_peaked_dates(filepath, col_loc_id, col_date):
+    df = pd.read_csv(filepath)
+    return dict(zip(df[col_loc_id], df[col_date]))

@@ -25,6 +25,11 @@ INFECTION_FILE_PATTERN = 'draw{draw_id}_prepped_deaths_and_cases_all_age.csv'
 PEAK_DATE_FILE = '/ihme/scratch/projects/covid/seir_research_test_run/death_model_peaks.csv'
 COVARIATE_FILE = 'fake_inputs.csv'
 
+PEAK_DATE_COL_DICT = {
+    'COL_LOC_ID': 'location_id',
+    'COL_DATE': 'peaked_date'
+}
+
 INFECTION_COL_DICT = {
     'COL_DATE': 'date',
     'COL_CASES': 'cases',
@@ -153,6 +158,12 @@ class Directories:
         ]:
             if directory is not None:
                 os.makedirs(str(directory), exist_ok=True)
+
+    def draw_ode_fit_file(self, draw_id):
+        return self.regression_output_dir / f'fit_draw_{draw_id}.csv'
+
+    def draw_ode_param_file(self, draw_id):
+        return self.regression_output_dir / f'params_draw_{draw_id}.csv'
 
     def location_draw_forecast_file(self, location_id, draw_id):
         os.makedirs(self.forecast_output_dir / str(location_id), exist_ok=True)

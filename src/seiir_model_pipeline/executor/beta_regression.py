@@ -4,13 +4,13 @@ import numpy as np
 
 from seiir_model.model_runner import ModelRunner
 
-from seiir_model_pipeline.core.file_master import args_to_directories
+from seiir_model_pipeline.core.file_master import args_to_directories, PEAK_DATE_FILE, PEAK_DATE_COL_DICT
 from seiir_model_pipeline.core.data import load_all_location_data
 from seiir_model_pipeline.core.versioner import load_regression_settings
-from seiir_model_pipeline.core.file_master import INFECTION_COL_DICT
-from seiir_model_pipeline.core.utils import get_peaked_dates_from_file, sample_params_from_bounds
-from seiir_model_pipeline.core.utils import get_cov_model_set_from_settings
-from seiir_model_pipeline.core.utils import load_covariates
+from seiir_model_pipeline.core.utils import convert_to_covmodel
+from seiir_model_pipeline.core.data import load_covariates, load_peaked_dates
+from seiir_model_pipeline.core.utils import get_locations
+from seiir_model_pipeline.core.utils import process_ode_process_input
 
 log = logging.getLogger(__name__)
 
@@ -38,39 +38,40 @@ def main():
     settings = load_regression_settings(directories)
 
     # Load data
-    location_data = load_all_location_data(directories, location_ids=settings['location_ids'])
-    peaked_dates = get_peaked_dates_from_file()
-    covariate_data = load_observed_covariates(directories, location_ids=settings['location_ids'])
+    location_ids = get_locations(
+        location_set_version_id=settings.location_set_version_id
+    )
+    location_data = load_all_location_data(
+        directories=directories, location_ids=location_ids
+    )
+    peak_data = load_peaked_dates(
+        filepath=PEAK_DATE_FILE,
+        col_loc_id=PEAK_DATE_COL_DICT['COL_LOC_ID'],
+        col_date=PEAK_DATE_COL_DICT['COL_DATE']
+    )
+    covariate_data = load_covariates(
+        directories, covariate_names=list(settings.covariates.keys()),
+        location_id=location_ids, forecasted=False
+    )
+    cov_model_set = convert_to_covmodel(settings.covariates)
 
-    # Sample the alphas, sigma, gamma1, gamma2
-    np.seed(args.draw_id)
-    alpha = sample_params_from_bounds(settings['alpha'])
-    sigma = sample_params_from_bounds(settings['beta'])
-    gamma1 = sample_params_from_bounds(settings['gamma1'])
-    gamma2 = sample_params_from_bounds(settings['gamma2'])
-
-    cov_model_set = get_cov_model_set_from_settings(settings['covariates'])
-
+    np.random.seed(args.draw_id)
+    beta_fit_inputs = process_ode_process_input(
+        settings=settings,
+        location_data=location_data,
+        peak_data=peak_data
+    )
     mr = ModelRunner()
-    mr.fit_betas(
-        column_dict=INFECTION_COL_DICT,
-        df=location_data,
-        alpha=settings['alpha'],
-        sigma=settings['sigma'],
-        gamma1=settings['gamma1'],
-        gamma2=settings['gamma2'],
-        solver_dt=settings['solver_dt'],
-        spline_options={
-            'knots': settings['knots'],
-            'degree': settings['degree']
-        },
-        peaked_dates=peaked_dates
+    mr.fit_beta_ode(beta_fit_inputs)
+    mr.save_beta_ode_fit(
+        fit_filename=directories.draw_ode_fit_file(args.draw_id),
+        params_filename=directories.draw_ode_param_file(args.draw_id)
     )
-    mr.prep_for_regression()
-    mr.regress(
-        cov_model_set=cov_model_set
-    )
-    coefficients = mr.get_regression_outputs(directories)
+    # mr.prep_for_regression()
+    # mr.regress(
+    #     cov_model_set=cov_model_set
+    # )
+    # coefficients = mr.get_regression_outputs(directories)
 
 
 if __name__ == '__main__':
