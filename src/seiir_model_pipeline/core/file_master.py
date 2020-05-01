@@ -9,21 +9,16 @@ BASE_DIR = Path('/ihme')
 
 # Dependency directories
 INPUT_DIR = BASE_DIR / 'covid-19/seir-inputs'
-COVARIATE_DIR = BASE_DIR / 'fake/covariate/input/dir'
+COVARIATE_DIR = BASE_DIR / 'covid-19/seir-covariates'
 
 # Output directories
-DIAGNOSTIC_DIR = BASE_DIR / 'fake/diagnostics/dir'
-DRAW_DIR = BASE_DIR / 'fake/draw/dir'
-OUTPUT_DIR = BASE_DIR / 'fake/output/dir'
-
+OUTPUT_DIR = BASE_DIR / 'scratch/users/mnorwood/covid'
 REGRESSION_OUTPUT = OUTPUT_DIR / 'regression'
 FORECAST_OUTPUT = OUTPUT_DIR / 'forecast'
 
-LOG_DIR = BASE_DIR / 'fake/log/dir'
-
 INFECTION_FILE_PATTERN = 'draw{draw_id}_prepped_deaths_and_cases_all_age.csv'
 PEAK_DATE_FILE = '/ihme/scratch/projects/covid/seir_research_test_run/death_model_peaks.csv'
-COVARIATE_FILE = 'fake_inputs.csv'
+COVARIATE_FILE = 'temperature.csv'
 
 PEAK_DATE_COL_DICT = {
     'COL_LOC_ID': 'location_id',
@@ -35,6 +30,12 @@ INFECTION_COL_DICT = {
     'COL_CASES': 'cases',
     'COL_POP': 'pop',
     'COL_LOC_ID': 'loc_id'
+}
+
+COVARIATE_COL_DICT = {
+    'COL_DATE': 'date',
+    'COL_OBSERVED': 'observed',
+    'COL_LOC_ID': 'location_id'
 }
 
 
@@ -147,7 +148,7 @@ class Directories:
             self.forecast_draw_dir = self.forecast_output_dir / 'location_draws'
             self.forecast_diagnostic_dir = self.forecast_output_dir / 'diagnostics'
 
-        self.log_dir = BASE_DIR / 'logs'
+        self.log_dir = OUTPUT_DIR / 'logs'
 
     def make_dirs(self):
         for directory in [

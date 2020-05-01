@@ -4,7 +4,8 @@ import numpy as np
 
 from seiir_model.model_runner import ModelRunner
 
-from seiir_model_pipeline.core.file_master import args_to_directories, PEAK_DATE_FILE, PEAK_DATE_COL_DICT
+from seiir_model_pipeline.core.file_master import args_to_directories
+from seiir_model_pipeline.core.file_master import PEAK_DATE_FILE, PEAK_DATE_COL_DICT, COVARIATE_COL_DICT
 from seiir_model_pipeline.core.data import load_all_location_data
 from seiir_model_pipeline.core.versioner import load_regression_settings
 from seiir_model_pipeline.core.utils import convert_to_covmodel
@@ -51,7 +52,10 @@ def main():
     )
     covariate_data = load_covariates(
         directories, covariate_names=list(settings.covariates.keys()),
-        location_id=location_ids, forecasted=False
+        location_id=location_ids, forecasted=False,
+        col_loc_id=COVARIATE_COL_DICT['COL_LOC_ID'],
+        col_date=COVARIATE_COL_DICT['COL_DATE'],
+        col_observed=COVARIATE_COL_DICT['COL_OBSERVED']
     )
     cov_model_set = convert_to_covmodel(settings.covariates)
 
