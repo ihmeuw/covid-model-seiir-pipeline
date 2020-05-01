@@ -103,4 +103,9 @@ def main():
         betas=betas,
         dt=regression_settings.solver_dt
     )
-
+    forecasted_components.to_csv(
+        directories.location_draw_forecast_file(
+            location_id=args.location_id,
+            draw_id=args.draw_id
+        )
+    )
