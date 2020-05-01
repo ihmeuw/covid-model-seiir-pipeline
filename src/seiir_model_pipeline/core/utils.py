@@ -14,9 +14,11 @@ COL_T = 'days'
 COL_BETA = 'beta'
 COL_GROUP = 'loc_id'
 
+LOCATION_SET_ID = 111
+
 
 def get_locations(location_set_version_id):
-    df = get_location_metadata(location_set_version_id=location_set_version_id)
+    df = get_location_metadata(location_set_version_id=location_set_version_id, location_set_id=LOCATION_SET_ID)
     return df.location_id.unique()
 
 
@@ -28,12 +30,13 @@ def get_peaked_dates_from_file():
 def process_ode_process_input(settings, location_data, peak_data):
     """Convert to ODEProcessInput.
     """
+    import pdb; pdb.set_trace()
     return ODEProcessInput(
         df_dict=location_data,
         col_date=INFECTION_COL_DICT['COL_DATE'],
         col_cases=INFECTION_COL_DICT['COL_CASES'],
         col_pop=INFECTION_COL_DICT['COL_POP'],
-        col_loc_id=INFECTION_COL_DICT['loc_id'],
+        col_loc_id=INFECTION_COL_DICT['COL_LOC_ID'],
         alpha=tuple(settings['alpha']),
         sigma=tuple(settings['sigma']),
         gamma1=tuple(settings['gamma1']),

@@ -16,13 +16,12 @@ OUTPUT_DIR = BASE_DIR / 'scratch/users/mnorwood/covid'
 REGRESSION_OUTPUT = OUTPUT_DIR / 'regression'
 FORECAST_OUTPUT = OUTPUT_DIR / 'forecast'
 
-INFECTION_FILE_PATTERN = 'draw{draw_id}_prepped_deaths_and_cases_all_age.csv'
+INFECTION_FILE_PATTERN = 'draw{draw_id:04}_prepped_deaths_and_cases_all_age.csv'
 PEAK_DATE_FILE = '/ihme/scratch/projects/covid/seir_research_test_run/death_model_peaks.csv'
-COVARIATE_FILE = 'temperature.csv'
 
 PEAK_DATE_COL_DICT = {
     'COL_LOC_ID': 'location_id',
-    'COL_DATE': 'peaked_date'
+    'COL_DATE': 'peak_date'
 }
 
 INFECTION_COL_DICT = {
@@ -127,18 +126,28 @@ class Directories:
 
         if rv is not None:
             self.infection_dir = INPUT_DIR / rv.infection_version
-            self.covariate_dir = BASE_DIR / rv.covariate_version
+            self.covariate_dir = COVARIATE_DIR / rv.covariate_version
 
-            self.regression_output_dir = BASE_DIR / REGRESSION_OUTPUT / rv.version_name
+            self.regression_output_dir = REGRESSION_OUTPUT / rv.version_name
 
             self.regression_coefficient_dir = self.regression_output_dir / 'coefficients'
             self.regression_diagnostic_dir = self.regression_output_dir / 'diagnostics'
+        else:
+            self.infection_dir = None
+            self.covariate_dir = None
+            self.regression_output_dir = None
+            self.regression_coefficient_dir = None
+            self.regression_diagnostic_dir = None
 
         if fv is not None:
-            self.forecast_output_dir = BASE_DIR / FORECAST_OUTPUT / fv.version_name
+            self.forecast_output_dir = FORECAST_OUTPUT / fv.version_name
 
             self.forecast_draw_dir = self.forecast_output_dir / 'location_draws'
             self.forecast_diagnostic_dir = self.forecast_output_dir / 'diagnostics'
+        else:
+            self.forecast_output_dir = None
+            self.forecast_draw_dir = None
+            self.forecast_diagnostic_dir = None
 
         self.log_dir = OUTPUT_DIR / 'logs'
 
@@ -166,8 +175,8 @@ class Directories:
         folder = _get_infection_folder_from_location_id(location_id, self.infection_dir)
         return self.infection_dir / folder / INFECTION_FILE_PATTERN.format(draw_id=draw_id)
 
-    def get_covariate_file(self):
-        return self.covariate_dir / COVARIATE_FILE
+    def get_covariate_file(self, covariate_name):
+        return self.covariate_dir / f'{covariate_name}.csv'
 
 
 class VersionAlreadyExists(RuntimeError):
@@ -243,7 +252,7 @@ class RegressionVersion(Version):
     day_shift: int
 
     # Regression Arguments
-    covariates: Dict[str, Dict[str, Union[bool, np.ndarray, float]]]
+    covariates: Dict[str, Dict[str, Union[bool, List, float]]]
 
     def __post_init__(self):
         pass

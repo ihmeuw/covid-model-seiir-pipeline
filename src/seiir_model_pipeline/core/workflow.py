@@ -6,7 +6,7 @@ from jobmon.client.swarm.workflow.workflow import Workflow
 
 log = logging.getLogger(__name__)
 
-PROJECT = 'proj_fake_project'
+PROJECT = 'proj_covid'
 
 
 class SEIIRWorkFlow(Workflow):
