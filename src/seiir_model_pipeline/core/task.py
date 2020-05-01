@@ -10,24 +10,42 @@ ExecParams = ExecutorParameters(
 )
 
 
-class DrawTask(BashTask):
-    """
-    A draw task, subclass of jobmon BashTask
-    """
-    def __init__(self, draw_id, directories, output_version, warm_start):
+class RegressionTask(BashTask):
+    def __init__(self, draw_id, regression_version, **kwargs):
 
         self.draw_id = draw_id
 
         command = (
-            "run_one_draw " +
+            "beta_regression " +
             f"--draw-id {self.draw_id} " +
-            f"--output-version {output_version} "
+            f"--regression-version {regression_version} "
         )
-        if warm_start:
-            command += "--warm-start"
 
         super().__init__(
             command=command,
-            name=f'seiir_model_run_{directories.output_version}_{draw_id}',
-            executor_parameters=ExecParams
+            name=f'seiir_regression_fit_{draw_id}',
+            executor_parameters=ExecParams,
+            **kwargs
+        )
+
+
+class ForecastTask(BashTask):
+    def __init__(self, location_id, draw_id, regression_version, forecast_version, **kwargs):
+
+        self.location_id = location_id
+        self.draw_id = draw_id
+
+        command = (
+            "beta_forecast " +
+            f"--location-id {self.location_id} " +
+            f"--draw-id {self.draw_id} " +
+            f"--regression-version {regression_version} " +
+            f"--forecast-version {forecast_version} "
+        )
+
+        super().__init__(
+            command=command,
+            name=f'seiir_forecast_location_{location_id}',
+            executor_parameters=ExecParams,
+            **kwargs
         )

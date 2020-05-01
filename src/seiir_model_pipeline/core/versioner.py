@@ -4,7 +4,9 @@ import os
 import json
 import numpy as np
 
-from seiir_model_pipeline.core.file_master import Directories, OUTPUT_DIR
+from seiir_model_pipeline.core.file_master import _get_regression_settings_file
+from seiir_model_pipeline.core.file_master import _get_forecast_settings_file
+from seiir_model_pipeline.core.file_master import REGRESSION_OUTPUT, FORECAST_OUTPUT
 
 
 class VersionAlreadyExists(RuntimeError):
@@ -15,46 +17,56 @@ class VersionDoesNotExist(RuntimeError):
     pass
 
 
-def _available_output_version(output_version):
-    if os.path.exists(OUTPUT_DIR / output_version):
+def _available_version(version):
+    if os.path.exists(version):
         raise VersionAlreadyExists
 
 
-def _check_output_version_exists(output_version):
-    if not os.path.exists(OUTPUT_DIR / output_version):
+def _confirm_version_exists(version):
+    if not os.path.exists(version):
         raise VersionDoesNotExist
 
 
-def load_settings(directories):
-    with open(directories.settings_file) as f:
+def load_regression_settings(regression_version):
+    file = _get_regression_settings_file(regression_version)
+    with open(file, 'r') as f:
         settings = json.load(f)
-    return settings
+    return RegressionVersion(**settings)
+
+
+def load_forecast_settings(forecast_version):
+    file = _get_forecast_settings_file(forecast_version)
+    with open(file, 'r') as f:
+        settings = json.load(f)
+    return ForecastVersion(**settings)
 
 
 @dataclass
-class ModelVersion:
+class Version:
     """
-
     - `version_name (str)`: the name of the output version
-    - `infection_version (str)`: the version of the infection inputs
-    - `covariate_version (str)`: the version of the covariate inputs
-    - `covariates (List[str])`: list of covariate names to use in regression
-    - `initial_conditions (Dict[str: float])`: initial conditions for the ODE;
-        requires keys 'S', 'E', 'I1', '12', and 'R'
-    - `solver_dt (float)`: step size for the ODE solver
-
-    - `covariates (Dict[str: Dict]):
-        - Elements of the inner dict:
-            - "use_re": (bool)
-            - "gprior": (np.array)
-            - "bounds": (np.array)
-            - "re_var": (float)
     """
 
     version_name: str
 
+
+@dataclass
+class RegressionVersion(Version):
+    """
+    - `infection_version (str)`: the version of the infection inputs
+    - `covariate_version (str)`: the version of the covariate inputs
+    - `n_draws (int)`: number of draws
+    - `covariates (Dict[str: Dict]): elements of the inner dict:
+        - "use_re": (bool)
+        - "gprior": (np.array)
+        - "bounds": (np.array)
+        - "re_var": (float)
+    """
+
     infection_version: str
     covariate_version: str
+    n_draws: int
+    location_set_version_id: int
 
     # Spline Arguments
     degree: int
@@ -63,6 +75,34 @@ class ModelVersion:
 
     # Regression Arguments
     covariates: Dict[str: Dict[str: bool, str: np.array, str: np.array, str: float]]
+
+    def __post_init__(self):
+        pass
+
+    def _settings_to_json(self):
+        settings = asdict(self)
+        _confirm_version_exists(REGRESSION_OUTPUT / self.version_name)
+        file = _get_regression_settings_file(self.version_name)
+        with open(file, "w") as f:
+            json.dump(settings, f)
+
+    def create_version(self):
+        _available_version(REGRESSION_OUTPUT / self.version_name)
+        self._settings_to_json()
+
+
+@dataclass
+class ForecastVersion(Version):
+    """
+    - `regression_version (str)`: the regression version to read from
+    - `covariate_scenario_version (str)`: the covariate scenario version to pull
+    - `initial_conditions (Dict[str: float])`: initial conditions for the ODE;
+        requires keys 'S', 'E', 'I1', '12', and 'R'
+    - `solver_dt (float)`: step size for the ODE solver
+    """
+
+    regression_version: str
+    # covariate_scenario_ids: List[int]
 
     # Optimization Arguments
     alpha: List[float] = field(default=[0.95, 0.95])
@@ -74,16 +114,13 @@ class ModelVersion:
     def __post_init__(self):
         pass
 
-    def create_version(self):
-        directories = Directories(
-            infection_version=self.infection_version,
-            covariate_version=self.covariate_version,
-            output_version=self.version_name
-        )
-        _available_output_version(self.version_name)
-        self._settings_to_json(directories)
-
-    def _settings_to_json(self, directories):
+    def _settings_to_json(self):
         settings = asdict(self)
-        with open(directories.settings_file, "w") as f:
+        _confirm_version_exists(FORECAST_OUTPUT / self.version_name)
+        file = _get_regression_settings_file(self.version_name)
+        with open(file, "w") as f:
             json.dump(settings, f)
+
+    def create_version(self):
+        _available_version(FORECAST_OUTPUT / self.version_name)
+        self._settings_to_json()

@@ -3,6 +3,8 @@ from pathlib import Path
 import numpy as np
 import os
 
+from seiir_model_pipeline.core.versioner import load_forecast_settings, load_regression_settings
+
 BASE_DIR = Path('/ihme')
 
 # Dependency directories
@@ -14,10 +16,14 @@ DIAGNOSTIC_DIR = BASE_DIR / 'fake/diagnostics/dir'
 DRAW_DIR = BASE_DIR / 'fake/draw/dir'
 OUTPUT_DIR = BASE_DIR / 'fake/output/dir'
 
+REGRESSION_OUTPUT = OUTPUT_DIR / 'regression'
+FORECAST_OUTPUT = OUTPUT_DIR / 'forecast'
+
 LOG_DIR = BASE_DIR / 'fake/log/dir'
 
 INFECTION_FILE_PATTERN = 'draw{draw_id}_prepped_deaths_and_cases_all_age.csv'
 PEAK_DATE_FILE = '/ihme/scratch/projects/covid/seir_research_test_run/death_model_peaks.csv'
+COVARIATE_FILE = 'fake_inputs.csv'
 
 INFECTION_COL_DICT = {
     'COL_DATE': 'date',
@@ -25,6 +31,14 @@ INFECTION_COL_DICT = {
     'COL_POP': 'pop',
     'COL_LOC_ID': 'loc_id'
 }
+
+
+def _get_regression_settings_file(regression_version):
+    return REGRESSION_OUTPUT / str(regression_version) / 'settings.json'
+
+
+def _get_forecast_settings_file(forecast_version):
+    return FORECAST_OUTPUT / str(forecast_version) / 'settings.json'
 
 
 def _get_infection_folder_from_location_id(location_id, input_dir):
@@ -80,9 +94,8 @@ def args_to_directories(args):
     :return: (Directories) object
     """
     return Directories(
-        infection_version=args.infection_version,
-        covariate_version=args.covariate_version,
-        output_version=args.output_version
+        regression_version=args.regression_version,
+        forecast_version=args.forecast_version
     )
 
 
@@ -96,52 +109,58 @@ class Directories:
     - `output_version (str)`: version of outputs to store
     """
 
-    infection_version: str
-    covariate_version: str
-    output_version: str
+    regression_version: str = None
+    forecast_version: str = None
 
     def __post_init__(self):
-        self.infection_dir = INPUT_DIR / self.infection_version
-        self.covariate_dir = BASE_DIR / self.covariate_version
-        self.output_dir = BASE_DIR / self.output_dir
-        self.log_dir = LOG_DIR / self.output_version
+        rv = None
+        fv = None
 
-        self.draw_dir = self.output_dir / 'draws'
-        self.scenario_draw_dir = self.draw_dir / 'location_draws'
-        self.scenario_dir = self.draw_dir / 'location_scenario_draws'
-        self.diagnostic_dir = self.output_dir / 'diagnostics'
+        if self.regression_version is None:
+            if self.forecast_version is None:
+                pass
+            else:
+                fv = load_forecast_settings(self.forecast_version)
+                rv = load_regression_settings(fv.regression_version)
+        else:
+            rv = load_regression_settings(self.regression_version)
+            if self.forecast_version is not None:
+                fv = load_forecast_settings(self.forecast_version)
 
-        self.error_dir = self.log_dir / 'errors'
-        self.output_dir = self.log_dir / 'output'
+        if rv is not None:
+            self.infection_dir = INPUT_DIR / rv.infection_version
+            self.covariate_dir = BASE_DIR / rv.covariate_version
 
-        self.settings_file = self.output_dir / 'settings.json'
+            self.regression_output_dir = BASE_DIR / REGRESSION_OUTPUT / rv.version_name
+
+            self.regression_coefficient_dir = self.regression_output_dir / 'coefficients'
+            self.regression_diagnostic_dir = self.regression_output_dir / 'diagnostics'
+
+        if fv is not None:
+            self.forecast_output_dir = BASE_DIR / FORECAST_OUTPUT / fv.version_name
+
+            self.forecast_draw_dir = self.forecast_output_dir / 'location_draws'
+            self.forecast_diagnostic_dir = self.forecast_output_dir / 'diagnostics'
+
+        self.log_dir = BASE_DIR / 'logs'
 
     def make_dirs(self):
         for directory in [
-            self.draw_dir, self.scenario_draw_dir,
-            self.scenario_dir, self.diagnostic_dir,
-            self.error_dir, self.output_dir
+            self.regression_output_dir, self.forecast_output_dir,
+            self.regression_coefficient_dir, self.regression_diagnostic_dir,
+            self.forecast_draw_dir, self.forecast_diagnostic_dir,
+            self.log_dir
         ]:
-            os.makedirs(directory, exist_ok=True)
+            if directory is not None:
+                os.makedirs(str(directory), exist_ok=True)
 
-    def make_location_directories(self, location_id):
-        for directory in [
-            self.scenario_draw_dir, self.scenario_dir, self.diagnostic_dir
-        ]:
-            os.makedirs(directory / str(location_id), exist_ok=True)
+    def location_draw_forecast_file(self, location_id, draw_id):
+        os.makedirs(self.forecast_output_dir / str(location_id), exist_ok=True)
+        return self.forecast_output_dir / str(location_id) / f'draw_{draw_id}.csv'
 
     def get_infection_file(self, location_id, draw_id):
         folder = _get_infection_folder_from_location_id(location_id, self.infection_dir)
         return self.infection_dir / folder / INFECTION_FILE_PATTERN.format(draw_id=draw_id)
 
-    def get_draw_scenario_output_file(self, location_id, draw_id, scenario_id):
-        return _get_loc_scenario_draw_file(
-            location_id=location_id, draw_id=draw_id, scenario_id=scenario_id,
-            directory=self.scenario_draw_dir
-        )
-
-    def get_scenario_output_file(self, location_id, scenario_id):
-        return _get_loc_scenario_file(
-            location_id=location_id, scenario_id=scenario_id,
-            directory=self.scenario_dir
-        )
+    def get_covariate_file(self):
+        return self.covariate_dir / COVARIATE_FILE
