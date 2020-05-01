@@ -16,6 +16,11 @@ COL_DATE = 'date'
 LOCATION_SET_ID = 111
 
 
+def date_to_days(date):
+    date = pd.to_datetime(date)
+    return np.array((date - date.min()).days)
+
+
 def get_locations(location_metadata_file):
     df = pd.read_csv(location_metadata_file)
     return df.location_id.unique().tolist()

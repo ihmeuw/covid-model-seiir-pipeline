@@ -13,6 +13,7 @@ from seiir_model_pipeline.core.data import load_mr_coefficients
 from seiir_model_pipeline.core.utils import convert_to_covmodel
 from seiir_model_pipeline.core.versioner import OBSERVED_DICT
 from seiir_model_pipeline.core.utils import get_ode_init_cond
+from seiir_model_pipeline.core.utils import date_to_days
 
 log = logging.getLogger(__name__)
 
@@ -48,8 +49,7 @@ def main():
         directories,
         location_id=[args.location_id],
         col_loc_id=COVARIATE_COL_DICT['COL_LOC_ID'],
-        col_observed=COVARIATE_COL_DICT['COL_OBSERVED'],
-        forecasted=OBSERVED_DICT['forecasted']
+        col_observed=COVARIATE_COL_DICT['COL_OBSERVED']
     )
     regression_fit = load_mr_coefficients(
         directories=directories,
@@ -62,6 +62,9 @@ def main():
         col_t=COVARIATE_COL_DICT['COL_DATE'],
         col_group=COVARIATE_COL_DICT['COL_LOC_ID']
     )
+    betas = forecasts.beta_pred.values
+    days = forecasts[COVARIATE_COL_DICT['COL_DATE']].values
+    times = date_to_days(days)
 
     # Get all inputs for the ODE
     beta_fit = load_beta_fit(
@@ -82,7 +85,6 @@ def main():
         gamma2=beta_params['gamma2'],
         N=None
     )
-    times = None
     mr.forecast(
         model_specs=model_specs,
         init_cond=None,
