@@ -98,49 +98,41 @@ def get_df(file):
         return pd.read_csv(file)
 
 
-def get_ode_init_cond_location(beta_ode_fit, current_date, location_id, col_components=None):
-    df = get_ode_init_cond(beta_ode_fit=beta_ode_fit,
-                           current_date=current_date,
-                           location_id=[location_id],
-                           col_components=col_components)
-    assert len(df) == 1
-    dictionary = df.to_dict(orient='columns')
-    components = np.array([dictionary[comp] for comp in SEIIR_COMPARTMENTS])
-    return components.ravel(), np.array(dictionary['N']).ravel()[0]
-
-
-def get_ode_init_cond(beta_ode_fit, current_date,
-                      location_id=None,
+def get_ode_init_cond(location_id, beta_ode_fit, current_date,
                       col_components=None):
     """Get the initial condition for the ODE.
 
     Args:
+        location_id (init):
+            Location ids.
         beta_ode_fit (str | pd.DataFrame):
             The result for the beta_ode_fit, either file or path to file.
-        current_date (str | pd.DataFrame):
+        current_date (str | np.datetime64):
             Current date for each location we try to predict off. Either file
             or path to file.
-        location_id (list{int} | None, optional):
-            Potential location ids.
+
 
     Returns:
          pd.DataFrame: Initial conditions by location.
     """
     # process input
     beta_ode_fit = get_df(beta_ode_fit)
-    current_date = get_df(current_date)
+    assert (COL_GROUP in beta_ode_fit) and (COL_GROUP in current_date)
+    assert (COL_DATE in beta_ode_fit) and (COL_DATE in current_date)
+    beta_ode_fit = beta_ode_fit[beta_ode_fit[COL_GROUP] == location_id].copy()
+
+    if isinstance(current_date, str):
+        current_date = np.datetime64(current_date)
+    else:
+        assert isinstance(current_date, np.datetime64)
+
+    dt = np.abs((pd.to_datetime(beta_ode_fit[COL_DATE]) - current_date).dt.days)
+    beta_ode_fit = beta_ode_fit.iloc[np.argmin(dt)]
+
     if col_components is None:
         col_components = SEIIR_COMPARTMENTS
     else:
         assert isinstance(col_components, list)
     assert all([c in beta_ode_fit for c in col_components])
-    assert (COL_GROUP in beta_ode_fit) and (COL_GROUP in current_date)
-    assert (COL_DATE in beta_ode_fit) and (COL_DATE in current_date)
 
-    beta_ode_fit = beta_ode_fit[[COL_GROUP, COL_DATE] + col_components].copy()
-    current_date = current_date[[COL_GROUP, COL_DATE]].copy()
-    df_result = pd.merge(current_date, beta_ode_fit, how='inner')
-    if location_id is not None:
-        df_result = df_result[df_result.COL_GROUP.isin(location_id)].copy()
-    df_result['N'] = np.floor(np.sum(df_result[col_components].values, axis=1))
-    return df_result
+    return beta_ode_fit[col_components].values.ravel()
