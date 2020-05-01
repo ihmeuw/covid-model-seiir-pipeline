@@ -2,6 +2,7 @@ from argparse import ArgumentParser
 import logging
 from typing import List
 import pandas as pd
+import numpy as np
 
 from seiir_model.model_runner import ModelRunner
 from seiir_model.ode_forecasting.ode_runner import SiierdModelSpecs
@@ -41,7 +42,6 @@ def main():
     directories = args_to_directories(args)
     regression_settings = load_regression_settings(args.regression_version)
     forecast_settings = load_forecast_settings(args.forecast_version)
-
     mr = ModelRunner()
 
     # Get all inputs for the beta forecasting
@@ -63,7 +63,7 @@ def main():
     )
 
     beta_fit_date = pd.to_datetime(beta_fit[INFECTION_COL_DICT['COL_DATE']])
-    CURRENT_DATE = beta_fit[beta_fit_date == beta_fit_date.max()]
+    CURRENT_DATE = beta_fit[beta_fit_date == beta_fit_date.max()][INFECTION_COL_DICT['COL_DATE']].iloc[0]
     covariate_date = pd.to_datetime(covariate_data[COVARIATE_COL_DICT['COL_DATE']])
     covariate_data = covariate_data.loc[covariate_date >= beta_fit_date.max()].copy()
 
@@ -83,19 +83,20 @@ def main():
     days = forecasts[COVARIATE_COL_DICT['COL_DATE']].values
     times = date_to_days(days)
 
-    init_cond, N = get_ode_init_cond(
+    init_cond = get_ode_init_cond(
         beta_ode_fit=beta_fit,
         current_date=CURRENT_DATE,
         location_id=args.location_id
-    )
+    ).astype(float)
+    N = np.sum(init_cond)
     model_specs = SiierdModelSpecs(
         alpha=beta_params['alpha'],
-        sigma=beta_params['beta'],
+        sigma=beta_params['sigma'],
         gamma1=beta_params['gamma1'],
         gamma2=beta_params['gamma2'],
         N=N
     )
-    mr.forecast(
+    forecasted_components = mr.forecast(
         model_specs=model_specs,
         init_cond=init_cond,
         times=times,
