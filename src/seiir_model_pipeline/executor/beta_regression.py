@@ -30,7 +30,6 @@ def get_args():
 
 def main():
     args = get_args()
-
     log.info("Initiating SEIIR beta regression.")
     log.info(f"Running for draw {args.draw_id}.")
     log.info(f"This will be regression version {args.regression_version}.")

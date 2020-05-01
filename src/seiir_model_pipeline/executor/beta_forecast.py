@@ -31,14 +31,14 @@ def get_args():
 
 def main():
     args = get_args()
-
+    
     log.info("Initiating SEIIR beta forecasting.")
     log.info("Running for location {args.location_id}, scenario {args.scenario_id}.")
 
     # Load metadata
     directories = args_to_directories(args)
-    regression_settings = load_regression_settings(directories)
-    forecast_settings = load_forecast_settings(directories)
+    regression_settings = load_regression_settings(args.regression_version)
+    forecast_settings = load_forecast_settings(args.forecast_version)
 
     mr = ModelRunner()
 
@@ -46,7 +46,7 @@ def main():
     covmodel_set = convert_to_covmodel(regression_settings.covariates)
     covariate_data = load_covariates(
         directories,
-        location_id=args.location_id,
+        location_id=[args.location_id],
         col_loc_id=COVARIATE_COL_DICT['COL_LOC_ID'],
         col_observed=COVARIATE_COL_DICT['COL_OBSERVED'],
         forecasted=OBSERVED_DICT['forecasted']
@@ -59,6 +59,7 @@ def main():
     forecasts = mr.predict_beta_forward(
         covmodel_set=covmodel_set,
         df_cov=covariate_data,
+        df_cov_coef=regression_fit,
         col_t=COVARIATE_COL_DICT['COL_DATE'],
         col_group=COVARIATE_COL_DICT['COL_LOC_ID']
     )
@@ -77,14 +78,17 @@ def main():
     )
     model_specs = SiierdModelSpecs(
         alpha=beta_params['alpha'],
-        sigma=beta_params['beta']
+        sigma=beta_params['beta'],
+        gamma1=beta_params['gamma1'],
+        gamma2=beta_params['gamma2'],
+        N=None
     )
     times = None
     mr.forecast(
         model_specs=model_specs,
         init_cond=None,
         times=times,
-        betas=forecasts,
+        betas=forecasts.beta_pred.values,
         dt=regression_settings.solver_dt
     )
 
