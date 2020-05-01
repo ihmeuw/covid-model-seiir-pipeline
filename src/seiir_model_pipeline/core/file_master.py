@@ -254,6 +254,13 @@ class RegressionVersion(Version):
     # Regression Arguments
     covariates: Dict[str, Dict[str, Union[bool, List, float]]]
 
+    # Optimization Arguments
+    alpha: List[float] = field(default_factory=[0.95, 0.95])
+    sigma: List[float] = field(default_factory=[0.20, 0.20])
+    gamma1: List[float] = field(default_factory=[0.50, 0.50])
+    gamma2: List[float] = field(default_factory=[0.50, 0.50])
+    solver_dt: float = field(default=0.1)
+
     def __post_init__(self):
         pass
 
@@ -282,13 +289,6 @@ class ForecastVersion(Version):
 
     regression_version: str
     # covariate_scenario_ids: List[int]
-
-    # Optimization Arguments
-    alpha: List[float] = field(default_factory=[0.95, 0.95])
-    sigma: List[float] = field(default_factory=[0.20, 0.20])
-    gamma1: List[float] = field(default_factory=[0.50, 0.50])
-    gamma2: List[float] = field(default_factory=[0.50, 0.50])
-    solver_dt: float = field(default=0.1)
 
     def __post_init__(self):
         pass
