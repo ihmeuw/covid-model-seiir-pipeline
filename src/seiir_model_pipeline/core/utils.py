@@ -120,4 +120,6 @@ def get_ode_init_cond(beta_ode_fit, current_date,
 
     beta_ode_fit = beta_ode_fit[[COL_GROUP, COL_DATE] + col_components].copy()
     current_date = current_date[[COL_GROUP, COL_DATE]].copy()
-    return pd.merge(current_date, beta_ode_fit, how='left')
+    df_result = pd.merge(current_date, beta_ode_fit, how='left')
+    df_result['N'] = np.floor(np.sum(df_result[col_components].values, axis=1))
+    return df_result
