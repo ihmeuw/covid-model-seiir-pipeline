@@ -48,7 +48,6 @@ def main():
     mr = ModelRunner()
     regression_fit = load_mr_coefficients(
         directories=directories,
-        location_id=args.location_id,
         draw_id=args.draw_id
     )
     forecasts = mr.predict_beta_forward(
