@@ -94,6 +94,7 @@ def get_df(file):
 
 
 def get_ode_init_cond(beta_ode_fit, current_date,
+                      location_id=None,
                       col_components=None):
     """Get the initial condition for the ODE.
 
@@ -103,6 +104,8 @@ def get_ode_init_cond(beta_ode_fit, current_date,
         current_date (str | pd.DataFrame):
             Current date for each location we try to predict off. Either file
             or path to file.
+        location_id (list{int} | None, optional):
+            Potential location ids.
 
     Returns:
          pd.DataFrame: Initial conditions by location.
@@ -120,6 +123,8 @@ def get_ode_init_cond(beta_ode_fit, current_date,
 
     beta_ode_fit = beta_ode_fit[[COL_GROUP, COL_DATE] + col_components].copy()
     current_date = current_date[[COL_GROUP, COL_DATE]].copy()
-    df_result = pd.merge(current_date, beta_ode_fit, how='left')
+    df_result = pd.merge(current_date, beta_ode_fit, how='inner')
+    if location_id is not None:
+        df_result = df_result[df_result.COL_GROUP.isin(location_id)].copy()
     df_result['N'] = np.floor(np.sum(df_result[col_components].values, axis=1))
     return df_result
