@@ -24,8 +24,8 @@ PEAK_DATE_FILE = '/ihme/scratch/projects/covid/seir_research_test_run/death_mode
 LOCATION_METADATA_FILE_PATTERN = 'location_metadata_{lsvid}.csv'
 CACHED_COVARIATES_FILE = 'cached_covariates.csv'
 
-MISSING_INFECTION_LOC_FILES = 'missing_infection_locations_{draw_id:04}.txt'
-MISSING_COVARIATE_LOC_FILE = 'missing_covariate_locations.txt'
+MISSING_INFECTION_LOC_FILES = 'missing_infection_locations_{draw_id:04}.csv'
+MISSING_COVARIATE_LOC_FILE = 'missing_covariate_locations.csv'
 
 PEAK_DATE_COL_DICT = {
     'COL_LOC_ID': 'location_id',
@@ -51,6 +51,10 @@ OBSERVED_DICT = {
 }
 
 
+class FileDoesNotExist(Exception):
+    pass
+
+
 def _get_infection_folder_from_location_id(location_id, input_dir):
     """
     This is the infection input folder. It's a helper because
@@ -58,14 +62,13 @@ def _get_infection_folder_from_location_id(location_id, input_dir):
 
     :param location_id: (int)
     :param input_dir: (Path)
-    :return: (str)
     """
     folders = os.listdir(input_dir)
     correct = np.array([f.endswith(f'_{location_id}') for f in folders])
     if correct.sum() > 1:
         raise RuntimeError(f"There is more than one location-specific folder for {location_id}.")
     elif correct.sum() == 0:
-        raise RuntimeError(f"There is not a location-specific folder for {location_id}.")
+        raise FileDoesNotExist(f"There is not a location-specific folder for {location_id}.")
     else:
         pass
     folder = folders[np.where(correct)[0][0]]
@@ -192,7 +195,7 @@ class Directories:
         return self.covariate_dir / f'{covariate_name}.csv'
 
     def get_missing_infection_locations_file(self, draw_id):
-        return self.regression_output_dir / MISSING_INFECTION_LOC_FILES.format(draw_id)
+        return self.regression_output_dir / MISSING_INFECTION_LOC_FILES.format(draw_id=draw_id)
 
     def get_missing_covariate_locations_file(self):
         return self.regression_output_dir / MISSING_COVARIATE_LOC_FILE

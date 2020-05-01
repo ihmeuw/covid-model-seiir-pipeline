@@ -3,6 +3,8 @@ import os
 import numpy as np
 from typing import List
 
+from seiir_model_pipeline.core.versioner import FileDoesNotExist
+
 
 def write_missing_infection_locations_file(directories, draw_id, location_ids):
     df = pd.DataFrame({
@@ -29,11 +31,11 @@ def load_all_location_data(directories, location_ids, draw_id):
     dfs = dict()
     missing_locations = []
     for loc in location_ids:
-        file = directories.get_infection_file(location_id=loc, draw_id=draw_id)
-        if not os.path.exists(file):
-            missing_locations.append(loc)
-        else:
+        try:
+            file = directories.get_infection_file(location_id=loc, draw_id=draw_id)
             dfs[loc] = pd.read_csv(file)
+        except FileDoesNotExist:
+            missing_locations.append(loc)
     write_missing_infection_locations_file(directories, draw_id, missing_locations)
     return dfs
 

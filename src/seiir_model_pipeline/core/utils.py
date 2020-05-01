@@ -18,7 +18,7 @@ LOCATION_SET_ID = 111
 
 def get_locations(location_metadata_file):
     df = pd.read_csv(location_metadata_file)
-    return df.location_id.unique()
+    return df.location_id.unique().tolist()
 
 
 def get_peaked_dates_from_file():
