@@ -47,6 +47,7 @@ def format_covariates(directories, covariate_names,
     missing_covariate_locations = {}
     for name in covariate_names:
         df = pd.read_csv(directories.get_covariate_file(name))
+        df.drop(columns=['observed'], inplace=True, axis=1)
         cov_locations = df[col_loc_id].unique()
         if location_id is not None:
             missing_covariate_locations[name] = [x for x in location_id if x not in cov_locations]
@@ -56,8 +57,8 @@ def format_covariates(directories, covariate_names,
             # Need to check if col_observed is nan. If that's the case
             # then the covariate is static over time and we don't want to merge
             # on date or past/future, just the location
-            if not np.isnan(df[col_observed]).all():
-                dfs = dfs.merge(df, on=[col_loc_id, col_date, col_observed])
+            if col_date in df.columns:
+                dfs = dfs.merge(df, on=[col_loc_id, col_date])
             else:
                 dfs = dfs.merge(df, on=[col_loc_id])
     if location_id is not None:
