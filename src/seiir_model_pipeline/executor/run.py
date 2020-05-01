@@ -38,7 +38,7 @@ def main():
     #  only rather than re-running the regression.
 
     if run_regression:
-        regression_settings = load_regression_settings(directories)
+        regression_settings = load_regression_settings(args.regression_version)
         location_ids = get_locations(
             location_metadata_file=directories.get_location_metadata_file(
                 location_set_version_id=regression_settings.location_set_version_id

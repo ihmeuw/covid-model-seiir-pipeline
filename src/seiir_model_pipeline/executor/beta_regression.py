@@ -35,8 +35,9 @@ def main():
     log.info(f"This will be regression version {args.regression_version}.")
 
     # Load metadata
+    args.forecast_version = None
     directories = args_to_directories(args)
-    settings = load_regression_settings(directories)
+    settings = load_regression_settings(args.regression_version)
 
     # Load data
     location_ids = get_locations(
@@ -45,7 +46,7 @@ def main():
         )
     )
     location_data = load_all_location_data(
-        directories=directories, location_ids=location_ids
+        directories=directories, location_ids=location_ids, draw_id=args.draw_id
     )
     peak_data = load_peaked_dates(
         filepath=PEAK_DATE_FILE,
@@ -59,8 +60,7 @@ def main():
         col_date=COVARIATE_COL_DICT['COL_DATE'],
         col_observed=COVARIATE_COL_DICT['COL_OBSERVED']
     )
-    cov_model_set = convert_to_covmodel(settings.covariates)
-
+    # cov_model_set = convert_to_covmodel(settings.covariates)
     np.random.seed(args.draw_id)
     beta_fit_inputs = process_ode_process_input(
         settings=settings,
@@ -70,8 +70,8 @@ def main():
     mr = ModelRunner()
     mr.fit_beta_ode(beta_fit_inputs)
     mr.save_beta_ode_fit(
-        fit_filename=directories.draw_ode_fit_file(args.draw_id),
-        params_filename=directories.draw_ode_param_file(args.draw_id)
+        fit_file=directories.draw_ode_fit_file(args.draw_id),
+        params_file=directories.draw_ode_param_file(args.draw_id)
     )
     # mr.prep_for_regression()
     # mr.regress(

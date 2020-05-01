@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 from seiir_model.ode_model import ODEProcessInput
 from seiir_model_pipeline.core.versioner import INFECTION_COL_DICT
 
@@ -28,23 +29,22 @@ def get_peaked_dates_from_file():
 def process_ode_process_input(settings, location_data, peak_data):
     """Convert to ODEProcessInput.
     """
-    import pdb; pdb.set_trace()
     return ODEProcessInput(
         df_dict=location_data,
         col_date=INFECTION_COL_DICT['COL_DATE'],
         col_cases=INFECTION_COL_DICT['COL_CASES'],
         col_pop=INFECTION_COL_DICT['COL_POP'],
         col_loc_id=INFECTION_COL_DICT['COL_LOC_ID'],
-        alpha=tuple(settings['alpha']),
-        sigma=tuple(settings['sigma']),
-        gamma1=tuple(settings['gamma1']),
-        gamma2=tuple(settings['gamma2']),
+        alpha=settings.alpha,
+        sigma=settings.sigma,
+        gamma1=settings.gamma1,
+        gamma2=settings.gamma2,
         peak_date_dict=peak_data,
-        day_shift=settings['day_shift'],
-        solver_dt=settings['solver_dt'],
+        day_shift=settings.day_shift,
+        solver_dt=settings.solver_dt,
         spline_options={
-            'spline_knots': settings['knots'],
-            'spline_degree': settings['degree']
+            'spline_knots': np.array(settings.knots),
+            'spline_degree': settings.degree
         }
     )
 
