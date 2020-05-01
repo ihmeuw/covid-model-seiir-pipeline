@@ -2,7 +2,7 @@ from argparse import ArgumentParser
 import logging
 
 from seiir_model_pipeline.core.file_master import args_to_directories
-from seiir_model_pipeline.core.versioner import load_regression_settings
+from seiir_model_pipeline.core.file_master import load_regression_settings
 from seiir_model_pipeline.core.workflow import SEIIRWorkFlow
 from seiir_model_pipeline.core.utils import get_locations
 
@@ -28,7 +28,7 @@ def main():
     log.info(f"Running for {args.n_draws}.")
 
     directories = args_to_directories(args)
-
+    import pdb; pdb.set_trace()
     run_regression = args.regression_version is not None
     run_forecasts = args.forecast_version is not None
 
@@ -38,10 +38,11 @@ def main():
     #  only rather than re-running the regression.
 
     if run_regression:
-        regression_settings = load_regression_settings(directories)
-        location_ids = get_locations(
-            location_set_version_id=regression_settings.location_set_version_id
-        )
+        regression_settings = load_regression_settings(args.regression_version)
+        # location_ids = get_locations(
+        #     location_set_version_id=regression_settings.location_set_version_id
+        # )
+        location_ids = [555]
         regression_tasks = wf.attach_regression_tasks(
             n_draws=args.n_draws,
             regression_version=args.regression_version

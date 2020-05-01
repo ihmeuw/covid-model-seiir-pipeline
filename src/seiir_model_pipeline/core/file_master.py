@@ -1,6 +1,6 @@
 from pathlib import Path
 from dataclasses import dataclass, asdict, field
-from typing import List, Dict, Union
+from typing import List, Dict, Union, Tuple
 import os
 import json
 import numpy as np
@@ -26,7 +26,7 @@ PEAK_DATE_COL_DICT = {
 
 INFECTION_COL_DICT = {
     'COL_DATE': 'date',
-    'COL_CASES': 'cases',
+    'COL_CASES': 'cases_draw',
     'COL_POP': 'pop',
     'COL_LOC_ID': 'loc_id'
 }
@@ -255,10 +255,10 @@ class RegressionVersion(Version):
     covariates: Dict[str, Dict[str, Union[bool, List, float]]]
 
     # Optimization Arguments
-    alpha: List[float] = field(default_factory=[0.95, 0.95])
-    sigma: List[float] = field(default_factory=[0.20, 0.20])
-    gamma1: List[float] = field(default_factory=[0.50, 0.50])
-    gamma2: List[float] = field(default_factory=[0.50, 0.50])
+    alpha: Tuple[float] = field(default=(0.95, 0.95))
+    sigma: Tuple[float] = field(default=(0.20, 0.20))
+    gamma1: Tuple[float] = field(default=(0.50, 0.50))
+    gamma2: Tuple[float] = field(default=(0.50, 0.50))
     solver_dt: float = field(default=0.1)
 
     def __post_init__(self):

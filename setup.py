@@ -16,7 +16,8 @@ setup(
     ],
     entry_points={'console_scripts': [
         'run=seiir_model_pipeline.executor.run:main',
-        'run_draw=seiir_model_pipeline.executor.run_one_draw:main'
+        'beta_regression=seiir_model_pipeline.executor.beta_regression:main',
+        'beta_forecast=seiir_model_pipeline.executor.beta_forecast:main'
     ]},
     zip_safe=False,
 )

@@ -7,7 +7,7 @@ from seiir_model.model_runner import ModelRunner
 from seiir_model_pipeline.core.file_master import args_to_directories
 from seiir_model_pipeline.core.file_master import PEAK_DATE_FILE, PEAK_DATE_COL_DICT, COVARIATE_COL_DICT
 from seiir_model_pipeline.core.data import load_all_location_data
-from seiir_model_pipeline.core.versioner import load_regression_settings
+from seiir_model_pipeline.core.file_master import load_regression_settings
 from seiir_model_pipeline.core.utils import convert_to_covmodel
 from seiir_model_pipeline.core.data import load_covariates, load_peaked_dates
 from seiir_model_pipeline.core.utils import get_locations
@@ -33,17 +33,18 @@ def main():
     log.info("Initiating SEIIR beta regression.")
     log.info(f"Running for draw {args.draw_id}.")
     log.info(f"This will be regression version {args.regression_version}.")
-
-    # Load metadata
+    # Load metadatai
+    args.forecast_version = None
     directories = args_to_directories(args)
-    settings = load_regression_settings(directories)
+    settings = load_regression_settings(args.regression_version)
 
     # Load data
-    location_ids = get_locations(
-        location_set_version_id=settings.location_set_version_id
-    )
+    # location_ids = get_locations(
+    #     location_set_version_id=settings.location_set_version_id
+    # )
+    location_ids = [555]
     location_data = load_all_location_data(
-        directories=directories, location_ids=location_ids
+        directories=directories, location_ids=location_ids, draw_id=args.draw_id
     )
     peak_data = load_peaked_dates(
         filepath=PEAK_DATE_FILE,
@@ -57,8 +58,7 @@ def main():
         col_date=COVARIATE_COL_DICT['COL_DATE'],
         col_observed=COVARIATE_COL_DICT['COL_OBSERVED']
     )
-    cov_model_set = convert_to_covmodel(settings.covariates)
-
+    # cov_model_set = convert_to_covmodel(settings.covariates)
     np.random.seed(args.draw_id)
     beta_fit_inputs = process_ode_process_input(
         settings=settings,
@@ -68,8 +68,8 @@ def main():
     mr = ModelRunner()
     mr.fit_beta_ode(beta_fit_inputs)
     mr.save_beta_ode_fit(
-        fit_filename=directories.draw_ode_fit_file(args.draw_id),
-        params_filename=directories.draw_ode_param_file(args.draw_id)
+        fit_file=directories.draw_ode_fit_file(args.draw_id),
+        params_file=directories.draw_ode_param_file(args.draw_id)
     )
     # mr.prep_for_regression()
     # mr.regress(
