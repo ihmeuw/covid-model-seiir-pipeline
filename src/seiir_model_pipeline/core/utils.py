@@ -7,11 +7,11 @@ from slime.model import CovModel, CovModelSet
 from seiir_model_pipeline.core.versioner import PEAK_DATE_FILE
 from slime.core.data import MRData
 
-SEIIR_COMPARTMENTS = ['S', 'E', 'I1', '12', 'R']
+SEIIR_COMPARTMENTS = ['S', 'E', 'I1', 'I2', 'R']
 
-COL_T = 'days'
 COL_BETA = 'beta'
 COL_GROUP = 'loc_id'
+COL_DATE = 'date'
 
 LOCATION_SET_ID = 111
 
@@ -67,11 +67,57 @@ def convert_inputs_for_beta_model(data_cov, df_beta, covmodel_set):
     df_cov, col_t_cov, col_group_cov = data_cov
     df = df_beta.merge(
         df_cov,
-        left_on=[COL_T, COL_GROUP],
+        left_on=[COL_DATE, COL_GROUP],
         right_on=[col_t_cov, col_group_cov],
     ).copy()
-    df.sort_values(inplace=True, by=[COL_GROUP, COL_T])
+    df.sort_values(inplace=True, by=[COL_GROUP, COL_DATE])
     cov_names = [covmodel.col_cov for covmodel in covmodel_set.cov_models]
     mrdata = MRData(df, col_group=COL_GROUP, col_obs=COL_BETA, col_covs=cov_names)
 
     return mrdata
+
+
+def get_df(file):
+    """Get the data frame.
+
+    Args:
+        file (str | pd.DataFrame):
+            If file is data frame return as it is, if file is the string of
+            path to the file, read the csv file as data frame.
+    """
+    if isinstance(file, pd.DataFrame):
+        return file
+    else:
+        assert isinstance(file, str)
+        assert file[-4:] == '.csv'
+        return pd.read_csv(file)
+
+
+def get_ode_init_cond(beta_ode_fit, current_date,
+                      col_components=None):
+    """Get the initial condition for the ODE.
+
+    Args:
+        beta_ode_fit (str | pd.DataFrame):
+            The result for the beta_ode_fit, either file or path to file.
+        current_date (str | pd.DataFrame):
+            Current date for each location we try to predict off. Either file
+            or path to file.
+
+    Returns:
+         pd.DataFrame: Initial conditions by location.
+    """
+    # process input
+    beta_ode_fit = get_df(beta_ode_fit)
+    current_date = get_df(current_date)
+    if col_components is None:
+        col_components = SEIIR_COMPARTMENTS
+    else:
+        assert isinstance(col_components, list)
+    assert all([c in beta_ode_fit for c in col_components])
+    assert (COL_GROUP in beta_ode_fit) and (COL_GROUP in current_date)
+    assert (COL_DATE in beta_ode_fit) and (COL_DATE in current_date)
+
+    beta_ode_fit = beta_ode_fit[[COL_GROUP, COL_DATE] + col_components].copy()
+    current_date = current_date[[COL_GROUP, COL_DATE]].copy()
+    return pd.merge(current_date, beta_ode_fit, how='left')
