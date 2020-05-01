@@ -3,7 +3,7 @@ import numpy as np
 from typing import List
 
 from seiir_model_pipeline.core.versioner import FileDoesNotExist
-from seiir_model_pipeline.core.versioner import COVARIATE_COL_DICT
+from seiir_model_pipeline.core.versioner import COVARIATE_COL_DICT, INFECTION_COL_DICT
 
 
 def write_missing_infection_locations_file(directories, draw_id, location_ids):
@@ -94,6 +94,17 @@ def load_mr_coefficients(directories, draw_id, location_id):
     df = pd.read_csv(directories.get_draw_coefficient_file(draw_id))
     df = df.loc[COVARIATE_COL_DICT['COL_LOC_ID'] == location_id].copy()
     return df
+
+
+def load_beta_fit(directories, draw_id, location_id):
+    df = pd.read_csv(directories.get_draw_beta_fit_file(draw_id))
+    df = df.loc[df[INFECTION_COL_DICT['COL_LOC_ID']] == location_id].copy()
+    return df
+
+
+def load_beta_params(directories, draw_id):
+    df = pd.read_csv(directories.get_draw_beta_param_file(draw_id))
+    return df.set_index('params')['values'].to_dict()
 
 
 def load_peaked_dates(filepath, col_loc_id, col_date):
