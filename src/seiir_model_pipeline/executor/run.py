@@ -1,7 +1,7 @@
 from argparse import ArgumentParser
 import logging
 
-from seiir_model_pipeline.core.file_master import args_to_directories
+from seiir_model_pipeline.core.versioner import args_to_directories
 from seiir_model_pipeline.core.versioner import load_regression_settings
 from seiir_model_pipeline.core.workflow import SEIIRWorkFlow
 from seiir_model_pipeline.core.utils import get_locations
@@ -40,7 +40,9 @@ def main():
     if run_regression:
         regression_settings = load_regression_settings(directories)
         location_ids = get_locations(
-            location_set_version_id=regression_settings.location_set_version_id
+            location_metadata_file=directories.get_location_metadata_file(
+                location_set_version_id=regression_settings.location_set_version_id
+            )
         )
         regression_tasks = wf.attach_regression_tasks(
             n_draws=args.n_draws,

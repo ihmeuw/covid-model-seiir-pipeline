@@ -4,7 +4,7 @@ from typing import List
 
 from seiir_model.model_runner import ModelRunner
 
-from seiir_model_pipeline.core.file_master import args_to_directories
+from seiir_model_pipeline.core.versioner import args_to_directories
 from seiir_model_pipeline.core.versioner import load_forecast_settings, load_regression_settings
 from seiir_model_pipeline.core.data import load_covariates
 from seiir_model_pipeline.core.data import load_mr_coefficients

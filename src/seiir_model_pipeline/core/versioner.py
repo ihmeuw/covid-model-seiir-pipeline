@@ -12,12 +12,16 @@ INPUT_DIR = BASE_DIR / 'covid-19/seir-inputs'
 COVARIATE_DIR = BASE_DIR / 'covid-19/seir-covariates'
 
 # Output directories
+# OUTPUT_DIR = BASE_DIR / 'covid-19/seir-pipeline-outputs'
 OUTPUT_DIR = BASE_DIR / 'scratch/users/mnorwood/covid'
+
+METADATA_DIR = OUTPUT_DIR / 'metadata-inputs'
 REGRESSION_OUTPUT = OUTPUT_DIR / 'regression'
 FORECAST_OUTPUT = OUTPUT_DIR / 'forecast'
 
 INFECTION_FILE_PATTERN = 'draw{draw_id:04}_prepped_deaths_and_cases_all_age.csv'
-PEAK_DATE_FILE = '/ihme/scratch/projects/covid/seir_research_test_run/death_model_peaks.csv'
+PEAK_DATE_FILE = '/ihme/scratch/projects/covid/seir_research_test_run/death_model_peaks_2020_04_29_add_locs.csv'
+LOCATION_METADATA_FILE_PATTERN = 'location_metadata_{lsvid}.csv'
 
 PEAK_DATE_COL_DICT = {
     'COL_LOC_ID': 'location_id',
@@ -177,6 +181,10 @@ class Directories:
 
     def get_covariate_file(self, covariate_name):
         return self.covariate_dir / f'{covariate_name}.csv'
+
+    @staticmethod
+    def get_location_metadata_file(location_set_version_id):
+        return LOCATION_METADATA_FILE_PATTERN.format(lsvid=location_set_version_id)
 
 
 class VersionAlreadyExists(RuntimeError):

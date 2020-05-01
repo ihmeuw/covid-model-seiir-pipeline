@@ -1,11 +1,9 @@
 import pandas as pd
 from seiir_model.ode_model import ODEProcessInput
-from seiir_model_pipeline.core.file_master import INFECTION_COL_DICT
-
-from db_queries import get_location_metadata
+from seiir_model_pipeline.core.versioner import INFECTION_COL_DICT
 
 from slime.model import CovModel, CovModelSet
-from seiir_model_pipeline.core.file_master import PEAK_DATE_FILE
+from seiir_model_pipeline.core.versioner import PEAK_DATE_FILE
 from slime.core.data import MRData
 
 SEIIR_COMPARTMENTS = ['S', 'E', 'I1', '12', 'R']
@@ -17,8 +15,8 @@ COL_GROUP = 'loc_id'
 LOCATION_SET_ID = 111
 
 
-def get_locations(location_set_version_id):
-    df = get_location_metadata(location_set_version_id=location_set_version_id, location_set_id=LOCATION_SET_ID)
+def get_locations(location_metadata_file):
+    df = pd.read_csv(location_metadata_file)
     return df.location_id.unique()
 
 

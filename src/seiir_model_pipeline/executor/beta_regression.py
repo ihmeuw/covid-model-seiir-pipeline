@@ -4,8 +4,8 @@ import numpy as np
 
 from seiir_model.model_runner import ModelRunner
 
-from seiir_model_pipeline.core.file_master import args_to_directories
-from seiir_model_pipeline.core.file_master import PEAK_DATE_FILE, PEAK_DATE_COL_DICT, COVARIATE_COL_DICT
+from seiir_model_pipeline.core.versioner import args_to_directories
+from seiir_model_pipeline.core.versioner import PEAK_DATE_FILE, PEAK_DATE_COL_DICT, COVARIATE_COL_DICT
 from seiir_model_pipeline.core.data import load_all_location_data
 from seiir_model_pipeline.core.versioner import load_regression_settings
 from seiir_model_pipeline.core.utils import convert_to_covmodel
@@ -40,7 +40,9 @@ def main():
 
     # Load data
     location_ids = get_locations(
-        location_set_version_id=settings.location_set_version_id
+        location_metadata_file=directories.get_location_metadata_file(
+            location_set_version_id=settings.location_set_version_id
+        )
     )
     location_data = load_all_location_data(
         directories=directories, location_ids=location_ids
