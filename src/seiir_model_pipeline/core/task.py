@@ -32,15 +32,13 @@ class RegressionTask(BashTask):
 
 
 class ForecastTask(BashTask):
-    def __init__(self, location_id, draw_id, regression_version, forecast_version, **kwargs):
+    def __init__(self, location_id, regression_version, forecast_version, **kwargs):
 
         self.location_id = location_id
-        self.draw_id = draw_id
 
         command = (
             "beta_forecast " +
             f"--location-id {self.location_id} " +
-            f"--draw-id {self.draw_id} " +
             f"--regression-version {regression_version} " +
             f"--forecast-version {forecast_version} "
         )

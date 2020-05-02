@@ -16,7 +16,6 @@ def get_args():
     Get arguments from the command line for this whole fun.
     """
     parser = ArgumentParser()
-    parser.add_argument("--n-draws", type=int, required=True)
     parser.add_argument("--regression-version", type=str, required=False, default=None)
     parser.add_argument("--forecast-version", type=str, required=False, default=None)
 
@@ -27,7 +26,6 @@ def main():
     args = get_args()
 
     log.info("Initiating SEIIR modeling pipeline.")
-    log.info(f"Running for {args.n_draws}.")
 
     directories = args_to_directories(args)
     directories.make_dirs()
@@ -53,13 +51,12 @@ def main():
             col_observed=COVARIATE_COL_DICT['COL_OBSERVED']
         )
         regression_tasks = wf.attach_regression_tasks(
-            n_draws=args.n_draws,
+            n_draws=regression_settings.n_draws,
             regression_version=args.regression_version
         )
         if run_forecasts:
             wf.attach_forecast_tasks(
                 location_ids=location_ids,
-                n_draws=args.n_draws,
                 regression_version=args.regression_version,
                 forecast_version=args.forecast_version,
                 upstream_tasks=regression_tasks

@@ -50,10 +50,10 @@ class SEIIRWorkFlow(Workflow):
         self.add_tasks(tasks)
         return tasks
 
-    def attach_forecast_tasks(self, location_ids, n_draws, **kwargs):
+    def attach_forecast_tasks(self, location_ids, **kwargs):
         tasks = [
-            ForecastTask(location_id=loc, draw_id=i, **kwargs)
-            for loc in location_ids for i in range(n_draws)
+            ForecastTask(location_id=loc, **kwargs)
+            for loc in location_ids
         ]
         self.add_tasks(tasks)
         return tasks
