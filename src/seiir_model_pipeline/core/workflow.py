@@ -21,6 +21,7 @@ class SEIIRWorkFlow(Workflow):
 
         user = getpass.getuser()
         working_dir = f'/ihme/homes/{user}'
+
         workflow_args = f'seiir-model-'
         if directories.regression_version is not None:
             workflow_args += f'{directories.regression_version} '
@@ -30,8 +31,8 @@ class SEIIRWorkFlow(Workflow):
         super().__init__(
             workflow_args=workflow_args,
             project=PROJECT,
-            stderr=str(directories.log_dir),
-            stdout=str(directories.log_dir),
+            stderr=f'/ihme/temp/sgeoutput/{user}/errors',
+            stdout=f'/ihme/temp/sgeoutput/{user}/output',
             working_dir=working_dir,
             seconds_until_timeout=60*60*24,
             resume=True

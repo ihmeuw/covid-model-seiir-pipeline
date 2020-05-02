@@ -169,15 +169,12 @@ class Directories:
             self.forecast_draw_dir = None
             self.forecast_diagnostic_dir = None
 
-        self.log_dir = OUTPUT_DIR / 'logs'
-
     def make_dirs(self):
         for directory in [
             self.regression_output_dir, self.forecast_output_dir,
             self.regression_coefficient_dir, self.regression_diagnostic_dir,
             self.regression_beta_fit_dir, self.regression_parameters_dir,
-            self.forecast_draw_dir, self.forecast_diagnostic_dir,
-            self.log_dir
+            self.forecast_draw_dir, self.forecast_diagnostic_dir
         ]:
             if directory is not None:
                 os.makedirs(str(directory), exist_ok=True)
@@ -192,8 +189,8 @@ class Directories:
         return self.regression_coefficient_dir / f'coefficients_{draw_id}.csv'
 
     def location_draw_forecast_file(self, location_id, draw_id):
-        os.makedirs(self.forecast_output_dir / str(location_id), exist_ok=True)
-        return self.forecast_output_dir / str(location_id) / f'draw_{draw_id}.csv'
+        os.makedirs(self.forecast_draw_dir / str(location_id), exist_ok=True)
+        return self.forecast_draw_dir / str(location_id) / f'draw_{draw_id}.csv'
 
     def get_infection_file(self, location_id, draw_id):
         folder = _get_infection_folder_from_location_id(location_id, self.infection_dir)
