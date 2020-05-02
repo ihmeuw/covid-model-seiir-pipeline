@@ -35,7 +35,6 @@ def main():
     args = get_args()
     
     log.info("Initiating SEIIR beta forecasting.")
-    log.info("Running for location {args.location_id}, scenario {args.scenario_id}.")
 
     # Load metadata
     directories = args_to_directories(args)

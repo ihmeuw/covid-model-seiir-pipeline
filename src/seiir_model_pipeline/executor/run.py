@@ -18,6 +18,7 @@ def get_args():
     parser = ArgumentParser()
     parser.add_argument("--regression-version", type=str, required=False, default=None)
     parser.add_argument("--forecast-version", type=str, required=False, default=None)
+    parser.add_argument("--run-splicer", action='store_true', required=False, default=False)
 
     return parser.parse_args()
 
@@ -57,6 +58,7 @@ def main():
         if run_forecasts:
             wf.attach_forecast_tasks(
                 location_ids=location_ids,
+                add_splicer=args.add_splicer,
                 regression_version=args.regression_version,
                 forecast_version=args.forecast_version,
                 upstream_tasks=regression_tasks
