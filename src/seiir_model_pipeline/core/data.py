@@ -7,7 +7,8 @@ from seiir_model_pipeline.core.versioner import INFECTION_COL_DICT
 
 
 def get_missing_locations(directories, location_ids):
-    infection_loc = [x.split('_')[-1] for x in os.listdir(directories.infection_dir) if os.path.isdir(x)]
+    infection_loc = [x.split('_')[-1] for x in os.listdir(directories.infection_dir)
+                     if os.path.isdir(directories.infection_dir / x)]
     infection_loc = [int(x) for x in infection_loc if x.isdigit()]
 
     with open(directories.get_missing_covariate_locations_file()) as f:
