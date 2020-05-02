@@ -40,7 +40,6 @@ def main():
     args.forecast_version = None
     directories = args_to_directories(args)
     settings = load_regression_settings(args.regression_version)
-
     # Load data
     location_ids = get_locations(
         directories, settings.location_set_version_id
@@ -102,7 +101,7 @@ def main():
     beta_fit = mr.get_beta_ode_fit()
     regression_betas = forecasts[
         [COVARIATE_COL_DICT['COL_LOC_ID'], COVARIATE_COL_DICT['COL_DATE']] +
-        list(settings.covariates.keys() + ['beta_pred'])
+        list(settings.covariates.keys()) + ['beta_pred']
     ]
     beta_fit_covariates = beta_fit.merge(
         regression_betas,
