@@ -47,6 +47,7 @@ def format_covariates(directories, covariate_names,
     missing_covariate_locations = {}
     for name in covariate_names:
         df = pd.read_csv(directories.get_covariate_file(name))
+        df = df.loc[~df[name].isnull()].copy()
         df.drop(columns=['observed'], inplace=True, axis=1)
         cov_locations = df[col_loc_id].unique()
         if location_id is not None:

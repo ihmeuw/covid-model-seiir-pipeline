@@ -117,8 +117,8 @@ def get_ode_init_cond(location_id, beta_ode_fit, current_date,
     """
     # process input
     beta_ode_fit = get_df(beta_ode_fit)
-    assert (COL_GROUP in beta_ode_fit) and (COL_GROUP in current_date)
-    assert (COL_DATE in beta_ode_fit) and (COL_DATE in current_date)
+    assert (COL_GROUP in beta_ode_fit)
+    assert (COL_DATE in beta_ode_fit)
     beta_ode_fit = beta_ode_fit[beta_ode_fit[COL_GROUP] == location_id].copy()
 
     if isinstance(current_date, str):
