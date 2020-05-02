@@ -200,7 +200,7 @@ class Directories:
         return self.covariate_dir / f'{covariate_name}.csv'
 
     def get_missing_covariate_locations_file(self):
-        return self.regression_output_dir / MISSING_COVARIATE_LOC_FILE
+        return self.covariate_dir / MISSING_COVARIATE_LOC_FILE
 
     def get_cached_covariates_file(self):
         return self.regression_output_dir / CACHED_COVARIATES_FILE
