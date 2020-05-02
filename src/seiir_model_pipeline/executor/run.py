@@ -58,7 +58,7 @@ def main():
         if run_forecasts:
             wf.attach_forecast_tasks(
                 location_ids=location_ids,
-                add_splicer=args.add_splicer,
+                add_splicer=args.run_splicer,
                 regression_version=args.regression_version,
                 forecast_version=args.forecast_version,
                 upstream_tasks=regression_tasks
