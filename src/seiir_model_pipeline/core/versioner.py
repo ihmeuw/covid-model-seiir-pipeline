@@ -162,11 +162,14 @@ class Directories:
         if fv is not None:
             self.forecast_output_dir = FORECAST_OUTPUT / fv.version_name
 
-            self.forecast_draw_dir = self.forecast_output_dir / 'location_draws'
+            self.forecast_component_draw_dir = self.forecast_output_dir / 'component_draws'
+            self.forecast_output_draw_dir = self.forecast_output_dir / 'output_draws'
             self.forecast_diagnostic_dir = self.forecast_output_dir / 'diagnostics'
         else:
             self.forecast_output_dir = None
-            self.forecast_draw_dir = None
+
+            self.forecast_component_draw_dir = None
+            self.forecast_output_draw_dir = None
             self.forecast_diagnostic_dir = None
 
     def make_dirs(self):
@@ -174,7 +177,8 @@ class Directories:
             self.regression_output_dir, self.forecast_output_dir,
             self.regression_coefficient_dir, self.regression_diagnostic_dir,
             self.regression_beta_fit_dir, self.regression_parameters_dir,
-            self.forecast_draw_dir, self.forecast_diagnostic_dir
+            self.forecast_diagnostic_dir, self.forecast_output_dir,
+            self.forecast_component_draw_dir
         ]:
             if directory is not None:
                 os.makedirs(str(directory), exist_ok=True)
@@ -188,9 +192,12 @@ class Directories:
     def get_draw_coefficient_file(self, draw_id):
         return self.regression_coefficient_dir / f'coefficients_{draw_id}.csv'
 
-    def location_draw_forecast_file(self, location_id, draw_id):
-        os.makedirs(self.forecast_draw_dir / str(location_id), exist_ok=True)
-        return self.forecast_draw_dir / str(location_id) / f'draw_{draw_id}.csv'
+    def location_draw_component_forecast_file(self, location_id, draw_id):
+        os.makedirs(self.forecast_component_draw_dir / str(location_id), exist_ok=True)
+        return self.forecast_component_draw_dir / str(location_id) / f'draw_{draw_id}.csv'
+
+    def location_output_forecast_file(self, location_id):
+        return self.forecast_output_draw_dir / f'death_infect_{location_id}.csv'
 
     def get_infection_file(self, location_id, draw_id):
         folder = _get_infection_folder_from_location_id(location_id, self.infection_dir)

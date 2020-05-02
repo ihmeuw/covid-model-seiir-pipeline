@@ -104,8 +104,9 @@ def main():
             betas=betas,
             dt=regression_settings.solver_dt
         )
+        forecasted_components[COVARIATE_COL_DICT['COL_DATE']] = days
         forecasted_components.to_csv(
-            directories.location_draw_forecast_file(
+            directories.location_draw_component_forecast_file(
                 location_id=args.location_id,
                 draw_id=draw_id
             )
