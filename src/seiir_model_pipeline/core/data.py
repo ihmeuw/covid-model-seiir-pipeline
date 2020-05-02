@@ -1,42 +1,30 @@
 import pandas as pd
-import numpy as np
+import yaml
+import os
 from typing import List
 
-from seiir_model_pipeline.core.versioner import FileDoesNotExist
-from seiir_model_pipeline.core.versioner import COVARIATE_COL_DICT, INFECTION_COL_DICT
+from seiir_model_pipeline.core.versioner import INFECTION_COL_DICT
 
 
-def write_missing_infection_locations_file(directories, draw_id, location_ids):
-    df = pd.DataFrame({
-        'location_id': location_ids,
-        'draw_id': draw_id
-    })
-    df.to_csv(directories.get_missing_infection_locations_file(draw_id))
+def get_missing_locations(directories, location_ids):
+    infection_loc = [x.split('_')[-1] for x in os.listdir(directories.infection_dir) if os.path.isdir(x)]
+    infection_loc = [int(x) for x in infection_loc if x.isdigit()]
 
+    with open(directories.get_missing_covariate_locations_file()) as f:
+        covariate_metadata = yaml.load(f, Loader=yaml.FullLoader)
 
-def write_missing_covariate_locations_file(directories, covariate_dict):
-    m = []
-    for cov, locs in covariate_dict.items():
-        m.append(
-            pd.DataFrame({
-                'covariate': cov,
-                'location_ids': locs
-            })
-        )
-    df = pd.concat(m).reset_index()
-    df.to_csv(directories.get_missing_covariate_locations_file())
+    missing_covariate_loc = list()
+    for k, v in covariate_metadata.items():
+        missing_covariate_loc += v
+    missing_covariate_loc = list(set(missing_covariate_loc))
+    return [x for x in location_ids if x not in infection_loc or x in missing_covariate_loc]
 
 
 def load_all_location_data(directories, location_ids, draw_id):
     dfs = dict()
-    missing_locations = []
     for loc in location_ids:
-        try:
-            file = directories.get_infection_file(location_id=loc, draw_id=draw_id)
-            dfs[loc] = pd.read_csv(file)
-        except FileDoesNotExist:
-            missing_locations.append(loc)
-    write_missing_infection_locations_file(directories, draw_id, missing_locations)
+        file = directories.get_infection_file(location_id=loc, draw_id=draw_id)
+        dfs[loc] = pd.read_csv(file)
     return dfs
 
 
@@ -44,20 +32,14 @@ def format_covariates(directories, covariate_names,
                       col_loc_id, col_date, col_observed,
                       location_id=None):
     dfs = pd.DataFrame()
-    missing_covariate_locations = {}
     for name in covariate_names:
         df = pd.read_csv(directories.get_covariate_file(name))
         df = df.loc[~df[name].isnull()].copy()
-        df.drop(columns=['observed'], inplace=True, axis=1)
-        cov_locations = df[col_loc_id].unique()
-        if location_id is not None:
-            missing_covariate_locations[name] = [x for x in location_id if x not in cov_locations]
+        df.drop(columns=[col_observed], inplace=True, axis=1)
         if dfs.empty:
             dfs = df
         else:
-            # Need to check if col_observed is nan. If that's the case
-            # then the covariate is static over time and we don't want to merge
-            # on date or past/future, just the location
+            # time dependent covariates versus not
             if col_date in df.columns:
                 dfs = dfs.merge(df, on=[col_loc_id, col_date])
             else:
@@ -65,11 +47,6 @@ def format_covariates(directories, covariate_names,
     if location_id is not None:
         assert isinstance(location_id, List)
         dfs = dfs.loc[dfs[col_loc_id].isin(location_id)].copy()
-
-    if location_id is not None:
-        write_missing_covariate_locations_file(
-            directories, covariate_dict=missing_covariate_locations
-        )
     return dfs
 
 

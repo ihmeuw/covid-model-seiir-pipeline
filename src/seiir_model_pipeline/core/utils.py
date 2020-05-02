@@ -1,11 +1,14 @@
 import pandas as pd
 import numpy as np
-from seiir_model.ode_model import ODEProcessInput
-from seiir_model_pipeline.core.versioner import INFECTION_COL_DICT
 
+from seiir_model.ode_model import ODEProcessInput
 from slime.model import CovModel, CovModelSet
-from seiir_model_pipeline.core.versioner import PEAK_DATE_FILE
 from slime.core.data import MRData
+
+from seiir_model_pipeline.core.versioner import PEAK_DATE_FILE
+from seiir_model_pipeline.core.versioner import INFECTION_COL_DICT
+from seiir_model_pipeline.core.data import get_missing_locations
+
 
 SEIIR_COMPARTMENTS = ['S', 'E', 'I1', 'I2', 'R']
 
@@ -21,9 +24,15 @@ def date_to_days(date):
     return np.array((date - date.min()).days)
 
 
-def get_locations(location_metadata_file):
-    df = pd.read_csv(location_metadata_file)
-    return df.location_id.unique().tolist()
+def get_locations(directories, location_set_version_id):
+    df = pd.read_csv(
+        directories.get_location_metadata_file(location_set_version_id),
+    )
+    missing = get_missing_locations(
+        directories=directories, location_ids=df.location_id.unique().tolist()
+    )
+    locations = set(df.location_id.unique().tolist()) - set(missing)
+    return list(locations)
 
 
 def get_peaked_dates_from_file():

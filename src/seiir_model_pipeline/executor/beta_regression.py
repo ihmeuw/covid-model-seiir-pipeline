@@ -40,9 +40,7 @@ def main():
 
     # Load data
     location_ids = get_locations(
-        location_metadata_file=directories.get_location_metadata_file(
-            location_set_version_id=settings.location_set_version_id
-        )
+        directories, settings.location_set_version_id
     )
     location_data = load_all_location_data(
         directories=directories, location_ids=location_ids, draw_id=args.draw_id
