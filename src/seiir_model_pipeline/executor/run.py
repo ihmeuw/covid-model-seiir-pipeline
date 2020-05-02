@@ -39,7 +39,6 @@ def main():
 
     # TODO: this will need to be more complex when we do scenarios and when we run forecasts
     #  only rather than re-running the regression.
-
     if run_regression:
         regression_settings = load_regression_settings(args.regression_version)
         location_ids = get_locations(
