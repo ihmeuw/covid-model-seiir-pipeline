@@ -26,6 +26,7 @@ class RegressionTask(BashTask):
             command=command,
             name=f'seiir_regression_fit_{draw_id}',
             executor_parameters=ExecParams,
+            max_attempts=1,
             **kwargs
         )
 
@@ -48,5 +49,6 @@ class ForecastTask(BashTask):
             command=command,
             name=f'seiir_forecast_location_{location_id}',
             executor_parameters=ExecParams,
+            max_attempts=1,
             **kwargs
         )
