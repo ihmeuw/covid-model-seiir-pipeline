@@ -29,6 +29,15 @@ def load_all_location_data(directories, location_ids, draw_id):
     return dfs
 
 
+def load_component_forecasts(directories, location_id, draw_id):
+    df = pd.read_csv(
+        directories.location_draw_component_forecast_file(
+            location_id=location_id, draw_id=draw_id
+        )
+    )
+    return df
+
+
 def format_covariates(directories, covariate_names,
                       col_loc_id, col_date, col_observed,
                       location_id=None):

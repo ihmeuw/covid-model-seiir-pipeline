@@ -53,7 +53,7 @@ class ForecastTask(BashTask):
             **kwargs
         )
 
-    def add_splicer_tasks(self):
+    def add_splicer_task(self):
         splicer_task = SplicerTask(
             location_id=self.location_id,
             regression_version=self.regression_version,
