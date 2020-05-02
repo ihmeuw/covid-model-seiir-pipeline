@@ -12,8 +12,8 @@ INPUT_DIR = BASE_DIR / 'covid-19/seir-inputs'
 COVARIATE_DIR = BASE_DIR / 'covid-19/seir-covariates'
 
 # Output directories
-# OUTPUT_DIR = BASE_DIR / 'covid-19/seir-pipeline-outputs'
-OUTPUT_DIR = BASE_DIR / 'scratch/users/mnorwood/covid'
+OUTPUT_DIR = BASE_DIR / 'covid-19/seir-pipeline-outputs'
+# OUTPUT_DIR = BASE_DIR / 'scratch/users/mnorwood/covid'
 
 METADATA_DIR = OUTPUT_DIR / 'metadata-inputs'
 REGRESSION_OUTPUT = OUTPUT_DIR / 'regression'
