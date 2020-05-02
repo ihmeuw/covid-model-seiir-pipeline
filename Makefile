@@ -1,6 +1,8 @@
 # makefile for easy manage package
 .PHONY: clean
 
+ENV_NAME=dummy
+
 clean:
 	find . -name "*.so*" | xargs rm -rf
 	find . -name "*.pyc" | xargs rm -rf
@@ -10,3 +12,29 @@ clean:
 	find . -name "MANIFEST" | xargs rm -rf
 	find . -name "*.egg-info" | xargs rm -rf
 	find . -name ".pytest_cache" | xargs rm -rf
+	rm -rf limetr MRTool ODEOPT SEIRPipeline SLIME
+
+
+install_env:
+	( \
+		source $(CONDA_PREFIX)/etc/profile.d/conda.sh; \
+		conda create -n $(ENV_NAME) python=3.7; \
+		conda activate $(ENV_NAME); \
+		pip install numpy scipy pandas matplotlib pytest xspline; \
+		conda install -c conda-forge cyipopt; \
+		git clone https://github.com/zhengp0/limetr.git; \
+		cd limetr && make install && cd ..; \
+		git clone https://github.com/ihmeuw-msca/MRTool.git; \
+		cd MRTool && python setup.py install && cd ..; \
+		git clone https://github.com/zhengp0/SLIME.git; \
+		cd SLIME && python setup.py install && cd ..; \
+		git clone https://github.com/ihmeuw-msca/ODEOPT.git; \
+		cd ODEOPT && git checkout random && python setup.py install && cd ..; \
+		git clone https://github.com/ihmeuw-msca/SEIRPipeline.git; \
+		cd SEIRPipeline && git checkout develop &&python setup.py install && cd ..; \
+		python setup.py install; \
+    )
+
+
+uninstall_env:
+	conda remove --name $(ENV_NAME) --all
