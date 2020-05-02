@@ -33,7 +33,6 @@ def main():
     log.info("Initiating SEIIR beta regression.")
     log.info(f"Running for draw {args.draw_id}.")
     log.info(f"This will be regression version {args.regression_version}.")
-
     # Load metadata
     args.forecast_version = None
     directories = args_to_directories(args)
