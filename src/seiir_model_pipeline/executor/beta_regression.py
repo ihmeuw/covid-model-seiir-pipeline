@@ -1,12 +1,15 @@
 from argparse import ArgumentParser
 import logging
 import numpy as np
+import pandas as pd
 
 from seiir_model.model_runner import ModelRunner
 
 from seiir_model_pipeline.core.versioner import args_to_directories
-from seiir_model_pipeline.core.versioner import PEAK_DATE_FILE, PEAK_DATE_COL_DICT, COVARIATE_COL_DICT, OBSERVED_DICT
+from seiir_model_pipeline.core.versioner import PEAK_DATE_FILE, PEAK_DATE_COL_DICT
+from seiir_model_pipeline.core.versioner import COVARIATE_COL_DICT, INFECTION_COL_DICT
 from seiir_model_pipeline.core.data import load_all_location_data
+from seiir_model_pipeline.core.data import load_mr_coefficients
 from seiir_model_pipeline.core.versioner import load_regression_settings
 from seiir_model_pipeline.core.utils import convert_to_covmodel
 from seiir_model_pipeline.core.data import load_covariates, load_peaked_dates
@@ -83,6 +86,32 @@ def main():
         mr_data=mr_data,
         path=directories.get_draw_coefficient_file(args.draw_id),
     )
+    # Get the fitted values of beta from the regression model and append on
+    # to the fits
+    regression_fit = load_mr_coefficients(
+        directories=directories,
+        draw_id=args.draw_id
+    )
+    forecasts = mr.predict_beta_forward(
+        covmodel_set=covmodel_set,
+        df_cov=covariate_data,
+        df_cov_coef=regression_fit,
+        col_t=COVARIATE_COL_DICT['COL_DATE'],
+        col_group=COVARIATE_COL_DICT['COL_LOC_ID']
+    )
+    beta_fit = mr.get_beta_ode_fit()
+    regression_betas = forecasts[
+        [COVARIATE_COL_DICT['COL_LOC_ID'], COVARIATE_COL_DICT['COL_DATE']] +
+        list(settings.covariates.keys() + ['beta_pred'])
+    ]
+    beta_fit_covariates = beta_fit.merge(
+        regression_betas,
+        left_on=[INFECTION_COL_DICT['COL_LOC_ID'], INFECTION_COL_DICT['COL_DATE']],
+        right_on=[COVARIATE_COL_DICT['COL_LOC_ID'], COVARIATE_COL_DICT['COL_DATE']],
+        how='left'
+    )
+    beta_fit_covariates.to_csv(directories.get_draw_beta_fit_file(args.draw_id), index=False)
+    mr.get_beta_ode_params().to_csv(directories.get_draw_beta_param_file(args.draw_id), index=False)
 
 
 if __name__ == '__main__':
