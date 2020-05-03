@@ -93,7 +93,7 @@ class Splicer:
         spl = df[[self.col_date, col_data]].copy()
         spl[COL_OBSERVED] = 0.
         spl.loc[observed] = 1.
-        spl[f'draw_{draw_id}'] = draw_id
+        spl['draw'] = draw_id
         return spl
 
     def splice_infections(self, infection_data, i_obs, component_fit, component_forecasts):
