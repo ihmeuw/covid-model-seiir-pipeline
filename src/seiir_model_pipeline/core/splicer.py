@@ -92,7 +92,7 @@ class Splicer:
     def record_splice(self, df, col_data, observed, draw_id):
         spl = df[[self.col_date, col_data]].copy()
         spl[COL_OBSERVED] = 0.
-        spl.loc[observed] = 1.
+        spl.loc[observed, COL_OBSERVED] = 1.
         spl['draw'] = draw_id
         return spl
 
