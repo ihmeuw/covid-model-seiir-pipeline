@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+from datetime import datetime
 
 from seiir_model_pipeline.core.utils import get_location_name_from_id
 from seiir_model_pipeline.core.versioner import INFECTION_COL_DICT
@@ -24,6 +25,8 @@ class Splicer:
         self.n_draws = n_draws
         self.draw_cols = [f'draw_{i}' for i in range(self.n_draws)]
         self.location_id = location_id
+        self.today = np.datetime64(datetime.today())
+
         self.location_name = None
 
         self.col_loc_id = INFECTION_COL_DICT['COL_LOC_ID']
@@ -123,9 +126,11 @@ class Splicer:
         return df
 
     def splice_draw(self, infection_data, component_fit, component_forecasts, params, draw_id):
+
         pop = self.get_population(infection_data)
-        i_obs = infection_data[self.col_obs_cases].astype(bool)
-        d_obs = infection_data[self.col_obs_deaths].astype(bool)
+        lag = self.get_lag(infection_data)
+        i_obs = pd.to_datetime(infection_data[self.col_date]) < (self.today - np.timedelta64(lag, 'D'))
+        d_obs = pd.to_datetime(infection_data[self.col_date]) < self.today
 
         spliced = self.splice_infections(
             infection_data=infection_data, i_obs=i_obs,
