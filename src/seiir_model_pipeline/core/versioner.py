@@ -182,7 +182,7 @@ class Directories:
             self.regression_coefficient_dir, self.regression_diagnostic_dir,
             self.regression_beta_fit_dir, self.regression_parameters_dir,
             self.forecast_diagnostic_dir, self.forecast_output_dir,
-            self.forecast_component_draw_dir
+            self.forecast_component_draw_dir, self.forecast_output_draw_dir
         ]:
             if directory is not None:
                 os.makedirs(str(directory), exist_ok=True)

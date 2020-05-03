@@ -145,9 +145,8 @@ class Splicer:
         )
 
     def format_draws(self, dictionary, id_cols, value):
-        import pdb; pdb.set_trace()
-        df = pd.concat(dictionary.values()).reset_index()
-        wide = df.set_index(id_cols + 'draw', inplace=True).unstack().reset_index()
+        df = pd.concat(dictionary.values()).reset_index(drop=True)
+        wide = df.set_index(id_cols + ['draw']).unstack().reset_index()
         wide.columns = id_cols + self.draw_cols
         wide['location'] = self.location_name
         wide['location_id'] = self.location_id
