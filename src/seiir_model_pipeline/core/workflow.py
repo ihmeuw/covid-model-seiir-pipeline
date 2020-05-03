@@ -50,10 +50,16 @@ class SEIIRWorkFlow(Workflow):
         self.add_tasks(tasks)
         return tasks
 
-    def attach_forecast_tasks(self, location_ids, **kwargs):
+    def attach_forecast_tasks(self, location_ids, add_splicer, **kwargs):
+        splicer_tasks = []
         tasks = [
             ForecastTask(location_id=loc, **kwargs)
             for loc in location_ids
         ]
+        if add_splicer:
+            splicer_tasks = [
+                task.add_splicer_task() for task in tasks
+            ]
         self.add_tasks(tasks)
+        self.add_tasks(splicer_tasks)
         return tasks

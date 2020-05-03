@@ -35,6 +35,8 @@ class ForecastTask(BashTask):
     def __init__(self, location_id, regression_version, forecast_version, **kwargs):
 
         self.location_id = location_id
+        self.regression_version = regression_version
+        self.forecast_version = forecast_version
 
         command = (
             "beta_forecast " +
@@ -46,6 +48,36 @@ class ForecastTask(BashTask):
         super().__init__(
             command=command,
             name=f'seiir_forecast_location_{location_id}',
+            executor_parameters=ExecParams,
+            max_attempts=1,
+            **kwargs
+        )
+
+    def add_splicer_task(self):
+        splicer_task = SplicerTask(
+            location_id=self.location_id,
+            regression_version=self.regression_version,
+            forecast_version=self.forecast_version
+        )
+        self.add_downstream(splicer_task)
+        return splicer_task
+
+
+class SplicerTask(BashTask):
+    def __init__(self, location_id, regression_version, forecast_version, **kwargs):
+
+        self.location_id = location_id
+
+        command = (
+            "splice " +
+            f"--location-id {self.location_id} " +
+            f"--regression-version {regression_version} " +
+            f"--forecast-version {forecast_version} "
+        )
+
+        super().__init__(
+            command=command,
+            name=f'seiir_splice_location_{location_id}',
             executor_parameters=ExecParams,
             max_attempts=1,
             **kwargs

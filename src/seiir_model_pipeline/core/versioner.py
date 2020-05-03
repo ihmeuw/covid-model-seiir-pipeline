@@ -36,7 +36,10 @@ INFECTION_COL_DICT = {
     'COL_CASES': 'cases_draw',
     'COL_POP': 'pop',
     'COL_LOC_ID': 'loc_id',
-    'COL_ID_LAG': 'i_d_lag'
+    'COL_DEATHS': 'deaths_draw',
+    'COL_ID_LAG': 'i_d_lag',
+    'COL_OBS_DEATHS': 'obs_deaths',
+    'COL_OBS_CASES': 'obs_infecs'
 }
 
 COVARIATE_COL_DICT = {
@@ -179,7 +182,7 @@ class Directories:
             self.regression_coefficient_dir, self.regression_diagnostic_dir,
             self.regression_beta_fit_dir, self.regression_parameters_dir,
             self.forecast_diagnostic_dir, self.forecast_output_dir,
-            self.forecast_component_draw_dir
+            self.forecast_component_draw_dir, self.forecast_output_draw_dir
         ]:
             if directory is not None:
                 os.makedirs(str(directory), exist_ok=True)
@@ -197,8 +200,10 @@ class Directories:
         os.makedirs(self.forecast_component_draw_dir / str(location_id), exist_ok=True)
         return self.forecast_component_draw_dir / str(location_id) / f'draw_{draw_id}.csv'
 
-    def location_output_forecast_file(self, location_id):
-        return self.forecast_output_draw_dir / f'death_infect_{location_id}.csv'
+    def location_output_forecast_file(self, location_id, forecast_type):
+        if forecast_type not in ['deaths', 'cases', 'reff']:
+            raise RuntimeError("Unrecognized forecast type.")
+        return self.forecast_output_draw_dir / f'{forecast_type}_{location_id}.csv'
 
     def get_infection_file(self, location_id, draw_id):
         folder = _get_infection_folder_from_location_id(location_id, self.infection_dir)

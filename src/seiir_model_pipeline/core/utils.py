@@ -19,6 +19,12 @@ COL_DATE = 'date'
 LOCATION_SET_ID = 111
 
 
+def get_location_name_from_id(location_id, metadata_path):
+    df = pd.read_csv(metadata_path)
+    location_name = df.loc[df.location_id == location_id]['location_name'].iloc[0]
+    return location_name
+
+
 def date_to_days(date):
     date = pd.to_datetime(date)
     return np.array((date - date.min()).days)
