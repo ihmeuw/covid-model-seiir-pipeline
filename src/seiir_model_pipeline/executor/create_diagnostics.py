@@ -39,6 +39,7 @@ def main():
     location_ids = get_locations(
         directories, settings.location_set_version_id
     )
+    location_ids = [x for x in location_ids if x not in [60407, 60406, 60405]]
 
     visualizer = Visualizer(
         directories, groups=location_ids,
