@@ -14,8 +14,8 @@ log = logging.getLogger(__name__)
 def get_args():
     parser = ArgumentParser()
     parser.add_argument("--location-id", type=int, required=True)
-    parser.add_argument("--regression-version", typt=int, required=True)
-    parser.add_argument("--forecast-version", type=int, required=True)
+    parser.add_argument("--regression-version", type=str, required=True)
+    parser.add_argument("--forecast-version", type=str, required=True)
     return parser.parse_args()
 
 

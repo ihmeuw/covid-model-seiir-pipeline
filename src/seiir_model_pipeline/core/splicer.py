@@ -8,7 +8,7 @@ IFR_TOL = 1e-7
 
 
 class DissimilarRatioError(Exception):
-    raise Exception("The death to infection ratios are not the same.")
+    pass
 
 
 class Splicer:
@@ -24,10 +24,10 @@ class Splicer:
         self.col_obs_cases = INFECTION_COL_DICT['COL_OBS_CASES']
 
     def splice_draw(self, infection_data, component_data):
-
+        import pdb; pdb.set_trace()
         # Extract data
-        infections = infection_data[self.col_obs_cases]
-        deaths = infection_data[self.col_obs_deaths]
+        infections = infection_data[self.col_cases]
+        deaths = infection_data[self.col_deaths]
 
         dates = infection_data[self.col_date]
 
@@ -53,7 +53,7 @@ class Splicer:
         # Observed infections
         obs_infect = infections[i_obs]
         obs_infect_date = dates[i_obs]
-
+        import pdb; pdb.set_trace()
 
 
         return pd.DataFrame()
