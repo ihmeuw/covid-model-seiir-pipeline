@@ -93,7 +93,7 @@ class Splicer:
         spl = df[[self.col_date, col_data]].copy()
         spl[COL_OBSERVED] = 0.
         spl.loc[observed, COL_OBSERVED] = 1.
-        spl['draw'] = draw_id
+        spl['draw'] = f'draw_{draw_id}'
         return spl
 
     def splice_infections(self, infection_data, i_obs, component_fit, component_forecasts):
@@ -147,7 +147,8 @@ class Splicer:
 
     def format_draws(self, dictionary, id_cols, value):
         df = pd.concat(dictionary.values()).reset_index()
-        wide = df.pivot(index=id_cols, columns=self.draw_cols, values=value).reset_index()
+        wide = df.set_index(id_cols + 'draw', inplace=True).unstack().reset_index()
+        wide.columns = id_cols + self.draw_cols
         wide['location'] = self.location_name
         wide['location_id'] = self.location_id
         return wide[['location', 'location_id'] + id_cols + self.draw_cols]
