@@ -121,7 +121,6 @@ class Splicer:
 
     def splice_draw(self, infection_data, component_fit, component_forecasts, params, draw_id):
         pop = self.get_population(infection_data)
-        import pdb; pdb.set_trace()
         i_obs = infection_data[self.col_obs_cases].astype(bool)
         d_obs = infection_data[self.col_obs_deaths].astype(bool)
 
@@ -146,6 +145,7 @@ class Splicer:
         )
 
     def format_draws(self, dictionary, id_cols, value):
+        import pdb; pdb.set_trace()
         df = pd.concat(dictionary.values()).reset_index()
         wide = df.pivot(index=id_cols, columns=self.draw_cols, values=value).reset_index()
         wide['location'] = self.location_name
