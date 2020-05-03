@@ -82,3 +82,24 @@ class SplicerTask(BashTask):
             max_attempts=1,
             **kwargs
         )
+
+
+class DiagnosticTask(BashTask):
+    def __init__(self, regression_version, forecast_version, **kwargs):
+
+        self.regression_version = regression_version
+        self.forecast_version = forecast_version
+
+        command = (
+            "create_diagnostics " +
+            f"--regression-version {regression_version} " +
+            f"--forecast-version {forecast_version} "
+        )
+
+        super().__init__(
+            command=command,
+            name=f'seiir_diagnostics',
+            executor_parameters=ExecParams,
+            max_attempts=1,
+            **kwargs
+        )
