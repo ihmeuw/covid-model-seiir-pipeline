@@ -40,7 +40,7 @@ def get_peaked_dates_from_file():
     return dict(zip(df.location_id, df.peak_date))
 
 
-def process_ode_process_input(settings, location_data, peak_data):
+def process_ode_process_input(settings, location_data):
     """Convert to ODEProcessInput.
     """
     return ODEProcessInput(
@@ -49,12 +49,11 @@ def process_ode_process_input(settings, location_data, peak_data):
         col_cases=INFECTION_COL_DICT['COL_CASES'],
         col_pop=INFECTION_COL_DICT['COL_POP'],
         col_loc_id=INFECTION_COL_DICT['COL_LOC_ID'],
+        col_lag_days=INFECTION_COL_DICT['COL_ID_LAG'],
         alpha=settings.alpha,
         sigma=settings.sigma,
         gamma1=settings.gamma1,
         gamma2=settings.gamma2,
-        peak_date_dict=peak_data,
-        day_shift=settings.day_shift,
         solver_dt=settings.solver_dt,
         spline_options={
             'spline_knots': np.array(settings.knots),
