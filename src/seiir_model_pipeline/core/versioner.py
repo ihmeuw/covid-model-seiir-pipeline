@@ -35,7 +35,8 @@ INFECTION_COL_DICT = {
     'COL_DATE': 'date',
     'COL_CASES': 'cases_draw',
     'COL_POP': 'pop',
-    'COL_LOC_ID': 'loc_id'
+    'COL_LOC_ID': 'loc_id',
+    'COL_ID_LAG': 'i_d_lag'
 }
 
 COVARIATE_COL_DICT = {
