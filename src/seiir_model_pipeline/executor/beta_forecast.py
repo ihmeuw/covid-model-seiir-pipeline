@@ -82,6 +82,12 @@ def main():
         betas = forecasts.beta_pred.values
         days = forecasts[COVARIATE_COL_DICT['COL_DATE']].values
         times = date_to_days(days)
+        
+        # Anchor the betas at the last observed beta (fitted)
+        # and scale everything into the future from this anchor value
+        anchor_beta = beta_fit.beta[beta_fit.date == CURRENT_DATE].iloc[0]
+        scale = anchor_beta / betas[0]
+        betas = betas * scale
 
         init_cond = get_ode_init_cond(
             beta_ode_fit=beta_fit,
