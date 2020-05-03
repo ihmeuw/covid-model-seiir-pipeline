@@ -25,7 +25,7 @@ class Splicer:
         self.col_obs_deaths = INFECTION_COL_DICT['COL_OBS_DEATHS']
         self.col_obs_cases = INFECTION_COL_DICT['COL_OBS_CASES']
 
-    def splice_draw(self, infection_data, component_fit, component_forecasts):
+    def splice_draw(self, infection_data, component_fit, component_forecasts, params):
 
         # Extract data
         infections = infection_data[self.col_cases]
@@ -53,17 +53,25 @@ class Splicer:
         ratio = ratios[np.isfinite(ratios)].mean()
 
         # Observed infections
-        obs_infect = infections[i_obs]
-        obs_infect_date = dates[i_obs]
-        import pdb; pdb.set_trace()
-
+        obs_infect = infection_data[[self.col_date, self.col_cases]][i_obs]
         predict_infect_date = dates[~i_obs]
 
         component_cols = [
-            self.col_loc_id, self.col_date, 'beta', 'S'
+           self.col_date, 'beta', 'S'
         ]
         components = pd.concat([
             component_fit.iloc[:-1][component_cols],
             component_forecasts[component_cols]
-        ]).reset_index()
+        ]).reset_index(drop=True)
+
+        newE = -np.diff(components['S'])
+        newE = np.append([0.], newE)
+        components = components.iloc[1:].copy()
+        components[self.col_cases] = newE
+
+        predict_infect = components.loc[components[self.col_date].isin(predict_infect_date)].copy()
+
+        spliced_infect = pd.concat([obs_infect, predict_infect]).reset_index(drop=True)
+        spliced_infect['effective_R'] = spliced_infect['S'] * spliced_infect['beta'] / (params['N'] * params['gamma2'])
+        import pdb; pdb.set_trace()
         return pd.DataFrame()

@@ -5,7 +5,8 @@ import pandas as pd
 
 from seiir_model_pipeline.core.versioner import args_to_directories
 from seiir_model_pipeline.core.versioner import load_forecast_settings, load_regression_settings
-from seiir_model_pipeline.core.data import load_all_location_data, load_component_forecasts, load_beta_fit
+from seiir_model_pipeline.core.data import load_all_location_data, load_component_forecasts
+from seiir_model_pipeline.core.data import load_beta_fit, load_beta_params
 from seiir_model_pipeline.core.splicer import Splicer
 
 log = logging.getLogger(__name__)
@@ -41,13 +42,15 @@ def main():
             directories, draw_id=draw_id,
             location_id=args.location_id
         )
+        params = load_beta_params()
         component_forecasts = load_component_forecasts(
             directories, location_id=args.location_id, draw_id=draw_id
         )
         spliced_draw = splicer.splice_draw(
             infection_data[args.location_id],
             component_fit,
-            component_forecasts
+            component_forecasts,
+            params
         )
         spliced_data = spliced_data.append(spliced_draw)
 
