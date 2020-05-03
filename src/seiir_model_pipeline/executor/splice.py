@@ -30,7 +30,10 @@ def main():
     regression_settings = load_regression_settings(args.regression_version)
     forecast_settings = load_forecast_settings(args.forecast_version)
 
-    splicer = Splicer(n_draws=regression_settings.n_draws)
+    splicer = Splicer(n_draws=regression_settings.n_draws, location_id=args.location_id)
+    splicer.capture_location_name(
+        metadata_path=directories.get_location_metadata_file(regression_settings.location_set_version_id)
+    )
 
     for draw_id in range(regression_settings.n_draws):
         print(f"On draw {draw_id}.")
