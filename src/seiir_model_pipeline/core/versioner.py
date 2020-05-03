@@ -200,8 +200,10 @@ class Directories:
         os.makedirs(self.forecast_component_draw_dir / str(location_id), exist_ok=True)
         return self.forecast_component_draw_dir / str(location_id) / f'draw_{draw_id}.csv'
 
-    def location_output_forecast_file(self, location_id):
-        return self.forecast_output_draw_dir / f'death_infect_{location_id}.csv'
+    def location_output_forecast_file(self, location_id, forecast_type):
+        if forecast_type not in ['deaths', 'cases', 'reff']:
+            raise RuntimeError("Unrecognized forecast type.")
+        return self.forecast_output_draw_dir / f'{forecast_type}_{location_id}.csv'
 
     def get_infection_file(self, location_id, draw_id):
         folder = _get_infection_folder_from_location_id(location_id, self.infection_dir)

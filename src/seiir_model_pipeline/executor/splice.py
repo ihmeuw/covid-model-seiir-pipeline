@@ -30,8 +30,7 @@ def main():
     regression_settings = load_regression_settings(args.regression_version)
     forecast_settings = load_forecast_settings(args.forecast_version)
 
-    spliced_data = pd.DataFrame()
-    splicer = Splicer()
+    splicer = Splicer(n_draws=regression_settings.n_draws)
 
     for draw_id in range(regression_settings.n_draws):
         print(f"On draw {draw_id}.")
@@ -42,18 +41,19 @@ def main():
             directories, draw_id=draw_id,
             location_id=args.location_id
         )
-        params = load_beta_params()
+        params = load_beta_params(directories, draw_id=draw_id)
         component_forecasts = load_component_forecasts(
             directories, location_id=args.location_id, draw_id=draw_id
         )
-        spliced_draw = splicer.splice_draw(
+        splicer.splice_draw(
             infection_data[args.location_id],
             component_fit,
             component_forecasts,
-            params
+            params,
+            draw_id=draw_id
         )
-        spliced_data = spliced_data.append(spliced_draw)
 
-    spliced_data.to_csv(
-        directories.location_output_forecast_file(location_id=args.location_id)
-    )
+    splicer.save_cases(directories.location_output_forecast_file(location_id=args.location_id, forecast_type='deaths'))
+    splicer.save_deaths(directories.location_output_forecast_file(location_id=args.location_id, forecast_type='cases'))
+    splicer.save_reff(directories.location_output_forecast_file(location_id=args.location_id, forecast_type='reff'))
+
