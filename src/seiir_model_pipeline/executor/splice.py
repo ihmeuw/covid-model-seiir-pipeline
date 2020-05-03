@@ -26,7 +26,7 @@ def main():
 
     # Load metadata
     directories = args_to_directories(args)
-    regression_settings = load_regression_settings(args.regression_settings)
+    regression_settings = load_regression_settings(args.regression_version)
     forecast_settings = load_forecast_settings(args.forecast_version)
 
     spliced_data = pd.DataFrame()
@@ -40,7 +40,7 @@ def main():
         component_forecasts = load_component_forecasts(
             directories, location_id=args.location_id, draw_id=draw_id
         )
-        spliced_draw = splicer.splice_draw(infection_data, component_forecasts)
+        spliced_draw = splicer.splice_draw(infection_data[args.location_id], component_forecasts)
         spliced_data = spliced_data.append(spliced_draw)
 
     spliced_data.to_csv(
