@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 
-from seiir_model.utils import SEIIR_COMPARTMENTS
+from seiir_model.regression_model.utils import SEIIR_COMPARTMENTS
 
 from seiir_model_pipeline.core.versioner import INFECTION_COL_DICT
 
@@ -60,7 +60,7 @@ class Splicer:
         predict_infect_date = dates[~i_obs]
 
         component_cols = [
-            self.col_loc_id, self.col_date, 'beta', 'S'
+            self.col_date, 'beta', 'S'
         ]
         components = pd.concat([
             component_fit.iloc[:-1][component_cols],
