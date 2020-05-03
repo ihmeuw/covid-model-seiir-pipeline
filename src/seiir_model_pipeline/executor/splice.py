@@ -56,7 +56,7 @@ def main():
             draw_id=draw_id
         )
 
-    splicer.save_cases(directories.location_output_forecast_file(location_id=args.location_id, forecast_type='deaths'))
-    splicer.save_deaths(directories.location_output_forecast_file(location_id=args.location_id, forecast_type='cases'))
+    splicer.save_cases(directories.location_output_forecast_file(location_id=args.location_id, forecast_type='cases'))
+    splicer.save_deaths(directories.location_output_forecast_file(location_id=args.location_id, forecast_type='deaths'))
     splicer.save_reff(directories.location_output_forecast_file(location_id=args.location_id, forecast_type='reff'))
 
