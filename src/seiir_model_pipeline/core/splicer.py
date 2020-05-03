@@ -10,6 +10,8 @@ COL_OBSERVED = 'observed'
 COL_R_EFF = 'R_eff'
 COL_BETA = 'beta'
 COL_S = 'S'
+COL_INFECT1 = 'I1'
+COL_INFECT2 = 'I2'
 
 
 class DissimilarRatioError(Exception):
@@ -70,7 +72,7 @@ class Splicer:
 
     def concatenate_components(self, component_fit, component_forecasts):
         component_cols = [
-            self.col_date, COL_BETA, COL_S
+            self.col_date, COL_BETA, COL_S, COL_INFECT1, COL_INFECT2
         ]
         df = pd.concat([
             component_fit.iloc[:-1][component_cols],
@@ -87,7 +89,8 @@ class Splicer:
     @staticmethod
     def compute_effective_r(df, params, pop):
         avg_gammas = 1. / (1. / params['gamma1'] + 1. / params['gamma2'])
-        return (df[COL_BETA] * df[COL_S]) / (avg_gammas * pop)
+        R_C = df[COL_BETA] * params['alpha'] * (df[COL_INFECT1] + df[COL_INFECT2]) ** (params['alpha'] - 1) / avg_gammas
+        return (R_C * df[COL_S]) / pop
 
     def record_splice(self, df, col_data, observed, draw_id):
         spl = df[[self.col_date, col_data]].copy()
