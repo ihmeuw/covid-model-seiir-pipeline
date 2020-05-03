@@ -47,11 +47,6 @@ def main():
     location_data = load_all_location_data(
         directories=directories, location_ids=location_ids, draw_id=args.draw_id
     )
-    peak_data = load_peaked_dates(
-        filepath=PEAK_DATE_FILE,
-        col_loc_id=PEAK_DATE_COL_DICT['COL_LOC_ID'],
-        col_date=PEAK_DATE_COL_DICT['COL_DATE']
-    )
     covariate_data = load_covariates(
         directories,
         location_id=location_ids,
@@ -62,7 +57,6 @@ def main():
     beta_fit_inputs = process_ode_process_input(
         settings=settings,
         location_data=location_data,
-        peak_data=peak_data
     )
     mr = ModelRunner()
     mr.fit_beta_ode(beta_fit_inputs)
@@ -80,7 +74,7 @@ def main():
         df_beta=mr.get_beta_ode_fit(),
         covmodel_set=covmodel_set
     )
-    mr.fit_beta_regression(
+    mr.fit_beta_regression_prod(
         covmodel_set=covmodel_set,
         mr_data=mr_data,
         path=directories.get_draw_coefficient_file(args.draw_id),
@@ -91,7 +85,7 @@ def main():
         directories=directories,
         draw_id=args.draw_id
     )
-    forecasts = mr.predict_beta_forward(
+    forecasts = mr.predict_beta_forward_prod(
         covmodel_set=covmodel_set,
         df_cov=covariate_data,
         df_cov_coef=regression_fit,

@@ -263,6 +263,14 @@ def load_forecast_settings(forecast_version):
     return ForecastVersion(**settings)
 
 
+def create_run(version_name, **kwargs):
+    rv = RegressionVersion(version_name=version_name, **kwargs)
+    fv = ForecastVersion(version_name=version_name, regression_version=version_name)
+    rv.create_version()
+    fv.create_version()
+    print(f"Created version {version_name}.")
+
+
 @dataclass
 class Version:
     """
