@@ -23,8 +23,8 @@ class Splicer:
         self.col_obs_deaths = INFECTION_COL_DICT['COL_OBS_DEATHS']
         self.col_obs_cases = INFECTION_COL_DICT['COL_OBS_CASES']
 
-    def splice_draw(self, infection_data, component_data):
-        import pdb; pdb.set_trace()
+    def splice_draw(self, infection_data, component_fit, component_forecasts):
+
         # Extract data
         infections = infection_data[self.col_cases]
         deaths = infection_data[self.col_deaths]
@@ -44,16 +44,17 @@ class Splicer:
         ratios = (deaths / infections.shift(lag))
 
         # Quality control check
-        differences = ratios - ratios.mean()
-        if not (differences[~differences.isnull()] < IFR_TOL).all():
-            raise DissimilarRatioError
+        # differences = ratios - ratios[np.isfinite(ratios)].mean()
+        # if not (differences[~differences.isnull()] < IFR_TOL).all():
+        #     raise DissimilarRatioError
 
-        ratio = ratios.mean()
+        ratio = ratios[np.isfinite(ratios)].mean()
 
         # Observed infections
         obs_infect = infections[i_obs]
         obs_infect_date = dates[i_obs]
         import pdb; pdb.set_trace()
 
+        predict_infect_date = dates[~i_obs]
 
         return pd.DataFrame()
