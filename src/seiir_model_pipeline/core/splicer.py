@@ -148,7 +148,9 @@ class Splicer:
     def format_draws(self, dictionary, id_cols, value):
         df = pd.concat(dictionary.values()).reset_index()
         wide = df.pivot(index=id_cols, columns=self.draw_cols, values=value).reset_index()
-        return wide
+        wide['location'] = self.location_name
+        wide['location_id'] = self.location_id
+        return wide[['location', 'location_id'] + id_cols + self.draw_cols]
 
     def save_cases(self, path):
         df = self.format_draws(self.infections, id_cols=[self.col_date, COL_OBSERVED], value=self.col_cases)
