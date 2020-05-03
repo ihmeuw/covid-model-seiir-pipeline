@@ -80,7 +80,7 @@ def main():
         df_beta=mr.get_beta_ode_fit(),
         covmodel_set=covmodel_set
     )
-    mr.fit_beta_regression(
+    mr.fit_beta_regression_prod(
         covmodel_set=covmodel_set,
         mr_data=mr_data,
         path=directories.get_draw_coefficient_file(args.draw_id),
@@ -91,7 +91,7 @@ def main():
         directories=directories,
         draw_id=args.draw_id
     )
-    forecasts = mr.predict_beta_forward(
+    forecasts = mr.predict_beta_forward_prod(
         covmodel_set=covmodel_set,
         df_cov=covariate_data,
         df_cov_coef=regression_fit,

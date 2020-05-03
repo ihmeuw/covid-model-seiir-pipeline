@@ -72,7 +72,7 @@ def main():
             directories=directories,
             draw_id=draw_id
         )
-        forecasts = mr.predict_beta_forward(
+        forecasts = mr.predict_beta_forward_prod(
             covmodel_set=covmodel_set,
             df_cov=covariate_data,
             df_cov_coef=regression_fit,
