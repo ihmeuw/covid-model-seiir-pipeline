@@ -11,7 +11,7 @@ ExecParams = ExecutorParameters(
 )
 
 ExecParamsPlotting = ExecutorParameters(
-    max_runtime_seconds=int(60*60),
+    max_runtime_seconds=int(60*60*5),
     j_resource=False,
     m_mem_free='20G',
     num_cores=3,
