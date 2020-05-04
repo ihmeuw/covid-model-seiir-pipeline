@@ -66,9 +66,9 @@ class Splicer:
         ratios = (deaths / infections.shift(lag))
 
         # Quality control check
-        # differences = ratios - ratios[np.isfinite(ratios)].mean()
-        # if not (differences[~differences.isnull()] < IFR_TOL).all():
-        #     raise DissimilarRatioError
+        differences = ratios - ratios[np.isfinite(ratios)].mean()
+        if not (differences[~differences.isnull()] < IFR_TOL).all():
+            raise DissimilarRatioError
 
         ratio = ratios[np.isfinite(ratios)].mean()
         return ratio
@@ -126,7 +126,6 @@ class Splicer:
         return df
 
     def splice_draw(self, infection_data, component_fit, component_forecasts, params, draw_id):
-
         pop = self.get_population(infection_data)
         lag = self.get_lag(infection_data)
         i_obs = pd.to_datetime(infection_data[self.col_date]) < (self.today - np.timedelta64(lag, 'D'))
