@@ -20,7 +20,7 @@ install_env:
 		source $(CONDA_PREFIX)/etc/profile.d/conda.sh; \
 		conda create -n $(ENV_NAME) python=3.7; \
 		conda activate $(ENV_NAME); \
-		pip install numpy scipy pandas matplotlib pytest xspline; \
+		pip install numpy scipy pandas matplotlib pyyaml pytest xspline; \
 		conda install -c conda-forge cyipopt; \
 		git clone https://github.com/zhengp0/limetr.git; \
 		cd limetr && make install && cd ..; \
