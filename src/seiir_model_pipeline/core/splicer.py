@@ -159,7 +159,7 @@ class Splicer:
         wide['location'] = self.location_name
         wide['location_id'] = self.location_id
         wide[COL_OBSERVED] = (pd.to_datetime(wide['date']) <= self.today).astype(float)
-        return wide[['location', 'location_id'] + id_cols + self.draw_cols]
+        return wide[['location', 'location_id', COL_OBSERVED] + id_cols + self.draw_cols]
 
     def save_cases(self, path):
         df = self.format_draws(self.infections, id_cols=[self.col_date])
