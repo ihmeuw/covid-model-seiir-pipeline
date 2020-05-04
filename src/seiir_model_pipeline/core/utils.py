@@ -64,7 +64,8 @@ def process_ode_process_input(settings, location_data):
         spline_options={
             'spline_knots': np.array(settings.knots),
             'spline_degree': settings.degree
-        }
+        },
+        day_shift=settings.day_shift
     )
 
 
