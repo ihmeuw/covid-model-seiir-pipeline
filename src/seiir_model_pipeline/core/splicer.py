@@ -151,22 +151,24 @@ class Splicer:
             df=spliced, col_data=COL_R_EFF, observed=i_obs, draw_id=draw_id
         )
 
-    def format_draws(self, dictionary, id_cols, value):
+    def format_draws(self, dictionary, id_cols):
         df = pd.concat(dictionary.values()).reset_index(drop=True)
+        df.drop(COL_OBSERVED, inplace=True, axis=1)
         wide = df.set_index(id_cols + ['draw']).unstack().reset_index()
         wide.columns = id_cols + self.draw_cols
         wide['location'] = self.location_name
         wide['location_id'] = self.location_id
+        wide[COL_OBSERVED] = (pd.to_datetime(wide['date']) <= self.today).astype(float)
         return wide[['location', 'location_id'] + id_cols + self.draw_cols]
 
     def save_cases(self, path):
-        df = self.format_draws(self.infections, id_cols=[self.col_date, COL_OBSERVED], value=self.col_cases)
+        df = self.format_draws(self.infections, id_cols=[self.col_date])
         df.to_csv(path, index=False)
 
     def save_deaths(self, path):
-        df = self.format_draws(self.deaths, id_cols=[self.col_date, COL_OBSERVED], value=self.col_deaths)
+        df = self.format_draws(self.deaths, id_cols=[self.col_date])
         df.to_csv(path, index=False)
 
     def save_reff(self, path):
-        df = self.format_draws(self.reff, id_cols=[self.col_date, COL_OBSERVED], value=COL_R_EFF)
+        df = self.format_draws(self.reff, id_cols=[self.col_date])
         df.to_csv(path, index=False)
