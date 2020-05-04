@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+from datetime import datetime
 
 from seiir_model_pipeline.core.utils import get_location_name_from_id
 from seiir_model_pipeline.core.versioner import INFECTION_COL_DICT
@@ -10,6 +11,8 @@ COL_OBSERVED = 'observed'
 COL_R_EFF = 'R_eff'
 COL_BETA = 'beta'
 COL_S = 'S'
+COL_INFECT1 = 'I1'
+COL_INFECT2 = 'I2'
 
 
 class DissimilarRatioError(Exception):
@@ -22,6 +25,8 @@ class Splicer:
         self.n_draws = n_draws
         self.draw_cols = [f'draw_{i}' for i in range(self.n_draws)]
         self.location_id = location_id
+        self.today = np.datetime64(datetime.today())
+
         self.location_name = None
 
         self.col_loc_id = INFECTION_COL_DICT['COL_LOC_ID']
@@ -70,7 +75,7 @@ class Splicer:
 
     def concatenate_components(self, component_fit, component_forecasts):
         component_cols = [
-            self.col_date, COL_BETA, COL_S
+            self.col_date, COL_BETA, COL_S, COL_INFECT1, COL_INFECT2
         ]
         df = pd.concat([
             component_fit.iloc[:-1][component_cols],
@@ -87,7 +92,8 @@ class Splicer:
     @staticmethod
     def compute_effective_r(df, params, pop):
         avg_gammas = 1. / (1. / params['gamma1'] + 1. / params['gamma2'])
-        return (df[COL_BETA] * df[COL_S]) / (avg_gammas * pop)
+        R_C = df[COL_BETA] * params['alpha'] * (df[COL_INFECT1] + df[COL_INFECT2]) ** (params['alpha'] - 1) / avg_gammas
+        return (R_C * df[COL_S]) / pop
 
     def record_splice(self, df, col_data, observed, draw_id):
         spl = df[[self.col_date, col_data]].copy()
@@ -120,9 +126,11 @@ class Splicer:
         return df
 
     def splice_draw(self, infection_data, component_fit, component_forecasts, params, draw_id):
+
         pop = self.get_population(infection_data)
-        i_obs = infection_data[self.col_obs_cases].astype(bool)
-        d_obs = infection_data[self.col_obs_deaths].astype(bool)
+        lag = self.get_lag(infection_data)
+        i_obs = pd.to_datetime(infection_data[self.col_date]) < (self.today - np.timedelta64(lag, 'D'))
+        d_obs = pd.to_datetime(infection_data[self.col_date]) < self.today
 
         spliced = self.splice_infections(
             infection_data=infection_data, i_obs=i_obs,
@@ -141,7 +149,7 @@ class Splicer:
             df=spliced, col_data=self.col_deaths, observed=d_obs, draw_id=draw_id
         )
         self.reff[draw_id] = self.record_splice(
-            df=spliced, col_data=COL_R_EFF, observed=d_obs, draw_id=draw_id
+            df=spliced, col_data=COL_R_EFF, observed=i_obs, draw_id=draw_id
         )
 
     def format_draws(self, dictionary, id_cols, value):

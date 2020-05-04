@@ -10,6 +10,14 @@ ExecParams = ExecutorParameters(
     queue='d.q'
 )
 
+ExecParamsPlotting = ExecutorParameters(
+    max_runtime_seconds=int(60*60),
+    j_resource=False,
+    m_mem_free='20G',
+    num_cores=3,
+    queue='d.q'
+)
+
 
 class RegressionTask(BashTask):
     def __init__(self, draw_id, regression_version, **kwargs):
@@ -79,6 +87,27 @@ class SplicerTask(BashTask):
             command=command,
             name=f'seiir_splice_location_{location_id}',
             executor_parameters=ExecParams,
+            max_attempts=1,
+            **kwargs
+        )
+
+
+class DiagnosticTask(BashTask):
+    def __init__(self, regression_version, forecast_version, **kwargs):
+
+        self.regression_version = regression_version
+        self.forecast_version = forecast_version
+
+        command = (
+            "create_diagnostics " +
+            f"--regression-version {regression_version} " +
+            f"--forecast-version {forecast_version} "
+        )
+
+        super().__init__(
+            command=command,
+            name=f'seiir_diagnostics',
+            executor_parameters=ExecParamsPlotting,
             max_attempts=1,
             **kwargs
         )

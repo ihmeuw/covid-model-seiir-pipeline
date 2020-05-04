@@ -38,6 +38,7 @@ def get_locations(directories, location_set_version_id):
         directories=directories, location_ids=df.location_id.unique().tolist()
     )
     locations = set(df.location_id.unique().tolist()) - set(missing)
+    # locations = [x for x in locations if x not in [60407, 60406, 60405]]
     return list(locations)
 
 
