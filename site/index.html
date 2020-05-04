@@ -1,0 +1,562 @@
+
+
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      <link rel="shortcut icon" href="assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.1, mkdocs-material-5.1.5">
+    
+    
+      
+        <title>COVID19 SEIIR Modeling Pipeline</title>
+      
+    
+    
+      <link rel="stylesheet" href="assets/stylesheets/main.df84b5fe.min.css">
+      
+        <link rel="stylesheet" href="assets/stylesheets/palette.8435c73a.min.css">
+      
+      
+        
+        
+        <meta name="theme-color" content="#4caf50">
+      
+    
+    
+    
+      
+        <link href="https://fonts.gstatic.com" rel="preconnect" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,400i,700%7CRoboto+Mono&display=fallback">
+        <style>body,input{font-family:"Roboto",-apple-system,BlinkMacSystemFont,Helvetica,Arial,sans-serif}code,kbd,pre{font-family:"Roboto Mono",SFMono-Regular,Consolas,Menlo,monospace}</style>
+      
+    
+    
+    
+    
+      
+    
+    
+  </head>
+  
+  
+    
+    
+    <body dir="ltr" data-md-color-primary="green" data-md-color-accent="green">
+  
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#covid19-seiir-modeling-pipeline-at-ihme" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <header class="md-header" data-md-component="header">
+  <nav class="md-header-nav md-grid" aria-label="Header">
+    <a href="." title="COVID19 SEIIR Modeling Pipeline" class="md-header-nav__button md-logo" aria-label="COVID19 SEIIR Modeling Pipeline">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 003-3 3 3 0 00-3-3 3 3 0 00-3 3 3 3 0 003 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54z"/></svg>
+
+    </a>
+    <label class="md-header-nav__button md-icon" for="__drawer">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2z"/></svg>
+    </label>
+    <div class="md-header-nav__title" data-md-component="header-title">
+      
+        <div class="md-header-nav__ellipsis">
+          <span class="md-header-nav__topic md-ellipsis">
+            COVID19 SEIIR Modeling Pipeline
+          </span>
+          <span class="md-header-nav__topic md-ellipsis">
+            
+              Home
+            
+          </span>
+        </div>
+      
+    </div>
+    
+      <label class="md-header-nav__button md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0116 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 019.5 16 6.5 6.5 0 013 9.5 6.5 6.5 0 019.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
+      </label>
+      
+<div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" data-md-state="active">
+      <label class="md-search__icon md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0116 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 019.5 16 6.5 6.5 0 013 9.5 6.5 6.5 0 019.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+      </label>
+      <button type="reset" class="md-search__icon md-icon" aria-label="Clear" data-md-component="search-reset" tabindex="-1">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"/></svg>
+      </button>
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+  </nav>
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+        
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              <div class="md-sidebar md-sidebar--primary" data-md-component="navigation">
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    <nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="." title="COVID19 SEIIR Modeling Pipeline" class="md-nav__button md-logo" aria-label="COVID19 SEIIR Modeling Pipeline">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 003-3 3 3 0 00-3-3 3 3 0 00-3 3 3 3 0 003 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54z"/></svg>
+
+    </a>
+    COVID19 SEIIR Modeling Pipeline
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+      
+
+  
+
+
+  <li class="md-nav__item md-nav__item--active">
+    
+    <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
+    
+      
+    
+    
+      <label class="md-nav__link md-nav__link--active" for="__toc">
+        Home
+        <span class="md-nav__icon md-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 9h14V7H3v2m0 4h14v-2H3v2m0 4h14v-2H3v2m16 0h2v-2h-2v2m0-10v2h2V7h-2m0 6h2v-2h-2v2z"/></svg>
+        </span>
+      </label>
+    
+    <a href="." title="Home" class="md-nav__link md-nav__link--active">
+      Home
+    </a>
+    
+      
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+      </span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#getting-started" class="md-nav__link">
+    Getting Started
+  </a>
+  
+    <nav class="md-nav" aria-label="Getting Started">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#installation" class="md-nav__link">
+    Installation
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#directories" class="md-nav__link">
+    Directories
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#versions" class="md-nav__link">
+    Versions
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#scripts" class="md-nav__link">
+    Scripts
+  </a>
+  
+    <nav class="md-nav" aria-label="Scripts">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#run" class="md-nav__link">
+    Run
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#beta-regression" class="md-nav__link">
+    Beta Regression
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#beta-forecast" class="md-nav__link">
+    Beta Forecast
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#splicing" class="md-nav__link">
+    Splicing
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#diagnostics" class="md-nav__link">
+    Diagnostics.
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#launching-a-pipeline-run" class="md-nav__link">
+    Launching a Pipeline Run
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+    
+  </li>
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="toc">
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+      </span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#getting-started" class="md-nav__link">
+    Getting Started
+  </a>
+  
+    <nav class="md-nav" aria-label="Getting Started">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#installation" class="md-nav__link">
+    Installation
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#directories" class="md-nav__link">
+    Directories
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#versions" class="md-nav__link">
+    Versions
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#scripts" class="md-nav__link">
+    Scripts
+  </a>
+  
+    <nav class="md-nav" aria-label="Scripts">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#run" class="md-nav__link">
+    Run
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#beta-regression" class="md-nav__link">
+    Beta Regression
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#beta-forecast" class="md-nav__link">
+    Beta Forecast
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#splicing" class="md-nav__link">
+    Splicing
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#diagnostics" class="md-nav__link">
+    Diagnostics.
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#launching-a-pipeline-run" class="md-nav__link">
+    Launching a Pipeline Run
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          <div class="md-content">
+            <article class="md-content__inner md-typeset">
+              
+                
+                
+                  
+                
+                
+                <h1 id="covid19-seiir-modeling-pipeline-at-ihme">COVID19 SEIIR Modeling Pipeline at IHME</h1>
+<p>This page documents the usage of the COVID-19 SEIIR Modeling Pipeline used
+at IHME.</p>
+<h2 id="getting-started">Getting Started</h2>
+<p>Here we will walk through installing the pipeline in an environment on the IHME
+cluster and running</p>
+<h3 id="installation">Installation</h3>
+<p>The engine(s) behind the computation in the SEIIR pipeline are
+from public and private GitHub repositories. This repository
+contains a Makefile that you can use to install all of the repositories.
+The only internal IHME package that this 
+repository relies on is <a href="https://scicomp-docs.ihme.washington.edu/jobmon/current/">Jobmon</a>.</p>
+<p>Note that in order to install the private repositories from <a href="https://github.com/ihmeuw-msca">IHME
+Math Sciences organization on GitHub</a>, you will need to ask for
+permissions to those repositories. Please contact <a href="mailto:zhengp@uw.edu">Peng Zheng</a>
+or <a href="mailto:mnorwood@uw.edu">Marlena Bannick</a> to grant read permissions.</p>
+<p>To install the repository into your own conda environment, clone the repository:</p>
+<div class="codehilite"><pre><span></span><code><span class="err">git clone https://stash.ihme.washington.edu/scm/cvd19/covid-model-seir-ode-opt.git</span>
+<span class="err">cd covid-model-seir-ode-opt</span>
+<span class="err">make install_env</span>
+</code></pre></div>
+
+
+<h3 id="directories">Directories</h3>
+<p>All input and output filepaths for the SEIIR pipeline are coded within the <code>versioner</code> module.
+The two main inputs are infection data from the Infectionator and covariates that are used in the beta
+regressions. If the paths for these inputs ever changes, you need to change the filepaths
+at the top of the <code>versioneer</code> module.</p>
+<p>Output folders and file names are also determined by the <code>versioner</code> module, in particular the
+<code>Directories</code> object. The <code>Directories</code> object needs to read in a regression version
+and/or a forecast version, the two halves of the pipeline. For a full run, you need
+both a regression and forecast version.</p>
+<h3 id="versions">Versions</h3>
+<h3 id="scripts">Scripts</h3>
+<p>The main scripts used in the pipeline are stored in <code>executors</code>. They are briefly described below.</p>
+<h4 id="run">Run</h4>
+<p>The <code>run</code> script is the main script that <a href="#launching-a-pipeline-run">launches a full pipeline run</a>.
+It needs to know a regression version, a forecast version, and whether or not to run the splicer and
+to create diagnostics. It uses Jobmon to create a workflow with <code>n_draws</code> number
+of <a href="#beta-regression">regression tasks</a>, then <a href="#beta-forecast">forecasting tasks</a> for each location,
+then <a href="#splicing">splicing</a> tasks for each forecast task, and finally one <a href="#diagnostics">diagnostics</a>
+task.</p>
+<h4 id="beta-regression">Beta Regression</h4>
+<p>The beta regression task reads infection data for one draw across all locations and covariate data based
+on the settings provided when you created a version. The regression tasks are parallelized across
+draw because each draw is independent.</p>
+<p>First, it fits a spline using the <a href="https://github.com/zhengp0/xspline"><code>xspline</code> package</a>
+to the daily infection data provided from the Infectionator over time. It then solves
+an SEIIR ODE using the beta fit to get estimates for each of the SEIIR compartments given the
+spline-fitted beta.</p>
+<p>After getting a smoothed beta curve, it fits a regression using covariates provided in your specs
+to the smooth beta. The exact model it's fitting is actually a number of different
+regression models done in stages, fixing coefficient values at different stages of the regression.
+Some of these regressions have random effects. To date when this regression needs to change, we change
+it in the core SEIIR model (on GitHub), not in the wrapper. Depending on needs, we may expose more knobs
+so that the user can control the structure of the regression model directly from the wrapper.</p>
+<p>The regression task saves the fitted betas from the spline, the SEIIR compartment estimates from
+the ODE, the estimated coefficients from the regression, and the fitted beta values from the regression
+(although these are never used, they are only saved for diagnostic purposes).</p>
+<h4 id="beta-forecast">Beta Forecast</h4>
+<p>The beta forecast task is independent by location and draw, however it is currently only parallelized
+by location because each draw is very fast.</p>
+<p>For each draw, it reads in saved regression coefficients and ODE estimates for compartments <strong>in the past</strong>
+from a <a href="#beta-regression">regression task</a>. The forecasting task uses future
+covariate values to predict out the beta into the future using the saved coefficients.
+To avoid discontinuities in the past and future predicted betas, we align them together
+at the only shared time point (present) using a multiplicative scaling for the predicted betas 
+(e.g. if last beta in the past time series is 0.95 times the first beta in the future time series, we multiply
+the entire future beta time series by 0.95).</p>
+<p>Then it solves an ODE moving forward into the future using this predicted beta time series 
+to get estimates for the sizes of each of the SEIIR compartments. The ODE uses the initial conditions saved
+from the past SEIIR components from the <a href="#beta-regression">regression task</a>.</p>
+<h4 id="splicing">Splicing</h4>
+<p>The goal of the splicer is to create infections and deaths from the SEIIR compartments.</p>
+<h4 id="diagnostics">Diagnostics.</h4>
+<h3 id="launching-a-pipeline-run">Launching a Pipeline Run</h3>
+<p>To launch a pipeline run, you must first create a regression version and/or a forecast version.
+The <code>versioner</code> module has a helper function <code>create_run</code> that creates both a regression
+and forecast version with the same name for a full run, and with all the keyword arguments
+that you would pass to <code>RegressionVersion</code> and <code>ForecastVersion</code> (see <a href="#versions">versions</a>).</p>
+<p>Once you have a version, open up a screen and qlogin on the dq on the cluster with at least three
+threads, 5G of memory, and a few hours of runtime (the pipeline is quick, but the diagnostics
+take a long time). The <code>run</code> script builds the Jobmon workflow and monitors the tasks
+until the whole pipeline is complete:</p>
+<div class="codehilite"><pre><span></span><code><span class="err">run --regression-version {REG_VERSION} --forecast-version {FOR_VERSION} --run-splicer --create-diagnostics</span>
+</code></pre></div>
+
+
+<p>If you don't want to create diagnostics, remove the <code>--create-diagnostics</code> flag. Likewise, if you don't
+want to run the splicer to create infections and deaths from the ODE compartments, remove the
+<code>--run-splicer</code> flag.</p>
+<p>You can view the status of the workflow and individual tasks in the workflow by viewing
+the Jobmon database. Instructions for accessing the permanent Jobmon database are
+<a href="https://hub.ihme.washington.edu/display/DataScience/Jobmon+Release+Notes">here</a> under the
+10/7/2019 release notes.</p>
+                
+              
+              
+                
+
+
+              
+            </article>
+          </div>
+        </div>
+      </main>
+      
+        
+<footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-footer-copyright">
+        
+        Made with
+        <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+          Material for MkDocs
+        </a>
+      </div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    
+      <script src="assets/javascripts/vendor.83fe6e3c.min.js"></script>
+      <script src="assets/javascripts/bundle.7e1cb91c.min.js"></script><script id="__lang" type="application/json">{"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents"}</script>
+      
+      <script>
+        app = initialize({
+          base: ".",
+          features: [],
+          search: Object.assign({
+            worker: "assets/javascripts/worker/search.37585f48.min.js"
+          }, typeof search !== "undefined" && search)
+        })
+      </script>
+      
+    
+  </body>
+</html>
