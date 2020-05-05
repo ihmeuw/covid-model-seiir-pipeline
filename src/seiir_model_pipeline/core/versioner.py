@@ -187,8 +187,9 @@ class Directories:
             if directory is not None:
                 os.makedirs(str(directory), exist_ok=True)
 
-    def get_draw_beta_fit_file(self, draw_id):
-        return self.regression_beta_fit_dir / f'fit_draw_{draw_id}.csv'
+    def get_draw_beta_fit_file(self, location_id, draw_id):
+        os.makedirs(self.regression_beta_fit_dir / str(location_id), exist_ok=True)
+        return self.regression_beta_fit_dir / str(location_id) / f'fit_draw_{draw_id}.csv'
 
     def get_draw_beta_param_file(self, draw_id):
         return self.regression_parameters_dir / f'params_draw_{draw_id}.csv'

@@ -60,10 +60,7 @@ def main():
     )
     mr = ModelRunner()
     mr.fit_beta_ode(beta_fit_inputs)
-    mr.save_beta_ode_result(
-        fit_file=directories.get_draw_beta_fit_file(args.draw_id),
-        params_file=directories.get_draw_beta_param_file(args.draw_id)
-    )
+
     # Convert inputs for regression
     covmodel_set = convert_to_covmodel(settings.covariates)
     mr_data = convert_inputs_for_beta_model(
@@ -103,7 +100,9 @@ def main():
         right_on=[COVARIATE_COL_DICT['COL_LOC_ID'], COVARIATE_COL_DICT['COL_DATE']],
         how='left'
     )
-    beta_fit_covariates.to_csv(directories.get_draw_beta_fit_file(args.draw_id), index=False)
+    for l_id in location_ids:
+        loc_beta_fits = beta_fit_covariates.loc[beta_fit_covariates[INFECTION_COL_DICT['COL_LOC_ID']] == l_id].copy()
+        loc_beta_fits.to_csv(directories.get_draw_beta_fit_file(l_id, args.draw_id), index=False)
     mr.get_beta_ode_params().to_csv(directories.get_draw_beta_param_file(args.draw_id), index=False)
 
 
