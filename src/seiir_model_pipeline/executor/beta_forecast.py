@@ -52,7 +52,7 @@ def main():
             directories, draw_id=draw_id
         )
 
-        ordered_covmodel_set, all_covmodels_set = convert_to_covmodel(
+        _, all_covmodels_set = convert_to_covmodel(
             regression_settings.covariates, 
             regression_settings.covariates_order,
         )

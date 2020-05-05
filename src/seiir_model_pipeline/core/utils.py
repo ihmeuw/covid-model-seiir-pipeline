@@ -90,7 +90,7 @@ def convert_to_covmodel(cov_dict, cov_order_list):
             CovModelSet([cov_models[cov_names_id[name]] for name in names])
         )
     all_covmodels_set = CovModelSet(cov_models)
-    return ordered_covmodel_set, all_covmodels_set
+    return ordered_covmodel_sets, all_covmodels_set
 
 
 def convert_inputs_for_beta_model(data_cov, df_beta, covmodel_set):

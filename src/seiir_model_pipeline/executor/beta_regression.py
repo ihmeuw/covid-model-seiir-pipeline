@@ -59,17 +59,17 @@ def main():
     mr.fit_beta_ode(beta_fit_inputs)
 
     # Convert inputs for regression
-    ordered_covmodel_set, all_covmodels_set = convert_to_covmodel(settings.covariates, settings.covariates_order)
+    ordered_covmodel_sets, all_covmodels_set = convert_to_covmodel(settings.covariates, settings.covariates_order)
     mr_data = convert_inputs_for_beta_model(
         data_cov=(
             covariate_data, COVARIATE_COL_DICT['COL_DATE'],
             COVARIATE_COL_DICT['COL_LOC_ID']
         ),
         df_beta=mr.get_beta_ode_fit(),
-        covmodel_set=all_covmodels_set
+        covmodel_set=all_covmodels_set,
     )
     mr.fit_beta_regression_prod(
-        ordered_covmodel_set=ordered_covmodel_set,
+        ordered_covmodel_sets=ordered_covmodel_sets,
         mr_data=mr_data,
         path=directories.get_draw_coefficient_file(args.draw_id),
     )
