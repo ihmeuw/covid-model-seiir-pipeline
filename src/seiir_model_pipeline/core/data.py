@@ -85,8 +85,7 @@ def load_mr_coefficients(directories, draw_id):
 
 
 def load_beta_fit(directories, draw_id, location_id):
-    df = pd.read_csv(directories.get_draw_beta_fit_file(draw_id))
-    df = df.loc[df[INFECTION_COL_DICT['COL_LOC_ID']] == location_id].copy()
+    df = pd.read_csv(directories.get_draw_beta_fit_file(location_id, draw_id))
     return df
 
 
