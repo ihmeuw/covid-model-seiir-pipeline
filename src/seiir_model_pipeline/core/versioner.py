@@ -291,6 +291,7 @@ class RegressionVersion(Version):
         - "gprior": (np.array)
         - "bounds": (np.array)
         - "re_var": (float)
+    - `solver_dt (float)`: step size for the ODE solver
     """
 
     infection_version: str
@@ -305,6 +306,7 @@ class RegressionVersion(Version):
 
     # Regression Arguments
     covariates: Dict[str, Dict[str, Union[bool, List, float]]]
+    covariates_order: List[List[str]]
 
     # Optimization Arguments
     alpha: Tuple[float] = field(default=(0.95, 0.95))
@@ -333,14 +335,11 @@ class RegressionVersion(Version):
 class ForecastVersion(Version):
     """
     - `regression_version (str)`: the regression version to read from
-    - `covariate_scenario_version (str)`: the covariate scenario version to pull
-    - `initial_conditions (Dict[str: float])`: initial conditions for the ODE;
-        requires keys 'S', 'E', 'I1', '12', and 'R'
-    - `solver_dt (float)`: step size for the ODE solver
+    - `covariate_version (str)`: the covariate version to pull
     """
 
     regression_version: str
-    # covariate_scenario_ids: List[int]
+    covariate_version: str
 
     def __post_init__(self):
         pass
