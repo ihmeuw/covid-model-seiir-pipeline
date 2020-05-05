@@ -91,6 +91,7 @@ def convert_inputs_for_beta_model(data_cov, df_beta, covmodel_set):
         left_on=[COL_DATE, COL_GROUP],
         right_on=[col_t_cov, col_group_cov],
     ).copy()
+    df = df.loc[df[COL_BETA] != 0].copy()
     df.sort_values(inplace=True, by=[COL_GROUP, COL_DATE])
     df['ln_'+COL_BETA] = np.log(df[COL_BETA])
     cov_names = [covmodel.col_cov for covmodel in covmodel_set.cov_models]
