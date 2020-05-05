@@ -59,17 +59,17 @@ def main():
     mr.fit_beta_ode(beta_fit_inputs)
 
     # Convert inputs for regression
-    covmodel_set = convert_to_covmodel(settings.covariates)
+    ordered_covmodel_set, all_covmodels_set = convert_to_covmodel(settings.covariates, settings.covariates_order)
     mr_data = convert_inputs_for_beta_model(
         data_cov=(
             covariate_data, COVARIATE_COL_DICT['COL_DATE'],
             COVARIATE_COL_DICT['COL_LOC_ID']
         ),
         df_beta=mr.get_beta_ode_fit(),
-        covmodel_set=covmodel_set
+        covmodel_set=all_covmodels_set
     )
     mr.fit_beta_regression_prod(
-        covmodel_set=covmodel_set,
+        ordered_covmodel_set=ordered_covmodel_set,
         mr_data=mr_data,
         path=directories.get_draw_coefficient_file(args.draw_id),
     )
@@ -80,7 +80,7 @@ def main():
         draw_id=args.draw_id
     )
     forecasts = mr.predict_beta_forward_prod(
-        covmodel_set=covmodel_set,
+        covmodel_set=all_covmodels_set,
         df_cov=covariate_data,
         df_cov_coef=regression_fit,
         col_t=COVARIATE_COL_DICT['COL_DATE'],

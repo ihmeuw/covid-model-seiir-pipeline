@@ -52,7 +52,10 @@ def main():
             directories, draw_id=draw_id
         )
 
-        covmodel_set = convert_to_covmodel(regression_settings.covariates)
+        ordered_covmodel_set, all_covmodels_set = convert_to_covmodel(
+            regression_settings.covariates, 
+            regression_settings.covariates_order,
+        )
         covariate_data = load_covariates(
             directories,
             covariate_version=forecast_settings.covariate_version,
@@ -69,7 +72,7 @@ def main():
             draw_id=draw_id
         )
         forecasts = mr.predict_beta_forward_prod(
-            covmodel_set=covmodel_set,
+            covmodel_set=all_covmodels_set,
             df_cov=covariate_data,
             df_cov_coef=regression_fit,
             col_t=COVARIATE_COL_DICT['COL_DATE'],
