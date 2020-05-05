@@ -95,7 +95,7 @@ the entire future beta time series by 0.95).
 
 Then it solves an ODE moving forward into the future using this predicted beta time series 
 to get estimates for each component of the SEIIR. The ODE uses the initial
- conditions are
+ conditions saved
 from the past SEIIR components from the [regression task](#beta-regression).
 
 #### Splicing
