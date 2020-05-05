@@ -94,7 +94,8 @@ at the only shared time point (present) using a multiplicative scaling for the p
 the entire future beta time series by 0.95).
 
 Then it solves an ODE moving forward into the future using this predicted beta time series 
-to get estimates for the sizes of each of the SEIIR compartments. The ODE uses the initial conditions saved
+to get estimates for each component of the SEIIR. The ODE uses the initial
+ conditions are
 from the past SEIIR components from the [regression task](#beta-regression).
 
 #### Splicing
