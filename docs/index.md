@@ -26,7 +26,7 @@ To install the repository into your own conda environment, clone the repository:
 ```
 git clone https://stash.ihme.washington.edu/scm/cvd19/covid-model-seir-ode-opt.git
 cd covid-model-seir-ode-opt
-make install_env
+make install_env ENV_NAME={your conda environment name}
 ```
 
 ### Directories
@@ -34,7 +34,7 @@ make install_env
 All input and output filepaths for the SEIIR pipeline are coded within the `versioner` module.
 The two main inputs are infection data from the Infectionator and covariates that are used in the beta
 regressions. If the paths for these inputs ever changes, you need to change the filepaths
-at the top of the `versioneer` module.
+at the top of the `versioner` module.
 
 Output folders and file names are also determined by the `versioner` module, in particular the
 `Directories` object. The `Directories` object needs to read in a regression version
@@ -88,9 +88,11 @@ on the settings provided when you created a version. The regression tasks are pa
 draw because each draw is independent.
 
 First, it fits a spline using the [`xspline` package](https://github.com/zhengp0/xspline)
-to the daily infection data provided from the Infectionator over time. It then solves
-an SEIIR ODE using the beta fit to get estimates for each of the SEIIR compartments given the
-spline-fitted beta.
+to the daily infection data provided from the *Infectionator* over time. It
+ then solves
+an SEIIR ODE using the spline fit to get estimates for each of the SEIIR
+ compartments. At last it obtains the beta from the spline
+ and all the compartments of the SEIIR ODE.
 
 After getting a smoothed beta curve, it fits a regression using covariates provided in your specs
 to the smooth beta. The exact model it's fitting is actually a number of different
@@ -117,7 +119,8 @@ at the only shared time point (present) using a multiplicative scaling for the p
 the entire future beta time series by 0.95).
 
 Then it solves an ODE moving forward into the future using this predicted beta time series 
-to get estimates for the sizes of each of the SEIIR compartments. The ODE uses the initial conditions saved
+to get estimates for each component of the SEIIR. The ODE uses the initial
+ conditions saved
 from the past SEIIR components from the [regression task](#beta-regression).
 
 #### Splicing
