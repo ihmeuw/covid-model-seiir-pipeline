@@ -37,7 +37,10 @@ def create_regression_version(version_name, covariate_version,
         location_ids=location_ids,
         covariate_draw_dict=covariate_draw_dict
     )
-    rv = RegressionVersion(version_name=version_name, covariate_version=cache_version, **kwargs)
+    rv = RegressionVersion(version_name=version_name, covariate_version=cache_version,
+                           covariate_draw_dict=covariate_draw_dict,
+                           location_set_version_id=location_set_version_id,
+                           infection_version=infection_version, **kwargs)
     return rv.create_version()
 
 
