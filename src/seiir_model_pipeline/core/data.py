@@ -74,6 +74,7 @@ class CovariateFormatter:
 
     def format_covariates(self, covariate_version, draw_id=None):
         dfs = pd.DataFrame()
+        value_columns = []
         for name, pull_draws in self.covariate_draw_dict.items():
             df = pd.read_csv(self.directories.get_covariate_file(
                 covariate_name=name, covariate_version=covariate_version
@@ -85,6 +86,7 @@ class CovariateFormatter:
                     value_column = name
             else:
                 value_column = name
+            value_columns.append(value_column)
             df = df.loc[~df[value_column].isnull()].copy()
             if dfs.empty:
                 dfs = df
@@ -94,8 +96,8 @@ class CovariateFormatter:
                     dfs = dfs.merge(df, on=[self.col_loc_id, self.col_date])
                 else:
                     dfs = dfs.merge(df, on=[self.col_loc_id])
-            dfs = dfs[[self.col_loc_id, self.col_date, value_column]]
-            dfs = dfs.loc[dfs[self.col_loc_id].isin(self.location_ids)].copy()
+        dfs = dfs[[self.col_loc_id, self.col_date] + value_columns]
+        dfs = dfs.loc[dfs[self.col_loc_id].isin(self.location_ids)].copy()
         return dfs
 
 
