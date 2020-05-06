@@ -11,7 +11,7 @@ from seiir_model_pipeline.core.data import load_mr_coefficients
 from seiir_model_pipeline.core.versioner import load_regression_settings
 from seiir_model_pipeline.core.utils import convert_to_covmodel
 from seiir_model_pipeline.core.data import load_covariates
-from seiir_model_pipeline.core.utils import get_locations
+from seiir_model_pipeline.core.utils import load_locations
 from seiir_model_pipeline.core.utils import process_ode_process_input
 from seiir_model_pipeline.core.utils import convert_inputs_for_beta_model
 
@@ -39,12 +39,7 @@ def main():
     directories = args_to_directories(args)
     settings = load_regression_settings(args.regression_version)
     # Load data
-    location_ids = get_locations(
-        directories,
-        location_set_version_id=settings.location_set_version_id,
-        infection_version=settings.infection_version,
-        covariate_version=settings.covariate_version
-    )
+    location_ids = load_locations(directories)
     location_data = load_all_location_data(
         directories=directories, location_ids=location_ids, draw_id=args.draw_id
     )

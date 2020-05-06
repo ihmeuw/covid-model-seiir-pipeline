@@ -2,9 +2,9 @@ from argparse import ArgumentParser
 import logging
 
 from seiir_model_pipeline.core.versioner import args_to_directories
-from seiir_model_pipeline.core.versioner import load_regression_settings, load_forecast_settings
+from seiir_model_pipeline.core.versioner import load_regression_settings
 from seiir_model_pipeline.core.workflow import SEIIRWorkFlow
-from seiir_model_pipeline.core.utils import get_locations
+from seiir_model_pipeline.core.utils import load_locations
 
 log = logging.getLogger(__name__)
 
@@ -46,15 +46,9 @@ def main():
     else:
         if not run_forecasts:
             raise RuntimeError("You have to run either a regression or forecast.")
-        regression_settings = load_regression_settings(args.forecast_version)
 
     if run_forecasts:
-        location_ids = get_locations(
-            directories,
-            infection_version=regression_settings.infection_version,
-            location_set_version_id=regression_settings.location_set_version_id,
-            covariate_version=regression_settings.covariate_version
-        )
+        location_ids = load_locations(directories)
         wf.attach_forecast_tasks(
             location_ids=location_ids,
             add_splicer=args.run_splicer,
