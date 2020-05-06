@@ -1,7 +1,8 @@
 import getpass
 import logging
 
-from seiir_model_pipeline.core.task import RegressionTask, ForecastTask, DiagnosticTask
+from seiir_model_pipeline.core.task import RegressionTask, ForecastTask
+from seiir_model_pipeline.core.task import RegressionDiagnosticTask, ForecastDiagnosticTask
 from jobmon.client.swarm.workflow.workflow import Workflow
 
 log = logging.getLogger(__name__)
@@ -38,19 +39,24 @@ class SEIIRWorkFlow(Workflow):
             resume=True
         )
 
-    def attach_regression_tasks(self, n_draws, **kwargs):
+    def attach_regression_tasks(self, n_draws, add_diagnostic, **kwargs):
         """
         Attach n_draws DrawTasks.
 
         :param n_draws: (int)
+        :param add_diagnostic: (bool) add a diagnostic task
         **kwargs: keyword arguments to DrawTask
         :return: self
         """
         tasks = [RegressionTask(draw_id=i, **kwargs) for i in range(n_draws)]
         self.add_tasks(tasks)
+        if add_diagnostic:
+            diagnostic_task = RegressionDiagnosticTask(**kwargs)
+            for t in tasks:
+                diagnostic_task.add_upstream(t)
         return tasks
 
-    def attach_forecast_tasks(self, location_ids, add_splicer, **kwargs):
+    def attach_forecast_tasks(self, location_ids, add_splicer, add_diagnostic, **kwargs):
         splicer_tasks = []
         tasks = [
             ForecastTask(location_id=loc, **kwargs)
@@ -58,15 +64,8 @@ class SEIIRWorkFlow(Workflow):
         ]
         if add_splicer:
             splicer_tasks = [
-                task.add_splicer_task() for task in tasks
+                task.add_splicer_task(add_diagnostic) for task in tasks
             ]
         self.add_tasks(tasks)
         self.add_tasks(splicer_tasks)
         return tasks + splicer_tasks
-
-    def attach_diagnostic_tasks(self, regression_version, forecast_version, **kwargs):
-        task = DiagnosticTask(
-            regression_version=regression_version,
-            forecast_version=forecast_version, **kwargs
-        )
-        self.add_task(task)

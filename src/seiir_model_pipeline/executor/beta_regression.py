@@ -1,18 +1,16 @@
 from argparse import ArgumentParser
 import logging
 import numpy as np
-import pandas as pd
 
 from seiir_model.model_runner import ModelRunner
 
 from seiir_model_pipeline.core.versioner import args_to_directories
-from seiir_model_pipeline.core.versioner import PEAK_DATE_FILE, PEAK_DATE_COL_DICT
 from seiir_model_pipeline.core.versioner import COVARIATE_COL_DICT, INFECTION_COL_DICT
 from seiir_model_pipeline.core.data import load_all_location_data
 from seiir_model_pipeline.core.data import load_mr_coefficients
 from seiir_model_pipeline.core.versioner import load_regression_settings
 from seiir_model_pipeline.core.utils import convert_to_covmodel
-from seiir_model_pipeline.core.data import load_covariates, load_peaked_dates
+from seiir_model_pipeline.core.data import load_covariates
 from seiir_model_pipeline.core.utils import get_locations
 from seiir_model_pipeline.core.utils import process_ode_process_input
 from seiir_model_pipeline.core.utils import convert_inputs_for_beta_model
@@ -49,9 +47,8 @@ def main():
     )
     covariate_data = load_covariates(
         directories,
-        location_id=location_ids,
-        col_loc_id=COVARIATE_COL_DICT['COL_LOC_ID'],
-        col_observed=COVARIATE_COL_DICT['COL_OBSERVED']
+        covariate_version=settings.covariate_version,
+        location_ids=location_ids
     )
     np.random.seed(args.draw_id)
     beta_fit_inputs = process_ode_process_input(

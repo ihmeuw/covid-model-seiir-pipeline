@@ -61,14 +61,27 @@ class ForecastTask(BashTask):
             **kwargs
         )
 
-    def add_splicer_task(self):
+    def add_splicer_task(self, add_diagnostic):
+        tasks = []
+        diagnostic_task = []
+
         splicer_task = SplicerTask(
             location_id=self.location_id,
             regression_version=self.regression_version,
             forecast_version=self.forecast_version
         )
         self.add_downstream(splicer_task)
-        return splicer_task
+        if add_diagnostic:
+            diagnostic_task = ForecastDiagnosticTask(
+                location_id=self.location_id,
+                regression_version=self.regression_version,
+                forecast_version=self.forecast_version
+            )
+            splicer_task.add_downstream(diagnostic_task)
+
+        tasks.append(splicer_task)
+        tasks.append(diagnostic_task)
+        return tasks
 
 
 class SplicerTask(BashTask):
@@ -92,16 +105,37 @@ class SplicerTask(BashTask):
         )
 
 
-class DiagnosticTask(BashTask):
-    def __init__(self, regression_version, forecast_version, **kwargs):
+class RegressionDiagnosticTask(BashTask):
+    def __init__(self, regression_version, **kwargs):
+
+        self.regression_version = regression_version
+
+        command = (
+            "create_diagnostics " +
+            f"--regression-version {regression_version} "
+        )
+
+        super().__init__(
+            command=command,
+            name=f'seiir_regression_diagnostics',
+            executor_parameters=ExecParamsPlotting,
+            max_attempts=1,
+            **kwargs
+        )
+
+
+class ForecastDiagnosticTask(BashTask):
+    def __init__(self, regression_version, forecast_version, location_id, **kwargs):
 
         self.regression_version = regression_version
         self.forecast_version = forecast_version
+        self.location_id = location_id
 
         command = (
             "create_diagnostics " +
             f"--regression-version {regression_version} " +
-            f"--forecast-version {forecast_version} "
+            f"--forecast-version {forecast_version} " +
+            f"--location-id {location_id} "
         )
 
         super().__init__(
