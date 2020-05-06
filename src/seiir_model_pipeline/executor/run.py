@@ -50,7 +50,9 @@ def main():
 
     if run_forecasts:
         location_ids = get_locations(
-            directories, regression_settings.location_set_version_id,
+            directories,
+            infection_version=regression_settings.infection_version,
+            location_set_version_id=regression_settings.location_set_version_id,
             covariate_version=regression_settings.covariate_version
         )
         wf.attach_forecast_tasks(

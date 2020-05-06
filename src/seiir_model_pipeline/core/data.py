@@ -5,7 +5,7 @@ import os
 from typing import List, Dict
 
 from seiir_model_pipeline.core.versioner import Directories, COVARIATE_COL_DICT, COVARIATE_CACHE, COVARIATE_DIR
-
+from seiir_model_pipeline.core.versioner import INPUT_DIR
 
 N_DRAWS = 1000
 
@@ -18,9 +18,11 @@ def get_covariate_version_from_best():
     return path
 
 
-def get_missing_locations(directories, location_ids, covariate_version):
-    infection_loc = [x.split('_')[-1] for x in os.listdir(directories.infection_dir)
-                     if os.path.isdir(directories.infection_dir / x)]
+def get_missing_locations(directories, location_ids,
+                          infection_version, covariate_version):
+    infection_dir = INPUT_DIR / infection_version
+    infection_loc = [x.split('_')[-1] for x in os.listdir(infection_dir)
+                     if os.path.isdir(infection_dir / x)]
     infection_loc = [int(x) for x in infection_loc if x.isdigit()]
 
     with open(directories.get_missing_covariate_locations_file(covariate_version)) as f:

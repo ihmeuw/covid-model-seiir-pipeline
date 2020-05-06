@@ -40,7 +40,10 @@ def main():
     settings = load_regression_settings(args.regression_version)
     # Load data
     location_ids = get_locations(
-        directories, settings.location_set_version_id
+        directories,
+        location_set_version_id=settings.location_set_version_id,
+        infection_version=settings.infection_version,
+        covariate_version=settings.covariate_version
     )
     location_data = load_all_location_data(
         directories=directories, location_ids=location_ids, draw_id=args.draw_id

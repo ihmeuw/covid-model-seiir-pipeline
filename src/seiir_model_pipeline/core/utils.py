@@ -23,10 +23,12 @@ LOCATION_SET_ID = 111
 
 def create_regression_version(version_name, covariate_version,
                               covariate_draw_dict,
+                              infection_version,
                               location_set_version_id, **kwargs):
     directories = Directories()
     location_ids = get_locations(
-        directories, location_set_version_id=location_set_version_id,
+        directories, infection_version,
+        location_set_version_id=location_set_version_id,
         covariate_version=covariate_version
     )
     cache_version = cache_covariates(
@@ -81,12 +83,14 @@ def date_to_days(date):
     return np.array((date - date.min()).days)
 
 
-def get_locations(directories, location_set_version_id, covariate_version):
+def get_locations(directories, infection_version, location_set_version_id, covariate_version):
     df = pd.read_csv(
         directories.get_location_metadata_file(location_set_version_id),
     )
     missing = get_missing_locations(
-        directories=directories, location_ids=df.location_id.unique().tolist(), covariate_version=covariate_version
+        directories=directories,
+        infection_version=infection_version,
+        location_ids=df.location_id.unique().tolist(), covariate_version=covariate_version
     )
     locations = set(df.location_id.unique().tolist()) - set(missing)
     # locations = [x for x in locations if x not in [60407, 60406, 60405]]
