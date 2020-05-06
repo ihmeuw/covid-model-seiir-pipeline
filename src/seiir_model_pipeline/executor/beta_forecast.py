@@ -1,6 +1,5 @@
 from argparse import ArgumentParser
 import logging
-from typing import List
 import pandas as pd
 import numpy as np
 
@@ -9,11 +8,10 @@ from seiir_model.ode_forecasting.ode_runner import SiierdModelSpecs
 
 from seiir_model_pipeline.core.versioner import args_to_directories
 from seiir_model_pipeline.core.versioner import load_forecast_settings, load_regression_settings
-from seiir_model_pipeline.core.versioner import PEAK_DATE_FILE, INFECTION_COL_DICT, COVARIATE_COL_DICT, OBSERVED_DICT
+from seiir_model_pipeline.core.versioner import INFECTION_COL_DICT, COVARIATE_COL_DICT
 from seiir_model_pipeline.core.data import load_covariates, load_beta_fit, load_beta_params
 from seiir_model_pipeline.core.data import load_mr_coefficients
 from seiir_model_pipeline.core.utils import convert_to_covmodel
-from seiir_model_pipeline.core.versioner import OBSERVED_DICT
 from seiir_model_pipeline.core.utils import get_ode_init_cond
 from seiir_model_pipeline.core.utils import date_to_days
 
@@ -57,9 +55,8 @@ def main():
         covmodel_set = convert_to_covmodel(regression_settings.covariates)
         covariate_data = load_covariates(
             directories,
-            location_id=[args.location_id],
-            col_loc_id=COVARIATE_COL_DICT['COL_LOC_ID'],
-            col_observed=COVARIATE_COL_DICT['COL_OBSERVED']
+            covariate_version=forecast_settings.covariate_version,
+            location_ids=[args.location_id]
         )
 
         beta_fit_date = pd.to_datetime(beta_fit[INFECTION_COL_DICT['COL_DATE']])
@@ -94,7 +91,7 @@ def main():
             current_date=CURRENT_DATE,
             location_id=args.location_id
         ).astype(float)
-        N = np.sum(init_cond)
+        N = np.sum(init_cond)[0]
         model_specs = SiierdModelSpecs(
             alpha=beta_params['alpha'],
             sigma=beta_params['sigma'],

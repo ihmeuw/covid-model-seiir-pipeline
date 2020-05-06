@@ -1,9 +1,13 @@
 import pandas as pd
 import yaml
+from dataclasses import dataclass
 import os
-from typing import List
+from typing import List, Dict
 
-from seiir_model_pipeline.core.versioner import INFECTION_COL_DICT
+from seiir_model_pipeline.core.versioner import INFECTION_COL_DICT, Directories, COVARIATE_COL_DICT
+
+
+N_DRAWS = 1000
 
 
 def get_missing_locations(directories, location_ids):
@@ -38,45 +42,67 @@ def load_component_forecasts(directories, location_id, draw_id):
     return df
 
 
-def format_covariates(directories, covariate_names,
-                      col_loc_id, col_date, col_observed,
-                      location_id=None):
-    dfs = pd.DataFrame()
-    for name in covariate_names:
-        df = pd.read_csv(directories.get_covariate_file(name))
-        df = df.loc[~df[name].isnull()].copy()
-        df.drop(columns=[col_observed], inplace=True, axis=1)
-        if dfs.empty:
-            dfs = df
-        else:
-            # time dependent covariates versus not
-            if col_date in df.columns:
-                dfs = dfs.merge(df, on=[col_loc_id, col_date])
-            else:
-                dfs = dfs.merge(df, on=[col_loc_id])
-    if location_id is not None:
-        assert isinstance(location_id, List)
-        dfs = dfs.loc[dfs[col_loc_id].isin(location_id)].copy()
-    return dfs
-
-
-def load_covariates(directories, col_loc_id, col_observed, location_id, forecasted=None):
-    df = pd.read_csv(directories.get_cached_covariates_file())
-    if forecasted is not None:
-        df = df.loc[df[col_observed] == forecasted]
-    if location_id is not None:
-        assert isinstance(location_id, List)
-        df = df.loc[df[col_loc_id].isin(location_id)].copy()
+def load_covariates(directories, covariate_version, location_ids, draw_id=None):
+    df = pd.read_csv(directories.get_cached_covariates_file(covariate_version, draw_id=draw_id))
+    if location_ids is not None:
+        assert isinstance(location_ids, List)
+        df = df.loc[df[COVARIATE_COL_DICT['COL_LOC_ID']].isin(location_ids)].copy()
     return df
 
 
-def cache_covariates(directories, covariate_names, col_loc_id, col_date, col_observed,
-                     location_id):
-    df = format_covariates(
-        directories=directories, covariate_names=covariate_names, col_loc_id=col_loc_id,
-        col_date=col_date, col_observed=col_observed, location_id=location_id
+@dataclass
+class CovariateFormatter:
+
+    directories: Directories
+    covariate_draw_dict: Dict[str: bool]
+    location_ids: List[int]
+
+    def __post_init__(self):
+        self.col_observed = COVARIATE_COL_DICT['COL_OBSERVED']
+        self.col_loc_id = COVARIATE_COL_DICT['COL_LOC_ID']
+        self.col_date = COVARIATE_COL_DICT['COL_DATE']
+
+    def format_covariates(self, covariate_version, draw_id=None):
+        dfs = pd.DataFrame()
+        for name, pull_draws in self.covariate_draw_dict.items():
+            df = pd.read_csv(self.directories.get_covariate_file(
+                covariate_name=name, covariate_version=covariate_version
+            ))
+            if draw_id is not None:
+                if pull_draws:
+                    value_column = f'draw_{draw_id}'
+                else:
+                    value_column = name
+            else:
+                value_column = name
+            df = df[[self.col_loc_id, self.col_date, value_column]]
+            df = df.loc[~df[value_column].isnull()].copy()
+            if dfs.empty:
+                dfs = df
+            else:
+                # time dependent covariates versus not
+                if self.col_date in df.columns:
+                    dfs = dfs.merge(df, on=[self.col_loc_id, self.col_date])
+                else:
+                    dfs = dfs.merge(df, on=[self.col_loc_id])
+            dfs = dfs.loc[dfs[self.col_loc_id].isin(self.location_ids)].copy()
+        return dfs
+
+
+def cache_covariates(directories, covariate_versions, location_ids, covariate_draw_dict):
+    formatter = CovariateFormatter(
+        directories=directories, covariate_draw_dict=covariate_draw_dict,
+        location_ids=location_ids
     )
-    df.to_csv(directories.get_cached_covariates_file())
+    pull_draws = covariate_draw_dict.values().any()
+    for version in covariate_versions:
+        if pull_draws:
+            for draw_id in range(N_DRAWS):
+                df = formatter.format_covariates(version, draw_id=draw_id)
+                df.to_csv(directories.get_cached_covariates_file(covariate_version=version, draw_id=draw_id))
+        else:
+            df = formatter.format_covariates(version)
+            df.to_csv(directories.get_cached_covariates_file(covariate_version=version))
 
 
 def load_mr_coefficients(directories, draw_id):
