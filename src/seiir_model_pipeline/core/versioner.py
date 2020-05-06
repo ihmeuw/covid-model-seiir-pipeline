@@ -228,7 +228,7 @@ class Directories:
 
     @staticmethod
     def get_missing_covariate_locations_file(covariate_version):
-        return COVARIATE_CACHE / covariate_version / MISSING_COVARIATE_LOC_FILE
+        return COVARIATE_DIR / covariate_version / MISSING_COVARIATE_LOC_FILE
 
     @property
     def location_cache_file(self):
