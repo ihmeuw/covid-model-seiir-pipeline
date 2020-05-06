@@ -11,7 +11,7 @@ N_DRAWS = 1000
 
 
 def get_covariate_version_from_best():
-    file = COVARIATE_DIR / 'best/metadata.yml'
+    file = COVARIATE_DIR / 'best/metadata.yaml'
     with open(file) as f:
         version = yaml.load(f, Loader=yaml.FullLoader)
     path = version['output_path'].split('/')[-1]
