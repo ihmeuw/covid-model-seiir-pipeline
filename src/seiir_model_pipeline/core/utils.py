@@ -63,7 +63,8 @@ def create_forecast_version(version_name, covariate_version,
         covariate_draw_dict=covariate_draw_dict
     )
     fv = ForecastVersion(version_name=version_name, covariate_version=cache_version,
-                         regression_version=regression_version)
+                         regression_version=regression_version,
+                         covariate_draw_dict=covariate_draw_dict)
     return fv.create_version()
 
 
