@@ -32,7 +32,6 @@ def main():
     directories.make_dirs()
 
     wf = SEIIRWorkFlow(directories=directories)
-    
     run_regression = args.regression_version is not None
     run_forecasts = args.forecast_version is not None
 
@@ -41,11 +40,11 @@ def main():
     if run_regression:
         regression_settings = load_regression_settings(args.regression_version)
         location_ids = get_locations(
-            directories, regression_settings.location_set_version_id
+            directories, regression_settings.location_set_version_id, covariate_version=regression_settings.covariate_version
         )
         cache_covariates(
             directories=directories,
-            covariate_versions=regression_settings.covariate_version,
+            covariate_versions=[regression_settings.covariate_version],
             location_ids=location_ids,
             covariate_draw_dict=regression_settings.covariate_draw_dict
         )
@@ -62,11 +61,12 @@ def main():
     if run_forecasts:
         forecast_settings = load_forecast_settings(args.forecast_version)
         location_ids = get_locations(
-            directories, regression_settings.location_set_version_id
+            directories, regression_settings.location_set_version_id,
+covariate_version=regression_settings.covariate_version
         )
         cache_covariates(
             directories=directories,
-            covariate_versions=forecast_settings.covariate_version,
+            covariate_versions=[forecast_settings.covariate_version],
             location_ids=location_ids,
             covariate_draw_dict=forecast_settings.covariate_draw_dict
         )
