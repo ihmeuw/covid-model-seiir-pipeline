@@ -70,9 +70,11 @@ def process_ode_process_input(settings, location_data):
     )
 
 
-def convert_to_covmodel(cov_dict):
+def convert_to_covmodel(cov_dict, cov_order_list):
     cov_models = []
+    cov_names = []
     for name, dct in cov_dict.items():
+        cov_names.append(name)
         cov_models.append(CovModel(
             name,
             use_re=dct['use_re'],
@@ -80,8 +82,15 @@ def convert_to_covmodel(cov_dict):
             gprior=np.array(dct['gprior']),
             re_var=dct['re_var'],
         ))
-    covmodel_set = CovModelSet(cov_models)
-    return covmodel_set
+    cov_names_id = {name: i for i, name in enumerate(cov_names)}
+    
+    ordered_covmodel_sets = []
+    for names in cov_order_list:
+        ordered_covmodel_sets.append(
+            CovModelSet([cov_models[cov_names_id[name]] for name in names])
+        )
+    all_covmodels_set = CovModelSet(cov_models)
+    return ordered_covmodel_sets, all_covmodels_set
 
 
 def convert_inputs_for_beta_model(data_cov, df_beta, covmodel_set):
