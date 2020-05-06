@@ -128,14 +128,12 @@ class Directories:
     - `covariate_version (str)`: version of the covariates to pull
     - `output_version (str)`: version of outputs to store
     """
-
     regression_version: str = None
     forecast_version: str = None
 
     def __post_init__(self):
         rv = None
         fv = None
-
         if self.regression_version is None:
             if self.forecast_version is None:
                 pass
@@ -194,7 +192,8 @@ class Directories:
             self.regression_coefficient_dir, self.regression_diagnostic_dir,
             self.regression_beta_fit_dir, self.regression_parameters_dir,
             self.forecast_diagnostic_dir, self.forecast_output_dir,
-            self.forecast_component_draw_dir, self.forecast_output_draw_dir
+            self.forecast_component_draw_dir, self.forecast_output_draw_dir,
+            self.rv_covariate_cache_dir, self.fv_covariate_cache_dir
         ]:
             if directory is not None:
                 os.makedirs(str(directory), exist_ok=True)
@@ -285,7 +284,7 @@ def load_forecast_settings(forecast_version):
 def check_compatible_version(regression_version, forecast_version):
     assert regression_version.covariate_draw_dict.keys() == forecast_version.covariate_draw_dict.keys()
     if regression_version.covariate_version == forecast_version.covariate_version:
-        for covariate, draw in regression_version.covariate_draw_dict.keys():
+        for covariate, draw in regression_version.covariate_draw_dict.items():
             assert covariate in forecast_version.covariate_draw_dict
             if draw and not forecast_version.covariate_draw_dict[covariate]:
                 raise RuntimeError("Incompatible regression and forecast covariate settings.")
@@ -329,7 +328,7 @@ class RegressionVersion(Version):
     # Regression Arguments
     covariates: Dict[str, Dict[str, Union[bool, List, float]]]
     covariates_order: List[List[str]]
-    covariate_draw_dict = Dict[str, bool]
+    covariate_draw_dict: Dict[str, bool]
 
     # Optimization Arguments
     alpha: Tuple[float] = field(default=(0.95, 0.95))

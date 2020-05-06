@@ -10,12 +10,12 @@ from seiir_model_pipeline.core.versioner import Directories, COVARIATE_COL_DICT,
 N_DRAWS = 1000
 
 
-def get_missing_locations(directories, location_ids):
+def get_missing_locations(directories, location_ids, covariate_version):
     infection_loc = [x.split('_')[-1] for x in os.listdir(directories.infection_dir)
                      if os.path.isdir(directories.infection_dir / x)]
     infection_loc = [int(x) for x in infection_loc if x.isdigit()]
 
-    with open(directories.get_missing_covariate_locations_file()) as f:
+    with open(directories.get_missing_covariate_locations_file(covariate_version)) as f:
         covariate_metadata = yaml.load(f, Loader=yaml.FullLoader)
 
     missing_covariate_loc = list()
@@ -54,7 +54,7 @@ def load_covariates(directories, covariate_version, location_ids, draw_id=None):
 class CovariateFormatter:
 
     directories: Directories
-    covariate_draw_dict: Dict[str: bool]
+    covariate_draw_dict: Dict[str, bool]
     location_ids: List[int]
 
     def __post_init__(self):
@@ -75,7 +75,6 @@ class CovariateFormatter:
                     value_column = name
             else:
                 value_column = name
-            df = df[[self.col_loc_id, self.col_date, value_column]]
             df = df.loc[~df[value_column].isnull()].copy()
             if dfs.empty:
                 dfs = df
@@ -85,6 +84,7 @@ class CovariateFormatter:
                     dfs = dfs.merge(df, on=[self.col_loc_id, self.col_date])
                 else:
                     dfs = dfs.merge(df, on=[self.col_loc_id])
+            dfs = dfs[[self.col_loc_id, self.col_date, value_column]]
             dfs = dfs.loc[dfs[self.col_loc_id].isin(self.location_ids)].copy()
         return dfs
 
@@ -108,7 +108,7 @@ def cache_covariates(directories, covariate_version, location_ids, covariate_dra
         directories=directories, covariate_draw_dict=covariate_draw_dict,
         location_ids=location_ids
     )
-    pull_draws = covariate_draw_dict.values().any()
+    pull_draws = any(covariate_draw_dict.values())
     if pull_draws:
         for draw_id in range(N_DRAWS):
             df = formatter.format_covariates(covariate_version, draw_id=draw_id)
