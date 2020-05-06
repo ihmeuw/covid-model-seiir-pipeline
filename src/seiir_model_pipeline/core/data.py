@@ -10,6 +10,14 @@ from seiir_model_pipeline.core.versioner import Directories, COVARIATE_COL_DICT,
 N_DRAWS = 1000
 
 
+def get_covariate_version_from_best():
+    file = COVARIATE_DIR / 'best/metadata.yml'
+    with open(file) as f:
+        version = yaml.load(f, Loader=yaml.FullLoader)
+    path = version['output_path'].split('/')[-1]
+    return path
+
+
 def get_missing_locations(directories, location_ids, covariate_version):
     infection_loc = [x.split('_')[-1] for x in os.listdir(directories.infection_dir)
                      if os.path.isdir(directories.infection_dir / x)]
