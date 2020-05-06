@@ -100,6 +100,8 @@ class CovariateFormatter:
 
 
 def get_new_cache_version(covariate_version):
+    if covariate_version == 'best':
+        covariate_version = get_covariate_version_from_best()
     dirs = os.listdir(COVARIATE_CACHE)
     matched_versions = [x for x in dirs if '.'.join([x[0], x[1]]) == covariate_version]
     version = len(matched_versions) + 1
