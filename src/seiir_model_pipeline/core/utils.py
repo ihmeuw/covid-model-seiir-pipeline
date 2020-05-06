@@ -26,7 +26,8 @@ def create_regression_version(version_name, covariate_version,
                               location_set_version_id, **kwargs):
     directories = Directories()
     location_ids = get_locations(
-        directories, location_set_version_id=location_set_version_id
+        directories, location_set_version_id=location_set_version_id,
+        covariate_version=covariate_version
     )
     cache_version = cache_covariates(
         directories=directories,
@@ -43,7 +44,8 @@ def create_forecast_version(version_name, covariate_version,
                             location_set_version_id, **kwargs):
     directories = Directories()
     location_ids = get_locations(
-        directories, location_set_version_id=location_set_version_id
+        directories, location_set_version_id=location_set_version_id,
+        covariate_version=covariate_version
     )
     cache_version = cache_covariates(
         directories=directories,
@@ -55,9 +57,16 @@ def create_forecast_version(version_name, covariate_version,
     return fv.create_version()
 
 
-def create_run(version_name, **kwargs):
-    create_regression_version(version_name=version_name, **kwargs)
-    create_regression_version(version_name=version_name, **kwargs)
+def create_run(version_name, covariate_version, covariate_draw_dict,
+               location_set_version_id, **kwargs):
+    create_regression_version(version_name=version_name, covariate_version=covariate_version,
+                              covariate_draw_dict=covariate_draw_dict,
+                              location_set_version_id=location_set_version_id,
+                              **kwargs)
+    create_forecast_version(version_name=version_name, covariate_version=covariate_version,
+                            covariate_draw_dict=covariate_draw_dict,
+                            location_set_version_id=location_set_version_id,
+                            **kwargs)
     print(f"Created regression and forecast versions {version_name}.")
 
 
