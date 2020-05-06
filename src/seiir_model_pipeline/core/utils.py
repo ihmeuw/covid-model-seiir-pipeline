@@ -8,6 +8,7 @@ from slime.core.data import MRData
 from seiir_model_pipeline.core.versioner import PEAK_DATE_FILE
 from seiir_model_pipeline.core.versioner import INFECTION_COL_DICT
 from seiir_model_pipeline.core.versioner import RegressionVersion, ForecastVersion, Directories
+from seiir_model_pipeline.core.data import get_missing_locations
 from seiir_model_pipeline.core.data import cache_covariates
 
 
@@ -26,6 +27,7 @@ def create_regression_version(version_name, covariate_version,
     directories = Directories()
     location_ids = get_locations(
         directories, location_set_version_id=location_set_version_id,
+        covariate_version=covariate_version
     )
     cache_version = cache_covariates(
         directories=directories,
@@ -37,12 +39,13 @@ def create_regression_version(version_name, covariate_version,
     return rv.create_version()
 
 
-def create_forecast_version(version_name, regression_version, covariate_version,
+def create_forecast_version(version_name, covariate_version,
                             covariate_draw_dict,
                             location_set_version_id, **kwargs):
-    directories = Directories(regression_version=regression_version)
+    directories = Directories()
     location_ids = get_locations(
         directories, location_set_version_id=location_set_version_id,
+        covariate_version=covariate_version
     )
     cache_version = cache_covariates(
         directories=directories,
@@ -56,19 +59,14 @@ def create_forecast_version(version_name, regression_version, covariate_version,
 
 def create_run(version_name, covariate_version, covariate_draw_dict,
                location_set_version_id, **kwargs):
-    regression = create_regression_version(
-        version_name=version_name, covariate_version=covariate_version,
-        covariate_draw_dict=covariate_draw_dict,
-        location_set_version_id=location_set_version_id,
-        **kwargs
-    )
-    create_forecast_version(
-        version_name=version_name, covariate_version=covariate_version,
-        regression_version=regression,
-        covariate_draw_dict=covariate_draw_dict,
-        location_set_version_id=location_set_version_id,
-        **kwargs
-    )
+    create_regression_version(version_name=version_name, covariate_version=covariate_version,
+                              covariate_draw_dict=covariate_draw_dict,
+                              location_set_version_id=location_set_version_id,
+                              **kwargs)
+    create_forecast_version(version_name=version_name, covariate_version=covariate_version,
+                            covariate_draw_dict=covariate_draw_dict,
+                            location_set_version_id=location_set_version_id,
+                            **kwargs)
     print(f"Created regression and forecast versions {version_name}.")
 
 
@@ -83,11 +81,15 @@ def date_to_days(date):
     return np.array((date - date.min()).days)
 
 
-def get_locations(directories, location_set_version_id):
+def get_locations(directories, location_set_version_id, covariate_version):
     df = pd.read_csv(
         directories.get_location_metadata_file(location_set_version_id),
     )
-    locations = df.location_id.unique().tolist()
+    missing = get_missing_locations(
+        directories=directories, location_ids=df.location_id.unique().tolist(), covariate_version=covariate_version
+    )
+    locations = set(df.location_id.unique().tolist()) - set(missing)
+    # locations = [x for x in locations if x not in [60407, 60406, 60405]]
     return list(locations)
 
 
