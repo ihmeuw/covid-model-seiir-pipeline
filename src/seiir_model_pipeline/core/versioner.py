@@ -5,6 +5,7 @@ import os
 import json
 import numpy as np
 
+
 BASE_DIR = Path('/ihme')
 
 # Dependency directories
@@ -281,14 +282,6 @@ def load_forecast_settings(forecast_version):
     return ForecastVersion(**settings)
 
 
-def create_run(version_name, **kwargs):
-    rv = RegressionVersion(version_name=version_name, **kwargs)
-    fv = ForecastVersion(version_name=version_name, regression_version=version_name)
-    rv.create_version()
-    fv.create_version()
-    print(f"Created version {version_name}.")
-
-
 def check_compatible_version(regression_version, forecast_version):
     assert regression_version.covariate_draw_dict.keys() == forecast_version.covariate_draw_dict.keys()
     if regression_version.covariate_version == forecast_version.covariate_version:
@@ -359,6 +352,7 @@ class RegressionVersion(Version):
         _available_version(REGRESSION_OUTPUT / self.version_name)
         os.makedirs(REGRESSION_OUTPUT / self.version_name)
         self._settings_to_json()
+        return self.version_name
 
 
 @dataclass
@@ -387,3 +381,4 @@ class ForecastVersion(Version):
         _available_version(FORECAST_OUTPUT / self.version_name)
         os.makedirs(FORECAST_OUTPUT / self.version_name)
         self._settings_to_json()
+        return self.version_name

@@ -4,7 +4,7 @@ from dataclasses import dataclass
 import os
 from typing import List, Dict
 
-from seiir_model_pipeline.core.versioner import INFECTION_COL_DICT, Directories, COVARIATE_COL_DICT
+from seiir_model_pipeline.core.versioner import Directories, COVARIATE_COL_DICT, COVARIATE_CACHE, COVARIATE_DIR
 
 
 N_DRAWS = 1000
@@ -89,20 +89,35 @@ class CovariateFormatter:
         return dfs
 
 
-def cache_covariates(directories, covariate_versions, location_ids, covariate_draw_dict):
+def get_new_cache_version(covariate_version):
+    dirs = os.listdir(COVARIATE_CACHE)
+    matched_versions = [x for x in dirs if '.'.join([x[0], x[1]]) == covariate_version]
+    version = len(matched_versions) + 1
+    new_version = f'{covariate_version}.{version:02}'
+    os.makedirs(COVARIATE_CACHE / new_version)
+    os.system(f'cp {str(COVARIATE_DIR / covariate_version / "metadata.yaml")} '
+              f'{str(COVARIATE_CACHE / new_version / "metadata.yaml")}')
+    os.system(f'cp {str(COVARIATE_DIR / covariate_version / "dropped_locations.yaml")} '
+              f'{str(COVARIATE_CACHE / new_version / "dropped_locations.yaml")}')
+    return new_version
+
+
+def cache_covariates(directories, covariate_version, location_ids, covariate_draw_dict):
+    cache_version = get_new_cache_version(covariate_version)
     formatter = CovariateFormatter(
         directories=directories, covariate_draw_dict=covariate_draw_dict,
         location_ids=location_ids
     )
     pull_draws = covariate_draw_dict.values().any()
-    for version in covariate_versions:
-        if pull_draws:
-            for draw_id in range(N_DRAWS):
-                df = formatter.format_covariates(version, draw_id=draw_id)
-                df.to_csv(directories.get_cached_covariates_file(covariate_version=version, draw_id=draw_id))
-        else:
-            df = formatter.format_covariates(version)
-            df.to_csv(directories.get_cached_covariates_file(covariate_version=version))
+    if pull_draws:
+        for draw_id in range(N_DRAWS):
+            df = formatter.format_covariates(covariate_version, draw_id=draw_id)
+            df.to_csv(directories.get_cached_covariates_file(covariate_version=cache_version, draw_id=draw_id))
+    else:
+        df = formatter.format_covariates(covariate_version)
+        df.to_csv(directories.get_cached_covariates_file(covariate_version=cache_version))
+
+    return cache_version
 
 
 def load_mr_coefficients(directories, draw_id):

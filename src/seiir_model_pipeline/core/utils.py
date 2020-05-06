@@ -7,7 +7,9 @@ from slime.core.data import MRData
 
 from seiir_model_pipeline.core.versioner import PEAK_DATE_FILE
 from seiir_model_pipeline.core.versioner import INFECTION_COL_DICT
+from seiir_model_pipeline.core.versioner import RegressionVersion, ForecastVersion, Directories
 from seiir_model_pipeline.core.data import get_missing_locations
+from seiir_model_pipeline.core.data import cache_covariates
 
 
 SEIIR_COMPARTMENTS = ['S', 'E', 'I1', 'I2', 'R']
@@ -17,6 +19,46 @@ COL_GROUP = 'loc_id'
 COL_DATE = 'date'
 
 LOCATION_SET_ID = 111
+
+
+def create_regression_version(version_name, covariate_version,
+                              covariate_draw_dict,
+                              location_set_version_id, **kwargs):
+    directories = Directories()
+    location_ids = get_locations(
+        directories, location_set_version_id=location_set_version_id
+    )
+    cache_version = cache_covariates(
+        directories=directories,
+        covariate_version=covariate_version,
+        location_ids=location_ids,
+        covariate_draw_dict=covariate_draw_dict
+    )
+    rv = RegressionVersion(version_name=version_name, covariate_version=cache_version, **kwargs)
+    return rv.create_version()
+
+
+def create_forecast_version(version_name, covariate_version,
+                            covariate_draw_dict,
+                            location_set_version_id, **kwargs):
+    directories = Directories()
+    location_ids = get_locations(
+        directories, location_set_version_id=location_set_version_id
+    )
+    cache_version = cache_covariates(
+        directories=directories,
+        covariate_version=covariate_version,
+        location_ids=location_ids,
+        covariate_draw_dict=covariate_draw_dict
+    )
+    fv = ForecastVersion(version_name=version_name, covariate_version=cache_version, **kwargs)
+    return fv.create_version()
+
+
+def create_run(version_name, **kwargs):
+    create_regression_version(version_name=version_name, **kwargs)
+    create_regression_version(version_name=version_name, **kwargs)
+    print(f"Created regression and forecast versions {version_name}.")
 
 
 def get_location_name_from_id(location_id, metadata_path):
