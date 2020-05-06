@@ -48,6 +48,7 @@ def create_forecast_version(version_name, covariate_version,
                             covariate_draw_dict,
                             location_set_version_id,
                             infection_version,
+                            regression_version,
                             **kwargs):
     directories = Directories()
     location_ids = get_locations(
@@ -61,20 +62,26 @@ def create_forecast_version(version_name, covariate_version,
         location_ids=location_ids,
         covariate_draw_dict=covariate_draw_dict
     )
-    fv = ForecastVersion(version_name=version_name, covariate_version=cache_version, **kwargs)
+    fv = ForecastVersion(version_name=version_name, covariate_version=cache_version,
+                         regression_version=regression_version)
     return fv.create_version()
 
 
 def create_run(version_name, covariate_version, covariate_draw_dict,
                location_set_version_id, **kwargs):
-    create_regression_version(version_name=version_name, covariate_version=covariate_version,
-                              covariate_draw_dict=covariate_draw_dict,
-                              location_set_version_id=location_set_version_id,
-                              **kwargs)
-    create_forecast_version(version_name=version_name, covariate_version=covariate_version,
-                            covariate_draw_dict=covariate_draw_dict,
-                            location_set_version_id=location_set_version_id,
-                            **kwargs)
+    rv = create_regression_version(
+        version_name=version_name, covariate_version=covariate_version,
+        covariate_draw_dict=covariate_draw_dict,
+        location_set_version_id=location_set_version_id,
+        **kwargs
+    )
+    create_forecast_version(
+        version_name=version_name, covariate_version=covariate_version,
+        covariate_draw_dict=covariate_draw_dict,
+        location_set_version_id=location_set_version_id,
+        regression_version=rv,
+        **kwargs
+    )
     print(f"Created regression and forecast versions {version_name}.")
 
 
