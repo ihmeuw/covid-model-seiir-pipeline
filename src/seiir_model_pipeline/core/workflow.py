@@ -66,6 +66,7 @@ class SEIIRWorkFlow(Workflow):
             splicer_tasks = [
                 task.add_splicer_task(add_diagnostic) for task in tasks
             ]
+        import pdb; pdb.set_trace()
         self.add_tasks(tasks)
         self.add_tasks(splicer_tasks)
         return tasks + splicer_tasks

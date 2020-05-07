@@ -63,7 +63,6 @@ class ForecastTask(BashTask):
 
     def add_splicer_task(self, add_diagnostic):
         tasks = []
-        diagnostic_task = []
 
         splicer_task = SplicerTask(
             location_id=self.location_id,
@@ -78,9 +77,9 @@ class ForecastTask(BashTask):
                 forecast_version=self.forecast_version
             )
             splicer_task.add_downstream(diagnostic_task)
-
-        tasks.append(splicer_task)
-        tasks.append(diagnostic_task)
+        import pdb; pdb.set_trace()
+        tasks += [splicer_task]
+        tasks += [diagnostic_task]
         return tasks
 
 

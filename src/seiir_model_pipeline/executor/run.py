@@ -24,7 +24,7 @@ def get_args():
 
 def main():
     args = get_args()
-
+    import pdb; pdb.set_trace()
     log.info("Initiating SEIIR modeling pipeline.")
 
     directories = args_to_directories(args)
