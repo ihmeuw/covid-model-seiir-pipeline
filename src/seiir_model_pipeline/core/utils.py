@@ -110,7 +110,7 @@ def write_locations(directories, location_ids):
 
 
 def load_locations(directories):
-    return pd.read_csv(directories.location_cache_file)
+    return pd.read_csv(directories.location_cache_file).location_id.values
 
 
 def get_peaked_dates_from_file():

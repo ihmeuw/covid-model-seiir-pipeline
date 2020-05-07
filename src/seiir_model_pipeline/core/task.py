@@ -52,7 +52,6 @@ class ForecastTask(BashTask):
             f"--regression-version {regression_version} " +
             f"--forecast-version {forecast_version} "
         )
-
         super().__init__(
             command=command,
             name=f'seiir_forecast_location_{location_id}',
@@ -77,7 +76,6 @@ class ForecastTask(BashTask):
                 forecast_version=self.forecast_version
             )
             splicer_task.add_downstream(diagnostic_task)
-        import pdb; pdb.set_trace()
         tasks += [splicer_task]
         tasks += [diagnostic_task]
         return tasks
@@ -139,7 +137,7 @@ class ForecastDiagnosticTask(BashTask):
 
         super().__init__(
             command=command,
-            name=f'seiir_diagnostics',
+            name=f'seiir_forecast_diagnostics',
             executor_parameters=ExecParamsPlotting,
             max_attempts=1,
             **kwargs

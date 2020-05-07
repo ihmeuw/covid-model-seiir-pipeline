@@ -52,6 +52,7 @@ class SEIIRWorkFlow(Workflow):
         self.add_tasks(tasks)
         if add_diagnostic:
             diagnostic_task = RegressionDiagnosticTask(**kwargs)
+            self.add_task(diagnostic_task)
             for t in tasks:
                 diagnostic_task.add_upstream(t)
         return tasks
@@ -63,10 +64,8 @@ class SEIIRWorkFlow(Workflow):
             for loc in location_ids
         ]
         if add_splicer:
-            splicer_tasks = [
-                task.add_splicer_task(add_diagnostic) for task in tasks
-            ]
-        import pdb; pdb.set_trace()
+            for task in tasks:
+                splicer_tasks = splicer_tasks + task.add_splicer_task(add_diagnostic)
         self.add_tasks(tasks)
         self.add_tasks(splicer_tasks)
         return tasks + splicer_tasks
