@@ -108,7 +108,6 @@ def main():
     )
     beta_fit_covariates.to_csv(directories.get_draw_beta_fit_file(args.draw_id), index=False)
     mr.get_beta_ode_params().to_csv(directories.get_draw_beta_param_file(args.draw_id), index=False)
-
     if args.coefficient_version is not None:
         coefficient_directory = Directories(regression_version=args.coefficient_version)
         fixed_coefficients = load_mr_coefficients(
@@ -122,7 +121,7 @@ def main():
         ]).reset_index(drop=True)
         os.system(
             f'cp {directories.get_draw_coefficient_file(args.draw_id)} '
-            f'{directories.regression_coefficient_dir / "original_coefficients_{draw_id}.csv"}')
+            f'{directories.regression_coefficient_dir / f"original_coefficients_{args.draw_id}.csv"}')
         regression_fit.to_csv(directories.get_draw_coefficient_file(args.draw_id))
 
 
