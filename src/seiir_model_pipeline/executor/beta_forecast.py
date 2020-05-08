@@ -43,7 +43,6 @@ def main():
     regression_settings = load_regression_settings(args.regression_version)
     forecast_settings = load_forecast_settings(args.forecast_version)
     mr = ModelRunner()
-
     # Get all inputs for the beta forecasting
     # Get all inputs for the ODE
     for draw_id in range(regression_settings.n_draws):
@@ -79,11 +78,11 @@ def main():
                 directories=coefficient_directory,
                 draw_id=draw_id
             )
-            assert fixed_coefficients.columns == regression_fit.columns
+            assert all(fixed_coefficients.columns == regression_fit.columns)
             regression_fit = pd.concat([
                 regression_fit[~regression_fit.group_id.isin(fixed_coefficients.group_id.unique())],
                 fixed_coefficients
-            ]).reset_index()
+            ]).reset_index(drop=True)
         forecasts = mr.predict_beta_forward_prod(
             covmodel_set=covmodel_set,
             df_cov=covariate_data,
