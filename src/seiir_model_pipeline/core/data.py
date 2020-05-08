@@ -11,14 +11,15 @@ def get_missing_locations(directories, location_ids):
                      if os.path.isdir(directories.infection_dir / x)]
     infection_loc = [int(x) for x in infection_loc if x.isdigit()]
 
-    with open(directories.get_missing_covariate_locations_file()) as f:
-        covariate_metadata = yaml.load(f, Loader=yaml.FullLoader)
+    # with open(directories.get_missing_covariate_locations_file()) as f:
+    #     covariate_metadata = yaml.load(f, Loader=yaml.FullLoader)
 
-    missing_covariate_loc = list()
-    for k, v in covariate_metadata.items():
-        missing_covariate_loc += v
-    missing_covariate_loc = list(set(missing_covariate_loc))
-    return [x for x in location_ids if x not in infection_loc or x in missing_covariate_loc]
+    # missing_covariate_loc = list()
+    # for k, v in covariate_metadata.items():
+    #     missing_covariate_loc += v
+    # missing_covariate_loc = list(set(missing_covariate_loc))
+    # return [x for x in location_ids if x not in infection_loc or x in missing_covariate_loc]
+    return [x for x in location_ids if x not in infection_loc]
 
 
 def load_all_location_data(directories, location_ids, draw_id):
