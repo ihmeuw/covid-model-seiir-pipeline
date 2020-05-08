@@ -88,7 +88,7 @@ def main():
             covmodel_set=covmodel_set,
             mr_data=mr_data,
             path=directories.get_draw_coefficient_file(args.draw_id),
-            df_coef=fixed_coefficients
+            df_cov_coef=fixed_coefficients
         )
     # Get the fitted values of beta from the regression model and append on
     # to the fits
