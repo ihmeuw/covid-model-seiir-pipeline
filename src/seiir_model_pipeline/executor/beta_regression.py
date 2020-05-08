@@ -77,11 +77,19 @@ def main():
         df_beta=mr.get_beta_ode_fit(),
         covmodel_set=covmodel_set
     )
-    mr.fit_beta_regression_prod(
-        covmodel_set=covmodel_set,
-        mr_data=mr_data,
-        path=directories.get_draw_coefficient_file(args.draw_id),
-    )
+
+    if args.coefficient_version is not None:
+        coefficient_directory = Directories(regression_version=args.coefficient_version)
+        fixed_coefficients = load_mr_coefficients(
+            directories=coefficient_directory,
+            draw_id=args.draw_id
+        )
+        mr.fit_beta_regression_prod(
+            covmodel_set=covmodel_set,
+            mr_data=mr_data,
+            path=directories.get_draw_coefficient_file(args.draw_id),
+            df_coef=fixed_coefficients
+        )
     # Get the fitted values of beta from the regression model and append on
     # to the fits
     regression_fit = load_mr_coefficients(
@@ -108,22 +116,6 @@ def main():
     )
     beta_fit_covariates.to_csv(directories.get_draw_beta_fit_file(args.draw_id), index=False)
     mr.get_beta_ode_params().to_csv(directories.get_draw_beta_param_file(args.draw_id), index=False)
-
-    if args.coefficient_version is not None:
-        coefficient_directory = Directories(regression_version=args.coefficient_version)
-        fixed_coefficients = load_mr_coefficients(
-            directories=coefficient_directory,
-            draw_id=args.draw_id
-        )
-        assert all(fixed_coefficients.columns == regression_fit.columns)
-        regression_fit = pd.concat([
-            regression_fit[~regression_fit.group_id.isin(fixed_coefficients.group_id.unique())],
-            fixed_coefficients[fixed_coefficients.group_id.isin(regression_fit.group_id.unique())]
-        ]).reset_index(drop=True)
-        os.system(
-            f'cp {directories.get_draw_coefficient_file(args.draw_id)} '
-            f'{directories.regression_coefficient_dir / "original_coefficients_{draw_id}.csv"}')
-        regression_fit.to_csv(directories.get_draw_coefficient_file(args.draw_id))
 
 
 if __name__ == '__main__':
