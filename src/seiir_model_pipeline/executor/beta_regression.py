@@ -118,7 +118,7 @@ def main():
         assert all(fixed_coefficients.columns == regression_fit.columns)
         regression_fit = pd.concat([
             regression_fit[~regression_fit.group_id.isin(fixed_coefficients.group_id.unique())],
-            fixed_coefficients
+            fixed_coefficients[fixed_coefficients.group_id.isin(regression_fit.group_id.unique())]
         ]).reset_index(drop=True)
         os.system(
             f'cp {directories.get_draw_coefficient_file(args.draw_id)} '
