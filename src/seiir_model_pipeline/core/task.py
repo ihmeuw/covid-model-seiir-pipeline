@@ -20,15 +20,18 @@ ExecParamsPlotting = ExecutorParameters(
 
 
 class RegressionTask(BashTask):
-    def __init__(self, draw_id, regression_version, **kwargs):
+    def __init__(self, draw_id, regression_version, coefficient_version, **kwargs):
 
         self.draw_id = draw_id
+        self.coefficient_version = coefficient_version
 
         command = (
             "beta_regression " +
             f"--draw-id {self.draw_id} " +
             f"--regression-version {regression_version} "
         )
+        if self.coefficient_version is not None:
+            command += f"--coefficient-version {self.coefficient_version} "
 
         super().__init__(
             command=command,
@@ -40,12 +43,11 @@ class RegressionTask(BashTask):
 
 
 class ForecastTask(BashTask):
-    def __init__(self, location_id, regression_version, forecast_version, coefficient_version, **kwargs):
+    def __init__(self, location_id, regression_version, forecast_version, **kwargs):
 
         self.location_id = location_id
         self.regression_version = regression_version
         self.forecast_version = forecast_version
-        self.coefficient_version = coefficient_version
 
         command = (
             "beta_forecast " +
@@ -53,8 +55,6 @@ class ForecastTask(BashTask):
             f"--regression-version {regression_version} " +
             f"--forecast-version {forecast_version} "
         )
-        if self.coefficient_version is not None:
-            command += f"--coefficient-version {self.coefficient_version} "
 
         super().__init__(
             command=command,

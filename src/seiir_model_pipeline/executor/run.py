@@ -56,6 +56,7 @@ def main():
         regression_tasks = wf.attach_regression_tasks(
             n_draws=regression_settings.n_draws,
             regression_version=args.regression_version,
+            coefficient_version=args.coefficient_version
         )
         if run_forecasts:
             forecast_tasks = wf.attach_forecast_tasks(
@@ -63,7 +64,6 @@ def main():
                 add_splicer=args.run_splicer,
                 regression_version=args.regression_version,
                 forecast_version=args.forecast_version,
-                coefficient_version=args.coefficient_version,
                 upstream_tasks=regression_tasks
             )
             if args.create_diagnostics:

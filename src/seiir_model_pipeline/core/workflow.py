@@ -38,7 +38,7 @@ class SEIIRWorkFlow(Workflow):
             resume=True
         )
 
-    def attach_regression_tasks(self, n_draws, **kwargs):
+    def attach_regression_tasks(self, n_draws, coefficient_version, **kwargs):
         """
         Attach n_draws DrawTasks.
 
@@ -46,14 +46,15 @@ class SEIIRWorkFlow(Workflow):
         **kwargs: keyword arguments to DrawTask
         :return: self
         """
-        tasks = [RegressionTask(draw_id=i, **kwargs) for i in range(n_draws)]
+        tasks = [RegressionTask(draw_id=i, coefficient_version=coefficient_version, **kwargs)
+                 for i in range(n_draws)]
         self.add_tasks(tasks)
         return tasks
 
-    def attach_forecast_tasks(self, location_ids, add_splicer, coefficient_version, **kwargs):
+    def attach_forecast_tasks(self, location_ids, add_splicer, **kwargs):
         splicer_tasks = []
         tasks = [
-            ForecastTask(location_id=loc, coefficient_version=coefficient_version, **kwargs)
+            ForecastTask(location_id=loc, **kwargs)
             for loc in location_ids
         ]
         if add_splicer:
