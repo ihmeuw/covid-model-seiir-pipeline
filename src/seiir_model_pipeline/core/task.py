@@ -108,7 +108,7 @@ class RegressionDiagnosticTask(BashTask):
         self.regression_version = regression_version
 
         command = (
-            "create_diagnostics " +
+            "create_regression_diagnostics " +
             f"--regression-version {regression_version} "
         )
 
@@ -129,7 +129,7 @@ class ForecastDiagnosticTask(BashTask):
         self.location_id = location_id
 
         command = (
-            "create_diagnostics " +
+            "create_forecast_diagnostics " +
             f"--regression-version {regression_version} " +
             f"--forecast-version {forecast_version} " +
             f"--location-id {location_id} "

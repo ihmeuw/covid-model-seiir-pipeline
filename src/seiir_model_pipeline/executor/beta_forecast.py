@@ -33,7 +33,6 @@ def main():
     args = get_args()
     
     log.info("Initiating SEIIR beta forecasting.")
-
     # Load metadata
     directories = args_to_directories(args)
     regression_settings = load_regression_settings(args.regression_version)
@@ -94,7 +93,7 @@ def main():
             current_date=CURRENT_DATE,
             location_id=args.location_id
         ).astype(float)
-        N = np.sum(init_cond)[0]
+        N = np.sum(init_cond)
         model_specs = SiierdModelSpecs(
             alpha=beta_params['alpha'],
             sigma=beta_params['sigma'],

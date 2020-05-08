@@ -23,6 +23,7 @@ def main():
     log.info("Initiating SEIIR diagnostics.")
 
     # Load metadata
+    args.forecast_version = None
     directories = args_to_directories(args)
 
     handle = PlotBetaCoef(directories)
