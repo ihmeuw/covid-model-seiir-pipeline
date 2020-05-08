@@ -16,6 +16,7 @@ from seiir_model_pipeline.core.utils import convert_to_covmodel
 from seiir_model_pipeline.core.versioner import OBSERVED_DICT
 from seiir_model_pipeline.core.utils import get_ode_init_cond
 from seiir_model_pipeline.core.utils import date_to_days
+from seiir_model_pipeline.core.versioner import Directories
 
 log = logging.getLogger(__name__)
 
@@ -28,6 +29,7 @@ def get_args():
     parser.add_argument("--location-id", type=int, required=True)
     parser.add_argument("--regression-version", type=str, required=True)
     parser.add_argument("--forecast-version", type=str, required=True)
+    parser.add_argument("--coefficient-version", type=str, required=False, default=None)
     return parser.parse_args()
 
 
@@ -71,6 +73,17 @@ def main():
             directories=directories,
             draw_id=draw_id
         )
+        if args.coefficient_version is not None:
+            coefficient_directory = Directories(regression_version=args.coefficient_version)
+            fixed_coefficients = load_mr_coefficients(
+                directories=coefficient_directory,
+                draw_id=draw_id
+            )
+            assert fixed_coefficients.columns == regression_fit.columns
+            regression_fit = pd.concat([
+                regression_fit[~regression_fit.group_id.isin(fixed_coefficients.group_id.unique())],
+                fixed_coefficients
+            ]).reset_index()
         forecasts = mr.predict_beta_forward_prod(
             covmodel_set=covmodel_set,
             df_cov=covariate_data,

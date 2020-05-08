@@ -18,6 +18,7 @@ def get_args():
     parser = ArgumentParser()
     parser.add_argument("--regression-version", type=str, required=False, default=None)
     parser.add_argument("--forecast-version", type=str, required=False, default=None)
+    parser.add_argument("--coefficient-version", type=str, required=False, default=None)
     parser.add_argument("--run-splicer", action='store_true', required=False, default=False)
     parser.add_argument("--create-diagnostics", action='store_true', required=False, default=False)
 
@@ -54,7 +55,7 @@ def main():
         )
         regression_tasks = wf.attach_regression_tasks(
             n_draws=regression_settings.n_draws,
-            regression_version=args.regression_version
+            regression_version=args.regression_version,
         )
         if run_forecasts:
             forecast_tasks = wf.attach_forecast_tasks(
@@ -62,6 +63,7 @@ def main():
                 add_splicer=args.run_splicer,
                 regression_version=args.regression_version,
                 forecast_version=args.forecast_version,
+                coefficient_version=args.coefficient_version,
                 upstream_tasks=regression_tasks
             )
             if args.create_diagnostics:
