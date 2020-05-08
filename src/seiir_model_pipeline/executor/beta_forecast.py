@@ -3,6 +3,7 @@ import logging
 from typing import List
 import pandas as pd
 import numpy as np
+import os
 
 from seiir_model.model_runner import ModelRunner
 from seiir_model.ode_forecasting.ode_runner import SiierdModelSpecs
@@ -83,6 +84,8 @@ def main():
                 regression_fit[~regression_fit.group_id.isin(fixed_coefficients.group_id.unique())],
                 fixed_coefficients
             ]).reset_index(drop=True)
+            os.system(f'cp {directories.get_draw_coefficient_file(draw_id)} {directories.regression_coefficient_dir / "original_coefficients_{draw_id}.csv"}')
+            regression_fit.to_csv(directories.get_draw_coefficient_file(draw_id))
         forecasts = mr.predict_beta_forward_prod(
             covmodel_set=covmodel_set,
             df_cov=covariate_data,
