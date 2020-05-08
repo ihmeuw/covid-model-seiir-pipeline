@@ -1,7 +1,7 @@
 from argparse import ArgumentParser
 import logging
 
-from seiir_model.visualizer.visualizer import Visualizer
+from seiir_model_pipeline.diagnostics.visualizer import Visualizer
 
 from seiir_model_pipeline.core.versioner import args_to_directories
 from seiir_model_pipeline.core.versioner import INFECTION_COL_DICT
@@ -41,3 +41,7 @@ def main():
         group=[args.location_id],
         output_dir=directories.forecast_diagnostic_dir
     )
+
+
+if __name__ == "__main__":
+    main()
