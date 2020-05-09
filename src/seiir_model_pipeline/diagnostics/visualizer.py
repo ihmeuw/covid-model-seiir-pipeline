@@ -435,7 +435,7 @@ class PlotBetaCoef:
 
 
 class PlotBetaResidual:
-    def __init__(self, directories: Directories, location_id):
+    def __init__(self, directories: Directories):
 
         self.directories = directories
 
@@ -447,25 +447,28 @@ class PlotBetaResidual:
         self.path_to_savefig = self.directories.regression_diagnostic_dir
 
         # load location metadata
+        self.loc_ids = np.array(os.listdir(self.path_to_betas_dir)).astype(int)
         self.location_metadata = pd.read_csv(self.path_to_location_metadata)
         self.id2loc = self.location_metadata.set_index('location_id')[
             'location_name'].to_dict()
 
         # load the beta data
         df_beta = [
-            pd.read_csv(self.directories.get_draw_beta_fit_file(
-                draw_id=i, location_id=location_id))[[
-                'loc_id',
-                'date',
-                'days',
-                'beta',
-                'beta_pred'
-            ]].dropna()
+            pd.concat([
+                pd.read_csv(self.directories.get_draw_beta_fit_file(
+                    draw_id=i, location_id=loc_id))[[
+                    'loc_id',
+                    'date',
+                    'days',
+                    'beta',
+                    'beta_pred'
+                ]].dropna()
+                for loc_id in self.loc_ids
+            ])
             for i in range(self.settings.n_draws)
         ]
 
         # location information
-        self.loc_ids = np.sort(list(df_beta[0]['loc_id'].unique()))
         self.locs = np.array([
             self.id2loc[loc_id]
             for loc_id in self.loc_ids
