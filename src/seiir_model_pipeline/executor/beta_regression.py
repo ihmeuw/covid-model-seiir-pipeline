@@ -84,12 +84,15 @@ def main():
             directories=coefficient_directory,
             draw_id=args.draw_id
         )
-        mr.fit_beta_regression_prod(
-            covmodel_set=covmodel_set,
-            mr_data=mr_data,
-            path=directories.get_draw_coefficient_file(args.draw_id),
-            df_cov_coef=fixed_coefficients
-        )
+    else:
+        fixed_coefficients = None
+
+    mr.fit_beta_regression_prod(
+        covmodel_set=covmodel_set,
+        mr_data=mr_data,
+        path=directories.get_draw_coefficient_file(args.draw_id),
+        df_cov_coef=fixed_coefficients
+    )
     # Get the fitted values of beta from the regression model and append on
     # to the fits
     regression_fit = load_mr_coefficients(
