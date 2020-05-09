@@ -3,6 +3,7 @@ import yaml
 from dataclasses import dataclass
 import os
 from typing import List, Dict
+import warnings
 
 from seiir_model_pipeline.core.versioner import Directories, COVARIATE_COL_DICT, COVARIATE_CACHE, COVARIATE_DIR
 from seiir_model_pipeline.core.versioner import INPUT_DIR
@@ -24,14 +25,20 @@ def get_missing_locations(directories, location_ids,
     infection_loc = [x.split('_')[-1] for x in os.listdir(infection_dir)
                      if os.path.isdir(infection_dir / x)]
     infection_loc = [int(x) for x in infection_loc if x.isdigit()]
+    missing_infection_loc = list()
+    for loc in location_ids:
+        if loc not in infection_loc:
+            missing_infection_loc.append(loc)
+    warnings.warn('Locations missing from infection data: ' + str(missing_infection_loc))
 
     with open(directories.get_missing_covariate_locations_file(covariate_version)) as f:
         covariate_metadata = yaml.load(f, Loader=yaml.FullLoader)
-
     missing_covariate_loc = list()
     for k, v in covariate_metadata.items():
         missing_covariate_loc += v
     missing_covariate_loc = list(set(missing_covariate_loc))
+    warnings.warn('Locations missing from covariate data: ' + str(missing_covariate_loc))
+
     return [x for x in location_ids if x not in infection_loc or x in missing_covariate_loc]
 
 

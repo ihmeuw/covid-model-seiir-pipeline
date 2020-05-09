@@ -121,6 +121,22 @@ def get_peaked_dates_from_file():
 def process_ode_process_input(settings, location_data):
     """Convert to ODEProcessInput.
     """
+    locs_na = []
+    locs_neg = []
+    for loc, df in location_data.items():
+        if df[INFECTION_COL_DICT['COL_CASES']].isna().any():
+            locs_na.append(loc)
+        if (df[INFECTION_COL_DICT['COL_CASES']].to_numpy() < 0.0).any():
+            locs_neg.append(loc)
+    if len(locs_na) > 0 and len(locs_neg) > 0:
+        raise ValueError(
+            'NaN in infection data: ' + str(locs_na) + '. Negatives in infection data: ' + str(locs_neg)
+        )
+    if len(locs_na) > 0:
+        raise ValueError('NaN in infection data: ' + str(locs_na))
+    if len(locs_neg) > 0:
+        raise ValueError('Negatives in infection data:' + str(locs_neg))
+
     return ODEProcessInput(
         df_dict=location_data,
         col_date=INFECTION_COL_DICT['COL_DATE'],
@@ -175,6 +191,13 @@ def convert_inputs_for_beta_model(data_cov, df_beta, covmodel_set):
     df.sort_values(inplace=True, by=[COL_GROUP, COL_DATE])
     df['ln_'+COL_BETA] = np.log(df[COL_BETA])
     cov_names = [covmodel.col_cov for covmodel in covmodel_set.cov_models]
+    covs_na = []
+    for name in cov_names:
+        if df[name].isna().values.any():
+            covs_na.append(name)
+    if len(covs_na) > 0:
+        raise ValueError('NaN in covariate data: ' + str(covs_na))
+    
     mrdata = MRData(df, col_group=COL_GROUP, col_obs='ln_'+COL_BETA, col_covs=cov_names)
     
     return mrdata

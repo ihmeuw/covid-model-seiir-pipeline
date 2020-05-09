@@ -13,7 +13,8 @@ setup(
         'numpy',
         'odeopt',
         'pandas',
-        'pyyaml'
+        'pyyaml',
+        'matplotlib'
     ],
     entry_points={'console_scripts': [
         'run=seiir_model_pipeline.executor.run:main',
