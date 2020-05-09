@@ -89,6 +89,8 @@ def main():
         # and scale everything into the future from this anchor value
         anchor_beta = beta_fit.beta[beta_fit.date == CURRENT_DATE].iloc[0]
         scale = anchor_beta / betas[0]
+        scale = scale + (1 - scale)/10.0*np.arange(betas.size)
+        scale[11:] = 1.0
         betas = betas * scale
 
         init_cond = get_ode_init_cond(
