@@ -33,8 +33,8 @@ def main():
     handle = PlotBetaCoef(directories)
     handle.plot_coef()
     
-    handle = PlotBetaResidual(directories)
-    handle.plot_residual()
+    # handle = PlotBetaResidual(directories)
+    # handle.plot_residual()
 
     location_ids = get_locations(
         directories, settings.location_set_version_id
