@@ -435,7 +435,7 @@ class PlotBetaCoef:
 
 
 class PlotBetaResidual:
-    def __init__(self, directories: Directories):
+    def __init__(self, directories: Directories, location_id):
 
         self.directories = directories
 
@@ -453,7 +453,8 @@ class PlotBetaResidual:
 
         # load the beta data
         df_beta = [
-            pd.read_csv(self.directories.get_draw_beta_fit_file(draw_id=i))[[
+            pd.read_csv(self.directories.get_draw_beta_fit_file(
+                draw_id=i, location_id=location_id))[[
                 'loc_id',
                 'date',
                 'days',
