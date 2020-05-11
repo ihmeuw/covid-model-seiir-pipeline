@@ -2,7 +2,6 @@ from argparse import ArgumentParser
 import logging
 
 from seiir_model_pipeline.diagnostics.visualizer import Visualizer
-
 from seiir_model_pipeline.core.versioner import args_to_directories
 from seiir_model_pipeline.core.versioner import INFECTION_COL_DICT
 

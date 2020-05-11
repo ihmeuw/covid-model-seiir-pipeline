@@ -19,8 +19,8 @@ def get_covariate_version_from_best():
     return path
 
 
-def get_missing_locations(directories, location_ids,
-                          infection_version, covariate_version):
+def get_missing_locations(location_ids,
+                          infection_version):
     infection_dir = INPUT_DIR / infection_version
     infection_loc = [x.split('_')[-1] for x in os.listdir(infection_dir)
                      if os.path.isdir(infection_dir / x)]
@@ -31,15 +31,7 @@ def get_missing_locations(directories, location_ids,
             missing_infection_loc.append(loc)
     warnings.warn('Locations missing from infection data: ' + str(missing_infection_loc))
 
-    with open(directories.get_missing_covariate_locations_file(covariate_version)) as f:
-        covariate_metadata = yaml.load(f, Loader=yaml.FullLoader)
-    missing_covariate_loc = list()
-    for k, v in covariate_metadata.items():
-        missing_covariate_loc += v
-    missing_covariate_loc = list(set(missing_covariate_loc))
-    warnings.warn('Locations missing from covariate data: ' + str(missing_covariate_loc))
-
-    return [x for x in location_ids if x not in infection_loc or x in missing_covariate_loc]
+    return [x for x in location_ids if x not in infection_loc]
 
 
 def load_all_location_data(directories, location_ids, draw_id):
@@ -60,6 +52,15 @@ def load_component_forecasts(directories, location_id, draw_id):
 
 
 def load_covariates(directories, covariate_version, location_ids, draw_id=None):
+    """
+    Load covariates that have *already been cached*.
+
+    :param directories: Directories object
+    :param covariate_version: (str) covariate version
+    :param location_ids:
+    :param draw_id:
+    :return:
+    """
     df = pd.read_csv(directories.get_cached_covariates_file(covariate_version, draw_id=draw_id))
     if location_ids is not None:
         assert isinstance(location_ids, List)
@@ -69,6 +70,10 @@ def load_covariates(directories, covariate_version, location_ids, draw_id=None):
 
 @dataclass
 class CovariateFormatter:
+    """
+    Formats covariates by pulling in the files from the seir-covariates input directory.
+    Deals with time dependent and independent covariates.
+    """
 
     directories: Directories
     covariate_draw_dict: Dict[str, bool]
@@ -109,6 +114,13 @@ class CovariateFormatter:
 
 
 def get_new_cache_version(covariate_version):
+    """
+    Create a cache version for covariates based on a covariate version.
+    Also copies over the metadata so that we can access it later.
+
+    :param covariate_version: (str) covariate version to read from seir-covariates
+    :return: (str) cached version for seir-pipeline-outputs/covariates
+    """
     if covariate_version == 'best':
         covariate_version = get_covariate_version_from_best()
     dirs = os.listdir(COVARIATE_CACHE)
@@ -119,12 +131,19 @@ def get_new_cache_version(covariate_version):
     os.makedirs(COVARIATE_CACHE / new_version)
     os.system(f'cp {str(COVARIATE_DIR / covariate_version / "metadata.yaml")} '
               f'{str(COVARIATE_CACHE / new_version / "metadata.yaml")}')
-    os.system(f'cp {str(COVARIATE_DIR / covariate_version / "dropped_locations.yaml")} '
-              f'{str(COVARIATE_CACHE / new_version / "dropped_locations.yaml")}')
     return new_version
 
 
 def cache_covariates(directories, covariate_version, location_ids, covariate_draw_dict):
+    """
+    Read in the covariates for this run, potentially per draw.
+
+    :param directories: Directories object
+    :param covariate_version: (str) the version of covariates to read
+    :param location_ids: (List[int])
+    :param covariate_draw_dict: (Dict[str, bool]) for each covariate, whether or not to read in draws or the mean
+    :return: new version of covariates in the seir-pipeline-outputs directory that have been cached for later
+    """
     cache_version = get_new_cache_version(covariate_version)
     formatter = CovariateFormatter(
         directories=directories, covariate_draw_dict=covariate_draw_dict,
@@ -143,20 +162,37 @@ def cache_covariates(directories, covariate_version, location_ids, covariate_dra
 
 
 def load_mr_coefficients(directories, draw_id):
+    """
+    Load meta-regression coefficients
+
+    :param directories: Directories object
+    :param draw_id: (int) which draw to load
+    :return:
+    """
     df = pd.read_csv(directories.get_draw_coefficient_file(draw_id))
     return df
 
 
 def load_beta_fit(directories, draw_id, location_id):
+    """
+    Load the beta fit file for a draw / location.
+
+    :param directories: Directories object
+    :param draw_id: (int)
+    :param location_id: (int)
+    :return:
+    """
     df = pd.read_csv(directories.get_draw_beta_fit_file(location_id, draw_id))
     return df
 
 
 def load_beta_params(directories, draw_id):
+    """
+    Load the parameters that were sampled for this draw ID (alpha / gamma1 / gamma2 / sigma)
+
+    :param directories: Directories object
+    :param draw_id: (int)
+    :return:
+    """
     df = pd.read_csv(directories.get_draw_beta_param_file(draw_id))
     return df.set_index('params')['values'].to_dict()
-
-
-def load_peaked_dates(filepath, col_loc_id, col_date):
-    df = pd.read_csv(filepath)
-    return dict(zip(df[col_loc_id], df[col_date]))

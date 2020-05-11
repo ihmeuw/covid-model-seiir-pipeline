@@ -2,7 +2,7 @@ import getpass
 import logging
 
 from seiir_model_pipeline.core.task import RegressionTask, ForecastTask
-from seiir_model_pipeline.core.task import RegressionDiagnosticTask, ForecastDiagnosticTask
+from seiir_model_pipeline.core.task import RegressionDiagnosticTask
 from jobmon.client.swarm.workflow.workflow import Workflow
 
 log = logging.getLogger(__name__)
@@ -13,7 +13,7 @@ PROJECT = 'proj_covid'
 class SEIIRWorkFlow(Workflow):
     def __init__(self, directories):
         """
-        Create a workflow for the SEIIR pipeline.
+        Create a Jobmon workflow for the SEIIR pipeline.
 
         :param directories: (Directories)
         :return (Workflow)
@@ -29,6 +29,8 @@ class SEIIRWorkFlow(Workflow):
         if directories.forecast_version is not None:
             workflow_args += f'{directories.forecast_version} '
 
+        # TODO: right now my scratch directory is where the logs
+        #  are saving -- I was getting errors when writing to sgeoutput
         super().__init__(
             workflow_args=workflow_args,
             project=PROJECT,
@@ -39,16 +41,19 @@ class SEIIRWorkFlow(Workflow):
             resume=True
         )
 
-    def attach_regression_tasks(self, n_draws, add_diagnostic, **kwargs):
+    def attach_regression_tasks(self, n_draws, add_diagnostic, coefficient_version, **kwargs):
         """
-        Attach n_draws DrawTasks.
+        Attach n_draws RegressionTasks and adds a diagnostic task if needed. Will load
+        coefficients from a previous run to fix them.
 
         :param n_draws: (int)
         :param add_diagnostic: (bool) add a diagnostic task
+        :param coefficient_version: (str) version to pull previous coefficients from
         **kwargs: keyword arguments to DrawTask
         :return: self
         """
-        tasks = [RegressionTask(draw_id=i, **kwargs) for i in range(n_draws)]
+        tasks = [RegressionTask(draw_id=i, coefficient_version=coefficient_version, **kwargs)
+                 for i in range(n_draws)]
         self.add_tasks(tasks)
         if add_diagnostic:
             diagnostic_task = RegressionDiagnosticTask(**kwargs)
@@ -58,6 +63,16 @@ class SEIIRWorkFlow(Workflow):
         return tasks
 
     def attach_forecast_tasks(self, location_ids, add_splicer, add_diagnostic, **kwargs):
+        """
+        Attach a forecast task for each location ID (draws are done inside of each task),
+        and optionally add a splicing task for each one and a diagnostic task for each one.
+
+        :param location_ids: (List[int])
+        :param add_splicer: (bool)
+        :param add_diagnostic: (bool)
+        :param kwargs: keyword arguments to ForecastTask
+        :return:
+        """
         splicer_tasks = []
         tasks = [
             ForecastTask(location_id=loc, **kwargs)
