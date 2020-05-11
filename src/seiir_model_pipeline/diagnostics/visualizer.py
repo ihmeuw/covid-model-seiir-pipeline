@@ -62,7 +62,7 @@ class Visualizer:
         for group in groups:
             path_to_regression_draws_for_group = os.path.join(directories.regression_beta_fit_dir, str(group))
             if os.path.isdir(path_to_regression_draws_for_group):
-                for filename in os.listdir(directories.regression_beta_fit_dir):
+                for filename in os.listdir(path_to_regression_draws_for_group):
                     if filename.startswith("fit_draw_") and filename.endswith(".csv"):
                         draw_df = pd.read_csv(os.path.join(path_to_regression_draws_for_group, filename))
                         # It's assumed that draw_df contains only the `group` group exclusively
