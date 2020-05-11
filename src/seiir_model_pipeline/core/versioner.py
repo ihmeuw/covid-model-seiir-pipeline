@@ -319,7 +319,6 @@ class RegressionVersion(Version):
 
     infection_version: str
     covariate_version: str
-    coefficient_version: Union[str, None]
 
     n_draws: int
     location_set_version_id: int
@@ -331,8 +330,10 @@ class RegressionVersion(Version):
 
     # Regression Arguments
     covariates: Dict[str, Dict[str, Union[bool, List, float]]]
-    covariates_order: List[List[str]]
-    covariate_draw_dict: Dict[str, bool]
+    covariates_order: List[List[str]] = None
+    covariate_draw_dict: Dict[str, bool] = None
+
+    coefficient_version: str = None
 
     # Optimization Arguments
     alpha: Tuple[float] = field(default=(0.95, 0.95))
