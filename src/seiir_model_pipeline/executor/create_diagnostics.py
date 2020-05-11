@@ -1,7 +1,8 @@
 from argparse import ArgumentParser
 import logging
 
-from seiir_model.visualizer.visualizer import PlotBetaCoef, PlotBetaResidual, Visualizer
+from seiir_model.visualizer.visualizer import PlotBetaCoef, PlotBetaResidual
+from seiir_model.visualizer.visualizer import PlotBetaScaling, Visualizer
 
 from seiir_model_pipeline.core.utils import get_locations
 from seiir_model_pipeline.core.versioner import args_to_directories
@@ -32,6 +33,9 @@ def main():
 
     handle = PlotBetaCoef(directories)
     handle.plot_coef()
+
+    handle = PlotBetaScaling(directories)
+    handle.plot_scales()
     
     handle = PlotBetaResidual(directories)
     handle.plot_residual()
