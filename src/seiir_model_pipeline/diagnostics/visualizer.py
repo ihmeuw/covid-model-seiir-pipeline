@@ -204,6 +204,46 @@ class Visualizer:
         plt.savefig(os.path.join(output_dir, f"trajectories_{group_name}.png"))
         plt.close(fig)
 
+    def create_beta_fit_and_residuals_plot(self, group, output_dir="plots"):
+        group_name = self.id2loc[group]
+        fig = plt.figure(figsize=(12, 2 * 6))
+        grid = plt.GridSpec(2, 1, wspace=0.1, hspace=0.4)
+        fig.autofmt_xdate()
+        E_plot = fig.add_subplot(grid[0, 0])
+        E_plot.set_title(f"Cases vs Cases Spline Fit for {group_name}")
+        residuals_plot = fig.add_subplot(grid[1, 0])
+        residuals_plot.set_title(f"Log-residuals for Beta Fit for {group_name}")
+        residuals_plot.set_ylabel(f"log(beta)-log(beta_pred)")
+        time = None
+        for i, draw in enumerate(self.data[group][ODE_BETA_FIT]):
+            time = pd.to_datetime(draw[self.col_date])
+            E_plot.plot(time, draw['newE'], c='b', alpha=0.1, label="Spline Fit" if i == 0 else None)
+            E_plot.scatter(time, draw['newE_obs'], c='b', alpha=0.1, s=3, label="Observations" if i == 0 else None)
+            residuals = np.log(draw['beta'].to_numpy()) - np.log(draw['beta_pred'].to_numpy())
+            residuals_plot.plot(time, residuals, c='b', alpha=0.1)
+
+        if time is None:
+            # No draws => no picture
+            plt.close(fig)
+            return None
+
+        # Assuming the time is (almost) the same for all draws:
+        start_date = time.to_list()[0]
+        end_date = time.to_list()[-1]
+
+        self.format_x_axis(E_plot,
+                           start_date=start_date,
+                           now_date=None, # we have only past here, so no past-vs-future separator
+                           end_date=end_date, major_tick_interval_days=14)
+        self.format_x_axis(residuals_plot,
+                           start_date=start_date,
+                           now_date=None,
+                           end_date=end_date, major_tick_interval_days=14)
+        E_plot.legend()
+        plt.savefig(os.path.join(output_dir, f"cases_fit_and_beta_residuals_{group_name}.png"))
+        plt.close(fig)
+        print(f"Cases fit and beta residuals plot for {group} {group_name} is done")
+
     def create_final_draws_plot(self, group, compartments=('Cases', 'Deaths', 'R_effective'),
                                 R_effective_in_log=True, output_dir="plots",
                                 linestyle="solid", transparency=0.1,
