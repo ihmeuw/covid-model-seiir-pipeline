@@ -40,6 +40,10 @@ def main():
         group=args.location_id,
         output_dir=directories.forecast_diagnostic_dir
     )
+    visualizer.create_beta_fit_and_residuals_plot(
+        group=args.location_id,
+        output_dir=directories.forecast_diagnostic_dir
+    )
 
 
 if __name__ == "__main__":
