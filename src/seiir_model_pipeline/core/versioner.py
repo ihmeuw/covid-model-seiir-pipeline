@@ -319,6 +319,8 @@ class RegressionVersion(Version):
 
     infection_version: str
     covariate_version: str
+    coefficient_version: Union[str, None]
+
     n_draws: int
     location_set_version_id: int
 

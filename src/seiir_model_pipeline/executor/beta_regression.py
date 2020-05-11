@@ -29,7 +29,6 @@ def get_args():
     parser = ArgumentParser()
     parser.add_argument("--draw-id", type=int, required=True)
     parser.add_argument("--regression-version", type=str, required=True)
-    parser.add_argument("--coefficient-version", type=str, required=False, default=None)
 
     return parser.parse_args()
 
@@ -85,12 +84,12 @@ def main():
         df_beta=mr.get_beta_ode_fit(),
         covmodel_set=all_covmodels_set,
     )
-    if args.coefficient_version is not None:
+    if settings.coefficient_version is not None:
         # If you want to use a specific coefficient version,
         # this will read in the coefficients and then they will be
         # passed to the beta regression.
 
-        coefficient_directory = Directories(regression_version=args.coefficient_version)
+        coefficient_directory = Directories(regression_version=settings.coefficient_version)
         fixed_coefficients = load_mr_coefficients(
             directories=coefficient_directory,
             draw_id=args.draw_id

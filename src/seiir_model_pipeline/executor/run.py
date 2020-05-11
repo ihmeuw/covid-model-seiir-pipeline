@@ -16,7 +16,6 @@ def get_args():
     parser = ArgumentParser()
     parser.add_argument("--regression-version", type=str, required=False, default=None)
     parser.add_argument("--forecast-version", type=str, required=False, default=None)
-    parser.add_argument("--coefficient-version", type=str, required=False, default=None)
     parser.add_argument("--run-splicer", action='store_true', required=False, default=False)
     parser.add_argument("--create-diagnostics", action='store_true', required=False, default=False)
 
@@ -42,7 +41,6 @@ def main():
             n_draws=regression_settings.n_draws,
             regression_version=args.regression_version,
             add_diagnostic=args.create_diagnostics,
-            coefficient_version=args.coefficient_version
         )
     else:
         if not run_forecasts:

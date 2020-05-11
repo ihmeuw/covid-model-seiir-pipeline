@@ -41,18 +41,17 @@ class SEIIRWorkFlow(Workflow):
             resume=True
         )
 
-    def attach_regression_tasks(self, n_draws, add_diagnostic, coefficient_version, **kwargs):
+    def attach_regression_tasks(self, n_draws, add_diagnostic, **kwargs):
         """
         Attach n_draws RegressionTasks and adds a diagnostic task if needed. Will load
         coefficients from a previous run to fix them.
 
         :param n_draws: (int)
         :param add_diagnostic: (bool) add a diagnostic task
-        :param coefficient_version: (str) version to pull previous coefficients from
         **kwargs: keyword arguments to DrawTask
         :return: self
         """
-        tasks = [RegressionTask(draw_id=i, coefficient_version=coefficient_version, **kwargs)
+        tasks = [RegressionTask(draw_id=i, **kwargs)
                  for i in range(n_draws)]
         self.add_tasks(tasks)
         if add_diagnostic:
