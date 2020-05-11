@@ -128,5 +128,6 @@ def main():
     df_scales.to_csv(
         directories.location_beta_scaling_file(
             location_id=args.location_id
-        )
+        ),
+        index=False
     )
