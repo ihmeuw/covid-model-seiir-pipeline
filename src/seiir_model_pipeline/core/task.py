@@ -76,8 +76,8 @@ class ForecastTask(BashTask):
                 forecast_version=self.forecast_version
             )
             splicer_task.add_downstream(diagnostic_task)
+            tasks += [diagnostic_task]
         tasks += [splicer_task]
-        tasks += [diagnostic_task]
         return tasks
 
 
