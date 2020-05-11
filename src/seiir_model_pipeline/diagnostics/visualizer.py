@@ -210,16 +210,17 @@ class Visualizer:
         grid = plt.GridSpec(2, 1, wspace=0.1, hspace=0.4)
         fig.autofmt_xdate()
         E_plot = fig.add_subplot(grid[0, 0])
-        E_plot.set_titme(f"Cases vs Cases Spline Fit for {group_name}")
+        E_plot.set_title(f"Cases vs Cases Spline Fit for {group_name}")
         residuals_plot = fig.add_subplot(grid[1, 0])
-        residuals_plot.set_title(f"Beta vs Beta Regression Fit for {group_name}")
+        residuals_plot.set_title(f"Log-residuals for Beta Fit for {group_name}")
+        residuals_plot.set_ylabel(f"log(beta)-log(beta_pred)")
         time = None
         for i, draw in enumerate(self.data[group][ODE_BETA_FIT]):
             time = pd.to_datetime(draw[self.col_date])
             E_plot.plot(time, draw['newE'], c='b', alpha=0.1, label="Spline Fit" if i == 0 else None)
             E_plot.scatter(time, draw['newE_obs'], c='b', alpha=0.1, s=3, label="Observations" if i == 0 else None)
-            residuals_plot.plot(time, draw['beta_pred'], c='b', alpha=0.1, label="Beta fit" if i == 0 else None)
-            residuals_plot.scatter(time, draw['beta'], c='b', alpha=0.1, s=3, label="Beta" if i == 0 else None)
+            residuals = np.log(draw['beta'].to_numpy()) - np.log(draw['beta_pred'].to_numpy())
+            residuals_plot.plot(time, residuals, c='b', alpha=0.1)
 
         if time is None:
             # No draws => no picture
@@ -239,7 +240,6 @@ class Visualizer:
                            now_date=None,
                            end_date=end_date, major_tick_interval_days=14)
         E_plot.legend()
-        residuals_plot.legend()
         plt.savefig(os.path.join(output_dir, f"cases_fit_and_beta_residuals_{group_name}.png"))
         plt.close(fig)
         print(f"Cases fit and beta residuals plot for {group} {group_name} is done")
