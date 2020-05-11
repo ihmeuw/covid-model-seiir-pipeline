@@ -457,12 +457,11 @@ class PlotBetaResidual:
             pd.concat([
                 pd.read_csv(self.directories.get_draw_beta_fit_file(
                     draw_id=i, location_id=loc_id))[[
-                    'loc_id',
-                    'date',
-                    'days',
-                    'beta',
-                    'beta_pred'
-                ]].dropna()
+                        'loc_id',
+                        'date',
+                        'days',
+                        'beta',
+                        'beta_pred']].dropna()
                 for loc_id in self.loc_ids
             ])
             for i in range(self.settings.n_draws)
