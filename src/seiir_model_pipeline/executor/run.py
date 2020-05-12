@@ -2,7 +2,7 @@ from argparse import ArgumentParser
 import logging
 
 from seiir_model_pipeline.core.versioner import args_to_directories
-from seiir_model_pipeline.core.versioner import load_regression_settings
+from seiir_model_pipeline.core.versioner import load_regression_settings, load_forecast_settings
 from seiir_model_pipeline.core.workflow import SEIIRWorkFlow
 from seiir_model_pipeline.core.utils import load_locations
 
@@ -48,7 +48,7 @@ def main():
 
     if run_forecasts:
         location_ids = load_locations(directories)
-        forecast_settings = load_regression_settings(args.forecast_version)
+        forecast_settings = load_forecast_settings(args.forecast_version)
         wf.attach_forecast_tasks(
             location_ids=location_ids,
             add_splicer=args.run_splicer,
