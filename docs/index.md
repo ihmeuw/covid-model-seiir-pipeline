@@ -41,6 +41,8 @@ Output folders and file names are also determined by the `versioner` module, in 
 and/or a forecast version, the two halves of the pipeline. For a full run, you need
 both a regression and forecast version.
 
+The main directories
+
 ### Versions
 
 ### Launching a Pipeline Run
@@ -63,14 +65,19 @@ If you don't want to create diagnostics, remove the `--create-diagnostics` flag.
 want to run the splicer to create infections and deaths from the ODE compartments, remove the
 `--run-splicer` flag.
 
+If you *only* want to run a forecast version off of a previous regression version, 
+remove the `--regression-version` flag after you have created a forecast version
+tagging a specific regression version.
+
 You can view the status of the workflow and individual tasks in the workflow by viewing
 the Jobmon database. Instructions for accessing the permanent Jobmon database are
 [here](https://hub.ihme.washington.edu/display/DataScience/Jobmon+Release+Notes) under the
 10/7/2019 release notes.
 
-### Scripts
+## Core Components
 
-The main scripts used in the pipeline are stored in `executors`. They are briefly described below.
+The main scripts used in the pipeline are stored in `executors`. They represent sections
+of the pipeline and are briefly described below.
 
 #### Run
 

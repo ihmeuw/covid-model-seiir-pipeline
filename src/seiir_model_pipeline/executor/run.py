@@ -48,11 +48,12 @@ def main():
 
     if run_forecasts:
         location_ids = load_locations(directories)
+        forecast_settings = load_regression_settings(args.forecast_version)
         wf.attach_forecast_tasks(
             location_ids=location_ids,
             add_splicer=args.run_splicer,
             add_diagnostic=args.create_diagnostics,
-            regression_version=args.regression_version,
+            regression_version=forecast_settings.regression_version,
             forecast_version=args.forecast_version,
             upstream_tasks=regression_tasks
         )
