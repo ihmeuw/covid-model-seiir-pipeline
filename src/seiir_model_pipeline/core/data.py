@@ -88,6 +88,8 @@ class CovariateFormatter:
         dfs = pd.DataFrame()
         value_columns = []
         for name, pull_draws in self.covariate_draw_dict.items():
+            if name == 'intercept':
+                continue
             df = pd.read_csv(self.directories.get_covariate_file(
                 covariate_name=name, covariate_version=covariate_version
             ))
