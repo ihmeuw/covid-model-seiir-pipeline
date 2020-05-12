@@ -1,7 +1,7 @@
 import getpass
 import logging
 
-from seiir_model_pipeline.core.task import RegressionTask, ForecastTask
+from seiir_model_pipeline.core.task import RegressionTask, ForecastTask, ScalingDiagnosticTask
 from seiir_model_pipeline.core.task import RegressionDiagnosticTask
 from jobmon.client.swarm.workflow.workflow import Workflow
 
@@ -82,4 +82,9 @@ class SEIIRWorkFlow(Workflow):
                 splicer_tasks = splicer_tasks + task.add_splicer_task(add_diagnostic)
         self.add_tasks(tasks)
         self.add_tasks(splicer_tasks)
+
+        if add_diagnostic:
+            scaling_task = ScalingDiagnosticTask(**kwargs)
+            self.add_task(scaling_task)
+
         return tasks + splicer_tasks

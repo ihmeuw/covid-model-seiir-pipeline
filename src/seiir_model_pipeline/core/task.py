@@ -121,6 +121,27 @@ class RegressionDiagnosticTask(BashTask):
         )
 
 
+class ScalingDiagnosticTask(BashTask):
+    def __init__(self, regression_version, forecast_version, **kwargs):
+
+        self.regression_version = regression_version
+        self.forecast_version = forecast_version
+
+        command = (
+            "create_regression_diagnostics " +
+            f"--regression-version {regression_version} " +
+            f"--forecast-version {forecast_version}"
+        )
+
+        super().__init__(
+            command=command,
+            name=f'seiir_scaling_diagnostics',
+            executor_parameters=ExecParamsPlotting,
+            max_attempts=1,
+            **kwargs
+        )
+
+
 class ForecastDiagnosticTask(BashTask):
     def __init__(self, regression_version, forecast_version, location_id, **kwargs):
 
