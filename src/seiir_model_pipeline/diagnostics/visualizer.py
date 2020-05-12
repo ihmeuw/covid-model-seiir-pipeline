@@ -416,7 +416,7 @@ class PlotBetaCoef:
 
     def plot_coef(self):
         for cov in self.covs:
-            plt.figure(figsize=(8, 20))
+            plt.figure(figsize=(8, self.coef_data[cov][1].shape[1]//4))
             plt.boxplot(self.coef_data[cov][1], vert=False, showfliers=False,
                         boxprops=dict(linewidth=0.5),
                         whiskerprops=dict(linewidth=0.5))
@@ -434,7 +434,7 @@ class PlotBetaCoef:
                         bbox_inches='tight')
 
 
-class PlotBetaResidual:
+class PlotBetaScaling:
     def __init__(self, directories: Directories):
 
         self.directories = directories
@@ -442,68 +442,47 @@ class PlotBetaResidual:
         # load settings
         self.settings = load_regression_settings(directories.regression_version)
         self.path_to_location_metadata = self.directories.get_location_metadata_file(
-            self.settings.location_set_version_id)
-        self.path_to_betas_dir = self.directories.regression_beta_fit_dir
-        self.path_to_savefig = self.directories.regression_diagnostic_dir
+            self.settings.location_set_version_id
+        )
+        self.path_to_beta_scaling = self.directories.forecast_beta_scaling_dir
+        self.path_to_savefig = self.directories.forecast_diagnostic_dir
 
         # load location metadata
-        self.loc_ids = np.array(os.listdir(self.path_to_betas_dir)).astype(int)
         self.location_metadata = pd.read_csv(self.path_to_location_metadata)
         self.id2loc = self.location_metadata.set_index('location_id')[
             'location_name'].to_dict()
 
-        # load the beta data
-        df_beta = [
-            pd.concat([
-                pd.read_csv(self.directories.get_draw_beta_fit_file(
-                    draw_id=i, location_id=loc_id))[[
-                        'loc_id',
-                        'date',
-                        'days',
-                        'beta',
-                        'beta_pred']].dropna()
-                for loc_id in self.loc_ids
-            ])
-            for i in range(self.settings.n_draws)
-        ]
-
-        # location information
+        # load locations
+        self.loc_ids = np.array([
+            file_name.split('_')[0]
+            for file_name in os.listdir(self.path_to_beta_scaling)
+        ]).astype(int)
         self.locs = np.array([
             self.id2loc[loc_id]
             for loc_id in self.loc_ids
         ])
-        self.num_locs = len(self.locs)
 
-        # compute RMSE
-        self.rmse_data = np.vstack([
-            np.array([self.get_rmse(df, loc_id) for loc_id in self.loc_ids])
-            for df in df_beta
+        # load data
+        self.scales_data = np.hstack([
+            pd.read_csv(self.directories.location_beta_scaling_file(loc_id))[
+                'beta_scales'
+            ].values[:, None]
+            for loc_id in self.loc_ids
         ])
 
-    @staticmethod
-    def get_rmse(df, loc_id):
-        beta = df.loc[df.loc_id == loc_id, 'beta'].values
-        pred_beta = df.loc[df.loc_id == loc_id, 'beta_pred'].values
-
-        return np.sqrt(np.mean((beta - pred_beta) ** 2))
-
-    def plot_residual(self):
-        fig, ax = plt.subplots(self.num_locs, 1, figsize=(8, 4 * self.num_locs))
-        for i, loc in enumerate(self.locs):
-            ax[i].hist(self.rmse_data[:, i])
-            ax[i].set_title(loc)
-        plt.savefig(self.path_to_savefig / f'residual_rmse_histo.pdf',
-                    bbox_inches='tight')
-
-        plt.figure(figsize=(8, 20))
-        sort_idx = np.argsort(self.rmse_data.mean(axis=0))
-        plt.boxplot(self.rmse_data[:, sort_idx], vert=False, showfliers=False,
+    def plot_scales(self):
+        scales_mean = self.scales_data.mean(axis=0)
+        sort_id = np.argsort(scales_mean)
+        plt.figure(figsize=(8, len(self.locs)//4))
+        plt.boxplot(self.scales_data[:, sort_id], vert=False, showfliers=False,
                     boxprops=dict(linewidth=0.5),
                     whiskerprops=dict(linewidth=0.5))
+        plt.yticks(ticks=np.arange(len(self.locs)) + 1,
+                   labels=self.locs[sort_id])
         plt.grid(b=True)
         plt.box(on=None)
-        plt.yticks(ticks=np.arange(self.num_locs) + 1,
-                   labels=self.locs[sort_idx])
-        plt.title('Beta Regression Residual RMSE')
-        plt.savefig(self.path_to_savefig / f'residual_rmse_boxplot.pdf',
+        plt.title('beta scalings')
+        plt.vlines(1.0, ymin=1, ymax=len(self.locs),
+                   linewidth=1.0, linestyle='--', color='#8B0000')
+        plt.savefig(self.path_to_savefig/f'beta_scalings_boxplot.pdf',
                     bbox_inches='tight')
