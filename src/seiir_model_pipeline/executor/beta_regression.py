@@ -102,7 +102,8 @@ def main():
         ordered_covmodel_sets=ordered_covmodel_sets,
         mr_data=mr_data,
         path=directories.get_draw_coefficient_file(args.draw_id),
-        df_cov_coef=fixed_coefficients
+        df_cov_coef=fixed_coefficients,
+        add_intercept=False,
     )
     # -------------------- POST PROCESSING AND SAVING ------------------------ #
     # Get the fitted values of beta from the regression model and append on
