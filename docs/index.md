@@ -6,7 +6,7 @@ at IHME.
 ## Getting Started
 
 Here we will walk through installing the pipeline in an environment on the IHME
-cluster and running
+cluster and running the pipeline.
 
 ### Installation
 
@@ -42,6 +42,31 @@ and/or a forecast version, the two halves of the pipeline. For a full run, you n
 both a regression and forecast version.
 
 ### Versions
+
+### Launching a Pipeline Run
+
+To launch a pipeline run, you must first create a regression version and/or a forecast version.
+The `versioner` module has a helper function `create_run` that creates both a regression
+and forecast version with the same name for a full run, and with all the keyword arguments
+that you would pass to `RegressionVersion` and `ForecastVersion` (see [versions](#versions)).
+
+Once you have a version, open up a screen and qlogin on the dq on the cluster with at least three
+threads, 5G of memory, and a few hours of runtime (the pipeline is quick, but the diagnostics
+take a long time). The `run` script builds the Jobmon workflow and monitors the tasks
+until the whole pipeline is complete:
+
+```
+run --regression-version {REG_VERSION} --forecast-version {FOR_VERSION} --run-splicer --create-diagnostics
+```
+
+If you don't want to create diagnostics, remove the `--create-diagnostics` flag. Likewise, if you don't
+want to run the splicer to create infections and deaths from the ODE compartments, remove the
+`--run-splicer` flag.
+
+You can view the status of the workflow and individual tasks in the workflow by viewing
+the Jobmon database. Instructions for accessing the permanent Jobmon database are
+[here](https://hub.ihme.washington.edu/display/DataScience/Jobmon+Release+Notes) under the
+10/7/2019 release notes.
 
 ### Scripts
 
@@ -104,27 +129,4 @@ The goal of the splicer is to create infections and deaths from the SEIIR compar
 
 #### Diagnostics.
 
-### Launching a Pipeline Run
 
-To launch a pipeline run, you must first create a regression version and/or a forecast version.
-The `versioner` module has a helper function `create_run` that creates both a regression
-and forecast version with the same name for a full run, and with all the keyword arguments
-that you would pass to `RegressionVersion` and `ForecastVersion` (see [versions](#versions)).
-
-Once you have a version, open up a screen and qlogin on the dq on the cluster with at least three
-threads, 5G of memory, and a few hours of runtime (the pipeline is quick, but the diagnostics
-take a long time). The `run` script builds the Jobmon workflow and monitors the tasks
-until the whole pipeline is complete:
-
-```
-run --regression-version {REG_VERSION} --forecast-version {FOR_VERSION} --run-splicer --create-diagnostics
-```
-
-If you don't want to create diagnostics, remove the `--create-diagnostics` flag. Likewise, if you don't
-want to run the splicer to create infections and deaths from the ODE compartments, remove the
-`--run-splicer` flag.
-
-You can view the status of the workflow and individual tasks in the workflow by viewing
-the Jobmon database. Instructions for accessing the permanent Jobmon database are
-[here](https://hub.ihme.washington.edu/display/DataScience/Jobmon+Release+Notes) under the
-10/7/2019 release notes.
