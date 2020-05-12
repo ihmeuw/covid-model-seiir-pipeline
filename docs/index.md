@@ -41,9 +41,121 @@ Output folders and file names are also determined by the `versioner` module, in 
 and/or a forecast version, the two halves of the pipeline. For a full run, you need
 both a regression and forecast version.
 
-The main directories
+The directory that is used for infectionator inputs is `/ihme/covid-19/seir-inputs` and the directory
+that is used for covariate inputs is `/ihme/covid-19/seir-covariates`.
+
+The main directories for outputs within `/ihme/covid-19/seir-pipeline-outputs` are:
+
+- `regression`: regression versions and outputs
+- `forecast`: forecast versions and outputs
+- `covariate`: covariate cache versions for both forecasts and regressions
+- `metadata-inputs`: location metadata snapshots from the hierarchies with some
+    modifications explained in the README.md files
+
+Within a regression version, the directory structure is:
+
+- `betas`: location-specific folders with draw files for each
+    component fit -- also includes predicted beta based on the regression
+- `coefficients`: draw-specific files with coefficients from the regression
+    fit. This is what is read in when a new regression version uses a prior
+    coefficient version.
+- `parameters`: draw-specific files with simulated alpha, sigma, gamma1, and gamma2
+    parameters
+- `diagnostics`: regression diagnostic plots
+- `locations.csv`: a snapshot of the location IDs that was used in this run
+- `settings.json`: the settings for the regression version
+
+Within a forecast version, the directory structure is:
+
+- `beta_scaling`: a csv of the scaling factor that was produced for each location
+    and draws are within the files -- scaling factor makes past betas line up 
+    with future betas
+- `component_draws`: folders by location with draw-specific files of the
+    SEIIR components
+- `output_draws`: files by location and type of draw which are the final
+    outputs. includes cases, deaths, and r effective. This is post-splicing.
+- `diagnostics`: plots of SEIIR component draws, final draws, and beta residuals
+- `settings.json`: settings for the forecast version
 
 ### Versions
+
+To create a regression or forecast version, you pass arguments to
+`RegressionVersion` or `ForecastVersion`. Since creating a version requires
+caching covariates and creating the directory structure, we suggest using
+the utilities functions `create_regression_version`, `create_forecast_version`, or
+if you are doing a run creating a *new* regression and forecast version that you want to have
+the same name, `create_run`.
+
+The arguments to `create_regression_version` are:
+
+- `version_name (str)`: the name of the regression version
+- `covariate_version (str)`: covariate version to use
+- `covariate_draw_dict (Dict[str, bool])`: a dictionary of covariate name to whether or not the covariate has draws
+- `infection_version (str)`: the infectionator version to use
+- `coefficient_version (str)`: the regression version of coefficient estimates to use
+- `location_set_version_id (int)`: the location metadata version to use (MUST BE IN `metadata-inputs`!)
+- `n_draws (int)`: number of draws to run
+- `degree (int)`: degree of the spline to fit on new infections to get beta
+- `knots` (int)`: knot positions for the spline
+- `day_shift (int)`: Will use today + `day_shift` - lag 's data in the beta regression
+- `covariates (Dict[str: Dict])`: elements of the inner dict:
+    - `"use_re" (bool)`: use random effects or not
+    - `"gprior" (np.array)`: mean and standard deviation for the Gaussian prior on the fixed effect
+    - `"bounds" (np.array)`: lower and upper bounds for the sum of fixed + random effects
+    - `"re_var": (float)`: the variance of the random effect
+- `covariates_order (List[List[str]])`: list of lists of covariate names that will be
+        sequentially added to the regression
+- `alpha (Tuple[float])`: a 2-length tuple that represents the range of alpha values to sample
+- `sigma (Tuple[float])`: a 2-length tuple that represents the range of sigma values to sample
+- `gamma1 (Tuple[float])`: a 2-length tuple that represents the range of gamma1 values to sample
+- `gamma2 (Tuple[float])`: a 2-length tuple that represents the range of gamma2 values to sample
+- `solver_dt (float)`: step size for the ODE solver
+
+The arguments to `create_forecast_version` skip most of the ones above because they are tagged to a regression
+version and will be read in as part of the forecast version (since a forecast version must be tagged to
+a specific regression version).
+
+- `verion_name (str)`:  the name of the forecast version
+- `regression_version (str)`: the regression version to use
+- `covariate_version (str)`: covariate version to use
+- `covariate_draw_dict (Dict[str, bool])`: a dictionary of covariate name to whether or not the covariate has draws.
+    This is separate from the regression version `covariate_draw_dict` because you may want to use draws for the
+    forecasts but not in the regression fitting. This allows you to do that.
+
+**NOTE**: The `covariate_draw_dict` has not been tested with `True` for any of the covariates because the input
+data does not exist yet to test.
+
+To create a run that will have both a regression version and forecast version (for example, the baseline scenario),
+use the `create_run` utility function which takes all the same arguments to `create_regression_version`. An example
+of using the `create_run` function is below:
+
+```python
+from seiir_model_pipeline.core.utils import create_run
+
+covariates = dict(
+    temperature=dict(use_re=False, gprior=[0.0, 1000], bounds=[-1000., 0.], re_var=1.),
+    mobility_lift=dict(use_re=True, gprior=[0.0, 1e-1], bounds=[0., 1000.], re_var=1.),
+    proportion_over_1k=dict(use_re=False, gprior=[0.0, 10000], bounds=[0., 1000.], re_var=1.),
+    testing_reference=dict(use_re=False, gprior=[0.0, 1000], bounds=[-1000., 0.], re_var=1.)
+)
+covariate_draw_dict = {
+    'mobility_lift': False,
+    'proportion_over_1k': False,
+    'temperature': False,
+    'testing_reference': False
+}
+covariate_orders = [['mobility_lift'], ['proportion_over_1k'], ['temperature'], ['testing_reference']]
+create_run(
+    infection_version='2020_05_09.01',
+    covariate_version='2020_05_09.01',
+    n_draws=10, location_set_version_id=0,
+    degree=3, day_shift=5, knots=[0.0, 0.25, 0.5, 0.75, 1.0],
+    covariates=covariates,
+    alpha=[0.9, 1], sigma=[1./5., 1./3.], gamma2=[1./3., 1],
+    version_name='develop/refactor18',
+    covariate_draw_dict=covariate_draw_dict, covariates_order=covariate_orders
+)
+```
 
 ### Launching a Pipeline Run
 
@@ -133,7 +245,24 @@ from the past SEIIR components from the [regression task](#beta-regression).
 #### Splicing
 
 The goal of the splicer is to create infections and deaths from the SEIIR compartments.
+For each draw, it takes the output draws for the past and the future for new infections
+and concats them together, while creating newE, which are the equivalent of "cases" from the infectionator, which
+is calculated as the difference in susceptible numbers across time points.
+Then it fills in all dates until `today` with the infectionator outputs rather than the modeled results that we have.
 
-#### Diagnostics.
+After splicing cases, it takes the new cases data from the splicing above and multiplies the cases by
+the infection fataility ratio (IFR) for this specific draw, and takes into account the draw-specific lag
+also from the infectionator, to create deaths draws. Those death draws are then replaced with infectionator
+death draws up until `today`. Those are then replaced with infectionator **mean** deaths based on the `obs_deaths`
+indicator column available in the infectionator outputs. This fills in the smooth death data **before** modeling.
 
+Finally, it creates R effective based on the compartments. It saves these three outputs in different files.
 
+#### Diagnostics
+
+Diagnostics are created for forecast versions (`create_forecast_diagnostics`),
+regression versions (`create_regression_diagnostics`) and what happens in between
+which is the scaling of the beta for the forecast to match the regression
+(`create_scaling_diagnostics`). The diagnostics are created using functions within
+the `seiir_model_pipeline.diagnostics` directory. To see their directories,
+see [directories](#directories).

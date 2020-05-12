@@ -303,6 +303,7 @@ class RegressionVersion(Version):
 
     - `infection_version (str)`: the version of the infection inputs
     - `covariate_version (str)`: the version of the covariate inputs
+    - `coefficient_version (str)`: the regression version of coefficient estimates to use
     - `n_draws (int)`: number of draws
     - `location_set_version_id (int)`: the location set version to use
     - `degree` (int): degree of the spline for beta fit
