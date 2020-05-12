@@ -96,7 +96,6 @@ def main():
         )
     else:
         fixed_coefficients = None
-
     # Fit the beta regression; the `path` argument automatically saves the coefficients
     # to the specified file
     mr.fit_beta_regression_prod(
