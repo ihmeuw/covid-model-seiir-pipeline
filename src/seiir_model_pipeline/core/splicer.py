@@ -42,6 +42,7 @@ class Splicer:
         self.col_id_lag = INFECTION_COL_DICT['COL_ID_LAG']
         self.col_obs_deaths = INFECTION_COL_DICT['COL_OBS_DEATHS']
         self.col_obs_cases = INFECTION_COL_DICT['COL_OBS_CASES']
+        self.col_deaths_data = INFECTION_COL_DICT['COL_DEATHS_DATA']
 
         self.col_pop = INFECTION_COL_DICT['COL_POP']
 
@@ -118,7 +119,7 @@ class Splicer:
         df = pd.concat([observations, forecasts]).reset_index(drop=True)
         return df
 
-    def splice_deaths(self, df, infection_data, d_obs):
+    def splice_deaths(self, df, infection_data, d_obs, d_data):
         infections = infection_data[self.col_cases]
         deaths = infection_data[self.col_deaths]
 
@@ -127,6 +128,7 @@ class Splicer:
 
         df[self.col_deaths] = (df[self.col_cases] * ratio).shift(lag)
         df.loc[d_obs, self.col_deaths] = infection_data[self.col_deaths][d_obs]
+        df.loc[d_data, self.col_deaths] = infection_data[self.col_deaths_data][d_data]
         return df
 
     def splice_draw(self, infection_data, component_fit, component_forecasts, params, draw_id):
@@ -144,6 +146,7 @@ class Splicer:
         lag = self.get_lag(infection_data)
         i_obs = pd.to_datetime(infection_data[self.col_date]) < (self.today - np.timedelta64(lag, 'D'))
         d_obs = pd.to_datetime(infection_data[self.col_date]) < self.today
+        d_data = infection_data[self.col_obs_deaths].astype(bool)
 
         spliced = self.splice_infections(
             infection_data=infection_data, i_obs=i_obs,
@@ -151,7 +154,7 @@ class Splicer:
         )
         spliced = self.splice_deaths(
             df=spliced,
-            infection_data=infection_data, d_obs=d_obs
+            infection_data=infection_data, d_obs=d_obs, d_data=d_data
         )
         spliced[COL_R_EFF] = self.compute_effective_r(df=spliced, params=params, pop=pop)
 
