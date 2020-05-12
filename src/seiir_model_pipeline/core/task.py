@@ -128,7 +128,7 @@ class ScalingDiagnosticTask(BashTask):
         self.forecast_version = forecast_version
 
         command = (
-            "create_regression_diagnostics " +
+            "create_scaling_diagnostics " +
             f"--regression-version {regression_version} " +
             f"--forecast-version {forecast_version}"
         )

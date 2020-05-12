@@ -84,7 +84,7 @@ class SEIIRWorkFlow(Workflow):
         self.add_tasks(splicer_tasks)
 
         if add_diagnostic:
-            scaling_task = ScalingDiagnosticTask(**kwargs)
+            scaling_task = ScalingDiagnosticTask(**kwargs, upstream_tasks=tasks)
             self.add_task(scaling_task)
 
         return tasks + splicer_tasks
