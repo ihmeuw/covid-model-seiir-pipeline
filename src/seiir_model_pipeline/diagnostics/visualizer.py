@@ -221,7 +221,6 @@ class Visualizer:
             E_plot.scatter(time, draw['newE_obs'], c='b', alpha=0.1, s=3, label="Observations" if i == 0 else None)
             residuals = np.log(draw['beta'].to_numpy()) - np.log(draw['beta_pred'].to_numpy())
             residuals_plot.plot(time, residuals, c='b', alpha=0.1)
-            residuals_plot.plot(time, np.zeros(len(time.to_numpy())))
 
         if time is None:
             # No draws => no picture
@@ -243,7 +242,7 @@ class Visualizer:
         E_plot.legend()
         xlims = residuals_plot.get_xlim()
         residuals_plot.plot(xlims, [0, 0], c='black', linestyle='--')
-        
+
         plt.savefig(os.path.join(output_dir, f"cases_fit_and_beta_residuals_{group_name}.png"))
         plt.close(fig)
         print(f"Cases fit and beta residuals plot for {group} {group_name} is done")
