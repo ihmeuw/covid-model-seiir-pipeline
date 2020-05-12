@@ -1,8 +1,7 @@
 from argparse import ArgumentParser
 import logging
 
-from seiir_model.visualizer.visualizer import Visualizer
-
+from seiir_model_pipeline.diagnostics.visualizer import Visualizer
 from seiir_model_pipeline.core.versioner import args_to_directories
 from seiir_model_pipeline.core.versioner import INFECTION_COL_DICT
 
@@ -34,10 +33,18 @@ def main():
         col_date=INFECTION_COL_DICT['COL_DATE']
     )
     visualizer.create_trajectories_plot(
-        group=[args.location_id],
+        group=args.location_id,
         output_dir=directories.forecast_diagnostic_dir
     )
     visualizer.create_final_draws_plot(
-        group=[args.location_id],
+        group=args.location_id,
         output_dir=directories.forecast_diagnostic_dir
     )
+    visualizer.create_beta_fit_and_residuals_plot(
+        group=args.location_id,
+        output_dir=directories.forecast_diagnostic_dir
+    )
+
+
+if __name__ == "__main__":
+    main()

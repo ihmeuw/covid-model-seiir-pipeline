@@ -2,10 +2,9 @@ from argparse import ArgumentParser
 import logging
 
 from seiir_model_pipeline.core.versioner import args_to_directories
-from seiir_model_pipeline.core.versioner import load_regression_settings, load_forecast_settings
-from seiir_model_pipeline.core.data import cache_covariates
+from seiir_model_pipeline.core.versioner import load_regression_settings
 from seiir_model_pipeline.core.workflow import SEIIRWorkFlow
-from seiir_model_pipeline.core.utils import get_locations
+from seiir_model_pipeline.core.utils import load_locations
 
 log = logging.getLogger(__name__)
 
@@ -25,14 +24,12 @@ def get_args():
 
 def main():
     args = get_args()
-
     log.info("Initiating SEIIR modeling pipeline.")
 
     directories = args_to_directories(args)
     directories.make_dirs()
 
     wf = SEIIRWorkFlow(directories=directories)
-    
     run_regression = args.regression_version is not None
     run_forecasts = args.forecast_version is not None
 
@@ -40,36 +37,17 @@ def main():
 
     if run_regression:
         regression_settings = load_regression_settings(args.regression_version)
-        location_ids = get_locations(
-            directories, regression_settings.location_set_version_id
-        )
-        cache_covariates(
-            directories=directories,
-            covariate_versions=regression_settings.covariate_version,
-            location_ids=location_ids,
-            covariate_draw_dict=regression_settings.covariate_draw_dict
-        )
         regression_tasks = wf.attach_regression_tasks(
             n_draws=regression_settings.n_draws,
             regression_version=args.regression_version,
-            add_diagnostic=args.create_diagnostics
+            add_diagnostic=args.create_diagnostics,
         )
     else:
         if not run_forecasts:
             raise RuntimeError("You have to run either a regression or forecast.")
-        regression_settings = load_regression_settings(args.forecast_version)
 
     if run_forecasts:
-        forecast_settings = load_forecast_settings(args.forecast_version)
-        location_ids = get_locations(
-            directories, regression_settings.location_set_version_id
-        )
-        cache_covariates(
-            directories=directories,
-            covariate_versions=forecast_settings.covariate_version,
-            location_ids=location_ids,
-            covariate_draw_dict=forecast_settings.covariate_draw_dict
-        )
+        location_ids = load_locations(directories)
         wf.attach_forecast_tasks(
             location_ids=location_ids,
             add_splicer=args.run_splicer,

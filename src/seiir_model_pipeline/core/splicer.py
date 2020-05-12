@@ -6,7 +6,11 @@ from seiir_model_pipeline.core.utils import get_location_name_from_id
 from seiir_model_pipeline.core.versioner import INFECTION_COL_DICT
 
 
+# Tolerance for quality checking
+# infectionator IFRs
 IFR_TOL = 1e-7
+
+# Column names
 COL_OBSERVED = 'observed'
 COL_R_EFF = 'R_eff'
 COL_BETA = 'beta'
@@ -126,6 +130,16 @@ class Splicer:
         return df
 
     def splice_draw(self, infection_data, component_fit, component_forecasts, params, draw_id):
+        """
+        Main function to splice a draw.
+
+        :param infection_data: infectionator outputs
+        :param component_fit: SEIR components from the past
+        :param component_forecasts: SEIR components for the future
+        :param params: alpha, sigma, gamma1, gamma2 parameters -- used to compute R effective
+        :param draw_id: (int)
+        :return:
+        """
         pop = self.get_population(infection_data)
         lag = self.get_lag(infection_data)
         i_obs = pd.to_datetime(infection_data[self.col_date]) < (self.today - np.timedelta64(lag, 'D'))

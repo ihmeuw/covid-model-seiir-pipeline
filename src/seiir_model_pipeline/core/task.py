@@ -52,7 +52,6 @@ class ForecastTask(BashTask):
             f"--regression-version {regression_version} " +
             f"--forecast-version {forecast_version} "
         )
-
         super().__init__(
             command=command,
             name=f'seiir_forecast_location_{location_id}',
@@ -63,7 +62,6 @@ class ForecastTask(BashTask):
 
     def add_splicer_task(self, add_diagnostic):
         tasks = []
-        diagnostic_task = []
 
         splicer_task = SplicerTask(
             location_id=self.location_id,
@@ -78,9 +76,8 @@ class ForecastTask(BashTask):
                 forecast_version=self.forecast_version
             )
             splicer_task.add_downstream(diagnostic_task)
-
-        tasks.append(splicer_task)
-        tasks.append(diagnostic_task)
+            tasks += [diagnostic_task]
+        tasks += [splicer_task]
         return tasks
 
 
@@ -111,13 +108,34 @@ class RegressionDiagnosticTask(BashTask):
         self.regression_version = regression_version
 
         command = (
-            "create_diagnostics " +
+            "create_regression_diagnostics " +
             f"--regression-version {regression_version} "
         )
 
         super().__init__(
             command=command,
             name=f'seiir_regression_diagnostics',
+            executor_parameters=ExecParamsPlotting,
+            max_attempts=1,
+            **kwargs
+        )
+
+
+class ScalingDiagnosticTask(BashTask):
+    def __init__(self, regression_version, forecast_version, **kwargs):
+
+        self.regression_version = regression_version
+        self.forecast_version = forecast_version
+
+        command = (
+            "create_scaling_diagnostics " +
+            f"--regression-version {regression_version} " +
+            f"--forecast-version {forecast_version}"
+        )
+
+        super().__init__(
+            command=command,
+            name=f'seiir_scaling_diagnostics',
             executor_parameters=ExecParamsPlotting,
             max_attempts=1,
             **kwargs
@@ -132,7 +150,7 @@ class ForecastDiagnosticTask(BashTask):
         self.location_id = location_id
 
         command = (
-            "create_diagnostics " +
+            "create_forecast_diagnostics " +
             f"--regression-version {regression_version} " +
             f"--forecast-version {forecast_version} " +
             f"--location-id {location_id} "
@@ -140,7 +158,7 @@ class ForecastDiagnosticTask(BashTask):
 
         super().__init__(
             command=command,
-            name=f'seiir_diagnostics',
+            name=f'seiir_forecast_diagnostics',
             executor_parameters=ExecParamsPlotting,
             max_attempts=1,
             **kwargs
