@@ -1,7 +1,7 @@
 from argparse import ArgumentParser
 import logging
 
-from seiir_model_pipeline.diagnostics.visualizer import PlotBetaCoef, PlotBetaScaling
+from seiir_model_pipeline.diagnostics.visualizer import PlotBetaCoef
 from seiir_model_pipeline.core.versioner import args_to_directories
 
 log = logging.getLogger(__name__)
@@ -27,6 +27,3 @@ def main():
 
     handle = PlotBetaCoef(directories)
     handle.plot_coef()
-
-    handle = PlotBetaScaling(directories)
-    handle.plot_scales()
