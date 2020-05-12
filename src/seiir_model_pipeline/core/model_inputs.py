@@ -12,6 +12,7 @@ SEIIR_COMPARTMENTS = ['S', 'E', 'I1', 'I2', 'R']
 COL_BETA = 'beta'
 COL_GROUP = 'loc_id'
 COL_DATE = 'date'
+COL_INTERCEPT = 'intercept'
 
 LOCATION_SET_ID = 111
 
@@ -108,8 +109,9 @@ def convert_inputs_for_beta_model(data_cov, df_beta, covmodel_set):
     cov_names = [covmodel.col_cov for covmodel in covmodel_set.cov_models]
     covs_na = []
     for name in cov_names:
-        if df[name].isna().values.any():
-            covs_na.append(name)
+        if name != COL_INTERCEPT:
+            if df[name].isna().values.any():
+                covs_na.append(name)
     if len(covs_na) > 0:
         raise ValueError('NaN in covariate data: ' + str(covs_na))
 
