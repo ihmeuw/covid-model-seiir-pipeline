@@ -162,7 +162,7 @@ class Splicer:
             df=spliced, col_data=self.col_cases, observed=i_obs, draw_id=draw_id
         )
         self.deaths[draw_id] = self.record_splice(
-            df=spliced, col_data=self.col_deaths, observed=d_obs, draw_id=draw_id
+            df=spliced, col_data=self.col_deaths, observed=d_data, draw_id=draw_id
         )
         self.reff[draw_id] = self.record_splice(
             df=spliced, col_data=COL_R_EFF, observed=i_obs, draw_id=draw_id
