@@ -17,21 +17,21 @@ clean:
 
 install_env:
 	( \
-		source $(CONDA_PREFIX)/etc/profile.d/conda.sh; \
-		conda create -n $(ENV_NAME) python=3.7; \
-		conda activate $(ENV_NAME); \
-		pip install numpy scipy pandas matplotlib pyyaml pytest xspline jobmon; \
-		conda install -c conda-forge cyipopt; \
-		git clone https://github.com/zhengp0/limetr.git; \
-		cd limetr && make install && cd ..; \
-		git clone https://github.com/ihmeuw-msca/MRTool.git; \
-		cd MRTool && git checkout seiir_model && python setup.py install && cd ..; \
-		git clone https://github.com/zhengp0/SLIME.git; \
-		cd SLIME && python setup.py install && cd ..; \
-		git clone https://github.com/ihmeuw-msca/ODEOPT.git; \
-		cd ODEOPT && git checkout random && python setup.py install && cd ..; \
-		git clone https://github.com/ihmeuw-msca/SEIRPipeline.git; \
-		cd SEIRPipeline && git checkout master &&python setup.py install && cd ..; \
+		source $(CONDA_PREFIX)/etc/profile.d/conda.sh && \
+		conda create -n $(ENV_NAME) python=3.7 && \
+		conda activate $(ENV_NAME) && \
+		pip install numpy scipy pandas matplotlib pyyaml pytest xspline jobmon && \
+		conda install -c conda-forge cyipopt && \
+		git clone https://github.com/zhengp0/limetr.git && \
+		cd limetr && make install && cd .. && \
+		git clone https://github.com/ihmeuw-msca/MRTool.git && \
+		cd MRTool && git checkout seiir_model && python setup.py install && cd .. && \
+		git clone https://github.com/zhengp0/SLIME.git && \
+		cd SLIME && python setup.py install && cd .. && \
+		git clone https://github.com/ihmeuw-msca/ODEOPT.git && \
+		cd ODEOPT && git checkout random && python setup.py install && cd .. && \
+		git clone https://github.com/ihmeuw-msca/SEIRPipeline.git && \
+		cd SEIRPipeline && git checkout master &&python setup.py install && cd .. && \
 		python setup.py install; \
     )
 
