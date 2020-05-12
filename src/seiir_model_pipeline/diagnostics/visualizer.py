@@ -240,6 +240,9 @@ class Visualizer:
                            now_date=None,
                            end_date=end_date, major_tick_interval_days=14)
         E_plot.legend()
+        xlims = residuals_plot.get_xlim()
+        residuals_plot.plot(xlims, [0, 0], c='black', linestyle='--')
+
         plt.savefig(os.path.join(output_dir, f"cases_fit_and_beta_residuals_{group_name}.png"))
         plt.close(fig)
         print(f"Cases fit and beta residuals plot for {group} {group_name} is done")
