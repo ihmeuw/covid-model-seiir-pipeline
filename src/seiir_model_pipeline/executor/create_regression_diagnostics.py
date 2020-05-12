@@ -3,6 +3,7 @@ import logging
 
 from seiir_model_pipeline.diagnostics.visualizer import PlotBetaCoef, PlotBetaResidual
 from seiir_model_pipeline.core.versioner import args_to_directories
+from seiir_model.visualizer.visualizer import PlotBetaScaling, Visualizer
 
 log = logging.getLogger(__name__)
 
@@ -28,5 +29,5 @@ def main():
     handle = PlotBetaCoef(directories)
     handle.plot_coef()
 
-    handle = PlotBetaResidual(directories)
-    handle.plot_residual()
+    handle = PlotBetaScaling(directories)
+    handle.plot_scales()
