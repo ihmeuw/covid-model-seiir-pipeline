@@ -42,7 +42,8 @@ INFECTION_COL_DICT = {
     'COL_DEATHS': 'deaths_draw',
     'COL_ID_LAG': 'i_d_lag',
     'COL_OBS_DEATHS': 'obs_deaths',
-    'COL_OBS_CASES': 'obs_infecs'
+    'COL_OBS_CASES': 'obs_infecs',
+    'COL_DEATHS_DATA': 'deaths_mean'
 }
 
 # Columns from covariates inputs
