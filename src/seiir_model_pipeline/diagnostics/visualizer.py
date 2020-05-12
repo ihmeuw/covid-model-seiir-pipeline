@@ -233,7 +233,7 @@ class Visualizer:
 
         self.format_x_axis(E_plot,
                            start_date=start_date,
-                           now_date=None, # we have only past here, so no past-vs-future separator
+                           now_date=None,  # we have only past here, so no past-vs-future separator
                            end_date=end_date, major_tick_interval_days=14)
         self.format_x_axis(residuals_plot,
                            start_date=start_date,

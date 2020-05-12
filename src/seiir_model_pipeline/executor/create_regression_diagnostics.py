@@ -1,9 +1,8 @@
 from argparse import ArgumentParser
 import logging
 
-from seiir_model_pipeline.diagnostics.visualizer import PlotBetaCoef, PlotBetaResidual
+from seiir_model_pipeline.diagnostics.visualizer import PlotBetaCoef, PlotBetaScaling
 from seiir_model_pipeline.core.versioner import args_to_directories
-from seiir_model.visualizer.visualizer import PlotBetaScaling, Visualizer
 
 log = logging.getLogger(__name__)
 
