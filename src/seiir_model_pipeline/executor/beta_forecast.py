@@ -46,6 +46,11 @@ def main():
 
     # -------------------------- FORECAST THE BETA FORWARDS -------------------- #
     mr = ModelRunner()
+
+    # Get all inputs for the beta forecasting
+    # Get all inputs for the ODE
+    scales = []
+
     for draw_id in range(regression_settings.n_draws):
         print(f"On draw {draw_id}\n")
 
@@ -97,6 +102,9 @@ def main():
         # and scale everything into the future from this anchor value
         anchor_beta = beta_fit.beta[beta_fit.date == CURRENT_DATE].iloc[0]
         scale = anchor_beta / betas[0]
+        scales.append(scale)
+        # scale = scale + (1 - scale)/10.0*np.arange(betas.size)
+        # scale[11:] = 1.0
         betas = betas * scale
 
         # Get initial conditions based on the beta fit for forecasting into the future
@@ -128,3 +136,12 @@ def main():
                 draw_id=draw_id
             )
         )
+    df_scales = pd.DataFrame({
+        'beta_scales': scales
+    })
+    df_scales.to_csv(
+        directories.location_beta_scaling_file(
+            location_id=args.location_id
+        ),
+        index=False
+    )

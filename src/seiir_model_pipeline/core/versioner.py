@@ -153,6 +153,7 @@ class Directories:
             self.forecast_component_draw_dir = self.forecast_output_dir / 'component_draws'
             self.forecast_output_draw_dir = self.forecast_output_dir / 'output_draws'
             self.forecast_diagnostic_dir = self.forecast_output_dir / 'diagnostics'
+            self.forecast_beta_scaling_dir = self.forecast_output_dir / 'beta_scaling'
         else:
             self.forecast_output_dir = None
 
@@ -162,6 +163,7 @@ class Directories:
             self.forecast_component_draw_dir = None
             self.forecast_output_draw_dir = None
             self.forecast_diagnostic_dir = None
+            self.forecast_beta_scaling_dir = None
 
     def make_dirs(self):
         for directory in [
@@ -170,6 +172,7 @@ class Directories:
             self.regression_beta_fit_dir, self.regression_parameters_dir,
             self.forecast_diagnostic_dir, self.forecast_output_dir,
             self.forecast_component_draw_dir, self.forecast_output_draw_dir,
+            self.forecast_beta_scaling_dir,
             self.rv_covariate_cache_dir, self.fv_covariate_cache_dir
         ]:
             if directory is not None:
@@ -193,6 +196,9 @@ class Directories:
         if forecast_type not in ['deaths', 'cases', 'reff']:
             raise RuntimeError("Unrecognized forecast type.")
         return self.forecast_output_draw_dir / f'{forecast_type}_{location_id}.csv'
+
+    def location_beta_scaling_file(self, location_id):
+        return self.forecast_beta_scaling_dir / f'{location_id}_beta_scaling.csv'
 
     def get_infection_file(self, location_id, draw_id):
         folder = _get_infection_folder_from_location_id(location_id, self.infection_dir)
