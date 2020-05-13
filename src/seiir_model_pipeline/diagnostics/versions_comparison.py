@@ -55,7 +55,7 @@ class VersionsComparator:
                 draws = visualizer.coefficients_draws
                 covariate_values = []
                 for draw in draws:
-                    covariate_values.append(draw.loc[group, covariate])
+                    covariate_values.append(draw.loc[draw[visualizer.col_group] == group, covariate])
                 covariate_all_values.append(covariate_values)
             cov_plot = fig.add_subplot(grid[i, 0])
             cov_plot.set_title(f"{covariate} for {group_name}")
