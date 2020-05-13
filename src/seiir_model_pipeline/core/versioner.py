@@ -255,6 +255,9 @@ def load_regression_settings(regression_version):
     file = _get_regression_settings_file(regression_version)
     with open(file, 'r') as f:
         settings = json.load(f)
+        if isinstance(settings['day_shift'], int):
+            day_shift = settings['day_shift']
+            settings.update({'day_shift': [day_shift, day_shift]})
     return RegressionVersion(**settings)
 
 
