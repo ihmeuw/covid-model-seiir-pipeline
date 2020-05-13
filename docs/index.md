@@ -97,7 +97,8 @@ The arguments to `create_regression_version` are:
 - `n_draws (int)`: number of draws to run
 - `degree (int)`: degree of the spline to fit on new infections to get beta
 - `knots` (int)`: knot positions for the spline
-- `day_shift (int)`: Will use today + `day_shift` - lag 's data in the beta regression
+- `day_shift (Tuple[int])`: Will use today + `day_shift` - lag 's data in the beta regression but sample
+    the day shift from the range passed in
 - `covariates (Dict[str: Dict])`: elements of the inner dict:
     - `"use_re" (bool)`: use random effects or not
     - `"gprior" (np.array)`: mean and standard deviation for the Gaussian prior on the fixed effect
