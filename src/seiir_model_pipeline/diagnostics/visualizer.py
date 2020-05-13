@@ -22,7 +22,7 @@ OUTPUT_DRAWS_REFF = "output_draws_reff"
 class Visualizer:
 
     def __init__(self, directories: Directories, groups: list = None, exclude_groups: list = None,
-                 col_group="loc_id", col_date='date', col_observed='observed', covariates=()):
+                 col_group="loc_id", col_date='date', col_observed='observed', covariates=(), read_coefficients_draws=False):
 
         self.directories = directories
         self.col_group = col_group
@@ -83,6 +83,14 @@ class Visualizer:
             else:
                 error_msg = f"ODE Components forecast for the group with {col_group} = {group} is not found"
                 print("Error: " + error_msg)
+
+        if read_coefficients_draws:
+            self.coefficients_draws = [
+                pd.read_csv(self.directories.get_draw_coefficient_file(i))
+                for i in range(self.regression_settings.n_draws)
+            ]
+        else:
+            self.coefficients_draws = None
 
         #  read final draws
         if os.path.isdir(directories.forecast_output_draw_dir):
