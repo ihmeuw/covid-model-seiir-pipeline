@@ -32,6 +32,11 @@ def main():
         col_group=INFECTION_COL_DICT['COL_LOC_ID'],
         col_date=INFECTION_COL_DICT['COL_DATE']
     )
+    visualizer.read_regression_draws()
+    visualizer.read_component_forecasts()
+    visualizer.read_coefficient_draws()
+    visualizer.read_final_draws()
+
     visualizer.create_trajectories_plot(
         group=args.location_id,
         output_dir=directories.forecast_diagnostic_dir

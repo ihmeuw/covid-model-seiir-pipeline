@@ -22,13 +22,16 @@ OUTPUT_DRAWS_REFF = "output_draws_reff"
 class Visualizer:
 
     def __init__(self, directories: Directories, groups: list = None, exclude_groups: list = None,
-                 col_group="loc_id", col_date='date', col_observed='observed', covariates=(), read_coefficients_draws=False):
+                 col_group="loc_id", col_date='date', col_observed='observed',
+                 covariates=(), read_coefficients_draws=False):
 
         self.directories = directories
         self.col_group = col_group
         self.col_date = col_date
         self.col_observed = col_observed
         self.groups = groups
+        self.covariates = covariates
+        self.read_coefficients_draws = read_coefficients_draws
 
         if exclude_groups is not None:
             for exclude_group in exclude_groups:
@@ -47,9 +50,15 @@ class Visualizer:
 
         self.params_for_draws = []
         self.covariates = {}
+        self.coefficients_draws = None
 
-        self.regression_settings = load_regression_settings(directories.regression_version)
-        self.forecast_settings = load_forecast_settings(directories.forecast_version)
+        self.regression_settings = None
+        self.forecast_settings = None
+
+        if directories.regression_version is not None:
+            self.regression_settings = load_regression_settings(directories.regression_version)
+        if directories.forecast_version is not None:
+            self.forecast_settings = load_forecast_settings(directories.forecast_version)
 
         self.location_metadata = pd.read_csv(
             self.directories.get_location_metadata_file(
@@ -58,9 +67,12 @@ class Visualizer:
         self.id2loc = self.location_metadata.set_index('location_id')[
             'location_name'].to_dict()
 
+    def read_regression_draws(self):
+        if self.regression_settings is None:
+            raise RuntimeError("Need to have regression settings.")
         # read beta regression draws
-        for group in groups:
-            path_to_regression_draws_for_group = os.path.join(directories.regression_beta_fit_dir, str(group))
+        for group in self.groups:
+            path_to_regression_draws_for_group = os.path.join(self.directories.regression_beta_fit_dir, str(group))
             if os.path.isdir(path_to_regression_draws_for_group):
                 for filename in os.listdir(path_to_regression_draws_for_group):
                     if filename.startswith("fit_draw_") and filename.endswith(".csv"):
@@ -70,9 +82,14 @@ class Visualizer:
                     else:
                         continue
 
+    def read_component_forecasts(self):
+        if self.forecast_settings is None:
+            raise RuntimeError("Need to have forecast settings.")
         # read components forecast
-        for group in groups:
-            path_to_compartments_draws_for_group = os.path.join(directories.forecast_component_draw_dir, str(group))
+        for group in self.groups:
+            path_to_compartments_draws_for_group = os.path.join(
+                self.directories.forecast_component_draw_dir, str(group)
+            )
             if os.path.isdir(path_to_compartments_draws_for_group):
                 for filename in os.listdir(path_to_compartments_draws_for_group):
                     if filename.startswith("draw_") and filename.endswith(".csv"):
@@ -81,29 +98,31 @@ class Visualizer:
                     else:
                         continue
             else:
-                error_msg = f"ODE Components forecast for the group with {col_group} = {group} is not found"
+                error_msg = f"ODE Components forecast for the group with {self.col_group} = {group} is not found"
                 print("Error: " + error_msg)
 
-        if read_coefficients_draws:
+    def read_coefficient_draws(self):
+        if self.read_coefficients_draws:
             self.coefficients_draws = [
                 pd.read_csv(self.directories.get_draw_coefficient_file(i))
                 for i in range(self.regression_settings.n_draws)
             ]
-        else:
-            self.coefficients_draws = None
 
+    def read_final_draws(self):
+        if self.forecast_settings is None:
+            raise RuntimeError("Need forecast settings.")
         #  read final draws
-        if os.path.isdir(directories.forecast_output_draw_dir):
-            for group in groups:
+        if os.path.isdir(self.directories.forecast_output_draw_dir):
+            for group in self.groups:
                 self.data[group][OUTPUT_DRAWS_CASES] = pd.read_csv(
-                    os.path.join(directories.forecast_output_draw_dir, f"cases_{group}.csv"))
+                    os.path.join(self.directories.forecast_output_draw_dir, f"cases_{group}.csv"))
                 self.data[group][OUTPUT_DRAWS_DEATHS] = pd.read_csv(
-                    os.path.join(directories.forecast_output_draw_dir, f"deaths_{group}.csv"))
+                    os.path.join(self.directories.forecast_output_draw_dir, f"deaths_{group}.csv"))
                 self.data[group][OUTPUT_DRAWS_REFF] = pd.read_csv(
-                    os.path.join(directories.forecast_output_draw_dir, f"reff_{group}.csv"))
+                    os.path.join(self.directories.forecast_output_draw_dir, f"reff_{group}.csv"))
 
-        for covariate in covariates:
-            covariate_file = directories.get_covariate_file(
+        for covariate in self.covariates:
+            covariate_file = self.directories.get_covariate_file(
                 covariate_name=covariate,
                 covariate_version=self.forecast_settings.covariate_version
             )
