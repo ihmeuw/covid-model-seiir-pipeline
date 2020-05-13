@@ -14,7 +14,9 @@ setup(
         'odeopt',
         'pandas',
         'pyyaml',
-        'matplotlib'
+        'matplotlib',
+        'sklearn',
+        'scipy'
     ],
     entry_points={'console_scripts': [
         'run=seiir_model_pipeline.executor.run:main',
