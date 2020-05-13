@@ -3,7 +3,7 @@ from typing import List
 
 from matplotlib import pyplot as plt
 
-from src.seiir_model_pipeline.diagnostics.visualizer import Visualizer
+from seiir_model_pipeline.diagnostics.visualizer import Visualizer
 from seiir_model_pipeline.core.versioner import Directories
 
 
