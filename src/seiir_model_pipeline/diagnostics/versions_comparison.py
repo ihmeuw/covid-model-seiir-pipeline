@@ -1,6 +1,7 @@
+import matplotlib
+matplotlib.use('Agg')
 import os
 from typing import List
-
 from matplotlib import pyplot as plt
 
 from seiir_model_pipeline.diagnostics.visualizer import Visualizer
@@ -40,14 +41,12 @@ class VersionsComparator:
         assert len(self.visualizers) != 0, "No visualizers were provided. Check the list_of_directories in constructor"
 
         versions = [k for k, v in self.visualizers.items()]
-
         if covariates is None:
             covariates = self.default_covariates
 
         group_name = self.visualizers[versions[0]].id2loc[group]
 
-        fig = plt.figure(figsize=(base_fig_size[0] * len(versions), base_fig_size[1] * len(covariates)))
-        grid = plt.GridSpec(len(covariates), 1)
+        fig, ax = plt.subplots(len(covariates), 1, figsize=(base_fig_size[0] * len(versions), base_fig_size[1] * len(covariates)))
 
         for i, covariate in enumerate(covariates):
             covariate_all_values = []
@@ -55,19 +54,16 @@ class VersionsComparator:
                 draws = visualizer.coefficients_draws
                 covariate_values = []
                 for draw in draws:
-                    covariate_values.append(draw.loc[draw[visualizer.col_group] == group, covariate])
+                    covariate_values.append(draw.loc[draw.group_id == group, covariate].iloc[0])
                 covariate_all_values.append(covariate_values)
-            cov_plot = fig.add_subplot(grid[i, 0])
-            cov_plot.set_title(f"{covariate} for {group_name}")
-            cov_plot.boxplot(covariate_all_values, labels=versions, notch=True, widths=0.4)
-            cov_plot.grid()
-            plt.savefig(os.path.join(output_dir, f"regression_coefs_comparison_{group_name}.png"))
-            plt.close(fig)
+            ax[i].set_title(f"{covariate} for {group_name}")
+            ax[i].boxplot(covariate_all_values, labels=versions, notch=True, widths=0.4)
+        plt.savefig(os.path.join(output_dir, f"regression_coefs_comparison_{group_name}.pdf"))
+        plt.close(fig)
 
     def compare_coefficients_scatterplot(self, covariates=None, base_fig_size=(6, 6), output_dir="."):
         fig = plt.figure(figsize=(base_fig_size[0]*2, base_fig_size[1]*len(covariates)))
         grid = plt.GridSpec(len(covariates), 2,  wspace=0.3, hspace=0.3)
-
         assert len(self.visualizers) == 2   # plots are version1 vs version2
         versions = [k for k, v in self.visualizers]
         cov_plots = []
