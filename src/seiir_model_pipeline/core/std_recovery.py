@@ -1,5 +1,6 @@
 import numpy as np
 from typing import List, Iterable
+import pandas as pd
 
 from sklearn.model_selection import GridSearchCV
 from sklearn.base import BaseEstimator, RegressorMixin
@@ -25,13 +26,13 @@ def get_stds(x: List, y: List, ss: Iterable[float] = None, cv=20, mode="fast"):
     """
     Recovers standard errors by fitting smoothing splines
 
-    :param x (List):  x_axis data
-    :param y (List): y_axis data
-    :param ss (List of floats): smoothing parameters for grid search. If None then uses and
+    :param x: (List) x_axis data
+    :param y: (List) y_axis data
+    :param ss: (List of floats: smoothing parameters for grid search. If None then uses and
         a pre-defined extensive set from 10 to 1e6.
     :param cv: number of CV draws
-    :param mode (str): which method to use. Three options:
-        - "super-fast": fits one spline with grid-serarch cv and outputs
+    :param mode: (str) which method to use. Three options:
+        - "super-fast": fits one spline with grid-search cv and outputs
             the absolute residuals as stds.
             The fastest but the least correct method from statistical point of view.
         - "fast": finds the optimal smoothing parameter via grid search and then
@@ -102,47 +103,18 @@ def get_stds(x: List, y: List, ss: Iterable[float] = None, cv=20, mode="fast"):
         raise ValueError("Unknown mode: %s" % mode)
 
 
-if __name__ == "__main__":
-    size = 100
-    np.random.seed(42)
-    x = np.arange(0, np.pi, np.pi / size)
-    is_outlier = np.random.rand(size) < 0.1
-    outlier_ampl = 15
-    y = 5*np.sin(x) + np.random.randn(size) + outlier_ampl * is_outlier * np.random.randn(size)
-    x = x.tolist()
-    y = y.tolist()
-    model = SplineModel()
-    ss = np.arange(500, 10000, 500)
-    param_grid = {
-        "k": [3],  # this preserves the spline to be cubic
-        "s": ss
-    }
-    grid_search = GridSearchCV(model, param_grid, scoring="neg_mean_squared_error", cv=10)
-    grid_search.fit(x, y)
-    best_model = grid_search.best_estimator_
-    full_fit = best_model.predict(x)
-    stds_super_fast = get_stds(x, y, mode="super-fast", ss=ss)
-    print("super fast is done")
-    stds_fast = get_stds(x, y, mode="fast", ss=ss)
-    print("fast is done")
-    stds_correct = get_stds(x, y, mode="correct", ss=ss)
-    print("correct is done")
+def estimate_standard_error(window_size, **kwargs):
+    """
+    Estimates the standard error for each data point based on estimated residuals from the
+    `get_stds` function that uses smoothing splines. Computes the standard deviation of the residuals
+    over a window size. Arrays must therefore be *ordered* in some meaningful way -- e.g. chronologically.
 
-    from matplotlib import pyplot as plt
-
-    fig = plt.figure(figsize=(15, 6))
-    grid = plt.GridSpec(1, 2)
-    ax1 = fig.add_subplot(grid[0, 0])
-    ax2 = fig.add_subplot(grid[0, 1])
-
-    x = np.array(x)
-    ax1.plot(x, 5*np.sin(x), label="true model")
-    ax1.plot(x, full_fit, label="spline fit")
-    ax1.scatter(x, y, label="data")
-    ax2.scatter(x, stds_super_fast, label="super-fast")
-    ax2.scatter(x, stds_fast, label="fast")
-    ax2.scatter(x, stds_correct, label="correct")
-    ax2.scatter(x, np.ones(size) + outlier_ampl * is_outlier, label="True")
-    ax1.legend()
-    ax2.legend()
-    plt.savefig("demo_spline_std.jpg")
+    :param window_size: the window over which to compute the standard deviation of residuals
+        from the smoothing spline
+    :param kwargs: keyword arguments to the `get_stds` function
+    :return: 1D np.array of size `y` and `x`, the input arrays
+    """
+    stds = get_stds(**kwargs)
+    return pd.Series(stds).rolling(
+        window=window_size, center=True, min_periods=1
+    ).apply(lambda x: np.std(x)).values
