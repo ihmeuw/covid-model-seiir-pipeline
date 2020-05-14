@@ -17,9 +17,10 @@ def get_args():
 def main():
 
     args = get_args()
-    os.makedirs(args.output_dir)
+    os.makedirs(args.output_dir, exist_ok=True)
 
     directories = [Directories(regression_version=rv) for rv in args.versions]
+    
     locations = [set(load_locations(d)) for d in directories]
     locs = locations[0]
     for loc in locations[1:]:
@@ -35,7 +36,7 @@ def main():
         if i == 0:
             continue
         output_dir = f'{args.output_dir}/{args.versions[0]}-{version}'
-        os.makedirs(output_dir)
+        os.makedirs(output_dir, exist_ok=True)
 
         vc = VersionsComparator(
             list_of_directories=[directories[0], directories[i]],

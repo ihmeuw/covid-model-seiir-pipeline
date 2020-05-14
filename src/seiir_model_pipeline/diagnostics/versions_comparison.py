@@ -39,7 +39,7 @@ class VersionsComparator:
     def compare_coefficients_by_location_plot(self, group, covariates=None, output_dir=".", base_fig_size=(2.5, 5)):
         assert len(self.visualizers) != 0, "No visualizers were provided. Check the list_of_directories in constructor"
 
-        versions = [k for k, v in self.visualizers]
+        versions = [k for k, v in self.visualizers.items()]
 
         if covariates is None:
             covariates = self.default_covariates
