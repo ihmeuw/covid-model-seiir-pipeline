@@ -15,7 +15,7 @@ setup(
         'pandas',
         'pyyaml',
         'matplotlib',
-        'sklearn',
+        'scikit-learn',
         'scipy'
     ],
     entry_points={'console_scripts': [
