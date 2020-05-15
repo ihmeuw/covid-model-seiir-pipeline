@@ -35,6 +35,7 @@ class VersionsComparator:
                 covariates=covariates,
                 read_coefficients_draws=True,
             )
+
             self.visualizers[directories.regression_version].read_coefficient_draws()
 
     def compare_coefficients_by_location_plot(self, group, covariates=None, output_dir=".", base_fig_size=(2.5, 5)):
@@ -62,14 +63,16 @@ class VersionsComparator:
         plt.close(fig)
 
     def compare_coefficients_scatterplot(self, covariates=None, base_fig_size=(6, 6), output_dir="."):
-        fig = plt.figure(figsize=(base_fig_size[0]*2, base_fig_size[1]*len(covariates)))
-        grid = plt.GridSpec(len(covariates), 2,  wspace=0.3, hspace=0.3)
-        assert len(self.visualizers) == 2   # plots are version1 vs version2
-        versions = [k for k, v in self.visualizers]
-        cov_plots = []
-
         if covariates is None:
             covariates = self.default_covariates
+
+        fig = plt.figure(figsize=(base_fig_size[0]*2, base_fig_size[1]*len(covariates)))
+        grid = plt.GridSpec(len(covariates), 2,  wspace=0.3, hspace=0.3)
+
+        assert len(self.visualizers) == 2   # plots are version1 vs version2
+
+        versions = [k for k, v in self.visualizers]
+        cov_plots = []
 
         for i, covariate in enumerate(covariates):
             cov_plot = fig.add_subplot(grid[i//2, i%2])
