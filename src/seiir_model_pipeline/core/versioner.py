@@ -255,6 +255,9 @@ def load_regression_settings(regression_version):
     file = _get_regression_settings_file(regression_version)
     with open(file, 'r') as f:
         settings = json.load(f)
+        if isinstance(settings['day_shift'], int):
+            day_shift = settings['day_shift']
+            settings.update({'day_shift': [day_shift, day_shift]})
     return RegressionVersion(**settings)
 
 
@@ -308,7 +311,8 @@ class RegressionVersion(Version):
     - `location_set_version_id (int)`: the location set version to use
     - `degree` (int): degree of the spline for beta fit
     - `knots` (int)`: knot positions for the spline
-    - `day_shift (int)`: Will use today + `day_shift` - lag 's data in the beta regression
+    - `day_shift (Tuple[int])`: Will use today + `day_shift` - lag 's data in the beta regression
+        but will sample this day_shift from the range given
     - `covariates (Dict[str: Dict]): elements of the inner dict:
         - "use_re": (bool)
         - "gprior": (np.array)
@@ -334,7 +338,6 @@ class RegressionVersion(Version):
     # Spline Arguments
     degree: int
     knots: np.array
-    day_shift: int
 
     # Regression Arguments
     covariates: Dict[str, Dict[str, Union[bool, List, float]]]
@@ -342,6 +345,8 @@ class RegressionVersion(Version):
     covariate_draw_dict: Dict[str, bool] = None
 
     coefficient_version: str = None
+
+    day_shift: Tuple[int] = field(default=(0, 8))
 
     # Optimization Arguments
     alpha: Tuple[float] = field(default=(0.95, 0.95))
