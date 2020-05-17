@@ -1,7 +1,8 @@
 # makefile for easy manage package
 .PHONY: clean
 
-ENV_NAME=dummy
+ENV_NAME=test_runs_20200514
+CONDA_PREFIX=/ihme/homes/nathenry/miniconda3/
 
 clean:
 	find . -name "*.so*" | xargs rm -rf
