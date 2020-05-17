@@ -86,6 +86,7 @@ def regress(run_metadata,
     run_metadata['output_path'] = str(run_directory)
     cli_tools.configure_logging_to_files(run_directory)
     run_metadata['regression_specification'] = regression_spec.to_dict()
+    regression.dump_regression_specification(regression_spec, run_directory / 'regression_specification.yaml')
 
     main = cli_tools.monitor_application(regression.do_beta_regression,
                                          logger, with_debugger)
