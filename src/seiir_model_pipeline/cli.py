@@ -16,19 +16,16 @@ def seiir():
 @cli_tools.pass_run_metadata()
 @click.argument('regression_specification',
                 type=click.Path(exists=True, dir_okay=False))
-@click.option('--infectionator-version',
+@click.option('--infection-version',
               type=click.Path(file_okay=False),
-              default=paths.BEST_LINK,
               help="Which version of infectionator inputs to use in the"
                    "regression.")
 @click.option('--covariates-version',
               type=click.Path(file_okay=False),
-              default=paths.BEST_LINK,
               help=('Which version of the covariates to use in the '
                     'regression.'))
 @click.option('-o', '--output-root',
               type=click.Path(file_okay=False),
-              default=paths.SEIR_REGRESSION_OUTPUTS,
               show_default=True)
 @click.option('-b', '--mark-best', 'mark_dir_as_best',
               is_flag=True,
@@ -40,20 +37,40 @@ def seiir():
 @cli_tools.add_verbose_and_with_debugger
 def regress(run_metadata,
             regression_specification,
-            infectionator_version, covariates_version,
+            infection_version, covariates_version,
             output_root, mark_dir_as_best, production_tag,
             verbose, with_debugger):
     """Perform beta regression for a set of infections and covariates."""
     cli_tools.configure_logging_to_terminal(verbose)
 
-    infectionator_root = cli_tools.get_last_stage_directory(
-        infectionator_version, last_stage_root=paths.INFECTIONATOR_OUTPUTS
+    regression_spec = regression.load_regression_specification(regression_specification)
+
+    if infection_version:
+        pass
+    elif regression_spec.data.infection_version:
+        infection_version = regression_spec.data.infection_version
+    else:
+        infection_version = paths.BEST_LINK
+
+    infection_root = cli_tools.get_last_stage_directory(
+        infection_version, last_stage_root=paths.INFECTIONATOR_OUTPUTS
     )
+    regression_spec.data.infection_version = str(infection_root)
+
+    if covariates_version:
+        pass
+    elif regression_spec.data.covariate_version:
+        covariates_version = regression_spec.data.covariate_version
+    else:
+        covariates_version = paths.BEST_LINK
+
     covariates_root = cli_tools.get_last_stage_directory(
         covariates_version, last_stage_root=paths.SEIR_COVARIATES_OUTPUT_ROOT
     )
-    for key, input_root in zip(['infectionator_inputs', 'covariates_inputs'],
-                               [infectionator_root, covariates_root]):
+    regression_spec.data.covariate_version = str(covariates_root)
+
+    for key, input_root in zip(['infection_inputs', 'covariates_inputs'],
+                               [infection_root, covariates_root]):
         run_metadata.update_from_path(key, input_root / paths.METADATA_FILE_NAME)
 
     output_root = Path(output_root).resolve()
@@ -61,13 +78,11 @@ def regress(run_metadata,
     run_directory = cli_tools.make_run_directory(output_root)
     run_metadata['output_path'] = str(run_directory)
     cli_tools.configure_logging_to_files(run_directory)
-
-    regression_spec = regression.load_regression_specification(regression_specification)
     run_metadata['regression_specification'] = regression_spec.to_dict()
 
     main = cli_tools.monitor_application(regression.do_beta_regression,
                                          logger, with_debugger)
-    app_metadata, _ = main(regression_spec, infectionator_root,
+    app_metadata, _ = main(regression_spec, infection_root,
                            covariates_root, run_directory)
 
     run_metadata['app_metadata'] = app_metadata.to_dict()

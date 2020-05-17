@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field
 from pathlib import Path
 from pprint import pformat
-from typing import Dict, Union, Tuple
+from typing import Dict, List, Union, Tuple
 
 import numpy as np
 import yaml
@@ -89,26 +89,26 @@ class RegressionSpecification:
         return cls(data, parameters, *covariates)
 
     @property
-    def data(self) -> Dict:
+    def data(self) -> RegressionData:
         """The data specification for the regression."""
-        return self._data.to_dict()
+        return self._data
 
     @property
-    def parameters(self) -> Dict:
+    def parameters(self) -> RegressionParameters:
         """The parameterization of the regression."""
-        return self._parameters.to_dict()
+        return self._parameters
 
     @property
-    def covariates(self) -> Dict:
+    def covariates(self) -> List[CovariateSpecification]:
         """The covariates for the regression."""
-        return {k: v.to_dict() for k, v in self._covariates.items()}
+        return self._covariates
 
     def to_dict(self) -> Dict:
         """Converts the specification to a dict."""
         return {
-            'data': self.data,
-            'parameters': self.parameters,
-            'covariates': self.covariates
+            'data': self.data.to_dict(),
+            'parameters': self.parameters.to_dict(),
+            'covariates': {k: v.to_dict() for k, v in self._covariates.items()}
         }
 
     def __repr__(self):
