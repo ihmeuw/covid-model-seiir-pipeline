@@ -3,7 +3,6 @@ from pathlib import Path
 import click
 from covid_shared import cli_tools, paths
 from loguru import logger
-import yaml
 
 from seiir_model_pipeline import regress
 
@@ -74,9 +73,12 @@ def regress(run_metadata,
     run_metadata['output_path'] = str(run_directory)
     cli_tools.configure_logging_to_files(run_directory)
 
+    regression_spec = regress.load_regression_specification(regression_specification)
+    run_metadata['regression_specification'] = regression_spec.to_dict()
+
     main = cli_tools.monitor_application(regress.do_beta_regression,
                                          logger, with_debugger)
-    app_metadata, _ = main(regression_specification, infectionator_root,
+    app_metadata, _ = main(regression_spec, infectionator_root,
                            covariates_root, run_directory)
 
     run_metadata['app_metadata'] = app_metadata.to_dict()

@@ -1,8 +1,10 @@
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Dict, List, Union, Tuple
+from pprint import pformat
+from typing import Dict, Union, Tuple
 
 import numpy as np
+import yaml
 
 from seiir_model_pipeline.utilities import load_specification, asdict
 
@@ -15,7 +17,8 @@ class RegressionData:
     location_set_version_id: int = field(default=0)
     output_root: str = field(default='')
 
-    def to_dict(self):
+    def to_dict(self) -> Dict:
+        """Converts to a dict, coercing list-like items to lists."""
         return asdict(self)
 
 
@@ -33,10 +36,11 @@ class RegressionParameters:
     gamma2: Tuple[float, float] = field(default=(1/3, 1.0))
     solver_dt: float = field(default=0.1)
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         self.knots = np.array(self.knots)
 
-    def to_dict(self):
+    def to_dict(self) -> Dict:
+        """Converts to a dict, coercing list-like items to lists."""
         return asdict(self)
 
 
@@ -51,11 +55,17 @@ class CovariateSpecification:
     re_var: float = field(default=1.)
     draws: bool = field(default=False)
 
-    def to_dict(self):
-        return asdict(self)
+    def to_dict(self) -> Dict:
+        """Converts to a dict, coercing list-like items to lists.
+
+        Drops the name parameter as it's used as a key in the specification.
+
+        """
+        return {k: v for k, v in asdict(self).items() if k != 'name'}
 
 
 class RegressionSpecification:
+    """Specification for a regression run."""
 
     def __init__(self,
                  data: RegressionData,
@@ -66,9 +76,10 @@ class RegressionSpecification:
         self._covariates = {c.name: c for c in covariates}
 
     @classmethod
-    def from_dict(cls, regression_spec_dict: Dict):
+    def from_dict(cls, regression_spec_dict: Dict) -> 'RegressionSpecification':
+        """Constructs a regression specification from a dictionary."""
         data = RegressionData(**regression_spec_dict.get('data', {}))
-        parameters = RegressionParameters(regression_spec_dict.get('parameters', {}))
+        parameters = RegressionParameters(**regression_spec_dict.get('parameters', {}))
         cov_dicts = regression_spec_dict.get('covariates', {})
         covariates = []
         for name, cov_spec in cov_dicts.items():
@@ -79,25 +90,44 @@ class RegressionSpecification:
 
     @property
     def data(self) -> Dict:
+        """The data specification for the regression."""
         return self._data.to_dict()
 
     @property
     def parameters(self) -> Dict:
+        """The parameterization of the regression."""
         return self._parameters.to_dict()
 
     @property
     def covariates(self) -> Dict:
+        """The covariates for the regression."""
         return {k: v.to_dict() for k, v in self._covariates.items()}
 
     def to_dict(self) -> Dict:
+        """Converts the specification to a dict."""
         return {
             'data': self.data,
             'parameters': self.parameters,
             'covariates': self.covariates
         }
 
+    def __repr__(self):
+        return f'RegressionSpecification(\n{pformat(self.to_dict())}\n)'
+
 
 def load_regression_specification(specification_path: Union[str, Path]) -> RegressionSpecification:
+    """Loads a regression specification from a yaml file."""
     spec_dict = load_specification(specification_path)
     return RegressionSpecification.from_dict(spec_dict)
 
+
+def dump_regression_specification(regression_specification: RegressionSpecification,
+                                  specification_path: Union[str, Path]) -> None:
+    """Writes a regression specification to a yaml file."""
+    with Path(specification_path).open('w') as specification_file:
+        yaml.dump(regression_specification.to_dict(), specification_file, sort_keys=False)
+
+
+def validate_specification(regression_specification: RegressionSpecification) -> None:
+    """Checks all preconditions on the regression."""
+    pass
