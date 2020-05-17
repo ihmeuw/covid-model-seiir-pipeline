@@ -58,6 +58,7 @@ if __name__ == "__main__":
         },
 
         entry_points={'console_scripts': [
+            'seiir=seiir_model_pipeline.cli:seiir'
             'run=seiir_model_pipeline.executor.run:main',
             'beta_regression=seiir_model_pipeline.executor.beta_regression:main',
             'beta_forecast=seiir_model_pipeline.executor.beta_forecast:main',
