@@ -55,7 +55,7 @@ def regress(run_metadata,
     infection_root = cli_tools.get_last_stage_directory(
         infection_version, last_stage_root=paths.INFECTIONATOR_OUTPUTS
     )
-    regression_spec.data.infection_version = str(infection_root)
+    regression_spec.data.infection_version = str(infection_root.resolve())
 
     if covariates_version:
         pass
@@ -67,7 +67,7 @@ def regress(run_metadata,
     covariates_root = cli_tools.get_last_stage_directory(
         covariates_version, last_stage_root=paths.SEIR_COVARIATES_OUTPUT_ROOT
     )
-    regression_spec.data.covariate_version = str(covariates_root)
+    regression_spec.data.covariate_version = str(covariates_root.resolve())
 
     for key, input_root in zip(['infection_inputs', 'covariates_inputs'],
                                [infection_root, covariates_root]):
