@@ -1,5 +1,7 @@
 import getpass
 import logging
+import os
+from datetime import datetime
 
 from seiir_model_pipeline.core.task import RegressionTask, ForecastTask, ScalingDiagnosticTask
 from seiir_model_pipeline.core.task import RegressionDiagnosticTask
@@ -31,11 +33,15 @@ class SEIIRWorkFlow(Workflow):
 
         # TODO: right now my scratch directory is where the logs
         #  are saving -- I was getting errors when writing to sgeoutput
+        today = datetime.today().strftime('%Y_%m_%d')
+        log_dir = os.path.join('/ihme/scratch/users/nathenry/covid-seir/',today)
+        if not os.path.exists(log_dir):
+            os.mkdir(log_dir)
         super().__init__(
             workflow_args=workflow_args,
             project=PROJECT,
-            stderr=f'/ihme/scratch/users/mnorwood/covid/logs',
-            stdout=f'/ihme/scratch/users/mnorwood/covid/logs',
+            stderr=log_dir,
+            stdout=log_dir,
             working_dir=working_dir,
             seconds_until_timeout=60*60*24,
             resume=True
