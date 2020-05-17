@@ -4,7 +4,7 @@ import click
 from covid_shared import cli_tools, paths
 from loguru import logger
 
-from seiir_model_pipeline import regress
+from seiir_model_pipeline import regression
 
 
 @click.group()
@@ -15,27 +15,17 @@ def seiir():
 @seiir.command()
 @cli_tools.pass_run_metadata()
 @click.argument('regression_specification',
-                type=click.Path(exists=True, dir_okay=False),
-                help='Specification of regression parameters.')
+                type=click.Path(exists=True, dir_okay=False))
 @click.option('--infectionator-version',
-              type=click.Choice([paths.BEST_LINK, paths.LATEST_LINK]),
+              type=click.Path(file_okay=False),
               default=paths.BEST_LINK,
               help="Which version of infectionator inputs to use in the"
-                   "regression. Ignored if '--infectionator-root' is "
-                   "provided.")
-@click.option('--infectionator-root',
-              type=click.Path(file_okay=False),
-              help='Specific directory containing infectionator'
-                   'outputs to use in the regression.')
+                   "regression.")
 @click.option('--covariates-version',
-              type=click.Choice([paths.BEST_LINK, paths.LATEST_LINK]),
+              type=click.Path(file_okay=False),
               default=paths.BEST_LINK,
               help=('Which version of the covariates to use in the '
-                    'regression. Ignored if "--covariates-root" is provided.'))
-@click.option('--covariates-root',
-              type=click.Path(file_okay=False),
-              help='Specific directory containing the covariates data'
-                   'to use in the regression.')
+                    'regression.'))
 @click.option('-o', '--output-root',
               type=click.Path(file_okay=False),
               default=paths.SEIR_REGRESSION_OUTPUTS,
@@ -50,18 +40,17 @@ def seiir():
 @cli_tools.add_verbose_and_with_debugger
 def regress(run_metadata,
             regression_specification,
-            infectionator_version, infectionator_root,
-            covariates_version, covariates_root,
+            infectionator_version, covariates_version,
             output_root, mark_dir_as_best, production_tag,
             verbose, with_debugger):
     """Perform beta regression for a set of infections and covariates."""
     cli_tools.configure_logging_to_terminal(verbose)
 
     infectionator_root = cli_tools.get_last_stage_directory(
-        infectionator_version, infectionator_root, paths.INFECTIONATOR_OUTPUTS
+        infectionator_version, last_stage_root=paths.INFECTIONATOR_OUTPUTS
     )
     covariates_root = cli_tools.get_last_stage_directory(
-        covariates_version, covariates_root, paths.SEIR_COVARIATES_OUTPUT_ROOT
+        covariates_version, last_stage_root=paths.SEIR_COVARIATES_OUTPUT_ROOT
     )
     for key, input_root in zip(['infectionator_inputs', 'covariates_inputs'],
                                [infectionator_root, covariates_root]):
@@ -73,10 +62,10 @@ def regress(run_metadata,
     run_metadata['output_path'] = str(run_directory)
     cli_tools.configure_logging_to_files(run_directory)
 
-    regression_spec = regress.load_regression_specification(regression_specification)
+    regression_spec = regression.load_regression_specification(regression_specification)
     run_metadata['regression_specification'] = regression_spec.to_dict()
 
-    main = cli_tools.monitor_application(regress.do_beta_regression,
+    main = cli_tools.monitor_application(regression.do_beta_regression,
                                          logger, with_debugger)
     app_metadata, _ = main(regression_spec, infectionator_root,
                            covariates_root, run_directory)
