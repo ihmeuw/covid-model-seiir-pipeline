@@ -16,7 +16,7 @@ if __name__ == "__main__":
 
     install_requirements = [
         'click',
-        'covid_shared',
+        'covid_shared>=1.0.15',
         'loguru',
         'matplotlib',
         'mrtool',
