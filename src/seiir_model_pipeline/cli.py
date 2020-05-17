@@ -73,7 +73,14 @@ def regress(run_metadata,
                                [infection_root, covariates_root]):
         run_metadata.update_from_path(key, input_root / paths.METADATA_FILE_NAME)
 
-    output_root = Path(output_root).resolve()
+    if output_root:
+        output_root = Path(output_root).resolve()
+    elif regression_spec.data.output_root:
+        output_root = Path(regression_spec.data.output_root).resolve()
+    else:
+        output_root = paths.SEIR_REGRESSION_OUTPUTS
+    regression_spec.data.output_root = str(output_root)
+
     cli_tools.setup_directory_structure(output_root, with_production=True)
     run_directory = cli_tools.make_run_directory(output_root)
     run_metadata['output_path'] = str(run_directory)
