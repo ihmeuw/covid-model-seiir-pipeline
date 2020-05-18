@@ -476,6 +476,20 @@ class PlotBetaCoef:
             plt.savefig(self.path_to_savefig / f'{cov}_boxplot.pdf',
                         bbox_inches='tight')
 
+        # save the coefficient of stats
+        for cov in self.covs:
+            lower = np.quantile(self.coef_data[cov][1], 0.025, axis=0)
+            upper = np.quantile(self.coef_data[cov][1], 0.975, axis=0)
+            mean = np.mean(self.coef_data[cov][1], axis=0)
+            df = pd.DataFrame({
+                'loc': self.locs,
+                'loc_id': self.loc_ids,
+                'lower': lower,
+                'mean': mean,
+                'upper': upper,
+            })
+            df.to_csv(self.path_to_savefig/f'{cov}_coef.csv', index=False)
+
 
 class PlotBetaScaling:
     def __init__(self, directories: Directories):
