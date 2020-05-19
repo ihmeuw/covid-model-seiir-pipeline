@@ -221,8 +221,12 @@ class Directories:
     def get_draw_beta_param_file(self, draw_id):
         return self.ode_parameters_dir / f'params_draw_{draw_id}.csv'
 
-    def get_draw_coefficient_file(self, draw_id):
-        return self.regression_coefficient_dir / f'coefficients_{draw_id}.csv'
+    def get_draw_coefficient_file(self, draw_id, regression_version=None):
+        if regression_version is None:
+            return self.regression_coefficient_dir / f'coefficients_{draw_id}.csv'
+        else:
+            assert type(regression_version) == str, "pass in a regression version name as string"
+            return REGRESSION_OUTPUT / regression_version / 'coefficients' / f'coefficients_{draw_id}.csv'
 
     def location_draw_component_forecast_file(self, location_id, draw_id):
         os.makedirs(self.forecast_component_draw_dir / str(location_id), exist_ok=True)

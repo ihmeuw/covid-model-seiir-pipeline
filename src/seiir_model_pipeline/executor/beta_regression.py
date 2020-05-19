@@ -83,11 +83,10 @@ def run_beta_regression(draw_id: int, regression_version: str):
         # If you want to use a specific coefficient version,
         # this will read in the coefficients and then they will be
         # passed to the beta regression.
-
-        coefficient_directory = Directories(regression_version=settings.coefficient_version)
         fixed_coefficients = load_mr_coefficients(
-            directories=coefficient_directory,
-            draw_id=draw_id
+            directories=directories,
+            draw_id=draw_id,
+            regression_version=settings.coefficient_version
         )
     else:
         fixed_coefficients = None

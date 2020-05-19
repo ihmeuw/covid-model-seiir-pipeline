@@ -171,15 +171,16 @@ def cache_covariates(directories, covariate_version, location_ids, covariate_dra
     return cache_version
 
 
-def load_mr_coefficients(directories, draw_id):
+def load_mr_coefficients(directories, draw_id, regression_version=None):
     """
     Load meta-regression coefficients
 
     :param directories: Directories object
     :param draw_id: (int) which draw to load
+    :param regression_version: (str | None) an optional regression version to override the default
     :return:
     """
-    df = pd.read_csv(directories.get_draw_coefficient_file(draw_id))
+    df = pd.read_csv(directories.get_draw_coefficient_file(draw_id, regression_version=regression_version))
     return df
 
 
