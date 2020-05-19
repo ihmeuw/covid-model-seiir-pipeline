@@ -29,7 +29,6 @@ class Splicer:
         self.n_draws = n_draws
         self.draw_cols = [f'draw_{i}' for i in range(self.n_draws)]
         self.location_id = location_id
-        self.today = np.datetime64(datetime.today())
 
         self.location_name = None
 
@@ -119,7 +118,7 @@ class Splicer:
         df = pd.concat([observations, forecasts]).reset_index(drop=True)
         return df
 
-    def splice_deaths(self, df, infection_data, d_obs, d_data):
+    def splice_deaths(self, df, infection_data, d_obs):
         infections = infection_data[self.col_cases]
         deaths = infection_data[self.col_deaths]
 
@@ -127,12 +126,15 @@ class Splicer:
         ratio = self.get_ifr(deaths=deaths, infections=infections, lag=lag)
 
         df[self.col_deaths] = (df[self.col_cases] * ratio).shift(lag)
-        df.loc[d_obs, self.col_deaths] = infection_data[self.col_deaths][d_obs]
-        df.loc[d_data, self.col_deaths] = infection_data[self.col_deaths_data][d_data]
+        df.loc[d_obs, self.col_deaths] = infection_data[self.col_deaths_data][d_obs]
 
         df[COL_OBSERVED] = 0
-        df.loc[d_data, COL_OBSERVED] = 1
+        df.loc[d_obs, COL_OBSERVED] = 1
         return df
+
+    def get_today(self, infection_data):
+        date = infection_data.loc[self.col_obs_deaths == 1, self.col_date].max()
+        return np.datetime64(date)
 
     def splice_draw(self, infection_data, component_fit, component_forecasts, params, draw_id):
         """
@@ -147,9 +149,10 @@ class Splicer:
         """
         pop = self.get_population(infection_data)
         lag = self.get_lag(infection_data)
-        i_obs = pd.to_datetime(infection_data[self.col_date]) < (self.today - np.timedelta64(lag, 'D'))
-        d_obs = pd.to_datetime(infection_data[self.col_date]) < self.today
-        d_data = infection_data[self.col_obs_deaths].astype(bool)
+        today = self.get_today(infection_data)
+
+        i_obs = pd.to_datetime(infection_data[self.col_date]) <= (today - np.timedelta64(lag, 'D'))
+        d_obs = pd.to_datetime(infection_data[self.col_date]) <= today
 
         spliced = self.splice_infections(
             infection_data=infection_data, i_obs=i_obs,
@@ -157,7 +160,7 @@ class Splicer:
         )
         spliced = self.splice_deaths(
             df=spliced,
-            infection_data=infection_data, d_obs=d_obs, d_data=d_data
+            infection_data=infection_data, d_obs=d_obs
         )
         spliced[COL_R_EFF] = self.compute_effective_r(df=spliced, params=params, pop=pop)
 
@@ -165,7 +168,7 @@ class Splicer:
             df=spliced, col_data=self.col_cases, observed=i_obs, draw_id=draw_id
         )
         self.deaths[draw_id] = self.record_splice(
-            df=spliced, col_data=self.col_deaths, observed=d_data, draw_id=draw_id
+            df=spliced, col_data=self.col_deaths, observed=d_obs, draw_id=draw_id
         )
         self.reff[draw_id] = self.record_splice(
             df=spliced, col_data=COL_R_EFF, observed=i_obs, draw_id=draw_id
@@ -178,12 +181,11 @@ class Splicer:
         wide['location'] = self.location_name
         wide['location_id'] = self.location_id
         # The "observed" column is draw-specific for infections but not for deaths.
-        # So if COL_OBSERVED is not one of the ID columns (ex. for infections) then
-        # it will still replace it with today's date. This will be skipped for deaths.
-        # Basically, "observed" has no meaning for infections or R effective because it's all
-        # estimated.
+        # So if COL_OBSERVED is not one of the ID columns (ex. for infections)
+        # observed is always 0 because "observed" has no meaning for infections
+        # or R effective because it's all estimated.
         if COL_OBSERVED not in id_cols:
-            wide[COL_OBSERVED] = (pd.to_datetime(wide['date']) <= self.today).astype(float)
+            wide[COL_OBSERVED] = 0
         return wide[['location', 'location_id', COL_OBSERVED] + id_cols + self.draw_cols]
 
     def save_cases(self, path):
