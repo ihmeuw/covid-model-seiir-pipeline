@@ -114,6 +114,7 @@ class Splicer:
             component_fit=component_fit,
             component_forecasts=component_forecasts
         )
+        observations = observations.merge(components[[self.col_date, COL_INFECT1, COL_INFECT2, COL_BETA, COL_S]], on=[self.col_date], how='left')
         forecasts = components.loc[components[self.col_date].isin(forecast_dates)].copy()
         df = pd.concat([observations, forecasts]).reset_index(drop=True)
         return df
