@@ -101,11 +101,27 @@ def run_beta_regression(draw_id: int, regression_version: str):
         add_intercept=False,
     )
 
-    # Save the parameters of alpha, sigma, gamma1, and gamma2 that were drawn
-    mr.get_beta_ode_params().to_csv(directories.get_draw_beta_param_file(draw_id), index=False)
-
     # TODO: Do we overwrite the beta fit files with the fitted
     #  beta or create new files here?
+    regression_fit = load_mr_coefficients(
+        directories=directories,
+        draw_id=draw_id
+    )
+    forecasts = mr.predict_beta_forward_prod(
+        covmodel_set=all_covmodels_set,
+        df_cov=covariate_data,
+        df_cov_coef=regression_fit,
+        col_t=COVARIATE_COL_DICT['COL_DATE'],
+        col_group=COVARIATE_COL_DICT['COL_LOC_ID']
+    )
+    regression_betas = forecasts[
+        [COVARIATE_COL_DICT['COL_LOC_ID'], COVARIATE_COL_DICT['COL_DATE']] +
+        list(settings.covariates.keys()) + ['beta_pred']
+    ]
+
+    for l_id in location_ids:
+        loc_beta_fits = regression_betas.loc[regression_betas[COVARIATE_COL_DICT['COL_LOC_ID']] == l_id].copy()
+        loc_beta_fits.to_csv(directories.get_draw_beta_regression_file(l_id, draw_id), index=False)
 
 
 def main():

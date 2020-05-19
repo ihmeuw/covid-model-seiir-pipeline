@@ -176,6 +176,7 @@ class Directories:
             self.rv_covariate_input_dir = COVARIATE_DIR / rv.covariate_version
             self.rv_covariate_cache_dir = COVARIATE_CACHE / rv.covariate_version
 
+            self.regression_betas_dir = self.regression_output_dir / 'betas'
             self.regression_coefficient_dir = self.regression_output_dir / 'coefficients'
             self.regression_diagnostic_dir = self.regression_output_dir / 'diagnostics'
 
@@ -211,6 +212,10 @@ class Directories:
     def get_draw_beta_fit_file(self, location_id, draw_id):
         os.makedirs(self.ode_beta_fit_dir / str(location_id), exist_ok=True)
         return self.ode_beta_fit_dir / str(location_id) / f'fit_draw_{draw_id}.csv'
+
+    def get_draw_beta_regression_file(self, location_id, draw_id):
+        os.makedirs(self.regression_betas_dir / str(location_id), exist_ok=True)
+        return self.regression_betas_dir / str(location_id) / f'regression_draw_{draw_id}.csv'
 
     def get_draw_beta_param_file(self, draw_id):
         return self.ode_parameters_dir / f'params_draw_{draw_id}.csv'
