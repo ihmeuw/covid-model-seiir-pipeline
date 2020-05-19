@@ -271,9 +271,12 @@ class Visualizer:
             time = pd.to_datetime(compartment_data[self.col_date])
             start_date = time.to_list()[0]
             end_date = time.to_list()[-1]
-            now_date = pd.to_datetime(
-                compartment_data[compartment_data[self.col_observed] == 1][self.col_date]
-            ).to_list()[-1]
+            if compartment == 'Deaths':
+                now_date = pd.to_datetime(
+                    compartment_data[compartment_data[self.col_observed] == 1][self.col_date]
+                ).to_list()[-1]
+            else:
+                now_date = None
 
             draw_num = 0
             draws = []

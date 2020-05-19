@@ -44,6 +44,7 @@ def process_ode_process_input(settings, location_data):
         col_pop=INFECTION_COL_DICT['COL_POP'],
         col_loc_id=INFECTION_COL_DICT['COL_LOC_ID'],
         col_lag_days=INFECTION_COL_DICT['COL_ID_LAG'],
+        col_observed=INFECTION_COL_DICT['COL_OBS_DEATHS'],
         alpha=settings.alpha,
         sigma=settings.sigma,
         gamma1=settings.gamma1,
