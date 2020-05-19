@@ -133,7 +133,7 @@ class Splicer:
         return df
 
     def get_today(self, infection_data):
-        date = infection_data.loc[self.col_obs_deaths == 1, self.col_date].max()
+        date = infection_data.loc[infection_data[self.col_obs_deaths] == 1, self.col_date].max()
         return np.datetime64(date)
 
     def splice_draw(self, infection_data, component_fit, component_forecasts, params, draw_id):
