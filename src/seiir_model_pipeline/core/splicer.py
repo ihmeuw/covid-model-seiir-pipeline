@@ -129,6 +129,9 @@ class Splicer:
         df[self.col_deaths] = (df[self.col_cases] * ratio).shift(lag)
         df.loc[d_obs, self.col_deaths] = infection_data[self.col_deaths][d_obs]
         df.loc[d_data, self.col_deaths] = infection_data[self.col_deaths_data][d_data]
+
+        df[COL_OBSERVED] = 0
+        df.loc[d_data, COL_OBSERVED] = 1
         return df
 
     def splice_draw(self, infection_data, component_fit, component_forecasts, params, draw_id):
@@ -170,12 +173,17 @@ class Splicer:
 
     def format_draws(self, dictionary, id_cols):
         df = pd.concat(dictionary.values()).reset_index(drop=True)
-        df.drop(COL_OBSERVED, inplace=True, axis=1)
         wide = df.set_index(id_cols + ['draw']).unstack().reset_index()
         wide.columns = id_cols + self.draw_cols
         wide['location'] = self.location_name
         wide['location_id'] = self.location_id
-        wide[COL_OBSERVED] = (pd.to_datetime(wide['date']) <= self.today).astype(float)
+        # The "observed" column is draw-specific for infections but not for deaths.
+        # So if COL_OBSERVED is not one of the ID columns (ex. for infections) then
+        # it will still replace it with today's date. This will be skipped for deaths.
+        # Basically, "observed" has no meaning for infections or R effective because it's all
+        # estimated.
+        if COL_OBSERVED not in id_cols:
+            wide[COL_OBSERVED] = (pd.to_datetime(wide['date']) <= self.today).astype(float)
         return wide[['location', 'location_id', COL_OBSERVED] + id_cols + self.draw_cols]
 
     def save_cases(self, path):
@@ -183,7 +191,7 @@ class Splicer:
         df.to_csv(path, index=False)
 
     def save_deaths(self, path):
-        df = self.format_draws(self.deaths, id_cols=[self.col_date])
+        df = self.format_draws(self.deaths, id_cols=[self.col_date, COL_OBSERVED])
         df.to_csv(path, index=False)
 
     def save_reff(self, path):
