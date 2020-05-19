@@ -49,14 +49,18 @@ def create_regression_version(version_name, ode_version, covariate_version,
         location_ids=location_ids,
         covariate_draw_dict=covariate_draw_dict
     )
-    rv = RegressionVersion(version_name=version_name, covariate_version=cache_version,
+    rv = RegressionVersion(version_name=version_name,
+                           ode_version=ode_version,
+                           covariate_version=cache_version,
                            covariate_draw_dict=covariate_draw_dict, **kwargs)
     rv.create_version()
 
 
-def create_forecast_version(version_name, covariate_version,
-                            covariate_draw_dict,
-                            regression_version):
+def create_forecast_version(version_name,
+                            ode_version,
+                            regression_version,
+                            covariate_version,
+                            covariate_draw_dict):
     """
     Utility function to create a regression version. Will cache covariates
     as well.
@@ -66,7 +70,8 @@ def create_forecast_version(version_name, covariate_version,
     :param covariate_draw_dict: (Dict[str, bool])
     :param regression_version: (str) which regression version to build off of
     """
-    directories = Directories(regression_version=regression_version)
+    directories = Directories(ode_version=ode_version,
+                              regression_version=regression_version)
     location_ids = load_locations(directories)
     cache_version = cache_covariates(
         directories=directories,
@@ -80,7 +85,7 @@ def create_forecast_version(version_name, covariate_version,
     fv.create_version()
 
 
-def create_run(version_name, covariate_version, covariate_draw_dict,
+def create_run(version_name, covariate_version, covariates, covariate_draw_dict,
                covariates_order, coefficient_version=None, **kwargs):
     """
     Creates a full run with an ODE, regression and forecast version by the *SAME NAME*.
@@ -95,7 +100,7 @@ def create_run(version_name, covariate_version, covariate_draw_dict,
         - "re_var": (float)
     - `covariates_order (List[List[str]])`: list of lists of covariate names that will be
         sequentially added to the regression
-    - `covariate_draw_dict (Dict[str, bool[)`: whether or not to use draws of the covariate (they
+    - `covariate_draw_dict (Dict[str, bool])`: whether or not to use draws of the covariate (they
         must be available!)
     - `kwargs`: additional keyword arguments to regression version
     """
@@ -104,15 +109,19 @@ def create_run(version_name, covariate_version, covariate_draw_dict,
     )
     create_regression_version(
         version_name=version_name,
+        ode_version=version_name,
         covariate_version=covariate_version,
-        covariate_draw_dict=covariate_draw_dict, covariates_order=covariates_order,
+        covariates=covariates,
+        covariate_draw_dict=covariate_draw_dict,
+        covariates_order=covariates_order,
         coefficient_version=coefficient_version,
-        ode_version=version_name
     )
     create_forecast_version(
-        version_name=version_name, covariate_version=covariate_version,
+        version_name=version_name,
+        ode_version=version_name,
+        regression_version=version_name,
+        covariate_version=covariate_version,
         covariate_draw_dict=covariate_draw_dict,
-        regression_version=version_name
     )
     print(f"Created ode, regression and forecast versions {version_name}.")
 

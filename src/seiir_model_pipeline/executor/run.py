@@ -28,7 +28,6 @@ def main():
     log.info("Initiating SEIIR modeling pipeline.")
 
     directories = args_to_directories(args)
-    directories.make_dirs()
 
     wf = SEIIRWorkFlow(directories=directories)
 

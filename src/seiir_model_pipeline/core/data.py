@@ -54,7 +54,7 @@ def load_component_forecasts(directories, location_id, draw_id):
 def load_ode_fits(directories, location_ids, draw_id):
     df_beta = []
     for l_id in location_ids:
-        df_beta.append(pd.read_csv(directories.get_draw_beta_fit_file(l_id, draw_id), index=False))
+        df_beta.append(pd.read_csv(directories.get_draw_beta_fit_file(l_id, draw_id)))
     df_beta = pd.concat(df_beta).reset_index()
     return df_beta
 

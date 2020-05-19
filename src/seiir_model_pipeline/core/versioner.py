@@ -93,6 +93,7 @@ def args_to_directories(args):
     :return: (Directories) object
     """
     return Directories(
+        ode_version=args.ode_version,
         regression_version=args.regression_version,
         forecast_version=args.forecast_version
     )
@@ -150,7 +151,7 @@ class Directories:
             ov = load_ode_settings(self.ode_version)
         if self.regression_version is not None:
             rv = load_regression_settings(self.regression_version)
-            ov = load_ode_settings(self.ode_version)
+            ov = load_ode_settings(rv.ode_version)
         if self.forecast_version is not None:
             fv = load_forecast_settings(self.forecast_version)
             rv = load_regression_settings(fv.regression_version)
@@ -293,6 +294,9 @@ def load_ode_settings(ode_version):
     file = _get_ode_settings_file(ode_version)
     with open(file, 'r') as f:
         settings = json.load(f)
+        if isinstance(settings['day_shift'], int):
+            day_shift = settings['day_shift']
+            settings.update({'day_shift': [day_shift, day_shift]})
     return ODEVersion(**settings)
 
 
@@ -300,9 +304,6 @@ def load_regression_settings(regression_version):
     file = _get_regression_settings_file(regression_version)
     with open(file, 'r') as f:
         settings = json.load(f)
-        if isinstance(settings['day_shift'], int):
-            day_shift = settings['day_shift']
-            settings.update({'day_shift': [day_shift, day_shift]})
     return RegressionVersion(**settings)
 
 
