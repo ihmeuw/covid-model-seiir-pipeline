@@ -9,7 +9,9 @@ import numpy as np
 from seiir_model.model_runner import ModelRunner
 from seiir_model.ode_forecasting.ode_runner import SiierdModelSpecs
 
-from seiir_model_pipeline.core.versioner import load_forecast_settings, load_regression_settings
+from seiir_model_pipeline.core.versioner import load_forecast_settings
+from seiir_model_pipeline.core.versioner import load_regression_settings
+from seiir_model_pipeline.core.versioner import load_ode_settings
 from seiir_model_pipeline.core.versioner import INFECTION_COL_DICT, COVARIATE_COL_DICT
 from seiir_model_pipeline.core.versioner import Directories
 
@@ -31,9 +33,7 @@ def parse_arguments(argstr: Optional[str] = None) -> Namespace:
     log.info("parsing arguments")
     parser = ArgumentParser()
     parser.add_argument("--location-id", type=int, required=True)
-    parser.add_argument("--regression-version", type=str, required=True)
     parser.add_argument("--forecast-version", type=str, required=True)
-    parser.add_argument("--coefficient-version", type=str, required=False, default=None)
 
     if argstr is not None:
         arglist = shlex.split(argstr)
@@ -44,19 +44,19 @@ def parse_arguments(argstr: Optional[str] = None) -> Namespace:
     return args
 
 
-def run_beta_forecast(location_id: int, regression_version: str, forecast_version: str,
-                      coefficient_version: str = None):
+def run_beta_forecast(location_id: int, forecast_version: str):
 
     log.info("Initiating SEIIR beta forecasting.")
 
     # -------------------------- LOAD INPUTS -------------------- #
+    forecast_settings = load_forecast_settings(forecast_version)
+    regression_settings = load_regression_settings(forecast_settings.regression_version)
+    ode_settings = load_ode_settings(regression_settings.ode_version)
+
     # Load metadata
     directories = Directories(
-        regression_version=regression_version,
         forecast_version=forecast_version
     )
-    regression_settings = load_regression_settings(regression_version)
-    forecast_settings = load_forecast_settings(forecast_version)
 
     # -------------------------- FORECAST THE BETA FORWARDS -------------------- #
     mr = ModelRunner()
@@ -65,7 +65,7 @@ def run_beta_forecast(location_id: int, regression_version: str, forecast_versio
     # Get all inputs for the ODE
     scales = []
 
-    for draw_id in range(regression_settings.n_draws):
+    for draw_id in range(ode_settings.n_draws):
         print(f"On draw {draw_id}\n")
 
         # Load the previous beta fit compartments and ODE parameters
@@ -141,7 +141,7 @@ def run_beta_forecast(location_id: int, regression_version: str, forecast_versio
             init_cond=init_cond,
             times=times,
             betas=betas,
-            dt=regression_settings.solver_dt
+            dt=ode_settings.solver_dt
         )
         forecasted_components[COVARIATE_COL_DICT['COL_DATE']] = days
         forecasted_components.to_csv(
@@ -164,9 +164,7 @@ def run_beta_forecast(location_id: int, regression_version: str, forecast_versio
 def main():
     args = parse_arguments()
     run_beta_forecast(location_id=args.location_id,
-                      regression_version=args.regression_version,
-                      forecast_version=args.forecast_version,
-                      coefficient_version=args.coefficient_version)
+                      forecast_version=args.forecast_version)
 
 
 if __name__ == '__main__':

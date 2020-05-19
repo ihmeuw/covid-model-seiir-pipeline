@@ -18,6 +18,7 @@ setup(
     ],
     entry_points={'console_scripts': [
         'run=seiir_model_pipeline.executor.run:main',
+        'beta_ode_fit=seiir_model_pipeline.executor.beta_ode_fit:main',
         'beta_regression=seiir_model_pipeline.executor.beta_regression:main',
         'beta_forecast=seiir_model_pipeline.executor.beta_forecast:main',
         'splice=seiir_model_pipeline.executor.splice:main',

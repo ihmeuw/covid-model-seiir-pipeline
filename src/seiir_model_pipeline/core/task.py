@@ -19,6 +19,26 @@ ExecParamsPlotting = ExecutorParameters(
 )
 
 
+class ODETask(BashTask):
+    def __init__(self, draw_id, ode_version, **kwargs):
+
+        self.draw_id = draw_id
+
+        command = (
+            "beta_ode_fit " +
+            f"--draw-id {self.draw_id} " +
+            f"--ode-version {ode_version} "
+        )
+
+        super().__init__(
+            command=command,
+            name=f'seiir_ode_fit_{draw_id}',
+            executor_parameters=ExecParams,
+            max_attempts=1,
+            **kwargs
+        )
+
+
 class RegressionTask(BashTask):
     def __init__(self, draw_id, regression_version, **kwargs):
 
@@ -40,16 +60,14 @@ class RegressionTask(BashTask):
 
 
 class ForecastTask(BashTask):
-    def __init__(self, location_id, regression_version, forecast_version, **kwargs):
+    def __init__(self, location_id, forecast_version, **kwargs):
 
         self.location_id = location_id
-        self.regression_version = regression_version
         self.forecast_version = forecast_version
 
         command = (
             "beta_forecast " +
             f"--location-id {self.location_id} " +
-            f"--regression-version {regression_version} " +
             f"--forecast-version {forecast_version} "
         )
         super().__init__(
@@ -65,14 +83,12 @@ class ForecastTask(BashTask):
 
         splicer_task = SplicerTask(
             location_id=self.location_id,
-            regression_version=self.regression_version,
             forecast_version=self.forecast_version
         )
         self.add_downstream(splicer_task)
         if add_diagnostic:
             diagnostic_task = ForecastDiagnosticTask(
                 location_id=self.location_id,
-                regression_version=self.regression_version,
                 forecast_version=self.forecast_version
             )
             splicer_task.add_downstream(diagnostic_task)
@@ -82,14 +98,13 @@ class ForecastTask(BashTask):
 
 
 class SplicerTask(BashTask):
-    def __init__(self, location_id, regression_version, forecast_version, **kwargs):
+    def __init__(self, location_id, forecast_version, **kwargs):
 
         self.location_id = location_id
 
         command = (
             "splice " +
             f"--location-id {self.location_id} " +
-            f"--regression-version {regression_version} " +
             f"--forecast-version {forecast_version} "
         )
 
@@ -122,14 +137,12 @@ class RegressionDiagnosticTask(BashTask):
 
 
 class ScalingDiagnosticTask(BashTask):
-    def __init__(self, regression_version, forecast_version, **kwargs):
+    def __init__(self, forecast_version, **kwargs):
 
-        self.regression_version = regression_version
         self.forecast_version = forecast_version
 
         command = (
             "create_scaling_diagnostics " +
-            f"--regression-version {regression_version} " +
             f"--forecast-version {forecast_version}"
         )
 
@@ -143,15 +156,13 @@ class ScalingDiagnosticTask(BashTask):
 
 
 class ForecastDiagnosticTask(BashTask):
-    def __init__(self, regression_version, forecast_version, location_id, **kwargs):
+    def __init__(self, forecast_version, location_id, **kwargs):
 
-        self.regression_version = regression_version
         self.forecast_version = forecast_version
         self.location_id = location_id
 
         command = (
             "create_forecast_diagnostics " +
-            f"--regression-version {regression_version} " +
             f"--forecast-version {forecast_version} " +
             f"--location-id {location_id} "
         )

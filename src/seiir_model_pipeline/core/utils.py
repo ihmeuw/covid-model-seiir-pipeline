@@ -1,31 +1,48 @@
 import pandas as pd
 import numpy as np
 
-from seiir_model_pipeline.core.versioner import RegressionVersion, ForecastVersion, Directories
+from seiir_model_pipeline.core.versioner import ODEVersion, RegressionVersion, ForecastVersion, Directories
 from seiir_model_pipeline.core.data import get_missing_locations
 from seiir_model_pipeline.core.data import cache_covariates
 
 
-def create_regression_version(version_name, covariate_version,
-                              covariate_draw_dict,
-                              infection_version,
-                              location_set_version_id, **kwargs):
+def create_ode_version(version_name, infection_version, location_set_version_id, **kwargs):
     """
-    Utility function to create a regression version. Will cache covariates
-    as well.
+    Utility function to create an ODE version.
 
     :param version_name: (str) what do you want to name the version
-    :param covariate_version: (str)
-    :param covariate_draw_dict: (Dict[str, bool])
     :param infection_version: (str)
     :param location_set_version_id: (int)
-    :param kwargs: other keyword arguments to a regression version.
+    :param kwargs: other keyword arguments to an ode version
     """
     directories = Directories()
     location_ids = get_locations(
         directories, infection_version,
         location_set_version_id=location_set_version_id,
     )
+    ov = ODEVersion(version_name=version_name, location_set_version_id=location_set_version_id,
+                    infection_version=infection_version, **kwargs)
+    ov.create_version()
+
+    ov_directory = Directories(ode_version=version_name)
+    write_locations(directories=ov_directory, location_ids=location_ids)
+
+
+def create_regression_version(version_name, ode_version, covariate_version,
+                              covariate_draw_dict, **kwargs):
+    """
+    Utility function to create a regression version. Will cache covariates
+    as well.
+
+    :param version_name: (str) what do you want to name the version
+    :param ode_version: (str) what is the linked ode version
+    :param covariate_version: (str)
+    :param covariate_draw_dict: (Dict[str, bool])
+    :param kwargs: other keyword arguments to a regression version.
+    """
+    directories = Directories(ode_version=ode_version)
+    location_ids = load_locations(directories)
+
     cache_version = cache_covariates(
         directories=directories,
         covariate_version=covariate_version,
@@ -33,12 +50,8 @@ def create_regression_version(version_name, covariate_version,
         covariate_draw_dict=covariate_draw_dict
     )
     rv = RegressionVersion(version_name=version_name, covariate_version=cache_version,
-                           covariate_draw_dict=covariate_draw_dict,
-                           location_set_version_id=location_set_version_id,
-                           infection_version=infection_version, **kwargs)
+                           covariate_draw_dict=covariate_draw_dict, **kwargs)
     rv.create_version()
-    rv_directory = Directories(regression_version=version_name)
-    write_locations(directories=rv_directory, location_ids=location_ids)
 
 
 def create_forecast_version(version_name, covariate_version,
@@ -67,25 +80,41 @@ def create_forecast_version(version_name, covariate_version,
     fv.create_version()
 
 
-def create_run(version_name, covariate_version, covariate_draw_dict, **kwargs):
+def create_run(version_name, covariate_version, covariate_draw_dict,
+               covariates_order, coefficient_version=None, **kwargs):
     """
-    Creates a full run with a regression and a forecast version by the *SAME NAME*.
-    :param version_name: (str) what will the name be for both regression and forecast versions
-    :param covariate_version: (str) which covariate version to use
-    :param covariate_draw_dict: (Dict[str, bool])
-    :param kwargs: additional keyword arguments to regression version
+    Creates a full run with an ODE, regression and forecast version by the *SAME NAME*.
+
+    - `version_name (str)`: what will the name be for both regression and forecast versions
+    - `covariate_version (str)`: the version of the covariate inputs
+    - `coefficient_version (str)`: the regression version of coefficient estimates to use
+    - `covariates (Dict[str: Dict]): elements of the inner dict:
+        - "use_re": (bool)
+        - "gprior": (np.array)
+        - "bounds": (np.array)
+        - "re_var": (float)
+    - `covariates_order (List[List[str]])`: list of lists of covariate names that will be
+        sequentially added to the regression
+    - `covariate_draw_dict (Dict[str, bool[)`: whether or not to use draws of the covariate (they
+        must be available!)
+    - `kwargs`: additional keyword arguments to regression version
     """
+    create_ode_version(
+        version_name=version_name, **kwargs
+    )
     create_regression_version(
-        version_name=version_name, covariate_version=covariate_version,
-        covariate_draw_dict=covariate_draw_dict,
-        **kwargs
+        version_name=version_name,
+        covariate_version=covariate_version,
+        covariate_draw_dict=covariate_draw_dict, covariates_order=covariates_order,
+        coefficient_version=coefficient_version,
+        ode_version=version_name
     )
     create_forecast_version(
         version_name=version_name, covariate_version=covariate_version,
         covariate_draw_dict=covariate_draw_dict,
         regression_version=version_name
     )
-    print(f"Created regression and forecast versions {version_name}.")
+    print(f"Created ode, regression and forecast versions {version_name}.")
 
 
 def get_location_name_from_id(location_id, metadata_path):

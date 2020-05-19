@@ -8,7 +8,9 @@ import pandas as pd
 import matplotlib.dates as mdates
 
 from seiir_model_pipeline.core.versioner import Directories
-from seiir_model_pipeline.core.versioner import load_regression_settings, load_forecast_settings
+from seiir_model_pipeline.core.versioner import load_ode_settings
+from seiir_model_pipeline.core.versioner import load_regression_settings
+from seiir_model_pipeline.core.versioner import load_forecast_settings
 
 ODE_BETA_FIT = "ode_beta_fit"
 COEFFICIENTS_FIT = "coefficients_fit"
@@ -48,6 +50,7 @@ class Visualizer:
         self.params_for_draws = []
         self.covariates = {}
 
+        self.ode_settings = load_ode_settings(directories.ode_version)
         self.regression_settings = load_regression_settings(directories.regression_version)
         self.forecast_settings = load_forecast_settings(directories.forecast_version)
 
@@ -60,7 +63,7 @@ class Visualizer:
 
         # read beta regression draws
         for group in groups:
-            path_to_regression_draws_for_group = os.path.join(directories.regression_beta_fit_dir, str(group))
+            path_to_regression_draws_for_group = os.path.join(directories.ode_beta_fit_dir, str(group))
             if os.path.isdir(path_to_regression_draws_for_group):
                 for filename in os.listdir(path_to_regression_draws_for_group):
                     if filename.startswith("fit_draw_") and filename.endswith(".csv"):
@@ -166,7 +169,7 @@ class Visualizer:
                                figsize=(8, 4 * num_locs))
         for i, loc_id in enumerate(self.data.keys()):
             df = self.data[loc_id][ODE_BETA_FIT].sort_values('date')
-            for j in range(self.regression_settings.n_draws):
+            for j in range(self.ode_settings.n_draws):
                 ax[i].scatter(np.arange(df.shape[0]), df['newE_obs'],
                               marker='.', c='#ADD8E6', alpha=0.7)
                 ax[i].plot(np.arange(df.shape[0]), df['newE'], c='#008080',
@@ -415,10 +418,11 @@ class PlotBetaCoef:
         self.directories = directories
 
         # load settings
-        self.settings = load_regression_settings(directories.regression_version)
+        self.regression_settings = load_regression_settings(directories.regression_version)
+        self.ode_settings = load_ode_settings(directories.ode_version)
 
         self.path_to_location_metadata = self.directories.get_location_metadata_file(
-            self.settings.location_set_version_id)
+            self.ode_settings.location_set_version_id)
 
         self.path_to_coef_dir = self.directories.regression_coefficient_dir
         self.path_to_savefig = self.directories.regression_diagnostic_dir
@@ -431,11 +435,11 @@ class PlotBetaCoef:
         # load coef
         df_coef = [
             pd.read_csv(self.directories.get_draw_coefficient_file(i))
-            for i in range(self.settings.n_draws)
+            for i in range(self.ode_settings.n_draws)
         ]
 
         # organize information
-        self.covs = np.sort(list(self.settings.covariates.keys()))
+        self.covs = np.sort(list(self.regression_settings.covariates.keys()))
         self.covs = np.append(self.covs, 'intercept')
 
         self.loc_ids = np.sort(list(df_coef[0]['group_id'].unique()))

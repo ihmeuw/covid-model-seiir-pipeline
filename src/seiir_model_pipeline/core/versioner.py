@@ -6,20 +6,22 @@ import json
 import numpy as np
 
 
-BASE_DIR = Path('/ihme')
+BASE_DIR = Path('/ihme/covid-19')
 
 # Dependency/input directories
-INPUT_DIR = BASE_DIR / 'covid-19/seir-inputs'
-COVARIATE_DIR = BASE_DIR / 'covid-19/seir-covariates'
+INPUT_DIR = BASE_DIR / 'seir-inputs'
+COVARIATE_DIR = BASE_DIR / 'seir-covariates'
 
 # Output directory
-OUTPUT_DIR = BASE_DIR / 'covid-19/seir-pipeline-outputs'
+OUTPUT_DIR = BASE_DIR / 'seir-pipeline-outputs'
 
-# Four main directories in the outputs directory
+# Five main directories in the outputs directory
 METADATA_DIR = OUTPUT_DIR / 'metadata-inputs'
+COVARIATE_CACHE = OUTPUT_DIR / 'covariate'
+
+ODE_OUTPUT = OUTPUT_DIR / 'ode'
 REGRESSION_OUTPUT = OUTPUT_DIR / 'regression'
 FORECAST_OUTPUT = OUTPUT_DIR / 'forecast'
-COVARIATE_CACHE = OUTPUT_DIR / 'covariate'
 
 # File pattern for storing infectionator outputs
 INFECTION_FILE_PATTERN = 'draw{draw_id:04}_prepped_deaths_and_cases_all_age.csv'
@@ -96,58 +98,98 @@ def args_to_directories(args):
     )
 
 
+def make_dirs(dir_list):
+    for directory in dir_list:
+        if directory is not None:
+            os.makedirs(directory, exist_ok=True)
+
+
 @dataclass
 class Directories:
     """
     Directories object. You can use the Directories object by itself, or you can pass
-    in a regression and/or forecast version to get files/paths specific to those
+    in an ode and/or regression and/or forecast version to get files/paths specific to those
     parts of the pipeline.
 
+    - `ode_version (str)`: beta ODE fit version
     - `regression_version (str)`: regression version
     - `forecast_version (str)`: forecast version
     """
-    regression_version: str = None
-    forecast_version: str = None
+    ode_version: Union[str, None] = None
+    regression_version: Union[str, None] = None
+    forecast_version: Union[str, None] = None
 
     def __post_init__(self):
+        ov = None
         rv = None
         fv = None
-        if self.regression_version is None:
-            if self.forecast_version is None:
-                pass
-            else:
-                fv = load_forecast_settings(self.forecast_version)
-                rv = load_regression_settings(fv.regression_version)
-        else:
+
+        self.ode_output_dir = None
+        self.regression_output_dir = None
+        self.forecast_output_dir = None
+
+        self.infection_dir = None
+        self.beta_fit_dir = None
+
+        self.rv_covariate_input_dir = None
+        self.rv_covariate_cache_dir = None
+
+        self.regression_parameters_dir = None
+        self.regression_coefficient_dir = None
+        self.regression_diagnostic_dir = None
+
+        self.fv_covariate_input_dir = None
+        self.fv_covariate_cache_dir = None
+
+        self.forecast_component_draw_dir = None
+        self.forecast_output_draw_dir = None
+        self.forecast_diagnostic_dir = None
+        self.forecast_beta_scaling_dir = None
+
+        if self.ode_version is not None:
+            ov = load_ode_settings(self.ode_version)
+        if self.regression_version is not None:
             rv = load_regression_settings(self.regression_version)
-            if self.forecast_version is not None:
-                fv = load_forecast_settings(self.forecast_version)
-                check_compatible_version(rv, fv)
+            ov = load_ode_settings(self.ode_version)
+        if self.forecast_version is not None:
+            fv = load_forecast_settings(self.forecast_version)
+            rv = load_regression_settings(fv.regression_version)
+            ov = load_ode_settings(rv.ode_version)
+
+        if ov is not None:
+            self.ode_output_dir = ODE_OUTPUT / ov.version_name
+            self.ode_beta_fit_dir = self.ode_output_dir / 'betas'
+            self.ode_parameters_dir = self.ode_output_dir / 'parameters'
+
+            self.infection_dir = INPUT_DIR / ov.infection_version
+
+            make_dirs([
+                self.ode_output_dir,
+                self.infection_dir,
+                self.ode_beta_fit_dir,
+                self.ode_parameters_dir
+            ])
 
         if rv is not None:
-            self.infection_dir = INPUT_DIR / rv.infection_version
+            self.regression_output_dir = REGRESSION_OUTPUT / rv.version_name
+
             self.rv_covariate_input_dir = COVARIATE_DIR / rv.covariate_version
             self.rv_covariate_cache_dir = COVARIATE_CACHE / rv.covariate_version
 
-            self.regression_output_dir = REGRESSION_OUTPUT / rv.version_name
-
-            self.regression_beta_fit_dir = self.regression_output_dir / 'betas'
-            self.regression_parameters_dir = self.regression_output_dir / 'parameters'
             self.regression_coefficient_dir = self.regression_output_dir / 'coefficients'
             self.regression_diagnostic_dir = self.regression_output_dir / 'diagnostics'
 
-        else:
-            self.infection_dir = None
-            self.rv_covariate_input_dir = None
-            self.rv_covariate_cache_dir = None
-            self.regression_output_dir = None
-            self.regression_beta_fit_dir = None
-            self.regression_parameters_dir = None
-            self.regression_coefficient_dir = None
-            self.regression_diagnostic_dir = None
+            make_dirs([
+                self.regression_output_dir,
+                self.rv_covariate_input_dir,
+                self.rv_covariate_cache_dir,
+                self.regression_coefficient_dir,
+                self.regression_diagnostic_dir
+            ])
 
         if fv is not None:
             self.forecast_output_dir = FORECAST_OUTPUT / fv.version_name
+
             self.fv_covariate_input_dir = COVARIATE_DIR / fv.covariate_version
             self.fv_covariate_cache_dir = COVARIATE_CACHE / fv.covariate_version
 
@@ -155,36 +197,23 @@ class Directories:
             self.forecast_output_draw_dir = self.forecast_output_dir / 'output_draws'
             self.forecast_diagnostic_dir = self.forecast_output_dir / 'diagnostics'
             self.forecast_beta_scaling_dir = self.forecast_output_dir / 'beta_scaling'
-        else:
-            self.forecast_output_dir = None
 
-            self.fv_covariate_input_dir = None
-            self.fv_covariate_cache_dir = None
-
-            self.forecast_component_draw_dir = None
-            self.forecast_output_draw_dir = None
-            self.forecast_diagnostic_dir = None
-            self.forecast_beta_scaling_dir = None
-
-    def make_dirs(self):
-        for directory in [
-            self.regression_output_dir, self.forecast_output_dir,
-            self.regression_coefficient_dir, self.regression_diagnostic_dir,
-            self.regression_beta_fit_dir, self.regression_parameters_dir,
-            self.forecast_diagnostic_dir, self.forecast_output_dir,
-            self.forecast_component_draw_dir, self.forecast_output_draw_dir,
-            self.forecast_beta_scaling_dir,
-            self.rv_covariate_cache_dir, self.fv_covariate_cache_dir
-        ]:
-            if directory is not None:
-                os.makedirs(str(directory), exist_ok=True)
+            make_dirs([
+                self.forecast_output_dir,
+                self.fv_covariate_input_dir,
+                self.fv_covariate_cache_dir,
+                self.forecast_component_draw_dir,
+                self.forecast_output_draw_dir,
+                self.forecast_diagnostic_dir,
+                self.forecast_beta_scaling_dir
+            ])
 
     def get_draw_beta_fit_file(self, location_id, draw_id):
-        os.makedirs(self.regression_beta_fit_dir / str(location_id), exist_ok=True)
-        return self.regression_beta_fit_dir / str(location_id) / f'fit_draw_{draw_id}.csv'
+        os.makedirs(self.ode_beta_fit_dir / str(location_id), exist_ok=True)
+        return self.ode_beta_fit_dir / str(location_id) / f'fit_draw_{draw_id}.csv'
 
     def get_draw_beta_param_file(self, draw_id):
-        return self.regression_parameters_dir / f'params_draw_{draw_id}.csv'
+        return self.ode_parameters_dir / f'params_draw_{draw_id}.csv'
 
     def get_draw_coefficient_file(self, draw_id):
         return self.regression_coefficient_dir / f'coefficients_{draw_id}.csv'
@@ -222,7 +251,7 @@ class Directories:
 
     @property
     def location_cache_file(self):
-        return self.regression_output_dir / LOCATION_CACHE_FILE
+        return self.ode_output_dir / LOCATION_CACHE_FILE
 
 
 class VersionAlreadyExists(RuntimeError):
@@ -243,12 +272,23 @@ def _confirm_version_exists(version):
         raise VersionDoesNotExist
 
 
+def _get_ode_settings_file(ode_version):
+    return ODE_OUTPUT / str(ode_version) / 'settings.json'
+
+
 def _get_regression_settings_file(regression_version):
     return REGRESSION_OUTPUT / str(regression_version) / 'settings.json'
 
 
 def _get_forecast_settings_file(forecast_version):
     return FORECAST_OUTPUT / str(forecast_version) / 'settings.json'
+
+
+def load_ode_settings(ode_version):
+    file = _get_ode_settings_file(ode_version)
+    with open(file, 'r') as f:
+        settings = json.load(f)
+    return ODEVersion(**settings)
 
 
 def load_regression_settings(regression_version):
@@ -298,53 +338,31 @@ class Version:
 
 
 @dataclass
-class RegressionVersion(Version):
+class ODEVersion(Version):
     """
-    A regression version is the first half of the SEIIR pipeline. It fits a spline to newE,
-    runs an ODE, and then does a regression of beta ~ covariates and saves those coefficients
-    for the forecasting component.
+    An ODE version is the first step in the SEIIR pipeline. It fits a spline to newE, and
+    runs an ODE.
 
     - `infection_version (str)`: the version of the infection inputs
-    - `covariate_version (str)`: the version of the covariate inputs
-    - `coefficient_version (str)`: the regression version of coefficient estimates to use
     - `n_draws (int)`: number of draws
     - `location_set_version_id (int)`: the location set version to use
     - `degree` (int): degree of the spline for beta fit
     - `knots` (int)`: knot positions for the spline
     - `day_shift (Tuple[int])`: Will use today + `day_shift` - lag 's data in the beta regression
         but will sample this day_shift from the range given
-    - `covariates (Dict[str: Dict]): elements of the inner dict:
-        - "use_re": (bool)
-        - "gprior": (np.array)
-        - "bounds": (np.array)
-        - "re_var": (float)
-    - `covariates_order (List[List[str]])`: list of lists of covariate names that will be
-        sequentially added to the regression
-    - `covariate_draw_dict (Dict[str, bool[)`: whether or not to use draws of the covariate (they
-        must be available!)
     - `alpha (Tuple[float])`: a 2-length tuple that represents the range of alpha values to sample
     - `sigma (Tuple[float])`: a 2-length tuple that represents the range of sigma values to sample
     - `gamma1 (Tuple[float])`: a 2-length tuple that represents the range of gamma1 values to sample
     - `gamma2 (Tuple[float])`: a 2-length tuple that represents the range of gamma2 values to sample
     - `solver_dt (float)`: step size for the ODE solver
     """
-
     infection_version: str
-    covariate_version: str
-
     n_draws: int
     location_set_version_id: int
 
     # Spline Arguments
     degree: int
     knots: np.array
-
-    # Regression Arguments
-    covariates: Dict[str, Dict[str, Union[bool, List, float]]]
-    covariates_order: List[List[str]] = None
-    covariate_draw_dict: Dict[str, bool] = None
-
-    coefficient_version: str = None
 
     day_shift: Tuple[int] = field(default=(0, 8))
 
@@ -354,6 +372,52 @@ class RegressionVersion(Version):
     gamma1: Tuple[float] = field(default=(0.50, 0.50))
     gamma2: Tuple[float] = field(default=(0.50, 0.50))
     solver_dt: float = field(default=0.1)
+
+    def __post_init__(self):
+        pass
+
+    def _settings_to_json(self):
+        settings = asdict(self)
+        _confirm_version_exists(ODE_OUTPUT / self.version_name)
+        file = _get_ode_settings_file(self.version_name)
+        with open(file, "w") as f:
+            json.dump(settings, f)
+
+    def create_version(self):
+        _available_version(ODE_OUTPUT / self.version_name)
+        os.makedirs(ODE_OUTPUT / self.version_name)
+        self._settings_to_json()
+        return self.version_name
+
+
+@dataclass
+class RegressionVersion(Version):
+    """
+    A regression version is the first half of the SEIIR pipeline.
+    It does a regression of beta ~ covariates and saves those coefficients
+    for the forecasting component.
+
+    - `covariate_version (str)`: the version of the covariate inputs
+    - `coefficient_version (str)`: the regression version of coefficient estimates to use
+    - `covariates (Dict[str: Dict]): elements of the inner dict:
+        - "use_re": (bool)
+        - "gprior": (np.array)
+        - "bounds": (np.array)
+        - "re_var": (float)
+    - `covariates_order (List[List[str]])`: list of lists of covariate names that will be
+        sequentially added to the regression
+    - `covariate_draw_dict (Dict[str, bool[)`: whether or not to use draws of the covariate (they
+        must be available!)
+    """
+    ode_version: str
+    covariate_version: str
+
+    # Regression Arguments
+    covariates: Dict[str, Dict[str, Union[bool, List, float]]]
+    covariates_order: List[List[str]] = None
+    covariate_draw_dict: Dict[str, bool] = None
+
+    coefficient_version: str = None
 
     def __post_init__(self):
         pass

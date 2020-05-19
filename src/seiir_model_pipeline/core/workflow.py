@@ -1,7 +1,7 @@
 import getpass
 import logging
 
-from seiir_model_pipeline.core.task import RegressionTask, ForecastTask, ScalingDiagnosticTask
+from seiir_model_pipeline.core.task import ODETask, RegressionTask, ForecastTask, ScalingDiagnosticTask
 from seiir_model_pipeline.core.task import RegressionDiagnosticTask
 from jobmon.client.swarm.workflow.workflow import Workflow
 
@@ -41,6 +41,19 @@ class SEIIRWorkFlow(Workflow):
             resume=True
         )
 
+    def attach_ode_tasks(self, n_draws, **kwargs):
+        """
+        Attach n_draws ODE tasks for the initial beta fit.
+
+        :param n_draws: (int)
+        :param kwargs: keyword arguments to ODETask
+        :return: list of BashTasks
+        """
+        tasks = [ODETask(draw_id=i, **kwargs)
+                 for i in range(n_draws)]
+        self.add_tasks(tasks)
+        return tasks
+
     def attach_regression_tasks(self, n_draws, add_diagnostic, **kwargs):
         """
         Attach n_draws RegressionTasks and adds a diagnostic task if needed. Will load
@@ -48,8 +61,8 @@ class SEIIRWorkFlow(Workflow):
 
         :param n_draws: (int)
         :param add_diagnostic: (bool) add a diagnostic task
-        **kwargs: keyword arguments to DrawTask
-        :return: self
+        **kwargs: keyword arguments to RegressionTask
+        :return: list of BashTasks
         """
         tasks = [RegressionTask(draw_id=i, **kwargs)
                  for i in range(n_draws)]

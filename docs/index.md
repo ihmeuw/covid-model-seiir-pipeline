@@ -46,23 +46,27 @@ that is used for covariate inputs is `/ihme/covid-19/seir-covariates`.
 
 The main directories for outputs within `/ihme/covid-19/seir-pipeline-outputs` are:
 
+- `ode`: ode versions and outputs
 - `regression`: regression versions and outputs
 - `forecast`: forecast versions and outputs
 - `covariate`: covariate cache versions for both forecasts and regressions
 - `metadata-inputs`: location metadata snapshots from the hierarchies with some
     modifications explained in the README.md files
 
-Within a regression version, the directory structure is:
-
+Within an ODE version, the directory structure is:
 - `betas`: location-specific folders with draw files for each
     component fit -- also includes predicted beta based on the regression
+- `parameters`: draw-specific files with simulated alpha, sigma, gamma1, and gamma2
+    parameters
+- `locations.csv`: a snapshot of the location IDs that was used in this run
+- `settings.json`: the settings for the ODE version
+
+Within a regression version, the directory structure is:
+
 - `coefficients`: draw-specific files with coefficients from the regression
     fit. This is what is read in when a new regression version uses a prior
     coefficient version.
-- `parameters`: draw-specific files with simulated alpha, sigma, gamma1, and gamma2
-    parameters
 - `diagnostics`: regression diagnostic plots
-- `locations.csv`: a snapshot of the location IDs that was used in this run
 - `settings.json`: the settings for the regression version
 
 Within a forecast version, the directory structure is:
@@ -79,55 +83,63 @@ Within a forecast version, the directory structure is:
 
 ### Versions
 
-To create a regression or forecast version, you pass arguments to
-`RegressionVersion` or `ForecastVersion`. Since creating a version requires
-caching covariates and creating the directory structure, we suggest using
-the utilities functions `create_regression_version`, `create_forecast_version`, or
-if you are doing a run creating a *new* regression and forecast version that you want to have
+To create an ODE, regression, or forecast version, you pass arguments to `ODEVersion`,
+`RegressionVersion`, or `ForecastVersion`. Since creating a version requires
+caching locations, covariates and creating the directory structure, we suggest using
+the utilities functions `create_ode_version`, `create_regression_version`, 
+`create_forecast_version`, or
+if you are doing a run creating a *new* ODE, regression, and forecast version that you want to have
 the same name, `create_run`.
+
+The versions build on each other. An ODE version can be created by itself, but
+you must have an existing ODE version that you pass to a regression version,
+and you must have an existing regression version to pass to a forecast version.
+
+The arguments to `create_ode_version` are:
+
+- `version_name (str)`: (*) the name of the ODE version
+- `infection_version (str)`: (*) the infectionator version to use
+- `location_set_version_id (int)`: (*) the location metadata version to use (MUST BE IN `metadata-inputs`!)
+- `n_draws (int)`: (*) number of draws to run
+- `degree (int)`: (*) degree of the spline to fit on new infections to get beta
+- `knots (int)`: (*) knot positions for the spline
+- `day_shift (Tuple[int])`: (*) Will use today + `day_shift` - lag 's data in the beta regression but sample
+    the day shift from the range passed in
+- `alpha (Tuple[float])`: (*) a 2-length tuple that represents the range of alpha values to sample
+- `sigma (Tuple[float])`: (*) a 2-length tuple that represents the range of sigma values to sample
+- `gamma1 (Tuple[float])`: (*) a 2-length tuple that represents the range of gamma1 values to sample
+- `gamma2 (Tuple[float])`: (*) a 2-length tuple that represents the range of gamma2 values to sample
+- `solver_dt (float)`: (*) step size for the ODE solver
 
 The arguments to `create_regression_version` are:
 
 - `version_name (str)`: the name of the regression version
-- `covariate_version (str)`: covariate version to use
-- `covariate_draw_dict (Dict[str, bool])`: a dictionary of covariate name to whether or not the covariate has draws
-- `infection_version (str)`: the infectionator version to use
-- `coefficient_version (str)`: the regression version of coefficient estimates to use
-- `location_set_version_id (int)`: the location metadata version to use (MUST BE IN `metadata-inputs`!)
-- `n_draws (int)`: number of draws to run
-- `degree (int)`: degree of the spline to fit on new infections to get beta
-- `knots` (int)`: knot positions for the spline
-- `day_shift (Tuple[int])`: Will use today + `day_shift` - lag 's data in the beta regression but sample
-    the day shift from the range passed in
-- `covariates (Dict[str: Dict])`: elements of the inner dict:
+- `ode_version (str)`: the ode version to use
+- `covariate_version (str)`: (*) covariate version to use
+- `covariate_draw_dict (Dict[str, bool])`: (*) a dictionary of covariate name to whether or not the covariate has draws
+- `coefficient_version (str)`: (*) the regression version of coefficient estimates to use
+- `covariates (Dict[str: Dict])`: (*) elements of the inner dict:
     - `"use_re" (bool)`: use random effects or not
     - `"gprior" (np.array)`: mean and standard deviation for the Gaussian prior on the fixed effect
     - `"bounds" (np.array)`: lower and upper bounds for the sum of fixed + random effects
     - `"re_var": (float)`: the variance of the random effect
-- `covariates_order (List[List[str]])`: list of lists of covariate names that will be
+- `covariates_order (List[List[str]])`: (*) list of lists of covariate names that will be
         sequentially added to the regression
-- `alpha (Tuple[float])`: a 2-length tuple that represents the range of alpha values to sample
-- `sigma (Tuple[float])`: a 2-length tuple that represents the range of sigma values to sample
-- `gamma1 (Tuple[float])`: a 2-length tuple that represents the range of gamma1 values to sample
-- `gamma2 (Tuple[float])`: a 2-length tuple that represents the range of gamma2 values to sample
-- `solver_dt (float)`: step size for the ODE solver
 
-The arguments to `create_forecast_version` skip most of the ones above because they are tagged to a regression
-version and will be read in as part of the forecast version (since a forecast version must be tagged to
-a specific regression version).
+The arguments to `create_forecast_version` are:
 
-- `verion_name (str)`:  the name of the forecast version
+- `version_name (str)`:  the name of the forecast version
 - `regression_version (str)`: the regression version to use
-- `covariate_version (str)`: covariate version to use
-- `covariate_draw_dict (Dict[str, bool])`: a dictionary of covariate name to whether or not the covariate has draws.
+- `covariate_version (str)`: (*) covariate version to use
+- `covariate_draw_dict (Dict[str, bool])`: (*) a dictionary of covariate name to whether or not the covariate has draws.
     This is separate from the regression version `covariate_draw_dict` because you may want to use draws for the
     forecasts but not in the regression fitting. This allows you to do that.
 
 **NOTE**: The `covariate_draw_dict` has not been tested with `True` for any of the covariates because the input
 data does not exist yet to test.
 
-To create a run that will have both a regression version and forecast version (for example, the baseline scenario),
-use the `create_run` utility function which takes all the same arguments to `create_regression_version`. An example
+To create a run that will have an ode, regression, and forecast version (for example, the baseline scenario),
+use the `create_run` utility function which takes all the unique arguments above that are starred with (*). An example
 of using the `create_run` function is below:
 
 ```python
@@ -160,10 +172,12 @@ create_run(
 
 ### Launching a Pipeline Run
 
-To launch a pipeline run, you must first create a regression version and/or a forecast version.
-The `versioner` module has a helper function `create_run` that creates both a regression
-and forecast version with the same name for a full run, and with all the keyword arguments
-that you would pass to `RegressionVersion` and `ForecastVersion` (see [versions](#versions)).
+To launch a pipeline run, you must first create an ODE version and/or a regression version 
+and/or a forecast version.
+
+The `versioner` module has a helper function `create_run` that creates all three
+ with the same name for a full run, and with all the keyword arguments
+that you would pass to `ODEVersion`, `RegressionVersion`, and `ForecastVersion` (see [versions](#versions)).
 
 Once you have a version, open up a screen and qlogin on the dq on the cluster with at least three
 threads, 5G of memory, and a few hours of runtime (the pipeline is quick, but the diagnostics
@@ -171,16 +185,18 @@ take a long time). The `run` script builds the Jobmon workflow and monitors the 
 until the whole pipeline is complete:
 
 ```
-run --regression-version {REG_VERSION} --forecast-version {FOR_VERSION} --run-splicer --create-diagnostics
+run --ode-version {ODE_VERSION} --regression-version {REG_VERSION} --forecast-version {FOR_VERSION} --run-splicer --create-diagnostics
 ```
 
 If you don't want to create diagnostics, remove the `--create-diagnostics` flag. Likewise, if you don't
 want to run the splicer to create infections and deaths from the ODE compartments, remove the
 `--run-splicer` flag.
 
-If you *only* want to run a forecast version off of a previous regression version, 
+If you only want to run one of the three parts, just include that one part (or two).
+For example, if you *only* want to run a forecast version off of a previous regression version, 
 remove the `--regression-version` flag after you have created a forecast version
-tagging a specific regression version.
+tagging a specific regression version. Similarly, if you *only* want to run an ODE
+version, then don't pass a regression or forecast version.
 
 You can view the status of the workflow and individual tasks in the workflow by viewing
 the Jobmon database. Instructions for accessing the permanent Jobmon database are
@@ -201,11 +217,10 @@ of [regression tasks](#beta-regression), then [forecasting tasks](#beta-forecast
 then [splicing](#splicing) tasks for each forecast task, and finally one [diagnostics](#diagnostics)
 task.
 
-#### Beta Regression
+#### ODE Fit
 
-The beta regression task reads infection data for one draw across all locations and covariate data based
-on the settings provided when you created a version. The regression tasks are parallelized across
-draw because each draw is independent.
+The ODE fit task reads infection data for one draw across all locations.
+The tasks are parallelized across draw because each draw is independent.
 
 First, it fits a spline using the [`xspline` package](https://github.com/zhengp0/xspline)
 to the daily infection data provided from the *Infectionator* over time. It
@@ -214,7 +229,12 @@ an SEIIR ODE using the spline fit to get estimates for each of the SEIIR
  compartments. At last it obtains the beta from the spline
  and all the compartments of the SEIIR ODE.
 
-After getting a smoothed beta curve, it fits a regression using covariates provided in your specs
+#### Beta Regression
+
+The beta regression task loads the outputs of an ODE fit and covariate data based
+on the settings provided when you created a version
+
+It fits a regression using covariates provided in your specs
 to the smooth beta. The exact model it's fitting is actually a number of different
 regression models done in stages, fixing coefficient values at different stages of the regression.
 Some of these regressions have random effects. To date when this regression needs to change, we change

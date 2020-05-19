@@ -2,21 +2,19 @@ from argparse import ArgumentParser, Namespace
 from typing import Optional
 import shlex
 import logging
-import numpy as np
 
 from seiir_model.model_runner import ModelRunner
 
-from seiir_model_pipeline.core.versioner import COVARIATE_COL_DICT, INFECTION_COL_DICT
+from seiir_model_pipeline.core.versioner import COVARIATE_COL_DICT
 from seiir_model_pipeline.core.versioner import load_regression_settings
 from seiir_model_pipeline.core.versioner import Directories
 
-from seiir_model_pipeline.core.data import load_all_location_data
 from seiir_model_pipeline.core.data import load_mr_coefficients
 from seiir_model_pipeline.core.data import load_covariates
+from seiir_model_pipeline.core.data import load_ode_fits
 
 from seiir_model_pipeline.core.utils import load_locations
 
-from seiir_model_pipeline.core.model_inputs import process_ode_process_input
 from seiir_model_pipeline.core.model_inputs import convert_inputs_for_beta_model
 from seiir_model_pipeline.core.model_inputs import convert_to_covmodel
 
@@ -44,38 +42,31 @@ def parse_arguments(argstr: Optional[str] = None) -> Namespace:
 def run_beta_regression(draw_id: int, regression_version: str):
 
     # -------------------------- LOAD INPUTS -------------------- #
+    settings = load_regression_settings(regression_version)
+
     # Load metadata
     directories = Directories(
         regression_version=regression_version,
-        forecast_version=None
     )
-    settings = load_regression_settings(regression_version)
-
-    # Load data
+    # Load locations
     location_ids = load_locations(directories)
-    location_data = load_all_location_data(
-        directories=directories, location_ids=location_ids, draw_id=draw_id
-    )
+
+    # Load covariates
     covariate_data = load_covariates(
         directories,
         covariate_version=settings.covariate_version,
         location_ids=location_ids
     )
-
-    # This seed is so that the alpha, sigma, gamma1 and gamma2 parameters are reproducible
-    np.random.seed(draw_id)
-    beta_fit_inputs = process_ode_process_input(
-        settings=settings,
-        location_data=location_data,
+    # Load previous beta ode fits
+    df_beta = load_ode_fits(
+        directories,
+        location_ids=location_ids,
+        draw_id=draw_id
     )
-
-    # ----------------------- BETA SPLINE + ODE -------------------------------- #
-    # Start a Model Runner with the processed inputs and fit the beta spline / ODE
-    mr = ModelRunner()
-    mr.fit_beta_ode(beta_fit_inputs)
-
     # -------------- BETA REGRESSION WITH LOADED COVARIATES -------------------- #
     # Convert inputs for beta regression using model_inputs utilities functions
+    mr = ModelRunner()
+
     ordered_covmodel_sets, all_covmodels_set = convert_to_covmodel(
         cov_dict=settings.covariates,
         cov_order_list=settings.covariates_order
@@ -85,7 +76,7 @@ def run_beta_regression(draw_id: int, regression_version: str):
             covariate_data, COVARIATE_COL_DICT['COL_DATE'],
             COVARIATE_COL_DICT['COL_LOC_ID']
         ),
-        df_beta=mr.get_beta_ode_fit(),
+        df_beta=df_beta,
         covmodel_set=all_covmodels_set,
     )
     if settings.coefficient_version is not None:
@@ -109,38 +100,12 @@ def run_beta_regression(draw_id: int, regression_version: str):
         df_cov_coef=fixed_coefficients,
         add_intercept=False,
     )
-    # -------------------- POST PROCESSING AND SAVING ------------------------ #
-    # Get the fitted values of beta from the regression model and append on
-    # to the fits -- **this is just for diagnostic purposes**
-    regression_fit = load_mr_coefficients(
-        directories=directories,
-        draw_id=draw_id
-    )
-    forecasts = mr.predict_beta_forward_prod(
-        covmodel_set=all_covmodels_set,
-        df_cov=covariate_data,
-        df_cov_coef=regression_fit,
-        col_t=COVARIATE_COL_DICT['COL_DATE'],
-        col_group=COVARIATE_COL_DICT['COL_LOC_ID']
-    )
-    beta_fit = mr.get_beta_ode_fit()
-    regression_betas = forecasts[
-        [COVARIATE_COL_DICT['COL_LOC_ID'], COVARIATE_COL_DICT['COL_DATE']] +
-        list(settings.covariates.keys()) + ['beta_pred']
-    ]
-    beta_fit_covariates = beta_fit.merge(
-        regression_betas,
-        left_on=[INFECTION_COL_DICT['COL_LOC_ID'], INFECTION_COL_DICT['COL_DATE']],
-        right_on=[COVARIATE_COL_DICT['COL_LOC_ID'], COVARIATE_COL_DICT['COL_DATE']],
-        how='left'
-    )
-    # Save location-specific beta fit (compartment) files for easy reading later
-    for l_id in location_ids:
-        loc_beta_fits = beta_fit_covariates.loc[beta_fit_covariates[INFECTION_COL_DICT['COL_LOC_ID']] == l_id].copy()
-        loc_beta_fits.to_csv(directories.get_draw_beta_fit_file(l_id, draw_id), index=False)
 
     # Save the parameters of alpha, sigma, gamma1, and gamma2 that were drawn
     mr.get_beta_ode_params().to_csv(directories.get_draw_beta_param_file(draw_id), index=False)
+
+    # TODO: Do we overwrite the beta fit files with the fitted
+    #  beta or create new files here?
 
 
 def main():

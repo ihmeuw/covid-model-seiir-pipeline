@@ -1,10 +1,11 @@
 import logging
 from argparse import ArgumentParser
 
-import pandas as pd
-
 from seiir_model_pipeline.core.versioner import args_to_directories
-from seiir_model_pipeline.core.versioner import load_forecast_settings, load_regression_settings
+from seiir_model_pipeline.core.versioner import load_forecast_settings
+from seiir_model_pipeline.core.versioner import load_regression_settings
+from seiir_model_pipeline.core.versioner import load_ode_settings
+
 from seiir_model_pipeline.core.data import load_all_location_data, load_component_forecasts
 from seiir_model_pipeline.core.data import load_beta_fit, load_beta_params
 from seiir_model_pipeline.core.splicer import Splicer
@@ -15,7 +16,6 @@ log = logging.getLogger(__name__)
 def get_args():
     parser = ArgumentParser()
     parser.add_argument("--location-id", type=int, required=True)
-    parser.add_argument("--regression-version", type=str, required=True)
     parser.add_argument("--forecast-version", type=str, required=True)
     return parser.parse_args()
 
@@ -27,15 +27,16 @@ def main():
 
     # Load metadata
     directories = args_to_directories(args)
-    regression_settings = load_regression_settings(args.regression_version)
     forecast_settings = load_forecast_settings(args.forecast_version)
+    regression_settings = load_regression_settings(forecast_settings.regression_version)
+    ode_settings = load_ode_settings(regression_settings.ode_version)
 
-    splicer = Splicer(n_draws=regression_settings.n_draws, location_id=args.location_id)
+    splicer = Splicer(n_draws=ode_settings.n_draws, location_id=args.location_id)
     splicer.capture_location_name(
-        metadata_path=directories.get_location_metadata_file(regression_settings.location_set_version_id)
+        metadata_path=directories.get_location_metadata_file(ode_settings.location_set_version_id)
     )
 
-    for draw_id in range(regression_settings.n_draws):
+    for draw_id in range(ode_settings.n_draws):
         print(f"On draw {draw_id}.")
         infection_data = load_all_location_data(
             directories, location_ids=[args.location_id], draw_id=draw_id

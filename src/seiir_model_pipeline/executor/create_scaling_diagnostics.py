@@ -12,7 +12,6 @@ def get_args():
     Gets arguments from the command line.
     """
     parser = ArgumentParser()
-    parser.add_argument("--regression-version", type=str, required=True)
     parser.add_argument("--forecast-version", type=str, required=True)
 
     return parser.parse_args()
