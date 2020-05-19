@@ -133,7 +133,7 @@ class Splicer:
         return df
 
     def get_today(self, infection_data):
-        date = infection_data.loc[self.col_obs_deaths == 1, self.col_date].max()
+        date = infection_data.loc[infection_data[self.col_obs_deaths] == 1, self.col_date].max()
         return np.datetime64(date)
 
     def splice_draw(self, infection_data, component_fit, component_forecasts, params, draw_id):
@@ -176,6 +176,8 @@ class Splicer:
 
     def format_draws(self, dictionary, id_cols):
         df = pd.concat(dictionary.values()).reset_index(drop=True)
+        if COL_OBSERVED not in id_cols:
+            df.drop(COL_OBSERVED, axis=1, inplace=True)
         wide = df.set_index(id_cols + ['draw']).unstack().reset_index()
         wide.columns = id_cols + self.draw_cols
         wide['location'] = self.location_name
