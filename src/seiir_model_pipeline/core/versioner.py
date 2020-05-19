@@ -10,7 +10,7 @@ BASE_DIR = Path('/ihme')
 
 # Dependency/input directories
 INPUT_DIR = BASE_DIR / 'covid-19/seir-inputs'
-COVARIATE_DIR = BASE_DIR / 'covid-19/seir-covariates'
+COVARIATE_DIR = BASE_DIR / 'covid-19/seir-outputs/test-seir-covariates'
 
 # Output directory
 OUTPUT_DIR = BASE_DIR / 'covid-19/seir-pipeline-outputs'
