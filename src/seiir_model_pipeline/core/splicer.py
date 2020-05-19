@@ -176,6 +176,8 @@ class Splicer:
 
     def format_draws(self, dictionary, id_cols):
         df = pd.concat(dictionary.values()).reset_index(drop=True)
+        if COL_OBSERVED not in id_cols:
+            df.drop(COL_OBSERVED, axis=1, inplace=True)
         wide = df.set_index(id_cols + ['draw']).unstack().reset_index()
         wide.columns = id_cols + self.draw_cols
         wide['location'] = self.location_name
