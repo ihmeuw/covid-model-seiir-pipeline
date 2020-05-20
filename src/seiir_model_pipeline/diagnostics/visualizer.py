@@ -66,7 +66,7 @@ class Visualizer:
             path_to_regression_draws_for_group = os.path.join(directories.regression_betas_dir, str(group))
             if os.path.isdir(path_to_regression_draws_for_group):
                 for filename in os.listdir(path_to_regression_draws_for_group):
-                    if filename.startswith("fit_draw_") and filename.endswith(".csv"):
+                    if filename.startswith("regression_draw_") and filename.endswith(".csv"):
                         draw_df = pd.read_csv(os.path.join(path_to_regression_draws_for_group, filename))
                         # It's assumed that draw_df contains only the `group` group exclusively
                         self.data[group][ODE_BETA_FIT].append(draw_df)
@@ -144,7 +144,7 @@ class Visualizer:
             if draws is not None:
                 if i not in draws:
                     continue
-
+            
             past_time = pd.to_datetime(past_compartments[self.col_date])
             past_compartment_trajectory = past_compartments[compartment]
             ax.plot(past_time, past_compartment_trajectory,
@@ -153,7 +153,6 @@ class Visualizer:
             future_compartment_trajectory = future_compartments[compartment]
             ax.plot(future_time, future_compartment_trajectory,
                     linestyle=linestyle, c=color, alpha=transparency)
-
         # get times
         past_time = pd.to_datetime(self.data[group][ODE_BETA_FIT][0][self.col_date])
         future_time = pd.to_datetime(self.data[group][ODE_COMPONENTS_FORECAST][0][self.col_date])
