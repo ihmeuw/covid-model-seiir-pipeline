@@ -1,18 +1,7 @@
 data:
   covariate_version: 'best'
-  infection_version: 'best'
-  location_set_version_id: 674
+  ode_fit_version: 'best'
   output_root: ''
-parameters:
-  n_draws: 1000
-  degree: 3
-  knots: [0.0, 0.25, 0.5, 0.75, 1.0]
-  day_shift: [0, 8]
-  alpha: [0.9, 1.0]
-  sigma: [0.2, 0.3333]
-  gamma1: [0.5, 0.5]
-  gamma2: [0.3333, 1.0]
-  solver_dt: 0.1
 covariates:
   intercept:
     # Ordering of covariates in regression.  Covariates with the same order
@@ -56,5 +45,3 @@ covariates:
     bounds: [-1000.0, 0.0]
     re_var: 1.0
     draws: False
-
-
