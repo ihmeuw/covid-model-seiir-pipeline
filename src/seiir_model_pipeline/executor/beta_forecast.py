@@ -117,8 +117,8 @@ def run_beta_forecast(location_id: int, regression_version: str, forecast_versio
         anchor_beta = beta_fit.beta[beta_fit.date == CURRENT_DATE].iloc[0]
         scale = anchor_beta / betas[0]
         scales.append(scale)
-        # scale = scale + (1 - scale)/10.0*np.arange(betas.size)
-        # scale[11:] = 1.0
+        # scale = scale + (1 - scale)/20.0*np.arange(betas.size)
+        # scale[21:] = 1.0
         betas = betas * scale
 
         # Get initial conditions based on the beta fit for forecasting into the future
