@@ -42,7 +42,7 @@ class RegressionData:
         for directory in [self.regression_beta_fit_dir, self.regression_parameters_dir,
                           self.regression_coefficient_dir, self.regression_diagnostic_dir,
                           self.regression_input_dir, self.regression_covariates_dir]:
-            directory.mkdir(mode=755, parents=True, exist_ok=True)
+            directory.mkdir(mode=775, parents=True, exist_ok=True)
 
     def get_draw_coefficient_file(self, draw_id: int) -> Path:
         return self.regression_coefficient_dir / f'coefficients_{draw_id}.csv'
@@ -52,7 +52,7 @@ class RegressionData:
 
     def get_draw_beta_fit_file(self, location_id: int, draw_id: int) -> Path:
         loc_dir = self.regression_beta_fit_dir / str(location_id)
-        loc_dir.mkdir(mode=755, parents=True, exist_ok=True)
+        loc_dir.mkdir(mode=775, parents=True, exist_ok=True)
         return loc_dir / f'fit_draw_{draw_id}.csv'
 
     @property
