@@ -56,14 +56,14 @@ class Visualizer:
 
         self.location_metadata = pd.read_csv(
             self.directories.get_location_metadata_file(
-                self.regression_settings.location_set_version_id)
+                self.ode_settings.location_set_version_id)
         )
         self.id2loc = self.location_metadata.set_index('location_id')[
             'location_name'].to_dict()
 
         # read beta regression draws
         for group in groups:
-            path_to_regression_draws_for_group = os.path.join(directories.ode_beta_fit_dir, str(group))
+            path_to_regression_draws_for_group = os.path.join(directories.regression_betas_dir, str(group))
             if os.path.isdir(path_to_regression_draws_for_group):
                 for filename in os.listdir(path_to_regression_draws_for_group):
                     if filename.startswith("fit_draw_") and filename.endswith(".csv"):
