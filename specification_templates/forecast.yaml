@@ -3,34 +3,21 @@ data:
   output_root: ''
 scenarios:
   baseline:
+    beta_scaling_window: -1
+    algorithm: 'RK45'  # Later also 'mattingly', 'RK45-loop', etc.
+    covariates:
+      testing: 'reference'
+      mobility: 'lift'
+      proportion_over_1k: 'reference'
+      temperature: 'reference'
+  testing_optimistic:
+    beta_scaling_window: -1
+    algorithm: 'RK45'
+    covariates:
+      testing: 'optimistic'
+      mobility: 'lift'
+      proportion_over_1k: 'reference'
+      temperature: 'reference'
 
-  mobility_lift:
-    order: 0
-    use_re: True
-    gprior: [0.0, 1000.0]
-    bounds: [0.0, 1000.0]
-    re_var: 1.0
-    draws: False
-  proportion_over_1k:
-    order: 1
-    use_re: False
-    gprior: [0.0, 1000.0]
-    bounds: [0.0, 1000.0]
-    re_var: 1.0
-    draws: False
-  temperature:
-    order: 2
-    use_re: False
-    gprior: [0.0, 1000.0]
-    bounds: [-1000.0, 0.]
-    re_var: 1.0
-    draws: False
-  testing_reference:
-    order: 3
-    use_re: False
-    gprior: [0.0, 1000.0]
-    bounds: [-1000.0, 0.0]
-    re_var: 1.0
-    draws: False
 
 

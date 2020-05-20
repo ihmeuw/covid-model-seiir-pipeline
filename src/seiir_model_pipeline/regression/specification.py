@@ -99,7 +99,7 @@ class RegressionSpecification:
         return self._parameters
 
     @property
-    def covariates(self) -> List[CovariateSpecification]:
+    def covariates(self) -> Dict[str, CovariateSpecification]:
         """The covariates for the regression."""
         return self._covariates
 
