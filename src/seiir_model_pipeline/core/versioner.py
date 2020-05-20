@@ -93,9 +93,9 @@ def args_to_directories(args):
     :return: (Directories) object
     """
     return Directories(
-        ode_version=args.ode_version,
-        regression_version=args.regression_version,
-        forecast_version=args.forecast_version
+        ode_version=None if not hasattr(args, 'ode_version') else args.ode_version,
+        regression_version=None if not hasattr(args, 'regression_version') else args.regression_version,
+        forecast_version=None if not hasattr(args, 'forecast_version') else args.forecast_version
     )
 
 
