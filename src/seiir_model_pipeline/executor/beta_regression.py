@@ -5,7 +5,7 @@ import logging
 
 from seiir_model.model_runner import ModelRunner
 
-from seiir_model_pipeline.core.versioner import COVARIATE_COL_DICT
+from seiir_model_pipeline.core.versioner import COVARIATE_COL_DICT, INFECTION_COL_DICT
 from seiir_model_pipeline.core.versioner import load_regression_settings
 from seiir_model_pipeline.core.versioner import Directories
 
@@ -100,8 +100,6 @@ def run_beta_regression(draw_id: int, regression_version: str):
         add_intercept=False,
     )
 
-    # TODO: Do we overwrite the beta fit files with the fitted
-    #  beta or create new files here?
     regression_fit = load_mr_coefficients(
         directories=directories,
         draw_id=draw_id
@@ -117,9 +115,14 @@ def run_beta_regression(draw_id: int, regression_version: str):
         [COVARIATE_COL_DICT['COL_LOC_ID'], COVARIATE_COL_DICT['COL_DATE']] +
         list(settings.covariates.keys()) + ['beta_pred']
     ]
-
+    beta_fit_covariates = df_beta.merge(
+        regression_betas,
+        left_on=[INFECTION_COL_DICT['COL_LOC_ID'], INFECTION_COL_DICT['COL_DATE']],
+        right_on=[COVARIATE_COL_DICT['COL_LOC_ID'], COVARIATE_COL_DICT['COL_DATE']],
+        how='left'
+    )
     for l_id in location_ids:
-        loc_beta_fits = regression_betas.loc[regression_betas[COVARIATE_COL_DICT['COL_LOC_ID']] == l_id].copy()
+        loc_beta_fits = beta_fit_covariates.loc[beta_fit_covariates[COVARIATE_COL_DICT['COL_LOC_ID']] == l_id].copy()
         loc_beta_fits.to_csv(directories.get_draw_beta_regression_file(l_id, draw_id), index=False)
 
 
