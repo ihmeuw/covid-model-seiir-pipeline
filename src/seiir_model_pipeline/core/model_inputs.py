@@ -1,3 +1,5 @@
+from typing import List
+
 import pandas as pd
 import numpy as np
 
@@ -6,6 +8,8 @@ from slime.model import CovModel, CovModelSet
 from slime.core.data import MRData
 
 from seiir_model_pipeline.core.versioner import INFECTION_COL_DICT
+from seiir_model_pipeline.regression.specification import CovariateSpecification
+
 
 SEIIR_COMPARTMENTS = ['S', 'E', 'I1', 'I2', 'R']
 
@@ -50,7 +54,7 @@ def process_ode_process_input(settings, location_data):
         gamma2=settings.gamma2,
         solver_dt=settings.solver_dt,
         spline_options={
-            'spline_knots': np.array(settings.knots),
+            'spline_knots': settings.knots,
             'spline_degree': settings.degree
         },
         day_shift=settings.day_shift
@@ -84,6 +88,40 @@ def convert_to_covmodel(cov_dict, cov_order_list):
         ordered_covmodel_sets.append(
             CovModelSet([cov_models[cov_names_id[name]] for name in names])
         )
+    all_covmodels_set = CovModelSet(cov_models)
+    return ordered_covmodel_sets, all_covmodels_set
+
+
+def convert_to_covmodel_regression(covariates: List[CovariateSpecification]):
+    """
+    Based on a list of `CovariateSpecification`s and an ordered list of lists of covariate
+    names, create a CovModelSet.
+    """
+
+    # construct each CovModel independently. add to dict of list by covariate order
+    cov_models = []
+    cov_model_order_dict = {}
+    for covariate in covariates:
+        cov_model = CovModel(
+            covariate.name,
+            use_re=covariate.use_re,
+            bounds=np.array(covariate.bounds),
+            gprior=np.array(covariate.gprior),
+            re_var=covariate.re_var,
+        )
+        cov_models.append(cov_model)
+        ordered_cov_set = cov_model_order_dict.get(covariate.order, [])
+        cov_model_order_dict[covariate.order] = ordered_cov_set.append(cov_model)
+
+    # constuct a CovModelSet for each order
+    ordered_covmodel_sets = []
+    cov_orders = list(cov_model_order_dict.keys())
+    for order in cov_orders.sort():
+        ordered_covmodel_sets.append(
+            CovModelSet(cov_model_order_dict.order)
+        )
+
+    # constuct a CovModelSet for all
     all_covmodels_set = CovModelSet(cov_models)
     return ordered_covmodel_sets, all_covmodels_set
 
