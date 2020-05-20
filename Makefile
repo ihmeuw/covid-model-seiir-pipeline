@@ -18,23 +18,22 @@ clean:
 install_env:
 	( \
 		source $(CONDA_PREFIX)/etc/profile.d/conda.sh && \
-		conda create -n $(ENV_NAME) python=3.7 && \
+		conda create -n $(ENV_NAME) -y -c conda-forge cyipopt python=3.7 && \
 		conda activate $(ENV_NAME) && \
-		pip install numpy scipy pandas matplotlib pyyaml pytest xspline jobmon && \
-		conda install -c conda-forge cyipopt && \
-		git clone https://github.com/zhengp0/limetr.git && \
+		pip install --extra-index-url https://artifactory.ihme.washington.edu/artifactory/api/pypi/pypi-shared/simple/ \
+                  numpy scipy pandas matplotlib pyyaml pytest xspline jobmon && \
+		git clone git@github.com:zhengp0/limetr.git && \
 		cd limetr && make install && cd .. && \
-		git clone https://github.com/ihmeuw-msca/MRTool.git && \
+		git clone git@github.com:ihmeuw-msca/MRTool.git && \
 		cd MRTool && git checkout seiir_model && python setup.py install && cd .. && \
-		git clone https://github.com/zhengp0/SLIME.git && \
+		git clone git@github.com:zhengp0/SLIME.git && \
 		cd SLIME && python setup.py install && cd .. && \
-		git clone https://github.com/ihmeuw-msca/ODEOPT.git && \
-		cd ODEOPT && git checkout random && python setup.py install && cd .. && \
-		git clone https://github.com/ihmeuw-msca/SEIRPipeline.git && \
-		cd SEIRPipeline && git checkout old &&python setup.py install && cd .. && \
-		python setup.py install; \
+		git clone git@github.com:ihmeuw-msca/ODEOPT.git && \
+		cd ODEOPT && python setup.py install && cd .. && \
+		git clone git@github.com:ihmeuw-msca/SEIRPipeline.git && \
+		cd SEIRPipeline && git checkout develop && python setup.py install && cd .. && \
+		git checkout develop && python setup.py install; \
     )
-
 
 uninstall_env:
 	conda remove --name $(ENV_NAME) --all
