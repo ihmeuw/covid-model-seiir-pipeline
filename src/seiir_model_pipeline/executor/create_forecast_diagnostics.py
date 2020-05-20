@@ -22,7 +22,6 @@ def get_args():
 def main():
     args = get_args()
     log.info("Initiating SEIIR diagnostics.")
-
     # Load metadata
     directories = args_to_directories(args)
 
