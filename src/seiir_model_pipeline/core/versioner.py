@@ -157,6 +157,10 @@ class Directories:
             rv = load_regression_settings(fv.regression_version)
             ov = load_ode_settings(rv.ode_version)
 
+        self.ode_version = ov.version_name if ov is not None else None
+        self.regression_version = rv.version_name if rv is not None else None
+        self.forecast_version = fv.version_name if fv is not None else None
+
         if ov is not None:
             self.ode_output_dir = ODE_OUTPUT / ov.version_name
             self.ode_beta_fit_dir = self.ode_output_dir / 'betas'
