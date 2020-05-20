@@ -1,20 +1,72 @@
+import abc
 from dataclasses import asdict as asdict_
 from pathlib import Path
-from typing import Dict, Union
+from pprint import pformat
+from typing import Dict, Tuple, Union
 
 import numpy as np
 import yaml
 
 
-def load_specification(specification_path: Union[str, Path]):
-    specification_path = Path(specification_path)
-    if specification_path.suffix not in ['.yaml', '.yml']:
-        raise ValueError('Specification must be a yaml file.')
+class YamlIOMixin:
+    """Mixin for reading and writing yaml files."""
 
-    with specification_path.open() as specification_file:
-        specification = yaml.full_load(specification_file)
+    @staticmethod
+    def _coerce_path(path: Union[str, Path]) -> Path:
+        path = Path(path)
+        if path.suffix not in ['.yaml', '.yml']:
+            raise ValueError('Path must point to a yaml file. '
+                             f'You provided {str(path)}')
+        return path
 
-    return specification
+    @classmethod
+    def _load(cls, path: Union[str, Path]):
+        path = cls._coerce_path(path)
+        with path.open() as f:
+            data = yaml.full_load(f)
+
+        return data
+
+    @classmethod
+    def _dump(cls, data, path: Union[str, Path]) -> None:
+        path = cls._coerce_path(path)
+        with path.open('w') as f:
+            yaml.dump(data, f, sort_keys=False)
+
+
+class Specification(YamlIOMixin):
+    """Generic class for pipeline stage specifications."""
+
+    @classmethod
+    def from_path(cls, specification_path: Union[str, Path]) -> 'Specification':
+        """Builds the specification from a file path."""
+        spec_dict = cls._load(specification_path)
+        return cls.from_dict(spec_dict)
+
+    @classmethod
+    def from_dict(cls, spec_dict: Dict) -> 'Specification':
+        """Builds the specification from a dictionary."""
+        args = cls.parse_spec_dict(spec_dict)
+        return cls(*args)
+
+    @classmethod
+    @abc.abstractmethod
+    def parse_spec_dict(cls, specification: Dict) -> Tuple:
+        """Parses a dict representation of the specification into init args."""
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    def to_dict(self) -> Dict:
+        """Coerce the specification to a dict."""
+        raise NotImplementedError
+
+    def dump(self, path: Union[str, Path]) -> None:
+        """Writes this specification to a file."""
+        data = self.to_dict()
+        self._dump(data, path)
+
+    def __repr__(self):
+        return f'{self.__class__.__name__}(\n{pformat(self.to_dict())}\n)'
 
 
 def asdict(data_class) -> Dict:
