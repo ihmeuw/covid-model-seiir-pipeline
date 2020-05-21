@@ -166,7 +166,7 @@ class Directories:
             self.ode_beta_fit_dir = self.ode_output_dir / 'betas'
             self.ode_parameters_dir = self.ode_output_dir / 'parameters'
 
-            self.infection_dir = INPUT_DIR / ov.infection_version
+            self.infection_dir = Path(ov.infection_dir) / ov.infection_version
 
             make_dirs([
                 self.ode_output_dir,
@@ -386,6 +386,8 @@ class ODEVersion(Version):
     gamma1: Tuple[float] = field(default=(0.50, 0.50))
     gamma2: Tuple[float] = field(default=(0.50, 0.50))
     solver_dt: float = field(default=0.1)
+
+    infection_dir: str = INPUT_DIR
 
     def __post_init__(self):
         pass
