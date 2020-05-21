@@ -338,7 +338,6 @@ class RegressionVersion(Version):
     # Spline Arguments
     degree: int
     knots: np.array
-    concavity: bool
 
     # Regression Arguments
     covariates: Dict[str, Dict[str, Union[bool, List, float]]]
@@ -355,6 +354,7 @@ class RegressionVersion(Version):
     gamma1: Tuple[float] = field(default=(0.50, 0.50))
     gamma2: Tuple[float] = field(default=(0.50, 0.50))
     solver_dt: float = field(default=0.1)
+    concavity: bool = True
     spline_se_power: float = field(default=1.0)
 
     def __post_init__(self):
