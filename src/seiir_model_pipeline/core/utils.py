@@ -17,14 +17,15 @@ def create_ode_version(version_name, infection_version, location_set_version_id,
     :param location_set_version_id: (int)
     :param kwargs: other keyword arguments to an ode version
     """
-    directories = Directories()
+    ov = ODEVersion(version_name=version_name, location_set_version_id=location_set_version_id,
+                    infection_version=infection_version, **kwargs)
+    ov.create_version()
+
+    directories = Directories(ode_version=version_name)
     location_ids = get_locations(
         directories, infection_version,
         location_set_version_id=location_set_version_id,
     )
-    ov = ODEVersion(version_name=version_name, location_set_version_id=location_set_version_id,
-                    infection_version=infection_version, **kwargs)
-    ov.create_version()
 
     ov_directory = Directories(ode_version=version_name)
     write_locations(directories=ov_directory, location_ids=location_ids)
