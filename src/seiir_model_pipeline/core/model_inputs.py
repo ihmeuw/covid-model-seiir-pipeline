@@ -56,7 +56,7 @@ def process_ode_process_input(settings, location_data):
             'prior_spline_convexity': None if not settings.concavity else settings.concavity
         },
         day_shift=settings.day_shift,
-        reff_init=settings.reff_init,
+        spline_se_space=settings.spline_se_space
     )
 
 
