@@ -356,6 +356,7 @@ class RegressionVersion(Version):
     solver_dt: float = field(default=0.1)
     concavity: bool = True
     spline_se_power: float = field(default=1.0)
+    spline_space: str = field(default='ln daily')
 
     def __post_init__(self):
         pass
