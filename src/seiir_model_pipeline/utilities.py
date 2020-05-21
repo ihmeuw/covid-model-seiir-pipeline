@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import Dict, Union, Optional, Tuple
 from pprint import pformat
 
+from covid_shared import paths
 import numpy as np
 import yaml
 
@@ -82,3 +83,35 @@ def asdict(data_class) -> Dict:
         else:
             out[k] = v
     return out
+
+
+def get_version(cli_argument: Optional[str], specification_value: Optional[str]) -> Path:
+    """Determine the version to use hierarchically.
+
+    CLI args override spec args.  Spec args override the default 'best'.
+
+    """
+    if cli_argument:
+        version = Path(cli_argument).resolve()
+    elif specification_value:
+        version = specification_value
+    else:
+        version = paths.BEST_LINK
+    return Path(version)
+
+
+def get_output_root(cli_argument: Optional[str], specification_value: Optional[str],
+                    default: Union[str, Path]) -> Path:
+    """Determine the output root hierarchically.
+
+    CLI arguments override specification args.  Specification args override
+    the default.
+
+    """
+    if cli_argument:
+        output_root = cli_argument
+    elif specification_value:
+        output_root = specification_value
+    else:
+        output_root = default
+    return Path(output_root).resolve()
