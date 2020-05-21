@@ -1,3 +1,4 @@
+from __future__ import annotations
 import abc
 from dataclasses import asdict as asdict_
 from pathlib import Path
@@ -39,13 +40,13 @@ class Specification(YamlIOMixin):
     """Generic class for pipeline stage specifications."""
 
     @classmethod
-    def from_path(cls, specification_path: Union[str, Path]) -> 'Specification':
+    def from_path(cls, specification_path: Union[str, Path]) -> Specification:
         """Builds the specification from a file path."""
         spec_dict = cls._load(specification_path)
         return cls.from_dict(spec_dict)
 
     @classmethod
-    def from_dict(cls, spec_dict: Dict) -> 'Specification':
+    def from_dict(cls, spec_dict: Dict) -> Specification:
         """Builds the specification from a dictionary."""
         args = cls.parse_spec_dict(spec_dict)
         return cls(*args)
@@ -114,28 +115,3 @@ def get_output_root(cli_argument: Optional[str], specification_value: Optional[s
     else:
         output_root = default
     return Path(output_root).resolve()
-
-
-class VersionDirectory:
-
-    def __init__(self,
-                 version_name: Optional[str] = None,
-                 version_dir: Optional[Union[str, Path]] = None,
-                 root_dir: Union[str, Path] = Path()):
-
-        if version_name is None and version_dir is None:
-            raise ValueError("must specify either regression_version or regression_dir.")
-        elif version_name is not None and version_dir is not None:
-            raise ValueError("cannot specify both regression_version and regression_dir. Try "
-                             "regression_version and regression_root together or "
-                             "regression_dir alone.")
-
-        if version_dir is None:
-            self.version_name = str(version_name)
-            self.version_dir = Path(root_dir) / self.version_name
-        else:
-            self.version_dir = Path(version_dir)
-
-        # reassign everything based on regression_dir
-        self.root_dir = self.version_dir.parent
-        self.version_name = self.version_dir.name
