@@ -354,6 +354,10 @@ class RegressionVersion(Version):
     gamma1: Tuple[float] = field(default=(0.50, 0.50))
     gamma2: Tuple[float] = field(default=(0.50, 0.50))
     solver_dt: float = field(default=0.1)
+    concavity: bool = True
+    increasing: bool = False
+    spline_se_power: float = field(default=1.0)
+    spline_space: str = field(default='ln daily')
 
     def __post_init__(self):
         pass

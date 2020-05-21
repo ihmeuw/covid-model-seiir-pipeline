@@ -44,6 +44,7 @@ def process_ode_process_input(settings, location_data):
         col_pop=INFECTION_COL_DICT['COL_POP'],
         col_loc_id=INFECTION_COL_DICT['COL_LOC_ID'],
         col_lag_days=INFECTION_COL_DICT['COL_ID_LAG'],
+        col_observed=INFECTION_COL_DICT['COL_OBS_DEATHS'],
         alpha=settings.alpha,
         sigma=settings.sigma,
         gamma1=settings.gamma1,
@@ -51,9 +52,13 @@ def process_ode_process_input(settings, location_data):
         solver_dt=settings.solver_dt,
         spline_options={
             'spline_knots': np.array(settings.knots),
-            'spline_degree': settings.degree
+            'spline_degree': settings.degree,
+            'prior_spline_convexity': None if not settings.concavity else 'concave',
+            'prior_spline_monotonicity': None if not settings.increasing else 'increasing'
         },
-        day_shift=settings.day_shift
+        day_shift=settings.day_shift,
+        spline_se_power=settings.spline_se_power,
+        spline_space=settings.spline_space
     )
 
 
