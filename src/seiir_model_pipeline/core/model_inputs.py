@@ -51,7 +51,8 @@ def process_ode_process_input(settings, location_data):
         solver_dt=settings.solver_dt,
         spline_options={
             'spline_knots': np.array(settings.knots),
-            'spline_degree': settings.degree
+            'spline_degree': settings.degree,
+            'prior_spline_convexity': None if not settings.concavity else settings.concavity
         },
         day_shift=settings.day_shift
     )

@@ -338,6 +338,7 @@ class RegressionVersion(Version):
     # Spline Arguments
     degree: int
     knots: np.array
+    concavity: bool
 
     # Regression Arguments
     covariates: Dict[str, Dict[str, Union[bool, List, float]]]
