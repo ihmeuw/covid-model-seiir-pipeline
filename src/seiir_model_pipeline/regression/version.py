@@ -6,7 +6,7 @@ from pathlib import Path
 from seiir_model_pipeline.exceptions import VersionAlreadyExists
 from seiir_model_pipeline.utilities import VersionDirectory
 from seiir_model_pipeline.regression.covariate import CovariateFormatter
-from seiir_model_pipeline.regression.data import RegressionDirectories
+from seiir_model_pipeline.regression.data import RegressionData
 from seiir_model_pipeline.regression.specification import (RegressionSpecification,
                                                            dump_regression_specification,
                                                            load_regression_specification)
@@ -28,17 +28,14 @@ class RegressionVersion:
                                        f"run using resume.")
 
         # make input directories
-        regression_directories = RegressionDirectories(
-            regression_dir=regression_dir,
-            infection_dir=Path(regression_specification.data.infection_version)
-        )
-        regression_directories.make_dirs()
+        regression_data = RegressionData(regression_dir=regression_dir)
+        regression_data.make_dirs()
 
         # etl covariate data
         cov_etl = CovariateFormatter(
             covariate_dir=Path(regression_specification.data.covariate_version),
             covariate_specifications=regression_specification.covariates,
-            location_ids=[]  # TODO: locations in regression_spec?
+            location_ids=regression_data.location_ids
         )
         cov_etl.etl_covariates(regression_specification.parameters, regression_directories)
 
