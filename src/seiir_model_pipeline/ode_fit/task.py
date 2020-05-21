@@ -22,7 +22,8 @@ def run_ode_fit(draw_id: int, ode_version: str):
     # -------------------------- LOAD INPUTS -------------------- #
     # Load metadata
     ode_fit_spec: FitSpecification = FitSpecification.from_path(
-        Path(ode_version) / "fit_specification.yaml")
+        Path(ode_version) / "fit_specification.yaml"
+    )
     ode_data_interface = ODEDataInterface(ode_fit_spec.data)
 
     # Load data

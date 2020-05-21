@@ -3,11 +3,9 @@ from typing import List
 
 import pandas as pd
 
-from seiir_model_pipeline.regression.data_interface import RegressionDirectories
-from seiir_model_pipeline.regression.globals import (COVARIATE_COL_DICT, COVARIATES_FILE,
-                                                     COVARIATES_DRAW_FILE)
-from seiir_model_pipeline.regression.specification import (CovariateSpecification,
-                                                           RegressionParameters)
+from seiir_model_pipeline.paths import CovariatePaths
+from seiir_model_pipeline.regression.globals import COVARIATE_COL_DICT
+from seiir_model_pipeline.regression import RegressionSpecification, CovariateSpecification
 
 
 class CovariatePool:
@@ -16,21 +14,16 @@ class CovariatePool:
     Deals with time dependent and independent covariates.
     """
 
-    def __init__(self,
-                 covariate_dir: Path,
-                 covariate_specifications: List[CovariateSpecification],
-                 location_ids: List[int]):
-        self.covariate_dir = covariate_dir
-        self.covariate_specifications = covariate_specifications
-        self.location_ids = location_ids
+    def __init__(self, regression_specification: RegressionSpecification):
+        self.regression_specification = regression_specification
 
         # TODO: use this to maybe subset past and future?
         self.col_observed = COVARIATE_COL_DICT['COL_OBSERVED']
         self.col_loc_id = COVARIATE_COL_DICT['COL_LOC_ID']
         self.col_date = COVARIATE_COL_DICT['COL_DATE']
 
-    def etl_covariates(self, regression_parameters: RegressionParameters,
-                       regression_directories: RegressionDirectories) -> None:
+    def create_covariate_pool(self, regression_parameters: RegressionParameters,
+                              regression_directories: RegressionDirectories) -> None:
         if any([spec.draws for spec in self.covariate_specifications]):
             for draw_id in range(regression_parameters.n_draws):
                 df = self.generate_covariate_df(draw_id=draw_id)
