@@ -7,6 +7,7 @@ import getpass
 
 from jobmon.client.swarm.workflow.bash_task import BashTask
 from jobmon.client.swarm.workflow.workflow import Workflow
+from jobmon.client.swarm.executors.base import ExecutorParameters
 
 from seiir_model_pipeline.core.utils import clone_run
 from seiir_model_pipeline.core.versioner import BASE_DIR, Directories, OUTPUT_DIR, load_ode_settings, INPUT_DIR
@@ -18,8 +19,13 @@ from seiir_model_pipeline.core.task import ExecParams
 log = logging.getLogger(__name__)
 
 VALIDATION_INPUT_DIR = BASE_DIR / 'seir-validations'
-EXEC_PARAMS = ExecParams
-EXEC_PARAMS.adjust({'m_mem_free': '5G'})
+EXEC_PARAMS = ExecutorParameters(
+    max_runtime_seconds=int(1000),
+    j_resource=False,
+    m_mem_free='5G',
+    num_cores=1,
+    queue='d.q'
+)
 
 
 def parse_arguments(argstr: Optional[str] = None) -> Namespace:
@@ -103,7 +109,6 @@ def create_infection_split_workflow(directories, old_directory, new_directory, t
 
 
 def process_input_files(version_name, time_holdout):
-
     directories = Directories(ode_version=version_name)
     infection_version = load_ode_settings(version_name).infection_version
     new_infection_version = f'{infection_version}.validate.{time_holdout}'
@@ -111,13 +116,14 @@ def process_input_files(version_name, time_holdout):
     old_infection_directory = INPUT_DIR / infection_version
     new_infection_directory = VALIDATION_INPUT_DIR / new_infection_version
     if not os.path.exists(new_infection_directory):
-
+        os.makedirs(new_infection_directory)
         split_workflow = create_infection_split_workflow(
             directories=directories,
             old_directory=old_infection_directory,
             new_directory=new_infection_directory,
             time_holdout=time_holdout
         )
+        log.info("Running workflow to split infectionator data.")
         exit_status = split_workflow.run()
         if exit_status != 0:
             raise RuntimeError("Error in the split workflow.")
@@ -127,7 +133,6 @@ def process_input_files(version_name, time_holdout):
 
 def launch_validation(version_name, time_holdout):
     log.info(f"Cloning {version_name} for a validation run with {time_holdout} holdout days.")
-
     new_infection_version = process_input_files(version_name, time_holdout)
     new_version_name = get_validation_version_name(
         original_version=version_name, time_holdout=time_holdout
