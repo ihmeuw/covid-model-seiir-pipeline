@@ -134,13 +134,14 @@ def clone_run(old_version, new_version, **kwargs):
 
     settings = asdict(ode)
     settings.update(**kwargs)
+    settings.pop('version_name')
 
     covariate_version = get_covariate_version_from_cache(cache_version=regression.covariate_version)
 
     create_run(
         version_name=new_version,
         covariate_version=covariate_version,
-        regression_version=regression.covariates,
+        covariates=regression.covariates,
         covariate_draw_dict=regression.covariate_draw_dict,
         covariates_order=regression.covariates_order,
         coefficient_version=regression.coefficient_version,
