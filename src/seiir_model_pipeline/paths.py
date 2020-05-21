@@ -4,6 +4,64 @@ from typing import List
 
 
 @dataclass
+class ForecastPaths:
+    """Local directory structure of a forecasting data root."""
+    forecast_dir: Path
+
+    @property
+    def beta_scaling(self) -> Path:
+        """Scaling factors used to align past and forecast betas."""
+        return self.forecast_dir / 'beta_scaling'
+
+    def get_beta_scaling_path(self, location_id: int) -> Path:
+        """Retrieves a location specific path to beta scaling parameters"""
+        return self.beta_scaling / f"{location_id}_beta_scaling.csv"
+
+    @property
+    def component_draws(self) -> Path:
+        """Folders by location with SEIIR components."""
+        return self.forecast_dir / 'component_draws'
+
+    def get_component_draws_path(self, location_id: int, draw: int) -> Path:
+        """Get SEIIR components for a particular location and draw."""
+        return self.component_draws / str(location_id) / f'draw_{draw}.csv'
+
+    @property
+    def diagnostics(self) -> Path:
+        """Plots of SEIIR component draws, final draws, and residuals."""
+        return self.forecast_dir / 'diagnostics'
+
+    def get_residuals_plot(self, location_name: str) -> Path:
+        """Path to residual plots by location."""
+        return self.diagnostics / f'cases_fit_and_beta_residuals_{location_name}.png'
+
+    def get_final_draw_plots(self, location_name: str) -> Path:
+        """Path to final draw plots by location."""
+        return self.diagnostics / f'final_draws_refflog_{location_name}.png'
+
+    def get_trajectory_plots(self, location_name: str) -> Path:
+        """Path to final trajectory plots by location."""
+        return self.diagnostics / f'trajectories_{location_name}.png'
+
+    @property
+    def output_draws(self) -> Path:
+        """Path to the output draws directories."""
+        return self.forecast_dir / 'output_draws'
+
+    def get_output_cases(self, location_id: int) -> Path:
+        """Path to output cases file by location."""
+        return self.output_draws / f'cases_{location_id}.csv'
+
+    def get_output_reff(self, location_id: int) -> Path:
+        """Path to output R effective file by location."""
+        return self.output_draws / f'reff_{location_id}.csv'
+
+    def get_output_deaths(self, location_id: int) -> Path:
+        """Path to output deaths file by location"""
+        return self.output_draws / f'deaths_{location_id}.csv'
+
+
+@dataclass
 class ODEPaths:
     ode_dir: Path
 
