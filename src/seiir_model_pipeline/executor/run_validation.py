@@ -36,10 +36,11 @@ def parse_arguments(argstr: Optional[str] = None) -> Namespace:
 
 def get_train_test_data(df, time_holdout):
 
-    col_date = INFECTION_COL_DICT['col_date']
+    col_date = INFECTION_COL_DICT['COL_DATE']
+    col_obs = INFECTION_COL_DICT['COL_OBS_DEATHS']
 
     holdout_days = np.timedelta64(time_holdout, 'D')
-    end_date = np.datetime64(df[col_date].max(), 'D')
+    end_date = np.datetime64(df.loc[df[col_obs] == 1, col_date].max(), 'D')
     split_date = end_date - holdout_days
 
     df[col_date] = pd.to_datetime(df[col_date])
@@ -84,13 +85,14 @@ def create_validation_infection_version(original_version, infection_version, tim
                     log.warning(f"{str(new_directory / d / f)} already exists.")
                 else:
                     train.to_csv(new_directory / d / f, index=False)
-                    test.to_csv(new_directory / d / f'VALIDATION_{f}')
+                    test.to_csv(new_directory / d / f'VALIDATION_{f}', index=False)
 
     return new_version
 
 
 def launch_validation(version_name, time_holdout):
     log.info(f"Cloning {version_name} for a validation run with {time_holdout} holdout days.")
+    
     new_version_name = get_validation_version_name(original_version=version_name, time_holdout=time_holdout)
     infection_version = load_ode_settings(version_name).infection_version
 
