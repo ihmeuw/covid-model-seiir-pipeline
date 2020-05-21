@@ -355,6 +355,7 @@ class RegressionVersion(Version):
     gamma1: Tuple[float] = field(default=(0.50, 0.50))
     gamma2: Tuple[float] = field(default=(0.50, 0.50))
     solver_dt: float = field(default=0.1)
+    reff_init: float = field(default=20.0)
 
     def __post_init__(self):
         pass
