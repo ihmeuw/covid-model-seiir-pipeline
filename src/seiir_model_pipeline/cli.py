@@ -72,7 +72,7 @@ def fit(run_metadata,
 
     main = cli_tools.monitor_application(ode_fit.do_beta_fit,
                                          logger, with_debugger)
-    app_metadata, _ = main(fit_spec, infection_root, run_directory)
+    app_metadata, _ = main(fit_spec, run_directory)
 
     run_metadata['app_metadata'] = app_metadata.to_dict()
     run_metadata.dump(run_directory / 'metadata.yaml')

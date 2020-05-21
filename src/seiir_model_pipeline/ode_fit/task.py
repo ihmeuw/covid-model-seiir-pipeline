@@ -10,7 +10,7 @@ import numpy as np
 from seiir_model.ode_model import ODEProcessInput
 from seiir_model.model_runner import ModelRunner
 
-from seiir_model_pipeline.ode_fit.specification import FitSpecification
+from seiir_model_pipeline.ode_fit import FitSpecification
 from seiir_model_pipeline.ode_fit.data import ODEDataInterface
 from seiir_model_pipeline.globals import INFECTION_COL_DICT
 
@@ -21,7 +21,8 @@ log = logging.getLogger(__name__)
 def run_ode_fit(draw_id: int, ode_version: str):
     # -------------------------- LOAD INPUTS -------------------- #
     # Load metadata
-    ode_fit_spec = FitSpecification.from_path(Path(ode_version) / "specification.yaml")
+    ode_fit_spec: FitSpecification = FitSpecification.from_path(
+        Path(ode_version) / "fit_specification.yaml")
     ode_data_interface = ODEDataInterface(ode_fit_spec.data)
 
     # Load data
@@ -39,6 +40,7 @@ def run_ode_fit(draw_id: int, ode_version: str):
         col_pop=INFECTION_COL_DICT['COL_POP'],
         col_loc_id=INFECTION_COL_DICT['COL_LOC_ID'],
         col_lag_days=INFECTION_COL_DICT['COL_ID_LAG'],
+        col_observed=INFECTION_COL_DICT['COL_OBS_DEATHS'],
         alpha=ode_fit_spec.parameters.alpha,
         sigma=ode_fit_spec.parameters.sigma,
         gamma1=ode_fit_spec.parameters.gamma1,
