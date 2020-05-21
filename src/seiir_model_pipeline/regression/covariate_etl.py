@@ -10,7 +10,7 @@ from seiir_model_pipeline.regression.specification import (CovariateSpecificatio
                                                            RegressionParameters)
 
 
-class CovariateFormatter:
+class CovariatePool:
     """
     Formats covariates by pulling in the files from the seir-covariates input directory.
     Deals with time dependent and independent covariates.

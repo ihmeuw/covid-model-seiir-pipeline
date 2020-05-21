@@ -24,6 +24,7 @@ if __name__ == "__main__":
         'odeopt',
         'pandas',
         'pyyaml',
+        'parse'
     ]
 
     test_requirements = [
