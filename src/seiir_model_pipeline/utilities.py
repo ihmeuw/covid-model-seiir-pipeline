@@ -91,7 +91,7 @@ def get_version(cli_argument: Optional[str], specification_value: Optional[str])
 
     """
     if cli_argument:
-        version = cli_argument
+        version = Path(cli_argument).resolve()
     elif specification_value:
         version = specification_value
     else:
