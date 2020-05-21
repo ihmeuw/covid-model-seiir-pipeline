@@ -355,7 +355,7 @@ class RegressionVersion(Version):
     gamma1: Tuple[float] = field(default=(0.50, 0.50))
     gamma2: Tuple[float] = field(default=(0.50, 0.50))
     solver_dt: float = field(default=0.1)
-    spline_se_space: str = field(default='linear')
+    spline_se_power: float = field(default=1.0)
 
     def __post_init__(self):
         pass
