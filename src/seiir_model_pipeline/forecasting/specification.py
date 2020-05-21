@@ -1,11 +1,8 @@
 from dataclasses import dataclass, field
-from pathlib import Path
-from pprint import pformat
-from typing import Dict, Union
+import itertools
+from typing import Dict, Tuple
 
-import yaml
-
-from seiir_model_pipeline.utilities import load_specification, asdict
+from seiir_model_pipeline.utilities import Specification, asdict
 
 
 @dataclass
@@ -44,14 +41,16 @@ class ScenarioSpecification:
         return asdict(self)
 
 
-class ForecastSpecification:
+class ForecastSpecification(Specification):
+    """Specification for a beta forecast run."""
 
     def __init__(self, data: ForecastData, *scenarios: ScenarioSpecification):
         self._data = data
         self._scenarios = {s.name: s for s in scenarios}
 
     @classmethod
-    def from_dict(cls, forecast_spec_dict: Dict) -> 'ForecastSpecification':
+    def parse_spec_dict(cls, forecast_spec_dict: Dict) -> Tuple:
+        """Construct forecast specification args from a dict."""
         data = ForecastData(**forecast_spec_dict.get('data', {}))
         scenario_dicts = forecast_spec_dict.get('scenarios', {})
         scenarios = []
@@ -59,40 +58,21 @@ class ForecastSpecification:
             scenarios.append(ScenarioSpecification(name, **scenario_spec))
         if not scenarios:
             scenarios.append(ScenarioSpecification())
-        return cls(data, *scenarios)
+        return tuple(itertools.chain([data], scenarios))
 
     @property
     def data(self) -> 'ForecastData':
+        """The forecast data specification."""
         return self._data
 
     @property
     def scenarios(self) -> Dict[str, ScenarioSpecification]:
+        """The specification of all scenarios in the forecast."""
         return self._scenarios
 
     def to_dict(self):
+        """Convert the specification to a dict."""
         return {
             'data': self.data.to_dict(),
             'scenarios': {k: v.to_dict() for k, v in self._scenarios.items()}
         }
-
-    def __repr__(self):
-        return f'ForecastSpecification(\n{pformat(self.to_dict())}\n)'
-
-
-
-def load_forecast_specification(specification_path: Union[str, Path]) -> ForecastSpecification:
-    """Loads a forecast specification from a yaml file."""
-    spec_dict = load_specification(specification_path)
-    return ForecastSpecification.from_dict(spec_dict)
-
-
-def dump_forecast_specification(forecast_specification: ForecastSpecification,
-                                specification_path: Union[str, Path]) -> None:
-    """Writes a forecast specification to a yaml file."""
-    with Path(specification_path).open('w') as specification_file:
-        yaml.dump(forecast_specification.to_dict(), specification_file, sort_keys=False)
-
-
-def validate_specification(forecast_specification: ForecastSpecification) -> None:
-    """Checks all preconditions on the forecast."""
-    pass
