@@ -1,4 +1,6 @@
-from argparse import ArgumentParser
+from argparse import ArgumentParser, Namespace
+from typing import Optional
+import shlex
 import logging
 
 from seiir_model_pipeline.core.versioner import args_to_directories
@@ -9,7 +11,7 @@ from seiir_model_pipeline.core.utils import load_locations
 log = logging.getLogger(__name__)
 
 
-def get_args():
+def parse_arguments(argstr: Optional[str] = None) -> Namespace:
     """
     Get arguments from the command line for this whole fun.
     """
@@ -20,39 +22,46 @@ def get_args():
     parser.add_argument("--run-splicer", action='store_true', required=False, default=False)
     parser.add_argument("--create-diagnostics", action='store_true', required=False, default=False)
 
-    return parser.parse_args()
+    if argstr is not None:
+        arglist = shlex.split(argstr)
+        args = parser.parse_args(arglist)
+    else:
+        args = parser.parse_args()
+
+    return args
 
 
-def main():
-    args = get_args()
+def run(ode_version: str, regression_version: str, forecast_version: str,
+        run_splicer: bool, create_diagnostics: bool):
+
     log.info("Initiating SEIIR modeling pipeline.")
 
-    directories = args_to_directories(args)
+    directories = args_to_directories(ode_version)
 
     wf = SEIIRWorkFlow(directories=directories)
 
-    run_ode = args.ode_version is not None
-    run_regression = args.regression_version is not None
-    run_forecasts = args.forecast_version is not None
+    run_ode = ode_version is not None
+    run_regression = regression_version is not None
+    run_forecasts = forecast_version is not None
 
     ode_tasks = []
     regression_tasks = []
 
     if run_ode:
-        ode_settings = load_ode_settings(args.ode_version)
+        ode_settings = load_ode_settings(ode_version)
         ode_tasks = wf.attach_ode_tasks(
             n_draws=ode_settings.n_draws,
-            ode_version=args.ode_version
+            ode_version=ode_version
         )
 
     if run_regression:
-        regression_settings = load_regression_settings(args.regression_version)
+        regression_settings = load_regression_settings(regression_version)
         ode_settings = load_ode_settings(regression_settings.ode_version)
 
         regression_tasks = wf.attach_regression_tasks(
             n_draws=ode_settings.n_draws,
-            regression_version=args.regression_version,
-            add_diagnostic=args.create_diagnostics,
+            regression_version=regression_version,
+            add_diagnostic=create_diagnostics,
             upstream_tasks=ode_tasks
         )
     else:
@@ -63,13 +72,21 @@ def main():
         location_ids = load_locations(directories)
         wf.attach_forecast_tasks(
             location_ids=location_ids,
-            add_splicer=args.run_splicer,
-            add_diagnostic=args.create_diagnostics,
-            forecast_version=args.forecast_version,
+            add_splicer=run_splicer,
+            add_diagnostic=create_diagnostics,
+            forecast_version=forecast_version,
             upstream_tasks=regression_tasks
         )
 
     wf.run()
+
+
+def main():
+
+    args = parse_arguments()
+    run(ode_version=args.ode_version, regression_version=args.regression_version,
+        forecast_version=args.forecast_version, run_splicer=args.run_splicer,
+        create_diagnostics=args.create_diagnostics)
 
 
 if __name__ == '__main__':
