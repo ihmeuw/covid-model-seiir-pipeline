@@ -56,17 +56,17 @@ class Visualizer:
 
         self.location_metadata = pd.read_csv(
             self.directories.get_location_metadata_file(
-                self.regression_settings.location_set_version_id)
+                self.ode_settings.location_set_version_id)
         )
         self.id2loc = self.location_metadata.set_index('location_id')[
             'location_name'].to_dict()
 
         # read beta regression draws
         for group in groups:
-            path_to_regression_draws_for_group = os.path.join(directories.ode_beta_fit_dir, str(group))
+            path_to_regression_draws_for_group = os.path.join(directories.regression_betas_dir, str(group))
             if os.path.isdir(path_to_regression_draws_for_group):
                 for filename in os.listdir(path_to_regression_draws_for_group):
-                    if filename.startswith("fit_draw_") and filename.endswith(".csv"):
+                    if filename.startswith("regression_draw_") and filename.endswith(".csv"):
                         draw_df = pd.read_csv(os.path.join(path_to_regression_draws_for_group, filename))
                         # It's assumed that draw_df contains only the `group` group exclusively
                         self.data[group][ODE_BETA_FIT].append(draw_df)
@@ -144,7 +144,7 @@ class Visualizer:
             if draws is not None:
                 if i not in draws:
                     continue
-
+            
             past_time = pd.to_datetime(past_compartments[self.col_date])
             past_compartment_trajectory = past_compartments[compartment]
             ax.plot(past_time, past_compartment_trajectory,
@@ -153,7 +153,6 @@ class Visualizer:
             future_compartment_trajectory = future_compartments[compartment]
             ax.plot(future_time, future_compartment_trajectory,
                     linestyle=linestyle, c=color, alpha=transparency)
-
         # get times
         past_time = pd.to_datetime(self.data[group][ODE_BETA_FIT][0][self.col_date])
         future_time = pd.to_datetime(self.data[group][ODE_COMPONENTS_FORECAST][0][self.col_date])
@@ -274,9 +273,12 @@ class Visualizer:
             time = pd.to_datetime(compartment_data[self.col_date])
             start_date = time.to_list()[0]
             end_date = time.to_list()[-1]
-            now_date = pd.to_datetime(
-                compartment_data[compartment_data[self.col_observed] == 1][self.col_date]
-            ).to_list()[-1]
+            if compartment == 'Deaths':
+                now_date = pd.to_datetime(
+                    compartment_data[compartment_data[self.col_observed] == 1][self.col_date]
+                ).to_list()[-1]
+            else:
+                now_date = None
 
             draw_num = 0
             draws = []
@@ -480,6 +482,20 @@ class PlotBetaCoef:
             plt.savefig(self.path_to_savefig / f'{cov}_boxplot.pdf',
                         bbox_inches='tight')
 
+        # save the coefficient of stats
+        for cov in self.covs:
+            lower = np.quantile(self.coef_data[cov][1], 0.025, axis=0)
+            upper = np.quantile(self.coef_data[cov][1], 0.975, axis=0)
+            mean = np.mean(self.coef_data[cov][1], axis=0)
+            df = pd.DataFrame({
+                'loc': self.locs,
+                'loc_id': self.loc_ids,
+                'lower': lower,
+                'mean': mean,
+                'upper': upper,
+            })
+            df.to_csv(self.path_to_savefig/f'{cov}_coef.csv', index=False)
+
 
 class PlotBetaScaling:
     def __init__(self, directories: Directories):
@@ -488,8 +504,9 @@ class PlotBetaScaling:
 
         # load settings
         self.settings = load_regression_settings(directories.regression_version)
+        self.ode_settings = load_ode_settings(self.settings.ode_version)
         self.path_to_location_metadata = self.directories.get_location_metadata_file(
-            self.settings.location_set_version_id
+            self.ode_settings.location_set_version_id
         )
         self.path_to_beta_scaling = self.directories.forecast_beta_scaling_dir
         self.path_to_savefig = self.directories.forecast_diagnostic_dir

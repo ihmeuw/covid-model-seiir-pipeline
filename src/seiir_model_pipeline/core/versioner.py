@@ -146,7 +146,7 @@ class Directories:
         self.forecast_output_draw_dir = None
         self.forecast_diagnostic_dir = None
         self.forecast_beta_scaling_dir = None
-
+        
         if self.ode_version is not None:
             ov = load_ode_settings(self.ode_version)
         if self.regression_version is not None:
@@ -156,7 +156,7 @@ class Directories:
             fv = load_forecast_settings(self.forecast_version)
             rv = load_regression_settings(fv.regression_version)
             ov = load_ode_settings(rv.ode_version)
-
+        
         self.ode_version = ov.version_name if ov is not None else None
         self.regression_version = rv.version_name if rv is not None else None
         self.forecast_version = fv.version_name if fv is not None else None
