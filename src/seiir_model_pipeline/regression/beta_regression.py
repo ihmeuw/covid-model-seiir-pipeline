@@ -8,13 +8,9 @@ import numpy as np
 
 from seiir_model.model_runner import ModelRunner
 
-# from seiir_model_pipeline.core.versioner import COVARIATE_COL_DICT, INFECTION_COL_DICT
-# from seiir_model_pipeline.core.versioner import load_regression_settings
-# from seiir_model_pipeline.core.versioner import Directories
-
 from seiir_model_pipeline.regression.specification import load_regression_specification
 from seiir_model_pipeline.regression.data import RegressionData, InfectionData
-from seiir_model_pipeline.regression.globals import COVARIATE_COL_DICT
+from seiir_model_pipeline.regression.globals import COVARIATE_COL_DICT, INFECTION_COL_DICT
 
 from seiir_model_pipeline.core.model_inputs import process_ode_process_input
 from seiir_model_pipeline.core.model_inputs import convert_inputs_for_beta_model
@@ -123,7 +119,7 @@ def run_beta_regression(draw_id: int, regression_version: str):
     beta_fit = mr.get_beta_ode_fit()
     regression_betas = forecasts[
         [COVARIATE_COL_DICT['COL_LOC_ID'], COVARIATE_COL_DICT['COL_DATE']] +
-        list(settings.covariates.keys()) + ['beta_pred']
+        [cov.name for cov in regression_specification.covariates] + ['beta_pred']
     ]
     beta_fit_covariates = beta_fit.merge(
         regression_betas,
@@ -134,10 +130,12 @@ def run_beta_regression(draw_id: int, regression_version: str):
     # Save location-specific beta fit (compartment) files for easy reading later
     for l_id in location_ids:
         loc_beta_fits = beta_fit_covariates.loc[beta_fit_covariates[INFECTION_COL_DICT['COL_LOC_ID']] == l_id].copy()
-        loc_beta_fits.to_csv(directories.get_draw_beta_fit_file(l_id, draw_id), index=False)
+        loc_beta_fits.to_csv(regression_data.get_draw_beta_fit_file(l_id, draw_id),
+                             index=False)
 
     # Save the parameters of alpha, sigma, gamma1, and gamma2 that were drawn
-    mr.get_beta_ode_params().to_csv(directories.get_draw_beta_param_file(draw_id), index=False)
+    mr.get_beta_ode_params().to_csv(regression_data.get_draw_beta_param_file(draw_id),
+                                    index=False)
 
 
 def main():

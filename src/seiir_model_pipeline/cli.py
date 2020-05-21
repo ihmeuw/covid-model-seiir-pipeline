@@ -133,8 +133,7 @@ def regress(run_metadata,
 
     main = cli_tools.monitor_application(regression.do_beta_regression,
                                          logger, with_debugger)
-    app_metadata, _ = main(regression_spec, ode_fit_root,
-                           covariates_root, run_directory)
+    app_metadata, _ = main(regression_spec, run_directory)
 
     run_metadata['app_metadata'] = app_metadata.to_dict()
     run_metadata.dump(run_directory / 'metadata.yaml')
