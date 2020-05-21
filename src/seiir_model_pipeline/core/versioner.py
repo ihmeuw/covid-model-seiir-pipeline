@@ -157,10 +157,6 @@ class Directories:
             rv = load_regression_settings(fv.regression_version)
             ov = load_ode_settings(rv.ode_version)
         
-        self.forecast_version = fv.version_name
-        self.regression_version = rv.version_name
-        self.ode_version = ov.version_name
-
         self.ode_version = ov.version_name if ov is not None else None
         self.regression_version = rv.version_name if rv is not None else None
         self.forecast_version = fv.version_name if fv is not None else None

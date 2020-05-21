@@ -504,8 +504,9 @@ class PlotBetaScaling:
 
         # load settings
         self.settings = load_regression_settings(directories.regression_version)
+        self.ode_settings = load_ode_settings(self.settings.ode_version)
         self.path_to_location_metadata = self.directories.get_location_metadata_file(
-            self.settings.location_set_version_id
+            self.ode_settings.location_set_version_id
         )
         self.path_to_beta_scaling = self.directories.forecast_beta_scaling_dir
         self.path_to_savefig = self.directories.forecast_diagnostic_dir
