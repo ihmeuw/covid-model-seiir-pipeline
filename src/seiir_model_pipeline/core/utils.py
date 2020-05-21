@@ -3,7 +3,7 @@ import numpy as np
 
 from seiir_model_pipeline.core.versioner import ODEVersion, RegressionVersion, ForecastVersion, Directories
 from seiir_model_pipeline.core.data import get_missing_locations
-from seiir_model_pipeline.core.data import cache_covariates
+from seiir_model_pipeline.core.data import cache_covariates, get_covariate_version_from_cache
 from seiir_model_pipeline.core.versioner import load_regression_settings, load_ode_settings
 from dataclasses import asdict
 
@@ -135,13 +135,15 @@ def clone_run(old_version, new_version, **kwargs):
     settings = asdict(ode)
     settings.update(**kwargs)
 
+    covariate_version = get_covariate_version_from_cache(cache_version=regression.covariate_version)
+
     create_run(
-        new_version,
-        regression.covariate_version,
-        regression.covariates,
-        regression.covariate_draw_dict,
-        regression.covariates_order,
-        regression.coefficient_version,
+        version_name=new_version,
+        covariate_version=covariate_version,
+        regression_version=regression.covariates,
+        covariate_draw_dict=regression.covariate_draw_dict,
+        covariates_order=regression.covariates_order,
+        coefficient_version=regression.coefficient_version,
         **settings
     )
 

@@ -19,6 +19,14 @@ def get_covariate_version_from_best():
     return path
 
 
+def get_covariate_version_from_cache(cache_version):
+    file = COVARIATE_CACHE / cache_version / 'metadata.yaml'
+    with open(file) as f:
+        version = yaml.load(f, Loader=yaml.FullLoader)
+    path = version['output_path'].split('/')[-1]
+    return path
+
+
 def get_missing_locations(location_ids,
                           infection_version):
     infection_dir = INPUT_DIR / infection_version
