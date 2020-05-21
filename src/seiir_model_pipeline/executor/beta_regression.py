@@ -107,7 +107,6 @@ def run_beta_regression(draw_id: int, regression_version: str):
         mr_data=mr_data,
         path=directories.get_draw_coefficient_file(draw_id),
         df_cov_coef=fixed_coefficients,
-        add_intercept=False,
     )
     # -------------------- POST PROCESSING AND SAVING ------------------------ #
     # Get the fitted values of beta from the regression model and append on
