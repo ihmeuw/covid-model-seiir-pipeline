@@ -36,9 +36,11 @@ def get_train_test_data(df, time_holdout):
 
     col_date = INFECTION_COL_DICT['COL_DATE']
     col_obs = INFECTION_COL_DICT['COL_OBS_DEATHS']
+    
+    df = df.loc[df[col_obs] == 1].copy()
 
     holdout_days = np.timedelta64(time_holdout, 'D')
-    end_date = np.datetime64(df.loc[df[col_obs] == 1, col_date].max(), 'D')
+    end_date = np.datetime64(df[col_date].max(), 'D')
     split_date = end_date - holdout_days
 
     df[col_date] = pd.to_datetime(df[col_date])
@@ -53,7 +55,6 @@ def get_train_test_data(df, time_holdout):
 
 
 def create_new_files(old_directory, new_directory, location_id, time_holdout):
-
     old_directory = Path(old_directory)
     new_directory = Path(new_directory)
 
@@ -85,8 +86,8 @@ def main():
 
     args = parse_arguments()
     create_new_files(
-        old_directory=args.old_directory,
-        new_directory=args.new_directory,
+        old_directory=args.input_dir,
+        new_directory=args.output_dir,
         location_id=args.location_id,
         time_holdout=args.time_holdout
     )
