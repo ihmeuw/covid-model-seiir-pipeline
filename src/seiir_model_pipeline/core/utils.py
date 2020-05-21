@@ -4,6 +4,8 @@ import numpy as np
 from seiir_model_pipeline.core.versioner import ODEVersion, RegressionVersion, ForecastVersion, Directories
 from seiir_model_pipeline.core.data import get_missing_locations
 from seiir_model_pipeline.core.data import cache_covariates
+from seiir_model_pipeline.core.versioner import load_regression_settings, load_ode_settings
+from dataclasses import asdict
 
 
 def create_ode_version(version_name, infection_version, location_set_version_id, **kwargs):
@@ -124,6 +126,24 @@ def create_run(version_name, covariate_version, covariates, covariate_draw_dict,
         covariate_draw_dict=covariate_draw_dict,
     )
     print(f"Created ode, regression and forecast versions {version_name}.")
+
+
+def clone_run(old_version, new_version, **kwargs):
+    ode = load_ode_settings(old_version)
+    regression = load_regression_settings(old_version)
+
+    settings = asdict(ode)
+    settings.update(**kwargs)
+
+    create_run(
+        new_version,
+        regression.covariate_version,
+        regression.covariates,
+        regression.covariate_draw_dict,
+        regression.covariates_order,
+        regression.coefficient_version,
+        **settings
+    )
 
 
 def get_location_name_from_id(location_id, metadata_path):
