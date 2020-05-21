@@ -21,7 +21,7 @@ def parse_arguments(argstr: Optional[str] = None) -> Namespace:
     """
     log.info("parsing arguments")
     parser = ArgumentParser()
-    parser.add_argument("--version-name", type=int, required=True)
+    parser.add_argument("--version-name", type=str, required=True)
     parser.add_argument("--time-holdout", type=int, required=True)
     parser.add_argument("--validation-output-dir", type=str, required=False)
 
@@ -91,7 +91,6 @@ def create_validation_infection_version(original_version, infection_version, tim
 
 def launch_validation(version_name, time_holdout):
     log.info(f"Cloning {version_name} for a validation run with {time_holdout} holdout days.")
-
     new_version_name = get_validation_version_name(original_version=version_name, time_holdout=time_holdout)
     infection_version = load_ode_settings(version_name).infection_version
 
