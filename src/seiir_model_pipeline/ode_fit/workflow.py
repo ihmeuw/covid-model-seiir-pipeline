@@ -3,6 +3,9 @@ from typing import Dict
 from jobmon.client import Workflow, BashTask
 from jobmon.client.swarm.executors.base import ExecutorParameters
 
+from seiir_model_pipeline import utilities
+from seiir_model_pipeline.ode_fit import FitSpecification
+
 
 class ODEFitTaskTemplate:
 
@@ -25,10 +28,11 @@ class ODEFitTaskTemplate:
     def get_task_name(draw_id: int) -> str:
         return f"ode_fit_{draw_id}"
 
-    def get_task(self, draw_id, ode_version):
+    def get_task(self, draw_id: int, ode_version: str):
         task_name = self.get_task_name(draw_id)
         task = BashTask(
-            command=self.command.format(draw_id=draw_id, ode_version=ode_version),
+            command=self.command_template.format(draw_id=draw_id,
+                                                 ode_version=ode_version),
             name=task_name,
             executor_parameters=self.params,
             max_attempts=1
@@ -39,7 +43,7 @@ class ODEFitTaskTemplate:
 
 class ODEFitWorkflow:
 
-    def __init__(self, fit_specification):
+    def __init__(self, fit_specification: FitSpecification):
         self.fit_specification = fit_specification
 
         # if we need to build dependencies then the task registry must be shared between
@@ -49,18 +53,21 @@ class ODEFitWorkflow:
         # TODO: figure out where to put these defaults
         # TODO: configure logging to go to output_root
         workflow_args = f'seiir-model-{fit_specification.data.output_root}'
+        stdout, stderr = utilities.make_log_dirs(self.fit_specification.data.output_root,
+                                                 prefix='jobmon')
+
         self.workflow = Workflow(
             workflow_args=workflow_args,
             project="proj_covid",
-            stderr=f'/ihme/scratch/users/mnorwood/covid/logs',
-            stdout=f'/ihme/scratch/users/mnorwood/covid/logs',
+            stderr=stderr,
+            stdout=stdout,
             seconds_until_timeout=60*60*24,
             resume=True
         )
 
     def attach_ode_tasks(self):
         for draw_id in range(self.fit_specification.parameters.n_draws):
-            task = self._ode_fit_task_template.get_task()
+            task = self._ode_fit_task_template.get_task(draw_id, self.fit_specification.data.output_root)
             self.workflow.add_task(task)
 
     def run(self):

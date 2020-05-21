@@ -5,7 +5,7 @@ from pathlib import Path
 from typing import Dict, Union, Optional, Tuple
 from pprint import pformat
 
-from covid_shared import paths
+from covid_shared import paths, shell_tools
 import numpy as np
 import yaml
 
@@ -115,3 +115,16 @@ def get_output_root(cli_argument: Optional[str], specification_value: Optional[s
     else:
         output_root = default
     return Path(output_root).resolve()
+
+
+def make_log_dirs(output_dir: Union[str, Path], prefix: str = None) -> Tuple[str, str]:
+    """Create log directories in output root and return the paths."""
+    log_dir = Path(output_dir) / 'logs'
+    if prefix:
+        log_dir /= prefix
+    std_out = log_dir / 'output'
+    std_err = log_dir / 'error'
+    shell_tools.mkdir(std_out, exists_ok=True, parents=True)
+    shell_tools.mkdir(std_err, exists_ok=True, parents=True)
+
+    return str(std_out), str(std_err)
