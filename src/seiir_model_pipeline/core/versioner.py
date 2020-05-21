@@ -368,7 +368,7 @@ class RegressionVersion(Version):
             warnings.warn("Spline fitting daily data, do not suggest using increasing constraint.", UserWarning)
 
         if self.spline_space.endswith('cumul') and self.concavity:
-            warnings.warn("Spline fitting cumulative data, do not sugguest using concave constraint.", UserWarning)
+            warnings.warn("Spline fitting cumulative data, do not suggest using concave constraint.", UserWarning)
 
     def _settings_to_json(self):
         settings = asdict(self)
