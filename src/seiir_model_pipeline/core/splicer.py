@@ -99,27 +99,27 @@ class Splicer:
         R_C = df[COL_BETA] * params['alpha'] * (df[COL_INFECT1] + df[COL_INFECT2]) ** (params['alpha'] - 1) / avg_gammas
         return (R_C * df[COL_S]) / pop
 
-    def record_splice(self, df, col_data, observed, draw_id):
+    def record_splice(self, df, col_data, draw_id):
         spl = df[[self.col_date, col_data]].copy()
-        spl[COL_OBSERVED] = 0.
-        spl.loc[observed, COL_OBSERVED] = 1.
         spl['draw'] = f'draw_{draw_id}'
         return spl
 
-    def splice_infections(self, infection_data, i_obs, component_fit, component_forecasts):
-        dates = infection_data[self.col_date]
-        observations = infection_data[[self.col_date, self.col_cases]][i_obs]
-        forecast_dates = dates[~i_obs]
+    def splice_infections(self, infection_data, today, component_fit, component_forecasts):
+        observations = infection_data[[self.col_date, self.col_cases]]
+        observations = observations.loc[pd.to_datetime(observations[self.col_date]) <= today]
+
         components = self.concatenate_components(
             component_fit=component_fit,
             component_forecasts=component_forecasts
         )
-        observations = observations.merge(components[[self.col_date, COL_INFECT1, COL_INFECT2, COL_BETA, COL_S]], on=[self.col_date], how='left')
-        forecasts = components.loc[components[self.col_date].isin(forecast_dates)].copy()
+        observations = observations.merge(
+            components[[self.col_date, COL_INFECT1, COL_INFECT2, COL_BETA, COL_S]], on=[self.col_date], how='left'
+        )
+        forecasts = components.loc[pd.to_datetime(components[self.col_date]) > today].copy()
         df = pd.concat([observations, forecasts]).reset_index(drop=True)
         return df
 
-    def splice_deaths(self, df, infection_data, d_obs):
+    def splice_deaths(self, df, infection_data, today):
         infections = infection_data[self.col_cases]
         deaths = infection_data[self.col_deaths]
 
@@ -127,15 +127,30 @@ class Splicer:
         ratio = self.get_ifr(deaths=deaths, infections=infections, lag=lag)
 
         df[self.col_deaths] = (df[self.col_cases] * ratio).shift(lag)
-        df.loc[d_obs, self.col_deaths] = infection_data[self.col_deaths_data][d_obs]
+
+        df_past = pd.to_datetime(df[self.col_date]) <= today
+        infect_past = pd.to_datetime(infection_data[self.col_date]) <= today
+
+        assert sum(df_past) == sum(infect_past)
+
+        df.loc[df_past, self.col_deaths] = infection_data[self.col_deaths_data][infect_past]
 
         df[COL_OBSERVED] = 0
-        df.loc[d_obs, COL_OBSERVED] = 1
+        df.loc[df_past, COL_OBSERVED] = 1
         return df
 
     def get_today(self, infection_data):
-        date = infection_data.loc[infection_data[self.col_obs_deaths] == 1, self.col_date].max()
-        return np.datetime64(date)
+        d_today = infection_data.loc[infection_data[self.col_obs_deaths] == 1, self.col_date].max()
+        i_today = infection_data.loc[infection_data[self.col_obs_cases] == 1, self.col_date].max()
+
+        d_today = np.datetime64(d_today)
+        i_today = np.datetime64(i_today)
+
+        lag = self.get_lag(infection_data)
+
+        if d_today - i_today != np.timedelta64(lag, 'D'):
+            raise RuntimeError("The observed columns for infections and deaths don't match with the lag.")
+        return d_today, i_today
 
     def splice_draw(self, infection_data, component_fit, component_forecasts, params, draw_id):
         """
@@ -149,30 +164,26 @@ class Splicer:
         :return:
         """
         pop = self.get_population(infection_data)
-        lag = self.get_lag(infection_data)
-        today = self.get_today(infection_data)
-
-        i_obs = pd.to_datetime(infection_data[self.col_date]) <= (today - np.timedelta64(lag, 'D'))
-        d_obs = pd.to_datetime(infection_data[self.col_date]) <= today
+        d_today, i_today = self.get_today(infection_data)
 
         spliced = self.splice_infections(
-            infection_data=infection_data, i_obs=i_obs,
+            infection_data=infection_data, today=i_today,
             component_fit=component_fit, component_forecasts=component_forecasts
         )
         spliced = self.splice_deaths(
             df=spliced,
-            infection_data=infection_data, d_obs=d_obs
+            infection_data=infection_data, today=d_today
         )
         spliced[COL_R_EFF] = self.compute_effective_r(df=spliced, params=params, pop=pop)
 
         self.infections[draw_id] = self.record_splice(
-            df=spliced, col_data=self.col_cases, observed=i_obs, draw_id=draw_id
+            df=spliced, col_data=self.col_cases, draw_id=draw_id
         )
         self.deaths[draw_id] = self.record_splice(
-            df=spliced, col_data=self.col_deaths, observed=d_obs, draw_id=draw_id
+            df=spliced, col_data=self.col_deaths, draw_id=draw_id
         )
         self.reff[draw_id] = self.record_splice(
-            df=spliced, col_data=COL_R_EFF, observed=i_obs, draw_id=draw_id
+            df=spliced, col_data=COL_R_EFF, draw_id=draw_id
         )
 
     def format_draws(self, dictionary, id_cols):
