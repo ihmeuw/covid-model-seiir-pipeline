@@ -147,9 +147,6 @@ class Splicer:
         i_today = np.datetime64(i_today)
 
         lag = self.get_lag(infection_data)
-
-        if d_today - i_today != np.timedelta64(lag, 'D'):
-            raise RuntimeError("The observed columns for infections and deaths don't match with the lag.")
         return d_today, i_today
 
     def splice_draw(self, infection_data, component_fit, component_forecasts, params, draw_id):
