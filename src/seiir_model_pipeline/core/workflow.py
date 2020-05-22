@@ -34,7 +34,7 @@ class SEIIRWorkFlow(Workflow):
         # TODO: right now my scratch directory is where the logs
         #  are saving -- I was getting errors when writing to sgeoutput
         today = datetime.today().strftime('%Y_%m_%d')
-        log_dir = os.path.join('/ihme/scratch/users/nathenry/covid-seir/',today)
+        log_dir = os.path.join('/share/temp/sgeoutput/azimmer/seiir/',today)
         if not os.path.exists(log_dir):
             os.mkdir(log_dir)
         super().__init__(
