@@ -152,8 +152,8 @@ class Splicer:
         lag = self.get_lag(infection_data)
         today = self.get_today(infection_data)
 
-        i_obs = pd.to_datetime(infection_data[self.col_date]) <= (today - np.timedelta64(lag, 'D'))
-        d_obs = pd.to_datetime(infection_data[self.col_date]) <= today
+        i_obs = (infection_data[self.col_obs_cases] == 1)
+        d_obs = (infection_data[self.col_obs_deaths] == 1)
 
         spliced = self.splice_infections(
             infection_data=infection_data, i_obs=i_obs,
