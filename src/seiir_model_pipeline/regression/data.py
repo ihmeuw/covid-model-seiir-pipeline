@@ -1,140 +1,123 @@
 from pathlib import Path
-from typing import List
-import warnings
+from typing import List, Optional, Dict, Tuple
 
 import pandas as pd
 
-
-from seiir_model_pipeline.paths import CovariatePaths
-from seiir_model_pipeline.regression.globals import (COVARIATE_COL_DICT, COVARIATES_FILE,
-                                                     COVARIATE_DRAW_FILE)
-
-
-class CovariateData:
-    """
-    Formats covariates by pulling in the files from the seir-covariates input directory.
-    Deals with time dependent and independent covariates.
-    """
-
-    def __init__(self, regression_specification: RegressionSpecification):
-        self.regression_specification = regression_specification
-        self.covariate_paths = CovariatePaths()
+from seiir_model_pipeline.paths import RegressionPaths, CovariatePaths
+from seiir_model_pipeline.regression import RegressionData
+from seiir_model_pipeline.regression.globals import COVARIATE_COL_DICT
 
 
-# class RegressionData:
+class CovariateDataInterface:
+    def __init__(self, regression_data: RegressionData):
+        self.covariate_paths = CovariatePaths(Path(regression_data.covariate_version))
 
-#     def __init__(self, regression_dir: Path):
-#         self.regression_dir = regression_dir
+    def load_raw_covariate_scenario(self, covariate: str, scenario: str,
+                                    location_ids: List[int], draw_id: Optional[int] = None
+                                    ) -> Tuple[pd.DataFrame, pd.DataFrame]:
+        covariate_scenario_file = self.covariate_paths.get_scenario_file(covariate, scenario)
+        df = pd.read_csv(covariate_scenario_file)
+        value_column = self.covariate_paths.scenario_file.format(covariate=covariate,
+                                                                 scenario=scenario)
+        columns = [COVARIATE_COL_DICT['COL_LOC_ID'], value_column]
 
-#     @property
-#     def regression_beta_fit_dir(self) -> Path:
-#         return self.regression_dir / 'betas'
+        # is time dependent cov?
+        if COVARIATE_COL_DICT['COL_DATE'] in df.columns:
+            columns.append(COVARIATE_COL_DICT['COL_DATE'])
 
-#     @property
-#     def regression_parameters_dir(self) -> Path:
-#         return self.regression_dir / 'parameters'
+        # drop nulls
+        df = df.loc[~df[value_column].isnull()]
 
-#     @property
-#     def regression_coefficient_dir(self) -> Path:
-#         return self.regression_dir / 'coefficients'
+        # subset locations
+        df = df.loc[df[COVARIATE_COL_DICT['COL_LOC_ID']].isin(location_ids)]
 
-#     @property
-#     def regression_diagnostic_dir(self) -> Path:
-#         return self.regression_dir / 'diagnostics'
+        # subset out historical data
+        observed_val = self.covariate_paths.scenario_file.format(covariate=covariate,
+                                                                 scenario="observed")
 
-#     @property
-#     def regression_input_dir(self) -> Path:
-#         return self.regression_dir / 'inputs'
+        observed_df = df[df.COVARIATE_COL_DICT['COL_OBSERVED'] == 1]
+        observed_df = observed_df[columns + [value_column]]
+        observed_df = observed_df.rename(columes={value_column: observed_val})
 
-#     @property
-#     def regression_covariate_dir(self) -> Path:
-#         return self.regression_dir / 'inputs' / 'covariates'
+        # subset columns
+        future_df = df[df.COVARIATE_COL_DICT['COL_OBSERVED'] == 0]
+        future_df = future_df[columns + [value_column]]
 
-#     def make_dirs(self) -> None:
-#         for directory in [self.regression_beta_fit_dir, self.regression_parameters_dir,
-#                           self.regression_coefficient_dir, self.regression_diagnostic_dir,
-#                           self.regression_input_dir, self.regression_covariates_dir]:
-#             directory.mkdir(mode=775, parents=True, exist_ok=True)
+        return observed_df, future_df
 
-#     def get_draw_coefficient_file(self, draw_id: int) -> Path:
-#         return self.regression_coefficient_dir / f'coefficients_{draw_id}.csv'
+    def load_raw_covariate_set(self, covariate: str, location_ids: List[int],
+                               draw_id: Optional[int] = None) -> Dict[str, pd.DataFrame]:
+        # TODO: figure out how to deal with draw_id
 
-#     def get_draw_beta_param_file(self, draw_id: int) -> Path:
-#         return self.regression_parameters_dir / f'params_draw_{draw_id}.csv'
+        scenario_set = self.covariate_paths.get_scenario_set(covariate)
 
-#     def get_draw_beta_fit_file(self, location_id: int, draw_id: int) -> Path:
-#         loc_dir = self.regression_beta_fit_dir / str(location_id)
-#         loc_dir.mkdir(mode=775, parents=True, exist_ok=True)
-#         return loc_dir / f'fit_draw_{draw_id}.csv'
+        covariate_set: Dict[str, pd.DataFrame] = {}
+        for scenario in scenario_set:
 
-#     @property
-#     def location_ids(self) -> List[int]:
-#         loc_file = pd.read_csv(self.regression_input_dir / "locations.csv")
-#         return loc_file[["location_id"]].tolist()
+            # get scenario data from disk
+            observed_df, future_df = self.load_raw_covariate_scenario(covariate, scenario,
+                                                                      location_ids, draw_id)
 
-#     def load_covariates(self, draw_id=None):
-#         """
-#         Load covariates that have *already been cached*.
+            # store observed data only once
+            observed_scenario = self.covariate_paths.scenario_file.format(covariate=covariate,
+                                                                          scenario="observed")
+            cached_df = covariate_set.get(observed_scenario)
+            if cached_df is None:
+                covariate_set[observed_scenario] = cached_df
+            else:
+                if not cached_df.equals(observed_df):
+                    raise RuntimeError(
+                        "Observed data is not exactly equal between covariates in covariate "
+                        f"pool. scenarios are {scenario_set}.")
 
-#         :param draw_id:
-#         :return:
-#         """
-#         if draw_id is None:
-#             file = COVARIATES_FILE
-#         else:
-#             file = COVARIATE_DRAW_FILE.format(draw_id=draw_id)
-#         df = pd.read_csv(self.regression_covariate_dir / file)
-#         df = df.loc[df[COVARIATE_COL_DICT['COL_LOC_ID']].isin(self.location_ids)].copy()
-#         return df
+            # store this scenario
+            scenario_name = self.covariate_paths.scenario_file.format(covariate=covariate,
+                                                                      scenario=scenario)
+            covariate_set[scenario_name] = future_df
 
-#     def load_mr_coefficients(self, draw_id: int):
-#         """
-#         Load meta-regression coefficients
-
-#         :param directories: Directories object
-#         :param draw_id: (int) which draw to load
-#         :return:
-#         """
-#         df = pd.read_csv(self.get_draw_coefficient_file(draw_id))
-#         return df
+        return covariate_set
 
 
-# class InfectionData:
-#     INFECTION_FILE_PATTERN = 'draw{draw_id:04}_prepped_deaths_and_cases_all_age.csv'
+class RegressionDataInterface:
 
-#     def __init__(self, infection_dir: Path):
-#         self.infection_dir: infection_dir
+    def __init__(self, regression_data: RegressionData):
+        self.regression_paths = RegressionPaths(Path(regression_data.output_root))
 
-#     def get_location_dir(self, location_id: int):
-#         matches = self.infection_dir.glob(f"*_{location_id}")
-#         num_matches = len(matches)
-#         if num_matches > 1:
-#             raise RuntimeError("There is more than one location-specific folder for "
-#                                f"{location_id}.")
-#         elif num_matches == 0:
-#             raise FileNotFoundError("There is not a location-specific folder for "
-#                                     f"{location_id}.")
-#         else:
-#             folder = matches[0]
-#         return self.infection_dir / folder
+    def save_covariate_set(self, covariate_set: Dict[str, pd.DataFrame],
+                           draw_id: Optional[int] = None):
+        # TODO: deal with draws
+        for covariate_scenario, df in covariate_set.items():
+            file = self.regression_paths.get_covariate_file(covariate_scenario)
+            df.to_csv(file, index=False)
 
-#     def get_infection_file(self, location_id: int, draw_id: int) -> Path:
-#         # folder = _get_infection_folder_from_location_id(location_id, self.infection_dir)
-#         f = (self.infection_dir.get_location_dir(location_id) /
-#              self.INFECTION_FILE_PATTERN.format(draw_id=draw_id))
-#         return f
+    def get_covariate_scenarios(self, covariate_scenarios: List[str],
+                                draw_id: Optional[int] = None) -> pd.DataFrame:
+        dfs = pd.DataFrame()
+        for covariate_scenario in covariate_scenarios:
 
-#     def get_missing_infection_locations(self, location_ids: List[int]) -> List[int]:
-#         infection_loc = [str(d).split('_')[-1] for d in self.infection_dir.iterdir()
-#                          if d.is_dir()]
-#         infection_loc = [int(x) for x in infection_loc if x.isdigit()]
-#         missing_infection_loc = set(location_ids) - set(infection_loc)
-#         warnings.warn('Locations missing from infection data: ' + str(missing_infection_loc))
-#         return list(missing_infection_loc)
+            # read in scenario
+            scenario_file = self.regression_paths.get_covariate_file(covariate_scenario)
+            scenario_df = pd.read_csv(scenario_file)
 
-#     def load_all_location_data(self, location_ids: List[int], draw_id: int):
-#         dfs = dict()
-#         for loc in location_ids:
-#             file = self.get_infection_file(location_id=loc, draw_id=draw_id)
-#             dfs[loc] = pd.read_csv(file)
-#         return dfs
+            # read in observed data
+            group = CovariatePaths.get_covariate_group_from_covariate(covariate_scenario)
+            obs_name = CovariatePaths.scenario_file.format(covariate_group=group,
+                                                           scenario="observed")
+            observed_file = self.regression_paths.get_covariate_file(obs_name)
+            observed_df = pd.read_csv(observed_file)
+
+            # concat timeseries
+            df = pd.concat([observed_df, scenario_df])
+
+            # merge with other scenarios
+            if dfs.empty:
+                dfs = df
+            else:
+                # time dependent covariates versus not
+                if COVARIATE_COL_DICT['COL_DATE'] in df.columns:
+                    dfs = dfs.merge(df, on=[COVARIATE_COL_DICT['COL_LOC_ID'],
+                                            COVARIATE_COL_DICT['COL_DATE']])
+                else:
+                    dfs = dfs.merge(df, on=[COVARIATE_COL_DICT['COL_LOC_ID']])
+
+        return dfs

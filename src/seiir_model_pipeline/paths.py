@@ -1,7 +1,7 @@
 import abc
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import List, ClassVar
+from typing import List, ClassVar, Optional
 
 from parse import parse
 
@@ -208,14 +208,17 @@ class RegressionPaths(Paths):
         return self.root_dir / 'inputs'
 
     @property
-    def covariate_dir(self) -> Path:
-        return self.root_dir / 'inputs' / 'covariates'
+    def covariate_pool_dir(self) -> Path:
+        return self.root_dir / 'covariate_pool'
+
+    def get_covariate_file(self, covariate_scenario: str, draw_id: Optional[int] = None):
+        return self.covariate_pool_dir / f"{covariate_scenario}.csv"
 
     @property
     def directories(self) -> List[Path]:
         """Returns all top level sub-directories."""
         return [self.beta_fit_dir, self.coefficient_dir, self.diagnostic_dir,
-                self.input_dir, self.covariate_dir]
+                self.input_dir, self.covariate_pool_dir]
 
     @property
     def location_specific_directories(self) -> List[Path]:
@@ -261,7 +264,7 @@ class InfectionPaths(Paths):
 @dataclass
 class CovariatePaths(Paths):
     # class attributes are inferred using ClassVar. See pep 557 (Class Variables)
-    scenario_file: ClassVar[str] = '{covariate}_{scenario}.csv'
+    scenario_file: ClassVar[str] = '{covariate_group}_{scenario}.csv'
 
     def __post_init__(self):
         if not self.read_only:
@@ -271,8 +274,12 @@ class CovariatePaths(Paths):
     def directories(self) -> List[Path]:
         return []
 
-    def get_scenarios_set(self, covariate: str) -> List[str]:
-        file_glob = self.scenario_file.format(covariate=covariate, scenario="*")
+    @classmethod
+    def get_covariate_group_from_covariate(cls, covariate: str):
+        return parse(cls.scenario_file, covariate)["covariate_group"]
+
+    def get_scenario_set(self, covariate_group: str) -> List[str]:
+        file_glob = self.scenario_file.format(covariate_group=covariate_group, scenario="*")
         matched_files = [m for m in self.root_dir.glob(file_glob)]
         parsed_matches = [
             parse(self.scenario_file, matched_file)["scenario"]
@@ -280,6 +287,6 @@ class CovariatePaths(Paths):
         ]
         return parsed_matches
 
-    def get_scenario_file(self, covariate: str, scenario: str):
-        return self.root_dir / self.scenario_file.format(covariate=covariate,
+    def get_scenario_file(self, covariate_group: str, scenario: str):
+        return self.root_dir / self.scenario_file.format(covariate_group=covariate_group,
                                                          scenario=scenario)

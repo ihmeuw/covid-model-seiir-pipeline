@@ -15,20 +15,4 @@ resume = False
 def do_beta_regression(app_metadata: cli_tools.Metadata,
                        regression_specification: RegressionSpecification,
                        output_dir: Path):
-    validate_specification(regression_specification)
-
-    try:
-        regress_version = RegressionVersion.init_version(
-            regression_specification=regression_specification,
-            regression_dir=output_dir
-        )
-    except VersionAlreadyExists:
-        if resume:
-            regress_version = RegressionVersion(
-                regression_specification=regression_specification,
-                regression_dir=output_dir
-            )
-        else:
-            raise
-
-    regress_version.run()
+    pass
