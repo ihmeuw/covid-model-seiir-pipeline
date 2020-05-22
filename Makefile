@@ -32,8 +32,8 @@ install_env:
 		git clone git@github.com:ihmeuw-msca/ODEOPT.git && \
 		cd ODEOPT && python setup.py install && cd .. && \
 		git clone git@github.com:ihmeuw-msca/SEIRPipeline.git && \
-		cd SEIRPipeline && git checkout develop && python setup.py install && cd .. && \
-		git checkout develop && python setup.py install; \
+		cd SEIRPipeline && git checkout dev_nathenry && python setup.py install && cd .. && \
+		git checkout dev_aoz && python setup.py install; \
     )
 
 uninstall_env:
