@@ -26,7 +26,8 @@ setup(
         'create_forecast_diagnostics=seiir_model_pipeline.executor.create_forecast_diagnostics:main',
         'create_scaling_diagnostics=seiir_model_pipeline.executor.create_scaling_diagnostics:main',
         'run_validation=seiir_model_pipeline.executor.run_validation:main',
-        'split_infectionator=seiir_model_pipeline.executor.split_infectionator:main'
+        'split_infectionator=seiir_model_pipeline.executor.split_infectionator:main',
+        'evaluate_location=seiir_model_pipeline.executor.evaluate_location:main'
     ]},
     zip_safe=False,
 )
