@@ -131,7 +131,6 @@ class Splicer:
         df_past = pd.to_datetime(df[self.col_date]) <= today
         infect_past = pd.to_datetime(infection_data[self.col_date]) <= today
 
-        assert len(df_past) == len(infect_past)
         assert sum(df_past) == sum(infect_past)
 
         df.loc[df_past, self.col_deaths] = infection_data[self.col_deaths_data][infect_past]
