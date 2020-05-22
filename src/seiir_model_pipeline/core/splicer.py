@@ -105,6 +105,7 @@ class Splicer:
         return spl
 
     def splice_infections(self, infection_data, today, component_fit, component_forecasts):
+        import pdb; pdb.set_trace()
         observations = infection_data[[self.col_date, self.col_cases]]
         observations = observations.loc[pd.to_datetime(observations[self.col_date]) <= today]
 
@@ -187,6 +188,7 @@ class Splicer:
         )
 
     def format_draws(self, dictionary, id_cols):
+        import pdb; pdb.set_trace()
         df = pd.concat(dictionary.values()).reset_index(drop=True)
         if COL_OBSERVED not in id_cols:
             df.drop(COL_OBSERVED, axis=1, inplace=True)
