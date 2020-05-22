@@ -100,7 +100,7 @@ class Splicer:
         return (R_C * df[COL_S]) / pop
 
     def record_splice(self, df, col_data, draw_id):
-        spl = df[[self.col_date, col_data]].copy()
+        spl = df[[self.col_date, COL_OBSERVED, col_data]].copy()
         spl['draw'] = f'draw_{draw_id}'
         return spl
 
