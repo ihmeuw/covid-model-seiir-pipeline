@@ -28,8 +28,7 @@ def get_covariate_version_from_cache(cache_version):
 
 
 def get_missing_locations(location_ids,
-                          infection_version):
-    infection_dir = INPUT_DIR / infection_version
+                          infection_dir):
     infection_loc = [x.split('_')[-1] for x in os.listdir(infection_dir)
                      if os.path.isdir(infection_dir / x)]
     infection_loc = [int(x) for x in infection_loc if x.isdigit()]

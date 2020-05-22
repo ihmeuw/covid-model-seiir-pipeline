@@ -140,7 +140,7 @@ def launch_validation(version_name, time_holdout):
     clone_run(
         old_version=version_name,
         new_version=new_version_name,
-        infection_dir=VALIDATION_INPUT_DIR,
+        infection_dir=str(VALIDATION_INPUT_DIR),
         infection_version=new_infection_version
     )
     run(

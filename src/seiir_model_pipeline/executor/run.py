@@ -36,8 +36,7 @@ def run(ode_version: str, regression_version: str, forecast_version: str,
 
     log.info("Initiating SEIIR modeling pipeline.")
 
-    directories = args_to_directories(ode_version)
-
+    directories = args_to_directories(ode_version, regression_version, forecast_version)
     wf = SEIIRWorkFlow(directories=directories)
 
     run_ode = ode_version is not None

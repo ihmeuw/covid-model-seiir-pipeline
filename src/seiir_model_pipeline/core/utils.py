@@ -166,7 +166,7 @@ def get_locations(directories, infection_version, location_set_version_id):
         directories.get_location_metadata_file(location_set_version_id),
     )
     missing = get_missing_locations(
-        infection_version=infection_version,
+        infection_dir=directories.infection_dir,
         location_ids=df.location_id.unique().tolist()
     )
     locations = set(df.location_id.unique().tolist()) - set(missing)
