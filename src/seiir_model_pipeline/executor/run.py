@@ -3,7 +3,7 @@ from typing import Optional
 import shlex
 import logging
 
-from seiir_model_pipeline.core.versioner import args_to_directories
+from seiir_model_pipeline.core.versioner import Directories
 from seiir_model_pipeline.core.versioner import load_ode_settings, load_regression_settings, load_forecast_settings
 from seiir_model_pipeline.core.workflow import SEIIRWorkFlow
 from seiir_model_pipeline.core.utils import load_locations
@@ -36,7 +36,11 @@ def run(ode_version: str, regression_version: str, forecast_version: str,
 
     log.info("Initiating SEIIR modeling pipeline.")
 
-    directories = args_to_directories(ode_version, regression_version, forecast_version)
+    directories = Directories(
+        ode_version=ode_version,
+        regression_version=regression_version,
+        forecast_version=forecast_version
+    )
     wf = SEIIRWorkFlow(directories=directories)
 
     run_ode = ode_version is not None
