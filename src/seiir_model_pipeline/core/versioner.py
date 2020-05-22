@@ -165,6 +165,7 @@ class Directories:
             self.ode_output_dir = ODE_OUTPUT / ov.version_name
             self.ode_beta_fit_dir = self.ode_output_dir / 'betas'
             self.ode_parameters_dir = self.ode_output_dir / 'parameters'
+            self.ode_dates_dir = self.ode_output_dir / 'dates'
 
             self.infection_dir = Path(ov.infection_dir) / ov.infection_version
 
@@ -172,7 +173,8 @@ class Directories:
                 self.ode_output_dir,
                 self.infection_dir,
                 self.ode_beta_fit_dir,
-                self.ode_parameters_dir
+                self.ode_parameters_dir,
+                self.ode_dates_dir
             ])
 
         if rv is not None:
@@ -224,6 +226,9 @@ class Directories:
 
     def get_draw_beta_param_file(self, draw_id):
         return self.ode_parameters_dir / f'params_draw_{draw_id}.csv'
+
+    def get_draw_dates_file(self, draw_id):
+        return self.ode_dates_dir / f'params_draw_{draw_id}.csv'
 
     def get_draw_coefficient_file(self, draw_id, regression_version=None):
         if regression_version is None:

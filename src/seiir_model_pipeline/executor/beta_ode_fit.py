@@ -76,6 +76,9 @@ def run_ode_fit(draw_id: int, ode_version: str):
     # Save the parameters of alpha, sigma, gamma1, and gamma2 that were drawn
     mr.get_beta_ode_params().to_csv(directories.get_draw_beta_param_file(draw_id), index=False)
 
+    # Save the start and end dates of the fit data
+    mr.get_beta_start_end_dates().to_csv(directories.get_draw_dates_file(draw_id), index=False)
+
 
 def main():
 
