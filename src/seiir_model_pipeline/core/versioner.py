@@ -228,7 +228,7 @@ class Directories:
         return self.ode_parameters_dir / f'params_draw_{draw_id}.csv'
 
     def get_draw_dates_file(self, draw_id):
-        return self.ode_dates_dir / f'params_draw_{draw_id}.csv'
+        return self.ode_dates_dir / f'dates_draw_{draw_id}.csv'
 
     def get_draw_coefficient_file(self, draw_id, regression_version=None):
         if regression_version is None:
