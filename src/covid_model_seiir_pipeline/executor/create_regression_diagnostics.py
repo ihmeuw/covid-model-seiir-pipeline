@@ -1,8 +1,8 @@
 from argparse import ArgumentParser
 import logging
 
-from seiir_model_pipeline.diagnostics.visualizer import PlotBetaScaling
-from seiir_model_pipeline.core.versioner import args_to_directories
+from covid_model_seiir_pipeline.diagnostics.visualizer import PlotBetaCoef
+from covid_model_seiir_pipeline.core.versioner import args_to_directories
 
 log = logging.getLogger(__name__)
 
@@ -13,7 +13,6 @@ def get_args():
     """
     parser = ArgumentParser()
     parser.add_argument("--regression-version", type=str, required=True)
-    parser.add_argument("--forecast-version", type=str, required=True)
 
     return parser.parse_args()
 
@@ -23,7 +22,8 @@ def main():
     log.info("Initiating SEIIR diagnostics.")
 
     # Load metadata
+    args.forecast_version = None
     directories = args_to_directories(args)
 
-    handle = PlotBetaScaling(directories)
-    handle.plot_scales()
+    handle = PlotBetaCoef(directories)
+    handle.plot_coef()

@@ -1,11 +1,11 @@
 import pandas as pd
 import numpy as np
 
-from seiir_model.ode_model import ODEProcessInput
+from covid_model_seiir.ode_model import ODEProcessInput
 from slime.model import CovModel, CovModelSet
 from slime.core.data import MRData
 
-from seiir_model_pipeline.core.versioner import INFECTION_COL_DICT
+from covid_model_seiir_pipeline.core.versioner import INFECTION_COL_DICT
 
 SEIIR_COMPARTMENTS = ['S', 'E', 'I1', 'I2', 'R']
 
