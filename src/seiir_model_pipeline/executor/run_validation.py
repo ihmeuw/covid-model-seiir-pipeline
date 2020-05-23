@@ -56,12 +56,13 @@ def get_validation_version_name(original_version, time_holdout):
 
 
 class InfectionSplitTask(BashTask):
-    def __init__(self, old_directory, new_directory, location_id, time_holdout):
+    def __init__(self, old_directory, new_directory, param_directory, location_id, time_holdout):
 
         command = (
             "split_infectionator " +
             f"--input-dir {old_directory} " +
             f"--output-dir {new_directory} " +
+            f"--param-dir {param_directory} " +
             f"--location-id {location_id} " +
             f"--time-holdout {time_holdout}"
         )
@@ -91,6 +92,7 @@ def create_infection_split_workflow(directories, old_directory, new_directory, t
     tasks = [InfectionSplitTask(
         old_directory=old_directory,
         new_directory=new_directory,
+        param_directory=str(directories.ode_parameters_dir),
         location_id=loc,
         time_holdout=time_holdout
     ) for loc in locations]
