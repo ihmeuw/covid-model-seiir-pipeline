@@ -16,7 +16,6 @@ if __name__ == "__main__":
         long_description = f.read()
 
     install_requirements = [
-        'jobmon',
         'matplotlib',
         'numpy',
         'pandas',
@@ -32,6 +31,10 @@ if __name__ == "__main__":
     ]
 
     doc_requirements = []
+
+    internal_requirements = [
+        'jobmon',
+    ]
 
     setup(
         name=about['__title__'],
@@ -54,7 +57,8 @@ if __name__ == "__main__":
         extras_require={
             'docs': doc_requirements,
             'test': test_requirements,
-            'dev': [doc_requirements, test_requirements]
+            'internal': internal_requirements,
+            'dev': [doc_requirements, test_requirements, internal_requirements]
         },
 
         entry_points={'console_scripts': [
