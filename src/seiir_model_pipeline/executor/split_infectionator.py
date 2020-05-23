@@ -61,9 +61,16 @@ def get_train_test_data(df, time_holdout, day_shift):
     return train, tests
 
 
+class NoParametersError(Exception):
+    pass
+
+
 def get_day_shift(param_directory, draw):
-    params = pd.read_csv(param_directory / f'params_draw_{draw}.csv')
-    return params.loc[params.params == 'day_shift', 'values'].iloc[0]
+    try:
+        params = pd.read_csv(param_directory / f'params_draw_{draw}.csv')
+        return params.loc[params.params == 'day_shift', 'values'].iloc[0]
+    except FileNotFoundError:
+        raise NoParametersError
 
 
 def create_new_files(old_directory, new_directory, param_directory, location_id, time_holdout):
@@ -86,7 +93,10 @@ def create_new_files(old_directory, new_directory, param_directory, location_id,
         files = os.listdir(old_directory / folder)
         for f in files:
             draw = int(f.split('_')[0].split('draw')[-1])
-            day_shift = get_day_shift(param_directory, draw)
+            try:
+                day_shift = get_day_shift(param_directory, draw)
+            except NoParametersError:
+                continue
             df = pd.read_csv(old_directory / folder / f)
             train, test = get_train_test_data(df, time_holdout, day_shift)
             if os.path.exists(new_directory / folder / f):
