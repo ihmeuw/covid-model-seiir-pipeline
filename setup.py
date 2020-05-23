@@ -16,13 +16,14 @@ if __name__ == "__main__":
         long_description = f.read()
 
     install_requirements = [
-        'covid_model_seiir',
         'jobmon',
         'matplotlib',
         'numpy',
         'pandas',
         'pyyaml',
         'slime',
+
+        'covid_model_seiir @ git+https://github.com/ihmeuw/covid-model-seiir@master#egg=covid_model_seiir'
     ]
 
     test_requirements = [
