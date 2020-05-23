@@ -50,8 +50,12 @@ class ODEDataInterface:
 
         return dfs
 
-    def save_draw_beta_fit_file(self, df, location_id: int, draw_id: int) -> None:
+    def save_draw_beta_fit_file(self, df: pd.DataFrame, location_id: int, draw_id: int
+                                ) -> None:
         df.to_csv(self.ode_paths.get_draw_beta_fit_file(location_id, draw_id), index=False)
 
-    def save_draw_beta_param_file(self, df, draw_id: int) -> None:
+    def save_draw_beta_param_file(self, df: pd.DataFrame, draw_id: int) -> None:
         df.to_csv(self.ode_paths.get_draw_beta_param_file(draw_id))
+
+    def save_draw_date_file(self, df: pd.DataFrame, draw_id: int) -> None:
+        df.to_csv(self.ode_paths.get_draw_date_file(draw_id), index=False)

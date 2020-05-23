@@ -67,7 +67,9 @@ def run_ode_fit(draw_id: int, ode_version: str):
 
     # Save the parameters of alpha, sigma, gamma1, and gamma2 that were drawn
     draw_beta_params = mr.get_beta_ode_params()
+    beta_start_end_dates = mr.get_beta_start_end_dates()
     ode_data_interface.save_draw_beta_param_file(draw_beta_params, draw_id)
+    ode_data_interface.save_draw_date_file(beta_start_end_dates, draw_id)
 
 
 def parse_arguments(argstr: Optional[str] = None) -> Namespace:
@@ -91,7 +93,7 @@ def parse_arguments(argstr: Optional[str] = None) -> Namespace:
 def main():
 
     args = parse_arguments()
-    run_ode_fit(draw_id=args.draw_id, regression_version=args.ode_version)
+    run_ode_fit(draw_id=args.draw_id, ode_version=args.ode_version)
 
 
 if __name__ == '__main__':

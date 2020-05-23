@@ -17,7 +17,13 @@ covariates:
     re_var: 1.0
     # Whether this covariate has draws or not.
     draws: False
-  mobility_lift:
+  mobility:
+    # scenario of mobility covariate group
+    scenario: lift
+
+    # files are stored by name_scenario
+    input_file_pattern: "{name}_{scenario}"
+
     order: 0
     use_re: True
     gprior: [0.0, 1000.0]
@@ -25,6 +31,9 @@ covariates:
     re_var: 1.0
     draws: False
   proportion_over_1k:
+    scenario: reference
+    input_file_pattern: "{name}"
+
     order: 1
     use_re: False
     gprior: [0.0, 1000.0]
@@ -32,13 +41,22 @@ covariates:
     re_var: 1.0
     draws: False
   temperature:
+    scenario: reference
+    input_file_pattern: "{name}"
+
     order: 2
     use_re: False
     gprior: [0.0, 1000.0]
     bounds: [-1000.0, 0.]
     re_var: 1.0
     draws: False
-  testing_reference:
+  testing:
+    scenario: reference
+    input_file_pattern: "{name}_{scenario}"
+
+    # alternate scenarios
+    alternate_scenarios: [better, worse]
+
     order: 3
     use_re: False
     gprior: [0.0, 1000.0]
