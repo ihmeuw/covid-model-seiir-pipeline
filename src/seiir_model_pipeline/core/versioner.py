@@ -387,7 +387,7 @@ class ODEVersion(Version):
     gamma2: Tuple[float] = field(default=(0.50, 0.50))
     solver_dt: float = field(default=0.1)
 
-    infection_dir: str = INPUT_DIR
+    infection_dir: str = str(INPUT_DIR)
 
     def __post_init__(self):
         pass
