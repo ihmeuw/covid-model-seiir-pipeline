@@ -21,6 +21,7 @@ if __name__ == "__main__":
         'pandas',
         'pyyaml',
         'slime',
+        'odeopt>=0.1.1',
 
         'covid_model_seiir @ git+https://github.com/ihmeuw/covid-model-seiir@master#egg=covid_model_seiir'
     ]
