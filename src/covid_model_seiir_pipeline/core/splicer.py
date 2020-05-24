@@ -2,8 +2,8 @@ import pandas as pd
 import numpy as np
 from datetime import datetime
 
-from seiir_model_pipeline.core.utils import get_location_name_from_id
-from seiir_model_pipeline.core.versioner import INFECTION_COL_DICT
+from covid_model_seiir_pipeline.core.utils import get_location_name_from_id
+from covid_model_seiir_pipeline.core.versioner import INFECTION_COL_DICT
 
 
 # Tolerance for quality checking
