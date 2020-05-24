@@ -34,8 +34,8 @@ class SEIIRWorkFlow(Workflow):
         super().__init__(
             workflow_args=workflow_args,
             project=PROJECT,
-            stderr=f'/ihme/scratch/users/mnorwood/covid/logs',
-            stdout=f'/ihme/scratch/users/mnorwood/covid/logs',
+            stderr=f'/share/temp/sgeoutput/{user}/errors',
+            stdout=f'/share/temp/sgeoutput/{user}/output',
             working_dir=working_dir,
             seconds_until_timeout=60*60*24,
             resume=True
