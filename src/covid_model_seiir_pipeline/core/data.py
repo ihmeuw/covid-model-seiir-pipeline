@@ -5,8 +5,8 @@ import os
 from typing import List, Dict
 import warnings
 
-from seiir_model_pipeline.core.versioner import Directories, COVARIATE_COL_DICT, COVARIATE_CACHE, COVARIATE_DIR
-from seiir_model_pipeline.core.versioner import INPUT_DIR
+from covid_model_seiir_pipeline.core.versioner import Directories, COVARIATE_COL_DICT, COVARIATE_CACHE, COVARIATE_DIR
+from covid_model_seiir_pipeline.core.versioner import INPUT_DIR
 
 N_DRAWS = 1000
 
