@@ -22,8 +22,6 @@ if __name__ == "__main__":
         'pyyaml',
         'slime',
         'odeopt>=0.1.1',
-
-        'covid_model_seiir @ git+https://github.com/ihmeuw/covid-model-seiir@master#egg=covid_model_seiir'
     ]
 
     test_requirements = [
@@ -63,13 +61,13 @@ if __name__ == "__main__":
         },
 
         entry_points={'console_scripts': [
-            'run=seiir_model_pipeline.executor.run:main',
-            'beta_regression=seiir_model_pipeline.executor.beta_regression:main',
-            'beta_forecast=seiir_model_pipeline.executor.beta_forecast:main',
-            'splice=seiir_model_pipeline.executor.splice:main',
-            'create_regression_diagnostics=seiir_model_pipeline.executor.create_regression_diagnostics:main',
-            'create_forecast_diagnostics=seiir_model_pipeline.executor.create_forecast_diagnostics:main',
-            'create_scaling_diagnostics=seiir_model_pipeline.executor.create_scaling_diagnostics:main'
+            'run=covid_model_seiir_pipeline.executor.run:main',
+            'beta_regression=covid_model_seiir_pipeline.executor.beta_regression:main',
+            'beta_forecast=covid_model_seiir_pipeline.executor.beta_forecast:main',
+            'splice=covid_model_seiir_pipeline.executor.splice:main',
+            'create_regression_diagnostics=covid_model_seiir_pipeline.executor.create_regression_diagnostics:main',
+            'create_forecast_diagnostics=covid_model_seiir_pipeline.executor.create_forecast_diagnostics:main',
+            'create_scaling_diagnostics=covid_model_seiir_pipeline.executor.create_scaling_diagnostics:main'
         ]},
         zip_safe=False,
     )
