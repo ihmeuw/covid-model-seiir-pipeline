@@ -9,12 +9,11 @@ from jobmon.client.swarm.workflow.bash_task import BashTask
 from jobmon.client.swarm.workflow.workflow import Workflow
 from jobmon.client.swarm.executors.base import ExecutorParameters
 
-from seiir_model_pipeline.core.utils import clone_run
-from seiir_model_pipeline.core.versioner import BASE_DIR, Directories, OUTPUT_DIR, load_ode_settings, INPUT_DIR
-from seiir_model_pipeline.executor.run import run
-from seiir_model_pipeline.core.utils import load_locations
-from seiir_model_pipeline.core.workflow import PROJECT
-from seiir_model_pipeline.core.task import ExecParams
+from covid_model_seiir_pipeline.core.utils import clone_run
+from covid_model_seiir_pipeline.core.versioner import BASE_DIR, Directories, OUTPUT_DIR, load_ode_settings, INPUT_DIR
+from covid_model_seiir_pipeline.executor.run import run
+from covid_model_seiir_pipeline.core.utils import load_locations
+from covid_model_seiir_pipeline.core.workflow import PROJECT
 
 log = logging.getLogger(__name__)
 

@@ -7,7 +7,7 @@ from typing import Optional
 import logging
 from pathlib import Path
 
-from seiir_model_pipeline.core.versioner import INFECTION_COL_DICT
+from covid_model_seiir_pipeline.core.versioner import INFECTION_COL_DICT
 
 log = logging.getLogger(__name__)
 

@@ -4,9 +4,9 @@ from typing import Optional
 import shlex
 import pandas as pd
 
-from seiir_model_pipeline.core.versioner import Directories, _get_infection_folder_from_location_id
-from seiir_model_pipeline.core.versioner import load_ode_settings
-from seiir_model_pipeline.core.versioner import INFECTION_FILE_PATTERN
+from covid_model_seiir_pipeline.core.versioner import Directories, _get_infection_folder_from_location_id
+from covid_model_seiir_pipeline.core.versioner import load_ode_settings
+from covid_model_seiir_pipeline.core.versioner import INFECTION_FILE_PATTERN
 
 
 log = logging.getLogger(__name__)
