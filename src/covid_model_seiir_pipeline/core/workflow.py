@@ -1,7 +1,7 @@
 import getpass
 import logging
 
-from covid_model_seiir_pipeline.core.task import RegressionTask, ForecastTask, ScalingDiagnosticTask
+from covid_model_seiir_pipeline.core.task import RegressionTask, ForecastTask, ScalingDiagnosticTask, ODETask
 from covid_model_seiir_pipeline.core.task import RegressionDiagnosticTask
 from jobmon.client.swarm.workflow.workflow import Workflow
 
