@@ -22,14 +22,8 @@ class RegressionData:
 class CovariateSpecification:
     """Regression specification for a covariate."""
 
-    # i/o params
-    name: str = field(default='covariate')
-    scenario: str = field(default='reference')
-    input_file_pattern: str = field(default="{name}_{scenario}")
-    output_file_pattern: str = field(default="{name}_{scenario}")
-    alternate_scenarios: Optional[List[str]] = field(default=None)
-
     # model params
+    name: str = field(default='covariate')
     order: int = field(default=0)
     use_re: bool = field(default=False)
     gprior: Tuple[float, float] = field(default=(0., 1000.))

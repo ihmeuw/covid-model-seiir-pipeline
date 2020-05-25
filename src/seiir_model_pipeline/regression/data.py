@@ -10,23 +10,23 @@ from seiir_model_pipeline.globals import COVARIATE_COL_DICT
 
 class RegressionDataInterface:
 
+    covariate_scenario_val = "{covariate}_{scenario}"
+
     def __init__(self, regression_data: RegressionData):
         self.regression_paths = RegressionPaths(Path(regression_data.output_root))
         self.covariate_paths = CovariatePaths(Path(regression_data.covariate_version))
         self.ode_paths = ODEPaths(Path(regression_data.ode_fit_version))
 
-    def _load_covariate(self, input_file_name: str, location_ids: List[int], draw_id: int
-                        ) -> Tuple[pd.DataFrame, pd.DataFrame]:
+    def _load_scenario_file(self, val_name: str, input_file: Path, location_ids: List[int],
+                            draw_id: int
+                            ) -> Tuple[pd.DataFrame, pd.DataFrame]:
 
         # read in covariate
-        covariate_scenario_file = self.covariate_paths.get_scenario_file(input_file_name)
-        df = pd.read_csv(covariate_scenario_file)
-
-        value_column = input_file_name
-        columns = [COVARIATE_COL_DICT['COL_LOC_ID'], value_column]
+        df = pd.read_csv(str(input_file))
+        columns = [COVARIATE_COL_DICT['COL_LOC_ID'], val_name]
 
         # drop nulls
-        df = df.loc[~df[value_column].isnull()]
+        df = df.loc[~df[val_name].isnull()]
 
         # subset locations
         df = df.loc[df[COVARIATE_COL_DICT['COL_LOC_ID']].isin(location_ids)]
@@ -43,72 +43,71 @@ class RegressionDataInterface:
             df = df.merge(cutoffs, how="left")
 
             # get what was used for ode_fit
-            # TODO: check inclusive inequality sign
-            observed_df = df[df.date <= df.end_date].copy()
-            observed_df = observed_df[columns]
+            # TODO: should we inclusive inequality sign?
+            regress_df = df[df.date <= df.end_date].copy()
+            regress_df = regress_df[columns]
 
             # get what we will use in scenarios
-            # TODO: intentionally duplicating data for safety
-            future_df = df[df.date >= df.end_date].copy()
-            future_df = future_df[columns]
+            # TODO: should we inclusive inequality sign?
+            scenario_df = df[df.date >= df.end_date].copy()
+            scenario_df = scenario_df[columns]
 
         # otherwise just make 2 copies
         else:
-            observed_df = df.copy()
-            future_df = df
+            regress_df = df.copy()
+            scenario_df = df
 
             # subset columns
-            observed_df = observed_df[columns]
-            future_df = future_df[columns]
+            regress_df = regress_df[columns]
+            scenario_df = scenario_df[columns]
 
-        return observed_df, future_df
+        return regress_df, scenario_df
 
-    def load_raw_covariate_scenario(self, input_file_name: str, output_file_name_regress: str,
-                                    output_file_name_scenario: str, location_ids: List[int],
-                                    draw_id: int
-                                    ) -> Dict[str, pd.DataFrame]:
-        observed_df, reference_df = self._load_covariate(input_file_name, location_ids,
-                                                         draw_id)
-        observed_val = output_file_name_regress
-        observed_df = observed_df.rename(columns={input_file_name: observed_val})
-        reference_val = output_file_name_scenario
-        reference_df = reference_df.rename(columns={input_file_name: reference_val})
-        return {observed_val: observed_df, reference_val: reference_df}
-
-    def load_raw_covariate_group(self, covariate_group: str, scenarios: List[str],
-                                 file_pattern: str, location_ids: List[int], draw_id: int
-                                 ) -> Dict[str, pd.DataFrame]:
-        # TODO: figure out how to deal with draw_id
-
+    def load_covariate(self, covariate: str, location_ids: List[int], draw_id: int,
+                       use_draws: bool
+                       ) -> Dict[str, pd.DataFrame]:
         covariate_set: Dict[str, pd.DataFrame] = {}
-        for scenario in scenarios:
-            this_scenario = file_pattern.format(group=covariate_group, scenario=scenario)
+        scenario_map = self.covariate_paths.get_covariate_scenario_to_file_mapping(covariate)
+        for scenario, input_file in scenario_map.items():
 
-            # get scenario data from disk
-            observed_df, future_df = self._load_covariate(this_scenario, location_ids, draw_id)
-
-            # standardize name of observed data
-            observed_val = file_pattern.format(group=covariate_group, scenario="observed")
-            observed_df = observed_df.rename(columns={this_scenario: observed_val})
-
-            # store observed data only once
-            observed_scenario = file_pattern.format(group=covariate_group, scenario="observed")
-            cached_df = covariate_set.get(observed_scenario)
-            if cached_df is None:
-                covariate_set[observed_scenario] = observed_df
+            # name of scenario value column
+            if use_draws:
+                val_name = f"draw_{draw_id}"
             else:
-                if not cached_df.equals(observed_df):
-                    raise RuntimeError(
-                        "Observed data is not exactly equal between covariates in covariate "
-                        f"pool. Scenarios are {scenarios}.")
+                val_name = self.covariate_scenario_val.format(covariate=covariate,
+                                                              scenario=scenario)
 
-            covariate_set[this_scenario] = future_df
+            regress_df, scenario_df = self._load_scenario_file(val_name, input_file,
+                                                               location_ids, draw_id)
+
+            # change name of scenario data
+            scenario_val_name = self.covariate_scenario_val.format(covariate=covariate,
+                                                                   scenario=scenario)
+            scenario_df = scenario_df.rename(columns={val_name: scenario_val_name})
+
+            # change name of regression data
+            regress_val_name = self.covariate_scenario_val.format(covariate=covariate,
+                                                                  scenario="regression")
+            regress_df = regress_df.rename(columns={val_name: regress_val_name})
+
+            # store regress data only once
+            cached_df = covariate_set.get(regress_val_name)
+            if cached_df is None:
+                covariate_set[regress_val_name] = regress_df
+            else:
+                if not cached_df.equals(regress_df):
+                    raise RuntimeError(
+                        "Regression data is not exactly equal between covariates in covariate "
+                        f"pool. Input files are {scenario_map.values()}.")
+
+            covariate_set[scenario_val_name] = scenario_df
 
         return covariate_set
 
-    def save_covariate_set(self, covariate_set: Dict[str, pd.DataFrame],
-                           draw_id: int):
-        # TODO: deal with draws
-        for covariate_scenario, df in covariate_set.items():
-            file = self.regression_paths.get_covariate_file(covariate_scenario)
-            df.to_csv(file, index=False)
+    def save_covariates(self, df: pd.DataFrame, draw_id: int) -> None:
+        path = self.regression_paths.get_covariates_file(draw_id)
+        df.to_csv(path, index=False)
+
+    def save_scenarios(self, df: pd.DataFrame, draw_id: int) -> None:
+        path = self.regression_paths.get_scenarios_file(draw_id)
+        df.to_csv(path, index=False)

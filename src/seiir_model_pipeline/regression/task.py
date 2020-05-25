@@ -12,6 +12,7 @@ from seiir_model.model_runner import ModelRunner
 from seiir_model_pipeline.regression.specification import (RegressionSpecification,
                                                            CovariateSpecification)
 from seiir_model_pipeline.regression.data import RegressionDataInterface
+from seiir_model_pipeline.globals import COVARIATE_COL_DICT
 
 log = logging.getLogger(__name__)
 
@@ -37,59 +38,56 @@ def parse_arguments(argstr: Optional[str] = None) -> Namespace:
 def create_covariate_pool(draw_id: int,
                           covariates: List[CovariateSpecification],
                           regression_data_interface: RegressionDataInterface
-                          ) -> Dict[str, pd.DataFrame]:
-    covariate_set_scenarios: Dict[str, pd.DataFrame] = {}
-    covariate_set_used: Dict[str, pd.DataFrame] = {}
+                          ) -> pd.DataFrame:
 
+    def _merge_helper(dfs, df) -> pd.DataFrame:
+        if dfs.empty:
+            dfs = df
+        else:
+            if COVARIATE_COL_DICT['COL_DATE'] in dfs.columns:
+                dfs = dfs.merge(df, on=[COVARIATE_COL_DICT['COL_LOC_ID'],
+                                        COVARIATE_COL_DICT['COL_DATE']])
+            else:
+                dfs = dfs.merge(df, on=[COVARIATE_COL_DICT['COL_LOC_ID']])
+        return dfs
+
+    covariate_df = pd.DataFrame()
+    covariate_set_scenarios: Dict[str, pd.DataFrame] = {}
+
+    # iterate through covariates and pull in regression data and scenario data
     for covariate in covariates:
         if covariate.name == "intercept":
             continue
-        input_file_name = covariate.get_input_file(covariate.scenario)
-        output_file_name_future = covariate.get_output_file(covariate.scenario)
-        output_file_name_regress = covariate.get_output_file("regress")
-        tmp_set = regression_data_interface.load_raw_covariate_scenario(
-            input_file_name=input_file_name,
-            output_file_name_regress=output_file_name_regress,
-            output_file_name_scenario=output_file_name_future,
-            location_ids=[123],  # TODO: testing value
-            draw_id=draw_id)
 
-        covariate_set_used.update(tmp_set)
+        # import covariates
+        tmp_set = regression_data_interface.load_covariate(
+            covariate=covariate.name,
+            location_ids=[123],  # TODO: testing value
+            draw_id=draw_id,
+            use_draws=covariate.draws
+        )
+
+        regression_key = regression_data_interface.covariate_scenario_val.format(
+            covariate=covariate, scenario="regression"
+        )
+        df = tmp_set.pop(regression_key)
         covariate_set_scenarios.update(tmp_set)
 
-        if covariate.alternate_scenarios is None:
-            scenarios: List = []
-        else:
-            scenarios: List = covariate.alternate_scenarios
+        # time dependent covariates versus not
+        covariate_df = _merge_helper(covariate_df, df)
 
-        for scenario in scenarios:
-            input_file_name = covariate.get_input_file(scenario)
-            output_file_name_future = covariate.get_output_file(scenario)
-            output_file_name_regress = covariate.get_output_file("regress")
+    # save covariates to disk for posterity
+    regression_data_interface.save_covariates(covariate_df, draw_id)
 
-            tmp_set = regression_data_interface.load_raw_covariate_scenario(
-                input_file_name=input_file_name,
-                output_file_name_regress=output_file_name_regress,
-                output_file_name_scenario=output_file_name_future,
-                location_ids=[123],  # TODO: testing value
-                draw_id=draw_id)
+    # create scenario set file
+    scenario_df = pd.DataFrame()
+    for df in covariate_set_scenarios.values():
+        scenario_df = _merge_helper(scenario_df, df)
 
-            # confirm same history
-            regress_df_used = covariate_set_used[output_file_name_regress]
-            regress_df_scenario = tmp_set[output_file_name_regress]
-            if not regress_df_used.equals(regress_df_scenario):
-                raise RuntimeError(
-                    "Observed data is not exactly equal between covariates in covariate "
-                    f"pool. Covariate: {covariate.name}. Used scenario: {covariate.scenario}"
-                    f"Alternate scenarios: {covariate.alternate_scenarios}.")
+    # save covariates to disk for posterity
+    regression_data_interface.save_scenarios(covariate_df, draw_id)
 
-            # add to scenario set
-            covariate_set_scenarios.update(tmp_set)
-
-    # save full scenario set to disk for use in future scenarios
-    regression_data_interface.save_covariate_set(covariate_set_scenarios, draw_id)
-
-    return covariate_set_used
+    return covariate_df
 
 
 def run_beta_regression(draw_id: int, regression_version: str):

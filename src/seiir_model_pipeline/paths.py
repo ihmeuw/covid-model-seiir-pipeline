@@ -1,7 +1,7 @@
 import abc
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import List, ClassVar, Optional
+from typing import List, ClassVar, Optional, Dict
 
 from parse import parse
 
@@ -187,6 +187,8 @@ class RegressionPaths(Paths):
     # class attributes are inferred using ClassVar. See pep 557 (Class Variables)
     draw_coefficient_file: ClassVar[str] = 'coefficients_{draw_id}.csv'
     draw_beta_fit_file: ClassVar[str] = 'regression_draw_{draw_id}.csv'
+    draw_covariates_file: ClassVar[str] = 'covariate_draw_{draw_id}.csv'
+    draw_scenarios_file: ClassVar[str] = 'scenarios_draw_{draw_id}.csv'
 
     @property
     def beta_fit_dir(self) -> Path:
@@ -212,23 +214,29 @@ class RegressionPaths(Paths):
         return self.root_dir / 'inputs'
 
     @property
-    def covariate_pool_dir(self) -> Path:
-        return self.root_dir / 'covariate_pool'
+    def covariate_dir(self) -> Path:
+        return self.root_dir / 'covariates'
 
-    def get_covariate_file(self, covariate_scenario: str, draw_id: Optional[int] = None):
-        return self.covariate_pool_dir / f"{covariate_scenario}.csv"
+    def get_covariates_file(self, draw_id: int) -> Path:
+        return self.covariate_dir / self.draw_covariates_file.format(draw_id=draw_id)
+
+    @property
+    def scenario_dir(self) -> Path:
+        return self.root_dir / 'scenarios'
+
+    def get_scenarios_file(self, draw_id: int):
+        return self.covariate_dir / self.draw_scenarios_file.format(draw_id=draw_id)
 
     @property
     def directories(self) -> List[Path]:
         """Returns all top level sub-directories."""
         return [self.beta_fit_dir, self.coefficient_dir, self.diagnostic_dir,
-                self.input_dir, self.covariate_pool_dir]
+                self.input_dir, self.covariate_dir]
 
     @property
     def location_specific_directories(self) -> List[Path]:
         """Returns all top level sub-directories that have location-specific
         sub-directories.
-
         """
         return [self.beta_fit_dir]
 
@@ -269,6 +277,8 @@ class InfectionPaths(Paths):
 class CovariatePaths(Paths):
     # class attributes are inferred using ClassVar. See pep 557 (Class Variables)
 
+    scenario_file: ClassVar[str] = "{scenario}_scenario.csv"
+
     def __post_init__(self):
         if not self.read_only:
             raise RuntimeError('Covariate outputs should always be read only.')
@@ -277,5 +287,20 @@ class CovariatePaths(Paths):
     def directories(self) -> List[Path]:
         return []
 
-    def get_scenario_file(self, scenario_name: str):
-        return self.root_dir / f"{scenario_name}.csv"
+    def get_covariate_dir(self, covariate: str) -> Path:
+        return self.root_dir / covariate
+
+    def get_covariate_scenario_to_file_mapping(self, covariate: str) -> Dict[str, Path]:
+        covariate_dir = self.get_covariate_dir(covariate)
+        matches = [m for m in covariate_dir.glob(self.scenario_file.format(scenario="*"))]
+        mapping = {}
+        for file in matches:
+            key = parse(self.scenario_file, file)["scenario"]
+            file = covariate_dir / file
+            mapping[key] = file
+        return mapping
+
+    def get_info_files(self, covariate: str) -> List[Path]:
+        covariate_dir = self.get_covariate_dir(covariate)
+        matches = [covariate_dir / m for m in covariate_dir.glob(f"*info.csv")]
+        return matches
