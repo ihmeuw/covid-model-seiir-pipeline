@@ -1,9 +1,9 @@
 import pandas as pd
 import numpy as np
 
-from seiir_model_pipeline.core.versioner import ODEVersion, RegressionVersion, ForecastVersion, Directories
-from seiir_model_pipeline.core.data import get_missing_locations
-from seiir_model_pipeline.core.data import cache_covariates
+from covid_model_seiir_pipeline.core.versioner import RegressionVersion, ForecastVersion, Directories, ODEVersion
+from covid_model_seiir_pipeline.core.data import get_missing_locations
+from covid_model_seiir_pipeline.core.data import cache_covariates
 
 
 def create_ode_version(version_name, infection_version, location_set_version_id, **kwargs):

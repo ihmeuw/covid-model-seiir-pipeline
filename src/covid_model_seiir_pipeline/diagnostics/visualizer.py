@@ -7,10 +7,11 @@ import numpy as np
 import pandas as pd
 import matplotlib.dates as mdates
 
-from seiir_model_pipeline.core.versioner import Directories
-from seiir_model_pipeline.core.versioner import load_ode_settings
-from seiir_model_pipeline.core.versioner import load_regression_settings
-from seiir_model_pipeline.core.versioner import load_forecast_settings
+from covid_model_seiir_pipeline.core.versioner import Directories
+from covid_model_seiir_pipeline.core.versioner import load_ode_settings
+from covid_model_seiir_pipeline.core.versioner import load_regression_settings
+from covid_model_seiir_pipeline.core.versioner import load_forecast_settings
+
 
 ODE_BETA_FIT = "ode_beta_fit"
 COEFFICIENTS_FIT = "coefficients_fit"

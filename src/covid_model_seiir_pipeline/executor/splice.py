@@ -1,14 +1,14 @@
 import logging
 from argparse import ArgumentParser
 
-from seiir_model_pipeline.core.versioner import args_to_directories
-from seiir_model_pipeline.core.versioner import load_forecast_settings
-from seiir_model_pipeline.core.versioner import load_regression_settings
-from seiir_model_pipeline.core.versioner import load_ode_settings
+from covid_model_seiir_pipeline.core.versioner import args_to_directories
+from covid_model_seiir_pipeline.core.versioner import load_forecast_settings
+from covid_model_seiir_pipeline.core.versioner import load_regression_settings
+from covid_model_seiir_pipeline.core.versioner import load_ode_settings
 
-from seiir_model_pipeline.core.data import load_all_location_data, load_component_forecasts
-from seiir_model_pipeline.core.data import load_beta_fit, load_beta_params
-from seiir_model_pipeline.core.splicer import Splicer
+from covid_model_seiir_pipeline.core.data import load_all_location_data, load_component_forecasts
+from covid_model_seiir_pipeline.core.data import load_beta_fit, load_beta_params
+from covid_model_seiir_pipeline.core.splicer import Splicer
 
 log = logging.getLogger(__name__)
 

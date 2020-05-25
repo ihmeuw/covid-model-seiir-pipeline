@@ -1,10 +1,10 @@
 from argparse import ArgumentParser
 import logging
 
-from seiir_model_pipeline.core.versioner import args_to_directories
-from seiir_model_pipeline.core.versioner import load_ode_settings, load_regression_settings, load_forecast_settings
-from seiir_model_pipeline.core.workflow import SEIIRWorkFlow
-from seiir_model_pipeline.core.utils import load_locations
+from covid_model_seiir_pipeline.core.versioner import args_to_directories
+from covid_model_seiir_pipeline.core.versioner import load_ode_settings, load_regression_settings, load_forecast_settings
+from covid_model_seiir_pipeline.core.workflow import SEIIRWorkFlow
+from covid_model_seiir_pipeline.core.utils import load_locations
 
 log = logging.getLogger(__name__)
 
