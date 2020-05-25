@@ -35,28 +35,52 @@ def parse_arguments(argstr: Optional[str] = None) -> Namespace:
 
 def get_train_test_data(df, time_holdout, day_shift):
 
+    # Extract column info
     col_date = INFECTION_COL_DICT['COL_DATE']
-    col_obs = INFECTION_COL_DICT['COL_OBS_DEATHS']
-    
-    df = df.loc[df[col_obs] == 1].copy()
+    col_obs_deaths = INFECTION_COL_DICT['COL_OBS_DEATHS']
+    col_obs_infecs = INFECTION_COL_DICT['COL_OBS_CASES']
+    col_id_lag = INFECTION_COL_DICT['COL_ID_LAG']
 
+    # Restrict to only the observed death data
+    df = df.loc[df[col_obs_deaths] == 1].copy()
+
+    # Get the lag between infection and deaths, for this draw
+    lag = df[col_id_lag]
+    lag = lag.unique()
+    assert len(lag) == 1
+    lag = np.timedelta64(lag[0], 'D')
+
+    # Number of days to hold out
     holdout_days = np.timedelta64(time_holdout, 'D')
+    # Maximum date observed
     end_date = np.datetime64(df[col_date].max(), 'D')
+    # Place to split the datasets
     split_date = end_date - holdout_days
 
-    df[col_date] = pd.to_datetime(df[col_date])
+    date = pd.to_datetime(df[col_date])
 
-    train_dates = pd.to_datetime(df[col_date]) <= split_date
-    tests_dates = pd.to_datetime(df[col_date]) > split_date
+    # Split the training and test sets
+    train_dates = pd.to_datetime(date) <= split_date
+    tests_dates = pd.to_datetime(date) > split_date
 
-    train = df.loc[train_dates]
-    tests = df.loc[tests_dates]
+    train = df.loc[train_dates].copy()
+    tests = df.loc[tests_dates].copy()
 
-    train_observed = pd.to_datetime(train[col_date]) <= split_date - day_shift
+    # Use the day shift and the lag to mark what is observed versus not
+    train_observed_deaths = pd.to_datetime(train[col_date]) <= split_date - day_shift
+    train_observed_infecs = pd.to_datetime(train[col_date]) <= split_date - day_shift - lag
 
-    train[col_obs] = 1
-    train.loc[train_observed, col_obs] = 0
-    tests[col_obs] = 0
+    # Create observation columns
+    train[col_obs_deaths] = 1
+    train[col_obs_infecs] = 1
+
+    # Mark observed for deaths and infections
+    train.loc[train_observed_deaths, col_obs_deaths] = 0
+    train.loc[train_observed_infecs, col_obs_infecs] = 0
+
+    # Mark all unobserved in the test set
+    tests[col_obs_deaths] = 0
+    tests[col_obs_infecs] = 0
 
     return train, tests
 
