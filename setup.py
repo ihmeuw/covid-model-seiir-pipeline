@@ -20,7 +20,7 @@ if __name__ == "__main__":
         'numpy',
         'pandas',
         'pyyaml',
-        'matplotlib'
+        'matplotlib',
         'slime',
         'odeopt>=0.1.1',
     ]
