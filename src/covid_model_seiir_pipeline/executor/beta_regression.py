@@ -4,21 +4,21 @@ import shlex
 import logging
 import numpy as np
 
-from seiir_model.model_runner import ModelRunner
+from covid_model_seiir.model_runner import ModelRunner
 
-from seiir_model_pipeline.core.versioner import COVARIATE_COL_DICT, INFECTION_COL_DICT
-from seiir_model_pipeline.core.versioner import load_regression_settings
-from seiir_model_pipeline.core.versioner import Directories
+from covid_model_seiir_pipeline.core.versioner import COVARIATE_COL_DICT, INFECTION_COL_DICT
+from covid_model_seiir_pipeline.core.versioner import load_regression_settings
+from covid_model_seiir_pipeline.core.versioner import Directories
 
-from seiir_model_pipeline.core.data import load_all_location_data
-from seiir_model_pipeline.core.data import load_mr_coefficients
-from seiir_model_pipeline.core.data import load_covariates
+from covid_model_seiir_pipeline.core.data import load_all_location_data
+from covid_model_seiir_pipeline.core.data import load_mr_coefficients
+from covid_model_seiir_pipeline.core.data import load_covariates
 
-from seiir_model_pipeline.core.utils import load_locations
+from covid_model_seiir_pipeline.core.utils import load_locations
 
-from seiir_model_pipeline.core.model_inputs import process_ode_process_input
-from seiir_model_pipeline.core.model_inputs import convert_inputs_for_beta_model
-from seiir_model_pipeline.core.model_inputs import convert_to_covmodel
+from covid_model_seiir_pipeline.core.model_inputs import process_ode_process_input
+from covid_model_seiir_pipeline.core.model_inputs import convert_inputs_for_beta_model
+from covid_model_seiir_pipeline.core.model_inputs import convert_to_covmodel
 
 log = logging.getLogger(__name__)
 

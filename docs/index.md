@@ -17,15 +17,13 @@ The only internal IHME package that this
 repository relies on is [Jobmon](https://scicomp-docs.ihme.washington.edu/jobmon/current/).
 
 Note that in order to install the private repositories from [IHME
-Math Sciences organization on GitHub](https://github.com/ihmeuw-msca), you will need to ask for
-permissions to those repositories. Please contact [Peng Zheng](mailto:zhengp@uw.edu)
-or [Marlena Bannick](mailto:mnorwood@uw.edu) to grant read permissions.
+Math Sciences organization on GitHub](https://github.com/ihmeuw-msca).
 
 To install the repository into your own conda environment, clone the repository:
 
 ```
-git clone https://stash.ihme.washington.edu/scm/cvd19/covid-model-seir-ode-opt.git
-cd covid-model-seir-ode-opt
+git clone https://github.com/ihmeuw/covid-model-seiir-pipeline.git
+cd covid-model-seiir-pipeline
 make install_env ENV_NAME={your conda environment name}
 ```
 
