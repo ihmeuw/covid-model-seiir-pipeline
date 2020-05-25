@@ -1,4 +1,5 @@
 from pathlib import Path
+import warnings
 from dataclasses import dataclass, asdict, field
 from typing import List, Dict, Union, Tuple
 import os
@@ -391,11 +392,22 @@ class ODEVersion(Version):
     gamma1: Tuple[float] = field(default=(0.50, 0.50))
     gamma2: Tuple[float] = field(default=(0.50, 0.50))
     solver_dt: float = field(default=0.1)
+    concavity: bool = True
+    increasing: bool = False
+    spline_se_power: float = field(default=1.0)
+    spline_space: str = field(default='ln daily')
 
     infection_dir: str = str(INPUT_DIR)
 
     def __post_init__(self):
-        pass
+        if not self.spline_space.startswith('ln') and self.spline_se_power !=0.0:
+            warnings.warn("Spline not fitting in the log space, spline_se_power advised to be 0.", UserWarning)
+
+        if self.spline_space.endswith('daily') and self.increasing:
+            warnings.warn("Spline fitting daily data, do not suggest using increasing constraint.", UserWarning)
+
+        if self.spline_space.endswith('cumul') and self.concavity:
+            warnings.warn("Spline fitting cumulative data, do not suggest using concave constraint.", UserWarning)
 
     def _settings_to_json(self):
         settings = asdict(self)

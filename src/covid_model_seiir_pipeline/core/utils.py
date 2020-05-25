@@ -1,10 +1,10 @@
 import pandas as pd
 import numpy as np
 
-from seiir_model_pipeline.core.versioner import ODEVersion, RegressionVersion, ForecastVersion, Directories
-from seiir_model_pipeline.core.data import get_missing_locations
-from seiir_model_pipeline.core.data import cache_covariates, get_covariate_version_from_cache
-from seiir_model_pipeline.core.versioner import load_regression_settings, load_ode_settings
+from covid_model_seiir_pipeline.core.versioner import ODEVersion, RegressionVersion, ForecastVersion, Directories
+from covid_model_seiir_pipeline.core.data import get_missing_locations
+from covid_model_seiir_pipeline.core.data import cache_covariates, get_covariate_version_from_cache
+from covid_model_seiir_pipeline.core.versioner import load_regression_settings, load_ode_settings
 from dataclasses import asdict
 
 
