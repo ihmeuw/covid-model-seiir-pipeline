@@ -4,17 +4,15 @@ import shlex
 import logging
 import numpy as np
 
-from seiir_model.model_runner import ModelRunner
+from covid_model_seiir.model_runner import ModelRunner
 
-from seiir_model_pipeline.core.versioner import INFECTION_COL_DICT
-from seiir_model_pipeline.core.versioner import load_ode_settings
-from seiir_model_pipeline.core.versioner import Directories
+from covid_model_seiir_pipeline.core.versioner import INFECTION_COL_DICT
+from covid_model_seiir_pipeline.core.versioner import load_ode_settings
+from covid_model_seiir_pipeline.core.versioner import Directories
 
-from seiir_model_pipeline.core.data import load_all_location_data
-
-from seiir_model_pipeline.core.utils import load_locations
-
-from seiir_model_pipeline.core.model_inputs import process_ode_process_input
+from covid_model_seiir_pipeline.core.data import load_all_location_data
+from covid_model_seiir_pipeline.core.utils import load_locations
+from covid_model_seiir_pipeline.core.model_inputs import process_ode_process_input
 
 log = logging.getLogger(__name__)
 
