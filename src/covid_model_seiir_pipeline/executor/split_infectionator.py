@@ -100,6 +100,7 @@ def get_day_shift(param_directory, draw):
 def create_new_files(old_directory, new_directory, param_directory, location_id, time_holdout):
     old_directory = Path(old_directory)
     new_directory = Path(new_directory)
+    param_directory = Path(param_directory)
 
     location_folders = os.listdir(old_directory)
     folder = [
