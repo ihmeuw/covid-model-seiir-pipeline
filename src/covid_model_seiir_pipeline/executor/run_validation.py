@@ -112,7 +112,7 @@ def create_infection_split_workflow(directories, old_directory, new_directory, t
 def process_input_files(version_name, time_holdout):
     directories = Directories(ode_version=version_name)
     infection_version = load_ode_settings(version_name).infection_version
-    new_infection_version = f'{infection_version}.validate.{time_holdout}'
+    new_infection_version = f'{infection_version}.validate.{version_name}.{time_holdout}'
 
     old_infection_directory = INPUT_DIR / infection_version
     new_infection_directory = VALIDATION_INPUT_DIR / new_infection_version
