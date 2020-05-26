@@ -1,14 +1,14 @@
 
 
-# Where location metadata is stored
-LOCATION_METADATA_FILE_PATTERN = 'location_metadata_{lsvid}.csv'
-# This is a list of locations used for a particular run
-LOCATION_CACHE_FILE = 'locations.csv'
+FIT_SPECIFICATION_FILE = 'fit_specification.yaml'
+REGRESSION_SPECIFICATION_FILE = 'regression_specification.yaml'
 
-# Where cached covariates are stored
-COVARIATES_FILE = 'covariates.csv'
-COVARIATES_DRAW_FILE = 'covariates_draw_{draw_id}.csv'
+SEIIR_COMPARTMENTS = ['S', 'E', 'I1', 'I2', 'R']
 
+COL_BETA = 'beta'
+COL_GROUP = 'loc_id'
+COL_DATE = 'date'
+COL_INTERCEPT = 'intercept'
 
 # Columns from infectionator inputs
 INFECTION_COL_DICT = {

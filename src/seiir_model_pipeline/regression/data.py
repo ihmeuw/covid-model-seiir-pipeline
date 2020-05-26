@@ -1,11 +1,13 @@
 from pathlib import Path
-from typing import List, Optional, Dict, Tuple
+from typing import List, Dict, Tuple
 
 import pandas as pd
 
-from seiir_model_pipeline.paths import RegressionPaths, CovariatePaths, ODEPaths
+from seiir_model_pipeline.static_vars import COVARIATE_COL_DICT, FIT_SPECIFICATION_FILE
+from seiir_model_pipeline.ode_fit import FitSpecification
+from seiir_model_pipeline.paths import (RegressionPaths, CovariatePaths, ODEPaths,
+                                        InfectionPaths)
 from seiir_model_pipeline.regression.specification import RegressionData
-from seiir_model_pipeline.globals import COVARIATE_COL_DICT
 
 
 class RegressionDataInterface:
@@ -16,6 +18,16 @@ class RegressionDataInterface:
         self.regression_paths = RegressionPaths(Path(regression_data.output_root))
         self.covariate_paths = CovariatePaths(Path(regression_data.covariate_version))
         self.ode_paths = ODEPaths(Path(regression_data.ode_fit_version))
+
+        ode_fit_spec: FitSpecification = FitSpecification.from_path(self.ode_paths.root_dir /
+                                                                    FIT_SPECIFICATION_FILE)
+
+        self.infection_paths = InfectionPaths(Path(ode_fit_spec.data.infection_version))
+
+        # TODO: transition to using data from snapshot
+        file = f'location_metadata_{ode_fit_spec.data.location_set_version_id}.csv'
+        file_path = Path('/ihme/covid-19/seir-pipeline-outputs/metadata-inputs') / file
+        self.location_metadata_file = file_path
 
     def _load_scenario_file(self, val_name: str, input_file: Path, location_ids: List[int],
                             draw_id: int
@@ -93,9 +105,9 @@ class RegressionDataInterface:
             # store regress data only once
             cached_df = covariate_set.get(regress_val_name)
             if cached_df is None:
-                covariate_set[regress_val_name] = regress_df
+                covariate_set[regress_val_name] = regress_df.reset_index(drop=True)
             else:
-                if not cached_df.equals(regress_df):
+                if not cached_df.equals(regress_df.reset_index(drop=True)):
                     raise RuntimeError(
                         "Regression data is not exactly equal between covariates in covariate "
                         f"pool. Input files are {scenario_map.values()}.")
@@ -109,5 +121,36 @@ class RegressionDataInterface:
         df.to_csv(path, index=False)
 
     def save_scenarios(self, df: pd.DataFrame, draw_id: int) -> None:
-        path = self.regression_paths.get_scenarios_file(draw_id)
-        df.to_csv(path, index=False)
+        location_ids = df[COVARIATE_COL_DICT['COL_LOC_ID']].tolist()
+        for l_id in location_ids:
+            loc_scenario_df = df.loc[df[COVARIATE_COL_DICT['COL_LOC_ID']] == l_id]
+            scenario_file = self.regression_paths.get_scenarios_file(l_id, draw_id)
+            loc_scenario_df.to_csv(scenario_file, index=False)
+
+    def load_location_ids(self) -> List[int]:
+        return pd.read_csv(self.location_metadata_file)["location_id"].tolist()
+
+    def load_infections(self, location_ids: List[int], draw_id: int
+                        ) -> Dict[int, pd.DataFrame]:
+        dfs = dict()
+        for loc in location_ids:
+            file = self.infection_paths.get_infection_file(location_id=loc, draw_id=draw_id)
+            dfs[loc] = pd.read_csv(file)
+        return dfs
+
+    def load_ode_fits(self, location_ids: List[int], draw_id: int) -> pd.DataFrame:
+        df_beta = []
+        for l_id in location_ids:
+            df_beta.append(pd.read_csv(self.ode_paths.get_draw_beta_fit_file(l_id, draw_id)))
+        df_beta = pd.concat(df_beta).reset_index(drop=True)
+        return df_beta
+
+    def load_mr_coefficients(self, draw_id: int) -> pd.DataFrame:
+        return pd.read_csv(self.regression_paths.get_draw_coefficient_file(draw_id))
+
+    def save_regression_betas(self, df: pd.DataFrame, draw_id: int, location_ids: List[int]
+                              ) -> None:
+        for l_id in location_ids:
+            loc_beta_fits = df.loc[df[COVARIATE_COL_DICT['COL_LOC_ID']] == l_id]
+            beta_file = self.regression_paths.get_draw_beta_regression_file(l_id, draw_id)
+            loc_beta_fits.to_csv(beta_file, index=False)

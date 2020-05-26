@@ -4,7 +4,7 @@ from typing import List, Dict
 import pandas as pd
 
 
-from seiir_model_pipeline.globals import INFECTION_COL_DICT
+from seiir_model_pipeline.static_vars import INFECTION_COL_DICT
 from seiir_model_pipeline.paths import ODEPaths, InfectionPaths
 from seiir_model_pipeline.ode_fit.specification import FitData
 

@@ -1,7 +1,7 @@
 import abc
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import List, ClassVar, Optional, Dict
+from typing import List, ClassVar, Dict
 
 from parse import parse
 
@@ -186,17 +186,17 @@ class ODEPaths(Paths):
 class RegressionPaths(Paths):
     # class attributes are inferred using ClassVar. See pep 557 (Class Variables)
     draw_coefficient_file: ClassVar[str] = 'coefficients_{draw_id}.csv'
-    draw_beta_fit_file: ClassVar[str] = 'regression_draw_{draw_id}.csv'
+    draw_beta_regression_file: ClassVar[str] = 'regression_draw_{draw_id}.csv'
     draw_covariates_file: ClassVar[str] = 'covariate_draw_{draw_id}.csv'
     draw_scenarios_file: ClassVar[str] = 'scenarios_draw_{draw_id}.csv'
 
     @property
-    def beta_fit_dir(self) -> Path:
+    def beta_regression_dir(self) -> Path:
         return self.root_dir / 'betas'
 
-    def get_draw_beta_fit_file(self, location_id: int, draw_id: int) -> Path:
-        file = self.draw_beta_fit_file.format(draw_id=draw_id)
-        return self.beta_fit_dir / str(location_id) / file
+    def get_draw_beta_regression_file(self, location_id: int, draw_id: int) -> Path:
+        file = self.draw_beta_regression_file.format(draw_id=draw_id)
+        return self.beta_regression_dir / str(location_id) / file
 
     @property
     def coefficient_dir(self) -> Path:
@@ -224,21 +224,26 @@ class RegressionPaths(Paths):
     def scenario_dir(self) -> Path:
         return self.root_dir / 'scenarios'
 
-    def get_scenarios_file(self, draw_id: int):
-        return self.covariate_dir / self.draw_scenarios_file.format(draw_id=draw_id)
+    def get_scenarios_file(self, location_id: int, draw_id: int):
+        file = self.draw_scenarios_file.format(draw_id=draw_id)
+        return self.scenario_dir / str(location_id) / file
+
+    @property
+    def info_dir(self):
+        return self.scenario_dir / 'info'
 
     @property
     def directories(self) -> List[Path]:
         """Returns all top level sub-directories."""
-        return [self.beta_fit_dir, self.coefficient_dir, self.diagnostic_dir,
-                self.input_dir, self.covariate_dir]
+        return [self.beta_regression_dir, self.coefficient_dir, self.diagnostic_dir,
+                self.input_dir, self.covariate_dir, self.scenario_dir, self.info_dir]
 
     @property
     def location_specific_directories(self) -> List[Path]:
         """Returns all top level sub-directories that have location-specific
         sub-directories.
         """
-        return [self.beta_fit_dir]
+        return [self.beta_regression_dir, self.scenario_dir]
 
 
 @dataclass
@@ -295,7 +300,7 @@ class CovariatePaths(Paths):
         matches = [m for m in covariate_dir.glob(self.scenario_file.format(scenario="*"))]
         mapping = {}
         for file in matches:
-            key = parse(self.scenario_file, file)["scenario"]
+            key = parse(self.scenario_file, str(file.name))["scenario"]
             file = covariate_dir / file
             mapping[key] = file
         return mapping

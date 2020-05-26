@@ -12,7 +12,7 @@ from seiir_model.model_runner import ModelRunner
 
 from seiir_model_pipeline.ode_fit import FitSpecification
 from seiir_model_pipeline.ode_fit.data import ODEDataInterface
-from seiir_model_pipeline.globals import INFECTION_COL_DICT
+from seiir_model_pipeline.static_vars import INFECTION_COL_DICT
 
 
 log = logging.getLogger(__name__)

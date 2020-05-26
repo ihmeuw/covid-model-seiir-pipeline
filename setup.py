@@ -62,7 +62,7 @@ if __name__ == "__main__":
             'seiir=seiir_model_pipeline.cli:seiir',
             'run=seiir_model_pipeline.executor.run:main',
             'beta_ode_fit=seiir_model_pipeline.ode_fit.task:main',
-            'beta_regression=seiir_model_pipeline.executor.beta_regression:main',
+            'beta_regression=seiir_model_pipeline.regression.task:main',
             'beta_forecast=seiir_model_pipeline.executor.beta_forecast:main',
             'splice=seiir_model_pipeline.executor.splice:main',
             'create_regression_diagnostics=seiir_model_pipeline.executor.create_regression_diagnostics:main',

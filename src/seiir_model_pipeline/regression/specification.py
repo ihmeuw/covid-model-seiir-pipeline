@@ -1,7 +1,5 @@
 from dataclasses import dataclass, field
-import itertools
-from string import Formatter
-from typing import Dict, Tuple, List, Optional, Dict
+from typing import Dict, Tuple, List
 
 from seiir_model_pipeline.utilities import Specification, asdict
 
@@ -38,28 +36,6 @@ class CovariateSpecification:
 
         """
         return {k: v for k, v in asdict(self).items() if k != 'name'}
-
-    def get_input_file(self, scenario: str):
-        input_file_keys = [i[1] for i in Formatter().parse(self.input_file_pattern)
-                           if i[1] is not None]
-
-        format_spec: Dict[str, str] = {}
-        if "name" in input_file_keys:
-            format_spec["name"] = self.name
-        if "scenario" in input_file_keys:
-            format_spec["scenario"] = scenario
-        return self.input_file_pattern.format(**format_spec)
-
-    def get_output_file(self, scenario: str):
-        output_file_keys = [i[1] for i in Formatter().parse(self.output_file_pattern)
-                            if i[1] is not None]
-
-        format_spec: Dict[str, str] = {}
-        if "name" in output_file_keys:
-            format_spec["name"] = self.name
-        if "scenario" in output_file_keys:
-            format_spec["scenario"] = scenario
-        return self.output_file_pattern.format(**format_spec)
 
 
 class RegressionSpecification(Specification):
