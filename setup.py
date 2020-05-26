@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 
 from setuptools import setup, find_packages
 
@@ -21,10 +22,11 @@ if __name__ == "__main__":
         'matplotlib',
         'mrtool',
         'numpy',
-        'odeopt',
         'pandas',
         'pyyaml',
         'parse'
+        'slime',
+        'odeopt>=0.1.1'
     ]
 
     test_requirements = [
@@ -32,8 +34,10 @@ if __name__ == "__main__":
         'pytest-mock',
     ]
 
-    doc_requirements = [
-        'sphinx',
+    doc_requirements = []
+
+    internal_requirements = [
+        'jobmon',
     ]
 
     setup(
@@ -42,6 +46,7 @@ if __name__ == "__main__":
 
         description=about['__summary__'],
         long_description=long_description,
+        license=about['__license__'],
         url=about["__uri__"],
 
         author=about["__author__"],
@@ -52,10 +57,12 @@ if __name__ == "__main__":
         include_package_data=True,
 
         install_requires=install_requirements,
+        tests_require=test_requirements,
         extras_require={
+            'docs': doc_requirements,
             'test': test_requirements,
-            'dev': test_requirements + doc_requirements,
-            'docs': doc_requirements
+            'internal': internal_requirements,
+            'dev': [doc_requirements, test_requirements, internal_requirements]
         },
 
         entry_points={'console_scripts': [
@@ -69,6 +76,5 @@ if __name__ == "__main__":
             'create_forecast_diagnostics=seiir_model_pipeline.executor.create_forecast_diagnostics:main',
             'create_scaling_diagnostics=seiir_model_pipeline.executor.create_scaling_diagnostics:main'
         ]},
-
         zip_safe=False,
     )
