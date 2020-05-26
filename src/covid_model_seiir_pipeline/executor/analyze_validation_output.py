@@ -33,7 +33,7 @@ def load_all_validation_data(output_dir):
     for file in os.listdir(output_dir):
         if file == ALL_METRICS_FILE:
             continue
-        df = pd.read_csv(file)
+        df = pd.read_csv(output_dir / file)
         dfs.append(df)
     return pd.concat(dfs).reset_index()
 
