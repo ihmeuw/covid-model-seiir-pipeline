@@ -34,7 +34,6 @@ def parse_arguments(argstr: Optional[str] = None) -> Namespace:
 
 
 def get_train_test_data(df, time_holdout, day_shift):
-
     # Extract column info
     col_date = INFECTION_COL_DICT['COL_DATE']
     col_obs_deaths = INFECTION_COL_DICT['COL_OBS_DEATHS']
@@ -49,6 +48,8 @@ def get_train_test_data(df, time_holdout, day_shift):
     lag = lag.unique()
     assert len(lag) == 1
     lag = np.timedelta64(lag[0], 'D')
+    # Number of days that are shifted as part of model settings
+    day_shift = np.timedelta64(int(day_shift), 'D')
 
     # Number of days to hold out
     holdout_days = np.timedelta64(time_holdout, 'D')
@@ -71,12 +72,12 @@ def get_train_test_data(df, time_holdout, day_shift):
     train_observed_infecs = pd.to_datetime(train[col_date]) <= split_date - day_shift - lag
 
     # Create observation columns
-    train[col_obs_deaths] = 1
-    train[col_obs_infecs] = 1
+    train[col_obs_deaths] = 0
+    train[col_obs_infecs] = 0
 
     # Mark observed for deaths and infections
-    train.loc[train_observed_deaths, col_obs_deaths] = 0
-    train.loc[train_observed_infecs, col_obs_infecs] = 0
+    train.loc[train_observed_deaths, col_obs_deaths] = 1
+    train.loc[train_observed_infecs, col_obs_infecs] = 1
 
     # Mark all unobserved in the test set
     tests[col_obs_deaths] = 0
@@ -101,7 +102,6 @@ def create_new_files(old_directory, new_directory, param_directory, location_id,
     old_directory = Path(old_directory)
     new_directory = Path(new_directory)
     param_directory = Path(param_directory)
-
     location_folders = os.listdir(old_directory)
     folder = [
         x for x in location_folders

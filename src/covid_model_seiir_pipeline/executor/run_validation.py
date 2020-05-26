@@ -97,7 +97,7 @@ def create_infection_split_workflow(directories, old_directory, new_directory, t
     ) for loc in locations]
 
     wf = Workflow(
-        workflow_args=f'seiir-train-test-split {old_directory} {new_directory}',
+        workflow_args=f'seiir-train-test-split {old_directory} {new_directory} {str(directories.ode_parameters_dir)}',
         project=PROJECT,
         stderr=f'/ihme/temp/sgeoutput/{user}/errors',
         stdout=f'/ihme/temp/sgeoutput/{user}/output',

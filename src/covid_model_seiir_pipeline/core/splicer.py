@@ -166,7 +166,6 @@ class Splicer:
         """
         pop = self.get_population(infection_data)
         d_today, i_today = self.get_today(infection_data)
-
         spliced = self.splice_infections(
             infection_data=infection_data, today=i_today,
             component_fit=component_fit, component_forecasts=component_forecasts
