@@ -80,7 +80,7 @@ def read_data(version_name, location_id, output_dir):
         location_id=location_id
     )
     df = data.merge(forecast, on=INFECTION_COL_DICT['COL_DATE'])
-    metrics = calculate_metrics(df, observed_col=INFECTION_COL_DICT['COL_DEATHS'], draw_cols=draw_cols)
+    metrics = calculate_metrics(df, observed_col=INFECTION_COL_DICT['COL_DEATHS_DATA'], draw_cols=draw_cols)
     metrics.to_csv(output_dir / f'metrics_{location_id}.csv', index=False)
 
 

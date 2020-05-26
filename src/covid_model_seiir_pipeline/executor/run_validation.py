@@ -167,7 +167,7 @@ def create_evaluate_workflow(directories, version_name, output_directory):
         resume=True
     )
     wf.add_tasks(tasks)
-    wf.add_tasks(end_task)
+    wf.add_task(end_task)
     return wf
 
 
@@ -213,10 +213,12 @@ def launch_validation(version_name, time_holdout):
         run_splicer=True,
         create_diagnostics=True
     )
+    return new_version_name
 
 
 def run_validation_analysis(version_name, output_path):
     directories = Directories(ode_version=version_name)
+    os.makedirs(output_path, exist_ok=True)
     log.info(f"Running validation analysis for version {version_name}.")
     wf = create_evaluate_workflow(
         directories=directories,
@@ -231,13 +233,13 @@ def run_validation_analysis(version_name, output_path):
 def main():
 
     args = parse_arguments()
-    launch_validation(
+    new_version_name = launch_validation(
         version_name=args.version_name,
         time_holdout=args.time_holdout
     )
     if isinstance(args.validation_output_dir, str):
         run_validation_analysis(
-            version_name=args.version_name,
+            version_name=new_version_name,
             output_path=args.validation_output_dir
         )
 

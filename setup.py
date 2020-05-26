@@ -71,7 +71,8 @@ if __name__ == "__main__":
             'create_scaling_diagnostics=covid_model_seiir_pipeline.executor.create_scaling_diagnostics:main',
             'run_validation=covid_model_seiir_pipeline.executor.run_validation:main',
             'split_infectionator=covid_model_seiir_pipeline.executor.split_infectionator:main',
-            'evaluate_location=covid_model_seiir_pipeline.executor.evaluate_location:main'
+            'evaluate_location=covid_model_seiir_pipeline.executor.evaluate_location:main',
+            'analyze_validation_output=covid_model_seiir_pipeline.executor.analyze_validation_output:main'
         ]},
         zip_safe=False,
     )
