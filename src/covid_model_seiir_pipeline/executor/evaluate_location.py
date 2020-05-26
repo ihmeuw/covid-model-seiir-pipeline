@@ -4,6 +4,7 @@ from typing import Optional
 import shlex
 import pandas as pd
 import numpy as np
+from pathlib import Path
 
 from covid_model_seiir_pipeline.core.versioner import Directories, _get_infection_folder_from_location_id
 from covid_model_seiir_pipeline.core.versioner import INFECTION_FILE_PATTERN
@@ -19,6 +20,7 @@ def parse_arguments(argstr: Optional[str] = None) -> Namespace:
     parser = ArgumentParser()
     parser.add_argument("--version-name", type=str, required=True)
     parser.add_argument("--location-id", type=int, required=True)
+    parser.add_argument("--output-dir", type=str, required=True)
 
     if argstr is not None:
         arglist = shlex.split(argstr)
@@ -55,7 +57,9 @@ def calculate_metrics(df, observed_col, draw_cols):
     ]]
 
 
-def read_data(version_name, location_id):
+def read_data(version_name, location_id, output_dir):
+
+    output_dir = Path(output_dir)
 
     directories = Directories(
         ode_version=version_name,
@@ -78,7 +82,7 @@ def read_data(version_name, location_id):
     )
     df = data.merge(forecast, on=INFECTION_COL_DICT['COL_DATE'])
     metrics = calculate_metrics(df, observed_col=INFECTION_COL_DICT['COL_DEATHS'], draw_cols=draw_cols)
-    # TODO: Put in the metrics into a csv
+    metrics.to_csv(output_dir / f'metrics_{location_id}.csv', index=False)
 
 
 def main():
@@ -86,7 +90,8 @@ def main():
     args = parse_arguments()
     read_data(
         version_name=args.version_name,
-        location_id=args.location_id
+        location_id=args.location_id,
+        output_dir=args.output_dir
     )
 
 

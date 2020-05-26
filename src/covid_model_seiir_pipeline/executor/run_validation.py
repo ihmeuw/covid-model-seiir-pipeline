@@ -74,6 +74,40 @@ class InfectionSplitTask(BashTask):
         )
 
 
+class EvaluateLocationTask(BashTask):
+    def __init__(self, version_name, location_id, output_dir):
+
+        command = (
+            "evaluate_location " +
+            f"--version-name {version_name} " +
+            f"--location-id {location_id} " +
+            f"--output-dir {output_dir} "
+        )
+
+        super().__init__(
+            command=command,
+            name=f'seiir_evaluate_location_{location_id}',
+            executor_parameters=EXEC_PARAMS,
+            max_attempts=1
+        )
+
+
+class ValidationAnalyticsTask(BashTask):
+    def __init__(self, output_dir):
+
+        command = (
+            "analyze_validation_output " +
+            f"--output-dir {output_dir}"
+        )
+
+        super().__init__(
+            command=command,
+            name=f'seiir_analyze_validation',
+            executor_parameters=EXEC_PARAMS,
+            max_attempts=1
+        )
+
+
 def create_infection_split_workflow(directories, old_directory, new_directory, time_holdout):
     """
     Create a workflow that splits the infectionator into train-test sets based
@@ -106,6 +140,34 @@ def create_infection_split_workflow(directories, old_directory, new_directory, t
         resume=True
     )
     wf.add_tasks(tasks)
+    return wf
+
+
+def create_evaluate_workflow(directories, version_name, output_directory):
+    user = getpass.getuser()
+    locations = load_locations(directories)
+
+    tasks = [EvaluateLocationTask(
+        version_name=version_name,
+        location_id=loc,
+        output_dir=output_directory
+    ) for loc in locations]
+
+    end_task = ValidationAnalyticsTask(output_dir=output_directory)
+    for t in tasks:
+        end_task.add_upstream(t)
+
+    wf = Workflow(
+        workflow_args=f'seiir-analyze-location {version_name}',
+        project=PROJECT,
+        stderr=f'/ihme/temp/sgeoutput/{user}/errors',
+        stdout=f'/ihme/temp/sgeoutput/{user}/output',
+        working_dir=f'/ihme/homes/{user}',
+        seconds_until_timeout=60 * 60 * 24,
+        resume=True
+    )
+    wf.add_tasks(tasks)
+    wf.add_tasks(end_task)
     return wf
 
 
@@ -154,7 +216,16 @@ def launch_validation(version_name, time_holdout):
 
 
 def run_validation_analysis(version_name, output_path):
-    pass
+    directories = Directories(ode_version=version_name)
+    log.info(f"Running validation analysis for version {version_name}.")
+    wf = create_evaluate_workflow(
+        directories=directories,
+        version_name=version_name,
+        output_directory=output_path
+    )
+    exit_status = wf.run()
+    if exit_status != 0:
+        raise RuntimeError("Error in the validation analysis workflow.")
 
 
 def main():
