@@ -31,7 +31,8 @@ def parse_arguments(argstr: Optional[str] = None) -> Namespace:
 
 def date_to_days(date):
     date = pd.to_datetime(date)
-    return np.array((date - date.min()).days) + 1
+    days = date - date.min() + np.timedelta64(1, 'D')
+    return days
 
 
 def load_all_validation_data(output_dir):
