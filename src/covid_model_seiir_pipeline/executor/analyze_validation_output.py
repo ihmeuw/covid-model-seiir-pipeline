@@ -64,17 +64,18 @@ def collapse_metrics(df):
     return result
 
 
-def read_data(output_dir):
+def validate(output_dir):
     output_dir = Path(output_dir)
 
     df = load_all_validation_data(output_dir)
     metrics = collapse_metrics(df)
+    print(metrics)
     metrics.to_csv(output_dir / ALL_METRICS_FILE, index=False)
 
 
 def main():
     args = parse_arguments()
-    read_data(
+    validate(
         output_dir=args.output_dir
     )
 
