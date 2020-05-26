@@ -41,7 +41,6 @@ def read_data(version_name, location_id):
         regression_version=version_name,
         forecast_version=version_name
     )
-
     forecast = pd.read_csv(
         directories.location_output_forecast_file(
             location_id=location_id, forecast_type='deaths'
