@@ -12,6 +12,7 @@ from jobmon.client.swarm.executors.base import ExecutorParameters
 from covid_model_seiir_pipeline.core.utils import clone_run
 from covid_model_seiir_pipeline.core.versioner import BASE_DIR, Directories, OUTPUT_DIR, load_ode_settings, INPUT_DIR
 from covid_model_seiir_pipeline.executor.run import run
+from covid_model_seiir_pipeline.executor.analyze_validation_output import validate
 from covid_model_seiir_pipeline.core.utils import load_locations
 from covid_model_seiir_pipeline.core.workflow import PROJECT
 
@@ -153,10 +154,6 @@ def create_evaluate_workflow(directories, version_name, output_directory):
         output_dir=output_directory
     ) for loc in locations]
 
-    end_task = ValidationAnalyticsTask(output_dir=output_directory)
-    for t in tasks:
-        end_task.add_upstream(t)
-
     wf = Workflow(
         workflow_args=f'seiir-analyze-location {version_name}',
         project=PROJECT,
@@ -167,7 +164,6 @@ def create_evaluate_workflow(directories, version_name, output_directory):
         resume=True
     )
     wf.add_tasks(tasks)
-    wf.add_task(end_task)
     return wf
 
 
@@ -227,7 +223,9 @@ def run_validation_analysis(version_name, output_path):
     )
     exit_status = wf.run()
     if exit_status != 0:
-        raise RuntimeError("Error in the validation analysis workflow.")
+        log.warning("Error in the validation analysis workflow, check the workflow logs for failed groups, but"
+                    "continuing to do the overall validation.")
+    validate(output_dir=output_path)
 
 
 def main():
