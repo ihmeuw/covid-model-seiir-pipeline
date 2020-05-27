@@ -1,3 +1,4 @@
+from typing import Union
 import pandas as pd
 import numpy as np
 
@@ -120,3 +121,26 @@ def write_locations(directories, location_ids):
 
 def load_locations(directories):
     return pd.read_csv(directories.location_cache_file).location_id.tolist()
+
+
+def beta_shift(beta_fit: pd.DataFrame,
+               beta_pred: np.ndarray,
+               window_size: Union[int, None] = None) -> np.array:
+    assert 'date' in beta_fit.columns, "'date' has to be in beta_fit data frame."
+    assert 'beta' in beta_fit.columns, "'beta' has to be in beta_fit data frame."
+    current_date = beta_fit.date.max()
+
+    anchor_beta = beta_fit.beta[beta_fit.date == current_date].iloc[0]
+    scale_init = anchor_beta / beta_pred[0]
+
+    if window_size is not None:
+        assert isinstance(window_size, int) and window_size > 0, f"window_size={window_size} has to be a positive " \
+                                                                 f"integer."
+        scale = scale_init + (1 - scale_init)/window_size*np.arange(beta_pred.size)
+        scale[(window_size + 1):] = 1.0
+    else:
+        scale = scale_init
+
+    betas = beta_pred * scale
+
+    return betas, scale_init
