@@ -7,12 +7,12 @@ from typing import Optional
 
 import numpy as np
 
-from seiir_model.ode_model import ODEProcessInput
-from seiir_model.model_runner import ModelRunner
+from covid_model_seiir.ode_model import ODEProcessInput
+from covid_model_seiir.model_runner import ModelRunner
 
-from seiir_model_pipeline.ode_fit import FitSpecification
-from seiir_model_pipeline.ode_fit.data import ODEDataInterface
-from seiir_model_pipeline.static_vars import INFECTION_COL_DICT
+from covid_model_seiir_pipeline.ode_fit import FitSpecification
+from covid_model_seiir_pipeline.ode_fit.data import ODEDataInterface
+from covid_model_seiir_pipeline.static_vars import INFECTION_COL_DICT
 
 
 log = logging.getLogger(__name__)
@@ -49,9 +49,13 @@ def run_ode_fit(draw_id: int, ode_version: str):
         solver_dt=ode_fit_spec.parameters.solver_dt,
         spline_options={
             'spline_knots': ode_fit_spec.parameters.knots,
-            'spline_degree': ode_fit_spec.parameters.degree
+            'spline_degree': ode_fit_spec.parameters.degree,
+            'prior_spline_convexity': ode_fit_spec.parameters.concavity,
+            'prior_spline_monotonicity': ode_fit_spec.parameters.increasing,
         },
-        day_shift=ode_fit_spec.parameters.day_shift
+        day_shift=ode_fit_spec.parameters.day_shift,
+        spline_se_power=ode_fit_spec.parameters.spline_se_power,
+        spline_space=ode_fit_spec.parameters.spline_space,
     )
 
     # ----------------------- BETA SPLINE + ODE -------------------------------- #

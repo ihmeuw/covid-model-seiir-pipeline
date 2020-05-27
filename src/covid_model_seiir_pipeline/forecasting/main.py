@@ -2,7 +2,7 @@ from pathlib import Path
 
 from covid_shared import cli_tools
 
-from seiir_model_pipeline.forecasting import ForecastSpecification
+from covid_model_seiir_pipeline.forecasting import ForecastSpecification
 
 
 def do_beta_forecast(app_metadata: cli_tools.Metadata,
