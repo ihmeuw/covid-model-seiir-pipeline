@@ -70,5 +70,5 @@ class FitSpecification(Specification):
         """Converts the specification to a dict."""
         return {
             'data': self.data.to_dict(),
-            'paramters': self.parameters.to_dict()
+            'parameters': self.parameters.to_dict()
         }

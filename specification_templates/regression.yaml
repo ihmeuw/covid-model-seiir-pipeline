@@ -17,7 +17,7 @@ covariates:
     re_var: 1.0
     # Whether this covariate has draws or not.
     draws: False
-  mobility_lift:
+  mobility:
     order: 0
     use_re: True
     gprior: [0.0, 1000.0]
@@ -38,7 +38,7 @@ covariates:
     bounds: [-1000.0, 0.]
     re_var: 1.0
     draws: False
-  testing_reference:
+  testing:
     order: 3
     use_re: False
     gprior: [0.0, 1000.0]
