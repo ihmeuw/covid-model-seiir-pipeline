@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field
 from typing import Dict, Tuple, List
 
-from seiir_model_pipeline.utilities import Specification, asdict
+from covid_model_seiir_pipeline.utilities import Specification, asdict
 
 
 @dataclass

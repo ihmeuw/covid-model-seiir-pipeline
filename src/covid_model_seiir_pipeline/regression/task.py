@@ -9,14 +9,14 @@ import pandas as pd
 
 from slime.model import CovModel, CovModelSet
 from slime.core.data import MRData
-from seiir_model.model_runner import ModelRunner
+from covid_model_seiir.model_runner import ModelRunner
 
-from seiir_model_pipeline.regression.specification import (RegressionSpecification,
-                                                           CovariateSpecification)
-from seiir_model_pipeline.regression.data import RegressionDataInterface
-from seiir_model_pipeline.static_vars import (COVARIATE_COL_DICT, COL_BETA, COL_GROUP,
-                                              COL_DATE, COL_INTERCEPT, INFECTION_COL_DICT,
-                                              REGRESSION_SPECIFICATION_FILE)
+from covid_model_seiir_pipeline.regression.specification import (RegressionSpecification,
+                                                                 CovariateSpecification)
+from covid_model_seiir_pipeline.regression.data import RegressionDataInterface
+from covid_model_seiir_pipeline.static_vars import (COVARIATE_COL_DICT, COL_BETA, COL_GROUP,
+                                                    COL_DATE, COL_INTERCEPT, INFECTION_COL_DICT,
+                                                    REGRESSION_SPECIFICATION_FILE)
 
 
 log = logging.getLogger(__name__)
