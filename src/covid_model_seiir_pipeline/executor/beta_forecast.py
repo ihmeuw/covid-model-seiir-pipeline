@@ -121,7 +121,7 @@ def run_beta_forecast(location_id: int, regression_version: str, forecast_versio
         # scale[21:] = 1.0
         # betas = betas * scale
 
-        betas, scale_init = beta_shift(beta_fit, betas, window_size=None)
+        betas, scale_init = beta_shift(beta_fit, betas, **regression_settings.beta_shift_dict)
         scales.append(scale_init)
 
         # Get initial conditions based on the beta fit for forecasting into the future
