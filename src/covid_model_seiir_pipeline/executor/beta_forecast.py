@@ -19,7 +19,7 @@ from covid_model_seiir_pipeline.core.data import load_mr_coefficients
 from covid_model_seiir_pipeline.core.model_inputs import convert_to_covmodel
 from covid_model_seiir_pipeline.core.model_inputs import get_ode_init_cond
 
-from covid_model_seiir_pipeline.core.utils import date_to_days
+from covid_model_seiir_pipeline.core.utils import date_to_days, beta_shift
 
 log = logging.getLogger(__name__)
 
@@ -114,12 +114,15 @@ def run_beta_forecast(location_id: int, regression_version: str, forecast_versio
 
         # Anchor the betas at the last observed beta (fitted)
         # and scale everything into the future from this anchor value
-        anchor_beta = beta_fit.beta[beta_fit.date == CURRENT_DATE].iloc[0]
-        scale = anchor_beta / betas[0]
-        scales.append(scale)
+        # anchor_beta = beta_fit.beta[beta_fit.date == CURRENT_DATE].iloc[0]
+        # scale = anchor_beta / betas[0]
+        # scales.append(scale)
         # scale = scale + (1 - scale)/20.0*np.arange(betas.size)
         # scale[21:] = 1.0
-        betas = betas * scale
+        # betas = betas * scale
+
+        betas, scale_init = beta_shift(beta_fit, betas, window_size=None)
+        scales.append(scale_init)
 
         # Get initial conditions based on the beta fit for forecasting into the future
         init_cond = get_ode_init_cond(
