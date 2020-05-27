@@ -3,11 +3,11 @@ from typing import List, Dict, Tuple
 
 import pandas as pd
 
-from seiir_model_pipeline.static_vars import COVARIATE_COL_DICT, FIT_SPECIFICATION_FILE
-from seiir_model_pipeline.ode_fit import FitSpecification
-from seiir_model_pipeline.paths import (RegressionPaths, CovariatePaths, ODEPaths,
-                                        InfectionPaths)
-from seiir_model_pipeline.regression.specification import RegressionData
+from covid_model_seiir_pipeline.static_vars import COVARIATE_COL_DICT, FIT_SPECIFICATION_FILE
+from covid_model_seiir_pipeline.ode_fit import FitSpecification
+from covid_model_seiir_pipeline.paths import (RegressionPaths, CovariatePaths, ODEPaths,
+                                              InfectionPaths)
+from covid_model_seiir_pipeline.regression.specification import RegressionData
 
 
 class RegressionDataInterface:

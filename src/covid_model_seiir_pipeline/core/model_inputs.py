@@ -7,13 +7,8 @@ from covid_model_seiir.ode_model import ODEProcessInput
 from slime.model import CovModel, CovModelSet
 from slime.core.data import MRData
 
-<<<<<<< HEAD:src/seiir_model_pipeline/core/model_inputs.py
-from seiir_model_pipeline.core.versioner import INFECTION_COL_DICT
-from seiir_model_pipeline.regression.specification import CovariateSpecification
-
-=======
+from covid_model_seiir_pipeline.regression.specification import CovariateSpecification
 from covid_model_seiir_pipeline.core.versioner import INFECTION_COL_DICT
->>>>>>> 74d450a80b26de4360076d5396373e6f60b54cc4:src/covid_model_seiir_pipeline/core/model_inputs.py
 
 SEIIR_COMPARTMENTS = ['S', 'E', 'I1', 'I2', 'R']
 
@@ -59,15 +54,10 @@ def process_ode_process_input(settings, location_data):
         gamma2=settings.gamma2,
         solver_dt=settings.solver_dt,
         spline_options={
-<<<<<<< HEAD:src/seiir_model_pipeline/core/model_inputs.py
-            'spline_knots': settings.knots,
-            'spline_degree': settings.degree
-=======
             'spline_knots': np.array(settings.knots),
             'spline_degree': settings.degree,
             'prior_spline_convexity': None if not settings.concavity else 'concave',
             'prior_spline_monotonicity': None if not settings.increasing else 'increasing'
->>>>>>> 74d450a80b26de4360076d5396373e6f60b54cc4:src/covid_model_seiir_pipeline/core/model_inputs.py
         },
         day_shift=settings.day_shift,
         spline_se_power=settings.spline_se_power,

@@ -4,7 +4,7 @@ import click
 from covid_shared import cli_tools, paths
 from loguru import logger
 
-from seiir_model_pipeline import regression, ode_fit, forecasting, utilities
+from covid_model_seiir_pipeline import regression, ode_fit, forecasting, utilities
 
 
 @click.group()

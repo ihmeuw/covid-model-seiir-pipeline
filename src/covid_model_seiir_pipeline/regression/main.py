@@ -3,10 +3,10 @@ from shutil import copyfile
 
 from covid_shared import cli_tools
 
-from seiir_model_pipeline.paths import RegressionPaths
-from seiir_model_pipeline.regression.specification import RegressionSpecification
-from seiir_model_pipeline.regression.data import RegressionDataInterface
-from seiir_model_pipeline.regression.workflow import RegressionWorkflow
+from covid_model_seiir_pipeline.paths import RegressionPaths
+from covid_model_seiir_pipeline.regression.specification import RegressionSpecification
+from covid_model_seiir_pipeline.regression.data import RegressionDataInterface
+from covid_model_seiir_pipeline.regression.workflow import RegressionWorkflow
 
 
 def do_beta_regression(app_metadata: cli_tools.Metadata,
