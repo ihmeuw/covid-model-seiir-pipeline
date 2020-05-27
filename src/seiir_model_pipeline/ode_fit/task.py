@@ -12,7 +12,7 @@ from seiir_model.model_runner import ModelRunner
 
 from seiir_model_pipeline.ode_fit import FitSpecification
 from seiir_model_pipeline.ode_fit.data import ODEDataInterface
-from seiir_model_pipeline.globals import INFECTION_COL_DICT
+from seiir_model_pipeline.static_vars import INFECTION_COL_DICT
 
 
 log = logging.getLogger(__name__)
@@ -22,7 +22,8 @@ def run_ode_fit(draw_id: int, ode_version: str):
     # -------------------------- LOAD INPUTS -------------------- #
     # Load metadata
     ode_fit_spec: FitSpecification = FitSpecification.from_path(
-        Path(ode_version) / "fit_specification.yaml")
+        Path(ode_version) / "fit_specification.yaml"
+    )
     ode_data_interface = ODEDataInterface(ode_fit_spec.data)
 
     # Load data
@@ -66,7 +67,9 @@ def run_ode_fit(draw_id: int, ode_version: str):
 
     # Save the parameters of alpha, sigma, gamma1, and gamma2 that were drawn
     draw_beta_params = mr.get_beta_ode_params()
+    beta_start_end_dates = mr.get_beta_start_end_dates()
     ode_data_interface.save_draw_beta_param_file(draw_beta_params, draw_id)
+    ode_data_interface.save_draw_date_file(beta_start_end_dates, draw_id)
 
 
 def parse_arguments(argstr: Optional[str] = None) -> Namespace:
@@ -90,7 +93,7 @@ def parse_arguments(argstr: Optional[str] = None) -> Namespace:
 def main():
 
     args = parse_arguments()
-    run_ode_fit(draw_id=args.draw_id, regression_version=args.ode_version)
+    run_ode_fit(draw_id=args.draw_id, ode_version=args.ode_version)
 
 
 if __name__ == '__main__':

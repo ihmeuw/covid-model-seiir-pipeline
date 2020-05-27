@@ -1,14 +1,29 @@
 data:
   infection_version: 'best'
-  location_set_version_id: 674
+  location_set_version_id: 682001
   output_root: ''
 parameters:
-  n_draws: 1000
+  n_draws: 10
   degree: 3
-  knots: [0.0, 0.25, 0.5, 0.75, 1.0]
-  day_shift: [0, 8]
-  alpha: [0.9, 1.0]
-  sigma: [0.2, 0.3333]
-  gamma1: [0.5, 0.5]
-  gamma2: [0.3333, 1.0]
+  knots:
+  - 0.0
+  - 0.25
+  - 0.5
+  - 0.75
+  - 1.0
+  day_shift:
+  - 0
+  - 8
+  alpha:
+  - 0.9
+  - 1.0
+  sigma:
+  - 0.2
+  - 0.3333
+  gamma1:
+  - 0.5
+  - 0.5
+  gamma2:
+  - 0.3333
+  - 1.0
   solver_dt: 0.1
