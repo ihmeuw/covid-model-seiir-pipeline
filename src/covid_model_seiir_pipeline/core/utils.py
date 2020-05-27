@@ -77,12 +77,14 @@ def create_run(version_name, covariate_version, covariate_draw_dict, **kwargs):
     :param kwargs: additional keyword arguments to regression version
     """
     create_regression_version(
-        version_name=version_name, covariate_version=covariate_version,
+        version_name=version_name,
+        covariate_version=covariate_version,
         covariate_draw_dict=covariate_draw_dict,
         **kwargs
     )
     create_forecast_version(
-        version_name=version_name, covariate_version=covariate_version,
+        version_name=version_name,
+        covariate_version=covariate_version,
         covariate_draw_dict=covariate_draw_dict,
         regression_version=version_name
     )
