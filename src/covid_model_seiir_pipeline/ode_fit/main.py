@@ -2,10 +2,10 @@ from pathlib import Path
 
 from covid_shared import cli_tools
 
-from seiir_model_pipeline.ode_fit import FitSpecification
-from seiir_model_pipeline.paths import ODEPaths
-from seiir_model_pipeline.ode_fit.data import ODEDataInterface
-from seiir_model_pipeline.ode_fit.workflow import ODEFitWorkflow
+from covid_model_seiir_pipeline.ode_fit import FitSpecification
+from covid_model_seiir_pipeline.paths import ODEPaths
+from covid_model_seiir_pipeline.ode_fit.data import ODEDataInterface
+from covid_model_seiir_pipeline.ode_fit.workflow import ODEFitWorkflow
 
 
 def do_beta_fit(app_metadata: cli_tools.Metadata,

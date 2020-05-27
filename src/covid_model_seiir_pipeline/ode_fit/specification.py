@@ -3,7 +3,7 @@ from typing import Dict, Tuple, Union
 
 import numpy as np
 
-from seiir_model_pipeline.utilities import Specification, asdict
+from covid_model_seiir_pipeline.utilities import Specification, asdict
 
 
 @dataclass
@@ -22,8 +22,14 @@ class FitData:
 class FitParameters:
     """Specifies the parameters of the ODE fit."""
     n_draws: int = field(default=1000)
+
     degree: int = field(default=3)
     knots: Union[Tuple[float], np.array] = field(default=(0.0, 0.25, 0.5, 0.75, 1.0))
+    concavity: bool = field(default=False)
+    increasing: bool = field(default=False)
+    spline_se_power: float = field(default=0.2)
+    spline_space: str = field(default='ln daily')
+
     day_shift: Tuple[int, int] = field(default=(0, 8))
 
     alpha: Tuple[float, float] = field(default=(0.9, 1.0))

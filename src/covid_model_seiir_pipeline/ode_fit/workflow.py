@@ -3,8 +3,8 @@ from typing import Dict
 from jobmon.client import Workflow, BashTask
 from jobmon.client.swarm.executors.base import ExecutorParameters
 
-from seiir_model_pipeline import utilities
-from seiir_model_pipeline.ode_fit import FitSpecification
+from covid_model_seiir_pipeline import utilities
+from covid_model_seiir_pipeline.ode_fit import FitSpecification
 
 
 class ODEFitTaskTemplate:

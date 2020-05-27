@@ -2,7 +2,7 @@ from dataclasses import dataclass, field
 import itertools
 from typing import Dict, Tuple
 
-from seiir_model_pipeline.utilities import Specification, asdict
+from covid_model_seiir_pipeline.utilities import Specification, asdict
 
 
 @dataclass

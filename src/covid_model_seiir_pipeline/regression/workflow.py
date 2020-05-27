@@ -4,10 +4,10 @@ from pathlib import Path
 from jobmon.client import Workflow, BashTask
 from jobmon.client.swarm.executors.base import ExecutorParameters
 
-from seiir_model_pipeline import utilities
-from seiir_model_pipeline.ode_fit.specification import FitSpecification
-from seiir_model_pipeline.regression.specification import RegressionSpecification
-from seiir_model_pipeline.static_vars import FIT_SPECIFICATION_FILE
+from covid_model_seiir_pipeline import utilities
+from covid_model_seiir_pipeline.ode_fit.specification import FitSpecification
+from covid_model_seiir_pipeline.regression.specification import RegressionSpecification
+from covid_model_seiir_pipeline.static_vars import FIT_SPECIFICATION_FILE
 
 
 class RegressionTaskTemplate:
