@@ -20,12 +20,12 @@ if __name__ == "__main__":
         'covid_shared>=1.0.18',
         'loguru',
         'matplotlib',
-        'mrtool',
+        #'mrtool',
         'numpy',
         'pandas',
         'pyyaml',
         'parse',
-        'slime',
+        #'slime',
         'odeopt>=0.1.1'
     ]
 
