@@ -66,15 +66,15 @@ if __name__ == "__main__":
         },
 
         entry_points={'console_scripts': [
-            'seiir=seiir_model_pipeline.cli:seiir',
-            'run=seiir_model_pipeline.executor.run:main',
-            'beta_ode_fit=seiir_model_pipeline.ode_fit.task:main',
-            'beta_regression=seiir_model_pipeline.regression.task:main',
-            'beta_forecast=seiir_model_pipeline.executor.beta_forecast:main',
-            'splice=seiir_model_pipeline.executor.splice:main',
-            'create_regression_diagnostics=seiir_model_pipeline.executor.create_regression_diagnostics:main',
-            'create_forecast_diagnostics=seiir_model_pipeline.executor.create_forecast_diagnostics:main',
-            'create_scaling_diagnostics=seiir_model_pipeline.executor.create_scaling_diagnostics:main'
+            'seiir=covid_model_seiir_pipeline.cli:seiir',
+            'run=covid_model_seiir_pipeline.executor.run:main',
+            'beta_ode_fit=covid_model_seiir_pipeline.ode_fit.task:main',
+            'beta_regression=covid_model_seiir_pipeline.regression.task:main',
+            'beta_forecast=covid_model_seiir_pipeline.executor.beta_forecast:main',
+            'splice=covid_model_seiir_pipeline.executor.splice:main',
+            'create_regression_diagnostics=covid_model_seiir_pipeline.executor.create_regression_diagnostics:main',
+            'create_forecast_diagnostics=covid_model_seiir_pipeline.executor.create_forecast_diagnostics:main',
+            'create_scaling_diagnostics=covid_model_seiir_pipeline.executor.create_scaling_diagnostics:main'
         ]},
         zip_safe=False,
     )
