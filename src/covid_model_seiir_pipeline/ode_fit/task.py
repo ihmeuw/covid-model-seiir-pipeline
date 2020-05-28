@@ -52,6 +52,9 @@ def run_ode_fit(draw_id: int, ode_version: str):
             'spline_degree': ode_fit_spec.parameters.degree,
             'prior_spline_convexity': ode_fit_spec.parameters.concavity,
             'prior_spline_monotonicity': ode_fit_spec.parameters.increasing,
+            'spline_knots_type': ode_fit_spec.parameters.spline_knots_type,
+            'spline_r_linear': ode_fit_spec.parameters.spline_r_linear,
+            'spline_l_linear': ode_fit_spec.parameters.spline_l_linear,
         },
         day_shift=ode_fit_spec.parameters.day_shift,
         spline_se_power=ode_fit_spec.parameters.spline_se_power,
@@ -95,7 +98,6 @@ def parse_arguments(argstr: Optional[str] = None) -> Namespace:
 
 
 def main():
-
     args = parse_arguments()
     run_ode_fit(draw_id=args.draw_id, ode_version=args.ode_version)
 
