@@ -360,6 +360,9 @@ class RegressionVersion(Version):
     spline_se_power: float = field(default=1.0)
     spline_space: str = field(default='ln daily')
     beta_shift_dict: Dict = field(default_factory=lambda :dict(window_size=None))
+    spline_knots_type: str = field(default='domain')
+    spline_r_linear: bool = True
+    spline_l_linear: bool = True
 
     def __post_init__(self):
         if not self.spline_space.startswith('ln') and self.spline_se_power !=0.0:
