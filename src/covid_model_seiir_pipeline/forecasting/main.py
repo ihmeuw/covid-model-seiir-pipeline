@@ -7,6 +7,8 @@ from covid_model_seiir_pipeline import static_vars
 from covid_model_seiir_pipeline.paths import ForecastPaths
 from covid_model_seiir_pipeline.forecasting import ForecastSpecification
 from covid_model_seiir_pipeline.forecasting.data import ForecastDataInterface
+from covid_model_seiir_pipeline.forecasting.workflow import ForecastWorkflow
+
 from covid_model_seiir_pipeline.ode_fit.specification import FitSpecification
 from covid_model_seiir_pipeline.regression.specification import RegressionSpecification
 
@@ -40,3 +42,8 @@ def do_beta_forecast(app_metadata: cli_tools.Metadata,
         # build directory structure
         location_ids = data_interface.load_location_ids()
         forecast_paths.make_dirs(location_ids)
+
+    # build workflow and launch
+    forecast_wf = ForecastWorkflow(forecast_specification, location_ids)
+    forecast_wf.attach_scenario_tasks()
+    forecast_wf.run()

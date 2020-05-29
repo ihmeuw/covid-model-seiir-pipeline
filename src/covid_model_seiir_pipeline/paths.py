@@ -76,7 +76,7 @@ class ForecastPaths(Paths):
 
     def get_beta_scaling_path(self, location_id: int) -> Path:
         """Retrieves a location specific path to beta scaling parameters"""
-        return self.beta_scaling / self.beta_scaling_file.format(location_id)
+        return self.beta_scaling / self.beta_scaling_file.format(location_id=location_id)
 
     @property
     def component_draws(self) -> Path:
