@@ -48,10 +48,10 @@ def fit(run_metadata,
                                   infection_root / paths.METADATA_FILE_NAME)
 
     output_root = utilities.get_output_root(output_root, fit_spec.data.output_root, paths.SEIR_FIT_OUTPUTS)
-    fit_spec.data.output_root = str(output_root)
 
     cli_tools.setup_directory_structure(output_root, with_production=True)
     run_directory = cli_tools.make_run_directory(output_root)
+    fit_spec.data.output_root = str(run_directory)
     run_metadata['output_path'] = str(run_directory)
     cli_tools.configure_logging_to_files(run_directory)
     run_metadata['ode_fit_specification'] = fit_spec.to_dict()
