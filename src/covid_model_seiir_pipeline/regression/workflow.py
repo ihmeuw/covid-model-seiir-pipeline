@@ -1,5 +1,4 @@
 from typing import Dict
-from pathlib import Path
 
 from jobmon.client import Workflow, BashTask
 from jobmon.client.swarm.executors.base import ExecutorParameters
@@ -7,7 +6,6 @@ from jobmon.client.swarm.executors.base import ExecutorParameters
 from covid_model_seiir_pipeline import utilities
 from covid_model_seiir_pipeline.ode_fit.specification import FitSpecification
 from covid_model_seiir_pipeline.regression.specification import RegressionSpecification
-from covid_model_seiir_pipeline.static_vars import FIT_SPECIFICATION_FILE
 
 
 class RegressionTaskTemplate:
@@ -46,8 +44,10 @@ class RegressionTaskTemplate:
 
 class RegressionWorkflow:
 
-    def __init__(self, regression_specification: RegressionSpecification):
+    def __init__(self, regression_specification: RegressionSpecification,
+                 ode_fit_specification: FitSpecification):
         self.regression_specification = regression_specification
+        self.ode_fit_specification = ode_fit_specification
 
         # if we need to build dependencies then the task registry must be shared between
         # task factories
@@ -68,10 +68,7 @@ class RegressionWorkflow:
         )
 
     def attach_regression_tasks(self):
-        ode_fit_specification = FitSpecification.from_path(
-            Path(self.regression_specification.data.ode_fit_version) / FIT_SPECIFICATION_FILE
-        )
-        for draw_id in range(ode_fit_specification.parameters.n_draws):
+        for draw_id in range(self.ode_fit_specification.parameters.n_draws):
             task = self._regression_task_template.get_task(
                 draw_id, self.regression_specification.data.output_root
             )

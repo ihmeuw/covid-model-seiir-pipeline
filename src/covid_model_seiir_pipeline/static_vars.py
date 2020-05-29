@@ -2,6 +2,7 @@
 
 FIT_SPECIFICATION_FILE = 'fit_specification.yaml'
 REGRESSION_SPECIFICATION_FILE = 'regression_specification.yaml'
+FORECAST_SPECIFICATION_FILE = 'forecast_specification.yaml'
 
 SEIIR_COMPARTMENTS = ['S', 'E', 'I1', 'I2', 'R']
 

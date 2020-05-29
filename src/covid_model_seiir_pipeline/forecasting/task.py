@@ -1,7 +1,8 @@
 from argparse import ArgumentParser, Namespace
 from typing import Optional
-import shlex
 import logging
+from pathlib import Path
+import shlex
 
 import pandas as pd
 import numpy as np
@@ -9,17 +10,13 @@ import numpy as np
 from covid_model_seiir.model_runner import ModelRunner
 from covid_model_seiir.ode_forecasting.ode_runner import SiierdModelSpecs
 
-from covid_model_seiir_pipeline.core.versioner import load_forecast_settings, load_regression_settings
-from covid_model_seiir_pipeline.core.versioner import INFECTION_COL_DICT, COVARIATE_COL_DICT
-from covid_model_seiir_pipeline.core.versioner import Directories
+from covid_model_seiir_pipeline import static_vars
+from covid_model_seiir_pipeline.forecasting.specification import ForecastSpecification
+from covid_model_seiir_pipeline.regression.specification import RegressionSpecification
+from covid_model_seiir_pipeline.regression.covariate_model import convert_to_covmodel
+from covid_model_seiir_pipeline.ode_fit.specification import FitSpecification
+from covid_model_seiir_pipeline.forecasting.data import ForecastDataInterface
 
-from covid_model_seiir_pipeline.core.data import load_covariates, load_beta_fit, load_beta_params
-from covid_model_seiir_pipeline.core.data import load_mr_coefficients
-
-from covid_model_seiir_pipeline.core.model_inputs import convert_to_covmodel
-from covid_model_seiir_pipeline.core.model_inputs import get_ode_init_cond
-
-from covid_model_seiir_pipeline.core.utils import date_to_days
 
 log = logging.getLogger(__name__)
 
@@ -31,9 +28,8 @@ def parse_arguments(argstr: Optional[str] = None) -> Namespace:
     log.info("parsing arguments")
     parser = ArgumentParser()
     parser.add_argument("--location-id", type=int, required=True)
-    parser.add_argument("--regression-version", type=str, required=True)
     parser.add_argument("--forecast-version", type=str, required=True)
-    parser.add_argument("--coefficient-version", type=str, required=False, default=None)
+    parser.add_argument("--scenario-name", type=str, required=True)
 
     if argstr is not None:
         arglist = shlex.split(argstr)
@@ -44,19 +40,63 @@ def parse_arguments(argstr: Optional[str] = None) -> Namespace:
     return args
 
 
-def run_beta_forecast(location_id: int, regression_version: str, forecast_version: str,
-                      coefficient_version: str = None):
+def get_ode_init_cond(location_id, beta_ode_fit, current_date):
+    """
+    Get the initial condition for the ODE.
 
+    Args:
+        location_id (init):
+            Location ids.
+        beta_ode_fit (str | pd.DataFrame):
+            The result for the beta_ode_fit, either file or path to file.
+        current_date (str | np.datetime64):
+            Current date for each location we try to predict off. Either file
+            or path to file.
+
+
+    Returns:
+         pd.DataFrame: Initial conditions by location.
+    """
+    # process input
+    assert (static_vars.COL_GROUP in beta_ode_fit)
+    assert (static_vars.COL_DATE in beta_ode_fit)
+    beta_ode_fit = beta_ode_fit[beta_ode_fit[static_vars.COL_GROUP] == location_id].copy()
+
+    if isinstance(current_date, str):
+        current_date = np.datetime64(current_date)
+    else:
+        assert isinstance(current_date, np.datetime64)
+
+    dt = np.abs((pd.to_datetime(beta_ode_fit[static_vars.COL_DATE]) - current_date).dt.days)
+    beta_ode_fit = beta_ode_fit.iloc[np.argmin(dt)]
+
+    col_components = static_vars.SEIIR_COMPARTMENTS
+    assert all([c in beta_ode_fit for c in col_components])
+
+    return beta_ode_fit[col_components].values.ravel()
+
+
+def run_beta_forecast(location_id: int, forecast_version: str, scenario_name: str):
+    # -------------------------- CONSTRUCT DATA INTERFACE AND SPECS -------------------- #
     log.info("Initiating SEIIR beta forecasting.")
-
-    # -------------------------- LOAD INPUTS -------------------- #
-    # Load metadata
-    directories = Directories(
-        regression_version=regression_version,
-        forecast_version=forecast_version
+    forecast_spec: ForecastSpecification = ForecastSpecification.from_path(
+        Path(forecast_version) / static_vars.FORECAST_SPECIFICATION_FILE
     )
-    regression_settings = load_regression_settings(regression_version)
-    forecast_settings = load_forecast_settings(forecast_version)
+    scenario_spec = forecast_spec.scenarios[scenario_name]
+    regress_spec: RegressionSpecification = RegressionSpecification.from_path(
+        Path(forecast_spec.data.regression_version) / static_vars.REGRESSION_SPECIFICATION_FILE
+    )
+    ode_fit_spec: FitSpecification = FitSpecification.from_path(
+        Path(regress_spec.data.ode_fit_version) / static_vars.FIT_SPECIFICATION_FILE
+    )
+
+    data_interface = ForecastDataInterface(
+        forecast_root=Path(forecast_spec.data.output_root) / scenario_name,
+        regression_root=Path(regress_spec.data.output_root),
+        ode_fit_root=Path(ode_fit_spec.data.output_root),
+        location_file=(Path('/ihme/covid-19/seir-pipeline-outputs/metadata-inputs') /
+                       f'location_metadata_{ode_fit_spec.data.location_set_version_id}.csv')
+    )
 
     # -------------------------- FORECAST THE BETA FORWARDS -------------------- #
     mr = ModelRunner()
@@ -65,52 +105,52 @@ def run_beta_forecast(location_id: int, regression_version: str, forecast_versio
     # Get all inputs for the ODE
     scales = []
 
-    for draw_id in range(regression_settings.n_draws):
+    for draw_id in range(ode_fit_spec.parameters.n_draws):
         print(f"On draw {draw_id}\n")
 
         # Load the previous beta fit compartments and ODE parameters
-        beta_fit = load_beta_fit(
-            directories, draw_id=draw_id,
-            location_id=location_id
-        )
-        beta_params = load_beta_params(
-            directories, draw_id=draw_id
+        beta_fit = data_interface.load_beta_fit(draw_id=draw_id, location_id=location_id)
+        beta_params = data_interface.load_beta_params(draw_id=draw_id)
+
+        # covariate pool standardizes names to be {covariate}_{scenario}
+        covariates = [cov for cov in regress_spec.covariates.values()]
+        for covariate in covariates:
+            if covariate.name != "intercept":
+                scenario = scenario_spec.covariates[covariate.name]
+                covariate.name = f"{covariate.name}_{scenario}"
+
+        # load covariates data
+        covariate_df = data_interface.load_covariate_scenarios(
+            draw_id=draw_id,
+            location_id=location_id,
+            covariate_scenarios=[cov.name for cov in covariates if cov.name != "intercept"]
         )
 
-        # Convert settings to the covariates model and load covariates data
-        _, all_covmodels_set = convert_to_covmodel(
-            regression_settings.covariates,
-            regression_settings.covariates_order,
-        )
-        covariate_data = load_covariates(
-            directories,
-            covariate_version=forecast_settings.covariate_version,
-            location_ids=[location_id]
-        )
+        # Convert settings to the covariates model
+        _, all_covmodels_set = convert_to_covmodel(covariates)
 
-        # Figure out what date we need to forecast from (the end of the component fit in regression task)
-        beta_fit_date = pd.to_datetime(beta_fit[INFECTION_COL_DICT['COL_DATE']])
-        CURRENT_DATE = beta_fit[beta_fit_date == beta_fit_date.max()][INFECTION_COL_DICT['COL_DATE']].iloc[0]
-        covariate_date = pd.to_datetime(covariate_data[COVARIATE_COL_DICT['COL_DATE']])
-        covariate_data = covariate_data.loc[covariate_date >= beta_fit_date.max()].copy()
+        # Figure out what date we need to forecast from (the end of the component fit in ode)
+        beta_fit_date = pd.to_datetime(beta_fit[static_vars.INFECTION_COL_DICT['COL_DATE']])
+        CURRENT_DATE = (beta_fit[beta_fit_date == beta_fit_date.max()]
+                        )[static_vars.INFECTION_COL_DICT['COL_DATE']].iloc[0]
+        cov_date = pd.to_datetime(covariate_df[static_vars.COVARIATE_COL_DICT['COL_DATE']])
+        covariate_data = covariate_df.loc[cov_date >= beta_fit_date.max()].copy()
 
         # Load the regression coefficients
-        regression_fit = load_mr_coefficients(
-            directories=directories,
-            draw_id=draw_id
-        )
+        regression_fit = data_interface.load_regression_coefficients(draw_id=draw_id)
         # Forecast the beta forward with those coefficients
         forecasts = mr.predict_beta_forward_prod(
             covmodel_set=all_covmodels_set,
             df_cov=covariate_data,
             df_cov_coef=regression_fit,
-            col_t=COVARIATE_COL_DICT['COL_DATE'],
-            col_group=COVARIATE_COL_DICT['COL_LOC_ID']
+            col_t=static_vars.COVARIATE_COL_DICT['COL_DATE'],
+            col_group=static_vars.COVARIATE_COL_DICT['COL_LOC_ID']
         )
 
         betas = forecasts.beta_pred.values
-        days = forecasts[COVARIATE_COL_DICT['COL_DATE']].values
-        times = date_to_days(days)
+        days = forecasts[static_vars.COVARIATE_COL_DICT['COL_DATE']].values
+        days = pd.to_datetime(days)
+        times = np.array((days - days.min()).days)
 
         # Anchor the betas at the last observed beta (fitted)
         # and scale everything into the future from this anchor value
@@ -141,32 +181,24 @@ def run_beta_forecast(location_id: int, regression_version: str, forecast_versio
             init_cond=init_cond,
             times=times,
             betas=betas,
-            dt=regression_settings.solver_dt
+            dt=ode_fit_spec.parameters.solver_dt
         )
-        forecasted_components[COVARIATE_COL_DICT['COL_DATE']] = days
-        forecasted_components.to_csv(
-            directories.location_draw_component_forecast_file(
-                location_id=location_id,
-                draw_id=draw_id
-            )
+        forecasted_components[static_vars.COVARIATE_COL_DICT['COL_DATE']] = days
+
+        data_interface.save_components(
+            df=forecasted_components,
+            location_id=location_id,
+            draw_id=draw_id
         )
-    df_scales = pd.DataFrame({
-        'beta_scales': scales
-    })
-    df_scales.to_csv(
-        directories.location_beta_scaling_file(
-            location_id=location_id
-        ),
-        index=False
-    )
+
+    data_interface.save_beta_scales(scales, location_id)
 
 
 def main():
     args = parse_arguments()
     run_beta_forecast(location_id=args.location_id,
-                      regression_version=args.regression_version,
                       forecast_version=args.forecast_version,
-                      coefficient_version=args.coefficient_version)
+                      scenario_name=args.scenario_name)
 
 
 if __name__ == '__main__':
