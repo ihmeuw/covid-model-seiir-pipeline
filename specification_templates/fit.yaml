@@ -9,7 +9,10 @@ parameters:
   concavity: False
   increasing: False
   spline_se_power: 0.2
-  spline_space: "ln daily"
+  spline_space: 'ln daily'
+  spline_knots_type: 'domain'
+  spline_r_linear: True
+  spline_l_linear: True
   day_shift: [0, 8]
   alpha: [0.9, 1.0]
   sigma: [0.2, 0.3333]
