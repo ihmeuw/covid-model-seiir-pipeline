@@ -70,7 +70,7 @@ if __name__ == "__main__":
             'run=covid_model_seiir_pipeline.executor.run:main',
             'beta_ode_fit=covid_model_seiir_pipeline.ode_fit.task:main',
             'beta_regression=covid_model_seiir_pipeline.regression.task:main',
-            'beta_forecast=covid_model_seiir_pipeline.executor.beta_forecast:main',
+            'beta_forecast=covid_model_seiir_pipeline.forecasting.task:main',
             'splice=covid_model_seiir_pipeline.executor.splice:main',
             'create_regression_diagnostics=covid_model_seiir_pipeline.executor.create_regression_diagnostics:main',
             'create_forecast_diagnostics=covid_model_seiir_pipeline.executor.create_forecast_diagnostics:main',

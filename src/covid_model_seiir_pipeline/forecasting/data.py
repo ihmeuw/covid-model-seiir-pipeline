@@ -39,12 +39,22 @@ class ForecastDataInterface:
     def load_covariate_scenarios(self, draw_id: int, location_id: int,
                                  scenario_covariate_mapping: Dict[str, str]
                                  ) -> pd.DataFrame:
+        # import file
         scenario_file = self.regression_paths.get_scenarios_file(location_id=location_id,
                                                                  draw_id=draw_id)
         df = pd.read_csv(scenario_file)
-        index_columns = [COVARIATE_COL_DICT['COL_DATE'], COVARIATE_COL_DICT['COL_LOC_ID']]
+
+        # rename scenarios
+        missing_cols = set(list(scenario_covariate_mapping.keys())) - set(df.columns)
+        if missing_cols:
+            raise ValueError("One or more scenarios missing from scenario pool. Missing "
+                             f"scenarios are: {missing_cols}")
         df = df.rename(columns=scenario_covariate_mapping)
-        df = df[index_columns + list(scenario_covariate_mapping.values())]
+
+        # subset columns
+        index_columns = [COVARIATE_COL_DICT['COL_DATE'], COVARIATE_COL_DICT['COL_LOC_ID']]
+        data_columns = list(scenario_covariate_mapping.values())
+        df = df[index_columns + data_columns]
         return df
 
     def load_regression_coefficients(self, draw_id: int) -> pd.DataFrame:

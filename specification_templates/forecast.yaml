@@ -14,7 +14,7 @@ scenarios:
     beta_scaling_window: -1
     algorithm: 'RK45'
     covariates:
-      testing: 'optimistic'
+      testing: 'better'
       mobility: 'reference'
       proportion_over_1k: 'reference'
       temperature: 'reference'
