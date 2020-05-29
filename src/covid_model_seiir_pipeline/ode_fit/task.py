@@ -50,8 +50,8 @@ def run_ode_fit(draw_id: int, ode_version: str):
         spline_options={
             'spline_knots': ode_fit_spec.parameters.knots,
             'spline_degree': ode_fit_spec.parameters.degree,
-            'prior_spline_convexity': ode_fit_spec.parameters.concavity,
-            'prior_spline_monotonicity': ode_fit_spec.parameters.increasing,
+            'prior_spline_convexity': None if not ode_fit_spec.parameters.concavity else 'concave',
+            'prior_spline_monotonicity': None if not ode_fit_spec.parameters.increasing else 'increasing',
             'spline_knots_type': ode_fit_spec.parameters.spline_knots_type,
             'spline_r_linear': ode_fit_spec.parameters.spline_r_linear,
             'spline_l_linear': ode_fit_spec.parameters.spline_l_linear,
