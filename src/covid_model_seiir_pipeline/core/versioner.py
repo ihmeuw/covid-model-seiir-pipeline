@@ -11,7 +11,7 @@ BASE_DIR = Path('/ihme')
 
 # Dependency/input directories
 INPUT_DIR = BASE_DIR / 'covid-19/seir-inputs'
-COVARIATE_DIR = BASE_DIR / 'covid-19/seir-covariates'
+COVARIATE_DIR = BASE_DIR / 'covid-19/seir-outputs/test-seir-covariates'
 
 # Output directory
 OUTPUT_DIR = BASE_DIR / 'covid-19/seir-pipeline-outputs'
@@ -20,7 +20,7 @@ OUTPUT_DIR = BASE_DIR / 'covid-19/seir-pipeline-outputs'
 METADATA_DIR = OUTPUT_DIR / 'metadata-inputs'
 REGRESSION_OUTPUT = OUTPUT_DIR / 'regression'
 FORECAST_OUTPUT = OUTPUT_DIR / 'forecast'
-COVARIATE_CACHE = OUTPUT_DIR / 'covariate'
+COVARIATE_CACHE = BASE_DIR / 'covid-19/seir-outputs/test-seir-covariate-cache'
 
 # File pattern for storing infectionator outputs
 INFECTION_FILE_PATTERN = 'draw{draw_id:04}_prepped_deaths_and_cases_all_age.csv'
@@ -323,6 +323,9 @@ class RegressionVersion(Version):
         sequentially added to the regression
     - `covariate_draw_dict (Dict[str, bool[)`: whether or not to use draws of the covariate (they
         must be available!)
+    - `sequential` (bool): should the regression be fit sequentialy according to the
+        ordering of `covariates_order`? If False, the ordering of `covariates_order`
+        does not matter for 
     - `alpha (Tuple[float])`: a 2-length tuple that represents the range of alpha values to sample
     - `sigma (Tuple[float])`: a 2-length tuple that represents the range of sigma values to sample
     - `gamma1 (Tuple[float])`: a 2-length tuple that represents the range of gamma1 values to sample
@@ -336,7 +339,7 @@ class RegressionVersion(Version):
     n_draws: int
     location_set_version_id: int
 
-    # Spline Arguments
+    # Spline required arguments
     degree: int
     knots: np.array
 
@@ -344,8 +347,18 @@ class RegressionVersion(Version):
     covariates: Dict[str, Dict[str, Union[bool, List, float]]]
     covariates_order: List[List[str]] = None
     covariate_draw_dict: Dict[str, bool] = None
+    sequential: bool = False
 
     coefficient_version: str = None
+
+    # Spline optional arguments
+    concavity: bool = True
+    increasing: bool = False
+    spline_se_power: float = field(default=1.0)
+    spline_space: str = field(default='ln daily')
+    spline_knots_type: str = field(default='domain')
+    spline_r_linear: bool = True
+    spline_l_linear: bool = True
 
     day_shift: Tuple[int] = field(default=(0, 8))
 
@@ -355,14 +368,8 @@ class RegressionVersion(Version):
     gamma1: Tuple[float] = field(default=(0.50, 0.50))
     gamma2: Tuple[float] = field(default=(0.50, 0.50))
     solver_dt: float = field(default=0.1)
-    concavity: bool = True
-    increasing: bool = False
-    spline_se_power: float = field(default=1.0)
-    spline_space: str = field(default='ln daily')
+
     beta_shift_dict: Dict = field(default_factory=lambda :dict(window_size=None))
-    spline_knots_type: str = field(default='domain')
-    spline_r_linear: bool = True
-    spline_l_linear: bool = True
 
     def __post_init__(self):
         if not self.spline_space.startswith('ln') and self.spline_se_power !=0.0:
