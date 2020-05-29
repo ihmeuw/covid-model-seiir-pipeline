@@ -1,5 +1,5 @@
 from argparse import ArgumentParser, Namespace
-from typing import Optional
+from typing import Optional, Dict
 import logging
 from pathlib import Path
 import shlex
@@ -113,21 +113,21 @@ def run_beta_forecast(location_id: int, forecast_version: str, scenario_name: st
         beta_params = data_interface.load_beta_params(draw_id=draw_id)
 
         # covariate pool standardizes names to be {covariate}_{scenario}
-        covariates = [cov for cov in regress_spec.covariates.values()]
-        for covariate in covariates:
+        scenario_covariate_mapping: Dict[str, str] = {}
+        for covariate in regress_spec.covariates.values():
             if covariate.name != "intercept":
                 scenario = scenario_spec.covariates[covariate.name]
-                covariate.name = f"{covariate.name}_{scenario}"
+                scenario_covariate_mapping[f"{covariate.name}_{scenario}"] = covariate.name
 
         # load covariates data
         covariate_df = data_interface.load_covariate_scenarios(
             draw_id=draw_id,
             location_id=location_id,
-            covariate_scenarios=[cov.name for cov in covariates if cov.name != "intercept"]
+            scenario_covariate_mapping=scenario_covariate_mapping
         )
 
         # Convert settings to the covariates model
-        _, all_covmodels_set = convert_to_covmodel(covariates)
+        _, all_covmodels_set = convert_to_covmodel(list(regress_spec.covariates.values()))
 
         # Figure out what date we need to forecast from (the end of the component fit in ode)
         beta_fit_date = pd.to_datetime(beta_fit[static_vars.INFECTION_COL_DICT['COL_DATE']])

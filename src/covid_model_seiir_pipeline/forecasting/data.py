@@ -1,16 +1,11 @@
 from pathlib import Path
-from typing import List
+from typing import List, Dict
 
 import pandas as pd
 
 
 from covid_model_seiir_pipeline.paths import (RegressionPaths, ODEPaths, ForecastPaths)
-from covid_model_seiir_pipeline.static_vars import (FIT_SPECIFICATION_FILE,
-                                                    REGRESSION_SPECIFICATION_FILE,
-                                                    COVARIATE_COL_DICT)
-from covid_model_seiir_pipeline.forecasting.specification import ForecastData
-from covid_model_seiir_pipeline.regression.specification import RegressionSpecification
-from covid_model_seiir_pipeline.ode_fit.specification import FitSpecification
+from covid_model_seiir_pipeline.static_vars import COVARIATE_COL_DICT
 
 
 class ForecastDataInterface:
@@ -38,15 +33,19 @@ class ForecastDataInterface:
 
     def load_beta_params(self, draw_id: int) -> pd.DataFrame:
         beta_params_file = self.ode_paths.get_draw_beta_param_file(draw_id)
-        return pd.read_csv(beta_params_file)
+        df = pd.read_csv(beta_params_file)
+        return df.set_index('params')['values'].to_dict()
 
     def load_covariate_scenarios(self, draw_id: int, location_id: int,
-                                 covariate_scenarios: List[str]) -> pd.DataFrame:
+                                 scenario_covariate_mapping: Dict[str, str]
+                                 ) -> pd.DataFrame:
         scenario_file = self.regression_paths.get_scenarios_file(location_id=location_id,
                                                                  draw_id=draw_id)
         df = pd.read_csv(scenario_file)
         index_columns = [COVARIATE_COL_DICT['COL_DATE'], COVARIATE_COL_DICT['COL_LOC_ID']]
-        return df[index_columns + covariate_scenarios]
+        df = df.rename(columns=scenario_covariate_mapping)
+        df = df[index_columns + list(scenario_covariate_mapping.values())]
+        return df
 
     def load_regression_coefficients(self, draw_id: int) -> pd.DataFrame:
         file = self.regression_paths.get_draw_coefficient_file(draw_id)
