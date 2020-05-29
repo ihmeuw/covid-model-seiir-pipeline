@@ -1,7 +1,7 @@
 data:
-  infection_version: /ihme/covid-19/seir-inputs/2020_05_28.01
+  infection_version: 'best'
   location_set_version_id: 682001
-  output_root: /ihme/homes/mlsandar/temp/seir/ode
+  output_root: ''
 parameters:
   n_draws: 10
   degree: 3
