@@ -1,10 +1,22 @@
+from argparse import ArgumentParser, Namespace
+import logging
+from pathlib import Path
+import shlex
+from typing import Optional
+
 import pandas as pd
 import numpy as np
-from datetime import datetime
 
-from covid_model_seiir_pipeline.core.utils import get_location_name_from_id
-from covid_model_seiir_pipeline.core.versioner import INFECTION_COL_DICT
+from covid_model_seiir_pipeline.static_vars import INFECTION_COL_DICT
 
+from covid_model_seiir_pipeline import static_vars
+from covid_model_seiir_pipeline.forecasting.specification import ForecastSpecification
+from covid_model_seiir_pipeline.forecasting.data import ForecastDataInterface
+from covid_model_seiir_pipeline.regression.specification import RegressionSpecification
+from covid_model_seiir_pipeline.ode_fit.specification import FitSpecification
+
+
+log = logging.getLogger(__name__)
 
 # Tolerance for quality checking
 # infectionator IFRs
@@ -49,8 +61,8 @@ class Splicer:
         self.deaths = {}
         self.reff = {}
 
-    def capture_location_name(self, metadata_path):
-        self.location_name = get_location_name_from_id(self.location_id, metadata_path)
+    def set_location_name(self, location_name):
+        self.location_name = location_name
 
     def get_lag(self, infection_data):
         lag = infection_data[self.col_id_lag]
@@ -202,14 +214,91 @@ class Splicer:
             wide[COL_OBSERVED] = 0
         return wide[['location', 'location_id', COL_OBSERVED] + id_cols + self.draw_cols]
 
-    def save_cases(self, path):
-        df = self.format_draws(self.infections, id_cols=[self.col_date])
-        df.to_csv(path, index=False)
+    def get_cases(self) -> pd.DataFrame:
+        return self.format_draws(self.infections, id_cols=[self.col_date])
 
-    def save_deaths(self, path):
-        df = self.format_draws(self.deaths, id_cols=[self.col_date, COL_OBSERVED])
-        df.to_csv(path, index=False)
+    def get_deaths(self) -> pd.DataFrame:
+        return self.format_draws(self.deaths, id_cols=[self.col_date, COL_OBSERVED])
 
-    def save_reff(self, path):
-        df = self.format_draws(self.reff, id_cols=[self.col_date])
-        df.to_csv(path, index=False)
+    def get_reff(self) -> pd.DataFrame:
+        return self.format_draws(self.reff, id_cols=[self.col_date])
+
+
+def run_splicer(location_id: int, forecast_version: str, scenario: str):
+    log.info("Initiating SEIIR splicing.")
+
+    # Load metadata
+    forecast_spec: ForecastSpecification = ForecastSpecification.from_path(
+        Path(forecast_version) / static_vars.FORECAST_SPECIFICATION_FILE
+    )
+    regress_spec: RegressionSpecification = RegressionSpecification.from_path(
+        Path(forecast_spec.data.regression_version) / static_vars.REGRESSION_SPECIFICATION_FILE
+    )
+    ode_fit_spec: FitSpecification = FitSpecification.from_path(
+        Path(regress_spec.data.ode_fit_version) / static_vars.FIT_SPECIFICATION_FILE
+    )
+
+    # create data interface and splicer
+    data_interface = ForecastDataInterface(
+        forecast_root=Path(forecast_spec.data.output_root) / scenario,
+        regression_root=Path(regress_spec.data.output_root),
+        ode_fit_root=Path(ode_fit_spec.data.output_root),
+        infection_root=Path(ode_fit_spec.data.infection_version),
+        location_file=(Path('/ihme/covid-19/seir-pipeline-outputs/metadata-inputs') /
+                       f'location_metadata_{ode_fit_spec.data.location_set_version_id}.csv')
+    )
+    splicer = Splicer(n_draws=ode_fit_spec.parameters.n_draws, location_id=location_id)
+    splicer.set_location_name(data_interface.get_location_name_from_id(location_id))
+
+    for draw_id in range(ode_fit_spec.parameters.n_draws):
+        print(f"On draw {draw_id}.")
+        infection_data = data_interface.load_infections(
+            location_id=location_id, draw_id=draw_id
+        )
+        component_fit = data_interface.load_beta_fit(
+            draw_id=draw_id, location_id=location_id
+        )
+        params = data_interface.load_beta_params(draw_id=draw_id)
+        component_forecasts = data_interface.load_component_forecasts(
+            location_id=location_id, draw_id=draw_id
+        )
+        splicer.splice_draw(
+            infection_data=infection_data,
+            component_fit=component_fit,
+            component_forecasts=component_forecasts,
+            params=params,
+            draw_id=draw_id
+        )
+
+    data_interface.save_cases(df=splicer.get_cases(), location_id=location_id)
+    data_interface.save_deaths(df=splicer.get_deaths(), location_id=location_id)
+    data_interface.save_reff(df=splicer.get_reff(), location_id=location_id)
+
+
+def parse_arguments(argstr: Optional[str] = None) -> Namespace:
+    """
+    Gets arguments from the command line or a command line string.
+    """
+    log.info("parsing arguments")
+    parser = ArgumentParser()
+    parser.add_argument("--location-id", type=int, required=True)
+    parser.add_argument("--forecast-version", type=str, required=True)
+    parser.add_argument("--scenario", type=str, required=True)
+
+    if argstr is not None:
+        arglist = shlex.split(argstr)
+        args = parser.parse_args(arglist)
+    else:
+        args = parser.parse_args()
+
+    return args
+
+
+def main():
+    args = parse_arguments()
+    run_splicer(location_id=args.location_id, forecast_version=args.forecast_version,
+                scenario=args.scenario)
+
+
+if __name__ == '__main__':
+    main()
