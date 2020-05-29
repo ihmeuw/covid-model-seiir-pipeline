@@ -1,5 +1,3 @@
-from pathlib import Path
-
 import click
 from covid_shared import cli_tools, paths
 from loguru import logger
