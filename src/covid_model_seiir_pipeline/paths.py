@@ -83,9 +83,10 @@ class ForecastPaths(Paths):
         """Folders by location with SEIIR components."""
         return self.root_dir / 'component_draws'
 
-    def get_component_draws_path(self, location_id: int, draw: int) -> Path:
+    def get_component_draws_path(self, location_id: int, draw_id: int) -> Path:
         """Get SEIIR components for a particular location and draw."""
-        return self.component_draws / str(location_id) / self.component_draw_file.format(draw)
+        file = self.component_draw_file.format(draw_id)
+        return self.component_draws / str(location_id) / file
 
     @property
     def diagnostics(self) -> Path:

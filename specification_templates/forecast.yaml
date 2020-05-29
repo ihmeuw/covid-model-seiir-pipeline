@@ -1,13 +1,13 @@
 data:
-  regression_version: 'best'
-  output_root: ''
+  regression_version: /ihme/homes/mlsandar/temp/seir/regression
+  output_root: /ihme/homes/mlsandar/temp/seir/forecast
 scenarios:
   baseline:
     beta_scaling_window: -1
     algorithm: 'RK45'  # Later also 'mattingly', 'RK45-loop', etc.
     covariates:
       testing: 'reference'
-      mobility: 'lift'
+      mobility: 'reference'
       proportion_over_1k: 'reference'
       temperature: 'reference'
   testing_optimistic:
@@ -15,7 +15,7 @@ scenarios:
     algorithm: 'RK45'
     covariates:
       testing: 'optimistic'
-      mobility: 'lift'
+      mobility: 'reference'
       proportion_over_1k: 'reference'
       temperature: 'reference'
 
