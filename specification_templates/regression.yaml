@@ -1,7 +1,7 @@
 data:
-  covariate_version: /ihme/covid-19/seir-covariates/2020_05_25.02
-  ode_fit_version: /ihme/homes/mlsandar/temp/seir/ode
-  output_root: /ihme/homes/mlsandar/temp/seir/regression
+  covariate_version: 'best'
+  ode_fit_version: 'best'
+  output_root: ''
 covariates:
   intercept:
     # Ordering of covariates in regression.  Covariates with the same order
@@ -31,13 +31,13 @@ covariates:
     bounds: [0.0, 1000.0]
     re_var: 1.0
     draws: False
-  # temperature:
-  #   order: 2
-  #   use_re: False
-  #   gprior: [0.0, 1000.0]
-  #   bounds: [-1000.0, 0.]
-  #   re_var: 1.0
-  #   draws: False
+  temperature:
+    order: 2
+    use_re: False
+    gprior: [0.0, 1000.0]
+    bounds: [-1000.0, 0.]
+    re_var: 1.0
+    draws: False
   testing:
     order: 3
     use_re: False

@@ -1,6 +1,6 @@
 data:
-  regression_version: /ihme/homes/mlsandar/temp/seir/regression
-  output_root: /ihme/homes/mlsandar/temp/seir/forecast
+  regression_version: 'best'
+  output_root: ''
 scenarios:
   baseline:
     beta_scaling_window: -1
@@ -18,6 +18,3 @@ scenarios:
       mobility: 'reference'
       proportion_over_1k: 'reference'
       temperature: 'reference'
-
-
-
