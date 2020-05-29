@@ -1,6 +1,7 @@
 from pathlib import Path
 from typing import List, Dict
 
+from loguru import logger
 import pandas as pd
 
 from covid_model_seiir_pipeline.static_vars import INFECTION_COL_DICT
@@ -20,7 +21,19 @@ class ODEDataInterface:
         self.location_metadata_file = file_path
 
     def load_location_ids(self) -> List[int]:
-        return pd.read_csv(self.location_metadata_file)["location_id"].tolist()
+        """Get the list of location ids to model.
+
+        This list is the intersection of a location hierarchy file and
+        the available locations in the infections directory.
+
+        """
+        desired_locs = pd.read_csv(self.location_metadata_file)["location_id"].tolist()
+        modeled_locs = self.infection_paths.get_modelled_locations()
+        missing_locs = list(set(desired_locs).difference(modeled_locs))
+        if missing_locs:
+            logger.warning("Some locations present in location metadata are missing from the "
+                           f"infection models. Missing locations are {missing_locs}.")
+        return list(set(desired_locs).intersection(modeled_locs))
 
     def load_all_location_data(self, location_ids: List[int], draw_id: int
                                ) -> Dict[int, pd.DataFrame]:

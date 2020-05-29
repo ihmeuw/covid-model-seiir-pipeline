@@ -1,5 +1,3 @@
-from pathlib import Path
-
 import click
 from covid_shared import cli_tools, paths
 from loguru import logger
@@ -50,10 +48,10 @@ def fit(run_metadata,
                                   infection_root / paths.METADATA_FILE_NAME)
 
     output_root = utilities.get_output_root(output_root, fit_spec.data.output_root, paths.SEIR_FIT_OUTPUTS)
-    fit_spec.data.output_root = str(output_root)
 
     cli_tools.setup_directory_structure(output_root, with_production=True)
     run_directory = cli_tools.make_run_directory(output_root)
+    fit_spec.data.output_root = str(run_directory)
     run_metadata['output_path'] = str(run_directory)
     cli_tools.configure_logging_to_files(run_directory)
     run_metadata['ode_fit_specification'] = fit_spec.to_dict()
@@ -122,10 +120,10 @@ def regress(run_metadata,
 
     output_root = utilities.get_output_root(output_root, regression_spec.data.output_root,
                                             paths.SEIR_REGRESSION_OUTPUTS)
-    regression_spec.data.output_root = str(output_root)
 
     cli_tools.setup_directory_structure(output_root, with_production=True)
     run_directory = cli_tools.make_run_directory(output_root)
+    regression_spec.data.output_root = str(run_directory)
     run_metadata['output_path'] = str(run_directory)
     cli_tools.configure_logging_to_files(run_directory)
     run_metadata['regression_specification'] = regression_spec.to_dict()
@@ -182,10 +180,10 @@ def forecast(run_metadata,
 
     output_root = utilities.get_output_root(output_root, forecast_spec.data.output_root,
                                             paths.SEIR_FORECAST_OUTPUTS)
-    forecast_spec.data.output_root = str(output_root)
 
     cli_tools.setup_directory_structure(output_root, with_production=True)
     run_directory = cli_tools.make_run_directory(output_root)
+    forecast_spec.data.output_root = str(run_directory)
     run_metadata['output_path'] = str(run_directory)
     cli_tools.configure_logging_to_files(run_directory)
     run_metadata['forecast_specification'] = forecast_spec.to_dict()

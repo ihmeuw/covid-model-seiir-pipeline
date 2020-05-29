@@ -273,6 +273,10 @@ class InfectionPaths(Paths):
             folder = matches[0]
         return self.root_dir / folder
 
+    def get_modelled_locations(self) -> List[int]:
+        """Retrieve all of the location specific infection directories."""
+        return [int(p.name.split('_')[-1]) for p in self.root_dir.iterdir() if p.is_dir()]
+
     def get_infection_file(self, location_id: int, draw_id: int) -> Path:
         # folder = _get_infection_folder_from_location_id(location_id, self.infection_dir)
         f = (self.get_location_dir(location_id) / self.infection_file.format(draw_id=draw_id))

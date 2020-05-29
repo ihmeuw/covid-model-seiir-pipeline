@@ -1,3 +1,4 @@
+"""Runner for the beta ODE fit."""
 from pathlib import Path
 
 from covid_shared import cli_tools
