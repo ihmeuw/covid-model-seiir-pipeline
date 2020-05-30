@@ -3,31 +3,23 @@ from typing import List, Dict, Tuple
 
 import pandas as pd
 
-from covid_model_seiir_pipeline.static_vars import COVARIATE_COL_DICT, FIT_SPECIFICATION_FILE
-from covid_model_seiir_pipeline.ode_fit import FitSpecification
+from covid_model_seiir_pipeline.static_vars import COVARIATE_COL_DICT
 from covid_model_seiir_pipeline.paths import (RegressionPaths, CovariatePaths, ODEPaths,
                                               InfectionPaths)
-from covid_model_seiir_pipeline.regression.specification import RegressionData
 
 
 class RegressionDataInterface:
 
     covariate_scenario_val = "{covariate}_{scenario}"
 
-    def __init__(self, regression_data: RegressionData):
-        self.regression_paths = RegressionPaths(Path(regression_data.output_root))
-        self.covariate_paths = CovariatePaths(Path(regression_data.covariate_version))
-        self.ode_paths = ODEPaths(Path(regression_data.ode_fit_version))
-
-        ode_fit_spec: FitSpecification = FitSpecification.from_path(self.ode_paths.root_dir /
-                                                                    FIT_SPECIFICATION_FILE)
-
-        self.infection_paths = InfectionPaths(Path(ode_fit_spec.data.infection_version))
-
+    def __init__(self, regression_root: Path, covariate_root: Path, ode_fit_root: Path,
+                 infection_root: Path, location_file: Path):
+        self.regression_paths = RegressionPaths(regression_root)
+        self.covariate_paths = CovariatePaths(covariate_root)
+        self.ode_paths = ODEPaths(ode_fit_root)
+        self.infection_paths = InfectionPaths(infection_root)
         # TODO: transition to using data from snapshot
-        file = f'location_metadata_{ode_fit_spec.data.location_set_version_id}.csv'
-        file_path = Path('/ihme/covid-19/seir-pipeline-outputs/metadata-inputs') / file
-        self.location_metadata_file = file_path
+        self.location_metadata_file = location_file
 
     def _load_scenario_file(self, val_name: str, input_file: Path, location_ids: List[int],
                             draw_id: int
@@ -97,15 +89,13 @@ class RegressionDataInterface:
                                                                    scenario=scenario)
             scenario_df = scenario_df.rename(columns={val_name: scenario_val_name})
 
-            # change name of regression data
-            regress_val_name = self.covariate_scenario_val.format(covariate=covariate,
-                                                                  scenario="regression")
-            regress_df = regress_df.rename(columns={val_name: regress_val_name})
+            # change name of regression data to be covariate name
+            regress_df = regress_df.rename(columns={val_name: covariate})
 
             # store regress data only once
-            cached_df = covariate_set.get(regress_val_name)
+            cached_df = covariate_set.get(covariate)
             if cached_df is None:
-                covariate_set[regress_val_name] = regress_df.reset_index(drop=True)
+                covariate_set[covariate] = regress_df.reset_index(drop=True)
             else:
                 if not cached_df.equals(regress_df.reset_index(drop=True)):
                     raise RuntimeError(

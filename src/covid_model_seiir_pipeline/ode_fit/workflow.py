@@ -2,7 +2,6 @@ from typing import Dict
 
 from jobmon.client import Workflow, BashTask
 from jobmon.client.swarm.executors.base import ExecutorParameters
-from loguru import logger
 
 from covid_model_seiir_pipeline import utilities
 from covid_model_seiir_pipeline.ode_fit import FitSpecification

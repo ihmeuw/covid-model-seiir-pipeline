@@ -38,7 +38,7 @@ class ScenarioSpecification:
 
     def to_dict(self) -> Dict:
         """Converts to a dict, coercing list-like items to lists."""
-        return asdict(self)
+        return {k: v for k, v in asdict(self).items() if k != 'name'}
 
 
 class ForecastSpecification(Specification):

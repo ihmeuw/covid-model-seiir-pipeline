@@ -6,19 +6,14 @@ import pandas as pd
 
 from covid_model_seiir_pipeline.static_vars import INFECTION_COL_DICT
 from covid_model_seiir_pipeline.paths import ODEPaths, InfectionPaths
-from covid_model_seiir_pipeline.ode_fit.specification import FitData
 
 
 class ODEDataInterface:
 
-    def __init__(self, ode_fit_data: FitData) -> None:
-        self.ode_paths = ODEPaths(Path(ode_fit_data.output_root))
-        self.infection_paths = InfectionPaths(Path(ode_fit_data.infection_version))
-
-        # TODO: figure out where this comes from
-        file = f'location_metadata_{ode_fit_data.location_set_version_id}.csv'
-        file_path = Path('/ihme/covid-19/seir-pipeline-outputs/metadata-inputs') / file
-        self.location_metadata_file = file_path
+    def __init__(self, ode_fit_root: Path, infection_root: Path, location_file: Path) -> None:
+        self.ode_paths = ODEPaths(ode_fit_root)
+        self.infection_paths = InfectionPaths(infection_root)
+        self.location_metadata_file = location_file
 
     def load_location_ids(self) -> List[int]:
         """Get the list of location ids to model.
@@ -67,7 +62,7 @@ class ODEDataInterface:
         df.to_csv(self.ode_paths.get_draw_beta_fit_file(location_id, draw_id), index=False)
 
     def save_draw_beta_param_file(self, df: pd.DataFrame, draw_id: int) -> None:
-        df.to_csv(self.ode_paths.get_draw_beta_param_file(draw_id))
+        df.to_csv(self.ode_paths.get_draw_beta_param_file(draw_id), index=False)
 
     def save_draw_date_file(self, df: pd.DataFrame, draw_id: int) -> None:
         df.to_csv(self.ode_paths.get_draw_date_file(draw_id), index=False)

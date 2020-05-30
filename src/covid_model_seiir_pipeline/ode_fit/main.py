@@ -16,7 +16,14 @@ def do_beta_fit(app_metadata: cli_tools.Metadata,
     logger.debug('Starting Beta fit.')
     # init high level objects
     ode_paths = ODEPaths(output_root, read_only=False)
-    data_interface = ODEDataInterface(fit_specification.data)
+    data_interface = ODEDataInterface(
+        ode_fit_root=Path(fit_specification.data.output_root),
+        infection_root=Path(fit_specification.data.infection_version),
+        location_file=(
+            Path('/ihme/covid-19/seir-pipeline-outputs/metadata-inputs') /
+            f'location_metadata_{fit_specification.data.location_set_version_id}.csv'
+        )
+    )
 
     # build directory structure
     location_ids = data_interface.load_location_ids()
