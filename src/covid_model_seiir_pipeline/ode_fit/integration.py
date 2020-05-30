@@ -88,7 +88,7 @@ def parse_arguments(argstr: Optional[str] = None) -> Namespace:
 
 def main():
     args = parse_arguments()
-    run_ode_fit(draw_id=args.draw_id, ode_version=args.ode_version)
+    compare_fit_beta(args.old_root, args.new_root, args.output_dir)
 
 
 if __name__ == '__main__':
