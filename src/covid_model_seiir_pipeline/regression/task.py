@@ -2,21 +2,21 @@ from argparse import ArgumentParser, Namespace
 import logging
 from pathlib import Path
 import shlex
-from typing import Optional, List, Dict, Tuple
+from typing import Optional, List, Dict
 
 import numpy as np
 import pandas as pd
 
-from slime.model import CovModel, CovModelSet
+from slime.model import CovModelSet
 from slime.core.data import MRData
 from covid_model_seiir.model_runner import ModelRunner
 
+from covid_model_seiir_pipeline import static_vars
+from covid_model_seiir_pipeline.ode_fit.specification import FitSpecification
+from covid_model_seiir_pipeline.regression.covariate_model import convert_to_covmodel
 from covid_model_seiir_pipeline.regression.specification import (RegressionSpecification,
                                                                  CovariateSpecification)
 from covid_model_seiir_pipeline.regression.data import RegressionDataInterface
-from covid_model_seiir_pipeline.static_vars import (COVARIATE_COL_DICT, COL_BETA, COL_GROUP,
-                                                    COL_DATE, COL_INTERCEPT, INFECTION_COL_DICT,
-                                                    REGRESSION_SPECIFICATION_FILE)
 
 
 log = logging.getLogger(__name__)
@@ -29,15 +29,15 @@ def create_covariate_pool(draw_id: int,
                           ) -> pd.DataFrame:
 
     def _merge_helper(dfs, df) -> pd.DataFrame:
-        date_col = COVARIATE_COL_DICT['COL_DATE']
+        date_col = static_vars.COVARIATE_COL_DICT['COL_DATE']
         if dfs.empty:
             dfs = df
         else:
             if date_col in df.columns and date_col in dfs.columns:
-                dfs = dfs.merge(df, on=[COVARIATE_COL_DICT['COL_LOC_ID'],
-                                        COVARIATE_COL_DICT['COL_DATE']])
+                dfs = dfs.merge(df, on=[static_vars.COVARIATE_COL_DICT['COL_LOC_ID'],
+                                        static_vars.COVARIATE_COL_DICT['COL_DATE']])
             else:
-                dfs = dfs.merge(df, on=[COVARIATE_COL_DICT['COL_LOC_ID']])
+                dfs = dfs.merge(df, on=[static_vars.COVARIATE_COL_DICT['COL_LOC_ID']])
         return dfs
 
     covariate_df = pd.DataFrame()
@@ -56,10 +56,7 @@ def create_covariate_pool(draw_id: int,
             use_draws=covariate.draws
         )
 
-        regression_key = regression_data_interface.covariate_scenario_val.format(
-            covariate=covariate.name, scenario="regression"
-        )
-        df = tmp_set.pop(regression_key)
+        df = tmp_set.pop(covariate.name)
         covariate_set_scenarios.update(tmp_set)
 
         # time dependent covariates versus not
@@ -77,51 +74,6 @@ def create_covariate_pool(draw_id: int,
     return covariate_df
 
 
-def convert_to_covmodel(covariates: List[CovariateSpecification]
-                        ) -> Tuple[List[CovModelSet], CovModelSet]:
-    """
-    Based on a list of `CovariateSpecification`s and an ordered list of lists of covariate
-    names, create a CovModelSet.
-    """
-
-    # construct each CovModel independently. add to dict of list by covariate order
-    cov_models = []
-    cov_model_order_dict: Dict[int, List[CovModel]] = {}
-    for covariate in covariates:
-        # covariate pool standardizes names to be {covariate}_{scenario} where scenario for
-        # past is 'regression'
-        if covariate.name != "intercept":
-            col_cov = f"{covariate.name}_regression"
-        else:
-            col_cov = covariate.name
-
-        cov_model = CovModel(
-            col_cov=col_cov,
-            use_re=covariate.use_re,
-            bounds=np.array(covariate.bounds),
-            gprior=np.array(covariate.gprior),
-            re_var=covariate.re_var,
-        )
-        cov_models.append(cov_model)
-        ordered_cov_set = cov_model_order_dict.get(covariate.order, [])
-        ordered_cov_set.append(cov_model)
-
-        # do I need this line?
-        cov_model_order_dict[covariate.order] = ordered_cov_set
-
-    # constuct a CovModelSet for each order
-    ordered_covmodel_sets = []
-    cov_orders = list(cov_model_order_dict.keys())
-    cov_orders.sort()
-    for order in cov_orders:
-        cov_model_set = CovModelSet(cov_model_order_dict[order])
-        ordered_covmodel_sets.append(cov_model_set)
-
-    # constuct a CovModelSet for all
-    all_covmodels_set = CovModelSet(cov_models)
-    return ordered_covmodel_sets, all_covmodels_set
-
-
 def convert_inputs_for_beta_model(covariate_df: pd.DataFrame, beta_df: pd.DataFrame,
                                   covmodel_set: CovModelSet) -> MRData:
     """
@@ -134,33 +86,45 @@ def convert_inputs_for_beta_model(covariate_df: pd.DataFrame, beta_df: pd.DataFr
     """
     df = beta_df.merge(
         covariate_df,
-        left_on=[COL_DATE, COL_GROUP],
-        right_on=[COVARIATE_COL_DICT['COL_DATE'], COVARIATE_COL_DICT['COL_LOC_ID']],
+        left_on=[static_vars.COL_DATE, static_vars.COL_GROUP],
+        right_on=[static_vars.COVARIATE_COL_DICT['COL_DATE'],
+                  static_vars.COVARIATE_COL_DICT['COL_LOC_ID']],
     )
-    df = df.loc[df[COL_BETA] != 0]
-    df = df.sort_values(by=[COL_GROUP, COL_DATE])
-    df['ln_' + COL_BETA] = np.log(df[COL_BETA])
+    df = df.loc[df[static_vars.COL_BETA] != 0]
+    df = df.sort_values(by=[static_vars.COL_GROUP, static_vars.COL_DATE])
+    df['ln_' + static_vars.COL_BETA] = np.log(df[static_vars.COL_BETA])
     cov_names = [covmodel.col_cov for covmodel in covmodel_set.cov_models]
 
     # quality check. shouldn't hit because we drop nulls in data_interface
     covs_na = []
     for name in cov_names:
-        if name != COL_INTERCEPT:
+        if name != static_vars.COL_INTERCEPT:
             if df[name].isna().values.any():
                 covs_na.append(name)
     if len(covs_na) > 0:
         raise ValueError('NaN in covariate data: ' + str(covs_na))
 
-    mrdata = MRData(df, col_group=COL_GROUP, col_obs='ln_' + COL_BETA, col_covs=cov_names)
+    mrdata = MRData(df, col_group=static_vars.COL_GROUP, col_obs='ln_' + static_vars.COL_BETA,
+                    col_covs=cov_names)
 
     return mrdata
 
 
 def run_beta_regression(draw_id: int, regression_version: str) -> None:
     regress_spec: RegressionSpecification = RegressionSpecification.from_path(
-        Path(regression_version) / REGRESSION_SPECIFICATION_FILE
+        Path(regression_version) / static_vars.REGRESSION_SPECIFICATION_FILE
     )
-    data_interface = RegressionDataInterface(regress_spec.data)
+    ode_fit_spec: FitSpecification = FitSpecification.from_path(
+        Path(regress_spec.data.ode_fit_version) / static_vars.FIT_SPECIFICATION_FILE
+    )
+    data_interface = RegressionDataInterface(
+        regression_root=Path(regress_spec.data.output_root),
+        covariate_root=Path(regress_spec.data.covariate_version),
+        ode_fit_root=Path(ode_fit_spec.data.output_root),
+        infection_root=Path(ode_fit_spec.data.infection_version),
+        location_file=(Path('/ihme/covid-19/seir-pipeline-outputs/metadata-inputs') /
+                       f'location_metadata_{ode_fit_spec.data.location_set_version_id}.csv')
+    )
     location_ids = data_interface.load_location_ids()
 
     # -------------------------- LOAD INPUTS -------------------- #
@@ -176,11 +140,12 @@ def run_beta_regression(draw_id: int, regression_version: str) -> None:
     # Convert inputs for beta regression
     mr = ModelRunner()
 
+    # create covariate model
     ordered_covmodel_sets, all_covmodels_set = convert_to_covmodel(
         list(regress_spec.covariates.values())
     )
-    mr_data = convert_inputs_for_beta_model(covariate_df, beta_df, all_covmodels_set)
 
+    mr_data = convert_inputs_for_beta_model(covariate_df, beta_df, all_covmodels_set)
     # TODO: add coefficient version
     fixed_coefficients = None
     # fit beta regression
@@ -198,17 +163,20 @@ def run_beta_regression(draw_id: int, regression_version: str) -> None:
         covmodel_set=all_covmodels_set,
         df_cov=covariate_df,
         df_cov_coef=regression_fit,
-        col_t=COVARIATE_COL_DICT['COL_DATE'],
-        col_group=COVARIATE_COL_DICT['COL_LOC_ID']
+        col_t=static_vars.COVARIATE_COL_DICT['COL_DATE'],
+        col_group=static_vars.COVARIATE_COL_DICT['COL_LOC_ID']
     )
     regression_betas = forecasts[
-        [COVARIATE_COL_DICT['COL_LOC_ID'], COVARIATE_COL_DICT['COL_DATE']] +
+        [static_vars.COVARIATE_COL_DICT['COL_LOC_ID'],
+         static_vars.COVARIATE_COL_DICT['COL_DATE']] +
         [c.col_cov for c in all_covmodels_set.cov_models] + ['beta_pred']
     ]
     beta_fit_covariates = beta_df.merge(
         regression_betas,
-        left_on=[INFECTION_COL_DICT['COL_LOC_ID'], INFECTION_COL_DICT['COL_DATE']],
-        right_on=[COVARIATE_COL_DICT['COL_LOC_ID'], COVARIATE_COL_DICT['COL_DATE']],
+        left_on=[static_vars.INFECTION_COL_DICT['COL_LOC_ID'],
+                 static_vars.INFECTION_COL_DICT['COL_DATE']],
+        right_on=[static_vars.COVARIATE_COL_DICT['COL_LOC_ID'],
+                  static_vars.COVARIATE_COL_DICT['COL_DATE']],
         how='left'
     )
     data_interface.save_regression_betas(beta_fit_covariates, draw_id, location_ids)

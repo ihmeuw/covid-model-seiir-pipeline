@@ -61,7 +61,7 @@ class Paths:
 class ForecastPaths(Paths):
     """Local directory structure of a forecasting data root."""
     beta_scaling_file: ClassVar[str] = "{location_id}_beta_scaling.csv"
-    component_draw_file: ClassVar[str] = "draw_{draw}.csv"
+    component_draw_file: ClassVar[str] = "draw_{draw_id}.csv"
     beta_resid_plot_file: ClassVar[str] = 'cases_fit_and_beta_residuals_{location_name}.png'
     final_draw_plot_file: ClassVar[str] = 'final_draws_refflog_{location_name}.png'
     trajectories_plot_file: ClassVar[str] = 'trajectories_{location_name}.png'
@@ -76,16 +76,17 @@ class ForecastPaths(Paths):
 
     def get_beta_scaling_path(self, location_id: int) -> Path:
         """Retrieves a location specific path to beta scaling parameters"""
-        return self.beta_scaling / self.beta_scaling_file.format(location_id)
+        return self.beta_scaling / self.beta_scaling_file.format(location_id=location_id)
 
     @property
     def component_draws(self) -> Path:
         """Folders by location with SEIIR components."""
         return self.root_dir / 'component_draws'
 
-    def get_component_draws_path(self, location_id: int, draw: int) -> Path:
+    def get_component_draws_path(self, location_id: int, draw_id: int) -> Path:
         """Get SEIIR components for a particular location and draw."""
-        return self.component_draws / str(location_id) / self.component_draw_file.format(draw)
+        file = self.component_draw_file.format(draw_id=draw_id)
+        return self.component_draws / str(location_id) / file
 
     @property
     def diagnostics(self) -> Path:
