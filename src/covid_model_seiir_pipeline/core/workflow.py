@@ -1,5 +1,6 @@
 import getpass
 import logging
+import os
 
 from covid_model_seiir_pipeline.core.task import RegressionTask, ForecastTask, ScalingDiagnosticTask
 from covid_model_seiir_pipeline.core.task import RegressionDiagnosticTask
@@ -29,13 +30,20 @@ class SEIIRWorkFlow(Workflow):
         if directories.forecast_version is not None:
             workflow_args += f'{directories.forecast_version} '
 
-        # TODO: right now my scratch directory is where the logs
-        #  are saving -- I was getting errors when writing to sgeoutput
+        # Save to log directories
+        log_dir = os.path.join(
+            '/share/temp/sgeoutput', getpass.getuser(), 'covid-seir',
+            directories.regression_version
+        )
+        if not os.path.exists(log_dir):
+            os.makedirs(log_dir, exist_ok=True)
+
+        # Initialize Jobmon workflow
         super().__init__(
             workflow_args=workflow_args,
             project=PROJECT,
-            stderr=f'/share/temp/sgeoutput/{user}/errors',
-            stdout=f'/share/temp/sgeoutput/{user}/output',
+            stderr=log_dir,
+            stdout=log_dir,
             working_dir=working_dir,
             seconds_until_timeout=60*60*24,
             resume=True
