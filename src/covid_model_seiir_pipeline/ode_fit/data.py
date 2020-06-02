@@ -3,6 +3,7 @@ from typing import List, Dict
 
 from loguru import logger
 import pandas as pd
+import yaml
 
 from covid_model_seiir_pipeline.static_vars import INFECTION_COL_DICT
 from covid_model_seiir_pipeline.paths import ODEPaths, InfectionPaths
@@ -66,3 +67,8 @@ class ODEDataInterface:
 
     def save_draw_date_file(self, df: pd.DataFrame, draw_id: int) -> None:
         df.to_csv(self.ode_paths.get_draw_date_file(draw_id), index=False)
+
+    def save_location_metadata_file(self, locations: List[int]) -> None:
+        with (self.ode_paths.root_dir / 'locations.yaml') as location_file:
+            yaml.dump({'locations': locations},location_file)
+

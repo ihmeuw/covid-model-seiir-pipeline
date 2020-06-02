@@ -17,7 +17,7 @@ class ODEFitTaskTemplate:
             "--ode-version {ode_version} "
         )
         self.params = ExecutorParameters(
-            max_runtime_seconds=1000,
+            max_runtime_seconds=3000,
             j_resource=False,
             m_mem_free='20G',
             num_cores=3,
