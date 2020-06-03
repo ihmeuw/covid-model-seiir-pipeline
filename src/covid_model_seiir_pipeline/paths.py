@@ -211,10 +211,6 @@ class RegressionPaths(Paths):
         return self.root_dir / 'diagnostics'
 
     @property
-    def input_dir(self) -> Path:
-        return self.root_dir / 'inputs'
-
-    @property
     def covariate_dir(self) -> Path:
         return self.root_dir / 'covariates'
 
@@ -237,7 +233,7 @@ class RegressionPaths(Paths):
     def directories(self) -> List[Path]:
         """Returns all top level sub-directories."""
         return [self.beta_regression_dir, self.coefficient_dir, self.diagnostic_dir,
-                self.input_dir, self.covariate_dir, self.scenario_dir, self.info_dir]
+                self.covariate_dir, self.scenario_dir, self.info_dir]
 
     @property
     def location_specific_directories(self) -> List[Path]:

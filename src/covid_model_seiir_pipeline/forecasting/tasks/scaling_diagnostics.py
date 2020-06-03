@@ -8,6 +8,7 @@ log = logging.getLogger(__name__)
 
 
 class PlotBetaScaling:
+
     def __init__(self, directories: Directories):
 
         self.directories = directories
