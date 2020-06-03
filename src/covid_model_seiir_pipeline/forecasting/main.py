@@ -34,6 +34,7 @@ def do_beta_forecast(app_metadata: cli_tools.Metadata,
             forecast_root=scenario_root,
             regression_root=Path(regression_specification.data.output_root),
             ode_fit_root=Path(ode_fit_spec.data.output_root),
+            infection_root=Path(ode_fit_spec.data.infection_version),
             location_file=(Path('/ihme/covid-19/seir-pipeline-outputs/metadata-inputs') /
                            f'location_metadata_{ode_fit_spec.data.location_set_version_id}.csv'
                            )
@@ -46,4 +47,5 @@ def do_beta_forecast(app_metadata: cli_tools.Metadata,
     # build workflow and launch
     forecast_wf = ForecastWorkflow(forecast_specification, location_ids)
     forecast_wf.attach_scenario_tasks()
+    forecast_wf.attach_splice_tasks()
     forecast_wf.run()

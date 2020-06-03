@@ -4,14 +4,15 @@ from typing import List, Dict
 import pandas as pd
 
 
-from covid_model_seiir_pipeline.paths import (RegressionPaths, ODEPaths, ForecastPaths)
+from covid_model_seiir_pipeline.paths import (RegressionPaths, ODEPaths, ForecastPaths,
+                                              InfectionPaths)
 from covid_model_seiir_pipeline.static_vars import COVARIATE_COL_DICT
 
 
 class ForecastDataInterface:
 
     def __init__(self, forecast_root: Path, regression_root: Path, ode_fit_root: Path,
-                 location_file: Path):
+                 infection_root: Path, location_file: Path):
 
         self.forecast_paths = ForecastPaths(forecast_root)
 
@@ -21,10 +22,18 @@ class ForecastDataInterface:
         # setup ode dirs
         self.ode_paths = ODEPaths(ode_fit_root)
 
+        # infection dirs
+        self.infection_paths = InfectionPaths(infection_root)
+
         self.location_metadata_file = location_file
 
     def load_location_ids(self) -> List[int]:
         return pd.read_csv(self.location_metadata_file)["location_id"].tolist()
+
+    def get_location_name_from_id(self, location_id: int) -> str:
+        df = pd.read_csv(self.location_metadata_file)
+        location_name = df.loc[df.location_id == location_id]['location_name'].iloc[0]
+        return location_name
 
     def load_beta_fit(self, draw_id: int, location_id: int) -> pd.DataFrame:
         beta_fit_file = self.ode_paths.get_draw_beta_fit_file(location_id=location_id,
@@ -72,3 +81,25 @@ class ForecastDataInterface:
         })
         file = self.forecast_paths.get_beta_scaling_path(location_id)
         df_scales.to_csv(file, index=False)
+
+    def load_infections(self, location_id: int, draw_id: int) -> pd.DataFrame:
+        file = self.infection_paths.get_infection_file(location_id=location_id,
+                                                       draw_id=draw_id)
+        return pd.read_csv(file)
+
+    def load_component_forecasts(self, location_id: int, draw_id: int):
+        file = self.forecast_paths.get_component_draws_path(location_id=location_id,
+                                                            draw_id=draw_id)
+        return pd.read_csv(file)
+
+    def save_cases(self, df: pd.DataFrame, location_id: int):
+        file = self.forecast_paths.get_output_cases(location_id=location_id)
+        df.to_csv(file, index=False)
+
+    def save_deaths(self, df: pd.DataFrame, location_id: int):
+        file = self.forecast_paths.get_output_deaths(location_id=location_id)
+        df.to_csv(file, index=False)
+
+    def save_reff(self, df: pd.DataFrame, location_id: int):
+        file = self.forecast_paths.get_output_reff(location_id=location_id)
+        df.to_csv(file, index=False)

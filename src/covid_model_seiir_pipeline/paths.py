@@ -112,15 +112,15 @@ class ForecastPaths(Paths):
 
     def get_output_cases(self, location_id: int) -> Path:
         """Path to output cases file by location."""
-        return self.output_draws / self.cases_file.format(location_id)
+        return self.output_draws / self.cases_file.format(location_id=location_id)
 
     def get_output_reff(self, location_id: int) -> Path:
         """Path to output R effective file by location."""
-        return self.output_draws / self.reff_file.format(location_id)
+        return self.output_draws / self.reff_file.format(location_id=location_id)
 
     def get_output_deaths(self, location_id: int) -> Path:
         """Path to output deaths file by location"""
-        return self.output_draws / self.deaths_file.format(location_id)
+        return self.output_draws / self.deaths_file.format(location_id=location_id)
 
     @property
     def directories(self) -> List[Path]:
