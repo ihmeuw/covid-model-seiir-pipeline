@@ -26,6 +26,7 @@ if __name__ == "__main__":
         'pyyaml',
         'parse',
         #'slime',
+        'tqdm',
         'odeopt>=0.1.1'
     ]
 
