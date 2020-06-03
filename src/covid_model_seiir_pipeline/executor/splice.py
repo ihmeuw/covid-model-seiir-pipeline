@@ -60,3 +60,6 @@ def main():
     splicer.save_deaths(directories.location_output_forecast_file(location_id=args.location_id, forecast_type='deaths'))
     splicer.save_reff(directories.location_output_forecast_file(location_id=args.location_id, forecast_type='reff'))
 
+
+if __name__ == '__main__':
+    main()
