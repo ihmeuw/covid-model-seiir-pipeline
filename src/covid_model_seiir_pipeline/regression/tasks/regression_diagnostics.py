@@ -1,41 +1,62 @@
-from argparse import ArgumentParser
+from argparse import ArgumentParser, Namespace
 import logging
+from pathlib import Path
+from typing import Optional
+import shlex
 
-from covid_model_seiir_pipeline.diagnostics.visualizer import PlotBetaCoef
-from covid_model_seiir_pipeline.core.versioner import args_to_directories
+
+import numpy as np
+import pandas as pd
+
+import matplotlib
+
+from covid_model_seiir_pipeline import static_vars
+from covid_model_seiir_pipeline.ode_fit.specification import FitSpecification
+from covid_model_seiir_pipeline.regression.specification import RegressionSpecification
+from covid_model_seiir_pipeline.regression.data import RegressionDataInterface
 
 log = logging.getLogger(__name__)
 
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+
 
 class PlotBetaCoef:
-    def __init__(self, directories: Directories):
 
-        self.directories = directories
+    def __init__(self, regression_version: str):
+        # load specifications
+        regress_spec: RegressionSpecification = RegressionSpecification.from_path(
+            Path(regression_version) / static_vars.REGRESSION_SPECIFICATION_FILE
+        )
+        self.regression_specification = regress_spec
+        ode_fit_spec: FitSpecification = FitSpecification.from_path(
+            Path(self.regression_specification.data.ode_fit_version) /
+            static_vars.FIT_SPECIFICATION_FILE
+        )
 
-        # load settings
-        self.settings = load_regression_settings(directories.regression_version)
-
-        self.path_to_location_metadata = self.directories.get_location_metadata_file(
-            self.settings.location_set_version_id)
-
-        self.path_to_coef_dir = self.directories.regression_coefficient_dir
-        self.path_to_savefig = self.directories.regression_diagnostic_dir
+        # data interface
+        self.data_interface = RegressionDataInterface(
+            regression_root=Path(self.regression_specification.data.output_root),
+            covariate_root=Path(self.regression_specification.data.covariate_version),
+            ode_fit_root=Path(ode_fit_spec.data.output_root),
+            infection_root=Path(ode_fit_spec.data.infection_version),
+            location_file=(Path('/ihme/covid-19/seir-pipeline-outputs/metadata-inputs') /
+                           f'location_metadata_{ode_fit_spec.data.location_set_version_id}.csv')
+        )
+        self.path_to_savefig = self.data_interface.regression_paths.diagnostic_dir
 
         # load metadata
-        self.location_metadata = pd.read_csv(self.path_to_location_metadata)
-        self.id2loc = self.location_metadata.set_index('location_id')[
-            'location_name'].to_dict()
+        location_metadata = pd.read_csv(self.data_interface.location_metadata_file)
+        self.id2loc = location_metadata.set_index('location_id')['location_name'].to_dict()
+
+        # organize information
+        self.covs = np.sort(list(self.regression_specification.covariates.keys()))
 
         # load coef
         df_coef = [
-            pd.read_csv(self.directories.get_draw_coefficient_file(i))
-            for i in range(self.settings.n_draws)
+            self.data_interface.load_mr_coefficients(i)
+            for i in range(ode_fit_spec.parameters.n_draws)
         ]
-
-        # organize information
-        self.covs = np.sort(list(self.settings.covariates.keys()))
-        self.covs = np.append(self.covs, 'intercept')
-
         self.loc_ids = np.sort(list(df_coef[0]['group_id'].unique()))
         self.locs = np.array([
             self.id2loc[loc_id]
@@ -89,23 +110,30 @@ class PlotBetaCoef:
             df.to_csv(self.path_to_savefig/f'{cov}_coef.csv', index=False)
 
 
-def get_args():
+def parse_arguments(argstr: Optional[str] = None) -> Namespace:
     """
-    Gets arguments from the command line.
+    Gets arguments from the command line or a command line string.
     """
+    log.info("parsing arguments")
     parser = ArgumentParser()
     parser.add_argument("--regression-version", type=str, required=True)
 
-    return parser.parse_args()
+    if argstr is not None:
+        arglist = shlex.split(argstr)
+        args = parser.parse_args(arglist)
+    else:
+        args = parser.parse_args()
+
+    return args
 
 
 def main():
-    args = get_args()
+    args = parse_arguments()
     log.info("Initiating SEIIR diagnostics.")
 
-    # Load metadata
-    args.forecast_version = None
-    directories = args_to_directories(args)
-
-    handle = PlotBetaCoef(directories)
+    handle = PlotBetaCoef(regression_version=args.regression_version)
     handle.plot_coef()
+
+
+if __name__ == '__main__':
+    main()
