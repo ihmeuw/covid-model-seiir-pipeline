@@ -2,6 +2,7 @@ from typing import Dict
 
 from jobmon.client import Workflow, BashTask
 from jobmon.client.swarm.executors.base import ExecutorParameters
+from jobmon.client.swarm.workflow.task_dag import DagExecutionStatus
 
 from covid_model_seiir_pipeline import utilities
 from covid_model_seiir_pipeline.ode_fit.specification import FitSpecification
@@ -75,4 +76,6 @@ class RegressionWorkflow:
             self.workflow.add_task(task)
 
     def run(self):
-        self.workflow.run()
+        execution_status = self.workflow.run()
+        if execution_status != DagExecutionStatus.SUCCEEDED:
+            raise RuntimeError("Workflow failed. Check database or logs for errors")
