@@ -84,15 +84,24 @@ class CovariateFormatter:
         self.col_loc_id = COVARIATE_COL_DICT['COL_LOC_ID']
         self.col_date = COVARIATE_COL_DICT['COL_DATE']
 
+        self._covariates = {}
+
+    def get_covariate(self, name, covariate_version):
+        if (name, covariate_version) not in self._covariates:
+            self._covariates[(name, covariate_version)] = pd.read_csv(
+                self.directories.get_covariate_file(
+                    covariate_name=name, covariate_version=covariate_version
+                )
+            )
+        return self._covariates[(name, covariate_version)]
+
     def format_covariates(self, covariate_version, draw_id=None):
         dfs = pd.DataFrame()
         value_columns = []
         for name, pull_draws in self.covariate_draw_dict.items():
             if name == 'intercept':
                 continue
-            df = pd.read_csv(self.directories.get_covariate_file(
-                covariate_name=name, covariate_version=covariate_version
-            ))
+            df = self.get_covariate(name, covariate_version)
             if draw_id is not None:
                 if pull_draws:
                     value_column = f'draw_{draw_id}'
