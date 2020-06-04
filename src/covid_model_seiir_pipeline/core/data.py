@@ -90,18 +90,23 @@ class CovariateFormatter:
         for name, pull_draws in self.covariate_draw_dict.items():
             if name == 'intercept':
                 continue
-            df = pd.read_csv(self.directories.get_covariate_file(
-                covariate_name=name, covariate_version=covariate_version
-            ))
             if draw_id is not None:
                 if pull_draws:
-                    value_column = f'draw_{draw_id}'
+                    pull_column = f'draw_{draw_id}'
                 else:
-                    value_column = name
+                    pull_column = name
             else:
-                value_column = name
-            value_columns.append(value_column)
-            df = df.loc[~df[value_column].isnull()].copy()
+                pull_column = name
+            df = pd.read_csv(
+                self.directories.get_covariate_file(
+                    covariate_name=name, covariate_version=covariate_version,
+                ),
+                usecols = lambda col: col in [self.col_loc_id, self.col_date, pull_column]
+            )
+            if pull_column != name:
+                df = df.rename(columns = {pull_column: name})
+            value_columns.append(name)
+            df = df.loc[~df[name].isnull()].copy()
             if dfs.empty:
                 dfs = df
             else:
