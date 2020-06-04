@@ -101,7 +101,7 @@ class CovariateFormatter:
                 self.directories.get_covariate_file(
                     covariate_name=name, covariate_version=covariate_version,
                 ),
-                usecols = [self.col_loc_id, self.col_date, pull_column]
+                usecols = lambda col: col in [self.col_loc_id, self.col_date, pull_column]
             )
             if pull_column != name:
                 df = df.rename(columns = {pull_column: name})
