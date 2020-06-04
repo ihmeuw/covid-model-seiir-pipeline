@@ -84,6 +84,17 @@ class CovariateFormatter:
         self.col_loc_id = COVARIATE_COL_DICT['COL_LOC_ID']
         self.col_date = COVARIATE_COL_DICT['COL_DATE']
 
+        self._covariates = {}
+
+    def get_covariate(self, name, covariate_version):
+        if (name, covariate_version) not in self._covariates:
+            self._covariates[(name, covariate_version)] = pd.read_csv(
+                self.directories.get_covariate_file(
+                    covariate_name=name, covariate_version=covariate_version
+                )
+            )
+        return self._covariates[(name, covariate_version)]
+
     def format_covariates(self, covariate_version, draw_id=None):
         dfs = pd.DataFrame()
         value_columns = []
@@ -97,12 +108,10 @@ class CovariateFormatter:
                     pull_column = name
             else:
                 pull_column = name
-            df = pd.read_csv(
-                self.directories.get_covariate_file(
-                    covariate_name=name, covariate_version=covariate_version,
-                ),
-                usecols = lambda col: col in [self.col_loc_id, self.col_date, pull_column]
-            )
+            df = self.get_covariate(name, covariate_version)
+            # Keep up to three columns: location ID,  optionally date, and value
+            keep_columns = [self.col_loc_id, self.col_date, pull_column]
+            df = df.loc[:, [col for col in df.columns if col in keep_columns]].copy()
             if pull_column != name:
                 df = df.rename(columns = {pull_column: name})
             value_columns.append(name)
