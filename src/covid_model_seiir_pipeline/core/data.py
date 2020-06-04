@@ -112,7 +112,7 @@ class CovariateFormatter:
             # Keep up to three columns: location ID,  optionally date, and value
             keep_columns = [self.col_loc_id, self.col_date, pull_column]
             df = df.loc[
-                ~df[name].isnull(),
+                ~df[pull_column].isnull(),
                 [col for col in df.columns if col in keep_columns]
             ].copy()
             # Rename draw columns to covariate name
