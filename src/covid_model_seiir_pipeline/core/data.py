@@ -109,20 +109,21 @@ class CovariateFormatter:
             else:
                 pull_column = name
             df = self.get_covariate(name, covariate_version)
-            if pull_column != name:
-                df[name] = df[pull_column]
-            value_columns.append(name)
             # Keep up to three columns: location ID,  optionally date, and value
             keep_columns = [self.col_loc_id, self.col_date, pull_column]
             df = df.loc[
                 ~df[name].isnull(),
                 [col for col in df.columns if col in keep_columns]
             ].copy()
+            # Rename draw columns to covariate name
+            if pull_column != name:
+                df = df.rename(columns = {pull_column: name})
+            value_columns.append(name)
             if dfs.empty:
                 dfs = df
             else:
                 # time dependent covariates versus not
-                if self.col_date in df.columns:
+                if (self.col_date in df.columns) and (self.col_date in dfs.columns):
                     dfs = dfs.merge(df, on=[self.col_loc_id, self.col_date])
                 else:
                     dfs = dfs.merge(df, on=[self.col_loc_id])
