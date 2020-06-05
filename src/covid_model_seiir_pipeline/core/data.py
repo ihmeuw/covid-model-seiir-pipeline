@@ -84,29 +84,46 @@ class CovariateFormatter:
         self.col_loc_id = COVARIATE_COL_DICT['COL_LOC_ID']
         self.col_date = COVARIATE_COL_DICT['COL_DATE']
 
+        self._covariates = {}
+
+    def get_covariate(self, name, covariate_version):
+        if (name, covariate_version) not in self._covariates:
+            self._covariates[(name, covariate_version)] = pd.read_csv(
+                self.directories.get_covariate_file(
+                    covariate_name=name, covariate_version=covariate_version
+                )
+            )
+        return self._covariates[(name, covariate_version)]
+
     def format_covariates(self, covariate_version, draw_id=None):
         dfs = pd.DataFrame()
         value_columns = []
         for name, pull_draws in self.covariate_draw_dict.items():
             if name == 'intercept':
                 continue
-            df = pd.read_csv(self.directories.get_covariate_file(
-                covariate_name=name, covariate_version=covariate_version
-            ))
             if draw_id is not None:
                 if pull_draws:
-                    value_column = f'draw_{draw_id}'
+                    pull_column = f'draw_{draw_id}'
                 else:
-                    value_column = name
+                    pull_column = name
             else:
-                value_column = name
-            value_columns.append(value_column)
-            df = df.loc[~df[value_column].isnull()].copy()
+                pull_column = name
+            df = self.get_covariate(name, covariate_version)
+            # Keep up to three columns: location ID,  optionally date, and value
+            keep_columns = [self.col_loc_id, self.col_date, pull_column]
+            df = df.loc[
+                ~df[pull_column].isnull(),
+                [col for col in df.columns if col in keep_columns]
+            ].copy()
+            # Rename draw columns to covariate name
+            if pull_column != name:
+                df = df.rename(columns = {pull_column: name})
+            value_columns.append(name)
             if dfs.empty:
                 dfs = df
             else:
                 # time dependent covariates versus not
-                if self.col_date in df.columns:
+                if (self.col_date in df.columns) and (self.col_date in dfs.columns):
                     dfs = dfs.merge(df, on=[self.col_loc_id, self.col_date])
                 else:
                     dfs = dfs.merge(df, on=[self.col_loc_id])
