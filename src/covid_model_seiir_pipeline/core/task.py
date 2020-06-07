@@ -3,7 +3,7 @@ from jobmon.client.swarm.executors.base import ExecutorParameters
 
 
 ExecParams = ExecutorParameters(
-    max_runtime_seconds=3000,
+    max_runtime_seconds=6000,
     j_resource=False,
     m_mem_free='20G',
     num_cores=3,
