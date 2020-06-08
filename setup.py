@@ -73,10 +73,8 @@ if __name__ == "__main__":
             'regression_diagnostics=covid_model_seiir_pipeline.regression.tasks.regression_diagnostics:main',
             'beta_forecast=covid_model_seiir_pipeline.forecasting.tasks.beta_forecast:main',
             'splice=covid_model_seiir_pipeline.forecasting.tasks.splicer:main',
-            'run=covid_model_seiir_pipeline.executor.run:main',
-            'create_regression_diagnostics=covid_model_seiir_pipeline.executor.create_regression_diagnostics:main',
-            'create_forecast_diagnostics=covid_model_seiir_pipeline.executor.create_forecast_diagnostics:main',
-            'create_scaling_diagnostics=covid_model_seiir_pipeline.executor.create_scaling_diagnostics:main'
+            'forecast_diagnostics=covid_model_seiir_pipeline.forecasting.tasks.forecast_diagnostics:main',
+            'scaling_diagnostics=covid_model_seiir_pipeline.forecasting.tasks.scaling_diagnostics:main'
         ]},
         zip_safe=False,
     )
