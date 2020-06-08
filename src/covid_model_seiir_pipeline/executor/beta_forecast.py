@@ -85,7 +85,8 @@ def run_beta_forecast(location_id: int, regression_version: str, forecast_versio
         covariate_data = load_covariates(
             directories,
             covariate_version=forecast_settings.covariate_version,
-            location_ids=[location_id]
+            location_ids=[location_id],
+            draw_id = draw_id if any(forecast_settings.covariate_draw_dict.values()) else None
         )
 
         # Figure out what date we need to forecast from (the end of the component fit in regression task)
