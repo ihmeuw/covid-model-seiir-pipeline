@@ -26,6 +26,11 @@ def main():
     args = get_args()
     log.info("Initiating SEIIR modeling pipeline.")
 
+    # Fix for when only forecasting is being run
+    if (args.regression_version is None) and (args.forecast_version is not None):
+        forecast_settings = load_forecast_settings(args.forecast_version)
+        args.regression_version = forecast_settings.regression_version
+
     directories = args_to_directories(args)
     directories.make_dirs()
 
