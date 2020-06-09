@@ -1,4 +1,4 @@
-from typing import Union
+from typing import Tuple, Union
 import pandas as pd
 import numpy as np
 
@@ -127,19 +127,43 @@ def load_locations(directories):
 
 def beta_shift(beta_fit: pd.DataFrame,
                beta_pred: np.ndarray,
-               window_size: Union[int, None] = None) -> np.array:
+               window_size: Union[int, None] = None,
+               avg_over: Union[int, None] = None) -> Tuple[np.ndarray, float]:
+    """Calculate the beta shift.
+
+    Args:
+        beta_fit (pd.DataFrame): Data frame contains the date and beta fit.
+        beta_pred (np.ndarray): beta prediction.
+        windown_size (Union[int, None], optional):
+            Window size for the transition. If `None`, Hard shift no transition.
+            Default to None.
+        avg_over (Union[int, None], optional):
+            Final beta scale depends on the ratio between beta prediction over the
+            average beta over `avg_over` days. If `None`, final scale will be 1, means
+            return to the `beta_pred` completely. Default to None.
+
+    Returns:
+        Tuple[np.ndarray, float]: Predicted beta, after scaling (shift) and the initial scaling.
+    """
     assert 'date' in beta_fit.columns, "'date' has to be in beta_fit data frame."
     assert 'beta' in beta_fit.columns, "'beta' has to be in beta_fit data frame."
-    current_date = beta_fit.date.max()
+    beta_fit = beta_fit.sort_values('date')
+    beta_fit = beta_fit['beta'].to_numpy()
 
-    anchor_beta = beta_fit.beta[beta_fit.date == current_date].iloc[0]
+    anchor_beta = beta_fit[-1]
     scale_init = anchor_beta / beta_pred[0]
+
+    if avg_over is None:
+        scale_final = 1.0
+    else:
+        beta_history = beta_fit[-avg_over:]
+        scale_final = beta_history.mean() / beta_pred[0]
 
     if window_size is not None:
         assert isinstance(window_size, int) and window_size > 0, f"window_size={window_size} has to be a positive " \
                                                                  f"integer."
-        scale = scale_init + (1 - scale_init)/window_size*np.arange(beta_pred.size)
-        scale[(window_size + 1):] = 1.0
+        scale = scale_init + (scale_final - scale_init)/window_size*np.arange(beta_pred.size)
+        scale[(window_size + 1):] = scale_final
     else:
         scale = scale_init
 
