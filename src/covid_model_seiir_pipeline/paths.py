@@ -95,15 +95,17 @@ class ForecastPaths(Paths):
 
     def get_residuals_plot(self, location_name: str) -> Path:
         """Path to residual plots by location."""
-        return self.diagnostics / self.beta_resid_plot_file.format(location_name)
+        return self.diagnostics / self.beta_resid_plot_file.format(location_name=location_name)
 
     def get_final_draw_plots(self, location_name: str) -> Path:
         """Path to final draw plots by location."""
-        return self.diagnostics / self.final_draw_plot_file.format(location_name)
+        return self.diagnostics / self.final_draw_plot_file.format(location_name=location_name)
 
     def get_trajectory_plots(self, location_name: str) -> Path:
         """Path to final trajectory plots by location."""
-        return self.diagnostics / self.trajectories_plot_file.format(location_name)
+        return self.diagnostics / self.trajectories_plot_file.format(
+            location_name=location_name
+        )
 
     @property
     def output_draws(self) -> Path:
