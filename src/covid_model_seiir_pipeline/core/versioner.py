@@ -11,7 +11,7 @@ BASE_DIR = Path('/ihme')
 
 # Dependency/input directories
 INPUT_DIR = BASE_DIR / 'covid-19/seir-inputs'
-COVARIATE_DIR = BASE_DIR / 'covid-19/seir-outputs/test-seir-covariates'
+COVARIATE_DIR = BASE_DIR / 'covid-19/seir-covariates'
 
 # Output directory
 OUTPUT_DIR = BASE_DIR / 'covid-19/seir-pipeline-outputs'
@@ -20,7 +20,7 @@ OUTPUT_DIR = BASE_DIR / 'covid-19/seir-pipeline-outputs'
 METADATA_DIR = OUTPUT_DIR / 'metadata-inputs'
 REGRESSION_OUTPUT = OUTPUT_DIR / 'regression'
 FORECAST_OUTPUT = OUTPUT_DIR / 'forecast'
-COVARIATE_CACHE = BASE_DIR / 'covid-19/seir-outputs/test-seir-covariate-cache'
+COVARIATE_CACHE = OUTPUT_DIR / 'covariate'
 
 # File pattern for storing infectionator outputs
 INFECTION_FILE_PATTERN = 'draw{draw_id:04}_prepped_deaths_and_cases_all_age.csv'
