@@ -144,3 +144,7 @@ class RegressionDataInterface:
             loc_beta_fits = df.loc[df[COVARIATE_COL_DICT['COL_LOC_ID']] == l_id]
             beta_file = self.regression_paths.get_draw_beta_regression_file(l_id, draw_id)
             loc_beta_fits.to_csv(beta_file, index=False)
+
+    def load_regression_betas(self, location_id: int, draw_id: int):
+        beta_file = self.regression_paths.get_draw_beta_regression_file(location_id, draw_id)
+        return pd.read_csv(beta_file)
