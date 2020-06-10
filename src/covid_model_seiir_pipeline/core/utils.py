@@ -59,7 +59,7 @@ def create_forecast_version(version_name, covariate_version,
     cache_version = cache_covariates(
         directories=directories,
         covariate_version=covariate_version,
-        location_ids=location_ids,eta_shift_dict={'window_size': 14, 'avg_over': 30},
+        location_ids=location_ids,
         covariate_draw_dict=covariate_draw_dict
     )
     fv = ForecastVersion(version_name=version_name, covariate_version=cache_version,
