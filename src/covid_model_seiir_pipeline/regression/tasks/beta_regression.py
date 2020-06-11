@@ -122,8 +122,7 @@ def run_beta_regression(draw_id: int, regression_version: str) -> None:
         covariate_root=Path(regress_spec.data.covariate_version),
         ode_fit_root=Path(ode_fit_spec.data.output_root),
         infection_root=Path(ode_fit_spec.data.infection_version),
-        location_file=(Path('/ihme/covid-19/seir-pipeline-outputs/metadata-inputs') /
-                       f'location_metadata_{ode_fit_spec.data.location_set_version_id}.csv')
+        location_file=Path(ode_fit_spec.data.location_set_file)
     )
     location_ids = data_interface.load_location_ids()
 

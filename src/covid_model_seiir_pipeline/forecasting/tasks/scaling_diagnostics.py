@@ -41,8 +41,7 @@ class PlotBetaScaling:
             regression_root=Path(regress_spec.data.output_root),
             ode_fit_root=Path(ode_fit_spec.data.output_root),
             infection_root=Path(ode_fit_spec.data.infection_version),
-            location_file=(Path('/ihme/covid-19/seir-pipeline-outputs/metadata-inputs') /
-                           f'location_metadata_{ode_fit_spec.data.location_set_version_id}.csv')
+            location_file=Path(ode_fit_spec.data.location_set_file)
         )
 
         # load settings
