@@ -191,7 +191,7 @@ class Splicer:
         if COL_OBSERVED not in id_cols:
             df.drop(COL_OBSERVED, axis=1, inplace=True)
         wide = df.set_index(id_cols + ['draw']).unstack().reset_index()
-        wide.columns = wide.columns[:2].droplevel(1).append(wide.columns[2:].droplevel())
+        wide.columns = wide.columns[:len(id_cols)].droplevel(1).append(wide.columns[len(id_cols):].droplevel())
         wide['location'] = self.location_name
         wide['location_id'] = self.location_id
         # The "observed" column is draw-specific for infections but not for deaths.
