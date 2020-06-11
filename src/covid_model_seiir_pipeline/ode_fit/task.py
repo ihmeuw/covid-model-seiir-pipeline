@@ -28,7 +28,7 @@ def run_ode_fit(draw_id: int, ode_version: str):
         ode_fit_root=Path(fit_specification.data.output_root),
         infection_root=Path(fit_specification.data.infection_version),
         location_file=Path(fit_specification.data.location_set_file)
-    )k
+    )
 
     # Load data
     location_ids = data_interface.load_location_ids()
