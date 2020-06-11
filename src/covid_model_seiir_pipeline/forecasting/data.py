@@ -13,7 +13,6 @@ class ForecastDataInterface:
 
     def __init__(self, forecast_root: Path, regression_root: Path, ode_fit_root: Path,
                  infection_root: Path, location_file: Path):
-
         self.forecast_paths = ForecastPaths(forecast_root)
 
         # setup regression dirs
@@ -82,6 +81,10 @@ class ForecastDataInterface:
         file = self.forecast_paths.get_beta_scaling_path(location_id)
         df_scales.to_csv(file, index=False)
 
+    def load_beta_scales(self, location_id: int):
+        file = self.forecast_paths.get_beta_scaling_path(location_id)
+        return pd.read_csv(file)
+
     def load_infections(self, location_id: int, draw_id: int) -> pd.DataFrame:
         file = self.infection_paths.get_infection_file(location_id=location_id,
                                                        draw_id=draw_id)
@@ -103,3 +106,15 @@ class ForecastDataInterface:
     def save_reff(self, df: pd.DataFrame, location_id: int):
         file = self.forecast_paths.get_output_reff(location_id=location_id)
         df.to_csv(file, index=False)
+
+    def load_cases(self, location_id: int) -> pd.DataFrame:
+        file = self.forecast_paths.get_output_cases(location_id=location_id)
+        return pd.read_csv(file)
+
+    def load_deaths(self, location_id: int) -> pd.DataFrame:
+        file = self.forecast_paths.get_output_deaths(location_id=location_id)
+        return pd.read_csv(file)
+
+    def load_reff(self, location_id: int) -> pd.DataFrame:
+        file = self.forecast_paths.get_output_reff(location_id=location_id)
+        return pd.read_csv(file)
