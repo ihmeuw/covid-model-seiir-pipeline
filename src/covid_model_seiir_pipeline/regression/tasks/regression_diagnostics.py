@@ -1,9 +1,8 @@
 from argparse import ArgumentParser, Namespace
 import logging
 from pathlib import Path
-from typing import Optional
 import shlex
-
+from typing import Optional
 
 import numpy as np
 import pandas as pd
