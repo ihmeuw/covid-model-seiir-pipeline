@@ -100,6 +100,21 @@ def get_version(cli_argument: Optional[str], specification_value: Optional[str])
     return Path(version)
 
 
+def get_version_id(cli_argument: Optional[str], specification_value: Optional[str]) -> int:
+    """Determine the version id to use hierarchically.
+
+    CLI args override spec args. Spec args override the default 0.
+
+    """
+    if cli_argument:
+        version = cli_argument
+    elif specification_value:
+        version = specification_value
+    else:
+        version = 0  # based on the default take from location set id
+    return version
+
+
 def get_output_root(cli_argument: Optional[str], specification_value: Optional[str],
                     default: Union[str, Path]) -> Path:
     """Determine the output root hierarchically.
