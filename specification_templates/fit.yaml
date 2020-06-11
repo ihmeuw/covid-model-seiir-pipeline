@@ -1,7 +1,8 @@
 data:
   infection_version: '2020_05_31.01'
-  location_set_version_id: 682001
+  location_set_version_id: 678
   output_root: ''
+  location_set_file: ''
 parameters:
   n_draws: 10
   degree: 3
