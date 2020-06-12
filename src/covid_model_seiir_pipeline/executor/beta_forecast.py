@@ -86,7 +86,7 @@ def run_beta_forecast(location_id: int, regression_version: str, forecast_versio
             directories,
             covariate_version=forecast_settings.covariate_version,
             location_ids=[location_id],
-            draw_id = draw_id if any(forecast_settings.covariate_draw_dict.values()) else None
+            draw_id=draw_id if any(forecast_settings.covariate_draw_dict.values()) else None
         )
 
         # Figure out what date we need to forecast from (the end of the component fit in regression task)
@@ -113,16 +113,7 @@ def run_beta_forecast(location_id: int, regression_version: str, forecast_versio
         days = forecasts[COVARIATE_COL_DICT['COL_DATE']].values
         times = date_to_days(days)
 
-        # Anchor the betas at the last observed beta (fitted)
-        # and scale everything into the future from this anchor value
-        # anchor_beta = beta_fit.beta[beta_fit.date == CURRENT_DATE].iloc[0]
-        # scale = anchor_beta / betas[0]
-        # scales.append(scale)
-        # scale = scale + (1 - scale)/20.0*np.arange(betas.size)
-        # scale[21:] = 1.0
-        # betas = betas * scale
-
-        betas, scale_init = beta_shift(beta_fit, betas, **regression_settings.beta_shift_dict)
+        betas, scale_init = beta_shift(beta_fit, betas, draw_id, **regression_settings.beta_shift_dict)
         scales.append(scale_init)
 
         # Get initial conditions based on the beta fit for forecasting into the future
