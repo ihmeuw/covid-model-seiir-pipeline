@@ -128,20 +128,19 @@ def load_locations(directories):
 
 def beta_shift(beta_fit: pd.DataFrame,
                beta_pred: np.ndarray,
-               window_size: Union[int, None] = None,
-               avg_over: Union[int, None] = None) -> Tuple[np.ndarray, float]:
+               draw_id: int,
+               window_size: Union[int, None] = None) -> Tuple[np.ndarray, float]:
     """Calculate the beta shift.
 
     Args:
         beta_fit (pd.DataFrame): Data frame contains the date and beta fit.
         beta_pred (np.ndarray): beta prediction.
-        windown_size (Union[int, None], optional):
+        draw_id (int): Draw of data provided.  Will be used as a seed for
+            a random number generator to determine the amount of beta history
+            to leverage in rescaling the y-intercept for the beta prediction.
+        window_size (Union[int, None], optional):
             Window size for the transition. If `None`, Hard shift no transition.
             Default to None.
-        avg_over (Union[int, None], optional):
-            Final beta scale depends on the ratio between beta prediction over the
-            average beta over `avg_over` days. If `None`, final scale will be 1, means
-            return to the `beta_pred` completely. Default to None.
 
     Returns:
         Tuple[np.ndarray, float]: Predicted beta, after scaling (shift) and the initial scaling.
@@ -154,11 +153,10 @@ def beta_shift(beta_fit: pd.DataFrame,
     anchor_beta = beta_fit[-1]
     scale_init = anchor_beta / beta_pred[0]
 
-    if avg_over is None:
-        scale_final = 1.0
-    else:
-        beta_history = beta_fit[-avg_over:]
-        scale_final = beta_history.mean() / beta_pred[0]
+    rs = np.random.RandomState(seed=draw_id)
+    avg_over = rs.randint(1, 30)
+    beta_history = beta_fit[-avg_over:]
+    scale_final = beta_history.mean() / beta_pred[0]
 
     if window_size is not None:
         assert isinstance(window_size, int) and window_size > 0, f"window_size={window_size} has to be a positive " \
