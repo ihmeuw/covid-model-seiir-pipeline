@@ -21,10 +21,12 @@ class ScenarioSpecification:
     """Forecasting specification for a scenario."""
     ALLOWED_ALGORITHMS = ('RK45',)
     NO_BETA_SCALING = -1
+    NO_AVG_OVER = -1
 
     name: str = field(default='dummy_scenario')
     covariates: Dict[str, str] = field(default_factory=dict)
     beta_scaling_window: int = field(default=NO_BETA_SCALING)
+    avg_over_days: int = field(default=NO_AVG_OVER)
     algorithm: str = field(default='RK45')
 
     def __post_init__(self):
@@ -35,6 +37,10 @@ class ScenarioSpecification:
         if not isinstance(self.beta_scaling_window, int) or self.beta_scaling_window < -1:
             raise TypeError(f'Beta scaling window must be a positive int or -1 indicating no scaling. '
                             f'Scaling window for scenario {self.name} is {self.beta_scaling_window}.')
+        if not isinstance(self.avg_over_days, int) or self.avg_over_days < -1:
+            raise TypeError(f'Avg over days must be a positive int or -1 indicating that the beta will '
+                            f'not be averaged over any number of days. Avg_over for scenario {self.name} '
+                            f'is {self.avg_over_days}.')
 
     def to_dict(self) -> Dict:
         """Converts to a dict, coercing list-like items to lists."""

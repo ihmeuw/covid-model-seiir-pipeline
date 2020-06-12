@@ -1,5 +1,5 @@
 from argparse import ArgumentParser, Namespace
-from typing import Optional, Dict
+from typing import Optional, Dict, Tuple, Union
 import logging
 from pathlib import Path
 import shlex
@@ -74,6 +74,51 @@ def get_ode_init_cond(location_id, beta_ode_fit, current_date):
     assert all([c in beta_ode_fit for c in col_components])
 
     return beta_ode_fit[col_components].values.ravel()
+
+
+def beta_shift(beta_fit: pd.DataFrame,
+               beta_pred: np.ndarray,
+               window_size: int = -1,
+               avg_over: int = -1) -> Tuple[np.ndarray, float]:
+    """Calculate the beta shift.
+    Args:
+        beta_fit (pd.DataFrame): Data frame contains the date and beta fit.
+        beta_pred (np.ndarray): beta prediction.
+        window_size (int):
+            Window size for the transition. If -1, Hard shift no transition.
+            Default to None.
+        avg_over (int):
+            Final beta scale depends on the ratio between beta prediction over the
+            average beta over `avg_over` days. If -1, final scale will be 1, means
+            return to the `beta_pred` completely. Default to None.
+    Returns:
+        Tuple[np.ndarray, float]: Predicted beta, after scaling (shift) and the initial scaling.
+    """
+    assert 'date' in beta_fit.columns, "'date' has to be in beta_fit data frame."
+    assert 'beta' in beta_fit.columns, "'beta' has to be in beta_fit data frame."
+    beta_fit = beta_fit.sort_values('date')
+    beta_fit = beta_fit['beta'].to_numpy()
+
+    anchor_beta = beta_fit[-1]
+    scale_init = anchor_beta / beta_pred[0]
+
+    if avg_over == -1:
+        scale_final = 1.0
+    else:
+        beta_history = beta_fit[-avg_over:]
+        scale_final = beta_history.mean() / beta_pred[0]
+
+    if window_size != -1:
+        assert isinstance(window_size, int) and window_size > 0, f"window_size={window_size} has to be a positive " \
+                                                                 f"integer."
+        scale = scale_init + (scale_final - scale_init)/window_size*np.arange(beta_pred.size)
+        scale[(window_size + 1):] = scale_final
+    else:
+        scale = scale_init
+
+    betas = beta_pred * scale
+
+    return betas, scale_init
 
 
 def run_beta_forecast(location_id: int, forecast_version: str, scenario_name: str):
@@ -155,12 +200,15 @@ def run_beta_forecast(location_id: int, forecast_version: str, scenario_name: st
 
         # Anchor the betas at the last observed beta (fitted)
         # and scale everything into the future from this anchor value
-        anchor_beta = beta_fit.beta[beta_fit.date == CURRENT_DATE].iloc[0]
-        scale = anchor_beta / betas[0]
-        scales.append(scale)
+        # anchor_beta = beta_fit.beta[beta_fit.date == CURRENT_DATE].iloc[0]
+        # scale = anchor_beta / betas[0]
+        # scales.append(scale)
         # scale = scale + (1 - scale)/20.0*np.arange(betas.size)
         # scale[21:] = 1.0
-        betas = betas * scale
+        # betas = betas * scale
+
+        betas, scale_int = beta_shift(beta_fit, betas, scenario_spec.beta_scaling_window, scenario_spec.avg_over_days)
+        scales.append(scale_int)
 
         # Get initial conditions based on the beta fit for forecasting into the future
         init_cond = get_ode_init_cond(
