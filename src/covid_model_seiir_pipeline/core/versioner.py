@@ -411,6 +411,7 @@ class ForecastVersion(Version):
     covariate_version: str
 
     covariate_draw_dict: Dict[str, bool]
+    theta: float = None
 
     def __post_init__(self):
         pass

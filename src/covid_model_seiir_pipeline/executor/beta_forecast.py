@@ -130,12 +130,19 @@ def run_beta_forecast(location_id: int, regression_version: str, forecast_versio
             gamma2=beta_params['gamma2'],
             N=N
         )
+        # If theta is set in the forecast settings, make it the same length as 
+        #  betas
+        if forecast_settings.theta is not None:
+            thetas = np.repeat(forecast_settings.theta, betas.size)
+        else:
+            thetas = None
         # Forecast all of the components based on the forecasted beta
         forecasted_components = mr.forecast(
             model_specs=model_specs,
             init_cond=init_cond,
             times=times,
             betas=betas,
+            thetas=thetas,
             dt=regression_settings.solver_dt
         )
         forecasted_components[COVARIATE_COL_DICT['COL_DATE']] = days
