@@ -44,7 +44,7 @@ def create_regression_version(version_name, covariate_version,
 
 def create_forecast_version(version_name, covariate_version,
                             covariate_draw_dict,
-                            regression_version):
+                            regression_version, theta=None):
     """
     Utility function to create a regression version. Will cache covariates
     as well.
@@ -64,11 +64,11 @@ def create_forecast_version(version_name, covariate_version,
     )
     fv = ForecastVersion(version_name=version_name, covariate_version=cache_version,
                          regression_version=regression_version,
-                         covariate_draw_dict=covariate_draw_dict)
+                         covariate_draw_dict=covariate_draw_dict, theta=theta)
     fv.create_version()
 
 
-def create_run(version_name, covariate_version, covariate_draw_dict, **kwargs):
+def create_run(version_name, covariate_version, covariate_draw_dict, theta=None, **kwargs):
     """
     Creates a full run with a regression and a forecast version by the *SAME NAME*.
     :param version_name: (str) what will the name be for both regression and forecast versions
@@ -86,7 +86,8 @@ def create_run(version_name, covariate_version, covariate_draw_dict, **kwargs):
         version_name=version_name,
         covariate_version=covariate_version,
         covariate_draw_dict=covariate_draw_dict,
-        regression_version=version_name
+        regression_version=version_name,
+        theta=theta
     )
     print(f"Created regression and forecast versions {version_name}.")
 
@@ -153,7 +154,7 @@ def beta_shift(beta_fit: pd.DataFrame,
     scale_init = anchor_beta / beta_pred[0]
 
     rs = np.random.RandomState(seed=draw_id)
-    avg_over = rs.randint(1, 30)
+    avg_over = rs.randint(1, 25)
     beta_history = beta_fit[-avg_over:]
     scale_final = beta_history.mean() / beta_pred[0]
 
