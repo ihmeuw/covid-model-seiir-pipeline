@@ -154,7 +154,7 @@ def beta_shift(beta_fit: pd.DataFrame,
     scale_init = anchor_beta / beta_pred[0]
 
     rs = np.random.RandomState(seed=draw_id)
-    avg_over = rs.randint(1, 25)
+    avg_over = rs.randint(1, 35)
     beta_history = beta_fit[-avg_over:]
     scale_final = beta_history.mean() / beta_pred[0]
 
