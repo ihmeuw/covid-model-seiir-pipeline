@@ -70,8 +70,8 @@ def run_beta_regression(draw_id: int, regression_version: str):
         location_data=location_data,
     )
 
-    # ----------------------- BETA SPLINE + ODE -------------------------------- #
-    # Start a Model Runner with the processed inputs and fit the beta spline / ODE
+    # ----------------------- BETA ODE -------------------------------- #
+    # Start a Model Runner with the processed inputs and fit the beta  ODE
     mr = ModelRunner()
     mr.fit_beta_ode(beta_fit_inputs)
 

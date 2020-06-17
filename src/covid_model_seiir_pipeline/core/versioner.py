@@ -301,17 +301,15 @@ class Version:
 @dataclass
 class RegressionVersion(Version):
     """
-    A regression version is the first half of the SEIIR pipeline. It fits a spline to newE,
-    runs an ODE, and then does a regression of beta ~ covariates and saves those coefficients
-    for the forecasting component.
+    A regression version is the first half of the SEIIR pipeline. It runs an
+    ODE, and then does a regression of beta ~ covariates and saves those
+    coefficients for the forecasting component.
 
     - `infection_version (str)`: the version of the infection inputs
     - `covariate_version (str)`: the version of the covariate inputs
     - `coefficient_version (str)`: the regression version of coefficient estimates to use
     - `n_draws (int)`: number of draws
     - `location_set_version_id (int)`: the location set version to use
-    - `degree` (int): degree of the spline for beta fit
-    - `knots` (int)`: knot positions for the spline
     - `day_shift (Tuple[int])`: Will use today + `day_shift` - lag 's data in the beta regression
         but will sample this day_shift from the range given
     - `covariates (Dict[str: Dict]): elements of the inner dict:
