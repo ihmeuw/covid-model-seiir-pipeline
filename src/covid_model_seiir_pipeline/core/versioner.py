@@ -325,7 +325,7 @@ class RegressionVersion(Version):
         must be available!)
     - `sequential` (bool): should the regression be fit sequentialy according to the
         ordering of `covariates_order`? If False, the ordering of `covariates_order`
-        does not matter for 
+        does not matter for
     - `alpha (Tuple[float])`: a 2-length tuple that represents the range of alpha values to sample
     - `sigma (Tuple[float])`: a 2-length tuple that represents the range of sigma values to sample
     - `gamma1 (Tuple[float])`: a 2-length tuple that represents the range of gamma1 values to sample
@@ -339,10 +339,6 @@ class RegressionVersion(Version):
     n_draws: int
     location_set_version_id: int
 
-    # Spline required arguments
-    degree: int
-    knots: np.array
-
     # Regression Arguments
     covariates: Dict[str, Dict[str, Union[bool, List, float]]]
     covariates_order: List[List[str]] = None
@@ -350,15 +346,6 @@ class RegressionVersion(Version):
     sequential: bool = False
 
     coefficient_version: str = None
-
-    # Spline optional arguments
-    concavity: bool = True
-    increasing: bool = False
-    spline_se_power: float = field(default=1.0)
-    spline_space: str = field(default='ln daily')
-    spline_knots_type: str = field(default='domain')
-    spline_r_linear: bool = True
-    spline_l_linear: bool = True
 
     day_shift: Tuple[int] = field(default=(0, 8))
 
@@ -369,17 +356,7 @@ class RegressionVersion(Version):
     gamma2: Tuple[float] = field(default=(0.50, 0.50))
     solver_dt: float = field(default=0.1)
 
-    beta_shift_dict: Dict = field(default_factory=lambda :dict(window_size=None))
-
-    def __post_init__(self):
-        if not self.spline_space.startswith('ln') and self.spline_se_power !=0.0:
-            warnings.warn("Spline not fitting in the log space, spline_se_power advised to be 0.", UserWarning)
-
-        if self.spline_space.endswith('daily') and self.increasing:
-            warnings.warn("Spline fitting daily data, do not suggest using increasing constraint.", UserWarning)
-
-        if self.spline_space.endswith('cumul') and self.concavity:
-            warnings.warn("Spline fitting cumulative data, do not suggest using concave constraint.", UserWarning)
+    beta_shift_dict: Dict = field(default_factory=lambda: dict(window_size=None))
 
     def _settings_to_json(self):
         settings = asdict(self)
