@@ -90,7 +90,7 @@ def convert_inputs_for_beta_model(data_cov, df_beta, covmodel_set):
     Convert inputs for the beta regression model.
 
     :param data_cov: covariate specifications
-    :param df_beta: data frame with beta outputs from the spline
+    :param df_beta: data frame with beta outputs from the fit
     :param covmodel_set: set for a covariate model
     :return: MRData object
     """
