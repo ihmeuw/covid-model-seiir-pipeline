@@ -60,7 +60,7 @@ def run_beta_regression(draw_id: int, regression_version: str):
         directories,
         covariate_version=settings.covariate_version,
         location_ids=location_ids,
-        draw_id = draw_id if any(settings.covariate_draw_dict.values()) else None
+        draw_id=draw_id if any(settings.covariate_draw_dict.values()) else None
     )
 
     # This seed is so that the alpha, sigma, gamma1 and gamma2 parameters are reproducible
