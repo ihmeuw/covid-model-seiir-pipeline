@@ -1,4 +1,4 @@
-from typing import Tuple, Union
+from typing import Dict, Tuple, Union
 import pandas as pd
 import numpy as np
 
@@ -129,7 +129,7 @@ def load_locations(directories):
 def beta_shift(beta_fit: pd.DataFrame,
                beta_pred: np.ndarray,
                draw_id: int,
-               window_size: Union[int, None] = None) -> Tuple[np.ndarray, float]:
+               window_size: Union[int, None] = None) -> Tuple[np.ndarray, Dict[str, float]]:
     """Calculate the beta shift.
 
     Args:
@@ -149,14 +149,23 @@ def beta_shift(beta_fit: pd.DataFrame,
     assert 'beta' in beta_fit.columns, "'beta' has to be in beta_fit data frame."
     beta_fit = beta_fit.sort_values('date')
     beta_fit = beta_fit['beta'].to_numpy()
-
-    anchor_beta = beta_fit[-1]
-    scale_init = anchor_beta / beta_pred[0]
-
     rs = np.random.RandomState(seed=draw_id)
     avg_over = rs.randint(1, 35)
-    beta_history = beta_fit[-avg_over:]
-    scale_final = beta_history.mean() / beta_pred[0]
+
+    beta_fit_final = beta_fit[-1]
+    beta_pred_start = beta_pred[0]
+    beta_history_mean = beta_fit[-avg_over:].mean()
+
+    scale_init = beta_fit_final / beta_pred_start
+    scale_final = beta_history_mean / beta_pred_start
+
+    scale_params = {
+        'window_size': window_size,
+        'history_days': avg_over,
+        'fit_final': beta_fit_final,
+        'pred_start': beta_pred_start,
+        'beta_history_mean': beta_history_mean,
+    }
 
     if window_size is not None:
         assert isinstance(window_size, int) and window_size > 0, f"window_size={window_size} has to be a positive " \
@@ -168,4 +177,4 @@ def beta_shift(beta_fit: pd.DataFrame,
 
     betas = beta_pred * scale
 
-    return betas, scale_init
+    return betas, scale_params
