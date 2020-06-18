@@ -17,6 +17,14 @@ def seiir():
               type=click.Path(file_okay=False),
               help="Which version of infectionator inputs to use in the"
                    "regression.")
+@click.option('-l', '--lsvid', 'location_set_version_id',
+              type=int,
+              help="Which location set id to use")
+@click.option('--location-set-file', 'location_set_file', 
+              type=str,
+              help="A full path to the location set instead of a location set version id. "
+                   "If this is provided it will override whatever locaiton set version is "
+                   "provided.")
 @click.option('-o', '--output-root',
               type=click.Path(file_okay=False),
               show_default=True)
@@ -31,6 +39,8 @@ def seiir():
 def fit(run_metadata,
         fit_specification,
         infection_version,
+        location_set_version_id,
+        location_set_file,
         output_root, mark_dir_as_best, production_tag,
         verbose, with_debugger):
     """Runs a beta fit on a set of infection data."""
@@ -38,7 +48,8 @@ def fit(run_metadata,
 
     fit_spec = ode_fit.FitSpecification.from_path(fit_specification)
 
-    infection_version = utilities.get_version(infection_version, fit_spec.data.infection_version)
+    infection_version = utilities.get_version(infection_version,
+                                              fit_spec.data.infection_version)
     infection_root = cli_tools.get_last_stage_directory(
         infection_version, last_stage_root=paths.INFECTIONATOR_OUTPUTS
     )
@@ -47,7 +58,27 @@ def fit(run_metadata,
     run_metadata.update_from_path('infectionator_metadata',
                                   infection_root / paths.METADATA_FILE_NAME)
 
-    output_root = utilities.get_output_root(output_root, fit_spec.data.output_root, paths.SEIR_FIT_OUTPUTS)
+    location_set_version_id = utilities.get_version_id(location_set_version_id,
+                                                       fit_spec.data.location_set_version_id)
+    fit_spec.data.location_set_version_id = location_set_version_id
+
+    # If a new filepath is provided for the location metadata, use that, otherwise use any
+    # location set id provided to make the filepath and add it to the specifications
+
+    location_set_file = utilities.get_version(location_set_file,
+                                              fit_spec.data.location_set_file)
+    if not location_set_file:
+        location_set_file = f'/ihme/covid-19/seir-pipeline-outputs/metadata-inputs/' \
+            f'location_metadata_{location_set_version_id}.csv'
+    else:
+        logger.info(f"The locations will be pulled from {location_set_file} if you provided a "
+                    f"location set version id that does match the locations in this file "
+                    f"please provide a matching location set version id or remove the "
+                    f"filepath/different filepath ")
+    fit_spec.data.location_set_file = str(location_set_file)
+
+    output_root = utilities.get_output_root(output_root, fit_spec.data.output_root,
+                                            paths.SEIR_FIT_OUTPUTS)
 
     cli_tools.setup_directory_structure(output_root, with_production=True)
     run_directory = cli_tools.make_run_directory(output_root)
