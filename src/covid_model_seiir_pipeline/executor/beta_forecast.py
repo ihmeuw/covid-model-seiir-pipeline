@@ -113,8 +113,9 @@ def run_beta_forecast(location_id: int, regression_version: str, forecast_versio
         days = forecasts[COVARIATE_COL_DICT['COL_DATE']].values
         times = date_to_days(days)
 
-        betas, scale_init = beta_shift(beta_fit, betas, draw_id, **regression_settings.beta_shift_dict)
-        scales.append(scale_init)
+        betas, scale_params = beta_shift(beta_fit, betas, draw_id, **regression_settings.beta_shift_dict)
+        scale_params['draw'] = draw_id
+        scales.append(scale_params)
 
         # Get initial conditions based on the beta fit for forecasting into the future
         init_cond = get_ode_init_cond(
@@ -130,7 +131,7 @@ def run_beta_forecast(location_id: int, regression_version: str, forecast_versio
             gamma2=beta_params['gamma2'],
             N=N
         )
-        # If theta is set in the forecast settings, make it the same length as 
+        # If theta is set in the forecast settings, make it the same length as
         #  betas
         if forecast_settings.theta is not None:
             thetas = np.repeat(forecast_settings.theta, betas.size)
@@ -152,9 +153,14 @@ def run_beta_forecast(location_id: int, regression_version: str, forecast_versio
                 draw_id=draw_id
             )
         )
-    df_scales = pd.DataFrame({
-        'beta_scales': scales
-    })
+
+    scales_flat = {}
+    for scale_param in scales[0]:
+        scales_flat[scale_param] = []
+        for scale_param_dict in scales:
+            scales_flat[scale_param].append(scale_param_dict[scale_param])
+
+    df_scales = pd.DataFrame(scales_flat)
     df_scales.to_csv(
         directories.location_beta_scaling_file(
             location_id=location_id
