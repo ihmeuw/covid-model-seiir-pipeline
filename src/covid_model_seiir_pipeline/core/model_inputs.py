@@ -50,18 +50,7 @@ def process_ode_process_input(settings, location_data):
         gamma1=settings.gamma1,
         gamma2=settings.gamma2,
         solver_dt=settings.solver_dt,
-        spline_options={
-            'spline_knots': np.array(settings.knots),
-            'spline_degree': settings.degree,
-            'prior_spline_convexity': None if not settings.concavity else 'concave',
-            'prior_spline_monotonicity': None if not settings.increasing else 'increasing',
-            'spline_knots_type': settings.spline_knots_type,
-            'spline_r_linear': settings.spline_r_linear,
-            'spline_l_linear': settings.spline_l_linear,
-        },
         day_shift=settings.day_shift,
-        spline_se_power=settings.spline_se_power,
-        spline_space=settings.spline_space
     )
 
 
@@ -101,7 +90,7 @@ def convert_inputs_for_beta_model(data_cov, df_beta, covmodel_set):
     Convert inputs for the beta regression model.
 
     :param data_cov: covariate specifications
-    :param df_beta: data frame with beta outputs from the spline
+    :param df_beta: data frame with beta outputs from the fit
     :param covmodel_set: set for a covariate model
     :return: MRData object
     """
