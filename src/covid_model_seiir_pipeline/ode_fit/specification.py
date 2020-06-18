@@ -12,6 +12,7 @@ class FitData:
     """Specifies the inputs and outputs for an ODE fit."""
     infection_version: str = field(default='best')
     location_set_version_id: int = field(default=0)
+    location_set_file: str = field(default='')
     output_root: str = field(default='')
 
     def to_dict(self) -> Dict:
