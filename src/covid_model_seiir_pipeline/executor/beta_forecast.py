@@ -57,6 +57,14 @@ def run_beta_forecast(location_id: int, regression_version: str, forecast_versio
     )
     regression_settings = load_regression_settings(regression_version)
     forecast_settings = load_forecast_settings(forecast_version)
+    if forecast_settings.theta_minus_locations_file:
+        theta_minus_locations = pd.read_csv(forecast_settings.theta_minus_locations_file)
+        if location_id in theta_minus_locations.location_id:
+            theta = forecast_settings.theta_minus
+        else:
+            theta = forecast_settings.theta_plus
+    else:
+        theta = forecast_settings.theta
 
     # -------------------------- FORECAST THE BETA FORWARDS -------------------- #
     mr = ModelRunner()
@@ -131,12 +139,8 @@ def run_beta_forecast(location_id: int, regression_version: str, forecast_versio
             gamma2=beta_params['gamma2'],
             N=N
         )
-        # If theta is set in the forecast settings, make it the same length as
-        #  betas
-        if forecast_settings.theta is not None:
-            thetas = np.repeat(forecast_settings.theta, betas.size)
-        else:
-            thetas = None
+        # make theta the same length as betas
+        thetas = np.repeat(theta, betas.size)
         # Forecast all of the components based on the forecasted beta
         forecasted_components = mr.forecast(
             model_specs=model_specs,

@@ -1,5 +1,4 @@
 from pathlib import Path
-import warnings
 from dataclasses import dataclass, asdict, field
 from typing import List, Dict, Union, Tuple
 import os
@@ -386,10 +385,28 @@ class ForecastVersion(Version):
     covariate_version: str
 
     covariate_draw_dict: Dict[str, bool]
-    theta: float = None
+
+    theta: int = field(default=None)
+    theta_plus: int = field(default=None)
+    theta_minus: int = field(default=None)
+    theta_minus_locations_file: str = field(default=None)
 
     def __post_init__(self):
-        pass
+        # TODO: Don't just fail fast.  fail helpfully
+        if self.theta is not None:
+            assert self.theta_plus is None
+            assert self.theta_minus is None
+            assert self.theta_minus_locations_file is None
+        elif self.theta_minus is None and self.theta_plus is None and self.theta_minus_locations_file is None:
+            # Default case, no config provided
+            self.theta = 0
+        else:
+            assert isinstance(self.theta_plus, int) and self.theta_plus >= 0
+            assert isinstance(self.theta_minus, int) and self.theta_minus < 0
+            theta_minus_loc_file = Path(self.theta_minus_locations_file)
+            assert (theta_minus_loc_file.exists()
+                    and theta_minus_loc_file.is_file()
+                    and theta_minus_loc_file.suffix == '.csv')
 
     def _settings_to_json(self):
         settings = asdict(self)
