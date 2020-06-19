@@ -148,23 +148,26 @@ def beta_shift(beta_fit: pd.DataFrame,
     assert 'date' in beta_fit.columns, "'date' has to be in beta_fit data frame."
     assert 'beta' in beta_fit.columns, "'beta' has to be in beta_fit data frame."
     beta_fit = beta_fit.sort_values('date')
+    beta_hat = beta_fit['beta_pred'].to_numpy()
     beta_fit = beta_fit['beta'].to_numpy()
+
     rs = np.random.RandomState(seed=draw_id)
     avg_over = rs.randint(1, 35)
 
     beta_fit_final = beta_fit[-1]
     beta_pred_start = beta_pred[0]
-    beta_history_mean = beta_fit[-avg_over:].mean()
 
     scale_init = beta_fit_final / beta_pred_start
-    scale_final = beta_history_mean / beta_pred_start
+    log_beta_resid = np.log(beta_fit / beta_hat)
+    scale_final = np.exp(log_beta_resid[-avg_over:].mean())
 
     scale_params = {
         'window_size': window_size,
         'history_days': avg_over,
         'fit_final': beta_fit_final,
         'pred_start': beta_pred_start,
-        'beta_history_mean': beta_history_mean,
+        'beta_ratio_mean': scale_final,
+        'beta_residual_mean': np.log(scale_final),
     }
 
     if window_size is not None:
