@@ -151,7 +151,6 @@ def beta_shift(beta_fit: pd.DataFrame,
     beta_hat = beta_fit['beta_pred'].to_numpy()
     beta_fit = beta_fit['beta'].to_numpy()
 
-
     rs = np.random.RandomState(seed=draw_id)
     avg_over = rs.randint(1, 35)
 
@@ -159,8 +158,8 @@ def beta_shift(beta_fit: pd.DataFrame,
     beta_pred_start = beta_pred[0]
 
     scale_init = beta_fit_final / beta_pred_start
-    beta_ratio = beta_fit / beta_hat
-    scale_final = beta_ratio[-avg_over:].mean()
+    log_beta_resid = np.log(beta_fit / beta_hat)
+    scale_final = np.exp(log_beta_resid[-avg_over:].mean())
 
     scale_params = {
         'window_size': window_size,
