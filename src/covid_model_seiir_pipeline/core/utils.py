@@ -42,9 +42,11 @@ def create_regression_version(version_name, covariate_version,
     write_locations(directories=rv_directory, location_ids=location_ids)
 
 
-def create_forecast_version(version_name, covariate_version,
+def create_forecast_version(version_name,
+                            covariate_version,
                             covariate_draw_dict,
-                            regression_version, theta=None):
+                            regression_version,
+                            theta_config=None):
     """
     Utility function to create a regression version. Will cache covariates
     as well.
@@ -53,6 +55,9 @@ def create_forecast_version(version_name, covariate_version,
     :param covariate_version: (str)
     :param covariate_draw_dict: (Dict[str, bool])
     :param regression_version: (str) which regression version to build off of
+    :param theta_config: (dict, optional) configuration for adding or removing
+        people from the I1 bin of the ode.
+
     """
     directories = Directories(regression_version=regression_version)
     location_ids = load_locations(directories)
@@ -62,19 +67,22 @@ def create_forecast_version(version_name, covariate_version,
         location_ids=location_ids,
         covariate_draw_dict=covariate_draw_dict
     )
+    theta_config = {} if theta_config is None else theta_config
     fv = ForecastVersion(version_name=version_name, covariate_version=cache_version,
                          regression_version=regression_version,
-                         covariate_draw_dict=covariate_draw_dict, theta=theta)
+                         covariate_draw_dict=covariate_draw_dict, **theta_config)
     fv.create_version()
 
 
-def create_run(version_name, covariate_version, covariate_draw_dict, theta=None, **kwargs):
+def create_run(version_name, covariate_version, covariate_draw_dict, theta_config=None, **kwargs):
     """
     Creates a full run with a regression and a forecast version by the *SAME NAME*.
     :param version_name: (str) what will the name be for both regression and forecast versions
     :param covariate_version: (str) which covariate version to use
     :param covariate_draw_dict: (Dict[str, bool])
     :param kwargs: additional keyword arguments to regression version
+    :param theta_config: (int, optional) configuration for adding or removing
+        people from the I1 bin of the ode.
     """
     create_regression_version(
         version_name=version_name,
@@ -87,7 +95,7 @@ def create_run(version_name, covariate_version, covariate_draw_dict, theta=None,
         covariate_version=covariate_version,
         covariate_draw_dict=covariate_draw_dict,
         regression_version=version_name,
-        theta=theta
+        theta_config=theta_config
     )
     print(f"Created regression and forecast versions {version_name}.")
 
