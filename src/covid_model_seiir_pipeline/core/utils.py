@@ -167,8 +167,8 @@ def beta_shift(beta_fit: pd.DataFrame,
         'history_days': avg_over,
         'fit_final': beta_fit_final,
         'pred_start': beta_pred_start,
-        'beta_ratio_mean': beta_ratio,
-        'beta_residual_mean': np.log(beta_ratio),
+        'beta_ratio_mean': scale_final,
+        'beta_residual_mean': np.log(scale_final),
     }
 
     if window_size is not None:
