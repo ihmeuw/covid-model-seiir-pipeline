@@ -1,8 +1,5 @@
 from dataclasses import dataclass, field
-from typing import Dict, Tuple, Union
-
-from loguru import logger
-import numpy as np
+from typing import Dict, Tuple
 
 from covid_model_seiir_pipeline.utilities import Specification, asdict
 
@@ -25,16 +22,6 @@ class FitParameters:
     """Specifies the parameters of the ODE fit."""
     n_draws: int = field(default=1000)
 
-    degree: int = field(default=3)
-    knots: Union[Tuple[float], np.array] = field(default=(0.0, 0.25, 0.5, 0.75, 1.0))
-    concavity: bool = field(default=False)
-    increasing: bool = field(default=False)
-    spline_se_power: float = field(default=0.2)
-    spline_space: str = field(default='ln daily')
-    spline_knots_type: str = field(default='domain')
-    spline_r_linear: bool = True
-    spline_l_linear: bool = True
-
     day_shift: Tuple[int, int] = field(default=(0, 8))
 
     alpha: Tuple[float, float] = field(default=(0.9, 1.0))
@@ -42,21 +29,6 @@ class FitParameters:
     gamma1: Tuple[float, float] = field(default=(0.5, 0.5))
     gamma2: Tuple[float, float] = field(default=(1/3, 1.0))
     solver_dt: float = field(default=0.1)
-
-    def __post_init__(self) -> None:
-        # Do any necessary type coercion
-        self.knots = np.array(self.knots)
-
-        # TODO: Add preconditions for all variables.
-        # Check specification preconditions.
-        if not self.spline_space.startswith('ln') and self.spline_se_power != 0.0:
-            logger.warning("Spline not fitting in the log space, spline_se_power advised to be 0.")
-
-        if self.spline_space.endswith('daily') and self.increasing:
-            logger.warning("Spline fitting daily data, do not suggest using increasing constraint.")
-
-        if self.spline_space.endswith('cumul') and self.concavity:
-            logger.warning("Spline fitting cumulative data, do not suggest using concave constraint.")
 
     def to_dict(self) -> Dict:
         """Converts to a dict, coercing list-like items to lists."""

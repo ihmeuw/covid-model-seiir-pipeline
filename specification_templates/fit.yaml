@@ -1,19 +1,10 @@
 data:
-  infection_version: '2020_06_12.10'
-  location_set_version_id: 708
+  infection_version: '2020_06_21.01'
+  location_set_version_id: 727
   output_root: ''
-  location_set_file: ''
+  location_set_file:
 parameters:
   n_draws: 10
-  degree: 3
-  knots: [0., 0.05, 0.35, 0.65, 0.95, 1.]
-  concavity: False
-  increasing: False
-  spline_se_power: 0.2
-  spline_space: 'ln daily'
-  spline_knots_type: 'domain'
-  spline_r_linear: True
-  spline_l_linear: True
   day_shift: [0, 8]
   alpha: [0.9, 1.0]
   sigma: [0.2, 0.3333]
