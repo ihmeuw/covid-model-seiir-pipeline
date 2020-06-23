@@ -4,13 +4,9 @@ from pathlib import Path
 import shlex
 from typing import Optional
 
-
 import numpy as np
 
-from covid_model_seiir.ode_model import ODEProcessInput
-from covid_model_seiir.model_runner import ModelRunner
-
-from covid_model_seiir_pipeline.ode_fit import FitSpecification
+from covid_model_seiir_pipeline.ode_fit import FitSpecification, model
 from covid_model_seiir_pipeline.ode_fit.data import ODEDataInterface
 from covid_model_seiir_pipeline.static_vars import INFECTION_COL_DICT
 
@@ -38,7 +34,7 @@ def run_ode_fit(draw_id: int, ode_version: str):
     # This seed is so that the alpha, sigma, gamma1 and gamma2 parameters are reproducible
     np.random.seed(draw_id)
 
-    beta_fit_inputs = ODEProcessInput(
+    beta_fit_inputs = model.ODEProcessInput(
         df_dict=location_data,
         col_date=INFECTION_COL_DICT['COL_DATE'],
         col_cases=INFECTION_COL_DICT['COL_CASES'],
@@ -51,34 +47,23 @@ def run_ode_fit(draw_id: int, ode_version: str):
         gamma1=fit_specification.parameters.gamma1,
         gamma2=fit_specification.parameters.gamma2,
         solver_dt=fit_specification.parameters.solver_dt,
-        spline_options={
-            'spline_knots': fit_specification.parameters.knots,
-            'spline_degree': fit_specification.parameters.degree,
-            'prior_spline_convexity': None if not fit_specification.parameters.concavity else 'concave',
-            'prior_spline_monotonicity': None if not fit_specification.parameters.increasing else 'increasing',
-            'spline_knots_type': fit_specification.parameters.spline_knots_type,
-            'spline_r_linear': fit_specification.parameters.spline_r_linear,
-            'spline_l_linear': fit_specification.parameters.spline_l_linear,
-        },
         day_shift=fit_specification.parameters.day_shift,
-        spline_se_power=fit_specification.parameters.spline_se_power,
-        spline_space=fit_specification.parameters.spline_space,
+
     )
 
-    # ----------------------- BETA SPLINE + ODE -------------------------------- #
-    # Start a Model Runner with the processed inputs and fit the beta spline / ODE
-    mr = ModelRunner()
-    mr.fit_beta_ode(beta_fit_inputs)
+    # Convert infections into beta and fit compartments to data.
+    ode_model = model.ODEProcess(beta_fit_inputs)
+    ode_model.process()
 
     # Save location-specific beta fit (compartment) files for easy reading later
-    beta_fit = mr.get_beta_ode_fit()
+    beta_fit = ode_model.create_result_df()
     for l_id in location_ids:
         loc_beta_fits = beta_fit.loc[beta_fit[INFECTION_COL_DICT['COL_LOC_ID']] == l_id].copy()
         data_interface.save_draw_beta_fit_file(loc_beta_fits, l_id, draw_id)
 
     # Save the parameters of alpha, sigma, gamma1, and gamma2 that were drawn
-    draw_beta_params = mr.get_beta_ode_params()
-    beta_start_end_dates = mr.get_beta_start_end_dates()
+    draw_beta_params = ode_model.create_params_df()
+    beta_start_end_dates = ode_model.create_start_end_date_df()
     data_interface.save_draw_beta_param_file(draw_beta_params, draw_id)
     data_interface.save_draw_date_file(beta_start_end_dates, draw_id)
 
