@@ -59,6 +59,9 @@ def run_beta_forecast(location_id: int, regression_version: str, forecast_versio
     forecast_settings = load_forecast_settings(forecast_version)
     if forecast_settings.theta_minus_locations_file:
         theta_minus_locations = pd.read_csv(forecast_settings.theta_minus_locations_file)
+        theta_minus_locations.to_csv(
+            directories.forecast_output_dir / 'theta_minus_locations.csv', index=False
+        )
         if location_id in theta_minus_locations.location_id:
             theta = forecast_settings.theta_minus
         else:
