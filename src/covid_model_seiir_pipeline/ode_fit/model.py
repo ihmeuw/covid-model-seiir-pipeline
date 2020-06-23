@@ -84,6 +84,11 @@ class SingleGroupODEProcess:
         date = pd.to_datetime(df[col_date])
         end_date = self.today + np.timedelta64(self.day_shift -
                                                self.lag_days, 'D')
+        # Sometimes we don't have leading indicator data, so the day shift
+        # will put us into padded zeros.  Correct for this.
+        max_end_date = date[df[col_cases] > 0].max()
+        end_date = min(end_date, max_end_date)
+
         idx = date <= end_date
 
         cases_threshold = 50.0
