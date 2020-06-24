@@ -2,10 +2,10 @@ from __future__ import annotations
 import abc
 from dataclasses import asdict as asdict_
 from pathlib import Path
-from typing import Dict, Union, Optional, Tuple
+from typing import Any, Dict, Union, Optional, Tuple, TypeVar
 from pprint import pformat
 
-from covid_shared import paths, shell_tools
+from covid_shared import paths, shell_tools, cli_tools
 import numpy as np
 import yaml
 
@@ -85,34 +85,70 @@ def asdict(data_class) -> Dict:
     return out
 
 
-def get_version(cli_argument: Optional[str], specification_value: Optional[str]) -> Path:
+def get_argument_hierarchically(cli_argument: Optional,
+                                specification_value: Optional,
+                                default: Any) -> Any:
+    """Determine the argument to use hierarchically.
+
+    Prefer cli args over values in a specification file over the default.
+    """
+    if cli_argument:
+        output = cli_argument
+    elif specification_value:
+        output = specification_value
+    else:
+        output = default
+    return output
+
+
+def get_input_root(cli_argument: Optional[str], specification_value: Optional[str],
+                   last_stage_root: Union[str, Path]) -> Path:
     """Determine the version to use hierarchically.
 
     CLI args override spec args.  Spec args override the default 'best'.
 
     """
-    if cli_argument:
-        version = Path(cli_argument).resolve()
-    elif specification_value:
-        version = specification_value
-    else:
-        version = paths.BEST_LINK
-    return Path(version)
+    version = get_argument_hierarchically(cli_argument, specification_value, paths.BEST_LINK)
+    version = Path(version).resolve()
+    root = cli_tools.get_last_stage_directory(version, last_stage_root=last_stage_root)
+    return root.resolve()
 
 
-def get_version_id(cli_argument: Optional[str], specification_value: Optional[str]) -> int:
-    """Determine the version id to use hierarchically.
+def get_location_metadata(location_specification: Optional[str],
+                          spec_lsvid: Optional[int],
+                          spec_location_file: Optional[str]) -> Tuple[int, str]:
+    """Resolves a location specification from the cli args and run spec.
 
-    CLI args override spec args. Spec args override the default 0.
+    Parameters
+    ----------
+    location_specification
+        Either an id or a path to a location hierarchy file.
+    spec_lsvid
+        The location specification version id provided in the run spec.
+    spec_location_file
+        The location file provided in the run spec.
+
+    Returns
+    -------
+        A valid lsvid and location file specification constructed from the
+        input arguments.  CLI args take precedence over run spec parameters.
+        If nothing is provided, return 0 and '' for the lsvid and location
+        file, respectively, and let the model stage code set sensible
+        default operations.
 
     """
-    if cli_argument:
-        version = cli_argument
-    elif specification_value:
-        version = specification_value
-    else:
-        version = 0  # based on the default take from location set id
-    return version
+    if spec_lsvid and spec_location_file:
+        raise ValueError('Both a location set version id and a location file were provided in '
+                         'the specification. Only one option may be used.')
+    location_specification = get_argument_hierarchically(location_specification, spec_lsvid, 0)
+    location_specification = get_argument_hierarchically(location_specification, spec_location_file, '')
+    try:
+        lsvid = int(location_specification)
+        location_file = ''
+    except ValueError:  # The command line argument was a path
+        lsvid = 0
+        location_file = location_specification
+    return lsvid, location_file
 
 
 def get_output_root(cli_argument: Optional[str], specification_value: Optional[str],
@@ -123,13 +159,9 @@ def get_output_root(cli_argument: Optional[str], specification_value: Optional[s
     the default.
 
     """
-    if cli_argument:
-        output_root = cli_argument
-    elif specification_value:
-        output_root = specification_value
-    else:
-        output_root = default
-    return Path(output_root).resolve()
+    version = get_argument_hierarchically(cli_argument, specification_value, default)
+    version = Path(version).resolve()
+    return version
 
 
 def make_log_dirs(output_dir: Union[str, Path], prefix: str = None) -> Tuple[str, str]:
