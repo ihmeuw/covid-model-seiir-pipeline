@@ -17,30 +17,17 @@ def seiir():
               type=click.Path(file_okay=False),
               help="Which version of infectionator inputs to use in the"
                    "regression.")
-@click.option('-l', '--lsvid', 'location_set_version_id',
-              type=int,
-              help="Which location set id to use")
-@click.option('--location-set-file', 'location_set_file', 
-              type=str,
-              help="A full path to the location set instead of a location set version id. "
-                   "If this is provided it will override whatever locaiton set version is "
-                   "provided.")
-@click.option('-o', '--output-root',
-              type=click.Path(file_okay=False),
-              show_default=True)
-@click.option('-b', '--mark-best', 'mark_dir_as_best',
-              is_flag=True,
-              help='Marks the new outputs as best in addition to marking '
-                   'them as latest.')
-@click.option('-p', '--production-tag',
+@click.option('-l', '--location-specification',
               type=click.STRING,
-              help='Tags this run as a production run.')
+              help="Either a location set version id used to pull a list of"
+                   "locations to run, or a full path to a file describing"
+                   "the location set.")
+@cli_tools.add_output_options
 @cli_tools.add_verbose_and_with_debugger
 def fit(run_metadata,
         fit_specification,
         infection_version,
-        location_set_version_id,
-        location_set_file,
+        location_specification,
         output_root, mark_dir_as_best, production_tag,
         verbose, with_debugger):
     """Runs a beta fit on a set of infection data."""
@@ -48,46 +35,36 @@ def fit(run_metadata,
 
     fit_spec = ode_fit.FitSpecification.from_path(fit_specification)
 
-    infection_version = utilities.get_version(infection_version,
-                                              fit_spec.data.infection_version)
-    infection_root = cli_tools.get_last_stage_directory(
-        infection_version, last_stage_root=paths.INFECTIONATOR_OUTPUTS
+    # Resolve CLI overrides and specification values with defaults into
+    # final run arguments.
+    infection_root = utilities.get_input_root(infection_version,
+                                              fit_spec.data.infection_version,
+                                              paths.INFECTIONATOR_OUTPUTS)
+    locations_set_version_id, location_set_file = utilities.get_location_metadata(
+        location_specification,
+        fit_spec.data.location_set_version_id,
+        fit_spec.data.location_set_file
     )
-    fit_spec.data.infection_version = str(infection_root.resolve())
-
-    run_metadata.update_from_path('infectionator_metadata',
-                                  infection_root / paths.METADATA_FILE_NAME)
-
-    location_set_version_id = utilities.get_version_id(location_set_version_id,
-                                                       fit_spec.data.location_set_version_id)
-    fit_spec.data.location_set_version_id = location_set_version_id
-
-    # If a new filepath is provided for the location metadata, use that, otherwise use any
-    # location set id provided to make the filepath and add it to the specifications
-
-    location_set_file = utilities.get_version(location_set_file,
-                                              fit_spec.data.location_set_file)
-    if not location_set_file:
-        location_set_file = f'/ihme/covid-19/seir-pipeline-outputs/metadata-inputs/' \
-            f'location_metadata_{location_set_version_id}.csv'
-    else:
-        logger.info(f"The locations will be pulled from {location_set_file} if you provided a "
-                    f"location set version id that does match the locations in this file "
-                    f"please provide a matching location set version id or remove the "
-                    f"filepath/different filepath ")
-    fit_spec.data.location_set_file = str(location_set_file)
-
     output_root = utilities.get_output_root(output_root, fit_spec.data.output_root,
                                             paths.SEIR_FIT_OUTPUTS)
-
     cli_tools.setup_directory_structure(output_root, with_production=True)
     run_directory = cli_tools.make_run_directory(output_root)
+
+    # Make the fit specification consistent with the resolved arguments
+    # and dump to disk.
+    fit_spec.data.infection_version = str(infection_root)
+    fit_spec.data.location_set_version_id = locations_set_version_id
+    fit_spec.data.location_set_file = location_set_file
     fit_spec.data.output_root = str(run_directory)
-    run_metadata['output_path'] = str(run_directory)
-    cli_tools.configure_logging_to_files(run_directory)
-    run_metadata['ode_fit_specification'] = fit_spec.to_dict()
     fit_spec.dump(run_directory / 'fit_specification.yaml')
 
+    # Update the run metadata with our extra info.
+    run_metadata.update_from_path('infectionator_metadata',
+                                  infection_root / paths.METADATA_FILE_NAME)
+    run_metadata['output_path'] = str(run_directory)
+    run_metadata['ode_fit_specification'] = fit_spec.to_dict()
+
+    cli_tools.configure_logging_to_files(run_directory)
     main = cli_tools.monitor_application(ode_fit.do_beta_fit,
                                          logger, with_debugger)
     app_metadata, _ = main(fit_spec, run_directory)
@@ -112,16 +89,7 @@ def fit(run_metadata,
               type=click.Path(file_okay=False),
               help=('Which version of the covariates to use in the '
                     'regression.'))
-@click.option('-o', '--output-root',
-              type=click.Path(file_okay=False),
-              show_default=True)
-@click.option('-b', '--mark-best', 'mark_dir_as_best',
-              is_flag=True,
-              help='Marks the new outputs as best in addition to marking '
-                   'them as latest.')
-@click.option('-p', '--production-tag',
-              type=click.STRING,
-              help='Tags this run as a production run.')
+@cli_tools.add_output_options
 @cli_tools.add_verbose_and_with_debugger
 def regress(run_metadata,
             regression_specification,
@@ -131,35 +99,36 @@ def regress(run_metadata,
     """Perform beta regression for a set of infections and covariates."""
     cli_tools.configure_logging_to_terminal(verbose)
 
-    regression_spec = regression.RegressionSpecification(regression_specification)
+    regression_spec = regression.RegressionSpecification.from_path(regression_specification)
 
-    ode_fit_version = utilities.get_version(ode_fit_version, regression_spec.data.ode_fit_version)
-    ode_fit_root = cli_tools.get_last_stage_directory(
-        ode_fit_version, last_stage_root=paths.SEIR_FIT_OUTPUTS
-    )
-    regression_spec.data.infection_version = str(ode_fit_root.resolve())
+    # Resolve CLI overrides and specification values with defaults into
+    # final run arguments.
+    ode_fit_root = utilities.get_input_root(ode_fit_version,
+                                            regression_spec.data.ode_fit_version,
+                                            paths.SEIR_FIT_OUTPUTS)
+    covariates_root = utilities.get_input_root(covariates_version,
+                                               regression_spec.data.covariate_version,
+                                               paths.SEIR_COVARIATES_OUTPUT_ROOT)
+    output_root = utilities.get_output_root(output_root,
+                                            regression_spec.data.output_root,
+                                            paths.SEIR_REGRESSION_OUTPUTS)
+    cli_tools.setup_directory_structure(output_root, with_production=True)
+    run_directory = cli_tools.make_run_directory(output_root)
 
-    covariates_version = utilities.get_version(covariates_version, regression_spec.data.covariate_version)
-    covariates_root = cli_tools.get_last_stage_directory(
-        covariates_version, last_stage_root=paths.SEIR_COVARIATES_OUTPUT_ROOT
-    )
-    regression_spec.data.covariate_version = str(covariates_root.resolve())
+    # Make the regression specification consistent with the resolved arguments
+    # and dump to disk.
+    regression_spec.data.ode_fit_version = str(ode_fit_root)
+    regression_spec.data.covariate_version = str(covariates_root)
+    regression_spec.data.output_root = str(run_directory)
+    regression_spec.dump(run_directory / 'regression_specification.yaml')
 
     for key, input_root in zip(['ode_fit_metadata', 'covariates_metadata'],
                                [ode_fit_root, covariates_root]):
         run_metadata.update_from_path(key, input_root / paths.METADATA_FILE_NAME)
-
-    output_root = utilities.get_output_root(output_root, regression_spec.data.output_root,
-                                            paths.SEIR_REGRESSION_OUTPUTS)
-
-    cli_tools.setup_directory_structure(output_root, with_production=True)
-    run_directory = cli_tools.make_run_directory(output_root)
-    regression_spec.data.output_root = str(run_directory)
     run_metadata['output_path'] = str(run_directory)
-    cli_tools.configure_logging_to_files(run_directory)
     run_metadata['regression_specification'] = regression_spec.to_dict()
-    regression_spec.dump(run_directory / 'regression_specification.yaml')
 
+    cli_tools.configure_logging_to_files(run_directory)
     main = cli_tools.monitor_application(regression.do_beta_regression,
                                          logger, with_debugger)
     app_metadata, _ = main(regression_spec, run_directory)
@@ -180,16 +149,7 @@ def regress(run_metadata,
               type=click.Path(file_okay=False),
               help="Which version of ode fit inputs to use in the"
                    "regression.")
-@click.option('-o', '--output-root',
-              type=click.Path(file_okay=False),
-              show_default=True)
-@click.option('-b', '--mark-best', 'mark_dir_as_best',
-              is_flag=True,
-              help='Marks the new outputs as best in addition to marking '
-                   'them as latest.')
-@click.option('-p', '--production-tag',
-              type=click.STRING,
-              help='Tags this run as a production run.')
+@cli_tools.add_output_options
 @cli_tools.add_verbose_and_with_debugger
 def forecast(run_metadata,
              forecast_specification,
@@ -201,25 +161,24 @@ def forecast(run_metadata,
 
     forecast_spec = forecasting.ForecastSpecification.from_path(forecast_specification)
 
-    regression_version = utilities.get_version(regression_version, forecast_spec.data.regression_version)
-    regression_root = cli_tools.get_last_stage_directory(
-        regression_version, last_stage_root=paths.SEIR_REGRESSION_OUTPUTS
-    )
-    forecast_spec.data.regression_version = str(regression_root.resolve())
-
-    run_metadata.update_from_path('regression_metadata', regression_root / paths.METADATA_FILE_NAME)
-
-    output_root = utilities.get_output_root(output_root, forecast_spec.data.output_root,
+    regression_root = utilities.get_input_root(regression_version,
+                                               forecast_spec.data.regression_version,
+                                               paths.SEIR_REGRESSION_OUTPUTS)
+    output_root = utilities.get_output_root(output_root,
+                                            forecast_spec.data.output_root,
                                             paths.SEIR_FORECAST_OUTPUTS)
-
     cli_tools.setup_directory_structure(output_root, with_production=True)
     run_directory = cli_tools.make_run_directory(output_root)
+
+    forecast_spec.data.regression_version = str(regression_root.resolve())
     forecast_spec.data.output_root = str(run_directory)
-    run_metadata['output_path'] = str(run_directory)
-    cli_tools.configure_logging_to_files(run_directory)
-    run_metadata['forecast_specification'] = forecast_spec.to_dict()
     forecast_spec.dump(run_directory / 'forecast_specification.yaml')
 
+    run_metadata.update_from_path('regression_metadata', regression_root / paths.METADATA_FILE_NAME)
+    run_metadata['output_path'] = str(run_directory)
+    run_metadata['forecast_specification'] = forecast_spec.to_dict()
+
+    cli_tools.configure_logging_to_files(run_directory)
     main = cli_tools.monitor_application(forecasting.do_beta_forecast,
                                          logger, with_debugger)
     app_metadata, _ = main(forecast_spec, regression_root, run_directory)
