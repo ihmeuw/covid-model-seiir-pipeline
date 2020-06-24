@@ -7,8 +7,8 @@ import shlex
 import pandas as pd
 import numpy as np
 
-from covid_model_seiir.model_runner import ModelRunner
-from covid_model_seiir.ode_forecasting.ode_runner import SiierdModelSpecs
+from covid_model_seiir_pipeline.model_runner import ModelRunner
+from covid_model_seiir_pipeline.forecasting.model import SiierdModelSpecs
 
 from covid_model_seiir_pipeline import static_vars
 from covid_model_seiir_pipeline.forecasting.specification import ForecastSpecification
