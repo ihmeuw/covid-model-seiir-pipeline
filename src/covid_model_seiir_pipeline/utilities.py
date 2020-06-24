@@ -122,9 +122,10 @@ def get_location_metadata(location_specification: Optional[str],
     Parameters
     ----------
     location_specification
-        Either an id or a path to a location hierarchy file.
+        Either a location set version  id or a path to a location
+        hierarchy file.
     spec_lsvid
-        The location specification version id provided in the run spec.
+        The location set version id provided in the run spec.
     spec_location_file
         The location file provided in the run spec.
 
