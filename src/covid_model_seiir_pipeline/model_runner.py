@@ -111,7 +111,7 @@ class ModelRunner:
 
         Arguments:
             model_specs (SiierdModelSpecs): specification for the model. See
-                covid_model_seiir.ode_forecasting.SiierdModelSpecs
+                covid_model_seiir_pipeline.forecasting.model.SiierdModelSpecs
                 for more details.
                 example:
                     model_specs = SiierdModelSpecs(
