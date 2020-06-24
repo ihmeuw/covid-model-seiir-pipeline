@@ -33,5 +33,10 @@ install_env:
 		git checkout develop && python setup.py install; \
     )
 
+.PHONY: test
+test:
+	pytest tests
+
+
 uninstall_env:
 	conda remove --name $(ENV_NAME) --all
