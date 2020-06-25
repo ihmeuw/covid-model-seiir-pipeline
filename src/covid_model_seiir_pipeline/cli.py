@@ -17,7 +17,6 @@ def seiir():
 @click.argument('fit_specification')
 @click.option('--infection-version',
               type=click.Path(file_okay=False),
-              default=paths.BEST_LINK,
               help="Which version of infectionator inputs to use in the"
                    "regression.")
 @click.option('-l', '--location-specification',
