@@ -15,6 +15,7 @@ def seiir():
 @click.argument('fit_specification')
 @click.option('--infection-version',
               type=click.Path(file_okay=False),
+              default=paths.BEST_LINK,
               help="Which version of infectionator inputs to use in the"
                    "regression.")
 @click.option('-l', '--location-specification',
@@ -22,7 +23,7 @@ def seiir():
               help="Either a location set version id used to pull a list of"
                    "locations to run, or a full path to a file describing"
                    "the location set.")
-@cli_tools.add_output_options
+@cli_tools.add_output_options(paths.SEIR_FIT_OUTPUTS)
 @cli_tools.add_verbose_and_with_debugger
 def fit(run_metadata,
         fit_specification,
@@ -45,8 +46,7 @@ def fit(run_metadata,
         fit_spec.data.location_set_version_id,
         fit_spec.data.location_set_file
     )
-    output_root = utilities.get_output_root(output_root, fit_spec.data.output_root,
-                                            paths.SEIR_FIT_OUTPUTS)
+    output_root = utilities.get_output_root(output_root, fit_spec.data.output_root)
     cli_tools.setup_directory_structure(output_root, with_production=True)
     run_directory = cli_tools.make_run_directory(output_root)
 
@@ -89,7 +89,7 @@ def fit(run_metadata,
               type=click.Path(file_okay=False),
               help=('Which version of the covariates to use in the '
                     'regression.'))
-@cli_tools.add_output_options
+@cli_tools.add_output_options(paths.SEIR_REGRESSION_OUTPUTS)
 @cli_tools.add_verbose_and_with_debugger
 def regress(run_metadata,
             regression_specification,
@@ -110,8 +110,7 @@ def regress(run_metadata,
                                                regression_spec.data.covariate_version,
                                                paths.SEIR_COVARIATES_OUTPUT_ROOT)
     output_root = utilities.get_output_root(output_root,
-                                            regression_spec.data.output_root,
-                                            paths.SEIR_REGRESSION_OUTPUTS)
+                                            regression_spec.data.output_root)
     cli_tools.setup_directory_structure(output_root, with_production=True)
     run_directory = cli_tools.make_run_directory(output_root)
 
@@ -149,7 +148,7 @@ def regress(run_metadata,
               type=click.Path(file_okay=False),
               help="Which version of ode fit inputs to use in the"
                    "regression.")
-@cli_tools.add_output_options
+@cli_tools.add_output_options(paths.SEIR_FORECAST_OUTPUTS)
 @cli_tools.add_verbose_and_with_debugger
 def forecast(run_metadata,
              forecast_specification,
@@ -165,8 +164,7 @@ def forecast(run_metadata,
                                                forecast_spec.data.regression_version,
                                                paths.SEIR_REGRESSION_OUTPUTS)
     output_root = utilities.get_output_root(output_root,
-                                            forecast_spec.data.output_root,
-                                            paths.SEIR_FORECAST_OUTPUTS)
+                                            forecast_spec.data.output_root)
     cli_tools.setup_directory_structure(output_root, with_production=True)
     run_directory = cli_tools.make_run_directory(output_root)
 
