@@ -27,6 +27,9 @@ class ODEDataInterface:
             location_metadata = pd.read_csv(location_file)
         else:
             location_metadata = None
+
+        if location_metadata is not None:
+            location_metadata = location_metadata[location_metadata.most_detailed == 1]
         return location_metadata
 
     def filter_location_ids(self, desired_locations: List[int] = None) -> List[int]:
@@ -102,7 +105,5 @@ class ODEDataInterface:
         # Hide this import so the code stays portable outside IHME by using
         # a locations file directly.
         from db_queries import get_location_metadata
-        hierarchy = get_location_metadata(location_set_id=111,
-                                          location_set_version_id=location_set_version_id)
-        most_detailed_locs = hierarchy.loc[hierarchy.most_detailed == 1]
-        return most_detailed_locs
+        return get_location_metadata(location_set_id=111,
+                                     location_set_version_id=location_set_version_id)
