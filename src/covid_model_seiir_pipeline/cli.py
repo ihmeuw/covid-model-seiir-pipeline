@@ -4,6 +4,8 @@ from loguru import logger
 
 from covid_model_seiir_pipeline import regression, ode_fit, forecasting, utilities
 
+DEFAULT_SEIIR_OUTPUT_ROOT = '/ihme/scratch/users/miker985/seiir-tests'
+
 
 @click.group()
 def seiir():
