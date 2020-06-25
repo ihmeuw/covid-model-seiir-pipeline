@@ -4,6 +4,8 @@ from loguru import logger
 
 from covid_model_seiir_pipeline import regression, ode_fit, forecasting, utilities
 
+DEFAULT_SEIIR_OUTPUT_ROOT = '/ihme/scratch/users/miker985/seiir-tests'
+
 
 @click.group()
 def seiir():
@@ -22,13 +24,13 @@ def seiir():
               help="Either a location set version id used to pull a list of"
                    "locations to run, or a full path to a file describing"
                    "the location set.")
-@cli_tools.add_output_options
+@cli_tools.add_output_options(default_output_root=DEFAULT_SEIIR_OUTPUT_ROOT)
 @cli_tools.add_verbose_and_with_debugger
 def fit(run_metadata,
         fit_specification,
         infection_version,
         location_specification,
-        output_root, mark_dir_as_best, production_tag,
+        output_root, mark_best, production_tag,
         verbose, with_debugger):
     """Runs a beta fit on a set of infection data."""
     cli_tools.configure_logging_to_terminal(verbose)
@@ -72,7 +74,7 @@ def fit(run_metadata,
     run_metadata['app_metadata'] = app_metadata.to_dict()
     run_metadata.dump(run_directory / 'metadata.yaml')
 
-    cli_tools.make_links(app_metadata, run_directory, mark_dir_as_best, production_tag)
+    cli_tools.make_links(app_metadata, run_directory, mark_best, production_tag)
 
     logger.info('**Done**')
 
@@ -89,12 +91,12 @@ def fit(run_metadata,
               type=click.Path(file_okay=False),
               help=('Which version of the covariates to use in the '
                     'regression.'))
-@cli_tools.add_output_options
+@cli_tools.add_output_options(default_output_root=DEFAULT_SEIIR_OUTPUT_ROOT)
 @cli_tools.add_verbose_and_with_debugger
 def regress(run_metadata,
             regression_specification,
             ode_fit_version, covariates_version,
-            output_root, mark_dir_as_best, production_tag,
+            output_root, mark_best, production_tag,
             verbose, with_debugger):
     """Perform beta regression for a set of infections and covariates."""
     cli_tools.configure_logging_to_terminal(verbose)
@@ -136,7 +138,7 @@ def regress(run_metadata,
     run_metadata['app_metadata'] = app_metadata.to_dict()
     run_metadata.dump(run_directory / 'metadata.yaml')
 
-    cli_tools.make_links(app_metadata, run_directory, mark_dir_as_best, production_tag)
+    cli_tools.make_links(app_metadata, run_directory, mark_best, production_tag)
 
     logger.info('**Done**')
 
@@ -149,12 +151,12 @@ def regress(run_metadata,
               type=click.Path(file_okay=False),
               help="Which version of ode fit inputs to use in the"
                    "regression.")
-@cli_tools.add_output_options
+@cli_tools.add_output_options(default_output_root=DEFAULT_SEIIR_OUTPUT_ROOT)
 @cli_tools.add_verbose_and_with_debugger
 def forecast(run_metadata,
              forecast_specification,
              regression_version,
-             output_root, mark_dir_as_best, production_tag,
+             output_root, mark_best, production_tag,
              verbose, with_debugger):
     """Perform beta forecast for a set of scenarios on a regression."""
     cli_tools.configure_logging_to_terminal(verbose)
@@ -186,6 +188,6 @@ def forecast(run_metadata,
     run_metadata['app_metadata'] = app_metadata.to_dict()
     run_metadata.dump(run_directory / 'metadata.yaml')
 
-    cli_tools.make_links(app_metadata, run_directory, mark_dir_as_best, production_tag)
+    cli_tools.make_links(app_metadata, run_directory, mark_best, production_tag)
 
     logger.info('**Done**')
