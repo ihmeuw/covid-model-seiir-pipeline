@@ -6,6 +6,7 @@ from typing import Optional
 
 import numpy as np
 
+from covid_model_seiir_pipeline import paths
 from covid_model_seiir_pipeline.ode_fit import FitSpecification, model
 from covid_model_seiir_pipeline.ode_fit.data import ODEDataInterface
 from covid_model_seiir_pipeline.static_vars import INFECTION_COL_DICT
@@ -20,14 +21,12 @@ def run_ode_fit(draw_id: int, ode_version: str):
     fit_specification: FitSpecification = FitSpecification.from_path(
         Path(ode_version) / "fit_specification.yaml"
     )
-    data_interface = ODEDataInterface(
-        ode_fit_root=Path(fit_specification.data.output_root),
-        infection_root=Path(fit_specification.data.infection_version),
-        location_file=Path(fit_specification.data.location_set_file)
-    )
+    ode_paths = paths.ODEPaths(fit_specification.data.output_root)
+    infection_paths = paths.InfectionPaths(fit_specification.data.infection_version)
+    data_interface = ODEDataInterface(ode_paths=ode_paths, infection_paths=infection_paths)
 
     # Load data
-    location_ids = data_interface.load_location_ids()
+    location_ids = data_interface.load_location_ids(location_file=ode_paths.location_metadata)
     location_data = data_interface.load_all_location_data(location_ids=location_ids,
                                                           draw_id=draw_id)
 
