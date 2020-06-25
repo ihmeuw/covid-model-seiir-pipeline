@@ -29,7 +29,7 @@ def fit(run_metadata,
         fit_specification,
         infection_version,
         location_specification,
-        output_root, mark_dir_as_best, production_tag,
+        output_root, mark_best, production_tag,
         verbose, with_debugger):
     """Runs a beta fit on a set of infection data."""
     cli_tools.configure_logging_to_terminal(verbose)
@@ -72,7 +72,7 @@ def fit(run_metadata,
     run_metadata['app_metadata'] = app_metadata.to_dict()
     run_metadata.dump(run_directory / 'metadata.yaml')
 
-    cli_tools.make_links(app_metadata, run_directory, mark_dir_as_best, production_tag)
+    cli_tools.make_links(app_metadata, run_directory, mark_best, production_tag)
 
     logger.info('**Done**')
 
@@ -94,7 +94,7 @@ def fit(run_metadata,
 def regress(run_metadata,
             regression_specification,
             ode_fit_version, covariates_version,
-            output_root, mark_dir_as_best, production_tag,
+            output_root, mark_best, production_tag,
             verbose, with_debugger):
     """Perform beta regression for a set of infections and covariates."""
     cli_tools.configure_logging_to_terminal(verbose)
@@ -135,7 +135,7 @@ def regress(run_metadata,
     run_metadata['app_metadata'] = app_metadata.to_dict()
     run_metadata.dump(run_directory / 'metadata.yaml')
 
-    cli_tools.make_links(app_metadata, run_directory, mark_dir_as_best, production_tag)
+    cli_tools.make_links(app_metadata, run_directory, mark_best, production_tag)
 
     logger.info('**Done**')
 
@@ -153,7 +153,7 @@ def regress(run_metadata,
 def forecast(run_metadata,
              forecast_specification,
              regression_version,
-             output_root, mark_dir_as_best, production_tag,
+             output_root, mark_best, production_tag,
              verbose, with_debugger):
     """Perform beta forecast for a set of scenarios on a regression."""
     cli_tools.configure_logging_to_terminal(verbose)
@@ -184,6 +184,6 @@ def forecast(run_metadata,
     run_metadata['app_metadata'] = app_metadata.to_dict()
     run_metadata.dump(run_directory / 'metadata.yaml')
 
-    cli_tools.make_links(app_metadata, run_directory, mark_dir_as_best, production_tag)
+    cli_tools.make_links(app_metadata, run_directory, mark_best, production_tag)
 
     logger.info('**Done**')
