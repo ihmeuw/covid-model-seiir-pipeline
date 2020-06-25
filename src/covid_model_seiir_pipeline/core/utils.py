@@ -138,6 +138,7 @@ def beta_shift(beta_fit: pd.DataFrame,
                beta_pred: np.ndarray,
                draw_id: int,
                window_size: Union[int, None] = None,
+               average_over_min: int = 1,
                average_over_max: int = 35) -> Tuple[np.ndarray, Dict[str, float]]:
     """Calculate the beta shift.
 
@@ -161,7 +162,7 @@ def beta_shift(beta_fit: pd.DataFrame,
     beta_fit = beta_fit['beta'].to_numpy()
 
     rs = np.random.RandomState(seed=draw_id)
-    avg_over = rs.randint(1, average_over_max)
+    avg_over = rs.randint(average_over_min, average_over_max)
 
     beta_fit_final = beta_fit[-1]
     beta_pred_start = beta_pred[0]
