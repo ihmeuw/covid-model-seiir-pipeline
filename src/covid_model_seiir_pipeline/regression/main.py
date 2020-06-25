@@ -40,5 +40,5 @@ def do_beta_regression(app_metadata: cli_tools.Metadata,
 
     # build workflow and launch
     regression_wf = RegressionWorkflow(regression_specification, ode_fit_spec)
-    regression_wf.attach_regression_tasks()
+    regression_wf.attach_beta_regression_tasks()
     regression_wf.run()
