@@ -65,7 +65,7 @@ class CustomizedSEIIR(ODESys):
 
 
 @dataclass(frozen=True)
-class SiierdModelSpecs:
+class SeiirModelSpecs:
     alpha: float
     sigma: float
     gamma1: float
@@ -84,7 +84,7 @@ class SiierdModelSpecs:
 
 class ODERunner:
 
-    def __init__(self, model_specs: SiierdModelSpecs, init_cond: np.ndarray, dt: float):
+    def __init__(self, model_specs: SeiirModelSpecs, init_cond: np.ndarray, dt: float):
         self.model_specs = model_specs
         self.init_cond = init_cond
         self.dt = dt
