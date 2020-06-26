@@ -77,7 +77,7 @@ install_conda:
 .PHONY: install_github_packages_https
 # export PATH value. IMPORTANT - use := and not = so it is non-recursive
 # https://stackoverflow.com/a/1605665
-install_github_packages_https: export PATH:=$(PWD)/miniconda/bin:$(PATH)
+install_github_packages_https: export PATH:=$(shell pwd)/miniconda/bin:$(PATH)
 install_github_packages_https: install_conda
 	export PATH
 	git clone https://github.com/zhengp0/limetr.git
