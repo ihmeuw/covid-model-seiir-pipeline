@@ -75,7 +75,8 @@ install_conda:
 
 
 .PHONY: install_github_packages_https
-install_github_packages_https: export PATH=miniconda/bin:$(PATH)
+# https://stackoverflow.com/a/1605665
+install_github_packages_https: export PATH:=miniconda/bin:$(PATH)
 install_github_packages_https: install_conda
 	git clone https://github.com/zhengp0/limetr.git
 	cd limetr && make install && cd ..
