@@ -16,8 +16,8 @@ class ODEDataInterface:
         self.ode_paths = ode_paths
         self.infection_paths = infection_paths
 
-    def load_location_metadata(self, location_set_version_id: Optional[int],
-                               location_file: Optional[Union[str, Path]]) -> Union[pd.DataFrame, None]:
+    def load_location_ids_from_primary_source(self, location_set_version_id: Optional[int],
+                                              location_file: Optional[Union[str, Path]]) -> Union[List[int], None]:
         """Retrieve a location hierarchy from a file or from GBD if specified."""
         # TODO: Remove after integration testing.
         assert not (location_set_version_id and location_file), 'CLI location validation is broken.'
@@ -29,7 +29,7 @@ class ODEDataInterface:
             location_metadata = None
 
         if location_metadata is not None:
-            location_metadata = location_metadata[location_metadata.most_detailed == 1]
+            location_metadata = location_metadata.loc[location_metadata.most_detailed == 1, 'location_id'].tolist()
         return location_metadata
 
     def filter_location_ids(self, desired_locations: List[int] = None) -> List[int]:

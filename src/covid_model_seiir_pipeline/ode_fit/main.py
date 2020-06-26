@@ -1,4 +1,6 @@
 """Runner for the beta ODE fit."""
+from pathlib import Path
+
 from covid_shared import cli_tools
 from loguru import logger
 
@@ -13,8 +15,8 @@ def do_beta_fit(app_metadata: cli_tools.Metadata,
     logger.debug('Starting Beta fit.')
 
     # init high level objects
-    ode_paths = paths.ODEPaths(fit_specification.data.output_root, read_only=False)
-    infection_paths = paths.InfectionPaths(fit_specification.data.output_root)
+    ode_paths = paths.ODEPaths(Path(fit_specification.data.output_root), read_only=False)
+    infection_paths = paths.InfectionPaths(Path(fit_specification.data.infection_version))
 
     data_interface = ODEDataInterface(
         ode_paths=ode_paths,
@@ -22,7 +24,7 @@ def do_beta_fit(app_metadata: cli_tools.Metadata,
     )
 
     # Grab canonical location list from arguments
-    location_metadata = data_interface.load_location_metadata(
+    location_metadata = data_interface.load_location_ids_from_primary_source(
         location_set_version_id=fit_specification.data.location_set_version_id,
         location_file=fit_specification.data.location_set_file
     )
