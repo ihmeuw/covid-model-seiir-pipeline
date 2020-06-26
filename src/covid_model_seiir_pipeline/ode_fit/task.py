@@ -26,7 +26,7 @@ def run_ode_fit(draw_id: int, ode_version: str):
     data_interface = ODEDataInterface(ode_paths=ode_paths, infection_paths=infection_paths)
 
     # Load data
-    location_ids = data_interface.load_location_ids(location_file=ode_paths.location_metadata)
+    location_ids = data_interface.load_location_ids()
     location_data = data_interface.load_all_location_data(location_ids=location_ids,
                                                           draw_id=draw_id)
 
