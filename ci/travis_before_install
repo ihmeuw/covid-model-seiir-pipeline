@@ -1,0 +1,24 @@
+#!/bin/bash
+
+wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
+bash Miniconda3-latest-Linux-x86_64.sh -b -p $PWD/miniconda -f
+
+export PATH=$PWD/miniconda/bin:$PATH
+
+command -v conda || { echo conda not found ; exit 1; }
+if [[ ! -f miniconda/bin/activate ]]; then
+    echo No activate file;
+    exit 1;
+fi
+source "$PWD/miniconda/bin/activate" && echo CONDA_PREFIX is "$CONDA_PREFIX"
+
+if [[ -z "$CONDA_PREFIX"  ]]; then
+    echo no CONDA_PREFIX;
+    exit 2;
+fi
+git clone https://github.com/zhengp0/limetr.git
+cd limetr && make install && cd ..
+git clone https://github.com/ihmeuw-msca/MRTool.git
+cd MRTool && git checkout seiir_model && python setup.py install && cd ..
+git clone https://github.com/zhengp0/SLIME.git
+cd SLIME && python setup.py install && cd ..
