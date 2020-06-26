@@ -4,7 +4,6 @@ from jobmon.client.swarm.executors.base import ExecutorParameters
 
 ExecParams = ExecutorParameters(
     max_runtime_seconds=6000,
-    j_resource=False,
     m_mem_free='20G',
     num_cores=3,
     queue='d.q'
@@ -12,7 +11,6 @@ ExecParams = ExecutorParameters(
 
 ExecParamsPlotting = ExecutorParameters(
     max_runtime_seconds=int(60*60*5),
-    j_resource=False,
     m_mem_free='20G',
     num_cores=3,
     queue='d.q'
@@ -115,27 +113,6 @@ class RegressionDiagnosticTask(BashTask):
         super().__init__(
             command=command,
             name=f'seiir_regression_diagnostics',
-            executor_parameters=ExecParamsPlotting,
-            max_attempts=1,
-            **kwargs
-        )
-
-
-class ScalingDiagnosticTask(BashTask):
-    def __init__(self, regression_version, forecast_version, **kwargs):
-
-        self.regression_version = regression_version
-        self.forecast_version = forecast_version
-
-        command = (
-            "create_scaling_diagnostics " +
-            f"--regression-version {regression_version} " +
-            f"--forecast-version {forecast_version}"
-        )
-
-        super().__init__(
-            command=command,
-            name=f'seiir_scaling_diagnostics',
             executor_parameters=ExecParamsPlotting,
             max_attempts=1,
             **kwargs
