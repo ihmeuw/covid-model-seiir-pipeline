@@ -21,8 +21,8 @@ def run_ode_fit(draw_id: int, ode_version: str):
     fit_specification: FitSpecification = FitSpecification.from_path(
         Path(ode_version) / "fit_specification.yaml"
     )
-    ode_paths = paths.ODEPaths(fit_specification.data.output_root)
-    infection_paths = paths.InfectionPaths(fit_specification.data.infection_version)
+    ode_paths = paths.ODEPaths(Path(fit_specification.data.output_root))
+    infection_paths = paths.InfectionPaths(Path(fit_specification.data.infection_version))
     data_interface = ODEDataInterface(ode_paths=ode_paths, infection_paths=infection_paths)
 
     # Load data
