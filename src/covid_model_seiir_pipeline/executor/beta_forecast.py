@@ -57,6 +57,17 @@ def run_beta_forecast(location_id: int, regression_version: str, forecast_versio
     )
     regression_settings = load_regression_settings(regression_version)
     forecast_settings = load_forecast_settings(forecast_version)
+    if forecast_settings.theta_minus_locations_file:
+        theta_minus_locations = pd.read_csv(forecast_settings.theta_minus_locations_file)
+        theta_minus_locations.to_csv(
+            directories.forecast_output_dir / 'theta_minus_locations.csv', index=False
+        )
+        if location_id in theta_minus_locations.location_id:
+            theta = forecast_settings.theta_minus
+        else:
+            theta = forecast_settings.theta_plus
+    else:
+        theta = forecast_settings.theta
 
     # -------------------------- FORECAST THE BETA FORWARDS -------------------- #
     mr = ModelRunner()
@@ -86,7 +97,7 @@ def run_beta_forecast(location_id: int, regression_version: str, forecast_versio
             directories,
             covariate_version=forecast_settings.covariate_version,
             location_ids=[location_id],
-            draw_id = draw_id if any(forecast_settings.covariate_draw_dict.values()) else None
+            draw_id=draw_id if any(forecast_settings.covariate_draw_dict.values()) else None
         )
 
         # Figure out what date we need to forecast from (the end of the component fit in regression task)
@@ -113,17 +124,9 @@ def run_beta_forecast(location_id: int, regression_version: str, forecast_versio
         days = forecasts[COVARIATE_COL_DICT['COL_DATE']].values
         times = date_to_days(days)
 
-        # Anchor the betas at the last observed beta (fitted)
-        # and scale everything into the future from this anchor value
-        # anchor_beta = beta_fit.beta[beta_fit.date == CURRENT_DATE].iloc[0]
-        # scale = anchor_beta / betas[0]
-        # scales.append(scale)
-        # scale = scale + (1 - scale)/20.0*np.arange(betas.size)
-        # scale[21:] = 1.0
-        # betas = betas * scale
-
-        betas, scale_init = beta_shift(beta_fit, betas, **regression_settings.beta_shift_dict)
-        scales.append(scale_init)
+        betas, scale_params = beta_shift(beta_fit, betas, draw_id, **regression_settings.beta_shift_dict)
+        scale_params['draw'] = draw_id
+        scales.append(scale_params)
 
         # Get initial conditions based on the beta fit for forecasting into the future
         init_cond = get_ode_init_cond(
@@ -139,12 +142,15 @@ def run_beta_forecast(location_id: int, regression_version: str, forecast_versio
             gamma2=beta_params['gamma2'],
             N=N
         )
+        # make theta the same length as betas
+        thetas = np.repeat(theta, betas.size)
         # Forecast all of the components based on the forecasted beta
         forecasted_components = mr.forecast(
             model_specs=model_specs,
             init_cond=init_cond,
             times=times,
             betas=betas,
+            thetas=thetas,
             dt=regression_settings.solver_dt
         )
         forecasted_components[COVARIATE_COL_DICT['COL_DATE']] = days
@@ -154,9 +160,14 @@ def run_beta_forecast(location_id: int, regression_version: str, forecast_versio
                 draw_id=draw_id
             )
         )
-    df_scales = pd.DataFrame({
-        'beta_scales': scales
-    })
+
+    scales_flat = {}
+    for scale_param in scales[0]:
+        scales_flat[scale_param] = []
+        for scale_param_dict in scales:
+            scales_flat[scale_param].append(scale_param_dict[scale_param])
+
+    df_scales = pd.DataFrame(scales_flat)
     df_scales.to_csv(
         directories.location_beta_scaling_file(
             location_id=location_id
