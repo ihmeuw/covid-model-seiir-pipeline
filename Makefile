@@ -28,10 +28,13 @@ install_env:
 		cd MRTool && git checkout seiir_model && python setup.py install && cd .. && \
 		git clone git@github.com:zhengp0/SLIME.git && \
 		cd SLIME && python setup.py install && cd .. && \
-		git clone git@github.com:ihmeuw/covid-model-seiir.git && \
-		cd covid-model-seiir && git checkout develop && python setup.py install && cd .. && \
-		git checkout develop && python setup.py install; \
+		pip install -e . ; \
     )
+
+.PHONY: test
+test:
+	pytest tests
+
 
 uninstall_env:
 	conda remove --name $(ENV_NAME) --all
