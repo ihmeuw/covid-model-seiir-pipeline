@@ -67,6 +67,7 @@ travis_install_env: install_github_packages_https
 
 
 .PHONY: install_github_packages_https
+install_github_packages_https: export CONDA_PREFIX=$(VIRTUAL_ENV)
 install_github_packages_https:
 	git clone https://github.com/zhengp0/limetr.git
 	cd limetr && make install && cd ..
