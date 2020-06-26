@@ -5,6 +5,8 @@ python:
 
 os: linux
 
+before_install:
+    - bash ci/travis_before_install
 install:
   - pip install .[test,docs]
 script:
