@@ -66,9 +66,17 @@ travis_install_env: install_github_packages_https
 	pip install -e .
 
 
+.PHONY: install_conda
+install_conda:
+	wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
+	@# install in batch mode (assumes you agree to license) at -p(refix) and-f(orce)
+	@# NOTE: this does NOT add miniconda binaries to our path. we do that separately
+	bash Miniconda3-latest-Linux-x86_64.sh -b -p $PWD/miniconda -f
+
+
 .PHONY: install_github_packages_https
-install_github_packages_https: export CONDA_PREFIX=$(VIRTUAL_ENV)
-install_github_packages_https:
+install_github_packages_https: export PATH=miniconda/bin:$(PATH)
+install_github_packages_https: install_conda
 	git clone https://github.com/zhengp0/limetr.git
 	cd limetr && make install && cd ..
 	git clone https://github.com/ihmeuw-msca/MRTool.git
