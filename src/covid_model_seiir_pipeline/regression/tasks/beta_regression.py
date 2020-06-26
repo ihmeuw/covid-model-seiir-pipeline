@@ -9,8 +9,8 @@ import pandas as pd
 
 from slime.model import CovModelSet
 from slime.core.data import MRData
-from covid_model_seiir.model_runner import ModelRunner
 
+from covid_model_seiir_pipeline.model_runner import ModelRunner
 from covid_model_seiir_pipeline import static_vars
 from covid_model_seiir_pipeline.ode_fit.specification import FitSpecification
 from covid_model_seiir_pipeline.regression.covariate_model import convert_to_covmodel
