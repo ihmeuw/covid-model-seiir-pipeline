@@ -5,6 +5,8 @@ python:
 
 os: linux
 
+before_install:
+    - make travis_install_env
 install:
   - pip install .[test,docs]
 script:
