@@ -110,11 +110,11 @@ class ModelRunner:
         Solves ode for given time and beta
 
         Arguments:
-            model_specs (SiierdModelSpecs): specification for the model. See
-                covid_model_seiir_pipeline.forecasting.model.SiierdModelSpecs
+            model_specs (SeiirModelSpecs): specification for the model. See
+                covid_model_seiir_pipeline.forecasting.model.SeiirModelSpecs
                 for more details.
                 example:
-                    model_specs = SiierdModelSpecs(
+                    model_specs = SeiirModelSpecs(
                         alpha=0.9,
                         sigma=1.0,
                         gamma1=0.3,

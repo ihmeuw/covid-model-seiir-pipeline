@@ -1,10 +1,10 @@
 import numpy as np
 
-from covid_model_seiir_pipeline.forecasting.model import ODERunner, SiierdModelSpecs
+from covid_model_seiir_pipeline.forecasting.model import ODERunner, SeiirModelSpecs
 
 
 def test_ode_runner():
-    specs = SiierdModelSpecs(
+    specs = SeiirModelSpecs(
         alpha=0.9,
         sigma=1.0,
         gamma1=0.3,

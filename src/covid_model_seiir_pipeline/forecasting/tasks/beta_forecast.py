@@ -8,7 +8,7 @@ import pandas as pd
 import numpy as np
 
 from covid_model_seiir_pipeline.model_runner import ModelRunner
-from covid_model_seiir_pipeline.forecasting.model import SiierdModelSpecs
+from covid_model_seiir_pipeline.forecasting.model import SeiirModelSpecs
 
 from covid_model_seiir_pipeline import static_vars
 from covid_model_seiir_pipeline.forecasting.specification import ForecastSpecification
@@ -168,7 +168,7 @@ def run_beta_forecast(location_id: int, forecast_version: str, scenario_name: st
             location_id=location_id
         ).astype(float)
         N = np.sum(init_cond)  # total population
-        model_specs = SiierdModelSpecs(
+        model_specs = SeiirModelSpecs(
             alpha=beta_params['alpha'],
             sigma=beta_params['sigma'],
             gamma1=beta_params['gamma1'],
