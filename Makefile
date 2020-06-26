@@ -62,5 +62,15 @@ uninstall_env:
 
 
 .PHONY: travis_install_env
-travis_install_env: install_github_packages
+travis_install_env: install_github_packages_https
 	pip install -e .
+
+
+.PHONY: install_github_packages_https
+install_github_packages_https:
+	git clone https://github.com/zhengp0/limetr.git
+	cd limetr && make install && cd ..
+	git clone https://github.com/ihmeuw-msca/MRTool.git
+	cd MRTool && git checkout seiir_model && python setup.py install && cd ..
+	git clone https://github.com/zhengp0/SLIME.git
+	cd SLIME && python setup.py install && cd ..
