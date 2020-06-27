@@ -20,7 +20,6 @@ class BetaRegressionTaskTemplate:
         )
         self.params = ExecutorParameters(
             max_runtime_seconds=1000,
-            j_resource=False,
             m_mem_free='20G',
             num_cores=3,
             queue='d.q'
@@ -53,7 +52,6 @@ class RegressionDiagnosticsTaskTemplate:
         )
         self.params = ExecutorParameters(
             max_runtime_seconds=1000,
-            j_resource=False,
             m_mem_free='10G',
             num_cores=3,
             queue='d.q'

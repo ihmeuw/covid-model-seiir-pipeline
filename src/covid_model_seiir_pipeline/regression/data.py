@@ -35,7 +35,7 @@ class RegressionDataInterface:
         # subset locations
         df = df.loc[df[COVARIATE_COL_DICT['COL_LOC_ID']].isin(location_ids)]
 
-        # is time dependent cov? filter by timeseries
+        # is time dependent cov? filter by time series
         if COVARIATE_COL_DICT['COL_DATE'] in df.columns:
             columns.append(COVARIATE_COL_DICT['COL_DATE'])
 
@@ -68,8 +68,7 @@ class RegressionDataInterface:
         return regress_df, scenario_df
 
     def load_covariate(self, covariate: str, location_ids: List[int], draw_id: int,
-                       use_draws: bool
-                       ) -> Dict[str, pd.DataFrame]:
+                       use_draws: bool) -> Dict[str, pd.DataFrame]:
         covariate_set: Dict[str, pd.DataFrame] = {}
         scenario_map = self.covariate_paths.get_covariate_scenario_to_file_mapping(covariate)
         for scenario, input_file in scenario_map.items():
