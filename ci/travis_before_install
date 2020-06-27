@@ -12,11 +12,12 @@ if [[ ! -f miniconda/bin/activate ]]; then
 fi
 source "$PWD/miniconda/bin/activate"
 
+command -v pip
+command -v python
+
 # install gfortran - which is not installed by limetr but required for it to work
 conda install --yes -c conda-forge fortran-compiler
 git clone https://github.com/zhengp0/limetr.git
-cd limetr && make install && cd ..
-git clone https://github.com/ihmeuw-msca/MRTool.git
-cd MRTool && git checkout seiir_model && python setup.py install && cd ..
+cd limetr && python check_requirements.py && pip install . && cd ..
 git clone https://github.com/zhengp0/SLIME.git
-cd SLIME && python setup.py install && cd ..
+cd SLIME && pip install . && cd ..
