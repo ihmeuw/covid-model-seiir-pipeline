@@ -2,11 +2,18 @@ import click
 from covid_shared import cli_tools, paths
 from loguru import logger
 
-from covid_model_seiir_pipeline import regression, ode_fit, forecasting, utilities
+from covid_model_seiir_pipeline import utilities
+from covid_model_seiir_pipeline.ode_fit.specification import FitSpecification
+from covid_model_seiir_pipeline.ode_fit.main import do_beta_fit
+from covid_model_seiir_pipeline.regression.specification import RegressionSpecification
+from covid_model_seiir_pipeline.regression.main import do_beta_regression
+from covid_model_seiir_pipeline.forecasting.specification import ForecastSpecification
+from covid_model_seiir_pipeline.forecasting.main import do_beta_forecast
 
 
 @click.group()
 def seiir():
+    """Top level entry point for running SEIIR pipeline stages."""
     pass
 
 
@@ -33,7 +40,7 @@ def fit(run_metadata,
     """Runs a beta fit on a set of infection data."""
     cli_tools.configure_logging_to_terminal(verbose)
 
-    fit_spec = ode_fit.FitSpecification.from_path(fit_specification)
+    fit_spec = FitSpecification.from_path(fit_specification)
 
     # Resolve CLI overrides and specification values with defaults into
     # final run arguments.
@@ -64,7 +71,7 @@ def fit(run_metadata,
     run_metadata['ode_fit_specification'] = fit_spec.to_dict()
 
     cli_tools.configure_logging_to_files(run_directory)
-    main = cli_tools.monitor_application(ode_fit.do_beta_fit,
+    main = cli_tools.monitor_application(do_beta_fit,
                                          logger, with_debugger)
     app_metadata, _ = main(fit_spec)
 
@@ -98,7 +105,7 @@ def regress(run_metadata,
     """Perform beta regression for a set of infections and covariates."""
     cli_tools.configure_logging_to_terminal(verbose)
 
-    regression_spec = regression.RegressionSpecification.from_path(regression_specification)
+    regression_spec = RegressionSpecification.from_path(regression_specification)
 
     # Resolve CLI overrides and specification values with defaults into
     # final run arguments.
@@ -127,7 +134,7 @@ def regress(run_metadata,
     run_metadata['regression_specification'] = regression_spec.to_dict()
 
     cli_tools.configure_logging_to_files(run_directory)
-    main = cli_tools.monitor_application(regression.do_beta_regression,
+    main = cli_tools.monitor_application(do_beta_regression,
                                          logger, with_debugger)
     app_metadata, _ = main(regression_spec, run_directory)
 
@@ -157,7 +164,7 @@ def forecast(run_metadata,
     """Perform beta forecast for a set of scenarios on a regression."""
     cli_tools.configure_logging_to_terminal(verbose)
 
-    forecast_spec = forecasting.ForecastSpecification.from_path(forecast_specification)
+    forecast_spec = ForecastSpecification.from_path(forecast_specification)
 
     regression_root = utilities.get_input_root(regression_version,
                                                forecast_spec.data.regression_version,
@@ -176,7 +183,7 @@ def forecast(run_metadata,
     run_metadata['forecast_specification'] = forecast_spec.to_dict()
 
     cli_tools.configure_logging_to_files(run_directory)
-    main = cli_tools.monitor_application(forecasting.do_beta_forecast,
+    main = cli_tools.monitor_application(do_beta_forecast,
                                          logger, with_debugger)
     app_metadata, _ = main(forecast_spec, regression_root, run_directory)
 
