@@ -3,8 +3,7 @@ import numpy as np
 import copy
 from pprint import pprint
 
-from slime.core import MRData
-from slime.model import CovModelSet, MRModel, CovModel
+from slime.model import CovModelSet, MRModel
 
 
 class BetaRegressor:

@@ -32,7 +32,7 @@ def convert_to_covmodel(covariates: List[CovariateSpecification]
         # do I need this line?
         cov_model_order_dict[covariate.order] = ordered_cov_set
 
-    # constuct a CovModelSet for each order
+    # construct a CovModelSet for each order
     ordered_covmodel_sets = []
     cov_orders = list(cov_model_order_dict.keys())
     cov_orders.sort()
@@ -40,6 +40,6 @@ def convert_to_covmodel(covariates: List[CovariateSpecification]
         cov_model_set = CovModelSet(cov_model_order_dict[order])
         ordered_covmodel_sets.append(cov_model_set)
 
-    # constuct a CovModelSet for all
+    # construct a CovModelSet for all
     all_covmodels_set = CovModelSet(cov_models)
     return ordered_covmodel_sets, all_covmodels_set
