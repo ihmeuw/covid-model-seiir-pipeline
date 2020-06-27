@@ -17,16 +17,14 @@ if __name__ == "__main__":
 
     install_requirements = [
         'click',
-        'covid_shared>=1.0.18',
+        'covid_shared>=1.0.32',
         'loguru',
         'matplotlib',
-        #'mrtool',
         'numpy',
         'pandas',
         'pyyaml',
         'parse',
-        #'slime',
-        'tqdm',
+        'slime',
         'odeopt>=0.1.1'
     ]
 
