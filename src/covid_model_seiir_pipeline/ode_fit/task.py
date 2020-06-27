@@ -21,7 +21,7 @@ def run_ode_fit(draw_id: int, ode_version: str):
     fit_specification: FitSpecification = FitSpecification.from_path(
         Path(ode_version) / "fit_specification.yaml"
     )
-    data_interface = ODEDataInterface.from_fit_specification(fit_specification)
+    data_interface = ODEDataInterface.from_specification(fit_specification)
 
     # Load data
     location_ids = data_interface.load_location_ids()

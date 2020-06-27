@@ -12,7 +12,7 @@ def do_beta_fit(app_metadata: cli_tools.Metadata,
     logger.debug('Starting Beta fit.')
 
     # init high level objects
-    data_interface = ODEDataInterface.from_fit_specification(fit_specification)
+    data_interface = ODEDataInterface.from_specification(fit_specification)
 
     # Grab canonical location list from arguments
     location_metadata = data_interface.load_location_ids_from_primary_source(

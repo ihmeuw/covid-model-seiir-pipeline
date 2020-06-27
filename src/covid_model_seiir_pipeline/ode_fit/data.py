@@ -17,9 +17,9 @@ class ODEDataInterface:
         self.infection_paths = infection_paths
 
     @classmethod
-    def from_fit_specification(cls, fit_specification: FitSpecification):
-        ode_paths = paths.ODEPaths(Path(fit_specification.data.output_root), read_only=False)
-        infection_paths = paths.InfectionPaths(Path(fit_specification.data.infection_version))
+    def from_specification(cls, specification: FitSpecification) -> 'ODEDataInterface':
+        ode_paths = paths.ODEPaths(Path(specification.data.output_root), read_only=False)
+        infection_paths = paths.InfectionPaths(Path(specification.data.infection_version))
         return cls(
             ode_paths=ode_paths,
             infection_paths=infection_paths,
