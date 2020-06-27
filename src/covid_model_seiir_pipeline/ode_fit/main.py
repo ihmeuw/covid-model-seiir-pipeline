@@ -4,7 +4,7 @@ from pathlib import Path
 from covid_shared import cli_tools
 from loguru import logger
 
-from covid_model_seiir_pipeline.ode_fit import FitSpecification
+from covid_model_seiir_pipeline.ode_fit.specification import FitSpecification
 from covid_model_seiir_pipeline import paths
 from covid_model_seiir_pipeline.ode_fit.data import ODEDataInterface
 from covid_model_seiir_pipeline.ode_fit.workflow import ODEFitWorkflow

@@ -7,8 +7,9 @@ from typing import Optional
 import numpy as np
 
 from covid_model_seiir_pipeline import paths
-from covid_model_seiir_pipeline.ode_fit import FitSpecification, model
+from covid_model_seiir_pipeline.ode_fit import model
 from covid_model_seiir_pipeline.ode_fit.data import ODEDataInterface
+from covid_model_seiir_pipeline.ode_fit.specification import FitSpecification
 from covid_model_seiir_pipeline.static_vars import INFECTION_COL_DICT
 
 
