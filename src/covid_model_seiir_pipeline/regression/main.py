@@ -2,29 +2,26 @@ from pathlib import Path
 from shutil import copyfile
 
 from covid_shared import cli_tools
+from loguru import logger
 
-from covid_model_seiir_pipeline import static_vars
-from covid_model_seiir_pipeline.paths import RegressionPaths
-from covid_model_seiir_pipeline.ode_fit.specification import FitSpecification
+from covid_model_seiir_pipeline import paths
 from covid_model_seiir_pipeline.regression.specification import RegressionSpecification
 from covid_model_seiir_pipeline.regression.data import RegressionDataInterface
 from covid_model_seiir_pipeline.regression.workflow import RegressionWorkflow
 
 
 def do_beta_regression(app_metadata: cli_tools.Metadata,
-                       regression_specification: RegressionSpecification,
-                       output_dir: Path):
-    ode_fit_spec: FitSpecification = FitSpecification.from_path(
-        Path(regression_specification.data.ode_fit_version) / static_vars.FIT_SPECIFICATION_FILE
-    )
+                       regression_specification: RegressionSpecification):
+    logger.debug('Starting beta regression.')
     # init high level objects
-    regression_paths = RegressionPaths(output_dir, read_only=False)
+    regression_paths = paths.RegressionPaths(Path(regression_specification.data.output_root), read_only=False)
+    ode_paths = paths.RegressionPaths(Path(regression_specification.data.ode_fit_version))
+    covariate_paths = paths.CovariatePaths(Path(regression_specification.data.covariate_version))
+
     data_interface = RegressionDataInterface(
-        regression_root=Path(regression_specification.data.output_root),
-        covariate_root=Path(regression_specification.data.covariate_version),
-        ode_fit_root=Path(ode_fit_spec.data.output_root),
-        infection_root=Path(ode_fit_spec.data.infection_version),
-        location_file=Path(ode_fit_spec.data.location_set_file)
+        regression_paths=regression_paths,
+        ode_paths=ode_paths,
+        covariate_paths=covariate_paths
     )
 
     # build directory structure
@@ -39,6 +36,6 @@ def do_beta_regression(app_metadata: cli_tools.Metadata,
             copyfile(str(file), str(dest_path))
 
     # build workflow and launch
-    regression_wf = RegressionWorkflow(regression_specification, ode_fit_spec)
+    regression_wf = RegressionWorkflow(regression_specification.data.output_root)
     regression_wf.attach_beta_regression_tasks()
     regression_wf.run()
