@@ -1,35 +1,63 @@
 from pathlib import Path
-from typing import List, Dict
+from typing import List, Dict, Optional, Union
 
 from loguru import logger
 import pandas as pd
 import yaml
 
 from covid_model_seiir_pipeline.static_vars import INFECTION_COL_DICT
-from covid_model_seiir_pipeline.paths import ODEPaths, InfectionPaths
+from covid_model_seiir_pipeline import paths
 
 
 class ODEDataInterface:
 
-    def __init__(self, ode_fit_root: Path, infection_root: Path, location_file: Path) -> None:
-        self.ode_paths = ODEPaths(ode_fit_root)
-        self.infection_paths = InfectionPaths(infection_root)
-        self.location_metadata_file = location_file
+    def __init__(self, ode_paths: paths.ODEPaths,
+                 infection_paths: paths.InfectionPaths) -> None:
+        self.ode_paths = ode_paths
+        self.infection_paths = infection_paths
 
-    def load_location_ids(self) -> List[int]:
+    def load_location_ids_from_primary_source(self, location_set_version_id: Optional[int],
+                                              location_file: Optional[Union[str, Path]]) -> Union[List[int], None]:
+        """Retrieve a location hierarchy from a file or from GBD if specified."""
+        # TODO: Remove after integration testing.
+        assert not (location_set_version_id and location_file), 'CLI location validation is broken.'
+        if location_set_version_id:
+            location_metadata = self._load_from_location_set_version_id(location_set_version_id)
+        elif location_file:
+            location_metadata = pd.read_csv(location_file)
+        else:
+            location_metadata = None
+
+        if location_metadata is not None:
+            location_metadata = location_metadata.loc[location_metadata.most_detailed == 1, 'location_id'].tolist()
+        return location_metadata
+
+    def filter_location_ids(self, desired_locations: List[int] = None) -> List[int]:
         """Get the list of location ids to model.
 
-        This list is the intersection of a location hierarchy file and
-        the available locations in the infections directory.
+        This list is the intersection of a location metadata's
+        locations, if provided, and the available locations in the infections
+        directory.
 
         """
-        desired_locs = pd.read_csv(self.location_metadata_file)["location_id"].tolist()
-        modeled_locs = self.infection_paths.get_modelled_locations()
-        missing_locs = list(set(desired_locs).difference(modeled_locs))
-        if missing_locs:
+        modeled_locations = self.infection_paths.get_modelled_locations()
+        if desired_locations is None:
+            desired_locations = modeled_locations
+
+        missing_locations = list(set(desired_locations).difference(modeled_locations))
+        if missing_locations:
             logger.warning("Some locations present in location metadata are missing from the "
-                           f"infection models. Missing locations are {missing_locs}.")
-        return list(set(desired_locs).intersection(modeled_locs))
+                           f"infection models. Missing locations are {sorted(missing_locations)}.")
+        return list(set(desired_locations).intersection(modeled_locations))
+
+    def load_location_ids(self) -> List[int]:
+        with self.ode_paths.location_metadata.open() as location_file:
+            location_ids = yaml.full_load(location_file)
+        return location_ids
+
+    def dump_location_ids(self, location_ids: List[int]):
+        with self.ode_paths.location_metadata.open('w') as location_file:
+            yaml.dump(location_ids, location_file)
 
     def load_all_location_data(self, location_ids: List[int], draw_id: int
                                ) -> Dict[int, pd.DataFrame]:
@@ -72,3 +100,10 @@ class ODEDataInterface:
         with (self.ode_paths.root_dir / 'locations.yaml') as location_file:
             yaml.dump({'locations': locations},location_file)
 
+    @staticmethod
+    def _load_from_location_set_version_id(location_set_version_id: int) -> pd.DataFrame:
+        # Hide this import so the code stays portable outside IHME by using
+        # a locations file directly.
+        from db_queries import get_location_metadata
+        return get_location_metadata(location_set_id=111,
+                                     location_set_version_id=location_set_version_id)

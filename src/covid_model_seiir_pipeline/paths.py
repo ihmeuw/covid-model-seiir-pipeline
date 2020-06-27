@@ -1,7 +1,7 @@
 import abc
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import List, ClassVar, Dict
+from typing import List, ClassVar, Dict, Union
 
 from parse import parse
 
@@ -15,8 +15,11 @@ class Paths:
     local directory structures.
 
     """
-    root_dir: Path
+    root_dir: Union[str, Path]
     read_only: bool = field(default=True)
+
+    def __post_init__(self):
+        self.root_dir = Path(self.root_dir)
 
     @property
     @abc.abstractmethod
@@ -146,6 +149,14 @@ class ODEPaths(Paths):
     draw_date_file: ClassVar[str] = 'dates_draw_{draw_id}.csv'
 
     @property
+    def location_metadata(self) -> Path:
+        return self.root_dir / 'locations.yaml'
+
+    @property
+    def fit_specification(self):
+        return self.root_dir / 'fit_specification.yaml'
+
+    @property
     def beta_fit_dir(self) -> Path:
         return self.root_dir / 'betas'
 
@@ -168,13 +179,9 @@ class ODEPaths(Paths):
         return self.date_dir / self.draw_date_file.format(draw_id=draw_id)
 
     @property
-    def diagnostic_dir(self) -> Path:
-        return self.root_dir / 'diagnostics'
-
-    @property
     def directories(self) -> List[Path]:
         """Returns all top level sub-directories."""
-        return [self.beta_fit_dir, self.parameters_dir, self.diagnostic_dir, self.date_dir]
+        return [self.beta_fit_dir, self.parameters_dir, self.date_dir]
 
     @property
     def location_specific_directories(self) -> List[Path]:

@@ -39,6 +39,7 @@ if __name__ == "__main__":
 
     internal_requirements = [
         'jobmon',
+        'db_queries',
     ]
 
     setup(
