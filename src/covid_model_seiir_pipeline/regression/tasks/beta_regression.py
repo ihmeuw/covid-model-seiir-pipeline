@@ -11,8 +11,7 @@ from slime.model import CovModelSet
 from slime.core.data import MRData
 
 from covid_model_seiir_pipeline.model_runner import ModelRunner
-from covid_model_seiir_pipeline import static_vars
-from covid_model_seiir_pipeline.ode_fit.specification import FitSpecification
+from covid_model_seiir_pipeline import paths, static_vars
 from covid_model_seiir_pipeline.regression.covariate_model import convert_to_covmodel
 from covid_model_seiir_pipeline.regression.specification import (RegressionSpecification,
                                                                  CovariateSpecification)
@@ -111,26 +110,18 @@ def convert_inputs_for_beta_model(covariate_df: pd.DataFrame, beta_df: pd.DataFr
 
 
 def run_beta_regression(draw_id: int, regression_version: str) -> None:
-    regress_spec: RegressionSpecification = RegressionSpecification.from_path(
+    regression_specification: RegressionSpecification = RegressionSpecification.from_path(
         Path(regression_version) / static_vars.REGRESSION_SPECIFICATION_FILE
     )
-    ode_fit_spec: FitSpecification = FitSpecification.from_path(
-        Path(regress_spec.data.ode_fit_version) / static_vars.FIT_SPECIFICATION_FILE
-    )
-    data_interface = RegressionDataInterface(
-        regression_root=Path(regress_spec.data.output_root),
-        covariate_root=Path(regress_spec.data.covariate_version),
-        ode_fit_root=Path(ode_fit_spec.data.output_root),
-        infection_root=Path(ode_fit_spec.data.infection_version),
-        location_file=Path(ode_fit_spec.data.location_set_file)
-    )
+    data_interface = RegressionDataInterface.from_specification(regression_specification)
+
     location_ids = data_interface.load_location_ids()
 
     # -------------------------- LOAD INPUTS -------------------- #
     covariate_df = create_covariate_pool(
         draw_id=draw_id,
         location_ids=location_ids,
-        covariates=list(regress_spec.covariates.values()),
+        covariates=list(regression_specification.covariates.values()),
         regression_data_interface=data_interface
     )
     beta_df = data_interface.load_ode_fits(location_ids, draw_id)
@@ -141,7 +132,7 @@ def run_beta_regression(draw_id: int, regression_version: str) -> None:
 
     # create covariate model
     ordered_covmodel_sets, all_covmodels_set = convert_to_covmodel(
-        list(regress_spec.covariates.values())
+        list(regression_specification.covariates.values())
     )
 
     mr_data = convert_inputs_for_beta_model(covariate_df, beta_df, all_covmodels_set)
@@ -153,7 +144,6 @@ def run_beta_regression(draw_id: int, regression_version: str) -> None:
         mr_data=mr_data,
         path=str(data_interface.regression_paths.get_draw_coefficient_file(draw_id)),
         df_cov_coef=fixed_coefficients,
-        add_intercept=False,
     )
 
     # Forecast the beta forward with those coefficients
