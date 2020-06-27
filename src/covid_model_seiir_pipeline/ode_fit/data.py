@@ -5,9 +5,9 @@ from loguru import logger
 import pandas as pd
 import yaml
 
-from covid_model_seiir_pipeline.static_vars import INFECTION_COL_DICT
 from covid_model_seiir_pipeline import paths
-
+from covid_model_seiir_pipeline.ode_fit.specification import FitSpecification
+from covid_model_seiir_pipeline.static_vars import INFECTION_COL_DICT
 
 class ODEDataInterface:
 
@@ -15,6 +15,15 @@ class ODEDataInterface:
                  infection_paths: paths.InfectionPaths) -> None:
         self.ode_paths = ode_paths
         self.infection_paths = infection_paths
+
+    @classmethod
+    def from_fit_specification(cls, fit_specification: FitSpecification):
+        ode_paths = paths.ODEPaths(Path(fit_specification.data.output_root), read_only=False)
+        infection_paths = paths.InfectionPaths(Path(fit_specification.data.infection_version))
+        return cls(
+            ode_paths=ode_paths,
+            infection_paths=infection_paths,
+        )
 
     def load_location_ids_from_primary_source(self, location_set_version_id: Optional[int],
                                               location_file: Optional[Union[str, Path]]) -> Union[List[int], None]:
