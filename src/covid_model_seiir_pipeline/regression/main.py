@@ -27,5 +27,6 @@ def do_beta_regression(app_metadata: cli_tools.Metadata,
 
     # build workflow and launch
     regression_wf = RegressionWorkflow(regression_specification.data.output_root)
-    regression_wf.attach_beta_regression_tasks()
+    n_draws = data_interface.get_draw_count()
+    regression_wf.attach_beta_regression_tasks(n_draws=n_draws)
     regression_wf.run()
