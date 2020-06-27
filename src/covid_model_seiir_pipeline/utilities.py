@@ -109,7 +109,6 @@ def get_input_root(cli_argument: Optional[str], specification_value: Optional[st
 
     """
     version = get_argument_hierarchically(cli_argument, specification_value, paths.BEST_LINK)
-    version = Path(version).resolve()
     root = cli_tools.get_last_stage_directory(version, last_stage_root=last_stage_root)
     return root.resolve()
 
@@ -152,15 +151,15 @@ def get_location_metadata(location_specification: Optional[str],
     return lsvid, location_file
 
 
-def get_output_root(cli_argument: Optional[str], specification_value: Optional[str],
-                    default: Union[str, Path]) -> Path:
+def get_output_root(cli_argument: Optional[str], specification_value: Optional[str]) -> Path:
     """Determine the output root hierarchically.
 
     CLI arguments override specification args.  Specification args override
     the default.
 
     """
-    version = get_argument_hierarchically(cli_argument, specification_value, default)
+    # Default behavior handled by CLI.
+    version = get_argument_hierarchically(cli_argument, specification_value, cli_argument)
     version = Path(version).resolve()
     return version
 
