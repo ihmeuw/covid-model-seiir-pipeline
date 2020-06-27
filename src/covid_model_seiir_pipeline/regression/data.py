@@ -48,6 +48,11 @@ class RegressionDataInterface:
         df_beta = pd.concat(df_beta).reset_index(drop=True)
         return df_beta
 
+    def get_draw_count(self) -> int:
+        with self.ode_paths.fit_specification.open() as fit_spec_file:
+            fit_spec = yaml.full_load(fit_spec_file)
+        return fit_spec['parameters']['n_draws']
+
     ###########################
     # Covariate paths loaders #
     ###########################

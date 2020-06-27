@@ -5,8 +5,6 @@ from jobmon.client.swarm.executors.base import ExecutorParameters
 from jobmon.client.swarm.workflow.task_dag import DagExecutionStatus
 
 from covid_model_seiir_pipeline import utilities
-from covid_model_seiir_pipeline.ode_fit.specification import FitSpecification
-from covid_model_seiir_pipeline.regression.specification import RegressionSpecification
 
 
 class BetaRegressionTaskTemplate:
@@ -81,20 +79,17 @@ class RegressionDiagnosticsTaskTemplate:
 
 class RegressionWorkflow:
 
-    def __init__(self, regression_specification: RegressionSpecification,
-                 ode_fit_specification: FitSpecification):
-        self.regression_specification = regression_specification
-        self.ode_fit_specification = ode_fit_specification
-
+    def __init__(self, regression_version):
+        self.regression_version = regression_version
         # if we need to build dependencies then the task registry must be shared between
         # task factories
         self.task_registry: Dict[str, BashTask] = {}
         self._beta_regression_tt = BetaRegressionTaskTemplate(self.task_registry)
         self._regression_diagnostics_tt = RegressionDiagnosticsTaskTemplate(self.task_registry)
 
-        workflow_args = f'seiir-regression-{regression_specification.data.output_root}'
+        workflow_args = f'seiir-regression-{regression_version}'
         stdout, stderr = utilities.make_log_dirs(
-            self.regression_specification.data.output_root, prefix='jobmon'
+            regression_version, prefix='jobmon'
         )
 
         self.workflow = Workflow(
@@ -106,16 +101,16 @@ class RegressionWorkflow:
             resume=True
         )
 
-    def attach_beta_regression_tasks(self):
-        for draw_id in range(self.ode_fit_specification.parameters.n_draws):
+    def attach_beta_regression_tasks(self, n_draws: int):
+        for draw_id in range(n_draws):
             task = self._beta_regression_tt.get_task(
-                draw_id, self.regression_specification.data.output_root
+                draw_id, self.regression_version
             )
             self.workflow.add_task(task)
 
     def attach_regression_diagnostics_task(self):
         task = self._regression_diagnostics_tt.get_task(
-            self.regression_specification.data.output_root
+            self.regression_version
         )
         self.workflow.add_task(task)
 
