@@ -36,12 +36,9 @@ class BetaRegressor:
         if verbose:
             pprint(self.cov_coef)
             print()
-
-    def save_coef(self, path):
-        df = pd.DataFrame.from_dict(self.cov_coef, orient='index')
-        df.reset_index(inplace=True)
-        df.columns = ['group_id'] + self.col_covs
-        return df.to_csv(path)
+        coef = pd.DataFrame.from_dict(self.cov_coef, orient='index').reset_index()
+        coef.columns = ['group_id'] + self.col_covs
+        return coef
 
     def load_coef(self, df=None, path=None):
         if df is None:
@@ -111,12 +108,6 @@ class BetaRegressorSequential:
         self.regressor.fit(mr_data, verbose)
         self.cov_coef = self.regressor.cov_coef
 
-    def save_coef(self, path):
-        self.regressor.save_coef(path)
-
-    def load_coef(self, df=None, path=None):
-        self.regressor.load_coef(df=df, path=path)
-
     def predict(self, cov, group):
         return self.regressor.predict(cov, group)
 
@@ -142,3 +133,36 @@ def predict(regressor, df_cov, col_t, col_group, col_beta='beta_pred'):
     df[col_beta] = beta_pred
 
     return df
+
+
+def convolve_mean(mat, radius=None):
+    """Convolve mean a 2D matrix by given radius.
+    Args:
+        mat (numpy.ndarray):
+            Matrix of interest.
+        radius (arraylike{int} | None, optional):
+            Given radius, if None assume radius = (0, 0).
+    Returns:
+        numpy.ndarray:
+            The convolved sum, with the same shape with original matrix.
+    """
+    mat = np.array(mat).astype(float)
+    assert mat.ndim == 2
+    if radius is None:
+        return mat
+    assert hasattr(radius, '__iter__')
+    radius = np.array(radius).astype(int)
+    assert radius.size == 2
+    assert all([r >= 0 for r in radius])
+    # import pdb; pdb.set_trace()
+    shape = np.array(mat.shape)
+    window_shape = tuple(radius*2 + 1)
+
+    mat = np.pad(mat, ((radius[0],),
+                       (radius[1],)), 'constant', constant_values=np.nan)
+    view_shape = tuple(np.subtract(mat.shape, window_shape) + 1) + window_shape
+    strides = mat.strides*2
+    sub_mat = np.lib.stride_tricks.as_strided(mat, view_shape, strides)
+    sub_mat = sub_mat.reshape(*shape, np.prod(window_shape))
+
+    return np.nanmean(sub_mat, axis=2)

@@ -1,90 +1,63 @@
 from argparse import ArgumentParser, Namespace
+from collections import defaultdict
 import logging
 from pathlib import Path
 import shlex
-from typing import Optional, List, Dict
+from typing import Iterable, List, Optional, Union
 
 import numpy as np
 import pandas as pd
 
-from slime.model import CovModelSet
+from slime.model import CovModelSet, CovModel
 from slime.core.data import MRData
 
-from covid_model_seiir_pipeline.model_runner import ModelRunner
 from covid_model_seiir_pipeline import static_vars
-from covid_model_seiir_pipeline.regression.covariate_model import convert_to_covmodel
+from covid_model_seiir_pipeline.regression.data import RegressionDataInterface
 from covid_model_seiir_pipeline.regression.specification import (RegressionSpecification,
                                                                  CovariateSpecification)
-from covid_model_seiir_pipeline.regression.data import RegressionDataInterface
+from covid_model_seiir_pipeline.regression.model import BetaRegressor, BetaRegressorSequential, predict, convolve_mean
 
 
 log = logging.getLogger(__name__)
 
 
-def create_covariate_pool(draw_id: int,
-                          location_ids: List[int],
-                          covariates: List[CovariateSpecification],
-                          regression_data_interface: RegressionDataInterface
-                          ) -> pd.DataFrame:
-
-    def _merge_helper(dfs, df) -> pd.DataFrame:
-        date_col = static_vars.COVARIATE_COL_DICT['COL_DATE']
-        if dfs.empty:
-            dfs = df
-        else:
-            if date_col in df.columns and date_col in dfs.columns:
-                dfs = dfs.merge(df, on=[static_vars.COVARIATE_COL_DICT['COL_LOC_ID'],
-                                        static_vars.COVARIATE_COL_DICT['COL_DATE']])
-            else:
-                dfs = dfs.merge(df, on=[static_vars.COVARIATE_COL_DICT['COL_LOC_ID']])
-        return dfs
-
-    covariate_df = pd.DataFrame()
-    covariate_set_scenarios: Dict[str, pd.DataFrame] = {}
-
-    # iterate through covariates and pull in regression data and scenario data
-    for covariate in covariates:
-        if covariate.name == "intercept":
-            continue
-
-        # import covariates
-        tmp_set = regression_data_interface.load_covariate(
-            covariate=covariate.name,
-            location_ids=location_ids,  # TODO: testing value
-            draw_id=draw_id,
-            use_draws=covariate.draws
-        )
-
-        df = tmp_set.pop(covariate.name)
-        covariate_set_scenarios.update(tmp_set)
-
-        # time dependent covariates versus not
-        covariate_df = _merge_helper(covariate_df, df)
-
-    # save covariates to disk for posterity
-    regression_data_interface.save_covariates(covariate_df, draw_id)
-
-    # create scenario set file
-    scenario_df = pd.DataFrame()
-    for df in covariate_set_scenarios.values():
-        scenario_df = _merge_helper(scenario_df, df)
-    regression_data_interface.save_scenarios(scenario_df, draw_id)
-
-    return covariate_df
-
-
-def convert_inputs_for_beta_model(covariate_df: pd.DataFrame,
-                                  beta_df: pd.DataFrame,
-                                  covmodel_set: CovModelSet) -> MRData:
+def align_beta_with_covariates(covariate_df: pd.DataFrame,
+                               beta_df: pd.DataFrame,
+                               cov_names: List[str]) -> MRData:
     """Convert inputs for the beta regression model."""
     join_cols = ['location_id', 'date']
     df = beta_df.merge(covariate_df, on=join_cols)
     df = df.loc[df['beta'] != 0]
     df = df.sort_values(by=join_cols)
     df['ln_beta'] = np.log(df['beta'])
-    cov_names = [covmodel.col_cov for covmodel in covmodel_set.cov_models]
     mrdata = MRData(df, col_group='location_id', col_obs='beta', col_covs=cov_names)
     return mrdata
+
+
+def build_regressor(covariates: Iterable[CovariateSpecification]) -> Union[BetaRegressor, BetaRegressorSequential]:
+    """
+    Based on a list of `CovariateSpecification`s and an ordered list of lists of covariate
+    names, create a CovModelSet.
+    """
+    # construct each CovModel independently. add to dict of list by covariate order
+    covariate_models = defaultdict(list)
+    for covariate in covariates:
+        cov_model = CovModel(
+            col_cov=covariate.name,
+            use_re=covariate.use_re,
+            bounds=np.array(covariate.bounds),
+            gprior=np.array(covariate.gprior),
+            re_var=covariate.re_var,
+        )
+        covariate_models[covariate.order].append(cov_model)
+    ordered_covmodel_sets = [CovModelSet(covariate_group)
+                             for _, covariate_group in sorted(covariate_models.items())]
+    if len(ordered_covmodel_sets) > 1:
+        regressor = BetaRegressorSequential(ordered_covmodel_sets)
+    else:
+        regressor = BetaRegressor(ordered_covmodel_sets[0])
+
+    return regressor
 
 
 def run_beta_regression(draw_id: int, regression_version: str) -> None:
@@ -99,49 +72,25 @@ def run_beta_regression(draw_id: int, regression_version: str) -> None:
     # The data we want to fit
     beta_df = data_interface.load_ode_fits(draw_id, location_ids)
     covariates = data_interface.load_covariates(regression_specification.covariates, location_ids)
+
     # -------------- BETA REGRESSION WITH LOADED COVARIATES -------------------- #
-    # Convert inputs for beta regression
-    mr = ModelRunner()
-    import pdb; pdb.set_trace()
-    # create covariate model
-    ordered_covmodel_sets, all_covmodels_set = convert_to_covmodel(
-        list(regression_specification.covariates.values())
-    )
+    mr_data = align_beta_with_covariates(covariates, beta_df, list(regression_specification.covariates))
+    regressor = build_regressor(regression_specification.covariates.values())
 
-    mr_data = convert_inputs_for_beta_model(covariates, beta_df, all_covmodels_set)
-    # TODO: add coefficient version
-    fixed_coefficients = None
-    # fit beta regression
-    mr.fit_beta_regression_prod(
-        ordered_covmodel_sets=ordered_covmodel_sets,
-        mr_data=mr_data,
-        path=str(data_interface.regression_paths.get_draw_coefficient_file(draw_id)),
-        df_cov_coef=fixed_coefficients,
-    )
+    coefficients = regressor.fit(mr_data)
+    data_interface.save_regression_coefficients(coefficients, draw_id)
 
-    # Forecast the beta forward with those coefficients
-    regression_fit = data_interface.load_mr_coefficients(draw_id=draw_id)
-    forecasts = mr.predict_beta_forward_prod(
-        covmodel_set=all_covmodels_set,
-        df_cov=covariate_df,
-        df_cov_coef=regression_fit,
-        col_t=static_vars.COVARIATE_COL_DICT['COL_DATE'],
-        col_group=static_vars.COVARIATE_COL_DICT['COL_LOC_ID']
-    )
-    regression_betas = forecasts[
-        [static_vars.COVARIATE_COL_DICT['COL_LOC_ID'],
-         static_vars.COVARIATE_COL_DICT['COL_DATE']] +
-        [c.col_cov for c in all_covmodels_set.cov_models] + ['beta_pred']
-    ]
-    beta_fit_covariates = beta_df.merge(
-        regression_betas,
-        left_on=[static_vars.INFECTION_COL_DICT['COL_LOC_ID'],
-                 static_vars.INFECTION_COL_DICT['COL_DATE']],
-        right_on=[static_vars.COVARIATE_COL_DICT['COL_LOC_ID'],
-                  static_vars.COVARIATE_COL_DICT['COL_DATE']],
-        how='left'
-    )
-    data_interface.save_regression_betas(beta_fit_covariates, draw_id, location_ids)
+    # Fixme: don't know why this is here.  Regression is done after coefficients.
+    #  Review with forecast integration.
+    prediction = predict(regressor, covariates, col_t='date', col_group='location_id')
+    beta_pred = np.exp(prediction['ln_beta_pred']).values[None, :]
+    beta_pred = convolve_mean(beta_pred, radius=[0, 0])
+    prediction['beta_pred'] = beta_pred.ravel()
+
+    keep_columns = ['location_id', 'date'] + list(regression_specification.covariates) + ['beta_pred']
+    regression_betas = prediction[keep_columns]
+    beta_fit_covariates = beta_df.merge(regression_betas, on=['location_id', 'date'], how='left')
+    data_interface.save_regression_betas(beta_fit_covariates, draw_id)
 
 
 def parse_arguments(argstr: Optional[str] = None) -> Namespace:

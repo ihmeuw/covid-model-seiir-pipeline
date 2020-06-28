@@ -140,6 +140,12 @@ class RegressionDataInterface:
 
         return regress_df, scenario_df
 
+    def save_regression_coefficients(self, coefficients: pd.DataFrame, draw_id: int) -> None:
+        coefficients.to_csv(self.regression_paths.get_coefficient_file(draw_id))
+
+    def load_regression_coefficients(self, draw_id: int) -> pd.DataFrame:
+        return pd.read_csv(self.regression_paths.get_coefficient_file(draw_id))
+
     def save_covariates(self, df: pd.DataFrame, draw_id: int) -> None:
         path = self.regression_paths.get_covariates_file(draw_id)
         df.to_csv(path, index=False)
@@ -147,9 +153,6 @@ class RegressionDataInterface:
     def save_scenarios(self, df: pd.DataFrame, draw_id: int) -> None:
         scenario_file = self.regression_paths.get_scenarios_file(draw_id)
         df.to_csv(scenario_file, index=False)
-
-    def load_mr_coefficients(self, draw_id: int) -> pd.DataFrame:
-        return pd.read_csv(self.regression_paths.get_coefficient_file(draw_id))
 
     def save_regression_betas(self, df: pd.DataFrame, draw_id: int) -> None:
         beta_file = self.regression_paths.get_beta_regression_file(draw_id)
