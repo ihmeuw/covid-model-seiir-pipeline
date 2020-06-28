@@ -54,9 +54,7 @@ def run_ode_fit(draw_id: int, ode_version: str):
 
     # Save location-specific beta fit (compartment) files for easy reading later
     beta_fit = ode_model.create_result_df()
-    for l_id in location_ids:
-        loc_beta_fits = beta_fit.loc[beta_fit[INFECTION_COL_DICT['COL_LOC_ID']] == l_id].copy()
-        data_interface.save_draw_beta_fit_file(loc_beta_fits, l_id, draw_id)
+    data_interface.save_beta_fit_file(beta_fit, draw_id)
 
     # Save the parameters of alpha, sigma, gamma1, and gamma2 that were drawn
     draw_beta_params = ode_model.create_params_df()
