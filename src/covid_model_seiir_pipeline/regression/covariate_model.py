@@ -28,5 +28,5 @@ def convert_to_covmodel(covariates: List[CovariateSpecification]
         covariate_models[covariate.order].append(cov_model)
     ordered_covmodel_sets = [CovModelSet(covariate_group)
                              for _, covariate_group in sorted(covariate_models.items())]
-    all_covmodel_set = CovModelSet(itertools.chain(*covariate_models.values()))
+    all_covmodel_set = CovModelSet(list(itertools.chain(*covariate_models.values())))
     return ordered_covmodel_sets, all_covmodel_set
