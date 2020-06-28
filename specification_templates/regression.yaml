@@ -14,34 +14,70 @@ covariates:
     # Lower and upper bounds for fixed + random effects. [lower, upper]
     bounds: [-1000.0, 1000.0]
     # Variance of the random effect.  Float
-    re_var: 1.0
+    re_var: 1000.0
     # Whether this covariate has draws or not.
+    draws: False
+  pneumonia:
+    order: 0
+    use_re: False
+    gprior: [0.0, 0.205]
+    bounds: [0.9, 1.31]
+    re_var: 1.0
     draws: False
   mobility:
     order: 0
-    use_re: True
-    gprior: [0.0, 1000.0]
-    bounds: [0.0, 1000.0]
-    re_var: 1.0
-    draws: False
-  proportion_over_1k:
-    order: 1
     use_re: False
     gprior: [0.0, 1000.0]
     bounds: [0.0, 1000.0]
     re_var: 1.0
     draws: False
-  temperature:
-    order: 2
+  mask_use:
+    order: 0
     use_re: False
-    gprior: [0.0, 1000.0]
-    bounds: [-1000.0, 0.]
+    gprior: [0., 0.21]
+    bounds: [-0.52, 0.0]
     re_var: 1.0
     draws: False
   testing:
-    order: 3
+    order: 0
     use_re: False
-    gprior: [0.0, 1000.0]
-    bounds: [-1000.0, 0.0]
+    gprior: [0.0, 69.0]
+    bounds: [-138.0, 0.0]
     re_var: 1.0
     draws: False
+  air_pollution_pm_2_5:
+    order: 0
+    use_re: False
+    gprior: [0.0, 1000.0]
+    bounds: [0.0, 1000.0]
+    re_var: 1.0
+    draws: False
+  smoking_prevalence:
+    order: 0
+    use_re: False
+    gprior: [0.0, 0.5]
+    bounds: [0.0, 1.0]
+    re_var: 1.0
+    draws: False
+  lri_mortality:
+    order: 0
+    use_re: False
+    gprior: [0.0, 1000.0]
+    bounds: [0.0, 1000.0]
+    re_var: 1.0
+    draws: False
+  proportion_under_100m:
+    order: 0
+    use_re: False
+    gprior: [0.0, 1000.0]
+    bounds: [0.0, 1000.0]
+    re_var: 1.0
+    draws: False
+  proportion_over_2_5k:
+    order: 1
+    use_re: False
+    gprior: [0.0, 0.001]
+    bounds: [0.0, 1000.0]
+    re_var: 1.0
+    draws: False
+
