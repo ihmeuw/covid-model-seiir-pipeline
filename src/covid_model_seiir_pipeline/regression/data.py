@@ -1,5 +1,6 @@
+from functools import reduce
 from pathlib import Path
-from typing import List, Dict, Tuple, Iterable
+from typing import List, Tuple, Iterable
 
 import pandas as pd
 import yaml
@@ -84,13 +85,12 @@ class RegressionDataInterface:
         covariate_df = covariate_df.rename(columns={f'{covariate}_reference': covariate})
         return covariate_df.loc[:, index_columns + [covariate]].set_index(index_columns)
 
-
     def load_covariates(self, covariates: Iterable[str], location_ids: List[int]) -> pd.DataFrame:
         covariate_data = []
         for covariate in covariates:
             if covariate != 'intercept':
                 covariate_data.append(self.load_covariate(covariate, location_ids))
-        covariate_data = pd.concat(covariate_data, axis=1)
+        covariate_data = reduce(lambda x, y: x.merge(y, left_index=True, right_index=True), covariate_data)
         return covariate_data.reset_index()
 
     def _load_scenario_file(self, val_name: str, input_file: Path, location_ids: List[int],
