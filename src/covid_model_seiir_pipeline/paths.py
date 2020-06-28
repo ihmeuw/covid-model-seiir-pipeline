@@ -8,6 +8,9 @@ from parse import parse
 from covid_shared.shell_tools import mkdir
 from loguru import logger
 
+DRAW_FILE_TEMPLATE = 'draw_{draw_id}.csv'
+LOCATION_FILE_TEMPLATE = 'location_{location_id}.csv'
+
 
 @dataclass
 class Paths:
@@ -144,9 +147,9 @@ class ForecastPaths(Paths):
 @dataclass
 class ODEPaths(Paths):
     # class attributes are inferred using ClassVar. See pep 557 (Class Variables)
-    draw_beta_fit_file: ClassVar[str] = 'fit_draw_{draw_id}.csv'
-    draw_beta_param_file: ClassVar[str] = 'params_draw_{draw_id}.csv'
-    draw_date_file: ClassVar[str] = 'dates_draw_{draw_id}.csv'
+    beta_fit_file: ClassVar[str] = DRAW_FILE_TEMPLATE
+    beta_param_file: ClassVar[str] = DRAW_FILE_TEMPLATE
+    date_file: ClassVar[str] = DRAW_FILE_TEMPLATE
 
     @property
     def location_metadata(self) -> Path:
@@ -160,36 +163,27 @@ class ODEPaths(Paths):
     def beta_fit_dir(self) -> Path:
         return self.root_dir / 'betas'
 
-    def get_draw_beta_fit_file(self, location_id: int, draw_id: int) -> Path:
-        file = self.draw_beta_fit_file.format(draw_id=draw_id)
-        return self.beta_fit_dir / str(location_id) / file
+    def get_beta_fit_file(self, draw_id: int) -> Path:
+        return self.beta_fit_dir / self.beta_fit_file.format(draw_id=draw_id)
 
     @property
     def parameters_dir(self) -> Path:
         return self.root_dir / 'parameters'
 
     def get_draw_beta_param_file(self, draw_id: int) -> Path:
-        return self.parameters_dir / self.draw_beta_param_file.format(draw_id=draw_id)
+        return self.parameters_dir / self.beta_param_file.format(draw_id=draw_id)
 
     @property
     def date_dir(self) -> Path:
         return self.root_dir / 'dates'
 
     def get_draw_date_file(self, draw_id: int) -> Path:
-        return self.date_dir / self.draw_date_file.format(draw_id=draw_id)
+        return self.date_dir / self.date_file.format(draw_id=draw_id)
 
     @property
     def directories(self) -> List[Path]:
         """Returns all top level sub-directories."""
         return [self.beta_fit_dir, self.parameters_dir, self.date_dir]
-
-    @property
-    def location_specific_directories(self) -> List[Path]:
-        """Returns all top level sub-directories that have location-specific
-        sub-directories.
-
-        """
-        return [self.beta_fit_dir]
 
 
 @dataclass

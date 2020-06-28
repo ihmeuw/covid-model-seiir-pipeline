@@ -9,6 +9,7 @@ from covid_model_seiir_pipeline import paths
 from covid_model_seiir_pipeline.ode_fit.specification import FitSpecification
 from covid_model_seiir_pipeline.static_vars import INFECTION_COL_DICT
 
+
 class ODEDataInterface:
 
     def __init__(self, ode_paths: paths.ODEPaths,
@@ -95,9 +96,8 @@ class ODEDataInterface:
 
         return dfs
 
-    def save_draw_beta_fit_file(self, df: pd.DataFrame, location_id: int, draw_id: int
-                                ) -> None:
-        df.to_csv(self.ode_paths.get_draw_beta_fit_file(location_id, draw_id), index=False)
+    def save_beta_fit_file(self, df: pd.DataFrame, draw_id: int) -> None:
+        df.to_csv(self.ode_paths.get_beta_fit_file(draw_id), index=False)
 
     def save_draw_beta_param_file(self, df: pd.DataFrame, draw_id: int) -> None:
         df.to_csv(self.ode_paths.get_draw_beta_param_file(draw_id), index=False)
