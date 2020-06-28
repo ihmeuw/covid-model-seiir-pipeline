@@ -77,29 +77,13 @@ def convert_inputs_for_beta_model(covariate_df: pd.DataFrame,
                                   beta_df: pd.DataFrame,
                                   covmodel_set: CovModelSet) -> MRData:
     """Convert inputs for the beta regression model."""
-    df = beta_df.merge(
-        covariate_df,
-        left_on=[static_vars.COL_DATE, static_vars.COL_GROUP],
-        right_on=[static_vars.COVARIATE_COL_DICT['COL_DATE'],
-                  static_vars.COVARIATE_COL_DICT['COL_LOC_ID']],
-    )
-    df = df.loc[df[static_vars.COL_BETA] != 0]
-    df = df.sort_values(by=[static_vars.COL_GROUP, static_vars.COL_DATE])
-    df['ln_' + static_vars.COL_BETA] = np.log(df[static_vars.COL_BETA])
+    join_cols = ['location_id', 'date']
+    df = beta_df.merge(covariate_df, on=join_cols)
+    df = df.loc[df['beta'] != 0]
+    df = df.sort_values(by=join_cols)
+    df['ln_beta'] = np.log(df['beta'])
     cov_names = [covmodel.col_cov for covmodel in covmodel_set.cov_models]
-
-    # quality check. shouldn't hit because we drop nulls in data_interface
-    covs_na = []
-    for name in cov_names:
-        if name != static_vars.COL_INTERCEPT:
-            if df[name].isna().values.any():
-                covs_na.append(name)
-    if len(covs_na) > 0:
-        raise ValueError('NaN in covariate data: ' + str(covs_na))
-
-    mrdata = MRData(df, col_group=static_vars.COL_GROUP, col_obs='ln_' + static_vars.COL_BETA,
-                    col_covs=cov_names)
-
+    mrdata = MRData(df, col_group='location_id', col_obs='beta', col_covs=cov_names)
     return mrdata
 
 
@@ -118,7 +102,7 @@ def run_beta_regression(draw_id: int, regression_version: str) -> None:
     # -------------- BETA REGRESSION WITH LOADED COVARIATES -------------------- #
     # Convert inputs for beta regression
     mr = ModelRunner()
-
+    import pdb; pdb.set_trace()
     # create covariate model
     ordered_covmodel_sets, all_covmodels_set = convert_to_covmodel(
         list(regression_specification.covariates.values())

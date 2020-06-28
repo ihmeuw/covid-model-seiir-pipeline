@@ -1,6 +1,6 @@
 data:
-  covariate_version: 'best'
-  ode_fit_version: 'best'
+  covariate_version: 'latest'
+  ode_fit_version: 'latest'
   output_root: ''
 covariates:
   intercept:
@@ -74,7 +74,7 @@ covariates:
     re_var: 1.0
     draws: False
   proportion_over_2_5k:
-    order: 1
+    order: 0
     use_re: False
     gprior: [0.0, 0.001]
     bounds: [0.0, 1000.0]

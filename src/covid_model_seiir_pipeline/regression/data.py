@@ -43,6 +43,7 @@ class RegressionDataInterface:
     def load_ode_fits(self, draw_id: int, location_ids: List[int]) -> pd.DataFrame:
         df_beta = pd.read_csv(self.ode_paths.get_beta_fit_file(draw_id))
         df_beta = df_beta[df_beta['location_id'].isin(location_ids)]
+        df_beta['date'] = pd.to_datetime(df_beta['date'])
         return df_beta
 
     def get_draw_count(self) -> int:
@@ -64,9 +65,10 @@ class RegressionDataInterface:
         missing = []
 
         for covariate in covariates:
-            covariate_path = self.covariate_paths.get_covariate_scenario_file(covariate, 'reference')
-            if not covariate_path.exists():
-                missing.append(covariate)
+            if covariate != 'intercept':
+                covariate_path = self.covariate_paths.get_covariate_scenario_file(covariate, 'reference')
+                if not covariate_path.exists():
+                    missing.append(covariate)
 
         if missing:
             raise ValueError('All covariates supplied in the regression specification'
@@ -76,7 +78,6 @@ class RegressionDataInterface:
     def load_covariate(self, covariate: str, location_ids: List[int]) -> pd.DataFrame:
         covariate_path = self.covariate_paths.get_covariate_scenario_file(covariate, 'reference')
         covariate_df = pd.read_csv(covariate_path)
-
         index_columns = ['location_id']
         covariate_df = covariate_df.loc[covariate_df['location_id'].isin(location_ids), :]
         if 'date' in covariate_df.columns:
