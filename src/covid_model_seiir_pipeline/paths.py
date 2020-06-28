@@ -189,10 +189,10 @@ class ODEPaths(Paths):
 @dataclass
 class RegressionPaths(Paths):
     # class attributes are inferred using ClassVar. See pep 557 (Class Variables)
-    draw_coefficient_file: ClassVar[str] = 'coefficients_{draw_id}.csv'
-    draw_beta_regression_file: ClassVar[str] = 'regression_draw_{draw_id}.csv'
-    draw_covariates_file: ClassVar[str] = 'covariate_draw_{draw_id}.csv'
-    draw_scenarios_file: ClassVar[str] = 'scenarios_draw_{draw_id}.csv'
+    coefficient_file: ClassVar[str] = DRAW_FILE_TEMPLATE
+    beta_regression_file: ClassVar[str] = DRAW_FILE_TEMPLATE
+    covariates_file: ClassVar[str] = DRAW_FILE_TEMPLATE
+    scenarios_file: ClassVar[str] = DRAW_FILE_TEMPLATE
 
     @property
     def regression_specification(self):
@@ -202,44 +202,42 @@ class RegressionPaths(Paths):
     def beta_regression_dir(self) -> Path:
         return self.root_dir / 'betas'
 
-    def get_draw_beta_regression_file(self, location_id: int, draw_id: int) -> Path:
-        file = self.draw_beta_regression_file.format(draw_id=draw_id)
-        return self.beta_regression_dir / file
+    def get_beta_regression_file(self, draw_id: int) -> Path:
+        return self.beta_regression_dir / self.beta_regression_file.format(draw_id)
 
     @property
     def coefficient_dir(self) -> Path:
         return self.root_dir / 'coefficients'
 
-    def get_draw_coefficient_file(self, draw_id: int) -> Path:
-        return self.coefficient_dir / self.draw_coefficient_file.format(draw_id=draw_id)
-
-    @property
-    def diagnostic_dir(self) -> Path:
-        return self.root_dir / 'diagnostics'
+    def get_coefficient_file(self, draw_id: int) -> Path:
+        return self.coefficient_dir / self.coefficient_file.format(draw_id=draw_id)
 
     @property
     def covariate_dir(self) -> Path:
         return self.root_dir / 'covariates'
 
     def get_covariates_file(self, draw_id: int) -> Path:
-        return self.covariate_dir / self.draw_covariates_file.format(draw_id=draw_id)
+        return self.covariate_dir / self.covariates_file.format(draw_id=draw_id)
 
     @property
     def scenario_dir(self) -> Path:
         return self.root_dir / 'scenarios'
 
-    def get_scenarios_file(self, location_id: int, draw_id: int):
-        file = self.draw_scenarios_file.format(draw_id=draw_id)
-        return self.scenario_dir / str(location_id) / file
+    def get_scenarios_file(self, draw_id: int):
+        return self.scenario_dir / self.scenarios_file.format(draw_id=draw_id)
 
     @property
     def info_dir(self):
         return self.scenario_dir / 'info'
 
     @property
+    def diagnostics_dir(self):
+        return self.root_dir / 'diagnostics'
+
+    @property
     def directories(self) -> List[Path]:
         """Returns all top level sub-directories."""
-        return [self.beta_regression_dir, self.coefficient_dir, self.diagnostic_dir,
+        return [self.beta_regression_dir, self.coefficient_dir, self.diagnostics_dir,
                 self.covariate_dir, self.scenario_dir, self.info_dir]
 
 
@@ -295,6 +293,9 @@ class CovariatePaths(Paths):
 
     def get_covariate_dir(self, covariate: str) -> Path:
         return self.root_dir / covariate
+
+    def get_covariate_scenario_file(self, covariate: str, scenario: str):
+        return self.root_dir / covariate / self.scenario_file.format(scenario=scenario)
 
     def get_covariate_scenario_to_file_mapping(self, covariate: str) -> Dict[str, Path]:
         covariate_dir = self.get_covariate_dir(covariate)

@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import List, Dict, Tuple
+from typing import List, Dict, Tuple, Iterable
 
 import pandas as pd
 import yaml
@@ -10,8 +10,6 @@ from covid_model_seiir_pipeline.static_vars import COVARIATE_COL_DICT
 
 
 class RegressionDataInterface:
-
-    covariate_scenario_val = "{covariate}_{scenario}"
 
     def __init__(self,
                  regression_paths: paths.RegressionPaths,
@@ -41,11 +39,9 @@ class RegressionDataInterface:
             location_ids = yaml.full_load(location_file)
         return location_ids
 
-    def load_ode_fits(self, location_ids: List[int], draw_id: int) -> pd.DataFrame:
-        df_beta = []
-        for l_id in location_ids:
-            df_beta.append(pd.read_csv(self.ode_paths.get_draw_beta_fit_file(l_id, draw_id)))
-        df_beta = pd.concat(df_beta).reset_index(drop=True)
+    def load_ode_fits(self, draw_id: int, location_ids: List[int]) -> pd.DataFrame:
+        df_beta = pd.read_csv(self.ode_paths.get_beta_fit_file(draw_id))
+        df_beta = df_beta[df_beta['location_id'].isin(location_ids)]
         return df_beta
 
     def get_draw_count(self) -> int:
@@ -57,44 +53,45 @@ class RegressionDataInterface:
     # Covariate paths loaders #
     ###########################
 
-    def load_covariate(self,
-                       covariate: str,
-                       location_ids: List[int],
-                       draw_id: int,
-                       use_draws: bool) -> Dict[str, pd.DataFrame]:
-        covariate_set: Dict[str, pd.DataFrame] = {}
-        scenario_map = self.covariate_paths.get_covariate_scenario_to_file_mapping(covariate)
+    def check_covariates(self, covariates: Iterable[str]):
+        """Ensure a reference scenario exists for all covariates.
 
-        for scenario, input_file in scenario_map.items():
-            # name of scenario value column
-            if use_draws:
-                val_name = f"draw_{draw_id}"
-            else:
-                val_name = self.covariate_scenario_val.format(covariate=covariate,
-                                                              scenario=scenario)
+        The reference scenario file is used to find the covariate values
+        in the past (which we'll use to perform the regression).
 
-            regress_df, scenario_df = self._load_scenario_file(val_name, input_file,
-                                                               location_ids, draw_id)
-            # change name of scenario data
-            scenario_val_name = self.covariate_scenario_val.format(covariate=covariate,
-                                                                   scenario=scenario)
-            scenario_df = scenario_df.rename(columns={val_name: scenario_val_name})
-            # change name of regression data to be covariate name
-            regress_df = regress_df.rename(columns={val_name: covariate})
+        """
+        missing = []
 
-            # store regress data only once
-            cached_df = covariate_set.get(covariate)
-            if cached_df is None:
-                covariate_set[covariate] = regress_df.reset_index(drop=True)
-            else:
-                if not cached_df.equals(regress_df.reset_index(drop=True)):
-                    raise RuntimeError(
-                        "Regression data is not exactly equal between covariates in covariate "
-                        f"pool. Input files are {scenario_map.values()}.")
+        for covariate in covariates:
+            covariate_path = self.covariate_paths.get_covariate_scenario_file(covariate, 'reference')
+            if not covariate_path.exists():
+                missing.append(covariate)
 
-            covariate_set[scenario_val_name] = scenario_df
+        if missing:
+            raise ValueError('All covariates supplied in the regression specification'
+                             'must have a reference scenario in the covariate pool. Covariates'
+                             f'missing a reference scenario: {missing}.')
 
-        return covariate_set
+    def load_covariate(self, covariate: str, location_ids: List[int]) -> pd.DataFrame:
+        covariate_path = self.covariate_paths.get_covariate_scenario_file(covariate, 'reference')
+        covariate_df = pd.read_csv(covariate_path)
+
+        index_columns = ['location_id']
+        covariate_df = covariate_df.loc[covariate_df['location_id'].isin(location_ids), :]
+        if 'date' in covariate_df.columns:
+            covariate_df['date'] = pd.to_datetime(covariate_df['date'])
+            index_columns.append('date')
+        covariate_df = covariate_df.rename(columns={f'{covariate}_reference': covariate})
+        return covariate_df.loc[:, index_columns + [covariate]].set_index(index_columns)
+
+
+    def load_covariates(self, covariates: Iterable[str], location_ids: List[int]) -> pd.DataFrame:
+        covariate_data = []
+        for covariate in covariates:
+            if covariate != 'intercept':
+                covariate_data.append(self.load_covariate(covariate, location_ids))
+        covariate_data = pd.concat(covariate_data, axis=1)
+        return covariate_data.reset_index()
 
     def _load_scenario_file(self, val_name: str, input_file: Path, location_ids: List[int],
                             draw_id: int
@@ -147,22 +144,16 @@ class RegressionDataInterface:
         df.to_csv(path, index=False)
 
     def save_scenarios(self, df: pd.DataFrame, draw_id: int) -> None:
-        location_ids = df[COVARIATE_COL_DICT['COL_LOC_ID']].tolist()
-        for l_id in location_ids:
-            loc_scenario_df = df.loc[df[COVARIATE_COL_DICT['COL_LOC_ID']] == l_id]
-            scenario_file = self.regression_paths.get_scenarios_file(l_id, draw_id)
-            loc_scenario_df.to_csv(scenario_file, index=False)
+        scenario_file = self.regression_paths.get_scenarios_file(draw_id)
+        df.to_csv(scenario_file, index=False)
 
     def load_mr_coefficients(self, draw_id: int) -> pd.DataFrame:
-        return pd.read_csv(self.regression_paths.get_draw_coefficient_file(draw_id))
+        return pd.read_csv(self.regression_paths.get_coefficient_file(draw_id))
 
-    def save_regression_betas(self, df: pd.DataFrame, draw_id: int, location_ids: List[int]
-                              ) -> None:
-        for l_id in location_ids:
-            loc_beta_fits = df.loc[df[COVARIATE_COL_DICT['COL_LOC_ID']] == l_id]
-            beta_file = self.regression_paths.get_draw_beta_regression_file(l_id, draw_id)
-            loc_beta_fits.to_csv(beta_file, index=False)
+    def save_regression_betas(self, df: pd.DataFrame, draw_id: int) -> None:
+        beta_file = self.regression_paths.get_beta_regression_file(draw_id)
+        df.to_csv(beta_file, index=False)
 
-    def load_regression_betas(self, location_id: int, draw_id: int):
-        beta_file = self.regression_paths.get_draw_beta_regression_file(location_id, draw_id)
+    def load_regression_betas(self, draw_id: int):
+        beta_file = self.regression_paths.get_beta_regression_file(draw_id)
         return pd.read_csv(beta_file)

@@ -11,7 +11,7 @@ from slime.model import CovModelSet
 from slime.core.data import MRData
 
 from covid_model_seiir_pipeline.model_runner import ModelRunner
-from covid_model_seiir_pipeline import paths, static_vars
+from covid_model_seiir_pipeline import static_vars
 from covid_model_seiir_pipeline.regression.covariate_model import convert_to_covmodel
 from covid_model_seiir_pipeline.regression.specification import (RegressionSpecification,
                                                                  CovariateSpecification)
@@ -112,14 +112,9 @@ def run_beta_regression(draw_id: int, regression_version: str) -> None:
     location_ids = data_interface.load_location_ids()
 
     # -------------------------- LOAD INPUTS -------------------- #
-    covariate_df = create_covariate_pool(
-        draw_id=draw_id,
-        location_ids=location_ids,
-        covariates=list(regression_specification.covariates.values()),
-        regression_data_interface=data_interface
-    )
-    beta_df = data_interface.load_ode_fits(location_ids, draw_id)
-
+    # The data we want to fit
+    beta_df = data_interface.load_ode_fits(draw_id, location_ids)
+    covariates = data_interface.load_covariates(regression_specification.covariates, location_ids)
     # -------------- BETA REGRESSION WITH LOADED COVARIATES -------------------- #
     # Convert inputs for beta regression
     mr = ModelRunner()
@@ -129,7 +124,7 @@ def run_beta_regression(draw_id: int, regression_version: str) -> None:
         list(regression_specification.covariates.values())
     )
 
-    mr_data = convert_inputs_for_beta_model(covariate_df, beta_df, all_covmodels_set)
+    mr_data = convert_inputs_for_beta_model(covariates, beta_df, all_covmodels_set)
     # TODO: add coefficient version
     fixed_coefficients = None
     # fit beta regression
