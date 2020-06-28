@@ -201,12 +201,16 @@ class RegressionPaths(Paths):
     draw_scenarios_file: ClassVar[str] = 'scenarios_draw_{draw_id}.csv'
 
     @property
+    def regression_specification(self):
+        return self.root_dir / 'regression_specification.yaml'
+
+    @property
     def beta_regression_dir(self) -> Path:
         return self.root_dir / 'betas'
 
     def get_draw_beta_regression_file(self, location_id: int, draw_id: int) -> Path:
         file = self.draw_beta_regression_file.format(draw_id=draw_id)
-        return self.beta_regression_dir / str(location_id) / file
+        return self.beta_regression_dir / file
 
     @property
     def coefficient_dir(self) -> Path:
@@ -243,13 +247,6 @@ class RegressionPaths(Paths):
         """Returns all top level sub-directories."""
         return [self.beta_regression_dir, self.coefficient_dir, self.diagnostic_dir,
                 self.covariate_dir, self.scenario_dir, self.info_dir]
-
-    @property
-    def location_specific_directories(self) -> List[Path]:
-        """Returns all top level sub-directories that have location-specific
-        sub-directories.
-        """
-        return [self.beta_regression_dir, self.scenario_dir]
 
 
 @dataclass

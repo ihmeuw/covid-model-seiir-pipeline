@@ -17,6 +17,8 @@ def do_beta_regression(app_metadata: cli_tools.Metadata,
     # build directory structure
     location_ids = data_interface.load_location_ids()
     data_interface.regression_paths.make_dirs(location_ids)
+    # Fixme: Inconsistent data writing interfaces
+    regression_specification.dump(data_interface.regression_paths.regression_specification)
 
     # copy info files
     for covariate in regression_specification.covariates.keys():
