@@ -73,16 +73,10 @@ def create_covariate_pool(draw_id: int,
     return covariate_df
 
 
-def convert_inputs_for_beta_model(covariate_df: pd.DataFrame, beta_df: pd.DataFrame,
+def convert_inputs_for_beta_model(covariate_df: pd.DataFrame,
+                                  beta_df: pd.DataFrame,
                                   covmodel_set: CovModelSet) -> MRData:
-    """
-    Convert inputs for the beta regression model.
-
-    :param data_cov: covariate specifications
-    :param beta_df: data frame with beta outputs from the spline
-    :param covmodel_set: set for a covariate model
-    :return: MRData object
-    """
+    """Convert inputs for the beta regression model."""
     df = beta_df.merge(
         covariate_df,
         left_on=[static_vars.COL_DATE, static_vars.COL_GROUP],
