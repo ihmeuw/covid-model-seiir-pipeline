@@ -5,7 +5,7 @@ from covid_shared import cli_tools
 from covid_model_seiir_pipeline import static_vars
 
 from covid_model_seiir_pipeline.paths import ForecastPaths
-from covid_model_seiir_pipeline.forecasting import ForecastSpecification
+from covid_model_seiir_pipeline.forecasting.specification import ForecastSpecification
 from covid_model_seiir_pipeline.forecasting.data import ForecastDataInterface
 from covid_model_seiir_pipeline.forecasting.workflow import ForecastWorkflow
 
