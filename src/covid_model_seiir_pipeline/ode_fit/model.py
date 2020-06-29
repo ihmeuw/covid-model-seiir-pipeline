@@ -247,7 +247,7 @@ class SingleGroupODEProcess:
         for k, v in components.items():
             df_result[k] = v
 
-        return df_result
+        return df_result.rename(columns={self.col_loc_id: "location_id"})
 
     def create_params_df(self):
         """Create parameter DataFrame.
