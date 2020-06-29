@@ -83,9 +83,7 @@ def run_beta_regression(draw_id: int, regression_version: str) -> None:
     # Fixme: don't know why this is here.  Regression is done after coefficients.
     #  Review with forecast integration.
     prediction = predict(regressor, covariates, col_t='date', col_group='location_id')
-    beta_pred = np.exp(prediction['ln_beta_pred']).values[None, :]
-    beta_pred = convolve_mean(beta_pred, radius=[0, 0])
-    prediction['beta_pred'] = beta_pred.ravel()
+    prediction['beta_pred'] = np.exp(prediction['ln_beta_pred'])
 
     keep_columns = ['location_id', 'date'] + list(regression_specification.covariates) + ['beta_pred']
     regression_betas = prediction[keep_columns]
