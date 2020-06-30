@@ -98,7 +98,7 @@ class RegressionDataInterface:
     ############################
 
     def save_regression_coefficients(self, coefficients: pd.DataFrame, draw_id: int) -> None:
-        coefficients.to_csv(self.regression_paths.get_coefficient_file(draw_id))
+        coefficients.to_csv(self.regression_paths.get_coefficient_file(draw_id), index=False)
 
     def save_regression_betas(self, df: pd.DataFrame, draw_id: int) -> None:
         beta_file = self.regression_paths.get_beta_regression_file(draw_id)
