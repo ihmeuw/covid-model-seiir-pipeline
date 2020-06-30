@@ -87,10 +87,10 @@ class SingleGroupODEProcess:
                                                    self.lag_days, 'D')
         except ValueError:
             msg = f"""end_date debug:
-                self.today:          {self.today!r}
-                self.day_shift:      {self.day_shift!r}
-                self.lag_days:       {self.lag_days!r}
-                day_shift - lag_days {self.day_shift - self.lag_days}
+                self.today:           {self.today!r} ({type(self.today)})
+                self.day_shift:       {self.day_shift!r} ({type(self.day_shift)})
+                self.lag_days:        {self.lag_days!r} ({type(self.lag_days)})
+                day_shift - lag_days {self.day_shift - self.lag_days} ({type(self.day_shift - self.lag_days)})
                 """
             raise RuntimeError(msg) from None
         # Sometimes we don't have leading indicator data, so the day shift
