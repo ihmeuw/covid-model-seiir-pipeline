@@ -1,13 +1,12 @@
 from functools import reduce
 from pathlib import Path
-from typing import List, Tuple, Iterable
+from typing import List, Iterable
 
 import pandas as pd
 import yaml
 
 from covid_model_seiir_pipeline import paths
 from covid_model_seiir_pipeline.regression.specification import RegressionSpecification
-from covid_model_seiir_pipeline.static_vars import COVARIATE_COL_DICT
 
 
 class RegressionDataInterface:
