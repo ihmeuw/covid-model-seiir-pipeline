@@ -54,7 +54,6 @@ def run_ode_fit(draw_id: int, ode_version: str):
 
     # Save location-specific beta fit (compartment) files for easy reading later
     beta_fit = ode_model.create_result_df()
-    beta_fit = beta_fit.rename(columns={'loc_id': 'location_id'})
     data_interface.save_beta_fit_file(beta_fit, draw_id)
 
     # Save the parameters of alpha, sigma, gamma1, and gamma2 that were drawn
