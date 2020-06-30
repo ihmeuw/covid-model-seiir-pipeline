@@ -191,8 +191,6 @@ class RegressionPaths(Paths):
     # class attributes are inferred using ClassVar. See pep 557 (Class Variables)
     coefficient_file: ClassVar[str] = DRAW_FILE_TEMPLATE
     beta_regression_file: ClassVar[str] = DRAW_FILE_TEMPLATE
-    covariates_file: ClassVar[str] = DRAW_FILE_TEMPLATE
-    scenarios_file: ClassVar[str] = DRAW_FILE_TEMPLATE
 
     @property
     def regression_specification(self):
@@ -213,32 +211,9 @@ class RegressionPaths(Paths):
         return self.coefficient_dir / self.coefficient_file.format(draw_id=draw_id)
 
     @property
-    def covariate_dir(self) -> Path:
-        return self.root_dir / 'covariates'
-
-    def get_covariates_file(self, draw_id: int) -> Path:
-        return self.covariate_dir / self.covariates_file.format(draw_id=draw_id)
-
-    @property
-    def scenario_dir(self) -> Path:
-        return self.root_dir / 'scenarios'
-
-    def get_scenarios_file(self, draw_id: int):
-        return self.scenario_dir / self.scenarios_file.format(draw_id=draw_id)
-
-    @property
-    def info_dir(self):
-        return self.scenario_dir / 'info'
-
-    @property
-    def diagnostics_dir(self):
-        return self.root_dir / 'diagnostics'
-
-    @property
     def directories(self) -> List[Path]:
         """Returns all top level sub-directories."""
-        return [self.beta_regression_dir, self.coefficient_dir, self.diagnostics_dir,
-                self.covariate_dir, self.scenario_dir, self.info_dir]
+        return [self.beta_regression_dir, self.coefficient_dir]
 
 
 @dataclass
