@@ -30,7 +30,7 @@ def align_beta_with_covariates(covariate_df: pd.DataFrame,
     df = df.loc[df['beta'] != 0]
     df = df.sort_values(by=join_cols)
     df['ln_beta'] = np.log(df['beta'])
-    mrdata = MRData(df, col_group='location_id', col_obs='beta', col_covs=cov_names)
+    mrdata = MRData(df, col_group='location_id', col_obs='ln_beta', col_covs=cov_names)
     return mrdata
 
 
