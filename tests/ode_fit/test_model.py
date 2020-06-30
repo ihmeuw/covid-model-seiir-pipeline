@@ -1,5 +1,3 @@
-import datetime as dt
-
 import numpy
 import pandas
 import pytest
@@ -39,7 +37,7 @@ class Test_ODEProcess_results:
         assert beta.shape == (225, 11)
 
         # pick arbitrary rows to test
-        mask1 = (beta.location_id == 10) & (beta.date == dt.date(2020, 3, 2))
+        mask1 = (beta.location_id == 10) & (beta.date == "2020-03-02")
         r1 = beta.loc[mask1, :].iloc[0].to_dict()
         e1 = {
             'location_id': 10,
@@ -56,7 +54,7 @@ class Test_ODEProcess_results:
         }
         assert r1 == e1
 
-        mask2 = (beta.location_id == 60887) & (beta.date == dt.date(2020, 6, 10))
+        mask2 = (beta.location_id == 60887) & (beta.date == "2020-06-10")
         r2 = beta.loc[mask2, :].iloc[0].to_dict()
         e2 = {
             'location_id': 60887,
