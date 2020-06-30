@@ -1,5 +1,3 @@
-from shutil import copyfile
-
 from covid_shared import cli_tools
 from loguru import logger
 
