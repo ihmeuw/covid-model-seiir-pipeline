@@ -15,7 +15,7 @@ from covid_model_seiir_pipeline import static_vars
 from covid_model_seiir_pipeline.regression.data import RegressionDataInterface
 from covid_model_seiir_pipeline.regression.specification import (RegressionSpecification,
                                                                  CovariateSpecification)
-from covid_model_seiir_pipeline.regression.model import BetaRegressor, BetaRegressorSequential, predict, convolve_mean
+from covid_model_seiir_pipeline.regression.model import BetaRegressor, BetaRegressorSequential, predict
 
 
 log = logging.getLogger(__name__)
@@ -65,7 +65,6 @@ def run_beta_regression(draw_id: int, regression_version: str) -> None:
         Path(regression_version) / static_vars.REGRESSION_SPECIFICATION_FILE
     )
     data_interface = RegressionDataInterface.from_specification(regression_specification)
-
     location_ids = data_interface.load_location_ids()
 
     # -------------------------- LOAD INPUTS -------------------- #
