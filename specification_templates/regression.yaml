@@ -1,5 +1,5 @@
 data:
-  covariate_version: '2020_06_28.02'
+  covariate_version: '2020_06_30.01'
   ode_fit_version: 'latest'
   output_root: ''
 covariates:
