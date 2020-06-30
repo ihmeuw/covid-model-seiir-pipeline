@@ -1,5 +1,5 @@
 data:
-  covariate_version: 'latest'
+  covariate_version: '2020_06_28.02'
   ode_fit_version: 'latest'
   output_root: ''
 covariates:
@@ -20,7 +20,7 @@ covariates:
   pneumonia:
     order: 0
     use_re: False
-    gprior: [0.0, 0.205]
+    gprior: [0.0, 0.1]
     bounds: [0.9, 1.31]
     re_var: 1.0
     draws: False
