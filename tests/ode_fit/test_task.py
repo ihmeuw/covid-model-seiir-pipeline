@@ -15,6 +15,7 @@ from covid_model_seiir_pipeline.ode_fit.task import (
     ODEDataInterface,
     FitSpecification,
     model,
+    np,
 )
 
 
@@ -48,7 +49,7 @@ class Test_run_ode_fit:
     per-draw level. Running this once for each draw represents the
     non-bookkeeping work done in the entire pipeline "fit" stage.
     """
-    def test_happy_path(self, draw_id, ode_version, data_interface, ode_model):
+    def test_happy_path(self, draw_id, ode_version, data_interface, ode_model, numpy_seed):
         """
         Test happy path logic where nothing fails.
 
@@ -63,6 +64,8 @@ class Test_run_ode_fit:
         data_interface.load_all_location_data.assert_called_once_with(
             location_ids=sentinel.LOCATION_IDS,
             draw_id=draw_id)
+
+        numpy_seed.assert_called_once_with(draw_id)
 
         # UNTESTED - ODEProcessInput is created and used to initialize an ODEProcess
 
@@ -120,6 +123,15 @@ class Test_run_ode_fit:
 
         with patch.object(model, "ODEProcess", return_value=mocked_ode_model):
             yield mocked_ode_model
+
+    @pytest.fixture
+    def numpy_seed(self):
+        """
+        Spy on (as opposed to mock) numpy.random.seed to ensure it is called.
+        """
+        with patch.object(np.random, "seed",
+                          wraps=np.random.seed) as seed_spy:
+            yield seed_spy
 
     # fixtures for calling run_ode_fit
     @pytest.fixture
