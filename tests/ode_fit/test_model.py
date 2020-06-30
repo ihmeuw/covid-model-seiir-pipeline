@@ -71,6 +71,23 @@ class Test_ODEProcess_results:
         }
         assert r2 == e2
 
+        mask3 = (beta.location_id == 60887) & (beta.date == "2020-06-14")
+        r3 = beta.loc[mask3, :].iloc[0].to_dict()
+        e3 = {
+            'location_id': 60887,
+            'date': '2020-06-14',
+            'days': 115,
+            'beta': 0.30910847173899497,
+            'S': 3680864.701899232,
+            'E': 1625.747531399217,
+            'I1': 898.9826448859556,
+            'I2': 559.2951366672883,
+            'R': 57997.25978282046,
+            'newE': 432.884735422745,
+            'newE_obs': 432.884735422745,
+        }
+        assert r3 == e3
+
     @pytest.fixture(scope="module")
     def ode_model(self, location_data):
         """
