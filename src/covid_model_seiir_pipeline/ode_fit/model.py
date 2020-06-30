@@ -86,7 +86,7 @@ class SingleGroupODEProcess:
             end_date = self.today + np.timedelta64(self.day_shift -
                                                    self.lag_days, 'D')
         except ValueError:
-            msg = """end_date debug:
+            msg = f"""end_date debug:
                 self.today:          {self.today!r}
                 self.day_shift:      {self.day_shift!r}
                 self.lag_days:       {self.lag_days!r}
