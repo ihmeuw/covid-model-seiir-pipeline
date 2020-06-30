@@ -40,43 +40,6 @@ class BetaRegressionTaskTemplate:
         return task
 
 
-class RegressionDiagnosticsTaskTemplate:
-
-    def __init__(self, task_registry: Dict[str, BashTask]):
-        self.task_registry = task_registry
-        self.command_template = (
-            "regression_diagnostics " +
-            "--regression-version {regression_version} "
-        )
-        self.params = ExecutorParameters(
-            max_runtime_seconds=1000,
-            m_mem_free='10G',
-            num_cores=3,
-            queue='d.q'
-        )
-
-    @staticmethod
-    def get_task_name() -> str:
-        return "regression_diagnostics"
-
-    def get_task(self, regression_version: str):
-        # get dependencies
-        upstream_deps_names = [k for k in self.task_registry.keys() if "regression_" in k]
-        upstream_deps = [self.task_registry[k] for k in upstream_deps_names]
-
-        # construct task
-        task_name = self.get_task_name()
-        task = BashTask(
-            command=self.command_template.format(regression_version=regression_version),
-            name=task_name,
-            executor_parameters=self.params,
-            max_attempts=1,
-            upstream_tasks=upstream_deps
-        )
-        self.task_registry[task_name] = task
-        return task
-
-
 class RegressionWorkflow:
 
     def __init__(self, regression_version):
@@ -85,7 +48,6 @@ class RegressionWorkflow:
         # task factories
         self.task_registry: Dict[str, BashTask] = {}
         self._beta_regression_tt = BetaRegressionTaskTemplate(self.task_registry)
-        self._regression_diagnostics_tt = RegressionDiagnosticsTaskTemplate(self.task_registry)
 
         workflow_args = f'seiir-regression-{regression_version}'
         stdout, stderr = utilities.make_log_dirs(
@@ -107,12 +69,6 @@ class RegressionWorkflow:
                 draw_id, self.regression_version
             )
             self.workflow.add_task(task)
-
-    def attach_regression_diagnostics_task(self):
-        task = self._regression_diagnostics_tt.get_task(
-            self.regression_version
-        )
-        self.workflow.add_task(task)
 
     def run(self):
         execution_status = self.workflow.run()
