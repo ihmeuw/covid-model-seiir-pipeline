@@ -203,7 +203,7 @@ class RegressionPaths(Paths):
         return self.root_dir / 'betas'
 
     def get_beta_regression_file(self, draw_id: int) -> Path:
-        return self.beta_regression_dir / self.beta_regression_file.format(draw_id)
+        return self.beta_regression_dir / self.beta_regression_file.format(draw_id=draw_id)
 
     @property
     def coefficient_dir(self) -> Path:
