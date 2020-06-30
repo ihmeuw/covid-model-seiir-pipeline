@@ -103,8 +103,6 @@ class Test_ODEProcess_results:
         Returns location data to run ode_fit on.
 
         This is a dict of {location_id: DataFrame_of_data} pairs.
-
-        This method serves double-duty for generating it's own input fixtures.
         """
         fixture_path = fixture_dir / "ode_fit/location_data_2020_06_28.02.csv"
         big_df = pandas.read_csv(fixture_path)
