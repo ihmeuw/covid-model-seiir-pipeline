@@ -78,13 +78,11 @@ class SingleGroupODEProcess:
 
         # subset the data
         self.today = today
-        self.day_shift = int(np.random.uniform(*day_shift))
+        self.day_shift = np.random.uniform(*day_shift)
         self.lag_days = lag_days
         df.sort_values(self.col_date, inplace=True)
         date = pd.to_datetime(df[col_date])
-        # cast this from numpy.int64 to int because travis/tox was erroring on
-        # this, only for python 3.7, with a ValueError
-        end_date = self.today + np.timedelta64(int(self.day_shift - self.lag_days), 'D')
+        end_date = self.today + np.timedelta64(self.day_shift - self.lag_days, 'D')
         # Sometimes we don't have leading indicator data, so the day shift
         # will put us into padded zeros.  Correct for this.
         max_end_date = date[df[col_cases] > 0].max()
