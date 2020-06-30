@@ -83,8 +83,7 @@ class SingleGroupODEProcess:
         df.sort_values(self.col_date, inplace=True)
         date = pd.to_datetime(df[col_date])
         try:
-            end_date = self.today + np.timedelta64(self.day_shift -
-                                                   self.lag_days, 'D')
+            end_date = self.today + np.timedelta64(int(self.day_shift - self.lag_days), 'D')
         except ValueError:
             msg = f"""end_date debug:
                 self.today:           {self.today!r} ({type(self.today)})
@@ -92,7 +91,7 @@ class SingleGroupODEProcess:
                 self.lag_days:        {self.lag_days!r} ({type(self.lag_days)})
                 day_shift - lag_days {self.day_shift - self.lag_days} ({type(self.day_shift - self.lag_days)})
                 """
-            raise RuntimeError(msg) from None
+            raise RuntimeError(msg)
         # Sometimes we don't have leading indicator data, so the day shift
         # will put us into padded zeros.  Correct for this.
         max_end_date = date[df[col_cases] > 0].max()
