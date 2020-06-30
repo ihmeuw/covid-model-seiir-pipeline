@@ -94,70 +94,9 @@ class RegressionDataInterface:
         covariate_data = reduce(lambda x, y: x.merge(y, left_index=True, right_index=True), covariate_data)
         return covariate_data.reset_index()
 
-    def _load_scenario_file(self, val_name: str, input_file: Path, location_ids: List[int],
-                            draw_id: int
-                            ) -> Tuple[pd.DataFrame, pd.DataFrame]:
-
-        # read in covariate
-        df = pd.read_csv(str(input_file))
-        columns = [COVARIATE_COL_DICT['COL_LOC_ID'], val_name]
-
-        # drop nulls
-        df = df.loc[~df[val_name].isnull()]
-
-        # subset locations
-        df = df.loc[df[COVARIATE_COL_DICT['COL_LOC_ID']].isin(location_ids)]
-
-        # is time dependent cov? filter by time series
-        if COVARIATE_COL_DICT['COL_DATE'] in df.columns:
-            columns.append(COVARIATE_COL_DICT['COL_DATE'])
-
-            # read in cutoffs
-            # TODO: not optimized because we read in multiple covariates, but data is small
-            cutoffs = pd.read_csv(self.ode_paths.get_draw_date_file(draw_id))
-            cutoffs = cutoffs.rename(columns={"loc_id": COVARIATE_COL_DICT['COL_LOC_ID']})
-            cutoffs = cutoffs.loc[cutoffs[COVARIATE_COL_DICT['COL_LOC_ID']].isin(location_ids)]
-            df = df.merge(cutoffs, how="left")
-
-            # get what was used for ode_fit
-            # TODO: should we inclusive inequality sign?
-            regress_df = df[df.date <= df.end_date].copy()
-            regress_df = regress_df[columns]
-
-            # get what we will use in scenarios
-            # TODO: should we inclusive inequality sign?
-            scenario_df = df[df.date >= df.end_date].copy()
-            scenario_df = scenario_df[columns]
-
-        # otherwise just make 2 copies
-        else:
-            regress_df = df.copy()
-            scenario_df = df
-
-            # subset columns
-            regress_df = regress_df[columns]
-            scenario_df = scenario_df[columns]
-
-        return regress_df, scenario_df
-
     def save_regression_coefficients(self, coefficients: pd.DataFrame, draw_id: int) -> None:
         coefficients.to_csv(self.regression_paths.get_coefficient_file(draw_id))
-
-    def load_regression_coefficients(self, draw_id: int) -> pd.DataFrame:
-        return pd.read_csv(self.regression_paths.get_coefficient_file(draw_id))
-
-    def save_covariates(self, df: pd.DataFrame, draw_id: int) -> None:
-        path = self.regression_paths.get_covariates_file(draw_id)
-        df.to_csv(path, index=False)
-
-    def save_scenarios(self, df: pd.DataFrame, draw_id: int) -> None:
-        scenario_file = self.regression_paths.get_scenarios_file(draw_id)
-        df.to_csv(scenario_file, index=False)
 
     def save_regression_betas(self, df: pd.DataFrame, draw_id: int) -> None:
         beta_file = self.regression_paths.get_beta_regression_file(draw_id)
         df.to_csv(beta_file, index=False)
-
-    def load_regression_betas(self, draw_id: int):
-        beta_file = self.regression_paths.get_beta_regression_file(draw_id)
-        return pd.read_csv(beta_file)
