@@ -93,6 +93,10 @@ class RegressionDataInterface:
         covariate_data = reduce(lambda x, y: x.merge(y, left_index=True, right_index=True), covariate_data)
         return covariate_data.reset_index()
 
+    ############################
+    # Regression paths writers #
+    ############################
+
     def save_regression_coefficients(self, coefficients: pd.DataFrame, draw_id: int) -> None:
         coefficients.to_csv(self.regression_paths.get_coefficient_file(draw_id))
 
