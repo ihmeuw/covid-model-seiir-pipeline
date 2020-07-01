@@ -10,20 +10,14 @@ from covid_model_seiir_pipeline.forecasting.workflow import ForecastWorkflow
 
 def do_beta_forecast(app_metadata: cli_tools.Metadata,
                      forecast_specification: ForecastSpecification):
+    data_interface = ForecastDataInterface.from_specification(forecast_specification)
+    data_interface.make_dirs()
 
     return
     # for scenario in forecast_specification.scenarios.keys():
     #     scenario_root = output_root / scenario
     #
     #     # init high level objects
-    #     forecast_paths = ForecastPaths(scenario_root, read_only=False)
-    #     data_interface = ForecastDataInterface(
-    #         forecast_root=scenario_root,
-    #         regression_root=Path(regression_specification.data.output_root),
-    #         ode_fit_root=Path(ode_fit_spec.data.output_root),
-    #         infection_root=Path(ode_fit_spec.data.infection_version),
-    #         location_file=Path(ode_fit_spec.data.location_set_file)
-    #     )
     #
     #     # build directory structure
     #     location_ids = data_interface.load_location_ids()

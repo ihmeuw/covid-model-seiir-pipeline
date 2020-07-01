@@ -1,5 +1,6 @@
 data:
   regression_version: 'best'
+  covariate_version: 'best'
   output_root: ''
 scenarios:
   baseline:

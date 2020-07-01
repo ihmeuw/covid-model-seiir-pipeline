@@ -26,6 +26,9 @@ class ODEDataInterface:
             infection_paths=infection_paths,
         )
 
+    def make_dirs(self):
+        self.ode_paths.make_dirs()
+
     def load_location_ids_from_primary_source(self, location_set_version_id: Optional[int],
                                               location_file: Optional[Union[str, Path]]) -> Union[List[int], None]:
         """Retrieve a location hierarchy from a file or from GBD if specified."""
