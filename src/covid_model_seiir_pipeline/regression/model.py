@@ -3,8 +3,7 @@ import numpy as np
 import copy
 from pprint import pprint
 
-from slime.core import MRData
-from slime.model import CovModelSet, MRModel, CovModel
+from slime.model import CovModelSet, MRModel
 
 
 class BetaRegressor:
@@ -37,12 +36,9 @@ class BetaRegressor:
         if verbose:
             pprint(self.cov_coef)
             print()
-
-    def save_coef(self, path):
-        df = pd.DataFrame.from_dict(self.cov_coef, orient='index')
-        df.reset_index(inplace=True)
-        df.columns = ['group_id'] + self.col_covs
-        return df.to_csv(path)
+        coef = pd.DataFrame.from_dict(self.cov_coef, orient='index').reset_index()
+        coef.columns = ['group_id'] + self.col_covs
+        return coef
 
     def load_coef(self, df=None, path=None):
         if df is None:
@@ -111,12 +107,6 @@ class BetaRegressorSequential:
                       'bounds:', covmodel.bounds)
         self.regressor.fit(mr_data, verbose)
         self.cov_coef = self.regressor.cov_coef
-
-    def save_coef(self, path):
-        self.regressor.save_coef(path)
-
-    def load_coef(self, df=None, path=None):
-        self.regressor.load_coef(df=df, path=path)
 
     def predict(self, cov, group):
         return self.regressor.predict(cov, group)

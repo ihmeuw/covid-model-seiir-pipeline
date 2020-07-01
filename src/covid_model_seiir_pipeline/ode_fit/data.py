@@ -5,8 +5,9 @@ from loguru import logger
 import pandas as pd
 import yaml
 
-from covid_model_seiir_pipeline.static_vars import INFECTION_COL_DICT
 from covid_model_seiir_pipeline import paths
+from covid_model_seiir_pipeline.ode_fit.specification import FitSpecification
+from covid_model_seiir_pipeline.static_vars import INFECTION_COL_DICT
 
 
 class ODEDataInterface:
@@ -15,6 +16,15 @@ class ODEDataInterface:
                  infection_paths: paths.InfectionPaths) -> None:
         self.ode_paths = ode_paths
         self.infection_paths = infection_paths
+
+    @classmethod
+    def from_specification(cls, specification: FitSpecification) -> 'ODEDataInterface':
+        ode_paths = paths.ODEPaths(Path(specification.data.output_root), read_only=False)
+        infection_paths = paths.InfectionPaths(Path(specification.data.infection_version))
+        return cls(
+            ode_paths=ode_paths,
+            infection_paths=infection_paths,
+        )
 
     def load_location_ids_from_primary_source(self, location_set_version_id: Optional[int],
                                               location_file: Optional[Union[str, Path]]) -> Union[List[int], None]:
@@ -86,9 +96,8 @@ class ODEDataInterface:
 
         return dfs
 
-    def save_draw_beta_fit_file(self, df: pd.DataFrame, location_id: int, draw_id: int
-                                ) -> None:
-        df.to_csv(self.ode_paths.get_draw_beta_fit_file(location_id, draw_id), index=False)
+    def save_beta_fit_file(self, df: pd.DataFrame, draw_id: int) -> None:
+        df.to_csv(self.ode_paths.get_beta_fit_file(draw_id), index=False)
 
     def save_draw_beta_param_file(self, df: pd.DataFrame, draw_id: int) -> None:
         df.to_csv(self.ode_paths.get_draw_beta_param_file(draw_id), index=False)
@@ -98,7 +107,7 @@ class ODEDataInterface:
 
     def save_location_metadata_file(self, locations: List[int]) -> None:
         with (self.ode_paths.root_dir / 'locations.yaml') as location_file:
-            yaml.dump({'locations': locations},location_file)
+            yaml.dump({'locations': locations}, location_file)
 
     @staticmethod
     def _load_from_location_set_version_id(location_set_version_id: int) -> pd.DataFrame:
