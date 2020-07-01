@@ -39,10 +39,12 @@ class TestRegressionDataInterfaceIO:
 
         This only includes loading files.
         """
+        ode_paths = ODEPaths(Path(tmpdir))
         di = RegressionDataInterface(
             regression_paths=None,
-            ode_paths=ODEPaths(Path(tmpdir)),
+            ode_paths=ode_paths,
             covariate_paths=None,
+            ode_marshall=CSVMarshall(ode_paths.root_dir),
         )
 
         # Step 1: create files

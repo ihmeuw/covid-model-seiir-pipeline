@@ -15,7 +15,9 @@ class RegressionDataInterface:
     def __init__(self,
                  regression_paths: paths.RegressionPaths,
                  infection_paths: paths.InfectionPaths,
-                 covariate_paths: paths.CovariatePaths):
+                 covariate_paths: paths.CovariatePaths,
+                 ode_paths: paths.ODEPaths,
+                 ):
         self.regression_paths = regression_paths
         self.infection_paths = infection_paths
         self.covariate_paths = covariate_paths
