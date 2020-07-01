@@ -13,8 +13,8 @@ class DataTypes:
     """
     beta = "betas"
     coefficient = "coefficients"
-    parameter = "parameters"
     date = "dates"
+    parameter = "parameters"
 
 
 class Keys:
@@ -22,10 +22,6 @@ class Keys:
         self.data_type = data_type
         self.template = template
         self.key_args = key_args
-
-    @classmethod
-    def parameter(cls, draw_id):
-        return cls(DataTypes.parameter, DRAW_FILE_TEMPLATE, draw_id=draw_id)
 
     @classmethod
     def beta(cls, draw_id):
@@ -38,6 +34,10 @@ class Keys:
     @classmethod
     def date(cls, draw_id):
         return cls(DataTypes.date, DRAW_FILE_TEMPLATE, draw_id=draw_id)
+
+    @classmethod
+    def parameter(cls, draw_id):
+        return cls(DataTypes.parameter, DRAW_FILE_TEMPLATE, draw_id=draw_id)
 
     @property
     def key(self):
