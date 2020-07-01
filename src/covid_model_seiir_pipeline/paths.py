@@ -30,37 +30,17 @@ class Paths:
         """Returns all top level sub-directories."""
         raise NotImplementedError
 
-    @property
-    def location_specific_directories(self) -> List[Path]:
-        """Returns all top level sub-directories that have location-specific
-        sub-directories.
-
-        """
-        return []
-
-    def make_dirs(self, location_ids: List[int] = None):
+    def make_dirs(self):
         """Builds the local directory structure."""
         if self.read_only:
             raise RuntimeError(f"Tried to create directory structure when "
                                f"{self.__class__.__name__} was in read_only mode. "
                                f"Try instantiating with read_only=False.")
 
-        if self.location_specific_directories and not location_ids:
-            raise RuntimeError('No location ids supplied to population location-'
-                               f'specific subdirectories for {self.__class__.__name__}.')
-
         logger.debug(f'Creating sub-directory structure for {self.__class__.__name__} '
                      f'in {self.root_dir}.')
         for directory in self.directories:
             mkdir(directory, parents=True, exists_ok=True)
-
-        for directory in self.location_specific_directories:
-            if location_ids is None:
-                raise ValueError("location_ids cannot be none when creating directories "
-                                 "for location specific outputs of type "
-                                 f"{self.__class__.__name__}")
-            for location_id in location_ids:
-                mkdir(directory / str(location_id), exists_ok=True)
 
 
 @dataclass

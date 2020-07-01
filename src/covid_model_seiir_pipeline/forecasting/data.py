@@ -30,6 +30,9 @@ class ForecastDataInterface:
             covariate_paths=covariate_paths
         )
 
+    def make_dirs(self):
+        self.forecast_paths.make_dirs()
+
     def load_location_ids(self) -> List[int]:
         return pd.read_csv(self.location_metadata_file)["location_id"].tolist()
 
