@@ -1,9 +1,14 @@
-import pandas as pd
-import numpy as np
+from collections import defaultdict
 import copy
 from pprint import pprint
+from typing import Iterable, List, Union
 
-from slime.model import CovModelSet, MRModel
+import pandas as pd
+import numpy as np
+from slime.core.data import MRData
+from slime.model import CovModelSet, CovModel, MRModel
+
+from covid_model_seiir_pipeline.regression.specification import CovariateSpecification
 
 
 class BetaRegressor:
@@ -133,3 +138,42 @@ def predict(regressor, df_cov, col_t, col_group, col_beta='beta_pred'):
     df[col_beta] = beta_pred
 
     return df
+
+
+def align_beta_with_covariates(covariate_df: pd.DataFrame,
+                               beta_df: pd.DataFrame,
+                               cov_names: List[str]) -> MRData:
+    """Convert inputs for the beta regression model."""
+    join_cols = ['location_id', 'date']
+    df = beta_df.merge(covariate_df, on=join_cols)
+    df = df.loc[df['beta'] != 0]
+    df = df.sort_values(by=join_cols)
+    df['ln_beta'] = np.log(df['beta'])
+    mrdata = MRData(df, col_group='location_id', col_obs='ln_beta', col_covs=cov_names)
+    return mrdata
+
+
+def build_regressor(covariates: Iterable[CovariateSpecification]) -> Union[BetaRegressor, BetaRegressorSequential]:
+    """
+    Based on a list of `CovariateSpecification`s and an ordered list of lists of covariate
+    names, create a CovModelSet.
+    """
+    # construct each CovModel independently. add to dict of list by covariate order
+    covariate_models = defaultdict(list)
+    for covariate in covariates:
+        cov_model = CovModel(
+            col_cov=covariate.name,
+            use_re=covariate.use_re,
+            bounds=np.array(covariate.bounds),
+            gprior=np.array(covariate.gprior),
+            re_var=covariate.re_var,
+        )
+        covariate_models[covariate.order].append(cov_model)
+    ordered_covmodel_sets = [CovModelSet(covariate_group)
+                             for _, covariate_group in sorted(covariate_models.items())]
+    if len(ordered_covmodel_sets) > 1:
+        regressor = BetaRegressorSequential(ordered_covmodel_sets)
+    else:
+        regressor = BetaRegressor(ordered_covmodel_sets[0])
+
+    return regressor

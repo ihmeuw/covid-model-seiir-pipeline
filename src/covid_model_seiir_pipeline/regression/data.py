@@ -30,6 +30,9 @@ class RegressionDataInterface:
             covariate_paths=covariate_paths
         )
 
+    def make_dirs(self):
+        self.regression_paths.make_dirs()
+
     #####################
     # ODE paths loaders #
     #####################
