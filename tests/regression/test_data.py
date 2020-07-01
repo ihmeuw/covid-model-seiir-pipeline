@@ -11,7 +11,7 @@ from covid_model_seiir_pipeline.regression.data import RegressionDataInterface
 
 
 class TestRegressionDataInterfaceIO:
-    def test_ode_fit_io(self, tmpdir, tmpdir_file_count, beta_result):
+    def test_ode_fit_io(self, tmpdir, tmpdir_file_count, fit_beta):
         """
         Test I/O relating to the fit stage.
 
@@ -27,7 +27,7 @@ class TestRegressionDataInterfaceIO:
 
         # Step 1: create files
         m = CSVMarshall(di.ode_paths.root_dir)
-        m.dump(beta_result, key=MKeys.beta(draw_id=4))
+        m.dump(fit_beta, key=MKeys.fit_beta(draw_id=4))
 
         # Step 2: load files
         # Note: 10 corresponds to a value in the ode_fit_beta fixture
@@ -37,4 +37,4 @@ class TestRegressionDataInterfaceIO:
         # Note: load_ode_fits explicitly converts the "date" column
         assert pandas.core.dtypes.common.is_datetime64_any_dtype(loaded['date'])
         loaded['date'] = loaded['date'].dt.strftime("%Y-%m-%d")
-        pandas.testing.assert_frame_equal(beta_result, loaded)
+        pandas.testing.assert_frame_equal(fit_beta, loaded)

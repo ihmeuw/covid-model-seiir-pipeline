@@ -11,9 +11,9 @@ class DataTypes:
     """
     Enumerations of data types as understood by the Marshall interface.
     """
-    beta = "betas"
     coefficient = "coefficients"
     date = "dates"
+    fit_beta = "betas"  # TODO: unique name after forecast is done
     parameter = "parameters"
 
 
@@ -24,16 +24,16 @@ class Keys:
         self.key_args = key_args
 
     @classmethod
-    def beta(cls, draw_id):
-        return cls(DataTypes.beta, DRAW_FILE_TEMPLATE, draw_id=draw_id)
-
-    @classmethod
     def coefficient(cls, draw_id):
         return cls(DataTypes.coefficient, DRAW_FILE_TEMPLATE, draw_id=draw_id)
 
     @classmethod
     def date(cls, draw_id):
         return cls(DataTypes.date, DRAW_FILE_TEMPLATE, draw_id=draw_id)
+
+    @classmethod
+    def fit_beta(cls, draw_id):
+        return cls(DataTypes.fit_beta, DRAW_FILE_TEMPLATE, draw_id=draw_id)
 
     @classmethod
     def parameter(cls, draw_id):
@@ -65,7 +65,7 @@ class CSVMarshall:
         return pandas.read_csv(path)
 
     def resolve_key(self, key):
-        if key.data_type in {DataTypes.beta, DataTypes.parameter,
+        if key.data_type in {DataTypes.fit_beta, DataTypes.parameter,
                              DataTypes.date, DataTypes.coefficient}:
             path = (self.root / key.data_type / key.key).with_suffix(".csv")
         else:
