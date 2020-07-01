@@ -9,6 +9,7 @@ from covid_model_seiir_pipeline.utilities import Specification, asdict
 class ForecastData:
     """Specifies the inputs and outputs for a forecast."""
     regression_version: str = field(default='best')
+    covariate_version: str = field(default='best')
     output_root: str = field(default='')
 
     def to_dict(self) -> Dict:
