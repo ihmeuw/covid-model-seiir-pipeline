@@ -16,64 +16,10 @@ from covid_model_seiir_pipeline.regression.specification import RegressionSpecif
 from covid_model_seiir_pipeline.regression.covariate_model import convert_to_covmodel
 from covid_model_seiir_pipeline.ode_fit.specification import FitSpecification
 from covid_model_seiir_pipeline.forecasting.data import ForecastDataInterface
+from covid_model_seiir_pipeline.forecasting.model import get_ode_init_cond
 
 
 log = logging.getLogger(__name__)
-
-
-def parse_arguments(argstr: Optional[str] = None) -> Namespace:
-    """
-    Gets arguments from the command line or a command line string.
-    """
-    log.info("parsing arguments")
-    parser = ArgumentParser()
-    parser.add_argument("--location-id", type=int, required=True)
-    parser.add_argument("--forecast-version", type=str, required=True)
-    parser.add_argument("--scenario-name", type=str, required=True)
-
-    if argstr is not None:
-        arglist = shlex.split(argstr)
-        args = parser.parse_args(arglist)
-    else:
-        args = parser.parse_args()
-
-    return args
-
-
-def get_ode_init_cond(location_id, beta_ode_fit, current_date):
-    """
-    Get the initial condition for the ODE.
-
-    Args:
-        location_id (init):
-            Location ids.
-        beta_ode_fit (str | pd.DataFrame):
-            The result for the beta_ode_fit, either file or path to file.
-        current_date (str | np.datetime64):
-            Current date for each location we try to predict off. Either file
-            or path to file.
-
-
-    Returns:
-         pd.DataFrame: Initial conditions by location.
-    """
-    # process input
-    assert (static_vars.COL_GROUP in beta_ode_fit)
-    assert (static_vars.COL_DATE in beta_ode_fit)
-    beta_ode_fit = beta_ode_fit[beta_ode_fit[static_vars.COL_GROUP] == location_id].copy()
-
-    if isinstance(current_date, str):
-        current_date = np.datetime64(current_date)
-    else:
-        assert isinstance(current_date, np.datetime64)
-
-    dt = np.abs((pd.to_datetime(beta_ode_fit[static_vars.COL_DATE]) - current_date).dt.days)
-    beta_ode_fit = beta_ode_fit.iloc[np.argmin(dt)]
-
-    col_components = static_vars.SEIIR_COMPARTMENTS
-    assert all([c in beta_ode_fit for c in col_components])
-
-    return beta_ode_fit[col_components].values.ravel()
 
 
 def run_beta_forecast(location_id: int, forecast_version: str, scenario_name: str):
@@ -192,6 +138,25 @@ def run_beta_forecast(location_id: int, forecast_version: str, scenario_name: st
         )
 
     data_interface.save_beta_scales(scales, location_id)
+
+
+def parse_arguments(argstr: Optional[str] = None) -> Namespace:
+    """
+    Gets arguments from the command line or a command line string.
+    """
+    log.info("parsing arguments")
+    parser = ArgumentParser()
+    parser.add_argument("--location-id", type=int, required=True)
+    parser.add_argument("--forecast-version", type=str, required=True)
+    parser.add_argument("--scenario-name", type=str, required=True)
+
+    if argstr is not None:
+        arglist = shlex.split(argstr)
+        args = parser.parse_args(arglist)
+    else:
+        args = parser.parse_args()
+
+    return args
 
 
 def main():
