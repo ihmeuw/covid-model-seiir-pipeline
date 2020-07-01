@@ -4,27 +4,31 @@ from typing import List, Dict
 import pandas as pd
 
 
-from covid_model_seiir_pipeline.paths import (RegressionPaths, ODEPaths, ForecastPaths,
-                                              InfectionPaths)
+from covid_model_seiir_pipeline import paths
+from covid_model_seiir_pipeline.forecasting.specification import ForecastSpecification
 from covid_model_seiir_pipeline.static_vars import COVARIATE_COL_DICT
 
 
 class ForecastDataInterface:
 
-    def __init__(self, forecast_root: Path, regression_root: Path, ode_fit_root: Path,
-                 infection_root: Path, location_file: Path):
-        self.forecast_paths = ForecastPaths(forecast_root)
+    def __init__(self,
+                 forecast_paths: paths.ForecastPaths,
+                 regression_paths: paths.RegressionPaths,
+                 covariate_paths: paths.CovariatePaths):
+        self.forecast_paths = forecast_paths
+        self.regression_paths = regression_paths
+        self.covariate_paths = covariate_paths
 
-        # setup regression dirs
-        self.regression_paths = RegressionPaths(regression_root)
-
-        # setup ode dirs
-        self.ode_paths = ODEPaths(ode_fit_root)
-
-        # infection dirs
-        self.infection_paths = InfectionPaths(infection_root)
-
-        self.location_metadata_file = location_file
+    @classmethod
+    def from_specification(cls, specification: ForecastSpecification) -> 'ForecastDataInterface':
+        forecast_paths = paths.ForecastPaths(specification.data.output_root, read_only=False)
+        regression_paths = paths.RegressionPaths(specification.data.regression_version)
+        covariate_paths = paths.CovariatePaths(specification.data.covariate_version)
+        return cls(
+            forecast_paths=forecast_paths,
+            regression_paths=regression_paths,
+            covariate_paths=covariate_paths
+        )
 
     def load_location_ids(self) -> List[int]:
         return pd.read_csv(self.location_metadata_file)["location_id"].tolist()
