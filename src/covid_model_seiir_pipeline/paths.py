@@ -66,82 +66,35 @@ class Paths:
 @dataclass
 class ForecastPaths(Paths):
     """Local directory structure of a forecasting data root."""
-    beta_scaling_file: ClassVar[str] = "{location_id}_beta_scaling.csv"
-    component_draw_file: ClassVar[str] = "draw_{draw_id}.csv"
-    beta_resid_plot_file: ClassVar[str] = 'cases_fit_and_beta_residuals_{location_name}.png'
-    final_draw_plot_file: ClassVar[str] = 'final_draws_refflog_{location_name}.png'
-    trajectories_plot_file: ClassVar[str] = 'trajectories_{location_name}.png'
-    cases_file: ClassVar[str] = 'cases_{location_id}.csv'
-    deaths_file: ClassVar[str] = 'deaths_{location_id}.csv'
-    reff_file: ClassVar[str] = 'reff_{location_id}.csv'
+    beta_scaling_file: ClassVar[str] = DRAW_FILE_TEMPLATE
+    component_draw_file: ClassVar[str] = DRAW_FILE_TEMPLATE
+
+    @property
+    def forecast_specification(self) -> Path:
+        return self.root_dir / 'forecast_specification.yaml'
 
     @property
     def beta_scaling(self) -> Path:
         """Scaling factors used to align past and forecast betas."""
         return self.root_dir / 'beta_scaling'
 
-    def get_beta_scaling_path(self, location_id: int) -> Path:
+    def get_beta_scaling_path(self, draw_id: int) -> Path:
         """Retrieves a location specific path to beta scaling parameters"""
-        return self.beta_scaling / self.beta_scaling_file.format(location_id=location_id)
+        return self.beta_scaling / self.beta_scaling_file.format(draw_id=draw_id)
 
     @property
     def component_draws(self) -> Path:
         """Folders by location with SEIIR components."""
         return self.root_dir / 'component_draws'
 
-    def get_component_draws_path(self, location_id: int, draw_id: int) -> Path:
+    def get_component_draws_path(self, draw_id: int) -> Path:
         """Get SEIIR components for a particular location and draw."""
-        file = self.component_draw_file.format(draw_id=draw_id)
-        return self.component_draws / str(location_id) / file
-
-    @property
-    def diagnostics(self) -> Path:
-        """Plots of SEIIR component draws, final draws, and residuals."""
-        return self.root_dir / 'diagnostics'
-
-    def get_residuals_plot(self, location_name: str) -> Path:
-        """Path to residual plots by location."""
-        return self.diagnostics / self.beta_resid_plot_file.format(location_name=location_name)
-
-    def get_final_draw_plots(self, location_name: str) -> Path:
-        """Path to final draw plots by location."""
-        return self.diagnostics / self.final_draw_plot_file.format(location_name=location_name)
-
-    def get_trajectory_plots(self, location_name: str) -> Path:
-        """Path to final trajectory plots by location."""
-        return self.diagnostics / self.trajectories_plot_file.format(
-            location_name=location_name
-        )
-
-    @property
-    def output_draws(self) -> Path:
-        """Path to the output draws directories."""
-        return self.root_dir / 'output_draws'
-
-    def get_output_cases(self, location_id: int) -> Path:
-        """Path to output cases file by location."""
-        return self.output_draws / self.cases_file.format(location_id=location_id)
-
-    def get_output_reff(self, location_id: int) -> Path:
-        """Path to output R effective file by location."""
-        return self.output_draws / self.reff_file.format(location_id=location_id)
-
-    def get_output_deaths(self, location_id: int) -> Path:
-        """Path to output deaths file by location"""
-        return self.output_draws / self.deaths_file.format(location_id=location_id)
+        return self.component_draws / self.component_draw_file.format(draw_id=draw_id)
 
     @property
     def directories(self) -> List[Path]:
         """Returns all top level sub-directories."""
-        return [self.beta_scaling, self.component_draws, self.diagnostics, self.output_draws]
-
-    @property
-    def location_specific_directories(self) -> List[Path]:
-        """Returns all top level sub-directories that have location-specific
-        sub-directories.
-
-        """
-        return [self.component_draws]
+        return [self.beta_scaling, self.component_draws]
 
 
 @dataclass
