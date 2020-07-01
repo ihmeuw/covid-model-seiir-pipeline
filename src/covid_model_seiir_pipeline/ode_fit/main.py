@@ -22,8 +22,8 @@ def do_beta_fit(app_metadata: cli_tools.Metadata,
     # Filter to the intersection of what's available from the infection data.
     location_ids = data_interface.filter_location_ids(location_metadata)
     # Setup directory structure and save location and specification data.
-    data_interface.ode_paths.make_dirs(location_ids)
     data_interface.dump_location_ids(location_ids)
+    data_interface.make_dirs()
     # Fixme: Inconsistent data writing interfaces
     fit_specification.dump(data_interface.ode_paths.fit_specification)
 
