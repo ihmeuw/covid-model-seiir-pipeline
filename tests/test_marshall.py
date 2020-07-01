@@ -63,6 +63,17 @@ def parameters():
     ], columns=['params', 'values'])
 
 
+@pytest.fixture
+def dates():
+    "Example dates data."
+    return pandas.DataFrame([
+        [523, '2020-03-06', '2020-05-05'],
+        [526, '2020-03-08', '2020-05-05'],
+        [533, '2020-02-23', '2020-05-05'],
+        [537, '2020-02-26', '2020-05-05'],
+    ], columns=['loc_id', 'start_date', 'end_date'])
+
+
 class TestCSVMarshall(MarshallInterfaceTests):
     @pytest.fixture
     def instance(self, tmpdir):
@@ -73,6 +84,9 @@ class TestCSVMarshall(MarshallInterfaceTests):
 
     def test_parameters_marshall(self, instance, parameters):
         self.assert_load_dump_workflow_correct(instance, parameters, key=Keys.parameter(4))
+
+    def test_date_marshall(self, instance, dates):
+        self.assert_load_dump_workflow_correct(instance, dates, key=Keys.date(4))
 
     def test_no_overwriting(self, instance, beta_result, parameters):
         self.assert_no_accidental_overwrites(instance, beta_result, key=Keys.beta(4))
