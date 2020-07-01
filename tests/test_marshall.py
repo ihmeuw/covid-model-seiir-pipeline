@@ -53,7 +53,7 @@ def beta_result():
 
 @pytest.fixture
 def parameters():
-    "Example parameters data."
+    "Example parameters data from an ODE model."
     return pandas.DataFrame([
         ['alpha', 0.9967029839013677],
         ['sigma', 0.2729460588151238],
@@ -65,7 +65,7 @@ def parameters():
 
 @pytest.fixture
 def dates():
-    "Example dates data."
+    "Example dates data from an ODE model."
     return pandas.DataFrame([
         [523, '2020-03-06', '2020-05-05'],
         [526, '2020-03-08', '2020-05-05'],
