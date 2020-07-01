@@ -1,63 +1,19 @@
 from argparse import ArgumentParser, Namespace
-from collections import defaultdict
+
 import logging
 from pathlib import Path
 import shlex
-from typing import Iterable, List, Optional, Union
+from typing import Optional
 
 import numpy as np
-import pandas as pd
-
-from slime.model import CovModelSet, CovModel
-from slime.core.data import MRData
 
 from covid_model_seiir_pipeline import static_vars
 from covid_model_seiir_pipeline.regression.data import RegressionDataInterface
-from covid_model_seiir_pipeline.regression.specification import (RegressionSpecification,
-                                                                 CovariateSpecification)
-from covid_model_seiir_pipeline.regression.model import BetaRegressor, BetaRegressorSequential, predict
+from covid_model_seiir_pipeline.regression.specification import RegressionSpecification
+from covid_model_seiir_pipeline.regression.model import align_beta_with_covariates, build_regressor, predict
 
 
 log = logging.getLogger(__name__)
-
-
-def align_beta_with_covariates(covariate_df: pd.DataFrame,
-                               beta_df: pd.DataFrame,
-                               cov_names: List[str]) -> MRData:
-    """Convert inputs for the beta regression model."""
-    join_cols = ['location_id', 'date']
-    df = beta_df.merge(covariate_df, on=join_cols)
-    df = df.loc[df['beta'] != 0]
-    df = df.sort_values(by=join_cols)
-    df['ln_beta'] = np.log(df['beta'])
-    mrdata = MRData(df, col_group='location_id', col_obs='ln_beta', col_covs=cov_names)
-    return mrdata
-
-
-def build_regressor(covariates: Iterable[CovariateSpecification]) -> Union[BetaRegressor, BetaRegressorSequential]:
-    """
-    Based on a list of `CovariateSpecification`s and an ordered list of lists of covariate
-    names, create a CovModelSet.
-    """
-    # construct each CovModel independently. add to dict of list by covariate order
-    covariate_models = defaultdict(list)
-    for covariate in covariates:
-        cov_model = CovModel(
-            col_cov=covariate.name,
-            use_re=covariate.use_re,
-            bounds=np.array(covariate.bounds),
-            gprior=np.array(covariate.gprior),
-            re_var=covariate.re_var,
-        )
-        covariate_models[covariate.order].append(cov_model)
-    ordered_covmodel_sets = [CovModelSet(covariate_group)
-                             for _, covariate_group in sorted(covariate_models.items())]
-    if len(ordered_covmodel_sets) > 1:
-        regressor = BetaRegressorSequential(ordered_covmodel_sets)
-    else:
-        regressor = BetaRegressor(ordered_covmodel_sets[0])
-
-    return regressor
 
 
 def run_beta_regression(draw_id: int, regression_version: str) -> None:
