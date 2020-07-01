@@ -30,7 +30,7 @@ class RegressionDataInterface:
         return cls(
             regression_paths=regression_paths,
             infection_paths=infection_paths,
-            covariate_paths=covariate_paths
+            covariate_paths=covariate_paths,
         )
 
     def make_dirs(self):
