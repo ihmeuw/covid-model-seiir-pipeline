@@ -29,8 +29,8 @@ def tmpdir_file_count(tmpdir):
 # These represent actual data in various parts of the system that needs to be
 # marshalled/unmarshalled
 @pytest.fixture
-def beta_result():
-    "Example beta result from an ODE model."
+def fit_beta():
+    "Example beta result from an ODE model fit."
     return pandas.DataFrame({
         'location_id': [10],
         'date': ['2020-03-02'],
