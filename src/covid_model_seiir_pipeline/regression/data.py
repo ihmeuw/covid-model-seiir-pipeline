@@ -6,6 +6,10 @@ from loguru import logger
 import pandas as pd
 import yaml
 
+from covid_model_seiir_pipeline.marshall import (
+    CSVMarshall,
+    Keys as MKeys,
+)
 from covid_model_seiir_pipeline import paths
 from covid_model_seiir_pipeline.regression.specification import RegressionSpecification
 
@@ -16,11 +20,12 @@ class RegressionDataInterface:
                  regression_paths: paths.RegressionPaths,
                  infection_paths: paths.InfectionPaths,
                  covariate_paths: paths.CovariatePaths,
-                 ode_paths: paths.ODEPaths,
+                 regression_marshall,
                  ):
         self.regression_paths = regression_paths
         self.infection_paths = infection_paths
         self.covariate_paths = covariate_paths
+        self.regression_marshall = regression_marshall
 
     @classmethod
     def from_specification(cls, specification: RegressionSpecification) -> 'RegressionDataInterface':
@@ -31,6 +36,7 @@ class RegressionDataInterface:
             regression_paths=regression_paths,
             infection_paths=infection_paths,
             covariate_paths=covariate_paths,
+            regression_marshall=CSVMarshall(regression_paths.root_dir),
         )
 
     def make_dirs(self):
@@ -172,11 +178,10 @@ class RegressionDataInterface:
             yaml.dump({'locations': locations}, location_file)
 
     def save_regression_coefficients(self, coefficients: pd.DataFrame, draw_id: int) -> None:
-        coefficients.to_csv(self.regression_paths.get_coefficient_file(draw_id), index=False)
+        self.regression_marshall.dump(coefficients, key=MKeys.coefficient(draw_id))
 
     def save_regression_betas(self, df: pd.DataFrame, draw_id: int) -> None:
-        beta_file = self.regression_paths.get_beta_regression_file(draw_id)
-        df.to_csv(beta_file, index=False)
+        self.regression_marshall.dump(df, key=MKeys.regression_beta(draw_id))
 
     @staticmethod
     def _load_from_location_set_version_id(location_set_version_id: int) -> pd.DataFrame:

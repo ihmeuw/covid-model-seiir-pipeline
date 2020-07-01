@@ -15,6 +15,7 @@ class DataTypes:
     date = "dates"
     fit_beta = "betas"  # TODO: unique name after forecast is done
     parameter = "parameters"
+    regression_beta = "betas"  # TODO: unique name after forecast is done
 
 
 class Keys:
@@ -38,6 +39,10 @@ class Keys:
     @classmethod
     def parameter(cls, draw_id):
         return cls(DataTypes.parameter, DRAW_FILE_TEMPLATE, draw_id=draw_id)
+
+    @classmethod
+    def regression_beta(cls, draw_id):
+        return cls(DataTypes.regression_beta, DRAW_FILE_TEMPLATE, draw_id=draw_id)
 
     @property
     def key(self):
@@ -65,8 +70,8 @@ class CSVMarshall:
         return pandas.read_csv(path)
 
     def resolve_key(self, key):
-        if key.data_type in {DataTypes.fit_beta, DataTypes.parameter,
-                             DataTypes.date, DataTypes.coefficient}:
+        if key.data_type in {DataTypes.fit_beta, DataTypes.parameter, DataTypes.date,
+                             DataTypes.coefficient, DataTypes.regression_beta}:
             path = (self.root / key.data_type / key.key).with_suffix(".csv")
         else:
             msg = f"Invalid 'type' of data: {key.data_type}"
