@@ -12,6 +12,7 @@ class DataTypes:
     Enumerations of data types as understood by the Marshall interface.
     """
     beta = "betas"
+    coefficient = "coefficients"
     parameter = "parameters"
     date = "dates"
 
@@ -29,6 +30,10 @@ class Keys:
     @classmethod
     def beta(cls, draw_id):
         return cls(DataTypes.beta, DRAW_FILE_TEMPLATE, draw_id=draw_id)
+
+    @classmethod
+    def coefficient(cls, draw_id):
+        return cls(DataTypes.coefficient, DRAW_FILE_TEMPLATE, draw_id=draw_id)
 
     @classmethod
     def date(cls, draw_id):
@@ -60,7 +65,8 @@ class CSVMarshall:
         return pandas.read_csv(path)
 
     def resolve_key(self, key):
-        if key.data_type in {DataTypes.beta, DataTypes.parameter, DataTypes.date}:
+        if key.data_type in {DataTypes.beta, DataTypes.parameter,
+                             DataTypes.date, DataTypes.coefficient}:
             path = (self.root / key.data_type / key.key).with_suffix(".csv")
         else:
             msg = f"Invalid 'type' of data: {key.data_type}"

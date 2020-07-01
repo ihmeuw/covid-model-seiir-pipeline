@@ -74,6 +74,18 @@ def dates():
     ], columns=['loc_id', 'start_date', 'end_date'])
 
 
+@pytest.fixture
+def coefficients():
+    "Example coefficients data from regression."
+    return pandas.DataFrame([
+        [523, -0.2356716680846281, 0.010188535227465946, 0.27234473836297995, -598.8754409180113],
+        [526, -0.24334559662138652, 0.019963189989381125, 0.27234473836297995, -598.8754409180113],
+        [533, -0.214475560389406, 0.011172361940536456, 0.27234473836297995, -598.8754409180113],
+        [537, -0.09571280930682702, 0.011990915850960831, 0.27234473836297995, -598.8754409180113],
+        [538, 0.0988105530655817, 0.0187165992693182, 0.27234473836297995, -598.8754409180113],
+    ], columns=["group_id", "intercept", "mobility", "proportion_over_1k", "testing"])
+
+
 class TestCSVMarshall(MarshallInterfaceTests):
     @pytest.fixture
     def instance(self, tmpdir):
@@ -87,6 +99,9 @@ class TestCSVMarshall(MarshallInterfaceTests):
 
     def test_date_marshall(self, instance, dates):
         self.assert_load_dump_workflow_correct(instance, dates, key=Keys.date(4))
+
+    def test_coefficients_marshall(self, instance, coefficients):
+        self.assert_load_dump_workflow_correct(instance, coefficients, key=Keys.coefficient(4))
 
     def test_no_overwriting(self, instance, beta_result, parameters):
         self.assert_no_accidental_overwrites(instance, beta_result, key=Keys.beta(4))
