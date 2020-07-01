@@ -6,7 +6,7 @@ from jobmon.client.swarm.executors.base import ExecutorParameters
 from jobmon.client.swarm.workflow.task_dag import DagExecutionStatus
 
 from covid_model_seiir_pipeline import utilities
-from covid_model_seiir_pipeline.forecasting import ForecastSpecification
+from covid_model_seiir_pipeline.forecasting.specification import ForecastSpecification
 
 
 class BetaForecastTaskTemplate:

@@ -80,7 +80,3 @@ class RegressionSpecification(Specification):
         }
         return spec
 
-
-def validate_specification(regression_specification: RegressionSpecification) -> None:
-    """Checks all preconditions on the regression."""
-    pass

@@ -82,8 +82,9 @@ class SingleGroupODEProcess:
         self.lag_days = lag_days
         df.sort_values(self.col_date, inplace=True)
         date = pd.to_datetime(df[col_date])
-        end_date = self.today + np.timedelta64(self.day_shift -
-                                               self.lag_days, 'D')
+        # cast this from numpy.int64 to int because travis/tox was erroring on
+        # this, only for python 3.7, with a ValueError
+        end_date = self.today + np.timedelta64(int(self.day_shift - self.lag_days), 'D')
         # Sometimes we don't have leading indicator data, so the day shift
         # will put us into padded zeros.  Correct for this.
         max_end_date = date[df[col_cases] > 0].max()
@@ -247,7 +248,7 @@ class SingleGroupODEProcess:
         for k, v in components.items():
             df_result[k] = v
 
-        return df_result
+        return df_result.rename(columns={self.col_loc_id: "location_id"})
 
     def create_params_df(self):
         """Create parameter DataFrame.

@@ -1,8 +1,8 @@
 data:
-  infection_version: '2020_06_21.01'
+  infection_version: '2020_06_28.02'
   location_set_version_id: ''
   output_root: ''
-  location_set_file: '/ihme/covid-19/seir-pipeline-outputs/metadata-inputs/location_metadata_727.csv'
+  location_set_file: '/ihme/covid-19/seir-pipeline-outputs/metadata-inputs/location_metadata_727001.csv'
 parameters:
   n_draws: 10
   day_shift: [0, 8]
