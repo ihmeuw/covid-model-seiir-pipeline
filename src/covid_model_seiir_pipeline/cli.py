@@ -173,7 +173,6 @@ def forecast(run_metadata,
 
     forecast_spec.data.regression_version = str(regression_root.resolve())
     forecast_spec.data.output_root = str(run_directory)
-    forecast_spec.dump(run_directory / 'forecast_specification.yaml')
 
     run_metadata.update_from_path('regression_metadata', regression_root / paths.METADATA_FILE_NAME)
     run_metadata['output_path'] = str(run_directory)
@@ -182,7 +181,7 @@ def forecast(run_metadata,
     cli_tools.configure_logging_to_files(run_directory)
     main = cli_tools.monitor_application(do_beta_forecast,
                                          logger, with_debugger)
-    app_metadata, _ = main(forecast_spec, regression_root, run_directory)
+    app_metadata, _ = main(forecast_spec)
 
     run_metadata['app_metadata'] = app_metadata.to_dict()
     run_metadata.dump(run_directory / 'metadata.yaml')
