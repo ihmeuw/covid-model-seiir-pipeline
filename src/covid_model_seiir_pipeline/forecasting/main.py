@@ -33,6 +33,4 @@ def do_beta_forecast(app_metadata: cli_tools.Metadata,
     # forecast_wf = ForecastWorkflow(forecast_specification, location_ids)
     # forecast_wf.attach_scenario_tasks()
     # forecast_wf.attach_splice_tasks()
-    # forecast_wf.attach_scaling_diagnostics_tasks()
-    # forecast_wf.attach_forecast_diagnostics_tasks()
     # forecast_wf.run()
