@@ -53,6 +53,12 @@ class Keys:
 
 
 class CSVMarshall:
+    """
+    Marshalls DataFrames to/from CSV files.
+
+    This implementation directly mirrors existing behavior but does so within a
+    new marshalling interface.
+    """
     # interface methods
     def dump(self, data: pandas.DataFrame, key):
         path = self.resolve_key(key)
