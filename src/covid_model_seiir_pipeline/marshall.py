@@ -88,7 +88,7 @@ class CSVMarshall:
     # non-interface methods
     @classmethod
     def from_paths(cls, paths: Paths):
-        return cls(paths)
+        return cls(paths.root_dir)
 
-    def __init__(self, root: Paths):
+    def __init__(self, root: Path):
         self.root = root
