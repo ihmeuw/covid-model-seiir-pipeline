@@ -1,3 +1,8 @@
+from contextlib import contextmanager
+import io
+from pathlib import Path
+import zipfile
+
 import pandas
 
 from covid_model_seiir_pipeline.paths import (
@@ -92,3 +97,53 @@ class CSVMarshall:
 
     def __init__(self, root: Path):
         self.root = root
+
+
+class ZipMarshall:
+    # interface methods
+    def dump(self, data: pandas.DataFrame, key):
+        path = self.resolve_key(key)
+        with zipfile.ZipFile(self.zip, mode='a') as container:
+            with self._open_no_overwrite(container, path, key) as outf:
+                # stream writes through a wrapper that does str => bytes conversion
+                # chunksize denotes number of rows to write at once. it is not
+                # clear to me that 5 is at all a good number
+                wrapper = io.TextIOWrapper(outf, write_through=True)
+                data.to_csv(wrapper, index=False, chunksize=5)
+
+    def load(self, key):
+        path = self.resolve_key(key)
+        with zipfile.ZipFile(self.zip, mode='r') as container:
+            with container.open(path, 'r') as inf:
+                return pandas.read_csv(inf)
+
+    def resolve_key(self, key):
+        if key.data_type in {DataTypes.fit_beta, DataTypes.parameter, DataTypes.date,
+                             DataTypes.coefficient, DataTypes.regression_beta}:
+            path = f"{key.data_type}/{key.key}.csv"
+        else:
+            msg = f"Invalid 'type' of data: {key.data_type}"
+            raise ValueError(msg)
+
+        return path
+
+    # non-interface methods
+    @classmethod
+    def from_paths(cls, paths: Paths):
+        zip_path = str(paths.root_dir / "seiir-data.zip")
+        return cls(zip_path)
+
+    def __init__(self, zip: str):
+        self.zip = zip
+
+    @contextmanager
+    def _open_no_overwrite(self, zip_container, path, key):
+        try:
+            zip_container.getinfo(path)
+        except KeyError:
+            pass  # file does not exist - everything OK
+        else:
+            raise LookupError(f"Cannot dump data for key {key} - would overwrite")
+
+        with zip_container.open(path, 'w') as outf:
+            yield outf
