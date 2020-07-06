@@ -6,6 +6,7 @@ import pytest
 from covid_model_seiir_pipeline.marshall import (
     Keys,
     CSVMarshall,
+    Hdf5Marshall,
     ZipMarshall,
 )
 
@@ -61,3 +62,10 @@ class TestZipMarshall(MarshallInterfaceTests):
     def instance(self, tmpdir):
         zip_path = str(tmpdir / "data.zip")
         return ZipMarshall(zip_path)
+
+
+class TestHdf5Marshall(MarshallInterfaceTests):
+    @pytest.fixture
+    def instance(self, tmpdir):
+        hdf5_path = str(tmpdir / "data.hdf")
+        return Hdf5Marshall(hdf5_path)
