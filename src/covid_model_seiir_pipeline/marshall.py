@@ -306,8 +306,8 @@ class Hdf5Marshall:
         ds_to_load = group[self.load_order_ds_name][()]
 
         df_pieces = []
-        for dataset_name in ds_to_load:
-            ds = group[dataset_name]
+        for columns_by_type in ds_to_load:
+            ds = group[columns_by_type]
             # convert bytes to strings
             column_names = [X.decode() for X in ds.attrs[self.column_names_ds_attr]]
             arr = ds[()]
