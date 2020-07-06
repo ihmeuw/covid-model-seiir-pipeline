@@ -31,6 +31,7 @@ class DataTypes:
         regression_beta
     ])
 
+
 class Keys:
     def __init__(self, data_type, template, **key_args):
         self.data_type = data_type
