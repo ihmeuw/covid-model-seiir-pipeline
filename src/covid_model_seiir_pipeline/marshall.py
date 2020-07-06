@@ -197,7 +197,7 @@ class Hdf5Marshall:
     """
     # special names for Datasets of metadata used to help marshalling process
     load_order_ds_name = "load_order"
-    column_names_ds_name = "column_names"
+    column_names_ds_attr = "column_names"
     column_names_order = "returned_column_names"
 
     # translation from pandas object dtype to strict string dtype is necessary
@@ -263,21 +263,20 @@ class Hdf5Marshall:
             by_dtype[dt].append(col_name)
 
         # store data by common dtype to reduce number of datasets. note order
-        # TODO: attributes!
-        # https://docs.h5py.org/en/2.6.0/high/attr.html#attributes
         order = []
-        columns = []
         for dtype, column_names in by_dtype.items():
             dtype_dataset_name = numpy.string_(f"dtype:{dtype}")
             order.append(dtype_dataset_name)
-            columns.extend(map(numpy.string_, column_names))
 
             # TODO: enable compression
             # https://docs.h5py.org/en/2.6.0/high/dataset.html#filter-pipeline
-            group.create_dataset(dtype_dataset_name, data=df[column_names], dtype=dtype)
+            ds = group.create_dataset(dtype_dataset_name, data=df[column_names], dtype=dtype)
+            # make data self-describing by assigning column names
+            # https://docs.h5py.org/en/2.6.0/high/attr.html#attributes
+            ds.attrs[self.column_names_ds_attr] = [numpy.string_(c) for c in column_names]
+
         # store metadata - all the column names and the load order
         group.create_dataset(self.load_order_ds_name, data=order, dtype=self.string_dtype)
-        group.create_dataset(self.column_names_ds_name, data=columns, dtype=self.string_dtype)
         group.create_dataset(self.column_names_order,
                              data=[numpy.string_(c) for c in df.columns],
                              dtype=self.string_dtype)
@@ -293,12 +292,14 @@ class Hdf5Marshall:
 
         df_pieces = []
         for dataset_name in ds_to_load:
-            arr = group[dataset_name][()]
-            df_pieces.append(pandas.DataFrame(arr))
+            ds = group[dataset_name]
+            # convert bytes to strings
+            column_names = [X.decode() for X in ds.attrs[self.column_names_ds_attr]]
+            arr = ds[()]
+            df_piece = pandas.DataFrame(arr, columns=column_names)
+            df_pieces.append(df_piece)
 
         result = pandas.concat(df_pieces, axis=1)
-        column_names = group[self.column_names_ds_name][()]
-        result.columns = column_names
 
         # re-order columns to exact order they were saved in
         saved_col_order = group[self.column_names_order][()]
