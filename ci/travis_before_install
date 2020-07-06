@@ -16,7 +16,7 @@ command -v pip
 command -v python
 
 # install gfortran - which is not installed by limetr but required for it to work
-conda install --yes -c conda-forge fortran-compiler
+conda install --yes -c conda-forge fortran-compiler h5py
 git clone https://github.com/zhengp0/limetr.git
 cd limetr && python check_requirements.py && pip install . && cd ..
 git clone https://github.com/zhengp0/SLIME.git

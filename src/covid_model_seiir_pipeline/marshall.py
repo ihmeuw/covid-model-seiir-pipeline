@@ -1,8 +1,11 @@
+from collections import defaultdict
 from contextlib import contextmanager
 import io
 from pathlib import Path
 import zipfile
 
+import h5py
+import numpy
 import pandas
 
 from covid_model_seiir_pipeline.paths import (
@@ -170,3 +173,135 @@ class ZipMarshall:
 
         with zip_container.open(path, 'w') as outf:
             yield outf
+
+
+class Hdf5Marshall:
+    """
+    Marshalls data to/from HDF5 format.
+
+    HDF is a typed dataset format that brings several additional steps to
+    successful marshalling.
+
+    For the uninitiated, HDF5
+
+    * stores all data in a single file
+    * supports multiple sets of data (Dataset)
+    * supports grouping of data (groups) which are analogous to directories
+
+    Compression is available, applied at the Dataset level.
+
+    http://docs.h5py.org/en/stable/
+
+    > groups work like directories and datasets work like numpy arrays
+    http://docs.h5py.org/en/stable/quick.html#core-concepts
+    """
+    # special names for Datasets of metadata used to help marshalling process
+    load_order_ds_name = "load_order"
+    column_names_ds_name = "column_names"
+    column_names_order = "returned_column_names"
+
+    # translation from pandas object dtype to strict string dtype is necessary
+    obj_dtype = numpy.dtype('O')
+    string_dtype = h5py.string_dtype()
+
+    def dump(self, data, key):
+        seed, group_name, name = self.resolve_key(key)
+        with h5py.File(self.hdf5(seed), "a") as container:
+            if group_name in container:
+                raise LookupError(f"Cannot dump data for key {key} - would overwrite")
+            group = container.create_group(group_name)
+            self.save_df_to_group(group, name, data)
+
+    def load(self, key):
+        seed, group_name, name = self.resolve_key(key)
+        with h5py.File(self.hdf5(seed), "r") as container:
+            try:
+                group = container.get(group_name)
+                return self.load_df_from_group(group, name)
+            except KeyError:
+                raise RuntimeError(f"No data set for {key} saved!")
+
+    def resolve_key(self, key):
+        if key.data_type in DataTypes.DataFrame_types:
+            seed = key.seed
+            group = key.data_type
+            name = key.key
+        else:
+            msg = f"Invalid 'type' of data: {key.data_type}"
+            raise ValueError(msg)
+        return seed, group, name
+
+    # non-interface methods
+    @classmethod
+    def from_paths(cls, paths: Paths):
+        hdf5_path = str(paths.root_dir / "seiir-data-{{}}.hdf5")
+        return cls(hdf5_path)
+
+    def __init__(self, hdf5_template):  # TODO: type annotate
+        self.hdf5_template = hdf5_template
+
+    def hdf5(self, seed: str):
+        return self.hdf5_template.format(seed)
+
+    def save_df_to_group(self, parent_group, name, df):
+        """
+        It turns out hdf files use a single dtype for the entire dataset. This
+        is reasonable, but makes more work for us.
+        """
+        # because we store 1 object and not many we must nest
+        # use `name` for the nested directory-like thing
+        group = parent_group.create_group(name)
+        # determine groupings of data by common dtype
+        by_dtype = defaultdict(list)
+        for col_name, df_dtype in df.dtypes.iteritems():
+            # object dtype is a no-go. cast to string
+            if df_dtype == self.obj_dtype:
+                assert isinstance(df[col_name].iloc[0], str), f"Column {col_name} is non-str objects - cannot save!"
+                dt = self.string_dtype
+            else:
+                dt = df_dtype
+            by_dtype[dt].append(col_name)
+
+        # store data by common dtype to reduce number of datasets. note order
+        # TODO: attributes!
+        # https://docs.h5py.org/en/2.6.0/high/attr.html#attributes
+        order = []
+        columns = []
+        for dtype, column_names in by_dtype.items():
+            dtype_dataset_name = numpy.string_(f"dtype:{dtype}")
+            order.append(dtype_dataset_name)
+            columns.extend(map(numpy.string_, column_names))
+
+            # TODO: enable compression
+            # https://docs.h5py.org/en/2.6.0/high/dataset.html#filter-pipeline
+            group.create_dataset(dtype_dataset_name, data=df[column_names], dtype=dtype)
+        # store metadata - all the column names and the load order
+        group.create_dataset(self.load_order_ds_name, data=order, dtype=self.string_dtype)
+        group.create_dataset(self.column_names_ds_name, data=columns, dtype=self.string_dtype)
+        group.create_dataset(self.column_names_order,
+                             data=[numpy.string_(c) for c in df.columns],
+                             dtype=self.string_dtype)
+
+    def load_df_from_group(self, parent_group, name):
+        group = parent_group[name]
+        # providing a "name" key to a group gets you a Dataset
+        # to access the Dataset values, index with an empty tuple
+        # https://docs.h5py.org/en/2.6.0/high/dataset.html#reading-writing-data
+        # TODO: investigate if we can load more efficiently e.g., stream from
+        # the Dataset directly into the pandas DataFrame
+        ds_to_load = group[self.load_order_ds_name][()]
+
+        df_pieces = []
+        for dataset_name in ds_to_load:
+            arr = group[dataset_name][()]
+            df_pieces.append(pandas.DataFrame(arr))
+
+        result = pandas.concat(df_pieces, axis=1)
+        column_names = group[self.column_names_ds_name][()]
+        result.columns = column_names
+
+        # re-order columns to exact order they were saved in
+        saved_col_order = group[self.column_names_order][()]
+        result = result[saved_col_order]
+
+        return result
