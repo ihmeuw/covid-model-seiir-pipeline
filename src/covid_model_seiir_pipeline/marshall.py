@@ -266,8 +266,15 @@ class Hdf5Marshall:
             if df_dtype == self.obj_dtype:
                 assert isinstance(df[col_name].iloc[0], str), f"Column {col_name} is non-str objects - cannot save!"
                 dt = self.string_dtype
-            else:
+            elif issubclass(df_dtype.type, numpy.number):
+                # assume h5py support for numpy number types
+                # THIS MAY BE INCORRECT
+                # https://numpy.org/doc/stable/reference/arrays.scalars.html
                 dt = df_dtype
+            else:
+                # numpy.datetime64 falls here
+                msg = f"No support for dtype {df_dtype} ({df_dtype.type.__name__})"
+                raise TypeError(msg)
             by_dtype[dt].append(col_name)
 
         # store data by common dtype to reduce number of datasets. note order
