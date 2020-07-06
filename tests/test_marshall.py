@@ -69,3 +69,23 @@ class TestHdf5Marshall(MarshallInterfaceTests):
     def instance(self, tmpdir):
         hdf5_path = str(tmpdir / "data.hdf")
         return Hdf5Marshall(hdf5_path)
+
+
+class TestHdf5Marshall_noniface:
+    @pytest.fixture
+    def instance(self, tmpdir):
+        hdf5_path = str(tmpdir / "data.hdf")
+        return Hdf5Marshall(hdf5_path)
+
+    @pytest.mark.xfail(raises=TypeError, strict=True)
+    def test_datetime(self, instance, fit_beta):
+        """
+        Re-use fit_beta fixture but cast date as a datetime.
+        """
+        fit_beta['date'] = pandas.to_datetime(fit_beta['date'])
+        key = Keys.fit_beta(4)
+
+        instance.dump(fit_beta, key=key)
+        loaded = instance.load(key)
+
+        pandas.testing.assert_frame_equal(fit_beta, loaded)
