@@ -61,6 +61,17 @@ class Keys:
     def key(self):
         return self.template.format(**self.key_args)
 
+    @property
+    def seed(self):
+        """
+        Returns a seed value for enabling concurrency.
+
+        This is a sort of hack - we embed the concurrency story into the Keys
+        class which can then inform other things.
+        """
+        assert list(self.key_args) == ['draw_id'], 'TODO - expand Keys.seed'
+        return "draw-{draw_id}".format(**self.key_args)
+
     def __repr__(self):
         return f"Keys({self.data_type!r}, {self.template!r}, **{self.key_args!r})"
 
@@ -109,8 +120,8 @@ class CSVMarshall:
 class ZipMarshall:
     # interface methods
     def dump(self, data: pandas.DataFrame, key):
-        path = self.resolve_key(key)
-        with zipfile.ZipFile(self.zip, mode='a') as container:
+        seed, path = self.resolve_key(key)
+        with zipfile.ZipFile(self.zip(seed), mode='a') as container:
             with self._open_no_overwrite(container, path, key) as outf:
                 # stream writes through a wrapper that does str => bytes conversion
                 # chunksize denotes number of rows to write at once. it is not
@@ -119,28 +130,33 @@ class ZipMarshall:
                 data.to_csv(wrapper, index=False, chunksize=5)
 
     def load(self, key):
-        path = self.resolve_key(key)
-        with zipfile.ZipFile(self.zip, mode='r') as container:
+        seed, path = self.resolve_key(key)
+        with zipfile.ZipFile(self.zip(seed), mode='r') as container:
             with container.open(path, 'r') as inf:
                 return pandas.read_csv(inf)
 
     def resolve_key(self, key):
         if key.data_type in DataTypes.DataFrame_types:
             path = f"{key.data_type}/{key.key}.csv"
+            seed = key.seed
         else:
             msg = f"Invalid 'type' of data: {key.data_type}"
             raise ValueError(msg)
 
-        return path
+        return seed, path
 
     # non-interface methods
     @classmethod
     def from_paths(cls, paths: Paths):
-        zip_path = str(paths.root_dir / "seiir-data.zip")
+        # technically unsafe - {} values in the root_dir could break interpolation
+        zip_path = str(paths.root_dir / "seiir-data-{{}}.zip")
         return cls(zip_path)
 
-    def __init__(self, zip: str):
-        self.zip = zip
+    def __init__(self, zip_template: str):
+        self.zip_template = zip_template
+
+    def zip(self, seed: str):
+        return self.zip_template.format(seed)
 
     @contextmanager
     def _open_no_overwrite(self, zip_container, path, key):
