@@ -196,6 +196,8 @@ class Hdf5Marshall:
     http://docs.h5py.org/en/stable/quick.html#core-concepts
     """
     # special names for Datasets of metadata used to help marshalling process
+    file_version_attr = 'file_version'
+    file_version_id = 1
     load_order_ds_name = "load_order"
     column_names_ds_attr = "column_names"
     column_names_order = "returned_column_names"
@@ -210,6 +212,8 @@ class Hdf5Marshall:
     def dump(self, data, key):
         seed, group_name, name = self.resolve_key(key)
         with h5py.File(self.hdf5(seed), "a") as container:
+            # version file. should we ever update the format it will make life easier
+            container.attrs[self.file_version_attr] = self.file_version_id
             if group_name in container:
                 raise LookupError(f"Cannot dump data for key {key} - would overwrite")
             group = container.create_group(group_name)
@@ -218,6 +222,7 @@ class Hdf5Marshall:
     def load(self, key):
         seed, group_name, name = self.resolve_key(key)
         with h5py.File(self.hdf5(seed), "r") as container:
+            assert container.attrs[self.file_version_attr] == self.file_version_id, 'Unknown file version'
             try:
                 group = container.get(group_name)
                 return self.load_df_from_group(group, name)
