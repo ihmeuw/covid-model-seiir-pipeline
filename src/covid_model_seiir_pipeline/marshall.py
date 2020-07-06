@@ -199,6 +199,9 @@ class Hdf5Marshall:
     load_order_ds_name = "load_order"
     column_names_ds_attr = "column_names"
     column_names_order = "returned_column_names"
+    # all datasets are named after their dtype
+    # attributes are used to describe the column names for self-descriptiveness
+    dataset_name_template = "dtype:{dtype}"
 
     # translation from pandas object dtype to strict string dtype is necessary
     obj_dtype = numpy.dtype('O')
@@ -265,7 +268,7 @@ class Hdf5Marshall:
         # store data by common dtype to reduce number of datasets. note order
         order = []
         for dtype, column_names in by_dtype.items():
-            dtype_dataset_name = numpy.string_(f"dtype:{dtype}")
+            dtype_dataset_name = numpy.string_(self.dataset_name_template.format(dtype=dtype))
             order.append(dtype_dataset_name)
 
             # TODO: enable compression
