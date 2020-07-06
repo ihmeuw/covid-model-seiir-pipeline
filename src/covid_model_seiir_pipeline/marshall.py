@@ -22,6 +22,14 @@ class DataTypes:
     parameter = "parameters"
     regression_beta = "betas"  # TODO: unique name after forecast is done
 
+    # types which serialize to a DataFrame
+    DataFrame_types = frozenset([
+        fit_beta,
+        parameter,
+        date,
+        coefficient,
+        regression_beta
+    ])
 
 class Keys:
     def __init__(self, data_type, template, **key_args):
@@ -81,8 +89,7 @@ class CSVMarshall:
         return pandas.read_csv(path)
 
     def resolve_key(self, key):
-        if key.data_type in {DataTypes.fit_beta, DataTypes.parameter, DataTypes.date,
-                             DataTypes.coefficient, DataTypes.regression_beta}:
+        if key.data_type in DataTypes.DataFrame_types:
             path = (self.root / key.data_type / key.key).with_suffix(".csv")
         else:
             msg = f"Invalid 'type' of data: {key.data_type}"
@@ -118,8 +125,7 @@ class ZipMarshall:
                 return pandas.read_csv(inf)
 
     def resolve_key(self, key):
-        if key.data_type in {DataTypes.fit_beta, DataTypes.parameter, DataTypes.date,
-                             DataTypes.coefficient, DataTypes.regression_beta}:
+        if key.data_type in DataTypes.DataFrame_types:
             path = f"{key.data_type}/{key.key}.csv"
         else:
             msg = f"Invalid 'type' of data: {key.data_type}"
