@@ -248,6 +248,7 @@ class Hdf5Marshall:
 
     def __init__(self, hdf5_template):  # TODO: type annotate
         self.hdf5_template = hdf5_template
+        self.dtype_marshall = DtypeMarshall()
 
     def hdf5(self, seed: str):
         return self.hdf5_template.format(seed)
@@ -263,30 +264,20 @@ class Hdf5Marshall:
         # determine groupings of data by common dtype
         by_dtype = defaultdict(list)
         for col_name, df_dtype in df.dtypes.iteritems():
-            # object dtype is a no-go. cast to string
-            if df_dtype == self.obj_dtype:
-                assert isinstance(df[col_name].iloc[0], str), f"Column {col_name} is non-str objects - cannot save!"
-                dt = self.string_dtype
-            elif issubclass(df_dtype.type, numpy.number):
-                # assume h5py support for numpy number types
-                # THIS MAY BE INCORRECT
-                # https://numpy.org/doc/stable/reference/arrays.scalars.html
-                dt = df_dtype
-            else:
-                # numpy.datetime64 falls here
-                msg = f"No support for dtype {df_dtype} ({df_dtype.type.__name__})"
-                raise TypeError(msg)
-            by_dtype[dt].append(col_name)
+            by_dtype[df_dtype].append(col_name)
 
         # store data by common dtype to reduce number of datasets. note order
         order = []
-        for dtype, column_names in by_dtype.items():
-            dtype_dataset_name = numpy.string_(self.dataset_name_template.format(dtype=dtype))
+        for pd_dtype, column_names in by_dtype.items():
+            data, dtype, dt_label = self.dtype_marshall.to_array(df[column_names])
+
+            dtype_dataset_name = numpy.string_(self.dataset_name_template.format(dtype=dt_label))
             order.append(dtype_dataset_name)
 
             # TODO: enable compression
             # https://docs.h5py.org/en/2.6.0/high/dataset.html#filter-pipeline
-            ds = group.create_dataset(dtype_dataset_name, data=df[column_names], dtype=dtype)
+            ds = group.create_dataset(dtype_dataset_name, data=data, dtype=dtype)
+
             # make data self-describing by assigning column names
             # https://docs.h5py.org/en/2.6.0/high/attr.html#attributes
             ds.attrs[self.column_names_ds_attr] = [numpy.string_(c) for c in column_names]
@@ -309,10 +300,11 @@ class Hdf5Marshall:
         df_pieces = []
         for columns_by_type in ds_to_load:
             ds = group[columns_by_type]
+            dtype: str = columns_by_type[6:]  # chomp 'dtype:' prefix
             # convert bytes to strings
             column_names = [X.decode() for X in ds.attrs[self.column_names_ds_attr]]
             arr = ds[()]
-            df_piece = pandas.DataFrame(arr, columns=column_names)
+            df_piece = self.dtype_marshall.to_pandas(arr, dtype, columns=column_names)
             df_pieces.append(df_piece)
 
         result = pandas.concat(df_pieces, axis=1)

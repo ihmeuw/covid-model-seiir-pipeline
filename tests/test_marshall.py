@@ -79,7 +79,6 @@ class TestHdf5Marshall_noniface:
         hdf5_path = str(tmpdir / "data.hdf")
         return Hdf5Marshall(hdf5_path)
 
-    @pytest.mark.xfail(raises=TypeError, strict=True)
     def test_datetime(self, instance, fit_beta):
         """
         Re-use fit_beta fixture but cast date as a datetime.
