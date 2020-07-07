@@ -2,6 +2,7 @@ from collections import defaultdict
 from contextlib import contextmanager
 import io
 from pathlib import Path
+import typing
 import zipfile
 
 import h5py
@@ -321,3 +322,90 @@ class Hdf5Marshall:
         result = result[saved_col_order]
 
         return result
+
+
+class DtypeMarshall:
+    """
+    Handles the odds and ends of marshalling between pandas and h5py dtypes.
+    """
+    dt_epoch = pandas.Timestamp("1970-01-01")
+    dt_res = pandas.Timedelta("1s")
+
+    dt_map = {
+        # dtype -> (result_dt, hdf_dt, label)
+        numpy.datetime64: (numpy.int64, numpy.int64, "datetime64"),
+        # we cannot use numpy.string_ here because it truncates
+        numpy.object_: (numpy.object_, h5py.string_dtype(), "string"),
+    }
+
+    def to_array(self, df: pandas.DataFrame) -> typing.Tuple[numpy.array, numpy.dtype, str]:
+        try:
+            dt, = df.dtypes.unique()
+        except ValueError:
+            types = df.dtypes.unique()
+            raise TypeError(f"to_array must provide a DataFrame with a single dtype - have {types}")
+
+        tmp = self.dt_map.get(dt.type)
+        if tmp is None:
+            return df.values, dt.type, dt.type.__name__  # no conversion necessary
+        else:
+            result_dt, out_dt, label = tmp
+
+        result = numpy.empty(df.shape, dtype=result_dt)
+        for i, name in enumerate(df.columns):
+            converted = self.as_hdf_dtype(df[name])
+            result[:, i] = converted
+
+        return result, out_dt, label
+
+    def to_pandas(self, a: numpy.array, dtype_str: str, columns: typing.List[str]) -> pandas.DataFrame:
+        # this indexing looks backwards but is not
+        return pandas.DataFrame({column: self.as_pandas_dtype(a[:, i], dtype_str)
+                                 for i, column in enumerate(columns)})
+
+    def as_hdf_dtype(self, s: pandas.Series) -> numpy.array:
+        t = s.dtype.type
+        if issubclass(t, numpy.number):
+            return s.values
+        elif t is numpy.datetime64:
+            return self.to_unix_epoch(s)
+        elif t is numpy.object_:
+            if not isinstance(s[0], str):
+                t = type(s[0])
+                msg = f"DataFrame columns with type object must be strings. Have {t}"
+                raise TypeError(msg)
+            return numpy.string_(s)
+        else:
+            raise NotImplementedError(f"No support to convert {t}")
+
+    def as_pandas_dtype(self, a: numpy.array, dtype: str) -> pandas.Series:
+        """
+        Return array as Series.
+
+        Note: strings are automagically converted back by h5py
+        """
+        if dtype == "datetime64":
+            return self.from_unix_epoch(a)
+        else:
+            return pandas.Series(a)
+
+    # datetime64 conversion
+    def to_unix_epoch(self, s: pandas.Series) -> numpy.array:
+        """
+        Convert datetime-like value to Unix style timestamp.
+
+        https://pandas.pydata.org/pandas-docs/stable/user_guide/timeseries.html#from-timestamps-to-epoch
+        """
+        # Note floor division. Guard against loss of information
+        if s.dt.microsecond.any():
+            raise NotImplementedError("No support for timestamps with sub-second values: {val}")
+        # floor division forces int64 instead of float64. This is important!
+        return (((s - self.dt_epoch) // self.dt_res).values)
+
+    def from_unix_epoch(self, a: numpy.array) -> pandas.Series:
+        """
+        Convert Unix style timestamp to datetime-like value used by pandas.
+
+        https://pandas.pydata.org/pandas-docs/stable/user_guide/timeseries.html#epoch-timestamps
+        """
+        return pandas.Series(pandas.to_datetime(a, unit='s'))

@@ -1,5 +1,6 @@
 import pathlib
 
+import numpy
 import pandas
 import pytest
 
@@ -8,6 +9,7 @@ from covid_model_seiir_pipeline.marshall import (
     CSVMarshall,
     Hdf5Marshall,
     ZipMarshall,
+    DtypeMarshall,
 )
 
 
@@ -89,3 +91,34 @@ class TestHdf5Marshall_noniface:
         loaded = instance.load(key)
 
         pandas.testing.assert_frame_equal(fit_beta, loaded)
+
+
+class TestDtypeMarshall:
+    """
+    Test marshalling data from one dtype to another.
+
+    Normally these are identical as pandas is built on top of numpy.
+    Differences are noted in tests.
+
+    https://pandas.pydata.org/pandas-docs/stable/getting_started/basics.html#dtypes
+    https://numpy.org/doc/stable/reference/arrays.dtypes.html
+
+    There is an excellent diagram of the numpy dtype hierarchy here:
+    https://numpy.org/doc/stable/reference/arrays.scalars.html
+    """
+    @pytest.fixture
+    def instance(self):
+        return DtypeMarshall()
+
+    @pytest.mark.parametrize(["pd_dtype", "hdf_dtype", "dtype"], [
+        [numpy.datetime64("2020-07-07"), numpy.int64(1594080000), "datetime64"]
+    ])
+    def test_type_marshall_pandas_hdf(self, instance, pd_dtype, hdf_dtype, dtype):
+        """
+        Test marshalling between pandas and hdf (h5py) dtypes.
+        """
+        p = pandas.Series(pd_dtype)
+        n = numpy.array([hdf_dtype])
+
+        numpy.testing.assert_array_equal(instance.as_hdf_dtype(p), n)
+        pandas.testing.assert_series_equal(instance.as_pandas_dtype(n, dtype), p)
