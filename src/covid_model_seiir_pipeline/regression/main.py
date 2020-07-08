@@ -9,19 +9,28 @@ from covid_model_seiir_pipeline.regression.workflow import RegressionWorkflow
 def do_beta_regression(app_metadata: cli_tools.Metadata,
                        regression_specification: RegressionSpecification):
     logger.debug('Starting beta regression.')
+
     # init high level objects
     data_interface = RegressionDataInterface.from_specification(regression_specification)
 
-    # build directory structure
-    location_ids = data_interface.load_location_ids()
-    data_interface.regression_paths.make_dirs(location_ids)
-    # Fixme: Inconsistent data writing interfaces
-    regression_specification.dump(data_interface.regression_paths.regression_specification)
+    # Grab canonical location list from arguments
+    location_metadata = data_interface.load_location_ids_from_primary_source(
+        location_set_version_id=regression_specification.data.location_set_version_id,
+        location_file=regression_specification.data.location_set_file
+    )
+    # Filter to the intersection of what's available from the infection data.
+    location_ids = data_interface.filter_location_ids(location_metadata)
 
     # Check to make sure we have all the covariates we need
     data_interface.check_covariates(regression_specification.covariates)
+
+    # build directory structure and save metadata
+    data_interface.regression_paths.make_dirs(location_ids)
+    data_interface.dump_location_ids(location_ids)
+    # Fixme: Inconsistent data writing interfaces
+    regression_specification.dump(data_interface.regression_paths.regression_specification)
+
     # build workflow and launch
     regression_wf = RegressionWorkflow(regression_specification.data.output_root)
-    n_draws = data_interface.get_draw_count()
-    regression_wf.attach_beta_regression_tasks(n_draws=n_draws)
+    regression_wf.attach_beta_regression_tasks(n_draws=regression_specification.parameters.n_draws)
     regression_wf.run()
