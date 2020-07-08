@@ -95,9 +95,21 @@ class Splicer:
 
     @staticmethod
     def compute_effective_r(df, params, pop):
-        avg_gammas = 1. / (1. / params['gamma1'] + 1. / params['gamma2'])
-        R_C = df[COL_BETA] * params['alpha'] * (df[COL_INFECT1] + df[COL_INFECT2]) ** (params['alpha'] - 1) / avg_gammas
-        return (R_C * df[COL_S]) / pop
+        # Combine all the parameters of disease transmission into a coefficient.
+        gamma_adjustment = (
+                1./(params['gamma1']*(params['sigma'] - df['theta']))
+                + 1./(params['gamma2']*(params['sigma'] - df['theta']))
+        )
+        R_coeff = df[COL_BETA] * params['alpha'] * params['sigma'] * gamma_adjustment
+
+        total_infected = df[COL_INFECT1] + df[COL_INFECT2]
+        # Alpha is a hack to adjust for incomplete mixing in the population.
+        mixing_param = (params['alpha'] - 1)
+
+        R_C = R_coeff * total_infected**mixing_param
+        proportion_susceptible = df[COL_S] / pop
+
+        return R_C * proportion_susceptible
 
     def record_splice(self, df, col_data, draw_id):
         spl = df[[self.col_date, COL_OBSERVED, col_data]].copy()
