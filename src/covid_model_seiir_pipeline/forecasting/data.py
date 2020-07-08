@@ -4,7 +4,7 @@ from typing import List, Dict
 import pandas as pd
 
 
-from covid_model_seiir_pipeline.paths import (RegressionPaths, ODEPaths, ForecastPaths,
+from covid_model_seiir_pipeline.paths import (RegressionPaths, ForecastPaths,
                                               InfectionPaths)
 from covid_model_seiir_pipeline.static_vars import COVARIATE_COL_DICT
 
