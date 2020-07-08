@@ -156,9 +156,6 @@ class RegressionDataInterface:
     # Regression paths writers #
     ############################
 
-    def save_beta_fit_file(self, df: pd.DataFrame, draw_id: int) -> None:
-        df.to_csv(self.regression_paths.get_beta_fit_file(draw_id), index=False)
-
     def save_draw_beta_param_file(self, df: pd.DataFrame, draw_id: int) -> None:
         df.to_csv(self.regression_paths.get_draw_beta_param_file(draw_id), index=False)
 
