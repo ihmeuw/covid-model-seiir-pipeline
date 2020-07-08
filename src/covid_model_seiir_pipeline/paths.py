@@ -147,7 +147,6 @@ class ForecastPaths(Paths):
 @dataclass
 class RegressionPaths(Paths):
     # class attributes are inferred using ClassVar. See pep 557 (Class Variables)
-    beta_fit_file: ClassVar[str] = DRAW_FILE_TEMPLATE
     beta_param_file: ClassVar[str] = DRAW_FILE_TEMPLATE
     date_file: ClassVar[str] = DRAW_FILE_TEMPLATE
     coefficient_file: ClassVar[str] = DRAW_FILE_TEMPLATE
@@ -160,13 +159,6 @@ class RegressionPaths(Paths):
     @property
     def regression_specification(self):
         return self.root_dir / 'regression_specification.yaml'
-
-    @property
-    def beta_fit_dir(self) -> Path:
-        return self.root_dir / 'beta_fit'
-
-    def get_beta_fit_file(self, draw_id: int) -> Path:
-        return self.beta_fit_dir / self.beta_fit_file.format(draw_id=draw_id)
 
     @property
     def parameters_dir(self) -> Path:
@@ -184,7 +176,7 @@ class RegressionPaths(Paths):
 
     @property
     def beta_regression_dir(self) -> Path:
-        return self.root_dir / 'beta_regress'
+        return self.root_dir / 'beta'
 
     def get_beta_regression_file(self, draw_id: int) -> Path:
         return self.beta_regression_dir / self.beta_regression_file.format(draw_id=draw_id)

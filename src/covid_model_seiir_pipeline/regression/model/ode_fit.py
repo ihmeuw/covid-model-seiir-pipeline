@@ -361,10 +361,6 @@ class ODEProcess:
         """
         for loc_id, model in self.models.items():
             model.process()
-
-    def create_result_df(self):
-        """Create result DataFrame.
-        """
         return pd.concat([
             model.create_result_df()
             for loc_id, model in self.models.items()
