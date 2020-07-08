@@ -86,6 +86,11 @@ def run_beta_forecast(location_id: int, regression_version: str, forecast_versio
             directories, draw_id=draw_id
         )
 
+        if 1 < theta or theta < -1:
+            raise ValueError("Theta must be between -1 and 1.")
+        if beta_params['sigma'] - theta > 1:
+            raise ValueError("Sigma - theta must be smaller than 1.")
+
         # Convert settings to the covariates model and load covariates data
         _, all_covmodels_set = convert_to_covmodel(
             regression_settings.covariates,
