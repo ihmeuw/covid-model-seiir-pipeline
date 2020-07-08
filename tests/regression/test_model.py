@@ -2,7 +2,7 @@ import numpy
 import pandas
 import pytest
 
-from covid_model_seiir_pipeline.ode_fit import model
+from covid_model_seiir_pipeline.regression import model
 from covid_model_seiir_pipeline.static_vars import INFECTION_COL_DICT
 
 
@@ -32,7 +32,7 @@ class Test_ODEProcess_results:
     # ignore a very specific RuntimeWarning
     @pytest.mark.filterwarnings("ignore:invalid value encountered in true_divide:RuntimeWarning")  # noqa
     def test_create_result_df(self, ode_model):
-        beta = ode_model.create_result_df()
+        beta = ode_model.process()
 
         assert beta.shape == (225, 11)
 
@@ -111,16 +111,15 @@ class Test_ODEProcess_results:
             day_shift=[0, 8],
         )
         result = model.ODEProcess(inputs)
-        result.process()
         return result
 
     @pytest.fixture(scope="module")
     def location_data(self, fixture_dir):
         """
-        Returns location data to run ode_fit on.
+        Returns location data to run regression on.
 
         This is a dict of {location_id: DataFrame_of_data} pairs.
         """
-        fixture_path = fixture_dir / "ode_fit/location_data_2020_06_28.02.csv"
+        fixture_path = fixture_dir / "regression/location_data_2020_06_28.02.csv"
         big_df = pandas.read_csv(fixture_path)
         return {loc_id: loc_data for loc_id, loc_data in big_df.groupby("loc_id")}
