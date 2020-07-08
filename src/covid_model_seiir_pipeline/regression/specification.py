@@ -83,7 +83,7 @@ class RegressionSpecification(Specification):
         if not covariates:  # Assume we're generating for a template
             covariates.append(CovariateSpecification())
 
-        return data, covariates
+        return data, parameters, covariates
 
     @property
     def data(self) -> RegressionData:
