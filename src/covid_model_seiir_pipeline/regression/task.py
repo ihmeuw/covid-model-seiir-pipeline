@@ -17,13 +17,7 @@ from covid_model_seiir_pipeline.regression.specification import (
     RegressionSpecification,
     CovariateSpecification
 )
-from covid_model_seiir_pipeline.regression.model import (
-    ODEProcessInput,
-    ODEProcess,
-    BetaRegressor,
-    BetaRegressorSequential,
-    predict
-)
+from covid_model_seiir_pipeline.regression import model
 
 
 log = logging.getLogger(__name__)
@@ -42,7 +36,8 @@ def align_beta_with_covariates(covariate_df: pd.DataFrame,
     return mrdata
 
 
-def build_regressor(covariates: Iterable[CovariateSpecification]) -> Union[BetaRegressor, BetaRegressorSequential]:
+def build_regressor(covariates: Iterable[CovariateSpecification]) -> Union[model.BetaRegressor,
+                                                                           model.BetaRegressorSequential]:
     """
     Based on a list of `CovariateSpecification`s and an ordered list of lists of covariate
     names, create a CovModelSet.
@@ -61,9 +56,9 @@ def build_regressor(covariates: Iterable[CovariateSpecification]) -> Union[BetaR
     ordered_covmodel_sets = [CovModelSet(covariate_group)
                              for _, covariate_group in sorted(covariate_models.items())]
     if len(ordered_covmodel_sets) > 1:
-        regressor = BetaRegressorSequential(ordered_covmodel_sets)
+        regressor = model.BetaRegressorSequential(ordered_covmodel_sets)
     else:
-        regressor = BetaRegressor(ordered_covmodel_sets[0])
+        regressor = model.BetaRegressor(ordered_covmodel_sets[0])
 
     return regressor
 
@@ -82,7 +77,7 @@ def run_beta_regression(draw_id: int, regression_version: str) -> None:
 
     # Run ODE fit
     np.random.seed(draw_id)
-    beta_fit_inputs = ODEProcessInput(
+    beta_fit_inputs = model.ODEProcessInput(
         df_dict=location_data,
         col_date=INFECTION_COL_DICT['COL_DATE'],
         col_cases=INFECTION_COL_DICT['COL_CASES'],
@@ -97,14 +92,15 @@ def run_beta_regression(draw_id: int, regression_version: str) -> None:
         solver_dt=regression_specification.parameters.solver_dt,
         day_shift=regression_specification.parameters.day_shift,
     )
-    ode_model = ODEProcess(beta_fit_inputs)
+    ode_model = model.ODEProcess(beta_fit_inputs)
     beta_fit = ode_model.process()
 
     # Run regression
     mr_data = align_beta_with_covariates(covariates, beta_fit, list(regression_specification.covariates))
     regressor = build_regressor(regression_specification.covariates.values())
     coefficients = regressor.fit(mr_data)
-    prediction = predict(regressor, covariates, col_t='date', col_group='location_id', col_beta='ln_beta_pred')
+    prediction = model.predict(regressor, covariates,
+                               col_t='date', col_group='location_id', col_beta='ln_beta_pred')
     prediction['beta_pred'] = np.exp(prediction['ln_beta_pred'])
 
     # Format and save data.
