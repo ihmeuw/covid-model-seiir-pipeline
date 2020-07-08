@@ -9,15 +9,14 @@ from covid_model_seiir_pipeline import utilities
 
 class BetaRegressionTaskTemplate:
 
-    def __init__(self, task_registry: Dict[str, BashTask]):
-        self.task_registry = task_registry
+    def __init__(self):
         self.command_template = (
             "beta_regression " +
             "--draw-id {draw_id} " +
             "--regression-version {regression_version} "
         )
         self.params = ExecutorParameters(
-            max_runtime_seconds=1000,
+            max_runtime_seconds=3000,
             m_mem_free='20G',
             num_cores=3,
             queue='d.q'
@@ -36,23 +35,17 @@ class BetaRegressionTaskTemplate:
             executor_parameters=self.params,
             max_attempts=1
         )
-        self.task_registry[task_name] = task
         return task
 
 
 class RegressionWorkflow:
 
-    def __init__(self, regression_version):
-        self.regression_version = regression_version
-        # if we need to build dependencies then the task registry must be shared between
-        # task factories
-        self.task_registry: Dict[str, BashTask] = {}
-        self._beta_regression_tt = BetaRegressionTaskTemplate(self.task_registry)
+    def __init__(self, version: str):
+        self.version = version
+        self.task_template = BetaRegressionTaskTemplate()
 
-        workflow_args = f'seiir-regression-{regression_version}'
-        stdout, stderr = utilities.make_log_dirs(
-            regression_version, prefix='jobmon'
-        )
+        workflow_args = f'seiir-regression-{version}'
+        stdout, stderr = utilities.make_log_dirs(version, prefix='jobmon')
 
         self.workflow = Workflow(
             workflow_args=workflow_args,
@@ -65,9 +58,7 @@ class RegressionWorkflow:
 
     def attach_beta_regression_tasks(self, n_draws: int):
         for draw_id in range(n_draws):
-            task = self._beta_regression_tt.get_task(
-                draw_id, self.regression_version
-            )
+            task = self.task_template.get_task(draw_id, self.version)
             self.workflow.add_task(task)
 
     def run(self):
