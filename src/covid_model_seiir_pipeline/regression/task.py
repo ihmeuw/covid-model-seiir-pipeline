@@ -94,6 +94,7 @@ def run_beta_regression(draw_id: int, regression_version: str) -> None:
     )
     ode_model = model.ODEProcess(beta_fit_inputs)
     beta_fit = ode_model.process()
+    beta_fit['date'] = pd.to_datetime(beta_fit['date'])
 
     # Run regression
     mr_data = align_beta_with_covariates(covariates, beta_fit, list(regression_specification.covariates))
