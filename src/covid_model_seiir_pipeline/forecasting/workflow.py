@@ -1,3 +1,4 @@
+from itertools import product
 from typing import Dict, List
 
 from jobmon.client import Workflow, BashTask
@@ -5,18 +6,17 @@ from jobmon.client.swarm.executors.base import ExecutorParameters
 from jobmon.client.swarm.workflow.task_dag import DagExecutionStatus
 
 from covid_model_seiir_pipeline import utilities
-from covid_model_seiir_pipeline.forecasting.specification import ForecastSpecification
 
 
 class BetaForecastTaskTemplate:
 
-    name_template = "forecast_{scenario}_{location_id}"
+    name_template = "forecast_{scenario}_{draw_id}"
 
     def __init__(self, task_registry: Dict[str, BashTask]):
         self.task_registry = task_registry
         self.command_template = (
             "beta_forecast " +
-            "--location-id {location_id} " +
+            "--draw-id {draw_id} " +
             "--forecast-version {forecast_version} " +
             "--scenario {scenario}"
         )
@@ -28,13 +28,13 @@ class BetaForecastTaskTemplate:
         )
 
     @classmethod
-    def get_task_name(cls, location_id: int, scenario: str) -> str:
-        return cls.name_template.format(location_id=location_id, scenario=scenario)
+    def get_task_name(cls, draw_id: int, scenario: str) -> str:
+        return cls.name_template.format(draw_id=draw_id, scenario=scenario)
 
-    def get_task(self, location_id: int, forecast_version: str, scenario: str):
-        task_name = self.get_task_name(location_id, scenario)
+    def get_task(self, draw_id: int, forecast_version: str, scenario: str):
+        task_name = self.get_task_name(draw_id, scenario)
         task = BashTask(
-            command=self.command_template.format(location_id=location_id,
+            command=self.command_template.format(draw_id=draw_id,
                                                  forecast_version=forecast_version,
                                                  scenario=scenario),
             name=task_name,
@@ -47,11 +47,8 @@ class BetaForecastTaskTemplate:
 
 class ForecastWorkflow:
 
-    def __init__(self, forecast_specification: ForecastSpecification, location_ids: List[int]
-                 ) -> None:
-        self.forecast_specification = forecast_specification
-        self.location_ids = location_ids
-
+    def __init__(self, forecast_version: str) -> None:
+        self.version = forecast_version
         # if we need to build dependencies then the task registry must be shared between
         # task factories
         self._task_registry: Dict[str, BashTask] = {}
@@ -59,9 +56,9 @@ class ForecastWorkflow:
         # computational tasks
         self._beta_forecast_task_template = BetaForecastTaskTemplate(self._task_registry)
 
-        workflow_args = f'seiir-forecast-{forecast_specification.data.output_root}'
+        workflow_args = f'seiir-forecast-{forecast_version}'
         stdout, stderr = utilities.make_log_dirs(
-            self.forecast_specification.data.output_root, prefix='jobmon'
+            forecast_version, prefix='jobmon'
         )
 
         self.workflow = Workflow(
@@ -73,15 +70,14 @@ class ForecastWorkflow:
             resume=True
         )
 
-    def attach_scenario_tasks(self):
-        for location_id in self.location_ids:
-            for scenario in self.forecast_specification.scenarios.keys():
-                task = self._beta_forecast_task_template.get_task(
-                    location_id=location_id,
-                    forecast_version=self.forecast_specification.data.output_root,
+    def attach_scenario_tasks(self, n_draws: int, scenarios: List[str]):
+        for draw, scenario in product(range(n_draws), scenarios):
+            task = self._beta_forecast_task_template.get_task(
+                    draw_id=draw,
+                    forecast_version=self.version,
                     scenario=scenario
                 )
-                self.workflow.add_task(task)
+            self.workflow.add_task(task)
 
     def run(self):
         execution_status = self.workflow.run()
