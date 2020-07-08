@@ -1,7 +1,17 @@
 data:
+  infection_version: '2020_06_28.02'
   covariate_version: '2020_06_30.01'
-  ode_fit_version: 'latest'
+  location_set_version_id: ''
+  location_set_file: '/ihme/covid-19/seir-pipeline-outputs/metadata-inputs/location_metadata_727001.csv'
   output_root: ''
+parameters:
+  n_draws: 10
+  day_shift: [0, 8]
+  alpha: [0.9, 1.0]
+  sigma: [0.2, 0.3333]
+  gamma1: [0.5, 0.5]
+  gamma2: [0.3333, 1.0]
+  solver_dt: 0.1
 covariates:
   intercept:
     # Ordering of covariates in regression.  Covariates with the same order
