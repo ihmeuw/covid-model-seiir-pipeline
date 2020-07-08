@@ -1,8 +1,8 @@
 data:
-  infection_version: '2020_06_28.02'
-  covariate_version: '2020_06_30.01'
+  infection_version: '2020_07_06.02'
+  covariate_version: '2020_07_07.04'
   location_set_version_id: ''
-  location_set_file: '/ihme/covid-19/seir-pipeline-outputs/metadata-inputs/location_metadata_727001.csv'
+  location_set_file: '/ihme/covid-19/seir-pipeline-outputs/metadata-inputs/location_metadata_747001.csv'
   output_root: ''
 parameters:
   n_draws: 10
@@ -51,8 +51,8 @@ covariates:
   testing:
     order: 0
     use_re: False
-    gprior: [0.0, 69.0]
-    bounds: [-138.0, 0.0]
+    gprior: [0.0, 40.0]
+    bounds: [-80.0, 0.0]
     re_var: 1.0
     draws: False
   air_pollution_pm_2_5:
