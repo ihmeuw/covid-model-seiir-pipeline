@@ -22,27 +22,15 @@ from covid_model_seiir_pipeline.forecasting.model import get_ode_init_cond
 log = logging.getLogger(__name__)
 
 
-def run_beta_forecast(location_id: int, forecast_version: str, scenario_name: str):
+def run_beta_forecast(draw_id: int, forecast_version: str, scenario_name: str):
     # -------------------------- CONSTRUCT DATA INTERFACE AND SPECS -------------------- #
     log.info("Initiating SEIIR beta forecasting.")
     forecast_spec: ForecastSpecification = ForecastSpecification.from_path(
         Path(forecast_version) / static_vars.FORECAST_SPECIFICATION_FILE
     )
     scenario_spec = forecast_spec.scenarios[scenario_name]
-    regress_spec: RegressionSpecification = RegressionSpecification.from_path(
-        Path(forecast_spec.data.regression_version) / static_vars.REGRESSION_SPECIFICATION_FILE
-    )
-    ode_fit_spec: FitSpecification = FitSpecification.from_path(
-        Path(regress_spec.data.ode_fit_version) / static_vars.FIT_SPECIFICATION_FILE
-    )
 
-    data_interface = ForecastDataInterface(
-        forecast_root=Path(forecast_spec.data.output_root) / scenario_name,
-        regression_root=Path(regress_spec.data.output_root),
-        ode_fit_root=Path(ode_fit_spec.data.output_root),
-        infection_root=Path(ode_fit_spec.data.infection_version),
-        location_file=Path(ode_fit_spec.data.location_set_file)
-    )
+    data_interface = ForecastDataInterface.from_specification(forecast_spec)
 
     # -------------------------- FORECAST THE BETA FORWARDS -------------------- #
     mr = ModelRunner()
@@ -146,7 +134,7 @@ def parse_arguments(argstr: Optional[str] = None) -> Namespace:
     """
     log.info("parsing arguments")
     parser = ArgumentParser()
-    parser.add_argument("--location-id", type=int, required=True)
+    parser.add_argument("--draw-id", type=int, required=True)
     parser.add_argument("--forecast-version", type=str, required=True)
     parser.add_argument("--scenario-name", type=str, required=True)
 
@@ -161,7 +149,7 @@ def parse_arguments(argstr: Optional[str] = None) -> Namespace:
 
 def main():
     args = parse_arguments()
-    run_beta_forecast(location_id=args.location_id,
+    run_beta_forecast(draw_id=args.draw_id,
                       forecast_version=args.forecast_version,
                       scenario_name=args.scenario_name)
 
