@@ -191,7 +191,7 @@ class RegressionPaths(Paths):
     @property
     def directories(self) -> List[Path]:
         """Returns all top level sub-directories."""
-        return [self.beta_fit_dir, self.parameters_dir, self.date_dir,
+        return [self.parameters_dir, self.date_dir,
                 self.beta_regression_dir, self.coefficient_dir]
 
 
