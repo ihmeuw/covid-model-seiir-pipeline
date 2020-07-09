@@ -71,7 +71,7 @@ class ForecastDataInterface:
                 # regression.  No harm really in just deleting it.
                 del scenario.covariates['intercept']
 
-            for covariate, covariate_version in scenario.covariates:
+            for covariate, covariate_version in scenario.covariates.item():
                 data_file = self.covariate_paths.get_covariate_scenario_file(covariate, covariate_version)
                 if not data_file.exists():
                     raise FileNotFoundError(f'No {covariate_version} file found for covariate {covariate}.')
