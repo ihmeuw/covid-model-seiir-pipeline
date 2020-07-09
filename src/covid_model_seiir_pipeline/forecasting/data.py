@@ -21,7 +21,9 @@ class ForecastDataInterface:
 
     @classmethod
     def from_specification(cls, specification: ForecastSpecification) -> 'ForecastDataInterface':
-        forecast_paths = paths.ForecastPaths(specification.data.output_root, read_only=False)
+        forecast_paths = paths.ForecastPaths(specification.data.output_root,
+                                             read_only=False,
+                                             scenarios=list(specification.scenarios))
         regression_paths = paths.RegressionPaths(specification.data.regression_version)
         covariate_paths = paths.CovariatePaths(specification.data.covariate_version)
         return cls(
