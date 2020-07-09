@@ -163,7 +163,7 @@ class RegressionDataInterface:
         df.to_csv(self.regression_paths.get_beta_param_file(draw_id), index=False)
 
     def save_draw_date_file(self, df: pd.DataFrame, draw_id: int) -> None:
-        df.to_csv(self.regression_paths.get_draw_date_file(draw_id), index=False)
+        df.to_csv(self.regression_paths.get_date_file(draw_id), index=False)
 
     def save_location_metadata_file(self, locations: List[int]) -> None:
         with (self.regression_paths.root_dir / 'locations.yaml') as location_file:

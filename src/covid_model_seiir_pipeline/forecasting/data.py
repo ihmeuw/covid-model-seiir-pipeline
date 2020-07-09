@@ -77,7 +77,7 @@ class ForecastDataInterface:
                     raise FileNotFoundError(f'No {covariate_version} file found for covariate {covariate}.')
 
     def load_dates_df(self, draw_id: int) -> pd.DataFrame:
-        date_file = self.regression_paths.date_file(draw_id)
+        date_file = self.regression_paths.get_date_file(draw_id)
         dates_df = pd.read_csv(date_file)
         dates_df['start_date'] = pd.to_datetime(dates_df['start_date'])
         dates_df['end_date'] = pd.to_datetime(dates_df['end_date'])
