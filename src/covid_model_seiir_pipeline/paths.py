@@ -121,7 +121,7 @@ class RegressionPaths(Paths):
     def date_dir(self) -> Path:
         return self.root_dir / 'dates'
 
-    def get_draw_date_file(self, draw_id: int) -> Path:
+    def get_date_file(self, draw_id: int) -> Path:
         return self.date_dir / self.date_file.format(draw_id=draw_id)
 
     @property
