@@ -9,9 +9,9 @@ import numpy as np
 
 from covid_model_seiir_pipeline import static_vars
 from covid_model_seiir_pipeline.model_runner import compute_beta_hat
+from covid_model_seiir_pipeline.forecasting import model
 from covid_model_seiir_pipeline.forecasting.specification import ForecastSpecification
 from covid_model_seiir_pipeline.forecasting.data import ForecastDataInterface
-from covid_model_seiir_pipeline.forecasting.model import get_ode_init_cond, SeiirModelSpecs
 
 
 log = logging.getLogger(__name__)
@@ -23,10 +23,15 @@ def run_beta_forecast(draw_id: int, forecast_version: str, scenario_name: str):
         Path(forecast_version) / static_vars.FORECAST_SPECIFICATION_FILE
     )
     scenario_spec = forecast_spec.scenarios[scenario_name]
-
     data_interface = ForecastDataInterface.from_specification(forecast_spec)
 
     location_ids = data_interface.load_location_ids()
+    if isinstance(scenario_spec.theta, str):
+        thetas = pd.read_csv(scenario_spec.theta).set_index('location_id')
+    else:
+        thetas = pd.DataFrame({'theta': scenario_spec.theta},
+                              index=pd.Index(location_ids, name='location_id'))
+
     # Contains the start and end date for the data that was fit.
     # End dates vary based on how many days of leading indicator data
     # we use from the deaths model.
@@ -47,7 +52,7 @@ def run_beta_forecast(draw_id: int, forecast_version: str, scenario_name: str):
     # We'll use the same params in the ODE forecast as we did in the fit.
     beta_params = data_interface.load_beta_params(draw_id=draw_id)
 
-    ### Modeling starts
+    # Modeling starts
 
     # Align date in data sets
     # We want the past out of the regression data. Keep the overlap day.
@@ -66,46 +71,42 @@ def run_beta_forecast(draw_id: int, forecast_version: str, scenario_name: str):
     days = pd.to_datetime(days)
     times = np.array((days - days.min()).days)
 
-        # Anchor the betas at the last observed beta (fitted)
-        # and scale everything into the future from this anchor value
-        anchor_beta = beta_fit.beta[beta_fit.date == CURRENT_DATE].iloc[0]
-        scale = anchor_beta / betas[0]
-        scales.append(scale)
-        # scale = scale + (1 - scale)/20.0*np.arange(betas.size)
-        # scale[21:] = 1.0
-        betas = betas * scale
+    # FIXME: vectorize over location
+    betas, scale_params = model.beta_shift(beta_past, betas, draw_id, **scenario_spec.beta_scaling)
 
-        # Get initial conditions based on the beta fit for forecasting into the future
-        init_cond = get_ode_init_cond(
-            beta_ode_fit=beta_fit,
-            current_date=CURRENT_DATE,
-            location_id=location_id
-        ).astype(float)
-        N = np.sum(init_cond)  # total population
-        model_specs = SeiirModelSpecs(
+    transition_day = beta_regression_df['date'] == transition_date
+    compartments = ['S', 'E', 'I1', 'I2', 'R']
+    initial_condition = beta_regression_df.loc[transition_day, compartments]
+
+    forecasts = []
+
+    for location_id in location_ids:
+        log.info(f"On location id {location_id}")
+        init_cond = initial_condition.loc[location_id].values
+        total_population = initial_condition.sum()
+
+        model_specs = model.SeiirModelSpecs(
             alpha=beta_params['alpha'],
             sigma=beta_params['sigma'],
             gamma1=beta_params['gamma1'],
             gamma2=beta_params['gamma2'],
-            N=N
-        )
-        # Forecast all of the components based on the forecasted beta
-        forecasted_components = mr.forecast(
-            model_specs=model_specs,
-            init_cond=init_cond,
-            times=times,
-            betas=betas,
-            dt=ode_fit_spec.parameters.solver_dt
-        )
-        forecasted_components[static_vars.COVARIATE_COL_DICT['COL_DATE']] = days
-
-        data_interface.save_components(
-            df=forecasted_components,
-            location_id=location_id,
-            draw_id=draw_id
+            N=total_population,
         )
 
-    data_interface.save_beta_scales(scales, location_id)
+        ode_runner = model.ODERunner(model_specs, init_cond)
+
+        loc_times = times.loc[location_id].values
+        loc_betas = betas.loc[location_id].values
+        loc_thetas = np.repeat(thetas.at[location_id], loc_betas)
+
+        forecasted_components = ode_runner.get_solution(loc_times, loc_betas, loc_thetas)
+        forecasted_components['date'] = days
+
+        forecasts.append(forecasted_components)
+
+    forecasts = pd.concat(forecasts)
+    data_interface.save_forecasts(forecasts, scenario_name, draw_id)
+    data_interface.save_beta_scales(scale_params, scenario_name, draw_id)
 
 
 def parse_arguments(argstr: Optional[str] = None) -> Namespace:

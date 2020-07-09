@@ -117,7 +117,7 @@ class RegressionPaths(Paths):
     def parameters_dir(self) -> Path:
         return self.root_dir / 'parameters'
 
-    def get_draw_beta_param_file(self, draw_id: int) -> Path:
+    def get_beta_param_file(self, draw_id: int) -> Path:
         return self.parameters_dir / self.beta_param_file.format(draw_id=draw_id)
 
     @property
