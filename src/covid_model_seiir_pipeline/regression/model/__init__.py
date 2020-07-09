@@ -5,7 +5,7 @@ from .ode_fit import (
 from .regress import (
     BetaRegressor,
     BetaRegressorSequential,
-    predict,
+    compute_beta_hat,
     align_beta_with_covariates,
     build_regressor,
 )
