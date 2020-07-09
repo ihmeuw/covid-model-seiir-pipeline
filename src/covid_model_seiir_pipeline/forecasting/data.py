@@ -1,4 +1,5 @@
 from functools import reduce
+from pathlib import Path
 from typing import List, Dict
 
 from loguru import logger
@@ -21,11 +22,11 @@ class ForecastDataInterface:
 
     @classmethod
     def from_specification(cls, specification: ForecastSpecification) -> 'ForecastDataInterface':
-        forecast_paths = paths.ForecastPaths(specification.data.output_root,
+        forecast_paths = paths.ForecastPaths(Path(specification.data.output_root),
                                              read_only=False,
                                              scenarios=list(specification.scenarios))
-        regression_paths = paths.RegressionPaths(specification.data.regression_version)
-        covariate_paths = paths.CovariatePaths(specification.data.covariate_version)
+        regression_paths = paths.RegressionPaths(Path(specification.data.regression_version))
+        covariate_paths = paths.CovariatePaths(Path(specification.data.covariate_version))
         return cls(
             forecast_paths=forecast_paths,
             regression_paths=regression_paths,

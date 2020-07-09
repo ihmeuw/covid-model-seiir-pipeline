@@ -18,11 +18,8 @@ class Paths:
     local directory structures.
 
     """
-    root_dir: Union[str, Path]
+    root_dir: Path
     read_only: bool = field(default=True)
-
-    def __post_init__(self):
-        self.root_dir = Path(self.root_dir)
 
     @property
     @abc.abstractmethod
