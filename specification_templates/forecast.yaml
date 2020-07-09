@@ -3,7 +3,7 @@ data:
   covariate_version: 'best'
   output_root: ''
 scenarios:
-  baseline:
+  worse:
     algorithm: 'RK45'  # Later also 'mattingly', 'RK45-loop', etc.
     beta_scaling:
       window_size: 42
@@ -15,7 +15,7 @@ scenarios:
       mobility: 'reference'
       proportion_over_1k: 'reference'
       temperature: 'reference'
-  testing_optimistic:
+  worse_best_masks:
     algorithm: 'RK45'  # Later also 'mattingly', 'RK45-loop', etc.
       beta_scaling:
         window_size: 42

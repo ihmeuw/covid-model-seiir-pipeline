@@ -1,7 +1,8 @@
-from pathlib import Path
 from typing import List, Dict
 
+from loguru import logger
 import pandas as pd
+import yaml
 
 from covid_model_seiir_pipeline import paths
 from covid_model_seiir_pipeline.forecasting.specification import ForecastSpecification
@@ -31,6 +32,23 @@ class ForecastDataInterface:
 
     def make_dirs(self):
         self.forecast_paths.make_dirs()
+
+    def check_covariates(self, covariates: List[str]):
+        with self.regression_paths.regression_specification.open() as regression_spec_file:
+            regression_spec = yaml.load(regression_spec_file)
+        forecast_version = str(self.covariate_paths.root_dir)
+        regression_version = regression_spec['data']['covariate_version']
+        if not forecast_version == regression_version:
+            logger.warning(f'Forecast covariate version {forecast_version} does not match '
+                           f'regression covariate version {regression_version}. If the two covariate'
+                           f'versions have different data in the past, the regression coefficients '
+                           f'used for prediction may not be valid.')
+
+        regression_covariates = set(regression_spec['covariates'])
+        if not set(covariates) == regression_covariates:
+            raise ValueError('Forecast covariates must match the covariates used in regression.\n'
+                             f'Forecast covariates:   {sorted(covariates)}.\n'
+                             f'Regression covariates: {sorted(list(regression_covariates))}.')
 
     def load_location_ids(self) -> List[int]:
         return pd.read_csv(self.location_metadata_file)["location_id"].tolist()
