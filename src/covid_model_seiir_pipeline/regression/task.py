@@ -8,6 +8,7 @@ from typing import Optional
 import numpy as np
 import pandas as pd
 
+from covid_model_seiir_pipeline.model_runner import compute_beta_hat
 from covid_model_seiir_pipeline.static_vars import REGRESSION_SPECIFICATION_FILE, INFECTION_COL_DICT
 from covid_model_seiir_pipeline.regression.data import RegressionDataInterface
 from covid_model_seiir_pipeline.regression.specification import RegressionSpecification
@@ -53,15 +54,13 @@ def run_beta_regression(draw_id: int, regression_version: str) -> None:
     mr_data = model.align_beta_with_covariates(covariates, beta_fit, list(regression_specification.covariates))
     regressor = model.build_regressor(regression_specification.covariates.values())
     coefficients = regressor.fit(mr_data)
-    prediction = model.predict(regressor, covariates,
-                               col_t='date', col_group='location_id', col_beta='ln_beta_pred')
-    prediction['beta_pred'] = np.exp(prediction['ln_beta_pred'])
+    log_beta_hat = compute_beta_hat(covariates, coefficients)
+    beta_hat = np.exp(log_beta_hat).rename('beta_pred').reset_index()
 
     # Format and save data.
     data_interface.save_regression_coefficients(coefficients, draw_id)
 
-    keep_columns = ['location_id', 'date'] + list(regression_specification.covariates) + ['beta_pred']
-    regression_betas = prediction[keep_columns]
+    regression_betas = beta_hat.merge(covariates, on=['location_id', 'date'])
     beta_fit_covariates = beta_fit.merge(regression_betas, on=['location_id', 'date'], how='left')
     data_interface.save_regression_betas(beta_fit_covariates, draw_id)
 
