@@ -7,7 +7,6 @@ import yaml
 
 from covid_model_seiir_pipeline import paths
 from covid_model_seiir_pipeline.forecasting.specification import ForecastSpecification, ScenarioSpecification
-from covid_model_seiir_pipeline.static_vars import COVARIATE_COL_DICT
 
 
 class ForecastDataInterface:
