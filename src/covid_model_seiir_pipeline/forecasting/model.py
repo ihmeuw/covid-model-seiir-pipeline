@@ -1,4 +1,4 @@
-from typing import Union
+from typing import Dict, Tuple, Union
 from dataclasses import dataclass, asdict
 
 import numpy as np
@@ -145,3 +145,75 @@ def get_ode_init_cond(location_id, beta_ode_fit, current_date):
     assert all([c in beta_ode_fit for c in col_components])
 
     return beta_ode_fit[col_components].values.ravel()
+
+
+def beta_shift(beta_fit: pd.DataFrame,
+               beta_pred: np.ndarray,
+               draw_id: int,
+               window_size: Union[int, None] = None,
+               average_over_min: int = 1,
+               average_over_max: int = 35) -> Tuple[np.ndarray, Dict[str, float]]:
+    """Shift the raw predicted beta to line up with beta in the past..
+
+    This method performs both an intercept shift and a scaling based on the
+    residuals of the ode fit beta and the beta hat regression in the past.
+
+    Parameters
+    ----------
+        beta_fit
+            Data frame contains the date and beta fit.
+        beta_pred
+            beta prediction.
+        draw_id
+            Draw of data provided.  Will be used as a seed for
+            a random number generator to determine the amount of beta history
+            to leverage in rescaling the y-intercept for the beta prediction.
+        window_size
+            Window size for the transition. If `None`, Hard shift no transition.
+            Default to None.
+        average_over_min, average_over_max
+            Min and max duration to average residuals over. The actual duration
+            will be sampled uniformly from within these bounds based on the
+            draw id.
+
+    Returns
+    -------
+        Predicted beta, after scaling (shift) and the initial scaling.
+
+    """
+    assert 'date' in beta_fit.columns, "'date' has to be in beta_fit data frame."
+    assert 'beta' in beta_fit.columns, "'beta' has to be in beta_fit data frame."
+    beta_fit = beta_fit.sort_values('date')
+    beta_hat = beta_fit['beta_pred'].to_numpy()
+    beta_fit = beta_fit['beta'].to_numpy()
+
+    rs = np.random.RandomState(seed=draw_id)
+    avg_over = rs.randint(average_over_min, average_over_max)
+
+    beta_fit_final = beta_fit[-1]
+    beta_pred_start = beta_pred[0]
+
+    scale_init = beta_fit_final / beta_pred_start
+    log_beta_resid = np.log(beta_fit / beta_hat)
+    scale_final = np.exp(log_beta_resid[-avg_over:].mean())
+
+    scale_params = {
+        'window_size': window_size,
+        'history_days': avg_over,
+        'fit_final': beta_fit_final,
+        'pred_start': beta_pred_start,
+        'beta_ratio_mean': scale_final,
+        'beta_residual_mean': np.log(scale_final),
+    }
+
+    if window_size is not None:
+        assert isinstance(window_size, int) and window_size > 0, f"window_size={window_size} has to be a positive " \
+                                                                 f"integer."
+        scale = scale_init + (scale_final - scale_init)/window_size*np.arange(beta_pred.size)
+        scale[(window_size + 1):] = scale_final
+    else:
+        scale = scale_init
+
+    betas = beta_pred * scale
+
+    return betas, scale_params
