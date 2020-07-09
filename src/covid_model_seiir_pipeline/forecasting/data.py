@@ -5,7 +5,7 @@ import pandas as pd
 import yaml
 
 from covid_model_seiir_pipeline import paths
-from covid_model_seiir_pipeline.forecasting.specification import ForecastSpecification
+from covid_model_seiir_pipeline.forecasting.specification import ForecastSpecification, ScenarioSpecification
 from covid_model_seiir_pipeline.static_vars import COVARIATE_COL_DICT
 
 
@@ -33,7 +33,7 @@ class ForecastDataInterface:
     def make_dirs(self):
         self.forecast_paths.make_dirs()
 
-    def check_covariates(self, covariates: List[str]):
+    def check_covariates(self, scenarios: Dict[str, ScenarioSpecification]):
         with self.regression_paths.regression_specification.open() as regression_spec_file:
             regression_spec = yaml.load(regression_spec_file)
         forecast_version = str(self.covariate_paths.root_dir)
@@ -45,10 +45,17 @@ class ForecastDataInterface:
                            f'used for prediction may not be valid.')
 
         regression_covariates = set(regression_spec['covariates'])
-        if not set(covariates) == regression_covariates:
-            raise ValueError('Forecast covariates must match the covariates used in regression.\n'
-                             f'Forecast covariates:   {sorted(covariates)}.\n'
-                             f'Regression covariates: {sorted(list(regression_covariates))}.')
+
+        for name, scenario in scenarios.items():
+            if not set(scenario.covariates) == regression_covariates:
+                raise ValueError('Forecast covariates must match the covariates used in regression.\n'
+                                 f'Forecast covariates:   {sorted(list(scenario.covariates))}.\n'
+                                 f'Regression covariates: {sorted(list(regression_covariates))}.')
+
+            for covariate, covariate_version in scenario.covariates:
+                data_file = self.covariate_paths.get_covariate_scenario_file(covariate, covariate_version)
+                if not data_file.exists():
+                    raise FileNotFoundError(f'No {covariate_version} file found for covariate {covariate}.')
 
     def load_location_ids(self) -> List[int]:
         return pd.read_csv(self.location_metadata_file)["location_id"].tolist()

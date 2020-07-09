@@ -88,17 +88,6 @@ class ForecastSpecification(Specification):
         """The specification of all scenarios in the forecast."""
         return self._scenarios
 
-    @property
-    def covariates(self) -> List[str]:
-        """The set of covariates present in all scenarios."""
-        return list(list(self._scenarios.values())[0].covariates)
-
-    @staticmethod
-    def _validate_scenarios(scenarios: Dict[str, ScenarioSpecification]):
-        covariate_sets = [set(scenario.covariates) for scenario in scenarios.values()]
-        if not all([cov_set == covariate_sets[0] for cov_set in covariate_sets]):
-            raise ValueError('All scenarios must have the same covariates.')
-
     def to_dict(self):
         """Convert the specification to a dict."""
         return {
