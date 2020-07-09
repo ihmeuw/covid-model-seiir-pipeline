@@ -8,6 +8,7 @@ import pandas as pd
 import numpy as np
 
 from covid_model_seiir_pipeline import static_vars
+from covid_model_seiir_pipeline.model_runner import compute_beta_hat
 from covid_model_seiir_pipeline.forecasting.specification import ForecastSpecification
 from covid_model_seiir_pipeline.forecasting.data import ForecastDataInterface
 from covid_model_seiir_pipeline.forecasting.model import get_ode_init_cond, SeiirModelSpecs
@@ -25,62 +26,45 @@ def run_beta_forecast(draw_id: int, forecast_version: str, scenario_name: str):
 
     data_interface = ForecastDataInterface.from_specification(forecast_spec)
 
+    location_ids = data_interface.load_location_ids()
     # Contains the start and end date for the data that was fit.
     # End dates vary based on how many days of leading indicator data
     # we use from the deaths model.
     dates_df = data_interface.load_dates_df(draw_id)
-    # we just want a map between location id and end date.
-    dates_df = dates_df[['location_id', 'end_date']].set_index('location_id')
+    # we just want a map between location id and day we transition to
+    # prediction.
+    transition_date = dates_df.set_index('location_id').sort_index()['end_date'].rename('date')
 
-
+    # We'll use the beta and SEIR compartments from this data set to get
+    # the ODE initial condition.
     beta_regression_df = data_interface.load_beta_regression(draw_id)
 
+    # We'll use the covariates and coefficients to compute beta hat in the
+    # future.
+    covariates = data_interface.load_covariates(scenario_spec, location_ids)
+    coefficients = data_interface.load_regression_coefficients(draw_id)
 
+    # We'll use the same params in the ODE forecast as we did in the fit.
+    beta_params = data_interface.load_beta_params(draw_id=draw_id)
 
+    ### Modeling starts
 
-        # Load the previous beta fit compartments and ODE parameters
-        beta_fit = data_interface.load_beta_fit(draw_id=draw_id, location_id=location_id)
-        beta_params = data_interface.load_beta_params(draw_id=draw_id)
+    # Align date in data sets
+    # We want the past out of the regression data. Keep the overlap day.
+    beta_regression_df = beta_regression_df.set_index('location_id').sort_index()
+    beta_past = beta_regression_df.loc[beta_regression_df['date'] <= transition_date].reset_index()
 
-        # covariate pool standardizes names to be {covariate}_{scenario}
-        scenario_covariate_mapping: Dict[str, str] = {}
-        for covariate in regress_spec.covariates.values():
-            if covariate.name != "intercept":
-                scenario = scenario_spec.covariates[covariate.name]
-                scenario_covariate_mapping[f"{covariate.name}_{scenario}"] = covariate.name
+    # For covariates, we want the future.  Also keep the overlap day
+    covariates = covariates.set_index('location_id').sort_index()
+    covariate_pred = covariates.loc[covariates['date'] >= transition_date].reset_index()
 
-        # load covariates data
-        covariate_df = data_interface.load_covariate_scenarios(
-            draw_id=draw_id,
-            location_id=location_id,
-            scenario_covariate_mapping=scenario_covariate_mapping
-        )
+    log_beta_hat = compute_beta_hat(covariates, coefficients)
+    beta_hat = np.exp(log_beta_hat).rename('beta_pred').reset_index()
 
-        # Convert settings to the covariates model
-        _, all_covmodels_set = convert_to_covmodel(list(regress_spec.covariates.values()))
-
-        # Figure out what date we need to forecast from (the end of the component fit in ode)
-        beta_fit_date = pd.to_datetime(beta_fit[static_vars.INFECTION_COL_DICT['COL_DATE']])
-        CURRENT_DATE = (beta_fit[beta_fit_date == beta_fit_date.max()]
-                        )[static_vars.INFECTION_COL_DICT['COL_DATE']].iloc[0]
-        cov_date = pd.to_datetime(covariate_df[static_vars.COVARIATE_COL_DICT['COL_DATE']])
-        covariate_data = covariate_df.loc[cov_date >= beta_fit_date.max()].copy()
-
-        # Load the regression coefficients
-        regression_fit = data_interface.load_regression_coefficients(draw_id=draw_id)
-        # Forecast the beta forward with those coefficients
-        forecasts = mr.predict_beta_forward_prod(
-            covmodel_set=all_covmodels_set,
-            df_cov=covariate_data,
-            df_cov_coef=regression_fit,
-            col_t=static_vars.COVARIATE_COL_DICT['COL_DATE'],
-            col_group=static_vars.COVARIATE_COL_DICT['COL_LOC_ID']
-        )
-
-        betas = forecasts.beta_pred.values
-        days = forecasts[static_vars.COVARIATE_COL_DICT['COL_DATE']].values
-        days = pd.to_datetime(days)
-        times = np.array((days - days.min()).days)
+    betas = beta_hat.beta_pred.values
+    days = beta_hat.date.values
+    days = pd.to_datetime(days)
+    times = np.array((days - days.min()).days)
 
         # Anchor the betas at the last observed beta (fitted)
         # and scale everything into the future from this anchor value

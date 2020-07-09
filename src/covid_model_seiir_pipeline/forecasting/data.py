@@ -1,3 +1,4 @@
+from functools import reduce
 from typing import List, Dict
 
 from loguru import logger
@@ -78,9 +79,34 @@ class ForecastDataInterface:
         return dates_df
 
     def load_beta_regression(self, draw_id: int) -> pd.DataFrame:
-        beta_fit_file = self.regression_paths.get_beta_regression_file(draw_id=draw_id)
+        beta_regression_file = self.regression_paths.get_beta_regression_file(draw_id=draw_id)
+        beta_regression = pd.read_csv(beta_regression_file)
+        beta_regression['date'] = pd.to_datetime(beta_regression['date'])
+        return beta_regression
 
-        return pd.read_csv(beta_fit_file)
+    # FIXME: Duplicate code.
+    def load_covariate(self, covariate: str, covariate_version: str, location_ids: List[int]) -> pd.DataFrame:
+        covariate_path = self.covariate_paths.get_covariate_scenario_file(covariate, covariate_version)
+        covariate_df = pd.read_csv(covariate_path)
+        index_columns = ['location_id']
+        covariate_df = covariate_df.loc[covariate_df['location_id'].isin(location_ids), :]
+        if 'date' in covariate_df.columns:
+            covariate_df['date'] = pd.to_datetime(covariate_df['date'])
+            index_columns.append('date')
+        covariate_df = covariate_df.rename(columns={f'{covariate}_{covariate_version}': covariate})
+        return covariate_df.loc[:, index_columns + [covariate]].set_index(index_columns)
+
+    def load_covariates(self, scenario: ScenarioSpecification, location_ids: List[int]) -> pd.DataFrame:
+        covariate_data = []
+        for covariate, covariate_version in scenario.covariates.items():
+            if covariate != 'intercept':
+                covariate_data.append(self.load_covariate(covariate, covariate_version, location_ids))
+        covariate_data = reduce(lambda x, y: x.merge(y, left_index=True, right_index=True), covariate_data)
+        return covariate_data.reset_index()
+
+    def load_regression_coefficients(self, draw_id: int) -> pd.DataFrame:
+        file = self.regression_paths.get_coefficient_file(draw_id)
+        return pd.read_csv(file)
 
     def load_beta_params(self, draw_id: int) -> pd.DataFrame:
         beta_params_file = self.ode_paths.get_draw_beta_param_file(draw_id)
@@ -108,9 +134,7 @@ class ForecastDataInterface:
         df = df[index_columns + data_columns]
         return df
 
-    def load_regression_coefficients(self, draw_id: int) -> pd.DataFrame:
-        file = self.regression_paths.get_draw_coefficient_file(draw_id)
-        return pd.read_csv(file)
+
 
     def save_components(self, df: pd.DataFrame, draw_id: int, location_id: int) -> None:
         file = self.forecast_paths.get_component_draws_path(location_id=location_id,
