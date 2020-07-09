@@ -78,26 +78,20 @@ class ForecastPaths(Paths):
 
 
 @dataclass
-class ODEPaths(Paths):
+class RegressionPaths(Paths):
     # class attributes are inferred using ClassVar. See pep 557 (Class Variables)
-    beta_fit_file: ClassVar[str] = DRAW_FILE_TEMPLATE
     beta_param_file: ClassVar[str] = DRAW_FILE_TEMPLATE
     date_file: ClassVar[str] = DRAW_FILE_TEMPLATE
+    coefficient_file: ClassVar[str] = DRAW_FILE_TEMPLATE
+    beta_regression_file: ClassVar[str] = DRAW_FILE_TEMPLATE
 
     @property
     def location_metadata(self) -> Path:
         return self.root_dir / 'locations.yaml'
 
     @property
-    def fit_specification(self):
-        return self.root_dir / 'fit_specification.yaml'
-
-    @property
-    def beta_fit_dir(self) -> Path:
-        return self.root_dir / 'betas'
-
-    def get_beta_fit_file(self, draw_id: int) -> Path:
-        return self.beta_fit_dir / self.beta_fit_file.format(draw_id=draw_id)
+    def regression_specification(self):
+        return self.root_dir / 'regression_specification.yaml'
 
     @property
     def parameters_dir(self) -> Path:
@@ -114,24 +108,8 @@ class ODEPaths(Paths):
         return self.date_dir / self.date_file.format(draw_id=draw_id)
 
     @property
-    def directories(self) -> List[Path]:
-        """Returns all top level sub-directories."""
-        return [self.beta_fit_dir, self.parameters_dir, self.date_dir]
-
-
-@dataclass
-class RegressionPaths(Paths):
-    # class attributes are inferred using ClassVar. See pep 557 (Class Variables)
-    coefficient_file: ClassVar[str] = DRAW_FILE_TEMPLATE
-    beta_regression_file: ClassVar[str] = DRAW_FILE_TEMPLATE
-
-    @property
-    def regression_specification(self):
-        return self.root_dir / 'regression_specification.yaml'
-
-    @property
     def beta_regression_dir(self) -> Path:
-        return self.root_dir / 'betas'
+        return self.root_dir / 'beta'
 
     def get_beta_regression_file(self, draw_id: int) -> Path:
         return self.beta_regression_dir / self.beta_regression_file.format(draw_id=draw_id)
@@ -146,7 +124,8 @@ class RegressionPaths(Paths):
     @property
     def directories(self) -> List[Path]:
         """Returns all top level sub-directories."""
-        return [self.beta_regression_dir, self.coefficient_dir]
+        return [self.parameters_dir, self.date_dir,
+                self.beta_regression_dir, self.coefficient_dir]
 
 
 @dataclass

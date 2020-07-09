@@ -3,7 +3,6 @@ from typing import List, Dict
 
 import pandas as pd
 
-
 from covid_model_seiir_pipeline import paths
 from covid_model_seiir_pipeline.forecasting.specification import ForecastSpecification
 from covid_model_seiir_pipeline.static_vars import COVARIATE_COL_DICT
