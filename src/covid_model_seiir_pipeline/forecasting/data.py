@@ -70,9 +70,16 @@ class ForecastDataInterface:
                 if not data_file.exists():
                     raise FileNotFoundError(f'No {covariate_version} file found for covariate {covariate}.')
 
-    def load_beta_fit(self, draw_id: int, location_id: int) -> pd.DataFrame:
-        beta_fit_file = self.ode_paths.get_draw_beta_fit_file(location_id=location_id,
-                                                              draw_id=draw_id)
+    def load_dates_df(self, draw_id: int) -> pd.DataFrame:
+        date_file = self.regression_paths.date_file(draw_id)
+        dates_df = pd.read_csv(date_file)
+        dates_df['start_date'] = pd.to_datetime(dates_df['start_date'])
+        dates_df['end_date'] = pd.to_datetime(dates_df['end_date'])
+        return dates_df
+
+    def load_beta_regression(self, draw_id: int) -> pd.DataFrame:
+        beta_fit_file = self.regression_paths.get_beta_regression_file(draw_id=draw_id)
+
         return pd.read_csv(beta_fit_file)
 
     def load_beta_params(self, draw_id: int) -> pd.DataFrame:
