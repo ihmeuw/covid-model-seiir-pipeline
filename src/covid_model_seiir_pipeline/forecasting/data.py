@@ -61,10 +61,15 @@ class ForecastDataInterface:
         regression_covariates = set(regression_spec['covariates'])
 
         for name, scenario in scenarios.items():
-            if not set(scenario.covariates) == regression_covariates:
+            if set(scenario.covariates).symmetric_difference(regression_covariates) > {'intercept'}:
                 raise ValueError('Forecast covariates must match the covariates used in regression.\n'
                                  f'Forecast covariates:   {sorted(list(scenario.covariates))}.\n'
                                  f'Regression covariates: {sorted(list(regression_covariates))}.')
+
+            if 'intercept' in scenario.covariates:
+                # Shouldn't really be specified, but might be copied over from
+                # regression.  No harm really in just deleting it.
+                del scenario.covariates['intercept']
 
             for covariate, covariate_version in scenario.covariates:
                 data_file = self.covariate_paths.get_covariate_scenario_file(covariate, covariate_version)
