@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field
 import itertools
-from typing import Dict, Tuple
+from typing import Dict, Tuple, Union
 
 from covid_model_seiir_pipeline.utilities import Specification, asdict
 
@@ -21,21 +21,38 @@ class ForecastData:
 class ScenarioSpecification:
     """Forecasting specification for a scenario."""
     ALLOWED_ALGORITHMS = ('RK45',)
-    NO_BETA_SCALING = -1
+    BETA_SCALING_KEYS = {'window_size', 'average_over_min', 'average_over_max'}
 
     name: str = field(default='dummy_scenario')
-    covariates: Dict[str, str] = field(default_factory=dict)
-    beta_scaling_window: int = field(default=NO_BETA_SCALING)
     algorithm: str = field(default='RK45')
+    beta_scaling: Dict[str, int] = field(default_factory=dict)
+    theta: Union[str, int] = field(default=0)
+    covariates: Dict[str, str] = field(default_factory=dict)
 
     def __post_init__(self):
         if self.algorithm not in self.ALLOWED_ALGORITHMS:
             raise ValueError(f'Unknown algorithm {self.algorithm} in scenario {self.name}. '
                              f'Allowed algorithms are {self.ALLOWED_ALGORITHMS}.')
 
-        if not isinstance(self.beta_scaling_window, int) or self.beta_scaling_window < -1:
-            raise TypeError(f'Beta scaling window must be a positive int or -1 indicating no scaling. '
-                            f'Scaling window for scenario {self.name} is {self.beta_scaling_window}.')
+        bad_scaling_keys = set(self.beta_scaling).difference(self.BETA_SCALING_KEYS)
+        if bad_scaling_keys:
+            raise ValueError(f'Unknown beta scaling configuration option(s) {list(bad_scaling_keys)} '
+                             f'in scenario {self.name}. Expected options: {self.BETA_SCALING_KEYS}.')
+
+        window_size = self.beta_scaling.get('window_size', None)
+        if window_size is None:
+            self.beta_scaling['window_size'] = -1
+        else:
+            if not isinstance(window_size, int) or window_size < 0:
+                raise TypeError(f'Beta scaling window must be a positive int indicating no scaling. '
+                                f'Scaling window for scenario {self.name} is {window_size}.')
+
+        average_min = self.beta_scaling.get('average_over_min', None)
+        average_max = self.beta_scaling.get('average_over_max', None)
+        if average_min is None and average_max is None:
+            self.beta_scaling['average_over_min'] = 0
+            self.beta_scaling['average_over_max'] = 0
+        # TODO: more input validation.
 
     def to_dict(self) -> Dict:
         """Converts to a dict, coercing list-like items to lists."""
