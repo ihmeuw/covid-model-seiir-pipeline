@@ -8,7 +8,7 @@ from typing import Optional
 import numpy as np
 import pandas as pd
 
-from covid_model_seiir_pipeline.model_runner import compute_beta_hat
+from covid_model_seiir_pipeline.math import compute_beta_hat
 from covid_model_seiir_pipeline.static_vars import REGRESSION_SPECIFICATION_FILE, INFECTION_COL_DICT
 from covid_model_seiir_pipeline.regression.data import RegressionDataInterface
 from covid_model_seiir_pipeline.regression.specification import RegressionSpecification
