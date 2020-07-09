@@ -35,6 +35,17 @@ class ForecastDataInterface:
     def make_dirs(self):
         self.forecast_paths.make_dirs()
 
+    def get_n_draws(self) -> int:
+        # Fixme: Gross
+        with self.regression_paths.regression_specification.open() as regression_spec_file:
+            regression_spec = yaml.full_load(regression_spec_file)
+        return regression_spec['parameters']['n_draws']
+
+    def load_location_ids(self) -> List[int]:
+        with self.regression_paths.location_metadata.open() as location_file:
+            location_ids = yaml.full_load(location_file)
+        return location_ids
+
     def check_covariates(self, scenarios: Dict[str, ScenarioSpecification]):
         with self.regression_paths.regression_specification.open() as regression_spec_file:
             regression_spec = yaml.load(regression_spec_file)
@@ -58,14 +69,6 @@ class ForecastDataInterface:
                 data_file = self.covariate_paths.get_covariate_scenario_file(covariate, covariate_version)
                 if not data_file.exists():
                     raise FileNotFoundError(f'No {covariate_version} file found for covariate {covariate}.')
-
-    def load_location_ids(self) -> List[int]:
-        return pd.read_csv(self.location_metadata_file)["location_id"].tolist()
-
-    def get_location_name_from_id(self, location_id: int) -> str:
-        df = pd.read_csv(self.location_metadata_file)
-        location_name = df.loc[df.location_id == location_id]['location_name'].iloc[0]
-        return location_name
 
     def load_beta_fit(self, draw_id: int, location_id: int) -> pd.DataFrame:
         beta_fit_file = self.ode_paths.get_draw_beta_fit_file(location_id=location_id,
