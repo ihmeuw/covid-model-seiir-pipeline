@@ -14,7 +14,7 @@ def do_beta_forecast(app_metadata: cli_tools.Metadata,
 
     # Check scenario covariates the same as regression covariates and that
     # covariate data versions match.
-    data_interface.check_covariates(forecast_specification.covariates)
+    data_interface.check_covariates(forecast_specification.scenarios)
 
     data_interface.make_dirs()
 
