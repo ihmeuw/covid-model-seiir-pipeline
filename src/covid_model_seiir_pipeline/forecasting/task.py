@@ -7,23 +7,16 @@ import shlex
 import pandas as pd
 import numpy as np
 
-from covid_model_seiir_pipeline.model_runner import ModelRunner
-from covid_model_seiir_pipeline.forecasting.model import SeiirModelSpecs
-
 from covid_model_seiir_pipeline import static_vars
 from covid_model_seiir_pipeline.forecasting.specification import ForecastSpecification
-from covid_model_seiir_pipeline.regression.specification import RegressionSpecification
-from covid_model_seiir_pipeline.regression.covariate_model import convert_to_covmodel
-from covid_model_seiir_pipeline.ode_fit.specification import FitSpecification
 from covid_model_seiir_pipeline.forecasting.data import ForecastDataInterface
-from covid_model_seiir_pipeline.forecasting.model import get_ode_init_cond
+from covid_model_seiir_pipeline.forecasting.model import get_ode_init_cond, SeiirModelSpecs
 
 
 log = logging.getLogger(__name__)
 
 
 def run_beta_forecast(draw_id: int, forecast_version: str, scenario_name: str):
-    # -------------------------- CONSTRUCT DATA INTERFACE AND SPECS -------------------- #
     log.info("Initiating SEIIR beta forecasting.")
     forecast_spec: ForecastSpecification = ForecastSpecification.from_path(
         Path(forecast_version) / static_vars.FORECAST_SPECIFICATION_FILE
@@ -32,15 +25,18 @@ def run_beta_forecast(draw_id: int, forecast_version: str, scenario_name: str):
 
     data_interface = ForecastDataInterface.from_specification(forecast_spec)
 
-    # -------------------------- FORECAST THE BETA FORWARDS -------------------- #
-    mr = ModelRunner()
+    # Contains the start and end date for the data that was fit.
+    # End dates vary based on how many days of leading indicator data
+    # we use from the deaths model.
+    dates_df = data_interface.load_dates_df(draw_id)
+    # we just want a map between location id and end date.
+    dates_df = dates_df[['location_id', 'end_date']].set_index('location_id')
 
-    # Get all inputs for the beta forecasting
-    # Get all inputs for the ODE
-    scales = []
 
-    for draw_id in range(ode_fit_spec.parameters.n_draws):
-        print(f"On draw {draw_id}\n")
+    beta_regression_df = data_interface.load_beta_regression(draw_id)
+
+
+
 
         # Load the previous beta fit compartments and ODE parameters
         beta_fit = data_interface.load_beta_fit(draw_id=draw_id, location_id=location_id)
