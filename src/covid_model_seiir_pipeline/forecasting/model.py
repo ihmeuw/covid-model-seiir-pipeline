@@ -84,15 +84,14 @@ class SeiirModelSpecs:
 
 class ODERunner:
 
-    def __init__(self, model_specs: SeiirModelSpecs, init_cond: np.ndarray, dt: float):
+    def __init__(self, model_specs: SeiirModelSpecs, init_cond: np.ndarray):
         self.model_specs = model_specs
         self.init_cond = init_cond
-        self.dt = dt
 
     def get_solution(self, times, beta, theta=None, solver="RK4"):
         model = CustomizedSEIIR(**asdict(self.model_specs))
         if solver == "RK4":
-            solver = RK4(model.system, self.dt)
+            solver = RK4(model.system, self.model_specs.delta)
         else:
             raise ValueError("Unknown solver type")
 
