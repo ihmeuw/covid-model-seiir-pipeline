@@ -14,6 +14,7 @@ IFR_TOL = 1e-7
 COL_OBSERVED = 'observed'
 COL_R_EFF = 'R_eff'
 COL_BETA = 'beta'
+COL_THETA = 'theta'
 COL_S = 'S'
 COL_INFECT1 = 'I1'
 COL_INFECT2 = 'I2'
@@ -79,8 +80,13 @@ class Splicer:
 
     def concatenate_components(self, component_fit, component_forecasts):
         component_cols = [
-            self.col_date, COL_BETA, COL_S, COL_INFECT1, COL_INFECT2
+            self.col_date, COL_BETA, COL_THETA, COL_S, COL_INFECT1, COL_INFECT2, 
         ]
+        if COL_THETA not in component_fit.columns:
+            component_fit[COL_THETA] = np.nan
+        if COL_THETA not in component_forecasts.columns:
+            component_forecasts[COL_THETA] = np.nan
+
         df = pd.concat([
             component_fit.iloc[:-1][component_cols],
             component_forecasts[component_cols]
@@ -97,8 +103,8 @@ class Splicer:
     def compute_effective_r(df, params, pop):
         # Combine all the parameters of disease transmission into a coefficient.
         gamma_adjustment = (
-                1./(params['gamma1']*(params['sigma'] - df['theta']))
-                + 1./(params['gamma2']*(params['sigma'] - df['theta']))
+                1./(params['gamma1']*(params['sigma'] - df[COL_THETA]))
+                + 1./(params['gamma2']*(params['sigma'] - df[COL_THETA]))
         )
         R_coeff = df[COL_BETA] * params['alpha'] * params['sigma'] * gamma_adjustment
 
@@ -125,7 +131,7 @@ class Splicer:
             component_forecasts=component_forecasts
         )
         observations = observations.merge(
-            components[[self.col_date, COL_INFECT1, COL_INFECT2, COL_BETA, COL_S]], on=[self.col_date], how='left'
+            components[[self.col_date, COL_INFECT1, COL_INFECT2, COL_BETA, COL_THETA, COL_S]], on=[self.col_date], how='left'
         )
         forecasts = components.loc[pd.to_datetime(components[self.col_date]) > today].copy()
         df = pd.concat([observations, forecasts]).reset_index(drop=True)
