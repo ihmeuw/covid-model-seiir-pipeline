@@ -8,7 +8,7 @@ import pandas as pd
 import numpy as np
 
 from covid_model_seiir_pipeline import static_vars
-from covid_model_seiir_pipeline.model_runner import compute_beta_hat
+from covid_model_seiir_pipeline.math import compute_beta_hat
 from covid_model_seiir_pipeline.forecasting import model
 from covid_model_seiir_pipeline.forecasting.specification import ForecastSpecification
 from covid_model_seiir_pipeline.forecasting.data import ForecastDataInterface
