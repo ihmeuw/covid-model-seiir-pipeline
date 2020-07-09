@@ -6,42 +6,71 @@ import shlex
 from typing import Optional
 
 import numpy as np
+import pandas as pd
 
-from covid_model_seiir_pipeline import static_vars
+from covid_model_seiir_pipeline.static_vars import REGRESSION_SPECIFICATION_FILE, INFECTION_COL_DICT
 from covid_model_seiir_pipeline.regression.data import RegressionDataInterface
 from covid_model_seiir_pipeline.regression.specification import RegressionSpecification
-from covid_model_seiir_pipeline.regression.model import align_beta_with_covariates, build_regressor, predict
-
+from covid_model_seiir_pipeline.regression import model
 
 log = logging.getLogger(__name__)
 
 
 def run_beta_regression(draw_id: int, regression_version: str) -> None:
-    regression_specification: RegressionSpecification = RegressionSpecification.from_path(
-        Path(regression_version) / static_vars.REGRESSION_SPECIFICATION_FILE
-    )
+    # Build helper abstractions
+    regression_spec_file = Path(regression_version) / REGRESSION_SPECIFICATION_FILE
+    regression_specification = RegressionSpecification.from_path(regression_spec_file)
     data_interface = RegressionDataInterface.from_specification(regression_specification)
-    location_ids = data_interface.load_location_ids()
 
-    # -------------------------- LOAD INPUTS -------------------- #
-    # The data we want to fit
-    beta_df = data_interface.load_ode_fits(draw_id, location_ids)
+    # Load data
+    location_ids = data_interface.load_location_ids()
+    location_data = data_interface.load_all_location_data(location_ids=location_ids,
+                                                          draw_id=draw_id)
     covariates = data_interface.load_covariates(regression_specification.covariates, location_ids)
 
-    # -------------- BETA REGRESSION WITH LOADED COVARIATES -------------------- #
-    mr_data = align_beta_with_covariates(covariates, beta_df, list(regression_specification.covariates))
-    regressor = build_regressor(regression_specification.covariates.values())
+    # Run ODE fit
+    np.random.seed(draw_id)
+    beta_fit_inputs = model.ODEProcessInput(
+        df_dict=location_data,
+        col_date=INFECTION_COL_DICT['COL_DATE'],
+        col_cases=INFECTION_COL_DICT['COL_CASES'],
+        col_pop=INFECTION_COL_DICT['COL_POP'],
+        col_loc_id=INFECTION_COL_DICT['COL_LOC_ID'],
+        col_lag_days=INFECTION_COL_DICT['COL_ID_LAG'],
+        col_observed=INFECTION_COL_DICT['COL_OBS_DEATHS'],
+        alpha=regression_specification.parameters.alpha,
+        sigma=regression_specification.parameters.sigma,
+        gamma1=regression_specification.parameters.gamma1,
+        gamma2=regression_specification.parameters.gamma2,
+        solver_dt=regression_specification.parameters.solver_dt,
+        day_shift=regression_specification.parameters.day_shift,
+    )
+    ode_model = model.ODEProcess(beta_fit_inputs)
+    beta_fit = ode_model.process()
+    beta_fit['date'] = pd.to_datetime(beta_fit['date'])
 
+    # Run regression
+    mr_data = model.align_beta_with_covariates(covariates, beta_fit, list(regression_specification.covariates))
+    regressor = model.build_regressor(regression_specification.covariates.values())
     coefficients = regressor.fit(mr_data)
-    data_interface.save_regression_coefficients(coefficients, draw_id)
-
-    prediction = predict(regressor, covariates, col_t='date', col_group='location_id', col_beta='ln_beta_pred')
+    prediction = model.predict(regressor, covariates,
+                               col_t='date', col_group='location_id', col_beta='ln_beta_pred')
     prediction['beta_pred'] = np.exp(prediction['ln_beta_pred'])
+
+    # Format and save data.
+    data_interface.save_regression_coefficients(coefficients, draw_id)
 
     keep_columns = ['location_id', 'date'] + list(regression_specification.covariates) + ['beta_pred']
     regression_betas = prediction[keep_columns]
-    beta_fit_covariates = beta_df.merge(regression_betas, on=['location_id', 'date'], how='left')
+    beta_fit_covariates = beta_fit.merge(regression_betas, on=['location_id', 'date'], how='left')
     data_interface.save_regression_betas(beta_fit_covariates, draw_id)
+
+    # Save the parameters of alpha, sigma, gamma1, and gamma2 that were drawn
+    draw_beta_params = ode_model.create_params_df()
+    data_interface.save_draw_beta_param_file(draw_beta_params, draw_id)
+
+    beta_start_end_dates = ode_model.create_start_end_date_df()
+    data_interface.save_draw_date_file(beta_start_end_dates, draw_id)
 
 
 def parse_arguments(argstr: Optional[str] = None) -> Namespace:
