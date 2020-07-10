@@ -29,6 +29,12 @@ class MarshallInterfaceTests:
     def test_coefficients_marshall(self, instance, coefficients):
         self.assert_load_dump_workflow_correct(instance, coefficients, key=Keys.coefficient(4))
 
+    def test_beta_scales_marshall(self, instance, beta_scales):
+        self.assert_load_dump_workflow_correct(instance, beta_scales, key=Keys.beta_scales(4))
+
+    def test_components_marshall(self, instance, components):
+        self.assert_load_dump_workflow_correct(instance, components, key=Keys.components(4))
+
     def test_no_overwriting(self, instance, fit_beta, parameters):
         self.assert_no_accidental_overwrites(instance, fit_beta, key=Keys.fit_beta(4))
         self.assert_no_accidental_overwrites(instance, parameters, key=Keys.parameter(4))
