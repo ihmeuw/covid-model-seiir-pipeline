@@ -68,13 +68,9 @@ def run_beta_forecast(draw_id: int, forecast_version: str, scenario_name: str):
     log_beta_hat = compute_beta_hat(covariate_pred, coefficients)
     beta_hat = np.exp(log_beta_hat).rename('beta_pred').reset_index()
 
-    betas = beta_hat.beta_pred.values
-    days = beta_hat.date.values
-    days = pd.to_datetime(days)
-    times = np.array((days - days.min()).days)
-
     # FIXME: vectorize over location
-    betas, scale_params = model.beta_shift(beta_past, betas, draw_id, **scenario_spec.beta_scaling)
+    betas, scale_params = model.beta_shift(beta_past, beta_hat, transition_date,
+                                           draw_id, **scenario_spec.beta_scaling)
 
     transition_day = beta_regression_df['date'] == transition_date.loc[beta_regression_df.index]
     compartments = ['S', 'E', 'I1', 'I2', 'R']
