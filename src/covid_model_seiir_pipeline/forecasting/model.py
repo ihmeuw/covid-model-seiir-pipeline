@@ -110,8 +110,8 @@ class ODERunner:
         return result
 
 
-def beta_shift(beta_fit: pd.DataFrame,
-               beta_pred: np.ndarray,
+def beta_shift(beta_past: pd.DataFrame,
+               beta_hat: pd.DataFrame,
                transition_date: pd.DataFrame,
                draw_id: int,
                window_size: Union[int, None] = None,
@@ -124,10 +124,15 @@ def beta_shift(beta_fit: pd.DataFrame,
 
     Parameters
     ----------
-        beta_fit
-            Data frame contains the date and beta fit.
-        beta_pred
-            beta prediction.
+        beta_past
+            Dataframe containing the date, location_id, beta fit, and beta hat
+            in the past.
+        beta_hat
+            Dataframe containing the date, location_id, and beta hat in the
+            future.
+        transition_date
+            Dataframe containing location id and the date of transition from
+            past to prediction.
         draw_id
             Draw of data provided.  Will be used as a seed for
             a random number generator to determine the amount of beta history
@@ -148,18 +153,24 @@ def beta_shift(beta_fit: pd.DataFrame,
     rs = np.random.RandomState(seed=draw_id)
     avg_over = rs.randint(average_over_min, average_over_max)
 
+    beta_past = beta_past.set_index('location_id').sort_values('date')
+    beta_hat = beta_hat.set_index('location_id').sort_values('date')
+    beta_fit_final = beta_past.loc[beta_past['date'] == transition_date.loc[beta_past.index], 'beta']
+    beta_hat_start = beta_hat.loc[beta_hat['date'] == transition_date.loc[beta_hat.index], 'beta']
+    scale_init = beta_fit_final / beta_hat_start
 
-    beta_fit = beta_fit.sort_values('date')
-    beta_hat = beta_fit['beta_pred'].to_numpy()
-    beta_fit = beta_fit['beta'].to_numpy()
+    beta_past = beta_past.reset_index().set_index(['location_id', 'date'])
+    log_beta_resid = np.log(beta_past['beta'] / beta_past['beta_pred']).rename('beta_resid')
+    scale_final = np.exp(log_beta_resid
+                         .groupby(level='location_id')
+                         .apply(lambda x: x['beta_resid'].iloc[-avg_over:].mean()))
 
 
-    beta_fit_final = beta_fit[-1]
-    beta_pred_start = beta_pred[0]
-
-    scale_init = beta_fit_final / beta_pred_start
-    log_beta_resid = np.log(beta_fit / beta_hat)
-    scale_final = np.exp(log_beta_resid[-avg_over:].mean())
+    if window_size is not None:
+        scale = scale_init + (scale_final - scale_init)/window_size*np.arange(beta_pred.size)
+        scale[(window_size + 1):] = scale_final
+    else:
+        scale = scale_init
 
     scale_params = {
         'window_size': window_size,
@@ -169,14 +180,6 @@ def beta_shift(beta_fit: pd.DataFrame,
         'beta_ratio_mean': scale_final,
         'beta_residual_mean': np.log(scale_final),
     }
-
-    if window_size is not None:
-        assert isinstance(window_size, int) and window_size > 0, f"window_size={window_size} has to be a positive " \
-                                                                 f"integer."
-        scale = scale_init + (scale_final - scale_init)/window_size*np.arange(beta_pred.size)
-        scale[(window_size + 1):] = scale_final
-    else:
-        scale = scale_init
 
     betas = beta_pred * scale
 
