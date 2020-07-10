@@ -90,6 +90,8 @@ class RegressionDataInterface:
         dfs = dict()
         for loc in location_ids:
             file = self.infection_paths.get_infection_file(location_id=loc, draw_id=draw_id)
+            df = pd.read_csv(file)
+            df['location_id'] = loc
             dfs[loc] = pd.read_csv(file)
 
         # validate
