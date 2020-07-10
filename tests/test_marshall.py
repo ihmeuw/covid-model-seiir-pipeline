@@ -66,7 +66,6 @@ class TestCSVMarshall(MarshallInterfaceTests):
         return CSVMarshall(pathlib.Path(tmpdir))
 
 
-@pytest.mark.skip(reason="TODO - update seed() usage")
 class TestZipMarshall(MarshallInterfaceTests):
     @pytest.fixture
     def instance(self, tmpdir):
@@ -74,7 +73,6 @@ class TestZipMarshall(MarshallInterfaceTests):
         return ZipMarshall(zip_path)
 
 
-@pytest.mark.skip(reason="TODO - update seed() usage")
 class TestHdf5Marshall(MarshallInterfaceTests):
     @pytest.fixture
     def instance(self, tmpdir):
