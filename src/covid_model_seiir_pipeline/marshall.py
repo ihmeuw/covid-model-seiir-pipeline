@@ -89,12 +89,12 @@ class Keys:
 
     # factories related to forecasting
     @classmethod
-    def beta_scales(cls, draw_id):
-        return cls(DataTypes.beta_scales, DRAW_FILE_TEMPLATE, draw_id=draw_id)
+    def beta_scales(cls, scenario, draw_id):
+        return cls(DataTypes.beta_scales, DRAW_FILE_TEMPLATE, scenario=scenario, draw_id=draw_id)
 
     @classmethod
-    def components(cls, draw_id):
-        return cls(DataTypes.components, DRAW_FILE_TEMPLATE, draw_id=draw_id)
+    def components(cls, scenario, draw_id):
+        return cls(DataTypes.components, DRAW_FILE_TEMPLATE, scenario=scenario, draw_id=draw_id)
 
     # other methods/properties
     @property
@@ -127,7 +127,7 @@ class CSVMarshall:
     def dump(self, data: pandas.DataFrame, key):
         path = self.resolve_key(key)
         if not path.parent.is_dir():
-            mkdir(path.parent)
+            mkdir(path.parent, parents=True)
         else:
             if path.exists():
                 msg = f"Cannot dump data for key {key} - would overwrite"
@@ -141,7 +141,11 @@ class CSVMarshall:
 
     def resolve_key(self, key):
         if key.data_type in DataTypes.DataFrame_types:
-            path = (self.root / key.data_type / key.key).with_suffix(".csv")
+            scenario = key.key_args.get('scenario')
+            if scenario is None:
+                path = (self.root / key.data_type / key.key).with_suffix(".csv")
+            else:
+                path = (self.root / scenario / key.data_type / key.key).with_suffix(".csv")
         else:
             msg = f"Invalid 'type' of data: {key.data_type}"
             raise ValueError(msg)
