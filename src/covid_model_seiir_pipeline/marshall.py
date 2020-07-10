@@ -113,11 +113,11 @@ class CSVMarshall:
 
         return path
 
-    # non-interface methods
     @classmethod
     def from_paths(cls, paths: Paths):
         return cls(paths.root_dir)
 
+    # non-interface methods
     def __init__(self, root: Path):
         self.root = root
 
@@ -150,13 +150,13 @@ class ZipMarshall:
 
         return seed, path
 
-    # non-interface methods
     @classmethod
     def from_paths(cls, paths: Paths):
         # technically unsafe - {} values in the root_dir could break interpolation
         zip_path = str(paths.root_dir / "seiir-data-{{}}.zip")
         return cls(zip_path)
 
+    # non-interface methods
     def __init__(self, zip_template: str):
         self.zip_template = zip_template
 
@@ -240,12 +240,12 @@ class Hdf5Marshall:
             raise ValueError(msg)
         return seed, group, name
 
-    # non-interface methods
     @classmethod
     def from_paths(cls, paths: Paths):
         hdf5_path = str(paths.root_dir / "seiir-data-{{}}.hdf5")
         return cls(hdf5_path)
 
+    # non-interface methods
     def __init__(self, hdf5_template):  # TODO: type annotate
         self.hdf5_template = hdf5_template
         self.dtype_marshall = DtypeMarshall()
