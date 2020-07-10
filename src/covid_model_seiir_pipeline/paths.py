@@ -44,14 +44,10 @@ class Paths:
 
 
 @dataclass
-class ForecastPaths(Paths):
+class ScenarioPaths(Paths):
     """Local directory structure of a forecasting data root."""
     beta_scaling_file: ClassVar[str] = DRAW_FILE_TEMPLATE
     component_draw_file: ClassVar[str] = DRAW_FILE_TEMPLATE
-
-    @property
-    def forecast_specification(self) -> Path:
-        return self.root_dir / 'forecast_specification.yaml'
 
     @property
     def beta_scaling(self) -> Path:
@@ -75,6 +71,30 @@ class ForecastPaths(Paths):
     def directories(self) -> List[Path]:
         """Returns all top level sub-directories."""
         return [self.beta_scaling, self.component_draws]
+
+
+@dataclass
+class ForecastPaths(Paths):
+    scenarios: List[str] = field(default_factory=list)
+    scenario_paths: Dict[str, ScenarioPaths] = field(init=False)
+
+    def __post_init__(self):
+        self.scenario_paths = {scenario: ScenarioPaths(self.root_dir / scenario, self.read_only)
+                               for scenario in self.scenarios}
+
+    @property
+    def forecast_specification(self) -> Path:
+        return self.root_dir / 'forecast_specification.yaml'
+
+    def get_beta_scaling_path(self, draw_id: int, scenario: str) -> Path:
+        return self.scenario_paths[scenario].get_beta_scaling_path(draw_id)
+
+    def get_component_draws_path(self, draw_id: int, scenario: str) -> Path:
+        return self.scenario_paths[scenario].get_component_draws_path(draw_id)
+
+    def make_dirs(self):
+        for scenario_paths in self.scenario_paths.values():
+            scenario_paths.make_dirs()
 
 
 @dataclass
