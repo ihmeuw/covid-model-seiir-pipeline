@@ -1,3 +1,0 @@
-
-class VersionAlreadyExists(RuntimeError):
-    pass

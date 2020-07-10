@@ -9,7 +9,6 @@ from covid_model_seiir_pipeline.forecasting.specification import ForecastSpecifi
 from covid_model_seiir_pipeline.forecasting.data import ForecastDataInterface
 from covid_model_seiir_pipeline.forecasting.workflow import ForecastWorkflow
 
-from covid_model_seiir_pipeline.ode_fit.specification import FitSpecification
 from covid_model_seiir_pipeline.regression.specification import RegressionSpecification
 
 
