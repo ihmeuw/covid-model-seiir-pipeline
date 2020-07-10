@@ -101,6 +101,19 @@ class Keys:
     def key(self):
         return self.template.format(**self.key_args)
 
+    def nested_dirs(self):
+        """
+        Return any nesting structure required between the root save location
+        and the actual file.
+
+        For regression tasks this is just the data_type. For forecasting tasks
+        this is the scenario and the data type.
+        """
+        if 'scenario' in self.key_args:
+            return "/".join([self.key_args['scenario'], self.data_type])
+        else:
+            return self.data_type
+
     @property
     def seed(self):
         """
@@ -109,7 +122,7 @@ class Keys:
         This is a sort of hack - we embed the concurrency story into the Keys
         class which can then inform other things.
         """
-        assert list(self.key_args) == ['draw_id'], 'TODO - expand Keys.seed'
+        # everything is done by draw_id, so always use that as the seed value
         return "draw-{draw_id}".format(**self.key_args)
 
     def __repr__(self):
@@ -141,11 +154,7 @@ class CSVMarshall:
 
     def resolve_key(self, key):
         if key.data_type in DataTypes.DataFrame_types:
-            scenario = key.key_args.get('scenario')
-            if scenario is None:
-                path = (self.root / key.data_type / key.key).with_suffix(".csv")
-            else:
-                path = (self.root / scenario / key.data_type / key.key).with_suffix(".csv")
+            path = (self.root / key.nested_dirs() / key.key).with_suffix(".csv")
         else:
             msg = f"Invalid 'type' of data: {key.data_type}"
             raise ValueError(msg)
@@ -181,8 +190,8 @@ class ZipMarshall:
 
     def resolve_key(self, key):
         if key.data_type in DataTypes.DataFrame_types:
-            path = f"{key.data_type}/{key.key}.csv"
             seed = key.seed
+            path = f"{key.nested_dirs()}/{key.key}.csv"
         else:
             msg = f"Invalid 'type' of data: {key.data_type}"
             raise ValueError(msg)
@@ -272,7 +281,7 @@ class Hdf5Marshall:
     def resolve_key(self, key):
         if key.data_type in DataTypes.DataFrame_types:
             seed = key.seed
-            group = key.data_type
+            group = key.nested_dirs()
             name = key.key
         else:
             msg = f"Invalid 'type' of data: {key.data_type}"
