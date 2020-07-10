@@ -3,17 +3,25 @@ data:
   covariate_version: 'best'
   output_root: ''
 scenarios:
-  baseline:
-    beta_scaling_window: -1
+  worse:
     algorithm: 'RK45'  # Later also 'mattingly', 'RK45-loop', etc.
+    beta_scaling:
+      window_size: 42
+      average_over_min: 7
+      average_over_max: 28
+    theta: '/ihme/covid-19/seir-pipeline-outputs/metadata-inputs/theta_2020_07_05.01.csv'
     covariates:
       testing: 'reference'
       mobility: 'reference'
       proportion_over_1k: 'reference'
       temperature: 'reference'
-  testing_optimistic:
-    beta_scaling_window: -1
-    algorithm: 'RK45'
+  worse_best_masks:
+    algorithm: 'RK45'  # Later also 'mattingly', 'RK45-loop', etc.
+      beta_scaling:
+        window_size: 42
+        average_over_min: 7
+        average_over_max: 28
+      theta: '/ihme/covid-19/seir-pipeline-outputs/metadata-inputs/theta_2020_07_05.01.csv'
     covariates:
       testing: 'better'
       mobility: 'reference'

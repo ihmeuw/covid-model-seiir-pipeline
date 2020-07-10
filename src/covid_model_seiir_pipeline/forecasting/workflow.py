@@ -1,5 +1,5 @@
 from itertools import product
-from typing import Dict, List
+from typing import List
 
 from jobmon.client import Workflow, BashTask
 from jobmon.client.swarm.executors.base import ExecutorParameters
@@ -10,10 +10,7 @@ from covid_model_seiir_pipeline import utilities
 
 class BetaForecastTaskTemplate:
 
-    name_template = "forecast_{scenario}_{draw_id}"
-
-    def __init__(self, task_registry: Dict[str, BashTask]):
-        self.task_registry = task_registry
+    def __init__(self):
         self.command_template = (
             "beta_forecast " +
             "--draw-id {draw_id} " +
@@ -29,7 +26,7 @@ class BetaForecastTaskTemplate:
 
     @classmethod
     def get_task_name(cls, draw_id: int, scenario: str) -> str:
-        return cls.name_template.format(draw_id=draw_id, scenario=scenario)
+        return f"forecast_{scenario}_{draw_id}"
 
     def get_task(self, draw_id: int, forecast_version: str, scenario: str):
         task_name = self.get_task_name(draw_id, scenario)
@@ -41,25 +38,17 @@ class BetaForecastTaskTemplate:
             executor_parameters=self.params,
             max_attempts=1
         )
-        self.task_registry[task_name] = task
         return task
 
 
 class ForecastWorkflow:
 
-    def __init__(self, forecast_version: str) -> None:
-        self.version = forecast_version
-        # if we need to build dependencies then the task registry must be shared between
-        # task factories
-        self._task_registry: Dict[str, BashTask] = {}
+    def __init__(self, version: str) -> None:
+        self.version = version
+        self.task_template = BetaForecastTaskTemplate()
 
-        # computational tasks
-        self._beta_forecast_task_template = BetaForecastTaskTemplate(self._task_registry)
-
-        workflow_args = f'seiir-forecast-{forecast_version}'
-        stdout, stderr = utilities.make_log_dirs(
-            forecast_version, prefix='jobmon'
-        )
+        workflow_args = f'seiir-forecast-{version}'
+        stdout, stderr = utilities.make_log_dirs(version, prefix='jobmon')
 
         self.workflow = Workflow(
             workflow_args=workflow_args,
@@ -72,11 +61,7 @@ class ForecastWorkflow:
 
     def attach_scenario_tasks(self, n_draws: int, scenarios: List[str]):
         for draw, scenario in product(range(n_draws), scenarios):
-            task = self._beta_forecast_task_template.get_task(
-                    draw_id=draw,
-                    forecast_version=self.version,
-                    scenario=scenario
-                )
+            task = self.task_template.get_task(draw, self.version, scenario)
             self.workflow.add_task(task)
 
     def run(self):
