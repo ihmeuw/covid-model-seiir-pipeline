@@ -38,6 +38,7 @@ class MarshallInterfaceTests:
         assert hasattr(instance, "dump")
         assert hasattr(instance, "load")
         assert hasattr(instance, "resolve_key")
+        assert hasattr(instance, "from_paths")
 
     def assert_load_dump_workflow_correct(self, instance, data, key):
         "Helper method for testing load/dump marshalling does not change data."

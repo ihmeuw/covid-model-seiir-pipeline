@@ -36,7 +36,7 @@ class RegressionDataInterface:
             regression_paths=regression_paths,
             infection_paths=infection_paths,
             covariate_paths=covariate_paths,
-            regression_marshall=CSVMarshall(regression_paths.root_dir),
+            regression_marshall=CSVMarshall.from_paths(regression_paths),
         )
 
     def make_dirs(self):
