@@ -76,7 +76,7 @@ def run_beta_forecast(draw_id: int, forecast_version: str, scenario_name: str):
     # FIXME: vectorize over location
     betas, scale_params = model.beta_shift(beta_past, betas, draw_id, **scenario_spec.beta_scaling)
 
-    transition_day = beta_regression_df['date'] == transition_date
+    transition_day = beta_regression_df['date'] == transition_date.loc[beta_regression_df.index]
     compartments = ['S', 'E', 'I1', 'I2', 'R']
     initial_condition = beta_regression_df.loc[transition_day, compartments]
 
