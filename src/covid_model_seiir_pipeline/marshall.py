@@ -1,3 +1,16 @@
+"""
+Code for marshalling data (currently only DataFrames) to/from disk.
+
+This module holds 2 key concepts meant to be used externally - Keys and Marshall classes.
+
+Keys are used to identify data types and how they are stored. This is by
+embedding related information with them (draw_id for regression and location_id
+for forecast).
+
+Marshall classes come in several flavors named after the related storage backend.
+Marshall classes should created via Marshall.from_paths(paths_cls) until Paths
+are fully deprecated and removed.
+"""
 from collections import defaultdict
 from contextlib import contextmanager
 import io
@@ -41,6 +54,13 @@ class DataTypes:
 
 
 class Keys:
+    """
+    Identifies data payload types and stores related information.
+
+    Callers should never use init and instead use one of the many factory
+    methods which embed important related information to the variable
+    draw_id/location_id argument.
+    """
     def __init__(self, data_type, template, **key_args):
         self.data_type = data_type
         self.template = template
