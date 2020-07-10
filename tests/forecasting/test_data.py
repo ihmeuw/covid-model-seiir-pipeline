@@ -7,7 +7,10 @@ from covid_model_seiir_pipeline.forecasting.data import ForecastDataInterface
 from covid_model_seiir_pipeline.marshall import (
     CSVMarshall,
 )
-from covid_model_seiir_pipeline.paths import RegressionPaths
+from covid_model_seiir_pipeline.paths import (
+    ForecastPaths,
+    RegressionPaths,
+)
 from covid_model_seiir_pipeline.regression.data import RegressionDataInterface
 
 
@@ -58,3 +61,34 @@ class TestForecastDataInterfaceIO:
             for k, expected in expected_parameters.items():
                 loaded = loaded_parameters[k]
                 numpy.testing.assert_almost_equal(loaded, expected, decimal=15)
+
+    def test_forecast_io(self, tmpdir, components, beta_scales):
+        forecast_paths = ForecastPaths(
+            root_dir=Path(tmpdir),
+            scenarios=['happy'],
+        )
+        di = ForecastDataInterface(
+            forecast_paths=None,
+            regression_paths=None,
+            covariate_paths=None,
+            regression_marshall=None,
+            forecast_marshall=CSVMarshall.from_paths(forecast_paths),
+        )
+
+        # Step 1: save files
+        di.save_components_futurerefactor(components, scenario="happy", draw_id=4)
+        di.save_beta_scales_futurerefactor(beta_scales, scenario="happy", draw_id=4)
+
+        # Step 2: test save location
+        # this is sort of cheating, but it ensures that scenario things are
+        # nicely nested as they should be
+        assert (Path(tmpdir) / "happy" / "components" / "draw_4.csv").exists()
+        assert (Path(tmpdir) / "happy" / "beta_scales" / "draw_4.csv").exists()
+
+        # Step 3: load those files
+        loaded_components = di.load_component_forecasts_futurerefactor(scenario="happy", draw_id=4)
+        loaded_beta_scales = di.load_beta_scales_futurerefactor(scenario="happy", draw_id=4)
+
+        # Step 4: test files
+        pandas.testing.assert_frame_equal(components, loaded_components)
+        pandas.testing.assert_frame_equal(beta_scales, loaded_beta_scales)
