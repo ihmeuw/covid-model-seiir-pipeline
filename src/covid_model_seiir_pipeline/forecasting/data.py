@@ -85,8 +85,7 @@ class ForecastDataInterface:
         return pd.read_csv(beta_fit_file)
 
     def load_beta_params(self, draw_id: int) -> pd.DataFrame:
-        beta_params_file = self.ode_paths.get_draw_beta_param_file(draw_id)
-        df = pd.read_csv(beta_params_file)
+        df = self.regression_marshall.load(key=MKeys.parameter(draw_id=draw_id))
         return df.set_index('params')['values'].to_dict()
 
     def load_covariate_scenarios(self, draw_id: int, location_id: int,
