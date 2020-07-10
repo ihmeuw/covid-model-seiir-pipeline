@@ -85,7 +85,7 @@ def run_beta_forecast(draw_id: int, forecast_version: str, scenario_name: str):
     for location_id in location_ids:
         log.info(f"On location id {location_id}")
         init_cond = initial_condition.loc[location_id].values
-        total_population = initial_condition.sum()
+        total_population = init_cond.sum()
 
         model_specs = model.SeiirModelSpecs(
             alpha=beta_params['alpha'],
