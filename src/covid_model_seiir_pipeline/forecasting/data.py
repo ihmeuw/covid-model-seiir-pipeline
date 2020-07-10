@@ -6,6 +6,10 @@ import yaml
 
 from covid_model_seiir_pipeline import paths
 from covid_model_seiir_pipeline.forecasting.specification import ForecastSpecification, ScenarioSpecification
+from covid_model_seiir_pipeline.marshall import (
+    CSVMarshall,
+    Keys as MKeys,
+)
 from covid_model_seiir_pipeline.static_vars import COVARIATE_COL_DICT
 
 
@@ -14,10 +18,13 @@ class ForecastDataInterface:
     def __init__(self,
                  forecast_paths: paths.ForecastPaths,
                  regression_paths: paths.RegressionPaths,
-                 covariate_paths: paths.CovariatePaths):
+                 covariate_paths: paths.CovariatePaths,
+                 regression_marshall,
+                 ):
         self.forecast_paths = forecast_paths
         self.regression_paths = regression_paths
         self.covariate_paths = covariate_paths
+        self.regression_marshall = regression_marshall
 
     @classmethod
     def from_specification(cls, specification: ForecastSpecification) -> 'ForecastDataInterface':
@@ -26,10 +33,12 @@ class ForecastDataInterface:
                                              scenarios=list(specification.scenarios))
         regression_paths = paths.RegressionPaths(specification.data.regression_version)
         covariate_paths = paths.CovariatePaths(specification.data.covariate_version)
+        regression_marshall = CSVMarshall.from_paths(regression_paths)
         return cls(
             forecast_paths=forecast_paths,
             regression_paths=regression_paths,
-            covariate_paths=covariate_paths
+            covariate_paths=covariate_paths,
+            regression_marshall=regression_marshall,
         )
 
     def make_dirs(self):
@@ -102,8 +111,7 @@ class ForecastDataInterface:
         return df
 
     def load_regression_coefficients(self, draw_id: int) -> pd.DataFrame:
-        file = self.regression_paths.get_draw_coefficient_file(draw_id)
-        return pd.read_csv(file)
+        return self.regression_marshall.load(MKeys.coefficient(draw_id))
 
     def save_components(self, df: pd.DataFrame, draw_id: int, location_id: int) -> None:
         file = self.forecast_paths.get_component_draws_path(location_id=location_id,
