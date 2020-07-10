@@ -20,7 +20,9 @@ class DataTypes:
     """
     Enumerations of data types as understood by the Marshall interface.
     """
+    beta_scales = "beta_scales"
     coefficient = "coefficients"
+    components = "components"
     date = "dates"
     fit_beta = "betas"  # TODO: no longer needed - fit is not a stage
     parameter = "parameters"
@@ -32,7 +34,9 @@ class DataTypes:
         parameter,
         date,
         coefficient,
-        regression_beta
+        regression_beta,
+        beta_scales,
+        components,
     ])
 
 
@@ -42,6 +46,7 @@ class Keys:
         self.template = template
         self.key_args = key_args
 
+    # factories related to regression
     @classmethod
     def coefficient(cls, draw_id):
         return cls(DataTypes.coefficient, DRAW_FILE_TEMPLATE, draw_id=draw_id)
@@ -62,6 +67,16 @@ class Keys:
     def regression_beta(cls, draw_id):
         return cls(DataTypes.regression_beta, DRAW_FILE_TEMPLATE, draw_id=draw_id)
 
+    # factories related to forecasting
+    @classmethod
+    def beta_scales(cls, draw_id):
+        return cls(DataTypes.beta_scales, DRAW_FILE_TEMPLATE, draw_id=draw_id)
+
+    @classmethod
+    def components(cls, draw_id):
+        return cls(DataTypes.components, DRAW_FILE_TEMPLATE, draw_id=draw_id)
+
+    # other methods/properties
     @property
     def key(self):
         return self.template.format(**self.key_args)
