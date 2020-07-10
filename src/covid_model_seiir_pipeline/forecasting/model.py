@@ -110,44 +110,9 @@ class ODERunner:
         return result
 
 
-def get_ode_init_cond(location_id, beta_ode_fit, current_date):
-    """
-    Get the initial condition for the ODE.
-
-    Args:
-        location_id (init):
-            Location ids.
-        beta_ode_fit (str | pd.DataFrame):
-            The result for the beta_ode_fit, either file or path to file.
-        current_date (str | np.datetime64):
-            Current date for each location we try to predict off. Either file
-            or path to file.
-
-
-    Returns:
-         pd.DataFrame: Initial conditions by location.
-    """
-    # process input
-    assert (static_vars.COL_GROUP in beta_ode_fit)
-    assert (static_vars.COL_DATE in beta_ode_fit)
-    beta_ode_fit = beta_ode_fit[beta_ode_fit[static_vars.COL_GROUP] == location_id].copy()
-
-    if isinstance(current_date, str):
-        current_date = np.datetime64(current_date)
-    else:
-        assert isinstance(current_date, np.datetime64)
-
-    dt = np.abs((pd.to_datetime(beta_ode_fit[static_vars.COL_DATE]) - current_date).dt.days)
-    beta_ode_fit = beta_ode_fit.iloc[np.argmin(dt)]
-
-    col_components = static_vars.SEIIR_COMPARTMENTS
-    assert all([c in beta_ode_fit for c in col_components])
-
-    return beta_ode_fit[col_components].values.ravel()
-
-
 def beta_shift(beta_fit: pd.DataFrame,
                beta_pred: np.ndarray,
+               transition_date: pd.DataFrame,
                draw_id: int,
                window_size: Union[int, None] = None,
                average_over_min: int = 1,
@@ -180,14 +145,14 @@ def beta_shift(beta_fit: pd.DataFrame,
         Predicted beta, after scaling (shift) and the initial scaling.
 
     """
-    assert 'date' in beta_fit.columns, "'date' has to be in beta_fit data frame."
-    assert 'beta' in beta_fit.columns, "'beta' has to be in beta_fit data frame."
+    rs = np.random.RandomState(seed=draw_id)
+    avg_over = rs.randint(average_over_min, average_over_max)
+
+
     beta_fit = beta_fit.sort_values('date')
     beta_hat = beta_fit['beta_pred'].to_numpy()
     beta_fit = beta_fit['beta'].to_numpy()
 
-    rs = np.random.RandomState(seed=draw_id)
-    avg_over = rs.randint(average_over_min, average_over_max)
 
     beta_fit_final = beta_fit[-1]
     beta_pred_start = beta_pred[0]
