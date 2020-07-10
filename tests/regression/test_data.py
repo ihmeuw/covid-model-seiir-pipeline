@@ -1,16 +1,18 @@
 from pathlib import Path
 
 import pandas
+import pytest
 
 from covid_model_seiir_pipeline.marshall import (
     CSVMarshall,
     Keys as MKeys,
 )
-from covid_model_seiir_pipeline.paths import ODEPaths, RegressionPaths
+from covid_model_seiir_pipeline.paths import RegressionPaths
 from covid_model_seiir_pipeline.regression.data import RegressionDataInterface
 
 
 class TestRegressionDataInterfaceIO:
+    @pytest.mark.skip(reason='ODEPaths no longer exists')
     def test_ode_fit_io(self, tmpdir, tmpdir_file_count, fit_beta):
         """
         Test I/O relating to the fit stage.
@@ -48,10 +50,9 @@ class TestRegressionDataInterfaceIO:
         """
         regress_paths = RegressionPaths(Path(tmpdir))
         di = RegressionDataInterface(
+            infection_paths=None,
             regression_paths=regress_paths,
-            ode_paths=None,
             covariate_paths=None,
-            ode_marshall=None,
             regression_marshall=CSVMarshall(regress_paths.root_dir),
         )
         # Step 1: count files
