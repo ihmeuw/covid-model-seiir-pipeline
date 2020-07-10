@@ -22,9 +22,9 @@ class DataTypes:
     """
     coefficient = "coefficients"
     date = "dates"
-    fit_beta = "betas"  # TODO: unique name after forecast is done
+    fit_beta = "betas"  # TODO: no longer needed - fit is not a stage
     parameter = "parameters"
-    regression_beta = "betas"  # TODO: unique name after forecast is done
+    regression_beta = "beta"
 
     # types which serialize to a DataFrame
     DataFrame_types = frozenset([
