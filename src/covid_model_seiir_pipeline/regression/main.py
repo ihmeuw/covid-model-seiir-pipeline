@@ -25,7 +25,7 @@ def do_beta_regression(app_metadata: cli_tools.Metadata,
     data_interface.check_covariates(regression_specification.covariates)
 
     # build directory structure and save metadata
-    data_interface.regression_paths.make_dirs(location_ids)
+    data_interface.make_dirs()
     data_interface.dump_location_ids(location_ids)
     # Fixme: Inconsistent data writing interfaces
     regression_specification.dump(data_interface.regression_paths.regression_specification)
