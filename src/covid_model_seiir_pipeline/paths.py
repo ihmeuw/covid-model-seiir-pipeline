@@ -30,118 +30,71 @@ class Paths:
         """Returns all top level sub-directories."""
         raise NotImplementedError
 
-    @property
-    def location_specific_directories(self) -> List[Path]:
-        """Returns all top level sub-directories that have location-specific
-        sub-directories.
-
-        """
-        return []
-
-    def make_dirs(self, location_ids: List[int] = None):
+    def make_dirs(self):
         """Builds the local directory structure."""
         if self.read_only:
             raise RuntimeError(f"Tried to create directory structure when "
                                f"{self.__class__.__name__} was in read_only mode. "
                                f"Try instantiating with read_only=False.")
 
-        if self.location_specific_directories and not location_ids:
-            raise RuntimeError('No location ids supplied to population location-'
-                               f'specific subdirectories for {self.__class__.__name__}.')
-
         logger.debug(f'Creating sub-directory structure for {self.__class__.__name__} '
                      f'in {self.root_dir}.')
         for directory in self.directories:
             mkdir(directory, parents=True, exists_ok=True)
 
-        for directory in self.location_specific_directories:
-            if location_ids is None:
-                raise ValueError("location_ids cannot be none when creating directories "
-                                 "for location specific outputs of type "
-                                 f"{self.__class__.__name__}")
-            for location_id in location_ids:
-                mkdir(directory / str(location_id), exists_ok=True)
-
 
 @dataclass
-class ForecastPaths(Paths):
+class ScenarioPaths(Paths):
     """Local directory structure of a forecasting data root."""
-    beta_scaling_file: ClassVar[str] = "{location_id}_beta_scaling.csv"
-    component_draw_file: ClassVar[str] = "draw_{draw_id}.csv"
-    beta_resid_plot_file: ClassVar[str] = 'cases_fit_and_beta_residuals_{location_name}.png'
-    final_draw_plot_file: ClassVar[str] = 'final_draws_refflog_{location_name}.png'
-    trajectories_plot_file: ClassVar[str] = 'trajectories_{location_name}.png'
-    cases_file: ClassVar[str] = 'cases_{location_id}.csv'
-    deaths_file: ClassVar[str] = 'deaths_{location_id}.csv'
-    reff_file: ClassVar[str] = 'reff_{location_id}.csv'
+    beta_scaling_file: ClassVar[str] = DRAW_FILE_TEMPLATE
+    component_draw_file: ClassVar[str] = DRAW_FILE_TEMPLATE
 
     @property
     def beta_scaling(self) -> Path:
         """Scaling factors used to align past and forecast betas."""
         return self.root_dir / 'beta_scaling'
 
-    def get_beta_scaling_path(self, location_id: int) -> Path:
+    def get_beta_scaling_path(self, draw_id: int) -> Path:
         """Retrieves a location specific path to beta scaling parameters"""
-        return self.beta_scaling / self.beta_scaling_file.format(location_id=location_id)
+        return self.beta_scaling / self.beta_scaling_file.format(draw_id=draw_id)
 
     @property
     def component_draws(self) -> Path:
         """Folders by location with SEIIR components."""
         return self.root_dir / 'component_draws'
 
-    def get_component_draws_path(self, location_id: int, draw_id: int) -> Path:
+    def get_component_draws_path(self, draw_id: int) -> Path:
         """Get SEIIR components for a particular location and draw."""
-        file = self.component_draw_file.format(draw_id=draw_id)
-        return self.component_draws / str(location_id) / file
-
-    @property
-    def diagnostics(self) -> Path:
-        """Plots of SEIIR component draws, final draws, and residuals."""
-        return self.root_dir / 'diagnostics'
-
-    def get_residuals_plot(self, location_name: str) -> Path:
-        """Path to residual plots by location."""
-        return self.diagnostics / self.beta_resid_plot_file.format(location_name=location_name)
-
-    def get_final_draw_plots(self, location_name: str) -> Path:
-        """Path to final draw plots by location."""
-        return self.diagnostics / self.final_draw_plot_file.format(location_name=location_name)
-
-    def get_trajectory_plots(self, location_name: str) -> Path:
-        """Path to final trajectory plots by location."""
-        return self.diagnostics / self.trajectories_plot_file.format(
-            location_name=location_name
-        )
-
-    @property
-    def output_draws(self) -> Path:
-        """Path to the output draws directories."""
-        return self.root_dir / 'output_draws'
-
-    def get_output_cases(self, location_id: int) -> Path:
-        """Path to output cases file by location."""
-        return self.output_draws / self.cases_file.format(location_id=location_id)
-
-    def get_output_reff(self, location_id: int) -> Path:
-        """Path to output R effective file by location."""
-        return self.output_draws / self.reff_file.format(location_id=location_id)
-
-    def get_output_deaths(self, location_id: int) -> Path:
-        """Path to output deaths file by location"""
-        return self.output_draws / self.deaths_file.format(location_id=location_id)
+        return self.component_draws / self.component_draw_file.format(draw_id=draw_id)
 
     @property
     def directories(self) -> List[Path]:
         """Returns all top level sub-directories."""
-        return [self.beta_scaling, self.component_draws, self.diagnostics, self.output_draws]
+        return [self.beta_scaling, self.component_draws]
+
+
+@dataclass
+class ForecastPaths(Paths):
+    scenarios: List[str] = field(default_factory=list)
+    scenario_paths: Dict[str, ScenarioPaths] = field(init=False)
+
+    def __post_init__(self):
+        self.scenario_paths = {scenario: ScenarioPaths(self.root_dir / scenario, self.read_only)
+                               for scenario in self.scenarios}
 
     @property
-    def location_specific_directories(self) -> List[Path]:
-        """Returns all top level sub-directories that have location-specific
-        sub-directories.
+    def forecast_specification(self) -> Path:
+        return self.root_dir / 'forecast_specification.yaml'
 
-        """
-        return [self.component_draws]
+    def get_beta_scaling_path(self, draw_id: int, scenario: str) -> Path:
+        return self.scenario_paths[scenario].get_beta_scaling_path(draw_id)
+
+    def get_component_draws_path(self, draw_id: int, scenario: str) -> Path:
+        return self.scenario_paths[scenario].get_component_draws_path(draw_id)
+
+    def make_dirs(self):
+        for scenario_paths in self.scenario_paths.values():
+            scenario_paths.make_dirs()
 
 
 @dataclass
