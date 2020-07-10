@@ -57,13 +57,15 @@ def run_beta_forecast(draw_id: int, forecast_version: str, scenario_name: str):
     # Align date in data sets
     # We want the past out of the regression data. Keep the overlap day.
     beta_regression_df = beta_regression_df.set_index('location_id').sort_index()
-    beta_past = beta_regression_df.loc[beta_regression_df['date'] <= transition_date].reset_index()
+    idx = beta_regression_df.index
+    beta_past = beta_regression_df.loc[beta_regression_df['date'] <= transition_date.loc[idx]].reset_index()
 
     # For covariates, we want the future.  Also keep the overlap day
     covariates = covariates.set_index('location_id').sort_index()
-    covariate_pred = covariates.loc[covariates['date'] >= transition_date].reset_index()
+    idx = covariates.index
+    covariate_pred = covariates.loc[covariates['date'] >= transition_date.loc[idx]].reset_index()
 
-    log_beta_hat = compute_beta_hat(covariates, coefficients)
+    log_beta_hat = compute_beta_hat(covariate_pred, coefficients)
     beta_hat = np.exp(log_beta_hat).rename('beta_pred').reset_index()
 
     betas = beta_hat.beta_pred.values
