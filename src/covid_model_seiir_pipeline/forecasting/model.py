@@ -152,7 +152,7 @@ def beta_shift(beta_past: pd.DataFrame,
     """
     rs = np.random.RandomState(seed=draw_id)
     avg_over = rs.randint(average_over_min, average_over_max)
-    import pdb; pdb.set_trace()
+
     beta_past = beta_past.set_index('location_id').sort_values('date')
     beta_hat = beta_hat.set_index('location_id').sort_values('date')
     beta_fit_final = beta_past.loc[beta_past['date'] == transition_date.loc[beta_past.index], 'beta']
@@ -165,12 +165,16 @@ def beta_shift(beta_past: pd.DataFrame,
                          .groupby(level='location_id')
                          .apply(lambda x: x.iloc[-avg_over:].mean()))
 
+    import pdb
+    pdb.set_trace()
 
-    if window_size is not None:
-        scale = scale_init + (scale_final - scale_init)/window_size*np.arange(beta_pred.size)
-        scale[(window_size + 1):] = scale_final
-    else:
-        scale = scale_init
+    for location_id in beta_hat.index.unique():
+        if window_size is not None:
+            t = np.arange(len(beta_hat.loc[location_id]))
+            scale = scale_init.at[location_id] + (scale_final.at[location_id] - scale_init.at[location_id]) * t
+            scale.iloc[(window_size + 1):] = scale_final.at[location_id]
+        else:
+            scale = scale_init.at[location_id]
 
     scale_params = {
         'window_size': window_size,
