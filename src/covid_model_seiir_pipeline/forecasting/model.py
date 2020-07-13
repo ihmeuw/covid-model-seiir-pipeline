@@ -152,18 +152,18 @@ def beta_shift(beta_past: pd.DataFrame,
     """
     rs = np.random.RandomState(seed=draw_id)
     avg_over = rs.randint(average_over_min, average_over_max)
-
+    import pdb; pdb.set_trace()
     beta_past = beta_past.set_index('location_id').sort_values('date')
     beta_hat = beta_hat.set_index('location_id').sort_values('date')
     beta_fit_final = beta_past.loc[beta_past['date'] == transition_date.loc[beta_past.index], 'beta']
-    beta_hat_start = beta_hat.loc[beta_hat['date'] == transition_date.loc[beta_hat.index], 'beta']
+    beta_hat_start = beta_hat.loc[beta_hat['date'] == transition_date.loc[beta_hat.index], 'beta_pred']
     scale_init = beta_fit_final / beta_hat_start
 
     beta_past = beta_past.reset_index().set_index(['location_id', 'date'])
     log_beta_resid = np.log(beta_past['beta'] / beta_past['beta_pred']).rename('beta_resid')
     scale_final = np.exp(log_beta_resid
                          .groupby(level='location_id')
-                         .apply(lambda x: x['beta_resid'].iloc[-avg_over:].mean()))
+                         .apply(lambda x: x.iloc[-avg_over:].mean()))
 
 
     if window_size is not None:
