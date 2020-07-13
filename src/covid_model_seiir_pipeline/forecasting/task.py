@@ -95,7 +95,7 @@ def run_beta_forecast(draw_id: int, forecast_version: str, scenario_name: str):
         loc_days = loc_betas['date']
         loc_times = np.array((loc_days - loc_days.min()).dt.days)
         loc_betas = loc_betas['beta_pred'].values
-        loc_thetas = np.repeat(thetas.at[location_id], loc_betas.size)
+        loc_thetas = np.repeat(thetas.get(location_id, default=0), loc_betas.size)
 
         forecasted_components = ode_runner.get_solution(loc_times, loc_betas, loc_thetas)
         forecasted_components['date'] = loc_days.values
