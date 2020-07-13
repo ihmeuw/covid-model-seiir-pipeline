@@ -1,11 +1,11 @@
-from typing import Dict, Tuple, Union
+from collections import defaultdict
 from dataclasses import dataclass, asdict
+from typing import Dict, Tuple, Union
 
 import numpy as np
-import pandas as pd
-
 from odeopt.ode import RK4
 from odeopt.ode import ODESys
+import pandas as pd
 
 
 class CustomizedSEIIR(ODESys):
@@ -116,7 +116,7 @@ def beta_shift(beta_past: pd.DataFrame,
                draw_id: int,
                window_size: Union[int, None] = None,
                average_over_min: int = 1,
-               average_over_max: int = 35) -> Tuple[np.ndarray, Dict[str, float]]:
+               average_over_max: int = 35) -> Tuple[pd.DataFrame, pd.DataFrame]:
     """Shift the raw predicted beta to line up with beta in the past..
 
     This method performs both an intercept shift and a scaling based on the
@@ -165,26 +165,27 @@ def beta_shift(beta_past: pd.DataFrame,
                          .groupby(level='location_id')
                          .apply(lambda x: x.iloc[-avg_over:].mean()))
 
-    import pdb
-    pdb.set_trace()
-
+    beta_final = []
     for location_id in beta_hat.index.unique():
         if window_size is not None:
-            t = np.arange(len(beta_hat.loc[location_id]))
+            t = np.arange(len(beta_hat.loc[location_id])) / window_size
             scale = scale_init.at[location_id] + (scale_final.at[location_id] - scale_init.at[location_id]) * t
-            scale.iloc[(window_size + 1):] = scale_final.at[location_id]
+            scale[(window_size + 1):] = scale_final.at[location_id]
         else:
             scale = scale_init.at[location_id]
+        loc_beta_hat = beta_hat.loc[location_id].set_index('date', append=True)['beta_pred']
+        loc_beta_final = loc_beta_hat * scale
+        beta_final.append(loc_beta_final)
 
-    scale_params = {
-        'window_size': window_size,
-        'history_days': avg_over,
-        'fit_final': beta_fit_final,
-        'pred_start': beta_pred_start,
-        'beta_ratio_mean': scale_final,
-        'beta_residual_mean': np.log(scale_final),
-    }
+    beta_final = pd.concat(beta_final).reset_index()
 
-    betas = beta_pred * scale
+    scale_params = pd.concat([
+        beta_fit_final.rename('fit_final'),
+        beta_hat_start.rename('pred_start'),
+        scale_final.rename('beta_ratio_mean'),
+        np.log(scale_final).rename('beta_residual_mean')
+    ], axis=1).reset_index()
+    scale_params['window_size'] = window_size
+    scale_params['history_days'] = avg_over
 
-    return betas, scale_params
+    return beta_final, scale_params
