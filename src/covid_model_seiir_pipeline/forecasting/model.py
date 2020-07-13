@@ -147,7 +147,7 @@ def beta_shift(beta_past: pd.DataFrame,
 
     Returns
     -------
-        Predicted beta, after scaling (shift) and the initial scaling.
+        Predicted beta, after scaling (shift) and the scaling parameters.
 
     """
     rs = np.random.RandomState(seed=draw_id)

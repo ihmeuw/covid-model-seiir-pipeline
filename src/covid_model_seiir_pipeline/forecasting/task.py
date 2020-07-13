@@ -27,10 +27,10 @@ def run_beta_forecast(draw_id: int, forecast_version: str, scenario_name: str):
 
     location_ids = data_interface.load_location_ids()
     if isinstance(scenario_spec.theta, str):
-        thetas = pd.read_csv(scenario_spec.theta).set_index('location_id')
+        thetas = pd.read_csv(scenario_spec.theta).set_index('location_id')['theta']
     else:
-        thetas = pd.DataFrame({'theta': scenario_spec.theta},
-                              index=pd.Index(location_ids, name='location_id'))
+        thetas = pd.Series({'theta': scenario_spec.theta},
+                           index=pd.Index(location_ids, name='location_id'))
 
     # Contains the start and end date for the data that was fit.
     # End dates vary based on how many days of leading indicator data
@@ -68,16 +68,15 @@ def run_beta_forecast(draw_id: int, forecast_version: str, scenario_name: str):
     log_beta_hat = compute_beta_hat(covariate_pred, coefficients)
     beta_hat = np.exp(log_beta_hat).rename('beta_pred').reset_index()
 
-    # FIXME: vectorize over location
     betas, scale_params = model.beta_shift(beta_past, beta_hat, transition_date,
                                            draw_id, **scenario_spec.beta_scaling)
+    betas = betas.set_index('location_id')
 
     transition_day = beta_regression_df['date'] == transition_date.loc[beta_regression_df.index]
     compartments = ['S', 'E', 'I1', 'I2', 'R']
     initial_condition = beta_regression_df.loc[transition_day, compartments]
 
     forecasts = []
-
     for location_id in location_ids:
         log.info(f"On location id {location_id}")
         init_cond = initial_condition.loc[location_id].values
@@ -90,16 +89,17 @@ def run_beta_forecast(draw_id: int, forecast_version: str, scenario_name: str):
             gamma2=beta_params['gamma2'],
             N=total_population,
         )
-
         ode_runner = model.ODERunner(model_specs, init_cond)
 
-        loc_times = times.loc[location_id].values
-        loc_betas = betas.loc[location_id].values
-        loc_thetas = np.repeat(thetas.at[location_id], loc_betas)
+        loc_betas = betas.loc[location_id].sort_values('date')
+        loc_days = loc_betas['date']
+        loc_times = np.array((loc_days - loc_days.min()).dt.days)
+        loc_betas = loc_betas['beta_pred'].values
+        loc_thetas = np.repeat(thetas.at[location_id], loc_betas.size)
 
         forecasted_components = ode_runner.get_solution(loc_times, loc_betas, loc_thetas)
-        forecasted_components['date'] = days
-
+        forecasted_components['date'] = loc_days.values
+        forecasted_components['location_id'] = location_id
         forecasts.append(forecasted_components)
 
     forecasts = pd.concat(forecasts)
