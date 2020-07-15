@@ -18,11 +18,8 @@ class Paths:
     local directory structures.
 
     """
-    root_dir: Union[str, Path]
+    root_dir: Path
     read_only: bool = field(default=True)
-
-    def __post_init__(self):
-        self.root_dir = Path(self.root_dir)
 
     @property
     @abc.abstractmethod
@@ -117,14 +114,14 @@ class RegressionPaths(Paths):
     def parameters_dir(self) -> Path:
         return self.root_dir / 'parameters'
 
-    def get_draw_beta_param_file(self, draw_id: int) -> Path:
+    def get_beta_param_file(self, draw_id: int) -> Path:
         return self.parameters_dir / self.beta_param_file.format(draw_id=draw_id)
 
     @property
     def date_dir(self) -> Path:
         return self.root_dir / 'dates'
 
-    def get_draw_date_file(self, draw_id: int) -> Path:
+    def get_date_file(self, draw_id: int) -> Path:
         return self.date_dir / self.date_file.format(draw_id=draw_id)
 
     @property

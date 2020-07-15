@@ -104,6 +104,7 @@ class RegressionSpecification(Specification):
         """Converts the specification to a dict."""
         spec = {
             'data': self.data.to_dict(),
+            'parameters': self.parameters.to_dict(),
             'covariates': {k: v.to_dict() for k, v in self._covariates.items()},
         }
         return spec

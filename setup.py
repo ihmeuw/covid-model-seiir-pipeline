@@ -67,7 +67,7 @@ if __name__ == "__main__":
         entry_points={'console_scripts': [
             'seiir=covid_model_seiir_pipeline.cli:seiir',
             'beta_regression=covid_model_seiir_pipeline.regression.task:main',
-            'beta_forecast=covid_model_seiir_pipeline.forecasting.tasks.beta_forecast:main',
+            'beta_forecast=covid_model_seiir_pipeline.forecasting.task:main',
             'splice=covid_model_seiir_pipeline.forecasting.tasks.splicer:main',
             'forecast_diagnostics=covid_model_seiir_pipeline.forecasting.tasks.forecast_diagnostics:main',
             'scaling_diagnostics=covid_model_seiir_pipeline.forecasting.tasks.scaling_diagnostics:main'
