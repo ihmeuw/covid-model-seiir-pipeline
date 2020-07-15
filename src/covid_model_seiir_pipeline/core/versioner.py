@@ -355,6 +355,23 @@ class RegressionVersion(Version):
 
     beta_shift_dict: Dict = field(default_factory=lambda: dict(window_size=None))
 
+    # Set behavior for theta
+    theta: int = field(default=None)
+    theta_locations_file: str = field(default=None)
+
+    def __post_init__(self):
+        # TODO: Don't just fail fast.  fail helpfully
+        if self.theta is not None:
+            assert self.theta_locations_file is None
+        elif self.theta_locations_file is None:
+            # Default case, no config provided
+            self.theta = 0
+        else:
+            theta_loc_file = Path(self.theta_locations_file)
+            assert (theta_loc_file.exists()
+                    and theta_loc_file.is_file()
+                    and theta_loc_file.suffix == '.csv')
+
     def _settings_to_json(self):
         settings = asdict(self)
         _confirm_version_exists(REGRESSION_OUTPUT / self.version_name)
@@ -385,22 +402,6 @@ class ForecastVersion(Version):
     covariate_version: str
 
     covariate_draw_dict: Dict[str, bool]
-
-    theta: int = field(default=None)
-    theta_locations_file: str = field(default=None)
-
-    def __post_init__(self):
-        # TODO: Don't just fail fast.  fail helpfully
-        if self.theta is not None:
-            assert self.theta_locations_file is None
-        elif self.theta_locations_file is None:
-            # Default case, no config provided
-            self.theta = 0
-        else:
-            theta_loc_file = Path(self.theta_locations_file)
-            assert (theta_loc_file.exists()
-                    and theta_loc_file.is_file()
-                    and theta_loc_file.suffix == '.csv')
 
     def _settings_to_json(self):
         settings = asdict(self)
