@@ -121,5 +121,5 @@ class Test_ODEProcess_results:
         This is a dict of {location_id: DataFrame_of_data} pairs.
         """
         fixture_path = fixture_dir / "regression/location_data_2020_06_28.02.csv"
-        big_df = pandas.read_csv(fixture_path)
-        return {loc_id: loc_data for loc_id, loc_data in big_df.groupby("loc_id")}
+        big_df = pandas.read_csv(fixture_path).rename(columns={'loc_id': 'location_id'})
+        return {loc_id: loc_data for loc_id, loc_data in big_df.groupby("location_id")}

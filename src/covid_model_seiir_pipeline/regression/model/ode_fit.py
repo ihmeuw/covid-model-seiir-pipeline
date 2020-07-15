@@ -330,7 +330,7 @@ class ODEProcess:
         self.models = {}
         errors = []
         for loc_id in self.loc_ids:
-            try:
+ #           try:
                 self.models[loc_id] = SingleGroupODEProcess(
                     self.df_dict[loc_id],
                     self.col_date,
@@ -347,14 +347,14 @@ class ODEProcess:
                     solver_dt=self.solver_dt,
                     today=self.today_dict[loc_id],
                 )
-            except AssertionError:
-                errors.append(loc_id)
+  #          except AssertionError:
+  #              errors.append(loc_id)
 
-        if errors:
-            raise RuntimeError(
-                "SingleGroupODEProcess failed to initialize for 1 or more locations in "
-                f"ODEProcess. Locations are: {errors}."
-            )
+  #      if errors:
+  #          raise RuntimeError(
+  #              "SingleGroupODEProcess failed to initialize for 1 or more locations in "
+  #              f"ODEProcess. Locations are: {errors}."
+  #          )
 
     def process(self):
         """Process all models.

@@ -90,7 +90,7 @@ class RegressionDataInterface:
         dfs = dict()
         for loc in location_ids:
             file = self.infection_paths.get_infection_file(location_id=loc, draw_id=draw_id)
-            dfs[loc] = pd.read_csv(file)
+            dfs[loc] = pd.read_csv(file).rename(columns={'loc_id': 'location_id'})
 
         # validate
         locs_na = []
@@ -160,10 +160,10 @@ class RegressionDataInterface:
     ############################
 
     def save_draw_beta_param_file(self, df: pd.DataFrame, draw_id: int) -> None:
-        df.to_csv(self.regression_paths.get_draw_beta_param_file(draw_id), index=False)
+        df.to_csv(self.regression_paths.get_beta_param_file(draw_id), index=False)
 
     def save_draw_date_file(self, df: pd.DataFrame, draw_id: int) -> None:
-        df.to_csv(self.regression_paths.get_draw_date_file(draw_id), index=False)
+        df.to_csv(self.regression_paths.get_date_file(draw_id), index=False)
 
     def save_location_metadata_file(self, locations: List[int]) -> None:
         with (self.regression_paths.root_dir / 'locations.yaml') as location_file:
