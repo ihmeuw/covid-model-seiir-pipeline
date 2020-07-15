@@ -26,7 +26,7 @@ def process_ode_process_input(settings, location_data):
     for loc, df in location_data.items():
         if df[INFECTION_COL_DICT['COL_CASES']].isna().any():
             locs_na.append(loc)
-        if (df[INFECTION_COL_DICT['COL_CASES']].to_numpy() < 0.0).any():
+        if (df[INFECTION_COL_DICT['COL_CASES']].dtype == np.dtype('O')) or (df[INFECTION_COL_DICT['COL_CASES']].to_numpy() < 0.0).any():
             locs_neg.append(loc)
     if len(locs_na) > 0 and len(locs_neg) > 0:
         raise ValueError(
