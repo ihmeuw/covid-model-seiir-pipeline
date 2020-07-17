@@ -3,6 +3,7 @@ from typing import Optional
 import shlex
 import logging
 import numpy as np
+import pandas as pd
 
 from covid_model_seiir.model_runner import ModelRunner
 
