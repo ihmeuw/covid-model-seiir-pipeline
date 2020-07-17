@@ -53,7 +53,7 @@ def run_beta_regression(draw_id: int, regression_version: str):
     settings = load_regression_settings(regression_version)
 
     # Save thetas file, if one exists
-    if settings.theta_locations_file:
+    if settings.theta_locations_file is not None:
         theta_locations = pd.read_csv(settings.theta_locations_file)
         theta_locations.to_csv(
             directories.regression_output_dir / 'theta.csv', index=False
