@@ -147,3 +147,10 @@ def components():
         [526, 3025082.20659897, 1956.2847143040935, 1210.0356364200209, 1158.6355734951346, 27941.34379648508,
          0.0, 0.35164960033097264, 0.0, "2020-06-14"],
     ], columns=["location_id", "S", "E", "I1", "I2", "R", "t", "beta", "theta", "date"])
+
+
+@pytest.fixture
+def forecast_outputs():
+    "Example forecast outputs."
+    # TODO: Mike couldn't find real data for this
+    return pandas.DataFrame({'forecasts': ['good', 'ok', 'not great']})

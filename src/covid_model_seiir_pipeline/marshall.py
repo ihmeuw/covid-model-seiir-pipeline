@@ -38,6 +38,7 @@ class DataTypes:
     components = "components"
     date = "dates"
     fit_beta = "betas"  # TODO: no longer needed - fit is not a stage
+    forecast_outputs = "outputs"  # TODO: this could have a clearer directory name
     location_data = "data"
     parameter = "parameters"
     regression_beta = "beta"
@@ -52,6 +53,7 @@ class DataTypes:
         regression_beta,
         beta_scales,
         components,
+        forecast_outputs,
     ])
 
 
@@ -101,6 +103,10 @@ class Keys:
     @classmethod
     def components(cls, scenario, draw_id):
         return cls(DataTypes.components, DRAW_FILE_TEMPLATE, scenario=scenario, draw_id=draw_id)
+
+    @classmethod
+    def forecast_outputs(cls, scenario, draw_id):
+        return cls(DataTypes.forecast_outputs, DRAW_FILE_TEMPLATE, scenario=scenario, draw_id=draw_id)
 
     # other methods/properties
     @property

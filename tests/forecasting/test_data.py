@@ -75,7 +75,7 @@ class TestForecastDataInterfaceIO:
                 numpy.testing.assert_almost_equal(loaded, expected, decimal=15)
             warnings.warn("beta fit parameters accurate only to 15 decimal places after save/load cycle")
 
-    def test_forecast_io(self, tmpdir, components, beta_scales):
+    def test_forecast_io(self, tmpdir, components, beta_scales, forecast_outputs):
         forecast_paths = ForecastPaths(
             root_dir=Path(tmpdir),
             scenarios=['happy'],
@@ -91,20 +91,24 @@ class TestForecastDataInterfaceIO:
         # Step 1: save files
         di.save_components(components, scenario="happy", draw_id=4)
         di.save_beta_scales(beta_scales, scenario="happy", draw_id=4)
+        di.save_outputs(forecast_outputs, scenario="happy", draw_id=4)
 
         # Step 2: test save location
         # this is sort of cheating, but it ensures that scenario things are
         # nicely nested as they should be
         assert (Path(tmpdir) / "happy" / "components" / "draw_4.csv").exists()
         assert (Path(tmpdir) / "happy" / "beta_scales" / "draw_4.csv").exists()
+        assert (Path(tmpdir) / "happy" / "outputs" / "draw_4.csv").exists()
 
         # Step 3: load those files
         loaded_components = di.load_components(scenario="happy", draw_id=4)
         loaded_beta_scales = di.load_beta_scales(scenario="happy", draw_id=4)
+        loaded_forecast_outputs = di.load_outputs(scenario="happy", draw_id=4)
 
         # Step 4: test files
         pandas.testing.assert_frame_equal(components, loaded_components)
         pandas.testing.assert_frame_equal(beta_scales, loaded_beta_scales)
+        pandas.testing.assert_frame_equal(forecast_outputs, loaded_forecast_outputs)
 
 
 def assert_equal_after_date_conversion(expected, actual, date_cols):
