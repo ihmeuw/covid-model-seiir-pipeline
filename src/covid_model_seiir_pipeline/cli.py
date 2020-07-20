@@ -97,11 +97,16 @@ def regress(run_metadata,
               type=click.Path(file_okay=False),
               help="Which version of ode fit inputs to use in the"
                    "regression.")
+@click.option('--covariates-version',
+              type=click.Path(file_okay=False),
+              help=('Which version of the covariates to use in the '
+                    'regression.'))
 @cli_tools.add_output_options(paths.SEIR_FORECAST_OUTPUTS)
 @cli_tools.add_verbose_and_with_debugger
 def forecast(run_metadata,
              forecast_specification,
              regression_version,
+             covariates_version,
              output_root, mark_best, production_tag,
              verbose, with_debugger):
     """Perform beta forecast for a set of scenarios on a regression."""
@@ -112,12 +117,16 @@ def forecast(run_metadata,
     regression_root = utilities.get_input_root(regression_version,
                                                forecast_spec.data.regression_version,
                                                paths.SEIR_REGRESSION_OUTPUTS)
+    covariates_root = utilities.get_input_root(covariates_version,
+                                               forecast_spec.data.covariate_version,
+                                               paths.SEIR_COVARIATES_OUTPUT_ROOT)
     output_root = utilities.get_output_root(output_root,
                                             forecast_spec.data.output_root)
     cli_tools.setup_directory_structure(output_root, with_production=True)
     run_directory = cli_tools.make_run_directory(output_root)
 
     forecast_spec.data.regression_version = str(regression_root.resolve())
+    forecast_spec.data.covariate_version = str(covariates_root.resolve())
     forecast_spec.data.output_root = str(run_directory)
 
     run_metadata.update_from_path('regression_metadata', regression_root / paths.METADATA_FILE_NAME)

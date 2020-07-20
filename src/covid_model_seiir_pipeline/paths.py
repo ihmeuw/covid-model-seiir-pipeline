@@ -18,11 +18,8 @@ class Paths:
     local directory structures.
 
     """
-    root_dir: Union[str, Path]
+    root_dir: Path
     read_only: bool = field(default=True)
-
-    def __post_init__(self):
-        self.root_dir = Path(self.root_dir)
 
     @property
     @abc.abstractmethod
@@ -47,7 +44,8 @@ class Paths:
 class ScenarioPaths(Paths):
     """Local directory structure of a forecasting data root."""
     beta_scaling_file: ClassVar[str] = DRAW_FILE_TEMPLATE
-    component_draw_file: ClassVar[str] = DRAW_FILE_TEMPLATE
+    component_file: ClassVar[str] = DRAW_FILE_TEMPLATE
+    outputs_file: ClassVar[str] = DRAW_FILE_TEMPLATE
 
     @property
     def beta_scaling(self) -> Path:
@@ -59,18 +57,27 @@ class ScenarioPaths(Paths):
         return self.beta_scaling / self.beta_scaling_file.format(draw_id=draw_id)
 
     @property
-    def component_draws(self) -> Path:
+    def components(self) -> Path:
         """Folders by location with SEIIR components."""
         return self.root_dir / 'component_draws'
 
-    def get_component_draws_path(self, draw_id: int) -> Path:
+    def get_components_path(self, draw_id: int) -> Path:
         """Get SEIIR components for a particular location and draw."""
-        return self.component_draws / self.component_draw_file.format(draw_id=draw_id)
+        return self.components / self.component_file.format(draw_id=draw_id)
+
+    @property
+    def outputs(self) -> Path:
+        """Cases, deaths, and effective R."""
+        return self.root_dir / 'outputs'
+
+    def get_outputs_path(self, draw_id: int) -> Path:
+        """Single draw of forecast outputs."""
+        return self.outputs / self.outputs_file.format(draw_id=draw_id)
 
     @property
     def directories(self) -> List[Path]:
         """Returns all top level sub-directories."""
-        return [self.beta_scaling, self.component_draws]
+        return [self.beta_scaling, self.components]
 
 
 @dataclass
@@ -89,8 +96,11 @@ class ForecastPaths(Paths):
     def get_beta_scaling_path(self, draw_id: int, scenario: str) -> Path:
         return self.scenario_paths[scenario].get_beta_scaling_path(draw_id)
 
-    def get_component_draws_path(self, draw_id: int, scenario: str) -> Path:
-        return self.scenario_paths[scenario].get_component_draws_path(draw_id)
+    def get_components_path(self, draw_id: int, scenario: str) -> Path:
+        return self.scenario_paths[scenario].get_components_path(draw_id)
+
+    def get_outputs_path(self, draw_id: int, scenario: str) -> Path:
+        return self.scenario_paths[scenario].get_outputs_path(draw_id)
 
     def make_dirs(self):
         for scenario_paths in self.scenario_paths.values():
@@ -104,6 +114,7 @@ class RegressionPaths(Paths):
     date_file: ClassVar[str] = DRAW_FILE_TEMPLATE
     coefficient_file: ClassVar[str] = DRAW_FILE_TEMPLATE
     beta_regression_file: ClassVar[str] = DRAW_FILE_TEMPLATE
+    data_file: ClassVar[str] = DRAW_FILE_TEMPLATE
 
     @property
     def location_metadata(self) -> Path:
@@ -117,14 +128,14 @@ class RegressionPaths(Paths):
     def parameters_dir(self) -> Path:
         return self.root_dir / 'parameters'
 
-    def get_draw_beta_param_file(self, draw_id: int) -> Path:
+    def get_beta_param_file(self, draw_id: int) -> Path:
         return self.parameters_dir / self.beta_param_file.format(draw_id=draw_id)
 
     @property
     def date_dir(self) -> Path:
         return self.root_dir / 'dates'
 
-    def get_draw_date_file(self, draw_id: int) -> Path:
+    def get_date_file(self, draw_id: int) -> Path:
         return self.date_dir / self.date_file.format(draw_id=draw_id)
 
     @property
@@ -142,10 +153,18 @@ class RegressionPaths(Paths):
         return self.coefficient_dir / self.coefficient_file.format(draw_id=draw_id)
 
     @property
+    def data_dir(self) -> Path:
+        return self.root_dir / 'data'
+
+    def get_data_file(self, draw_id: int) -> Path:
+        return self.data_dir / self.data_file.format(draw_id=draw_id)
+
+    @property
     def directories(self) -> List[Path]:
         """Returns all top level sub-directories."""
         return [self.parameters_dir, self.date_dir,
-                self.beta_regression_dir, self.coefficient_dir]
+                self.beta_regression_dir, self.coefficient_dir,
+                self.data_dir]
 
 
 @dataclass
