@@ -159,10 +159,10 @@ class RegressionDataInterface:
     # Regression paths writers #
     ############################
 
-    def save_draw_beta_param_file(self, df: pd.DataFrame, draw_id: int) -> None:
+    def save_beta_param_file(self, df: pd.DataFrame, draw_id: int) -> None:
         df.to_csv(self.regression_paths.get_beta_param_file(draw_id), index=False)
 
-    def save_draw_date_file(self, df: pd.DataFrame, draw_id: int) -> None:
+    def save_date_file(self, df: pd.DataFrame, draw_id: int) -> None:
         df.to_csv(self.regression_paths.get_date_file(draw_id), index=False)
 
     def save_location_metadata_file(self, locations: List[int]) -> None:
@@ -175,6 +175,10 @@ class RegressionDataInterface:
     def save_regression_betas(self, df: pd.DataFrame, draw_id: int) -> None:
         beta_file = self.regression_paths.get_beta_regression_file(draw_id)
         df.to_csv(beta_file, index=False)
+
+    def save_location_data(self, df: pd.DataFrame, draw_id: int) -> None:
+        location_data_file = self.regression_paths.get_data_file(draw_id)
+        df.to_csv(location_data_file, index=False)
 
     @staticmethod
     def _load_from_location_set_version_id(location_set_version_id: int) -> pd.DataFrame:

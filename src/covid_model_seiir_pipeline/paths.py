@@ -101,6 +101,7 @@ class RegressionPaths(Paths):
     date_file: ClassVar[str] = DRAW_FILE_TEMPLATE
     coefficient_file: ClassVar[str] = DRAW_FILE_TEMPLATE
     beta_regression_file: ClassVar[str] = DRAW_FILE_TEMPLATE
+    data_file: ClassVar[str] = DRAW_FILE_TEMPLATE
 
     @property
     def location_metadata(self) -> Path:
@@ -139,10 +140,18 @@ class RegressionPaths(Paths):
         return self.coefficient_dir / self.coefficient_file.format(draw_id=draw_id)
 
     @property
+    def data_dir(self) -> Path:
+        return self.root_dir / 'data'
+
+    def get_data_file(self, draw_id: int) -> Path:
+        return self.date_dir / self.data_file.format(draw_id=draw_id)
+
+    @property
     def directories(self) -> List[Path]:
         """Returns all top level sub-directories."""
         return [self.parameters_dir, self.date_dir,
-                self.beta_regression_dir, self.coefficient_dir]
+                self.beta_regression_dir, self.coefficient_dir,
+                self.data_dir]
 
 
 @dataclass

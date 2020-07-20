@@ -27,6 +27,7 @@ def run_beta_regression(draw_id: int, regression_version: str) -> None:
     location_ids = data_interface.load_location_ids()
     location_data = data_interface.load_all_location_data(location_ids=location_ids,
                                                           draw_id=draw_id)
+    import pdb; pdb.set_trace()
     covariates = data_interface.load_covariates(regression_specification.covariates, location_ids)
 
     # Run ODE fit
@@ -66,10 +67,13 @@ def run_beta_regression(draw_id: int, regression_version: str) -> None:
 
     # Save the parameters of alpha, sigma, gamma1, and gamma2 that were drawn
     draw_beta_params = ode_model.create_params_df()
-    data_interface.save_draw_beta_param_file(draw_beta_params, draw_id)
+    data_interface.save_beta_param_file(draw_beta_params, draw_id)
 
     beta_start_end_dates = ode_model.create_start_end_date_df()
-    data_interface.save_draw_date_file(beta_start_end_dates, draw_id)
+    data_interface.save_date_file(beta_start_end_dates, draw_id)
+
+    data_df = pd.concat(location_data.values())
+    data_interface.save_location_data(data_df, draw_id)
 
 
 def parse_arguments(argstr: Optional[str] = None) -> Namespace:
