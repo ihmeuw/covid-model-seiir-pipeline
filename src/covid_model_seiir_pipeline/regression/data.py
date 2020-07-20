@@ -98,7 +98,7 @@ class RegressionDataInterface:
         dfs = dict()
         for loc in location_ids:
             file = self.infection_paths.get_infection_file(location_id=loc, draw_id=draw_id)
-            dfs[loc] = pd.read_csv(file)
+            dfs[loc] = pd.read_csv(file).rename(columns={'loc_id': 'location_id'})
 
         # validate
         locs_na = []
@@ -167,10 +167,10 @@ class RegressionDataInterface:
     # Regression paths writers #
     ############################
 
-    def save_draw_beta_param_file(self, df: pd.DataFrame, draw_id: int) -> None:
+    def save_beta_param_file(self, df: pd.DataFrame, draw_id: int) -> None:
         self.regression_marshall.dump(df, key=MKeys.parameter(draw_id))
 
-    def save_draw_date_file(self, df: pd.DataFrame, draw_id: int) -> None:
+    def save_date_file(self, df: pd.DataFrame, draw_id: int) -> None:
         self.regression_marshall.dump(df, key=MKeys.date(draw_id))
 
     def save_location_metadata_file(self, locations: List[int]) -> None:
@@ -182,6 +182,10 @@ class RegressionDataInterface:
 
     def save_regression_betas(self, df: pd.DataFrame, draw_id: int) -> None:
         self.regression_marshall.dump(df, key=MKeys.regression_beta(draw_id))
+
+    def save_location_data(self, df: pd.DataFrame, draw_id: int) -> None:
+        location_data_file = self.regression_paths.get_data_file(draw_id)
+        df.to_csv(location_data_file, index=False)
 
     @staticmethod
     def _load_from_location_set_version_id(location_set_version_id: int) -> pd.DataFrame:

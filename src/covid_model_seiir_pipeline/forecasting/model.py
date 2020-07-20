@@ -1,11 +1,10 @@
-from typing import Union
 from dataclasses import dataclass, asdict
+from typing import Dict, Tuple, Union
 
 import numpy as np
-import pandas as pd
-
 from odeopt.ode import RK4
 from odeopt.ode import ODESys
+import pandas as pd
 
 
 class CustomizedSEIIR(ODESys):
@@ -84,15 +83,14 @@ class SeiirModelSpecs:
 
 class ODERunner:
 
-    def __init__(self, model_specs: SeiirModelSpecs, init_cond: np.ndarray, dt: float):
+    def __init__(self, model_specs: SeiirModelSpecs, init_cond: np.ndarray):
         self.model_specs = model_specs
         self.init_cond = init_cond
-        self.dt = dt
 
     def get_solution(self, times, beta, theta=None, solver="RK4"):
         model = CustomizedSEIIR(**asdict(self.model_specs))
         if solver == "RK4":
-            solver = RK4(model.system, self.dt)
+            solver = RK4(model.system, self.model_specs.delta)
         else:
             raise ValueError("Unknown solver type")
 
@@ -111,37 +109,138 @@ class ODERunner:
         return result
 
 
-def get_ode_init_cond(location_id, beta_ode_fit, current_date):
+def beta_shift(beta_past: pd.DataFrame,
+               beta_hat: pd.DataFrame,
+               transition_date: pd.DataFrame,
+               draw_id: int,
+               window_size: Union[int, None] = None,
+               average_over_min: int = 1,
+               average_over_max: int = 35) -> Tuple[pd.DataFrame, pd.DataFrame]:
+    """Shift the raw predicted beta to line up with beta in the past..
+
+    This method performs both an intercept shift and a scaling based on the
+    residuals of the ode fit beta and the beta hat regression in the past.
+
+    Parameters
+    ----------
+        beta_past
+            Dataframe containing the date, location_id, beta fit, and beta hat
+            in the past.
+        beta_hat
+            Dataframe containing the date, location_id, and beta hat in the
+            future.
+        transition_date
+            Dataframe containing location id and the date of transition from
+            past to prediction.
+        draw_id
+            Draw of data provided.  Will be used as a seed for
+            a random number generator to determine the amount of beta history
+            to leverage in rescaling the y-intercept for the beta prediction.
+        window_size
+            Window size for the transition. If `None`, Hard shift no transition.
+            Default to None.
+        average_over_min, average_over_max
+            Min and max duration to average residuals over. The actual duration
+            will be sampled uniformly from within these bounds based on the
+            draw id.
+
+    Returns
+    -------
+        Predicted beta, after scaling (shift) and the scaling parameters.
+
     """
-    Get the initial condition for the ODE.
+    rs = np.random.RandomState(seed=draw_id)
+    avg_over = rs.randint(average_over_min, average_over_max)
 
-    Args:
-        location_id (init):
-            Location ids.
-        beta_ode_fit (str | pd.DataFrame):
-            The result for the beta_ode_fit, either file or path to file.
-        current_date (str | np.datetime64):
-            Current date for each location we try to predict off. Either file
-            or path to file.
+    beta_past = beta_past.set_index('location_id').sort_values('date')
+    beta_hat = beta_hat.set_index('location_id').sort_values('date')
+    beta_fit_final = beta_past.loc[beta_past['date'] == transition_date.loc[beta_past.index], 'beta']
+    beta_hat_start = beta_hat.loc[beta_hat['date'] == transition_date.loc[beta_hat.index], 'beta_pred']
+    scale_init = beta_fit_final / beta_hat_start
+
+    beta_past = beta_past.reset_index().set_index(['location_id', 'date'])
+    log_beta_resid = np.log(beta_past['beta'] / beta_past['beta_pred']).rename('beta_resid')
+    scale_final = np.exp(log_beta_resid
+                         .groupby(level='location_id')
+                         .apply(lambda x: x.iloc[-avg_over:].mean()))
+
+    beta_final = []
+    for location_id in beta_hat.index.unique():
+        if window_size is not None:
+            t = np.arange(len(beta_hat.loc[location_id])) / window_size
+            scale = scale_init.at[location_id] + (scale_final.at[location_id] - scale_init.at[location_id]) * t
+            scale[(window_size + 1):] = scale_final.at[location_id]
+        else:
+            scale = scale_init.at[location_id]
+        loc_beta_hat = beta_hat.loc[location_id].set_index('date', append=True)['beta_pred']
+        loc_beta_final = loc_beta_hat * scale
+        beta_final.append(loc_beta_final)
+
+    beta_final = pd.concat(beta_final).reset_index()
+
+    scale_params = pd.concat([
+        beta_fit_final.rename('fit_final'),
+        beta_hat_start.rename('pred_start'),
+        scale_final.rename('beta_ratio_mean'),
+        np.log(scale_final).rename('beta_residual_mean')
+    ], axis=1).reset_index()
+    scale_params['window_size'] = window_size
+    scale_params['history_days'] = avg_over
+
+    return beta_final, scale_params
 
 
-    Returns:
-         pd.DataFrame: Initial conditions by location.
-    """
-    # process input
-    assert (static_vars.COL_GROUP in beta_ode_fit)
-    assert (static_vars.COL_DATE in beta_ode_fit)
-    beta_ode_fit = beta_ode_fit[beta_ode_fit[static_vars.COL_GROUP] == location_id].copy()
+def compute_infections(infection_data: pd.DataFrame,
+                       components: pd.DataFrame) -> Tuple[pd.DataFrame, pd.DataFrame]:
+    observed = infection_data['obs_infecs'] == 1
+    observed_infections = (infection_data
+                           .loc[observed, ['location_id', 'date', 'cases_draw']]
+                           .set_index(['location_id', 'date'])
+                           .sort_index())
 
-    if isinstance(current_date, str):
-        current_date = np.datetime64(current_date)
-    else:
-        assert isinstance(current_date, np.datetime64)
+    modeled_infections = (components
+                          .groupby('location_id')['S']
+                          .apply(lambda x: x.shift(1) - x)
+                          .fillna(0)
+                          .rename('cases_draw'))
+    modeled_infections = pd.concat([components['date'], modeled_infections], axis=1).reset_index()
+    modeled_infections = modeled_infections.set_index(['location_id', 'date']).sort_index()
+    return observed_infections, modeled_infections
 
-    dt = np.abs((pd.to_datetime(beta_ode_fit[static_vars.COL_DATE]) - current_date).dt.days)
-    beta_ode_fit = beta_ode_fit.iloc[np.argmin(dt)]
 
-    col_components = static_vars.SEIIR_COMPARTMENTS
-    assert all([c in beta_ode_fit for c in col_components])
+def compute_deaths(infection_data: pd.DataFrame,
+                   modeled_infections: pd.DataFrame) -> Tuple[pd.DataFrame, pd.DataFrame]:
+    observed = infection_data['obs_deaths'] == 1
+    observed_deaths = (infection_data
+                       .loc[observed, ['location_id', 'date', 'deaths_draw']]
+                       .set_index(['location_id', 'date'])
+                       .sort_index())
+    observed_deaths['observed'] = 1
 
-    return beta_ode_fit[col_components].values.ravel()
+    infection_death_lag = infection_data['i_d_lag'].max()
+    def _compute_ifr(data):
+        deaths = data['deaths_draw']
+        infecs = data['cases_draw']
+        return (deaths / infecs.shift(infection_death_lag)).dropna().mean()
+
+    ifr = (infection_data
+           .groupby('location_id')
+           .apply(_compute_ifr))
+    modeled_deaths = ((modeled_infections['cases_draw'] * ifr)
+                      .shift(infection_death_lag)
+                      .rename('deaths_draw')
+                      .to_frame())
+    modeled_deaths['observed'] = 0
+    return observed_deaths, modeled_deaths
+
+
+def compute_effective_r(infection_data: pd.DataFrame, components: pd.DataFrame,
+                        beta_params: Dict[str, float]) -> pd.DataFrame:
+    alpha, gamma1, gamma2 = beta_params['alpha'], beta_params['gamma1'], beta_params['gamma2']
+    components = components.reset_index().set_index(['location_id', 'date'])
+    beta, s, i1, i2 = components['beta'], components['S'], components['I1'], components['I2']
+    n = infection_data.groupby('location_id')['pop'].max()
+    avg_gamma = 1 / (1 / gamma1 + 1 / gamma2)
+    r_controlled = beta * alpha / avg_gamma * (i1 + i2) ** (alpha - 1)
+    r_effective = (r_controlled * s / n).rename('r_effective')
+    return r_effective
