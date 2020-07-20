@@ -144,7 +144,7 @@ class RegressionPaths(Paths):
         return self.root_dir / 'data'
 
     def get_data_file(self, draw_id: int) -> Path:
-        return self.date_dir / self.data_file.format(draw_id=draw_id)
+        return self.data_dir / self.data_file.format(draw_id=draw_id)
 
     @property
     def directories(self) -> List[Path]:
