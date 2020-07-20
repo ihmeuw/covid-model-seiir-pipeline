@@ -1,4 +1,5 @@
 from pathlib import Path
+import warnings
 
 import numpy
 import pandas
@@ -40,7 +41,7 @@ class TestForecastDataInterfaceIO:
 
         # Step 1: save files (normally done in regression)
         rdi.save_regression_coefficients(coefficients, draw_id=4)
-        rdi.save_draw_beta_param_file(parameters, draw_id=4)
+        rdi.save_beta_param_file(parameters, draw_id=4)
 
         # Step 2: load files as they would be loaded in forecast
         loaded_coefficients = fdi.load_regression_coefficients(draw_id=4)
@@ -61,6 +62,7 @@ class TestForecastDataInterfaceIO:
             for k, expected in expected_parameters.items():
                 loaded = loaded_parameters[k]
                 numpy.testing.assert_almost_equal(loaded, expected, decimal=15)
+            warnings.warn("beta fit parameters accurate only to 15 decimal places after save/load cycle")
 
     def test_forecast_io(self, tmpdir, components, beta_scales):
         forecast_paths = ForecastPaths(
@@ -76,8 +78,8 @@ class TestForecastDataInterfaceIO:
         )
 
         # Step 1: save files
-        di.save_components_futurerefactor(components, scenario="happy", draw_id=4)
-        di.save_beta_scales_futurerefactor(beta_scales, scenario="happy", draw_id=4)
+        di.save_components(components, scenario="happy", draw_id=4)
+        di.save_beta_scales(beta_scales, scenario="happy", draw_id=4)
 
         # Step 2: test save location
         # this is sort of cheating, but it ensures that scenario things are
@@ -86,8 +88,8 @@ class TestForecastDataInterfaceIO:
         assert (Path(tmpdir) / "happy" / "beta_scales" / "draw_4.csv").exists()
 
         # Step 3: load those files
-        loaded_components = di.load_component_forecasts_futurerefactor(scenario="happy", draw_id=4)
-        loaded_beta_scales = di.load_beta_scales_futurerefactor(scenario="happy", draw_id=4)
+        loaded_components = di.load_components(scenario="happy", draw_id=4)
+        loaded_beta_scales = di.load_beta_scales(scenario="happy", draw_id=4)
 
         # Step 4: test files
         pandas.testing.assert_frame_equal(components, loaded_components)
