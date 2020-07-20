@@ -103,7 +103,15 @@ def run_beta_forecast(draw_id: int, forecast_version: str, scenario_name: str):
         forecasts.append(forecasted_components)
 
     forecasts = pd.concat(forecasts)
-    data_interface.save_forecasts(forecasts, scenario_name, draw_id)
+    # Concat past with future
+    shared_columns = ['date', 'S', 'E', 'I1', 'I2', 'R', 'beta']
+    forecasts = (pd.concat([beta_regression_df.loc[~transition_day, shared_columns].reset_index(),
+                            forecasts[['location_id'] + shared_columns]])
+                   .sort_values(['location_id', 'date'])
+                   .set_index(['location_id']))
+    forecasts['theta'] = thetas.reindex(forecasts.index).fillna(0)
+
+    data_interface.save_components(forecasts, scenario_name, draw_id)
     data_interface.save_beta_scales(scale_params, scenario_name, draw_id)
 
 

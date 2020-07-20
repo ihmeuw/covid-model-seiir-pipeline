@@ -118,7 +118,7 @@ class ForecastDataInterface:
         df = pd.read_csv(beta_params_file)
         return df.set_index('params')['values'].to_dict()
 
-    def save_forecasts(self, forecasts: pd.DataFrame, scenario: str, draw_id: int):
+    def save_components(self, forecasts: pd.DataFrame, scenario: str, draw_id: int):
         forecast_path = self.forecast_paths.get_component_draws_path(draw_id, scenario)
         forecasts.to_csv(forecast_path, index=False)
 
