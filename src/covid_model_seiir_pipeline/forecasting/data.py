@@ -146,7 +146,8 @@ class ForecastDataInterface:
     def load_beta_scales(self, scenario: str, draw_id: int):
         return self.forecast_marshall.load(MKeys.beta_scales(scenario=scenario, draw_id=draw_id))
 
-    # TODO: transition method
     def save_outputs(self, outputs: pd.DataFrame, scenario: str, draw_id: int):
-        outputs_path = self.forecast_paths.get_outputs_path(draw_id, scenario)
-        outputs.to_csv(outputs_path, index=False)
+        self.forecast_marshall.dump(outputs, key=MKeys.forecast_outputs(scenario=scenario, draw_id=draw_id))
+
+    def load_outputs(self, scenario: str, draw_id: int) -> pd.DataFrame:
+        return self.forecast_marshall.load(key=MKeys.forecast_outputs(scenario=scenario, draw_id=draw_id))
