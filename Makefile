@@ -34,7 +34,7 @@ install_env:
 
 .PHONY: test
 test:
-	pytest tests
+	pytest -vv tests
 
 
 uninstall_env:
