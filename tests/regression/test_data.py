@@ -8,7 +8,8 @@ from covid_model_seiir_pipeline.regression.data import RegressionDataInterface
 
 
 class TestRegressionDataInterfaceIO:
-    def test_regression_io(self, tmpdir, tmpdir_file_count, parameters, dates, coefficients, regression_beta):
+    def test_regression_io(self, tmpdir, tmpdir_file_count,
+                           parameters, dates, coefficients, regression_beta, location_data):
         """
         Test I/O relating to regression stage.
 
@@ -30,6 +31,7 @@ class TestRegressionDataInterfaceIO:
         di.save_date_file(dates, draw_id=4)
         di.save_regression_coefficients(coefficients, draw_id=4)
         di.save_regression_betas(regression_beta, draw_id=4)
+        di.save_location_data(location_data, draw_id=4)
 
         # Step 3: count files (again)
-        assert tmpdir_file_count() == 4
+        assert tmpdir_file_count() == 5

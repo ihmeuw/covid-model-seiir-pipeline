@@ -184,8 +184,8 @@ class RegressionDataInterface:
         self.regression_marshall.dump(df, key=MKeys.regression_beta(draw_id))
 
     def save_location_data(self, df: pd.DataFrame, draw_id: int) -> None:
-        location_data_file = self.regression_paths.get_data_file(draw_id)
-        df.to_csv(location_data_file, index=False)
+        # quasi-inverse of load_all_location_data, except types are different
+        self.regression_marshall.dump(df, key=MKeys.location_data(draw_id))
 
     @staticmethod
     def _load_from_location_set_version_id(location_set_version_id: int) -> pd.DataFrame:
