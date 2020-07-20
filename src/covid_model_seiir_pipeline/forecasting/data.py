@@ -140,7 +140,7 @@ class ForecastDataInterface:
     def save_beta_scales(self, scales: pd.DataFrame, scenario: str, draw_id: int):
         self.forecast_marshall.dump(scales, key=MKeys.beta_scales(scenario=scenario, draw_id=draw_id))
 
-    def load_beta_scales_futurerefactor(self, scenario: str, draw_id: int):
+    def load_beta_scales(self, scenario: str, draw_id: int):
         return self.forecast_marshall.load(MKeys.beta_scales(scenario=scenario, draw_id=draw_id))
 
     # TODO: transition method
