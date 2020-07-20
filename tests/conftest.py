@@ -105,6 +105,23 @@ def regression_beta():
 
 
 @pytest.fixture
+def location_data():
+    """
+    Example location data for one location.
+
+    Normal location data would include values for many locations for a much
+    larger date range.
+    """
+    return pandas.DataFrame([
+        ["Georgia", 35, "age1", "2020-01-10", 0, 0, 0, 3664751.9351746, 17, 1, 1],
+        ["Georgia", 35, "age1", "2020-01-11", 0, 0, 0, 3664751.9351746, 17, 1, 1],
+        ["Georgia", 35, "age1", "2020-01-12", 0, 0, 0, 3664751.9351746, 17, 1, 1],
+    ], columns=["location", "loc_id", "age", "date", "cases_draw",
+                "deaths_draw", "deaths_mean", "pop", "i_d_lag", "obs_deaths",
+                "obs_infecs"])
+
+
+@pytest.fixture
 def beta_scales():
     "Example beta_scales from forecasting. This is before re-orientation to per-location"
     return pandas.DataFrame([

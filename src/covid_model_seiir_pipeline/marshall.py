@@ -38,12 +38,14 @@ class DataTypes:
     components = "components"
     date = "dates"
     fit_beta = "betas"  # TODO: no longer needed - fit is not a stage
+    location_data = "data"
     parameter = "parameters"
     regression_beta = "beta"
 
     # types which serialize to a DataFrame
     DataFrame_types = frozenset([
         fit_beta,
+        location_data,
         parameter,
         date,
         coefficient,
@@ -78,6 +80,10 @@ class Keys:
     @classmethod
     def fit_beta(cls, draw_id):
         return cls(DataTypes.fit_beta, DRAW_FILE_TEMPLATE, draw_id=draw_id)
+
+    @classmethod
+    def location_data(cls, draw_id):
+        return cls(DataTypes.location_data, DRAW_FILE_TEMPLATE, draw_id=draw_id)
 
     @classmethod
     def parameter(cls, draw_id):
