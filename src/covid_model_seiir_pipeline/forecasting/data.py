@@ -91,9 +91,9 @@ class ForecastDataInterface:
     def load_regression_coefficients(self, draw_id: int) -> pd.DataFrame:
         return self.regression_marshall.load(MKeys.coefficient(draw_id))
 
+    # TODO: inverse is RegressionDataInterface.save_date_file
     def load_dates_df(self, draw_id: int) -> pd.DataFrame:
-        date_file = self.regression_paths.get_date_file(draw_id)
-        dates_df = pd.read_csv(date_file)
+        dates_df = self.regression_marshall.load(key=MKeys.date(draw_id))
         dates_df['start_date'] = pd.to_datetime(dates_df['start_date'])
         dates_df['end_date'] = pd.to_datetime(dates_df['end_date'])
         return dates_df

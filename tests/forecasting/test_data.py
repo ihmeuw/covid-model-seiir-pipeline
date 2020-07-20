@@ -3,6 +3,7 @@ import warnings
 
 import numpy
 import pandas
+import pytest
 
 from covid_model_seiir_pipeline.forecasting.data import ForecastDataInterface
 from covid_model_seiir_pipeline.marshall import (
@@ -16,7 +17,7 @@ from covid_model_seiir_pipeline.regression.data import RegressionDataInterface
 
 
 class TestForecastDataInterfaceIO:
-    def test_regression_io(self, tmpdir, coefficients, parameters):
+    def test_regression_io(self, tmpdir, coefficients, dates, parameters):
         """
         Test I/O relating to regression stage.
 
@@ -42,13 +43,22 @@ class TestForecastDataInterfaceIO:
         # Step 1: save files (normally done in regression)
         rdi.save_regression_coefficients(coefficients, draw_id=4)
         rdi.save_beta_param_file(parameters, draw_id=4)
+        rdi.save_date_file(dates, draw_id=4)
 
         # Step 2: load files as they would be loaded in forecast
         loaded_coefficients = fdi.load_regression_coefficients(draw_id=4)
         loaded_parameters = fdi.load_beta_params(draw_id=4)
+        loaded_dates = fdi.load_dates_df(draw_id=4)
 
         # Step 3: test files
         pandas.testing.assert_frame_equal(coefficients, loaded_coefficients)
+
+        # load_dates_df does some pandas.to_datetime conversion on args
+        with pytest.raises(AssertionError):
+            pandas.testing.assert_frame_equal(dates, loaded_dates)
+        dates['start_date'] = pandas.to_datetime(dates['start_date'])
+        dates['end_date'] = pandas.to_datetime(dates['end_date'])
+        pandas.testing.assert_frame_equal(dates, loaded_dates)
 
         # load_beta_params does not return a DataFrame but instead a dict
         # in addition, some rounding error occurs in the save/load from CSV
