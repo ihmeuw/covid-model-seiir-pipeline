@@ -137,6 +137,9 @@ class ForecastDataInterface:
     def save_components(self, forecasts: pd.DataFrame, scenario: str, draw_id: int):
         self.forecast_marshall.dump(forecasts, key=MKeys.components(scenario=scenario, draw_id=draw_id))
 
+    def load_components(self, scenario: str, draw_id: int) -> pd.DataFrame:
+        return self.forecast_marshall.load(key=MKeys.components(scenario=scenario, draw_id=draw_id))
+
     def save_beta_scales(self, scales: pd.DataFrame, scenario: str, draw_id: int):
         self.forecast_marshall.dump(scales, key=MKeys.beta_scales(scenario=scenario, draw_id=draw_id))
 
