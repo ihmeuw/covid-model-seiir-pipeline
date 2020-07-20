@@ -104,9 +104,9 @@ class ForecastDataInterface:
         beta_regression['date'] = pd.to_datetime(beta_regression['date'])
         return beta_regression
 
+    # TODO: inverse is RegressionDataInterface.save_location_data
     def load_infection_data(self, draw_id: int) -> pd.DataFrame:
-        infection_data_file = self.regression_paths.get_data_file(draw_id)
-        infection_data = pd.read_csv(infection_data_file)
+        infection_data = self.regression_marshall.load(key=MKeys.location_data(draw_id))
         infection_data['date'] = pd.to_datetime(infection_data['date'])
         return infection_data
 

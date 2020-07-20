@@ -17,7 +17,7 @@ from covid_model_seiir_pipeline.regression.data import RegressionDataInterface
 
 
 class TestForecastDataInterfaceIO:
-    def test_regression_io(self, tmpdir, coefficients, dates, regression_beta, parameters):
+    def test_regression_io(self, tmpdir, coefficients, dates, regression_beta, location_data, parameters):
         """
         Test I/O relating to regression stage.
 
@@ -45,18 +45,21 @@ class TestForecastDataInterfaceIO:
         rdi.save_beta_param_file(parameters, draw_id=4)
         rdi.save_date_file(dates, draw_id=4)
         rdi.save_regression_betas(regression_beta, draw_id=4)
+        rdi.save_location_data(location_data, draw_id=4)
 
         # Step 2: load files as they would be loaded in forecast
         loaded_coefficients = fdi.load_regression_coefficients(draw_id=4)
         loaded_parameters = fdi.load_beta_params(draw_id=4)
         loaded_dates = fdi.load_dates_df(draw_id=4)
         loaded_regression_beta = fdi.load_beta_regression(draw_id=4)
+        loaded_location_data = fdi.load_infection_data(draw_id=4)
 
         # Step 3: test files
         pandas.testing.assert_frame_equal(coefficients, loaded_coefficients)
         # some load methods do pandas.to_datetime conversion on columns
         assert_equal_after_date_conversion(dates, loaded_dates, date_cols=['start_date', 'end_date'])
         assert_equal_after_date_conversion(regression_beta, loaded_regression_beta, date_cols=['date'])
+        assert_equal_after_date_conversion(location_data, loaded_location_data, date_cols=['date'])
 
         # load_beta_params does not return a DataFrame but instead a dict
         # in addition, some rounding error occurs in the save/load from CSV
