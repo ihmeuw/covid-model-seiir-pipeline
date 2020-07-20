@@ -1,5 +1,5 @@
 from argparse import ArgumentParser, Namespace
-from typing import Optional, Dict
+from typing import Optional
 import logging
 from pathlib import Path
 import shlex
@@ -105,14 +105,27 @@ def run_beta_forecast(draw_id: int, forecast_version: str, scenario_name: str):
     forecasts = pd.concat(forecasts)
     # Concat past with future
     shared_columns = ['date', 'S', 'E', 'I1', 'I2', 'R', 'beta']
-    forecasts = (pd.concat([beta_regression_df.loc[~transition_day, shared_columns].reset_index(),
-                            forecasts[['location_id'] + shared_columns]])
-                   .sort_values(['location_id', 'date'])
-                   .set_index(['location_id']))
-    forecasts['theta'] = thetas.reindex(forecasts.index).fillna(0)
+    components = (pd.concat([beta_regression_df.loc[~transition_day, shared_columns].reset_index(),
+                             forecasts[['location_id'] + shared_columns]])
+                    .sort_values(['location_id', 'date'])
+                    .set_index(['location_id']))
+    components['theta'] = thetas.reindex(components.index).fillna(0)
+    data_interface.save_components(components, scenario_name, draw_id)
 
-    data_interface.save_components(forecasts, scenario_name, draw_id)
     data_interface.save_beta_scales(scale_params, scenario_name, draw_id)
+
+    infection_data = data_interface.load_infection_data(draw_id)
+
+    observed_infections, modeled_infections = model.compute_infections(infection_data, components)
+    infections = observed_infections.combine_first(modeled_infections)['cases_draw'].rename('infections')
+
+    observed_deaths, modeled_deaths = model.compute_deaths(infection_data, modeled_infections)
+    deaths = observed_deaths.combine_first(modeled_deaths).rename(columns={'deaths_draw': 'deaths'})
+
+    r_effective = model.compute_effective_r(infection_data, components, beta_params)
+
+    outputs = pd.concat([infections, deaths, r_effective], axis=1).dropna()
+    data_interface.save_outputs(outputs, scenario_name, draw_id)
 
 
 def parse_arguments(argstr: Optional[str] = None) -> Namespace:
