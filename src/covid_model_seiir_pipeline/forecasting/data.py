@@ -98,9 +98,9 @@ class ForecastDataInterface:
         dates_df['end_date'] = pd.to_datetime(dates_df['end_date'])
         return dates_df
 
+    # TODO: inverse is RegressionDataInterface.save_regression_betas
     def load_beta_regression(self, draw_id: int) -> pd.DataFrame:
-        beta_regression_file = self.regression_paths.get_beta_regression_file(draw_id=draw_id)
-        beta_regression = pd.read_csv(beta_regression_file)
+        beta_regression = self.regression_marshall.load(key=MKeys.regression_beta(draw_id))
         beta_regression['date'] = pd.to_datetime(beta_regression['date'])
         return beta_regression
 

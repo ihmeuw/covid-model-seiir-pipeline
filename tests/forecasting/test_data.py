@@ -17,7 +17,7 @@ from covid_model_seiir_pipeline.regression.data import RegressionDataInterface
 
 
 class TestForecastDataInterfaceIO:
-    def test_regression_io(self, tmpdir, coefficients, dates, parameters):
+    def test_regression_io(self, tmpdir, coefficients, dates, regression_beta, parameters):
         """
         Test I/O relating to regression stage.
 
@@ -44,21 +44,19 @@ class TestForecastDataInterfaceIO:
         rdi.save_regression_coefficients(coefficients, draw_id=4)
         rdi.save_beta_param_file(parameters, draw_id=4)
         rdi.save_date_file(dates, draw_id=4)
+        rdi.save_regression_betas(regression_beta, draw_id=4)
 
         # Step 2: load files as they would be loaded in forecast
         loaded_coefficients = fdi.load_regression_coefficients(draw_id=4)
         loaded_parameters = fdi.load_beta_params(draw_id=4)
         loaded_dates = fdi.load_dates_df(draw_id=4)
+        loaded_regression_beta = fdi.load_beta_regression(draw_id=4)
 
         # Step 3: test files
         pandas.testing.assert_frame_equal(coefficients, loaded_coefficients)
-
-        # load_dates_df does some pandas.to_datetime conversion on args
-        with pytest.raises(AssertionError):
-            pandas.testing.assert_frame_equal(dates, loaded_dates)
-        dates['start_date'] = pandas.to_datetime(dates['start_date'])
-        dates['end_date'] = pandas.to_datetime(dates['end_date'])
-        pandas.testing.assert_frame_equal(dates, loaded_dates)
+        # some load methods do pandas.to_datetime conversion on columns
+        assert_equal_after_date_conversion(dates, loaded_dates, date_cols=['start_date', 'end_date'])
+        assert_equal_after_date_conversion(regression_beta, loaded_regression_beta, date_cols=['date'])
 
         # load_beta_params does not return a DataFrame but instead a dict
         # in addition, some rounding error occurs in the save/load from CSV
@@ -104,3 +102,14 @@ class TestForecastDataInterfaceIO:
         # Step 4: test files
         pandas.testing.assert_frame_equal(components, loaded_components)
         pandas.testing.assert_frame_equal(beta_scales, loaded_beta_scales)
+
+
+def assert_equal_after_date_conversion(expected, actual, date_cols):
+    with pytest.raises(AssertionError):
+        pandas.testing.assert_frame_equal(expected, actual)
+
+    for col in date_cols:
+        assert pandas.api.types.is_string_dtype(expected[col])
+        expected[col] = pandas.to_datetime(expected[col])
+
+    pandas.testing.assert_frame_equal(expected, actual)
