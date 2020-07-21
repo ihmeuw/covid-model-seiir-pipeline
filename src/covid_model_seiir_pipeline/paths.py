@@ -77,7 +77,7 @@ class ScenarioPaths(Paths):
     @property
     def directories(self) -> List[Path]:
         """Returns all top level sub-directories."""
-        return [self.beta_scaling, self.components]
+        return [self.beta_scaling, self.components, self.outputs]
 
 
 @dataclass
