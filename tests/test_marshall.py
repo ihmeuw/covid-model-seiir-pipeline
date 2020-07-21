@@ -151,6 +151,8 @@ def test_CSVMarshall_uses_same_paths_as_paths_module(tmpdir):
     assert r.get_date_file(**dargs) == m.resolve_key(Keys.date(**dargs))
     # load_beta_regression
     assert r.get_beta_regression_file(**dargs) == m.resolve_key(Keys.regression_beta(**dargs))
+    # load_infection_data
+    assert r.get_infection_file(**dargs) == m.resolve_key(Keys.location_data(**dargs))
     # load_beta_params
     assert r.get_beta_param_file(**dargs) == m.resolve_key(Keys.parameter(**dargs))
     # save_components
