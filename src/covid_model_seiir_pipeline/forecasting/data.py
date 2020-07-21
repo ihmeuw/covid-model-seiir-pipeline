@@ -49,7 +49,7 @@ class ForecastDataInterface:
 
     def check_covariates(self, scenarios: Dict[str, ScenarioSpecification]):
         with self.regression_paths.regression_specification.open() as regression_spec_file:
-            regression_spec = yaml.load(regression_spec_file)
+            regression_spec = yaml.full_load(regression_spec_file)
         forecast_version = str(self.covariate_paths.root_dir)
         regression_version = regression_spec['data']['covariate_version']
         if not forecast_version == regression_version:
