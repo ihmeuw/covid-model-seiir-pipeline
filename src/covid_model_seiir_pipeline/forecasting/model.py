@@ -1,4 +1,3 @@
-from collections import defaultdict
 from dataclasses import dataclass, asdict
 from typing import Dict, Tuple, Union
 
@@ -189,3 +188,59 @@ def beta_shift(beta_past: pd.DataFrame,
     scale_params['history_days'] = avg_over
 
     return beta_final, scale_params
+
+
+def compute_infections(infection_data: pd.DataFrame,
+                       components: pd.DataFrame) -> Tuple[pd.DataFrame, pd.DataFrame]:
+    observed = infection_data['obs_infecs'] == 1
+    observed_infections = (infection_data
+                           .loc[observed, ['location_id', 'date', 'cases_draw']]
+                           .set_index(['location_id', 'date'])
+                           .sort_index())
+
+    modeled_infections = (components
+                          .groupby('location_id')['S']
+                          .apply(lambda x: x.shift(1) - x)
+                          .fillna(0)
+                          .rename('cases_draw'))
+    modeled_infections = pd.concat([components['date'], modeled_infections], axis=1).reset_index()
+    modeled_infections = modeled_infections.set_index(['location_id', 'date']).sort_index()
+    return observed_infections, modeled_infections
+
+
+def compute_deaths(infection_data: pd.DataFrame,
+                   modeled_infections: pd.DataFrame) -> Tuple[pd.DataFrame, pd.DataFrame]:
+    observed = infection_data['obs_deaths'] == 1
+    observed_deaths = (infection_data
+                       .loc[observed, ['location_id', 'date', 'deaths_draw']]
+                       .set_index(['location_id', 'date'])
+                       .sort_index())
+    observed_deaths['observed'] = 1
+
+    infection_death_lag = infection_data['i_d_lag'].max()
+    def _compute_ifr(data):
+        deaths = data['deaths_draw']
+        infecs = data['cases_draw']
+        return (deaths / infecs.shift(infection_death_lag)).dropna().mean()
+
+    ifr = (infection_data
+           .groupby('location_id')
+           .apply(_compute_ifr))
+    modeled_deaths = ((modeled_infections['cases_draw'] * ifr)
+                      .shift(infection_death_lag)
+                      .rename('deaths_draw')
+                      .to_frame())
+    modeled_deaths['observed'] = 0
+    return observed_deaths, modeled_deaths
+
+
+def compute_effective_r(infection_data: pd.DataFrame, components: pd.DataFrame,
+                        beta_params: Dict[str, float]) -> pd.DataFrame:
+    alpha, gamma1, gamma2 = beta_params['alpha'], beta_params['gamma1'], beta_params['gamma2']
+    components = components.reset_index().set_index(['location_id', 'date'])
+    beta, s, i1, i2 = components['beta'], components['S'], components['I1'], components['I2']
+    n = infection_data.groupby('location_id')['pop'].max()
+    avg_gamma = 1 / (1 / gamma1 + 1 / gamma2)
+    r_controlled = beta * alpha / avg_gamma * (i1 + i2) ** (alpha - 1)
+    r_effective = (r_controlled * s / n).rename('r_effective')
+    return r_effective
