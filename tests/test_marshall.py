@@ -17,9 +17,6 @@ class MarshallInterfaceTests:
     """
     Mixin class for testing the marshall interface.
     """
-    def test_beta_marshall(self, instance, fit_beta):
-        self.assert_load_dump_workflow_correct(instance, fit_beta, key=Keys.fit_beta(4))
-
     def test_parameters_marshall(self, instance, parameters):
         self.assert_load_dump_workflow_correct(instance, parameters, key=Keys.parameter(4))
 
@@ -35,8 +32,7 @@ class MarshallInterfaceTests:
     def test_components_marshall(self, instance, components):
         self.assert_load_dump_workflow_correct(instance, components, key=Keys.components(scenario='happy', draw_id=4))
 
-    def test_no_overwriting(self, instance, fit_beta, parameters):
-        self.assert_no_accidental_overwrites(instance, fit_beta, key=Keys.fit_beta(4))
+    def test_no_overwriting(self, instance, parameters):
         self.assert_no_accidental_overwrites(instance, parameters, key=Keys.parameter(4))
 
     def test_interface_methods(self, instance):
@@ -86,17 +82,17 @@ class TestHdf5Marshall_noniface:
         hdf5_path = str(tmpdir / "data.hdf")
         return Hdf5Marshall(hdf5_path)
 
-    def test_datetime(self, instance, fit_beta):
+    def test_datetime(self, instance, regression_beta):
         """
-        Re-use fit_beta fixture but cast date as a datetime.
+        Re-use regression_Beta fixture but cast date as a datetime.
         """
-        fit_beta['date'] = pandas.to_datetime(fit_beta['date'])
-        key = Keys.fit_beta(4)
+        regression_beta['date'] = pandas.to_datetime(regression_beta['date'])
+        key = Keys.regression_beta(4)
 
-        instance.dump(fit_beta, key=key)
+        instance.dump(regression_beta, key=key)
         loaded = instance.load(key)
 
-        pandas.testing.assert_frame_equal(fit_beta, loaded)
+        pandas.testing.assert_frame_equal(regression_beta, loaded)
 
 
 class TestDtypeMarshall:
