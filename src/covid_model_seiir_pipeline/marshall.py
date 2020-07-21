@@ -40,7 +40,6 @@ class DataTypes:
     coefficient = "coefficients"
     components = "component_draws"
     date = "dates"
-    fit_beta = "betas"  # TODO: no longer needed - fit is not a stage
     forecast_outputs = "outputs"  # TODO: this could have a clearer directory name
     location_data = "data"
     parameter = "parameters"
@@ -48,7 +47,6 @@ class DataTypes:
 
     # types which serialize to a DataFrame
     DataFrame_types = frozenset([
-        fit_beta,
         location_data,
         parameter,
         date,
@@ -81,10 +79,6 @@ class Keys:
     @classmethod
     def date(cls, draw_id):
         return cls(DataTypes.date, DRAW_FILE_TEMPLATE, draw_id=draw_id)
-
-    @classmethod
-    def fit_beta(cls, draw_id):
-        return cls(DataTypes.fit_beta, DRAW_FILE_TEMPLATE, draw_id=draw_id)
 
     @classmethod
     def location_data(cls, draw_id):
