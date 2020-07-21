@@ -145,6 +145,8 @@ def test_CSVMarshall_uses_same_paths_as_paths_module(tmpdir):
     sdargs = {'scenario': "happy", 'draw_id': 4}
 
     # forecasting/data.py
+    # load_regression_coefficients
+    assert r.get_coefficient_file(**dargs) == m.resolve_key(Keys.coefficient(**dargs))
     # load_dates_df
     assert r.get_date_file(**dargs) == m.resolve_key(Keys.date(**dargs))
     # load_beta_regression
