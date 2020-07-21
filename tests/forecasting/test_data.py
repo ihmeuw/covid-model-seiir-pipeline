@@ -96,8 +96,8 @@ class TestForecastDataInterfaceIO:
         # Step 2: test save location
         # this is sort of cheating, but it ensures that scenario things are
         # nicely nested as they should be
-        assert (Path(tmpdir) / "happy" / "components" / "draw_4.csv").exists()
-        assert (Path(tmpdir) / "happy" / "beta_scales" / "draw_4.csv").exists()
+        assert (Path(tmpdir) / "happy" / "component_draws" / "draw_4.csv").exists()
+        assert (Path(tmpdir) / "happy" / "beta_scaling" / "draw_4.csv").exists()
         assert (Path(tmpdir) / "happy" / "outputs" / "draw_4.csv").exists()
 
         # Step 3: load those files

@@ -32,10 +32,13 @@ from covid_shared.shell_tools import mkdir
 class DataTypes:
     """
     Enumerations of data types as understood by the Marshall interface.
+
+    These enumerations can be expected to appear as sub-directories or other
+    directory-like separator names in data stored by Marshall instances.
     """
-    beta_scales = "beta_scales"
+    beta_scales = "beta_scaling"
     coefficient = "coefficients"
-    components = "components"
+    components = "component_draws"
     date = "dates"
     fit_beta = "betas"  # TODO: no longer needed - fit is not a stage
     forecast_outputs = "outputs"  # TODO: this could have a clearer directory name

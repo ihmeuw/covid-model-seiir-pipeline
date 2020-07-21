@@ -128,3 +128,48 @@ class TestDtypeMarshall:
 
         numpy.testing.assert_array_equal(instance.as_hdf_dtype(p), n)
         pandas.testing.assert_series_equal(instance.as_pandas_dtype(n, dtype), p)
+
+
+def test_CSVMarshall_uses_same_paths_as_paths_module(tmpdir):
+    """
+    Runs the gamut of paths produced by paths.py and compares to CSVMarshall
+    path computation.
+    """
+    from covid_model_seiir_pipeline.paths import (
+        RegressionPaths,
+        ForecastPaths,
+    )
+
+    root = pathlib.Path(tmpdir)
+    m = CSVMarshall(root)
+    r = RegressionPaths(root)
+    f = ForecastPaths(root, scenarios=["happy"])
+
+    dargs = {'draw_id': 4}
+    sdargs = {'scenario': "happy", 'draw_id': 4}
+
+    # forecasting/data.py
+    # load_dates_df
+    assert r.get_date_file(**dargs) == m.resolve_key(Keys.date(**dargs))
+    # load_beta_regression
+    assert r.get_beta_regression_file(**dargs) == m.resolve_key(Keys.regression_beta(**dargs))
+    # load_beta_params
+    assert r.get_beta_param_file(**dargs) == m.resolve_key(Keys.parameter(**dargs))
+    # save_components
+    assert f.get_components_path(**sdargs) == m.resolve_key(Keys.components(**sdargs))
+    # save_beta_scales
+    assert f.get_beta_scaling_path(**sdargs) == m.resolve_key(Keys.beta_scales(**sdargs))
+    # save_outputs
+    assert f.get_outputs_path(**sdargs) == m.resolve_key(Keys.forecast_outputs(**sdargs))
+
+    # regression/data.py
+    # save_beta_param_file
+    assert r.get_beta_param_file(**dargs) == m.resolve_key(Keys.parameter(**dargs))
+    # save_date_file
+    assert r.get_date_file(**dargs) == m.resolve_key(Keys.date(**dargs))
+    # save_regression_coefficients
+    assert r.get_coefficient_file(**dargs) == m.resolve_key(Keys.coefficient(**dargs))
+    # save_regression_Betas
+    assert r.get_beta_regression_file(**dargs) == m.resolve_key(Keys.regression_beta(**dargs))
+    # save_location_data
+    assert r.get_data_file(**dargs) == m.resolve_key(Keys.location_data(**dargs))
