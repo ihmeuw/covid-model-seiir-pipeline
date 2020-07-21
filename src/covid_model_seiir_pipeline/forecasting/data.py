@@ -49,7 +49,7 @@ class ForecastDataInterface:
 
     def check_covariates(self, scenarios: Dict[str, ScenarioSpecification]):
         with self.regression_paths.regression_specification.open() as regression_spec_file:
-            regression_spec = yaml.load(regression_spec_file)
+            regression_spec = yaml.full_load(regression_spec_file)
         forecast_version = str(self.covariate_paths.root_dir)
         regression_version = regression_spec['data']['covariate_version']
         if not forecast_version == regression_version:
@@ -89,6 +89,12 @@ class ForecastDataInterface:
         beta_regression['date'] = pd.to_datetime(beta_regression['date'])
         return beta_regression
 
+    def load_infection_data(self, draw_id: int) -> pd.DataFrame:
+        infection_data_file = self.regression_paths.get_data_file(draw_id)
+        infection_data = pd.read_csv(infection_data_file)
+        infection_data['date'] = pd.to_datetime(infection_data['date'])
+        return infection_data
+
     # FIXME: Duplicate code.
     def load_covariate(self, covariate: str, covariate_version: str, location_ids: List[int]) -> pd.DataFrame:
         covariate_path = self.covariate_paths.get_covariate_scenario_file(covariate, covariate_version)
@@ -113,15 +119,19 @@ class ForecastDataInterface:
         file = self.regression_paths.get_coefficient_file(draw_id)
         return pd.read_csv(file)
 
-    def load_beta_params(self, draw_id: int) -> pd.DataFrame:
+    def load_beta_params(self, draw_id: int) -> Dict[str, float]:
         beta_params_file = self.regression_paths.get_beta_param_file(draw_id)
         df = pd.read_csv(beta_params_file)
         return df.set_index('params')['values'].to_dict()
 
-    def save_forecasts(self, forecasts: pd.DataFrame, scenario: str, draw_id: int):
-        forecast_path = self.forecast_paths.get_component_draws_path(draw_id, scenario)
+    def save_components(self, forecasts: pd.DataFrame, scenario: str, draw_id: int):
+        forecast_path = self.forecast_paths.get_components_path(draw_id, scenario)
         forecasts.to_csv(forecast_path, index=False)
 
     def save_beta_scales(self, scales: pd.DataFrame, scenario: str, draw_id: int):
         scale_path = self.forecast_paths.get_beta_scaling_path(draw_id, scenario)
         scales.to_csv(scale_path, index=False)
+
+    def save_outputs(self, outputs: pd.DataFrame, scenario: str, draw_id: int):
+        outputs_path = self.forecast_paths.get_outputs_path(draw_id, scenario)
+        outputs.to_csv(outputs_path, index=False)
