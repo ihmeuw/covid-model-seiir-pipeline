@@ -30,7 +30,7 @@ def main():
     run_forecasts = args.forecast_version is not None
 
     # Fix for when only forecasting is being run
-    import pdb ; pdb.set_trace()    
+    #import pdb ; pdb.set_trace()    
     if (args.regression_version is None) and (args.forecast_version is not None):
         forecast_settings = load_forecast_settings(args.forecast_version)
         args.regression_version = forecast_settings.regression_version
