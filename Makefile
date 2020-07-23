@@ -20,6 +20,7 @@ install_env:
 		source $(CONDA_PREFIX)/etc/profile.d/conda.sh && \
 		conda create -n $(ENV_NAME) -y -c conda-forge cyipopt python=3.7 && \
 		conda activate $(ENV_NAME) && \
+		conda install --yes h5py && \
 		pip install --extra-index-url https://artifactory.ihme.washington.edu/artifactory/api/pypi/pypi-shared/simple/ \
                   numpy scipy pandas matplotlib pyyaml pytest xspline jobmon && \
 		git clone git@github.com:zhengp0/limetr.git && \
@@ -33,7 +34,7 @@ install_env:
 
 .PHONY: test
 test:
-	pytest tests
+	pytest -vv tests
 
 
 uninstall_env:
