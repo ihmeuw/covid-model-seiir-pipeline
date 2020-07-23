@@ -14,6 +14,8 @@ from covid_model_seiir_pipeline import paths
 from covid_model_seiir_pipeline.regression.specification import RegressionSpecification
 
 
+# TODO: move data interfaces up a package level and fuse with forecast data interface.
+
 class RegressionDataInterface:
 
     def __init__(self,
@@ -22,6 +24,7 @@ class RegressionDataInterface:
                  covariate_paths: paths.CovariatePaths,
                  regression_marshall,
                  ):
+        # TODO: only hang on to marshalls here.
         self.regression_paths = regression_paths
         self.infection_paths = infection_paths
         self.covariate_paths = covariate_paths
@@ -32,6 +35,8 @@ class RegressionDataInterface:
         regression_paths = paths.RegressionPaths(Path(specification.data.output_root), read_only=False)
         infection_paths = paths.InfectionPaths(Path(specification.data.infection_version))
         covariate_paths = paths.CovariatePaths(Path(specification.data.covariate_version))
+        # TODO: specification of marshall type from inference on inputs and
+        #   configuration on outputs.
         return cls(
             regression_paths=regression_paths,
             infection_paths=infection_paths,
