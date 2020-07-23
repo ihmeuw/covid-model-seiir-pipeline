@@ -17,6 +17,7 @@ if __name__ == "__main__":
     install_requirements = [
         'click',
         'covid_shared>=1.0.32',
+        'h5py',
         'loguru',
         'matplotlib',
         'numpy',

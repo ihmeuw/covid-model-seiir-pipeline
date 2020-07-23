@@ -8,17 +8,28 @@ import yaml
 
 from covid_model_seiir_pipeline import paths
 from covid_model_seiir_pipeline.forecasting.specification import ForecastSpecification, ScenarioSpecification
+from covid_model_seiir_pipeline.marshall import (
+    CSVMarshall,
+    Keys as MKeys,
+)
 
+
+# TODO: move data interfaces up a package level and fuse with regression data interface.
 
 class ForecastDataInterface:
 
     def __init__(self,
                  forecast_paths: paths.ForecastPaths,
                  regression_paths: paths.RegressionPaths,
-                 covariate_paths: paths.CovariatePaths):
+                 covariate_paths: paths.CovariatePaths,
+                 regression_marshall,
+                 forecast_marshall):
+        # TODO: only hang on to marshalls here.
         self.forecast_paths = forecast_paths
         self.regression_paths = regression_paths
         self.covariate_paths = covariate_paths
+        self.regression_marshall = regression_marshall
+        self.forecast_marshall = forecast_marshall
 
     @classmethod
     def from_specification(cls, specification: ForecastSpecification) -> 'ForecastDataInterface':
@@ -27,10 +38,16 @@ class ForecastDataInterface:
                                              scenarios=list(specification.scenarios))
         regression_paths = paths.RegressionPaths(Path(specification.data.regression_version))
         covariate_paths = paths.CovariatePaths(Path(specification.data.covariate_version))
+        # TODO: specification of marshall type from inference on inputs and
+        #   configuration on outputs.
+        regression_marshall = CSVMarshall.from_paths(regression_paths)
+        forecast_marshall = CSVMarshall.from_paths(forecast_paths)
         return cls(
             forecast_paths=forecast_paths,
             regression_paths=regression_paths,
-            covariate_paths=covariate_paths
+            covariate_paths=covariate_paths,
+            regression_marshall=regression_marshall,
+            forecast_marshall=forecast_marshall,
         )
 
     def make_dirs(self):
@@ -76,22 +93,25 @@ class ForecastDataInterface:
                 if not data_file.exists():
                     raise FileNotFoundError(f'No {covariate_version} file found for covariate {covariate}.')
 
+    def load_regression_coefficients(self, draw_id: int) -> pd.DataFrame:
+        return self.regression_marshall.load(MKeys.coefficient(draw_id))
+
+    # TODO: inverse is RegressionDataInterface.save_date_file
     def load_dates_df(self, draw_id: int) -> pd.DataFrame:
-        date_file = self.regression_paths.get_date_file(draw_id)
-        dates_df = pd.read_csv(date_file)
+        dates_df = self.regression_marshall.load(key=MKeys.date(draw_id))
         dates_df['start_date'] = pd.to_datetime(dates_df['start_date'])
         dates_df['end_date'] = pd.to_datetime(dates_df['end_date'])
         return dates_df
 
+    # TODO: inverse is RegressionDataInterface.save_regression_betas
     def load_beta_regression(self, draw_id: int) -> pd.DataFrame:
-        beta_regression_file = self.regression_paths.get_beta_regression_file(draw_id=draw_id)
-        beta_regression = pd.read_csv(beta_regression_file)
+        beta_regression = self.regression_marshall.load(key=MKeys.regression_beta(draw_id))
         beta_regression['date'] = pd.to_datetime(beta_regression['date'])
         return beta_regression
 
+    # TODO: inverse is RegressionDataInterface.save_location_data
     def load_infection_data(self, draw_id: int) -> pd.DataFrame:
-        infection_data_file = self.regression_paths.get_data_file(draw_id)
-        infection_data = pd.read_csv(infection_data_file)
+        infection_data = self.regression_marshall.load(key=MKeys.location_data(draw_id))
         infection_data['date'] = pd.to_datetime(infection_data['date'])
         return infection_data
 
@@ -115,23 +135,24 @@ class ForecastDataInterface:
         covariate_data = reduce(lambda x, y: x.merge(y, left_index=True, right_index=True), covariate_data)
         return covariate_data.reset_index()
 
-    def load_regression_coefficients(self, draw_id: int) -> pd.DataFrame:
-        file = self.regression_paths.get_coefficient_file(draw_id)
-        return pd.read_csv(file)
-
     def load_beta_params(self, draw_id: int) -> Dict[str, float]:
-        beta_params_file = self.regression_paths.get_beta_param_file(draw_id)
-        df = pd.read_csv(beta_params_file)
+        df = self.regression_marshall.load(key=MKeys.parameter(draw_id=draw_id))
         return df.set_index('params')['values'].to_dict()
 
     def save_components(self, forecasts: pd.DataFrame, scenario: str, draw_id: int):
-        forecast_path = self.forecast_paths.get_components_path(draw_id, scenario)
-        forecasts.to_csv(forecast_path, index=False)
+        self.forecast_marshall.dump(forecasts, key=MKeys.components(scenario=scenario, draw_id=draw_id))
+
+    def load_components(self, scenario: str, draw_id: int) -> pd.DataFrame:
+        return self.forecast_marshall.load(key=MKeys.components(scenario=scenario, draw_id=draw_id))
 
     def save_beta_scales(self, scales: pd.DataFrame, scenario: str, draw_id: int):
-        scale_path = self.forecast_paths.get_beta_scaling_path(draw_id, scenario)
-        scales.to_csv(scale_path, index=False)
+        self.forecast_marshall.dump(scales, key=MKeys.beta_scales(scenario=scenario, draw_id=draw_id))
+
+    def load_beta_scales(self, scenario: str, draw_id: int):
+        return self.forecast_marshall.load(MKeys.beta_scales(scenario=scenario, draw_id=draw_id))
 
     def save_outputs(self, outputs: pd.DataFrame, scenario: str, draw_id: int):
-        outputs_path = self.forecast_paths.get_outputs_path(draw_id, scenario)
-        outputs.to_csv(outputs_path, index=False)
+        self.forecast_marshall.dump(outputs, key=MKeys.forecast_outputs(scenario=scenario, draw_id=draw_id))
+
+    def load_outputs(self, scenario: str, draw_id: int) -> pd.DataFrame:
+        return self.forecast_marshall.load(key=MKeys.forecast_outputs(scenario=scenario, draw_id=draw_id))

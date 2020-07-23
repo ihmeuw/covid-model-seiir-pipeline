@@ -6,29 +6,42 @@ from loguru import logger
 import pandas as pd
 import yaml
 
+from covid_model_seiir_pipeline.marshall import (
+    CSVMarshall,
+    Keys as MKeys,
+)
 from covid_model_seiir_pipeline import paths
 from covid_model_seiir_pipeline.regression.specification import RegressionSpecification
 
+
+# TODO: move data interfaces up a package level and fuse with forecast data interface.
 
 class RegressionDataInterface:
 
     def __init__(self,
                  regression_paths: paths.RegressionPaths,
                  infection_paths: paths.InfectionPaths,
-                 covariate_paths: paths.CovariatePaths):
+                 covariate_paths: paths.CovariatePaths,
+                 regression_marshall,
+                 ):
+        # TODO: only hang on to marshalls here.
         self.regression_paths = regression_paths
         self.infection_paths = infection_paths
         self.covariate_paths = covariate_paths
+        self.regression_marshall = regression_marshall
 
     @classmethod
     def from_specification(cls, specification: RegressionSpecification) -> 'RegressionDataInterface':
         regression_paths = paths.RegressionPaths(Path(specification.data.output_root), read_only=False)
         infection_paths = paths.InfectionPaths(Path(specification.data.infection_version))
         covariate_paths = paths.CovariatePaths(Path(specification.data.covariate_version))
+        # TODO: specification of marshall type from inference on inputs and
+        #   configuration on outputs.
         return cls(
             regression_paths=regression_paths,
             infection_paths=infection_paths,
-            covariate_paths=covariate_paths
+            covariate_paths=covariate_paths,
+            regression_marshall=CSVMarshall.from_paths(regression_paths),
         )
 
     def make_dirs(self):
@@ -160,25 +173,24 @@ class RegressionDataInterface:
     ############################
 
     def save_beta_param_file(self, df: pd.DataFrame, draw_id: int) -> None:
-        df.to_csv(self.regression_paths.get_beta_param_file(draw_id), index=False)
+        self.regression_marshall.dump(df, key=MKeys.parameter(draw_id))
 
     def save_date_file(self, df: pd.DataFrame, draw_id: int) -> None:
-        df.to_csv(self.regression_paths.get_date_file(draw_id), index=False)
+        self.regression_marshall.dump(df, key=MKeys.date(draw_id))
 
     def save_location_metadata_file(self, locations: List[int]) -> None:
         with (self.regression_paths.root_dir / 'locations.yaml') as location_file:
             yaml.dump({'locations': locations}, location_file)
 
     def save_regression_coefficients(self, coefficients: pd.DataFrame, draw_id: int) -> None:
-        coefficients.to_csv(self.regression_paths.get_coefficient_file(draw_id), index=False)
+        self.regression_marshall.dump(coefficients, key=MKeys.coefficient(draw_id))
 
     def save_regression_betas(self, df: pd.DataFrame, draw_id: int) -> None:
-        beta_file = self.regression_paths.get_beta_regression_file(draw_id)
-        df.to_csv(beta_file, index=False)
+        self.regression_marshall.dump(df, key=MKeys.regression_beta(draw_id))
 
     def save_location_data(self, df: pd.DataFrame, draw_id: int) -> None:
-        location_data_file = self.regression_paths.get_data_file(draw_id)
-        df.to_csv(location_data_file, index=False)
+        # quasi-inverse of load_all_location_data, except types are different
+        self.regression_marshall.dump(df, key=MKeys.location_data(draw_id))
 
     @staticmethod
     def _load_from_location_set_version_id(location_set_version_id: int) -> pd.DataFrame:
