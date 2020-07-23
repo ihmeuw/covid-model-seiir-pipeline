@@ -58,6 +58,12 @@ class DataTypes:
     ])
 
 
+# TODO: swap DRAW_FILE_TEMPLATE in keys with a generic DRAW_TEMPLATE and
+#  let the marshalls worry about extensions.
+# TODO: consider a factory for keys that takes in the template to use so that
+#  the specification of file layout can be done at a higher level of
+#  abstraction.
+
 class Keys:
     """
     Identifies data payload types and stores related information.
@@ -137,6 +143,10 @@ class Keys:
     def __repr__(self):
         return f"Keys({self.data_type!r}, {self.template!r}, **{self.key_args!r})"
 
+
+# TODO: Abstract an interface for use in typing.
+# TODO: Strategy pattern for selecting marshalls from a combination of
+#  run specification and inference on input data.
 
 class CSVMarshall:
     """
@@ -372,6 +382,9 @@ class Hdf5Marshall:
 
         return result
 
+
+# TODO: Consider renaming. Totally different kind of marshalling
+#    happening here.
 
 class DtypeMarshall:
     """
