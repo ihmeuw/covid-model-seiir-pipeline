@@ -1,4 +1,4 @@
-import shutil 
+import shutil
 
 from jobmon.client.swarm.workflow.bash_task import BashTask
 from jobmon.client.swarm.executors.base import ExecutorParameters
@@ -6,8 +6,8 @@ from jobmon.client.swarm.executors.base import ExecutorParameters
 
 ExecParams = ExecutorParameters(
     max_runtime_seconds=6000,
-    m_mem_free='20G',
-    num_cores=3,
+    m_mem_free='3G',
+    num_cores=1,
     queue='all.q'
 )
 
