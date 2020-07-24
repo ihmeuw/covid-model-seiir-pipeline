@@ -10,7 +10,7 @@ from covid_model_seiir_pipeline.core.data import cache_covariates
 def create_regression_version(version_name, covariate_version,
                               covariate_draw_dict,
                               infection_version,
-                              location_set_version_id, theta_config=dict(), **kwargs):
+                              location_set_version_id, **kwargs):
     """
     Utility function to create a regression version. Will cache covariates
     as well.
@@ -36,8 +36,7 @@ def create_regression_version(version_name, covariate_version,
     rv = RegressionVersion(version_name=version_name, covariate_version=cache_version,
                            covariate_draw_dict=covariate_draw_dict,
                            location_set_version_id=location_set_version_id,
-                           infection_version=infection_version, 
-                           **theta_config, **kwargs)
+                           infection_version=infection_version, **kwargs)
     rv.create_version()
     rv_directory = Directories(regression_version=version_name)
     write_locations(directories=rv_directory, location_ids=location_ids)
@@ -46,7 +45,8 @@ def create_regression_version(version_name, covariate_version,
 def create_forecast_version(version_name,
                             covariate_version,
                             covariate_draw_dict,
-                            regression_version):
+                            regression_version,
+                            theta_config=None):
     """
     Utility function to create a regression version. Will cache covariates
     as well.
@@ -67,9 +67,10 @@ def create_forecast_version(version_name,
         location_ids=location_ids,
         covariate_draw_dict=covariate_draw_dict
     )
+    theta_config = {} if theta_config is None else theta_config
     fv = ForecastVersion(version_name=version_name, covariate_version=cache_version,
                          regression_version=regression_version,
-                         covariate_draw_dict=covariate_draw_dict)
+                         covariate_draw_dict=covariate_draw_dict, **theta_config)
     fv.create_version()
 
 
@@ -87,14 +88,14 @@ def create_run(version_name, covariate_version, covariate_draw_dict, theta_confi
         version_name=version_name,
         covariate_version=covariate_version,
         covariate_draw_dict=covariate_draw_dict,
-        theta_config=theta_config,
         **kwargs
     )
     create_forecast_version(
         version_name=version_name,
         covariate_version=covariate_version,
         covariate_draw_dict=covariate_draw_dict,
-        regression_version=version_name
+        regression_version=version_name,
+        theta_config=theta_config
     )
     print(f"Created regression and forecast versions {version_name}.")
 

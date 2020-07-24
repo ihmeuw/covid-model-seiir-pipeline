@@ -57,15 +57,15 @@ def run_beta_forecast(location_id: int, regression_version: str, forecast_versio
     )
     regression_settings = load_regression_settings(regression_version)
     forecast_settings = load_forecast_settings(forecast_version)
-    if regression_settings.theta_locations_file:
-        theta_locations = pd.read_csv(regression_settings.theta_locations_file)
+    if forecast_settings.theta_locations_file:
+        theta_locations = pd.read_csv(forecast_settings.theta_locations_file)
         theta_locations.to_csv(
             directories.forecast_output_dir / 'theta.csv', index=False
         )
         theta_locations = theta_locations.set_index("location_id").theta
         theta = theta_locations.at[location_id]
     else:
-        theta = regression_settings.theta
+        theta = forecast_settings.theta
 
     # -------------------------- FORECAST THE BETA FORWARDS -------------------- #
     mr = ModelRunner()

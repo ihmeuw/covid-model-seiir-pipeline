@@ -3,7 +3,6 @@ from typing import Optional
 import shlex
 import logging
 import numpy as np
-import pandas as pd
 
 from covid_model_seiir.model_runner import ModelRunner
 
@@ -51,13 +50,6 @@ def run_beta_regression(draw_id: int, regression_version: str):
         forecast_version=None
     )
     settings = load_regression_settings(regression_version)
-
-    # Save thetas file, if one exists
-    if settings.theta_locations_file is not None:
-        theta_locations = pd.read_csv(settings.theta_locations_file)
-        theta_locations.to_csv(
-            directories.regression_output_dir / 'theta.csv', index=False
-        )
 
     # Load data
     location_ids = load_locations(directories)
