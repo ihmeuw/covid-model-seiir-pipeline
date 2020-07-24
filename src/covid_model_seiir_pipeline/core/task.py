@@ -1,3 +1,5 @@
+import shutil 
+
 from jobmon.client.swarm.workflow.bash_task import BashTask
 from jobmon.client.swarm.executors.base import ExecutorParameters
 
@@ -6,14 +8,14 @@ ExecParams = ExecutorParameters(
     max_runtime_seconds=6000,
     m_mem_free='20G',
     num_cores=3,
-    queue='d.q'
+    queue='all.q'
 )
 
 ExecParamsPlotting = ExecutorParameters(
     max_runtime_seconds=int(60*60*5),
     m_mem_free='20G',
     num_cores=3,
-    queue='d.q'
+    queue='all.q'
 )
 
 
@@ -23,7 +25,7 @@ class RegressionTask(BashTask):
         self.draw_id = draw_id
 
         command = (
-            "beta_regression " +
+            f"{shutil.which('beta_regression')} " +
             f"--draw-id {self.draw_id} " +
             f"--regression-version {regression_version} "
         )
@@ -45,7 +47,7 @@ class ForecastTask(BashTask):
         self.forecast_version = forecast_version
 
         command = (
-            "beta_forecast " +
+            f"{shutil.which('beta_forecast')} " +
             f"--location-id {self.location_id} " +
             f"--regression-version {regression_version} " +
             f"--forecast-version {forecast_version} "
@@ -85,7 +87,7 @@ class SplicerTask(BashTask):
         self.location_id = location_id
 
         command = (
-            "splice " +
+            f"{shutil.which('splice')} " +
             f"--location-id {self.location_id} " +
             f"--regression-version {regression_version} " +
             f"--forecast-version {forecast_version} "
@@ -106,7 +108,7 @@ class RegressionDiagnosticTask(BashTask):
         self.regression_version = regression_version
 
         command = (
-            "create_regression_diagnostics " +
+            f"{shutil.which('create_regression_diagnostics')} " +
             f"--regression-version {regression_version} "
         )
 
@@ -127,7 +129,7 @@ class ForecastDiagnosticTask(BashTask):
         self.location_id = location_id
 
         command = (
-            "create_forecast_diagnostics " +
+            f"{shutil.which('create_forecast_diagnostics')} " +
             f"--regression-version {regression_version} " +
             f"--forecast-version {forecast_version} " +
             f"--location-id {location_id} "
