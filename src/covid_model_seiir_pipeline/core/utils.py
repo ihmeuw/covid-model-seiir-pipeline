@@ -162,7 +162,7 @@ def beta_shift(beta_fit: pd.DataFrame,
     beta_fit = beta_fit['beta'].to_numpy()
 
     rs = np.random.RandomState(seed=draw_id)
-    a = rs.randint(0, average_over_min)
+    a = rs.randint(1, average_over_min)
     b = rs.randint(a + 7, average_over_max)
 
     beta_fit_final = beta_fit[-1]
