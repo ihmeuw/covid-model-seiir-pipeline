@@ -71,6 +71,7 @@ def run_beta_forecast(location_id: int, regression_version: str, forecast_versio
     if 'residual_offset_file' in beta_shift_dict:
         beta_shift_dict['offset'] = (pd.read_csv(beta_shift_dict['residual_offset_file'])
                                      .set_index('location_id')
+                                     .residual_shift
                                      .get(location_id, default=0))
         del beta_shift_dict['residual_offset_file']
     else:
