@@ -63,7 +63,7 @@ def run_beta_forecast(location_id: int, regression_version: str, forecast_versio
             directories.forecast_output_dir / 'theta.csv', index=False
         )
         theta_locations = theta_locations.set_index("location_id").theta
-        theta = theta_locations.at[location_id]
+        theta = theta_locations.get(location_id, default=0)
     else:
         theta = forecast_settings.theta
 
