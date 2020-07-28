@@ -139,7 +139,8 @@ def beta_shift(beta_fit: pd.DataFrame,
                draw_id: int,
                window_size: Union[int, None] = None,
                average_over_min: int = 1,
-               average_over_max: int = 35) -> Tuple[np.ndarray, Dict[str, float]]:
+               average_over_max: int = 35,
+               offset: float = 0) -> Tuple[np.ndarray, Dict[str, float]]:
     """Calculate the beta shift.
 
     Args:
@@ -170,7 +171,7 @@ def beta_shift(beta_fit: pd.DataFrame,
 
     scale_init = beta_fit_final / beta_pred_start
     log_beta_resid = np.log(beta_fit / beta_hat)
-    scale_final = np.exp(log_beta_resid[-b:-a].mean())
+    scale_final = np.exp(log_beta_resid[-b:-a].mean() + offset)
 
     scale_params = {
         'window_size': window_size,
@@ -179,6 +180,7 @@ def beta_shift(beta_fit: pd.DataFrame,
         'fit_final': beta_fit_final,
         'pred_start': beta_pred_start,
         'beta_ratio_mean': scale_final,
+        'offset': offset,
         'beta_residual_mean': np.log(scale_final),
     }
 

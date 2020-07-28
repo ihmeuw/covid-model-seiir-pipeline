@@ -389,6 +389,7 @@ class ForecastVersion(Version):
     theta: int = field(default=None)
     theta_locations_file: str = field(default=None)
 
+
     def __post_init__(self):
         # TODO: Don't just fail fast.  fail helpfully
         if self.theta is not None:
