@@ -67,6 +67,15 @@ def run_beta_forecast(location_id: int, regression_version: str, forecast_versio
     else:
         theta = forecast_settings.theta
 
+    beta_shift_dict = regression_settings.beta_shift_dict
+    if 'residual_offset_file' in beta_shift_dict:
+        beta_shift_dict['offset'] = (pd.read_csv(beta_shift_dict['residual_offset_file'])
+                                     .set_index('location_id')
+                                     .get(location_id, default=0))
+        del beta_shift_dict['residual_offset_file']
+    else:
+        beta_shift_dict['offset'] = 0
+
     # -------------------------- FORECAST THE BETA FORWARDS -------------------- #
     mr = ModelRunner()
 
@@ -121,14 +130,7 @@ def run_beta_forecast(location_id: int, regression_version: str, forecast_versio
         betas = forecasts.beta_pred.values
         days = forecasts[COVARIATE_COL_DICT['COL_DATE']].values
         times = date_to_days(days)
-        beta_shift_dict = regression_settings.beta_shift_dict
-        if 'residual_offset_file' in beta_shift_dict:
-            beta_shift_dict['offset'] = (pd.read_csv(beta_shift_dict['residual_offset_file'])
-                                         .set_index('location_id')
-                                         .get(location_id, default=0))
-            del beta_shift_dict['residual_offset_file']
-        else:
-            beta_shift_dict['offset'] = 0
+
         betas, scale_params = beta_shift(beta_fit, betas, draw_id, **beta_shift_dict)
         scale_params['draw'] = draw_id
         scales.append(scale_params)
