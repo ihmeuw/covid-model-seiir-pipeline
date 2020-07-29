@@ -140,6 +140,7 @@ def beta_shift(beta_fit: pd.DataFrame,
                window_size: Union[int, None] = None,
                average_over_min: int = 1,
                average_over_max: int = 35,
+               total_deaths: int = None,
                offset: float = 0) -> Tuple[np.ndarray, Dict[str, float]]:
     """Calculate the beta shift.
 
@@ -161,17 +162,29 @@ def beta_shift(beta_fit: pd.DataFrame,
     beta_fit = beta_fit.sort_values('date')
     beta_hat = beta_fit['beta_pred'].to_numpy()
     beta_fit = beta_fit['beta'].to_numpy()
+    one_week = 7  # minimum period over which to residual average
+    deaths_upper = 300  # bound at which we let the residual average be what it is
+    deaths_lower = 150  # bound at which we shift the residual average so the mean across draws is 0
 
     rs = np.random.RandomState(seed=draw_id)
     a = rs.randint(1, average_over_min)
-    b = rs.randint(a+7, average_over_max)
+    b = rs.randint(a + one_week, average_over_max)
 
     beta_fit_final = beta_fit[-1]
     beta_pred_start = beta_pred[0]
 
+    if total_deaths is None or deaths_upper <= total_deaths:
+        offset = 0
+    elif deaths_lower <= total_deaths < deaths_upper:
+        offset_scale = (deaths_upper - total_deaths)/(deaths_upper - deaths_lower)
+        offset *= offset_scale
+    else:  # total_deaths < deaths_lower, use the provided offset (the mean across draws)
+        pass
+
     scale_init = beta_fit_final / beta_pred_start
     log_beta_resid = np.log(beta_fit / beta_hat)
-    scale_final = np.exp(log_beta_resid[-b:-a].mean() + offset)
+    residual_mean = log_beta_resid[-b:-a].mean()
+    scale_final = np.exp(residual_mean + offset)
 
     scale_params = {
         'window_size': window_size,
