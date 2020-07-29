@@ -184,7 +184,7 @@ def beta_shift(beta_fit: pd.DataFrame,
     scale_init = beta_fit_final / beta_pred_start
     log_beta_resid = np.log(beta_fit / beta_hat)
     residual_mean = log_beta_resid[-b:-a].mean()
-    scale_final = np.exp(residual_mean + offset)
+    scale_final = np.exp(residual_mean - offset)
 
     scale_params = {
         'window_size': window_size,
