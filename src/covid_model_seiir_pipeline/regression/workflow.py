@@ -15,8 +15,8 @@ class BetaRegressionTaskTemplate:
         )
         self.params = ExecutorParameters(
             max_runtime_seconds=3000,
-            m_mem_free='20G',
-            num_cores=3,
+            m_mem_free='2G',
+            num_cores=1,
             queue='d.q'
         )
 
