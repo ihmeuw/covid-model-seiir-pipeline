@@ -25,14 +25,32 @@ def run_beta_residual_mean(forecast_version: str, scenario_name: str):
     data_interface = ForecastDataInterface.from_specification(forecast_spec)
 
     total_deaths = data_interface.load_total_deaths()
-    import pdb; pdb.set_trace()
 
-    # dates_df = data_interface.load_dates_df(draw_id)
-    # transition_date = dates_df.set_index('location_id').sort_index()['end_date'].rename('date')
-    # beta_regression_df = data_interface.load_beta_regression(draw_id)
-    # beta_regression_df = beta_regression_df.set_index('location_id').sort_index()
-    # idx = beta_regression_df.index
-    # beta_past = beta_regression_df.loc[beta_regression_df['date'] <= transition_date.loc[idx]].reset_index()
+    beta_scaling = forecast_spec.scenarios[scenario_name].beta_scaling
+
+    def compute_residual_average(draw_id: int):
+        dates_df = data_interface.load_dates_df(draw_id)
+        transition_date = dates_df.set_index('location_id').sort_index()['end_date'].rename('date')
+        beta_regression_df = data_interface.load_beta_regression(draw_id)
+        beta_regression_df = beta_regression_df.set_index('location_id').sort_index()
+        idx = beta_regression_df.index
+        beta_past = (beta_regression_df
+                     .loc[beta_regression_df['date'] <= transition_date.loc[idx]]
+                     .reset_index()
+                     .set_index(['location_id', 'date'])
+                     .sort_index())
+        import pdb; pdb.set_trace()
+
+        log_beta_resid = np.log(beta_past['beta'] / beta_past['beta_pred']).rename('beta_resid')
+
+        rs = np.random.RandomState(draw_id)
+        a = rs.randint(1, beta_scaling['average_over_min'])
+        b = rs.randint(a + 7, beta_scaling['average_over_max'])
+
+        log_beta_resid.groupby(level='location_id').apply(lambda x: x.iloc[-b:-a].mean())
+
+
+
     # betas, scale_params = model.beta_shift(beta_past, beta_hat, transition_date,
     #                                        draw_id, **scenario_spec.beta_scaling)
 
