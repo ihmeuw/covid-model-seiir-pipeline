@@ -19,8 +19,8 @@ class BetaForecastTaskTemplate:
         )
         self.params = ExecutorParameters(
             max_runtime_seconds=1000,
-            m_mem_free='20G',
-            num_cores=3,
+            m_mem_free='3G',
+            num_cores=1,
             queue='d.q'
         )
 
