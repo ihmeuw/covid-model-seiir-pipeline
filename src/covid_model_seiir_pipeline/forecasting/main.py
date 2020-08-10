@@ -7,7 +7,8 @@ from covid_model_seiir_pipeline.forecasting.workflow import ForecastWorkflow
 
 
 def do_beta_forecast(app_metadata: cli_tools.Metadata,
-                     forecast_specification: ForecastSpecification):
+                     forecast_specification: ForecastSpecification,
+                     preprocess_only: bool):
     logger.debug('Starting beta forecast.')
 
     data_interface = ForecastDataInterface.from_specification(forecast_specification)
@@ -20,8 +21,9 @@ def do_beta_forecast(app_metadata: cli_tools.Metadata,
     # Fixme: Inconsistent data writing interfaces
     forecast_specification.dump(data_interface.forecast_paths.forecast_specification)
 
-    forecast_wf = ForecastWorkflow(forecast_specification.data.output_root)
-    n_draws = data_interface.get_n_draws()
-    forecast_wf.attach_scenario_tasks(n_draws=n_draws,
-                                      scenarios=list(forecast_specification.scenarios))
-    forecast_wf.run()
+    if not preprocess_only:
+        forecast_wf = ForecastWorkflow(forecast_specification.data.output_root)
+        n_draws = data_interface.get_n_draws()
+        forecast_wf.attach_scenario_tasks(n_draws=n_draws,
+                                          scenarios=list(forecast_specification.scenarios))
+        forecast_wf.run()

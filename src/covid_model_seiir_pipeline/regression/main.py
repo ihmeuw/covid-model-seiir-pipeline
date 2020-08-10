@@ -7,7 +7,8 @@ from covid_model_seiir_pipeline.regression.workflow import RegressionWorkflow
 
 
 def do_beta_regression(app_metadata: cli_tools.Metadata,
-                       regression_specification: RegressionSpecification):
+                       regression_specification: RegressionSpecification,
+                       preprocess_only: bool):
     logger.debug('Starting beta regression.')
 
     # init high level objects
@@ -31,6 +32,7 @@ def do_beta_regression(app_metadata: cli_tools.Metadata,
     regression_specification.dump(data_interface.regression_paths.regression_specification)
 
     # build workflow and launch
-    regression_wf = RegressionWorkflow(regression_specification.data.output_root)
-    regression_wf.attach_beta_regression_tasks(n_draws=regression_specification.parameters.n_draws)
-    regression_wf.run()
+    if not preprocess_only:
+        regression_wf = RegressionWorkflow(regression_specification.data.output_root)
+        regression_wf.attach_beta_regression_tasks(n_draws=regression_specification.parameters.n_draws)
+        regression_wf.run()

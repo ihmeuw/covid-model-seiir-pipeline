@@ -32,12 +32,18 @@ def seiir():
               help="Either a location set version id used to pull a list of"
                    "locations to run, or a full path to a file describing"
                    "the location set.")
+@click.option('--preprocess-only',
+              is_flag=True,
+              help="Only make the directory and set up the metadata. "
+                   "Useful for setting up output directories for testing "
+                   "tasks individually.")
 @cli_tools.add_output_options(paths.SEIR_REGRESSION_OUTPUTS)
 @cli_tools.add_verbose_and_with_debugger
 def regress(run_metadata,
             regression_specification,
             infection_version, covariates_version,
             location_specification,
+            preprocess_only,
             output_root, mark_best, production_tag,
             verbose, with_debugger):
     """Perform beta regression for a set of infections and covariates."""
@@ -79,7 +85,7 @@ def regress(run_metadata,
     cli_tools.configure_logging_to_files(run_directory)
     main = cli_tools.monitor_application(do_beta_regression,
                                          logger, with_debugger)
-    app_metadata, _ = main(regression_spec)
+    app_metadata, _ = main(regression_spec, preprocess_only)
 
     run_metadata['app_metadata'] = app_metadata.to_dict()
     run_metadata.dump(run_directory / 'metadata.yaml')
@@ -101,12 +107,18 @@ def regress(run_metadata,
               type=click.Path(file_okay=False),
               help=('Which version of the covariates to use in the '
                     'regression.'))
+@click.option('--preprocess-only',
+              is_flag=True,
+              help="Only make the directory and set up the metadata. "
+                   "Useful for setting up output directories for testing "
+                   "tasks individually.")
 @cli_tools.add_output_options(paths.SEIR_FORECAST_OUTPUTS)
 @cli_tools.add_verbose_and_with_debugger
 def forecast(run_metadata,
              forecast_specification,
              regression_version,
              covariates_version,
+             preprocess_only,
              output_root, mark_best, production_tag,
              verbose, with_debugger):
     """Perform beta forecast for a set of scenarios on a regression."""
@@ -136,7 +148,7 @@ def forecast(run_metadata,
     cli_tools.configure_logging_to_files(run_directory)
     main = cli_tools.monitor_application(do_beta_forecast,
                                          logger, with_debugger)
-    app_metadata, _ = main(forecast_spec)
+    app_metadata, _ = main(forecast_spec, preprocess_only)
 
     run_metadata['app_metadata'] = app_metadata.to_dict()
     run_metadata.dump(run_directory / 'metadata.yaml')
