@@ -74,7 +74,6 @@ def run_compute_beta_scaling_parameters(forecast_version: str, scenario_name: st
     beta_scaling = forecast_spec.scenarios[scenario_name].beta_scaling
     scaling_data = compute_initial_beta_scaling_paramters(total_deaths, beta_scaling, data_interface)
     residual_mean_offset = compute_residual_mean_offset(scaling_data, beta_scaling, total_deaths)
-
     write_out_beta_scale(scaling_data, residual_mean_offset, scenario_name, data_interface)
 
 
@@ -202,7 +201,8 @@ def write_out_beta_scale(beta_scales: List[pd.DataFrame],
         scenario=scenario
     )
     with multiprocessing.Pool(FORECAST_SCALING_CORES) as pool:
-        pool.imap(_runner, beta_scales)
+        pool.map(_runner, beta_scales)
+    
 
 
 def write_out_beta_scales_by_draw(beta_scales: pd.DataFrame, data_interface: ForecastDataInterface,
@@ -211,10 +211,8 @@ def write_out_beta_scales_by_draw(beta_scales: pd.DataFrame, data_interface: For
     beta_scales['log_beta_residual_mean_offset'] = offset
     beta_scales['log_beta_residual_mean'] -= offset
     beta_scales['scale_final'] = np.exp(beta_scales['log_beta_residual_mean'])
-
     draw_id = beta_scales['draw'].iat[0]
     data_interface.save_beta_scales(beta_scales.reset_index(), scenario, draw_id)
-
 
 def parse_arguments(argstr: Optional[str] = None) -> Namespace:
     """
