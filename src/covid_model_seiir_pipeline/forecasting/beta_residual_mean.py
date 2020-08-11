@@ -40,6 +40,7 @@ def run_beta_residual_mean(forecast_version: str, scenario_name: str):
     with multiprocessing.Pool(FORECAST_SCALING_CORES) as pool:
         scaling_data = list(pool.imap(compute_beta_scaling_parameters_partial, draws))
 
+
     average_log_beta_resid_mean = (pd.concat([d.log_beta_residual_mean for d in scaling_data])
                                    .groupby(level='location_id')
                                    .mean())
@@ -54,13 +55,11 @@ def run_beta_residual_mean(forecast_version: str, scenario_name: str):
     offset.loc[full_offset] = average_log_beta_resid_mean[full_offset]
 
     for df in scaling_data:
-        # These are in place modifications and so will modify the elements of
-        # the list we're looping over.
         df['log_beta_residual_mean_offset'] = offset
         df['log_beta_residual_mean'] -= offset
         df['scale_final'] = np.exp(df['log_beta_residual_mean'])
         draw_id = df['draw'].iat[0]
-        data_interface.save_beta_scales(df, scenario_name, draw_id)
+        data_interface.save_beta_scales(df.reset_index(), scenario_name, draw_id)
     
 
 def compute_beta_scaling_parameters(draw_id: int, total_deaths, beta_scaling, data_interface):
