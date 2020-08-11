@@ -7,6 +7,12 @@ from jobmon.client.swarm.workflow.task_dag import DagExecutionStatus
 
 from covid_model_seiir_pipeline import utilities
 
+FORECAST_RUNTIME = 1000
+FORECAST_MEMORY = '5G'
+FORECAST_CORES = 1
+FORECAST_SCALING_CORES = 50
+FORECAST_QUEUE = 'd.q'
+
 
 class BetaForecastTaskTemplate:
 
@@ -18,10 +24,10 @@ class BetaForecastTaskTemplate:
             "--scenario {scenario}"
         )
         self.params = ExecutorParameters(
-            max_runtime_seconds=1000,
-            m_mem_free='20G',
-            num_cores=3,
-            queue='d.q'
+            max_runtime_seconds=FORECAST_RUNTIME,
+            m_mem_free=FORECAST_MEMORY,
+            num_cores=FORECAST_CORES,
+            queue=FORECAST_QUEUE,
         )
 
     @classmethod

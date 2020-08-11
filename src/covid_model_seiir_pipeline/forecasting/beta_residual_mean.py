@@ -1,4 +1,5 @@
 from argparse import ArgumentParser, Namespace
+import multiprocessing
 from typing import Optional
 import logging
 from pathlib import Path
@@ -8,10 +9,9 @@ import pandas as pd
 import numpy as np
 
 from covid_model_seiir_pipeline import static_vars
-from covid_model_seiir_pipeline.math import compute_beta_hat
-from covid_model_seiir_pipeline.forecasting import model
 from covid_model_seiir_pipeline.forecasting.specification import ForecastSpecification
 from covid_model_seiir_pipeline.forecasting.data import ForecastDataInterface
+from covid_model_seiir_pipeline.forecasting.workflow import FORECAST_SCALING_CORES
 
 
 log = logging.getLogger(__name__)
@@ -77,7 +77,10 @@ def run_beta_residual_mean(forecast_version: str, scenario_name: str):
 
         return pd.concat(draw_data, axis=1)
 
-    df = compute_beta_scaling_parameters(draw_id=0)
+    draws = list(range(data_interface.get_n_draws()))
+    with multiprocessing.Pool(FORECAST_SCALING_CORES) as pool:
+        scaling_data = pool.imap(compute_beta_scaling_parameters, draws)
+
     import pdb; pdb.set_trace()
 
 
