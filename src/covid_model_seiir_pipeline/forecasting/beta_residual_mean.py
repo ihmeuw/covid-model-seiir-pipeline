@@ -26,7 +26,7 @@ def run_beta_residual_mean(forecast_version: str, scenario_name: str):
     data_interface = ForecastDataInterface.from_specification(forecast_spec)
     locations = data_interface.load_location_ids()
     total_deaths = data_interface.load_total_deaths()
-    total_deaths = total_deaths[total_deaths.location_id.isin(locations)].set_index('location_id')
+    total_deaths = total_deaths[total_deaths.location_id.isin(locations)].set_index('location_id')['deaths']
 
     beta_scaling = forecast_spec.scenarios[scenario_name].beta_scaling
     compute_beta_scaling_parameters_partial = functools.partial(
@@ -38,9 +38,33 @@ def run_beta_residual_mean(forecast_version: str, scenario_name: str):
 
     draws = list(range(data_interface.get_n_draws()))
     with multiprocessing.Pool(FORECAST_SCALING_CORES) as pool:
-        scaling_data = pool.imap(compute_beta_scaling_parameters_partial, draws)
+        scaling_data = list(pool.imap(compute_beta_scaling_parameters_partial, draws))
+
+    average_log_beta_resid_mean = (pd.concat([d.log_beta_residual_mean for d in scaling_data])
+                                   .groupby(level='location_id')
+                                   .mean())
+    deaths_lower, deaths_upper = beta_scaling['offset_deaths_lower'], beta_scaling['offset_deaths_upper']
 
     import pdb; pdb.set_trace()
+
+    scaled_offset = (deaths_lower <= total_deaths) & (total_deaths < deaths_upper)
+    full_offset = total_deaths < deaths_lower
+
+    offset = pd.Series(0, index=total_deaths.index, name='log_beta_residual_mean_offset')
+    scale_factor = (deaths_upper - total_deaths)/(deaths_upper - deaths_lower)
+    offset.loc[scaled_offset] = scale_factor[scaled_offset] * average_log_beta_resid_mean[scaled_offset]
+    offset.loc[full_offset] = average_log_beta_resid_mean[scaled_offset]
+
+    for df in scaling_data:
+        # These are in place modifications and so will modify the elements of
+        # the list we're looping over.
+        df['log_beta_residual_mean_offset'] = offset
+        df['log_beta_residual_mean'] -= offset
+        df['scale_final'] = np.exp(df['log_beta_residual_mean'])
+
+
+
+
 
 
 def compute_beta_scaling_parameters(draw_id: int, total_deaths, beta_scaling, data_interface):
@@ -88,6 +112,7 @@ def compute_beta_scaling_parameters(draw_id: int, total_deaths, beta_scaling, da
                            .apply(lambda x: x.iloc[-b: -a].mean())
                            .rename('log_beta_residual_mean'))
     draw_data.append(log_beta_resid_mean)
+    draw_data.append(pd.Series(draw_id, index=total_deaths.index, name='draw'))
 
     return pd.concat(draw_data, axis=1)
 
