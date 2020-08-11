@@ -53,7 +53,7 @@ def run_beta_residual_mean(forecast_version: str, scenario_name: str):
     offset = pd.Series(0, index=total_deaths.index, name='log_beta_residual_mean_offset')
     scale_factor = (deaths_upper - total_deaths)/(deaths_upper - deaths_lower)
     offset.loc[scaled_offset] = scale_factor[scaled_offset] * average_log_beta_resid_mean[scaled_offset]
-    offset.loc[full_offset] = average_log_beta_resid_mean[scaled_offset]
+    offset.loc[full_offset] = average_log_beta_resid_mean[scaled_offset].rename()
 
     for df in scaling_data:
         # These are in place modifications and so will modify the elements of
@@ -61,10 +61,8 @@ def run_beta_residual_mean(forecast_version: str, scenario_name: str):
         df['log_beta_residual_mean_offset'] = offset
         df['log_beta_residual_mean'] -= offset
         df['scale_final'] = np.exp(df['log_beta_residual_mean'])
-
-
-
-
+        draw_id = df['draw'].iat[0]
+        data_interface.save_beta_scales(df, scenario_name, draw_id)
 
 
 def compute_beta_scaling_parameters(draw_id: int, total_deaths, beta_scaling, data_interface):
