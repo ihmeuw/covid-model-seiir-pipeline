@@ -129,6 +129,7 @@ def beta_shift(beta_hat: pd.DataFrame,
         Predicted beta, after scaling (shift).
 
     """
+    beta_scales = beta_scales.set_index('location_id')
     scale_init = beta_scales['scale_init']
     scale_final = beta_scales['scale_final']
     window_size = beta_scales['window_size']
@@ -136,9 +137,9 @@ def beta_shift(beta_hat: pd.DataFrame,
     beta_final = []
     for location_id in beta_hat.index.unique():
         if window_size is not None:
-            t = np.arange(len(beta_hat.loc[location_id])) / window_size
+            t = np.arange(len(beta_hat.loc[location_id])) / window_size.at[location_id]
             scale = scale_init.at[location_id] + (scale_final.at[location_id] - scale_init.at[location_id]) * t
-            scale[(window_size + 1):] = scale_final.at[location_id]
+            scale[(window_size.at[location_id] + 1):] = scale_final.at[location_id]
         else:
             scale = scale_init.at[location_id]
         loc_beta_hat = beta_hat.loc[location_id].set_index('date', append=True)['beta_pred']
