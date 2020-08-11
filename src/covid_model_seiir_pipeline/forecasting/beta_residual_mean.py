@@ -23,8 +23,9 @@ def run_beta_residual_mean(forecast_version: str, scenario_name: str):
         Path(forecast_version) / static_vars.FORECAST_SPECIFICATION_FILE
     )
     data_interface = ForecastDataInterface.from_specification(forecast_spec)
-
-    total_deaths = data_interface.load_total_deaths().set_index('location_id')
+    locations = data_interface.load_location_ids()
+    total_deaths = data_interface.load_total_deaths()
+    total_deaths = total_deaths[total_deaths.location_id.isin(locations)].set_index('location_id')
 
     beta_scaling = forecast_spec.scenarios[scenario_name].beta_scaling
 
