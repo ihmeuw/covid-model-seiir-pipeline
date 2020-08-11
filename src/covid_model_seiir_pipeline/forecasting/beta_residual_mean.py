@@ -45,15 +45,13 @@ def run_beta_residual_mean(forecast_version: str, scenario_name: str):
                                    .mean())
     deaths_lower, deaths_upper = beta_scaling['offset_deaths_lower'], beta_scaling['offset_deaths_upper']
 
-    import pdb; pdb.set_trace()
-
     scaled_offset = (deaths_lower <= total_deaths) & (total_deaths < deaths_upper)
     full_offset = total_deaths < deaths_lower
 
     offset = pd.Series(0, index=total_deaths.index, name='log_beta_residual_mean_offset')
     scale_factor = (deaths_upper - total_deaths)/(deaths_upper - deaths_lower)
     offset.loc[scaled_offset] = scale_factor[scaled_offset] * average_log_beta_resid_mean[scaled_offset]
-    offset.loc[full_offset] = average_log_beta_resid_mean[scaled_offset].rename()
+    offset.loc[full_offset] = average_log_beta_resid_mean[full_offset]
 
     for df in scaling_data:
         # These are in place modifications and so will modify the elements of
@@ -63,7 +61,7 @@ def run_beta_residual_mean(forecast_version: str, scenario_name: str):
         df['scale_final'] = np.exp(df['log_beta_residual_mean'])
         draw_id = df['draw'].iat[0]
         data_interface.save_beta_scales(df, scenario_name, draw_id)
-
+    
 
 def compute_beta_scaling_parameters(draw_id: int, total_deaths, beta_scaling, data_interface):
     # Construct a list of pandas Series indexed by location and named
