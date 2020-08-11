@@ -2,6 +2,7 @@
 .PHONY: clean
 
 ENV_NAME=seiir
+CONDA_PREFIX=/ihme/homes/kewiens/miniconda3/
 
 clean:
 	find . -name "*.so*" | xargs rm -rf
