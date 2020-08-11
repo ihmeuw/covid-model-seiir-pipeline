@@ -21,7 +21,8 @@ class ForecastData:
 class ScenarioSpecification:
     """Forecasting specification for a scenario."""
     ALLOWED_ALGORITHMS = ('RK45',)
-    BETA_SCALING_KEYS = {'window_size', 'average_over_min', 'average_over_max'}
+    BETA_SCALING_KEYS = {'window_size', 'average_over_min', 'average_over_max',
+                         'offset_deaths_lower', 'offset_deaths_upper'}
 
     name: str = field(default='dummy_scenario')
     algorithm: str = field(default='RK45')
