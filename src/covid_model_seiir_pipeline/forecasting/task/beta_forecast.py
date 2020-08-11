@@ -124,7 +124,7 @@ def run_beta_forecast(draw_id: int, forecast_version: str, scenario_name: str):
 
     r_effective = model.compute_effective_r(infection_data, components, beta_params)
 
-    outputs = pd.concat([infections, deaths, r_effective], axis=1).dropna()
+    outputs = pd.concat([infections, deaths, r_effective], axis=1).dropna().reset_index()
     data_interface.save_outputs(outputs, scenario_name, draw_id)
 
 

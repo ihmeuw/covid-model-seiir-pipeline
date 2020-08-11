@@ -1,11 +1,11 @@
 data:
-  infection_version: '2020_07_06.02'
-  covariate_version: '2020_07_07.04'
+  infection_version: '2020_08_04.05'
+  covariate_version: '2020_08_09.01'
   location_set_version_id: ''
-  location_set_file: '/ihme/covid-19/seir-pipeline-outputs/metadata-inputs/location_metadata_747001.csv'
+  location_set_file: '/ihme/covid-19/seir-pipeline-outputs/metadata-inputs/location_metadata_762.csv'
   output_root: ''
 parameters:
-  n_draws: 10
+  n_draws: 1000
   day_shift: [0, 8]
   alpha: [0.9, 1.0]
   sigma: [0.2, 0.3333]
