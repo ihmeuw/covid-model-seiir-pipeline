@@ -1,7 +1,7 @@
 # makefile for easy manage package
 .PHONY: clean
 
-ENV_NAME=dummy
+ENV_NAME=seiir
 
 clean:
 	find . -name "*.so*" | xargs rm -rf
