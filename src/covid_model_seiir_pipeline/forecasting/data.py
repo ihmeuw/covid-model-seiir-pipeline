@@ -103,7 +103,7 @@ class ForecastDataInterface:
         model_inputs_version = metadata['regression_metadata']['infectionator_metadata']['death']['metadata']['model_inputs_metadata']['output_path']
         full_data_path = Path(model_inputs_version) / 'full_data.csv'
         full_data = pd.read_csv(full_data_path)
-        total_deaths = full_data.groupby('location_id')['Deaths'].max().reset_index()
+        total_deaths = full_data.groupby('location_id')['Deaths'].max().rename('deaths').reset_index()
         return total_deaths
 
     def load_regression_coefficients(self, draw_id: int) -> pd.DataFrame:
