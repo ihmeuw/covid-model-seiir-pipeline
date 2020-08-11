@@ -81,6 +81,32 @@ def run_compute_beta_scaling_parameters(forecast_version: str, scenario_name: st
 def compute_residual_mean_offset(scaling_data: List[pd.DataFrame],
                                  beta_scaling: Dict,
                                  total_deaths: pd.Series) -> pd.Series:
+    """Calculates the final scaling factor offset based on total deaths.
+
+    The offset is used to totally or partially recenter the residual average
+    of beta around zero based on the total number of deaths in a location.
+
+    Parameters
+    ----------
+    scaling_data
+        A list with a dataframe per draw being modeled. Each dataframe has
+        the draw level mean of the residuals of log beta from the
+        regression over a time period in the past.
+    beta_scaling
+        A set of parameters for the beta scaling computation. For this function
+        the important parameters are the bounds on a small number of deaths,
+        `offset_deaths_lower`, below which the distribution will be centered
+        around zero, and a large number of deaths, `offset_deaths_upper`,
+        above which the distribution of wil not be altered. In between,
+        the distribution is partially re-centered.
+    total_deaths
+        Total number of deaths by location at the latest date observed.
+
+    Returns
+    -------
+        A series with the computed offset by location.
+
+    """
     average_log_beta_resid_mean = (pd.concat([d.log_beta_residual_mean for d in scaling_data])
                                    .groupby(level='location_id')
                                    .mean())
