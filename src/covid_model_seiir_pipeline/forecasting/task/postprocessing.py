@@ -24,6 +24,18 @@ def run_seir_postprocessing(forecast_version: str) -> None:
 
     for scenario in forecast_spec.scenarios:
         infections, deaths, r_effective = load_output_data(scenario, data_interface)
+        cum_deaths = deaths.groupby(level='location_id').cumsum()
+        max_deaths = cum_deaths.groupby(level='location_id').max()
+        upper_deaths = max_deaths.quantile(.975, axis=1)
+        lower_deaths = max_deaths.quantile(.025, axis=1)
+        resample_map = {}
+        for location_id in max_deaths.index:
+            upper, lower = upper_deaths.at[location_id], lower_deaths.at[location_id]
+            loc_deaths = max_deaths.loc[location_id]
+            to_resample = loc_deaths[(upper < loc_deaths) | (loc_deaths < upper)].index.tolist()
+            to_fill = np.random.choice(loc_deaths.index, len(to_resample), replace=False)
+            resample_map[location_id] = (to_resample, to_fill)
+
 
 
 def load_output_data(scenario: str, data_interface: ForecastDataInterface):
@@ -43,6 +55,8 @@ def load_output_data(scenario: str, data_interface: ForecastDataInterface):
     return infections, deaths, r_effective
 
 
+
+
 def concat_measure(measure_data: List[pd.Series]) -> pd.DataFrame:
     return pd.concat(measure_data, axis=1)
 
@@ -50,9 +64,9 @@ def concat_measure(measure_data: List[pd.Series]) -> pd.DataFrame:
 def load_output_data_by_draw(draw_id: int, scenario: str, data_interface: ForecastDataInterface):
     draw_df = data_interface.load_outputs(scenario, draw_id)
     draw_df = draw_df.set_index(['location_id', 'date']).sort_index()
-    deaths = draw_df['deaths'].rename(f'draw_{draw_id}')
-    infections = draw_df['infections'].rename(f'draw_{draw_id}')
-    r_effective = draw_df['r_effective'].rename(f'draw_{draw_id}')
+    deaths = draw_df['deaths'].rename(draw_id)
+    infections = draw_df['infections'].rename(draw_id)
+    r_effective = draw_df['r_effective'].rename(draw_id)
     return deaths, infections, r_effective
 
 
