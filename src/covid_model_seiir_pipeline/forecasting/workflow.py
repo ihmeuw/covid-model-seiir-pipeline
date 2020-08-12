@@ -18,7 +18,7 @@ class BetaResidualScalingTaskTemplate(TaskTemplate):
     command_template = (
             "beta_residual_scaling " +
             "--forecast-version {forecast_version} " +
-            "--scenario {scenario}"
+            "--scenario-name {scenario}"
     )
     params = ExecutorParameters(
         max_runtime_seconds=FORECAST_RUNTIME,
@@ -35,7 +35,7 @@ class BetaForecastTaskTemplate(TaskTemplate):
         "beta_forecast " +
         "--draw-id {draw_id} " +
         "--forecast-version {forecast_version} " +
-        "--scenario {scenario}"
+        "--scenario-name {scenario}"
     )
     params = ExecutorParameters(
         max_runtime_seconds=FORECAST_RUNTIME,
