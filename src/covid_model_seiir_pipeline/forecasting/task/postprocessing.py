@@ -4,7 +4,7 @@ import logging
 import multiprocessing
 from pathlib import Path
 import shlex
-from typing import Optional, Tuple
+from typing import Optional, List
 
 import numpy as np
 import pandas as pd
@@ -35,28 +35,25 @@ def load_output_data(scenario: str, data_interface: ForecastDataInterface):
     draws = range(data_interface.get_n_draws())
     with multiprocessing.Pool(30) as pool:
         outputs = list(pool.map(_runner, draws))
-    deaths, infections, r_effective = zip(outputs)
+    deaths, infections, r_effective = zip(*outputs)
 
-    deaths = pd.concat(deaths, axis=1)
-    infections = pd.concat(infections, axis=1)
-    r_effective = pd.concat(r_effective, axis=1)
+    with multiprocessing.Pool(3) as pool:
+        deaths, infections, r_effective = pool.map(concat_measure, [deaths, infections, r_effective])
 
     return infections, deaths, r_effective
 
 
+def concat_measure(measure_data: List[pd.Series]) -> pd.DataFrame:
+    return pd.concat(measure_data, axis=1)
 
 
-
-
-
-def load_output_data_by_draw(draw_id: int, scenario: str, data_interface: ForecastDataInterface) -> Tuple[int, pd.DataFrame]:
+def load_output_data_by_draw(draw_id: int, scenario: str, data_interface: ForecastDataInterface):
     draw_df = data_interface.load_outputs(scenario, draw_id)
     draw_df = draw_df.set_index(['location_id', 'date']).sort_index()
     deaths = draw_df['deaths'].rename(f'draw_{draw_id}')
     infections = draw_df['infections'].rename(f'draw_{draw_id}')
     r_effective = draw_df['r_effective'].rename(f'draw_{draw_id}')
     return deaths, infections, r_effective
-
 
 
 def parse_arguments(argstr: Optional[str] = None) -> Namespace:
