@@ -42,7 +42,7 @@ def run_beta_forecast(draw_id: int, forecast_version: str, scenario_name: str):
 
     # We'll use the beta and SEIR compartments from this data set to get
     # the ODE initial condition.
-    beta_regression_df = data_interface.load_beta_regression(draw_id)
+    beta_regression_df = data_interface.load_beta_regression(draw_id).set_index('location_id').sort_index()
 
     # Covariates and coefficients, and scaling parameters are
     # used to compute beta hat in the future.
@@ -70,10 +70,7 @@ def run_beta_forecast(draw_id: int, forecast_version: str, scenario_name: str):
 
     transition_day = beta_regression_df['date'] == transition_date.loc[beta_regression_df.index]
     compartments = ['S', 'E', 'I1', 'I2', 'R']
-    initial_condition = (beta_regression_df
-                         .set_index('location_id')
-                         .sort_index()
-                         .loc[transition_day, compartments])
+    initial_condition = beta_regression_df.loc[transition_day, compartments]
 
     forecasts = []
     for location_id in location_ids:
