@@ -40,7 +40,9 @@ class DataTypes:
     coefficient = "coefficients"
     components = "component_draws"
     date = "dates"
-    forecast_outputs = "outputs"  # TODO: this could have a clearer directory name
+    forecast_raw_outputs = "raw_outputs"
+    forecast_output_draws = "output_draws"
+    forecast_output_summaries = "output_summaries"
     location_data = "data"
     parameter = "parameters"
     regression_beta = "beta"
@@ -54,7 +56,9 @@ class DataTypes:
         regression_beta,
         beta_scales,
         components,
-        forecast_outputs,
+        forecast_raw_outputs,
+        forecast_output_draws,
+        forecast_output_summaries
     ])
 
 
@@ -108,8 +112,16 @@ class Keys:
         return cls(DataTypes.components, DRAW_FILE_TEMPLATE, scenario=scenario, draw_id=draw_id)
 
     @classmethod
-    def forecast_outputs(cls, scenario, draw_id):
-        return cls(DataTypes.forecast_outputs, DRAW_FILE_TEMPLATE, scenario=scenario, draw_id=draw_id)
+    def forecast_raw_outputs(cls, scenario, draw_id):
+        return cls(DataTypes.forecast_raw_outputs, DRAW_FILE_TEMPLATE, scenario=scenario, draw_id=draw_id)
+
+    @classmethod
+    def forecast_output_draws(cls, scenario, measure):
+        return cls(DataTypes.forecast_output_draws, "{measure}.csv", scenario=scenario, measure=measure)
+
+    @classmethod
+    def forecast_output_summaries(cls, scenario, measure):
+        return cls(DataTypes.forecast_output_draws, "{measure}.csv", scenario=scenario, measure=measure)
 
     # other methods/properties
     @property
