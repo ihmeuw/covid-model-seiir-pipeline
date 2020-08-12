@@ -45,7 +45,6 @@ def run_seir_postprocessing(forecast_version: str) -> None:
             data_interface.save_output_summaries(summarized_data.reset_index(), scenario, measure)
 
 
-
 def summarize(data: pd.DataFrame):
     data['mean'] = data.mean(axis=1)
     data['upper'] = data.quantile(.975, axis=1)

@@ -83,13 +83,14 @@ class ForecastSpecification(Specification):
     def parse_spec_dict(cls, forecast_spec_dict: Dict) -> Tuple:
         """Construct forecast specification args from a dict."""
         data = ForecastData(**forecast_spec_dict.get('data', {}))
+        postprocessing = PostprocessingSpecification(**forecast_spec_dict.get('postprocessing', {}))
         scenario_dicts = forecast_spec_dict.get('scenarios', {})
         scenarios = []
         for name, scenario_spec in scenario_dicts.items():
             scenarios.append(ScenarioSpecification(name, **scenario_spec))
         if not scenarios:
             scenarios.append(ScenarioSpecification())
-        return tuple(itertools.chain([data], scenarios))
+        return tuple(itertools.chain([data, postprocessing], scenarios))
 
     @property
     def data(self) -> 'ForecastData':
