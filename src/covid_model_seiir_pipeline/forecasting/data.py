@@ -96,11 +96,11 @@ class ForecastDataInterface:
     def load_total_deaths(self):
         """Load cumulative deaths by location."""
         # TODO: add metadata to regression and forecast paths.
-        with (self.forecast_paths.root_dir / 'metadata.yaml').open() as metadata_file:
+        with (self.regression_paths.root_dir / 'metadata.yaml').open() as metadata_file:
             metadata = yaml.full_load(metadata_file)
 
         # TODO: metadata abstraction?
-        model_inputs_version = metadata['regression_metadata']['infectionator_metadata']['death']['metadata']['model_inputs_metadata']['output_path']
+        model_inputs_version = metadata['infectionator_metadata']['death']['metadata']['model_inputs_metadata']['output_path']
         full_data_path = Path(model_inputs_version) / 'full_data.csv'
         full_data = pd.read_csv(full_data_path)
         total_deaths = full_data.groupby('location_id')['Deaths'].max().rename('deaths').reset_index()
