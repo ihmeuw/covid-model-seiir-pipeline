@@ -104,6 +104,7 @@ class ForecastDataInterface:
         full_data_path = Path(model_inputs_version) / 'full_data.csv'
         full_data = pd.read_csv(full_data_path)
         total_deaths = full_data.groupby('location_id')['Deaths'].max().rename('deaths').reset_index()
+        total_deaths['location_id'] = total_deaths['location_id'].astype(int)
         return total_deaths
 
     def load_regression_coefficients(self, draw_id: int) -> pd.DataFrame:

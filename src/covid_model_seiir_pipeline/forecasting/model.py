@@ -130,6 +130,7 @@ def beta_shift(beta_hat: pd.DataFrame,
 
     """
     beta_scales = beta_scales.set_index('location_id')
+    beta_hat = beta_hat.sort_values(['location_id', 'date']).set_index('location_id')
     scale_init = beta_scales['scale_init']
     scale_final = beta_scales['scale_final']
     window_size = beta_scales['window_size']
