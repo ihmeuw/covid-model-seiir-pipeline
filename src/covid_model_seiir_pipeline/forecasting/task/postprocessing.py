@@ -26,8 +26,6 @@ def run_seir_postprocessing(forecast_version: str) -> None:
         infections, deaths, r_effective = load_output_data(scenario, data_interface)
 
 
-
-
 def load_output_data(scenario: str, data_interface: ForecastDataInterface):
     _runner = functools.partial(
         load_output_data_by_draw,
@@ -36,18 +34,11 @@ def load_output_data(scenario: str, data_interface: ForecastDataInterface):
     )
     draws = range(data_interface.get_n_draws())
     with multiprocessing.Pool(30) as pool:
-        outputs =  list(pool.map(_runner, draws))
+        outputs = list(pool.map(_runner, draws))
+    deaths, infections, r_effective = zip(outputs)
 
-    infections = []
-    deaths = []
-    r_effective = []
-    for draw_id, draw_df in outputs:
-        draw_df = draw_df.set_index(['location_id', 'date']).sort_index()
-        infections.append(draw_df['infections'].rename(f'draw_{draw_id}'))
-        deaths.append(draw_df['deaths'].rename(f'draw_{draw_id}'))
-        r_effective.append(draw_df['r_effective'].rename(f'draw_{draw_id}'))
-    infections = pd.concat(infections, axis=1)
     deaths = pd.concat(deaths, axis=1)
+    infections = pd.concat(infections, axis=1)
     r_effective = pd.concat(r_effective, axis=1)
 
     return infections, deaths, r_effective
@@ -59,8 +50,12 @@ def load_output_data(scenario: str, data_interface: ForecastDataInterface):
 
 
 def load_output_data_by_draw(draw_id: int, scenario: str, data_interface: ForecastDataInterface) -> Tuple[int, pd.DataFrame]:
-    return draw_id, data_interface.load_outputs(scenario, draw_id)
-
+    draw_df = data_interface.load_outputs(scenario, draw_id)
+    draw_df = draw_df.set_index(['location_id', 'date']).sort_index()
+    deaths = draw_df['deaths'].rename(f'draw_{draw_id}')
+    infections = draw_df['infections'].rename(f'draw_{draw_id}')
+    r_effective = draw_df['r_effective'].rename(f'draw_{draw_id}')
+    return deaths, infections, r_effective
 
 
 
