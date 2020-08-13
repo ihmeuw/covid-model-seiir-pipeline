@@ -42,35 +42,31 @@ def run_beta_forecast(draw_id: int, forecast_version: str, scenario_name: str):
 
     # We'll use the beta and SEIR compartments from this data set to get
     # the ODE initial condition.
-    beta_regression_df = data_interface.load_beta_regression(draw_id)
+    beta_regression_df = data_interface.load_beta_regression(draw_id).set_index('location_id').sort_index()
 
-    # We'll use the covariates and coefficients to compute beta hat in the
-    # future.
+    # Covariates and coefficients, and scaling parameters are
+    # used to compute beta hat in the future.
     covariates = data_interface.load_covariates(scenario_spec, location_ids)
     coefficients = data_interface.load_regression_coefficients(draw_id)
+    beta_scales = data_interface.load_beta_scales(scenario=scenario_name, draw_id=draw_id)
 
     # We'll use the same params in the ODE forecast as we did in the fit.
     beta_params = data_interface.load_beta_params(draw_id=draw_id)
 
     # Modeling starts
 
-    # Align date in data sets
-    # We want the past out of the regression data. Keep the overlap day.
-    beta_regression_df = beta_regression_df.set_index('location_id').sort_index()
-    idx = beta_regression_df.index
-    beta_past = beta_regression_df.loc[beta_regression_df['date'] <= transition_date.loc[idx]].reset_index()
-
-    # For covariates, we want the future.  Also keep the overlap day
+    # Grab the projection of the covariates into the future, keeping the
+    # day of transition from past model to future model.
     covariates = covariates.set_index('location_id').sort_index()
-    idx = covariates.index
-    covariate_pred = covariates.loc[covariates['date'] >= transition_date.loc[idx]].reset_index()
+    the_future = covariates['date'] >= transition_date.loc[covariates.index]
+    covariate_pred = covariates.loc[the_future].reset_index()
 
     log_beta_hat = compute_beta_hat(covariate_pred, coefficients)
     beta_hat = np.exp(log_beta_hat).rename('beta_pred').reset_index()
 
-    betas, scale_params = model.beta_shift(beta_past, beta_hat, transition_date,
-                                           draw_id, **scenario_spec.beta_scaling)
-    betas = betas.set_index('location_id')
+    # Rescale the predictions of beta based on the residuals from the
+    # regression.
+    betas = model.beta_shift(beta_hat, beta_scales).set_index('location_id')
 
     transition_day = beta_regression_df['date'] == transition_date.loc[beta_regression_df.index]
     compartments = ['S', 'E', 'I1', 'I2', 'R']
@@ -111,8 +107,6 @@ def run_beta_forecast(draw_id: int, forecast_version: str, scenario_name: str):
                     .set_index(['location_id']))
     components['theta'] = thetas.reindex(components.index).fillna(0)
     data_interface.save_components(components, scenario_name, draw_id)
-
-    data_interface.save_beta_scales(scale_params, scenario_name, draw_id)
 
     infection_data = data_interface.load_infection_data(draw_id)
 
