@@ -148,6 +148,5 @@ def main():
     run_seir_postprocessing(forecast_version=args.forecast_version)
 
 
-
 if __name__ == '__main__':
     main()

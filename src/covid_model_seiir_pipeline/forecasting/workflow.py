@@ -7,6 +7,7 @@ from covid_model_seiir_pipeline.workflow_template import TaskTemplate, WorkflowT
 
 FORECAST_RUNTIME = 1000
 FORECAST_MEMORY = '5G'
+POSTPROCESS_MEMORY = '50G'
 FORECAST_CORES = 1
 FORECAST_SCALING_CORES = 50
 FORECAST_QUEUE = 'd.q'
@@ -45,17 +46,38 @@ class BetaForecastTaskTemplate(TaskTemplate):
     )
 
 
+class PostprocessingTaskTemplate(TaskTemplate):
+    task_name_template = "seiir_post_processing"
+    command_template = (
+            "postprocess " +
+            "--forecast-version {forecast_version} "
+    )
+    params = ExecutorParameters(
+        max_runtime_seconds=FORECAST_RUNTIME,
+        m_mem_free=POSTPROCESS_MEMORY,
+        num_cores=FORECAST_SCALING_CORES,
+        queue=FORECAST_QUEUE
+    )
+
+
 class ForecastWorkflow(WorkflowTemplate):
 
     workflow_name_template = 'seiir-forecast-{version}'
     task_templates = {
         'scaling': BetaResidualScalingTaskTemplate,
-        'forecast': BetaForecastTaskTemplate
+        'forecast': BetaForecastTaskTemplate,
+        'postprocess': PostprocessingTaskTemplate
     }
 
     def attach_tasks(self, n_draws: int, scenarios: List[str]):
         scaling_template = self.task_templates['scaling']
         forecast_template = self.task_templates['forecast']
+        postprocessing_template = self.task_templates['postprocess']
+
+        postprocessing_task = postprocessing_template.get_task(
+            forecast_version=self.version
+        )
+        self.workflow.add_task(postprocessing_task)
         for scenario in scenarios:
             scaling_task = scaling_template.get_task(
                 forecast_version=self.version,
@@ -69,4 +91,5 @@ class ForecastWorkflow(WorkflowTemplate):
                     scenario=scenario
                 )
                 forecast_task.add_upstream(scaling_task)
+                forecast_task.add_downstream(postprocessing_task)
                 self.workflow.add_task(forecast_task)
