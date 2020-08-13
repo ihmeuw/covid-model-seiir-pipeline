@@ -121,7 +121,7 @@ class Keys:
 
     @classmethod
     def forecast_output_summaries(cls, scenario, measure):
-        return cls(DataTypes.forecast_output_draws, "{measure}.csv", scenario=scenario, measure=measure)
+        return cls(DataTypes.forecast_output_summaries, "{measure}.csv", scenario=scenario, measure=measure)
 
     # other methods/properties
     @property
