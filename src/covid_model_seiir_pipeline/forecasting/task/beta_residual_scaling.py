@@ -19,7 +19,7 @@ log = logging.getLogger(__name__)
 
 
 def run_compute_beta_scaling_parameters(forecast_version: str, scenario_name: str):
-    """Pre-compute the parameterization for rescaling predicted beta.
+    """Pre-compute the parameters for rescaling predicted beta and write out.
 
     The predicted beta has two issues we're attempting to adjust.
 
@@ -202,7 +202,7 @@ def write_out_beta_scale(beta_scales: List[pd.DataFrame],
     )
     with multiprocessing.Pool(FORECAST_SCALING_CORES) as pool:
         pool.map(_runner, beta_scales)
-    
+
 
 
 def write_out_beta_scales_by_draw(beta_scales: pd.DataFrame, data_interface: ForecastDataInterface,
