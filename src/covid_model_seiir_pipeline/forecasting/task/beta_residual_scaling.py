@@ -124,8 +124,8 @@ def compute_residual_mean_offset(scaling_data: List[pd.DataFrame],
 def compute_initial_beta_scaling_paramters(total_deaths: pd.Series,
                                            beta_scaling: dict,
                                            data_interface: ForecastDataInterface) -> List[pd.DataFrame]:
-    # I/O is our bottleneck, so we parallelize draw level data ingestion
-    # and computation across multiple processes.
+    # Serialization is our bottleneck, so we parallelize draw level data
+    # ingestion and computation across multiple processes.
     _runner = functools.partial(
         compute_initial_beta_scaling_parameters_by_draw,
         total_deaths=total_deaths,
