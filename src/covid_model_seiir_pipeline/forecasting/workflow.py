@@ -1,10 +1,11 @@
-from itertools import product
 from typing import List
 
 from jobmon.client.swarm.executors.base import ExecutorParameters
 
 from covid_model_seiir_pipeline.workflow_template import TaskTemplate, WorkflowTemplate
 
+# TODO: Extract these into specification, maybe.  At least allow overrides
+#    for the queue from the command line.
 FORECAST_RUNTIME = 1000
 FORECAST_MEMORY = '5G'
 POSTPROCESS_MEMORY = '50G'
