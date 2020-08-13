@@ -34,5 +34,5 @@ def do_beta_regression(app_metadata: cli_tools.Metadata,
     # build workflow and launch
     if not preprocess_only:
         regression_wf = RegressionWorkflow(regression_specification.data.output_root)
-        regression_wf.attach_beta_regression_tasks(n_draws=regression_specification.parameters.n_draws)
+        regression_wf.attach_tasks(n_draws=regression_specification.parameters.n_draws)
         regression_wf.run()
