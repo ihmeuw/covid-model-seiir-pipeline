@@ -17,6 +17,9 @@ log = logging.getLogger(__name__)
 
 LOAD_OUTPUT_CPUS = 3
 
+# TODO: reevaluate how multiprocessing is being used. Still firmly in the
+#   "make it work" phase
+
 
 def run_seir_postprocessing(forecast_version: str) -> None:
     forecast_spec = ForecastSpecification.from_path(
