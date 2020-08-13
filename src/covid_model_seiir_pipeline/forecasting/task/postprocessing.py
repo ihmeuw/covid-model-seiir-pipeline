@@ -23,12 +23,12 @@ def run_seir_postprocessing(forecast_version: str) -> None:
         Path(forecast_version) / static_vars.FORECAST_SPECIFICATION_FILE
     )
     data_interface = ForecastDataInterface.from_specification(forecast_spec)
-
     resampling_params = forecast_spec.postprocessing.resampling
     resampling_map = build_resampling_map(resampling_params, data_interface)
 
     for scenario in forecast_spec.scenarios:
         deaths, infections, r_effective = load_output_data(scenario, data_interface)
+        deaths, infections, r_effective = concat_measures(deaths, infections, r_effective)
         deaths, infections, r_effective = resample_draws(resampling_map, deaths, infections, r_effective)
         cumulative_deaths = deaths.groupby(level='location_id').cumsum()
         cumulative_infections = infections.groupby(level='location_id').cumsum()
@@ -62,11 +62,12 @@ def resample_draws(resampling_map, *measure_data: pd.DataFrame):
     return resampled
 
 
-def resample_draws_by_measure(resampling_map, measure_data: pd.DataFrame):
+def resample_draws_by_measure(measure_data: pd.DataFrame, resampling_map):
     output = []
     for location_id, (to_drop, to_fill) in resampling_map.items():
         loc_data = measure_data.loc[location_id]
-        loc_data.loc[:, to_drop] = loc_data.loc[:, to_fill]
+        loc_data[to_drop] = loc_data[to_fill]
+        loc_data = pd.concat({location_id: loc_data}, names=['location_id'])
         output.append(loc_data)
 
     resampled = pd.concat(output)
@@ -86,10 +87,9 @@ def build_resampling_map(resampling_params: Dict, data_interface: ForecastDataIn
     for location_id in max_deaths.index:
         upper, lower = upper_deaths.at[location_id], lower_deaths.at[location_id]
         loc_deaths = max_deaths.loc[location_id]
-        to_resample = loc_deaths[(upper < loc_deaths) | (loc_deaths < upper)].index.tolist()
+        to_resample = loc_deaths[(upper < loc_deaths) | (loc_deaths < lower)].index.tolist()
         to_fill = np.random.choice(loc_deaths.index, len(to_resample), replace=False)
         resample_map[location_id] = (to_resample, to_fill)
-
     return resample_map
 
 
@@ -108,7 +108,7 @@ def load_output_data(scenario: str, data_interface: ForecastDataInterface):
 
 
 def load_output_data_by_draw(draw_id: int, scenario: str, data_interface: ForecastDataInterface):
-    draw_df = data_interface.load_outputs(scenario, draw_id)
+    draw_df = data_interface.load_raw_outputs(scenario, draw_id)
     draw_df = draw_df.set_index(['location_id', 'date']).sort_index()
     deaths = draw_df['deaths'].rename(draw_id)
     infections = draw_df['infections'].rename(draw_id)
@@ -122,7 +122,7 @@ def concat_measures(*measure_data: List[pd.Series]) -> List[pd.DataFrame]:
         axis=1
     )
     with multiprocessing.Pool(LOAD_OUTPUT_CPUS) as pool:
-        measure_data = pool.map(_runner, *measure_data)
+        measure_data = pool.map(_runner, measure_data)
     return measure_data
 
 
