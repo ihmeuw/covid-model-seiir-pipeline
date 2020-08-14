@@ -68,7 +68,7 @@ class ScenarioPaths(Paths):
     @property
     def outputs(self) -> Path:
         """Cases, deaths, and effective R."""
-        return self.root_dir / 'outputs'
+        return self.root_dir / 'raw_outputs'
 
     def get_outputs_path(self, draw_id: int) -> Path:
         """Single draw of forecast outputs."""

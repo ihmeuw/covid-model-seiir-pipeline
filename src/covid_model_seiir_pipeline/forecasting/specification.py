@@ -60,29 +60,46 @@ class ScenarioSpecification:
         return {k: v for k, v in asdict(self).items() if k != 'name'}
 
 
+@dataclass
+class PostprocessingSpecification:
+
+    resampling: Dict = field(default_factory=dict)
+
+    def to_dict(self) -> Dict:
+        return asdict(self)
+
+
 class ForecastSpecification(Specification):
     """Specification for a beta forecast run."""
 
-    def __init__(self, data: ForecastData, *scenarios: ScenarioSpecification):
+    def __init__(self, data: ForecastData,
+                 postprocessing: PostprocessingSpecification,
+                 *scenarios: ScenarioSpecification):
         self._data = data
+        self._postprocessing = postprocessing
         self._scenarios = {s.name: s for s in scenarios}
 
     @classmethod
     def parse_spec_dict(cls, forecast_spec_dict: Dict) -> Tuple:
         """Construct forecast specification args from a dict."""
         data = ForecastData(**forecast_spec_dict.get('data', {}))
+        postprocessing = PostprocessingSpecification(**forecast_spec_dict.get('postprocessing', {}))
         scenario_dicts = forecast_spec_dict.get('scenarios', {})
         scenarios = []
         for name, scenario_spec in scenario_dicts.items():
             scenarios.append(ScenarioSpecification(name, **scenario_spec))
         if not scenarios:
             scenarios.append(ScenarioSpecification())
-        return tuple(itertools.chain([data], scenarios))
+        return tuple(itertools.chain([data, postprocessing], scenarios))
 
     @property
     def data(self) -> 'ForecastData':
         """The forecast data specification."""
         return self._data
+
+    @property
+    def postprocessing(self) -> PostprocessingSpecification:
+        return self._postprocessing
 
     @property
     def scenarios(self) -> Dict[str, ScenarioSpecification]:
@@ -93,5 +110,6 @@ class ForecastSpecification(Specification):
         """Convert the specification to a dict."""
         return {
             'data': self.data.to_dict(),
+            'postprocessing': self.postprocessing.to_dict(),
             'scenarios': {k: v.to_dict() for k, v in self._scenarios.items()}
         }

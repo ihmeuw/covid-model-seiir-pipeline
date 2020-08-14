@@ -19,7 +19,7 @@ log = logging.getLogger(__name__)
 
 
 def run_compute_beta_scaling_parameters(forecast_version: str, scenario_name: str):
-    """Pre-compute the parameterization for rescaling predicted beta.
+    """Pre-compute the parameters for rescaling predicted beta and write out.
 
     The predicted beta has two issues we're attempting to adjust.
 
@@ -124,8 +124,8 @@ def compute_residual_mean_offset(scaling_data: List[pd.DataFrame],
 def compute_initial_beta_scaling_paramters(total_deaths: pd.Series,
                                            beta_scaling: dict,
                                            data_interface: ForecastDataInterface) -> List[pd.DataFrame]:
-    # I/O is our bottleneck, so we parallelize draw level data ingestion
-    # and computation across multiple processes.
+    # Serialization is our bottleneck, so we parallelize draw level data
+    # ingestion and computation across multiple processes.
     _runner = functools.partial(
         compute_initial_beta_scaling_parameters_by_draw,
         total_deaths=total_deaths,
@@ -202,7 +202,7 @@ def write_out_beta_scale(beta_scales: List[pd.DataFrame],
     )
     with multiprocessing.Pool(FORECAST_SCALING_CORES) as pool:
         pool.map(_runner, beta_scales)
-    
+
 
 
 def write_out_beta_scales_by_draw(beta_scales: pd.DataFrame, data_interface: ForecastDataInterface,

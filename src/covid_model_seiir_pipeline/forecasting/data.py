@@ -165,8 +165,16 @@ class ForecastDataInterface:
     def load_beta_scales(self, scenario: str, draw_id: int):
         return self.forecast_marshall.load(MKeys.beta_scales(scenario=scenario, draw_id=draw_id))
 
-    def save_outputs(self, outputs: pd.DataFrame, scenario: str, draw_id: int):
-        self.forecast_marshall.dump(outputs, key=MKeys.forecast_outputs(scenario=scenario, draw_id=draw_id))
+    def save_raw_outputs(self, raw_outputs: pd.DataFrame, scenario: str, draw_id: int):
+        self.forecast_marshall.dump(raw_outputs, key=MKeys.forecast_raw_outputs(scenario=scenario, draw_id=draw_id))
 
-    def load_outputs(self, scenario: str, draw_id: int) -> pd.DataFrame:
-        return self.forecast_marshall.load(key=MKeys.forecast_outputs(scenario=scenario, draw_id=draw_id))
+    def load_raw_outputs(self, scenario: str, draw_id: int) -> pd.DataFrame:
+        return self.forecast_marshall.load(key=MKeys.forecast_raw_outputs(scenario=scenario, draw_id=draw_id))
+
+    def save_output_draws(self, output_draws: pd.DataFrame, scenario: str, measure: str):
+        return self.forecast_marshall.dump(output_draws,
+                                           key=MKeys.forecast_output_draws(scenario=scenario, measure=measure))
+
+    def save_output_summaries(self, output_summaries: pd.DataFrame, scenario: str, measure: str):
+        return self.forecast_marshall.dump(output_summaries,
+                                           key=MKeys.forecast_output_summaries(scenario=scenario, measure=measure))

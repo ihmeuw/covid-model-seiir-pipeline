@@ -160,7 +160,7 @@ def test_CSVMarshall_uses_same_paths_as_paths_module(tmpdir):
     # save_beta_scales
     assert f.get_beta_scaling_path(**sdargs) == m.resolve_key(Keys.beta_scales(**sdargs))
     # save_outputs
-    assert f.get_outputs_path(**sdargs) == m.resolve_key(Keys.forecast_outputs(**sdargs))
+    assert f.get_outputs_path(**sdargs) == m.resolve_key(Keys.forecast_raw_outputs(**sdargs))
 
     # regression/data.py
     # save_beta_param_file
