@@ -106,7 +106,7 @@ def run_beta_forecast(draw_id: int, forecast_version: str, scenario_name: str):
                     .sort_values(['location_id', 'date'])
                     .set_index(['location_id']))
     components['theta'] = thetas.reindex(components.index).fillna(0)
-    data_interface.save_components(components, scenario_name, draw_id)
+    data_interface.save_components(components.reset_index(), scenario_name, draw_id)
 
     infection_data = data_interface.load_infection_data(draw_id)
 
