@@ -26,6 +26,9 @@ def run_seir_postprocessing(forecast_version: str) -> None:
         Path(forecast_version) / static_vars.FORECAST_SPECIFICATION_FILE
     )
     data_interface = ForecastDataInterface.from_specification(forecast_spec)
+
+    beta_residuals = load_beta_residuals(data_interface)
+
     resampling_params = forecast_spec.postprocessing.resampling
     resampling_map = build_resampling_map(resampling_params, data_interface)
 
@@ -35,17 +38,46 @@ def run_seir_postprocessing(forecast_version: str) -> None:
         deaths, infections, r_effective = resample_draws(resampling_map, deaths, infections, r_effective)
         cumulative_deaths = deaths.groupby(level='location_id').cumsum()
         cumulative_infections = infections.groupby(level='location_id').cumsum()
+        betas = load_betas(scenario, data_interface)
         output_draws = {
             'daily_deaths': deaths,
             'daily_infections': infections,
             'r_effective': r_effective,
             'cumulative_deaths': cumulative_deaths,
             'cumulative_infections': cumulative_infections,
+            'betas': betas,
+            'log_beta_residuals': beta_residuals,
         }
         for measure, data in output_draws.items():
             data_interface.save_output_draws(data.reset_index(), scenario, measure)
             summarized_data = summarize(data)
             data_interface.save_output_summaries(summarized_data.reset_index(), scenario, measure)
+
+
+def load_betas(scenario: str, data_interface: ForecastDataInterface):
+    betas = []
+    for draw_id in range(data_interface.get_n_draws()):
+        components = data_interface.load_components(scenario, draw_id)
+        components['date'] = pd.to_datetime(components['date'])
+        draw_betas = (components
+                      .set_index(['location_id', 'date'])
+                      .sort_index()['beta']
+                      .rename(f'draw_{draw_id}'))
+        betas.append(draw_betas)
+    return pd.concat(betas, axis=1)
+
+
+def load_beta_residuals(data_interface: ForecastDataInterface):
+    beta_residuals = []
+    for draw_id in range(data_interface.get_n_draws()):
+        beta_regression = data_interface.load_beta_regression(draw_id)
+        beta_regression = (beta_regression
+                           .set_index(['location_id', 'date'])
+                           .sort_index()[['beta', 'beta_pred']])
+        beta_residual = np.log(beta_regression['beta'] / beta_regression['beta_pred']).rename(f'draw_{draw_id}')
+        beta_residuals.append(beta_residual)
+
+    return pd.concat(beta_residuals, axis=1)
 
 
 def summarize(data: pd.DataFrame):
