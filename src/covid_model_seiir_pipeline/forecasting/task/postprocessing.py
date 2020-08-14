@@ -46,7 +46,7 @@ def run_seir_postprocessing(forecast_version: str) -> None:
             'cumulative_deaths': cumulative_deaths,
             'cumulative_infections': cumulative_infections,
             'betas': betas,
-            'beta_residuals': beta_residuals,
+            'log_beta_residuals': beta_residuals,
         }
         for measure, data in output_draws.items():
             data_interface.save_output_draws(data.reset_index(), scenario, measure)
