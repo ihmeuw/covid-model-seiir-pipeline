@@ -6,6 +6,8 @@ from odeopt.ode import RK4
 from odeopt.ode import ODESys
 import pandas as pd
 
+from covid_model_seiir_pipeline.math import compute_beta_hat
+
 
 class CustomizedSEIIR(ODESys):
     """Customized SEIIR ODE system."""
@@ -27,12 +29,12 @@ class CustomizedSEIIR(ODESys):
         self.delta = delta
 
         # create parameter names
-        params = ['beta', 'theta']
+        self.params = ['beta', 'theta']
 
         # create component names
-        components = ['S', 'E', 'I1', 'I2', 'R']
+        self.components = ['S', 'E', 'I1', 'I2', 'R']
 
-        super().__init__(self.system, params, components, *args)
+        super().__init__(self.system, self.params, self.components, *args)
 
     def system(self, t: float, y: np.ndarray, p: np.ndarray) -> np.ndarray:
         """ODE System.
@@ -83,30 +85,94 @@ class SeiirModelSpecs:
 
 class ODERunner:
 
-    def __init__(self, model_specs: SeiirModelSpecs, init_cond: np.ndarray):
-        self.model_specs = model_specs
-        self.init_cond = init_cond
-
-    def get_solution(self, times, beta, theta=None, solver="RK4"):
-        model = CustomizedSEIIR(**asdict(self.model_specs))
-        if solver == "RK4":
-            solver = RK4(model.system, self.model_specs.delta)
+    def __init__(self, solver_name: str, model_specs: SeiirModelSpecs):
+        self.system = CustomizedSEIIR(**asdict(model_specs))
+        if solver_name == "RK4":
+            self.solver = RK4(self.system, model_specs.delta)
         else:
-            raise ValueError("Unknown solver type")
+            raise NotImplementedError(f"Unknown solver type {solver_name}.")
 
-        if theta is None:
-            theta = np.zeros(beta.size)
-        else:
-            assert beta.size == theta.size, f"beta ({beta.size}) and theta ({theta.size}) must have same size."
-
-        solution = solver.solve(t=times, init_cond=self.init_cond, t_params=times,
-                                params=np.vstack((beta, theta)))
-        result = pd.DataFrame(
-            data=np.concatenate([solution, times.reshape((1, -1)),
-                                 beta.reshape((1, -1)), theta.reshape((1, -1))], axis=0).T,
-            columns=["S", "E", "I1", "I2", "R", "t", "beta", "theta"]
+    def get_solution(self, initial_condition, times, beta, theta):
+        solution = self.solver.solve(
+            t=times,
+            init_cond=initial_condition,
+            t_params=times,
+            params=np.vstack((beta, theta))
         )
+
+        result_array = np.concatenate([
+            solution,
+            beta.reshape((1, -1)),
+            theta.reshape((1, -1)),
+            times.reshape((1, -1))
+        ], axis=0).T
+
+        result = pd.DataFrame(
+            data=result_array,
+            columns=self.system.components + self.system.params + ['t']
+        )
+
         return result
+
+
+def run_normal_ode_model_by_location(initial_condition, beta_params, betas, thetas, location_ids, solver):
+    forecasts = []
+    for location_id in location_ids:
+        init_cond = initial_condition.loc[location_id].values
+        total_population = init_cond.sum()
+
+        model_specs = SeiirModelSpecs(
+            alpha=beta_params['alpha'],
+            sigma=beta_params['sigma'],
+            gamma1=beta_params['gamma1'],
+            gamma2=beta_params['gamma2'],
+            N=total_population,
+        )
+        ode_runner = ODERunner(solver, model_specs)
+
+        loc_betas = betas.loc[location_id].sort_values('date')
+        loc_days = loc_betas['date']
+        loc_times = np.array((loc_days - loc_days.min()).dt.days)
+        loc_betas = loc_betas['beta_pred'].values
+        loc_thetas = np.repeat(thetas.get(location_id, default=0), loc_betas.size)
+
+        forecasted_components = ode_runner.get_solution(init_cond, loc_times, loc_betas, loc_thetas)
+        forecasted_components['date'] = loc_days.values
+        forecasted_components['location_id'] = location_id
+        forecasts.append(forecasted_components)
+    forecasts = pd.concat(forecasts)
+    return forecasts
+
+
+def splice_components(components_past, components_forecast, transition_day):
+    shared_columns = ['location_id', 'date', 'S', 'E', 'I1', 'I2', 'R', 'beta']
+    components_past = components_past.reset_index().loc[~transition_day, shared_columns]
+    components_forecast = components_forecast[shared_columns]
+    components = (pd.concat([components_past, components_forecast])
+                  .sort_values(['location_id', 'date'])
+                  .set_index(['location_id']))
+    return components
+
+
+def forecast_beta(covariates, coefficients, beta_shift_parameters):
+    log_beta_hat = compute_beta_hat(covariates, coefficients)
+    beta_hat = np.exp(log_beta_hat).rename('beta_pred').reset_index()
+
+    # Rescale the predictions of beta based on the residuals from the
+    # regression.
+    betas = beta_shift(beta_hat, beta_shift_parameters).set_index('location_id')
+    return betas
+
+
+def compute_output_metrics(infection_data, components, seir_params):
+    observed_infections, modeled_infections = compute_infections(infection_data, components)
+    observed_deaths, modeled_deaths = compute_deaths(infection_data, modeled_infections)
+
+    infections = observed_infections.combine_first(modeled_infections)['cases_draw'].rename('infections')
+    deaths = observed_deaths.combine_first(modeled_deaths).rename(columns={'deaths_draw': 'deaths'})
+    r_effective = compute_effective_r(infection_data, components, seir_params)
+
+    return infections, deaths, r_effective
 
 
 def beta_shift(beta_hat: pd.DataFrame,
