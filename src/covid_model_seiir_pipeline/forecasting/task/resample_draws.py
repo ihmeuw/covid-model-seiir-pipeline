@@ -12,13 +12,9 @@ import pandas as pd
 from covid_model_seiir_pipeline import static_vars
 from covid_model_seiir_pipeline.forecasting.specification import ForecastSpecification
 from covid_model_seiir_pipeline.forecasting.data import ForecastDataInterface
+from covid_model_seiir_pipeline.forecasting.workflow import FORECAST_SCALING_CORES
 
 log = logging.getLogger(__name__)
-
-LOAD_OUTPUT_CPUS = 3
-
-# TODO: reevaluate how multiprocessing is being used. Still firmly in the
-#   "make it work" phase
 
 
 def run_resample(forecast_version: str) -> None:
@@ -27,24 +23,9 @@ def run_resample(forecast_version: str) -> None:
     )
     data_interface = ForecastDataInterface.from_specification(forecast_spec)
 
-    beta_residuals = load_beta_residuals(data_interface)
-
     resampling_params = forecast_spec.postprocessing.resampling
     resampling_map = build_resampling_map(resampling_params, data_interface)
     data_interface.save_resampling_map(resampling_map)
-
-
-def load_beta_residuals(data_interface: ForecastDataInterface):
-    beta_residuals = []
-    for draw_id in range(data_interface.get_n_draws()):
-        beta_regression = data_interface.load_beta_regression(draw_id)
-        beta_regression = (beta_regression
-                           .set_index(['location_id', 'date'])
-                           .sort_index()[['beta', 'beta_pred']])
-        beta_residual = np.log(beta_regression['beta'] / beta_regression['beta_pred']).rename(f'draw_{draw_id}')
-        beta_residuals.append(beta_residual)
-
-    return pd.concat(beta_residuals, axis=1)
 
 
 def build_resampling_map(resampling_params: Dict, data_interface: ForecastDataInterface):
@@ -72,7 +53,7 @@ def load_output_data(scenario: str, data_interface: ForecastDataInterface):
         data_interface=data_interface,
     )
     draws = range(data_interface.get_n_draws())
-    with multiprocessing.Pool(LOAD_OUTPUT_CPUS) as pool:
+    with multiprocessing.Pool(FORECAST_SCALING_CORES) as pool:
         outputs = list(pool.map(_runner, draws))
     deaths, infections, r_effective = zip(*outputs)
 
@@ -93,7 +74,7 @@ def concat_measures(*measure_data: List[pd.Series]) -> List[pd.DataFrame]:
         pd.concat,
         axis=1
     )
-    with multiprocessing.Pool(LOAD_OUTPUT_CPUS) as pool:
+    with multiprocessing.Pool(FORECAST_SCALING_CORES) as pool:
         measure_data = pool.map(_runner, measure_data)
     return measure_data
 
