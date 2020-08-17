@@ -19,6 +19,7 @@ log = logging.getLogger(__name__)
 
 def run_beta_forecast(draw_id: int, forecast_version: str, scenario_name: str):
     log.info("Initiating SEIIR beta forecasting.")
+    import pdb; pdb.set_trace()
     forecast_spec: ForecastSpecification = ForecastSpecification.from_path(
         Path(forecast_version) / static_vars.FORECAST_SPECIFICATION_FILE
     )
@@ -61,14 +62,15 @@ def run_beta_forecast(draw_id: int, forecast_version: str, scenario_name: str):
     infection_data = data_interface.load_infection_data(draw_id)
 
     # Modeling starts
-
+    import pdb; pdb.set_trace()
     betas = model.forecast_beta(covariate_pred, coefficients, beta_scales)
     future_components = model.run_normal_ode_model_by_location(initial_condition, beta_params, betas, thetas,
                                                                location_ids, scenario_spec.solver)
     components = model.splice_components(past_components, future_components, transition_date)
     components['theta'] = thetas.reindex(components.index).fillna(0)
     infections, deaths, r_effective = model.compute_output_metrics(infection_data, components, beta_params)
-
+    
+    import pdb; pdb.set_trace()
     if scenario_spec.algorithm == 'mandate_reimposition':
         min_wait = pd.Timedelta(days=7 * 2)
         days_on = pd.Timedelta(days=7 * 6)

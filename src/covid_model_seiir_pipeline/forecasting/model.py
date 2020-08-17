@@ -86,9 +86,9 @@ class SeiirModelSpecs:
 class ODERunner:
 
     def __init__(self, solver_name: str, model_specs: SeiirModelSpecs):
-        self.system = CustomizedSEIIR(**asdict(model_specs))
-        if solver_name == "RK4":
-            self.solver = RK4(self.system, model_specs.delta)
+        self.model = CustomizedSEIIR(**asdict(model_specs))
+        if solver_name == "RK45":
+            self.solver = RK4(self.model.system, model_specs.delta)
         else:
             raise NotImplementedError(f"Unknown solver type {solver_name}.")
 
@@ -109,7 +109,7 @@ class ODERunner:
 
         result = pd.DataFrame(
             data=result_array,
-            columns=self.system.components + self.system.params + ['t']
+            columns=self.model.components + self.model.params + ['t']
         )
 
         return result
