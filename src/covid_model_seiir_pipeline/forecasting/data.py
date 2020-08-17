@@ -167,7 +167,7 @@ class ForecastDataInterface:
         if 'date' in info_df.columns:
             info_df['date'] = pd.to_datetime(info_df['date'])
             index_columns.append('date')
-        return info_df.set_inex(index_columns)
+        return info_df.set_index(index_columns)
 
     def load_beta_params(self, draw_id: int) -> Dict[str, float]:
         df = self.regression_marshall.load(key=MKeys.parameter(draw_id=draw_id))

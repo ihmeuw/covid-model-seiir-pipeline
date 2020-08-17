@@ -1,6 +1,6 @@
 data:
-  regression_version: '2020_08_10.02'
-  covariate_version: '2020_08_09.01'
+  regression_version: '2020_08_16.02'
+  covariate_version: '2020_08_16.05'
   output_root: ''
 scenarios:
   worse:
@@ -15,7 +15,7 @@ scenarios:
     theta: '/ihme/covid-19/seir-pipeline-outputs/metadata-inputs/theta_2020_07_05.01.csv'
     covariates:
       pneumonia: 'reference'
-      mobility: 'lift'
+      mobility: 'reference'
       mask_use: 'reference'
       testing: 'reference'
       air_pollution_pm_2_5: 'reference'
@@ -37,7 +37,7 @@ scenarios:
     theta: '/ihme/covid-19/seir-pipeline-outputs/metadata-inputs/theta_2020_07_05.01.csv'
     covariates:
       pneumonia: 'reference'
-      mobility: 'lift'
+      mobility: 'reference'
       mask_use: 'reference'
       testing: 'reference'
       air_pollution_pm_2_5: 'reference'
@@ -59,7 +59,7 @@ scenarios:
     theta: '/ihme/covid-19/seir-pipeline-outputs/metadata-inputs/theta_2020_07_05.01.csv'
     covariates:
       pneumonia: 'reference'
-      mobility: 'lift'
+      mobility: 'reference'
       mask_use: 'best'
       testing: 'reference'
       air_pollution_pm_2_5: 'reference'
