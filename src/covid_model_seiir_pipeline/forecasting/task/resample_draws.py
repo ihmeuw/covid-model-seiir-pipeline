@@ -31,7 +31,8 @@ def run_resample(forecast_version: str) -> None:
 def build_resampling_map(resampling_params: Dict, data_interface: ForecastDataInterface):
     resampling_ref_scenario = resampling_params['reference_scenario']
     deaths, *_ = load_output_data(resampling_ref_scenario, data_interface)
-    deaths = concat_measures(deaths)[0]
+    location_ids = data_interface.load_location_ids()
+    deaths = concat_measures(deaths, location_ids)[0]
     cumulative_deaths = deaths.groupby(level='location_id').cumsum()
     max_deaths = cumulative_deaths.groupby(level='location_id').max()
     upper_deaths = max_deaths.quantile(resampling_params['upper_quantile'], axis=1)
