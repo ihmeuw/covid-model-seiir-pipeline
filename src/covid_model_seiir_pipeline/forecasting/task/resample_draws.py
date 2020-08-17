@@ -61,34 +61,23 @@ def load_output_data(scenario: str, data_interface: ForecastDataInterface):
     with multiprocessing.Pool(FORECAST_SCALING_CORES) as pool:
         outputs = list(tqdm.tqdm(pool.imap(_runner, draws), total=len(draws)))
     deaths, infections, r_effective = zip(*outputs)
-    import pdb; pdb.set_trace()
 
     return deaths, infections, r_effective
 
 
-def load_output_data_by_draw(draw_id: int,
-                             scenario: str,
-                             data_interface: ForecastDataInterface) -> Tuple[List[pd.DataFrame],
-                                                                             List[pd.DataFrame],
-                                                                             List[pd.DataFrame]]:
-    draw_df = data_interface.load_raw_outputs(scenario, draw_id).sort_values(['location_id', 'date'])
-    deaths, infections, r_effective = [], [], []
-    for location_id, loc_df in draw_df.groupby('location_id'):
-        loc_df = loc_df.set_index(['location_id', 'date'])
-        deaths.append(loc_df['deaths'].rename(draw_id))
-        infections.append(draw_df['infections'].rename(draw_id))
-        r_effective.append(draw_df['r_effective'].rename(draw_id))
+def load_output_data_by_draw(draw_id: int, scenario: str, data_interface: ForecastDataInterface):
+    draw_df = data_interface.load_raw_outputs(scenario, draw_id)
+    draw_df = draw_df.set_index(['location_id', 'date']).sort_index()
+    deaths = draw_df['deaths'].rename(draw_id)
+    infections = draw_df['infections'].rename(draw_id)
+    r_effective = draw_df['r_effective'].rename(draw_id)
     return deaths, infections, r_effective
 
 
 def concat_measures(*measure_data: List[pd.Series], location_ids: List[int]) -> List[pd.DataFrame]:
     concatenated_data = []
     for dataset in measure_data:
-        _runner = functools.partial(
-            concat_location,
-            measure_data=[s.reset_index() for s in dataset]
-        )
-        import tqdm
+        concat(dataset)
         with multiprocessing.Pool(FORECAST_SCALING_CORES) as pool:
             dataset = list(tqdm.tqdm(pool.imap(_runner, location_ids), total=len(location_ids)))
         dataset = pd.concat(dataset)
@@ -96,7 +85,12 @@ def concat_measures(*measure_data: List[pd.Series], location_ids: List[int]) -> 
     return concatenated_data
 
 
-def concat_location(location_id: int, measure_data: List[pd.Series]) -> pd.DataFrame:
+def concat(measure_data: List[pd.Series]) -> pd.DataFrame:
+    import pdb; pdb.set_trace()
+    inices = set.union(*[set(s.index.tolist()) for s in measure_data])
+
+
+def concat_location(measure_data: List[pd.Series]) -> pd.DataFrame:
     loc_data = [s[s.location_id == location_id].set_index(['location_id', 'date']) for s in measure_data]
     loc_data = pd.concat(loc_data, axis=1)
     return loc_data
