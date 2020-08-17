@@ -58,15 +58,21 @@ def load_output_data(scenario: str, data_interface: ForecastDataInterface):
     )
     draws = range(data_interface.get_n_draws())
     import tqdm
-    with multiprocessing.Pool(FORECAST_SCALING_CORES) as pool:
-        outputs = list(tqdm.tqdm(pool.imap(_runner, draws), total=len(draws)))
+    
+    #with multiprocessing.Pool(FORECAST_SCALING_CORES) as pool:
+    #    outputs = list(tqdm.tqdm(pool.imap(_runner, draws), total=len(draws)))
+    for draw in draws:
+         load_output_data_by_draw(draw, scenario, data_interface)
     deaths, infections, r_effective = zip(*outputs)
 
     return deaths, infections, r_effective
 
 
 def load_output_data_by_draw(draw_id: int, scenario: str, data_interface: ForecastDataInterface):
-    draw_df = data_interface.load_raw_outputs(scenario, draw_id)
+    draw_df = data_interface.load_raw_outputs(scenario, draw_id).sort_values(['location_id', 'date'])
+    deaths, infections, r_effective = [], [], []
+    for location_id, loc_df in draw_df.groupby('location_id'):
+        import pdb; pdb.set_trace()
     draw_df = draw_df.set_index(['location_id', 'date']).sort_index()
     deaths = draw_df['deaths'].rename(draw_id)
     infections = draw_df['infections'].rename(draw_id)
