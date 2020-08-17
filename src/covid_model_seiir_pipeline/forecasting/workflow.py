@@ -47,12 +47,11 @@ class BetaForecastTaskTemplate(TaskTemplate):
     )
 
 
-class ConcatenateDrawsTaskTemplate(TaskTemplate):
-    task_name_template = "seiir_concatenate_draws"
+class ResampleMapTaskTemplate(TaskTemplate):
+    task_name_template = "seiir_resample_map"
     command_template = (
-            "concatenate " +
+            "resample_map " +
             "--forecast-version {forecast_version} "
-            "--scenario-name {scenario}"
     )
     params = ExecutorParameters(
         max_runtime_seconds=FORECAST_RUNTIME,
@@ -83,24 +82,20 @@ class ForecastWorkflow(WorkflowTemplate):
     task_templates = {
         'scaling': BetaResidualScalingTaskTemplate,
         'forecast': BetaForecastTaskTemplate,
-        'concatenate': ConcatenateDrawsTaskTemplate,
+        'resample': ResampleMapTaskTemplate,
         'postprocess': PostprocessingTaskTemplate,
     }
 
     def attach_tasks(self, n_draws: int, scenarios: List[str]):
         scaling_template = self.task_templates['scaling']
         forecast_template = self.task_templates['forecast']
-        concatenate_template = self.task_templates['concatenate']
+        resample_template = self.task_templates['resample']
         postprocessing_template = self.task_templates['postprocess']
 
-        #concatenate_tasks = {}
-        #for scenario in scenarios:
-        #    concatenate_task = concatenate_template.get_task(
-        #        forecast_version=self.version,
-        #        scenario=scenario,
-        #    )
-        #    self.workflow.add_task(concatenate_task)
-        #    concatenate_tasks['scenario'] = concatenate_task
+        resample_task = resample_template.get_task(
+            forecast_version=self.version
+        )
+        self.workflow.add_task(resample_task)
 
         for scenario in scenarios:
             scaling_task = scaling_template.get_task(
@@ -109,12 +104,12 @@ class ForecastWorkflow(WorkflowTemplate):
             )
             self.workflow.add_task(scaling_task)
 
-            #postprocessing_task = postprocessing_template.get_task(
-            #    forecast_version=self.version
-            #)
-            #self.workflow.add_task(postprocessing_task)
-            #for concatenate_task in concatenate_tasks.values():
-            #    postprocessing_task.add_upstream(concatenate_task)
+            postprocessing_task = postprocessing_template.get_task(
+                forecast_version=self.version,
+                scenario=scenario,
+            )
+            postprocessing_task.add_upstream(resample_task)
+            self.workflow.add_task(postprocessing_task)
 
             for draw in range(n_draws):
                 forecast_task = forecast_template.get_task(
@@ -123,5 +118,5 @@ class ForecastWorkflow(WorkflowTemplate):
                     scenario=scenario
                 )
                 forecast_task.add_upstream(scaling_task)
-                #forecast_task.add_downstream(concatenate_tasks[scenario])
+                forecast_task.add_downstream(resample_task)
                 self.workflow.add_task(forecast_task)
