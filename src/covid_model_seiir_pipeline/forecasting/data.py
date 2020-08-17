@@ -185,6 +185,12 @@ class ForecastDataInterface:
     def load_beta_scales(self, scenario: str, draw_id: int):
         return self.forecast_marshall.load(MKeys.beta_scales(scenario=scenario, draw_id=draw_id))
 
+    def save_resampling_map(self, resampling_map: pd.DataFrame):
+        pass
+
+    def load_resampling_map(self):
+        pass
+
     def save_raw_outputs(self, raw_outputs: pd.DataFrame, scenario: str, draw_id: int):
         self.forecast_marshall.dump(raw_outputs, key=MKeys.forecast_raw_outputs(scenario=scenario, draw_id=draw_id))
 

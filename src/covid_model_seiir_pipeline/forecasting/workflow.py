@@ -47,11 +47,26 @@ class BetaForecastTaskTemplate(TaskTemplate):
     )
 
 
+class ResampleDrawsTaskTemplate(TaskTemplate):
+    task_name_template = "seiir_resample_draws"
+    command_template = (
+            "resample_draws " +
+            "--forecast-version {forecast_version} "
+    )
+    params = ExecutorParameters(
+        max_runtime_seconds=FORECAST_RUNTIME,
+        m_mem_free=POSTPROCESS_MEMORY,
+        num_cores=FORECAST_SCALING_CORES,
+        queue=FORECAST_QUEUE
+    )
+
+
 class PostprocessingTaskTemplate(TaskTemplate):
     task_name_template = "seiir_post_processing"
     command_template = (
             "postprocess " +
             "--forecast-version {forecast_version} "
+            "--scenario-name {scenario_name}"
     )
     params = ExecutorParameters(
         max_runtime_seconds=FORECAST_RUNTIME,
@@ -67,24 +82,33 @@ class ForecastWorkflow(WorkflowTemplate):
     task_templates = {
         'scaling': BetaResidualScalingTaskTemplate,
         'forecast': BetaForecastTaskTemplate,
-        'postprocess': PostprocessingTaskTemplate
+        'resampling': ResampleDrawsTaskTemplate,
+        'postprocess': PostprocessingTaskTemplate,
     }
 
     def attach_tasks(self, n_draws: int, scenarios: List[str]):
         scaling_template = self.task_templates['scaling']
         forecast_template = self.task_templates['forecast']
+        resampling_template = self.task_templates['resampling']
         postprocessing_template = self.task_templates['postprocess']
 
-        postprocessing_task = postprocessing_template.get_task(
+        resampling_task = resampling_template.get_task(
             forecast_version=self.version
         )
-        self.workflow.add_task(postprocessing_task)
+
+        self.workflow.add_task(resampling_task)
         for scenario in scenarios:
             scaling_task = scaling_template.get_task(
                 forecast_version=self.version,
                 scenario=scenario
             )
             self.workflow.add_task(scaling_task)
+
+            postprocessing_task = postprocessing_template.get_task(
+                forecast_version=self.version
+            )
+            postprocessing_task.add_upstream(resampling_task)
+
             for draw in range(n_draws):
                 forecast_task = forecast_template.get_task(
                     forecast_version=self.version,
@@ -92,5 +116,5 @@ class ForecastWorkflow(WorkflowTemplate):
                     scenario=scenario
                 )
                 forecast_task.add_upstream(scaling_task)
-                forecast_task.add_downstream(postprocessing_task)
+                forecast_task.add_downstream(resampling_task)
                 self.workflow.add_task(forecast_task)
