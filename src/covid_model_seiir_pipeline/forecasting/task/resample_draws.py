@@ -87,7 +87,12 @@ def concat_measures(*measure_data: List[pd.Series], location_ids: List[int]) -> 
 
 def concat(measure_data: List[pd.Series]) -> pd.DataFrame:
     import pdb; pdb.set_trace()
-    inices = set.union(*[set(s.index.tolist()) for s in measure_data])
+    import time
+    start = time.time()
+    measure_data = functools.reduce(lambda a, b: pd.merge(a, b, left_index=True, right_index=True, how='outer'), measure_data)
+    total = time.time() - start
+    import pdb; pdb.set_trace()
+    return measure_data
 
 
 def concat_location(measure_data: List[pd.Series]) -> pd.DataFrame:
