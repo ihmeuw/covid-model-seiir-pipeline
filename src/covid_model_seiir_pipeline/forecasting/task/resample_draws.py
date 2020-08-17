@@ -30,9 +30,12 @@ def run_resample(forecast_version: str) -> None:
 
 def build_resampling_map(resampling_params: Dict, data_interface: ForecastDataInterface):
     resampling_ref_scenario = resampling_params['reference_scenario']
+    import pdb; pdb.set_trace()
     deaths, *_ = load_output_data(resampling_ref_scenario, data_interface)
+    import pdb; pdb.set_trace()
     location_ids = data_interface.load_location_ids()
-    deaths = concat_measures(deaths, location_ids)[0]
+    deaths = concat_measures(deaths, location_ids=location_ids)[0]
+    import pdb; pdb.set_trace()
     cumulative_deaths = deaths.groupby(level='location_id').cumsum()
     max_deaths = cumulative_deaths.groupby(level='location_id').max()
     upper_deaths = max_deaths.quantile(resampling_params['upper_quantile'], axis=1)
@@ -54,8 +57,9 @@ def load_output_data(scenario: str, data_interface: ForecastDataInterface):
         data_interface=data_interface,
     )
     draws = range(data_interface.get_n_draws())
+    import tqdm
     with multiprocessing.Pool(FORECAST_SCALING_CORES) as pool:
-        outputs = list(pool.map(_runner, draws))
+        outputs = list(tqdm.tqdm(pool.imap(_runner, draws), total=len(draws)))
     deaths, infections, r_effective = zip(*outputs)
 
     return deaths, infections, r_effective
@@ -75,21 +79,20 @@ def concat_measures(*measure_data: List[pd.Series], location_ids: List[int]) -> 
     for dataset in measure_data:
         _runner = functools.partial(
             concat_location,
-            measure_data=dataset
+            measure_data=[s.reset_index() for s in dataset]
         )
+        import tqdm
         with multiprocessing.Pool(FORECAST_SCALING_CORES) as pool:
-            dataset = pool.map(_runner, location_ids)
+            dataset = list(tqdm.tqdm(pool.imap(_runner, location_ids), total=len(location_ids)))
         dataset = pd.concat(dataset)
         concatenated_data.append(dataset)
     return concatenated_data
 
 
 def concat_location(location_id: int, measure_data: List[pd.Series]) -> pd.DataFrame:
-    measure_data = [s.loc[location_id] for s in measure_data]
-    measure_data = pd.concat(measure_data, axis=1)
-    measure_data['location_id'] = location_id
-    measure_data = measure_data.reset_index().set_index(['location_id', 'date'])
-    return measure_data
+    loc_data = [s[s.location_id == location_id].set_index(['location_id', 'date']) for s in measure_data]
+    loc_data = pd.concat(loc_data, axis=1)
+    return loc_data
 
 
 def parse_arguments(argstr: Optional[str] = None) -> Namespace:
