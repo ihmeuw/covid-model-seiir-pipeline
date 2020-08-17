@@ -70,29 +70,6 @@ def load_output_data(scenario: str, data_interface: ForecastDataInterface):
     return deaths, infections, r_effective
 
 
-def load_betas(scenario: str, data_interface: ForecastDataInterface) -> List[pd.Series]:
-    betas = []
-    for draw_id in range(data_interface.get_n_draws()):
-        components = data_interface.load_components(scenario, draw_id)
-        draw_betas = (components
-                      .sort_index()['beta']
-                      .rename(draw_id))
-        betas.append(draw_betas)
-    return betas
-
-
-def load_beta_residuals(data_interface: ForecastDataInterface) -> List[pd.Series]:
-    beta_residuals = []
-    for draw_id in range(data_interface.get_n_draws()):
-        beta_regression = data_interface.load_beta_regression(draw_id)
-        beta_regression = (beta_regression
-                           .set_index(['location_id', 'date'])
-                           .sort_index()[['beta', 'beta_pred']])
-        beta_residual = np.log(beta_regression['beta'] / beta_regression['beta_pred']).rename(draw_id)
-        beta_residuals.append(beta_residual)
-    return beta_residuals
-
-
 def load_output_data_by_draw(draw_id: int, scenario: str,
                              data_interface: ForecastDataInterface) -> Tuple[pd.Series, pd.Series, pd.Series]:
     draw_df = data_interface.load_raw_outputs(scenario, draw_id)
@@ -101,6 +78,46 @@ def load_output_data_by_draw(draw_id: int, scenario: str,
     infections = draw_df['infections'].rename(draw_id)
     r_effective = draw_df['r_effective'].rename(draw_id)
     return deaths, infections, r_effective
+
+
+def load_betas(scenario: str, data_interface: ForecastDataInterface) -> List[pd.Series]:
+    _runner = functools.partial(
+        load_betas_by_draw,
+        scenario=scenario,
+        data_interface=data_interface,
+    )
+    draws = range(data_interface.get_n_draws())
+    with multiprocessing.Pool(FORECAST_SCALING_CORES) as pool:
+        betas = pool.map(_runner, draws)
+    return betas
+
+
+def load_betas_by_draw(draw_id: int, scenario: str, data_interface: ForecastDataInterface) -> pd.Series:
+    components = data_interface.load_components(scenario, draw_id)
+    draw_betas = (components
+                  .sort_index()['beta']
+                  .rename(draw_id))
+    return draw_betas
+
+
+def load_beta_residuals(data_interface: ForecastDataInterface) -> List[pd.Series]:
+    _runner = functools.partial(
+        load_beta_residuals_by_draw,
+        data_interface=data_interface,
+    )
+    draws = range(data_interface.get_n_draws())
+    with multiprocessing.Pool(FORECAST_SCALING_CORES) as pool:
+        beta_residuals = pool.map(_runner, draws)
+    return beta_residuals
+
+
+def load_beta_residuals_by_draw(draw_id: int, data_interface: ForecastDataInterface) -> pd.Series:
+    beta_regression = data_interface.load_beta_regression(draw_id)
+    beta_regression = (beta_regression
+                       .set_index(['location_id', 'date'])
+                       .sort_index()[['beta', 'beta_pred']])
+    beta_residual = np.log(beta_regression['beta'] / beta_regression['beta_pred']).rename(draw_id)
+    return beta_residual
 
 
 def concat_measures(*measure_data: List[pd.Series]) -> List[pd.DataFrame]:

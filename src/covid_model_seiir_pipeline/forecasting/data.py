@@ -122,7 +122,6 @@ class ForecastDataInterface:
     # TODO: inverse is RegressionDataInterface.save_date_file
     def load_transition_date(self, draw_id: int) -> pd.Series:
         dates_df = self.regression_marshall.load(key=MKeys.date(draw_id))
-        dates_df['start_date'] = pd.to_datetime(dates_df['start_date'])
         dates_df['end_date'] = pd.to_datetime(dates_df['end_date'])
         transition_date = dates_df.set_index('location_id').sort_index()['end_date'].rename('date')
         return transition_date
