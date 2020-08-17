@@ -48,7 +48,7 @@ def dates():
         [526, '2020-03-08', '2020-05-05'],
         [533, '2020-02-23', '2020-05-05'],
         [537, '2020-02-26', '2020-05-05'],
-    ], columns=['loc_id', 'start_date', 'end_date'])
+    ], columns=['location_id', 'start_date', 'end_date'])
 
 
 @pytest.fixture
