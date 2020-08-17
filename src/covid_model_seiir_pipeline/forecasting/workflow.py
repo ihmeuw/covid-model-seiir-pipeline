@@ -93,14 +93,14 @@ class ForecastWorkflow(WorkflowTemplate):
         concatenate_template = self.task_templates['concatenate']
         postprocessing_template = self.task_templates['postprocess']
 
-        concatenate_tasks = {}
-        for scenario in scenarios:
-            concatenate_task = concatenate_template.get_task(
-                forecast_version=self.version,
-                scenario=scenario,
-            )
-            self.workflow.add_task(concatenate_task)
-            concatenate_tasks['scenario'] = concatenate_task
+        #concatenate_tasks = {}
+        #for scenario in scenarios:
+        #    concatenate_task = concatenate_template.get_task(
+        #        forecast_version=self.version,
+        #        scenario=scenario,
+        #    )
+        #    self.workflow.add_task(concatenate_task)
+        #    concatenate_tasks['scenario'] = concatenate_task
 
         for scenario in scenarios:
             scaling_task = scaling_template.get_task(
@@ -109,11 +109,12 @@ class ForecastWorkflow(WorkflowTemplate):
             )
             self.workflow.add_task(scaling_task)
 
-            postprocessing_task = postprocessing_template.get_task(
-                forecast_version=self.version
-            )
-            for concatenate_task in concatenate_tasks.values():
-                postprocessing_task.add_upstream(concatenate_task)
+            #postprocessing_task = postprocessing_template.get_task(
+            #    forecast_version=self.version
+            #)
+            #self.workflow.add_task(postprocessing_task)
+            #for concatenate_task in concatenate_tasks.values():
+            #    postprocessing_task.add_upstream(concatenate_task)
 
             for draw in range(n_draws):
                 forecast_task = forecast_template.get_task(
@@ -122,5 +123,5 @@ class ForecastWorkflow(WorkflowTemplate):
                     scenario=scenario
                 )
                 forecast_task.add_upstream(scaling_task)
-                forecast_task.add_downstream(concatenate_tasks[scenario])
+                #forecast_task.add_downstream(concatenate_tasks[scenario])
                 self.workflow.add_task(forecast_task)
