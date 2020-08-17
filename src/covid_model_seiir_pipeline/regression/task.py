@@ -59,18 +59,19 @@ def run_beta_regression(draw_id: int, regression_version: str) -> None:
 
     # Format and save data.
     data_df = pd.concat(location_data.values())
-    data_df = data_df.set_index(['location_id', 'date']).sort_index()
-    data_index = data_df.index  # We'll use this to make all the data square.
-    data_interface.save_location_data(data_df.reset_index(), draw_id)
-
-    data_interface.save_regression_coefficients(coefficients, draw_id)
-
     regression_betas = beta_hat.merge(covariates, on=['location_id', 'date'])
     regression_betas = beta_fit.merge(regression_betas, on=['location_id', 'date'], how='left')
+
+    min_date = data_df.groupby('location_id')['date'].min().rename('min_date')
+    max_date = data_df.groupby('location_id')['date'].max().rename('max_date')
+    import pdb; pdb.set_trace()
+    pd.concat([min_date, max_date], axis=1).groupby('location_id').apply(lambda x: pd.date_range(x['min_date'], x['max_date'], freq='D'))
+
+    data_interface.save_location_data(data_df, draw_id)
+    data_interface.save_regression_coefficients(coefficients, draw_id)
     regression_betas = (regression_betas
                         .set_index(['location_id', 'date'])
                         .sort_index()
-                        .reindex(data_index, fill_value=np.nan)
                         .reset_index())
     data_interface.save_regression_betas(regression_betas, draw_id)
 
