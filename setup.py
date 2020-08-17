@@ -70,7 +70,7 @@ if __name__ == "__main__":
             'beta_regression=covid_model_seiir_pipeline.regression.task:main',
             'beta_forecast=covid_model_seiir_pipeline.forecasting.task.beta_forecast:main',
             'beta_residual_scaling=covid_model_seiir_pipeline.forecasting.task.beta_residual_scaling:main',
-            'resample_draws=covid_model_seiir_pipeline.forecasting.task.resample_draws:main',
+            'concatenate=covid_model_seiir_pipeline.forecasting.task.concatenate:main',
             'postprocess=covid_model_seiir_pipeline.forecasting.task.postprocessing:main',
         ]},
         zip_safe=False,

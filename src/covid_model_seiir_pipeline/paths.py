@@ -46,6 +46,7 @@ class ScenarioPaths(Paths):
     raw_outputs_file: ClassVar[str] = DRAW_FILE_TEMPLATE
     output_draws_file: ClassVar[str] = MEASURE_FILE_TEMPLATE
     output_summary_file: ClassVar[str] = MEASURE_FILE_TEMPLATE
+    concatenated_outputs_file: ClassVar[str] = MEASURE_FILE_TEMPLATE
 
     @property
     def beta_scaling(self) -> Path:
@@ -89,9 +90,17 @@ class ScenarioPaths(Paths):
         return self.output_draws / self.output_summary_file.format(measure=measure)
 
     @property
+    def concatenated_outputs(self):
+        return self.root_dir / 'concatenated_outputs'
+
+    def get_concatenated_outputs_path(self, measure: str):
+        return self.concatenated_outputs / self.concatenated_outputs_file.format(measure=measure)
+
+    @property
     def directories(self) -> List[Path]:
         """Returns all top level sub-directories."""
-        return [self.beta_scaling, self.components, self.raw_outputs, self.output_draws, self.output_summaries]
+        return [self.beta_scaling, self.components, self.raw_outputs,
+                self.output_draws, self.output_summaries, self.concatenated_outputs]
 
 
 @dataclass

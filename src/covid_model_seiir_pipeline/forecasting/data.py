@@ -177,7 +177,9 @@ class ForecastDataInterface:
         self.forecast_marshall.dump(forecasts, key=MKeys.components(scenario=scenario, draw_id=draw_id))
 
     def load_components(self, scenario: str, draw_id: int) -> pd.DataFrame:
-        return self.forecast_marshall.load(key=MKeys.components(scenario=scenario, draw_id=draw_id))
+        components = self.forecast_marshall.load(key=MKeys.components(scenario=scenario, draw_id=draw_id))
+        components['date'] = pd.to_datetime(components['date'])
+        return components.set_index(['location_id', 'date'])
 
     def save_beta_scales(self, scales: pd.DataFrame, scenario: str, draw_id: int):
         self.forecast_marshall.dump(scales, key=MKeys.beta_scales(scenario=scenario, draw_id=draw_id))
@@ -185,17 +187,29 @@ class ForecastDataInterface:
     def load_beta_scales(self, scenario: str, draw_id: int):
         return self.forecast_marshall.load(MKeys.beta_scales(scenario=scenario, draw_id=draw_id))
 
-    def save_resampling_map(self, resampling_map: pd.DataFrame):
-        pass
-
-    def load_resampling_map(self):
-        pass
-
     def save_raw_outputs(self, raw_outputs: pd.DataFrame, scenario: str, draw_id: int):
         self.forecast_marshall.dump(raw_outputs, key=MKeys.forecast_raw_outputs(scenario=scenario, draw_id=draw_id))
 
     def load_raw_outputs(self, scenario: str, draw_id: int) -> pd.DataFrame:
         return self.forecast_marshall.load(key=MKeys.forecast_raw_outputs(scenario=scenario, draw_id=draw_id))
+
+    def save_concatenated_outputs(self, concatenated_outputs: pd.DataFrame, scenario: str, measure: str):
+        self.forecast_marshall.dump(concatenated_outputs,
+                                    key=MKeys.forecat_concatenated_outputs(scenario=scenario, measure=measure))
+
+    def load_concatenated_outputs(self, scenario: str, measure: str):
+        outputs = self.forecast_marshall.load(key=MKeys.forecat_concatenated_outputs(scenario=scenario, measure=measure))
+        outputs['date'] = pd.to_datetime(outputs['date'])
+        return outputs.set_index(['location_id', 'date'])
+
+    def save_resampling_map(self, resampling_map):
+        with (self.forecast_paths.root_dir / 'resampling_map.yaml').open('w') as map_file:
+            yaml.dump(resampling_map, map_file)
+
+    def load_resampling_map(self):
+        with (self.forecast_paths.root_dir / 'resampling_map.yaml').open() as map_file:
+            resampling_map = yaml.full_load(map_file)
+        return resampling_map
 
     def save_output_draws(self, output_draws: pd.DataFrame, scenario: str, measure: str):
         return self.forecast_marshall.dump(output_draws,
