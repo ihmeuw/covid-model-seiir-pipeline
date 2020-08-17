@@ -75,31 +75,16 @@ def load_output_data_by_draw(draw_id: int, scenario: str, data_interface: Foreca
 
 
 def concat_measures(*measure_data: List[pd.Series], location_ids: List[int]) -> List[pd.DataFrame]:
-    concatenated_data = []
-    for dataset in measure_data:
-        concat(dataset)
-        with multiprocessing.Pool(FORECAST_SCALING_CORES) as pool:
-            dataset = list(tqdm.tqdm(pool.imap(_runner, location_ids), total=len(location_ids)))
-        dataset = pd.concat(dataset)
-        concatenated_data.append(dataset)
-    return concatenated_data
+    import tqdm
+    with multiprocessing.Pool(FORECAST_SCALING_CORES) as pool:
+        output_data = list(tqdm.tqdm(pool.imap(concat, measure_data), total=len(measure_data)))
+    return output_data
 
 
 def concat(measure_data: List[pd.Series]) -> pd.DataFrame:
-    import pdb; pdb.set_trace()
-    import time
-    start = time.time()
+    # 3x faster than pd.concat for reasons I don't understand.
     measure_data = functools.reduce(lambda a, b: pd.merge(a, b, left_index=True, right_index=True, how='outer'), measure_data)
-    total = time.time() - start
-    import pdb; pdb.set_trace()
     return measure_data
-
-
-def concat_location(measure_data: List[pd.Series]) -> pd.DataFrame:
-    loc_data = [s[s.location_id == location_id].set_index(['location_id', 'date']) for s in measure_data]
-    loc_data = pd.concat(loc_data, axis=1)
-    return loc_data
-
 
 def parse_arguments(argstr: Optional[str] = None) -> Namespace:
     """
