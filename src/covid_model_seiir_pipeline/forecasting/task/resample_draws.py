@@ -69,13 +69,25 @@ def load_output_data_by_draw(draw_id: int, scenario: str, data_interface: Foreca
     return deaths, infections, r_effective
 
 
-def concat_measures(*measure_data: List[pd.Series]) -> List[pd.DataFrame]:
-    _runner = functools.partial(
-        pd.concat,
-        axis=1
-    )
-    with multiprocessing.Pool(FORECAST_SCALING_CORES) as pool:
-        measure_data = pool.map(_runner, measure_data)
+def concat_measures(*measure_data: List[pd.Series], location_ids: List[int]) -> List[pd.DataFrame]:
+    concatenated_data = []
+    for dataset in measure_data:
+        _runner = functools.partial(
+            concat_location,
+            measure_data=dataset
+        )
+        with multiprocessing.Pool(FORECAST_SCALING_CORES) as pool:
+            dataset = pool.map(_runner, location_ids)
+        dataset = pd.concat(dataset)
+        concatenated_data.append(dataset)
+    return concatenated_data
+
+
+def concat_location(location_id: int, measure_data: List[pd.Series]) -> pd.DataFrame:
+    measure_data = [s.loc[location_id] for s in measure_data]
+    measure_data = pd.concat(measure_data, axis=1)
+    measure_data['location_id'] = location_id
+    measure_data = measure_data.reset_index().set_index(['location_id', 'date'])
     return measure_data
 
 
