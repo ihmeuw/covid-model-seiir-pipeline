@@ -17,7 +17,6 @@ from covid_model_seiir_pipeline.forecasting.data import ForecastDataInterface
 log = logging.getLogger(__name__)
 
 
-
 def run_beta_forecast(draw_id: int, forecast_version: str, scenario_name: str):
     log.info("Initiating SEIIR beta forecasting.")
     forecast_spec: ForecastSpecification = ForecastSpecification.from_path(
@@ -33,8 +32,6 @@ def run_beta_forecast(draw_id: int, forecast_version: str, scenario_name: str):
     # Grab the last day of data in the model by location id.  This will
     # correspond to the initial condition for the projection.
     transition_date = data_interface.load_transition_date(draw_id)
-    # we just want a map between location id and day we transition to
-    # prediction.
 
     # We'll use the beta and SEIR compartments from this data set to get
     # the ODE initial condition.
