@@ -17,6 +17,7 @@ def test_ode_runner():
 
     t = np.arange(0, 31, 1)
     beta = 2*np.exp(-0.01*t)
-    ode_runner = ODERunner(specs, init_cond)
-    result = ode_runner.get_solution(t, beta)
+    theta = np.zeros_like(beta)
+    ode_runner = ODERunner('RK45', specs)
+    result = ode_runner.get_solution(init_cond, t, beta, theta)
     print("Okay!")

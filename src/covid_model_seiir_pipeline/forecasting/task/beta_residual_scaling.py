@@ -152,8 +152,7 @@ def compute_initial_beta_scaling_parameters_by_draw(draw_id: int,
     # number of predicted days from the elastispliner in the ODE fit
     # and the random draw of lag between infection and death from the
     # infectionator. Don't compute, let's look it up.
-    dates_df = data_interface.load_dates_df(draw_id)
-    transition_date = dates_df.set_index('location_id').sort_index()['end_date'].rename('date')
+    transition_date = data_interface.load_transition_date(draw_id)
 
     beta_regression_df = data_interface.load_beta_regression(draw_id)
     beta_regression_df = beta_regression_df.set_index('location_id').sort_index()

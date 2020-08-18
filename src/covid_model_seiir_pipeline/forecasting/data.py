@@ -1,6 +1,6 @@
 from functools import reduce
 from pathlib import Path
-from typing import List, Dict
+from typing import List, Dict, Union
 
 from loguru import logger
 import pandas as pd
@@ -64,6 +64,15 @@ class ForecastDataInterface:
             location_ids = yaml.full_load(location_file)
         return location_ids
 
+    def load_thetas(self, theta_specification: Union[str, int]) -> pd.Series:
+        if isinstance(theta_specification, str):
+            thetas = pd.read_csv(theta_specification).set_index('location_id')['theta']
+        else:
+            location_ids = self.load_location_ids()
+            thetas = pd.Series({'theta': theta_specification},
+                               index=pd.Index(location_ids, name='location_id'))
+        return thetas
+
     def check_covariates(self, scenarios: Dict[str, ScenarioSpecification]):
         with self.regression_paths.regression_specification.open() as regression_spec_file:
             regression_spec = yaml.full_load(regression_spec_file)
@@ -111,11 +120,12 @@ class ForecastDataInterface:
         return self.regression_marshall.load(MKeys.coefficient(draw_id))
 
     # TODO: inverse is RegressionDataInterface.save_date_file
-    def load_dates_df(self, draw_id: int) -> pd.DataFrame:
+    def load_transition_date(self, draw_id: int) -> pd.Series:
         dates_df = self.regression_marshall.load(key=MKeys.date(draw_id))
         dates_df['start_date'] = pd.to_datetime(dates_df['start_date'])
         dates_df['end_date'] = pd.to_datetime(dates_df['end_date'])
-        return dates_df
+        transition_date = dates_df.set_index('location_id').sort_index()['end_date'].rename('date')
+        return transition_date
 
     # TODO: inverse is RegressionDataInterface.save_regression_betas
     def load_beta_regression(self, draw_id: int) -> pd.DataFrame:
@@ -148,6 +158,16 @@ class ForecastDataInterface:
                 covariate_data.append(self.load_covariate(covariate, covariate_version, location_ids))
         covariate_data = reduce(lambda x, y: x.merge(y, left_index=True, right_index=True), covariate_data)
         return covariate_data.reset_index()
+
+    def load_covariate_info(self, covariate: str, info_type: str, location_ids: List[int]):
+        info_path = self.covariate_paths.get_covariate_info_file(covariate, info_type)
+        info_df = pd.read_csv(info_path)
+        index_columns = ['location_id']
+        info_df = info_df.loc[info_df['location_id'].isin(location_ids), :]
+        if 'date' in info_df.columns:
+            info_df['date'] = pd.to_datetime(info_df['date'])
+            index_columns.append('date')
+        return info_df.set_index(index_columns)
 
     def load_beta_params(self, draw_id: int) -> Dict[str, float]:
         df = self.regression_marshall.load(key=MKeys.parameter(draw_id=draw_id))

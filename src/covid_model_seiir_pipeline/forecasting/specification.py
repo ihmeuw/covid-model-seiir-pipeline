@@ -20,12 +20,15 @@ class ForecastData:
 @dataclass
 class ScenarioSpecification:
     """Forecasting specification for a scenario."""
-    ALLOWED_ALGORITHMS = ('RK45',)
+    ALLOWED_ALGORITHMS = ('normal', 'mandate_reimposition')
+    ALLOWED_SOLVERS = ('RK45',)
     BETA_SCALING_KEYS = {'window_size', 'average_over_min', 'average_over_max',
                          'offset_deaths_lower', 'offset_deaths_upper'}
 
     name: str = field(default='dummy_scenario')
-    algorithm: str = field(default='RK45')
+    algorithm: str = field(default='normal')
+    algorithm_params: Dict = field(default_factory=dict)
+    solver: str = field(default='RK45')
     beta_scaling: Dict[str, int] = field(default_factory=dict)
     theta: Union[str, int] = field(default=0)
     covariates: Dict[str, str] = field(default_factory=dict)
@@ -34,6 +37,10 @@ class ScenarioSpecification:
         if self.algorithm not in self.ALLOWED_ALGORITHMS:
             raise ValueError(f'Unknown algorithm {self.algorithm} in scenario {self.name}. '
                              f'Allowed algorithms are {self.ALLOWED_ALGORITHMS}.')
+
+        if self.solver not in self.ALLOWED_SOLVERS:
+            raise ValueError(f'Unknown solver {self.solver} in scenario {self.name}. '
+                             f'Allowed solvers are {self.ALLOWED_SOLVERS}.')
 
         bad_scaling_keys = set(self.beta_scaling).difference(self.BETA_SCALING_KEYS)
         if bad_scaling_keys:

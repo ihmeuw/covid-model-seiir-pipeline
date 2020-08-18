@@ -50,14 +50,16 @@ class TestForecastDataInterfaceIO:
         # Step 2: load files as they would be loaded in forecast
         loaded_coefficients = fdi.load_regression_coefficients(draw_id=4)
         loaded_parameters = fdi.load_beta_params(draw_id=4)
-        loaded_dates = fdi.load_dates_df(draw_id=4)
+        loaded_transition_dates = fdi.load_transition_date(draw_id=4)
         loaded_regression_beta = fdi.load_beta_regression(draw_id=4)
         loaded_location_data = fdi.load_infection_data(draw_id=4)
 
         # Step 3: test files
         pandas.testing.assert_frame_equal(coefficients, loaded_coefficients)
         # some load methods do pandas.to_datetime conversion on columns
-        assert_equal_after_date_conversion(dates, loaded_dates, date_cols=['start_date', 'end_date'])
+        transition_dates = dates.set_index('location_id').sort_index()['end_date'].rename('date').reset_index()
+        loaded_transition_dates = loaded_transition_dates.reset_index()
+        assert_equal_after_date_conversion(transition_dates, loaded_transition_dates, date_cols=['date'])
         assert_equal_after_date_conversion(regression_beta, loaded_regression_beta, date_cols=['date'])
         assert_equal_after_date_conversion(location_data, loaded_location_data, date_cols=['date'])
 

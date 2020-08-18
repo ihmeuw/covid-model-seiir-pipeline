@@ -1,15 +1,13 @@
 import abc
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import List, ClassVar, Dict, Union
-
-from parse import parse
+from typing import List, ClassVar, Dict
 
 from covid_shared.shell_tools import mkdir
 from loguru import logger
 
 DRAW_FILE_TEMPLATE = 'draw_{draw_id}.csv'
-LOCATION_FILE_TEMPLATE = 'location_{location_id}.csv'
+MEASURE_FILE_TEMPLATE = '{measure}.csv'
 
 
 @dataclass
@@ -45,7 +43,9 @@ class ScenarioPaths(Paths):
     """Local directory structure of a forecasting data root."""
     beta_scaling_file: ClassVar[str] = DRAW_FILE_TEMPLATE
     component_file: ClassVar[str] = DRAW_FILE_TEMPLATE
-    outputs_file: ClassVar[str] = DRAW_FILE_TEMPLATE
+    raw_outputs_file: ClassVar[str] = DRAW_FILE_TEMPLATE
+    output_draws_file: ClassVar[str] = MEASURE_FILE_TEMPLATE
+    output_summary_file: ClassVar[str] = MEASURE_FILE_TEMPLATE
 
     @property
     def beta_scaling(self) -> Path:
@@ -66,18 +66,32 @@ class ScenarioPaths(Paths):
         return self.components / self.component_file.format(draw_id=draw_id)
 
     @property
-    def outputs(self) -> Path:
+    def raw_outputs(self) -> Path:
         """Cases, deaths, and effective R."""
         return self.root_dir / 'raw_outputs'
 
     def get_outputs_path(self, draw_id: int) -> Path:
         """Single draw of forecast outputs."""
-        return self.outputs / self.outputs_file.format(draw_id=draw_id)
+        return self.raw_outputs / self.raw_outputs_file.format(draw_id=draw_id)
+
+    @property
+    def output_draws(self) -> Path:
+        return self.root_dir / 'output_draws'
+
+    def get_output_draws_path(self, measure: str):
+        return self.output_draws / self.output_draws_file.format(measure=measure)
+
+    @property
+    def output_summaries(self) -> Path:
+        return self.root_dir / 'output_summaries'
+
+    def get_output_summaries_path(self, measure: str):
+        return self.output_draws / self.output_summary_file.format(measure=measure)
 
     @property
     def directories(self) -> List[Path]:
         """Returns all top level sub-directories."""
-        return [self.beta_scaling, self.components, self.outputs]
+        return [self.beta_scaling, self.components, self.raw_outputs, self.output_draws, self.output_summaries]
 
 
 @dataclass
@@ -208,6 +222,7 @@ class CovariatePaths(Paths):
     # class attributes are inferred using ClassVar. See pep 557 (Class Variables)
 
     scenario_file: ClassVar[str] = "{scenario}_scenario.csv"
+    info_file: ClassVar[str] = "{info_type}_info.csv"
 
     def __post_init__(self):
         if not self.read_only:
@@ -223,17 +238,5 @@ class CovariatePaths(Paths):
     def get_covariate_scenario_file(self, covariate: str, scenario: str):
         return self.root_dir / covariate / self.scenario_file.format(scenario=scenario)
 
-    def get_covariate_scenario_to_file_mapping(self, covariate: str) -> Dict[str, Path]:
-        covariate_dir = self.get_covariate_dir(covariate)
-        matches = [m for m in covariate_dir.glob(self.scenario_file.format(scenario="*"))]
-        mapping = {}
-        for file in matches:
-            key = parse(self.scenario_file, str(file.name))["scenario"]
-            file = covariate_dir / file
-            mapping[key] = file
-        return mapping
-
-    def get_info_files(self, covariate: str) -> List[Path]:
-        covariate_dir = self.get_covariate_dir(covariate)
-        matches = [covariate_dir / m for m in covariate_dir.glob(f"*info.csv")]
-        return matches
+    def get_covariate_info_file(self, covariate: str, info_type: str):
+        return self.root_dir / covariate / self.info_file.format(info_type=info_type)
