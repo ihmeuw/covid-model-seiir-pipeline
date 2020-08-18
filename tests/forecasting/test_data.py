@@ -104,6 +104,12 @@ class TestForecastDataInterfaceIO:
 
         # Step 3: load those files
         loaded_components = di.load_components(scenario="happy", draw_id=4)
+        # Load components now does some formatting, which broke the tests.
+        # Back out these changes here.
+        loaded_components = loaded_components.reset_index()
+        loaded_components['date'] = loaded_components['date'].astype(str)
+        loaded_components = loaded_components[components.columns]  # Use the same sort order.
+
         loaded_beta_scales = di.load_beta_scales(scenario="happy", draw_id=4)
         loaded_forecast_outputs = di.load_raw_outputs(scenario="happy", draw_id=4)
 
