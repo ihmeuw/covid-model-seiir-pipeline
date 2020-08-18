@@ -17,8 +17,6 @@ from covid_model_seiir_pipeline.forecasting import postprocessing_lib as pp
 from covid_model_seiir_pipeline.forecasting.workflow import FORECAST_SCALING_CORES
 
 
-
-
 def run_seir_postprocessing(forecast_version: str, scenario_name: str) -> None:
     logger.info(f'Starting postprocessing for forecast version {forecast_version}, scenario {scenario_name}.')
     forecast_spec = ForecastSpecification.from_path(
@@ -31,12 +29,13 @@ def run_seir_postprocessing(forecast_version: str, scenario_name: str) -> None:
     deaths, infections, r_effective = pp.load_output_data(scenario_name, data_interface)
     betas = pp.load_betas(scenario_name, data_interface)
     beta_residuals = pp.load_beta_residuals(data_interface)
-    
+    coefficients = pp.load_coefficients(data_interface)
+
     logger.info('Concatenating and resampling SEIR outputs.')
-    measures = [deaths, infections, r_effective, betas, beta_residuals]
+    measures = [deaths, infections, r_effective, betas, beta_residuals, coefficients]
     measures = [pd.concat(m, axis=1) for m in measures]
-    measures = resample_draws(resampling_map, *measures)
-    deaths, infections, r_effective, betas, beta_residuals = measures
+    measures = pp.resample_draws(resampling_map, *measures)
+    deaths, infections, r_effective, betas, beta_residuals, coefficients = measures
 
     logger.info('Loading SEIR covariates')
     all_covs = scenario_spec.covariates
@@ -51,7 +50,7 @@ def run_seir_postprocessing(forecast_version: str, scenario_name: str) -> None:
     for cov_name, covariate in covariates.items():
         logger.info(f'Concatenating and resampling {cov_name}.')
         covariate = pd.concat(covariate, axis=1)
-        covariate = resample_draws(resampling_map, covariate)[0]
+        covariate = pp.resample_draws(resampling_map, covariate)[0]
         input_covariate = data_interface.load_covariate(cov_name, all_covs[cov_name],
                                                         location_ids, with_observed=True)
         covariate_observed = input_covariate.reset_index(level='observed')
@@ -76,13 +75,14 @@ def run_seir_postprocessing(forecast_version: str, scenario_name: str) -> None:
         'cumulative_infections': cumulative_infections,
         'betas': betas,
         'log_beta_residuals': beta_residuals,
+        'coefficients': coefficients,
         'mobility': covariates['mobility'],
     }
     logger.info('Saving SEIR output draws and summaries.')
     for measure, data in output_draws.items():
-        logger.info(f'Saving {measure} data.') 
+        logger.info(f'Saving {measure} data.')
         data_interface.save_output_draws(data.reset_index(), scenario_name, measure)
-        summarized_data = summarize(data)
+        summarized_data = pp.summarize(data)
         data_interface.save_output_summaries(summarized_data.reset_index(), scenario_name, measure)
 
     del covariates['mobility']
@@ -92,50 +92,11 @@ def run_seir_postprocessing(forecast_version: str, scenario_name: str) -> None:
     logger.info('Saving SEIR covariate summaries.')
     for measure, data in output_no_draws.items():
         logger.info(f'Saving {measure} data.')
-        summarized_data = summarize(data)
+        summarized_data = pp.summarize(data)
         data_interface.save_output_summaries(summarized_data.reset_index(), scenario_name, measure)
 
 
-def summarize(data: pd.DataFrame):
-    data['mean'] = data.mean(axis=1)
-    data['upper'] = data.quantile(.975, axis=1)
-    data['lower'] = data.quantile(.025, axis=1)
-    return data[['mean', 'upper', 'lower']]
 
-
-def concat_measures(*measure_data: List[pd.Series]):
-    _runner = functools.partial(
-        pd.concat,
-        axis=1
-    )
-    with multiprocessing.Pool(FORECAST_SCALING_CORES) as pool:
-        measures = pool.map(_runner, measure_data)
-    return measures
-
-
-def resample_draws(resampling_map, *measure_data: pd.DataFrame):
-    _runner = functools.partial(
-        resample_draws_by_measure,
-        resampling_map=resampling_map
-    )
-    with multiprocessing.Pool(FORECAST_SCALING_CORES) as pool:
-        resampled = pool.map(_runner, measure_data)
-    return resampled
-
-
-def resample_draws_by_measure(measure_data: pd.DataFrame, resampling_map):
-    output = []
-    for location_id, loc_map in resampling_map.items():
-        loc_data = measure_data.loc[location_id]
-        loc_data[loc_map['to_resample']] = loc_data[loc_map['to_fill']]
-        loc_data = pd.concat({location_id: loc_data}, names=['location_id'])
-        if isinstance(loc_data, pd.Series):
-            loc_data = loc_data.unstack()
-        output.append(loc_data)
-
-    resampled = pd.concat(output)
-    resampled.columns = [f'draw_{draw}' for draw in resampled.columns]
-    return resampled
 
 
 def parse_arguments(argstr: Optional[str] = None) -> Namespace:

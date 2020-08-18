@@ -35,6 +35,25 @@ def load_output_data_by_draw(draw_id: int, scenario: str,
     return deaths, infections, r_effective
 
 
+def load_coefficients(data_interface: ForecastDataInterface):
+    _runner = functools.partial(
+        load_coefficients_by_draw,
+        data_interface=data_interface
+    )
+    draws = range(data_interface.get_n_draws())
+    with multiprocessing.Pool(FORECAST_SCALING_CORES) as pool:
+        outputs = pool.map(_runner, draws)
+    return outputs
+
+
+def load_coefficients_by_draw(draw_id: int, data_interface: ForecastDataInterface) -> pd.Series:
+    coefficients = data_interface.load_regression_coefficients(draw_id)
+    coefficients = coefficients.set_index('location_id').stack().reset_index()
+    coefficients.columns = ['location_id', 'covariate', draw_id]
+    coefficients = coefficients.set_index(['location_id', 'covariate'])[draw_id]
+    return coefficients
+
+
 def load_covariates(scenario: str, cov_order: Dict[str, List[str]],
                     data_interface: ForecastDataInterface) -> Dict[str, List[pd.Series]]:
     _runner = functools.partial(
@@ -128,3 +147,35 @@ def build_resampling_map(deaths, resampling_params):
         resample_map[location_id] = {'to_resample': to_resample,
                                      'to_fill': to_fill}
     return resample_map
+
+
+def summarize(data: pd.DataFrame):
+    data['mean'] = data.mean(axis=1)
+    data['upper'] = data.quantile(.975, axis=1)
+    data['lower'] = data.quantile(.025, axis=1)
+    return data[['mean', 'upper', 'lower']]
+
+
+def resample_draws(resampling_map, *measure_data: pd.DataFrame):
+    _runner = functools.partial(
+        resample_draws_by_measure,
+        resampling_map=resampling_map
+    )
+    with multiprocessing.Pool(FORECAST_SCALING_CORES) as pool:
+        resampled = pool.map(_runner, measure_data)
+    return resampled
+
+
+def resample_draws_by_measure(measure_data: pd.DataFrame, resampling_map):
+    output = []
+    for location_id, loc_map in resampling_map.items():
+        loc_data = measure_data.loc[location_id]
+        loc_data[loc_map['to_resample']] = loc_data[loc_map['to_fill']]
+        loc_data = pd.concat({location_id: loc_data}, names=['location_id'])
+        if isinstance(loc_data, pd.Series):
+            loc_data = loc_data.unstack()
+        output.append(loc_data)
+
+    resampled = pd.concat(output)
+    resampled.columns = [f'draw_{draw}' for draw in resampled.columns]
+    return resampled
