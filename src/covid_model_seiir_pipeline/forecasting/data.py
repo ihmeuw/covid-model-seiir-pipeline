@@ -80,7 +80,7 @@ class ForecastDataInterface:
         regression_version = regression_spec['data']['covariate_version']
         if not forecast_version == regression_version:
             logger.warning(f'Forecast covariate version {forecast_version} does not match '
-                           f'regression covariate version {regression_version}. If the two covariate'
+                           f'regression covariate version {regression_version}. If the two covariate '
                            f'versions have different data in the past, the regression coefficients '
                            f'used for prediction may not be valid.')
 
