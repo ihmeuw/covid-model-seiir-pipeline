@@ -23,12 +23,12 @@ def run_seir_postprocessing(forecast_version: str, scenario_name: str) -> None:
     )
     data_interface = ForecastDataInterface.from_specification(forecast_spec)
     resampling_map = data_interface.load_resampling_map()
-
     deaths, infections, r_effective = pp.load_output_data(scenario_name, data_interface)
     betas = pp.load_betas(scenario_name, data_interface)
     beta_residuals = pp.load_beta_residuals(data_interface)
 
-    measures = concat_measures(deaths, infections, r_effective, betas, beta_residuals)
+    measures = [deaths, infections, r_effective, betas, beta_residuals]
+    measures = [pd.concat(m, axis=1) for m in measures]
     measures = resample_draws(resampling_map, *measures)
 
     deaths, infections, r_effective, betas, beta_residuals = measures
@@ -78,9 +78,9 @@ def resample_draws(resampling_map, *measure_data: pd.DataFrame):
 
 def resample_draws_by_measure(measure_data: pd.DataFrame, resampling_map):
     output = []
-    for location_id, (to_drop, to_fill) in resampling_map.items():
+    for location_id, loc_map in resampling_map.items():
         loc_data = measure_data.loc[location_id]
-        loc_data[to_drop] = loc_data[to_fill]
+        loc_data[loc_map['to_resample']] = loc_data[loc_map['to_fill']]
         loc_data = pd.concat({location_id: loc_data}, names=['location_id'])
         output.append(loc_data)
 
