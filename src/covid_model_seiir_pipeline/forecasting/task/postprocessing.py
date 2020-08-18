@@ -24,19 +24,19 @@ def run_seir_postprocessing(forecast_version: str, scenario_name: str) -> None:
     scenario_spec = forecast_spec.scenarios[scenario_name]
     data_interface = ForecastDataInterface.from_specification(forecast_spec)
     resampling_map = data_interface.load_resampling_map()
-    #deaths, infections, r_effective = pp.load_output_data(scenario_name, data_interface)
-    #betas = pp.load_betas(scenario_name, data_interface)
-    #beta_residuals = pp.load_beta_residuals(data_interface)
+    # deaths, infections, r_effective = pp.load_output_data(scenario_name, data_interface)
+    # betas = pp.load_betas(scenario_name, data_interface)
+    # beta_residuals = pp.load_beta_residuals(data_interface)
+    # measures = [deaths, infections, r_effective, betas, beta_residuals]
+    # measures = [pd.concat(m, axis=1) for m in measures]
+    # measures = resample_draws(resampling_map, *measures)
+    # deaths, infections, r_effective, betas, beta_residuals = measures
+
     all_covs = scenario_spec.covariates
     time_varying_covs = ['mobility', 'mask_use', 'testing', 'pneumonia']
     non_time_varying_covs = set(all_covs).difference(time_varying_covs + ['intercept'])
     cov_order = {'time_varying': time_varying_covs, 'non_time_varying': non_time_varying_covs}
     covariates = pp.load_covariates(scenario_name, cov_order, data_interface)
-
-    #measures = [deaths, infections, r_effective, betas, beta_residuals]
-    #measures = [pd.concat(m, axis=1) for m in measures]
-    #measures = resample_draws(resampling_map, *measures)
-    #deaths, infections, r_effective, betas, beta_residuals = measures
 
     location_ids = data_interface.load_location_ids()
     n_draws = data_interface.get_n_draws()
@@ -48,27 +48,32 @@ def run_seir_postprocessing(forecast_version: str, scenario_name: str) -> None:
         covariate_observed = input_covariate.reset_index(level='observed')
         covariate = covariate.merge(covariate_observed, left_index=True, right_index=True, how='outer')
 
+        draw_cols = list(range(n_draws))
         index_cols = ['location_id', 'date', 'observed'] if 'date' in covariate.columns else ['location_id', 'observed']
-        covariate = covariate.set_index(index_cols)
+        covariate = covariate.set_index(index_cols)[draw_cols]
+        covariate['modeled'] = covariate.notnull().all(axis=1).astype(int)
+        input_covariate = pd.concat([input_covariate.set_index(index_cols)] * n_draws, axis=1)
+        input_covariate.columns = draw_cols
+        covariate = covariate.combine_first(input_covariate)
         covariate = resample_draws(resampling_map, covariate)
         covariates[cov_name] = covariate
 
-    cumulative_deaths = deaths.groupby(level='location_id').cumsum()
-    cumulative_infections = infections.groupby(level='location_id').cumsum()
-    output_draws = {
-        'daily_deaths': deaths,
-        'daily_infections': infections,
-        'r_effective': r_effective,
-        'cumulative_deaths': cumulative_deaths,
-        'cumulative_infections': cumulative_infections,
-        'betas': betas,
-        'log_beta_residuals': beta_residuals,
-        'mobility': covariates['mobility'],
-    }
-    for measure, data in output_draws.items():
-        data_interface.save_output_draws(data.reset_index(), scenario_name, measure)
-        summarized_data = summarize(data)
-        data_interface.save_output_summaries(summarized_data.reset_index(), scenario_name, measure)
+    # cumulative_deaths = deaths.groupby(level='location_id').cumsum()
+    # cumulative_infections = infections.groupby(level='location_id').cumsum()
+    # output_draws = {
+    #     'daily_deaths': deaths,
+    #     'daily_infections': infections,
+    #     'r_effective': r_effective,
+    #     'cumulative_deaths': cumulative_deaths,
+    #     'cumulative_infections': cumulative_infections,
+    #     'betas': betas,
+    #     'log_beta_residuals': beta_residuals,
+    #     'mobility': covariates['mobility'],
+    # }
+    # for measure, data in output_draws.items():
+    #     data_interface.save_output_draws(data.reset_index(), scenario_name, measure)
+    #     summarized_data = summarize(data)
+    #     data_interface.save_output_summaries(summarized_data.reset_index(), scenario_name, measure)
 
     del covariates['mobility']
     output_no_draws = {
