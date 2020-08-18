@@ -24,30 +24,32 @@ def run_seir_postprocessing(forecast_version: str, scenario_name: str) -> None:
     scenario_spec = forecast_spec.scenarios[scenario_name]
     data_interface = ForecastDataInterface.from_specification(forecast_spec)
     resampling_map = data_interface.load_resampling_map()
-    deaths, infections, r_effective = pp.load_output_data(scenario_name, data_interface)
-    betas = pp.load_betas(scenario_name, data_interface)
-    beta_residuals = pp.load_beta_residuals(data_interface)
-
+    #deaths, infections, r_effective = pp.load_output_data(scenario_name, data_interface)
+    #betas = pp.load_betas(scenario_name, data_interface)
+    #beta_residuals = pp.load_beta_residuals(data_interface)
     all_covs = scenario_spec.covariates
     time_varying_covs = ['mobility', 'mask_use', 'testing', 'pneumonia']
     non_time_varying_covs = set(all_covs).difference(time_varying_covs + ['intercept'])
     cov_order = {'time_varying': time_varying_covs, 'non_time_varying': non_time_varying_covs}
     covariates = pp.load_covariates(scenario_name, cov_order, data_interface)
 
-    measures = [deaths, infections, r_effective, betas, beta_residuals]
-    measures = [pd.concat(m, axis=1) for m in measures]
-    measures = resample_draws(resampling_map, *measures)
-    deaths, infections, r_effective, betas, beta_residuals = measures
+    #measures = [deaths, infections, r_effective, betas, beta_residuals]
+    #measures = [pd.concat(m, axis=1) for m in measures]
+    #measures = resample_draws(resampling_map, *measures)
+    #deaths, infections, r_effective, betas, beta_residuals = measures
 
     location_ids = data_interface.load_location_ids()
     n_draws = data_interface.get_n_draws()
     for cov_name, covariate in covariates.items():
-        covariate = pd.concat(covariate, axis=1).reset_index()
+        import pdb; pdb.set_trace()
+        covariate = pd.concat(covariate, axis=1)
         input_covariate = data_interface.load_covariate(cov_name, all_covs[cov_name],
                                                         location_ids, with_observed=True)
-        covariate_observed = input_covariate.reset_index(level='observed')['observed']
-        covariate = covariate.merge(covariate_observed, left_index=True, right_index=True, how='left')
-        covariate.set_index(covariate.columns.difference(list(range(n_draws))))
+        covariate_observed = input_covariate.reset_index(level='observed')
+        covariate = covariate.merge(covariate_observed, left_index=True, right_index=True, how='outer')
+
+        index_cols = ['location_id', 'date', 'observed'] if 'date' in covariate.columns else ['location_id', 'observed']
+        covariate = covariate.set_index(index_cols)
         covariate = resample_draws(resampling_map, covariate)
         covariates[cov_name] = covariate
 
