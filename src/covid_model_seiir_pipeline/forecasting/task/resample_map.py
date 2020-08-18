@@ -34,7 +34,6 @@ def parse_arguments(argstr: Optional[str] = None) -> Namespace:
     log.info("parsing arguments")
     parser = ArgumentParser()
     parser.add_argument("--forecast-version", type=str, required=True)
-    parser.add_argument("--scenario-name", type=str, required=True)
 
     if argstr is not None:
         arglist = shlex.split(argstr)

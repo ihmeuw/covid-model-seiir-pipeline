@@ -1,5 +1,5 @@
 data:
-  regression_version: '2020_08_16.02'
+  regression_version: 'latest'
   covariate_version: '2020_08_16.05'
   output_root: ''
 scenarios:
