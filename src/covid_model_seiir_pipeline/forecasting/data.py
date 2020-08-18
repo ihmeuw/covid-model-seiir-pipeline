@@ -168,6 +168,9 @@ class ForecastDataInterface:
             index_columns.append('date')
         return info_df.set_index(index_columns)
 
+    def save_raw_covariates(self, covariates: pd.DataFrame, scenario: str, draw_id: int):
+        self.forecast_marshall.dump(covariates, key=MKeys.forecast_raw_covariates(scenario=scenario, draw_id=draw_id))
+
     def load_beta_params(self, draw_id: int) -> Dict[str, float]:
         df = self.regression_marshall.load(key=MKeys.parameter(draw_id=draw_id))
         return df.set_index('params')['values'].to_dict()
