@@ -45,8 +45,8 @@ def run_seir_postprocessing(forecast_version: str, scenario_name: str) -> None:
         covariate = pd.concat(covariate, axis=1).reset_index()
         input_covariate = data_interface.load_covariate(cov_name, all_covs[cov_name],
                                                         location_ids, with_observed=True)
-        input_covariate = input_covariate.reset_index(level='observed')
-        covariate['observed'] = input_covariate['observed']
+        covariate_observed = input_covariate.reset_index(level='observed')['observed']
+        covariate = covariate.merge(covariate_observed, left_index=True, right_index=True, how='left')
         covariate.set_index(covariate.columns.difference(list(range(n_draws))))
         covariate = resample_draws(resampling_map, covariate)
         covariates[cov_name] = covariate
