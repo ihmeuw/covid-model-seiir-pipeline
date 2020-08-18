@@ -144,9 +144,9 @@ def run_normal_ode_model_by_location(initial_condition, beta_params, betas, thet
     return forecasts
 
 
-def splice_components(components_past, components_forecast, transition_day):
+def splice_components(components_past, components_forecast):
     shared_columns = ['date', 'S', 'E', 'I1', 'I2', 'R', 'beta']
-    components_past = components_past.loc[~transition_day, shared_columns].reset_index()
+    components_past = components_past[shared_columns].reset_index()
     components_forecast = components_forecast[['location_id'] + shared_columns]
     components = (pd.concat([components_past, components_forecast])
                   .sort_values(['location_id', 'date'])
