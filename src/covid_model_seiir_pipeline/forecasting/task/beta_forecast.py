@@ -137,9 +137,11 @@ def run_beta_forecast(draw_id: int, forecast_version: str, scenario_name: str):
         infections, deaths, r_effective = model.compute_output_metrics(infection_data, components, beta_params)
 
     components = components.reset_index()
+    covariates = covariates.reset_index()
     outputs = pd.concat([infections, deaths, r_effective], axis=1).reset_index()
 
     data_interface.save_components(components, scenario_name, draw_id)
+    data_interface.save_raw_covariates(covariates, scenario_name, draw_id)
     data_interface.save_raw_outputs(outputs, scenario_name, draw_id)
 
 

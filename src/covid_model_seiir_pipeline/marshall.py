@@ -42,6 +42,7 @@ class DataTypes:
     components = "component_draws"
     date = "dates"
     forecast_raw_outputs = "raw_outputs"
+    forecast_raw_covariates = "raw_covariates"
     forecast_output_draws = "output_draws"
     forecast_output_summaries = "output_summaries"
     location_data = "data"
@@ -58,6 +59,7 @@ class DataTypes:
         beta_scales,
         components,
         forecast_raw_outputs,
+        forecast_raw_covariates,
         forecast_output_draws,
         forecast_output_summaries,
     ])
@@ -115,6 +117,10 @@ class Keys:
     @classmethod
     def forecast_raw_outputs(cls, scenario, draw_id):
         return cls(DataTypes.forecast_raw_outputs, DRAW_FILE_TEMPLATE, scenario=scenario, draw_id=draw_id)
+
+    @classmethod
+    def forecast_raw_covariates(cls, scenario, draw_id):
+        return cls(DataTypes.forecast_raw_covariates, DRAW_FILE_TEMPLATE, scenario=scenario, draw_id=draw_id)
 
     @classmethod
     def forecast_output_draws(cls, scenario, measure):
