@@ -1,6 +1,6 @@
 import functools
 import multiprocessing
-from typing import List, Tuple
+from typing import Dict, List, Tuple
 
 import numpy as np
 import pandas as pd
@@ -33,6 +33,36 @@ def load_output_data_by_draw(draw_id: int, scenario: str,
     infections = draw_df['infections'].rename(draw_id)
     r_effective = draw_df['r_effective'].rename(draw_id)
     return deaths, infections, r_effective
+
+
+def load_covariates(scenario: str, cov_order: Dict[str, List[str]],
+                    data_interface: ForecastDataInterface) -> Dict[str, List[pd.Series]]:
+    _runner = functools.partial(
+        load_covariates_by_draw,
+        scenario=scenario,
+        cov_order=cov_order,
+        data_interface=data_interface,
+    )
+    draws = range(data_interface.get_n_draws())
+    with multiprocessing.Pool(FORECAST_SCALING_CORES) as pool:
+        outputs = pool.map(_runner, draws)
+
+    cov_names = [*cov_order['time_varying'], *cov_order['non_time_varying']]
+    covariates = dict(zip(cov_names, zip(*outputs)))
+    return covariates
+
+
+def load_covariates_by_draw(draw_id: int, scenario: str,
+                            cov_order: Dict[str, List[str]],
+                            data_interface: ForecastDataInterface) -> Tuple[pd.Series, ...]:
+    covariate_df = data_interface.load_raw_covariates(scenario, draw_id)
+    covariate_df = covariate_df.set_index(['location_id', 'date']).sort_index()
+    covariate_grouped = covariate_df.groupby(level='location_id')
+
+    time_varying = [covariate_df[col].rename(draw_id) for col in cov_order['time_varying']]
+    non_time_varying = [covariate_grouped[col].max().rename(draw_id) for col in cov_order['non_time_varying']]
+
+    return (*time_varying, *non_time_varying)
 
 
 def load_betas(scenario: str, data_interface: ForecastDataInterface) -> List[pd.Series]:

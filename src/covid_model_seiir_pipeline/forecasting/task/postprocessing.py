@@ -21,17 +21,36 @@ def run_seir_postprocessing(forecast_version: str, scenario_name: str) -> None:
     forecast_spec = ForecastSpecification.from_path(
         Path(forecast_version) / static_vars.FORECAST_SPECIFICATION_FILE
     )
+    scenario_spec = forecast_spec.scenarios[scenario_name]
     data_interface = ForecastDataInterface.from_specification(forecast_spec)
     resampling_map = data_interface.load_resampling_map()
     deaths, infections, r_effective = pp.load_output_data(scenario_name, data_interface)
     betas = pp.load_betas(scenario_name, data_interface)
     beta_residuals = pp.load_beta_residuals(data_interface)
 
+    all_covs = scenario_spec.covariates
+    time_varying_covs = ['mobility', 'mask_use', 'testing', 'pneumonia']
+    non_time_varying_covs = set(all_covs).difference(time_varying_covs + ['intercept'])
+    cov_order = {'time_varying': time_varying_covs, 'non_time_varying': non_time_varying_covs}
+    covariates = pp.load_covariates(scenario_name, cov_order, data_interface)
+
     measures = [deaths, infections, r_effective, betas, beta_residuals]
     measures = [pd.concat(m, axis=1) for m in measures]
     measures = resample_draws(resampling_map, *measures)
-
     deaths, infections, r_effective, betas, beta_residuals = measures
+
+    location_ids = data_interface.load_location_ids()
+    n_draws = data_interface.get_n_draws()
+    for cov_name, covariate in covariates.items():
+        covariate = pd.concat(covariate, axis=1).reset_index()
+        input_covariate = data_interface.load_covariate(cov_name, all_covs[cov_name],
+                                                        location_ids, with_observed=True)
+        input_covariate = input_covariate.reset_index(level='observed')
+        covariate['observed'] = input_covariate['observed']
+        covariate.set_index(covariate.columns.difference(list(range(n_draws))))
+        covariate = resample_draws(resampling_map, covariate)
+        covariates[cov_name] = covariate
+
     cumulative_deaths = deaths.groupby(level='location_id').cumsum()
     cumulative_infections = infections.groupby(level='location_id').cumsum()
     output_draws = {
@@ -42,9 +61,18 @@ def run_seir_postprocessing(forecast_version: str, scenario_name: str) -> None:
         'cumulative_infections': cumulative_infections,
         'betas': betas,
         'log_beta_residuals': beta_residuals,
+        'mobility': covariates['mobility'],
     }
     for measure, data in output_draws.items():
         data_interface.save_output_draws(data.reset_index(), scenario_name, measure)
+        summarized_data = summarize(data)
+        data_interface.save_output_summaries(summarized_data.reset_index(), scenario_name, measure)
+
+    del covariates['mobility']
+    output_no_draws = {
+        **covariates,
+    }
+    for measure, data in output_no_draws.items():
         summarized_data = summarize(data)
         data_interface.save_output_summaries(summarized_data.reset_index(), scenario_name, measure)
 

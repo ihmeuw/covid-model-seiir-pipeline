@@ -138,11 +138,13 @@ class ForecastDataInterface:
         infection_data['date'] = pd.to_datetime(infection_data['date'])
         return infection_data
 
-    # FIXME: Duplicate code.
-    def load_covariate(self, covariate: str, covariate_version: str, location_ids: List[int]) -> pd.DataFrame:
+    def load_covariate(self, covariate: str, covariate_version: str, location_ids: List[int],
+                       with_observed: bool = False) -> pd.DataFrame:
         covariate_path = self.covariate_paths.get_covariate_scenario_file(covariate, covariate_version)
         covariate_df = pd.read_csv(covariate_path)
         index_columns = ['location_id']
+        if with_observed:
+            index_columns.append('observed')
         covariate_df = covariate_df.loc[covariate_df['location_id'].isin(location_ids), :]
         if 'date' in covariate_df.columns:
             covariate_df['date'] = pd.to_datetime(covariate_df['date'])
@@ -170,6 +172,11 @@ class ForecastDataInterface:
 
     def save_raw_covariates(self, covariates: pd.DataFrame, scenario: str, draw_id: int):
         self.forecast_marshall.dump(covariates, key=MKeys.forecast_raw_covariates(scenario=scenario, draw_id=draw_id))
+
+    def load_raw_covariates(self, scenario: str, draw_id: int):
+        covariates = self.forecast_marshall.load(key=MKeys.forecast_raw_covariates(scenario=scenario, draw_id=draw_id))
+        covariates['date'] = pd.to_datetime(covariates['date'])
+        return covariates
 
     def load_beta_params(self, draw_id: int) -> Dict[str, float]:
         df = self.regression_marshall.load(key=MKeys.parameter(draw_id=draw_id))
