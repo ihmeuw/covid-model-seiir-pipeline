@@ -41,6 +41,8 @@ def run_beta_forecast(draw_id: int, forecast_version: str, scenario_name: str):
     # Select out the initial condition using the day of transition.
     transition_day = past_components['date'] == transition_date.loc[past_components.index]
     initial_condition = past_components.loc[transition_day, static_vars.SEIIR_COMPARTMENTS]
+    before_model = past_components['date'] <= transition_date.loc[past_components.index]
+    past_components = past_components[before_model]
 
     # Covariates and coefficients, and scaling parameters are
     # used to compute beta hat in the future.
