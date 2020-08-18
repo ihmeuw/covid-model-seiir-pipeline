@@ -192,15 +192,6 @@ class ForecastDataInterface:
     def load_raw_outputs(self, scenario: str, draw_id: int) -> pd.DataFrame:
         return self.forecast_marshall.load(key=MKeys.forecast_raw_outputs(scenario=scenario, draw_id=draw_id))
 
-    def save_concatenated_outputs(self, concatenated_outputs: pd.DataFrame, scenario: str, measure: str):
-        self.forecast_marshall.dump(concatenated_outputs,
-                                    key=MKeys.forecat_concatenated_outputs(scenario=scenario, measure=measure))
-
-    def load_concatenated_outputs(self, scenario: str, measure: str):
-        outputs = self.forecast_marshall.load(key=MKeys.forecat_concatenated_outputs(scenario=scenario, measure=measure))
-        outputs['date'] = pd.to_datetime(outputs['date'])
-        return outputs.set_index(['location_id', 'date'])
-
     def save_resampling_map(self, resampling_map):
         with (self.forecast_paths.root_dir / 'resampling_map.yaml').open('w') as map_file:
             yaml.dump(resampling_map, map_file)

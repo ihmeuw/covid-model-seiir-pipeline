@@ -44,7 +44,6 @@ class DataTypes:
     forecast_raw_outputs = "raw_outputs"
     forecast_output_draws = "output_draws"
     forecast_output_summaries = "output_summaries"
-    forecast_concatenated_outputs = "concatenated_outputs"
     location_data = "data"
     parameter = "parameters"
     regression_beta = "beta"
@@ -61,7 +60,6 @@ class DataTypes:
         forecast_raw_outputs,
         forecast_output_draws,
         forecast_output_summaries,
-        forecast_concatenated_outputs
     ])
 
 
@@ -125,10 +123,6 @@ class Keys:
     @classmethod
     def forecast_output_summaries(cls, scenario, measure):
         return cls(DataTypes.forecast_output_summaries, MEASURE_FILE_TEMPLATE, scenario=scenario, measure=measure)
-
-    @classmethod
-    def forecat_concatenated_outputs(cls, scenario, measure):
-        return cls(DataTypes.forecast_concatenated_outputs, MEASURE_FILE_TEMPLATE, scenario=scenario, measure=measure)
 
     # other methods/properties
     @property
