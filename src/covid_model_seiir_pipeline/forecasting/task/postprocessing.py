@@ -24,6 +24,8 @@ def run_seir_postprocessing(forecast_version: str, scenario_name: str) -> None:
     resampling_map = data_interface.load_resampling_map()
     logger.info('Loading SEIR outputs')
     deaths, infections, r_effective = pp.load_output_data(scenario_name, data_interface)
+    cumulative_deaths = deaths.groupby(level='location_id').cumsum()
+    cumulative_infections = infections.groupby(level='location_id').cumsum()
     betas = pp.load_betas(scenario_name, data_interface)
     beta_residuals = pp.load_beta_residuals(data_interface)
     coefficients = pp.load_coefficients(data_interface)
@@ -75,9 +77,9 @@ def run_seir_postprocessing(forecast_version: str, scenario_name: str) -> None:
     es_noisy = es_noisy.rename(columns={f'draw_{i}': i for i in range(n_draws)})
     es_smoothed = es_smoothed.rename(columns={f'draw_{i}': i for i in range(n_draws)})
     es_noisy, es_smoothed = pp.resample_draws(resampling_map, es_noisy, es_smoothed)
+    es_noisy_daily = es_noisy.groupby(level='location_id').apply(lambda x: x - x.shift(fill_value=0))
+    es_smoothed_daily = es_smoothed.groupby(level='location_id').apply(lambda x: x - x.shift(fill_value=0))
 
-    cumulative_deaths = deaths.groupby(level='location_id').cumsum()
-    cumulative_infections = infections.groupby(level='location_id').cumsum()
     output_draws = {
         'daily_deaths': deaths,
         'daily_infections': infections,
@@ -88,8 +90,10 @@ def run_seir_postprocessing(forecast_version: str, scenario_name: str) -> None:
         'log_beta_residuals': beta_residuals,
         'coefficients': coefficients,
         'beta_scaling_parameters': scaling_parameters,
-        'elastispliner_noisy': es_noisy,
-        'elastispliner_smoothed': es_smoothed,
+        'cumulative_elastispliner_noisy': es_noisy,
+        'cumulative_elastispliner_smoothed': es_smoothed,
+        'daily_elastispliner_noisy': es_noisy_daily,
+        'daily_elastispliner_smoothed': es_smoothed_daily,
         'mobility': covariates['mobility'],
     }
     logger.info('Saving SEIR output draws and summaries.')
