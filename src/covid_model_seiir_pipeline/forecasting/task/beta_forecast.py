@@ -71,8 +71,8 @@ def run_beta_forecast(draw_id: int, forecast_version: str, scenario_name: str):
     infections, deaths, r_effective = model.compute_output_metrics(infection_data, components, beta_params)
 
     if scenario_spec.algorithm == 'mandate_reimposition':
-        min_wait = pd.Timedelta(days=7)
-        days_on = pd.Timedelta(days=7 * 6)
+        min_wait = pd.Timedelta(days=scenario_spec.algorithm_params['minimum_delay'])
+        days_on = pd.Timedelta(days=static_vars.DAYS_PER_WEEK * scenario_spec.algorithm_params['reimposition_duration'])
 
         population = (components[static_vars.SEIIR_COMPARTMENTS]
                       .sum(axis=1)

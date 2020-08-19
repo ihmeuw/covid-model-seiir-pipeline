@@ -9,6 +9,8 @@ COL_GROUP = 'loc_id'
 COL_DATE = 'date'
 COL_INTERCEPT = 'intercept'
 
+DAYS_PER_WEEK = 7
+
 # Columns from infectionator inputs
 INFECTION_COL_DICT = {
     'COL_DATE': 'date',
