@@ -58,11 +58,18 @@ def run_beta_regression(draw_id: int, regression_version: str) -> None:
     beta_hat = np.exp(log_beta_hat).rename('beta_pred').reset_index()
 
     # Format and save data.
-    data_interface.save_regression_coefficients(coefficients, draw_id)
-
+    data_df = pd.concat(location_data.values())
+    data_df['date'] = pd.to_datetime(data_df['date'])
     regression_betas = beta_hat.merge(covariates, on=['location_id', 'date'])
-    beta_fit_covariates = beta_fit.merge(regression_betas, on=['location_id', 'date'], how='left')
-    data_interface.save_regression_betas(beta_fit_covariates, draw_id)
+    regression_betas = beta_fit.merge(regression_betas, on=['location_id', 'date'], how='left')
+    merged = data_df.merge(regression_betas, on=['location_id', 'date'], how='outer').sort_values(['location_id', 'date'])
+    merged = merged[(merged['obs_deaths'] == 1) | (merged['deaths_draw'] > 0)]
+    data_df = merged[data_df.columns]
+    data_interface.save_location_data(data_df, draw_id)
+
+    regression_betas = merged[regression_betas.columns]
+    data_interface.save_regression_betas(regression_betas, draw_id)
+    data_interface.save_regression_coefficients(coefficients, draw_id)
 
     # Save the parameters of alpha, sigma, gamma1, and gamma2 that were drawn
     draw_beta_params = ode_model.create_params_df()
@@ -70,9 +77,6 @@ def run_beta_regression(draw_id: int, regression_version: str) -> None:
 
     beta_start_end_dates = ode_model.create_start_end_date_df()
     data_interface.save_date_file(beta_start_end_dates, draw_id)
-
-    data_df = pd.concat(location_data.values())
-    data_interface.save_location_data(data_df, draw_id)
 
 
 def parse_arguments(argstr: Optional[str] = None) -> Namespace:

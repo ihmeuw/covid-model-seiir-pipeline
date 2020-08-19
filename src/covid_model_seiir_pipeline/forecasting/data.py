@@ -80,7 +80,7 @@ class ForecastDataInterface:
         regression_version = regression_spec['data']['covariate_version']
         if not forecast_version == regression_version:
             logger.warning(f'Forecast covariate version {forecast_version} does not match '
-                           f'regression covariate version {regression_version}. If the two covariate'
+                           f'regression covariate version {regression_version}. If the two covariate '
                            f'versions have different data in the past, the regression coefficients '
                            f'used for prediction may not be valid.')
 
@@ -122,7 +122,6 @@ class ForecastDataInterface:
     # TODO: inverse is RegressionDataInterface.save_date_file
     def load_transition_date(self, draw_id: int) -> pd.Series:
         dates_df = self.regression_marshall.load(key=MKeys.date(draw_id))
-        dates_df['start_date'] = pd.to_datetime(dates_df['start_date'])
         dates_df['end_date'] = pd.to_datetime(dates_df['end_date'])
         transition_date = dates_df.set_index('location_id').sort_index()['end_date'].rename('date')
         return transition_date
@@ -139,11 +138,13 @@ class ForecastDataInterface:
         infection_data['date'] = pd.to_datetime(infection_data['date'])
         return infection_data
 
-    # FIXME: Duplicate code.
-    def load_covariate(self, covariate: str, covariate_version: str, location_ids: List[int]) -> pd.DataFrame:
+    def load_covariate(self, covariate: str, covariate_version: str, location_ids: List[int],
+                       with_observed: bool = False) -> pd.DataFrame:
         covariate_path = self.covariate_paths.get_covariate_scenario_file(covariate, covariate_version)
         covariate_df = pd.read_csv(covariate_path)
         index_columns = ['location_id']
+        if with_observed:
+            index_columns.append('observed')
         covariate_df = covariate_df.loc[covariate_df['location_id'].isin(location_ids), :]
         if 'date' in covariate_df.columns:
             covariate_df['date'] = pd.to_datetime(covariate_df['date'])
@@ -169,6 +170,14 @@ class ForecastDataInterface:
             index_columns.append('date')
         return info_df.set_index(index_columns)
 
+    def save_raw_covariates(self, covariates: pd.DataFrame, scenario: str, draw_id: int):
+        self.forecast_marshall.dump(covariates, key=MKeys.forecast_raw_covariates(scenario=scenario, draw_id=draw_id))
+
+    def load_raw_covariates(self, scenario: str, draw_id: int):
+        covariates = self.forecast_marshall.load(key=MKeys.forecast_raw_covariates(scenario=scenario, draw_id=draw_id))
+        covariates['date'] = pd.to_datetime(covariates['date'])
+        return covariates
+
     def load_beta_params(self, draw_id: int) -> Dict[str, float]:
         df = self.regression_marshall.load(key=MKeys.parameter(draw_id=draw_id))
         return df.set_index('params')['values'].to_dict()
@@ -177,7 +186,9 @@ class ForecastDataInterface:
         self.forecast_marshall.dump(forecasts, key=MKeys.components(scenario=scenario, draw_id=draw_id))
 
     def load_components(self, scenario: str, draw_id: int) -> pd.DataFrame:
-        return self.forecast_marshall.load(key=MKeys.components(scenario=scenario, draw_id=draw_id))
+        components = self.forecast_marshall.load(key=MKeys.components(scenario=scenario, draw_id=draw_id))
+        components['date'] = pd.to_datetime(components['date'])
+        return components.set_index(['location_id', 'date'])
 
     def save_beta_scales(self, scales: pd.DataFrame, scenario: str, draw_id: int):
         self.forecast_marshall.dump(scales, key=MKeys.beta_scales(scenario=scenario, draw_id=draw_id))
@@ -190,6 +201,15 @@ class ForecastDataInterface:
 
     def load_raw_outputs(self, scenario: str, draw_id: int) -> pd.DataFrame:
         return self.forecast_marshall.load(key=MKeys.forecast_raw_outputs(scenario=scenario, draw_id=draw_id))
+
+    def save_resampling_map(self, resampling_map):
+        with (self.forecast_paths.root_dir / 'resampling_map.yaml').open('w') as map_file:
+            yaml.dump(resampling_map, map_file)
+
+    def load_resampling_map(self):
+        with (self.forecast_paths.root_dir / 'resampling_map.yaml').open() as map_file:
+            resampling_map = yaml.full_load(map_file)
+        return resampling_map
 
     def save_output_draws(self, output_draws: pd.DataFrame, scenario: str, measure: str):
         return self.forecast_marshall.dump(output_draws,

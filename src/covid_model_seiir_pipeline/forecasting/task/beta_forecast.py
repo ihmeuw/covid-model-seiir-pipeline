@@ -41,6 +41,8 @@ def run_beta_forecast(draw_id: int, forecast_version: str, scenario_name: str):
     # Select out the initial condition using the day of transition.
     transition_day = past_components['date'] == transition_date.loc[past_components.index]
     initial_condition = past_components.loc[transition_day, static_vars.SEIIR_COMPARTMENTS]
+    before_model = past_components['date'] < transition_date.loc[past_components.index]
+    past_components = past_components[before_model]
 
     # Covariates and coefficients, and scaling parameters are
     # used to compute beta hat in the future.
@@ -64,7 +66,7 @@ def run_beta_forecast(draw_id: int, forecast_version: str, scenario_name: str):
     betas = model.forecast_beta(covariate_pred, coefficients, beta_scales)
     future_components = model.run_normal_ode_model_by_location(initial_condition, beta_params, betas, thetas,
                                                                location_ids, scenario_spec.solver)
-    components = model.splice_components(past_components, future_components, transition_day)
+    components = model.splice_components(past_components, future_components)
     components['theta'] = thetas.reindex(components.index).fillna(0)
     infections, deaths, r_effective = model.compute_output_metrics(infection_data, components, beta_params)
 
@@ -130,14 +132,16 @@ def run_beta_forecast(draw_id: int, forecast_version: str, scenario_name: str):
         betas = model.forecast_beta(covariate_pred, coefficients, beta_scales)
         future_components = model.run_normal_ode_model_by_location(initial_condition, beta_params, betas, thetas,
                                                                    location_ids, scenario_spec.solver)
-        components = model.splice_components(past_components, future_components, transition_day)
+        components = model.splice_components(past_components, future_components)
         components['theta'] = thetas.reindex(components.index).fillna(0)
         infections, deaths, r_effective = model.compute_output_metrics(infection_data, components, beta_params)
 
     components = components.reset_index()
-    outputs = pd.concat([infections, deaths, r_effective], axis=1).dropna().reset_index()
+    covariates = covariates.reset_index()
+    outputs = pd.concat([infections, deaths, r_effective], axis=1).reset_index()
 
     data_interface.save_components(components, scenario_name, draw_id)
+    data_interface.save_raw_covariates(covariates, scenario_name, draw_id)
     data_interface.save_raw_outputs(outputs, scenario_name, draw_id)
 
 

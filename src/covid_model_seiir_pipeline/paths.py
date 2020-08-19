@@ -44,6 +44,7 @@ class ScenarioPaths(Paths):
     beta_scaling_file: ClassVar[str] = DRAW_FILE_TEMPLATE
     component_file: ClassVar[str] = DRAW_FILE_TEMPLATE
     raw_outputs_file: ClassVar[str] = DRAW_FILE_TEMPLATE
+    raw_covariates_file: ClassVar[str] = DRAW_FILE_TEMPLATE
     output_draws_file: ClassVar[str] = MEASURE_FILE_TEMPLATE
     output_summary_file: ClassVar[str] = MEASURE_FILE_TEMPLATE
 
@@ -75,6 +76,13 @@ class ScenarioPaths(Paths):
         return self.raw_outputs / self.raw_outputs_file.format(draw_id=draw_id)
 
     @property
+    def raw_covariates(self):
+        return self.root_dir / 'raw_covariates'
+
+    def get_raw_covariates_path(self, draw_id: int):
+        return self.raw_covariates / self.raw_covariates_file.format(draw_id=draw_id)
+
+    @property
     def output_draws(self) -> Path:
         return self.root_dir / 'output_draws'
 
@@ -91,7 +99,9 @@ class ScenarioPaths(Paths):
     @property
     def directories(self) -> List[Path]:
         """Returns all top level sub-directories."""
-        return [self.beta_scaling, self.components, self.raw_outputs, self.output_draws, self.output_summaries]
+        return [self.beta_scaling, self.components,
+                self.raw_outputs, self.raw_covariates,
+                self.output_draws, self.output_summaries]
 
 
 @dataclass
