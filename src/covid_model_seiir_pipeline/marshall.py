@@ -45,6 +45,7 @@ class DataTypes:
     forecast_raw_covariates = "raw_covariates"
     forecast_output_draws = "output_draws"
     forecast_output_summaries = "output_summaries"
+    forecast_output_miscellaneous = "output_miscellaneous"
     location_data = "data"
     parameter = "parameters"
     regression_beta = "beta"
@@ -62,6 +63,7 @@ class DataTypes:
         forecast_raw_covariates,
         forecast_output_draws,
         forecast_output_summaries,
+        forecast_output_miscellaneous,
     ])
 
 
@@ -129,6 +131,10 @@ class Keys:
     @classmethod
     def forecast_output_summaries(cls, scenario, measure):
         return cls(DataTypes.forecast_output_summaries, MEASURE_FILE_TEMPLATE, scenario=scenario, measure=measure)
+
+    @classmethod
+    def forecast_output_miscellaneous(cls, scenario, measure):
+        return cls(DataTypes.forecast_output_miscellaneous, MEASURE_FILE_TEMPLATE, scenario=scenario, measure=measure)
 
     # other methods/properties
     @property
