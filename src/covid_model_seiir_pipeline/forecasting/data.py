@@ -120,14 +120,14 @@ class ForecastDataInterface:
 
     def load_elastispliner_inputs(self):
         metadata = self.get_regression_metadata()
-        deaths_version = Path(metadata['infectionator_metadata']['death']['output_path'])
+        deaths_version = Path(metadata['infectionator_metadata']['death']['metadata']['output_path'])
         es_inputs = pd.read_csv(deaths_version / 'model_data.csv')
         es_inputs['date'] = pd.to_datetime(es_inputs['date'])
         return es_inputs
 
     def load_elastispliner_outputs(self):
         metadata = self.get_regression_metadata()
-        deaths_version = Path(metadata['infectionator_metadata']['death']['output_path'])
+        deaths_version = Path(metadata['infectionator_metadata']['death']['metadata']['output_path'])
         noisy_outputs = pd.read_csv(deaths_version / 'model_results.csv')
         noisy_outputs['date'] = pd.to_datetime(noisy_outputs['date'])
         smoothed_outputs = pd.read_csv(deaths_version / 'model_results_refit.csv')

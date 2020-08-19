@@ -72,6 +72,8 @@ def run_seir_postprocessing(forecast_version: str, scenario_name: str) -> None:
     es_noisy, es_smoothed = pp.load_elastispliner_outputs(data_interface)
 
     logger.info('Resampling other data sources')
+    es_noisy = es_noisy.rename(columns={f'draw_{i}': i for i in range(n_draws)})
+    es_smoothed = es_smoothed.rename(columns={f'draw_{i}': i for i in range(n_draws)})
     es_noisy, es_smoothed = pp.resample_draws(resampling_map, es_noisy, es_smoothed)
 
     cumulative_deaths = deaths.groupby(level='location_id').cumsum()

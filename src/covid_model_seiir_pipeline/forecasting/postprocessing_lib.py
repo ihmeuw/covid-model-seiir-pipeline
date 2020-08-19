@@ -197,8 +197,13 @@ def build_version_map(data_interface: ForecastDataInterface) -> pd.Series:
     version_map['snapshot_version'] = Path(snapshot_metadata['output_path']).name
     jhu_snapshot_metadata = model_inputs_metadata['jhu_snapshot_metadata']
     version_map['jhu_snapshot_version'] = Path(jhu_snapshot_metadata['output_path']).name
-    webscrape_metadata = model_inputs_metadata['webscrape_metadata']
-    version_map['webscrape_version'] = Path(webscrape_metadata).name
+    try:
+        # There is a typo in the process that generates this key.  
+        # Protect ourselves in case they fix it without warning.
+        webscrape_metadata = model_inputs_metadata['webcrape_metadata']
+    except KeyError:
+        webscrape_metadata = model_inputs_metadata['webscrape_metadata']
+    version_map['webscrape_version'] = Path(webscrape_metadata['output_path']).name
 
     version_map['location_set_version_id'] = int(model_inputs_metadata['run_arguments']['lsvid'])
     version_map['data_date'] = Path(snapshot_metadata['output_path']).name.split('.')[0].replace('_', '-')
@@ -212,7 +217,7 @@ def build_version_map(data_interface: ForecastDataInterface) -> pd.Series:
 def load_populations(data_interface: ForecastDataInterface):
     metadata = data_interface.get_regression_metadata()
     model_inputs_path = Path(
-        metadata['infectionator_metadata']['deaths']['metadata']['model_inputs_metadata']['output_path']
+        metadata['infectionator_metadata']['death']['metadata']['model_inputs_metadata']['output_path']
     )
     population_path = model_inputs_path / 'output_measures' / 'population' / 'all_populations.csv'
     populations = pd.read_csv(population_path)
@@ -222,7 +227,7 @@ def load_populations(data_interface: ForecastDataInterface):
 def load_location_information(data_interface: ForecastDataInterface):
     metadata = data_interface.get_regression_metadata()
     model_inputs_path = Path(
-        metadata['infectionator_metadata']['deaths']['metadata']['model_inputs_metadata']['output_path']
+        metadata['infectionator_metadata']['death']['metadata']['model_inputs_metadata']['output_path']
     )
     hierarchy_path = model_inputs_path / 'locations' / 'modeling_hierarchy.csv'
     hierarchy = pd.read_csv(hierarchy_path)
@@ -270,7 +275,10 @@ def resample_draws(resampling_map, *measure_data: pd.DataFrame):
 
 def resample_draws_by_measure(measure_data: pd.DataFrame, resampling_map):
     output = []
+    locs = measure_data.reset_index().location_id.unique()
     for location_id, loc_map in resampling_map.items():
+        if location_id not in locs:
+            continue
         loc_data = measure_data.loc[location_id]
         loc_data[loc_map['to_resample']] = loc_data[loc_map['to_fill']]
         loc_data = pd.concat({location_id: loc_data}, names=['location_id'])
