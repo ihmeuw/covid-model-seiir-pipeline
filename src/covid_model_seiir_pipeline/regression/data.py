@@ -103,25 +103,14 @@ class RegressionDataInterface:
         dfs = dict()
         for loc in location_ids:
             file = self.infection_paths.get_infection_file(location_id=loc, draw_id=draw_id)
-            dfs[loc] = pd.read_csv(file).rename(columns={'loc_id': 'location_id'})
-
-        # validate
-        locs_na = []
-        locs_neg = []
-        for loc, df in dfs.items():
-            if df['cases_draw'].isna().any():
-                locs_na.append(loc)
-            if (df['cases_draw'].to_numpy() < 0.0).any():
-                locs_neg.append(loc)
-        if len(locs_na) > 0 and len(locs_neg) > 0:
-            raise ValueError(
-                'NaN in infection data: ' + str(locs_na) + '. Negatives in infection data: ' +
-                str(locs_neg)
-            )
-        if len(locs_na) > 0:
-            raise ValueError('NaN in infection data: ' + str(locs_na))
-        if len(locs_neg) > 0:
-            raise ValueError('Negatives in infection data:' + str(locs_neg))
+            loc_df = pd.read_csv(file).rename(columns={'loc_id': 'location_id'})
+            if loc_df['cases_draw'].isnull().any():
+                logger.warning(f'Nulls found in infectionator inputs for location id {loc}.  Dropping.')
+                continue
+            if (loc_df['cases_draw'] < 0).any():
+                logger.warning(f'Negatives found in infectionator inputs for location id {loc}.  Dropping.')
+                continue
+            dfs[loc] = loc_df
 
         return dfs
 

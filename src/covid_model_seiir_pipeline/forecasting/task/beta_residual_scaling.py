@@ -203,7 +203,6 @@ def write_out_beta_scale(beta_scales: List[pd.DataFrame],
         pool.map(_runner, beta_scales)
 
 
-
 def write_out_beta_scales_by_draw(beta_scales: pd.DataFrame, data_interface: ForecastDataInterface,
                                   offset: pd.Series, scenario: str) -> None:
     # Compute these draw specific parameters now that we have the offset.
@@ -212,6 +211,7 @@ def write_out_beta_scales_by_draw(beta_scales: pd.DataFrame, data_interface: For
     beta_scales['scale_final'] = np.exp(beta_scales['log_beta_residual_mean'])
     draw_id = beta_scales['draw'].iat[0]
     data_interface.save_beta_scales(beta_scales.reset_index(), scenario, draw_id)
+
 
 def parse_arguments(argstr: Optional[str] = None) -> Namespace:
     """
