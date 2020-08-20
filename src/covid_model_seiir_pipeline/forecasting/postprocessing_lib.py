@@ -1,5 +1,6 @@
 import functools
 import multiprocessing
+from pathlib import Path
 from typing import Dict, List, Tuple
 
 import numpy as np
@@ -52,6 +53,26 @@ def load_coefficients_by_draw(draw_id: int, data_interface: ForecastDataInterfac
     coefficients.columns = ['location_id', 'covariate', draw_id]
     coefficients = coefficients.set_index(['location_id', 'covariate'])[draw_id]
     return coefficients
+
+
+def load_scaling_parameters(scenario: str, data_interface: ForecastDataInterface):
+    _runner = functools.partial(
+        load_scaling_parameters_by_draw,
+        scenario=scenario,
+        data_interface=data_interface,
+    )
+    draws = range(data_interface.get_n_draws())
+    with multiprocessing.Pool(FORECAST_SCALING_CORES) as pool:
+        outputs = pool.map(_runner, draws)
+    return outputs
+
+
+def load_scaling_parameters_by_draw(draw_id: int, scenario: str, data_interface: ForecastDataInterface) -> pd.Series:
+    scaling_parameters = data_interface.load_beta_scales(scenario, draw_id)
+    scaling_parameters = scaling_parameters.set_index('location_id').stack().reset_index()
+    scaling_parameters.columns = ['location_id', 'scaling_parameter', draw_id]
+    scaling_parameters = scaling_parameters.set_index(['location_id', 'scaling_parameter'])[draw_id]
+    return scaling_parameters
 
 
 def load_covariates(scenario: str, cov_order: Dict[str, List[str]],
@@ -124,12 +145,98 @@ def load_beta_residuals_by_draw(draw_id: int, data_interface: ForecastDataInterf
     return beta_residual
 
 
-def concat_draws(measure_data: List[pd.Series]) -> pd.DataFrame:
-    # 3x faster than pd.concat for reasons I don't understand.
-    measure_data = functools.reduce(lambda a, b: pd.merge(a, b, left_index=True, right_index=True, how='outer'),
-                                    measure_data)
-    measure_data.columns = [f'draw_{i}' for i in measure_data.columns]
-    return measure_data.reset_index()
+def load_elastispliner_inputs(data_interface: ForecastDataInterface) -> pd.DataFrame:
+    es_inputs = data_interface.load_elastispliner_inputs()
+    es_inputs = es_inputs.set_index(['location_id', 'date'])
+    cumulative_cases = (es_inputs['Confirmed case rate'] * es_inputs['population']).rename('cumulative_cases')
+    cumulative_deaths = (es_inputs['Death rate'] * es_inputs['population']).rename('cumulative_deaths')
+    cumulative_hospitalizations = (es_inputs['Hospitalization rate'] * es_inputs['population'])
+    cumulative_hospitalizations = cumulative_hospitalizations.rename('cumulative_hospitalizations')
+    es_inputs = pd.concat([cumulative_cases, cumulative_deaths, cumulative_hospitalizations], axis=1)
+    return es_inputs
+
+
+def load_elastispliner_outputs(data_interface: ForecastDataInterface):
+    es_noisy, es_smoothed = data_interface.load_elastispliner_outputs()
+    es_noisy = es_noisy.set_index(['location_id', 'date', 'observed'])
+    es_smoothed = es_smoothed.set_index(['location_id', 'date', 'observed'])
+    return es_noisy, es_smoothed
+
+
+def load_full_data(data_interface: ForecastDataInterface) -> pd.DataFrame:
+    full_data = data_interface.load_full_data()
+    full_data = full_data.set_index(['location_id', 'date'])
+    full_data = full_data.rename(columns={
+        'Deaths': 'cumulative_deaths',
+        'Confirmed': 'cumulative_cases',
+        'Hospitalizations': 'cumulative_hospitalizations',
+    })
+    full_data = full_data[['cumulative_cases', 'cumulative_deaths', 'cumulative_hospitalizations']]
+    return full_data
+
+
+def build_version_map(data_interface: ForecastDataInterface) -> pd.Series:
+    metadata = data_interface.get_regression_metadata()
+    version_map = {}
+    version_map['forecast_version'] = data_interface.forecast_paths.root_dir.name
+    version_map['regression_version'] = Path(metadata['output_path']).name
+    version_map['covariate_version'] = Path(metadata['covariates_metadata']['output_path']).name
+
+    # FIXME: infectionator doesn't do metadata the right way.
+    inf_metadata = metadata['infectionator_metadata']
+    inf_output_dir = inf_metadata['wrapped_R_call'][-1].split()[1].strip("'")
+    version_map['infectionator_version'] = Path(inf_output_dir).name
+
+    death_metadata = inf_metadata['death']['metadata']
+    version_map['elastispliner_version'] = Path(death_metadata['output_path']).name
+
+    model_inputs_metadata = death_metadata['model_inputs_metadata']
+    version_map['model_inputs_version'] = Path(model_inputs_metadata['output_path']).name
+
+    snapshot_metadata = model_inputs_metadata['snapshot_metadata']
+    version_map['snapshot_version'] = Path(snapshot_metadata['output_path']).name
+    jhu_snapshot_metadata = model_inputs_metadata['jhu_snapshot_metadata']
+    version_map['jhu_snapshot_version'] = Path(jhu_snapshot_metadata['output_path']).name
+    try:
+        # There is a typo in the process that generates this key.  
+        # Protect ourselves in case they fix it without warning.
+        webscrape_metadata = model_inputs_metadata['webcrape_metadata']
+    except KeyError:
+        webscrape_metadata = model_inputs_metadata['webscrape_metadata']
+    version_map['webscrape_version'] = Path(webscrape_metadata['output_path']).name
+
+    version_map['location_set_version_id'] = int(model_inputs_metadata['run_arguments']['lsvid'])
+    version_map['data_date'] = Path(snapshot_metadata['output_path']).name.split('.')[0].replace('_', '-')
+
+    version_map = pd.Series(version_map)
+    version_map = version_map.reset_index()
+    version_map.columns = ['name', 'version']
+    return version_map
+
+
+def load_populations(data_interface: ForecastDataInterface):
+    metadata = data_interface.get_regression_metadata()
+    model_inputs_path = Path(
+        metadata['infectionator_metadata']['death']['metadata']['model_inputs_metadata']['output_path']
+    )
+    population_path = model_inputs_path / 'output_measures' / 'population' / 'all_populations.csv'
+    populations = pd.read_csv(population_path)
+    return populations
+
+
+def load_location_information(data_interface: ForecastDataInterface):
+    metadata = data_interface.get_regression_metadata()
+    model_inputs_path = Path(
+        metadata['infectionator_metadata']['death']['metadata']['model_inputs_metadata']['output_path']
+    )
+    hierarchy_path = model_inputs_path / 'locations' / 'modeling_hierarchy.csv'
+    hierarchy = pd.read_csv(hierarchy_path)
+    modeled_locations = data_interface.load_location_ids()
+    most_detailed_locs = hierarchy.loc[hierarchy.most_detailed == 1, 'location_id'].unique().tolist()
+    missing_locations = list(set(most_detailed_locs).difference(modeled_locations))
+    locations_modeled_and_missing = {'modeled': modeled_locations, 'missing': missing_locations}
+    return hierarchy, locations_modeled_and_missing
+
 
 
 def build_resampling_map(deaths, resampling_params):
@@ -168,7 +275,10 @@ def resample_draws(resampling_map, *measure_data: pd.DataFrame):
 
 def resample_draws_by_measure(measure_data: pd.DataFrame, resampling_map):
     output = []
+    locs = measure_data.reset_index().location_id.unique()
     for location_id, loc_map in resampling_map.items():
+        if location_id not in locs:
+            continue
         loc_data = measure_data.loc[location_id]
         loc_data[loc_map['to_resample']] = loc_data[loc_map['to_fill']]
         loc_data = pd.concat({location_id: loc_data}, names=['location_id'])

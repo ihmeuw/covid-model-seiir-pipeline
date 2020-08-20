@@ -47,6 +47,7 @@ class ScenarioPaths(Paths):
     raw_covariates_file: ClassVar[str] = DRAW_FILE_TEMPLATE
     output_draws_file: ClassVar[str] = MEASURE_FILE_TEMPLATE
     output_summary_file: ClassVar[str] = MEASURE_FILE_TEMPLATE
+    output_miscellaneous_file: ClassVar[str] = MEASURE_FILE_TEMPLATE
 
     @property
     def beta_scaling(self) -> Path:
@@ -97,11 +98,18 @@ class ScenarioPaths(Paths):
         return self.output_draws / self.output_summary_file.format(measure=measure)
 
     @property
+    def output_miscellaneous(self) -> Path:
+        return self.root_dir / 'output_miscellaneous'
+
+    def get_output_miscellaneous_path(self, measure: str):
+        return self.output_miscellaneous / self.output_miscellaneous_file.format(measure=measure)
+
+    @property
     def directories(self) -> List[Path]:
         """Returns all top level sub-directories."""
         return [self.beta_scaling, self.components,
                 self.raw_outputs, self.raw_covariates,
-                self.output_draws, self.output_summaries]
+                self.output_draws, self.output_summaries, self.output_miscellaneous]
 
 
 @dataclass

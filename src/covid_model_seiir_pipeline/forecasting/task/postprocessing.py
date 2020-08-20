@@ -1,20 +1,17 @@
 from argparse import ArgumentParser, Namespace
-import functools
-import logging
-import multiprocessing
 from pathlib import Path
 import shlex
-from typing import Optional, List
+from typing import Optional
 
 from covid_shared.cli_tools.logging import configure_logging_to_terminal
 from loguru import logger
 import pandas as pd
+import yaml
 
 from covid_model_seiir_pipeline import static_vars
 from covid_model_seiir_pipeline.forecasting.specification import ForecastSpecification
 from covid_model_seiir_pipeline.forecasting.data import ForecastDataInterface
 from covid_model_seiir_pipeline.forecasting import postprocessing_lib as pp
-from covid_model_seiir_pipeline.forecasting.workflow import FORECAST_SCALING_CORES
 
 
 def run_seir_postprocessing(forecast_version: str, scenario_name: str) -> None:
@@ -30,12 +27,15 @@ def run_seir_postprocessing(forecast_version: str, scenario_name: str) -> None:
     betas = pp.load_betas(scenario_name, data_interface)
     beta_residuals = pp.load_beta_residuals(data_interface)
     coefficients = pp.load_coefficients(data_interface)
+    scaling_parameters = pp.load_scaling_parameters(scenario_name, data_interface)
 
     logger.info('Concatenating and resampling SEIR outputs.')
-    measures = [deaths, infections, r_effective, betas, beta_residuals, coefficients]
+    measures = [deaths, infections, r_effective, betas, beta_residuals, coefficients, scaling_parameters]
     measures = [pd.concat(m, axis=1) for m in measures]
     measures = pp.resample_draws(resampling_map, *measures)
-    deaths, infections, r_effective, betas, beta_residuals, coefficients = measures
+    deaths, infections, r_effective, betas, beta_residuals, coefficients, scaling_parameters = measures
+    cumulative_deaths = deaths.groupby(level='location_id').cumsum()
+    cumulative_infections = infections.groupby(level='location_id').cumsum()
 
     logger.info('Loading SEIR covariates')
     all_covs = scenario_spec.covariates
@@ -65,8 +65,21 @@ def run_seir_postprocessing(forecast_version: str, scenario_name: str) -> None:
         covariate = covariate.combine_first(input_covariate).set_index('modeled', append=True)
         covariates[cov_name] = covariate
 
-    cumulative_deaths = deaths.groupby(level='location_id').cumsum()
-    cumulative_infections = infections.groupby(level='location_id').cumsum()
+    logger.info('Loading other data sources.')
+    version_map = pp.build_version_map(data_interface)
+    es_inputs = pp.load_elastispliner_inputs(data_interface)
+    full_data = pp.load_full_data(data_interface)
+    populations = pp.load_populations(data_interface)
+    hierarchy, locations_modeled_and_missing = pp.load_location_information(data_interface)
+    es_noisy, es_smoothed = pp.load_elastispliner_outputs(data_interface)
+
+    logger.info('Resampling other data sources')
+    es_noisy = es_noisy.rename(columns={f'draw_{i}': i for i in range(n_draws)})
+    es_smoothed = es_smoothed.rename(columns={f'draw_{i}': i for i in range(n_draws)})
+    es_noisy, es_smoothed = pp.resample_draws(resampling_map, es_noisy, es_smoothed)
+    es_noisy_daily = es_noisy.groupby(level='location_id').apply(lambda x: x - x.shift(fill_value=0))
+    es_smoothed_daily = es_smoothed.groupby(level='location_id').apply(lambda x: x - x.shift(fill_value=0))
+
     output_draws = {
         'daily_deaths': deaths,
         'daily_infections': infections,
@@ -76,6 +89,11 @@ def run_seir_postprocessing(forecast_version: str, scenario_name: str) -> None:
         'betas': betas,
         'log_beta_residuals': beta_residuals,
         'coefficients': coefficients,
+        'beta_scaling_parameters': scaling_parameters,
+        'cumulative_elastispliner_noisy': es_noisy,
+        'cumulative_elastispliner_smoothed': es_smoothed,
+        'daily_elastispliner_noisy': es_noisy_daily,
+        'daily_elastispliner_smoothed': es_smoothed_daily,
         'mobility': covariates['mobility'],
     }
     logger.info('Saving SEIR output draws and summaries.')
@@ -95,8 +113,23 @@ def run_seir_postprocessing(forecast_version: str, scenario_name: str) -> None:
         summarized_data = pp.summarize(data)
         data_interface.save_output_summaries(summarized_data.reset_index(), scenario_name, measure)
 
+    miscellaneous_outputs = {
+        'full_data_raw': full_data,
+        'full_data_es_processed': es_inputs,
+        'populations': populations,
+        'version_map': version_map,
+        'hierarchy': hierarchy
+    }
+    logger.info('Saving miscellaneous outputs.')
+    for measure, data in miscellaneous_outputs.items():
+        logger.info(f'Saving {measure} data.')
+        data_interface.save_output_miscellaneous(data.reset_index(), scenario_name, measure)
 
-
+    # FIXME: yuck
+    miscellaneous_dir = data_interface.forecast_paths.scenario_paths[scenario_name].output_miscellaneous
+    modeled_and_missing_path = miscellaneous_dir / 'modeled_and_missing_locations.yaml'
+    with modeled_and_missing_path.open('w') as f:
+        yaml.dump(locations_modeled_and_missing, f)
 
 
 def parse_arguments(argstr: Optional[str] = None) -> Namespace:
