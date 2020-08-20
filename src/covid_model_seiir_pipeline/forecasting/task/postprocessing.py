@@ -24,8 +24,6 @@ def run_seir_postprocessing(forecast_version: str, scenario_name: str) -> None:
     resampling_map = data_interface.load_resampling_map()
     logger.info('Loading SEIR outputs')
     deaths, infections, r_effective = pp.load_output_data(scenario_name, data_interface)
-    cumulative_deaths = deaths.groupby(level='location_id').cumsum()
-    cumulative_infections = infections.groupby(level='location_id').cumsum()
     betas = pp.load_betas(scenario_name, data_interface)
     beta_residuals = pp.load_beta_residuals(data_interface)
     coefficients = pp.load_coefficients(data_interface)
@@ -36,6 +34,8 @@ def run_seir_postprocessing(forecast_version: str, scenario_name: str) -> None:
     measures = [pd.concat(m, axis=1) for m in measures]
     measures = pp.resample_draws(resampling_map, *measures)
     deaths, infections, r_effective, betas, beta_residuals, coefficients, scaling_parameters = measures
+    cumulative_deaths = deaths.groupby(level='location_id').cumsum()
+    cumulative_infections = infections.groupby(level='location_id').cumsum()
 
     logger.info('Loading SEIR covariates')
     all_covs = scenario_spec.covariates
