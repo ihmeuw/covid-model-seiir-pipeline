@@ -264,12 +264,13 @@ def summarize(data: pd.DataFrame):
 
 
 def resample_draws(resampling_map, *measure_data: pd.DataFrame):
-    _runner = functools.partial(
-        resample_draws_by_measure,
-        resampling_map=resampling_map
-    )
-    with multiprocessing.Pool(FORECAST_SCALING_CORES) as pool:
-        resampled = pool.map(_runner, measure_data)
+    #_runner = functools.partial(
+    #    resample_draws_by_measure,
+    #    resampling_map=resampling_map
+    #)
+    #with multiprocessing.Pool(FORECAST_SCALING_CORES) as pool:
+    #    resampled = pool.map(_runner, measure_data)
+    resampled = [resample_draws_by_measure(measure, resampling_map) for measure in measure_data]
     return resampled
 
 
