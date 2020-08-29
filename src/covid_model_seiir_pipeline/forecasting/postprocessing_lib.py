@@ -12,6 +12,22 @@ from covid_model_seiir_pipeline.forecasting.workflow import FORECAST_SCALING_COR
 
 # TODO: make a model subpackage and put this there.
 
+
+def load_deaths(scenario: str, data_interface: ForecastDataInterface):
+    deaths, *_ = load_output_data(scenario, data_interface)
+    return deaths
+
+
+def load_infections(scenario: str, data_interface: ForecastDataInterface):
+    _, infections, *_ = load_output_data(scenario, data_interface)
+    return infections
+
+
+def load_r_effective(scenario: str, data_interface: ForecastDataInterface):
+    _, _, r_effective = load_output_data(scenario, data_interface)
+    return r_effective
+
+
 def load_output_data(scenario: str, data_interface: ForecastDataInterface):
     _runner = functools.partial(
         load_output_data_by_draw,

@@ -1,7 +1,7 @@
 from argparse import ArgumentParser, Namespace
 from pathlib import Path
 import shlex
-from typing import Optional
+from typing import Any, Callable, Optional
 
 from covid_shared.cli_tools.logging import configure_logging_to_terminal
 from loguru import logger
@@ -12,6 +12,58 @@ from covid_model_seiir_pipeline import static_vars
 from covid_model_seiir_pipeline.forecasting.specification import ForecastSpecification
 from covid_model_seiir_pipeline.forecasting.data import ForecastDataInterface
 from covid_model_seiir_pipeline.forecasting import postprocessing_lib as pp
+
+
+class MeasureConfig:
+    def __init__(self,
+                 loader: Callable[[str, ForecastDataInterface], Any],
+                 label: str,
+                 calculate_cumulative: bool,
+                 cumulative_label: str):
+        self.loader = loader
+        self.label = label
+        self.calculate_cumulative = calculate_cumulative
+        self.cumulative_label = cumulative_label
+
+
+
+MEASURES = {
+    'deaths': (pp.load_deaths,),
+    'infections': (pp.load_infections,),
+    'r_effective': (pp.load_r_effective,),
+    'betas': tuple(),
+    'beta_residuals': tuple(),
+    'coefficients': tuple(),
+    'scaling_parameters': tuple(),
+}
+
+
+def postprocess_measure(forecast_version: str, scenario_name: str, measure: str) -> None:
+    logger.info(f'Starting postprocessing for forecast version {forecast_version}, '
+                f'scenario {scenario_name}, measure {measure}.')
+    forecast_spec = ForecastSpecification.from_path(
+        Path(forecast_version) / static_vars.FORECAST_SPECIFICATION_FILE
+    )
+    scenario_spec = forecast_spec.scenarios[scenario_name]
+    data_interface = ForecastDataInterface.from_specification(forecast_spec)
+    resampling_map = data_interface.load_resampling_map()
+
+    loader, *_ = MEASURES[measure]
+    logger.info(f'Loading {measure}.')
+    measure_data = loader(scenario_name, data_interface)
+    logger.info(f'Concatenating {measure}.')
+    measure_data = pd.concat(measure_data, axis=1)
+    logger.info(f'Resampling {measure}.')
+    measure_data = pp.resample_draws(resampling_map, measure_data)
+    cumulative_measure_data = measure_data.groupby(level='location_id').cumsum()
+
+    data_interface.save_output_draws(measure_data.reset_index(), scenario_name, measure)
+    data_interface.save_output_draws(cumulative_measure_data.reset_index(), scenario_name, f'cumulative_{measure}')
+
+
+
+
+
 
 
 def run_seir_postprocessing(forecast_version: str, scenario_name: str) -> None:
