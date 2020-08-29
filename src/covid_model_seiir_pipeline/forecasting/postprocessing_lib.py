@@ -198,7 +198,7 @@ def build_version_map(data_interface: ForecastDataInterface) -> pd.Series:
     jhu_snapshot_metadata = model_inputs_metadata['jhu_snapshot_metadata']
     version_map['jhu_snapshot_version'] = Path(jhu_snapshot_metadata['output_path']).name
     try:
-        # There is a typo in the process that generates this key.  
+        # There is a typo in the process that generates this key.
         # Protect ourselves in case they fix it without warning.
         webscrape_metadata = model_inputs_metadata['webcrape_metadata']
     except KeyError:
@@ -238,7 +238,6 @@ def load_location_information(data_interface: ForecastDataInterface):
     return hierarchy, locations_modeled_and_missing
 
 
-
 def build_resampling_map(deaths, resampling_params):
     cumulative_deaths = deaths.groupby(level='location_id').cumsum()
     max_deaths = cumulative_deaths.groupby(level='location_id').max()
@@ -249,8 +248,9 @@ def build_resampling_map(deaths, resampling_params):
         upper, lower = upper_deaths.at[location_id], lower_deaths.at[location_id]
         loc_deaths = max_deaths.loc[location_id]
         to_resample = loc_deaths[(upper < loc_deaths) | (loc_deaths < lower)].index.tolist()
-        np.random.seed(12345)
-        to_fill = np.random.choice(loc_deaths.index, len(to_resample), replace=False).tolist()
+        np.random.seed(location_id)
+        to_fill = np.random.choice(loc_deaths.index.difference(to_resample),
+                                   len(to_resample), replace=False).tolist()
         resample_map[location_id] = {'to_resample': to_resample,
                                      'to_fill': to_fill}
     return resample_map

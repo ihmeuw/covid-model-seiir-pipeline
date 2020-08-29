@@ -22,7 +22,6 @@ def run_beta_regression(draw_id: int, regression_version: str) -> None:
     regression_spec_file = Path(regression_version) / REGRESSION_SPECIFICATION_FILE
     regression_specification = RegressionSpecification.from_path(regression_spec_file)
     data_interface = RegressionDataInterface.from_specification(regression_specification)
-    import pdb; pdb.set_trace()
     # Load data
     location_ids = data_interface.load_location_ids()
     location_data = data_interface.load_all_location_data(location_ids=location_ids,
