@@ -52,7 +52,7 @@ def load_output_data_by_draw(draw_id: int, scenario: str,
     return deaths, infections, r_effective
 
 
-def load_coefficients(data_interface: ForecastDataInterface):
+def load_coefficients(scenario: str, data_interface: ForecastDataInterface):
     _runner = functools.partial(
         load_coefficients_by_draw,
         data_interface=data_interface
@@ -91,34 +91,34 @@ def load_scaling_parameters_by_draw(draw_id: int, scenario: str, data_interface:
     return scaling_parameters
 
 
-def load_covariates(scenario: str, cov_order: Dict[str, List[str]],
-                    data_interface: ForecastDataInterface) -> Dict[str, List[pd.Series]]:
+def load_covariate(covariate: str, time_varying: bool, scenario: str,
+                   data_interface: ForecastDataInterface) -> List[pd.Series]:
     _runner = functools.partial(
-        load_covariates_by_draw,
+        load_covariate_by_draw,
+        covariate=covariate,
+        time_varying=time_varying,
         scenario=scenario,
-        cov_order=cov_order,
         data_interface=data_interface,
     )
     draws = range(data_interface.get_n_draws())
     with multiprocessing.Pool(FORECAST_SCALING_CORES) as pool:
         outputs = pool.map(_runner, draws)
 
-    cov_names = [*cov_order['time_varying'], *cov_order['non_time_varying']]
-    covariates = dict(zip(cov_names, zip(*outputs)))
-    return covariates
+    return outputs
 
 
-def load_covariates_by_draw(draw_id: int, scenario: str,
-                            cov_order: Dict[str, List[str]],
-                            data_interface: ForecastDataInterface) -> Tuple[pd.Series, ...]:
+def load_covariate_by_draw(draw_id: int,
+                           covariate: str,
+                           time_varying: bool,
+                           scenario: str,
+                           data_interface: ForecastDataInterface) -> pd.Series:
     covariate_df = data_interface.load_raw_covariates(scenario, draw_id)
     covariate_df = covariate_df.set_index(['location_id', 'date']).sort_index()
-    covariate_grouped = covariate_df.groupby(level='location_id')
-
-    time_varying = [covariate_df[col].rename(draw_id) for col in cov_order['time_varying']]
-    non_time_varying = [covariate_grouped[col].max().rename(draw_id) for col in cov_order['non_time_varying']]
-
-    return (*time_varying, *non_time_varying)
+    if time_varying:
+        covariate_data = covariate_df[covariate].rename(draw_id)
+    else:
+        covariate_data = covariate_df.groupby(level='location_id')[covariate].max().rename(draw_id)
+    return covariate_data
 
 
 def load_betas(scenario: str, data_interface: ForecastDataInterface) -> List[pd.Series]:
@@ -141,7 +141,7 @@ def load_betas_by_draw(draw_id: int, scenario: str, data_interface: ForecastData
     return draw_betas
 
 
-def load_beta_residuals(data_interface: ForecastDataInterface) -> List[pd.Series]:
+def load_beta_residuals(scenario: str, data_interface: ForecastDataInterface) -> List[pd.Series]:
     _runner = functools.partial(
         load_beta_residuals_by_draw,
         data_interface=data_interface,
@@ -172,11 +172,22 @@ def load_elastispliner_inputs(data_interface: ForecastDataInterface) -> pd.DataF
     return es_inputs
 
 
-def load_elastispliner_outputs(data_interface: ForecastDataInterface):
+def load_es_noisy(scenario: str, data_interface: ForecastDataInterface):
+    return load_elastispliner_outputs(data_interface, noisy=True)
+
+
+def load_es_smoothed(scenario: str, data_interface: ForecastDataInterface):
+    return load_elastispliner_outputs(data_interface, noisy=False)
+
+
+def load_elastispliner_outputs(data_interface: ForecastDataInterface, noisy: bool):
     es_noisy, es_smoothed = data_interface.load_elastispliner_outputs()
-    es_noisy = es_noisy.set_index(['location_id', 'date', 'observed'])
-    es_smoothed = es_smoothed.set_index(['location_id', 'date', 'observed'])
-    return es_noisy, es_smoothed
+    es_outputs = es_noisy if noisy else es_smoothed
+    es_outputs = es_outputs.set_index(['location_id', 'date', 'observed'])
+    n_draws = data_interface.get_n_draws()
+    es_outputs = es_outputs.rename(columns={f'draw_{i}': i for i in range(n_draws)})
+    es_outputs = es_outputs.groupby(level='location_id').apply(lambda x: x - x.shift(fill_value=0))
+    return es_outputs
 
 
 def load_full_data(data_interface: ForecastDataInterface) -> pd.DataFrame:
@@ -240,18 +251,23 @@ def load_populations(data_interface: ForecastDataInterface):
     return populations
 
 
-def load_location_information(data_interface: ForecastDataInterface):
+def load_hierarchy(data_interface: ForecastDataInterface):
     metadata = data_interface.get_regression_metadata()
     model_inputs_path = Path(
         metadata['infectionator_metadata']['death']['metadata']['model_inputs_metadata']['output_path']
     )
     hierarchy_path = model_inputs_path / 'locations' / 'modeling_hierarchy.csv'
     hierarchy = pd.read_csv(hierarchy_path)
+    return hierarchy
+
+
+def get_locations_modeled_and_missing(data_interface: ForecastDataInterface):
+    hierarchy = load_hierarchy(data_interface)
     modeled_locations = data_interface.load_location_ids()
     most_detailed_locs = hierarchy.loc[hierarchy.most_detailed == 1, 'location_id'].unique().tolist()
     missing_locations = list(set(most_detailed_locs).difference(modeled_locations))
     locations_modeled_and_missing = {'modeled': modeled_locations, 'missing': missing_locations}
-    return hierarchy, locations_modeled_and_missing
+    return locations_modeled_and_missing
 
 
 def build_resampling_map(deaths, resampling_params):
@@ -279,18 +295,7 @@ def summarize(data: pd.DataFrame):
     return data[['mean', 'upper', 'lower']]
 
 
-def resample_draws(resampling_map, *measure_data: pd.DataFrame):
-    #_runner = functools.partial(
-    #    resample_draws_by_measure,
-    #    resampling_map=resampling_map
-    #)
-    #with multiprocessing.Pool(FORECAST_SCALING_CORES) as pool:
-    #    resampled = pool.map(_runner, measure_data)
-    resampled = [resample_draws_by_measure(measure, resampling_map) for measure in measure_data]
-    return resampled
-
-
-def resample_draws_by_measure(measure_data: pd.DataFrame, resampling_map):
+def resample_draws(measure_data: pd.DataFrame, resampling_map: Dict[int, Dict[str, List[int]]]):
     output = []
     locs = measure_data.reset_index().location_id.unique()
     for location_id, loc_map in resampling_map.items():
