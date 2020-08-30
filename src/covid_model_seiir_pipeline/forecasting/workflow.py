@@ -113,7 +113,7 @@ class ForecastWorkflow(WorkflowTemplate):
             )
             self.workflow.add_task(scaling_task)
 
-            covariates = set(covariates).difference('intercept')
+            covariates = set(covariates).difference(['intercept'])
             unknown_covariates = covariates.difference(COVARIATES)
             if unknown_covariates:
                 raise NotImplementedError(f'Unknown covariates {unknown_covariates}')
