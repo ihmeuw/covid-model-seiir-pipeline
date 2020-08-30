@@ -3,17 +3,23 @@ from typing import List
 
 from jobmon.client.swarm.executors.base import ExecutorParameters
 
-from covid_model_seiir_pipeline.workflow_template import TaskTemplate, WorkflowTemplate
-from covid_model_seiir_pipeline.forecasting.task.postprocessing import MEASURES, MISCELLANEOUS, COVARIATES
-
-# TODO: Extract these into specification, maybe.  At least allow overrides
-#    for the queue from the command line.
-FORECAST_RUNTIME = 5000
-FORECAST_MEMORY = '5G'
-POSTPROCESS_MEMORY = '50G'
-FORECAST_CORES = 1
-FORECAST_SCALING_CORES = 50
-FORECAST_QUEUE = 'd.q'
+from covid_model_seiir_pipeline.workflow_template import (
+    TaskTemplate,
+    WorkflowTemplate
+)
+from covid_model_seiir_pipeline.forecasting.specification import (
+    FORECAST_QUEUE,
+    FORECAST_RUNTIME,
+    FORECAST_MEMORY,
+    FORECAST_SCALING_CORES,
+    FORECAST_CORES,
+    POSTPROCESS_MEMORY
+)
+from covid_model_seiir_pipeline.forecasting.task.postprocessing import (
+    MEASURES,
+    MISCELLANEOUS,
+    COVARIATES
+)
 
 
 class BetaResidualScalingTaskTemplate(TaskTemplate):

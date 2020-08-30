@@ -1,8 +1,17 @@
 from dataclasses import dataclass, field
 import itertools
-from typing import Dict, List, Tuple, Union
+from typing import Dict, Tuple, Union
 
 from covid_model_seiir_pipeline.utilities import Specification, asdict
+
+# TODO: Extract these into specification, maybe.  At least allow overrides
+#    for the queue from the command line.
+FORECAST_RUNTIME = 5000
+FORECAST_MEMORY = '5G'
+POSTPROCESS_MEMORY = '50G'
+FORECAST_CORES = 1
+FORECAST_SCALING_CORES = 50
+FORECAST_QUEUE = 'd.q'
 
 
 @dataclass

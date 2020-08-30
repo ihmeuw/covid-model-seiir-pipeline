@@ -7,7 +7,7 @@ import numpy as np
 import pandas as pd
 
 from covid_model_seiir_pipeline.forecasting.data import ForecastDataInterface
-from covid_model_seiir_pipeline.forecasting.workflow import FORECAST_SCALING_CORES
+from covid_model_seiir_pipeline.forecasting.specification import FORECAST_SCALING_CORES
 
 
 # TODO: make a model subpackage and put this there.
