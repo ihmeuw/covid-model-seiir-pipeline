@@ -15,7 +15,7 @@ def do_beta_forecast(app_metadata: cli_tools.Metadata,
 
     # Check scenario covariates the same as regression covariates and that
     # covariate data versions match.
-    data_interface.check_covariates(forecast_specification.scenarios)
+    covariates = data_interface.check_covariates(forecast_specification.scenarios)
 
     data_interface.make_dirs()
     # Fixme: Inconsistent data writing interfaces
@@ -24,6 +24,8 @@ def do_beta_forecast(app_metadata: cli_tools.Metadata,
     if not preprocess_only:
         forecast_wf = ForecastWorkflow(forecast_specification.data.output_root)
         n_draws = data_interface.get_n_draws()
+
         forecast_wf.attach_tasks(n_draws=n_draws,
-                                 scenarios=list(forecast_specification.scenarios))
+                                 scenarios=list(forecast_specification.scenarios),
+                                 covariates=covariates)
         forecast_wf.run()
