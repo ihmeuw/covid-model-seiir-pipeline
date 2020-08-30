@@ -164,6 +164,7 @@ MISCELLANEOUS = {
     'locations_modeled_and_missing': OtherConfig(
         pp.get_locations_modeled_and_missing,
         'modeled_and_missing_locations',
+        is_table=False,
     ),
 }
 
