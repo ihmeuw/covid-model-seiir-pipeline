@@ -88,7 +88,7 @@ MEASURES = {
         cumulative_label='cumulative_elastispliner_noisy',
     ),
     'elastispliner_smoothed': MeasureConfig(
-        pp.load_es_noisy,
+        pp.load_es_smoothed,
         'daily_elastispliner_smoothed',
         calculate_cumulative=True,
         cumulative_label='cumulative_elastispliner_smoothed',
@@ -188,9 +188,11 @@ def postprocess_measure(data_interface: ForecastDataInterface,
     if measure_config.calculate_cumulative:
         logger.info(f'Saving cumulative draws and summaries for {measure}.')
         cumulative_measure_data = measure_data.groupby(level='location_id').cumsum()
-        data_interface.save_output_draws(cumulative_measure_data.reset_index(), scenario_name, measure_config.label)
+        data_interface.save_output_draws(cumulative_measure_data.reset_index(), scenario_name,
+                                         measure_config.cumulative_label)
         summarized = pp.summarize(cumulative_measure_data)
-        data_interface.save_output_summaries(summarized.reset_index(), scenario_name, measure_config.label)
+        data_interface.save_output_summaries(summarized.reset_index(), scenario_name,
+                                             measure_config.cumulative_label)
 
 
 def postprocess_covariate(data_interface: ForecastDataInterface,
@@ -210,8 +212,8 @@ def postprocess_covariate(data_interface: ForecastDataInterface,
 
     logger.info(f'Loading and processing input data for {covariate}.')
     input_covariate_data = data_interface.load_covariate(covariate, covariate_version, location_ids, with_observed=True)
-    input_covariate_data = input_covariate_data.reset_index(level='observed')
-    covariate_data = covariate_data.merge(input_covariate_data, left_index=True,
+    covariate_observed = input_covariate_data.reset_index(level='observed')
+    covariate_data = covariate_data.merge(covariate_observed, left_index=True,
                                           right_index=True, how='outer').reset_index()
     draw_cols = [f'draw_{i}' for i in range(n_draws)]
     if 'date' in covariate_data.columns:

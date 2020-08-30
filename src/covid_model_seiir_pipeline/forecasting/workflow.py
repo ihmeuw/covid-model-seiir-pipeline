@@ -70,7 +70,7 @@ class ResampleMapTaskTemplate(TaskTemplate):
 
 
 class PostprocessingTaskTemplate(TaskTemplate):
-    task_name_template = "seiir_post_processing"
+    task_name_template = "{measure}_{scenario}_post_processing"
     command_template = (
             "postprocess " +
             "--forecast-version {forecast_version} "
@@ -113,7 +113,8 @@ class ForecastWorkflow(WorkflowTemplate):
             )
             self.workflow.add_task(scaling_task)
 
-            unknown_covariates = set(covariates).difference(COVARIATES).difference({'intercept'})
+            covariates = set(covariates).difference('intercept')
+            unknown_covariates = covariates.difference(COVARIATES)
             if unknown_covariates:
                 raise NotImplementedError(f'Unknown covariates {unknown_covariates}')
 
