@@ -174,7 +174,7 @@ def postprocess_measure(data_interface: ForecastDataInterface,
     measure_config = MEASURES[measure]
     logger.info(f'Loading {measure}.')
     measure_data = measure_config.loader(scenario_name, data_interface)
-    if isinstance(measure_data, list):
+    if isinstance(measure_data, (list, tuple)):
         logger.info(f'Concatenating {measure}.')
         measure_data = pd.concat(measure_data, axis=1)
     logger.info(f'Resampling {measure}.')
