@@ -1,30 +1,29 @@
 from argparse import ArgumentParser, Namespace
 from typing import Optional
-import logging
 from pathlib import Path
 import shlex
 
+from covid_shared.cli_tools.logging import configure_logging_to_terminal
 import pandas as pd
-import numpy as np
+from loguru import logger
 
 from covid_model_seiir_pipeline import static_vars
-
 from covid_model_seiir_pipeline.forecasting import model
 from covid_model_seiir_pipeline.forecasting.specification import ForecastSpecification
 from covid_model_seiir_pipeline.forecasting.data import ForecastDataInterface
 
 
-log = logging.getLogger(__name__)
 
 
 def run_beta_forecast(draw_id: int, forecast_version: str, scenario_name: str):
-    log.info("Initiating SEIIR beta forecasting.")
+    logger.info(f"Initiating SEIIR beta forecasting for scenario {scenario_name}, draw {draw_id}.")
     forecast_spec: ForecastSpecification = ForecastSpecification.from_path(
         Path(forecast_version) / static_vars.FORECAST_SPECIFICATION_FILE
     )
     scenario_spec = forecast_spec.scenarios[scenario_name]
     data_interface = ForecastDataInterface.from_specification(forecast_spec)
 
+    logger.info('Loading input data.')
     location_ids = data_interface.load_location_ids()
     # Thetas are a parameter generated from assumption or OOS predictive
     # validity testing to curtail some of the bad behavior of the model.
@@ -63,79 +62,67 @@ def run_beta_forecast(draw_id: int, forecast_version: str, scenario_name: str):
     infection_data = data_interface.load_infection_data(draw_id)
 
     # Modeling starts
+    logger.info('Forecasting beta and components.')
     betas = model.forecast_beta(covariate_pred, coefficients, beta_scales)
     future_components = model.run_normal_ode_model_by_location(initial_condition, beta_params, betas, thetas,
                                                                location_ids, scenario_spec.solver)
+    logger.info('Processing ODE results and computing deaths and infections.')
     components = model.splice_components(past_components, future_components)
     components['theta'] = thetas.reindex(components.index).fillna(0)
     infections, deaths, r_effective = model.compute_output_metrics(infection_data, components, beta_params)
 
     if scenario_spec.algorithm == 'mandate_reimposition':
+        logger.info('Entering mandate reimposition.')
         min_wait = pd.Timedelta(days=scenario_spec.algorithm_params['minimum_delay'])
         days_on = pd.Timedelta(days=static_vars.DAYS_PER_WEEK * scenario_spec.algorithm_params['reimposition_duration'])
+        reimposition_threshold = scenario_spec.algorithm_params['death_threshold'] / 1e6
 
         population = (components[static_vars.SEIIR_COMPARTMENTS]
                       .sum(axis=1)
                       .rename('population')
                       .groupby('location_id')
                       .max())
-        death_rate = deaths.reset_index(level='date').merge(population, on='location_id')
-        death_rate['death_rate'] = death_rate['deaths'] / death_rate['population']
-        mobility = covariates[['date', 'mobility']].reset_index().set_index(['location_id', 'date'])['mobility']
+        logger.info('Loading mandate reimposition data.')
         percent_mandates = data_interface.load_covariate_info('mobility', 'mandate_lift', location_ids)
         mandate_effect = data_interface.load_covariate_info('mobility', 'effect', location_ids)
-        reimposition_threshold = scenario_spec.algorithm_params['death_threshold'] / 1e6
 
-        # compute reimposition dates
-        over_threshold = death_rate['death_rate'] > reimposition_threshold
-        projected = death_rate['observed'] == 0
-        reimposition_date = death_rate[over_threshold & projected].groupby('location_id')['date'].min()
-        last_observed_date = death_rate[~projected].groupby('location_id')['date'].max()
-        min_reimposition_date = (last_observed_date + min_wait).loc[reimposition_date.index]
-        reimposition_date = (reimposition_date
-                             .where(reimposition_date >= min_reimposition_date, min_reimposition_date)
-                             .rename('reimposition_date'))
+        reimposition_count = 0
+        reimposition_dates = {}
+        last_reimposition_end_date = pd.Series(pd.NaT, index=population.index)
+        reimposition_date = model.compute_reimposition_date(deaths, population, reimposition_threshold,
+                                                            min_wait, last_reimposition_end_date)
 
-        # compute mobility lower bound
-        min_observed_mobility = mobility.groupby('location_id').min().rename('min_mobility')
-        max_mandate_mobility = mandate_effect.sum(axis=1).rename('min_mobility').reindex(min_observed_mobility.index, fill_value=100)
-        mobility_lower_bound = min_observed_mobility.where(min_observed_mobility <= max_mandate_mobility,
-                                                           max_mandate_mobility)
+        while len(reimposition_date):  # any place reimposes mandates.
+            logger.info(f'On mandate reimposition {reimposition_count + 1}. {len(reimposition_date)} locations '
+                        f'are reimposing mandates.')
+            mobility = covariates[['date', 'mobility']].reset_index().set_index(['location_id', 'date'])['mobility']
+            mobility_lower_bound = model.compute_mobility_lower_bound(mobility, mandate_effect)
 
-        mobility_reference = pd.merge(mobility.reset_index(level='date'), reimposition_date, how='left', on='location_id')
-        mobility_reference = mobility_reference.merge(mobility_lower_bound, how='left', on='location_id')
+            new_mobility = model.compute_new_mobility(mobility, reimposition_date,
+                                                      mobility_lower_bound, percent_mandates,
+                                                      min_wait, days_on)
 
-        reimposes = mobility_reference['reimposition_date'].notnull()
-        dates_on = ((mobility_reference['reimposition_date'] <= mobility_reference['date'])
-                    & (mobility_reference['date'] <= mobility_reference['reimposition_date'] + min_wait))
-        mobility_reference['mobility_explosion'] = mobility_reference['min_mobility'].where(reimposes & dates_on, np.nan)
+            covariates = covariates.reset_index().set_index(['location_id', 'date'])
+            covariates['mobility'] = new_mobility
+            covariates = covariates.reset_index(level='date')
+            covariate_pred = covariates.loc[the_future].reset_index()
 
-        rampup = pd.merge(reimposition_date, percent_mandates.reset_index(level='date'), on='location_id', how='left')
-        rampup['rampup'] = rampup.groupby('location_id')['percent'].apply(lambda x: x / x.max())
-        rampup['first_date'] = rampup.groupby('location_id')['date'].transform('min')
-        rampup['diff_date'] = rampup['reimposition_date'] - rampup['first_date']
-        rampup['date'] = rampup['date'] + rampup['diff_date'] + days_on
-        rampup = rampup.reset_index()[['location_id', 'date', 'rampup']]
+            logger.info('Forecasting beta and components.')
+            betas = model.forecast_beta(covariate_pred, coefficients, beta_scales)
+            future_components = model.run_normal_ode_model_by_location(initial_condition, beta_params, betas, thetas,
+                                                                       location_ids, scenario_spec.solver)
+            logger.info('Processing ODE results and computing deaths and infections.')
+            components = model.splice_components(past_components, future_components)
+            components['theta'] = thetas.reindex(components.index).fillna(0)
+            infections, deaths, r_effective = model.compute_output_metrics(infection_data, components, beta_params)
 
-        mobility_reference = mobility_reference.merge(rampup, how='left', on=['location_id', 'date'])
-        post_reimplementation = ~(mobility_reference['mobility_explosion'].isnull() & mobility_reference['rampup'].notnull())
-        mobility_reference['mobility_explosion'] = mobility_reference['mobility_explosion'].where(
-            post_reimplementation,
-            mobility_reference['min_mobility'] * mobility_reference['rampup']
-        )
+            reimposition_count += 1
+            reimposition_dates[reimposition_count] = reimposition_date
+            last_reimposition_end_date.loc[reimposition_date.index] = reimposition_date + days_on
+            reimposition_date = model.compute_reimposition_date(deaths, population, reimposition_threshold,
+                                                                min_wait, last_reimposition_end_date)
 
-        mobility_reference = mobility_reference[['location_id', 'date', 'mobility', 'mobility_explosion']].set_index(['location_id', 'date']).min(axis=1).sort_index()
-        covariates = covariates.reset_index().set_index(['location_id', 'date'])
-        covariates['mobility'] = mobility_reference
-        covariate_pred = covariates.reset_index(level='date').loc[the_future].reset_index()
-
-        betas = model.forecast_beta(covariate_pred, coefficients, beta_scales)
-        future_components = model.run_normal_ode_model_by_location(initial_condition, beta_params, betas, thetas,
-                                                                   location_ids, scenario_spec.solver)
-        components = model.splice_components(past_components, future_components)
-        components['theta'] = thetas.reindex(components.index).fillna(0)
-        infections, deaths, r_effective = model.compute_output_metrics(infection_data, components, beta_params)
-
+    logger.info('Writing outputs.')
     components = components.reset_index()
     covariates = covariates.reset_index()
     outputs = pd.concat([infections, deaths, r_effective], axis=1).reset_index()
@@ -149,7 +136,7 @@ def parse_arguments(argstr: Optional[str] = None) -> Namespace:
     """
     Gets arguments from the command line or a command line string.
     """
-    log.info("parsing arguments")
+    logger.info("parsing arguments")
     parser = ArgumentParser()
     parser.add_argument("--draw-id", type=int, required=True)
     parser.add_argument("--forecast-version", type=str, required=True)
@@ -165,6 +152,7 @@ def parse_arguments(argstr: Optional[str] = None) -> Namespace:
 
 
 def main():
+    configure_logging_to_terminal(verbose=1)  # Debug level
     args = parse_arguments()
     run_beta_forecast(draw_id=args.draw_id,
                       forecast_version=args.forecast_version,
