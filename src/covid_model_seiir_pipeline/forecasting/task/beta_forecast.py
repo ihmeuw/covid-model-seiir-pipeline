@@ -152,7 +152,7 @@ def parse_arguments(argstr: Optional[str] = None) -> Namespace:
 
 
 def main():
-    configure_logging_to_terminal(1)
+    configure_logging_to_terminal(verbose=1)  # Debug level
     args = parse_arguments()
     run_beta_forecast(draw_id=args.draw_id,
                       forecast_version=args.forecast_version,
