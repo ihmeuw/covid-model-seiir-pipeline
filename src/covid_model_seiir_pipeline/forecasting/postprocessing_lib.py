@@ -314,4 +314,17 @@ def resample_draws(measure_data: pd.DataFrame, resampling_map: Dict[int, Dict[st
 
 
 def sum_aggregator(measure_data: pd.DataFrame, hierarchy: pd.DataFrame):
+    levels = sorted(hierarchy['level'].unique().tolist())
+    for level in levels[::-1]:  # From most detailed to least_detailed
+        locs_at_level = hierarchy[hierarchy.level == level]
+        for parent_id, children in locs_at_level.groupby('parent_id'):
+            child_locs = children.location_id.tolist()
+            to_aggregate = measure_data[measure_data.location_id.isin(child_locs)]
+            groupers = ['location_id']
+            if 'date' in measure_data.columns:
+                groupers.append('date')
+
+
+
+
     pass
