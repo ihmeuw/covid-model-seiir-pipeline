@@ -13,8 +13,6 @@ from covid_model_seiir_pipeline.forecasting.specification import ForecastSpecifi
 from covid_model_seiir_pipeline.forecasting.data import ForecastDataInterface
 
 
-
-
 def run_beta_forecast(draw_id: int, forecast_version: str, scenario_name: str):
     logger.info(f"Initiating SEIIR beta forecasting for scenario {scenario_name}, draw {draw_id}.")
     forecast_spec: ForecastSpecification = ForecastSpecification.from_path(

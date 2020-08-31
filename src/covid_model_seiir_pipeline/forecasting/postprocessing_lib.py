@@ -311,3 +311,7 @@ def resample_draws(measure_data: pd.DataFrame, resampling_map: Dict[int, Dict[st
     resampled = pd.concat(output)
     resampled.columns = [f'draw_{draw}' for draw in resampled.columns]
     return resampled
+
+
+def sum_aggregator(measure_data: pd.DataFrame, hierarchy: pd.DataFrame):
+    pass

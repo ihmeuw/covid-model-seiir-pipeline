@@ -19,11 +19,13 @@ class MeasureConfig:
                  loader: Callable[[str, ForecastDataInterface], Any],
                  label: str,
                  calculate_cumulative: bool = False,
-                 cumulative_label: str = None):
+                 cumulative_label: str = None,
+                 aggregator: Callable = None):
         self.loader = loader
         self.label = label
         self.calculate_cumulative = calculate_cumulative
         self.cumulative_label = cumulative_label
+        self.aggregator = aggregator
 
 
 class CovariateConfig:
@@ -31,21 +33,25 @@ class CovariateConfig:
                  loader: Callable[[str, bool, str, ForecastDataInterface], List[pd.Series]],
                  label: str,
                  time_varying: bool = False,
-                 draw_level: bool = False):
+                 draw_level: bool = False,
+                 aggregator: Callable = None):
         self.loader = loader
         self.label = label
         self.time_varying = time_varying
         self.draw_level = draw_level
+        self.aggregator = aggregator
 
 
 class OtherConfig:
     def __init__(self,
                  loader: Callable[[ForecastDataInterface], Any],
                  label: str,
-                 is_table: bool = True):
+                 is_table: bool = True,
+                 aggregator: Callable = None):
         self.loader = loader
         self.label = label
         self.is_table = is_table
+        self.aggregator = aggregator
 
 
 MEASURES = {
@@ -53,7 +59,8 @@ MEASURES = {
         pp.load_deaths,
         'daily_deaths',
         calculate_cumulative=True,
-        cumulative_label='cumulative_deaths'
+        cumulative_label='cumulative_deaths',
+        aggregator=pp.sum_aggregator,
     ),
     'infections': MeasureConfig(
         pp.load_infections,
@@ -180,6 +187,10 @@ def postprocess_measure(data_interface: ForecastDataInterface,
         measure_data = pd.concat(measure_data, axis=1)
     logger.info(f'Resampling {measure}.')
     measure_data = pp.resample_draws(measure_data, resampling_map)
+
+    if measure_config.aggregator is not None:
+        hierarchy = pp.load_hierarchy(data_interface)
+        measure_data = measure_config.aggregator(measure_data, hierarchy)
 
     logger.info(f'Saving draws and summaries for {measure}.')
     data_interface.save_output_draws(measure_data.reset_index(), scenario_name, measure_config.label)
