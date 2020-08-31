@@ -102,7 +102,8 @@ def run_beta_forecast(draw_id: int, forecast_version: str, scenario_name: str):
 
             covariates = covariates.reset_index().set_index(['location_id', 'date'])
             covariates['mobility'] = new_mobility
-            covariate_pred = covariates.reset_index(level='date').loc[the_future].reset_index()
+            covariates = covariates.reset_index(level='date')
+            covariate_pred = covariates.loc[the_future].reset_index()
 
             logger.info('Forecasting beta and components.')
             betas = model.forecast_beta(covariate_pred, coefficients, beta_scales)
