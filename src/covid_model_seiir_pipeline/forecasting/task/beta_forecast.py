@@ -116,7 +116,9 @@ def run_beta_forecast(draw_id: int, forecast_version: str, scenario_name: str):
 
             reimposition_count += 1
             reimposition_dates[reimposition_count] = reimposition_date
-            reimposition_date = model.compute_reimposition_date(deaths, population, reimposition_threshold, min_wait)
+            last_reimposition_end_date = reimposition_date + days_on
+            reimposition_date = model.compute_reimposition_date(deaths, population, reimposition_threshold,
+                                                                min_wait, last_reimposition_end_date)
 
     logger.info('Writing outputs.')
     components = components.reset_index()

@@ -276,18 +276,24 @@ def compute_effective_r(infection_data: pd.DataFrame, components: pd.DataFrame,
     return r_effective
 
 
-def compute_reimposition_date(deaths, population, reimposition_threshold, min_wait) -> pd.Series:
+def compute_reimposition_date(deaths, population, reimposition_threshold,
+                              min_wait, last_reimposition_end_date=None) -> pd.Series:
     death_rate = deaths.reset_index(level='date').merge(population, on='location_id')
     death_rate['death_rate'] = death_rate['deaths'] / death_rate['population']
 
-    over_threshold = death_rate['death_rate'] > reimposition_threshold
     projected = death_rate['observed'] == 0
-    reimposition_date = death_rate[over_threshold & projected].groupby('location_id')['date'].min()
     last_observed_date = death_rate[~projected].groupby('location_id')['date'].max()
-    min_reimposition_date = (last_observed_date + min_wait).loc[reimposition_date.index]
-    reimposition_date = (reimposition_date
-                         .where(reimposition_date >= min_reimposition_date, min_reimposition_date)
+    min_reimposition_date = (last_observed_date + min_wait)
+    if last_reimposition_end_date is not None:
+        min_reimposition_date.loc[last_reimposition_end_date.index] = last_reimposition_end_date + min_wait
+
+    after_min_reimposition_date = death_rate['date'] >= min_reimposition_date.loc[death_rate.index]
+    over_threshold = death_rate['death_rate'] > reimposition_threshold
+    reimposition_date = (death_rate[over_threshold & after_min_reimposition_date]
+                         .groupby('location_id')['date']
+                         .min()
                          .rename('reimposition_date'))
+
     return reimposition_date
 
 
