@@ -231,10 +231,10 @@ def postprocess_covariate(data_interface: ForecastDataInterface,
 
     logger.info(f'Saving data for {covariate}.')
     if covariate_config.draw_level:
-        data_interface.save_output_draws(covariate_data.reset_index(), scenario_name, covariate)
+        data_interface.save_output_draws(covariate_data.reset_index(), scenario_name, covariate_config.label)
 
     summarized_data = pp.summarize(covariate_data)
-    data_interface.save_output_summaries(summarized_data.reset_index(), scenario_name, covariate)
+    data_interface.save_output_summaries(summarized_data.reset_index(), scenario_name, covariate_config.label)
 
 
 def postprocess_miscellaneous(data_interface: ForecastDataInterface,
@@ -245,7 +245,8 @@ def postprocess_miscellaneous(data_interface: ForecastDataInterface,
 
     logger.info(f'Saving {measure} data.')
     if miscellaneous_config.is_table:
-        data_interface.save_output_miscellaneous(miscellaneous_data.reset_index(), scenario_name, measure)
+        data_interface.save_output_miscellaneous(miscellaneous_data.reset_index(), scenario_name,
+                                                 miscellaneous_config.label)
     else:
         # FIXME: yuck
         miscellaneous_dir = data_interface.forecast_paths.scenario_paths[scenario_name].output_miscellaneous
@@ -295,7 +296,7 @@ def parse_arguments(argstr: Optional[str] = None) -> Namespace:
 
 
 def main():
-    configure_logging_to_terminal(1)
+    configure_logging_to_terminal(verbose=1)  # Debug level
     args = parse_arguments()
     run_seir_postprocessing(forecast_version=args.forecast_version,
                             scenario_name=args.scenario_name,
