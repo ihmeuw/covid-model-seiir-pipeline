@@ -73,7 +73,7 @@ class ForecastDataInterface:
                                index=pd.Index(location_ids, name='location_id'))
         return thetas
 
-    def check_covariates(self, scenarios: Dict[str, ScenarioSpecification]):
+    def check_covariates(self, scenarios: Dict[str, ScenarioSpecification]) -> List[str]:
         with self.regression_paths.regression_specification.open() as regression_spec_file:
             regression_spec = yaml.full_load(regression_spec_file)
         forecast_version = str(self.covariate_paths.root_dir)
@@ -101,6 +101,7 @@ class ForecastDataInterface:
                 data_file = self.covariate_paths.get_covariate_scenario_file(covariate, covariate_version)
                 if not data_file.exists():
                     raise FileNotFoundError(f'No {covariate_version} file found for covariate {covariate}.')
+        return regression_covariates
 
     def get_regression_metadata(self):
         # TODO: add metadata to regression and forecast paths.

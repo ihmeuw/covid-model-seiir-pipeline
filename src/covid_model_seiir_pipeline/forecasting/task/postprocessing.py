@@ -1,7 +1,7 @@
 from argparse import ArgumentParser, Namespace
 from pathlib import Path
 import shlex
-from typing import Optional
+from typing import Any, Callable, Dict, List, Optional
 
 from covid_shared.cli_tools.logging import configure_logging_to_terminal
 from loguru import logger
@@ -9,12 +9,253 @@ import pandas as pd
 import yaml
 
 from covid_model_seiir_pipeline import static_vars
-from covid_model_seiir_pipeline.forecasting.specification import ForecastSpecification
+from covid_model_seiir_pipeline.forecasting.specification import ForecastSpecification, ScenarioSpecification
 from covid_model_seiir_pipeline.forecasting.data import ForecastDataInterface
 from covid_model_seiir_pipeline.forecasting import postprocessing_lib as pp
 
 
-def run_seir_postprocessing(forecast_version: str, scenario_name: str) -> None:
+class MeasureConfig:
+    def __init__(self,
+                 loader: Callable[[str, ForecastDataInterface], Any],
+                 label: str,
+                 calculate_cumulative: bool = False,
+                 cumulative_label: str = None):
+        self.loader = loader
+        self.label = label
+        self.calculate_cumulative = calculate_cumulative
+        self.cumulative_label = cumulative_label
+
+
+class CovariateConfig:
+    def __init__(self,
+                 loader: Callable[[str, bool, str, ForecastDataInterface], List[pd.Series]],
+                 label: str,
+                 time_varying: bool = False,
+                 draw_level: bool = False):
+        self.loader = loader
+        self.label = label
+        self.time_varying = time_varying
+        self.draw_level = draw_level
+
+
+class OtherConfig:
+    def __init__(self,
+                 loader: Callable[[ForecastDataInterface], Any],
+                 label: str,
+                 is_table: bool = True):
+        self.loader = loader
+        self.label = label
+        self.is_table = is_table
+
+
+MEASURES = {
+    'deaths': MeasureConfig(
+        pp.load_deaths,
+        'daily_deaths',
+        calculate_cumulative=True,
+        cumulative_label='cumulative_deaths'
+    ),
+    'infections': MeasureConfig(
+        pp.load_infections,
+        'daily_infections',
+        calculate_cumulative=True,
+        cumulative_label='cumulative_infections'
+    ),
+    'r_effective': MeasureConfig(
+        pp.load_r_effective,
+        'r_effective',
+    ),
+    'betas': MeasureConfig(
+        pp.load_betas,
+        'betas',
+    ),
+    'beta_residuals': MeasureConfig(
+        pp.load_beta_residuals,
+        'log_beta_residuals',
+    ),
+    'coefficients': MeasureConfig(
+        pp.load_coefficients,
+        'coefficients',
+    ),
+    'scaling_parameters': MeasureConfig(
+        pp.load_scaling_parameters,
+        'beta_scaling_parameters'
+    ),
+    'elastispliner_noisy': MeasureConfig(
+        pp.load_es_noisy,
+        'daily_elastispliner_noisy',
+        calculate_cumulative=True,
+        cumulative_label='cumulative_elastispliner_noisy',
+    ),
+    'elastispliner_smoothed': MeasureConfig(
+        pp.load_es_smoothed,
+        'daily_elastispliner_smoothed',
+        calculate_cumulative=True,
+        cumulative_label='cumulative_elastispliner_smoothed',
+    )
+}
+
+
+COVARIATES = {
+    'mobility': CovariateConfig(
+        pp.load_covariate,
+        'mobility',
+        time_varying=True,
+        draw_level=True
+    ),
+    'testing': CovariateConfig(
+        pp.load_covariate,
+        'testing',
+        time_varying=True,
+    ),
+    'pneumonia': CovariateConfig(
+        pp.load_covariate,
+        'pneumonia',
+        time_varying=True,
+    ),
+    'mask_use': CovariateConfig(
+        pp.load_covariate,
+        'mask_use',
+        time_varying=True
+    ),
+    'air_pollution_pm_2_5': CovariateConfig(
+        pp.load_covariate,
+        'air_pollution_pm_2_5',
+    ),
+    'lri_mortality': CovariateConfig(
+        pp.load_covariate,
+        'lri_mortality',
+    ),
+    'proportion_over_2_5k': CovariateConfig(
+        pp.load_covariate,
+        'proportion_over_2_5k',
+    ),
+    'proportion_under_100m': CovariateConfig(
+        pp.load_covariate,
+        'proportion_under_100m',
+    ),
+    'smoking_prevalence': CovariateConfig(
+        pp.load_covariate,
+        'smoking_prevalence'
+    ),
+}
+
+MISCELLANEOUS = {
+    'full_data': OtherConfig(
+        pp.load_full_data,
+        'full_data',
+    ),
+    'elastispliner_inputs': OtherConfig(
+        pp.load_elastispliner_inputs,
+        'full_data_es_processed',
+    ),
+    'version_map': OtherConfig(
+        pp.build_version_map,
+        'version_map',
+    ),
+    'populations': OtherConfig(
+        pp.load_populations,
+        'populations',
+    ),
+    'hierarchy': OtherConfig(
+        pp.load_hierarchy,
+        'hierarchy',
+    ),
+    'locations_modeled_and_missing': OtherConfig(
+        pp.get_locations_modeled_and_missing,
+        'modeled_and_missing_locations',
+        is_table=False,
+    ),
+}
+
+
+def postprocess_measure(data_interface: ForecastDataInterface,
+                        resampling_map: Dict[int, Dict[str, List[int]]],
+                        scenario_name: str, measure: str) -> None:
+    measure_config = MEASURES[measure]
+    logger.info(f'Loading {measure}.')
+    measure_data = measure_config.loader(scenario_name, data_interface)
+    if isinstance(measure_data, (list, tuple)):
+        logger.info(f'Concatenating {measure}.')
+        measure_data = pd.concat(measure_data, axis=1)
+    logger.info(f'Resampling {measure}.')
+    measure_data = pp.resample_draws(measure_data, resampling_map)
+
+    logger.info(f'Saving draws and summaries for {measure}.')
+    data_interface.save_output_draws(measure_data.reset_index(), scenario_name, measure_config.label)
+    summarized = pp.summarize(measure_data)
+    data_interface.save_output_summaries(summarized.reset_index(), scenario_name, measure_config.label)
+
+    if measure_config.calculate_cumulative:
+        logger.info(f'Saving cumulative draws and summaries for {measure}.')
+        cumulative_measure_data = measure_data.groupby(level='location_id').cumsum()
+        data_interface.save_output_draws(cumulative_measure_data.reset_index(), scenario_name,
+                                         measure_config.cumulative_label)
+        summarized = pp.summarize(cumulative_measure_data)
+        data_interface.save_output_summaries(summarized.reset_index(), scenario_name,
+                                             measure_config.cumulative_label)
+
+
+def postprocess_covariate(data_interface: ForecastDataInterface,
+                          resampling_map: Dict[int, Dict[str, List[int]]],
+                          scenario_spec: ScenarioSpecification,
+                          scenario_name: str, covariate: str) -> None:
+    covariate_config = COVARIATES[covariate]
+    logger.info(f'Loading {covariate}.')
+    covariate_data = covariate_config.loader(covariate, covariate_config.time_varying, scenario_name, data_interface)
+    logger.info(f'Concatenating and resampling {covariate}.')
+    covariate_data = pd.concat(covariate_data, axis=1)
+    covariate_data = pp.resample_draws(covariate_data, resampling_map)
+
+    covariate_version = scenario_spec.covariates[covariate]
+    location_ids = data_interface.load_location_ids()
+    n_draws = data_interface.get_n_draws()
+
+    logger.info(f'Loading and processing input data for {covariate}.')
+    input_covariate_data = data_interface.load_covariate(covariate, covariate_version, location_ids, with_observed=True)
+    covariate_observed = input_covariate_data.reset_index(level='observed')
+    covariate_data = covariate_data.merge(covariate_observed, left_index=True,
+                                          right_index=True, how='outer').reset_index()
+    draw_cols = [f'draw_{i}' for i in range(n_draws)]
+    if 'date' in covariate_data.columns:
+        index_cols = ['location_id', 'date', 'observed']
+    else:
+        index_cols = ['location_id', 'observed']
+
+    covariate_data = covariate_data.set_index(index_cols)[draw_cols]
+    covariate_data['modeled'] = covariate_data.notnull().all(axis=1).astype(int)
+
+    input_covariate = pd.concat([input_covariate_data.reorder_levels(index_cols)] * n_draws, axis=1)
+    input_covariate.columns = draw_cols
+    covariate_data = covariate_data.combine_first(input_covariate).set_index('modeled', append=True)
+
+    logger.info(f'Saving data for {covariate}.')
+    if covariate_config.draw_level:
+        data_interface.save_output_draws(covariate_data.reset_index(), scenario_name, covariate_config.label)
+
+    summarized_data = pp.summarize(covariate_data)
+    data_interface.save_output_summaries(summarized_data.reset_index(), scenario_name, covariate_config.label)
+
+
+def postprocess_miscellaneous(data_interface: ForecastDataInterface,
+                              scenario_name: str, measure: str):
+    miscellaneous_config = MISCELLANEOUS[measure]
+    logger.info(f'Loading {measure}.')
+    miscellaneous_data = miscellaneous_config.loader(data_interface)
+
+    logger.info(f'Saving {measure} data.')
+    if miscellaneous_config.is_table:
+        data_interface.save_output_miscellaneous(miscellaneous_data.reset_index(), scenario_name,
+                                                 miscellaneous_config.label)
+    else:
+        # FIXME: yuck
+        miscellaneous_dir = data_interface.forecast_paths.scenario_paths[scenario_name].output_miscellaneous
+        measure_path = miscellaneous_dir / f'{miscellaneous_config.label}.yaml'
+        with measure_path.open('w') as f:
+            yaml.dump(miscellaneous_data, f)
+
+
+def run_seir_postprocessing(forecast_version: str, scenario_name: str, measure: str) -> None:
     logger.info(f'Starting postprocessing for forecast version {forecast_version}, scenario {scenario_name}.')
     forecast_spec = ForecastSpecification.from_path(
         Path(forecast_version) / static_vars.FORECAST_SPECIFICATION_FILE
@@ -22,114 +263,17 @@ def run_seir_postprocessing(forecast_version: str, scenario_name: str) -> None:
     scenario_spec = forecast_spec.scenarios[scenario_name]
     data_interface = ForecastDataInterface.from_specification(forecast_spec)
     resampling_map = data_interface.load_resampling_map()
-    logger.info('Loading SEIR outputs')
-    deaths, infections, r_effective = pp.load_output_data(scenario_name, data_interface)
-    betas = pp.load_betas(scenario_name, data_interface)
-    beta_residuals = pp.load_beta_residuals(data_interface)
-    coefficients = pp.load_coefficients(data_interface)
-    scaling_parameters = pp.load_scaling_parameters(scenario_name, data_interface)
 
-    logger.info('Concatenating and resampling SEIR outputs.')
-    measures = [deaths, infections, r_effective, betas, beta_residuals, coefficients, scaling_parameters]
-    measures = [pd.concat(m, axis=1) for m in measures]
-    measures = pp.resample_draws(resampling_map, *measures)
-    deaths, infections, r_effective, betas, beta_residuals, coefficients, scaling_parameters = measures
-    cumulative_deaths = deaths.groupby(level='location_id').cumsum()
-    cumulative_infections = infections.groupby(level='location_id').cumsum()
+    if measure in MEASURES:
+        postprocess_measure(data_interface, resampling_map, scenario_name, measure)
+    elif measure in COVARIATES:
+        postprocess_covariate(data_interface, resampling_map, scenario_spec, scenario_name, measure)
+    elif measure in MISCELLANEOUS:
+        postprocess_miscellaneous(data_interface, scenario_name, measure)
+    else:
+        raise NotImplementedError(f'Unknown measure {measure}.')
 
-    logger.info('Loading SEIR covariates')
-    all_covs = scenario_spec.covariates
-    time_varying_covs = ['mobility', 'mask_use', 'testing', 'pneumonia']
-    non_time_varying_covs = set(all_covs).difference(time_varying_covs + ['intercept'])
-    cov_order = {'time_varying': time_varying_covs, 'non_time_varying': non_time_varying_covs}
-    covariates = pp.load_covariates(scenario_name, cov_order, data_interface)
-
-    logger.info('Concatenating and resampling SEIR covariates')
-    location_ids = data_interface.load_location_ids()
-    n_draws = data_interface.get_n_draws()
-    for cov_name, covariate in covariates.items():
-        logger.info(f'Concatenating and resampling {cov_name}.')
-        covariate = pd.concat(covariate, axis=1)
-        covariate = pp.resample_draws(resampling_map, covariate)[0]
-        input_covariate = data_interface.load_covariate(cov_name, all_covs[cov_name],
-                                                        location_ids, with_observed=True)
-        covariate_observed = input_covariate.reset_index(level='observed')
-        covariate = covariate.merge(covariate_observed, left_index=True, right_index=True, how='outer').reset_index()
-
-        draw_cols = [f'draw_{i}' for i in range(n_draws)]
-        index_cols = ['location_id', 'date', 'observed'] if 'date' in covariate.columns else ['location_id', 'observed']
-        covariate = covariate.set_index(index_cols)[draw_cols]
-        covariate['modeled'] = covariate.notnull().all(axis=1).astype(int)
-        input_covariate = pd.concat([input_covariate.reorder_levels(index_cols)] * n_draws, axis=1)
-        input_covariate.columns = draw_cols
-        covariate = covariate.combine_first(input_covariate).set_index('modeled', append=True)
-        covariates[cov_name] = covariate
-
-    logger.info('Loading other data sources.')
-    version_map = pp.build_version_map(data_interface)
-    es_inputs = pp.load_elastispliner_inputs(data_interface)
-    full_data = pp.load_full_data(data_interface)
-    populations = pp.load_populations(data_interface)
-    hierarchy, locations_modeled_and_missing = pp.load_location_information(data_interface)
-    es_noisy, es_smoothed = pp.load_elastispliner_outputs(data_interface)
-
-    logger.info('Resampling other data sources')
-    es_noisy = es_noisy.rename(columns={f'draw_{i}': i for i in range(n_draws)})
-    es_smoothed = es_smoothed.rename(columns={f'draw_{i}': i for i in range(n_draws)})
-    es_noisy, es_smoothed = pp.resample_draws(resampling_map, es_noisy, es_smoothed)
-    es_noisy_daily = es_noisy.groupby(level='location_id').apply(lambda x: x - x.shift(fill_value=0))
-    es_smoothed_daily = es_smoothed.groupby(level='location_id').apply(lambda x: x - x.shift(fill_value=0))
-
-    output_draws = {
-        'daily_deaths': deaths,
-        'daily_infections': infections,
-        'r_effective': r_effective,
-        'cumulative_deaths': cumulative_deaths,
-        'cumulative_infections': cumulative_infections,
-        'betas': betas,
-        'log_beta_residuals': beta_residuals,
-        'coefficients': coefficients,
-        'beta_scaling_parameters': scaling_parameters,
-        'cumulative_elastispliner_noisy': es_noisy,
-        'cumulative_elastispliner_smoothed': es_smoothed,
-        'daily_elastispliner_noisy': es_noisy_daily,
-        'daily_elastispliner_smoothed': es_smoothed_daily,
-        'mobility': covariates['mobility'],
-    }
-    logger.info('Saving SEIR output draws and summaries.')
-    for measure, data in output_draws.items():
-        logger.info(f'Saving {measure} data.')
-        data_interface.save_output_draws(data.reset_index(), scenario_name, measure)
-        summarized_data = pp.summarize(data)
-        data_interface.save_output_summaries(summarized_data.reset_index(), scenario_name, measure)
-
-    del covariates['mobility']
-    output_no_draws = {
-        **covariates,
-    }
-    logger.info('Saving SEIR covariate summaries.')
-    for measure, data in output_no_draws.items():
-        logger.info(f'Saving {measure} data.')
-        summarized_data = pp.summarize(data)
-        data_interface.save_output_summaries(summarized_data.reset_index(), scenario_name, measure)
-
-    miscellaneous_outputs = {
-        'full_data_raw': full_data,
-        'full_data_es_processed': es_inputs,
-        'populations': populations,
-        'version_map': version_map,
-        'hierarchy': hierarchy
-    }
-    logger.info('Saving miscellaneous outputs.')
-    for measure, data in miscellaneous_outputs.items():
-        logger.info(f'Saving {measure} data.')
-        data_interface.save_output_miscellaneous(data.reset_index(), scenario_name, measure)
-
-    # FIXME: yuck
-    miscellaneous_dir = data_interface.forecast_paths.scenario_paths[scenario_name].output_miscellaneous
-    modeled_and_missing_path = miscellaneous_dir / 'modeled_and_missing_locations.yaml'
-    with modeled_and_missing_path.open('w') as f:
-        yaml.dump(locations_modeled_and_missing, f)
+    logger.info('**DONE**')
 
 
 def parse_arguments(argstr: Optional[str] = None) -> Namespace:
@@ -140,6 +284,7 @@ def parse_arguments(argstr: Optional[str] = None) -> Namespace:
     parser = ArgumentParser()
     parser.add_argument("--forecast-version", type=str, required=True)
     parser.add_argument("--scenario-name", type=str, required=True)
+    parser.add_argument("--measure", type=str, required=True)
 
     if argstr is not None:
         arglist = shlex.split(argstr)
@@ -151,10 +296,11 @@ def parse_arguments(argstr: Optional[str] = None) -> Namespace:
 
 
 def main():
-    configure_logging_to_terminal(1)
+    configure_logging_to_terminal(verbose=1)  # Debug level
     args = parse_arguments()
     run_seir_postprocessing(forecast_version=args.forecast_version,
-                            scenario_name=args.scenario_name)
+                            scenario_name=args.scenario_name,
+                            measure=args.measure)
 
 
 if __name__ == '__main__':

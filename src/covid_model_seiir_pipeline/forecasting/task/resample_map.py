@@ -5,7 +5,6 @@ import shlex
 from typing import Optional
 
 import pandas as pd
-import numpy as np
 
 from covid_model_seiir_pipeline import static_vars
 from covid_model_seiir_pipeline.forecasting.specification import ForecastSpecification

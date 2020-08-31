@@ -1,17 +1,25 @@
+import itertools
 from typing import List
 
 from jobmon.client.swarm.executors.base import ExecutorParameters
 
-from covid_model_seiir_pipeline.workflow_template import TaskTemplate, WorkflowTemplate
-
-# TODO: Extract these into specification, maybe.  At least allow overrides
-#    for the queue from the command line.
-FORECAST_RUNTIME = 5000
-FORECAST_MEMORY = '5G'
-POSTPROCESS_MEMORY = '50G'
-FORECAST_CORES = 1
-FORECAST_SCALING_CORES = 50
-FORECAST_QUEUE = 'd.q'
+from covid_model_seiir_pipeline.workflow_template import (
+    TaskTemplate,
+    WorkflowTemplate
+)
+from covid_model_seiir_pipeline.forecasting.specification import (
+    FORECAST_QUEUE,
+    FORECAST_RUNTIME,
+    FORECAST_MEMORY,
+    FORECAST_SCALING_CORES,
+    FORECAST_CORES,
+    POSTPROCESS_MEMORY
+)
+from covid_model_seiir_pipeline.forecasting.task.postprocessing import (
+    MEASURES,
+    MISCELLANEOUS,
+    COVARIATES
+)
 
 
 class BetaResidualScalingTaskTemplate(TaskTemplate):
@@ -62,11 +70,12 @@ class ResampleMapTaskTemplate(TaskTemplate):
 
 
 class PostprocessingTaskTemplate(TaskTemplate):
-    task_name_template = "seiir_post_processing"
+    task_name_template = "{measure}_{scenario}_post_processing"
     command_template = (
             "postprocess " +
             "--forecast-version {forecast_version} "
-            "--scenario-name {scenario}"
+            "--scenario-name {scenario} "
+            "--measure {measure}"
     )
     params = ExecutorParameters(
         max_runtime_seconds=FORECAST_RUNTIME,
@@ -86,7 +95,7 @@ class ForecastWorkflow(WorkflowTemplate):
         'postprocess': PostprocessingTaskTemplate,
     }
 
-    def attach_tasks(self, n_draws: int, scenarios: List[str]):
+    def attach_tasks(self, n_draws: int, scenarios: List[str], covariates: List[str]):
         scaling_template = self.task_templates['scaling']
         forecast_template = self.task_templates['forecast']
         resample_template = self.task_templates['resample']
@@ -104,12 +113,20 @@ class ForecastWorkflow(WorkflowTemplate):
             )
             self.workflow.add_task(scaling_task)
 
-            postprocessing_task = postprocessing_template.get_task(
-                forecast_version=self.version,
-                scenario=scenario,
-            )
-            postprocessing_task.add_upstream(resample_task)
-            self.workflow.add_task(postprocessing_task)
+            covariates = set(covariates).difference(['intercept'])
+            unknown_covariates = covariates.difference(COVARIATES)
+            if unknown_covariates:
+                raise NotImplementedError(f'Unknown covariates {unknown_covariates}')
+
+            measures = itertools.chain(MEASURES, MISCELLANEOUS, covariates)
+            for measure in measures:
+                postprocessing_task = postprocessing_template.get_task(
+                    forecast_version=self.version,
+                    scenario=scenario,
+                    measure=measure,
+                )
+                postprocessing_task.add_upstream(resample_task)
+                self.workflow.add_task(postprocessing_task)
 
             for draw in range(n_draws):
                 forecast_task = forecast_template.get_task(
