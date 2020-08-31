@@ -1,30 +1,29 @@
 from argparse import ArgumentParser, Namespace
 from typing import Optional
-import logging
 from pathlib import Path
 import shlex
 
+from covid_shared.cli_tools.logging import configure_logging_to_terminal
 import pandas as pd
-import numpy as np
+from loguru import logger
 
 from covid_model_seiir_pipeline import static_vars
-
 from covid_model_seiir_pipeline.forecasting import model
 from covid_model_seiir_pipeline.forecasting.specification import ForecastSpecification
 from covid_model_seiir_pipeline.forecasting.data import ForecastDataInterface
 
 
-log = logging.getLogger(__name__)
 
 
 def run_beta_forecast(draw_id: int, forecast_version: str, scenario_name: str):
-    log.info("Initiating SEIIR beta forecasting.")
+    logger.info(f"Initiating SEIIR beta forecasting for scenario {scenario_name}, draw {draw_id}.")
     forecast_spec: ForecastSpecification = ForecastSpecification.from_path(
         Path(forecast_version) / static_vars.FORECAST_SPECIFICATION_FILE
     )
     scenario_spec = forecast_spec.scenarios[scenario_name]
     data_interface = ForecastDataInterface.from_specification(forecast_spec)
 
+    logger.info('Loading input data.')
     location_ids = data_interface.load_location_ids()
     # Thetas are a parameter generated from assumption or OOS predictive
     # validity testing to curtail some of the bad behavior of the model.
@@ -63,14 +62,17 @@ def run_beta_forecast(draw_id: int, forecast_version: str, scenario_name: str):
     infection_data = data_interface.load_infection_data(draw_id)
 
     # Modeling starts
+    logger.info('Forecasting beta and components.')
     betas = model.forecast_beta(covariate_pred, coefficients, beta_scales)
     future_components = model.run_normal_ode_model_by_location(initial_condition, beta_params, betas, thetas,
                                                                location_ids, scenario_spec.solver)
+    logger.info('Processing ODE results and computing deaths and infections.')
     components = model.splice_components(past_components, future_components)
     components['theta'] = thetas.reindex(components.index).fillna(0)
     infections, deaths, r_effective = model.compute_output_metrics(infection_data, components, beta_params)
 
     if scenario_spec.algorithm == 'mandate_reimposition':
+        logger.info('Entering mandate reimposition.')
         min_wait = pd.Timedelta(days=scenario_spec.algorithm_params['minimum_delay'])
         days_on = pd.Timedelta(days=static_vars.DAYS_PER_WEEK * scenario_spec.algorithm_params['reimposition_duration'])
         reimposition_threshold = scenario_spec.algorithm_params['death_threshold'] / 1e6
@@ -80,7 +82,7 @@ def run_beta_forecast(draw_id: int, forecast_version: str, scenario_name: str):
                       .rename('population')
                       .groupby('location_id')
                       .max())
-
+        logger.info('Loading mandate reimposition data.')
         percent_mandates = data_interface.load_covariate_info('mobility', 'mandate_lift', location_ids)
         mandate_effect = data_interface.load_covariate_info('mobility', 'effect', location_ids)
 
@@ -89,6 +91,8 @@ def run_beta_forecast(draw_id: int, forecast_version: str, scenario_name: str):
         reimposition_date = model.compute_reimposition_date(deaths, population, reimposition_threshold, min_wait)
 
         while len(reimposition_date):  # any place reimposes mandates.
+            logger.info(f'On mandate reimposition {reimposition_count + 1}. {len(reimposition_date)} locations '
+                        f'are reimposing mandates.')
             mobility = covariates[['date', 'mobility']].reset_index().set_index(['location_id', 'date'])['mobility']
             mobility_lower_bound = model.compute_mobility_lower_bound(mobility, mandate_effect)
 
@@ -100,9 +104,11 @@ def run_beta_forecast(draw_id: int, forecast_version: str, scenario_name: str):
             covariates['mobility'] = new_mobility
             covariate_pred = covariates.reset_index(level='date').loc[the_future].reset_index()
 
+            logger.info('Forecasting beta and components.')
             betas = model.forecast_beta(covariate_pred, coefficients, beta_scales)
             future_components = model.run_normal_ode_model_by_location(initial_condition, beta_params, betas, thetas,
                                                                        location_ids, scenario_spec.solver)
+            logger.info('Processing ODE results and computing deaths and infections.')
             components = model.splice_components(past_components, future_components)
             components['theta'] = thetas.reindex(components.index).fillna(0)
             infections, deaths, r_effective = model.compute_output_metrics(infection_data, components, beta_params)
@@ -111,6 +117,7 @@ def run_beta_forecast(draw_id: int, forecast_version: str, scenario_name: str):
             reimposition_dates[reimposition_count] = reimposition_date
             reimposition_date = model.compute_reimposition_date(deaths, population, reimposition_threshold, min_wait)
 
+    logger.info('Writing outputs.')
     components = components.reset_index()
     covariates = covariates.reset_index()
     outputs = pd.concat([infections, deaths, r_effective], axis=1).reset_index()
@@ -124,7 +131,7 @@ def parse_arguments(argstr: Optional[str] = None) -> Namespace:
     """
     Gets arguments from the command line or a command line string.
     """
-    log.info("parsing arguments")
+    logger.info("parsing arguments")
     parser = ArgumentParser()
     parser.add_argument("--draw-id", type=int, required=True)
     parser.add_argument("--forecast-version", type=str, required=True)
@@ -140,6 +147,7 @@ def parse_arguments(argstr: Optional[str] = None) -> Namespace:
 
 
 def main():
+    configure_logging_to_terminal(1)
     args = parse_arguments()
     run_beta_forecast(draw_id=args.draw_id,
                       forecast_version=args.forecast_version,
