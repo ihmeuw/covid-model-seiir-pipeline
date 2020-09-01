@@ -346,7 +346,10 @@ def mean_aggregator(measure_data: pd.DataFrame, hierarchy: pd.DataFrame, populat
 
     weighted_measure_data = measure_data.loc[hierarchy.loc[hierarchy.most_detailed == 1, 'location_id'].tolist()]
     weighted_measure_data[measure_columns] = measure_data[measure_columns].mul(measure_data['population'], axis=0)
-    global_aggregate = weighted_measure_data.groupby(level='date').sum()
+    if 'date' in weighted_measure_data.index.names:
+        global_aggregate = weighted_measure_data.groupby(level='date').sum()
+    else:
+        global_aggregate = weighted_measure_data.sum()
     global_aggregate = global_aggregate[measure_columns].div(global_aggregate['population'], axis=0)
     global_aggregate = pd.concat({1: global_aggregate}, names=['location_id'])
     measure_data = measure_data.append(global_aggregate)
@@ -357,7 +360,10 @@ def mean_aggregator(measure_data: pd.DataFrame, hierarchy: pd.DataFrame, populat
         locs_at_level = hierarchy[hierarchy.level == level]
         for parent_id, children in locs_at_level.groupby('parent_id'):
             child_locs = children.location_id.tolist()
-            aggregate = weighted_measure_data.loc[child_locs].groupby(level='date').sum()
+            if 'date' in weighted_measure_data.index.names:
+                aggregate = weighted_measure_data.loc[child_locs].groupby(level='date').sum()
+            else:
+                aggregate = weighted_measure_data.loc[child_locs].sum()
             aggregate[measure_columns] = aggregate[measure_columns].div(aggregate['population'], axis=0)
             aggregate = pd.concat({parent_id: aggregate}, names=['location_id'])
             measure_data = measure_data.append(aggregate)
