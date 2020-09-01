@@ -313,7 +313,7 @@ def resample_draws(measure_data: pd.DataFrame, resampling_map: Dict[int, Dict[st
     return resampled
 
 
-def sum_aggregator(measure_data: pd.DataFrame, hierarchy: pd.DataFrame, population: pd.DataFrame) -> pd.DataFrame:
+def sum_aggregator(measure_data: pd.DataFrame, hierarchy: pd.DataFrame, _population: pd.DataFrame) -> pd.DataFrame:
     most_detailed = hierarchy[hierarchy.most_detailed == 1, 'location_id'].tolist()
     global_aggregate = measure_data.loc[most_detailed].groupby(level='date').sum()
     global_aggregate = pd.concat({1: global_aggregate}, names='location_id')
@@ -332,10 +332,22 @@ def sum_aggregator(measure_data: pd.DataFrame, hierarchy: pd.DataFrame, populati
 
 
 def mean_aggregator(measure_data: pd.DataFrame, hierarchy: pd.DataFrame, population: pd.DataFrame) -> pd.DataFrame:
+    population = collapse_population(population, hierarchy)
+
     most_detailed = hierarchy[hierarchy.most_detailed == 1, 'location_id'].tolist()
     global_aggregate = measure_data.loc[most_detailed].groupby(level='date').sum()
     global_aggregate = pd.concat({1: global_aggregate}, names='location_id')
     measure_data = measure_data.append(global_aggregate)
+
+
+def collapse_population(population_data: pd.DataFrame, hierarchy: pd.DataFrame) -> pd.DataFrame:
+    most_detailed = population_data.location_id.isin(hierarchy[hierarchy.most_detailed == 1, 'location_id'].tolist())
+    all_sexes = population_data.sex_id == 3
+    all_ages = population_data.age_group_id == 22
+    population_data = population_data.loc[most_detailed & all_ages & all_sexes, ['location_id', 'population']]
+    population_data = population_data.set_index('location_id')['population']
+    return population_data
+
 
 
 

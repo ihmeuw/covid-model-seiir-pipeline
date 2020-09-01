@@ -177,7 +177,6 @@ MISCELLANEOUS = {
     'populations': OtherConfig(
         pp.load_populations,
         'populations',
-        aggregator=pp.sum_aggregator,
     ),
     'hierarchy': OtherConfig(
         pp.load_hierarchy,
