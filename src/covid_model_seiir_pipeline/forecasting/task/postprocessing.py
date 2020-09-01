@@ -234,7 +234,7 @@ def postprocess_covariate(data_interface: ForecastDataInterface,
     covariate_data = pp.resample_draws(covariate_data, resampling_map)
 
     if covariate_config.aggregator is not None:
-        hierarchy = pp.load_hierarchy(data_interface)
+        hierarchy = pp.load_modeled_hierarchy(data_interface)
         population = pp.load_populations(data_interface)
         covariate_data = covariate_config.aggregator(covariate_data, hierarchy, population)
 
@@ -275,7 +275,7 @@ def postprocess_miscellaneous(data_interface: ForecastDataInterface,
     miscellaneous_data = miscellaneous_config.loader(data_interface)
 
     if miscellaneous_config.aggregator is not None:
-        hierarchy = pp.load_hierarchy(data_interface)
+        hierarchy = pp.load_modeled_hierarchy(data_interface)
         population = pp.load_populations(data_interface)
         miscellaneous_data = miscellaneous_config.aggregator(miscellaneous_data, hierarchy, population)
 
