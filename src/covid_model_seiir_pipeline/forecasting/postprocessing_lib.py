@@ -319,12 +319,8 @@ def sum_aggregator(measure_data: pd.DataFrame, hierarchy: pd.DataFrame):
         locs_at_level = hierarchy[hierarchy.level == level]
         for parent_id, children in locs_at_level.groupby('parent_id'):
             child_locs = children.location_id.tolist()
-            to_aggregate = measure_data[measure_data.location_id.isin(child_locs)]
-            groupers = ['location_id']
-            if 'date' in measure_data.columns:
-                groupers.append('date')
-
-
-
+            aggregate = measure_data.loc[child_locs].groupby(level='date').sum()
+            aggregate = pd.concat({parent_id: aggregate}, names=['location_id'])
+            measure_data = measure_data.append(aggregate)
 
     pass
