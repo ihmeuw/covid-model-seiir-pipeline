@@ -333,11 +333,31 @@ def sum_aggregator(measure_data: pd.DataFrame, hierarchy: pd.DataFrame, _populat
 
 def mean_aggregator(measure_data: pd.DataFrame, hierarchy: pd.DataFrame, population: pd.DataFrame) -> pd.DataFrame:
     population = collapse_population(population, hierarchy)
+    measure_columns = measure_data.columns
+    measure_data = measure_data.join(population)
+
+    def _pop_weighted_mean(df: pd.DataFrame) -> pd.DataFrame:
+        df[measure_columns] = df[measure_columns] * df['population']
+        df = df.sum()
+        df[measure_columns] = df[measure_columns] / df['population']
+        return df
 
     most_detailed = hierarchy[hierarchy.most_detailed == 1, 'location_id'].tolist()
-    global_aggregate = measure_data.loc[most_detailed].groupby(level='date').sum()
+    global_aggregate = measure_data.loc[most_detailed].groupby(level='date').apply(_pop_weighted_mean)
     global_aggregate = pd.concat({1: global_aggregate}, names='location_id')
     measure_data = measure_data.append(global_aggregate)
+
+    national_level = 3
+    subnational_levels = sorted([level for level in hierarchy['level'].unique().tolist() if level > national_level])
+    for level in subnational_levels[::-1]:  # From most detailed to least_detailed
+        locs_at_level = hierarchy[hierarchy.level == level]
+        for parent_id, children in locs_at_level.groupby('parent_id'):
+            child_locs = children.location_id.tolist()
+            aggregate = measure_data.loc[child_locs].groupby(level='date').apply(_pop_weighted_mean)
+            aggregate = pd.concat({parent_id: aggregate}, names=['location_id'])
+            measure_data = measure_data.append(aggregate)
+    measure_data = measure_data.drop(columns='population')
+    return measure_data
 
 
 def collapse_population(population_data: pd.DataFrame, hierarchy: pd.DataFrame) -> pd.DataFrame:
