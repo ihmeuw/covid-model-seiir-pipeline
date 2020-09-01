@@ -348,10 +348,12 @@ def mean_aggregator(measure_data: pd.DataFrame, hierarchy: pd.DataFrame, populat
     weighted_measure_data[measure_columns] = measure_data[measure_columns].mul(measure_data['population'], axis=0)
     if 'date' in weighted_measure_data.index.names:
         global_aggregate = weighted_measure_data.groupby(level='date').sum()
+        global_aggregate = global_aggregate[measure_columns].div(global_aggregate['population'], axis=0)
+        global_aggregate = pd.concat({1: global_aggregate}, names=['location_id'])
     else:
         global_aggregate = weighted_measure_data.sum()
-    global_aggregate = global_aggregate[measure_columns].div(global_aggregate['population'], axis=0)
-    global_aggregate = pd.concat({1: global_aggregate}, names=['location_id'])
+        global_aggregate.loc[measure_columns] /= global_aggregate.at['population']
+        global_aggregate = pd.concat({1: global_aggregate}, names=['location_id']).unstack()
     measure_data = measure_data.append(global_aggregate)
 
     national_level = 3
