@@ -94,12 +94,14 @@ MEASURES = {
         'daily_elastispliner_noisy',
         calculate_cumulative=True,
         cumulative_label='cumulative_elastispliner_noisy',
+        aggregator=pp.sum_aggregator,
     ),
     'elastispliner_smoothed': MeasureConfig(
         pp.load_es_smoothed,
         'daily_elastispliner_smoothed',
         calculate_cumulative=True,
         cumulative_label='cumulative_elastispliner_smoothed',
+        aggregator=pp.sum_aggregator,
     )
 }
 
@@ -109,42 +111,51 @@ COVARIATES = {
         pp.load_covariate,
         'mobility',
         time_varying=True,
-        draw_level=True
+        draw_level=True,
+        aggregator=pp.mean_aggregator,
     ),
     'testing': CovariateConfig(
         pp.load_covariate,
         'testing',
         time_varying=True,
+        aggregator=pp.mean_aggregator,
     ),
     'pneumonia': CovariateConfig(
         pp.load_covariate,
         'pneumonia',
         time_varying=True,
+        # aggregator=pp.mean_aggregator,  This probably isn't what we want.  Still in discussion.
     ),
     'mask_use': CovariateConfig(
         pp.load_covariate,
         'mask_use',
-        time_varying=True
+        time_varying=True,
+        aggregator=pp.mean_aggregator,
     ),
     'air_pollution_pm_2_5': CovariateConfig(
         pp.load_covariate,
         'air_pollution_pm_2_5',
+        aggregator=pp.mean_aggregator,
     ),
     'lri_mortality': CovariateConfig(
         pp.load_covariate,
         'lri_mortality',
+        aggregator=pp.mean_aggregator,
     ),
     'proportion_over_2_5k': CovariateConfig(
         pp.load_covariate,
         'proportion_over_2_5k',
+        aggregator=pp.mean_aggregator,
     ),
     'proportion_under_100m': CovariateConfig(
         pp.load_covariate,
         'proportion_under_100m',
+        aggregator=pp.mean_aggregator,
     ),
     'smoking_prevalence': CovariateConfig(
         pp.load_covariate,
-        'smoking_prevalence'
+        'smoking_prevalence',
+        aggregator=pp.mean_aggregator,
     ),
 }
 
@@ -152,10 +163,12 @@ MISCELLANEOUS = {
     'full_data': OtherConfig(
         pp.load_full_data,
         'full_data',
+        aggregator=pp.sum_aggregator,
     ),
     'elastispliner_inputs': OtherConfig(
         pp.load_elastispliner_inputs,
         'full_data_es_processed',
+        aggregator=pp.sum_aggregator,
     ),
     'version_map': OtherConfig(
         pp.build_version_map,
@@ -164,6 +177,7 @@ MISCELLANEOUS = {
     'populations': OtherConfig(
         pp.load_populations,
         'populations',
+        aggregator=pp.sum_aggregator,
     ),
     'hierarchy': OtherConfig(
         pp.load_hierarchy,
@@ -220,6 +234,11 @@ def postprocess_covariate(data_interface: ForecastDataInterface,
     covariate_data = pd.concat(covariate_data, axis=1)
     covariate_data = pp.resample_draws(covariate_data, resampling_map)
 
+    if covariate_config.aggregator is not None:
+        hierarchy = pp.load_hierarchy(data_interface)
+        population = pp.load_populations(data_interface)
+        covariate_data = covariate_config.aggregator(covariate_data, hierarchy, population)
+
     covariate_version = scenario_spec.covariates[covariate]
     location_ids = data_interface.load_location_ids()
     n_draws = data_interface.get_n_draws()
@@ -255,6 +274,11 @@ def postprocess_miscellaneous(data_interface: ForecastDataInterface,
     miscellaneous_config = MISCELLANEOUS[measure]
     logger.info(f'Loading {measure}.')
     miscellaneous_data = miscellaneous_config.loader(data_interface)
+
+    if miscellaneous_config.aggregator is not None:
+        hierarchy = pp.load_hierarchy(data_interface)
+        population = pp.load_populations(data_interface)
+        miscellaneous_data = miscellaneous_config.aggregator(miscellaneous_data, hierarchy, population)
 
     logger.info(f'Saving {measure} data.')
     if miscellaneous_config.is_table:
