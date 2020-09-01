@@ -66,7 +66,8 @@ MEASURES = {
         pp.load_infections,
         'daily_infections',
         calculate_cumulative=True,
-        cumulative_label='cumulative_infections'
+        cumulative_label='cumulative_infections',
+        aggregator=pp.sum_aggregator,
     ),
     'r_effective': MeasureConfig(
         pp.load_r_effective,
@@ -190,7 +191,8 @@ def postprocess_measure(data_interface: ForecastDataInterface,
 
     if measure_config.aggregator is not None:
         hierarchy = pp.load_hierarchy(data_interface)
-        measure_data = measure_config.aggregator(measure_data, hierarchy)
+        population = pp.load_populations(data_interface)
+        measure_data = measure_config.aggregator(measure_data, hierarchy, population)
 
     logger.info(f'Saving draws and summaries for {measure}.')
     data_interface.save_output_draws(measure_data.reset_index(), scenario_name, measure_config.label)

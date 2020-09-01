@@ -313,14 +313,30 @@ def resample_draws(measure_data: pd.DataFrame, resampling_map: Dict[int, Dict[st
     return resampled
 
 
-def sum_aggregator(measure_data: pd.DataFrame, hierarchy: pd.DataFrame):
-    levels = sorted(hierarchy['level'].unique().tolist())
-    for level in levels[::-1]:  # From most detailed to least_detailed
+def sum_aggregator(measure_data: pd.DataFrame, hierarchy: pd.DataFrame, population: pd.DataFrame) -> pd.DataFrame:
+    most_detailed = hierarchy[hierarchy.most_detailed == 1, 'location_id'].tolist()
+    global_aggregate = measure_data.loc[most_detailed].groupby(level='date').sum()
+    global_aggregate = pd.concat({1: global_aggregate}, names='location_id')
+    measure_data = measure_data.append(global_aggregate)
+
+    national_level = 3
+    subnational_levels = sorted([level for level in hierarchy['level'].unique().tolist() if level > national_level])
+    for level in subnational_levels[::-1]:  # From most detailed to least_detailed
         locs_at_level = hierarchy[hierarchy.level == level]
         for parent_id, children in locs_at_level.groupby('parent_id'):
             child_locs = children.location_id.tolist()
             aggregate = measure_data.loc[child_locs].groupby(level='date').sum()
             aggregate = pd.concat({parent_id: aggregate}, names=['location_id'])
             measure_data = measure_data.append(aggregate)
+    return measure_data
 
-    pass
+
+def mean_aggregator(measure_data: pd.DataFrame, hierarchy: pd.DataFrame, population: pd.DataFrame) -> pd.DataFrame:
+    most_detailed = hierarchy[hierarchy.most_detailed == 1, 'location_id'].tolist()
+    global_aggregate = measure_data.loc[most_detailed].groupby(level='date').sum()
+    global_aggregate = pd.concat({1: global_aggregate}, names='location_id')
+    measure_data = measure_data.append(global_aggregate)
+
+
+
+
