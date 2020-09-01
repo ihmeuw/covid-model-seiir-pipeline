@@ -203,7 +203,7 @@ def postprocess_measure(data_interface: ForecastDataInterface,
     measure_data = pp.resample_draws(measure_data, resampling_map)
 
     if measure_config.aggregator is not None:
-        hierarchy = pp.load_hierarchy(data_interface)
+        hierarchy = pp.load_modeled_hierarchy(data_interface)
         population = pp.load_populations(data_interface)
         measure_data = measure_config.aggregator(measure_data, hierarchy, population)
 

@@ -270,6 +270,14 @@ def get_locations_modeled_and_missing(data_interface: ForecastDataInterface):
     return locations_modeled_and_missing
 
 
+def load_modeled_hierarchy(data_interface: ForecastDataInterface):
+    hierarchy = load_hierarchy(data_interface)
+    modeled_locs = get_locations_modeled_and_missing(data_interface)['modeled']
+    not_most_detailed = hierarchy.most_detailed == 0
+    modeled = hierarchy.location_id.isin(modeled_locs)
+    return hierarchy[not_most_detailed | modeled]
+
+
 def build_resampling_map(deaths, resampling_params):
     cumulative_deaths = deaths.groupby(level='location_id').cumsum()
     max_deaths = cumulative_deaths.groupby(level='location_id').max()
@@ -336,16 +344,10 @@ def mean_aggregator(measure_data: pd.DataFrame, hierarchy: pd.DataFrame, populat
     measure_columns = measure_data.columns
     measure_data = measure_data.join(population)
 
-    def _pop_weighted_mean(df: pd.DataFrame) -> pd.DataFrame:
-        df[measure_columns] = df[measure_columns].mul(df['population'], axis=0)
-        df = df.sum()
-        df[measure_columns] = df[measure_columns].div(df['population'], axis=0)
-        return df
-
     weighted_measure_data = measure_data.loc[hierarchy.loc[hierarchy.most_detailed == 1, 'location_id'].tolist()]
     weighted_measure_data[measure_columns] = measure_data[measure_columns].mul(measure_data['population'], axis=0)
     global_aggregate = weighted_measure_data.groupby(level='date').sum()
-    global_aggregate = global_aggregate[measure_columns].div(global_aggregate['population'], axis=0)    
+    global_aggregate = global_aggregate[measure_columns].div(global_aggregate['population'], axis=0)
     global_aggregate = pd.concat({1: global_aggregate}, names=['location_id'])
     measure_data = measure_data.append(global_aggregate)
 
