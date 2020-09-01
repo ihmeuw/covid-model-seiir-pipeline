@@ -316,7 +316,7 @@ def resample_draws(measure_data: pd.DataFrame, resampling_map: Dict[int, Dict[st
 def sum_aggregator(measure_data: pd.DataFrame, hierarchy: pd.DataFrame, _population: pd.DataFrame) -> pd.DataFrame:
     most_detailed = hierarchy.loc[hierarchy.most_detailed == 1, 'location_id'].tolist()
     global_aggregate = measure_data.loc[most_detailed].groupby(level='date').sum()
-    global_aggregate = pd.concat({1: global_aggregate}, names='location_id')
+    global_aggregate = pd.concat({1: global_aggregate}, names=['location_id'])
     measure_data = measure_data.append(global_aggregate)
 
     national_level = 3
@@ -337,14 +337,16 @@ def mean_aggregator(measure_data: pd.DataFrame, hierarchy: pd.DataFrame, populat
     measure_data = measure_data.join(population)
 
     def _pop_weighted_mean(df: pd.DataFrame) -> pd.DataFrame:
-        df[measure_columns] = df[measure_columns] * df['population']
+        df[measure_columns] = df[measure_columns].mul(df['population'], axis=0)
         df = df.sum()
-        df[measure_columns] = df[measure_columns] / df['population']
+        df[measure_columns] = df[measure_columns].div(df['population'], axis=0)
         return df
 
-    most_detailed = hierarchy.loc[hierarchy.most_detailed == 1, 'location_id'].tolist()
-    global_aggregate = measure_data.loc[most_detailed].groupby(level='date').apply(_pop_weighted_mean)
-    global_aggregate = pd.concat({1: global_aggregate}, names='location_id')
+    weighted_measure_data = measure_data.loc[hierarchy.loc[hierarchy.most_detailed == 1, 'location_id'].tolist()]
+    weighted_measure_data[measure_columns] = measure_data[measure_columns].mul(measure_data['population'], axis=0)
+    global_aggregate = weighted_measure_data.groupby(level='date').sum()
+    global_aggregate = global_aggregate[measure_columns].div(global_aggregate['population'], axis=0)    
+    global_aggregate = pd.concat({1: global_aggregate}, names=['location_id'])
     measure_data = measure_data.append(global_aggregate)
 
     national_level = 3
@@ -353,7 +355,8 @@ def mean_aggregator(measure_data: pd.DataFrame, hierarchy: pd.DataFrame, populat
         locs_at_level = hierarchy[hierarchy.level == level]
         for parent_id, children in locs_at_level.groupby('parent_id'):
             child_locs = children.location_id.tolist()
-            aggregate = measure_data.loc[child_locs].groupby(level='date').apply(_pop_weighted_mean)
+            aggregate = weighted_measure_data.loc[child_locs].groupby(level='date').sum()
+            aggregate[measure_columns] = aggregate[measure_columns].div(aggregate['population'], axis=0)
             aggregate = pd.concat({parent_id: aggregate}, names=['location_id'])
             measure_data = measure_data.append(aggregate)
     measure_data = measure_data.drop(columns='population')
