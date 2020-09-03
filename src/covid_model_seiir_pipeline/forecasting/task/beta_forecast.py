@@ -59,6 +59,11 @@ def run_beta_forecast(draw_id: int, forecast_version: str, scenario_name: str):
     # We'll need this to compute deaths and to splice with the forecasts.
     infection_data = data_interface.load_infection_data(draw_id)
 
+    if ((1 < thetas) | thetas < -1).any():
+        raise ValueError('Theta must be between -1 and 1.')
+    if (beta_params['sigma'] - thetas).any():
+        raise ValueError('Sigma - theta must be smaller than 1')
+
     # Modeling starts
     logger.info('Forecasting beta and components.')
     betas = model.forecast_beta(covariate_pred, coefficients, beta_scales)
