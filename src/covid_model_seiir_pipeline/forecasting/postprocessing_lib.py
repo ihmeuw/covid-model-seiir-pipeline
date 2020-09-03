@@ -369,7 +369,7 @@ def mean_aggregator(measure_data: pd.DataFrame, hierarchy: pd.DataFrame, populat
                 aggregate = weighted_measure_data.loc[child_locs].sum()
                 aggregate = pd.concat({parent_id: aggregate}, names=['location_id']).unstack()
 
-            weighted_measure_data.append(aggregate)
+            weighted_measure_data = weighted_measure_data.append(aggregate)
             aggregate = aggregate[measure_columns].div(aggregate['population'], axis=0)
             measure_data = measure_data.append(aggregate)
     measure_data = measure_data.drop(columns='population')
