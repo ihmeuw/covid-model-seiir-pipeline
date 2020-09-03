@@ -48,19 +48,16 @@ class CustomizedSEIIR(ODESys):
         i2 = y[3]
         r = y[4]
 
-        theta_plus = max(theta, 0.) * s / 1_000_000
-        theta_minus = min(theta, 0.)
-        theta_tilde = int(theta_plus != theta_minus)
-        theta_minus_alt = (self.gamma1 - self.delta) * i1 - self.sigma * e - theta_plus
-        effective_theta_minus = max(theta_minus, theta_minus_alt) * theta_tilde
+        theta_plus = max(theta, 0.)
+        theta_minus = -min(theta, 0.)
 
         new_e = beta*(s/self.N)*(i1 + i2)**self.alpha
 
-        ds = -new_e - theta_plus
-        de = new_e - self.sigma*e
-        di1 = self.sigma*e - self.gamma1*i1 + theta_plus + effective_theta_minus
+        ds = -new_e - theta_plus*s
+        de = new_e + theta_plus*s - self.sigma*e - theta_minus*e
+        di1 = self.sigma*e - self.gamma1*i1
         di2 = self.gamma1*i1 - self.gamma2*i2
-        dr = self.gamma2*i2 - effective_theta_minus
+        dr = self.gamma2*i2 + theta_minus*e
 
         return np.array([ds, de, di1, di2, dr])
 
