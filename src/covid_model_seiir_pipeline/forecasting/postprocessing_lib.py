@@ -323,6 +323,9 @@ def resample_draws(measure_data: pd.DataFrame, resampling_map: Dict[int, Dict[st
 
 def sum_aggregator(measure_data: pd.DataFrame, hierarchy: pd.DataFrame, _population: pd.DataFrame) -> pd.DataFrame:
     most_detailed = hierarchy.loc[hierarchy.most_detailed == 1, 'location_id'].tolist()
+    if 'observed' in measure_data.index.names:
+        measure_data = measure_data.reset_index(level='observed')
+
     global_aggregate = measure_data.loc[most_detailed].groupby(level='date').sum()
     global_aggregate = pd.concat({1: global_aggregate}, names=['location_id'])
     measure_data = measure_data.append(global_aggregate)
@@ -336,6 +339,10 @@ def sum_aggregator(measure_data: pd.DataFrame, hierarchy: pd.DataFrame, _populat
             aggregate = measure_data.loc[child_locs].groupby(level='date').sum()
             aggregate = pd.concat({parent_id: aggregate}, names=['location_id'])
             measure_data = measure_data.append(aggregate)
+
+    if 'observed' in measure_data.columns:
+        measure_data.loc[measure_data['observed'] >= 1, 'observed'] = 1
+        measure_data = measure_data.set_index('observed', append=True)
     return measure_data
 
 
