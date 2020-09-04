@@ -61,7 +61,7 @@ def run_beta_forecast(draw_id: int, forecast_version: str, scenario_name: str):
 
     if ((1 < thetas) | thetas < -1).any():
         raise ValueError('Theta must be between -1 and 1.')
-    if (beta_params['sigma'] - thetas).any():
+    if (beta_params['sigma'] - thetas >= 1).any():
         raise ValueError('Sigma - theta must be smaller than 1')
 
     # Modeling starts
