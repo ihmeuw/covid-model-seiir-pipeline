@@ -103,16 +103,19 @@ class ForecastDataInterface:
                     raise FileNotFoundError(f'No {covariate_version} file found for covariate {covariate}.')
         return regression_covariates
 
-    def get_regression_metadata(self):
-        # TODO: add metadata to regression and forecast paths.
-        with (self.regression_paths.root_dir / 'metadata.yaml').open() as metadata_file:
+    def get_infectionator_metadata(self):
+        with self.regression_paths.regression_specification.open() as regression_spec_file:
+            regression_spec = yaml.full_load(regression_spec_file)
+        infectionator_path = regression_spec['data']['infection_version']
+        with Path(infectionator_path /'metadata.yaml').open() as metadata_file:
             metadata = yaml.full_load(metadata_file)
         return metadata
 
+
     def load_full_data(self):
-        metadata = self.get_regression_metadata()
+        metadata = self.get_infectionator_metadata()
         # TODO: metadata abstraction?
-        model_inputs_version = metadata['infectionator_metadata']['death']['metadata']['model_inputs_metadata']['output_path']
+        model_inputs_version = metadata['death']['metadata']['model_inputs_metadata']['output_path']
         full_data_path = Path(model_inputs_version) / 'full_data.csv'
         full_data = pd.read_csv(full_data_path)
         full_data['date'] = pd.to_datetime(full_data['Date'])
@@ -120,15 +123,15 @@ class ForecastDataInterface:
         return full_data
 
     def load_elastispliner_inputs(self):
-        metadata = self.get_regression_metadata()
-        deaths_version = Path(metadata['infectionator_metadata']['death']['metadata']['output_path'])
+        metadata = self.get_infectionator_metadata()
+        deaths_version = Path(metadata['death']['metadata']['output_path'])
         es_inputs = pd.read_csv(deaths_version / 'model_data.csv')
         es_inputs['date'] = pd.to_datetime(es_inputs['date'])
         return es_inputs
 
     def load_elastispliner_outputs(self):
-        metadata = self.get_regression_metadata()
-        deaths_version = Path(metadata['infectionator_metadata']['death']['metadata']['output_path'])
+        metadata = self.get_infectionator_metadata()
+        deaths_version = Path(metadata['death']['metadata']['output_path'])
         noisy_outputs = pd.read_csv(deaths_version / 'model_results.csv')
         noisy_outputs['date'] = pd.to_datetime(noisy_outputs['date'])
         smoothed_outputs = pd.read_csv(deaths_version / 'model_results_refit.csv')

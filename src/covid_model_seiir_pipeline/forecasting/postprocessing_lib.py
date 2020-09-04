@@ -203,14 +203,13 @@ def load_full_data(data_interface: ForecastDataInterface) -> pd.DataFrame:
 
 
 def build_version_map(data_interface: ForecastDataInterface) -> pd.Series:
-    metadata = data_interface.get_regression_metadata()
     version_map = {}
     version_map['forecast_version'] = data_interface.forecast_paths.root_dir.name
-    version_map['regression_version'] = Path(metadata['output_path']).name
-    version_map['covariate_version'] = Path(metadata['covariates_metadata']['output_path']).name
+    version_map['regression_version'] = data_interface.regression_paths.root_dir.name
+    version_map['covariate_version'] = data_interface.covariate_paths.root_dir.name
 
     # FIXME: infectionator doesn't do metadata the right way.
-    inf_metadata = metadata['infectionator_metadata']
+    inf_metadata = data_interface.get_infectionator_metadata()
     inf_output_dir = inf_metadata['wrapped_R_call'][-1].split()[1].strip("'")
     version_map['infectionator_version'] = Path(inf_output_dir).name
 
@@ -242,9 +241,9 @@ def build_version_map(data_interface: ForecastDataInterface) -> pd.Series:
 
 
 def load_populations(data_interface: ForecastDataInterface):
-    metadata = data_interface.get_regression_metadata()
+    metadata = data_interface.get_infectionator_metadata()
     model_inputs_path = Path(
-        metadata['infectionator_metadata']['death']['metadata']['model_inputs_metadata']['output_path']
+        metadata['death']['metadata']['model_inputs_metadata']['output_path']
     )
     population_path = model_inputs_path / 'output_measures' / 'population' / 'all_populations.csv'
     populations = pd.read_csv(population_path)
@@ -252,9 +251,9 @@ def load_populations(data_interface: ForecastDataInterface):
 
 
 def load_hierarchy(data_interface: ForecastDataInterface):
-    metadata = data_interface.get_regression_metadata()
+    metadata = data_interface.get_infectionator_metadata()
     model_inputs_path = Path(
-        metadata['infectionator_metadata']['death']['metadata']['model_inputs_metadata']['output_path']
+        metadata['death']['metadata']['model_inputs_metadata']['output_path']
     )
     hierarchy_path = model_inputs_path / 'locations' / 'modeling_hierarchy.csv'
     hierarchy = pd.read_csv(hierarchy_path)
@@ -324,7 +323,7 @@ def resample_draws(measure_data: pd.DataFrame, resampling_map: Dict[int, Dict[st
 def sum_aggregator(measure_data: pd.DataFrame, hierarchy: pd.DataFrame, _population: pd.DataFrame) -> pd.DataFrame:
     """Aggregates global and national data from subnational models by addition.
 
-    For use with daily count space data.  
+    For use with daily count space data.
 
     The ``_population`` argument is here for api consistency and is not used.
 
