@@ -43,9 +43,10 @@ class PredictiveValidityWorkflow(WorkflowTemplate):
         regression_task = regression_template.get_task(
             regression_specification_path=regression_specification_path
         )
-        self.workflow.add(regression_task)
+        self.workflow.add_task(regression_task)
         for forecast_specification_path in forecast_specification_paths:
             forecast_task = forecast_template.get_task(
                 forecast_specification_path=forecast_specification_path
             )
+            self.workflow.add_task(forecast_task)
             forecast_task.add_upstream(regression_task)
