@@ -324,7 +324,9 @@ def resample_draws(measure_data: pd.DataFrame, resampling_map: Dict[int, Dict[st
 def sum_aggregator(measure_data: pd.DataFrame, hierarchy: pd.DataFrame, _population: pd.DataFrame) -> pd.DataFrame:
     """Aggregates global and national data from subnational models by addition.
 
-    For use with daily count space data.
+    For use with daily count space data.  
+
+    The ``_population`` argument is here for api consistency and is not used.
 
     """
     most_detailed = hierarchy.loc[hierarchy.most_detailed == 1, 'location_id'].tolist()
