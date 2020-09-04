@@ -6,6 +6,7 @@ from loguru import logger
 from covid_model_seiir_pipeline.regression.specification import RegressionSpecification
 from covid_model_seiir_pipeline.forecasting.specification import ForecastSpecification
 from covid_model_seiir_pipeline.predictive_validity.specification import PredictiveValiditySpecification
+from covid_model_seiir_pipeline.predictive_validity.workflow import PredictiveValidityWorkflow
 
 
 def do_predictive_validity(app_metadata: cli_tools.Metadata,
@@ -22,6 +23,8 @@ def do_predictive_validity(app_metadata: cli_tools.Metadata,
 
     scenario = predictive_validity_specification.forecast_scenario
 
+    predictive_validity_workflow = PredictiveValidityWorkflow(output_root)
+
     for holdout_version in predictive_validity_specification.holdout_versions:
         for alphas in predictive_validity_specification.alphas:
             regression_specification.data.infection_version = holdout_version.infectionator_version
@@ -34,12 +37,20 @@ def do_predictive_validity(app_metadata: cli_tools.Metadata,
             regression_spec_path = regression_dir / 'regression_specification.yaml'
             regression_specification.dump(regression_spec_path)
 
+            forecast_spec_paths = []
             for theta in predictive_validity_specification.thetas:
                 for average_over_max in predictive_validity_specification.beta_scaling_average_over_maxes:
+                    forecast_specification.data.regression_version = regression_dir
+                    forecast_specification.data.covariate_version = holdout_version.covariate_version
                     forecast_specification.scenarios[scenario].theta = theta
                     forecast_specification.scenarios[scenario].beta_scaling['average_over_max'] = average_over_max
                     forecast_dir_name = f'{regression_dir_name}_theta_{theta}_avg_over_max_{average_over_max}'
                     forecast_dir = forecast_root / forecast_dir_name
+                    forecast_specification.data.output_root = forecast_dir
                     shell_tools.mkdir(forecast_dir)
                     forecast_spec_path = forecast_dir / 'forecast_specification.yaml'
                     forecast_specification.dump(forecast_spec_path)
+                    forecast_spec_paths.append(forecast_spec_path)
+            predictive_validity_workflow.attach_tasks(regression_spec_path, forecast_spec_paths)
+
+    predictive_validity_workflow.run()
