@@ -1,5 +1,7 @@
 from argparse import ArgumentParser, Namespace
+from pathlib import Path
 import shlex
+import shutil
 from typing import Optional
 
 from covid_shared.cli_tools import Metadata
@@ -12,6 +14,9 @@ from covid_model_seiir_pipeline.regression.main import do_beta_regression
 
 def run_oos_regression(regression_specification_path: str) -> None:
     regression_specification = RegressionSpecification.from_path(regression_specification_path)
+    root_metadata_path = Path(regression_specification_path).parent.parent.parent / 'metadata.yaml'
+    target_metadata_path = Path(regression_specification_path).parent / 'metadata.yaml'
+    shutil.copy2(root_metadata_path, target_metadata_path)
     do_beta_regression(Metadata(), regression_specification, preprocess_only=False)
 
 

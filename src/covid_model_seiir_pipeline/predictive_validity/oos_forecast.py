@@ -1,5 +1,7 @@
 from argparse import ArgumentParser, Namespace
+from pathlib import Path
 import shlex
+import shutil
 from typing import Optional
 
 from covid_shared.cli_tools import Metadata
@@ -12,6 +14,9 @@ from covid_model_seiir_pipeline.forecasting.main import do_beta_forecast
 
 def run_oos_forecast(forecast_specification_path: str) -> None:
     forecast_specification = ForecastSpecification.from_path(forecast_specification_path)
+    root_metadata_path = Path(forecast_specification_path).parent.parent.parent / 'metadata.yaml'
+    target_metadata_path = Path(forecast_specification_path).parent / 'metadata.yaml'
+    shutil.copy2(root_metadata_path, target_metadata_path)
     do_beta_forecast(Metadata(), forecast_specification, preprocess_only=False)
 
 
