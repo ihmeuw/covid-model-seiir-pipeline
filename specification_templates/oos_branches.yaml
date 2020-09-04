@@ -1,0 +1,19 @@
+output_root: '/ihme/covid-19/seir-oos-tests/2020_09_03/'
+forecast_scenario: 'worse'
+holdout_versions:
+  - holdout_days: 0
+    infectionator_version: '/ihme/covid-19/seir-inputs/2020_09_01.03'
+    covariate_version: '/ihme/covid-19/seir-inputs/2020_09_03.01'
+  - holdout_days: 28
+    infectionator_version: '/ihme/covid-19/seir-inputs/2020_09_03.02'
+    covariate_version: '/ihme/covid-19/seir-inputs/2020_09_03.01'
+  - holdout_days: 56
+    infectionator_version: '/ihme/covid-19/seir-inputs/2020_09_03.01'
+    covariate_version: '/ihme/covid-19/seir-inputs/2020_09_03.01'
+alpha:
+  - [0.6, 0.7]
+  - [0.7, 0.8]
+  - [0.8, 0.9]
+  - [0.9, 1.0]
+theta: [-0.15, -0.10, -0.05, 0.00, 0.00, 2e-6, 4e-6, 6e-6]
+beta_scaling_average_over_max: [28, 35, 42]
