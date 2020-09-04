@@ -5,7 +5,7 @@ data:
   location_set_file: '/ihme/covid-19/seir-pipeline-outputs/metadata-inputs/location_metadata_771.csv'
   output_root: ''
 parameters:
-  n_draws: 1000
+  n_draws: 10
   day_shift: [0, 8]
   alpha: [0.9, 1.0]
   sigma: [0.2, 0.3333]

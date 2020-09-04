@@ -33,7 +33,7 @@ class OOSForecastTaskTemplate(TaskTemplate):
 
 class PredictiveValidityWorkflow(WorkflowTemplate):
 
-    workflow_name_template = 'predictive-validity'
+    workflow_name_template = 'predictive-validity-{version}'
     task_templates = {'regression': OOSRegressionTaskTemplate,
                       'forecast': OOSForecastTaskTemplate}
 

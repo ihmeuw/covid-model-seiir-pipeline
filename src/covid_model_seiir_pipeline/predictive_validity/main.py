@@ -32,7 +32,7 @@ def do_predictive_validity(app_metadata: cli_tools.Metadata,
             regression_specification.parameters.alpha = alphas
             regression_dir_name = f'holdout_{holdout_version.holdout_days}_alpha_{alphas[0]}_{alphas[1]}'
             regression_dir = regression_root / regression_dir_name
-            regression_specification.data.output_root = regression_dir
+            regression_specification.data.output_root = str(regression_dir)
             shell_tools.mkdir(regression_dir)
             regression_spec_path = regression_dir / 'regression_specification.yaml'
             regression_specification.dump(regression_spec_path)
@@ -40,13 +40,13 @@ def do_predictive_validity(app_metadata: cli_tools.Metadata,
             forecast_spec_paths = []
             for theta in predictive_validity_specification.thetas:
                 for average_over_max in predictive_validity_specification.beta_scaling_average_over_maxes:
-                    forecast_specification.data.regression_version = regression_dir
+                    forecast_specification.data.regression_version = str(regression_dir)
                     forecast_specification.data.covariate_version = holdout_version.covariate_version
                     forecast_specification.scenarios[scenario].theta = theta
                     forecast_specification.scenarios[scenario].beta_scaling['average_over_max'] = average_over_max
                     forecast_dir_name = f'{regression_dir_name}_theta_{theta}_avg_over_max_{average_over_max}'
                     forecast_dir = forecast_root / forecast_dir_name
-                    forecast_specification.data.output_root = forecast_dir
+                    forecast_specification.data.output_root = str(forecast_dir)
                     shell_tools.mkdir(forecast_dir)
                     forecast_spec_path = forecast_dir / 'forecast_specification.yaml'
                     forecast_specification.dump(forecast_spec_path)
