@@ -15,7 +15,6 @@ def do_predictive_validity(app_metadata: cli_tools.Metadata,
     logger.debug('Starting predictive validity.')
 
     output_root = Path(predictive_validity_specification.output_root)
-    shell_tools.mkdir(output_root)
     regression_root = output_root / 'regression'
     shell_tools.mkdir(regression_root)
     forecast_root = output_root / 'forecast'

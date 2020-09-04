@@ -45,8 +45,9 @@ class PredictiveValiditySpecification(Specification):
         output_root = predictive_validity_spec_dict.get('output_root', '')
         if not output_root:
             raise ValueError('Must provide an output root.')
+        forecast_scenario = predictive_validity_spec_dict.get('forecast_scenario', 'worse')
 
-        holdout_version_dicts = predictive_validity_spec_dict.get('holdout_version', [])
+        holdout_version_dicts = predictive_validity_spec_dict.get('holdout_versions', [])
         if not holdout_version_dicts:
             raise ValueError('Must have at least one holdout version.')
         holdout_versions = [HoldoutVersionSpecification(**holdout_version) for holdout_version in holdout_version_dicts]
@@ -56,7 +57,7 @@ class PredictiveValiditySpecification(Specification):
             'beta_scaling_average_over_max', [42]
         )
 
-        return output_root, holdout_versions, alphas, thetas, beta_scaling_average_over_maxes
+        return output_root, forecast_scenario, holdout_versions, alphas, thetas, beta_scaling_average_over_maxes
 
     @property
     def output_root(self) -> str:
