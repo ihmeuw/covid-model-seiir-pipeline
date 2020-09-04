@@ -143,6 +143,7 @@ def run_normal_ode_model_by_location(initial_condition, beta_params, betas, thet
 
 def splice_components(components_past, components_forecast):
     shared_columns = ['date', 'S', 'E', 'I1', 'I2', 'R', 'beta', 'theta']
+    components_past['theta'] = np.nan
     components_past = components_past[shared_columns].reset_index()
     components_forecast = components_forecast[['location_id'] + shared_columns]
     components = (pd.concat([components_past, components_forecast])
