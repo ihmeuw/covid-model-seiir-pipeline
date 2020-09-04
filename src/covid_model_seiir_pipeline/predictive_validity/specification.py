@@ -1,4 +1,4 @@
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Dict, Tuple, List
 
 from covid_model_seiir_pipeline.utilities import Specification, asdict
@@ -29,7 +29,7 @@ class PredictiveValiditySpecification(Specification):
                  output_root: str,
                  forecast_scenario: str,
                  holdout_versions: List[HoldoutVersionSpecification],
-                 alphas: List[List[float, float]],
+                 alphas: List[List[float]],
                  thetas: List[float],
                  beta_scaling_average_over_maxes: List[int]):
         self._output_root = output_root
@@ -71,7 +71,7 @@ class PredictiveValiditySpecification(Specification):
         return self._holdout_versions[:]
 
     @property
-    def alphas(self) -> List[List[float, float]]:
+    def alphas(self) -> List[List[float]]:
         return self._alphas[:]
 
     @property
