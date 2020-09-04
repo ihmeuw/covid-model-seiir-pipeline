@@ -106,8 +106,8 @@ class ForecastDataInterface:
     def get_infectionator_metadata(self):
         with self.regression_paths.regression_specification.open() as regression_spec_file:
             regression_spec = yaml.full_load(regression_spec_file)
-        infectionator_path = regression_spec['data']['infection_version']
-        with Path(infectionator_path /'metadata.yaml').open() as metadata_file:
+        infectionator_path = Path(regression_spec['data']['infection_version'])
+        with (infectionator_path / 'metadata.yaml').open() as metadata_file:
             metadata = yaml.full_load(metadata_file)
         return metadata
 
