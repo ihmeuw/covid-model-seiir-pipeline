@@ -1,4 +1,4 @@
-output_root: '/ihme/covid-19/seir-oos-tests/2020_09_05.02'
+output_root: '/ihme/covid-19/seir-oos-tests/2020_09_05.05'
 forecast_scenario: 'worse'
 holdout_versions:
   - holdout_days: 0

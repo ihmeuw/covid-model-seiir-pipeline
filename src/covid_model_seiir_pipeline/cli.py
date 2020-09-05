@@ -184,7 +184,7 @@ def predictive_validity(run_metadata,
     predictive_validity_spec = PredictiveValiditySpecification.from_path(predictive_validity_specification)
 
     run_directory = Path(predictive_validity_spec.output_root)
-    shell_tools.mkdir(run_directory)
+    shell_tools.mkdir(run_directory, exists_ok=True)
 
     main = cli_tools.monitor_application(do_predictive_validity, logger, with_debugger)
     app_metadata, _ = main(regression_spec, forecast_spec, predictive_validity_spec)
