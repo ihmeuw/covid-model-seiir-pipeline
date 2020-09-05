@@ -2,6 +2,7 @@ import itertools
 from pathlib import Path
 
 from covid_shared import cli_tools, shell_tools
+from jobmon.client.swarm.workflow.workflow import WorkflowAlreadyComplete
 from loguru import logger
 
 from covid_model_seiir_pipeline.regression.specification import RegressionSpecification
@@ -59,4 +60,8 @@ def do_predictive_validity(app_metadata: cli_tools.Metadata,
                 forecast_spec_paths.append(forecast_spec_path)
         predictive_validity_workflow.attach_tasks(regression_spec_path, forecast_spec_paths)
 
-        predictive_validity_workflow.run()
+        try:
+            predictive_validity_workflow.run()
+        except WorkflowAlreadyComplete:
+            logger.info('Workflow already complete')
+            continue
