@@ -69,8 +69,9 @@ class ForecastDataInterface:
             thetas = pd.read_csv(theta_specification).set_index('location_id')['theta']
         else:
             location_ids = self.load_location_ids()
-            thetas = pd.Series({'theta': theta_specification},
-                               index=pd.Index(location_ids, name='location_id'))
+            thetas = pd.Series(theta_specification,
+                               index=pd.Index(location_ids, name='location_id'),
+                               name='theta')
         return thetas
 
     def check_covariates(self, scenarios: Dict[str, ScenarioSpecification]) -> List[str]:
