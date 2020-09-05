@@ -30,7 +30,6 @@ def do_predictive_validity(app_metadata: cli_tools.Metadata,
 
     for i, (holdout_version, alphas) in enumerate(regression_params):
         logger.info(f'On regression group {i} of {len(regression_params)}')
-        predictive_validity_workflow = PredictiveValidityWorkflow(output_root)
 
         regression_specification.data.infection_version = holdout_version.infectionator_version
         regression_specification.data.covariate_version = holdout_version.covariate_version
@@ -41,6 +40,8 @@ def do_predictive_validity(app_metadata: cli_tools.Metadata,
         shell_tools.mkdir(regression_dir)
         regression_spec_path = regression_dir / 'regression_specification.yaml'
         regression_specification.dump(regression_spec_path)
+
+        predictive_validity_workflow = PredictiveValidityWorkflow(regression_dir)
 
         forecast_spec_paths = []
         for theta in predictive_validity_specification.thetas:
