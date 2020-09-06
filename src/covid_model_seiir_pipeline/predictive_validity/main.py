@@ -8,7 +8,7 @@ from loguru import logger
 from covid_model_seiir_pipeline.regression.specification import RegressionSpecification
 from covid_model_seiir_pipeline.forecasting.specification import ForecastSpecification
 from covid_model_seiir_pipeline.predictive_validity.specification import PredictiveValiditySpecification
-from covid_model_seiir_pipeline.predictive_validity.workflow import PredictiveValidityWorkflow
+from covid_model_seiir_pipeline.predictive_validity.distributed import run_cluster_jobs
 
 
 def do_predictive_validity(app_metadata: cli_tools.Metadata,
@@ -41,27 +41,27 @@ def do_predictive_validity(app_metadata: cli_tools.Metadata,
         shell_tools.mkdir(regression_dir, exists_ok=True)
         regression_spec_path = regression_dir / 'regression_specification.yaml'
         regression_specification.dump(regression_spec_path)
+        logger.info(f'Submitting regression job {regression_dir_name}.')
+        run_cluster_jobs(regression_dir_name, regression_root,
+                         {0: ['--regression-specification-path', str(regression_spec_path)]}, i)
 
-        predictive_validity_workflow = PredictiveValidityWorkflow(regression_dir)
+        forecast_spec_paths = {}
+        forecast_params = list(itertools.product(predictive_validity_specification.thetas,
+                                                 predictive_validity_specification.beta_scaling_average_over_maxes))
+        for j, (theta, average_over_max) in enumerate(forecast_params):
+            forecast_specification.data.regression_version = str(regression_dir)
+            forecast_specification.data.covariate_version = holdout_version.covariate_version
+            forecast_specification.scenarios[scenario].theta = theta
+            forecast_specification.scenarios[scenario].beta_scaling['average_over_max'] = average_over_max
+            forecast_stub = f'theta_{theta}_avg_over_max_{average_over_max}'
+            forecast_dir_name = f'{regression_dir_name}_{forecast_stub}'
+            forecast_dir = forecast_root / forecast_dir_name
+            forecast_specification.data.output_root = str(forecast_dir)
+            shell_tools.mkdir(forecast_dir, exists_ok=True)
+            forecast_spec_path = forecast_dir / 'forecast_specification.yaml'
+            forecast_specification.dump(forecast_spec_path)
 
-        forecast_spec_paths = []
-        for theta in predictive_validity_specification.thetas:
-            for average_over_max in predictive_validity_specification.beta_scaling_average_over_maxes:
-                forecast_specification.data.regression_version = str(regression_dir)
-                forecast_specification.data.covariate_version = holdout_version.covariate_version
-                forecast_specification.scenarios[scenario].theta = theta
-                forecast_specification.scenarios[scenario].beta_scaling['average_over_max'] = average_over_max
-                forecast_dir_name = f'{regression_dir_name}_theta_{theta}_avg_over_max_{average_over_max}'
-                forecast_dir = forecast_root / forecast_dir_name
-                forecast_specification.data.output_root = str(forecast_dir)
-                shell_tools.mkdir(forecast_dir, exists_ok=True)
-                forecast_spec_path = forecast_dir / 'forecast_specification.yaml'
-                forecast_specification.dump(forecast_spec_path)
-                forecast_spec_paths.append(forecast_spec_path)
-        predictive_validity_workflow.attach_tasks(regression_spec_path, forecast_spec_paths)
+            forecast_spec_paths[j] = ['--forecast-specification-path', str(forecast_spec_path)]
 
-        try:
-            predictive_validity_workflow.run()
-        except WorkflowAlreadyComplete:
-            logger.info('Workflow already complete')
-            continue
+        logger.info(f'Submitting forecasting jobs.')
+        run_cluster_jobs(regression_dir_name, forecast_root, forecast_spec_paths, i)
