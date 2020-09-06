@@ -19,7 +19,7 @@ H_RUNTIME = '03:00:00'
 SLEEP_TIME = 10
 
 
-def run_cluster_jobs(job_type: str, output_root: Path,
+def run_cluster_jobs(command: str, job_type: str, output_root: Path,
                      job_args_map: Dict[int, List[str]], regression_number: int) -> None:
     drmaa = get_drmaa()
     jobs = {}
@@ -28,7 +28,7 @@ def run_cluster_jobs(job_type: str, output_root: Path,
             logger.info(f"Enqueuing {job_type} jobs...")
             for job_id, job_args in job_args_map.items():
                 job_name = f'{job_type}_{job_id}'
-                job = do_qsub(session, job_type, job_name, output_root, job_args)
+                job = do_qsub(session, command, job_type, job_name, output_root, job_args)
                 jobs[job_name] = (job, drmaa.JobState.UNDETERMINED)
 
             logger.info('Entering monitoring loop.')
@@ -60,6 +60,7 @@ def run_cluster_jobs(job_type: str, output_root: Path,
 
 
 def do_qsub(session,
+            command: str,
             job_type: str,
             job_name: str,
             output_root: Path,
@@ -70,7 +71,7 @@ def do_qsub(session,
     shell_tools.mkdir(output_logs, exists_ok=True, parents=True)
 
     job_template = session.createJobTemplate()
-    job_template.remoteCommand = shutil.which('python')
+    job_template.remoteCommand = command
     job_template.outputPath = f':{output_logs}'
     job_template.errorPath = f':{error_logs}'
     job_template.args = script_args

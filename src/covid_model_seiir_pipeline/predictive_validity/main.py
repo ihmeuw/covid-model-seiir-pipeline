@@ -1,5 +1,6 @@
 import itertools
 from pathlib import Path
+import shutil
 
 from covid_shared import cli_tools, shell_tools
 from jobmon.client.swarm.workflow.workflow import WorkflowAlreadyComplete
@@ -42,7 +43,7 @@ def do_predictive_validity(app_metadata: cli_tools.Metadata,
         regression_spec_path = regression_dir / 'regression_specification.yaml'
         regression_specification.dump(regression_spec_path)
         logger.info(f'Submitting regression job {regression_dir_name}.')
-        run_cluster_jobs(regression_dir_name, regression_root,
+        run_cluster_jobs(shutil.which('oos_regression'), regression_dir_name, regression_root,
                          {0: ['--regression-specification-path', str(regression_spec_path)]}, i)
 
         forecast_spec_paths = {}
@@ -64,4 +65,5 @@ def do_predictive_validity(app_metadata: cli_tools.Metadata,
             forecast_spec_paths[j] = ['--forecast-specification-path', str(forecast_spec_path)]
 
         logger.info(f'Submitting forecasting jobs.')
-        run_cluster_jobs(regression_dir_name, forecast_root, forecast_spec_paths, i)
+        run_cluster_jobs(shutil.which('oos_forecast'),
+                         regression_dir_name, forecast_root, forecast_spec_paths, i)
