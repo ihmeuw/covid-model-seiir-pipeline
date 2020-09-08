@@ -1,5 +1,7 @@
+from pathlib import Path
+
 import click
-from covid_shared import cli_tools, paths
+from covid_shared import cli_tools, paths, shell_tools
 from loguru import logger
 
 from covid_model_seiir_pipeline import utilities
@@ -7,6 +9,8 @@ from covid_model_seiir_pipeline.regression.specification import RegressionSpecif
 from covid_model_seiir_pipeline.regression.main import do_beta_regression
 from covid_model_seiir_pipeline.forecasting.specification import ForecastSpecification
 from covid_model_seiir_pipeline.forecasting.main import do_beta_forecast
+from covid_model_seiir_pipeline.predictive_validity.specification import PredictiveValiditySpecification
+from covid_model_seiir_pipeline.predictive_validity.main import do_predictive_validity
 
 
 @click.group()
@@ -156,3 +160,36 @@ def forecast(run_metadata,
     cli_tools.make_links(app_metadata, run_directory, mark_best, production_tag)
 
     logger.info('**Done**')
+
+
+@seiir.command()
+@cli_tools.pass_run_metadata()
+@click.argument('regression_specification',
+                type=click.Path(exists=True, dir_okay=False))
+@click.argument('forecast_specification',
+                type=click.Path(exists=True, dir_okay=False))
+@click.argument('predictive_validity_specification',
+                type=click.Path(exists=True, dir_okay=False))
+@cli_tools.add_verbose_and_with_debugger
+def predictive_validity(run_metadata,
+                        regression_specification,
+                        forecast_specification,
+                        predictive_validity_specification,
+                        verbose, with_debugger):
+    """Perform OOS predictive validity testing."""
+    cli_tools.configure_logging_to_terminal(verbose)
+
+    regression_spec = RegressionSpecification.from_path(regression_specification)
+    forecast_spec = ForecastSpecification.from_path(forecast_specification)
+    predictive_validity_spec = PredictiveValiditySpecification.from_path(predictive_validity_specification)
+
+    run_directory = Path(predictive_validity_spec.output_root)
+    shell_tools.mkdir(run_directory, exists_ok=True)
+
+    main = cli_tools.monitor_application(do_predictive_validity, logger, with_debugger)
+    app_metadata, _ = main(regression_spec, forecast_spec, predictive_validity_spec)
+
+    run_metadata['app_metadata'] = app_metadata.to_dict()
+    run_metadata.dump(run_directory / 'metadata.yaml')
+
+    logger.info('Done')

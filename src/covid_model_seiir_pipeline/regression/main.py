@@ -1,4 +1,5 @@
 from covid_shared import cli_tools
+from jobmon.client.swarm.workflow.workflow import WorkflowAlreadyComplete
 from loguru import logger
 
 from covid_model_seiir_pipeline.regression.specification import RegressionSpecification
@@ -35,4 +36,7 @@ def do_beta_regression(app_metadata: cli_tools.Metadata,
     if not preprocess_only:
         regression_wf = RegressionWorkflow(regression_specification.data.output_root)
         regression_wf.attach_tasks(n_draws=regression_specification.parameters.n_draws)
-        regression_wf.run()
+        try:
+            regression_wf.run()
+        except WorkflowAlreadyComplete:
+            logger.info('Workflow already complete.')

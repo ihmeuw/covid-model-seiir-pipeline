@@ -72,6 +72,8 @@ if __name__ == "__main__":
             'beta_residual_scaling=covid_model_seiir_pipeline.forecasting.task.beta_residual_scaling:main',
             'resample_map=covid_model_seiir_pipeline.forecasting.task.resample_map:main',
             'postprocess=covid_model_seiir_pipeline.forecasting.task.postprocessing:main',
+            'oos_regression=covid_model_seiir_pipeline.predictive_validity.oos_regression:main',
+            'oos_forecast=covid_model_seiir_pipeline.predictive_validity.oos_forecast:main',
         ]},
         zip_safe=False,
     )

@@ -12,7 +12,7 @@ scenarios:
       average_over_max: 42
       offset_deaths_lower: 150
       offset_deaths_upper: 300
-    theta: 0
+    theta: '/ihme/covid-19/seir-pipeline-outputs/metadata-inputs/theta_2020_08_25.01.csv'
     covariates:
       pneumonia: 'reference'
       mobility: 'reference'

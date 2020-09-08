@@ -1,4 +1,5 @@
 from covid_shared import cli_tools
+from jobmon.client.swarm.workflow.workflow import WorkflowAlreadyComplete
 from loguru import logger
 
 from covid_model_seiir_pipeline.forecasting.specification import ForecastSpecification
@@ -28,4 +29,7 @@ def do_beta_forecast(app_metadata: cli_tools.Metadata,
         forecast_wf.attach_tasks(n_draws=n_draws,
                                  scenarios=list(forecast_specification.scenarios),
                                  covariates=covariates)
-        forecast_wf.run()
+        try:
+            forecast_wf.run()
+        except WorkflowAlreadyComplete:
+            logger.info('Workflow already complete')
