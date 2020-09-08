@@ -48,19 +48,16 @@ class CustomizedSEIIR(ODESys):
         i2 = y[3]
         r = y[4]
 
-        theta_plus = max(theta, 0.) * s / 1_000_000
-        theta_minus = min(theta, 0.)
-        theta_tilde = int(theta_plus != theta_minus)
-        theta_minus_alt = (self.gamma1 - self.delta) * i1 - self.sigma * e - theta_plus
-        effective_theta_minus = max(theta_minus, theta_minus_alt) * theta_tilde
+        theta_plus = max(theta, 0.)
+        theta_minus = -min(theta, 0.)
 
         new_e = beta*(s/self.N)*(i1 + i2)**self.alpha
 
-        ds = -new_e - theta_plus
-        de = new_e - self.sigma*e
-        di1 = self.sigma*e - self.gamma1*i1 + theta_plus + effective_theta_minus
+        ds = -new_e - theta_plus*s
+        de = new_e + theta_plus*s - self.sigma*e - theta_minus*e
+        di1 = self.sigma*e - self.gamma1*i1
         di2 = self.gamma1*i1 - self.gamma2*i2
-        dr = self.gamma2*i2 - effective_theta_minus
+        dr = self.gamma2*i2 + theta_minus*e
 
         return np.array([ds, de, di1, di2, dr])
 
@@ -145,7 +142,8 @@ def run_normal_ode_model_by_location(initial_condition, beta_params, betas, thet
 
 
 def splice_components(components_past, components_forecast):
-    shared_columns = ['date', 'S', 'E', 'I1', 'I2', 'R', 'beta']
+    shared_columns = ['date', 'S', 'E', 'I1', 'I2', 'R', 'beta', 'theta']
+    components_past['theta'] = np.nan
     components_past = components_past[shared_columns].reset_index()
     components_forecast = components_forecast[['location_id'] + shared_columns]
     components = (pd.concat([components_past, components_forecast])
@@ -266,12 +264,17 @@ def compute_deaths(infection_data: pd.DataFrame,
 
 def compute_effective_r(infection_data: pd.DataFrame, components: pd.DataFrame,
                         beta_params: Dict[str, float]) -> pd.DataFrame:
-    alpha, gamma1, gamma2 = beta_params['alpha'], beta_params['gamma1'], beta_params['gamma2']
+    alpha, sigma = beta_params['alpha'], beta_params['sigma']
+    gamma1, gamma2 = beta_params['gamma1'], beta_params['gamma2']
+
     components = components.reset_index().set_index(['location_id', 'date'])
-    beta, s, i1, i2 = components['beta'], components['S'], components['I1'], components['I2']
+
+    beta, theta = components['beta'], components['theta']
+    s, i1, i2 = components['S'], components['I1'], components['I2']
     n = infection_data.groupby('location_id')['pop'].max()
-    avg_gamma = 1 / (1 / gamma1 + 1 / gamma2)
-    r_controlled = beta * alpha / avg_gamma * (i1 + i2) ** (alpha - 1)
+
+    avg_gamma = 1 / (1 / (gamma1*(sigma - theta)) + 1 / (gamma2*(sigma - theta)))
+    r_controlled = beta * alpha * sigma / avg_gamma * (i1 + i2) ** (alpha - 1)
     r_effective = (r_controlled * s / n).rename('r_effective')
     return r_effective
 
