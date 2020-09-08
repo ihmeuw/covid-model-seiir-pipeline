@@ -295,11 +295,11 @@ def build_resampling_map(deaths, resampling_params):
     return resample_map
 
 
-def summarize(data: pd.DataFrame):
-    data['mean'] = data.mean(axis=1)
-    data['upper'] = data.quantile(.975, axis=1)
-    data['lower'] = data.quantile(.025, axis=1)
-    return data[['mean', 'upper', 'lower']]
+def summarize(data: pd.DataFrame) -> pd.DataFrame:
+    mean = data.mean(axis=1).rename('mean')
+    upper = data.quantile(.975, axis=1).rename('upper')
+    lower = data.quantile(.025, axis=1).rename('lower')
+    return pd.concat([mean, upper, lower], axis=1)
 
 
 def resample_draws(measure_data: pd.DataFrame, resampling_map: Dict[int, Dict[str, List[int]]]):
