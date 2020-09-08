@@ -33,4 +33,3 @@ def do_beta_forecast(app_metadata: cli_tools.Metadata,
             forecast_wf.run()
         except WorkflowAlreadyComplete:
             logger.info('Workflow already complete')
-            pass

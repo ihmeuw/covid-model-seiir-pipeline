@@ -40,4 +40,3 @@ def do_beta_regression(app_metadata: cli_tools.Metadata,
             regression_wf.run()
         except WorkflowAlreadyComplete:
             logger.info('Workflow already complete.')
-            pass
