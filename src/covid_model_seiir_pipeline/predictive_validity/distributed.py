@@ -2,7 +2,6 @@ from bdb import BdbQuit
 from collections import Counter
 import os
 from pathlib import Path
-import shutil
 import time
 from typing import Dict, List
 
@@ -11,10 +10,9 @@ from loguru import logger
 
 
 PROJECT = 'proj_dq'
-QUEUE = 'all.q'
+QUEUE = 'd.q'
 F_MEM = '5.0G'
 F_THREAD = '15'
-OMP_NUM_THREADS = '6'
 H_RUNTIME = '03:00:00'
 SLEEP_TIME = 10
 

@@ -3,7 +3,6 @@ from pathlib import Path
 import shutil
 
 from covid_shared import cli_tools, shell_tools
-from jobmon.client.swarm.workflow.workflow import WorkflowAlreadyComplete
 from loguru import logger
 
 from covid_model_seiir_pipeline.regression.specification import RegressionSpecification
