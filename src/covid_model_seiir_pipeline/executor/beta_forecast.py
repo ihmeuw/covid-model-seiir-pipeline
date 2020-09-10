@@ -57,7 +57,7 @@ def run_beta_forecast(location_id: int, regression_version: str, forecast_versio
     )
     regression_settings = load_regression_settings(regression_version)
     forecast_settings = load_forecast_settings(forecast_version)
-    # You now have access to forecast_settings.functionally_immune_proportion or whatever you call it.
+
     if forecast_settings.theta_locations_file:
         theta_locations = pd.read_csv(forecast_settings.theta_locations_file)
         theta_locations.to_csv(
@@ -77,6 +77,8 @@ def run_beta_forecast(location_id: int, regression_version: str, forecast_versio
     else:
         beta_shift_dict['total_deaths'] = None
         beta_shift_dict['offset'] = 0
+
+    functional_immune_proportion = forecast_settings.functional_immune_proportion
 
     # -------------------------- FORECAST THE BETA FORWARDS -------------------- #
     mr = ModelRunner()
@@ -144,9 +146,11 @@ def run_beta_forecast(location_id: int, regression_version: str, forecast_versio
             location_id=location_id
         ).astype(float)
 
-        # Kirsten to do math here
+        functional_immune_number = init_cond[0]*functional_immune_proportion # "functionally immune"
+		init_cond[0] = init_cond[0] - functional_immune_number # new susceptibles
+		init_cond[4] = init_cond[4] + functional_immune_number # new recovereds
 
-        N = np.sum(init_cond)  # total population
+        N = np.sum(init_cond) # total population
         model_specs = SiierdModelSpecs(
             alpha=beta_params['alpha'],
             sigma=beta_params['sigma'],
