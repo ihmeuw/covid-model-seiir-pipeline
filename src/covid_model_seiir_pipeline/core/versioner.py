@@ -388,6 +388,7 @@ class ForecastVersion(Version):
 
     theta: int = field(default=None)
     theta_locations_file: str = field(default=None)
+    # Add a field here whose name matches the arg passed when ForecastVersion constructed
 
 
     def __post_init__(self):
