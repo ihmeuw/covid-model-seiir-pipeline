@@ -6,14 +6,14 @@ ExecParams = ExecutorParameters(
     max_runtime_seconds=6000,
     m_mem_free='20G',
     num_cores=3,
-    queue='geospatial.q'
+    queue='d.q'
 )
 
 ExecParamsPlotting = ExecutorParameters(
     max_runtime_seconds=int(60*60*5),
     m_mem_free='20G',
     num_cores=3,
-    queue='geospatial.q'
+    queue='d.q'
 )
 
 
