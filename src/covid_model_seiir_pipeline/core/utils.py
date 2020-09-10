@@ -41,7 +41,7 @@ def create_regression_version(version_name, covariate_version,
     rv_directory = Directories(regression_version=version_name)
     write_locations(directories=rv_directory, location_ids=location_ids)
 
-
+# add arg here
 def create_forecast_version(version_name,
                             covariate_version,
                             covariate_draw_dict,
@@ -68,12 +68,14 @@ def create_forecast_version(version_name,
         covariate_draw_dict=covariate_draw_dict
     )
     theta_config = {} if theta_config is None else theta_config
+    # pass arg here
     fv = ForecastVersion(version_name=version_name, covariate_version=cache_version,
                          regression_version=regression_version,
                          covariate_draw_dict=covariate_draw_dict, **theta_config)
     fv.create_version()
 
 
+# Kirsten to make extra argument here
 def create_run(version_name, covariate_version, covariate_draw_dict, theta_config=None, **kwargs):
     """
     Creates a full run with a regression and a forecast version by the *SAME NAME*.
@@ -96,6 +98,7 @@ def create_run(version_name, covariate_version, covariate_draw_dict, theta_confi
         covariate_draw_dict=covariate_draw_dict,
         regression_version=version_name,
         theta_config=theta_config
+        # pass arg here
     )
     print(f"Created regression and forecast versions {version_name}.")
 
