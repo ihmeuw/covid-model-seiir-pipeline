@@ -147,8 +147,8 @@ def run_beta_forecast(location_id: int, regression_version: str, forecast_versio
         ).astype(float)
 
         functional_immune_number = init_cond[0]*functional_immune_proportion # "functionally immune"
-		init_cond[0] = init_cond[0] - functional_immune_number # new susceptibles
-		init_cond[4] = init_cond[4] + functional_immune_number # new recovereds
+        init_cond[0] = init_cond[0] - functional_immune_number # new susceptibles
+        init_cond[4] = init_cond[4] + functional_immune_number # new recovereds
 
         N = np.sum(init_cond) # total population
         model_specs = SiierdModelSpecs(

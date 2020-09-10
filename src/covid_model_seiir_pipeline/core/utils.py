@@ -72,7 +72,7 @@ def create_forecast_version(version_name,
 
     fv = ForecastVersion(version_name=version_name, covariate_version=cache_version,
                          regression_version=regression_version,
-                         covariate_draw_dict=covariate_draw_dict, 
+                         covariate_draw_dict=covariate_draw_dict,
                          functional_immune_proportion=functional_immune_proportion,
                          **theta_config)
     fv.create_version()
