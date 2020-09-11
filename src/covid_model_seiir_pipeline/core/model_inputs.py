@@ -51,6 +51,7 @@ def process_ode_process_input(settings, location_data):
         gamma2=settings.gamma2,
         solver_dt=settings.solver_dt,
         day_shift=settings.day_shift,
+        # pass in p here
     )
 
 

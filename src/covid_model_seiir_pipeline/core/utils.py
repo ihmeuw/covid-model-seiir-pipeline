@@ -7,6 +7,7 @@ from covid_model_seiir_pipeline.core.data import get_missing_locations
 from covid_model_seiir_pipeline.core.data import cache_covariates
 
 
+# pass p in here
 def create_regression_version(version_name, covariate_version,
                               covariate_draw_dict,
                               infection_version,
@@ -36,6 +37,7 @@ def create_regression_version(version_name, covariate_version,
     rv = RegressionVersion(version_name=version_name, covariate_version=cache_version,
                            covariate_draw_dict=covariate_draw_dict,
                            location_set_version_id=location_set_version_id,
+                           # pass p in here
                            infection_version=infection_version, **kwargs)
     rv.create_version()
     rv_directory = Directories(regression_version=version_name)
@@ -74,6 +76,7 @@ def create_forecast_version(version_name,
     fv.create_version()
 
 
+# pass p in as a param
 def create_run(version_name, covariate_version, covariate_draw_dict, theta_config=None, **kwargs):
     """
     Creates a full run with a regression and a forecast version by the *SAME NAME*.
@@ -88,6 +91,7 @@ def create_run(version_name, covariate_version, covariate_draw_dict, theta_confi
         version_name=version_name,
         covariate_version=covariate_version,
         covariate_draw_dict=covariate_draw_dict,
+        # put p in here instead of forecast
         **kwargs
     )
     create_forecast_version(
