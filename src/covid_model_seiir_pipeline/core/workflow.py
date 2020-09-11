@@ -7,7 +7,7 @@ from jobmon.client.swarm.workflow.workflow import Workflow
 
 log = logging.getLogger(__name__)
 
-PROJECT = 'proj_dq'
+PROJECT = 'proj_geo_nodes'
 
 
 class SEIIRWorkFlow(Workflow):
