@@ -352,6 +352,7 @@ class RegressionVersion(Version):
     gamma1: Tuple[float] = field(default=(0.50, 0.50))
     gamma2: Tuple[float] = field(default=(0.50, 0.50))
     solver_dt: float = field(default=0.1)
+    # add p param here
 
     beta_shift_dict: Dict = field(default_factory=lambda: dict(window_size=None))
 
