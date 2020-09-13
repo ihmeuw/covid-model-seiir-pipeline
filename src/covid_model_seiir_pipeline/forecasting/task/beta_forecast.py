@@ -70,9 +70,11 @@ def run_beta_forecast(draw_id: int, forecast_version: str, scenario_name: str):
     future_components = model.run_normal_ode_model_by_location(initial_condition, beta_params, betas, thetas,
                                                                location_ids, scenario_spec.solver)
     logger.info('Processing ODE results and computing deaths and infections.')
-    components = model.splice_components(past_components, future_components)
-    components['theta'] = thetas.reindex(components.index).fillna(0)
-    infections, deaths, r_effective = model.compute_output_metrics(infection_data, components, beta_params)
+    components, infections, deaths, r_effective = model.compute_output_metrics(infection_data,
+                                                                               past_components,
+                                                                               future_components,
+                                                                               thetas,
+                                                                               beta_params)
 
     if scenario_spec.algorithm == 'draw_level_mandate_reimposition':
         logger.info('Entering mandate reimposition.')
@@ -115,9 +117,11 @@ def run_beta_forecast(draw_id: int, forecast_version: str, scenario_name: str):
             future_components = model.run_normal_ode_model_by_location(initial_condition, beta_params, betas, thetas,
                                                                        location_ids, scenario_spec.solver)
             logger.info('Processing ODE results and computing deaths and infections.')
-            components = model.splice_components(past_components, future_components)
-            components['theta'] = thetas.reindex(components.index).fillna(0)
-            infections, deaths, r_effective = model.compute_output_metrics(infection_data, components, beta_params)
+            components, infections, deaths, r_effective = model.compute_output_metrics(infection_data,
+                                                                                       past_components,
+                                                                                       future_components,
+                                                                                       thetas,
+                                                                                       beta_params)
 
             reimposition_count += 1
             reimposition_dates[reimposition_count] = reimposition_date
