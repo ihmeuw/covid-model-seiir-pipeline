@@ -29,10 +29,22 @@ class ForecastData:
 @dataclass
 class ScenarioSpecification:
     """Forecasting specification for a scenario."""
-    ALLOWED_ALGORITHMS = ('normal', 'mandate_reimposition')
-    ALLOWED_SOLVERS = ('RK45',)
-    BETA_SCALING_KEYS = {'window_size', 'average_over_min', 'average_over_max',
-                         'offset_deaths_lower', 'offset_deaths_upper'}
+    ALLOWED_ALGORITHMS = (
+        'normal',
+        'draw_level_mandate_reimposition',
+        # Todo: this
+        #  'mean_level_mandate_reimposition'
+    )
+    ALLOWED_SOLVERS = (
+        'RK45',
+    )
+    BETA_SCALING_KEYS = {
+        'window_size',
+        'average_over_min',
+        'average_over_max',
+        'offset_deaths_lower',
+        'offset_deaths_upper'
+    }
 
     name: str = field(default='dummy_scenario')
     algorithm: str = field(default='normal')

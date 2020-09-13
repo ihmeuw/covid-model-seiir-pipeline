@@ -24,7 +24,7 @@ scenarios:
       proportion_under_100m: 'reference'
       proportion_over_2_5k: 'reference'
   reference:
-    algorithm: 'mandate_reimposition'
+    algorithm: 'draw_level_mandate_reimposition'
     algorithm_params:
       death_threshold: 8  # per million
       reimposition_duration: 6 # weeks
@@ -48,7 +48,7 @@ scenarios:
       proportion_under_100m: 'reference'
       proportion_over_2_5k: 'reference'
   best_masks:
-    algorithm: 'mandate_reimposition'
+    algorithm: 'draw_level_mandate_reimposition'
     algorithm_params:
       death_threshold: 8  # per million
       reimposition_duration: 6 # weeks
