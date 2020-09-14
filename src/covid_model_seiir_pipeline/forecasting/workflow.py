@@ -212,14 +212,3 @@ class ForecastWorkflow(WorkflowTemplate):
             for upstream_task in upstream_tasks:
                 postprocessing_task.add_upstream(upstream_task)
             self.workflow.add_task(postprocessing_task)
-
-
-
-
-
-
-
-
-
-
-
