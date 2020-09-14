@@ -45,11 +45,42 @@ def run_beta_forecast(draw_id: int, forecast_version: str, scenario_name: str):
     # used to compute beta hat in the future.
     covariates = data_interface.load_covariates(scenario_spec, location_ids)
     coefficients = data_interface.load_regression_coefficients(draw_id)
+
+    # Info data specific to mandate reimposition
+    percent_mandates = data_interface.load_covariate_info('mobility', 'mandate_lift', location_ids)
+    mandate_effect = data_interface.load_covariate_info('mobility', 'effect', location_ids)
+    min_wait, days_on, reimposition_threshold = model.unpack_parameters(scenario_spec.algorithm_params)
+
     # Grab the projection of the covariates into the future, keeping the
     # day of transition from past model to future model.
     covariates = covariates.set_index('location_id').sort_index()
     the_future = covariates['date'] >= transition_date.loc[covariates.index]
     covariate_pred = covariates.loc[the_future].reset_index()
+
+    if scenario_spec.algorithm == 'mean_level_mandate_reimposition':
+        max_reimpositions = scenario_spec.algorithm_params['reimposition_count']
+        reimposition_dates = []
+        for reimposition_number in range(1, max_reimpositions + 1):
+            try:
+                df = data_interface.load_reimposition_dates(scenario_name, reimposition_number)
+                df = df.set_index('location_id')['reimposition_date']
+                df = pd.to_datetime(df)
+                reimposition_dates.append(df)
+            except FileNotFoundError:
+                continue
+
+        mobility = covariates[['date', 'mobility']].reset_index().set_index(['location_id', 'date'])['mobility']
+        mobility_lower_bound = model.compute_mobility_lower_bound(mobility, mandate_effect)
+
+        for reimposition_date in reimposition_dates:
+            mobility = model.compute_new_mobility(mobility, reimposition_date,
+                                                  mobility_lower_bound, percent_mandates,
+                                                  min_wait, days_on)
+
+        covariates = covariates.reset_index().set_index(['location_id', 'date'])
+        covariates['mobility'] = mobility
+        covariates = covariates.reset_index(level='date')
+        covariate_pred = covariates.loc[the_future].reset_index()
 
     beta_scales = data_interface.load_beta_scales(scenario=scenario_name, draw_id=draw_id)
 
@@ -78,7 +109,6 @@ def run_beta_forecast(draw_id: int, forecast_version: str, scenario_name: str):
 
     if scenario_spec.algorithm == 'draw_level_mandate_reimposition':
         logger.info('Entering mandate reimposition.')
-        min_wait, days_on, reimposition_threshold = model.unpack_parameters(scenario_spec.algorithm_params)
 
         population = (components[static_vars.SEIIR_COMPARTMENTS]
                       .sum(axis=1)
@@ -86,8 +116,6 @@ def run_beta_forecast(draw_id: int, forecast_version: str, scenario_name: str):
                       .groupby('location_id')
                       .max())
         logger.info('Loading mandate reimposition data.')
-        percent_mandates = data_interface.load_covariate_info('mobility', 'mandate_lift', location_ids)
-        mandate_effect = data_interface.load_covariate_info('mobility', 'effect', location_ids)
 
         reimposition_count = 0
         reimposition_dates = {}
