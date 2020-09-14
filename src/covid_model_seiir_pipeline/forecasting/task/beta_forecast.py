@@ -90,22 +90,24 @@ def run_beta_forecast(draw_id: int, forecast_version: str, scenario_name: str):
     # We'll need this to compute deaths and to splice with the forecasts.
     infection_data = data_interface.load_infection_data(draw_id)
 
-    if ((1 < thetas) | thetas < -1).any():
-        raise ValueError('Theta must be between -1 and 1.')
-    if (beta_params['sigma'] - thetas >= 1).any():
-        raise ValueError('Sigma - theta must be smaller than 1')
+    if scenario_spec.system == 'new_theta':
+        if ((1 < thetas) | thetas < -1).any():
+            raise ValueError('Theta must be between -1 and 1.')
+        if (beta_params['sigma'] - thetas >= 1).any():
+            raise ValueError('Sigma - theta must be smaller than 1')
 
     # Modeling starts
     logger.info('Forecasting beta and components.')
     betas = model.forecast_beta(covariate_pred, coefficients, beta_scales)
     future_components = model.run_normal_ode_model_by_location(initial_condition, beta_params, betas, thetas,
-                                                               location_ids, scenario_spec.solver)
+                                                               location_ids, scenario_spec.solver, scenario_spec.system)
     logger.info('Processing ODE results and computing deaths and infections.')
     components, infections, deaths, r_effective = model.compute_output_metrics(infection_data,
                                                                                past_components,
                                                                                future_components,
                                                                                thetas,
-                                                                               beta_params)
+                                                                               beta_params,
+                                                                               scenario_spec.system)
 
     if scenario_spec.algorithm == 'draw_level_mandate_reimposition':
         logger.info('Entering mandate reimposition.')
@@ -140,14 +142,16 @@ def run_beta_forecast(draw_id: int, forecast_version: str, scenario_name: str):
 
             logger.info('Forecasting beta and components.')
             betas = model.forecast_beta(covariate_pred, coefficients, beta_scales)
-            future_components = model.run_normal_ode_model_by_location(initial_condition, beta_params, betas, thetas,
-                                                                       location_ids, scenario_spec.solver)
+            future_components = model.run_normal_ode_model_by_location(initial_condition, beta_params,
+                                                                       betas, thetas, location_ids,
+                                                                       scenario_spec.solver, scenario_spec.system)
             logger.info('Processing ODE results and computing deaths and infections.')
             components, infections, deaths, r_effective = model.compute_output_metrics(infection_data,
                                                                                        past_components,
                                                                                        future_components,
                                                                                        thetas,
-                                                                                       beta_params)
+                                                                                       beta_params,
+                                                                                       scenario_spec.system)
 
             reimposition_count += 1
             reimposition_dates[reimposition_count] = reimposition_date

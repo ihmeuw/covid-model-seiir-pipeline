@@ -6,6 +6,7 @@ scenarios:
   worse:
     algorithm: 'normal'
     solver: 'RK45'
+    system: 'old_theta'
     beta_scaling:
       window_size: 42
       average_over_min: 7
@@ -30,6 +31,7 @@ scenarios:
       reimposition_duration: 6 # weeks
       minimum_delay: 7 # days
     solver: 'RK45'
+    system: 'old_theta'
     beta_scaling:
       window_size: 42
       average_over_min: 7
@@ -54,6 +56,7 @@ scenarios:
       reimposition_duration: 6 # weeks
       minimum_delay: 7 # days
     solver: 'RK45'
+    system: 'old_theta'
     beta_scaling:
       window_size: 42
       average_over_min: 7

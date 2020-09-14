@@ -38,6 +38,10 @@ class ScenarioSpecification:
     ALLOWED_SOLVERS = (
         'RK45',
     )
+    ALLOWED_SYSTEMS = (
+        'old_theta',
+        'new_theta',
+    )
     BETA_SCALING_KEYS = {
         'window_size',
         'average_over_min',
@@ -49,6 +53,7 @@ class ScenarioSpecification:
     name: str = field(default='dummy_scenario')
     algorithm: str = field(default='normal')
     algorithm_params: Dict = field(default_factory=dict)
+    system: str = field(default='new_theta')
     solver: str = field(default='RK45')
     beta_scaling: Dict[str, int] = field(default_factory=dict)
     theta: Union[str, int] = field(default=0)
@@ -62,6 +67,10 @@ class ScenarioSpecification:
         if self.solver not in self.ALLOWED_SOLVERS:
             raise ValueError(f'Unknown solver {self.solver} in scenario {self.name}. '
                              f'Allowed solvers are {self.ALLOWED_SOLVERS}.')
+
+        if self.system not in self.ALLOWED_SYSTEMS:
+            raise ValueError(f'Unknown system {self.system} in scenario {self.name}. '
+                             f'Allowed solvers are {self.ALLOWED_SYSTEMS}.')
 
         bad_scaling_keys = set(self.beta_scaling).difference(self.BETA_SCALING_KEYS)
         if bad_scaling_keys:

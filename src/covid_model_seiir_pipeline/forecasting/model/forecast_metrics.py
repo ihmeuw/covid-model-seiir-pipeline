@@ -8,8 +8,8 @@ def compute_output_metrics(infection_data: pd.DataFrame,
                            components_past: pd.DataFrame,
                            components_forecast: pd.DataFrame,
                            thetas: pd.Series,
-                           seir_params: Dict[str, float]) -> Tuple[pd.DataFrame, pd.DataFrame,
-                                                                   pd.DataFrame, pd.DataFrame]:
+                           seir_params: Dict[str, float],
+                           ode_system: str) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]:
     components = splice_components(components_past, components_forecast)
     components['theta'] = thetas.reindex(components.index).fillna(0)
 
@@ -18,7 +18,7 @@ def compute_output_metrics(infection_data: pd.DataFrame,
 
     infections = observed_infections.combine_first(modeled_infections)['cases_draw'].rename('infections')
     deaths = observed_deaths.combine_first(modeled_deaths).rename(columns={'deaths_draw': 'deaths'})
-    r_effective = compute_effective_r(infection_data, components, seir_params)
+    r_effective = compute_effective_r(infection_data, components, seir_params, ode_system)
 
     return components, infections, deaths, r_effective
 
@@ -81,7 +81,7 @@ def compute_deaths(infection_data: pd.DataFrame,
 
 
 def compute_effective_r(infection_data: pd.DataFrame, components: pd.DataFrame,
-                        beta_params: Dict[str, float]) -> pd.DataFrame:
+                        beta_params: Dict[str, float], ode_system: str) -> pd.DataFrame:
     alpha, sigma = beta_params['alpha'], beta_params['sigma']
     gamma1, gamma2 = beta_params['gamma1'], beta_params['gamma2']
 
@@ -91,7 +91,14 @@ def compute_effective_r(infection_data: pd.DataFrame, components: pd.DataFrame,
     s, i1, i2 = components['S'], components['I1'], components['I2']
     n = infection_data.groupby('location_id')['pop'].max()
 
-    avg_gamma = 1 / (1 / (gamma1*(sigma - theta)) + 1 / (gamma2*(sigma - theta)))
-    r_controlled = beta * alpha * sigma / avg_gamma * (i1 + i2) ** (alpha - 1)
+    if ode_system == 'old_theta':
+        avg_gamma = 1 / (1 / gamma1 + 1 / gamma2)
+        r_controlled = beta * alpha / avg_gamma * (i1 + i2) ** (alpha - 1)
+    elif ode_system == 'new_theta':
+        avg_gamma = 1 / (1 / (gamma1*(sigma - theta)) + 1 / (gamma2*(sigma - theta)))
+        r_controlled = beta * alpha * sigma / avg_gamma * (i1 + i2) ** (alpha - 1)
+    else:
+        raise NotImplementedError(f'Unknown ode system type {ode_system}.')
+
     r_effective = (r_controlled * s / n).rename('r_effective')
     return r_effective

@@ -19,7 +19,7 @@ def forecast_beta(covariates, coefficients, beta_shift_parameters):
     return betas
 
 
-def run_normal_ode_model_by_location(initial_condition, beta_params, betas, thetas, location_ids, solver):
+def run_normal_ode_model_by_location(initial_condition, beta_params, betas, thetas, location_ids, solver, ode_system):
     forecasts = []
     for location_id in location_ids:
         init_cond = initial_condition.loc[location_id].values
@@ -32,7 +32,7 @@ def run_normal_ode_model_by_location(initial_condition, beta_params, betas, thet
             gamma2=beta_params['gamma2'],
             N=total_population,
         )
-        ode_runner = _ODERunner(solver, model_specs)
+        ode_runner = _ODERunner(solver, ode_system, model_specs)
 
         loc_betas = betas.loc[location_id].sort_values('date')
         loc_days = loc_betas['date']
@@ -48,7 +48,7 @@ def run_normal_ode_model_by_location(initial_condition, beta_params, betas, thet
     return forecasts
 
 
-class _CustomizedSEIIR(ODESys):
+class _RelativeThetaSEIIR(ODESys):
     """Customized SEIIR ODE system."""
 
     def __init__(self,
@@ -57,7 +57,7 @@ class _CustomizedSEIIR(ODESys):
                  gamma1: float,
                  gamma2: float,
                  N: Union[int, float],
-                 delta: float, *args):
+                 *args):
         """Constructor of CustomizedSEIIR.
         """
         self.alpha = alpha
@@ -65,7 +65,6 @@ class _CustomizedSEIIR(ODESys):
         self.gamma1 = gamma1
         self.gamma2 = gamma2
         self.N = N
-        self.delta = delta
 
         # create parameter names
         self.params = ['beta', 'theta']
@@ -101,6 +100,63 @@ class _CustomizedSEIIR(ODESys):
         return np.array([ds, de, di1, di2, dr])
 
 
+class _SemiRelativeThetaSEIIR(ODESys):
+    """Customized SEIIR ODE system."""
+
+    def __init__(self,
+                 alpha: float,
+                 sigma: float,
+                 gamma1: float,
+                 gamma2: float,
+                 N: Union[int, float],
+                 delta: float,
+                 *args):
+        """Constructor of CustomizedSEIIR.
+        """
+        self.alpha = alpha
+        self.sigma = sigma
+        self.gamma1 = gamma1
+        self.gamma2 = gamma2
+        self.N = N
+        self.delta = delta
+
+        # create parameter names
+        self.params = ['beta', 'theta']
+
+        # create component names
+        self.components = ['S', 'E', 'I1', 'I2', 'R']
+
+        super().__init__(self.system, self.params, self.components, *args)
+
+    def system(self, t: float, y: np.ndarray, p: np.ndarray) -> np.ndarray:
+        """ODE System.
+        """
+        beta = p[0]
+        theta = p[1]
+
+        s = y[0]
+        e = y[1]
+        i1 = y[2]
+        i2 = y[3]
+        r = y[4]
+
+        theta_plus = max(theta, 0.) * s / 1_000_000
+        theta_minus = min(theta, 0.)
+        theta_tilde = int(theta_plus != theta_minus)
+        theta_minus_alt = (self.gamma1 - self.delta) * i1 - self.sigma * e - theta_plus
+        effective_theta_minus = max(theta_minus, theta_minus_alt) * theta_tilde
+
+        new_e = beta*(s/self.N)*(i1 + i2)**self.alpha
+
+        ds = -new_e - theta_plus
+        de = new_e - self.sigma*e
+        di1 = self.sigma*e - self.gamma1*i1 + theta_plus + effective_theta_minus
+        di2 = self.gamma1*i1 - self.gamma2*i2
+        dr = self.gamma2 * i2 - effective_theta_minus
+
+        return np.array([ds, de, di1, di2, dr])
+
+
 @dataclass(frozen=True)
 class _SeiirModelSpecs:
     alpha: float
@@ -121,8 +177,14 @@ class _SeiirModelSpecs:
 
 class _ODERunner:
 
-    def __init__(self, solver_name: str, model_specs: _SeiirModelSpecs):
-        self.model = _CustomizedSEIIR(**asdict(model_specs))
+    def __init__(self, solver_name: str, seir_model: str, model_specs: _SeiirModelSpecs):
+        if seir_model == 'old_theta':
+            self.model = _SemiRelativeThetaSEIIR(**asdict(model_specs))
+        elif seir_model == 'new_theta':
+            self.model = _RelativeThetaSEIIR(**asdict(model_specs))
+        else:
+            raise NotImplementedError(f'Unknown model type {seir_model}.')
+
         if solver_name == "RK45":
             self.solver = RK4(self.model.system, model_specs.delta)
         else:
