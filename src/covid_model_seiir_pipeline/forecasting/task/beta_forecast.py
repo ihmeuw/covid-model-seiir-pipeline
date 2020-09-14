@@ -78,9 +78,7 @@ def run_beta_forecast(draw_id: int, forecast_version: str, scenario_name: str):
 
     if scenario_spec.algorithm == 'draw_level_mandate_reimposition':
         logger.info('Entering mandate reimposition.')
-        min_wait = pd.Timedelta(days=scenario_spec.algorithm_params['minimum_delay'])
-        days_on = pd.Timedelta(days=static_vars.DAYS_PER_WEEK * scenario_spec.algorithm_params['reimposition_duration'])
-        reimposition_threshold = scenario_spec.algorithm_params['death_threshold'] / 1e6
+        min_wait, days_on, reimposition_threshold = model.unpack_parameters(scenario_spec.algorithm_params)
 
         population = (components[static_vars.SEIIR_COMPARTMENTS]
                       .sum(axis=1)
@@ -134,9 +132,14 @@ def run_beta_forecast(draw_id: int, forecast_version: str, scenario_name: str):
     covariates = covariates.reset_index()
     outputs = pd.concat([infections, deaths, r_effective], axis=1).reset_index()
 
-    data_interface.save_components(components, scenario_name, draw_id)
-    data_interface.save_raw_covariates(covariates, scenario_name, draw_id)
-    data_interface.save_raw_outputs(outputs, scenario_name, draw_id)
+    # If strict, don't allow overwriting of output files.
+    # Mean level mandate reimposition will run and write these outputs
+    # several times.
+    strict = scenario_spec.algorithm != 'mean_level_mandate_reimposition'
+
+    data_interface.save_components(components, scenario_name, draw_id, strict)
+    data_interface.save_raw_covariates(covariates, scenario_name, draw_id, strict)
+    data_interface.save_raw_outputs(outputs, scenario_name, draw_id, strict)
 
 
 def parse_arguments(argstr: Optional[str] = None) -> Namespace:

@@ -1,5 +1,9 @@
+from typing import Dict, NamedTuple
+
 import numpy as np
 import pandas as pd
+
+from covid_model_seiir_pipeline import static_vars
 
 
 def compute_reimposition_date(deaths, population, reimposition_threshold,
@@ -73,3 +77,16 @@ def compute_new_mobility(old_mobility: pd.Series,
                 .sort_index()
                 .min(axis=1))
     return mobility
+
+
+class MandateReimpositionParams(NamedTuple):
+    min_wait: pd.Timedelta
+    days_on: pd.Timedelta
+    reimposition_threshold: float
+
+
+def unpack_parameters(algorithm_parameters: Dict) -> MandateReimpositionParams:
+    min_wait = pd.Timedelta(days=algorithm_parameters['minimum_delay'])
+    days_on = pd.Timedelta(days=static_vars.DAYS_PER_WEEK * algorithm_parameters['reimposition_duration'])
+    reimposition_threshold = algorithm_parameters['death_threshold'] / 1e6
+    return MandateReimpositionParams(min_wait, days_on, reimposition_threshold)

@@ -102,7 +102,7 @@ class ForecastDataInterface:
                 data_file = self.covariate_paths.get_covariate_scenario_file(covariate, covariate_version)
                 if not data_file.exists():
                     raise FileNotFoundError(f'No {covariate_version} file found for covariate {covariate}.')
-        return regression_covariates
+        return list(regression_covariates)
 
     def get_infectionator_metadata(self):
         with self.regression_paths.regression_specification.open() as regression_spec_file:
@@ -111,7 +111,6 @@ class ForecastDataInterface:
         with (infectionator_path / 'metadata.yaml').open() as metadata_file:
             metadata = yaml.full_load(metadata_file)
         return metadata
-
 
     def load_full_data(self):
         metadata = self.get_infectionator_metadata()
@@ -200,8 +199,10 @@ class ForecastDataInterface:
             index_columns.append('date')
         return info_df.set_index(index_columns)
 
-    def save_raw_covariates(self, covariates: pd.DataFrame, scenario: str, draw_id: int):
-        self.forecast_marshall.dump(covariates, key=MKeys.forecast_raw_covariates(scenario=scenario, draw_id=draw_id))
+    def save_raw_covariates(self, covariates: pd.DataFrame, scenario: str, draw_id: int, strict: bool):
+        self.forecast_marshall.dump(covariates,
+                                    key=MKeys.forecast_raw_covariates(scenario=scenario, draw_id=draw_id),
+                                    strict=strict)
 
     def load_raw_covariates(self, scenario: str, draw_id: int):
         covariates = self.forecast_marshall.load(key=MKeys.forecast_raw_covariates(scenario=scenario, draw_id=draw_id))
@@ -212,8 +213,8 @@ class ForecastDataInterface:
         df = self.regression_marshall.load(key=MKeys.parameter(draw_id=draw_id))
         return df.set_index('params')['values'].to_dict()
 
-    def save_components(self, forecasts: pd.DataFrame, scenario: str, draw_id: int):
-        self.forecast_marshall.dump(forecasts, key=MKeys.components(scenario=scenario, draw_id=draw_id))
+    def save_components(self, forecasts: pd.DataFrame, scenario: str, draw_id: int, strict: bool):
+        self.forecast_marshall.dump(forecasts, key=MKeys.components(scenario=scenario, draw_id=draw_id), strict=strict)
 
     def load_components(self, scenario: str, draw_id: int) -> pd.DataFrame:
         components = self.forecast_marshall.load(key=MKeys.components(scenario=scenario, draw_id=draw_id))
@@ -226,8 +227,10 @@ class ForecastDataInterface:
     def load_beta_scales(self, scenario: str, draw_id: int):
         return self.forecast_marshall.load(MKeys.beta_scales(scenario=scenario, draw_id=draw_id))
 
-    def save_raw_outputs(self, raw_outputs: pd.DataFrame, scenario: str, draw_id: int):
-        self.forecast_marshall.dump(raw_outputs, key=MKeys.forecast_raw_outputs(scenario=scenario, draw_id=draw_id))
+    def save_raw_outputs(self, raw_outputs: pd.DataFrame, scenario: str, draw_id: int, strict: bool):
+        self.forecast_marshall.dump(raw_outputs,
+                                    key=MKeys.forecast_raw_outputs(scenario=scenario, draw_id=draw_id),
+                                    strict=strict)
 
     def load_raw_outputs(self, scenario: str, draw_id: int) -> pd.DataFrame:
         return self.forecast_marshall.load(key=MKeys.forecast_raw_outputs(scenario=scenario, draw_id=draw_id))
@@ -252,4 +255,15 @@ class ForecastDataInterface:
     def save_output_miscellaneous(self, output_miscellaneous: pd.DataFrame, scenario: str, measure: str):
         self.forecast_marshall.dump(output_miscellaneous,
                                     key=MKeys.forecast_output_miscellaneous(scenario=scenario, measure=measure))
+
+    def save_reimposition_dates(self, reimposition_dates: pd.DataFrame, scenario: str, reimposition_number: int):
+        self.forecast_marshall.dump(reimposition_dates,
+                                    key=MKeys.reimposition_dates(scenario=scenario,
+                                                                 reimposition_number=reimposition_number))
+
+    def load_reimposition_dates(self, scenario: str, reimposition_number: int):
+        self.forecast_marshall.load(key=MKeys.reimposition_dates(scenario=scenario,
+                                                                 reimposition_number=reimposition_number))
+
+
 
