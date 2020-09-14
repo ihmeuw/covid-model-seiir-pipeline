@@ -106,9 +106,10 @@ class MeanLevelMandateReimpositionTaskTemplate(TaskTemplate):
 
 class JoinSentinelTaskTemplate(TaskTemplate):
     """Dummy task to simplify DAG."""
-    task_name_template = "join_sentinel"
+    sentinel_id = 1
+    task_name_template = "join_sentinel_{sentinel_id}"
     command_template = (
-        "sleep 1"
+        "echo {sentinel_id}"
     )
     params = ExecutorParameters(
         max_runtime_seconds=10,
@@ -116,6 +117,13 @@ class JoinSentinelTaskTemplate(TaskTemplate):
         num_cores=1,
         queue=FORECAST_QUEUE,
     )
+
+    def get_task(self, *args, **kwargs):
+        task = super().get_task(*args, sentinel_id=self.sentinel_id, **kwargs)
+        self.sentinel_id += 1
+        return task
+
+
 
 
 class ForecastWorkflow(WorkflowTemplate):
