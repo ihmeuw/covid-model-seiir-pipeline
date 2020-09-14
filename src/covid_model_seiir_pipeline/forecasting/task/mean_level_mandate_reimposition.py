@@ -51,8 +51,6 @@ def run_mean_level_mandate_reimposition(forecast_version: str, scenario_name: st
     data_interface.save_reimposition_dates(reimposition_date.reset_index(), scenario=scenario_name,
                                            reimposition_number=reimposition_number)
 
-    # TODO: Delete the last stage outputs?
-
 
 def parse_arguments(arg_str: Optional[str] = None) -> Namespace:
     """

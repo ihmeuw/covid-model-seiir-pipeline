@@ -188,12 +188,12 @@ class CSVMarshall:
     new marshalling interface.
     """
     # interface methods
-    def dump(self, data: pandas.DataFrame, key):
+    def dump(self, data: pandas.DataFrame, key, strict=True):
         path = self.resolve_key(key)
         if not path.parent.is_dir():
             mkdir(path.parent, parents=True)
         else:
-            if path.exists():
+            if strict and path.exists():
                 msg = f"Cannot dump data for key {key} - would overwrite"
                 raise LookupError(msg)
 
@@ -223,7 +223,10 @@ class CSVMarshall:
 
 class ZipMarshall:
     # interface methods
-    def dump(self, data: pandas.DataFrame, key):
+    def dump(self, data: pandas.DataFrame, key, strict=True):
+        if not strict:
+            raise NotImplementedError
+
         seed, path = self.resolve_key(key)
         with zipfile.ZipFile(self.zip(seed), mode='a') as container:
             with self._open_no_overwrite(container, path, key) as outf:
@@ -309,7 +312,10 @@ class Hdf5Marshall:
     obj_dtype = numpy.dtype('O')
     string_dtype = h5py.string_dtype()
 
-    def dump(self, data, key):
+    def dump(self, data, key, strict=True):
+        if not strict:
+            raise NotImplementedError
+
         seed, group_name, name = self.resolve_key(key)
         with h5py.File(self.hdf5(seed), "a") as container:
             # version file. should we ever update the format it will make life easier
