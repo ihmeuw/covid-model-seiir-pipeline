@@ -46,6 +46,7 @@ class DataTypes:
     forecast_output_draws = "output_draws"
     forecast_output_summaries = "output_summaries"
     forecast_output_miscellaneous = "output_miscellaneous"
+    reimposition_dates = "reimposition_dates"
     location_data = "data"
     parameter = "parameters"
     regression_beta = "beta"
@@ -64,6 +65,7 @@ class DataTypes:
         forecast_output_draws,
         forecast_output_summaries,
         forecast_output_miscellaneous,
+        reimposition_dates
     ])
 
 
@@ -136,6 +138,11 @@ class Keys:
     def forecast_output_miscellaneous(cls, scenario, measure):
         return cls(DataTypes.forecast_output_miscellaneous, MEASURE_FILE_TEMPLATE, scenario=scenario, measure=measure)
 
+    @classmethod
+    def reimposition_dates(cls, scenario, reimposition_number):
+        return cls(DataTypes.reimposition_dates, 'reimposition_{reimposition_number}',
+                   scenario=scenario, reimposition_number=reimposition_number)
+
     # other methods/properties
     @property
     def key(self):
@@ -181,12 +188,12 @@ class CSVMarshall:
     new marshalling interface.
     """
     # interface methods
-    def dump(self, data: pandas.DataFrame, key):
+    def dump(self, data: pandas.DataFrame, key, strict=True):
         path = self.resolve_key(key)
         if not path.parent.is_dir():
             mkdir(path.parent, parents=True)
         else:
-            if path.exists():
+            if strict and path.exists():
                 msg = f"Cannot dump data for key {key} - would overwrite"
                 raise LookupError(msg)
 
@@ -216,7 +223,10 @@ class CSVMarshall:
 
 class ZipMarshall:
     # interface methods
-    def dump(self, data: pandas.DataFrame, key):
+    def dump(self, data: pandas.DataFrame, key, strict=True):
+        if not strict:
+            raise NotImplementedError
+
         seed, path = self.resolve_key(key)
         with zipfile.ZipFile(self.zip(seed), mode='a') as container:
             with self._open_no_overwrite(container, path, key) as outf:
@@ -302,7 +312,10 @@ class Hdf5Marshall:
     obj_dtype = numpy.dtype('O')
     string_dtype = h5py.string_dtype()
 
-    def dump(self, data, key):
+    def dump(self, data, key, strict=True):
+        if not strict:
+            raise NotImplementedError
+
         seed, group_name, name = self.resolve_key(key)
         with h5py.File(self.hdf5(seed), "a") as container:
             # version file. should we ever update the format it will make life easier

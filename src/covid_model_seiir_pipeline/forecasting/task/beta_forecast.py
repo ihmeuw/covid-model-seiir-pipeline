@@ -132,9 +132,14 @@ def run_beta_forecast(draw_id: int, forecast_version: str, scenario_name: str):
     covariates = covariates.reset_index()
     outputs = pd.concat([infections, deaths, r_effective], axis=1).reset_index()
 
-    data_interface.save_components(components, scenario_name, draw_id)
-    data_interface.save_raw_covariates(covariates, scenario_name, draw_id)
-    data_interface.save_raw_outputs(outputs, scenario_name, draw_id)
+    # If strict, don't allow overwriting of output files.
+    # Mean level mandate reimposition will run and write these outputs
+    # several times.
+    strict = scenario_spec.algorithm != 'mean_level_mandate_reimposition'
+
+    data_interface.save_components(components, scenario_name, draw_id, strict)
+    data_interface.save_raw_covariates(covariates, scenario_name, draw_id, strict)
+    data_interface.save_raw_outputs(outputs, scenario_name, draw_id, strict)
 
 
 def parse_arguments(argstr: Optional[str] = None) -> Namespace:
