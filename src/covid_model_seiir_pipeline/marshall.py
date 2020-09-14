@@ -46,6 +46,7 @@ class DataTypes:
     forecast_output_draws = "output_draws"
     forecast_output_summaries = "output_summaries"
     forecast_output_miscellaneous = "output_miscellaneous"
+    reimposition_dates = "reimposition_dates"
     location_data = "data"
     parameter = "parameters"
     regression_beta = "beta"
@@ -64,6 +65,7 @@ class DataTypes:
         forecast_output_draws,
         forecast_output_summaries,
         forecast_output_miscellaneous,
+        reimposition_dates
     ])
 
 
@@ -135,6 +137,11 @@ class Keys:
     @classmethod
     def forecast_output_miscellaneous(cls, scenario, measure):
         return cls(DataTypes.forecast_output_miscellaneous, MEASURE_FILE_TEMPLATE, scenario=scenario, measure=measure)
+
+    @classmethod
+    def reimposition_dates(cls, scenario, reimposition_number):
+        return cls(DataTypes.reimposition_dates, 'reimposition_{reimposition_number}',
+                   scenario=scenario, reimposition_number=reimposition_number)
 
     # other methods/properties
     @property

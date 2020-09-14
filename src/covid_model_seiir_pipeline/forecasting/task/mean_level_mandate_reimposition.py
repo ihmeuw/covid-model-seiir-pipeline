@@ -5,10 +5,13 @@ import shlex
 
 from covid_shared.cli_tools.logging import configure_logging_to_terminal
 from loguru import logger
+import pandas as pd
 
 from covid_model_seiir_pipeline import static_vars
 from covid_model_seiir_pipeline.forecasting.specification import ForecastSpecification
 from covid_model_seiir_pipeline.forecasting.data import ForecastDataInterface
+from covid_model_seiir_pipeline.forecasting import postprocessing_lib as pp
+from covid_model_seiir_pipeline.forecasting import model
 
 
 def run_mean_level_mandate_reimposition(forecast_version: str, scenario_name: str, reimposition_number: int):
@@ -20,7 +23,35 @@ def run_mean_level_mandate_reimposition(forecast_version: str, scenario_name: st
     scenario_spec = forecast_spec.scenarios[scenario_name]
     data_interface = ForecastDataInterface.from_specification(forecast_spec)
 
-    raise NotImplementedError
+    resampling_map = data_interface.load_resampling_map()
+
+    deaths = pp.load_deaths(scenario_name, data_interface)
+    deaths = pd.concat(deaths, axis=1)
+    deaths = pp.resample_draws(deaths, resampling_map)
+    deaths = pp.summarize(deaths)
+
+    modeled_locations = deaths.reset_index()['location_id'].unique().tolist()
+
+    population = pp.load_populations(data_interface)
+    population = population.loc[modeled_locations]
+
+    min_wait, days_on, reimposition_threshold = model.unpack_parameters(scenario_spec.algorithm_params)
+
+    previous_dates = pd.Series(pd.NaT, index=population.index)
+    for previous_reimposition in range(reimposition_number-1, 0, -1):
+        these_dates = data_interface.load_reimposition_dates(scenario=scenario_name,
+                                                             reimposition_number=previous_reimposition)
+        these_dates = these_dates.set_index('location_id')['reimposition_date'].reindex(previous_dates.index)
+        this_reimposition = previous_dates.isnull() & these_dates.not_null()
+        previous_dates.loc[this_reimposition] = these_dates.loc[this_reimposition]
+
+    last_reimposition_end_date = previous_dates + days_on
+    reimposition_date = model.compute_reimposition_date(deaths, population, reimposition_threshold,
+                                                        min_wait, last_reimposition_end_date)
+    data_interface.save_reimposition_dates(reimposition_date.reset_index(), scenario=scenario_name,
+                                           reimposition_number=reimposition_number)
+
+    # TODO: Delete the last stage outputs?
 
 
 def parse_arguments(arg_str: Optional[str] = None) -> Namespace:

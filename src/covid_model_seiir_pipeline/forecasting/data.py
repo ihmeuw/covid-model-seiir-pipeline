@@ -102,7 +102,7 @@ class ForecastDataInterface:
                 data_file = self.covariate_paths.get_covariate_scenario_file(covariate, covariate_version)
                 if not data_file.exists():
                     raise FileNotFoundError(f'No {covariate_version} file found for covariate {covariate}.')
-        return regression_covariates
+        return list(regression_covariates)
 
     def get_infectionator_metadata(self):
         with self.regression_paths.regression_specification.open() as regression_spec_file:
@@ -111,7 +111,6 @@ class ForecastDataInterface:
         with (infectionator_path / 'metadata.yaml').open() as metadata_file:
             metadata = yaml.full_load(metadata_file)
         return metadata
-
 
     def load_full_data(self):
         metadata = self.get_infectionator_metadata()
@@ -252,4 +251,15 @@ class ForecastDataInterface:
     def save_output_miscellaneous(self, output_miscellaneous: pd.DataFrame, scenario: str, measure: str):
         self.forecast_marshall.dump(output_miscellaneous,
                                     key=MKeys.forecast_output_miscellaneous(scenario=scenario, measure=measure))
+
+    def save_reimposition_dates(self, reimposition_dates: pd.DataFrame, scenario: str, reimposition_number: int):
+        self.forecast_marshall.dump(reimposition_dates,
+                                    key=MKeys.reimposition_dates(scenario=scenario,
+                                                                 reimposition_number=reimposition_number))
+
+    def load_reimposition_dates(self, scenario: str, reimposition_number: int):
+        self.forecast_marshall.load(key=MKeys.reimposition_dates(scenario=scenario,
+                                                                 reimposition_number=reimposition_number))
+
+
 
