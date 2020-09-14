@@ -47,7 +47,8 @@ class BetaForecastTaskTemplate(TaskTemplate):
         "beta_forecast " +
         "--draw-id {draw_id} " +
         "--forecast-version {forecast_version} " +
-        "--scenario-name {scenario}"
+        "--scenario-name {scenario} " +
+        "--extra-id {extra_id}"
     )
     params = ExecutorParameters(
         max_runtime_seconds=FORECAST_RUNTIME,
@@ -159,7 +160,7 @@ class ForecastWorkflow(WorkflowTemplate):
             # where the forecast stages are done by draw and the reimpose
             # across draws.
             if scenario_spec.algorithm == 'mean_level_mandate_reimposition':
-                forecast_done_task = self._attach_forecast_tasks(scenario_name, n_draws, scaling_task)
+                forecast_done_task = self._attach_forecast_tasks(scenario_name, n_draws, 0, scaling_task)
                 for i in range(scenario_spec.algorithm_params['reimposition_count']):
                     reimposition_task = reimpose_template.get_task(
                         forecast_version=self.version,
@@ -168,14 +169,15 @@ class ForecastWorkflow(WorkflowTemplate):
                     )
                     reimposition_task.add_upstream(forecast_done_task)
                     self.workflow.add_task(reimposition_task)
-                    forecast_done_task = self._attach_forecast_tasks(scenario_name, n_draws, reimposition_task)
+                    forecast_done_task = self._attach_forecast_tasks(scenario_name, n_draws, i + 1, reimposition_task)
 
                 self._attach_postprocessing_tasks(scenario_name, covariates, forecast_done_task, resample_task)
             else:  # All the other stuff is handled in the forecast algorithm at the draw level.
-                forecast_done_task = self._attach_forecast_tasks(scenario_name, n_draws, scaling_task)
+                forecast_done_task = self._attach_forecast_tasks(scenario_name, n_draws, 0, scaling_task)
                 self._attach_postprocessing_tasks(scenario_name, covariates, forecast_done_task, resample_task)
 
-    def _attach_forecast_tasks(self, scenario_name: str, n_draws: int, *upstream_tasks: BashTask) -> BashTask:
+    def _attach_forecast_tasks(self, scenario_name: str, n_draws: int, extra_id: int,
+                               *upstream_tasks: BashTask) -> BashTask:
         forecast_template = self.task_templates['forecast']
         sentinel_template = self.task_templates['sentinel']
 
@@ -186,6 +188,7 @@ class ForecastWorkflow(WorkflowTemplate):
                 forecast_version=self.version,
                 draw_id=draw,
                 scenario=scenario_name,
+                extra_id=extra_id,
             )
             for upstream_task in upstream_tasks:
                 forecast_task.add_upstream(upstream_task)

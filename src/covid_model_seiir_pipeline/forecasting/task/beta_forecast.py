@@ -13,7 +13,7 @@ from covid_model_seiir_pipeline.forecasting.specification import ForecastSpecifi
 from covid_model_seiir_pipeline.forecasting.data import ForecastDataInterface
 
 
-def run_beta_forecast(draw_id: int, forecast_version: str, scenario_name: str):
+def run_beta_forecast(draw_id: int, forecast_version: str, scenario_name: str, **kwargs):
     logger.info(f"Initiating SEIIR beta forecasting for scenario {scenario_name}, draw {draw_id}.")
     forecast_spec: ForecastSpecification = ForecastSpecification.from_path(
         Path(forecast_version) / static_vars.FORECAST_SPECIFICATION_FILE
@@ -183,6 +183,7 @@ def parse_arguments(argstr: Optional[str] = None) -> Namespace:
     parser.add_argument("--draw-id", type=int, required=True)
     parser.add_argument("--forecast-version", type=str, required=True)
     parser.add_argument("--scenario-name", type=str, required=True)
+    parser.add_argument("--extra-id", type=int, required=False)
 
     if argstr is not None:
         arglist = shlex.split(argstr)
