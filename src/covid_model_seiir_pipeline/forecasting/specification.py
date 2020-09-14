@@ -32,8 +32,7 @@ class ScenarioSpecification:
     ALLOWED_ALGORITHMS = (
         'normal',
         'draw_level_mandate_reimposition',
-        # Todo: this
-        #  'mean_level_mandate_reimposition'
+        'mean_level_mandate_reimposition'
     )
     ALLOWED_SOLVERS = (
         'RK45',
