@@ -7,4 +7,5 @@ from .mandate_reimposition import (
     compute_reimposition_date,
     compute_mobility_lower_bound,
     compute_new_mobility,
+    unpack_parameters
 )

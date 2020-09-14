@@ -27,7 +27,7 @@ def do_beta_forecast(app_metadata: cli_tools.Metadata,
         n_draws = data_interface.get_n_draws()
 
         forecast_wf.attach_tasks(n_draws=n_draws,
-                                 scenarios=list(forecast_specification.scenarios),
+                                 scenarios=forecast_specification.scenarios,
                                  covariates=covariates)
         try:
             forecast_wf.run()
