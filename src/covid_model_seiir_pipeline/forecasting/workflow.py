@@ -174,6 +174,7 @@ class ForecastWorkflow(WorkflowTemplate):
                         reimposition_number=i + 1,
                     )
                     reimposition_task.add_upstream(forecast_done_task)
+                    reimposition_task.add_upstream(resample_task)
                     self.workflow.add_task(reimposition_task)
                     forecast_done_task = self._attach_forecast_tasks(scenario_name, n_draws, i + 1, reimposition_task)
 
