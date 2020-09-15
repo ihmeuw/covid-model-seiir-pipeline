@@ -52,14 +52,13 @@ def compute_new_mobility(old_mobility: pd.Series,
                          reimposition_date: pd.Series,
                          mobility_lower_bound: pd.Series,
                          percent_mandates: pd.DataFrame,
-                         min_wait: pd.Timedelta,
                          days_on: pd.Timedelta) -> pd.Series:
     mobility = pd.merge(old_mobility.reset_index(level='date'), reimposition_date, how='left', on='location_id')
     mobility = mobility.merge(mobility_lower_bound, how='left', on='location_id')
 
     reimposes = mobility['reimposition_date'].notnull()
     dates_on = ((mobility['reimposition_date'] <= mobility['date'])
-                & (mobility['date'] <= mobility['reimposition_date'] + min_wait))
+                & (mobility['date'] <= mobility['reimposition_date'] + days_on))
     mobility['mobility_explosion'] = mobility['min_mobility'].where(reimposes & dates_on, np.nan)
 
     rampup = compute_rampup(reimposition_date, percent_mandates, days_on)

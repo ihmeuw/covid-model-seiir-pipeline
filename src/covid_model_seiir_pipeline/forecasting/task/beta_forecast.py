@@ -73,8 +73,7 @@ def run_beta_forecast(draw_id: int, forecast_version: str, scenario_name: str, *
 
         for reimposition_date in reimposition_dates:
             mobility = model.compute_new_mobility(mobility, reimposition_date,
-                                                  mobility_lower_bound, percent_mandates,
-                                                  min_wait, days_on).rename('mobility')
+                                                  mobility_lower_bound, percent_mandates, days_on).rename('mobility')
 
         covariates = covariates.reset_index().set_index(['location_id', 'date'])
         covariates['mobility'] = mobility
@@ -135,8 +134,7 @@ def run_beta_forecast(draw_id: int, forecast_version: str, scenario_name: str, *
             mobility_lower_bound = model.compute_mobility_lower_bound(mobility, mandate_effect)
 
             new_mobility = model.compute_new_mobility(mobility, reimposition_date,
-                                                      mobility_lower_bound, percent_mandates,
-                                                      min_wait, days_on)
+                                                      mobility_lower_bound, percent_mandates, days_on)
 
             covariates = covariates.reset_index().set_index(['location_id', 'date'])
             covariates['mobility'] = new_mobility
