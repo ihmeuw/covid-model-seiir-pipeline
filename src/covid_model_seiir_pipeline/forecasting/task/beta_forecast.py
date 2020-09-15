@@ -46,11 +46,6 @@ def run_beta_forecast(draw_id: int, forecast_version: str, scenario_name: str, *
     covariates = data_interface.load_covariates(scenario_spec, location_ids)
     coefficients = data_interface.load_regression_coefficients(draw_id)
 
-    # Info data specific to mandate reimposition
-    percent_mandates = data_interface.load_covariate_info('mobility', 'mandate_lift', location_ids)
-    mandate_effect = data_interface.load_covariate_info('mobility', 'effect', location_ids)
-    min_wait, days_on, reimposition_threshold = model.unpack_parameters(scenario_spec.algorithm_params)
-
     # Grab the projection of the covariates into the future, keeping the
     # day of transition from past model to future model.
     covariates = covariates.set_index('location_id').sort_index()
@@ -58,6 +53,11 @@ def run_beta_forecast(draw_id: int, forecast_version: str, scenario_name: str, *
     covariate_pred = covariates.loc[the_future].reset_index()
 
     if scenario_spec.algorithm == 'mean_level_mandate_reimposition':
+        # Info data specific to mandate reimposition
+        percent_mandates = data_interface.load_covariate_info('mobility', 'mandate_lift', location_ids)
+        mandate_effect = data_interface.load_covariate_info('mobility', 'effect', location_ids)
+        min_wait, days_on, reimposition_threshold = model.unpack_parameters(scenario_spec.algorithm_params)
+
         max_reimpositions = scenario_spec.algorithm_params['reimposition_count']
         reimposition_dates = []
         for reimposition_number in range(1, max_reimpositions + 1):
@@ -111,6 +111,10 @@ def run_beta_forecast(draw_id: int, forecast_version: str, scenario_name: str, *
 
     if scenario_spec.algorithm == 'draw_level_mandate_reimposition':
         logger.info('Entering mandate reimposition.')
+        # Info data specific to mandate reimposition
+        percent_mandates = data_interface.load_covariate_info('mobility', 'mandate_lift', location_ids)
+        mandate_effect = data_interface.load_covariate_info('mobility', 'effect', location_ids)
+        min_wait, days_on, reimposition_threshold = model.unpack_parameters(scenario_spec.algorithm_params)
 
         population = (components[static_vars.SEIIR_COMPARTMENTS]
                       .sum(axis=1)
