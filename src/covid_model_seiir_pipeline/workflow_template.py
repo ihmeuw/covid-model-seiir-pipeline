@@ -8,21 +8,6 @@ from jobmon.client.swarm.workflow.task_dag import DagExecutionStatus
 from covid_model_seiir_pipeline import utilities
 
 
-class NoisyBashTask(BashTask):
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        print('Created ', self, ' with commnad ', self.command)
-
-    def add_upstream(self, ancestor):
-        super().add_upstream(ancestor)
-        print('Added ', ancestor, ' as upstream to ', self)
-
-    def add_downstream(self, descendent):
-        super().add_downstream(descendent)
-        print('Added ', descendent, ' as downstream to ', self)
-
-
 class TaskTemplate:
 
     task_name_template: str = None
@@ -30,7 +15,7 @@ class TaskTemplate:
     params: ExecutorParameters = None
 
     def get_task(self, *_, **kwargs) -> BashTask:
-        task = NoisyBashTask(
+        task = BashTask(
             command=self.command_template.format(**kwargs),
             name=self.task_name_template.format(**kwargs),
             executor_parameters=self.params,

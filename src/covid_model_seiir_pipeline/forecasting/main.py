@@ -24,7 +24,7 @@ def do_beta_forecast(app_metadata: cli_tools.Metadata,
 
     if not preprocess_only:
         forecast_wf = ForecastWorkflow(forecast_specification.data.output_root)
-        n_draws = 2 # data_interface.get_n_draws()
+        n_draws = data_interface.get_n_draws()
 
         forecast_wf.attach_tasks(n_draws=n_draws,
                                  scenarios=forecast_specification.scenarios,
