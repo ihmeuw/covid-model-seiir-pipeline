@@ -262,8 +262,8 @@ class ForecastDataInterface:
                                                                  reimposition_number=reimposition_number))
 
     def load_reimposition_dates(self, scenario: str, reimposition_number: int):
-        self.forecast_marshall.load(key=MKeys.reimposition_dates(scenario=scenario,
-                                                                 reimposition_number=reimposition_number))
+        return self.forecast_marshall.load(key=MKeys.reimposition_dates(scenario=scenario,
+                                                                        reimposition_number=reimposition_number))
 
 
 
