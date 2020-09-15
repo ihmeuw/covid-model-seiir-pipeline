@@ -189,6 +189,7 @@ class ForecastWorkflow(WorkflowTemplate):
         sentinel_template = self.task_templates['sentinel']
 
         sentinel_task = sentinel_template.get_task()
+        self.workflow.add_task(sentinel_task)
 
         for draw in range(n_draws):
             forecast_task = forecast_template.get_task(
@@ -212,7 +213,7 @@ class ForecastWorkflow(WorkflowTemplate):
         if unknown_covariates:
             raise NotImplementedError(f'Unknown covariates {unknown_covariates}')
 
-        measures = itertools.chain(MEASURES, MISCELLANEOUS, covariates)
+        measures = list(itertools.chain(MEASURES, MISCELLANEOUS, covariates))[:2]
         for measure in measures:
             postprocessing_task = postprocessing_template.get_task(
                 forecast_version=self.version,
