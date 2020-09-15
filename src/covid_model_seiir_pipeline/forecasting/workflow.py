@@ -181,6 +181,7 @@ class ForecastWorkflow(WorkflowTemplate):
             else:  # All the other stuff is handled in the forecast algorithm at the draw level.
                 forecast_done_task = self._attach_forecast_tasks(scenario_name, n_draws, 0, scaling_task)
                 self._attach_postprocessing_tasks(scenario_name, covariates, forecast_done_task, resample_task)
+                resample_task.add_upstream(forecast_done_task)
 
     def _attach_forecast_tasks(self, scenario_name: str, n_draws: int, extra_id: int,
                                *upstream_tasks: BashTask) -> BashTask:
