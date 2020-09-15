@@ -21,7 +21,7 @@ class BetaRegressionTaskTemplate(TaskTemplate):
 class RegressionWorkflow(WorkflowTemplate):
 
     workflow_name_template = 'seiir-regression-{version}'
-    task_templates = {'regression': BetaRegressionTaskTemplate}
+    task_templates = {'regression': BetaRegressionTaskTemplate()}
 
     def attach_tasks(self, n_draws: int):
         regression_template = self.task_templates['regression']

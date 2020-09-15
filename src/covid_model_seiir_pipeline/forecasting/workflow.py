@@ -124,18 +124,16 @@ class JoinSentinelTaskTemplate(TaskTemplate):
         return task
 
 
-
-
 class ForecastWorkflow(WorkflowTemplate):
 
     workflow_name_template = 'seiir-forecast-{version}'
     task_templates = {
-        'scaling': BetaResidualScalingTaskTemplate,
-        'forecast': BetaForecastTaskTemplate,
-        'resample': ResampleMapTaskTemplate,
-        'postprocess': PostprocessingTaskTemplate,
-        'reimpose': MeanLevelMandateReimpositionTaskTemplate,
-        'sentinel': JoinSentinelTaskTemplate,
+        'scaling': BetaResidualScalingTaskTemplate(),
+        'forecast': BetaForecastTaskTemplate(),
+        'resample': ResampleMapTaskTemplate(),
+        'postprocess': PostprocessingTaskTemplate(),
+        'reimpose': MeanLevelMandateReimpositionTaskTemplate(),
+        'sentinel': JoinSentinelTaskTemplate(),
     }
 
     def attach_tasks(self, n_draws: int, scenarios: Dict[str, ScenarioSpecification], covariates: List[str]):

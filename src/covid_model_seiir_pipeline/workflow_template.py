@@ -14,11 +14,12 @@ class TaskTemplate:
     command_template: str = None
     params: ExecutorParameters = None
 
-    def get_task(self, *_, **kwargs) -> BashTask:
+    @classmethod
+    def get_task(cls, *_, **kwargs) -> BashTask:
         task = BashTask(
-            command=self.command_template.format(**kwargs),
-            name=self.task_name_template.format(**kwargs),
-            executor_parameters=self.params,
+            command=cls.command_template.format(**kwargs),
+            name=cls.task_name_template.format(**kwargs),
+            executor_parameters=cls.params,
             max_attempts=1
         )
         return task
