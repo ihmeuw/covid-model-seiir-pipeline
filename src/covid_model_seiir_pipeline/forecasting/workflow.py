@@ -91,7 +91,7 @@ class PostprocessingTaskTemplate(TaskTemplate):
 class MeanLevelMandateReimpositionTaskTemplate(TaskTemplate):
     task_name_template = "reimposition_{reimposition_number}_{scenario}"
     command_template = (
-            "postprocess " +
+            "mean_level_mandate_reimposition " +
             "--forecast-version {forecast_version} "
             "--scenario-name {scenario} "
             "--reimposition-number {reimposition_number}"
