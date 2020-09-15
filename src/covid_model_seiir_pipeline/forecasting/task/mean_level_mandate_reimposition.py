@@ -24,16 +24,20 @@ def run_mean_level_mandate_reimposition(forecast_version: str, scenario_name: st
     data_interface = ForecastDataInterface.from_specification(forecast_spec)
 
     resampling_map = data_interface.load_resampling_map()
-
     deaths = pp.load_deaths(scenario_name, data_interface)
     deaths = pd.concat(deaths, axis=1)
     deaths = pp.resample_draws(deaths, resampling_map)
     deaths = pp.summarize(deaths)
+    deaths = deaths['mean'].rename('deaths').reset_index()
+    deaths['date'] = pd.to_datetime(deaths['date'])
 
-    modeled_locations = deaths.reset_index()['location_id'].unique().tolist()
+    modeled_locations = deaths['location_id'].unique().tolist()
+    deaths = deaths.set_index(['location_id', 'date'])
 
     population = pp.load_populations(data_interface)
-    population = population.loc[modeled_locations]
+    population = population[population.location_id.isin(modeled_locations) 
+                            & (population.age_group_id == 22) 
+                            & (population.sex_id == 3)].set_index('location_id')['population']
 
     min_wait, days_on, reimposition_threshold = model.unpack_parameters(scenario_spec.algorithm_params)
 

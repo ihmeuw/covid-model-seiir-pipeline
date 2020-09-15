@@ -214,7 +214,7 @@ class ForecastWorkflow(WorkflowTemplate):
         if unknown_covariates:
             raise NotImplementedError(f'Unknown covariates {unknown_covariates}')
 
-        measures = list(itertools.chain(MEASURES, MISCELLANEOUS, covariates))[:2]
+        measures = itertools.chain(MEASURES, MISCELLANEOUS, covariates)
         for measure in measures:
             postprocessing_task = postprocessing_template.get_task(
                 forecast_version=self.version,
