@@ -112,7 +112,7 @@ class JoinSentinelTaskTemplate(TaskTemplate):
         "echo {sentinel_id}"
     )
     params = ExecutorParameters(
-        max_runtime_seconds=10,
+        max_runtime_seconds=1000,
         m_mem_free="1G",
         num_cores=1,
         queue=FORECAST_QUEUE,

@@ -45,10 +45,10 @@ def run_mean_level_mandate_reimposition(forecast_version: str, scenario_name: st
     for previous_reimposition in range(reimposition_number-1, 0, -1):
         these_dates = data_interface.load_reimposition_dates(scenario=scenario_name,
                                                              reimposition_number=previous_reimposition)
-        these_dates = these_dates.set_index('location_id')['reimposition_date'].reindex(previous_dates.index)
-        this_reimposition = previous_dates.isnull() & these_dates.not_null()
+        these_dates = pd.to_datetime(these_dates.set_index('location_id')['reimposition_date'])
+        these_dates = these_dates.reindex(previous_dates.index)
+        this_reimposition = previous_dates.isnull() & these_dates.notnull()
         previous_dates.loc[this_reimposition] = these_dates.loc[this_reimposition]
-
     last_reimposition_end_date = previous_dates + days_on
     reimposition_date = model.compute_reimposition_date(deaths, population, reimposition_threshold,
                                                         min_wait, last_reimposition_end_date)
