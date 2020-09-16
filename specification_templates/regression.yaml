@@ -31,7 +31,7 @@ covariates:
     order: 0
     use_re: False
     gprior: [0.0, 0.1]
-    bounds: [0.9, 1.31]
+    bounds: [0.0, 1.31]
     re_var: 1.0
     draws: False
   mobility:

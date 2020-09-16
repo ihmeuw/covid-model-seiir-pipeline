@@ -57,7 +57,7 @@ class _RelativeThetaSEIIR(ODESys):
                  gamma1: float,
                  gamma2: float,
                  N: Union[int, float],
-                 *args):
+                 *args, **kwargs):
         """Constructor of CustomizedSEIIR.
         """
         self.alpha = alpha
