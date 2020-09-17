@@ -1,6 +1,6 @@
 data:
-  regression_version: '2020_09_16.04'
-  covariate_version: '2020_09_16.03'
+  regression_version: '2020_09_16.05'
+  covariate_version: '2020_09_16.05'
   output_root: ''
 scenarios:
   worse:
@@ -25,11 +25,12 @@ scenarios:
       proportion_under_100m: 'reference'
       proportion_over_2_5k: 'reference'
   reference:
-    algorithm: 'draw_level_mandate_reimposition'
+    algorithm: 'mean_level_mandate_reimposition'
     algorithm_params:
       death_threshold: 8  # per million
       reimposition_duration: 6 # weeks
       minimum_delay: 7 # days
+      reimposition_count: 4
     solver: 'RK45'
     system: 'old_theta'
     beta_scaling:
@@ -50,11 +51,12 @@ scenarios:
       proportion_under_100m: 'reference'
       proportion_over_2_5k: 'reference'
   best_masks:
-    algorithm: 'draw_level_mandate_reimposition'
+    algorithm: 'mean_level_mandate_reimposition'
     algorithm_params:
       death_threshold: 8  # per million
       reimposition_duration: 6 # weeks
       minimum_delay: 7 # days
+      reimposition_count: 4
     solver: 'RK45'
     system: 'old_theta'
     beta_scaling:
