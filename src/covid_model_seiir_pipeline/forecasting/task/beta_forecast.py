@@ -13,7 +13,7 @@ from covid_model_seiir_pipeline.forecasting.specification import ForecastSpecifi
 from covid_model_seiir_pipeline.forecasting.data import ForecastDataInterface
 
 
-def run_beta_forecast(draw_id: int, forecast_version: str, scenario_name: str):
+def run_beta_forecast(draw_id: int, forecast_version: str, scenario_name: str, **kwargs):
     logger.info(f"Initiating SEIIR beta forecasting for scenario {scenario_name}, draw {draw_id}.")
     forecast_spec: ForecastSpecification = ForecastSpecification.from_path(
         Path(forecast_version) / static_vars.FORECAST_SPECIFICATION_FILE
@@ -45,11 +45,40 @@ def run_beta_forecast(draw_id: int, forecast_version: str, scenario_name: str):
     # used to compute beta hat in the future.
     covariates = data_interface.load_covariates(scenario_spec, location_ids)
     coefficients = data_interface.load_regression_coefficients(draw_id)
+
     # Grab the projection of the covariates into the future, keeping the
     # day of transition from past model to future model.
     covariates = covariates.set_index('location_id').sort_index()
     the_future = covariates['date'] >= transition_date.loc[covariates.index]
     covariate_pred = covariates.loc[the_future].reset_index()
+    if scenario_spec.algorithm == 'mean_level_mandate_reimposition':
+        # Info data specific to mandate reimposition
+        percent_mandates = data_interface.load_covariate_info('mobility', 'mandate_lift', location_ids)
+        mandate_effect = data_interface.load_covariate_info('mobility', 'effect', location_ids)
+        min_wait, days_on, reimposition_threshold = model.unpack_parameters(scenario_spec.algorithm_params)
+
+        max_reimpositions = scenario_spec.algorithm_params['reimposition_count']
+        reimposition_dates = []
+        for reimposition_number in range(1, max_reimpositions + 1):
+            try:
+                df = data_interface.load_reimposition_dates(scenario_name, reimposition_number)
+                df = df.set_index('location_id')['reimposition_date']
+                df = pd.to_datetime(df)
+                reimposition_dates.append(df)
+            except FileNotFoundError:
+                continue
+
+        mobility = covariates[['date', 'mobility']].reset_index().set_index(['location_id', 'date'])['mobility']
+        mobility_lower_bound = model.compute_mobility_lower_bound(mobility, mandate_effect)
+
+        for reimposition_date in reimposition_dates:
+            mobility = model.compute_new_mobility(mobility, reimposition_date,
+                                                  mobility_lower_bound, percent_mandates, days_on).rename('mobility')
+
+        covariates = covariates.reset_index().set_index(['location_id', 'date'])
+        covariates['mobility'] = mobility
+        covariates = covariates.reset_index(level='date')
+        covariate_pred = covariates.loc[the_future].reset_index()
 
     beta_scales = data_interface.load_beta_scales(scenario=scenario_name, draw_id=draw_id)
 
@@ -59,26 +88,31 @@ def run_beta_forecast(draw_id: int, forecast_version: str, scenario_name: str):
     # We'll need this to compute deaths and to splice with the forecasts.
     infection_data = data_interface.load_infection_data(draw_id)
 
-    if ((1 < thetas) | thetas < -1).any():
-        raise ValueError('Theta must be between -1 and 1.')
-    if (beta_params['sigma'] - thetas >= 1).any():
-        raise ValueError('Sigma - theta must be smaller than 1')
+    if scenario_spec.system == 'new_theta':
+        if ((1 < thetas) | thetas < -1).any():
+            raise ValueError('Theta must be between -1 and 1.')
+        if (beta_params['sigma'] - thetas >= 1).any():
+            raise ValueError('Sigma - theta must be smaller than 1')
 
     # Modeling starts
     logger.info('Forecasting beta and components.')
     betas = model.forecast_beta(covariate_pred, coefficients, beta_scales)
     future_components = model.run_normal_ode_model_by_location(initial_condition, beta_params, betas, thetas,
-                                                               location_ids, scenario_spec.solver)
+                                                               location_ids, scenario_spec.solver, scenario_spec.system)
     logger.info('Processing ODE results and computing deaths and infections.')
-    components = model.splice_components(past_components, future_components)
-    components['theta'] = thetas.reindex(components.index).fillna(0)
-    infections, deaths, r_effective = model.compute_output_metrics(infection_data, components, beta_params)
+    components, infections, deaths, r_effective = model.compute_output_metrics(infection_data,
+                                                                               past_components,
+                                                                               future_components,
+                                                                               thetas,
+                                                                               beta_params,
+                                                                               scenario_spec.system)
 
-    if scenario_spec.algorithm == 'mandate_reimposition':
+    if scenario_spec.algorithm == 'draw_level_mandate_reimposition':
         logger.info('Entering mandate reimposition.')
-        min_wait = pd.Timedelta(days=scenario_spec.algorithm_params['minimum_delay'])
-        days_on = pd.Timedelta(days=static_vars.DAYS_PER_WEEK * scenario_spec.algorithm_params['reimposition_duration'])
-        reimposition_threshold = scenario_spec.algorithm_params['death_threshold'] / 1e6
+        # Info data specific to mandate reimposition
+        percent_mandates = data_interface.load_covariate_info('mobility', 'mandate_lift', location_ids)
+        mandate_effect = data_interface.load_covariate_info('mobility', 'effect', location_ids)
+        min_wait, days_on, reimposition_threshold = model.unpack_parameters(scenario_spec.algorithm_params)
 
         population = (components[static_vars.SEIIR_COMPARTMENTS]
                       .sum(axis=1)
@@ -86,8 +120,6 @@ def run_beta_forecast(draw_id: int, forecast_version: str, scenario_name: str):
                       .groupby('location_id')
                       .max())
         logger.info('Loading mandate reimposition data.')
-        percent_mandates = data_interface.load_covariate_info('mobility', 'mandate_lift', location_ids)
-        mandate_effect = data_interface.load_covariate_info('mobility', 'effect', location_ids)
 
         reimposition_count = 0
         reimposition_dates = {}
@@ -102,8 +134,7 @@ def run_beta_forecast(draw_id: int, forecast_version: str, scenario_name: str):
             mobility_lower_bound = model.compute_mobility_lower_bound(mobility, mandate_effect)
 
             new_mobility = model.compute_new_mobility(mobility, reimposition_date,
-                                                      mobility_lower_bound, percent_mandates,
-                                                      min_wait, days_on)
+                                                      mobility_lower_bound, percent_mandates, days_on)
 
             covariates = covariates.reset_index().set_index(['location_id', 'date'])
             covariates['mobility'] = new_mobility
@@ -112,12 +143,16 @@ def run_beta_forecast(draw_id: int, forecast_version: str, scenario_name: str):
 
             logger.info('Forecasting beta and components.')
             betas = model.forecast_beta(covariate_pred, coefficients, beta_scales)
-            future_components = model.run_normal_ode_model_by_location(initial_condition, beta_params, betas, thetas,
-                                                                       location_ids, scenario_spec.solver)
+            future_components = model.run_normal_ode_model_by_location(initial_condition, beta_params,
+                                                                       betas, thetas, location_ids,
+                                                                       scenario_spec.solver, scenario_spec.system)
             logger.info('Processing ODE results and computing deaths and infections.')
-            components = model.splice_components(past_components, future_components)
-            components['theta'] = thetas.reindex(components.index).fillna(0)
-            infections, deaths, r_effective = model.compute_output_metrics(infection_data, components, beta_params)
+            components, infections, deaths, r_effective = model.compute_output_metrics(infection_data,
+                                                                                       past_components,
+                                                                                       future_components,
+                                                                                       thetas,
+                                                                                       beta_params,
+                                                                                       scenario_spec.system)
 
             reimposition_count += 1
             reimposition_dates[reimposition_count] = reimposition_date
@@ -130,9 +165,14 @@ def run_beta_forecast(draw_id: int, forecast_version: str, scenario_name: str):
     covariates = covariates.reset_index()
     outputs = pd.concat([infections, deaths, r_effective], axis=1).reset_index()
 
-    data_interface.save_components(components, scenario_name, draw_id)
-    data_interface.save_raw_covariates(covariates, scenario_name, draw_id)
-    data_interface.save_raw_outputs(outputs, scenario_name, draw_id)
+    # If strict, don't allow overwriting of output files.
+    # Mean level mandate reimposition will run and write these outputs
+    # several times.
+    strict = scenario_spec.algorithm != 'mean_level_mandate_reimposition'
+
+    data_interface.save_components(components, scenario_name, draw_id, strict)
+    data_interface.save_raw_covariates(covariates, scenario_name, draw_id, strict)
+    data_interface.save_raw_outputs(outputs, scenario_name, draw_id, strict)
 
 
 def parse_arguments(argstr: Optional[str] = None) -> Namespace:
@@ -144,6 +184,7 @@ def parse_arguments(argstr: Optional[str] = None) -> Namespace:
     parser.add_argument("--draw-id", type=int, required=True)
     parser.add_argument("--forecast-version", type=str, required=True)
     parser.add_argument("--scenario-name", type=str, required=True)
+    parser.add_argument("--extra-id", type=int, required=False)
 
     if argstr is not None:
         arglist = shlex.split(argstr)

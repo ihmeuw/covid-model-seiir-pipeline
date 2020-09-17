@@ -46,7 +46,7 @@ def load_output_data_by_draw(draw_id: int, scenario: str,
                              data_interface: ForecastDataInterface) -> Tuple[pd.Series, pd.Series, pd.Series]:
     draw_df = data_interface.load_raw_outputs(scenario, draw_id)
     draw_df = draw_df.set_index(['location_id', 'date']).sort_index()
-    deaths = draw_df['deaths'].rename(draw_id)
+    deaths = draw_df.reset_index().set_index(['location_id', 'date', 'observed'])['deaths'].rename(draw_id)
     infections = draw_df['infections'].rename(draw_id)
     r_effective = draw_df['r_effective'].rename(draw_id)
     return deaths, infections, r_effective

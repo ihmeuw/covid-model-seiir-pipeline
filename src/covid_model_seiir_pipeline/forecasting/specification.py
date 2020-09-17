@@ -29,14 +29,30 @@ class ForecastData:
 @dataclass
 class ScenarioSpecification:
     """Forecasting specification for a scenario."""
-    ALLOWED_ALGORITHMS = ('normal', 'mandate_reimposition')
-    ALLOWED_SOLVERS = ('RK45',)
-    BETA_SCALING_KEYS = {'window_size', 'average_over_min', 'average_over_max',
-                         'offset_deaths_lower', 'offset_deaths_upper'}
+    ALLOWED_ALGORITHMS = (
+        'normal',
+        'draw_level_mandate_reimposition',
+        'mean_level_mandate_reimposition'
+    )
+    ALLOWED_SOLVERS = (
+        'RK45',
+    )
+    ALLOWED_SYSTEMS = (
+        'old_theta',
+        'new_theta',
+    )
+    BETA_SCALING_KEYS = {
+        'window_size',
+        'average_over_min',
+        'average_over_max',
+        'offset_deaths_lower',
+        'offset_deaths_upper'
+    }
 
     name: str = field(default='dummy_scenario')
     algorithm: str = field(default='normal')
     algorithm_params: Dict = field(default_factory=dict)
+    system: str = field(default='new_theta')
     solver: str = field(default='RK45')
     beta_scaling: Dict[str, int] = field(default_factory=dict)
     theta: Union[str, int] = field(default=0)
@@ -50,6 +66,10 @@ class ScenarioSpecification:
         if self.solver not in self.ALLOWED_SOLVERS:
             raise ValueError(f'Unknown solver {self.solver} in scenario {self.name}. '
                              f'Allowed solvers are {self.ALLOWED_SOLVERS}.')
+
+        if self.system not in self.ALLOWED_SYSTEMS:
+            raise ValueError(f'Unknown system {self.system} in scenario {self.name}. '
+                             f'Allowed solvers are {self.ALLOWED_SYSTEMS}.')
 
         bad_scaling_keys = set(self.beta_scaling).difference(self.BETA_SCALING_KEYS)
         if bad_scaling_keys:

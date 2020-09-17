@@ -1,6 +1,6 @@
 data:
-  infection_version: '2020_08_26.01'
-  covariate_version: '2020_08_27.04'
+  infection_version: '2020_09_15.01'
+  covariate_version: '2020_09_16.05'
   location_set_version_id: ''
   location_set_file: '/ihme/covid-19/seir-pipeline-outputs/metadata-inputs/location_metadata_771.csv'
   output_root: ''
@@ -30,8 +30,8 @@ covariates:
   pneumonia:
     order: 0
     use_re: False
-    gprior: [0.0, 0.1]
-    bounds: [0.9, 1.31]
+    gprior: [0.0, 1000]
+    bounds: [0.0, 1000]
     re_var: 1.0
     draws: False
   mobility:
@@ -44,8 +44,8 @@ covariates:
   mask_use:
     order: 0
     use_re: False
-    gprior: [0., 0.21]
-    bounds: [-0.52, 0.0]
+    gprior: [0., 1000]
+    bounds: [-1000, 0.0]
     re_var: 1.0
     draws: False
   testing:
