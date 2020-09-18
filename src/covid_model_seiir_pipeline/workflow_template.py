@@ -33,17 +33,17 @@ class ExecutorParameters(ExecutorParameters_):
 
     @abc.abstractmethod
     @property
-    def default_runtime(self):
+    def default_runtime(self) -> int:
         ...
 
     @abc.abstractmethod
     @property
-    def default_memory(self):
+    def default_memory(self) -> str:
         ...
 
     @abc.abstractmethod
     @property
-    def default_cores(self):
+    def default_cores(self) -> int:
         ...
 
     def to_dict(self):

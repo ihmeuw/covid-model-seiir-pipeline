@@ -12,16 +12,17 @@ from covid_model_seiir_pipeline.workflow_template import (
 
 class RegressionTaskParams(ExecutorParameters):
 
-    def __init__(self,
-                 queue,
-                 max_runtime_seconds=None,
-                 m_mem_free='2G',
-                 num_cores=1, **kwargs):
-        super().__init__(num_cores=num_cores,
-                         queue=queue,
-                         max_runtime_seconds=max_runtime_seconds,
-                         m_mem_free=m_mem_free,
-                         **kwargs)
+    @property
+    def default_cores(self) -> int:
+        return 1
+
+    @property
+    def default_memory(self) -> str:
+        return '2G'
+
+    @property
+    def default_runtime(self) -> int:
+        return 3000
 
 
 class RegressionWorkflowSpecification(WorkflowSpecification):
