@@ -1,3 +1,5 @@
+import shutil
+
 from jobmon.client.swarm.executors.base import ExecutorParameters
 
 from covid_model_seiir_pipeline.workflow_template import TaskTemplate, WorkflowTemplate
@@ -6,7 +8,7 @@ from covid_model_seiir_pipeline.workflow_template import TaskTemplate, WorkflowT
 class BetaRegressionTaskTemplate(TaskTemplate):
     task_name_template = "beta_regression_draw_{draw_id}"
     command_template = (
-            "beta_regression " +
+            f"{shutil.which('beta_regression')} " +
             "--draw-id {draw_id} " +
             "--regression-version {regression_version} "
     )
