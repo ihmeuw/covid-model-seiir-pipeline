@@ -1,3 +1,5 @@
+from typing import Dict
+
 from jobmon.client.swarm.executors.base import ExecutorParameters
 
 from covid_model_seiir_pipeline.workflow_template import TaskTemplate, WorkflowTemplate
@@ -20,8 +22,22 @@ class BetaRegressionTaskTemplate(TaskTemplate):
 
 class RegressionWorkflow(WorkflowTemplate):
 
-    workflow_name_template = 'seiir-regression-{version}'
-    task_templates = {'regression': BetaRegressionTaskTemplate()}
+    @property
+    def workflow_name_template(self) -> str:
+        return 'seiir-regression-{version}'
+
+    def build_task_templates(self, task_specifications: Dict[str, ExecutorParameters]):
+        return {
+            'regression': TaskTemplate(
+                task_name_template="beta_regression_draw_{draw_id}",
+                command_template=(
+                        "beta_regression " +
+                        "--draw-id {draw_id} " +
+                        "--regression-version {regression_version} "
+                ),
+                params=task_specifications['regression']
+            )
+        }
 
     def attach_tasks(self, n_draws: int):
         regression_template = self.task_templates['regression']

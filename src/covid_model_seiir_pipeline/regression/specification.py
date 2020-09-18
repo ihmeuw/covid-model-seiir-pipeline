@@ -2,6 +2,36 @@ from dataclasses import dataclass, field
 from typing import Dict, Tuple, List
 
 from covid_model_seiir_pipeline.utilities import Specification, asdict
+from covid_model_seiir_pipeline.workflow_template import (
+    ExecutorParameters,
+    WorkflowSpecification,
+    DEFAULT_PROJECT,
+    DEFAULT_QUEUE
+)
+
+
+class RegressionTaskParams(ExecutorParameters):
+
+    def __init__(self,
+                 queue,
+                 max_runtime_seconds=3000,
+                 m_mem_free='2G',
+                 num_cores=1, **kwargs):
+        super().__init__(num_cores=num_cores,
+                         queue=queue,
+                         max_runtime_seconds=max_runtime_seconds,
+                         m_mem_free=m_mem_free,
+                         **kwargs)
+
+
+class RegressionWorkflowSpecification(WorkflowSpecification):
+
+    @classmethod
+    def from_dict(cls, regression_workflow_spec: Dict):
+        project = regression_workflow_spec.get('project', DEFAULT_PROJECT)
+        queue = regression_workflow_spec.get('queue', DEFAULT_QUEUE)
+        regression_task_spec = regression_workflow_spec.get('beta_regression', {})
+        return cls(project, {'beta_regression': RegressionTaskParams(queue, **regression_task_spec)})
 
 
 @dataclass
@@ -64,10 +94,12 @@ class RegressionSpecification(Specification):
     def __init__(self,
                  data: RegressionData,
                  parameters: FitParameters,
-                 covariates: List[CovariateSpecification]):
+                 covariates: List[CovariateSpecification],
+                 workflow: RegressionWorkflowSpecification):
         self._data = data
         self._parameters = parameters
         self._covariates = {c.name: c for c in covariates}
+        self._workflow = workflow
 
     @classmethod
     def parse_spec_dict(cls, regression_spec_dict: Dict) -> Tuple:
@@ -83,7 +115,9 @@ class RegressionSpecification(Specification):
         if not covariates:  # Assume we're generating for a template
             covariates.append(CovariateSpecification())
 
-        return data, parameters, covariates
+        workflow = RegressionWorkflowSpecification.from_dict(regression_spec_dict.get('workflow', {}))
+
+        return data, parameters, covariates, workflow
 
     @property
     def data(self) -> RegressionData:
@@ -100,12 +134,18 @@ class RegressionSpecification(Specification):
         """The covariates for the regression."""
         return self._covariates
 
+    @property
+    def workflow(self) -> RegressionWorkflowSpecification:
+        """The regression workflow specification"""
+        return self._workflow
+
     def to_dict(self) -> Dict:
         """Converts the specification to a dict."""
         spec = {
             'data': self.data.to_dict(),
             'parameters': self.parameters.to_dict(),
             'covariates': {k: v.to_dict() for k, v in self._covariates.items()},
+            'workflow': self.workflow.to_dict(),
         }
         return spec
 
