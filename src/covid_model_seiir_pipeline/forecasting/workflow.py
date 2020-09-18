@@ -1,4 +1,5 @@
 import itertools
+import shutil
 from typing import Dict, List
 
 from jobmon.client import BashTask
@@ -28,7 +29,7 @@ class BetaResidualScalingTaskTemplate(TaskTemplate):
 
     task_name_template = 'beta_residual_scaling_{scenario}'
     command_template = (
-            "beta_residual_scaling " +
+            f"{shutil.which('beta_residual_scaling')} " +
             "--forecast-version {forecast_version} " +
             "--scenario-name {scenario}"
     )
@@ -44,7 +45,7 @@ class BetaForecastTaskTemplate(TaskTemplate):
 
     task_name_template = "forecast_{scenario}_{draw_id}"
     command_template = (
-        "beta_forecast " +
+        f"{shutil.which('beta_forecast')} " +
         "--draw-id {draw_id} " +
         "--forecast-version {forecast_version} " +
         "--scenario-name {scenario} " +
@@ -61,7 +62,7 @@ class BetaForecastTaskTemplate(TaskTemplate):
 class ResampleMapTaskTemplate(TaskTemplate):
     task_name_template = "seiir_resample_map"
     command_template = (
-            "resample_map " +
+            f"{shutil.which('resample_map')} " +
             "--forecast-version {forecast_version} "
     )
     params = ExecutorParameters(
@@ -75,7 +76,7 @@ class ResampleMapTaskTemplate(TaskTemplate):
 class PostprocessingTaskTemplate(TaskTemplate):
     task_name_template = "{measure}_{scenario}_post_processing"
     command_template = (
-            "postprocess " +
+            f"{shutil.which('postprocess')} " +
             "--forecast-version {forecast_version} "
             "--scenario-name {scenario} "
             "--measure {measure}"
@@ -91,7 +92,7 @@ class PostprocessingTaskTemplate(TaskTemplate):
 class MeanLevelMandateReimpositionTaskTemplate(TaskTemplate):
     task_name_template = "reimposition_{reimposition_number}_{scenario}"
     command_template = (
-            "mean_level_mandate_reimposition " +
+            f"{shutil.which('mean_level_mandate_reimposition')} " +
             "--forecast-version {forecast_version} "
             "--scenario-name {scenario} "
             "--reimposition-number {reimposition_number}"
