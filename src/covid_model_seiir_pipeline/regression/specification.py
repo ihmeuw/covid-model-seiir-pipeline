@@ -14,7 +14,7 @@ class RegressionTaskParams(ExecutorParameters):
 
     def __init__(self,
                  queue,
-                 max_runtime_seconds=3000,
+                 max_runtime_seconds=None,
                  m_mem_free='2G',
                  num_cores=1, **kwargs):
         super().__init__(num_cores=num_cores,

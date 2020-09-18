@@ -13,6 +13,39 @@ DEFAULT_QUEUE = 'd.q'
 
 class ExecutorParameters(ExecutorParameters_):
 
+    def __init__(self,
+                 queue: str,
+                 max_runtime_seconds: int = None,
+                 m_mem_free: str = None,
+                 num_cores: int = None,
+                 **kwargs):
+        if max_runtime_seconds is None:
+            max_runtime_seconds = self.default_runtime
+        if m_mem_free is None:
+            m_mem_free = self.default_memory
+        if num_cores is None:
+            num_cores = self.default_cores
+        super().__init__(num_cores=num_cores,
+                         queue=queue,
+                         max_runtime_seconds=max_runtime_seconds,
+                         m_mem_free=m_mem_free,
+                         **kwargs)
+
+    @abc.abstractmethod
+    @property
+    def default_runtime(self):
+        ...
+
+    @abc.abstractmethod
+    @property
+    def default_memory(self):
+        ...
+
+    @abc.abstractmethod
+    @property
+    def default_cores(self):
+        ...
+
     def to_dict(self):
         return self.to_wire()
 
