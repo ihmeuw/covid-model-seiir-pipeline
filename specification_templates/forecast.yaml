@@ -76,8 +76,3 @@ scenarios:
       lri_mortality: 'reference'
       proportion_under_100m: 'reference'
       proportion_over_2_5k: 'reference'
-postprocessing:
-  resampling:
-    reference_scenario: 'worse'
-    lower_quantile: 0.025
-    upper_quantile: 0.975

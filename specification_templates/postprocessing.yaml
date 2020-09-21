@@ -1,0 +1,18 @@
+data:
+  forecast_version: 'best'
+  include_scenarios:
+    - 'worse'
+    - 'reference'
+    - 'best_masks'
+  output_root: ''
+resampling:
+  reference_scenario: 'worse'
+  lower_quantile: 0.025
+  upper_quantile: 0.975
+splicing:
+  locations: [33, 85, 555, 4693]
+  forecast_version: '/path/to/other/forecast/version'
+aggregation:
+  location_file: ''
+  location_set_id: 111
+  location_set_version_id: 771

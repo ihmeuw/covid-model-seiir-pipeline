@@ -96,46 +96,30 @@ class ScenarioSpecification:
         return {k: v for k, v in asdict(self).items() if k != 'name'}
 
 
-@dataclass
-class PostprocessingSpecification:
-
-    resampling: Dict = field(default_factory=dict)
-
-    def to_dict(self) -> Dict:
-        return asdict(self)
-
-
 class ForecastSpecification(Specification):
     """Specification for a beta forecast run."""
 
     def __init__(self, data: ForecastData,
-                 postprocessing: PostprocessingSpecification,
                  *scenarios: ScenarioSpecification):
         self._data = data
-        self._postprocessing = postprocessing
         self._scenarios = {s.name: s for s in scenarios}
 
     @classmethod
     def parse_spec_dict(cls, forecast_spec_dict: Dict) -> Tuple:
         """Construct forecast specification args from a dict."""
         data = ForecastData(**forecast_spec_dict.get('data', {}))
-        postprocessing = PostprocessingSpecification(**forecast_spec_dict.get('postprocessing', {}))
         scenario_dicts = forecast_spec_dict.get('scenarios', {})
         scenarios = []
         for name, scenario_spec in scenario_dicts.items():
             scenarios.append(ScenarioSpecification(name, **scenario_spec))
         if not scenarios:
             scenarios.append(ScenarioSpecification())
-        return tuple(itertools.chain([data, postprocessing], scenarios))
+        return tuple(itertools.chain([data], scenarios))
 
     @property
     def data(self) -> 'ForecastData':
         """The forecast data specification."""
         return self._data
-
-    @property
-    def postprocessing(self) -> PostprocessingSpecification:
-        return self._postprocessing
 
     @property
     def scenarios(self) -> Dict[str, ScenarioSpecification]:
@@ -146,6 +130,101 @@ class ForecastSpecification(Specification):
         """Convert the specification to a dict."""
         return {
             'data': self.data.to_dict(),
-            'postprocessing': self.postprocessing.to_dict(),
             'scenarios': {k: v.to_dict() for k, v in self._scenarios.items()}
+        }
+
+
+@dataclass
+class PostprocessingData:
+    """Specifies the inputs and outputs for postprocessing."""
+    forecast_version: str = field(default='best')
+    include_scenarios: list = field(default_factory=lambda: ['worse', 'reference', 'best_masks'])
+    output_root: str = field(default='')
+
+    def to_dict(self) -> Dict:
+        """Converts to a dict, coercing list-like items to lists."""
+        return asdict(self)
+
+
+@dataclass
+class ResamplingSpecification:
+    """Specifies parameters for draw resampling."""
+    reference_scenario: str = field(default='worse')
+    lower_quantile: float = field(default=0.025)
+    upper_quantile: float = field(default=0.975)
+
+    def to_dict(self) -> Dict:
+        """Converts to a dict, coercing list-like items to lists."""
+        return asdict(self)
+
+
+@dataclass
+class SplicingSpecification:
+    """Specifies locations and inputs for splicing."""
+    locations: list = field(default_factory=list)
+    forecast_version: str = field(default='')
+
+    def to_dict(self) -> Dict:
+        """Converts to a dict, coercing list-like items to lists."""
+        return asdict(self)
+
+
+@dataclass
+class AggregationSpecification:
+    """Specifies hierarchy and parameters for aggregation."""
+    location_file: str = field(default='')
+    location_set_id: int = field(default=None)
+    location_set_version_id: int = field(default=None)
+
+    def to_dict(self) -> Dict:
+        """Converts to a dict, coercing list-like items to lists."""
+        return asdict(self)
+
+
+class PostprocessingSpecification(Specification):
+
+    def __init__(self,
+                 data: PostprocessingData,
+                 resampling: ResamplingSpecification,
+                 splicing: SplicingSpecification,
+                 aggregation: AggregationSpecification):
+        self._data = data
+        self._resampling = resampling
+        self._splicing = splicing
+        self._aggregation = aggregation
+
+    @classmethod
+    def parse_spec_dict(cls, postprocessing_spec_dict: Dict) -> Tuple:
+        """Construct postprocessing specification args from a dict."""
+        data = PostprocessingData(**postprocessing_spec_dict.get('data', {}))
+        resampling = ResamplingSpecification(**postprocessing_spec_dict.get('resampling', {}))
+        splicing = SplicingSpecification(**postprocessing_spec_dict.get('splicing', {}))
+        aggregation = AggregationSpecification(**postprocessing_spec_dict.get('aggregation', {}))
+
+        return data, resampling, splicing, aggregation
+
+    @property
+    def data(self) -> PostprocessingData:
+        """The postprocessing data specification."""
+        return self._data
+
+    @property
+    def resampling(self) -> ResamplingSpecification:
+        return self._resampling
+
+    @property
+    def splicing(self) -> SplicingSpecification:
+        return self._splicing
+
+    @property
+    def aggregation(self) -> AggregationSpecification:
+        return self._aggregation
+
+    def to_dict(self):
+        """Convert the specification to a dict."""
+        return {
+            'data': self.data.to_dict(),
+            'resampling': self.resampling.to_dict(),
+            'splicing': self.splicing.to_dict(),
+            'aggregation': self.aggregation.to_dict()
         }
