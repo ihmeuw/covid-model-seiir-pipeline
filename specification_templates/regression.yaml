@@ -1,6 +1,6 @@
 data:
-  infection_version: '2020_09_15.01'
-  covariate_version: '2020_09_16.05'
+  infection_version: '2020_09_23.01'
+  covariate_version: '2020_09_22.03'
   location_set_version_id: ''
   location_set_file: '/ihme/covid-19/seir-pipeline-outputs/metadata-inputs/location_metadata_771.csv'
   output_root: ''
@@ -31,7 +31,7 @@ covariates:
     order: 0
     use_re: False
     gprior: [0.0, 0.1]
-    bounds: [0.9, 1.3]
+    bounds: [0.0, 1.3]
     re_var: 1.0
     draws: False
   mobility:
