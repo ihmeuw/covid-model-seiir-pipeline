@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field
 import itertools
-from typing import Dict, Tuple, Union
+from typing import Dict, List, Tuple, Union
 
 from covid_model_seiir_pipeline.utilities import Specification, asdict
 
@@ -150,6 +150,7 @@ class PostprocessingData:
 class ResamplingSpecification:
     """Specifies parameters for draw resampling."""
     reference_scenario: str = field(default='worse')
+    reference_date: str = field(default='2020-01-01')
     lower_quantile: float = field(default=0.025)
     upper_quantile: float = field(default=0.975)
 
@@ -186,7 +187,7 @@ class PostprocessingSpecification(Specification):
     def __init__(self,
                  data: PostprocessingData,
                  resampling: ResamplingSpecification,
-                 splicing: SplicingSpecification,
+                 splicing: List[SplicingSpecification],
                  aggregation: AggregationSpecification):
         self._data = data
         self._resampling = resampling
@@ -198,7 +199,8 @@ class PostprocessingSpecification(Specification):
         """Construct postprocessing specification args from a dict."""
         data = PostprocessingData(**postprocessing_spec_dict.get('data', {}))
         resampling = ResamplingSpecification(**postprocessing_spec_dict.get('resampling', {}))
-        splicing = SplicingSpecification(**postprocessing_spec_dict.get('splicing', {}))
+        splicing_configs = postprocessing_spec_dict.get('splicing', [])
+        splicing = [SplicingSpecification(**splicing_config) for splicing_config in splicing_configs]
         aggregation = AggregationSpecification(**postprocessing_spec_dict.get('aggregation', {}))
 
         return data, resampling, splicing, aggregation
@@ -213,7 +215,7 @@ class PostprocessingSpecification(Specification):
         return self._resampling
 
     @property
-    def splicing(self) -> SplicingSpecification:
+    def splicing(self) -> List[SplicingSpecification]:
         return self._splicing
 
     @property
@@ -225,6 +227,6 @@ class PostprocessingSpecification(Specification):
         return {
             'data': self.data.to_dict(),
             'resampling': self.resampling.to_dict(),
-            'splicing': self.splicing.to_dict(),
+            'splicing': [splicing_config.to_dict() for splicing_config in self.splicing],
             'aggregation': self.aggregation.to_dict()
         }
