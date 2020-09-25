@@ -7,8 +7,8 @@ from loguru import logger
 from covid_model_seiir_pipeline import utilities
 from covid_model_seiir_pipeline.regression.specification import RegressionSpecification
 from covid_model_seiir_pipeline.regression.main import do_beta_regression
-from covid_model_seiir_pipeline.forecasting.specification import ForecastSpecification
-from covid_model_seiir_pipeline.forecasting.main import do_beta_forecast
+from covid_model_seiir_pipeline.forecasting.specification import ForecastSpecification, PostprocessingSpecification
+from covid_model_seiir_pipeline.forecasting.main import do_beta_forecast, do_postprocessing
 from covid_model_seiir_pipeline.predictive_validity.specification import PredictiveValiditySpecification
 from covid_model_seiir_pipeline.predictive_validity.main import do_predictive_validity
 
@@ -103,6 +103,8 @@ def regress(run_metadata,
 @cli_tools.pass_run_metadata()
 @click.argument('forecast_specification',
                 type=click.Path(exists=True, dir_okay=False))
+@click.option('--postprocesssing-specification',
+              type=click.Path(exists=True, dir_okay=False))
 @click.option('--regression-version',
               type=click.Path(file_okay=False),
               help="Which version of ode fit inputs to use in the"
@@ -118,13 +120,16 @@ def regress(run_metadata,
                    "tasks individually.")
 @cli_tools.add_output_options(paths.SEIR_FORECAST_OUTPUTS)
 @cli_tools.add_verbose_and_with_debugger
+@click.pass_context
 def forecast(run_metadata,
              forecast_specification,
+             postprocessing_specification,
              regression_version,
              covariates_version,
              preprocess_only,
              output_root, mark_best, production_tag,
-             verbose, with_debugger):
+             verbose, with_debugger,
+             ctx):
     """Perform beta forecast for a set of scenarios on a regression."""
     cli_tools.configure_logging_to_terminal(verbose)
 
@@ -153,6 +158,63 @@ def forecast(run_metadata,
     main = cli_tools.monitor_application(do_beta_forecast,
                                          logger, with_debugger)
     app_metadata, _ = main(forecast_spec, preprocess_only)
+
+    run_metadata['app_metadata'] = app_metadata.to_dict()
+    run_metadata.dump(run_directory / 'metadata.yaml')
+
+    cli_tools.make_links(app_metadata, run_directory, mark_best, production_tag)
+
+    logger.info('**Done**')
+
+    if postprocessing_specification is not None:
+        logger.info('Starting postprocessing.')
+        ctx.invoke(postprocess,
+                   postprocessing_specification=postprocessing_specification,
+                   forecast_version=forecast_spec.data.output_root,
+                   mark_best=mark_best,
+                   production_tag=production_tag,
+                   verbose=verbose,
+                   with_debugger=with_debugger)
+
+
+@seiir.command()
+@cli_tools.pass_run_metadata()
+@click.argument('postprocessing_specification',
+                type=click.Path(exists=True, dir_okay=False))
+@click.option('--forecast-version',
+              type=click.Path(file_okay=False),
+              help="Which version of ode fit inputs to use in the"
+                   "regression.")
+@cli_tools.add_output_options(paths.SEIR_FINAL_OUTPUTS)
+@cli_tools.add_verbose_and_with_debugger
+def postprocess(run_metadata,
+                postprocessing_specification,
+                forecast_version,
+                output_root, mark_best, production_tag,
+                verbose, with_debugger):
+    cli_tools.configure_logging_to_terminal(verbose)
+
+    postprocessing_spec = PostprocessingSpecification.from_path(postprocessing_specification)
+
+    forecast_root = utilities.get_input_root(forecast_version,
+                                             postprocessing_spec.data.forecast_version,
+                                             paths.SEIR_FORECAST_OUTPUTS)
+    output_root = utilities.get_output_root(output_root,
+                                            postprocessing_spec.data.output_root)
+    cli_tools.setup_directory_structure(output_root, with_production=True)
+    run_directory = cli_tools.make_run_directory(output_root)
+
+    postprocessing_spec.data.forecast_version = str(forecast_root.resolve())
+    postprocessing_spec.data.output_root = str(run_directory)
+
+    run_metadata.update_from_path('forecast_metadata', forecast_root / paths.METADATA_FILE_NAME)
+    run_metadata['output_path'] = str(run_directory)
+    run_metadata['postprocessing_specification'] = postprocessing_spec.to_dict()
+
+    cli_tools.configure_logging_to_files(run_directory)
+    main = cli_tools.monitor_application(do_postprocessing,
+                                         logger, with_debugger)
+    app_metadata, _ = main(postprocessing_spec)
 
     run_metadata['app_metadata'] = app_metadata.to_dict()
     run_metadata.dump(run_directory / 'metadata.yaml')

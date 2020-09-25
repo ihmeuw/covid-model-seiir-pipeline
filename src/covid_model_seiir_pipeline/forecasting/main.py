@@ -2,7 +2,7 @@ from covid_shared import cli_tools
 from jobmon.client.swarm.workflow.workflow import WorkflowAlreadyComplete
 from loguru import logger
 
-from covid_model_seiir_pipeline.forecasting.specification import ForecastSpecification
+from covid_model_seiir_pipeline.forecasting.specification import ForecastSpecification, PostprocessingSpecification
 from covid_model_seiir_pipeline.forecasting.data import ForecastDataInterface
 from covid_model_seiir_pipeline.forecasting.workflow import ForecastWorkflow
 
@@ -33,3 +33,8 @@ def do_beta_forecast(app_metadata: cli_tools.Metadata,
             forecast_wf.run()
         except WorkflowAlreadyComplete:
             logger.info('Workflow already complete')
+
+
+def do_postprocessing(app_metadata: cli_tools.Metadata,
+                      postprocessing_specification: PostprocessingSpecification):
+    logger.debug('Starting postprocessing')
