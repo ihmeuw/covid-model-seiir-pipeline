@@ -51,6 +51,7 @@ def run_beta_forecast(draw_id: int, forecast_version: str, scenario_name: str, *
     covariates = covariates.set_index('location_id').sort_index()
     the_future = covariates['date'] >= transition_date.loc[covariates.index]
     covariate_pred = covariates.loc[the_future].reset_index()
+
     if scenario_spec.algorithm == 'mean_level_mandate_reimposition':
         # Info data specific to mandate reimposition
         percent_mandates = data_interface.load_covariate_info('mobility', 'mandate_lift', location_ids)

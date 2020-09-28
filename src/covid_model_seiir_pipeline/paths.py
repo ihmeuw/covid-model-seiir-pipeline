@@ -140,6 +140,67 @@ class ForecastPaths(Paths):
 
 
 @dataclass
+class PostprocessingScenarioPaths(Paths):
+    """Local directory structure of a forecasting data root."""
+    output_draws_file: ClassVar[str] = MEASURE_FILE_TEMPLATE
+    output_summary_file: ClassVar[str] = MEASURE_FILE_TEMPLATE
+    output_miscellaneous_file: ClassVar[str] = MEASURE_FILE_TEMPLATE
+
+    @property
+    def output_draws(self) -> Path:
+        return self.root_dir / 'output_draws'
+
+    def get_output_draws_path(self, measure: str):
+        return self.output_draws / self.output_draws_file.format(measure=measure)
+
+    @property
+    def output_summaries(self) -> Path:
+        return self.root_dir / 'output_summaries'
+
+    def get_output_summaries_path(self, measure: str):
+        return self.output_draws / self.output_summary_file.format(measure=measure)
+
+    @property
+    def output_miscellaneous(self) -> Path:
+        return self.root_dir / 'output_miscellaneous'
+
+    def get_output_miscellaneous_path(self, measure: str):
+        return self.output_miscellaneous / self.output_miscellaneous_file.format(measure=measure)
+
+    @property
+    def directories(self) -> List[Path]:
+        """Returns all top level sub-directories."""
+        return [self.output_draws, self.output_summaries, self.output_miscellaneous]
+
+
+@dataclass
+class PostprocessingPaths(Paths):
+    scenarios: List[str] = field(default_factory=list)
+    scenario_paths: Dict[str, ScenarioPaths] = field(init=False)
+
+    def __post_init__(self):
+        self.scenario_paths = {scenario: PostprocessingScenarioPaths(self.root_dir / scenario, self.read_only)
+                               for scenario in self.scenarios}
+
+    @property
+    def postprocessing_specification(self) -> Path:
+        return self.root_dir / 'postprocessing_specification.yaml'
+
+    def get_output_draws_path(self, measure: str, scenario: str) -> Path:
+        return self.scenario_paths[scenario].get_output_draws_path(measure)
+
+    def get_output_summaries_path(self, measure: str, scenario: str) -> Path:
+        return self.scenario_paths[scenario].get_output_summaries_path(measure)
+
+    def get_outputs_miscellaneous_path(self, measure: str, scenario: str) -> Path:
+        return self.scenario_paths[scenario].get_output_miscellaneous_path(measure)
+
+    def make_dirs(self):
+        for scenario_paths in self.scenario_paths.values():
+            scenario_paths.make_dirs()
+
+
+@dataclass
 class RegressionPaths(Paths):
     # class attributes are inferred using ClassVar. See pep 557 (Class Variables)
     beta_param_file: ClassVar[str] = DRAW_FILE_TEMPLATE
