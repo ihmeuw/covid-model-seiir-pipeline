@@ -279,11 +279,13 @@ def load_modeled_hierarchy(data_interface: ForecastDataInterface):
 
 def build_resampling_map(deaths, resampling_params: ResamplingSpecification):
     cumulative_deaths = deaths.groupby(level='location_id').cumsum().reset_index()
+    cumulative_deaths['date'] = pd.to_datetime(cumulative_deaths['date'])
     reference_deaths = (cumulative_deaths[cumulative_deaths.date == pd.Timestamp(resampling_params.reference_date)]
                         .set_index('location_id')
                         .drop(columns=['date', 'observed']))
     upper_deaths = reference_deaths.quantile(resampling_params.upper_quantile, axis=1)
     lower_deaths = reference_deaths.quantile(resampling_params.lower_quantile, axis=1)
+    
     resample_map = {}
     for location_id in reference_deaths.index:
         upper, lower = upper_deaths.at[location_id], lower_deaths.at[location_id]

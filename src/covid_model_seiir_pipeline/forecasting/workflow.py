@@ -77,7 +77,7 @@ class PostprocessingTaskTemplate(TaskTemplate):
     task_name_template = "{measure}_{scenario}_post_processing"
     command_template = (
             f"{shutil.which('postprocess')} " +
-            "--forecast-version {forecast_version} "
+            "--output-version {output_version} "
             "--scenario-name {scenario} "
             "--measure {measure}"
     )
@@ -225,7 +225,7 @@ class PostprocessingWorkflow(WorkflowTemplate):
             measures = itertools.chain(MEASURES, MISCELLANEOUS, covariates)
             for measure in measures:
                 postprocessing_task = postprocessing_template.get_task(
-                    forecast_version=self.version,
+                    output_version=self.version,
                     scenario=scenario_name,
                     measure=measure,
                 )
