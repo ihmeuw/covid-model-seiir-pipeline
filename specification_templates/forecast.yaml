@@ -1,6 +1,6 @@
 data:
-  regression_version: '2020_09_16.05'
-  covariate_version: '2020_09_16.05'
+  regression_version: '2020_09_23.01'
+  covariate_version: '2020_09_22.03'
   output_root: ''
 scenarios:
   worse:
@@ -58,7 +58,7 @@ scenarios:
       minimum_delay: 7 # days
       reimposition_count: 4
     solver: 'RK45'
-    system: 'old_theta'
+    system: 'old_theta'                                                                                                                                                                                                                                               
     beta_scaling:
       window_size: 42
       average_over_min: 7
