@@ -1,11 +1,10 @@
 data:
-  forecast_version: 'best'
+  forecast_version: 'latest'
   include_scenarios:
     - 'worse'
-    - 'reference'
-    - 'best_masks'
+#    - 'reference'
+#    - 'best_masks'
   output_root: ''
-
 splicing:
   - locations: [33, 85, 555, 4693]
     forecast_version: '/path/to/other/forecast/version'
