@@ -7,7 +7,7 @@ import pandas as pd
 import yaml
 
 from covid_model_seiir_pipeline import paths
-from covid_model_seiir_pipeline.forecasting.specification import ForecastSpecification, ScenarioSpecification
+from covid_model_seiir_pipeline.forecasting.specification import ForecastSpecification, ScenarioSpecification, PostprocessingSpecification
 from covid_model_seiir_pipeline.marshall import (
     CSVMarshall,
     Keys as MKeys,
@@ -22,17 +22,23 @@ class ForecastDataInterface:
                  forecast_paths: paths.ForecastPaths,
                  regression_paths: paths.RegressionPaths,
                  covariate_paths: paths.CovariatePaths,
+                 postprocessing_paths: paths.PostprocessingPaths,
                  regression_marshall,
-                 forecast_marshall):
+                 forecast_marshall,
+                 postprocessing_marshall):
         # TODO: only hang on to marshalls here.
         self.forecast_paths = forecast_paths
         self.regression_paths = regression_paths
         self.covariate_paths = covariate_paths
+        self.postprocessing_paths = postprocessing_paths
         self.regression_marshall = regression_marshall
         self.forecast_marshall = forecast_marshall
+        self.postprocessing_marshall = postprocessing_marshall
 
     @classmethod
-    def from_specification(cls, specification: ForecastSpecification) -> 'ForecastDataInterface':
+    def from_specification(cls,
+                           specification: ForecastSpecification,
+                           postprocessing_specification: PostprocessingSpecification = None) -> 'ForecastDataInterface':
         forecast_paths = paths.ForecastPaths(Path(specification.data.output_root),
                                              read_only=False,
                                              scenarios=list(specification.scenarios))
@@ -42,16 +48,32 @@ class ForecastDataInterface:
         #   configuration on outputs.
         regression_marshall = CSVMarshall.from_paths(regression_paths)
         forecast_marshall = CSVMarshall.from_paths(forecast_paths)
+
+        if postprocessing_specification is not None:
+            postprocessing_paths = paths.PostprocessingPaths(
+                Path(postprocessing_specification.data.output_root),
+                read_only=False,
+                scenarios=list(postprocessing_specification.data.include_scenarios)
+            )
+            postprocessing_marshall = CSVMarshall.from_paths(postprocessing_paths)
+        else:
+            postprocessing_paths = None
+            postprocessing_marshall = None
+
         return cls(
             forecast_paths=forecast_paths,
             regression_paths=regression_paths,
             covariate_paths=covariate_paths,
+            postprocessing_paths=postprocessing_paths,
             regression_marshall=regression_marshall,
             forecast_marshall=forecast_marshall,
+            postprocessing_marshall=postprocessing_marshall
         )
 
     def make_dirs(self):
         self.forecast_paths.make_dirs()
+        if self.postprocessing_paths:
+            self.postprocessing_paths.make_dirs()
 
     def get_n_draws(self) -> int:
         # Fixme: Gross
@@ -244,18 +266,6 @@ class ForecastDataInterface:
             resampling_map = yaml.full_load(map_file)
         return resampling_map
 
-    def save_output_draws(self, output_draws: pd.DataFrame, scenario: str, measure: str):
-        self.forecast_marshall.dump(output_draws,
-                                    key=MKeys.forecast_output_draws(scenario=scenario, measure=measure))
-
-    def save_output_summaries(self, output_summaries: pd.DataFrame, scenario: str, measure: str):
-        self.forecast_marshall.dump(output_summaries,
-                                    key=MKeys.forecast_output_summaries(scenario=scenario, measure=measure))
-
-    def save_output_miscellaneous(self, output_miscellaneous: pd.DataFrame, scenario: str, measure: str):
-        self.forecast_marshall.dump(output_miscellaneous,
-                                    key=MKeys.forecast_output_miscellaneous(scenario=scenario, measure=measure))
-
     def save_reimposition_dates(self, reimposition_dates: pd.DataFrame, scenario: str, reimposition_number: int):
         self.forecast_marshall.dump(reimposition_dates,
                                     key=MKeys.reimposition_dates(scenario=scenario,
@@ -264,6 +274,31 @@ class ForecastDataInterface:
     def load_reimposition_dates(self, scenario: str, reimposition_number: int):
         return self.forecast_marshall.load(key=MKeys.reimposition_dates(scenario=scenario,
                                                                         reimposition_number=reimposition_number))
+
+    def save_output_draws(self, output_draws: pd.DataFrame, scenario: str, measure: str) -> None:
+        self.postprocessing_marshall.dump(output_draws,
+                                          key=MKeys.forecast_output_draws(scenario=scenario, measure=measure))
+
+    def load_output_draws(self, scenario: str, measure: str) -> pd.DataFrame:
+        return self.postprocessing_marshall.load(key=MKeys.forecast_output_draws(scenario=scenario, measure=measure))
+
+    def save_output_summaries(self, output_summaries: pd.DataFrame, scenario: str, measure: str) -> None:
+        self.postprocessing_marshall.dump(output_summaries,
+                                          key=MKeys.forecast_output_summaries(scenario=scenario, measure=measure))
+
+    def load_output_summaries(self, scenario: str, measure: str) -> pd.DataFrame:
+        return self.postprocessing_marshall.load(key=MKeys.forecast_output_summaries(scenario=scenario,
+                                                                                     measure=measure))
+
+    def save_output_miscellaneous(self, output_miscellaneous: pd.DataFrame, scenario: str, measure: str) -> None:
+        self.postprocessing_marshall.dump(output_miscellaneous,
+                                          key=MKeys.forecast_output_miscellaneous(scenario=scenario, measure=measure))
+
+    def load_output_miscellaneous(self, scenario: str, measure: str) -> pd.DataFrame:
+        return self.postprocessing_marshall.load(key=MKeys.forecast_output_miscellaneous(scenario=scenario,
+                                                                                         measure=measure))
+
+
 
 
 

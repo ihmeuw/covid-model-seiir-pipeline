@@ -18,9 +18,9 @@ def run_resample_map(forecast_version: str) -> None:
     forecast_spec = ForecastSpecification.from_path(
         Path(forecast_version) / static_vars.FORECAST_SPECIFICATION_FILE
     )
-    resampling_params = forecast_spec.postprocessing.resampling
+    resampling_params = forecast_spec.resampling
     data_interface = ForecastDataInterface.from_specification(forecast_spec)
-    deaths, *_ = pp.load_output_data(resampling_params['reference_scenario'], data_interface)
+    deaths, *_ = pp.load_output_data(resampling_params.reference_scenario, data_interface)
     deaths = pd.concat(deaths, axis=1)
     resampling_map = pp.build_resampling_map(deaths, resampling_params)
     data_interface.save_resampling_map(resampling_map)

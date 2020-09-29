@@ -1,19 +1,19 @@
 data:
-  regression_version: '2020_09_17.01'
-  covariate_version: '2020_09_16.05'
+  regression_version: '2020_09_23.01'
+  covariate_version: '2020_09_22.03'
   output_root: ''
 scenarios:
   worse:
     algorithm: 'normal'
     solver: 'RK45'
-    system: 'old_theta'
+    system: 'new_theta'
     beta_scaling:
       window_size: 42
       average_over_min: 7
       average_over_max: 42
       offset_deaths_lower: 150
       offset_deaths_upper: 300
-    theta: '/ihme/covid-19/seir-pipeline-outputs/metadata-inputs/theta_2020_08_25.01.csv'
+    theta: '/ihme/covid-19/seir-parameters/2020_09_25.01/thetas.csv'
     covariates:
       pneumonia: 'reference'
       mobility: 'reference'
@@ -24,8 +24,8 @@ scenarios:
       lri_mortality: 'reference'
       proportion_under_100m: 'reference'
       proportion_over_2_5k: 'reference'
-postprocessing:
-  resampling:
-    reference_scenario: 'worse'
-    lower_quantile: 0.025
-    upper_quantile: 0.975
+resampling:
+  reference_scenario: 'worse'
+  reference_date: '2021-12-31'
+  lower_quantile: 0.025
+  upper_quantile: 0.975
