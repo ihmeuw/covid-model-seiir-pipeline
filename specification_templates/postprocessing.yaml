@@ -5,11 +5,7 @@ data:
     - 'reference'
     - 'best_masks'
   output_root: ''
-resampling:
-  reference_scenario: 'worse'
-  reference_date: '2020-01-01'
-  lower_quantile: 0.025
-  upper_quantile: 0.975
+
 splicing:
   - locations: [33, 85, 555, 4693]
     forecast_version: '/path/to/other/forecast/version'

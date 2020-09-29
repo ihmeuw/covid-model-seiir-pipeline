@@ -7,7 +7,7 @@ import numpy as np
 import pandas as pd
 
 from covid_model_seiir_pipeline.forecasting.data import ForecastDataInterface
-from covid_model_seiir_pipeline.forecasting.specification import FORECAST_SCALING_CORES
+from covid_model_seiir_pipeline.forecasting.specification import FORECAST_SCALING_CORES, ResamplingSpecification
 
 
 # TODO: make a model subpackage and put this there.
@@ -277,11 +277,11 @@ def load_modeled_hierarchy(data_interface: ForecastDataInterface):
     return hierarchy[not_most_detailed | modeled]
 
 
-def build_resampling_map(deaths, resampling_params):
+def build_resampling_map(deaths, resampling_params: ResamplingSpecification):
     cumulative_deaths = deaths.groupby(level='location_id').cumsum()
     max_deaths = cumulative_deaths.groupby(level='location_id').max()
-    upper_deaths = max_deaths.quantile(resampling_params['upper_quantile'], axis=1)
-    lower_deaths = max_deaths.quantile(resampling_params['lower_quantile'], axis=1)
+    upper_deaths = max_deaths.quantile(resampling_params.upper_quantile, axis=1)
+    lower_deaths = max_deaths.quantile(resampling_params.lower_quantile, axis=1)
     resample_map = {}
     for location_id in max_deaths.index:
         upper, lower = upper_deaths.at[location_id], lower_deaths.at[location_id]

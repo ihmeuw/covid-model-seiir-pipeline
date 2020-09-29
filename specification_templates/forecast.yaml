@@ -76,3 +76,8 @@ scenarios:
       lri_mortality: 'reference'
       proportion_under_100m: 'reference'
       proportion_over_2_5k: 'reference'
+resampling:
+  reference_scenario: 'worse'
+  reference_date: '2020-01-01'
+  lower_quantile: 0.025
+  upper_quantile: 0.975
