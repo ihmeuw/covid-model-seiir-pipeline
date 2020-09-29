@@ -184,11 +184,17 @@ def forecast(ctx, run_metadata,
               type=click.Path(file_okay=False),
               help="Which version of ode fit inputs to use in the"
                    "regression.")
+@click.option('--preprocess-only',
+              is_flag=True,
+              help="Only make the directory and set up the metadata. "
+                   "Useful for setting up output directories for testing "
+                   "tasks individually.")
 @cli_tools.add_output_options(paths.SEIR_FINAL_OUTPUTS)
 @cli_tools.add_verbose_and_with_debugger
 def postprocess(run_metadata,
                 postprocessing_specification,
                 forecast_version,
+                preprocess_only,
                 output_root, mark_best, production_tag,
                 verbose, with_debugger):
     cli_tools.configure_logging_to_terminal(verbose)
@@ -213,7 +219,7 @@ def postprocess(run_metadata,
     cli_tools.configure_logging_to_files(run_directory)
     main = cli_tools.monitor_application(do_postprocessing,
                                          logger, with_debugger)
-    app_metadata, _ = main(postprocessing_spec)
+    app_metadata, _ = main(postprocessing_spec, preprocess_only)
 
     run_metadata['app_metadata'] = app_metadata.to_dict()
     run_metadata.dump(run_directory / 'metadata.yaml')

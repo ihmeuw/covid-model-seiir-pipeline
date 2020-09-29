@@ -275,18 +275,28 @@ class ForecastDataInterface:
         return self.forecast_marshall.load(key=MKeys.reimposition_dates(scenario=scenario,
                                                                         reimposition_number=reimposition_number))
 
-    def save_output_draws(self, output_draws: pd.DataFrame, scenario: str, measure: str):
+    def save_output_draws(self, output_draws: pd.DataFrame, scenario: str, measure: str) -> None:
         self.postprocessing_marshall.dump(output_draws,
                                           key=MKeys.forecast_output_draws(scenario=scenario, measure=measure))
 
-    def save_output_summaries(self, output_summaries: pd.DataFrame, scenario: str, measure: str):
+    def load_output_draws(self, scenario: str, measure: str) -> pd.DataFrame:
+        return self.postprocessing_marshall.load(key=MKeys.forecast_output_draws(scenario=scenario, measure=measure))
+
+    def save_output_summaries(self, output_summaries: pd.DataFrame, scenario: str, measure: str) -> None:
         self.postprocessing_marshall.dump(output_summaries,
                                           key=MKeys.forecast_output_summaries(scenario=scenario, measure=measure))
 
-    def save_output_miscellaneous(self, output_miscellaneous: pd.DataFrame, scenario: str, measure: str):
+    def load_output_summaries(self, scenario: str, measure: str) -> pd.DataFrame:
+        return self.postprocessing_marshall.load(key=MKeys.forecast_output_summaries(scenario=scenario,
+                                                                                     measure=measure))
+
+    def save_output_miscellaneous(self, output_miscellaneous: pd.DataFrame, scenario: str, measure: str) -> None:
         self.postprocessing_marshall.dump(output_miscellaneous,
                                           key=MKeys.forecast_output_miscellaneous(scenario=scenario, measure=measure))
 
+    def load_output_miscellaneous(self, scenario: str, measure: str) -> pd.DataFrame:
+        return self.postprocessing_marshall.load(key=MKeys.forecast_output_miscellaneous(scenario=scenario,
+                                                                                         measure=measure))
 
 
 
