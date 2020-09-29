@@ -9,11 +9,7 @@ import pandas as pd
 import yaml
 
 from covid_model_seiir_pipeline import static_vars
-from covid_model_seiir_pipeline.forecasting.specification import (
-    ForecastSpecification,
-    ScenarioSpecification,
-    PostprocessingSpecification
-)
+from covid_model_seiir_pipeline.forecasting.specification import ForecastSpecification, ScenarioSpecification
 from covid_model_seiir_pipeline.forecasting.data import ForecastDataInterface
 from covid_model_seiir_pipeline.forecasting import postprocessing_lib as pp
 
@@ -295,16 +291,13 @@ def postprocess_miscellaneous(data_interface: ForecastDataInterface,
             yaml.dump(miscellaneous_data, f)
 
 
-def run_seir_postprocessing(output_version: str, scenario_name: str, measure: str) -> None:
-    logger.info(f'Starting postprocessing for output version {output_version}, scenario {scenario_name}.')
-    postprocessing_spec = PostprocessingSpecification.from_path(
-        Path(output_version) / 'postprocessing_specification.yaml'
-    )
+def run_seir_postprocessing(forecast_version: str, scenario_name: str, measure: str) -> None:
+    logger.info(f'Starting postprocessing for forecast version {forecast_version}, scenario {scenario_name}.')
     forecast_spec = ForecastSpecification.from_path(
-        Path(postprocessing_spec.data.forecast_version) / static_vars.FORECAST_SPECIFICATION_FILE
+        Path(forecast_version) / static_vars.FORECAST_SPECIFICATION_FILE
     )
     scenario_spec = forecast_spec.scenarios[scenario_name]
-    data_interface = ForecastDataInterface.from_specification(forecast_spec, postprocessing_spec)
+    data_interface = ForecastDataInterface.from_specification(forecast_spec)
     resampling_map = data_interface.load_resampling_map()
 
     if measure in MEASURES:
@@ -325,7 +318,7 @@ def parse_arguments(argstr: Optional[str] = None) -> Namespace:
     """
     logger.info("parsing arguments")
     parser = ArgumentParser()
-    parser.add_argument("--output-version", type=str, required=True)
+    parser.add_argument("--forecast-version", type=str, required=True)
     parser.add_argument("--scenario-name", type=str, required=True)
     parser.add_argument("--measure", type=str, required=True)
 
@@ -341,7 +334,7 @@ def parse_arguments(argstr: Optional[str] = None) -> Namespace:
 def main():
     configure_logging_to_terminal(verbose=1)  # Debug level
     args = parse_arguments()
-    run_seir_postprocessing(output_version=args.output_version,
+    run_seir_postprocessing(forecast_version=args.forecast_version,
                             scenario_name=args.scenario_name,
                             measure=args.measure)
 
