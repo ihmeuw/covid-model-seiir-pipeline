@@ -101,9 +101,10 @@ def regress(run_metadata,
 
 @seiir.command()
 @cli_tools.pass_run_metadata()
+@click.pass_context
 @click.argument('forecast_specification',
                 type=click.Path(exists=True, dir_okay=False))
-@click.option('--postprocesssing-specification',
+@click.option('--postprocessing-specification',
               type=click.Path(exists=True, dir_okay=False))
 @click.option('--regression-version',
               type=click.Path(file_okay=False),
@@ -120,16 +121,14 @@ def regress(run_metadata,
                    "tasks individually.")
 @cli_tools.add_output_options(paths.SEIR_FORECAST_OUTPUTS)
 @cli_tools.add_verbose_and_with_debugger
-@click.pass_context
-def forecast(run_metadata,
+def forecast(ctx, run_metadata,
              forecast_specification,
              postprocessing_specification,
              regression_version,
              covariates_version,
              preprocess_only,
              output_root, mark_best, production_tag,
-             verbose, with_debugger,
-             ctx):
+             verbose, with_debugger):
     """Perform beta forecast for a set of scenarios on a regression."""
     cli_tools.configure_logging_to_terminal(verbose)
 
@@ -166,15 +165,15 @@ def forecast(run_metadata,
 
     logger.info('**Done**')
 
-    if postprocessing_specification is not None:
-        logger.info('Starting postprocessing.')
-        ctx.invoke(postprocess,
-                   postprocessing_specification=postprocessing_specification,
-                   forecast_version=forecast_spec.data.output_root,
-                   mark_best=mark_best,
-                   production_tag=production_tag,
-                   verbose=verbose,
-                   with_debugger=with_debugger)
+#    if postprocessing_specification is not None:
+#        logger.info('Starting postprocessing.')
+#        ctx.invoke(postprocess,
+#                   postprocessing_specification=postprocessing_specification,
+#                   forecast_version=forecast_spec.data.output_root,
+#                   mark_best=mark_best,
+#                   production_tag=production_tag,
+#                   verbose=verbose,
+#                   with_debugger=with_debugger)
 
 
 @seiir.command()
