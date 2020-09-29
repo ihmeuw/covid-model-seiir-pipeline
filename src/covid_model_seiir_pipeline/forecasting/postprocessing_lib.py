@@ -278,14 +278,16 @@ def load_modeled_hierarchy(data_interface: ForecastDataInterface):
 
 
 def build_resampling_map(deaths, resampling_params: ResamplingSpecification):
-    cumulative_deaths = deaths.groupby(level='location_id').cumsum()
-    max_deaths = cumulative_deaths.groupby(level='location_id').max()
-    upper_deaths = max_deaths.quantile(resampling_params.upper_quantile, axis=1)
-    lower_deaths = max_deaths.quantile(resampling_params.lower_quantile, axis=1)
+    cumulative_deaths = deaths.groupby(level='location_id').cumsum().reset_index()
+    reference_deaths = (cumulative_deaths[cumulative_deaths.date == pd.Timestamp(resampling_params.reference_date)]
+                        .set_index('location_id')
+                        .drop(columns=['date', 'observed']))
+    upper_deaths = reference_deaths.quantile(resampling_params.upper_quantile, axis=1)
+    lower_deaths = reference_deaths.quantile(resampling_params.lower_quantile, axis=1)
     resample_map = {}
-    for location_id in max_deaths.index:
+    for location_id in reference_deaths.index:
         upper, lower = upper_deaths.at[location_id], lower_deaths.at[location_id]
-        loc_deaths = max_deaths.loc[location_id]
+        loc_deaths = reference_deaths.loc[location_id]
         to_resample = loc_deaths[(upper < loc_deaths) | (loc_deaths < lower)].index.tolist()
         np.random.seed(location_id)
         to_fill = np.random.choice(loc_deaths.index.difference(to_resample),
