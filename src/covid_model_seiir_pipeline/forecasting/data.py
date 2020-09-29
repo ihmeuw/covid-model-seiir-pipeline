@@ -72,6 +72,8 @@ class ForecastDataInterface:
 
     def make_dirs(self):
         self.forecast_paths.make_dirs()
+        if self.postprocessing_paths:
+            self.postprocessing_paths.make_dirs()
 
     def get_n_draws(self) -> int:
         # Fixme: Gross

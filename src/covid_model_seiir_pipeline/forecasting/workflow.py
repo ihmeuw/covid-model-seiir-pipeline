@@ -137,7 +137,7 @@ class ForecastWorkflow(WorkflowTemplate):
         'sentinel': JoinSentinelTaskTemplate(),
     }
 
-    def attach_tasks(self, n_draws: int, scenarios: Dict[str, ScenarioSpecification], covariates: List[str]):
+    def attach_tasks(self, n_draws: int, scenarios: Dict[str, ScenarioSpecification]):
         scaling_template = self.task_templates['scaling']
         resample_template = self.task_templates['resample']
         reimpose_template = self.task_templates['reimpose']
@@ -179,10 +179,8 @@ class ForecastWorkflow(WorkflowTemplate):
                     self.workflow.add_task(reimposition_task)
                     forecast_done_task = self._attach_forecast_tasks(scenario_name, n_draws, i + 1, reimposition_task)
 
-                self._attach_postprocessing_tasks(scenario_name, covariates, forecast_done_task, resample_task)
             else:  # All the other stuff is handled in the forecast algorithm at the draw level.
                 forecast_done_task = self._attach_forecast_tasks(scenario_name, n_draws, 0, scaling_task)
-                self._attach_postprocessing_tasks(scenario_name, covariates, forecast_done_task, resample_task)
                 resample_task.add_upstream(forecast_done_task)
 
     def _attach_forecast_tasks(self, scenario_name: str, n_draws: int, extra_id: int,
@@ -206,22 +204,29 @@ class ForecastWorkflow(WorkflowTemplate):
             self.workflow.add_task(forecast_task)
         return sentinel_task
 
-    def _attach_postprocessing_tasks(self, scenario_name: str, covariates: List[str],
-                                     *upstream_tasks: BashTask) -> None:
+
+class PostprocessingWorkflow(WorkflowTemplate):
+
+    workflow_name_template = 'seiir-forecast-{version}'
+    task_templates = {
+        'postprocess': PostprocessingTaskTemplate(),
+    }
+
+    def attach_tasks(self, scenarios: Dict[str, ScenarioSpecification], covariates: List[str]):
         postprocessing_template = self.task_templates['postprocess']
 
-        covariates = set(covariates).difference(['intercept'])
-        unknown_covariates = covariates.difference(COVARIATES)
-        if unknown_covariates:
-            raise NotImplementedError(f'Unknown covariates {unknown_covariates}')
+        for scenario_name, scenario_spec in scenarios.items():
 
-        measures = itertools.chain(MEASURES, MISCELLANEOUS, covariates)
-        for measure in measures:
-            postprocessing_task = postprocessing_template.get_task(
-                forecast_version=self.version,
-                scenario=scenario_name,
-                measure=measure,
-            )
-            for upstream_task in upstream_tasks:
-                postprocessing_task.add_upstream(upstream_task)
-            self.workflow.add_task(postprocessing_task)
+            covariates = set(covariates).difference(['intercept'])
+            unknown_covariates = covariates.difference(COVARIATES)
+            if unknown_covariates:
+                raise NotImplementedError(f'Unknown covariates {unknown_covariates}')
+
+            measures = itertools.chain(MEASURES, MISCELLANEOUS, covariates)
+            for measure in measures:
+                postprocessing_task = postprocessing_template.get_task(
+                    forecast_version=self.version,
+                    scenario=scenario_name,
+                    measure=measure,
+                )
+                self.workflow.add_task(postprocessing_task)
