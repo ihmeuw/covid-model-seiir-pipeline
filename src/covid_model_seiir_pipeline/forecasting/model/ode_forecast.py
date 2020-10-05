@@ -126,7 +126,7 @@ class _VaccineSEIIR(ODESys):
 
         # create component names
         self.components = ['S', 'E', 'I1', 'I2', 'R',
-                           'S_v', 'E_v', 'I1_v', 'I2_v', 'R_v']
+                           'S_v', 'E_v', 'I1_v', 'I2_v', 'R_v', 'R_sv']
 
         super().__init__(self.system, self.params, self.components, *args)
 
@@ -136,7 +136,7 @@ class _VaccineSEIIR(ODESys):
         beta, theta, psi = p
         unvaccinated, vaccinated = y[:5], y[5:]
         s, e, i1, i2, r = unvaccinated
-        s_v, e_v, i1_v, i2_v, r_v = vaccinated
+        s_v, e_v, i1_v, i2_v, r_v, r_sv = vaccinated
 
         n_v = sum(vaccinated)
         i = i1 + i2 + i1_v + i2_v
@@ -151,8 +151,6 @@ class _VaccineSEIIR(ODESys):
         psi_i2 = min(1 - self.gamma2, psi_tilde)
         psi_r = psi_tilde
 
-        phi = psi_s*s + psi_e*e + psi_i1*i1 + psi_i2*i2 + psi_r*r
-
         new_e = beta * s * i**self.alpha / self.N + theta_plus * s
 
         ds = -new_e - psi_s * s
@@ -162,13 +160,14 @@ class _VaccineSEIIR(ODESys):
         dr = self.gamma2*i2 + theta_minus*e - psi_r*r
 
         new_e_v = beta * s_v * i**self.alpha / self.N + theta_plus * s_v
-        ds_v = (1-self.eta)*psi_s * s - new_e_v
-        de_v = new_e_v + (1-self.eta)*psi_e*e - self.sigma*e_v - theta_minus*e_v
-        di1_v = self.sigma*e_v + (1-self.eta)*psi_i1*i1 - self.gamma1*i1_v
-        di2_v = self.gamma1*i1_v + (1-self.eta)*psi_i2*i2 - self.gamma2*i2_v
-        dr_v = self.gamma2*i2_v + theta_minus*e_v + self.eta*phi
+        ds_v = (1-self.eta)*psi_s*s - new_e_v
+        de_v = new_e_v + psi_e*e - self.sigma*e_v - theta_minus*e_v
+        di1_v = self.sigma*e_v + psi_i1*i1 - self.gamma1*i1_v
+        di2_v = self.gamma1*i1_v + psi_i2*i2 - self.gamma2*i2_v
+        dr_v = self.gamma2*i2_v + theta_minus*e_v + psi_r*r
+        dr_sv = self.eta*psi_s*s
         return np.array([ds, de, di1, di2, dr,
-                         ds_v, de_v, di1_v, di2_v, dr_v])
+                         ds_v, de_v, di1_v, di2_v, dr_v, dr_sv])
 
 
 class _SemiRelativeThetaSEIIR(ODESys):
