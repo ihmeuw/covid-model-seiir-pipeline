@@ -29,15 +29,28 @@ def run_beta_forecast(draw_id: int, forecast_version: str, scenario_name: str, *
     # Grab the last day of data in the model by location id.  This will
     # correspond to the initial condition for the projection.
     transition_date = data_interface.load_transition_date(draw_id)
-
+    
     # We'll use the beta and SEIR compartments from this data set to get
     # the ODE initial condition.
     beta_regression_df = data_interface.load_beta_regression(draw_id).set_index('location_id').sort_index()
     past_components = beta_regression_df[['date', 'beta'] + static_vars.SEIIR_COMPARTMENTS]
 
+    # load in vaccine information
+    if scenario_spec.system == 'vaccine':
+        vaccinations = data_interface.load_covariate('daily_vaccinations', 'flat', location_ids)
+        vaccinations = vaccinations.reset_index().set_index('location_id')
+        seiir_compartments = static_vars.VACCINE_SEIIR_COMPARTMENTS
+        for compartment in seiir_compartments:
+            if compartment not in past_components:
+                past_components.loc[past_components[static_vars.SEIIR_COMPARTMENTS].notnull().all(axis=1),
+                                    compartment] = 0
+    else:
+        seiir_compartments = static_vars.SEIIR_COMPARTMENTS
+        vaccinations = None
+
     # Select out the initial condition using the day of transition.
     transition_day = past_components['date'] == transition_date.loc[past_components.index]
-    initial_condition = past_components.loc[transition_day, static_vars.SEIIR_COMPARTMENTS]
+    initial_condition = past_components.loc[transition_day, seiir_compartments]
     before_model = past_components['date'] < transition_date.loc[past_components.index]
     past_components = past_components[before_model]
 
@@ -97,7 +110,7 @@ def run_beta_forecast(draw_id: int, forecast_version: str, scenario_name: str, *
     # Modeling starts
     logger.info('Forecasting beta and components.')
     betas = model.forecast_beta(covariate_pred, coefficients, beta_scales)
-    future_components = model.run_normal_ode_model_by_location(initial_condition, beta_params, betas, thetas,
+    future_components = model.run_normal_ode_model_by_location(initial_condition, beta_params, betas, thetas, vaccinations,
                                                                location_ids, scenario_spec.solver, scenario_spec.system)
     logger.info('Processing ODE results and computing deaths and infections.')
     components, infections, deaths, r_effective = model.compute_output_metrics(infection_data,
@@ -114,7 +127,7 @@ def run_beta_forecast(draw_id: int, forecast_version: str, scenario_name: str, *
         mandate_effect = data_interface.load_covariate_info('mobility', 'effect', location_ids)
         min_wait, days_on, reimposition_threshold = model.unpack_parameters(scenario_spec.algorithm_params)
 
-        population = (components[static_vars.SEIIR_COMPARTMENTS]
+        population = (components[seiir_compartments]
                       .sum(axis=1)
                       .rename('population')
                       .groupby('location_id')
@@ -144,7 +157,7 @@ def run_beta_forecast(draw_id: int, forecast_version: str, scenario_name: str, *
             logger.info('Forecasting beta and components.')
             betas = model.forecast_beta(covariate_pred, coefficients, beta_scales)
             future_components = model.run_normal_ode_model_by_location(initial_condition, beta_params,
-                                                                       betas, thetas, location_ids,
+                                                                       betas, thetas, vaccinations, location_ids,
                                                                        scenario_spec.solver, scenario_spec.system)
             logger.info('Processing ODE results and computing deaths and infections.')
             components, infections, deaths, r_effective = model.compute_output_metrics(infection_data,

@@ -24,7 +24,11 @@ def compute_output_metrics(infection_data: pd.DataFrame,
 
 
 def splice_components(components_past: pd.DataFrame, components_forecast: pd.DataFrame):
-    shared_columns = ['date', 'S', 'E', 'I1', 'I2', 'R', 'beta', 'theta']
+    shared_columns = ['date',
+                      'S', 'E', 'I1', 'I2', 'R',
+                      'S_v', 'E_v', 'I1_v', 'I2_v', 'R_v', 'R_sv',
+                      'beta', 'theta']
+    shared_columns = [i for i in shared_columns if i in components_past.columns and i in components_forecast.columns]
     components_past['theta'] = np.nan
     components_past = components_past[shared_columns].reset_index()
     components_forecast = components_forecast[['location_id'] + shared_columns]
@@ -42,11 +46,26 @@ def compute_infections(infection_data: pd.DataFrame,
                            .set_index(['location_id', 'date'])
                            .sort_index())
 
-    modeled_infections = (components
-                          .groupby('location_id')['S']
-                          .apply(lambda x: x.shift(1) - x)
-                          .fillna(0)
-                          .rename('cases_draw'))
+    if 'S_v' in components.columns:
+        components = components.copy()
+        components['S_'] = components[['S', 'S_v']].sum(axis=1)
+        s = (components
+               .groupby('location_id')['S_']
+               .apply(lambda x: x.shift(1) - x)
+               .fillna(0)
+               .rename('cases_draw'))
+        r_sv = (components
+             .groupby('location_id')['R_sv']
+             .apply(lambda x: x.shift(1) - x)
+             .fillna(0)
+             .rename('cases_draw'))
+        modeled_infections = s + r_sv
+    else:
+        modeled_infections = (components
+                              .groupby('location_id')['S']
+                              .apply(lambda x: x.shift(1) - x)
+                              .fillna(0)
+                              .rename('cases_draw'))
     modeled_infections = pd.concat([components['date'], modeled_infections], axis=1).reset_index()
     modeled_infections = modeled_infections.set_index(['location_id', 'date']).sort_index()
     return observed_infections, modeled_infections
@@ -90,11 +109,17 @@ def compute_effective_r(infection_data: pd.DataFrame, components: pd.DataFrame,
     beta, theta = components['beta'], components['theta']
     s, i1, i2 = components['S'], components['I1'], components['I2']
     n = infection_data.groupby('location_id')['pop'].max()
+    
+    if ode_system == 'vaccine':
+        s_v, i1_v, i2_v = components['S_v'], components['I1_v'], components['I2_v']
+        s += s_v
+        i1 += i1_v
+        i2 += i2_v
 
     if ode_system == 'old_theta':
         avg_gamma = 1 / (1 / gamma1 + 1 / gamma2)
         r_controlled = beta * alpha / avg_gamma * (i1 + i2) ** (alpha - 1)
-    elif ode_system == 'new_theta':
+    elif ode_system in ['new_theta', 'vaccine']:
         avg_gamma = 1 / (1 / (gamma1*(sigma - theta)) + 1 / (gamma2*(sigma - theta)))
         r_controlled = beta * alpha * sigma / avg_gamma * (i1 + i2) ** (alpha - 1)
     else:
