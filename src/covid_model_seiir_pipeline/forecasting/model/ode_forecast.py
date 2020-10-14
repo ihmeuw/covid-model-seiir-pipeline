@@ -159,19 +159,18 @@ class _VaccineSEIIR(ODESys):
         psi_r = psi_tilde
 
         new_e = beta * s * i**self.alpha / self.N + theta_plus * s
-
-        ds = -new_e - psi_s * s
+        ds = -new_e - psi_s*s
         de = new_e - self.sigma*e - theta_minus*e - psi_e*e
         di1 = self.sigma*e - self.gamma1*i1 - psi_i1*i1
         di2 = self.gamma1*i1 - self.gamma2*i2 - psi_i2*i2
         dr = self.gamma2*i2 + theta_minus*e - psi_r*r
 
         new_e_v = beta * s_v * i**self.alpha / self.N + theta_plus * s_v
-        ds_v = (1-self.eta)*psi_s*s - new_e_v
-        de_v = new_e_v + psi_e*e - self.sigma*e_v - theta_minus*e_v
-        di1_v = self.sigma*e_v + psi_i1*i1 - self.gamma1*i1_v
-        di2_v = self.gamma1*i1_v + psi_i2*i2 - self.gamma2*i2_v
-        dr_v = self.gamma2*i2_v + theta_minus*e_v + psi_r*r_v
+        ds_v = -new_e_v + (1-self.eta)*psi_s*s
+        de_v = new_e_v - self.sigma*e_v - theta_minus*e_v + psi_e*e
+        di1_v = self.sigma*e_v - self.gamma1*i1_v + psi_i1*i1
+        di2_v = self.gamma1*i1_v - self.gamma2*i2_v + psi_i2*i2
+        dr_v = self.gamma2*i2_v + theta_minus*e_v + psi_r*r
         dr_sv = self.eta*psi_s*s
         return np.array([ds, de, di1, di2, dr,
                          ds_v, de_v, di1_v, di2_v, dr_v, dr_sv])

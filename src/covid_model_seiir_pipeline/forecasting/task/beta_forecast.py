@@ -117,6 +117,7 @@ def run_beta_forecast(draw_id: int, forecast_version: str, scenario_name: str, *
                                                                                past_components,
                                                                                future_components,
                                                                                thetas,
+                                                                               vaccinations,
                                                                                beta_params,
                                                                                scenario_spec.system)
 
@@ -164,6 +165,7 @@ def run_beta_forecast(draw_id: int, forecast_version: str, scenario_name: str, *
                                                                                        past_components,
                                                                                        future_components,
                                                                                        thetas,
+                                                                                       vaccinations,
                                                                                        beta_params,
                                                                                        scenario_spec.system)
 

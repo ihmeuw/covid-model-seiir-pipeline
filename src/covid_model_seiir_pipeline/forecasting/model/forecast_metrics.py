@@ -8,10 +8,13 @@ def compute_output_metrics(infection_data: pd.DataFrame,
                            components_past: pd.DataFrame,
                            components_forecast: pd.DataFrame,
                            thetas: pd.Series,
+                           vaccinations: pd.DataFrame,
                            seir_params: Dict[str, float],
                            ode_system: str) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]:
     components = splice_components(components_past, components_forecast)
     components['theta'] = thetas.reindex(components.index).fillna(0)
+    if vaccinations is not None:
+        components = components.reset_index().merge(vaccinations.reset_index(), how='left').set_index('location_id')
 
     observed_infections, modeled_infections = compute_infections(infection_data, components)
     observed_deaths, modeled_deaths = compute_deaths(infection_data, modeled_infections)
