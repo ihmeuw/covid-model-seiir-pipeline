@@ -121,6 +121,14 @@ class ForecastDataInterface:
         full_data['date'] = pd.to_datetime(full_data['Date'])
         full_data = full_data.drop(columns=['Date'])
         return full_data
+    
+    def load_population(self):
+        metadata = self.get_infectionator_metadata()
+        # TODO: metadata abstraction?
+        model_inputs_version = metadata['death']['metadata']['model_inputs_metadata']['output_path']
+        population_path = Path(model_inputs_version) / 'output_measures' / 'population' / 'all_populations.csv'
+        population_data = pd.read_csv(population_path)
+        return population_data
 
     def load_elastispliner_inputs(self):
         metadata = self.get_infectionator_metadata()

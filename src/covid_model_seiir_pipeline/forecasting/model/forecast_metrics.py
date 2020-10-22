@@ -1,4 +1,6 @@
-from typing import Dict, Tuple
+from typing import Dict, Tuple, List
+
+from covid_model_seiir_pipeline import static_vars
 
 import numpy as np
 import pandas as pd
@@ -10,13 +12,14 @@ def compute_output_metrics(infection_data: pd.DataFrame,
                            thetas: pd.Series,
                            vaccinations: pd.DataFrame,
                            seir_params: Dict[str, float],
-                           ode_system: str) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]:
-    components = splice_components(components_past, components_forecast)
+                           ode_system: str,
+                           seiir_compartments: List[str]) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+    components = splice_components(components_past, components_forecast, seiir_compartments)
     components['theta'] = thetas.reindex(components.index).fillna(0)
     if vaccinations is not None:
         components = components.reset_index().merge(vaccinations.reset_index(), how='left').set_index('location_id')
 
-    observed_infections, modeled_infections = compute_infections(infection_data, components)
+    observed_infections, modeled_infections = compute_infections(infection_data, components, seiir_compartments)
     observed_deaths, modeled_deaths = compute_deaths(infection_data, modeled_infections)
 
     infections = observed_infections.combine_first(modeled_infections)['cases_draw'].rename('infections')
@@ -26,11 +29,8 @@ def compute_output_metrics(infection_data: pd.DataFrame,
     return components, infections, deaths, r_effective
 
 
-def splice_components(components_past: pd.DataFrame, components_forecast: pd.DataFrame):
-    shared_columns = ['date',
-                      'S', 'E', 'I1', 'I2', 'R',
-                      'S_v', 'E_v', 'I1_v', 'I2_v', 'R_v', 'R_sv',
-                      'beta', 'theta']
+def splice_components(components_past: pd.DataFrame, components_forecast: pd.DataFrame, seiir_compartments: List[str]):
+    shared_columns = ['date', 'beta', 'theta'] + seiir_compartments
     shared_columns = [i for i in shared_columns if i in components_past.columns and i in components_forecast.columns]
     components_past['theta'] = np.nan
     components_past = components_past[shared_columns].reset_index()
@@ -42,33 +42,35 @@ def splice_components(components_past: pd.DataFrame, components_forecast: pd.Dat
 
 
 def compute_infections(infection_data: pd.DataFrame,
-                       components: pd.DataFrame) -> Tuple[pd.DataFrame, pd.DataFrame]:
+                       components: pd.DataFrame,
+                       seiir_compartments: List[str]) -> Tuple[pd.DataFrame, pd.DataFrame]:
     observed = infection_data['obs_infecs'] == 1
     observed_infections = (infection_data
                            .loc[observed, ['location_id', 'date', 'cases_draw']]
                            .set_index(['location_id', 'date'])
                            .sort_index())
 
-    if 'S_v' in components.columns:
+    if set(seiir_compartments) == set(static_vars.VACCINE_SEIIR_COMPARTMENTS):
+        modeled_infections = (components
+                              .groupby('location_id')['S']
+                              .apply(lambda x: x.shift(1) - x)
+                              .fillna(0)
+                              .rename('cases_draw'))
+    else:
         components = components.copy()
-        components['S_'] = components[['S', 'S_v']].sum(axis=1)
+        components['S_'] = components[[c for c in seiir_compartments if 'S' in c]].sum(axis=1)
+        components['R_sv_'] = components[[c for c in seiir_compartments if 'R_sv' in c]].sum(axis=1)
         s = (components
                .groupby('location_id')['S_']
                .apply(lambda x: x.shift(1) - x)
                .fillna(0)
                .rename('cases_draw'))
         r_sv = (components
-             .groupby('location_id')['R_sv']
+             .groupby('location_id')['R_sv_']
              .apply(lambda x: x.shift(1) - x)
              .fillna(0)
              .rename('cases_draw'))
         modeled_infections = s + r_sv
-    else:
-        modeled_infections = (components
-                              .groupby('location_id')['S']
-                              .apply(lambda x: x.shift(1) - x)
-                              .fillna(0)
-                              .rename('cases_draw'))
     modeled_infections = pd.concat([components['date'], modeled_infections], axis=1).reset_index()
     modeled_infections = modeled_infections.set_index(['location_id', 'date']).sort_index()
     return observed_infections, modeled_infections

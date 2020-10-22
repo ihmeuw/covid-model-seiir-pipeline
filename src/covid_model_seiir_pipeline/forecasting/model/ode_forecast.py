@@ -1,5 +1,6 @@
 from dataclasses import dataclass, asdict
 from typing import Union
+import itertools
 
 import numpy as np
 from odeopt.ode import RK4
@@ -118,7 +119,7 @@ class _VaccineSEIIR(ODESys):
                  N: Union[int, float],
                  eta: float,
                  *args, **kwargs):
-        """Constructor of CustomizedSEIIR.
+        """Constructor of Customized SEIIR.
         """
         self.alpha = alpha
         self.sigma = sigma
@@ -132,24 +133,21 @@ class _VaccineSEIIR(ODESys):
         self.params = ['beta', 'theta', 'psi']
 
         # create component names
-        self.components = ['S', 'E', 'I1', 'I2', 'R',
-                           'S_v', 'E_v', 'I1_v', 'I2_v', 'R_v', 'R_sv']
+        self.groups = ['y', 'o']
+        self.group_components = ['S', 'E', 'I1', 'I2', 'R',
+                                 'S_v', 'E_v', 'I1_v', 'I2_v', 'R_v', 'R_sv']
+        self.components = [f'{group}{component}' for group, component in itertools.product(self.groups, self.group_components)]
 
         super().__init__(self.system, self.params, self.components, *args)
-
-    def system(self, t: float, y: np.ndarray, p: np.ndarray) -> np.ndarray:
-        """ODE System.
-        """
-        beta, theta, psi = p
+        
+    def _group_system(self, beta: float, theta_plus: float, theta_minus: float, 
+                      psi: np.array, y: np.array) -> np.array:
         unvaccinated, vaccinated = y[:5], y[5:]
         s, e, i1, i2, r = unvaccinated
         s_v, e_v, i1_v, i2_v, r_v, r_sv = vaccinated
 
         n_v = sum(unvaccinated)
         i = i1 + i2 + i1_v + i2_v
-
-        theta_plus = max(theta, 0.)
-        theta_minus = -min(theta, 0.)
 
         psi_tilde = min(psi, n_v) / n_v
         psi_s = min(1 - beta * i**self.alpha / self.N - theta_plus, psi_tilde)
@@ -172,8 +170,24 @@ class _VaccineSEIIR(ODESys):
         di2_v = self.gamma1*i1_v - self.gamma2*i2_v + psi_i2*i2
         dr_v = self.gamma2*i2_v + theta_minus*e_v + psi_r*r
         dr_sv = self.eta*psi_s*s
+        
         return np.array([ds, de, di1, di2, dr,
                          ds_v, de_v, di1_v, di2_v, dr_v, dr_sv])
+
+    def system(self, t: float, y: np.ndarray, p: np.ndarray) -> np.ndarray:
+        """ODE System.
+        """
+        beta, theta, psi = p
+        theta_plus = max(theta, 0.)
+        theta_minus = -min(theta, 0.)
+        
+        y = np.split(y.copy(), len(self.groups))
+        psi = [psi * 0.5, psi * 0.5]
+        
+        dy = [self._group_system(beta, theta_plus, theta_minus, psi_i, y_i) for psi_i, y_i in zip(psi, y)]
+        dy = np.hstack(dy)
+        
+        return dy
 
 
 class _SemiRelativeThetaSEIIR(ODESys):
