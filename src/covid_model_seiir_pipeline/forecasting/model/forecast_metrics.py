@@ -24,7 +24,7 @@ def compute_output_metrics(infection_data: pd.DataFrame,
 
     infections = observed_infections.combine_first(modeled_infections)['cases_draw'].rename('infections')
     deaths = observed_deaths.combine_first(modeled_deaths).rename(columns={'deaths_draw': 'deaths'})
-    r_effective = compute_effective_r(infection_data, components, seir_params, ode_system)
+    r_effective = compute_effective_r(infection_data, components, seir_params, ode_system, seiir_compartments)
 
     return components, infections, deaths, r_effective
 
@@ -105,22 +105,19 @@ def compute_deaths(infection_data: pd.DataFrame,
 
 
 def compute_effective_r(infection_data: pd.DataFrame, components: pd.DataFrame,
-                        beta_params: Dict[str, float], ode_system: str) -> pd.DataFrame:
+                        beta_params: Dict[str, float], ode_system: str,
+                        seiir_compartments: List[str]) -> pd.DataFrame:
     alpha, sigma = beta_params['alpha'], beta_params['sigma']
     gamma1, gamma2 = beta_params['gamma1'], beta_params['gamma2']
 
     components = components.reset_index().set_index(['location_id', 'date'])
 
     beta, theta = components['beta'], components['theta']
-    s, i1, i2 = components['S'], components['I1'], components['I2']
+    s = components[[c for c in seiir_compartments if 'S' in c]].sum(axis=1)
+    i1 = components[[c for c in seiir_compartments if 'I1' in c]].sum(axis=1)
+    i2 = components[[c for c in seiir_compartments if 'I2' in c]].sum(axis=1)
     n = infection_data.groupby('location_id')['pop'].max()
     
-    if ode_system == 'vaccine':
-        s_v, i1_v, i2_v = components['S_v'], components['I1_v'], components['I2_v']
-        s += s_v
-        i1 += i1_v
-        i2 += i2_v
-
     if ode_system == 'old_theta':
         avg_gamma = 1 / (1 / gamma1 + 1 / gamma2)
         r_controlled = beta * alpha / avg_gamma * (i1 + i2) ** (alpha - 1)
