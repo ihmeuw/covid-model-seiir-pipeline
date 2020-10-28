@@ -5,6 +5,7 @@ import pandas as pd
 
 
 def compute_output_metrics(infection_data: pd.DataFrame,
+                           ifr_data: pd.DataFrame,
                            components_past: pd.DataFrame,
                            components_forecast: pd.DataFrame,
                            thetas: pd.Series,
@@ -14,7 +15,7 @@ def compute_output_metrics(infection_data: pd.DataFrame,
     components['theta'] = thetas.reindex(components.index).fillna(0)
 
     observed_infections, modeled_infections = compute_infections(infection_data, components)
-    observed_deaths, modeled_deaths = compute_deaths(infection_data, modeled_infections)
+    observed_deaths, modeled_deaths = compute_deaths(infection_data, modeled_infections, ifr_data)
 
     infections = observed_infections.combine_first(modeled_infections)['cases_draw'].rename('infections')
     deaths = observed_deaths.combine_first(modeled_deaths).rename(columns={'deaths_draw': 'deaths'})
@@ -53,7 +54,8 @@ def compute_infections(infection_data: pd.DataFrame,
 
 
 def compute_deaths(infection_data: pd.DataFrame,
-                   modeled_infections: pd.DataFrame) -> Tuple[pd.DataFrame, pd.DataFrame]:
+                   modeled_infections: pd.DataFrame,
+                   ifr: pd.DataFrame) -> Tuple[pd.DataFrame, pd.DataFrame]:
     observed = infection_data['obs_deaths'] == 1
     observed_deaths = (infection_data
                        .loc[observed, ['location_id', 'date', 'deaths_mean']]
@@ -63,15 +65,7 @@ def compute_deaths(infection_data: pd.DataFrame,
     observed_deaths['observed'] = 1
 
     infection_death_lag = infection_data['i_d_lag'].max()
-
-    def _compute_ifr(data):
-        deaths = data['deaths_draw']
-        infecs = data['cases_draw']
-        return (deaths / infecs.shift(infection_death_lag)).dropna().mean()
-
-    ifr = (infection_data
-           .groupby('location_id')
-           .apply(_compute_ifr))
+    
     modeled_deaths = ((modeled_infections['cases_draw'] * ifr)
                       .shift(infection_death_lag)
                       .rename('deaths_draw')
