@@ -5,7 +5,6 @@ import pandas as pd
 
 
 def compute_output_metrics(infection_data: pd.DataFrame,
-                           ifr_data: pd.DataFrame,
                            components_past: pd.DataFrame,
                            components_forecast: pd.DataFrame,
                            thetas: pd.Series,
@@ -15,7 +14,7 @@ def compute_output_metrics(infection_data: pd.DataFrame,
     components['theta'] = thetas.reindex(components.index).fillna(0)
 
     observed_infections, modeled_infections = compute_infections(infection_data, components)
-    observed_deaths, modeled_deaths = compute_deaths(infection_data, modeled_infections, ifr_data)
+    observed_deaths, modeled_deaths = compute_deaths(infection_data, modeled_infections)
 
     infections = observed_infections.combine_first(modeled_infections)['cases_draw'].rename('infections')
     deaths = observed_deaths.combine_first(modeled_deaths).rename(columns={'deaths_draw': 'deaths'})
@@ -54,22 +53,39 @@ def compute_infections(infection_data: pd.DataFrame,
 
 
 def compute_deaths(infection_data: pd.DataFrame,
-                   modeled_infections: pd.DataFrame,
-                   ifr: pd.DataFrame) -> Tuple[pd.DataFrame, pd.DataFrame]:
+                   modeled_infections: pd.DataFrame) -> Tuple[pd.DataFrame, pd.DataFrame]:
     observed = infection_data['obs_deaths'] == 1
     observed_deaths = (infection_data
-                       .loc[observed, ['location_id', 'date', 'deaths_mean']]
-                       .rename(columns={'deaths_mean': 'deaths_draw'})
+                       #.loc[observed, ['location_id', 'date', 'deaths_mean']]
+                       #.rename(columns={'deaths_mean': 'deaths_draw'})
+                       .loc[observed, ['location_id', 'date', 'deaths_draw']]
                        .set_index(['location_id', 'date'])
                        .sort_index())
     observed_deaths['observed'] = 1
 
     infection_death_lag = infection_data['i_d_lag'].max()
+
+    def _compute_ifr(data):
+        deaths = data.set_index('date')['deaths_draw']
+        infecs = data.set_index('date')['cases_draw']
+        return (deaths / infecs.shift(infection_death_lag)).dropna().rename('ifr')
+
+    ifr = (infection_data
+           .loc[infection_data['obs_deaths'] + infection_data['obs_infecs'] == 2]
+           .groupby('location_id')
+           .apply(_compute_ifr))
     
-    modeled_deaths = ((modeled_infections['cases_draw'] * ifr)
-                      .shift(infection_death_lag)
-                      .rename('deaths_draw')
-                      .to_frame())
+    modeled_deaths = modeled_infections['cases_draw'].shift(infection_death_lag).dropna()
+    modeled_deaths = pd.concat([modeled_deaths, ifr], axis=1).reset_index()
+    modeled_deaths['ifr'] = (modeled_deaths
+                             .groupby('location_id')['ifr']
+                             .apply(lambda x: x.fillna(method='pad')))
+    modeled_deaths['deaths_draw'] = modeled_deaths['cases_draw'] * modeled_deaths['ifr']
+    modeled_deaths = (modeled_deaths
+                      .loc[:, ['location_id', 'date', 'deaths_draw']]
+                      .set_index(['location_id', 'date'])
+                      .fillna(0))
+    
     modeled_deaths['observed'] = 0
     return observed_deaths, modeled_deaths
 

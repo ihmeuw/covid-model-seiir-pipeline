@@ -100,9 +100,7 @@ def run_beta_forecast(draw_id: int, forecast_version: str, scenario_name: str, *
     future_components = model.run_normal_ode_model_by_location(initial_condition, beta_params, betas, thetas,
                                                                location_ids, scenario_spec.solver, scenario_spec.system)
     logger.info('Processing ODE results and computing deaths and infections.')
-    ifr_data = data_interface.load_ifr_data()
     components, infections, deaths, r_effective = model.compute_output_metrics(infection_data,
-                                                                               ifr_data,
                                                                                past_components,
                                                                                future_components,
                                                                                thetas,
