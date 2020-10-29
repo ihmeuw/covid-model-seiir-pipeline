@@ -56,8 +56,6 @@ def compute_deaths(infection_data: pd.DataFrame,
                    modeled_infections: pd.DataFrame) -> Tuple[pd.DataFrame, pd.DataFrame]:
     observed = infection_data['obs_deaths'] == 1
     observed_deaths = (infection_data
-                       #.loc[observed, ['location_id', 'date', 'deaths_mean']]
-                       #.rename(columns={'deaths_mean': 'deaths_draw'})
                        .loc[observed, ['location_id', 'date', 'deaths_draw']]
                        .set_index(['location_id', 'date'])
                        .sort_index())
@@ -71,7 +69,7 @@ def compute_deaths(infection_data: pd.DataFrame,
         return (deaths / infecs.shift(infection_death_lag)).dropna().rename('ifr')
 
     ifr = (infection_data
-           .loc[infection_data['obs_deaths'] + infection_data['obs_infecs'] == 2]
+           .loc[observed]
            .groupby('location_id')
            .apply(_compute_ifr))
     
