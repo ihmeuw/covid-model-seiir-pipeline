@@ -56,7 +56,8 @@ def compute_deaths(infection_data: pd.DataFrame,
                    modeled_infections: pd.DataFrame) -> Tuple[pd.DataFrame, pd.DataFrame]:
     observed = infection_data['obs_deaths'] == 1
     observed_deaths = (infection_data
-                       .loc[observed, ['location_id', 'date', 'deaths_draw']]
+                       .loc[observed, ['location_id', 'date', 'deaths_mean']]
+                       .rename(columns={'deaths_mean': 'deaths_draw'})
                        .set_index(['location_id', 'date'])
                        .sort_index())
     observed_deaths['observed'] = 1
