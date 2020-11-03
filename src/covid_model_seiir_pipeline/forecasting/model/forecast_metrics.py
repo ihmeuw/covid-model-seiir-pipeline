@@ -67,12 +67,13 @@ def compute_deaths(infection_data: pd.DataFrame,
     def _compute_ifr(data):
         deaths = data.set_index('date')['deaths_draw']
         infecs = data.set_index('date')['cases_draw']
-        return (deaths / infecs.shift(infection_death_lag)).dropna().rename('ifr')
+        return (deaths / infecs.shift(infection_death_lag)).rename('ifr')
 
     ifr = (infection_data
-           .loc[observed]
            .groupby('location_id')
-           .apply(_compute_ifr))
+           .apply(_compute_ifr)
+           .loc[observed]
+           .dropna())
     
     modeled_deaths = modeled_infections['cases_draw'].shift(infection_death_lag).dropna()
     modeled_deaths = pd.concat([modeled_deaths, ifr], axis=1).reset_index()
