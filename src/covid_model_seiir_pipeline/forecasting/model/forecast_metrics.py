@@ -89,17 +89,30 @@ def compute_deaths(infection_data: pd.DataFrame,
     infection_death_lag = infection_data['i_d_lag'].max()
 
     def _compute_ifr(data):
+        data = data.set_index('date')
+        has_deaths = data['obs_deaths'] == 1
         deaths = data['deaths_draw']
         infecs = data['cases_draw']
-        return (deaths / infecs.shift(infection_death_lag)).dropna().mean()
+        return ((deaths / infecs.shift(infection_death_lag))
+                .loc[has_deaths]
+                .dropna()
+                .rename('ifr'))
 
     ifr = (infection_data
            .groupby('location_id')
            .apply(_compute_ifr))
-    modeled_deaths = ((modeled_infections['cases_draw'] * ifr)
-                      .shift(infection_death_lag)
-                      .rename('deaths_draw')
-                      .to_frame())
+    
+    modeled_deaths = modeled_infections['cases_draw'].shift(infection_death_lag).dropna()
+    modeled_deaths = pd.concat([modeled_deaths, ifr], axis=1).reset_index()
+    modeled_deaths['ifr'] = (modeled_deaths
+                             .groupby('location_id')['ifr']
+                             .apply(lambda x: x.fillna(method='pad')))
+    modeled_deaths['deaths_draw'] = modeled_deaths['cases_draw'] * modeled_deaths['ifr']
+    modeled_deaths = (modeled_deaths
+                      .loc[:, ['location_id', 'date', 'deaths_draw']]
+                      .set_index(['location_id', 'date'])
+                      .fillna(0))
+    
     modeled_deaths['observed'] = 0
     return observed_deaths, modeled_deaths
 
