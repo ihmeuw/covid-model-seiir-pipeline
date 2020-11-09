@@ -48,7 +48,7 @@ def run_normal_ode_model_by_location(initial_condition, beta_params, betas, thet
     return forecasts
 
 
-class _RelativeThetaSEIIR(ODESys):
+class _SEIIR(ODESys):
     """Customized SEIIR ODE system."""
 
     def __init__(self,
@@ -100,63 +100,6 @@ class _RelativeThetaSEIIR(ODESys):
         return np.array([ds, de, di1, di2, dr])
 
 
-class _SemiRelativeThetaSEIIR(ODESys):
-    """Customized SEIIR ODE system."""
-
-    def __init__(self,
-                 alpha: float,
-                 sigma: float,
-                 gamma1: float,
-                 gamma2: float,
-                 N: Union[int, float],
-                 delta: float,
-                 *args):
-        """Constructor of CustomizedSEIIR.
-        """
-        self.alpha = alpha
-        self.sigma = sigma
-        self.gamma1 = gamma1
-        self.gamma2 = gamma2
-        self.N = N
-        self.delta = delta
-
-        # create parameter names
-        self.params = ['beta', 'theta']
-
-        # create component names
-        self.components = ['S', 'E', 'I1', 'I2', 'R']
-
-        super().__init__(self.system, self.params, self.components, *args)
-
-    def system(self, t: float, y: np.ndarray, p: np.ndarray) -> np.ndarray:
-        """ODE System.
-        """
-        beta = p[0]
-        theta = p[1]
-
-        s = y[0]
-        e = y[1]
-        i1 = y[2]
-        i2 = y[3]
-        r = y[4]
-
-        theta_plus = max(theta, 0.) * s / 1_000_000
-        theta_minus = min(theta, 0.)
-        theta_tilde = int(theta_plus != theta_minus)
-        theta_minus_alt = (self.gamma1 - self.delta) * i1 - self.sigma * e - theta_plus
-        effective_theta_minus = max(theta_minus, theta_minus_alt) * theta_tilde
-
-        new_e = beta*(s/self.N)*(i1 + i2)**self.alpha
-
-        ds = -new_e - theta_plus
-        de = new_e - self.sigma*e
-        di1 = self.sigma*e - self.gamma1*i1 + theta_plus + effective_theta_minus
-        di2 = self.gamma1*i1 - self.gamma2*i2
-        dr = self.gamma2 * i2 - effective_theta_minus
-
-        return np.array([ds, de, di1, di2, dr])
-
-
 @dataclass(frozen=True)
 class _SeiirModelSpecs:
     alpha: float
@@ -178,10 +121,8 @@ class _SeiirModelSpecs:
 class _ODERunner:
 
     def __init__(self, solver_name: str, seir_model: str, model_specs: _SeiirModelSpecs):
-        if seir_model == 'old_theta':
-            self.model = _SemiRelativeThetaSEIIR(**asdict(model_specs))
-        elif seir_model == 'new_theta':
-            self.model = _RelativeThetaSEIIR(**asdict(model_specs))
+        if seir_model == 'normal':
+            self.model = _SEIIR(**asdict(model_specs))
         else:
             raise NotImplementedError(f'Unknown model type {seir_model}.')
 
