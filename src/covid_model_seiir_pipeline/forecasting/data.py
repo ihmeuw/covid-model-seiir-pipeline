@@ -122,6 +122,28 @@ class ForecastDataInterface:
         full_data = full_data.drop(columns=['Date'])
         return full_data
 
+    def load_population(self):
+        metadata = self.get_infectionator_metadata()
+        # TODO: metadata abstraction?
+        model_inputs_version = metadata['death']['metadata']['model_inputs_metadata']['output_path']
+        population_path = Path(model_inputs_version) / 'output_measures' / 'population' / 'all_populations.csv'
+        population_data = pd.read_csv(population_path)
+        return population_data
+
+    def load_ifr_data(self):
+        metadata = self.get_infectionator_metadata()
+        # TODO: metadata abstraction?
+        ifr_version = metadata['run_arguments']['ifr_custom_path']
+        data_path = Path(ifr_version) / 'allage_ifr_by_loctime.csv'
+        data = pd.read_csv(data_path)
+        data['date'] = pd.to_datetime(data['datevar'])
+        data = (data
+                .rename(columns={'allage_ifr':'ifr'})
+                .loc[:, ['location_id', 'date', 'ifr']]
+                .set_index(['location_id', 'date'])
+                .sort_index())
+        return data
+
     def load_elastispliner_inputs(self):
         metadata = self.get_infectionator_metadata()
         deaths_version = Path(metadata['death']['metadata']['output_path'])
@@ -264,6 +286,3 @@ class ForecastDataInterface:
     def load_reimposition_dates(self, scenario: str, reimposition_number: int):
         return self.forecast_marshall.load(key=MKeys.reimposition_dates(scenario=scenario,
                                                                         reimposition_number=reimposition_number))
-
-
-
