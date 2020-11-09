@@ -1,8 +1,6 @@
 # makefile for easy manage package
 .PHONY: clean
 
-ENV_NAME=dummy
-
 clean:
 	find . -name "*.so*" | xargs rm -rf
 	find . -name "*.pyc" | xargs rm -rf
@@ -27,7 +25,7 @@ install_env:
 		cd limetr && make install && cd .. && \
 		git clone git@github.com:ihmeuw-msca/MRTool.git && \
 		cd MRTool && git checkout seiir_model && python setup.py install && cd .. && \
-		git clone git@github.com:zhengp0/SLIME.git && \
+		git clone git@github.com:ihmeuw-msca/SLIME.git && \
 		cd SLIME && python setup.py install && cd .. && \
 		pip install -e . ; \
     )

@@ -4,6 +4,9 @@ FORECAST_SPECIFICATION_FILE = 'forecast_specification.yaml'
 
 SEIIR_COMPARTMENTS = ['S', 'E', 'I1', 'I2', 'R']
 
+VACCINE_SEIIR_COMPARTMENTS = ['S',   'E',   'I1',   'I2',   'R',
+                              'S_v', 'E_v', 'I1_v', 'I2_v', 'R_v', 'R_sv']
+
 COL_BETA = 'beta'
 COL_GROUP = 'loc_id'
 COL_DATE = 'date'

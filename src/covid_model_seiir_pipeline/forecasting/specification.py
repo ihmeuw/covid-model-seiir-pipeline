@@ -40,6 +40,7 @@ class ScenarioSpecification:
     ALLOWED_SYSTEMS = (
         'old_theta',
         'new_theta',
+        'vaccine',
     )
     BETA_SCALING_KEYS = {
         'window_size',
