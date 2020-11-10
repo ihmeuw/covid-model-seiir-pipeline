@@ -89,22 +89,6 @@ class PostprocessingTaskTemplate(TaskTemplate):
     )
 
 
-class MeanLevelMandateReimpositionTaskTemplate(TaskTemplate):
-    task_name_template = "reimposition_{reimposition_number}_{scenario}"
-    command_template = (
-            f"{shutil.which('mean_level_mandate_reimposition')} " +
-            "--forecast-version {forecast_version} "
-            "--scenario-name {scenario} "
-            "--reimposition-number {reimposition_number}"
-    )
-    params = ExecutorParameters(
-        max_runtime_seconds=FORECAST_RUNTIME,
-        m_mem_free=POSTPROCESS_MEMORY,
-        num_cores=FORECAST_SCALING_CORES,
-        queue=FORECAST_QUEUE
-    )
-
-
 class JoinSentinelTaskTemplate(TaskTemplate):
     """Dummy task to simplify DAG."""
     sentinel_id = 1
@@ -133,14 +117,12 @@ class ForecastWorkflow(WorkflowTemplate):
         'forecast': BetaForecastTaskTemplate(),
         'resample': ResampleMapTaskTemplate(),
         'postprocess': PostprocessingTaskTemplate(),
-        'reimpose': MeanLevelMandateReimpositionTaskTemplate(),
         'sentinel': JoinSentinelTaskTemplate(),
     }
 
     def attach_tasks(self, n_draws: int, scenarios: Dict[str, ScenarioSpecification], covariates: List[str]):
         scaling_template = self.task_templates['scaling']
         resample_template = self.task_templates['resample']
-        reimpose_template = self.task_templates['reimpose']
 
         # The draw resampling map is produced for one reference scenario
         # after the forecasts and then used to postprocess all measures for
@@ -160,30 +142,9 @@ class ForecastWorkflow(WorkflowTemplate):
 
             self.workflow.add_task(scaling_task)
 
-            # This scenario sucks. It operates on a map-reduce like structure
-            # in a loop.
-            # Scaling -> forecast -> aggregate/reimpose -> forecast ->
-            #   aggregate/reimpose -> ... -> forecast -> post process
-            # where the forecast stages are done by draw and the reimpose
-            # across draws.
-            if scenario_spec.algorithm == 'mean_level_mandate_reimposition':
-                forecast_done_task = self._attach_forecast_tasks(scenario_name, n_draws, 0, scaling_task)
-                for i in range(scenario_spec.algorithm_params['reimposition_count']):
-                    reimposition_task = reimpose_template.get_task(
-                        forecast_version=self.version,
-                        scenario=scenario_name,
-                        reimposition_number=i + 1,
-                    )
-                    reimposition_task.add_upstream(forecast_done_task)
-                    reimposition_task.add_upstream(resample_task)
-                    self.workflow.add_task(reimposition_task)
-                    forecast_done_task = self._attach_forecast_tasks(scenario_name, n_draws, i + 1, reimposition_task)
-
-                self._attach_postprocessing_tasks(scenario_name, covariates, forecast_done_task, resample_task)
-            else:  # All the other stuff is handled in the forecast algorithm at the draw level.
-                forecast_done_task = self._attach_forecast_tasks(scenario_name, n_draws, 0, scaling_task)
-                self._attach_postprocessing_tasks(scenario_name, covariates, forecast_done_task, resample_task)
-                resample_task.add_upstream(forecast_done_task)
+            forecast_done_task = self._attach_forecast_tasks(scenario_name, n_draws, 0, scaling_task)
+            self._attach_postprocessing_tasks(scenario_name, covariates, forecast_done_task, resample_task)
+            resample_task.add_upstream(forecast_done_task)
 
     def _attach_forecast_tasks(self, scenario_name: str, n_draws: int, extra_id: int,
                                *upstream_tasks: BashTask) -> BashTask:

@@ -138,7 +138,7 @@ class ForecastDataInterface:
         data = pd.read_csv(data_path)
         data['date'] = pd.to_datetime(data['datevar'])
         data = (data
-                .rename(columns={'allage_ifr':'ifr'})
+                .rename(columns={'allage_ifr': 'ifr'})
                 .loc[:, ['location_id', 'date', 'ifr']]
                 .set_index(['location_id', 'date'])
                 .sort_index())
@@ -221,10 +221,9 @@ class ForecastDataInterface:
             index_columns.append('date')
         return info_df.set_index(index_columns)
 
-    def save_raw_covariates(self, covariates: pd.DataFrame, scenario: str, draw_id: int, strict: bool):
+    def save_raw_covariates(self, covariates: pd.DataFrame, scenario: str, draw_id: int):
         self.forecast_marshall.dump(covariates,
-                                    key=MKeys.forecast_raw_covariates(scenario=scenario, draw_id=draw_id),
-                                    strict=strict)
+                                    key=MKeys.forecast_raw_covariates(scenario=scenario, draw_id=draw_id))
 
     def load_raw_covariates(self, scenario: str, draw_id: int):
         covariates = self.forecast_marshall.load(key=MKeys.forecast_raw_covariates(scenario=scenario, draw_id=draw_id))
@@ -235,8 +234,8 @@ class ForecastDataInterface:
         df = self.regression_marshall.load(key=MKeys.parameter(draw_id=draw_id))
         return df.set_index('params')['values'].to_dict()
 
-    def save_components(self, forecasts: pd.DataFrame, scenario: str, draw_id: int, strict: bool):
-        self.forecast_marshall.dump(forecasts, key=MKeys.components(scenario=scenario, draw_id=draw_id), strict=strict)
+    def save_components(self, forecasts: pd.DataFrame, scenario: str, draw_id: int):
+        self.forecast_marshall.dump(forecasts, key=MKeys.components(scenario=scenario, draw_id=draw_id))
 
     def load_components(self, scenario: str, draw_id: int) -> pd.DataFrame:
         components = self.forecast_marshall.load(key=MKeys.components(scenario=scenario, draw_id=draw_id))
@@ -249,10 +248,9 @@ class ForecastDataInterface:
     def load_beta_scales(self, scenario: str, draw_id: int):
         return self.forecast_marshall.load(MKeys.beta_scales(scenario=scenario, draw_id=draw_id))
 
-    def save_raw_outputs(self, raw_outputs: pd.DataFrame, scenario: str, draw_id: int, strict: bool):
+    def save_raw_outputs(self, raw_outputs: pd.DataFrame, scenario: str, draw_id: int):
         self.forecast_marshall.dump(raw_outputs,
-                                    key=MKeys.forecast_raw_outputs(scenario=scenario, draw_id=draw_id),
-                                    strict=strict)
+                                    key=MKeys.forecast_raw_outputs(scenario=scenario, draw_id=draw_id))
 
     def load_raw_outputs(self, scenario: str, draw_id: int) -> pd.DataFrame:
         return self.forecast_marshall.load(key=MKeys.forecast_raw_outputs(scenario=scenario, draw_id=draw_id))

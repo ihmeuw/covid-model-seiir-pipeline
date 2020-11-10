@@ -4,9 +4,9 @@ data:
   output_root: ''
 scenarios:
   worse:
-    algorithm: 'normal' # normal, mean_level_mandate_reimposition, draw_level_mandate_reimposition
+    algorithm: 'normal' # normal, draw_level_mandate_reimposition
     solver: 'RK45'
-    system: 'new_theta'
+    system: 'normal'
     beta_scaling:
       window_size: 42
       average_over_min: 7
@@ -31,7 +31,7 @@ scenarios:
       reimposition_duration: 6 # weeks
       minimum_delay: 7 # days
     solver: 'RK45'
-    system: 'new_theta'
+    system: 'normal'
     beta_scaling:
       window_size: 42
       average_over_min: 7
@@ -56,7 +56,7 @@ scenarios:
       reimposition_duration: 6 # weeks
       minimum_delay: 7 # days
     solver: 'RK45'
-    system: 'new_theta'
+    system: 'normal'
     beta_scaling:
       window_size: 42
       average_over_min: 7

@@ -101,7 +101,7 @@ def compute_deaths(infection_data: pd.DataFrame,
     ifr = (infection_data
            .groupby('location_id')
            .apply(_compute_ifr))
-    
+
     modeled_deaths = modeled_infections['cases_draw'].shift(infection_death_lag).dropna()
     modeled_deaths = pd.concat([modeled_deaths, ifr], axis=1).reset_index()
     modeled_deaths['ifr'] = (modeled_deaths
@@ -112,7 +112,7 @@ def compute_deaths(infection_data: pd.DataFrame,
                       .loc[:, ['location_id', 'date', 'deaths_draw']]
                       .set_index(['location_id', 'date'])
                       .fillna(0))
-    
+
     modeled_deaths['observed'] = 0
     return observed_deaths, modeled_deaths
 
@@ -130,11 +130,8 @@ def compute_effective_r(infection_data: pd.DataFrame, components: pd.DataFrame,
     i1 = components[[c for c in seiir_compartments if 'I1' in c]].sum(axis=1)
     i2 = components[[c for c in seiir_compartments if 'I2' in c]].sum(axis=1)
     n = infection_data.groupby('location_id')['pop'].max()
-    
-    if ode_system == 'old_theta':
-        avg_gamma = 1 / (1 / gamma1 + 1 / gamma2)
-        r_controlled = beta * alpha / avg_gamma * (i1 + i2) ** (alpha - 1)
-    elif ode_system in ['new_theta', 'vaccine']:
+
+    if ode_system in ['normal', 'vaccine']:
         avg_gamma = 1 / (1 / (gamma1*(sigma - theta)) + 1 / (gamma2*(sigma - theta)))
         r_controlled = beta * alpha * sigma / avg_gamma * (i1 + i2) ** (alpha - 1)
     else:

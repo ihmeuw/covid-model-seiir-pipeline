@@ -56,7 +56,7 @@ def run_normal_ode_model_by_location(initial_condition, beta_params, betas, thet
     return forecasts
 
 
-class _RelativeThetaSEIIR(ODESys):
+class _SEIIR(ODESys):
     """Customized SEIIR ODE system."""
 
     def __init__(self,
@@ -139,8 +139,8 @@ class _VaccineSEIIR(ODESys):
         self.components = [f'{group}{component}' for group, component in itertools.product(self.groups, self.group_components)]
 
         super().__init__(self.system, self.params, self.components, *args)
-        
-    def _group_system(self, beta: float, theta_plus: float, theta_minus: float, 
+
+    def _group_system(self, beta: float, theta_plus: float, theta_minus: float,
                       psi: np.array, y: np.array) -> np.array:
         unvaccinated, vaccinated = y[:5], y[5:]
         s, e, i1, i2, r = unvaccinated
@@ -170,7 +170,7 @@ class _VaccineSEIIR(ODESys):
         di2_v = self.gamma1*i1_v - self.gamma2*i2_v + psi_i2*i2
         dr_v = self.gamma2*i2_v + theta_minus*e_v + psi_r*r
         dr_sv = self.eta*psi_s*s
-        
+
         return np.array([ds, de, di1, di2, dr,
                          ds_v, de_v, di1_v, di2_v, dr_v, dr_sv])
 
@@ -180,71 +180,14 @@ class _VaccineSEIIR(ODESys):
         beta, theta, psi = p
         theta_plus = max(theta, 0.)
         theta_minus = -min(theta, 0.)
-        
+
         y = np.split(y.copy(), len(self.groups))
         psi = [psi * 0.5, psi * 0.5]
-        
+
         dy = [self._group_system(beta, theta_plus, theta_minus, psi_i, y_i) for psi_i, y_i in zip(psi, y)]
         dy = np.hstack(dy)
-        
+
         return dy
-
-
-class _SemiRelativeThetaSEIIR(ODESys):
-    """Customized SEIIR ODE system."""
-
-    def __init__(self,
-                 alpha: float,
-                 sigma: float,
-                 gamma1: float,
-                 gamma2: float,
-                 N: Union[int, float],
-                 delta: float,
-                 *args):
-        """Constructor of CustomizedSEIIR.
-        """
-        self.alpha = alpha
-        self.sigma = sigma
-        self.gamma1 = gamma1
-        self.gamma2 = gamma2
-        self.N = N
-        self.delta = delta
-
-        # create parameter names
-        self.params = ['beta', 'theta']
-
-        # create component names
-        self.components = ['S', 'E', 'I1', 'I2', 'R']
-
-        super().__init__(self.system, self.params, self.components, *args)
-
-    def system(self, t: float, y: np.ndarray, p: np.ndarray) -> np.ndarray:
-        """ODE System.
-        """
-        beta = p[0]
-        theta = p[1]
-
-        s = y[0]
-        e = y[1]
-        i1 = y[2]
-        i2 = y[3]
-        r = y[4]
-
-        theta_plus = max(theta, 0.) * s / 1_000_000
-        theta_minus = min(theta, 0.)
-        theta_tilde = int(theta_plus != theta_minus)
-        theta_minus_alt = (self.gamma1 - self.delta) * i1 - self.sigma * e - theta_plus
-        effective_theta_minus = max(theta_minus, theta_minus_alt) * theta_tilde
-
-        new_e = beta*(s/self.N)*(i1 + i2)**self.alpha
-
-        ds = -new_e - theta_plus
-        de = new_e - self.sigma*e
-        di1 = self.sigma*e - self.gamma1*i1 + theta_plus + effective_theta_minus
-        di2 = self.gamma1*i1 - self.gamma2*i2
-        dr = self.gamma2 * i2 - effective_theta_minus
-
-        return np.array([ds, de, di1, di2, dr])
 
 
 @dataclass(frozen=True)
@@ -271,10 +214,8 @@ class _ODERunner:
 
     def __init__(self, solver_name: str, seir_model: str, model_specs: _SeiirModelSpecs):
         self.model_name = seir_model
-        if seir_model == 'old_theta':
-            self.model = _SemiRelativeThetaSEIIR(**asdict(model_specs))
-        elif seir_model == 'new_theta':
-            self.model = _RelativeThetaSEIIR(**asdict(model_specs))
+        if seir_model == 'normal':
+            self.model = _SEIIR(**asdict(model_specs))
         elif seir_model == 'vaccine':
             self.model = _VaccineSEIIR(**asdict(model_specs))
         else:
@@ -315,7 +256,7 @@ class _ODERunner:
             ], axis=0).T
         else:
             raise NotImplementedError(f"Params not known for model type {self.model_name}.")
-            
+
         result = pd.DataFrame(
             data=result_array,
             columns=self.model.components + self.model.params + ['t']

@@ -29,7 +29,7 @@ def run_beta_forecast(draw_id: int, forecast_version: str, scenario_name: str, *
     # Grab the last day of data in the model by location id.  This will
     # correspond to the initial condition for the projection.
     transition_date = data_interface.load_transition_date(draw_id)
-    
+
     # We'll use the beta and SEIR compartments from this data set to get
     # the ODE initial condition.
     beta_regression_df = data_interface.load_beta_regression(draw_id).set_index('location_id').sort_index()
@@ -44,7 +44,7 @@ def run_beta_forecast(draw_id: int, forecast_version: str, scenario_name: str, *
             if compartment not in past_components:
                 past_components.loc[past_components[static_vars.SEIIR_COMPARTMENTS].notnull().all(axis=1),
                                     compartment] = 0
-                
+
         # split into young/old compartments
         # TODO: age_group_metadata to identify age groups
         population_df = data_interface.load_population()
@@ -84,7 +84,7 @@ def run_beta_forecast(draw_id: int, forecast_version: str, scenario_name: str, *
     else:
         seiir_compartments = static_vars.SEIIR_COMPARTMENTS
         vaccinations = None
-        
+
     # Select out the initial condition using the day of transition.
     transition_day = past_components['date'] == transition_date.loc[past_components.index]
     initial_condition = past_components.loc[transition_day, seiir_compartments]
@@ -101,34 +101,6 @@ def run_beta_forecast(draw_id: int, forecast_version: str, scenario_name: str, *
     covariates = covariates.set_index('location_id').sort_index()
     the_future = covariates['date'] >= transition_date.loc[covariates.index]
     covariate_pred = covariates.loc[the_future].reset_index()
-    if scenario_spec.algorithm == 'mean_level_mandate_reimposition':
-        # Info data specific to mandate reimposition
-        percent_mandates = data_interface.load_covariate_info('mobility', 'mandate_lift', location_ids)
-        mandate_effect = data_interface.load_covariate_info('mobility', 'effect', location_ids)
-        min_wait, days_on, reimposition_threshold = model.unpack_parameters(scenario_spec.algorithm_params)
-
-        max_reimpositions = scenario_spec.algorithm_params['reimposition_count']
-        reimposition_dates = []
-        for reimposition_number in range(1, max_reimpositions + 1):
-            try:
-                df = data_interface.load_reimposition_dates(scenario_name, reimposition_number)
-                df = df.set_index('location_id')['reimposition_date']
-                df = pd.to_datetime(df)
-                reimposition_dates.append(df)
-            except FileNotFoundError:
-                continue
-
-        mobility = covariates[['date', 'mobility']].reset_index().set_index(['location_id', 'date'])['mobility']
-        mobility_lower_bound = model.compute_mobility_lower_bound(mobility, mandate_effect)
-
-        for reimposition_date in reimposition_dates:
-            mobility = model.compute_new_mobility(mobility, reimposition_date,
-                                                  mobility_lower_bound, percent_mandates, days_on).rename('mobility')
-
-        covariates = covariates.reset_index().set_index(['location_id', 'date'])
-        covariates['mobility'] = mobility
-        covariates = covariates.reset_index(level='date')
-        covariate_pred = covariates.loc[the_future].reset_index()
 
     beta_scales = data_interface.load_beta_scales(scenario=scenario_name, draw_id=draw_id)
 
@@ -138,11 +110,10 @@ def run_beta_forecast(draw_id: int, forecast_version: str, scenario_name: str, *
     # We'll need this to compute deaths and to splice with the forecasts.
     infection_data = data_interface.load_infection_data(draw_id)
 
-    if scenario_spec.system in ['new_theta', 'vaccine']:
-        if ((1 < thetas) | thetas < -1).any():
-            raise ValueError('Theta must be between -1 and 1.')
-        if (beta_params['sigma'] - thetas >= 1).any():
-            raise ValueError('Sigma - theta must be smaller than 1')
+    if ((1 < thetas) | thetas < -1).any():
+        raise ValueError('Theta must be between -1 and 1.')
+    if (beta_params['sigma'] - thetas >= 1).any():
+        raise ValueError('Sigma - theta must be smaller than 1')
 
     # Modeling starts
     logger.info('Forecasting beta and components.')
@@ -219,14 +190,9 @@ def run_beta_forecast(draw_id: int, forecast_version: str, scenario_name: str, *
     covariates = covariates.reset_index()
     outputs = pd.concat([infections, deaths, r_effective], axis=1).reset_index()
 
-    # If strict, don't allow overwriting of output files.
-    # Mean level mandate reimposition will run and write these outputs
-    # several times.
-    strict = scenario_spec.algorithm != 'mean_level_mandate_reimposition'
-
-    data_interface.save_components(components, scenario_name, draw_id, strict)
-    data_interface.save_raw_covariates(covariates, scenario_name, draw_id, strict)
-    data_interface.save_raw_outputs(outputs, scenario_name, draw_id, strict)
+    data_interface.save_components(components, scenario_name, draw_id)
+    data_interface.save_raw_covariates(covariates, scenario_name, draw_id)
+    data_interface.save_raw_outputs(outputs, scenario_name, draw_id)
 
 
 def parse_arguments(argstr: Optional[str] = None) -> Namespace:

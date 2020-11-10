@@ -91,9 +91,9 @@ class TestForecastDataInterfaceIO:
         )
 
         # Step 1: save files
-        di.save_components(components, scenario="happy", draw_id=4, strict=True)
+        di.save_components(components, scenario="happy", draw_id=4)
         di.save_beta_scales(beta_scales, scenario="happy", draw_id=4)
-        di.save_raw_outputs(forecast_outputs, scenario="happy", draw_id=4, strict=True)
+        di.save_raw_outputs(forecast_outputs, scenario="happy", draw_id=4)
 
         # Step 2: test save location
         # this is sort of cheating, but it ensures that scenario things are

@@ -32,14 +32,12 @@ class ScenarioSpecification:
     ALLOWED_ALGORITHMS = (
         'normal',
         'draw_level_mandate_reimposition',
-        'mean_level_mandate_reimposition'
     )
     ALLOWED_SOLVERS = (
         'RK45',
     )
     ALLOWED_SYSTEMS = (
-        'old_theta',
-        'new_theta',
+        'normal',
         'vaccine',
     )
     BETA_SCALING_KEYS = {
@@ -53,7 +51,7 @@ class ScenarioSpecification:
     name: str = field(default='dummy_scenario')
     algorithm: str = field(default='normal')
     algorithm_params: Dict = field(default_factory=dict)
-    system: str = field(default='new_theta')
+    system: str = field(default='normal')
     solver: str = field(default='RK45')
     beta_scaling: Dict[str, int] = field(default_factory=dict)
     theta: Union[str, int] = field(default=0)
