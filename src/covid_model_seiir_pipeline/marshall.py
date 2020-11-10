@@ -405,7 +405,7 @@ class Hdf5Marshall:
         df_pieces = []
         for columns_by_type in ds_to_load:
             ds = group[columns_by_type]
-            dtype: str = columns_by_type[6:]  # chomp 'dtype:' prefix
+            dtype: str = columns_by_type[6:].decode()  # chomp 'dtype:' prefix and convert from bytes
             # convert bytes to strings
             column_names = [X.decode() for X in ds.attrs[self.column_names_ds_attr]]
             arr = ds[()]
@@ -416,6 +416,7 @@ class Hdf5Marshall:
 
         # re-order columns to exact order they were saved in
         saved_col_order = group[self.column_names_order][()]
+        saved_col_order = self.dtype_marshall.from_bytes(saved_col_order)
         result = result[saved_col_order]
 
         return result
@@ -486,6 +487,8 @@ class DtypeMarshall:
         """
         if dtype == "datetime64":
             return self.from_unix_epoch(a)
+        elif dtype == "string":
+            return self.from_bytes(a)
         else:
             return pandas.Series(a)
 
@@ -509,3 +512,7 @@ class DtypeMarshall:
         https://pandas.pydata.org/pandas-docs/stable/user_guide/timeseries.html#epoch-timestamps
         """
         return pandas.Series(pandas.to_datetime(a, unit='s'))
+
+    def from_bytes(self, a: numpy.array) -> pandas.Series:
+        """Convert array of bytes to utf-8 strings."""
+        return pandas.Series(a).str.decode('utf-8')
