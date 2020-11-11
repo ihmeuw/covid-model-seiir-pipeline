@@ -231,7 +231,11 @@ def build_version_map(data_interface: ForecastDataInterface) -> pd.Series:
         webscrape_metadata = model_inputs_metadata['webscrape_metadata']
     version_map['webscrape_version'] = Path(webscrape_metadata['output_path']).name
 
-    version_map['location_set_version_id'] = int(model_inputs_metadata['run_arguments']['lsvid'])
+    version_map['location_set_version_id'] = model_inputs_metadata['run_arguments']['lsvid']
+    try:
+        version_map['location_set_version_id'] = int(version_map['location_set_version_id'])
+    except:
+        pass
     version_map['data_date'] = Path(snapshot_metadata['output_path']).name.split('.')[0].replace('_', '-')
 
     version_map = pd.Series(version_map)
