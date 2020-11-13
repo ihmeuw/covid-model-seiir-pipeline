@@ -47,13 +47,15 @@ def run_beta_forecast(draw_id: int, forecast_version: str, scenario_name: str, *
     # We'll use the beta and SEIR compartments from this data set to get
     # the ODE initial condition.
     beta_regression_df = data_interface.load_beta_regression(draw_id)
-    compartments, past_components = model.get_past_components(beta_regression_df,
-                                                              population_partition,
-                                                              scenario_spec.system)
+    compartment_info, past_components = model.get_past_components(
+        beta_regression_df,
+        population_partition,
+        scenario_spec.system
+    )
 
     # Select out the initial condition using the day of transition.
     transition_day = past_components['date'] == transition_date.loc[past_components.index]
-    initial_condition = past_components.loc[transition_day, compartments]
+    initial_condition = past_components.loc[transition_day, compartment_info.compartments]
     before_model = past_components['date'] < transition_date.loc[past_components.index]
     past_components = past_components[before_model]
 
@@ -79,17 +81,27 @@ def run_beta_forecast(draw_id: int, forecast_version: str, scenario_name: str, *
     # Modeling starts
     logger.info('Forecasting beta and components.')
     betas = model.forecast_beta(covariate_pred, coefficients, beta_scales)
-    future_components = model.run_normal_ode_model_by_location(initial_condition, beta_params, betas, thetas, scenario_data,
-                                                               location_ids, scenario_spec.solver, scenario_spec.system)
+    future_components = model.run_normal_ode_model_by_location(
+        initial_condition,
+        beta_params,
+        betas,
+        thetas,
+        scenario_data,
+        location_ids,
+        scenario_spec,
+        compartment_info,
+    )
     logger.info('Processing ODE results and computing deaths and infections.')
-    components, infections, deaths, r_effective = model.compute_output_metrics(infection_data,
-                                                                               past_components,
-                                                                               future_components,
-                                                                               thetas,
-                                                                               vaccinations,
-                                                                               beta_params,
-                                                                               scenario_spec.system,
-                                                                               seiir_compartments)
+    components, infections, deaths, r_effective = model.compute_output_metrics(
+        infection_data,
+        past_components,
+        future_components,
+        thetas,
+        vaccinations,
+        beta_params,
+        scenario_spec.system,
+        seiir_compartments
+    )
 
     if scenario_spec.algorithm == 'draw_level_mandate_reimposition':
         logger.info('Entering mandate reimposition.')

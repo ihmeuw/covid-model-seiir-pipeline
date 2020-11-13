@@ -1,6 +1,5 @@
-import abc
-from dataclasses import dataclass, asdict
-from typing import Dict, List, Set, Tuple, Type, Union
+from dataclasses import dataclass
+from typing import Dict, List, Set, Tuple, Type
 import itertools
 
 import numpy as np
@@ -10,6 +9,7 @@ import pandas as pd
 from covid_model_seiir_pipeline import static_vars
 from covid_model_seiir_pipeline.math import compute_beta_hat
 from covid_model_seiir_pipeline.forecasting.data import ScenarioData
+from covid_model_seiir_pipeline.forecasting.specification import ScenarioSpecification
 
 
 def forecast_beta(covariates: pd.DataFrame,
@@ -71,9 +71,18 @@ def get_population_partition(population: pd.DataFrame,
     return partition_map
 
 
+class CompartmentInfo:
+
+    def __init__(self,
+                 compartments: List[str],
+                 group_suffixes: List[str]):
+        self.compartments = compartments
+        self.group_suffixes = group_suffixes
+
+
 def get_past_components(beta_regression_df: pd.DataFrame,
                         population_partition: Dict[str, pd.Series],
-                        ode_system: str) -> Tuple[List[str], pd.DataFrame]:
+                        ode_system: str) -> Tuple[CompartmentInfo, pd.DataFrame]:
     regression_compartments = static_vars.SEIIR_COMPARTMENTS
     system_compartment_map = {
         'normal': _split_compartments(static_vars.SEIIR_COMPARTMENTS, population_partition),
@@ -103,7 +112,9 @@ def get_past_components(beta_regression_df: pd.DataFrame,
 
     past_components = pd.concat([past_beta, past_components], axis=1).reset_index(level='date')
 
-    return list(system_compartments), past_components
+    compartment_info = CompartmentInfo(list(system_compartments), list(population_partition))
+
+    return compartment_info, past_components
 
 
 def _split_compartments(compartments: List[str],
@@ -118,8 +129,8 @@ def run_normal_ode_model_by_location(initial_condition: pd.DataFrame,
                                      thetas: pd.Series,
                                      scenario_data: ScenarioData,
                                      location_ids: List[int],
-                                     solver: str,
-                                     ode_system: str):
+                                     scenario_spec: ScenarioSpecification,
+                                     compartment_info: CompartmentInfo):
     forecasts = []
     for location_id in location_ids:
         init_cond = initial_condition.loc[location_id].values
@@ -132,7 +143,14 @@ def run_normal_ode_model_by_location(initial_condition: pd.DataFrame,
             gamma2=beta_params['gamma2'],
             N=total_population,
         )
-        ode_runner = _ODERunner(solver, ode_system, model_specs)
+        parameters = ['beta', 'theta']
+        if scenario_spec.system == 'vaccine':
+            outcomes = ['unprotected', 'protected', 'immune']
+            vaccine_parameters = [f'{outcome}_{group}' for outcome, group in
+                                  itertools.product(outcomes, compartment_info.group_suffixes)]
+            parameters += vaccine_parameters
+
+        ode_runner = _ODERunner(model_specs, scenario_spec, compartment_info, parameters)
 
         loc_betas = betas.loc[location_id].sort_values('date')
         loc_days = loc_betas['date']
@@ -161,6 +179,7 @@ class _SeiirModelSpecs:
     gamma1: float
     gamma2: float
     N: float
+    delta: float = 0.1
 
     def __post_init__(self):
         assert 0 < self.alpha <= 1.0
@@ -175,7 +194,8 @@ class ODESystem:
     def __init__(self,
                  constants: _SeiirModelSpecs,
                  sub_groups: List[str],
-                 compartments: List[str]):
+                 compartments: List[str],
+                 parameters: List[str]):
         self.alpha = constants.alpha
         self.sigma = constants.sigma
         self.gamma1 = constants.gamma1
@@ -184,6 +204,7 @@ class ODESystem:
 
         self.sub_groups = sub_groups
         self.compartments = compartments
+        self.parameters = parameters
 
     def system(self, t: float, y: np.ndarray, p: np.ndarray) -> np.ndarray:
         raise NotImplementedError
@@ -281,9 +302,18 @@ class _ODERunner:
         'RK45': RK4
     }
 
-    def __init__(self, solver_name: str, seir_model: str, model_specs: _SeiirModelSpecs):
-        self.model = self.systems[seir_model](**asdict(model_specs))
-        self.solver = self.solvers[solver_name](self.model.system, model_specs.delta)
+    def __init__(self,
+                 model_specs: _SeiirModelSpecs,
+                 scenario_spec: ScenarioSpecification,
+                 compartment_info: CompartmentInfo,
+                 parameters: List[str]):
+        self.model = self.systems[scenario_spec.system](
+            model_specs,
+            compartment_info.group_suffixes,
+            compartment_info.compartments,
+            parameters
+        )
+        self.solver = self.solvers[scenario_spec.solver](self.model.system, model_specs.delta)
 
     def get_solution(self, initial_condition, times, beta, theta, *scenario_args):
         params = np.vstack((beta, theta, *scenario_args))
@@ -299,7 +329,7 @@ class _ODERunner:
         ], axis=0).T
         result = pd.DataFrame(
             data=result_array,
-            columns=self.model.components + self.model.params + ['t']
+            columns=self.model.compartments + self.model.parameters + ['t']
         )
 
         return result
