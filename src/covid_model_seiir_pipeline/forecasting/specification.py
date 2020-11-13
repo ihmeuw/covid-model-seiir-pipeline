@@ -40,19 +40,24 @@ class ScenarioSpecification:
         'normal',
         'vaccine',
     )
-    BETA_SCALING_KEYS = {
+    ALLOWED_POPULATION_PARTITIONS = (
+        'none',
+        'old_and_young',
+    )
+    BETA_SCALING_KEYS = (
         'window_size',
         'average_over_min',
         'average_over_max',
         'offset_deaths_lower',
-        'offset_deaths_upper'
-    }
+        'offset_deaths_upper',
+    )
 
     name: str = field(default='dummy_scenario')
     algorithm: str = field(default='normal')
     algorithm_params: Dict = field(default_factory=dict)
-    system: str = field(default='normal')
     solver: str = field(default='RK45')
+    system: str = field(default='normal')
+    population_partition: str = field(default='none')
     beta_scaling: Dict[str, int] = field(default_factory=dict)
     theta: Union[str, int] = field(default=0)
     covariates: Dict[str, str] = field(default_factory=dict)
@@ -69,6 +74,10 @@ class ScenarioSpecification:
         if self.system not in self.ALLOWED_SYSTEMS:
             raise ValueError(f'Unknown system {self.system} in scenario {self.name}. '
                              f'Allowed solvers are {self.ALLOWED_SYSTEMS}.')
+
+        if self.population_partition not in self.ALLOWED_POPULATION_PARTITIONS:
+            raise ValueError(f'Unknown population partition {self.population_partition} in scenario {self.name}. '
+                             f'Allowed partitions are {self.ALLOWED_POPULATION_PARTITIONS}.')
 
         bad_scaling_keys = set(self.beta_scaling).difference(self.BETA_SCALING_KEYS)
         if bad_scaling_keys:

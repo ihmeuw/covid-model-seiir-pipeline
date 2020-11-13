@@ -1,6 +1,6 @@
 from functools import reduce
 from pathlib import Path
-from typing import List, Dict, Union
+from typing import Dict, List, Optional, Union
 
 from loguru import logger
 import pandas as pd
@@ -221,6 +221,29 @@ class ForecastDataInterface:
             index_columns.append('date')
         return info_df.set_index(index_columns)
 
+    def load_scenario_specific_data(self,
+                                    location_ids: List[int],
+                                    scenario_spec: ScenarioSpecification) -> 'ScenarioData':
+        if scenario_spec.system == 'vaccine':
+            daily_vaccinations = self.load_covariate('daily_vaccinations', 'flat', location_ids)
+            daily_vaccinations = daily_vaccinations.reset_index().set_index('location_id')
+        else:
+            daily_vaccinations = None
+
+        if scenario_spec.algorithm == 'draw_level_mandate_reimposition':
+            percent_mandates = self.load_covariate_info('mobility', 'mandate_lift', location_ids)
+            mandate_effects = self.load_covariate_info('mobility', 'effect', location_ids)
+        else:
+            percent_mandates = None
+            mandate_effects = None
+
+        scenario_data = ScenarioData(
+            daily_vaccinations=daily_vaccinations,
+            percent_mandates=percent_mandates,
+            mandate_effects=mandate_effects
+        )
+        return scenario_data
+
     def save_raw_covariates(self, covariates: pd.DataFrame, scenario: str, draw_id: int):
         self.forecast_marshall.dump(covariates,
                                     key=MKeys.forecast_raw_covariates(scenario=scenario, draw_id=draw_id))
@@ -284,3 +307,14 @@ class ForecastDataInterface:
     def load_reimposition_dates(self, scenario: str, reimposition_number: int):
         return self.forecast_marshall.load(key=MKeys.reimposition_dates(scenario=scenario,
                                                                         reimposition_number=reimposition_number))
+
+
+class ScenarioData:
+
+    def __init__(self,
+                 daily_vaccinations: Optional[pd.DataFrame],
+                 percent_mandates: Optional[pd.DataFrame],
+                 mandate_effects: Optional[pd.DataFrame]):
+        self.daily_vaccinations = daily_vaccinations
+        self.percent_mandates = percent_mandates
+        self.mandate_effects = mandate_effects

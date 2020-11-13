@@ -23,71 +23,37 @@ def run_beta_forecast(draw_id: int, forecast_version: str, scenario_name: str, *
 
     logger.info('Loading input data.')
     location_ids = data_interface.load_location_ids()
+    # We'll use the same params in the ODE forecast as we did in the fit.
+    beta_params = data_interface.load_beta_params(draw_id=draw_id)
     # Thetas are a parameter generated from assumption or OOS predictive
     # validity testing to curtail some of the bad behavior of the model.
     thetas = data_interface.load_thetas(scenario_spec.theta)
+    if ((1 < thetas) | thetas < -1).any():
+        raise ValueError('Theta must be between -1 and 1.')
+    if (beta_params['sigma'] - thetas >= 1).any():
+        raise ValueError('Sigma - theta must be smaller than 1')
+
     # Grab the last day of data in the model by location id.  This will
     # correspond to the initial condition for the projection.
     transition_date = data_interface.load_transition_date(draw_id)
 
+    # The population will be used to partition the SEIR compartments into
+    # different sub groups for the forecast.
+    population = data_interface.load_population()
+    population_partition = model.get_population_partition(population,
+                                                          location_ids,
+                                                          scenario_spec.population_partition)
+
     # We'll use the beta and SEIR compartments from this data set to get
     # the ODE initial condition.
-    beta_regression_df = data_interface.load_beta_regression(draw_id).set_index('location_id').sort_index()
-    past_components = beta_regression_df[['date', 'beta'] + static_vars.SEIIR_COMPARTMENTS]
-
-    # load in vaccine information
-    if scenario_spec.system == 'vaccine':
-        vaccinations = data_interface.load_covariate('daily_vaccinations', 'flat', location_ids)
-        vaccinations = vaccinations.reset_index().set_index('location_id')
-        seiir_compartments = static_vars.VACCINE_SEIIR_COMPARTMENTS
-        for compartment in seiir_compartments:
-            if compartment not in past_components:
-                past_components.loc[past_components[static_vars.SEIIR_COMPARTMENTS].notnull().all(axis=1),
-                                    compartment] = 0
-
-        # split into young/old compartments
-        # TODO: age_group_metadata to identify age groups
-        population_df = data_interface.load_population()
-        is_beta_location = population_df['location_id'].isin(beta_regression_df.index.to_list())
-        is_2019 = population_df['year_id'] == 2019
-        is_both_sexes = population_df['sex_id'] == 3
-        population_df = population_df.loc[is_beta_location & is_2019 & is_both_sexes]
-        is_5_year = population_df['age_group_years_end'] == population_df['age_group_years_start'] + 5
-        is_terminal = population_df['age_group_id'] == 235
-        pop_keep_cols = ['location_id', 'age_group_years_start', 'age_group_years_end', 'population']
-        population_df = population_df.loc[is_5_year | is_terminal, pop_keep_cols]
-        if not len(population_df) == population_df.location_id.unique().size * len(range(0, 100, 5)):
-            raise ValueError('Population data unexpected size.')
-        is_young = population_df['age_group_years_start'] < 65
-        is_old = population_df['age_group_years_start'] >= 65
-        population_df.loc[is_young, 'seir_group'] = 'y'
-        population_df.loc[is_old, 'seir_group'] = 'o'
-        seir_groups = population_df['seir_group'].unique().tolist()
-        population_df = population_df.groupby(['location_id', 'seir_group'], as_index=False)['population'].sum()
-        population_df = (pd.pivot_table(population_df, index='location_id', columns='seir_group', values='population')
-                         .reset_index().set_index('location_id'))
-        population_df.columns.name = ''
-        population_df = population_df[seir_groups].div(population_df[seir_groups].sum(axis=1), axis=0)
-        past_components = pd.concat([past_components, population_df], axis=1)
-        seiir_group_compartments_list = []
-        seiir_group_compartments_data_list = []
-        for seir_group in seir_groups:
-            seiir_group_compartments = [f'{seir_group}{seiir_compartment}' for seiir_compartment in seiir_compartments]
-            seiir_group_compartments_data = (past_components[seiir_compartments]
-                                             .multiply(past_components[seir_group], axis=0)
-                                             .rename(index=str, columns=dict(zip(seiir_compartments, seiir_group_compartments))))
-            seiir_group_compartments_list += seiir_group_compartments
-            seiir_group_compartments_data_list += [seiir_group_compartments_data.reset_index(drop=True)]
-        past_components = pd.concat([past_components.drop(seiir_compartments + seir_groups, axis=1).reset_index()] + seiir_group_compartments_data_list,
-                                    axis=1).set_index('location_id')
-        seiir_compartments = seiir_group_compartments_list.copy()
-    else:
-        seiir_compartments = static_vars.SEIIR_COMPARTMENTS
-        vaccinations = None
+    beta_regression_df = data_interface.load_beta_regression(draw_id)
+    compartments, past_components = model.get_past_components(beta_regression_df,
+                                                              population_partition,
+                                                              scenario_spec.system)
 
     # Select out the initial condition using the day of transition.
     transition_day = past_components['date'] == transition_date.loc[past_components.index]
-    initial_condition = past_components.loc[transition_day, seiir_compartments]
+    initial_condition = past_components.loc[transition_day, compartments]
     before_model = past_components['date'] < transition_date.loc[past_components.index]
     past_components = past_components[before_model]
 
@@ -104,21 +70,16 @@ def run_beta_forecast(draw_id: int, forecast_version: str, scenario_name: str, *
 
     beta_scales = data_interface.load_beta_scales(scenario=scenario_name, draw_id=draw_id)
 
-    # We'll use the same params in the ODE forecast as we did in the fit.
-    beta_params = data_interface.load_beta_params(draw_id=draw_id)
-
     # We'll need this to compute deaths and to splice with the forecasts.
     infection_data = data_interface.load_infection_data(draw_id)
 
-    if ((1 < thetas) | thetas < -1).any():
-        raise ValueError('Theta must be between -1 and 1.')
-    if (beta_params['sigma'] - thetas >= 1).any():
-        raise ValueError('Sigma - theta must be smaller than 1')
+    # Load any data specific to the particular scenario we're running
+    scenario_data = data_interface.load_scenario_specific_data(location_ids, scenario_spec)
 
     # Modeling starts
     logger.info('Forecasting beta and components.')
     betas = model.forecast_beta(covariate_pred, coefficients, beta_scales)
-    future_components = model.run_normal_ode_model_by_location(initial_condition, beta_params, betas, thetas, vaccinations,
+    future_components = model.run_normal_ode_model_by_location(initial_condition, beta_params, betas, thetas, scenario_data,
                                                                location_ids, scenario_spec.solver, scenario_spec.system)
     logger.info('Processing ODE results and computing deaths and infections.')
     components, infections, deaths, r_effective = model.compute_output_metrics(infection_data,

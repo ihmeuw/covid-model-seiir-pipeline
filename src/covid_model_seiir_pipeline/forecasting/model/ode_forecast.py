@@ -1,16 +1,20 @@
+import abc
 from dataclasses import dataclass, asdict
-from typing import Union
+from typing import Dict, List, Set, Tuple, Type, Union
 import itertools
 
 import numpy as np
-from odeopt.ode import RK4
-from odeopt.ode import ODESys
+from odeopt.ode import RK4, ODESolver
 import pandas as pd
 
+from covid_model_seiir_pipeline import static_vars
 from covid_model_seiir_pipeline.math import compute_beta_hat
+from covid_model_seiir_pipeline.forecasting.data import ScenarioData
 
 
-def forecast_beta(covariates, coefficients, beta_shift_parameters):
+def forecast_beta(covariates: pd.DataFrame,
+                  coefficients: pd.DataFrame,
+                  beta_shift_parameters: pd.DataFrame) -> pd.DataFrame:
     log_beta_hat = compute_beta_hat(covariates, coefficients)
     beta_hat = np.exp(log_beta_hat).rename('beta_pred').reset_index()
 
@@ -20,8 +24,102 @@ def forecast_beta(covariates, coefficients, beta_shift_parameters):
     return betas
 
 
-def run_normal_ode_model_by_location(initial_condition, beta_params, betas, thetas, vaccinations,
-                                     location_ids, solver, ode_system):
+def get_population_partition(population: pd.DataFrame,
+                             location_ids: List[int],
+                             population_partition: str) -> Dict[str, pd.Series]:
+    """Create a location-specific partition of the population.
+
+    Parameters
+    ----------
+    population
+        A dataframe with location, age, and sex specific populations.
+    location_ids
+        A list of location ids used in the regression model.
+    population_partition
+        A string describing how the population should be partitioned.
+
+    Returns
+    -------
+        A mapping between the SEIR compartment suffix for the partition groups
+        and a series mapping location ids to the proportion of people in each
+        compartment that should be allocated to the partition group.
+
+    """
+    if population_partition == 'none':
+        partition_map = {
+            '': pd.Series(1.0, index=location_ids)
+        }
+    elif population_partition == 'old_and_young':
+        modeled_locations = population['location_id'].isin(location_ids)
+        is_2019 = population['year_id']
+        is_both_sexes = population['sex_id'] == 3
+        five_year_bins = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 30, 31, 32, 235]
+        is_five_year_bins = population['age_group_id'].isin(five_year_bins)
+        population = population.loc[modeled_locations & is_2019 & is_both_sexes & is_five_year_bins, :]
+
+        total_pop = population.groupby('location_id')['population'].sum()
+        young_pop = population[population['age_group_years_start'] < 65].groupby('location_id')['population'].sum()
+        old_pop = total_pop - young_pop
+
+        partition_map = {
+            'y': young_pop / total_pop,
+            'o': old_pop / total_pop,
+        }
+    else:
+        raise NotImplementedError
+
+    return partition_map
+
+
+def get_past_components(beta_regression_df: pd.DataFrame,
+                        population_partition: Dict[str, pd.Series],
+                        ode_system: str) -> Tuple[List[str], pd.DataFrame]:
+    regression_compartments = static_vars.SEIIR_COMPARTMENTS
+    system_compartment_map = {
+        'normal': _split_compartments(static_vars.SEIIR_COMPARTMENTS, population_partition),
+        'vaccine': _split_compartments(static_vars.VACCINE_SEIIR_COMPARTMENTS, population_partition),
+    }
+    system_compartments = system_compartment_map[ode_system]
+
+    beta_regression_df = (beta_regression_df
+                          .set_index(['location_id', 'date'])
+                          .sort_index())
+    past_beta = beta_regression_df['beta']
+    past_components = beta_regression_df[regression_compartments]
+
+    partitioned_past_components = []
+    for compartment in regression_compartments:
+        for partition_group, proportion in population_partition.items():
+            partitioned_past_components.append(
+                (past_components[compartment] * proportion).rename(f'{compartment}_{partition_group}')
+            )
+    past_components = pd.concat(partitioned_past_components, axis=1)
+
+    rows_to_fill = past_components.notnull().all(axis=1)
+    compartments_to_fill = system_compartments.difference(past_components.columns)
+    past_components = past_components.reindex(system_compartments, axis=1)
+    for compartment_to_fill in compartments_to_fill:
+        past_components.loc[rows_to_fill, compartment_to_fill] = 0
+
+    past_components = pd.concat([past_beta, past_components], axis=1).reset_index(level='date')
+
+    return list(system_compartments), past_components
+
+
+def _split_compartments(compartments: List[str],
+                        partition: Dict[str, pd.Series]) -> Set[str]:
+    return {f'{compartment}_{partition_group}'
+            for compartment, partition_group in itertools.product(compartments, partition)}
+
+
+def run_normal_ode_model_by_location(initial_condition: pd.DataFrame,
+                                     beta_params: Dict[str, float],
+                                     betas: pd.DataFrame,
+                                     thetas: pd.Series,
+                                     scenario_data: ScenarioData,
+                                     location_ids: List[int],
+                                     solver: str,
+                                     ode_system: str):
     forecasts = []
     for location_id in location_ids:
         init_cond = initial_condition.loc[location_id].values
@@ -41,10 +139,10 @@ def run_normal_ode_model_by_location(initial_condition, beta_params, betas, thet
         loc_times = np.array((loc_days - loc_days.min()).dt.days)
         loc_betas = loc_betas['beta_pred'].values
         loc_thetas = np.repeat(thetas.get(location_id, default=0), loc_betas.size)
-        if vaccinations is None:
+        if scenario_data.daily_vaccinations is None:
             loc_vaccinations = np.zeros(shape=loc_betas.shape)
         else:
-            loc_vaccinations = vaccinations.loc[location_id]
+            loc_vaccinations = scenario_data.daily_vaccinations.loc[location_id]
             loc_vaccinations = loc_vaccinations.merge(loc_days, how='right').sort_values('date')
             loc_vaccinations = loc_vaccinations['daily_vaccinations'].fillna(0).values
 
@@ -56,89 +154,68 @@ def run_normal_ode_model_by_location(initial_condition, beta_params, betas, thet
     return forecasts
 
 
-class _SEIIR(ODESys):
-    """Customized SEIIR ODE system."""
+@dataclass(frozen=True)
+class _SeiirModelSpecs:
+    alpha: float
+    sigma: float
+    gamma1: float
+    gamma2: float
+    N: float
+
+    def __post_init__(self):
+        assert 0 < self.alpha <= 1.0
+        assert self.sigma >= 0.0
+        assert self.gamma1 >= 0
+        assert self.gamma2 >= 0
+        assert self.N > 0
+
+
+class ODESystem:
 
     def __init__(self,
-                 alpha: float,
-                 sigma: float,
-                 gamma1: float,
-                 gamma2: float,
-                 N: Union[int, float],
-                 *args, **kwargs):
-        """Constructor of CustomizedSEIIR.
-        """
-        self.alpha = alpha
-        self.sigma = sigma
-        self.gamma1 = gamma1
-        self.gamma2 = gamma2
-        self.N = N
+                 constants: _SeiirModelSpecs,
+                 sub_groups: List[str],
+                 compartments: List[str]):
+        self.alpha = constants.alpha
+        self.sigma = constants.sigma
+        self.gamma1 = constants.gamma1
+        self.gamma2 = constants.gamma2
+        self.N = constants.N
 
-        # create parameter names
-        self.params = ['beta', 'theta']
-
-        # create component names
-        self.components = ['S', 'E', 'I1', 'I2', 'R']
-
-        super().__init__(self.system, self.params, self.components, *args)
+        self.sub_groups = sub_groups
+        self.compartments = compartments
 
     def system(self, t: float, y: np.ndarray, p: np.ndarray) -> np.ndarray:
-        """ODE System.
-        """
-        beta = p[0]
-        theta = p[1]
+        raise NotImplementedError
 
-        s = y[0]
-        e = y[1]
-        i1 = y[2]
-        i2 = y[3]
-        r = y[4]
 
-        theta_plus = max(theta, 0.)
-        theta_minus = -min(theta, 0.)
+class _SEIIR(ODESystem):
 
-        new_e = beta*(s/self.N)*(i1 + i2)**self.alpha
+    def _group_system(self, t: float, y: np.ndarray, beta: float, theta_plus: float, theta_minus: float):
+        s, e, i1, i2, r = y
+        new_e = beta * (s / self.N) * (i1 + i2) ** self.alpha
 
-        ds = -new_e - theta_plus*s
-        de = new_e + theta_plus*s - self.sigma*e - theta_minus*e
-        di1 = self.sigma*e - self.gamma1*i1
-        di2 = self.gamma1*i1 - self.gamma2*i2
-        dr = self.gamma2*i2 + theta_minus*e
+        ds = -new_e - theta_plus * s
+        de = new_e + theta_plus * s - self.sigma * e - theta_minus * e
+        di1 = self.sigma * e - self.gamma1 * i1
+        di2 = self.gamma1 * i1 - self.gamma2 * i2
+        dr = self.gamma2 * i2 + theta_minus * e
 
         return np.array([ds, de, di1, di2, dr])
 
+    def system(self, t: float, y: np.ndarray, p: np.ndarray) -> np.ndarray:
+        beta, theta = p
+        theta_plus = max(theta, 0.)
+        theta_minus = -min(theta, 0.)
 
-class _VaccineSEIIR(ODESys):
-    """Customized SEIIR ODE system."""
+        y = np.split(y.copy(), len(self.sub_groups))
+        dy = [self._group_system(t, y_i, beta, theta_plus, theta_minus) for y_i in y]
+        dy = np.hstack(dy)
 
-    def __init__(self,
-                 alpha: float,
-                 sigma: float,
-                 gamma1: float,
-                 gamma2: float,
-                 N: Union[int, float],
-                 eta: float,
-                 *args, **kwargs):
-        """Constructor of Customized SEIIR.
-        """
-        self.alpha = alpha
-        self.sigma = sigma
-        self.gamma1 = gamma1
-        self.gamma2 = gamma2
-        self.N = N
+        return dy
 
-        self.eta = eta  # Proportion effectively vaccinated
 
-        # create parameter names
-        self.params = ['beta', 'theta', 'psi']
-
-        # create component names
-        self.groups = ['y', 'o']
-        self.group_components = ['S', 'E', 'I1', 'I2', 'R',
-                                 'S_v', 'E_v', 'I1_v', 'I2_v', 'R_v', 'R_sv']
-        self.components = [f'{group}{component}' for group, component in itertools.product(self.groups, self.group_components)]
-
-        super().__init__(self.system, self.params, self.components, *args)
+class _VaccineSEIIR(ODESystem):
 
     def _group_system(self, beta: float, theta_plus: float, theta_minus: float,
                       psi: np.array, y: np.array) -> np.array:
@@ -177,86 +254,49 @@ class _VaccineSEIIR(ODESys):
     def system(self, t: float, y: np.ndarray, p: np.ndarray) -> np.ndarray:
         """ODE System.
         """
-        beta, theta, psi = p
+        beta, theta, *vaccinations = p
         theta_plus = max(theta, 0.)
         theta_minus = -min(theta, 0.)
 
-        y = np.split(y.copy(), len(self.groups))
-        psi = [psi * 0.5, psi * 0.5]
+        infectious = 0
+        for compartment, people_in_compartment in zip(self.compartments, y):
+            if 'I1' in compartment or 'I2' in compartment:
+                infectious += people_in_compartment
 
-        dy = [self._group_system(beta, theta_plus, theta_minus, psi_i, y_i) for psi_i, y_i in zip(psi, y)]
-        dy = np.hstack(dy)
+        y = np.split(y.copy(), len(self.sub_groups))
+        vaccinations = np.split(vaccinations.copy(), len(self.sub_groups))
+        #dy = [self._group_system(beta, theta_plus, theta_minus, p si_i, y_i) for psi_i, y_i in zip(psi, y)]
+        #dy = np.hstack(dy)
 
-        return dy
-
-
-@dataclass(frozen=True)
-class _SeiirModelSpecs:
-    alpha: float
-    sigma: float
-    gamma1: float
-    gamma2: float
-    N: float  # in case we want to do fractions, but not number of people
-    delta: float = 0.1
-    eta: float = 0.8
-
-    def __post_init__(self):
-        assert 0 < self.alpha <= 1.0
-        assert self.sigma >= 0.0
-        assert self.gamma1 >= 0
-        assert self.gamma2 >= 0
-        assert self.N > 0
-        assert self.delta > 0.0
-        assert 0 <= self.eta <= 1.0
+        #return dy
 
 
 class _ODERunner:
 
+    systems: Dict[str, Type[ODESystem]] = {
+        'normal': _SEIIR,
+        'vaccine': _VaccineSEIIR
+    }
+    solvers: Dict[str, Type[ODESolver]] = {
+        'RK45': RK4
+    }
+
     def __init__(self, solver_name: str, seir_model: str, model_specs: _SeiirModelSpecs):
-        self.model_name = seir_model
-        if seir_model == 'normal':
-            self.model = _SEIIR(**asdict(model_specs))
-        elif seir_model == 'vaccine':
-            self.model = _VaccineSEIIR(**asdict(model_specs))
-        else:
-            raise NotImplementedError(f'Unknown model type {seir_model}.')
+        self.model = self.systems[seir_model](**asdict(model_specs))
+        self.solver = self.solvers[solver_name](self.model.system, model_specs.delta)
 
-        if solver_name == "RK45":
-            self.solver = RK4(self.model.system, model_specs.delta)
-        else:
-            raise NotImplementedError(f"Unknown solver type {solver_name}.")
-
-    def get_solution(self, initial_condition, times, beta, theta, psi):
-        if self.model_name == 'vaccine':
-            params=np.vstack((beta, theta, psi))
-        elif self.model_name in ['old_theta', 'new_theta']:
-            params=np.vstack((beta, theta))
-        else:
-            raise NotImplementedError(f"Params not known for model type {self.model_name}.")
+    def get_solution(self, initial_condition, times, beta, theta, *scenario_args):
+        params = np.vstack((beta, theta, *scenario_args))
         solution = self.solver.solve(
             t=times,
             init_cond=initial_condition,
             t_params=times,
             params=params
         )
-        if self.model_name == 'vaccine':
-            result_array = np.concatenate([
-                solution,
-                beta.reshape((1, -1)),
-                theta.reshape((1, -1)),
-                psi.reshape((1, -1)),
-                times.reshape((1, -1))
-            ], axis=0).T
-        elif self.model_name in ['old_theta', 'new_theta']:
-            result_array = np.concatenate([
-                solution,
-                beta.reshape((1, -1)),
-                theta.reshape((1, -1)),
-                times.reshape((1, -1))
-            ], axis=0).T
-        else:
-            raise NotImplementedError(f"Params not known for model type {self.model_name}.")
-
+        result_array = np.concatenate([
+            solution,
+            *[x.reshape((1, -1)) for x in [beta, theta, *scenario_args, times]]
+        ], axis=0).T
         result = pd.DataFrame(
             data=result_array,
             columns=self.model.components + self.model.params + ['t']
