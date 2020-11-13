@@ -12,7 +12,7 @@ def test_ode_runner():
         N=100,
         delta=0.1,
     )
-    model = 'old_theta'
+    model = 'normal'
     # init_cond = [S, E, I1, I2, R] at t = 0
     init_cond = np.array([96, 0, 2, 2, 0], dtype=float)
 
