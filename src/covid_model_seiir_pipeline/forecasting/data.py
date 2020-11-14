@@ -225,10 +225,11 @@ class ForecastDataInterface:
                                     location_ids: List[int],
                                     scenario_spec: ScenarioSpecification) -> 'ScenarioData':
         if scenario_spec.system == 'vaccine':
-            daily_vaccinations = self.load_covariate('daily_vaccinations', 'flat', location_ids)
-            daily_vaccinations = daily_vaccinations.reset_index().set_index('location_id')
+            high_risk = self.load_covariate_info('vaccine_coverage', 'high_risk', location_ids)
+            low_risk = self.load_covariate_info('vaccine_coverage', 'low_risk', location_ids)
         else:
-            daily_vaccinations = None
+            high_risk = None
+            low_risk = None
 
         if scenario_spec.algorithm == 'draw_level_mandate_reimposition':
             percent_mandates = self.load_covariate_info('mobility', 'mandate_lift', location_ids)
@@ -238,7 +239,8 @@ class ForecastDataInterface:
             mandate_effects = None
 
         scenario_data = ScenarioData(
-            daily_vaccinations=daily_vaccinations,
+            high_risk_vaccinations=high_risk,
+            low_risk_vaccinations=low_risk,
             percent_mandates=percent_mandates,
             mandate_effects=mandate_effects
         )
@@ -312,9 +314,11 @@ class ForecastDataInterface:
 class ScenarioData:
 
     def __init__(self,
-                 daily_vaccinations: Optional[pd.DataFrame],
+                 high_risk_vaccinations: Optional[pd.DataFrame],
+                 low_risk_vaccinations: Optional[pd.DataFrame],
                  percent_mandates: Optional[pd.DataFrame],
                  mandate_effects: Optional[pd.DataFrame]):
-        self.daily_vaccinations = daily_vaccinations
+        self.high_risk_vaccinations = high_risk_vaccinations
+        self.low_risk_vaccinations = low_risk_vaccinations
         self.percent_mandates = percent_mandates
         self.mandate_effects = mandate_effects

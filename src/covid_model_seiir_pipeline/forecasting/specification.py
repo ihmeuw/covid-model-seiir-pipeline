@@ -57,6 +57,7 @@ class ScenarioSpecification:
     algorithm_params: Dict = field(default_factory=dict)
     solver: str = field(default='RK45')
     system: str = field(default='normal')
+    system_params: Dict = field(default_factory=dict)
     population_partition: str = field(default='none')
     beta_scaling: Dict[str, int] = field(default_factory=dict)
     theta: Union[str, int] = field(default=0)
