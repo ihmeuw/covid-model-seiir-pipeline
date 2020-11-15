@@ -23,14 +23,16 @@ def forecast_beta(covariates: pd.DataFrame,
     betas = _beta_shift(beta_hat, beta_shift_parameters).set_index('location_id')
     return betas
 
+
 def prep_seir_parameters(betas: pd.DataFrame,
                          thetas: pd.DataFrame,
                          scenario_data: ScenarioData):
     betas = betas.rename(columns={'beta_pred': 'beta'})
     parameters = betas.merge(thetas, on='location_id')
     if scenario_data.vaccinations is not None:
-       parameters = parameters.merge(scenario_data.vaccinations, on='location_id')
+        parameters = parameters.merge(scenario_data.vaccinations, on='location_id')
     return parameters
+
 
 def get_population_partition(population: pd.DataFrame,
                              location_ids: List[int],
@@ -123,7 +125,7 @@ def get_past_components(beta_regression_df: pd.DataFrame,
 
 
 def _split_compartments(compartments: List[str],
-                        partition: Dict[str, pd.Series]) -> Set[str]:
+                        partition: Dict[str, pd.Series]) -> List[str]:
     # Order of the groupings here matters!
     return [f'{compartment}_{partition_group}'
             for partition_group, compartment in itertools.product(partition, compartments)]
@@ -134,12 +136,11 @@ def run_normal_ode_model_by_location(initial_condition: pd.DataFrame,
                                      seir_parameters: pd.DataFrame,
                                      scenario_spec: ScenarioSpecification,
                                      compartment_info: CompartmentInfo):
-    import pdb; pdb.set_trace()
     forecasts = []
 
     for location_id, init_cond in initial_condition.iterrows():
         # Index columns to ensure sort order
-        init_cond = init_cond[compartment_info.compartments].values 
+        init_cond = init_cond[compartment_info.compartments].values
         total_population = init_cond.sum()
 
         model_specs = _SeiirModelSpecs(
@@ -158,7 +159,6 @@ def run_normal_ode_model_by_location(initial_condition: pd.DataFrame,
         forecasted_components = ode_runner.get_solution(init_cond, loc_times, loc_parameters.values)
         forecasted_components['date'] = loc_date.values
         forecasted_components['location_id'] = location_id
-        import pdb; pdb.set_trace()
         forecasts.append(forecasted_components)
     forecasts = pd.concat(forecasts)
     return forecasts
