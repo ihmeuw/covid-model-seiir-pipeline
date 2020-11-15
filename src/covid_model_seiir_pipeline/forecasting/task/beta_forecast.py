@@ -90,16 +90,12 @@ def run_beta_forecast(draw_id: int, forecast_version: str, scenario_name: str, *
         compartment_info,
     )
     logger.info('Processing ODE results and computing deaths and infections.')
-    import pdb; pdb.set_trace()
     components, infections, deaths, r_effective = model.compute_output_metrics(
         infection_data,
         past_components,
         future_components,
-        thetas,
-        vaccinations,
         beta_params,
-        scenario_spec.system,
-        seiir_compartments
+        compartment_info.compartments,
     )
 
     if scenario_spec.algorithm == 'draw_level_mandate_reimposition':

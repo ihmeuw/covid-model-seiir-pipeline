@@ -9,11 +9,9 @@ import pandas as pd
 def compute_output_metrics(infection_data: pd.DataFrame,
                            components_past: pd.DataFrame,
                            components_forecast: pd.DataFrame,
-                           thetas: pd.Series,
-                           vaccinations: pd.DataFrame,
                            seir_params: Dict[str, float],
-                           ode_system: str,
                            seiir_compartments: List[str]) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+    import pdb; pdb.set_trace()
     components = splice_components(components_past, components_forecast, seiir_compartments)
     components['theta'] = thetas.reindex(components.index).fillna(0)
     if vaccinations is not None:
@@ -24,7 +22,7 @@ def compute_output_metrics(infection_data: pd.DataFrame,
 
     infections = observed_infections.combine_first(modeled_infections)['cases_draw'].rename('infections')
     deaths = observed_deaths.combine_first(modeled_deaths).rename(columns={'deaths_draw': 'deaths'})
-    r_effective = compute_effective_r(infection_data, components, seir_params, ode_system, seiir_compartments)
+    r_effective = compute_effective_r(infection_data, components, seir_params, seiir_compartments)
 
     return components, infections, deaths, r_effective
 
@@ -118,7 +116,7 @@ def compute_deaths(infection_data: pd.DataFrame,
 
 
 def compute_effective_r(infection_data: pd.DataFrame, components: pd.DataFrame,
-                        beta_params: Dict[str, float], ode_system: str,
+                        beta_params: Dict[str, float],
                         seiir_compartments: List[str]) -> pd.DataFrame:
     alpha, sigma = beta_params['alpha'], beta_params['sigma']
     gamma1, gamma2 = beta_params['gamma1'], beta_params['gamma2']
@@ -130,12 +128,9 @@ def compute_effective_r(infection_data: pd.DataFrame, components: pd.DataFrame,
     i1 = components[[c for c in seiir_compartments if 'I1' in c]].sum(axis=1)
     i2 = components[[c for c in seiir_compartments if 'I2' in c]].sum(axis=1)
     n = infection_data.groupby('location_id')['pop'].max()
+    avg_gamma = 1 / (1 / (gamma1*(sigma - theta)) + 1 / (gamma2*(sigma - theta)))
 
-    if ode_system in ['normal', 'vaccine']:
-        avg_gamma = 1 / (1 / (gamma1*(sigma - theta)) + 1 / (gamma2*(sigma - theta)))
-        r_controlled = beta * alpha * sigma / avg_gamma * (i1 + i2) ** (alpha - 1)
-    else:
-        raise NotImplementedError(f'Unknown ode system type {ode_system}.')
-
+    r_controlled = beta * alpha * sigma / avg_gamma * (i1 + i2) ** (alpha - 1)
     r_effective = (r_controlled * s / n).rename('r_effective')
+
     return r_effective
