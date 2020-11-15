@@ -74,6 +74,7 @@ def run_beta_forecast(draw_id: int, forecast_version: str, scenario_name: str, *
 
     # We'll need this to compute deaths and to splice with the forecasts.
     infection_data = data_interface.load_infection_data(draw_id)
+    ifr = data_interface.load_ifr_data()
 
     # Load any data specific to the particular scenario we're running
     scenario_data = data_interface.load_scenario_specific_data(location_ids, scenario_spec)
@@ -92,6 +93,7 @@ def run_beta_forecast(draw_id: int, forecast_version: str, scenario_name: str, *
     logger.info('Processing ODE results and computing deaths and infections.')
     components, infections, deaths, r_effective = model.compute_output_metrics(
         infection_data,
+        ifr,
         past_components,
         future_components,
         beta_params,

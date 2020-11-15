@@ -1,16 +1,20 @@
 from typing import Dict, Tuple, List
 
-from covid_model_seiir_pipeline import static_vars
-
 import numpy as np
 import pandas as pd
 
+from covid_model_seiir_pipeline import static_vars
+from covid_model_seiir_pipeline.forecasting.model.ode_forecast import CompartmentInfo
+
+
+
 
 def compute_output_metrics(infection_data: pd.DataFrame,
+                           ifr: pd.DataFrame,
                            components_past: pd.DataFrame,
                            components_forecast: pd.DataFrame,
                            seir_params: Dict[str, float],
-                           seiir_compartments: List[str]) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+                           compartment_info: CompartmentInfo) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]:
     import pdb; pdb.set_trace()
     components = splice_components(components_past, components_forecast, seiir_compartments)
     components['theta'] = thetas.reindex(components.index).fillna(0)

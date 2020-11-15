@@ -135,14 +135,8 @@ class ForecastDataInterface:
         metadata = self.get_infectionator_metadata()
         # TODO: metadata abstraction?
         ifr_version = metadata['run_arguments']['ifr_custom_path']
-        data_path = Path(ifr_version) / 'allage_ifr_by_loctime.csv'
+        data_path = Path(ifr_version) / 'terminal.csv'
         data = pd.read_csv(data_path)
-        data['date'] = pd.to_datetime(data['datevar'])
-        data = (data
-                .rename(columns={'allage_ifr': 'ifr'})
-                .loc[:, ['location_id', 'date', 'ifr']]
-                .set_index(['location_id', 'date'])
-                .sort_index())
         return data
 
     def load_elastispliner_inputs(self):
@@ -227,7 +221,7 @@ class ForecastDataInterface:
                                     scenario_spec: ScenarioSpecification) -> 'ScenarioData':
         if scenario_spec.system == 'vaccine':
             vaccinations = self.load_covariate_info('vaccinations_high_low', 'high_risk', location_ids)
-            
+
         else:
             vaccinations = None
 
