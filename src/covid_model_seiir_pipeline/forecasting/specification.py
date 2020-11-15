@@ -42,7 +42,7 @@ class ScenarioSpecification:
     )
     ALLOWED_POPULATION_PARTITIONS = (
         'none',
-        'old_and_young',
+        'high_and_low_risk',
     )
     BETA_SCALING_KEYS = (
         'window_size',

@@ -49,7 +49,7 @@ def get_population_partition(population: pd.DataFrame,
         partition_map = {
             '': pd.Series(1.0, index=location_ids)
         }
-    elif population_partition == 'old_and_young':
+    elif population_partition == 'high_and_low_risk':
         modeled_locations = population['location_id'].isin(location_ids)
         is_2019 = population['year_id']
         is_both_sexes = population['sex_id'] == 3
@@ -58,12 +58,12 @@ def get_population_partition(population: pd.DataFrame,
         population = population.loc[modeled_locations & is_2019 & is_both_sexes & is_five_year_bins, :]
 
         total_pop = population.groupby('location_id')['population'].sum()
-        young_pop = population[population['age_group_years_start'] < 65].groupby('location_id')['population'].sum()
-        old_pop = total_pop - young_pop
+        low_risk_pop = population[population['age_group_years_start'] < 65].groupby('location_id')['population'].sum()
+        high_risk_pop = total_pop - low_risk_pop
 
         partition_map = {
-            'y': young_pop / total_pop,
-            'o': old_pop / total_pop,
+            'lr': low_risk_pop / total_pop,
+            'hr': high_risk_pop / total_pop,
         }
     else:
         raise NotImplementedError
