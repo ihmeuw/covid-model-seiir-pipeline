@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 from functools import reduce
 from pathlib import Path
 from typing import Dict, List, Optional, Union
@@ -311,14 +312,9 @@ class ForecastDataInterface:
                                                                         reimposition_number=reimposition_number))
 
 
+@dataclass
 class ScenarioData:
-
-    def __init__(self,
-                 high_risk_vaccinations: Optional[pd.DataFrame],
-                 low_risk_vaccinations: Optional[pd.DataFrame],
-                 percent_mandates: Optional[pd.DataFrame],
-                 mandate_effects: Optional[pd.DataFrame]):
-        self.high_risk_vaccinations = high_risk_vaccinations
-        self.low_risk_vaccinations = low_risk_vaccinations
-        self.percent_mandates = percent_mandates
-        self.mandate_effects = mandate_effects
+    high_risk_vaccinations: Optional[pd.DataFrame]
+    low_risk_vaccinations: Optional[pd.DataFrame]
+    percent_mandates: Optional[pd.DataFrame]
+    mandate_effects: Optional[pd.DataFrame]

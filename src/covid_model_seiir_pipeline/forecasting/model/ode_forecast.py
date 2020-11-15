@@ -71,13 +71,10 @@ def get_population_partition(population: pd.DataFrame,
     return partition_map
 
 
+@dataclass
 class CompartmentInfo:
-
-    def __init__(self,
-                 compartments: List[str],
-                 group_suffixes: List[str]):
-        self.compartments = compartments
-        self.group_suffixes = group_suffixes
+    compartments: List[str]
+    group_suffixes: List[str]
 
 
 def get_past_components(beta_regression_df: pd.DataFrame,
