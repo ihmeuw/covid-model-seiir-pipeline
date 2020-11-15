@@ -23,6 +23,14 @@ def forecast_beta(covariates: pd.DataFrame,
     betas = _beta_shift(beta_hat, beta_shift_parameters).set_index('location_id')
     return betas
 
+def prep_seir_parameters(betas: pd.DataFrame,
+                         thetas: pd.DataFrame,
+                         scenario_data: ScenarioData):
+    betas = betas.rename(columns={'beta_pred': 'beta'})
+    parameters = betas.merge(thetas, on='location_id')
+    if scenario_data.vaccinations is not None:
+       parameters = parameters.merge(scenario_data.vaccinations, on='location_id')
+    return parameters
 
 def get_population_partition(population: pd.DataFrame,
                              location_ids: List[int],
@@ -123,15 +131,15 @@ def _split_compartments(compartments: List[str],
 
 def run_normal_ode_model_by_location(initial_condition: pd.DataFrame,
                                      beta_params: Dict[str, float],
-                                     betas: pd.DataFrame,
-                                     thetas: pd.Series,
-                                     scenario_data: ScenarioData,
-                                     location_ids: List[int],
+                                     seir_parameters: pd.DataFrame,
                                      scenario_spec: ScenarioSpecification,
                                      compartment_info: CompartmentInfo):
+    import pdb; pdb.set_trace()
     forecasts = []
-    for location_id in location_ids:
-        init_cond = initial_condition.loc[location_id].values
+
+    for location_id, init_cond in initial_condition.iterrows():
+        # Index columns to ensure sort order
+        init_cond = init_cond[compartment_info.compartments].values 
         total_population = init_cond.sum()
 
         model_specs = _SeiirModelSpecs(
@@ -141,30 +149,16 @@ def run_normal_ode_model_by_location(initial_condition: pd.DataFrame,
             gamma2=beta_params['gamma2'],
             N=total_population,
         )
-        parameters = ['beta', 'theta']
-        if scenario_spec.system == 'vaccine':
-            outcomes = ['unprotected', 'protected', 'immune']
-            vaccine_parameters = [f'{outcome}_{group}' for outcome, group in
-                                  itertools.product(outcomes, compartment_info.group_suffixes)]
-            parameters += vaccine_parameters
+        loc_parameters = seir_parameters.loc[location_id].sort_values('date')
+        loc_date = loc_parameters['date']
+        loc_times = np.array((loc_date - loc_date.min()).dt.days)
+        loc_parameters = loc_parameters.set_index('date')
 
-        ode_runner = _ODERunner(model_specs, scenario_spec, compartment_info, parameters)
-
-        loc_betas = betas.loc[location_id].sort_values('date')
-        loc_days = loc_betas['date']
-        loc_times = np.array((loc_days - loc_days.min()).dt.days)
-        loc_betas = loc_betas['beta_pred'].values
-        loc_thetas = np.repeat(thetas.get(location_id, default=0), loc_betas.size)
-        if scenario_data.daily_vaccinations is None:
-            loc_vaccinations = np.zeros(shape=loc_betas.shape)
-        else:
-            loc_vaccinations = scenario_data.daily_vaccinations.loc[location_id]
-            loc_vaccinations = loc_vaccinations.merge(loc_days, how='right').sort_values('date')
-            loc_vaccinations = loc_vaccinations['daily_vaccinations'].fillna(0).values
-
-        forecasted_components = ode_runner.get_solution(init_cond, loc_times, loc_betas, loc_thetas, loc_vaccinations)
-        forecasted_components['date'] = loc_days.values
+        ode_runner = _ODERunner(model_specs, scenario_spec, compartment_info, loc_parameters.columns.tolist())
+        forecasted_components = ode_runner.get_solution(init_cond, loc_times, loc_parameters.values)
+        forecasted_components['date'] = loc_date.values
         forecasted_components['location_id'] = location_id
+        import pdb; pdb.set_trace()
         forecasts.append(forecasted_components)
     forecasts = pd.concat(forecasts)
     return forecasts
@@ -313,17 +307,17 @@ class _ODERunner:
         )
         self.solver = self.solvers[scenario_spec.solver](self.model.system, model_specs.delta)
 
-    def get_solution(self, initial_condition, times, beta, theta, *scenario_args):
-        params = np.vstack((beta, theta, *scenario_args))
+    def get_solution(self, initial_condition, times, parameters):
         solution = self.solver.solve(
             t=times,
             init_cond=initial_condition,
             t_params=times,
-            params=params
+            params=parameters.T
         )
         result_array = np.concatenate([
             solution,
-            *[x.reshape((1, -1)) for x in [beta, theta, *scenario_args, times]]
+            parameters.T,
+            times.reshape((1, -1)),
         ], axis=0).T
         result = pd.DataFrame(
             data=result_array,

@@ -74,24 +74,23 @@ def run_beta_forecast(draw_id: int, forecast_version: str, scenario_name: str, *
 
     # We'll need this to compute deaths and to splice with the forecasts.
     infection_data = data_interface.load_infection_data(draw_id)
-    import pdb; pdb.set_trace()
+
     # Load any data specific to the particular scenario we're running
     scenario_data = data_interface.load_scenario_specific_data(location_ids, scenario_spec)
 
     # Modeling starts
     logger.info('Forecasting beta and components.')
     betas = model.forecast_beta(covariate_pred, coefficients, beta_scales)
+    seir_parameters = model.prep_seir_parameters(betas, thetas, scenario_data)
     future_components = model.run_normal_ode_model_by_location(
         initial_condition,
         beta_params,
-        betas,
-        thetas,
-        scenario_data,
-        location_ids,
+        seir_parameters,
         scenario_spec,
         compartment_info,
     )
     logger.info('Processing ODE results and computing deaths and infections.')
+    import pdb; pdb.set_trace()
     components, infections, deaths, r_effective = model.compute_output_metrics(
         infection_data,
         past_components,
