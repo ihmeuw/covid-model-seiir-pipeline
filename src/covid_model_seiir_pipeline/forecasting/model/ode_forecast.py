@@ -105,7 +105,7 @@ def get_past_components(beta_regression_df: pd.DataFrame,
     past_components = pd.concat(partitioned_past_components, axis=1)
 
     rows_to_fill = past_components.notnull().all(axis=1)
-    compartments_to_fill = system_compartments.difference(past_components.columns)
+    compartments_to_fill = set(system_compartments).difference(past_components.columns)
     past_components = past_components.reindex(system_compartments, axis=1)
     for compartment_to_fill in compartments_to_fill:
         past_components.loc[rows_to_fill, compartment_to_fill] = 0
@@ -119,8 +119,9 @@ def get_past_components(beta_regression_df: pd.DataFrame,
 
 def _split_compartments(compartments: List[str],
                         partition: Dict[str, pd.Series]) -> Set[str]:
-    return {f'{compartment}_{partition_group}'
-            for compartment, partition_group in itertools.product(compartments, partition)}
+    # Order of the groupings here matters!
+    return [f'{compartment}_{partition_group}'
+            for partition_group, compartment in itertools.product(partition, compartments)]
 
 
 def run_normal_ode_model_by_location(initial_condition: pd.DataFrame,

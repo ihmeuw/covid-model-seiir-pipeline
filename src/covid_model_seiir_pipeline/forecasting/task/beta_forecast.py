@@ -74,7 +74,7 @@ def run_beta_forecast(draw_id: int, forecast_version: str, scenario_name: str, *
 
     # We'll need this to compute deaths and to splice with the forecasts.
     infection_data = data_interface.load_infection_data(draw_id)
-
+    import pdb; pdb.set_trace()
     # Load any data specific to the particular scenario we're running
     scenario_data = data_interface.load_scenario_specific_data(location_ids, scenario_spec)
 
