@@ -268,8 +268,8 @@ class _VaccineSEIIR(ODESystem):
                          ds_v, de_v, di1_v, di2_v, dr_v, dr_sv])
 
     def system(self, t: float, y: np.ndarray, p: np.ndarray) -> np.ndarray:
-        """ODE System.
-        """
+        """ODE System."""
+        import pdb; pdb.set_trace()
         beta, theta, *vaccinations = p
         theta_plus = max(theta, 0.)
         theta_minus = -min(theta, 0.)
@@ -311,6 +311,7 @@ class _ODERunner:
         self.solver = self.solvers[scenario_spec.solver](self.model.system, model_specs.delta)
 
     def get_solution(self, initial_condition, times, parameters):
+        import pdb; pdb.set_trace()
         solution = self.solver.solve(
             t=times,
             init_cond=initial_condition,
