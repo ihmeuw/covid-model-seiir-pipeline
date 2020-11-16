@@ -33,10 +33,10 @@ def compute_output_metrics(infection_data: pd.DataFrame,
         modeled_deaths = compute_deaths(modeled_infections, infection_death_lag, ifr['ifr'])
     modeled_infections = modeled_infections.to_frame()
     modeled_deaths = modeled_deaths.reset_index(level='observed')
-    import pdb; pdb.set_trace()
+
     infections = observed_infections.combine_first(modeled_infections)
     deaths = observed_deaths.combine_first(modeled_deaths)
-    r_effective = compute_effective_r(infection_data, components, seir_params, seiir_compartments)
+    r_effective = compute_effective_r(components, seir_params, compartment_info.compartments)
 
     return components, infections, deaths, r_effective
 
@@ -101,22 +101,21 @@ def compute_deaths(modeled_infections: pd.Series, infection_death_lag: int, ifr:
     return modeled_deaths
 
 
-def compute_effective_r(infection_data: pd.DataFrame, components: pd.DataFrame,
+def compute_effective_r(components: pd.DataFrame,
                         beta_params: Dict[str, float],
-                        seiir_compartments: List[str]) -> pd.DataFrame:
+                        compartments: List[str]) -> pd.DataFrame:
     alpha, sigma = beta_params['alpha'], beta_params['sigma']
     gamma1, gamma2 = beta_params['gamma1'], beta_params['gamma2']
 
     components = components.reset_index().set_index(['location_id', 'date'])
 
     beta, theta = components['beta'], components['theta']
-    s = components[[c for c in seiir_compartments if 'S' in c]].sum(axis=1)
-    i1 = components[[c for c in seiir_compartments if 'I1' in c]].sum(axis=1)
-    i2 = components[[c for c in seiir_compartments if 'I2' in c]].sum(axis=1)
-    n = infection_data.groupby('location_id')['pop'].max()
+    susceptible = components[[c for c in compartments if 'S' in c]].sum(axis=1)
+    infected = components[[c for c in compartments if 'I' in c]].sum(axis=1)
+    n = components[compartments].sum(axis=1).groupby('location_id').max()
     avg_gamma = 1 / (1 / (gamma1*(sigma - theta)) + 1 / (gamma2*(sigma - theta)))
 
-    r_controlled = beta * alpha * sigma / avg_gamma * (i1 + i2) ** (alpha - 1)
-    r_effective = (r_controlled * s / n).rename('r_effective')
+    r_controlled = beta * alpha * sigma / avg_gamma * (infected) ** (alpha - 1)
+    r_effective = (r_controlled * susceptible / n).rename('r_effective')
 
     return r_effective

@@ -158,6 +158,7 @@ def run_beta_forecast(draw_id: int, forecast_version: str, scenario_name: str, *
     logger.info('Writing outputs.')
     components = components.reset_index()
     covariates = covariates.reset_index()
+    import pdb; pdb.set_trace()
     outputs = pd.concat([infections, deaths, r_effective], axis=1).reset_index()
 
     data_interface.save_components(components, scenario_name, draw_id)
