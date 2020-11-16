@@ -211,7 +211,7 @@ class _SEIIR(ODESystem):
     def _group_system(self, t: float, y: np.ndarray, infectious: float,
                       beta: float, theta_plus: float, theta_minus: float):
         s, e, i1, i2, r = y
-        new_e = beta * (s / self.N) * (i1 + i2) ** self.alpha
+        new_e = beta * (s / self.N) * (infectious) ** self.alpha
 
         ds = -new_e - theta_plus * s
         de = new_e + theta_plus * s - self.sigma * e - theta_minus * e
