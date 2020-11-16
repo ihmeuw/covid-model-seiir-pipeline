@@ -256,9 +256,12 @@ class _VaccineSEIIR(ODESystem):
         # Expected vaccines coming out of S.
         s_vaccines = v_unprotected_s + v_protected + v_immune
         # Proportion of S vaccines going to each bin.
-        rho_unprotected = v_unprotected_s / s_vaccines
-        rho_protected = v_protected / s_vaccines
-        rho_immune = v_immune / s_vaccines
+        if s_vaccines:
+            rho_unprotected = v_unprotected_s / s_vaccines
+            rho_protected = v_protected / s_vaccines
+            rho_immune = v_immune / s_vaccines
+        else:
+            rho_unprotected, rho_protected, rho_immune = 0, 0, 0
         # Actual count of vaccines coming out of S.
         s_vaccines = min(1 - beta * infectious ** self.alpha / self.N - theta_plus, s_vaccines / s) * s
 
@@ -392,7 +395,7 @@ class _ODERunner:
         ], axis=0).T
         result = pd.DataFrame(
             data=result_array,
-            columns=self.model.compartments + self.model.parameters + ['t']
+            columns=self.model.compartments + list(self.model.parameters_map) + ['t']
         )
 
         return result
