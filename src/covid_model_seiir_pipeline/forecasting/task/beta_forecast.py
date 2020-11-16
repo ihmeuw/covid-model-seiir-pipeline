@@ -97,7 +97,7 @@ def run_beta_forecast(draw_id: int, forecast_version: str, scenario_name: str, *
         past_components,
         future_components,
         beta_params,
-        compartment_info.compartments,
+        compartment_info,
     )
 
     if scenario_spec.algorithm == 'draw_level_mandate_reimposition':

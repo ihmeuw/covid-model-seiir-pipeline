@@ -160,7 +160,10 @@ def run_normal_ode_model_by_location(initial_condition: pd.DataFrame,
         forecasted_components['date'] = loc_date.values
         forecasted_components['location_id'] = location_id
         forecasts.append(forecasted_components)
-    forecasts = pd.concat(forecasts)
+    forecasts = (pd.concat(forecasts)
+                 .drop(columns='t')  # Convenience column in the ode.
+                 .set_index(['location_id', 'date'])
+                 .reset_index(level='date'))  # Move date out front.
     return forecasts
 
 

@@ -66,8 +66,10 @@ class ForecastDataInterface:
         return location_ids
 
     def load_thetas(self, theta_specification: Union[str, int]) -> pd.Series:
+        location_ids = self.load_location_ids()
         if isinstance(theta_specification, str):
             thetas = pd.read_csv(theta_specification).set_index('location_id')['theta']
+            thetas = thetas.reindex(location_ids, fill_value=0)
         else:
             location_ids = self.load_location_ids()
             thetas = pd.Series(theta_specification,
@@ -135,9 +137,9 @@ class ForecastDataInterface:
         metadata = self.get_infectionator_metadata()
         # TODO: metadata abstraction?
         ifr_version = metadata['run_arguments']['ifr_custom_path']
-        data_path = Path(ifr_version) / 'terminal.csv'
+        data_path = Path(ifr_version) / 'terminal_ifr.csv'
         data = pd.read_csv(data_path)
-        return data
+        return data.set_index('location_id')
 
     def load_elastispliner_inputs(self):
         metadata = self.get_infectionator_metadata()
