@@ -16,25 +16,25 @@ def compute_output_metrics(infection_data: pd.DataFrame,
                            seir_params: Dict[str, float],
                            compartment_info: CompartmentInfo) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]:
     components = splice_components(components_past, components_forecast)
-    import pdb; pdb.set_trace()
 
     observed_infections, observed_deaths = get_observed_infecs_and_deaths(infection_data)
     infection_death_lag = infection_data['i_d_lag'].max()
-
     if compartment_info.group_suffixes:
         modeled_infections, modeled_deaths = 0, 0
         for group in compartment_info.group_suffixes:
             group_compartments = [c for c in compartment_info.compartments if group in c]
-            group_infections = compute_infections(components[group_compartments])
+            group_infections = compute_infections(components[['date'] + group_compartments])
             group_ifr = ifr[f'ifr_{group}'].rename('ifr')
             group_deaths = compute_deaths(group_infections, infection_death_lag, group_ifr)
             modeled_infections += group_infections
             modeled_deaths += group_deaths
     else:
-        modeled_infections = compute_infections(components[compartment_info.compartments])
+        modeled_infections = compute_infections(components[['date'] + compartment_info.compartments])
         modeled_deaths = compute_deaths(modeled_infections, infection_death_lag, ifr['ifr'])
-
-    infections = observed_infections.combine_first(modeled_infections)['infections']
+    modeled_infections = modeled_infections.to_frame()
+    modeled_deaths = modeled_deaths.reset_index(level='observed')
+    import pdb; pdb.set_trace()
+    infections = observed_infections.combine_first(modeled_infections)
     deaths = observed_deaths.combine_first(modeled_deaths)
     r_effective = compute_effective_r(infection_data, components, seir_params, seiir_compartments)
 
@@ -68,7 +68,6 @@ def get_observed_infecs_and_deaths(infection_data: pd.DataFrame):
 
 
 def compute_infections(components: pd.DataFrame) -> pd.Series:
-
     delta_susceptible = (components[[c for c in components.columns if 'S' in c]]
                          .sum(axis=1)
                          .groupby('location_id')
@@ -96,14 +95,9 @@ def compute_infections(components: pd.DataFrame) -> pd.Series:
 
 
 def compute_deaths(modeled_infections: pd.Series, infection_death_lag: int, ifr: pd.Series) -> pd.Series:
-    modeled_deaths = modeled_infections['infections'].shift(infection_death_lag).dropna()
-    import pdb; pdb.set_trace()
-    modeled_deaths = (modeled_deaths
-                      .loc[:, ['location_id', 'date', 'deaths_draw']]
-                      .set_index(['location_id', 'date'])
-                      .fillna(0))
-
+    modeled_deaths = (modeled_infections.shift(infection_death_lag).dropna() * ifr).rename('deaths').reset_index()
     modeled_deaths['observed'] = 0
+    modeled_deaths = modeled_deaths.set_index(['location_id', 'date', 'observed'])['deaths']
     return modeled_deaths
 
 
