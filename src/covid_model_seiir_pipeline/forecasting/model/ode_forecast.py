@@ -25,7 +25,7 @@ def forecast_beta(covariates: pd.DataFrame,
 
 
 def prep_seir_parameters(betas: pd.DataFrame,
-                         thetas: pd.DataFrame,
+                         thetas: pd.Series,
                          scenario_data: ScenarioData):
     betas = betas.rename(columns={'beta_pred': 'beta'})
     parameters = betas.merge(thetas, on='location_id')

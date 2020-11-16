@@ -103,31 +103,41 @@ def run_beta_forecast(draw_id: int, forecast_version: str, scenario_name: str, *
     if scenario_spec.algorithm == 'draw_level_mandate_reimposition':
         logger.info('Entering mandate reimposition.')
         # Info data specific to mandate reimposition
-        percent_mandates = data_interface.load_covariate_info('mobility', 'mandate_lift', location_ids)
-        mandate_effect = data_interface.load_covariate_info('mobility', 'effect', location_ids)
         min_wait, days_on, reimposition_threshold = model.unpack_parameters(scenario_spec.algorithm_params)
 
-        population = (components[seiir_compartments]
+        population = (components[compartment_info.compartments]
                       .sum(axis=1)
                       .rename('population')
                       .groupby('location_id')
                       .max())
-        logger.info('Loading mandate reimposition data.')
 
         reimposition_count = 0
         reimposition_dates = {}
         last_reimposition_end_date = pd.Series(pd.NaT, index=population.index)
-        reimposition_date = model.compute_reimposition_date(deaths, population, reimposition_threshold,
-                                                            min_wait, last_reimposition_end_date)
+        reimposition_date = model.compute_reimposition_date(
+            deaths,
+            population,
+            reimposition_threshold,
+            min_wait,
+            last_reimposition_end_date
+        )
 
         while len(reimposition_date):  # any place reimposes mandates.
             logger.info(f'On mandate reimposition {reimposition_count + 1}. {len(reimposition_date)} locations '
                         f'are reimposing mandates.')
             mobility = covariates[['date', 'mobility']].reset_index().set_index(['location_id', 'date'])['mobility']
-            mobility_lower_bound = model.compute_mobility_lower_bound(mobility, mandate_effect)
+            mobility_lower_bound = model.compute_mobility_lower_bound(
+                mobility,
+                scenario_data.mandate_effects
+            )
 
-            new_mobility = model.compute_new_mobility(mobility, reimposition_date,
-                                                      mobility_lower_bound, percent_mandates, days_on)
+            new_mobility = model.compute_new_mobility(
+                mobility,
+                reimposition_date,
+                mobility_lower_bound,
+                scenario_data.percent_mandates,
+                days_on
+            )
 
             covariates = covariates.reset_index().set_index(['location_id', 'date'])
             covariates['mobility'] = new_mobility
@@ -136,18 +146,23 @@ def run_beta_forecast(draw_id: int, forecast_version: str, scenario_name: str, *
 
             logger.info('Forecasting beta and components.')
             betas = model.forecast_beta(covariate_pred, coefficients, beta_scales)
-            future_components = model.run_normal_ode_model_by_location(initial_condition, beta_params,
-                                                                       betas, thetas, vaccinations, location_ids,
-                                                                       scenario_spec.solver, scenario_spec.system)
+            seir_parameters = model.prep_seir_parameters(betas, thetas, scenario_data)
+            future_components = model.run_normal_ode_model_by_location(
+                initial_condition,
+                beta_params,
+                seir_parameters,
+                scenario_spec,
+                compartment_info,
+            )
             logger.info('Processing ODE results and computing deaths and infections.')
-            components, infections, deaths, r_effective = model.compute_output_metrics(infection_data,
-                                                                                       past_components,
-                                                                                       future_components,
-                                                                                       thetas,
-                                                                                       vaccinations,
-                                                                                       beta_params,
-                                                                                       scenario_spec.system,
-                                                                                       seiir_compartments)
+            components, infections, deaths, r_effective = model.compute_output_metrics(
+                infection_data,
+                ifr,
+                past_components,
+                future_components,
+                beta_params,
+                compartment_info,
+            )
 
             reimposition_count += 1
             reimposition_dates[reimposition_count] = reimposition_date
@@ -158,7 +173,6 @@ def run_beta_forecast(draw_id: int, forecast_version: str, scenario_name: str, *
     logger.info('Writing outputs.')
     components = components.reset_index()
     covariates = covariates.reset_index()
-    import pdb; pdb.set_trace()
     outputs = pd.concat([infections, deaths, r_effective], axis=1).reset_index()
 
     data_interface.save_components(components, scenario_name, draw_id)
