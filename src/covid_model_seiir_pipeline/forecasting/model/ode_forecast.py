@@ -208,7 +208,8 @@ class ODESystem:
 
 class _SEIIR(ODESystem):
 
-    def _group_system(self, t: float, y: np.ndarray, beta: float, theta_plus: float, theta_minus: float):
+    def _group_system(self, t: float, y: np.ndarray, infectious: float,
+                      beta: float, theta_plus: float, theta_minus: float):
         s, e, i1, i2, r = y
         new_e = beta * (s / self.N) * (i1 + i2) ** self.alpha
 
@@ -225,8 +226,13 @@ class _SEIIR(ODESystem):
         theta_plus = max(theta, 0.)
         theta_minus = -min(theta, 0.)
 
+        infectious = 0
+        for compartment, people_in_compartment in zip(self.compartments, y):
+            if 'I1' in compartment or 'I2' in compartment:
+                infectious += people_in_compartment
+
         y = np.split(y.copy(), len(self.sub_groups))
-        dy = [self._group_system(t, y_i, beta, theta_plus, theta_minus) for y_i in y]
+        dy = [self._group_system(t, y_i, infectious, beta, theta_plus, theta_minus) for y_i in y]
         dy = np.hstack(dy)
 
         return dy
@@ -238,9 +244,9 @@ class _VaccineSEIIR(ODESystem):
         super().__init__(*args, **kwargs)
         self.wasted_vaccines = []
 
-    def _group_system(self, t: float, y: np.array,
+    def _group_system(self, t: float, y: np.array, infectious: float,
                       beta: float, theta_plus: float, theta_minus: float,
-                      infectious: float, v_unprotected: float, v_protected: float, v_immune: float) -> np.array:
+                      v_unprotected: float, v_protected: float, v_immune: float) -> np.array:
         # Unpack the compartments
         unvaccinated, unprotected, protected, m = y[:5], y[5:10], y[10:15], y[15]
         s, e, i1, i2, r = unvaccinated
@@ -347,11 +353,11 @@ class _VaccineSEIIR(ODESystem):
             effective = p[self.parameters_map[f'effectively_vaccinated_{group}']]
             immune, protected = p_immune * effective, (1-p_immune) * effective
             dy.append(
-                self._group_system(t, y_group,
+                self._group_system(t, y_group, infectious,
                                    beta, theta_plus, theta_minus,
-                                   infectious, unprotected, protected, immune)
+                                   unprotected, protected, immune)
             )
-        
+
         dy = np.hstack(dy)
 
         return dy
