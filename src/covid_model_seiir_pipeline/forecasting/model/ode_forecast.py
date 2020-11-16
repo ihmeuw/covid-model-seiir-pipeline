@@ -56,9 +56,7 @@ def get_population_partition(population: pd.DataFrame,
 
     """
     if population_partition == 'none':
-        partition_map = {
-            '': pd.Series(1.0, index=location_ids)
-        }
+        partition_map = {}
     elif population_partition == 'high_and_low_risk':
         modeled_locations = population['location_id'].isin(location_ids)
         is_2019 = population['year_id']
@@ -103,13 +101,14 @@ def get_past_components(beta_regression_df: pd.DataFrame,
     past_beta = beta_regression_df['beta']
     past_components = beta_regression_df[regression_compartments]
 
-    partitioned_past_components = []
-    for compartment in regression_compartments:
-        for partition_group, proportion in population_partition.items():
-            partitioned_past_components.append(
-                (past_components[compartment] * proportion).rename(f'{compartment}_{partition_group}')
-            )
-    past_components = pd.concat(partitioned_past_components, axis=1)
+    if population_partition:
+        partitioned_past_components = []
+        for compartment in regression_compartments:
+            for partition_group, proportion in population_partition.items():
+                partitioned_past_components.append(
+                    (past_components[compartment] * proportion).rename(f'{compartment}_{partition_group}')
+                )
+        past_components = pd.concat(partitioned_past_components, axis=1)
 
     rows_to_fill = past_components.notnull().all(axis=1)
     compartments_to_fill = set(system_compartments).difference(past_components.columns)
@@ -127,6 +126,8 @@ def get_past_components(beta_regression_df: pd.DataFrame,
 def _split_compartments(compartments: List[str],
                         partition: Dict[str, pd.Series]) -> List[str]:
     # Order of the groupings here matters!
+    if not partition:
+        return compartments
     return [f'{compartment}_{partition_group}'
             for partition_group, compartment in itertools.product(partition, compartments)]
 
@@ -197,9 +198,9 @@ class ODESystem:
         self.gamma2 = constants.gamma2
         self.N = constants.N
 
-        self.sub_groups = sub_groups
+        self.sub_groups = sub_groups if sub_groups else ['']
         self.compartments = compartments
-        self.parameters = parameters
+        self.parameters_map = {p: i for i, p in enumerate(parameters)}
 
     def system(self, t: float, y: np.ndarray, p: np.ndarray) -> np.ndarray:
         raise NotImplementedError
@@ -220,7 +221,7 @@ class _SEIIR(ODESystem):
         return np.array([ds, de, di1, di2, dr])
 
     def system(self, t: float, y: np.ndarray, p: np.ndarray) -> np.ndarray:
-        beta, theta = p
+        beta, theta = p[self.parameters_map['beta']], p[self.parameters_map['theta']]
         theta_plus = max(theta, 0.)
         theta_minus = -min(theta, 0.)
 
@@ -233,8 +234,9 @@ class _SEIIR(ODESystem):
 
 class _VaccineSEIIR(ODESystem):
 
-    def _group_system(self, beta: float, theta_plus: float, theta_minus: float,
-                      psi: np.array, y: np.array) -> np.array:
+    def _group_system(self, t: float, y: np.array, 
+                      beta: float, theta_plus: float, theta_minus: float,
+                      unprotected: float, protected: float, immune: float) -> np.array:
         unvaccinated, vaccinated = y[:5], y[5:]
         s, e, i1, i2, r = unvaccinated
         s_v, e_v, i1_v, i2_v, r_v, r_sv = vaccinated
@@ -270,9 +272,10 @@ class _VaccineSEIIR(ODESystem):
     def system(self, t: float, y: np.ndarray, p: np.ndarray) -> np.ndarray:
         """ODE System."""
         import pdb; pdb.set_trace()
-        beta, theta, *vaccinations = p
+        beta, theta = p[self.parameters_map['beta']], p[self.parameters_map['theta']]
         theta_plus = max(theta, 0.)
         theta_minus = -min(theta, 0.)
+        p_immune = 0.5  # TODO: thread through parameter
 
         infectious = 0
         for compartment, people_in_compartment in zip(self.compartments, y):
@@ -280,11 +283,16 @@ class _VaccineSEIIR(ODESystem):
                 infectious += people_in_compartment
 
         y = np.split(y.copy(), len(self.sub_groups))
-        vaccinations = np.split(vaccinations.copy(), len(self.sub_groups))
-        #dy = [self._group_system(beta, theta_plus, theta_minus, p si_i, y_i) for psi_i, y_i in zip(psi, y)]
-        #dy = np.hstack(dy)
+        dy = []
+        for group, y_group in zip(sub_groups, y):
+            unprotected = p[self.parameters_map[f'unprotected_{group}']]
+            effective = p[self.parameters_map[f'effectively_vaccinated_{group}']]
+            immune, protected = p_immune * effective, (1-p_immune) * effective
+            dy.append(self._group_system(t, y_group, beta, theta_plus, theta_minus, unprotected, protected, immune)]
+       
+        dy = np.hstack(dy)
 
-        #return dy
+        return dy
 
 
 class _ODERunner:
@@ -311,7 +319,6 @@ class _ODERunner:
         self.solver = self.solvers[scenario_spec.solver](self.model.system, model_specs.delta)
 
     def get_solution(self, initial_condition, times, parameters):
-        import pdb; pdb.set_trace()
         solution = self.solver.solve(
             t=times,
             init_cond=initial_condition,

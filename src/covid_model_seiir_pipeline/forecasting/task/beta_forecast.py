@@ -52,7 +52,6 @@ def run_beta_forecast(draw_id: int, forecast_version: str, scenario_name: str, *
         population_partition,
         scenario_spec.system
     )
-
     # Select out the initial condition using the day of transition.
     transition_day = past_components['date'] == transition_date.loc[past_components.index]
     initial_condition = past_components.loc[transition_day, compartment_info.compartments]
