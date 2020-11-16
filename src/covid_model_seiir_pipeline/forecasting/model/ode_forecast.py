@@ -30,7 +30,7 @@ def prep_seir_parameters(betas: pd.DataFrame,
     betas = betas.rename(columns={'beta_pred': 'beta'})
     parameters = betas.merge(thetas, on='location_id')
     if scenario_data.vaccinations is not None:
-        parameters = parameters.merge(scenario_data.vaccinations, on='location_id')
+        parameters = parameters.merge(scenario_data.vaccinations, on=['location_id', 'date'])
     return parameters
 
 
@@ -335,7 +335,6 @@ class _VaccineSEIIR(ODESystem):
         theta_plus = max(theta, 0.)
         theta_minus = -min(theta, 0.)
         p_immune = 0.5  # TODO: thread through parameter
-
         infectious = 0
         for compartment, people_in_compartment in zip(self.compartments, y):
             if 'I1' in compartment or 'I2' in compartment:
@@ -352,7 +351,7 @@ class _VaccineSEIIR(ODESystem):
                                    beta, theta_plus, theta_minus,
                                    infectious, unprotected, protected, immune)
             )
-
+        
         dy = np.hstack(dy)
 
         return dy

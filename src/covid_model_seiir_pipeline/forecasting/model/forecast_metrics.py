@@ -85,7 +85,7 @@ def compute_infections(components: pd.DataFrame) -> pd.Series:
     else:
         immune = 0
 
-    modeled_infections = delta_susceptible - immune
+    modeled_infections = delta_susceptible + immune
     modeled_infections = (pd.concat([components['date'], modeled_infections], axis=1)
                           .reset_index()
                           .set_index(['location_id', 'date'])
