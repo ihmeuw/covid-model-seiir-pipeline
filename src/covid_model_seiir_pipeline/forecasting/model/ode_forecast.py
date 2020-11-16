@@ -234,44 +234,100 @@ class _SEIIR(ODESystem):
 
 class _VaccineSEIIR(ODESystem):
 
-    def _group_system(self, t: float, y: np.array, 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.wasted_vaccines = []
+
+    def _group_system(self, t: float, y: np.array,
                       beta: float, theta_plus: float, theta_minus: float,
-                      unprotected: float, protected: float, immune: float) -> np.array:
-        unvaccinated, vaccinated = y[:5], y[5:]
+                      infectious: float, v_unprotected: float, v_protected: float, v_immune: float) -> np.array:
+        # Unpack the compartments
+        unvaccinated, unprotected, protected, m = y[:5], y[5:10], y[10:15], y[15]
         s, e, i1, i2, r = unvaccinated
-        s_v, e_v, i1_v, i2_v, r_v, r_sv = vaccinated
+        s_u, e_u, i1_u, i2_u, r_u = unprotected
+        s_p, e_p, i1_p, i2_p, r_p = protected
 
-        n_v = sum(unvaccinated)
-        i = i1 + i2 + i1_v + i2_v
+        n = sum(unvaccinated)
 
-        psi_tilde = min(psi, n_v) / n_v
-        psi_s = min(1 - beta * i**self.alpha / self.N - theta_plus, psi_tilde)
-        psi_e = min(1 - self.sigma - theta_minus, psi_tilde)
-        psi_i1 = min(1 - self.gamma1, psi_tilde)
-        psi_i2 = min(1 - self.gamma2, psi_tilde)
-        psi_r = psi_tilde
+        # vaccinated and unprotected come from all bins.
+        # Get count coming from S.
+        v_unprotected_s = s/n * v_unprotected
 
-        new_e = beta * s * i**self.alpha / self.N + theta_plus * s
-        ds = -new_e - psi_s*s
-        de = new_e - self.sigma*e - theta_minus*e - psi_e*e
-        di1 = self.sigma*e - self.gamma1*i1 - psi_i1*i1
-        di2 = self.gamma1*i1 - self.gamma2*i2 - psi_i2*i2
-        dr = self.gamma2*i2 + theta_minus*e - psi_r*r
+        # Expected vaccines coming out of S.
+        s_vaccines = v_unprotected_s + v_protected + v_immune
+        # Proportion of S vaccines going to each bin.
+        rho_unprotected = v_unprotected_s / s_vaccines
+        rho_protected = v_protected / s_vaccines
+        rho_immune = v_immune / s_vaccines
+        # Actual count of vaccines coming out of S.
+        s_vaccines = min(1 - beta * infectious ** self.alpha / self.N - theta_plus, s_vaccines / s) * s
 
-        new_e_v = beta * s_v * i**self.alpha / self.N + theta_plus * s_v
-        ds_v = -new_e_v + (1-self.eta)*psi_s*s
-        de_v = new_e_v - self.sigma*e_v - theta_minus*e_v + psi_e*e
-        di1_v = self.sigma*e_v - self.gamma1*i1_v + psi_i1*i1
-        di2_v = self.gamma1*i1_v - self.gamma2*i2_v + psi_i2*i2
-        dr_v = self.gamma2*i2_v + theta_minus*e_v + psi_r*r
-        dr_sv = self.eta*psi_s*s
+        # Expected vaccines coming out of E.
+        e_vaccines = e/n * v_unprotected
+        # Actual vaccines coming out of E.
+        e_vaccines = min(1 - self.sigma - theta_minus, e_vaccines / e) * e
 
-        return np.array([ds, de, di1, di2, dr,
-                         ds_v, de_v, di1_v, di2_v, dr_v, dr_sv])
+        # Expected vaccines coming out of I1.
+        i1_vaccines = i1/n * v_unprotected
+        # Actual vaccines coming out of I1.
+        i1_vaccines = min(1 - self.gamma1, i1_vaccines / i1) * i1
+
+        # Expected vaccines coming out of I2.
+        i2_vaccines = i2 / n * v_unprotected
+        # Actual vaccines coming out of I2.
+        i2_vaccines = min(1 - self.gamma2, i2_vaccines / i2) * i2
+
+        # Expected vaccines coming out of R.
+        r_vaccines = r / n * v_unprotected
+        # Actual vaccines coming out of R
+        r_vaccines = min(1, r_vaccines / r) * r
+
+        # Some vaccine accounting
+        expected_vaccines = v_unprotected + v_protected + v_immune
+        actual_vaccines = s_vaccines + e_vaccines + i1_vaccines + i2_vaccines + r_vaccines
+        self.wasted_vaccines.append(expected_vaccines - actual_vaccines)
+
+        # Unvaccinated equations.
+        # Normal Epi + vaccines causing exits from all compartments.
+        new_e = beta * s * infectious**self.alpha / self.N + theta_plus * s
+        ds = -new_e - s_vaccines
+        de = new_e - self.sigma*e - theta_minus*e - e_vaccines
+        di1 = self.sigma*e - self.gamma1*i1 - i1_vaccines
+        di2 = self.gamma1*i1 - self.gamma2*i2 - i2_vaccines
+        dr = self.gamma2*i2 + theta_minus*e - r_vaccines
+
+        # Vaccinated and unprotected equations
+        # Normal epi + vaccines causing entrances to all compartments from
+        # their unvaccinated counterparts.
+        new_e_u = beta * s_u * infectious**self.alpha / self.N + theta_plus * s_u
+        ds_u = -new_e_u + rho_unprotected*s_vaccines
+        de_u = new_e_u - self.sigma*e_u - theta_minus*e_u + e_vaccines
+        di1_u = self.sigma*e_u - self.gamma1*i1_u + i1_vaccines
+        di2_u = self.gamma1*i1_u - self.gamma2*i2_u + i2_vaccines
+        dr_u = self.gamma2*i2_u + theta_minus*e_u + r_vaccines
+
+        # Vaccinated and protected equations
+        # Normal epi + protective vaccines taking people from S and putting
+        # them in S_p
+        new_e_p = beta * s_p * infectious ** self.alpha / self.N + theta_plus * s_p
+        ds_p = -new_e_p + rho_protected*s_vaccines
+        de_p = new_e_p - self.sigma * e_p - theta_minus * e_p
+        di1_p = self.sigma * e_p - self.gamma1 * i1_p
+        di2_p = self.gamma1 * i1_p - self.gamma2 * i2_p
+        dr_p = self.gamma2 * i2_p + theta_minus * e_p
+
+        # Vaccinated and immune
+        dm = rho_immune*s_vaccines
+
+        return np.array([
+            ds, de, di1, di2, dr,
+            ds_u, de_u, di1_u, di2_u, dr_u,
+            ds_p, de_p, di1_p, di2_p, dr_p,
+            dm
+        ])
 
     def system(self, t: float, y: np.ndarray, p: np.ndarray) -> np.ndarray:
         """ODE System."""
-        import pdb; pdb.set_trace()
         beta, theta = p[self.parameters_map['beta']], p[self.parameters_map['theta']]
         theta_plus = max(theta, 0.)
         theta_minus = -min(theta, 0.)
@@ -284,12 +340,16 @@ class _VaccineSEIIR(ODESystem):
 
         y = np.split(y.copy(), len(self.sub_groups))
         dy = []
-        for group, y_group in zip(sub_groups, y):
+        for group, y_group in zip(self.sub_groups, y):
             unprotected = p[self.parameters_map[f'unprotected_{group}']]
             effective = p[self.parameters_map[f'effectively_vaccinated_{group}']]
             immune, protected = p_immune * effective, (1-p_immune) * effective
-            dy.append(self._group_system(t, y_group, beta, theta_plus, theta_minus, unprotected, protected, immune)]
-       
+            dy.append(
+                self._group_system(t, y_group,
+                                   beta, theta_plus, theta_minus,
+                                   infectious, unprotected, protected, immune)
+            )
+
         dy = np.hstack(dy)
 
         return dy
