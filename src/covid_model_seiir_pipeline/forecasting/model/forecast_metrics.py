@@ -1,4 +1,4 @@
-from typing import Dict, Tuple, List
+from typing import Dict, List, Tuple, Union
 
 import pandas as pd
 
@@ -19,19 +19,17 @@ def compute_output_metrics(infection_data: pd.DataFrame,
         modeled_infections, modeled_deaths = 0, 0
         for group in compartment_info.group_suffixes:
             group_compartments = [c for c in compartment_info.compartments if group in c]
-            group_infections = compute_infections(components[['date'] + group_compartments])
+            group_infections, vulnerable_infections = compute_infections(components[['date'] + group_compartments])
 
-            vulnerable_compartments = [c for c in group_compartments if '_p' not in c]
-            vulnerable_infections = compute_infections(components[['date'] + vulnerable_compartments])
             group_ifr = ifr[f'ifr_{group}'].rename('ifr')
             group_deaths = compute_deaths(vulnerable_infections, infection_death_lag, group_ifr)
 
             modeled_infections += group_infections
             modeled_deaths += group_deaths
     else:
-        modeled_infections = compute_infections(components[['date'] + compartment_info.compartments])
-        vulnerable_compartments = [c for c in compartment_info.compartments if '_p' not in c]
-        vulnerable_infections = compute_infections(components[['date'] + vulnerable_compartments])
+        modeled_infections, vulnerable_infections = compute_infections(
+            components[['date'] + compartment_info.compartments]
+        )
         modeled_deaths = compute_deaths(vulnerable_infections, infection_death_lag, ifr['ifr'])
 
     modeled_infections = modeled_infections.to_frame()
@@ -70,31 +68,40 @@ def get_observed_infecs_and_deaths(infection_data: pd.DataFrame):
     return observed_infections, observed_deaths
 
 
-def compute_infections(components: pd.DataFrame) -> pd.Series:
-    delta_susceptible = (components[[c for c in components.columns if 'S' in c]]
-                         .sum(axis=1)
-                         .groupby('location_id')
-                         .apply(lambda x: x.shift(1) - x)
-                         .fillna(0)
-                         .rename('infections'))
+def compute_infections(components: pd.DataFrame) -> Tuple[pd.Series, pd.Series]:
+
+    def _get_daily_subgroup(data: pd.DataFrame, sub_group_columns: List[str]) -> Union[pd.DataFrame, int]:
+        if sub_group_columns:
+            daily_data = (data[sub_group_columns]
+                          .sum(axis=1)
+                          .groupby('location_id')
+                          .apply(lambda x: x.shift(1) - x)
+                          .fillna(0)
+                          .rename('infections'))
+        else:
+            daily_data = 0
+        return daily_data
+
+    def _cleanup(infections: pd.Series) -> pd.DataFrame:
+        return (pd.concat([components['date'], infections], axis=1)
+                .reset_index()
+                .set_index(['location_id', 'date'])
+                .sort_index()['infections'])
+
+    susceptible_columns = [c for c in components.columns if 'S' in c]
+    exposed_and_protected_columns = [c for c in components.columns if 'E_p' in c]
     immune_cols = [c for c in components.columns if 'M' in c]
-    if immune_cols:
-        immune = (components[immune_cols]
-                  .sum(axis=1)
-                  .groupby('location_id')
-                  .apply(lambda x: x.shift(1) - x)
-                  .fillna(0)
-                  .rename('infections'))
-    else:
-        immune = 0
 
-    modeled_infections = delta_susceptible + immune
-    modeled_infections = (pd.concat([components['date'], modeled_infections], axis=1)
-                          .reset_index()
-                          .set_index(['location_id', 'date'])
-                          .sort_index()['infections'])
+    delta_susceptible = _get_daily_subgroup(components, susceptible_columns)
+    delta_exposed_and_protected = _get_daily_subgroup(components, exposed_and_protected_columns)
+    delta_immune = _get_daily_subgroup(components, immune_cols)
 
-    return modeled_infections
+    # noinspection PyTypeChecker
+    modeled_infections = _cleanup(delta_susceptible + delta_immune)
+    # noinspection PyTypeChecker
+    vulnerable_infections = _cleanup(delta_susceptible + delta_immune + delta_exposed_and_protected)
+
+    return modeled_infections, vulnerable_infections
 
 
 def compute_deaths(modeled_infections: pd.Series, infection_death_lag: int, ifr: pd.Series) -> pd.Series:
