@@ -1,12 +1,8 @@
 from typing import Dict, Tuple, List
 
-import numpy as np
 import pandas as pd
 
-from covid_model_seiir_pipeline import static_vars
 from covid_model_seiir_pipeline.forecasting.model.ode_forecast import CompartmentInfo
-
-
 
 
 def compute_output_metrics(infection_data: pd.DataFrame,
@@ -24,13 +20,20 @@ def compute_output_metrics(infection_data: pd.DataFrame,
         for group in compartment_info.group_suffixes:
             group_compartments = [c for c in compartment_info.compartments if group in c]
             group_infections = compute_infections(components[['date'] + group_compartments])
+
+            vulnerable_compartments = [c for c in group_compartments if '_p' not in c]
+            vulnerable_infections = compute_infections(components[['date'] + vulnerable_compartments])
             group_ifr = ifr[f'ifr_{group}'].rename('ifr')
-            group_deaths = compute_deaths(group_infections, infection_death_lag, group_ifr)
+            group_deaths = compute_deaths(vulnerable_infections, infection_death_lag, group_ifr)
+
             modeled_infections += group_infections
             modeled_deaths += group_deaths
     else:
         modeled_infections = compute_infections(components[['date'] + compartment_info.compartments])
-        modeled_deaths = compute_deaths(modeled_infections, infection_death_lag, ifr['ifr'])
+        vulnerable_compartments = [c for c in compartment_info.compartments if '_p' not in c]
+        vulnerable_infections = compute_infections(components[['date'] + vulnerable_compartments])
+        modeled_deaths = compute_deaths(vulnerable_infections, infection_death_lag, ifr['ifr'])
+
     modeled_infections = modeled_infections.to_frame()
     modeled_deaths = modeled_deaths.reset_index(level='observed')
 

@@ -59,7 +59,7 @@ def get_population_partition(population: pd.DataFrame,
         partition_map = {}
     elif population_partition == 'high_and_low_risk':
         modeled_locations = population['location_id'].isin(location_ids)
-        is_2019 = population['year_id']
+        is_2019 = population['year_id'] == 2019
         is_both_sexes = population['sex_id'] == 3
         five_year_bins = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 30, 31, 32, 235]
         is_five_year_bins = population['age_group_id'].isin(five_year_bins)
