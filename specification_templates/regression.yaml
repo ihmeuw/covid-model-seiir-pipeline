@@ -90,4 +90,3 @@ covariates:
     bounds: [0.0, 1000.0]
     re_var: 1.0
     draws: False
-
