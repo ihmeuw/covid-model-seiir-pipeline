@@ -1,6 +1,7 @@
+from dataclasses import dataclass
 from functools import reduce
 from pathlib import Path
-from typing import List, Dict, Union
+from typing import Dict, List, Optional, Union
 
 from loguru import logger
 import pandas as pd
@@ -65,8 +66,10 @@ class ForecastDataInterface:
         return location_ids
 
     def load_thetas(self, theta_specification: Union[str, int]) -> pd.Series:
+        location_ids = self.load_location_ids()
         if isinstance(theta_specification, str):
             thetas = pd.read_csv(theta_specification).set_index('location_id')['theta']
+            thetas = thetas.reindex(location_ids, fill_value=0)
         else:
             location_ids = self.load_location_ids()
             thetas = pd.Series(theta_specification,
@@ -121,20 +124,22 @@ class ForecastDataInterface:
         full_data['date'] = pd.to_datetime(full_data['Date'])
         full_data = full_data.drop(columns=['Date'])
         return full_data
-    
+
+    def load_population(self):
+        metadata = self.get_infectionator_metadata()
+        # TODO: metadata abstraction?
+        model_inputs_version = metadata['death']['metadata']['model_inputs_metadata']['output_path']
+        population_path = Path(model_inputs_version) / 'output_measures' / 'population' / 'all_populations.csv'
+        population_data = pd.read_csv(population_path)
+        return population_data
+
     def load_ifr_data(self):
         metadata = self.get_infectionator_metadata()
         # TODO: metadata abstraction?
         ifr_version = metadata['run_arguments']['ifr_custom_path']
-        data_path = Path(ifr_version) / 'allage_ifr_by_loctime.csv'
+        data_path = Path(ifr_version) / 'terminal_ifr.csv'
         data = pd.read_csv(data_path)
-        data['date'] = pd.to_datetime(data['datevar'])
-        data = (data
-                .rename(columns={'allage_ifr':'ifr'})
-                .loc[:, ['location_id', 'date', 'ifr']]
-                .set_index(['location_id', 'date'])
-                .sort_index())
-        return data
+        return data.set_index('location_id')
 
     def load_elastispliner_inputs(self):
         metadata = self.get_infectionator_metadata()
@@ -213,10 +218,32 @@ class ForecastDataInterface:
             index_columns.append('date')
         return info_df.set_index(index_columns)
 
-    def save_raw_covariates(self, covariates: pd.DataFrame, scenario: str, draw_id: int, strict: bool):
+    def load_scenario_specific_data(self,
+                                    location_ids: List[int],
+                                    scenario_spec: ScenarioSpecification) -> 'ScenarioData':
+        if scenario_spec.system == 'vaccine':
+            vaccinations = self.load_covariate_info('vaccine_coverage', 'vaccinations_high_low', location_ids)
+
+        else:
+            vaccinations = None
+
+        if scenario_spec.algorithm == 'draw_level_mandate_reimposition':
+            percent_mandates = self.load_covariate_info('mobility', 'mandate_lift', location_ids)
+            mandate_effects = self.load_covariate_info('mobility', 'effect', location_ids)
+        else:
+            percent_mandates = None
+            mandate_effects = None
+
+        scenario_data = ScenarioData(
+            vaccinations=vaccinations,
+            percent_mandates=percent_mandates,
+            mandate_effects=mandate_effects
+        )
+        return scenario_data
+
+    def save_raw_covariates(self, covariates: pd.DataFrame, scenario: str, draw_id: int):
         self.forecast_marshall.dump(covariates,
-                                    key=MKeys.forecast_raw_covariates(scenario=scenario, draw_id=draw_id),
-                                    strict=strict)
+                                    key=MKeys.forecast_raw_covariates(scenario=scenario, draw_id=draw_id))
 
     def load_raw_covariates(self, scenario: str, draw_id: int):
         covariates = self.forecast_marshall.load(key=MKeys.forecast_raw_covariates(scenario=scenario, draw_id=draw_id))
@@ -227,8 +254,8 @@ class ForecastDataInterface:
         df = self.regression_marshall.load(key=MKeys.parameter(draw_id=draw_id))
         return df.set_index('params')['values'].to_dict()
 
-    def save_components(self, forecasts: pd.DataFrame, scenario: str, draw_id: int, strict: bool):
-        self.forecast_marshall.dump(forecasts, key=MKeys.components(scenario=scenario, draw_id=draw_id), strict=strict)
+    def save_components(self, forecasts: pd.DataFrame, scenario: str, draw_id: int):
+        self.forecast_marshall.dump(forecasts, key=MKeys.components(scenario=scenario, draw_id=draw_id))
 
     def load_components(self, scenario: str, draw_id: int) -> pd.DataFrame:
         components = self.forecast_marshall.load(key=MKeys.components(scenario=scenario, draw_id=draw_id))
@@ -241,10 +268,9 @@ class ForecastDataInterface:
     def load_beta_scales(self, scenario: str, draw_id: int):
         return self.forecast_marshall.load(MKeys.beta_scales(scenario=scenario, draw_id=draw_id))
 
-    def save_raw_outputs(self, raw_outputs: pd.DataFrame, scenario: str, draw_id: int, strict: bool):
+    def save_raw_outputs(self, raw_outputs: pd.DataFrame, scenario: str, draw_id: int):
         self.forecast_marshall.dump(raw_outputs,
-                                    key=MKeys.forecast_raw_outputs(scenario=scenario, draw_id=draw_id),
-                                    strict=strict)
+                                    key=MKeys.forecast_raw_outputs(scenario=scenario, draw_id=draw_id))
 
     def load_raw_outputs(self, scenario: str, draw_id: int) -> pd.DataFrame:
         return self.forecast_marshall.load(key=MKeys.forecast_raw_outputs(scenario=scenario, draw_id=draw_id))
@@ -280,4 +306,8 @@ class ForecastDataInterface:
                                                                         reimposition_number=reimposition_number))
 
 
-
+@dataclass
+class ScenarioData:
+    vaccinations: Optional[pd.DataFrame]
+    percent_mandates: Optional[pd.DataFrame]
+    mandate_effects: Optional[pd.DataFrame]
