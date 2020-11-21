@@ -150,6 +150,7 @@ def run_normal_ode_model_by_location(initial_condition: pd.DataFrame,
             gamma1=beta_params['gamma1'],
             gamma2=beta_params['gamma2'],
             N=total_population,
+            system_params=scenario_spec.system_params,
         )
         loc_parameters = seir_parameters.loc[location_id].sort_values('date')
         loc_date = loc_parameters['date']
@@ -175,6 +176,7 @@ class _SeiirModelSpecs:
     gamma1: float
     gamma2: float
     N: float
+    system_params: dict
     delta: float = 0.1
 
     def __post_init__(self):
@@ -197,6 +199,7 @@ class ODESystem:
         self.gamma1 = constants.gamma1
         self.gamma2 = constants.gamma2
         self.N = constants.N
+        self.system_params = constants.system_params
 
         self.sub_groups = sub_groups if sub_groups else ['']
         self.compartments = compartments
@@ -340,7 +343,7 @@ class _VaccineSEIIR(ODESystem):
         beta, theta = p[self.parameters_map['beta']], p[self.parameters_map['theta']]
         theta_plus = max(theta, 0.)
         theta_minus = -min(theta, 0.)
-        p_immune = 0.5  # TODO: thread through parameter
+        p_immune = self.system_params.get('proportion_immune', 0.5)
         infectious = 0
         for compartment, people_in_compartment in zip(self.compartments, y):
             if 'I1' in compartment or 'I2' in compartment:
