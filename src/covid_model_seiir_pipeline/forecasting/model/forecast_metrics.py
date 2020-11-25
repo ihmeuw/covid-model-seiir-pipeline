@@ -71,7 +71,7 @@ def get_observed_infecs_and_deaths(infection_data: pd.DataFrame):
 
 def compute_infections(components: pd.DataFrame) -> Tuple[pd.Series, pd.Series]:
 
-    def _get_daily_subgroup(data: pd.DataFrame, sub_group_columns: List[str]) -> Union[pd.DataFrame, int]:
+    def _get_daily_subgroup(data: pd.DataFrame, sub_group_columns: List[str]) -> Union[pd.Series, int]:
         if sub_group_columns:
             daily_data = (data[sub_group_columns]
                           .sum(axis=1, skipna=False)
@@ -83,13 +83,16 @@ def compute_infections(components: pd.DataFrame) -> Tuple[pd.Series, pd.Series]:
             daily_data = 0
         return daily_data
 
-    def _cleanup(infections: pd.Series) -> pd.DataFrame:
+    def _cleanup(infections: pd.Series) -> pd.Series:
         return (pd.concat([components['date'], infections], axis=1)
                 .reset_index()
                 .set_index(['location_id', 'date'])
                 .sort_index()['infections'])
 
+    # Columns that will, when summed, give the desired group.
     susceptible_columns = [c for c in components.columns if 'S' in c]
+    # E_p has both inflows and outflows so we have to sum
+    # everything downstream of it.
     newE_protected_columns = [c for c in components.columns if '_p' in c and 'S' not in c]
     immune_cols = [c for c in components.columns if 'M' in c]
 

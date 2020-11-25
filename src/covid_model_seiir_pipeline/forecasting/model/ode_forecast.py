@@ -150,7 +150,7 @@ def run_normal_ode_model_by_location(initial_condition: pd.DataFrame,
             gamma1=beta_params['gamma1'],
             gamma2=beta_params['gamma2'],
             N=total_population,
-            system_params=scenario_spec.system_params,
+            system_params=scenario_spec.system_params.copy(),
         )
         loc_parameters = seir_parameters.loc[location_id].sort_values('date')
         loc_date = loc_parameters['date']
