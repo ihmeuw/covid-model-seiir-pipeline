@@ -15,6 +15,7 @@ def compute_output_metrics(infection_data: pd.DataFrame,
 
     observed_infections, observed_deaths = get_observed_infecs_and_deaths(infection_data)
     infection_death_lag = infection_data['i_d_lag'].max()
+
     if compartment_info.group_suffixes:
         modeled_infections, modeled_deaths = 0, 0
         for group in compartment_info.group_suffixes:
@@ -73,7 +74,7 @@ def compute_infections(components: pd.DataFrame) -> Tuple[pd.Series, pd.Series]:
     def _get_daily_subgroup(data: pd.DataFrame, sub_group_columns: List[str]) -> Union[pd.DataFrame, int]:
         if sub_group_columns:
             daily_data = (data[sub_group_columns]
-                          .sum(axis=1)
+                          .sum(axis=1, skipna=False)
                           .groupby('location_id')
                           .apply(lambda x: x.shift(1) - x)
                           .fillna(0)
@@ -89,17 +90,17 @@ def compute_infections(components: pd.DataFrame) -> Tuple[pd.Series, pd.Series]:
                 .sort_index()['infections'])
 
     susceptible_columns = [c for c in components.columns if 'S' in c]
-    exposed_and_protected_columns = [c for c in components.columns if 'E_p' in c]
+    newE_protected_columns = [c for c in components.columns if '_p' in c and 'S' not in c]
     immune_cols = [c for c in components.columns if 'M' in c]
 
     delta_susceptible = _get_daily_subgroup(components, susceptible_columns)
-    delta_exposed_and_protected = _get_daily_subgroup(components, exposed_and_protected_columns)
+    delta_newE_protected = _get_daily_subgroup(components, newE_protected_columns)
     delta_immune = _get_daily_subgroup(components, immune_cols)
 
     # noinspection PyTypeChecker
     modeled_infections = _cleanup(delta_susceptible + delta_immune)
     # noinspection PyTypeChecker
-    vulnerable_infections = _cleanup(delta_susceptible + delta_immune + delta_exposed_and_protected)
+    vulnerable_infections = _cleanup(delta_susceptible + delta_immune + delta_newE_protected)
 
     return modeled_infections, vulnerable_infections
 

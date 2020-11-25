@@ -135,8 +135,8 @@ def load_betas(scenario: str, data_interface: ForecastDataInterface) -> List[pd.
 
 def load_betas_by_draw(draw_id: int, scenario: str, data_interface: ForecastDataInterface) -> pd.Series:
     components = data_interface.load_components(scenario, draw_id)
-    draw_betas = (components
-                  .sort_index()['beta']
+    draw_betas = (components['beta']
+                  .sort_index()
                   .rename(draw_id))
     return draw_betas
 
