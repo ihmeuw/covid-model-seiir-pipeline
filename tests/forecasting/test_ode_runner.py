@@ -16,6 +16,7 @@ def test_ode_runner():
         gamma2=0.4,
         N=100,
         delta=0.1,
+        system_params={},
     )
     scenario_spec = ScenarioSpecification()
     compartment_info = CompartmentInfo(
