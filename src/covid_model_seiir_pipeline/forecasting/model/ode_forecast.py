@@ -249,7 +249,7 @@ class _VaccineSEIIR(ODESystem):
 
     def _group_system(self, t: float, y: np.array, infectious: float,
                       beta: float, theta_plus: float, theta_minus: float,
-                      v_unprotected: float, v_protected: float, v_immune: float) -> np.array:
+                      v_non_efficacious: float, v_efficacious: float, p_immune: float) -> np.array:
         # Unpack the compartments
         unvaccinated, unprotected, protected, m = y[:5], y[5:10], y[10:15], y[15]
         s, e, i1, i2, r = unvaccinated
@@ -258,9 +258,18 @@ class _VaccineSEIIR(ODESystem):
 
         n = sum(unvaccinated)
 
+        v_total = v_non_efficacious + v_efficacious
+        # Effective vaccines are efficacious vaccines delivered to
+        # susceptible, unvaccinated individuals.
+        v_effective = s/n * v_efficacious
+        # Some effective vaccines confer immunity, others just protect
+        # from death after infection.
+        v_immune = p_immune * v_effective
+        v_protected = v_effective - v_immune
+
         # vaccinated and unprotected come from all bins.
         # Get count coming from S.
-        v_unprotected_s = s/n * v_unprotected
+        v_unprotected_s = s/n * v_non_efficacious
 
         # Expected vaccines coming out of S.
         s_vaccines = v_unprotected_s + v_protected + v_immune
@@ -275,27 +284,27 @@ class _VaccineSEIIR(ODESystem):
         s_vaccines = min(1 - beta * infectious ** self.alpha / self.N - theta_plus, s_vaccines / s) * s
 
         # Expected vaccines coming out of E.
-        e_vaccines = e/n * v_unprotected
+        e_vaccines = e/n * v_total
         # Actual vaccines coming out of E.
         e_vaccines = min(1 - self.sigma - theta_minus, e_vaccines / e) * e
 
         # Expected vaccines coming out of I1.
-        i1_vaccines = i1/n * v_unprotected
+        i1_vaccines = i1/n * v_total
         # Actual vaccines coming out of I1.
         i1_vaccines = min(1 - self.gamma1, i1_vaccines / i1) * i1
 
         # Expected vaccines coming out of I2.
-        i2_vaccines = i2 / n * v_unprotected
+        i2_vaccines = i2 / n * v_total
         # Actual vaccines coming out of I2.
         i2_vaccines = min(1 - self.gamma2, i2_vaccines / i2) * i2
 
         # Expected vaccines coming out of R.
-        r_vaccines = r / n * v_unprotected
+        r_vaccines = r / n * v_total
         # Actual vaccines coming out of R
         r_vaccines = min(1, r_vaccines / r) * r
 
         # Some vaccine accounting
-        expected_vaccines = v_unprotected + v_protected + v_immune
+        expected_vaccines = v_total
         actual_vaccines = s_vaccines + e_vaccines + i1_vaccines + i2_vaccines + r_vaccines
         self.wasted_vaccines.append(expected_vaccines - actual_vaccines)
 
@@ -353,13 +362,12 @@ class _VaccineSEIIR(ODESystem):
         y = np.split(y.copy(), len(self.sub_groups))
         dy = []
         for group, y_group in zip(self.sub_groups, y):
-            unprotected = p[self.parameters_map[f'unprotected_{group}']]
-            effective = p[self.parameters_map[f'effectively_vaccinated_{group}']]
-            immune, protected = p_immune * effective, (1-p_immune) * effective
+            non_efficacious = p[self.parameters_map[f'unprotected_{group}']]
+            efficacious = p[self.parameters_map[f'effectively_vaccinated_{group}']]
             dy.append(
                 self._group_system(t, y_group, infectious,
                                    beta, theta_plus, theta_minus,
-                                   unprotected, protected, immune)
+                                   non_efficacious, efficacious, p_immune)
             )
 
         dy = np.hstack(dy)
