@@ -68,7 +68,7 @@ def run_beta_regression(draw_id: int, regression_version: str) -> None:
     merged = (data_df
               .merge(regression_betas, on=['location_id', 'date'], how='outer')
               .sort_values(['location_id', 'date']))
-    merged = merged[(merged['obs_deaths'] == 1) | (merged['deaths_draw'] > 0)]
+    merged = merged[(merged['observed_deaths'] == 1) | (merged['deaths_draw'] > 0)]
     data_df = merged[data_df.columns]
     data_interface.save_location_data(data_df, draw_id)
 
