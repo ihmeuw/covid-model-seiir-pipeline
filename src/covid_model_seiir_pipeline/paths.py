@@ -212,6 +212,9 @@ class InfectionPaths(Paths):
     def directories(self) -> List[Path]:
         return []
 
+    def get_model_data_file(self) -> Path:
+        return self.root_dir / 'model_data.csv'
+
     def get_infection_file(self, draw_id: int) -> Path:
         return self.root_dir / 'infections' / self.infection_file.format(draw_id=draw_id)
 

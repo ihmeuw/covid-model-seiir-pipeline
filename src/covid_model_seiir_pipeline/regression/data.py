@@ -102,9 +102,14 @@ class RegressionDataInterface:
     ##########################
 
     def load_infection_data(self, draw_id: int, location_ids: List[int]) -> pd.DataFrame:
+        infection_inputs = pd.read_csv(self.infection_paths.get_model_data_file())
+        pop = infection_inputs.groupby('location_id')['population'].max().reset_index()
+
         data = pd.read_csv(self.infection_paths.get_infection_file(draw_id=0))
         data = data[data['location_id'].isin(location_ids)]
         data['date'] = pd.to_datetime(data['date'])
+        data = data.merge(pop, on='location_id', how='left')
+
         return data
 
     ###########################
