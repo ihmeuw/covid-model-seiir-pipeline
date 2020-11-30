@@ -25,18 +25,20 @@ def run_beta_regression(draw_id: int, regression_version: str) -> None:
     # Load data
     location_ids = data_interface.load_location_ids()
     location_data = data_interface.load_infection_data(draw_id, location_ids)
+    location_data = {location_id: location_data[location_data['location_id'] == location_id].copy()
+                     for location_id in location_ids}
     covariates = data_interface.load_covariates(regression_specification.covariates, location_ids)
 
     # Run ODE fit
     np.random.seed(draw_id)
     beta_fit_inputs = model.ODEProcessInput(
         df_dict=location_data,
-        col_date=INFECTION_COL_DICT['COL_DATE'],
-        col_cases=INFECTION_COL_DICT['COL_CASES'],
-        col_pop=INFECTION_COL_DICT['COL_POP'],
-        col_loc_id=INFECTION_COL_DICT['COL_LOC_ID'],
-        col_lag_days=INFECTION_COL_DICT['COL_ID_LAG'],
-        col_observed=INFECTION_COL_DICT['COL_OBS_DEATHS'],
+        col_date='date',
+        col_infections='infections_draw',
+        col_pop='population',
+        col_loc_id='location_id',
+        col_lag_days='duration',
+        col_observed='observed_deaths',
         alpha=regression_specification.parameters.alpha,
         sigma=regression_specification.parameters.sigma,
         gamma1=regression_specification.parameters.gamma1,
