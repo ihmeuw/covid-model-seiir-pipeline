@@ -148,7 +148,8 @@ def run_beta_forecast(draw_id: int, forecast_version: str, scenario_name: str, *
             seir_parameters = model.prep_seir_parameters(betas, thetas, scenario_data)
 
             # The ode is done as a loop over the locations in the initial condition.
-            # Subset here to only the locations that reimpose mandates.
+            # As locations that don't reimpose mandates produce identical forecasts,
+            # subset here to only the locations that reimpose mandates for speed.
             initial_condition_subset = initial_condition.loc[reimposition_date.index]
             future_components_subset = model.run_normal_ode_model_by_location(
                 initial_condition_subset,
