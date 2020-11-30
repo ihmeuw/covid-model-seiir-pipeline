@@ -107,18 +107,18 @@ class ForecastDataInterface:
                     raise FileNotFoundError(f'No {covariate_version} file found for covariate {covariate}.')
         return list(regression_covariates)
 
-    def get_infectionator_metadata(self):
+    def get_elastispliner_metadata(self):
         with self.regression_paths.regression_specification.open() as regression_spec_file:
             regression_spec = yaml.full_load(regression_spec_file)
-        infectionator_path = Path(regression_spec['data']['infection_version'])
-        with (infectionator_path / 'metadata.yaml').open() as metadata_file:
+        elastispliner_path = Path(regression_spec['data']['infection_version'])
+        with (elastispliner_path / 'metadata.yaml').open() as metadata_file:
             metadata = yaml.full_load(metadata_file)
         return metadata
 
     def load_full_data(self):
-        metadata = self.get_infectionator_metadata()
+        metadata = self.get_elastispliner_metadata()
         # TODO: metadata abstraction?
-        model_inputs_version = metadata['death']['metadata']['model_inputs_metadata']['output_path']
+        model_inputs_version = metadata['model_inputs_metadata']['output_path']
         full_data_path = Path(model_inputs_version) / 'full_data.csv'
         full_data = pd.read_csv(full_data_path)
         full_data['date'] = pd.to_datetime(full_data['Date'])
@@ -126,31 +126,30 @@ class ForecastDataInterface:
         return full_data
 
     def load_population(self):
-        metadata = self.get_infectionator_metadata()
+        metadata = self.get_elastispliner_metadata()
         # TODO: metadata abstraction?
-        model_inputs_version = metadata['death']['metadata']['model_inputs_metadata']['output_path']
+        model_inputs_version = metadata['model_inputs_metadata']['output_path']
         population_path = Path(model_inputs_version) / 'output_measures' / 'population' / 'all_populations.csv'
         population_data = pd.read_csv(population_path)
         return population_data
 
     def load_ifr_data(self):
-        metadata = self.get_infectionator_metadata()
-        # TODO: metadata abstraction?
-        ifr_version = metadata['run_arguments']['ifr_custom_path']
-        data_path = Path(ifr_version) / 'terminal_ifr.csv'
+        metadata = self.get_elastispliner_metadata()
+        data_path = Path(metadata['output_path']) / 'ifr.csv'
         data = pd.read_csv(data_path)
-        return data.set_index('location_id')
+        data['date'] = pd.to_datetime(data['date'])
+        return data.set_index(['location_id', 'date'])
 
     def load_elastispliner_inputs(self):
-        metadata = self.get_infectionator_metadata()
-        deaths_version = Path(metadata['death']['metadata']['output_path'])
-        es_inputs = pd.read_csv(deaths_version / 'model_data.csv')
+        metadata = self.get_elastispliner_metadata()
+        data_path = Path(metadata['output_path']) / 'model_data.csv'
+        es_inputs = pd.read_csv(data_path)
         es_inputs['date'] = pd.to_datetime(es_inputs['date'])
         return es_inputs
 
     def load_elastispliner_outputs(self):
-        metadata = self.get_infectionator_metadata()
-        deaths_version = Path(metadata['death']['metadata']['output_path'])
+        metadata = self.get_elastispliner_metadata()
+        deaths_version = Path(metadata['output_path'])
         noisy_outputs = pd.read_csv(deaths_version / 'model_results.csv')
         noisy_outputs['date'] = pd.to_datetime(noisy_outputs['date'])
         smoothed_outputs = pd.read_csv(deaths_version / 'model_results_refit.csv')

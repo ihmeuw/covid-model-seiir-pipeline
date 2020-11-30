@@ -10,11 +10,12 @@ def compute_output_metrics(infection_data: pd.DataFrame,
                            components_past: pd.DataFrame,
                            components_forecast: pd.DataFrame,
                            seir_params: Dict[str, float],
-                           compartment_info: CompartmentInfo) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+                           compartment_info: CompartmentInfo) -> Tuple[pd.DataFrame, pd.DataFrame,
+                                                                       pd.DataFrame, pd.DataFrame]:
     components = splice_components(components_past, components_forecast)
 
     observed_infections, observed_deaths = get_observed_infecs_and_deaths(infection_data)
-    infection_death_lag = infection_data['i_d_lag'].max()
+    infection_death_lag = infection_data['duration'].max()
 
     if compartment_info.group_suffixes:
         modeled_infections, modeled_deaths = 0, 0
@@ -53,16 +54,16 @@ def splice_components(components_past: pd.DataFrame, components_forecast: pd.Dat
 
 
 def get_observed_infecs_and_deaths(infection_data: pd.DataFrame):
-    observed = infection_data['obs_infecs'] == 1
+    observed = infection_data['observed_infections'] == 1
     observed_infections = (infection_data
-                           .loc[observed, ['location_id', 'date', 'cases_draw']]
+                           .loc[observed, ['location_id', 'date', 'infections_draw']]
                            .set_index(['location_id', 'date'])
                            .sort_index()
-                           .rename(columns={'cases_draw': 'infections'}))
-    observed = infection_data['obs_deaths'] == 1
+                           .rename(columns={'infections_draw': 'infections'}))
+    observed = infection_data['observed_deaths'] == 1
     observed_deaths = (infection_data
-                       .loc[observed, ['location_id', 'date', 'deaths_mean']]
-                       .rename(columns={'deaths_mean': 'deaths'})
+                       .loc[observed, ['location_id', 'date', 'deaths_draw']]
+                       .rename(columns={'deaths_draw': 'deaths'})
                        .set_index(['location_id', 'date'])
                        .sort_index())
     observed_deaths['observed'] = 1
