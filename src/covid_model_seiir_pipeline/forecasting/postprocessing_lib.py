@@ -208,15 +208,10 @@ def build_version_map(data_interface: ForecastDataInterface) -> pd.Series:
     version_map['regression_version'] = data_interface.regression_paths.root_dir.name
     version_map['covariate_version'] = data_interface.covariate_paths.root_dir.name
 
-    # FIXME: infectionator doesn't do metadata the right way.
-    inf_metadata = data_interface.get_infectionator_metadata()
-    inf_output_dir = inf_metadata['wrapped_R_call'][-1].split()[1].strip("'")
-    version_map['infectionator_version'] = Path(inf_output_dir).name
+    es_metadata = data_interface.get_elastispliner_metadata()
+    version_map['elastispliner_version'] = Path(es_metadata['output_path']).name
 
-    death_metadata = inf_metadata['death']['metadata']
-    version_map['elastispliner_version'] = Path(death_metadata['output_path']).name
-
-    model_inputs_metadata = death_metadata['model_inputs_metadata']
+    model_inputs_metadata = es_metadata['model_inputs_metadata']
     version_map['model_inputs_version'] = Path(model_inputs_metadata['output_path']).name
 
     snapshot_metadata = model_inputs_metadata['snapshot_metadata']
@@ -245,9 +240,9 @@ def build_version_map(data_interface: ForecastDataInterface) -> pd.Series:
 
 
 def load_populations(data_interface: ForecastDataInterface):
-    metadata = data_interface.get_infectionator_metadata()
+    metadata = data_interface.get_elastispliner_metadata()
     model_inputs_path = Path(
-        metadata['death']['metadata']['model_inputs_metadata']['output_path']
+        metadata['model_inputs_metadata']['output_path']
     )
     population_path = model_inputs_path / 'output_measures' / 'population' / 'all_populations.csv'
     populations = pd.read_csv(population_path)
@@ -255,9 +250,9 @@ def load_populations(data_interface: ForecastDataInterface):
 
 
 def load_hierarchy(data_interface: ForecastDataInterface):
-    metadata = data_interface.get_infectionator_metadata()
+    metadata = data_interface.get_elastispliner_metadata()
     model_inputs_path = Path(
-        metadata['death']['metadata']['model_inputs_metadata']['output_path']
+        metadata['model_inputs_metadata']['output_path']
     )
     hierarchy_path = model_inputs_path / 'locations' / 'modeling_hierarchy.csv'
     hierarchy = pd.read_csv(hierarchy_path)
