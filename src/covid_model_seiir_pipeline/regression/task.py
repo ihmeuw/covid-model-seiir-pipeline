@@ -24,8 +24,7 @@ def run_beta_regression(draw_id: int, regression_version: str) -> None:
     data_interface = RegressionDataInterface.from_specification(regression_specification)
     # Load data
     location_ids = data_interface.load_location_ids()
-    location_data = data_interface.load_all_location_data(location_ids=location_ids,
-                                                          draw_id=draw_id)
+    location_data = data_interface.load_infection_data(draw_id, location_ids)
     covariates = data_interface.load_covariates(regression_specification.covariates, location_ids)
 
     # Run ODE fit
