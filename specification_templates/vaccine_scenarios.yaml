@@ -49,13 +49,13 @@ scenarios:
       lri_mortality: 'reference'
       proportion_under_100m: 'reference'
       proportion_over_2_5k: 'reference'
-  vaccine_all_protect:
+  vaccine_fast:
     algorithm: 'normal' # normal, draw_level_mandate_reimposition
     solver: 'RK45'
     system: 'vaccine'
     system_params:
-      forecast_version: 'reference'
-      proportion_immune: 0.0
+      forecast_version: 'fast_balanced'
+      proportion_immune: 0.5
     population_partition: 'high_and_low_risk'
     beta_scaling:
       window_size: 42
@@ -74,13 +74,13 @@ scenarios:
       lri_mortality: 'reference'
       proportion_under_100m: 'reference'
       proportion_over_2_5k: 'reference'
-  vaccine_all_immune:
+  vaccine_fast_elderly:
     algorithm: 'normal' # normal, draw_level_mandate_reimposition
     solver: 'RK45'
     system: 'vaccine'
     system_params:
-      forecast_version: 'reference'
-      proportion_immune: 1.0
+      forecast_version: 'fast_elderly'
+      proportion_immune: 0.5
     population_partition: 'high_and_low_risk'
     beta_scaling:
       window_size: 42

@@ -222,8 +222,12 @@ class ForecastDataInterface:
                                     location_ids: List[int],
                                     scenario_spec: ScenarioSpecification) -> 'ScenarioData':
         if scenario_spec.system == 'vaccine':
-            vaccinations = self.load_covariate_info('vaccine_coverage', 'vaccinations_high_low', location_ids)
-
+            forecast_scenario = scenario_spec.system_params.get('forecast_version', 'reference')
+            vaccinations = self.load_covariate_info(
+                'vaccine_coverage',
+                f'vaccinations_{forecast_scenario}',
+                location_ids,
+            )
         else:
             vaccinations = None
 
