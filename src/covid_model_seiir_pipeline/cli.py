@@ -25,7 +25,7 @@ def seiir():
                 type=click.Path(exists=True, dir_okay=False))
 @click.option('--infection-version',
               type=click.Path(file_okay=False),
-              help="Which version of infectionator inputs to use in the"
+              help="Which version of infection inputs to use in the "
                    "regression.")
 @click.option('--covariates-version',
               type=click.Path(file_okay=False),
@@ -59,7 +59,7 @@ def regress(run_metadata,
     # final run arguments.
     infection_root = utilities.get_input_root(infection_version,
                                               regression_spec.data.infection_version,
-                                              paths.INFECTIONATOR_OUTPUTS)
+                                              paths.DEATHS_SPLINE_OUTPUT_ROOT)
     covariates_root = utilities.get_input_root(covariates_version,
                                                regression_spec.data.covariate_version,
                                                paths.SEIR_COVARIATES_OUTPUT_ROOT)
@@ -80,7 +80,7 @@ def regress(run_metadata,
     regression_spec.data.location_set_file = location_set_file
     regression_spec.data.output_root = str(run_directory)
 
-    for key, input_root in zip(['infectionator_metadata', 'covariates_metadata'],
+    for key, input_root in zip(['elastispliner_metadata', 'covariates_metadata'],
                                [infection_root, covariates_root]):
         run_metadata.update_from_path(key, input_root / paths.METADATA_FILE_NAME)
     run_metadata['output_path'] = str(run_directory)

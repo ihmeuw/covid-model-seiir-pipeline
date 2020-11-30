@@ -75,7 +75,10 @@ class RegressionDataInterface:
         directory.
 
         """
-        modeled_locations = self.infection_paths.get_modelled_locations()
+        # Fixme: Hack.
+        draw_0_data = pd.read_csv(self.infection_paths.get_infection_file(draw_id=0), usecols=['location_id'])
+        modeled_locations = draw_0_data['location_id'].unique().tolist()
+
         if desired_locations is None:
             desired_locations = modeled_locations
 
@@ -98,21 +101,16 @@ class RegressionDataInterface:
     # Infection data loaders #
     ##########################
 
-    def load_all_location_data(self, location_ids: List[int], draw_id: int
-                               ) -> Dict[int, pd.DataFrame]:
-        dfs = dict()
-        for loc in location_ids:
-            file = self.infection_paths.get_infection_file(location_id=loc, draw_id=draw_id)
-            loc_df = pd.read_csv(file).rename(columns={'loc_id': 'location_id'})
-            if loc_df['cases_draw'].isnull().any():
-                logger.warning(f'Nulls found in infectionator inputs for location id {loc}.  Dropping.')
-                continue
-            if (loc_df['cases_draw'] < 0).any():
-                logger.warning(f'Negatives found in infectionator inputs for location id {loc}.  Dropping.')
-                continue
-            dfs[loc] = loc_df
+    def load_infection_data(self, draw_id: int, location_ids: List[int]) -> pd.DataFrame:
+        infection_inputs = pd.read_csv(self.infection_paths.get_model_data_file())
+        pop = infection_inputs.groupby('location_id')['population'].max().reset_index()
 
-        return dfs
+        data = pd.read_csv(self.infection_paths.get_infection_file(draw_id=draw_id))
+        data = data[data['location_id'].isin(location_ids)]
+        data['date'] = pd.to_datetime(data['date'])
+        data = data.merge(pop, on='location_id', how='left')
+
+        return data
 
     ###########################
     # Covariate paths loaders #
