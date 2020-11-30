@@ -76,7 +76,7 @@ class RegressionDataInterface:
 
         """
         # Fixme: Hack.
-        draw_0_data = pd.read_csv(self.infection_paths.get_infection_file(draw_id=0))
+        draw_0_data = pd.read_csv(self.infection_paths.get_infection_file(draw_id=0), usecols=['location_id'])
         modeled_locations = draw_0_data['location_id'].unique().tolist()
 
         if desired_locations is None:
@@ -105,7 +105,7 @@ class RegressionDataInterface:
         infection_inputs = pd.read_csv(self.infection_paths.get_model_data_file())
         pop = infection_inputs.groupby('location_id')['population'].max().reset_index()
 
-        data = pd.read_csv(self.infection_paths.get_infection_file(draw_id=0))
+        data = pd.read_csv(self.infection_paths.get_infection_file(draw_id=draw_id))
         data = data[data['location_id'].isin(location_ids)]
         data['date'] = pd.to_datetime(data['date'])
         data = data.merge(pop, on='location_id', how='left')
