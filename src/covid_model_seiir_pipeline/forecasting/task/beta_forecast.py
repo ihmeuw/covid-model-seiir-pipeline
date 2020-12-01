@@ -146,13 +146,23 @@ def run_beta_forecast(draw_id: int, forecast_version: str, scenario_name: str, *
             logger.info('Forecasting beta and components.')
             betas = model.forecast_beta(covariate_pred, coefficients, beta_scales)
             seir_parameters = model.prep_seir_parameters(betas, thetas, scenario_data)
-            future_components = model.run_normal_ode_model_by_location(
-                initial_condition,
+
+            # The ode is done as a loop over the locations in the initial condition.
+            # As locations that don't reimpose mandates produce identical forecasts,
+            # subset here to only the locations that reimpose mandates for speed.
+            initial_condition_subset = initial_condition.loc[reimposition_date.index]
+            future_components_subset = model.run_normal_ode_model_by_location(
+                initial_condition_subset,
                 beta_params,
                 seir_parameters,
                 scenario_spec,
                 compartment_info,
             )
+            future_components = (future_components
+                                 .drop(future_components_subset.index)
+                                 .append(future_components_subset)
+                                 .sort_index())
+
             logger.info('Processing ODE results and computing deaths and infections.')
             components, infections, deaths, r_effective = model.compute_output_metrics(
                 infection_data,
