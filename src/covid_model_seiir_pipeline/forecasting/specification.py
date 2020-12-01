@@ -6,7 +6,7 @@ from covid_model_seiir_pipeline.utilities import Specification, asdict
 
 # TODO: Extract these into specification, maybe.  At least allow overrides
 #    for the queue from the command line.
-FORECAST_RUNTIME = 5000
+FORECAST_RUNTIME = 15000
 FORECAST_MEMORY = '5G'
 POSTPROCESS_MEMORY = '150G'
 FORECAST_CORES = 1
