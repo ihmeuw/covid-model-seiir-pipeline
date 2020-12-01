@@ -108,7 +108,7 @@ scenarios:
     covariates:
       pneumonia: 'reference'
       mobility: 'reference'
-      mask_use: 'best'
+      mask_use: 'reference'
       testing: 'reference'
       air_pollution_pm_2_5: 'reference'
       smoking_prevalence: 'reference'
@@ -137,7 +137,7 @@ scenarios:
     covariates:
       pneumonia: 'reference'
       mobility: 'reference'
-      mask_use: 'best'
+      mask_use: 'reference'
       testing: 'reference'
       air_pollution_pm_2_5: 'reference'
       smoking_prevalence: 'reference'
