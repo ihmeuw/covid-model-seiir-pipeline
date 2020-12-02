@@ -1,6 +1,6 @@
 data:
-  regression_version: '2020_11_30.01'
-  covariate_version: '2020_11_30.03'
+  regression_version: '2020_12_01.25'
+  covariate_version: '2020_12_01.05'
   output_root: ''
 scenarios:
   worse:
