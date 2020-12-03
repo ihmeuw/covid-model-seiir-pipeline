@@ -16,7 +16,7 @@ class BetaRegressionTaskTemplate(TaskTemplate):
         max_runtime_seconds=3000,
         m_mem_free='2G',
         num_cores=1,
-        queue='d.q'
+        queue='all.q'
     )
 
 
