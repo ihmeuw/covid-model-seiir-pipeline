@@ -1,114 +1,135 @@
-from typing import Dict, Tuple
+from typing import Dict, List, Tuple, Union
 
-import numpy as np
 import pandas as pd
+
+from covid_model_seiir_pipeline.forecasting.model.ode_forecast import CompartmentInfo
 
 
 def compute_output_metrics(infection_data: pd.DataFrame,
+                           ifr: pd.DataFrame,
                            components_past: pd.DataFrame,
                            components_forecast: pd.DataFrame,
-                           thetas: pd.Series,
                            seir_params: Dict[str, float],
-                           ode_system: str) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+                           compartment_info: CompartmentInfo) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]:
     components = splice_components(components_past, components_forecast)
-    components['theta'] = thetas.reindex(components.index).fillna(0)
 
-    observed_infections, modeled_infections = compute_infections(infection_data, components)
-    observed_deaths, modeled_deaths = compute_deaths(infection_data, modeled_infections)
+    observed_infections, observed_deaths = get_observed_infecs_and_deaths(infection_data)
+    infection_death_lag = infection_data['i_d_lag'].max()
 
-    infections = observed_infections.combine_first(modeled_infections)['cases_draw'].rename('infections')
-    deaths = observed_deaths.combine_first(modeled_deaths).rename(columns={'deaths_draw': 'deaths'})
-    r_effective = compute_effective_r(infection_data, components, seir_params, ode_system)
+    if compartment_info.group_suffixes:
+        modeled_infections, modeled_deaths = 0, 0
+        for group in compartment_info.group_suffixes:
+            group_compartments = [c for c in compartment_info.compartments if group in c]
+            group_infections, vulnerable_infections = compute_infections(components[['date'] + group_compartments])
+
+            group_ifr = ifr[f'ifr_{group}'].rename('ifr')
+            group_deaths = compute_deaths(vulnerable_infections, infection_death_lag, group_ifr)
+
+            modeled_infections += group_infections
+            modeled_deaths += group_deaths
+    else:
+        modeled_infections, vulnerable_infections = compute_infections(
+            components[['date'] + compartment_info.compartments]
+        )
+        modeled_deaths = compute_deaths(vulnerable_infections, infection_death_lag, ifr['ifr'])
+
+    modeled_infections = modeled_infections.to_frame()
+    modeled_deaths = modeled_deaths.reset_index(level='observed')
+
+    infections = observed_infections.combine_first(modeled_infections)
+    deaths = observed_deaths.combine_first(modeled_deaths)
+    r_effective = compute_effective_r(components, seir_params, compartment_info.compartments)
 
     return components, infections, deaths, r_effective
 
 
 def splice_components(components_past: pd.DataFrame, components_forecast: pd.DataFrame):
-    shared_columns = ['date', 'S', 'E', 'I1', 'I2', 'R', 'beta', 'theta']
-    components_past['theta'] = np.nan
-    components_past = components_past[shared_columns].reset_index()
-    components_forecast = components_forecast[['location_id'] + shared_columns]
+    components_past = components_past.reindex(components_forecast.columns, axis='columns').reset_index()
+    components_forecast = components_forecast.reset_index()
     components = (pd.concat([components_past, components_forecast])
                   .sort_values(['location_id', 'date'])
                   .set_index(['location_id']))
     return components
 
 
-def compute_infections(infection_data: pd.DataFrame,
-                       components: pd.DataFrame) -> Tuple[pd.DataFrame, pd.DataFrame]:
+def get_observed_infecs_and_deaths(infection_data: pd.DataFrame):
     observed = infection_data['obs_infecs'] == 1
     observed_infections = (infection_data
                            .loc[observed, ['location_id', 'date', 'cases_draw']]
                            .set_index(['location_id', 'date'])
-                           .sort_index())
-
-    modeled_infections = (components
-                          .groupby('location_id')['S']
-                          .apply(lambda x: x.shift(1) - x)
-                          .fillna(0)
-                          .rename('cases_draw'))
-    modeled_infections = pd.concat([components['date'], modeled_infections], axis=1).reset_index()
-    modeled_infections = modeled_infections.set_index(['location_id', 'date']).sort_index()
-    return observed_infections, modeled_infections
-
-
-def compute_deaths(infection_data: pd.DataFrame,
-                   modeled_infections: pd.DataFrame) -> Tuple[pd.DataFrame, pd.DataFrame]:
+                           .sort_index()
+                           .rename(columns={'cases_draw': 'infections'}))
     observed = infection_data['obs_deaths'] == 1
     observed_deaths = (infection_data
                        .loc[observed, ['location_id', 'date', 'deaths_mean']]
-                       .rename(columns={'deaths_mean': 'deaths_draw'})
+                       .rename(columns={'deaths_mean': 'deaths'})
                        .set_index(['location_id', 'date'])
                        .sort_index())
     observed_deaths['observed'] = 1
+    return observed_infections, observed_deaths
 
-    infection_death_lag = infection_data['i_d_lag'].max()
 
-    def _compute_ifr(data):
-        data = data.set_index('date')
-        has_deaths = data['obs_deaths'] == 1
-        deaths = data['deaths_draw']
-        infecs = data['cases_draw']
-        return ((deaths / infecs.shift(infection_death_lag))
-                .loc[has_deaths]
-                .dropna()
-                .rename('ifr'))
+def compute_infections(components: pd.DataFrame) -> Tuple[pd.Series, pd.Series]:
 
-    ifr = (infection_data
-           .groupby('location_id')
-           .apply(_compute_ifr))
+    def _get_daily_subgroup(data: pd.DataFrame, sub_group_columns: List[str]) -> Union[pd.Series, int]:
+        if sub_group_columns:
+            daily_data = (data[sub_group_columns]
+                          .sum(axis=1, skipna=False)
+                          .groupby('location_id')
+                          .apply(lambda x: x.shift(1) - x)
+                          .fillna(0)
+                          .rename('infections'))
+        else:
+            daily_data = 0
+        return daily_data
 
-    modeled_deaths = modeled_infections['cases_draw'].shift(infection_death_lag).dropna()
-    modeled_deaths = pd.concat([modeled_deaths, ifr], axis=1).reset_index()
-    modeled_deaths['ifr'] = (modeled_deaths
-                             .groupby('location_id')['ifr']
-                             .apply(lambda x: x.fillna(method='pad')))
-    modeled_deaths['deaths_draw'] = modeled_deaths['cases_draw'] * modeled_deaths['ifr']
-    modeled_deaths = (modeled_deaths
-                      .loc[:, ['location_id', 'date', 'deaths_draw']]
-                      .set_index(['location_id', 'date'])
-                      .fillna(0))
+    def _cleanup(infections: pd.Series) -> pd.Series:
+        return (pd.concat([components['date'], infections], axis=1)
+                .reset_index()
+                .set_index(['location_id', 'date'])
+                .sort_index()['infections'])
 
+    # Columns that will, when summed, give the desired group.
+    susceptible_columns = [c for c in components.columns if 'S' in c]
+    # E_p has both inflows and outflows so we have to sum
+    # everything downstream of it.
+    newE_protected_columns = [c for c in components.columns if '_p' in c and 'S' not in c]
+    immune_cols = [c for c in components.columns if 'M' in c]
+
+    delta_susceptible = _get_daily_subgroup(components, susceptible_columns)
+    delta_newE_protected = _get_daily_subgroup(components, newE_protected_columns)
+    delta_immune = _get_daily_subgroup(components, immune_cols)
+
+    # noinspection PyTypeChecker
+    modeled_infections = _cleanup(delta_susceptible + delta_immune)
+    # noinspection PyTypeChecker
+    vulnerable_infections = _cleanup(delta_susceptible + delta_immune + delta_newE_protected)
+
+    return modeled_infections, vulnerable_infections
+
+
+def compute_deaths(modeled_infections: pd.Series, infection_death_lag: int, ifr: pd.Series) -> pd.Series:
+    modeled_deaths = (modeled_infections.shift(infection_death_lag).dropna() * ifr).rename('deaths').reset_index()
     modeled_deaths['observed'] = 0
-    return observed_deaths, modeled_deaths
+    modeled_deaths = modeled_deaths.set_index(['location_id', 'date', 'observed'])['deaths']
+    return modeled_deaths
 
 
-def compute_effective_r(infection_data: pd.DataFrame, components: pd.DataFrame,
-                        beta_params: Dict[str, float], ode_system: str) -> pd.DataFrame:
+def compute_effective_r(components: pd.DataFrame,
+                        beta_params: Dict[str, float],
+                        compartments: List[str]) -> pd.DataFrame:
     alpha, sigma = beta_params['alpha'], beta_params['sigma']
     gamma1, gamma2 = beta_params['gamma1'], beta_params['gamma2']
 
     components = components.reset_index().set_index(['location_id', 'date'])
 
     beta, theta = components['beta'], components['theta']
-    s, i1, i2 = components['S'], components['I1'], components['I2']
-    n = infection_data.groupby('location_id')['pop'].max()
+    susceptible = components[[c for c in compartments if 'S' in c]].sum(axis=1)
+    infected = components[[c for c in compartments if 'I' in c]].sum(axis=1)
+    n = components[compartments].sum(axis=1).groupby('location_id').max()
+    avg_gamma = 1 / (1 / (gamma1*(sigma - theta)) + 1 / (gamma2*(sigma - theta)))
 
-    if ode_system == 'normal':
-        avg_gamma = 1 / (1 / (gamma1*(sigma - theta)) + 1 / (gamma2*(sigma - theta)))
-        r_controlled = beta * alpha * sigma / avg_gamma * (i1 + i2) ** (alpha - 1)
-    else:
-        raise NotImplementedError(f'Unknown ode system type {ode_system}.')
+    r_controlled = beta * alpha * sigma / avg_gamma * (infected) ** (alpha - 1)
+    r_effective = (r_controlled * susceptible / n).rename('r_effective')
 
-    r_effective = (r_controlled * s / n).rename('r_effective')
     return r_effective

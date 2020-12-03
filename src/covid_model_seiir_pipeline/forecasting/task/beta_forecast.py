@@ -23,21 +23,38 @@ def run_beta_forecast(draw_id: int, forecast_version: str, scenario_name: str, *
 
     logger.info('Loading input data.')
     location_ids = data_interface.load_location_ids()
+    # We'll use the same params in the ODE forecast as we did in the fit.
+    beta_params = data_interface.load_beta_params(draw_id=draw_id)
     # Thetas are a parameter generated from assumption or OOS predictive
     # validity testing to curtail some of the bad behavior of the model.
     thetas = data_interface.load_thetas(scenario_spec.theta)
+    if ((1 < thetas) | thetas < -1).any():
+        raise ValueError('Theta must be between -1 and 1.')
+    if (beta_params['sigma'] - thetas >= 1).any():
+        raise ValueError('Sigma - theta must be smaller than 1')
+
     # Grab the last day of data in the model by location id.  This will
     # correspond to the initial condition for the projection.
     transition_date = data_interface.load_transition_date(draw_id)
 
+    # The population will be used to partition the SEIR compartments into
+    # different sub groups for the forecast.
+    population = data_interface.load_population()
+    population_partition = model.get_population_partition(population,
+                                                          location_ids,
+                                                          scenario_spec.population_partition)
+
     # We'll use the beta and SEIR compartments from this data set to get
     # the ODE initial condition.
-    beta_regression_df = data_interface.load_beta_regression(draw_id).set_index('location_id').sort_index()
-    past_components = beta_regression_df[['date', 'beta'] + static_vars.SEIIR_COMPARTMENTS]
-
+    beta_regression_df = data_interface.load_beta_regression(draw_id)
+    compartment_info, past_components = model.get_past_components(
+        beta_regression_df,
+        population_partition,
+        scenario_spec.system
+    )
     # Select out the initial condition using the day of transition.
     transition_day = past_components['date'] == transition_date.loc[past_components.index]
-    initial_condition = past_components.loc[transition_day, static_vars.SEIIR_COMPARTMENTS]
+    initial_condition = past_components.loc[transition_day, compartment_info.compartments]
     before_model = past_components['date'] < transition_date.loc[past_components.index]
     past_components = past_components[before_model]
 
@@ -54,58 +71,72 @@ def run_beta_forecast(draw_id: int, forecast_version: str, scenario_name: str, *
 
     beta_scales = data_interface.load_beta_scales(scenario=scenario_name, draw_id=draw_id)
 
-    # We'll use the same params in the ODE forecast as we did in the fit.
-    beta_params = data_interface.load_beta_params(draw_id=draw_id)
-
     # We'll need this to compute deaths and to splice with the forecasts.
     infection_data = data_interface.load_infection_data(draw_id)
+    ifr = data_interface.load_ifr_data()
 
-    if ((1 < thetas) | thetas < -1).any():
-        raise ValueError('Theta must be between -1 and 1.')
-    if (beta_params['sigma'] - thetas >= 1).any():
-        raise ValueError('Sigma - theta must be smaller than 1')
+    # Load any data specific to the particular scenario we're running
+    scenario_data = data_interface.load_scenario_specific_data(location_ids, scenario_spec)
 
     # Modeling starts
     logger.info('Forecasting beta and components.')
     betas = model.forecast_beta(covariate_pred, coefficients, beta_scales)
-    future_components = model.run_normal_ode_model_by_location(initial_condition, beta_params, betas, thetas,
-                                                               location_ids, scenario_spec.solver, scenario_spec.system)
+    seir_parameters = model.prep_seir_parameters(betas, thetas, scenario_data)
+    future_components = model.run_normal_ode_model_by_location(
+        initial_condition,
+        beta_params,
+        seir_parameters,
+        scenario_spec,
+        compartment_info,
+    )
     logger.info('Processing ODE results and computing deaths and infections.')
-    components, infections, deaths, r_effective = model.compute_output_metrics(infection_data,
-                                                                               past_components,
-                                                                               future_components,
-                                                                               thetas,
-                                                                               beta_params,
-                                                                               scenario_spec.system)
+    components, infections, deaths, r_effective = model.compute_output_metrics(
+        infection_data,
+        ifr,
+        past_components,
+        future_components,
+        beta_params,
+        compartment_info,
+    )
 
     if scenario_spec.algorithm == 'draw_level_mandate_reimposition':
         logger.info('Entering mandate reimposition.')
         # Info data specific to mandate reimposition
-        percent_mandates = data_interface.load_covariate_info('mobility', 'mandate_lift', location_ids)
-        mandate_effect = data_interface.load_covariate_info('mobility', 'effect', location_ids)
         min_wait, days_on, reimposition_threshold = model.unpack_parameters(scenario_spec.algorithm_params)
 
-        population = (components[static_vars.SEIIR_COMPARTMENTS]
+        population = (components[compartment_info.compartments]
                       .sum(axis=1)
                       .rename('population')
                       .groupby('location_id')
                       .max())
-        logger.info('Loading mandate reimposition data.')
 
         reimposition_count = 0
         reimposition_dates = {}
         last_reimposition_end_date = pd.Series(pd.NaT, index=population.index)
-        reimposition_date = model.compute_reimposition_date(deaths, population, reimposition_threshold,
-                                                            min_wait, last_reimposition_end_date)
+        reimposition_date = model.compute_reimposition_date(
+            deaths,
+            population,
+            reimposition_threshold,
+            min_wait,
+            last_reimposition_end_date
+        )
 
         while len(reimposition_date):  # any place reimposes mandates.
             logger.info(f'On mandate reimposition {reimposition_count + 1}. {len(reimposition_date)} locations '
                         f'are reimposing mandates.')
             mobility = covariates[['date', 'mobility']].reset_index().set_index(['location_id', 'date'])['mobility']
-            mobility_lower_bound = model.compute_mobility_lower_bound(mobility, mandate_effect)
+            mobility_lower_bound = model.compute_mobility_lower_bound(
+                mobility,
+                scenario_data.mandate_effects
+            )
 
-            new_mobility = model.compute_new_mobility(mobility, reimposition_date,
-                                                      mobility_lower_bound, percent_mandates, days_on)
+            new_mobility = model.compute_new_mobility(
+                mobility,
+                reimposition_date,
+                mobility_lower_bound,
+                scenario_data.percent_mandates,
+                days_on
+            )
 
             covariates = covariates.reset_index().set_index(['location_id', 'date'])
             covariates['mobility'] = new_mobility
@@ -114,16 +145,33 @@ def run_beta_forecast(draw_id: int, forecast_version: str, scenario_name: str, *
 
             logger.info('Forecasting beta and components.')
             betas = model.forecast_beta(covariate_pred, coefficients, beta_scales)
-            future_components = model.run_normal_ode_model_by_location(initial_condition, beta_params,
-                                                                       betas, thetas, location_ids,
-                                                                       scenario_spec.solver, scenario_spec.system)
+            seir_parameters = model.prep_seir_parameters(betas, thetas, scenario_data)
+
+            # The ode is done as a loop over the locations in the initial condition.
+            # As locations that don't reimpose mandates produce identical forecasts,
+            # subset here to only the locations that reimpose mandates for speed.
+            initial_condition_subset = initial_condition.loc[reimposition_date.index]
+            future_components_subset = model.run_normal_ode_model_by_location(
+                initial_condition_subset,
+                beta_params,
+                seir_parameters,
+                scenario_spec,
+                compartment_info,
+            )
+            future_components = (future_components
+                                 .drop(future_components_subset.index)
+                                 .append(future_components_subset)
+                                 .sort_index())
+
             logger.info('Processing ODE results and computing deaths and infections.')
-            components, infections, deaths, r_effective = model.compute_output_metrics(infection_data,
-                                                                                       past_components,
-                                                                                       future_components,
-                                                                                       thetas,
-                                                                                       beta_params,
-                                                                                       scenario_spec.system)
+            components, infections, deaths, r_effective = model.compute_output_metrics(
+                infection_data,
+                ifr,
+                past_components,
+                future_components,
+                beta_params,
+                compartment_info,
+            )
 
             reimposition_count += 1
             reimposition_dates[reimposition_count] = reimposition_date
