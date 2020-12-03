@@ -371,7 +371,6 @@ class _VaccineSEIIR(ODESystem):
             )
 
         dy = np.hstack(dy)
-
         return dy
 
 
