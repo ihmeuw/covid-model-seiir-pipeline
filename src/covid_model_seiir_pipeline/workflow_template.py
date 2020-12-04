@@ -17,23 +17,47 @@ _TaskSpecDict = Dict[str, Union[str, int]]
 
 
 class TaskSpecification(abc.ABC):
+    """Validation wrapper for specifying task execution parameters.
+
+    This class is intended to outline the parameter space for task
+    specification and provide sanity checks on the passed parameters so
+    that we fail fast and informatively.
+
+    Subclasses are meant to inherit and provide default values for the
+    class variables. At runtime those defaults will be used to fill values
+    not provided in the specification file when the specification file
+    is parsed and then the full task specification will be validated against
+    the values in the `validate` method of this class.
+
+    """
     default_max_runtime_seconds: int
     default_m_mem_free: str
     default_num_cores: int
 
     def __init__(self, task_specification_dict: _TaskSpecDict):
         self.name = self.__class__.__name__
-        runtime_bounds = [100, 60*60*24]
         self.max_runtime_seconds: int = task_specification_dict.pop('max_runtime_seconds',
                                                                     self.default_max_runtime_seconds)
+        self.m_mem_free: str = task_specification_dict.pop('m_mem_free',
+                                                           self.default_m_mem_free)
+        self.num_cores: int = task_specification_dict.pop('num_cores',
+                                                          self.default_num_cores)
+        # Workflow specification guarantees this will be present.
+        self.queue = task_specification_dict.pop('queue')
+
+        if task_specification_dict:
+            logger.warning(f'Unknown task options specified for {self.name}: {task_specification_dict}. '
+                           f'These options will be ignored.')
+
+    def validate(self):
+        """Checks specification against some baseline constraints."""
+        runtime_bounds = [100, 60*60*24]
         if not runtime_bounds[0] <= self.max_runtime_seconds <= runtime_bounds[1]:
             raise ValueError(f'Invalid max runtime for {self.name}: {self.max_runtime_seconds}. '
                              f'Max runtime must be in the range {runtime_bounds}.')
 
         mem_re = re.compile('\\d+[G]')
         mem_bounds_gb = [1, 1000]
-        self.m_mem_free: str = task_specification_dict.pop('m_mem_free',
-                                                      self.default_m_mem_free)
         if not mem_re.match(self.m_mem_free):
             raise ValueError('Memory request is expected to be in the format "XG" where X is an integer. '
                              f'You provided {self.m_mem_free} for {self.name}.')
@@ -42,20 +66,12 @@ class TaskSpecification(abc.ABC):
                              f'Max memory must be in the range {mem_bounds_gb}G.')
 
         num_core_bounds = [1, 30]
-        self.num_cores: int = task_specification_dict.pop('num_cores',
-                                                     self.default_num_cores)
         if not num_core_bounds[0] <= self.num_cores <= num_core_bounds[1]:
             raise ValueError(f'Invalid num cores for {self.name}: {self.num_cores}. '
                              f'Num cores must be in the range {num_core_bounds}')
 
-        # Workflow specification guarantees this will be present.
-        self.queue = task_specification_dict.pop('queue')
-
-        if task_specification_dict:
-            logger.warning(f'Unknown task options specified for {self.name}: {task_specification_dict}. '
-                           f'These options will be ignored.')
-
     def to_dict(self) -> Dict[str, Union[str, int]]:
+        """Coerce the specification to a dict for display or write to disk."""
         return {'max_runtime_seconds': self.max_runtime_seconds,
                 'm_mem_free': self.m_mem_free,
                 'num_cores': self.num_cores}
