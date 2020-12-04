@@ -259,11 +259,11 @@ class _VaccineSEIIR(ODESystem):
         n = sum(unvaccinated)
 
         v_total = v_non_efficacious + v_efficacious
-        efficacy = v_efficacious / v_total
         screened_vaccines = p_screening * v_total
         unscreened_vaccines = v_total - screened_vaccines
         s_vaccines = screened_vaccines + s/n * unscreened_vaccines
         if s_vaccines:
+            efficacy = v_efficacious / v_total
             rho_unprotected = 1 - efficacy
             rho_protected = efficacy * (1 - p_immune)
             rho_immune = efficacy * p_immune
