@@ -2,6 +2,30 @@ data:
   regression_version: '2020_12_03.02'
   covariate_version: '2020_12_01.05'
   output_root: ''
+workflow:
+  project: 'proj_covid'
+  queue: 'd.q'
+  tasks:
+    scaling:
+      max_runtime_seconds: 5000
+      m_mem_free: '5G'
+      num_cores: 26
+    forecast:
+      max_runtime_seconds: 15000
+      m_mem_free: '5G'
+      num_cores: 1
+    sentinel:
+      max_runtime_seconds: 1000
+      m_mem_free: '1G'
+      num_cores: 1
+    resample:
+      max_runtime_seconds: 5000
+      m_mem_free: '50G'
+      num_cores: 26
+    postprocess:
+      max_runtime_seconds: 15000
+      m_mem_free: '150G'
+      num_cores: 26
 scenarios:
   worse:
     algorithm: 'normal' # normal, draw_level_mandate_reimposition
@@ -129,7 +153,7 @@ scenarios:
     population_partition: 'high_and_low_risk'
     beta_scaling:
       window_size: 42
-      average_over_min: 7 
+      average_over_min: 7
       average_over_max: 42
       offset_deaths_lower: 150
       offset_deaths_upper: 300
@@ -158,7 +182,7 @@ scenarios:
     population_partition: 'high_and_low_risk'
     beta_scaling:
       window_size: 42
-      average_over_min: 7 
+      average_over_min: 7
       average_over_max: 42
       offset_deaths_lower: 150
       offset_deaths_upper: 300

@@ -1,8 +1,7 @@
 import shutil
 
-from jobmon.client.swarm.executors.base import ExecutorParameters
-
 from covid_model_seiir_pipeline.workflow_template import TaskTemplate, WorkflowTemplate
+from covid_model_seiir_pipeline.regression.specification import REGRESSION_JOBS
 
 
 class BetaRegressionTaskTemplate(TaskTemplate):
@@ -17,10 +16,12 @@ class BetaRegressionTaskTemplate(TaskTemplate):
 class RegressionWorkflow(WorkflowTemplate):
 
     workflow_name_template = 'seiir-regression-{version}'
-    task_templates = {'regression': BetaRegressionTaskTemplate()}
+    task_template_classes = {
+        REGRESSION_JOBS.regression: BetaRegressionTaskTemplate
+    }
 
     def attach_tasks(self, n_draws: int):
-        regression_template = self.task_templates['regression']
+        regression_template = self.task_templates[REGRESSION_JOBS.regression]
         for draw_id in range(n_draws):
             task = regression_template.get_task(
                 regression_version=self.version,
