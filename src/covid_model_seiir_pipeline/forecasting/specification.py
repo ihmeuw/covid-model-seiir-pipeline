@@ -3,7 +3,7 @@ import itertools
 from typing import Dict, NamedTuple, Tuple, Union
 
 from covid_model_seiir_pipeline.utilities import Specification, asdict
-from covid_model_seiir_pipeline.workflow_template import TaskSpecification, WorkflowSpecification
+from covid_model_seiir_pipeline.workflow_tools.specification import TaskSpecification, WorkflowSpecification
 
 
 class __ForecastJobs(NamedTuple):

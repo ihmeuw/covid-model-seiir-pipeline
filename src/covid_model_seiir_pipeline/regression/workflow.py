@@ -1,6 +1,6 @@
 import shutil
 
-from covid_model_seiir_pipeline.workflow_template import TaskTemplate, WorkflowTemplate
+from covid_model_seiir_pipeline.workflow_tools.template import TaskTemplate, WorkflowTemplate
 from covid_model_seiir_pipeline.regression.specification import REGRESSION_JOBS
 
 

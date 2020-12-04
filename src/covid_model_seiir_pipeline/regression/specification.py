@@ -2,7 +2,7 @@ from dataclasses import dataclass, field
 from typing import Dict, List, NamedTuple, Tuple
 
 from covid_model_seiir_pipeline.utilities import Specification, asdict
-from covid_model_seiir_pipeline.workflow_template import TaskSpecification, WorkflowSpecification
+from covid_model_seiir_pipeline.workflow_tools.specification import TaskSpecification, WorkflowSpecification
 
 
 class __RegressionJobs(NamedTuple):

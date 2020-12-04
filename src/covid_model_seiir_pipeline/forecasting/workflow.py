@@ -4,7 +4,7 @@ from typing import Dict, List
 
 from jobmon.client import BashTask
 
-from covid_model_seiir_pipeline.workflow_template import (
+from covid_model_seiir_pipeline.workflow_tools.template import (
     TaskTemplate,
     WorkflowTemplate
 )
