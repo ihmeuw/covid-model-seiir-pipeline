@@ -18,36 +18,42 @@ FORECAST_JOBS = __ForecastJobs()
 
 
 class ScalingTaskSpecification(TaskSpecification):
+    """Specification of execution parameters for beta scaling tasks."""
     default_max_runtime_seconds = 5000
     default_m_mem_free = '5G'
     default_num_cores = 26
 
 
 class ForecastTaskSpecification(TaskSpecification):
+    """Specification of execution parameters for beta forecasting tasks."""
     default_max_runtime_seconds = 15000
     default_m_mem_free = '5G'
     default_num_cores = 1
 
 
 class SentinelTaskSpecification(TaskSpecification):
+    """Specification of execution parameters for workflow join tasks."""
     default_max_runtime_seconds = 1000
     default_m_mem_free = '1G'
     default_num_cores = 1
 
 
 class ResampleTaskSpecification(TaskSpecification):
+    """Specification of execution parameters for draw resample mapping tasks."""
     default_max_runtime_seconds = 5000
     default_m_mem_free = '50G'
     default_num_cores = 26
 
 
 class PostprocessingTaskSpecification(TaskSpecification):
+    """Specification of execution parameters for postprocessing tasks."""
     default_max_runtime_seconds = 15000
     default_m_mem_free = '150G'
     default_num_cores = 26
 
 
 class ForecastWorkflowSpecification(WorkflowSpecification):
+    """Specification of execution parameters for forecasting workflows."""
 
     tasks = {
         FORECAST_JOBS.scaling: ScalingTaskSpecification,
