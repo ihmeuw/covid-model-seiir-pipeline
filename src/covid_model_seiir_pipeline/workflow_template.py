@@ -1,3 +1,5 @@
+"""Primitives for construction jobmon workflows and workflow specifications."""
+
 import abc
 import re
 from typing import Dict, Type, TypeVar, Union
@@ -84,14 +86,23 @@ TTaskSpecification = TypeVar('TTaskSpecification', bound=TaskSpecification)
 
 
 class TaskTemplate(abc.ABC):
+    """Factory class for a parameterized task.
 
-    task_name_template: str = None
-    command_template: str = None
+    Subclasses are intended to inherit and provide string templates for the
+    class variables ``task_name_template`` which will construct cluster
+    job names from the task args and ``command_template`` which will
+    resolve the task args into a job executable by bash.
+
+    """
+
+    task_name_template: str
+    command_template: str
 
     def __init__(self, task_specification: TaskSpecification):
         self.params = ExecutorParameters(**task_specification.to_dict())
 
     def get_task(self, *_, **kwargs) -> BashTask:
+        """Resolve job arguments into a bash executable task for jobmon."""
         task = BashTask(
             command=self.command_template.format(**kwargs),
             name=self.task_name_template.format(**kwargs),
@@ -105,6 +116,19 @@ TTaskTemplate = TypeVar('TTaskTemplate', bound=TaskTemplate)
 
 
 class WorkflowSpecification(abc.ABC):
+    """Validation wrapper for specifying workflow execution parameters.
+
+    This class is intended to outline the parameter space for workflow
+    specification and provide sanity checks on the passed parameters so
+    that we fail fast and informatively.
+
+    Subclasses are meant to inherit and provide a dict mapping task type
+    names to concrete subclasses of the ``TaskSpecification`` base class
+    as the ``tasks`` class variable.  When instantiated, the
+    ``WorkflowSpecification`` subclasses will automatically resolve provided
+    specification values with defaults and do some sanity check validation.
+
+    """
 
     tasks: Dict[str, Type[TTaskSpecification]]
 
@@ -114,21 +138,30 @@ class WorkflowSpecification(abc.ABC):
                  queue: str = None):
         self.name: str = self.__class__.__name__
         self.project: str = project if project is not None else DEFAULT_PROJECT
+        self.queue: str = queue if queue is not None else DEFAULT_QUEUE
+
+        # Check everything's okay before making the task specs
+        self.validate()
+
+        self.task_specifications: Dict[str, TaskSpecification] = self.process_task_dicts(tasks)
+
+    def validate(self):
+        """Checks specification against some baseline constraints."""
         allowed_projects = ['proj_dq', 'proj_covid', 'proj_covid_prod']
         if self.project not in allowed_projects:
             raise ValueError(f'Invalid project selected for {self.name}: {self.project}. '
                              f'Covid workflows should be run on one of {allowed_projects}.')
-
         allowed_queues = ['d.q', 'all.q', 'long.q']
-        self.queue: str = queue if queue is not None else DEFAULT_QUEUE
         if self.queue not in allowed_queues:
             raise ValueError(f'Invalid queue for {self.name}: {self.queue}. '
                              f'Queue must be one of {allowed_queues}.')
 
-        self.task_specifications = self.process_task_dicts(tasks)
-
     def process_task_dicts(self,
                            task_specification_dicts: Dict[str, _TaskSpecDict]) -> Dict[str, TaskSpecification]:
+        """Converts parsed input specifications for tasks into concrete
+        instances of ``TaskSpecification`` subclasses.
+
+        """
         task_specifications = {}
         for task_name, spec_class in self.tasks.items():
             task_spec_dict = task_specification_dicts.pop(task_name, {})
@@ -142,6 +175,7 @@ class WorkflowSpecification(abc.ABC):
         return task_specifications
 
     def to_dict(self) -> Dict:
+        """Coerce the specification to a dict for display or write to disk."""
         return {'project': self.project,
                 'queue': self.queue,
                 'tasks': {k: v.to_dict() for k, v in self.task_specifications.items()}}
@@ -151,12 +185,33 @@ class WorkflowSpecification(abc.ABC):
 
 
 class WorkflowTemplate(abc.ABC):
+    """Factory for building and running workflows from specifications.
+
+    Subclasses are intended to inherit and provide a string template for the
+    class variable ``workflow_name_template`` which takes an output version
+    string and maps it to a unique workflow name, and a dictionary mapping
+    task type names to concrete subclasses of the ``TaskTemplate`` base
+    class as the ``task_template_classes`` class variable. This mapping
+    is tightly coupled with the ``tasks`` mapping of the associated
+    workflow specification (ie, they should have exactly the same keys).
+
+    When instantiated, the ``WorkflowTemplate`` subclasses will
+    produce a jobmon workflow from the provided workflow specification,
+    set up output logging directories, and produce concrete templates for
+    workflow tasks.
+
+    Subclass implementers must provide an implementation of ``attach_tasks``
+    which takes relevant model parameters as arguments and builds and attaches
+    an appropriate task dag to the jobmon workflow.
+
+    """
 
     workflow_name_template: str = None
     task_template_classes: Dict[str, Type[TTaskTemplate]]
 
     def __init__(self, version: str, workflow_specification: WorkflowSpecification):
         self.version = version
+        assert workflow_specification.tasks.keys() == self.task_template_classes.keys()
         self.task_templates = self.build_task_templates(workflow_specification.tasks)
         stdout, stderr = utilities.make_log_dirs(version, prefix='jobmon')
 
@@ -170,6 +225,7 @@ class WorkflowTemplate(abc.ABC):
         )
 
     def build_task_templates(self, task_specifications: Dict[str, TaskSpecification]) -> Dict[str, TaskTemplate]:
+        """Parses task specifications into task templates."""
         task_templates = {}
         for task_name, task_specification in task_specifications.items():
             task_templates[task_name] = self.task_template_classes[task_name](task_specification.to_dict())
@@ -177,9 +233,11 @@ class WorkflowTemplate(abc.ABC):
 
     @abc.abstractmethod
     def attach_tasks(self, *args, **kwargs) -> None:
+        """Turn model arguments into jobmon workflow tasks."""
         pass
 
     def run(self) -> None:
+        """Execute the constructed workflow."""
         execution_status = self.workflow.run()
         if execution_status != DagExecutionStatus.SUCCEEDED:
             raise RuntimeError("Workflow failed. Check database or logs for errors")
