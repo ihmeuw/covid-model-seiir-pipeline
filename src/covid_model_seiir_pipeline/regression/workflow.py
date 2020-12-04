@@ -12,12 +12,6 @@ class BetaRegressionTaskTemplate(TaskTemplate):
             "--draw-id {draw_id} " +
             "--regression-version {regression_version} "
     )
-    params = ExecutorParameters(
-        max_runtime_seconds=3000,
-        m_mem_free='2G',
-        num_cores=1,
-        queue='d.q'
-    )
 
 
 class RegressionWorkflow(WorkflowTemplate):

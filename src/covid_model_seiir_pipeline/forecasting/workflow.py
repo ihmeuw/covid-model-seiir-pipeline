@@ -33,12 +33,6 @@ class BetaResidualScalingTaskTemplate(TaskTemplate):
             "--forecast-version {forecast_version} " +
             "--scenario-name {scenario}"
     )
-    params = ExecutorParameters(
-        max_runtime_seconds=FORECAST_RUNTIME,
-        m_mem_free=FORECAST_MEMORY,
-        num_cores=FORECAST_SCALING_CORES,
-        queue=FORECAST_QUEUE
-    )
 
 
 class BetaForecastTaskTemplate(TaskTemplate):
@@ -51,12 +45,6 @@ class BetaForecastTaskTemplate(TaskTemplate):
         "--scenario-name {scenario} " +
         "--extra-id {extra_id}"
     )
-    params = ExecutorParameters(
-        max_runtime_seconds=FORECAST_RUNTIME,
-        m_mem_free=FORECAST_MEMORY,
-        num_cores=FORECAST_CORES,
-        queue=FORECAST_QUEUE
-    )
 
 
 class ResampleMapTaskTemplate(TaskTemplate):
@@ -65,27 +53,16 @@ class ResampleMapTaskTemplate(TaskTemplate):
             f"{shutil.which('resample_map')} " +
             "--forecast-version {forecast_version} "
     )
-    params = ExecutorParameters(
-        max_runtime_seconds=FORECAST_RUNTIME,
-        m_mem_free=POSTPROCESS_MEMORY,
-        num_cores=FORECAST_SCALING_CORES,
-        queue=FORECAST_QUEUE
-    )
 
 
 class PostprocessingTaskTemplate(TaskTemplate):
+
     task_name_template = "{measure}_{scenario}_post_processing"
     command_template = (
             f"{shutil.which('postprocess')} " +
             "--forecast-version {forecast_version} "
             "--scenario-name {scenario} "
             "--measure {measure}"
-    )
-    params = ExecutorParameters(
-        max_runtime_seconds=FORECAST_RUNTIME,
-        m_mem_free=POSTPROCESS_MEMORY,
-        num_cores=FORECAST_SCALING_CORES,
-        queue=FORECAST_QUEUE
     )
 
 
@@ -95,12 +72,6 @@ class JoinSentinelTaskTemplate(TaskTemplate):
     task_name_template = "join_sentinel_{sentinel_id}"
     command_template = (
         "echo {sentinel_id}"
-    )
-    params = ExecutorParameters(
-        max_runtime_seconds=1000,
-        m_mem_free="1G",
-        num_cores=1,
-        queue=FORECAST_QUEUE,
     )
 
     def get_task(self, *args, **kwargs):

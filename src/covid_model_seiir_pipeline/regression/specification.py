@@ -2,6 +2,11 @@ from dataclasses import dataclass, field
 from typing import Dict, Tuple, List
 
 from covid_model_seiir_pipeline.utilities import Specification, asdict
+from covid_model_seiir_pipeline.workflow_template import TaskSpecification, WorkflowSpecification
+
+
+class RegressionTaskSpecification(TaskSpecification):
+
 
 
 @dataclass
