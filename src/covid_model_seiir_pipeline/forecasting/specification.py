@@ -35,6 +35,7 @@ class ScenarioSpecification:
     )
     ALLOWED_SOLVERS = (
         'RK45',
+        'RK45_optimized'
     )
     ALLOWED_SYSTEMS = (
         'normal',
