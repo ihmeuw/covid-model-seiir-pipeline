@@ -6,16 +6,16 @@ from jobmon.client import BashTask
 
 from covid_model_seiir_pipeline.workflow_tools.template import (
     TaskTemplate,
-    WorkflowTemplate
+    WorkflowTemplate,
 )
 from covid_model_seiir_pipeline.forecasting.specification import (
     ScenarioSpecification,
-    FORECAST_JOBS
+    FORECAST_JOBS,
 )
 from covid_model_seiir_pipeline.forecasting.task.postprocessing import (
     MEASURES,
     MISCELLANEOUS,
-    COVARIATES
+    COVARIATES,
 )
 
 
