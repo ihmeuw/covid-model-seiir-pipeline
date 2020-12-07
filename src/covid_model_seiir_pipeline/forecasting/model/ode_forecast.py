@@ -161,7 +161,7 @@ def run_normal_ode_model_by_location(initial_condition: pd.DataFrame,
         # FIXME: Temporary hack so I don't have to muck with specifications.
         runner_class = {
             'RK45': _ODERunner,
-            'RK45_Optimized': _ODERunnerOptimized
+            'RK45_optimized': _ODERunnerOptimized
         }[scenario_spec.solver]
 
         ode_runner = runner_class(model_specs, scenario_spec, compartment_info, loc_parameters.columns.tolist())
@@ -490,7 +490,7 @@ def _seiir_single_group_system(t: float, y: np.ndarray, p: np.ndarray, n_total: 
 @numba.njit
 def _seiir_system(t: float, y: np.ndarray, p: np.array):
     system_size = 5
-    n_groups = y.size // 2
+    n_groups = y.size // system_size
     infectious = 0.
     n_total = y.sum()
     for i in range(n_groups):
@@ -513,7 +513,7 @@ def _vaccine_single_group_system(t: float, y: np.ndarray, p: np.ndarray,
     s, e, i1, i2, r = unvaccinated
     s_u, e_u, i1_u, i2_u, r_u = unprotected
     s_p, e_p, i1_p, i2_p, r_p = protected
-    n_unvaccinated = sum(unvaccinated)
+    n_unvaccinated = unvaccinated.sum()
 
     alpha, sigma, gamma1, gamma2, p_immune, beta, theta_plus, theta_minus = p
 
@@ -608,9 +608,9 @@ def _vaccine_single_group_system(t: float, y: np.ndarray, p: np.ndarray,
 def _vaccine_system(t: float, y: np.ndarray, p: np.array):
     system_size = 16
     num_seiir_compartments = 5
-    n_groups = y.size // 2
+    n_groups = y.size // system_size
     n_vaccines = 2 * n_groups
-    vaccines = p[-n_vaccines:]
+    p, vaccines = p[:-n_vaccines], p[-n_vaccines:]
     infectious = 0.
     n_total = y.sum()
     for i in range(n_groups):
@@ -729,7 +729,7 @@ class _ODERunnerOptimized:
 
         result_array = np.concatenate([
             solution,
-            parameters.T,
+            parameters,
             times.reshape((1, -1)),
         ], axis=0).T
         result = pd.DataFrame(

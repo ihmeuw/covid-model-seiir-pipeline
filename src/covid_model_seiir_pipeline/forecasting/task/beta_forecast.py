@@ -17,6 +17,7 @@ from covid_model_seiir_pipeline.forecasting.data import ForecastDataInterface
 
 def run_beta_forecast(draw_id: int, forecast_version: str, scenario_name: str, **kwargs):
     logger.info(f"Initiating SEIIR beta forecasting for scenario {scenario_name}, draw {draw_id}.")
+    start = time.time()
     forecast_spec: ForecastSpecification = ForecastSpecification.from_path(
         Path(forecast_version) / static_vars.FORECAST_SPECIFICATION_FILE
     )
@@ -195,7 +196,7 @@ def run_beta_forecast(draw_id: int, forecast_version: str, scenario_name: str, *
     data_interface.save_components(components, scenario_name, draw_id)
     data_interface.save_raw_covariates(covariates, scenario_name, draw_id)
     data_interface.save_raw_outputs(outputs, scenario_name, draw_id)
-
+    logger.info(f'Total time: {time.time() - start}')
     logger.info(f'Total ODE time: {_ode_time_s}')
 
 
