@@ -711,8 +711,8 @@ class _ODERunnerOptimized:
         system_params = np.vstack([
             constants,
             parameters[self.parameters_map['beta']],
-            np.minimum(parameters[self.parameters_map['theta']], 0),  # Theta plus
-            np.maximum(parameters[self.parameters_map['theta']], 0),  # Theta minus
+            np.maximum(parameters[self.parameters_map['theta']], 0),  # Theta plus
+            -np.minimum(parameters[self.parameters_map['theta']], 0),  # Theta minus
             # Fixme: This is a sloppy hack.
             parameters[[p_index for param_name, p_index in self.parameters_map.items()
                         if param_name not in ['beta', 'theta']]],
