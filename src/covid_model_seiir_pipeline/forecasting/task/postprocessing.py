@@ -12,7 +12,7 @@ from covid_model_seiir_pipeline import static_vars
 from covid_model_seiir_pipeline.forecasting.specification import (
     ForecastSpecification,
     ScenarioSpecification,
-    FORECAST_JOBS
+    FORECAST_JOBS,
 )
 from covid_model_seiir_pipeline.forecasting.data import ForecastDataInterface
 from covid_model_seiir_pipeline.forecasting import postprocessing_lib as pp
