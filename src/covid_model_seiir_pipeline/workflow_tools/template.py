@@ -71,7 +71,7 @@ class WorkflowTemplate(abc.ABC):
     def __init__(self, version: str, workflow_specification: WorkflowSpecification):
         self.version = version
         assert workflow_specification.tasks.keys() == self.task_template_classes.keys()
-        self.task_templates = self.build_task_templates(workflow_specification.tasks)
+        self.task_templates = self.build_task_templates(workflow_specification.task_specifications)
         stdout, stderr = utilities.make_log_dirs(version, prefix='jobmon')
 
         self.workflow = Workflow(
