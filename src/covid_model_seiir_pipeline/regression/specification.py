@@ -14,7 +14,7 @@ REGRESSION_JOBS = __RegressionJobs()
 
 class RegressionTaskSpecification(TaskSpecification):
     """Specification of execution parameters for regression tasks."""
-    default_max_runtime_seconds = 3000,
+    default_max_runtime_seconds = 3000
     default_m_mem_free = '2G'
     default_num_cores = 1
 
