@@ -99,7 +99,8 @@ class TaskSpecification:
         """Coerce the specification to a dict for display or write to disk."""
         return {'max_runtime_seconds': self.max_runtime_seconds,
                 'm_mem_free': self.m_mem_free,
-                'num_cores': self.num_cores}
+                'num_cores': self.num_cores,
+                'queue': self.queue}
 
     def __repr__(self):
         return f'{self.name}({", ".join([f"{k}={v}" for k, v in self.to_dict().items()])})'
