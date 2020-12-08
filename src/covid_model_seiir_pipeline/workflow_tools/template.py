@@ -87,7 +87,7 @@ class WorkflowTemplate(abc.ABC):
         """Parses task specifications into task templates."""
         task_templates = {}
         for task_name, task_specification in task_specifications.items():
-            task_templates[task_name] = self.task_template_classes[task_name](task_specification.to_dict())
+            task_templates[task_name] = self.task_template_classes[task_name](task_specification)
         return task_templates
 
     @abc.abstractmethod
