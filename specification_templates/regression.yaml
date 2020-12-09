@@ -4,6 +4,14 @@ data:
   location_set_version_id: ''
   location_set_file: '/ihme/covid-19/seir-pipeline-outputs/metadata-inputs/location_metadata_771.csv'
   output_root: ''
+workflow:
+  project: 'proj_covid'
+  queue: 'd.q'
+  tasks:
+    regression:
+      max_runtime_seconds: 3000
+      m_mem_free: '2G'
+      num_cores: 1
 parameters:
   n_draws: 1000
   day_shift: [0, 8]
@@ -30,7 +38,7 @@ covariates:
   pneumonia:
     order: 0
     use_re: False
-    gprior: [0.0, 0.1]
+    gprior: [0.0, 1000.0]
     bounds: [0.8, 1.3]
     re_var: 1.0
     draws: False
@@ -44,8 +52,8 @@ covariates:
   mask_use:
     order: 0
     use_re: False
-    gprior: [0., 0.21]
-    bounds: [-1000.0, -0.50]
+    gprior: [0.0, 0.21]
+    bounds: [-1000.0, -0.5]
     re_var: 1.0
     draws: False
   testing:
@@ -65,7 +73,7 @@ covariates:
   smoking_prevalence:
     order: 0
     use_re: False
-    gprior: [0.0, 0.5]
+    gprior: [0.0, 1000]
     bounds: [0.0, 1.0]
     re_var: 1.0
     draws: False

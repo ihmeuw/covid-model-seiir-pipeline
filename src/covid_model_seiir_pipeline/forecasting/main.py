@@ -23,7 +23,8 @@ def do_beta_forecast(app_metadata: cli_tools.Metadata,
     forecast_specification.dump(data_interface.forecast_paths.forecast_specification)
 
     if not preprocess_only:
-        forecast_wf = ForecastWorkflow(forecast_specification.data.output_root)
+        forecast_wf = ForecastWorkflow(forecast_specification.data.output_root,
+                                       forecast_specification.workflow)
         n_draws = data_interface.get_n_draws()
 
         forecast_wf.attach_tasks(n_draws=n_draws,
