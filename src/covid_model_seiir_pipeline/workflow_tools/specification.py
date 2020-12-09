@@ -136,7 +136,7 @@ class WorkflowSpecification(abc.ABC):
 
         # Check everything's okay before making the task specs
         self.validate()
-
+        tasks = {} if tasks is None else tasks
         self.task_specifications: Dict[str, TaskSpecification] = self.process_task_dicts(tasks)
 
     def validate(self):
