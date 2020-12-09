@@ -5,6 +5,7 @@ from pathlib import Path
 import shlex
 from typing import Optional
 
+from covid_shared.cli_tools.logging import configure_logging_to_terminal
 import numpy as np
 import pandas as pd
 

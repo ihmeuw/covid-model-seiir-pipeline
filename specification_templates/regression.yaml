@@ -52,15 +52,15 @@ covariates:
   mask_use:
     order: 0
     use_re: False
-    gprior: [-0.654, 0.01]
-    bounds: [-1000.0, 0.0]
+    gprior: [0.0, 0.21]
+    bounds: [-1000.0, -0.5]
     re_var: 1.0
     draws: False
   testing:
     order: 0
     use_re: False
-    gprior: [0.0, 1000.]
-    bounds: [-1000.0, 0.0]
+    gprior: [0.0, 40.0]
+    bounds: [-80.0, 0.0]
     re_var: 1.0
     draws: False
   air_pollution_pm_2_5:
@@ -94,7 +94,7 @@ covariates:
   proportion_over_2_5k:
     order: 0
     use_re: False
-    gprior: [0.0, 1000.0]
+    gprior: [0.0, 0.001]
     bounds: [0.0, 1000.0]
     re_var: 1.0
     draws: False
