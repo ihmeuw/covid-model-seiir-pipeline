@@ -1,7 +1,9 @@
 from argparse import ArgumentParser, Namespace
-from typing import Optional
 from pathlib import Path
 import shlex
+import time
+from typing import Optional
+
 
 from covid_shared.cli_tools.logging import configure_logging_to_terminal
 import pandas as pd
@@ -15,11 +17,14 @@ from covid_model_seiir_pipeline.forecasting.data import ForecastDataInterface
 
 def run_beta_forecast(draw_id: int, forecast_version: str, scenario_name: str, **kwargs):
     logger.info(f"Initiating SEIIR beta forecasting for scenario {scenario_name}, draw {draw_id}.")
+    start = time.time()
     forecast_spec: ForecastSpecification = ForecastSpecification.from_path(
         Path(forecast_version) / static_vars.FORECAST_SPECIFICATION_FILE
     )
     scenario_spec = forecast_spec.scenarios[scenario_name]
     data_interface = ForecastDataInterface.from_specification(forecast_spec)
+
+    _ode_time_s = 0  # Profiling variable
 
     logger.info('Loading input data.')
     location_ids = data_interface.load_location_ids()
@@ -82,6 +87,7 @@ def run_beta_forecast(draw_id: int, forecast_version: str, scenario_name: str, *
     logger.info('Forecasting beta and components.')
     betas = model.forecast_beta(covariate_pred, coefficients, beta_scales)
     seir_parameters = model.prep_seir_parameters(betas, thetas, scenario_data)
+    _ode_start = time.time()
     future_components = model.run_normal_ode_model_by_location(
         initial_condition,
         beta_params,
@@ -89,6 +95,7 @@ def run_beta_forecast(draw_id: int, forecast_version: str, scenario_name: str, *
         scenario_spec,
         compartment_info,
     )
+    _ode_time_s += time.time() - _ode_start
     logger.info('Processing ODE results and computing deaths and infections.')
     components, infections, deaths, r_effective = model.compute_output_metrics(
         infection_data,
@@ -151,6 +158,7 @@ def run_beta_forecast(draw_id: int, forecast_version: str, scenario_name: str, *
             # As locations that don't reimpose mandates produce identical forecasts,
             # subset here to only the locations that reimpose mandates for speed.
             initial_condition_subset = initial_condition.loc[reimposition_date.index]
+            _ode_start = time.time()
             future_components_subset = model.run_normal_ode_model_by_location(
                 initial_condition_subset,
                 beta_params,
@@ -158,6 +166,7 @@ def run_beta_forecast(draw_id: int, forecast_version: str, scenario_name: str, *
                 scenario_spec,
                 compartment_info,
             )
+            _ode_time_s += time.time() - _ode_start
             future_components = (future_components
                                  .drop(future_components_subset.index)
                                  .append(future_components_subset)
@@ -187,6 +196,8 @@ def run_beta_forecast(draw_id: int, forecast_version: str, scenario_name: str, *
     data_interface.save_components(components, scenario_name, draw_id)
     data_interface.save_raw_covariates(covariates, scenario_name, draw_id)
     data_interface.save_raw_outputs(outputs, scenario_name, draw_id)
+    logger.info(f'Total time: {time.time() - start}')
+    logger.info(f'Total ODE time: {_ode_time_s}')
 
 
 def parse_arguments(argstr: Optional[str] = None) -> Namespace:
