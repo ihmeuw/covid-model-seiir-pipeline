@@ -89,9 +89,6 @@ scenarios:
       minimum_delay: 7 # days
     solver: 'RK45'
     system: 'normal'
-#    system_params:
-#        forecast_version: 'reference'
-#        proportion_immune: 0.5
     population_partition: 'high_and_low_risk'
     beta_scaling:
       window_size: 42
