@@ -3,25 +3,19 @@ import shutil
 from typing import Dict, List
 
 from jobmon.client import BashTask
-from jobmon.client.swarm.executors.base import ExecutorParameters
 
-from covid_model_seiir_pipeline.workflow_template import (
+from covid_model_seiir_pipeline.workflow_tools.template import (
     TaskTemplate,
-    WorkflowTemplate
+    WorkflowTemplate,
 )
 from covid_model_seiir_pipeline.forecasting.specification import (
-    FORECAST_QUEUE,
-    FORECAST_RUNTIME,
-    FORECAST_MEMORY,
-    FORECAST_SCALING_CORES,
-    FORECAST_CORES,
-    POSTPROCESS_MEMORY,
-    ScenarioSpecification
+    ScenarioSpecification,
+    FORECAST_JOBS,
 )
 from covid_model_seiir_pipeline.forecasting.task.postprocessing import (
     MEASURES,
     MISCELLANEOUS,
-    COVARIATES
+    COVARIATES,
 )
 
 
@@ -32,12 +26,6 @@ class BetaResidualScalingTaskTemplate(TaskTemplate):
             f"{shutil.which('beta_residual_scaling')} " +
             "--forecast-version {forecast_version} " +
             "--scenario-name {scenario}"
-    )
-    params = ExecutorParameters(
-        max_runtime_seconds=FORECAST_RUNTIME,
-        m_mem_free=FORECAST_MEMORY,
-        num_cores=FORECAST_SCALING_CORES,
-        queue=FORECAST_QUEUE
     )
 
 
@@ -51,12 +39,6 @@ class BetaForecastTaskTemplate(TaskTemplate):
         "--scenario-name {scenario} " +
         "--extra-id {extra_id}"
     )
-    params = ExecutorParameters(
-        max_runtime_seconds=FORECAST_RUNTIME,
-        m_mem_free=FORECAST_MEMORY,
-        num_cores=FORECAST_CORES,
-        queue=FORECAST_QUEUE
-    )
 
 
 class ResampleMapTaskTemplate(TaskTemplate):
@@ -65,27 +47,16 @@ class ResampleMapTaskTemplate(TaskTemplate):
             f"{shutil.which('resample_map')} " +
             "--forecast-version {forecast_version} "
     )
-    params = ExecutorParameters(
-        max_runtime_seconds=FORECAST_RUNTIME,
-        m_mem_free=POSTPROCESS_MEMORY,
-        num_cores=FORECAST_SCALING_CORES,
-        queue=FORECAST_QUEUE
-    )
 
 
 class PostprocessingTaskTemplate(TaskTemplate):
+
     task_name_template = "{measure}_{scenario}_post_processing"
     command_template = (
             f"{shutil.which('postprocess')} " +
             "--forecast-version {forecast_version} "
             "--scenario-name {scenario} "
             "--measure {measure}"
-    )
-    params = ExecutorParameters(
-        max_runtime_seconds=FORECAST_RUNTIME,
-        m_mem_free=POSTPROCESS_MEMORY,
-        num_cores=FORECAST_SCALING_CORES,
-        queue=FORECAST_QUEUE
     )
 
 
@@ -95,12 +66,6 @@ class JoinSentinelTaskTemplate(TaskTemplate):
     task_name_template = "join_sentinel_{sentinel_id}"
     command_template = (
         "echo {sentinel_id}"
-    )
-    params = ExecutorParameters(
-        max_runtime_seconds=1000,
-        m_mem_free="1G",
-        num_cores=1,
-        queue=FORECAST_QUEUE,
     )
 
     def get_task(self, *args, **kwargs):
@@ -112,17 +77,17 @@ class JoinSentinelTaskTemplate(TaskTemplate):
 class ForecastWorkflow(WorkflowTemplate):
 
     workflow_name_template = 'seiir-forecast-{version}'
-    task_templates = {
-        'scaling': BetaResidualScalingTaskTemplate(),
-        'forecast': BetaForecastTaskTemplate(),
-        'resample': ResampleMapTaskTemplate(),
-        'postprocess': PostprocessingTaskTemplate(),
-        'sentinel': JoinSentinelTaskTemplate(),
+    task_template_classes = {
+        FORECAST_JOBS.scaling: BetaResidualScalingTaskTemplate,
+        FORECAST_JOBS.forecast: BetaForecastTaskTemplate,
+        FORECAST_JOBS.resample: ResampleMapTaskTemplate,
+        FORECAST_JOBS.postprocess: PostprocessingTaskTemplate,
+        FORECAST_JOBS.sentinel: JoinSentinelTaskTemplate,
     }
 
     def attach_tasks(self, n_draws: int, scenarios: Dict[str, ScenarioSpecification], covariates: List[str]):
-        scaling_template = self.task_templates['scaling']
-        resample_template = self.task_templates['resample']
+        scaling_template = self.task_templates[FORECAST_JOBS.scaling]
+        resample_template = self.task_templates[FORECAST_JOBS.resample]
 
         # The draw resampling map is produced for one reference scenario
         # after the forecasts and then used to postprocess all measures for
@@ -148,8 +113,8 @@ class ForecastWorkflow(WorkflowTemplate):
 
     def _attach_forecast_tasks(self, scenario_name: str, n_draws: int, extra_id: int,
                                *upstream_tasks: BashTask) -> BashTask:
-        forecast_template = self.task_templates['forecast']
-        sentinel_template = self.task_templates['sentinel']
+        forecast_template = self.task_templates[FORECAST_JOBS.forecast]
+        sentinel_template = self.task_templates[FORECAST_JOBS.sentinel]
 
         sentinel_task = sentinel_template.get_task()
         self.workflow.add_task(sentinel_task)
@@ -169,7 +134,7 @@ class ForecastWorkflow(WorkflowTemplate):
 
     def _attach_postprocessing_tasks(self, scenario_name: str, covariates: List[str],
                                      *upstream_tasks: BashTask) -> None:
-        postprocessing_template = self.task_templates['postprocess']
+        postprocessing_template = self.task_templates[FORECAST_JOBS.postprocess]
 
         covariates = set(covariates).difference(['intercept'])
         unknown_covariates = covariates.difference(COVARIATES)

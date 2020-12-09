@@ -9,14 +9,18 @@ import pandas as pd
 import yaml
 
 from covid_model_seiir_pipeline import static_vars
-from covid_model_seiir_pipeline.forecasting.specification import ForecastSpecification, ScenarioSpecification
+from covid_model_seiir_pipeline.forecasting.specification import (
+    ForecastSpecification,
+    ScenarioSpecification,
+    FORECAST_JOBS,
+)
 from covid_model_seiir_pipeline.forecasting.data import ForecastDataInterface
 from covid_model_seiir_pipeline.forecasting import postprocessing_lib as pp
 
 
 class MeasureConfig:
     def __init__(self,
-                 loader: Callable[[str, ForecastDataInterface], Any],
+                 loader: Callable[[str, ForecastDataInterface, int], Any],
                  label: str,
                  calculate_cumulative: bool = False,
                  cumulative_label: str = None,
@@ -30,7 +34,7 @@ class MeasureConfig:
 
 class CovariateConfig:
     def __init__(self,
-                 loader: Callable[[str, bool, str, ForecastDataInterface], List[pd.Series]],
+                 loader: Callable[[str, bool, str, ForecastDataInterface, int], List[pd.Series]],
                  label: str,
                  time_varying: bool = False,
                  draw_level: bool = False,
@@ -192,10 +196,11 @@ MISCELLANEOUS = {
 
 def postprocess_measure(data_interface: ForecastDataInterface,
                         resampling_map: Dict[int, Dict[str, List[int]]],
-                        scenario_name: str, measure: str) -> None:
+                        scenario_name: str, measure: str,
+                        num_cores: int) -> None:
     measure_config = MEASURES[measure]
     logger.info(f'Loading {measure}.')
-    measure_data = measure_config.loader(scenario_name, data_interface)
+    measure_data = measure_config.loader(scenario_name, data_interface, num_cores)
     if isinstance(measure_data, (list, tuple)):
         logger.info(f'Concatenating {measure}.')
         measure_data = pd.concat(measure_data, axis=1)
@@ -225,10 +230,12 @@ def postprocess_measure(data_interface: ForecastDataInterface,
 def postprocess_covariate(data_interface: ForecastDataInterface,
                           resampling_map: Dict[int, Dict[str, List[int]]],
                           scenario_spec: ScenarioSpecification,
-                          scenario_name: str, covariate: str) -> None:
+                          scenario_name: str, covariate: str,
+                          num_cores: int) -> None:
     covariate_config = COVARIATES[covariate]
     logger.info(f'Loading {covariate}.')
-    covariate_data = covariate_config.loader(covariate, covariate_config.time_varying, scenario_name, data_interface)
+    covariate_data = covariate_config.loader(covariate, covariate_config.time_varying,
+                                             scenario_name, data_interface, num_cores)
     logger.info(f'Concatenating and resampling {covariate}.')
     covariate_data = pd.concat(covariate_data, axis=1)
     covariate_data = pp.resample_draws(covariate_data, resampling_map)
@@ -269,7 +276,8 @@ def postprocess_covariate(data_interface: ForecastDataInterface,
 
 
 def postprocess_miscellaneous(data_interface: ForecastDataInterface,
-                              scenario_name: str, measure: str):
+                              scenario_name: str, measure: str,
+                              num_cores: int):
     miscellaneous_config = MISCELLANEOUS[measure]
     logger.info(f'Loading {measure}.')
     miscellaneous_data = miscellaneous_config.loader(data_interface)
@@ -299,13 +307,14 @@ def run_seir_postprocessing(forecast_version: str, scenario_name: str, measure: 
     scenario_spec = forecast_spec.scenarios[scenario_name]
     data_interface = ForecastDataInterface.from_specification(forecast_spec)
     resampling_map = data_interface.load_resampling_map()
+    num_cores = forecast_spec.workflow.task_specifications[FORECAST_JOBS.postprocess].num_cores
 
     if measure in MEASURES:
-        postprocess_measure(data_interface, resampling_map, scenario_name, measure)
+        postprocess_measure(data_interface, resampling_map, scenario_name, measure, num_cores)
     elif measure in COVARIATES:
-        postprocess_covariate(data_interface, resampling_map, scenario_spec, scenario_name, measure)
+        postprocess_covariate(data_interface, resampling_map, scenario_spec, scenario_name, measure, num_cores)
     elif measure in MISCELLANEOUS:
-        postprocess_miscellaneous(data_interface, scenario_name, measure)
+        postprocess_miscellaneous(data_interface, scenario_name, measure, num_cores)
     else:
         raise NotImplementedError(f'Unknown measure {measure}.')
 

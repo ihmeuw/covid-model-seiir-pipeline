@@ -10,9 +10,8 @@ import pandas as pd
 import numpy as np
 
 from covid_model_seiir_pipeline import static_vars
-from covid_model_seiir_pipeline.forecasting.specification import ForecastSpecification
+from covid_model_seiir_pipeline.forecasting.specification import ForecastSpecification, FORECAST_JOBS
 from covid_model_seiir_pipeline.forecasting.data import ForecastDataInterface
-from covid_model_seiir_pipeline.forecasting.workflow import FORECAST_SCALING_CORES
 
 
 log = logging.getLogger(__name__)
@@ -65,6 +64,7 @@ def run_compute_beta_scaling_parameters(forecast_version: str, scenario_name: st
     forecast_spec: ForecastSpecification = ForecastSpecification.from_path(
         Path(forecast_version) / static_vars.FORECAST_SPECIFICATION_FILE
     )
+    num_cores = forecast_spec.workflow.task_specifications[FORECAST_JOBS.scaling].num_cores
     data_interface = ForecastDataInterface.from_specification(forecast_spec)
 
     locations = data_interface.load_location_ids()
@@ -72,9 +72,9 @@ def run_compute_beta_scaling_parameters(forecast_version: str, scenario_name: st
     total_deaths = total_deaths[total_deaths.location_id.isin(locations)].set_index('location_id')['deaths']
 
     beta_scaling = forecast_spec.scenarios[scenario_name].beta_scaling
-    scaling_data = compute_initial_beta_scaling_paramters(total_deaths, beta_scaling, data_interface)
+    scaling_data = compute_initial_beta_scaling_paramters(total_deaths, beta_scaling, data_interface, num_cores)
     residual_mean_offset = compute_residual_mean_offset(scaling_data, beta_scaling, total_deaths)
-    write_out_beta_scale(scaling_data, residual_mean_offset, scenario_name, data_interface)
+    write_out_beta_scale(scaling_data, residual_mean_offset, scenario_name, data_interface, num_cores)
 
 
 def compute_residual_mean_offset(scaling_data: List[pd.DataFrame],
@@ -123,7 +123,8 @@ def compute_residual_mean_offset(scaling_data: List[pd.DataFrame],
 
 def compute_initial_beta_scaling_paramters(total_deaths: pd.Series,
                                            beta_scaling: dict,
-                                           data_interface: ForecastDataInterface) -> List[pd.DataFrame]:
+                                           data_interface: ForecastDataInterface,
+                                           num_cores: int) -> List[pd.DataFrame]:
     # Serialization is our bottleneck, so we parallelize draw level data
     # ingestion and computation across multiple processes.
     _runner = functools.partial(
@@ -133,7 +134,7 @@ def compute_initial_beta_scaling_paramters(total_deaths: pd.Series,
         data_interface=data_interface
     )
     draws = list(range(data_interface.get_n_draws()))
-    with multiprocessing.Pool(FORECAST_SCALING_CORES) as pool:
+    with multiprocessing.Pool(num_cores) as pool:
         scaling_data = list(pool.imap(_runner, draws))
     return scaling_data
 
@@ -192,14 +193,15 @@ def compute_initial_beta_scaling_parameters_by_draw(draw_id: int,
 def write_out_beta_scale(beta_scales: List[pd.DataFrame],
                          offset: pd.Series,
                          scenario: str,
-                         data_interface: ForecastDataInterface) -> None:
+                         data_interface: ForecastDataInterface,
+                         num_cores: int) -> None:
     _runner = functools.partial(
         write_out_beta_scales_by_draw,
         data_interface=data_interface,
         offset=offset,
         scenario=scenario
     )
-    with multiprocessing.Pool(FORECAST_SCALING_CORES) as pool:
+    with multiprocessing.Pool(num_cores) as pool:
         pool.map(_runner, beta_scales)
 
 

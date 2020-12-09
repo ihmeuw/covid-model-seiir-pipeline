@@ -7,35 +7,34 @@ import numpy as np
 import pandas as pd
 
 from covid_model_seiir_pipeline.forecasting.data import ForecastDataInterface
-from covid_model_seiir_pipeline.forecasting.specification import FORECAST_SCALING_CORES
 
 
 # TODO: make a model subpackage and put this there.
 
 
-def load_deaths(scenario: str, data_interface: ForecastDataInterface):
-    deaths, *_ = load_output_data(scenario, data_interface)
+def load_deaths(scenario: str, data_interface: ForecastDataInterface, num_cores: int):
+    deaths, *_ = load_output_data(scenario, data_interface, num_cores)
     return deaths
 
 
-def load_infections(scenario: str, data_interface: ForecastDataInterface):
-    _, infections, *_ = load_output_data(scenario, data_interface)
+def load_infections(scenario: str, data_interface: ForecastDataInterface, num_cores: int):
+    _, infections, *_ = load_output_data(scenario, data_interface, num_cores)
     return infections
 
 
-def load_r_effective(scenario: str, data_interface: ForecastDataInterface):
-    _, _, r_effective = load_output_data(scenario, data_interface)
+def load_r_effective(scenario: str, data_interface: ForecastDataInterface, num_cores: int):
+    _, _, r_effective = load_output_data(scenario, data_interface, num_cores)
     return r_effective
 
 
-def load_output_data(scenario: str, data_interface: ForecastDataInterface):
+def load_output_data(scenario: str, data_interface: ForecastDataInterface, num_cores: int):
     _runner = functools.partial(
         load_output_data_by_draw,
         scenario=scenario,
         data_interface=data_interface,
     )
     draws = range(data_interface.get_n_draws())
-    with multiprocessing.Pool(FORECAST_SCALING_CORES) as pool:
+    with multiprocessing.Pool(num_cores) as pool:
         outputs = pool.map(_runner, draws)
     deaths, infections, r_effective = zip(*outputs)
 
@@ -52,13 +51,13 @@ def load_output_data_by_draw(draw_id: int, scenario: str,
     return deaths, infections, r_effective
 
 
-def load_coefficients(scenario: str, data_interface: ForecastDataInterface):
+def load_coefficients(scenario: str, data_interface: ForecastDataInterface, num_cores: int):
     _runner = functools.partial(
         load_coefficients_by_draw,
         data_interface=data_interface
     )
     draws = range(data_interface.get_n_draws())
-    with multiprocessing.Pool(FORECAST_SCALING_CORES) as pool:
+    with multiprocessing.Pool(num_cores) as pool:
         outputs = pool.map(_runner, draws)
     return outputs
 
@@ -71,14 +70,14 @@ def load_coefficients_by_draw(draw_id: int, data_interface: ForecastDataInterfac
     return coefficients
 
 
-def load_scaling_parameters(scenario: str, data_interface: ForecastDataInterface):
+def load_scaling_parameters(scenario: str, data_interface: ForecastDataInterface, num_cores: int):
     _runner = functools.partial(
         load_scaling_parameters_by_draw,
         scenario=scenario,
         data_interface=data_interface,
     )
     draws = range(data_interface.get_n_draws())
-    with multiprocessing.Pool(FORECAST_SCALING_CORES) as pool:
+    with multiprocessing.Pool(num_cores) as pool:
         outputs = pool.map(_runner, draws)
     return outputs
 
@@ -92,7 +91,7 @@ def load_scaling_parameters_by_draw(draw_id: int, scenario: str, data_interface:
 
 
 def load_covariate(covariate: str, time_varying: bool, scenario: str,
-                   data_interface: ForecastDataInterface) -> List[pd.Series]:
+                   data_interface: ForecastDataInterface, num_cores: int) -> List[pd.Series]:
     _runner = functools.partial(
         load_covariate_by_draw,
         covariate=covariate,
@@ -101,7 +100,7 @@ def load_covariate(covariate: str, time_varying: bool, scenario: str,
         data_interface=data_interface,
     )
     draws = range(data_interface.get_n_draws())
-    with multiprocessing.Pool(FORECAST_SCALING_CORES) as pool:
+    with multiprocessing.Pool(num_cores) as pool:
         outputs = pool.map(_runner, draws)
 
     return outputs
@@ -121,14 +120,14 @@ def load_covariate_by_draw(draw_id: int,
     return covariate_data
 
 
-def load_betas(scenario: str, data_interface: ForecastDataInterface) -> List[pd.Series]:
+def load_betas(scenario: str, data_interface: ForecastDataInterface, num_cores: int) -> List[pd.Series]:
     _runner = functools.partial(
         load_betas_by_draw,
         scenario=scenario,
         data_interface=data_interface,
     )
     draws = range(data_interface.get_n_draws())
-    with multiprocessing.Pool(FORECAST_SCALING_CORES) as pool:
+    with multiprocessing.Pool(num_cores) as pool:
         betas = pool.map(_runner, draws)
     return betas
 
@@ -141,13 +140,13 @@ def load_betas_by_draw(draw_id: int, scenario: str, data_interface: ForecastData
     return draw_betas
 
 
-def load_beta_residuals(scenario: str, data_interface: ForecastDataInterface) -> List[pd.Series]:
+def load_beta_residuals(scenario: str, data_interface: ForecastDataInterface, num_cores: int) -> List[pd.Series]:
     _runner = functools.partial(
         load_beta_residuals_by_draw,
         data_interface=data_interface,
     )
     draws = range(data_interface.get_n_draws())
-    with multiprocessing.Pool(FORECAST_SCALING_CORES) as pool:
+    with multiprocessing.Pool(num_cores) as pool:
         beta_residuals = pool.map(_runner, draws)
     return beta_residuals
 
@@ -172,11 +171,11 @@ def load_elastispliner_inputs(data_interface: ForecastDataInterface) -> pd.DataF
     return es_inputs
 
 
-def load_es_noisy(scenario: str, data_interface: ForecastDataInterface):
+def load_es_noisy(scenario: str, data_interface: ForecastDataInterface, num_cores: int):
     return load_elastispliner_outputs(data_interface, noisy=True)
 
 
-def load_es_smoothed(scenario: str, data_interface: ForecastDataInterface):
+def load_es_smoothed(scenario: str, data_interface: ForecastDataInterface, num_cores: int):
     return load_elastispliner_outputs(data_interface, noisy=False)
 
 
