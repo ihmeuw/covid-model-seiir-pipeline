@@ -127,7 +127,7 @@ class WorkflowSpecification(abc.ABC):
     tasks: Dict[str, Type[TTaskSpecification]]
 
     def __init__(self,
-                 tasks: Dict[str, Dict[str, Union[int, str]]],
+                 tasks: Dict[str, Dict[str, Union[int, str]]] = None,
                  project: str = None,
                  queue: str = None):
         self.name: str = self.__class__.__name__

@@ -64,7 +64,6 @@ class ForecastWorkflowSpecification(WorkflowSpecification):
     }
 
 
-
 @dataclass
 class ForecastData:
     """Specifies the inputs and outputs for a forecast."""
