@@ -1,17 +1,67 @@
 from dataclasses import dataclass, field
 import itertools
-from typing import Dict, Tuple, Union
+from typing import Dict, NamedTuple, Tuple, Union
 
 from covid_model_seiir_pipeline.utilities import Specification, asdict
+from covid_model_seiir_pipeline.workflow_tools.specification import TaskSpecification, WorkflowSpecification
 
-# TODO: Extract these into specification, maybe.  At least allow overrides
-#    for the queue from the command line.
-FORECAST_RUNTIME = 15000
-FORECAST_MEMORY = '5G'
-POSTPROCESS_MEMORY = '150G'
-FORECAST_CORES = 1
-FORECAST_SCALING_CORES = 26
-FORECAST_QUEUE = 'd.q'
+
+class __ForecastJobs(NamedTuple):
+    scaling: str = 'scaling'
+    forecast: str = 'forecast'
+    sentinel: str = 'sentinel'
+    resample: str = 'resample'
+    postprocess: str = 'postprocess'
+
+
+FORECAST_JOBS = __ForecastJobs()
+
+
+class ScalingTaskSpecification(TaskSpecification):
+    """Specification of execution parameters for beta scaling tasks."""
+    default_max_runtime_seconds = 5000
+    default_m_mem_free = '5G'
+    default_num_cores = 26
+
+
+class ForecastTaskSpecification(TaskSpecification):
+    """Specification of execution parameters for beta forecasting tasks."""
+    default_max_runtime_seconds = 15000
+    default_m_mem_free = '5G'
+    default_num_cores = 1
+
+
+class SentinelTaskSpecification(TaskSpecification):
+    """Specification of execution parameters for workflow join tasks."""
+    default_max_runtime_seconds = 1000
+    default_m_mem_free = '1G'
+    default_num_cores = 1
+
+
+class ResampleTaskSpecification(TaskSpecification):
+    """Specification of execution parameters for draw resample mapping tasks."""
+    default_max_runtime_seconds = 5000
+    default_m_mem_free = '50G'
+    default_num_cores = 26
+
+
+class PostprocessingTaskSpecification(TaskSpecification):
+    """Specification of execution parameters for postprocessing tasks."""
+    default_max_runtime_seconds = 15000
+    default_m_mem_free = '150G'
+    default_num_cores = 26
+
+
+class ForecastWorkflowSpecification(WorkflowSpecification):
+    """Specification of execution parameters for forecasting workflows."""
+
+    tasks = {
+        FORECAST_JOBS.scaling: ScalingTaskSpecification,
+        FORECAST_JOBS.forecast: ForecastTaskSpecification,
+        FORECAST_JOBS.sentinel: SentinelTaskSpecification,
+        FORECAST_JOBS.resample: ResampleTaskSpecification,
+        FORECAST_JOBS.postprocess: PostprocessingTaskSpecification,
+    }
 
 
 @dataclass
@@ -118,16 +168,20 @@ class ForecastSpecification(Specification):
     """Specification for a beta forecast run."""
 
     def __init__(self, data: ForecastData,
+                 workflow: ForecastWorkflowSpecification,
                  postprocessing: PostprocessingSpecification,
                  *scenarios: ScenarioSpecification):
         self._data = data
+        self._workflow = workflow
         self._postprocessing = postprocessing
+
         self._scenarios = {s.name: s for s in scenarios}
 
     @classmethod
     def parse_spec_dict(cls, forecast_spec_dict: Dict) -> Tuple:
         """Construct forecast specification args from a dict."""
         data = ForecastData(**forecast_spec_dict.get('data', {}))
+        workflow = ForecastWorkflowSpecification(**forecast_spec_dict.get('workflow', {}))
         postprocessing = PostprocessingSpecification(**forecast_spec_dict.get('postprocessing', {}))
         scenario_dicts = forecast_spec_dict.get('scenarios', {})
         scenarios = []
@@ -135,12 +189,17 @@ class ForecastSpecification(Specification):
             scenarios.append(ScenarioSpecification(name, **scenario_spec))
         if not scenarios:
             scenarios.append(ScenarioSpecification())
-        return tuple(itertools.chain([data, postprocessing], scenarios))
+        return tuple(itertools.chain([data, workflow, postprocessing], scenarios))
 
     @property
-    def data(self) -> 'ForecastData':
+    def data(self) -> ForecastData:
         """The forecast data specification."""
         return self._data
+
+    @property
+    def workflow(self) -> ForecastWorkflowSpecification:
+        """The workflow specification for the forecast."""
+        return self._workflow
 
     @property
     def postprocessing(self) -> PostprocessingSpecification:
@@ -155,6 +214,7 @@ class ForecastSpecification(Specification):
         """Convert the specification to a dict."""
         return {
             'data': self.data.to_dict(),
+            'workflow': self.workflow.to_dict(),
             'postprocessing': self.postprocessing.to_dict(),
             'scenarios': {k: v.to_dict() for k, v in self._scenarios.items()}
         }
