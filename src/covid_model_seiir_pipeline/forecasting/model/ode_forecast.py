@@ -697,25 +697,28 @@ class _ODERunnerOptimized:
     def get_solution(self, initial_condition, times, parameters):
         parameters = parameters.T  # Each row is a param, each column a day
         # Add the time invariant constants up front.
-        constants = np.vstack([
+        constants = [
             self.model_specs.alpha * np.ones_like(parameters[0]),
             self.model_specs.sigma * np.ones_like(parameters[0]),
             self.model_specs.gamma1 * np.ones_like(parameters[0]),
             self.model_specs.gamma2 * np.ones_like(parameters[0]),
-        ])
-        if self.scenario_spec.system == 'vaccine':
-            constants = np.vstack([
-                constants,
-                self.model_specs.system_params.get('proportion_immune', 0.5) * np.ones_like(parameters[0]),
-            ])
-        system_params = np.vstack([
-            constants,
+        ]
+        system_params = [
             parameters[self.parameters_map['beta']],
             np.maximum(parameters[self.parameters_map['theta']], 0),  # Theta plus
             -np.minimum(parameters[self.parameters_map['theta']], 0),  # Theta minus
-            # Fixme: This is a sloppy hack.
-            parameters[[p_index for param_name, p_index in self.parameters_map.items()
-                        if param_name not in ['beta', 'theta']]],
+        ]
+        if self.scenario_spec.system == 'vaccine':
+            constants.append(
+                self.model_specs.system_params.get('proportion_immune', 0.5) * np.ones_like(parameters[0])
+            )
+            for risk_group in self.compartment_info.group_suffixes:
+                system_params.append(parameters[self.parameters_map[f'unprotected_{risk_group}']])
+                system_params.append(parameters[self.parameters_map[f'effectively_vaccinated_{risk_group}']])
+
+        system_params = np.vstack([
+            constants,
+            system_params,
         ])
 
         solution = _solve(
