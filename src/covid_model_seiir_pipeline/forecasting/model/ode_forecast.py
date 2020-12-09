@@ -385,10 +385,10 @@ class _ODERunner:
 
     systems: Dict[str, Type[ODESystem]] = {
         'normal': _SEIIR,
-        'vaccine': _VaccineSEIIR
+        'vaccine': _VaccineSEIIR,
     }
     solvers: Dict[str, Type[ODESolver]] = {
-        'RK45': RK4
+        'RK45': RK4,
     }
 
     def __init__(self,
@@ -409,7 +409,7 @@ class _ODERunner:
             t=times,
             init_cond=initial_condition,
             t_params=times,
-            params=parameters.T
+            params=parameters.T,
         )
         result_array = np.concatenate([
             solution,
@@ -418,7 +418,7 @@ class _ODERunner:
         ], axis=0).T
         result = pd.DataFrame(
             data=result_array,
-            columns=self.model.compartments + list(self.model.parameters_map) + ['t']
+            columns=self.model.compartments + list(self.model.parameters_map) + ['t'],
         )
 
         return result
@@ -727,7 +727,7 @@ class _ODERunnerOptimized:
             init_cond=initial_condition,
             t_params=times,
             params=system_params,
-            dt=self.model_specs.delta
+            dt=self.model_specs.delta,
         )
 
         result_array = np.concatenate([
@@ -737,7 +737,7 @@ class _ODERunnerOptimized:
         ], axis=0).T
         result = pd.DataFrame(
             data=result_array,
-            columns=self.compartment_info.compartments + list(self.parameters_map) + ['t']
+            columns=self.compartment_info.compartments + list(self.parameters_map) + ['t'],
         )
 
         return result
