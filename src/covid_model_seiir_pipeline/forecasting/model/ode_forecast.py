@@ -29,7 +29,7 @@ def prep_seir_parameters(betas: pd.DataFrame,
                          thetas: pd.Series,
                          scenario_data: ScenarioData):
     betas = betas.rename(columns={'beta_pred': 'beta'})
-    parameters = betas.merge(thetas, on='location_id').fillna(0)
+    parameters = betas.merge(thetas, on='location_id')
     if scenario_data.vaccinations is not None:
         parameters = parameters.merge(scenario_data.vaccinations, on=['location_id', 'date'], how='left').fillna(0)
     return parameters
