@@ -5,14 +5,8 @@ import numpy
 import pandas
 import pytest
 
+from covid_model_seiir_pipeline import io
 from covid_model_seiir_pipeline.forecasting.data import ForecastDataInterface
-from covid_model_seiir_pipeline.marshall import (
-    CSVMarshall,
-)
-from covid_model_seiir_pipeline.paths import (
-    ForecastPaths,
-    RegressionPaths,
-)
 from covid_model_seiir_pipeline.regression.data import RegressionDataInterface
 
 
@@ -24,20 +18,16 @@ class TestForecastDataInterfaceIO:
         This only includes loading files, as they are all saved by the
         RegressionDataInterface.
         """
-        regress_paths = RegressionPaths(Path(tmpdir))
         rdi = RegressionDataInterface(
-            infection_paths=None,
-            regression_paths=regress_paths,
-            covariate_paths=None,
-            regression_marshall=CSVMarshall(regress_paths.root_dir),
+            infection_root=None,
+            covariate_root=None,
+            regression_root=io.RegressionRoot(tmpdir),
         )
 
         fdi = ForecastDataInterface(
-            forecast_paths=None,
-            regression_paths=None,
-            covariate_paths=None,
-            regression_marshall=CSVMarshall.from_paths(regress_paths),
-            forecast_marshall=None,
+            regression_root=io.RegressionRoot(tmpdir),
+            covariate_root=None,
+            forecast_root=None,
         )
 
         # Step 1: save files (normally done in regression)
@@ -78,16 +68,10 @@ class TestForecastDataInterfaceIO:
             warnings.warn("beta fit parameters accurate only to 15 decimal places after save/load cycle")
 
     def test_forecast_io(self, tmpdir, components, beta_scales, forecast_outputs):
-        forecast_paths = ForecastPaths(
-            root_dir=Path(tmpdir),
-            scenarios=['happy'],
-        )
         di = ForecastDataInterface(
-            forecast_paths=None,
-            regression_paths=None,
-            covariate_paths=None,
-            regression_marshall=None,
-            forecast_marshall=CSVMarshall.from_paths(forecast_paths),
+            regression_root=None,
+            covariate_root=None,
+            forecast_root=io.ForecastRoot(tmpdir),
         )
 
         # Step 1: save files
