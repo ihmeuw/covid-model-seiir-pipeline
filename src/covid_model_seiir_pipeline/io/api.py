@@ -1,3 +1,9 @@
+"""Inteface methods for on disk I/O.
+
+These methods use information from the provided key to select an appropriate
+strategy for streaming data to and from disk.
+
+"""
 from typing import Any, Union
 
 from .data_roots import DataRoot
@@ -9,23 +15,32 @@ from .marshall import STRATEGIES
 
 
 def load(key: Union[MetadataKey, DatasetKey]) -> Any:
+    """Loads the dataset associated with the provided key."""
     if key.disk_format not in STRATEGIES:
         raise
     return STRATEGIES[key.disk_format].load(key)
 
 
-def dump(dataset: Any, key: Union[MetadataKey, DatasetKey]):
+def dump(dataset: Any, key: Union[MetadataKey, DatasetKey]) -> None:
+    """Writes the provided dataset to the location represented by the key."""
     if key.disk_format not in STRATEGIES:
         raise
     STRATEGIES[key.disk_format].dump(dataset, key)
 
 
 def exists(key: Union[MetadataKey, DatasetKey]) -> bool:
+    """Returns whether a dataset is found at key's location."""
     if key.disk_format not in STRATEGIES:
         raise
     return STRATEGIES[key.disk_format].exists(key)
 
 
-def touch(data_root: DataRoot):
-    # TODO:
+def touch(data_root: DataRoot, **path_args):
+    """Generates the subdirectory structure associated with the data root."""
+    if data_root._data_format not in STRATEGIES:
+        raise
+
+
+
+
     pass

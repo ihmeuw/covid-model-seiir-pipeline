@@ -1,3 +1,4 @@
+import itertools
 from pathlib import Path
 from typing import List, Union
 
@@ -6,7 +7,7 @@ from .keys import (
     MetadataType,
     DatasetKey,
     LEAF_TEMPLATES,
-    PATH_TEMPLATES,
+    PREFIX_TEMPLATES,
 )
 from .marshall import (
     DATA_STRATEGIES,
@@ -33,6 +34,23 @@ class DataRoot:
         return [metadata_name for metadata_name, attr in type(self).__dict__.items()
                 if isinstance(attr, MetadataType)]
 
+    def terminal_paths(self, **prefix_args) -> List[Path]:
+        paths = []
+        dataset_types = [dataset_type for dataset_type in type(self).__dict__.values()
+                         if isinstance(dataset_type, DatasetType)]
+        for dataset_type in dataset_types:
+            if dataset_type.prefix_template is not None:
+                for arg_set in itertools.product(*prefix_args.values()):
+                    prefix_template_kwargs = dict(zip(prefix_args.keys(), arg_set))
+                    prefix = dataset_type.prefix_template.format(**prefix_template_kwargs)
+                    path = self._root / prefix / dataset_type.name
+                    paths.append(path)
+            else:
+                path = self._root / dataset_type.name
+                paths.append(path)
+        paths = list(set(paths))  # Drop duplicates
+        return paths
+
 
 class InfectionRoot(DataRoot):
     metadata = MetadataType('metadata')
@@ -47,8 +65,8 @@ class InfectionRoot(DataRoot):
             root=self._root,
             disk_format=self._data_format,
             data_type=data_type,
-            leaf_name=f'draw{draw_id:04}_prepped_deaths_and_cases_all_age.csv',
-            path_name=None,
+            leaf_name=f'draw{draw_id:04}_prepped_deaths_and_cases_all_age',
+            prefix=None,
         )
 
 
@@ -93,14 +111,14 @@ class ForecastRoot(DataRoot):
     specification = MetadataType('forecast_specification')
     resampling_map = MetadataType('resampling_map')
 
-    beta_scaling = DatasetType('beta_scaling', LEAF_TEMPLATES.DRAW_TEMPLATE, PATH_TEMPLATES.SCENARIO_TEMPLATE)
-    component_draws = DatasetType('component_draws', LEAF_TEMPLATES.DRAW_TEMPLATE, PATH_TEMPLATES.SCENARIO_TEMPLATE)
-    raw_covariates = DatasetType('raw_covariates', LEAF_TEMPLATES.DRAW_TEMPLATE, PATH_TEMPLATES.SCENARIO_TEMPLATE)
-    raw_outputs = DatasetType('raw_outputs', LEAF_TEMPLATES.DRAW_TEMPLATE, PATH_TEMPLATES.SCENARIO_TEMPLATE)
+    beta_scaling = DatasetType('beta_scaling', LEAF_TEMPLATES.DRAW_TEMPLATE, PREFIX_TEMPLATES.SCENARIO_TEMPLATE)
+    component_draws = DatasetType('component_draws', LEAF_TEMPLATES.DRAW_TEMPLATE, PREFIX_TEMPLATES.SCENARIO_TEMPLATE)
+    raw_covariates = DatasetType('raw_covariates', LEAF_TEMPLATES.DRAW_TEMPLATE, PREFIX_TEMPLATES.SCENARIO_TEMPLATE)
+    raw_outputs = DatasetType('raw_outputs', LEAF_TEMPLATES.DRAW_TEMPLATE, PREFIX_TEMPLATES.SCENARIO_TEMPLATE)
 
     # TODO: Move to postprocessing root
-    output_draws = DatasetType('output_draws', LEAF_TEMPLATES.MEASURE_TEMPLATE, PATH_TEMPLATES.SCENARIO_TEMPLATE)
+    output_draws = DatasetType('output_draws', LEAF_TEMPLATES.MEASURE_TEMPLATE, PREFIX_TEMPLATES.SCENARIO_TEMPLATE)
     output_summaries = DatasetType('output_summaries',
-                                   LEAF_TEMPLATES.MEASURE_TEMPLATE, PATH_TEMPLATES.SCENARIO_TEMPLATE)
+                                   LEAF_TEMPLATES.MEASURE_TEMPLATE, PREFIX_TEMPLATES.SCENARIO_TEMPLATE)
     output_miscellaneous = DatasetType('output_miscellaneous',
-                                       LEAF_TEMPLATES.MEASURE_TEMPLATE, PATH_TEMPLATES.SCENARIO_TEMPLATE)
+                                       LEAF_TEMPLATES.MEASURE_TEMPLATE, PREFIX_TEMPLATES.SCENARIO_TEMPLATE)
