@@ -18,8 +18,7 @@ jobs:
       - name: Install dependencies
         run: |
           which conda
-          #conda init bash
-          #source /home/runner/.bashrc
-          #conda activate test_env_python${{ matrix.python-version }}
+          bash /usr/share/miniconda/etc/profile.d/conda.sh
+          conda activate test_env_python${{ matrix.python-version }}
           #which python
           # pip install .[test,docs]
