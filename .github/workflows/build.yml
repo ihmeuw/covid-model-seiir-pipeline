@@ -13,8 +13,8 @@ jobs:
       - uses: conda-incubator/setup-miniconda@v2
         with:
           activate-environment: test_env_python${{ matrix.python-version }}
+          channels: conda-forge
           python-version: ${{ matrix.python-version }}
-          auto-activate-base: false
       - name: Set up Python ${{ matrix.python-version }}
         run: |
           which conda
