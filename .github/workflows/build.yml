@@ -10,16 +10,13 @@ jobs:
         python-version: [3.7] #, 3.8, 3.9]
     steps:
       - uses: actions/checkout@v2
-      - name: Add conda to system path
-        run: echo $CONDA/bin >> $GITHUB_PATH
+      - uses: conda-incubator/setup-miniconda@v2
+        with:
+          activate-environment: test_env_python${{ matrix.python-version }}
+          python-version: ${{ matrix.python-version }}
+          auto-activate-base: false
       - name: Set up Python ${{ matrix.python-version }}
         run: |
-          conda create -y --name=test_env_python${{ matrix.python-version }} python=${{ matrix.python-version }}
-      - name: Install dependencies
-        run: |
           which conda
-          conda init bash
-          bash /usr/share/miniconda/etc/profile.d/conda.sh
-          conda activate test_env_python${{ matrix.python-version }}
-          #which python
-          # pip install .[test,docs]
+          conda list
+          which python
