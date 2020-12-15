@@ -8,6 +8,9 @@ jobs:
     strategy:
       matrix:
         python-version: [3.7] #, 3.8, 3.9]
+    defaults:
+      run:
+        shell: bash -l {0}
     steps:
       - uses: actions/checkout@v2
       - uses: conda-incubator/setup-miniconda@v2
