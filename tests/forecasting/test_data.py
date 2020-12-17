@@ -23,7 +23,7 @@ class TestForecastDataInterfaceIO:
             covariate_root=None,
             regression_root=io.RegressionRoot(tmpdir),
         )
-
+        rdi.make_dirs()
         fdi = ForecastDataInterface(
             regression_root=io.RegressionRoot(tmpdir),
             covariate_root=None,
@@ -73,7 +73,7 @@ class TestForecastDataInterfaceIO:
             covariate_root=None,
             forecast_root=io.ForecastRoot(tmpdir),
         )
-
+        di.make_dirs(scenario=['happy'])
         # Step 1: save files
         di.save_components(components, scenario="happy", draw_id=4)
         di.save_beta_scales(beta_scales, scenario="happy", draw_id=4)

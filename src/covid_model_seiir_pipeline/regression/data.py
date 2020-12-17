@@ -35,8 +35,8 @@ class RegressionDataInterface:
             regression_root=regression_root,
         )
 
-    def make_dirs(self):
-        io.touch(self.regression_root)
+    def make_dirs(self, **prefix_args):
+        io.touch(self.regression_root, **prefix_args)
 
     #####################
     # Location handling #

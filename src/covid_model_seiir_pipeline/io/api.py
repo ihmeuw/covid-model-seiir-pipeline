@@ -35,8 +35,9 @@ def exists(key: Union[MetadataKey, DatasetKey]) -> bool:
     return STRATEGIES[key.disk_format].exists(key)
 
 
-def touch(data_root: DataRoot, **path_args):
+def touch(data_root: DataRoot, **prefix_args):
     """Generates the subdirectory structure associated with the data root."""
     if data_root._data_format not in STRATEGIES:
         raise
+    STRATEGIES[data_root._data_format].touch(*data_root.terminal_paths(**prefix_args))
 

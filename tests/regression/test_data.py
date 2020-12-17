@@ -16,6 +16,7 @@ class TestRegressionDataInterfaceIO:
             covariate_root=None,
             regression_root=io.RegressionRoot(tmpdir),
         )
+        di.make_dirs()
         # Step 1: count files
 
         assert tmpdir_file_count() == 0, "Files somehow already exist in storage dir"

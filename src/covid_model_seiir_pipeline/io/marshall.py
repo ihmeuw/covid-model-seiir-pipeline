@@ -1,7 +1,8 @@
 from contextlib import contextmanager
 import io
+import os
 from pathlib import Path
-from typing import Any, Tuple
+from typing import Any, List, Tuple
 import zipfile
 
 from covid_shared.shell_tools import mkdir
@@ -22,12 +23,10 @@ class CSVMarshall:
     @classmethod
     def dump(cls, data: pd.DataFrame, key: DatasetKey, strict: bool = True) -> None:
         path = cls._resolve_key(key)
-        if not path.parent.is_dir():
-            mkdir(path.parent, parents=True)
-        else:
-            if strict and path.exists():
-                msg = f"Cannot dump data for key {key} - would overwrite"
-                raise LookupError(msg)
+
+        if strict and path.exists():
+            msg = f"Cannot dump data for key {key} - would overwrite"
+            raise LookupError(msg)
 
         data.to_csv(path, index=False)
 
@@ -35,6 +34,11 @@ class CSVMarshall:
     def load(cls, key: DatasetKey) -> pd.DataFrame:
         path = cls._resolve_key(key)
         return pd.read_csv(path)
+
+    @classmethod
+    def touch(cls, *paths: Path) -> None:
+        for path in paths:
+            mkdir(path, parents=True, exists_ok=True)
 
     @classmethod
     def exists(cls, key: DatasetKey) -> bool:
@@ -80,6 +84,17 @@ class ZipMarshall:
                 return True
             except KeyError:
                 return False
+
+    @classmethod
+    def touch(cls, *paths: Path) -> None:
+        for path in paths:
+            mkdir(path.parent, parents=True, exists_ok=True)
+            mode = 0o664
+            old_umask = os.umask(0o777 - mode)
+            try:
+                path.with_suffix('.zip').touch()
+            finally:
+                os.umask(old_umask)
 
     @classmethod
     def _resolve_key(cls, key: DatasetKey) -> Tuple[Path, str]:
@@ -136,6 +151,18 @@ class HDF5Marshall:
                 return container.get(node)
             except KeyError:
                 raise RuntimeError(f"No data set for {key} saved!")
+
+
+    @classmethod
+    def touch(cls, *paths: Path) -> None:
+        for path in paths:
+            mkdir(path.parent, parents=True, exists_ok=True)
+            mode = 0o664
+            old_umask = os.umask(0o777 - mode)
+            try:
+                path.with_suffix('.hdf').touch()
+            finally:
+                os.umask(old_umask)
 
     @classmethod
     def exists(cls, key):

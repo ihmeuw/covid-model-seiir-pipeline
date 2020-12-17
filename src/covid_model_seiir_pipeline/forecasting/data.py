@@ -36,8 +36,8 @@ class ForecastDataInterface:
             forecast_root=forecast_root,
         )
 
-    def make_dirs(self):
-        io.touch(self.forecast_root)
+    def make_dirs(self, **prefix_args):
+        io.touch(self.forecast_root, **prefix_args)
 
     def get_n_draws(self) -> int:
         regression_spec = io.load(self.regression_root.specification())
