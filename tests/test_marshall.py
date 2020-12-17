@@ -55,7 +55,7 @@ class MarshallInterfaceTests:
 class TestCSVMarshall(MarshallInterfaceTests):
     @pytest.fixture
     def regression_root(self, tmpdir):
-        return RegressionRoot(tmpdir, data_format='csv')
+        return RegressionRoot(tmpdir)
 
     @pytest.fixture
     def instance(self):

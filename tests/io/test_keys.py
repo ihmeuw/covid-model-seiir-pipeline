@@ -19,7 +19,7 @@ def leaf_template(request):
 
 
 @pytest.fixture(params=list(PREFIX_TEMPLATES) + [None])
-def prefix_temlate(request):
+def prefix_template(request):
     return request.param
 
 
@@ -55,7 +55,8 @@ def test_DatasetType_call_fail(leaf_template, prefix_template):
     with pytest.raises(AssertionError, match='DatasetType must be bound'):
         d(draw_id=1)
 
-    d = DatasetType('saturn', leaf_template, prefix_template, Path('/outer/space'), 'csv')
+    d = DatasetType('saturn', leaf_template, prefix_template,
+                    _root=Path('/outer/space'), _disk_format='csv')
     with pytest.raises(TypeError, match='All dataset key arguments'):
         d('cassini', draw_id=1)
 
@@ -92,7 +93,7 @@ def test_both_types_binding_and_call():
     mdr = MyDataRoot('/outer/space')
 
     expected = DatasetType('saturn', LEAF_TEMPLATES.DRAW_TEMPLATE, PREFIX_TEMPLATES.SCENARIO_TEMPLATE,
-                           mdr._root, mdr._data_format)
+                           _root=mdr._root, _disk_format=mdr._data_format)
     assert mdr.saturn == expected
 
     expected = MetadataType('metadata', mdr._root, mdr._metadata_format)
@@ -118,6 +119,3 @@ def test_both_types_binding_and_call():
         mdr.metadata(1)
     with pytest.raises(TypeError, match='Metadata keys have no parameterization.'):
         mdr.metadata(draw_id=1)
-
-
-

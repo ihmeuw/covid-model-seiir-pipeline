@@ -44,8 +44,8 @@ class CSVMarshall:
     @classmethod
     def _resolve_key(cls, key: DatasetKey) -> Path:
         path = key.root
-        if key.path_name:
-            path /= key.path_name
+        if key.prefix:
+            path /= key.prefix
         path = path / key.data_type / key.leaf_name
         return path.with_suffix(".csv")
 
@@ -84,8 +84,8 @@ class ZipMarshall:
     @classmethod
     def _resolve_key(cls, key: DatasetKey) -> Tuple[Path, str]:
         zip_path = key.root
-        if key.path_name:
-            zip_path /= key.path_name
+        if key.prefix:
+            zip_path /= key.prefix
         zip_path /= key.data_type
         node = f'{key.leaf_name}.csv'
         return zip_path, node
@@ -146,8 +146,8 @@ class HDF5Marshall:
     @classmethod
     def _resolve_key(cls, key: DatasetKey):
         hdf_path = key.root
-        if key.path_name:
-            hdf_path /= key.path_name
+        if key.prefix:
+            hdf_path /= key.prefix
         hdf_path /= key.data_type
         node = f'{key.leaf_name}'
         return str(hdf_path), node
