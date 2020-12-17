@@ -20,7 +20,7 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - name: Install dependencies python ${{ matrix.python-version }}
         run: |
-          conda install -y -q -c conda-forge fortran-compiler h5py
+          conda install -y -q -c conda-forge fortran-compiler
           git clone https://github.com/zhengp0/limetr.git
           cd limetr && python check_requirements.py && pip install . && cd ..
           git clone https://github.com/zhengp0/SLIME.git
