@@ -1,3 +1,4 @@
+"""Concrete representations of on disk data sources."""
 import itertools
 from pathlib import Path
 from typing import List, Union
@@ -16,25 +17,67 @@ from .marshall import (
 
 
 class DataRoot:
+    """Representation of a version of data from a particular source or sink.
+
+    This class provide convenience methods for the I/O tooling to inspect
+    the structure of a data source or sink as defined by its subclasses.
+
+    Subclasses are responsible for declaring their structure by assigning
+    :class:`DatasetType` and :class:`MetadataType` class variables. Instances
+    of subclasses then serve as factories for generating keys pointing
+    to particular data sets which can be used to transfer data and metadata
+    to and from disk.
+
+    Parameters
+    ----------
+    root
+        An existing directory on disk where data will be read from or written
+        to.
+    data_format
+        The on disk format for data sets in the data root.
+    metadata_format
+        The on disk format for metadata in the data root.
+
+    """
 
     def __init__(self, root: Union[str, Path], data_format: str = 'csv', metadata_format: str = 'yaml'):
         self._root = Path(root)
         if data_format not in DATA_STRATEGIES:
-            raise
+            raise ValueError(f'Invalid data format {data_format} for {type(self).__name__}. '
+                             f'Valid data formats are {list(DATA_STRATEGIES)}.')
         self._data_format = data_format
         if metadata_format not in METADATA_STRATEGIES:
-            raise
+            raise ValueError(f'Invalid metadata format {metadata_format} for {type(self).__name__}. '
+                             f'Valid data formats are {list(METADATA_STRATEGIES)}.')
         self._metadata_format = metadata_format
 
+    @property
     def dataset_types(self) -> List[str]:
+        """A list of all named dataset types in the data root."""
         return [dataset_name for dataset_name, attr in type(self).__dict__.items()
                 if isinstance(attr, DatasetType)]
 
+    @property
     def metadata_types(self) -> List[str]:
+        """A list of all named metadata types in the data root."""
         return [metadata_name for metadata_name, attr in type(self).__dict__.items()
                 if isinstance(attr, MetadataType)]
 
-    def terminal_paths(self, **prefix_args) -> List[Path]:
+    def terminal_paths(self, **prefix_args: List[str]) -> List[Path]:
+        """Resolves and returns all terminal directory and container paths.
+
+        Parameters
+        ----------
+        prefix_args
+            Lists of concrete prefix fill values provided as keyword arguments
+            where the keyword is a format value in a prefix template.
+
+        Returns
+        -------
+            A list of terminal paths without extensions to be interpreted
+            by an I/O strategy.
+
+        """
         paths = []
         dataset_types = [dataset_type for dataset_type in type(self).__dict__.values()
                          if isinstance(dataset_type, DatasetType)]
@@ -53,6 +96,7 @@ class DataRoot:
 
 
 class InfectionRoot(DataRoot):
+    """Data root representing infectionator outputs."""
     metadata = MetadataType('metadata')
 
     def modeled_locations(self) -> List[int]:
@@ -60,6 +104,8 @@ class InfectionRoot(DataRoot):
         return [int(p.name.split('_')[-1]) for p in self._root.iterdir() if p.is_dir()]
 
     def infections(self, location_id: int, draw_id: int):
+        """Hack around infectionator file layout to provide a consistent
+        interface."""
         data_type = str([m for m in self._root.glob(f"*_{location_id}")][0])
         return DatasetKey(
             root=self._root,
@@ -71,6 +117,7 @@ class InfectionRoot(DataRoot):
 
 
 class CovariateRoot(DataRoot):
+    """Data root representing prepped covariates."""
     metadata = MetadataType('metadata')
 
     air_pollution_pm_2_5 = DatasetType('air_pollution_pm_2_5', LEAF_TEMPLATES.COV_SCENARIO_TEMPLATE)
@@ -86,6 +133,7 @@ class CovariateRoot(DataRoot):
     mobility_info = DatasetType('mobility', LEAF_TEMPLATES.COV_INFO_TEMPLATE)
     vaccine_info = DatasetType('vaccine_coverage', LEAF_TEMPLATES.COV_INFO_TEMPLATE)
 
+    # Getters provide dynamic keys to support experimentation with custom covariates.
     def __getattr__(self, item) -> DatasetType:
         setattr(type(self), item, DatasetType(item, LEAF_TEMPLATES.COV_SCENARIO_TEMPLATE))
         return getattr(self, item)
@@ -95,6 +143,7 @@ class CovariateRoot(DataRoot):
 
 
 class RegressionRoot(DataRoot):
+    """Data root representing regression stage outputs."""
     metadata = MetadataType('metadata')
     specification = MetadataType('regression_specification')
     locations = MetadataType('locations')
@@ -107,6 +156,7 @@ class RegressionRoot(DataRoot):
 
 
 class ForecastRoot(DataRoot):
+    """Data root representing forecast stage outputs."""
     metadata = MetadataType('metadata')
     specification = MetadataType('forecast_specification')
     resampling_map = MetadataType('resampling_map')

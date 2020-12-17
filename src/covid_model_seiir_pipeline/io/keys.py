@@ -45,7 +45,7 @@ class DatasetKey(NamedTuple):
     `/root/prefix/data_type/leaf_name`.
 
     Parameters
-    ==========
+    ----------
     root
         The path to the parent directory in which this dataset lives or will
         live.
@@ -80,7 +80,7 @@ class MetadataKey(NamedTuple):
     a path-like representation would look like `/root/data_type`
 
     Parameters
-    ==========
+    ----------
     root
         The path to the parent directory in which this dataset lives or will
         live.
@@ -100,10 +100,11 @@ class MetadataKey(NamedTuple):
 class DatasetType:
     """Factory for DatasetKeys.
 
-    `DatasetTypes` are meant to be assigned as class variables to concrete
-    subclasses of `DataRoot` objects with an API intended to reflect the
-    internal hierarchy (e.g. intermediate directories) between the root of
-    an on disk data source and the leaf nodes where the actual data is stored.
+    :class:`DatasetType`s are meant to be assigned as class variables to
+    concrete subclasses of :class:`DataRoot` objects with an API intended to
+    reflect the internal hierarchy (e.g. intermediate directories) between the
+    root of an on disk data source and the leaf nodes where the actual data
+    is stored.
 
     They (ab)use the descriptor protocol a bit to provide a nice interface
     for resolving datasets into keys that can be written in multiple formats.
@@ -190,10 +191,10 @@ class DatasetType:
 class MetadataType:
     """Factory for MetadataKeys.
 
-    `MetadataTypes` are meant to be assigned as class variables to concrete
-    subclasses of `DataRoot` objects with an API structured around the
-    assumption that metadata files will be stored directly in the root
-    without nesting.
+    :class:`MetadataType`s are meant to be assigned as class variables to
+    concrete subclasses of :class:`DataRoot` objects with an API structured
+    around the assumption that metadata files will be stored directly in the
+    root without nesting.
 
     They (ab)use the descriptor protocol a bit to provide a nice interface
     for resolving metadata into keys that can be written in multiple formats.
