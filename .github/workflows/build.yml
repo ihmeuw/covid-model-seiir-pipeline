@@ -1,0 +1,32 @@
+name: build
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.7, 3.8]
+    defaults:
+      run:
+        shell: bash -l {0}
+    steps:
+      - uses: actions/checkout@v2
+      - uses: conda-incubator/setup-miniconda@v2
+        with:
+          activate-environment: test_env_python${{ matrix.python-version }}
+          channels: conda-forge
+          python-version: ${{ matrix.python-version }}
+      - name: Install dependencies python ${{ matrix.python-version }}
+        run: |
+          conda install -y -q -c conda-forge fortran-compiler h5py
+          git clone https://github.com/zhengp0/limetr.git
+          cd limetr && python check_requirements.py && pip install . && cd ..
+          git clone https://github.com/zhengp0/SLIME.git
+          cd SLIME && pip install . && cd ..
+          pip install .[test,docs]
+      - name: Test
+        run: |
+          pytest
+

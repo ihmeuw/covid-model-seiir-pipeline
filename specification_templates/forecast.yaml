@@ -1,10 +1,10 @@
 data:
-  regression_version: '2020_12_07.07'
-  covariate_version: '2020_12_01.05'
+  regression_version: '2020_12_15.07'
+  covariate_version: '2020_12_15.06'
   output_root: ''
 workflow:
   project: 'proj_covid'
-  queue: 'd.q'
+  queue: 'all.q'
   tasks:
     scaling:
       max_runtime_seconds: 5000

@@ -29,7 +29,7 @@ def prep_seir_parameters(betas: pd.DataFrame,
                          thetas: pd.Series,
                          scenario_data: ScenarioData):
     betas = betas.rename(columns={'beta_pred': 'beta'})
-    parameters = betas.merge(thetas, on='location_id').fillna(0)
+    parameters = betas.merge(thetas, on='location_id')
     if scenario_data.vaccinations is not None:
         parameters = parameters.merge(scenario_data.vaccinations, on=['location_id', 'date'], how='left').fillna(0)
     return parameters
@@ -158,13 +158,7 @@ def run_normal_ode_model_by_location(initial_condition: pd.DataFrame,
         loc_times = np.array((loc_date - loc_date.min()).dt.days)
         loc_parameters = loc_parameters.set_index('date')
 
-        # FIXME: Temporary hack so I don't have to muck with specifications.
-        runner_class = {
-            'RK45': _ODERunner,
-            'RK45_optimized': _ODERunnerOptimized
-        }[scenario_spec.solver]
-
-        ode_runner = runner_class(model_specs, scenario_spec, compartment_info, loc_parameters.columns.tolist())
+        ode_runner = _ODERunnerOptimized(model_specs, scenario_spec, compartment_info, loc_parameters.columns.tolist())
         forecasted_components = ode_runner.get_solution(init_cond, loc_times, loc_parameters.values)
         forecasted_components['date'] = loc_date.values
         forecasted_components['location_id'] = location_id

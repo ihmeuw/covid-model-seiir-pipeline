@@ -124,6 +124,7 @@ def compute_effective_r(components: pd.DataFrame,
     components = components.reset_index().set_index(['location_id', 'date'])
 
     beta, theta = components['beta'], components['theta']
+    theta = theta.fillna(0.)
     susceptible = components[[c for c in compartments if 'S' in c]].sum(axis=1)
     infected = components[[c for c in compartments if 'I' in c]].sum(axis=1)
     n = components[compartments].sum(axis=1).groupby('location_id').max()
