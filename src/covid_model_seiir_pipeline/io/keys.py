@@ -98,14 +98,58 @@ class MetadataKey(NamedTuple):
 
 
 class DatasetType:
-    """Factory for DatasetKeys."""
+    """Factory for DatasetKeys.
+
+    `DatasetTypes` are meant to be assigned as class variables to concrete
+    subclasses of `DataRoot` objects with an API intended to reflect the
+    internal hierarchy (e.g. intermediate directories) between the root of
+    an on disk data source and the leaf nodes where the actual data is stored.
+
+    They (ab)use the descriptor protocol a bit to provide a nice interface
+    for resolving datasets into keys that can be written in multiple formats.
+
+    Parameters
+    ----------
+    name
+        The logical name of the data. This will resolve to something like
+        a terminal directory in which files are stored or an actual file
+        in which multiple tables are stored.
+    leaf_template
+        A string template parameterized by the data layout (e.g. draw or
+        or measure). When keys are requested, keyword arguments will be
+        used to resolve the template into a concrete leaf node.
+    prefix_template
+        A string template parameterized by any high order organization
+        of the data (e.g. scenario). When keys are requested, keyword
+        arguments will be used to resolve the template into an interior
+        directory structure between the root of the data and the
+        name and leaf combination at its fringes.
+
+    Example
+    -------
+
+    .. code-block::
+
+        class MyDataRoot(DataRoot):
+            # Generates keys representing paths like /root/apples/draw
+            apples = DatasetType('apples', LEAF_TEMPLATES.DRAW_TEMPLATE)
+            # Generates keys representing paths like /root/bananas/scenario/measure
+            bananas = DatasetType('bananas', LEAF_TEMPLATE.DRAW_TEMPLATE, PREFIX_TEMPLATE.SCENARIO_TEMPLATE)
+
+        mdr = MyDataRoot('/path/to/data/root')
+        # Keys to be used with the I/O interface.
+        apple_draw_1_key = mdr.apples(draw_id=1)
+        banana_split_scenario_draw_12_key = mdr.bananas(draw_id=12, scenario='split')
+
+    """
 
     def __init__(self,
                  name: str,
                  leaf_template: str,
                  prefix_template: str = None,
-                 root: Path = None,
-                 disk_format: str = None):
+                 *,
+                 _root: Path = None,
+                 _disk_format: str = None):
         self.name = name
         if prefix_template is not None and prefix_template not in PREFIX_TEMPLATES:
             raise ValueError(f'Invalid prefix_template specification: {prefix_template} for DatasetType {self.name}. '
@@ -116,15 +160,16 @@ class DatasetType:
                              f'leaf_template must be one of {LEAF_TEMPLATES}.')
         self.leaf_template = leaf_template
 
-        self.root = root
+        self.root = _root
         # Disk format validated upstream
-        self.disk_format = disk_format
+        self.disk_format = _disk_format
 
     def __get__(self, instance: 'DataRoot', owner=None) -> 'DatasetType':
-        return type(self)(self.name, self.leaf_template, self.prefix_template, instance._root, instance._data_format)
+        return type(self)(self.name, self.leaf_template, self.prefix_template,
+                          _root=instance._root, _disk_format=instance._data_format)
 
     def __call__(self, *args, **key_kwargs) -> DatasetKey:
-        assert self.root is not None, f'DatasetType must be bound to a DataRoot object to be called.'
+        assert self.root is not None, 'DatasetType must be bound to a DataRoot object to be called.'
         assert self.disk_format is not None, 'DatasetType must be bound to a DataRoot object to be called.'
 
         if args:
@@ -143,6 +188,40 @@ class DatasetType:
 
 
 class MetadataType:
+    """Factory for MetadataKeys.
+
+    `MetadataTypes` are meant to be assigned as class variables to concrete
+    subclasses of `DataRoot` objects with an API structured around the
+    assumption that metadata files will be stored directly in the root
+    without nesting.
+
+    They (ab)use the descriptor protocol a bit to provide a nice interface
+    for resolving metadata into keys that can be written in multiple formats.
+
+    Parameters
+    ----------
+    name
+        The logical name of the metadata. This will resolve to a file in
+        a reasonable configuration format (yaml, json, etc.).
+
+
+    Example
+    -------
+
+    .. code-block::
+
+        class MyDataRoot(DataRoot):
+            # Generates a key representing a path like /root/model_specification
+            model_specification = MetadataType('model_specification')
+            # Generates a key representing a path like /root/metadata
+            process_metadata = MetadataType('metadata')
+
+        mdr = MyDataRoot('/path/to/data/root')
+        # Keys to be used with the I/O interface.
+        model_specification_key = mdr.model_specification()
+        process_metadata_key = mdr.process_metadata()
+
+    """
     def __init__(self, name: str,
                  root: Path = None,
                  disk_format: str = None):

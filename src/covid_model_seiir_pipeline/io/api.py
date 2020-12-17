@@ -40,7 +40,3 @@ def touch(data_root: DataRoot, **path_args):
     if data_root._data_format not in STRATEGIES:
         raise
 
-
-
-
-    pass
