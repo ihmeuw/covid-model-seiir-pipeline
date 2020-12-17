@@ -2,7 +2,7 @@ from contextlib import contextmanager
 import io
 import os
 from pathlib import Path
-from typing import Any, List, Tuple
+from typing import Any, Tuple
 import zipfile
 
 from covid_shared.shell_tools import mkdir
