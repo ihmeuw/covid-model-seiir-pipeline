@@ -223,6 +223,9 @@ class ForecastDataInterface:
         )
         return scenario_data
 
+    def save_specification(self, specification: ForecastSpecification):
+        io.dump(specification.to_dict(), self.forecast_root.specification())
+
     def save_raw_covariates(self, covariates: pd.DataFrame, scenario: str, draw_id: int):
         io.dump(covariates, self.forecast_root.raw_covariates(scenario=scenario, draw_id=draw_id))
 
