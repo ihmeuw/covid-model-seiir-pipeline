@@ -134,11 +134,13 @@ class CovariateRoot(DataRoot):
     vaccine_info = DatasetType('vaccine_coverage', LEAF_TEMPLATES.COV_INFO_TEMPLATE)
 
     # Getters provide dynamic keys to support experimentation with custom covariates.
-    def __getattr__(self, item) -> DatasetType:
+    def __getattr__(self, item: str) -> Union[None, DatasetType]:
+        if item.startswith('__'):
+            return
         setattr(type(self), item, DatasetType(item, LEAF_TEMPLATES.COV_SCENARIO_TEMPLATE))
         return getattr(self, item)
 
-    def __getitem__(self, item) -> DatasetType:
+    def __getitem__(self, item: str) -> DatasetType:
         return getattr(self, item)
 
 
