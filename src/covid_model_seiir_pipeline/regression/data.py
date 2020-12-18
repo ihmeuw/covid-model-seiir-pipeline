@@ -147,7 +147,7 @@ class RegressionDataInterface:
         io.dump(location_ids, self.regression_root.locations())
 
     def save_specification(self, specification: RegressionSpecification):
-        io.dump(specification.to_dict(), self.regression_root.specification)
+        io.dump(specification.to_dict(), self.regression_root.specification())
 
     def save_beta_param_file(self, df: pd.DataFrame, draw_id: int) -> None:
         io.dump(df, self.regression_root.parameters(draw_id=draw_id))
