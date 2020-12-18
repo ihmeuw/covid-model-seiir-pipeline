@@ -1,10 +1,9 @@
 from dataclasses import dataclass
-from typing import Callable, Dict, List, Tuple, Type
+from typing import Callable, Dict, List, Tuple
 import itertools
 
 import numba
 import numpy as np
-from odeopt.ode import RK4, ODESolver
 import pandas as pd
 
 from covid_model_seiir_pipeline import static_vars
@@ -158,7 +157,7 @@ def run_normal_ode_model_by_location(initial_condition: pd.DataFrame,
         loc_times = np.array((loc_date - loc_date.min()).dt.days)
         loc_parameters = loc_parameters.set_index('date')
 
-        ode_runner = _ODERunnerOptimized(model_specs, scenario_spec, compartment_info, loc_parameters.columns.tolist())
+        ode_runner = _ODERunner(model_specs, scenario_spec, compartment_info, loc_parameters.columns.tolist())
         forecasted_components = ode_runner.get_solution(init_cond, loc_times, loc_parameters.values)
         forecasted_components['date'] = loc_date.values
         forecasted_components['location_id'] = location_id
@@ -186,236 +185,6 @@ class _SeiirModelSpecs:
         assert self.gamma1 >= 0
         assert self.gamma2 >= 0
         assert self.N > 0
-
-
-class ODESystem:
-
-    def __init__(self,
-                 constants: _SeiirModelSpecs,
-                 sub_groups: List[str],
-                 compartments: List[str],
-                 parameters: List[str]):
-        self.alpha = constants.alpha
-        self.sigma = constants.sigma
-        self.gamma1 = constants.gamma1
-        self.gamma2 = constants.gamma2
-        self.N = constants.N
-        self.system_params = constants.system_params
-
-        self.sub_groups = sub_groups if sub_groups else ['']
-        self.compartments = compartments
-        self.parameters_map = {p: i for i, p in enumerate(parameters)}
-
-    def system(self, t: float, y: np.ndarray, p: np.ndarray) -> np.ndarray:
-        raise NotImplementedError
-
-
-class _SEIIR(ODESystem):
-
-    def _group_system(self, t: float, y: np.ndarray, infectious: float,
-                      beta: float, theta_plus: float, theta_minus: float):
-        s, e, i1, i2, r = y
-        new_e = beta * (s / self.N) * (infectious) ** self.alpha
-
-        ds = -new_e - theta_plus * s
-        de = new_e + theta_plus * s - self.sigma * e - theta_minus * e
-        di1 = self.sigma * e - self.gamma1 * i1
-        di2 = self.gamma1 * i1 - self.gamma2 * i2
-        dr = self.gamma2 * i2 + theta_minus * e
-
-        return np.array([ds, de, di1, di2, dr])
-
-    def system(self, t: float, y: np.ndarray, p: np.ndarray) -> np.ndarray:
-        beta, theta = p[self.parameters_map['beta']], p[self.parameters_map['theta']]
-        theta_plus = max(theta, 0.)
-        theta_minus = -min(theta, 0.)
-
-        infectious = 0
-        for compartment, people_in_compartment in zip(self.compartments, y):
-            if 'I1' in compartment or 'I2' in compartment:
-                infectious += people_in_compartment
-
-        y = np.split(y.copy(), len(self.sub_groups))
-        dy = [self._group_system(t, y_i, infectious, beta, theta_plus, theta_minus) for y_i in y]
-        dy = np.hstack(dy)
-
-        return dy
-
-
-class _VaccineSEIIR(ODESystem):
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.wasted_vaccines = []
-
-    def _group_system(self, t: float, y: np.array, infectious: float,
-                      beta: float, theta_plus: float, theta_minus: float,
-                      v_non_efficacious: float, v_efficacious: float, p_immune: float) -> np.array:
-        # Unpack the compartments
-        unvaccinated, unprotected, protected, m = y[:5], y[5:10], y[10:15], y[15]
-        s, e, i1, i2, r = unvaccinated
-        s_u, e_u, i1_u, i2_u, r_u = unprotected
-        s_p, e_p, i1_p, i2_p, r_p = protected
-
-        n = sum(unvaccinated)
-
-        v_total = v_non_efficacious + v_efficacious
-        # Effective vaccines are efficacious vaccines delivered to
-        # susceptible, unvaccinated individuals.
-        v_effective = s/n * v_efficacious
-        # Some effective vaccines confer immunity, others just protect
-        # from death after infection.
-        v_immune = p_immune * v_effective
-        v_protected = v_effective - v_immune
-
-        # vaccinated and unprotected come from all bins.
-        # Get count coming from S.
-        v_unprotected_s = s/n * v_non_efficacious
-
-        # Expected vaccines coming out of S.
-        s_vaccines = v_unprotected_s + v_protected + v_immune
-        # Proportion of S vaccines going to each bin.
-        if s_vaccines:
-            rho_unprotected = v_unprotected_s / s_vaccines
-            rho_protected = v_protected / s_vaccines
-            rho_immune = v_immune / s_vaccines
-        else:
-            rho_unprotected, rho_protected, rho_immune = 0, 0, 0
-        # Actual count of vaccines coming out of S.
-        s_vaccines = min(1 - beta * infectious ** self.alpha / self.N - theta_plus, s_vaccines / s) * s
-
-        # Expected vaccines coming out of E.
-        e_vaccines = e/n * v_total
-        # Actual vaccines coming out of E.
-        e_vaccines = min(1 - self.sigma - theta_minus, e_vaccines / e) * e
-
-        # Expected vaccines coming out of I1.
-        i1_vaccines = i1/n * v_total
-        # Actual vaccines coming out of I1.
-        i1_vaccines = min(1 - self.gamma1, i1_vaccines / i1) * i1
-
-        # Expected vaccines coming out of I2.
-        i2_vaccines = i2 / n * v_total
-        # Actual vaccines coming out of I2.
-        i2_vaccines = min(1 - self.gamma2, i2_vaccines / i2) * i2
-
-        # Expected vaccines coming out of R.
-        r_vaccines = r / n * v_total
-        # Actual vaccines coming out of R
-        r_vaccines = min(1, r_vaccines / r) * r
-
-        # Some vaccine accounting
-        expected_vaccines = v_total
-        actual_vaccines = s_vaccines + e_vaccines + i1_vaccines + i2_vaccines + r_vaccines
-        self.wasted_vaccines.append(expected_vaccines - actual_vaccines)
-
-        # Unvaccinated equations.
-        # Normal Epi + vaccines causing exits from all compartments.
-        new_e = beta * s * infectious**self.alpha / self.N + theta_plus * s
-        ds = -new_e - s_vaccines
-        de = new_e - self.sigma*e - theta_minus*e - e_vaccines
-        di1 = self.sigma*e - self.gamma1*i1 - i1_vaccines
-        di2 = self.gamma1*i1 - self.gamma2*i2 - i2_vaccines
-        dr = self.gamma2*i2 + theta_minus*e - r_vaccines
-
-        # Vaccinated and unprotected equations
-        # Normal epi + vaccines causing entrances to all compartments from
-        # their unvaccinated counterparts.
-        new_e_u = beta * s_u * infectious**self.alpha / self.N + theta_plus * s_u
-        ds_u = -new_e_u + rho_unprotected*s_vaccines
-        de_u = new_e_u - self.sigma*e_u - theta_minus*e_u + e_vaccines
-        di1_u = self.sigma*e_u - self.gamma1*i1_u + i1_vaccines
-        di2_u = self.gamma1*i1_u - self.gamma2*i2_u + i2_vaccines
-        dr_u = self.gamma2*i2_u + theta_minus*e_u + r_vaccines
-
-        # Vaccinated and protected equations
-        # Normal epi + protective vaccines taking people from S and putting
-        # them in S_p
-        new_e_p = beta * s_p * infectious ** self.alpha / self.N + theta_plus * s_p
-        ds_p = -new_e_p + rho_protected*s_vaccines
-        de_p = new_e_p - self.sigma * e_p - theta_minus * e_p
-        di1_p = self.sigma * e_p - self.gamma1 * i1_p
-        di2_p = self.gamma1 * i1_p - self.gamma2 * i2_p
-        dr_p = self.gamma2 * i2_p + theta_minus * e_p
-
-        # Vaccinated and immune
-        dm = rho_immune*s_vaccines
-
-        return np.array([
-            ds, de, di1, di2, dr,
-            ds_u, de_u, di1_u, di2_u, dr_u,
-            ds_p, de_p, di1_p, di2_p, dr_p,
-            dm
-        ])
-
-    def system(self, t: float, y: np.ndarray, p: np.ndarray) -> np.ndarray:
-        """ODE System."""
-        beta, theta = p[self.parameters_map['beta']], p[self.parameters_map['theta']]
-        theta_plus = max(theta, 0.)
-        theta_minus = -min(theta, 0.)
-        p_immune = self.system_params.get('proportion_immune', 0.5)
-
-        infectious = 0
-        for compartment, people_in_compartment in zip(self.compartments, y):
-            if 'I1' in compartment or 'I2' in compartment:
-                infectious += people_in_compartment
-
-        y = np.split(y.copy(), len(self.sub_groups))
-        dy = []
-        for group, y_group in zip(self.sub_groups, y):
-            non_efficacious = p[self.parameters_map[f'unprotected_{group}']]
-            efficacious = p[self.parameters_map[f'effectively_vaccinated_{group}']]
-            dy.append(
-                self._group_system(t, y_group, infectious,
-                                   beta, theta_plus, theta_minus,
-                                   non_efficacious, efficacious, p_immune)
-            )
-
-        dy = np.hstack(dy)
-        return dy
-
-
-class _ODERunner:
-
-    systems: Dict[str, Type[ODESystem]] = {
-        'normal': _SEIIR,
-        'vaccine': _VaccineSEIIR,
-    }
-    solvers: Dict[str, Type[ODESolver]] = {
-        'RK45': RK4,
-    }
-
-    def __init__(self,
-                 model_specs: _SeiirModelSpecs,
-                 scenario_spec: ScenarioSpecification,
-                 compartment_info: CompartmentInfo,
-                 parameters: List[str]):
-        self.model = self.systems[scenario_spec.system](
-            model_specs,
-            compartment_info.group_suffixes,
-            compartment_info.compartments,
-            parameters
-        )
-        self.solver = self.solvers[scenario_spec.solver](self.model.system, model_specs.delta)
-
-    def get_solution(self, initial_condition, times, parameters):
-        solution = self.solver.solve(
-            t=times,
-            init_cond=initial_condition,
-            t_params=times,
-            params=parameters.T,
-        )
-        result_array = np.concatenate([
-            solution,
-            parameters.T,
-            times.reshape((1, -1)),
-        ], axis=0).T
-        result = pd.DataFrame(
-            data=result_array,
-            columns=self.model.compartments + list(self.model.parameters_map) + ['t'],
-        )
-
-        return result
 
 
 def _beta_shift(beta_hat: pd.DataFrame,
@@ -671,7 +440,7 @@ def _rk45(system,
     return y_solve
 
 
-class _ODERunnerOptimized:
+class _ODERunner:
     systems: Dict[str, Callable] = {
         'normal': _seiir_system,
         'vaccine': _vaccine_system,
