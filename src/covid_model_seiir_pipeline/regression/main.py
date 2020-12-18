@@ -28,9 +28,8 @@ def do_beta_regression(app_metadata: cli_tools.Metadata,
 
     # build directory structure and save metadata
     data_interface.make_dirs()
-    data_interface.dump_location_ids(location_ids)
-    # Fixme: Inconsistent data writing interfaces
-    regression_specification.dump(data_interface.regression_paths.regression_specification)
+    data_interface.save_location_ids(location_ids)
+    data_interface.save_specification(regression_specification)
 
     # build workflow and launch
     if not preprocess_only:
