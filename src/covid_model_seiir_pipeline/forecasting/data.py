@@ -226,22 +226,12 @@ class ForecastDataInterface:
     def save_raw_covariates(self, covariates: pd.DataFrame, scenario: str, draw_id: int):
         io.dump(covariates, self.forecast_root.raw_covariates(scenario=scenario, draw_id=draw_id))
 
-    def load_raw_covariates(self, scenario: str, draw_id: int):
-        covariates = io.load(self.forecast_root.raw_covariates(scenario=scenario, draw_id=draw_id))
-        covariates['date'] = pd.to_datetime(covariates['date'])
-        return covariates
-
     def load_beta_params(self, draw_id: int) -> Dict[str, float]:
         df = io.load(self.regression_root.parameters(draw_id=draw_id))
         return df.set_index('params')['values'].to_dict()
 
     def save_components(self, forecasts: pd.DataFrame, scenario: str, draw_id: int):
         io.dump(forecasts, self.forecast_root.component_draws(scenario=scenario, draw_id=draw_id))
-
-    def load_components(self, scenario: str, draw_id: int) -> pd.DataFrame:
-        components = io.load(self.forecast_root.component_draws(scenario=scenario, draw_id=draw_id))
-        components['date'] = pd.to_datetime(components['date'])
-        return components.set_index(['location_id', 'date'])
 
     def save_beta_scales(self, scales: pd.DataFrame, scenario: str, draw_id: int):
         io.dump(scales, self.forecast_root.beta_scaling(scenario=scenario, draw_id=draw_id))
@@ -252,23 +242,10 @@ class ForecastDataInterface:
     def save_raw_outputs(self, raw_outputs: pd.DataFrame, scenario: str, draw_id: int):
         io.dump(raw_outputs, self.forecast_root.raw_outputs(scenario=scenario, draw_id=draw_id))
 
-    def load_raw_outputs(self, scenario: str, draw_id: int) -> pd.DataFrame:
-        return io.load(self.forecast_root.raw_outputs(scenario=scenario, draw_id=draw_id))
-
     def save_resampling_map(self, resampling_map):
         io.dump(resampling_map, self.forecast_root.resampling_map())
 
-    def load_resampling_map(self):
-        return io.load(self.forecast_root.resampling_map())
 
-    def save_output_draws(self, output_draws: pd.DataFrame, scenario: str, measure: str):
-        io.dump(output_draws, self.forecast_root.output_draws(scenario=scenario, measure=measure))
-
-    def save_output_summaries(self, output_summaries: pd.DataFrame, scenario: str, measure: str):
-        io.dump(output_summaries, self.forecast_root.output_summaries(scenario=scenario, measure=measure))
-
-    def save_output_miscellaneous(self, output_miscellaneous: pd.DataFrame, scenario: str, measure: str):
-        io.dump(output_miscellaneous, self.forecast_root.output_miscellaneous(scenario=scenario, measure=measure))
 
 
 @dataclass

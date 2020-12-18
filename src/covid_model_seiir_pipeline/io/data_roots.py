@@ -166,9 +166,18 @@ class ForecastRoot(DataRoot):
     raw_covariates = DatasetType('raw_covariates', LEAF_TEMPLATES.DRAW_TEMPLATE, PREFIX_TEMPLATES.SCENARIO_TEMPLATE)
     raw_outputs = DatasetType('raw_outputs', LEAF_TEMPLATES.DRAW_TEMPLATE, PREFIX_TEMPLATES.SCENARIO_TEMPLATE)
 
-    # TODO: Move to postprocessing root
-    output_draws = DatasetType('output_draws', LEAF_TEMPLATES.MEASURE_TEMPLATE, PREFIX_TEMPLATES.SCENARIO_TEMPLATE)
+
+class PostprocessingRoot(DataRoot):
+    """Data root representing postprocessing stage outputs."""
+    metadata = MetadataType('metadata')
+    specification = MetadataType('postprocessing_specification')
+
+    output_draws = DatasetType('output_draws',
+                               LEAF_TEMPLATES.MEASURE_TEMPLATE,
+                               PREFIX_TEMPLATES.SCENARIO_TEMPLATE)
     output_summaries = DatasetType('output_summaries',
-                                   LEAF_TEMPLATES.MEASURE_TEMPLATE, PREFIX_TEMPLATES.SCENARIO_TEMPLATE)
+                                   LEAF_TEMPLATES.MEASURE_TEMPLATE,
+                                   PREFIX_TEMPLATES.SCENARIO_TEMPLATE)
     output_miscellaneous = DatasetType('output_miscellaneous',
-                                       LEAF_TEMPLATES.MEASURE_TEMPLATE, PREFIX_TEMPLATES.SCENARIO_TEMPLATE)
+                                       LEAF_TEMPLATES.MEASURE_TEMPLATE,
+                                       PREFIX_TEMPLATES.SCENARIO_TEMPLATE)

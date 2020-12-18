@@ -9,4 +9,5 @@ from .data_roots import (
     CovariateRoot,
     RegressionRoot,
     ForecastRoot,
+    PostprocessingRoot
 )
