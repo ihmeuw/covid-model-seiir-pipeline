@@ -19,8 +19,7 @@ def do_beta_forecast(app_metadata: cli_tools.Metadata,
     covariates = data_interface.check_covariates(forecast_specification.scenarios)
 
     data_interface.make_dirs()
-    # Fixme: Inconsistent data writing interfaces
-    forecast_specification.dump(data_interface.forecast_paths.forecast_specification)
+    data_interface.save_specification(forecast_specification)
 
     if not preprocess_only:
         forecast_wf = ForecastWorkflow(forecast_specification.data.output_root,
