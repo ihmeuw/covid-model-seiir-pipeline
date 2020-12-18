@@ -164,6 +164,58 @@ def forecast(run_metadata,
 
 @seiir.command()
 @cli_tools.pass_run_metadata()
+@click.argument('postprocessing_specification')
+@click.option('--forecast-version',
+              type=click.Path(file_okay=False),
+              help="Which version of forecasts to postprocess.")
+@click.option('--preprocess-only',
+              is_flag=True,
+              help="Only make the directory and set up the metadata. "
+                   "Useful for setting up output directories for testing "
+                   "tasks individually.")
+@cli_tools.add_output_options(paths.SEIR_FINAL_OUTPUTS)
+@cli_tools.add_verbose_and_with_debugger
+def postprocess(run_metadata,
+                postprocessing_specification,
+                forecast_version,
+                preprocess_only,
+                output_root, mark_best, production_tag,
+                verbose, with_debugger):
+    cli_tools.configure_logging_to_terminal(verbose)
+
+    postprocessing_spec = PostprocessingSpecification.from_path(postprocessing_specification)
+
+    forecast_root = utilities.get_input_root(forecast_version,
+                                             postprocessing_spec.data.forecast_version,
+                                             paths.SEIR_FORECAST_OUTPUTS)
+    output_root = utilities.get_output_root(output_root,
+                                            postprocessing_spec.data.output_root)
+    cli_tools.setup_directory_structure(output_root, with_production=True)
+    run_directory = cli_tools.make_run_directory(output_root)
+
+    postprocessing_spec.data.forecast_version = str(forecast_root.resolve())
+    postprocessing_spec.data.output_root = str(run_directory)
+
+    run_metadata.update_from_path('forecast_metadata', forecast_root / paths.METADATA_FILE_NAME)
+    run_metadata['output_path'] = str(run_directory)
+    run_metadata['postprocessing_specification'] = postprocessing_spec.to_dict()
+
+    cli_tools.configure_logging_to_files(run_directory)
+    main = cli_tools.monitor_application(do_postprocessing,
+                                         logger, with_debugger)
+    app_metadata, _ = main(postprocessing_spec, preprocess_only)
+
+    run_metadata['app_metadata'] = app_metadata.to_dict()
+    run_metadata.dump(run_directory / 'metadata.yaml')
+
+    cli_tools.make_links(app_metadata, run_directory, mark_best, production_tag)
+
+    logger.info('**Done**')
+
+
+
+@seiir.command()
+@cli_tools.pass_run_metadata()
 @click.argument('regression_specification',
                 type=click.Path(exists=True, dir_okay=False))
 @click.argument('forecast_specification',
