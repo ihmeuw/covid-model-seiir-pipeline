@@ -10,7 +10,7 @@ from covid_model_seiir_pipeline.forecasting.workflow import ForecastWorkflow
 def do_beta_forecast(app_metadata: cli_tools.Metadata,
                      forecast_specification: ForecastSpecification,
                      preprocess_only: bool):
-    logger.debug('Starting beta forecast.')
+    logger.info(f'Starting beta forecast for version {forecast_specification.data.output_root}.')
 
     data_interface = ForecastDataInterface.from_specification(forecast_specification)
 
