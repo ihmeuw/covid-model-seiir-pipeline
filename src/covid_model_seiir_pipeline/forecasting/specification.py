@@ -2,8 +2,6 @@ from dataclasses import dataclass, field
 import itertools
 from typing import Dict, NamedTuple, Tuple, Union
 
-import pandas as pd
-
 from covid_model_seiir_pipeline.utilities import Specification, asdict
 from covid_model_seiir_pipeline.workflow_tools.specification import TaskSpecification, WorkflowSpecification
 

@@ -189,10 +189,13 @@ def run_beta_forecast(draw_id: int, forecast_version: str, scenario_name: str, *
                                                                 min_wait, last_reimposition_end_date)
 
     logger.info('Writing outputs.')
-    components = components.reset_index()
+    ode_param_cols = components.columns.difference(compartment_info.compartments)
+    ode_params = components[ode_param_cols].reset_index()
+    components = components[compartment_info.compartments].reset_index()
     covariates = covariates.reset_index()
     outputs = pd.concat([infections, deaths, r_effective], axis=1).reset_index()
 
+    data_interface.save_ode_params(ode_params, scenario_name, draw_id)
     data_interface.save_components(components, scenario_name, draw_id)
     data_interface.save_raw_covariates(covariates, scenario_name, draw_id)
     data_interface.save_raw_outputs(outputs, scenario_name, draw_id)

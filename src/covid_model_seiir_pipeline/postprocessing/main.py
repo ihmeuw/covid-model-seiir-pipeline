@@ -1,25 +1,38 @@
+from covid_shared import cli_tools
+from jobmon.client.swarm.workflow.workflow import WorkflowAlreadyComplete
+from loguru import logger
 
+from covid_model_seiir_pipeline.postprocessing.data import PostprocessingDataInterface
+from covid_model_seiir_pipeline.postprocessing.model import final_outputs
+from covid_model_seiir_pipeline.postprocessing.specification import PostprocessingSpecification
+from covid_model_seiir_pipeline.postprocessing.workflow import PostprocessingWorkflow
 
 
 def do_postprocessing(app_metadata: cli_tools.Metadata,
                       postprocessing_specification: PostprocessingSpecification,
                       preprocess_only: bool):
-    logger.debug('Starting postprocessing')
-    forecast_specification = ForecastSpecification.from_path(
-        Path(postprocessing_specification.data.forecast_version) / 'forecast_specification.yaml'
-    )
-    data_interface = ForecastDataInterface.from_specification(forecast_specification, postprocessing_specification)
+    logger.info(f'Starting postprocessing for version {postprocessing_specification.data.output_root}.')
 
-    # Check scenario covariates the same as regression covariates and that
-    # covariate data versions match.
-    covariates = data_interface.check_covariates(forecast_specification.scenarios)
+    data_interface = PostprocessingDataInterface.from_specification(postprocessing_specification)
 
-    data_interface.make_dirs()
-    postprocessing_specification.dump(data_interface.postprocessing_paths.postprocessing_specification)
+    data_interface.make_dirs(scenario=postprocessing_specification.data.scenarios)
+    data_interface.save_specification(postprocessing_specification)
 
     if not preprocess_only:
-        workflow = PostprocessingWorkflow(postprocessing_specification.data.output_root)
-        workflow.attach_tasks(forecast_specification.scenarios, covariates)
+        workflow = PostprocessingWorkflow(postprocessing_specification.data.output_root,
+                                          postprocessing_specification.workflow)
+        known_covariates = list(final_outputs.COVARIATES)
+        modeled_covariates = set(data_interface.get_covariate_names(postprocessing_specification.data.scenarios))
+        unknown_covariates = modeled_covariates.difference(known_covariates)
+        if unknown_covariates:
+            logger.warning("Some covariates that were modeled have no postprocessing configuration. "
+                           "Postprocessing will produce no outputs for these covariates. "
+                           f"Unknown covariates: {list(unknown_covariates)}")
+
+        measures = (list(final_outputs.MEASURES)
+                    + list(final_outputs.MISCELLANEOUS)
+                    + list(modeled_covariates.intersection(known_covariates)))
+        workflow.attach_tasks(measures, postprocessing_specification.data.scenarios)
 
         try:
             workflow.run()
