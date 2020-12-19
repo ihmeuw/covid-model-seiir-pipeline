@@ -167,7 +167,7 @@ class ForecastDataInterface:
         covariate_df = self._format_covariate_data(covariate_df, location_ids, with_observed)
         covariate_df = (covariate_df
                         .rename(columns={f'{covariate}_{covariate_version}': covariate})
-                        .filter(columns=[covariate]))
+                        .loc[:, [covariate]])
         return covariate_df
 
     def load_covariates(self, scenario: ScenarioSpecification, location_ids: List[int]) -> pd.DataFrame:
