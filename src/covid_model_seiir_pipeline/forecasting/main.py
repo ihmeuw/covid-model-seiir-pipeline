@@ -16,7 +16,7 @@ def do_beta_forecast(app_metadata: cli_tools.Metadata,
 
     # Check scenario covariates the same as regression covariates and that
     # covariate data versions match.
-    covariates = data_interface.check_covariates(forecast_specification.scenarios)
+    data_interface.check_covariates(forecast_specification.scenarios)
 
     data_interface.make_dirs()
     data_interface.save_specification(forecast_specification)
@@ -27,8 +27,7 @@ def do_beta_forecast(app_metadata: cli_tools.Metadata,
         n_draws = data_interface.get_n_draws()
 
         forecast_wf.attach_tasks(n_draws=n_draws,
-                                 scenarios=forecast_specification.scenarios,
-                                 covariates=covariates)
+                                 scenarios=forecast_specification.scenarios)
         try:
             forecast_wf.run()
         except WorkflowAlreadyComplete:

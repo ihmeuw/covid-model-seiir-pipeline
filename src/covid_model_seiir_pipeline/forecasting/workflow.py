@@ -52,7 +52,7 @@ class ForecastWorkflow(WorkflowTemplate):
         FORECAST_JOBS.resample: ResampleMapTaskTemplate,
     }
 
-    def attach_tasks(self, n_draws: int, scenarios: Dict[str, ScenarioSpecification], covariates: List[str]):
+    def attach_tasks(self, n_draws: int, scenarios: Dict[str, ScenarioSpecification]):
         scaling_template = self.task_templates[FORECAST_JOBS.scaling]
         resample_template = self.task_templates[FORECAST_JOBS.resample]
 

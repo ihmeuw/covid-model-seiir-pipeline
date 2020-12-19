@@ -57,7 +57,7 @@ class ForecastDataInterface:
                                name='theta')
         return thetas
 
-    def check_covariates(self, scenarios: Dict[str, ScenarioSpecification]) -> List[str]:
+    def check_covariates(self, scenarios: Dict[str, ScenarioSpecification]) -> None:
         regression_spec = io.load(self.regression_root.specification())
         # Bit of a hack.
         forecast_version = str(self.covariate_root._root)
@@ -84,7 +84,6 @@ class ForecastDataInterface:
             for covariate, covariate_version in scenario.covariates.items():
                 if not io.exists(self.covariate_root[covariate](covariate_scenario=covariate_version)):
                     raise FileNotFoundError(f'No {covariate_version} file found for covariate {covariate}.')
-        return list(regression_covariates)
 
     def get_infectionator_metadata(self):
         regression_spec = io.load(self.regression_root.specification())

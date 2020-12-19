@@ -2,6 +2,8 @@ from dataclasses import dataclass, field
 import itertools
 from typing import Dict, NamedTuple, Tuple, Union
 
+import pandas as pd
+
 from covid_model_seiir_pipeline.utilities import Specification, asdict
 from covid_model_seiir_pipeline.workflow_tools.specification import TaskSpecification, WorkflowSpecification
 
@@ -139,9 +141,15 @@ class ScenarioSpecification:
 
 
 @dataclass
-class PostprocessingSpecification:
+class ResamplingSpecification:
 
-    resampling: Dict = field(default_factory=dict)
+    reference_scenario: str = field(default='worse')
+    reference_date: str = field(default='2020-12-31')
+    lower_quantile: float = field(default=0.025)
+    upper_quantile: float = field(default=0.975)
+
+    def __post_init__(self):
+        self.reference_date = pd.to_datetime(self.reference_date)
 
     def to_dict(self) -> Dict:
         return asdict(self)
@@ -152,11 +160,11 @@ class ForecastSpecification(Specification):
 
     def __init__(self, data: ForecastData,
                  workflow: ForecastWorkflowSpecification,
-                 postprocessing: PostprocessingSpecification,
+                 resampling: ResamplingSpecification,
                  *scenarios: ScenarioSpecification):
         self._data = data
         self._workflow = workflow
-        self._postprocessing = postprocessing
+        self._resampling = resampling
 
         self._scenarios = {s.name: s for s in scenarios}
 
@@ -165,14 +173,14 @@ class ForecastSpecification(Specification):
         """Construct forecast specification args from a dict."""
         data = ForecastData(**forecast_spec_dict.get('data', {}))
         workflow = ForecastWorkflowSpecification(**forecast_spec_dict.get('workflow', {}))
-        postprocessing = PostprocessingSpecification(**forecast_spec_dict.get('postprocessing', {}))
+        resampling = ResamplingSpecification(**forecast_spec_dict.get('resampling', {}))
         scenario_dicts = forecast_spec_dict.get('scenarios', {})
         scenarios = []
         for name, scenario_spec in scenario_dicts.items():
             scenarios.append(ScenarioSpecification(name, **scenario_spec))
         if not scenarios:
             scenarios.append(ScenarioSpecification())
-        return tuple(itertools.chain([data, workflow, postprocessing], scenarios))
+        return tuple(itertools.chain([data, workflow, resampling], scenarios))
 
     @property
     def data(self) -> ForecastData:
@@ -185,8 +193,8 @@ class ForecastSpecification(Specification):
         return self._workflow
 
     @property
-    def postprocessing(self) -> PostprocessingSpecification:
-        return self._postprocessing
+    def resampling(self) -> ResamplingSpecification:
+        return self._resampling
 
     @property
     def scenarios(self) -> Dict[str, ScenarioSpecification]:
@@ -198,6 +206,6 @@ class ForecastSpecification(Specification):
         return {
             'data': self.data.to_dict(),
             'workflow': self.workflow.to_dict(),
-            'postprocessing': self.postprocessing.to_dict(),
+            'resampling': self.resampling.to_dict(),
             'scenarios': {k: v.to_dict() for k, v in self._scenarios.items()}
         }
