@@ -203,9 +203,9 @@ def load_full_data(data_interface: PostprocessingDataInterface) -> pd.DataFrame:
 
 def build_version_map(data_interface: PostprocessingDataInterface) -> pd.Series:
     version_map = {}
-    version_map['forecast_version'] = data_interface.forecast_paths.root_dir.name
-    version_map['regression_version'] = data_interface.regression_paths.root_dir.name
-    version_map['covariate_version'] = data_interface.covariate_paths.root_dir.name
+    version_map['forecast_version'] = Path(data_interface.forecast_root._root).name
+    version_map['regression_version'] = Path(data_interface.regression_root._root).name
+    version_map['covariate_version'] = Path(data_interface.covariate_root._root).name
 
     # FIXME: infectionator doesn't do metadata the right way.
     inf_metadata = data_interface.get_infectionator_metadata()
