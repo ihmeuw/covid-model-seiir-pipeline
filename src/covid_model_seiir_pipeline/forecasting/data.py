@@ -248,8 +248,6 @@ class ForecastDataInterface:
         io.dump(resampling_map, self.forecast_root.resampling_map())
 
 
-
-
 @dataclass
 class ScenarioData:
     vaccinations: Optional[pd.DataFrame]

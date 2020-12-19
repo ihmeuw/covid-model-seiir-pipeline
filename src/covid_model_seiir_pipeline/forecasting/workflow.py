@@ -1,5 +1,5 @@
 import shutil
-from typing import Dict, List
+from typing import Dict
 
 from jobmon.client import BashTask
 
@@ -88,5 +88,3 @@ class ForecastWorkflow(WorkflowTemplate):
             for upstream_task in upstream_tasks:
                 forecast_task.add_upstream(upstream_task)
             self.workflow.add_task(forecast_task)
-
-
