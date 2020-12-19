@@ -14,17 +14,9 @@ workflow:
       max_runtime_seconds: 15000
       m_mem_free: '5G'
       num_cores: 1
-    sentinel:
-      max_runtime_seconds: 1000
-      m_mem_free: '1G'
-      num_cores: 1
     resample:
       max_runtime_seconds: 5000
       m_mem_free: '50G'
-      num_cores: 26
-    postprocess:
-      max_runtime_seconds: 15000
-      m_mem_free: '150G'
       num_cores: 26
 scenarios:
   worse:

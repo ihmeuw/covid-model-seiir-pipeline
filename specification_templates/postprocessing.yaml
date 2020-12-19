@@ -5,6 +5,13 @@ data:
     - 'reference'
     - 'best_masks'
   output_root: ''
+workflow:
+  project: 'proj_covid'
+  queue: 'all.q'
+  postprocess:
+    max_runtime_seconds: 15000
+    m_mem_free: '150G'
+    num_cores: 26
 splicing:
   - locations: [33, 85, 555, 4693]
     output_version: '/path/to/other/output/version'

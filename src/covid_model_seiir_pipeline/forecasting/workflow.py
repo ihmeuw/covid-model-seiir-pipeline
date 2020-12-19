@@ -1,4 +1,3 @@
-import itertools
 import shutil
 from typing import Dict, List
 
@@ -11,11 +10,6 @@ from covid_model_seiir_pipeline.workflow_tools.template import (
 from covid_model_seiir_pipeline.forecasting.specification import (
     ScenarioSpecification,
     FORECAST_JOBS,
-)
-from covid_model_seiir_pipeline.forecasting.task.postprocessing import (
-    MEASURES,
-    MISCELLANEOUS,
-    COVARIATES,
 )
 
 
@@ -49,31 +43,6 @@ class ResampleMapTaskTemplate(TaskTemplate):
     )
 
 
-class PostprocessingTaskTemplate(TaskTemplate):
-
-    task_name_template = "{measure}_{scenario}_post_processing"
-    command_template = (
-            f"{shutil.which('postprocess')} " +
-            "--forecast-version {forecast_version} "
-            "--scenario-name {scenario} "
-            "--measure {measure}"
-    )
-
-
-class JoinSentinelTaskTemplate(TaskTemplate):
-    """Dummy task to simplify DAG."""
-    sentinel_id = 1
-    task_name_template = "join_sentinel_{sentinel_id}"
-    command_template = (
-        "echo {sentinel_id}"
-    )
-
-    def get_task(self, *args, **kwargs):
-        task = super().get_task(*args, sentinel_id=self.sentinel_id, **kwargs)
-        self.sentinel_id += 1
-        return task
-
-
 class ForecastWorkflow(WorkflowTemplate):
 
     workflow_name_template = 'seiir-forecast-{version}'
@@ -81,8 +50,6 @@ class ForecastWorkflow(WorkflowTemplate):
         FORECAST_JOBS.scaling: BetaResidualScalingTaskTemplate,
         FORECAST_JOBS.forecast: BetaForecastTaskTemplate,
         FORECAST_JOBS.resample: ResampleMapTaskTemplate,
-        FORECAST_JOBS.postprocess: PostprocessingTaskTemplate,
-        FORECAST_JOBS.sentinel: JoinSentinelTaskTemplate,
     }
 
     def attach_tasks(self, n_draws: int, scenarios: Dict[str, ScenarioSpecification], covariates: List[str]):
@@ -104,20 +71,12 @@ class ForecastWorkflow(WorkflowTemplate):
                 forecast_version=self.version,
                 scenario=scenario_name
             )
-
             self.workflow.add_task(scaling_task)
-
-            forecast_done_task = self._attach_forecast_tasks(scenario_name, n_draws, 0, scaling_task)
-            self._attach_postprocessing_tasks(scenario_name, covariates, forecast_done_task, resample_task)
-            resample_task.add_upstream(forecast_done_task)
+            self._attach_forecast_tasks(scenario_name, n_draws, 0, scaling_task)
 
     def _attach_forecast_tasks(self, scenario_name: str, n_draws: int, extra_id: int,
-                               *upstream_tasks: BashTask) -> BashTask:
+                               *upstream_tasks: BashTask) -> None:
         forecast_template = self.task_templates[FORECAST_JOBS.forecast]
-        sentinel_template = self.task_templates[FORECAST_JOBS.sentinel]
-
-        sentinel_task = sentinel_template.get_task()
-        self.workflow.add_task(sentinel_task)
 
         for draw in range(n_draws):
             forecast_task = forecast_template.get_task(
@@ -128,26 +87,6 @@ class ForecastWorkflow(WorkflowTemplate):
             )
             for upstream_task in upstream_tasks:
                 forecast_task.add_upstream(upstream_task)
-            forecast_task.add_downstream(sentinel_task)
             self.workflow.add_task(forecast_task)
-        return sentinel_task
 
-    def _attach_postprocessing_tasks(self, scenario_name: str, covariates: List[str],
-                                     *upstream_tasks: BashTask) -> None:
-        postprocessing_template = self.task_templates[FORECAST_JOBS.postprocess]
 
-        covariates = set(covariates).difference(['intercept'])
-        unknown_covariates = covariates.difference(COVARIATES)
-        if unknown_covariates:
-            raise NotImplementedError(f'Unknown covariates {unknown_covariates}')
-
-        measures = itertools.chain(MEASURES, MISCELLANEOUS, covariates)
-        for measure in measures:
-            postprocessing_task = postprocessing_template.get_task(
-                forecast_version=self.version,
-                scenario=scenario_name,
-                measure=measure,
-            )
-            for upstream_task in upstream_tasks:
-                postprocessing_task.add_upstream(upstream_task)
-            self.workflow.add_task(postprocessing_task)
