@@ -53,10 +53,10 @@ class PostprocessingDataInterface:
     ################
 
     def save_output_draws(self, output_draws: pd.DataFrame, scenario: str, measure: str):
-        io.dump(output_draws, self.forecast_root.output_draws(scenario=scenario, measure=measure))
+        io.dump(output_draws, self.postprocessing_root.output_draws(scenario=scenario, measure=measure))
 
     def save_output_summaries(self, output_summaries: pd.DataFrame, scenario: str, measure: str):
-        io.dump(output_summaries, self.forecast_root.output_summaries(scenario=scenario, measure=measure))
+        io.dump(output_summaries, self.postprocessing_root.output_summaries(scenario=scenario, measure=measure))
 
     def save_output_miscellaneous(self, output_miscellaneous: pd.DataFrame, scenario: str, measure: str):
-        io.dump(output_miscellaneous, self.forecast_root.output_miscellaneous(scenario=scenario, measure=measure))
+        io.dump(output_miscellaneous, self.postprocessing_root.output_miscellaneous(scenario=scenario, measure=measure))
