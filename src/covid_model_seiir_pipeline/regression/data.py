@@ -4,13 +4,8 @@ from typing import Dict, List, Iterable, Optional, Union
 
 from loguru import logger
 import pandas as pd
-import yaml
 
-from covid_model_seiir_pipeline.marshall import (
-    CSVMarshall,
-    Keys as MKeys,
-)
-from covid_model_seiir_pipeline import paths
+from covid_model_seiir_pipeline import io
 from covid_model_seiir_pipeline.regression.specification import RegressionSpecification
 
 
@@ -19,33 +14,29 @@ from covid_model_seiir_pipeline.regression.specification import RegressionSpecif
 class RegressionDataInterface:
 
     def __init__(self,
-                 regression_paths: paths.RegressionPaths,
-                 infection_paths: paths.InfectionPaths,
-                 covariate_paths: paths.CovariatePaths,
-                 regression_marshall,
-                 ):
-        # TODO: only hang on to marshalls here.
-        self.regression_paths = regression_paths
-        self.infection_paths = infection_paths
-        self.covariate_paths = covariate_paths
-        self.regression_marshall = regression_marshall
+                 infection_root: io.InfectionRoot,
+                 covariate_root: io.CovariateRoot,
+                 regression_root: io.RegressionRoot):
+        self.infection_root = infection_root
+        self.covariate_root = covariate_root
+        self.regression_root = regression_root
 
     @classmethod
     def from_specification(cls, specification: RegressionSpecification) -> 'RegressionDataInterface':
-        regression_paths = paths.RegressionPaths(Path(specification.data.output_root), read_only=False)
-        infection_paths = paths.InfectionPaths(Path(specification.data.infection_version))
-        covariate_paths = paths.CovariatePaths(Path(specification.data.covariate_version))
-        # TODO: specification of marshall type from inference on inputs and
-        #   configuration on outputs.
+        # TODO: specify input format from config
+        infection_root = io.InfectionRoot(specification.data.infection_version)
+        covariate_root = io.CovariateRoot(specification.data.covariate_version)
+        # TODO: specify output format from config.
+        regression_root = io.RegressionRoot(specification.data.output_root)
+
         return cls(
-            regression_paths=regression_paths,
-            infection_paths=infection_paths,
-            covariate_paths=covariate_paths,
-            regression_marshall=CSVMarshall.from_paths(regression_paths),
+            infection_root=infection_root,
+            covariate_root=covariate_root,
+            regression_root=regression_root,
         )
 
-    def make_dirs(self):
-        self.regression_paths.make_dirs()
+    def make_dirs(self, **prefix_args):
+        io.touch(self.regression_root, **prefix_args)
 
     #####################
     # Location handling #
@@ -75,7 +66,7 @@ class RegressionDataInterface:
         directory.
 
         """
-        modeled_locations = self.infection_paths.get_modelled_locations()
+        modeled_locations = self.infection_root.modeled_locations()
         if desired_locations is None:
             desired_locations = modeled_locations
 
@@ -86,24 +77,17 @@ class RegressionDataInterface:
         return list(set(desired_locations).intersection(modeled_locations))
 
     def load_location_ids(self) -> List[int]:
-        with self.regression_paths.location_metadata.open() as location_file:
-            location_ids = yaml.full_load(location_file)
-        return location_ids
-
-    def dump_location_ids(self, location_ids: List[int]):
-        with self.regression_paths.location_metadata.open('w') as location_file:
-            yaml.dump(location_ids, location_file)
+        return io.load(self.regression_root.locations())
 
     ##########################
     # Infection data loaders #
     ##########################
 
-    def load_all_location_data(self, location_ids: List[int], draw_id: int
-                               ) -> Dict[int, pd.DataFrame]:
+    def load_all_location_data(self, location_ids: List[int], draw_id: int) -> Dict[int, pd.DataFrame]:
         dfs = dict()
         for loc in location_ids:
-            file = self.infection_paths.get_infection_file(location_id=loc, draw_id=draw_id)
-            loc_df = pd.read_csv(file).rename(columns={'loc_id': 'location_id'})
+            loc_df = io.load(self.infection_root.infections(location_id=loc, draw_id=draw_id))
+            loc_df = loc_df.rename(columns={'loc_id': 'location_id'})
             if loc_df['cases_draw'].isnull().any():
                 logger.warning(f'Nulls found in infectionator inputs for location id {loc}.  Dropping.')
                 continue
@@ -129,8 +113,7 @@ class RegressionDataInterface:
 
         for covariate in covariates:
             if covariate != 'intercept':
-                covariate_path = self.covariate_paths.get_covariate_scenario_file(covariate, 'reference')
-                if not covariate_path.exists():
+                if not io.exists(self.covariate_root[covariate](covariate_scenario='reference')):
                     missing.append(covariate)
 
         if missing:
@@ -139,8 +122,7 @@ class RegressionDataInterface:
                              f'missing a reference scenario: {missing}.')
 
     def load_covariate(self, covariate: str, location_ids: List[int]) -> pd.DataFrame:
-        covariate_path = self.covariate_paths.get_covariate_scenario_file(covariate, 'reference')
-        covariate_df = pd.read_csv(covariate_path)
+        covariate_df = io.load(self.covariate_root[covariate](covariate_scenario='reference'))
         index_columns = ['location_id']
         covariate_df = covariate_df.loc[covariate_df['location_id'].isin(location_ids), :]
         if 'date' in covariate_df.columns:
@@ -161,25 +143,30 @@ class RegressionDataInterface:
     # Regression paths writers #
     ############################
 
+    def save_location_ids(self, location_ids: List[int]):
+        io.dump(location_ids, self.regression_root.locations())
+
+    def save_specification(self, specification: RegressionSpecification):
+        io.dump(specification.to_dict(), self.regression_root.specification())
+
     def save_beta_param_file(self, df: pd.DataFrame, draw_id: int) -> None:
-        self.regression_marshall.dump(df, key=MKeys.parameter(draw_id))
+        io.dump(df, self.regression_root.parameters(draw_id=draw_id))
 
     def save_date_file(self, df: pd.DataFrame, draw_id: int) -> None:
-        self.regression_marshall.dump(df, key=MKeys.date(draw_id))
+        io.dump(df, self.regression_root.dates(draw_id=draw_id))
 
     def save_location_metadata_file(self, locations: List[int]) -> None:
-        with (self.regression_paths.root_dir / 'locations.yaml') as location_file:
-            yaml.dump({'locations': locations}, location_file)
+        io.dump(locations, self.regression_root.locations())
 
     def save_regression_coefficients(self, coefficients: pd.DataFrame, draw_id: int) -> None:
-        self.regression_marshall.dump(coefficients, key=MKeys.coefficient(draw_id))
+        io.dump(coefficients, self.regression_root.coefficients(draw_id=draw_id))
 
     def save_regression_betas(self, df: pd.DataFrame, draw_id: int) -> None:
-        self.regression_marshall.dump(df, key=MKeys.regression_beta(draw_id))
+        io.dump(df, self.regression_root.beta(draw_id=draw_id))
 
     def save_location_data(self, df: pd.DataFrame, draw_id: int) -> None:
         # quasi-inverse of load_all_location_data, except types are different
-        self.regression_marshall.dump(df, key=MKeys.location_data(draw_id))
+        io.dump(df, self.regression_root.data(draw_id=draw_id))
 
     @staticmethod
     def _load_from_location_set_version_id(location_set_version_id: int) -> pd.DataFrame:

@@ -6,9 +6,10 @@ from typing import Any, Callable, Dict, List, Optional
 from covid_shared.cli_tools.logging import configure_logging_to_terminal
 from loguru import logger
 import pandas as pd
-import yaml
 
 from covid_model_seiir_pipeline import static_vars
+from covid_model_seiir_pipeline import io
+from covid_model_seiir_pipeline.io.keys import MetadataKey
 from covid_model_seiir_pipeline.forecasting.specification import (
     ForecastSpecification,
     ScenarioSpecification,
@@ -292,11 +293,11 @@ def postprocess_miscellaneous(data_interface: ForecastDataInterface,
         data_interface.save_output_miscellaneous(miscellaneous_data.reset_index(), scenario_name,
                                                  miscellaneous_config.label)
     else:
-        # FIXME: yuck
-        miscellaneous_dir = data_interface.forecast_paths.scenario_paths[scenario_name].output_miscellaneous
-        measure_path = miscellaneous_dir / f'{miscellaneous_config.label}.yaml'
-        with measure_path.open('w') as f:
-            yaml.dump(miscellaneous_data, f)
+        # FIXME: Still sad about this.
+        key = MetadataKey(root=data_interface.forecast_root._root / scenario_name,
+                          disk_format='yaml',
+                          data_type=miscellaneous_config.label)
+        io.dump(miscellaneous_data, key)
 
 
 def run_seir_postprocessing(forecast_version: str, scenario_name: str, measure: str) -> None:
