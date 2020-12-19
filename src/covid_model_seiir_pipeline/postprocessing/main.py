@@ -3,6 +3,7 @@ from jobmon.client.swarm.workflow.workflow import WorkflowAlreadyComplete
 from loguru import logger
 
 from covid_model_seiir_pipeline.postprocessing.data import PostprocessingDataInterface
+from covid_model_seiir_pipeline.postprocessing.model import final_outputs
 from covid_model_seiir_pipeline.postprocessing.specification import PostprocessingSpecification
 from covid_model_seiir_pipeline.postprocessing.workflow import PostprocessingWorkflow
 
@@ -20,8 +21,18 @@ def do_postprocessing(app_metadata: cli_tools.Metadata,
     if not preprocess_only:
         workflow = PostprocessingWorkflow(postprocessing_specification.data.output_root,
                                           postprocessing_specification.workflow)
-        covariates = data_interface.get_covariates(postprocessing_specification.data.scenarios)
-        workflow.attach_tasks(postprocessing_specification.data.scenarios, covariates)
+        known_covariates = list(final_outputs.COVARIATES)
+        modeled_covariates = set(data_interface.get_covariate_names(postprocessing_specification.data.scenarios))
+        unknown_covariates = modeled_covariates.difference(known_covariates)
+        if unknown_covariates:
+            logger.warning("Some covariates that were modeled have no postprocessing configuration. "
+                           "Postprocessing will produce no outputs for these covariates. "
+                           f"Unknown covariates: {list(unknown_covariates)}")
+
+        measures = (list(final_outputs.MEASURES)
+                    + list(final_outputs.MISCELLANEOUS)
+                    + list(modeled_covariates.intersection(known_covariates)))
+        workflow.attach_tasks(measures, postprocessing_specification.data.scenarios)
 
         try:
             workflow.run()
