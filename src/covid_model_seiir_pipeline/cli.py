@@ -9,6 +9,8 @@ from covid_model_seiir_pipeline.regression.specification import RegressionSpecif
 from covid_model_seiir_pipeline.regression.main import do_beta_regression
 from covid_model_seiir_pipeline.forecasting.specification import ForecastSpecification
 from covid_model_seiir_pipeline.forecasting.main import do_beta_forecast
+from covid_model_seiir_pipeline.postprocessing.specification import PostprocessingSpecification
+from covid_model_seiir_pipeline.postprocessing.main import do_postprocessing
 from covid_model_seiir_pipeline.predictive_validity.specification import PredictiveValiditySpecification
 from covid_model_seiir_pipeline.predictive_validity.main import do_predictive_validity
 
@@ -91,10 +93,8 @@ def regress(run_metadata,
                                          logger, with_debugger)
     app_metadata, _ = main(regression_spec, preprocess_only)
 
-    run_metadata['app_metadata'] = app_metadata.to_dict()
-    run_metadata.dump(run_directory / 'metadata.yaml')
-
-    cli_tools.make_links(app_metadata, run_directory, mark_best, production_tag)
+    cli_tools.finish_application(run_metadata, app_metadata,
+                                 run_directory, mark_best, production_tag)
 
     logger.info('**Done**')
 
@@ -154,10 +154,8 @@ def forecast(run_metadata,
                                          logger, with_debugger)
     app_metadata, _ = main(forecast_spec, preprocess_only)
 
-    run_metadata['app_metadata'] = app_metadata.to_dict()
-    run_metadata.dump(run_directory / 'metadata.yaml')
-
-    cli_tools.make_links(app_metadata, run_directory, mark_best, production_tag)
+    cli_tools.finish_application(run_metadata, app_metadata,
+                                 run_directory, mark_best, production_tag)
 
     logger.info('**Done**')
 
@@ -205,10 +203,8 @@ def postprocess(run_metadata,
                                          logger, with_debugger)
     app_metadata, _ = main(postprocessing_spec, preprocess_only)
 
-    run_metadata['app_metadata'] = app_metadata.to_dict()
-    run_metadata.dump(run_directory / 'metadata.yaml')
-
-    cli_tools.make_links(app_metadata, run_directory, mark_best, production_tag)
+    cli_tools.finish_application(run_metadata, app_metadata,
+                                 run_directory, mark_best, production_tag)
 
     logger.info('**Done**')
 
