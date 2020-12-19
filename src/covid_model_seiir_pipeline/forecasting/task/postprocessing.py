@@ -8,6 +8,8 @@ from loguru import logger
 import pandas as pd
 
 from covid_model_seiir_pipeline import static_vars
+from covid_model_seiir_pipeline import io
+from covid_model_seiir_pipeline.io.keys import MetadataKey
 from covid_model_seiir_pipeline.forecasting.specification import (
     ForecastSpecification,
     ScenarioSpecification,
@@ -291,8 +293,11 @@ def postprocess_miscellaneous(data_interface: ForecastDataInterface,
         data_interface.save_output_miscellaneous(miscellaneous_data.reset_index(), scenario_name,
                                                  miscellaneous_config.label)
     else:
-        data_interface.save_output_miscellaneous(miscellaneous_data, scenario_name,
-                                                 miscellaneous_config.label)
+        # FIXME: Still sad about this.
+        key = MetadataKey(root=data_interface.forecast_root._root / scenario_name,
+                          disk_format='yaml',
+                          data_type=miscellaneous_config.label)
+        io.dump(miscellaneous_data, key)
 
 
 def run_seir_postprocessing(forecast_version: str, scenario_name: str, measure: str) -> None:
