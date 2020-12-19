@@ -1,3 +1,4 @@
+import itertools
 import shutil
 from typing import List
 
@@ -36,7 +37,7 @@ class PostprocessingWorkflow(WorkflowTemplate):
         POSTPROCESSING_JOBS.postprocess: PostprocessingTaskTemplate,
     }
 
-    def attach_tasks(self, measures: List[str], scenario: str) -> None:
+    def attach_tasks(self, measures: List[str], scenarios: List[str]) -> None:
         resample_template = self.task_templates[POSTPROCESSING_JOBS.resample]
         postprocessing_template = self.task_templates[POSTPROCESSING_JOBS.postprocess]
 
@@ -48,7 +49,7 @@ class PostprocessingWorkflow(WorkflowTemplate):
         )
         self.workflow.add_task(resample_task)
 
-        for measure in measures:
+        for measure, scenario in itertools.product(measures, scenarios):
             postprocessing_task = postprocessing_template.get_task(
                 forecast_version=self.version,
                 scenario=scenario,

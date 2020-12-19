@@ -1,6 +1,6 @@
 data:
   forecast_version: 'latest'
-  include_scenarios:
+  scenarios:
     - 'worse'
     - 'reference'
     - 'best_masks'

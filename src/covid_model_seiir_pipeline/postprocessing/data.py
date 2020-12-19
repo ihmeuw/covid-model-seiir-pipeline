@@ -1,6 +1,10 @@
+from typing import List
+
 import pandas as pd
 
 from covid_model_seiir_pipeline import io
+from covid_model_seiir_pipeline.forecasting.specification import ForecastSpecification
+from covid_model_seiir_pipeline.forecasting.data import ForecastDataInterface
 from covid_model_seiir_pipeline.postprocessing.specification import PostprocessingSpecification
 
 
@@ -24,6 +28,15 @@ class PostprocessingDataInterface:
 
     def make_dirs(self, **prefix_args):
         io.touch(self.postprocessing_root, **prefix_args)
+
+    def save_specification(self, specification: PostprocessingSpecification):
+        io.dump(specification.to_dict(), self.postprocessing_root.specification())
+
+    def get_covariates(self, scenarios: List[str]):
+        forecast_spec = ForecastSpecification.from_dict(io.load(self.forecast_root.specification))
+        forecast_di = ForecastDataInterface.from_specification(forecast_spec)
+        scenarios = {scenario: spec for scenario, spec in forecast_spec.scenarios.items() if scenario in scenarios}
+        return forecast_di.check_covariates(scenarios)
 
     ################
     # Data loaders #

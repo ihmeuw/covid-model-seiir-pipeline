@@ -48,7 +48,7 @@ class PostprocessingWorkflowSpecification(WorkflowSpecification):
 class PostprocessingData:
     """Specifies the inputs and outputs for postprocessing."""
     forecast_version: str = field(default='best')
-    include_scenarios: list = field(default_factory=lambda: ['worse', 'reference', 'best_masks'])
+    scenarios: list = field(default_factory=lambda: ['worse', 'reference', 'best_masks'])
     output_root: str = field(default='')
 
     def to_dict(self) -> Dict:
@@ -98,9 +98,13 @@ class PostprocessingSpecification(Specification):
 
     def __init__(self,
                  data: PostprocessingData,
+                 workflow: PostprocessingWorkflowSpecification,
+                 resampling: ResamplingSpecification,
                  splicing: List[SplicingSpecification],
                  aggregation: AggregationSpecification):
         self._data = data
+        self._workflow = workflow
+        self._resampling = resampling
         self._splicing = splicing
         self._aggregation = aggregation
 
@@ -108,15 +112,25 @@ class PostprocessingSpecification(Specification):
     def parse_spec_dict(cls, postprocessing_spec_dict: Dict) -> Tuple:
         """Construct postprocessing specification args from a dict."""
         data = PostprocessingData(**postprocessing_spec_dict.get('data', {}))
+        workflow = PostprocessingWorkflowSpecification(**postprocessing_spec_dict.get('workflow', {}))
+        resampling = ResamplingSpecification(**postprocessing_spec_dict.get('resampling', {}))
         splicing_configs = postprocessing_spec_dict.get('splicing', [])
         splicing = [SplicingSpecification(**splicing_config) for splicing_config in splicing_configs]
         aggregation = AggregationSpecification(**postprocessing_spec_dict.get('aggregation', {}))
-        return data, splicing, aggregation
+        return data, workflow, resampling, splicing, aggregation
 
     @property
     def data(self) -> PostprocessingData:
         """The postprocessing data specification."""
         return self._data
+
+    @property
+    def workflow(self) -> PostprocessingWorkflowSpecification:
+        return self._workflow
+
+    @property
+    def resampling(self) -> ResamplingSpecification:
+        return self._resampling
 
     @property
     def splicing(self) -> List[SplicingSpecification]:
@@ -130,6 +144,8 @@ class PostprocessingSpecification(Specification):
         """Convert the specification to a dict."""
         return {
             'data': self.data.to_dict(),
+            'workflow': self.workflow.to_dict(),
+            'resampling': self.resampling.to_dict(),
             'splicing': [splicing_config.to_dict() for splicing_config in self.splicing],
             'aggregation': self.aggregation.to_dict()
         }

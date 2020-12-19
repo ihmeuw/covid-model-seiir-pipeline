@@ -85,6 +85,8 @@ class ForecastDataInterface:
                 if not io.exists(self.covariate_root[covariate](covariate_scenario=covariate_version)):
                     raise FileNotFoundError(f'No {covariate_version} file found for covariate {covariate}.')
 
+        return regression_covariates
+
     def get_infectionator_metadata(self):
         regression_spec = io.load(self.regression_root.specification())
         infection_root = io.InfectionRoot(regression_spec['data']['infection_version'])
