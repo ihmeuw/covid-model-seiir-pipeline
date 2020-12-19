@@ -130,31 +130,14 @@ class ScenarioSpecification:
         return {k: v for k, v in asdict(self).items() if k != 'name'}
 
 
-@dataclass
-class ResamplingSpecification:
-
-    reference_scenario: str = field(default='worse')
-    reference_date: str = field(default='2020-12-31')
-    lower_quantile: float = field(default=0.025)
-    upper_quantile: float = field(default=0.975)
-
-    def __post_init__(self):
-        self.reference_date = pd.to_datetime(self.reference_date)
-
-    def to_dict(self) -> Dict:
-        return asdict(self)
-
-
 class ForecastSpecification(Specification):
     """Specification for a beta forecast run."""
 
     def __init__(self, data: ForecastData,
                  workflow: ForecastWorkflowSpecification,
-                 resampling: ResamplingSpecification,
                  *scenarios: ScenarioSpecification):
         self._data = data
         self._workflow = workflow
-        self._resampling = resampling
 
         self._scenarios = {s.name: s for s in scenarios}
 
@@ -163,14 +146,13 @@ class ForecastSpecification(Specification):
         """Construct forecast specification args from a dict."""
         data = ForecastData(**forecast_spec_dict.get('data', {}))
         workflow = ForecastWorkflowSpecification(**forecast_spec_dict.get('workflow', {}))
-        resampling = ResamplingSpecification(**forecast_spec_dict.get('resampling', {}))
         scenario_dicts = forecast_spec_dict.get('scenarios', {})
         scenarios = []
         for name, scenario_spec in scenario_dicts.items():
             scenarios.append(ScenarioSpecification(name, **scenario_spec))
         if not scenarios:
             scenarios.append(ScenarioSpecification())
-        return tuple(itertools.chain([data, workflow, resampling], scenarios))
+        return tuple(itertools.chain([data, workflow], scenarios))
 
     @property
     def data(self) -> ForecastData:
@@ -183,10 +165,6 @@ class ForecastSpecification(Specification):
         return self._workflow
 
     @property
-    def resampling(self) -> ResamplingSpecification:
-        return self._resampling
-
-    @property
     def scenarios(self) -> Dict[str, ScenarioSpecification]:
         """The specification of all scenarios in the forecast."""
         return self._scenarios
@@ -196,6 +174,5 @@ class ForecastSpecification(Specification):
         return {
             'data': self.data.to_dict(),
             'workflow': self.workflow.to_dict(),
-            'resampling': self.resampling.to_dict(),
             'scenarios': {k: v.to_dict() for k, v in self._scenarios.items()}
         }

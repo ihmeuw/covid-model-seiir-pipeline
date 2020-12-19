@@ -1,6 +1,8 @@
 from dataclasses import dataclass, field
 from typing import Dict, List, NamedTuple, Tuple
 
+import pandas as pd
+
 from covid_model_seiir_pipeline.utilities import (
     Specification,
     asdict,
@@ -51,6 +53,21 @@ class PostprocessingData:
 
     def to_dict(self) -> Dict:
         """Converts to a dict, coercing list-like items to lists."""
+        return asdict(self)
+
+
+@dataclass
+class ResamplingSpecification:
+
+    reference_scenario: str = field(default='worse')
+    reference_date: str = field(default='2020-12-31')
+    lower_quantile: float = field(default=0.025)
+    upper_quantile: float = field(default=0.975)
+
+    def __post_init__(self):
+        self.reference_date = pd.to_datetime(self.reference_date)
+
+    def to_dict(self) -> Dict:
         return asdict(self)
 
 
