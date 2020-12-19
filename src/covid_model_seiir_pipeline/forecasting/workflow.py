@@ -35,34 +35,16 @@ class BetaForecastTaskTemplate(TaskTemplate):
     )
 
 
-class ResampleMapTaskTemplate(TaskTemplate):
-    task_name_template = "seiir_resample_map"
-    command_template = (
-            f"{shutil.which('resample_map')} " +
-            "--forecast-version {forecast_version} "
-    )
-
-
 class ForecastWorkflow(WorkflowTemplate):
 
     workflow_name_template = 'seiir-forecast-{version}'
     task_template_classes = {
         FORECAST_JOBS.scaling: BetaResidualScalingTaskTemplate,
         FORECAST_JOBS.forecast: BetaForecastTaskTemplate,
-        FORECAST_JOBS.resample: ResampleMapTaskTemplate,
     }
 
     def attach_tasks(self, n_draws: int, scenarios: Dict[str, ScenarioSpecification]):
         scaling_template = self.task_templates[FORECAST_JOBS.scaling]
-        resample_template = self.task_templates[FORECAST_JOBS.resample]
-
-        # The draw resampling map is produced for one reference scenario
-        # after the forecasts and then used to postprocess all measures for
-        # all scenarios.
-        resample_task = resample_template.get_task(
-            forecast_version=self.version
-        )
-        self.workflow.add_task(resample_task)
 
         for scenario_name, scenario_spec in scenarios.items():
             # Computing the beta scaling parameters is the first step for each

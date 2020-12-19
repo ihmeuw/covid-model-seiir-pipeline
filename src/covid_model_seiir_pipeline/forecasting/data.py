@@ -244,9 +244,6 @@ class ForecastDataInterface:
     def save_raw_outputs(self, raw_outputs: pd.DataFrame, scenario: str, draw_id: int):
         io.dump(raw_outputs, self.forecast_root.raw_outputs(scenario=scenario, draw_id=draw_id))
 
-    def save_resampling_map(self, resampling_map):
-        io.dump(resampling_map, self.forecast_root.resampling_map())
-
 
 @dataclass
 class ScenarioData:

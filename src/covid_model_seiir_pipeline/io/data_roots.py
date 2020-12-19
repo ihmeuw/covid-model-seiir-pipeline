@@ -165,7 +165,6 @@ class ForecastRoot(DataRoot):
     """Data root representing forecast stage outputs."""
     metadata = MetadataType('metadata')
     specification = MetadataType('forecast_specification')
-    resampling_map = MetadataType('resampling_map')
 
     beta_scaling = DatasetType('beta_scaling', LEAF_TEMPLATES.DRAW_TEMPLATE, PREFIX_TEMPLATES.SCENARIO_TEMPLATE)
     component_draws = DatasetType('component_draws', LEAF_TEMPLATES.DRAW_TEMPLATE, PREFIX_TEMPLATES.SCENARIO_TEMPLATE)
@@ -177,6 +176,7 @@ class PostprocessingRoot(DataRoot):
     """Data root representing postprocessing stage outputs."""
     metadata = MetadataType('metadata')
     specification = MetadataType('postprocessing_specification')
+    resampling_map = MetadataType('resampling_map')
 
     output_draws = DatasetType('output_draws',
                                LEAF_TEMPLATES.MEASURE_TEMPLATE,

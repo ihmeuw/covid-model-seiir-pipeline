@@ -12,10 +12,18 @@ from covid_model_seiir_pipeline.workflow_tools.specification import (
 
 
 class __PostprocessingJobs(NamedTuple):
+    resample: str = 'resample'
     postprocess: str = 'postprocess'
 
 
 POSTPROCESSING_JOBS = __PostprocessingJobs()
+
+
+class ResampleTaskSpecification(TaskSpecification):
+    """Specification of execution parameters for draw resample mapping tasks."""
+    default_max_runtime_seconds = 5000
+    default_m_mem_free = '50G'
+    default_num_cores = 26
 
 
 class PostprocessingTaskSpecification(TaskSpecification):
@@ -29,6 +37,7 @@ class PostprocessingWorkflowSpecification(WorkflowSpecification):
     """Specification of execution parameters for forecasting workflows."""
 
     tasks = {
+        POSTPROCESSING_JOBS.resample: ResampleTaskSpecification,
         POSTPROCESSING_JOBS.postprocess: PostprocessingTaskSpecification,
     }
 

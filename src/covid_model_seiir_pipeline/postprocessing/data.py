@@ -25,12 +25,12 @@ class PostprocessingDataInterface:
     def make_dirs(self, **prefix_args):
         io.touch(self.postprocessing_root, **prefix_args)
 
-    #########################
-    # Forecast data loaders #
-    #########################
+    ################
+    # Data loaders #
+    ################
 
     def load_resampling_map(self):
-        return io.load(self.forecast_root.resampling_map())
+        return io.load(self.postprocessing_root.resampling_map())
 
     def load_raw_covariates(self, scenario: str, draw_id: int):
         covariates = io.load(self.forecast_root.raw_covariates(scenario=scenario, draw_id=draw_id))
@@ -51,6 +51,9 @@ class PostprocessingDataInterface:
     ################
     # Data writers #
     ################
+
+    def save_resampling_map(self, resampling_map):
+        io.dump(resampling_map, self.postprocessing_root.resampling_map())
 
     def save_output_draws(self, output_draws: pd.DataFrame, scenario: str, measure: str):
         io.dump(output_draws, self.postprocessing_root.output_draws(scenario=scenario, measure=measure))
