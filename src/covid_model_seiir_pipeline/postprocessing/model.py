@@ -6,28 +6,28 @@ from typing import Dict, List, Tuple
 import numpy as np
 import pandas as pd
 
-from covid_model_seiir_pipeline.forecasting.data import ForecastDataInterface
+from covid_model_seiir_pipeline.postprocessing.data import PostprocessingDataInterface
 
 
 # TODO: make a model subpackage and put this there.
 
 
-def load_deaths(scenario: str, data_interface: ForecastDataInterface, num_cores: int):
+def load_deaths(scenario: str, data_interface: PostprocessingDataInterface, num_cores: int):
     deaths, *_ = load_output_data(scenario, data_interface, num_cores)
     return deaths
 
 
-def load_infections(scenario: str, data_interface: ForecastDataInterface, num_cores: int):
+def load_infections(scenario: str, data_interface: PostprocessingDataInterface, num_cores: int):
     _, infections, *_ = load_output_data(scenario, data_interface, num_cores)
     return infections
 
 
-def load_r_effective(scenario: str, data_interface: ForecastDataInterface, num_cores: int):
+def load_r_effective(scenario: str, data_interface: PostprocessingDataInterface, num_cores: int):
     _, _, r_effective = load_output_data(scenario, data_interface, num_cores)
     return r_effective
 
 
-def load_output_data(scenario: str, data_interface: ForecastDataInterface, num_cores: int):
+def load_output_data(scenario: str, data_interface: PostprocessingDataInterface, num_cores: int):
     _runner = functools.partial(
         load_output_data_by_draw,
         scenario=scenario,
@@ -42,7 +42,7 @@ def load_output_data(scenario: str, data_interface: ForecastDataInterface, num_c
 
 
 def load_output_data_by_draw(draw_id: int, scenario: str,
-                             data_interface: ForecastDataInterface) -> Tuple[pd.Series, pd.Series, pd.Series]:
+                             data_interface: PostprocessingDataInterface) -> Tuple[pd.Series, pd.Series, pd.Series]:
     draw_df = data_interface.load_raw_outputs(scenario, draw_id)
     draw_df = draw_df.set_index(['location_id', 'date']).sort_index()
     deaths = draw_df.reset_index().set_index(['location_id', 'date', 'observed'])['deaths'].rename(draw_id)
@@ -51,7 +51,7 @@ def load_output_data_by_draw(draw_id: int, scenario: str,
     return deaths, infections, r_effective
 
 
-def load_coefficients(scenario: str, data_interface: ForecastDataInterface, num_cores: int):
+def load_coefficients(scenario: str, data_interface: PostprocessingDataInterface, num_cores: int):
     _runner = functools.partial(
         load_coefficients_by_draw,
         data_interface=data_interface
@@ -62,7 +62,7 @@ def load_coefficients(scenario: str, data_interface: ForecastDataInterface, num_
     return outputs
 
 
-def load_coefficients_by_draw(draw_id: int, data_interface: ForecastDataInterface) -> pd.Series:
+def load_coefficients_by_draw(draw_id: int, data_interface: PostprocessingDataInterface) -> pd.Series:
     coefficients = data_interface.load_regression_coefficients(draw_id)
     coefficients = coefficients.set_index('location_id').stack().reset_index()
     coefficients.columns = ['location_id', 'covariate', draw_id]
@@ -70,7 +70,7 @@ def load_coefficients_by_draw(draw_id: int, data_interface: ForecastDataInterfac
     return coefficients
 
 
-def load_scaling_parameters(scenario: str, data_interface: ForecastDataInterface, num_cores: int):
+def load_scaling_parameters(scenario: str, data_interface: PostprocessingDataInterface, num_cores: int):
     _runner = functools.partial(
         load_scaling_parameters_by_draw,
         scenario=scenario,
@@ -82,7 +82,7 @@ def load_scaling_parameters(scenario: str, data_interface: ForecastDataInterface
     return outputs
 
 
-def load_scaling_parameters_by_draw(draw_id: int, scenario: str, data_interface: ForecastDataInterface) -> pd.Series:
+def load_scaling_parameters_by_draw(draw_id: int, scenario: str, data_interface: PostprocessingDataInterface) -> pd.Series:
     scaling_parameters = data_interface.load_beta_scales(scenario, draw_id)
     scaling_parameters = scaling_parameters.set_index('location_id').stack().reset_index()
     scaling_parameters.columns = ['location_id', 'scaling_parameter', draw_id]
@@ -91,7 +91,7 @@ def load_scaling_parameters_by_draw(draw_id: int, scenario: str, data_interface:
 
 
 def load_covariate(covariate: str, time_varying: bool, scenario: str,
-                   data_interface: ForecastDataInterface, num_cores: int) -> List[pd.Series]:
+                   data_interface: PostprocessingDataInterface, num_cores: int) -> List[pd.Series]:
     _runner = functools.partial(
         load_covariate_by_draw,
         covariate=covariate,
@@ -110,7 +110,7 @@ def load_covariate_by_draw(draw_id: int,
                            covariate: str,
                            time_varying: bool,
                            scenario: str,
-                           data_interface: ForecastDataInterface) -> pd.Series:
+                           data_interface: PostprocessingDataInterface) -> pd.Series:
     covariate_df = data_interface.load_raw_covariates(scenario, draw_id)
     covariate_df = covariate_df.set_index(['location_id', 'date']).sort_index()
     if time_varying:
@@ -120,7 +120,7 @@ def load_covariate_by_draw(draw_id: int,
     return covariate_data
 
 
-def load_betas(scenario: str, data_interface: ForecastDataInterface, num_cores: int) -> List[pd.Series]:
+def load_betas(scenario: str, data_interface: PostprocessingDataInterface, num_cores: int) -> List[pd.Series]:
     _runner = functools.partial(
         load_betas_by_draw,
         scenario=scenario,
@@ -132,7 +132,7 @@ def load_betas(scenario: str, data_interface: ForecastDataInterface, num_cores: 
     return betas
 
 
-def load_betas_by_draw(draw_id: int, scenario: str, data_interface: ForecastDataInterface) -> pd.Series:
+def load_betas_by_draw(draw_id: int, scenario: str, data_interface: PostprocessingDataInterface) -> pd.Series:
     components = data_interface.load_components(scenario, draw_id)
     draw_betas = (components['beta']
                   .sort_index()
@@ -140,7 +140,7 @@ def load_betas_by_draw(draw_id: int, scenario: str, data_interface: ForecastData
     return draw_betas
 
 
-def load_beta_residuals(scenario: str, data_interface: ForecastDataInterface, num_cores: int) -> List[pd.Series]:
+def load_beta_residuals(scenario: str, data_interface: PostprocessingDataInterface, num_cores: int) -> List[pd.Series]:
     _runner = functools.partial(
         load_beta_residuals_by_draw,
         data_interface=data_interface,
@@ -151,7 +151,7 @@ def load_beta_residuals(scenario: str, data_interface: ForecastDataInterface, nu
     return beta_residuals
 
 
-def load_beta_residuals_by_draw(draw_id: int, data_interface: ForecastDataInterface) -> pd.Series:
+def load_beta_residuals_by_draw(draw_id: int, data_interface: PostprocessingDataInterface) -> pd.Series:
     beta_regression = data_interface.load_beta_regression(draw_id)
     beta_regression = (beta_regression
                        .set_index(['location_id', 'date'])
@@ -160,7 +160,7 @@ def load_beta_residuals_by_draw(draw_id: int, data_interface: ForecastDataInterf
     return beta_residual
 
 
-def load_elastispliner_inputs(data_interface: ForecastDataInterface) -> pd.DataFrame:
+def load_elastispliner_inputs(data_interface: PostprocessingDataInterface) -> pd.DataFrame:
     es_inputs = data_interface.load_elastispliner_inputs()
     es_inputs = es_inputs.set_index(['location_id', 'date'])
     cumulative_cases = (es_inputs['Confirmed case rate'] * es_inputs['population']).rename('cumulative_cases')
@@ -171,15 +171,15 @@ def load_elastispliner_inputs(data_interface: ForecastDataInterface) -> pd.DataF
     return es_inputs
 
 
-def load_es_noisy(scenario: str, data_interface: ForecastDataInterface, num_cores: int):
+def load_es_noisy(scenario: str, data_interface: PostprocessingDataInterface, num_cores: int):
     return load_elastispliner_outputs(data_interface, noisy=True)
 
 
-def load_es_smoothed(scenario: str, data_interface: ForecastDataInterface, num_cores: int):
+def load_es_smoothed(scenario: str, data_interface: PostprocessingDataInterface, num_cores: int):
     return load_elastispliner_outputs(data_interface, noisy=False)
 
 
-def load_elastispliner_outputs(data_interface: ForecastDataInterface, noisy: bool):
+def load_elastispliner_outputs(data_interface: PostprocessingDataInterface, noisy: bool):
     es_noisy, es_smoothed = data_interface.load_elastispliner_outputs()
     es_outputs = es_noisy if noisy else es_smoothed
     es_outputs = es_outputs.set_index(['location_id', 'date', 'observed'])
@@ -189,7 +189,7 @@ def load_elastispliner_outputs(data_interface: ForecastDataInterface, noisy: boo
     return es_outputs
 
 
-def load_full_data(data_interface: ForecastDataInterface) -> pd.DataFrame:
+def load_full_data(data_interface: PostprocessingDataInterface) -> pd.DataFrame:
     full_data = data_interface.load_full_data()
     full_data = full_data.set_index(['location_id', 'date'])
     full_data = full_data.rename(columns={
@@ -201,7 +201,7 @@ def load_full_data(data_interface: ForecastDataInterface) -> pd.DataFrame:
     return full_data
 
 
-def build_version_map(data_interface: ForecastDataInterface) -> pd.Series:
+def build_version_map(data_interface: PostprocessingDataInterface) -> pd.Series:
     version_map = {}
     version_map['forecast_version'] = data_interface.forecast_paths.root_dir.name
     version_map['regression_version'] = data_interface.regression_paths.root_dir.name
@@ -243,7 +243,7 @@ def build_version_map(data_interface: ForecastDataInterface) -> pd.Series:
     return version_map
 
 
-def load_populations(data_interface: ForecastDataInterface):
+def load_populations(data_interface: PostprocessingDataInterface):
     metadata = data_interface.get_infectionator_metadata()
     model_inputs_path = Path(
         metadata['death']['metadata']['model_inputs_metadata']['output_path']
@@ -253,7 +253,7 @@ def load_populations(data_interface: ForecastDataInterface):
     return populations
 
 
-def load_hierarchy(data_interface: ForecastDataInterface):
+def load_hierarchy(data_interface: PostprocessingDataInterface):
     metadata = data_interface.get_infectionator_metadata()
     model_inputs_path = Path(
         metadata['death']['metadata']['model_inputs_metadata']['output_path']
@@ -263,7 +263,7 @@ def load_hierarchy(data_interface: ForecastDataInterface):
     return hierarchy
 
 
-def get_locations_modeled_and_missing(data_interface: ForecastDataInterface):
+def get_locations_modeled_and_missing(data_interface: PostprocessingDataInterface):
     hierarchy = load_hierarchy(data_interface)
     modeled_locations = data_interface.load_location_ids()
     most_detailed_locs = hierarchy.loc[hierarchy.most_detailed == 1, 'location_id'].unique().tolist()
@@ -272,7 +272,7 @@ def get_locations_modeled_and_missing(data_interface: ForecastDataInterface):
     return locations_modeled_and_missing
 
 
-def load_modeled_hierarchy(data_interface: ForecastDataInterface):
+def load_modeled_hierarchy(data_interface: PostprocessingDataInterface):
     hierarchy = load_hierarchy(data_interface)
     modeled_locs = get_locations_modeled_and_missing(data_interface)['modeled']
     not_most_detailed = hierarchy.most_detailed == 0
