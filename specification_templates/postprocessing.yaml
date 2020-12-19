@@ -8,10 +8,19 @@ data:
 workflow:
   project: 'proj_covid'
   queue: 'all.q'
+  resample:
+    max_runtime_seconds: 5000
+    m_mem_free: '50G'
+    num_cores: 26
   postprocess:
     max_runtime_seconds: 15000
     m_mem_free: '150G'
     num_cores: 26
+resampling:
+  reference_scenario: 'worse'
+  reference_date: '2021-12-31'
+  lower_quantile: 0.025
+  upper_quantile: 0.975
 splicing:
   - locations: [33, 85, 555, 4693]
     output_version: '/path/to/other/output/version'

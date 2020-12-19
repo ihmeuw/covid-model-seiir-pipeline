@@ -11,7 +11,6 @@ from covid_model_seiir_pipeline.workflow_tools.specification import TaskSpecific
 class __ForecastJobs(NamedTuple):
     scaling: str = 'scaling'
     forecast: str = 'forecast'
-    resample: str = 'resample'
 
 
 FORECAST_JOBS = __ForecastJobs()
@@ -31,20 +30,12 @@ class ForecastTaskSpecification(TaskSpecification):
     default_num_cores = 1
 
 
-class ResampleTaskSpecification(TaskSpecification):
-    """Specification of execution parameters for draw resample mapping tasks."""
-    default_max_runtime_seconds = 5000
-    default_m_mem_free = '50G'
-    default_num_cores = 26
-
-
 class ForecastWorkflowSpecification(WorkflowSpecification):
     """Specification of execution parameters for forecasting workflows."""
 
     tasks = {
         FORECAST_JOBS.scaling: ScalingTaskSpecification,
         FORECAST_JOBS.forecast: ForecastTaskSpecification,
-        FORECAST_JOBS.resample: ResampleTaskSpecification,
     }
 
 

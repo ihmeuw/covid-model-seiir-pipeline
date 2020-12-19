@@ -18,7 +18,7 @@ def do_beta_forecast(app_metadata: cli_tools.Metadata,
     # covariate data versions match.
     data_interface.check_covariates(forecast_specification.scenarios)
 
-    data_interface.make_dirs()
+    data_interface.make_dirs(scenario=list(forecast_specification.scenarios))
     data_interface.save_specification(forecast_specification)
 
     if not preprocess_only:
