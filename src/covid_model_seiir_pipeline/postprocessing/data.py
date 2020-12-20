@@ -232,6 +232,6 @@ class PostprocessingDataInterface:
     #########################
 
     def _get_forecast_data_inteface(self):
-        forecast_spec = ForecastSpecification.from_dict(io.load(self.forecast_root.specification))
+        forecast_spec = ForecastSpecification.from_dict(io.load(self.forecast_root.specification()))
         forecast_di = ForecastDataInterface.from_specification(forecast_spec)
         return forecast_di
