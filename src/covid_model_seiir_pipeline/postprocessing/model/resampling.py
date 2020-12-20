@@ -9,6 +9,7 @@ from covid_model_seiir_pipeline.postprocessing.specification import ResamplingSp
 
 def build_resampling_map(deaths: pd.DataFrame, resampling_params: ResamplingSpecification):
     cumulative_deaths = deaths.groupby(level='location_id').cumsum().reset_index()
+    cumulative_deaths['date'] = pd.to_datetime(cumulative_deaths['date'])
     reference_date = pd.to_datetime(resampling_params.reference_date)
     reference_deaths = (cumulative_deaths[cumulative_deaths['date'] == reference_date]
                         .drop(columns='date')

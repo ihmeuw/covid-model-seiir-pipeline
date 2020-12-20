@@ -24,7 +24,6 @@ def run_resample_map(postprocessing_version: str) -> None:
                                  data_interface,
                                  workflow_spec.num_cores)
     deaths = pd.concat(deaths, axis=1)
-    deaths['date'] = pd.to_datetime(deaths['date'])
     resampling_map = resampling.build_resampling_map(deaths, resampling_params)
     data_interface.save_resampling_map(resampling_map)
 
