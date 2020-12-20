@@ -16,7 +16,7 @@ class PostprocessingTaskTemplate(TaskTemplate):
     task_name_template = "{measure}_{scenario}_post_processing"
     command_template = (
             f"{shutil.which('postprocess')} " +
-            "--forecast-version {forecast_version} "
+            "--postprocessing-version {postprocessing_version} "
             "--scenario-name {scenario} "
             "--measure {measure}"
     )
@@ -26,7 +26,7 @@ class ResampleMapTaskTemplate(TaskTemplate):
     task_name_template = "seiir_resample_map"
     command_template = (
             f"{shutil.which('resample_map')} " +
-            "--forecast-version {forecast_version} "
+            "--postprocessing-version {postprocessing_version} "
     )
 
 
@@ -45,13 +45,13 @@ class PostprocessingWorkflow(WorkflowTemplate):
         # after the forecasts and then used to postprocess all measures for
         # all scenarios.
         resample_task = resample_template.get_task(
-            forecast_version=self.version
+            postprocessing_version=self.version
         )
         self.workflow.add_task(resample_task)
 
         for measure, scenario in itertools.product(measures, scenarios):
             postprocessing_task = postprocessing_template.get_task(
-                forecast_version=self.version,
+                postprocessing_version=self.version,
                 scenario=scenario,
                 measure=measure,
             )

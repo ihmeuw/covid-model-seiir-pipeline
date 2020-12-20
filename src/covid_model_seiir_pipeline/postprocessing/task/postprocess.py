@@ -124,7 +124,7 @@ def postprocess_miscellaneous(data_interface: ForecastDataInterface,
         io.dump(miscellaneous_data, key)
 
 
-def run_seir_postprocessing(forecast_version: str, scenario_name: str, measure: str) -> None:
+def run_seir_postprocessing(postprocessing_version: str, scenario_name: str, measure: str) -> None:
     logger.info(f'Starting postprocessing for forecast version {forecast_version}, scenario {scenario_name}.')
     forecast_spec = ForecastSpecification.from_path(
         Path(forecast_version) / static_vars.FORECAST_SPECIFICATION_FILE
@@ -152,7 +152,7 @@ def parse_arguments(argstr: Optional[str] = None) -> Namespace:
     """
     logger.info("parsing arguments")
     parser = ArgumentParser()
-    parser.add_argument("--forecast-version", type=str, required=True)
+    parser.add_argument("--postprocessing-version", type=str, required=True)
     parser.add_argument("--scenario-name", type=str, required=True)
     parser.add_argument("--measure", type=str, required=True)
 
@@ -168,7 +168,7 @@ def parse_arguments(argstr: Optional[str] = None) -> Namespace:
 def main():
     configure_logging_to_terminal(verbose=1)  # Debug level
     args = parse_arguments()
-    run_seir_postprocessing(forecast_version=args.forecast_version,
+    run_seir_postprocessing(postprocessing_version=args.postprocessing_version,
                             scenario_name=args.scenario_name,
                             measure=args.measure)
 
