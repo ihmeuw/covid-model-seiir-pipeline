@@ -55,4 +55,5 @@ class PostprocessingWorkflow(WorkflowTemplate):
                 scenario=scenario,
                 measure=measure,
             )
+            postprocessing_task.add_upstream(resample_task)
             self.workflow.add_task(postprocessing_task)
