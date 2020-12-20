@@ -1,8 +1,6 @@
 from dataclasses import dataclass, field
 from typing import Dict, List, NamedTuple, Tuple
 
-import pandas as pd
-
 from covid_model_seiir_pipeline.utilities import (
     Specification,
     asdict,

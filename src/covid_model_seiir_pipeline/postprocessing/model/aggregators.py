@@ -10,33 +10,36 @@ def summarize(data: pd.DataFrame) -> pd.DataFrame:
 
 
 def sum_aggregator(measure_data: pd.DataFrame, hierarchy: pd.DataFrame, _population: pd.DataFrame) -> pd.DataFrame:
-    """Aggregates global and national data from subnational models by addition.
-
-    For use with daily count space data.
+    """Aggregates most-detailed locations to locations in the hierarchy by sum.
 
     The ``_population`` argument is here for api consistency and is not used.
 
     """
-    most_detailed = hierarchy.loc[hierarchy.most_detailed == 1, 'location_id'].tolist()
-    # The observed column is in the elastispliner data.
-    if 'observed' in measure_data.index.names:
-        measure_data = measure_data.reset_index(level='observed')
+    measure_data = measure_data.reset_index()
+    modeled_locs = measure_data.location_id.unique().tolist()
 
-    # Produce the global cause it's good to see.
-    global_aggregate = measure_data.loc[most_detailed].groupby(level='date').sum()
-    global_aggregate = pd.concat({1: global_aggregate}, names=['location_id'])
-    measure_data = measure_data.append(global_aggregate)
+    non_most_detailed_h = hierarchy.loc[hierarchy.most_detailed == 0, 'location_id'].tolist()
+    non_most_detailed_m = list(set(modeled_locs).intersection(non_most_detailed_h))
+    # TODO: Potentially a real error or warning depending on hierarchies.
+    assert not non_most_detailed_m, 'Why are we modeling aggregate locations?  Maybe a bad hierarchy.'
 
-    # Otherwise, all aggregation is to the national level.
-    national_level = 3
-    subnational_levels = sorted([level for level in hierarchy['level'].unique().tolist() if level > national_level])
-    for level in subnational_levels[::-1]:  # From most detailed to least_detailed
+    measure_data = measure_data.set_index(['location_id', 'date'])
+    levels = sorted(hierarchy['level'].unique().tolist())
+    missing_map = {}
+    for level in levels[::-1]:  # From most detailed to least_detailed
         locs_at_level = hierarchy[hierarchy.level == level]
+        modeled_locs = measure_data.location_id.unique().tolist()
+
         for parent_id, children in locs_at_level.groupby('parent_id'):
             child_locs = children.location_id.tolist()
-            aggregate = measure_data.loc[child_locs].groupby(level='date').sum()
+            modeled_child_locs = list(set(child_locs).intersection(modeled_locs))
+            missing_child_locs = list(set(child_locs).difference(modeled_locs))
+
+            aggregate = measure_data.loc[modeled_child_locs].groupby(level='date').sum()
             aggregate = pd.concat({parent_id: aggregate}, names=['location_id'])
+
             measure_data = measure_data.append(aggregate)
+            missing_map[parent_id] = missing_child_locs
 
     # We'll call any aggregate with at least one observed point observed.
     if 'observed' in measure_data.columns:
@@ -46,8 +49,8 @@ def sum_aggregator(measure_data: pd.DataFrame, hierarchy: pd.DataFrame, _populat
 
 
 def mean_aggregator(measure_data: pd.DataFrame, hierarchy: pd.DataFrame, population: pd.DataFrame) -> pd.DataFrame:
-    """Aggregates global and national data from subnational models by a
-    population weighted mean.
+    """Aggregates most-detailed locations to locations in the hierarchy by
+    population-weighted mean.
 
     """
     # Get all age/sex population and append to the data.

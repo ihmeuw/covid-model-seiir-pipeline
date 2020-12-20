@@ -36,7 +36,7 @@ def postprocess_measure(postprocessing_spec: PostprocessingSpecification,
             measure_data = splicing.splice_data(measure_data, previous_data, splicing_config.locations)
 
     if measure_config.aggregator is not None:
-        hierarchy = data_interface.load_modeled_heirarchy()
+        hierarchy = data_interface.load_aggregation_heirarchy(postprocessing_spec.aggregation)
         population = data_interface.load_populations()
         measure_data = measure_config.aggregator(measure_data, hierarchy, population)
 
@@ -77,7 +77,7 @@ def postprocess_covariate(postprocessing_spec: PostprocessingSpecification,
             covariate_data = splicing.splice_data(covariate_data, previous_data, locs_to_splice)
 
     if covariate_config.aggregator is not None:
-        hierarchy = data_interface.load_modeled_heirarchy()
+        hierarchy = data_interface.load_aggregation_heirarchy(postprocessing_spec.aggregation)
         population = data_interface.load_populations()
         covariate_data = covariate_config.aggregator(covariate_data, hierarchy, population)
 
@@ -119,7 +119,7 @@ def postprocess_miscellaneous(postprocessing_spec: PostprocessingSpecification,
     miscellaneous_data = miscellaneous_config.loader(data_interface)
 
     if miscellaneous_config.aggregator is not None:
-        hierarchy = data_interface.load_modeled_heirarchy()
+        hierarchy = data_interface.load_aggregation_heirarchy(postprocessing_spec.aggregation)
         population = data_interface.load_populations()
         miscellaneous_data = miscellaneous_config.aggregator(miscellaneous_data, hierarchy, population)
 

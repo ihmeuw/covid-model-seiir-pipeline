@@ -1,13 +1,16 @@
 from pathlib import Path
-from typing import Dict, List, Tuple, Union
+from typing import Dict, List, Tuple
 
 import numpy as np
 import pandas as pd
 
-from covid_model_seiir_pipeline import io, static_vars
+from covid_model_seiir_pipeline import io, static_vars, utilities
 from covid_model_seiir_pipeline.forecasting.specification import ForecastSpecification
 from covid_model_seiir_pipeline.forecasting.data import ForecastDataInterface
-from covid_model_seiir_pipeline.postprocessing.specification import PostprocessingSpecification
+from covid_model_seiir_pipeline.postprocessing.specification import (
+    PostprocessingSpecification,
+    AggregationSpecification,
+)
 
 
 class PostprocessingDataInterface:
@@ -64,7 +67,6 @@ class PostprocessingDataInterface:
         scaling_parameters.columns = ['location_id', 'scaling_parameter', draw_id]
         scaling_parameters = scaling_parameters.set_index(['location_id', 'scaling_parameter'])[draw_id]
         return scaling_parameters
-
 
     def load_covariate(self, draw_id: int, covariate: str, time_varying: bool,
                        scenario: str, with_observed: bool = False) -> pd.Series:
@@ -203,12 +205,11 @@ class PostprocessingDataInterface:
         hierarchy = pd.read_csv(hierarchy_path)
         return hierarchy
 
-    def load_modeled_heirarchy(self):
-        hierarchy = self.load_hierarchy()
-        modeled_locs = self.get_locations_modeled_and_missing()['modeled']
-        not_most_detailed = hierarchy.most_detailed == 0
-        modeled = hierarchy.location_id.isin(modeled_locs)
-        return hierarchy[not_most_detailed | modeled]
+    def load_aggregation_heirarchy(self, aggregation_spec: AggregationSpecification):
+        if any(aggregation_spec.to_dict().values()):
+            return utilities.load_location_hierarchy(**aggregation_spec.to_dict())
+        else:
+            return self.load_hierarchy()
 
     def get_locations_modeled_and_missing(self):
         hierarchy = self.load_hierarchy()
