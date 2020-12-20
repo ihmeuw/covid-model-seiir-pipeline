@@ -51,7 +51,7 @@ class PostprocessingDataInterface:
         coefficients = coefficients.set_index(['location_id', 'covariate'])[draw_id]
         return coefficients
 
-    def load_scaling_parameters(self, scenario: str, draw_id: int) -> pd.Series:
+    def load_scaling_parameters(self, draw_id: int, scenario: str) -> pd.Series:
         scaling_parameters = self._get_forecast_data_inteface().load_beta_scales(scenario, draw_id)
         scaling_parameters = scaling_parameters.set_index('location_id').stack().reset_index()
         scaling_parameters.columns = ['location_id', 'scaling_parameter', draw_id]
@@ -61,7 +61,7 @@ class PostprocessingDataInterface:
     def load_resampling_map(self):
         return io.load(self.postprocessing_root.resampling_map())
 
-    def load_covariate(self, covariate: str, time_varying: bool, scenario: str, draw_id: int) -> pd.Series:
+    def load_covariate(self, draw_id: int, covariate: str, time_varying: bool, scenario: str) -> pd.Series:
         covariates = io.load(self.forecast_root.raw_covariates(scenario=scenario, draw_id=draw_id))
         covariates['date'] = pd.to_datetime(covariates['date'])
         covariates = covariates.set_index(['location_id', 'date']).sort_index()
@@ -71,7 +71,7 @@ class PostprocessingDataInterface:
             covariate = covariates.groupby(level='location_id')[covariate].max().rename(draw_id)
         return covariate
 
-    def load_betas(self, scenario: str, draw_id: int) -> pd.Series:
+    def load_betas(self, draw_id: int, scenario: str) -> pd.Series:
         ode_params = io.load(self.forecast_root.ode_params(scenario=scenario, draw_id=draw_id))
         ode_params['date'] = pd.to_datetime(ode_params['date'])
         betas = (ode_params
@@ -88,7 +88,7 @@ class PostprocessingDataInterface:
         beta_residual = np.log(beta_regression['beta'] / beta_regression['beta_pred']).rename(draw_id)
         return beta_residual
 
-    def load_raw_outputs(self, scenario: str, draw_id: int) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+    def load_raw_outputs(self, draw_id: int, scenario: str) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
         draw_df = io.load(self.forecast_root.raw_outputs(scenario=scenario, draw_id=draw_id))
         draw_df = draw_df.set_index(['location_id', 'date']).sort_index()
         deaths = draw_df.reset_index().set_index(['location_id', 'date', 'observed'])['deaths'].rename(draw_id)
