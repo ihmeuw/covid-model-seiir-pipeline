@@ -64,9 +64,6 @@ class ResamplingSpecification:
     lower_quantile: float = field(default=0.025)
     upper_quantile: float = field(default=0.975)
 
-    def __post_init__(self):
-        self.reference_date = pd.to_datetime(self.reference_date)
-
     def to_dict(self) -> Dict:
         return asdict(self)
 
