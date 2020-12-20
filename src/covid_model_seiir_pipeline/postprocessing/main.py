@@ -23,7 +23,7 @@ def do_postprocessing(app_metadata: cli_tools.Metadata,
                                           postprocessing_specification.workflow)
         known_covariates = list(final_outputs.COVARIATES)
         modeled_covariates = set(data_interface.get_covariate_names(postprocessing_specification.data.scenarios))
-        unknown_covariates = modeled_covariates.difference(known_covariates)
+        unknown_covariates = modeled_covariates.difference(known_covariates + ['intercept'])
         if unknown_covariates:
             logger.warning("Some covariates that were modeled have no postprocessing configuration. "
                            "Postprocessing will produce no outputs for these covariates. "
