@@ -11,3 +11,7 @@ from .data_roots import (
     ForecastRoot,
     PostprocessingRoot
 )
+from .keys import (
+    DatasetKey,
+    MetadataKey,
+)

@@ -42,12 +42,10 @@ class OtherConfig:
     def __init__(self,
                  loader: Callable[[PostprocessingDataInterface], Any],
                  label: str,
-                 splice: bool = False,
                  is_table: bool = True,
                  aggregator: Callable = None):
         self.loader = loader
         self.label = label
-        self.splice = splice
         self.is_table = is_table
         self.aggregator = aggregator
 
@@ -91,7 +89,7 @@ MEASURES = {
     ),
     'scaling_parameters': MeasureConfig(
         loaders.load_scaling_parameters,
-        'beta_scaling_parameters'
+        'beta_scaling_parameters',
         splice=True,
     ),
     'elastispliner_noisy': MeasureConfig(

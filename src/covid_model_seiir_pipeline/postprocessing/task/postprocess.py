@@ -1,32 +1,40 @@
 from argparse import ArgumentParser, Namespace
 from pathlib import Path
 import shlex
-from typing import Any, Callable, Dict, List, Optional
+from typing import Optional
 
 from covid_shared.cli_tools.logging import configure_logging_to_terminal
 from loguru import logger
 import pandas as pd
 
 from covid_model_seiir_pipeline import static_vars
-from covid_model_seiir_pipeline import io
-from covid_model_seiir_pipeline.io.keys import MetadataKey
 from covid_model_seiir_pipeline.postprocessing.data import PostprocessingDataInterface
 from covid_model_seiir_pipeline.postprocessing.specification import PostprocessingSpecification, POSTPROCESSING_JOBS
-from covid_model_seiir_pipeline.postprocessing.model import final_outputs, resampling, loaders, aggregators
+from covid_model_seiir_pipeline.postprocessing.model import final_outputs, resampling, aggregators, splicing
 
 
-def postprocess_measure(data_interface: PostprocessingDataInterface,
-                        resampling_map: Dict[int, Dict[str, List[int]]],
-                        scenario_name: str, measure: str,
-                        num_cores: int) -> None:
+def postprocess_measure(postprocessing_spec: PostprocessingSpecification,
+                        data_interface: PostprocessingDataInterface,
+                        scenario_name: str, measure: str) -> None:
     measure_config = final_outputs.MEASURES[measure]
     logger.info(f'Loading {measure}.')
+    num_cores = postprocessing_spec.workflow.task_specifications[POSTPROCESSING_JOBS.postprocess].num_cores
     measure_data = measure_config.loader(scenario_name, data_interface, num_cores)
+
     if isinstance(measure_data, (list, tuple)):
         logger.info(f'Concatenating {measure}.')
         measure_data = pd.concat(measure_data, axis=1)
+
     logger.info(f'Resampling {measure}.')
-    measure_data = resampling.resample_draws(measure_data, resampling_map)
+    measure_data = resampling.resample_draws(measure_data,
+                                             data_interface.load_resampling_map())
+
+    if measure_config.splice:
+        for locs_to_splice, splice_version in postprocessing_spec.splicing:
+            previous_data = data_interface.load_previous_version_output_draws(splice_version,
+                                                                              scenario_name,
+                                                                              measure_config.label)
+            measure_data = splicing.splice_data(measure_data, previous_data, locs_to_splice)
 
     if measure_config.aggregator is not None:
         hierarchy = data_interface.load_modeled_heirarchy()
@@ -48,17 +56,26 @@ def postprocess_measure(data_interface: PostprocessingDataInterface,
                                              measure_config.cumulative_label)
 
 
-def postprocess_covariate(data_interface: PostprocessingDataInterface,
-                          resampling_map: Dict[int, Dict[str, List[int]]],
-                          scenario_name: str, covariate: str,
-                          num_cores: int) -> None:
+def postprocess_covariate(postprocessing_spec: PostprocessingSpecification,
+                          data_interface: PostprocessingDataInterface,
+                          scenario_name: str, covariate: str) -> None:
     covariate_config = final_outputs.COVARIATES[covariate]
     logger.info(f'Loading {covariate}.')
+    num_cores = postprocessing_spec.workflow.task_specifications[POSTPROCESSING_JOBS.postprocess].num_cores
     covariate_data = covariate_config.loader(covariate, covariate_config.time_varying,
                                              scenario_name, data_interface, num_cores)
+
     logger.info(f'Concatenating and resampling {covariate}.')
     covariate_data = pd.concat(covariate_data, axis=1)
-    covariate_data = resampling.resample_draws(covariate_data, resampling_map)
+    covariate_data = resampling.resample_draws(covariate_data,
+                                               data_interface.load_resampling_map())
+
+    if covariate_config.splice:
+        for locs_to_splice, splice_version in postprocessing_spec.splicing:
+            previous_data = data_interface.load_previous_version_output_draws(splice_version,
+                                                                              scenario_name,
+                                                                              covariate_config.label)
+            covariate_data = splicing.splice_data(covariate_data, previous_data, locs_to_splice)
 
     if covariate_config.aggregator is not None:
         hierarchy = data_interface.load_modeled_heirarchy()
@@ -95,9 +112,9 @@ def postprocess_covariate(data_interface: PostprocessingDataInterface,
     data_interface.save_output_summaries(summarized_data.reset_index(), scenario_name, covariate_config.label)
 
 
-def postprocess_miscellaneous(data_interface: PostprocessingDataInterface,
-                              scenario_name: str, measure: str,
-                              num_cores: int):
+def postprocess_miscellaneous(postprocessing_spec: PostprocessingSpecification,
+                              data_interface: PostprocessingDataInterface,
+                              scenario_name: str, measure: str):
     miscellaneous_config = final_outputs.MISCELLANEOUS[measure]
     logger.info(f'Loading {measure}.')
     miscellaneous_data = miscellaneous_config.loader(data_interface)
@@ -108,15 +125,10 @@ def postprocess_miscellaneous(data_interface: PostprocessingDataInterface,
         miscellaneous_data = miscellaneous_config.aggregator(miscellaneous_data, hierarchy, population)
 
     logger.info(f'Saving {measure} data.')
-    if miscellaneous_config.is_table:
-        data_interface.save_output_miscellaneous(miscellaneous_data.reset_index(), scenario_name,
-                                                 miscellaneous_config.label)
-    else:
-        # FIXME: Still sad about this.
-        key = MetadataKey(root=data_interface.postprocessing_root._root / scenario_name / 'output_miscellaneous',
-                          disk_format='yaml',
-                          data_type=miscellaneous_config.label)
-        io.dump(miscellaneous_data, key)
+    data_interface.save_output_miscellaneous(miscellaneous_data.reset_index(),
+                                             scenario_name,
+                                             miscellaneous_config.label,
+                                             miscellaneous_config.is_table)
 
 
 def run_seir_postprocessing(postprocessing_version: str, scenario_name: str, measure: str) -> None:
@@ -125,15 +137,13 @@ def run_seir_postprocessing(postprocessing_version: str, scenario_name: str, mea
         Path(postprocessing_version) / static_vars.POSTPROCESSING_SPECIFICATION_FILE
     )
     data_interface = PostprocessingDataInterface.from_specification(postprocessing_spec)
-    resampling_map = data_interface.load_resampling_map()
-    num_cores = postprocessing_spec.workflow.task_specifications[POSTPROCESSING_JOBS.postprocess].num_cores
 
     if measure in final_outputs.MEASURES:
-        postprocess_measure(data_interface, resampling_map, scenario_name, measure, num_cores)
+        postprocess_measure(postprocessing_spec, data_interface, scenario_name, measure)
     elif measure in final_outputs.COVARIATES:
-        postprocess_covariate(data_interface, resampling_map, scenario_name, measure, num_cores)
+        postprocess_covariate(postprocessing_spec, data_interface, scenario_name, measure)
     elif measure in final_outputs.MISCELLANEOUS:
-        postprocess_miscellaneous(data_interface, scenario_name, measure, num_cores)
+        postprocess_miscellaneous(postprocessing_spec, data_interface, scenario_name, measure)
     else:
         raise NotImplementedError(f'Unknown measure {measure}.')
 

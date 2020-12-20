@@ -1,10 +1,10 @@
 from pathlib import Path
-from typing import List, Tuple
+from typing import Dict, List, Tuple, Union
 
 import numpy as np
 import pandas as pd
 
-from covid_model_seiir_pipeline import io
+from covid_model_seiir_pipeline import io, static_vars
 from covid_model_seiir_pipeline.forecasting.specification import ForecastSpecification
 from covid_model_seiir_pipeline.forecasting.data import ForecastDataInterface
 from covid_model_seiir_pipeline.postprocessing.specification import PostprocessingSpecification
@@ -65,8 +65,6 @@ class PostprocessingDataInterface:
         scaling_parameters = scaling_parameters.set_index(['location_id', 'scaling_parameter'])[draw_id]
         return scaling_parameters
 
-    def load_resampling_map(self):
-        return io.load(self.postprocessing_root.resampling_map())
 
     def load_covariate(self, draw_id: int, covariate: str, time_varying: bool,
                        scenario: str, with_observed: bool = False) -> pd.Series:
@@ -220,6 +218,27 @@ class PostprocessingDataInterface:
         locations_modeled_and_missing = {'modeled': modeled_locations, 'missing': missing_locations}
         return locations_modeled_and_missing
 
+    def load_specification(self) -> 'PostprocessingSpecification':
+        spec_dict = io.load(self.postprocessing_root.specification())
+        return PostprocessingSpecification.from_dict(spec_dict)
+
+    def load_resampling_map(self) -> Dict[int, Dict[str, List[int]]]:
+        return io.load(self.postprocessing_root.resampling_map())
+
+    def load_output_draws(self, scenario: str, measure: str) -> pd.DataFrame:
+        return io.load(self.postprocessing_root.output_draws(scenario=scenario, measure=measure))
+
+    def load_output_summaries(self, scenario: str, measure: str) -> pd.DataFrame:
+        return io.load(self.postprocessing_root.output_summaries(scenario=scenario, measure=measure))
+
+    def load_output_miscellaneous(self, scenario: str, measure: str, is_table: bool) -> pd.DataFrame:
+        key = self._get_output_miscellaneous_key(scenario, measure, is_table)
+        return io.load(key)
+
+    def load_previous_version_output_draws(self, version: str, scenario: str, measure: str):
+        previous_di = self._get_previous_version_data_interface(version)
+        return previous_di.load_output_draws(scenario, measure)
+
     ################
     # Data writers #
     ################
@@ -227,7 +246,7 @@ class PostprocessingDataInterface:
     def save_specification(self, specification: PostprocessingSpecification):
         io.dump(specification.to_dict(), self.postprocessing_root.specification())
 
-    def save_resampling_map(self, resampling_map):
+    def save_resampling_map(self, resampling_map: Dict[int, Dict[str, List[int]]]):
         io.dump(resampling_map, self.postprocessing_root.resampling_map())
 
     def save_output_draws(self, output_draws: pd.DataFrame, scenario: str, measure: str):
@@ -236,8 +255,10 @@ class PostprocessingDataInterface:
     def save_output_summaries(self, output_summaries: pd.DataFrame, scenario: str, measure: str):
         io.dump(output_summaries, self.postprocessing_root.output_summaries(scenario=scenario, measure=measure))
 
-    def save_output_miscellaneous(self, output_miscellaneous: pd.DataFrame, scenario: str, measure: str):
-        io.dump(output_miscellaneous, self.postprocessing_root.output_miscellaneous(scenario=scenario, measure=measure))
+    def save_output_miscellaneous(self, output_miscellaneous,
+                                  scenario: str, measure: str, is_table: bool):
+        key = self._get_output_miscellaneous_key(scenario, measure, is_table)
+        io.dump(output_miscellaneous, key)
 
     #########################
     # Non-interface methods #
@@ -247,3 +268,18 @@ class PostprocessingDataInterface:
         forecast_spec = ForecastSpecification.from_dict(io.load(self.forecast_root.specification()))
         forecast_di = ForecastDataInterface.from_specification(forecast_spec)
         return forecast_di
+
+    def _get_previous_version_data_interface(self, version: str) -> 'PostprocessingDataInterface':
+        previous_spec_path = Path(version) / static_vars.POSTPROCESSING_SPECIFICATION_FILE
+        previous_spec = PostprocessingSpecification.from_path(previous_spec_path)
+        previous_di = PostprocessingDataInterface.from_specification(previous_spec)
+        return previous_di
+
+    def _get_output_miscellaneous_key(self, scenario: str, measure: str, is_table: bool):
+        if is_table:
+            key = self.postprocessing_root.output_miscellaneous(scenario=scenario, measure=measure)
+        else:
+            key = io.MetadataKey(root=self.postprocessing_root._root / scenario / 'output_miscellaneous',
+                                 disk_format=self.postprocessing_root._metadata_format,
+                                 data_type=measure)
+        return key
