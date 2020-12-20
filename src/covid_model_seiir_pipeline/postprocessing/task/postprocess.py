@@ -113,7 +113,7 @@ def postprocess_miscellaneous(data_interface: PostprocessingDataInterface,
                                                  miscellaneous_config.label)
     else:
         # FIXME: Still sad about this.
-        key = MetadataKey(root=data_interface.forecast_root._root / scenario_name,
+        key = MetadataKey(root=data_interface.postprocessing_root._root / scenario_name / 'output_miscellaneous',
                           disk_format='yaml',
                           data_type=miscellaneous_config.label)
         io.dump(miscellaneous_data, key)

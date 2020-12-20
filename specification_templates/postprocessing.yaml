@@ -1,5 +1,5 @@
 data:
-  forecast_version: '2020_12_19.02'
+  forecast_version: '2020_12_19.03'
   scenarios:
     - 'worse'
     - 'reference'
