@@ -121,9 +121,5 @@ def load_hierarchy(data_interface: PostprocessingDataInterface):
     return data_interface.load_hierarchy()
 
 
-def load_modeled_hierarchy(data_interface: PostprocessingDataInterface):
-    return data_interface.load_modeled_heirarchy()
-
-
 def get_locations_modeled_and_missing(data_interface: PostprocessingDataInterface):
     return data_interface.get_locations_modeled_and_missing()

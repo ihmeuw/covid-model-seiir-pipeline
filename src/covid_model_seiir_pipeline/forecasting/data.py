@@ -118,10 +118,6 @@ class ForecastDataInterface:
         data = pd.read_csv(data_path)
         return data.set_index('location_id')
 
-
-
-
-
     def load_total_deaths(self):
         """Load cumulative deaths by location."""
         full_data = self.load_full_data()

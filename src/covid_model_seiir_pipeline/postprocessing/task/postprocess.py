@@ -10,36 +10,32 @@ import pandas as pd
 from covid_model_seiir_pipeline import static_vars
 from covid_model_seiir_pipeline import io
 from covid_model_seiir_pipeline.io.keys import MetadataKey
-from covid_model_seiir_pipeline.forecasting.specification import (
-    ForecastSpecification,
-    ScenarioSpecification,
-    FORECAST_JOBS,
-)
-from covid_model_seiir_pipeline.forecasting.data import ForecastDataInterface
-from covid_model_seiir_pipeline.forecasting import postprocessing_lib as pp
+from covid_model_seiir_pipeline.postprocessing.data import PostprocessingDataInterface
+from covid_model_seiir_pipeline.postprocessing.specification import PostprocessingSpecification, POSTPROCESSING_JOBS
+from covid_model_seiir_pipeline.postprocessing.model import final_outputs, resampling, loaders, aggregators
 
 
-def postprocess_measure(data_interface: ForecastDataInterface,
+def postprocess_measure(data_interface: PostprocessingDataInterface,
                         resampling_map: Dict[int, Dict[str, List[int]]],
                         scenario_name: str, measure: str,
                         num_cores: int) -> None:
-    measure_config = MEASURES[measure]
+    measure_config = final_outputs.MEASURES[measure]
     logger.info(f'Loading {measure}.')
     measure_data = measure_config.loader(scenario_name, data_interface, num_cores)
     if isinstance(measure_data, (list, tuple)):
         logger.info(f'Concatenating {measure}.')
         measure_data = pd.concat(measure_data, axis=1)
     logger.info(f'Resampling {measure}.')
-    measure_data = pp.resample_draws(measure_data, resampling_map)
+    measure_data = resampling.resample_draws(measure_data, resampling_map)
 
     if measure_config.aggregator is not None:
-        hierarchy = pp.load_modeled_hierarchy(data_interface)
-        population = pp.load_populations(data_interface)
+        hierarchy = data_interface.load_modeled_heirarchy()
+        population = data_interface.load_populations()
         measure_data = measure_config.aggregator(measure_data, hierarchy, population)
 
     logger.info(f'Saving draws and summaries for {measure}.')
     data_interface.save_output_draws(measure_data.reset_index(), scenario_name, measure_config.label)
-    summarized = pp.summarize(measure_data)
+    summarized = aggregators.summarize(measure_data)
     data_interface.save_output_summaries(summarized.reset_index(), scenario_name, measure_config.label)
 
     if measure_config.calculate_cumulative:
@@ -47,35 +43,34 @@ def postprocess_measure(data_interface: ForecastDataInterface,
         cumulative_measure_data = measure_data.groupby(level='location_id').cumsum()
         data_interface.save_output_draws(cumulative_measure_data.reset_index(), scenario_name,
                                          measure_config.cumulative_label)
-        summarized = pp.summarize(cumulative_measure_data)
+        summarized = aggregators.summarize(cumulative_measure_data)
         data_interface.save_output_summaries(summarized.reset_index(), scenario_name,
                                              measure_config.cumulative_label)
 
 
-def postprocess_covariate(data_interface: ForecastDataInterface,
+def postprocess_covariate(data_interface: PostprocessingDataInterface,
                           resampling_map: Dict[int, Dict[str, List[int]]],
-                          scenario_spec: ScenarioSpecification,
                           scenario_name: str, covariate: str,
                           num_cores: int) -> None:
-    covariate_config = COVARIATES[covariate]
+    covariate_config = final_outputs.COVARIATES[covariate]
     logger.info(f'Loading {covariate}.')
     covariate_data = covariate_config.loader(covariate, covariate_config.time_varying,
                                              scenario_name, data_interface, num_cores)
     logger.info(f'Concatenating and resampling {covariate}.')
     covariate_data = pd.concat(covariate_data, axis=1)
-    covariate_data = pp.resample_draws(covariate_data, resampling_map)
+    covariate_data = resampling.resample_draws(covariate_data, resampling_map)
 
     if covariate_config.aggregator is not None:
-        hierarchy = pp.load_modeled_hierarchy(data_interface)
-        population = pp.load_populations(data_interface)
+        hierarchy = data_interface.load_modeled_heirarchy()
+        population = data_interface.load_populations()
         covariate_data = covariate_config.aggregator(covariate_data, hierarchy, population)
 
-    covariate_version = scenario_spec.covariates[covariate]
+    covariate_version = data_interface.get_covariate_version(covariate, scenario_name)
     location_ids = data_interface.load_location_ids()
     n_draws = data_interface.get_n_draws()
 
     logger.info(f'Loading and processing input data for {covariate}.')
-    input_covariate_data = data_interface.load_covariate(covariate, covariate_version, location_ids, with_observed=True)
+    input_covariate_data = data_interface.load_input_covariate(covariate, covariate_version, location_ids)
     covariate_observed = input_covariate_data.reset_index(level='observed')
     covariate_data = covariate_data.merge(covariate_observed, left_index=True,
                                           right_index=True, how='outer').reset_index()
@@ -96,20 +91,20 @@ def postprocess_covariate(data_interface: ForecastDataInterface,
     if covariate_config.draw_level:
         data_interface.save_output_draws(covariate_data.reset_index(), scenario_name, covariate_config.label)
 
-    summarized_data = pp.summarize(covariate_data)
+    summarized_data = aggregators.summarize(covariate_data)
     data_interface.save_output_summaries(summarized_data.reset_index(), scenario_name, covariate_config.label)
 
 
-def postprocess_miscellaneous(data_interface: ForecastDataInterface,
+def postprocess_miscellaneous(data_interface: PostprocessingDataInterface,
                               scenario_name: str, measure: str,
                               num_cores: int):
-    miscellaneous_config = MISCELLANEOUS[measure]
+    miscellaneous_config = final_outputs.MISCELLANEOUS[measure]
     logger.info(f'Loading {measure}.')
     miscellaneous_data = miscellaneous_config.loader(data_interface)
 
     if miscellaneous_config.aggregator is not None:
-        hierarchy = pp.load_modeled_hierarchy(data_interface)
-        population = pp.load_populations(data_interface)
+        hierarchy = data_interface.load_modeled_heirarchy()
+        population = data_interface.load_populations()
         miscellaneous_data = miscellaneous_config.aggregator(miscellaneous_data, hierarchy, population)
 
     logger.info(f'Saving {measure} data.')
@@ -125,20 +120,19 @@ def postprocess_miscellaneous(data_interface: ForecastDataInterface,
 
 
 def run_seir_postprocessing(postprocessing_version: str, scenario_name: str, measure: str) -> None:
-    logger.info(f'Starting postprocessing for forecast version {forecast_version}, scenario {scenario_name}.')
-    forecast_spec = ForecastSpecification.from_path(
-        Path(forecast_version) / static_vars.FORECAST_SPECIFICATION_FILE
+    logger.info(f'Starting postprocessing for version {postprocessing_version}, scenario {scenario_name}.')
+    postprocessing_spec = PostprocessingSpecification.from_path(
+        Path(postprocessing_version) / static_vars.POSTPROCESSING_SPECIFICATION_FILE
     )
-    scenario_spec = forecast_spec.scenarios[scenario_name]
-    data_interface = ForecastDataInterface.from_specification(forecast_spec)
+    data_interface = PostprocessingDataInterface.from_specification(postprocessing_spec)
     resampling_map = data_interface.load_resampling_map()
-    num_cores = forecast_spec.workflow.task_specifications[FORECAST_JOBS.postprocess].num_cores
+    num_cores = postprocessing_spec.workflow.task_specifications[POSTPROCESSING_JOBS.postprocess].num_cores
 
-    if measure in MEASURES:
+    if measure in final_outputs.MEASURES:
         postprocess_measure(data_interface, resampling_map, scenario_name, measure, num_cores)
-    elif measure in COVARIATES:
-        postprocess_covariate(data_interface, resampling_map, scenario_spec, scenario_name, measure, num_cores)
-    elif measure in MISCELLANEOUS:
+    elif measure in final_outputs.COVARIATES:
+        postprocess_covariate(data_interface, resampling_map, scenario_name, measure, num_cores)
+    elif measure in final_outputs.MISCELLANEOUS:
         postprocess_miscellaneous(data_interface, scenario_name, measure, num_cores)
     else:
         raise NotImplementedError(f'Unknown measure {measure}.')

@@ -44,6 +44,13 @@ class PostprocessingDataInterface:
         scenarios = {scenario: spec for scenario, spec in forecast_spec.scenarios.items() if scenario in scenarios}
         return forecast_di.check_covariates(scenarios)
 
+    def get_covariate_version(self, covariate_name: str, scenario: str) -> str:
+        forecast_spec = ForecastSpecification.from_dict(io.load(self.forecast_root.specification()))
+        return forecast_spec.scenarios[scenario].covariates[covariate_name]
+
+    def load_location_ids(self):
+        return self._get_forecast_data_inteface().load_location_ids()
+
     def load_regression_coefficients(self, draw_id: int) -> pd.Series:
         coefficients = self._get_forecast_data_inteface().load_regression_coefficients(draw_id)
         coefficients = coefficients.set_index('location_id').stack().reset_index()
@@ -61,7 +68,8 @@ class PostprocessingDataInterface:
     def load_resampling_map(self):
         return io.load(self.postprocessing_root.resampling_map())
 
-    def load_covariate(self, draw_id: int, covariate: str, time_varying: bool, scenario: str) -> pd.Series:
+    def load_covariate(self, draw_id: int, covariate: str, time_varying: bool,
+                       scenario: str, with_observed: bool = False) -> pd.Series:
         covariates = io.load(self.forecast_root.raw_covariates(scenario=scenario, draw_id=draw_id))
         covariates['date'] = pd.to_datetime(covariates['date'])
         covariates = covariates.set_index(['location_id', 'date']).sort_index()
@@ -70,6 +78,10 @@ class PostprocessingDataInterface:
         else:
             covariate = covariates.groupby(level='location_id')[covariate].max().rename(draw_id)
         return covariate
+
+    def load_input_covariate(self, covariate: str, covariate_version: str, location_ids: List[int]):
+        return self._get_forecast_data_inteface().load_covariate(covariate, covariate_version,
+                                                                 location_ids, with_observed=True)
 
     def load_betas(self, draw_id: int, scenario: str) -> pd.Series:
         ode_params = io.load(self.forecast_root.ode_params(scenario=scenario, draw_id=draw_id))
