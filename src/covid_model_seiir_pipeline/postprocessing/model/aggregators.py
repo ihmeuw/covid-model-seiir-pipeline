@@ -11,7 +11,7 @@ def summarize(data: pd.DataFrame) -> pd.DataFrame:
     return pd.concat([mean, upper, lower], axis=1)
 
 
-def sum_aggregator(measure_data: pd.DataFrame, hierarchy: pd.DataFrame, _population: pd.DataFrame) -> pd.DataFrame, Dict[int, List[int]]:
+def sum_aggregator(measure_data: pd.DataFrame, hierarchy: pd.DataFrame, _population: pd.DataFrame) -> pd.DataFrame:
     """Aggregates most-detailed locations to locations in the hierarchy by sum.
 
     The ``_population`` argument is here for api consistency and is not used.
@@ -47,7 +47,7 @@ def sum_aggregator(measure_data: pd.DataFrame, hierarchy: pd.DataFrame, _populat
                     missing_map[parent_id].extend(missing_map[child_loc])
                 elif child_loc not in modeled_child_locs:
                     missing_map[parent_id].append(child_loc)
- 
+
     # We'll call any aggregate with at least one observed point observed.
     if 'observed' in measure_data.columns:
         measure_data.loc[measure_data['observed'] >= 1, 'observed'] = 1
