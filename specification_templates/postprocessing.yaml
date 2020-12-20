@@ -8,14 +8,15 @@ data:
 workflow:
   project: 'proj_covid'
   queue: 'all.q'
-  resample:
-    max_runtime_seconds: 5000
-    m_mem_free: '50G'
-    num_cores: 26
-  postprocess:
-    max_runtime_seconds: 15000
-    m_mem_free: '150G'
-    num_cores: 26
+  tasks:
+    resample:
+      max_runtime_seconds: 5000
+      m_mem_free: '50G'
+      num_cores: 26
+    postprocess:
+      max_runtime_seconds: 15000
+      m_mem_free: '150G'
+      num_cores: 26
 resampling:
   reference_scenario: 'worse'
   reference_date: '2021-12-31'
