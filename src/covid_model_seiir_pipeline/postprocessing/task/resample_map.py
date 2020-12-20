@@ -20,10 +20,11 @@ def run_resample_map(postprocessing_version: str) -> None:
     workflow_spec = postprocessing_spec.workflow.task_specifications[POSTPROCESSING_JOBS.resample]
     resampling_params = postprocessing_spec.resampling
     data_interface = PostprocessingDataInterface.from_specification(postprocessing_spec)
-    deaths, *_ = loaders.load_output_data(resampling_params.reference_scenario,
-                                          data_interface,
-                                          workflow_spec.num_cores)
+    deaths = loaders.load_deaths(resampling_params.reference_scenario,
+                                 data_interface,
+                                 workflow_spec.num_cores)
     deaths = pd.concat(deaths, axis=1)
+    deaths['date'] = pd.to_datetime(deaths['date'])
     resampling_map = resampling.build_resampling_map(deaths, resampling_params)
     data_interface.save_resampling_map(resampling_map)
 
