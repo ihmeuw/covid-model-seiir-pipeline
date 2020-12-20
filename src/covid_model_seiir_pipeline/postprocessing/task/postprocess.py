@@ -20,7 +20,6 @@ def postprocess_measure(postprocessing_spec: PostprocessingSpecification,
     logger.info(f'Loading {measure}.')
     num_cores = postprocessing_spec.workflow.task_specifications[POSTPROCESSING_JOBS.postprocess].num_cores
     measure_data = measure_config.loader(scenario_name, data_interface, num_cores)
-
     if isinstance(measure_data, (list, tuple)):
         logger.info(f'Concatenating {measure}.')
         measure_data = pd.concat(measure_data, axis=1)
@@ -30,11 +29,11 @@ def postprocess_measure(postprocessing_spec: PostprocessingSpecification,
                                              data_interface.load_resampling_map())
 
     if measure_config.splice:
-        for locs_to_splice, splice_version in postprocessing_spec.splicing:
-            previous_data = data_interface.load_previous_version_output_draws(splice_version,
+        for splicing_config in postprocessing_spec.splicing:
+            previous_data = data_interface.load_previous_version_output_draws(splicing_config.output_version,
                                                                               scenario_name,
                                                                               measure_config.label)
-            measure_data = splicing.splice_data(measure_data, previous_data, locs_to_splice)
+            measure_data = splicing.splice_data(measure_data, previous_data, splicing_config.locations)
 
     if measure_config.aggregator is not None:
         hierarchy = data_interface.load_modeled_heirarchy()
