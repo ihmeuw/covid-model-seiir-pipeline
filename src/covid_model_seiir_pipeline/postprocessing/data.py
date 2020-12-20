@@ -39,7 +39,7 @@ class PostprocessingDataInterface:
         return self._get_forecast_data_inteface().get_n_draws()
 
     def get_covariate_names(self, scenarios: List[str]) -> List[str]:
-        forecast_spec = ForecastSpecification.from_dict(io.load(self.forecast_root.specification))
+        forecast_spec = ForecastSpecification.from_dict(io.load(self.forecast_root.specification()))
         forecast_di = ForecastDataInterface.from_specification(forecast_spec)
         scenarios = {scenario: spec for scenario, spec in forecast_spec.scenarios.items() if scenario in scenarios}
         return forecast_di.check_covariates(scenarios)
