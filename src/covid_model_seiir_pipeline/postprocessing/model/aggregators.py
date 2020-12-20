@@ -1,4 +1,6 @@
 """Postprocessing aggregation strategies."""
+from collections import defaultdict
+
 import pandas as pd
 
 
@@ -9,7 +11,7 @@ def summarize(data: pd.DataFrame) -> pd.DataFrame:
     return pd.concat([mean, upper, lower], axis=1)
 
 
-def sum_aggregator(measure_data: pd.DataFrame, hierarchy: pd.DataFrame, _population: pd.DataFrame) -> pd.DataFrame:
+def sum_aggregator(measure_data: pd.DataFrame, hierarchy: pd.DataFrame, _population: pd.DataFrame) -> pd.DataFrame, Dict[int, List[int]]:
     """Aggregates most-detailed locations to locations in the hierarchy by sum.
 
     The ``_population`` argument is here for api consistency and is not used.
@@ -25,7 +27,7 @@ def sum_aggregator(measure_data: pd.DataFrame, hierarchy: pd.DataFrame, _populat
 
     measure_data = measure_data.set_index(['location_id', 'date'])
     levels = sorted(hierarchy['level'].unique().tolist())
-    missing_map = {}
+    missing_map = defaultdict(list)
     data_locs = modeled_locs[:]
     for level in levels[::-1]:  # From most detailed to least_detailed
         locs_at_level = hierarchy[hierarchy.level == level]
@@ -40,17 +42,17 @@ def sum_aggregator(measure_data: pd.DataFrame, hierarchy: pd.DataFrame, _populat
             measure_data = measure_data.append(aggregate)
             data_locs.append(parent_id)
 
-            missing_map[parent_id] = []
             for child_loc in child_locs:
                 if child_loc in missing_map:
                     missing_map[parent_id].extend(missing_map[child_loc])
                 elif child_loc not in modeled_child_locs:
                     missing_map[parent_id].append(child_loc)
-
+ 
     # We'll call any aggregate with at least one observed point observed.
     if 'observed' in measure_data.columns:
         measure_data.loc[measure_data['observed'] >= 1, 'observed'] = 1
         measure_data = measure_data.set_index('observed', append=True)
+    # TODO: Figure out what to do with the missing map.
     return measure_data
 
 

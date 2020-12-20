@@ -23,8 +23,10 @@ resampling:
   lower_quantile: 0.025
   upper_quantile: 0.975
 splicing:
-  - locations: []
-    output_version: ''
+  - locations: [555, 532]
+    output_version: '/ihme/covid-19/seir-forecast/2020_12_16.03'
+  - locations: [531, 544]
+    output_version: '/ihme/covid-19/seir-forecast/2020_12_08.05'
 aggregation:
   location_file: ''
   location_set_id: 111
