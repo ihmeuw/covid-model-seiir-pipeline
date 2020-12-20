@@ -1,9 +1,9 @@
 data:
-  forecast_version: 'latest'
+  forecast_version: '2020_12_19.02'
   scenarios:
     - 'worse'
     - 'reference'
-    - 'best_masks'
+    - 'no_vaccine'
   output_root: ''
 workflow:
   project: 'proj_covid'
