@@ -23,8 +23,8 @@ resampling:
   lower_quantile: 0.025
   upper_quantile: 0.975
 splicing:
-  - locations: [33, 85, 555, 4693]
-    output_version: '/path/to/other/output/version'
+  - locations: []
+    output_version: ''
 aggregation:
   location_file: ''
   location_set_id: 111

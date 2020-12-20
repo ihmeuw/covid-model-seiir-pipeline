@@ -10,11 +10,13 @@ class MeasureConfig:
     def __init__(self,
                  loader: Callable[[str, PostprocessingDataInterface, int], Any],
                  label: str,
+                 splice: bool = False,
                  calculate_cumulative: bool = False,
                  cumulative_label: str = None,
                  aggregator: Callable = None):
         self.loader = loader
         self.label = label
+        self.splice = splice
         self.calculate_cumulative = calculate_cumulative
         self.cumulative_label = cumulative_label
         self.aggregator = aggregator
@@ -24,11 +26,13 @@ class CovariateConfig:
     def __init__(self,
                  loader: Callable[[str, bool, str, PostprocessingDataInterface, int], List[pd.Series]],
                  label: str,
+                 splice: bool = False,
                  time_varying: bool = False,
                  draw_level: bool = False,
                  aggregator: Callable = None):
         self.loader = loader
         self.label = label
+        self.splice = splice
         self.time_varying = time_varying
         self.draw_level = draw_level
         self.aggregator = aggregator
@@ -38,10 +42,12 @@ class OtherConfig:
     def __init__(self,
                  loader: Callable[[PostprocessingDataInterface], Any],
                  label: str,
+                 splice: bool = False,
                  is_table: bool = True,
                  aggregator: Callable = None):
         self.loader = loader
         self.label = label
+        self.splice = splice
         self.is_table = is_table
         self.aggregator = aggregator
 
@@ -50,6 +56,7 @@ MEASURES = {
     'deaths': MeasureConfig(
         loaders.load_deaths,
         'daily_deaths',
+        splice=True,
         calculate_cumulative=True,
         cumulative_label='cumulative_deaths',
         aggregator=aggregators.sum_aggregator,
@@ -57,6 +64,7 @@ MEASURES = {
     'infections': MeasureConfig(
         loaders.load_infections,
         'daily_infections',
+        splice=True,
         calculate_cumulative=True,
         cumulative_label='cumulative_infections',
         aggregator=aggregators.sum_aggregator,
@@ -64,22 +72,27 @@ MEASURES = {
     'r_effective': MeasureConfig(
         loaders.load_r_effective,
         'r_effective',
+        splice=True,
     ),
     'betas': MeasureConfig(
         loaders.load_betas,
         'betas',
+        splice=True,
     ),
     'beta_residuals': MeasureConfig(
         loaders.load_beta_residuals,
         'log_beta_residuals',
+        splice=True,
     ),
     'coefficients': MeasureConfig(
         loaders.load_coefficients,
         'coefficients',
+        splice=True,
     ),
     'scaling_parameters': MeasureConfig(
         loaders.load_scaling_parameters,
         'beta_scaling_parameters'
+        splice=True,
     ),
     'elastispliner_noisy': MeasureConfig(
         loaders.load_es_noisy,
