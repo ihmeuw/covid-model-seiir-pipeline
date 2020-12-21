@@ -24,7 +24,7 @@ def sum_aggregator(measure_data: pd.DataFrame, hierarchy: pd.DataFrame, _populat
     levels = sorted(hierarchy['level'].unique().tolist())
     missing_map = defaultdict(list)
     data_locs = _get_modeled_locs(measure_data, hierarchy)
-    for level in levels[::-1]:  # From most detailed to least_detailed
+    for level in reversed(levels[1:]):  # From most detailed to least_detailed
         locs_at_level = hierarchy[hierarchy.level == level]
 
         for parent_id, children in locs_at_level.groupby('parent_id'):
@@ -48,7 +48,7 @@ def sum_aggregator(measure_data: pd.DataFrame, hierarchy: pd.DataFrame, _populat
         measure_data.loc[measure_data['observed'] > 0, 'observed'] = 1
         measure_data = measure_data.set_index('observed', append=True)
     # TODO: Figure out what to do with the missing map.
-    return measure_data
+    return measure_data.sort_index()
 
 
 def mean_aggregator(measure_data: pd.DataFrame, hierarchy: pd.DataFrame, population: pd.DataFrame) -> pd.DataFrame:
@@ -58,7 +58,6 @@ def mean_aggregator(measure_data: pd.DataFrame, hierarchy: pd.DataFrame, populat
     """
     if 'observed' in measure_data.index.names:
         measure_data = measure_data.reset_index(level='observed')
-    import pdb; pdb.set_trace()
     # Get all age/sex population and append to the data.
     population = _collapse_population(population)
     measure_columns = measure_data.columns
@@ -72,7 +71,7 @@ def mean_aggregator(measure_data: pd.DataFrame, hierarchy: pd.DataFrame, populat
     levels = sorted(hierarchy['level'].unique().tolist())
     missing_map = defaultdict(list)
     data_locs = modeled_locs[:]
-    for level in levels[::-1]:  # From most detailed to least_detailed
+    for level in reversed(levels[1:]):  # From most detailed to least_detailed
         locs_at_level = hierarchy[hierarchy.level == level]
         for parent_id, children in locs_at_level.groupby('parent_id'):
             child_locs = children.location_id.tolist()
@@ -103,7 +102,7 @@ def mean_aggregator(measure_data: pd.DataFrame, hierarchy: pd.DataFrame, populat
         measure_data.loc[measure_data['observed'] > 0, 'observed'] = 1
         measure_data = measure_data.set_index('observed', append=True)
     # TODO: Figure out what to do with the missing map.
-    return measure_data
+    return measure_data.sort_index()
 
 
 def _collapse_population(population_data: pd.DataFrame) -> pd.DataFrame:

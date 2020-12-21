@@ -88,6 +88,8 @@ def postprocess_covariate(postprocessing_spec: PostprocessingSpecification,
     logger.info(f'Loading and processing input data for {covariate}.')
     input_covariate_data = data_interface.load_input_covariate(covariate, covariate_version, location_ids)
     covariate_observed = input_covariate_data.reset_index(level='observed')
+    covariate_observed['observed'] = covariate_observed['observed'].fillna(0)
+    
     covariate_data = covariate_data.merge(covariate_observed, left_index=True,
                                           right_index=True, how='outer').reset_index()
     draw_cols = [f'draw_{i}' for i in range(n_draws)]
@@ -99,7 +101,7 @@ def postprocess_covariate(postprocessing_spec: PostprocessingSpecification,
     covariate_data = covariate_data.set_index(index_cols)[draw_cols]
     covariate_data['modeled'] = covariate_data.notnull().all(axis=1).astype(int)
 
-    input_covariate = pd.concat([input_covariate_data.reorder_levels(index_cols)] * n_draws, axis=1)
+    input_covariate = pd.concat([covariate_observed.reset_index().set_index(index_cols)] * n_draws, axis=1)
     input_covariate.columns = draw_cols
     covariate_data = covariate_data.combine_first(input_covariate).set_index('modeled', append=True)
 
