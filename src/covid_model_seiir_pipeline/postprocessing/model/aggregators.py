@@ -60,7 +60,7 @@ def mean_aggregator(measure_data: pd.DataFrame, hierarchy: pd.DataFrame, populat
         measure_data = measure_data.reset_index(level='observed')
     import pdb; pdb.set_trace()
     # Get all age/sex population and append to the data.
-    population = _collapse_population(population, hierarchy)
+    population = _collapse_population(population)
     measure_columns = measure_data.columns
     measure_data = measure_data.join(population)
     
@@ -106,14 +106,11 @@ def mean_aggregator(measure_data: pd.DataFrame, hierarchy: pd.DataFrame, populat
     return measure_data
 
 
-def _collapse_population(population_data: pd.DataFrame, hierarchy: pd.DataFrame) -> pd.DataFrame:
+def _collapse_population(population_data: pd.DataFrame) -> pd.DataFrame:
     """Collapse the larger population table to all age and sex population."""
-    most_detailed = population_data.location_id.isin(
-        hierarchy.loc[hierarchy.most_detailed == 1, 'location_id'].tolist()
-    )
     all_sexes = population_data.sex_id == 3
     all_ages = population_data.age_group_id == 22
-    population_data = population_data.loc[most_detailed & all_ages & all_sexes, ['location_id', 'population']]
+    population_data = population_data.loc[all_ages & all_sexes, ['location_id', 'population']]
     population_data = population_data.set_index('location_id')['population']
     return population_data
 
