@@ -2,6 +2,7 @@
 from collections import defaultdict
 from typing import List
 
+from loguru import logger
 import pandas as pd
 
 
@@ -28,6 +29,7 @@ def sum_aggregator(measure_data: pd.DataFrame, hierarchy: pd.DataFrame, _populat
         locs_at_level = hierarchy[hierarchy.level == level]
 
         for parent_id, children in locs_at_level.groupby('parent_id'):
+            if parent_id in 
             child_locs = children.location_id.tolist()
             modeled_child_locs = list(set(child_locs).intersection(data_locs))
 
@@ -71,6 +73,7 @@ def mean_aggregator(measure_data: pd.DataFrame, hierarchy: pd.DataFrame, populat
     levels = sorted(hierarchy['level'].unique().tolist())
     missing_map = defaultdict(list)
     data_locs = modeled_locs[:]
+    measure_data = measure_data.loc[data_locs]
     for level in reversed(levels[1:]):  # From most detailed to least_detailed
         locs_at_level = hierarchy[hierarchy.level == level]
         for parent_id, children in locs_at_level.groupby('parent_id'):
@@ -119,6 +122,7 @@ def _get_modeled_locs(measure_data: pd.DataFrame, hierarchy: pd.DataFrame) -> Li
 
     non_most_detailed_h = hierarchy.loc[hierarchy.most_detailed == 0, 'location_id'].tolist()
     non_most_detailed_m = list(set(modeled_locs).intersection(non_most_detailed_h))
-
-    assert not non_most_detailed_m, 'Why are we modeling aggregate locations? Maybe a bad hierarchy.'
+    if non_most_detailed_m:
+        logger.warning(f'Non most-detailed locations {non_most_detailed_h} found in data. '
+                        'These locations will not be aggregated.')
     return modeled_locs
