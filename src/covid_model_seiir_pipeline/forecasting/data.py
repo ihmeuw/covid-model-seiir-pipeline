@@ -224,6 +224,9 @@ class ForecastDataInterface:
     def save_components(self, forecasts: pd.DataFrame, scenario: str, draw_id: int):
         io.dump(forecasts, self.forecast_root.component_draws(scenario=scenario, draw_id=draw_id))
 
+    def load_components(self, scenario: str, draw_id: int):
+        return io.load(self.forecast_root.component_draws(scenario=scenario, draw_id=draw_id))
+
     def save_beta_scales(self, scales: pd.DataFrame, scenario: str, draw_id: int):
         io.dump(scales, self.forecast_root.beta_scaling(scenario=scenario, draw_id=draw_id))
 
@@ -232,6 +235,9 @@ class ForecastDataInterface:
 
     def save_raw_outputs(self, raw_outputs: pd.DataFrame, scenario: str, draw_id: int):
         io.dump(raw_outputs, self.forecast_root.raw_outputs(scenario=scenario, draw_id=draw_id))
+
+    def load_raw_outputs(self, scenario: str, draw_id: int):
+        return io.load(self.forecast_root.raw_outputs(scenario=scenario, draw_id=draw_id))
 
 
 @dataclass
