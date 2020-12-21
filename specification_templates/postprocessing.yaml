@@ -7,7 +7,7 @@ data:
   output_root: ''
 workflow:
   project: 'proj_covid'
-  queue: 'all.q'
+  queue: 'd.q'
   tasks:
     resample:
       max_runtime_seconds: 5000
@@ -23,11 +23,9 @@ resampling:
   lower_quantile: 0.025
   upper_quantile: 0.975
 splicing:
-  - locations: [555, 532]
-    output_version: '/ihme/covid-19/seir-forecast/2020_12_16.03'
-  - locations: [531, 544]
+  - locations: [68, 526, 4775, 4851, 4859, 53620, 114, 171, 125, 538,]
     output_version: '/ihme/covid-19/seir-forecast/2020_12_08.05'
 aggregation:
   location_file: ''
-  location_set_id: 111
-  location_set_version_id: 771
+  location_set_id: 3
+  location_set_version_id: 750

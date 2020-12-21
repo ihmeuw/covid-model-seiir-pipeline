@@ -122,9 +122,11 @@ def postprocess_miscellaneous(postprocessing_spec: PostprocessingSpecification,
         hierarchy = data_interface.load_aggregation_heirarchy(postprocessing_spec.aggregation)
         population = data_interface.load_populations()
         miscellaneous_data = miscellaneous_config.aggregator(miscellaneous_data, hierarchy, population)
+    if miscellaneous_config.is_table:
+        miscellaneous_data = miscellaneous_data.reset_index()
 
     logger.info(f'Saving {measure} data.')
-    data_interface.save_output_miscellaneous(miscellaneous_data.reset_index(),
+    data_interface.save_output_miscellaneous(miscellaneous_data,
                                              scenario_name,
                                              miscellaneous_config.label,
                                              miscellaneous_config.is_table)

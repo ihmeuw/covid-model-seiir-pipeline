@@ -18,7 +18,8 @@ def sum_aggregator(measure_data: pd.DataFrame, hierarchy: pd.DataFrame, _populat
     The ``_population`` argument is here for api consistency and is not used.
 
     """
-    measure_data = measure_data.reset_index().set_index(['location_id', 'date'])
+    if 'observed' in measure_data.index.names:
+        measure_data = measure_data.reset_index(level='observed')
 
     levels = sorted(hierarchy['level'].unique().tolist())
     missing_map = defaultdict(list)
@@ -55,19 +56,22 @@ def mean_aggregator(measure_data: pd.DataFrame, hierarchy: pd.DataFrame, populat
     population-weighted mean.
 
     """
-    measure_data = measure_data.reset_index().set_index(['location_id', 'date'])
+    if 'observed' in measure_data.index.names:
+        measure_data = measure_data.reset_index(level='observed')
+    import pdb; pdb.set_trace()
     # Get all age/sex population and append to the data.
     population = _collapse_population(population, hierarchy)
     measure_columns = measure_data.columns
     measure_data = measure_data.join(population)
-
+    
+    modeled_locs = _get_modeled_locs(measure_data, hierarchy)
     # We'll work in the space of pop*measure where aggregation is just a sum.
-    weighted_measure_data = measure_data.loc[hierarchy.loc[hierarchy.most_detailed == 1, 'location_id'].tolist()]
+    weighted_measure_data = measure_data.loc[modeled_locs]
     weighted_measure_data[measure_columns] = measure_data[measure_columns].mul(measure_data['population'], axis=0)
 
     levels = sorted(hierarchy['level'].unique().tolist())
     missing_map = defaultdict(list)
-    data_locs = _get_modeled_locs(measure_data, hierarchy)
+    data_locs = modeled_locs[:]
     for level in levels[::-1]:  # From most detailed to least_detailed
         locs_at_level = hierarchy[hierarchy.level == level]
         for parent_id, children in locs_at_level.groupby('parent_id'):
@@ -115,7 +119,7 @@ def _collapse_population(population_data: pd.DataFrame, hierarchy: pd.DataFrame)
 
 
 def _get_modeled_locs(measure_data: pd.DataFrame, hierarchy: pd.DataFrame) -> List[int]:
-    modeled_locs = measure_data.location_id.unique().tolist()
+    modeled_locs = measure_data.reset_index().location_id.unique().tolist()
 
     non_most_detailed_h = hierarchy.loc[hierarchy.most_detailed == 0, 'location_id'].tolist()
     non_most_detailed_m = list(set(modeled_locs).intersection(non_most_detailed_h))

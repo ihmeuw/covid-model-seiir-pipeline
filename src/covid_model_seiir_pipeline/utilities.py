@@ -189,7 +189,8 @@ def load_location_hierarchy(location_set_id: int = None,
         # a locations file directly.
         from db_queries import get_location_metadata
         return get_location_metadata(location_set_id=location_set_id,
-                                     location_set_version_id=location_set_version_id)
+                                     location_set_version_id=location_set_version_id,
+                                     gbd_round_id=6)
     else:
         return pd.read_csv(location_file)
 
