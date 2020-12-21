@@ -4,7 +4,7 @@ import click
 from covid_shared import cli_tools, paths, shell_tools
 from loguru import logger
 
-from covid_model_seiir_pipeline import utilities
+from covid_model_seiir_pipeline.lib import utilities
 from covid_model_seiir_pipeline.regression.specification import RegressionSpecification
 from covid_model_seiir_pipeline.regression.main import do_beta_regression
 from covid_model_seiir_pipeline.forecasting.specification import ForecastSpecification
