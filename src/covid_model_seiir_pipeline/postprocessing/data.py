@@ -118,16 +118,10 @@ class PostprocessingDataInterface:
         cumulative_deaths = (es_inputs['Death rate'] * es_inputs['population']).rename('cumulative_deaths')
         cumulative_hospitalizations = (es_inputs['Hospitalization rate'] * es_inputs['population'])
         cumulative_hospitalizations = cumulative_hospitalizations.rename('cumulative_hospitalizations')
-
-        death_max_date = cumulative_deaths.dropna().reset_index().groupby('location_id')['date'].max()
-        case_max_date = cumulative_cases.dropna().reset_index().groupby('location_id')['date'].max()
-        hosp_max_date = cumulative_hospitalizations.dropna().reset_index().groupby('location_id')['date'].max()
-
-        case_shift = (death_max_date - case_max_date).dt.days.max()  # Constant across locations
-        hosp_shift = (death_max_date - hosp_max_date).dt.days.max()  # Constant across locations
-
-        cumulative_cases = cumulative_cases.groupby('location_id').shift(case_shift)
-        cumulative_hospitalizations = cumulative_hospitalizations.groupby('location_id').shift(hosp_shift)
+        # TODO: have ES use and produce a config file for this number.
+        es_shift = -8
+        cumulative_cases = cumulative_cases.groupby('location_id').shift(es_shift)
+        cumulative_hospitalizations = cumulative_hospitalizations.groupby('location_id').shift(es_shift)
         es_inputs = pd.concat([cumulative_cases, cumulative_deaths, cumulative_hospitalizations], axis=1)
         es_inputs = es_inputs.loc[es_inputs.notnull().any(axis=1)]
         return es_inputs
