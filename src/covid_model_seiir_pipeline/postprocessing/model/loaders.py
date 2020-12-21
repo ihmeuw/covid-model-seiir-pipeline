@@ -7,9 +7,6 @@ import pandas as pd
 from covid_model_seiir_pipeline.postprocessing.data import PostprocessingDataInterface
 
 
-# TODO: make a model subpackage and put this there.
-
-
 def load_deaths(scenario: str, data_interface: PostprocessingDataInterface, num_cores: int):
     deaths, *_ = load_output_data(scenario, data_interface, num_cores)
     return deaths
