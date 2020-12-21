@@ -27,5 +27,5 @@ splicing:
     output_version: '/ihme/covid-19/seir-forecast/2020_12_08.05'
 aggregation:
   location_file: ''
-  location_set_id: 3
-  location_set_version_id: 750
+  location_set_id: 111
+  location_set_version_id: 771
