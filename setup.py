@@ -68,14 +68,7 @@ if __name__ == "__main__":
 
         entry_points={'console_scripts': [
             'seiir=covid_model_seiir_pipeline.cli:seiir',
-            'beta_regression=covid_model_seiir_pipeline.regression.task:main',
-            'beta_forecast=covid_model_seiir_pipeline.forecasting.task.beta_forecast:main',
-            'beta_residual_scaling=covid_model_seiir_pipeline.forecasting.task.beta_residual_scaling:main',
-            'mean_level_mandate_reimposition=covid_model_seiir_pipeline.forecasting.task.mean_level_mandate_reimposition:main',
-            'resample_map=covid_model_seiir_pipeline.postprocessing.task.resample_map:main',
-            'postprocess=covid_model_seiir_pipeline.postprocessing.task.postprocess:main',
-            'oos_regression=covid_model_seiir_pipeline.predictive_validity.oos_regression:main',
-            'oos_forecast=covid_model_seiir_pipeline.predictive_validity.oos_forecast:main',
+            'seiir_task=covid_model_seiir_pipeline.pipeline.seiir_task:seiir_task',
         ]},
         zip_safe=False,
     )

@@ -7,7 +7,8 @@ from covid_model_seiir_pipeline.pipeline.regression.specification import REGRESS
 class BetaRegressionTaskTemplate(workflow.TaskTemplate):
     task_name_template = "beta_regression_draw_{draw_id}"
     command_template = (
-            f"{shutil.which('beta_regression')} " +
+            f"{shutil.which('seiir_task')} " +
+            "beta_regression "
             "--draw-id {draw_id} " +
             "--regression-version {regression_version} "
     )

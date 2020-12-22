@@ -1,8 +1,11 @@
 from __future__ import annotations
+
 import abc
+from bdb import BdbQuit
 from dataclasses import asdict as asdict_
+import functools
 from pathlib import Path
-from typing import Any, Dict, Union, Optional, Tuple
+from typing import Any, Callable, Dict, Union, Optional, Tuple
 from pprint import pformat
 
 from covid_shared import paths, shell_tools, cli_tools
@@ -198,3 +201,24 @@ def load_location_hierarchy(location_set_id: int = None,
     else:
         return pd.read_csv(location_file)
 
+
+def handle_exceptions(func: Callable, logger: Any, with_debugger: bool) -> Callable:
+    """Drops a user into an interactive debugger if func raises an error."""
+
+    @functools.wraps(func)
+    def wrapped(*args, **kwargs):
+        try:
+            return func(*args, **kwargs)
+        except (BdbQuit, KeyboardInterrupt):
+            raise
+        except Exception as e:
+            logger.exception("Uncaught exception {}".format(e))
+            if with_debugger:
+                import pdb
+                import traceback
+                traceback.print_exc()
+                pdb.post_mortem()
+            else:
+                raise
+
+    return wrapped

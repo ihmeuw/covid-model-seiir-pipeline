@@ -1,22 +1,20 @@
-from argparse import ArgumentParser, Namespace
-
-import logging
 from pathlib import Path
-import shlex
-from typing import Optional
 
+import click
+from covid_shared import cli_tools
+from loguru import logger
 import numpy as np
 import pandas as pd
 
 from covid_model_seiir_pipeline.lib import (
     math,
     static_vars,
+    utilities,
 )
+from covid_model_seiir_pipeline.pipeline.seiir_task import seiir_task
 from covid_model_seiir_pipeline.pipeline.regression.data import RegressionDataInterface
 from covid_model_seiir_pipeline.pipeline.regression.specification import RegressionSpecification
 from covid_model_seiir_pipeline.pipeline.regression import model
-
-log = logging.getLogger(__name__)
 
 
 def run_beta_regression(draw_id: int, regression_version: str) -> None:
@@ -80,29 +78,23 @@ def run_beta_regression(draw_id: int, regression_version: str) -> None:
     data_interface.save_date_file(beta_start_end_dates, draw_id)
 
 
-def parse_arguments(argstr: Optional[str] = None) -> Namespace:
-    """
-    Gets arguments from the command line or a command line string.
-    """
-    log.info("parsing arguments")
-    parser = ArgumentParser()
-    parser.add_argument("--draw-id", type=int, required=True)
-    parser.add_argument("--regression-version", type=str, required=True)
+@seiir_task.command()
+@click.option('--regression-version', '-r',
+              type=click.Path(exists=True, file_okay=False),
+              help='Full path to an existing directory containing a '
+                   '"regression_specification.yaml".')
+@click.option('--draw-id', '-d',
+              type=click.INT,
+              help='The draw to be run.')
+@cli_tools.add_verbose_and_with_debugger
+def beta_regression(regression_version: str, draw_id: int,
+                    verbose: int, with_debugger: bool):
+    cli_tools.configure_logging_to_terminal(verbose)
 
-    if argstr is not None:
-        arglist = shlex.split(argstr)
-        args = parser.parse_args(arglist)
-    else:
-        args = parser.parse_args()
-
-    return args
-
-
-def main():
-
-    args = parse_arguments()
-    run_beta_regression(draw_id=args.draw_id, regression_version=args.regression_version)
+    run = utilities.handle_exceptions(run_beta_regression, logger, with_debugger)
+    run(draw_id=draw_id,
+        regression_version=regression_version)
 
 
 if __name__ == '__main__':
-    main()
+    beta_regression()
