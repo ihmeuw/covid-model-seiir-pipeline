@@ -35,10 +35,11 @@ def postprocess_measure(postprocessing_spec: PostprocessingSpecification,
                                                                               measure_config.label)
             measure_data = splicing.splice_data(measure_data, previous_data, splicing_config.locations)
 
-    if measure_config.aggregator is not None:
-        hierarchy = data_interface.load_aggregation_heirarchy(postprocessing_spec.aggregation)
-        population = data_interface.load_populations()
-        measure_data = measure_config.aggregator(measure_data, hierarchy, population)
+    if measure_config.aggregator is not None and postprocessing_spec.aggregation:
+        for aggregation_config in postprocessing_spec.aggregation:
+            hierarchy = data_interface.load_aggregation_heirarchy(aggregation_config)
+            population = data_interface.load_populations()
+            measure_data = measure_config.aggregator(measure_data, hierarchy, population)
 
     logger.info(f'Saving draws and summaries for {measure}.')
     data_interface.save_output_draws(measure_data.reset_index(), scenario_name, measure_config.label)
@@ -89,7 +90,7 @@ def postprocess_covariate(postprocessing_spec: PostprocessingSpecification,
     input_covariate_data = data_interface.load_input_covariate(covariate, covariate_version, location_ids)
     covariate_observed = input_covariate_data.reset_index(level='observed')
     covariate_observed['observed'] = covariate_observed['observed'].fillna(0)
-    
+
     covariate_data = covariate_data.merge(covariate_observed, left_index=True,
                                           right_index=True, how='outer').reset_index()
     draw_cols = [f'draw_{i}' for i in range(n_draws)]

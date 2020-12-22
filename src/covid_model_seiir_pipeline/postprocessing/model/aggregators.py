@@ -109,6 +109,6 @@ def _get_data_locs(measure_data: pd.DataFrame, hierarchy: pd.DataFrame) -> List[
     non_most_detailed_m = list(set(modeled_locs).intersection(non_most_detailed_h))
     if non_most_detailed_m:
         logger.warning(f'Non most-detailed locations {non_most_detailed_h} found in data. '
-                        'These locations will not be aggregated.')
+                       'These locations will not be aggregated.')
     data_locs = list(modeled_locs.intersection(hierarchy.location_id))
     return data_locs

@@ -111,7 +111,8 @@ class PostprocessingSpecification(Specification):
         resampling = ResamplingSpecification(**postprocessing_spec_dict.get('resampling', {}))
         splicing_configs = postprocessing_spec_dict.get('splicing', [])
         splicing = [SplicingSpecification(**splicing_config) for splicing_config in splicing_configs]
-        aggregation = AggregationSpecification(**postprocessing_spec_dict.get('aggregation', {}))
+        aggregation_configs = postprocessing_spec_dict.get('aggregation', [])
+        aggregation = [AggregationSpecification(**aggregation_config) for aggregation_config in aggregation_configs]
         return data, workflow, resampling, splicing, aggregation
 
     @property
@@ -132,7 +133,7 @@ class PostprocessingSpecification(Specification):
         return self._splicing
 
     @property
-    def aggregation(self) -> AggregationSpecification:
+    def aggregation(self) -> List[AggregationSpecification]:
         return self._aggregation
 
     def to_dict(self):

@@ -26,6 +26,8 @@ splicing:
   - locations: [68, 526, 4775, 4851, 4859, 53620, 114, 171, 125, 538,]
     output_version: '/ihme/covid-19/seir-forecast/2020_12_08.05'
 aggregation:
-  location_file: ''
-  location_set_id: 111
-  location_set_version_id: 771
+  - location_file: '/ihme/covid-19/seir-pipleine-outputs/agg-hierarchies/modeling.csv'
+  - location_file: '/ihme/covid-19/seir-pipleine-outputs/agg-hierarchies/who_plus_palestine.csv'
+  - location_file: '/ihme/covid-19/seir-pipleine-outputs/agg-hierarchies/who_euro.csv'
+  - location_file: '/ihme/covid-19/seir-pipleine-outputs/agg-hierarchies/world_bank.csv'
+  - location_file: '/ihme/covid-19/seir-pipleine-outputs/agg-hierarchies/eu_minus_uk.csv'
