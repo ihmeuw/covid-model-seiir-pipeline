@@ -143,5 +143,5 @@ class PostprocessingSpecification(Specification):
             'workflow': self.workflow.to_dict(),
             'resampling': self.resampling.to_dict(),
             'splicing': [splicing_config.to_dict() for splicing_config in self.splicing],
-            'aggregation': self.aggregation.to_dict()
+            'aggregation': [aggregation_config.to_dict() for aggregation_config in self.aggregation],
         }
