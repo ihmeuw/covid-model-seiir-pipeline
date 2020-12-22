@@ -20,6 +20,7 @@ parameters:
   gamma1: [0.5, 0.5]
   gamma2: [0.3333, 1.0]
   solver_dt: 0.1
+  sequential_refit: False
 covariates:
   intercept:
     # Ordering of covariates in regression.  Covariates with the same order
