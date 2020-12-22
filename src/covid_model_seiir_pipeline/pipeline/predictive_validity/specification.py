@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import Dict, Tuple, List
 
-from covid_model_seiir_pipeline.utilities import Specification, asdict
+from covid_model_seiir_pipeline.lib import utilities
 
 
 @dataclass
@@ -19,10 +19,10 @@ class HoldoutVersionSpecification:
         Drops the name parameter as it's used as a key in the specification.
 
         """
-        return {k: v for k, v in asdict(self).items() if k != 'name'}
+        return {k: v for k, v in utilities.asdict(self).items() if k != 'name'}
 
 
-class PredictiveValiditySpecification(Specification):
+class PredictiveValiditySpecification(utilities.Specification):
     """Specification for a regression run."""
 
     def __init__(self,

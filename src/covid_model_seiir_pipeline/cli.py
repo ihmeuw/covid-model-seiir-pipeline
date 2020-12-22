@@ -5,14 +5,16 @@ from covid_shared import cli_tools, paths, shell_tools
 from loguru import logger
 
 from covid_model_seiir_pipeline.lib import utilities
-from covid_model_seiir_pipeline.regression.specification import RegressionSpecification
-from covid_model_seiir_pipeline.regression.main import do_beta_regression
-from covid_model_seiir_pipeline.forecasting.specification import ForecastSpecification
-from covid_model_seiir_pipeline.forecasting.main import do_beta_forecast
-from covid_model_seiir_pipeline.postprocessing.specification import PostprocessingSpecification
-from covid_model_seiir_pipeline.postprocessing.main import do_postprocessing
-from covid_model_seiir_pipeline.predictive_validity.specification import PredictiveValiditySpecification
-from covid_model_seiir_pipeline.predictive_validity.main import do_predictive_validity
+from covid_model_seiir_pipeline.pipeline import (
+    RegressionSpecification,
+    do_beta_regression,
+    ForecastSpecification,
+    do_beta_forecast,
+    PostprocessingSpecification,
+    do_postprocessing,
+    PredictiveValiditySpecification,
+    do_predictive_validity,
+)
 
 
 @click.group()

@@ -1,15 +1,15 @@
 from argparse import ArgumentParser, Namespace
-from pathlib import Path
 import shlex
-import shutil
 from typing import Optional
 
 from covid_shared.cli_tools import Metadata
 from covid_shared.cli_tools.logging import configure_logging_to_terminal
 from loguru import logger
 
-from covid_model_seiir_pipeline.forecasting.specification import ForecastSpecification
-from covid_model_seiir_pipeline.forecasting.main import do_beta_forecast
+from covid_model_seiir_pipeline.pipeline import (
+    ForecastSpecification,
+    do_beta_forecast,
+)
 
 
 def run_oos_forecast(forecast_specification_path: str) -> None:

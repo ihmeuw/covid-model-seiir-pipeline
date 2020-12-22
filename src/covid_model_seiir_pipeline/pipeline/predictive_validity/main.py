@@ -5,10 +5,12 @@ import shutil
 from covid_shared import cli_tools, shell_tools
 from loguru import logger
 
-from covid_model_seiir_pipeline.regression.specification import RegressionSpecification
-from covid_model_seiir_pipeline.forecasting.specification import ForecastSpecification
-from covid_model_seiir_pipeline.predictive_validity.specification import PredictiveValiditySpecification
-from covid_model_seiir_pipeline.predictive_validity.distributed import run_cluster_jobs
+from covid_model_seiir_pipeline.pipeline import (
+    RegressionSpecification,
+    ForecastSpecification
+)
+from covid_model_seiir_pipeline.pipeline.predictive_validity.specification import PredictiveValiditySpecification
+from covid_model_seiir_pipeline.pipeline.predictive_validity.distributed import run_cluster_jobs
 
 
 def do_predictive_validity(app_metadata: cli_tools.Metadata,
