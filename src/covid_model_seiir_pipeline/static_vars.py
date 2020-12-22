@@ -1,6 +1,7 @@
 
 REGRESSION_SPECIFICATION_FILE = 'regression_specification.yaml'
 FORECAST_SPECIFICATION_FILE = 'forecast_specification.yaml'
+POSTPROCESSING_SPECIFICATION_FILE = 'postprocessing_specification.yaml'
 
 SEIIR_COMPARTMENTS = ['S', 'E', 'I1', 'I2', 'R']
 

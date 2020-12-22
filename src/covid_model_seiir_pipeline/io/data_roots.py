@@ -165,16 +165,26 @@ class ForecastRoot(DataRoot):
     """Data root representing forecast stage outputs."""
     metadata = MetadataType('metadata')
     specification = MetadataType('forecast_specification')
-    resampling_map = MetadataType('resampling_map')
 
     beta_scaling = DatasetType('beta_scaling', LEAF_TEMPLATES.DRAW_TEMPLATE, PREFIX_TEMPLATES.SCENARIO_TEMPLATE)
+    ode_params = DatasetType('ode_params', LEAF_TEMPLATES.DRAW_TEMPLATE, PREFIX_TEMPLATES.SCENARIO_TEMPLATE)
     component_draws = DatasetType('component_draws', LEAF_TEMPLATES.DRAW_TEMPLATE, PREFIX_TEMPLATES.SCENARIO_TEMPLATE)
     raw_covariates = DatasetType('raw_covariates', LEAF_TEMPLATES.DRAW_TEMPLATE, PREFIX_TEMPLATES.SCENARIO_TEMPLATE)
     raw_outputs = DatasetType('raw_outputs', LEAF_TEMPLATES.DRAW_TEMPLATE, PREFIX_TEMPLATES.SCENARIO_TEMPLATE)
 
-    # TODO: Move to postprocessing root
-    output_draws = DatasetType('output_draws', LEAF_TEMPLATES.MEASURE_TEMPLATE, PREFIX_TEMPLATES.SCENARIO_TEMPLATE)
+
+class PostprocessingRoot(DataRoot):
+    """Data root representing postprocessing stage outputs."""
+    metadata = MetadataType('metadata')
+    specification = MetadataType('postprocessing_specification')
+    resampling_map = MetadataType('resampling_map')
+
+    output_draws = DatasetType('output_draws',
+                               LEAF_TEMPLATES.MEASURE_TEMPLATE,
+                               PREFIX_TEMPLATES.SCENARIO_TEMPLATE)
     output_summaries = DatasetType('output_summaries',
-                                   LEAF_TEMPLATES.MEASURE_TEMPLATE, PREFIX_TEMPLATES.SCENARIO_TEMPLATE)
+                                   LEAF_TEMPLATES.MEASURE_TEMPLATE,
+                                   PREFIX_TEMPLATES.SCENARIO_TEMPLATE)
     output_miscellaneous = DatasetType('output_miscellaneous',
-                                       LEAF_TEMPLATES.MEASURE_TEMPLATE, PREFIX_TEMPLATES.SCENARIO_TEMPLATE)
+                                       LEAF_TEMPLATES.MEASURE_TEMPLATE,
+                                       PREFIX_TEMPLATES.SCENARIO_TEMPLATE)

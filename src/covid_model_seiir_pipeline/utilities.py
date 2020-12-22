@@ -2,11 +2,12 @@ from __future__ import annotations
 import abc
 from dataclasses import asdict as asdict_
 from pathlib import Path
-from typing import Any, Dict, Union, Optional, Tuple, TypeVar
+from typing import Any, Dict, Union, Optional, Tuple
 from pprint import pformat
 
 from covid_shared import paths, shell_tools, cli_tools
 import numpy as np
+import pandas as pd
 import yaml
 
 
@@ -175,3 +176,25 @@ def make_log_dirs(output_dir: Union[str, Path], prefix: str = None) -> Tuple[str
     shell_tools.mkdir(std_err, exists_ok=True, parents=True)
 
     return str(std_out), str(std_err)
+
+
+def load_location_hierarchy(location_set_id: int = None,
+                            location_set_version_id: int = None,
+                            location_file: Path = None):
+    ids = location_set_id and location_set_version_id
+    assert (ids and not location_file) or (not ids and location_file)
+
+    if ids:
+        # Hide this import so the code stays portable outside IHME by using
+        # a locations file directly.
+        from db_queries import get_location_metadata
+        try:
+            return get_location_metadata(location_set_id=location_set_id,
+                                         location_set_version_id=location_set_version_id)
+        except ValueError:
+            return get_location_metadata(location_set_id=location_set_id,
+                                         location_set_version_id=location_set_version_id,
+                                         gbd_round_id=6)
+    else:
+        return pd.read_csv(location_file)
+

@@ -5,7 +5,7 @@ from typing import Dict, List, Iterable, Optional, Union
 from loguru import logger
 import pandas as pd
 
-from covid_model_seiir_pipeline import io
+from covid_model_seiir_pipeline import io, utilities
 from covid_model_seiir_pipeline.regression.specification import RegressionSpecification
 
 
@@ -45,12 +45,11 @@ class RegressionDataInterface:
     def load_location_ids_from_primary_source(self, location_set_version_id: Optional[int],
                                               location_file: Optional[Union[str, Path]]) -> Union[List[int], None]:
         """Retrieve a location hierarchy from a file or from GBD if specified."""
-        # TODO: Remove after integration testing.
-        assert not (location_set_version_id and location_file), 'CLI location validation is broken.'
         if location_set_version_id:
-            location_metadata = self._load_from_location_set_version_id(location_set_version_id)
+            location_metadata = utilities.load_location_hierarchy(location_set_id=111,
+                                                                  location_set_version_id=location_set_version_id)
         elif location_file:
-            location_metadata = pd.read_csv(location_file)
+            location_metadata = utilities.load_location_hierarchy(location_file=location_file)
         else:
             location_metadata = None
 
@@ -167,11 +166,3 @@ class RegressionDataInterface:
     def save_location_data(self, df: pd.DataFrame, draw_id: int) -> None:
         # quasi-inverse of load_all_location_data, except types are different
         io.dump(df, self.regression_root.data(draw_id=draw_id))
-
-    @staticmethod
-    def _load_from_location_set_version_id(location_set_version_id: int) -> pd.DataFrame:
-        # Hide this import so the code stays portable outside IHME by using
-        # a locations file directly.
-        from db_queries import get_location_metadata
-        return get_location_metadata(location_set_id=111,
-                                     location_set_version_id=location_set_version_id)

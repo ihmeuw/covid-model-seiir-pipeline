@@ -14,18 +14,6 @@ workflow:
       max_runtime_seconds: 15000
       m_mem_free: '5G'
       num_cores: 1
-    sentinel:
-      max_runtime_seconds: 1000
-      m_mem_free: '1G'
-      num_cores: 1
-    resample:
-      max_runtime_seconds: 5000
-      m_mem_free: '50G'
-      num_cores: 26
-    postprocess:
-      max_runtime_seconds: 15000
-      m_mem_free: '150G'
-      num_cores: 26
 scenarios:
   worse:
     algorithm: 'normal' # normal, draw_level_mandate_reimposition
@@ -194,8 +182,3 @@ scenarios:
       lri_mortality: 'reference'
       proportion_under_100m: 'reference'
       proportion_over_2_5k: 'reference'
-postprocessing:
-  resampling:
-    reference_scenario: 'worse'
-    lower_quantile: 0.025
-    upper_quantile: 0.975

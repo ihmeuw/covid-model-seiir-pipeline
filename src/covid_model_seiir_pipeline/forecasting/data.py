@@ -84,6 +84,7 @@ class ForecastDataInterface:
             for covariate, covariate_version in scenario.covariates.items():
                 if not io.exists(self.covariate_root[covariate](covariate_scenario=covariate_version)):
                     raise FileNotFoundError(f'No {covariate_version} file found for covariate {covariate}.')
+
         return list(regression_covariates)
 
     def get_infectionator_metadata(self):
@@ -116,22 +117,6 @@ class ForecastDataInterface:
         data_path = Path(ifr_version) / 'terminal_ifr.csv'
         data = pd.read_csv(data_path)
         return data.set_index('location_id')
-
-    def load_elastispliner_inputs(self):
-        metadata = self.get_infectionator_metadata()
-        deaths_version = Path(metadata['death']['metadata']['output_path'])
-        es_inputs = pd.read_csv(deaths_version / 'model_data.csv')
-        es_inputs['date'] = pd.to_datetime(es_inputs['date'])
-        return es_inputs
-
-    def load_elastispliner_outputs(self):
-        metadata = self.get_infectionator_metadata()
-        deaths_version = Path(metadata['death']['metadata']['output_path'])
-        noisy_outputs = pd.read_csv(deaths_version / 'model_results.csv')
-        noisy_outputs['date'] = pd.to_datetime(noisy_outputs['date'])
-        smoothed_outputs = pd.read_csv(deaths_version / 'model_results_refit.csv')
-        smoothed_outputs['date'] = pd.to_datetime(smoothed_outputs['date'])
-        return noisy_outputs, smoothed_outputs
 
     def load_total_deaths(self):
         """Load cumulative deaths by location."""
@@ -229,19 +214,17 @@ class ForecastDataInterface:
     def save_raw_covariates(self, covariates: pd.DataFrame, scenario: str, draw_id: int):
         io.dump(covariates, self.forecast_root.raw_covariates(scenario=scenario, draw_id=draw_id))
 
-    def load_raw_covariates(self, scenario: str, draw_id: int):
-        covariates = io.load(self.forecast_root.raw_covariates(scenario=scenario, draw_id=draw_id))
-        covariates['date'] = pd.to_datetime(covariates['date'])
-        return covariates
-
     def load_beta_params(self, draw_id: int) -> Dict[str, float]:
         df = io.load(self.regression_root.parameters(draw_id=draw_id))
         return df.set_index('params')['values'].to_dict()
 
+    def save_ode_params(self, ode_params: pd.DataFrame, scenario: str, draw_id: int):
+        io.dump(ode_params, self.forecast_root.ode_params(scenario=scenario, draw_id=draw_id))
+
     def save_components(self, forecasts: pd.DataFrame, scenario: str, draw_id: int):
         io.dump(forecasts, self.forecast_root.component_draws(scenario=scenario, draw_id=draw_id))
 
-    def load_components(self, scenario: str, draw_id: int) -> pd.DataFrame:
+    def load_components(self, scenario: str, draw_id: int):
         components = io.load(self.forecast_root.component_draws(scenario=scenario, draw_id=draw_id))
         components['date'] = pd.to_datetime(components['date'])
         return components.set_index(['location_id', 'date'])
@@ -255,23 +238,8 @@ class ForecastDataInterface:
     def save_raw_outputs(self, raw_outputs: pd.DataFrame, scenario: str, draw_id: int):
         io.dump(raw_outputs, self.forecast_root.raw_outputs(scenario=scenario, draw_id=draw_id))
 
-    def load_raw_outputs(self, scenario: str, draw_id: int) -> pd.DataFrame:
+    def load_raw_outputs(self, scenario: str, draw_id: int):
         return io.load(self.forecast_root.raw_outputs(scenario=scenario, draw_id=draw_id))
-
-    def save_resampling_map(self, resampling_map):
-        io.dump(resampling_map, self.forecast_root.resampling_map())
-
-    def load_resampling_map(self):
-        return io.load(self.forecast_root.resampling_map())
-
-    def save_output_draws(self, output_draws: pd.DataFrame, scenario: str, measure: str):
-        io.dump(output_draws, self.forecast_root.output_draws(scenario=scenario, measure=measure))
-
-    def save_output_summaries(self, output_summaries: pd.DataFrame, scenario: str, measure: str):
-        io.dump(output_summaries, self.forecast_root.output_summaries(scenario=scenario, measure=measure))
-
-    def save_output_miscellaneous(self, output_miscellaneous: pd.DataFrame, scenario: str, measure: str):
-        io.dump(output_miscellaneous, self.forecast_root.output_miscellaneous(scenario=scenario, measure=measure))
 
 
 @dataclass
