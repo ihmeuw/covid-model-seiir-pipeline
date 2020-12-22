@@ -96,7 +96,7 @@ class PostprocessingSpecification(Specification):
                  workflow: PostprocessingWorkflowSpecification,
                  resampling: ResamplingSpecification,
                  splicing: List[SplicingSpecification],
-                 aggregation: AggregationSpecification):
+                 aggregation: List[AggregationSpecification]):
         self._data = data
         self._workflow = workflow
         self._resampling = resampling
