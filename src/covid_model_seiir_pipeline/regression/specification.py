@@ -52,6 +52,7 @@ class FitParameters:
     gamma1: Tuple[float, float] = field(default=(0.5, 0.5))
     gamma2: Tuple[float, float] = field(default=(1/3, 1.0))
     solver_dt: float = field(default=0.1)
+    sequential_refit: bool = field(default=False)
 
     def to_dict(self) -> Dict:
         """Converts to a dict, coercing list-like items to lists."""
