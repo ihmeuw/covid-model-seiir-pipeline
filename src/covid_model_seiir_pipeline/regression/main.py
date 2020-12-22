@@ -10,7 +10,7 @@ from covid_model_seiir_pipeline.regression.workflow import RegressionWorkflow
 def do_beta_regression(app_metadata: cli_tools.Metadata,
                        regression_specification: RegressionSpecification,
                        preprocess_only: bool):
-    logger.debug('Starting beta regression.')
+    logger.info(f'Starting beta regression for version {regression_specification.data.output_root}.')
 
     # init high level objects
     data_interface = RegressionDataInterface.from_specification(regression_specification)
@@ -28,13 +28,13 @@ def do_beta_regression(app_metadata: cli_tools.Metadata,
 
     # build directory structure and save metadata
     data_interface.make_dirs()
-    data_interface.dump_location_ids(location_ids)
-    # Fixme: Inconsistent data writing interfaces
-    regression_specification.dump(data_interface.regression_paths.regression_specification)
+    data_interface.save_location_ids(location_ids)
+    data_interface.save_specification(regression_specification)
 
     # build workflow and launch
     if not preprocess_only:
-        regression_wf = RegressionWorkflow(regression_specification.data.output_root)
+        regression_wf = RegressionWorkflow(regression_specification.data.output_root,
+                                           regression_specification.workflow)
         regression_wf.attach_tasks(n_draws=regression_specification.parameters.n_draws)
         try:
             regression_wf.run()

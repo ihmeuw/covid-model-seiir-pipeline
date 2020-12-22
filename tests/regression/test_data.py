@@ -1,9 +1,4 @@
-from pathlib import Path
-
-from covid_model_seiir_pipeline.marshall import (
-    CSVMarshall,
-)
-from covid_model_seiir_pipeline.paths import RegressionPaths
+from covid_model_seiir_pipeline import io
 from covid_model_seiir_pipeline.regression.data import RegressionDataInterface
 
 
@@ -15,13 +10,13 @@ class TestRegressionDataInterfaceIO:
 
         This only includes saving files
         """
-        regress_paths = RegressionPaths(Path(tmpdir))
+
         di = RegressionDataInterface(
-            infection_paths=None,
-            regression_paths=regress_paths,
-            covariate_paths=None,
-            regression_marshall=CSVMarshall(regress_paths.root_dir),
+            infection_root=None,
+            covariate_root=None,
+            regression_root=io.RegressionRoot(tmpdir),
         )
+        di.make_dirs()
         # Step 1: count files
 
         assert tmpdir_file_count() == 0, "Files somehow already exist in storage dir"

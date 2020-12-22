@@ -5,14 +5,9 @@ from typing import Dict, List, Optional, Union
 
 from loguru import logger
 import pandas as pd
-import yaml
 
-from covid_model_seiir_pipeline import paths
+from covid_model_seiir_pipeline import io
 from covid_model_seiir_pipeline.forecasting.specification import ForecastSpecification, ScenarioSpecification
-from covid_model_seiir_pipeline.marshall import (
-    CSVMarshall,
-    Keys as MKeys,
-)
 
 
 # TODO: move data interfaces up a package level and fuse with regression data interface.
@@ -20,50 +15,36 @@ from covid_model_seiir_pipeline.marshall import (
 class ForecastDataInterface:
 
     def __init__(self,
-                 forecast_paths: paths.ForecastPaths,
-                 regression_paths: paths.RegressionPaths,
-                 covariate_paths: paths.CovariatePaths,
-                 regression_marshall,
-                 forecast_marshall):
-        # TODO: only hang on to marshalls here.
-        self.forecast_paths = forecast_paths
-        self.regression_paths = regression_paths
-        self.covariate_paths = covariate_paths
-        self.regression_marshall = regression_marshall
-        self.forecast_marshall = forecast_marshall
+                 regression_root: io.RegressionRoot,
+                 covariate_root: io.CovariateRoot,
+                 forecast_root: io.ForecastRoot):
+        self.regression_root = regression_root
+        self.covariate_root = covariate_root
+        self.forecast_root = forecast_root
 
     @classmethod
     def from_specification(cls, specification: ForecastSpecification) -> 'ForecastDataInterface':
-        forecast_paths = paths.ForecastPaths(Path(specification.data.output_root),
-                                             read_only=False,
-                                             scenarios=list(specification.scenarios))
-        regression_paths = paths.RegressionPaths(Path(specification.data.regression_version))
-        covariate_paths = paths.CovariatePaths(Path(specification.data.covariate_version))
-        # TODO: specification of marshall type from inference on inputs and
-        #   configuration on outputs.
-        regression_marshall = CSVMarshall.from_paths(regression_paths)
-        forecast_marshall = CSVMarshall.from_paths(forecast_paths)
+        # TODO: specify input format from config
+        regression_root = io.RegressionRoot(specification.data.regression_version)
+        covariate_root = io.CovariateRoot(specification.data.covariate_version)
+        # TODO: specify output format from config.
+        forecast_root = io.ForecastRoot(specification.data.output_root)
+
         return cls(
-            forecast_paths=forecast_paths,
-            regression_paths=regression_paths,
-            covariate_paths=covariate_paths,
-            regression_marshall=regression_marshall,
-            forecast_marshall=forecast_marshall,
+            regression_root=regression_root,
+            covariate_root=covariate_root,
+            forecast_root=forecast_root,
         )
 
-    def make_dirs(self):
-        self.forecast_paths.make_dirs()
+    def make_dirs(self, **prefix_args):
+        io.touch(self.forecast_root, **prefix_args)
 
     def get_n_draws(self) -> int:
-        # Fixme: Gross
-        with self.regression_paths.regression_specification.open() as regression_spec_file:
-            regression_spec = yaml.full_load(regression_spec_file)
+        regression_spec = io.load(self.regression_root.specification())
         return regression_spec['parameters']['n_draws']
 
     def load_location_ids(self) -> List[int]:
-        with self.regression_paths.location_metadata.open() as location_file:
-            location_ids = yaml.full_load(location_file)
-        return location_ids
+        return io.load(self.regression_root.locations())
 
     def load_thetas(self, theta_specification: Union[str, int]) -> pd.Series:
         location_ids = self.load_location_ids()
@@ -71,16 +52,15 @@ class ForecastDataInterface:
             thetas = pd.read_csv(theta_specification).set_index('location_id')['theta']
             thetas = thetas.reindex(location_ids, fill_value=0)
         else:
-            location_ids = self.load_location_ids()
             thetas = pd.Series(theta_specification,
                                index=pd.Index(location_ids, name='location_id'),
                                name='theta')
         return thetas
 
     def check_covariates(self, scenarios: Dict[str, ScenarioSpecification]) -> List[str]:
-        with self.regression_paths.regression_specification.open() as regression_spec_file:
-            regression_spec = yaml.full_load(regression_spec_file)
-        forecast_version = str(self.covariate_paths.root_dir)
+        regression_spec = io.load(self.regression_root.specification())
+        # Bit of a hack.
+        forecast_version = str(self.covariate_root._root)
         regression_version = regression_spec['data']['covariate_version']
         if not forecast_version == regression_version:
             logger.warning(f'Forecast covariate version {forecast_version} does not match '
@@ -102,18 +82,15 @@ class ForecastDataInterface:
                 del scenario.covariates['intercept']
 
             for covariate, covariate_version in scenario.covariates.items():
-                data_file = self.covariate_paths.get_covariate_scenario_file(covariate, covariate_version)
-                if not data_file.exists():
+                if not io.exists(self.covariate_root[covariate](covariate_scenario=covariate_version)):
                     raise FileNotFoundError(f'No {covariate_version} file found for covariate {covariate}.')
+
         return list(regression_covariates)
 
     def get_infectionator_metadata(self):
-        with self.regression_paths.regression_specification.open() as regression_spec_file:
-            regression_spec = yaml.full_load(regression_spec_file)
-        infectionator_path = Path(regression_spec['data']['infection_version'])
-        with (infectionator_path / 'metadata.yaml').open() as metadata_file:
-            metadata = yaml.full_load(metadata_file)
-        return metadata
+        regression_spec = io.load(self.regression_root.specification())
+        infection_root = io.InfectionRoot(regression_spec['data']['infection_version'])
+        return io.load(infection_root.metadata())
 
     def load_full_data(self):
         metadata = self.get_infectionator_metadata()
@@ -141,22 +118,6 @@ class ForecastDataInterface:
         data = pd.read_csv(data_path)
         return data.set_index('location_id')
 
-    def load_elastispliner_inputs(self):
-        metadata = self.get_infectionator_metadata()
-        deaths_version = Path(metadata['death']['metadata']['output_path'])
-        es_inputs = pd.read_csv(deaths_version / 'model_data.csv')
-        es_inputs['date'] = pd.to_datetime(es_inputs['date'])
-        return es_inputs
-
-    def load_elastispliner_outputs(self):
-        metadata = self.get_infectionator_metadata()
-        deaths_version = Path(metadata['death']['metadata']['output_path'])
-        noisy_outputs = pd.read_csv(deaths_version / 'model_results.csv')
-        noisy_outputs['date'] = pd.to_datetime(noisy_outputs['date'])
-        smoothed_outputs = pd.read_csv(deaths_version / 'model_results_refit.csv')
-        smoothed_outputs['date'] = pd.to_datetime(smoothed_outputs['date'])
-        return noisy_outputs, smoothed_outputs
-
     def load_total_deaths(self):
         """Load cumulative deaths by location."""
         full_data = self.load_full_data()
@@ -165,40 +126,35 @@ class ForecastDataInterface:
         return total_deaths
 
     def load_regression_coefficients(self, draw_id: int) -> pd.DataFrame:
-        return self.regression_marshall.load(MKeys.coefficient(draw_id))
+        return io.load(self.regression_root.coefficients(draw_id=draw_id))
 
     # TODO: inverse is RegressionDataInterface.save_date_file
     def load_transition_date(self, draw_id: int) -> pd.Series:
-        dates_df = self.regression_marshall.load(key=MKeys.date(draw_id))
+        dates_df = io.load(self.regression_root.dates(draw_id=draw_id))
         dates_df['end_date'] = pd.to_datetime(dates_df['end_date'])
         transition_date = dates_df.set_index('location_id').sort_index()['end_date'].rename('date')
         return transition_date
 
     # TODO: inverse is RegressionDataInterface.save_regression_betas
     def load_beta_regression(self, draw_id: int) -> pd.DataFrame:
-        beta_regression = self.regression_marshall.load(key=MKeys.regression_beta(draw_id))
+        beta_regression = io.load(self.regression_root.beta(draw_id=draw_id))
         beta_regression['date'] = pd.to_datetime(beta_regression['date'])
         return beta_regression
 
     # TODO: inverse is RegressionDataInterface.save_location_data
     def load_infection_data(self, draw_id: int) -> pd.DataFrame:
-        infection_data = self.regression_marshall.load(key=MKeys.location_data(draw_id))
+        infection_data = io.load(self.regression_root.data(draw_id=draw_id))
         infection_data['date'] = pd.to_datetime(infection_data['date'])
         return infection_data
 
     def load_covariate(self, covariate: str, covariate_version: str, location_ids: List[int],
                        with_observed: bool = False) -> pd.DataFrame:
-        covariate_path = self.covariate_paths.get_covariate_scenario_file(covariate, covariate_version)
-        covariate_df = pd.read_csv(covariate_path)
-        index_columns = ['location_id']
-        if with_observed:
-            index_columns.append('observed')
-        covariate_df = covariate_df.loc[covariate_df['location_id'].isin(location_ids), :]
-        if 'date' in covariate_df.columns:
-            covariate_df['date'] = pd.to_datetime(covariate_df['date'])
-            index_columns.append('date')
-        covariate_df = covariate_df.rename(columns={f'{covariate}_{covariate_version}': covariate})
-        return covariate_df.loc[:, index_columns + [covariate]].set_index(index_columns)
+        covariate_df = io.load(self.covariate_root[covariate](covariate_scenario=covariate_version))
+        covariate_df = self._format_covariate_data(covariate_df, location_ids, with_observed)
+        covariate_df = (covariate_df
+                        .rename(columns={f'{covariate}_{covariate_version}': covariate})
+                        .loc[:, [covariate]])
+        return covariate_df
 
     def load_covariates(self, scenario: ScenarioSpecification, location_ids: List[int]) -> pd.DataFrame:
         covariate_data = []
@@ -208,23 +164,30 @@ class ForecastDataInterface:
         covariate_data = reduce(lambda x, y: x.merge(y, left_index=True, right_index=True), covariate_data)
         return covariate_data.reset_index()
 
-    def load_covariate_info(self, covariate: str, info_type: str, location_ids: List[int]):
-        info_path = self.covariate_paths.get_covariate_info_file(covariate, info_type)
-        info_df = pd.read_csv(info_path)
+    def load_mobility_info(self, info_type: str, location_ids: List[int]):
+        info_df = io.load(self.covariate_root.mobility_info(info_type=info_type))
+        return self._format_covariate_data(info_df, location_ids)
+
+    def load_vaccine_info(self, info_type: str, location_ids: List[int]):
+        info_df = io.load(self.covariate_root.vaccine_info(info_type=info_type))
+        return self._format_covariate_data(info_df, location_ids)
+
+    def _format_covariate_data(self, dataset: pd.DataFrame, location_ids: List[int], with_observed: bool = False):
         index_columns = ['location_id']
-        info_df = info_df.loc[info_df['location_id'].isin(location_ids), :]
-        if 'date' in info_df.columns:
-            info_df['date'] = pd.to_datetime(info_df['date'])
+        if with_observed:
+            index_columns.append('observed')
+        dataset = dataset.loc[dataset['location_id'].isin(location_ids), :]
+        if 'date' in dataset.columns:
+            dataset['date'] = pd.to_datetime(dataset['date'])
             index_columns.append('date')
-        return info_df.set_index(index_columns)
+        return dataset.set_index(index_columns)
 
     def load_scenario_specific_data(self,
                                     location_ids: List[int],
                                     scenario_spec: ScenarioSpecification) -> 'ScenarioData':
         if scenario_spec.system == 'vaccine':
             forecast_scenario = scenario_spec.system_params.get('forecast_version', 'reference')
-            vaccinations = self.load_covariate_info(
-                'vaccine_coverage',
+            vaccinations = self.load_vaccine_info(
                 f'vaccinations_{forecast_scenario}',
                 location_ids,
             )
@@ -232,8 +195,8 @@ class ForecastDataInterface:
             vaccinations = None
 
         if scenario_spec.algorithm == 'draw_level_mandate_reimposition':
-            percent_mandates = self.load_covariate_info('mobility', 'mandate_lift', location_ids)
-            mandate_effects = self.load_covariate_info('mobility', 'effect', location_ids)
+            percent_mandates = self.load_mobility_info('mandate_lift', location_ids)
+            mandate_effects = self.load_mobility_info('effect', location_ids)
         else:
             percent_mandates = None
             mandate_effects = None
@@ -245,69 +208,38 @@ class ForecastDataInterface:
         )
         return scenario_data
 
-    def save_raw_covariates(self, covariates: pd.DataFrame, scenario: str, draw_id: int):
-        self.forecast_marshall.dump(covariates,
-                                    key=MKeys.forecast_raw_covariates(scenario=scenario, draw_id=draw_id))
+    def save_specification(self, specification: ForecastSpecification):
+        io.dump(specification.to_dict(), self.forecast_root.specification())
 
-    def load_raw_covariates(self, scenario: str, draw_id: int):
-        covariates = self.forecast_marshall.load(key=MKeys.forecast_raw_covariates(scenario=scenario, draw_id=draw_id))
-        covariates['date'] = pd.to_datetime(covariates['date'])
-        return covariates
+    def save_raw_covariates(self, covariates: pd.DataFrame, scenario: str, draw_id: int):
+        io.dump(covariates, self.forecast_root.raw_covariates(scenario=scenario, draw_id=draw_id))
 
     def load_beta_params(self, draw_id: int) -> Dict[str, float]:
-        df = self.regression_marshall.load(key=MKeys.parameter(draw_id=draw_id))
+        df = io.load(self.regression_root.parameters(draw_id=draw_id))
         return df.set_index('params')['values'].to_dict()
 
-    def save_components(self, forecasts: pd.DataFrame, scenario: str, draw_id: int):
-        self.forecast_marshall.dump(forecasts, key=MKeys.components(scenario=scenario, draw_id=draw_id))
+    def save_ode_params(self, ode_params: pd.DataFrame, scenario: str, draw_id: int):
+        io.dump(ode_params, self.forecast_root.ode_params(scenario=scenario, draw_id=draw_id))
 
-    def load_components(self, scenario: str, draw_id: int) -> pd.DataFrame:
-        components = self.forecast_marshall.load(key=MKeys.components(scenario=scenario, draw_id=draw_id))
+    def save_components(self, forecasts: pd.DataFrame, scenario: str, draw_id: int):
+        io.dump(forecasts, self.forecast_root.component_draws(scenario=scenario, draw_id=draw_id))
+
+    def load_components(self, scenario: str, draw_id: int):
+        components = io.load(self.forecast_root.component_draws(scenario=scenario, draw_id=draw_id))
         components['date'] = pd.to_datetime(components['date'])
         return components.set_index(['location_id', 'date'])
 
     def save_beta_scales(self, scales: pd.DataFrame, scenario: str, draw_id: int):
-        self.forecast_marshall.dump(scales, key=MKeys.beta_scales(scenario=scenario, draw_id=draw_id))
+        io.dump(scales, self.forecast_root.beta_scaling(scenario=scenario, draw_id=draw_id))
 
     def load_beta_scales(self, scenario: str, draw_id: int):
-        return self.forecast_marshall.load(MKeys.beta_scales(scenario=scenario, draw_id=draw_id))
+        return io.load(self.forecast_root.beta_scaling(scenario=scenario, draw_id=draw_id))
 
     def save_raw_outputs(self, raw_outputs: pd.DataFrame, scenario: str, draw_id: int):
-        self.forecast_marshall.dump(raw_outputs,
-                                    key=MKeys.forecast_raw_outputs(scenario=scenario, draw_id=draw_id))
+        io.dump(raw_outputs, self.forecast_root.raw_outputs(scenario=scenario, draw_id=draw_id))
 
-    def load_raw_outputs(self, scenario: str, draw_id: int) -> pd.DataFrame:
-        return self.forecast_marshall.load(key=MKeys.forecast_raw_outputs(scenario=scenario, draw_id=draw_id))
-
-    def save_resampling_map(self, resampling_map):
-        with (self.forecast_paths.root_dir / 'resampling_map.yaml').open('w') as map_file:
-            yaml.dump(resampling_map, map_file)
-
-    def load_resampling_map(self):
-        with (self.forecast_paths.root_dir / 'resampling_map.yaml').open() as map_file:
-            resampling_map = yaml.full_load(map_file)
-        return resampling_map
-
-    def save_output_draws(self, output_draws: pd.DataFrame, scenario: str, measure: str):
-        self.forecast_marshall.dump(output_draws,
-                                    key=MKeys.forecast_output_draws(scenario=scenario, measure=measure))
-
-    def save_output_summaries(self, output_summaries: pd.DataFrame, scenario: str, measure: str):
-        self.forecast_marshall.dump(output_summaries,
-                                    key=MKeys.forecast_output_summaries(scenario=scenario, measure=measure))
-
-    def save_output_miscellaneous(self, output_miscellaneous: pd.DataFrame, scenario: str, measure: str):
-        self.forecast_marshall.dump(output_miscellaneous,
-                                    key=MKeys.forecast_output_miscellaneous(scenario=scenario, measure=measure))
-
-    def save_reimposition_dates(self, reimposition_dates: pd.DataFrame, scenario: str, reimposition_number: int):
-        self.forecast_marshall.dump(reimposition_dates,
-                                    key=MKeys.reimposition_dates(scenario=scenario,
-                                                                 reimposition_number=reimposition_number))
-
-    def load_reimposition_dates(self, scenario: str, reimposition_number: int):
-        return self.forecast_marshall.load(key=MKeys.reimposition_dates(scenario=scenario,
-                                                                        reimposition_number=reimposition_number))
+    def load_raw_outputs(self, scenario: str, draw_id: int):
+        return io.load(self.forecast_root.raw_outputs(scenario=scenario, draw_id=draw_id))
 
 
 @dataclass

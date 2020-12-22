@@ -26,7 +26,7 @@ class CovariateModel(CovModel):
 
 class IBetaRegressor:
 
-    def fit(self, mr_data: MRData) -> pd.DataFrame:
+    def fit(self, mr_data: MRData, sequential_refit: bool) -> pd.DataFrame:
         raise NotImplementedError
 
 
@@ -44,7 +44,7 @@ class BetaRegressor(IBetaRegressor):
         mr_model_fixed.fit_model()
         return list(mr_model_fixed.result.values())[0]
 
-    def fit(self, mr_data: MRData) -> pd.DataFrame:
+    def fit(self, mr_data: MRData, _: bool) -> pd.DataFrame:
         mr_model = MRModel(mr_data, self.covmodel_set)
         mr_model.fit_model()
         cov_coef = mr_model.result
@@ -62,7 +62,7 @@ class BetaRegressorSequential(IBetaRegressor):
         for covmodel_set in self.ordered_covmodel_sets:
             self.col_covs.extend([covmodel.col_cov for covmodel in covmodel_set.cov_models])
 
-    def fit(self, mr_data) -> pd.DataFrame:
+    def fit(self, mr_data, sequential_refit: bool) -> pd.DataFrame:
         covmodels = []
         covmodel_bounds = []
         covmodel_gprior_std = []
@@ -73,6 +73,7 @@ class BetaRegressorSequential(IBetaRegressor):
                 covmodel_bounds.append(cov_model.bounds)
                 covmodel_gprior_std.append(cov_model.gprior[1])
                 cov_model.gprior[1] = np.inf
+
             regressor = BetaRegressor(covmodel_set)
             cov_coef_fixed = regressor.fit_no_random(mr_data)
 
@@ -82,9 +83,12 @@ class BetaRegressorSequential(IBetaRegressor):
                 covmodel.bounds = np.array([coef, coef])
             covmodels = covmodel_set.cov_models
 
-        for i, cov_model in enumerate(covmodels):
-            cov_model.bounds = np.array(covmodel_bounds[i])
-            cov_model.gprior[1] = covmodel_gprior_std[i]
+        if sequential_refit:
+            # Return the covariates to their original bounds and prior variance.
+            for i, cov_model in enumerate(covmodels):
+                cov_model.bounds = np.array(covmodel_bounds[i])
+                cov_model.gprior[1] = covmodel_gprior_std[i]
+            # Otherwise we'll do nothing and just refit the random effects.
         regressor = BetaRegressor(CovModelSet(covmodels))
         return regressor.fit(mr_data)
 

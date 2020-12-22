@@ -1,17 +1,40 @@
 from dataclasses import dataclass, field
 import itertools
-from typing import Dict, Tuple, Union
+from typing import Dict, NamedTuple, Tuple, Union
 
 from covid_model_seiir_pipeline.utilities import Specification, asdict
+from covid_model_seiir_pipeline.workflow_tools.specification import TaskSpecification, WorkflowSpecification
 
-# TODO: Extract these into specification, maybe.  At least allow overrides
-#    for the queue from the command line.
-FORECAST_RUNTIME = 15000
-FORECAST_MEMORY = '5G'
-POSTPROCESS_MEMORY = '150G'
-FORECAST_CORES = 1
-FORECAST_SCALING_CORES = 26
-FORECAST_QUEUE = 'd.q'
+
+class __ForecastJobs(NamedTuple):
+    scaling: str = 'scaling'
+    forecast: str = 'forecast'
+
+
+FORECAST_JOBS = __ForecastJobs()
+
+
+class ScalingTaskSpecification(TaskSpecification):
+    """Specification of execution parameters for beta scaling tasks."""
+    default_max_runtime_seconds = 5000
+    default_m_mem_free = '5G'
+    default_num_cores = 26
+
+
+class ForecastTaskSpecification(TaskSpecification):
+    """Specification of execution parameters for beta forecasting tasks."""
+    default_max_runtime_seconds = 15000
+    default_m_mem_free = '5G'
+    default_num_cores = 1
+
+
+class ForecastWorkflowSpecification(WorkflowSpecification):
+    """Specification of execution parameters for forecasting workflows."""
+
+    tasks = {
+        FORECAST_JOBS.scaling: ScalingTaskSpecification,
+        FORECAST_JOBS.forecast: ForecastTaskSpecification,
+    }
 
 
 @dataclass
@@ -105,46 +128,39 @@ class ScenarioSpecification:
         return {k: v for k, v in asdict(self).items() if k != 'name'}
 
 
-@dataclass
-class PostprocessingSpecification:
-
-    resampling: Dict = field(default_factory=dict)
-
-    def to_dict(self) -> Dict:
-        return asdict(self)
-
-
 class ForecastSpecification(Specification):
     """Specification for a beta forecast run."""
 
     def __init__(self, data: ForecastData,
-                 postprocessing: PostprocessingSpecification,
+                 workflow: ForecastWorkflowSpecification,
                  *scenarios: ScenarioSpecification):
         self._data = data
-        self._postprocessing = postprocessing
+        self._workflow = workflow
+
         self._scenarios = {s.name: s for s in scenarios}
 
     @classmethod
     def parse_spec_dict(cls, forecast_spec_dict: Dict) -> Tuple:
         """Construct forecast specification args from a dict."""
         data = ForecastData(**forecast_spec_dict.get('data', {}))
-        postprocessing = PostprocessingSpecification(**forecast_spec_dict.get('postprocessing', {}))
+        workflow = ForecastWorkflowSpecification(**forecast_spec_dict.get('workflow', {}))
         scenario_dicts = forecast_spec_dict.get('scenarios', {})
         scenarios = []
         for name, scenario_spec in scenario_dicts.items():
             scenarios.append(ScenarioSpecification(name, **scenario_spec))
         if not scenarios:
             scenarios.append(ScenarioSpecification())
-        return tuple(itertools.chain([data, postprocessing], scenarios))
+        return tuple(itertools.chain([data, workflow], scenarios))
 
     @property
-    def data(self) -> 'ForecastData':
+    def data(self) -> ForecastData:
         """The forecast data specification."""
         return self._data
 
     @property
-    def postprocessing(self) -> PostprocessingSpecification:
-        return self._postprocessing
+    def workflow(self) -> ForecastWorkflowSpecification:
+        """The workflow specification for the forecast."""
+        return self._workflow
 
     @property
     def scenarios(self) -> Dict[str, ScenarioSpecification]:
@@ -155,6 +171,6 @@ class ForecastSpecification(Specification):
         """Convert the specification to a dict."""
         return {
             'data': self.data.to_dict(),
-            'postprocessing': self.postprocessing.to_dict(),
+            'workflow': self.workflow.to_dict(),
             'scenarios': {k: v.to_dict() for k, v in self._scenarios.items()}
         }

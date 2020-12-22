@@ -16,16 +16,17 @@ if __name__ == "__main__":
 
     install_requirements = [
         'click',
-        'covid_shared>=1.0.32',
-        'h5py',
+        'covid_shared>=1.0.47',
         'loguru',
         'matplotlib',
+        'numba',
         'numpy',
+        'odeopt>=0.1.1',
         'pandas',
         'pyyaml',
         'parse',
         'slime',
-        'odeopt>=0.1.1'
+        'tables',
     ]
 
     test_requirements = [
@@ -71,8 +72,8 @@ if __name__ == "__main__":
             'beta_forecast=covid_model_seiir_pipeline.forecasting.task.beta_forecast:main',
             'beta_residual_scaling=covid_model_seiir_pipeline.forecasting.task.beta_residual_scaling:main',
             'mean_level_mandate_reimposition=covid_model_seiir_pipeline.forecasting.task.mean_level_mandate_reimposition:main',
-            'resample_map=covid_model_seiir_pipeline.forecasting.task.resample_map:main',
-            'postprocess=covid_model_seiir_pipeline.forecasting.task.postprocessing:main',
+            'resample_map=covid_model_seiir_pipeline.postprocessing.task.resample_map:main',
+            'postprocess=covid_model_seiir_pipeline.postprocessing.task.postprocess:main',
             'oos_regression=covid_model_seiir_pipeline.predictive_validity.oos_regression:main',
             'oos_forecast=covid_model_seiir_pipeline.predictive_validity.oos_forecast:main',
         ]},
