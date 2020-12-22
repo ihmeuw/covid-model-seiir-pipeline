@@ -2,8 +2,8 @@ import numpy
 import pandas
 import pytest
 
-from covid_model_seiir_pipeline.regression import model
-from covid_model_seiir_pipeline.static_vars import INFECTION_COL_DICT
+from covid_model_seiir_pipeline.lib.static_vars import INFECTION_COL_DICT
+from covid_model_seiir_pipeline.pipeline.regression import model
 
 
 class Test_ODEProcess_results:

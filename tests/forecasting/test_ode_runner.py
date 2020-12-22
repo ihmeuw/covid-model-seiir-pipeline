@@ -1,9 +1,9 @@
 import numpy as np
 
-from covid_model_seiir_pipeline.forecasting.model.ode_forecast import (
+from covid_model_seiir_pipeline.pipeline.forecasting.specification import ScenarioSpecification
+from covid_model_seiir_pipeline.pipeline.forecasting.model.ode_forecast import (
     _ODERunner,
     _SeiirModelSpecs,
-    ScenarioSpecification,
     CompartmentInfo
 )
 

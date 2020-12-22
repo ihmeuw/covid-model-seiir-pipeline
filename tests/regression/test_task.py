@@ -8,9 +8,8 @@ from unittest.mock import (
 import pytest
 
 
-from covid_model_seiir_pipeline.regression.task import (
+from covid_model_seiir_pipeline.pipeline.regression.task import (
     parse_arguments,
-    run_beta_regression,
     main,
     RegressionDataInterface,
     RegressionSpecification,
@@ -31,7 +30,7 @@ def test_main():
     """
     Tests main() calls parse_arguments and then passes two result values to run_ode_fit.
     """
-    ns = "covid_model_seiir_pipeline.regression.task."
+    ns = "covid_model_seiir_pipeline.pipeline.regression.task."
     with patch(ns + "parse_arguments",
                return_value=Mock(
                    draw_id=sentinel.DRAW_ID,

@@ -1,5 +1,5 @@
-from covid_model_seiir_pipeline import io
-from covid_model_seiir_pipeline.regression.data import RegressionDataInterface
+from covid_model_seiir_pipeline.lib import io
+from covid_model_seiir_pipeline.pipeline.regression.data import RegressionDataInterface
 
 
 class TestRegressionDataInterfaceIO:

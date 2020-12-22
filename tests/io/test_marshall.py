@@ -1,8 +1,8 @@
 import pandas
 import pytest
 
-from covid_model_seiir_pipeline.io import RegressionRoot
-from covid_model_seiir_pipeline.io.marshall import (
+from covid_model_seiir_pipeline.lib.io import RegressionRoot
+from covid_model_seiir_pipeline.lib.io.marshall import (
     CSVMarshall,
     ZipMarshall,
     HDF5Marshall,
