@@ -38,10 +38,11 @@ def postprocess_measure(postprocessing_spec: PostprocessingSpecification,
                                                                               measure_config.label)
             measure_data = model.splice_data(measure_data, previous_data, splicing_config.locations)
 
-    if measure_config.aggregator is not None:
-        hierarchy = data_interface.load_aggregation_heirarchy(postprocessing_spec.aggregation)
-        population = data_interface.load_populations()
-        measure_data = measure_config.aggregator(measure_data, hierarchy, population)
+    if measure_config.aggregator is not None and postprocessing_spec.aggregation:
+        for aggregation_config in postprocessing_spec.aggregation:
+            hierarchy = data_interface.load_aggregation_heirarchy(aggregation_config)
+            population = data_interface.load_populations()
+            measure_data = measure_config.aggregator(measure_data, hierarchy, population)
 
     logger.info(f'Saving draws and summaries for {measure}.')
     data_interface.save_output_draws(measure_data.reset_index(), scenario_name, measure_config.label)
@@ -80,9 +81,10 @@ def postprocess_covariate(postprocessing_spec: PostprocessingSpecification,
             covariate_data = model.splice_data(covariate_data, previous_data, locs_to_splice)
 
     if covariate_config.aggregator is not None:
-        hierarchy = data_interface.load_aggregation_heirarchy(postprocessing_spec.aggregation)
-        population = data_interface.load_populations()
-        covariate_data = covariate_config.aggregator(covariate_data, hierarchy, population)
+        for aggregation_config in postprocessing_spec.aggregation:
+            hierarchy = data_interface.load_aggregation_heirarchy(aggregation_config)
+            population = data_interface.load_populations()
+            covariate_data = covariate_config.aggregator(covariate_data, hierarchy, population)
 
     covariate_version = data_interface.get_covariate_version(covariate, scenario_name)
     location_ids = data_interface.load_location_ids()
@@ -124,9 +126,10 @@ def postprocess_miscellaneous(postprocessing_spec: PostprocessingSpecification,
     miscellaneous_data = miscellaneous_config.loader(data_interface)
 
     if miscellaneous_config.aggregator is not None:
-        hierarchy = data_interface.load_aggregation_heirarchy(postprocessing_spec.aggregation)
-        population = data_interface.load_populations()
-        miscellaneous_data = miscellaneous_config.aggregator(miscellaneous_data, hierarchy, population)
+        for aggregation_config in postprocessing_spec.aggregation:
+            hierarchy = data_interface.load_aggregation_heirarchy(aggregation_config)
+            population = data_interface.load_populations()
+            miscellaneous_data = miscellaneous_config.aggregator(miscellaneous_data, hierarchy, population)
     if miscellaneous_config.is_table:
         miscellaneous_data = miscellaneous_data.reset_index()
 
