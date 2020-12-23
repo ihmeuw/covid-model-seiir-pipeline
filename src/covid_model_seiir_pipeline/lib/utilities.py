@@ -10,8 +10,7 @@ import numpy as np
 import pandas as pd
 import yaml
 
-from covid_model_seiir_pipeline.lib.ihme_deps import get_location_metadata
-
+from covid_model_seiir_pipeline.lib.ihme_deps import  get_location_metadata
 
 
 class YamlIOMixin:
