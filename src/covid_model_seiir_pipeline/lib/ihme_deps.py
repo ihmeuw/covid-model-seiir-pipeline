@@ -28,8 +28,8 @@ try:
     from jobmon.client.swarm.workflow.task_dag import DagExecutionStatus
     from jobmon.client.swarm.workflow.workflow import WorkflowAlreadyComplete
 except ModuleNotFoundError:
-    Workflow = _lazy_import_error_function('jobmon')
-    BashTask = _lazy_import_error_function('jobmon')
-    ExecutorParameters = _lazy_import_error_function('jobmon')
-    DagExecutionStatus = _lazy_import_error_function('jobmon')
-    WorkflowAlreadyComplete = _lazy_import_error_function('jobmon')
+    Workflow = _lazy_import_error_object('jobmon')
+    BashTask = _lazy_import_error_object('jobmon')
+    ExecutorParameters = _lazy_import_error_object('jobmon')
+    DagExecutionStatus = _lazy_import_error_object('jobmon')
+    WorkflowAlreadyComplete = _lazy_import_error_object('jobmon')
