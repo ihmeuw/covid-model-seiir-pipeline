@@ -68,7 +68,7 @@ if __name__ == "__main__":
 
         entry_points={'console_scripts': [
             'seiir=covid_model_seiir_pipeline.cli:seiir',
-            'seiir_task=covid_model_seiir_pipeline.pipeline.seiir_task:stask',
+            'stask=covid_model_seiir_pipeline.pipeline.seiir_task:stask',
         ]},
         zip_safe=False,
     )
