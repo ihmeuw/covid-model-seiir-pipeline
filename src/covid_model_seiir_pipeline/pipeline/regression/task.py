@@ -78,7 +78,7 @@ def run_beta_regression(draw_id: int, regression_version: str) -> None:
 
 
 @click.command()
-@click.option('--regression-version', '-r',
+@click.option('--regression-version', '-i',
               type=click.Path(exists=True, file_okay=False),
               help='Full path to an existing directory containing a '
                    '"regression_specification.yaml".')
