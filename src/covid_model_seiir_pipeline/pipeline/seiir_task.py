@@ -9,4 +9,4 @@ def seiir_task():
     pass
 
 
-seiir_task.add_command(beta_regression)
+seiir_task.add_command(beta_regression, name='beta_regression')
