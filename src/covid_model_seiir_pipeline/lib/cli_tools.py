@@ -1,5 +1,7 @@
 from bdb import BdbQuit
+from collections import defaultdict
 import functools
+import time
 from typing import Any, Callable
 
 import click
@@ -8,6 +10,8 @@ from covid_shared.cli_tools import (
     add_verbose_and_with_debugger,
     configure_logging_to_terminal,
 )
+from loguru import logger
+
 
 with_regression_version = click.option(
     '--regression-version', '-i',
@@ -75,3 +79,46 @@ def handle_exceptions(func: Callable, logger: Any, with_debugger: bool) -> Calla
                 raise
 
     return wrapped
+
+
+class _TaskPerformanceLogger:
+
+    def __init__(self):
+        self.current_context = None
+        self.current_context_start = None
+        self.times = defaultdict(float)
+
+    def _record_timing(self, context):
+        if context is None:
+            return
+        if self.current_context is None:
+            self.current_context = context
+            self.current_context_start = time.time()
+        else:
+            self.times[self.current_context] += time.time() - self.current_context_start
+            self.current_context = context
+            self.current_context_start = time.time()
+
+    def info(self, *args, context=None, **kwargs):
+        self._record_timing(context)
+        logger.info(*args, **kwargs)
+
+    def debug(self, *args, context=None, **kwargs):
+        self._record_timing(context)
+        logger.debug(*args, **kwargs)
+
+    def warning(self, *args, context=None, **kwargs):
+        self._record_timing(context)
+        logger.debug(*args, **kwargs)
+
+    def report(self):
+        if self.current_context is not None:
+            self.times[self.current_context] += time.time() - self.current_context_start
+        logger.info(
+            "\nRuntime report\n" +
+            "="*31 + "\n" +
+            "\n".join([f'{context:<20}:{elapsed_time:>10.2f}' for context, elapsed_time in self.times.items()])
+        )
+
+
+task_performance_logger = _TaskPerformanceLogger()
