@@ -1,9 +1,8 @@
 import shutil
 from typing import Dict
 
-from jobmon.client import BashTask
-
 from covid_model_seiir_pipeline.lib import workflow
+from covid_model_seiir_pipeline.lib.ihme_deps import BashTask
 from covid_model_seiir_pipeline.pipeline.forecasting.specification import (
     ScenarioSpecification,
     FORECAST_JOBS,

@@ -1,7 +1,7 @@
 from covid_shared import cli_tools
-from jobmon.client.swarm.workflow.workflow import WorkflowAlreadyComplete
 from loguru import logger
 
+from covid_model_seiir_pipeline.lib.ihme_deps import WorkflowAlreadyComplete
 from covid_model_seiir_pipeline.pipeline.forecasting.specification import ForecastSpecification
 from covid_model_seiir_pipeline.pipeline.forecasting.data import ForecastDataInterface
 from covid_model_seiir_pipeline.pipeline.forecasting.workflow import ForecastWorkflow

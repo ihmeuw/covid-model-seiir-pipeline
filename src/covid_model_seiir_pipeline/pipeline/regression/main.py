@@ -1,7 +1,7 @@
 from covid_shared import cli_tools
-from jobmon.client.swarm.workflow.workflow import WorkflowAlreadyComplete
 from loguru import logger
 
+from covid_model_seiir_pipeline.lib.ihme_deps import WorkflowAlreadyComplete
 from .specification import RegressionSpecification
 from .data import RegressionDataInterface
 from .workflow import RegressionWorkflow
