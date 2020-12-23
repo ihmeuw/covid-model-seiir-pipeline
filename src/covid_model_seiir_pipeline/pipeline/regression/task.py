@@ -11,7 +11,6 @@ from covid_model_seiir_pipeline.lib import (
     static_vars,
     utilities,
 )
-from covid_model_seiir_pipeline.pipeline.seiir_task import seiir_task
 from covid_model_seiir_pipeline.pipeline.regression.data import RegressionDataInterface
 from covid_model_seiir_pipeline.pipeline.regression.specification import RegressionSpecification
 from covid_model_seiir_pipeline.pipeline.regression import model
@@ -78,7 +77,7 @@ def run_beta_regression(draw_id: int, regression_version: str) -> None:
     data_interface.save_date_file(beta_start_end_dates, draw_id)
 
 
-@seiir_task.command()
+@click.command()
 @click.option('--regression-version', '-r',
               type=click.Path(exists=True, file_okay=False),
               help='Full path to an existing directory containing a '
