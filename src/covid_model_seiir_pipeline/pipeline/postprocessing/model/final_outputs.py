@@ -5,8 +5,9 @@ import pandas as pd
 from covid_model_seiir_pipeline.pipeline.postprocessing.model import aggregators, loaders
 
 if TYPE_CHECKING:
+    # The model subpackage is a library for the pipeline stage and shouldn't
+    # explicitly depend on things outside the subpackage.
     from covid_model_seiir_pipeline.pipeline.postprocessing.data import PostprocessingDataInterface
-
 
 
 class MeasureConfig:

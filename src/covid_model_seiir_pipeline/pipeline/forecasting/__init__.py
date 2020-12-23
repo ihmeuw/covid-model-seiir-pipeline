@@ -1,2 +1,2 @@
-from .specification import ForecastSpecification
-from .data import ForecastDataInterface
+from covid_model_seiir_pipeline.pipeline.forecasting.specification import ForecastSpecification
+from covid_model_seiir_pipeline.pipeline.forecasting.data import ForecastDataInterface

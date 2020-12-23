@@ -2,9 +2,9 @@ from covid_shared import cli_tools
 from loguru import logger
 
 from covid_model_seiir_pipeline.lib.ihme_deps import WorkflowAlreadyComplete
-from .specification import RegressionSpecification
-from .data import RegressionDataInterface
-from .workflow import RegressionWorkflow
+from covid_model_seiir_pipeline.pipeline.regression.specification import RegressionSpecification
+from covid_model_seiir_pipeline.pipeline.regression.data import RegressionDataInterface
+from covid_model_seiir_pipeline.pipeline.regression.workflow import RegressionWorkflow
 
 
 def do_beta_regression(app_metadata: cli_tools.Metadata,

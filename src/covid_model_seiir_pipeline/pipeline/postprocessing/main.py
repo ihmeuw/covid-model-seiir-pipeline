@@ -29,9 +29,7 @@ def do_postprocessing(app_metadata: cli_tools.Metadata,
                            "Postprocessing will produce no outputs for these covariates. "
                            f"Unknown covariates: {list(unknown_covariates)}")
 
-        measures = (list(model.MEASURES)
-                    + list(model.MISCELLANEOUS)
-                    + list(modeled_covariates.intersection(known_covariates)))
+        measures = [*model.MEASURES, *model.MISCELLANEOUS, *modeled_covariates.intersection(known_covariates)]
         workflow.attach_tasks(measures, postprocessing_specification.data.scenarios)
 
         try:

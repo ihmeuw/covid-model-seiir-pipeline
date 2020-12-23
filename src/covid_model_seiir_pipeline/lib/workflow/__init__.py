@@ -1,8 +1,8 @@
-from .specification import (
+from covid_model_seiir_pipeline.lib.workflow.specification import (
     TaskSpecification,
     WorkflowSpecification,
 )
-from .template import (
+from covid_model_seiir_pipeline.lib.workflow.template import (
     TaskTemplate,
     WorkflowTemplate
 )

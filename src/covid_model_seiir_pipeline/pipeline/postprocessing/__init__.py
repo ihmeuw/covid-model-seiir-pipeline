@@ -1,2 +1,2 @@
-from .specification import PostprocessingSpecification
-from .data import PostprocessingDataInterface
+from covid_model_seiir_pipeline.pipeline.postprocessing.specification import PostprocessingSpecification
+from covid_model_seiir_pipeline.pipeline.postprocessing.data import PostprocessingDataInterface

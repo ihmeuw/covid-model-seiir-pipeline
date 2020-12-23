@@ -12,6 +12,8 @@ from covid_model_seiir_pipeline.lib import (
 )
 
 if TYPE_CHECKING:
+    # The model subpackage is a library for the pipeline stage and shouldn't
+    # explicitly depend on things outside the subpackage.
     from covid_model_seiir_pipeline.pipeline.forecasting.data import ScenarioData
     from covid_model_seiir_pipeline.pipeline.forecasting.specification import ScenarioSpecification
 
