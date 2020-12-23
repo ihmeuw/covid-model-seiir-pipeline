@@ -1,1 +1,1 @@
-from .specification import PredictiveValiditySpecification
+from covid_model_seiir_pipeline.pipeline.predictive_validity.specification import PredictiveValiditySpecification
