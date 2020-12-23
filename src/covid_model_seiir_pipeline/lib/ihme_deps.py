@@ -11,10 +11,14 @@ def _lazy_import_error_object(module_name: str):
         def __init__(self, *args, **kwargs):
             raise ModuleNotFoundError(f"No module named '{module_name}'")
 
+    return C
+
 
 def _lazy_import_error_function(module_name: str):
     def f(*args, **kwargs):
         raise ModuleNotFoundError(f"No module named '{module_name}'")
+
+    return f
 
 
 try:
