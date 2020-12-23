@@ -1,3 +1,9 @@
+"""Wrappers for IHME specific dependencies.
+
+This module explicitly declares and wraps IHME specific code bases
+to prevent CI failures at import time.
+"""
+
 
 def _lazy_import_error_object(module_name: str):
 
