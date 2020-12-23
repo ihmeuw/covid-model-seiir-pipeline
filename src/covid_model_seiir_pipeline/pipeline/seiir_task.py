@@ -1,11 +1,16 @@
 import click
 
-from .regression.task import beta_regression
-from .forecasting.task import (
+from .regression import (
+    REGRESSION_JOBS,
+    beta_regression
+)
+from .forecasting import (
+    FORECAST_JOBS,
     beta_residual_scaling,
     beta_forecast,
 )
-from .postprocessing.task import (
+from .postprocessing import (
+    POSTPROCESSING_JOBS,
     resample_map,
     postprocess,
 )
@@ -17,8 +22,8 @@ def stask():
     pass
 
 
-stask.add_command(beta_regression, name='beta_regression')
-stask.add_command(beta_residual_scaling, name='beta_residual_scaling')
-stask.add_command(beta_forecast, name='beta_forecast')
-stask.add_command(resample_map, name='resample_map')
-stask.add_command(postprocess, name='postprocess')
+stask.add_command(beta_regression, name=REGRESSION_JOBS.regression)
+stask.add_command(beta_residual_scaling, name=FORECAST_JOBS.scaling)
+stask.add_command(beta_forecast, name=FORECAST_JOBS.forecast)
+stask.add_command(resample_map, name=POSTPROCESSING_JOBS.resample)
+stask.add_command(postprocess, name=POSTPROCESSING_JOBS.postprocess)

@@ -8,7 +8,7 @@ from covid_model_seiir_pipeline.lib import (
 
 
 class __RegressionJobs(NamedTuple):
-    regression: str = 'regression'
+    regression: str = 'beta_regression'
 
 
 REGRESSION_JOBS = __RegressionJobs()

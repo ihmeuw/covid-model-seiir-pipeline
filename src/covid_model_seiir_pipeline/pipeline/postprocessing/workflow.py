@@ -10,10 +10,10 @@ from covid_model_seiir_pipeline.pipeline.postprocessing.specification import (
 
 class PostprocessingTaskTemplate(workflow.TaskTemplate):
 
-    task_name_template = "{measure}_{scenario}_post_processing"
+    task_name_template = f"{POSTPROCESSING_JOBS.postprocess}_{{scenario}}_{{measure}}"
     command_template = (
             f"{shutil.which('stask')} "
-            f"postprocess " +
+            f"{POSTPROCESSING_JOBS.postprocess} " +
             "--postprocessing-version {postprocessing_version} "
             "--scenario {scenario} "
             "--measure {measure}"
@@ -21,10 +21,10 @@ class PostprocessingTaskTemplate(workflow.TaskTemplate):
 
 
 class ResampleMapTaskTemplate(workflow.TaskTemplate):
-    task_name_template = "seiir_resample_map"
+    task_name_template = f"{POSTPROCESSING_JOBS.resample}"
     command_template = (
             f"{shutil.which('stask')} "
-            f"resample_map " +
+            f"{POSTPROCESSING_JOBS.resample} " +
             "--postprocessing-version {postprocessing_version} "
     )
 
