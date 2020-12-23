@@ -172,8 +172,8 @@ def run_seir_postprocessing(postprocessing_version: str, scenario: str, measure:
               type=click.STRING,
               help='The scenario to be run.')
 @cli_tools.add_verbose_and_with_debugger
-def postprocessing(postprocessing_version: str, scenario: str, measure: str,
-                   verbose: int, with_debugger: bool):
+def postprocess(postprocessing_version: str, scenario: str, measure: str,
+                verbose: int, with_debugger: bool):
     cli_tools.configure_logging_to_terminal(verbose)
     run = utilities.handle_exceptions(run_seir_postprocessing, logger, with_debugger)
     run(postprocessing_version=postprocessing_version,
@@ -182,4 +182,4 @@ def postprocessing(postprocessing_version: str, scenario: str, measure: str,
 
 
 if __name__ == '__main__':
-    postprocessing()
+    postprocess()

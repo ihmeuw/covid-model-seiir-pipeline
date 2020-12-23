@@ -16,7 +16,7 @@ class BetaResidualScalingTaskTemplate(workflow.TaskTemplate):
             f"{shutil.which('stask')} "
             f"beta_residual_scaling " +
             "--forecast-version {forecast_version} " +
-            "--scenario-name {scenario}"
+            "--scenario {scenario}"
     )
 
 
@@ -26,9 +26,9 @@ class BetaForecastTaskTemplate(workflow.TaskTemplate):
     command_template = (
         f"{shutil.which('stask')} "
         f"beta_forecast " +
-        "--draw-id {draw_id} " +
         "--forecast-version {forecast_version} " +
         "--scenario-name {scenario} " +
+        "--draw-id {draw_id} " +
         "--extra-id {extra_id}"
     )
 

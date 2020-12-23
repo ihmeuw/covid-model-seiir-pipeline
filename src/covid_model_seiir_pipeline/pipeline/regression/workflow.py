@@ -9,8 +9,8 @@ class BetaRegressionTaskTemplate(workflow.TaskTemplate):
     command_template = (
             f"{shutil.which('stask')} " +
             "beta_regression "
-            "--draw-id {draw_id} " +
-            "--regression-version {regression_version} "
+            "--regression-version {regression_version} " +
+            "--draw-id {draw_id} "
     )
 
 

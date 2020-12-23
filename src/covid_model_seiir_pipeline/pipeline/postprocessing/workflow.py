@@ -12,9 +12,10 @@ class PostprocessingTaskTemplate(workflow.TaskTemplate):
 
     task_name_template = "{measure}_{scenario}_post_processing"
     command_template = (
-            f"{shutil.which('postprocess')} " +
+            f"{shutil.which('stask')} "
+            f"postprocess " +
             "--postprocessing-version {postprocessing_version} "
-            "--scenario-name {scenario} "
+            "--scenario {scenario} "
             "--measure {measure}"
     )
 
@@ -22,7 +23,8 @@ class PostprocessingTaskTemplate(workflow.TaskTemplate):
 class ResampleMapTaskTemplate(workflow.TaskTemplate):
     task_name_template = "seiir_resample_map"
     command_template = (
-            f"{shutil.which('resample_map')} " +
+            f"{shutil.which('stask')} "
+            f"resample_map " +
             "--postprocessing-version {postprocessing_version} "
     )
 
