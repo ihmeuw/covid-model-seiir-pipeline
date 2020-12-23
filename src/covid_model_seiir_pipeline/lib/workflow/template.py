@@ -2,11 +2,13 @@
 import abc
 from typing import Dict, Type, TypeVar
 
-from jobmon.client import Workflow, BashTask
-from jobmon.client.swarm.executors.base import ExecutorParameters
-from jobmon.client.swarm.workflow.task_dag import DagExecutionStatus
-
-from covid_model_seiir_pipeline.lib import utilities
+from covid_model_seiir_pipeline.lib.utilities import make_log_dirs
+from covid_model_seiir_pipeline.lib.ihme_deps import (
+    BashTask,
+    DagExecutionStatus,
+    ExecutorParameters,
+    Workflow,
+)
 from covid_model_seiir_pipeline.lib.workflow.specification import (
     TaskSpecification,
     WorkflowSpecification
@@ -72,7 +74,7 @@ class WorkflowTemplate(abc.ABC):
         self.version = version
         assert workflow_specification.tasks.keys() == self.task_template_classes.keys()
         self.task_templates = self.build_task_templates(workflow_specification.task_specifications)
-        stdout, stderr = utilities.make_log_dirs(version, prefix='jobmon')
+        stdout, stderr = make_log_dirs(version, prefix='jobmon')
 
         self.workflow = Workflow(
             workflow_args=self.workflow_name_template.format(version=version),

@@ -67,7 +67,7 @@ def regress(run_metadata,
     covariates_root = utilities.get_input_root(covariates_version,
                                                regression_spec.data.covariate_version,
                                                paths.SEIR_COVARIATES_OUTPUT_ROOT)
-    locations_set_version_id, location_set_file = utilities.get_location_metadata(
+    locations_set_version_id, location_set_file = utilities.get_location_info(
         location_specification,
         regression_spec.data.location_set_version_id,
         regression_spec.data.location_set_file

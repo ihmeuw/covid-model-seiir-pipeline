@@ -13,6 +13,8 @@ import numpy as np
 import pandas as pd
 import yaml
 
+from covid_model_seiir_pipeline.lib.ihme_deps import  get_location_metadata
+
 
 class YamlIOMixin:
     """Mixin for reading and writing yaml files."""
@@ -117,9 +119,9 @@ def get_input_root(cli_argument: Optional[str], specification_value: Optional[st
     return root.resolve()
 
 
-def get_location_metadata(location_specification: Optional[str],
-                          spec_lsvid: Optional[int],
-                          spec_location_file: Optional[str]) -> Tuple[int, str]:
+def get_location_info(location_specification: Optional[str],
+                      spec_lsvid: Optional[int],
+                      spec_location_file: Optional[str]) -> Tuple[int, str]:
     """Resolves a location specification from the cli args and run spec.
 
     Parameters
@@ -190,7 +192,6 @@ def load_location_hierarchy(location_set_id: int = None,
     if ids:
         # Hide this import so the code stays portable outside IHME by using
         # a locations file directly.
-        from db_queries import get_location_metadata
         try:
             return get_location_metadata(location_set_id=location_set_id,
                                          location_set_version_id=location_set_version_id)

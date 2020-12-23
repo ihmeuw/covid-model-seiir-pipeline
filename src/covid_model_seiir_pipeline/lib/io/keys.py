@@ -3,7 +3,7 @@ from pathlib import Path
 from typing import NamedTuple, Optional, TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from .data_roots import DataRoot
+    from covid_model_seiir_pipeline.lib.io.data_roots import DataRoot
 
 
 class __LeafTemplates(NamedTuple):
