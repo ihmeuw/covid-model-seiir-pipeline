@@ -2,7 +2,7 @@ from pathlib import Path
 
 import pytest
 
-from covid_model_seiir_pipeline.io.keys import (
+from covid_model_seiir_pipeline.lib.io.keys import (
     DatasetKey,
     MetadataKey,
     DatasetType,
@@ -10,7 +10,7 @@ from covid_model_seiir_pipeline.io.keys import (
     PREFIX_TEMPLATES,
     LEAF_TEMPLATES,
 )
-from covid_model_seiir_pipeline.io.data_roots import DataRoot
+from covid_model_seiir_pipeline.lib.io.data_roots import DataRoot
 
 
 @pytest.fixture(params=LEAF_TEMPLATES)

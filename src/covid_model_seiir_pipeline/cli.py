@@ -4,15 +4,17 @@ import click
 from covid_shared import cli_tools, paths, shell_tools
 from loguru import logger
 
-from covid_model_seiir_pipeline import utilities
-from covid_model_seiir_pipeline.regression.specification import RegressionSpecification
-from covid_model_seiir_pipeline.regression.main import do_beta_regression
-from covid_model_seiir_pipeline.forecasting.specification import ForecastSpecification
-from covid_model_seiir_pipeline.forecasting.main import do_beta_forecast
-from covid_model_seiir_pipeline.postprocessing.specification import PostprocessingSpecification
-from covid_model_seiir_pipeline.postprocessing.main import do_postprocessing
-from covid_model_seiir_pipeline.predictive_validity.specification import PredictiveValiditySpecification
-from covid_model_seiir_pipeline.predictive_validity.main import do_predictive_validity
+from covid_model_seiir_pipeline.lib import utilities
+from covid_model_seiir_pipeline.pipeline import (
+    RegressionSpecification,
+    do_beta_regression,
+    ForecastSpecification,
+    do_beta_forecast,
+    PostprocessingSpecification,
+    do_postprocessing,
+    PredictiveValiditySpecification,
+    do_predictive_validity,
+)
 
 
 @click.group()
@@ -65,7 +67,7 @@ def regress(run_metadata,
     covariates_root = utilities.get_input_root(covariates_version,
                                                regression_spec.data.covariate_version,
                                                paths.SEIR_COVARIATES_OUTPUT_ROOT)
-    locations_set_version_id, location_set_file = utilities.get_location_metadata(
+    locations_set_version_id, location_set_file = utilities.get_location_info(
         location_specification,
         regression_spec.data.location_set_version_id,
         regression_spec.data.location_set_file

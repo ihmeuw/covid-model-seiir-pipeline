@@ -2,16 +2,16 @@ from pathlib import Path
 
 import pytest
 
-from covid_model_seiir_pipeline.io.data_roots import (
+from covid_model_seiir_pipeline.lib.io.data_roots import (
     DataRoot,
 )
-from covid_model_seiir_pipeline.io.keys import (
+from covid_model_seiir_pipeline.lib.io.keys import (
     DatasetType,
     MetadataType,
     LEAF_TEMPLATES,
     PREFIX_TEMPLATES,
 )
-from covid_model_seiir_pipeline.io.marshall import (
+from covid_model_seiir_pipeline.lib.io.marshall import (
     DATA_STRATEGIES,
     METADATA_STRATEGIES,
 )

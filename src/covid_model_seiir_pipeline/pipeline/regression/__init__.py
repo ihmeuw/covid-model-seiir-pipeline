@@ -1,0 +1,2 @@
+from covid_model_seiir_pipeline.pipeline.regression.specification import RegressionSpecification
+from covid_model_seiir_pipeline.pipeline.regression.data import RegressionDataInterface

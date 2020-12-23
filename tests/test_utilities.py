@@ -2,7 +2,7 @@ from pathlib import Path
 
 from covid_shared import paths
 
-from covid_model_seiir_pipeline import utilities
+from covid_model_seiir_pipeline.lib import utilities
 
 
 def test_get_input_root():
