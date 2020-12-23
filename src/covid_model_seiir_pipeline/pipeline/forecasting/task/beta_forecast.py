@@ -2,13 +2,12 @@ from pathlib import Path
 import time
 
 import click
-from covid_shared import cli_tools
 import pandas as pd
 from loguru import logger
 
 from covid_model_seiir_pipeline.lib import (
+    cli_tools,
     static_vars,
-    utilities,
 )
 from covid_model_seiir_pipeline.pipeline.forecasting import model
 from covid_model_seiir_pipeline.pipeline.forecasting.specification import ForecastSpecification
@@ -204,22 +203,15 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, **kwar
 
 
 @click.command()
-@click.option('--forecast-version', '-i',
-              type=click.Path(exists=True, file_okay=False),
-              help='Full path to an existing directory containing a '
-                   '"forecast_specification.yaml".')
-@click.option('--scenario', '-s',
-              type=click.STRING,
-              help='The scenario to be run.')
-@click.option('--draw-id', '-d',
-              type=click.INT,
-              help='The draw to be run.')
+@cli_tools.with_forecast_version
+@cli_tools.with_scenario
+@cli_tools.with_draw_id
 @cli_tools.add_verbose_and_with_debugger
 def beta_forecast(forecast_version: str, scenario: str, draw_id: int,
                   verbose: int, with_debugger: bool):
     cli_tools.configure_logging_to_terminal(verbose)
 
-    run = utilities.handle_exceptions(run_beta_forecast, logger, with_debugger)
+    run = cli_tools.handle_exceptions(run_beta_forecast, logger, with_debugger)
     run(forecast_version=forecast_version,
         scenario=scenario,
         draw_id=draw_id)

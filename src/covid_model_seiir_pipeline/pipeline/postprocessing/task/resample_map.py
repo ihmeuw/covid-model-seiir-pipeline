@@ -1,13 +1,12 @@
 from pathlib import Path
 
 import click
-from covid_shared import cli_tools
 from loguru import logger
 import pandas as pd
 
 from covid_model_seiir_pipeline.lib import (
+    cli_tools,
     static_vars,
-    utilities,
 )
 from covid_model_seiir_pipeline.pipeline.postprocessing.data import PostprocessingDataInterface
 from covid_model_seiir_pipeline.pipeline.postprocessing.specification import (
@@ -33,15 +32,12 @@ def run_resample_map(postprocessing_version: str) -> None:
 
 
 @click.command()
-@click.option('--postprocessing-version', '-i',
-              type=click.Path(exists=True, file_okay=False),
-              help='Full path to an existing directory containing a '
-                   '"postprocessing_specification.yaml".')
+@cli_tools.with_postprocessing_version
 @cli_tools.add_verbose_and_with_debugger
 def resample_map(postprocessing_version: str,
                  verbose: int, with_debugger: bool):
     cli_tools.configure_logging_to_terminal(verbose)
-    run = utilities.handle_exceptions(run_resample_map, logger, with_debugger)
+    run = cli_tools.handle_exceptions(run_resample_map, logger, with_debugger)
     run(postprocessing_version=postprocessing_version)
 
 

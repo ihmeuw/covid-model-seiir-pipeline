@@ -1,15 +1,14 @@
 from pathlib import Path
 
 import click
-from covid_shared import cli_tools
 from loguru import logger
 import numpy as np
 import pandas as pd
 
 from covid_model_seiir_pipeline.lib import (
+    cli_tools,
     math,
     static_vars,
-    utilities,
 )
 from covid_model_seiir_pipeline.pipeline.regression.data import RegressionDataInterface
 from covid_model_seiir_pipeline.pipeline.regression.specification import RegressionSpecification
@@ -78,21 +77,14 @@ def run_beta_regression(regression_version: str, draw_id: int) -> None:
 
 
 @click.command()
-@click.option('--regression-version', '-i',
-              type=click.Path(exists=True, file_okay=False),
-              required=True,
-              help='Full path to an existing directory containing a '
-                   '"regression_specification.yaml".')
-@click.option('--draw-id', '-d',
-              type=click.INT,
-              required=True,
-              help='The draw to be run.')
+@cli_tools.with_regression_version
+@cli_tools.with_draw_id
 @cli_tools.add_verbose_and_with_debugger
 def beta_regression(regression_version: str, draw_id: int,
                     verbose: int, with_debugger: bool):
     cli_tools.configure_logging_to_terminal(verbose)
 
-    run = utilities.handle_exceptions(run_beta_regression, logger, with_debugger)
+    run = cli_tools.handle_exceptions(run_beta_regression, logger, with_debugger)
     run(regression_version=regression_version,
         draw_id=draw_id)
 

@@ -1,11 +1,11 @@
 from pathlib import Path
 
 import click
-from covid_shared import cli_tools
 from loguru import logger
 import pandas as pd
 
 from covid_model_seiir_pipeline.lib import (
+    cli_tools,
     static_vars,
     utilities,
 )
@@ -161,21 +161,14 @@ def run_seir_postprocessing(postprocessing_version: str, scenario: str, measure:
 
 
 @click.command()
-@click.option('--postprocessing-version', '-i',
-              type=click.Path(exists=True, file_okay=False),
-              help='Full path to an existing directory containing a '
-                   '"postprocessing_specification.yaml".')
-@click.option('--scenario', '-s',
-              type=click.STRING,
-              help='The scenario to be run.')
-@click.option('--measure', '-m',
-              type=click.STRING,
-              help='The scenario to be run.')
+@cli_tools.with_postprocessing_version
+@cli_tools.with_scenario
+@cli_tools.with_measure
 @cli_tools.add_verbose_and_with_debugger
 def postprocess(postprocessing_version: str, scenario: str, measure: str,
                 verbose: int, with_debugger: bool):
     cli_tools.configure_logging_to_terminal(verbose)
-    run = utilities.handle_exceptions(run_seir_postprocessing, logger, with_debugger)
+    run = cli_tools.handle_exceptions(run_seir_postprocessing, logger, with_debugger)
     run(postprocessing_version=postprocessing_version,
         scenario=scenario,
         measure=measure)

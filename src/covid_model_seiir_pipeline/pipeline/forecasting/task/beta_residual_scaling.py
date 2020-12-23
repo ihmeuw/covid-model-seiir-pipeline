@@ -4,14 +4,13 @@ from typing import Dict, List
 from pathlib import Path
 
 import click
-from covid_shared import cli_tools
 from loguru import logger
 import pandas as pd
 import numpy as np
 
 from covid_model_seiir_pipeline.lib import (
+    cli_tools,
     static_vars,
-    utilities,
 )
 from covid_model_seiir_pipeline.pipeline.forecasting.specification import (
     ForecastSpecification,
@@ -219,18 +218,13 @@ def write_out_beta_scales_by_draw(beta_scales: pd.DataFrame, data_interface: For
 
 
 @click.command()
-@click.option('--forecast-version', '-i',
-              type=click.Path(exists=True, file_okay=False),
-              help='Full path to an existing directory containing a '
-                   '"forecast_specification.yaml".')
-@click.option('--scenario', '-s',
-              type=click.STRING,
-              help='The scenario to be run.')
+@cli_tools.with_forecast_version
+@cli_tools.with_scenario
 @cli_tools.add_verbose_and_with_debugger
 def beta_residual_scaling(forecast_version: str, scenario: str,
                           verbose: int, with_debugger: bool):
     cli_tools.configure_logging_to_terminal(verbose)
-    run = utilities.handle_exceptions(run_compute_beta_scaling_parameters, logger, with_debugger)
+    run = cli_tools.handle_exceptions(run_compute_beta_scaling_parameters, logger, with_debugger)
     run(forecast_version=forecast_version,
         scenario=scenario)
 
