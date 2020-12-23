@@ -7,10 +7,13 @@ from covid_shared.cli_tools.logging import configure_logging_to_terminal
 from loguru import logger
 import pandas as pd
 
-from covid_model_seiir_pipeline import static_vars
-from covid_model_seiir_pipeline.postprocessing.data import PostprocessingDataInterface
-from covid_model_seiir_pipeline.postprocessing.specification import PostprocessingSpecification, POSTPROCESSING_JOBS
-from covid_model_seiir_pipeline.postprocessing.model import resampling, loaders
+from covid_model_seiir_pipeline.lib import static_vars
+from covid_model_seiir_pipeline.pipeline.postprocessing.data import PostprocessingDataInterface
+from covid_model_seiir_pipeline.pipeline.postprocessing.specification import (
+    PostprocessingSpecification,
+    POSTPROCESSING_JOBS,
+)
+from covid_model_seiir_pipeline.pipeline.postprocessing.model import resampling, loaders
 
 
 def run_resample_map(postprocessing_version: str) -> None:
