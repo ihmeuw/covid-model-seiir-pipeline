@@ -1,13 +1,14 @@
-from argparse import ArgumentParser, Namespace
 from pathlib import Path
-import shlex
-from typing import Optional
 
-from covid_shared.cli_tools.logging import configure_logging_to_terminal
+import click
+from covid_shared import cli_tools
 from loguru import logger
 import pandas as pd
 
-from covid_model_seiir_pipeline.lib import static_vars
+from covid_model_seiir_pipeline.lib import (
+    static_vars,
+    utilities,
+)
 from covid_model_seiir_pipeline.pipeline.postprocessing.specification import (
     PostprocessingSpecification,
     POSTPROCESSING_JOBS,
@@ -140,51 +141,45 @@ def postprocess_miscellaneous(postprocessing_spec: PostprocessingSpecification,
                                              miscellaneous_config.is_table)
 
 
-def run_seir_postprocessing(postprocessing_version: str, scenario_name: str, measure: str) -> None:
-    logger.info(f'Starting postprocessing for version {postprocessing_version}, scenario {scenario_name}.')
+def run_seir_postprocessing(postprocessing_version: str, scenario: str, measure: str) -> None:
+    logger.info(f'Starting postprocessing for version {postprocessing_version}, scenario {scenario}.')
     postprocessing_spec = PostprocessingSpecification.from_path(
         Path(postprocessing_version) / static_vars.POSTPROCESSING_SPECIFICATION_FILE
     )
     data_interface = PostprocessingDataInterface.from_specification(postprocessing_spec)
 
     if measure in model.MEASURES:
-        postprocess_measure(postprocessing_spec, data_interface, scenario_name, measure)
+        postprocess_measure(postprocessing_spec, data_interface, scenario, measure)
     elif measure in model.COVARIATES:
-        postprocess_covariate(postprocessing_spec, data_interface, scenario_name, measure)
+        postprocess_covariate(postprocessing_spec, data_interface, scenario, measure)
     elif measure in model.MISCELLANEOUS:
-        postprocess_miscellaneous(postprocessing_spec, data_interface, scenario_name, measure)
+        postprocess_miscellaneous(postprocessing_spec, data_interface, scenario, measure)
     else:
         raise NotImplementedError(f'Unknown measure {measure}.')
 
     logger.info('**DONE**')
 
 
-def parse_arguments(argstr: Optional[str] = None) -> Namespace:
-    """
-    Gets arguments from the command line or a command line string.
-    """
-    logger.info("parsing arguments")
-    parser = ArgumentParser()
-    parser.add_argument("--postprocessing-version", type=str, required=True)
-    parser.add_argument("--scenario-name", type=str, required=True)
-    parser.add_argument("--measure", type=str, required=True)
-
-    if argstr is not None:
-        arglist = shlex.split(argstr)
-        args = parser.parse_args(arglist)
-    else:
-        args = parser.parse_args()
-
-    return args
-
-
-def main():
-    configure_logging_to_terminal(verbose=1)  # Debug level
-    args = parse_arguments()
-    run_seir_postprocessing(postprocessing_version=args.postprocessing_version,
-                            scenario_name=args.scenario_name,
-                            measure=args.measure)
+@click.command()
+@click.option('--postprocessing-version', '-i',
+              type=click.Path(exists=True, file_okay=False),
+              help='Full path to an existing directory containing a '
+                   '"postprocessing_specification.yaml".')
+@click.option('--scenario', '-s',
+              type=click.STRING,
+              help='The scenario to be run.')
+@click.option('--measure', '-m',
+              type=click.STRING,
+              help='The scenario to be run.')
+@cli_tools.add_verbose_and_with_debugger
+def postprocessing(postprocessing_version: str, scenario: str, measure: str,
+                   verbose: int, with_debugger: bool):
+    cli_tools.configure_logging_to_terminal(verbose)
+    run = utilities.handle_exceptions(run_seir_postprocessing, logger, with_debugger)
+    run(postprocessing_version=postprocessing_version,
+        scenario=scenario,
+        measure=measure)
 
 
 if __name__ == '__main__':
-    main()
+    postprocessing()

@@ -1,15 +1,18 @@
-from argparse import ArgumentParser, Namespace
 import functools
 import multiprocessing
-from typing import Dict, List, Optional
-import logging
+from typing import Dict, List
 from pathlib import Path
-import shlex
 
+import click
+from covid_shared import cli_tools
+from loguru import logger
 import pandas as pd
 import numpy as np
 
-from covid_model_seiir_pipeline.lib import static_vars
+from covid_model_seiir_pipeline.lib import (
+    static_vars,
+    utilities,
+)
 from covid_model_seiir_pipeline.pipeline.forecasting.specification import (
     ForecastSpecification,
     FORECAST_JOBS,
@@ -17,10 +20,7 @@ from covid_model_seiir_pipeline.pipeline.forecasting.specification import (
 from covid_model_seiir_pipeline.pipeline.forecasting.data import ForecastDataInterface
 
 
-log = logging.getLogger(__name__)
-
-
-def run_compute_beta_scaling_parameters(forecast_version: str, scenario_name: str):
+def run_compute_beta_scaling_parameters(forecast_version: str, scenario: str):
     """Pre-compute the parameters for rescaling predicted beta and write out.
 
     The predicted beta has two issues we're attempting to adjust.
@@ -51,7 +51,7 @@ def run_compute_beta_scaling_parameters(forecast_version: str, scenario_name: st
     ----------
     forecast_version
         The path to the forecast version to run this process for.
-    scenario_name
+    scenario
         Which scenario in the forecast version to run this process for.
 
     Notes
@@ -61,8 +61,8 @@ def run_compute_beta_scaling_parameters(forecast_version: str, scenario_name: st
     from the main forecasting process.
 
     """
-    log.info(f"Computing beta scaling parameters for forecast "
-             f"version {forecast_version} and scenario {scenario_name}.")
+    logger.info(f"Computing beta scaling parameters for forecast "
+                f"version {forecast_version} and scenario {scenario}.")
 
     forecast_spec: ForecastSpecification = ForecastSpecification.from_path(
         Path(forecast_version) / static_vars.FORECAST_SPECIFICATION_FILE
@@ -74,10 +74,10 @@ def run_compute_beta_scaling_parameters(forecast_version: str, scenario_name: st
     total_deaths = data_interface.load_total_deaths()
     total_deaths = total_deaths[total_deaths.location_id.isin(locations)].set_index('location_id')['deaths']
 
-    beta_scaling = forecast_spec.scenarios[scenario_name].beta_scaling
+    beta_scaling = forecast_spec.scenarios[scenario].beta_scaling
     scaling_data = compute_initial_beta_scaling_paramters(total_deaths, beta_scaling, data_interface, num_cores)
     residual_mean_offset = compute_residual_mean_offset(scaling_data, beta_scaling, total_deaths)
-    write_out_beta_scale(scaling_data, residual_mean_offset, scenario_name, data_interface, num_cores)
+    write_out_beta_scale(scaling_data, residual_mean_offset, scenario, data_interface, num_cores)
 
 
 def compute_residual_mean_offset(scaling_data: List[pd.DataFrame],
@@ -218,29 +218,22 @@ def write_out_beta_scales_by_draw(beta_scales: pd.DataFrame, data_interface: For
     data_interface.save_beta_scales(beta_scales.reset_index(), scenario, draw_id)
 
 
-def parse_arguments(argstr: Optional[str] = None) -> Namespace:
-    """
-    Gets arguments from the command line or a command line string.
-    """
-    log.info("parsing arguments")
-    parser = ArgumentParser()
-    parser.add_argument("--forecast-version", type=str, required=True)
-    parser.add_argument("--scenario-name", type=str, required=True)
-
-    if argstr is not None:
-        arglist = shlex.split(argstr)
-        args = parser.parse_args(arglist)
-    else:
-        args = parser.parse_args()
-
-    return args
-
-
-def main():
-    args = parse_arguments()
-    run_compute_beta_scaling_parameters(forecast_version=args.forecast_version,
-                                        scenario_name=args.scenario_name)
+@click.command()
+@click.option('--forecast-version', '-i',
+              type=click.Path(exists=True, file_okay=False),
+              help='Full path to an existing directory containing a '
+                   '"forecast_specification.yaml".')
+@click.option('--scenario', '-s',
+              type=click.STRING,
+              help='The scenario to be run.')
+@cli_tools.add_verbose_and_with_debugger
+def beta_residual_scaling(forecast_version: str, scenario: str,
+                          verbose: int, with_debugger: bool):
+    cli_tools.configure_logging_to_terminal(verbose)
+    run = utilities.handle_exceptions(run_compute_beta_scaling_parameters, logger, with_debugger)
+    run(forecast_version=forecast_version,
+        scenario=scenario)
 
 
 if __name__ == '__main__':
-    main()
+    beta_residual_scaling()

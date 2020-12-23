@@ -16,7 +16,7 @@ from covid_model_seiir_pipeline.pipeline.regression.specification import Regress
 from covid_model_seiir_pipeline.pipeline.regression import model
 
 
-def run_beta_regression(draw_id: int, regression_version: str) -> None:
+def run_beta_regression(regression_version: str, draw_id: int) -> None:
     # Build helper abstractions
     regression_spec_file = Path(regression_version) / static_vars.REGRESSION_SPECIFICATION_FILE
     regression_specification = RegressionSpecification.from_path(regression_spec_file)
@@ -80,10 +80,12 @@ def run_beta_regression(draw_id: int, regression_version: str) -> None:
 @click.command()
 @click.option('--regression-version', '-i',
               type=click.Path(exists=True, file_okay=False),
+              required=True,
               help='Full path to an existing directory containing a '
                    '"regression_specification.yaml".')
 @click.option('--draw-id', '-d',
               type=click.INT,
+              required=True,
               help='The draw to be run.')
 @cli_tools.add_verbose_and_with_debugger
 def beta_regression(regression_version: str, draw_id: int,
@@ -91,8 +93,8 @@ def beta_regression(regression_version: str, draw_id: int,
     cli_tools.configure_logging_to_terminal(verbose)
 
     run = utilities.handle_exceptions(run_beta_regression, logger, with_debugger)
-    run(draw_id=draw_id,
-        regression_version=regression_version)
+    run(regression_version=regression_version,
+        draw_id=draw_id)
 
 
 if __name__ == '__main__':
