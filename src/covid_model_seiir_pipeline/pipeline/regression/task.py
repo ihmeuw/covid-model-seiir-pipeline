@@ -54,7 +54,7 @@ def run_beta_regression(draw_id: int, regression_version: str) -> None:
     # Run regression
     mr_data = model.align_beta_with_covariates(covariates, beta_fit, list(regression_specification.covariates))
     regressor = model.build_regressor(regression_specification.covariates.values())
-    coefficients = regressor.fit(mr_data)
+    coefficients = regressor.fit(mr_data, regression_specification.parameters.sequential_refit)
     log_beta_hat = math.compute_beta_hat(covariates, coefficients)
     beta_hat = np.exp(log_beta_hat).rename('beta_pred').reset_index()
 
