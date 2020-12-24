@@ -3,13 +3,17 @@
 This module explicitly declares and wraps IHME specific code bases
 to prevent CI failures at import time.
 """
+import importlib
 
 
 def _lazy_import_callable(module_path: str, object_name: str):
     """Delays import errors for callables until called."""
-
-    def f(*args, **kwargs):
-        raise ModuleNotFoundError(f"No module named '{module_path}'. Cannot find {object_name}.")
+    try:
+        module = importlib.import_module(module_path)
+        return getattr(module, object_name)
+    except ModuleNotFoundError:
+        def f(*args, **kwargs):
+            raise ModuleNotFoundError(f"No module named '{module_path}'. Cannot find {object_name}.")
     return f
 
 
