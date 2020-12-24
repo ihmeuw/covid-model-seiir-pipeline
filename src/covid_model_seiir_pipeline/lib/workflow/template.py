@@ -85,6 +85,7 @@ class WorkflowTemplate(abc.ABC):
 
     workflow_name_template: str = None
     task_template_classes: Dict[str, Type[TTaskTemplate]]
+    fail_fast: bool = True
 
     def __init__(self, version: str, workflow_specification: WorkflowSpecification):
         self.version = version
@@ -117,7 +118,7 @@ class WorkflowTemplate(abc.ABC):
     def run(self) -> None:
         """Execute the constructed workflow."""
         r = self.workflow.run(
-            fail_fast=True,
+            fail_fast=self.fail_fast,
             seconds_until_timeout=60*60*24,
         )
         if r.status != WorkflowRunStatus.DONE:

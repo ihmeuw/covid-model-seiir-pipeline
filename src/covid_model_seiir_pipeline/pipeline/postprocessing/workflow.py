@@ -39,6 +39,9 @@ class PostprocessingWorkflow(workflow.WorkflowTemplate):
         POSTPROCESSING_JOBS.resample: ResampleMapTaskTemplate,
         POSTPROCESSING_JOBS.postprocess: PostprocessingTaskTemplate,
     }
+    # Jobs here are not homogeneous so it's useful to get all failures if
+    # things do fail.
+    fail_fast = False
 
     def attach_tasks(self, measures: List[str], scenarios: List[str]) -> None:
         resample_template = self.task_templates[POSTPROCESSING_JOBS.resample]
