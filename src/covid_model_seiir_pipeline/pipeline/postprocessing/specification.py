@@ -8,7 +8,7 @@ from covid_model_seiir_pipeline.lib import (
 
 
 class __PostprocessingJobs(NamedTuple):
-    resample: str = 'resample'
+    resample: str = 'resample_map'
     postprocess: str = 'postprocess'
 
 

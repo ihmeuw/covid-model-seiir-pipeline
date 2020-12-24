@@ -11,10 +11,10 @@ from covid_model_seiir_pipeline.pipeline.forecasting.specification import (
 
 class BetaResidualScalingTaskTemplate(workflow.TaskTemplate):
 
-    task_name_template = 'beta_residual_scaling_{scenario}'
+    task_name_template = f'{FORECAST_JOBS.scaling}_{{scenario}}'
     command_template = (
             f"{shutil.which('stask')} "
-            f"beta_residual_scaling " +
+            f"{FORECAST_JOBS.scaling} " +
             "--forecast-version {forecast_version} " +
             "--scenario {scenario}"
     )
@@ -22,10 +22,10 @@ class BetaResidualScalingTaskTemplate(workflow.TaskTemplate):
 
 class BetaForecastTaskTemplate(workflow.TaskTemplate):
 
-    task_name_template = "forecast_{scenario}_{draw_id}"
+    task_name_template = f"{FORECAST_JOBS.forecast}_{{scenario}}_{{draw_id}}"
     command_template = (
         f"{shutil.which('stask')} "
-        f"beta_forecast " +
+        f"{FORECAST_JOBS.forecast} " +
         "--forecast-version {forecast_version} " +
         "--scenario-name {scenario} " +
         "--draw-id {draw_id} " +

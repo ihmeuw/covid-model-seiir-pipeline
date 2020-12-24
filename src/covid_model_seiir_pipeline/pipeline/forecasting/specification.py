@@ -9,8 +9,8 @@ from covid_model_seiir_pipeline.lib import (
 
 
 class __ForecastJobs(NamedTuple):
-    scaling: str = 'scaling'
-    forecast: str = 'forecast'
+    scaling: str = 'beta_residual_scaling'
+    forecast: str = 'beta_forecast'
 
 
 FORECAST_JOBS = __ForecastJobs()
