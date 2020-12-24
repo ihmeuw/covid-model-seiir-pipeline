@@ -25,8 +25,10 @@ try:
     )
     from jobmon.client.task import Task
     from jobmon.client.workflow import WorkflowRunStatus
+    from jobmon.exceptions import WorkflowAlreadyComplete
 except ModuleNotFoundError:
     Tool = _lazy_import_callable('jobmon.client.api', 'Tool')
     ExecutorParameters = _lazy_import_callable('jobmon.client.api', 'ExecutorParameters')
     Task = _lazy_import_callable('jobmon.client.task', 'BashTask')
     WorkflowRunStatus = _lazy_import_callable('jobmon.client.workflow', 'WorkflowRunStatus')
+    WorkflowAlreadyComplete = _lazy_import_callable('jobmon.exceptions', 'WorkflowAlreadyComplete')
