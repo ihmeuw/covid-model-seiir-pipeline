@@ -48,14 +48,14 @@ def run_beta_regression(regression_version: str, draw_id: int) -> None:
         day_shift=regression_specification.parameters.day_shift,
     )
     ode_model = model.ODEProcess(beta_fit_inputs)
-    logger.info('Running ODE fit', context='compute')
+    logger.info('Running ODE fit', context='compute_ode')
     beta_fit = ode_model.process()
     beta_fit['date'] = pd.to_datetime(beta_fit['date'])
 
     logger.info('Prepping regression.', context='transform')
     mr_data = model.align_beta_with_covariates(covariates, beta_fit, list(regression_specification.covariates))
     regressor = model.build_regressor(regression_specification.covariates.values())
-    logger.info('Fitting beta regression', context='compute')
+    logger.info('Fitting beta regression', context='compute_regression')
     coefficients = regressor.fit(mr_data, regression_specification.parameters.sequential_refit)
     log_beta_hat = math.compute_beta_hat(covariates, coefficients)
     beta_hat = np.exp(log_beta_hat).rename('beta_pred').reset_index()
