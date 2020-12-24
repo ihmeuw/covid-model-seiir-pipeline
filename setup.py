@@ -37,7 +37,7 @@ if __name__ == "__main__":
     doc_requirements = []
 
     internal_requirements = [
-        'jobmon<2.0',
+        'jobmon>=2.0.3,<2.1',
         'db_queries',
     ]
 

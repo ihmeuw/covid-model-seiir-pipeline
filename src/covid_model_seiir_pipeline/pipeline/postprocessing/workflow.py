@@ -18,6 +18,8 @@ class PostprocessingTaskTemplate(workflow.TaskTemplate):
             "--scenario {scenario} "
             "--measure {measure}"
     )
+    node_args = ['scenario', 'measure']
+    task_args = ['postprocessing_version']
 
 
 class ResampleMapTaskTemplate(workflow.TaskTemplate):
@@ -27,6 +29,8 @@ class ResampleMapTaskTemplate(workflow.TaskTemplate):
             f"{POSTPROCESSING_JOBS.resample} " +
             "--postprocessing-version {postprocessing_version} "
     )
+    node_args = []
+    task_args = ['postprocessing_version']
 
 
 class PostprocessingWorkflow(workflow.WorkflowTemplate):

@@ -12,6 +12,8 @@ class BetaRegressionTaskTemplate(workflow.TaskTemplate):
             "--regression-version {regression_version} " +
             "--draw-id {draw_id} "
     )
+    node_args = ['draw_id']
+    task_args = ['regression_version']
 
 
 class RegressionWorkflow(workflow.WorkflowTemplate):

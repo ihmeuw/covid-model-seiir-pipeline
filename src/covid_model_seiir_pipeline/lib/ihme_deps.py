@@ -3,24 +3,30 @@
 This module explicitly declares and wraps IHME specific code bases
 to prevent CI failures at import time.
 """
-import importlib
 
 
 def _lazy_import_callable(module_path: str, object_name: str):
     """Delays import errors for callables until called."""
-    try:
-        module = importlib.import_module(module_path)
-        return getattr(module, object_name)
-    except ModuleNotFoundError:
-        def f(*args, **kwargs):
-            raise ModuleNotFoundError(f"No module named '{module_path}'")
-        return f
+
+    def f(*args, **kwargs):
+        raise ModuleNotFoundError(f"No module named '{module_path}'. Cannot find {object_name}.")
+    return f
 
 
-get_location_metadata = _lazy_import_callable('db_queries', 'get_location_metadata')
+try:
+    from db_queries import get_location_metadata
+except ModuleNotFoundError:
+    get_location_metadata = _lazy_import_callable('db_queries', 'get_location_metadata')
 
-Workflow = _lazy_import_callable('jobmon.client', 'Workflow')
-BashTask = _lazy_import_callable('jobmon.client', 'BashTask')
-ExecutorParameters = _lazy_import_callable('jobmon.client.swarm.executors.base', 'ExecutorParameters')
-DagExecutionStatus = _lazy_import_callable('jobmon.client.swarm.workflow.task_dag', 'DagExecutionStatus')
-WorkflowAlreadyComplete = _lazy_import_callable('jobmon.client.swarm.workflow.workflow', 'WorkflowAlreadyComplete')
+try:
+    from jobmon.client.api import (
+        Tool,
+        ExecutorParameters,
+    )
+    from jobmon.client.task import Task
+    from jobmon.client.workflow import WorkflowRunStatus
+except ModuleNotFoundError:
+    Tool = _lazy_import_callable('jobmon.client.api', 'Tool')
+    ExecutorParameters = _lazy_import_callable('jobmon.client.api', 'ExecutorParameters')
+    Task = _lazy_import_callable('jobmon.client.task', 'BashTask')
+    WorkflowRunStatus = _lazy_import_callable('jobmon.client.workflow', 'WorkflowRunStatus')

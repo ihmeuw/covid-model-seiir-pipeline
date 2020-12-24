@@ -18,6 +18,8 @@ class BetaResidualScalingTaskTemplate(workflow.TaskTemplate):
             "--forecast-version {forecast_version} " +
             "--scenario {scenario}"
     )
+    node_args = ['scenario']
+    task_args = ['forecast_version']
 
 
 class BetaForecastTaskTemplate(workflow.TaskTemplate):
@@ -31,6 +33,8 @@ class BetaForecastTaskTemplate(workflow.TaskTemplate):
         "--draw-id {draw_id} " +
         "--extra-id {extra_id}"
     )
+    node_args = ['scenario', 'draw_id', 'extra_id']
+    task_args = ['forecast_version']
 
 
 class ForecastWorkflow(workflow.WorkflowTemplate):
