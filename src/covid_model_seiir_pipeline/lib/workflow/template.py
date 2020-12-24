@@ -2,6 +2,7 @@
 import abc
 from typing import Dict, Type, TypeVar
 
+import covid_model_seiir_pipeline
 from covid_model_seiir_pipeline.lib.utilities import make_log_dirs
 from covid_model_seiir_pipeline.lib.ihme_deps import (
     Tool,
@@ -10,16 +11,14 @@ from covid_model_seiir_pipeline.lib.ihme_deps import (
     WorkflowRunStatus,
 )
 from covid_model_seiir_pipeline.lib.workflow.specification import (
-    TOOL_NAME,
-    TOOL_VERSION,
     TaskSpecification,
     WorkflowSpecification
 )
 
 
 def get_jobmon_tool() -> Tool:
-    tool = Tool.create_tool(TOOL_NAME)
-    tool.active_tool_version_id = TOOL_VERSION
+    tool = Tool.create_tool(covid_model_seiir_pipeline.__name__)
+    tool.active_tool_version_id = covid_model_seiir_pipeline.__jobmon_tool_version__
     return tool
 
 
