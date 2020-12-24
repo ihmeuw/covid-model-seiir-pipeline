@@ -8,7 +8,7 @@ workflow:
   project: 'proj_covid'
   queue: 'd.q'
   tasks:
-    regression:
+    beta_regression:
       max_runtime_seconds: 3000
       m_mem_free: '2G'
       num_cores: 1

@@ -46,12 +46,12 @@ class TaskTemplate(abc.ABC):
             node_args=self.node_args,
             task_args=self.task_args,
         )
-        self.params = ExecutorParameters(**task_specification.to_dict())
+        self.params = task_specification.to_dict()
 
     def get_task(self, *_, **kwargs) -> Task:
         """Resolve job arguments into a bash executable task for jobmon."""
         task = self.jobmon_template.create_task(
-            executor_parameters=self.params,
+            executor_parameters=ExecutorParameters(**self.params),
             name=self.task_name_template.format(**kwargs),
             max_attempts=1,
             **kwargs,
