@@ -2,7 +2,7 @@ import shutil
 from typing import Dict
 
 from covid_model_seiir_pipeline.lib import workflow
-from covid_model_seiir_pipeline.lib.ihme_deps import BashTask
+from covid_model_seiir_pipeline.lib.ihme_deps import Task
 from covid_model_seiir_pipeline.pipeline.forecasting.specification import (
     ScenarioSpecification,
     FORECAST_JOBS,
@@ -59,7 +59,7 @@ class ForecastWorkflow(workflow.WorkflowTemplate):
             self._attach_forecast_tasks(scenario_name, n_draws, 0, scaling_task)
 
     def _attach_forecast_tasks(self, scenario_name: str, n_draws: int, extra_id: int,
-                               *upstream_tasks: BashTask) -> None:
+                               *upstream_tasks: Task) -> None:
         forecast_template = self.task_templates[FORECAST_JOBS.forecast]
 
         for draw in range(n_draws):
