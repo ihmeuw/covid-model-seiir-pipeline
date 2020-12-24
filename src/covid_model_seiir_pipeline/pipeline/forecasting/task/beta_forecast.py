@@ -213,7 +213,7 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, **kwar
                    "necessary, but I can't remember what failed that caused "
                    "it's addition. So here we are.")
 @cli_tools.add_verbose_and_with_debugger
-def beta_forecast(forecast_version: str, scenario: str, draw_id: int,
+def beta_forecast(forecast_version: str, scenario: str, draw_id: int, extra_id: int,
                   verbose: int, with_debugger: bool):
     cli_tools.configure_logging_to_terminal(verbose)
 

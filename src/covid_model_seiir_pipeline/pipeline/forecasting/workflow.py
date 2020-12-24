@@ -29,7 +29,7 @@ class BetaForecastTaskTemplate(workflow.TaskTemplate):
         f"{shutil.which('stask')} "
         f"{FORECAST_JOBS.forecast} " +
         "--forecast-version {forecast_version} " +
-        "--scenario-name {scenario} " +
+        "--scenario {scenario} " +
         "--draw-id {draw_id} " +
         "--extra-id {extra_id}"
     )

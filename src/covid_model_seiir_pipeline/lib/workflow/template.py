@@ -124,6 +124,5 @@ class WorkflowTemplate(abc.ABC):
         if r.status != WorkflowRunStatus.DONE:
             raise RuntimeError(
                 f'Workflow failed with status {r.status}.\n'
-                f'Workflow id: {self.workflow.workflow_id}.\n'
-                f'Dag id: {self.workflow.dag_id}.'
+                f'Workflow run id: {r.workflow_run_id}.'
             )
