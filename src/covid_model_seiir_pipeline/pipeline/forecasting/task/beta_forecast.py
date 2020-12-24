@@ -1,26 +1,26 @@
-from argparse import ArgumentParser, Namespace
 from pathlib import Path
-import shlex
 import time
-from typing import Optional
 
-from covid_shared.cli_tools.logging import configure_logging_to_terminal
+import click
 import pandas as pd
 from loguru import logger
 
-from covid_model_seiir_pipeline.lib import static_vars
+from covid_model_seiir_pipeline.lib import (
+    cli_tools,
+    static_vars,
+)
 from covid_model_seiir_pipeline.pipeline.forecasting import model
 from covid_model_seiir_pipeline.pipeline.forecasting.specification import ForecastSpecification
 from covid_model_seiir_pipeline.pipeline.forecasting.data import ForecastDataInterface
 
 
-def run_beta_forecast(draw_id: int, forecast_version: str, scenario_name: str, **kwargs):
-    logger.info(f"Initiating SEIIR beta forecasting for scenario {scenario_name}, draw {draw_id}.")
+def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, **kwargs):
+    logger.info(f"Initiating SEIIR beta forecasting for scenario {scenario}, draw {draw_id}.")
     start = time.time()
     forecast_spec: ForecastSpecification = ForecastSpecification.from_path(
         Path(forecast_version) / static_vars.FORECAST_SPECIFICATION_FILE
     )
-    scenario_spec = forecast_spec.scenarios[scenario_name]
+    scenario_spec = forecast_spec.scenarios[scenario]
     data_interface = ForecastDataInterface.from_specification(forecast_spec)
 
     _ode_time_s = 0  # Profiling variable
@@ -73,7 +73,7 @@ def run_beta_forecast(draw_id: int, forecast_version: str, scenario_name: str, *
     the_future = covariates['date'] >= transition_date.loc[covariates.index]
     covariate_pred = covariates.loc[the_future].reset_index()
 
-    beta_scales = data_interface.load_beta_scales(scenario=scenario_name, draw_id=draw_id)
+    beta_scales = data_interface.load_beta_scales(scenario=scenario, draw_id=draw_id)
 
     # We'll need this to compute deaths and to splice with the forecasts.
     infection_data = data_interface.load_infection_data(draw_id)
@@ -194,41 +194,34 @@ def run_beta_forecast(draw_id: int, forecast_version: str, scenario_name: str, *
     covariates = covariates.reset_index()
     outputs = pd.concat([infections, deaths, r_effective], axis=1).reset_index()
 
-    data_interface.save_ode_params(ode_params, scenario_name, draw_id)
-    data_interface.save_components(components, scenario_name, draw_id)
-    data_interface.save_raw_covariates(covariates, scenario_name, draw_id)
-    data_interface.save_raw_outputs(outputs, scenario_name, draw_id)
+    data_interface.save_ode_params(ode_params, scenario, draw_id)
+    data_interface.save_components(components, scenario, draw_id)
+    data_interface.save_raw_covariates(covariates, scenario, draw_id)
+    data_interface.save_raw_outputs(outputs, scenario, draw_id)
     logger.info(f'Total time: {time.time() - start}')
     logger.info(f'Total ODE time: {_ode_time_s}')
 
 
-def parse_arguments(argstr: Optional[str] = None) -> Namespace:
-    """
-    Gets arguments from the command line or a command line string.
-    """
-    logger.info("parsing arguments")
-    parser = ArgumentParser()
-    parser.add_argument("--draw-id", type=int, required=True)
-    parser.add_argument("--forecast-version", type=str, required=True)
-    parser.add_argument("--scenario-name", type=str, required=True)
-    parser.add_argument("--extra-id", type=int, required=False)
+@click.command()
+@cli_tools.with_forecast_version
+@cli_tools.with_scenario
+@cli_tools.with_draw_id
+@click.option('--extra-id',
+              type=click.INT,
+              help="Extra identifier for workflow of workflow things "
+                   "so jobmon doesn't kick us out. May no longer be "
+                   "necessary, but I can't remember what failed that caused "
+                   "it's addition. So here we are.")
+@cli_tools.add_verbose_and_with_debugger
+def beta_forecast(forecast_version: str, scenario: str, draw_id: int,
+                  verbose: int, with_debugger: bool):
+    cli_tools.configure_logging_to_terminal(verbose)
 
-    if argstr is not None:
-        arglist = shlex.split(argstr)
-        args = parser.parse_args(arglist)
-    else:
-        args = parser.parse_args()
-
-    return args
-
-
-def main():
-    configure_logging_to_terminal(verbose=1)  # Debug level
-    args = parse_arguments()
-    run_beta_forecast(draw_id=args.draw_id,
-                      forecast_version=args.forecast_version,
-                      scenario_name=args.scenario_name)
+    run = cli_tools.handle_exceptions(run_beta_forecast, logger, with_debugger)
+    run(forecast_version=forecast_version,
+        scenario=scenario,
+        draw_id=draw_id)
 
 
 if __name__ == '__main__':
-    main()
+    beta_forecast()

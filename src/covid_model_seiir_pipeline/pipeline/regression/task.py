@@ -1,14 +1,12 @@
-from argparse import ArgumentParser, Namespace
-
-import logging
 from pathlib import Path
-import shlex
-from typing import Optional
 
+import click
+from loguru import logger
 import numpy as np
 import pandas as pd
 
 from covid_model_seiir_pipeline.lib import (
+    cli_tools,
     math,
     static_vars,
 )
@@ -16,10 +14,8 @@ from covid_model_seiir_pipeline.pipeline.regression.data import RegressionDataIn
 from covid_model_seiir_pipeline.pipeline.regression.specification import RegressionSpecification
 from covid_model_seiir_pipeline.pipeline.regression import model
 
-log = logging.getLogger(__name__)
 
-
-def run_beta_regression(draw_id: int, regression_version: str) -> None:
+def run_beta_regression(regression_version: str, draw_id: int) -> None:
     # Build helper abstractions
     regression_spec_file = Path(regression_version) / static_vars.REGRESSION_SPECIFICATION_FILE
     regression_specification = RegressionSpecification.from_path(regression_spec_file)
@@ -80,29 +76,18 @@ def run_beta_regression(draw_id: int, regression_version: str) -> None:
     data_interface.save_date_file(beta_start_end_dates, draw_id)
 
 
-def parse_arguments(argstr: Optional[str] = None) -> Namespace:
-    """
-    Gets arguments from the command line or a command line string.
-    """
-    log.info("parsing arguments")
-    parser = ArgumentParser()
-    parser.add_argument("--draw-id", type=int, required=True)
-    parser.add_argument("--regression-version", type=str, required=True)
+@click.command()
+@cli_tools.with_regression_version
+@cli_tools.with_draw_id
+@cli_tools.add_verbose_and_with_debugger
+def beta_regression(regression_version: str, draw_id: int,
+                    verbose: int, with_debugger: bool):
+    cli_tools.configure_logging_to_terminal(verbose)
 
-    if argstr is not None:
-        arglist = shlex.split(argstr)
-        args = parser.parse_args(arglist)
-    else:
-        args = parser.parse_args()
-
-    return args
-
-
-def main():
-
-    args = parse_arguments()
-    run_beta_regression(draw_id=args.draw_id, regression_version=args.regression_version)
+    run = cli_tools.handle_exceptions(run_beta_regression, logger, with_debugger)
+    run(regression_version=regression_version,
+        draw_id=draw_id)
 
 
 if __name__ == '__main__':
-    main()
+    beta_regression()

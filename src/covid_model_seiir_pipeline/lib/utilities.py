@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 import abc
 from dataclasses import asdict as asdict_
 from pathlib import Path
@@ -198,4 +199,3 @@ def load_location_hierarchy(location_set_id: int = None,
                                          gbd_round_id=6)
     else:
         return pd.read_csv(location_file)
-

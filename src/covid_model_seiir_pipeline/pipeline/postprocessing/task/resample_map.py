@@ -1,13 +1,13 @@
-from argparse import ArgumentParser, Namespace
 from pathlib import Path
-import shlex
-from typing import Optional
 
-from covid_shared.cli_tools.logging import configure_logging_to_terminal
+import click
 from loguru import logger
 import pandas as pd
 
-from covid_model_seiir_pipeline.lib import static_vars
+from covid_model_seiir_pipeline.lib import (
+    cli_tools,
+    static_vars,
+)
 from covid_model_seiir_pipeline.pipeline.postprocessing.data import PostprocessingDataInterface
 from covid_model_seiir_pipeline.pipeline.postprocessing.specification import (
     PostprocessingSpecification,
@@ -31,29 +31,15 @@ def run_resample_map(postprocessing_version: str) -> None:
     data_interface.save_resampling_map(resampling_map)
 
 
-def parse_arguments(argstr: Optional[str] = None) -> Namespace:
-    """
-    Gets arguments from the command line or a command line string.
-    """
-    logger.info("parsing arguments")
-    parser = ArgumentParser()
-    parser.add_argument("--postprocessing-version", type=str, required=True)
-
-    if argstr is not None:
-        arglist = shlex.split(argstr)
-        args = parser.parse_args(arglist)
-    else:
-        args = parser.parse_args()
-
-    return args
-
-
-def main():
-    configure_logging_to_terminal(verbose=1)  # Debug level
-
-    args = parse_arguments()
-    run_resample_map(postprocessing_version=args.postprocessing_version)
+@click.command()
+@cli_tools.with_postprocessing_version
+@cli_tools.add_verbose_and_with_debugger
+def resample_map(postprocessing_version: str,
+                 verbose: int, with_debugger: bool):
+    cli_tools.configure_logging_to_terminal(verbose)
+    run = cli_tools.handle_exceptions(run_resample_map, logger, with_debugger)
+    run(postprocessing_version=postprocessing_version)
 
 
 if __name__ == '__main__':
-    main()
+    resample_map()
