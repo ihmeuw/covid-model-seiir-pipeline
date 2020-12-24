@@ -14,7 +14,7 @@ def _lazy_import_callable(module_path: str, object_name: str):
     except ModuleNotFoundError:
         def f(*args, **kwargs):
             raise ModuleNotFoundError(f"No module named '{module_path}'. Cannot find {object_name}.")
-    return f
+        return f
 
 
 try:
