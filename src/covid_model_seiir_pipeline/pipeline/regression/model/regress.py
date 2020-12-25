@@ -8,6 +8,8 @@ from slime.core.data import MRData
 from slime.model import CovModelSet, CovModel, MRModel
 
 if TYPE_CHECKING:
+    # The model subpackage is a library for the pipeline stage and shouldn't
+    # explicitly depend on things outside the subpackage.
     from covid_model_seiir_pipeline.pipeline.regression.specification import CovariateSpecification
 
 

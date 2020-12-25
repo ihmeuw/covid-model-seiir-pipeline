@@ -1,5 +1,5 @@
 data:
-  forecast_version: '2020_12_19.03'
+  forecast_version: '2020_12_24.05'
   scenarios:
     - 'worse'
     - 'reference'
@@ -9,7 +9,7 @@ workflow:
   project: 'proj_covid'
   queue: 'd.q'
   tasks:
-    resample:
+    resample_map:
       max_runtime_seconds: 5000
       m_mem_free: '50G'
       num_cores: 26

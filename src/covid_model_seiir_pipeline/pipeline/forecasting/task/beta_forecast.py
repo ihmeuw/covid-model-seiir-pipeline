@@ -206,8 +206,14 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, **kwar
 @cli_tools.with_forecast_version
 @cli_tools.with_scenario
 @cli_tools.with_draw_id
+@click.option('--extra-id',
+              type=click.INT,
+              help="Extra identifier for workflow of workflow things "
+                   "so jobmon doesn't kick us out. May no longer be "
+                   "necessary, but I can't remember what failed that caused "
+                   "it's addition. So here we are.")
 @cli_tools.add_verbose_and_with_debugger
-def beta_forecast(forecast_version: str, scenario: str, draw_id: int,
+def beta_forecast(forecast_version: str, scenario: str, draw_id: int, extra_id: int,
                   verbose: int, with_debugger: bool):
     cli_tools.configure_logging_to_terminal(verbose)
 
