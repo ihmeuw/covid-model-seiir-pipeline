@@ -6,7 +6,7 @@ data:
   output_root: ''
 workflow:
   project: 'proj_covid'
-  queue: 'all.q'
+  queue: 'd.q'
   tasks:
     beta_regression:
       max_runtime_seconds: 3000
