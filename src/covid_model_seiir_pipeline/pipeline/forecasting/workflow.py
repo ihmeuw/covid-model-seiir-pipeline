@@ -2,7 +2,7 @@ import shutil
 from typing import Dict
 
 from covid_model_seiir_pipeline.lib import workflow
-from covid_model_seiir_pipeline.lib.ihme_deps import BashTask
+from covid_model_seiir_pipeline.lib.ihme_deps import Task
 from covid_model_seiir_pipeline.pipeline.forecasting.specification import (
     ScenarioSpecification,
     FORECAST_JOBS,
@@ -11,26 +11,30 @@ from covid_model_seiir_pipeline.pipeline.forecasting.specification import (
 
 class BetaResidualScalingTaskTemplate(workflow.TaskTemplate):
 
-    task_name_template = 'beta_residual_scaling_{scenario}'
+    task_name_template = f'{FORECAST_JOBS.scaling}_{{scenario}}'
     command_template = (
             f"{shutil.which('stask')} "
-            f"beta_residual_scaling " +
+            f"{FORECAST_JOBS.scaling} " +
             "--forecast-version {forecast_version} " +
             "--scenario {scenario}"
     )
+    node_args = ['scenario']
+    task_args = ['forecast_version']
 
 
 class BetaForecastTaskTemplate(workflow.TaskTemplate):
 
-    task_name_template = "forecast_{scenario}_{draw_id}"
+    task_name_template = f"{FORECAST_JOBS.forecast}_{{scenario}}_{{draw_id}}"
     command_template = (
         f"{shutil.which('stask')} "
-        f"beta_forecast " +
+        f"{FORECAST_JOBS.forecast} " +
         "--forecast-version {forecast_version} " +
-        "--scenario-name {scenario} " +
+        "--scenario {scenario} " +
         "--draw-id {draw_id} " +
         "--extra-id {extra_id}"
     )
+    node_args = ['scenario', 'draw_id', 'extra_id']
+    task_args = ['forecast_version']
 
 
 class ForecastWorkflow(workflow.WorkflowTemplate):
@@ -55,7 +59,7 @@ class ForecastWorkflow(workflow.WorkflowTemplate):
             self._attach_forecast_tasks(scenario_name, n_draws, 0, scaling_task)
 
     def _attach_forecast_tasks(self, scenario_name: str, n_draws: int, extra_id: int,
-                               *upstream_tasks: BashTask) -> None:
+                               *upstream_tasks: Task) -> None:
         forecast_template = self.task_templates[FORECAST_JOBS.forecast]
 
         for draw in range(n_draws):

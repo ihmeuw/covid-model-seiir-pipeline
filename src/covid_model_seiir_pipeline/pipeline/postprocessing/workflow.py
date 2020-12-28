@@ -10,23 +10,27 @@ from covid_model_seiir_pipeline.pipeline.postprocessing.specification import (
 
 class PostprocessingTaskTemplate(workflow.TaskTemplate):
 
-    task_name_template = "{measure}_{scenario}_post_processing"
+    task_name_template = f"{POSTPROCESSING_JOBS.postprocess}_{{scenario}}_{{measure}}"
     command_template = (
             f"{shutil.which('stask')} "
-            f"postprocess " +
+            f"{POSTPROCESSING_JOBS.postprocess} " +
             "--postprocessing-version {postprocessing_version} "
             "--scenario {scenario} "
             "--measure {measure}"
     )
+    node_args = ['scenario', 'measure']
+    task_args = ['postprocessing_version']
 
 
 class ResampleMapTaskTemplate(workflow.TaskTemplate):
-    task_name_template = "seiir_resample_map"
+    task_name_template = f"{POSTPROCESSING_JOBS.resample}"
     command_template = (
             f"{shutil.which('stask')} "
-            f"resample_map " +
+            f"{POSTPROCESSING_JOBS.resample} " +
             "--postprocessing-version {postprocessing_version} "
     )
+    node_args = []
+    task_args = ['postprocessing_version']
 
 
 class PostprocessingWorkflow(workflow.WorkflowTemplate):
@@ -35,6 +39,9 @@ class PostprocessingWorkflow(workflow.WorkflowTemplate):
         POSTPROCESSING_JOBS.resample: ResampleMapTaskTemplate,
         POSTPROCESSING_JOBS.postprocess: PostprocessingTaskTemplate,
     }
+    # Jobs here are not homogeneous so it's useful to get all failures if
+    # things do fail.
+    fail_fast = False
 
     def attach_tasks(self, measures: List[str], scenarios: List[str]) -> None:
         resample_template = self.task_templates[POSTPROCESSING_JOBS.resample]
