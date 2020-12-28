@@ -11,7 +11,12 @@ import pandas as pd
 @click.argument('job_name', type=click.STRING)
 def parse_logs(log_dir, job_name):
     result = defaultdict(list)
-    for log_path in Path(log_dir).glob(f'{job_name}*'):
+    log_paths = list(Path(log_dir).glob(f'{job_name}*'))
+    if not log_paths:
+        click.echo(f'No logs found for job name {job_name}. Exiting.')
+        return
+
+    for log_path in log_paths:
         with log_path.open() as f:
             log_data = f.readlines()
         for line in log_data[log_data.index('Runtime report\n') + 2:-1]:
