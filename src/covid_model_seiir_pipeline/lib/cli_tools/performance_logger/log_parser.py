@@ -19,8 +19,9 @@ def parse_logs(log_dir, job_name):
     for log_path in log_paths:
         with log_path.open() as f:
             log_data = f.readlines()
-        for line in log_data[log_data.index('Runtime report\n') + 2:-1]:
+        for line in log_data[log_data.index('Runtime report\n') + 2:]:
             metric, time = line.split(':')
+            time, *_ = time.split('\x1b')
             result[metric.strip()].append(float(time.strip()))
     df = pd.DataFrame(result)
     print(df.describe().T[['mean', 'min', 'max']])
