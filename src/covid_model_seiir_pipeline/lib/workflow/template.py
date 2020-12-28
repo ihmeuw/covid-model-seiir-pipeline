@@ -91,7 +91,7 @@ class WorkflowTemplate(abc.ABC):
         self.version = version
         assert workflow_specification.tasks.keys() == self.task_template_classes.keys()
         self.task_templates = self.build_task_templates(workflow_specification.task_specifications)
-        stdout, stderr = make_log_dirs(version, prefix='jobmon')
+        self.stdout, self.stderr = make_log_dirs(version, prefix='jobmon')
 
         jobmon_tool = get_jobmon_tool()
         self.workflow = jobmon_tool.create_workflow(
@@ -99,8 +99,8 @@ class WorkflowTemplate(abc.ABC):
         )
         self.workflow.set_executor(
             project=workflow_specification.project,
-            stderr=stderr,
-            stdout=stdout,
+            stderr=self.stderr,
+            stdout=self.stdout,
         )
 
     def build_task_templates(self, task_specifications: Dict[str, TaskSpecification]) -> Dict[str, TaskTemplate]:
