@@ -1,4 +1,5 @@
 from functools import reduce
+import multiprocessing
 from pathlib import Path
 from typing import Dict, List, Iterable, Optional, Union
 
@@ -41,9 +42,9 @@ class RegressionDataInterface:
     def make_dirs(self, **prefix_args):
         io.touch(self.regression_root, **prefix_args)
 
-    #####################
-    # Location handling #
-    #####################
+    #########################
+    # Raw location handling #
+    #########################
 
     def load_location_ids_from_primary_source(self, location_set_version_id: Optional[int],
                                               location_file: Optional[Union[str, Path]]) -> Union[List[int], None]:
@@ -77,9 +78,6 @@ class RegressionDataInterface:
             logger.warning("Some locations present in location metadata are missing from the "
                            f"infection models. Missing locations are {sorted(missing_locations)}.")
         return list(set(desired_locations).intersection(modeled_locations))
-
-    def load_location_ids(self) -> List[int]:
-        return io.load(self.regression_root.locations())
 
     ##########################
     # Infection data loaders #
@@ -141,31 +139,49 @@ class RegressionDataInterface:
         covariate_data = reduce(lambda x, y: x.merge(y, left_index=True, right_index=True), covariate_data)
         return covariate_data.reset_index()
 
-    ############################
-    # Regression paths writers #
-    ############################
+    ########################
+    # Regression paths I/O #
+    ########################
 
-    def save_location_ids(self, location_ids: List[int]):
+    def save_specification(self, specification: RegressionSpecification) -> None:
+        io.dump(specification.to_dict(), self.regression_root.specification())
+
+    def load_specification(self) -> RegressionSpecification:
+        spec_dict = io.load(self.regression_root.specification())
+        return RegressionSpecification.from_dict(spec_dict)
+
+    def save_location_ids(self, location_ids: List[int]) -> None:
         io.dump(location_ids, self.regression_root.locations())
 
-    def save_specification(self, specification: RegressionSpecification):
-        io.dump(specification.to_dict(), self.regression_root.specification())
+    def load_location_ids(self) -> List[int]:
+        return io.load(self.regression_root.locations())
 
     def save_beta_param_file(self, df: pd.DataFrame, draw_id: int) -> None:
         io.dump(df, self.regression_root.parameters(draw_id=draw_id))
 
+    def load_beta_param_file(self, draw_id: int) -> pd.DataFrame:
+        return io.load(self.regression_root.parameters(draw_id=draw_id))
+
     def save_date_file(self, df: pd.DataFrame, draw_id: int) -> None:
         io.dump(df, self.regression_root.dates(draw_id=draw_id))
 
-    def save_location_metadata_file(self, locations: List[int]) -> None:
-        io.dump(locations, self.regression_root.locations())
+    def load_date_file(self, draw_id: int) -> pd.DataFrame:
+        return io.load(self.regression_root.dates(draw_id=draw_id))
 
     def save_regression_coefficients(self, coefficients: pd.DataFrame, draw_id: int) -> None:
         io.dump(coefficients, self.regression_root.coefficients(draw_id=draw_id))
 
+    def load_regression_coefficients(self, draw_id: int) -> pd.DataFrame:
+        return io.load(self.regression_root.coefficients(draw_id=draw_id))
+
     def save_regression_betas(self, df: pd.DataFrame, draw_id: int) -> None:
         io.dump(df, self.regression_root.beta(draw_id=draw_id))
 
+    def load_regression_betas(self, draw_id: int) -> pd.DataFrame:
+        return io.load(self.regression_root.beta(draw_id=draw_id))
+
     def save_location_data(self, df: pd.DataFrame, draw_id: int) -> None:
-        # quasi-inverse of load_all_location_data, except types are different
         io.dump(df, self.regression_root.data(draw_id=draw_id))
+
+    def load_location_data(self, draw_id: int) -> pd.DataFrame:
+        return io.load(self.regression_root.data(draw_id=draw_id))
