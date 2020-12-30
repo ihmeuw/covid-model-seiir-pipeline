@@ -1,5 +1,4 @@
 from functools import reduce
-import multiprocessing
 from pathlib import Path
 from typing import Dict, List, Iterable, Optional, Union
 
@@ -39,7 +38,7 @@ class RegressionDataInterface:
             regression_root=regression_root,
         )
 
-    def make_dirs(self, **prefix_args):
+    def make_dirs(self, **prefix_args) -> None:
         io.touch(self.regression_root, **prefix_args)
 
     #########################
@@ -98,11 +97,11 @@ class RegressionDataInterface:
 
         return dfs
 
-    ###########################
-    # Covariate paths loaders #
-    ###########################
+    ##########################
+    # Covariate data loaders #
+    ##########################
 
-    def check_covariates(self, covariates: Iterable[str]):
+    def check_covariates(self, covariates: Iterable[str]) -> None:
         """Ensure a reference scenario exists for all covariates.
 
         The reference scenario file is used to find the covariate values
@@ -139,9 +138,9 @@ class RegressionDataInterface:
         covariate_data = reduce(lambda x, y: x.merge(y, left_index=True, right_index=True), covariate_data)
         return covariate_data.reset_index()
 
-    ########################
-    # Regression paths I/O #
-    ########################
+    #######################
+    # Regression data I/O #
+    #######################
 
     def save_specification(self, specification: RegressionSpecification) -> None:
         io.dump(specification.to_dict(), self.regression_root.specification())
