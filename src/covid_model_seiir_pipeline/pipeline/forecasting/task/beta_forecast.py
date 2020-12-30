@@ -31,11 +31,7 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, **kwar
     beta_params = data_interface.load_beta_params(draw_id=draw_id)
     # Thetas are a parameter generated from assumption or OOS predictive
     # validity testing to curtail some of the bad behavior of the model.
-    thetas = data_interface.load_thetas(scenario_spec.theta)
-    if ((1 < thetas) | thetas < -1).any():
-        raise ValueError('Theta must be between -1 and 1.')
-    if (beta_params['sigma'] - thetas >= 1).any():
-        raise ValueError('Sigma - theta must be smaller than 1')
+    thetas = data_interface.load_thetas(scenario_spec.theta, beta_params['sigma'])
 
     # Grab the last day of data in the model by location id.  This will
     # correspond to the initial condition for the projection.
