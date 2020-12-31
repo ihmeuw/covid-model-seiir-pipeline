@@ -24,6 +24,134 @@ def seiir():
 
 
 @seiir.command()
+@click.argument('regression_specification',
+                type=click.Path(exists=True, dir_okay=False))
+@click.argument('forecast_specification',
+                type=click.Path(exists=True, dir_okay=False))
+@click.argument('postprocessing_specification',
+                type=click.Path(exists=True, dir_okay=False))
+@click.option('-p', '--production-tag',
+              type=click.STRING,
+              help='Tags this run as a production run.')
+@click.option('-b', '--mark-best',
+              is_flag=True,
+              help='Mark this run as "best"')
+@cli_tools.add_verbose_and_with_debugger
+def run_all(regression_specification,
+            forecast_specification,
+            postprocessing_specification,
+            mark_best, production_tag,
+            verbose, with_debugger):
+    #####################
+    # Do the regression #
+    #####################
+    cli_tools.configure_logging_to_terminal(verbose)
+
+    regression_spec = RegressionSpecification.from_path(regression_specification)
+
+    # Resolve CLI overrides and specification values with defaults into
+    # final run arguments.
+    infection_root = utilities.get_input_root(None,
+                                              regression_spec.data.infection_version,
+                                              paths.INFECTIONATOR_OUTPUTS)
+    covariates_root = utilities.get_input_root(None,
+                                               regression_spec.data.covariate_version,
+                                               paths.SEIR_COVARIATES_OUTPUT_ROOT)
+    locations_set_version_id, location_set_file = utilities.get_location_info(
+        None,
+        regression_spec.data.location_set_version_id,
+        regression_spec.data.location_set_file
+    )
+    output_root = paths.SEIR_REGRESSION_OUTPUTS
+    cli_tools.setup_directory_structure(output_root, with_production=True)
+    run_directory = cli_tools.make_run_directory(output_root)
+
+    # Make the regression specification consistent with the resolved arguments
+    # and dump to disk.
+    regression_spec.data.infection_version = str(infection_root)
+    regression_spec.data.covariate_version = str(covariates_root)
+    regression_spec.data.location_set_version_id = locations_set_version_id
+    regression_spec.data.location_set_file = location_set_file
+    regression_spec.data.output_root = str(run_directory)
+
+    regression_run_metadata = cli_tools.RunMetadata()
+
+    for key, input_root in zip(['infectionator_metadata', 'covariates_metadata'],
+                               [infection_root, covariates_root]):
+        regression_run_metadata.update_from_path(key, input_root / paths.METADATA_FILE_NAME)
+    regression_run_metadata['output_path'] = str(run_directory)
+    regression_run_metadata['regression_specification'] = regression_spec.to_dict()
+
+    cli_tools.configure_logging_to_files(run_directory)
+    main = cli_tools.monitor_application(do_beta_regression,
+                                         logger, with_debugger)
+    app_metadata, _ = main(regression_spec, False)
+
+    cli_tools.finish_application(regression_run_metadata, app_metadata,
+                                 run_directory, mark_best, production_tag)
+
+    logger.info('Regression finished. Starting forecast.')
+    logger.remove()  # Get rid of all handlers so we get clean forecast logs.
+    cli_tools.configure_logging_to_terminal(verbose)
+
+    forecast_spec = ForecastSpecification.from_path(forecast_specification)
+
+    output_root = paths.SEIR_FORECAST_OUTPUTS
+    cli_tools.setup_directory_structure(output_root, with_production=True)
+    run_directory = cli_tools.make_run_directory(output_root)
+
+    forecast_spec.data.regression_version = regression_spec.data.output_root
+    forecast_spec.data.covariate_version = regression_spec.data.covariate_version
+    forecast_spec.data.output_root = str(run_directory)
+
+    forecast_run_metadata = cli_tools.RunMetadata()
+    forecast_run_metadata.update_from_path('regression_metadata',
+                                           Path(forecast_spec.data.regression_version) / paths.METADATA_FILE_NAME)
+    forecast_run_metadata['output_path'] = str(run_directory)
+    forecast_run_metadata['forecast_specification'] = forecast_spec.to_dict()
+
+    cli_tools.configure_logging_to_files(run_directory)
+    main = cli_tools.monitor_application(do_beta_forecast,
+                                         logger, with_debugger)
+    app_metadata, _ = main(forecast_spec, False)
+
+    cli_tools.finish_application(forecast_run_metadata, app_metadata,
+                                 run_directory, mark_best, production_tag)
+
+    logger.info('Forecast finished. Starting postprocessing.')
+    logger.remove()  # Get rid of all handlers so we get clean postprocessing logs.
+
+    cli_tools.configure_logging_to_terminal(verbose)
+
+    postprocessing_spec = PostprocessingSpecification.from_path(postprocessing_specification)
+
+    output_root = paths.SEIR_FINAL_OUTPUTS
+    cli_tools.setup_directory_structure(output_root, with_production=True)
+    run_directory = cli_tools.make_run_directory(output_root)
+
+    postprocessing_spec.data.forecast_version = forecast_spec.data.output_root
+    postprocessing_spec.data.output_root = str(run_directory)
+
+    postprocessing_run_metadata = cli_tools.RunMetadata()
+    postprocessing_run_metadata.update_from_path(
+        'forecast_metadata',
+        Path(postprocessing_spec.data.forecast_version) / paths.METADATA_FILE_NAME
+    )
+    postprocessing_run_metadata['output_path'] = str(run_directory)
+    postprocessing_run_metadata['postprocessing_specification'] = postprocessing_spec.to_dict()
+
+    cli_tools.configure_logging_to_files(run_directory)
+    main = cli_tools.monitor_application(do_postprocessing,
+                                         logger, with_debugger)
+    app_metadata, _ = main(postprocessing_spec, False)
+
+    cli_tools.finish_application(postprocessing_run_metadata, app_metadata,
+                                 run_directory, mark_best, production_tag)
+
+    logger.info('All stages complete!')
+
+
+@seiir.command()
 @cli_tools.pass_run_metadata()
 @click.argument('regression_specification',
                 type=click.Path(exists=True, dir_okay=False))
@@ -164,7 +292,8 @@ def forecast(run_metadata,
 
 @seiir.command()
 @cli_tools.pass_run_metadata()
-@click.argument('postprocessing_specification')
+@click.argument('postprocessing_specification',
+                type=click.Path(exists=True, dir_okay=False))
 @click.option('--forecast-version',
               type=click.Path(file_okay=False),
               help="Which version of forecasts to postprocess.")
