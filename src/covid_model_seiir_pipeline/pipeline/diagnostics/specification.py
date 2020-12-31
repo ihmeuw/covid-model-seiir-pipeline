@@ -29,6 +29,16 @@ class DiagnosticsWorkflowSpecification(workflow.WorkflowSpecification):
     }
 
 
+@dataclass
+class DiagnosticsData:
+    """Specifies the inputs and outputs for postprocessing."""
+    output_root: str = field(default='')
+
+    def to_dict(self) -> Dict:
+        """Converts to a dict, coercing list-like items to lists."""
+        return utilities.asdict(self)
+
+
 class GridPlotsComparatorSpecification:
 
     def __init__(self,
@@ -69,17 +79,24 @@ class GridPlotsSpecification:
 class DiagnosticsSpecification(utilities.Specification):
 
     def __init__(self,
+                 data: DiagnosticsData,
                  workflow: DiagnosticsWorkflowSpecification,
                  grid_plots: List[GridPlotsSpecification]):
+        self._data = data
         self._workflow = workflow
         self._grid_plots = grid_plots
 
     @classmethod
     def parse_spec_dict(cls, specification: Dict) -> Tuple:
+        data = DiagnosticsData(**specification.get('data', {}))
         workflow = DiagnosticsWorkflowSpecification(**specification.get('workflow', {}))
         grid_plots_configs = specification.get('grid_plots', [])
         grid_plots = [GridPlotsSpecification(**grid_plots_config) for grid_plots_config in grid_plots_configs]
         return workflow, grid_plots
+
+    @property
+    def data(self) -> DiagnosticsData:
+        return self._data
 
     @property
     def workflow(self) -> DiagnosticsWorkflowSpecification:
@@ -92,6 +109,7 @@ class DiagnosticsSpecification(utilities.Specification):
     def to_dict(self):
         """Convert the specification to a dict."""
         return {
+            'data': self.data.to_dict(),
             'workflow': self.workflow.to_dict(),
             'grid_plots': [grid_plots_config.to_dict() for grid_plots_config in self.grid_plots],
         }

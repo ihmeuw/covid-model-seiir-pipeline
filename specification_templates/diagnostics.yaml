@@ -1,3 +1,5 @@
+data:
+  output_root: ''
 workflow:
   project: 'proj_covid'
   queue: 'd.q'
@@ -7,8 +9,7 @@ workflow:
       m_mem_free: '5G'
       num_cores: 26
 grid_plots:
-  - output_root: '~/'
-    file_suffix: 'old_compare'
+  - name: 'old_compare'
     date_start: '2020-03-01'
     date_end: '2021-12-31'
     comparators:
@@ -20,8 +21,7 @@ grid_plots:
         scenarios:
           worse: 'worse'
           reference: 'reference'
-  - output_root: '~/'
-    file_suffix: 'all_scenarios'
+  - name: 'all_scenarios'
     date_start: '2020-03-01'
     date_end: '2021-12-31'
     comparators:

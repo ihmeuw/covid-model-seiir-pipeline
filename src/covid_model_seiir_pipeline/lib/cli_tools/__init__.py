@@ -7,9 +7,11 @@ from covid_model_seiir_pipeline.lib.cli_tools.decorators import (
     with_regression_version,
     with_forecast_version,
     with_postprocessing_version,
+    with_diagnostics_version,
     with_scenario,
     with_measure,
     with_draw_id,
+    with_name,
 )
 from covid_model_seiir_pipeline.lib.cli_tools.utilities import (
     handle_exceptions,
