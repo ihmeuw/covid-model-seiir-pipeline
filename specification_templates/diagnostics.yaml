@@ -1,0 +1,35 @@
+workflow:
+  project: 'proj_covid'
+  queue: 'd.q'
+  tasks:
+    grid_plots:
+      max_runtime_seconds: 5000
+      m_mem_free: '5G'
+      num_cores: 26
+grid_plots:
+  - output_root: '~/'
+    file_suffix: 'old_compare'
+    date_start: '2020-03-01'
+    date_end: '2021-12-31'
+    comparators:
+      - version: 2020_12_08.05
+        scenarios:
+          worse: 'old_worse'
+          reference: 'old_reference'
+      - version: 'best'
+        scenarios:
+          worse: 'worse'
+          reference: 'reference'
+  - output_root: '~/'
+    file_suffix: 'all_scenarios'
+    date_start: '2020-03-01'
+    date_end: '2021-12-31'
+    comparators:
+      - version: 'best'
+        scenarios:
+          worse: 'worse'
+          reference: 'reference'
+          no_vaccine: 'no_vaccine'
+          best_masks: 'best_masks'
+          vaccine_fast: 'vaccine_fast'
+          vaccine_fast_elderly: 'vaccine_fast_elderly'
