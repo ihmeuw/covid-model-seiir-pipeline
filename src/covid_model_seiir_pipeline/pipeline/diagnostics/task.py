@@ -2,15 +2,17 @@ import functools
 import multiprocessing
 from pathlib import Path
 import tempfile
-from typing import List, Tuple
+from typing import List, NamedTuple, Tuple
 
 import click
 from loguru import logger
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 import matplotlib.lines as mlines
+from matplotlib.backends.backend_pdf import PdfPages
 import numpy as np
 import pandas as pd
+from PyPDF2 import PdfFileMerger
 import seaborn as sns
 import tqdm
 
@@ -41,6 +43,11 @@ COLOR_MAP = plt.get_cmap('Set1')
 
 
 Color = Tuple[float, float, float, float]
+
+
+class Location(NamedTuple):
+    id: int
+    name: str
 
 
 class PlotVersion:
@@ -97,7 +104,7 @@ class PlotVersion:
                 data = self.pdi.load_output_miscellaneous(self.scenario, measure.label, measure.is_table)
                 data.to_csv(self._cache / 'miscellaneous' / f'{measure.label}.csv', index=False)
             else:
-                # Don't need any of these for now
+                # Don't need any of these cached for now
                 pass
 
     def load_from_cache(self, data_type: str, measure: str):
@@ -169,19 +176,19 @@ def make_legend_handles(plot_versions: List[PlotVersion]):
     return handles
 
 
-def make_results_page(plot_versions: List[PlotVersion], location_id: int, start: pd.Timestamp, end: pd.Timestamp,
-                      plot_file: str = None):
+def make_results_page(plot_versions: List[PlotVersion], location: Location, start: pd.Timestamp, end: pd.Timestamp,
+                      plot_file: PdfPages = None):
     observed_color = COLOR_MAP(len(plot_versions))
 
     # Load some shared data.
     pv = plot_versions[0]
     pop = pv.load_output_miscellaneous('populations', is_table=True)
-    pop = pop.loc[(pop.location_id == location_id) &
+    pop = pop.loc[(pop.location_id == location.id) &
                   (pop.age_group_id == 22) &
                   (pop.sex_id == 3), 'population'].iloc[0]
 
     full_data = pv.load_output_miscellaneous('full_data_es_processed', is_table=True)
-    full_data = full_data[full_data.location_id == location_id]
+    full_data = full_data[full_data.location_id == location.id]
     full_data['date'] = pd.to_datetime(full_data['date'])
     data_date = full_data.loc[full_data.cumulative_deaths.notnull(), 'date'].max()
     short_term_forecast_date = data_date + pd.Timedelta(days=8)
@@ -206,7 +213,7 @@ def make_results_page(plot_versions: List[PlotVersion], location_id: int, start:
         ax_r_eff,
         plot_versions,
         'r_effective',
-        location_id,
+        location.id,
         start, end,
         label='R Effective',
         vlines=vlines,
@@ -217,7 +224,7 @@ def make_results_page(plot_versions: List[PlotVersion], location_id: int, start:
         ax_betas,
         plot_versions,
         'betas',
-        location_id,
+        location.id,
         start, end,
         label='Log Beta',
         vlines=vlines,
@@ -228,7 +235,7 @@ def make_results_page(plot_versions: List[PlotVersion], location_id: int, start:
         ax_resid,
         plot_versions,
         'log_beta_residuals',
-        location_id,
+        location.id,
         start, end,
         label='Log Beta Residuals',
         vlines=vlines,
@@ -237,14 +244,14 @@ def make_results_page(plot_versions: List[PlotVersion], location_id: int, start:
     make_log_beta_resid_hist(
         ax_rhist,
         plot_versions,
-        location_id
+        location.id
     )
 
     make_time_plot(
         ax_daily_infec,
         plot_versions,
         'daily_infections',
-        location_id,
+        location.id,
         start, end,
         label='Daily Infections',
         vlines=vlines,
@@ -260,7 +267,7 @@ def make_results_page(plot_versions: List[PlotVersion], location_id: int, start:
         ax_daily_death,
         plot_versions,
         'daily_deaths',
-        location_id,
+        location.id,
         start, end,
         label='Daily Deaths',
         vlines=vlines,
@@ -276,7 +283,7 @@ def make_results_page(plot_versions: List[PlotVersion], location_id: int, start:
         ax_cumul_infec,
         plot_versions,
         'cumulative_infections',
-        location_id,
+        location.id,
         start, end,
         label='Cumulative Infected (% population)',
         vlines=vlines,
@@ -287,13 +294,13 @@ def make_results_page(plot_versions: List[PlotVersion], location_id: int, start:
         ax_cumul_death,
         plot_versions,
         'cumulative_deaths',
-        location_id,
+        location.id,
         start, end,
         label='Cumulative Deaths',
         vlines=vlines,
     )
 
-    fig.suptitle(location_id, x=0.15, fontsize=24)
+    fig.suptitle(f'{location.name} ({location.id})', x=0.15, fontsize=24)
     fig.legend(handles=make_legend_handles(plot_versions),
                loc='lower center',
                bbox_to_anchor=(0.5, 0),
@@ -302,14 +309,14 @@ def make_results_page(plot_versions: List[PlotVersion], location_id: int, start:
                ncol=len(plot_versions))
 
     if plot_file:
-        fig.save_fig(plot_file, bbox_inches='tight')
+        plot_file.savefig(fig)
         plt.close(fig)
     else:
         plt.show()
 
 
-def make_covariates_page(plot_versions: List[PlotVersion], location_id: int, start: pd.Timestamp, end: pd.Timestamp,
-                         plot_file: str = None):
+def make_covariates_page(plot_versions: List[PlotVersion], location: Location, start: pd.Timestamp, end: pd.Timestamp,
+                         plot_file: PdfPages = None):
     time_varying = [c for c, c_config in COVARIATES.items() if c_config.time_varying]
     non_time_varying = [c for c, c_config in COVARIATES.items() if not c_config.time_varying]
 
@@ -329,7 +336,7 @@ def make_covariates_page(plot_versions: List[PlotVersion], location_id: int, sta
             ax_cov,
             plot_versions,
             covariate,
-            location_id,
+            location.id,
             start, end,
             label=covariate.title(),
         )
@@ -339,7 +346,7 @@ def make_covariates_page(plot_versions: List[PlotVersion], location_id: int, sta
             ax_coef,
             plot_versions,
             covariate,
-            location_id,
+            location.id,
             label=covariate.title(),
         )
 
@@ -349,21 +356,21 @@ def make_covariates_page(plot_versions: List[PlotVersion], location_id: int, sta
             ax_coef,
             plot_versions,
             covariate,
-            location_id,
+            location.id,
             label=covariate.title(),
         )
-        
+
     ax_es = fig.add_subplot(gs_elastispliner[0, 0])
     make_time_plot(
         ax_es,
         plot_versions,
         'daily_elastispliner_smoothed',
-        location_id,
-        start, pd.Timestamp.today(),
+        location.id,
+        start, pd.Timestamp.today() + pd.Timedelta(days=8),
         label='Elastispliner',
     )
 
-    fig.suptitle(location_id, x=0.15, fontsize=24)
+    fig.suptitle(f'{location.name} ({location.id})', x=0.15, fontsize=24)
     fig.legend(handles=make_legend_handles(plot_versions),
                loc='lower center',
                bbox_to_anchor=(0.5, 0),
@@ -372,18 +379,21 @@ def make_covariates_page(plot_versions: List[PlotVersion], location_id: int, sta
                ncol=len(plot_versions))
 
     if plot_file:
-        fig.save_fig(plot_file, bbox_inches='tight')
+        plot_file.savefig(fig)
         plt.close(fig)
     else:
         plt.show()
 
 
-def make_grid_plot(location_id: int,
+def make_grid_plot(location: Location,
                    plot_versions: List[PlotVersion],
                    date_start: pd.Timestamp,
                    date_end: pd.Timestamp,
-                   output_dir: str):
-    pass
+                   output_dir: Path):
+
+    with PdfPages(output_dir / f'{location.id}.pdf') as pdf:
+        make_covariates_page(plot_versions, location, date_start, date_end, plot_file=pdf)
+        make_results_page(plot_versions, location, date_start, date_end, plot_file=pdf)
 
 
 def run_grid_plots(diagnostics_version: str, name: str) -> None:
@@ -406,8 +416,11 @@ def run_grid_plots(diagnostics_version: str, name: str) -> None:
         plot_cache = root / 'plot_cache'
         plot_cache.mkdir()
 
-        # get hierarhcy
-        location_ids = [555]
+        hierarchy = plot_versions[0].load_output_miscellaneous('hierarchy', is_table=True)
+        deaths = plot_versions[0].load_output_summaries('daily_deaths')
+        modeled_locs = hierarchy.loc[hierarchy.location_id.isin(deaths.location_id.unique()),
+                                     ['location_id', 'location_name']]
+        locs_to_plot = [Location(loc[1], loc[2]) for loc in modeled_locs.itertuples()]
 
         _runner = functools.partial(
             make_grid_plot,
@@ -419,7 +432,14 @@ def run_grid_plots(diagnostics_version: str, name: str) -> None:
 
         num_cores = diagnostics_spec.workflow.task_specifications['grid_plots'].num_cores
         with multiprocessing.Pool(num_cores) as pool:
-            list(tqdm.tqdm(pool.imap(_runner, location_ids), total=len(location_ids)))
+            list(tqdm.tqdm(pool.imap(_runner, locs_to_plot), total=len(locs_to_plot)))
+
+        merger = PdfFileMerger()
+        for pdf_file in plot_cache.iterdir():
+            merger.append(pdf_file)
+
+        merger.write(Path(diagnostics_spec.data.output_root) / f'grid_plots_{grid_plot_spec.name}.pdf')
+        merger.close()
 
 
 @click.command()

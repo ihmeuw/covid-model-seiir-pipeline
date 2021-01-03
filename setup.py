@@ -23,10 +23,13 @@ if __name__ == "__main__":
         'numpy',
         'odeopt>=0.1.1',
         'pandas',
+        'pypdf2',
         'pyyaml',
         'parse',
+        'seaborn',
         'slime',
         'tables',
+        'tqdm',
     ]
 
     test_requirements = [
