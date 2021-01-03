@@ -161,7 +161,7 @@ def make_coefficient_plot(ax, plot_versions: List[PlotVersion], covariate: str, 
                     whiskerprops=dict(color=plot_version.color, linewidth=2),
                     flierprops=dict(color=plot_version.color, markeredgecolor=plot_version.color, linewidth=2),
                     medianprops=dict(color=plot_version.color, linewidth=2), labels=[' '])
-    ax.set_ylabel(label)
+    ax.set_ylabel(label, fontsize=14)
 
 
 def make_legend_handles(plot_versions: List[PlotVersion]):
@@ -296,7 +296,7 @@ def make_results_page(plot_versions: List[PlotVersion], location_id: int, start:
     fig.suptitle(location_id, x=0.15, fontsize=24)
     fig.legend(handles=make_legend_handles(plot_versions),
                loc='lower center',
-               bbox_to_anchor=(0.4, 0),
+               bbox_to_anchor=(0.5, 0),
                fontsize=14,
                frameon=False,
                ncol=len(plot_versions))
@@ -308,20 +308,20 @@ def make_results_page(plot_versions: List[PlotVersion], location_id: int, start:
         plt.show()
 
 
-def make_covariates_page(location_id: int, plot_versions: List[PlotVersion], start: pd.Timestamp, end: pd.Timestamp,
+def make_covariates_page(plot_versions: List[PlotVersion], location_id: int, start: pd.Timestamp, end: pd.Timestamp,
                          plot_file: str = None):
     time_varying = [c for c, c_config in COVARIATES.items() if c_config.time_varying]
     non_time_varying = [c for c, c_config in COVARIATES.items() if not c_config.time_varying]
 
     # Configure the plot layout.
     fig = plt.figure(figsize=(30, 15), tight_layout=True)
-    grid_spec = fig.add_gridspec(nrows=3, ncols=2, widths=[5, 3])
+    grid_spec = fig.add_gridspec(nrows=3, ncols=2, width_ratios=[6, 3], wspace=0.1)
     grid_spec.update(top=0.92, bottom=0.08)
 
-    gs_cov = grid_spec[0, 0].subgridspec(1, len(time_varying))
-    gs_coef_tv = grid_spec[1, 0].subgridspec(1, len(time_varying))
-    gs_elastispliner = grid_spec[:1, 1].subgridspec(1, 1)
-    gs_coef_non_tv = grid_spec[2, :].subgridspec(1, len(non_time_varying))
+    gs_cov = grid_spec[0, 0].subgridspec(1, len(time_varying), wspace=0.30)
+    gs_coef_tv = grid_spec[1, 0].subgridspec(1, len(time_varying), wspace=0.30)
+    gs_elastispliner = grid_spec[:2, 1].subgridspec(1, 1)
+    gs_coef_non_tv = grid_spec[2, :].subgridspec(1, len(non_time_varying), wspace=0.30)
 
     for i, covariate in enumerate(time_varying):
         ax_cov = fig.add_subplot(gs_cov[0, i])
@@ -331,7 +331,7 @@ def make_covariates_page(location_id: int, plot_versions: List[PlotVersion], sta
             covariate,
             location_id,
             start, end,
-            label=covariate.upper(),
+            label=covariate.title(),
         )
 
         ax_coef = fig.add_subplot(gs_coef_tv[0, i])
@@ -340,7 +340,7 @@ def make_covariates_page(location_id: int, plot_versions: List[PlotVersion], sta
             plot_versions,
             covariate,
             location_id,
-            label=covariate.upper()
+            label=covariate.title(),
         )
 
     for i, covariate in enumerate(non_time_varying):
@@ -350,13 +350,23 @@ def make_covariates_page(location_id: int, plot_versions: List[PlotVersion], sta
             plot_versions,
             covariate,
             location_id,
-            label=covariate.upper()
+            label=covariate.title(),
         )
+        
+    ax_es = fig.add_subplot(gs_elastispliner[0, 0])
+    make_time_plot(
+        ax_es,
+        plot_versions,
+        'daily_elastispliner_smoothed',
+        location_id,
+        start, pd.Timestamp.today(),
+        label='Elastispliner',
+    )
 
     fig.suptitle(location_id, x=0.15, fontsize=24)
     fig.legend(handles=make_legend_handles(plot_versions),
                loc='lower center',
-               bbox_to_anchor=(0.4, 0),
+               bbox_to_anchor=(0.5, 0),
                fontsize=14,
                frameon=False,
                ncol=len(plot_versions))
