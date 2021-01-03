@@ -56,22 +56,20 @@ class GridPlotsComparatorSpecification:
 class GridPlotsSpecification:
 
     def __init__(self,
-                 output_root: str = '~/',
-                 file_suffix: str = '',
+                 name: str = '',
                  date_start: str = '2020-03-01',
                  date_end: str = '2020-12-31',
                  comparators: List[Dict] = None):
         if comparators is None:
             raise
-        self.ouput_root = output_root
-        self.file_suffix = file_suffix
+        self.name = name
         self.date_start = date_start
         self.date_end = date_end
         self.comparators = [GridPlotsComparatorSpecification(**comparator) for comparator in comparators]
 
     def to_dict(self) -> Dict:
         """Converts to a dict, coercing list-like items to lists."""
-        output_dict = {k: v for k, v in self.__dict__ if k != 'comparators'}
+        output_dict = {k: v for k, v in self.__dict__.items() if k != 'comparators'}
         output_dict['comparators'] = [comparator.to_dict() for comparator in self.comparators]
         return output_dict
 
@@ -92,7 +90,7 @@ class DiagnosticsSpecification(utilities.Specification):
         workflow = DiagnosticsWorkflowSpecification(**specification.get('workflow', {}))
         grid_plots_configs = specification.get('grid_plots', [])
         grid_plots = [GridPlotsSpecification(**grid_plots_config) for grid_plots_config in grid_plots_configs]
-        return workflow, grid_plots
+        return data, workflow, grid_plots
 
     @property
     def data(self) -> DiagnosticsData:
