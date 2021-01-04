@@ -34,6 +34,7 @@ class DiagnosticsWorkflow(workflow.WorkflowTemplate):
 
         for grid_plots_task_name in grid_plots_task_names:
             grid_plots_task = grid_plots_template.get_task(
+                diagnostics_version=self.version,
                 plot_name=grid_plots_task_name,
             )
             self.workflow.add_task(grid_plots_task)
