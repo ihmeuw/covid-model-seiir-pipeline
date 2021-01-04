@@ -86,7 +86,11 @@ class PlotVersion:
             return self.pdi.load_output_miscellaneous(self.scenario, measure, is_table)
 
     def build_cache(self, cache_dir: Path, cache_draws: List[str]):
-        self._cache = cache_dir / self.version / self.scenario
+        self._cache = cache_dir / self.version.name / self.scenario
+        self._cache.mkdir(parents=True)
+        (self._cache / 'summaries').mkdir()
+        (self._cache / 'draws').mkdir()
+        (self._cache / 'miscellaneous').mkdir()
 
         for measure in [*MEASURES.values(), *COVARIATES.values()]:
             summary_data = self.pdi.load_output_summaries(self.scenario, measure.label)
@@ -402,12 +406,14 @@ def run_grid_plots(diagnostics_version: str, name: str) -> None:
         Path(diagnostics_version) / static_vars.DIAGNOSTICS_SPECIFICATION_FILE
     )
     grid_plot_spec = [spec for spec in diagnostics_spec.grid_plots if spec.name == name].pop()
+    logger.info('Building plot versions')
     plot_versions = make_plot_versions(grid_plot_spec.comparators)
 
     cache_draws = ['beta_scaling_parameters', 'coefficients']
 
     with tempfile.TemporaryDirectory() as temp_dir_name:
         root = Path(temp_dir_name)
+        logger.info('Building data cache')
         data_cache = root / 'data_cache'
         data_cache.mkdir()
         for plot_version in plot_versions:
@@ -416,6 +422,7 @@ def run_grid_plots(diagnostics_version: str, name: str) -> None:
         plot_cache = root / 'plot_cache'
         plot_cache.mkdir()
 
+	logger.info('Loading locations')
         hierarchy = plot_versions[0].load_output_miscellaneous('hierarchy', is_table=True)
         deaths = plot_versions[0].load_output_summaries('daily_deaths')
         modeled_locs = hierarchy.loc[hierarchy.location_id.isin(deaths.location_id.unique()),
@@ -424,17 +431,19 @@ def run_grid_plots(diagnostics_version: str, name: str) -> None:
 
         _runner = functools.partial(
             make_grid_plot,
-            plot_versions=plot_cache,
+            plot_versions=plot_versions,
             date_start=pd.to_datetime(grid_plot_spec.date_start),
             date_end=pd.to_datetime(grid_plot_spec.date_end),
             output_dir=plot_cache,
         )
 
         num_cores = diagnostics_spec.workflow.task_specifications['grid_plots'].num_cores
+        logger.info('Starting plots')
         with multiprocessing.Pool(num_cores) as pool:
             list(tqdm.tqdm(pool.imap(_runner, locs_to_plot), total=len(locs_to_plot)))
 
         merger = PdfFileMerger()
+        logger.info('Collating plots')
         for pdf_file in plot_cache.iterdir():
             merger.append(pdf_file)
 

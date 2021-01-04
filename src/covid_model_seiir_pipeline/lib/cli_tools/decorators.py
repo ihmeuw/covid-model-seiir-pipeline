@@ -56,7 +56,7 @@ with_draw_id = click.option(
 
 with_name = click.option(
     '--name', '-n',
-    type=click.INT,
+    type=click.STRING,
     required=True,
     help='The name to be run.'
 )
