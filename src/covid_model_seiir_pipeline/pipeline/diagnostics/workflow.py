@@ -9,12 +9,12 @@ from covid_model_seiir_pipeline.pipeline.diagnostics.specification import (
 
 class GridPlotsTaskTemplate(workflow.TaskTemplate):
 
-    task_name_template = f"{DIAGNOSTICS_JOBS.grid_plots}_{{name}}"
+    task_name_template = f"{DIAGNOSTICS_JOBS.grid_plots}_{{plot_name}}"
     command_template = (
             f"{shutil.which('stask')} "
             f"{DIAGNOSTICS_JOBS.grid_plots} " +
             "--diagnostics-version {diagnostics_version} "
-            "--name {name} "
+            "--name {plot_name} "
     )
     node_args = ['name']
     task_args = ['diagnostics_version']
@@ -34,6 +34,6 @@ class DiagnosticsWorkflow(workflow.WorkflowTemplate):
 
         for grid_plots_task_name in grid_plots_task_names:
             grid_plots_task = grid_plots_template.get_task(
-                name=grid_plots_task_name,
+                plot_name=grid_plots_task_name,
             )
             self.workflow.add_task(grid_plots_task)
