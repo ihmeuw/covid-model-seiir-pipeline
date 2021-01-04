@@ -16,7 +16,7 @@ class GridPlotsTaskTemplate(workflow.TaskTemplate):
             "--diagnostics-version {diagnostics_version} "
             "--name {plot_name} "
     )
-    node_args = ['name']
+    node_args = ['plot_name']
     task_args = ['diagnostics_version']
 
 
