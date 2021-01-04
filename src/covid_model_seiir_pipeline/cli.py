@@ -224,7 +224,7 @@ def postprocess(run_metadata,
               help="Only make the directory and set up the metadata. "
                    "Useful for setting up output directories for testing "
                    "tasks individually.")
-@cli_tools.add_output_options(Path('/ihme/covid-19/seir-diagnostics'))
+@cli_tools.add_output_options(paths.SEIR_DIAGNOSTICS_OUTPUTS)
 @cli_tools.add_verbose_and_with_debugger
 def diagnostics(run_metadata,
                 diagnostics_specification,
@@ -451,7 +451,7 @@ def run_all(run_metadata,
             outputs_versions.add(comparator_version_path)
             comparator.version = str(comparator_version_path)
 
-    output_root = Path('/ihme/covid-19/seir-diagnostics')
+    output_root = paths.SEIR_DIAGNOSTICS_OUTPUTS
     cli_tools.setup_directory_structure(output_root, with_production=True)
     run_directory = cli_tools.make_run_directory(output_root)
 
