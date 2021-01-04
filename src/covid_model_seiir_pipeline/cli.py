@@ -249,7 +249,7 @@ def diagnostics(run_metadata,
     cli_tools.setup_directory_structure(output_root, with_production=True)
     run_directory = cli_tools.make_run_directory(output_root)
 
-    diagnostics_specification.data.output_root = str(run_directory)
+    diagnostics_spec.data.output_root = str(run_directory)
 
     outputs_metadata = []
     for output_version in outputs_versions:
@@ -258,12 +258,12 @@ def diagnostics(run_metadata,
 
     run_metadata['seir_outputs_metadata'] = outputs_metadata
     run_metadata['output_path'] = str(run_directory)
-    run_metadata['diagnostics_specification'] = diagnostics_specification.to_dict()
+    run_metadata['diagnostics_specification'] = diagnostics_spec.to_dict()
 
     cli_tools.configure_logging_to_files(run_directory)
     main = cli_tools.monitor_application(do_diagnostics,
                                          logger, with_debugger)
-    app_metadata, _ = main(diagnostics_specification, preprocess_only)
+    app_metadata, _ = main(diagnostics_spec, preprocess_only)
 
     cli_tools.finish_application(run_metadata, app_metadata,
                                  run_directory, mark_best, production_tag)
