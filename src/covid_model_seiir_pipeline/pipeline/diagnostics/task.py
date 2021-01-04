@@ -393,8 +393,10 @@ def make_grid_plot(location: Location,
                    date_start: pd.Timestamp,
                    date_end: pd.Timestamp,
                    output_dir: Path):
-    make_covariates_page(plot_versions, location, date_start, date_end, plot_file=output_dir / f'{location.id}_covariates.pdf')
-    make_results_page(plot_versions, location, date_start, date_end, plot_file=output_dir / f'{location.id}_results.pdf')
+    make_covariates_page(plot_versions, location, date_start, date_end,
+                         plot_file=str(output_dir / f'{location.id}_covariates.pdf'))
+    make_results_page(plot_versions, location, date_start, date_end,
+                      plot_file=str(output_dir / f'{location.id}_results.pdf'))
 
 
 def run_grid_plots(diagnostics_version: str, name: str) -> None:
