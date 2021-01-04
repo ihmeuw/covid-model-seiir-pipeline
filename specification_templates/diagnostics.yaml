@@ -7,7 +7,7 @@ workflow:
     grid_plots:
       max_runtime_seconds: 5000
       m_mem_free: '5G'
-      num_cores: 26
+      num_cores: 70
 grid_plots:
   - name: 'old_compare'
     date_start: '2020-03-01'
