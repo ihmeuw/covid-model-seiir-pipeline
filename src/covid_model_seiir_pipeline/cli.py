@@ -3,6 +3,7 @@ from pathlib import Path
 import click
 from covid_shared import cli_tools, paths, shell_tools
 from loguru import logger
+import yaml
 
 from covid_model_seiir_pipeline.lib import utilities
 from covid_model_seiir_pipeline.pipeline import (
@@ -14,6 +15,8 @@ from covid_model_seiir_pipeline.pipeline import (
     do_postprocessing,
     PredictiveValiditySpecification,
     do_predictive_validity,
+    DiagnosticsSpecification,
+    do_diagnostics,
 )
 
 
@@ -209,6 +212,61 @@ def postprocess(run_metadata,
     cli_tools.finish_application(run_metadata, app_metadata,
                                  run_directory, mark_best, production_tag)
 
+    logger.info('**Done**')
+
+
+@seiir.command()
+@cli_tools.pass_run_metadata()
+@click.argument('diagnostics_specification',
+                type=click.Path(exists=True, dir_okay=False))
+@click.option('--preprocess-only',
+              is_flag=True,
+              help="Only make the directory and set up the metadata. "
+                   "Useful for setting up output directories for testing "
+                   "tasks individually.")
+@cli_tools.add_output_options(Path('/ihme/covid-19/seir-diagnostics'))
+@cli_tools.add_verbose_and_with_debugger
+def diagnostics(run_metadata,
+                diagnostics_specification,
+                preprocess_only,
+                output_root, mark_best, production_tag,
+                verbose, with_debugger):
+    cli_tools.configure_logging_to_terminal(verbose)
+
+    diagnostics_spec = DiagnosticsSpecification.from_path(diagnostics_specification)
+
+    outputs_versions = set()
+    for grid_plot_spec in diagnostics_spec.grid_plots:
+        for comparator in grid_plot_spec.comparators:
+            comparator_version_path = utilities.get_input_root(None,
+                                                               comparator.version,
+                                                               paths.SEIR_FINAL_OUTPUTS)
+            outputs_versions.add(comparator_version_path)
+            comparator.version = str(comparator_version_path)
+
+    output_root = utilities.get_output_root(output_root,
+                                            diagnostics_spec.data.output_root)
+    cli_tools.setup_directory_structure(output_root, with_production=True)
+    run_directory = cli_tools.make_run_directory(output_root)
+
+    diagnostics_specification.data.output_root = str(run_directory)
+
+    outputs_metadata = []
+    for output_version in outputs_versions:
+        with (output_version / paths.METADATA_FILE_NAME).open() as metadata_file:
+            outputs_metadata.append(yaml.full_load(metadata_file))
+
+    run_metadata['seir_outputs_metadata'] = outputs_metadata
+    run_metadata['output_path'] = str(run_directory)
+    run_metadata['diagnostics_specification'] = diagnostics_specification.to_dict()
+
+    cli_tools.configure_logging_to_files(run_directory)
+    main = cli_tools.monitor_application(do_diagnostics,
+                                         logger, with_debugger)
+    app_metadata, _ = main(diagnostics_specification, preprocess_only)
+
+    cli_tools.finish_application(run_metadata, app_metadata,
+                                 run_directory, mark_best, production_tag)
     logger.info('**Done**')
 
 
