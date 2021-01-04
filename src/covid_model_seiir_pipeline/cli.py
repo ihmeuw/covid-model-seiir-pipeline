@@ -363,9 +363,9 @@ def run_all(run_metadata,
     forecast_run_metadata = cli_tools.RunMetadata()
     forecast_run_metadata.update(base_metadata)
 
-    logger.remove()  # Get rid of all handlers so we get clean forecast logs.
-
-    cli_tools.configure_logging_to_terminal(verbose)
+    # Get rid of last stage file handlers.
+    logger.remove(2)
+    logger.remove(3)
 
     forecast_spec = ForecastSpecification.from_path(forecast_specification)
 
@@ -399,9 +399,9 @@ def run_all(run_metadata,
     postprocessing_run_metadata = cli_tools.RunMetadata()
     postprocessing_run_metadata.update(base_metadata)
 
-    logger.remove()  # Get rid of all handlers so we get clean postprocessing logs.
-
-    cli_tools.configure_logging_to_terminal(verbose)
+    # Get rid of last stage file handlers so we get clean postprocessing logs.
+    logger.remove(4)
+    logger.remove(5)
 
     postprocessing_spec = PostprocessingSpecification.from_path(postprocessing_specification)
 
@@ -436,9 +436,9 @@ def run_all(run_metadata,
     diagnostics_run_metadata = cli_tools.RunMetadata()
     diagnostics_run_metadata.update(base_metadata)
 
-    logger.remove()  # Get rid of all handlers so we get clean postprocessing logs.
-
-    cli_tools.configure_logging_to_terminal(verbose)
+    # Get rid of last stage file handlers so we get clean diagnostics logs.
+    logger.remove(6)
+    logger.remove(7)
 
     diagnostics_spec = DiagnosticsSpecification.from_path(diagnostics_specification)
 
