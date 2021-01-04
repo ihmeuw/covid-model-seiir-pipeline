@@ -9,27 +9,15 @@ workflow:
       m_mem_free: '200G'
       num_cores: 70
 grid_plots:
-  - name: 'old_compare'
+  - name: 'compare'
     date_start: '2020-03-01'
     date_end: '2021-12-31'
     comparators:
-      - version: '/ihme/covid-19/seir-outputs/2020_12_08.05'
+      - version: '/ihme/covid-19/seir-outputs/latest'
+        scenarios:
+          worse: 'worse'
+          reference: 'reference'
+      - version: '/ihme/covid-19/seir-outputs/2020_12_22.03'
         scenarios:
           worse: 'old_worse'
           reference: 'old_reference'
-      - version: '/ihme/covid-19/seir-outputs/best'
-        scenarios:
-          worse: 'worse'
-          reference: 'reference'
-  - name: 'all_scenarios'
-    date_start: '2020-03-01'
-    date_end: '2021-12-31'
-    comparators:
-      - version: '/ihme/covid-19/seir-outputs/best'
-        scenarios:
-          worse: 'worse'
-          reference: 'reference'
-          no_vaccine: 'no_vaccine'
-          best_masks: 'best_masks'
-          vaccine_fast: 'vaccine_fast'
-          vaccine_fast_elderly: 'vaccine_fast_elderly'

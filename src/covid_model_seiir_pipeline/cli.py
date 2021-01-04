@@ -270,7 +270,7 @@ def diagnostics(run_metadata,
     logger.info('**Done**')
 
 
-@seiir.command()
+@seiir.command(name='run_all')
 @cli_tools.pass_run_metadata()
 @click.argument('regression_specification',
                 type=click.Path(exists=True, dir_okay=False))
@@ -465,7 +465,7 @@ def run_all(run_metadata,
     logger.info('All stages complete!')
 
 
-@seiir.command()
+@seiir.command(name='predictive_validity')
 @cli_tools.pass_run_metadata()
 @click.argument('regression_specification',
                 type=click.Path(exists=True, dir_okay=False))

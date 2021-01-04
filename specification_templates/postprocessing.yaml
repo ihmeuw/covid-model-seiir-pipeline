@@ -3,7 +3,6 @@ data:
   scenarios:
     - 'worse'
     - 'reference'
-    - 'no_vaccine'
   output_root: ''
 workflow:
   project: 'proj_covid'
