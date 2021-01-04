@@ -3,6 +3,7 @@ import multiprocessing
 from pathlib import Path
 import tempfile
 from typing import List, NamedTuple, Tuple
+import warnings
 
 import click
 from loguru import logger
@@ -37,6 +38,7 @@ from covid_model_seiir_pipeline.pipeline.postprocessing.model import (
 )
 
 sns.set_style('whitegrid')
+warnings.filterwarnings('ignore')
 
 
 COLOR_MAP = plt.get_cmap('Set1')
@@ -163,8 +165,8 @@ def make_log_beta_resid_hist(ax, plot_versions: List[PlotVersion], loc_id: int):
 def make_coefficient_plot(ax, plot_versions: List[PlotVersion], covariate: str, loc_id: int, label: str):
     for i, plot_version in enumerate(plot_versions):
         data = plot_version.load_output_draws('coefficients')
-        data = data.set_index(['location_id', 'covariate']).loc[(loc_id, covariate)]
-        plt.boxplot(data,
+        data = data[(data.location_id == loc_id) & (data.covariate == covariate)].drop(columns=['location_id', 'covariate'])
+        plt.boxplot(data.T,
                     positions=[i],
                     widths=[.7],
                     boxprops=dict(color=plot_version.color, linewidth=2),
@@ -181,7 +183,7 @@ def make_legend_handles(plot_versions: List[PlotVersion]):
 
 
 def make_results_page(plot_versions: List[PlotVersion], location: Location, start: pd.Timestamp, end: pd.Timestamp,
-                      plot_file: PdfPages = None):
+                      plot_file: str = None):
     observed_color = COLOR_MAP(len(plot_versions))
 
     # Load some shared data.
@@ -313,14 +315,14 @@ def make_results_page(plot_versions: List[PlotVersion], location: Location, star
                ncol=len(plot_versions))
 
     if plot_file:
-        plot_file.savefig(fig)
+        fig.savefig(plot_file, bbox_inches='tight')
         plt.close(fig)
     else:
         plt.show()
 
 
 def make_covariates_page(plot_versions: List[PlotVersion], location: Location, start: pd.Timestamp, end: pd.Timestamp,
-                         plot_file: PdfPages = None):
+                         plot_file: str = None):
     time_varying = [c for c, c_config in COVARIATES.items() if c_config.time_varying]
     non_time_varying = [c for c, c_config in COVARIATES.items() if not c_config.time_varying]
 
@@ -383,7 +385,7 @@ def make_covariates_page(plot_versions: List[PlotVersion], location: Location, s
                ncol=len(plot_versions))
 
     if plot_file:
-        plot_file.savefig(fig)
+        fig.savefig(plot_file, bbox_inches='tight')
         plt.close(fig)
     else:
         plt.show()
@@ -394,10 +396,8 @@ def make_grid_plot(location: Location,
                    date_start: pd.Timestamp,
                    date_end: pd.Timestamp,
                    output_dir: Path):
-
-    with PdfPages(output_dir / f'{location.id}.pdf') as pdf:
-        make_covariates_page(plot_versions, location, date_start, date_end, plot_file=pdf)
-        make_results_page(plot_versions, location, date_start, date_end, plot_file=pdf)
+    make_covariates_page(plot_versions, location, date_start, date_end, plot_file=output_dir / f'{location.id}_covariates.pdf')
+    make_results_page(plot_versions, location, date_start, date_end, plot_file=output_dir / f'{location.id}_results.pdf')
 
 
 def run_grid_plots(diagnostics_version: str, name: str) -> None:
@@ -441,14 +441,22 @@ def run_grid_plots(diagnostics_version: str, name: str) -> None:
         logger.info('Starting plots')
         with multiprocessing.Pool(num_cores) as pool:
             list(tqdm.tqdm(pool.imap(_runner, locs_to_plot), total=len(locs_to_plot)))
+ #       for location in tqdm.tqdm(locs_to_plot):
+ #           _runner(location)
 
-        merger = PdfFileMerger()
         logger.info('Collating plots')
-        for pdf_file in plot_cache.iterdir():
-            merger.append(pdf_file)
-
-        merger.write(Path(diagnostics_spec.data.output_root) / f'grid_plots_{grid_plot_spec.name}.pdf')
-        merger.close()
+        merger = PdfFileMerger()
+        try:
+            for loc in locs_to_plot:
+                merger.append(str(plot_cache / f'{loc.id}_results.pdf'))
+                merger.append(str(plot_cache / f'{loc.id}_covariates.pdf'))
+            
+            outpath = Path(diagnostics_spec.data.output_root) / f'grid_plots_{grid_plot_spec.name}.pdf'
+            if outpath.exists():
+                outpath.unlink()
+            merger.write(str(outpath))
+        finally:
+            merger.close()
 
 
 @click.command()
