@@ -278,6 +278,8 @@ def diagnostics(run_metadata,
                 type=click.Path(exists=True, dir_okay=False))
 @click.argument('postprocessing_specification',
                 type=click.Path(exists=True, dir_okay=False))
+@click.argument('diagnostics_specification',
+                type=click.Path(exists=True, dir_okay=False))
 @click.option('-p', '--production-tag',
               type=click.STRING,
               help='Tags this run as a production run.')
@@ -286,7 +288,8 @@ def diagnostics(run_metadata,
               help='Mark this run as "best"')
 @cli_tools.add_verbose_and_with_debugger
 def run_all(run_metadata,
-            regression_specification, forecast_specification, postprocessing_specification,
+            regression_specification, forecast_specification,
+            postprocessing_specification, diagnostics_specification,
             mark_best, production_tag,
             verbose, with_debugger):
     """Run all stages of the SEIIR pipeline.
@@ -414,6 +417,49 @@ def run_all(run_metadata,
     app_metadata, _ = main(postprocessing_spec, False)
 
     cli_tools.finish_application(postprocessing_run_metadata, app_metadata,
+                                 run_directory, mark_best, production_tag)
+
+    logger.info('Postprocessing finished. Starting diagnostics.')
+
+    ######################
+    # Do the diagnostics #
+    ######################
+    logger.remove()  # Get rid of all handlers so we get clean postprocessing logs.
+
+    cli_tools.configure_logging_to_terminal(verbose)
+
+    diagnostics_spec = DiagnosticsSpecification.from_path(diagnostics_specification)
+
+    outputs_versions = set()
+    for grid_plot_spec in diagnostics_spec.grid_plots:
+        for comparator in grid_plot_spec.comparators:
+            comparator_version_path = utilities.get_input_root(None,
+                                                               comparator.version,
+                                                               paths.SEIR_FINAL_OUTPUTS)
+            outputs_versions.add(comparator_version_path)
+            comparator.version = str(comparator_version_path)
+
+    output_root = paths.SEIR_FINAL_OUTPUTS
+    cli_tools.setup_directory_structure(output_root, with_production=True)
+    run_directory = cli_tools.make_run_directory(output_root)
+
+    diagnostics_spec.data.output_root = str(run_directory)
+
+    outputs_metadata = []
+    for output_version in outputs_versions:
+        with (output_version / paths.METADATA_FILE_NAME).open() as metadata_file:
+            outputs_metadata.append(yaml.full_load(metadata_file))
+
+    run_metadata['seir_outputs_metadata'] = outputs_metadata
+    run_metadata['output_path'] = str(run_directory)
+    run_metadata['diagnostics_specification'] = diagnostics_spec.to_dict()
+
+    cli_tools.configure_logging_to_files(run_directory)
+    main = cli_tools.monitor_application(do_diagnostics,
+                                         logger, with_debugger)
+    app_metadata, _ = main(diagnostics_spec, False)
+
+    cli_tools.finish_application(run_metadata, app_metadata,
                                  run_directory, mark_best, production_tag)
 
     logger.info('All stages complete!')

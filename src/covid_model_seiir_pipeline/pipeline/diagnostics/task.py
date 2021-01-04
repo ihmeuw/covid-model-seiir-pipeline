@@ -10,7 +10,6 @@ from loguru import logger
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 import matplotlib.lines as mlines
-from matplotlib.backends.backend_pdf import PdfPages
 import numpy as np
 import pandas as pd
 from PyPDF2 import PdfFileMerger
@@ -20,12 +19,10 @@ import tqdm
 from covid_model_seiir_pipeline.lib import (
     cli_tools,
     static_vars,
-    utilities,
 )
 from covid_model_seiir_pipeline.pipeline.diagnostics.specification import (
     GridPlotsComparatorSpecification,
     DiagnosticsSpecification,
-    DIAGNOSTICS_JOBS,
 )
 from covid_model_seiir_pipeline.pipeline.postprocessing import (
     PostprocessingSpecification,
@@ -441,8 +438,6 @@ def run_grid_plots(diagnostics_version: str, name: str) -> None:
         logger.info('Starting plots')
         with multiprocessing.Pool(num_cores) as pool:
             list(tqdm.tqdm(pool.imap(_runner, locs_to_plot), total=len(locs_to_plot)))
- #       for location in tqdm.tqdm(locs_to_plot):
- #           _runner(location)
 
         logger.info('Collating plots')
         merger = PdfFileMerger()
@@ -450,7 +445,7 @@ def run_grid_plots(diagnostics_version: str, name: str) -> None:
             for loc in locs_to_plot:
                 merger.append(str(plot_cache / f'{loc.id}_results.pdf'))
                 merger.append(str(plot_cache / f'{loc.id}_covariates.pdf'))
-            
+
             outpath = Path(diagnostics_spec.data.output_root) / f'grid_plots_{grid_plot_spec.name}.pdf'
             if outpath.exists():
                 outpath.unlink()
