@@ -422,7 +422,7 @@ def run_grid_plots(diagnostics_version: str, name: str) -> None:
         plot_cache = root / 'plot_cache'
         plot_cache.mkdir()
 
-	logger.info('Loading locations')
+        logger.info('Loading locations')
         hierarchy = plot_versions[0].load_output_miscellaneous('hierarchy', is_table=True)
         deaths = plot_versions[0].load_output_summaries('daily_deaths')
         modeled_locs = hierarchy.loc[hierarchy.location_id.isin(deaths.location_id.unique()),
