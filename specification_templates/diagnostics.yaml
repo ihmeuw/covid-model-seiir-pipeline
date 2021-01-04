@@ -6,7 +6,7 @@ workflow:
   tasks:
     grid_plots:
       max_runtime_seconds: 5000
-      m_mem_free: '5G'
+      m_mem_free: '200G'
       num_cores: 70
 grid_plots:
   - name: 'old_compare'

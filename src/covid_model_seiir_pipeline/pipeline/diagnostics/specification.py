@@ -17,7 +17,7 @@ DIAGNOSTICS_JOBS = __DiagnosticsJobs()
 class GridPlotsTaskSpecification(workflow.TaskSpecification):
     """Specification of execution parameters for grid plots tasks."""
     default_max_runtime_seconds = 5000
-    default_m_mem_free = '50G'
+    default_m_mem_free = '200G'
     default_num_cores = 70
 
 
