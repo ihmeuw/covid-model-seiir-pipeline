@@ -36,7 +36,7 @@ class TaskSpecification:
     _runtime_bounds = [100, 60 * 60 * 24]
     _mem_re = re.compile('\\d+[G]')
     _mem_bounds_gb = [1, 1000]
-    _num_core_bounds = [1, 30]
+    _num_core_bounds = [1, 79]
 
     def __init__(self, task_specification_dict: _TaskSpecDict):
         self.name = self.__class__.__name__
