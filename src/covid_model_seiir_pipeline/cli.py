@@ -212,7 +212,7 @@ def postprocess(run_metadata,
     logger.info('**Done**')
 
 
-@seiir.command()
+@seiir.command('run_all')
 @cli_tools.pass_run_metadata()
 @click.argument('regression_specification',
                 type=click.Path(exists=True, dir_okay=False))
@@ -228,7 +228,8 @@ def postprocess(run_metadata,
               help='Mark this run as "best"')
 @cli_tools.add_verbose_and_with_debugger
 def run_all(run_metadata,
-            regression_specification, forecast_specification, postprocessing_specification,
+            regression_specification, forecast_specification,
+            postprocessing_specification,
             mark_best, production_tag,
             verbose, with_debugger):
     """Run all stages of the SEIIR pipeline.
@@ -239,9 +240,16 @@ def run_all(run_metadata,
     data and covariate data, but all output paths and downstream input
     paths will be inferred automatically.
     """
+    base_metadata = run_metadata.to_dict()
+    del base_metadata['start_time']
     #####################
     # Do the regression #
     #####################
+    # Build our own run metadata since the injected version is shared across the
+    # three pipeline stages.
+    regression_run_metadata = cli_tools.RunMetadata()
+    regression_run_metadata.update(base_metadata)
+
     cli_tools.configure_logging_to_terminal(verbose)
 
     regression_spec = RegressionSpecification.from_path(regression_specification)
@@ -272,10 +280,6 @@ def run_all(run_metadata,
     regression_spec.data.location_set_file = location_set_file
     regression_spec.data.output_root = str(run_directory)
 
-    # Build our own run metadata since the injected version is shared across the
-    # three pipeline stages.
-    regression_run_metadata = cli_tools.RunMetadata().update(run_metadata.to_dict())
-
     for key, input_root in zip(['infectionator_metadata', 'covariates_metadata'],
                                [infection_root, covariates_root]):
         regression_run_metadata.update_from_path(key, input_root / paths.METADATA_FILE_NAME)
@@ -296,8 +300,12 @@ def run_all(run_metadata,
     # Do the forecast #
     ###################
 
-    logger.remove()  # Get rid of all handlers so we get clean forecast logs.
-    cli_tools.configure_logging_to_terminal(verbose)
+    forecast_run_metadata = cli_tools.RunMetadata()
+    forecast_run_metadata.update(base_metadata)
+
+    # Get rid of last stage file handlers.
+    logger.remove(2)
+    logger.remove(3)
 
     forecast_spec = ForecastSpecification.from_path(forecast_specification)
 
@@ -309,7 +317,6 @@ def run_all(run_metadata,
     forecast_spec.data.covariate_version = regression_spec.data.covariate_version
     forecast_spec.data.output_root = str(run_directory)
 
-    forecast_run_metadata = cli_tools.RunMetadata().update(run_metadata.to_dict())
     forecast_run_metadata.update_from_path('regression_metadata',
                                            Path(forecast_spec.data.regression_version) / paths.METADATA_FILE_NAME)
     forecast_run_metadata['output_path'] = str(run_directory)
@@ -329,9 +336,12 @@ def run_all(run_metadata,
     # Do the postprocessing #
     #########################
 
-    logger.remove()  # Get rid of all handlers so we get clean postprocessing logs.
+    postprocessing_run_metadata = cli_tools.RunMetadata()
+    postprocessing_run_metadata.update(base_metadata)
 
-    cli_tools.configure_logging_to_terminal(verbose)
+    # Get rid of last stage file handlers so we get clean postprocessing logs.
+    logger.remove(4)
+    logger.remove(5)
 
     postprocessing_spec = PostprocessingSpecification.from_path(postprocessing_specification)
 
@@ -342,7 +352,6 @@ def run_all(run_metadata,
     postprocessing_spec.data.forecast_version = forecast_spec.data.output_root
     postprocessing_spec.data.output_root = str(run_directory)
 
-    postprocessing_run_metadata = cli_tools.RunMetadata().update(run_metadata.to_dict())
     postprocessing_run_metadata.update_from_path(
         'forecast_metadata',
         Path(postprocessing_spec.data.forecast_version) / paths.METADATA_FILE_NAME
@@ -361,7 +370,7 @@ def run_all(run_metadata,
     logger.info('All stages complete!')
 
 
-@seiir.command()
+@seiir.command(name='predictive_validity')
 @cli_tools.pass_run_metadata()
 @click.argument('regression_specification',
                 type=click.Path(exists=True, dir_okay=False))
