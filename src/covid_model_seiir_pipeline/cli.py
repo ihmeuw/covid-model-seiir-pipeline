@@ -307,7 +307,8 @@ def run_all(run_metadata,
     #####################
     # Build our own run metadata since the injected version is shared across the
     # three pipeline stages.
-    regression_run_metadata = cli_tools.RunMetadata().update(base_metadata)
+    regression_run_metadata = cli_tools.RunMetadata()
+    regression_run_metadata.update(base_metadata)
 
     cli_tools.configure_logging_to_terminal(verbose)
 
@@ -359,7 +360,8 @@ def run_all(run_metadata,
     # Do the forecast #
     ###################
 
-    forecast_run_metadata = cli_tools.RunMetadata().update(base_metadata)
+    forecast_run_metadata = cli_tools.RunMetadata()
+    forecast_run_metadata.update(base_metadata)
 
     logger.remove()  # Get rid of all handlers so we get clean forecast logs.
 
@@ -394,7 +396,8 @@ def run_all(run_metadata,
     # Do the postprocessing #
     #########################
 
-    postprocessing_run_metadata = cli_tools.RunMetadata().update(base_metadata)
+    postprocessing_run_metadata = cli_tools.RunMetadata()
+    postprocessing_run_metadata.update(base_metadata)
 
     logger.remove()  # Get rid of all handlers so we get clean postprocessing logs.
 
@@ -430,7 +433,8 @@ def run_all(run_metadata,
     # Do the diagnostics #
     ######################
 
-    diagnostics_run_metadata = cli_tools.RunMetadata().update(base_metadata)
+    diagnostics_run_metadata = cli_tools.RunMetadata()
+    diagnostics_run_metadata.update(base_metadata)
 
     logger.remove()  # Get rid of all handlers so we get clean postprocessing logs.
 
