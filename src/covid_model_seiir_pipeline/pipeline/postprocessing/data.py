@@ -40,12 +40,15 @@ class PostprocessingDataInterface:
     def make_dirs(self, **prefix_args):
         io.touch(self.postprocessing_root, **prefix_args)
 
-    ################
-    # Data loaders #
-    ################
+    #########################
+    # Forecast data loaders #
+    #########################
 
     def get_n_draws(self) -> int:
         return self._get_forecast_data_inteface().get_n_draws()
+
+    def load_location_ids(self):
+        return self._get_forecast_data_inteface().load_location_ids()
 
     def get_covariate_names(self, scenarios: List[str]) -> List[str]:
         forecast_spec = ForecastSpecification.from_dict(io.load(self.forecast_root.specification()))
@@ -56,9 +59,6 @@ class PostprocessingDataInterface:
     def get_covariate_version(self, covariate_name: str, scenario: str) -> str:
         forecast_spec = ForecastSpecification.from_dict(io.load(self.forecast_root.specification()))
         return forecast_spec.scenarios[scenario].covariates[covariate_name]
-
-    def load_location_ids(self):
-        return self._get_forecast_data_inteface().load_location_ids()
 
     def load_regression_coefficients(self, draw_id: int) -> pd.Series:
         coefficients = self._get_forecast_data_inteface().load_regression_coefficients(draw_id)
@@ -113,6 +113,10 @@ class PostprocessingDataInterface:
         infections = draw_df['infections'].rename(draw_id)
         r_effective = draw_df['r_effective'].rename(draw_id)
         return deaths, infections, r_effective
+
+    ##############################
+    # Miscellaneous data loaders #
+    ##############################
 
     def load_elastispliner_inputs(self) -> pd.DataFrame:
         metadata = self._get_forecast_data_inteface().get_infectionator_metadata()
@@ -199,13 +203,7 @@ class PostprocessingDataInterface:
         return version_map
 
     def load_populations(self) -> pd.DataFrame:
-        metadata = self._get_forecast_data_inteface().get_infectionator_metadata()
-        model_inputs_path = Path(
-            metadata['death']['metadata']['model_inputs_metadata']['output_path']
-        )
-        population_path = model_inputs_path / 'output_measures' / 'population' / 'all_populations.csv'
-        populations = pd.read_csv(population_path)
-        return populations
+        return self._get_forecast_data_inteface().load_population()
 
     def load_hierarchy(self) -> pd.DataFrame:
         metadata = self._get_forecast_data_inteface().get_infectionator_metadata()
@@ -230,47 +228,47 @@ class PostprocessingDataInterface:
         locations_modeled_and_missing = {'modeled': modeled_locations, 'missing': missing_locations}
         return locations_modeled_and_missing
 
+    ###########################
+    # Postprocessing data I/O #
+    ###########################
+
+    def save_specification(self, specification: PostprocessingSpecification):
+        io.dump(specification.to_dict(), self.postprocessing_root.specification())
+
     def load_specification(self) -> 'PostprocessingSpecification':
         spec_dict = io.load(self.postprocessing_root.specification())
         return PostprocessingSpecification.from_dict(spec_dict)
 
+    def save_resampling_map(self, resampling_map: Dict[int, Dict[str, List[int]]]):
+        io.dump(resampling_map, self.postprocessing_root.resampling_map())
+
     def load_resampling_map(self) -> Dict[int, Dict[str, List[int]]]:
         return io.load(self.postprocessing_root.resampling_map())
 
+    def save_output_draws(self, output_draws: pd.DataFrame, scenario: str, measure: str):
+        io.dump(output_draws, self.postprocessing_root.output_draws(scenario=scenario, measure=measure))
+
     def load_output_draws(self, scenario: str, measure: str) -> pd.DataFrame:
         return io.load(self.postprocessing_root.output_draws(scenario=scenario, measure=measure))
-
-    def load_output_summaries(self, scenario: str, measure: str) -> pd.DataFrame:
-        return io.load(self.postprocessing_root.output_summaries(scenario=scenario, measure=measure))
-
-    def load_output_miscellaneous(self, scenario: str, measure: str, is_table: bool) -> pd.DataFrame:
-        key = self._get_output_miscellaneous_key(scenario, measure, is_table)
-        return io.load(key)
 
     def load_previous_version_output_draws(self, version: str, scenario: str, measure: str):
         previous_di = self._get_previous_version_data_interface(version)
         return previous_di.load_output_draws(scenario, measure)
 
-    ################
-    # Data writers #
-    ################
-
-    def save_specification(self, specification: PostprocessingSpecification):
-        io.dump(specification.to_dict(), self.postprocessing_root.specification())
-
-    def save_resampling_map(self, resampling_map: Dict[int, Dict[str, List[int]]]):
-        io.dump(resampling_map, self.postprocessing_root.resampling_map())
-
-    def save_output_draws(self, output_draws: pd.DataFrame, scenario: str, measure: str):
-        io.dump(output_draws, self.postprocessing_root.output_draws(scenario=scenario, measure=measure))
-
     def save_output_summaries(self, output_summaries: pd.DataFrame, scenario: str, measure: str):
         io.dump(output_summaries, self.postprocessing_root.output_summaries(scenario=scenario, measure=measure))
+
+    def load_output_summaries(self, scenario: str, measure: str) -> pd.DataFrame:
+        return io.load(self.postprocessing_root.output_summaries(scenario=scenario, measure=measure))
 
     def save_output_miscellaneous(self, output_miscellaneous,
                                   scenario: str, measure: str, is_table: bool):
         key = self._get_output_miscellaneous_key(scenario, measure, is_table)
         io.dump(output_miscellaneous, key)
+
+    def load_output_miscellaneous(self, scenario: str, measure: str, is_table: bool) -> pd.DataFrame:
+        key = self._get_output_miscellaneous_key(scenario, measure, is_table)
+        return io.load(key)
 
     #########################
     # Non-interface methods #
