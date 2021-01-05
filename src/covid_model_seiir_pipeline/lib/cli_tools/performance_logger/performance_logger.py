@@ -12,8 +12,6 @@ class TaskPerformanceLogger:
         self.times = defaultdict(float)
 
     def _record_timing(self, context):
-        if context is None:
-            return
         if self.current_context is None:
             self.current_context = context
             self.current_context_start = time.time()
@@ -23,15 +21,18 @@ class TaskPerformanceLogger:
             self.current_context_start = time.time()
 
     def info(self, *args, context=None, **kwargs):
-        self._record_timing(context)
+        if context is not None:
+            self._record_timing(context)
         logger.info(*args, **kwargs)
 
     def debug(self, *args, context=None, **kwargs):
-        self._record_timing(context)
+        if context is not None:
+            self._record_timing(context)
         logger.debug(*args, **kwargs)
 
     def warning(self, *args, context=None, **kwargs):
-        self._record_timing(context)
+        if context is not None:
+            self._record_timing(context)
         logger.debug(*args, **kwargs)
 
     def report(self):
@@ -39,7 +40,7 @@ class TaskPerformanceLogger:
             self.times[self.current_context] += time.time() - self.current_context_start
         logger.info(
             "\nRuntime report\n" +
-            "="*31 + "\n" +
+            "=" * 31 + "\n" +
             "\n".join([f'{context:<20}:{elapsed_time:>10.2f}' for context, elapsed_time in self.times.items()])
         )
 

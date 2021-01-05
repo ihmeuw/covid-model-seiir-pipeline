@@ -24,4 +24,4 @@ def parse_logs(log_dir, job_name):
             time, *_ = time.split('\x1b')
             result[metric.strip()].append(float(time.strip()))
     df = pd.DataFrame(result)
-    print(df.describe().T[['mean', 'min', 'max']])
+    click.echo(df.describe().T[['mean', 'min', 'max']])
