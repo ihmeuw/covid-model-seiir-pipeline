@@ -215,7 +215,7 @@ def postprocess(run_metadata,
     logger.info('**Done**')
 
 
-@seiir.command(')
+@seiir.command()
 @cli_tools.pass_run_metadata()
 @click.argument('diagnostics_specification',
                 type=click.Path(exists=True, dir_okay=False))
