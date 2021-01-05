@@ -300,7 +300,7 @@ def add_vline(ax, x_position):
 
 
 def make_title_and_legend(fig, location: Location, plot_versions: List[PlotVersion]):
-    fig.suptitle(f'{location.name} ({location.id})', x=0.15, fontsize=TITLE_FONTSIZE, ha='left')
+    fig.suptitle(f'{location.name} ({location.id})', x=0.5, fontsize=TITLE_FONTSIZE, ha='left')
     fig.legend(handles=make_legend_handles(plot_versions),
                loc='lower center',
                bbox_to_anchor=(0.5, 0),
