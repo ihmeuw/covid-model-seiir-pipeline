@@ -21,7 +21,7 @@ def merge_pdfs(plot_cache: Path, output_path: Path, locs_to_plot: List[int], hie
             else:
                 parent = None
             merger.addBookmark(name_map.loc[location_id], page['page']+1, parent)
-            merger.append(page['page'] + 1, str(plot_cache / f'{location_id}_covariates.pdf'))
+            merger.merge(page['page'] + 1, str(plot_cache / f'{location_id}_covariates.pdf'))
 
         if output_path.exists():
             output_path.unlink()
