@@ -5,6 +5,7 @@ from typing import Dict, Type, TypeVar, Union
 
 from loguru import logger
 
+import covid_model_seiir_pipeline
 
 DEFAULT_PROJECT = 'proj_covid'
 DEFAULT_QUEUE = 'd.q'

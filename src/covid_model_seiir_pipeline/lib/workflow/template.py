@@ -2,17 +2,24 @@
 import abc
 from typing import Dict, Type, TypeVar
 
+import covid_model_seiir_pipeline
 from covid_model_seiir_pipeline.lib.utilities import make_log_dirs
 from covid_model_seiir_pipeline.lib.ihme_deps import (
-    BashTask,
-    DagExecutionStatus,
+    Tool,
+    Task,
     ExecutorParameters,
-    Workflow,
+    WorkflowRunStatus,
 )
 from covid_model_seiir_pipeline.lib.workflow.specification import (
     TaskSpecification,
     WorkflowSpecification
 )
+
+
+def get_jobmon_tool() -> Tool:
+    tool = Tool.create_tool(covid_model_seiir_pipeline.__name__)
+    tool.active_tool_version_id = covid_model_seiir_pipeline.__jobmon_tool_version__
+    return tool
 
 
 class TaskTemplate(abc.ABC):
@@ -27,17 +34,26 @@ class TaskTemplate(abc.ABC):
 
     task_name_template: str
     command_template: str
+    node_args: list
+    task_args: list
 
-    def __init__(self, task_specification: TaskSpecification):
-        self.params = ExecutorParameters(**task_specification.to_dict())
+    def __init__(self, name: str, task_specification: TaskSpecification):
+        tool = get_jobmon_tool()
+        self.jobmon_template = tool.get_task_template(
+            template_name=name,
+            command_template=self.command_template,
+            node_args=self.node_args,
+            task_args=self.task_args,
+        )
+        self.params = task_specification.to_dict()
 
-    def get_task(self, *_, **kwargs) -> BashTask:
+    def get_task(self, *_, **kwargs) -> Task:
         """Resolve job arguments into a bash executable task for jobmon."""
-        task = BashTask(
-            command=self.command_template.format(**kwargs),
+        task = self.jobmon_template.create_task(
+            executor_parameters=ExecutorParameters(**self.params),
             name=self.task_name_template.format(**kwargs),
-            executor_parameters=self.params,
-            max_attempts=1
+            max_attempts=1,
+            **kwargs,
         )
         return task
 
@@ -69,6 +85,7 @@ class WorkflowTemplate(abc.ABC):
 
     workflow_name_template: str = None
     task_template_classes: Dict[str, Type[TTaskTemplate]]
+    fail_fast: bool = True
 
     def __init__(self, version: str, workflow_specification: WorkflowSpecification):
         self.version = version
@@ -76,20 +93,21 @@ class WorkflowTemplate(abc.ABC):
         self.task_templates = self.build_task_templates(workflow_specification.task_specifications)
         stdout, stderr = make_log_dirs(version, prefix='jobmon')
 
-        self.workflow = Workflow(
-            workflow_args=self.workflow_name_template.format(version=version),
+        jobmon_tool = get_jobmon_tool()
+        self.workflow = jobmon_tool.create_workflow(
+            name=self.workflow_name_template.format(version=version)
+        )
+        self.workflow.set_executor(
             project=workflow_specification.project,
             stderr=stderr,
             stdout=stdout,
-            seconds_until_timeout=60*60*24,
-            resume=True
         )
 
     def build_task_templates(self, task_specifications: Dict[str, TaskSpecification]) -> Dict[str, TaskTemplate]:
         """Parses task specifications into task templates."""
         task_templates = {}
         for task_name, task_specification in task_specifications.items():
-            task_templates[task_name] = self.task_template_classes[task_name](task_specification)
+            task_templates[task_name] = self.task_template_classes[task_name](task_name, task_specification)
         return task_templates
 
     @abc.abstractmethod
@@ -99,6 +117,12 @@ class WorkflowTemplate(abc.ABC):
 
     def run(self) -> None:
         """Execute the constructed workflow."""
-        execution_status = self.workflow.run()
-        if execution_status != DagExecutionStatus.SUCCEEDED:
-            raise RuntimeError("Workflow failed. Check database or logs for errors")
+        r = self.workflow.run(
+            fail_fast=self.fail_fast,
+            seconds_until_timeout=60*60*24,
+        )
+        if r.status != WorkflowRunStatus.DONE:
+            raise RuntimeError(
+                f'Workflow failed with status {r.status}.\n'
+                f'Workflow run id: {r.workflow_run_id}.'
+            )
