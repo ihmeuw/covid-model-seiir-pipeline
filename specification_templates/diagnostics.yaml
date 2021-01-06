@@ -9,12 +9,18 @@ workflow:
       m_mem_free: '200G'
       num_cores: 70
 grid_plots:
+  # List of jobs we want to run. Each job should have a unique "name"
   - name: 'compare'
+    # Start and end of the plots.
     date_start: '2020-03-01'
     date_end: '2021-12-31'
+    # The versions and scenarios we want on this plot.
     comparators:
-      - version: '/ihme/covid-19/seir-outputs/latest'
+      # Full path or DATE.VV or latest/best
+      - version: 'latest'
         scenarios:
+          # Keys are scenarios and values are plot labels. Within a job,
+          # good idea to keep the plot labels unique.
           worse: 'worse'
           reference: 'reference'
       - version: '/ihme/covid-19/seir-outputs/2020_12_22.03'
