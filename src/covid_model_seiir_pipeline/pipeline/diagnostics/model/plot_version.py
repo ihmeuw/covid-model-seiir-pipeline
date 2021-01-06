@@ -64,8 +64,9 @@ class PlotVersion:
             data = self.pdi.load_output_miscellaneous(self.scenario, measure, is_table)
         return self.clean_data(data, location_id)
 
+    # FIXME: bad separation of concerns.
     def build_cache(self, cache_dir: Path, cache_draws: List[str]):
-        # FIXME: bad separation of concerns.
+        """Build a cache of all data needed for the plots."""
         self._cache = cache_dir / self.version.name / self.scenario
         self._cache.mkdir(parents=True)
         (self._cache / 'summaries').mkdir()
