@@ -4,7 +4,7 @@ data:
   output_root: ''
 workflow:
   project: 'proj_covid'
-  queue: 'all.q'
+  queue: 'd.q'
   tasks:
     beta_residual_scaling:
       max_runtime_seconds: 5000
