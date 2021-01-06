@@ -74,19 +74,19 @@ class PlotVersion:
 
         for measure in [*MEASURES.values(), *COVARIATES.values()]:
             summary_data = self.pdi.load_output_summaries(self.scenario, measure.label)
-            summary_data.to_csv(self._cache / 'summaries' / f'{measure.label}.csv', index=False)
+            summary_data.to_parquet(self._cache / 'summaries' / f'{measure.label}.parquet', compression=None)
             if hasattr(measure, 'cumulative_label') and measure.cumulative_label:
                 summary_data = self.pdi.load_output_summaries(self.scenario, measure.cumulative_label)
-                summary_data.to_csv(self._cache / 'summaries' / f'{measure.cumulative_label}.csv', index=False)
+                summary_data.to_parquet(self._cache / 'summaries' / f'{measure.cumulative_label}.parquet', compression=None)
 
             if measure.label in cache_draws:
                 draw_data = self.pdi.load_output_draws(self.scenario, measure.label)
-                draw_data.to_csv(self._cache / 'draws' / f'{measure.label}.csv', index=False)
+                draw_data.to_parquet(self._cache / 'draws' / f'{measure.label}.parquet', compression=None)
 
         for measure in MISCELLANEOUS.values():
             if measure.is_table:
                 data = self.pdi.load_output_miscellaneous(self.scenario, measure.label, measure.is_table)
-                data.to_csv(self._cache / 'miscellaneous' / f'{measure.label}.csv', index=False)
+                data.to_parquet(self._cache / 'miscellaneous' / f'{measure.label}.parquet', compression=None)
             else:
                 # Don't need any of these cached for now
                 pass
@@ -94,7 +94,7 @@ class PlotVersion:
     def load_from_cache(self, data_type: str, measure: str):
         if self._cache is None:
             raise FileNotFoundError
-        return pd.read_csv(self._cache / data_type / f'{measure}.csv')
+        return pd.read_parquet(self._cache / data_type / f'{measure}.parquet', engine='fastparquet')
 
     def clean_data(self, data: pd.DataFrame, location_id: Optional[int]):
         if 'location_id' in data.columns and location_id is not None:
