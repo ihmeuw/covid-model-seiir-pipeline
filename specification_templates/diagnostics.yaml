@@ -50,4 +50,3 @@ grid_plots:
       - version: '/ihme/covid-19/seir-outputs/2020_12_22.03'
         scenarios:
           reference: 'public ref'
-
