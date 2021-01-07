@@ -59,11 +59,10 @@ def mean_aggregator(measure_data: pd.DataFrame, hierarchy: pd.DataFrame, populat
 
     data_locs = _get_data_locs(measure_data, hierarchy)
     # We'll work in the space of pop*measure where aggregation is just a sum.
-    weighted_measure_data = measure_data.loc[data_locs]
+    weighted_measure_data = measure_data.copy()
     weighted_measure_data[measure_columns] = measure_data[measure_columns].mul(measure_data['population'], axis=0)
 
     levels = sorted(hierarchy['level'].unique().tolist())
-    measure_data = measure_data.loc[data_locs]
     for level in reversed(levels[1:]):  # From most detailed to least_detailed
         locs_at_level = hierarchy[hierarchy.level == level]
         for parent_id, children in locs_at_level.groupby('parent_id'):

@@ -75,6 +75,7 @@ def postprocess_covariate(postprocessing_spec: PostprocessingSpecification,
                                                data_interface.load_resampling_map())
 
     if covariate_config.splice:
+        logger.info('Splicing covariate')
         for locs_to_splice, splice_version in postprocessing_spec.splicing:
             previous_data = data_interface.load_previous_version_output_draws(splice_version,
                                                                               scenario_name,
@@ -82,6 +83,7 @@ def postprocess_covariate(postprocessing_spec: PostprocessingSpecification,
             covariate_data = model.splice_data(covariate_data, previous_data, locs_to_splice)
 
     if covariate_config.aggregator is not None:
+        logger.info('Aggregating covariate')
         for aggregation_config in postprocessing_spec.aggregation:
             hierarchy = data_interface.load_aggregation_heirarchy(aggregation_config)
             population = data_interface.load_populations()
