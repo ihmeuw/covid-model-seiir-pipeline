@@ -1,12 +1,12 @@
 data:
-  infection_version: '2020_12_21.02'
-  covariate_version: '2020_12_21.01'
+  infection_version: '2021_01_06.01'
+  covariate_version: '2021_01_06.01'
   location_set_version_id: ''
   location_set_file: '/ihme/covid-19/seir-pipeline-outputs/metadata-inputs/location_metadata_771.csv'
   output_root: ''
 workflow:
   project: 'proj_covid'
-  queue: 'd.q'
+  queue: 'all.q'
   tasks:
     beta_regression:
       max_runtime_seconds: 3000

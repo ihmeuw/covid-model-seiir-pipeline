@@ -4,6 +4,9 @@ data:
     - 'worse'
     - 'reference'
     - 'no_vaccine'
+    - 'vaccine_fast'
+    - 'vaccine_fast_elderly'
+    - 'best_masks'
   output_root: ''
 workflow:
   project: 'proj_covid'
@@ -22,9 +25,9 @@ resampling:
   reference_date: '2021-12-31'
   lower_quantile: 0.025
   upper_quantile: 0.975
-splicing:
-  - locations: [68, 526, 4775, 4851, 4859, 53620, 114, 171, 125, 538,]
-    output_version: '/ihme/covid-19/seir-forecast/2020_12_08.05'
+#splicing:
+#  - locations: []
+#    output_version: ''
 aggregation:
   - location_file: '/ihme/covid-19/seir-pipeline-outputs/agg-hierarchies/modeling.csv'
   - location_file: '/ihme/covid-19/seir-pipeline-outputs/agg-hierarchies/who_plus_palestine.csv'
