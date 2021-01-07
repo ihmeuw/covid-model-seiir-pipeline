@@ -131,3 +131,5 @@ junk
 junk.*
 # jize
 *.vscode
+# jupyter notebooks
+notebooks/

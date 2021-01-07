@@ -25,6 +25,14 @@ with_postprocessing_version = click.option(
          '"postprocessing_specification.yaml".'
 )
 
+with_diagnostics_version = click.option(
+    '--diagnostics-version', '-i',
+    type=click.Path(exists=True, file_okay=False),
+    required=True,
+    help='Full path to an existing directory containing a '
+         '"diagnostics_specification.yaml".'
+)
+
 with_scenario = click.option(
     '--scenario', '-s',
     type=click.STRING,
@@ -44,4 +52,11 @@ with_draw_id = click.option(
     type=click.INT,
     required=True,
     help='The draw to be run.'
+)
+
+with_name = click.option(
+    '--name', '-n',
+    type=click.STRING,
+    required=True,
+    help='The name to be run.'
 )

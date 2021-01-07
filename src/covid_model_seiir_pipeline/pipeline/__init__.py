@@ -6,3 +6,5 @@ from covid_model_seiir_pipeline.pipeline.postprocessing import PostprocessingSpe
 from covid_model_seiir_pipeline.pipeline.postprocessing.main import do_postprocessing
 from covid_model_seiir_pipeline.pipeline.predictive_validity import PredictiveValiditySpecification
 from covid_model_seiir_pipeline.pipeline.predictive_validity.main import do_predictive_validity
+from covid_model_seiir_pipeline.pipeline.diagnostics import DiagnosticsSpecification
+from covid_model_seiir_pipeline.pipeline.diagnostics.main import do_diagnostics

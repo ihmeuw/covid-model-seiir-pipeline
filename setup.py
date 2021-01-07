@@ -16,17 +16,21 @@ if __name__ == "__main__":
 
     install_requirements = [
         'click',
-        'covid_shared>=1.0.47',
+        'covid_shared>=1.0.48',
+        'fastparquet',
         'loguru',
         'matplotlib',
         'numba',
         'numpy',
         'odeopt>=0.1.1',
         'pandas',
+        'pypdf2',
         'pyyaml',
         'parse',
+        'seaborn',
         'slime',
         'tables',
+        'tqdm',
     ]
 
     test_requirements = [
