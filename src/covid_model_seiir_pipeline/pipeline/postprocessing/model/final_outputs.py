@@ -47,10 +47,12 @@ class OtherConfig:
                  loader: Callable[['PostprocessingDataInterface'], Any],
                  label: str,
                  is_table: bool = True,
+                 is_cumulative: bool = False,
                  aggregator: Callable = None):
         self.loader = loader
         self.label = label
         self.is_table = is_table
+        self.is_cumulative = is_cumulative
         self.aggregator = aggregator
 
 
@@ -170,11 +172,13 @@ MISCELLANEOUS = {
     'full_data': OtherConfig(
         loaders.load_full_data,
         'full_data',
+        is_cumulative=True,
         aggregator=aggregators.sum_aggregator,
     ),
     'elastispliner_inputs': OtherConfig(
         loaders.load_elastispliner_inputs,
         'full_data_es_processed',
+        is_cumulative=True,
         aggregator=aggregators.sum_aggregator,
     ),
     'version_map': OtherConfig(

@@ -128,6 +128,7 @@ def postprocess_miscellaneous(postprocessing_spec: PostprocessingSpecification,
     logger.info(f'Loading {measure}.')
     miscellaneous_data = miscellaneous_config.loader(data_interface)
 
+
     if miscellaneous_config.aggregator is not None:
         for aggregation_config in postprocessing_spec.aggregation:
             hierarchy = data_interface.load_aggregation_heirarchy(aggregation_config)
