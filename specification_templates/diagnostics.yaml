@@ -23,10 +23,10 @@ grid_plots:
           # good idea to keep the plot labels unique.
           worse: 'worse'
           reference: 'reference'
-	  best_masks: 'best masks'
-	  vaccine_fast_elderly: 'fast elderly'
-	  vaccine_fast: 'fast'
-	  no_vaccine: 'no vaccine'
+          best_masks: 'best masks'
+          vaccine_fast_elderly: 'fast elderly'
+          vaccine_fast: 'fast'
+          no_vaccine: 'no vaccine'
       - version: '/ihme/covid-19/seir-outputs/2020_12_22.03'
         scenarios:
           reference: 'public ref'
