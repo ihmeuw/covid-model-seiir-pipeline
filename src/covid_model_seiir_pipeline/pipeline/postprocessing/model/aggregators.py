@@ -12,6 +12,25 @@ def summarize(data: pd.DataFrame) -> pd.DataFrame:
     return pd.concat([mean, upper, lower], axis=1)
 
 
+def fill_cumulative_date_index(data: pd.DataFrame) -> pd.DataFrame:
+    """Fills missing dates in cumulative data so in can be aggregated correctly."""
+    min_date = data.reset_index().date.min()
+    max_date = data.reset_index().date.max()
+    date_index = pd.Index(pd.date_range(min_date, max_date), name='date')
+
+    def _reindex(df):
+        df = (df
+              .reset_index(level='location_id', drop=True)
+              .reindex(date_index)
+              .fillna(method='ffill')
+              .fillna(method='bfill'))
+        return df
+
+    return data.groupby(level='location_id').apply(_reindex)
+
+
+
+
 def sum_aggregator(measure_data: pd.DataFrame, hierarchy: pd.DataFrame, _population: pd.DataFrame) -> pd.DataFrame:
     """Aggregates most-detailed locations to locations in the hierarchy by sum.
 
