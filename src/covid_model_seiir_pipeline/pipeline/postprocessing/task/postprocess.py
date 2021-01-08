@@ -128,14 +128,20 @@ def postprocess_miscellaneous(postprocessing_spec: PostprocessingSpecification,
     logger.info(f'Loading {measure}.')
     miscellaneous_data = miscellaneous_config.loader(data_interface)
 
-
+    
     if miscellaneous_config.aggregator is not None:
+        if miscellaneous_config.is_cumulative:
+            miscellaneous_data = miscellaneous_data.groupby('location_id').apply(lambda x: x - x.shift(1))
         for aggregation_config in postprocessing_spec.aggregation:
             hierarchy = data_interface.load_aggregation_heirarchy(aggregation_config)
             population = data_interface.load_populations()
             miscellaneous_data = miscellaneous_config.aggregator(miscellaneous_data, hierarchy, population)
+        if miscellaneous_config.is_cumulative:
+            miscellaneous_data = miscellaneous_data.cumsum()
     if miscellaneous_config.is_table:
         miscellaneous_data = miscellaneous_data.reset_index()
+
+    import pdb; pdb.set_trace()
 
     logger.info(f'Saving {measure} data.')
     data_interface.save_output_miscellaneous(miscellaneous_data,
