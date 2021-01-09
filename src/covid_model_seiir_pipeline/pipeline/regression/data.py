@@ -155,6 +155,12 @@ class RegressionDataInterface:
     def load_location_ids(self) -> List[int]:
         return io.load(self.regression_root.locations())
 
+    def save_hierarchy(self, hierarchy: pd.DataFrame) -> None:
+        io.dump(hierarchy, self.regression_root.hierarchy())
+
+    def load_hierarchy(self) -> pd.DataFrame:
+        return io.load(self.regression_root.hierarchy())
+
     def save_beta_param_file(self, df: pd.DataFrame, draw_id: int) -> None:
         io.dump(df, self.regression_root.parameters(draw_id=draw_id))
 
