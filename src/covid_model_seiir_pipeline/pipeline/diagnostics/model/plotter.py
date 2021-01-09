@@ -130,9 +130,12 @@ def make_results_page(plot_versions: List[PlotVersion],
     pop = pop.loc[(pop.age_group_id == 22) & (pop.sex_id == 3), 'population'].iloc[0]
 
     full_data = pv.load_output_miscellaneous('full_data_es_processed', is_table=True, location_id=location.id)
-    data_date = full_data.loc[full_data.cumulative_deaths.notnull(), 'date'].max()
-    short_term_forecast_date = data_date + SHORT_RANGE_FORECAST
-    vlines = [data_date, short_term_forecast_date]
+    if not full_data.empty:
+        data_date = full_data.loc[full_data.cumulative_deaths.notnull(), 'date'].max()
+        short_term_forecast_date = data_date + SHORT_RANGE_FORECAST
+        vlines = [data_date, short_term_forecast_date]
+    else:
+        vlines = []
 
     # Configure the plot layout.
     fig = plt.figure(figsize=FIG_SIZE, tight_layout=True)
