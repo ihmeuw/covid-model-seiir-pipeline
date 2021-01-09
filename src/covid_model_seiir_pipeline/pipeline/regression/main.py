@@ -16,12 +16,12 @@ def do_beta_regression(app_metadata: cli_tools.Metadata,
     data_interface = RegressionDataInterface.from_specification(regression_specification)
 
     # Grab canonical location list from arguments
-    location_metadata = data_interface.load_location_ids_from_primary_source(
+    hierarchy = data_interface.load_hierarchy_from_primary_source(
         location_set_version_id=regression_specification.data.location_set_version_id,
         location_file=regression_specification.data.location_set_file
     )
     # Filter to the intersection of what's available from the infection data.
-    location_ids = data_interface.filter_location_ids(location_metadata)
+    location_ids = data_interface.filter_location_ids(hierarchy)
 
     # Check to make sure we have all the covariates we need
     data_interface.check_covariates(regression_specification.covariates)
@@ -30,6 +30,7 @@ def do_beta_regression(app_metadata: cli_tools.Metadata,
     data_interface.make_dirs()
     data_interface.save_location_ids(location_ids)
     data_interface.save_specification(regression_specification)
+    data_interface.save_hierarchy(hierarchy)
 
     # build workflow and launch
     if not preprocess_only:

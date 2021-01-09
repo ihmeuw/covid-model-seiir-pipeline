@@ -45,8 +45,8 @@ class RegressionDataInterface:
     # Raw location handling #
     #########################
 
-    def load_location_ids_from_primary_source(self, location_set_version_id: Optional[int],
-                                              location_file: Optional[Union[str, Path]]) -> Union[List[int], None]:
+    def load_hierarchy_from_primary_source(self, location_set_version_id: Optional[int],
+                                           location_file: Optional[Union[str, Path]]) -> Union[pd.DataFrame, None]:
         """Retrieve a location hierarchy from a file or from GBD if specified."""
         if location_set_version_id:
             location_metadata = utilities.load_location_hierarchy(location_set_id=111,
@@ -56,11 +56,9 @@ class RegressionDataInterface:
         else:
             location_metadata = None
 
-        if location_metadata is not None:
-            location_metadata = location_metadata.loc[location_metadata.most_detailed == 1, 'location_id'].tolist()
         return location_metadata
 
-    def filter_location_ids(self, desired_locations: List[int] = None) -> List[int]:
+    def filter_location_ids(self, desired_location_hierarchy: pd.DataFrame = None) -> List[int]:
         """Get the list of location ids to model.
 
         This list is the intersection of a location metadata's
@@ -69,8 +67,11 @@ class RegressionDataInterface:
 
         """
         modeled_locations = self.infection_root.modeled_locations()
-        if desired_locations is None:
+        if desired_location_hierarchy is None:
             desired_locations = modeled_locations
+        else:
+            most_detailed = desired_location_hierarchy.most_detailed == 1
+            desired_locations = desired_location_hierarchy.loc[most_detailed, 'location_id'].tolist()
 
         missing_locations = list(set(desired_locations).difference(modeled_locations))
         if missing_locations:
