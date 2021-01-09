@@ -13,7 +13,7 @@ from covid_model_seiir_pipeline.lib.io.keys import (
 from covid_model_seiir_pipeline.lib.io.data_roots import DataRoot
 
 
-@pytest.fixture(params=LEAF_TEMPLATES)
+@pytest.fixture(params=list(LEAF_TEMPLATES) + [None])
 def leaf_template(request):
     return request.param
 
@@ -33,9 +33,6 @@ def test_DatasetType_init_fail(leaf_template):
 
     with pytest.raises(ValueError, match='Invalid leaf_template'):
         DatasetType('jupyter', '{moon}')
-
-    with pytest.raises(TypeError, match="missing 1 required positional argument: 'leaf_template'"):
-        DatasetType('neptune')
 
 
 def test_DatasetType_repr(leaf_template, prefix_template):
@@ -118,19 +115,3 @@ def test_both_types_binding_and_call():
         mdr.metadata(1)
     with pytest.raises(TypeError, match='Metadata keys have no parameterization.'):
         mdr.metadata(draw_id=1)
-
-
-def test_MetadataType_disk_format_override():
-    class MyDataRoot(DataRoot):
-        metadata = MetadataType('metadata')
-
-    mdr = MyDataRoot('/outer/space')
-    expected = MetadataType('metadata', mdr._root, mdr._metadata_format)
-    assert mdr.metadata == expected
-
-    class MyDataRoot(DataRoot):
-        metadata = MetadataType('metadata', disk_format='csv')
-
-    mdr = MyDataRoot('/outer/space')
-    expected = MetadataType('metadata', mdr._root, 'csv')
-    assert mdr.metadata == expected

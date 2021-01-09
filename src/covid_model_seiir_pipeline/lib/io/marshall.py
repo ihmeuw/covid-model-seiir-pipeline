@@ -53,7 +53,9 @@ class CSVMarshall:
         path = key.root
         if key.prefix:
             path /= key.prefix
-        path = path / key.data_type / key.leaf_name
+        path /= key.data_type
+        if key.leaf_name:
+            path /= key.leaf_name
         return path.with_suffix(".csv")
 
 
@@ -104,8 +106,11 @@ class ZipMarshall:
         zip_path = key.root
         if key.prefix:
             zip_path /= key.prefix
-        zip_path /= key.data_type
-        node = f'{key.leaf_name}.csv'
+        if key.leaf_name:
+            zip_path /= key.data_type
+            node = f'{key.leaf_name}.csv'
+        else:
+            node = f'{key.data_type}.csv'
         return zip_path, node
 
     @classmethod
@@ -178,8 +183,11 @@ class HDF5Marshall:
         hdf_path = key.root
         if key.prefix:
             hdf_path /= key.prefix
-        hdf_path /= key.data_type
-        node = f'{key.leaf_name}'
+        if key.leaf_name:
+            hdf_path /= key.data_type
+            node = f'{key.leaf_name}'
+        else:
+            node = f'{key.data_type}'
         return str(hdf_path), node
 
 

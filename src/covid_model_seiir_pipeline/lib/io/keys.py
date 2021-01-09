@@ -67,7 +67,7 @@ class DatasetKey(NamedTuple):
     root: Path
     disk_format: str
     data_type: str
-    leaf_name: str
+    leaf_name: Optional[str]
     prefix: Optional[str]
 
 
@@ -147,7 +147,7 @@ class DatasetType:
 
     def __init__(self,
                  name: str,
-                 leaf_template: str,
+                 leaf_template: str = None,
                  prefix_template: str = None,
                  *,
                  _root: Path = None,
@@ -157,7 +157,7 @@ class DatasetType:
             raise ValueError(f'Invalid prefix_template specification: {prefix_template} for DatasetType {self.name}. '
                              f'prefix_template must be one of {PREFIX_TEMPLATES}.')
         self.prefix_template = prefix_template
-        if leaf_template not in LEAF_TEMPLATES:
+        if leaf_template is not None and leaf_template not in LEAF_TEMPLATES:
             raise ValueError(f'Invalid leaf_template specification: {leaf_template} for DatasetType {self.name}. '
                              f'leaf_template must be one of {LEAF_TEMPLATES}.')
         self.leaf_template = leaf_template
@@ -178,7 +178,7 @@ class DatasetType:
             raise TypeError('All dataset key arguments must be specified as keyword arguments. '
                             f'You specified args {args} and kwargs {key_kwargs} to {self.name}.')
 
-        leaf_name = self.leaf_template.format(**key_kwargs)
+        leaf_name = self.leaf_template.format(**key_kwargs) if self.leaf_template else None
         path_name = self.prefix_template.format(**key_kwargs) if self.prefix_template else None
         return DatasetKey(self.root, self.disk_format, self.name, leaf_name, path_name)
 
@@ -233,8 +233,7 @@ class MetadataType:
         self.disk_format = disk_format
 
     def __get__(self, instance: 'DataRoot', owner=None) -> 'MetadataType':
-        disk_format = instance._metadata_format if self.disk_format is None else self.disk_format
-        return type(self)(self.name, instance._root, disk_format)
+        return type(self)(self.name, instance._root, instance._metadata_format)
 
     def __call__(self, *args, **key_kwargs) -> MetadataKey:
         assert self.root is not None, f'MetadataType must be bound to a DataRoot object to be called.'

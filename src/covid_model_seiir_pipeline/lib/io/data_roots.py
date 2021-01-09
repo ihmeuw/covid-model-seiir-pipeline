@@ -86,10 +86,16 @@ class DataRoot:
                 for arg_set in itertools.product(*prefix_args.values()):
                     prefix_template_kwargs = dict(zip(prefix_args.keys(), arg_set))
                     prefix = dataset_type.prefix_template.format(**prefix_template_kwargs)
-                    path = self._root / prefix / dataset_type.name
+                    if dataset_type.leaf_template is not None:
+                        path = self._root / prefix / dataset_type.name
+                    else:
+                        path = self._root / prefix
                     paths.append(path)
             else:
-                path = self._root / dataset_type.name
+                if dataset_type.leaf_template is not None:
+                    path = self._root / dataset_type.name
+                else:
+                    path = self._root
                 paths.append(path)
         paths = list(set(paths))  # Drop duplicates
         return paths
@@ -153,7 +159,8 @@ class RegressionRoot(DataRoot):
     metadata = MetadataType('metadata')
     specification = MetadataType('regression_specification')
     locations = MetadataType('locations')
-    hierarchy = MetadataType('hierarchy', disk_format='csv')
+
+    hierarchy = DatasetType('hierarchy')
 
     beta = DatasetType('beta', LEAF_TEMPLATES.DRAW_TEMPLATE)
     coefficients = DatasetType('coefficients', LEAF_TEMPLATES.DRAW_TEMPLATE)
