@@ -129,6 +129,8 @@ def postprocess_miscellaneous(postprocessing_spec: PostprocessingSpecification,
     miscellaneous_data = miscellaneous_config.loader(data_interface)
 
     if miscellaneous_config.is_cumulative:
+        location_ids = data_interface.load_location_ids()
+        miscellaneous_data = miscellaneous_data.loc[location_ids]
         miscellaneous_data = model.fill_cumulative_date_index(miscellaneous_data)
     if miscellaneous_config.aggregator is not None:
         for aggregation_config in postprocessing_spec.aggregation:

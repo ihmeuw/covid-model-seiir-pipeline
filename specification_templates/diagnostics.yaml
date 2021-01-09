@@ -17,7 +17,7 @@ grid_plots:
     # The versions and scenarios we want on this plot.
     comparators:
       # Full path or DATE.VV or latest/best
-      - version: '/ihme/covid-19/seir-outputs/best'
+      - version: '/ihme/covid-19/seir-outputs/latest'
         scenarios:
           # Keys are scenarios and values are plot labels. Within a job,
           # good idea to keep the plot labels unique.
@@ -37,7 +37,7 @@ grid_plots:
     # The versions and scenarios we want on this plot.
     comparators:
       # Full path or DATE.VV or latest/best
-      - version: '/ihme/covid-19/seir-outputs/best'
+      - version: '/ihme/covid-19/seir-outputs/latest'
         scenarios:
           # Keys are scenarios and values are plot labels. Within a job,
           # good idea to keep the plot labels unique.
