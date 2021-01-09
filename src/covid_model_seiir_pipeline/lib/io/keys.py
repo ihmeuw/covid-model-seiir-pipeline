@@ -233,7 +233,8 @@ class MetadataType:
         self.disk_format = disk_format
 
     def __get__(self, instance: 'DataRoot', owner=None) -> 'MetadataType':
-        return type(self)(self.name, instance._root, instance._metadata_format)
+        disk_format = instance._metadata_format if self.disk_format is None else self.disk_format
+        return type(self)(self.name, instance._root, disk_format)
 
     def __call__(self, *args, **key_kwargs) -> MetadataKey:
         assert self.root is not None, f'MetadataType must be bound to a DataRoot object to be called.'

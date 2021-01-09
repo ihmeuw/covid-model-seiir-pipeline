@@ -83,7 +83,6 @@ def test_MetadataType_call_fail():
         m(1)
 
 
-
 def test_both_types_binding_and_call():
 
     class MyDataRoot(DataRoot):
@@ -119,3 +118,19 @@ def test_both_types_binding_and_call():
         mdr.metadata(1)
     with pytest.raises(TypeError, match='Metadata keys have no parameterization.'):
         mdr.metadata(draw_id=1)
+
+
+def test_MetadataType_disk_format_override():
+    class MyDataRoot(DataRoot):
+        metadata = MetadataType('metadata')
+
+    mdr = MyDataRoot('/outer/space')
+    expected = MetadataType('metadata', mdr._root, mdr._metadata_format)
+    assert mdr.metadata == expected
+
+    class MyDataRoot(DataRoot):
+        metadata = MetadataType('metadata', disk_format='csv')
+
+    mdr = MyDataRoot('/outer/space')
+    expected = MetadataType('metadata', mdr._root, 'csv')
+    assert mdr.metadata == expected

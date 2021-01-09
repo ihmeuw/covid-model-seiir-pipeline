@@ -153,6 +153,7 @@ class RegressionRoot(DataRoot):
     metadata = MetadataType('metadata')
     specification = MetadataType('regression_specification')
     locations = MetadataType('locations')
+    hierarchy = MetadataType('hierarchy', disk_format='csv')
 
     beta = DatasetType('beta', LEAF_TEMPLATES.DRAW_TEMPLATE)
     coefficients = DatasetType('coefficients', LEAF_TEMPLATES.DRAW_TEMPLATE)
