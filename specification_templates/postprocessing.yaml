@@ -1,5 +1,5 @@
 data:
-  forecast_version: '2021_01_07.02'
+  forecast_version: '2021_01_13.05'
   scenarios:
     - 'worse'
     - 'reference'
@@ -26,7 +26,7 @@ resampling:
   lower_quantile: 0.025
   upper_quantile: 0.975
 splicing:
-  - locations: [67,68,544,79,90,123,133,522,153,157,500,501,503,60886,3539,60887,533,4657,4672]
+  - locations: [548,133,41,93,157,4672,4657,492,499,500,501,503,514]
     output_version: '/ihme/covid-19/seir-outputs/2020_12_22.03'
 aggregation:
   - location_file: '/ihme/covid-19/seir-pipeline-outputs/agg-hierarchies/modeling.csv'
@@ -34,3 +34,4 @@ aggregation:
   - location_file: '/ihme/covid-19/seir-pipeline-outputs/agg-hierarchies/who_euro.csv'
   - location_file: '/ihme/covid-19/seir-pipeline-outputs/agg-hierarchies/world_bank.csv'
   - location_file: '/ihme/covid-19/seir-pipeline-outputs/agg-hierarchies/eu_minus_uk.csv'
+

@@ -170,8 +170,10 @@ def compute_initial_beta_scaling_parameters_by_draw(draw_id: int,
     # Compute the beta residual mean for our parameterization and hang on
     # to some ancillary information that may be useful for plotting/debugging.
     rs = np.random.RandomState(draw_id)
+
     a = rs.randint(1, beta_scaling['average_over_min'])
-    b = rs.randint(a + 7, beta_scaling['average_over_max'])
+    b = rs.randint(a + 21, beta_scaling['average_over_max'])
+
 
     draw_data.append(pd.Series(a, index=total_deaths.index, name='history_days_start'))
     draw_data.append(pd.Series(b, index=total_deaths.index, name='history_days_end'))

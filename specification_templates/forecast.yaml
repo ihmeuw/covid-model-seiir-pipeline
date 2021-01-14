@@ -1,10 +1,10 @@
 data:
-  regression_version: '2021_01_07.01'
-  covariate_version: '2021_01_07.04'
+  regression_version: '2021_01_13.06'
+  covariate_version: '2021_01_12.04'
   output_root: ''
 workflow:
   project: 'proj_covid'
-  queue: 'all.q'
+  queue: 'd.q'
   tasks:
     beta_residual_scaling:
       max_runtime_seconds: 5000
