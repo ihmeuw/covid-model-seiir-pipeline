@@ -35,6 +35,11 @@ class TaskPerformanceLogger:
             self._record_timing(context)
         logger.debug(*args, **kwargs)
 
+    def exception(self, *args, context=None, **kwargs):
+        if context is not None:
+            self._record_timing(context)
+        logger.exception(*args, **kwargs)
+
     def report(self):
         if self.current_context is not None:
             self.times[self.current_context] += time.time() - self.current_context_start
