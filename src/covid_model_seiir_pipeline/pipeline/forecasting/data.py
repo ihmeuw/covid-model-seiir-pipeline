@@ -18,10 +18,12 @@ class ForecastDataInterface:
     def __init__(self,
                  regression_root: io.RegressionRoot,
                  covariate_root: io.CovariateRoot,
-                 forecast_root: io.ForecastRoot):
+                 forecast_root: io.ForecastRoot,
+                 fh_subnationals: bool):
         self.regression_root = regression_root
         self.covariate_root = covariate_root
         self.forecast_root = forecast_root
+        self.fh_subnationals = fh_subnationals
 
     @classmethod
     def from_specification(cls, specification: ForecastSpecification) -> 'ForecastDataInterface':
@@ -35,6 +37,7 @@ class ForecastDataInterface:
             regression_root=regression_root,
             covariate_root=covariate_root,
             forecast_root=forecast_root,
+            fh_subnationals=specification.data.fh_subnationals
         )
 
     def make_dirs(self, **prefix_args):
@@ -193,7 +196,10 @@ class ForecastDataInterface:
         metadata = self.get_infectionator_metadata()
         # TODO: metadata abstraction?
         model_inputs_version = metadata['death']['metadata']['model_inputs_metadata']['output_path']
-        full_data_path = Path(model_inputs_version) / 'full_data.csv'
+        if self.fh_subnationals:
+            full_data_path = Path(model_inputs_version) / 'full_data_fh_subnationals.csv'
+        else:
+            full_data_path = Path(model_inputs_version) / 'full_data.csv'
         full_data = pd.read_csv(full_data_path)
         full_data['date'] = pd.to_datetime(full_data['Date'])
         full_data = full_data.drop(columns=['Date'])

@@ -33,6 +33,7 @@ class RegressionData:
     """Specifies the inputs and outputs for a regression"""
     covariate_version: str = field(default='best')
     infection_version: str = field(default='best')
+    coefficient_version: str = field(default='')
     location_set_version_id: int = field(default=0)
     location_set_file: str = field(default='')
     output_root: str = field(default='')

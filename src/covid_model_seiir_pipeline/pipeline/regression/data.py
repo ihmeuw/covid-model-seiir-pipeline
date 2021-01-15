@@ -19,9 +19,11 @@ class RegressionDataInterface:
     def __init__(self,
                  infection_root: io.InfectionRoot,
                  covariate_root: io.CovariateRoot,
+                 coefficient_root: Optional[io.RegressionRoot],
                  regression_root: io.RegressionRoot):
         self.infection_root = infection_root
         self.covariate_root = covariate_root
+        self.coefficient_root = coefficient_root
         self.regression_root = regression_root
 
     @classmethod
@@ -29,12 +31,17 @@ class RegressionDataInterface:
         # TODO: specify input format from config
         infection_root = io.InfectionRoot(specification.data.infection_version)
         covariate_root = io.CovariateRoot(specification.data.covariate_version)
+        if specification.data.coefficient_version:
+            coefficient_root = io.RegressionRoot(specification.data.coefficient_version)
+        else:
+            coefficient_root = None
         # TODO: specify output format from config.
         regression_root = io.RegressionRoot(specification.data.output_root)
 
         return cls(
             infection_root=infection_root,
             covariate_root=covariate_root,
+            coefficient_root=coefficient_root,
             regression_root=regression_root,
         )
 
@@ -179,6 +186,9 @@ class RegressionDataInterface:
 
     def load_regression_coefficients(self, draw_id: int) -> pd.DataFrame:
         return io.load(self.regression_root.coefficients(draw_id=draw_id))
+
+    def load_prior_run_coefficients(self, draw_id: int) -> pd.DataFrame:
+        return io.load(self.coefficient_root.coefficients(draw_id=draw_id))
 
     def save_regression_betas(self, df: pd.DataFrame, draw_id: int) -> None:
         io.dump(df, self.regression_root.beta(draw_id=draw_id))
