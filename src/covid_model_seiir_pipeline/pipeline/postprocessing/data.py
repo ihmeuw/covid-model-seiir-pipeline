@@ -206,11 +206,15 @@ class PostprocessingDataInterface:
         return self._get_forecast_data_inteface().load_population()
 
     def load_hierarchy(self) -> pd.DataFrame:
-        metadata = self._get_forecast_data_inteface().get_infectionator_metadata()
+        fdi = self._get_forecast_data_inteface()
+        metadata = fdi.get_infectionator_metadata()
         model_inputs_path = Path(
             metadata['death']['metadata']['model_inputs_metadata']['output_path']
         )
-        hierarchy_path = model_inputs_path / 'locations' / 'modeling_hierarchy.csv'
+        if fdi.fh_subnationals:
+            hierarchy_path = model_inputs_path / 'locations' / 'fh_small_area_hierarchy.csv'
+        else:
+            hierarchy_path = model_inputs_path / 'locations' / 'modeling_hierarchy.csv'
         hierarchy = pd.read_csv(hierarchy_path)
         return hierarchy
 
