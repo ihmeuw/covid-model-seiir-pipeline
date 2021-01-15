@@ -1,15 +1,18 @@
 data:
-  forecast_version: '2020_12_19.03'
+  forecast_version: '2021_01_13.05'
   scenarios:
     - 'worse'
     - 'reference'
     - 'no_vaccine'
+    - 'vaccine_fast'
+    - 'vaccine_fast_elderly'
+    - 'best_masks'
   output_root: ''
 workflow:
   project: 'proj_covid'
   queue: 'd.q'
   tasks:
-    resample:
+    resample_map:
       max_runtime_seconds: 5000
       m_mem_free: '50G'
       num_cores: 26
@@ -23,11 +26,12 @@ resampling:
   lower_quantile: 0.025
   upper_quantile: 0.975
 splicing:
-  - locations: [68, 526, 4775, 4851, 4859, 53620, 114, 171, 125, 538,]
-    output_version: '/ihme/covid-19/seir-forecast/2020_12_08.05'
+  - locations: [548,133,41,93,157,4672,4657,492,499,500,501,503,514]
+    output_version: '/ihme/covid-19/seir-outputs/2020_12_22.03'
 aggregation:
   - location_file: '/ihme/covid-19/seir-pipeline-outputs/agg-hierarchies/modeling.csv'
   - location_file: '/ihme/covid-19/seir-pipeline-outputs/agg-hierarchies/who_plus_palestine.csv'
   - location_file: '/ihme/covid-19/seir-pipeline-outputs/agg-hierarchies/who_euro.csv'
   - location_file: '/ihme/covid-19/seir-pipeline-outputs/agg-hierarchies/world_bank.csv'
   - location_file: '/ihme/covid-19/seir-pipeline-outputs/agg-hierarchies/eu_minus_uk.csv'
+

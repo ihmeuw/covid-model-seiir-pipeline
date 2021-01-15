@@ -2,7 +2,7 @@ from pathlib import Path
 
 import pytest
 
-from covid_model_seiir_pipeline.io.keys import (
+from covid_model_seiir_pipeline.lib.io.keys import (
     DatasetKey,
     MetadataKey,
     DatasetType,
@@ -10,10 +10,10 @@ from covid_model_seiir_pipeline.io.keys import (
     PREFIX_TEMPLATES,
     LEAF_TEMPLATES,
 )
-from covid_model_seiir_pipeline.io.data_roots import DataRoot
+from covid_model_seiir_pipeline.lib.io.data_roots import DataRoot
 
 
-@pytest.fixture(params=LEAF_TEMPLATES)
+@pytest.fixture(params=list(LEAF_TEMPLATES) + [None])
 def leaf_template(request):
     return request.param
 
@@ -33,9 +33,6 @@ def test_DatasetType_init_fail(leaf_template):
 
     with pytest.raises(ValueError, match='Invalid leaf_template'):
         DatasetType('jupyter', '{moon}')
-
-    with pytest.raises(TypeError, match="missing 1 required positional argument: 'leaf_template'"):
-        DatasetType('neptune')
 
 
 def test_DatasetType_repr(leaf_template, prefix_template):
@@ -81,7 +78,6 @@ def test_MetadataType_call_fail():
         m(draw_id=1)
     with pytest.raises(TypeError, match='Metadata keys have no parameterization.'):
         m(1)
-
 
 
 def test_both_types_binding_and_call():

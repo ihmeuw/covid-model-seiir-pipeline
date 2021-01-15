@@ -2,16 +2,16 @@ from pathlib import Path
 
 import pytest
 
-from covid_model_seiir_pipeline.io.data_roots import (
+from covid_model_seiir_pipeline.lib.io.data_roots import (
     DataRoot,
 )
-from covid_model_seiir_pipeline.io.keys import (
+from covid_model_seiir_pipeline.lib.io.keys import (
     DatasetType,
     MetadataType,
     LEAF_TEMPLATES,
     PREFIX_TEMPLATES,
 )
-from covid_model_seiir_pipeline.io.marshall import (
+from covid_model_seiir_pipeline.lib.io.marshall import (
     DATA_STRATEGIES,
     METADATA_STRATEGIES,
 )
@@ -59,18 +59,19 @@ def test_DataRoot_info(tmpdir):
         sounds = MetadataType('sounds')
         smells = MetadataType('smells')
 
+        antarctica = DatasetType('antarctica')
         europe = DatasetType('europe', LEAF_TEMPLATES.MEASURE_TEMPLATE)
         southeast_asia = DatasetType('southeast_asia', LEAF_TEMPLATES.MEASURE_TEMPLATE)
         patagonia = DatasetType('patagonia', LEAF_TEMPLATES.MEASURE_TEMPLATE, PREFIX_TEMPLATES.SCENARIO_TEMPLATE)
 
     mdr = MyDataRoot(tmpdir)
     assert set(mdr.metadata_types) == {'sights', 'sounds', 'smells'}
-    assert set(mdr.dataset_types) == {'europe', 'southeast_asia', 'patagonia'}
+    assert set(mdr.dataset_types) == {'antarctica', 'europe', 'southeast_asia', 'patagonia'}
 
     with pytest.raises(KeyError):
         mdr.terminal_paths()
 
     root = Path(tmpdir)
-    expected = {root / 'europe', root / 'southeast_asia',
+    expected = {root, root / 'europe', root / 'southeast_asia',
                 root / 'summer' / 'patagonia', root / 'winter' / 'patagonia'}
     assert set(mdr.terminal_paths(scenario=['summer', 'winter'])) == expected

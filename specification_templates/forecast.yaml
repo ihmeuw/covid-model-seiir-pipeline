@@ -1,16 +1,16 @@
 data:
-  regression_version: '2020_12_17.03'
-  covariate_version: '2020_12_15.06'
+  regression_version: '2021_01_13.06'
+  covariate_version: '2021_01_12.04'
   output_root: ''
 workflow:
   project: 'proj_covid'
   queue: 'd.q'
   tasks:
-    scaling:
+    beta_residual_scaling:
       max_runtime_seconds: 5000
       m_mem_free: '5G'
       num_cores: 26
-    forecast:
+    beta_forecast:
       max_runtime_seconds: 15000
       m_mem_free: '5G'
       num_cores: 1

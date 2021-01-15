@@ -1,0 +1,44 @@
+data:
+  regression_version: '2021_01_13.05'
+  covariate_version: '2021_01_12.04'
+#  mortality_ratio_version: 'best'
+#  hospital_death_ratio_version: 'best'
+  output_root: ''
+workflow:
+  project: 'proj_covid'
+  queue: 'd.q'
+  tasks:
+    beta_residual_scaling:
+      max_runtime_seconds: 5000
+      m_mem_free: '5G'
+      num_cores: 26
+    beta_forecast:
+      max_runtime_seconds: 15000
+      m_mem_free: '5G'
+      num_cores: 1
+scenarios:
+  worse:
+    algorithm: 'normal' # normal, draw_level_mandate_reimposition
+    solver: 'RK45'
+    system: 'vaccine'
+    system_params:
+        forecast_version: 'reference'
+        proportion_immune: 0.5
+    population_partition: 'high_and_low_risk'
+    beta_scaling:
+      window_size: 42
+      average_over_min: 7
+      average_over_max: 42
+      offset_deaths_lower: 150
+      offset_deaths_upper: 300
+    theta: '/ihme/covid-19/seir-parameters/2020_10_06.01/thetas.csv'
+    covariates:
+      pneumonia: 'reference'
+      mobility: 'reference'
+      mask_use: 'reference'
+      testing: 'reference'
+      air_pollution_pm_2_5: 'reference'
+      smoking_prevalence: 'reference'
+      lri_mortality: 'reference'
+      proportion_under_100m: 'reference'
+      proportion_over_2_5k: 'reference'

@@ -16,17 +16,21 @@ if __name__ == "__main__":
 
     install_requirements = [
         'click',
-        'covid_shared>=1.0.47',
+        'covid_shared>=1.0.48',
+        'fastparquet',
         'loguru',
         'matplotlib',
         'numba',
         'numpy',
         'odeopt>=0.1.1',
         'pandas',
+        'pypdf2',
         'pyyaml',
         'parse',
+        'seaborn',
         'slime',
         'tables',
+        'tqdm',
     ]
 
     test_requirements = [
@@ -37,7 +41,7 @@ if __name__ == "__main__":
     doc_requirements = []
 
     internal_requirements = [
-        'jobmon<2.0',
+        'jobmon>=2.0.3,<2.1',
         'db_queries',
     ]
 
@@ -68,14 +72,8 @@ if __name__ == "__main__":
 
         entry_points={'console_scripts': [
             'seiir=covid_model_seiir_pipeline.cli:seiir',
-            'beta_regression=covid_model_seiir_pipeline.regression.task:main',
-            'beta_forecast=covid_model_seiir_pipeline.forecasting.task.beta_forecast:main',
-            'beta_residual_scaling=covid_model_seiir_pipeline.forecasting.task.beta_residual_scaling:main',
-            'mean_level_mandate_reimposition=covid_model_seiir_pipeline.forecasting.task.mean_level_mandate_reimposition:main',
-            'resample_map=covid_model_seiir_pipeline.postprocessing.task.resample_map:main',
-            'postprocess=covid_model_seiir_pipeline.postprocessing.task.postprocess:main',
-            'oos_regression=covid_model_seiir_pipeline.predictive_validity.oos_regression:main',
-            'oos_forecast=covid_model_seiir_pipeline.predictive_validity.oos_forecast:main',
+            'stask=covid_model_seiir_pipeline.pipeline.seiir_task:stask',
+            'sparse=covid_model_seiir_pipeline.lib.cli_tools.performance_logger.log_parser:parse_logs'
         ]},
         zip_safe=False,
     )

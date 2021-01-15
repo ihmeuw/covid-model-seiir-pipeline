@@ -1,9 +1,10 @@
 import numpy
 import pandas
+from pandas.testing import assert_frame_equal
 import pytest
 
-from covid_model_seiir_pipeline.regression import model
-from covid_model_seiir_pipeline.static_vars import INFECTION_COL_DICT
+from covid_model_seiir_pipeline.lib.static_vars import INFECTION_COL_DICT
+from covid_model_seiir_pipeline.pipeline.regression import model
 
 
 class Test_ODEProcess_results:
@@ -27,7 +28,7 @@ class Test_ODEProcess_results:
             ['day_shift', 5.0],
         ], columns=['params', 'values'])
 
-        assert expected.equals(params)
+        assert_frame_equal(expected, params)
 
     # ignore a very specific RuntimeWarning
     @pytest.mark.filterwarnings("ignore:invalid value encountered in true_divide:RuntimeWarning")  # noqa
@@ -38,8 +39,8 @@ class Test_ODEProcess_results:
 
         # pick arbitrary rows to test
         mask1 = (beta.location_id == 10) & (beta.date == "2020-03-02")
-        r1 = beta.loc[mask1, :].iloc[0].to_dict()
-        e1 = {
+        r1 = beta.loc[mask1, :].iloc[[0]]
+        e1 = pandas.DataFrame({
             'location_id': 10,
             'date': '2020-03-02',
             'days': 3,
@@ -51,12 +52,12 @@ class Test_ODEProcess_results:
             'R': 4.0834675478217315e-05,
             'newE': 9.88132445500906e-05,
             'newE_obs': 9.88132445500906e-05,
-        }
-        assert r1 == e1
+        }, index=r1.index)
+        assert_frame_equal(r1, e1)
 
         mask2 = (beta.location_id == 60887) & (beta.date == "2020-06-10")
-        r2 = beta.loc[mask2, :].iloc[0].to_dict()
-        e2 = {
+        r2 = beta.loc[mask2, :].iloc[[0]]
+        e2 = pandas.DataFrame({
             'location_id': 60887,
             'date': '2020-06-10',
             'days': 111,
@@ -68,12 +69,12 @@ class Test_ODEProcess_results:
             'R': 56163.725831125324,
             'newE': 445.045338509743,
             'newE_obs': 445.045338509743,
-        }
-        assert r2 == e2
+        }, index=r2.index)
+        assert_frame_equal(r2, e2)
 
         mask3 = (beta.location_id == 60887) & (beta.date == "2020-06-14")
-        r3 = beta.loc[mask3, :].iloc[0].to_dict()
-        e3 = {
+        r3 = beta.loc[mask3, :].iloc[[0]]
+        e3 = pandas.DataFrame({
             'location_id': 60887,
             'date': '2020-06-14',
             'days': 115,
@@ -85,8 +86,8 @@ class Test_ODEProcess_results:
             'R': 57997.25978282046,
             'newE': 432.884735422745,
             'newE_obs': 432.884735422745,
-        }
-        assert r3 == e3
+        }, index=r3.index)
+        assert_frame_equal(r3, e3)
 
     @pytest.fixture(scope="module")
     def ode_model(self, location_data):
