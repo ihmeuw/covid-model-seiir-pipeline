@@ -1,6 +1,6 @@
 data:
   infection_version: '2021_01_15.01'
-  covariate_version: '2021_01_07.04'
+  covariate_version: '2021_01_14.02'
   coefficient_version: '2021_01_13.06'
   location_set_version_id: ''
   location_set_file: '/ihme/covid-19/seir-pipeline-outputs/metadata-inputs/location_metadata_815.csv'
