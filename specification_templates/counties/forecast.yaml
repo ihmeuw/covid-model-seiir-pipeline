@@ -1,8 +1,8 @@
 data:
-  regression_version: '2021_01_13.06'
-  covariate_version: '2021_01_12.04'
+  regression_version: '2021_01_15.03'
+  covariate_version: '2021_01_14.02'
   output_root: ''
-  fh_subnationals: False
+  fh_subnationals: True
 workflow:
   project: 'proj_covid'
   queue: 'd.q'
