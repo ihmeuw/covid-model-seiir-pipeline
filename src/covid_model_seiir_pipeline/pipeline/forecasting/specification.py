@@ -45,6 +45,7 @@ class ForecastData:
     regression_version: str = field(default='best')
     covariate_version: str = field(default='best')
     output_root: str = field(default='')
+    fh_subnationals: bool = field(default=False)
 
     def to_dict(self) -> Dict:
         """Converts to a dict, coercing list-like items to lists."""

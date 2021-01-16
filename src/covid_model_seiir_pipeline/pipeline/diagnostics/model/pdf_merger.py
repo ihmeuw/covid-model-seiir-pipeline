@@ -25,7 +25,7 @@ def merge_pdfs(plot_cache: Path, output_path: Path, hierarchy: pd.DataFrame):
     name_map = hierarchy.set_index('location_id').location_ascii_name
 
     sorted_locations = get_locations_dfs(hierarchy)
-
+    merged = []
     with PdfFileMerger() as merger:
         current_page = 0
         for location_id in sorted_locations:
@@ -40,7 +40,7 @@ def merge_pdfs(plot_cache: Path, output_path: Path, hierarchy: pd.DataFrame):
             merger.merge(current_page, str(result_page_path))
 
             # Bookmark it and add a reference to it's parent.
-            if parent_map[location_id] != location_id:
+            if parent_map[location_id] != location_id and location_id in merged:
                 parent = name_map.loc[parent_map.loc[location_id]]
             else:
                 parent = None
@@ -48,7 +48,7 @@ def merge_pdfs(plot_cache: Path, output_path: Path, hierarchy: pd.DataFrame):
 
             # Add the covariates page.
             merger.merge(current_page + 1, str(covariate_page_path))
-
+            merged.append(location_id)
             current_page += 2
 
         if output_path.exists():
