@@ -22,11 +22,10 @@ def resolve_version_info(specification, run_metadata: cli_tools.RunMetadata, inp
     """Resolves cli args, spec values, and defaults and makes the
     specification and metadata consistent.
 
-    I don't love that this mutates the args rather than returning values, but
-    I don't have a clever, clean solution.
-
     """
     for version_key, version_info in input_versions.items():
+        if not hasattr(specification.data, version_key):
+            raise TypeError(f'Invalid key {version_key} for specification data {specification.data}.')
         if not (version_info.cli_arg or version_info.spec_arg or version_info.allow_default):
             continue
         input_root = get_input_root(version_info.cli_arg, version_info.spec_arg, version_info.default)

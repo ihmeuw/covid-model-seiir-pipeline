@@ -327,7 +327,7 @@ def _do_regression(run_metadata: cli_tools.RunMetadata,
             'infectionator_metadata',
             True,
         ),
-        'covariates_version': cli_tools.VersionInfo(
+        'covariate_version': cli_tools.VersionInfo(
             covariates_version,
             regression_spec.data.covariate_version,
             paths.SEIR_COVARIATES_OUTPUT_ROOT,
@@ -390,7 +390,7 @@ def _do_forecast(run_metadata: cli_tools.RunMetadata,
             'regression_metadata',
             True,
         ),
-        'covariates_version': cli_tools.VersionInfo(
+        'covariate_version': cli_tools.VersionInfo(
             covariates_version,
             forecast_spec.data.covariate_version,
             paths.SEIR_COVARIATES_OUTPUT_ROOT,
