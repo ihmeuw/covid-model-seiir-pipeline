@@ -21,6 +21,7 @@ class TestForecastDataInterfaceIO:
         rdi = RegressionDataInterface(
             infection_root=None,
             covariate_root=None,
+            coefficient_root=None,
             regression_root=io.RegressionRoot(tmpdir),
         )
         rdi.make_dirs()
@@ -28,6 +29,7 @@ class TestForecastDataInterfaceIO:
             regression_root=io.RegressionRoot(tmpdir),
             covariate_root=None,
             forecast_root=None,
+            fh_subnationals=False,
         )
 
         # Step 1: save files (normally done in regression)
@@ -72,6 +74,7 @@ class TestForecastDataInterfaceIO:
             regression_root=None,
             covariate_root=None,
             forecast_root=io.ForecastRoot(tmpdir),
+            fh_subnationals=False,
         )
         di.make_dirs(scenario=['happy'])
         # Step 1: save files
