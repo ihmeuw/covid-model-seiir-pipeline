@@ -3,10 +3,10 @@ from __future__ import annotations
 import abc
 from dataclasses import asdict as asdict_
 from pathlib import Path
-from typing import Any, Dict, Union, Optional, Tuple
+from typing import Dict, Union, Tuple
 from pprint import pformat
 
-from covid_shared import paths, shell_tools, cli_tools
+from covid_shared import shell_tools
 import numpy as np
 import pandas as pd
 import yaml
@@ -87,17 +87,6 @@ def asdict(data_class) -> Dict:
         else:
             out[k] = v
     return out
-
-
-
-
-
-
-
-
-
-
-
 
 
 def make_log_dirs(output_dir: Union[str, Path], prefix: str = None) -> Tuple[str, str]:
