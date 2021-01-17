@@ -11,6 +11,7 @@ from covid_shared.cli_tools import (
     configure_logging_to_files,
     monitor_application,
     finish_application,
+    RunMetadata,
 )
 from covid_model_seiir_pipeline.lib.cli_tools.decorators import (
     with_regression_specification,
@@ -38,6 +39,9 @@ from covid_model_seiir_pipeline.lib.cli_tools.decorators import (
 )
 from covid_model_seiir_pipeline.lib.cli_tools.utilities import (
     handle_exceptions,
+    get_input_root,
+    get_output_root,
+    get_location_info,
 )
 from covid_model_seiir_pipeline.lib.cli_tools.performance_logger import (
     task_performance_logger,

@@ -89,83 +89,15 @@ def asdict(data_class) -> Dict:
     return out
 
 
-def get_argument_hierarchically(cli_argument: Optional,
-                                specification_value: Optional,
-                                default: Any) -> Any:
-    """Determine the argument to use hierarchically.
-
-    Prefer cli args over values in a specification file over the default.
-    """
-    if cli_argument:
-        output = cli_argument
-    elif specification_value:
-        output = specification_value
-    else:
-        output = default
-    return output
 
 
-def get_input_root(cli_argument: Optional[str], specification_value: Optional[str],
-                   last_stage_root: Union[str, Path]) -> Path:
-    """Determine the version to use hierarchically.
-
-    CLI args override spec args.  Spec args override the default 'best'.
-
-    """
-    version = get_argument_hierarchically(cli_argument, specification_value, paths.BEST_LINK)
-    root = cli_tools.get_last_stage_directory(version, last_stage_root=last_stage_root)
-    return root.resolve()
 
 
-def get_location_info(location_specification: Optional[str],
-                      spec_lsvid: Optional[int],
-                      spec_location_file: Optional[str]) -> Tuple[int, str]:
-    """Resolves a location specification from the cli args and run spec.
-
-    Parameters
-    ----------
-    location_specification
-        Either a location set version  id or a path to a location
-        hierarchy file.
-    spec_lsvid
-        The location set version id provided in the run spec.
-    spec_location_file
-        The location file provided in the run spec.
-
-    Returns
-    -------
-        A valid lsvid and location file specification constructed from the
-        input arguments.  CLI args take precedence over run spec parameters.
-        If nothing is provided, return 0 and '' for the lsvid and location
-        file, respectively, and let the model stage code set sensible
-        default operations.
-
-    """
-    if spec_lsvid and spec_location_file:
-        raise ValueError('Both a location set version id and a location file were provided in '
-                         'the specification. Only one option may be used.')
-    location_specification = get_argument_hierarchically(location_specification, spec_lsvid, 0)
-    location_specification = get_argument_hierarchically(location_specification, spec_location_file, '')
-    try:
-        lsvid = int(location_specification)
-        location_file = ''
-    except ValueError:  # The command line argument was a path
-        lsvid = 0
-        location_file = location_specification
-    return lsvid, location_file
 
 
-def get_output_root(cli_argument: Optional[str], specification_value: Optional[str]) -> Path:
-    """Determine the output root hierarchically.
 
-    CLI arguments override specification args.  Specification args override
-    the default.
 
-    """
-    # Default behavior handled by CLI.
-    version = get_argument_hierarchically(cli_argument, specification_value, cli_argument)
-    version = Path(version).resolve()
-    return version
+
 
 
 def make_log_dirs(output_dir: Union[str, Path], prefix: str = None) -> Tuple[str, str]:
