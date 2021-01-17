@@ -31,8 +31,11 @@ class TestForecastDataInterfaceIO:
             forecast_root=None,
             fh_subnationals=False,
         )
+        # Patch on the regression data interface
+        fdi._get_regression_data_interface = lambda: rdi
 
         # Step 1: save files (normally done in regression)
+
         rdi.save_regression_coefficients(coefficients, draw_id=4)
         rdi.save_beta_param_file(parameters, draw_id=4)
         rdi.save_date_file(dates, draw_id=4)
