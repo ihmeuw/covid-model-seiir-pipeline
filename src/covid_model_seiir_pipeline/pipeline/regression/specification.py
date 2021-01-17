@@ -44,8 +44,8 @@ class RegressionData:
 
 
 @dataclass
-class FitParameters:
-    """Specifies the parameters of the ODE fit."""
+class RegressionParameters:
+    """Specifies the parameters of the beta fit and regression."""
     n_draws: int = field(default=1000)
 
     day_shift: Tuple[int, int] = field(default=(0, 8))
@@ -89,20 +89,23 @@ class RegressionSpecification(utilities.Specification):
 
     def __init__(self,
                  data: RegressionData,
-                 parameters: FitParameters,
-                 covariates: List[CovariateSpecification],
-                 workflow: RegressionWorkflowSpecification):
+                 workflow: RegressionWorkflowSpecification,
+                 regression_parameters: RegressionParameters,
+                 covariates: List[CovariateSpecification]):
         self._data = data
         self._workflow = workflow
-        self._parameters = parameters
+        self._regression_parameters = regression_parameters
         self._covariates = {c.name: c for c in covariates}
 
     @classmethod
     def parse_spec_dict(cls, regression_spec_dict: Dict) -> Tuple:
         """Constructs a regression specification from a dictionary."""
-        data = RegressionData(**regression_spec_dict.get('data', {}))
-        parameters = FitParameters(**regression_spec_dict.get('parameters', {}))
-        workflow = RegressionWorkflowSpecification(**regression_spec_dict.get('workflow', {}))
+        sub_specs = {
+            'data': RegressionData,
+            'workflow': RegressionWorkflowSpecification,
+            'regression_parameters': RegressionParameters,
+        }
+        sub_specs = {key: spec_class(**regression_spec_dict.get(key, {})) for key, spec_class in sub_specs.items()}
 
         # covariates
         cov_dicts = regression_spec_dict.get('covariates', {})
@@ -111,8 +114,9 @@ class RegressionSpecification(utilities.Specification):
             covariates.append(CovariateSpecification(name, **cov_spec))
         if not covariates:  # Assume we're generating for a template
             covariates.append(CovariateSpecification())
+        sub_specs['covariates'] = covariates
 
-        return data, parameters, covariates, workflow
+        return tuple(sub_specs.values())
 
     @property
     def data(self) -> RegressionData:
@@ -125,9 +129,9 @@ class RegressionSpecification(utilities.Specification):
         return self._workflow
 
     @property
-    def parameters(self) -> FitParameters:
+    def regression_parameters(self) -> RegressionParameters:
         """The parametrization of the regression."""
-        return self._parameters
+        return self._regression_parameters
 
     @property
     def covariates(self) -> Dict[str, CovariateSpecification]:
@@ -139,7 +143,7 @@ class RegressionSpecification(utilities.Specification):
         spec = {
             'data': self.data.to_dict(),
             'workflow': self.workflow.to_dict(),
-            'parameters': self.parameters.to_dict(),
+            'regression_parameters': self.regression_parameters.to_dict(),
             'covariates': {k: v.to_dict() for k, v in self._covariates.items()},
         }
         return spec

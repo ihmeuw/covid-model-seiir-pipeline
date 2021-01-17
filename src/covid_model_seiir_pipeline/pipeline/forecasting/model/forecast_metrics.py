@@ -2,6 +2,7 @@ from typing import Dict, List, Tuple, Union
 
 import pandas as pd
 
+from covid_model_seiir_pipeline.lib import math
 from covid_model_seiir_pipeline.pipeline.forecasting.model.ode_forecast import CompartmentInfo
 
 
@@ -13,7 +14,7 @@ def compute_output_metrics(infection_data: pd.DataFrame,
                            compartment_info: CompartmentInfo) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]:
     components = splice_components(components_past, components_forecast)
 
-    observed_infections, observed_deaths = get_observed_infecs_and_deaths(infection_data)
+    observed_infections, observed_deaths = math.get_observed_infecs_and_deaths(infection_data)
     infection_death_lag = infection_data['i_d_lag'].max()
 
     if compartment_info.group_suffixes:
@@ -50,23 +51,6 @@ def splice_components(components_past: pd.DataFrame, components_forecast: pd.Dat
                   .sort_values(['location_id', 'date'])
                   .set_index(['location_id']))
     return components
-
-
-def get_observed_infecs_and_deaths(infection_data: pd.DataFrame):
-    observed = infection_data['obs_infecs'] == 1
-    observed_infections = (infection_data
-                           .loc[observed, ['location_id', 'date', 'cases_draw']]
-                           .set_index(['location_id', 'date'])
-                           .sort_index()
-                           .rename(columns={'cases_draw': 'infections'}))
-    observed = infection_data['obs_deaths'] == 1
-    observed_deaths = (infection_data
-                       .loc[observed, ['location_id', 'date', 'deaths_mean']]
-                       .rename(columns={'deaths_mean': 'deaths'})
-                       .set_index(['location_id', 'date'])
-                       .sort_index())
-    observed_deaths['observed'] = 1
-    return observed_infections, observed_deaths
 
 
 def compute_infections(components: pd.DataFrame) -> Tuple[pd.Series, pd.Series]:

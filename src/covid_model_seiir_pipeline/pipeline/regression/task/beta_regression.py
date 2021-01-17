@@ -44,12 +44,12 @@ def run_beta_regression(regression_version: str, draw_id: int) -> None:
         col_loc_id=static_vars.INFECTION_COL_DICT['COL_LOC_ID'],
         col_lag_days=static_vars.INFECTION_COL_DICT['COL_ID_LAG'],
         col_observed=static_vars.INFECTION_COL_DICT['COL_OBS_DEATHS'],
-        alpha=regression_specification.parameters.alpha,
-        sigma=regression_specification.parameters.sigma,
-        gamma1=regression_specification.parameters.gamma1,
-        gamma2=regression_specification.parameters.gamma2,
-        solver_dt=regression_specification.parameters.solver_dt,
-        day_shift=regression_specification.parameters.day_shift,
+        alpha=regression_specification.regression_parameters.alpha,
+        sigma=regression_specification.regression_parameters.sigma,
+        gamma1=regression_specification.regression_parameters.gamma1,
+        gamma2=regression_specification.regression_parameters.gamma2,
+        solver_dt=regression_specification.regression_parameters.solver_dt,
+        day_shift=regression_specification.regression_parameters.day_shift,
     )
     ode_model = model.ODEProcess(beta_fit_inputs)
     logger.info('Running ODE fit', context='compute_ode')
@@ -60,7 +60,7 @@ def run_beta_regression(regression_version: str, draw_id: int) -> None:
     mr_data = model.align_beta_with_covariates(covariates, beta_fit, list(regression_specification.covariates))
     regressor = model.build_regressor(regression_specification.covariates.values(), prior_coefficients)
     logger.info('Fitting beta regression', context='compute_regression')
-    coefficients = regressor.fit(mr_data, regression_specification.parameters.sequential_refit)
+    coefficients = regressor.fit(mr_data, regression_specification.regression_parameters.sequential_refit)
     log_beta_hat = math.compute_beta_hat(covariates, coefficients)
     beta_hat = np.exp(log_beta_hat).rename('beta_pred').reset_index()
 
@@ -79,7 +79,7 @@ def run_beta_regression(regression_version: str, draw_id: int) -> None:
     beta_start_end_dates = ode_model.create_start_end_date_df()
 
     logger.info('Writing outputs', context='write')
-    data_interface.save_location_data(data_df, draw_id)
+    data_interface.save_infection_data(data_df, draw_id)
     data_interface.save_regression_betas(regression_betas, draw_id)
     data_interface.save_regression_coefficients(coefficients, draw_id)
     data_interface.save_beta_param_file(draw_beta_params, draw_id)

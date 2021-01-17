@@ -48,6 +48,10 @@ class RegressionDataInterface:
     def make_dirs(self, **prefix_args) -> None:
         io.touch(self.regression_root, **prefix_args)
 
+    def get_n_draws(self) -> int:
+        regression_spec = io.load(self.regression_root.specification())
+        return regression_spec['regression_parameters']['n_draws']
+
     #########################
     # Raw location handling #
     #########################
@@ -146,6 +150,46 @@ class RegressionDataInterface:
         covariate_data = reduce(lambda x, y: x.merge(y, left_index=True, right_index=True), covariate_data)
         return covariate_data.reset_index()
 
+    ######################
+    # Ratio data loaders #
+    ######################
+
+    def load_ifr_data(self):
+        metadata = self.get_infectionator_metadata()
+        # TODO: metadata abstraction?
+        ifr_version = metadata['run_arguments']['ifr_custom_path']
+        data_path = Path(ifr_version) / 'terminal_ifr.csv'
+        data = pd.read_csv(data_path)
+        return data.set_index('location_id')
+
+    ##############################
+    # Miscellaneous data loaders #
+    ##############################
+
+    def get_infectionator_metadata(self):
+        return io.load(self.infection_root.metadata())
+
+    def get_model_inputs_metadata(self):
+        infection_metadata = self.get_infectionator_metadata()
+        return infection_metadata['death']['metadata']['model_inputs_metadata']
+
+    def load_population(self) -> pd.DataFrame:
+        metadata = self.get_model_inputs_metadata()
+        model_inputs_version = metadata['output_path']
+        population_path = Path(model_inputs_version) / 'output_measures' / 'population' / 'all_populations.csv'
+        population_data = pd.read_csv(population_path)
+        return population_data
+
+    def load_five_year_population(self, location_ids: List[int]) -> pd.DataFrame:
+        population = self.load_population()
+        in_locations = population['location_id'].isin(location_ids)
+        is_2019 = population['year_id'] == 2019
+        is_both_sexes = population['sex_id'] == 3
+        five_year_bins = [1, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 30, 31, 32, 235]
+        is_five_year_bins = population['age_group_id'].isin(five_year_bins)
+        population = population.loc[in_locations & is_2019 & is_both_sexes & is_five_year_bins, :]
+        return population
+
     #######################
     # Regression data I/O #
     #######################
@@ -196,8 +240,8 @@ class RegressionDataInterface:
     def load_regression_betas(self, draw_id: int) -> pd.DataFrame:
         return io.load(self.regression_root.beta(draw_id=draw_id))
 
-    def save_location_data(self, df: pd.DataFrame, draw_id: int) -> None:
-        io.dump(df, self.regression_root.data(draw_id=draw_id))
+    def save_infection_data(self, df: pd.DataFrame, draw_id: int) -> None:
+        io.dump(df, self.regression_root.infection_data(draw_id=draw_id))
 
-    def load_location_data(self, draw_id: int) -> pd.DataFrame:
-        return io.load(self.regression_root.data(draw_id=draw_id))
+    def load_infection_data(self, draw_id: int) -> pd.DataFrame:
+        return io.load(self.regression_root.infection_data(draw_id=draw_id))

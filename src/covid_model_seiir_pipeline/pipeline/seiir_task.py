@@ -2,7 +2,7 @@ import click
 
 from covid_model_seiir_pipeline.pipeline.regression import (
     REGRESSION_JOBS,
-    beta_regression
+    beta_regression,
 )
 from covid_model_seiir_pipeline.pipeline.forecasting import (
     FORECAST_JOBS,

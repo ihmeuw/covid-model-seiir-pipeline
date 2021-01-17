@@ -37,7 +37,7 @@ class TestForecastDataInterfaceIO:
         rdi.save_beta_param_file(parameters, draw_id=4)
         rdi.save_date_file(dates, draw_id=4)
         rdi.save_regression_betas(regression_beta, draw_id=4)
-        rdi.save_location_data(location_data, draw_id=4)
+        rdi.save_infection_data(location_data, draw_id=4)
 
         # Step 2: load files as they would be loaded in forecast
         loaded_coefficients = fdi.load_regression_coefficients(draw_id=4)

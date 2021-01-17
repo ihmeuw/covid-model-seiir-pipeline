@@ -27,7 +27,7 @@ class TestRegressionDataInterfaceIO:
         di.save_date_file(dates, draw_id=4)
         di.save_regression_coefficients(coefficients, draw_id=4)
         di.save_regression_betas(regression_beta, draw_id=4)
-        di.save_location_data(location_data, draw_id=4)
+        di.save_infection_data(location_data, draw_id=4)
 
         # Step 3: count files (again)
         assert tmpdir_file_count() == 5

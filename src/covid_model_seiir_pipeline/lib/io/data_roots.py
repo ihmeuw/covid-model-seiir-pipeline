@@ -164,7 +164,7 @@ class RegressionRoot(DataRoot):
 
     beta = DatasetType('beta', LEAF_TEMPLATES.DRAW_TEMPLATE)
     coefficients = DatasetType('coefficients', LEAF_TEMPLATES.DRAW_TEMPLATE)
-    data = DatasetType('data', LEAF_TEMPLATES.DRAW_TEMPLATE)
+    infection_data = DatasetType('data', LEAF_TEMPLATES.DRAW_TEMPLATE)
     dates = DatasetType('dates', LEAF_TEMPLATES.DRAW_TEMPLATE)
     parameters = DatasetType('parameters', LEAF_TEMPLATES.DRAW_TEMPLATE)
 

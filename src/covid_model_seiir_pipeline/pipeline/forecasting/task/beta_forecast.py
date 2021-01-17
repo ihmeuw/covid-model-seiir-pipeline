@@ -39,9 +39,8 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, **kwar
 
     # The population will be used to partition the SEIR compartments into
     # different sub groups for the forecast.
-    population = data_interface.load_population()
+    population = data_interface.load_five_year_population(location_ids)
     population_partition = model.get_population_partition(population,
-                                                          location_ids,
                                                           scenario_spec.population_partition)
 
     # We'll use the beta and SEIR compartments from this data set to get

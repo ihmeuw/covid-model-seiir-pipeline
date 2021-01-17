@@ -6,7 +6,13 @@ from typing import Dict, List, Optional, Union
 from loguru import logger
 import pandas as pd
 
-from covid_model_seiir_pipeline.lib import io
+from covid_model_seiir_pipeline.lib import (
+    io,
+)
+from covid_model_seiir_pipeline.pipeline.regression import (
+    RegressionDataInterface,
+    RegressionSpecification,
+)
 from covid_model_seiir_pipeline.pipeline.forecasting.specification import (
     ForecastSpecification,
     ScenarioSpecification,
@@ -48,33 +54,32 @@ class ForecastDataInterface:
     ############################
 
     def get_n_draws(self) -> int:
-        regression_spec = io.load(self.regression_root.specification())
-        return regression_spec['parameters']['n_draws']
+        return self._get_regression_data_interface().get_n_draws()
 
     def load_location_ids(self) -> List[int]:
-        return io.load(self.regression_root.locations())
+        return self._get_regression_data_interface().load_location_ids()
 
     def load_regression_coefficients(self, draw_id: int) -> pd.DataFrame:
-        return io.load(self.regression_root.coefficients(draw_id=draw_id))
+        return self._get_regression_data_interface().load_regression_coefficients(draw_id=draw_id)
 
     def load_transition_date(self, draw_id: int) -> pd.Series:
-        dates_df = io.load(self.regression_root.dates(draw_id=draw_id))
+        dates_df = self._get_regression_data_interface().load_date_file(draw_id=draw_id)
         dates_df['end_date'] = pd.to_datetime(dates_df['end_date'])
         transition_date = dates_df.set_index('location_id').sort_index()['end_date'].rename('date')
         return transition_date
 
     def load_beta_regression(self, draw_id: int) -> pd.DataFrame:
-        beta_regression = io.load(self.regression_root.beta(draw_id=draw_id))
+        beta_regression = self._get_regression_data_interface().load_regression_betas(draw_id=draw_id)
         beta_regression['date'] = pd.to_datetime(beta_regression['date'])
         return beta_regression
 
     def load_infection_data(self, draw_id: int) -> pd.DataFrame:
-        infection_data = io.load(self.regression_root.data(draw_id=draw_id))
+        infection_data = self._get_regression_data_interface().load_infection_data(draw_id=draw_id)
         infection_data['date'] = pd.to_datetime(infection_data['date'])
         return infection_data
 
     def load_beta_params(self, draw_id: int) -> Dict[str, float]:
-        df = io.load(self.regression_root.parameters(draw_id=draw_id))
+        df = self._get_regression_data_interface().load_beta_param_file(draw_id=draw_id)
         return df.set_index('params')['values'].to_dict()
 
     ##########################
@@ -82,7 +87,7 @@ class ForecastDataInterface:
     ##########################
 
     def check_covariates(self, scenarios: Dict[str, ScenarioSpecification]) -> List[str]:
-        regression_spec = io.load(self.regression_root.specification())
+        regression_spec = self._get_regression_data_interface().load_specification().to_dict()
         # Bit of a hack.
         forecast_version = str(self.covariate_root._root)
         regression_version = regression_spec['data']['covariate_version']
@@ -188,14 +193,15 @@ class ForecastDataInterface:
         return thetas
 
     def get_infectionator_metadata(self):
-        regression_spec = io.load(self.regression_root.specification())
-        infection_root = io.InfectionRoot(regression_spec['data']['infection_version'])
-        return io.load(infection_root.metadata())
+        return self._get_regression_data_interface().get_infectionator_metadata()
 
-    def load_full_data(self):
-        metadata = self.get_infectionator_metadata()
-        # TODO: metadata abstraction?
-        model_inputs_version = metadata['death']['metadata']['model_inputs_metadata']['output_path']
+    def get_model_inputs_metadata(self):
+        infection_metadata = self.get_infectionator_metadata()
+        return infection_metadata['death']['metadata']['model_inputs_metadata']
+
+    def load_full_data(self) -> pd.DataFrame:
+        metadata = self.get_model_inputs_metadata()
+        model_inputs_version = metadata['output_path']
         if self.fh_subnationals:
             full_data_path = Path(model_inputs_version) / 'full_data_fh_subnationals.csv'
         else:
@@ -205,21 +211,14 @@ class ForecastDataInterface:
         full_data = full_data.drop(columns=['Date'])
         return full_data
 
-    def load_population(self):
-        metadata = self.get_infectionator_metadata()
-        # TODO: metadata abstraction?
-        model_inputs_version = metadata['death']['metadata']['model_inputs_metadata']['output_path']
-        population_path = Path(model_inputs_version) / 'output_measures' / 'population' / 'all_populations.csv'
-        population_data = pd.read_csv(population_path)
-        return population_data
+    def load_population(self) -> pd.DataFrame:
+        return self._get_regression_data_interface().load_population()
 
-    def load_ifr_data(self):
-        metadata = self.get_infectionator_metadata()
-        # TODO: metadata abstraction?
-        ifr_version = metadata['run_arguments']['ifr_custom_path']
-        data_path = Path(ifr_version) / 'terminal_ifr.csv'
-        data = pd.read_csv(data_path)
-        return data.set_index('location_id')
+    def load_five_year_population(self, location_ids: List[int]) -> pd.DataFrame:
+        return self._get_regression_data_interface().load_five_year_population(location_ids)
+
+    def load_ifr_data(self) -> pd.DataFrame:
+        return self._get_regression_data_interface().load_ifr_data()
 
     def load_total_deaths(self):
         """Load cumulative deaths by location."""
@@ -284,6 +283,11 @@ class ForecastDataInterface:
             dataset['date'] = pd.to_datetime(dataset['date'])
             index_columns.append('date')
         return dataset.set_index(index_columns)
+
+    def _get_regression_data_interface(self) -> RegressionDataInterface:
+        regression_spec = RegressionSpecification.from_dict(io.load(self.regression_root.specification()))
+        regression_di = RegressionDataInterface.from_specification(regression_spec)
+        return regression_di
 
 
 @dataclass

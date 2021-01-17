@@ -41,7 +41,6 @@ def prep_seir_parameters(betas: pd.DataFrame,
 
 
 def get_population_partition(population: pd.DataFrame,
-                             location_ids: List[int],
                              population_partition: str) -> Dict[str, pd.Series]:
     """Create a location-specific partition of the population.
 
@@ -49,8 +48,6 @@ def get_population_partition(population: pd.DataFrame,
     ----------
     population
         A dataframe with location, age, and sex specific populations.
-    location_ids
-        A list of location ids used in the regression model.
     population_partition
         A string describing how the population should be partitioned.
 
@@ -64,13 +61,6 @@ def get_population_partition(population: pd.DataFrame,
     if population_partition == 'none':
         partition_map = {}
     elif population_partition == 'high_and_low_risk':
-        modeled_locations = population['location_id'].isin(location_ids)
-        is_2019 = population['year_id'] == 2019
-        is_both_sexes = population['sex_id'] == 3
-        five_year_bins = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 30, 31, 32, 235]
-        is_five_year_bins = population['age_group_id'].isin(five_year_bins)
-        population = population.loc[modeled_locations & is_2019 & is_both_sexes & is_five_year_bins, :]
-
         total_pop = population.groupby('location_id')['population'].sum()
         low_risk_pop = population[population['age_group_years_start'] < 65].groupby('location_id')['population'].sum()
         high_risk_pop = total_pop - low_risk_pop
