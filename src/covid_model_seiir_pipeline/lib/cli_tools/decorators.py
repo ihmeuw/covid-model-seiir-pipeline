@@ -42,12 +42,12 @@ with_covariates_version = click.option(
 )
 with_mortality_rate_version = click.option(
     '--mortality-rate-version',
-    path=click.Path(exists=True, file_okay=False),
+    type=click.Path(exists=True, file_okay=False),
     help='Which version of the mortality age pattern to use.',
 )
 with_hospital_fatality_ratio_version = click.option(
     '--hospital-fatality-ratio-version',
-    path=click.Path(exists=True, file_okay=False),
+    type=click.Path(exists=True, file_okay=False),
     help='Which version of the hospital fatality ratio to use.'
 )
 with_coefficient_version = click.option(
