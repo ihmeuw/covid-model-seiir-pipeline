@@ -34,6 +34,8 @@ def seiir():
 @cli_tools.with_regression_specification
 @cli_tools.with_infection_version
 @cli_tools.with_covariates_version
+@cli_tools.with_mortality_rate_version
+@cli_tools.with_hospital_fatality_ratio_version
 @cli_tools.with_coefficient_version
 @cli_tools.with_location_specification
 @cli_tools.add_preprocess_only
@@ -41,7 +43,9 @@ def seiir():
 @cli_tools.add_verbose_and_with_debugger
 def regress(run_metadata,
             regression_specification,
-            infection_version, covariates_version, coefficient_version,
+            infection_version, covariates_version,
+            mortality_rate_version, hospital_fatality_ratio_version,
+            coefficient_version,
             location_specification,
             preprocess_only,
             output_root, mark_best, production_tag,
@@ -54,6 +58,8 @@ def regress(run_metadata,
         regression_specification=regression_specification,
         infection_version=infection_version,
         covariates_version=covariates_version,
+        mortality_rate_version=mortality_rate_version,
+        hospital_fatality_ratio_version=hospital_fatality_ratio_version,
         coefficient_version=coefficient_version,
         location_specification=location_specification,
         preprocess_only=preprocess_only,
@@ -193,6 +199,8 @@ def run_all(run_metadata,
         regression_specification=regression_specification,
         infection_version=None,
         covariates_version=None,
+        mortality_rate_version=None,
+        hospital_fatality_ratio_version=None,
         coefficient_version=None,
         location_specification=None,
         preprocess_only=False,
@@ -312,6 +320,8 @@ def _do_regression(run_metadata: cli_tools.RunMetadata,
                    regression_specification: str,
                    infection_version: Optional[str],
                    covariates_version: Optional[str],
+                   mortality_rate_version: Optional[str],
+                   hospital_fatality_ratio_version: Optional[str],
                    coefficient_version: Optional[str],
                    location_specification: Optional[str],
                    preprocess_only: bool,
@@ -332,6 +342,20 @@ def _do_regression(run_metadata: cli_tools.RunMetadata,
             regression_spec.data.covariate_version,
             paths.SEIR_COVARIATES_OUTPUT_ROOT,
             'covariates_metadata',
+            True,
+        ),
+        'mortality_rate_version': cli_tools.VersionInfo(
+            mortality_rate_version,
+            regression_spec.data.mortality_rate_version,
+            paths.MORTALITY_RATIO_ROOT,
+            'mortality_rate_metadata',
+            True,
+        ),
+        'hospital_fatality_ratio_version': cli_tools.VersionInfo(
+            hospital_fatality_ratio_version,
+            regression_spec.data.hospital_fatality_ratio_version,
+            paths.HOSPITAL_DEATH_RATIO_ROOT,
+            'hospital_fatality_ratio_metadata',
             True,
         ),
         'coefficient_version': cli_tools.VersionInfo(

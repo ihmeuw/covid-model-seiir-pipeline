@@ -122,6 +122,20 @@ class InfectionRoot(DataRoot):
         )
 
 
+class MortalityRateRoot(DataRoot):
+    """Data root representing age pattern of mortality."""
+    metadata = MetadataType('metadata')
+
+    mortality_rate = DatasetType('mortality_ratio_5yr')
+
+
+class HospitalFatalityRatioRoot(DataRoot):
+    """Data root representing the hospital fatality ratio."""
+    metadata = MetadataType('metadata')
+
+    hospital_fatality_ratio = DatasetType('HR_byloc_blend_with_ids')
+
+
 class CovariateRoot(DataRoot):
     """Data root representing prepped covariates."""
     metadata = MetadataType('metadata')
@@ -167,6 +181,7 @@ class RegressionRoot(DataRoot):
     infection_data = DatasetType('data', LEAF_TEMPLATES.DRAW_TEMPLATE)
     dates = DatasetType('dates', LEAF_TEMPLATES.DRAW_TEMPLATE)
     parameters = DatasetType('parameters', LEAF_TEMPLATES.DRAW_TEMPLATE)
+    hospitalizations = DatasetType('hospitalization', LEAF_TEMPLATES.MEASURE_TEMPLATE)
 
 
 class ForecastRoot(DataRoot):
