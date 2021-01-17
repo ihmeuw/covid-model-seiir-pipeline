@@ -38,6 +38,8 @@ from covid_model_seiir_pipeline.lib.cli_tools.decorators import (
     add_preprocess_only,
 )
 from covid_model_seiir_pipeline.lib.cli_tools.utilities import (
+    VersionInfo,
+    resolve_version_info,
     handle_exceptions,
     get_input_root,
     get_output_root,
