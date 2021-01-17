@@ -1,6 +1,6 @@
 data:
-  infection_version: '2021_01_06.01'
-  covariate_version: '2021_01_07.04'
+  infection_version: '2021_01_13.02'
+  covariate_version: '2021_01_12.04'
   mortality_rate_version: 'best'
   hospital_fatality_ratio_version: 'best'
   coefficient_version: ''
