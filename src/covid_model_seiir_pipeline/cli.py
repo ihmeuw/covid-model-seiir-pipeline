@@ -1,11 +1,14 @@
 from pathlib import Path
 
 import click
-from covid_shared import cli_tools, paths, shell_tools
+from covid_shared import paths, shell_tools
 from loguru import logger
 import yaml
 
-from covid_model_seiir_pipeline.lib import utilities
+from covid_model_seiir_pipeline.lib import (
+    cli_tools,
+    utilities,
+)
 from covid_model_seiir_pipeline.pipeline import (
     RegressionSpecification,
     do_beta_regression,
@@ -28,32 +31,12 @@ def seiir():
 
 @seiir.command()
 @cli_tools.pass_run_metadata()
-@click.argument('regression_specification',
-                type=click.Path(exists=True, dir_okay=False))
-@click.option('--infection-version',
-              type=click.Path(file_okay=False),
-              help="Which version of infectionator inputs to use in the"
-                   "regression.")
-@click.option('--covariates-version',
-              type=click.Path(file_okay=False),
-              help=('Which version of the covariates to use in the '
-                    'regression.'))
-@click.option('--coefficient-version',
-              type=click.Path(file_okay=False),
-              help='A prior regression version for pinning the regression '
-                   'coefficients. If provided, all fixed effects from the '
-                   'provided version will be used and only random effects will '
-                   'be fit.')
-@click.option('-l', '--location-specification',
-              type=click.STRING,
-              help="Either a location set version id used to pull a list of"
-                   "locations to run, or a full path to a file describing"
-                   "the location set.")
-@click.option('--preprocess-only',
-              is_flag=True,
-              help="Only make the directory and set up the metadata. "
-                   "Useful for setting up output directories for testing "
-                   "tasks individually.")
+@cli_tools.with_regression_specification
+@cli_tools.with_infection_version
+@cli_tools.with_covariates_version
+@cli_tools.with_coefficient_version
+@cli_tools.with_location_specification
+@cli_tools.add_preprocess_only
 @cli_tools.add_output_options(paths.SEIR_REGRESSION_OUTPUTS)
 @cli_tools.add_verbose_and_with_debugger
 def regress(run_metadata,
@@ -116,21 +99,10 @@ def regress(run_metadata,
 
 @seiir.command()
 @cli_tools.pass_run_metadata()
-@click.argument('forecast_specification',
-                type=click.Path(exists=True, dir_okay=False))
-@click.option('--regression-version',
-              type=click.Path(file_okay=False),
-              help="Which version of ode fit inputs to use in the"
-                   "regression.")
-@click.option('--covariates-version',
-              type=click.Path(file_okay=False),
-              help=('Which version of the covariates to use in the '
-                    'regression.'))
-@click.option('--preprocess-only',
-              is_flag=True,
-              help="Only make the directory and set up the metadata. "
-                   "Useful for setting up output directories for testing "
-                   "tasks individually.")
+@cli_tools.with_forecast_specification
+@cli_tools.with_regression_version
+@cli_tools.with_covariates_version
+@cli_tools.add_preprocess_only
 @cli_tools.add_output_options(paths.SEIR_FORECAST_OUTPUTS)
 @cli_tools.add_verbose_and_with_debugger
 def forecast(run_metadata,
@@ -177,16 +149,9 @@ def forecast(run_metadata,
 
 @seiir.command()
 @cli_tools.pass_run_metadata()
-@click.argument('postprocessing_specification',
-                type=click.Path(exists=True, dir_okay=False))
-@click.option('--forecast-version',
-              type=click.Path(file_okay=False),
-              help="Which version of forecasts to postprocess.")
-@click.option('--preprocess-only',
-              is_flag=True,
-              help="Only make the directory and set up the metadata. "
-                   "Useful for setting up output directories for testing "
-                   "tasks individually.")
+@cli_tools.with_postprocessing_specification
+@cli_tools.with_forecast_version
+@cli_tools.add_preprocess_only
 @cli_tools.add_output_options(paths.SEIR_FINAL_OUTPUTS)
 @cli_tools.add_verbose_and_with_debugger
 def postprocess(run_metadata,
@@ -227,13 +192,8 @@ def postprocess(run_metadata,
 
 @seiir.command()
 @cli_tools.pass_run_metadata()
-@click.argument('diagnostics_specification',
-                type=click.Path(exists=True, dir_okay=False))
-@click.option('--preprocess-only',
-              is_flag=True,
-              help="Only make the directory and set up the metadata. "
-                   "Useful for setting up output directories for testing "
-                   "tasks individually.")
+@cli_tools.with_diagnostics_specification
+@cli_tools.add_preprocess_only
 @cli_tools.add_output_options(paths.SEIR_DIAGNOSTICS_OUTPUTS)
 @cli_tools.add_verbose_and_with_debugger
 def diagnostics(run_metadata,
@@ -282,20 +242,12 @@ def diagnostics(run_metadata,
 
 @seiir.command(name='run_all')
 @cli_tools.pass_run_metadata()
-@click.argument('regression_specification',
-                type=click.Path(exists=True, dir_okay=False))
-@click.argument('forecast_specification',
-                type=click.Path(exists=True, dir_okay=False))
-@click.argument('postprocessing_specification',
-                type=click.Path(exists=True, dir_okay=False))
-@click.argument('diagnostics_specification',
-                type=click.Path(exists=True, dir_okay=False))
-@click.option('-p', '--production-tag',
-              type=click.STRING,
-              help='Tags this run as a production run.')
-@click.option('-b', '--mark-best',
-              is_flag=True,
-              help='Mark this run as "best"')
+@cli_tools.with_regression_specification
+@cli_tools.with_forecast_specification
+@cli_tools.with_postprocessing_specification
+@cli_tools.with_diagnostics_specification
+@cli_tools.with_mark_best
+@cli_tools.with_production_tag
 @cli_tools.add_verbose_and_with_debugger
 def run_all(run_metadata,
             regression_specification, forecast_specification,
@@ -493,12 +445,9 @@ def run_all(run_metadata,
 
 @seiir.command(name='predictive_validity')
 @cli_tools.pass_run_metadata()
-@click.argument('regression_specification',
-                type=click.Path(exists=True, dir_okay=False))
-@click.argument('forecast_specification',
-                type=click.Path(exists=True, dir_okay=False))
-@click.argument('predictive_validity_specification',
-                type=click.Path(exists=True, dir_okay=False))
+@cli_tools.with_regression_specification
+@cli_tools.with_forecast_specification
+@cli_tools.with_predictive_validity_specification
 @cli_tools.add_verbose_and_with_debugger
 def predictive_validity(run_metadata,
                         regression_specification,

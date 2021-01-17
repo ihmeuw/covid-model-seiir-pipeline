@@ -220,7 +220,7 @@ def write_out_beta_scales_by_draw(beta_scales: pd.DataFrame, data_interface: For
 
 
 @click.command()
-@cli_tools.with_forecast_version
+@cli_tools.with_task_forecast_version
 @cli_tools.with_scenario
 @cli_tools.add_verbose_and_with_debugger
 def beta_residual_scaling(forecast_version: str, scenario: str,
