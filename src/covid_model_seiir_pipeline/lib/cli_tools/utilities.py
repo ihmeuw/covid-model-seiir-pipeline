@@ -32,6 +32,7 @@ def resolve_version_info(specification, run_metadata: cli_tools.RunMetadata, inp
         input_root = get_input_root(version_info.cli_arg, version_info.spec_arg, version_info.default)
         setattr(specification.data, version_key, str(input_root))
         run_metadata.update_from_path(version_info.metadata_key, input_root / paths.METADATA_FILE_NAME)
+    return specification, run_metadata
 
 
 def handle_exceptions(func: Callable, logger: Any, with_debugger: bool) -> Callable:

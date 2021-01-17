@@ -342,7 +342,7 @@ def _do_regression(run_metadata: cli_tools.RunMetadata,
             False,
         ),
     }
-    cli_tools.resolve_version_info(regression_spec, run_metadata, input_versions)
+    regression_spec, run_metadata = cli_tools.resolve_version_info(regression_spec, run_metadata, input_versions)
 
     locations_set_version_id, location_set_file = cli_tools.get_location_info(
         location_specification,
@@ -398,7 +398,7 @@ def _do_forecast(run_metadata: cli_tools.RunMetadata,
             True,
         ),
     }
-    cli_tools.resolve_version_info(forecast_spec, run_metadata, input_versions)
+    forecast_spec, run_metadata = cli_tools.resolve_version_info(forecast_spec, run_metadata, input_versions)
 
     output_root = cli_tools.get_output_root(output_root,
                                             forecast_spec.data.output_root)
