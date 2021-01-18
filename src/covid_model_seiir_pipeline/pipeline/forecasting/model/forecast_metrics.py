@@ -1,25 +1,25 @@
-from dataclasses import dataclass
-from typing import Dict, List, Tuple, Union
+from typing import Dict, List, Tuple, Union, TYPE_CHECKING
 
 import pandas as pd
 
 from covid_model_seiir_pipeline.lib import math
-from covid_model_seiir_pipeline.pipeline.regression import (
-    HospitalParameters,
+from covid_model_seiir_pipeline.pipeline.forecasting.model.containers import (
+    CompartmentInfo,
     HospitalFatalityRatioData,
     HospitalCorrectionFactors,
     HospitalMetrics,
+    OutputMetrics,
+)
+from covid_model_seiir_pipeline.pipeline.regression.model import (
     compute_hospital_usage,
 )
-from covid_model_seiir_pipeline.pipeline.forecasting.model.ode_forecast import CompartmentInfo
 
 
-@dataclass
-class OutputMetrics:
-    components: pd.DataFrame
-    deaths: pd.DataFrame
-    infections: pd.DataFrame
-    r_effective: pd.DataFrame
+if TYPE_CHECKING:
+    # Support type checking but keep the pipeline stages as isolated as possible.
+    from covid_model_seiir_pipeline.pipeline.regression.specification import (
+        HospitalParameters,
+    )
 
 
 def compute_output_metrics(infection_data: pd.DataFrame,
@@ -63,7 +63,7 @@ def compute_output_metrics(infection_data: pd.DataFrame,
 def compute_corrected_hospital_usage(all_age_deaths: pd.DataFrame,
                                      death_weights: pd.Series,
                                      hospital_fatality_ratio: HospitalFatalityRatioData,
-                                     hospital_parameters: HospitalParameters,
+                                     hospital_parameters: 'HospitalParameters',
                                      correction_factors: HospitalCorrectionFactors) -> HospitalMetrics:
     hospital_usage = compute_hospital_usage(
         all_age_deaths,
@@ -72,7 +72,6 @@ def compute_corrected_hospital_usage(all_age_deaths: pd.DataFrame,
         hospital_parameters,
     )
     return hospital_usage
-
 
 
 def splice_components(components_past: pd.DataFrame, components_forecast: pd.DataFrame):

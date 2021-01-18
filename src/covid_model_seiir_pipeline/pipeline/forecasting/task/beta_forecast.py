@@ -9,9 +9,6 @@ from covid_model_seiir_pipeline.lib import (
     static_vars,
     utilities,
 )
-from covid_model_seiir_pipeline.pipeline.regression import (
-    get_death_weights,
-)
 from covid_model_seiir_pipeline.pipeline.forecasting import model
 from covid_model_seiir_pipeline.pipeline.forecasting.specification import ForecastSpecification
 from covid_model_seiir_pipeline.pipeline.forecasting.data import ForecastDataInterface
@@ -56,7 +53,7 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, **kwar
     ifr = data_interface.load_ifr_data()
     # Data for computing hospital usage
     mr = data_interface.load_mortality_ratio(location_ids)
-    death_weights = get_death_weights(mr, population, with_error=False)
+    death_weights = model.get_death_weights(mr, population, with_error=False)
     hfr = data_interface.load_hospital_fatality_ratio(death_weights, location_ids)
     hospital_parameters = data_interface.get_hospital_parameters()
     correction_factors = data_interface.load_hospital_correction_factors()
@@ -118,7 +115,6 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, **kwar
         hospital_parameters,
         correction_factors,
     )
-
 
     if scenario_spec.algorithm == 'draw_level_mandate_reimposition':
         logger.info('Entering mandate reimposition.', context='compute_mandates')

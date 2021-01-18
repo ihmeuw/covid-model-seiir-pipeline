@@ -11,16 +11,22 @@ from covid_model_seiir_pipeline.lib import (
     static_vars,
     utilities,
 )
-from covid_model_seiir_pipeline.pipeline.regression import (
-    HospitalParameters,
+from covid_model_seiir_pipeline.pipeline.forecasting.model.containers import (
     HospitalCorrectionFactors,
+    CompartmentInfo,
+    ScenarioData,
 )
 
 if TYPE_CHECKING:
     # The model subpackage is a library for the pipeline stage and shouldn't
     # explicitly depend on things outside the subpackage.
-    from covid_model_seiir_pipeline.pipeline.forecasting.data import ScenarioData
-    from covid_model_seiir_pipeline.pipeline.forecasting.specification import ScenarioSpecification
+    from covid_model_seiir_pipeline.pipeline.forecasting.specification import (
+        ScenarioSpecification,
+    )
+    # Support type checking but keep the pipeline stages as isolated as possible.
+    from covid_model_seiir_pipeline.pipeline.regression.specification import (
+        HospitalParameters,
+    )
 
 
 def forecast_beta(covariates: pd.DataFrame,
@@ -62,7 +68,7 @@ def forecast_correction_factors(correction_factors: HospitalCorrectionFactors,
 
 def prep_seir_parameters(betas: pd.DataFrame,
                          thetas: pd.Series,
-                         scenario_data: 'ScenarioData'):
+                         scenario_data: ScenarioData):
     betas = betas.rename(columns={'beta_pred': 'beta'})
     parameters = betas.merge(thetas, on='location_id')
     if scenario_data.vaccinations is not None:
@@ -103,12 +109,6 @@ def get_population_partition(population: pd.DataFrame,
         raise NotImplementedError
 
     return partition_map
-
-
-@dataclass
-class CompartmentInfo:
-    compartments: List[str]
-    group_suffixes: List[str]
 
 
 def get_past_components(beta_regression_df: pd.DataFrame,

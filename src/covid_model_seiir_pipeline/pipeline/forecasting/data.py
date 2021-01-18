@@ -12,14 +12,17 @@ from covid_model_seiir_pipeline.lib import (
 from covid_model_seiir_pipeline.pipeline.regression import (
     RegressionDataInterface,
     RegressionSpecification,
-    HospitalMetrics,
-    HospitalCorrectionFactors,
     HospitalParameters,
-    HospitalFatalityRatioData,
 )
 from covid_model_seiir_pipeline.pipeline.forecasting.specification import (
     ForecastSpecification,
     ScenarioSpecification,
+)
+from covid_model_seiir_pipeline.pipeline.forecasting.model import (
+    HospitalMetrics,
+    HospitalCorrectionFactors,
+    HospitalFatalityRatioData,
+    ScenarioData,
 )
 
 
@@ -167,7 +170,7 @@ class ForecastDataInterface:
 
     def load_scenario_specific_data(self,
                                     location_ids: List[int],
-                                    scenario_spec: ScenarioSpecification) -> 'ScenarioData':
+                                    scenario_spec: ScenarioSpecification) -> ScenarioData:
         if scenario_spec.system == 'vaccine':
             forecast_scenario = scenario_spec.system_params.get('forecast_version', 'reference')
             vaccinations = self.load_vaccine_info(
@@ -316,10 +319,3 @@ class ForecastDataInterface:
         regression_spec = RegressionSpecification.from_dict(io.load(self.regression_root.specification()))
         regression_di = RegressionDataInterface.from_specification(regression_spec)
         return regression_di
-
-
-@dataclass
-class ScenarioData:
-    vaccinations: Optional[pd.DataFrame]
-    percent_mandates: Optional[pd.DataFrame]
-    mandate_effects: Optional[pd.DataFrame]
