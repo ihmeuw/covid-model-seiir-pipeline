@@ -250,7 +250,7 @@ class RegressionDataInterface:
         population = population.loc[in_locations & is_2019 & is_both_sexes & is_five_year_bins, :]
         return population
 
-    def load_hospital_correction_data(self) -> 'HospitalCensusData':
+    def load_hospital_census_data(self) -> 'HospitalCensusData':
         metadata = self.get_model_inputs_metadata()
 
         model_inputs_path = Path(metadata['output_path'])
