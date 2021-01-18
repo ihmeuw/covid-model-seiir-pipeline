@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 from typing import Dict, List, Tuple, Union
 
 import pandas as pd
@@ -6,12 +7,20 @@ from covid_model_seiir_pipeline.lib import math
 from covid_model_seiir_pipeline.pipeline.forecasting.model.ode_forecast import CompartmentInfo
 
 
+@dataclass
+class OutputMetrics:
+    components: pd.DataFrame
+    deaths: pd.DataFrame
+    infections: pd.DataFrame
+    r_effective: pd.DataFrame
+
+
 def compute_output_metrics(infection_data: pd.DataFrame,
                            ifr: pd.DataFrame,
                            components_past: pd.DataFrame,
                            components_forecast: pd.DataFrame,
                            seir_params: Dict[str, float],
-                           compartment_info: CompartmentInfo) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+                           compartment_info: CompartmentInfo) -> OutputMetrics:
     components = splice_components(components_past, components_forecast)
 
     observed_infections, observed_deaths = math.get_observed_infecs_and_deaths(infection_data)
@@ -41,7 +50,7 @@ def compute_output_metrics(infection_data: pd.DataFrame,
     deaths = observed_deaths.combine_first(modeled_deaths)
     r_effective = compute_effective_r(components, seir_params, compartment_info.compartments)
 
-    return components, infections, deaths, r_effective
+    return OutputMetrics(components, infections, deaths, r_effective)
 
 
 def splice_components(components_past: pd.DataFrame, components_forecast: pd.DataFrame):

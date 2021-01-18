@@ -176,8 +176,10 @@ class RegressionDataInterface:
         mr_df = mr_df.loc[mr_df.location_id.isin(location_ids), ['location_id', 'age_start', 'MRprob']]
         return mr_df.set_index(['location_id', 'age_start']).MRprob
 
-    def load_hospital_fatality_ratio(self, death_weights: pd.Series,
-                                  location_ids: List[int], with_error: bool) -> 'HospitalFatalityRatioData':
+    def load_hospital_fatality_ratio(self,
+                                     death_weights: pd.Series,
+                                     location_ids: List[int],
+                                     with_error: bool) -> 'HospitalFatalityRatioData':
         hfr_age_cols = ['X1', 'X2', 'X3', 'X4', 'X5']
 
         hfr_all_locs = io.load(self.hospital_fatality_ratio_root.hospital_fatality_ratio())

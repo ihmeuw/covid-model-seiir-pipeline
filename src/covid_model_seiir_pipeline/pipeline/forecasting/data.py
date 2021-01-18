@@ -15,6 +15,7 @@ from covid_model_seiir_pipeline.pipeline.regression import (
     HospitalMetrics,
     HospitalCorrectionFactors,
     HospitalParameters,
+    HospitalFatalityRatioData,
 )
 from covid_model_seiir_pipeline.pipeline.forecasting.specification import (
     ForecastSpecification,
@@ -99,6 +100,15 @@ class ForecastDataInterface:
         df['date'] = pd.to_datetime(df['date'])
         df = df.set_index(['location_id', 'date']).sort_index()
         return HospitalCorrectionFactors(**{metric: df[metric] for metric in df.columns})
+
+    def load_mortality_ratio(self, location_ids: List[int]) -> pd.Series:
+        return self._get_regression_data_interface().load_mortality_ratio(location_ids)
+
+    def load_hospital_fatality_ratio(self,
+                                     death_weights: pd.Series,
+                                     location_ids: List[int]) -> HospitalFatalityRatioData:
+        rdi = self._get_regression_data_interface()
+        return rdi.load_hospital_fatality_ratio(death_weights, location_ids, with_error=False)
 
     ##########################
     # Covariate data loaders #
