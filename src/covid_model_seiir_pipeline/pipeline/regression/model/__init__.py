@@ -12,4 +12,6 @@ from covid_model_seiir_pipeline.pipeline.regression.model.hospital_corrections i
     get_death_weights,
     compute_hospital_usage,
     calculate_hospital_correction_factors,
+    HospitalMetrics,
+    HospitalCorrectionFactors,
 )

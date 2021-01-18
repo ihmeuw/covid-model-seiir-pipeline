@@ -9,6 +9,11 @@ import pandas as pd
 from covid_model_seiir_pipeline.lib import (
     math,
     static_vars,
+    utilities,
+)
+from covid_model_seiir_pipeline.pipeline.regression import (
+    HospitalParameters,
+    HospitalCorrectionFactors,
 )
 
 if TYPE_CHECKING:
@@ -28,6 +33,31 @@ def forecast_beta(covariates: pd.DataFrame,
     # regression.
     betas = _beta_shift(beta_hat, beta_shift_parameters).set_index('location_id')
     return betas
+
+
+def forecast_correction_factors(correction_factors: HospitalCorrectionFactors,
+                                today: pd.Series,
+                                max_date: pd.Timestamp,
+                                hospital_parameters: HospitalParameters) -> HospitalCorrectionFactors:
+    averaging_window = pd.Timedelta(days=hospital_parameters.correction_factor_average_window)
+    application_window = pd.Timedelta(days=hospital_parameters.correction_factor_application_window)
+    assert np.all(max_date > today + application_window)
+
+    new_cfs = {}
+    for cf_name, cf in utilities.asdict(correction_factors).items():
+        loc_cfs = []
+        for loc_id in today.index:
+            loc_cf = cf.loc[loc_id]
+            loc_today = today.loc[loc_id]
+            mean_cf = loc_cf.loc[loc_today - averaging_window: loc_today].mean()
+            loc_cf = loc_cf.loc[:loc_today]
+            loc_cf.loc[loc_today + application_window] = mean_cf
+            loc_cf.loc[max_date] = mean_cf
+            loc_cf = loc_cf.asfreq('D').interpolate().reset_index()
+            loc_cf['location_id'] = loc_id
+            loc_cfs.append(loc_cf.set_index(['location_id', 'date'])[cf_name])
+        new_cfs[cf_name] = pd.concat(loc_cfs).sort_index()
+    return HospitalCorrectionFactors(**new_cfs)
 
 
 def prep_seir_parameters(betas: pd.DataFrame,

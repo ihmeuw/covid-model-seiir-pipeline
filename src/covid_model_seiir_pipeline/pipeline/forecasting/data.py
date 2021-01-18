@@ -12,6 +12,9 @@ from covid_model_seiir_pipeline.lib import (
 from covid_model_seiir_pipeline.pipeline.regression import (
     RegressionDataInterface,
     RegressionSpecification,
+    HospitalMetrics,
+    HospitalCorrectionFactors,
+    HospitalParameters,
 )
 from covid_model_seiir_pipeline.pipeline.forecasting.specification import (
     ForecastSpecification,
@@ -81,6 +84,21 @@ class ForecastDataInterface:
     def load_beta_params(self, draw_id: int) -> Dict[str, float]:
         df = self._get_regression_data_interface().load_beta_param_file(draw_id=draw_id)
         return df.set_index('params')['values'].to_dict()
+
+    def get_hospital_parameters(self) -> HospitalParameters:
+        return self._get_regression_data_interface().load_specification().hospital_parameters
+
+    def load_hospital_usage(self) -> HospitalMetrics:
+        df = self._get_regression_data_interface().load_hospital_data(measure='usage')
+        df['date'] = pd.to_datetime(df['date'])
+        df = df.set_index(['location_id', 'date']).sort_index()
+        return HospitalMetrics(**{metric: df[metric] for metric in df.columns})
+
+    def load_hospital_correction_factors(self) -> HospitalCorrectionFactors:
+        df = self._get_regression_data_interface().load_hospital_data(measure='correction_factors')
+        df['date'] = pd.to_datetime(df['date'])
+        df = df.set_index(['location_id', 'date']).sort_index()
+        return HospitalCorrectionFactors(**{metric: df[metric] for metric in df.columns})
 
     ##########################
     # Covariate data loaders #

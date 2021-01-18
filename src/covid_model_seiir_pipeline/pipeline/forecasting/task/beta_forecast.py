@@ -45,6 +45,9 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, **kwar
     # used to compute beta hat in the future.
     covariates = data_interface.load_covariates(scenario_spec, location_ids)
     coefficients = data_interface.load_regression_coefficients(draw_id)
+    # Hospital correction factors
+    hospital_parameters = data_interface.get_hospital_parameters()
+    correction_factors = data_interface.load_hospital_correction_factors()
     # Rescaling parameters for the beta forecast.
     beta_scales = data_interface.load_beta_scales(scenario=scenario, draw_id=draw_id)
     # We'll need this to compute deaths and to splice with the forecasts.
@@ -75,6 +78,14 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, **kwar
 
     betas = model.forecast_beta(covariate_pred, coefficients, beta_scales)
     seir_parameters = model.prep_seir_parameters(betas, thetas, scenario_data)
+
+    forecast_end_date = covariates.date.max()
+    correction_factors = model.forecast_correction_factors(
+        correction_factors,
+        transition_date,
+        forecast_end_date,
+        hospital_parameters,
+    )
 
     logger.info('Running ODE forecast.', context='compute_ode')
     future_components = model.run_normal_ode_model_by_location(

@@ -243,7 +243,7 @@ class RegressionDataInterface:
         population = population.loc[in_locations & is_2019 & is_both_sexes & is_five_year_bins, :]
         return population
 
-    def load_hospital_correction_data(self) -> 'HospitalCorrectionsData':
+    def load_hospital_correction_data(self) -> 'HospitalCensusData':
         metadata = self.get_model_inputs_metadata()
 
         model_inputs_path = Path(metadata['output_path'])
@@ -265,7 +265,7 @@ class RegressionDataInterface:
             census_exclude_locs = [200, 69, 179, 172, 170, 144, 26, 74, 67, 58]
             df = df.loc[~df.location_id.isin(census_exclude_locs)]
             corrections_data[measure] = df.set_index(['location_id', 'date']).value
-        return HospitalCorrectionsData(**corrections_data)
+        return HospitalCensusData(**corrections_data)
 
     #######################
     # Regression data I/O #
@@ -337,7 +337,7 @@ class HospitalFatalityRatioData:
 
 
 @dataclass
-class HospitalCorrectionsData:
+class HospitalCensusData:
     hospital_census: pd.Series
     icu_census: pd.Series
     ventilator_census: pd.Series
