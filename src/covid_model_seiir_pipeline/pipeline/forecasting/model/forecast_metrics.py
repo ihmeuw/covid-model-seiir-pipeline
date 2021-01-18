@@ -60,7 +60,7 @@ def compute_output_metrics(infection_data: pd.DataFrame,
         seir_params,
         compartment_info.compartments
     )
-
+    components = components.set_index('date', append=True)
     susceptible_columns = [c for c in components.columns if 'S' in c]
     immune_columns = [c for c in components.columns if 'M' in c or 'R' in c]
     return OutputMetrics(
