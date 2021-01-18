@@ -1,4 +1,3 @@
-from dataclasses import dataclass
 from functools import reduce
 from pathlib import Path
 from typing import Dict, List, Iterable, Optional, Union
@@ -10,7 +9,13 @@ from covid_model_seiir_pipeline.lib import (
     io,
     utilities,
 )
-from covid_model_seiir_pipeline.pipeline.regression.specification import RegressionSpecification
+from covid_model_seiir_pipeline.pipeline.regression.specification import (
+    RegressionSpecification,
+)
+from covid_model_seiir_pipeline.pipeline.regression.model import (
+    HospitalFatalityRatioData,
+    HospitalCorrectionsData,
+)
 
 
 # TODO: move data interfaces up a package level and fuse with forecast data interface.
@@ -328,16 +333,3 @@ class RegressionDataInterface:
 
     def load_hospital_data(self, measure: str) -> pd.DataFrame:
         return io.load(self.regression_root.hospitalizations(measure=measure))
-
-
-@dataclass
-class HospitalFatalityRatioData:
-    age_specific: pd.Series
-    all_age: pd.Series
-
-
-@dataclass
-class HospitalCorrectionsData:
-    hospital_census: pd.Series
-    icu_census: pd.Series
-    ventilator_census: pd.Series
