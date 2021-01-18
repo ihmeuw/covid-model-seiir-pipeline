@@ -44,7 +44,7 @@ def forecast_beta(covariates: pd.DataFrame,
 def forecast_correction_factors(correction_factors: HospitalCorrectionFactors,
                                 today: pd.Series,
                                 max_date: pd.Timestamp,
-                                hospital_parameters: HospitalParameters) -> HospitalCorrectionFactors:
+                                hospital_parameters: 'HospitalParameters') -> HospitalCorrectionFactors:
     averaging_window = pd.Timedelta(days=hospital_parameters.correction_factor_average_window)
     application_window = pd.Timedelta(days=hospital_parameters.correction_factor_application_window)
     assert np.all(max_date > today + application_window)

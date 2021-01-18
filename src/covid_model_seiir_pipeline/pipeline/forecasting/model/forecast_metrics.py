@@ -57,7 +57,12 @@ def compute_output_metrics(infection_data: pd.DataFrame,
     deaths = observed_deaths.combine_first(modeled_deaths)
     r_effective = compute_effective_r(components, seir_params, compartment_info.compartments)
 
-    return OutputMetrics(components, infections, deaths, r_effective)
+    return OutputMetrics(
+        components=components, 
+        infections=infections, 
+        deaths=deaths, 
+        r_effective=r_effective
+    )
 
 
 def compute_corrected_hospital_usage(all_age_deaths: pd.DataFrame,
@@ -66,11 +71,14 @@ def compute_corrected_hospital_usage(all_age_deaths: pd.DataFrame,
                                      hospital_parameters: 'HospitalParameters',
                                      correction_factors: HospitalCorrectionFactors) -> HospitalMetrics:
     hospital_usage = compute_hospital_usage(
-        all_age_deaths,
+        all_age_deaths.reset_index(),
         death_weights,
         hospital_fatality_ratio,
         hospital_parameters,
     )
+    hospital_usage.hospital_census = (hospital_usage.hospital_census * correction_factors.hospital_census).fillna(method='ffill')
+    hospital_usage.icu_census = (hospital_usage.icu_census * correction_factors.icu_census).fillna(method='ffill')
+    hospital_usage.ventilator_census = (hospital_usage.ventilator_census * correction_factors.ventilator_census).fillna(method='ffill')
     return hospital_usage
 
 
