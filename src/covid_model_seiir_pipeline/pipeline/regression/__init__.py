@@ -15,4 +15,5 @@ from covid_model_seiir_pipeline.pipeline.regression.model import (
     HospitalMetrics,
     HospitalCorrectionFactors,
     get_death_weights,
+    compute_hospital_usage,
 )

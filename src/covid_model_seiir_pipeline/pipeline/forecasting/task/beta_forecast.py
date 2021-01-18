@@ -111,6 +111,14 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, **kwar
         beta_params,
         compartment_info,
     )
+    hospital_usage = model.compute_corrected_hospital_usage(
+        output_metrics.deaths,
+        death_weights,
+        hfr,
+        hospital_parameters,
+        correction_factors,
+    )
+
 
     if scenario_spec.algorithm == 'draw_level_mandate_reimposition':
         logger.info('Entering mandate reimposition.', context='compute_mandates')
@@ -185,6 +193,13 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, **kwar
                 beta_params,
                 compartment_info,
             )
+            hospital_usage = model.compute_corrected_hospital_usage(
+                output_metrics.deaths,
+                death_weights,
+                hfr,
+                hospital_parameters,
+                correction_factors,
+            )
 
             logger.info('Recomputing reimposition dates', context='compute_mandates')
             reimposition_count += 1
@@ -203,10 +218,10 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, **kwar
     ode_params = output_metrics.components[ode_param_cols].reset_index()
     components = output_metrics.components[compartment_info.compartments].reset_index()
     covariates = covariates.reset_index()
-    outputs = pd.concat(
-        [metric for metric_name, metric in utilities.asdict(output_metrics).items() if metric_name != 'components'],
-        axis=1,
-    ).reset_index()
+    epi_metrics = [value for key, value in utilities.asdict(output_metrics).items() if key != 'components']
+    usage = [value.rename(key) for key, value in utilities.asdict(hospital_usage).items()]
+    corrections = [value.rename(key) for key, value in utilities.asdict(correction_factors).items()]
+    outputs = pd.concat(epi_metrics + usage + corrections, axis=1).reset_index()
 
     data_interface.save_ode_params(ode_params, scenario, draw_id)
     data_interface.save_components(components, scenario, draw_id)

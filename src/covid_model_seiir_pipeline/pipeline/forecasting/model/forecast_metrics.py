@@ -4,6 +4,13 @@ from typing import Dict, List, Tuple, Union
 import pandas as pd
 
 from covid_model_seiir_pipeline.lib import math
+from covid_model_seiir_pipeline.pipeline.regression import (
+    HospitalParameters,
+    HospitalFatalityRatioData,
+    HospitalCorrectionFactors,
+    HospitalMetrics,
+    compute_hospital_usage,
+)
 from covid_model_seiir_pipeline.pipeline.forecasting.model.ode_forecast import CompartmentInfo
 
 
@@ -51,6 +58,21 @@ def compute_output_metrics(infection_data: pd.DataFrame,
     r_effective = compute_effective_r(components, seir_params, compartment_info.compartments)
 
     return OutputMetrics(components, infections, deaths, r_effective)
+
+
+def compute_corrected_hospital_usage(all_age_deaths: pd.DataFrame,
+                                     death_weights: pd.Series,
+                                     hospital_fatality_ratio: HospitalFatalityRatioData,
+                                     hospital_parameters: HospitalParameters,
+                                     correction_factors: HospitalCorrectionFactors) -> HospitalMetrics:
+    hospital_usage = compute_hospital_usage(
+        all_age_deaths,
+        death_weights,
+        hospital_fatality_ratio,
+        hospital_parameters,
+    )
+    return hospital_usage
+
 
 
 def splice_components(components_past: pd.DataFrame, components_forecast: pd.DataFrame):
