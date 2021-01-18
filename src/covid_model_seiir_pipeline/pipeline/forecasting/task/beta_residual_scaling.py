@@ -4,7 +4,6 @@ from typing import Dict, List
 from pathlib import Path
 
 import click
-from loguru import logger
 import pandas as pd
 import numpy as np
 
@@ -17,6 +16,9 @@ from covid_model_seiir_pipeline.pipeline.forecasting.specification import (
     FORECAST_JOBS,
 )
 from covid_model_seiir_pipeline.pipeline.forecasting.data import ForecastDataInterface
+
+
+logger = cli_tools.task_performance_logger
 
 
 def run_compute_beta_scaling_parameters(forecast_version: str, scenario: str):
@@ -61,7 +63,7 @@ def run_compute_beta_scaling_parameters(forecast_version: str, scenario: str):
 
     """
     logger.info(f"Computing beta scaling parameters for forecast "
-                f"version {forecast_version} and scenario {scenario}.")
+                f"version {forecast_version} and scenario {scenario}.", context='setup')
 
     forecast_spec: ForecastSpecification = ForecastSpecification.from_path(
         Path(forecast_version) / static_vars.FORECAST_SPECIFICATION_FILE
@@ -69,14 +71,20 @@ def run_compute_beta_scaling_parameters(forecast_version: str, scenario: str):
     num_cores = forecast_spec.workflow.task_specifications[FORECAST_JOBS.scaling].num_cores
     data_interface = ForecastDataInterface.from_specification(forecast_spec)
 
+    logger.info('Loading input data.', context='read')
     locations = data_interface.load_location_ids()
     total_deaths = data_interface.load_total_deaths()
     total_deaths = total_deaths[total_deaths.location_id.isin(locations)].set_index('location_id')['deaths']
-
     beta_scaling = forecast_spec.scenarios[scenario].beta_scaling
+
+    logger.info('Computing scaling parameters.', context='compute')
     scaling_data = compute_initial_beta_scaling_paramters(total_deaths, beta_scaling, data_interface, num_cores)
     residual_mean_offset = compute_residual_mean_offset(scaling_data, beta_scaling, total_deaths)
+
+    logger.info('Writing scaling parameters to disk.', context='write')
     write_out_beta_scale(scaling_data, residual_mean_offset, scenario, data_interface, num_cores)
+
+    logger.report()
 
 
 def compute_residual_mean_offset(scaling_data: List[pd.DataFrame],
@@ -173,7 +181,6 @@ def compute_initial_beta_scaling_parameters_by_draw(draw_id: int,
 
     a = rs.randint(1, beta_scaling['average_over_min'])
     b = rs.randint(a + 21, beta_scaling['average_over_max'])
-
 
     draw_data.append(pd.Series(a, index=total_deaths.index, name='history_days_start'))
     draw_data.append(pd.Series(b, index=total_deaths.index, name='history_days_end'))
