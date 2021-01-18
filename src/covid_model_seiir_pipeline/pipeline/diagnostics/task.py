@@ -4,7 +4,6 @@ from pathlib import Path
 import tempfile
 
 import click
-from loguru import logger
 import pandas as pd
 
 import tqdm
@@ -19,9 +18,12 @@ from covid_model_seiir_pipeline.pipeline.diagnostics.specification import (
 from covid_model_seiir_pipeline.pipeline.diagnostics import model
 
 
+logger = cli_tools.task_performance_logger
+
+
 def run_grid_plots(diagnostics_version: str, name: str, progress_bar: bool) -> None:
     """Make the grid plots!"""
-    logger.info(f'Starting grid plots for version {diagnostics_version}, name {name}.')
+    logger.info(f'Starting grid plots for version {diagnostics_version}, name {name}.', context='setup')
     diagnostics_spec = DiagnosticsSpecification.from_path(
         Path(diagnostics_version) / static_vars.DIAGNOSTICS_SPECIFICATION_FILE
     )
@@ -42,7 +44,7 @@ def run_grid_plots(diagnostics_version: str, name: str, progress_bar: bool) -> N
 
     with tempfile.TemporaryDirectory() as temp_dir_name:
         root = Path(temp_dir_name)
-        logger.info('Building data cache')
+        logger.info('Building data cache', context='shared_io')
         data_cache = root / 'data_cache'
         data_cache.mkdir()
         # Copy all the summary & miscellaneous data and a subset of draws
@@ -56,13 +58,14 @@ def run_grid_plots(diagnostics_version: str, name: str, progress_bar: bool) -> N
 
         # Fixme: this is a bit brittle as it requires some ordering constraints
         #   on the user side to get the expected results.
-        logger.info('Loading locations')
+        logger.info('Loading locations', context='setup')
         hierarchy = plot_versions[0].load_output_miscellaneous('hierarchy', is_table=True)
         deaths = plot_versions[0].load_output_summaries('daily_deaths')
         modeled_locs = hierarchy.loc[hierarchy.location_id.isin(deaths.location_id.unique()),
                                      ['location_id', 'location_name']]
         locs_to_plot = [model.Location(loc[1], loc[2]) for loc in modeled_locs.itertuples()]
 
+        logger.info('Starting plots', context='make_plots')
         _runner = functools.partial(
             model.make_grid_plot,
             plot_versions=plot_versions,
@@ -70,15 +73,15 @@ def run_grid_plots(diagnostics_version: str, name: str, progress_bar: bool) -> N
             date_end=pd.to_datetime(grid_plot_spec.date_end),
             output_dir=plot_cache,
         )
-
         num_cores = diagnostics_spec.workflow.task_specifications['grid_plots'].num_cores
-        logger.info('Starting plots')
         with multiprocessing.Pool(num_cores) as pool:
             list(tqdm.tqdm(pool.imap(_runner, locs_to_plot), total=len(locs_to_plot), disable=not progress_bar))
 
-        logger.info('Collating plots')
+        logger.info('Collating plots', context='merge_plots')
         output_path = Path(diagnostics_spec.data.output_root) / f'grid_plots_{grid_plot_spec.name}.pdf'
         model.merge_pdfs(plot_cache, output_path, hierarchy)
+
+        logger.report()
 
 
 @click.command()
