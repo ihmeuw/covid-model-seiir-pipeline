@@ -1,15 +1,17 @@
 from collections import defaultdict
-from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 import numpy as np
 import pandas as pd
 
+from covid_model_seiir_pipeline.pipeline.regression.model.containers import (
+    HospitalFatalityRatioData,
+    HospitalCensusData,
+    HospitalMetrics,
+    HospitalCorrectionFactors,
+)
+
 if TYPE_CHECKING:
-    from covid_model_seiir_pipeline.pipeline.regression.data import (
-        HospitalFatalityRatioData,
-        HospitalCensusData,
-    )
     from covid_model_seiir_pipeline.pipeline.regression.specification import (
         HospitalParameters,
     )
@@ -151,8 +153,8 @@ def _to_census(admissions: pd.Series, length_of_stay: int) -> pd.Series:
 
 def compute_hospital_usage(all_age_deaths: pd.DataFrame,
                            death_weights: pd.Series,
-                           hospital_fatality_ratio: 'HospitalFatalityRatioData',
-                           hospital_parameters: 'HospitalParameters') -> 'HospitalMetrics':
+                           hospital_fatality_ratio: HospitalFatalityRatioData,
+                           hospital_parameters: 'HospitalParameters') -> HospitalMetrics:
     all_age_deaths = all_age_deaths.set_index(['location_id', 'date'])['deaths'].sort_index()
     age_specific_deaths = (all_age_deaths * death_weights).reorder_levels(['location_id', 'age', 'date'])
 
@@ -300,7 +302,7 @@ def _safe_log_divide(numerator: pd.Series, denominator: pd.Series) -> pd.Series:
 def calculate_hospital_correction_factors(usage: 'HospitalMetrics',
                                           census_data: 'HospitalCensusData',
                                           aggregation_hierarchy: pd.DataFrame,
-                                          hospital_parameters: 'HospitalParameters') -> 'HospitalCorrectionFactors':
+                                          hospital_parameters: 'HospitalParameters') -> HospitalCorrectionFactors:
     date = usage.hospital_census.reset_index().date
     min_date, max_date = date.min(), date.max()
 
@@ -348,19 +350,3 @@ def calculate_hospital_correction_factors(usage: 'HospitalMetrics',
         icu_census=icu_cf,
         ventilator_census=ventilator_cf,
     )
-
-
-@dataclass
-class HospitalMetrics:
-    hospital_admissions: pd.Series
-    hospital_census: pd.Series
-    icu_admissions: pd.Series
-    icu_census: pd.Series
-    ventilator_census: pd.Series
-
-
-@dataclass
-class HospitalCorrectionFactors:
-    hospital_census: pd.Series
-    icu_census: pd.Series
-    ventilator_census: pd.Series
