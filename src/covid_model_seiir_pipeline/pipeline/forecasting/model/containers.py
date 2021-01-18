@@ -22,7 +22,11 @@ class OutputMetrics:
     components: pd.DataFrame
     deaths: pd.DataFrame
     infections: pd.DataFrame
+    r_controlled: pd.DataFrame
     r_effective: pd.DataFrame
+    herd_immunity: pd.DataFrame
+    total_susceptible: pd.DataFrame
+    total_immune: pd.DataFrame
 
     def to_dict(self) -> Dict[str, pd.DataFrame]:
         return utilities.asdict(self)

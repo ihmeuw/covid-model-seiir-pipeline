@@ -55,13 +55,23 @@ def compute_output_metrics(infection_data: pd.DataFrame,
 
     infections = observed_infections.combine_first(modeled_infections)
     deaths = observed_deaths.combine_first(modeled_deaths)
-    r_effective = compute_effective_r(components, seir_params, compartment_info.compartments)
+    r_controlled, r_effective = compute_effective_r(
+        components,
+        seir_params,
+        compartment_info.compartments
+    )
 
+    susceptible_columns = [c for c in components.columns if 'S' in c]
+    immune_columns = [c for c in components.columns if 'M' in c or 'R' in c]
     return OutputMetrics(
-        components=components, 
-        infections=infections, 
-        deaths=deaths, 
-        r_effective=r_effective
+        components=components,
+        infections=infections,
+        deaths=deaths,
+        r_controlled=r_controlled,
+        r_effective=r_effective,
+        herd_immunity=(1 / (1 - r_controlled)),
+        total_susceptible=components[susceptible_columns].sum(axis=1),
+        total_immune=components[immune_columns].sum(axis=1),
     )
 
 
@@ -139,7 +149,7 @@ def compute_deaths(modeled_infections: pd.Series, infection_death_lag: int, ifr:
 
 def compute_effective_r(components: pd.DataFrame,
                         beta_params: Dict[str, float],
-                        compartments: List[str]) -> pd.DataFrame:
+                        compartments: List[str]) -> Tuple[pd.DataFrame, pd.DataFrame]:
     alpha, sigma = beta_params['alpha'], beta_params['sigma']
     gamma1, gamma2 = beta_params['gamma1'], beta_params['gamma2']
 
@@ -155,4 +165,4 @@ def compute_effective_r(components: pd.DataFrame,
     r_controlled = beta * alpha * sigma / avg_gamma * (infected) ** (alpha - 1)
     r_effective = (r_controlled * susceptible / n).rename('r_effective')
 
-    return r_effective
+    return r_controlled, r_effective
