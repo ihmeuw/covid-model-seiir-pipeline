@@ -14,9 +14,10 @@ class BetaResidualScalingTaskTemplate(workflow.TaskTemplate):
     task_name_template = f'{FORECAST_JOBS.scaling}_{{scenario}}'
     command_template = (
             f"{shutil.which('stask')} "
-            f"{FORECAST_JOBS.scaling} " +
-            "--forecast-version {forecast_version} " +
-            "--scenario {scenario}"
+            f"{FORECAST_JOBS.scaling} "
+            "--forecast-version {forecast_version} "
+            "--scenario {scenario} "
+            "-vv"
     )
     node_args = ['scenario']
     task_args = ['forecast_version']
@@ -27,11 +28,12 @@ class BetaForecastTaskTemplate(workflow.TaskTemplate):
     task_name_template = f"{FORECAST_JOBS.forecast}_{{scenario}}_{{draw_id}}"
     command_template = (
         f"{shutil.which('stask')} "
-        f"{FORECAST_JOBS.forecast} " +
-        "--forecast-version {forecast_version} " +
-        "--scenario {scenario} " +
-        "--draw-id {draw_id} " +
-        "--extra-id {extra_id}"
+        f"{FORECAST_JOBS.forecast} "
+        "--forecast-version {forecast_version} "
+        "--scenario {scenario} "
+        "--draw-id {draw_id} "
+        "--extra-id {extra_id} "
+        "-vv"
     )
     node_args = ['scenario', 'draw_id', 'extra_id']
     task_args = ['forecast_version']

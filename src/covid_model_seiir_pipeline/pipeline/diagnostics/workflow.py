@@ -12,10 +12,10 @@ class GridPlotsTaskTemplate(workflow.TaskTemplate):
     task_name_template = f"{DIAGNOSTICS_JOBS.grid_plots}_{{plot_name}}"
     command_template = (
             f"{shutil.which('stask')} "
-            f"{DIAGNOSTICS_JOBS.grid_plots} " +
+            f"{DIAGNOSTICS_JOBS.grid_plots} "
             "--diagnostics-version {diagnostics_version} "
             "--name {plot_name} "
-            "-vv "
+            "-vv"
     )
     node_args = ['plot_name']
     task_args = ['diagnostics_version']
