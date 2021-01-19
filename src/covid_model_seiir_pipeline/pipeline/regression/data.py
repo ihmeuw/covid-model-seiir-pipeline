@@ -91,7 +91,7 @@ class RegressionDataInterface:
         directory.
 
         """
-        draw_0_data = self.load_infection_data(draw_id=0)
+        draw_0_data = self.load_past_infection_data(draw_id=0)
         modeled_locations = draw_0_data['location_id'].unique().tolist()
 
         if desired_location_hierarchy is None:
@@ -223,7 +223,7 @@ class RegressionDataInterface:
 
     def get_model_inputs_metadata(self):
         infection_metadata = self.get_infectionator_metadata()
-        return infection_metadata['death']['metadata']['model_inputs_metadata']
+        return infection_metadata['model_inputs_metadata']
 
     def load_population(self) -> pd.DataFrame:
         metadata = self.get_model_inputs_metadata()
