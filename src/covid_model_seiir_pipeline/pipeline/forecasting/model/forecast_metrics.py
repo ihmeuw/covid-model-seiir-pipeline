@@ -31,8 +31,7 @@ def compute_output_metrics(infection_data: pd.DataFrame,
     components = splice_components(components_past, components_forecast)
 
     observed_infections, observed_deaths = math.get_observed_infecs_and_deaths(infection_data)
-    infection_death_lag = infection_data['i_d_lag'].max()
-
+    infection_death_lag = infection_data['duration'].max()
     if compartment_info.group_suffixes:
         modeled_infections, modeled_deaths = 0, 0
         for group in compartment_info.group_suffixes:
@@ -141,7 +140,7 @@ def compute_infections(components: pd.DataFrame) -> Tuple[pd.Series, pd.Series]:
 
 
 def compute_deaths(modeled_infections: pd.Series, infection_death_lag: int, ifr: pd.Series) -> pd.Series:
-    modeled_deaths = (modeled_infections.shift(infection_death_lag).dropna() * ifr).rename('deaths').reset_index()
+    modeled_deaths = (modeled_infections * ifr).shift(infection_death_lag).dropna().rename('deaths').reset_index()
     modeled_deaths['observed'] = 0
     modeled_deaths = modeled_deaths.set_index(['location_id', 'date', 'observed'])['deaths']
     return modeled_deaths

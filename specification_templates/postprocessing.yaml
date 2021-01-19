@@ -1,5 +1,5 @@
 data:
-  forecast_version: '2021_01_18.01'
+  forecast_version: '2021_01_19.04'
   scenarios:
     - 'worse'
     - 'reference'

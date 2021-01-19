@@ -50,7 +50,7 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, **kwar
     beta_scales = data_interface.load_beta_scales(scenario=scenario, draw_id=draw_id)
     # We'll need this to compute deaths and to splice with the forecasts.
     infection_data = data_interface.load_infection_data(draw_id)
-    ifr = data_interface.load_ifr_data()
+    ifr = data_interface.load_ifr_data(draw_id, location_ids)
     # Data for computing hospital usage
     mr = data_interface.load_mortality_ratio(location_ids)
     death_weights = model.get_death_weights(mr, population, with_error=False)

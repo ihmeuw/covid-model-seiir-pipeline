@@ -129,7 +129,7 @@ class PostprocessingDataInterface:
         cumulative_hospitalizations = (es_inputs['Hospitalization rate'] * es_inputs['population'])
         cumulative_hospitalizations = cumulative_hospitalizations.rename('cumulative_hospitalizations')
         # TODO: have ES use and produce a config file for this number.
-        es_shift = -8
+        es_shift = -13
         cumulative_cases = cumulative_cases.groupby('location_id').shift(es_shift)
         cumulative_hospitalizations = cumulative_hospitalizations.groupby('location_id').shift(es_shift)
         es_inputs = pd.concat([cumulative_cases, cumulative_deaths, cumulative_hospitalizations], axis=1)
@@ -169,13 +169,9 @@ class PostprocessingDataInterface:
 
         # FIXME: infectionator doesn't do metadata the right way.
         inf_metadata = forecast_di.get_infectionator_metadata()
-        inf_output_dir = inf_metadata['wrapped_R_call'][-1].split()[1].strip("'")
-        version_map['infectionator_version'] = Path(inf_output_dir).name
+        version_map['infectionator_version'] = Path(inf_metadata['output_path']).name
 
-        death_metadata = inf_metadata['death']['metadata']
-        version_map['elastispliner_version'] = Path(death_metadata['output_path']).name
-
-        model_inputs_metadata = death_metadata['model_inputs_metadata']
+        model_inputs_metadata = inf_metadata['model_inputs_metadata']
         version_map['model_inputs_version'] = Path(model_inputs_metadata['output_path']).name
 
         snapshot_metadata = model_inputs_metadata['snapshot_metadata']

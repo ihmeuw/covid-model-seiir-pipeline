@@ -161,12 +161,13 @@ class RegressionDataInterface:
     # Ratio data loaders #
     ######################
 
-    def load_ifr_data(self, draw_id: int) -> pd.DataFrame:
+    def load_ifr_data(self, draw_id: int, location_ids: List[int]) -> pd.DataFrame:
         ifr = io.load(self.infection_root.ratios(draw_id=draw_id))
+        ifr = ifr[ifr.location_id.isin(location_ids)]
         ifr['date'] = pd.to_datetime(ifr['date'])
-        ifr = ifr.set_index(['location_id', 'date'])
+        ifr = ifr.set_index(['location_id', 'date']).sort_index()
         cols = [c for c in ifr.columns if '_draw' in c]
-        ifr = ifr.loc[:, cols].rename(columns={c: c.rstrip('_draw') for c in cols})
+        ifr = ifr.loc[:, cols].rename(columns={c: c.split('_draw')[0] for c in cols})
         return ifr
 
     def load_mortality_ratio(self, location_ids: List[int]) -> pd.Series:

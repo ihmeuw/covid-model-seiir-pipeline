@@ -251,8 +251,8 @@ class ForecastDataInterface:
     def load_five_year_population(self, location_ids: List[int]) -> pd.DataFrame:
         return self._get_regression_data_interface().load_five_year_population(location_ids)
 
-    def load_ifr_data(self) -> pd.DataFrame:
-        return self._get_regression_data_interface().load_ifr_data()
+    def load_ifr_data(self, draw_id: int, location_ids: List[int]) -> pd.DataFrame:
+        return self._get_regression_data_interface().load_ifr_data(draw_id=draw_id, location_ids=location_ids)
 
     def load_total_deaths(self):
         """Load cumulative deaths by location."""
