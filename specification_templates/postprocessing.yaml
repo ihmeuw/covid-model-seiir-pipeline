@@ -1,12 +1,12 @@
 data:
-  forecast_version: '2021_01_18.01'
+  forecast_version: '2021_01_18.02'
   scenarios:
     - 'worse'
     - 'reference'
-#    - 'no_vaccine'
-#    - 'vaccine_fast'
-#    - 'vaccine_fast_elderly'
-#    - 'best_masks'
+    - 'no_vaccine'
+    - 'vaccine_fast'
+    - 'vaccine_fast_elderly'
+    - 'best_masks'
   output_root: ''
 workflow:
   project: 'proj_covid'
