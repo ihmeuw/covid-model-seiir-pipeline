@@ -70,7 +70,7 @@ def make_covariates_page(plot_versions: List[PlotVersion],
     pop = pv.load_output_miscellaneous('populations', is_table=True, location_id=location.id)
     pop = pop.loc[(pop.age_group_id == 22) & (pop.sex_id == 3), 'population'].iloc[0]
 
-    full_data = pv.load_output_miscellaneous('full_data_es_processed', is_table=True, location_id=location.id)
+    full_data = pv.load_output_miscellaneous('full_data', is_table=True, location_id=location.id)
     if not full_data.empty:
         data_date = full_data.loc[full_data.cumulative_deaths.notnull(), 'date'].max()
         short_term_forecast_date = data_date + SHORT_RANGE_FORECAST
@@ -192,7 +192,7 @@ def make_results_page(plot_versions: List[PlotVersion],
     pop = pv.load_output_miscellaneous('populations', is_table=True, location_id=location.id)
     pop = pop.loc[(pop.age_group_id == 22) & (pop.sex_id == 3), 'population'].iloc[0]
 
-    full_data = pv.load_output_miscellaneous('full_data_es_processed', is_table=True, location_id=location.id)
+    full_data = pv.load_output_miscellaneous('full_data', is_table=True, location_id=location.id)
     if not full_data.empty:
         data_date = full_data.loc[full_data.cumulative_deaths.notnull(), 'date'].max()
         short_term_forecast_date = data_date + SHORT_RANGE_FORECAST
@@ -362,27 +362,27 @@ def make_results_page(plot_versions: List[PlotVersion],
     # Todo: Add herd immunity to this plot
     
     # This is an overestimate, but not an important one.
-    es_end_date = pd.Timestamp.today() + SHORT_RANGE_FORECAST
-    make_time_plot(
-        ax_es,
-        plot_versions,
-        'daily_elastispliner_smoothed',
-        location.id,
-        start, es_end_date,
-        label='Elastispliner',
-    )
-    ax_es.plot(
-        full_data['date'],
-        full_data['cumulative_deaths'].diff(),
-        color=observed_color,
-        alpha=OBSERVED_ALPHA,
-    )
-    ax_es.scatter(
-        full_data['date'],
-        full_data['cumulative_deaths'].diff(),
-        color=observed_color,
-        alpha=OBSERVED_ALPHA,
-    )
+#    es_end_date = pd.Timestamp.today() + SHORT_RANGE_FORECAST
+#    make_time_plot(
+#        ax_es,
+#        plot_versions,
+#        'daily_elastispliner_smoothed',
+#        location.id,
+#        start, es_end_date,
+#        label='Elastispliner',
+#    )
+#    ax_es.plot(
+#        full_data['date'],
+#        full_data['cumulative_deaths'].diff(),
+#        color=observed_color,
+#        alpha=OBSERVED_ALPHA,
+#    )
+#    ax_es.scatter(
+#        full_data['date'],
+#        full_data['cumulative_deaths'].diff(),
+#        color=observed_color,
+#        alpha=OBSERVED_ALPHA,
+#    )
 
     make_title_and_legend(fig, location, plot_versions)
     write_or_show(fig, plot_file)
