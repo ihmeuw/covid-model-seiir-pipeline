@@ -20,7 +20,7 @@ class SingleGroupODEProcess:
 
     def __init__(self, df,
                  col_date,
-                 col_cases,
+                 col_infections,
                  col_pop,
                  col_loc_id,
                  today=np.datetime64(datetime.today()),
@@ -51,11 +51,11 @@ class SingleGroupODEProcess:
         """
         # observations
         assert col_date in df
-        assert col_cases in df
+        assert col_infections in df
         assert col_pop in df
         assert col_loc_id in df
         self.col_date = col_date
-        self.col_cases = col_cases
+        self.col_infections = col_infections
         self.col_pop = col_pop
         self.col_loc_id = col_loc_id
 
@@ -90,20 +90,20 @@ class SingleGroupODEProcess:
         end_date = self.today + np.timedelta64(int(self.day_shift - self.lag_days), 'D')
         # Sometimes we don't have leading indicator data, so the day shift
         # will put us into padded zeros.  Correct for this.
-        max_end_date = date[df[col_cases] > 0].max()
+        max_end_date = date[df[col_infections] > 0].max()
         end_date = min(end_date, max_end_date)
 
         idx = date <= end_date
 
         cases_threshold = 50.0
-        start_date = date[df[col_cases] >= cases_threshold].min()
+        start_date = date[df[col_infections] >= cases_threshold].min()
         idx_final = idx & (date >= start_date)
         infection_end_date = self.today - pd.Timedelta(days=self.lag_days)
         while np.sum(idx_final) <= 2 or infection_end_date < start_date:
             cases_threshold *= 0.5
             print(f'reduce cases threshold for {self.loc_id} to'
                   f'{cases_threshold}')
-            start_date = date[df[col_cases] >= cases_threshold].min()
+            start_date = date[df[col_infections] >= cases_threshold].min()
             idx_final = idx & (date >= start_date)
             if cases_threshold < 1e-6:
                 # this is a data poor location, so we just use the whole time
@@ -126,7 +126,7 @@ class SingleGroupODEProcess:
         # parse input
         self.date = self.df[self.col_date]
         self.t = self.df[self.col_days].values
-        self.obs = self.df[self.col_cases].values
+        self.obs = self.df[self.col_infections].values
         self.init_cond = {
             'S': self.N,
             'E': self.obs[0],
@@ -279,7 +279,7 @@ class ODEProcess:
         """Constructor of ODEProcess."""
         self.df_dict = ode_input.df_dict
         self.col_date = ode_input.col_date
-        self.col_cases = ode_input.col_cases
+        self.col_infections = ode_input.col_infections
         self.col_pop = ode_input.col_pop
         self.col_loc_id = ode_input.col_loc_id
         self.col_lag_days = ode_input.col_lag_days
@@ -313,7 +313,7 @@ class ODEProcess:
             self.models[loc_id] = SingleGroupODEProcess(
                 self.df_dict[loc_id],
                 self.col_date,
-                self.col_cases,
+                self.col_infections,
                 self.col_pop,
                 self.col_loc_id,
                 day_shift=(self.day_shift,)*2,

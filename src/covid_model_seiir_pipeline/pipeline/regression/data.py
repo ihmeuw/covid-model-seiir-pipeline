@@ -91,7 +91,9 @@ class RegressionDataInterface:
         directory.
 
         """
-        modeled_locations = self.infection_root.modeled_locations()
+        draw_0_data = self.load_infection_data(draw_id=0)
+        modeled_locations = draw_0_data['location_id'].unique().tolist()
+
         if desired_location_hierarchy is None:
             desired_locations = modeled_locations
         else:
@@ -108,20 +110,10 @@ class RegressionDataInterface:
     # Infection data loaders #
     ##########################
 
-    def load_all_location_data(self, location_ids: List[int], draw_id: int) -> Dict[int, pd.DataFrame]:
-        dfs = dict()
-        for loc in location_ids:
-            loc_df = io.load(self.infection_root.infections(location_id=loc, draw_id=draw_id))
-            loc_df = loc_df.rename(columns={'loc_id': 'location_id'})
-            if loc_df['cases_draw'].isnull().any():
-                logger.warning(f'Nulls found in infectionator inputs for location id {loc}.  Dropping.')
-                continue
-            if (loc_df['cases_draw'] < 0).any():
-                logger.warning(f'Negatives found in infectionator inputs for location id {loc}.  Dropping.')
-                continue
-            dfs[loc] = loc_df
-
-        return dfs
+    def load_past_infection_data(self, draw_id: int) -> pd.DataFrame:
+        infection_data = io.load(self.infection_root.infections(draw_id=draw_id))
+        infection_data['date'] = pd.to_datetime(infection_data['date'])
+        return infection_data
 
     ##########################
     # Covariate data loaders #

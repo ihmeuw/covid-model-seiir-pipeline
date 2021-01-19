@@ -13,7 +13,7 @@ from covid_model_seiir_pipeline.lib import (
 class ODEProcessInput:
     df_dict: Dict[int, pd.DataFrame]
     col_date: str
-    col_cases: str
+    col_infections: str
     col_pop: str
     col_loc_id: str
     col_lag_days: str

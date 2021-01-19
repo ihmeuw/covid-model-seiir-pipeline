@@ -23,14 +23,13 @@ DAYS_PER_WEEK = 7
 # Columns from infectionator inputs
 INFECTION_COL_DICT = {
     'COL_DATE': 'date',
-    'COL_CASES': 'cases_draw',
-    'COL_POP': 'pop',
+    'COL_INFECTIONS': 'infections_draw',
+    'COL_POP': 'population',
     'COL_LOC_ID': 'location_id',
-    'COL_DEATHS': 'deaths_draw',
-    'COL_ID_LAG': 'i_d_lag',
-    'COL_OBS_DEATHS': 'obs_deaths',
-    'COL_OBS_CASES': 'obs_infecs',
-    'COL_DEATHS_DATA': 'deaths_mean'
+    'COL_ID_LAG': 'duration',
+    'COL_OBS_DEATHS': 'observed_deaths',
+    'COL_OBS_INFECTIONS': 'observed_infections',
+    'COL_DEATHS_DATA': 'deaths'
 }
 
 # Columns from covariates inputs

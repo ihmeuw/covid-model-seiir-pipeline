@@ -105,21 +105,8 @@ class InfectionRoot(DataRoot):
     """Data root representing infectionator outputs."""
     metadata = MetadataType('metadata')
 
-    def modeled_locations(self) -> List[int]:
-        """Retrieve all of the location specific infection directories."""
-        return [int(p.name.split('_')[-1]) for p in self._root.iterdir() if p.is_dir()]
-
-    def infections(self, location_id: int, draw_id: int):
-        """Hack around infectionator file layout to provide a consistent
-        interface."""
-        data_type = str([m for m in self._root.glob(f"*_{location_id}")][0])
-        return DatasetKey(
-            root=self._root,
-            disk_format=self._data_format,
-            data_type=data_type,
-            leaf_name=f'draw{draw_id:04}_prepped_deaths_and_cases_all_age',
-            prefix=None,
-        )
+    infections = DatasetType('infections_draws', LEAF_TEMPLATES.DRAW_TEMPLATE)
+    ratios = DatasetType('ratio_draws', LEAF_TEMPLATES.DRAW_TEMPLATE)
 
 
 class MortalityRateRoot(DataRoot):

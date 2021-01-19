@@ -99,17 +99,17 @@ class Test_ODEProcess_results:
         inputs = model.ODEProcessInput(
             df_dict=location_data,
             col_date=INFECTION_COL_DICT['COL_DATE'],
-            col_cases=INFECTION_COL_DICT['COL_CASES'],
+            col_infections=INFECTION_COL_DICT['COL_INFECTIONS'],
             col_pop=INFECTION_COL_DICT['COL_POP'],
             col_loc_id=INFECTION_COL_DICT['COL_LOC_ID'],
             col_lag_days=INFECTION_COL_DICT['COL_ID_LAG'],
             col_observed=INFECTION_COL_DICT['COL_OBS_DEATHS'],
-            alpha=[0.9, 1.0],
-            sigma=[0.2, 0.3333],
-            gamma1=[0.5, 0.5],
-            gamma2=[0.3333, 1.0],
+            alpha=(0.9, 1.0),
+            sigma=(0.2, 0.3333),
+            gamma1=(0.5, 0.5),
+            gamma2=(0.3333, 1.0),
             solver_dt=0.1,
-            day_shift=[0, 8],
+            day_shift=(0, 8),
         )
         result = model.ODEProcess(inputs)
         return result
@@ -122,5 +122,9 @@ class Test_ODEProcess_results:
         This is a dict of {location_id: DataFrame_of_data} pairs.
         """
         fixture_path = fixture_dir / "regression/location_data_2020_06_28.02.csv"
-        big_df = pandas.read_csv(fixture_path).rename(columns={'loc_id': 'location_id'})
+        big_df = pandas.read_csv(fixture_path).rename(columns={'loc_id': 'location_id',
+                                                               'cases_draw': 'infections_draw',
+                                                               'i_d_lag': 'duration',
+                                                               'obs_deaths': 'observed_deaths',
+                                                               'pop': 'population'})
         return {loc_id: loc_data for loc_id, loc_data in big_df.groupby("location_id")}

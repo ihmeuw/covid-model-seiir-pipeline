@@ -26,8 +26,11 @@ def run_beta_regression(regression_version: str, draw_id: int) -> None:
 
     logger.info('Loading input data', context='read')
     location_ids = data_interface.load_location_ids()
-    location_data = data_interface.load_all_location_data(location_ids=location_ids,
-                                                          draw_id=draw_id)
+    population = data_interface.load_five_year_population(location_ids).groupby('location_id')[['population']].sum()
+    location_data = data_interface.load_past_infection_data(draw_id=draw_id).set_index('location_id')
+    location_data = location_data.merge(population, left_index=True, right_index=True).reset_index()
+    location_data = {location_id: location_data[location_data['location_id'] == location_id].copy()
+                     for location_id in location_ids}
     covariates = data_interface.load_covariates(regression_specification.covariates, location_ids)
     if regression_specification.data.coefficient_version:
         prior_coefficients = data_interface.load_prior_run_coefficients(draw_id=draw_id)
@@ -39,7 +42,7 @@ def run_beta_regression(regression_version: str, draw_id: int) -> None:
     beta_fit_inputs = model.ODEProcessInput(
         df_dict=location_data,
         col_date=static_vars.INFECTION_COL_DICT['COL_DATE'],
-        col_cases=static_vars.INFECTION_COL_DICT['COL_CASES'],
+        col_infections=static_vars.INFECTION_COL_DICT['COL_INFECTIONS'],
         col_pop=static_vars.INFECTION_COL_DICT['COL_POP'],
         col_loc_id=static_vars.INFECTION_COL_DICT['COL_LOC_ID'],
         col_lag_days=static_vars.INFECTION_COL_DICT['COL_ID_LAG'],
@@ -71,7 +74,7 @@ def run_beta_regression(regression_version: str, draw_id: int) -> None:
     regression_betas = beta_hat.merge(covariates, on=['location_id', 'date'])
     regression_betas = beta_fit.merge(regression_betas, on=['location_id', 'date'], how='left')
     merged = data_df.merge(regression_betas, on=['location_id', 'date'], how='outer').sort_values(['location_id', 'date'])
-    merged = merged[(merged['obs_deaths'] == 1) | (merged['deaths_draw'] > 0)]
+    merged = merged[(merged['observed_deaths'] == 1) | (merged['deaths'] > 0)]
     data_df = merged[data_df.columns]
     regression_betas = merged[regression_betas.columns]
     # Save the parameters of alpha, sigma, gamma1, and gamma2 that were drawn
@@ -95,7 +98,6 @@ def run_beta_regression(regression_version: str, draw_id: int) -> None:
 def beta_regression(regression_version: str, draw_id: int,
                     verbose: int, with_debugger: bool):
     cli_tools.configure_logging_to_terminal(verbose)
-
     run = cli_tools.handle_exceptions(run_beta_regression, logger, with_debugger)
     run(regression_version=regression_version,
         draw_id=draw_id)

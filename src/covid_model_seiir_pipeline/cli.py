@@ -333,8 +333,8 @@ def _do_regression(run_metadata: cli_tools.RunMetadata,
         'infection_version': cli_tools.VersionInfo(
             infection_version,
             regression_spec.data.infection_version,
-            paths.INFECTIONATOR_OUTPUTS,
-            'infectionator_metadata',
+            paths.PAST_INFECTIONS_ROOT,
+            'infections_metadata',
             True,
         ),
         'covariate_version': cli_tools.VersionInfo(
