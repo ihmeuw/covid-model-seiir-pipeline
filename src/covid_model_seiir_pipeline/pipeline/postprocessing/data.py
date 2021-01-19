@@ -118,35 +118,6 @@ class PostprocessingDataInterface:
     # Miscellaneous data loaders #
     ##############################
 
-    def load_elastispliner_inputs(self) -> pd.DataFrame:
-        metadata = self._get_forecast_data_inteface().get_infectionator_metadata()
-        deaths_version = Path(metadata['death']['metadata']['output_path'])
-        es_inputs = pd.read_csv(deaths_version / 'model_data.csv')
-        es_inputs['date'] = pd.to_datetime(es_inputs['date'])
-        es_inputs = es_inputs.set_index(['location_id', 'date'])
-        cumulative_cases = (es_inputs['Confirmed case rate'] * es_inputs['population']).rename('cumulative_cases')
-        cumulative_deaths = (es_inputs['Death rate'] * es_inputs['population']).rename('cumulative_deaths')
-        cumulative_hospitalizations = (es_inputs['Hospitalization rate'] * es_inputs['population'])
-        cumulative_hospitalizations = cumulative_hospitalizations.rename('cumulative_hospitalizations')
-        # TODO: have ES use and produce a config file for this number.
-        es_shift = -13
-        cumulative_cases = cumulative_cases.groupby('location_id').shift(es_shift)
-        cumulative_hospitalizations = cumulative_hospitalizations.groupby('location_id').shift(es_shift)
-        es_inputs = pd.concat([cumulative_cases, cumulative_deaths, cumulative_hospitalizations], axis=1)
-        es_inputs = es_inputs.loc[es_inputs.notnull().any(axis=1)]
-        return es_inputs
-
-    def load_elastispliner_outputs(self, noisy: bool) -> pd.DataFrame:
-        metadata = self._get_forecast_data_inteface().get_infectionator_metadata()
-        deaths_version = Path(metadata['death']['metadata']['output_path'])
-        es_file = 'model_results.csv' if noisy else 'model_results_refit.csv'
-        es_outputs = pd.read_csv(deaths_version / es_file)
-        es_outputs = es_outputs.set_index(['location_id', 'date', 'observed'])
-        n_draws = self.get_n_draws()
-        es_outputs = es_outputs.rename(columns={f'draw_{i}': i for i in range(n_draws)})
-        es_outputs = es_outputs.groupby(level='location_id').apply(lambda x: x - x.shift(fill_value=0))
-        return es_outputs
-
     def load_full_data(self) -> pd.DataFrame:
         full_data = self._get_forecast_data_inteface().load_full_data()
         full_data = full_data.set_index(['location_id', 'date'])
@@ -203,10 +174,8 @@ class PostprocessingDataInterface:
 
     def load_hierarchy(self) -> pd.DataFrame:
         fdi = self._get_forecast_data_inteface()
-        metadata = fdi.get_infectionator_metadata()
-        model_inputs_path = Path(
-            metadata['death']['metadata']['model_inputs_metadata']['output_path']
-        )
+        metadata = fdi.get_model_inputs_metadata()
+        model_inputs_path = Path(metadata['output_path'])
         if fdi.fh_subnationals:
             hierarchy_path = model_inputs_path / 'locations' / 'fh_small_area_hierarchy.csv'
         else:
