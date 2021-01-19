@@ -22,14 +22,14 @@ grid_plots:
           # Keys are scenarios and values are plot labels. Within a job,
           # good idea to keep the plot labels unique.
           worse: 'worse'
-          reference: 'reference'
+          reference*: 'reference'
           best_masks: 'best masks'
           vaccine_fast_elderly: 'fast elderly'
           vaccine_fast: 'fast'
           no_vaccine: 'no vaccine'
       - version: '/ihme/covid-19/seir-outputs/2020_12_22.03'
         scenarios:
-          reference: 'public ref'
+          reference*: 'public ref'
   - name: 'compare_shortrange'
     # Start and end of the plots.
     date_start: '2020-03-01'
@@ -42,11 +42,11 @@ grid_plots:
           # Keys are scenarios and values are plot labels. Within a job,
           # good idea to keep the plot labels unique.
           worse: 'worse'
-          reference: 'reference'
+          reference*: 'reference'
           best_masks: 'best masks'
           vaccine_fast_elderly: 'fast elderly'
           vaccine_fast: 'fast'
           no_vaccine: 'no vaccine'
       - version: '/ihme/covid-19/seir-outputs/2020_12_22.03'
         scenarios:
-          reference: 'public ref'
+          reference*: 'public ref'

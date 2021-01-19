@@ -17,8 +17,13 @@ from covid_model_seiir_pipeline.pipeline.postprocessing.model import (
     COVARIATES,
 )
 
-COLOR_MAP = plt.get_cmap('Set1')
-DATE_LOCATOR = mdates.AutoDateLocator(maxticks=10)
+COLOR_MAP = lambda i: ['#7F3C8D', '#11A579',
+                       '#3969AC', '#F2B701',
+                       '#E73F74', '#80BA5A',
+                       '#E68310', '#008695',
+                       '#CF1C90', '#f97b72',
+                       '#4b4b8f', '#A5AA99'][i]
+DATE_LOCATOR = mdates.AutoDateLocator(maxticks=15)
 DATE_FORMATTER = mdates.ConciseDateFormatter(DATE_LOCATOR, show_offset=False)
 FILL_ALPHA = 0.2
 OBSERVED_ALPHA = 0.5
@@ -35,7 +40,6 @@ def make_grid_plot(location: Location,
                    date_start: pd.Timestamp, date_end: pd.Timestamp,
                    output_dir: Path):
     """Makes all pages of grid plots from a single location."""
-    sns.set_style('whitegrid')
     with warnings.catch_warnings():
         # Suppress some noisy matplotlib warnings.
         warnings.filterwarnings('ignore')
@@ -57,6 +61,7 @@ def make_covariates_page(plot_versions: List[PlotVersion],
                          location: Location,
                          start: pd.Timestamp, end: pd.Timestamp,
                          plot_file: str = None):
+    sns.set('whitegrid')
     # FIXME: This is brittle w/r/t new covariates
     time_varying = [c for c, c_config in COVARIATES.items() if c_config.time_varying]
     non_time_varying = [c for c, c_config in COVARIATES.items() if not c_config.time_varying]
@@ -122,6 +127,7 @@ def make_results_page(plot_versions: List[PlotVersion],
                       location: Location,
                       start: pd.Timestamp, end: pd.Timestamp,
                       plot_file: str = None):
+    sns.set_style('whitegrid')
     observed_color = COLOR_MAP(len(plot_versions))
 
     # Load some shared data.
@@ -264,6 +270,7 @@ def make_time_plot(ax, plot_versions: List[PlotVersion], measure: str, loc_id: i
     ax.xaxis.set_major_formatter(DATE_FORMATTER)
 
     ax.set_ylabel(label, fontsize=AX_LABEL_FONTSIZE)
+    sns.despine(ax=ax, left=True, bottom=True)
 
 
 def make_log_beta_resid_hist(ax, plot_versions: List[PlotVersion], loc_id: int):
@@ -275,6 +282,7 @@ def make_log_beta_resid_hist(ax, plot_versions: List[PlotVersion], loc_id: int):
         ax.hist(data.values, color=plot_version.color, bins=HIST_BINS, histtype='stepfilled', alpha=FILL_ALPHA)
 
     ax.set_ylabel('count of log beta residual mean', fontsize=AX_LABEL_FONTSIZE)
+    sns.despine(ax=ax, left=True, bottom=True)
 
 
 def make_coefficient_plot(ax, plot_versions: List[PlotVersion], covariate: str, loc_id: int, label: str):
@@ -296,6 +304,7 @@ def make_coefficient_plot(ax, plot_versions: List[PlotVersion], covariate: str, 
         )
 
     ax.set_ylabel(label, fontsize=AX_LABEL_FONTSIZE)
+    sns.despine(ax=ax, left=True, bottom=True)
 
 
 def add_vline(ax, x_position):
