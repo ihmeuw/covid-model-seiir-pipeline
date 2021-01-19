@@ -69,7 +69,7 @@ def compute_output_metrics(infection_data: pd.DataFrame,
         deaths=deaths,
         r_controlled=r_controlled,
         r_effective=r_effective,
-        herd_immunity=(1 / (1 - r_controlled)).rename('herd_immunity'),
+        herd_immunity=(1 - 1 / r_controlled).rename('herd_immunity'),
         total_susceptible=components[susceptible_columns].sum(axis=1).rename('total_susceptible'),
         total_immune=components[immune_columns].sum(axis=1).rename('total_immune'),
     )
