@@ -287,7 +287,7 @@ def make_results_page(plot_versions: List[PlotVersion],
         'cumulative_infections',
         location.id,
         start, end,
-        label='Cumulative Infected (% population)',
+        label='Cumulative Infected (% Population)',
         vlines=vlines,
         transform=lambda x: 100 * x / pop
     )
@@ -344,7 +344,7 @@ def make_results_page(plot_versions: List[PlotVersion],
         'total_immune',
         location.id,
         start, end,
-        label='Total Immune and Herd Immunity (% Population)',
+        label='Total Immune (% Population)',
         vlines=vlines,
         transform=lambda x: 100 * x / pop
     )
