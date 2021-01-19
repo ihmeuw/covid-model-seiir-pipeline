@@ -3,10 +3,10 @@ data:
   scenarios:
     - 'worse'
     - 'reference'
-#    - 'no_vaccine'
-#    - 'vaccine_fast'
-#    - 'vaccine_fast_elderly'
-#    - 'best_masks'
+    - 'no_vaccine'
+    - 'vaccine_fast'
+    - 'vaccine_fast_elderly'
+    - 'best_masks'
   output_root: ''
 workflow:
   project: 'proj_covid'
