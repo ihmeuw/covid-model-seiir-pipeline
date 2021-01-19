@@ -231,7 +231,7 @@ class ForecastDataInterface:
 
     def get_model_inputs_metadata(self):
         infection_metadata = self.get_infectionator_metadata()
-        return infection_metadata['death']['metadata']['model_inputs_metadata']
+        return infection_metadata['model_inputs_metadata']
 
     def load_full_data(self) -> pd.DataFrame:
         metadata = self.get_model_inputs_metadata()

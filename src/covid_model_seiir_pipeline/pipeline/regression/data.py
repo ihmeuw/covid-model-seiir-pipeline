@@ -92,7 +92,8 @@ class RegressionDataInterface:
 
         """
         draw_0_data = self.load_past_infection_data(draw_id=0)
-        modeled_locations = draw_0_data['location_id'].unique().tolist()
+        total_deaths = draw_0_data.groupby('location_id').deaths.sum()
+        modeled_locations = total_deaths[total_deaths > 5].index.tolist()
 
         if desired_location_hierarchy is None:
             desired_locations = modeled_locations
@@ -162,7 +163,7 @@ class RegressionDataInterface:
 
     def load_ifr_data(self):
         metadata = self.get_infectionator_metadata()
-        # TODO: metadata abstraction?
+        
         ifr_version = metadata['run_arguments']['ifr_custom_path']
         data_path = Path(ifr_version) / 'terminal_ifr.csv'
         data = pd.read_csv(data_path)
