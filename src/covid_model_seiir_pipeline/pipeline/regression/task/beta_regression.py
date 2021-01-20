@@ -44,7 +44,7 @@ def run_beta_regression(regression_version: str, draw_id: int) -> None:
 
     logger.info('Running ODE fit', context='compute_ode')
     beta_fit = model.run_beta_fit(
-        past_infections=past_infections,
+        past_infections=past_infections['infections'],
         population=population,
         location_ids=location_ids,
         ode_parameters=ode_params,
