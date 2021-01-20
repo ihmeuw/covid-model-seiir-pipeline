@@ -1,7 +1,6 @@
 from loguru import logger
 import numpy as np
 from odeopt.ode import RK4
-from odeopt.ode import LinearFirstOrder
 import pandas as pd
 
 from covid_model_seiir_pipeline.lib import (
@@ -14,7 +13,6 @@ def run_beta_fit(df, alpha, sigma, gamma1, gamma2, day_shift,
 
     loc_id = df['location_id'].values[0]
     N = df['population'].values[0]
-    lag_days = df['duration'].values[0]
 
     df = df.loc[df['observed_infections'] == 1].sort_values('date')
     today = df['date'].max()
@@ -50,55 +48,49 @@ def run_beta_fit(df, alpha, sigma, gamma1, gamma2, day_shift,
     # ode solver setup
     t_params = np.arange(np.min(t), np.max(t) + solver_dt, solver_dt)
 
-    step_ode_sys = LinearFirstOrder(
-        sigma,
-        solver_class=solver_class,
-        solver_dt=solver_dt
-    )
-
     rhs_newE = math.linear_interpolate(t_params, t, obs)
     # fit the E
-    step_ode_sys.update_given_params(c=sigma)
-    E = step_ode_sys.simulate(t_params,
-                              np.array([init_cond['E']]),
-                              t_params,
-                              rhs_newE[None, :])[0]
+    e_sys = LinearFirstOrder(sigma, solver_class, solver_dt)
+    E = e_sys.simulate(t_params,
+                       np.array([init_cond['E']]),
+                       t_params,
+                       rhs_newE[None, :])[0]
 
     # fit I1
-    step_ode_sys.update_given_params(c=gamma1)
     # modify initial condition of I1
     init_cond.update({
         'I1': (rhs_newE[0]/5.0)**(1.0/alpha)
     })
-    I1 = step_ode_sys.simulate(t_params,
-                               np.array([init_cond['I1']]),
-                               t_params,
-                               sigma*E[None, :])[0]
+    i1_sys = LinearFirstOrder(gamma1, solver_class, solver_dt)
+    I1 = i1_sys.simulate(t_params,
+                         np.array([init_cond['I1']]),
+                         t_params,
+                         sigma*E[None, :])[0]
 
     # fit I2
-    step_ode_sys.update_given_params(c=gamma2)
-    I2 = step_ode_sys.simulate(t_params,
-                               np.array([init_cond['I2']]),
-                               t_params,
-                               gamma1*I1[None, :])[0]
+    i2_sys = LinearFirstOrder(gamma2, solver_class, solver_dt)
+    I2 = i2_sys.simulate(t_params,
+                         np.array([init_cond['I2']]),
+                         t_params,
+                         gamma1*I1[None, :])[0]
 
     # fit S
     init_cond.update({
         'S': N - init_cond['E'] - init_cond['I1']
     })
-    step_ode_sys.update_given_params(c=0.0)
-    S = step_ode_sys.simulate(t_params,
-                              np.array([init_cond['S']]),
-                              t_params,
-                              -rhs_newE[None, :])[0]
+    s_sys = LinearFirstOrder(0., solver_class, solver_dt)
+    S = s_sys.simulate(t_params,
+                       np.array([init_cond['S']]),
+                       t_params,
+                       -rhs_newE[None, :])[0]
     neg_S_idx = S < 0.0
 
     # fit R
-    step_ode_sys.update_given_params(c=0.0)
-    R = step_ode_sys.simulate(t_params,
-                              np.array([init_cond['R']]),
-                              t_params,
-                              gamma2*I2[None, :])[0]
+    r_sys = LinearFirstOrder(0., solver_class, solver_dt)
+    R = r_sys.simulate(t_params,
+                       np.array([init_cond['R']]),
+                       t_params,
+                       gamma2*I2[None, :])[0]
 
     if np.any(neg_S_idx):
         id_min = np.min(np.arange(S.size)[neg_S_idx])
@@ -144,3 +136,21 @@ def run_beta_fit(df, alpha, sigma, gamma1, gamma2, day_shift,
     }, index=[0])
 
     return beta_fit, dates
+
+
+class LinearFirstOrder:
+
+    def __init__(self, c, solver_class, solver_dt):
+        self.c = c
+        self.solver = solver_class(self.system, solver_dt)
+
+    def system(self, t, y, p):
+        f = p[0]
+        x = y[0]
+        dx = -self.c*x + f
+        return np.array([dx])
+
+    def simulate(self, t, init_cond, t_params, params):
+        t = np.sort(np.unique(np.array(t)))
+        return self.solver.solve(t, init_cond, t_params, params)
+
