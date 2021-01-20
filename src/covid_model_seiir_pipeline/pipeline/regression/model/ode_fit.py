@@ -57,7 +57,7 @@ def run_loc_beta_fit(infections: pd.Series,
     shared_options = {'system': linear_first_order, 't': t, 'dt': ode_parameters.solver_dt}
 
     susceptible = math.solve_ode(
-        init_cond=np.array([total_population - obs[0]]),# - (obs[0] / 5.0) ** (1.0 / ode_parameters.alpha)]),
+        init_cond=np.array([total_population - obs[0] - (obs[0] / 5.0) ** (1.0 / ode_parameters.alpha)]),
         params=np.vstack([
             [0.] * len(t),
             -obs,
@@ -75,7 +75,7 @@ def run_loc_beta_fit(infections: pd.Series,
     ).ravel()
 
     infectious_1 = math.solve_ode(
-        init_cond=np.array([0]),#(obs[0] / 5.0) ** (1.0 / ode_parameters.alpha)]),
+        init_cond=np.array([(obs[0] / 5.0) ** (1.0 / ode_parameters.alpha)]),
         params=np.vstack([
             [ode_parameters.gamma1] * len(t),
             ode_parameters.sigma * exposed,
@@ -118,7 +118,6 @@ def run_loc_beta_fit(infections: pd.Series,
     # get beta
     infectious = infectious_1 + infectious_2
     disease_density = susceptible * infectious**ode_parameters.alpha / total_population
-
     return pd.DataFrame({
         'location_id': location_id,
         'date': date,
@@ -138,7 +137,7 @@ def linear_first_order(t: float, y: np.ndarray, p: np.ndarray):
 def filter_to_epi_threshold(location_id: int,
                             infections: pd.Series,
                             end_date: pd.Timestamp,
-                            threshold: float = 50.) -> pd.Series:
+                            threshold: float = 1.) -> pd.Series:
     # noinspection PyTypeChecker
     start_date = infections.loc[threshold <= infections].index.min()
     while infections.loc[start_date:end_date].count() <= 2:

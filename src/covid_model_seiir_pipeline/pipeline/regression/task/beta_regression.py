@@ -64,6 +64,7 @@ def run_beta_regression(regression_version: str, draw_id: int) -> None:
 
     # Format and save data.
     logger.info('Prepping outputs', context='transform')
+    import pdb; pdb.set_trace()
     regression_betas = beta_hat.merge(covariates, on=['location_id', 'date'])
     regression_betas = beta_fit.merge(regression_betas, on=['location_id', 'date'], how='left')
     merged = past_infections_data.merge(regression_betas, on=['location_id', 'date'], how='outer').sort_values(['location_id', 'date'])
