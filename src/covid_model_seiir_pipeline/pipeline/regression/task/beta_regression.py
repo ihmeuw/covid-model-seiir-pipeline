@@ -48,12 +48,11 @@ def run_beta_regression(regression_version: str, draw_id: int) -> None:
     beta_fit_dfs = []
     dates_dfs = []
     for location_id, location_data in past_infections.items():
-        loc_model = model.ODEProcess(
+        loc_beta_fit, loc_dates = model.run_beta_fit(
             location_data,
             solver_dt=regression_specification.regression_parameters.solver_dt,
             **ode_params,
         )
-        loc_beta_fit, loc_dates = loc_model.process()
         beta_fit_dfs.append(loc_beta_fit)
         dates_dfs.append(loc_dates)
 

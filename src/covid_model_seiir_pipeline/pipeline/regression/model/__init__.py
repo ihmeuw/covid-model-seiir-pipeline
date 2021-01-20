@@ -5,7 +5,7 @@ from covid_model_seiir_pipeline.pipeline.regression.model.containers import (
     HospitalCorrectionFactors,
 )
 from covid_model_seiir_pipeline.pipeline.regression.model.ode_fit import (
-    ODEProcess,
+    run_beta_fit,
 )
 from covid_model_seiir_pipeline.pipeline.regression.model.regress import (
     BetaRegressor,
