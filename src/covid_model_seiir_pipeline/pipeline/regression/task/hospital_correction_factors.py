@@ -38,6 +38,7 @@ def run_hospital_correction_factors(regression_version: str, with_error: bool) -
     # all draws, so we'll default to draw 0.
     infection_data = data_interface.load_past_infection_data(
         draw_id=0,
+        location_ids=location_ids,
     )
     _, deaths = math.get_observed_infecs_and_deaths(infection_data)
     deaths = deaths.reset_index()

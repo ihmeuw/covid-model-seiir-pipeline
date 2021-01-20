@@ -57,7 +57,7 @@ def run_loc_beta_fit(infections: pd.Series,
     shared_options = {'system': linear_first_order, 't': t, 'dt': ode_parameters.solver_dt}
 
     susceptible = math.solve_ode(
-        init_cond=np.array([total_population - obs[0] - (obs[0] / 5.0) ** (1.0 / ode_parameters.alpha)]),
+        init_cond=np.array([total_population - obs[0]]),# - (obs[0] / 5.0) ** (1.0 / ode_parameters.alpha)]),
         params=np.vstack([
             [0.] * len(t),
             -obs,
@@ -75,7 +75,7 @@ def run_loc_beta_fit(infections: pd.Series,
     ).ravel()
 
     infectious_1 = math.solve_ode(
-        init_cond=np.array([(obs[0] / 5.0) ** (1.0 / ode_parameters.alpha)]),
+        init_cond=np.array([0]),#(obs[0] / 5.0) ** (1.0 / ode_parameters.alpha)]),
         params=np.vstack([
             [ode_parameters.gamma1] * len(t),
             ode_parameters.sigma * exposed,

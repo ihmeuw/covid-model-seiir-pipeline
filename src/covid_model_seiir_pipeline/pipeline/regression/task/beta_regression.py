@@ -28,7 +28,7 @@ def run_beta_regression(regression_version: str, draw_id: int) -> None:
     location_ids = data_interface.load_location_ids()
     population = data_interface.load_five_year_population(location_ids).groupby('location_id')['population'].sum()
 
-    past_infections_data = data_interface.load_past_infection_data(draw_id=draw_id)
+    past_infections_data = data_interface.load_past_infection_data(draw_id=draw_id, location_ids=location_ids)
     past_infections, _ = math.get_observed_infecs_and_deaths(past_infections_data)
 
     covariates = data_interface.load_covariates(regression_specification.covariates, location_ids)
