@@ -41,7 +41,7 @@ def run_beta_fit(df, alpha, sigma, gamma1, gamma2, day_shift,
     S = math.solve_ode(
         system=linear_first_order,
         t=t,
-        init_cond=N - obs[0] - (obs[0] / 5.0) ** (1.0 / alpha),
+        init_cond=np.array([N - obs[0] - (obs[0] / 5.0) ** (1.0 / alpha)]),
         params=np.vstack([
             [0.] * len(t),
             -obs,
@@ -52,7 +52,7 @@ def run_beta_fit(df, alpha, sigma, gamma1, gamma2, day_shift,
     E = math.solve_ode(
         system=linear_first_order,
         t=t,
-        init_cond=obs[0],
+        init_cond=np.array([obs[0]]),
         params=np.vstack([
             [sigma] * len(t),
             obs,
@@ -63,7 +63,7 @@ def run_beta_fit(df, alpha, sigma, gamma1, gamma2, day_shift,
     I1 = math.solve_ode(
         system=linear_first_order,
         t=t,
-        init_cond=(obs[0] / 5.0) ** (1.0 / alpha),
+        init_cond=np.array([(obs[0] / 5.0) ** (1.0 / alpha)]),
         params=np.vstack([
             [gamma1] * len(t),
             sigma * E,
@@ -74,7 +74,7 @@ def run_beta_fit(df, alpha, sigma, gamma1, gamma2, day_shift,
     I2 = math.solve_ode(
         system=linear_first_order,
         t=t,
-        init_cond=0.,
+        init_cond=np.array([0.]),
         params=np.vstack([
             [gamma2] * len(t),
             gamma1 * I1,
@@ -85,7 +85,7 @@ def run_beta_fit(df, alpha, sigma, gamma1, gamma2, day_shift,
     R = math.solve_ode(
         system=linear_first_order,
         t=t,
-        init_cond=0.,
+        init_cond=np.array([0.]),
         params=np.vstack([
             [0.] * len(t),
             gamma2 * I2,
