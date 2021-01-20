@@ -1,131 +1,142 @@
+from typing import Dict, List, Tuple
+
 from loguru import logger
 import numba
 import numpy as np
-from odeopt.ode import RK4
 import pandas as pd
 
 from covid_model_seiir_pipeline.lib import (
     math,
 )
+from covid_model_seiir_pipeline.pipeline.regression.model.containers import (
+    ODEParameters,
+)
 
 
-def run_beta_fit(df, alpha, sigma, gamma1, gamma2, day_shift,
-                 solver_class=RK4, solver_dt=1e-1):
+def sample_parameters(draw_id: int, regression_parameters: Dict) -> ODEParameters:
+    np.random.seed(draw_id)
+    return ODEParameters(
+        alpha=np.random.uniform(*regression_parameters['alpha']),
+        sigma=np.random.uniform(*regression_parameters['sigma']),
+        gamma1=np.random.uniform(*regression_parameters['gamma1']),
+        gamma2=np.random.uniform(*regression_parameters['gamma2']),
+        day_shift=int(np.random.uniform(*regression_parameters['day_shift'])),
+        solver_dt=regression_parameters['solver_dt'],
+    )
 
-    loc_id = df['location_id'].values[0]
-    N = df['population'].values[0]
 
-    df = df.loc[df['observed_infections'] == 1].sort_values('date')
-    today = df['date'].max()
-    end_date = today - pd.Timedelta(days=day_shift)
-    df = df.loc[df['date'] <= end_date]
+def run_beta_fit(past_infections: pd.Series,
+                 population: pd.Series,
+                 location_ids: List[int],
+                 ode_parameters: ODEParameters) -> Tuple[pd.DataFrame, pd.DataFrame]:
+    beta_fit_dfs = []
+    dates_dfs = []
+    for location_id in location_ids:
+        loc_infections = past_infections.loc[location_id]
+        loc_population = population.loc[location_id]
+        beta_fit, dates = run_loc_beta_fit(
+            infections=loc_infections,
+            total_population=loc_population,
+            location_id=location_id,
+            ode_parameters=ode_parameters,
+        )
+        beta_fit_dfs.append(beta_fit)
+        dates_dfs.append(dates)
+    beta_fit = pd.concat(beta_fit_dfs)
+    beta_fit['date'] = pd.to_datetime(beta_fit['date'])
+    beta_start_end_dates = pd.concat(dates_dfs)
+    return beta_fit, beta_start_end_dates
 
-    infections_threshold = 50.0
-    start_date = df.loc[infections_threshold <= df['infections_draw'], 'date'].min()
-    while len(df[start_date <= df['date']]) <= 2:
-        infections_threshold *= 0.5
-        logger.debug(f'Reduce infections threshold for {loc_id} to {infections_threshold}')
-        start_date = df.loc[infections_threshold <= df['infections_draw'], 'date'].min()
-        if infections_threshold < 1e-6:
-            break
-    df = df.loc[start_date <= df['date']].copy()
 
-    start_date = pd.to_datetime(start_date).strftime('%Y-%m-%d')
-    end_date = pd.to_datetime(end_date).strftime('%Y-%m-%d')
+def run_loc_beta_fit(infections: pd.Series,
+                     total_population: float,
+                     location_id: int,
+                     ode_parameters: ODEParameters) -> Tuple[pd.DataFrame, pd.DataFrame]:
+    today = infections.index.max()
+    end_date = today - pd.Timedelta(days=ode_parameters.day_shift)
+    infections = filter_to_epi_threshold(location_id, infections, end_date)
 
-    # parse input
-    date = df['date'].values
-    t = (df['date'] - df['date'].min()).dt.days.values
-    obs = df['infections_draw'].values
+    date = pd.Series(infections.index.values)
+    t = (date - date.min()).dt.days.values
+    obs = infections.values
 
-    S = math.solve_ode(
-        system=linear_first_order,
-        t=t,
-        init_cond=np.array([N - obs[0] - (obs[0] / 5.0) ** (1.0 / alpha)]),
+    shared_options = {'system': linear_first_order, 't': t, 'dt': ode_parameters.solver_dt}
+
+    susceptible = math.solve_ode(
+        init_cond=np.array([total_population - obs[0] - (obs[0] / 5.0) ** (1.0 / ode_parameters.alpha)]),
         params=np.vstack([
             [0.] * len(t),
             -obs,
         ]),
-        dt=solver_dt,
+        **shared_options,
     ).ravel()
 
-    E = math.solve_ode(
-        system=linear_first_order,
-        t=t,
+    exposed = math.solve_ode(
         init_cond=np.array([obs[0]]),
         params=np.vstack([
-            [sigma] * len(t),
+            [ode_parameters.sigma] * len(t),
             obs,
         ]),
-        dt=solver_dt,
+        **shared_options,
     ).ravel()
 
-    I1 = math.solve_ode(
-        system=linear_first_order,
-        t=t,
-        init_cond=np.array([(obs[0] / 5.0) ** (1.0 / alpha)]),
+    infectious_1 = math.solve_ode(
+        init_cond=np.array([(obs[0] / 5.0) ** (1.0 / ode_parameters.alpha)]),
         params=np.vstack([
-            [gamma1] * len(t),
-            sigma * E,
+            [ode_parameters.gamma1] * len(t),
+            ode_parameters.sigma * exposed,
         ]),
-        dt=solver_dt,
+        **shared_options,
     ).ravel()
 
-    I2 = math.solve_ode(
-        system=linear_first_order,
-        t=t,
+    infectious_2 = math.solve_ode(
         init_cond=np.array([0.]),
         params=np.vstack([
-            [gamma2] * len(t),
-            gamma1 * I1,
+            [ode_parameters.gamma2] * len(t),
+            ode_parameters.gamma1 * infectious_1,
         ]),
-        dt=solver_dt,
+        **shared_options,
     ).ravel()
 
-    R = math.solve_ode(
-        system=linear_first_order,
-        t=t,
+    removed = math.solve_ode(
         init_cond=np.array([0.]),
         params=np.vstack([
             [0.] * len(t),
-            gamma2 * I2,
+            ode_parameters.gamma2 * infectious_2,
         ]),
-        dt=solver_dt,
+        **shared_options
     ).ravel()
 
-    neg_S_idx = S < 0.0
-
-    if np.any(neg_S_idx):
-        id_min = np.min(np.arange(S.size)[neg_S_idx])
-        S[id_min:] = S[id_min - 1]
-        E[id_min:] = E[id_min - 1]
-        I1[id_min:] = I1[id_min - 1]
-        I2[id_min:] = I2[id_min - 1]
-        R[id_min:] = R[id_min - 1]
-
     components = {
-        'S': S,
-        'E': E,
-        'I1': I1,
-        'I2': I2,
-        'R': R
+        'S': susceptible,
+        'E': exposed,
+        'I1': infectious_1,
+        'I2': infectious_2,
+        'R': removed,
     }
 
+    neg_susceptible_idx = susceptible < 0.0
+    if np.any(neg_susceptible_idx):
+        id_min = np.min(np.arange(susceptible.size)[neg_susceptible_idx])
+        for c in components:
+            components[c][id_min:] = components[c][id_min - 1]
+
     # get beta
-    params = (obs / ((S / N) * (I1 + I2)**alpha))[None, :]
+    infectious = infectious_1 + infectious_2
+    disease_density = susceptible * infectious**ode_parameters.alpha / total_population
 
     beta_fit = pd.DataFrame({
-        'location_id': loc_id,
+        'location_id': location_id,
         'date': date,
         'days': t,
-        'beta': params[0],
+        'beta': obs / disease_density,
         **components
     })
 
     dates = pd.DataFrame({
-        'location_id': loc_id,
-        'start_date': start_date,
-        'end_date': end_date
+        'location_id': location_id,
+        'start_date': infectious.index.min(),
+        'end_date': infectious.index.max(),
     }, index=[0])
 
     return beta_fit, dates
@@ -137,3 +148,20 @@ def linear_first_order(t: float, y: np.ndarray, p: np.ndarray):
     x = y[0]
     dx = -c * x + f
     return np.array([dx])
+
+
+def filter_to_epi_threshold(location_id: int,
+                            infections: pd.Series,
+                            end_date: pd.Timestamp,
+                            threshold: float = 50.) -> pd.Series:
+    # noinspection PyTypeChecker
+    start_date = infections.loc[threshold <= infections].index.min()
+    while infections.loc[start_date:end_date].count() <= 2:
+        threshold *= 0.5
+        logger.debug(f'Reduce infections threshold to {threshold} for location {location_id}.')
+        # noinspection PyTypeChecker
+        start_date = infections.loc[threshold <= infections].index.min()
+        if threshold < 1e-6:
+            start_date = infections.index.min()
+            break
+    return infections.loc[start_date:end_date]

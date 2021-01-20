@@ -34,17 +34,18 @@ def compute_beta_hat(covariates: pd.DataFrame, coefficients: pd.DataFrame) -> pd
 
 def get_observed_infecs_and_deaths(infection_data: pd.DataFrame):
     """Gets observed data out of infectionator outputs."""
-    observed = infection_data['observed_infections'] == 1
     observed_infections = (infection_data
-                           .loc[observed, ['location_id', 'date', 'infections_draw']]
-                           .set_index(['location_id', 'date'])
+                           .set_index(['location_id', 'date'])['infections_draw']
+                           .dropna()
                            .sort_index()
-                           .rename(columns={'infections_draw': 'infections'}))
-    observed = infection_data['observed_deaths'] == 1
+                           .rename('infections')
+                           .to_frame())
+
     observed_deaths = (infection_data
-                       .loc[observed, ['location_id', 'date', 'deaths']]
-                       .set_index(['location_id', 'date'])
-                       .sort_index())
+                       .set_index(['location_id', 'date'])['deaths']
+                       .dropna()
+                       .sort_index()
+                       .to_frame())
     observed_deaths['observed'] = 1
     return observed_infections, observed_deaths
 

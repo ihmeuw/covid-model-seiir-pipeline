@@ -10,6 +10,15 @@ from covid_model_seiir_pipeline.lib import (
 
 
 @dataclass
+class ODEParameters:
+    alpha: float
+    sigma: float
+    gamma1: float
+    gamma2: float
+    day_shift: int
+    solver_dt: float
+
+@dataclass
 class HospitalFatalityRatioData:
     age_specific: pd.Series
     all_age: pd.Series

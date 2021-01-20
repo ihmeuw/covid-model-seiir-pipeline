@@ -26,12 +26,13 @@ def run_beta_regression(regression_version: str, draw_id: int) -> None:
 
     logger.info('Loading input data', context='read')
     location_ids = data_interface.load_location_ids()
-    population = data_interface.load_five_year_population(location_ids).groupby('location_id')[['population']].sum()
-    past_infections = data_interface.load_past_infection_data(draw_id=draw_id).set_index('location_id')
-    past_infections = past_infections.merge(population, left_index=True, right_index=True).reset_index()
-    past_infections = {location_id: past_infections[past_infections['location_id'] == location_id].copy()
-                       for location_id in location_ids}
+    population = data_interface.load_five_year_population(location_ids).groupby('location_id')['population'].sum()
+
+    past_infection_data = data_interface.load_past_infection_data(draw_id=draw_id)
+    past_infections, _ = math.get_observed_infecs_and_deaths(past_infection_data)
+
     covariates = data_interface.load_covariates(regression_specification.covariates, location_ids)
+
     if regression_specification.data.coefficient_version:
         prior_coefficients = data_interface.load_prior_run_coefficients(draw_id=draw_id)
     else:
@@ -39,26 +40,15 @@ def run_beta_regression(regression_version: str, draw_id: int) -> None:
 
     logger.info('Prepping ODE fit', context='transform')
     regression_params = regression_specification.regression_parameters.to_dict()
-    np.random.seed(draw_id)
-    ode_params = ['alpha', 'sigma', 'gamma1', 'gamma2']
-    ode_params = {param: np.random.uniform(*regression_params[param]) for param in ode_params}
-    ode_params['day_shift'] = int(np.random.uniform(*regression_params['day_shift']))
+    ode_params = model.sample_parameters(draw_id, regression_params)
 
     logger.info('Running ODE fit', context='compute_ode')
-    beta_fit_dfs = []
-    dates_dfs = []
-    for location_id, location_data in past_infections.items():
-        loc_beta_fit, loc_dates = model.run_beta_fit(
-            location_data,
-            solver_dt=regression_specification.regression_parameters.solver_dt,
-            **ode_params,
-        )
-        beta_fit_dfs.append(loc_beta_fit)
-        dates_dfs.append(loc_dates)
-
-    beta_fit = pd.concat(beta_fit_dfs)
-    beta_fit['date'] = pd.to_datetime(beta_fit['date'])
-    beta_start_end_dates = pd.concat(dates_dfs)
+    beta_fit, beta_start_end_dates = model.run_beta_fit(
+        past_infections=past_infections,
+        population=population,
+        location_ids=location_ids,
+        ode_parameters=ode_params,
+    )
 
     logger.info('Prepping regression.', context='transform')
     mr_data = model.align_beta_with_covariates(covariates, beta_fit, list(regression_specification.covariates))
