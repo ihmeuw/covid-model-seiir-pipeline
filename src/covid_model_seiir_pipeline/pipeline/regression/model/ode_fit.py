@@ -38,7 +38,7 @@ def run_beta_fit(df, alpha, sigma, gamma1, gamma2, day_shift,
     obs = df['infections_draw'].values
 
     init_cond = {
-        'S': N - obs[0] - 1.0,
+        'S': N,
         'E': obs[0],
         'I1': 1.0,
         'I2': 0.0,
