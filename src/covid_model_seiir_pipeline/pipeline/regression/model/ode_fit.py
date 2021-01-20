@@ -31,7 +31,7 @@ def run_beta_fit(past_infections: pd.Series,
                  ode_parameters: ODEParameters) -> pd.DataFrame:
     beta_fit_dfs = []
     for location_id in location_ids:
-        beta_fit, dates = run_loc_beta_fit(
+        beta_fit = run_loc_beta_fit(
             infections=past_infections.loc[location_id],
             total_population=population.loc[location_id],
             location_id=location_id,
