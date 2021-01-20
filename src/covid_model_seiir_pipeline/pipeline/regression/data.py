@@ -114,8 +114,13 @@ class RegressionDataInterface:
     def load_past_infection_data(self, draw_id: int, location_ids: List[int] = None) -> pd.DataFrame:
         infection_data = io.load(self.infection_root.infections(draw_id=draw_id))
         if location_ids:
-            infection_data = infection_data[infection_data.location_id.isin(location_ids)]
+            infection_data = infection_data.loc[infection_data.location_id.isin(location_ids)]
         infection_data['date'] = pd.to_datetime(infection_data['date'])
+        infection_data = (infection_data
+                          .set_index(['location_id', 'date'])
+                          .sort_index()
+                          .loc[:, ['infections_draw', 'duration']]
+                          .rename(columns={'infections_draw': 'infections'}))
         return infection_data
 
     ##########################
