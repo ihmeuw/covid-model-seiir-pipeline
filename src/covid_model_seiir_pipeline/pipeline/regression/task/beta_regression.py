@@ -43,12 +43,16 @@ def run_beta_regression(regression_version: str, draw_id: int) -> None:
     ode_params = model.sample_parameters(draw_id, regression_params)
 
     logger.info('Running ODE fit', context='compute_ode')
-    beta_fit, beta_start_end_dates = model.run_beta_fit(
+    beta_fit = model.run_beta_fit(
         past_infections=past_infections,
         population=population,
         location_ids=location_ids,
         ode_parameters=ode_params,
     )
+    beta_start_end_dates = (beta_fit
+                            .groupby('location_id')
+                            .agg(start_date=('date', 'min'), end_date=('date', 'max'))
+                            .reset_index())
 
     logger.info('Prepping regression.', context='transform')
     mr_data = model.align_beta_with_covariates(covariates, beta_fit, list(regression_specification.covariates))
@@ -69,6 +73,7 @@ def run_beta_regression(regression_version: str, draw_id: int) -> None:
     data_df = merged[data_df.columns]
     regression_betas = merged[regression_betas.columns]
     # Save the parameters of alpha, sigma, gamma1, and gamma2 that were drawn
+    ode_params = ode_params.to_dict()
     draw_beta_params = pd.DataFrame({
         'params': ode_params.keys(),
         'values': ode_params.values(),

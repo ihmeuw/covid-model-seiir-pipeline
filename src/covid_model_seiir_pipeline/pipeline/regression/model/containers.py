@@ -1,6 +1,6 @@
 """Containers for regression data."""
 from dataclasses import dataclass
-from typing import Dict
+from typing import Dict, Union
 
 import pandas as pd
 
@@ -17,6 +17,9 @@ class ODEParameters:
     gamma2: float
     day_shift: int
     solver_dt: float
+
+    def to_dict(self) -> Dict[str, Union[int, float]]:
+        return utilities.asdict(self)
 
 @dataclass
 class HospitalFatalityRatioData:

@@ -28,9 +28,8 @@ def sample_parameters(draw_id: int, regression_parameters: Dict) -> ODEParameter
 def run_beta_fit(past_infections: pd.Series,
                  population: pd.Series,
                  location_ids: List[int],
-                 ode_parameters: ODEParameters) -> Tuple[pd.DataFrame, pd.DataFrame]:
+                 ode_parameters: ODEParameters) -> pd.DataFrame:
     beta_fit_dfs = []
-    dates_dfs = []
     for location_id in location_ids:
         loc_infections = past_infections.loc[location_id]
         loc_population = population.loc[location_id]
@@ -41,17 +40,14 @@ def run_beta_fit(past_infections: pd.Series,
             ode_parameters=ode_parameters,
         )
         beta_fit_dfs.append(beta_fit)
-        dates_dfs.append(dates)
     beta_fit = pd.concat(beta_fit_dfs)
-    beta_fit['date'] = pd.to_datetime(beta_fit['date'])
-    beta_start_end_dates = pd.concat(dates_dfs)
-    return beta_fit, beta_start_end_dates
+    return beta_fit
 
 
 def run_loc_beta_fit(infections: pd.Series,
                      total_population: float,
                      location_id: int,
-                     ode_parameters: ODEParameters) -> Tuple[pd.DataFrame, pd.DataFrame]:
+                     ode_parameters: ODEParameters) -> pd.DataFrame:
     today = infections.index.max()
     end_date = today - pd.Timedelta(days=ode_parameters.day_shift)
     infections = filter_to_epi_threshold(location_id, infections, end_date)
@@ -125,21 +121,12 @@ def run_loc_beta_fit(infections: pd.Series,
     infectious = infectious_1 + infectious_2
     disease_density = susceptible * infectious**ode_parameters.alpha / total_population
 
-    beta_fit = pd.DataFrame({
+    return pd.DataFrame({
         'location_id': location_id,
         'date': date,
-        'days': t,
         'beta': obs / disease_density,
         **components
     })
-
-    dates = pd.DataFrame({
-        'location_id': location_id,
-        'start_date': infectious.index.min(),
-        'end_date': infectious.index.max(),
-    }, index=[0])
-
-    return beta_fit, dates
 
 
 @numba.njit
