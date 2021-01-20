@@ -1,4 +1,5 @@
 from loguru import logger
+import numba
 import numpy as np
 from odeopt.ode import RK4
 import pandas as pd
@@ -19,13 +20,13 @@ def run_beta_fit(df, alpha, sigma, gamma1, gamma2, day_shift,
     end_date = today - pd.Timedelta(days=day_shift)
     df = df.loc[df['date'] <= end_date]
 
-    cases_threshold = 50.0
-    start_date = df.loc[cases_threshold <= df['infections_draw'], 'date'].min()
+    infections_threshold = 50.0
+    start_date = df.loc[infections_threshold <= df['infections_draw'], 'date'].min()
     while len(df[start_date <= df['date']]) <= 2:
-        cases_threshold *= 0.5
-        logger.debug(f'Reduce cases threshold for {loc_id} to {cases_threshold}')
-        start_date = df.loc[cases_threshold <= df['infections_draw'], 'date'].min()
-        if cases_threshold < 1e-6:
+        infections_threshold *= 0.5
+        logger.debug(f'Reduce infections threshold for {loc_id} to {infections_threshold}')
+        start_date = df.loc[infections_threshold <= df['infections_draw'], 'date'].min()
+        if infections_threshold < 1e-6:
             break
     df = df.loc[start_date <= df['date']].copy()
 
@@ -55,7 +56,8 @@ def run_beta_fit(df, alpha, sigma, gamma1, gamma2, day_shift,
                        np.array([init_cond['E']]),
                        t_params,
                        rhs_newE[None, :])[0]
-
+    E_test = math.solve_ode(linear_first_order, t, obs[0], np.vstack([[sigma] * len(t), obs]), solver_dt)
+    import pdb; pdb.set_trace()
     # fit I1
     # modify initial condition of I1
     init_cond.update({
@@ -137,6 +139,13 @@ def run_beta_fit(df, alpha, sigma, gamma1, gamma2, day_shift,
 
     return beta_fit, dates
 
+
+@numba.njit
+def linear_first_order(t: float, y: np.ndarray, p: np.ndarray):
+    c, f = p
+    x = y[0]
+    dx = -c * x + f
+    return np.array([dx])
 
 class LinearFirstOrder:
 

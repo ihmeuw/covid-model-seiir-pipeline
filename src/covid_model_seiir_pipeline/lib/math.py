@@ -1,3 +1,4 @@
+import numba
 import numpy as np
 import pandas as pd
 
@@ -46,6 +47,34 @@ def get_observed_infecs_and_deaths(infection_data: pd.DataFrame):
                        .sort_index())
     observed_deaths['observed'] = 1
     return observed_infections, observed_deaths
+
+
+def solve_ode(system, t, init_cond, params, dt):
+    t_solve = np.arange(np.min(t), np.max(t) + dt, dt / 2)
+    y_solve = np.zeros((init_cond.size, t_solve.size),
+                       dtype=init_cond.dtype)
+    y_solve[:, 0] = init_cond
+    # linear interpolate the parameters
+    params = linear_interpolate(t_solve, t, params)
+    y_solve = _rk45(system, t_solve, y_solve, params, dt)
+    # linear interpolate the solutions.
+    y_solve = linear_interpolate(t, t_solve, y_solve)
+    return y_solve
+
+
+@numba.njit
+def _rk45(system,
+          t_solve: np.array,
+          y_solve: np.array,
+          params: np.array,
+          dt: float):
+    for i in range(2, t_solve.size, 2):
+        k1 = system(t_solve[i - 2], y_solve[:, i - 2], params[:, i - 2])
+        k2 = system(t_solve[i - 1], y_solve[:, i - 2] + dt / 2 * k1, params[:, i - 1])
+        k3 = system(t_solve[i - 1], y_solve[:, i - 2] + dt / 2 * k2, params[:, i - 1])
+        k4 = system(t_solve[i], y_solve[:, i - 2] + dt * k3, params[:, i])
+        y_solve[:, i] = y_solve[:, i - 2] + dt / 6 * (k1 + 2 * k2 + 2 * k3 + k4)
+    return y_solve
 
 
 def linear_interpolate(t_target: np.ndarray,
