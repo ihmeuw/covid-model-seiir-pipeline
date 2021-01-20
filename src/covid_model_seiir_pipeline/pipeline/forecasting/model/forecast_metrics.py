@@ -52,8 +52,10 @@ def compute_output_metrics(infection_data: pd.DataFrame,
     modeled_infections = modeled_infections.to_frame()
     modeled_deaths = modeled_deaths.reset_index(level='observed')
 
-    infections = observed_infections.combine_first(modeled_infections)
-    deaths = observed_deaths.combine_first(modeled_deaths)
+    the_past = components_past.set_index('date', append=True).index
+    the_future = components_forecast.set_index('date', append=True).index
+    infections = observed_infections.loc[the_past].append(modeled_infections.loc[the_future])
+    deaths = observed_deaths.loc[the_past].append(modeled_deaths.loc[the_future])
     r_controlled, r_effective = compute_effective_r(
         components,
         seir_params,
