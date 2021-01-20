@@ -418,36 +418,16 @@ def _vaccine_system(t: float, y: np.ndarray, p: np.array):
     return dy
 
 
-def linear_interpolate(t_target: np.ndarray,
-                       t_org: np.ndarray,
-                       x_org: np.ndarray) -> np.ndarray:
-    is_vector = x_org.ndim == 1
-    if is_vector:
-        x_org = x_org[None, :]
-
-    assert t_org.size == x_org.shape[1]
-
-    x_target = np.vstack([
-        np.interp(t_target, t_org, x_org[i])
-        for i in range(x_org.shape[0])
-    ])
-
-    if is_vector:
-        return x_target.ravel()
-    else:
-        return x_target
-
-
 def _solve(system, t, init_cond, t_params, params, dt):
     t_solve = np.arange(np.min(t), np.max(t) + dt, dt / 2)
     y_solve = np.zeros((init_cond.size, t_solve.size),
                        dtype=init_cond.dtype)
     y_solve[:, 0] = init_cond
     # linear interpolate the parameters
-    params = linear_interpolate(t_solve, t_params, params)
+    params = math.linear_interpolate(t_solve, t_params, params)
     y_solve = _rk45(system, t_solve, y_solve, params, dt)
     # linear interpolate the solutions.
-    y_solve = linear_interpolate(t, t_solve, y_solve)
+    y_solve = math.linear_interpolate(t, t_solve, y_solve)
     return y_solve
 
 

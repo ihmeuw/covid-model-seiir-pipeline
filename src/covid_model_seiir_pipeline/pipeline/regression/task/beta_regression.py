@@ -38,27 +38,28 @@ def run_beta_regression(regression_version: str, draw_id: int) -> None:
         prior_coefficients = None
 
     logger.info('Prepping ODE fit', context='transform')
+    regression_params = regression_specification.regression_parameters.to_dict()
     np.random.seed(draw_id)
-    beta_fit_inputs = model.ODEProcessInput(
-        df_dict=past_infections,
-        col_date=static_vars.INFECTION_COL_DICT['COL_DATE'],
-        col_infections=static_vars.INFECTION_COL_DICT['COL_INFECTIONS'],
-        col_pop=static_vars.INFECTION_COL_DICT['COL_POP'],
-        col_loc_id=static_vars.INFECTION_COL_DICT['COL_LOC_ID'],
-        col_lag_days=static_vars.INFECTION_COL_DICT['COL_ID_LAG'],
-        col_observed=static_vars.INFECTION_COL_DICT['COL_OBS_INFECTIONS'],
-        alpha=regression_specification.regression_parameters.alpha,
-        sigma=regression_specification.regression_parameters.sigma,
-        gamma1=regression_specification.regression_parameters.gamma1,
-        gamma2=regression_specification.regression_parameters.gamma2,
-        solver_dt=regression_specification.regression_parameters.solver_dt,
-        day_shift=regression_specification.regression_parameters.day_shift,
-    )
-    import pdb; pdb.set_trace()
-    ode_model = model.ODEProcess(beta_fit_inputs)
+    ode_params = ['alpha', 'sigma', 'gamma1', 'gamma2']
+    ode_params = {param: np.random.uniform(*regression_params[param]) for param in ode_params}
+    ode_params['day_shift'] = int(np.random.uniform(regression_params['day_shift']))
+
     logger.info('Running ODE fit', context='compute_ode')
-    beta_fit = ode_model.process()
+    beta_fit_dfs = []
+    dates_dfs = []
+    for location_id, location_data in past_infections.items():
+        loc_model = model.ODEProcess(
+            location_data,
+            solver_dt=regression_specification.regression_parameters.solver_dt,
+            **ode_params,
+        )
+        loc_beta_fit, loc_dates = loc_model.process()
+        beta_fit_dfs.append(loc_beta_fit)
+        dates_dfs.append(loc_dates)
+
+    beta_fit = pd.concat(beta_fit_dfs)
     beta_fit['date'] = pd.to_datetime(beta_fit['date'])
+    beta_start_end_dates = pd.concat(dates_dfs)
 
     logger.info('Prepping regression.', context='transform')
     mr_data = model.align_beta_with_covariates(covariates, beta_fit, list(regression_specification.covariates))
@@ -79,8 +80,10 @@ def run_beta_regression(regression_version: str, draw_id: int) -> None:
     data_df = merged[data_df.columns]
     regression_betas = merged[regression_betas.columns]
     # Save the parameters of alpha, sigma, gamma1, and gamma2 that were drawn
-    draw_beta_params = ode_model.create_params_df()
-    beta_start_end_dates = ode_model.create_start_end_date_df()
+    draw_beta_params = pd.DataFrame({
+        'params': ode_params.keys(),
+        'values': ode_params.values(),
+    })
 
     logger.info('Writing outputs', context='write')
     data_interface.save_infection_data(data_df, draw_id)

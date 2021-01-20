@@ -1,3 +1,4 @@
+import numpy as np
 import pandas as pd
 
 
@@ -45,3 +46,23 @@ def get_observed_infecs_and_deaths(infection_data: pd.DataFrame):
                        .sort_index())
     observed_deaths['observed'] = 1
     return observed_infections, observed_deaths
+
+
+def linear_interpolate(t_target: np.ndarray,
+                       t_org: np.ndarray,
+                       x_org: np.ndarray) -> np.ndarray:
+    is_vector = x_org.ndim == 1
+    if is_vector:
+        x_org = x_org[None, :]
+
+    assert t_org.size == x_org.shape[1]
+
+    x_target = np.vstack([
+        np.interp(t_target, t_org, x_org[i])
+        for i in range(x_org.shape[0])
+    ])
+
+    if is_vector:
+        return x_target.ravel()
+    else:
+        return x_target
