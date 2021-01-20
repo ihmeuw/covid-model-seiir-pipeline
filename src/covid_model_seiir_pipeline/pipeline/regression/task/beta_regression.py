@@ -28,8 +28,8 @@ def run_beta_regression(regression_version: str, draw_id: int) -> None:
     location_ids = data_interface.load_location_ids()
     population = data_interface.load_five_year_population(location_ids).groupby('location_id')['population'].sum()
 
-    past_infection_data = data_interface.load_past_infection_data(draw_id=draw_id)
-    past_infections, _ = math.get_observed_infecs_and_deaths(past_infection_data)
+    past_infections_data = data_interface.load_past_infection_data(draw_id=draw_id)
+    past_infections, _ = math.get_observed_infecs_and_deaths(past_infections_data)
 
     covariates = data_interface.load_covariates(regression_specification.covariates, location_ids)
 
@@ -64,13 +64,11 @@ def run_beta_regression(regression_version: str, draw_id: int) -> None:
 
     # Format and save data.
     logger.info('Prepping outputs', context='transform')
-    data_df = pd.concat(past_infections.values())
-    data_df['date'] = pd.to_datetime(data_df['date'])
     regression_betas = beta_hat.merge(covariates, on=['location_id', 'date'])
     regression_betas = beta_fit.merge(regression_betas, on=['location_id', 'date'], how='left')
-    merged = data_df.merge(regression_betas, on=['location_id', 'date'], how='outer').sort_values(['location_id', 'date'])
+    merged = past_infections_data.merge(regression_betas, on=['location_id', 'date'], how='outer').sort_values(['location_id', 'date'])
     merged = merged[(merged['observed_infections'] == 1) | (merged['infections_draw'] > 0)]
-    data_df = merged[data_df.columns]
+    data_df = merged[past_infections_data.columns]
     regression_betas = merged[regression_betas.columns]
     # Save the parameters of alpha, sigma, gamma1, and gamma2 that were drawn
     ode_params = ode_params.to_dict()
