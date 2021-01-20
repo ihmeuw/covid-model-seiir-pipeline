@@ -46,7 +46,7 @@ def run_beta_regression(regression_version: str, draw_id: int) -> None:
         col_pop=static_vars.INFECTION_COL_DICT['COL_POP'],
         col_loc_id=static_vars.INFECTION_COL_DICT['COL_LOC_ID'],
         col_lag_days=static_vars.INFECTION_COL_DICT['COL_ID_LAG'],
-        col_observed=static_vars.INFECTION_COL_DICT['COL_OBS_DEATHS'],
+        col_observed=static_vars.INFECTION_COL_DICT['COL_OBS_INFECTIONS'],
         alpha=regression_specification.regression_parameters.alpha,
         sigma=regression_specification.regression_parameters.sigma,
         gamma1=regression_specification.regression_parameters.gamma1,
@@ -74,7 +74,7 @@ def run_beta_regression(regression_version: str, draw_id: int) -> None:
     regression_betas = beta_hat.merge(covariates, on=['location_id', 'date'])
     regression_betas = beta_fit.merge(regression_betas, on=['location_id', 'date'], how='left')
     merged = data_df.merge(regression_betas, on=['location_id', 'date'], how='outer').sort_values(['location_id', 'date'])
-    merged = merged[(merged['observed_deaths'] == 1) | (merged['deaths'] > 0)]
+    merged = merged[(merged['observed_infections'] == 1) | (merged['infections_draw'] > 0)]
     data_df = merged[data_df.columns]
     regression_betas = merged[regression_betas.columns]
     # Save the parameters of alpha, sigma, gamma1, and gamma2 that were drawn

@@ -140,7 +140,7 @@ def compute_infections(components: pd.DataFrame) -> Tuple[pd.Series, pd.Series]:
 
 
 def compute_deaths(modeled_infections: pd.Series, infection_death_lag: int, ifr: pd.Series) -> pd.Series:
-    modeled_deaths = (modeled_infections * ifr).shift(infection_death_lag).dropna().rename('deaths').reset_index()
+    modeled_deaths = (modeled_infections.shift(infection_death_lag) * ifr).dropna().rename('deaths').reset_index()
     modeled_deaths['observed'] = 0
     modeled_deaths = modeled_deaths.set_index(['location_id', 'date', 'observed'])['deaths']
     return modeled_deaths

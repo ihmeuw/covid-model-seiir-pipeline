@@ -1,16 +1,16 @@
 data:
-  forecast_version: '2021_01_19.04'
+  forecast_version: '2021_01_19.06'
   scenarios:
     - 'worse'
     - 'reference'
-    - 'no_vaccine'
-    - 'vaccine_fast'
-    - 'vaccine_fast_elderly'
-    - 'best_masks'
+#    - 'no_vaccine'
+#    - 'vaccine_fast'
+#    - 'vaccine_fast_elderly'
+#    - 'best_masks'
   output_root: ''
 workflow:
   project: 'proj_covid'
-  queue: 'all.q'
+  queue: 'd.q'
   tasks:
     resample_map:
       max_runtime_seconds: 5000
