@@ -27,10 +27,10 @@ def run_beta_regression(regression_version: str, draw_id: int) -> None:
     logger.info('Loading input data', context='read')
     location_ids = data_interface.load_location_ids()
     population = data_interface.load_five_year_population(location_ids).groupby('location_id')[['population']].sum()
-    location_data = data_interface.load_past_infection_data(draw_id=draw_id).set_index('location_id')
-    location_data = location_data.merge(population, left_index=True, right_index=True).reset_index()
-    location_data = {location_id: location_data[location_data['location_id'] == location_id].copy()
-                     for location_id in location_ids}
+    past_infections = data_interface.load_past_infection_data(draw_id=draw_id).set_index('location_id')
+    past_infections = past_infections.merge(population, left_index=True, right_index=True).reset_index()
+    past_infections = {location_id: past_infections[past_infections['location_id'] == location_id].copy()
+                       for location_id in location_ids}
     covariates = data_interface.load_covariates(regression_specification.covariates, location_ids)
     if regression_specification.data.coefficient_version:
         prior_coefficients = data_interface.load_prior_run_coefficients(draw_id=draw_id)
@@ -40,7 +40,7 @@ def run_beta_regression(regression_version: str, draw_id: int) -> None:
     logger.info('Prepping ODE fit', context='transform')
     np.random.seed(draw_id)
     beta_fit_inputs = model.ODEProcessInput(
-        df_dict=location_data,
+        df_dict=past_infections,
         col_date=static_vars.INFECTION_COL_DICT['COL_DATE'],
         col_infections=static_vars.INFECTION_COL_DICT['COL_INFECTIONS'],
         col_pop=static_vars.INFECTION_COL_DICT['COL_POP'],
@@ -69,7 +69,7 @@ def run_beta_regression(regression_version: str, draw_id: int) -> None:
 
     # Format and save data.
     logger.info('Prepping outputs', context='transform')
-    data_df = pd.concat(location_data.values())
+    data_df = pd.concat(past_infections.values())
     data_df['date'] = pd.to_datetime(data_df['date'])
     regression_betas = beta_hat.merge(covariates, on=['location_id', 'date'])
     regression_betas = beta_fit.merge(regression_betas, on=['location_id', 'date'], how='left')
