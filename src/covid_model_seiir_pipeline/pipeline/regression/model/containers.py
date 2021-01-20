@@ -1,6 +1,6 @@
 """Containers for regression data."""
 from dataclasses import dataclass
-from typing import Any, Dict, Tuple
+from typing import Dict
 
 import pandas as pd
 
