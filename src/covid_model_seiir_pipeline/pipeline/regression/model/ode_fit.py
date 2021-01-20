@@ -60,7 +60,8 @@ class SingleGroupODEProcess:
         self.col_loc_id = col_loc_id
 
         self.loc_id = df[self.col_loc_id].values[0]
-
+        if self.loc_id == 555:
+            import pdb; pdb.set_trace()
         # ODE parameters
         assert len(alpha) == 2 and \
                0.0 <= alpha[0] <= alpha[1]

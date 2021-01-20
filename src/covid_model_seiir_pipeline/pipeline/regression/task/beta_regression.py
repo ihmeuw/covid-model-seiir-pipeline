@@ -54,6 +54,7 @@ def run_beta_regression(regression_version: str, draw_id: int) -> None:
         solver_dt=regression_specification.regression_parameters.solver_dt,
         day_shift=regression_specification.regression_parameters.day_shift,
     )
+    import pdb; pdb.set_trace()
     ode_model = model.ODEProcess(beta_fit_inputs)
     logger.info('Running ODE fit', context='compute_ode')
     beta_fit = ode_model.process()
