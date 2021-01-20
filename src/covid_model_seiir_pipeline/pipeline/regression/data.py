@@ -111,8 +111,10 @@ class RegressionDataInterface:
     # Infection data loaders #
     ##########################
 
-    def load_past_infection_data(self, draw_id: int) -> pd.DataFrame:
+    def load_past_infection_data(self, draw_id: int, location_ids: List[int] = None) -> pd.DataFrame:
         infection_data = io.load(self.infection_root.infections(draw_id=draw_id))
+        if location_ids:
+            infection_data = infection_data[infection_data.location_id.isin(location_ids)]
         infection_data['date'] = pd.to_datetime(infection_data['date'])
         return infection_data
 
