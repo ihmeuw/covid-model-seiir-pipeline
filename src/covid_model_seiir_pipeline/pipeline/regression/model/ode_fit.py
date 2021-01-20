@@ -36,7 +36,7 @@ def run_beta_fit(df, alpha, sigma, gamma1, gamma2, day_shift,
 
     # parse input
     date = df['date'].values
-    t = df['date'].diff(df['date'].min()).dt.days.values
+    t = (df['date'] - df['date'].min()).dt.days.values
     obs = df['infections_draw'].values
 
     init_cond = {

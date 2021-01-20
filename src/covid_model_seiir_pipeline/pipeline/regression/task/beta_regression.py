@@ -42,7 +42,7 @@ def run_beta_regression(regression_version: str, draw_id: int) -> None:
     np.random.seed(draw_id)
     ode_params = ['alpha', 'sigma', 'gamma1', 'gamma2']
     ode_params = {param: np.random.uniform(*regression_params[param]) for param in ode_params}
-    ode_params['day_shift'] = int(np.random.uniform(regression_params['day_shift']))
+    ode_params['day_shift'] = int(np.random.uniform(*regression_params['day_shift']))
 
     logger.info('Running ODE fit', context='compute_ode')
     beta_fit_dfs = []
