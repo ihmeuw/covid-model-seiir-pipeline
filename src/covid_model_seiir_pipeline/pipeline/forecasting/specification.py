@@ -81,6 +81,7 @@ class ScenarioSpecification:
         'scale_up_path',
         'beta_increase',
         'start_date',
+        'vaccine_efficacy_decrease',
     )
 
     name: str = field(default='dummy_scenario')

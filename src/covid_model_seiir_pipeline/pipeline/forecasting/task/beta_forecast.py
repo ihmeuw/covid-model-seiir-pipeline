@@ -50,6 +50,7 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, **kwar
     # Rescaling parameters for the beta forecast.
     beta_scales = data_interface.load_beta_scales(scenario=scenario, draw_id=draw_id)
     # Beta scale-up due to variant
+    import pdb; pdb.set_trace()
     variant_prevalence = data_interface.load_variant_prevalence(
         scenario_spec.variant, transition_date, forecast_end_date
     )
@@ -93,7 +94,7 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, **kwar
 
     betas = model.forecast_beta(covariate_pred, coefficients, beta_scales)
     betas = (betas.set_index('date', append=True).beta_pred * variant_beta_shift).reset_index(level='date')
-    seir_parameters = model.prep_seir_parameters(betas, thetas, scenario_data, variant_vaccine_shift)
+    seir_parameters = model.prep_seir_parameters(betas, thetas, scenario_data, variant_vaccine_shift, population_partition)
 
     correction_factors = model.forecast_correction_factors(
         correction_factors,
