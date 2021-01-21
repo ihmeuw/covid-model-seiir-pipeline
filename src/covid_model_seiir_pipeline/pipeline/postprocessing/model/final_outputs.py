@@ -73,10 +73,62 @@ MEASURES = {
         cumulative_label='cumulative_infections',
         aggregator=aggregators.sum_aggregator,
     ),
+    'r_controlled': MeasureConfig(
+        loaders.load_r_controlled,
+        'r_controlled',
+        splice=False,  # TODO: Get a few rounds of this and then set splice to True
+    ),
     'r_effective': MeasureConfig(
         loaders.load_r_effective,
         'r_effective',
         splice=True,
+    ),
+    'herd_immunity': MeasureConfig(
+        loaders.load_herd_immunity,
+        'herd_immunity',
+        splice=False,  # TODO: Get a few rounds of this and then set splice to True
+    ),
+    'total_susceptible': MeasureConfig(
+        loaders.load_total_susceptible,
+        'total_susceptible',
+        splice=False,  # TODO: Get a few rounds of this and then set splice to True
+        aggregator=aggregators.sum_aggregator,
+    ),
+    'total_immune': MeasureConfig(
+        loaders.load_total_immune,
+        'total_immune',
+        splice=False,  # TODO: Get a few rounds of this and then set splice to True
+        aggregator=aggregators.sum_aggregator,
+    ),
+    'hospital_admissions': MeasureConfig(
+        loaders.load_hospital_admissions,
+        'hospital_admissions',
+        splice=False,  # TODO: Get a few rounds of this and then set splice to True
+        aggregator=aggregators.sum_aggregator,
+    ),
+    'icu_admissions': MeasureConfig(
+        loaders.load_icu_admissions,
+        'icu_admissions',
+        splice=False,  # TODO: Get a few rounds of this and then set splice to True
+        aggregator=aggregators.sum_aggregator,
+    ),
+    'hospital_census': MeasureConfig(
+        loaders.load_hospital_census,
+        'hospital_census',
+        splice=False,  # TODO: Get a few rounds of this and then set splice to True
+        aggregator=aggregators.sum_aggregator,
+    ),
+    'icu_census': MeasureConfig(
+        loaders.load_icu_census,
+        'icu_census',
+        splice=False,  # TODO: Get a few rounds of this and then set splice to True
+        aggregator=aggregators.sum_aggregator,
+    ),
+    'ventilator_census': MeasureConfig(
+        loaders.load_ventilator_census,
+        'ventilator_census',
+        splice=False,  # TODO: Get a few rounds of this and then set splice to True
+        aggregator=aggregators.sum_aggregator,
     ),
     'betas': MeasureConfig(
         loaders.load_betas,
@@ -180,6 +232,14 @@ MISCELLANEOUS = {
         'full_data_es_processed',
         is_cumulative=True,
         aggregator=aggregators.sum_aggregator,
+    ),
+    'hospital_correction_factors': OtherConfig(
+        loaders.load_hospital_correction_factors,
+        'hospital_correction_factors',
+    ),
+    'hospital_census_data': OtherConfig(
+        loaders.load_raw_census_data,
+        'hospital_census_data',
     ),
     'version_map': OtherConfig(
         loaders.build_version_map,

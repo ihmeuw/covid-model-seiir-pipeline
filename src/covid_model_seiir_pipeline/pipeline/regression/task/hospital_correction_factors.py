@@ -49,7 +49,7 @@ def run_hospital_correction_factors(regression_version: str, with_error: bool) -
     mr = data_interface.load_mortality_ratio(location_ids)
     death_weights = model.get_death_weights(mr, population, with_error)
     hfr = data_interface.load_hospital_fatality_ratio(death_weights, location_ids, with_error)
-    hospital_correction_data = data_interface.load_hospital_correction_data()
+    hospital_census_data = data_interface.load_hospital_census_data()
 
     logger.info('Computing hospital usage', context='compute_usage')
     hospital_usage = model.compute_hospital_usage(
@@ -61,7 +61,7 @@ def run_hospital_correction_factors(regression_version: str, with_error: bool) -
     logger.info('Computing correction factors', context='compute_corrections')
     correction_factors = model.calculate_hospital_correction_factors(
         hospital_usage,
-        hospital_correction_data,
+        hospital_census_data,
         hierarchy,
         hospital_parameters,
     )

@@ -11,31 +11,83 @@ if TYPE_CHECKING:
 
 
 def load_deaths(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
-    deaths, *_ = load_output_data(scenario, data_interface, num_cores)
-    return deaths
+    return load_output_data(scenario, 'deaths', data_interface, num_cores)
 
 
 def load_infections(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
-    _, infections, *_ = load_output_data(scenario, data_interface, num_cores)
-    return infections
+    return load_output_data(scenario, 'infections', data_interface, num_cores)
+
+
+def load_r_controlled(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
+    return load_output_data(scenario, 'r_controlled', data_interface, num_cores)
 
 
 def load_r_effective(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
-    _, _, r_effective = load_output_data(scenario, data_interface, num_cores)
-    return r_effective
+    return load_output_data(scenario, 'r_effective', data_interface, num_cores)
 
 
-def load_output_data(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
+def load_herd_immunity(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
+    return load_output_data(scenario, 'herd_immunity', data_interface, num_cores)
+
+
+def load_total_susceptible(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
+    return load_output_data(scenario, 'total_susceptible', data_interface, num_cores)
+
+
+def load_total_immune(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
+    return load_output_data(scenario, 'total_immune', data_interface, num_cores)
+
+
+def load_hospital_admissions(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
+    return load_output_data(scenario, 'hospital_admissions', data_interface, num_cores)
+
+
+def load_icu_admissions(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
+    return load_output_data(scenario, 'icu_admissions', data_interface, num_cores)
+
+
+def load_hospital_census(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
+    return load_output_data(scenario, 'hospital_census', data_interface, num_cores)
+
+
+def load_icu_census(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
+    return load_output_data(scenario, 'icu_census', data_interface, num_cores)
+
+
+def load_ventilator_census(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
+    return load_output_data(scenario, 'ventilator_census', data_interface, num_cores)
+
+
+def load_hospital_correction_factors(data_interface: 'PostprocessingDataInterface'):
+    dfs = []
+    for correction_type in ['hospital', 'icu', 'ventilator']:
+        df = data_interface.load_raw_outputs(
+            draw_id=0,  # All draws are identical.
+            scenario='worse',  # All scenarios the same.
+            measure=f'{correction_type}_census_correction',
+        )
+        df = df.rename(f'{correction_type}_census')
+        dfs.append(df)
+    return pd.concat(dfs, axis=1)
+
+
+def load_raw_census_data(data_interface: 'PostprocessingDataInterface'):
+    census_data = data_interface.load_hospital_census_data()
+    return pd.concat([
+        data.rename(census_type) for census_type, data in census_data.to_dict().items()
+    ], axis=1)
+
+
+def load_output_data(scenario: str, measure: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
     _runner = functools.partial(
         data_interface.load_raw_outputs,
         scenario=scenario,
+        measure=measure,
     )
     draws = range(data_interface.get_n_draws())
     with multiprocessing.Pool(num_cores) as pool:
         outputs = pool.map(_runner, draws)
-    deaths, infections, r_effective = zip(*outputs)
-
-    return deaths, infections, r_effective
+    return outputs
 
 
 def load_coefficients(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):

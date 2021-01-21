@@ -60,7 +60,7 @@ def compute_output_metrics(infection_data: pd.DataFrame,
         seir_params,
         compartment_info.compartments
     )
-
+    components = components.set_index('date', append=True)
     susceptible_columns = [c for c in components.columns if 'S' in c]
     immune_columns = [c for c in components.columns if 'M' in c or 'R' in c]
     return OutputMetrics(
@@ -69,9 +69,9 @@ def compute_output_metrics(infection_data: pd.DataFrame,
         deaths=deaths,
         r_controlled=r_controlled,
         r_effective=r_effective,
-        herd_immunity=(1 / (1 - r_controlled)),
-        total_susceptible=components[susceptible_columns].sum(axis=1),
-        total_immune=components[immune_columns].sum(axis=1),
+        herd_immunity=(1 / (1 - r_controlled)).rename('herd_immunity'),
+        total_susceptible=components[susceptible_columns].sum(axis=1).rename('total_susceptible'),
+        total_immune=components[immune_columns].sum(axis=1).rename('total_immune'),
     )
 
 
@@ -162,7 +162,7 @@ def compute_effective_r(components: pd.DataFrame,
     n = components[compartments].sum(axis=1).groupby('location_id').max()
     avg_gamma = 1 / (1 / (gamma1*(sigma - theta)) + 1 / (gamma2*(sigma - theta)))
 
-    r_controlled = beta * alpha * sigma / avg_gamma * (infected) ** (alpha - 1)
+    r_controlled = (beta * alpha * sigma / avg_gamma * (infected) ** (alpha - 1)).rename('r_controlled')
     r_effective = (r_controlled * susceptible / n).rename('r_effective')
 
     return r_controlled, r_effective

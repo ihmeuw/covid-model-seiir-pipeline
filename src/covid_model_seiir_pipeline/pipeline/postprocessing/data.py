@@ -106,13 +106,13 @@ class PostprocessingDataInterface:
         beta_residual = np.log(beta_regression['beta'] / beta_regression['beta_pred']).rename(draw_id)
         return beta_residual
 
-    def load_raw_outputs(self, draw_id: int, scenario: str) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+    def load_raw_outputs(self, draw_id: int, scenario: str, measure: str) -> pd.Series:
         draw_df = io.load(self.forecast_root.raw_outputs(scenario=scenario, draw_id=draw_id))
-        draw_df = draw_df.set_index(['location_id', 'date']).sort_index()
-        deaths = draw_df.reset_index().set_index(['location_id', 'date', 'observed'])['deaths'].rename(draw_id)
-        infections = draw_df['infections'].rename(draw_id)
-        r_effective = draw_df['r_effective'].rename(draw_id)
-        return deaths, infections, r_effective
+        index_cols = ['location_id', 'date']
+        if measure == 'deaths':
+            index_cols.append('observed')
+        draw_data = draw_df.set_index(index_cols)[measure].sort_index().rename(draw_id)
+        return draw_data
 
     ##############################
     # Miscellaneous data loaders #
@@ -231,6 +231,9 @@ class PostprocessingDataInterface:
         missing_locations = list(set(most_detailed_locs).difference(modeled_locations))
         locations_modeled_and_missing = {'modeled': modeled_locations, 'missing': missing_locations}
         return locations_modeled_and_missing
+
+    def load_hospital_census_data(self):
+        return self._get_forecast_data_inteface().load_hospital_census_data()
 
     ###########################
     # Postprocessing data I/O #
