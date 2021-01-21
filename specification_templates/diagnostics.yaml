@@ -17,12 +17,16 @@ grid_plots:
     # The versions and scenarios we want on this plot.
     comparators:
       # Full path or DATE.VV or latest/best
-      - version: '/ihme/covid-19/seir-outputs/2021_01_20.03'
+      - version: '/ihme/covid-19/seir-outputs/2021_01_20.04'
         scenarios:
           # Keys are scenarios and values are plot labels. Within a job,
           # good idea to keep the plot labels unique.
           worse: 'worse'
           reference*: 'reference'
+      - version: '/ihme/covid-19/seir-outputs/2021_01_20.03'
+        scenarios:
+          worse: 'last_worse'
+          reference: 'last_reference'
 #      - version: '/ihme/covid-19/seir-outputs/2021_01_19.04'
 #        scenarios:
 #          worse: 'worse unconstrained'
