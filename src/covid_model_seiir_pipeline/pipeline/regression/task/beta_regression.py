@@ -43,7 +43,7 @@ def run_beta_regression(regression_version: str, draw_id: int) -> None:
 
     logger.info('Running ODE fit', context='compute_ode')
     beta_fit = model.run_beta_fit(
-        past_infections=past_infections['infections'],
+        past_infections=past_infections['infections'].dropna(),  # Drop days with deaths but no infecs.
         population=population,
         location_ids=location_ids,
         ode_parameters=ode_params,
@@ -64,12 +64,16 @@ def run_beta_regression(regression_version: str, draw_id: int) -> None:
     # Format and save data.
     logger.info('Prepping outputs', context='transform')
     merge_cols = ['location_id', 'date']
-    data_df = past_infections.merge(beta_fit, on=merge_cols, how='left')
-    regression_betas = beta_hat.merge(covariates, on=['location_id', 'date'])
-    regression_betas = beta_fit.merge(regression_betas, on=['location_id', 'date'], how='left')
-    merged = data_df.merge(regression_betas, on=['location_id', 'date'], how='outer').sort_values(['location_id', 'date'])
-    merged = merged[(merged['observed_infections'] == 1) | (merged['infections_draw'] > 0)]
-    data_df = merged[data_df.columns]
+    # These two datasets are aligned, but go out into the future
+    regression_betas = beta_hat.merge(covariates, on=merge_cols)
+    # Regression betas include the forecast.  Subset to just the modeled past
+    # based on data in beta fit.
+    regression_betas = beta_fit.merge(regression_betas, how='left').sort_values(['location_id', 'date'])
+    # There is more observed data than there is modeled, based on the day_shift
+    # parameter and infection drops in the ode fit. Expand to the size of the
+    # data, leaving NAs.
+    merged = past_infections.reset_index().merge(regression_betas, how='left').sort_values(['location_id', 'date'])
+    data_df = merged[['location_id', 'date', 'infections', 'deaths', 'duration']]
     regression_betas = merged[regression_betas.columns]
     # Save the parameters of alpha, sigma, gamma1, and gamma2 that were drawn
     ode_params = ode_params.to_dict()

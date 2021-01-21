@@ -119,7 +119,8 @@ class RegressionDataInterface:
         infection_data = (infection_data
                           .set_index(['location_id', 'date'])
                           .sort_index()
-                          .loc[:, ['infections_draw', 'duration']]
+                          .dropna()
+                          .loc[:, ['infections_draw', 'duration', 'deaths']]
                           .rename(columns={'infections_draw': 'infections'}))
         return infection_data
 

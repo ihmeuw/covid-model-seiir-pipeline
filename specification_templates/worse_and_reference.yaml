@@ -1,5 +1,5 @@
 data:
-  regression_version: '2021_01_20.01'
+  regression_version: '2021_01_20.04'
   covariate_version: '2021_01_12.04'
   output_root: ''
   fh_subnationals: False

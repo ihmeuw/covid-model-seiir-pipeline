@@ -21,7 +21,7 @@ workflow:
       num_cores: 1
 regression_parameters:
   n_draws: 1000
-  day_shift: [0, 13]
+  day_shift: [0, 11]
   alpha: [0.9, 1.0]
   sigma: [0.2, 0.3333]
   gamma1: [0.5, 0.5]

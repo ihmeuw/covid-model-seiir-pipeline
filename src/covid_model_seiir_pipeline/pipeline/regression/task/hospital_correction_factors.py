@@ -40,8 +40,7 @@ def run_hospital_correction_factors(regression_version: str, with_error: bool) -
         draw_id=0,
         location_ids=location_ids,
     )
-    _, deaths = math.get_observed_infecs_and_deaths(infection_data)
-    deaths = deaths.reset_index()
+    deaths = infection_data['deaths'].reset_index()
 
     population = data_interface.load_five_year_population(location_ids)
     mr = data_interface.load_mortality_ratio(location_ids)
