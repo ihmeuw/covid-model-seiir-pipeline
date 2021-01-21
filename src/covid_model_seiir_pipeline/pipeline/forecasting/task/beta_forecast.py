@@ -87,7 +87,6 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, **kwar
     betas = model.forecast_beta(covariate_pred, coefficients, beta_scales)
     betas = (betas.set_index('date', append=True).beta_pred * variant_scalar).rename('beta_pred').reset_index(level='date')
     seir_parameters = model.prep_seir_parameters(betas, thetas, scenario_data)
-    import pdb; pdb.set_trace()
 
     correction_factors = model.forecast_correction_factors(
         correction_factors,

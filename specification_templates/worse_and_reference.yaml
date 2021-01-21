@@ -41,7 +41,7 @@ scenarios:
       lri_mortality: 'reference'
       proportion_under_100m: 'reference'
       proportion_over_2_5k: 'reference'
-  variant:
+  uk_variant_feb:
     algorithm: 'normal' # normal, draw_level_mandate_reimposition
     solver: 'RK45'
     system: 'vaccine'
@@ -53,6 +53,35 @@ scenarios:
       scale_up_path: '/ihme/covid-19/variant-scaleup/best/variant_1.351.csv'
       beta_increase: [1.3, 1.4]
       start_date: '2021-02-01'
+    beta_scaling:
+      window_size: 42
+      average_over_min: 7
+      average_over_max: 42
+      offset_deaths_lower: 150
+      offset_deaths_upper: 300
+    theta: '/ihme/covid-19/seir-parameters/2020_10_06.01/thetas.csv'
+    covariates:
+      pneumonia: 'reference'
+      mobility: 'reference'
+      mask_use: 'reference'
+      testing: 'reference'
+      air_pollution_pm_2_5: 'reference'
+      smoking_prevalence: 'reference'
+      lri_mortality: 'reference'
+      proportion_under_100m: 'reference'
+      proportion_over_2_5k: 'reference'
+  uk_variant_apr:
+    algorithm: 'normal' # normal, draw_level_mandate_reimposition
+    solver: 'RK45'
+    system: 'vaccine'
+    system_params:
+        forecast_version: 'reference'
+        proportion_immune: 0.5
+    population_partition: 'high_and_low_risk'
+    variant:
+      scale_up_path: '/ihme/covid-19/variant-scaleup/best/variant_1.351.csv'
+      beta_increase: [1.3, 1.4]
+      start_date: '2021-04-01'
     beta_scaling:
       window_size: 42
       average_over_min: 7
