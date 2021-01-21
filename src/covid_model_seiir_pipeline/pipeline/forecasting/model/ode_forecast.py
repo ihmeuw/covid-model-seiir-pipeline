@@ -68,7 +68,8 @@ def forecast_correction_factors(correction_factors: HospitalCorrectionFactors,
 
 def prep_seir_parameters(betas: pd.DataFrame,
                          thetas: pd.Series,
-                         scenario_data: ScenarioData):
+                         scenario_data: ScenarioData,
+                         variant_prevalence: pd.Series):
     betas = betas.rename(columns={'beta_pred': 'beta'})
     parameters = betas.merge(thetas, on='location_id')
     if scenario_data.vaccinations is not None:

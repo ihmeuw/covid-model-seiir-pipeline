@@ -33,7 +33,7 @@ scenarios:
     theta: '/ihme/covid-19/seir-parameters/2020_10_06.01/thetas.csv'
     variant:
       scale_up_path: ''
-      beta_increase: [1.3, 1.4]
+      beta_increase: 1.36
       start_date: '2021-02-01'
     covariates:
       pneumonia: 'reference'

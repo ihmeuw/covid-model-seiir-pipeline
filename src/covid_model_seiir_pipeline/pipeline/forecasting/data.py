@@ -227,9 +227,9 @@ class ForecastDataInterface:
 
         return thetas
 
-    def load_variant_scalar(self, variant_specification: Dict,
-                            transition_dates: pd.Series,
-                            max_date: pd.Timestamp) -> pd.Series:
+    def load_variant_prevalence(self, variant_specification: Dict,
+                                transition_dates: pd.Series,
+                                max_date: pd.Timestamp) -> pd.Series:
         path = variant_specification.get('scale_up_path', None)
         if not path:
             idx = (transition_dates
@@ -238,27 +238,28 @@ class ForecastDataInterface:
                    .explode()
                    .set_index('date', append=True)
                    .index)
-            return pd.Series(1, index=idx)
+            return pd.Series(0, index=idx)
 
-        variant_scale_up = pd.read_csv(path)
-        variant_scale_up['date'] = (pd.Timestamp(variant_specification['start_date'])
-                                    + pd.to_timedelta(variant_scale_up['day'], 'D'))
-        variant_scale_up = variant_scale_up.set_index('date').proportion
+        variant_prevalence = pd.read_csv(path)
+        variant_prevalence['date'] = (pd.Timestamp(variant_specification['start_date'])
+                                      + pd.to_timedelta(variant_prevalence['day'], 'D'))
+        variant_scale_up = variant_prevalence.set_index('date').proportion
 
-        max_scalar = np.random.uniform(*variant_specification['beta_increase'])
-
-        scalars = []
+        prevalences = []
         for location_id in transition_dates.index:
             date_start = transition_dates.loc[location_id]
             dates = pd.date_range(date_start, max_date, name='date')
             # Carry last value forward and set past values to zero.
-            loc_scale_up = variant_scale_up.reindex(dates).fillna(method='ffill').fillna(0)
-            loc_scalar = ((1 - loc_scale_up) + max_scalar * loc_scale_up).reset_index()
-            loc_scalar['location_id'] = location_id
-            loc_scalar = loc_scalar.set_index(['location_id', 'date']).proportion
-            scalars.append(loc_scalar)
+            loc_prevalence = (variant_scale_up
+                              .reindex(dates)
+                              .fillna(method='ffill')
+                              .fillna(0)
+                              .reset_index())
+            loc_prevalence['location_id'] = location_id
+            loc_prevalence = loc_prevalence.set_index(['location_id', 'date']).proportion
+            prevalences.append(loc_prevalence)
 
-        return pd.concat(scalars)
+        return pd.concat(prevalences)
 
     def get_infectionator_metadata(self):
         return self._get_regression_data_interface().get_infectionator_metadata()
