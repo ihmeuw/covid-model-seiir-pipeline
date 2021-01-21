@@ -1,9 +1,37 @@
 from bdb import BdbQuit
 import functools
 from pathlib import Path
-from typing import Any, Callable, Optional, Tuple, Union
+from typing import Any, Callable, Dict, NamedTuple, Optional, Tuple, Union
 
 from covid_shared import cli_tools, paths
+
+
+MaybePathLike = Union[str, Path, None]
+
+
+class VersionInfo(NamedTuple):
+    """Tiny struct for processing input versions from cli args and specs."""
+    cli_arg: MaybePathLike
+    spec_arg: MaybePathLike
+    default: MaybePathLike
+    metadata_key: str
+    allow_default: bool
+
+
+def resolve_version_info(specification, run_metadata: cli_tools.RunMetadata, input_versions: Dict[str, VersionInfo]):
+    """Resolves cli args, spec values, and defaults and makes the
+    specification and metadata consistent.
+
+    """
+    for version_key, version_info in input_versions.items():
+        if not hasattr(specification.data, version_key):
+            raise TypeError(f'Invalid key {version_key} for specification data {specification.data}.')
+        if not (version_info.cli_arg or version_info.spec_arg or version_info.allow_default):
+            continue
+        input_root = get_input_root(version_info.cli_arg, version_info.spec_arg, version_info.default)
+        setattr(specification.data, version_key, str(input_root))
+        run_metadata.update_from_path(version_info.metadata_key, input_root / paths.METADATA_FILE_NAME)
+    return specification, run_metadata
 
 
 def handle_exceptions(func: Callable, logger: Any, with_debugger: bool) -> Callable:
