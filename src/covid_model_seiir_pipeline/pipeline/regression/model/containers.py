@@ -1,6 +1,6 @@
 """Containers for regression data."""
 from dataclasses import dataclass
-from typing import Dict, Tuple
+from typing import Any, Dict, Tuple
 
 import pandas as pd
 
@@ -26,7 +26,7 @@ class ODEProcessInput:
     solver_dt: float
     day_shift: Tuple[float, float]
 
-    def to_dict(self):
+    def to_dict(self) -> Dict[str, Any]:
         return utilities.asdict(self)
 
 
@@ -35,17 +35,17 @@ class HospitalFatalityRatioData:
     age_specific: pd.Series
     all_age: pd.Series
 
-    def to_dict(self):
+    def to_dict(self) -> Dict[str, pd.Series]:
         return utilities.asdict(self)
 
 
 @dataclass
-class HospitalCorrectionsData:
+class HospitalCensusData:
     hospital_census: pd.Series
     icu_census: pd.Series
     ventilator_census: pd.Series
 
-    def to_dict(self):
+    def to_dict(self) -> Dict[str, pd.Series]:
         return utilities.asdict(self)
 
 
@@ -57,7 +57,7 @@ class HospitalMetrics:
     icu_census: pd.Series
     ventilator_census: pd.Series
 
-    def to_dict(self):
+    def to_dict(self) -> Dict[str, pd.Series]:
         return utilities.asdict(self)
 
 
@@ -67,5 +67,5 @@ class HospitalCorrectionFactors:
     icu_census: pd.Series
     ventilator_census: pd.Series
 
-    def to_dict(self):
+    def to_dict(self) -> Dict[str, pd.Series]:
         return utilities.asdict(self)

@@ -12,10 +12,17 @@ from covid_model_seiir_pipeline.lib import (
 from covid_model_seiir_pipeline.pipeline.regression import (
     RegressionDataInterface,
     RegressionSpecification,
+    HospitalParameters,
 )
 from covid_model_seiir_pipeline.pipeline.forecasting.specification import (
     ForecastSpecification,
     ScenarioSpecification,
+)
+from covid_model_seiir_pipeline.pipeline.forecasting.model import (
+    HospitalMetrics,
+    HospitalCorrectionFactors,
+    HospitalFatalityRatioData,
+    ScenarioData,
 )
 
 
@@ -82,6 +89,30 @@ class ForecastDataInterface:
         df = self._get_regression_data_interface().load_beta_param_file(draw_id=draw_id)
         return df.set_index('params')['values'].to_dict()
 
+    def get_hospital_parameters(self) -> HospitalParameters:
+        return self._get_regression_data_interface().load_specification().hospital_parameters
+
+    def load_hospital_usage(self) -> HospitalMetrics:
+        df = self._get_regression_data_interface().load_hospital_data(measure='usage')
+        df['date'] = pd.to_datetime(df['date'])
+        df = df.set_index(['location_id', 'date']).sort_index()
+        return HospitalMetrics(**{metric: df[metric] for metric in df.columns})
+
+    def load_hospital_correction_factors(self) -> HospitalCorrectionFactors:
+        df = self._get_regression_data_interface().load_hospital_data(measure='correction_factors')
+        df['date'] = pd.to_datetime(df['date'])
+        df = df.set_index(['location_id', 'date']).sort_index()
+        return HospitalCorrectionFactors(**{metric: df[metric] for metric in df.columns})
+
+    def load_mortality_ratio(self, location_ids: List[int]) -> pd.Series:
+        return self._get_regression_data_interface().load_mortality_ratio(location_ids)
+
+    def load_hospital_fatality_ratio(self,
+                                     death_weights: pd.Series,
+                                     location_ids: List[int]) -> HospitalFatalityRatioData:
+        rdi = self._get_regression_data_interface()
+        return rdi.load_hospital_fatality_ratio(death_weights, location_ids, with_error=False)
+
     ##########################
     # Covariate data loaders #
     ##########################
@@ -139,7 +170,7 @@ class ForecastDataInterface:
 
     def load_scenario_specific_data(self,
                                     location_ids: List[int],
-                                    scenario_spec: ScenarioSpecification) -> 'ScenarioData':
+                                    scenario_spec: ScenarioSpecification) -> ScenarioData:
         if scenario_spec.system == 'vaccine':
             forecast_scenario = scenario_spec.system_params.get('forecast_version', 'reference')
             vaccinations = self.load_vaccine_info(
@@ -288,10 +319,3 @@ class ForecastDataInterface:
         regression_spec = RegressionSpecification.from_dict(io.load(self.regression_root.specification()))
         regression_di = RegressionDataInterface.from_specification(regression_spec)
         return regression_di
-
-
-@dataclass
-class ScenarioData:
-    vaccinations: Optional[pd.DataFrame]
-    percent_mandates: Optional[pd.DataFrame]
-    mandate_effects: Optional[pd.DataFrame]

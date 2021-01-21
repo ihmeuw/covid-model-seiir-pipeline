@@ -1,7 +1,7 @@
 from covid_model_seiir_pipeline.pipeline.regression.model.containers import (
     ODEProcessInput,
     HospitalFatalityRatioData,
-    HospitalCorrectionsData,
+    HospitalCensusData,
     HospitalMetrics,
     HospitalCorrectionFactors,
 )

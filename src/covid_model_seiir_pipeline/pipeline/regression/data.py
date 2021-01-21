@@ -14,7 +14,7 @@ from covid_model_seiir_pipeline.pipeline.regression.specification import (
 )
 from covid_model_seiir_pipeline.pipeline.regression.model import (
     HospitalFatalityRatioData,
-    HospitalCorrectionsData,
+    HospitalCensusData,
 )
 
 
@@ -181,8 +181,10 @@ class RegressionDataInterface:
         mr_df = mr_df.loc[mr_df.location_id.isin(location_ids), ['location_id', 'age_start', 'MRprob']]
         return mr_df.set_index(['location_id', 'age_start']).MRprob
 
-    def load_hospital_fatality_ratio(self, death_weights: pd.Series,
-                                  location_ids: List[int], with_error: bool) -> 'HospitalFatalityRatioData':
+    def load_hospital_fatality_ratio(self,
+                                     death_weights: pd.Series,
+                                     location_ids: List[int],
+                                     with_error: bool) -> 'HospitalFatalityRatioData':
         hfr_age_cols = ['X1', 'X2', 'X3', 'X4', 'X5']
 
         hfr_all_locs = io.load(self.hospital_fatality_ratio_root.hospital_fatality_ratio())
@@ -248,7 +250,7 @@ class RegressionDataInterface:
         population = population.loc[in_locations & is_2019 & is_both_sexes & is_five_year_bins, :]
         return population
 
-    def load_hospital_correction_data(self) -> 'HospitalCorrectionsData':
+    def load_hospital_correction_data(self) -> 'HospitalCensusData':
         metadata = self.get_model_inputs_metadata()
 
         model_inputs_path = Path(metadata['output_path'])
@@ -270,7 +272,7 @@ class RegressionDataInterface:
             census_exclude_locs = [200, 69, 179, 172, 170, 144, 26, 74, 67, 58]
             df = df.loc[~df.location_id.isin(census_exclude_locs)]
             corrections_data[measure] = df.set_index(['location_id', 'date']).value
-        return HospitalCorrectionsData(**corrections_data)
+        return HospitalCensusData(**corrections_data)
 
     #######################
     # Regression data I/O #

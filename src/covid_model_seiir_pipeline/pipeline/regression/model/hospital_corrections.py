@@ -6,7 +6,7 @@ import pandas as pd
 
 from covid_model_seiir_pipeline.pipeline.regression.model.containers import (
     HospitalFatalityRatioData,
-    HospitalCorrectionsData,
+    HospitalCensusData,
     HospitalMetrics,
     HospitalCorrectionFactors,
 )
@@ -299,14 +299,14 @@ def _safe_log_divide(numerator: pd.Series, denominator: pd.Series) -> pd.Series:
     return (np.log(numerator + 1) - np.log(denominator + 1)).dropna().rename('log_cf')
 
 
-def calculate_hospital_correction_factors(usage: HospitalMetrics,
-                                          correction_data: HospitalCorrectionsData,
+def calculate_hospital_correction_factors(usage: 'HospitalMetrics',
+                                          census_data: 'HospitalCensusData',
                                           aggregation_hierarchy: pd.DataFrame,
                                           hospital_parameters: 'HospitalParameters') -> HospitalCorrectionFactors:
     date = usage.hospital_census.reset_index().date
     min_date, max_date = date.min(), date.max()
 
-    raw_log_hospital_cf = _safe_log_divide(correction_data.hospital_census, usage.hospital_census)
+    raw_log_hospital_cf = _safe_log_divide(census_data.hospital_census, usage.hospital_census)
 
     log_hospital_cf = _compute_correction_factor(
         raw_log_hospital_cf,
@@ -318,7 +318,7 @@ def calculate_hospital_correction_factors(usage: HospitalMetrics,
                                    upper=hospital_parameters.hospital_correction_factor_max)
 
     modeled_icu_log_ratio = _safe_log_divide(usage.icu_census, usage.hospital_census)
-    historical_icu_log_ratio = _safe_log_divide(correction_data.icu_census, correction_data.hospital_census)
+    historical_icu_log_ratio = _safe_log_divide(census_data.icu_census, census_data.hospital_census)
     raw_log_icu_ratio_cf = (historical_icu_log_ratio - modeled_icu_log_ratio).dropna()
 
     log_icu_ratio_cf = _compute_correction_factor(
@@ -332,7 +332,7 @@ def calculate_hospital_correction_factors(usage: HospitalMetrics,
                          upper=hospital_parameters.icu_correction_factor_max)
 
     modeled_ventilator_log_ratio = _safe_log_divide(usage.ventilator_census, usage.icu_census)
-    historical_ventilator_log_ratio = _safe_log_divide(correction_data.ventilator_census, correction_data.icu_census)
+    historical_ventilator_log_ratio = _safe_log_divide(census_data.ventilator_census, census_data.icu_census)
     raw_log_ventilator_ratio_cf = (historical_ventilator_log_ratio - modeled_ventilator_log_ratio).dropna()
 
     log_ventilator_ratio_cf = _compute_correction_factor(

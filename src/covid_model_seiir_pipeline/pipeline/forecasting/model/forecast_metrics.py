@@ -1,9 +1,25 @@
-from typing import Dict, List, Tuple, Union
+from typing import Dict, List, Tuple, Union, TYPE_CHECKING
 
 import pandas as pd
 
 from covid_model_seiir_pipeline.lib import math
-from covid_model_seiir_pipeline.pipeline.forecasting.model.ode_forecast import CompartmentInfo
+from covid_model_seiir_pipeline.pipeline.forecasting.model.containers import (
+    CompartmentInfo,
+    HospitalFatalityRatioData,
+    HospitalCorrectionFactors,
+    HospitalMetrics,
+    OutputMetrics,
+)
+from covid_model_seiir_pipeline.pipeline.regression.model import (
+    compute_hospital_usage,
+)
+
+
+if TYPE_CHECKING:
+    # Support type checking but keep the pipeline stages as isolated as possible.
+    from covid_model_seiir_pipeline.pipeline.regression.specification import (
+        HospitalParameters,
+    )
 
 
 def compute_output_metrics(infection_data: pd.DataFrame,
@@ -11,7 +27,7 @@ def compute_output_metrics(infection_data: pd.DataFrame,
                            components_past: pd.DataFrame,
                            components_forecast: pd.DataFrame,
                            seir_params: Dict[str, float],
-                           compartment_info: CompartmentInfo) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+                           compartment_info: CompartmentInfo) -> OutputMetrics:
     components = splice_components(components_past, components_forecast)
 
     observed_infections, observed_deaths = math.get_observed_infecs_and_deaths(infection_data)
@@ -41,7 +57,29 @@ def compute_output_metrics(infection_data: pd.DataFrame,
     deaths = observed_deaths.combine_first(modeled_deaths)
     r_effective = compute_effective_r(components, seir_params, compartment_info.compartments)
 
-    return components, infections, deaths, r_effective
+    return OutputMetrics(
+        components=components, 
+        infections=infections, 
+        deaths=deaths, 
+        r_effective=r_effective
+    )
+
+
+def compute_corrected_hospital_usage(all_age_deaths: pd.DataFrame,
+                                     death_weights: pd.Series,
+                                     hospital_fatality_ratio: HospitalFatalityRatioData,
+                                     hospital_parameters: 'HospitalParameters',
+                                     correction_factors: HospitalCorrectionFactors) -> HospitalMetrics:
+    hospital_usage = compute_hospital_usage(
+        all_age_deaths.reset_index(),
+        death_weights,
+        hospital_fatality_ratio,
+        hospital_parameters,
+    )
+    hospital_usage.hospital_census = (hospital_usage.hospital_census * correction_factors.hospital_census).fillna(method='ffill')
+    hospital_usage.icu_census = (hospital_usage.icu_census * correction_factors.icu_census).fillna(method='ffill')
+    hospital_usage.ventilator_census = (hospital_usage.ventilator_census * correction_factors.ventilator_census).fillna(method='ffill')
+    return hospital_usage
 
 
 def splice_components(components_past: pd.DataFrame, components_forecast: pd.DataFrame):

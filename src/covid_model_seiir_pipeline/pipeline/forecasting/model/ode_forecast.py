@@ -9,13 +9,24 @@ import pandas as pd
 from covid_model_seiir_pipeline.lib import (
     math,
     static_vars,
+    utilities,
+)
+from covid_model_seiir_pipeline.pipeline.forecasting.model.containers import (
+    HospitalCorrectionFactors,
+    CompartmentInfo,
+    ScenarioData,
 )
 
 if TYPE_CHECKING:
     # The model subpackage is a library for the pipeline stage and shouldn't
     # explicitly depend on things outside the subpackage.
-    from covid_model_seiir_pipeline.pipeline.forecasting.data import ScenarioData
-    from covid_model_seiir_pipeline.pipeline.forecasting.specification import ScenarioSpecification
+    from covid_model_seiir_pipeline.pipeline.forecasting.specification import (
+        ScenarioSpecification,
+    )
+    # Support type checking but keep the pipeline stages as isolated as possible.
+    from covid_model_seiir_pipeline.pipeline.regression.specification import (
+        HospitalParameters,
+    )
 
 
 def forecast_beta(covariates: pd.DataFrame,
@@ -30,9 +41,34 @@ def forecast_beta(covariates: pd.DataFrame,
     return betas
 
 
+def forecast_correction_factors(correction_factors: HospitalCorrectionFactors,
+                                today: pd.Series,
+                                max_date: pd.Timestamp,
+                                hospital_parameters: 'HospitalParameters') -> HospitalCorrectionFactors:
+    averaging_window = pd.Timedelta(days=hospital_parameters.correction_factor_average_window)
+    application_window = pd.Timedelta(days=hospital_parameters.correction_factor_application_window)
+    assert np.all(max_date > today + application_window)
+
+    new_cfs = {}
+    for cf_name, cf in utilities.asdict(correction_factors).items():
+        loc_cfs = []
+        for loc_id in today.index:
+            loc_cf = cf.loc[loc_id]
+            loc_today = today.loc[loc_id]
+            mean_cf = loc_cf.loc[loc_today - averaging_window: loc_today].mean()
+            loc_cf = loc_cf.loc[:loc_today]
+            loc_cf.loc[loc_today + application_window] = mean_cf
+            loc_cf.loc[max_date] = mean_cf
+            loc_cf = loc_cf.asfreq('D').interpolate().reset_index()
+            loc_cf['location_id'] = loc_id
+            loc_cfs.append(loc_cf.set_index(['location_id', 'date'])[cf_name])
+        new_cfs[cf_name] = pd.concat(loc_cfs).sort_index()
+    return HospitalCorrectionFactors(**new_cfs)
+
+
 def prep_seir_parameters(betas: pd.DataFrame,
                          thetas: pd.Series,
-                         scenario_data: 'ScenarioData'):
+                         scenario_data: ScenarioData):
     betas = betas.rename(columns={'beta_pred': 'beta'})
     parameters = betas.merge(thetas, on='location_id')
     if scenario_data.vaccinations is not None:
@@ -73,12 +109,6 @@ def get_population_partition(population: pd.DataFrame,
         raise NotImplementedError
 
     return partition_map
-
-
-@dataclass
-class CompartmentInfo:
-    compartments: List[str]
-    group_suffixes: List[str]
 
 
 def get_past_components(beta_regression_df: pd.DataFrame,

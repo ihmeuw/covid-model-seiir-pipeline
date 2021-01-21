@@ -7,6 +7,7 @@ import pandas as pd
 from covid_model_seiir_pipeline.lib import (
     cli_tools,
     static_vars,
+    utilities,
 )
 from covid_model_seiir_pipeline.pipeline.forecasting import model
 from covid_model_seiir_pipeline.pipeline.forecasting.specification import ForecastSpecification
@@ -50,6 +51,12 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, **kwar
     # We'll need this to compute deaths and to splice with the forecasts.
     infection_data = data_interface.load_infection_data(draw_id)
     ifr = data_interface.load_ifr_data()
+    # Data for computing hospital usage
+    mr = data_interface.load_mortality_ratio(location_ids)
+    death_weights = model.get_death_weights(mr, population, with_error=False)
+    hfr = data_interface.load_hospital_fatality_ratio(death_weights, location_ids)
+    hospital_parameters = data_interface.get_hospital_parameters()
+    correction_factors = data_interface.load_hospital_correction_factors()
     # Load any data specific to the particular scenario we're running
     scenario_data = data_interface.load_scenario_specific_data(location_ids, scenario_spec)
 
@@ -76,6 +83,14 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, **kwar
     betas = model.forecast_beta(covariate_pred, coefficients, beta_scales)
     seir_parameters = model.prep_seir_parameters(betas, thetas, scenario_data)
 
+    forecast_end_date = covariates.date.max()
+    correction_factors = model.forecast_correction_factors(
+        correction_factors,
+        transition_date,
+        forecast_end_date,
+        hospital_parameters,
+    )
+
     logger.info('Running ODE forecast.', context='compute_ode')
     future_components = model.run_normal_ode_model_by_location(
         initial_condition,
@@ -85,7 +100,7 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, **kwar
         compartment_info,
     )
     logger.info('Processing ODE results and computing deaths and infections.', context='compute_results')
-    components, infections, deaths, r_effective = model.compute_output_metrics(
+    output_metrics = model.compute_output_metrics(
         infection_data,
         ifr,
         past_components,
@@ -93,13 +108,20 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, **kwar
         beta_params,
         compartment_info,
     )
+    hospital_usage = model.compute_corrected_hospital_usage(
+        output_metrics.deaths,
+        death_weights,
+        hfr,
+        hospital_parameters,
+        correction_factors,
+    )
 
     if scenario_spec.algorithm == 'draw_level_mandate_reimposition':
         logger.info('Entering mandate reimposition.', context='compute_mandates')
         # Info data specific to mandate reimposition
         min_wait, days_on, reimposition_threshold = model.unpack_parameters(scenario_spec.algorithm_params)
 
-        population = (components[compartment_info.compartments]
+        population = (output_metrics.components[compartment_info.compartments]
                       .sum(axis=1)
                       .rename('population')
                       .groupby('location_id')
@@ -109,7 +131,7 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, **kwar
         reimposition_dates = {}
         last_reimposition_end_date = pd.Series(pd.NaT, index=population.index)
         reimposition_date = model.compute_reimposition_date(
-            deaths,
+            output_metrics.deaths,
             population,
             reimposition_threshold,
             min_wait,
@@ -159,7 +181,7 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, **kwar
                                  .drop(future_components_subset.index)
                                  .append(future_components_subset)
                                  .sort_index())
-            components, infections, deaths, r_effective = model.compute_output_metrics(
+            output_metrics = model.compute_output_metrics(
                 infection_data,
                 ifr,
                 past_components,
@@ -167,13 +189,20 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, **kwar
                 beta_params,
                 compartment_info,
             )
+            hospital_usage = model.compute_corrected_hospital_usage(
+                output_metrics.deaths,
+                death_weights,
+                hfr,
+                hospital_parameters,
+                correction_factors,
+            )
 
             logger.info('Recomputing reimposition dates', context='compute_mandates')
             reimposition_count += 1
             reimposition_dates[reimposition_count] = reimposition_date
             last_reimposition_end_date.loc[reimposition_date.index] = reimposition_date + days_on
             reimposition_date = model.compute_reimposition_date(
-                deaths,
+                output_metrics.deaths,
                 population,
                 reimposition_threshold,
                 min_wait,
@@ -181,11 +210,14 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, **kwar
             )
 
     logger.info('Writing outputs.', context='write')
-    ode_param_cols = components.columns.difference(compartment_info.compartments)
-    ode_params = components[ode_param_cols].reset_index()
-    components = components[compartment_info.compartments].reset_index()
+    ode_param_cols = output_metrics.components.columns.difference(compartment_info.compartments)
+    ode_params = output_metrics.components[ode_param_cols].reset_index()
+    components = output_metrics.components[compartment_info.compartments].reset_index()
     covariates = covariates.reset_index()
-    outputs = pd.concat([infections, deaths, r_effective], axis=1).reset_index()
+    epi_metrics = [value for key, value in utilities.asdict(output_metrics).items() if key != 'components']
+    usage = [value.rename(key) for key, value in utilities.asdict(hospital_usage).items()]
+    corrections = [value.rename(key + '_correction') for key, value in utilities.asdict(correction_factors).items()]
+    outputs = pd.concat(epi_metrics + usage + corrections, axis=1).reset_index()
 
     data_interface.save_ode_params(ode_params, scenario, draw_id)
     data_interface.save_components(components, scenario, draw_id)
