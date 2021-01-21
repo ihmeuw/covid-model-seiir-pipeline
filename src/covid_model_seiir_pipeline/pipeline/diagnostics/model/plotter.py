@@ -17,12 +17,12 @@ from covid_model_seiir_pipeline.pipeline.postprocessing.model import (
     COVARIATES,
 )
 
-COLOR_MAP = lambda i: ['#7F3C8D', '#11A579',
-                       '#3969AC', '#F2B701',
-                       '#E73F74', '#80BA5A',
-                       '#E68310', '#008695',
-                       '#CF1C90', '#f97b72',
-                       '#4b4b8f', '#A5AA99'][i]
+COLOR_MAP = ['#7F3C8D', '#11A579',
+             '#3969AC', '#F2B701',
+             '#E73F74', '#80BA5A',
+             '#E68310', '#008695',
+             '#CF1C90', '#f97b72',
+             '#4b4b8f', '#A5AA99'].__getitem__
 
 FILL_ALPHA = 0.2
 OBSERVED_ALPHA = 0.5
