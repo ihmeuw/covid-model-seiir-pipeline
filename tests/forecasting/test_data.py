@@ -21,6 +21,8 @@ class TestForecastDataInterfaceIO:
         rdi = RegressionDataInterface(
             infection_root=None,
             covariate_root=None,
+            mortality_rate_root=None,
+            hospital_fatality_ratio_root=None,
             coefficient_root=None,
             regression_root=io.RegressionRoot(tmpdir),
         )
@@ -31,13 +33,16 @@ class TestForecastDataInterfaceIO:
             forecast_root=None,
             fh_subnationals=False,
         )
+        # Patch on the regression data interface
+        fdi._get_regression_data_interface = lambda: rdi
 
         # Step 1: save files (normally done in regression)
+
         rdi.save_regression_coefficients(coefficients, draw_id=4)
         rdi.save_beta_param_file(parameters, draw_id=4)
         rdi.save_date_file(dates, draw_id=4)
         rdi.save_regression_betas(regression_beta, draw_id=4)
-        rdi.save_location_data(location_data, draw_id=4)
+        rdi.save_infection_data(location_data, draw_id=4)
 
         # Step 2: load files as they would be loaded in forecast
         loaded_coefficients = fdi.load_regression_coefficients(draw_id=4)

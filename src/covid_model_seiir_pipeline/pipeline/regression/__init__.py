@@ -3,4 +3,7 @@ from covid_model_seiir_pipeline.pipeline.regression.specification import (
     RegressionSpecification,
 )
 from covid_model_seiir_pipeline.pipeline.regression.data import RegressionDataInterface
-from covid_model_seiir_pipeline.pipeline.regression.task import beta_regression
+from covid_model_seiir_pipeline.pipeline.regression.task import (
+    beta_regression,
+    hospital_correction_factors,
+)
