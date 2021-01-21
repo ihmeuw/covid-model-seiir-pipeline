@@ -106,9 +106,14 @@ class PlotVersion:
 
 
 def make_plot_versions(comparators: List[GridPlotsComparatorSpecification], color_map) -> List[PlotVersion]:
+    primary_versions = []
     plot_versions = []
     for comparator in comparators:
         for scenario, label in comparator.scenarios.items():
-            plot_versions.append((Path(comparator.version), scenario, label))
-    plot_versions = [PlotVersion(*pv, color_map(i)) for i, pv in enumerate(plot_versions)]
-    return plot_versions
+            if scenario.endswith('*'):
+                primary_versions.append((Path(comparator.version), scenario[:-1], label))
+            else:
+                plot_versions.append((Path(comparator.version), scenario, label))
+    primary_versions = [PlotVersion(*pv, color_map(i)) for i, pv in enumerate(primary_versions)]
+    normal_versions = [PlotVersion(*pv, color_map(i + len(primary_versions))) for i, pv in enumerate(plot_versions)]
+    return normal_versions + primary_versions
