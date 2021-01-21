@@ -2,6 +2,7 @@ from pathlib import Path
 import time
 
 import click
+import numpy as np
 import pandas as pd
 
 from covid_model_seiir_pipeline.lib import (
@@ -49,6 +50,7 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, **kwar
     # Rescaling parameters for the beta forecast.
     beta_scales = data_interface.load_beta_scales(scenario=scenario, draw_id=draw_id)
     # Beta scale-up due to variant
+    np.random.seed(draw_id)
     variant_scalar = data_interface.load_variant_scalar(scenario_spec.variant, transition_date, forecast_end_date)
     # We'll need this to compute deaths and to splice with the forecasts.
     infection_data = data_interface.load_infection_data(draw_id)
@@ -83,8 +85,9 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, **kwar
     covariate_pred = covariates.loc[the_future].reset_index()
 
     betas = model.forecast_beta(covariate_pred, coefficients, beta_scales)
-    betas = betas * variant_scalar
+    betas = (betas.set_index('date', append=True).beta_pred * variant_scalar).rename('beta_pred').reset_index(level='date')
     seir_parameters = model.prep_seir_parameters(betas, thetas, scenario_data)
+    import pdb; pdb.set_trace()
 
     correction_factors = model.forecast_correction_factors(
         correction_factors,
@@ -163,7 +166,7 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, **kwar
             covariate_pred = covariates.loc[the_future].reset_index()
 
             betas = model.forecast_beta(covariate_pred, coefficients, beta_scales)
-            betas = betas * variant_scalar
+            betas = (betas.set_index('date', append=True).beta_pred * variant_scalar).rename('beta_pred').reset_index(level='date')
             seir_parameters = model.prep_seir_parameters(betas, thetas, scenario_data)
 
             # The ode is done as a loop over the locations in the initial condition.

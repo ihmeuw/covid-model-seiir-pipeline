@@ -229,25 +229,27 @@ class ForecastDataInterface:
 
     def load_variant_scalar(self, variant_specification: Dict,
                             transition_dates: pd.Series,
-                            max_date: pd.Timestamp) -> Union[int, pd.Series]:
-        path = variant_specification.get('path', None)
+                            max_date: pd.Timestamp) -> pd.Series:
+        path = variant_specification.get('scale_up_path', None)
         if not path:
             return 1
 
         variant_scale_up = pd.read_csv(path)
-        variant_scale_up['date'] = pd.Timestamp(variant_specification['start_date']) + pd.to_timedelta(variant['day'])
-        variant_scale_up = variant_scale_up.set_index('date')
+        variant_scale_up['date'] = (pd.Timestamp(variant_specification['start_date']) 
+                                    + pd.to_timedelta(variant_scale_up['day'], 'D'))
+        variant_scale_up = variant_scale_up.set_index('date').proportion
         # TODO: seed rng
         max_scalar = np.random.uniform(*variant_specification['beta_increase'])
 
         scalars = []
         for location_id in transition_dates.index:
             date_start = transition_dates.loc[location_id]
-            dates = pd.date_range(date_start, max_date)
-            loc_scale_up = variant_scale_up.reindex(dates)
+            dates = pd.date_range(date_start, max_date, name='date')
+            # Carry last value forward and set past values to zero.
+            loc_scale_up = variant_scale_up.reindex(dates).fillna(method='ffill').fillna(0)
             loc_scalar = ((1 - loc_scale_up) + max_scalar * loc_scale_up).reset_index()
             loc_scalar['location_id'] = location_id
-            loc_scalar = loc_scalar.set_index(['location_id', 'date']).value
+            loc_scalar = loc_scalar.set_index(['location_id', 'date']).proportion
             scalars.append(loc_scalar)
 
         return pd.concat(scalars)
