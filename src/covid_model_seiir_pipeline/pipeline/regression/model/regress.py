@@ -47,7 +47,7 @@ class BetaRegressor(IBetaRegressor):
         mr_model_fixed.fit_model()
         return list(mr_model_fixed.result.values())[0]
 
-    def fit(self, mr_data: MRData, _: bool) -> pd.DataFrame:
+    def fit(self, mr_data: MRData, _: bool = None) -> pd.DataFrame:
         mr_model = MRModel(mr_data, self.covmodel_set)
         mr_model.fit_model()
         cov_coef = mr_model.result
