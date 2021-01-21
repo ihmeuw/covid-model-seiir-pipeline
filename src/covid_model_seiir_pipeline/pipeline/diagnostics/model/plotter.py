@@ -173,7 +173,7 @@ def make_covariates_page(plot_versions: List[PlotVersion],
     make_log_beta_resid_hist(
         ax_rhist,
         plot_versions,
-        location.id
+        location.id,
     )
     
     make_title_and_legend(fig, location, plot_versions)
@@ -289,7 +289,7 @@ def make_results_page(plot_versions: List[PlotVersion],
         start, end,
         label='Cumulative Infected (% Population)',
         vlines=vlines,
-        transform=lambda x: 100 * x / pop
+        transform=lambda x: 100 * x / pop,
     )
     ax_cumul_infec.set_ylim(0, 100)
     
@@ -334,7 +334,7 @@ def make_results_page(plot_versions: List[PlotVersion],
         start, end,
         label='Total Susceptible (% Population)',
         vlines=vlines,
-        transform=lambda x: 100 * x / pop
+        transform=lambda x: 100 * x / pop,
     )
     ax_susceptible.set_ylim(0, 100)
     
@@ -346,7 +346,7 @@ def make_results_page(plot_versions: List[PlotVersion],
         start, end,
         label='Total Immune (% Population)',
         vlines=vlines,
-        transform=lambda x: 100 * x / pop
+        transform=lambda x: 100 * x / pop,
     )
     ax_immune.set_ylim(0, 100)
     make_time_plot(
@@ -357,7 +357,7 @@ def make_results_page(plot_versions: List[PlotVersion],
         start, end,
         transform=lambda x: 100*x,
         uncertainty=False,
-        linestyle='dashed'
+        linestyle='dashed',
     )
     # Todo: Add herd immunity to this plot
     
