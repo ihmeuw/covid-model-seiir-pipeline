@@ -232,13 +232,19 @@ class ForecastDataInterface:
                             max_date: pd.Timestamp) -> pd.Series:
         path = variant_specification.get('scale_up_path', None)
         if not path:
-            return 1
+            idx = (transition_dates
+                   .groupby('location_id')
+                   .apply(lambda x: pd.date_range(x.iloc[0], max_date, name='date'))
+                   .explode()
+                   .set_index('date', append=True)
+                   .index)
+            return pd.Series(1, index=idx)
 
         variant_scale_up = pd.read_csv(path)
-        variant_scale_up['date'] = (pd.Timestamp(variant_specification['start_date']) 
+        variant_scale_up['date'] = (pd.Timestamp(variant_specification['start_date'])
                                     + pd.to_timedelta(variant_scale_up['day'], 'D'))
         variant_scale_up = variant_scale_up.set_index('date').proportion
-        # TODO: seed rng
+
         max_scalar = np.random.uniform(*variant_specification['beta_increase'])
 
         scalars = []
@@ -253,7 +259,6 @@ class ForecastDataInterface:
             scalars.append(loc_scalar)
 
         return pd.concat(scalars)
-
 
     def get_infectionator_metadata(self):
         return self._get_regression_data_interface().get_infectionator_metadata()
