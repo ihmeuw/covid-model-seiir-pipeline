@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field
 import itertools
-from typing import Dict, NamedTuple, Tuple, Union
+from typing import Any, Dict, NamedTuple, Tuple, Union
 
 from covid_model_seiir_pipeline.lib import (
     utilities,
@@ -77,6 +77,11 @@ class ScenarioSpecification:
         'offset_deaths_lower',
         'offset_deaths_upper',
     )
+    VARIANT_KEYS = (
+        'scale_up_path',
+        'beta_increase',
+        'start_date',
+    )
 
     name: str = field(default='dummy_scenario')
     algorithm: str = field(default='normal')
@@ -86,6 +91,7 @@ class ScenarioSpecification:
     system_params: Dict = field(default_factory=dict)
     population_partition: str = field(default='none')
     beta_scaling: Dict[str, int] = field(default_factory=dict)
+    variant: Dict[str, Any] = field(default_factory=dict)
     theta: Union[str, int] = field(default=0)
     covariates: Dict[str, str] = field(default_factory=dict)
 
@@ -100,7 +106,7 @@ class ScenarioSpecification:
 
         if self.system not in self.ALLOWED_SYSTEMS:
             raise ValueError(f'Unknown system {self.system} in scenario {self.name}. '
-                             f'Allowed solvers are {self.ALLOWED_SYSTEMS}.')
+                             f'Allowed systems are {self.ALLOWED_SYSTEMS}.')
 
         if self.population_partition not in self.ALLOWED_POPULATION_PARTITIONS:
             raise ValueError(f'Unknown population partition {self.population_partition} in scenario {self.name}. '
@@ -110,6 +116,11 @@ class ScenarioSpecification:
         if bad_scaling_keys:
             raise ValueError(f'Unknown beta scaling configuration option(s) {list(bad_scaling_keys)} '
                              f'in scenario {self.name}. Expected options: {self.BETA_SCALING_KEYS}.')
+
+        bad_variant_keys = set(self.variant).difference(self.VARIANT_KEYS)
+        if bad_variant_keys:
+            raise ValueError(f'Unknown variate configuration options(s) {list(bad_variant_keys)} '
+                             f'in scenario {self.name}. Expected options: {self.VARIANT_KEYS}.')
 
         window_size = self.beta_scaling.get('window_size', None)
         if window_size is None:

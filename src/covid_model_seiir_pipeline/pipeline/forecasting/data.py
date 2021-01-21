@@ -3,6 +3,7 @@ from pathlib import Path
 from typing import Dict, List, Union
 
 from loguru import logger
+import numpy as np
 import pandas as pd
 
 from covid_model_seiir_pipeline.lib import (
@@ -225,6 +226,32 @@ class ForecastDataInterface:
             raise ValueError('Sigma - theta must be smaller than 1')
 
         return thetas
+
+    def load_variant_scalar(self, variant_specification: Dict,
+                            transition_dates: pd.Series,
+                            max_date: pd.Timestamp) -> Union[int, pd.Series]:
+        path = variant_specification.get('path', None)
+        if not path:
+            return 1
+
+        variant_scale_up = pd.read_csv(path)
+        variant_scale_up['date'] = pd.Timestamp(variant_specification['start_date']) + pd.to_timedelta(variant['day'])
+        variant_scale_up = variant_scale_up.set_index('date')
+        # TODO: seed rng
+        max_scalar = np.random.uniform(*variant_specification['beta_increase'])
+
+        scalars = []
+        for location_id in transition_dates.index:
+            date_start = transition_dates.loc[location_id]
+            dates = pd.date_range(date_start, max_date)
+            loc_scale_up = variant_scale_up.reindex(dates)
+            loc_scalar = ((1 - loc_scale_up) + max_scalar * loc_scale_up).reset_index()
+            loc_scalar['location_id'] = location_id
+            loc_scalar = loc_scalar.set_index(['location_id', 'date']).value
+            scalars.append(loc_scalar)
+
+        return pd.concat(scalars)
+
 
     def get_infectionator_metadata(self):
         return self._get_regression_data_interface().get_infectionator_metadata()
