@@ -32,24 +32,6 @@ def compute_beta_hat(covariates: pd.DataFrame, coefficients: pd.DataFrame) -> pd
     return (covariates * coefficients).sum(axis=1)
 
 
-def get_observed_infecs_and_deaths(infection_data: pd.DataFrame):
-    """Gets observed data out of infectionator outputs."""
-    observed_infections = (infection_data
-                           .set_index(['location_id', 'date'])['infections_draw']
-                           .dropna()
-                           .sort_index()
-                           .rename('infections')
-                           .to_frame())
-
-    observed_deaths = (infection_data
-                       .set_index(['location_id', 'date'])['deaths']
-                       .dropna()
-                       .sort_index()
-                       .to_frame())
-    observed_deaths['observed'] = 1
-    return observed_infections, observed_deaths
-
-
 def solve_ode(system, t, init_cond, params, dt):
     t_solve = np.arange(np.min(t), np.max(t) + dt, dt / 2)
     y_solve = np.zeros((init_cond.size, t_solve.size),

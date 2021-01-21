@@ -19,7 +19,6 @@ logger = cli_tools.task_performance_logger
 
 def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, **kwargs):
     logger.info(f"Initiating SEIIR beta forecasting for scenario {scenario}, draw {draw_id}.", context='setup')
-    start = time.time()
     forecast_spec: ForecastSpecification = ForecastSpecification.from_path(
         Path(forecast_version) / static_vars.FORECAST_SPECIFICATION_FILE
     )

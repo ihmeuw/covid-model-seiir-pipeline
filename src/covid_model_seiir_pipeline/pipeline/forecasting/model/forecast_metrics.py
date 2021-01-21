@@ -30,7 +30,6 @@ def compute_output_metrics(infection_data: pd.DataFrame,
                            compartment_info: CompartmentInfo) -> OutputMetrics:
     components = splice_components(components_past, components_forecast)
 
-    observed_infections, observed_deaths = math.get_observed_infecs_and_deaths(infection_data)
     infection_death_lag = infection_data['duration'].max()
     if compartment_info.group_suffixes:
         modeled_infections, modeled_deaths = 0, 0
