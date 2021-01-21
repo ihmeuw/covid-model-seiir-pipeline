@@ -137,7 +137,7 @@ def linear_first_order(t: float, y: np.ndarray, p: np.ndarray):
 def filter_to_epi_threshold(location_id: int,
                             infections: pd.Series,
                             end_date: pd.Timestamp,
-                            threshold: float = 1.) -> pd.Series:
+                            threshold: float = 50.) -> pd.Series:
     # noinspection PyTypeChecker
     start_date = infections.loc[threshold <= infections].index.min()
     while infections.loc[start_date:end_date].count() <= 2:
