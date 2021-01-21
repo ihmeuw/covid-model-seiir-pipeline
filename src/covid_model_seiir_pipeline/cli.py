@@ -1,11 +1,13 @@
 from pathlib import Path
 
 import click
-from covid_shared import cli_tools, paths, shell_tools
+from covid_shared import paths, shell_tools
 from loguru import logger
 import yaml
 
-from covid_model_seiir_pipeline.lib import utilities
+from covid_model_seiir_pipeline.lib import (
+    cli_tools,
+)
 from covid_model_seiir_pipeline.pipeline import (
     RegressionSpecification,
     do_beta_regression,
@@ -28,32 +30,12 @@ def seiir():
 
 @seiir.command()
 @cli_tools.pass_run_metadata()
-@click.argument('regression_specification',
-                type=click.Path(exists=True, dir_okay=False))
-@click.option('--infection-version',
-              type=click.Path(file_okay=False),
-              help="Which version of infectionator inputs to use in the"
-                   "regression.")
-@click.option('--covariates-version',
-              type=click.Path(file_okay=False),
-              help=('Which version of the covariates to use in the '
-                    'regression.'))
-@click.option('--coefficient-version',
-              type=click.Path(file_okay=False),
-              help='A prior regression version for pinning the regression '
-                   'coefficients. If provided, all fixed effects from the '
-                   'provided version will be used and only random effects will '
-                   'be fit.')
-@click.option('-l', '--location-specification',
-              type=click.STRING,
-              help="Either a location set version id used to pull a list of"
-                   "locations to run, or a full path to a file describing"
-                   "the location set.")
-@click.option('--preprocess-only',
-              is_flag=True,
-              help="Only make the directory and set up the metadata. "
-                   "Useful for setting up output directories for testing "
-                   "tasks individually.")
+@cli_tools.with_regression_specification
+@cli_tools.with_infection_version
+@cli_tools.with_covariates_version
+@cli_tools.with_coefficient_version
+@cli_tools.with_location_specification
+@cli_tools.add_preprocess_only
 @cli_tools.add_output_options(paths.SEIR_REGRESSION_OUTPUTS)
 @cli_tools.add_verbose_and_with_debugger
 def regress(run_metadata,
@@ -70,21 +52,21 @@ def regress(run_metadata,
 
     # Resolve CLI overrides and specification values with defaults into
     # final run arguments.
-    infection_root = utilities.get_input_root(infection_version,
+    infection_root = cli_tools.get_input_root(infection_version,
                                               regression_spec.data.infection_version,
                                               paths.INFECTIONATOR_OUTPUTS)
-    covariates_root = utilities.get_input_root(covariates_version,
+    covariates_root = cli_tools.get_input_root(covariates_version,
                                                regression_spec.data.covariate_version,
                                                paths.SEIR_COVARIATES_OUTPUT_ROOT)
-    coefficient_root = utilities.get_input_root(coefficient_version,
+    coefficient_root = cli_tools.get_input_root(coefficient_version,
                                                 regression_spec.data.coefficient_version,
                                                 paths.SEIR_REGRESSION_OUTPUTS)
-    locations_set_version_id, location_set_file = utilities.get_location_info(
+    locations_set_version_id, location_set_file = cli_tools.get_location_info(
         location_specification,
         regression_spec.data.location_set_version_id,
         regression_spec.data.location_set_file
     )
-    output_root = utilities.get_output_root(output_root, regression_spec.data.output_root)
+    output_root = cli_tools.get_output_root(output_root, regression_spec.data.output_root)
     cli_tools.setup_directory_structure(output_root, with_production=True)
     run_directory = cli_tools.make_run_directory(output_root)
 
@@ -104,6 +86,7 @@ def regress(run_metadata,
     run_metadata['regression_specification'] = regression_spec.to_dict()
 
     cli_tools.configure_logging_to_files(run_directory)
+    # noinspection PyTypeChecker
     main = cli_tools.monitor_application(do_beta_regression,
                                          logger, with_debugger)
     app_metadata, _ = main(regression_spec, preprocess_only)
@@ -116,21 +99,10 @@ def regress(run_metadata,
 
 @seiir.command()
 @cli_tools.pass_run_metadata()
-@click.argument('forecast_specification',
-                type=click.Path(exists=True, dir_okay=False))
-@click.option('--regression-version',
-              type=click.Path(file_okay=False),
-              help="Which version of ode fit inputs to use in the"
-                   "regression.")
-@click.option('--covariates-version',
-              type=click.Path(file_okay=False),
-              help=('Which version of the covariates to use in the '
-                    'regression.'))
-@click.option('--preprocess-only',
-              is_flag=True,
-              help="Only make the directory and set up the metadata. "
-                   "Useful for setting up output directories for testing "
-                   "tasks individually.")
+@cli_tools.with_forecast_specification
+@cli_tools.with_regression_version
+@cli_tools.with_covariates_version
+@cli_tools.add_preprocess_only
 @cli_tools.add_output_options(paths.SEIR_FORECAST_OUTPUTS)
 @cli_tools.add_verbose_and_with_debugger
 def forecast(run_metadata,
@@ -145,13 +117,13 @@ def forecast(run_metadata,
 
     forecast_spec = ForecastSpecification.from_path(forecast_specification)
 
-    regression_root = utilities.get_input_root(regression_version,
+    regression_root = cli_tools.get_input_root(regression_version,
                                                forecast_spec.data.regression_version,
                                                paths.SEIR_REGRESSION_OUTPUTS)
-    covariates_root = utilities.get_input_root(covariates_version,
+    covariates_root = cli_tools.get_input_root(covariates_version,
                                                forecast_spec.data.covariate_version,
                                                paths.SEIR_COVARIATES_OUTPUT_ROOT)
-    output_root = utilities.get_output_root(output_root,
+    output_root = cli_tools.get_output_root(output_root,
                                             forecast_spec.data.output_root)
     cli_tools.setup_directory_structure(output_root, with_production=True)
     run_directory = cli_tools.make_run_directory(output_root)
@@ -165,6 +137,7 @@ def forecast(run_metadata,
     run_metadata['forecast_specification'] = forecast_spec.to_dict()
 
     cli_tools.configure_logging_to_files(run_directory)
+    # noinspection PyTypeChecker
     main = cli_tools.monitor_application(do_beta_forecast,
                                          logger, with_debugger)
     app_metadata, _ = main(forecast_spec, preprocess_only)
@@ -177,16 +150,9 @@ def forecast(run_metadata,
 
 @seiir.command()
 @cli_tools.pass_run_metadata()
-@click.argument('postprocessing_specification',
-                type=click.Path(exists=True, dir_okay=False))
-@click.option('--forecast-version',
-              type=click.Path(file_okay=False),
-              help="Which version of forecasts to postprocess.")
-@click.option('--preprocess-only',
-              is_flag=True,
-              help="Only make the directory and set up the metadata. "
-                   "Useful for setting up output directories for testing "
-                   "tasks individually.")
+@cli_tools.with_postprocessing_specification
+@cli_tools.with_forecast_version
+@cli_tools.add_preprocess_only
 @cli_tools.add_output_options(paths.SEIR_FINAL_OUTPUTS)
 @cli_tools.add_verbose_and_with_debugger
 def postprocess(run_metadata,
@@ -199,10 +165,10 @@ def postprocess(run_metadata,
 
     postprocessing_spec = PostprocessingSpecification.from_path(postprocessing_specification)
 
-    forecast_root = utilities.get_input_root(forecast_version,
+    forecast_root = cli_tools.get_input_root(forecast_version,
                                              postprocessing_spec.data.forecast_version,
                                              paths.SEIR_FORECAST_OUTPUTS)
-    output_root = utilities.get_output_root(output_root,
+    output_root = cli_tools.get_output_root(output_root,
                                             postprocessing_spec.data.output_root)
     cli_tools.setup_directory_structure(output_root, with_production=True)
     run_directory = cli_tools.make_run_directory(output_root)
@@ -215,6 +181,7 @@ def postprocess(run_metadata,
     run_metadata['postprocessing_specification'] = postprocessing_spec.to_dict()
 
     cli_tools.configure_logging_to_files(run_directory)
+    # noinspection PyTypeChecker
     main = cli_tools.monitor_application(do_postprocessing,
                                          logger, with_debugger)
     app_metadata, _ = main(postprocessing_spec, preprocess_only)
@@ -227,13 +194,8 @@ def postprocess(run_metadata,
 
 @seiir.command()
 @cli_tools.pass_run_metadata()
-@click.argument('diagnostics_specification',
-                type=click.Path(exists=True, dir_okay=False))
-@click.option('--preprocess-only',
-              is_flag=True,
-              help="Only make the directory and set up the metadata. "
-                   "Useful for setting up output directories for testing "
-                   "tasks individually.")
+@cli_tools.with_diagnostics_specification
+@cli_tools.add_preprocess_only
 @cli_tools.add_output_options(paths.SEIR_DIAGNOSTICS_OUTPUTS)
 @cli_tools.add_verbose_and_with_debugger
 def diagnostics(run_metadata,
@@ -248,13 +210,13 @@ def diagnostics(run_metadata,
     outputs_versions = set()
     for grid_plot_spec in diagnostics_spec.grid_plots:
         for comparator in grid_plot_spec.comparators:
-            comparator_version_path = utilities.get_input_root(None,
+            comparator_version_path = cli_tools.get_input_root(None,
                                                                comparator.version,
                                                                paths.SEIR_FINAL_OUTPUTS)
             outputs_versions.add(comparator_version_path)
             comparator.version = str(comparator_version_path)
 
-    output_root = utilities.get_output_root(output_root,
+    output_root = cli_tools.get_output_root(output_root,
                                             diagnostics_spec.data.output_root)
     cli_tools.setup_directory_structure(output_root, with_production=True)
     run_directory = cli_tools.make_run_directory(output_root)
@@ -271,6 +233,7 @@ def diagnostics(run_metadata,
     run_metadata['diagnostics_specification'] = diagnostics_spec.to_dict()
 
     cli_tools.configure_logging_to_files(run_directory)
+    # noinspection PyTypeChecker
     main = cli_tools.monitor_application(do_diagnostics,
                                          logger, with_debugger)
     app_metadata, _ = main(diagnostics_spec, preprocess_only)
@@ -282,20 +245,12 @@ def diagnostics(run_metadata,
 
 @seiir.command(name='run_all')
 @cli_tools.pass_run_metadata()
-@click.argument('regression_specification',
-                type=click.Path(exists=True, dir_okay=False))
-@click.argument('forecast_specification',
-                type=click.Path(exists=True, dir_okay=False))
-@click.argument('postprocessing_specification',
-                type=click.Path(exists=True, dir_okay=False))
-@click.argument('diagnostics_specification',
-                type=click.Path(exists=True, dir_okay=False))
-@click.option('-p', '--production-tag',
-              type=click.STRING,
-              help='Tags this run as a production run.')
-@click.option('-b', '--mark-best',
-              is_flag=True,
-              help='Mark this run as "best"')
+@cli_tools.with_regression_specification
+@cli_tools.with_forecast_specification
+@cli_tools.with_postprocessing_specification
+@cli_tools.with_diagnostics_specification
+@cli_tools.with_mark_best
+@cli_tools.with_production_tag
 @cli_tools.add_verbose_and_with_debugger
 def run_all(run_metadata,
             regression_specification, forecast_specification,
@@ -326,16 +281,16 @@ def run_all(run_metadata,
 
     # The regression might provide specific paths here. Downstream will
     # fill automatically.
-    infection_root = utilities.get_input_root(None,
+    infection_root = cli_tools.get_input_root(None,
                                               regression_spec.data.infection_version,
                                               paths.INFECTIONATOR_OUTPUTS)
-    covariates_root = utilities.get_input_root(None,
+    covariates_root = cli_tools.get_input_root(None,
                                                regression_spec.data.covariate_version,
                                                paths.SEIR_COVARIATES_OUTPUT_ROOT)
-    coefficient_root = utilities.get_input_root(None,
+    coefficient_root = cli_tools.get_input_root(None,
                                                 regression_spec.data.coefficient_version,
                                                 paths.SEIR_REGRESSION_OUTPUTS)
-    locations_set_version_id, location_set_file = utilities.get_location_info(
+    locations_set_version_id, location_set_file = cli_tools.get_location_info(
         None,
         regression_spec.data.location_set_version_id,
         regression_spec.data.location_set_file
@@ -361,6 +316,7 @@ def run_all(run_metadata,
     regression_run_metadata['regression_specification'] = regression_spec.to_dict()
 
     cli_tools.configure_logging_to_files(run_directory)
+    # noinspection PyTypeChecker
     main = cli_tools.monitor_application(do_beta_regression,
                                          logger, with_debugger)
     app_metadata, _ = main(regression_spec, False)
@@ -397,6 +353,7 @@ def run_all(run_metadata,
     forecast_run_metadata['forecast_specification'] = forecast_spec.to_dict()
 
     cli_tools.configure_logging_to_files(run_directory)
+    # noinspection PyTypeChecker
     main = cli_tools.monitor_application(do_beta_forecast,
                                          logger, with_debugger)
     app_metadata, _ = main(forecast_spec, False)
@@ -434,6 +391,7 @@ def run_all(run_metadata,
     postprocessing_run_metadata['postprocessing_specification'] = postprocessing_spec.to_dict()
 
     cli_tools.configure_logging_to_files(run_directory)
+    # noinspection PyTypeChecker
     main = cli_tools.monitor_application(do_postprocessing,
                                          logger, with_debugger)
     app_metadata, _ = main(postprocessing_spec, False)
@@ -459,7 +417,7 @@ def run_all(run_metadata,
     outputs_versions = set()
     for grid_plot_spec in diagnostics_spec.grid_plots:
         for comparator in grid_plot_spec.comparators:
-            comparator_version_path = utilities.get_input_root(None,
+            comparator_version_path = cli_tools.get_input_root(None,
                                                                comparator.version,
                                                                paths.SEIR_FINAL_OUTPUTS)
             outputs_versions.add(comparator_version_path)
@@ -481,6 +439,7 @@ def run_all(run_metadata,
     diagnostics_run_metadata['diagnostics_specification'] = diagnostics_spec.to_dict()
 
     cli_tools.configure_logging_to_files(run_directory)
+    # noinspection PyTypeChecker
     main = cli_tools.monitor_application(do_diagnostics,
                                          logger, with_debugger)
     app_metadata, _ = main(diagnostics_spec, False)
@@ -493,12 +452,9 @@ def run_all(run_metadata,
 
 @seiir.command(name='predictive_validity')
 @cli_tools.pass_run_metadata()
-@click.argument('regression_specification',
-                type=click.Path(exists=True, dir_okay=False))
-@click.argument('forecast_specification',
-                type=click.Path(exists=True, dir_okay=False))
-@click.argument('predictive_validity_specification',
-                type=click.Path(exists=True, dir_okay=False))
+@cli_tools.with_regression_specification
+@cli_tools.with_forecast_specification
+@cli_tools.with_predictive_validity_specification
 @cli_tools.add_verbose_and_with_debugger
 def predictive_validity(run_metadata,
                         regression_specification,
@@ -515,6 +471,7 @@ def predictive_validity(run_metadata,
     run_directory = Path(predictive_validity_spec.output_root)
     shell_tools.mkdir(run_directory, exists_ok=True)
 
+    # noinspection PyTypeChecker
     main = cli_tools.monitor_application(do_predictive_validity, logger, with_debugger)
     app_metadata, _ = main(regression_spec, forecast_spec, predictive_validity_spec)
 

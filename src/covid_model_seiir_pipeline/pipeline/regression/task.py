@@ -89,7 +89,7 @@ def run_beta_regression(regression_version: str, draw_id: int) -> None:
 
 
 @click.command()
-@cli_tools.with_regression_version
+@cli_tools.with_task_regression_version
 @cli_tools.with_draw_id
 @cli_tools.add_verbose_and_with_debugger
 def beta_regression(regression_version: str, draw_id: int,

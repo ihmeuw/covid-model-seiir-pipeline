@@ -32,7 +32,7 @@ def run_resample_map(postprocessing_version: str) -> None:
 
 
 @click.command()
-@cli_tools.with_postprocessing_version
+@cli_tools.with_task_postprocessing_version
 @cli_tools.add_verbose_and_with_debugger
 def resample_map(postprocessing_version: str,
                  verbose: int, with_debugger: bool):

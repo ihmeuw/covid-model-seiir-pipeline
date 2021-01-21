@@ -167,7 +167,7 @@ def run_seir_postprocessing(postprocessing_version: str, scenario: str, measure:
 
 
 @click.command()
-@cli_tools.with_postprocessing_version
+@cli_tools.with_task_postprocessing_version
 @cli_tools.with_scenario
 @cli_tools.with_measure
 @cli_tools.add_verbose_and_with_debugger

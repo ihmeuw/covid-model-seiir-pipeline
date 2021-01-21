@@ -14,6 +14,7 @@ class TestRegressionDataInterfaceIO:
         di = RegressionDataInterface(
             infection_root=None,
             covariate_root=None,
+            coefficient_root=None,
             regression_root=io.RegressionRoot(tmpdir),
         )
         di.make_dirs()

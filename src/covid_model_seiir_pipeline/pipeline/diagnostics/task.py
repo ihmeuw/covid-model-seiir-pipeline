@@ -82,11 +82,9 @@ def run_grid_plots(diagnostics_version: str, name: str, progress_bar: bool) -> N
 
 
 @click.command()
-@cli_tools.with_diagnostics_version
+@cli_tools.with_task_diagnostics_version
 @cli_tools.with_name
-@click.option('--pb', 'progress_bar',
-              is_flag=True,
-              help='Whether to show the progress bar for plot generation.')
+@cli_tools.with_progress_bar
 @cli_tools.add_verbose_and_with_debugger
 def grid_plots(diagnostics_version: str, name: str,
                progress_bar: bool, verbose: int, with_debugger: bool):
