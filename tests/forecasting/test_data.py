@@ -21,6 +21,8 @@ class TestForecastDataInterfaceIO:
         rdi = RegressionDataInterface(
             infection_root=None,
             covariate_root=None,
+            mortality_rate_root=None,
+            hospital_fatality_ratio_root=None,
             coefficient_root=None,
             regression_root=io.RegressionRoot(tmpdir),
         )

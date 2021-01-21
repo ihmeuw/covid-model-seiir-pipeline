@@ -1,15 +1,21 @@
 data:
-  infection_version: '2021_01_06.01'
-  covariate_version: '2021_01_07.04'
+  infection_version: '2021_01_13.02'
+  covariate_version: '2021_01_12.04'
+  mortality_rate_version: 'best'
+  hospital_fatality_ratio_version: 'best'
   coefficient_version: ''
   location_set_version_id: ''
-  location_set_file: '/ihme/covid-19/seir-pipeline-outputs/metadata-inputs/location_metadata_771.csv'
+  location_set_file: '/ihme/covid-19/seir-pipeline-outputs/metadata-inputs/location_metadata_810.csv'
   output_root: ''
 workflow:
   project: 'proj_covid'
   queue: 'all.q'
   tasks:
     beta_regression:
+      max_runtime_seconds: 3000
+      m_mem_free: '2G'
+      num_cores: 1
+    hospital_correction_factors:
       max_runtime_seconds: 3000
       m_mem_free: '2G'
       num_cores: 1
@@ -22,6 +28,23 @@ regression_parameters:
   gamma2: [0.3333, 1.0]
   solver_dt: 0.1
   sequential_refit: False
+hospital_parameters:
+  hospital_stay_death: 6
+  hospital_stay_recover: 14
+  hospital_stay_recover_icu: 20
+  hospital_to_icu: 3
+  icu_stay_recover: 13
+  icu_ratio: 0.25
+  intubation_ratio: 0.85
+  correction_factor_smooth_window: 14
+  hospital_correction_factor_min: 0.5
+  hospital_correction_factor_max: 25
+  icu_correction_factor_min: 0.05
+  icu_correction_factor_max: 0.95
+  intubation_correction_factor_min: 0.35
+  intubation_correction_factor_max: 1.0
+  correction_factor_average_window: 42
+  correction_factor_application_window: 42
 covariates:
   intercept:
     # Ordering of covariates in regression.  Covariates with the same order

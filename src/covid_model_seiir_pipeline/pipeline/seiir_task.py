@@ -3,6 +3,7 @@ import click
 from covid_model_seiir_pipeline.pipeline.regression import (
     REGRESSION_JOBS,
     beta_regression,
+    hospital_correction_factors,
 )
 from covid_model_seiir_pipeline.pipeline.forecasting import (
     FORECAST_JOBS,
@@ -27,6 +28,7 @@ def stask():
 
 
 stask.add_command(beta_regression, name=REGRESSION_JOBS.regression)
+stask.add_command(hospital_correction_factors, name=REGRESSION_JOBS.hospital_correction_factors)
 stask.add_command(beta_residual_scaling, name=FORECAST_JOBS.scaling)
 stask.add_command(beta_forecast, name=FORECAST_JOBS.forecast)
 stask.add_command(resample_map, name=POSTPROCESSING_JOBS.resample)
