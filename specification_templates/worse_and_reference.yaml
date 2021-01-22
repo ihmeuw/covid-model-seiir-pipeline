@@ -50,7 +50,7 @@ scenarios:
         proportion_immune: 0.5
     population_partition: 'high_and_low_risk'
     variant:
-      scale_up_path: '/ihme/covid-19/variant-scaleup/best/variant_1.351.csv'
+      scale_up_path: '/ihme/covid-19/variant-scaleup/best/uk_variant.csv'
       beta_increase: 1.36
       start_date: '2021-02-01'
     beta_scaling:
@@ -79,7 +79,7 @@ scenarios:
         proportion_immune: 0.5
     population_partition: 'high_and_low_risk'
     variant:
-      scale_up_path: '/ihme/covid-19/variant-scaleup/best/variant_1.351.csv'
+      scale_up_path: '/ihme/covid-19/variant-scaleup/best/uk_variant.csv'
       beta_increase: 1.36
       start_date: '2021-04-01'
     beta_scaling:
@@ -108,7 +108,7 @@ scenarios:
         proportion_immune: 0.5
     population_partition: 'high_and_low_risk'
     variant:
-      scale_up_path: '/ihme/covid-19/variant-scaleup/best/variant_b.1.1.7.csv'
+      scale_up_path: '/ihme/covid-19/variant-scaleup/best/sa_variant.csv'
       beta_increase: 1.36
       start_date: '2021-04-01'
       vaccine_efficacy_decrease: 0.5
@@ -138,7 +138,7 @@ scenarios:
         proportion_immune: 0.5
     population_partition: 'high_and_low_risk'
     variant:
-      scale_up_path: '/ihme/covid-19/variant-scaleup/best/variant_b.1.1.7.csv'
+      scale_up_path: '/ihme/covid-19/variant-scaleup/best/sa_variant.csv'
       beta_increase: 1.36
       start_date: '2021-02-01'
       vaccine_efficacy_decrease: 0.5

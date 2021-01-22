@@ -120,6 +120,7 @@ class PostprocessingDataInterface:
 
     def load_full_data(self) -> pd.DataFrame:
         full_data = self._get_forecast_data_inteface().load_full_data()
+        locs = full_data.location_id.unique()
         full_data = full_data.set_index(['location_id', 'date'])
         full_data = full_data.rename(columns={
             'Deaths': 'cumulative_deaths',
@@ -127,7 +128,12 @@ class PostprocessingDataInterface:
             'Hospitalizations': 'cumulative_hospitalizations',
         })
         full_data = full_data[['cumulative_cases', 'cumulative_deaths', 'cumulative_hospitalizations']]
-        return full_data
+        dfs = []
+        for loc_id in locs:
+            df = full_data.loc[loc_id].asfreq('D').reset_index().interpolate().fillna(method='pad')
+            df['location_id'] = loc_id
+            dfs.append(df.set_index(['location_id', 'date']).sort_index())
+        return pd.concat(dfs)
 
     def build_version_map(self) -> pd.Series:
         forecast_di = self._get_forecast_data_inteface()

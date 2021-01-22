@@ -1,6 +1,6 @@
 data:
-  regression_version: '2021_01_20.04'
-  covariate_version: '2021_01_12.04'
+  regression_version: '2021_01_21.05'
+  covariate_version: '2021_01_20.01'
   output_root: ''
   fh_subnationals: False
 workflow:
@@ -31,10 +31,6 @@ scenarios:
       offset_deaths_lower: 150
       offset_deaths_upper: 300
     theta: '/ihme/covid-19/seir-parameters/2020_10_06.01/thetas.csv'
-    variant:
-      scale_up_path: ''
-      beta_increase: 1.36
-      start_date: '2021-02-01'
     covariates:
       pneumonia: 'reference'
       mobility: 'reference'
@@ -187,3 +183,4 @@ scenarios:
       lri_mortality: 'reference'
       proportion_under_100m: 'reference'
       proportion_over_2_5k: 'reference'
+

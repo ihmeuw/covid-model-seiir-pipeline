@@ -71,12 +71,12 @@ def make_covariates_page(plot_versions: List[PlotVersion],
     pop = pop.loc[(pop.age_group_id == 22) & (pop.sex_id == 3), 'population'].iloc[0]
 
     full_data = pv.load_output_miscellaneous('full_data', is_table=True, location_id=location.id)
-    if not full_data.empty:
-        data_date = full_data.loc[full_data.cumulative_deaths.notnull(), 'date'].max()
-        short_term_forecast_date = data_date + SHORT_RANGE_FORECAST
-        vlines = [data_date, short_term_forecast_date]
-    else:
-        vlines = []
+    #if not full_data.empty:
+    #    data_date = full_data.loc[full_data.cumulative_deaths.notnull(), 'date'].max()
+    #    short_term_forecast_date = data_date + SHORT_RANGE_FORECAST
+    #    vlines = [data_date, short_term_forecast_date]
+    #else:
+    vlines = []
 
     # Configure the plot layout.
     fig = plt.figure(figsize=FIG_SIZE, tight_layout=True)
@@ -193,12 +193,12 @@ def make_results_page(plot_versions: List[PlotVersion],
     pop = pop.loc[(pop.age_group_id == 22) & (pop.sex_id == 3), 'population'].iloc[0]
 
     full_data = pv.load_output_miscellaneous('full_data', is_table=True, location_id=location.id)
-    if not full_data.empty:
-        data_date = full_data.loc[full_data.cumulative_deaths.notnull(), 'date'].max()
-        short_term_forecast_date = data_date + SHORT_RANGE_FORECAST
-        vlines = [data_date, short_term_forecast_date]
-    else:
-        vlines = []
+    #if not full_data.empty:
+    #    data_date = full_data.loc[full_data.cumulative_deaths.notnull(), 'date'].max()
+    #    short_term_forecast_date = data_date + SHORT_RANGE_FORECAST
+    #    vlines = [data_date, short_term_forecast_date]
+    #else:
+    vlines = []
 
     # Configure the plot layout.
     fig = plt.figure(figsize=FIG_SIZE, tight_layout=True)
@@ -395,14 +395,14 @@ def make_time_plot(ax,
                    start: pd.Timestamp = None, end: pd.Timestamp = None,
                    label: str = None,
                    linestyle: str = 'solid',
-                   uncertainty: bool = True,
+                   uncertainty: bool = False,
                    vlines=(),
                    transform=lambda x: x):
     for plot_version in plot_versions:
         data = plot_version.load_output_summaries(measure, loc_id)
         data[['mean', 'upper', 'lower']] = transform(data[['mean', 'upper', 'lower']])
 
-        ax.plot(data['date'], data['mean'], color=plot_version.color, linestyle=linestyle)
+        ax.plot(data['date'], data['mean'], color=plot_version.color, linestyle=linestyle, linewidth=2.5)
         if uncertainty:
             ax.fill_between(data['date'], data['upper'], data['lower'], alpha=FILL_ALPHA, color=plot_version.color)
 
