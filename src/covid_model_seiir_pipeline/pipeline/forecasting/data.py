@@ -236,7 +236,8 @@ class ForecastDataInterface:
                    .groupby('location_id')
                    .apply(lambda x: pd.date_range(x.iloc[0], max_date, name='date'))
                    .explode()
-                   .set_index('date', append=True)
+                   .reset_index()
+                   .set_index(['location_id', 'date'])
                    .index)
             return pd.Series(0, index=idx)
 
