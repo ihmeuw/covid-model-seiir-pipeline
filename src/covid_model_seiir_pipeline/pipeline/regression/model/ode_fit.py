@@ -1,357 +1,151 @@
-# -*- coding: utf-8 -*-
-"""
-    ODE Process
-    ~~~~~~~~~~~~
-"""
-from datetime import datetime
+from typing import Dict, List
 
+from loguru import logger
+import numba
 import numpy as np
-from odeopt.ode import RK4
-from odeopt.ode import LinearFirstOrder
-from odeopt.core.utils import linear_interpolate
 import pandas as pd
 
+from covid_model_seiir_pipeline.lib import (
+    math,
+)
 from covid_model_seiir_pipeline.pipeline.regression.model.containers import (
-    ODEProcessInput,
+    ODEParameters,
 )
 
 
-class SingleGroupODEProcess:
+def sample_parameters(draw_id: int, regression_parameters: Dict) -> ODEParameters:
+    np.random.seed(draw_id)
+    return ODEParameters(
+        alpha=np.random.uniform(*regression_parameters['alpha']),
+        sigma=np.random.uniform(*regression_parameters['sigma']),
+        gamma1=np.random.uniform(*regression_parameters['gamma1']),
+        gamma2=np.random.uniform(*regression_parameters['gamma2']),
+        day_shift=int(np.random.uniform(*regression_parameters['day_shift'])),
+        solver_dt=regression_parameters['solver_dt'],
+    )
 
-    def __init__(self, df,
-                 col_date,
-                 col_infections,
-                 col_pop,
-                 col_loc_id,
-                 today=np.datetime64(datetime.today()),
-                 day_shift=(8,)*2,
-                 lag_days=17,
-                 alpha=(0.95,)*2,
-                 sigma=(0.2,)*2,
-                 gamma1=(0.5,)*2,
-                 gamma2=(0.5,)*2,
-                 solver_class=RK4,
-                 solver_dt=1e-1):
-        """Constructor of the SingleGroupODEProcess
 
-        Args:
-            df (pd.DateFrame): DataFrame contains all the data.
-            col_date (str): Date of the rows.
-            col_cases (str): Column with new infectious data.
-            col_pop (str): Column with population.
-            col_loc_id (str): Column with location id.
-            today (np.datetime64): Indicating when "today" is. Defaults to the actual today.
-            day_shift (arraylike): Days shift for the data sub-selection.
-            alpha (arraylike): bounds for uniformly sampling alpha.
-            sigma (arraylike): bounds for uniformly sampling sigma.
-            gamma1 (arraylike): bounds for uniformly sampling gamma1.
-            gamma2 (arraylike): bounds for uniformly sampling gamma2.
-            solver_class (ODESolver, optional): Solver for the ODE system.
-            solver_dt (float, optional): Step size for the ODE system.
-        """
-        # observations
-        assert col_date in df
-        assert col_infections in df
-        assert col_pop in df
-        assert col_loc_id in df
-        self.col_date = col_date
-        self.col_infections = col_infections
-        self.col_pop = col_pop
-        self.col_loc_id = col_loc_id
-
-        self.loc_id = df[self.col_loc_id].values[0]
-
-        # ODE parameters
-        assert len(alpha) == 2 and \
-               0.0 <= alpha[0] <= alpha[1]
-        assert len(sigma) == 2 and \
-               0.0 <= sigma[0] <= sigma[1]
-        assert len(gamma1) == 2 and \
-               0.0 <= gamma1[0] <= gamma1[1]
-        assert len(gamma2) == 2 and \
-               0.0 <= gamma2[0] <= gamma2[1]
-        self.alpha = np.random.uniform(*alpha)
-        self.sigma = np.random.uniform(*sigma)
-        self.gamma1 = np.random.uniform(*gamma1)
-        self.gamma2 = np.random.uniform(*gamma2)
-        self.N = df[self.col_pop].values[0]
-
-        assert len(day_shift) == 2 and \
-            day_shift[0] <= day_shift[1]
-
-        # subset the data
-        self.today = today
-        self.day_shift = int(np.random.uniform(*day_shift))
-        self.lag_days = lag_days
-        df.sort_values(self.col_date, inplace=True)
-        date = pd.to_datetime(df[col_date])
-        # cast this from numpy.int64 to int because travis/tox was erroring on
-        # this, only for python 3.7, with a ValueError
-        end_date = self.today + np.timedelta64(int(self.day_shift - self.lag_days), 'D')
-        # Sometimes we don't have leading indicator data, so the day shift
-        # will put us into padded zeros.  Correct for this.
-        max_end_date = date[df[col_infections] > 0].max()
-        end_date = min(end_date, max_end_date)
-
-        idx = date <= end_date
-
-        cases_threshold = 50.0
-        start_date = date[df[col_infections] >= cases_threshold].min()
-        idx_final = idx & (date >= start_date)
-        infection_end_date = self.today - pd.Timedelta(days=self.lag_days)
-        while np.sum(idx_final) <= 2 or infection_end_date < start_date:
-            cases_threshold *= 0.5
-            print(f'reduce cases threshold for {self.loc_id} to'
-                  f'{cases_threshold}')
-            start_date = date[df[col_infections] >= cases_threshold].min()
-            idx_final = idx & (date >= start_date)
-            if cases_threshold < 1e-6:
-                # this is a data poor location, so we just use the whole time
-                # series.
-                start_date = date.min()
-                idx_final = idx
-                break
-
-        self.df = df[idx_final].copy()
-        date = date[idx_final]
-
-        # save start and end date
-        self.start_date = pd.to_datetime(start_date).strftime('%Y-%m-%d')
-        self.end_date = pd.to_datetime(end_date).strftime('%Y-%m-%d')
-
-        # compute days
-        self.col_days = 'days'
-        self.df[self.col_days] = (date - date.min()).dt.days.values
-
-        # parse input
-        self.date = self.df[self.col_date]
-        self.t = self.df[self.col_days].values
-        self.obs = self.df[self.col_infections].values
-        self.init_cond = {
-            'S': self.N,
-            'E': self.obs[0],
-            'I1': 1.0,
-            'I2': 0.0,
-            'R': 0.0
-        }
-
-        # ode solver setup
-        self.solver_class = solver_class
-        self.solver_dt = solver_dt
-        self.t_span = np.array([np.min(self.t), np.max(self.t)])
-        self.t_params = np.arange(self.t_span[0],
-                                  self.t_span[1] + self.solver_dt,
-                                  self.solver_dt)
-        self.params = None
-        self.components = None
-        self.create_ode_sys()
-
-    def create_ode_sys(self):
-        """Create 1D ODE solver.
-        """
-        self.step_ode_sys = LinearFirstOrder(
-            self.sigma,
-            solver_class=self.solver_class,
-            solver_dt=self.solver_dt
+def run_beta_fit(past_infections: pd.Series,
+                 population: pd.Series,
+                 location_ids: List[int],
+                 ode_parameters: ODEParameters) -> pd.DataFrame:
+    beta_fit_dfs = []
+    for location_id in location_ids:
+        beta_fit = run_loc_beta_fit(
+            infections=past_infections.loc[location_id],
+            total_population=population.loc[location_id],
+            location_id=location_id,
+            ode_parameters=ode_parameters,
         )
-
-    def process(self):
-        """Process the data.
-        """
-        self.rhs_newE = linear_interpolate(self.t_params, self.t, self.obs)
-        # fit the E
-        self.step_ode_sys.update_given_params(c=self.sigma)
-        E = self.step_ode_sys.simulate(self.t_params,
-                                       np.array([self.init_cond['E']]),
-                                       self.t_params,
-                                       self.rhs_newE[None, :])[0]
-
-        # fit I1
-        self.step_ode_sys.update_given_params(c=self.gamma1)
-        # modify initial condition of I1
-        self.init_cond.update({
-            'I1': (self.rhs_newE[0]/5.0)**(1.0/self.alpha)
-        })
-        I1 = self.step_ode_sys.simulate(self.t_params,
-                                        np.array([self.init_cond['I1']]),
-                                        self.t_params,
-                                        self.sigma*E[None, :])[0]
-
-        # fit I2
-        self.step_ode_sys.update_given_params(c=self.gamma2)
-        I2 = self.step_ode_sys.simulate(self.t_params,
-                                        np.array([self.init_cond['I2']]),
-                                        self.t_params,
-                                        self.gamma1*I1[None, :])[0]
-
-        # fit S
-        self.init_cond.update({
-            'S': self.N - self.init_cond['E'] - self.init_cond['I1']
-        })
-        self.step_ode_sys.update_given_params(c=0.0)
-        S = self.step_ode_sys.simulate(self.t_params,
-                                       np.array([self.init_cond['S']]),
-                                       self.t_params,
-                                       -self.rhs_newE[None, :])[0]
-        neg_S_idx = S < 0.0
-
-        # fit R
-        self.step_ode_sys.update_given_params(c=0.0)
-        R = self.step_ode_sys.simulate(self.t_params,
-                                       np.array([self.init_cond['R']]),
-                                       self.t_params,
-                                       self.gamma2*I2[None, :])[0]
-
-        if np.any(neg_S_idx):
-            id_min = np.min(np.arange(S.size)[neg_S_idx])
-            S[id_min:] = S[id_min - 1]
-            E[id_min:] = E[id_min - 1]
-            I1[id_min:] = I1[id_min - 1]
-            I2[id_min:] = I2[id_min - 1]
-            R[id_min:] = R[id_min - 1]
-
-        self.components = {
-            'S': S,
-            'E': E,
-            'I1': I1,
-            'I2': I2,
-            'R': R
-        }
-
-        # get beta
-        self.params = (self.rhs_newE/
-                       ((S/self.N)*
-                        ((I1 + I2)**self.alpha)))[None, :]
-
-    def predict(self, t):
-        params = linear_interpolate(t, self.t_params, self.params)
-        components = {
-            c: linear_interpolate(t, self.t_params, self.components[c])
-            for c in self.components
-        }
-        components.update({
-            'newE': linear_interpolate(t, self.t_params, self.rhs_newE)
-        })
-        components.update({
-            'newE_obs': linear_interpolate(t, self.t, self.obs)
-        })
-        return params, components
-
-    def create_result_df(self):
-        """Create result DataFrame.
-        """
-        params, components = self.predict(self.t)
-        df_result = pd.DataFrame({
-            self.col_loc_id: self.loc_id,
-            self.col_date: self.date,
-            'days': self.t,
-            'beta': params[0]
-        })
-
-        for k, v in components.items():
-            df_result[k] = v
-
-        return df_result.rename(columns={self.col_loc_id: "location_id"})
-
-    def create_params_df(self):
-        """Create parameter DataFrame.
-        """
-        df_params = pd.DataFrame([self.alpha, self.sigma,
-                                  self.gamma1, self.gamma2],
-                                 index=['alpha', 'sigma', 'gamma1', 'gamma2'],
-                                 columns=['params'])
-
-        return df_params
-
-    def create_start_end_date_df(self):
-        df_result = pd.DataFrame({
-            self.col_loc_id: self.loc_id,
-            'start_date': self.start_date,
-            'end_date': self.end_date
-        }, index=[0])
-        return df_result
+        beta_fit_dfs.append(beta_fit)
+    beta_fit = pd.concat(beta_fit_dfs)
+    return beta_fit
 
 
-class ODEProcess:
-    """ODE Process for multiple group.
-    """
-    def __init__(self, ode_input: ODEProcessInput):
-        """Constructor of ODEProcess."""
-        self.df_dict = ode_input.df_dict
-        self.col_date = ode_input.col_date
-        self.col_infections = ode_input.col_infections
-        self.col_pop = ode_input.col_pop
-        self.col_loc_id = ode_input.col_loc_id
-        self.col_lag_days = ode_input.col_lag_days
-        self.col_observed = ode_input.col_observed
+def run_loc_beta_fit(infections: pd.Series,
+                     total_population: float,
+                     location_id: int,
+                     ode_parameters: ODEParameters) -> pd.DataFrame:
+    today = infections.index.max()
+    end_date = today - pd.Timedelta(days=ode_parameters.day_shift)
+    infections = filter_to_epi_threshold(location_id, infections, end_date)
 
-        self.solver_dt = ode_input.solver_dt
+    date = pd.Series(infections.index.values)
+    t = (date - date.min()).dt.days.values
+    obs = infections.values
 
-        # create the location id
-        self.loc_ids = np.sort(list(self.df_dict.keys()))
+    shared_options = {'system': linear_first_order, 't': t, 'dt': ode_parameters.solver_dt}
 
-        # sampling the parameters here
-        self.alpha = np.random.uniform(*ode_input.alpha)
-        self.sigma = np.random.uniform(*ode_input.sigma)
-        self.gamma1 = np.random.uniform(*ode_input.gamma1)
-        self.gamma2 = np.random.uniform(*ode_input.gamma2)
-        self.day_shift = int(np.random.uniform(*ode_input.day_shift))
+    susceptible = math.solve_ode(
+        init_cond=np.array([total_population - obs[0] - (obs[0] / 5.0) ** (1.0 / ode_parameters.alpha)]),
+        params=np.vstack([
+            [0.] * len(t),
+            -obs,
+        ]),
+        **shared_options,
+    ).ravel()
 
-        # lag days
-        self.lag_days = self.df_dict[self.loc_ids[0]][
-            self.col_lag_days].values[0]
-        self.today_dict = {
-            loc_id: np.datetime64(
-                self.df_dict[loc_id].loc[self.df_dict[loc_id][self.col_observed] == 1, self.col_date].max()
-            )
-            for loc_id in self.loc_ids
-        }
+    exposed = math.solve_ode(
+        init_cond=np.array([obs[0]]),
+        params=np.vstack([
+            [ode_parameters.sigma] * len(t),
+            obs,
+        ]),
+        **shared_options,
+    ).ravel()
 
-        # create model for each location
-        self.models = {}
-        for loc_id in self.loc_ids:
-            self.models[loc_id] = SingleGroupODEProcess(
-                self.df_dict[loc_id],
-                self.col_date,
-                self.col_infections,
-                self.col_pop,
-                self.col_loc_id,
-                day_shift=(self.day_shift,)*2,
-                lag_days=self.lag_days,
-                alpha=(self.alpha,)*2,
-                sigma=(self.sigma,)*2,
-                gamma1=(self.gamma1,)*2,
-                gamma2=(self.gamma2,)*2,
-                solver_class=RK4,
-                solver_dt=self.solver_dt,
-                today=self.today_dict[loc_id],
-            )
+    infectious_1 = math.solve_ode(
+        init_cond=np.array([(obs[0] / 5.0) ** (1.0 / ode_parameters.alpha)]),
+        params=np.vstack([
+            [ode_parameters.gamma1] * len(t),
+            ode_parameters.sigma * exposed,
+        ]),
+        **shared_options,
+    ).ravel()
 
-    def process(self):
-        """Process all models.
-        """
-        for loc_id, model in self.models.items():
-            model.process()
-        return pd.concat([
-            model.create_result_df()
-            for loc_id, model in self.models.items()
-        ])
+    infectious_2 = math.solve_ode(
+        init_cond=np.array([0.]),
+        params=np.vstack([
+            [ode_parameters.gamma2] * len(t),
+            ode_parameters.gamma1 * infectious_1,
+        ]),
+        **shared_options,
+    ).ravel()
 
-    def create_params_df(self):
-        """Create parameter DataFrame.
-        """
-        df_params = pd.DataFrame({
-            'params': ['alpha', 'sigma', 'gamma1', 'gamma2', 'day_shift'],
-            'values': [self.alpha, self.sigma, self.gamma1, self.gamma2, self.day_shift]
-        })
+    removed = math.solve_ode(
+        init_cond=np.array([0.]),
+        params=np.vstack([
+            [0.] * len(t),
+            ode_parameters.gamma2 * infectious_2,
+        ]),
+        **shared_options
+    ).ravel()
 
-        return df_params
+    components = {
+        'S': susceptible,
+        'E': exposed,
+        'I1': infectious_1,
+        'I2': infectious_2,
+        'R': removed,
+    }
 
-    def create_start_end_date_df(self):
-        """
-        Create starting and ending date data frames for data used to fit, by group.
-        """
-        return pd.concat([
-            model.create_start_end_date_df()
-            for loc_id, model in self.models.items()
-        ]).reset_index(drop=True)
+    neg_susceptible_idx = susceptible < 0.0
+    if np.any(neg_susceptible_idx):
+        id_min = np.min(np.arange(susceptible.size)[neg_susceptible_idx])
+        for c in components:
+            components[c][id_min:] = components[c][id_min - 1]
+
+    # get beta
+    infectious = infectious_1 + infectious_2
+    disease_density = susceptible * infectious**ode_parameters.alpha / total_population
+    return pd.DataFrame({
+        'location_id': location_id,
+        'date': date,
+        'beta': obs / disease_density,
+        **components
+    })
+
+
+@numba.njit
+def linear_first_order(t: float, y: np.ndarray, p: np.ndarray):
+    c, f = p
+    x = y[0]
+    dx = -c * x + f
+    return np.array([dx])
+
+
+def filter_to_epi_threshold(location_id: int,
+                            infections: pd.Series,
+                            end_date: pd.Timestamp,
+                            threshold: float = 50.) -> pd.Series:
+    # noinspection PyTypeChecker
+    start_date = infections.loc[threshold <= infections].index.min()
+    while infections.loc[start_date:end_date].count() <= 2:
+        threshold *= 0.5
+        logger.debug(f'Reduce infections threshold to {threshold} for location {location_id}.')
+        # noinspection PyTypeChecker
+        start_date = infections.loc[threshold <= infections].index.min()
+        if threshold < 1e-6:
+            start_date = infections.index.min()
+            break
+    return infections.loc[start_date:end_date]

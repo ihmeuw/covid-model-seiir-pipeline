@@ -111,9 +111,16 @@ class RegressionDataInterface:
     # Infection data loaders #
     ##########################
 
-    def load_past_infection_data(self, draw_id: int) -> pd.DataFrame:
+    def load_past_infection_data(self, draw_id: int, location_ids: List[int] = None) -> pd.DataFrame:
         infection_data = io.load(self.infection_root.infections(draw_id=draw_id))
+        if location_ids:
+            infection_data = infection_data.loc[infection_data.location_id.isin(location_ids)]
         infection_data['date'] = pd.to_datetime(infection_data['date'])
+        infection_data = (infection_data
+                          .set_index(['location_id', 'date'])
+                          .sort_index()
+                          .loc[:, ['infections_draw', 'duration', 'deaths']]
+                          .rename(columns={'infections_draw': 'infections'}))
         return infection_data
 
     ##########################
@@ -161,13 +168,14 @@ class RegressionDataInterface:
     # Ratio data loaders #
     ######################
 
-    def load_ifr_data(self):
-        metadata = self.get_infectionator_metadata()
-        
-        ifr_version = metadata['run_arguments']['ifr_custom_path']
-        data_path = Path(ifr_version) / 'terminal_ifr.csv'
-        data = pd.read_csv(data_path)
-        return data.set_index('location_id')
+    def load_ifr_data(self, draw_id: int, location_ids: List[int]) -> pd.DataFrame:
+        ifr = io.load(self.infection_root.ratios(draw_id=draw_id))
+        ifr = ifr[ifr.location_id.isin(location_ids)]
+        ifr['date'] = pd.to_datetime(ifr['date'])
+        ifr = ifr.set_index(['location_id', 'date']).sort_index()
+        cols = [c for c in ifr.columns if '_draw' in c]
+        ifr = ifr.loc[:, cols].rename(columns={c: c.split('_draw')[0] for c in cols})
+        return ifr
 
     def load_mortality_ratio(self, location_ids: List[int]) -> pd.Series:
         mr_df = io.load(self.mortality_rate_root.mortality_rate())

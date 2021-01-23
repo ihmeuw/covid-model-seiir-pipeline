@@ -1,6 +1,6 @@
 """Containers for regression data."""
 from dataclasses import dataclass
-from typing import Any, Dict, Tuple
+from typing import Dict, Union
 
 import pandas as pd
 
@@ -10,25 +10,16 @@ from covid_model_seiir_pipeline.lib import (
 
 
 @dataclass
-class ODEProcessInput:
-    df_dict: Dict[int, pd.DataFrame]
-    col_date: str
-    col_infections: str
-    col_pop: str
-    col_loc_id: str
-    col_lag_days: str
-    col_observed: str
-
-    alpha: Tuple[float, float]
-    sigma: Tuple[float, float]
-    gamma1: Tuple[float, float]
-    gamma2: Tuple[float, float]
+class ODEParameters:
+    alpha: float
+    sigma: float
+    gamma1: float
+    gamma2: float
+    day_shift: int
     solver_dt: float
-    day_shift: Tuple[float, float]
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> Dict[str, Union[int, float]]:
         return utilities.asdict(self)
-
 
 @dataclass
 class HospitalFatalityRatioData:

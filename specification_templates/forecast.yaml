@@ -1,6 +1,6 @@
 data:
-  regression_version: '2021_01_18.01'
-  covariate_version: '2021_01_12.04'
+  regression_version: '2021_01_21.05'
+  covariate_version: '2021_01_20.01'
   output_root: ''
   fh_subnationals: False
 workflow:
@@ -183,3 +183,4 @@ scenarios:
       lri_mortality: 'reference'
       proportion_under_100m: 'reference'
       proportion_over_2_5k: 'reference'
+

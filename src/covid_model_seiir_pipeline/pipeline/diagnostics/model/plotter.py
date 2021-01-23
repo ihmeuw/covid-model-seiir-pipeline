@@ -64,25 +64,25 @@ def make_covariates_page(plot_versions: List[PlotVersion],
     # FIXME: This is brittle w/r/t new covariates
     time_varying = [c for c, c_config in COVARIATES.items() if c_config.time_varying]
     non_time_varying = [c for c, c_config in COVARIATES.items() if not c_config.time_varying]
-    
+
         # Load some shared data.
     pv = plot_versions[0]
     pop = pv.load_output_miscellaneous('populations', is_table=True, location_id=location.id)
     pop = pop.loc[(pop.age_group_id == 22) & (pop.sex_id == 3), 'population'].iloc[0]
 
-    full_data = pv.load_output_miscellaneous('full_data_es_processed', is_table=True, location_id=location.id)
-    if not full_data.empty:
-        data_date = full_data.loc[full_data.cumulative_deaths.notnull(), 'date'].max()
-        short_term_forecast_date = data_date + SHORT_RANGE_FORECAST
-        vlines = [data_date, short_term_forecast_date]
-    else:
-        vlines = []
+    full_data = pv.load_output_miscellaneous('full_data', is_table=True, location_id=location.id)
+    #if not full_data.empty:
+    #    data_date = full_data.loc[full_data.cumulative_deaths.notnull(), 'date'].max()
+    #    short_term_forecast_date = data_date + SHORT_RANGE_FORECAST
+    #    vlines = [data_date, short_term_forecast_date]
+    #else:
+    vlines = []
 
     # Configure the plot layout.
     fig = plt.figure(figsize=FIG_SIZE, tight_layout=True)
-    grid_spec = fig.add_gridspec(nrows=1, 
-                                 ncols=4, 
-                                 width_ratios=[1, 3, 5, 5], 
+    grid_spec = fig.add_gridspec(nrows=1,
+                                 ncols=4,
+                                 width_ratios=[1, 3, 5, 5],
                                  wspace=0.2)
     grid_spec.update(**GRID_SPEC_MARGINS)
 
@@ -91,7 +91,7 @@ def make_covariates_page(plot_versions: List[PlotVersion],
     gs_cov = grid_spec[0, 1].subgridspec(len(time_varying), 1)
     gs_r = grid_spec[0, 2].subgridspec(2, 1)
     gs_beta = grid_spec[0, 3].subgridspec(3, 1, height_ratios=[2, 1, 1])
-    
+
     ylim_map = {
         'mobility': (-100, 20),
         'testing': (0, 0.015),
@@ -108,7 +108,7 @@ def make_covariates_page(plot_versions: List[PlotVersion],
             location.id,
             label=covariate.title(),
         )
-        
+
         ax_cov = fig.add_subplot(gs_cov[i])
         make_time_plot(
             ax_cov,
@@ -121,7 +121,7 @@ def make_covariates_page(plot_versions: List[PlotVersion],
         ylims = ylim_map.get(covariate)
         if ylims is not None:
             ax_cov.set_ylim(*ylims)
-        
+
     ax_r_controlled = fig.add_subplot(gs_r[0])
     make_time_plot(
         ax_r_controlled,
@@ -133,7 +133,7 @@ def make_covariates_page(plot_versions: List[PlotVersion],
         label='R Controlled',
     )
     ax_r_controlled.set_ylim(0, 3)
-    
+
     ax_r_eff = fig.add_subplot(gs_r[1])
     make_time_plot(
         ax_r_eff,
@@ -145,7 +145,7 @@ def make_covariates_page(plot_versions: List[PlotVersion],
         vlines=vlines,
     )
     ax_r_eff.set_ylim(0, 3)
-    
+
     ax_betas = fig.add_subplot(gs_beta[0])
     make_time_plot(
         ax_betas,
@@ -157,7 +157,7 @@ def make_covariates_page(plot_versions: List[PlotVersion],
         vlines=vlines,
         transform=lambda x: np.log(x),
     )
-    
+
     ax_resid = fig.add_subplot(gs_beta[1])
     make_time_plot(
         ax_resid,
@@ -168,14 +168,14 @@ def make_covariates_page(plot_versions: List[PlotVersion],
         label='Log Beta Residuals',
         vlines=vlines,
     )
-    
+
     ax_rhist = fig.add_subplot(gs_beta[2])
     make_log_beta_resid_hist(
         ax_rhist,
         plot_versions,
         location.id
     )
-    
+
     make_title_and_legend(fig, location, plot_versions)
     write_or_show(fig, plot_file)
 
@@ -192,34 +192,34 @@ def make_results_page(plot_versions: List[PlotVersion],
     pop = pv.load_output_miscellaneous('populations', is_table=True, location_id=location.id)
     pop = pop.loc[(pop.age_group_id == 22) & (pop.sex_id == 3), 'population'].iloc[0]
 
-    full_data = pv.load_output_miscellaneous('full_data_es_processed', is_table=True, location_id=location.id)
-    if not full_data.empty:
-        data_date = full_data.loc[full_data.cumulative_deaths.notnull(), 'date'].max()
-        short_term_forecast_date = data_date + SHORT_RANGE_FORECAST
-        vlines = [data_date, short_term_forecast_date]
-    else:
-        vlines = []
+    full_data = pv.load_output_miscellaneous('full_data', is_table=True, location_id=location.id)
+    #if not full_data.empty:
+    #    data_date = full_data.loc[full_data.cumulative_deaths.notnull(), 'date'].max()
+    #    short_term_forecast_date = data_date + SHORT_RANGE_FORECAST
+    #    vlines = [data_date, short_term_forecast_date]
+    #else:
+    vlines = []
 
     # Configure the plot layout.
     fig = plt.figure(figsize=FIG_SIZE, tight_layout=True)
     grid_spec = fig.add_gridspec(nrows=3, ncols=3, wspace=0.2)
     grid_spec.update(**GRID_SPEC_MARGINS)
-    
-    
+
+
     ax_daily_infec = fig.add_subplot(grid_spec[0, 0])
     ax_daily_hosp = fig.add_subplot(grid_spec[1, 0])
     ax_daily_death = fig.add_subplot(grid_spec[2, 0])
-    
+
     ax_cumul_infec = fig.add_subplot(grid_spec[0, 1])
     ax_census_hosp = fig.add_subplot(grid_spec[1, 1])
     ax_cumul_death = fig.add_subplot(grid_spec[2, 1])
-    
+
     ax_susceptible = fig.add_subplot(grid_spec[1, 2])
-    ax_immune = fig.add_subplot(grid_spec[0, 2])    
+    ax_immune = fig.add_subplot(grid_spec[0, 2])
     ax_es = fig.add_subplot(grid_spec[2, 2])
-    
+
     # Column 1, Daily
-    
+
     make_time_plot(
         ax_daily_infec,
         plot_versions,
@@ -235,7 +235,7 @@ def make_results_page(plot_versions: List[PlotVersion],
         color=observed_color,
         alpha=OBSERVED_ALPHA,
     )
-    
+
     make_time_plot(
         ax_daily_hosp,
         plot_versions,
@@ -278,9 +278,9 @@ def make_results_page(plot_versions: List[PlotVersion],
         color=observed_color,
         alpha=OBSERVED_ALPHA,
     )
-    
+
     # Column 2, Cumulative
-    
+
     make_time_plot(
         ax_cumul_infec,
         plot_versions,
@@ -292,7 +292,7 @@ def make_results_page(plot_versions: List[PlotVersion],
         transform=lambda x: 100 * x / pop
     )
     ax_cumul_infec.set_ylim(0, 100)
-    
+
     make_time_plot(
         ax_census_hosp,
         plot_versions,
@@ -323,9 +323,9 @@ def make_results_page(plot_versions: List[PlotVersion],
         label='Cumulative Deaths',
         vlines=vlines,
     )
-    
+
     # Column 3, miscellaneous
-    
+
     make_time_plot(
         ax_susceptible,
         plot_versions,
@@ -337,7 +337,7 @@ def make_results_page(plot_versions: List[PlotVersion],
         transform=lambda x: 100 * x / pop
     )
     ax_susceptible.set_ylim(0, 100)
-    
+
     make_time_plot(
         ax_immune,
         plot_versions,
@@ -360,49 +360,49 @@ def make_results_page(plot_versions: List[PlotVersion],
         linestyle='dashed'
     )
     # Todo: Add herd immunity to this plot
-    
+
     # This is an overestimate, but not an important one.
-    es_end_date = pd.Timestamp.today() + SHORT_RANGE_FORECAST
-    make_time_plot(
-        ax_es,
-        plot_versions,
-        'daily_elastispliner_smoothed',
-        location.id,
-        start, es_end_date,
-        label='Elastispliner',
-    )
-    ax_es.plot(
-        full_data['date'],
-        full_data['cumulative_deaths'].diff(),
-        color=observed_color,
-        alpha=OBSERVED_ALPHA,
-    )
-    ax_es.scatter(
-        full_data['date'],
-        full_data['cumulative_deaths'].diff(),
-        color=observed_color,
-        alpha=OBSERVED_ALPHA,
-    )
+#    es_end_date = pd.Timestamp.today() + SHORT_RANGE_FORECAST
+#    make_time_plot(
+#        ax_es,
+#        plot_versions,
+#        'daily_elastispliner_smoothed',
+#        location.id,
+#        start, es_end_date,
+#        label='Elastispliner',
+#    )
+#    ax_es.plot(
+#        full_data['date'],
+#        full_data['cumulative_deaths'].diff(),
+#        color=observed_color,
+#        alpha=OBSERVED_ALPHA,
+#    )
+#    ax_es.scatter(
+#        full_data['date'],
+#        full_data['cumulative_deaths'].diff(),
+#        color=observed_color,
+#        alpha=OBSERVED_ALPHA,
+#    )
 
     make_title_and_legend(fig, location, plot_versions)
     write_or_show(fig, plot_file)
 
 
-def make_time_plot(ax, 
-                   plot_versions: List[PlotVersion], 
-                   measure: str, 
+def make_time_plot(ax,
+                   plot_versions: List[PlotVersion],
+                   measure: str,
                    loc_id: int,
-                   start: pd.Timestamp = None, end: pd.Timestamp = None, 
+                   start: pd.Timestamp = None, end: pd.Timestamp = None,
                    label: str = None,
                    linestyle: str = 'solid',
-                   uncertainty: bool = True,
-                   vlines=(), 
+                   uncertainty: bool = False,
+                   vlines=(),
                    transform=lambda x: x):
     for plot_version in plot_versions:
         data = plot_version.load_output_summaries(measure, loc_id)
         data[['mean', 'upper', 'lower']] = transform(data[['mean', 'upper', 'lower']])
 
-        ax.plot(data['date'], data['mean'], color=plot_version.color, linestyle=linestyle)
+        ax.plot(data['date'], data['mean'], color=plot_version.color, linestyle=linestyle, linewidth=2.5)
         if uncertainty:
             ax.fill_between(data['date'], data['upper'], data['lower'], alpha=FILL_ALPHA, color=plot_version.color)
 
@@ -427,7 +427,7 @@ def make_log_beta_resid_hist(ax, plot_versions: List[PlotVersion], loc_id: int):
 
         ax.hist(data.values, color=plot_version.color, bins=HIST_BINS, histtype='step')
         ax.hist(data.values, color=plot_version.color, bins=HIST_BINS, histtype='stepfilled', alpha=FILL_ALPHA)
-    ax.set_xlim(-2, 2)
+    ax.set_xlim(-1, 1)
     ax.set_ylabel('count of log beta residual mean', fontsize=AX_LABEL_FONTSIZE)
     sns.despine(ax=ax, left=True, bottom=True)
 

@@ -150,20 +150,6 @@ MEASURES = {
         'beta_scaling_parameters',
         splice=True,
     ),
-    'elastispliner_noisy': MeasureConfig(
-        loaders.load_es_noisy,
-        'daily_elastispliner_noisy',
-        calculate_cumulative=True,
-        cumulative_label='cumulative_elastispliner_noisy',
-        aggregator=aggregators.sum_aggregator,
-    ),
-    'elastispliner_smoothed': MeasureConfig(
-        loaders.load_es_smoothed,
-        'daily_elastispliner_smoothed',
-        calculate_cumulative=True,
-        cumulative_label='cumulative_elastispliner_smoothed',
-        aggregator=aggregators.sum_aggregator,
-    )
 }
 
 
@@ -224,12 +210,6 @@ MISCELLANEOUS = {
     'full_data': OtherConfig(
         loaders.load_full_data,
         'full_data',
-        is_cumulative=True,
-        aggregator=aggregators.sum_aggregator,
-    ),
-    'elastispliner_inputs': OtherConfig(
-        loaders.load_elastispliner_inputs,
-        'full_data_es_processed',
         is_cumulative=True,
         aggregator=aggregators.sum_aggregator,
     ),

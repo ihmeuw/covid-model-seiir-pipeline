@@ -26,38 +26,32 @@ def run_beta_regression(regression_version: str, draw_id: int) -> None:
 
     logger.info('Loading input data', context='read')
     location_ids = data_interface.load_location_ids()
-    population = data_interface.load_five_year_population(location_ids).groupby('location_id')[['population']].sum()
-    location_data = data_interface.load_past_infection_data(draw_id=draw_id).set_index('location_id')
-    location_data = location_data.merge(population, left_index=True, right_index=True).reset_index()
-    location_data = {location_id: location_data[location_data['location_id'] == location_id].copy()
-                     for location_id in location_ids}
+    population = data_interface.load_five_year_population(location_ids).groupby('location_id')['population'].sum()
+
+    past_infections = data_interface.load_past_infection_data(draw_id=draw_id, location_ids=location_ids)
+
     covariates = data_interface.load_covariates(regression_specification.covariates, location_ids)
+
     if regression_specification.data.coefficient_version:
         prior_coefficients = data_interface.load_prior_run_coefficients(draw_id=draw_id)
     else:
         prior_coefficients = None
 
     logger.info('Prepping ODE fit', context='transform')
-    np.random.seed(draw_id)
-    beta_fit_inputs = model.ODEProcessInput(
-        df_dict=location_data,
-        col_date=static_vars.INFECTION_COL_DICT['COL_DATE'],
-        col_infections=static_vars.INFECTION_COL_DICT['COL_INFECTIONS'],
-        col_pop=static_vars.INFECTION_COL_DICT['COL_POP'],
-        col_loc_id=static_vars.INFECTION_COL_DICT['COL_LOC_ID'],
-        col_lag_days=static_vars.INFECTION_COL_DICT['COL_ID_LAG'],
-        col_observed=static_vars.INFECTION_COL_DICT['COL_OBS_DEATHS'],
-        alpha=regression_specification.regression_parameters.alpha,
-        sigma=regression_specification.regression_parameters.sigma,
-        gamma1=regression_specification.regression_parameters.gamma1,
-        gamma2=regression_specification.regression_parameters.gamma2,
-        solver_dt=regression_specification.regression_parameters.solver_dt,
-        day_shift=regression_specification.regression_parameters.day_shift,
-    )
-    ode_model = model.ODEProcess(beta_fit_inputs)
+    regression_params = regression_specification.regression_parameters.to_dict()
+    ode_params = model.sample_parameters(draw_id, regression_params)
+
     logger.info('Running ODE fit', context='compute_ode')
-    beta_fit = ode_model.process()
-    beta_fit['date'] = pd.to_datetime(beta_fit['date'])
+    beta_fit = model.run_beta_fit(
+        past_infections=past_infections['infections'].dropna(),  # Drop days with deaths but no infecs.
+        population=population,
+        location_ids=location_ids,
+        ode_parameters=ode_params,
+    )
+    beta_start_end_dates = (beta_fit
+                            .groupby('location_id')
+                            .agg(start_date=('date', 'min'), end_date=('date', 'max'))
+                            .reset_index())
 
     logger.info('Prepping regression.', context='transform')
     mr_data = model.align_beta_with_covariates(covariates, beta_fit, list(regression_specification.covariates))
@@ -69,17 +63,24 @@ def run_beta_regression(regression_version: str, draw_id: int) -> None:
 
     # Format and save data.
     logger.info('Prepping outputs', context='transform')
-    data_df = pd.concat(location_data.values())
-    data_df['date'] = pd.to_datetime(data_df['date'])
-    regression_betas = beta_hat.merge(covariates, on=['location_id', 'date'])
-    regression_betas = beta_fit.merge(regression_betas, on=['location_id', 'date'], how='left')
-    merged = data_df.merge(regression_betas, on=['location_id', 'date'], how='outer').sort_values(['location_id', 'date'])
-    merged = merged[(merged['observed_deaths'] == 1) | (merged['deaths'] > 0)]
-    data_df = merged[data_df.columns]
+    merge_cols = ['location_id', 'date']
+    # These two datasets are aligned, but go out into the future
+    regression_betas = beta_hat.merge(covariates, on=merge_cols)
+    # Regression betas include the forecast.  Subset to just the modeled past
+    # based on data in beta fit.
+    regression_betas = beta_fit.merge(regression_betas, how='left').sort_values(['location_id', 'date'])
+    # There is more observed data than there is modeled, based on the day_shift
+    # parameter and infection drops in the ode fit. Expand to the size of the
+    # data, leaving NAs.
+    merged = past_infections.reset_index().merge(regression_betas, how='left').sort_values(['location_id', 'date'])
+    data_df = merged[['location_id', 'date', 'infections', 'deaths', 'duration']]
     regression_betas = merged[regression_betas.columns]
     # Save the parameters of alpha, sigma, gamma1, and gamma2 that were drawn
-    draw_beta_params = ode_model.create_params_df()
-    beta_start_end_dates = ode_model.create_start_end_date_df()
+    ode_params = ode_params.to_dict()
+    draw_beta_params = pd.DataFrame({
+        'params': ode_params.keys(),
+        'values': ode_params.values(),
+    })
 
     logger.info('Writing outputs', context='write')
     data_interface.save_infection_data(data_df, draw_id)

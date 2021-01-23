@@ -30,9 +30,7 @@ def compute_output_metrics(infection_data: pd.DataFrame,
                            compartment_info: CompartmentInfo) -> OutputMetrics:
     components = splice_components(components_past, components_forecast)
 
-    observed_infections, observed_deaths = math.get_observed_infecs_and_deaths(infection_data)
-    infection_death_lag = infection_data['i_d_lag'].max()
-
+    infection_death_lag = infection_data['duration'].max()
     if compartment_info.group_suffixes:
         modeled_infections, modeled_deaths = 0, 0
         for group in compartment_info.group_suffixes:
@@ -49,12 +47,15 @@ def compute_output_metrics(infection_data: pd.DataFrame,
             components[['date'] + compartment_info.compartments]
         )
         modeled_deaths = compute_deaths(vulnerable_infections, infection_death_lag, ifr['ifr'])
-
+    
+    past_infecs_idx = components_past.set_index('date', append=True).index
     modeled_infections = modeled_infections.to_frame()
     modeled_deaths = modeled_deaths.reset_index(level='observed')
-
-    infections = observed_infections.combine_first(modeled_infections)
-    deaths = observed_deaths.combine_first(modeled_deaths)
+    infection_data = infection_data.set_index(['location_id', 'date'])
+    infections = infection_data.loc[past_infecs_idx, ['infections']].combine_first(modeled_infections)
+    deaths = infection_data[['deaths']].fillna(0)
+    deaths['observed'] = 1
+    deaths = deaths.combine_first(modeled_deaths)
     r_controlled, r_effective = compute_effective_r(
         components,
         seir_params,
@@ -141,7 +142,7 @@ def compute_infections(components: pd.DataFrame) -> Tuple[pd.Series, pd.Series]:
 
 
 def compute_deaths(modeled_infections: pd.Series, infection_death_lag: int, ifr: pd.Series) -> pd.Series:
-    modeled_deaths = (modeled_infections.shift(infection_death_lag).dropna() * ifr).rename('deaths').reset_index()
+    modeled_deaths = (modeled_infections.shift(infection_death_lag) * ifr).dropna().rename('deaths').reset_index()
     modeled_deaths['observed'] = 0
     modeled_deaths = modeled_deaths.set_index(['location_id', 'date', 'observed'])['deaths']
     return modeled_deaths
