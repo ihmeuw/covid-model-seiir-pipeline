@@ -14,6 +14,9 @@ class TestRegressionDataInterfaceIO:
         di = RegressionDataInterface(
             infection_root=None,
             covariate_root=None,
+            mortality_rate_root=None,
+            hospital_fatality_ratio_root=None,
+            coefficient_root=None,
             regression_root=io.RegressionRoot(tmpdir),
         )
         di.make_dirs()
@@ -26,7 +29,7 @@ class TestRegressionDataInterfaceIO:
         di.save_date_file(dates, draw_id=4)
         di.save_regression_coefficients(coefficients, draw_id=4)
         di.save_regression_betas(regression_beta, draw_id=4)
-        di.save_location_data(location_data, draw_id=4)
+        di.save_infection_data(location_data, draw_id=4)
 
         # Step 3: count files (again)
         assert tmpdir_file_count() == 5

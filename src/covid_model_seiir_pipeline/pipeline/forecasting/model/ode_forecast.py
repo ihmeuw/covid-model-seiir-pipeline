@@ -9,13 +9,24 @@ import pandas as pd
 from covid_model_seiir_pipeline.lib import (
     math,
     static_vars,
+    utilities,
+)
+from covid_model_seiir_pipeline.pipeline.forecasting.model.containers import (
+    HospitalCorrectionFactors,
+    CompartmentInfo,
+    ScenarioData,
 )
 
 if TYPE_CHECKING:
     # The model subpackage is a library for the pipeline stage and shouldn't
     # explicitly depend on things outside the subpackage.
-    from covid_model_seiir_pipeline.pipeline.forecasting.data import ScenarioData
-    from covid_model_seiir_pipeline.pipeline.forecasting.specification import ScenarioSpecification
+    from covid_model_seiir_pipeline.pipeline.forecasting.specification import (
+        ScenarioSpecification,
+    )
+    # Support type checking but keep the pipeline stages as isolated as possible.
+    from covid_model_seiir_pipeline.pipeline.regression.specification import (
+        HospitalParameters,
+    )
 
 
 def forecast_beta(covariates: pd.DataFrame,
@@ -30,18 +41,50 @@ def forecast_beta(covariates: pd.DataFrame,
     return betas
 
 
+def forecast_correction_factors(correction_factors: HospitalCorrectionFactors,
+                                today: pd.Series,
+                                max_date: pd.Timestamp,
+                                hospital_parameters: 'HospitalParameters') -> HospitalCorrectionFactors:
+    averaging_window = pd.Timedelta(days=hospital_parameters.correction_factor_average_window)
+    application_window = pd.Timedelta(days=hospital_parameters.correction_factor_application_window)
+    assert np.all(max_date > today + application_window)
+
+    new_cfs = {}
+    for cf_name, cf in utilities.asdict(correction_factors).items():
+        loc_cfs = []
+        for loc_id in today.index:
+            loc_cf = cf.loc[loc_id]
+            loc_today = today.loc[loc_id]
+            mean_cf = loc_cf.loc[loc_today - averaging_window: loc_today].mean()
+            loc_cf = loc_cf.loc[:loc_today]
+            loc_cf.loc[loc_today + application_window] = mean_cf
+            loc_cf.loc[max_date] = mean_cf
+            loc_cf = loc_cf.asfreq('D').interpolate().reset_index()
+            loc_cf['location_id'] = loc_id
+            loc_cfs.append(loc_cf.set_index(['location_id', 'date'])[cf_name])
+        new_cfs[cf_name] = pd.concat(loc_cfs).sort_index()
+    return HospitalCorrectionFactors(**new_cfs)
+
+
 def prep_seir_parameters(betas: pd.DataFrame,
                          thetas: pd.Series,
-                         scenario_data: 'ScenarioData'):
+                         scenario_data: ScenarioData,
+                         variant_vaccine_shift: pd.Series,
+                         population_partition):
     betas = betas.rename(columns={'beta_pred': 'beta'})
     parameters = betas.merge(thetas, on='location_id')
     if scenario_data.vaccinations is not None:
-        parameters = parameters.merge(scenario_data.vaccinations, on=['location_id', 'date'], how='left').fillna(0)
+        suffixes = [f'_{k}' for k in population_partition] if population_partition else ['']
+        v = scenario_data.vaccinations
+        for suffix in suffixes:
+            vaccines_resisted = v[f'effectively_vaccinated{suffix}'] * variant_vaccine_shift
+            v[f'effectively_vaccinated{suffix}'] -= vaccines_resisted
+            v[f'unprotected{suffix}'] += vaccines_resisted
+        parameters = parameters.merge(v, on=['location_id', 'date'], how='left').fillna(0)
     return parameters
 
 
 def get_population_partition(population: pd.DataFrame,
-                             location_ids: List[int],
                              population_partition: str) -> Dict[str, pd.Series]:
     """Create a location-specific partition of the population.
 
@@ -49,8 +92,6 @@ def get_population_partition(population: pd.DataFrame,
     ----------
     population
         A dataframe with location, age, and sex specific populations.
-    location_ids
-        A list of location ids used in the regression model.
     population_partition
         A string describing how the population should be partitioned.
 
@@ -64,13 +105,6 @@ def get_population_partition(population: pd.DataFrame,
     if population_partition == 'none':
         partition_map = {}
     elif population_partition == 'high_and_low_risk':
-        modeled_locations = population['location_id'].isin(location_ids)
-        is_2019 = population['year_id'] == 2019
-        is_both_sexes = population['sex_id'] == 3
-        five_year_bins = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 30, 31, 32, 235]
-        is_five_year_bins = population['age_group_id'].isin(five_year_bins)
-        population = population.loc[modeled_locations & is_2019 & is_both_sexes & is_five_year_bins, :]
-
         total_pop = population.groupby('location_id')['population'].sum()
         low_risk_pop = population[population['age_group_years_start'] < 65].groupby('location_id')['population'].sum()
         high_risk_pop = total_pop - low_risk_pop
@@ -83,12 +117,6 @@ def get_population_partition(population: pd.DataFrame,
         raise NotImplementedError
 
     return partition_map
-
-
-@dataclass
-class CompartmentInfo:
-    compartments: List[str]
-    group_suffixes: List[str]
 
 
 def get_past_components(beta_regression_df: pd.DataFrame,
@@ -398,54 +426,6 @@ def _vaccine_system(t: float, y: np.ndarray, p: np.array):
     return dy
 
 
-def linear_interpolate(t_target: np.ndarray,
-                       t_org: np.ndarray,
-                       x_org: np.ndarray) -> np.ndarray:
-    is_vector = x_org.ndim == 1
-    if is_vector:
-        x_org = x_org[None, :]
-
-    assert t_org.size == x_org.shape[1]
-
-    x_target = np.vstack([
-        np.interp(t_target, t_org, x_org[i])
-        for i in range(x_org.shape[0])
-    ])
-
-    if is_vector:
-        return x_target.ravel()
-    else:
-        return x_target
-
-
-def _solve(system, t, init_cond, t_params, params, dt):
-    t_solve = np.arange(np.min(t), np.max(t) + dt, dt / 2)
-    y_solve = np.zeros((init_cond.size, t_solve.size),
-                       dtype=init_cond.dtype)
-    y_solve[:, 0] = init_cond
-    # linear interpolate the parameters
-    params = linear_interpolate(t_solve, t_params, params)
-    y_solve = _rk45(system, t_solve, y_solve, params, dt)
-    # linear interpolate the solutions.
-    y_solve = linear_interpolate(t, t_solve, y_solve)
-    return y_solve
-
-
-@numba.njit
-def _rk45(system,
-          t_solve: np.array,
-          y_solve: np.array,
-          params: np.array,
-          dt: float):
-    for i in range(2, t_solve.size, 2):
-        k1 = system(t_solve[i - 2], y_solve[:, i - 2], params[:, i - 2])
-        k2 = system(t_solve[i - 1], y_solve[:, i - 2] + dt / 2 * k1, params[:, i - 1])
-        k3 = system(t_solve[i - 1], y_solve[:, i - 2] + dt / 2 * k2, params[:, i - 1])
-        k4 = system(t_solve[i], y_solve[:, i - 2] + dt * k3, params[:, i])
-        y_solve[:, i] = y_solve[:, i - 2] + dt / 6 * (k1 + 2 * k2 + 2 * k3 + k4)
-    return y_solve
-
-
 class _ODERunner:
     systems: Dict[str, Callable] = {
         'normal': _seiir_system,
@@ -490,11 +470,10 @@ class _ODERunner:
             system_params,
         ])
 
-        solution = _solve(
+        solution = math.solve_ode(
             system=self.system,
             t=times,
             init_cond=initial_condition,
-            t_params=times,
             params=system_params,
             dt=self.model_specs.delta,
         )

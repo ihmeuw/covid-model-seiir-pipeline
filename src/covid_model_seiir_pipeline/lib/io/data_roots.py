@@ -105,21 +105,22 @@ class InfectionRoot(DataRoot):
     """Data root representing infectionator outputs."""
     metadata = MetadataType('metadata')
 
-    def modeled_locations(self) -> List[int]:
-        """Retrieve all of the location specific infection directories."""
-        return [int(p.name.split('_')[-1]) for p in self._root.iterdir() if p.is_dir()]
+    infections = DatasetType('infections_draws', LEAF_TEMPLATES.DRAW_TEMPLATE)
+    ratios = DatasetType('ratio_draws', LEAF_TEMPLATES.DRAW_TEMPLATE)
 
-    def infections(self, location_id: int, draw_id: int):
-        """Hack around infectionator file layout to provide a consistent
-        interface."""
-        data_type = str([m for m in self._root.glob(f"*_{location_id}")][0])
-        return DatasetKey(
-            root=self._root,
-            disk_format=self._data_format,
-            data_type=data_type,
-            leaf_name=f'draw{draw_id:04}_prepped_deaths_and_cases_all_age',
-            prefix=None,
-        )
+
+class MortalityRateRoot(DataRoot):
+    """Data root representing age pattern of mortality."""
+    metadata = MetadataType('metadata')
+
+    mortality_rate = DatasetType('mortality_ratio_5yr')
+
+
+class HospitalFatalityRatioRoot(DataRoot):
+    """Data root representing the hospital fatality ratio."""
+    metadata = MetadataType('metadata')
+
+    hospital_fatality_ratio = DatasetType('HR_byloc_blend_with_ids')
 
 
 class CovariateRoot(DataRoot):
@@ -164,9 +165,10 @@ class RegressionRoot(DataRoot):
 
     beta = DatasetType('beta', LEAF_TEMPLATES.DRAW_TEMPLATE)
     coefficients = DatasetType('coefficients', LEAF_TEMPLATES.DRAW_TEMPLATE)
-    data = DatasetType('data', LEAF_TEMPLATES.DRAW_TEMPLATE)
+    infection_data = DatasetType('data', LEAF_TEMPLATES.DRAW_TEMPLATE)
     dates = DatasetType('dates', LEAF_TEMPLATES.DRAW_TEMPLATE)
     parameters = DatasetType('parameters', LEAF_TEMPLATES.DRAW_TEMPLATE)
+    hospitalizations = DatasetType('hospitalization', LEAF_TEMPLATES.MEASURE_TEMPLATE)
 
 
 class ForecastRoot(DataRoot):

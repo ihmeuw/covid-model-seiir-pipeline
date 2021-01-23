@@ -1,8 +1,25 @@
-from typing import Dict, List, Tuple, Union
+from typing import Dict, List, Tuple, Union, TYPE_CHECKING
 
 import pandas as pd
 
-from covid_model_seiir_pipeline.pipeline.forecasting.model.ode_forecast import CompartmentInfo
+from covid_model_seiir_pipeline.lib import math
+from covid_model_seiir_pipeline.pipeline.forecasting.model.containers import (
+    CompartmentInfo,
+    HospitalFatalityRatioData,
+    HospitalCorrectionFactors,
+    HospitalMetrics,
+    OutputMetrics,
+)
+from covid_model_seiir_pipeline.pipeline.regression.model import (
+    compute_hospital_usage,
+)
+
+
+if TYPE_CHECKING:
+    # Support type checking but keep the pipeline stages as isolated as possible.
+    from covid_model_seiir_pipeline.pipeline.regression.specification import (
+        HospitalParameters,
+    )
 
 
 def compute_output_metrics(infection_data: pd.DataFrame,
@@ -10,12 +27,10 @@ def compute_output_metrics(infection_data: pd.DataFrame,
                            components_past: pd.DataFrame,
                            components_forecast: pd.DataFrame,
                            seir_params: Dict[str, float],
-                           compartment_info: CompartmentInfo) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+                           compartment_info: CompartmentInfo) -> OutputMetrics:
     components = splice_components(components_past, components_forecast)
 
-    observed_infections, observed_deaths = get_observed_infecs_and_deaths(infection_data)
-    infection_death_lag = infection_data['i_d_lag'].max()
-
+    infection_death_lag = infection_data['duration'].max()
     if compartment_info.group_suffixes:
         modeled_infections, modeled_deaths = 0, 0
         for group in compartment_info.group_suffixes:
@@ -32,15 +47,50 @@ def compute_output_metrics(infection_data: pd.DataFrame,
             components[['date'] + compartment_info.compartments]
         )
         modeled_deaths = compute_deaths(vulnerable_infections, infection_death_lag, ifr['ifr'])
-
+    
+    past_infecs_idx = components_past.set_index('date', append=True).index
     modeled_infections = modeled_infections.to_frame()
     modeled_deaths = modeled_deaths.reset_index(level='observed')
+    infection_data = infection_data.set_index(['location_id', 'date'])
+    infections = infection_data.loc[past_infecs_idx, ['infections']].combine_first(modeled_infections)
+    deaths = infection_data[['deaths']].fillna(0)
+    deaths['observed'] = 1
+    deaths = deaths.combine_first(modeled_deaths)
+    r_controlled, r_effective = compute_effective_r(
+        components,
+        seir_params,
+        compartment_info.compartments
+    )
+    components = components.set_index('date', append=True)
+    susceptible_columns = [c for c in components.columns if 'S' in c]
+    immune_columns = [c for c in components.columns if 'M' in c or 'R' in c]
+    return OutputMetrics(
+        components=components,
+        infections=infections,
+        deaths=deaths,
+        r_controlled=r_controlled,
+        r_effective=r_effective,
+        herd_immunity=(1 - 1 / r_controlled).rename('herd_immunity'),
+        total_susceptible=components[susceptible_columns].sum(axis=1).rename('total_susceptible'),
+        total_immune=components[immune_columns].sum(axis=1).rename('total_immune'),
+    )
 
-    infections = observed_infections.combine_first(modeled_infections)
-    deaths = observed_deaths.combine_first(modeled_deaths)
-    r_effective = compute_effective_r(components, seir_params, compartment_info.compartments)
 
-    return components, infections, deaths, r_effective
+def compute_corrected_hospital_usage(all_age_deaths: pd.DataFrame,
+                                     death_weights: pd.Series,
+                                     hospital_fatality_ratio: HospitalFatalityRatioData,
+                                     hospital_parameters: 'HospitalParameters',
+                                     correction_factors: HospitalCorrectionFactors) -> HospitalMetrics:
+    hospital_usage = compute_hospital_usage(
+        all_age_deaths.reset_index(),
+        death_weights,
+        hospital_fatality_ratio,
+        hospital_parameters,
+    )
+    hospital_usage.hospital_census = (hospital_usage.hospital_census * correction_factors.hospital_census).fillna(method='ffill')
+    hospital_usage.icu_census = (hospital_usage.icu_census * correction_factors.icu_census).fillna(method='ffill')
+    hospital_usage.ventilator_census = (hospital_usage.ventilator_census * correction_factors.ventilator_census).fillna(method='ffill')
+    return hospital_usage
 
 
 def splice_components(components_past: pd.DataFrame, components_forecast: pd.DataFrame):
@@ -50,23 +100,6 @@ def splice_components(components_past: pd.DataFrame, components_forecast: pd.Dat
                   .sort_values(['location_id', 'date'])
                   .set_index(['location_id']))
     return components
-
-
-def get_observed_infecs_and_deaths(infection_data: pd.DataFrame):
-    observed = infection_data['obs_infecs'] == 1
-    observed_infections = (infection_data
-                           .loc[observed, ['location_id', 'date', 'cases_draw']]
-                           .set_index(['location_id', 'date'])
-                           .sort_index()
-                           .rename(columns={'cases_draw': 'infections'}))
-    observed = infection_data['obs_deaths'] == 1
-    observed_deaths = (infection_data
-                       .loc[observed, ['location_id', 'date', 'deaths_mean']]
-                       .rename(columns={'deaths_mean': 'deaths'})
-                       .set_index(['location_id', 'date'])
-                       .sort_index())
-    observed_deaths['observed'] = 1
-    return observed_infections, observed_deaths
 
 
 def compute_infections(components: pd.DataFrame) -> Tuple[pd.Series, pd.Series]:
@@ -109,7 +142,7 @@ def compute_infections(components: pd.DataFrame) -> Tuple[pd.Series, pd.Series]:
 
 
 def compute_deaths(modeled_infections: pd.Series, infection_death_lag: int, ifr: pd.Series) -> pd.Series:
-    modeled_deaths = (modeled_infections.shift(infection_death_lag).dropna() * ifr).rename('deaths').reset_index()
+    modeled_deaths = (modeled_infections.shift(infection_death_lag) * ifr).dropna().rename('deaths').reset_index()
     modeled_deaths['observed'] = 0
     modeled_deaths = modeled_deaths.set_index(['location_id', 'date', 'observed'])['deaths']
     return modeled_deaths
@@ -117,7 +150,7 @@ def compute_deaths(modeled_infections: pd.Series, infection_death_lag: int, ifr:
 
 def compute_effective_r(components: pd.DataFrame,
                         beta_params: Dict[str, float],
-                        compartments: List[str]) -> pd.DataFrame:
+                        compartments: List[str]) -> Tuple[pd.DataFrame, pd.DataFrame]:
     alpha, sigma = beta_params['alpha'], beta_params['sigma']
     gamma1, gamma2 = beta_params['gamma1'], beta_params['gamma2']
 
@@ -130,7 +163,7 @@ def compute_effective_r(components: pd.DataFrame,
     n = components[compartments].sum(axis=1).groupby('location_id').max()
     avg_gamma = 1 / (1 / (gamma1*(sigma - theta)) + 1 / (gamma2*(sigma - theta)))
 
-    r_controlled = beta * alpha * sigma / avg_gamma * (infected) ** (alpha - 1)
+    r_controlled = (beta * alpha * sigma / avg_gamma * (infected) ** (alpha - 1)).rename('r_controlled')
     r_effective = (r_controlled * susceptible / n).rename('r_effective')
 
-    return r_effective
+    return r_controlled, r_effective

@@ -1,11 +1,11 @@
 data:
-  infection_version: '2021_01_21.12'
-  covariate_version: '2021_01_20.01'
+  infection_version: '2021_01_15.01'
+  covariate_version: '2021_01_14.02'
   mortality_rate_version: 'best'
   hospital_fatality_ratio_version: 'best'
-  coefficient_version: ''
+  coefficient_version: '2021_01_13.06'
   location_set_version_id: ''
-  location_set_file: '/ihme/covid-19/seir-pipeline-outputs/metadata-inputs/location_metadata_810.csv'
+  location_set_file: '/ihme/covid-19/seir-pipeline-outputs/metadata-inputs/location_metadata_815.csv'
   output_root: ''
 workflow:
   project: 'proj_covid'
@@ -21,7 +21,7 @@ workflow:
       num_cores: 1
 regression_parameters:
   n_draws: 1000
-  day_shift: [0, 11]
+  day_shift: [0, 8]
   alpha: [0.9, 1.0]
   sigma: [0.2, 0.3333]
   gamma1: [0.5, 0.5]

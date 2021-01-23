@@ -1,15 +1,29 @@
-from dataclasses import dataclass
 from functools import reduce
 from pathlib import Path
-from typing import Dict, List, Optional, Union
+from typing import Dict, List, Union
 
 from loguru import logger
+import numpy as np
 import pandas as pd
 
-from covid_model_seiir_pipeline.lib import io
+from covid_model_seiir_pipeline.lib import (
+    io,
+)
+from covid_model_seiir_pipeline.pipeline.regression import (
+    RegressionDataInterface,
+    RegressionSpecification,
+    HospitalParameters,
+)
 from covid_model_seiir_pipeline.pipeline.forecasting.specification import (
     ForecastSpecification,
     ScenarioSpecification,
+)
+from covid_model_seiir_pipeline.pipeline.forecasting.model import (
+    HospitalMetrics,
+    HospitalCorrectionFactors,
+    HospitalFatalityRatioData,
+    HospitalCensusData,
+    ScenarioData,
 )
 
 
@@ -18,10 +32,12 @@ class ForecastDataInterface:
     def __init__(self,
                  regression_root: io.RegressionRoot,
                  covariate_root: io.CovariateRoot,
-                 forecast_root: io.ForecastRoot):
+                 forecast_root: io.ForecastRoot,
+                 fh_subnationals: bool):
         self.regression_root = regression_root
         self.covariate_root = covariate_root
         self.forecast_root = forecast_root
+        self.fh_subnationals = fh_subnationals
 
     @classmethod
     def from_specification(cls, specification: ForecastSpecification) -> 'ForecastDataInterface':
@@ -35,6 +51,7 @@ class ForecastDataInterface:
             regression_root=regression_root,
             covariate_root=covariate_root,
             forecast_root=forecast_root,
+            fh_subnationals=specification.data.fh_subnationals
         )
 
     def make_dirs(self, **prefix_args):
@@ -45,41 +62,67 @@ class ForecastDataInterface:
     ############################
 
     def get_n_draws(self) -> int:
-        regression_spec = io.load(self.regression_root.specification())
-        return regression_spec['parameters']['n_draws']
+        return self._get_regression_data_interface().get_n_draws()
 
     def load_location_ids(self) -> List[int]:
-        return io.load(self.regression_root.locations())
+        return self._get_regression_data_interface().load_location_ids()
 
     def load_regression_coefficients(self, draw_id: int) -> pd.DataFrame:
-        return io.load(self.regression_root.coefficients(draw_id=draw_id))
+        return self._get_regression_data_interface().load_regression_coefficients(draw_id=draw_id)
 
     def load_transition_date(self, draw_id: int) -> pd.Series:
-        dates_df = io.load(self.regression_root.dates(draw_id=draw_id))
+        dates_df = self._get_regression_data_interface().load_date_file(draw_id=draw_id)
         dates_df['end_date'] = pd.to_datetime(dates_df['end_date'])
         transition_date = dates_df.set_index('location_id').sort_index()['end_date'].rename('date')
         return transition_date
 
     def load_beta_regression(self, draw_id: int) -> pd.DataFrame:
-        beta_regression = io.load(self.regression_root.beta(draw_id=draw_id))
+        beta_regression = self._get_regression_data_interface().load_regression_betas(draw_id=draw_id)
         beta_regression['date'] = pd.to_datetime(beta_regression['date'])
         return beta_regression
 
     def load_infection_data(self, draw_id: int) -> pd.DataFrame:
-        infection_data = io.load(self.regression_root.data(draw_id=draw_id))
+        infection_data = self._get_regression_data_interface().load_infection_data(draw_id=draw_id)
         infection_data['date'] = pd.to_datetime(infection_data['date'])
         return infection_data
 
     def load_beta_params(self, draw_id: int) -> Dict[str, float]:
-        df = io.load(self.regression_root.parameters(draw_id=draw_id))
+        df = self._get_regression_data_interface().load_beta_param_file(draw_id=draw_id)
         return df.set_index('params')['values'].to_dict()
+
+    def get_hospital_parameters(self) -> HospitalParameters:
+        return self._get_regression_data_interface().load_specification().hospital_parameters
+
+    def load_hospital_usage(self) -> HospitalMetrics:
+        df = self._get_regression_data_interface().load_hospital_data(measure='usage')
+        df['date'] = pd.to_datetime(df['date'])
+        df = df.set_index(['location_id', 'date']).sort_index()
+        return HospitalMetrics(**{metric: df[metric] for metric in df.columns})
+
+    def load_hospital_correction_factors(self) -> HospitalCorrectionFactors:
+        df = self._get_regression_data_interface().load_hospital_data(measure='correction_factors')
+        df['date'] = pd.to_datetime(df['date'])
+        df = df.set_index(['location_id', 'date']).sort_index()
+        return HospitalCorrectionFactors(**{metric: df[metric] for metric in df.columns})
+
+    def load_hospital_census_data(self) -> HospitalCensusData:
+        return self._get_regression_data_interface().load_hospital_census_data()
+
+    def load_mortality_ratio(self, location_ids: List[int]) -> pd.Series:
+        return self._get_regression_data_interface().load_mortality_ratio(location_ids)
+
+    def load_hospital_fatality_ratio(self,
+                                     death_weights: pd.Series,
+                                     location_ids: List[int]) -> HospitalFatalityRatioData:
+        rdi = self._get_regression_data_interface()
+        return rdi.load_hospital_fatality_ratio(death_weights, location_ids, with_error=False)
 
     ##########################
     # Covariate data loaders #
     ##########################
 
     def check_covariates(self, scenarios: Dict[str, ScenarioSpecification]) -> List[str]:
-        regression_spec = io.load(self.regression_root.specification())
+        regression_spec = self._get_regression_data_interface().load_specification().to_dict()
         # Bit of a hack.
         forecast_version = str(self.covariate_root._root)
         regression_version = regression_spec['data']['covariate_version']
@@ -131,7 +174,7 @@ class ForecastDataInterface:
 
     def load_scenario_specific_data(self,
                                     location_ids: List[int],
-                                    scenario_spec: ScenarioSpecification) -> 'ScenarioData':
+                                    scenario_spec: ScenarioSpecification) -> ScenarioData:
         if scenario_spec.system == 'vaccine':
             forecast_scenario = scenario_spec.system_params.get('forecast_version', 'reference')
             vaccinations = self.load_vaccine_info(
@@ -184,36 +227,68 @@ class ForecastDataInterface:
 
         return thetas
 
-    def get_infectionator_metadata(self):
-        regression_spec = io.load(self.regression_root.specification())
-        infection_root = io.InfectionRoot(regression_spec['data']['infection_version'])
-        return io.load(infection_root.metadata())
+    def load_variant_prevalence(self, variant_specification: Dict,
+                                transition_dates: pd.Series,
+                                max_date: pd.Timestamp) -> pd.Series:
+        path = variant_specification.get('scale_up_path', None)
+        if not path:
+            idx = (transition_dates
+                   .groupby('location_id')
+                   .apply(lambda x: pd.date_range(x.iloc[0], max_date, name='date'))
+                   .explode()
+                   .reset_index()
+                   .set_index(['location_id', 'date'])
+                   .index)
+            return pd.Series(0, index=idx)
 
-    def load_full_data(self):
-        metadata = self.get_infectionator_metadata()
-        # TODO: metadata abstraction?
-        model_inputs_version = metadata['death']['metadata']['model_inputs_metadata']['output_path']
-        full_data_path = Path(model_inputs_version) / 'full_data.csv'
+        variant_prevalence = pd.read_csv(path)
+        variant_prevalence['date'] = (pd.Timestamp(variant_specification['start_date'])
+                                      + pd.to_timedelta(variant_prevalence['day'], 'D'))
+        variant_scale_up = variant_prevalence.set_index('date').proportion
+
+        prevalences = []
+        for location_id in transition_dates.index:
+            date_start = transition_dates.loc[location_id]
+            dates = pd.date_range(date_start, max_date, name='date')
+            # Carry last value forward and set past values to zero.
+            loc_prevalence = (variant_scale_up
+                              .reindex(dates)
+                              .fillna(method='ffill')
+                              .fillna(0)
+                              .reset_index())
+            loc_prevalence['location_id'] = location_id
+            loc_prevalence = loc_prevalence.set_index(['location_id', 'date']).proportion
+            prevalences.append(loc_prevalence)
+
+        return pd.concat(prevalences)
+
+    def get_infectionator_metadata(self):
+        return self._get_regression_data_interface().get_infectionator_metadata()
+
+    def get_model_inputs_metadata(self):
+        infection_metadata = self.get_infectionator_metadata()
+        return infection_metadata['model_inputs_metadata']
+
+    def load_full_data(self) -> pd.DataFrame:
+        metadata = self.get_model_inputs_metadata()
+        model_inputs_version = metadata['output_path']
+        if self.fh_subnationals:
+            full_data_path = Path(model_inputs_version) / 'full_data_fh_subnationals.csv'
+        else:
+            full_data_path = Path(model_inputs_version) / 'full_data.csv'
         full_data = pd.read_csv(full_data_path)
         full_data['date'] = pd.to_datetime(full_data['Date'])
         full_data = full_data.drop(columns=['Date'])
         return full_data
 
-    def load_population(self):
-        metadata = self.get_infectionator_metadata()
-        # TODO: metadata abstraction?
-        model_inputs_version = metadata['death']['metadata']['model_inputs_metadata']['output_path']
-        population_path = Path(model_inputs_version) / 'output_measures' / 'population' / 'all_populations.csv'
-        population_data = pd.read_csv(population_path)
-        return population_data
+    def load_population(self) -> pd.DataFrame:
+        return self._get_regression_data_interface().load_population()
 
-    def load_ifr_data(self):
-        metadata = self.get_infectionator_metadata()
-        # TODO: metadata abstraction?
-        ifr_version = metadata['run_arguments']['ifr_custom_path']
-        data_path = Path(ifr_version) / 'terminal_ifr.csv'
-        data = pd.read_csv(data_path)
-        return data.set_index('location_id')
+    def load_five_year_population(self, location_ids: List[int]) -> pd.DataFrame:
+        return self._get_regression_data_interface().load_five_year_population(location_ids)
+
+    def load_ifr_data(self, draw_id: int, location_ids: List[int]) -> pd.DataFrame:
+        return self._get_regression_data_interface().load_ifr_data(draw_id=draw_id, location_ids=location_ids)
 
     def load_total_deaths(self):
         """Load cumulative deaths by location."""
@@ -279,9 +354,7 @@ class ForecastDataInterface:
             index_columns.append('date')
         return dataset.set_index(index_columns)
 
-
-@dataclass
-class ScenarioData:
-    vaccinations: Optional[pd.DataFrame]
-    percent_mandates: Optional[pd.DataFrame]
-    mandate_effects: Optional[pd.DataFrame]
+    def _get_regression_data_interface(self) -> RegressionDataInterface:
+        regression_spec = RegressionSpecification.from_dict(io.load(self.regression_root.specification()))
+        regression_di = RegressionDataInterface.from_specification(regression_spec)
+        return regression_di

@@ -9,7 +9,13 @@ from covid_model_seiir_pipeline.lib import (
     io,
     utilities,
 )
-from covid_model_seiir_pipeline.pipeline.regression.specification import RegressionSpecification
+from covid_model_seiir_pipeline.pipeline.regression.specification import (
+    RegressionSpecification,
+)
+from covid_model_seiir_pipeline.pipeline.regression.model import (
+    HospitalFatalityRatioData,
+    HospitalCensusData,
+)
 
 
 # TODO: move data interfaces up a package level and fuse with forecast data interface.
@@ -19,9 +25,15 @@ class RegressionDataInterface:
     def __init__(self,
                  infection_root: io.InfectionRoot,
                  covariate_root: io.CovariateRoot,
+                 mortality_rate_root: io.MortalityRateRoot,
+                 hospital_fatality_ratio_root: io.HospitalFatalityRatioRoot,
+                 coefficient_root: Optional[io.RegressionRoot],
                  regression_root: io.RegressionRoot):
         self.infection_root = infection_root
         self.covariate_root = covariate_root
+        self.mortality_rate_root = mortality_rate_root
+        self.hospital_fatality_ratio_root = hospital_fatality_ratio_root
+        self.coefficient_root = coefficient_root
         self.regression_root = regression_root
 
     @classmethod
@@ -29,17 +41,30 @@ class RegressionDataInterface:
         # TODO: specify input format from config
         infection_root = io.InfectionRoot(specification.data.infection_version)
         covariate_root = io.CovariateRoot(specification.data.covariate_version)
+        mortality_rate_root = io.MortalityRateRoot(specification.data.mortality_rate_version)
+        hospital_fatality_ratio_root = io.HospitalFatalityRatioRoot(specification.data.hospital_fatality_ratio_version)
+        if specification.data.coefficient_version:
+            coefficient_root = io.RegressionRoot(specification.data.coefficient_version)
+        else:
+            coefficient_root = None
         # TODO: specify output format from config.
         regression_root = io.RegressionRoot(specification.data.output_root)
 
         return cls(
             infection_root=infection_root,
             covariate_root=covariate_root,
+            mortality_rate_root=mortality_rate_root,
+            hospital_fatality_ratio_root=hospital_fatality_ratio_root,
+            coefficient_root=coefficient_root,
             regression_root=regression_root,
         )
 
     def make_dirs(self, **prefix_args) -> None:
         io.touch(self.regression_root, **prefix_args)
+
+    def get_n_draws(self) -> int:
+        regression_spec = io.load(self.regression_root.specification())
+        return regression_spec['regression_parameters']['n_draws']
 
     #########################
     # Raw location handling #
@@ -66,7 +91,10 @@ class RegressionDataInterface:
         directory.
 
         """
-        modeled_locations = self.infection_root.modeled_locations()
+        draw_0_data = self.load_past_infection_data(draw_id=0)
+        total_deaths = draw_0_data.groupby('location_id').deaths.sum()
+        modeled_locations = total_deaths[total_deaths > 5].index.tolist()
+
         if desired_location_hierarchy is None:
             desired_locations = modeled_locations
         else:
@@ -83,20 +111,17 @@ class RegressionDataInterface:
     # Infection data loaders #
     ##########################
 
-    def load_all_location_data(self, location_ids: List[int], draw_id: int) -> Dict[int, pd.DataFrame]:
-        dfs = dict()
-        for loc in location_ids:
-            loc_df = io.load(self.infection_root.infections(location_id=loc, draw_id=draw_id))
-            loc_df = loc_df.rename(columns={'loc_id': 'location_id'})
-            if loc_df['cases_draw'].isnull().any():
-                logger.warning(f'Nulls found in infectionator inputs for location id {loc}.  Dropping.')
-                continue
-            if (loc_df['cases_draw'] < 0).any():
-                logger.warning(f'Negatives found in infectionator inputs for location id {loc}.  Dropping.')
-                continue
-            dfs[loc] = loc_df
-
-        return dfs
+    def load_past_infection_data(self, draw_id: int, location_ids: List[int] = None) -> pd.DataFrame:
+        infection_data = io.load(self.infection_root.infections(draw_id=draw_id))
+        if location_ids:
+            infection_data = infection_data.loc[infection_data.location_id.isin(location_ids)]
+        infection_data['date'] = pd.to_datetime(infection_data['date'])
+        infection_data = (infection_data
+                          .set_index(['location_id', 'date'])
+                          .sort_index()
+                          .loc[:, ['infections_draw', 'duration', 'deaths']]
+                          .rename(columns={'infections_draw': 'infections'}))
+        return infection_data
 
     ##########################
     # Covariate data loaders #
@@ -139,6 +164,117 @@ class RegressionDataInterface:
         covariate_data = reduce(lambda x, y: x.merge(y, left_index=True, right_index=True), covariate_data)
         return covariate_data.reset_index()
 
+    ######################
+    # Ratio data loaders #
+    ######################
+
+    def load_ifr_data(self, draw_id: int, location_ids: List[int]) -> pd.DataFrame:
+        ifr = io.load(self.infection_root.ratios(draw_id=draw_id))
+        ifr = ifr[ifr.location_id.isin(location_ids)]
+        ifr['date'] = pd.to_datetime(ifr['date'])
+        ifr = ifr.set_index(['location_id', 'date']).sort_index()
+        cols = [c for c in ifr.columns if '_draw' in c]
+        ifr = ifr.loc[:, cols].rename(columns={c: c.split('_draw')[0] for c in cols})
+        return ifr
+
+    def load_mortality_ratio(self, location_ids: List[int]) -> pd.Series:
+        mr_df = io.load(self.mortality_rate_root.mortality_rate())
+        mr_df = mr_df.loc[mr_df.location_id.isin(location_ids), ['location_id', 'age_start', 'MRprob']]
+        return mr_df.set_index(['location_id', 'age_start']).MRprob
+
+    def load_hospital_fatality_ratio(self,
+                                     death_weights: pd.Series,
+                                     location_ids: List[int],
+                                     with_error: bool) -> 'HospitalFatalityRatioData':
+        hfr_age_cols = ['X1', 'X2', 'X3', 'X4', 'X5']
+
+        hfr_all_locs = io.load(self.hospital_fatality_ratio_root.hospital_fatality_ratio())
+        hfr = (hfr_all_locs[hfr_all_locs.location_id.isin(location_ids)]
+               .drop(columns='location')
+               .set_index('location_id'))
+
+        # TODO: Why round?  Why mode?
+        # For missing locations, use the rounded mode of the all loc hfr to fill.
+        missing_locs = set(location_ids).difference(hfr.index)
+        if with_error:
+            fill_hfr = hfr_all_locs[hfr_age_cols + ['all_age']].round().mode()
+        else:
+            fill_hfr = hfr_all_locs[hfr_age_cols + ['all_age']].mean().to_frame().T
+        missing_hfr = pd.concat([fill_hfr] * len(missing_locs))
+        missing_hfr.index = pd.Index(missing_locs, name='location_id')
+        hfr = hfr.append(missing_hfr).sort_index()
+
+        # TODO: Why are we rounding?  Mysterious...
+        if with_error:
+            hfr_all_age = hfr['all_age'].round()
+            hfr = hfr[hfr_age_cols].round()
+        else:
+            hfr_all_age = hfr['all_age'].round()
+            hfr = hfr[hfr_age_cols].round()
+        actual_ages = sorted(death_weights.reset_index().age.unique())
+        assert len(hfr_age_cols) == len(actual_ages), 'Something terrible has happened to the hfr age pattern.'
+        hfr.columns = actual_ages
+
+        low_hfr = hfr[(hfr < 1).any(axis=1)].index.tolist()
+        if low_hfr:
+            logger.warning(f'HDR below 1 found in locations {low_hfr}')
+        hfr = hfr.clip(1).stack()
+        hfr.index.names = ['location_id', 'age']
+        hfr.name = None
+        return HospitalFatalityRatioData(age_specific=hfr, all_age=hfr_all_age)
+
+    ##############################
+    # Miscellaneous data loaders #
+    ##############################
+
+    def get_infectionator_metadata(self):
+        return io.load(self.infection_root.metadata())
+
+    def get_model_inputs_metadata(self):
+        infection_metadata = self.get_infectionator_metadata()
+        return infection_metadata['model_inputs_metadata']
+
+    def load_population(self) -> pd.DataFrame:
+        metadata = self.get_model_inputs_metadata()
+        model_inputs_version = metadata['output_path']
+        population_path = Path(model_inputs_version) / 'output_measures' / 'population' / 'all_populations.csv'
+        population_data = pd.read_csv(population_path)
+        return population_data
+
+    def load_five_year_population(self, location_ids: List[int]) -> pd.DataFrame:
+        population = self.load_population()
+        in_locations = population['location_id'].isin(location_ids)
+        is_2019 = population['year_id'] == 2019
+        is_both_sexes = population['sex_id'] == 3
+        five_year_bins = [1, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 30, 31, 32, 235]
+        is_five_year_bins = population['age_group_id'].isin(five_year_bins)
+        population = population.loc[in_locations & is_2019 & is_both_sexes & is_five_year_bins, :]
+        return population
+
+    def load_hospital_census_data(self) -> 'HospitalCensusData':
+        metadata = self.get_model_inputs_metadata()
+
+        model_inputs_path = Path(metadata['output_path'])
+        corrections_data = {}
+        file_map = (
+            ('hospitalizations', 'hospital_census'),
+            ('icu', 'icu_census'),
+            ('ventilators', 'ventilator_census'),
+        )
+        for dir_name, measure in file_map:
+            path = model_inputs_path / 'output_measures' / dir_name / 'population.csv'
+            df = pd.read_csv(path)
+            df['date'] = pd.to_datetime(df['date'])
+            df = df.loc[(df.age_group_id == 22) & (df.sex_id == 3)]
+            df = df[["location_id", "date", "value"]]
+            if df.groupby(["location_id", "date"]).count().value.max() > 1:
+                raise ValueError(f"Duplicate usages for location_id and date in {path}")
+            # Location IDs to exclude from the census input data. Requested by Steve on 9/30
+            census_exclude_locs = [200, 69, 179, 172, 170, 144, 26, 74, 67, 58]
+            df = df.loc[~df.location_id.isin(census_exclude_locs)]
+            corrections_data[measure] = df.set_index(['location_id', 'date']).value
+        return HospitalCensusData(**corrections_data)
+
     #######################
     # Regression data I/O #
     #######################
@@ -180,14 +316,23 @@ class RegressionDataInterface:
     def load_regression_coefficients(self, draw_id: int) -> pd.DataFrame:
         return io.load(self.regression_root.coefficients(draw_id=draw_id))
 
+    def load_prior_run_coefficients(self, draw_id: int) -> pd.DataFrame:
+        return io.load(self.coefficient_root.coefficients(draw_id=draw_id))
+
     def save_regression_betas(self, df: pd.DataFrame, draw_id: int) -> None:
         io.dump(df, self.regression_root.beta(draw_id=draw_id))
 
     def load_regression_betas(self, draw_id: int) -> pd.DataFrame:
         return io.load(self.regression_root.beta(draw_id=draw_id))
 
-    def save_location_data(self, df: pd.DataFrame, draw_id: int) -> None:
-        io.dump(df, self.regression_root.data(draw_id=draw_id))
+    def save_infection_data(self, df: pd.DataFrame, draw_id: int) -> None:
+        io.dump(df, self.regression_root.infection_data(draw_id=draw_id))
 
-    def load_location_data(self, draw_id: int) -> pd.DataFrame:
-        return io.load(self.regression_root.data(draw_id=draw_id))
+    def load_infection_data(self, draw_id: int) -> pd.DataFrame:
+        return io.load(self.regression_root.infection_data(draw_id=draw_id))
+
+    def save_hospital_data(self, df: pd.DataFrame, measure: str) -> None:
+        io.dump(df, self.regression_root.hospitalizations(measure=measure))
+
+    def load_hospital_data(self, measure: str) -> pd.DataFrame:
+        return io.load(self.regression_root.hospitalizations(measure=measure))

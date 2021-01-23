@@ -32,7 +32,7 @@ class MarshallInterfaceTests:
 
     def test_location_data_marshall(self, instance, regression_root, location_data):
         self.assert_load_dump_workflow_correct(instance, regression_root,
-                                               location_data, key=regression_root.data(draw_id=4))
+                                               location_data, key=regression_root.infection_data(draw_id=4))
 
     def test_no_overwriting(self, instance, regression_root, parameters):
         self.assert_load_dump_workflow_correct(instance, regression_root,

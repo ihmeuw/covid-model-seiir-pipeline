@@ -106,49 +106,21 @@ class PostprocessingDataInterface:
         beta_residual = np.log(beta_regression['beta'] / beta_regression['beta_pred']).rename(draw_id)
         return beta_residual
 
-    def load_raw_outputs(self, draw_id: int, scenario: str) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+    def load_raw_outputs(self, draw_id: int, scenario: str, measure: str) -> pd.Series:
         draw_df = io.load(self.forecast_root.raw_outputs(scenario=scenario, draw_id=draw_id))
-        draw_df = draw_df.set_index(['location_id', 'date']).sort_index()
-        deaths = draw_df.reset_index().set_index(['location_id', 'date', 'observed'])['deaths'].rename(draw_id)
-        infections = draw_df['infections'].rename(draw_id)
-        r_effective = draw_df['r_effective'].rename(draw_id)
-        return deaths, infections, r_effective
+        index_cols = ['location_id', 'date']
+        if measure == 'deaths':
+            index_cols.append('observed')
+        draw_data = draw_df.set_index(index_cols)[measure].sort_index().rename(draw_id)
+        return draw_data
 
     ##############################
     # Miscellaneous data loaders #
     ##############################
 
-    def load_elastispliner_inputs(self) -> pd.DataFrame:
-        metadata = self._get_forecast_data_inteface().get_infectionator_metadata()
-        deaths_version = Path(metadata['death']['metadata']['output_path'])
-        es_inputs = pd.read_csv(deaths_version / 'model_data.csv')
-        es_inputs['date'] = pd.to_datetime(es_inputs['date'])
-        es_inputs = es_inputs.set_index(['location_id', 'date'])
-        cumulative_cases = (es_inputs['Confirmed case rate'] * es_inputs['population']).rename('cumulative_cases')
-        cumulative_deaths = (es_inputs['Death rate'] * es_inputs['population']).rename('cumulative_deaths')
-        cumulative_hospitalizations = (es_inputs['Hospitalization rate'] * es_inputs['population'])
-        cumulative_hospitalizations = cumulative_hospitalizations.rename('cumulative_hospitalizations')
-        # TODO: have ES use and produce a config file for this number.
-        es_shift = -8
-        cumulative_cases = cumulative_cases.groupby('location_id').shift(es_shift)
-        cumulative_hospitalizations = cumulative_hospitalizations.groupby('location_id').shift(es_shift)
-        es_inputs = pd.concat([cumulative_cases, cumulative_deaths, cumulative_hospitalizations], axis=1)
-        es_inputs = es_inputs.loc[es_inputs.notnull().any(axis=1)]
-        return es_inputs
-
-    def load_elastispliner_outputs(self, noisy: bool) -> pd.DataFrame:
-        metadata = self._get_forecast_data_inteface().get_infectionator_metadata()
-        deaths_version = Path(metadata['death']['metadata']['output_path'])
-        es_file = 'model_results.csv' if noisy else 'model_results_refit.csv'
-        es_outputs = pd.read_csv(deaths_version / es_file)
-        es_outputs = es_outputs.set_index(['location_id', 'date', 'observed'])
-        n_draws = self.get_n_draws()
-        es_outputs = es_outputs.rename(columns={f'draw_{i}': i for i in range(n_draws)})
-        es_outputs = es_outputs.groupby(level='location_id').apply(lambda x: x - x.shift(fill_value=0))
-        return es_outputs
-
     def load_full_data(self) -> pd.DataFrame:
         full_data = self._get_forecast_data_inteface().load_full_data()
+        locs = full_data.location_id.unique()
         full_data = full_data.set_index(['location_id', 'date'])
         full_data = full_data.rename(columns={
             'Deaths': 'cumulative_deaths',
@@ -156,7 +128,12 @@ class PostprocessingDataInterface:
             'Hospitalizations': 'cumulative_hospitalizations',
         })
         full_data = full_data[['cumulative_cases', 'cumulative_deaths', 'cumulative_hospitalizations']]
-        return full_data
+        dfs = []
+        for loc_id in locs:
+            df = full_data.loc[loc_id].asfreq('D').reset_index().interpolate().fillna(method='pad')
+            df['location_id'] = loc_id
+            dfs.append(df.set_index(['location_id', 'date']).sort_index())
+        return pd.concat(dfs)
 
     def build_version_map(self) -> pd.Series:
         forecast_di = self._get_forecast_data_inteface()
@@ -169,13 +146,9 @@ class PostprocessingDataInterface:
 
         # FIXME: infectionator doesn't do metadata the right way.
         inf_metadata = forecast_di.get_infectionator_metadata()
-        inf_output_dir = inf_metadata['wrapped_R_call'][-1].split()[1].strip("'")
-        version_map['infectionator_version'] = Path(inf_output_dir).name
+        version_map['infectionator_version'] = Path(inf_metadata['output_path']).name
 
-        death_metadata = inf_metadata['death']['metadata']
-        version_map['elastispliner_version'] = Path(death_metadata['output_path']).name
-
-        model_inputs_metadata = death_metadata['model_inputs_metadata']
+        model_inputs_metadata = inf_metadata['model_inputs_metadata']
         version_map['model_inputs_version'] = Path(model_inputs_metadata['output_path']).name
 
         snapshot_metadata = model_inputs_metadata['snapshot_metadata']
@@ -206,11 +179,13 @@ class PostprocessingDataInterface:
         return self._get_forecast_data_inteface().load_population()
 
     def load_hierarchy(self) -> pd.DataFrame:
-        metadata = self._get_forecast_data_inteface().get_infectionator_metadata()
-        model_inputs_path = Path(
-            metadata['death']['metadata']['model_inputs_metadata']['output_path']
-        )
-        hierarchy_path = model_inputs_path / 'locations' / 'modeling_hierarchy.csv'
+        fdi = self._get_forecast_data_inteface()
+        metadata = fdi.get_model_inputs_metadata()
+        model_inputs_path = Path(metadata['output_path'])
+        if fdi.fh_subnationals:
+            hierarchy_path = model_inputs_path / 'locations' / 'fh_small_area_hierarchy.csv'
+        else:
+            hierarchy_path = model_inputs_path / 'locations' / 'modeling_hierarchy.csv'
         hierarchy = pd.read_csv(hierarchy_path)
         return hierarchy
 
@@ -227,6 +202,9 @@ class PostprocessingDataInterface:
         missing_locations = list(set(most_detailed_locs).difference(modeled_locations))
         locations_modeled_and_missing = {'modeled': modeled_locations, 'missing': missing_locations}
         return locations_modeled_and_missing
+
+    def load_hospital_census_data(self):
+        return self._get_forecast_data_inteface().load_hospital_census_data()
 
     ###########################
     # Postprocessing data I/O #

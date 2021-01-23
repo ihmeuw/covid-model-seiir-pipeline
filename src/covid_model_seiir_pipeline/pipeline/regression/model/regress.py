@@ -1,6 +1,6 @@
 from collections import defaultdict
 import copy
-from typing import Iterable, List, Union, TYPE_CHECKING
+from typing import Iterable, List, Optional, Union, TYPE_CHECKING
 
 import pandas as pd
 import numpy as np
@@ -47,7 +47,7 @@ class BetaRegressor(IBetaRegressor):
         mr_model_fixed.fit_model()
         return list(mr_model_fixed.result.values())[0]
 
-    def fit(self, mr_data: MRData, _: bool) -> pd.DataFrame:
+    def fit(self, mr_data: MRData, _: bool = None) -> pd.DataFrame:
         mr_model = MRModel(mr_data, self.covmodel_set)
         mr_model.fit_model()
         cov_coef = mr_model.result
@@ -109,7 +109,8 @@ def align_beta_with_covariates(covariate_df: pd.DataFrame,
     return mrdata
 
 
-def build_regressor(covariates: Iterable['CovariateSpecification']) -> Union[BetaRegressor, BetaRegressorSequential]:
+def build_regressor(covariates: Iterable['CovariateSpecification'],
+                    prior_coefficients: Optional[pd.DataFrame]) -> Union[BetaRegressor, BetaRegressorSequential]:
     """
     Based on a list of `CovariateSpecification`s and an ordered list of lists of covariate
     names, create a CovModelSet.
@@ -118,6 +119,9 @@ def build_regressor(covariates: Iterable['CovariateSpecification']) -> Union[Bet
     covariate_models = defaultdict(list)
     for covariate in covariates:
         cov_model = CovariateModel.from_specification(covariate)
+        if prior_coefficients is not None and not cov_model.use_re:
+            coefficient_val = prior_coefficients[covariate.name].mean()
+            cov_model.gprior = np.array([coefficient_val, 1e-10])
         covariate_models[covariate.order].append(cov_model)
     ordered_covmodel_sets = [CovModelSet(covariate_group)
                              for _, covariate_group in sorted(covariate_models.items())]
