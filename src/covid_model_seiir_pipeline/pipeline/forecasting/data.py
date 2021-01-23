@@ -3,6 +3,7 @@ from pathlib import Path
 from typing import Dict, List, Union
 
 from loguru import logger
+import numpy as np
 import pandas as pd
 
 from covid_model_seiir_pipeline.lib import (
@@ -225,6 +226,41 @@ class ForecastDataInterface:
             raise ValueError('Sigma - theta must be smaller than 1')
 
         return thetas
+
+    def load_variant_prevalence(self, variant_specification: Dict,
+                                transition_dates: pd.Series,
+                                max_date: pd.Timestamp) -> pd.Series:
+        path = variant_specification.get('scale_up_path', None)
+        if not path:
+            idx = (transition_dates
+                   .groupby('location_id')
+                   .apply(lambda x: pd.date_range(x.iloc[0], max_date, name='date'))
+                   .explode()
+                   .reset_index()
+                   .set_index(['location_id', 'date'])
+                   .index)
+            return pd.Series(0, index=idx)
+
+        variant_prevalence = pd.read_csv(path)
+        variant_prevalence['date'] = (pd.Timestamp(variant_specification['start_date'])
+                                      + pd.to_timedelta(variant_prevalence['day'], 'D'))
+        variant_scale_up = variant_prevalence.set_index('date').proportion
+
+        prevalences = []
+        for location_id in transition_dates.index:
+            date_start = transition_dates.loc[location_id]
+            dates = pd.date_range(date_start, max_date, name='date')
+            # Carry last value forward and set past values to zero.
+            loc_prevalence = (variant_scale_up
+                              .reindex(dates)
+                              .fillna(method='ffill')
+                              .fillna(0)
+                              .reset_index())
+            loc_prevalence['location_id'] = location_id
+            loc_prevalence = loc_prevalence.set_index(['location_id', 'date']).proportion
+            prevalences.append(loc_prevalence)
+
+        return pd.concat(prevalences)
 
     def get_infectionator_metadata(self):
         return self._get_regression_data_interface().get_infectionator_metadata()
