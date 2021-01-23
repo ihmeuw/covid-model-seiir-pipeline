@@ -2,6 +2,7 @@ from pathlib import Path
 import time
 
 import click
+import numpy as np
 import pandas as pd
 
 from covid_model_seiir_pipeline.lib import (
@@ -19,7 +20,6 @@ logger = cli_tools.task_performance_logger
 
 def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, **kwargs):
     logger.info(f"Initiating SEIIR beta forecasting for scenario {scenario}, draw {draw_id}.", context='setup')
-    start = time.time()
     forecast_spec: ForecastSpecification = ForecastSpecification.from_path(
         Path(forecast_version) / static_vars.FORECAST_SPECIFICATION_FILE
     )
@@ -46,11 +46,22 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, **kwar
     # used to compute beta hat in the future.
     covariates = data_interface.load_covariates(scenario_spec, location_ids)
     coefficients = data_interface.load_regression_coefficients(draw_id)
+    forecast_end_date = covariates.date.max()
     # Rescaling parameters for the beta forecast.
     beta_scales = data_interface.load_beta_scales(scenario=scenario, draw_id=draw_id)
+    # Beta scale-up due to variant
+    variant_prevalence = data_interface.load_variant_prevalence(
+        scenario_spec.variant, transition_date, forecast_end_date
+    )
+    variant_max_beta_shift = scenario_spec.variant.get('beta_increase', 1)
+    # noinspection PyTypeChecker
+    variant_beta_shift = ((1 - variant_prevalence) + variant_max_beta_shift * variant_prevalence).rename('beta_pred')
+    variant_max_vaccine_shift = scenario_spec.variant.get('vaccine_efficacy_decrease', 0)
+    # noinspection PyTypeChecker
+    variant_vaccine_shift = variant_max_vaccine_shift * variant_prevalence
     # We'll need this to compute deaths and to splice with the forecasts.
     infection_data = data_interface.load_infection_data(draw_id)
-    ifr = data_interface.load_ifr_data()
+    ifr = data_interface.load_ifr_data(draw_id, location_ids)
     # Data for computing hospital usage
     mr = data_interface.load_mortality_ratio(location_ids)
     death_weights = model.get_death_weights(mr, population, with_error=False)
@@ -81,9 +92,9 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, **kwar
     covariate_pred = covariates.loc[the_future].reset_index()
 
     betas = model.forecast_beta(covariate_pred, coefficients, beta_scales)
-    seir_parameters = model.prep_seir_parameters(betas, thetas, scenario_data)
+    betas = (betas.set_index('date', append=True).beta_pred * variant_beta_shift).reset_index(level='date')
+    seir_parameters = model.prep_seir_parameters(betas, thetas, scenario_data, variant_vaccine_shift, population_partition)
 
-    forecast_end_date = covariates.date.max()
     correction_factors = model.forecast_correction_factors(
         correction_factors,
         transition_date,
@@ -161,7 +172,9 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, **kwar
             covariate_pred = covariates.loc[the_future].reset_index()
 
             betas = model.forecast_beta(covariate_pred, coefficients, beta_scales)
-            seir_parameters = model.prep_seir_parameters(betas, thetas, scenario_data)
+            betas = (betas.set_index('date', append=True).beta_pred * variant_beta_shift).reset_index(level='date')
+            seir_parameters = model.prep_seir_parameters(betas, thetas, scenario_data, variant_vaccine_shift,
+                                                         population_partition)
 
             # The ode is done as a loop over the locations in the initial condition.
             # As locations that don't reimpose mandates produce identical forecasts,

@@ -3,6 +3,7 @@ from pathlib import Path
 from typing import Dict, List, Union
 
 from loguru import logger
+import numpy as np
 import pandas as pd
 
 from covid_model_seiir_pipeline.lib import (
@@ -226,12 +227,47 @@ class ForecastDataInterface:
 
         return thetas
 
+    def load_variant_prevalence(self, variant_specification: Dict,
+                                transition_dates: pd.Series,
+                                max_date: pd.Timestamp) -> pd.Series:
+        path = variant_specification.get('scale_up_path', None)
+        if not path:
+            idx = (transition_dates
+                   .groupby('location_id')
+                   .apply(lambda x: pd.date_range(x.iloc[0], max_date, name='date'))
+                   .explode()
+                   .reset_index()
+                   .set_index(['location_id', 'date'])
+                   .index)
+            return pd.Series(0, index=idx)
+
+        variant_prevalence = pd.read_csv(path)
+        variant_prevalence['date'] = (pd.Timestamp(variant_specification['start_date'])
+                                      + pd.to_timedelta(variant_prevalence['day'], 'D'))
+        variant_scale_up = variant_prevalence.set_index('date').proportion
+
+        prevalences = []
+        for location_id in transition_dates.index:
+            date_start = transition_dates.loc[location_id]
+            dates = pd.date_range(date_start, max_date, name='date')
+            # Carry last value forward and set past values to zero.
+            loc_prevalence = (variant_scale_up
+                              .reindex(dates)
+                              .fillna(method='ffill')
+                              .fillna(0)
+                              .reset_index())
+            loc_prevalence['location_id'] = location_id
+            loc_prevalence = loc_prevalence.set_index(['location_id', 'date']).proportion
+            prevalences.append(loc_prevalence)
+
+        return pd.concat(prevalences)
+
     def get_infectionator_metadata(self):
         return self._get_regression_data_interface().get_infectionator_metadata()
 
     def get_model_inputs_metadata(self):
         infection_metadata = self.get_infectionator_metadata()
-        return infection_metadata['death']['metadata']['model_inputs_metadata']
+        return infection_metadata['model_inputs_metadata']
 
     def load_full_data(self) -> pd.DataFrame:
         metadata = self.get_model_inputs_metadata()
@@ -251,8 +287,8 @@ class ForecastDataInterface:
     def load_five_year_population(self, location_ids: List[int]) -> pd.DataFrame:
         return self._get_regression_data_interface().load_five_year_population(location_ids)
 
-    def load_ifr_data(self) -> pd.DataFrame:
-        return self._get_regression_data_interface().load_ifr_data()
+    def load_ifr_data(self, draw_id: int, location_ids: List[int]) -> pd.DataFrame:
+        return self._get_regression_data_interface().load_ifr_data(draw_id=draw_id, location_ids=location_ids)
 
     def load_total_deaths(self):
         """Load cumulative deaths by location."""

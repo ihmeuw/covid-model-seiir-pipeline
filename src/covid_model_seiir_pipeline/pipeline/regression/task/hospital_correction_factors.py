@@ -36,14 +36,11 @@ def run_hospital_correction_factors(regression_version: str, with_error: bool) -
     location_ids = data_interface.load_location_ids()
     # We just want the mean deaths through here, which is the same across
     # all draws, so we'll default to draw 0.
-    infectionator_data = data_interface.load_all_location_data(
-        location_ids=location_ids,
+    infection_data = data_interface.load_past_infection_data(
         draw_id=0,
+        location_ids=location_ids,
     )
-    infectionator_data = pd.concat(infectionator_data.values())
-    infectionator_data['date'] = pd.to_datetime(infectionator_data['date'])
-    _, deaths = math.get_observed_infecs_and_deaths(infectionator_data)
-    deaths = deaths.reset_index()
+    deaths = infection_data['deaths'].reset_index()
 
     population = data_interface.load_five_year_population(location_ids)
     mr = data_interface.load_mortality_ratio(location_ids)

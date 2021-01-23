@@ -91,7 +91,10 @@ class RegressionDataInterface:
         directory.
 
         """
-        modeled_locations = self.infection_root.modeled_locations()
+        draw_0_data = self.load_past_infection_data(draw_id=0)
+        total_deaths = draw_0_data.groupby('location_id').deaths.sum()
+        modeled_locations = total_deaths[total_deaths > 5].index.tolist()
+
         if desired_location_hierarchy is None:
             desired_locations = modeled_locations
         else:
@@ -108,20 +111,17 @@ class RegressionDataInterface:
     # Infection data loaders #
     ##########################
 
-    def load_all_location_data(self, location_ids: List[int], draw_id: int) -> Dict[int, pd.DataFrame]:
-        dfs = dict()
-        for loc in location_ids:
-            loc_df = io.load(self.infection_root.infections(location_id=loc, draw_id=draw_id))
-            loc_df = loc_df.rename(columns={'loc_id': 'location_id'})
-            if loc_df['cases_draw'].isnull().any():
-                logger.warning(f'Nulls found in infectionator inputs for location id {loc}.  Dropping.')
-                continue
-            if (loc_df['cases_draw'] < 0).any():
-                logger.warning(f'Negatives found in infectionator inputs for location id {loc}.  Dropping.')
-                continue
-            dfs[loc] = loc_df
-
-        return dfs
+    def load_past_infection_data(self, draw_id: int, location_ids: List[int] = None) -> pd.DataFrame:
+        infection_data = io.load(self.infection_root.infections(draw_id=draw_id))
+        if location_ids:
+            infection_data = infection_data.loc[infection_data.location_id.isin(location_ids)]
+        infection_data['date'] = pd.to_datetime(infection_data['date'])
+        infection_data = (infection_data
+                          .set_index(['location_id', 'date'])
+                          .sort_index()
+                          .loc[:, ['infections_draw', 'duration', 'deaths']]
+                          .rename(columns={'infections_draw': 'infections'}))
+        return infection_data
 
     ##########################
     # Covariate data loaders #
@@ -168,13 +168,14 @@ class RegressionDataInterface:
     # Ratio data loaders #
     ######################
 
-    def load_ifr_data(self):
-        metadata = self.get_infectionator_metadata()
-        # TODO: metadata abstraction?
-        ifr_version = metadata['run_arguments']['ifr_custom_path']
-        data_path = Path(ifr_version) / 'terminal_ifr.csv'
-        data = pd.read_csv(data_path)
-        return data.set_index('location_id')
+    def load_ifr_data(self, draw_id: int, location_ids: List[int]) -> pd.DataFrame:
+        ifr = io.load(self.infection_root.ratios(draw_id=draw_id))
+        ifr = ifr[ifr.location_id.isin(location_ids)]
+        ifr['date'] = pd.to_datetime(ifr['date'])
+        ifr = ifr.set_index(['location_id', 'date']).sort_index()
+        cols = [c for c in ifr.columns if '_draw' in c]
+        ifr = ifr.loc[:, cols].rename(columns={c: c.split('_draw')[0] for c in cols})
+        return ifr
 
     def load_mortality_ratio(self, location_ids: List[int]) -> pd.Series:
         mr_df = io.load(self.mortality_rate_root.mortality_rate())
@@ -231,7 +232,7 @@ class RegressionDataInterface:
 
     def get_model_inputs_metadata(self):
         infection_metadata = self.get_infectionator_metadata()
-        return infection_metadata['death']['metadata']['model_inputs_metadata']
+        return infection_metadata['model_inputs_metadata']
 
     def load_population(self) -> pd.DataFrame:
         metadata = self.get_model_inputs_metadata()

@@ -68,11 +68,19 @@ def forecast_correction_factors(correction_factors: HospitalCorrectionFactors,
 
 def prep_seir_parameters(betas: pd.DataFrame,
                          thetas: pd.Series,
-                         scenario_data: ScenarioData):
+                         scenario_data: ScenarioData,
+                         variant_vaccine_shift: pd.Series,
+                         population_partition):
     betas = betas.rename(columns={'beta_pred': 'beta'})
     parameters = betas.merge(thetas, on='location_id')
     if scenario_data.vaccinations is not None:
-        parameters = parameters.merge(scenario_data.vaccinations, on=['location_id', 'date'], how='left').fillna(0)
+        suffixes = [f'_{k}' for k in population_partition] if population_partition else ['']
+        v = scenario_data.vaccinations
+        for suffix in suffixes:
+            vaccines_resisted = v[f'effectively_vaccinated{suffix}'] * variant_vaccine_shift
+            v[f'effectively_vaccinated{suffix}'] -= vaccines_resisted
+            v[f'unprotected{suffix}'] += vaccines_resisted
+        parameters = parameters.merge(v, on=['location_id', 'date'], how='left').fillna(0)
     return parameters
 
 
@@ -418,54 +426,6 @@ def _vaccine_system(t: float, y: np.ndarray, p: np.array):
     return dy
 
 
-def linear_interpolate(t_target: np.ndarray,
-                       t_org: np.ndarray,
-                       x_org: np.ndarray) -> np.ndarray:
-    is_vector = x_org.ndim == 1
-    if is_vector:
-        x_org = x_org[None, :]
-
-    assert t_org.size == x_org.shape[1]
-
-    x_target = np.vstack([
-        np.interp(t_target, t_org, x_org[i])
-        for i in range(x_org.shape[0])
-    ])
-
-    if is_vector:
-        return x_target.ravel()
-    else:
-        return x_target
-
-
-def _solve(system, t, init_cond, t_params, params, dt):
-    t_solve = np.arange(np.min(t), np.max(t) + dt, dt / 2)
-    y_solve = np.zeros((init_cond.size, t_solve.size),
-                       dtype=init_cond.dtype)
-    y_solve[:, 0] = init_cond
-    # linear interpolate the parameters
-    params = linear_interpolate(t_solve, t_params, params)
-    y_solve = _rk45(system, t_solve, y_solve, params, dt)
-    # linear interpolate the solutions.
-    y_solve = linear_interpolate(t, t_solve, y_solve)
-    return y_solve
-
-
-@numba.njit
-def _rk45(system,
-          t_solve: np.array,
-          y_solve: np.array,
-          params: np.array,
-          dt: float):
-    for i in range(2, t_solve.size, 2):
-        k1 = system(t_solve[i - 2], y_solve[:, i - 2], params[:, i - 2])
-        k2 = system(t_solve[i - 1], y_solve[:, i - 2] + dt / 2 * k1, params[:, i - 1])
-        k3 = system(t_solve[i - 1], y_solve[:, i - 2] + dt / 2 * k2, params[:, i - 1])
-        k4 = system(t_solve[i], y_solve[:, i - 2] + dt * k3, params[:, i])
-        y_solve[:, i] = y_solve[:, i - 2] + dt / 6 * (k1 + 2 * k2 + 2 * k3 + k4)
-    return y_solve
-
-
 class _ODERunner:
     systems: Dict[str, Callable] = {
         'normal': _seiir_system,
@@ -510,11 +470,10 @@ class _ODERunner:
             system_params,
         ])
 
-        solution = _solve(
+        solution = math.solve_ode(
             system=self.system,
             t=times,
             init_cond=initial_condition,
-            t_params=times,
             params=system_params,
             dt=self.model_specs.delta,
         )
