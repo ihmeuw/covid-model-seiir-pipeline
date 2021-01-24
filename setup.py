@@ -22,13 +22,11 @@ if __name__ == "__main__":
         'matplotlib',
         'numba',
         'numpy',
-        'odeopt>=0.1.1',
         'pandas',
         'pypdf2',
         'pyyaml',
         'parse',
         'seaborn',
-        'slime',
         'tables',
         'tqdm',
     ]

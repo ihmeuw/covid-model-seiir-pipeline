@@ -1,3 +1,7 @@
+"""Port of https://github.com/ihmeuw-msca/SLIME
+
+Doing a direct include here so I can figure out how to speed up the regression.
+"""
 from typing import Dict, Any
 
 import numpy as np
