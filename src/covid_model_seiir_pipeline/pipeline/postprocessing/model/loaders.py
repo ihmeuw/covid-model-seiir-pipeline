@@ -163,7 +163,13 @@ def load_full_data(data_interface: 'PostprocessingDataInterface') -> pd.DataFram
 
 def load_age_specific_deaths(data_interface: 'PostprocessingDataInterface') -> pd.DataFrame:
     full_data = data_interface.load_full_data()
-    import pdb; pdb.set_trace()
+    age_specific_deaths = (full_data
+                           .groupby('location_id')
+                           .cumulative_deaths
+                           .max()
+                           .dropna()
+                           .reset_index())
+    return age_specific_deaths
 
 
 def build_version_map(data_interface: 'PostprocessingDataInterface') -> pd.Series:
