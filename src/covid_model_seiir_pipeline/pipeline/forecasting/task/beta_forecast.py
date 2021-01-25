@@ -90,7 +90,6 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, **kwar
     covariates = covariates.set_index('location_id').sort_index()
     the_future = covariates['date'] >= transition_date.loc[covariates.index]
     covariate_pred = covariates.loc[the_future].reset_index()
-
     betas = model.forecast_beta(covariate_pred, coefficients, beta_scales)
     betas = (betas.set_index('date', append=True).beta_pred * variant_beta_shift).reset_index(level='date')
     seir_parameters = model.prep_seir_parameters(betas, thetas, scenario_data, variant_vaccine_shift, population_partition)
@@ -111,6 +110,7 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, **kwar
         compartment_info,
     )
     logger.info('Processing ODE results and computing deaths and infections.', context='compute_results')
+    import pdb; pdb.set_trace()
     output_metrics = model.compute_output_metrics(
         infection_data,
         ifr,
