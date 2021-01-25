@@ -161,6 +161,11 @@ def load_full_data(data_interface: 'PostprocessingDataInterface') -> pd.DataFram
     return data_interface.load_full_data()
 
 
+def load_age_specific_deaths(data_interface: 'PostprocessingDataInterface') -> pd.DataFrame:
+    full_data = data_interface.load_full_data()
+    import pdb; pdb.set_trace()
+
+
 def build_version_map(data_interface: 'PostprocessingDataInterface') -> pd.Series:
     return data_interface.build_version_map()
 
