@@ -147,13 +147,13 @@ def load_full_data(data_interface: 'PostprocessingDataInterface') -> pd.DataFram
 
 def load_age_specific_deaths(data_interface: 'PostprocessingDataInterface') -> pd.DataFrame:
     full_data = data_interface.load_full_data()
-    age_specific_deaths = (full_data
-                           .groupby('location_id')
-                           .cumulative_deaths
-                           .max()
-                           .dropna()
-                           .reset_index())
+    total_deaths = (full_data
+                    .groupby('location_id')
+                    .cumulative_deaths
+                    .max()
+                    .dropna())
     mortality_ratio = data_interface.load_mortality_ratio()
+    age_specific_deaths = (mortality_ratio * total_deaths).rename('age_specific_deaths').to_frame()
     return age_specific_deaths
 
 
