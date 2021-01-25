@@ -169,6 +169,7 @@ def load_age_specific_deaths(data_interface: 'PostprocessingDataInterface') -> p
                            .max()
                            .dropna()
                            .reset_index())
+    mortality_ratio = data_interface.load_mortality_ratio()
     return age_specific_deaths
 
 
