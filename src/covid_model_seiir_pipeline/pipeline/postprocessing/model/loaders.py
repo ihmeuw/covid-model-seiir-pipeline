@@ -141,22 +141,6 @@ def load_beta_residuals(scenario: str, data_interface: 'PostprocessingDataInterf
     return beta_residuals
 
 
-def load_elastispliner_inputs(data_interface: 'PostprocessingDataInterface') -> pd.DataFrame:
-    return data_interface.load_elastispliner_inputs()
-
-
-def load_es_noisy(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
-    return load_elastispliner_outputs(data_interface, noisy=True)
-
-
-def load_es_smoothed(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
-    return load_elastispliner_outputs(data_interface, noisy=False)
-
-
-def load_elastispliner_outputs(data_interface: 'PostprocessingDataInterface', noisy: bool):
-    return data_interface.load_elastispliner_outputs(noisy)
-
-
 def load_full_data(data_interface: 'PostprocessingDataInterface') -> pd.DataFrame:
     return data_interface.load_full_data()
 
