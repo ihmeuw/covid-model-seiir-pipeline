@@ -27,6 +27,19 @@ grid_plots:
           no_vaccine: 'no_vaccine'
           vaccine_fast: 'vaccine_fast'
           vaccine_fast_elderly: 'vaccine_fast_elderly'
+#      - version: '/ihme/covid-19/seir-outputs/2021_01_20.03'
+#        scenarios:
+#          worse: 'last_worse'
+#          reference: 'last_reference'
+#      - version: '/ihme/covid-19/seir-outputs/2021_01_19.04'
+#        scenarios:
+#          worse: 'worse unconstrained'
+#          reference*: 'reference unconstrained'
       - version: '/ihme/covid-19/seir-outputs/2021_01_18.05'
         scenarios:
+#          worse: 'public worse'
           reference*: 'public reference'
+#          best_masks: 'best masks'
+#          vaccine_fast_elderly: 'fast elderly'
+#          vaccine_fast: 'fast'
+#          no_vaccine: 'no vaccine'
