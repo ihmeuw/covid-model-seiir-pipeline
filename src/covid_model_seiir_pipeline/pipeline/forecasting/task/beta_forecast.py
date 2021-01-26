@@ -1,8 +1,6 @@
 from pathlib import Path
-import time
 
 import click
-import numpy as np
 import pandas as pd
 
 from covid_model_seiir_pipeline.lib import (
@@ -129,7 +127,16 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, **kwar
     if scenario_spec.algorithm == 'draw_level_mandate_reimposition':
         logger.info('Entering mandate reimposition.', context='compute_mandates')
         # Info data specific to mandate reimposition
-        min_wait, days_on, reimposition_threshold = model.unpack_parameters(scenario_spec.algorithm_params)
+        min_wait, days_on, reimposition_threshold, max_threshold = model.unpack_parameters(
+            scenario_spec.algorithm_params,
+            location_ids
+        )
+        reimposition_threshold = model.compute_reimposition_threshold(
+            output_metrics.deaths,
+            population,
+            reimposition_threshold,
+            max_threshold,
+        )
 
         population = (output_metrics.components[compartment_info.compartments]
                       .sum(axis=1)

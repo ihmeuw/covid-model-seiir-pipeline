@@ -1,9 +1,17 @@
-from typing import Dict, NamedTuple
+from typing import Dict, List, NamedTuple
 
 import numpy as np
 import pandas as pd
 
 from covid_model_seiir_pipeline.lib import static_vars
+
+
+def compute_reimposition_threshold(deaths, population, reimposition_threshold, max_threshold):
+    death_rate = deaths.reset_index(level='date').merge(population, on='location_id')
+    death_rate['death_rate'] = death_rate['deaths'] / death_rate['population']
+
+    import pdb; pdb.set_trace()
+
 
 
 def compute_reimposition_date(deaths, population, reimposition_threshold,
@@ -81,11 +89,14 @@ def compute_new_mobility(old_mobility: pd.Series,
 class MandateReimpositionParams(NamedTuple):
     min_wait: pd.Timedelta
     days_on: pd.Timedelta
-    reimposition_threshold: float
+    reimposition_threshold: pd.Series
+    max_threshold: float
 
 
-def unpack_parameters(algorithm_parameters: Dict) -> MandateReimpositionParams:
+def unpack_parameters(algorithm_parameters: Dict, location_ids: List[int]) -> MandateReimpositionParams:
     min_wait = pd.Timedelta(days=algorithm_parameters['minimum_delay'])
     days_on = pd.Timedelta(days=static_vars.DAYS_PER_WEEK * algorithm_parameters['reimposition_duration'])
-    reimposition_threshold = algorithm_parameters['death_threshold'] / 1e6
-    return MandateReimpositionParams(min_wait, days_on, reimposition_threshold)
+    reimposition_threshold = pd.Series(algorithm_parameters['death_threshold'] / 1e6,
+                                       index=pd.Index(location_ids, name='location_id'), name='threshold')
+    max_threshold = algorithm_parameters['max_death_threshold']
+    return MandateReimpositionParams(min_wait, days_on, reimposition_threshold, max_threshold)
