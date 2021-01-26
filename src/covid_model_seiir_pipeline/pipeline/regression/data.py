@@ -196,13 +196,14 @@ class RegressionDataInterface:
         # TODO: Why round?  Why mode?
         # For missing locations, use the rounded mode of the all loc hfr to fill.
         missing_locs = set(location_ids).difference(hfr.index)
-        if with_error:
-            fill_hfr = hfr_all_locs[hfr_age_cols + ['all_age']].round().mode()
-        else:
-            fill_hfr = hfr_all_locs[hfr_age_cols + ['all_age']].mean().to_frame().T
-        missing_hfr = pd.concat([fill_hfr] * len(missing_locs))
-        missing_hfr.index = pd.Index(missing_locs, name='location_id')
-        hfr = hfr.append(missing_hfr).sort_index()
+        if missing_locs:
+            if with_error:
+                fill_hfr = hfr_all_locs[hfr_age_cols + ['all_age']].round().mode()
+            else:
+                fill_hfr = hfr_all_locs[hfr_age_cols + ['all_age']].mean().to_frame().T
+            missing_hfr = pd.concat([fill_hfr] * len(missing_locs))
+            missing_hfr.index = pd.Index(missing_locs, name='location_id')
+            hfr = hfr.append(missing_hfr).sort_index()
 
         # TODO: Why are we rounding?  Mysterious...
         if with_error:
