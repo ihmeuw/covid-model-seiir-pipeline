@@ -279,6 +279,7 @@ class ForecastDataInterface:
         full_data = pd.read_csv(full_data_path)
         full_data['date'] = pd.to_datetime(full_data['Date'])
         full_data = full_data.drop(columns=['Date'])
+        full_data['location_id'] = full_data['location_id'].astype(int)
         return full_data
 
     def load_population(self) -> pd.DataFrame:

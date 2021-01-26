@@ -110,7 +110,6 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, **kwar
         compartment_info,
     )
     logger.info('Processing ODE results and computing deaths and infections.', context='compute_results')
-    import pdb; pdb.set_trace()
     output_metrics = model.compute_output_metrics(
         infection_data,
         ifr,
