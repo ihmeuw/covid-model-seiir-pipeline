@@ -131,19 +131,17 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, **kwar
             scenario_spec.algorithm_params,
             location_ids
         )
+        population = (output_metrics.components[compartment_info.compartments]
+                      .sum(axis=1)
+                      .rename('population')
+                      .groupby('location_id')
+                      .max())
         reimposition_threshold = model.compute_reimposition_threshold(
             output_metrics.deaths,
             population,
             reimposition_threshold,
             max_threshold,
         )
-
-        population = (output_metrics.components[compartment_info.compartments]
-                      .sum(axis=1)
-                      .rename('population')
-                      .groupby('location_id')
-                      .max())
-
         reimposition_count = 0
         reimposition_dates = {}
         last_reimposition_end_date = pd.Series(pd.NaT, index=population.index)
