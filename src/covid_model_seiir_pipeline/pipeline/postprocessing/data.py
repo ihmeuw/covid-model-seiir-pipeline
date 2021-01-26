@@ -135,6 +135,11 @@ class PostprocessingDataInterface:
             dfs.append(df.set_index(['location_id', 'date']).sort_index())
         return pd.concat(dfs)
 
+    def load_mortality_ratio(self):
+        forecast_di = self._get_forecast_data_inteface()
+        location_ids = forecast_di.load_location_ids()
+        return forecast_di.load_mortality_ratio(location_ids)
+
     def build_version_map(self) -> pd.Series:
         forecast_di = self._get_forecast_data_inteface()
         version_map = {

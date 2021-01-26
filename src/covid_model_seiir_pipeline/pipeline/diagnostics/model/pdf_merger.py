@@ -40,8 +40,9 @@ def merge_pdfs(plot_cache: Path, output_path: Path, hierarchy: pd.DataFrame):
             merger.merge(current_page, str(result_page_path))
 
             # Bookmark it and add a reference to it's parent.
-            if parent_map[location_id] != location_id and location_id in merged:
-                parent = name_map.loc[parent_map.loc[location_id]]
+            parent_id = parent_map.loc[location_id]
+            if parent_id != location_id and parent_id in merged:
+                parent = name_map.loc[parent_id]
             else:
                 parent = None
             merger.addBookmark(name_map.loc[location_id], current_page, parent)

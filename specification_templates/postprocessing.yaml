@@ -10,7 +10,7 @@ data:
   output_root: ''
 workflow:
   project: 'proj_covid_prod'
-  queue: 'all.q'
+  queue: 'd.q'
   tasks:
     resample_map:
       max_runtime_seconds: 5000
@@ -18,7 +18,7 @@ workflow:
       num_cores: 26
     postprocess:
       max_runtime_seconds: 15000
-      m_mem_free: '150G'
+      m_mem_free: '30G'
       num_cores: 26
 resampling:
   reference_scenario: 'worse'
