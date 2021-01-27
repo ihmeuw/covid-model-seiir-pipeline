@@ -1,6 +1,6 @@
 data:
-  infection_version: '2021_01_21.12'
-  covariate_version: '2021_01_20.01'
+  infection_version: '2021_01_26.11'
+  covariate_version: '2021_01_27.01'
   mortality_rate_version: 'best'
   hospital_fatality_ratio_version: 'best'
   coefficient_version: ''
@@ -9,7 +9,7 @@ data:
   output_root: ''
 workflow:
   project: 'proj_covid'
-  queue: 'all.q'
+  queue: 'd.q'
   tasks:
     beta_regression:
       max_runtime_seconds: 3000

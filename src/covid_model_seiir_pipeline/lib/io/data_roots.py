@@ -106,7 +106,7 @@ class InfectionRoot(DataRoot):
     metadata = MetadataType('metadata')
 
     infections = DatasetType('infections_draws', LEAF_TEMPLATES.DRAW_TEMPLATE)
-    ratios = DatasetType('ratio_draws', LEAF_TEMPLATES.DRAW_TEMPLATE)
+    ifr = DatasetType('ifr_draws', LEAF_TEMPLATES.DRAW_TEMPLATE)
 
 
 class MortalityRateRoot(DataRoot):

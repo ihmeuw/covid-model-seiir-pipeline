@@ -53,9 +53,17 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, **kwar
     )
     # We'll need this to compute deaths and to splice with the forecasts.
     infection_data = data_interface.load_infection_data(draw_id)
-    ifr = data_interface.load_ifr_data(draw_id, location_ids).reset_index()
+    ifr = data_interface.load_ifr_data(draw_id, location_ids)
+    ifr = (ifr
+           .reindex(ifr.index.union(variant_scalars.ifr.index))
+           .groupby('location_id')
+           .fillna(method='ffill')
+           .reset_index())
     ifr = ifr.loc[ifr.date <= forecast_end_date].set_index(['location_id', 'date'])
-    ifr.loc[variant_scalars.ifr.index] = ifr.loc[variant_scalars.ifr.index].mul(variant_scalars.ifr, axis=0)
+    ifr_cols = [c for c in ifr.columns if c != 'duration']
+    ifr.loc[variant_scalars.ifr.index, ifr_cols] = (ifr
+                                                    .loc[variant_scalars.ifr.index, ifr_cols]
+                                                    .mul(variant_scalars.ifr, axis=0))
     # Data for computing hospital usage
     mr = data_interface.load_mortality_ratio(location_ids)
     death_weights = model.get_death_weights(mr, population, with_error=False)
@@ -202,13 +210,16 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, **kwar
                 seir_parameters,
                 scenario_spec,
                 compartment_info,
-            )
+            ).set_index('date', append=True).sort_index()
 
             logger.info('Processing ODE results and computing deaths and infections.', context='compute_results')
             future_components = (future_components
+                                 .set_index('date', append=True)
+                                 .sort_index()
                                  .drop(future_components_subset.index)
                                  .append(future_components_subset)
-                                 .sort_index())
+                                 .sort_index()
+                                 .reset_index(level='date'))
             output_metrics = model.compute_output_metrics(
                 infection_data,
                 ifr,
