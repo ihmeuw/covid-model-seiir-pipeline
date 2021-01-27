@@ -55,7 +55,6 @@ class ScenarioData:
 class VariantScalars:
     beta: pd.Series
     ifr: pd.Series
-    vaccine_efficacy: pd.Series
 
     def to_dict(self) -> Dict[str, pd.Series]:
         return utilities.asdict(self)

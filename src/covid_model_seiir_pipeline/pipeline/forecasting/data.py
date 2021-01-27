@@ -242,7 +242,6 @@ class ForecastDataInterface:
             return VariantScalars(
                 beta=pd.Series(1, index=idx),
                 ifr=pd.Series(1, index=idx),
-                vaccine_efficacy=pd.Series(1, index=idx),
             )
 
         variant_start_dates = pd.read_csv(Path(root) / 'start_date_b117.csv')
@@ -256,11 +255,9 @@ class ForecastDataInterface:
         default_start_date = variant_specification.get('start_date', None)
         beta_increase = variant_specification.get('beta_scalar', 1.)
         ifr_increase = variant_specification.get('ifr_scalar', 1.)
-        vaccine_efficacy_decrease = variant_specification.get('vaccine_efficacy_scalar', 0.)
 
         betas = []
         ifrs = []
-        efficacies = []
         for location_id in transition_dates.index:
             scalar_date_start = transition_dates.loc[location_id]
             variant_start_date = variant_start_dates.get(location_id, default_start_date)
@@ -287,12 +284,10 @@ class ForecastDataInterface:
 
             betas.append(loc_prevalence*beta_increase + (1 - loc_prevalence))
             ifrs.append(loc_prevalence*ifr_increase + (1 - loc_prevalence))
-            efficacies.append(loc_prevalence*vaccine_efficacy_decrease + (1 - loc_prevalence))
 
         return VariantScalars(
             beta=pd.concat(betas).sort_index(),
             ifr=pd.concat(ifrs).sort_index(),
-            vaccine_efficacy=pd.concat(efficacies).sort_index(),
         )
 
     def get_infectionator_metadata(self):

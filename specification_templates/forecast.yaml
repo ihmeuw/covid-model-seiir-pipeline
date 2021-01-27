@@ -17,18 +17,22 @@ workflow:
       num_cores: 1
 scenarios:
   worse:
-    algorithm: 'normal' # normal, draw_level_mandate_reimposition
+    algorithm: 'draw_level_mandate_reimposition'
+    algorithm_params:
+      death_threshold: 8  # per million
+      max_threshold: 15 # per million
+      reimposition_duration: 6 # weeks
+      minimum_delay: 7 # days
     solver: 'RK45'
     system: 'vaccine'
     system_params:
-      forecast_version: 'reference'
+      forecast_version: 'worse'
       proportion_immune: 0.5
     population_partition: 'high_and_low_risk'
     variant:
       variant_root: '/ihme/covid-19/variant-scaleup/best'
       beta_scalar: 1.36
       ifr_scalar: 1.29
-      vaccine_efficacy_scalar: 0.6
       start_date: '2021-02-01'
     beta_scaling:
       window_size: 42
@@ -64,7 +68,6 @@ scenarios:
       variant_root: '/ihme/covid-19/variant-scaleup/best'
       beta_scalar: 1.36
       ifr_scalar: 1.29
-      vaccine_efficacy_scalar: 0.0
     beta_scaling:
       window_size: 42
       average_over_min: 7
@@ -96,7 +99,6 @@ scenarios:
       variant_root: '/ihme/covid-19/variant-scaleup/best'
       beta_scalar: 1.36
       ifr_scalar: 1.29
-      vaccine_efficacy_scalar: 0.0
     beta_scaling:
       window_size: 42
       average_over_min: 7
@@ -131,7 +133,6 @@ scenarios:
       variant_root: '/ihme/covid-19/variant-scaleup/best'
       beta_scalar: 1.36
       ifr_scalar: 1.29
-      vaccine_efficacy_scalar: 0.0
     beta_scaling:
       window_size: 42
       average_over_min: 7
@@ -166,7 +167,6 @@ scenarios:
       variant_root: '/ihme/covid-19/variant-scaleup/best'
       beta_scalar: 1.36
       ifr_scalar: 1.29
-      vaccine_efficacy_scalar: 0.0
     beta_scaling:
       window_size: 42
       average_over_min: 7
@@ -201,7 +201,6 @@ scenarios:
       variant_root: '/ihme/covid-19/variant-scaleup/best'
       beta_scalar: 1.36
       ifr_scalar: 1.29
-      vaccine_efficacy_scalar: 0.0
     beta_scaling:
       window_size: 42
       average_over_min: 7

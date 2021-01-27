@@ -100,8 +100,6 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, **kwar
         betas,
         thetas,
         scenario_data,
-        variant_scalars.vaccine_efficacy,
-        population_partition,
     )
 
     correction_factors = model.forecast_correction_factors(
@@ -195,8 +193,6 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, **kwar
                 betas,
                 thetas,
                 scenario_data,
-                variant_scalars.vaccine_efficacy,
-                population_partition,
             )
 
             # The ode is done as a loop over the locations in the initial condition.
