@@ -85,8 +85,16 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, **kwar
     the_future = covariates['date'] >= transition_date.loc[covariates.index]
     covariate_pred = covariates.loc[the_future].reset_index()
     betas = model.forecast_beta(covariate_pred, coefficients, beta_scales)
-    betas = (betas.set_index('date', append=True).beta_pred * variant_scalars.beta).rename('beta_pred').reset_index(level='date')
-    seir_parameters = model.prep_seir_parameters(betas, thetas, scenario_data, variant_scalars.vaccine_efficacy, population_partition)
+    betas = ((betas.set_index('date', append=True).beta_pred * variant_scalars.beta)
+             .rename('beta_pred')
+             .reset_index(level='date'))
+    seir_parameters = model.prep_seir_parameters(
+        betas,
+        thetas,
+        scenario_data,
+        variant_scalars.vaccine_efficacy,
+        population_partition,
+    )
 
     correction_factors = model.forecast_correction_factors(
         correction_factors,
@@ -172,9 +180,16 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, **kwar
             covariate_pred = covariates.loc[the_future].reset_index()
 
             betas = model.forecast_beta(covariate_pred, coefficients, beta_scales)
-            betas = (betas.set_index('date', append=True).beta_pred * variant_beta_shift).reset_index(level='date')
-            seir_parameters = model.prep_seir_parameters(betas, thetas, scenario_data, variant_vaccine_shift,
-                                                         population_partition)
+            betas = ((betas.set_index('date', append=True).beta_pred * variant_scalars.beta)
+                     .rename('beta_pred')
+                     .reset_index(level='date'))
+            seir_parameters = model.prep_seir_parameters(
+                betas,
+                thetas,
+                scenario_data,
+                variant_scalars.vaccine_efficacy,
+                population_partition,
+            )
 
             # The ode is done as a loop over the locations in the initial condition.
             # As locations that don't reimpose mandates produce identical forecasts,
