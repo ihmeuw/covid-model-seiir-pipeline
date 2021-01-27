@@ -3,7 +3,6 @@ from pathlib import Path
 from typing import Dict, List, Union
 
 from loguru import logger
-import numpy as np
 import pandas as pd
 
 from covid_model_seiir_pipeline.lib import (
@@ -24,6 +23,7 @@ from covid_model_seiir_pipeline.pipeline.forecasting.model import (
     HospitalFatalityRatioData,
     HospitalCensusData,
     ScenarioData,
+    VariantScalars,
 )
 
 
@@ -229,9 +229,9 @@ class ForecastDataInterface:
 
     def load_variant_prevalence(self, variant_specification: Dict,
                                 transition_dates: pd.Series,
-                                max_date: pd.Timestamp) -> pd.Series:
-        path = variant_specification.get('scale_up_path', None)
-        if not path:
+                                max_date: pd.Timestamp) -> VariantScalars:
+        root = variant_specification.get('variant_root', None)
+        if not root:
             idx = (transition_dates
                    .groupby('location_id')
                    .apply(lambda x: pd.date_range(x.iloc[0], max_date, name='date'))
@@ -239,9 +239,15 @@ class ForecastDataInterface:
                    .reset_index()
                    .set_index(['location_id', 'date'])
                    .index)
-            return pd.Series(0, index=idx)
+            return VariantScalars(
+                beta=pd.Series(1, index=idx),
+                ifr=pd.Series(1, index=idx),
+                vaccine_efficacy=pd.Series(1, index=idx),
+            )
 
-        variant_prevalence = pd.read_csv(path)
+        variant_start_dates = pd.read_csv(Path(root) / 'start_date_b117.csv')
+        prevalence_ramp = pd.read_csv(Path(root) / 'vaccine_scaleup.csv')
+        import pdb; pdb.set_trace()
         variant_prevalence['date'] = (pd.Timestamp(variant_specification['start_date'])
                                       + pd.to_timedelta(variant_prevalence['day'], 'D'))
         variant_scale_up = variant_prevalence.set_index('date').proportion

@@ -130,7 +130,7 @@ scenarios:
     variant:
       variant_root: '/ihme/covid-19/variant-scaleup/best'
       beta_increase: 1.36
-      ifr_increase: 1.20
+      ifr_increase: 1.29
       vaccine_efficacy_decrease: 0.0
     beta_scaling:
       window_size: 42
