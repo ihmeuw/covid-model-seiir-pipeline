@@ -227,7 +227,7 @@ class ForecastDataInterface:
 
         return thetas
 
-    def load_variant_prevalence(self, variant_specification: Dict,
+    def load_variant_scalars(self, variant_specification: Dict,
                                 transition_dates: pd.Series,
                                 max_date: pd.Timestamp) -> VariantScalars:
         root = variant_specification.get('variant_root', None)
@@ -246,27 +246,55 @@ class ForecastDataInterface:
             )
 
         variant_start_dates = pd.read_csv(Path(root) / 'start_date_b117.csv')
+        variant_start_dates = pd.to_datetime(
+            variant_start_dates
+            .set_index('location_id')
+            .start_date
+        )
         prevalence_ramp = pd.read_csv(Path(root) / 'vaccine_scaleup.csv')
-        import pdb; pdb.set_trace()
-        variant_prevalence['date'] = (pd.Timestamp(variant_specification['start_date'])
-                                      + pd.to_timedelta(variant_prevalence['day'], 'D'))
-        variant_scale_up = variant_prevalence.set_index('date').proportion
 
-        prevalences = []
+        default_start_date = variant_specification.get('start_date', None)
+        beta_increase = variant_specification.get('beta_scalar', 1.)
+        ifr_increase = variant_specification.get('ifr_scalar', 1.)
+        vaccine_efficacy_decrease = variant_specification.get('vaccine_efficacy_scalar', 0.)
+
+        betas = []
+        ifrs = []
+        efficacies = []
         for location_id in transition_dates.index:
-            date_start = transition_dates.loc[location_id]
-            dates = pd.date_range(date_start, max_date, name='date')
-            # Carry last value forward and set past values to zero.
-            loc_prevalence = (variant_scale_up
-                              .reindex(dates)
-                              .fillna(method='ffill')
-                              .fillna(0)
-                              .reset_index())
-            loc_prevalence['location_id'] = location_id
-            loc_prevalence = loc_prevalence.set_index(['location_id', 'date']).proportion
-            prevalences.append(loc_prevalence)
+            scalar_date_start = transition_dates.loc[location_id]
+            variant_start_date = variant_start_dates.get(location_id, default_start_date)
+            dates = pd.date_range(scalar_date_start, max_date, name='date')
 
-        return pd.concat(prevalences)
+            if variant_start_date is None:
+                loc_prevalence = pd.DataFrame({'location_id': location_id, 'proportion': 0}, index=dates)
+                loc_prevalence = loc_prevalence.set_index('location_id', append=True).proportion
+            else:
+                loc_prevalence = prevalence_ramp.copy()
+                # Turn generic ramp up into location-time specific prevalence.
+                loc_prevalence['date'] = (pd.Timestamp(variant_start_date)
+                                          + pd.to_timedelta(loc_prevalence['day'], 'D'))
+                loc_prevalence = (loc_prevalence
+                                  .set_index('date')
+                                  .proportion
+                                  .reindex(dates)          # Index to forecast dates
+                                  .fillna(method='ffill')  # Keep the last value into the future
+                                  .fillna(0))              # Backfill with zeros as necessary
+                loc_prevalence -= loc_prevalence.iloc[0]   # We care about increase relative to forecast start
+
+                loc_prevalence = loc_prevalence.reset_index()
+                loc_prevalence['location_id'] = location_id
+                loc_prevalence = loc_prevalence.set_index(['location_id', 'date']).proportion
+
+            betas.append(loc_prevalence*beta_increase + (1 - loc_prevalence))
+            ifrs.append(loc_prevalence*ifr_increase + (1 - loc_prevalence))
+            efficacies.append(loc_prevalence*vaccine_efficacy_decrease + (1 - loc_prevalence))
+
+        return VariantScalars(
+            beta=pd.concat(betas).sort_index(),
+            ifr=pd.concat(ifrs).sort_index(),
+            vaccine_efficacy=pd.concat(efficacies).sort_index(),
+        )
 
     def get_infectionator_metadata(self):
         return self._get_regression_data_interface().get_infectionator_metadata()

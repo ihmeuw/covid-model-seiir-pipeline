@@ -79,9 +79,9 @@ class ScenarioSpecification:
     )
     VARIANT_KEYS = (
         'variant_root',
-        'beta_increase',
-        'ifr_increase',
-        'vaccine_efficacy_decrease',
+        'beta_scalar',
+        'ifr_scalar',
+        'vaccine_efficacy_scalar',
         'start_date',
     )
 

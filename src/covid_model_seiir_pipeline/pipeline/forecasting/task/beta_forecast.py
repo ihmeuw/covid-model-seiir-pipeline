@@ -48,18 +48,13 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, **kwar
     # Rescaling parameters for the beta forecast.
     beta_scales = data_interface.load_beta_scales(scenario=scenario, draw_id=draw_id)
     # Beta scale-up due to variant
-    variant_prevalence = data_interface.load_variant_prevalence(
+    variant_scalars = data_interface.load_variant_scalars(
         scenario_spec.variant, transition_date, forecast_end_date
     )
-    variant_max_beta_shift = scenario_spec.variant.get('beta_increase', 1)
-    # noinspection PyTypeChecker
-    variant_beta_shift = ((1 - variant_prevalence) + variant_max_beta_shift * variant_prevalence).rename('beta_pred')
-    variant_max_vaccine_shift = scenario_spec.variant.get('vaccine_efficacy_decrease', 0)
-    # noinspection PyTypeChecker
-    variant_vaccine_shift = variant_max_vaccine_shift * variant_prevalence
     # We'll need this to compute deaths and to splice with the forecasts.
     infection_data = data_interface.load_infection_data(draw_id)
     ifr = data_interface.load_ifr_data(draw_id, location_ids)
+    import pdb; pdb.set_trace()
     # Data for computing hospital usage
     mr = data_interface.load_mortality_ratio(location_ids)
     death_weights = model.get_death_weights(mr, population, with_error=False)

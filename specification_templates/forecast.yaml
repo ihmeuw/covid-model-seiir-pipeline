@@ -26,9 +26,9 @@ scenarios:
     population_partition: 'high_and_low_risk'
     variant:
       variant_root: '/ihme/covid-19/variant-scaleup/best'
-      beta_increase: 1.36
-      ifr_increase: 1.29
-      vaccine_efficacy_decrease: 0.6
+      beta_scalar: 1.36
+      ifr_scalar: 1.29
+      vaccine_efficacy_scalar: 0.6
       start_date: '2020-02-01'
     beta_scaling:
       window_size: 42
@@ -62,9 +62,9 @@ scenarios:
     population_partition: 'high_and_low_risk'
     variant:
       variant_root: '/ihme/covid-19/variant-scaleup/best'
-      beta_increase: 1.36
-      ifr_increase: 1.29
-      vaccine_efficacy_decrease: 0.0
+      beta_scalar: 1.36
+      ifr_scalar: 1.29
+      vaccine_efficacy_scalar: 0.0
     beta_scaling:
       window_size: 42
       average_over_min: 7
@@ -94,9 +94,9 @@ scenarios:
     population_partition: 'high_and_low_risk'
     variant:
       variant_root: '/ihme/covid-19/variant-scaleup/best'
-      beta_increase: 1.36
-      ifr_increase: 1.29
-      vaccine_efficacy_decrease: 0.0
+      beta_scalar: 1.36
+      ifr_scalar: 1.29
+      vaccine_efficacy_scalar: 0.0
     beta_scaling:
       window_size: 42
       average_over_min: 7
@@ -129,9 +129,9 @@ scenarios:
     population_partition: 'high_and_low_risk'
     variant:
       variant_root: '/ihme/covid-19/variant-scaleup/best'
-      beta_increase: 1.36
-      ifr_increase: 1.29
-      vaccine_efficacy_decrease: 0.0
+      beta_scalar: 1.36
+      ifr_scalar: 1.29
+      vaccine_efficacy_scalar: 0.0
     beta_scaling:
       window_size: 42
       average_over_min: 7
@@ -164,9 +164,9 @@ scenarios:
     population_partition: 'high_and_low_risk'
     variant:
       variant_root: '/ihme/covid-19/variant-scaleup/best'
-      beta_increase: 1.36
-      ifr_increase: 1.29
-      vaccine_efficacy_decrease: 0.0
+      beta_scalar: 1.36
+      ifr_scalar: 1.29
+      vaccine_efficacy_scalar: 0.0
     beta_scaling:
       window_size: 42
       average_over_min: 7
@@ -199,9 +199,9 @@ scenarios:
     population_partition: 'high_and_low_risk'
     variant:
       variant_root: '/ihme/covid-19/variant-scaleup/best'
-      beta_increase: 1.36
-      ifr_increase: 1.29
-      vaccine_efficacy_decrease: 0.0
+      beta_scalar: 1.36
+      ifr_scalar: 1.29
+      vaccine_efficacy_scalar: 0.0
     beta_scaling:
       window_size: 42
       average_over_min: 7
