@@ -29,7 +29,7 @@ scenarios:
       beta_scalar: 1.36
       ifr_scalar: 1.29
       vaccine_efficacy_scalar: 0.6
-      start_date: '2020-02-01'
+      start_date: '2021-02-01'
     beta_scaling:
       window_size: 42
       average_over_min: 7

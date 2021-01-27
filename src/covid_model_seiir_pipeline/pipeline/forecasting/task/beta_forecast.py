@@ -53,8 +53,9 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, **kwar
     )
     # We'll need this to compute deaths and to splice with the forecasts.
     infection_data = data_interface.load_infection_data(draw_id)
-    ifr = data_interface.load_ifr_data(draw_id, location_ids)
-    import pdb; pdb.set_trace()
+    ifr = data_interface.load_ifr_data(draw_id, location_ids).reset_index()
+    ifr = ifr.loc[ifr.date <= forecast_end_date].set_index(['location_id', 'date'])
+    ifr.loc[variant_scalars.ifr.index] = ifr.loc[variant_scalars.ifr.index].mul(variant_scalars.ifr, axis=0)
     # Data for computing hospital usage
     mr = data_interface.load_mortality_ratio(location_ids)
     death_weights = model.get_death_weights(mr, population, with_error=False)
@@ -84,8 +85,8 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, **kwar
     the_future = covariates['date'] >= transition_date.loc[covariates.index]
     covariate_pred = covariates.loc[the_future].reset_index()
     betas = model.forecast_beta(covariate_pred, coefficients, beta_scales)
-    betas = (betas.set_index('date', append=True).beta_pred * variant_beta_shift).reset_index(level='date')
-    seir_parameters = model.prep_seir_parameters(betas, thetas, scenario_data, variant_vaccine_shift, population_partition)
+    betas = (betas.set_index('date', append=True).beta_pred * variant_scalars.beta).rename('beta_pred').reset_index(level='date')
+    seir_parameters = model.prep_seir_parameters(betas, thetas, scenario_data, variant_scalars.vaccine_efficacy, population_partition)
 
     correction_factors = model.forecast_correction_factors(
         correction_factors,

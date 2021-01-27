@@ -251,7 +251,7 @@ class ForecastDataInterface:
             .set_index('location_id')
             .start_date
         )
-        prevalence_ramp = pd.read_csv(Path(root) / 'vaccine_scaleup.csv')
+        prevalence_ramp = pd.read_csv(Path(root) / 'variant_scaleup.csv')
 
         default_start_date = variant_specification.get('start_date', None)
         beta_increase = variant_specification.get('beta_scalar', 1.)
@@ -265,10 +265,9 @@ class ForecastDataInterface:
             scalar_date_start = transition_dates.loc[location_id]
             variant_start_date = variant_start_dates.get(location_id, default_start_date)
             dates = pd.date_range(scalar_date_start, max_date, name='date')
-
             if variant_start_date is None:
                 loc_prevalence = pd.DataFrame({'location_id': location_id, 'proportion': 0}, index=dates)
-                loc_prevalence = loc_prevalence.set_index('location_id', append=True).proportion
+                loc_prevalence = loc_prevalence.reset_index().set_index(['location_id', 'date']).proportion
             else:
                 loc_prevalence = prevalence_ramp.copy()
                 # Turn generic ramp up into location-time specific prevalence.
