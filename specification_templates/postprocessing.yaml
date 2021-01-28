@@ -2,10 +2,6 @@ data:
   forecast_version: '2021_01_26.02'
   scenarios:
     - 'worse'
-    - 'reference'
-    - 'reference_12'
-    - 'reference_15'
-    - 'reference_1000'
   output_root: ''
 workflow:
   project: 'proj_covid_prod'
