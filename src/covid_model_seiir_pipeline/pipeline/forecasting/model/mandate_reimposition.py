@@ -16,6 +16,7 @@ def compute_reimposition_threshold(deaths, population, reimposition_threshold, m
     days_over_death_rate = ((death_rate.death_rate > reimposition_threshold.reindex(death_rate.index))
                             .groupby('location_id')
                             .sum())
+    import pdb; pdb.set_trace()
     reimposition_threshold.loc[days_over_death_rate >= 7] = max_threshold / 1e6
     return reimposition_threshold
 

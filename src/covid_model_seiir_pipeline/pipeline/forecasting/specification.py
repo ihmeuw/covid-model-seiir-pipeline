@@ -80,7 +80,7 @@ class ScenarioSpecification:
     VARIANT_KEYS = (
         'variant_root',
         'beta_scalar',
-        'ifr_scalar'
+        'ifr_scalar',
         'start_date',
     )
 
