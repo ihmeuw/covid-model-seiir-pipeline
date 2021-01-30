@@ -68,18 +68,11 @@ def forecast_correction_factors(correction_factors: HospitalCorrectionFactors,
 
 def prep_seir_parameters(betas: pd.DataFrame,
                          thetas: pd.Series,
-                         scenario_data: ScenarioData,
-                         variant_vaccine_shift: pd.Series,
-                         population_partition):
+                         scenario_data: ScenarioData):
     betas = betas.rename(columns={'beta_pred': 'beta'})
     parameters = betas.merge(thetas, on='location_id')
     if scenario_data.vaccinations is not None:
-        suffixes = [f'_{k}' for k in population_partition] if population_partition else ['']
         v = scenario_data.vaccinations
-        for suffix in suffixes:
-            vaccines_resisted = v[f'effectively_vaccinated{suffix}'] * variant_vaccine_shift
-            v[f'effectively_vaccinated{suffix}'] -= vaccines_resisted
-            v[f'unprotected{suffix}'] += vaccines_resisted
         parameters = parameters.merge(v, on=['location_id', 'date'], how='left').fillna(0)
     return parameters
 
@@ -489,4 +482,3 @@ class _ODERunner:
         )
 
         return result
-

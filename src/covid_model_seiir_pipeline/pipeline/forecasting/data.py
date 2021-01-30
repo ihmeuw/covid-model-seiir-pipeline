@@ -3,7 +3,6 @@ from pathlib import Path
 from typing import Dict, List, Union
 
 from loguru import logger
-import numpy as np
 import pandas as pd
 
 from covid_model_seiir_pipeline.lib import (
@@ -24,6 +23,7 @@ from covid_model_seiir_pipeline.pipeline.forecasting.model import (
     HospitalFatalityRatioData,
     HospitalCensusData,
     ScenarioData,
+    VariantScalars,
 )
 
 
@@ -227,11 +227,11 @@ class ForecastDataInterface:
 
         return thetas
 
-    def load_variant_prevalence(self, variant_specification: Dict,
+    def load_variant_scalars(self, variant_specification: Dict,
                                 transition_dates: pd.Series,
-                                max_date: pd.Timestamp) -> pd.Series:
-        path = variant_specification.get('scale_up_path', None)
-        if not path:
+                                max_date: pd.Timestamp) -> VariantScalars:
+        root = variant_specification.get('variant_root', None)
+        if not root:
             idx = (transition_dates
                    .groupby('location_id')
                    .apply(lambda x: pd.date_range(x.iloc[0], max_date, name='date'))
@@ -239,28 +239,56 @@ class ForecastDataInterface:
                    .reset_index()
                    .set_index(['location_id', 'date'])
                    .index)
-            return pd.Series(0, index=idx)
+            return VariantScalars(
+                beta=pd.Series(1, index=idx),
+                ifr=pd.Series(1, index=idx),
+            )
 
-        variant_prevalence = pd.read_csv(path)
-        variant_prevalence['date'] = (pd.Timestamp(variant_specification['start_date'])
-                                      + pd.to_timedelta(variant_prevalence['day'], 'D'))
-        variant_scale_up = variant_prevalence.set_index('date').proportion
+        variant_start_dates = pd.read_csv(Path(root) / 'start_date_b117.csv')
+        variant_start_dates = pd.to_datetime(
+            variant_start_dates
+            .set_index('location_id')
+            .start_date
+        )
+        prevalence_ramp = pd.read_csv(Path(root) / 'variant_scaleup.csv')
 
-        prevalences = []
+        default_start_date = variant_specification.get('start_date', None)
+        beta_increase = variant_specification.get('beta_scalar', 1.)
+        ifr_increase = variant_specification.get('ifr_scalar', 1.)
+
+        betas = []
+        ifrs = []
         for location_id in transition_dates.index:
-            date_start = transition_dates.loc[location_id]
-            dates = pd.date_range(date_start, max_date, name='date')
-            # Carry last value forward and set past values to zero.
-            loc_prevalence = (variant_scale_up
-                              .reindex(dates)
-                              .fillna(method='ffill')
-                              .fillna(0)
-                              .reset_index())
-            loc_prevalence['location_id'] = location_id
-            loc_prevalence = loc_prevalence.set_index(['location_id', 'date']).proportion
-            prevalences.append(loc_prevalence)
+            scalar_date_start = transition_dates.loc[location_id]
+            variant_start_date = variant_start_dates.get(location_id, default_start_date)
+            dates = pd.date_range(scalar_date_start, max_date, name='date')
+            if variant_start_date is None:
+                loc_prevalence = pd.DataFrame({'location_id': location_id, 'proportion': 0}, index=dates)
+                loc_prevalence = loc_prevalence.reset_index().set_index(['location_id', 'date']).proportion
+            else:
+                loc_prevalence = prevalence_ramp.copy()
+                # Turn generic ramp up into location-time specific prevalence.
+                loc_prevalence['date'] = (pd.Timestamp(variant_start_date)
+                                          + pd.to_timedelta(loc_prevalence['day'], 'D'))
+                loc_prevalence = (loc_prevalence
+                                  .set_index('date')
+                                  .proportion
+                                  .reindex(dates)          # Index to forecast dates
+                                  .fillna(method='ffill')  # Keep the last value into the future
+                                  .fillna(0))              # Backfill with zeros as necessary
+                loc_prevalence -= loc_prevalence.iloc[0]   # We care about increase relative to forecast start
 
-        return pd.concat(prevalences)
+                loc_prevalence = loc_prevalence.reset_index()
+                loc_prevalence['location_id'] = location_id
+                loc_prevalence = loc_prevalence.set_index(['location_id', 'date']).proportion
+
+            betas.append(loc_prevalence*beta_increase + (1 - loc_prevalence))
+            ifrs.append(loc_prevalence*ifr_increase + (1 - loc_prevalence))
+
+        return VariantScalars(
+            beta=pd.concat(betas).sort_index(),
+            ifr=pd.concat(ifrs).sort_index(),
+        )
 
     def get_infectionator_metadata(self):
         return self._get_regression_data_interface().get_infectionator_metadata()

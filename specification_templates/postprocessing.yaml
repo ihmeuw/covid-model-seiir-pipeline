@@ -1,11 +1,12 @@
 data:
-  forecast_version: '2021_01_26.02'
+  forecast_version: '2021_01_28.01'
   scenarios:
     - 'worse'
-    - 'reference'
-    - 'reference_12'
-    - 'reference_15'
-    - 'reference_1000'
+#    - 'reference'
+#    - 'no_vaccine'
+#    - 'best_masks'
+#    - 'vaccine_fast'
+#    - 'vaccine_fast_elderly'
   output_root: ''
 workflow:
   project: 'proj_covid_prod'

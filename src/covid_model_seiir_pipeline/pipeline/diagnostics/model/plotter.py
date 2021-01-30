@@ -278,7 +278,7 @@ def make_results_page(plot_versions: List[PlotVersion],
         color=observed_color,
         alpha=OBSERVED_ALPHA,
     )
-
+    ax_daily_death.hlines([8 * pop / 1e6], start, end)
     # Column 2, Cumulative
 
     make_time_plot(
@@ -349,16 +349,16 @@ def make_results_page(plot_versions: List[PlotVersion],
         transform=lambda x: 100 * x / pop,
     )
     ax_immune.set_ylim(0, 100)
-    make_time_plot(
-        ax_immune,
-        plot_versions,
-        'herd_immunity',
-        location.id,
-        start, end,
-        transform=lambda x: 100*x,
-        uncertainty=False,
-        linestyle='dashed',
-    )
+#    make_time_plot(
+#        ax_immune,
+#        plot_versions,
+#        'herd_immunity',
+#        location.id,
+#        start, end,
+#        transform=lambda x: 100*x,
+#        uncertainty=False,
+#        linestyle='dashed',
+#    )
     # Todo: Add herd immunity to this plot
 
     # This is an overestimate, but not an important one.
