@@ -175,6 +175,9 @@ def get_vaccines_out(y, vaccines, params, b_wild, b_variant):
     n_unvaccinated = y[s, e, i1, i2, r, e_variant, i1_variant, i2_variant, r_variant].sum()
     v_total = vaccines.sum()
 
+    if not v_total:
+        return vaccines_out
+
     if n_unvaccinated:
         # Folks in S can have all vaccine outcomes
         # Compute vaccines coming from S
@@ -219,6 +222,12 @@ def get_vaccines_out(y, vaccines, params, b_wild, b_variant):
                                           y[i2_variant] / n_unvaccinated * v_total)
         vaccines_out[r_variant, u] = min(y[r_variant], y[r_variant] / n_unvaccinated * v_total)
 
+    v_total_empirical = vaccines_out.sum()
+
+    assert abs(v_total_empirical - v_total) / v_total < .05, 'Losing more than 5% vaccines. Something is fishy.'
+
+    return vaccines_out
+
 
 @numba.njit
 def variant_single_group_system(t: float,
@@ -259,11 +268,11 @@ def variant_single_group_system(t: float,
             (e_u, 0., vaccines_out[e, u]),
         ],
         i1: [
-            (i2, gamma1, 0.),
+            (i2, params[gamma1], 0.),
             (i1_u, 0., vaccines_out[i1, u]),
         ],
         i2: [
-            (r, gamma2, 0.),
+            (r, params[gamma2], 0.),
             (i2_u, 0., vaccines_out[i2, u]),
         ],
         r: [
@@ -328,7 +337,7 @@ def variant_single_group_system(t: float,
         ],
         # Immune
         r_m: [
-            (e_u_variant, b_variant_r, 0.),  # FIXME: does this go to e_pa_variant?
+            (e_pa_variant, b_variant_r, 0.),
         ],
         r_ma: [],
         # Unvaccinated variant
