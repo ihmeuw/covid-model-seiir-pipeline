@@ -1,6 +1,6 @@
 data:
   infection_version: '2021_01_27.04'
-  covariate_version: '2021_01_27.24'
+  covariate_version: '2021_02_01.07'
   mortality_rate_version: 'best'
   hospital_fatality_ratio_version: 'best'
   coefficient_version: ''
@@ -123,3 +123,24 @@ covariates:
     bounds: [0.0, 1000.0]
     re_var: 1.0
     draws: False
+  variant_prevalence_B117:
+    order: 0
+    use_re: False
+    gprior: [0.3075, 0.00001]
+    bounds: [0.0, 1000.0]
+    re_var: 1.0
+    draws: False
+  variant_prevalence_B1351:
+    order: 0
+    use_re: False
+    gprior: [0.3075, 0.00001]
+    bounds: [0.0, 1000.0]
+    re_var: 1.0
+    draws: False
+#  variant_prevalence_P1:
+#    order: 0
+#    use_re: False
+#    gprior: [0.3075, 1e-10]
+#    bounds: [0.0, 1000.0]
+#    re_var: 1.0
+#    draws: False
