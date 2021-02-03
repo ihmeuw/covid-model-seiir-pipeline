@@ -1,6 +1,6 @@
 data:
-  infection_version: '2021_01_16.02'
-  covariate_version: '2021_01_12.04'
+  infection_version: '2021_01_27.04'
+  covariate_version: '2021_02_01.07'
   mortality_rate_version: 'best'
   hospital_fatality_ratio_version: 'best'
   coefficient_version: ''
@@ -9,7 +9,7 @@ data:
   output_root: ''
 workflow:
   project: 'proj_covid'
-  queue: 'all.q'
+  queue: 'd.q'
   tasks:
     beta_regression:
       max_runtime_seconds: 3000
@@ -21,7 +21,7 @@ workflow:
       num_cores: 1
 regression_parameters:
   n_draws: 1000
-  day_shift: [0, 13]
+  day_shift: [0, 11]
   alpha: [0.9, 1.0]
   sigma: [0.2, 0.3333]
   gamma1: [0.5, 0.5]
@@ -98,7 +98,7 @@ covariates:
   smoking_prevalence:
     order: 0
     use_re: False
-    gprior: [0.0, 1000]
+    gprior: [0.0, 1000.]
     bounds: [0.0, 1.0]
     re_var: 1.0
     draws: False
@@ -119,7 +119,28 @@ covariates:
   proportion_over_2_5k:
     order: 0
     use_re: False
-    gprior: [0.0, 1000.0]
+    gprior: [0.0, 0.001]
     bounds: [0.0, 1000.0]
     re_var: 1.0
     draws: False
+#  variant_prevalence_B117:
+#    order: 0
+#    use_re: False
+#    gprior: [0.0, 1000.0]
+#    bounds: [0.0, 1000.0]
+#    re_var: 1.0
+#    draws: False
+#  variant_prevalence_B1351:
+#    order: 0
+#    use_re: False
+#    gprior: [0.0, 1000.0]
+#    bounds: [0.0, 1000.0]
+#    re_var: 1.0
+#    draws: False
+#  variant_prevalence_P1:
+#    order: 0
+#    use_re: False
+#    gprior: [0.3075, 1e-10]
+#    bounds: [0.0, 1000.0]
+#    re_var: 1.0
+#    draws: False

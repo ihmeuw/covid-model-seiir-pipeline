@@ -126,14 +126,14 @@ covariates:
   variant_prevalence_B117:
     order: 0
     use_re: False
-    gprior: [0.3075, 0.00001]
+    gprior: [0.0, 1000.0]
     bounds: [0.0, 1000.0]
     re_var: 1.0
     draws: False
   variant_prevalence_B1351:
     order: 0
     use_re: False
-    gprior: [0.3075, 0.00001]
+    gprior: [0.0, 1000.0]
     bounds: [0.0, 1000.0]
     re_var: 1.0
     draws: False
