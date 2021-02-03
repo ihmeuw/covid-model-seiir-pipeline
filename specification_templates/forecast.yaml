@@ -1,6 +1,6 @@
 data:
-  regression_version: '2021_01_27.12'
-  covariate_version: '2021_01_28.01'
+  regression_version: '2021_02_02.09'
+  covariate_version: '2021_02_02.11'
   output_root: ''
   fh_subnationals: False
 workflow:
@@ -33,7 +33,6 @@ scenarios:
       variant_root: '/ihme/covid-19/variant-scaleup/best'
       beta_scalar: 1.36
       ifr_scalar: 1.29
-      start_date: '2021-02-01'
     beta_scaling:
       window_size: 42
       average_over_min: 7
