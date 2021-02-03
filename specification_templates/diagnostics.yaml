@@ -13,24 +13,24 @@ grid_plots:
   - name: 'compare_longrange'
     # Start and end of the plots.
     date_start: '2020-03-01'
-    date_end: '2021-05-01'
+    date_end: '2021-06-01'
     # The versions and scenarios we want on this plot.
     comparators:
       # Full path or DATE.VV or latest/best
-      - version: '/ihme/covid-19/seir-outputs/2021_01_28.01'
-        scenarios:
-          worse: 'worse'
       - version: '/ihme/covid-19/seir-outputs/2021_01_27.06'
+        scenarios:
+         reference*: 'public reference'
+      - version: '/ihme/covid-19/seir-outputs/2021_02_03.02'
         scenarios:
           # Keys are scenarios and values are plot labels. Within a job,
           # good idea to keep the plot labels unique.
           worse: 'worse'
           new_variant: 'new_variant'
           reference*: 'reference'
-          best_masks: 'best_mask'
+          best_masks: 'best_mask'        
 #          no_vaccine: 'no_vaccine'
 #          vaccine_fast: 'vaccine_fast'
 #          vaccine_fast_elderly: 'vaccine_fast_elderly'
-      - version: '/ihme/covid-19/seir-outputs/2021_01_21.09'
-        scenarios:
-          reference*: 'public reference'
+#      - version: '/ihme/covid-19/seir-outputs/2021_01_21.09'
+#        scenarios:
+#          reference*: 'public reference'

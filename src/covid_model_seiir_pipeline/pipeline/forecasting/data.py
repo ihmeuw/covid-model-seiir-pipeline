@@ -1,4 +1,5 @@
 from functools import reduce
+from itertools import product
 from pathlib import Path
 from typing import Dict, List, Union
 
@@ -181,12 +182,63 @@ class ForecastDataInterface:
                 f'vaccinations_{forecast_scenario}',
                 location_ids,
             )
+            if scenario_spec.variant:
+                b1351_prevalence = self.load_covariate(
+                    'variant_prevalence_B1351',
+                    scenario_spec.variant['version'],
+                    location_ids,
+                ).reset_index()
+                max_prevalence = (b1351_prevalence
+                                  .groupby('location_id')
+                                  .variant_prevalence_B1351
+                                  .max())
+                locs_with_b1351 = (max_prevalence[max_prevalence > 0]
+                                   .reset_index()
+                                   .location_id
+                                   .tolist())
+                locs_without_b1351 = list(set(location_ids).difference(locs_with_b1351))
+            else:
+                locs_with_b1351 = []
+                locs_without_b1351 = location_ids
+            b1351_vaccinations = vaccinations.loc[locs_with_b1351]
+            not_b1351_vaccinations = vaccinations.loc[locs_without_b1351]
+            # FIXME: should get from population partition
+            risk_groups = ['lr', 'hr']
+            vaccination_groups = ['unprotected', 'protected', 'immune']
+            out_cols = [f'{vaccination_group}_{risk_group}' 
+                        for vaccination_group, risk_group in product(vaccination_groups, risk_groups)]
+            vaccinations = pd.DataFrame(columns=out_cols, index=vaccinations.index)
+            for risk_group in risk_groups:
+                vaccinations.loc[b1351_vaccinations.index, f'unprotected_{risk_group}'] = (
+                    b1351_vaccinations[f'unprotected_{risk_group}'] 
+                    + b1351_vaccinations[f'effective_protected_wildtype_{risk_group}']
+                    + b1351_vaccinations[f'effective_wildtype_{risk_group}']
+                )
+                vaccinations.loc[b1351_vaccinations.index, f'protected_{risk_group}'] = (
+                    b1351_vaccinations[f'effective_protected_variant_{risk_group}']
+                )
+                vaccinations.loc[b1351_vaccinations.index, f'immune_{risk_group}'] = (
+                    b1351_vaccinations[f'effective_variant_{risk_group}']
+                )
+
+                vaccinations.loc[not_b1351_vaccinations.index, f'unprotected_{risk_group}'] = (
+                    not_b1351_vaccinations[f'unprotected_{risk_group}']
+                )
+                vaccinations.loc[not_b1351_vaccinations.index, f'protected_{risk_group}'] = (
+                    not_b1351_vaccinations[f'effective_protected_wildtype_{risk_group}'] 
+                    + not_b1351_vaccinations[f'effective_protected_variant_{risk_group}']
+                )
+                vaccinations.loc[not_b1351_vaccinations.index, f'immune_{risk_group}'] = (
+                    not_b1351_vaccinations[f'effective_wildtype_{risk_group}']
+                    + not_b1351_vaccinations[f'effective_variant_{risk_group}']
+                )
         else:
             vaccinations = None
 
         if scenario_spec.algorithm == 'draw_level_mandate_reimposition':
-            percent_mandates = self.load_mobility_info('mandate_lift', location_ids)
-            mandate_effects = self.load_mobility_info('effect', location_ids)
+            mobility_scenario = scenario_spec.covariates['mobility']
+            percent_mandates = self.load_mobility_info(f'{mobility_scenario}_mandate_lift', location_ids)
+            mandate_effects = self.load_mobility_info(f'{mobility_scenario}_effect', location_ids)
         else:
             percent_mandates = None
             mandate_effects = None
@@ -230,9 +282,7 @@ class ForecastDataInterface:
     def load_variant_scalars(self, variant_specification: Dict,
                              transition_dates: pd.Series,
                              max_date: pd.Timestamp) -> VariantScalars:
-        import pdb; pdb.set_trace()
-        root = variant_specification.get('variant_root', None)
-        if not root:
+        if not variant_specification:
             idx = (transition_dates
                    .groupby('location_id')
                    .apply(lambda x: pd.date_range(x.iloc[0], max_date, name='date'))
@@ -245,15 +295,19 @@ class ForecastDataInterface:
                 ifr=pd.Series(1, index=idx),
             )
 
-        variant_start_dates = pd.read_csv(Path(root) / 'start_date_b117.csv')
-        variant_start_dates = pd.to_datetime(
-            variant_start_dates
-            .set_index('location_id')
-            .start_date
-        )
-        prevalence_ramp = pd.read_csv(Path(root) / 'variant_scaleup.csv')
+        loc_ids = self.load_location_ids()
+        scenario = variant_specification['version']
+        prevalences = []
+        for variant in ['B117', 'B1351', 'P1']:
+            variant_prevalence = self.load_covariate(f'variant_prevalence_{variant}', 
+                                                     scenario, 
+                                                     loc_ids)
+            variant_prevalence = variant_prevalence[f'variant_prevalence_{variant}'].rename('proportion')
+            prevalences.append(variant_prevalence)
 
-        default_start_date = variant_specification.get('start_date', None)
+        # FIXME: These are mutually exclusive this week only.
+        variant_prevalence = sum(prevalences)         
+
         beta_increase = variant_specification.get('beta_scalar', 1.)
         ifr_increase = variant_specification.get('ifr_scalar', 1.)
 
@@ -261,31 +315,16 @@ class ForecastDataInterface:
         ifrs = []
         for location_id in transition_dates.index:
             scalar_date_start = transition_dates.loc[location_id]
-            variant_start_date = variant_start_dates.get(location_id, default_start_date)
-            dates = pd.date_range(scalar_date_start, max_date, name='date')
-            if variant_start_date is None:
-                loc_prevalence = pd.DataFrame({'location_id': location_id, 'proportion': 0}, index=dates)
-                loc_prevalence = loc_prevalence.reset_index().set_index(['location_id', 'date']).proportion
-            else:
-                loc_prevalence = prevalence_ramp.copy()
-                # Turn generic ramp up into location-time specific prevalence.
-                loc_prevalence['date'] = (pd.Timestamp(variant_start_date)
-                                          + pd.to_timedelta(loc_prevalence['day'], 'D'))
-                loc_prevalence = (loc_prevalence
-                                  .set_index('date')
-                                  .proportion
-                                  .reindex(dates)          # Index to forecast dates
-                                  .fillna(method='ffill')  # Keep the last value into the future
-                                  .fillna(0))              # Backfill with zeros as necessary
-                loc_prevalence -= loc_prevalence.iloc[0]   # We care about increase relative to forecast start
-
-                loc_prevalence = loc_prevalence.reset_index()
-                loc_prevalence['location_id'] = location_id
-                loc_prevalence = loc_prevalence.set_index(['location_id', 'date']).proportion
+            loc_prevalence = variant_prevalence.loc[location_id]
+            loc_prevalence = loc_prevalence.loc[scalar_date_start:max_date]
+            # We care about the increase relative to forecast start
+            loc_prevalence -= loc_prevalence.loc[scalar_date_start]
+            loc_prevalence = loc_prevalence.reset_index()
+            loc_prevalence['location_id'] = location_id
+            loc_prevalence = loc_prevalence.set_index(['location_id', 'date']).proportion
 
             betas.append(loc_prevalence*beta_increase + (1 - loc_prevalence))
             ifrs.append(loc_prevalence*ifr_increase + (1 - loc_prevalence))
-
         return VariantScalars(
             beta=pd.concat(betas).sort_index(),
             ifr=pd.concat(ifrs).sort_index(),

@@ -307,7 +307,12 @@ def _vaccine_single_group_system(t: float, y: np.ndarray, p: np.ndarray,
 
     alpha, sigma, gamma1, gamma2, p_immune, beta, theta_plus, theta_minus = p
 
-    v_non_efficacious, v_efficacious = vaccines
+    v_non_efficacious, v_protective, v_immune = vaccines
+    v_efficacious = v_protective + v_immune
+    if v_efficacious:
+        p_immune = v_immune / v_efficacious
+    else:
+        p_immune = 0.
 
     v_total = v_non_efficacious + v_efficacious
     # Effective vaccines are efficacious vaccines delivered to
@@ -399,7 +404,7 @@ def _vaccine_system(t: float, y: np.ndarray, p: np.array):
     system_size = 16
     num_seiir_compartments = 5
     n_groups = y.size // system_size
-    n_vaccines = 2 * n_groups
+    n_vaccines = 3 * n_groups
     p, vaccines = p[:-n_vaccines], p[-n_vaccines:]
     infectious = 0.
     n_total = y.sum()
@@ -413,7 +418,7 @@ def _vaccine_system(t: float, y: np.ndarray, p: np.array):
     dy = np.zeros_like(y)
     for i in range(n_groups):
         dy[i * system_size:(i + 1) * system_size] = _vaccine_single_group_system(
-            t, y[i * system_size:(i + 1) * system_size], p, vaccines[i * 2:(i + 1) * 2], n_total, infectious
+            t, y[i * system_size:(i + 1) * system_size], p, vaccines[i * 3:(i + 1) * 3], n_total, infectious
         )
 
     return dy
@@ -456,7 +461,8 @@ class _ODERunner:
             )
             for risk_group in self.compartment_info.group_suffixes:
                 system_params.append(parameters[self.parameters_map[f'unprotected_{risk_group}']])
-                system_params.append(parameters[self.parameters_map[f'effectively_vaccinated_{risk_group}']])
+                system_params.append(parameters[self.parameters_map[f'protected_{risk_group}']])
+                system_params.append(parameters[self.parameters_map[f'immune_{risk_group}']])
 
         system_params = np.vstack([
             constants,

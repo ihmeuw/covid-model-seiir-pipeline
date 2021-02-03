@@ -477,5 +477,5 @@ def write_or_show(fig, plot_file: str):
 
 
 def make_legend_handles(plot_versions: List[PlotVersion]):
-    handles = [mlines.Line2D([], [], color=pv.color, label=pv.label) for pv in plot_versions]
+    handles = [mlines.Line2D([], [], color=pv.color, label=pv.label, linewidth=2.5) for pv in plot_versions]
     return handles

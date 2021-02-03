@@ -1,0 +1,86 @@
+data:
+  regression_version: '2021_02_02.09'
+  covariate_version: '2021_02_03.03'
+  output_root: ''
+  fh_subnationals: False
+workflow:
+  project: 'proj_covid_prod'
+  queue: 'all.q'
+  tasks:
+    beta_residual_scaling:
+      max_runtime_seconds: 5000
+      m_mem_free: '5G'
+      num_cores: 26
+    beta_forecast:
+      max_runtime_seconds: 15000
+      m_mem_free: '5G'
+      num_cores: 1
+scenarios:
+  reference:
+    algorithm: 'draw_level_mandate_reimposition'
+    algorithm_params:
+      death_threshold: 8  # per million
+      max_threshold: 15 # per million
+      reimposition_duration: 6 # weeks
+      minimum_delay: 7 # days
+    solver: 'RK45'
+    system: 'vaccine'
+    system_params:
+        forecast_version: 'reference'
+        proportion_immune: 0.5
+    population_partition: 'high_and_low_risk'
+    variant:
+      version: 'reference'
+      beta_scalar: 1.36
+      ifr_scalar: 1.29
+    beta_scaling:
+      window_size: 42
+      average_over_min: 7
+      average_over_max: 42
+      offset_deaths_lower: 150
+      offset_deaths_upper: 300
+    theta: '/ihme/covid-19/seir-parameters/2020_10_06.01/thetas.csv'
+    covariates:
+      pneumonia: 'reference'
+      mobility: 'reference'
+      mask_use: 'reference'
+      testing: 'reference'
+      air_pollution_pm_2_5: 'reference'
+      smoking_prevalence: 'reference'
+      lri_mortality: 'reference'
+      proportion_under_100m: 'reference'
+      proportion_over_2_5k: 'reference'
+  new_variant:
+    algorithm: 'draw_level_mandate_reimposition'
+    algorithm_params:
+      death_threshold: 8       # per million
+      max_threshold: 15        # per million
+      reimposition_duration: 6 # weeks
+      minimum_delay: 7         # days
+    solver: 'RK45'
+    system: 'vaccine'
+    system_params:
+        forecast_version: 'reference'
+        proportion_immune: 0.5
+    population_partition: 'high_and_low_risk'
+    variant:
+      version: 'worse'
+      beta_scalar: 1.36
+      ifr_scalar: 1.29
+    beta_scaling:
+      window_size: 42
+      average_over_min: 7
+      average_over_max: 42
+      offset_deaths_lower: 150
+      offset_deaths_upper: 300
+    theta: '/ihme/covid-19/seir-parameters/2020_10_06.01/thetas.csv'
+    covariates:
+      pneumonia: 'reference'
+      mobility: 'reference'
+      mask_use: 'reference'
+      testing: 'reference'
+      air_pollution_pm_2_5: 'reference'
+      smoking_prevalence: 'reference'
+      lri_mortality: 'reference'
+      proportion_under_100m: 'reference'
+      proportion_over_2_5k: 'reference'

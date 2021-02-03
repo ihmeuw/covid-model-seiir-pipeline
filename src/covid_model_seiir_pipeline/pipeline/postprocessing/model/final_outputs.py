@@ -218,10 +218,10 @@ MISCELLANEOUS = {
 #        'age_specific_deaths',
 #        aggregator=aggregators.sum_aggregator,
 #    ),
-    'hospital_correction_factors': OtherConfig(
-        loaders.load_hospital_correction_factors,
-        'hospital_correction_factors',
-    ),
+#    'hospital_correction_factors': OtherConfig(
+#        loaders.load_hospital_correction_factors,
+#        'hospital_correction_factors',
+#    ),
     'hospital_census_data': OtherConfig(
         loaders.load_raw_census_data,
         'hospital_census_data',

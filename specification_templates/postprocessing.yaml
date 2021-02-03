@@ -1,12 +1,13 @@
 data:
-  forecast_version: '2021_01_28.01'
+  forecast_version: '2021_02_03.06'
   scenarios:
     - 'worse'
-#    - 'reference'
-#    - 'no_vaccine'
-#    - 'best_masks'
-#    - 'vaccine_fast'
-#    - 'vaccine_fast_elderly'
+    - 'reference'
+    - 'new_variant'
+    - 'no_vaccine'
+    - 'best_masks'
+    - 'vaccine_fast'
+    - 'vaccine_fast_elderly'
   output_root: ''
 workflow:
   project: 'proj_covid_prod'
@@ -21,7 +22,7 @@ workflow:
       m_mem_free: '30G'
       num_cores: 26
 resampling:
-  reference_scenario: 'worse'
+  reference_scenario: 'reference'
   reference_date: '2021-12-31'
   lower_quantile: 0.025
   upper_quantile: 0.975
