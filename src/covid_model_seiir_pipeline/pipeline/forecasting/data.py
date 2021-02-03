@@ -228,8 +228,9 @@ class ForecastDataInterface:
         return thetas
 
     def load_variant_scalars(self, variant_specification: Dict,
-                                transition_dates: pd.Series,
-                                max_date: pd.Timestamp) -> VariantScalars:
+                             transition_dates: pd.Series,
+                             max_date: pd.Timestamp) -> VariantScalars:
+        import pdb; pdb.set_trace()
         root = variant_specification.get('variant_root', None)
         if not root:
             idx = (transition_dates

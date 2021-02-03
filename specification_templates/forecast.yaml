@@ -30,7 +30,7 @@ scenarios:
       proportion_immune: 0.5
     population_partition: 'high_and_low_risk'
     variant:
-      variant_root: '/ihme/covid-19/variant-scaleup/best'
+      version: 'reference'
       beta_scalar: 1.36
       ifr_scalar: 1.29
     beta_scaling:
@@ -64,7 +64,7 @@ scenarios:
         proportion_immune: 0.5
     population_partition: 'high_and_low_risk'
     variant:
-      variant_root: '/ihme/covid-19/variant-scaleup/best'
+      version: 'reference'
       beta_scalar: 1.36
       ifr_scalar: 1.29
     beta_scaling:
@@ -95,7 +95,7 @@ scenarios:
     system: 'normal'
     population_partition: 'high_and_low_risk'
     variant:
-      variant_root: '/ihme/covid-19/variant-scaleup/best'
+      version: 'reference'
       beta_scalar: 1.36
       ifr_scalar: 1.29
     beta_scaling:
@@ -129,7 +129,7 @@ scenarios:
         proportion_immune: 0.5
     population_partition: 'high_and_low_risk'
     variant:
-      variant_root: '/ihme/covid-19/variant-scaleup/best'
+      version: 'reference'
       beta_scalar: 1.36
       ifr_scalar: 1.29
     beta_scaling:
@@ -163,7 +163,7 @@ scenarios:
         proportion_immune: 0.5
     population_partition: 'high_and_low_risk'
     variant:
-      variant_root: '/ihme/covid-19/variant-scaleup/best'
+      version: 'reference'
       beta_scalar: 1.36
       ifr_scalar: 1.29
     beta_scaling:
@@ -197,7 +197,7 @@ scenarios:
         proportion_immune: 0.5
     population_partition: 'high_and_low_risk'
     variant:
-      variant_root: '/ihme/covid-19/variant-scaleup/best'
+      version: 'reference'
       beta_scalar: 1.36
       ifr_scalar: 1.29
     beta_scaling:
