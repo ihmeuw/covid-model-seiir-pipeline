@@ -78,10 +78,9 @@ class ScenarioSpecification:
         'offset_deaths_upper',
     )
     VARIANT_KEYS = (
-        'scale_up_path',
-        'beta_increase',
-        'start_date',
-        'vaccine_efficacy_decrease',
+        'version',
+        'beta_scalar',
+        'ifr_scalar',
     )
 
     name: str = field(default='dummy_scenario')

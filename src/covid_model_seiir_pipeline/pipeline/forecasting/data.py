@@ -1,9 +1,9 @@
 from functools import reduce
+from itertools import product
 from pathlib import Path
 from typing import Dict, List, Union
 
 from loguru import logger
-import numpy as np
 import pandas as pd
 
 from covid_model_seiir_pipeline.lib import (
@@ -24,6 +24,7 @@ from covid_model_seiir_pipeline.pipeline.forecasting.model import (
     HospitalFatalityRatioData,
     HospitalCensusData,
     ScenarioData,
+    VariantScalars,
 )
 
 
@@ -181,12 +182,63 @@ class ForecastDataInterface:
                 f'vaccinations_{forecast_scenario}',
                 location_ids,
             )
+            if scenario_spec.variant:
+                b1351_prevalence = self.load_covariate(
+                    'variant_prevalence_B1351',
+                    scenario_spec.variant['version'],
+                    location_ids,
+                ).reset_index()
+                max_prevalence = (b1351_prevalence
+                                  .groupby('location_id')
+                                  .variant_prevalence_B1351
+                                  .max())
+                locs_with_b1351 = (max_prevalence[max_prevalence > 0]
+                                   .reset_index()
+                                   .location_id
+                                   .tolist())
+                locs_without_b1351 = list(set(location_ids).difference(locs_with_b1351))
+            else:
+                locs_with_b1351 = []
+                locs_without_b1351 = location_ids
+            b1351_vaccinations = vaccinations.loc[locs_with_b1351]
+            not_b1351_vaccinations = vaccinations.loc[locs_without_b1351]
+            # FIXME: should get from population partition
+            risk_groups = ['lr', 'hr']
+            vaccination_groups = ['unprotected', 'protected', 'immune']
+            out_cols = [f'{vaccination_group}_{risk_group}' 
+                        for vaccination_group, risk_group in product(vaccination_groups, risk_groups)]
+            vaccinations = pd.DataFrame(columns=out_cols, index=vaccinations.index)
+            for risk_group in risk_groups:
+                vaccinations.loc[b1351_vaccinations.index, f'unprotected_{risk_group}'] = (
+                    b1351_vaccinations[f'unprotected_{risk_group}'] 
+                    + b1351_vaccinations[f'effective_protected_wildtype_{risk_group}']
+                    + b1351_vaccinations[f'effective_wildtype_{risk_group}']
+                )
+                vaccinations.loc[b1351_vaccinations.index, f'protected_{risk_group}'] = (
+                    b1351_vaccinations[f'effective_protected_variant_{risk_group}']
+                )
+                vaccinations.loc[b1351_vaccinations.index, f'immune_{risk_group}'] = (
+                    b1351_vaccinations[f'effective_variant_{risk_group}']
+                )
+
+                vaccinations.loc[not_b1351_vaccinations.index, f'unprotected_{risk_group}'] = (
+                    not_b1351_vaccinations[f'unprotected_{risk_group}']
+                )
+                vaccinations.loc[not_b1351_vaccinations.index, f'protected_{risk_group}'] = (
+                    not_b1351_vaccinations[f'effective_protected_wildtype_{risk_group}'] 
+                    + not_b1351_vaccinations[f'effective_protected_variant_{risk_group}']
+                )
+                vaccinations.loc[not_b1351_vaccinations.index, f'immune_{risk_group}'] = (
+                    not_b1351_vaccinations[f'effective_wildtype_{risk_group}']
+                    + not_b1351_vaccinations[f'effective_variant_{risk_group}']
+                )
         else:
             vaccinations = None
 
         if scenario_spec.algorithm == 'draw_level_mandate_reimposition':
-            percent_mandates = self.load_mobility_info('mandate_lift', location_ids)
-            mandate_effects = self.load_mobility_info('effect', location_ids)
+            mobility_scenario = scenario_spec.covariates['mobility']
+            percent_mandates = self.load_mobility_info(f'{mobility_scenario}_mandate_lift', location_ids)
+            mandate_effects = self.load_mobility_info(f'{mobility_scenario}_effect', location_ids)
         else:
             percent_mandates = None
             mandate_effects = None
@@ -227,11 +279,10 @@ class ForecastDataInterface:
 
         return thetas
 
-    def load_variant_prevalence(self, variant_specification: Dict,
-                                transition_dates: pd.Series,
-                                max_date: pd.Timestamp) -> pd.Series:
-        path = variant_specification.get('scale_up_path', None)
-        if not path:
+    def load_variant_scalars(self, variant_specification: Dict,
+                             transition_dates: pd.Series,
+                             max_date: pd.Timestamp) -> VariantScalars:
+        if not variant_specification:
             idx = (transition_dates
                    .groupby('location_id')
                    .apply(lambda x: pd.date_range(x.iloc[0], max_date, name='date'))
@@ -239,28 +290,45 @@ class ForecastDataInterface:
                    .reset_index()
                    .set_index(['location_id', 'date'])
                    .index)
-            return pd.Series(0, index=idx)
+            return VariantScalars(
+                beta=pd.Series(1, index=idx),
+                ifr=pd.Series(1, index=idx),
+            )
 
-        variant_prevalence = pd.read_csv(path)
-        variant_prevalence['date'] = (pd.Timestamp(variant_specification['start_date'])
-                                      + pd.to_timedelta(variant_prevalence['day'], 'D'))
-        variant_scale_up = variant_prevalence.set_index('date').proportion
-
+        loc_ids = self.load_location_ids()
+        scenario = variant_specification['version']
         prevalences = []
+        for variant in ['B117', 'B1351', 'P1']:
+            variant_prevalence = self.load_covariate(f'variant_prevalence_{variant}', 
+                                                     scenario, 
+                                                     loc_ids)
+            variant_prevalence = variant_prevalence[f'variant_prevalence_{variant}'].rename('proportion')
+            prevalences.append(variant_prevalence)
+
+        # FIXME: These are mutually exclusive this week only.
+        variant_prevalence = sum(prevalences)         
+
+        beta_increase = variant_specification.get('beta_scalar', 1.)
+        ifr_increase = variant_specification.get('ifr_scalar', 1.)
+
+        betas = []
+        ifrs = []
         for location_id in transition_dates.index:
-            date_start = transition_dates.loc[location_id]
-            dates = pd.date_range(date_start, max_date, name='date')
-            # Carry last value forward and set past values to zero.
-            loc_prevalence = (variant_scale_up
-                              .reindex(dates)
-                              .fillna(method='ffill')
-                              .fillna(0)
-                              .reset_index())
+            scalar_date_start = transition_dates.loc[location_id]
+            loc_prevalence = variant_prevalence.loc[location_id]
+            loc_prevalence = loc_prevalence.loc[scalar_date_start:max_date]
+            # We care about the increase relative to forecast start
+            loc_prevalence -= loc_prevalence.loc[scalar_date_start]
+            loc_prevalence = loc_prevalence.reset_index()
             loc_prevalence['location_id'] = location_id
             loc_prevalence = loc_prevalence.set_index(['location_id', 'date']).proportion
-            prevalences.append(loc_prevalence)
 
-        return pd.concat(prevalences)
+            betas.append(loc_prevalence*beta_increase + (1 - loc_prevalence))
+            ifrs.append(loc_prevalence*ifr_increase + (1 - loc_prevalence))
+        return VariantScalars(
+            beta=pd.concat(betas).sort_index(),
+            ifr=pd.concat(ifrs).sort_index(),
+        )
 
     def get_infectionator_metadata(self):
         return self._get_regression_data_interface().get_infectionator_metadata()
@@ -279,6 +347,7 @@ class ForecastDataInterface:
         full_data = pd.read_csv(full_data_path)
         full_data['date'] = pd.to_datetime(full_data['Date'])
         full_data = full_data.drop(columns=['Date'])
+        full_data['location_id'] = full_data['location_id'].astype(int)
         return full_data
 
     def load_population(self) -> pd.DataFrame:

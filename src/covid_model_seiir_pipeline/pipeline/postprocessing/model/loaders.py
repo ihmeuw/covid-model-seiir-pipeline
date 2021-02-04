@@ -141,24 +141,20 @@ def load_beta_residuals(scenario: str, data_interface: 'PostprocessingDataInterf
     return beta_residuals
 
 
-def load_elastispliner_inputs(data_interface: 'PostprocessingDataInterface') -> pd.DataFrame:
-    return data_interface.load_elastispliner_inputs()
-
-
-def load_es_noisy(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
-    return load_elastispliner_outputs(data_interface, noisy=True)
-
-
-def load_es_smoothed(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
-    return load_elastispliner_outputs(data_interface, noisy=False)
-
-
-def load_elastispliner_outputs(data_interface: 'PostprocessingDataInterface', noisy: bool):
-    return data_interface.load_elastispliner_outputs(noisy)
-
-
 def load_full_data(data_interface: 'PostprocessingDataInterface') -> pd.DataFrame:
     return data_interface.load_full_data()
+
+
+def load_age_specific_deaths(data_interface: 'PostprocessingDataInterface') -> pd.DataFrame:
+    full_data = data_interface.load_full_data()
+    total_deaths = (full_data
+                    .groupby('location_id')
+                    .cumulative_deaths
+                    .max()
+                    .dropna())
+    mortality_ratio = data_interface.load_mortality_ratio()
+    age_specific_deaths = (mortality_ratio * total_deaths).rename('age_specific_deaths').to_frame()
+    return age_specific_deaths
 
 
 def build_version_map(data_interface: 'PostprocessingDataInterface') -> pd.Series:

@@ -119,7 +119,7 @@ class RegressionDataInterface:
         infection_data = (infection_data
                           .set_index(['location_id', 'date'])
                           .sort_index()
-                          .loc[:, ['infections_draw', 'duration', 'deaths']]
+                          .loc[:, ['infections_draw', 'deaths']]
                           .rename(columns={'infections_draw': 'infections'}))
         return infection_data
 
@@ -169,13 +169,13 @@ class RegressionDataInterface:
     ######################
 
     def load_ifr_data(self, draw_id: int, location_ids: List[int]) -> pd.DataFrame:
-        ifr = io.load(self.infection_root.ratios(draw_id=draw_id))
+        ifr = io.load(self.infection_root.ifr(draw_id=draw_id))
         ifr = ifr[ifr.location_id.isin(location_ids)]
         ifr['date'] = pd.to_datetime(ifr['date'])
-        ifr = ifr.set_index(['location_id', 'date']).sort_index()
+        ifr = ifr.set_index(['location_id', 'date', 'duration']).sort_index()
         cols = [c for c in ifr.columns if '_draw' in c]
         ifr = ifr.loc[:, cols].rename(columns={c: c.split('_draw')[0] for c in cols})
-        return ifr
+        return ifr.reset_index(level='duration')
 
     def load_mortality_ratio(self, location_ids: List[int]) -> pd.Series:
         mr_df = io.load(self.mortality_rate_root.mortality_rate())
@@ -196,13 +196,14 @@ class RegressionDataInterface:
         # TODO: Why round?  Why mode?
         # For missing locations, use the rounded mode of the all loc hfr to fill.
         missing_locs = set(location_ids).difference(hfr.index)
-        if with_error:
-            fill_hfr = hfr_all_locs[hfr_age_cols + ['all_age']].round().mode()
-        else:
-            fill_hfr = hfr_all_locs[hfr_age_cols + ['all_age']].mean().to_frame().T
-        missing_hfr = pd.concat([fill_hfr] * len(missing_locs))
-        missing_hfr.index = pd.Index(missing_locs, name='location_id')
-        hfr = hfr.append(missing_hfr).sort_index()
+        if missing_locs:
+            if with_error:
+                fill_hfr = hfr_all_locs[hfr_age_cols + ['all_age']].round().mode()
+            else:
+                fill_hfr = hfr_all_locs[hfr_age_cols + ['all_age']].mean().to_frame().T
+            missing_hfr = pd.concat([fill_hfr] * len(missing_locs))
+            missing_hfr.index = pd.Index(missing_locs, name='location_id')
+            hfr = hfr.append(missing_hfr).sort_index()
 
         # TODO: Why are we rounding?  Mysterious...
         if with_error:

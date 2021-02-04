@@ -1,8 +1,6 @@
 from pathlib import Path
-import time
 
 import click
-import numpy as np
 import pandas as pd
 
 from covid_model_seiir_pipeline.lib import (
@@ -50,18 +48,22 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, **kwar
     # Rescaling parameters for the beta forecast.
     beta_scales = data_interface.load_beta_scales(scenario=scenario, draw_id=draw_id)
     # Beta scale-up due to variant
-    variant_prevalence = data_interface.load_variant_prevalence(
+    variant_scalars = data_interface.load_variant_scalars(
         scenario_spec.variant, transition_date, forecast_end_date
     )
-    variant_max_beta_shift = scenario_spec.variant.get('beta_increase', 1)
-    # noinspection PyTypeChecker
-    variant_beta_shift = ((1 - variant_prevalence) + variant_max_beta_shift * variant_prevalence).rename('beta_pred')
-    variant_max_vaccine_shift = scenario_spec.variant.get('vaccine_efficacy_decrease', 0)
-    # noinspection PyTypeChecker
-    variant_vaccine_shift = variant_max_vaccine_shift * variant_prevalence
     # We'll need this to compute deaths and to splice with the forecasts.
     infection_data = data_interface.load_infection_data(draw_id)
     ifr = data_interface.load_ifr_data(draw_id, location_ids)
+    ifr = (ifr
+           .reindex(ifr.index.union(variant_scalars.ifr.index))
+           .groupby('location_id')
+           .fillna(method='ffill')
+           .reset_index())
+    ifr = ifr.loc[ifr.date <= forecast_end_date].set_index(['location_id', 'date'])
+    ifr_cols = [c for c in ifr.columns if c != 'duration']
+    ifr.loc[variant_scalars.ifr.index, ifr_cols] = (ifr
+                                                    .loc[variant_scalars.ifr.index, ifr_cols]
+                                                    .mul(variant_scalars.ifr, axis=0))
     # Data for computing hospital usage
     mr = data_interface.load_mortality_ratio(location_ids)
     death_weights = model.get_death_weights(mr, population, with_error=False)
@@ -90,10 +92,15 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, **kwar
     covariates = covariates.set_index('location_id').sort_index()
     the_future = covariates['date'] >= transition_date.loc[covariates.index]
     covariate_pred = covariates.loc[the_future].reset_index()
-
     betas = model.forecast_beta(covariate_pred, coefficients, beta_scales)
-    betas = (betas.set_index('date', append=True).beta_pred * variant_beta_shift).reset_index(level='date')
-    seir_parameters = model.prep_seir_parameters(betas, thetas, scenario_data, variant_vaccine_shift, population_partition)
+    betas = ((betas.set_index('date', append=True).beta_pred * variant_scalars.beta)
+             .rename('beta_pred')
+             .reset_index(level='date'))
+    seir_parameters = model.prep_seir_parameters(
+        betas,
+        thetas,
+        scenario_data,
+    )
 
     correction_factors = model.forecast_correction_factors(
         correction_factors,
@@ -130,14 +137,21 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, **kwar
     if scenario_spec.algorithm == 'draw_level_mandate_reimposition':
         logger.info('Entering mandate reimposition.', context='compute_mandates')
         # Info data specific to mandate reimposition
-        min_wait, days_on, reimposition_threshold = model.unpack_parameters(scenario_spec.algorithm_params)
-
+        min_wait, days_on, reimposition_threshold, max_threshold = model.unpack_parameters(
+            scenario_spec.algorithm_params,
+            location_ids
+        )
         population = (output_metrics.components[compartment_info.compartments]
                       .sum(axis=1)
                       .rename('population')
                       .groupby('location_id')
                       .max())
-
+        reimposition_threshold = model.compute_reimposition_threshold(
+            output_metrics.deaths,
+            population,
+            reimposition_threshold,
+            max_threshold,
+        )
         reimposition_count = 0
         reimposition_dates = {}
         last_reimposition_end_date = pd.Series(pd.NaT, index=population.index)
@@ -172,9 +186,14 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, **kwar
             covariate_pred = covariates.loc[the_future].reset_index()
 
             betas = model.forecast_beta(covariate_pred, coefficients, beta_scales)
-            betas = (betas.set_index('date', append=True).beta_pred * variant_beta_shift).reset_index(level='date')
-            seir_parameters = model.prep_seir_parameters(betas, thetas, scenario_data, variant_vaccine_shift,
-                                                         population_partition)
+            betas = ((betas.set_index('date', append=True).beta_pred * variant_scalars.beta)
+                     .rename('beta_pred')
+                     .reset_index(level='date'))
+            seir_parameters = model.prep_seir_parameters(
+                betas,
+                thetas,
+                scenario_data,
+            )
 
             # The ode is done as a loop over the locations in the initial condition.
             # As locations that don't reimpose mandates produce identical forecasts,
@@ -187,13 +206,16 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, **kwar
                 seir_parameters,
                 scenario_spec,
                 compartment_info,
-            )
+            ).set_index('date', append=True).sort_index()
 
             logger.info('Processing ODE results and computing deaths and infections.', context='compute_results')
             future_components = (future_components
+                                 .set_index('date', append=True)
+                                 .sort_index()
                                  .drop(future_components_subset.index)
                                  .append(future_components_subset)
-                                 .sort_index())
+                                 .sort_index()
+                                 .reset_index(level='date'))
             output_metrics = model.compute_output_metrics(
                 infection_data,
                 ifr,

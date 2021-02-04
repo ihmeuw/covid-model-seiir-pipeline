@@ -4,8 +4,13 @@ from typing import Iterable, List, Optional, Union, TYPE_CHECKING
 
 import pandas as pd
 import numpy as np
-from slime.core.data import MRData
-from slime.model import CovModelSet, CovModel, MRModel
+
+from covid_model_seiir_pipeline.pipeline.regression.model.slime import (
+    CovModel,
+    CovModelSet,
+    MRData,
+    MRModel,
+)
 
 if TYPE_CHECKING:
     # The model subpackage is a library for the pipeline stage and shouldn't

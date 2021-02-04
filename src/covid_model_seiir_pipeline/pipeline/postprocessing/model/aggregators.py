@@ -40,6 +40,12 @@ def sum_aggregator(measure_data: pd.DataFrame, hierarchy: pd.DataFrame, _populat
     if 'observed' in measure_data.index.names:
         measure_data = measure_data.reset_index(level='observed')
 
+    agg_levels = []
+    if 'date' in measure_data.index.names:
+        agg_levels.append('date')
+    if 'age_start' in measure_data.index.names:
+        agg_levels.append('age_start')
+
     levels = sorted(hierarchy['level'].unique().tolist())
     data_locs = _get_data_locs(measure_data, hierarchy)
     for level in reversed(levels[1:]):  # From most detailed to least_detailed
@@ -51,7 +57,7 @@ def sum_aggregator(measure_data: pd.DataFrame, hierarchy: pd.DataFrame, _populat
             child_locs = children.location_id.tolist()
             modeled_child_locs = list(set(child_locs).intersection(data_locs))
 
-            aggregate = measure_data.loc[modeled_child_locs].groupby(level='date').sum()
+            aggregate = measure_data.loc[modeled_child_locs].groupby(agg_levels).sum()
             aggregate = pd.concat({parent_id: aggregate}, names=['location_id'])
 
             measure_data = measure_data.append(aggregate)
