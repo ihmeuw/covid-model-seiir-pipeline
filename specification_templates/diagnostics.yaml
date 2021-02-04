@@ -2,7 +2,7 @@ data:
   output_root: ''
 workflow:
   project: 'proj_covid'
-  queue: 'd.q'
+  queue: 'long.q'
   tasks:
     grid_plots:
       max_runtime_seconds: 5000
