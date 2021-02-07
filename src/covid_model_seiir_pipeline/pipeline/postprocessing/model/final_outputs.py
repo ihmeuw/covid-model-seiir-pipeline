@@ -14,7 +14,7 @@ class MeasureConfig:
     def __init__(self,
                  loader: Callable[[str, 'PostprocessingDataInterface', int], Any],
                  label: str,
-                 splice: bool = False,
+                 splice: bool = True,
                  calculate_cumulative: bool = False,
                  cumulative_label: str = None,
                  aggregator: Callable = None):
@@ -60,7 +60,6 @@ MEASURES = {
     'deaths': MeasureConfig(
         loaders.load_deaths,
         'daily_deaths',
-        splice=True,
         calculate_cumulative=True,
         cumulative_label='cumulative_deaths',
         aggregator=aggregators.sum_aggregator,
@@ -68,7 +67,6 @@ MEASURES = {
     'infections': MeasureConfig(
         loaders.load_infections,
         'daily_infections',
-        splice=True,
         calculate_cumulative=True,
         cumulative_label='cumulative_infections',
         aggregator=aggregators.sum_aggregator,
@@ -76,79 +74,65 @@ MEASURES = {
     'r_controlled': MeasureConfig(
         loaders.load_r_controlled,
         'r_controlled',
-        splice=False,  # TODO: Get a few rounds of this and then set splice to True
     ),
     'r_effective': MeasureConfig(
         loaders.load_r_effective,
         'r_effective',
-        splice=True,
     ),
     'herd_immunity': MeasureConfig(
         loaders.load_herd_immunity,
         'herd_immunity',
-        splice=False,  # TODO: Get a few rounds of this and then set splice to True
     ),
     'total_susceptible': MeasureConfig(
         loaders.load_total_susceptible,
         'total_susceptible',
-        splice=False,  # TODO: Get a few rounds of this and then set splice to True
         aggregator=aggregators.sum_aggregator,
     ),
     'total_immune': MeasureConfig(
         loaders.load_total_immune,
         'total_immune',
-        splice=False,  # TODO: Get a few rounds of this and then set splice to True
         aggregator=aggregators.sum_aggregator,
     ),
     'hospital_admissions': MeasureConfig(
         loaders.load_hospital_admissions,
         'hospital_admissions',
-        splice=False,  # TODO: Get a few rounds of this and then set splice to True
         aggregator=aggregators.sum_aggregator,
     ),
     'icu_admissions': MeasureConfig(
         loaders.load_icu_admissions,
         'icu_admissions',
-        splice=False,  # TODO: Get a few rounds of this and then set splice to True
         aggregator=aggregators.sum_aggregator,
     ),
     'hospital_census': MeasureConfig(
         loaders.load_hospital_census,
         'hospital_census',
-        splice=False,  # TODO: Get a few rounds of this and then set splice to True
         aggregator=aggregators.sum_aggregator,
     ),
     'icu_census': MeasureConfig(
         loaders.load_icu_census,
         'icu_census',
-        splice=False,  # TODO: Get a few rounds of this and then set splice to True
         aggregator=aggregators.sum_aggregator,
     ),
     'ventilator_census': MeasureConfig(
         loaders.load_ventilator_census,
         'ventilator_census',
-        splice=False,  # TODO: Get a few rounds of this and then set splice to True
         aggregator=aggregators.sum_aggregator,
     ),
     'betas': MeasureConfig(
         loaders.load_betas,
         'betas',
-        splice=True,
     ),
     'beta_residuals': MeasureConfig(
         loaders.load_beta_residuals,
         'log_beta_residuals',
-        splice=True,
     ),
     'coefficients': MeasureConfig(
         loaders.load_coefficients,
         'coefficients',
-        splice=True,
     ),
     'scaling_parameters': MeasureConfig(
         loaders.load_scaling_parameters,
         'beta_scaling_parameters',
-        splice=True,
     ),
 }
 
@@ -213,15 +197,15 @@ MISCELLANEOUS = {
         is_cumulative=True,
         aggregator=aggregators.sum_aggregator,
     ),
-#    'age_specific_deaths': OtherConfig(
-#        loaders.load_age_specific_deaths,
-#        'age_specific_deaths',
-#        aggregator=aggregators.sum_aggregator,
-#    ),
-#    'hospital_correction_factors': OtherConfig(
-#        loaders.load_hospital_correction_factors,
-#        'hospital_correction_factors',
-#    ),
+    'age_specific_deaths': MiscellaneousConfig(
+        loaders.load_age_specific_deaths,
+        'age_specific_deaths',
+        aggregator=aggregators.sum_aggregator,
+    ),
+    'hospital_correction_factors': MiscellaneousConfig(
+        loaders.load_hospital_correction_factors,
+        'hospital_correction_factors',
+    ),
     'hospital_census_data': MiscellaneousConfig(
         loaders.load_raw_census_data,
         'hospital_census_data',
