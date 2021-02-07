@@ -25,7 +25,6 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, **kwar
     data_interface = ForecastDataInterface.from_specification(forecast_spec)
 
     logger.info('Loading input data.', context='read')
-    location_ids = data_interface.load_location_ids()
     # We'll use the same params in the ODE forecast as we did in the fit.
     beta_params = data_interface.load_beta_params(draw_id=draw_id)
     # Thetas are a parameter generated from assumption or OOS predictive
@@ -36,13 +35,13 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, **kwar
     transition_date = data_interface.load_transition_date(draw_id)
     # The population will be used to partition the SEIR compartments into
     # different sub groups for the forecast.
-    population = data_interface.load_five_year_population(location_ids)
+    population = data_interface.load_five_year_population()
     # We'll use the beta and SEIR compartments from this data set to get
     # the ODE initial condition.
     beta_regression_df = data_interface.load_beta_regression(draw_id)
     # Covariates and coefficients, and scaling parameters are
     # used to compute beta hat in the future.
-    covariates = data_interface.load_covariates(scenario_spec, location_ids)
+    covariates = data_interface.load_covariates(scenario_spec)
     coefficients = data_interface.load_regression_coefficients(draw_id)
     forecast_end_date = covariates.date.max()
     # Rescaling parameters for the beta forecast.
@@ -53,7 +52,7 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, **kwar
     )
     # We'll need this to compute deaths and to splice with the forecasts.
     infection_data = data_interface.load_infection_data(draw_id)
-    ifr = data_interface.load_ifr_data(draw_id, location_ids)
+    ifr = data_interface.load_ifr_data(draw_id)
     ifr = (ifr
            .reindex(ifr.index.union(variant_scalars.ifr.index))
            .groupby('location_id')
@@ -65,13 +64,13 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, **kwar
                                                     .loc[variant_scalars.ifr.index, ifr_cols]
                                                     .mul(variant_scalars.ifr, axis=0))
     # Data for computing hospital usage
-    mr = data_interface.load_mortality_ratio(location_ids)
+    mr = data_interface.load_mortality_ratio()
     death_weights = model.get_death_weights(mr, population, with_error=False)
-    hfr = data_interface.load_hospital_fatality_ratio(death_weights, location_ids)
+    hfr = data_interface.load_hospital_fatality_ratio(death_weights)
     hospital_parameters = data_interface.get_hospital_parameters()
     correction_factors = data_interface.load_hospital_correction_factors()
     # Load any data specific to the particular scenario we're running
-    scenario_data = data_interface.load_scenario_specific_data(location_ids, scenario_spec)
+    scenario_data = data_interface.load_scenario_specific_data(scenario_spec)
 
     logger.info('Processing inputs into model parameters.', context='transform')
     # Split the population into risk groups according to the specification.
@@ -137,6 +136,7 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, **kwar
     if scenario_spec.algorithm == 'draw_level_mandate_reimposition':
         logger.info('Entering mandate reimposition.', context='compute_mandates')
         # Info data specific to mandate reimposition
+        location_ids = data_interface.load_location_ids()
         min_wait, days_on, reimposition_threshold, max_threshold = model.unpack_parameters(
             scenario_spec.algorithm_params,
             location_ids

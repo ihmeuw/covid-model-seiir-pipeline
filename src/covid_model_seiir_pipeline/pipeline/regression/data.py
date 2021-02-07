@@ -172,7 +172,8 @@ class RegressionDataInterface:
     # Ratio data loaders #
     ######################
 
-    def load_ifr_data(self, draw_id: int, location_ids: List[int]) -> pd.DataFrame:
+    def load_ifr_data(self, draw_id: int) -> pd.DataFrame:
+        location_ids = self.load_location_ids()
         ifr = io.load(self.infection_root.ifr(draw_id=draw_id))
         ifr = ifr[ifr.location_id.isin(location_ids)]
         ifr['date'] = pd.to_datetime(ifr['date'])

@@ -72,9 +72,7 @@ def run_compute_beta_scaling_parameters(forecast_version: str, scenario: str):
     data_interface = ForecastDataInterface.from_specification(forecast_spec)
 
     logger.info('Loading input data.', context='read')
-    locations = data_interface.load_location_ids()
     total_deaths = data_interface.load_total_deaths()
-    total_deaths = total_deaths[total_deaths.location_id.isin(locations)].set_index('location_id')['deaths']
     beta_scaling = forecast_spec.scenarios[scenario].beta_scaling
 
     logger.info('Computing scaling parameters.', context='compute')
