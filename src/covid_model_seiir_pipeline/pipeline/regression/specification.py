@@ -25,8 +25,8 @@ class RegressionTaskSpecification(workflow.TaskSpecification):
 class HospitalCorrectionFactorTaskSpecification(workflow.TaskSpecification):
     """Specification of execution parameters for regression tasks."""
     default_max_runtime_seconds = 3000
-    default_m_mem_free = '2G'
-    default_num_cores = 1
+    default_m_mem_free = '20G'
+    default_num_cores = 26
 
 
 class RegressionWorkflowSpecification(workflow.WorkflowSpecification):
@@ -43,7 +43,6 @@ class RegressionData:
     covariate_version: str = field(default='best')
     infection_version: str = field(default='best')
     mortality_rate_version: str = field(default='best')
-    hospital_fatality_ratio_version: str = field(default='best')
     coefficient_version: str = field(default='')
     location_set_version_id: int = field(default=0)
     location_set_file: str = field(default='')
@@ -192,4 +191,3 @@ class RegressionSpecification(utilities.Specification):
             'covariates': {k: v.to_dict() for k, v in self._covariates.items()},
         }
         return spec
-
