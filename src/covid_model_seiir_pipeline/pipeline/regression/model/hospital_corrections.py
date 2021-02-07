@@ -1,11 +1,13 @@
 from collections import defaultdict
-from typing import TYPE_CHECKING
+import functools
+import multiprocessing
+from typing import List, Tuple, TYPE_CHECKING
 
 import numpy as np
 import pandas as pd
+import tqdm
 
 from covid_model_seiir_pipeline.pipeline.regression.model.containers import (
-    HospitalFatalityRatioData,
     HospitalCensusData,
     HospitalMetrics,
     HospitalCorrectionFactors,
@@ -15,64 +17,50 @@ if TYPE_CHECKING:
     from covid_model_seiir_pipeline.pipeline.regression.specification import (
         HospitalParameters,
     )
+    from covid_model_seiir_pipeline.pipeline.regression.data import (
+        RegressionDataInterface,
+    )
 
 
 # FIXME: These bins are a hangover from early covid CDC data.
 AGE_BINS = [0, 55, 65, 75, 85, 125]
 
 
-def get_death_weights(mr: pd.Series, population: pd.DataFrame, with_error: bool) -> pd.Series:
-    """Get a series of weights to split all age deaths into age-specific."""
-    pop = population.copy()
-    # Coerce population to series matching index of MR
-    pop['age_start'] = pop['age_group_years_start'].astype(int)
-    pop = pop.loc[:, ['location_id', 'age_start', 'population']].set_index(['location_id', 'age_start']).population
+def load_admissions_and_hfr(data_interface: 'RegressionDataInterface',
+                            n_draws: int, n_cores: int, show_pb: bool) -> Tuple[pd.Series, pd.Series]:
+    _runner = functools.partial(
+        _load_admissions_and_hfr_draw,
+        data_interface=data_interface,
+    )
+    with multiprocessing.Pool(n_cores) as pool:
+        draw_data = list(tqdm.tqdm(pool.imap(_runner, range(n_draws)), total=n_draws, disable=not show_pb))
 
-    calc_func = {True: _get_death_weight_error, False: _get_death_weight_correct}[with_error]
-    return calc_func(mr, pop)
+    admissions, hfr = zip(*draw_data)
+    admissions_mean = pd.concat(admissions, axis=1).mean(axis=1).rename('admissions')
+    hfr_mean = pd.concat(hfr, axis=1).mean(axis=1).rename('hfr')
 
-
-def _get_death_weight_correct(mr: pd.Series, pop: pd.Series) -> pd.Series:
-    def _compute_death_weight(df, start, end):
-        return df.loc[(start <= df.age_start) & (df.age_start < end), 'mr_prob'].sum() / df['mr_prob'].sum()
-
-    mr_prob = (mr * pop).rename('mr_prob').reset_index()
-    death_weight_dfs = []
-    for age_start, age_end in zip(AGE_BINS, AGE_BINS[1:]):
-        age_death_weight = (mr_prob
-                            .groupby('location_id')
-                            .apply(lambda x: _compute_death_weight(x, age_start, age_end))
-                            .rename('death_weight')
-                            .reset_index())
-        age_death_weight['age'] = age_start + (age_end - age_start) / 2
-        death_weight_dfs.append(age_death_weight)
-    death_weights = pd.concat(death_weight_dfs)
-
-    return death_weights.set_index(['location_id', 'age']).sort_index().death_weight
+    return admissions_mean, hfr_mean
 
 
-def _get_death_weight_error(mr: pd.Series, pop: pd.Series) -> pd.Series:
-    combined_mr_pop = pd.concat([mr, pop], axis=1)
+def _load_admissions_and_hfr_draw(draw_id: int, data_interface: 'RegressionDataInterface') -> Tuple[pd.Series, pd.Series]:
+    infections = data_interface.load_past_infection_data(draw_id).infections
+    ratio_data = data_interface.load_ratio_data(draw_id)
 
-    def _compute_mr_prob_error(df, start, end):
-        df = df.reset_index()
-        this_bin_bad = df[(start <= df.age_start) & (df.age_start < end - 5)]
-        bad_weighted_mr = (this_bin_bad['MRprob'] * this_bin_bad['population'] / this_bin_bad['population'].sum()).sum()
-        this_actual_pop = df.loc[(age_start <= df.age_start) & (df.age_start < age_end), 'population'].sum()
-        return bad_weighted_mr * this_actual_pop
+    admissions = convert_infections(infections, ratio_data.ihr, ratio_data.infection_to_admission)
+    admissions = admissions.rename(f'draw_{draw_id}')
 
-    weighted_mr_dfs = []
-    for age_start, age_end in zip(AGE_BINS, AGE_BINS[1:]):
-        mr_weight = (combined_mr_pop
-                     .groupby('location_id')
-                     .apply(lambda x: _compute_mr_prob_error(x, age_start, age_end))
-                     .rename('bad_weighted_mr')
-                     .reset_index())
-        mr_weight['age'] = age_start + (age_end - age_start) / 2
-        weighted_mr_dfs.append(mr_weight)
-    bad_weighted_mr = pd.concat(weighted_mr_dfs).set_index(['location_id', 'age']).sort_index().bad_weighted_mr
-    bad_death_weights = (bad_weighted_mr / bad_weighted_mr.groupby('location_id').sum()).rename('death_weight')
-    return bad_death_weights
+    hfr = (ratio_data.ifr / ratio_data.ihr).rename(f'draw_{draw_id}')
+    hfr[hfr < 1] = 1
+
+    return admissions, hfr
+
+
+def convert_infections(infections: pd.Series, ratio: pd.Series, duration: int):
+    result = (infections
+              .groupby('location_id')
+              .apply(lambda x: x.reset_index(level='location_id', drop=True).shift(duration, freq='D')))
+    result = (result * ratio).groupby('location_id').bfill(0).dropna()
+    return result
 
 
 def _bound(low, high, value):
@@ -83,13 +71,12 @@ def _bound(low, high, value):
     return np.maximum(low, np.minimum(high, value))
 
 
-def get_p_icu_if_recover(hr_all_age: pd.Series, hospital_parameters: 'HospitalParameters'):
+def get_p_icu_if_recover(prob_death: pd.Series, hospital_parameters: 'HospitalParameters'):
     """Get probability of going to ICU given the patient recovered
     This fixes the long term average of [# used ICU beds]/[# hospitalized]
     to be expected ICU ratio.
     """
     # noinspection PyTypeChecker
-    prob_death = 1 / hr_all_age
     prob_recover = 1 - prob_death
 
     icu_ratio = hospital_parameters.icu_ratio
@@ -109,16 +96,15 @@ def get_p_icu_if_recover(hr_all_age: pd.Series, hospital_parameters: 'HospitalPa
     return _bound(0, 1, prob_icu_if_recover)
 
 
-def get_p_int_if_icu_and_recover(hr_all_age: pd.Series, hospital_parameters: 'HospitalParameters'):
+def get_p_int_if_icu_and_recover(prob_death: pd.Series, hospital_parameters: 'HospitalParameters'):
     """Get the probability of intubation among recovered ICU patients.
     This fixes the long term average of [# intubated]/[# in icu] to be
     the expected intubation ratio.
     """
     # noinspection PyTypeChecker
-    prob_death = 1 / hr_all_age
     prob_recover = 1 - prob_death
 
-    prob_icu = get_p_icu_if_recover(hr_all_age, hospital_parameters)
+    prob_icu = get_p_icu_if_recover(prob_death, hospital_parameters)
 
     int_ratio = hospital_parameters.intubation_ratio
     days_to_death_prob = hospital_parameters.hospital_stay_death + 1
@@ -151,26 +137,15 @@ def _to_census(admissions: pd.Series, length_of_stay: int) -> pd.Series:
             .fillna(0))
 
 
-def compute_hospital_usage(all_age_deaths: pd.DataFrame,
-                           death_weights: pd.Series,
-                           hospital_fatality_ratio: HospitalFatalityRatioData,
+def compute_hospital_usage(admissions: pd.Series,
+                           hfr: pd.Series,
                            hospital_parameters: 'HospitalParameters') -> HospitalMetrics:
-    all_age_deaths = all_age_deaths.set_index(['location_id', 'date'])['deaths'].sort_index()
-    age_specific_deaths = (all_age_deaths * death_weights).reorder_levels(['location_id', 'age', 'date'])
-
-    prob_icu = get_p_icu_if_recover(hospital_fatality_ratio.all_age, hospital_parameters)
+    prob_death_given_admission = 1 / hfr
+    prob_icu = get_p_icu_if_recover(prob_death_given_admission, hospital_parameters)
     prob_no_icu = 1 - prob_icu
-    prob_invasive = get_p_int_if_icu_and_recover(hospital_fatality_ratio.all_age, hospital_parameters)
-    # noinspection PyTypeChecker
-    # For each death, calculate number of hospital admissions of people who
-    # don't die and shift back in time.
-    recovered_hospital_admissions = (
-        (age_specific_deaths * (hospital_fatality_ratio.age_specific - 1))
-        .groupby(['location_id', 'date'])
-        .sum()
-        .groupby('location_id')
-        .shift(-(hospital_parameters.hospital_stay_death - 1), fill_value=0)
-    )
+    prob_invasive = get_p_int_if_icu_and_recover(prob_death_given_admission, hospital_parameters)
+
+    recovered_hospital_admissions = admissions * (1 - prob_death_given_admission)
     # Split people into those who go to ICU and those who don't and count the
     # days they spend in the hospital.
     recovered_hospital_census = (
@@ -190,11 +165,7 @@ def compute_hospital_usage(all_age_deaths: pd.DataFrame,
 
     # Every death corresponds to a hospital admission shifted back some number
     # of days.
-    dead_hospital_admissions = (
-        all_age_deaths
-        .groupby('location_id')
-        .shift(-(hospital_parameters.hospital_stay_death - 1), fill_value=0)
-    )
+    dead_hospital_admissions = admissions * prob_death_given_admission
     # Count days from admission to get hospital census for those who die.
     dead_hospital_census = _to_census(dead_hospital_admissions, hospital_parameters.hospital_stay_death)
     # Assume people who die after entering the hospital are intubated in the
