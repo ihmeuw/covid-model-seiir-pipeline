@@ -4,7 +4,6 @@ import pandas as pd
 
 from covid_model_seiir_pipeline.pipeline.forecasting.model.containers import (
     CompartmentInfo,
-    HospitalFatalityRatioData,
     HospitalCorrectionFactors,
     HospitalMetrics,
     OutputMetrics,
@@ -77,7 +76,7 @@ def compute_output_metrics(infection_data: pd.DataFrame,
 
 def compute_corrected_hospital_usage(all_age_deaths: pd.DataFrame,
                                      death_weights: pd.Series,
-                                     hospital_fatality_ratio: HospitalFatalityRatioData,
+                                     hospital_fatality_ratio,
                                      hospital_parameters: 'HospitalParameters',
                                      correction_factors: HospitalCorrectionFactors) -> HospitalMetrics:
     hospital_usage = compute_hospital_usage(

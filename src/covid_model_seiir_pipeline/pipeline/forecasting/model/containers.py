@@ -10,7 +10,6 @@ from covid_model_seiir_pipeline.lib import (
 # This is just exposing these containers from this namespace so we're not
 # importing from the regression stage everywhere.
 from covid_model_seiir_pipeline.pipeline.regression.model.containers import (
-    HospitalFatalityRatioData,
     HospitalCensusData,
     HospitalMetrics,
     HospitalCorrectionFactors,
