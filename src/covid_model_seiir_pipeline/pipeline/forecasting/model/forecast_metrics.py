@@ -2,7 +2,6 @@ from typing import Dict, List, Tuple, Union, TYPE_CHECKING
 
 import pandas as pd
 
-from covid_model_seiir_pipeline.lib import math
 from covid_model_seiir_pipeline.pipeline.forecasting.model.containers import (
     CompartmentInfo,
     HospitalFatalityRatioData,
@@ -47,12 +46,12 @@ def compute_output_metrics(infection_data: pd.DataFrame,
             components[['date'] + compartment_info.compartments]
         )
         modeled_deaths = compute_deaths(vulnerable_infections, infection_death_lag, ifr['ifr'])
-    
+
     past_infecs_idx = components_past.set_index('date', append=True).index
     modeled_infections = modeled_infections.to_frame()
     modeled_deaths = modeled_deaths.reset_index(level='observed')
     infection_data = infection_data.set_index(['location_id', 'date'])
-    infections = infection_data.loc[past_infecs_idx, ['infections']].combine_first(modeled_infections)
+    infections = infection_data.loc[past_infecs_idx, ['infections']].combine_first(modeled_infections).infections
     deaths = infection_data[['deaths']].fillna(0)
     deaths['observed'] = 1
     deaths = deaths.combine_first(modeled_deaths)
@@ -150,7 +149,7 @@ def compute_deaths(modeled_infections: pd.Series, infection_death_lag: int, ifr:
 
 def compute_effective_r(components: pd.DataFrame,
                         beta_params: Dict[str, float],
-                        compartments: List[str]) -> Tuple[pd.DataFrame, pd.DataFrame]:
+                        compartments: List[str]) -> Tuple[pd.Series, pd.Series]:
     alpha, sigma = beta_params['alpha'], beta_params['sigma']
     gamma1, gamma2 = beta_params['gamma1'], beta_params['gamma2']
 
@@ -163,7 +162,7 @@ def compute_effective_r(components: pd.DataFrame,
     n = components[compartments].sum(axis=1).groupby('location_id').max()
     avg_gamma = 1 / (1 / (gamma1*(sigma - theta)) + 1 / (gamma2*(sigma - theta)))
 
-    r_controlled = (beta * alpha * sigma / avg_gamma * (infected) ** (alpha - 1)).rename('r_controlled')
+    r_controlled = (beta * alpha * sigma / avg_gamma * infected**(alpha - 1)).rename('r_controlled')
     r_effective = (r_controlled * susceptible / n).rename('r_effective')
 
     return r_controlled, r_effective
