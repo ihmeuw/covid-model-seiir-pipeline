@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Dict, List, Tuple
+from typing import Dict, List
 
 import numpy as np
 import pandas as pd
@@ -136,8 +136,7 @@ class PostprocessingDataInterface:
 
     def load_mortality_ratio(self):
         forecast_di = self._get_forecast_data_inteface()
-        location_ids = forecast_di.load_location_ids()
-        return forecast_di.load_mortality_ratio(location_ids)
+        return forecast_di.load_mortality_ratio()
 
     def build_version_map(self) -> pd.Series:
         forecast_di = self._get_forecast_data_inteface()
