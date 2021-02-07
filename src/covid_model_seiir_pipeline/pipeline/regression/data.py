@@ -13,7 +13,7 @@ from covid_model_seiir_pipeline.pipeline.regression.specification import (
     RegressionSpecification,
 )
 from covid_model_seiir_pipeline.pipeline.regression.model import (
-    HospitalFatalityRatioData,
+    RatioData,
     HospitalCensusData,
 )
 
@@ -26,13 +26,11 @@ class RegressionDataInterface:
                  infection_root: io.InfectionRoot,
                  covariate_root: io.CovariateRoot,
                  mortality_rate_root: io.MortalityRateRoot,
-                 hospital_fatality_ratio_root: io.HospitalFatalityRatioRoot,
                  coefficient_root: Optional[io.RegressionRoot],
                  regression_root: io.RegressionRoot):
         self.infection_root = infection_root
         self.covariate_root = covariate_root
         self.mortality_rate_root = mortality_rate_root
-        self.hospital_fatality_ratio_root = hospital_fatality_ratio_root
         self.coefficient_root = coefficient_root
         self.regression_root = regression_root
 
@@ -42,7 +40,6 @@ class RegressionDataInterface:
         infection_root = io.InfectionRoot(specification.data.infection_version)
         covariate_root = io.CovariateRoot(specification.data.covariate_version)
         mortality_rate_root = io.MortalityRateRoot(specification.data.mortality_rate_version)
-        hospital_fatality_ratio_root = io.HospitalFatalityRatioRoot(specification.data.hospital_fatality_ratio_version)
         if specification.data.coefficient_version:
             coefficient_root = io.RegressionRoot(specification.data.coefficient_version)
         else:
@@ -54,7 +51,6 @@ class RegressionDataInterface:
             infection_root=infection_root,
             covariate_root=covariate_root,
             mortality_rate_root=mortality_rate_root,
-            hospital_fatality_ratio_root=hospital_fatality_ratio_root,
             coefficient_root=coefficient_root,
             regression_root=regression_root,
         )
@@ -126,6 +122,36 @@ class RegressionDataInterface:
         infection_data = self.load_full_past_infection_data(draw_id=draw_id)
         return infection_data.loc[location_ids]
 
+    def load_ratio_data(self, draw_id: int) -> RatioData:
+        ifr = io.load(self.infection_root.ifr(draw_id=draw_id))
+        ifr = self.format_ratio_data(ifr)
+
+        ihr = io.load(self.infection_root.ihr(draw_id=draw_id))
+        ihr = self.format_ratio_data(ihr)
+
+        idr = io.load(self.infection_root.idr(draw_id=draw_id))
+        idr = self.format_ratio_data(idr)
+
+        return RatioData(
+            infection_to_death=int(ifr.duration.max()),
+            infection_to_admission=int(ihr.duration.max()),
+            infection_to_case=int(idr.duration.max()),
+            ifr=ifr.ifr,
+            ifr_hr=ifr.ifr_hr,
+            ifr_lr=ifr.ifr_lr,
+            ihr=ihr.ihr,
+            idr=idr.idr,
+        )
+
+    def format_ratio_data(self, ratio_data: pd.DataFrame) -> pd.DataFrame:
+        location_ids = self.load_location_ids()
+        ratio_data = ratio_data.loc[ratio_data.location_id.isin(location_ids)]
+        ratio_data['date'] = pd.to_datetime(ratio_data['date'])
+        ratio_data = ratio_data.set_index(['location_id', 'date']).sort_index()
+        col_map = {c: c.split('_draw')[0] for c in ratio_data.columns if '_draw' in c}
+        ratio_data = ratio_data.loc[:, ['duration'] + list(col_map)].rename(columns=col_map)
+        return ratio_data
+
     ##########################
     # Covariate data loaders #
     ##########################
@@ -167,68 +193,6 @@ class RegressionDataInterface:
                 covariate_data.append(self.load_covariate(covariate))
         covariate_data = reduce(lambda x, y: x.merge(y, left_index=True, right_index=True), covariate_data)
         return covariate_data.reset_index()
-
-    ######################
-    # Ratio data loaders #
-    ######################
-
-    def load_ifr_data(self, draw_id: int) -> pd.DataFrame:
-        location_ids = self.load_location_ids()
-        ifr = io.load(self.infection_root.ifr(draw_id=draw_id))
-        ifr = ifr[ifr.location_id.isin(location_ids)]
-        ifr['date'] = pd.to_datetime(ifr['date'])
-        ifr = ifr.set_index(['location_id', 'date', 'duration']).sort_index()
-        cols = [c for c in ifr.columns if '_draw' in c]
-        ifr = ifr.loc[:, cols].rename(columns={c: c.split('_draw')[0] for c in cols})
-        return ifr.reset_index(level='duration')
-
-    def load_mortality_ratio(self) -> pd.Series:
-        location_ids = self.load_location_ids()
-        mr_df = io.load(self.mortality_rate_root.mortality_rate())
-        mr = mr_df.set_index(['location_id', 'age_start']).MRprob
-        return mr.loc[location_ids]
-
-    def load_hospital_fatality_ratio(self,
-                                     death_weights: pd.Series,
-                                     with_error: bool) -> 'HospitalFatalityRatioData':
-        location_ids = self.load_location_ids()
-        hfr_age_cols = ['X1', 'X2', 'X3', 'X4', 'X5']
-
-        hfr_all_locs = io.load(self.hospital_fatality_ratio_root.hospital_fatality_ratio())
-        hfr = (hfr_all_locs[hfr_all_locs.location_id.isin(location_ids)]
-               .drop(columns='location')
-               .set_index('location_id'))
-
-        # TODO: Why round?  Why mode?
-        # For missing locations, use the rounded mode of the all loc hfr to fill.
-        missing_locs = set(location_ids).difference(hfr.index)
-        if missing_locs:
-            if with_error:
-                fill_hfr = hfr_all_locs[hfr_age_cols + ['all_age']].round().mode()
-            else:
-                fill_hfr = hfr_all_locs[hfr_age_cols + ['all_age']].mean().to_frame().T
-            missing_hfr = pd.concat([fill_hfr] * len(missing_locs))
-            missing_hfr.index = pd.Index(missing_locs, name='location_id')
-            hfr = hfr.append(missing_hfr).sort_index()
-
-        # TODO: Why are we rounding?  Mysterious...
-        if with_error:
-            hfr_all_age = hfr['all_age'].round()
-            hfr = hfr[hfr_age_cols].round()
-        else:
-            hfr_all_age = hfr['all_age'].round()
-            hfr = hfr[hfr_age_cols].round()
-        actual_ages = sorted(death_weights.reset_index().age.unique())
-        assert len(hfr_age_cols) == len(actual_ages), 'Something terrible has happened to the hfr age pattern.'
-        hfr.columns = actual_ages
-
-        low_hfr = hfr[(hfr < 1).any(axis=1)].index.tolist()
-        if low_hfr:
-            logger.warning(f'HDR below 1 found in locations {low_hfr}')
-        hfr = hfr.clip(1).stack()
-        hfr.index.names = ['location_id', 'age']
-        hfr.name = None
-        return HospitalFatalityRatioData(age_specific=hfr, all_age=hfr_all_age)
 
     ##############################
     # Miscellaneous data loaders #
