@@ -91,7 +91,7 @@ class RegressionDataInterface:
         directory.
 
         """
-        draw_0_data = self.load_past_infection_data(draw_id=0)
+        draw_0_data = self.load_full_past_infection_data(draw_id=0)
         total_deaths = draw_0_data.groupby('location_id').deaths.sum()
         modeled_locations = total_deaths[total_deaths > 5].index.tolist()
 
@@ -111,10 +111,8 @@ class RegressionDataInterface:
     # Infection data loaders #
     ##########################
 
-    def load_past_infection_data(self, draw_id: int, location_ids: List[int] = None) -> pd.DataFrame:
+    def load_full_past_infection_data(self, draw_id: int) -> pd.DataFrame:
         infection_data = io.load(self.infection_root.infections(draw_id=draw_id))
-        if location_ids:
-            infection_data = infection_data.loc[infection_data.location_id.isin(location_ids)]
         infection_data['date'] = pd.to_datetime(infection_data['date'])
         infection_data = (infection_data
                           .set_index(['location_id', 'date'])
@@ -122,6 +120,11 @@ class RegressionDataInterface:
                           .loc[:, ['infections_draw', 'deaths']]
                           .rename(columns={'infections_draw': 'infections'}))
         return infection_data
+
+    def load_past_infection_data(self, draw_id: int):
+        location_ids = self.load_location_ids()
+        infection_data = self.load_full_past_infection_data(draw_id=draw_id)
+        return infection_data.loc[location_ids]
 
     ##########################
     # Covariate data loaders #
@@ -146,7 +149,8 @@ class RegressionDataInterface:
                              'must have a reference scenario in the covariate pool. Covariates'
                              f'missing a reference scenario: {missing}.')
 
-    def load_covariate(self, covariate: str, location_ids: List[int]) -> pd.DataFrame:
+    def load_covariate(self, covariate: str) -> pd.DataFrame:
+        location_ids = self.load_location_ids()
         covariate_df = io.load(self.covariate_root[covariate](covariate_scenario='reference'))
         index_columns = ['location_id']
         covariate_df = covariate_df.loc[covariate_df['location_id'].isin(location_ids), :]
@@ -156,11 +160,11 @@ class RegressionDataInterface:
         covariate_df = covariate_df.rename(columns={f'{covariate}_reference': covariate})
         return covariate_df.loc[:, index_columns + [covariate]].set_index(index_columns)
 
-    def load_covariates(self, covariates: Iterable[str], location_ids: List[int]) -> pd.DataFrame:
+    def load_covariates(self, covariates: Iterable[str]) -> pd.DataFrame:
         covariate_data = []
         for covariate in covariates:
             if covariate != 'intercept':
-                covariate_data.append(self.load_covariate(covariate, location_ids))
+                covariate_data.append(self.load_covariate(covariate))
         covariate_data = reduce(lambda x, y: x.merge(y, left_index=True, right_index=True), covariate_data)
         return covariate_data.reset_index()
 
@@ -177,15 +181,16 @@ class RegressionDataInterface:
         ifr = ifr.loc[:, cols].rename(columns={c: c.split('_draw')[0] for c in cols})
         return ifr.reset_index(level='duration')
 
-    def load_mortality_ratio(self, location_ids: List[int]) -> pd.Series:
+    def load_mortality_ratio(self) -> pd.Series:
+        location_ids = self.load_location_ids()
         mr_df = io.load(self.mortality_rate_root.mortality_rate())
-        mr_df = mr_df.loc[mr_df.location_id.isin(location_ids), ['location_id', 'age_start', 'MRprob']]
-        return mr_df.set_index(['location_id', 'age_start']).MRprob
+        mr = mr_df.set_index(['location_id', 'age_start']).MRprob
+        return mr.loc[location_ids]
 
     def load_hospital_fatality_ratio(self,
                                      death_weights: pd.Series,
-                                     location_ids: List[int],
                                      with_error: bool) -> 'HospitalFatalityRatioData':
+        location_ids = self.load_location_ids()
         hfr_age_cols = ['X1', 'X2', 'X3', 'X4', 'X5']
 
         hfr_all_locs = io.load(self.hospital_fatality_ratio_root.hospital_fatality_ratio())
@@ -242,8 +247,9 @@ class RegressionDataInterface:
         population_data = pd.read_csv(population_path)
         return population_data
 
-    def load_five_year_population(self, location_ids: List[int]) -> pd.DataFrame:
+    def load_five_year_population(self) -> pd.DataFrame:
         population = self.load_population()
+        location_ids = self.load_location_ids()
         in_locations = population['location_id'].isin(location_ids)
         is_2019 = population['year_id'] == 2019
         is_both_sexes = population['sex_id'] == 3

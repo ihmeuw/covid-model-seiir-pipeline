@@ -7,7 +7,6 @@ import pandas as pd
 from covid_model_seiir_pipeline.lib import (
     cli_tools,
     static_vars,
-    math,
 )
 from covid_model_seiir_pipeline.pipeline.regression.specification import (
     RegressionSpecification,
@@ -33,19 +32,17 @@ def run_hospital_correction_factors(regression_version: str, with_error: bool) -
 
     logger.info('Loading input data', context='read')
     hierarchy = data_interface.load_hierarchy()
-    location_ids = data_interface.load_location_ids()
     # We just want the mean deaths through here, which is the same across
     # all draws, so we'll default to draw 0.
     infection_data = data_interface.load_past_infection_data(
         draw_id=0,
-        location_ids=location_ids,
     )
     deaths = infection_data['deaths'].reset_index()
 
-    population = data_interface.load_five_year_population(location_ids)
-    mr = data_interface.load_mortality_ratio(location_ids)
+    population = data_interface.load_five_year_population()
+    mr = data_interface.load_mortality_ratio()
     death_weights = model.get_death_weights(mr, population, with_error)
-    hfr = data_interface.load_hospital_fatality_ratio(death_weights, location_ids, with_error)
+    hfr = data_interface.load_hospital_fatality_ratio(death_weights, with_error)
     hospital_census_data = data_interface.load_hospital_census_data()
 
     logger.info('Computing hospital usage', context='compute_usage')

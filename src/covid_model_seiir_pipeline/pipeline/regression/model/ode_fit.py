@@ -27,9 +27,9 @@ def sample_parameters(draw_id: int, regression_parameters: Dict) -> ODEParameter
 
 def run_beta_fit(past_infections: pd.Series,
                  population: pd.Series,
-                 location_ids: List[int],
                  ode_parameters: ODEParameters) -> pd.DataFrame:
     beta_fit_dfs = []
+    location_ids = past_infections.reset_index().location_id.unique()
     for location_id in location_ids:
         beta_fit = run_loc_beta_fit(
             infections=past_infections.loc[location_id],

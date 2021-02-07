@@ -205,12 +205,12 @@ class ForecastDataInterface:
             # FIXME: should get from population partition
             risk_groups = ['lr', 'hr']
             vaccination_groups = ['unprotected', 'protected', 'immune']
-            out_cols = [f'{vaccination_group}_{risk_group}' 
+            out_cols = [f'{vaccination_group}_{risk_group}'
                         for vaccination_group, risk_group in product(vaccination_groups, risk_groups)]
             vaccinations = pd.DataFrame(columns=out_cols, index=vaccinations.index)
             for risk_group in risk_groups:
                 vaccinations.loc[b1351_vaccinations.index, f'unprotected_{risk_group}'] = (
-                    b1351_vaccinations[f'unprotected_{risk_group}'] 
+                    b1351_vaccinations[f'unprotected_{risk_group}']
                     + b1351_vaccinations[f'effective_protected_wildtype_{risk_group}']
                     + b1351_vaccinations[f'effective_wildtype_{risk_group}']
                 )
@@ -225,7 +225,7 @@ class ForecastDataInterface:
                     not_b1351_vaccinations[f'unprotected_{risk_group}']
                 )
                 vaccinations.loc[not_b1351_vaccinations.index, f'protected_{risk_group}'] = (
-                    not_b1351_vaccinations[f'effective_protected_wildtype_{risk_group}'] 
+                    not_b1351_vaccinations[f'effective_protected_wildtype_{risk_group}']
                     + not_b1351_vaccinations[f'effective_protected_variant_{risk_group}']
                 )
                 vaccinations.loc[not_b1351_vaccinations.index, f'immune_{risk_group}'] = (
@@ -299,14 +299,14 @@ class ForecastDataInterface:
         scenario = variant_specification['version']
         prevalences = []
         for variant in ['B117', 'B1351', 'P1']:
-            variant_prevalence = self.load_covariate(f'variant_prevalence_{variant}', 
-                                                     scenario, 
+            variant_prevalence = self.load_covariate(f'variant_prevalence_{variant}',
+                                                     scenario,
                                                      loc_ids)
             variant_prevalence = variant_prevalence[f'variant_prevalence_{variant}'].rename('proportion')
             prevalences.append(variant_prevalence)
 
         # FIXME: These are mutually exclusive this week only.
-        variant_prevalence = sum(prevalences)         
+        variant_prevalence = sum(prevalences)
 
         beta_increase = variant_specification.get('beta_scalar', 1.)
         ifr_increase = variant_specification.get('ifr_scalar', 1.)
@@ -354,7 +354,7 @@ class ForecastDataInterface:
         return self._get_regression_data_interface().load_population()
 
     def load_five_year_population(self, location_ids: List[int]) -> pd.DataFrame:
-        return self._get_regression_data_interface().load_five_year_population(location_ids)
+        return self._get_regression_data_interface().load_five_year_population()
 
     def load_ifr_data(self, draw_id: int, location_ids: List[int]) -> pd.DataFrame:
         return self._get_regression_data_interface().load_ifr_data(draw_id=draw_id, location_ids=location_ids)
