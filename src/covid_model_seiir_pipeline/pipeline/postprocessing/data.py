@@ -85,9 +85,8 @@ class PostprocessingDataInterface:
             covariate = covariates.groupby(level='location_id')[covariate].max().rename(draw_id)
         return covariate
 
-    def load_input_covariate(self, covariate: str, covariate_version: str, location_ids: List[int]):
-        return self._get_forecast_data_inteface().load_covariate(covariate, covariate_version,
-                                                                 location_ids, with_observed=True)
+    def load_input_covariate(self, covariate: str, covariate_version: str):
+        return self._get_forecast_data_inteface().load_covariate(covariate, covariate_version, with_observed=True)
 
     def load_betas(self, draw_id: int, scenario: str) -> pd.Series:
         ode_params = io.load(self.forecast_root.ode_params(scenario=scenario, draw_id=draw_id))
@@ -149,9 +148,8 @@ class PostprocessingDataInterface:
             'covariate_version': Path(forecast_di.covariate_root._root).name
         }
 
-        # FIXME: infectionator doesn't do metadata the right way.
-        inf_metadata = forecast_di.get_infectionator_metadata()
-        version_map['infectionator_version'] = Path(inf_metadata['output_path']).name
+        inf_metadata = forecast_di.get_infections_metadata()
+        version_map['infections_version'] = Path(inf_metadata['output_path']).name
 
         model_inputs_metadata = inf_metadata['model_inputs_metadata']
         version_map['model_inputs_version'] = Path(model_inputs_metadata['output_path']).name

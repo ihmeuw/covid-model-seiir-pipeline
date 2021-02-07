@@ -77,10 +77,9 @@ def postprocess_covariate(postprocessing_spec: PostprocessingSpecification,
                                              scenario_name, data_interface, num_cores)
 
     covariate_version = data_interface.get_covariate_version(covariate, scenario_name)
-    location_ids = data_interface.load_location_ids()
     n_draws = data_interface.get_n_draws()
 
-    input_covariate_data = data_interface.load_input_covariate(covariate, covariate_version, location_ids)
+    input_covariate_data = data_interface.load_input_covariate(covariate, covariate_version)
     covariate_observed = input_covariate_data.reset_index(level='observed')
     covariate_observed['observed'] = covariate_observed['observed'].fillna(0)
 

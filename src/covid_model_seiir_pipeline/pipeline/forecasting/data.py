@@ -322,11 +322,11 @@ class ForecastDataInterface:
             ifr=pd.concat(ifrs).sort_index(),
         )
 
-    def get_infectionator_metadata(self):
+    def get_infections_metadata(self):
         return self._get_regression_data_interface().get_infectionator_metadata()
 
     def get_model_inputs_metadata(self):
-        infection_metadata = self.get_infectionator_metadata()
+        infection_metadata = self.get_infections_metadata()
         return infection_metadata['model_inputs_metadata']
 
     def load_full_data(self) -> pd.DataFrame:
