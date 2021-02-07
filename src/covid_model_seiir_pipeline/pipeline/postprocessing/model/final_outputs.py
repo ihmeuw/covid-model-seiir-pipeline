@@ -42,7 +42,7 @@ class CovariateConfig:
         self.aggregator = aggregator
 
 
-class OtherConfig:
+class MiscellaneousConfig:
     def __init__(self,
                  loader: Callable[['PostprocessingDataInterface'], Any],
                  label: str,
@@ -207,7 +207,7 @@ COVARIATES = {
 }
 
 MISCELLANEOUS = {
-    'full_data': OtherConfig(
+    'full_data': MiscellaneousConfig(
         loaders.load_full_data,
         'full_data',
         is_cumulative=True,
@@ -222,23 +222,23 @@ MISCELLANEOUS = {
 #        loaders.load_hospital_correction_factors,
 #        'hospital_correction_factors',
 #    ),
-    'hospital_census_data': OtherConfig(
+    'hospital_census_data': MiscellaneousConfig(
         loaders.load_raw_census_data,
         'hospital_census_data',
     ),
-    'version_map': OtherConfig(
+    'version_map': MiscellaneousConfig(
         loaders.build_version_map,
         'version_map',
     ),
-    'populations': OtherConfig(
+    'populations': MiscellaneousConfig(
         loaders.load_populations,
         'populations',
     ),
-    'hierarchy': OtherConfig(
+    'hierarchy': MiscellaneousConfig(
         loaders.load_hierarchy,
         'hierarchy',
     ),
-    'locations_modeled_and_missing': OtherConfig(
+    'locations_modeled_and_missing': MiscellaneousConfig(
         loaders.get_locations_modeled_and_missing,
         'modeled_and_missing_locations',
         is_table=False,

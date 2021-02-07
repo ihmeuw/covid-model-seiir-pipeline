@@ -1,3 +1,4 @@
+from typing import List, Union
 from pathlib import Path
 
 import click
@@ -8,6 +9,8 @@ from covid_model_seiir_pipeline.lib import (
     static_vars,
 )
 from covid_model_seiir_pipeline.pipeline.postprocessing.specification import (
+    SplicingSpecification,
+    AggregationSpecification,
     PostprocessingSpecification,
     POSTPROCESSING_JOBS,
 )
@@ -16,6 +19,38 @@ from covid_model_seiir_pipeline.pipeline.postprocessing import model
 
 
 logger = cli_tools.task_performance_logger
+
+
+def do_splicing(measure_data: pd.DataFrame,
+                measure_config: Union[model.MeasureConfig, model.CovariateConfig],
+                splicing_configs: List[SplicingSpecification],
+                data_interface: PostprocessingDataInterface,
+                scenario_name: str) -> pd.DataFrame:
+    if measure_config.splice:
+        for splicing_config in splicing_configs:
+            logger.info(f'Splicing in results from {splicing_config.output_version}.', context='splice')
+            try:
+                previous_data = data_interface.load_previous_version_output_draws(splicing_config.output_version,
+                                                                                  scenario_name,
+                                                                                  measure_config.label)
+                measure_data = model.splice_data(measure_data, previous_data, splicing_config.locations)
+            except FileNotFoundError:
+                logger.warning(f"Can't find {measure_config.label} data for {splicing_config.output_version}. "
+                               f"Skipping splicing for this version.")
+    return measure_data
+
+
+def do_aggregation(measure_data: pd.DataFrame,
+                   measure_config: Union[model.MeasureConfig, model.CovariateConfig, model.MiscellaneousConfig],
+                   aggregation_configs: List[AggregationSpecification],
+                   data_interface: PostprocessingDataInterface) -> pd.DataFrame:
+    if measure_config.aggregator is not None and aggregation_configs:
+        for aggregation_config in aggregation_configs:
+            logger.info(f'Aggregating to hierarchy {aggregation_config.to_dict()}', context='aggregate')
+            hierarchy = data_interface.load_aggregation_heirarchy(aggregation_config)
+            population = data_interface.load_populations()
+            measure_data = measure_config.aggregator(measure_data, hierarchy, population)
+    return measure_data
 
 
 def postprocess_measure(postprocessing_spec: PostprocessingSpecification,
@@ -30,23 +65,22 @@ def postprocess_measure(postprocessing_spec: PostprocessingSpecification,
         measure_data = pd.concat(measure_data, axis=1)
 
     logger.info(f'Resampling {measure}.', context='resample')
-    measure_data = model.resample_draws(measure_data,
-                                        data_interface.load_resampling_map())
+    measure_data = model.resample_draws(measure_data, data_interface.load_resampling_map())
 
-    if measure_config.splice:
-        for splicing_config in postprocessing_spec.splicing:
-            logger.info(f'Splicing in results from {splicing_config.output_version}.', context='splice')
-            previous_data = data_interface.load_previous_version_output_draws(splicing_config.output_version,
-                                                                              scenario_name,
-                                                                              measure_config.label)
-            measure_data = model.splice_data(measure_data, previous_data, splicing_config.locations)
+    measure_data = do_splicing(
+        measure_data,
+        measure_config,
+        postprocessing_spec.splicing,
+        data_interface,
+        scenario_name,
+    )
 
-    if measure_config.aggregator is not None and postprocessing_spec.aggregation:
-        for aggregation_config in postprocessing_spec.aggregation:
-            logger.info(f'Aggregating to hierarchy {aggregation_config.to_dict()}', context='aggregate')
-            hierarchy = data_interface.load_aggregation_heirarchy(aggregation_config)
-            population = data_interface.load_populations()
-            measure_data = measure_config.aggregator(measure_data, hierarchy, population)
+    measure_data = do_aggregation(
+        measure_data,
+        measure_config,
+        postprocessing_spec.aggregation,
+        data_interface,
+    )
 
     logger.info('Summarizing results', context='summarize')
     summarized = model.summarize(measure_data)
@@ -89,22 +123,19 @@ def postprocess_covariate(postprocessing_spec: PostprocessingSpecification,
     covariate_data = model.resample_draws(covariate_data,
                                           data_interface.load_resampling_map())
 
-    if covariate_config.splice:
-        for locs_to_splice, splice_version in postprocessing_spec.splicing:
-            logger.info(f'Splicing in results from {splice_version}.', context='splice')
-            previous_data = data_interface.load_previous_version_output_draws(
-                splice_version,
-                scenario_name,
-                covariate_config.label
-            )
-            covariate_data = model.splice_data(covariate_data, previous_data, locs_to_splice)
-
-    if covariate_config.aggregator is not None:
-        for aggregation_config in postprocessing_spec.aggregation:
-            logger.info(f'Aggregating covariate to hierarchy {aggregation_config.to_dict()}.', context='aggregate')
-            hierarchy = data_interface.load_aggregation_heirarchy(aggregation_config)
-            population = data_interface.load_populations()
-            covariate_data = covariate_config.aggregator(covariate_data, hierarchy, population)
+    covariate_data = do_splicing(
+        covariate_data,
+        covariate_config,
+        postprocessing_spec.splicing,
+        data_interface,
+        scenario_name,
+    )
+    covariate_data = do_aggregation(
+        covariate_data,
+        covariate_config,
+        postprocessing_spec.aggregation,
+        data_interface,
+    )
 
     logger.info(f'Combining {covariate} forecasts with history.', context='merge_history')
     covariate_data = covariate_data.merge(covariate_observed, left_index=True,
@@ -144,12 +175,12 @@ def postprocess_miscellaneous(postprocessing_spec: PostprocessingSpecification,
         miscellaneous_data = miscellaneous_data.loc[location_ids]
         miscellaneous_data = model.fill_cumulative_date_index(miscellaneous_data)
 
-    if miscellaneous_config.aggregator is not None:
-        for aggregation_config in postprocessing_spec.aggregation:
-            logger.info(f'Aggregating covariate to hierarchy {aggregation_config.to_dict()}.', context='aggregate')
-            hierarchy = data_interface.load_aggregation_heirarchy(aggregation_config)
-            population = data_interface.load_populations()
-            miscellaneous_data = miscellaneous_config.aggregator(miscellaneous_data, hierarchy, population)
+    miscellaneous_data = do_aggregation(
+        miscellaneous_data,
+        miscellaneous_config,
+        postprocessing_spec.aggregation,
+        data_interface,
+    )
 
     if miscellaneous_config.is_table:
         miscellaneous_data = miscellaneous_data.reset_index()
