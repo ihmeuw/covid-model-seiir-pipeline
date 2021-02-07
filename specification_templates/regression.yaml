@@ -1,7 +1,6 @@
 data:
   infection_version: '2021_02_02.06'
   covariate_version: '2021_02_03.03'
-  mortality_rate_version: 'best'
   coefficient_version: ''
   location_set_version_id: ''
   location_set_file: '/ihme/covid-19/seir-pipeline-outputs/metadata-inputs/location_metadata_810.csv'
