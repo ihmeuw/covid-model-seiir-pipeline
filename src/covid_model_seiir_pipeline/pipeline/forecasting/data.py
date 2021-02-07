@@ -318,7 +318,7 @@ class ForecastDataInterface:
         )
 
     def get_infections_metadata(self):
-        return self._get_regression_data_interface().get_infectionator_metadata()
+        return self._get_regression_data_interface().get_infections_metadata()
 
     def get_model_inputs_metadata(self):
         infection_metadata = self.get_infections_metadata()

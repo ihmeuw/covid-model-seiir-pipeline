@@ -62,7 +62,8 @@ class RegressionDataInterface:
     # Raw location handling #
     #########################
 
-    def load_hierarchy_from_primary_source(self, location_set_version_id: Optional[int],
+    @staticmethod
+    def load_hierarchy_from_primary_source(location_set_version_id: Optional[int],
                                            location_file: Optional[Union[str, Path]]) -> Union[pd.DataFrame, None]:
         """Retrieve a location hierarchy from a file or from GBD if specified."""
         if location_set_version_id:
@@ -194,11 +195,11 @@ class RegressionDataInterface:
     # Miscellaneous data loaders #
     ##############################
 
-    def get_infectionator_metadata(self):
+    def get_infections_metadata(self):
         return io.load(self.infection_root.metadata())
 
     def get_model_inputs_metadata(self):
-        infection_metadata = self.get_infectionator_metadata()
+        infection_metadata = self.get_infections_metadata()
         return infection_metadata['model_inputs_metadata']
 
     def load_population(self) -> pd.DataFrame:

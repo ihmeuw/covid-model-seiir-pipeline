@@ -1,7 +1,7 @@
 from collections import defaultdict
 import functools
 import multiprocessing
-from typing import List, Tuple, TYPE_CHECKING
+from typing import Tuple, TYPE_CHECKING
 
 import numpy as np
 import pandas as pd
@@ -22,10 +22,6 @@ if TYPE_CHECKING:
     )
 
 
-# FIXME: These bins are a hangover from early covid CDC data.
-AGE_BINS = [0, 55, 65, 75, 85, 125]
-
-
 def load_admissions_and_hfr(data_interface: 'RegressionDataInterface',
                             n_draws: int, n_cores: int, show_pb: bool) -> Tuple[pd.Series, pd.Series]:
     _runner = functools.partial(
@@ -42,7 +38,8 @@ def load_admissions_and_hfr(data_interface: 'RegressionDataInterface',
     return admissions_mean, hfr_mean
 
 
-def _load_admissions_and_hfr_draw(draw_id: int, data_interface: 'RegressionDataInterface') -> Tuple[pd.Series, pd.Series]:
+def _load_admissions_and_hfr_draw(draw_id: int,
+                                  data_interface: 'RegressionDataInterface') -> Tuple[pd.Series, pd.Series]:
     infections = data_interface.load_past_infection_data(draw_id).infections
     ratio_data = data_interface.load_ratio_data(draw_id)
 
@@ -118,7 +115,7 @@ def get_p_int_if_icu_and_recover(prob_death: pd.Series, hospital_parameters: 'Ho
             / (days_in_hosp_icu_prob * prob_icu * prob_recover)
     )
     # If the probability of icu is 0, the probability of being intubated
-    # condtional on ICU admission doesnt matter.
+    # conditional on ICU admission doesnt matter.
     prob_int[prob_icu == 0] = 1
 
     return _bound(0, 1, prob_int)
