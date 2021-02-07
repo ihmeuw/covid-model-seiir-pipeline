@@ -344,7 +344,10 @@ def make_time_plot(ax,
                    vlines=(),
                    transform=lambda x: x):
     for plot_version in plot_versions:
-        data = plot_version.load_output_summaries(measure, loc_id)
+        try:
+            data = plot_version.load_output_summaries(measure, loc_id)
+        except FileNotFoundError:  # No data for this version, so skip.
+            continue
         data[['mean', 'upper', 'lower']] = transform(data[['mean', 'upper', 'lower']])
 
         ax.plot(data['date'], data['mean'], color=plot_version.color, linestyle=linestyle, linewidth=2.5)
