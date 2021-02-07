@@ -1,6 +1,6 @@
 data:
   infection_version: '2021_02_02.06'
-  covariate_version: '2021_02_02.11'
+  covariate_version: '2021_02_03.03'
   mortality_rate_version: 'best'
   hospital_fatality_ratio_version: 'best'
   coefficient_version: ''
@@ -17,8 +17,8 @@ workflow:
       num_cores: 1
     hospital_correction_factors:
       max_runtime_seconds: 3000
-      m_mem_free: '2G'
-      num_cores: 1
+      m_mem_free: '20G'
+      num_cores: 26
 regression_parameters:
   n_draws: 1000
   day_shift: [0, 11]
