@@ -1,8 +1,8 @@
-from typing import Any, Callable, List, TYPE_CHECKING
+from typing import Any, Callable, Dict, List, TYPE_CHECKING
 
 import pandas as pd
 
-from covid_model_seiir_pipeline.pipeline.postprocessing.model import aggregators, loaders
+from covid_model_seiir_pipeline.pipeline.postprocessing.model import aggregators, loaders, combiners
 
 if TYPE_CHECKING:
     # The model subpackage is a library for the pipeline stage and shouldn't
@@ -24,6 +24,16 @@ class MeasureConfig:
         self.calculate_cumulative = calculate_cumulative
         self.cumulative_label = cumulative_label
         self.aggregator = aggregator
+
+
+class CompositeMeasureConfig:
+    def __init__(self,
+                 base_measures: Dict[str, MeasureConfig],
+                 label: str,
+                 combiner: Callable = None):
+        self.base_measures = base_measures
+        self.label = label
+        self.combiner = combiner
 
 
 class CovariateConfig:
@@ -133,6 +143,16 @@ MEASURES = {
     'scaling_parameters': MeasureConfig(
         loaders.load_scaling_parameters,
         'beta_scaling_parameters',
+    ),
+}
+
+
+COMPOSITE_MEASURES = {
+    'infection_fatality_ratio': CompositeMeasureConfig(
+        base_measures={'infections': MEASURES['infections'],
+                       'deaths': MEASURES['deaths']},
+        label='infection_fatality_ratio',
+        combiner=combiners.make_ifr,
     ),
 }
 
