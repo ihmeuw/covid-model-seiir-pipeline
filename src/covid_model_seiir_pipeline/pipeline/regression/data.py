@@ -25,12 +25,10 @@ class RegressionDataInterface:
     def __init__(self,
                  infection_root: io.InfectionRoot,
                  covariate_root: io.CovariateRoot,
-                 mortality_rate_root: io.MortalityRateRoot,
                  coefficient_root: Optional[io.RegressionRoot],
                  regression_root: io.RegressionRoot):
         self.infection_root = infection_root
         self.covariate_root = covariate_root
-        self.mortality_rate_root = mortality_rate_root
         self.coefficient_root = coefficient_root
         self.regression_root = regression_root
 
@@ -39,7 +37,6 @@ class RegressionDataInterface:
         # TODO: specify input format from config
         infection_root = io.InfectionRoot(specification.data.infection_version)
         covariate_root = io.CovariateRoot(specification.data.covariate_version)
-        mortality_rate_root = io.MortalityRateRoot(specification.data.mortality_rate_version)
         if specification.data.coefficient_version:
             coefficient_root = io.RegressionRoot(specification.data.coefficient_version)
         else:
@@ -50,7 +47,6 @@ class RegressionDataInterface:
         return cls(
             infection_root=infection_root,
             covariate_root=covariate_root,
-            mortality_rate_root=mortality_rate_root,
             coefficient_root=coefficient_root,
             regression_root=regression_root,
         )
