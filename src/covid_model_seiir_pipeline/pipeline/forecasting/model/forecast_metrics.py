@@ -3,6 +3,7 @@ from typing import Dict, List, Tuple, Union, TYPE_CHECKING
 import pandas as pd
 
 from covid_model_seiir_pipeline.pipeline.forecasting.model.containers import (
+    RatioData,
     CompartmentInfo,
     HospitalCorrectionFactors,
     HospitalMetrics,
@@ -21,22 +22,21 @@ if TYPE_CHECKING:
 
 
 def compute_output_metrics(infection_data: pd.DataFrame,
-                           ifr: pd.DataFrame,
+                           ratio_data: RatioData,
                            components_past: pd.DataFrame,
                            components_forecast: pd.DataFrame,
                            seir_params: Dict[str, float],
                            compartment_info: CompartmentInfo) -> OutputMetrics:
     components = splice_components(components_past, components_forecast)
 
-    infection_death_lag = int(ifr['duration'].max())
     if compartment_info.group_suffixes:
         modeled_infections, modeled_deaths = 0, 0
         for group in compartment_info.group_suffixes:
             group_compartments = [c for c in compartment_info.compartments if group in c]
             group_infections, vulnerable_infections = compute_infections(components[['date'] + group_compartments])
 
-            group_ifr = ifr[f'ifr_{group}'].rename('ifr')
-            group_deaths = compute_deaths(vulnerable_infections, infection_death_lag, group_ifr)
+            group_ifr = getattr(ratio_data, f'ifr_{group}').rename('ifr')
+            group_deaths = compute_deaths(vulnerable_infections, ratio_data.infection_to_death, group_ifr)
 
             modeled_infections += group_infections
             modeled_deaths += group_deaths
@@ -44,7 +44,7 @@ def compute_output_metrics(infection_data: pd.DataFrame,
         modeled_infections, vulnerable_infections = compute_infections(
             components[['date'] + compartment_info.compartments]
         )
-        modeled_deaths = compute_deaths(vulnerable_infections, infection_death_lag, ifr['ifr'])
+        modeled_deaths = compute_deaths(vulnerable_infections, ratio_data.infection_to_death, ratio_data.ifr)
 
     past_infecs_idx = components_past.set_index('date', append=True).index
     modeled_infections = modeled_infections.to_frame()
@@ -54,6 +54,20 @@ def compute_output_metrics(infection_data: pd.DataFrame,
     deaths = infection_data[['deaths']].fillna(0)
     deaths['observed'] = 1
     deaths = deaths.combine_first(modeled_deaths)
+
+    cases = ((infections
+              .groupby('location_id')
+              .shift(ratio_data.infection_to_case)
+              * ratio_data.idr)
+             .dropna()
+             .rename('cases'))
+    admissions = ((infections
+                   .groupby('location_id')
+                   .shift(ratio_data.infection_to_admission)
+                   * ratio_data.ihr)
+                  .dropna()
+                  .rename('admissions'))
+
     r_controlled, r_effective = compute_effective_r(
         components,
         seir_params,
@@ -65,6 +79,8 @@ def compute_output_metrics(infection_data: pd.DataFrame,
     return OutputMetrics(
         components=components,
         infections=infections,
+        cases=cases,
+        admissions=admissions,
         deaths=deaths,
         r_controlled=r_controlled,
         r_effective=r_effective,
@@ -74,14 +90,12 @@ def compute_output_metrics(infection_data: pd.DataFrame,
     )
 
 
-def compute_corrected_hospital_usage(all_age_deaths: pd.DataFrame,
-                                     death_weights: pd.Series,
-                                     hospital_fatality_ratio,
+def compute_corrected_hospital_usage(admissions: pd.Series,
+                                     hospital_fatality_ratio: pd.Series,
                                      hospital_parameters: 'HospitalParameters',
                                      correction_factors: HospitalCorrectionFactors) -> HospitalMetrics:
     hospital_usage = compute_hospital_usage(
-        all_age_deaths.reset_index(),
-        death_weights,
+        admissions,
         hospital_fatality_ratio,
         hospital_parameters,
     )

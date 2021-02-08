@@ -1,4 +1,5 @@
 from covid_model_seiir_pipeline.pipeline.forecasting.model.containers import (
+    RatioData,
     HospitalCensusData,
     HospitalMetrics,
     HospitalCorrectionFactors,
@@ -26,4 +27,3 @@ from covid_model_seiir_pipeline.pipeline.forecasting.model.mandate_reimposition 
     compute_new_mobility,
     unpack_parameters
 )
-# Just want to expose from this namespace

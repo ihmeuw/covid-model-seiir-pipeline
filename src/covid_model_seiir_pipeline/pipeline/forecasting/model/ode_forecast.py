@@ -66,6 +66,17 @@ def forecast_correction_factors(correction_factors: HospitalCorrectionFactors,
     return HospitalCorrectionFactors(**new_cfs)
 
 
+def correct_ifr(ifr: pd.Series, variant_scalar: pd.Series, forecast_end_date: pd.Timestamp):
+    ifr = (ifr
+           .reindex(ifr.index.union(variant_scalar.index))
+           .groupby('location_id')
+           .fillna(method='ffill')
+           .reset_index())
+    ifr = ifr.loc[pd.IndexSlice[:, :forecast_end_date]]
+    ifr.loc[variant_scalar.index] *= variant_scalar
+    return ifr
+
+
 def prep_seir_parameters(betas: pd.DataFrame,
                          thetas: pd.Series,
                          scenario_data: ScenarioData):
