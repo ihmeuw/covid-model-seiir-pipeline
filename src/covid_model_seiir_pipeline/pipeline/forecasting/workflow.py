@@ -32,7 +32,6 @@ class BetaForecastTaskTemplate(workflow.TaskTemplate):
         "--forecast-version {forecast_version} "
         "--scenario {scenario} "
         "--draw-id {draw_id} "
-        "--extra-id {extra_id} "
         "-vv"
     )
     node_args = ['scenario', 'draw_id', 'extra_id']
@@ -58,10 +57,9 @@ class ForecastWorkflow(workflow.WorkflowTemplate):
                 scenario=scenario_name
             )
             self.workflow.add_task(scaling_task)
-            self._attach_forecast_tasks(scenario_name, n_draws, 0, scaling_task)
+            self._attach_forecast_tasks(scenario_name, n_draws, scaling_task)
 
-    def _attach_forecast_tasks(self, scenario_name: str, n_draws: int, extra_id: int,
-                               *upstream_tasks: Task) -> None:
+    def _attach_forecast_tasks(self, scenario_name: str, n_draws: int, *upstream_tasks: Task) -> None:
         forecast_template = self.task_templates[FORECAST_JOBS.forecast]
 
         for draw in range(n_draws):
@@ -69,7 +67,6 @@ class ForecastWorkflow(workflow.WorkflowTemplate):
                 forecast_version=self.version,
                 draw_id=draw,
                 scenario=scenario_name,
-                extra_id=extra_id,
             )
             for upstream_task in upstream_tasks:
                 forecast_task.add_upstream(upstream_task)

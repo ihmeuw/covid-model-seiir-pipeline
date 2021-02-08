@@ -16,7 +16,7 @@ from covid_model_seiir_pipeline.pipeline.forecasting.data import ForecastDataInt
 logger = cli_tools.task_performance_logger
 
 
-def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, **kwargs):
+def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int):
     logger.info(f"Initiating SEIIR beta forecasting for scenario {scenario}, draw {draw_id}.", context='setup')
     forecast_spec: ForecastSpecification = ForecastSpecification.from_path(
         Path(forecast_version) / static_vars.FORECAST_SPECIFICATION_FILE
@@ -33,10 +33,10 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, **kwar
     # Grab the last day of data in the model by location id.  This will
     # correspond to the initial condition for the projection.
     transition_date = data_interface.load_transition_date(draw_id)
-    # The population will be used to partition the SEIR compartments into
+    # The population will be used to partition the SEIIR compartments into
     # different sub groups for the forecast.
     population = data_interface.load_five_year_population()
-    # We'll use the beta and SEIR compartments from this data set to get
+    # We'll use the beta and SEIIR compartments from this data set to get
     # the ODE initial condition.
     beta_regression_df = data_interface.load_beta_regression(draw_id)
     # Covariates and coefficients, and scaling parameters are
@@ -85,7 +85,7 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, **kwar
     betas = ((betas.set_index('date', append=True).beta_pred * variant_scalars.beta)
              .rename('beta_pred')
              .reset_index(level='date'))
-    seir_parameters = model.prep_seir_parameters(
+    seiir_parameters = model.prep_seiir_parameters(
         betas,
         thetas,
         scenario_data,
@@ -102,7 +102,7 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, **kwar
     future_components = model.run_normal_ode_model_by_location(
         initial_condition,
         beta_params,
-        seir_parameters,
+        seiir_parameters,
         scenario_spec,
         compartment_info,
     )
@@ -178,7 +178,7 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, **kwar
             betas = ((betas.set_index('date', append=True).beta_pred * variant_scalars.beta)
                      .rename('beta_pred')
                      .reset_index(level='date'))
-            seir_parameters = model.prep_seir_parameters(
+            seiir_parameters = model.prep_seiir_parameters(
                 betas,
                 thetas,
                 scenario_data,
@@ -192,7 +192,7 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, **kwar
             future_components_subset = model.run_normal_ode_model_by_location(
                 initial_condition_subset,
                 beta_params,
-                seir_parameters,
+                seiir_parameters,
                 scenario_spec,
                 compartment_info,
             ).set_index('date', append=True).sort_index()
@@ -254,9 +254,8 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, **kwar
 @cli_tools.with_task_forecast_version
 @cli_tools.with_scenario
 @cli_tools.with_draw_id
-@cli_tools.with_extra_id
 @cli_tools.add_verbose_and_with_debugger
-def beta_forecast(forecast_version: str, scenario: str, draw_id: int, extra_id: int,
+def beta_forecast(forecast_version: str, scenario: str, draw_id: int,
                   verbose: int, with_debugger: bool):
     cli_tools.configure_logging_to_terminal(verbose)
 

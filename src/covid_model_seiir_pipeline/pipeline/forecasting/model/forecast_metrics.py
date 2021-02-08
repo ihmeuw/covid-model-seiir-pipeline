@@ -25,7 +25,7 @@ def compute_output_metrics(infection_data: pd.DataFrame,
                            ratio_data: RatioData,
                            components_past: pd.DataFrame,
                            components_forecast: pd.DataFrame,
-                           seir_params: Dict[str, float],
+                           seiir_params: Dict[str, float],
                            compartment_info: CompartmentInfo) -> OutputMetrics:
     components = splice_components(components_past, components_forecast)
 
@@ -46,11 +46,11 @@ def compute_output_metrics(infection_data: pd.DataFrame,
         )
         modeled_deaths = compute_deaths(vulnerable_infections, ratio_data.infection_to_death, ratio_data.ifr)
 
-    past_infecs_idx = components_past.set_index('date', append=True).index
+    past_infections_idx = components_past.set_index('date', append=True).index
     modeled_infections = modeled_infections.to_frame()
     modeled_deaths = modeled_deaths.reset_index(level='observed')
     infection_data = infection_data.set_index(['location_id', 'date'])
-    infections = infection_data.loc[past_infecs_idx, ['infections']].combine_first(modeled_infections).infections
+    infections = infection_data.loc[past_infections_idx, ['infections']].combine_first(modeled_infections).infections
     deaths = infection_data[['deaths']].fillna(0)
     deaths['observed'] = 1
     deaths = deaths.combine_first(modeled_deaths)
@@ -70,7 +70,7 @@ def compute_output_metrics(infection_data: pd.DataFrame,
 
     r_controlled, r_effective = compute_effective_r(
         components,
-        seir_params,
+        seiir_params,
         compartment_info.compartments
     )
     components = components.set_index('date', append=True)
@@ -99,9 +99,12 @@ def compute_corrected_hospital_usage(admissions: pd.Series,
         hospital_fatality_ratio,
         hospital_parameters,
     )
-    hospital_usage.hospital_census = (hospital_usage.hospital_census * correction_factors.hospital_census).fillna(method='ffill')
-    hospital_usage.icu_census = (hospital_usage.icu_census * correction_factors.icu_census).fillna(method='ffill')
-    hospital_usage.ventilator_census = (hospital_usage.ventilator_census * correction_factors.ventilator_census).fillna(method='ffill')
+    hospital_usage.hospital_census = (hospital_usage.hospital_census
+                                      * correction_factors.hospital_census).fillna(method='ffill')
+    hospital_usage.icu_census = (hospital_usage.icu_census
+                                 * correction_factors.icu_census).fillna(method='ffill')
+    hospital_usage.ventilator_census = (hospital_usage.ventilator_census
+                                        * correction_factors.ventilator_census).fillna(method='ffill')
     return hospital_usage
 
 
@@ -138,17 +141,17 @@ def compute_infections(components: pd.DataFrame) -> Tuple[pd.Series, pd.Series]:
     susceptible_columns = [c for c in components.columns if 'S' in c]
     # E_p has both inflows and outflows so we have to sum
     # everything downstream of it.
-    newE_protected_columns = [c for c in components.columns if '_p' in c and 'S' not in c]
+    new_e_protected_columns = [c for c in components.columns if '_p' in c and 'S' not in c]
     immune_cols = [c for c in components.columns if 'M' in c]
 
     delta_susceptible = _get_daily_subgroup(components, susceptible_columns)
-    delta_newE_protected = _get_daily_subgroup(components, newE_protected_columns)
+    delta_new_e_protected = _get_daily_subgroup(components, new_e_protected_columns)
     delta_immune = _get_daily_subgroup(components, immune_cols)
 
     # noinspection PyTypeChecker
     modeled_infections = _cleanup(delta_susceptible + delta_immune)
     # noinspection PyTypeChecker
-    vulnerable_infections = _cleanup(delta_susceptible + delta_immune + delta_newE_protected)
+    vulnerable_infections = _cleanup(delta_susceptible + delta_immune + delta_new_e_protected)
 
     return modeled_infections, vulnerable_infections
 

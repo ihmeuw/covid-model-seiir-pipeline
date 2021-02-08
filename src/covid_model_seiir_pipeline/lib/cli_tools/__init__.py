@@ -34,7 +34,6 @@ from covid_model_seiir_pipeline.lib.cli_tools.decorators import (
     with_measure,
     with_draw_id,
     with_name,
-    with_extra_id,
     with_progress_bar,
     add_preprocess_only,
 )

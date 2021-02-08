@@ -15,7 +15,7 @@ from covid_model_seiir_pipeline.pipeline.forecasting.model.ode_forecast import (
     correct_ifr,
     get_population_partition,
     get_past_components,
-    prep_seir_parameters,
+    prep_seiir_parameters,
 )
 from covid_model_seiir_pipeline.pipeline.forecasting.model.forecast_metrics import (
     compute_output_metrics,

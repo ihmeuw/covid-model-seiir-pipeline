@@ -144,14 +144,6 @@ with_name = click.option(
     required=True,
     help='The name to be run.',
 )
-with_extra_id = click.option(
-    '--extra-id',
-    type=click.INT,
-    help='Extra identifier for workflow of workflow things '
-         'so jobmon does not kick us out. May no longer be '
-         'necessary, but I cannot remember what failed that caused '
-         'its addition. So here we are.'
-)
 with_progress_bar = click.option(
     '--pb', 'progress_bar',
     is_flag=True,

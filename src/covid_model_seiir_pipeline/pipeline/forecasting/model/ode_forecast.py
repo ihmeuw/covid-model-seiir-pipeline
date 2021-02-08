@@ -77,9 +77,9 @@ def correct_ifr(ifr: pd.Series, variant_scalar: pd.Series, forecast_end_date: pd
     return ifr
 
 
-def prep_seir_parameters(betas: pd.DataFrame,
-                         thetas: pd.Series,
-                         scenario_data: ScenarioData):
+def prep_seiir_parameters(betas: pd.DataFrame,
+                          thetas: pd.Series,
+                          scenario_data: ScenarioData):
     betas = betas.rename(columns={'beta_pred': 'beta'})
     parameters = betas.merge(thetas, on='location_id')
     if scenario_data.vaccinations is not None:
@@ -101,7 +101,7 @@ def get_population_partition(population: pd.DataFrame,
 
     Returns
     -------
-        A mapping between the SEIR compartment suffix for the partition groups
+        A mapping between the SEIIR compartment suffix for the partition groups
         and a series mapping location ids to the proportion of people in each
         compartment that should be allocated to the partition group.
 
@@ -172,7 +172,7 @@ def _split_compartments(compartments: List[str],
 
 def run_normal_ode_model_by_location(initial_condition: pd.DataFrame,
                                      beta_params: Dict[str, float],
-                                     seir_parameters: pd.DataFrame,
+                                     seiir_parameters: pd.DataFrame,
                                      scenario_spec: 'ScenarioSpecification',
                                      compartment_info: CompartmentInfo):
     forecasts = []
@@ -190,7 +190,7 @@ def run_normal_ode_model_by_location(initial_condition: pd.DataFrame,
             N=total_population,
             system_params=scenario_spec.system_params.copy(),
         )
-        loc_parameters = seir_parameters.loc[location_id].sort_values('date')
+        loc_parameters = seiir_parameters.loc[location_id].sort_values('date')
         loc_date = loc_parameters['date']
         loc_times = np.array((loc_date - loc_date.min()).dt.days)
         loc_parameters = loc_parameters.set_index('date')

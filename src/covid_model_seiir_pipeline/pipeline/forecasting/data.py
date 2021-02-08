@@ -398,7 +398,8 @@ class ForecastDataInterface:
     # Non-interface helpers #
     #########################
 
-    def _format_covariate_data(self, dataset: pd.DataFrame, location_ids: List[int], with_observed: bool = False):
+    @staticmethod
+    def _format_covariate_data(dataset: pd.DataFrame, location_ids: List[int], with_observed: bool = False):
         index_columns = ['location_id']
         if with_observed:
             index_columns.append('observed')
