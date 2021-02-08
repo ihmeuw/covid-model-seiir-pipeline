@@ -403,11 +403,11 @@ class ForecastDataInterface:
         index_columns = ['location_id']
         if with_observed:
             index_columns.append('observed')
-        dataset = dataset.loc[dataset['location_id'].isin(location_ids), :]
         if 'date' in dataset.columns:
             dataset['date'] = pd.to_datetime(dataset['date'])
             index_columns.append('date')
-        return dataset.set_index(index_columns)
+        dataset = dataset.set_index(index_columns)
+        return dataset.loc[location_ids]
 
     def _get_regression_data_interface(self) -> RegressionDataInterface:
         regression_spec = RegressionSpecification.from_dict(io.load(self.regression_root.specification()))
