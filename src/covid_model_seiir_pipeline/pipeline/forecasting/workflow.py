@@ -34,7 +34,7 @@ class BetaForecastTaskTemplate(workflow.TaskTemplate):
         "--draw-id {draw_id} "
         "-vv"
     )
-    node_args = ['scenario', 'draw_id', 'extra_id']
+    node_args = ['scenario', 'draw_id']
     task_args = ['forecast_version']
 
 
