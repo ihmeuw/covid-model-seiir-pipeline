@@ -52,21 +52,11 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, **kwar
     )
     # We'll need this to compute deaths and to splice with the forecasts.
     infection_data = data_interface.load_infection_data(draw_id)
-    ifr = data_interface.load_ifr_data(draw_id)
-    ifr = (ifr
-           .reindex(ifr.index.union(variant_scalars.ifr.index))
-           .groupby('location_id')
-           .fillna(method='ffill')
-           .reset_index())
-    ifr = ifr.loc[ifr.date <= forecast_end_date].set_index(['location_id', 'date'])
-    ifr_cols = [c for c in ifr.columns if c != 'duration']
-    ifr.loc[variant_scalars.ifr.index, ifr_cols] = (ifr
-                                                    .loc[variant_scalars.ifr.index, ifr_cols]
-                                                    .mul(variant_scalars.ifr, axis=0))
+    ratio_data = data_interface.load_ratio_data(draw_id=draw_id)
+    ratio_data.ifr = model.correct_ifr(ratio_data.ifr, variant_scalars.ifr, forecast_end_date)
+    ratio_data.ifr_lr = model.correct_ifr(ratio_data.ifr_lr, variant_scalars.ifr, forecast_end_date)
+    ratio_data.ifr_hr = model.correct_ifr(ratio_data.ifr_hr, variant_scalars.ifr, forecast_end_date)
     # Data for computing hospital usage
-    mr = data_interface.load_mortality_ratio()
-    death_weights = model.get_death_weights(mr, population, with_error=False)
-    hfr = data_interface.load_hospital_fatality_ratio(death_weights)
     hospital_parameters = data_interface.get_hospital_parameters()
     correction_factors = data_interface.load_hospital_correction_factors()
     # Load any data specific to the particular scenario we're running
@@ -119,16 +109,15 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, **kwar
     logger.info('Processing ODE results and computing deaths and infections.', context='compute_results')
     output_metrics = model.compute_output_metrics(
         infection_data,
-        ifr,
+        ratio_data,
         past_components,
         future_components,
         beta_params,
         compartment_info,
     )
     hospital_usage = model.compute_corrected_hospital_usage(
-        output_metrics.deaths,
-        death_weights,
-        hfr,
+        output_metrics.admissions,
+        ratio_data.ihr / ratio_data.ifr,
         hospital_parameters,
         correction_factors,
     )
@@ -218,16 +207,15 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, **kwar
                                  .reset_index(level='date'))
             output_metrics = model.compute_output_metrics(
                 infection_data,
-                ifr,
+                ratio_data,
                 past_components,
                 future_components,
                 beta_params,
                 compartment_info,
             )
             hospital_usage = model.compute_corrected_hospital_usage(
-                output_metrics.deaths,
-                death_weights,
-                hfr,
+                output_metrics.admissions,
+                ratio_data.ihr / ratio_data.ifr,
                 hospital_parameters,
                 correction_factors,
             )
