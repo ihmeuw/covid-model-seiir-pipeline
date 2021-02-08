@@ -70,8 +70,7 @@ def correct_ifr(ifr: pd.Series, variant_scalar: pd.Series, forecast_end_date: pd
     ifr = (ifr
            .reindex(ifr.index.union(variant_scalar.index))
            .groupby('location_id')
-           .fillna(method='ffill')
-           .reset_index())
+           .fillna(method='ffill'))
     ifr = ifr.loc[pd.IndexSlice[:, :forecast_end_date]]
     ifr.loc[variant_scalar.index] *= variant_scalar
     return ifr

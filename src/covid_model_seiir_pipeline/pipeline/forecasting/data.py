@@ -172,7 +172,7 @@ class ForecastDataInterface:
         if scenario_spec.system == 'vaccine':
             forecast_scenario = scenario_spec.system_params.get('forecast_version', 'reference')
             vaccinations = self.load_vaccine_info(f'vaccinations_{forecast_scenario}')
-            location_ids = vaccinations.reset_index.location_id.tolist()
+            location_ids = vaccinations.reset_index().location_id.tolist()
             if scenario_spec.variant:
                 b1351_prevalence = self.load_covariate(
                     'variant_prevalence_B1351',
