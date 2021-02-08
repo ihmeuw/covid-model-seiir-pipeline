@@ -111,11 +111,11 @@ class InfectionRoot(DataRoot):
     idr = DatasetType('idr_draws', LEAF_TEMPLATES.DRAW_TEMPLATE)
 
 
-class MortalityRateRoot(DataRoot):
+class MortalityRatioRoot(DataRoot):
     """Data root representing age pattern of mortality."""
     metadata = MetadataType('metadata')
 
-    mortality_rate = DatasetType('mortality_ratio_5yr')
+    mortality_ratio = DatasetType('mortality_ratio_5yr')
 
 
 class CovariateRoot(DataRoot):

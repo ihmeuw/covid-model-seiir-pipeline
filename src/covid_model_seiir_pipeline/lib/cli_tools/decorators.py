@@ -40,8 +40,8 @@ with_covariates_version = click.option(
     type=click.Path(exists=True, file_okay=False),
     help='Which version of covariates to use.',
 )
-with_mortality_rate_version = click.option(
-    '--mortality-rate-version',
+with_mortality_ratio_version = click.option(
+    '--mortality-ratio-version',
     type=click.Path(exists=True, file_okay=False),
     help='Which version of the mortality age pattern to use.',
 )
