@@ -10,7 +10,7 @@ from covid_model_seiir_pipeline.lib import (
 # This is just exposing these containers from this namespace so we're not
 # importing from the regression stage everywhere.
 from covid_model_seiir_pipeline.pipeline.regression.model.containers import (
-    HospitalFatalityRatioData,
+    RatioData,
     HospitalCensusData,
     HospitalMetrics,
     HospitalCorrectionFactors,
@@ -20,13 +20,15 @@ from covid_model_seiir_pipeline.pipeline.regression.model.containers import (
 @dataclass
 class OutputMetrics:
     components: pd.DataFrame
+    infections: pd.Series
+    cases: pd.Series
+    admissions: pd.Series
     deaths: pd.DataFrame
-    infections: pd.DataFrame
-    r_controlled: pd.DataFrame
-    r_effective: pd.DataFrame
-    herd_immunity: pd.DataFrame
-    total_susceptible: pd.DataFrame
-    total_immune: pd.DataFrame
+    r_controlled: pd.Series
+    r_effective: pd.Series
+    herd_immunity: pd.Series
+    total_susceptible: pd.Series
+    total_immune: pd.Series
 
     def to_dict(self) -> Dict[str, pd.DataFrame]:
         return utilities.asdict(self)

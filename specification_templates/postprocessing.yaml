@@ -1,8 +1,9 @@
 data:
-  forecast_version: '2021_01_28.01'
+  forecast_version: '2021_02_03.09'
+  mortality_ratio_version: 'best'
   scenarios:
-    - 'worse'
-#    - 'reference'
+    - 'reference'
+    - 'new_variant'
 #    - 'no_vaccine'
 #    - 'best_masks'
 #    - 'vaccine_fast'
@@ -10,7 +11,7 @@ data:
   output_root: ''
 workflow:
   project: 'proj_covid_prod'
-  queue: 'd.q'
+  queue: 'long.q'
   tasks:
     resample_map:
       max_runtime_seconds: 5000
@@ -21,7 +22,7 @@ workflow:
       m_mem_free: '30G'
       num_cores: 26
 resampling:
-  reference_scenario: 'worse'
+  reference_scenario: 'reference'
   reference_date: '2021-12-31'
   lower_quantile: 0.025
   upper_quantile: 0.975
@@ -34,4 +35,3 @@ aggregation:
   - location_file: '/ihme/covid-19/seir-pipeline-outputs/agg-hierarchies/who_euro.csv'
   - location_file: '/ihme/covid-19/seir-pipeline-outputs/agg-hierarchies/world_bank.csv'
   - location_file: '/ihme/covid-19/seir-pipeline-outputs/agg-hierarchies/eu_minus_uk.csv'
-

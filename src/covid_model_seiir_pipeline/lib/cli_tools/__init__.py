@@ -21,8 +21,7 @@ from covid_model_seiir_pipeline.lib.cli_tools.decorators import (
     with_predictive_validity_specification,
     with_infection_version,
     with_covariates_version,
-    with_mortality_rate_version,
-    with_hospital_fatality_ratio_version,
+    with_mortality_ratio_version,
     with_coefficient_version,
     with_location_specification,
     with_regression_version,
@@ -35,7 +34,6 @@ from covid_model_seiir_pipeline.lib.cli_tools.decorators import (
     with_measure,
     with_draw_id,
     with_name,
-    with_extra_id,
     with_progress_bar,
     add_preprocess_only,
 )
