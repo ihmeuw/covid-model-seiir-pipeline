@@ -406,8 +406,9 @@ class ForecastDataInterface:
         if 'date' in dataset.columns:
             dataset['date'] = pd.to_datetime(dataset['date'])
             index_columns.append('date')
+        dataset = dataset.loc[dataset.location_id.isin(location_ids)]
         dataset = dataset.set_index(index_columns)
-        return dataset.loc[location_ids]
+        return dataset
 
     def _get_regression_data_interface(self) -> RegressionDataInterface:
         regression_spec = RegressionSpecification.from_dict(io.load(self.regression_root.specification()))
