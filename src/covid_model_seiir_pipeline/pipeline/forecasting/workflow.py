@@ -13,11 +13,11 @@ class BetaResidualScalingTaskTemplate(workflow.TaskTemplate):
 
     task_name_template = f'{FORECAST_JOBS.scaling}_{{scenario}}'
     command_template = (
-            f"{shutil.which('stask')} "
-            f"{FORECAST_JOBS.scaling} "
-            "--forecast-version {forecast_version} "
-            "--scenario {scenario} "
-            "-vv"
+        f"{shutil.which('stask')} "
+        f"{FORECAST_JOBS.scaling} "
+        "--forecast-version {forecast_version} "
+        "--scenario {scenario} "
+        "-vv"
     )
     node_args = ['scenario']
     task_args = ['forecast_version']
