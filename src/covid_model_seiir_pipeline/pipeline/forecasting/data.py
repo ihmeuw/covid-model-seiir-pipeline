@@ -219,7 +219,7 @@ class ForecastDataInterface:
         if scenario_spec.algorithm == 'draw_level_mandate_reimposition':
             mobility_scenario = scenario_spec.covariates['mobility']
             percent_mandates = self.load_mobility_info(f'{mobility_scenario}_mandate_lift')
-            mandate_effects = self.load_mobility_info(f'{mobility_scenario}_effect')
+            mandate_effects = self.load_mobility_info(f'effect')
         else:
             percent_mandates = None
             mandate_effects = None
@@ -261,53 +261,6 @@ class ForecastDataInterface:
             raise ValueError('Sigma - theta must be smaller than 1')
 
         return thetas
-
-    def load_variant_scalars(self, variant_specification: Dict,
-                             transition_dates: pd.Series,
-                             max_date: pd.Timestamp) -> VariantScalars:
-        if not variant_specification:
-            idx = (transition_dates
-                   .groupby('location_id')
-                   .apply(lambda x: pd.date_range(x.iloc[0], max_date, name='date'))
-                   .explode()
-                   .reset_index()
-                   .set_index(['location_id', 'date'])
-                   .index)
-            return VariantScalars(
-                beta=pd.Series(1, index=idx),
-                ifr=pd.Series(1, index=idx),
-            )
-        scenario = variant_specification['version']
-        prevalences = []
-        for variant in ['B117', 'B1351', 'P1']:
-            variant_prevalence = self.load_covariate(f'variant_prevalence_{variant}', scenario)
-            variant_prevalence = variant_prevalence[f'variant_prevalence_{variant}'].rename('proportion')
-            prevalences.append(variant_prevalence)
-
-        # FIXME: These are mutually exclusive this week only.
-        variant_prevalence = sum(prevalences)
-
-        beta_increase = variant_specification.get('beta_scalar', 1.)
-        ifr_increase = variant_specification.get('ifr_scalar', 1.)
-
-        betas = []
-        ifrs = []
-        for location_id in transition_dates.index:
-            scalar_date_start = transition_dates.loc[location_id]
-            loc_prevalence = variant_prevalence.loc[location_id]
-            loc_prevalence = loc_prevalence.loc[scalar_date_start:max_date]
-            # We care about the increase relative to forecast start
-            loc_prevalence -= loc_prevalence.loc[scalar_date_start]
-            loc_prevalence = loc_prevalence.reset_index()
-            loc_prevalence['location_id'] = location_id
-            loc_prevalence = loc_prevalence.set_index(['location_id', 'date']).proportion
-
-            betas.append(loc_prevalence*beta_increase + (1 - loc_prevalence))
-            ifrs.append(loc_prevalence*ifr_increase + (1 - loc_prevalence))
-        return VariantScalars(
-            beta=pd.concat(betas).sort_index(),
-            ifr=pd.concat(ifrs).sort_index(),
-        )
 
     def get_infections_metadata(self):
         return self._get_regression_data_interface().get_infections_metadata()
