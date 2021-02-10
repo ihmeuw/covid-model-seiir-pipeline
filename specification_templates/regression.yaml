@@ -1,15 +1,13 @@
 data:
   infection_version: '2021_02_02.06'
   covariate_version: '2021_02_03.03'
-  mortality_rate_version: 'best'
-  hospital_fatality_ratio_version: 'best'
   coefficient_version: ''
   location_set_version_id: ''
   location_set_file: '/ihme/covid-19/seir-pipeline-outputs/metadata-inputs/location_metadata_810.csv'
   output_root: ''
 workflow:
   project: 'proj_covid'
-  queue: 'd.q'
+  queue: 'all.q'
   tasks:
     beta_regression:
       max_runtime_seconds: 3000

@@ -29,7 +29,9 @@ def compute_reimposition_date(deaths, population, reimposition_threshold,
     last_observed_date = death_rate[~projected].groupby('location_id')['date'].max()
     min_reimposition_date = (last_observed_date + min_wait)
     previously_implemented = last_reimposition_end_date[last_reimposition_end_date.notnull()].index
-    min_reimposition_date.loc[previously_implemented] = last_reimposition_end_date.loc[previously_implemented] + min_wait
+    min_reimposition_date.loc[previously_implemented] = (
+            last_reimposition_end_date.loc[previously_implemented] + min_wait
+    )
 
     after_min_reimposition_date = death_rate['date'] >= min_reimposition_date.loc[death_rate.index]
     over_threshold = death_rate['death_rate'] > reimposition_threshold.reindex(death_rate.index)
@@ -43,8 +45,10 @@ def compute_reimposition_date(deaths, population, reimposition_threshold,
 
 def compute_mobility_lower_bound(mobility: pd.DataFrame, mandate_effect: pd.DataFrame) -> pd.Series:
     min_observed_mobility = mobility.groupby('location_id').min().rename('min_mobility')
-    max_mandate_mobility = mandate_effect.sum(axis=1).rename('min_mobility').reindex(min_observed_mobility.index,
-                                                                                     fill_value=100)
+    max_mandate_mobility = (mandate_effect
+                            .sum(axis=1)
+                            .rename('min_mobility')
+                            .reindex(min_observed_mobility.index, fill_value=100))
     mobility_lower_bound = min_observed_mobility.where(min_observed_mobility <= max_mandate_mobility,
                                                        max_mandate_mobility)
     return mobility_lower_bound
