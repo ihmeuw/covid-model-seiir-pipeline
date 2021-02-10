@@ -10,6 +10,22 @@ from covid_model_seiir_pipeline.lib import (
 
 
 @dataclass
+class RatioData:
+    infection_to_death: int
+    infection_to_admission: int
+    infection_to_case: int
+
+    ifr: pd.Series
+    ifr_hr: pd.Series
+    ifr_lr: pd.Series
+    ihr: pd.Series
+    idr: pd.Series
+
+    def to_dict(self) -> Dict[str, Union[int, pd.Series]]:
+        return utilities.asdict(self)
+
+
+@dataclass
 class ODEParameters:
     alpha: float
     sigma: float
@@ -19,14 +35,6 @@ class ODEParameters:
     solver_dt: float
 
     def to_dict(self) -> Dict[str, Union[int, float]]:
-        return utilities.asdict(self)
-
-@dataclass
-class HospitalFatalityRatioData:
-    age_specific: pd.Series
-    all_age: pd.Series
-
-    def to_dict(self) -> Dict[str, pd.Series]:
         return utilities.asdict(self)
 
 

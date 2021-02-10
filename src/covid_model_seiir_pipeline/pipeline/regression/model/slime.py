@@ -64,7 +64,6 @@ class MRData:
         return self.df[self.df[self.col_group] == group]
 
 
-
 class MRModel:
     """Linear MetaRegression Model.
     """
@@ -115,7 +114,7 @@ class MRModel:
         return self.cov_models.gradient(x, residual, self.obs_se)
 
     def hessian(self, x: np.array) -> np.ndarray:
-        """Hessian function for the optimtization.
+        """Hessian function for the optimization.
 
         Args:
             x (np.array): optimization variable.
@@ -330,7 +329,7 @@ class CovModelSet:
         """Constructor of the covariate model set.
 
         Args:
-            cov_models (list{CovModel}): A list of covaraite set.
+            cov_models (list{CovModel}): A list of covariate set.
             data (MRData | None, optional): Data to be attached.
         """
         assert isinstance(cov_models, list)
@@ -416,11 +415,11 @@ class CovModelSet:
             for i, cov_model in enumerate(self.cov_models)
         ])
 
-    def hessian(self, x: np.array, obs_se: np.array) -> np.ndarray:
+    def hessian(self, _: np.array, obs_se: np.array) -> np.ndarray:
         """Hessian function.
 
         Args:
-            x (np.array): optimization variable.
+            _ (np.array): optimization variable.
             obs_se (np.array): observation standard error.
 
         Returns:
@@ -465,7 +464,7 @@ class CovModelSet:
 def sizes_to_indices(sizes):
     """Converting sizes to corresponding indices.
     Args:
-        sizes (numpy.dnarray):
+        sizes (numpy.ndarray):
             An array consist of non-negative number.
     Returns:
         list{range}:
