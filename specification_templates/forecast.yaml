@@ -1,6 +1,6 @@
 data:
-  regression_version: '2021_02_05.03'
-  covariate_version: '2021_02_03.03'
+  regression_version: '2021_02_10.03'
+  covariate_version: '2021_02_09.05'
   output_root: ''
   fh_subnationals: False
 workflow:
