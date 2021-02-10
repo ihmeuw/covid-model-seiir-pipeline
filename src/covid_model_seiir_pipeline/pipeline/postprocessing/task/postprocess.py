@@ -53,6 +53,19 @@ def do_aggregation(measure_data: pd.DataFrame,
     return measure_data
 
 
+def summarize_and_write(measure_data: pd.DataFrame,
+                        measure_config: Union[model.MeasureConfig, model.CovariateConfig, model.MiscellaneousConfig],
+                        data_interface: PostprocessingDataInterface,
+                        measure: str, scenario_name: str):
+    logger.info(f'Summarizing results for {measure}.', context='summarize')
+    summarized = model.summarize(measure_data)
+    if measure_config.write_draws:
+        logger.info(f'Saving draws for {measure}.', context='write_draws')
+        data_interface.save_output_draws(measure_data.reset_index(), scenario_name, measure_config.label)
+    logger.info(f'Saving summaries for {measure}.', context='write_summary')
+    data_interface.save_output_summaries(summarized.reset_index(), scenario_name, measure_config.label)
+
+
 def postprocess_measure(postprocessing_spec: PostprocessingSpecification,
                         data_interface: PostprocessingDataInterface,
                         scenario_name: str, measure: str) -> None:
@@ -81,23 +94,23 @@ def postprocess_measure(postprocessing_spec: PostprocessingSpecification,
         data_interface,
     )
 
-    logger.info('Summarizing results', context='summarize')
-    summarized = model.summarize(measure_data)
-
-    logger.info(f'Saving draws and summaries for {measure}.', context='write')
-    data_interface.save_output_draws(measure_data.reset_index(), scenario_name, measure_config.label)
-    data_interface.save_output_summaries(summarized.reset_index(), scenario_name, measure_config.label)
+    summarize_and_write(
+        measure_data,
+        measure_config,
+        data_interface,
+        measure_config.label,
+        scenario_name,
+    )
 
     if measure_config.calculate_cumulative:
-        logger.info('Summarizing cumulative results.', context='summarize')
         cumulative_measure_data = measure_data.groupby(level='location_id').cumsum()
-        summarized = model.summarize(cumulative_measure_data)
-
-        logger.info(f'Saving cumulative draws and summaries for {measure}.', context='write')
-        data_interface.save_output_draws(cumulative_measure_data.reset_index(), scenario_name,
-                                         measure_config.cumulative_label)
-        data_interface.save_output_summaries(summarized.reset_index(), scenario_name,
-                                             measure_config.cumulative_label)
+        summarize_and_write(
+            cumulative_measure_data,
+            measure_config,
+            data_interface,
+            measure_config.cumulative_label,
+            scenario_name,
+        )
 
 
 def postprocess_composite_measure(postprocessing_spec: PostprocessingSpecification,
@@ -134,12 +147,13 @@ def postprocess_composite_measure(postprocessing_spec: PostprocessingSpecificati
 
     measure_data = measure_config.combiner(**measure_data)
 
-    logger.info('Summarizing results', context='summarize')
-    summarized = model.summarize(measure_data)
-
-    logger.info(f'Saving draws and summaries for {measure}.', context='write')
-    data_interface.save_output_draws(measure_data.reset_index(), scenario_name, measure_config.label)
-    data_interface.save_output_summaries(summarized.reset_index(), scenario_name, measure_config.label)
+    summarize_and_write(
+        measure_data,
+        measure_config,
+        data_interface,
+        measure_config.label,
+        scenario_name
+    )
 
 
 def postprocess_covariate(postprocessing_spec: PostprocessingSpecification,
@@ -194,13 +208,13 @@ def postprocess_covariate(postprocessing_spec: PostprocessingSpecification,
     input_covariate.columns = draw_cols
     covariate_data = covariate_data.combine_first(input_covariate).set_index('modeled', append=True)
 
-    logger.info('Summarizing covariate data.', context='summarize')
-    summarized_data = model.summarize(covariate_data)
-
-    logger.info(f'Saving data for {covariate}.', context='write')
-    if covariate_config.draw_level:
-        data_interface.save_output_draws(covariate_data.reset_index(), scenario_name, covariate_config.label)
-    data_interface.save_output_summaries(summarized_data.reset_index(), scenario_name, covariate_config.label)
+    summarize_and_write(
+        covariate_data,
+        covariate_config,
+        data_interface,
+        covariate_config.label,
+        scenario_name
+    )
 
 
 def postprocess_miscellaneous(postprocessing_spec: PostprocessingSpecification,
