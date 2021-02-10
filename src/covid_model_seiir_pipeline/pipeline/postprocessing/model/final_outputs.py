@@ -230,16 +230,19 @@ COVARIATES = {
     'variant_prevalence_B117': CovariateConfig(
         loaders.load_covariate,
         'variant_prevalence_B117',
+        time_varying=True,
         aggregator=aggregators.mean_aggregator,
     ),
     'variant_prevalence_B1351': CovariateConfig(
         loaders.load_covariate,
         'variant_prevalence_B1351',
+        time_varying=True,
         aggregator=aggregators.mean_aggregator,
     ),
     'variant_prevalence_P1': CovariateConfig(
         loaders.load_covariate,
         'variant_prevalence_P1',
+        time_varying=True,
         aggregator=aggregators.mean_aggregator,
     ),
 }
