@@ -47,10 +47,12 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int):
     # Rescaling parameters for the beta forecast.
     beta_scales = data_interface.load_beta_scales(scenario=scenario, draw_id=draw_id)
     # Beta scale-up due to variant
+    covariates = covariates.set_index(['location_id', 'date'])
     variant_cols = ['variant_prevalence_B117', 'variant_prevalence_B1351', 'variant_prevalence_P1']
     total_variant_prevalence = covariates[variant_cols].sum(axis=1)
     bad_vacc_variant_prevalence = ['variant_prevalence_B1351', 'variant_prevalence_P1']
     bad_vacc_variant_prevalence = covariates[bad_vacc_variant_prevalence].sum(axis=1)
+    covariates = covariates.reset_index()
     raw_ifr_scalar = scenario_spec.variant.get('ifr_scalar', 1.)
     ifr_scalar = raw_ifr_scalar * total_variant_prevalence + (1 - total_variant_prevalence)
     # We'll need this to compute deaths and to splice with the forecasts.
@@ -175,9 +177,6 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int):
             covariate_pred = covariates.loc[the_future].reset_index()
 
             betas = model.forecast_beta(covariate_pred, coefficients, beta_scales)
-            betas = ((betas.set_index('date', append=True).beta_pred * variant_scalars.beta)
-                     .rename('beta_pred')
-                     .reset_index(level='date'))
             seiir_parameters = model.prep_seiir_parameters(
                 betas,
                 thetas,
