@@ -2,7 +2,7 @@ data:
   output_root: ''
 workflow:
   project: 'proj_covid'
-  queue: 'long.q'
+  queue: 'd.q'
   tasks:
     grid_plots:
       max_runtime_seconds: 5000
@@ -20,7 +20,7 @@ grid_plots:
       - version: '/ihme/covid-19/seir-outputs/2021_02_03.02'
         scenarios:
           reference*: 'public reference'
-      - version: '/ihme/covid-19/seir-outputs/2021_02_03.02'
+      - version: '/ihme/covid-19/seir-outputs/2021_02_10.01'
         scenarios:
           worse: 'worse'
           new_variant: 'new_variant'
@@ -37,7 +37,7 @@ grid_plots:
       - version: '/ihme/covid-19/seir-outputs/2021_02_03.02'
         scenarios:
           reference*: 'public reference'
-      - version: '/ihme/covid-19/seir-outputs/2021_02_03.02'
+      - version: '/ihme/covid-19/seir-outputs/2021_02_10.01'
         scenarios:
           worse: 'worse'
           new_variant: 'new_variant'

@@ -82,17 +82,24 @@ def make_covariates_page(plot_versions: List[PlotVersion],
         'mobility': (-100, 20),
         'testing': (0, 0.015),
         'pneumonia': (0.2, 1.5),
-        'mask_use': (0, 1)
+        'mask_use': (0, 1),
+        'variant_prevalence_B117': (0, 1),
+        'variant_prevalence_B1351': (0, 1),
+        'variant_prevalence_P1': (0, 1),
     }
 
     for i, covariate in enumerate(time_varying):
         ax_coef = fig.add_subplot(gs_coef[i])
+        if 'variant' in covariate:
+            label = covariate.split('_')[-1]
+        else:
+            label = covariate.title()
         make_coefficient_plot(
             ax_coef,
             plot_versions,
             covariate,
             location.id,
-            label=covariate.title(),
+            label=label,
         )
 
         ax_cov = fig.add_subplot(gs_cov[i])
@@ -102,7 +109,7 @@ def make_covariates_page(plot_versions: List[PlotVersion],
             covariate,
             location.id,
             start, end,
-            label=covariate.title(),
+            label=label,
         )
         ylims = ylim_map.get(covariate)
         if ylims is not None:
@@ -329,7 +336,7 @@ def make_results_page(plot_versions: List[PlotVersion],
         vlines=vlines,
     )
     make_time_plot(
-        ax_ifr,
+        ax_idr,
         plot_versions,
         'infection_detection_ratio',
         location.id,
