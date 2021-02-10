@@ -25,12 +25,11 @@ def run_beta_regression(regression_version: str, draw_id: int) -> None:
     data_interface = RegressionDataInterface.from_specification(regression_specification)
 
     logger.info('Loading input data', context='read')
-    location_ids = data_interface.load_location_ids()
-    population = data_interface.load_five_year_population(location_ids).groupby('location_id')['population'].sum()
+    population = data_interface.load_five_year_population().groupby('location_id')['population'].sum()
 
-    past_infections = data_interface.load_past_infection_data(draw_id=draw_id, location_ids=location_ids)
+    past_infections = data_interface.load_past_infection_data(draw_id=draw_id)
 
-    covariates = data_interface.load_covariates(regression_specification.covariates, location_ids)
+    covariates = data_interface.load_covariates(regression_specification.covariates)
 
     if regression_specification.data.coefficient_version:
         prior_coefficients = data_interface.load_prior_run_coefficients(draw_id=draw_id)
@@ -43,9 +42,8 @@ def run_beta_regression(regression_version: str, draw_id: int) -> None:
 
     logger.info('Running ODE fit', context='compute_ode')
     beta_fit = model.run_beta_fit(
-        past_infections=past_infections['infections'].dropna(),  # Drop days with deaths but no infecs.
+        past_infections=past_infections['infections'].dropna(),  # Drop days with deaths but no infections.
         population=population,
-        location_ids=location_ids,
         ode_parameters=ode_params,
     )
     beta_start_end_dates = (beta_fit

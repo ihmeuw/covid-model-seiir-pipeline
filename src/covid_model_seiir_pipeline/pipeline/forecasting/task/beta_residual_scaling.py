@@ -72,13 +72,11 @@ def run_compute_beta_scaling_parameters(forecast_version: str, scenario: str):
     data_interface = ForecastDataInterface.from_specification(forecast_spec)
 
     logger.info('Loading input data.', context='read')
-    locations = data_interface.load_location_ids()
     total_deaths = data_interface.load_total_deaths()
-    total_deaths = total_deaths[total_deaths.location_id.isin(locations)].set_index('location_id')['deaths']
     beta_scaling = forecast_spec.scenarios[scenario].beta_scaling
 
     logger.info('Computing scaling parameters.', context='compute')
-    scaling_data = compute_initial_beta_scaling_paramters(total_deaths, beta_scaling, data_interface, num_cores)
+    scaling_data = compute_initial_beta_scaling_parameters(total_deaths, beta_scaling, data_interface, num_cores)
     residual_mean_offset = compute_residual_mean_offset(scaling_data, beta_scaling, total_deaths)
 
     logger.info('Writing scaling parameters to disk.', context='write')
@@ -116,9 +114,9 @@ def compute_residual_mean_offset(scaling_data: List[pd.DataFrame],
         A series with the computed offset by location.
 
     """
-    average_log_beta_resid_mean = (pd.concat([d.log_beta_residual_mean for d in scaling_data])
-                                   .groupby(level='location_id')
-                                   .mean())
+    average_log_beta_residual_mean = (pd.concat([d.log_beta_residual_mean for d in scaling_data])
+                                      .groupby(level='location_id')
+                                      .mean())
     deaths_lower, deaths_upper = beta_scaling['offset_deaths_lower'], beta_scaling['offset_deaths_upper']
 
     scaled_offset = (deaths_lower <= total_deaths) & (total_deaths < deaths_upper)
@@ -126,15 +124,15 @@ def compute_residual_mean_offset(scaling_data: List[pd.DataFrame],
 
     offset = pd.Series(0, index=total_deaths.index, name='log_beta_residual_mean_offset')
     scale_factor = (deaths_upper - total_deaths) / (deaths_upper - deaths_lower)
-    offset.loc[scaled_offset] = scale_factor[scaled_offset] * average_log_beta_resid_mean[scaled_offset]
-    offset.loc[full_offset] = average_log_beta_resid_mean[full_offset]
+    offset.loc[scaled_offset] = scale_factor[scaled_offset] * average_log_beta_residual_mean[scaled_offset]
+    offset.loc[full_offset] = average_log_beta_residual_mean[full_offset]
     return offset
 
 
-def compute_initial_beta_scaling_paramters(total_deaths: pd.Series,
-                                           beta_scaling: dict,
-                                           data_interface: ForecastDataInterface,
-                                           num_cores: int) -> List[pd.DataFrame]:
+def compute_initial_beta_scaling_parameters(total_deaths: pd.Series,
+                                            beta_scaling: dict,
+                                            data_interface: ForecastDataInterface,
+                                            num_cores: int) -> List[pd.DataFrame]:
     # Serialization is our bottleneck, so we parallelize draw level data
     # ingestion and computation across multiple processes.
     _runner = functools.partial(
@@ -159,10 +157,8 @@ def compute_initial_beta_scaling_parameters_by_draw(draw_id: int,
     draw_data = [total_deaths.copy(),
                  pd.Series(beta_scaling['window_size'], index=total_deaths.index, name='window_size')]
 
-    # Today in the data is unique by draw.  It's a combination of the
-    # number of predicted days from the elastispliner in the ODE fit
-    # and the random draw of lag between infection and death from the
-    # infectionator. Don't compute, let's look it up.
+    # Today in the data is unique by draw.  It's based on the number of tail
+    # days we use from the infections elastispliner.
     transition_date = data_interface.load_transition_date(draw_id)
 
     beta_regression_df = data_interface.load_beta_regression(draw_id)
@@ -191,11 +187,11 @@ def compute_initial_beta_scaling_parameters_by_draw(draw_id: int,
                  .set_index(['location_id', 'date'])
                  .sort_index())
 
-    log_beta_resid_mean = (np.log(beta_past['beta'] / beta_past['beta_pred'])
-                           .groupby(level='location_id')
-                           .apply(lambda x: x.iloc[-b: -a].mean())
-                           .rename('log_beta_residual_mean'))
-    draw_data.append(log_beta_resid_mean)
+    log_beta_residual_mean = (np.log(beta_past['beta'] / beta_past['beta_pred'])
+                              .groupby(level='location_id')
+                              .apply(lambda x: x.iloc[-b: -a].mean())
+                              .rename('log_beta_residual_mean'))
+    draw_data.append(log_beta_residual_mean)
     draw_data.append(pd.Series(draw_id, index=total_deaths.index, name='draw'))
 
     return pd.concat(draw_data, axis=1)

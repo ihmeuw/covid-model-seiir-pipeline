@@ -3,7 +3,12 @@ from covid_model_seiir_pipeline.pipeline.postprocessing.model.aggregators import
     fill_cumulative_date_index,
 )
 from covid_model_seiir_pipeline.pipeline.postprocessing.model.final_outputs import (
+    MeasureConfig,
+    CompositeMeasureConfig,
+    CovariateConfig,
+    MiscellaneousConfig,
     MEASURES,
+    COMPOSITE_MEASURES,
     COVARIATES,
     MISCELLANEOUS,
 )
