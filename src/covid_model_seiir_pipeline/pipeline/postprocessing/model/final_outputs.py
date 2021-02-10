@@ -227,6 +227,21 @@ COVARIATES = {
         'smoking_prevalence',
         aggregator=aggregators.mean_aggregator,
     ),
+    'variant_prevalence_B117': CovariateConfig(
+        loaders.load_covariate,
+        'variant_prevalence_B117',
+        aggregator=aggregators.mean_aggregator,
+    ),
+    'variant_prevalence_B1351': CovariateConfig(
+        loaders.load_covariate,
+        'variant_prevalence_B1351',
+        aggregator=aggregators.mean_aggregator,
+    ),
+    'variant_prevalence_P1': CovariateConfig(
+        loaders.load_covariate,
+        'variant_prevalence_P1',
+        aggregator=aggregators.mean_aggregator,
+    ),
 }
 
 MISCELLANEOUS = {
