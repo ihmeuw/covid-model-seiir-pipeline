@@ -21,12 +21,12 @@ grid_plots:
         scenarios:
           reference*: 'public reference'
       - version: '/ihme/covid-19/seir-outputs/2021_02_03.02'
-          scenarios:
-            worse: 'worse'
-            new_variant: 'new_variant'
-            reference*: 'reference'
-            best_masks: 'best_masks'
-            vaccine_fast: 'vaccine_fast'
+        scenarios:
+          worse: 'worse'
+          new_variant: 'new_variant'
+          reference*: 'reference'
+          best_masks: 'best_masks'
+          vaccine_fast: 'vaccine_fast'
   - name: 'compare_shortrange'
       # Start and end of the plots.
       date_start: '2020-03-01'
@@ -38,9 +38,9 @@ grid_plots:
           scenarios:
             reference*: 'public reference'
         - version: '/ihme/covid-19/seir-outputs/2021_02_03.02'
-            scenarios:
-              worse: 'worse'
-              new_variant: 'new_variant'
-              reference*: 'reference'
-              best_masks: 'best_masks'
-              vaccine_fast: 'vaccine_fast'
+          scenarios:
+            worse: 'worse'
+            new_variant: 'new_variant'
+            reference*: 'reference'
+            best_masks: 'best_masks'
+            vaccine_fast: 'vaccine_fast'
