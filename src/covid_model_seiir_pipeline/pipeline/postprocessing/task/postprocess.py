@@ -61,9 +61,9 @@ def summarize_and_write(measure_data: pd.DataFrame,
     summarized = model.summarize(measure_data)
     if measure_config.write_draws:
         logger.info(f'Saving draws for {measure}.', context='write_draws')
-        data_interface.save_output_draws(measure_data.reset_index(), scenario_name, measure_config.label)
+        data_interface.save_output_draws(measure_data.reset_index(), scenario_name, measure)
     logger.info(f'Saving summaries for {measure}.', context='write_summary')
-    data_interface.save_output_summaries(summarized.reset_index(), scenario_name, measure_config.label)
+    data_interface.save_output_summaries(summarized.reset_index(), scenario_name, measure)
 
 
 def postprocess_measure(postprocessing_spec: PostprocessingSpecification,
