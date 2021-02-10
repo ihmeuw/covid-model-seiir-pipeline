@@ -167,29 +167,20 @@ class ForecastDataInterface:
     # Scenario data loaders #
     #########################
 
-    def load_scenario_specific_data(self, scenario_spec: ScenarioSpecification) -> ScenarioData:
-
+    def load_scenario_specific_data(self, scenario_spec: ScenarioSpecification,
+                                    variant_prevalence: pd.Series) -> ScenarioData:
         if scenario_spec.system == 'vaccine':
             forecast_scenario = scenario_spec.system_params.get('forecast_version', 'reference')
             vaccinations = self.load_vaccine_info(f'vaccinations_{forecast_scenario}')
             location_ids = vaccinations.reset_index().location_id.tolist()
-            if scenario_spec.variant:
-                b1351_prevalence = self.load_covariate(
-                    'variant_prevalence_B1351',
-                    scenario_spec.variant['version']
-                ).reset_index()
-                max_prevalence = (b1351_prevalence
-                                  .groupby('location_id')
-                                  .variant_prevalence_B1351
-                                  .max())
-                locs_with_b1351 = (max_prevalence[max_prevalence > 0]
-                                   .reset_index()
-                                   .location_id
-                                   .tolist())
-                locs_without_b1351 = list(set(location_ids).difference(locs_with_b1351))
-            else:
-                locs_with_b1351 = []
-                locs_without_b1351 = location_ids
+            max_prevalence = (variant_prevalence
+                              .groupby('location_id')
+                              .max())
+            locs_with_b1351 = (max_prevalence[max_prevalence > 0]
+                               .reset_index()
+                               .location_id
+                               .tolist())
+            locs_without_b1351 = list(set(location_ids).difference(locs_with_b1351))
             b1351_vaccinations = vaccinations.loc[locs_with_b1351]
             not_b1351_vaccinations = vaccinations.loc[locs_without_b1351]
             # FIXME: should get from population partition
