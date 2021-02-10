@@ -1,13 +1,13 @@
 data:
-  forecast_version: '2021_02_03.09'
+  forecast_version: '2021_02_10.03'
   mortality_ratio_version: 'best'
   scenarios:
-    - 'reference'
+    - 'worse'
     - 'new_variant'
-#    - 'no_vaccine'
-#    - 'best_masks'
-#    - 'vaccine_fast'
-#    - 'vaccine_fast_elderly'
+    - 'reference'
+    - 'best_masks'
+    - 'no_vaccine'
+    - 'vaccine_fast'
   output_root: ''
 workflow:
   project: 'proj_covid_prod'
