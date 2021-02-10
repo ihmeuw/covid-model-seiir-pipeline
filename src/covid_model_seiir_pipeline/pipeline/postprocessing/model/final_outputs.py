@@ -156,6 +156,7 @@ MEASURES = {
     'scaling_parameters': MeasureConfig(
         loaders.load_scaling_parameters,
         'beta_scaling_parameters',
+        write_draws=True,
     ),
 }
 
