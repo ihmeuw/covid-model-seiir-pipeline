@@ -19,9 +19,9 @@ from covid_model_seiir_pipeline.pipeline.forecasting.specification import (
     ScenarioSpecification,
 )
 from covid_model_seiir_pipeline.pipeline.forecasting.model import (
+    RatioData,
     HospitalMetrics,
     HospitalCorrectionFactors,
-    HospitalFatalityRatioData,
     HospitalCensusData,
     ScenarioData,
     VariantScalars,
@@ -109,12 +109,8 @@ class ForecastDataInterface:
     def load_hospital_census_data(self) -> HospitalCensusData:
         return self._get_regression_data_interface().load_hospital_census_data()
 
-    def load_mortality_ratio(self) -> pd.Series:
-        return self._get_regression_data_interface().load_mortality_ratio()
-
-    def load_hospital_fatality_ratio(self, death_weights: pd.Series) -> HospitalFatalityRatioData:
-        rdi = self._get_regression_data_interface()
-        return rdi.load_hospital_fatality_ratio(death_weights, with_error=False)
+    def load_ratio_data(self, draw_id: int) -> RatioData:
+        return self._get_regression_data_interface().load_ratio_data(draw_id=draw_id)
 
     ##########################
     # Covariate data loaders #
@@ -176,7 +172,7 @@ class ForecastDataInterface:
         if scenario_spec.system == 'vaccine':
             forecast_scenario = scenario_spec.system_params.get('forecast_version', 'reference')
             vaccinations = self.load_vaccine_info(f'vaccinations_{forecast_scenario}')
-            location_ids = vaccinations.reset_index.location_id.tolist()
+            location_ids = vaccinations.reset_index().location_id.tolist()
             if scenario_spec.variant:
                 b1351_prevalence = self.load_covariate(
                     'variant_prevalence_B1351',
@@ -323,7 +319,7 @@ class ForecastDataInterface:
         )
 
     def get_infections_metadata(self):
-        return self._get_regression_data_interface().get_infectionator_metadata()
+        return self._get_regression_data_interface().get_infections_metadata()
 
     def get_model_inputs_metadata(self):
         infection_metadata = self.get_infections_metadata()
@@ -347,9 +343,6 @@ class ForecastDataInterface:
 
     def load_five_year_population(self) -> pd.DataFrame:
         return self._get_regression_data_interface().load_five_year_population()
-
-    def load_ifr_data(self, draw_id: int) -> pd.DataFrame:
-        return self._get_regression_data_interface().load_ifr_data(draw_id=draw_id)
 
     def load_total_deaths(self):
         """Load cumulative deaths by location."""
@@ -405,15 +398,17 @@ class ForecastDataInterface:
     # Non-interface helpers #
     #########################
 
-    def _format_covariate_data(self, dataset: pd.DataFrame, location_ids: List[int], with_observed: bool = False):
+    @staticmethod
+    def _format_covariate_data(dataset: pd.DataFrame, location_ids: List[int], with_observed: bool = False):
         index_columns = ['location_id']
         if with_observed:
             index_columns.append('observed')
-        dataset = dataset.loc[dataset['location_id'].isin(location_ids), :]
         if 'date' in dataset.columns:
             dataset['date'] = pd.to_datetime(dataset['date'])
             index_columns.append('date')
-        return dataset.set_index(index_columns)
+        dataset = dataset.loc[dataset.location_id.isin(location_ids)]
+        dataset = dataset.set_index(index_columns)
+        return dataset
 
     def _get_regression_data_interface(self) -> RegressionDataInterface:
         regression_spec = RegressionSpecification.from_dict(io.load(self.regression_root.specification()))
