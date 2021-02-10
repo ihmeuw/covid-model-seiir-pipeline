@@ -142,9 +142,9 @@ class RegressionDataInterface:
 
     def format_ratio_data(self, ratio_data: pd.DataFrame) -> pd.DataFrame:
         location_ids = self.load_location_ids()
-        ratio_data = ratio_data.loc[ratio_data.location_id.isin(location_ids)]
         ratio_data['date'] = pd.to_datetime(ratio_data['date'])
         ratio_data = ratio_data.set_index(['location_id', 'date']).sort_index()
+        ratio_data = ratio_data.loc[location_ids]
         col_map = {c: c.split('_draw')[0] for c in ratio_data.columns if '_draw' in c}
         ratio_data = ratio_data.loc[:, ['duration'] + list(col_map)].rename(columns=col_map)
         return ratio_data

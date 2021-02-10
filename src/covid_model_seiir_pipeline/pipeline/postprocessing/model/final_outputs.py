@@ -81,6 +81,13 @@ MEASURES = {
         cumulative_label='cumulative_infections',
         aggregator=aggregators.sum_aggregator,
     ),
+    'cases': MeasureConfig(
+        loaders.load_cases,
+        'daily_cases',
+        calculate_cumulative=True,
+        cumulative_label='cumulative_cases',
+        aggregator=aggregators.sum_aggregator,
+    ),
     'r_controlled': MeasureConfig(
         loaders.load_r_controlled,
         'r_controlled',
@@ -154,6 +161,18 @@ COMPOSITE_MEASURES = {
         label='infection_fatality_ratio',
         combiner=combiners.make_ifr,
     ),
+    'infection_hospitalization_ratio': CompositeMeasureConfig(
+        base_measures={'infections': MEASURES['infections'],
+                       'hospital_admissions': MEASURES['hospital_admissions']},
+        label='infection_hospitalization_ratio',
+        combiner=combiners.make_ihr,
+    ),
+    'infection_detection_ratio': CompositeMeasureConfig(
+        base_measures={'infections': MEASURES['infections'],
+                       'cases': MEASURES['cases']},
+        label='infection_detection_ratio',
+        combiner=combiners.make_idr,
+    )
 }
 
 
