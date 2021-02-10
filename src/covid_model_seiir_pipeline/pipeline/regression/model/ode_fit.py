@@ -1,4 +1,4 @@
-from typing import Dict, List
+from typing import Dict
 
 from loguru import logger
 import numba
@@ -127,7 +127,7 @@ def run_loc_beta_fit(infections: pd.Series,
 
 
 @numba.njit
-def linear_first_order(t: float, y: np.ndarray, p: np.ndarray):
+def linear_first_order(_: float, y: np.ndarray, p: np.ndarray):
     c, f = p
     x = y[0]
     dx = -c * x + f

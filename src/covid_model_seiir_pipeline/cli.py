@@ -34,8 +34,6 @@ def seiir():
 @cli_tools.with_regression_specification
 @cli_tools.with_infection_version
 @cli_tools.with_covariates_version
-@cli_tools.with_mortality_rate_version
-@cli_tools.with_hospital_fatality_ratio_version
 @cli_tools.with_coefficient_version
 @cli_tools.with_location_specification
 @cli_tools.add_preprocess_only
@@ -44,7 +42,6 @@ def seiir():
 def regress(run_metadata,
             regression_specification,
             infection_version, covariates_version,
-            mortality_rate_version, hospital_fatality_ratio_version,
             coefficient_version,
             location_specification,
             preprocess_only,
@@ -58,8 +55,6 @@ def regress(run_metadata,
         regression_specification=regression_specification,
         infection_version=infection_version,
         covariates_version=covariates_version,
-        mortality_rate_version=mortality_rate_version,
-        hospital_fatality_ratio_version=hospital_fatality_ratio_version,
         coefficient_version=coefficient_version,
         location_specification=location_specification,
         preprocess_only=preprocess_only,
@@ -109,12 +104,14 @@ def forecast(run_metadata,
 @cli_tools.pass_run_metadata()
 @cli_tools.with_postprocessing_specification
 @cli_tools.with_forecast_version
+@cli_tools.with_mortality_ratio_version
 @cli_tools.add_preprocess_only
 @cli_tools.add_output_options(paths.SEIR_FINAL_OUTPUTS)
 @cli_tools.add_verbose_and_with_debugger
 def postprocess(run_metadata,
                 postprocessing_specification,
                 forecast_version,
+                mortality_ratio_version,
                 preprocess_only,
                 output_root, mark_best, production_tag,
                 verbose, with_debugger):
@@ -124,6 +121,7 @@ def postprocess(run_metadata,
         run_metadata=run_metadata,
         postprocessing_specification=postprocessing_specification,
         forecast_version=forecast_version,
+        mortality_ratio_version=mortality_ratio_version,
         preprocess_only=preprocess_only,
         output_root=output_root,
         mark_best=mark_best,
@@ -199,8 +197,6 @@ def run_all(run_metadata,
         regression_specification=regression_specification,
         infection_version=None,
         covariates_version=None,
-        mortality_rate_version=None,
-        hospital_fatality_ratio_version=None,
         coefficient_version=None,
         location_specification=None,
         preprocess_only=False,
@@ -252,6 +248,7 @@ def run_all(run_metadata,
         run_metadata=postprocessing_run_metadata,
         postprocessing_specification=postprocessing_specification,
         forecast_version=forecast_spec.data.output_root,
+        mortality_ratio_version=None,
         preprocess_only=False,
         output_root=paths.SEIR_FINAL_OUTPUTS,
         mark_best=mark_best,
@@ -320,8 +317,6 @@ def _do_regression(run_metadata: cli_tools.RunMetadata,
                    regression_specification: str,
                    infection_version: Optional[str],
                    covariates_version: Optional[str],
-                   mortality_rate_version: Optional[str],
-                   hospital_fatality_ratio_version: Optional[str],
                    coefficient_version: Optional[str],
                    location_specification: Optional[str],
                    preprocess_only: bool,
@@ -342,20 +337,6 @@ def _do_regression(run_metadata: cli_tools.RunMetadata,
             regression_spec.data.covariate_version,
             paths.SEIR_COVARIATES_OUTPUT_ROOT,
             'covariates_metadata',
-            True,
-        ),
-        'mortality_rate_version': cli_tools.VersionInfo(
-            mortality_rate_version,
-            regression_spec.data.mortality_rate_version,
-            paths.MORTALITY_RATIO_ROOT,
-            'mortality_rate_metadata',
-            True,
-        ),
-        'hospital_fatality_ratio_version': cli_tools.VersionInfo(
-            hospital_fatality_ratio_version,
-            regression_spec.data.hospital_fatality_ratio_version,
-            paths.HOSPITAL_DEATH_RATIO_ROOT,
-            'hospital_fatality_ratio_metadata',
             True,
         ),
         'coefficient_version': cli_tools.VersionInfo(
@@ -447,23 +428,41 @@ def _do_forecast(run_metadata: cli_tools.RunMetadata,
 def _do_postprocess(run_metadata: cli_tools.RunMetadata,
                     postprocessing_specification: str,
                     forecast_version: Optional[str],
+                    mortality_ratio_version: Optional[str],
                     preprocess_only: bool,
                     output_root: Optional[str], mark_best: bool, production_tag: str,
                     with_debugger: bool) -> PostprocessingSpecification:
     postprocessing_spec = PostprocessingSpecification.from_path(postprocessing_specification)
 
-    forecast_root = cli_tools.get_input_root(forecast_version,
-                                             postprocessing_spec.data.forecast_version,
-                                             paths.SEIR_FORECAST_OUTPUTS)
+    input_versions = {
+        'forecast_version': cli_tools.VersionInfo(
+            forecast_version,
+            postprocessing_spec.data.forecast_version,
+            paths.SEIR_FORECAST_OUTPUTS,
+            'forecast_metadata',
+            True,
+        ),
+        'mortality_ratio_version': cli_tools.VersionInfo(
+            mortality_ratio_version,
+            postprocessing_spec.data.mortality_ratio_version,
+            paths.MORTALITY_RATIO_ROOT,
+            'mortality_ratio_metadata',
+            True,
+        ),
+    }
+
+    postprocessing_spec, run_metadata = cli_tools.resolve_version_info(
+        postprocessing_spec,
+        run_metadata,
+        input_versions,
+    )
+
     output_root = cli_tools.get_output_root(output_root,
                                             postprocessing_spec.data.output_root)
     cli_tools.setup_directory_structure(output_root, with_production=True)
     run_directory = cli_tools.make_run_directory(output_root)
-
-    postprocessing_spec.data.forecast_version = str(forecast_root.resolve())
     postprocessing_spec.data.output_root = str(run_directory)
 
-    run_metadata.update_from_path('forecast_metadata', forecast_root / paths.METADATA_FILE_NAME)
     run_metadata['output_path'] = str(run_directory)
     run_metadata['postprocessing_specification'] = postprocessing_spec.to_dict()
 

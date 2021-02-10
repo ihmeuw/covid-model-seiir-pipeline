@@ -74,7 +74,6 @@ def postprocess_measure(postprocessing_spec: PostprocessingSpecification,
         data_interface,
         scenario_name,
     )
-
     measure_data = do_aggregation(
         measure_data,
         measure_config,
@@ -99,6 +98,48 @@ def postprocess_measure(postprocessing_spec: PostprocessingSpecification,
                                          measure_config.cumulative_label)
         data_interface.save_output_summaries(summarized.reset_index(), scenario_name,
                                              measure_config.cumulative_label)
+
+
+def postprocess_composite_measure(postprocessing_spec: PostprocessingSpecification,
+                                  data_interface: PostprocessingDataInterface,
+                                  scenario_name: str, measure: str) -> None:
+    measure_config = model.COMPOSITE_MEASURES[measure]
+    logger.info(f'Loading inputs for {measure}.', context='read')
+    num_cores = postprocessing_spec.workflow.task_specifications[POSTPROCESSING_JOBS.postprocess].num_cores
+    measure_data = {}
+    for base_measure, base_measure_config in measure_config.base_measures.items():
+        base_measure_data = base_measure_config.loader(scenario_name, data_interface, num_cores)
+
+        if isinstance(base_measure_data, (list, tuple)):
+            logger.info(f'Concatenating {base_measure}.', context='concatenate')
+            base_measure_data = pd.concat(base_measure_data, axis=1)
+
+        logger.info(f'Resampling {base_measure}.', context='resample')
+        base_measure_data = model.resample_draws(base_measure_data, data_interface.load_resampling_map())
+
+        base_measure_data = do_splicing(
+            base_measure_data,
+            base_measure_config,
+            postprocessing_spec.splicing,
+            data_interface,
+            scenario_name,
+        )
+        base_measure_data = do_aggregation(
+            base_measure_data,
+            base_measure_config,
+            postprocessing_spec.aggregation,
+            data_interface,
+        )
+        measure_data[base_measure] = base_measure_data
+
+    measure_data = measure_config.combiner(**measure_data)
+
+    logger.info('Summarizing results', context='summarize')
+    summarized = model.summarize(measure_data)
+
+    logger.info(f'Saving draws and summaries for {measure}.', context='write')
+    data_interface.save_output_draws(measure_data.reset_index(), scenario_name, measure_config.label)
+    data_interface.save_output_summaries(summarized.reset_index(), scenario_name, measure_config.label)
 
 
 def postprocess_covariate(postprocessing_spec: PostprocessingSpecification,
@@ -201,6 +242,8 @@ def run_seir_postprocessing(postprocessing_version: str, scenario: str, measure:
 
     if measure in model.MEASURES:
         postprocess_measure(postprocessing_spec, data_interface, scenario, measure)
+    elif measure in model.COMPOSITE_MEASURES:
+        postprocess_composite_measure(postprocessing_spec, data_interface, scenario, measure)
     elif measure in model.COVARIATES:
         postprocess_covariate(postprocessing_spec, data_interface, scenario, measure)
     elif measure in model.MISCELLANEOUS:

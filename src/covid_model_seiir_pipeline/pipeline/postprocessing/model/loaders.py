@@ -18,6 +18,10 @@ def load_infections(scenario: str, data_interface: 'PostprocessingDataInterface'
     return load_output_data(scenario, 'infections', data_interface, num_cores)
 
 
+def load_cases(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
+    return load_output_data(scenario, 'cases', data_interface, num_cores)
+
+
 def load_r_controlled(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
     return load_output_data(scenario, 'r_controlled', data_interface, num_cores)
 
