@@ -1,6 +1,7 @@
 from pathlib import Path
 from typing import List, NamedTuple, Optional, Tuple
 
+from loguru import logger
 import pandas as pd
 
 from covid_model_seiir_pipeline.lib import static_vars
@@ -74,20 +75,34 @@ class PlotVersion:
         (self._cache / 'miscellaneous').mkdir()
 
         for measure in [*MEASURES.values(), *COVARIATES.values()]:
-            summary_data = self.pdi.load_output_summaries(self.scenario, measure.label)
-            summary_data.to_parquet(self._cache / 'summaries' / f'{measure.label}.parquet', compression=None)
+            try:
+                summary_data = self.pdi.load_output_summaries(self.scenario, measure.label)
+                summary_data.to_parquet(self._cache / 'summaries' / f'{measure.label}.parquet', compression=None)
+            except FileNotFoundError:
+                logger.warning(f'No {measure.label} data found for {self.version}. Skipping.')
+
             if hasattr(measure, 'cumulative_label') and measure.cumulative_label:
-                summary_data = self.pdi.load_output_summaries(self.scenario, measure.cumulative_label)
-                summary_data.to_parquet(self._cache / 'summaries' / f'{measure.cumulative_label}.parquet', compression=None)
+                try:
+                    summary_data = self.pdi.load_output_summaries(self.scenario, measure.cumulative_label)
+                    summary_data.to_parquet(self._cache / 'summaries' / f'{measure.cumulative_label}.parquet',
+                                            compression=None)
+                except FileNotFoundError:
+                    logger.warning(f'No {measure.cumulative_label} data found for {self.version}. Skipping.')
 
             if measure.label in cache_draws:
-                draw_data = self.pdi.load_output_draws(self.scenario, measure.label)
-                draw_data.to_parquet(self._cache / 'draws' / f'{measure.label}.parquet', compression=None)
+                try:
+                    draw_data = self.pdi.load_output_draws(self.scenario, measure.label)
+                    draw_data.to_parquet(self._cache / 'draws' / f'{measure.label}.parquet', compression=None)
+                except FileNotFoundError:
+                    logger.warning(f'No {measure.label} draw data found for {self.version}. Skipping.')
 
         for measure in MISCELLANEOUS.values():
             if measure.is_table:
-                data = self.pdi.load_output_miscellaneous(self.scenario, measure.label, measure.is_table)
-                data.to_parquet(self._cache / 'miscellaneous' / f'{measure.label}.parquet', compression=None)
+                try:
+                    data = self.pdi.load_output_miscellaneous(self.scenario, measure.label, measure.is_table)
+                    data.to_parquet(self._cache / 'miscellaneous' / f'{measure.label}.parquet', compression=None)
+                except FileNotFoundError:
+                    logger.warning(f'No {measure.label} data found for {self.version}. Skipping.')
             else:
                 # Don't need any of these cached for now
                 pass

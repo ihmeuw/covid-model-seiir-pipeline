@@ -26,6 +26,7 @@ if __name__ == "__main__":
         'pypdf2',
         'pyyaml',
         'parse',
+        'scipy',
         'seaborn',
         'tables',
         'tqdm',
