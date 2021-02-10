@@ -28,19 +28,19 @@ grid_plots:
           best_masks: 'best_masks'
           vaccine_fast: 'vaccine_fast'
   - name: 'compare_shortrange'
-      # Start and end of the plots.
-      date_start: '2020-03-01'
-      date_end: '2021-06-01'
-      # The versions and scenarios we want on this plot.
-      comparators:
-        # Full path or DATE.VV or latest/best
-        - version: '/ihme/covid-19/seir-outputs/2021_02_03.02'
-          scenarios:
-            reference*: 'public reference'
-        - version: '/ihme/covid-19/seir-outputs/2021_02_03.02'
-          scenarios:
-            worse: 'worse'
-            new_variant: 'new_variant'
-            reference*: 'reference'
-            best_masks: 'best_masks'
-            vaccine_fast: 'vaccine_fast'
+    # Start and end of the plots.
+    date_start: '2020-03-01'
+    date_end: '2021-06-01'
+    # The versions and scenarios we want on this plot.
+    comparators:
+      # Full path or DATE.VV or latest/best
+      - version: '/ihme/covid-19/seir-outputs/2021_02_03.02'
+        scenarios:
+          reference*: 'public reference'
+      - version: '/ihme/covid-19/seir-outputs/2021_02_03.02'
+        scenarios:
+          worse: 'worse'
+          new_variant: 'new_variant'
+          reference*: 'reference'
+          best_masks: 'best_masks'
+          vaccine_fast: 'vaccine_fast'
