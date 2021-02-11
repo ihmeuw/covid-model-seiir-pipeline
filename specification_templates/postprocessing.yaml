@@ -1,5 +1,5 @@
 data:
-  forecast_version: '2021_02_10.03'
+  forecast_version: '2021_02_10.09'
   mortality_ratio_version: 'best'
   scenarios:
     - 'worse'
@@ -11,7 +11,7 @@ data:
   output_root: ''
 workflow:
   project: 'proj_covid_prod'
-  queue: 'long.q'
+  queue: 'all.q'
   tasks:
     resample_map:
       max_runtime_seconds: 5000

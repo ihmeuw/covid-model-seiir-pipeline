@@ -6,11 +6,11 @@ data:
   location_set_file: '/ihme/covid-19/seir-pipeline-outputs/metadata-inputs/location_metadata_810.csv'
   output_root: ''
 workflow:
-  project: 'proj_covid'
-  queue: 'd.q'
+  project: 'proj_covid_prod'
+  queue: 'all.q'
   tasks:
     beta_regression:
-      max_runtime_seconds: 3000
+      max_runtime_seconds: 6000
       m_mem_free: '2G'
       num_cores: 1
     hospital_correction_factors:

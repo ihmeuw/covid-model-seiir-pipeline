@@ -1,11 +1,11 @@
 data:
-  regression_version: '2021_02_10.05'
-  covariate_version: '2021_02_09.05'
+  regression_version: '2021_02_10.14'
+  covariate_version: '2021_02_10.04'
   output_root: ''
   fh_subnationals: False
 workflow:
   project: 'proj_covid_prod'
-  queue: 'long.q'
+  queue: 'all.q'
   tasks:
     beta_residual_scaling:
       max_runtime_seconds: 5000
