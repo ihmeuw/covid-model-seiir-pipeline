@@ -173,16 +173,21 @@ class ForecastDataInterface:
             forecast_scenario = scenario_spec.system_params.get('forecast_version', 'reference')
             vaccinations = self.load_vaccine_info(f'vaccinations_{forecast_scenario}')
             location_ids = vaccinations.reset_index().location_id.tolist()
-            max_prevalence = (variant_prevalence
-                              .groupby('location_id')
-                              .max())
-            locs_with_b1351 = (max_prevalence[max_prevalence > 0]
-                               .reset_index()
-                               .location_id
-                               .tolist())
-            locs_without_b1351 = list(set(location_ids).difference(locs_with_b1351))
-            b1351_vaccinations = vaccinations.loc[locs_with_b1351]
-            not_b1351_vaccinations = vaccinations.loc[locs_without_b1351]
+
+            variant_start_threshold = pd.Timestamp('2021-05-01')
+            bad_variant_entrance_date = (variant_prevalence[variant_prevalence > 1]
+                                         .reset_index()
+                                         .groupby('location_id')
+                                         .date
+                                         .min())
+            locs_with_bad_variant = (bad_variant_entrance_date[bad_variant_entrance_date < variant_start_threshold]
+                                     .reset_index()
+                                     .location_id
+                                     .tolist())
+
+            locs_without_bad_variant = list(set(location_ids).difference(locs_with_bad_variant))
+            bad_variant_vaccinations = vaccinations.loc[locs_with_bad_variant]
+            not_bad_variant_vaccinations = vaccinations.loc[locs_without_bad_variant]
             # FIXME: should get from population partition
             risk_groups = ['lr', 'hr']
             vaccination_groups = ['unprotected', 'protected', 'immune']
@@ -190,28 +195,28 @@ class ForecastDataInterface:
                         for vaccination_group, risk_group in product(vaccination_groups, risk_groups)]
             vaccinations = pd.DataFrame(columns=out_cols, index=vaccinations.index)
             for risk_group in risk_groups:
-                vaccinations.loc[b1351_vaccinations.index, f'unprotected_{risk_group}'] = (
-                    b1351_vaccinations[f'unprotected_{risk_group}']
-                    + b1351_vaccinations[f'effective_protected_wildtype_{risk_group}']
-                    + b1351_vaccinations[f'effective_wildtype_{risk_group}']
+                vaccinations.loc[bad_variant_vaccinations.index, f'unprotected_{risk_group}'] = (
+                    bad_variant_vaccinations[f'unprotected_{risk_group}']
+                    + bad_variant_vaccinations[f'effective_protected_wildtype_{risk_group}']
+                    + bad_variant_vaccinations[f'effective_wildtype_{risk_group}']
                 )
-                vaccinations.loc[b1351_vaccinations.index, f'protected_{risk_group}'] = (
-                    b1351_vaccinations[f'effective_protected_variant_{risk_group}']
+                vaccinations.loc[bad_variant_vaccinations.index, f'protected_{risk_group}'] = (
+                    bad_variant_vaccinations[f'effective_protected_variant_{risk_group}']
                 )
-                vaccinations.loc[b1351_vaccinations.index, f'immune_{risk_group}'] = (
-                    b1351_vaccinations[f'effective_variant_{risk_group}']
+                vaccinations.loc[bad_variant_vaccinations.index, f'immune_{risk_group}'] = (
+                    bad_variant_vaccinations[f'effective_variant_{risk_group}']
                 )
 
-                vaccinations.loc[not_b1351_vaccinations.index, f'unprotected_{risk_group}'] = (
-                    not_b1351_vaccinations[f'unprotected_{risk_group}']
+                vaccinations.loc[not_bad_variant_vaccinations.index, f'unprotected_{risk_group}'] = (
+                    not_bad_variant_vaccinations[f'unprotected_{risk_group}']
                 )
-                vaccinations.loc[not_b1351_vaccinations.index, f'protected_{risk_group}'] = (
-                    not_b1351_vaccinations[f'effective_protected_wildtype_{risk_group}']
-                    + not_b1351_vaccinations[f'effective_protected_variant_{risk_group}']
+                vaccinations.loc[not_bad_variant_vaccinations.index, f'protected_{risk_group}'] = (
+                    not_bad_variant_vaccinations[f'effective_protected_wildtype_{risk_group}']
+                    + not_bad_variant_vaccinations[f'effective_protected_variant_{risk_group}']
                 )
-                vaccinations.loc[not_b1351_vaccinations.index, f'immune_{risk_group}'] = (
-                    not_b1351_vaccinations[f'effective_wildtype_{risk_group}']
-                    + not_b1351_vaccinations[f'effective_variant_{risk_group}']
+                vaccinations.loc[not_bad_variant_vaccinations.index, f'immune_{risk_group}'] = (
+                    not_bad_variant_vaccinations[f'effective_wildtype_{risk_group}']
+                    + not_bad_variant_vaccinations[f'effective_variant_{risk_group}']
                 )
         else:
             vaccinations = None
