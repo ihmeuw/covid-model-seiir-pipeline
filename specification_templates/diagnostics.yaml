@@ -16,7 +16,7 @@ grid_plots:
       - version: '/ihme/covid-19/seir-outputs/2021_02_03.02'
         scenarios:
           reference*: 'public reference'
-      - version: '/ihme/covid-19/seir-outputs/2021_02_11.02'
+      - version: '/ihme/covid-19/seir-outputs/2021_02_12.01'
         scenarios:
           worse: 'worse'
           new_variant: 'new_variant'
@@ -31,7 +31,7 @@ grid_plots:
       - version: '/ihme/covid-19/seir-outputs/2021_02_03.02'
         scenarios:
           reference*: 'public reference'
-      - version: '/ihme/covid-19/seir-outputs/2021_02_11.02'
+      - version: '/ihme/covid-19/seir-outputs/2021_02_12.01'
         scenarios:
           worse: 'worse'
           new_variant: 'new_variant'

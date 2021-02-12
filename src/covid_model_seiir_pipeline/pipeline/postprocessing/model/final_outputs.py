@@ -85,6 +85,7 @@ MEASURES = {
         calculate_cumulative=True,
         cumulative_label='cumulative_infections',
         aggregator=aggregators.sum_aggregator,
+        write_draws=True,
     ),
     'cases': MeasureConfig(
         loaders.load_cases,

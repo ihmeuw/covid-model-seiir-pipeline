@@ -26,9 +26,9 @@ resampling:
   reference_date: '2021-12-31'
   lower_quantile: 0.025
   upper_quantile: 0.975
-#splicing:
-#  - locations: [548,133,41,93,157,4672,4657,492,499,500,501,503,514]
-#    output_version: '/ihme/covid-19/seir-outputs/2020_12_22.03'
+splicing:
+  - locations: [11, 123, 133, 527, 532, 555, 85, 198, 197, 195, 196, 193, 194, 184]
+    output_version: '/ihme/covid-19/seir-outputs/2020_02_03.02'
 aggregation:
   - location_file: '/ihme/covid-19/seir-pipeline-outputs/agg-hierarchies/modeling.csv'
   - location_file: '/ihme/covid-19/seir-pipeline-outputs/agg-hierarchies/who_plus_palestine.csv'
