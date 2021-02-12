@@ -58,7 +58,6 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int):
     # We'll need this to compute deaths and to splice with the forecasts.
     infection_data = data_interface.load_infection_data(draw_id)
     ratio_data = data_interface.load_ratio_data(draw_id=draw_id)
-    import pdb; pdb.set_trace()
     ratio_data.ifr = model.correct_ifr(ratio_data.ifr, ifr_scalar, forecast_end_date)
     ratio_data.ifr_lr = model.correct_ifr(ratio_data.ifr_lr, ifr_scalar, forecast_end_date)
     ratio_data.ifr_hr = model.correct_ifr(ratio_data.ifr_hr, ifr_scalar, forecast_end_date)
