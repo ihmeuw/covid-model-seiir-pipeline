@@ -47,20 +47,25 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int):
     # Rescaling parameters for the beta forecast.
     beta_scales = data_interface.load_beta_scales(scenario=scenario, draw_id=draw_id)
     # Beta scale-up due to variant
-    variant_scalars = data_interface.load_variant_scalars(
-        scenario_spec.variant, transition_date, forecast_end_date
-    )
+    covariates = covariates.set_index(['location_id', 'date'])
+    variant_cols = ['variant_prevalence_B117', 'variant_prevalence_B1351', 'variant_prevalence_P1']
+    total_variant_prevalence = covariates[variant_cols].sum(axis=1)
+    bad_vacc_variant_prevalence = ['variant_prevalence_B1351', 'variant_prevalence_P1']
+    bad_vacc_variant_prevalence = covariates[bad_vacc_variant_prevalence].sum(axis=1)
+    covariates = covariates.reset_index()
+    raw_ifr_scalar = scenario_spec.variant.get('ifr_scalar', 1.)
+    ifr_scalar = raw_ifr_scalar * total_variant_prevalence + (1 - total_variant_prevalence)
     # We'll need this to compute deaths and to splice with the forecasts.
     infection_data = data_interface.load_infection_data(draw_id)
     ratio_data = data_interface.load_ratio_data(draw_id=draw_id)
-    ratio_data.ifr = model.correct_ifr(ratio_data.ifr, variant_scalars.ifr, forecast_end_date)
-    ratio_data.ifr_lr = model.correct_ifr(ratio_data.ifr_lr, variant_scalars.ifr, forecast_end_date)
-    ratio_data.ifr_hr = model.correct_ifr(ratio_data.ifr_hr, variant_scalars.ifr, forecast_end_date)
+    ratio_data.ifr = model.correct_ifr(ratio_data.ifr, ifr_scalar, forecast_end_date)
+    ratio_data.ifr_lr = model.correct_ifr(ratio_data.ifr_lr, ifr_scalar, forecast_end_date)
+    ratio_data.ifr_hr = model.correct_ifr(ratio_data.ifr_hr, ifr_scalar, forecast_end_date)
     # Data for computing hospital usage
     hospital_parameters = data_interface.get_hospital_parameters()
     correction_factors = data_interface.load_hospital_correction_factors()
     # Load any data specific to the particular scenario we're running
-    scenario_data = data_interface.load_scenario_specific_data(scenario_spec)
+    scenario_data = data_interface.load_scenario_specific_data(scenario_spec, bad_vacc_variant_prevalence)
 
     logger.info('Processing inputs into model parameters.', context='transform')
     # Split the population into risk groups according to the specification.
@@ -82,9 +87,6 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int):
     the_future = covariates['date'] >= transition_date.loc[covariates.index]
     covariate_pred = covariates.loc[the_future].reset_index()
     betas = model.forecast_beta(covariate_pred, coefficients, beta_scales)
-    betas = ((betas.set_index('date', append=True).beta_pred * variant_scalars.beta)
-             .rename('beta_pred')
-             .reset_index(level='date'))
     seiir_parameters = model.prep_seiir_parameters(
         betas,
         thetas,
@@ -175,9 +177,6 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int):
             covariate_pred = covariates.loc[the_future].reset_index()
 
             betas = model.forecast_beta(covariate_pred, coefficients, beta_scales)
-            betas = ((betas.set_index('date', append=True).beta_pred * variant_scalars.beta)
-                     .rename('beta_pred')
-                     .reset_index(level='date'))
             seiir_parameters = model.prep_seiir_parameters(
                 betas,
                 thetas,

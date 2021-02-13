@@ -167,31 +167,27 @@ class ForecastDataInterface:
     # Scenario data loaders #
     #########################
 
-    def load_scenario_specific_data(self, scenario_spec: ScenarioSpecification) -> ScenarioData:
-
+    def load_scenario_specific_data(self, scenario_spec: ScenarioSpecification,
+                                    variant_prevalence: pd.Series) -> ScenarioData:
         if scenario_spec.system == 'vaccine':
             forecast_scenario = scenario_spec.system_params.get('forecast_version', 'reference')
             vaccinations = self.load_vaccine_info(f'vaccinations_{forecast_scenario}')
             location_ids = vaccinations.reset_index().location_id.tolist()
-            if scenario_spec.variant:
-                b1351_prevalence = self.load_covariate(
-                    'variant_prevalence_B1351',
-                    scenario_spec.variant['version']
-                ).reset_index()
-                max_prevalence = (b1351_prevalence
-                                  .groupby('location_id')
-                                  .variant_prevalence_B1351
-                                  .max())
-                locs_with_b1351 = (max_prevalence[max_prevalence > 0]
-                                   .reset_index()
-                                   .location_id
-                                   .tolist())
-                locs_without_b1351 = list(set(location_ids).difference(locs_with_b1351))
-            else:
-                locs_with_b1351 = []
-                locs_without_b1351 = location_ids
-            b1351_vaccinations = vaccinations.loc[locs_with_b1351]
-            not_b1351_vaccinations = vaccinations.loc[locs_without_b1351]
+
+            variant_start_threshold = pd.Timestamp('2021-05-01')
+            bad_variant_entrance_date = (variant_prevalence[variant_prevalence > 1]
+                                         .reset_index()
+                                         .groupby('location_id')
+                                         .date
+                                         .min())
+            locs_with_bad_variant = (bad_variant_entrance_date[bad_variant_entrance_date < variant_start_threshold]
+                                     .reset_index()
+                                     .location_id
+                                     .tolist())
+
+            locs_without_bad_variant = list(set(location_ids).difference(locs_with_bad_variant))
+            bad_variant_vaccinations = vaccinations.loc[locs_with_bad_variant]
+            not_bad_variant_vaccinations = vaccinations.loc[locs_without_bad_variant]
             # FIXME: should get from population partition
             risk_groups = ['lr', 'hr']
             vaccination_groups = ['unprotected', 'protected', 'immune']
@@ -199,28 +195,28 @@ class ForecastDataInterface:
                         for vaccination_group, risk_group in product(vaccination_groups, risk_groups)]
             vaccinations = pd.DataFrame(columns=out_cols, index=vaccinations.index)
             for risk_group in risk_groups:
-                vaccinations.loc[b1351_vaccinations.index, f'unprotected_{risk_group}'] = (
-                    b1351_vaccinations[f'unprotected_{risk_group}']
-                    + b1351_vaccinations[f'effective_protected_wildtype_{risk_group}']
-                    + b1351_vaccinations[f'effective_wildtype_{risk_group}']
+                vaccinations.loc[bad_variant_vaccinations.index, f'unprotected_{risk_group}'] = (
+                    bad_variant_vaccinations[f'unprotected_{risk_group}']
+                    + bad_variant_vaccinations[f'effective_protected_wildtype_{risk_group}']
+                    + bad_variant_vaccinations[f'effective_wildtype_{risk_group}']
                 )
-                vaccinations.loc[b1351_vaccinations.index, f'protected_{risk_group}'] = (
-                    b1351_vaccinations[f'effective_protected_variant_{risk_group}']
+                vaccinations.loc[bad_variant_vaccinations.index, f'protected_{risk_group}'] = (
+                    bad_variant_vaccinations[f'effective_protected_variant_{risk_group}']
                 )
-                vaccinations.loc[b1351_vaccinations.index, f'immune_{risk_group}'] = (
-                    b1351_vaccinations[f'effective_variant_{risk_group}']
+                vaccinations.loc[bad_variant_vaccinations.index, f'immune_{risk_group}'] = (
+                    bad_variant_vaccinations[f'effective_variant_{risk_group}']
                 )
 
-                vaccinations.loc[not_b1351_vaccinations.index, f'unprotected_{risk_group}'] = (
-                    not_b1351_vaccinations[f'unprotected_{risk_group}']
+                vaccinations.loc[not_bad_variant_vaccinations.index, f'unprotected_{risk_group}'] = (
+                    not_bad_variant_vaccinations[f'unprotected_{risk_group}']
                 )
-                vaccinations.loc[not_b1351_vaccinations.index, f'protected_{risk_group}'] = (
-                    not_b1351_vaccinations[f'effective_protected_wildtype_{risk_group}']
-                    + not_b1351_vaccinations[f'effective_protected_variant_{risk_group}']
+                vaccinations.loc[not_bad_variant_vaccinations.index, f'protected_{risk_group}'] = (
+                    not_bad_variant_vaccinations[f'effective_protected_wildtype_{risk_group}']
+                    + not_bad_variant_vaccinations[f'effective_protected_variant_{risk_group}']
                 )
-                vaccinations.loc[not_b1351_vaccinations.index, f'immune_{risk_group}'] = (
-                    not_b1351_vaccinations[f'effective_wildtype_{risk_group}']
-                    + not_b1351_vaccinations[f'effective_variant_{risk_group}']
+                vaccinations.loc[not_bad_variant_vaccinations.index, f'immune_{risk_group}'] = (
+                    not_bad_variant_vaccinations[f'effective_wildtype_{risk_group}']
+                    + not_bad_variant_vaccinations[f'effective_variant_{risk_group}']
                 )
         else:
             vaccinations = None
@@ -228,7 +224,7 @@ class ForecastDataInterface:
         if scenario_spec.algorithm == 'draw_level_mandate_reimposition':
             mobility_scenario = scenario_spec.covariates['mobility']
             percent_mandates = self.load_mobility_info(f'{mobility_scenario}_mandate_lift')
-            mandate_effects = self.load_mobility_info(f'{mobility_scenario}_effect')
+            mandate_effects = self.load_mobility_info(f'effect')
         else:
             percent_mandates = None
             mandate_effects = None
@@ -270,53 +266,6 @@ class ForecastDataInterface:
             raise ValueError('Sigma - theta must be smaller than 1')
 
         return thetas
-
-    def load_variant_scalars(self, variant_specification: Dict,
-                             transition_dates: pd.Series,
-                             max_date: pd.Timestamp) -> VariantScalars:
-        if not variant_specification:
-            idx = (transition_dates
-                   .groupby('location_id')
-                   .apply(lambda x: pd.date_range(x.iloc[0], max_date, name='date'))
-                   .explode()
-                   .reset_index()
-                   .set_index(['location_id', 'date'])
-                   .index)
-            return VariantScalars(
-                beta=pd.Series(1, index=idx),
-                ifr=pd.Series(1, index=idx),
-            )
-        scenario = variant_specification['version']
-        prevalences = []
-        for variant in ['B117', 'B1351', 'P1']:
-            variant_prevalence = self.load_covariate(f'variant_prevalence_{variant}', scenario)
-            variant_prevalence = variant_prevalence[f'variant_prevalence_{variant}'].rename('proportion')
-            prevalences.append(variant_prevalence)
-
-        # FIXME: These are mutually exclusive this week only.
-        variant_prevalence = sum(prevalences)
-
-        beta_increase = variant_specification.get('beta_scalar', 1.)
-        ifr_increase = variant_specification.get('ifr_scalar', 1.)
-
-        betas = []
-        ifrs = []
-        for location_id in transition_dates.index:
-            scalar_date_start = transition_dates.loc[location_id]
-            loc_prevalence = variant_prevalence.loc[location_id]
-            loc_prevalence = loc_prevalence.loc[scalar_date_start:max_date]
-            # We care about the increase relative to forecast start
-            loc_prevalence -= loc_prevalence.loc[scalar_date_start]
-            loc_prevalence = loc_prevalence.reset_index()
-            loc_prevalence['location_id'] = location_id
-            loc_prevalence = loc_prevalence.set_index(['location_id', 'date']).proportion
-
-            betas.append(loc_prevalence*beta_increase + (1 - loc_prevalence))
-            ifrs.append(loc_prevalence*ifr_increase + (1 - loc_prevalence))
-        return VariantScalars(
-            beta=pd.concat(betas).sort_index(),
-            ifr=pd.concat(ifrs).sort_index(),
-        )
 
     def get_infections_metadata(self):
         return self._get_regression_data_interface().get_infections_metadata()

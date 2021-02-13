@@ -143,7 +143,6 @@ def compute_infections(components: pd.DataFrame) -> Tuple[pd.Series, pd.Series]:
     # everything downstream of it.
     new_e_protected_columns = [c for c in components.columns if '_p' in c and 'S' not in c]
     immune_cols = [c for c in components.columns if 'M' in c]
-
     delta_susceptible = _get_daily_subgroup(components, susceptible_columns)
     delta_new_e_protected = _get_daily_subgroup(components, new_e_protected_columns)
     delta_immune = _get_daily_subgroup(components, immune_cols)

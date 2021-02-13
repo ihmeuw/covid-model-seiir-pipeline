@@ -17,23 +17,27 @@ class MeasureConfig:
                  splice: bool = True,
                  calculate_cumulative: bool = False,
                  cumulative_label: str = None,
-                 aggregator: Callable = None):
+                 aggregator: Callable = None,
+                 write_draws: bool = False):
         self.loader = loader
         self.label = label
         self.splice = splice
         self.calculate_cumulative = calculate_cumulative
         self.cumulative_label = cumulative_label
         self.aggregator = aggregator
+        self.write_draws = write_draws
 
 
 class CompositeMeasureConfig:
     def __init__(self,
                  base_measures: Dict[str, MeasureConfig],
                  label: str,
-                 combiner: Callable = None):
+                 combiner: Callable,
+                 write_draws: bool = False):
         self.base_measures = base_measures
         self.label = label
         self.combiner = combiner
+        self.write_draws = write_draws
 
 
 class CovariateConfig:
@@ -42,14 +46,14 @@ class CovariateConfig:
                  label: str,
                  splice: bool = False,
                  time_varying: bool = False,
-                 draw_level: bool = False,
-                 aggregator: Callable = None):
+                 aggregator: Callable = None,
+                 write_draws: bool = False):
         self.loader = loader
         self.label = label
         self.splice = splice
         self.time_varying = time_varying
-        self.draw_level = draw_level
         self.aggregator = aggregator
+        self.write_draws = write_draws
 
 
 class MiscellaneousConfig:
@@ -73,6 +77,7 @@ MEASURES = {
         calculate_cumulative=True,
         cumulative_label='cumulative_deaths',
         aggregator=aggregators.sum_aggregator,
+        write_draws=True,
     ),
     'infections': MeasureConfig(
         loaders.load_infections,
@@ -80,6 +85,7 @@ MEASURES = {
         calculate_cumulative=True,
         cumulative_label='cumulative_infections',
         aggregator=aggregators.sum_aggregator,
+        write_draws=True,
     ),
     'cases': MeasureConfig(
         loaders.load_cases,
@@ -146,10 +152,12 @@ MEASURES = {
     'coefficients': MeasureConfig(
         loaders.load_coefficients,
         'coefficients',
+        write_draws=True,
     ),
     'scaling_parameters': MeasureConfig(
         loaders.load_scaling_parameters,
         'beta_scaling_parameters',
+        write_draws=True,
     ),
 }
 
@@ -181,7 +189,6 @@ COVARIATES = {
         loaders.load_covariate,
         'mobility',
         time_varying=True,
-        draw_level=True,
         aggregator=aggregators.mean_aggregator,
     ),
     'testing': CovariateConfig(
@@ -225,6 +232,24 @@ COVARIATES = {
     'smoking_prevalence': CovariateConfig(
         loaders.load_covariate,
         'smoking_prevalence',
+        aggregator=aggregators.mean_aggregator,
+    ),
+    'variant_prevalence_B117': CovariateConfig(
+        loaders.load_covariate,
+        'variant_prevalence_B117',
+        time_varying=True,
+        aggregator=aggregators.mean_aggregator,
+    ),
+    'variant_prevalence_B1351': CovariateConfig(
+        loaders.load_covariate,
+        'variant_prevalence_B1351',
+        time_varying=True,
+        aggregator=aggregators.mean_aggregator,
+    ),
+    'variant_prevalence_P1': CovariateConfig(
+        loaders.load_covariate,
+        'variant_prevalence_P1',
+        time_varying=True,
         aggregator=aggregators.mean_aggregator,
     ),
 }
