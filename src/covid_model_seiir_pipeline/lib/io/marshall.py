@@ -31,12 +31,20 @@ class CSVMarshall:
             msg = f"Cannot dump data for key {key} - would overwrite"
             raise LookupError(msg)
 
-        data.to_csv(path, index=False)
+        write_index = bool(set(data.index.names).intersection(['location_id', 'date']))
+        data.to_csv(path, index=write_index)
 
     @classmethod
     def load(cls, key: DatasetKey) -> pd.DataFrame:
         path = cls._resolve_key(key)
-        return pd.read_csv(path)
+        data = pd.read_csv(path)
+        index_cols = []
+        if 'location_id' in data.columns:
+            index_cols.append('location_id')
+        if 'date' in data.columns:
+            data['date'] = pd.to_datetime(data['date'])
+            index_cols.append('date')
+        return data.set_index(index_cols).sort_index()
 
     @classmethod
     def touch(cls, *paths: Path) -> None:
