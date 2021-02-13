@@ -4,8 +4,6 @@ import pytest
 from covid_model_seiir_pipeline.lib.io import RegressionRoot
 from covid_model_seiir_pipeline.lib.io.marshall import (
     CSVMarshall,
-    ZipMarshall,
-    HDF5Marshall,
 )
 
 
@@ -68,46 +66,3 @@ class TestCSVMarshall(MarshallInterfaceTests):
     @pytest.fixture
     def instance(self):
         return CSVMarshall
-
-
-class TestZipMarshall(MarshallInterfaceTests):
-    @pytest.fixture
-    def regression_root(self, tmpdir):
-        return RegressionRoot(tmpdir, data_format='zip')
-
-    @pytest.fixture
-    def instance(self):
-        return ZipMarshall
-
-
-class TestHdf5Marshall(MarshallInterfaceTests):
-    @pytest.fixture
-    def regression_root(self, tmpdir):
-        return RegressionRoot(tmpdir, data_format='hdf')
-
-    @pytest.fixture
-    def instance(self):
-        return HDF5Marshall
-
-
-class TestHdf5Marshall_noniface:
-    @pytest.fixture
-    def regression_root(self, tmpdir):
-        return RegressionRoot(tmpdir, data_format='hdf')
-
-    @pytest.fixture
-    def instance(self):
-        return HDF5Marshall
-
-    def test_datetime(self, instance, regression_root, regression_beta):
-        """
-        Re-use regression_Beta fixture but cast date as a datetime.
-        """
-        regression_beta['date'] = pandas.to_datetime(regression_beta['date'])
-        key = regression_root.beta(draw_id=4)
-
-        instance.dump(regression_beta, key=key)
-        loaded = instance.load(key)
-
-        pandas.testing.assert_frame_equal(regression_beta, loaded)
-
