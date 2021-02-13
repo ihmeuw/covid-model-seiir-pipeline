@@ -40,7 +40,9 @@ class CSVMarshall:
         if 'date' in data.columns:
             data['date'] = pd.to_datetime(data['date'])
             index_cols.append('date')
-        return data.set_index(index_cols).sort_index()
+        if index_cols:
+            data = data.set_index(index_cols).sort_index()
+        return data
 
     @classmethod
     def touch(cls, *paths: Path) -> None:

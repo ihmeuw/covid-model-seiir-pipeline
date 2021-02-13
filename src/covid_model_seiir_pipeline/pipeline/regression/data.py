@@ -106,10 +106,7 @@ class RegressionDataInterface:
 
     def load_full_past_infection_data(self, draw_id: int) -> pd.DataFrame:
         infection_data = io.load(self.infection_root.infections(draw_id=draw_id))
-        infection_data['date'] = pd.to_datetime(infection_data['date'])
         infection_data = (infection_data
-                          .set_index(['location_id', 'date'])
-                          .sort_index()
                           .loc[:, ['infections_draw', 'deaths']]
                           .rename(columns={'infections_draw': 'infections'}))
         return infection_data
@@ -142,8 +139,6 @@ class RegressionDataInterface:
 
     def format_ratio_data(self, ratio_data: pd.DataFrame) -> pd.DataFrame:
         location_ids = self.load_location_ids()
-        ratio_data['date'] = pd.to_datetime(ratio_data['date'])
-        ratio_data = ratio_data.set_index(['location_id', 'date']).sort_index()
         ratio_data = ratio_data.loc[location_ids]
         col_map = {c: c.split('_draw')[0] for c in ratio_data.columns if '_draw' in c}
         ratio_data = ratio_data.loc[:, ['duration'] + list(col_map)].rename(columns=col_map)
@@ -175,13 +170,8 @@ class RegressionDataInterface:
     def load_covariate(self, covariate: str) -> pd.DataFrame:
         location_ids = self.load_location_ids()
         covariate_df = io.load(self.covariate_root[covariate](covariate_scenario='reference'))
-        index_columns = ['location_id']
-        covariate_df = covariate_df.loc[covariate_df['location_id'].isin(location_ids), :]
-        if 'date' in covariate_df.columns:
-            covariate_df['date'] = pd.to_datetime(covariate_df['date'])
-            index_columns.append('date')
-        covariate_df = covariate_df.rename(columns={f'{covariate}_reference': covariate})
-        return covariate_df.loc[:, index_columns + [covariate]].set_index(index_columns)
+        covariate_df = covariate_df.loc[location_ids].rename(columns={f'{covariate}_reference': covariate})
+        return covariate_df.loc[:, [covariate]]
 
     def load_covariates(self, covariates: Iterable[str]) -> pd.DataFrame:
         covariate_data = []
