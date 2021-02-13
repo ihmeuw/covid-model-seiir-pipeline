@@ -19,7 +19,7 @@ workflow:
       num_cores: 26
     postprocess:
       max_runtime_seconds: 15000
-      m_mem_free: '30G'
+      m_mem_free: '60G'
       num_cores: 26
 resampling:
   reference_scenario: 'reference'
