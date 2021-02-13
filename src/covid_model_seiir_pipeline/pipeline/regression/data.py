@@ -179,7 +179,7 @@ class RegressionDataInterface:
             if covariate != 'intercept':
                 covariate_data.append(self.load_covariate(covariate))
         covariate_data = reduce(lambda x, y: x.merge(y, left_index=True, right_index=True), covariate_data)
-        return covariate_data.reset_index()
+        return covariate_data
 
     ##############################
     # Miscellaneous data loaders #

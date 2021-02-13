@@ -26,11 +26,8 @@ def run_beta_regression(regression_version: str, draw_id: int) -> None:
 
     logger.info('Loading input data', context='read')
     population = data_interface.load_five_year_population().groupby('location_id')['population'].sum()
-
     past_infections = data_interface.load_past_infection_data(draw_id=draw_id)
-
     covariates = data_interface.load_covariates(regression_specification.covariates)
-
     if regression_specification.data.coefficient_version:
         prior_coefficients = data_interface.load_prior_run_coefficients(draw_id=draw_id)
     else:
@@ -56,6 +53,7 @@ def run_beta_regression(regression_version: str, draw_id: int) -> None:
     regressor = model.build_regressor(regression_specification.covariates.values(), prior_coefficients)
     logger.info('Fitting beta regression', context='compute_regression')
     coefficients = regressor.fit(mr_data, regression_specification.regression_parameters.sequential_refit)
+    import pdb; pdb.set_trace()
     log_beta_hat = math.compute_beta_hat(covariates, coefficients)
     beta_hat = np.exp(log_beta_hat).rename('beta_pred').reset_index()
 

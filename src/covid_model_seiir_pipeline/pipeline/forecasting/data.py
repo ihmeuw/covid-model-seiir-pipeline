@@ -71,7 +71,7 @@ class ForecastDataInterface:
     def load_regression_coefficients(self, draw_id: int) -> pd.DataFrame:
         return self._get_regression_data_interface().load_regression_coefficients(draw_id=draw_id)
 
-    def load_transition_date(self, draw_id: int) -> pd.Series:
+    def load_transition_date(self, draw_id: int) -> pd.MultiIndex:
         dates_df = self._get_regression_data_interface().load_date_file(draw_id=draw_id)
         dates_df['end_date'] = pd.to_datetime(dates_df['end_date'])
         return dates_df['end_date'].rename('date')
