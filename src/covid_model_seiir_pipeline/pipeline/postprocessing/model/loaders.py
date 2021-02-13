@@ -18,6 +18,10 @@ def load_infections(scenario: str, data_interface: 'PostprocessingDataInterface'
     return load_output_data(scenario, 'infections', data_interface, num_cores)
 
 
+def load_cases(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
+    return load_output_data(scenario, 'cases', data_interface, num_cores)
+
+
 def load_r_controlled(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
     return load_output_data(scenario, 'r_controlled', data_interface, num_cores)
 
@@ -63,7 +67,7 @@ def load_hospital_correction_factors(data_interface: 'PostprocessingDataInterfac
     for correction_type in ['hospital', 'icu', 'ventilator']:
         df = data_interface.load_raw_outputs(
             draw_id=0,  # All draws are identical.
-            scenario='worse',  # All scenarios the same.
+            scenario='reference',  # All scenarios the same.
             measure=f'{correction_type}_census_correction',
         )
         df = df.rename(f'{correction_type}_census')

@@ -16,7 +16,7 @@ from covid_model_seiir_pipeline.pipeline.forecasting.data import ForecastDataInt
 logger = cli_tools.task_performance_logger
 
 
-def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, **kwargs):
+def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int):
     logger.info(f"Initiating SEIIR beta forecasting for scenario {scenario}, draw {draw_id}.", context='setup')
     forecast_spec: ForecastSpecification = ForecastSpecification.from_path(
         Path(forecast_version) / static_vars.FORECAST_SPECIFICATION_FILE
@@ -25,7 +25,6 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, **kwar
     data_interface = ForecastDataInterface.from_specification(forecast_spec)
 
     logger.info('Loading input data.', context='read')
-    location_ids = data_interface.load_location_ids()
     # We'll use the same params in the ODE forecast as we did in the fit.
     beta_params = data_interface.load_beta_params(draw_id=draw_id)
     # Thetas are a parameter generated from assumption or OOS predictive
@@ -34,44 +33,39 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, **kwar
     # Grab the last day of data in the model by location id.  This will
     # correspond to the initial condition for the projection.
     transition_date = data_interface.load_transition_date(draw_id)
-    # The population will be used to partition the SEIR compartments into
+    # The population will be used to partition the SEIIR compartments into
     # different sub groups for the forecast.
-    population = data_interface.load_five_year_population(location_ids)
-    # We'll use the beta and SEIR compartments from this data set to get
+    population = data_interface.load_five_year_population()
+    # We'll use the beta and SEIIR compartments from this data set to get
     # the ODE initial condition.
     beta_regression_df = data_interface.load_beta_regression(draw_id)
     # Covariates and coefficients, and scaling parameters are
     # used to compute beta hat in the future.
-    covariates = data_interface.load_covariates(scenario_spec, location_ids)
+    covariates = data_interface.load_covariates(scenario_spec)
     coefficients = data_interface.load_regression_coefficients(draw_id)
     forecast_end_date = covariates.date.max()
     # Rescaling parameters for the beta forecast.
     beta_scales = data_interface.load_beta_scales(scenario=scenario, draw_id=draw_id)
     # Beta scale-up due to variant
-    variant_scalars = data_interface.load_variant_scalars(
-        scenario_spec.variant, transition_date, forecast_end_date
-    )
+    covariates = covariates.set_index(['location_id', 'date'])
+    variant_cols = ['variant_prevalence_B117', 'variant_prevalence_B1351', 'variant_prevalence_P1']
+    total_variant_prevalence = covariates[variant_cols].sum(axis=1)
+    bad_vacc_variant_prevalence = ['variant_prevalence_B1351', 'variant_prevalence_P1']
+    bad_vacc_variant_prevalence = covariates[bad_vacc_variant_prevalence].sum(axis=1)
+    covariates = covariates.reset_index()
+    raw_ifr_scalar = scenario_spec.variant.get('ifr_scalar', 1.)
+    ifr_scalar = raw_ifr_scalar * total_variant_prevalence + (1 - total_variant_prevalence)
     # We'll need this to compute deaths and to splice with the forecasts.
     infection_data = data_interface.load_infection_data(draw_id)
-    ifr = data_interface.load_ifr_data(draw_id, location_ids)
-    ifr = (ifr
-           .reindex(ifr.index.union(variant_scalars.ifr.index))
-           .groupby('location_id')
-           .fillna(method='ffill')
-           .reset_index())
-    ifr = ifr.loc[ifr.date <= forecast_end_date].set_index(['location_id', 'date'])
-    ifr_cols = [c for c in ifr.columns if c != 'duration']
-    ifr.loc[variant_scalars.ifr.index, ifr_cols] = (ifr
-                                                    .loc[variant_scalars.ifr.index, ifr_cols]
-                                                    .mul(variant_scalars.ifr, axis=0))
+    ratio_data = data_interface.load_ratio_data(draw_id=draw_id)
+    ratio_data.ifr = model.correct_ifr(ratio_data.ifr, ifr_scalar, forecast_end_date)
+    ratio_data.ifr_lr = model.correct_ifr(ratio_data.ifr_lr, ifr_scalar, forecast_end_date)
+    ratio_data.ifr_hr = model.correct_ifr(ratio_data.ifr_hr, ifr_scalar, forecast_end_date)
     # Data for computing hospital usage
-    mr = data_interface.load_mortality_ratio(location_ids)
-    death_weights = model.get_death_weights(mr, population, with_error=False)
-    hfr = data_interface.load_hospital_fatality_ratio(death_weights, location_ids)
     hospital_parameters = data_interface.get_hospital_parameters()
     correction_factors = data_interface.load_hospital_correction_factors()
     # Load any data specific to the particular scenario we're running
-    scenario_data = data_interface.load_scenario_specific_data(location_ids, scenario_spec)
+    scenario_data = data_interface.load_scenario_specific_data(scenario_spec, bad_vacc_variant_prevalence)
 
     logger.info('Processing inputs into model parameters.', context='transform')
     # Split the population into risk groups according to the specification.
@@ -93,10 +87,7 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, **kwar
     the_future = covariates['date'] >= transition_date.loc[covariates.index]
     covariate_pred = covariates.loc[the_future].reset_index()
     betas = model.forecast_beta(covariate_pred, coefficients, beta_scales)
-    betas = ((betas.set_index('date', append=True).beta_pred * variant_scalars.beta)
-             .rename('beta_pred')
-             .reset_index(level='date'))
-    seir_parameters = model.prep_seir_parameters(
+    seiir_parameters = model.prep_seiir_parameters(
         betas,
         thetas,
         scenario_data,
@@ -113,23 +104,22 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, **kwar
     future_components = model.run_normal_ode_model_by_location(
         initial_condition,
         beta_params,
-        seir_parameters,
+        seiir_parameters,
         scenario_spec,
         compartment_info,
     )
     logger.info('Processing ODE results and computing deaths and infections.', context='compute_results')
     output_metrics = model.compute_output_metrics(
         infection_data,
-        ifr,
+        ratio_data,
         past_components,
         future_components,
         beta_params,
         compartment_info,
     )
     hospital_usage = model.compute_corrected_hospital_usage(
-        output_metrics.deaths,
-        death_weights,
-        hfr,
+        output_metrics.admissions,
+        ratio_data.ihr / ratio_data.ifr,
         hospital_parameters,
         correction_factors,
     )
@@ -137,6 +127,7 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, **kwar
     if scenario_spec.algorithm == 'draw_level_mandate_reimposition':
         logger.info('Entering mandate reimposition.', context='compute_mandates')
         # Info data specific to mandate reimposition
+        location_ids = data_interface.load_location_ids()
         min_wait, days_on, reimposition_threshold, max_threshold = model.unpack_parameters(
             scenario_spec.algorithm_params,
             location_ids
@@ -186,10 +177,7 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, **kwar
             covariate_pred = covariates.loc[the_future].reset_index()
 
             betas = model.forecast_beta(covariate_pred, coefficients, beta_scales)
-            betas = ((betas.set_index('date', append=True).beta_pred * variant_scalars.beta)
-                     .rename('beta_pred')
-                     .reset_index(level='date'))
-            seir_parameters = model.prep_seir_parameters(
+            seiir_parameters = model.prep_seiir_parameters(
                 betas,
                 thetas,
                 scenario_data,
@@ -203,7 +191,7 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, **kwar
             future_components_subset = model.run_normal_ode_model_by_location(
                 initial_condition_subset,
                 beta_params,
-                seir_parameters,
+                seiir_parameters,
                 scenario_spec,
                 compartment_info,
             ).set_index('date', append=True).sort_index()
@@ -218,16 +206,15 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, **kwar
                                  .reset_index(level='date'))
             output_metrics = model.compute_output_metrics(
                 infection_data,
-                ifr,
+                ratio_data,
                 past_components,
                 future_components,
                 beta_params,
                 compartment_info,
             )
             hospital_usage = model.compute_corrected_hospital_usage(
-                output_metrics.deaths,
-                death_weights,
-                hfr,
+                output_metrics.admissions,
+                ratio_data.ihr / ratio_data.ifr,
                 hospital_parameters,
                 correction_factors,
             )
@@ -266,9 +253,8 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, **kwar
 @cli_tools.with_task_forecast_version
 @cli_tools.with_scenario
 @cli_tools.with_draw_id
-@cli_tools.with_extra_id
 @cli_tools.add_verbose_and_with_debugger
-def beta_forecast(forecast_version: str, scenario: str, draw_id: int, extra_id: int,
+def beta_forecast(forecast_version: str, scenario: str, draw_id: int,
                   verbose: int, with_debugger: bool):
     cli_tools.configure_logging_to_terminal(verbose)
 

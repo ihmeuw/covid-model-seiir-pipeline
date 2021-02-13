@@ -1,4 +1,4 @@
-from typing import Dict, List
+from typing import Dict
 
 from loguru import logger
 import numba
@@ -27,9 +27,9 @@ def sample_parameters(draw_id: int, regression_parameters: Dict) -> ODEParameter
 
 def run_beta_fit(past_infections: pd.Series,
                  population: pd.Series,
-                 location_ids: List[int],
                  ode_parameters: ODEParameters) -> pd.DataFrame:
     beta_fit_dfs = []
+    location_ids = past_infections.reset_index().location_id.unique()
     for location_id in location_ids:
         beta_fit = run_loc_beta_fit(
             infections=past_infections.loc[location_id],
@@ -127,7 +127,7 @@ def run_loc_beta_fit(infections: pd.Series,
 
 
 @numba.njit
-def linear_first_order(t: float, y: np.ndarray, p: np.ndarray):
+def linear_first_order(_: float, y: np.ndarray, p: np.ndarray):
     c, f = p
     x = y[0]
     dx = -c * x + f

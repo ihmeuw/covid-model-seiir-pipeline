@@ -29,8 +29,6 @@ def fill_cumulative_date_index(data: pd.DataFrame) -> pd.DataFrame:
     return data.groupby(level='location_id').apply(_reindex)
 
 
-
-
 def sum_aggregator(measure_data: pd.DataFrame, hierarchy: pd.DataFrame, _population: pd.DataFrame) -> pd.DataFrame:
     """Aggregates most-detailed locations to locations in the hierarchy by sum.
 

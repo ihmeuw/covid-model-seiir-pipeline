@@ -1,24 +1,22 @@
 data:
-  infection_version: '2021_02_02.06'
-  covariate_version: '2021_02_02.11'
-  mortality_rate_version: 'best'
-  hospital_fatality_ratio_version: 'best'
+  infection_version: '2021_02_10.11'
+  covariate_version: '2021_02_10.04'
   coefficient_version: ''
   location_set_version_id: ''
   location_set_file: '/ihme/covid-19/seir-pipeline-outputs/metadata-inputs/location_metadata_810.csv'
   output_root: ''
 workflow:
-  project: 'proj_covid'
-  queue: 'd.q'
+  project: 'proj_covid_prod'
+  queue: 'all.q'
   tasks:
     beta_regression:
-      max_runtime_seconds: 3000
+      max_runtime_seconds: 6000
       m_mem_free: '2G'
       num_cores: 1
     hospital_correction_factors:
       max_runtime_seconds: 3000
-      m_mem_free: '2G'
-      num_cores: 1
+      m_mem_free: '20G'
+      num_cores: 26
 regression_parameters:
   n_draws: 1000
   day_shift: [0, 11]
@@ -120,6 +118,27 @@ covariates:
     order: 0
     use_re: False
     gprior: [0.0, 0.001]
+    bounds: [0.0, 1000.0]
+    re_var: 1.0
+    draws: False
+  variant_prevalence_B117:
+    order: 0
+    use_re: False
+    gprior: [0.3075, 0.1]
+    bounds: [0.0, 1000.0]
+    re_var: 1.0
+    draws: False
+  variant_prevalence_B1351:
+    order: 0
+    use_re: False
+    gprior: [0.3075, 0.1]
+    bounds: [0.0, 1000.0]
+    re_var: 1.0
+    draws: False
+  variant_prevalence_P1:
+    order: 0
+    use_re: False
+    gprior: [0.3075, 0.1]
     bounds: [0.0, 1000.0]
     re_var: 1.0
     draws: False

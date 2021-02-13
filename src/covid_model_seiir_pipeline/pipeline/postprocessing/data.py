@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Dict, List, Tuple
+from typing import Dict, List
 
 import numpy as np
 import pandas as pd
@@ -23,17 +23,21 @@ class PostprocessingDataInterface:
 
     def __init__(self,
                  forecast_root: io.ForecastRoot,
+                 mortality_ratio_root: io.MortalityRatioRoot,
                  postprocessing_root: io.PostprocessingRoot):
         self.forecast_root = forecast_root
+        self.mortality_ratio_root = mortality_ratio_root
         self.postprocessing_root = postprocessing_root
 
     @classmethod
     def from_specification(cls, specification: PostprocessingSpecification):
         forecast_root = io.ForecastRoot(specification.data.forecast_version)
+        mortality_ratio_root = io.MortalityRatioRoot(specification.data.mortality_ratio_version)
         postprocessing_root = io.PostprocessingRoot(specification.data.output_root)
 
         return cls(
             forecast_root=forecast_root,
+            mortality_ratio_root=mortality_ratio_root,
             postprocessing_root=postprocessing_root,
         )
 
@@ -85,9 +89,8 @@ class PostprocessingDataInterface:
             covariate = covariates.groupby(level='location_id')[covariate].max().rename(draw_id)
         return covariate
 
-    def load_input_covariate(self, covariate: str, covariate_version: str, location_ids: List[int]):
-        return self._get_forecast_data_inteface().load_covariate(covariate, covariate_version,
-                                                                 location_ids, with_observed=True)
+    def load_input_covariate(self, covariate: str, covariate_version: str):
+        return self._get_forecast_data_inteface().load_covariate(covariate, covariate_version, with_observed=True)
 
     def load_betas(self, draw_id: int, scenario: str) -> pd.Series:
         ode_params = io.load(self.forecast_root.ode_params(scenario=scenario, draw_id=draw_id))
@@ -135,10 +138,11 @@ class PostprocessingDataInterface:
             dfs.append(df.set_index(['location_id', 'date']).sort_index())
         return pd.concat(dfs)
 
-    def load_mortality_ratio(self):
-        forecast_di = self._get_forecast_data_inteface()
-        location_ids = forecast_di.load_location_ids()
-        return forecast_di.load_mortality_ratio(location_ids)
+    def load_mortality_ratio(self) -> pd.Series:
+        location_ids = self.load_location_ids()
+        mr_df = io.load(self.mortality_ratio_root.mortality_ratio())
+        mr = mr_df.set_index(['location_id', 'age_start']).MRprob
+        return mr.loc[location_ids]
 
     def build_version_map(self) -> pd.Series:
         forecast_di = self._get_forecast_data_inteface()
@@ -149,9 +153,8 @@ class PostprocessingDataInterface:
             'covariate_version': Path(forecast_di.covariate_root._root).name
         }
 
-        # FIXME: infectionator doesn't do metadata the right way.
-        inf_metadata = forecast_di.get_infectionator_metadata()
-        version_map['infectionator_version'] = Path(inf_metadata['output_path']).name
+        inf_metadata = forecast_di.get_infections_metadata()
+        version_map['infections_version'] = Path(inf_metadata['output_path']).name
 
         model_inputs_metadata = inf_metadata['model_inputs_metadata']
         version_map['model_inputs_version'] = Path(model_inputs_metadata['output_path']).name

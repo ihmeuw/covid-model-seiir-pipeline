@@ -1,8 +1,8 @@
-from typing import Any, Callable, List, TYPE_CHECKING
+from typing import Any, Callable, Dict, List, TYPE_CHECKING
 
 import pandas as pd
 
-from covid_model_seiir_pipeline.pipeline.postprocessing.model import aggregators, loaders
+from covid_model_seiir_pipeline.pipeline.postprocessing.model import aggregators, loaders, combiners
 
 if TYPE_CHECKING:
     # The model subpackage is a library for the pipeline stage and shouldn't
@@ -14,16 +14,30 @@ class MeasureConfig:
     def __init__(self,
                  loader: Callable[[str, 'PostprocessingDataInterface', int], Any],
                  label: str,
-                 splice: bool = False,
+                 splice: bool = True,
                  calculate_cumulative: bool = False,
                  cumulative_label: str = None,
-                 aggregator: Callable = None):
+                 aggregator: Callable = None,
+                 write_draws: bool = False):
         self.loader = loader
         self.label = label
         self.splice = splice
         self.calculate_cumulative = calculate_cumulative
         self.cumulative_label = cumulative_label
         self.aggregator = aggregator
+        self.write_draws = write_draws
+
+
+class CompositeMeasureConfig:
+    def __init__(self,
+                 base_measures: Dict[str, MeasureConfig],
+                 label: str,
+                 combiner: Callable,
+                 write_draws: bool = False):
+        self.base_measures = base_measures
+        self.label = label
+        self.combiner = combiner
+        self.write_draws = write_draws
 
 
 class CovariateConfig:
@@ -32,17 +46,17 @@ class CovariateConfig:
                  label: str,
                  splice: bool = False,
                  time_varying: bool = False,
-                 draw_level: bool = False,
-                 aggregator: Callable = None):
+                 aggregator: Callable = None,
+                 write_draws: bool = False):
         self.loader = loader
         self.label = label
         self.splice = splice
         self.time_varying = time_varying
-        self.draw_level = draw_level
         self.aggregator = aggregator
+        self.write_draws = write_draws
 
 
-class OtherConfig:
+class MiscellaneousConfig:
     def __init__(self,
                  loader: Callable[['PostprocessingDataInterface'], Any],
                  label: str,
@@ -60,96 +74,113 @@ MEASURES = {
     'deaths': MeasureConfig(
         loaders.load_deaths,
         'daily_deaths',
-        splice=True,
         calculate_cumulative=True,
         cumulative_label='cumulative_deaths',
         aggregator=aggregators.sum_aggregator,
+        write_draws=True,
     ),
     'infections': MeasureConfig(
         loaders.load_infections,
         'daily_infections',
-        splice=True,
         calculate_cumulative=True,
         cumulative_label='cumulative_infections',
+        aggregator=aggregators.sum_aggregator,
+        write_draws=True,
+    ),
+    'cases': MeasureConfig(
+        loaders.load_cases,
+        'daily_cases',
+        calculate_cumulative=True,
+        cumulative_label='cumulative_cases',
         aggregator=aggregators.sum_aggregator,
     ),
     'r_controlled': MeasureConfig(
         loaders.load_r_controlled,
         'r_controlled',
-        splice=False,  # TODO: Get a few rounds of this and then set splice to True
     ),
     'r_effective': MeasureConfig(
         loaders.load_r_effective,
         'r_effective',
-        splice=True,
     ),
     'herd_immunity': MeasureConfig(
         loaders.load_herd_immunity,
         'herd_immunity',
-        splice=False,  # TODO: Get a few rounds of this and then set splice to True
     ),
     'total_susceptible': MeasureConfig(
         loaders.load_total_susceptible,
         'total_susceptible',
-        splice=False,  # TODO: Get a few rounds of this and then set splice to True
         aggregator=aggregators.sum_aggregator,
     ),
     'total_immune': MeasureConfig(
         loaders.load_total_immune,
         'total_immune',
-        splice=False,  # TODO: Get a few rounds of this and then set splice to True
         aggregator=aggregators.sum_aggregator,
     ),
     'hospital_admissions': MeasureConfig(
         loaders.load_hospital_admissions,
         'hospital_admissions',
-        splice=False,  # TODO: Get a few rounds of this and then set splice to True
         aggregator=aggregators.sum_aggregator,
     ),
     'icu_admissions': MeasureConfig(
         loaders.load_icu_admissions,
         'icu_admissions',
-        splice=False,  # TODO: Get a few rounds of this and then set splice to True
         aggregator=aggregators.sum_aggregator,
     ),
     'hospital_census': MeasureConfig(
         loaders.load_hospital_census,
         'hospital_census',
-        splice=False,  # TODO: Get a few rounds of this and then set splice to True
         aggregator=aggregators.sum_aggregator,
     ),
     'icu_census': MeasureConfig(
         loaders.load_icu_census,
         'icu_census',
-        splice=False,  # TODO: Get a few rounds of this and then set splice to True
         aggregator=aggregators.sum_aggregator,
     ),
     'ventilator_census': MeasureConfig(
         loaders.load_ventilator_census,
         'ventilator_census',
-        splice=False,  # TODO: Get a few rounds of this and then set splice to True
         aggregator=aggregators.sum_aggregator,
     ),
     'betas': MeasureConfig(
         loaders.load_betas,
         'betas',
-        splice=True,
     ),
     'beta_residuals': MeasureConfig(
         loaders.load_beta_residuals,
         'log_beta_residuals',
-        splice=True,
     ),
     'coefficients': MeasureConfig(
         loaders.load_coefficients,
         'coefficients',
-        splice=True,
+        write_draws=True,
     ),
     'scaling_parameters': MeasureConfig(
         loaders.load_scaling_parameters,
         'beta_scaling_parameters',
-        splice=True,
+        write_draws=True,
     ),
+}
+
+
+COMPOSITE_MEASURES = {
+    'infection_fatality_ratio': CompositeMeasureConfig(
+        base_measures={'infections': MEASURES['infections'],
+                       'deaths': MEASURES['deaths']},
+        label='infection_fatality_ratio',
+        combiner=combiners.make_ifr,
+    ),
+    'infection_hospitalization_ratio': CompositeMeasureConfig(
+        base_measures={'infections': MEASURES['infections'],
+                       'hospital_admissions': MEASURES['hospital_admissions']},
+        label='infection_hospitalization_ratio',
+        combiner=combiners.make_ihr,
+    ),
+    'infection_detection_ratio': CompositeMeasureConfig(
+        base_measures={'infections': MEASURES['infections'],
+                       'cases': MEASURES['cases']},
+        label='infection_detection_ratio',
+        combiner=combiners.make_idr,
+    )
 }
 
 
@@ -158,7 +189,6 @@ COVARIATES = {
         loaders.load_covariate,
         'mobility',
         time_varying=True,
-        draw_level=True,
         aggregator=aggregators.mean_aggregator,
     ),
     'testing': CovariateConfig(
@@ -204,41 +234,59 @@ COVARIATES = {
         'smoking_prevalence',
         aggregator=aggregators.mean_aggregator,
     ),
+    'variant_prevalence_B117': CovariateConfig(
+        loaders.load_covariate,
+        'variant_prevalence_B117',
+        time_varying=True,
+        aggregator=aggregators.mean_aggregator,
+    ),
+    'variant_prevalence_B1351': CovariateConfig(
+        loaders.load_covariate,
+        'variant_prevalence_B1351',
+        time_varying=True,
+        aggregator=aggregators.mean_aggregator,
+    ),
+    'variant_prevalence_P1': CovariateConfig(
+        loaders.load_covariate,
+        'variant_prevalence_P1',
+        time_varying=True,
+        aggregator=aggregators.mean_aggregator,
+    ),
 }
 
 MISCELLANEOUS = {
-    'full_data': OtherConfig(
+    'full_data': MiscellaneousConfig(
         loaders.load_full_data,
         'full_data',
         is_cumulative=True,
         aggregator=aggregators.sum_aggregator,
     ),
-#    'age_specific_deaths': OtherConfig(
-#        loaders.load_age_specific_deaths,
-#        'age_specific_deaths',
-#        aggregator=aggregators.sum_aggregator,
-#    ),
-#    'hospital_correction_factors': OtherConfig(
-#        loaders.load_hospital_correction_factors,
-#        'hospital_correction_factors',
-#    ),
-    'hospital_census_data': OtherConfig(
+    'age_specific_deaths': MiscellaneousConfig(
+        loaders.load_age_specific_deaths,
+        'age_specific_deaths',
+        aggregator=aggregators.sum_aggregator,
+    ),
+    'hospital_correction_factors': MiscellaneousConfig(
+        loaders.load_hospital_correction_factors,
+        'hospital_correction_factors',
+    ),
+    'hospital_census_data': MiscellaneousConfig(
         loaders.load_raw_census_data,
         'hospital_census_data',
     ),
-    'version_map': OtherConfig(
+    'version_map': MiscellaneousConfig(
         loaders.build_version_map,
         'version_map',
     ),
-    'populations': OtherConfig(
+    'populations': MiscellaneousConfig(
         loaders.load_populations,
         'populations',
     ),
-    'hierarchy': OtherConfig(
+    'hierarchy': MiscellaneousConfig(
         loaders.load_hierarchy,
         'hierarchy',
     ),
-    'locations_modeled_and_missing': OtherConfig(
+    'locations_modeled_and_missing': MiscellaneousConfig(
         loaders.get_locations_modeled_and_missing,
         'modeled_and_missing_locations',
         is_table=False,
