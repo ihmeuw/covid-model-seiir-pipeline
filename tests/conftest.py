@@ -60,7 +60,7 @@ def coefficients():
         [533, -0.214475560389406, 0.011172361940536456, 0.27234473836297995, -598.8754409180113],
         [537, -0.09571280930682702, 0.011990915850960831, 0.27234473836297995, -598.8754409180113],
         [538, 0.0988105530655817, 0.0187165992693182, 0.27234473836297995, -598.8754409180113],
-    ], columns=["group_id", "intercept", "mobility", "proportion_over_1k", "testing"])
+    ], columns=["location_id", "intercept", "mobility", "proportion_over_1k", "testing"]).set_index('location_id')
 
 
 @pytest.fixture
