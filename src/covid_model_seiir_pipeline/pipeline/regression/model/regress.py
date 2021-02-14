@@ -58,7 +58,7 @@ class BetaRegressor(IBetaRegressor):
         cov_coef = mr_model.result
         coef = pd.DataFrame.from_dict(cov_coef, orient='index').reset_index()
         coef.columns = ['location_id'] + self.col_covs
-        return coef.set_index('location_id').sort_index()
+        return coef
 
 
 class BetaRegressorSequential(IBetaRegressor):

@@ -53,8 +53,7 @@ def run_beta_regression(regression_version: str, draw_id: int) -> None:
     regressor = model.build_regressor(regression_specification.covariates.values(), prior_coefficients)
     logger.info('Fitting beta regression', context='compute_regression')
     coefficients = regressor.fit(mr_data, regression_specification.regression_parameters.sequential_refit)
-    import pdb; pdb.set_trace()
-    log_beta_hat = math.compute_beta_hat(covariates, coefficients)
+    log_beta_hat = math.compute_beta_hat(covariates.reset_index(), coefficients)
     beta_hat = np.exp(log_beta_hat).rename('beta_pred').reset_index()
 
     # Format and save data.

@@ -113,6 +113,7 @@ class PlotVersion:
         return pd.read_parquet(self._cache / data_type / f'{measure}.parquet', engine='fastparquet')
 
     def clean_data(self, data: pd.DataFrame, location_id: Optional[int]):
+        data = data.reset_index()
         if 'location_id' in data.columns and location_id is not None:
             data = data[data.location_id == location_id].drop(columns='location_id')
         if 'date' in data.columns:
