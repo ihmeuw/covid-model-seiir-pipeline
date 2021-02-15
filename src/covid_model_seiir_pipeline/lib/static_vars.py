@@ -4,15 +4,6 @@ FORECAST_SPECIFICATION_FILE = 'forecast_specification.yaml'
 POSTPROCESSING_SPECIFICATION_FILE = 'postprocessing_specification.yaml'
 DIAGNOSTICS_SPECIFICATION_FILE = 'diagnostics_specification.yaml'
 
-SEIIR_COMPARTMENTS = ['S', 'E', 'I1', 'I2', 'R']
-
-VACCINE_SEIIR_COMPARTMENTS = [
-    'S',   'E',   'I1',   'I2',   'R',    # Unvaccinated
-    'S_u', 'E_u', 'I1_u', 'I2_u', 'R_u',  # Vaccinated and unprotected
-    'S_p', 'E_p', 'I1_p', 'I2_p', 'R_p',  # Vaccinated and protected
-    'M',                                  # Vaccinated and immune
-]
-
 COL_BETA = 'beta'
 COL_GROUP = 'loc_id'
 COL_DATE = 'date'
