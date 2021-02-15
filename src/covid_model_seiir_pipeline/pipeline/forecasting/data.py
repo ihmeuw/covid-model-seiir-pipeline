@@ -1,5 +1,4 @@
 from functools import reduce
-from itertools import product
 from pathlib import Path
 from typing import Dict, List, Union
 
@@ -204,12 +203,6 @@ class ForecastDataInterface:
             thetas = pd.Series(theta_specification,
                                index=pd.Index(location_ids, name='location_id'),
                                name='theta')
-
-        if ((1 < thetas) | thetas < -1).any():
-            raise ValueError('Theta must be between -1 and 1.')
-        if (sigma - thetas >= 1).any():
-            raise ValueError('Sigma - theta must be smaller than 1')
-
         return thetas
 
     def get_infections_metadata(self):
