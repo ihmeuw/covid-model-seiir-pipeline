@@ -75,7 +75,12 @@ class ForecastDataInterface:
     def load_regression_coefficients(self, draw_id: int) -> pd.DataFrame:
         return self._get_regression_data_interface().load_regression_coefficients(draw_id=draw_id)
 
-    def load_transition_date(self, draw_id: int) -> pd.MultiIndex:
+    def load_regression_start_dates(self, draw_id: int) -> pd.Series:
+        beta_regression_df = self.load_beta_regression(draw_id)
+        start_dates = beta_regression_df.reset_index().groupby('location_id').date.min()
+        return start_dates
+
+    def load_forecast_start_dates(self, draw_id: int) -> pd.Series:
         dates_df = self._get_regression_data_interface().load_date_file(draw_id=draw_id)
         dates_df['end_date'] = pd.to_datetime(dates_df['end_date'])
         return dates_df['end_date'].rename('date')

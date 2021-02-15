@@ -1,4 +1,5 @@
 from covid_model_seiir_pipeline.pipeline.forecasting.model.containers import (
+    Indices,
     RatioData,
     HospitalCensusData,
     HospitalMetrics,

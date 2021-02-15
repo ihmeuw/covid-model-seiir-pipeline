@@ -24,6 +24,25 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int):
     scenario_spec = forecast_spec.scenarios[scenario]
     data_interface = ForecastDataInterface.from_specification(forecast_spec)
 
+    #################
+    # Build indices #
+    #################
+    # The hardest thing to keep consistent is data alignment. We have about 100
+    # unique datasets in this model and they need to be aligned consistently
+    # to do computation.
+    logger.info('Loading index building data', context='read')
+    regression_start_dates = data_interface.load_regression_start_dates(draw_id)
+    forecast_start_dates = data_interface.load_forecast_start_dates(draw_id)
+    # Forecast is run to the end of the covariates
+    covariates = data_interface.load_covariates(scenario_spec)
+    forecast_end_dates = covariates.reset_index().groupby('location_id').date.max()
+    logger.info('Building indices', context='transform')
+    indices = model.Indices(
+        regression_start_dates,
+        forecast_start_dates,
+        forecast_end_dates,
+    )
+
     logger.info('Loading input data.', context='read')
     # We'll use the same params in the ODE forecast as we did in the fit.
     beta_params = data_interface.load_beta_params(draw_id=draw_id)
@@ -32,7 +51,7 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int):
     thetas = data_interface.load_thetas(scenario_spec.theta, beta_params['sigma'])
     # Grab the last day of data in the model by location id.  This will
     # correspond to the initial condition for the projection.
-    transition_date = data_interface.load_transition_date(draw_id)
+    transition_date = data_interface.load_forecast_start_dates(draw_id)
     # The population will be used to partition the SEIIR compartments into
     # different sub groups for the forecast.
     population = data_interface.load_five_year_population()

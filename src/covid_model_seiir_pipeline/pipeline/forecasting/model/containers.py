@@ -17,6 +17,63 @@ from covid_model_seiir_pipeline.pipeline.regression.model.containers import (
 )
 
 
+class Indices:
+    """Abstraction for building square datasets."""
+
+    def __init__(self,
+                 regression_start_dates: pd.Series,
+                 forecast_start_dates: pd.Series,
+                 forecast_end_dates: pd.Series):
+        self._past_index = self._build_index(regression_start_dates, forecast_start_dates, pd.Timedelta(days=1))
+        self._future_index = self._build_index(forecast_start_dates, forecast_end_dates)
+        self._initial_condition_index = (
+            forecast_start_dates
+            .reset_index()
+            .set_index(['location_id', 'date'])
+            .sort_index()
+            .index
+        )
+        self._full_index = self._build_index(regression_start_dates, forecast_end_dates)
+
+    @property
+    def past(self) -> pd.MultiIndex:
+        """Location-date index for the past."""
+        return self._past_index.copy()
+
+    @property
+    def future(self) -> pd.MultiIndex:
+        """Location-date index for the future."""
+        return self._future_index.copy()
+
+    @property
+    def initial_condition(self) -> pd.MultiIndex:
+        """Location-date index for the initial condition.
+
+        This index has one date per location.
+        """
+        return self._initial_condition_index.copy()
+
+    @property
+    def full(self) -> pd.MultiIndex:
+        """Location-date index for the full time series, past and future."""
+        return self._full_index.copy()
+
+    @staticmethod
+    def _build_index(start: pd.Series,
+                     end: pd.Series,
+                     end_offset: pd.Timedelta = pd.Timedelta(days=0)) -> pd.MultiIndex:
+        index = (pd.concat([start.rename('start'), end.rename('end')], axis=1)
+                 .groupby('location_id')
+                 .apply(lambda x: pd.date_range(x.iloc[0, 0], x.iloc[0, 1] - end_offset))
+                 .explode()
+                 .rename('date')
+                 .reset_index()
+                 .set_index(['location_id', 'date'])
+                 .sort_index()
+                 .index)
+        return index
+
+
 @dataclass
 class OutputMetrics:
     components: pd.DataFrame
