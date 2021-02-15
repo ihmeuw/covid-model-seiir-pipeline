@@ -233,13 +233,13 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int):
 
     logger.info('Writing outputs.', context='write')
     ode_param_cols = output_metrics.components.columns.difference(compartment_info.compartments)
-    ode_params = output_metrics.components[ode_param_cols].reset_index()
-    components = output_metrics.components[compartment_info.compartments].reset_index()
-    covariates = covariates.reset_index()
+    ode_params = output_metrics.components[ode_param_cols]
+    components = output_metrics.components[compartment_info.compartments]
+    covariates = covariates.set_index('date', append=True)
     epi_metrics = [value for key, value in utilities.asdict(output_metrics).items() if key != 'components']
     usage = [value.rename(key) for key, value in utilities.asdict(hospital_usage).items()]
     corrections = [value.rename(key + '_correction') for key, value in utilities.asdict(correction_factors).items()]
-    outputs = pd.concat(epi_metrics + usage + corrections, axis=1).reset_index()
+    outputs = pd.concat(epi_metrics + usage + corrections, axis=1)
 
     data_interface.save_ode_params(ode_params, scenario, draw_id)
     data_interface.save_components(components, scenario, draw_id)

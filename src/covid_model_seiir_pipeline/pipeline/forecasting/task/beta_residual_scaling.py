@@ -217,7 +217,7 @@ def write_out_beta_scales_by_draw(beta_scales: pd.DataFrame, data_interface: For
     beta_scales['log_beta_residual_mean'] -= offset
     beta_scales['scale_final'] = np.exp(beta_scales['log_beta_residual_mean'])
     draw_id = beta_scales['draw'].iat[0]
-    data_interface.save_beta_scales(beta_scales.reset_index(), scenario, draw_id)
+    data_interface.save_beta_scales(beta_scales, scenario, draw_id)
 
 
 @click.command()
