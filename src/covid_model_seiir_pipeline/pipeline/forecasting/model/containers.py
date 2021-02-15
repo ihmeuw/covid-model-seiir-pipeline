@@ -75,6 +75,54 @@ class Indices:
 
 
 @dataclass
+class ModelParameters:
+    # Core parameters
+    alpha: pd.Series
+    beta: pd.Series
+    sigma: pd.Series
+    gamma1: pd.Series
+    gamma2: pd.Series
+
+    # Theta parameters
+    theta_plus: pd.Series
+    theta_minus: pd.Series
+
+    # Vaccine parameters
+    unprotected_lr: pd.Series
+    protected_wild_type_lr: pd.Series
+    protected_all_types_lr: pd.Series
+    immune_wild_type_lr: pd.Series
+    immune_all_types_lr: pd.Series
+    old_unprotected_lr: pd.Series
+    old_protected_lr: pd.Series
+    old_immune_lr: pd.Series
+
+    unprotected_hr: pd.Series
+    protected_wild_type_hr: pd.Series
+    protected_all_types_hr: pd.Series
+    immune_wild_type_hr: pd.Series
+    immune_all_types_hr: pd.Series
+    old_unprotected_hr: pd.Series
+    old_protected_hr: pd.Series
+    old_immune_hr: pd.Series
+
+    # Variant parameters
+    beta_b117: pd.Series
+    beta_b1351: pd.Series
+    b117_prevalence: pd.Series
+    b1351_prevalence: pd.Series
+    probability_cross_immune: pd.Series
+
+    def with_index(self, index: pd.MultiIndex):
+        return ModelParameters(**{
+            parameter_name: parameter.loc[index] for parameter_name, parameter in self.to_dict().items()
+        })
+
+    def to_dict(self) -> Dict[str, pd.Series]:
+        return utilities.asdict(self)
+
+
+@dataclass
 class OutputMetrics:
     components: pd.DataFrame
     infections: pd.Series
@@ -102,18 +150,8 @@ class CompartmentInfo:
 
 @dataclass
 class ScenarioData:
-    vaccinations: Union[pd.DataFrame, None]
     percent_mandates: Union[pd.DataFrame, None]
     mandate_effects: Union[pd.DataFrame, None]
 
     def to_dict(self) -> Dict[str, Union[pd.DataFrame, None]]:
-        return utilities.asdict(self)
-
-
-@dataclass
-class VariantScalars:
-    beta: pd.Series
-    ifr: pd.Series
-
-    def to_dict(self) -> Dict[str, pd.Series]:
         return utilities.asdict(self)

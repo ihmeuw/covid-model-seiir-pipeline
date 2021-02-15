@@ -1,5 +1,6 @@
 from covid_model_seiir_pipeline.pipeline.forecasting.model.containers import (
     Indices,
+    ModelParameters,
     RatioData,
     HospitalCensusData,
     HospitalMetrics,
@@ -7,9 +8,9 @@ from covid_model_seiir_pipeline.pipeline.forecasting.model.containers import (
     CompartmentInfo,
     ScenarioData,
     OutputMetrics,
-    VariantScalars,
 )
 from covid_model_seiir_pipeline.pipeline.forecasting.model.ode_forecast import (
+    build_model_parameters,
     run_normal_ode_model_by_location,
     forecast_beta,
     forecast_correction_factors,
