@@ -45,7 +45,7 @@ class TestForecastDataInterfaceIO:
         # Step 2: load files as they would be loaded in forecast
         loaded_coefficients = fdi.load_regression_coefficients(draw_id=4)
         loaded_parameters = fdi.load_beta_params(draw_id=4)
-        loaded_transition_dates = fdi.load_transition_date(draw_id=4)
+        loaded_transition_dates = fdi.load_forecast_start_dates(draw_id=4)
         loaded_regression_beta = fdi.load_beta_regression(draw_id=4)
         loaded_location_data = fdi.load_infection_data(draw_id=4)
 
