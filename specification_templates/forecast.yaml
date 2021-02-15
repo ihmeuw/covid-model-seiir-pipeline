@@ -1,6 +1,6 @@
 data:
-  regression_version: '2021_02_10.14'
-  covariate_version: '2021_02_10.04'
+  regression_version: '2021_02_15.04'
+  covariate_version: '2021_02_11.01'
   output_root: ''
   output_format: 'parquet'
   fh_subnationals: False
@@ -10,7 +10,7 @@ workflow:
   tasks:
     beta_residual_scaling:
       max_runtime_seconds: 5000
-      m_mem_free: '5G'
+      m_mem_free: '50G'
       num_cores: 26
     beta_forecast:
       max_runtime_seconds: 15000
