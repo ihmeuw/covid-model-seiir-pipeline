@@ -31,7 +31,8 @@ class CSVMarshall:
     def load(cls, key: DatasetKey) -> pd.DataFrame:
         path = cls._resolve_key(key)
         data = pd.read_csv(path)
-        index_cols = data.columns.intersection(POTENTIAL_INDEX_COLUMNS).tolist()
+        # Use list comp to keep ordering consistent.
+        index_cols = [c for c in data.columns if c in POTENTIAL_INDEX_COLUMNS]
         if 'date' in index_cols:
             data['date'] = pd.to_datetime(data['date'])
         if index_cols:
