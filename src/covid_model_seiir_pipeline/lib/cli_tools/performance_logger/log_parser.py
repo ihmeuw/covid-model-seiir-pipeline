@@ -24,4 +24,7 @@ def parse_logs(log_dir, job_name):
             time, *_ = time.split('\x1b')
             result[metric.strip()].append(float(time.strip()))
     df = pd.DataFrame(result)
-    click.echo(df.describe().T[['mean', 'min', 'max']])
+    summary = df.describe().T
+    total = df.sum()
+    summary['total'] = total
+    click.echo(summary[['mean', 'min', 'max', 'total']])
