@@ -45,8 +45,7 @@ def run_beta_regression(regression_version: str, draw_id: int) -> None:
     )
     beta_start_end_dates = (beta_fit
                             .groupby('location_id')
-                            .agg(start_date=('date', 'min'), end_date=('date', 'max'))
-                            .reset_index())
+                            .agg(start_date=('date', 'min'), end_date=('date', 'max')))
 
     logger.info('Prepping regression.', context='transform')
     mr_data = model.align_beta_with_covariates(covariates, beta_fit, list(regression_specification.covariates))
@@ -68,8 +67,9 @@ def run_beta_regression(regression_version: str, draw_id: int) -> None:
     # parameter and infection drops in the ode fit. Expand to the size of the
     # data, leaving NAs.
     merged = past_infections.reset_index().merge(regression_betas, how='left').sort_values(['location_id', 'date'])
-    data_df = merged[['location_id', 'date', 'infections', 'deaths']]
-    regression_betas = merged[regression_betas.columns]
+    data_df = merged[['location_id', 'date', 'infections', 'deaths']].set_index(['location_id', 'date'])
+    regression_betas = merged[regression_betas.columns].set_index(['location_id', 'date'])
+    coefficients = coefficients.set_index('location_id')
     # Save the parameters of alpha, sigma, gamma1, and gamma2 that were drawn
     ode_params = ode_params.to_dict()
     draw_beta_params = pd.DataFrame({
