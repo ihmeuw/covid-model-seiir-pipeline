@@ -1,3 +1,4 @@
+"""Base seiir model."""
 import numba
 import numpy as np
 
