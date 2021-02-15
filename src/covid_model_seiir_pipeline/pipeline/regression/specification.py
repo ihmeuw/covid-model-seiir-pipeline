@@ -46,6 +46,7 @@ class RegressionData:
     location_set_version_id: int = field(default=0)
     location_set_file: str = field(default='')
     output_root: str = field(default='')
+    output_format: str = field(default='csv')
 
     def to_dict(self) -> Dict:
         """Converts to a dict, coercing list-like items to lists."""
