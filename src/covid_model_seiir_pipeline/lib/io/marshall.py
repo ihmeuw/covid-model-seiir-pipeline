@@ -32,7 +32,7 @@ class CSVMarshall:
         path = cls._resolve_key(key)
         data = pd.read_csv(path)
         # Use list comp to keep ordering consistent.
-        index_cols = [c for c in data.columns if c in POTENTIAL_INDEX_COLUMNS]
+        index_cols = [c for c in POTENTIAL_INDEX_COLUMNS if c in data.columns]
         if 'date' in index_cols:
             data['date'] = pd.to_datetime(data['date'])
         if index_cols:
