@@ -62,9 +62,9 @@ def run_hospital_correction_factors(regression_version: str, with_progress_bar: 
 
     logger.info('Prepping outputs', context='transform')
     usage = [value.rename(key) for key, value in asdict(hospital_usage).items()]
-    usage_df = pd.concat(usage, axis=1).reset_index()
+    usage_df = pd.concat(usage, axis=1)
     corrections = [value.rename(key) for key, value in asdict(correction_factors).items()]
-    corrections_df = pd.concat(corrections, axis=1).reset_index()
+    corrections_df = pd.concat(corrections, axis=1)
 
     logger.info('Writing outputs', context='write')
     data_interface.save_hospital_data(usage_df, 'usage')
