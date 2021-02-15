@@ -46,7 +46,7 @@ class RegressionDataInterface:
         else:
             coefficient_root = None
         regression_root = io.RegressionRoot(specification.data.output_root,
-                                            data_format=coefficient_spec.data.output_format)
+                                            data_format=specification.data.output_format)
 
         return cls(
             infection_root=infection_root,
