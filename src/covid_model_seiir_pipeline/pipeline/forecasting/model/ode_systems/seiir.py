@@ -8,7 +8,7 @@ PARAMETERS = ['alpha', 'beta', 'sigma', 'gamma1', 'gamma2', 'theta_plus', 'theta
 
 @numba.njit
 def system(t: float, y: np.ndarray, p: np.array):
-    system_size = len(COMPARTMENTS)
+    system_size = 5
     n_groups = y.size // system_size
     infectious = 0.
     n_total = y.sum()

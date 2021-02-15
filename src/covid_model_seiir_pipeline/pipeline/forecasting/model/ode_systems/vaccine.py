@@ -12,7 +12,7 @@ PARAMETERS = ['alpha', 'beta', 'sigma', 'gamma1', 'gamma2', 'p_immune', 'theta_p
 
 @numba.njit
 def system(t: float, y: np.ndarray, p: np.array):
-    system_size = len(COMPARTMENTS)
+    system_size = 16
     num_seiir_compartments = 5
     n_groups = y.size // system_size
     n_vaccines = 3 * n_groups
