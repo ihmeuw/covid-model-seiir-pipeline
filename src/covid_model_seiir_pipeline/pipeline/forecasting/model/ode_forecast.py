@@ -1,18 +1,17 @@
 from dataclasses import dataclass
 from typing import Callable, Dict, List, Tuple, TYPE_CHECKING
-import itertools
 
 import numpy as np
 import pandas as pd
 
 from covid_model_seiir_pipeline.lib import (
     math,
-    static_vars,
     utilities,
 )
 from covid_model_seiir_pipeline.pipeline.forecasting.model.containers import (
     Indices,
     ModelParameters,
+    InitialCondition,
     HospitalCorrectionFactors,
     CompartmentInfo,
     ScenarioData,
@@ -20,6 +19,7 @@ from covid_model_seiir_pipeline.pipeline.forecasting.model.containers import (
 from covid_model_seiir_pipeline.pipeline.forecasting.model.ode_systems import (
     seiir,
     vaccine,
+    variant,
 )
 
 
@@ -207,6 +207,52 @@ def beta_shift(beta_hat: pd.DataFrame,
     return beta_final
 
 
+##################################
+# Initial condition construction #
+##################################
+
+def build_initial_condition(indices: Indices,
+                            beta_regression: pd.DataFrame,
+                            population: pd.DataFrame) -> InitialCondition:
+    simple_ic, vaccine_ic, variant_ic = get_component_groups(beta_regression, population, indices.initial_condition)
+    # Date column has served its purpose.  ODE only cares about t0, not what it is.
+    return InitialCondition(
+        simple=simple_ic,
+        vaccine=vaccine_ic,
+        variant=variant_ic,
+    )
+
+
+def get_component_groups(beta_regression_df, population, index):
+    simple_ic = beta_regression_df.loc[index, seiir.COMPARTMENTS].reset_index(level='date', drop=True)
+
+    risk_groups = ['lr', 'hr']
+    total_pop = population.groupby('location_id')['population'].sum()
+    low_risk_pop = population[population['age_group_years_start'] < 65].groupby('location_id')['population'].sum()
+    high_risk_pop = total_pop - low_risk_pop
+
+    # FIXME: These both need some real attention.
+    vaccine_columns = []
+    for risk_group in risk_groups:
+        for vaccine_compartment in vaccine.COMPARTMENTS:
+            vaccine_columns.append(f'{vaccine_compartment}_{risk_group}')
+    vaccine_ic = pd.DataFrame(data=0., columns=vaccine_columns, index=index)
+    for column in seiir.COMPARTMENTS:
+        vaccine_ic[f'{column}_lr'] = simple_ic[column] * low_risk_pop / total_pop
+        vaccine_ic[f'{column}_hr'] = simple_ic[column] * high_risk_pop / total_pop
+
+    variant_columns = []
+    for risk_group in risk_groups:
+        for variant_compartment in variant.COMPARTMENTS:
+            variant_columns.append(f'{variant_compartment}_{risk_group}')
+    variant_ic = pd.DataFrame(data=0., columns=variant_columns, index=index)
+    for column in seiir.COMPARTMENTS:
+        variant_ic[f'{column}_lr'] = simple_ic[column] * low_risk_pop / total_pop
+        variant_ic[f'{column}_hr'] = simple_ic[column] * high_risk_pop / total_pop
+
+    return simple_ic, vaccine_ic, variant_ic
+
+
 def forecast_correction_factors(correction_factors: HospitalCorrectionFactors,
                                 today: pd.Series,
                                 max_date: pd.Timestamp,
@@ -251,85 +297,6 @@ def prep_seiir_parameters(betas: pd.DataFrame,
         v = scenario_data.vaccinations
         parameters = parameters.merge(v, on=['location_id', 'date'], how='left').fillna(0)
     return parameters
-
-
-def get_population_partition(population: pd.DataFrame,
-                             population_partition: str) -> Dict[str, pd.Series]:
-    """Create a location-specific partition of the population.
-
-    Parameters
-    ----------
-    population
-        A dataframe with location, age, and sex specific populations.
-    population_partition
-        A string describing how the population should be partitioned.
-
-    Returns
-    -------
-        A mapping between the SEIIR compartment suffix for the partition groups
-        and a series mapping location ids to the proportion of people in each
-        compartment that should be allocated to the partition group.
-
-    """
-    if population_partition == 'none':
-        partition_map = {}
-    elif population_partition == 'high_and_low_risk':
-        total_pop = population.groupby('location_id')['population'].sum()
-        low_risk_pop = population[population['age_group_years_start'] < 65].groupby('location_id')['population'].sum()
-        high_risk_pop = total_pop - low_risk_pop
-
-        partition_map = {
-            'lr': low_risk_pop / total_pop,
-            'hr': high_risk_pop / total_pop,
-        }
-    else:
-        raise NotImplementedError
-
-    return partition_map
-
-
-def get_past_components(beta_regression_df: pd.DataFrame,
-                        population_partition: Dict[str, pd.Series],
-                        ode_system: str) -> Tuple[CompartmentInfo, pd.DataFrame]:
-    regression_compartments = static_vars.SEIIR_COMPARTMENTS
-    system_compartment_map = {
-        'normal': _split_compartments(static_vars.SEIIR_COMPARTMENTS, population_partition),
-        'vaccine': _split_compartments(static_vars.VACCINE_SEIIR_COMPARTMENTS, population_partition),
-    }
-    system_compartments = system_compartment_map[ode_system]
-
-    past_beta = beta_regression_df['beta']
-    past_components = beta_regression_df[regression_compartments]
-
-    if population_partition:
-        partitioned_past_components = []
-        for compartment in regression_compartments:
-            for partition_group, proportion in population_partition.items():
-                partitioned_past_components.append(
-                    (past_components[compartment] * proportion).rename(f'{compartment}_{partition_group}')
-                )
-        past_components = pd.concat(partitioned_past_components, axis=1)
-
-    rows_to_fill = past_components.notnull().all(axis=1)
-    compartments_to_fill = set(system_compartments).difference(past_components.columns)
-    past_components = past_components.reindex(system_compartments, axis=1)
-    for compartment_to_fill in compartments_to_fill:
-        past_components.loc[rows_to_fill, compartment_to_fill] = 0
-
-    past_components = pd.concat([past_beta, past_components], axis=1).reset_index(level='date')
-
-    compartment_info = CompartmentInfo(list(system_compartments), list(population_partition))
-
-    return compartment_info, past_components
-
-
-def _split_compartments(compartments: List[str],
-                        partition: Dict[str, pd.Series]) -> List[str]:
-    # Order of the groupings here matters!
-    if not partition:
-        return compartments
-    return [f'{compartment}_{partition_group}'
-            for partition_group, compartment in itertools.product(partition, compartments)]
 
 
 def run_normal_ode_model_by_location(initial_condition: pd.DataFrame,

@@ -72,6 +72,19 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int):
         scenario_spec,
     )
 
+    ########################################
+    # Construct the ODE initial condition. #
+    ########################################
+    logger.info('Loading initial condition input data.', context='read')
+    beta_regression = data_interface.load_beta_regression(draw_id)
+    population = data_interface.load_five_year_population()
+    logger.info('Constructing initial condition.', context='transform')
+    initial_condition = model.build_initial_condition(
+        indices,
+        beta_regression,
+        population,
+    )
+
 
     # Beta scale-up due to variant
     variant_cols = ['variant_prevalence_B117', 'variant_prevalence_B1351', 'variant_prevalence_P1']
@@ -90,20 +103,6 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int):
     correction_factors = data_interface.load_hospital_correction_factors()
     # Load any data specific to the particular scenario we're running
     scenario_data = data_interface.load_scenario_specific_data(scenario_spec)
-
-
-    # Split the population into risk groups according to the specification.
-    population_partition = model.get_population_partition(population, scenario_spec.population_partition)
-    compartment_info, past_components = model.get_past_components(
-        beta_regression_df,
-        population_partition,
-        scenario_spec.system
-    )
-    # Select out the initial condition using the day of transition.
-    transition_day = past_components['date'] == transition_date.loc[past_components.index]
-    initial_condition = past_components.loc[transition_day, compartment_info.compartments]
-    before_model = past_components['date'] < transition_date.loc[past_components.index]
-    past_components = past_components[before_model]
 
 
     correction_factors = model.forecast_correction_factors(

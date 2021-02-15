@@ -123,6 +123,16 @@ class ModelParameters:
 
 
 @dataclass
+class InitialCondition:
+    simple: pd.DataFrame
+    vaccine: pd.DataFrame
+    variant: pd.DataFrame
+
+    def to_dict(self) -> Dict[str, pd.DataFrame]:
+        return utilities.asdict(self)
+
+
+@dataclass
 class OutputMetrics:
     components: pd.DataFrame
     infections: pd.Series
