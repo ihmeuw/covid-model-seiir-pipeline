@@ -347,7 +347,7 @@ def correct_ratio_data(indices: Indices,
     ratio_data.ifr_hr = ifr_scalar * _expand_rate(ratio_data.ifr_lr, indices.full)
 
     ratio_data.idr = _expand_rate(ratio_data.idr, indices.full)
-    ratio_data.ihr = ihr * _expand_rate(ratio_data.ihr, indices.full)
+    ratio_data.ihr = _expand_rate(ratio_data.ihr, indices.full)
     return ratio_data
 
 
