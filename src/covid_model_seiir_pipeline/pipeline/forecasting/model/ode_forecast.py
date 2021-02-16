@@ -268,7 +268,7 @@ def get_component_groups(model_parameters: ModelParameters,
                          population: pd.DataFrame,
                          index: pd.MultiIndex):
     simple_comp = beta_regression_df.loc[index, seiir.COMPARTMENTS]
-    new_e = infection_data.loc[index]
+    new_e = infection_data.loc[index, 'infections']
 
     total_pop = population.groupby('location_id')['population'].sum()
     low_risk_pop = population[population['age_group_years_start'] < 65].groupby('location_id')['population'].sum()
