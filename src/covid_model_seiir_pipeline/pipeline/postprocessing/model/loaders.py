@@ -39,7 +39,7 @@ def load_infections_wild(scenario: str, data_interface: 'PostprocessingDataInter
 
 
 def load_infections_variant(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
-    return _load_output_data(scenario, 'modeled_infections_wild', data_interface, num_cores)
+    return _load_output_data(scenario, 'modeled_infections_variant', data_interface, num_cores)
 
 
 def load_infections_natural_breakthrough(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
