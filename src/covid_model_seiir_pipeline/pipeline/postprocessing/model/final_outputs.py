@@ -151,7 +151,9 @@ MEASURES = {
     ),
     'effectively_vaccinated': MeasureConfig(
         loaders.load_effectively_vaccinated,
-        'effectively_vaccinated',
+        'daily_vaccinations_effective_input',
+        calculate_cumulative=True,
+        cumulative_label='cumulative_vaccinations_effective_input',
         aggregator=aggregators.sum_aggregator,
     ),
     'vaccines_immune_all': MeasureConfig(
@@ -177,6 +179,8 @@ MEASURES = {
     'vaccines_effective': MeasureConfig(
         loaders.load_vaccinations_effective,
         'daily_vaccinations_effective',
+        calculate_cumulative=True,
+        cumulative_label='cumulative_vaccinations_effective',
         aggregator=aggregators.sum_aggregator,
     ),
     'vaccines_ineffective': MeasureConfig(

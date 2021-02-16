@@ -30,6 +30,7 @@ def merge_pdfs(plot_cache: Path, output_path: Path, hierarchy: pd.DataFrame):
         current_page = 0
         for location_id in sorted_locations:
             result_page_path = plot_cache / f'{location_id}_results.pdf'
+            variants_page_path = plot_cache / f'{location_id}_variants.pdf'
             covariate_page_path = plot_cache / f'{location_id}_covariates.pdf'
 
             if not result_page_path.exists():
@@ -47,10 +48,12 @@ def merge_pdfs(plot_cache: Path, output_path: Path, hierarchy: pd.DataFrame):
                 parent = None
             merger.addBookmark(name_map.loc[location_id], current_page, parent)
 
-            # Add the covariates page.
-            merger.merge(current_page + 1, str(covariate_page_path))
+            # Add the variants and covariates pages.
+            merger.merge(current_page + 1, str(variants_page_path))
+            merger.merge(current_page + 2, str(covariate_page_path))
+
             merged.append(location_id)
-            current_page += 2
+            current_page += 3
 
         if output_path.exists():
             output_path.unlink()
@@ -78,4 +81,3 @@ def get_locations_dfs(hierarchy: pd.DataFrame) -> List[int]:
         locations.extend(_get_locations(top_loc))
 
     return locations
-

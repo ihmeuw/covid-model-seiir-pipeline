@@ -48,6 +48,12 @@ def make_grid_plot(location: Location,
             date_start, date_end,
             plot_file=str(output_dir / f'{location.id}_covariates.pdf')
         )
+        make_variants_page(
+            plot_versions,
+            location,
+            date_start, date_end,
+            plot_file=str(output_dir / f'{location.id}_variants.pdf')
+        )
         make_results_page(
             plot_versions,
             location,
@@ -75,7 +81,7 @@ def make_covariates_page(plot_versions: List[PlotVersion],
 
     gs_coef = grid_spec[0, 0].subgridspec(len(time_varying), 1)
     gs_cov = grid_spec[0, 1].subgridspec(len(time_varying), 1)
-    gs_r = grid_spec[0, 2].subgridspec(2, 1)
+    gs_beta_emp = grid_spec[0, 2].subgridspec(3, 1)
     gs_beta = grid_spec[0, 3].subgridspec(3, 1, height_ratios=[2, 1, 1])
 
     ylim_map = {
@@ -115,29 +121,41 @@ def make_covariates_page(plot_versions: List[PlotVersion],
         if ylims is not None:
             ax_cov.set_ylim(*ylims)
 
-    ax_r_controlled = fig.add_subplot(gs_r[0])
+    ax_beta_total = fig.add_subplot(gs_beta_emp[0])
     make_time_plot(
-        ax_r_controlled,
+        ax_beta_total,
         plot_versions,
-        'r_controlled',
+        'beta_total',
         location.id,
         start, end,
         vlines=vlines,
-        label='R Controlled',
+        label='Empirical Beta All Types',
+        transform=lambda x: np.log(x),
     )
-    ax_r_controlled.set_ylim(0, 3)
 
-    ax_r_eff = fig.add_subplot(gs_r[1])
+    ax_beta_wild = fig.add_subplot(gs_beta_emp[1])
     make_time_plot(
-        ax_r_eff,
+        ax_beta_wild,
         plot_versions,
-        'r_effective',
+        'beta_wild',
         location.id,
         start, end,
-        label='R Effective',
         vlines=vlines,
+        label='Empirical Beta Wild-type',
+        transform=lambda x: np.log(x),
     )
-    ax_r_eff.set_ylim(0, 3)
+
+    ax_beta_variant = fig.add_subplot(gs_beta_emp[2])
+    make_time_plot(
+        ax_beta_variant,
+        plot_versions,
+        'beta_variant',
+        location.id,
+        start, end,
+        vlines=vlines,
+        label='Empirical Beta Variant-type',
+        transform=lambda x: np.log(x),
+    )
 
     ax_betas = fig.add_subplot(gs_beta[0])
     make_time_plot(
@@ -173,6 +191,117 @@ def make_covariates_page(plot_versions: List[PlotVersion],
     write_or_show(fig, plot_file)
 
 
+def make_variants_page(plot_versions: List[PlotVersion],
+                       location: Location,
+                       start: pd.Timestamp, end: pd.Timestamp,
+                       plot_file: str = None):
+    sns.set_style('whitegrid')
+    observed_color = COLOR_MAP(len(plot_versions))
+
+    # Load some shared data.
+    pv = plot_versions[0]
+    pop = pv.load_output_miscellaneous('populations', is_table=True, location_id=location.id)
+    pop = pop.loc[(pop.age_group_id == 22) & (pop.sex_id == 3), 'population'].iloc[0]
+
+    full_data = pv.load_output_miscellaneous('full_data', is_table=True, location_id=location.id)
+    vlines = []
+
+    # Configure the plot layout.
+    fig = plt.figure(figsize=FIG_SIZE, tight_layout=True)
+    grid_spec = fig.add_gridspec(nrows=3, ncols=3, wspace=0.2)
+    grid_spec.update(**GRID_SPEC_MARGINS)
+
+    ax_infecs_wild = fig.add_subplot(grid_spec[0, 0])
+    ax_infecs_variant = fig.add_subplot(grid_spec[1, 0])
+    ax_infecs = fig.add_subplot(grid_spec[2, 0])
+
+    ax_infecs_nib = fig.add_subplot(grid_spec[0, 1])
+    ax_infecs_vb = fig.add_subplot(grid_spec[1, 1])
+
+    ax_deaths_wild = fig.add_subplot(grid_spec[0, 2])
+    ax_deaths_variant = fig.add_subplot(grid_spec[1, 2])
+    ax_deaths = fig.add_subplot(grid_spec[2, 2])
+
+    # Column 1
+
+    make_time_plot(
+        ax_infecs_wild,
+        plot_versions,
+        'daily_infections_wild',
+        location.id,
+        start, end,
+        label='Daily Infections Wild',
+        vlines=vlines,
+    )
+    make_time_plot(
+        ax_infecs_variant,
+        plot_versions,
+        'daily_infections_variant',
+        location.id,
+        start, end,
+        label='Daily Infections Variant',
+        vlines=vlines,
+    )
+    make_time_plot(
+        ax_infecs,
+        plot_versions,
+        'daily_infections',
+        location.id,
+        start, end,
+        label='Daily Infections',
+        vlines=vlines,
+    )
+
+    make_time_plot(
+        ax_infecs_nib,
+        plot_versions,
+        'daily_infections_natural_immunity_breakthrough',
+        location.id,
+        start, end,
+        label='Daily Infections Natural Breakthrough',
+        vlines=vlines,
+    )
+    make_time_plot(
+        ax_infecs_vb,
+        plot_versions,
+        'daily_infections_vaccine_breakthrough',
+        location.id,
+        start, end,
+        label='Daily Infections Vaccine Breakthrough',
+        vlines=vlines,
+    )
+
+    make_time_plot(
+        ax_deaths_wild,
+        plot_versions,
+        'daily_deaths_wild',
+        location.id,
+        start, end,
+        label='Daily Deaths Wild',
+        vlines=vlines,
+    )
+    make_time_plot(
+        ax_deaths_variant,
+        plot_versions,
+        'daily_deaths_variant',
+        location.id,
+        start, end,
+        label='Daily Deaths Variant',
+        vlines=vlines,
+    )
+    make_time_plot(
+        ax_deaths,
+        plot_versions,
+        'daily_deaths',
+        location.id,
+        start, end,
+        label='Daily Deaths',
+        vlines=vlines,
+    )
+    make_title_and_legend(fig, location, plot_versions)
+    write_or_show(fig, plot_file)
+
+
 def make_results_page(plot_versions: List[PlotVersion],
                       location: Location,
                       start: pd.Timestamp, end: pd.Timestamp,
@@ -190,25 +319,28 @@ def make_results_page(plot_versions: List[PlotVersion],
 
     # Configure the plot layout.
     fig = plt.figure(figsize=FIG_SIZE, tight_layout=True)
-    grid_spec = fig.add_gridspec(nrows=3, ncols=4, wspace=0.2)
+    grid_spec = fig.add_gridspec(nrows=4, ncols=4, wspace=0.2)
     grid_spec.update(**GRID_SPEC_MARGINS)
 
     ax_daily_infec = fig.add_subplot(grid_spec[0, 0])
-    ax_daily_hosp = fig.add_subplot(grid_spec[1, 0])
-    ax_daily_death = fig.add_subplot(grid_spec[2, 0])
+    ax_daily_case = fig.add_subplot(grid_spec[1, 0])
+    ax_daily_hosp = fig.add_subplot(grid_spec[2, 0])
+    ax_daily_death = fig.add_subplot(grid_spec[3, 0])
 
     ax_cumul_infec = fig.add_subplot(grid_spec[0, 1])
-    ax_census_hosp = fig.add_subplot(grid_spec[1, 1])
-    ax_cumul_death = fig.add_subplot(grid_spec[2, 1])
+    ax_cumul_case = fig.add_subplot(grid_spec[1, 1])
+    ax_census_hosp = fig.add_subplot(grid_spec[2, 1])
+    ax_cumul_death = fig.add_subplot(grid_spec[3, 1])
 
-    ax_ifr = fig.add_subplot(grid_spec[0, 2])
-    ax_ihr = fig.add_subplot(grid_spec[1, 2])
-    ax_idr = fig.add_subplot(grid_spec[2, 2])
+    ax_vacc = fig.add_subplot(grid_spec[0, 2])
+    ax_idr = fig.add_subplot(grid_spec[1, 2])
+    ax_ihr = fig.add_subplot(grid_spec[2, 2])
+    ax_ifr = fig.add_subplot(grid_spec[3, 2])
 
-    ax_immune = fig.add_subplot(grid_spec[0, 3])
-    ax_susceptible = fig.add_subplot(grid_spec[1, 3])
-    ax_cases = fig.add_subplot(grid_spec[2, 3])
-
+    ax_immune_wild = fig.add_subplot(grid_spec[0, 3])
+    ax_immune_variant = fig.add_subplot(grid_spec[0, 3])
+    ax_susceptible_wild = fig.add_subplot(grid_spec[1, 3])
+    ax_susceptible_variant = fig.add_subplot(grid_spec[2, 3])
 
     # Column 1, Daily
 
@@ -222,6 +354,22 @@ def make_results_page(plot_versions: List[PlotVersion],
         vlines=vlines,
     )
     ax_daily_infec.plot(
+        full_data['date'],
+        full_data['cumulative_cases'].diff(),
+        color=observed_color,
+        alpha=OBSERVED_ALPHA,
+    )
+
+    make_time_plot(
+        ax_daily_case,
+        plot_versions,
+        'daily_cases',
+        location.id,
+        start, end,
+        label='Daily Cases',
+        vlines=vlines,
+    )
+    ax_daily_case.plot(
         full_data['date'],
         full_data['cumulative_cases'].diff(),
         color=observed_color,
@@ -286,6 +434,16 @@ def make_results_page(plot_versions: List[PlotVersion],
     ax_cumul_infec.set_ylim(0, 100)
 
     make_time_plot(
+        ax_cumul_case,
+        plot_versions,
+        'cumulative_cases',
+        location.id,
+        start, end,
+        label='Cumulative Cases',
+        vlines=vlines,
+    )
+
+    make_time_plot(
         ax_census_hosp,
         plot_versions,
         'hospital_census',
@@ -293,7 +451,6 @@ def make_results_page(plot_versions: List[PlotVersion],
         start, end,
         label='Hospital and ICU Census',
         vlines=vlines,
-        uncertainty=False,
     )
     make_time_plot(
         ax_census_hosp,
@@ -302,7 +459,6 @@ def make_results_page(plot_versions: List[PlotVersion],
         location.id,
         start, end,
         vlines=vlines,
-        uncertainty=False,
         linestyle='dashed',
     )
 
@@ -318,23 +474,24 @@ def make_results_page(plot_versions: List[PlotVersion],
 
     # Column 3, ratios
     make_time_plot(
-        ax_ifr,
+        ax_vacc,
         plot_versions,
-        'infection_fatality_ratio',
+        'cumulative_vaccinations_effective',
         location.id,
         start, end,
-        label='IFR',
+        label='Cumulative Vaccinations',
         vlines=vlines,
     )
     make_time_plot(
-        ax_ihr,
+        ax_vacc,
         plot_versions,
-        'infection_hospitalization_ratio',
+        'cumulative_vaccinations_effective_input',
         location.id,
         start, end,
-        label='IHR',
         vlines=vlines,
+        linestyle='dashed',
     )
+
     make_time_plot(
         ax_idr,
         plot_versions,
@@ -345,46 +502,74 @@ def make_results_page(plot_versions: List[PlotVersion],
         vlines=vlines,
     )
 
-    # Column 3, miscellaneous
     make_time_plot(
-        ax_susceptible,
+        ax_ihr,
         plot_versions,
-        'total_susceptible',
+        'infection_hospitalization_ratio',
         location.id,
         start, end,
-        label='Total Susceptible (% Population)',
+        label='IHR',
+        vlines=vlines,
+    )
+
+    make_time_plot(
+        ax_ifr,
+        plot_versions,
+        'infection_fatality_ratio',
+        location.id,
+        start, end,
+        label='IFR',
+        vlines=vlines,
+    )
+
+    # Column 4, miscellaneous
+    make_time_plot(
+        ax_immune_wild,
+        plot_versions,
+        'total_immune_wild',
+        location.id,
+        start, end,
+        label='Total Immune Wild-type (% Population)',
         vlines=vlines,
         transform=lambda x: 100 * x / pop,
     )
-    ax_susceptible.set_ylim(0, 100)
+    ax_immune_wild.set_ylim(0, 100)
 
     make_time_plot(
-        ax_immune,
+        ax_immune_variant,
         plot_versions,
-        'total_immune',
+        'total_immune_variant',
         location.id,
         start, end,
-        label='Total Immune (% Population)',
+        label='Total Immune All Types (% Population)',
         vlines=vlines,
         transform=lambda x: 100 * x / pop,
     )
-    ax_immune.set_ylim(0, 100)
+    ax_immune_variant.set_ylim(0, 100)
 
     make_time_plot(
-        ax_cases,
+        ax_susceptible_wild,
         plot_versions,
-        'daily_cases',
+        'total_susceptible_wild',
         location.id,
         start, end,
-        label='Daily Cases',
+        label='Total Susceptible Wild-type (% Population)',
         vlines=vlines,
+        transform=lambda x: 100 * x / pop,
     )
-    ax_cases.plot(
-        full_data['date'],
-        full_data['cumulative_cases'].diff(),
-        color=observed_color,
-        alpha=OBSERVED_ALPHA,
+    ax_susceptible_wild.set_ylim(0, 100)
+
+    make_time_plot(
+        ax_susceptible_variant,
+        plot_versions,
+        'total_susceptible_variant',
+        location.id,
+        start, end,
+        label='Total Susceptible All Types (% Population)',
+        vlines=vlines,
+        transform=lambda x: 100 * x / pop,
     )
+    ax_susceptible_variant.set_ylim(0, 100)
 
     make_title_and_legend(fig, location, plot_versions)
     write_or_show(fig, plot_file)
