@@ -338,9 +338,9 @@ def make_results_page(plot_versions: List[PlotVersion],
     ax_ifr = fig.add_subplot(grid_spec[3, 2])
 
     ax_immune_wild = fig.add_subplot(grid_spec[0, 3])
-    ax_immune_variant = fig.add_subplot(grid_spec[0, 3])
-    ax_susceptible_wild = fig.add_subplot(grid_spec[1, 3])
-    ax_susceptible_variant = fig.add_subplot(grid_spec[2, 3])
+    ax_immune_variant = fig.add_subplot(grid_spec[1, 3])
+    ax_susceptible_wild = fig.add_subplot(grid_spec[2, 3])
+    ax_susceptible_variant = fig.add_subplot(grid_spec[3, 3])
 
     # Column 1, Daily
 
@@ -427,7 +427,7 @@ def make_results_page(plot_versions: List[PlotVersion],
         'cumulative_infections',
         location.id,
         start, end,
-        label='Cumulative Infected (% Population)',
+        label='Cumulative Infected (%)',
         vlines=vlines,
         transform=lambda x: 100 * x / pop,
     )
@@ -529,7 +529,7 @@ def make_results_page(plot_versions: List[PlotVersion],
         'total_immune_wild',
         location.id,
         start, end,
-        label='Total Immune Wild-type (% Population)',
+        label='Immune Wild-type (%)',
         vlines=vlines,
         transform=lambda x: 100 * x / pop,
     )
@@ -541,7 +541,7 @@ def make_results_page(plot_versions: List[PlotVersion],
         'total_immune_variant',
         location.id,
         start, end,
-        label='Total Immune All Types (% Population)',
+        label='Immune All Types (%)',
         vlines=vlines,
         transform=lambda x: 100 * x / pop,
     )
@@ -553,7 +553,7 @@ def make_results_page(plot_versions: List[PlotVersion],
         'total_susceptible_wild',
         location.id,
         start, end,
-        label='Total Susceptible Wild-type (% Population)',
+        label='Susceptible Wild-type (%)',
         vlines=vlines,
         transform=lambda x: 100 * x / pop,
     )
@@ -565,7 +565,7 @@ def make_results_page(plot_versions: List[PlotVersion],
         'total_susceptible_variant',
         location.id,
         start, end,
-        label='Total Susceptible All Types (% Population)',
+        label='Susceptible All Types (%)',
         vlines=vlines,
         transform=lambda x: 100 * x / pop,
     )
