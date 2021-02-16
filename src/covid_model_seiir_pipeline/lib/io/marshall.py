@@ -1,5 +1,6 @@
 from pathlib import Path
 from typing import Any, List, Tuple, Union
+import warnings
 
 from covid_shared.shell_tools import mkdir
 import pandas as pd
@@ -76,7 +77,10 @@ class ParquetMarshall:
     @classmethod
     def load(cls, key: DatasetKey) -> pd.DataFrame:
         path, columns = cls._resolve_key(key)
-        data = pd.read_parquet(path, columns=columns, engine='fastparquet')
+        with warnings.catch_warnings():
+            # Super noisy parquet warning that doesn't matter
+            warnings.simplefilter('ignore')
+            data = pd.read_parquet(path, columns=columns, engine='fastparquet')
         return data
 
     @classmethod
