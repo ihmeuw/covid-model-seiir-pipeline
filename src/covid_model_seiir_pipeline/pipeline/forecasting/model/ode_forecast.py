@@ -64,7 +64,7 @@ def build_model_parameters(indices: Indices,
     theta_minus = -np.minimum(thetas, 0)
 
     vaccine_data = vaccine_data.reindex(indices.full, fill_value=0)
-    adjusted_vaccinations = adjust_vaccinations_for_variants(vaccine_data, covariates)
+    adjusted_vaccinations = adjust_vaccinations_for_variants(vaccine_data, covariates, scenario_spec.system)
 
     probability_cross_immune = pd.Series(scenario_spec.probability_cross_immune,
                                          index=indices.full, name='probability_cross_immune')
@@ -89,7 +89,7 @@ def build_model_parameters(indices: Indices,
     )
 
 
-def adjust_vaccinations_for_variants(vaccine_data: pd.DataFrame, covariates: pd.DataFrame):
+def adjust_vaccinations_for_variants(vaccine_data: pd.DataFrame, covariates: pd.DataFrame, system: str):
     bad_variant_prevalence = covariates[['variant_prevalence_B1351', 'variant_prevalence_P1']].sum(axis=1)
     variant_start_threshold = pd.Timestamp('2021-05-01')
     location_ids = vaccine_data.reset_index().location_id.tolist()
@@ -123,10 +123,12 @@ def adjust_vaccinations_for_variants(vaccine_data: pd.DataFrame, covariates: pd.
                                           f'effective_wildtype_{risk_group}'],
             f'protected_wild_type_{risk_group}': [],
             f'protected_all_types_{risk_group}': [f'effective_protected_variant_{risk_group}'],
+            f'immune_wild_type_{risk_group}': [],
             f'immune_all_types_{risk_group}': [f'effective_variant_{risk_group}'],
         }
         not_bad_variant_col_map = {
             f'unprotected_{risk_group}': [f'unprotected_{risk_group}'],
+            f'protected_wild_type_{risk_group}': [],
             f'protected_all_types_{risk_group}': [f'effective_protected_wildtype_{risk_group}',
                                                   f'effective_protected_variant_{risk_group}'],
             f'immune_wild_type_{risk_group}': [],
