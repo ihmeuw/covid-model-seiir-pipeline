@@ -130,7 +130,7 @@ def adjust_vaccinations_for_variants(vaccine_data: pd.DataFrame, covariates: pd.
             f'protected_all_types_{risk_group}': [f'effective_protected_wildtype_{risk_group}',
                                                   f'effective_protected_variant_{risk_group}'],
             f'immune_wild_type_{risk_group}': [],
-            f'immune_all_types{risk_group}': [f'effective_wildtype_{risk_group}',
+            f'immune_all_types_{risk_group}': [f'effective_wildtype_{risk_group}',
                                               f'effective_variant_{risk_group}'],
         }
         bad_variant_vaccines = {
