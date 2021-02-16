@@ -115,20 +115,16 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
     )
 
     logger.info('Processing ODE results and computing deaths and infections.', context='compute_results')
-    output_metrics = model.compute_output_metrics(
-        infection_data,
-        ratio_data,
-        past_components,
+    system_metrics, output_metrics = model.compute_output_metrics(
+        indices,
         future_components,
-        beta_params,
-        compartment_info,
-    )
-    hospital_usage = model.compute_corrected_hospital_usage(
-        output_metrics.admissions,
-        ratio_data.ihr / ratio_data.ifr,
+        postprocessing_params,
+        model_parameters,
         hospital_parameters,
-        correction_factors,
+        scenario_spec.system,
     )
+
+    logger.report()
 
     if scenario_spec.algorithm == 'draw_level_mandate_reimposition':
         logger.info('Entering mandate reimposition.', context='compute_mandates')
@@ -238,9 +234,8 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
             )
 
     logger.info('Writing outputs.', context='write')
-    ode_param_cols = output_metrics.components.columns.difference(compartment_info.compartments)
-    ode_params = output_metrics.components[ode_param_cols]
-    components = output_metrics.components[compartment_info.compartments]
+    ode_params = pd.concat(model_parameters.to_dict().values(), axis=1)
+    components = output_metrics.components
     covariates = covariates.set_index('date', append=True)
     epi_metrics = [value for key, value in utilities.asdict(output_metrics).items() if key != 'components']
     usage = [value.rename(key) for key, value in utilities.asdict(hospital_usage).items()]

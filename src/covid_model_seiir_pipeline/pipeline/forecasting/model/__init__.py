@@ -3,13 +3,14 @@ from covid_model_seiir_pipeline.pipeline.forecasting.model.containers import (
     ModelParameters,
     InitialCondition,
     PostprocessingParameters,
+    SystemMetrics,
+    OutputMetrics,
     RatioData,
     HospitalCensusData,
     HospitalMetrics,
     HospitalCorrectionFactors,
     CompartmentInfo,
     ScenarioData,
-    OutputMetrics,
 )
 from covid_model_seiir_pipeline.pipeline.forecasting.model.ode_forecast import (
     build_model_parameters,
