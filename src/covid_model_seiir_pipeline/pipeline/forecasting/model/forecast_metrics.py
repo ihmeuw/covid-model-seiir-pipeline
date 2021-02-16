@@ -44,6 +44,7 @@ def compute_output_metrics(indices: Indices,
 
     system_metrics = system_metrics_maker(
         indices,
+        model_parameters,
         postprocessing_params,
         components,
     )

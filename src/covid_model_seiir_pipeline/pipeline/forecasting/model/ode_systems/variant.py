@@ -180,8 +180,8 @@ def get_betas(params):
 
     p_variant = params[b1351_prevalence] + params[p1_prevalence]
     if p_variant:
-        beta_variant = (params[beta_b1351] * params[b1351_prevalence] + params[beta_p1] * params[
-            p1_prevalence]) / p_variant
+        beta_variant = (params[beta_b1351] * params[b1351_prevalence]
+                        + params[beta_p1] * params[p1_prevalence]) / p_variant
     else:
         beta_variant = 0
     return beta_wild, beta_variant, p_wild, p_variant
