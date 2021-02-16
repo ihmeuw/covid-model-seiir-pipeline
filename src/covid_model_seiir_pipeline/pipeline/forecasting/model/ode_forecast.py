@@ -253,13 +253,13 @@ def build_initial_condition(indices: Indices,
         beta_regression,
         infection_data,
         population,
-        indices.initial_condition
+        indices.past,
     )
     # Date column has served its purpose.  ODE only cares about t0, not what it is.
     return InitialCondition(
-        simple=simple_ic.reset_index(level='date', drop=True),
-        vaccine=vaccine_ic.reset_index(level='date', drop=True),
-        variant=variant_ic.reset_index(level='date', drop=True),
+        simple=simple_ic.loc[indices.initial_condition].reset_index(level='date', drop=True),
+        vaccine=vaccine_ic.loc[indices.initial_condition].reset_index(level='date', drop=True),
+        variant=variant_ic.loc[indices.initial_condition].reset_index(level='date', drop=True),
     )
 
 
