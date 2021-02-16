@@ -404,10 +404,8 @@ def run_ode_model(initial_condition: InitialCondition,
         )
     }
     variant_systems = {
-        'variant_explicit_even': variant.variant_explicit_even_system,
-        'variant_explicit_max': variant.variant_explicit_max_system,
-        'variant_implicit_even': variant.variant_implicit_even_system,
-        'variant_implicit_max': variant.variant_implicit_max_system,
+        'variant_explicit': variant.variant_explicit_system,
+        'variant_implicit': variant.variant_implicit_system,
     }
     for system_name, system in variant_systems.items():
         systems[system_name] = _ODESystem(
