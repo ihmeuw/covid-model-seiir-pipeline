@@ -76,7 +76,7 @@ class ParquetMarshall:
     @classmethod
     def load(cls, key: DatasetKey) -> pd.DataFrame:
         path, columns = cls._resolve_key(key)
-        data = pd.read_parquet(path, columns=columns)
+        data = pd.read_parquet(path, columns=columns, engine='fastparquet')
         return data
 
     @classmethod
