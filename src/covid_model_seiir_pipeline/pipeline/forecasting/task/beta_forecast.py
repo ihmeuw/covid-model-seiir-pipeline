@@ -81,6 +81,7 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
     logger.info('Constructing initial condition.', context='transform')
     initial_condition = model.build_initial_condition(
         indices,
+        model_parameters,
         beta_regression,
         infection_data,
         population,

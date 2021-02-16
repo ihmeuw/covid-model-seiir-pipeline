@@ -227,10 +227,12 @@ def beta_shift(beta_hat: pd.DataFrame,
 ##################################
 
 def build_initial_condition(indices: Indices,
+                            model_parameters: ModelParameters,
                             beta_regression: pd.DataFrame,
                             infection_data: pd.DataFrame,
                             population: pd.DataFrame) -> InitialCondition:
     simple_ic, vaccine_ic, variant_ic = get_component_groups(
+        model_parameters,
         beta_regression,
         infection_data,
         population,
@@ -244,39 +246,57 @@ def build_initial_condition(indices: Indices,
     )
 
 
-def get_component_groups(beta_regression_df, infection_data, population, index):
+def get_component_groups(model_parameters: ModelParameters,
+                         beta_regression_df: pd.DataFrame,
+                         infection_data: pd.DataFrame,
+                         population: pd.DataFrame,
+                         index: pd.MultiIndex):
     simple_comp = beta_regression_df.loc[index, seiir.COMPARTMENTS]
-    new_e = infection_data.groupby('location_id').cumsum().loc[index, 'infections']
+    new_e = infection_data.loc[index]
 
-    risk_groups = ['lr', 'hr']
     total_pop = population.groupby('location_id')['population'].sum()
     low_risk_pop = population[population['age_group_years_start'] < 65].groupby('location_id')['population'].sum()
     high_risk_pop = total_pop - low_risk_pop
+    pop_weights = {
+        'lr': low_risk_pop / total_pop,
+        'hr': high_risk_pop / total_pop,
+    }
+    simple_comp_diff = simple_comp.diff()
 
     # FIXME: These both need some real attention.
-    vaccine_columns = []
-    for risk_group in risk_groups:
-        for vaccine_compartment in vaccine.COMPARTMENTS:
-            vaccine_columns.append(f'{vaccine_compartment}_{risk_group}')
-    vaccine_comp = pd.DataFrame(data=0., columns=vaccine_columns, index=index)
-    for column in seiir.COMPARTMENTS:
-        vaccine_comp[f'{column}_lr'] = simple_comp[column] * low_risk_pop / total_pop
-        vaccine_comp[f'{column}_hr'] = simple_comp[column] * high_risk_pop / total_pop
+    vaccine_columns = [f'{c}_{g}' for c, g in zip(vaccine.COMPARTMENTS, pop_weights)]
+    vaccine_comp_diff = pd.DataFrame(data=0., columns=vaccine_columns, index=index)
+    for risk_group, pop_weight in pop_weights.items():
+        for column in seiir.COMPARTMENTS:
+            vaccine_comp_diff[f'{column}_{risk_group}'] = simple_comp_diff[column] * pop_weight
+    vaccine_comp = vaccine_comp_diff.cumsum()
 
-    variant_columns = []
-    for risk_group in risk_groups:
-        for variant_compartment in variant.COMPARTMENTS:
-            variant_columns.append(f'{variant_compartment}_{risk_group}')
-    variant_comp = pd.DataFrame(data=0., columns=variant_columns, index=index)
-    variant_comp['S_lr'] = simple_comp['S'] * low_risk_pop / total_pop
-    variant_comp['S_hr'] = simple_comp['S'] * high_risk_pop / total_pop
+    variant_columns = [f'{c}_{g}' for c, g in zip(variant.COMPARTMENTS, pop_weights)]
+    variant_comp_diff = pd.DataFrame(data=0., columns=variant_columns, index=index)
+    variant_prevalence = (model_parameters.b1351_prevalence + model_parameters.p1_prevalence).loc[index]
+    prob_cross_immune = model_parameters.probability_cross_immune.loc[index]
+    for risk_group, pop_weight in pop_weights.items():
+        # Just split S by demography.
+        variant_comp_diff[f'S_{risk_group}'] = simple_comp_diff['S'] * pop_weight
+        # E, I1, and I2 are fast enough to move through that just using the
+        # variant prevalence is not a bad estimation of initial condition.
+        for compartment in ['E', 'I1', 'I2']:
+            variant_comp_diff[f'{compartment}_{risk_group}'] = (
+                simple_comp_diff[f'{compartment}_{risk_group}'] * pop_weight * (1 - variant_prevalence)
+            )
+            variant_comp_diff[f'{compartment}_variant_{risk_group}'] = (
+                    simple_comp_diff[f'{compartment}_{risk_group}'] * pop_weight * variant_prevalence
+            )
+        # Who's in R vs. S_variant depends roughly on the probability of cross immunity.
+        # This is a bad approximation if variant prevalence is high and there have been a significant
+        # of infections.
+        variant_comp_diff[f'S_variant_{risk_group}'] = simple_comp_diff['R'] * pop_weight * (1 - prob_cross_immune)
+        variant_comp_diff[f'R_{risk_group}'] = simple_comp_diff['R'] * pop_weight * (1 - prob_cross_immune)
 
-    for column in seiir.COMPARTMENTS:
-        variant_comp[f'{column}_lr'] = simple_comp[column] * low_risk_pop / total_pop
-        variant_comp[f'{column}_hr'] = simple_comp[column] * high_risk_pop / total_pop
+        variant_comp_diff[f'NewE_wild_{risk_group}'] = new_e * pop_weight * (1 - variant_prevalence)
+        variant_comp_diff[f'NewE_variant_{risk_group}'] = new_e * pop_weight * variant_prevalence
 
-    variant_comp['NewE_wild_lr'] = new_e * low_risk_pop / total_pop
-    variant_comp['NewE_wild_hr'] = new_e * high_risk_pop / total_pop
+    variant_comp = variant_comp_diff.cumsum()
 
     return simple_comp, vaccine_comp, variant_comp
 
@@ -297,6 +317,7 @@ def build_postprocessing_parameters(indices: Indices,
                                     scenario_spec: 'ScenarioSpecification') -> PostprocessingParameters:
     beta, compartments = build_past_compartments(
         indices.past,
+        model_parameters,
         beta_regression,
         infection_data,
         population,
@@ -321,11 +342,13 @@ def build_postprocessing_parameters(indices: Indices,
 
 
 def build_past_compartments(index: pd.MultiIndex,
+                            model_parameters: ModelParameters,
                             beta_regression: pd.DataFrame,
                             infection_data: pd.DataFrame,
                             population: pd.DataFrame,
                             system: str) -> Tuple[pd.Series, pd.DataFrame]:
     simple_comp, vaccine_comp, variant_comp = get_component_groups(
+        model_parameters,
         beta_regression,
         infection_data,
         population,
