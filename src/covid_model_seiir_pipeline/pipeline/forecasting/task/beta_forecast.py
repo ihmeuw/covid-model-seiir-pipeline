@@ -259,15 +259,17 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
 @cli_tools.with_task_forecast_version
 @cli_tools.with_scenario
 @cli_tools.with_draw_id
+@cli_tools.with_progress_bar
 @cli_tools.add_verbose_and_with_debugger
 def beta_forecast(forecast_version: str, scenario: str, draw_id: int,
-                  verbose: int, with_debugger: bool):
+                  progress_bar: bool, verbose: int, with_debugger: bool):
     cli_tools.configure_logging_to_terminal(verbose)
 
     run = cli_tools.handle_exceptions(run_beta_forecast, logger, with_debugger)
     run(forecast_version=forecast_version,
         scenario=scenario,
-        draw_id=draw_id)
+        draw_id=draw_id,
+        progress_bar=progress_bar)
 
 
 if __name__ == '__main__':
