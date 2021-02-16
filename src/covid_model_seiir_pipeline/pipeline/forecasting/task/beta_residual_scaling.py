@@ -159,7 +159,7 @@ def compute_initial_beta_scaling_parameters_by_draw(draw_id: int,
 
     # Today in the data is unique by draw.  It's based on the number of tail
     # days we use from the infections elastispliner.
-    transition_date = data_interface.load_transition_date(draw_id)
+    transition_date = data_interface.load_forecast_start_dates(draw_id)
     beta_regression_df = data_interface.load_beta_regression(draw_id).reset_index(level='date')
     idx = beta_regression_df.index
 
