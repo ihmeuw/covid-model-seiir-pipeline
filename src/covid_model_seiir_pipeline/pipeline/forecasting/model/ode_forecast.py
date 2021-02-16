@@ -184,7 +184,6 @@ def beta_shift(beta_hat: pd.DataFrame,
         Predicted beta, after scaling (shift).
 
     """
-    beta_scales = beta_scales.set_index('location_id')
     beta_hat = beta_hat.sort_values(['location_id', 'date']).set_index('location_id')
     scale_init = beta_scales['scale_init']
     scale_final = beta_scales['scale_final']
@@ -217,14 +216,14 @@ def build_initial_condition(indices: Indices,
     simple_ic, vaccine_ic, variant_ic = get_component_groups(beta_regression, population, indices.initial_condition)
     # Date column has served its purpose.  ODE only cares about t0, not what it is.
     return InitialCondition(
-        simple=simple_ic,
-        vaccine=vaccine_ic,
-        variant=variant_ic,
+        simple=simple_ic.reset_index(level='date', drop=True),
+        vaccine=vaccine_ic.reset_index(level='date', drop=True),
+        variant=variant_ic.reset_index(level='date', drop=True),
     )
 
 
 def get_component_groups(beta_regression_df, population, index):
-    simple_ic = beta_regression_df.loc[index, seiir.COMPARTMENTS].reset_index(level='date', drop=True)
+    simple_comp = beta_regression_df.loc[index, seiir.COMPARTMENTS]
 
     risk_groups = ['lr', 'hr']
     total_pop = population.groupby('location_id')['population'].sum()
@@ -236,21 +235,21 @@ def get_component_groups(beta_regression_df, population, index):
     for risk_group in risk_groups:
         for vaccine_compartment in vaccine.COMPARTMENTS:
             vaccine_columns.append(f'{vaccine_compartment}_{risk_group}')
-    vaccine_ic = pd.DataFrame(data=0., columns=vaccine_columns, index=index)
+    vaccine_comp = pd.DataFrame(data=0., columns=vaccine_columns, index=index)
     for column in seiir.COMPARTMENTS:
-        vaccine_ic[f'{column}_lr'] = simple_ic[column] * low_risk_pop / total_pop
-        vaccine_ic[f'{column}_hr'] = simple_ic[column] * high_risk_pop / total_pop
+        vaccine_comp[f'{column}_lr'] = simple_comp[column] * low_risk_pop / total_pop
+        vaccine_comp[f'{column}_hr'] = simple_comp[column] * high_risk_pop / total_pop
 
     variant_columns = []
     for risk_group in risk_groups:
         for variant_compartment in variant.COMPARTMENTS:
             variant_columns.append(f'{variant_compartment}_{risk_group}')
-    variant_ic = pd.DataFrame(data=0., columns=variant_columns, index=index)
+    variant_comp = pd.DataFrame(data=0., columns=variant_columns, index=index)
     for column in seiir.COMPARTMENTS:
-        variant_ic[f'{column}_lr'] = simple_ic[column] * low_risk_pop / total_pop
-        variant_ic[f'{column}_hr'] = simple_ic[column] * high_risk_pop / total_pop
+        variant_comp[f'{column}_lr'] = simple_comp[column] * low_risk_pop / total_pop
+        variant_comp[f'{column}_hr'] = simple_comp[column] * high_risk_pop / total_pop
 
-    return simple_ic, vaccine_ic, variant_ic
+    return simple_comp, vaccine_comp, variant_comp
 
 
 #######################################

@@ -19,7 +19,7 @@ workflow:
       m_mem_free: '20G'
       num_cores: 26
 regression_parameters:
-  n_draws: 1000
+  n_draws: 100
   day_shift: [0, 11]
   alpha: [0.9, 1.0]
   sigma: [0.2, 0.3333]
