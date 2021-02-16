@@ -1,3 +1,4 @@
+import itertools
 from typing import Callable, Dict, List, NamedTuple, Tuple, TYPE_CHECKING
 
 import numpy as np
@@ -280,14 +281,14 @@ def get_component_groups(model_parameters: ModelParameters,
     simple_comp_diff = simple_comp.diff()
 
     # FIXME: These both need some real attention.
-    vaccine_columns = [f'{c}_{g}' for c, g in zip(vaccine.COMPARTMENTS, pop_weights)]
+    vaccine_columns = [f'{c}_{g}' for g, c in itertools.product(pop_weights, vaccine.COMPARTMENTS)]
     vaccine_comp_diff = pd.DataFrame(data=0., columns=vaccine_columns, index=index)
     for risk_group, pop_weight in pop_weights.items():
         for column in seiir.COMPARTMENTS:
             vaccine_comp_diff[f'{column}_{risk_group}'] = simple_comp_diff[column] * pop_weight
     vaccine_comp = vaccine_comp_diff.cumsum()
 
-    variant_columns = [f'{c}_{g}' for c, g in zip(variant.COMPARTMENTS, pop_weights)]
+    variant_columns = [f'{c}_{g}' for g, c in itertools.product(pop_weights, variant.COMPARTMENTS)]
     variant_comp_diff = pd.DataFrame(data=0., columns=variant_columns, index=index)
     variant_prevalence = (model_parameters.b1351_prevalence + model_parameters.p1_prevalence).loc[index]
     prob_cross_immune = model_parameters.probability_cross_immune.loc[index]
