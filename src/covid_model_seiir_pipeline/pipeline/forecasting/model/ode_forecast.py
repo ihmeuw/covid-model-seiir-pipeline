@@ -292,6 +292,7 @@ def build_postprocessing_parameters(indices: Indices,
     beta, compartments = build_past_compartments(
         indices.past,
         beta_regression,
+        infection_data,
         population,
         scenario_spec.system,
     )
@@ -315,9 +316,15 @@ def build_postprocessing_parameters(indices: Indices,
 
 def build_past_compartments(index: pd.MultiIndex,
                             beta_regression: pd.DataFrame,
+                            infection_data: pd.DataFrame,
                             population: pd.DataFrame,
                             system: str) -> Tuple[pd.Series, pd.DataFrame]:
-    simple_comp, vaccine_comp, variant_comp = get_component_groups(beta_regression, population, index)
+    simple_comp, vaccine_comp, variant_comp = get_component_groups(
+        beta_regression,
+        infection_data,
+        population,
+        index
+    )
     if system == 'normal':
         compartments = simple_comp
     elif system == 'vaccine':
