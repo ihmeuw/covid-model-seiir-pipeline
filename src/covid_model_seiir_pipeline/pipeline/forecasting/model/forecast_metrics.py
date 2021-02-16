@@ -29,7 +29,7 @@ def compute_output_metrics(indices: Indices,
                            postprocessing_params: PostprocessingParameters,
                            model_parameters: ModelParameters,
                            hospital_parameters: 'HospitalParameters',
-                           system: str) -> Tuple[SystemMetrics, OutputMetrics]:
+                           system: str) -> Tuple[pd.DataFrame, SystemMetrics, OutputMetrics]:
     components = postprocessing_params.past_compartments
     components = (components
                   .append(future_components)
@@ -70,7 +70,6 @@ def compute_output_metrics(indices: Indices,
     )
 
     output_metrics = OutputMetrics(
-        components=components,
         infections=infections,
         cases=cases,
         deaths=deaths,
@@ -80,7 +79,7 @@ def compute_output_metrics(indices: Indices,
         r_effective=pd.Series(np.nan, index=indices.full),
         herd_immunity=pd.Series(np.nan, index=indices.full),
     )
-    return system_metrics, output_metrics
+    return components, system_metrics, output_metrics
 
 
 def normal_system_metrics(indices: Indices,

@@ -115,7 +115,7 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
     )
 
     logger.info('Processing ODE results and computing deaths and infections.', context='compute_results')
-    system_metrics, output_metrics = model.compute_output_metrics(
+    components, system_metrics, output_metrics = model.compute_output_metrics(
         indices,
         future_components,
         postprocessing_params,
@@ -233,15 +233,11 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
                 last_reimposition_end_date,
             )
 
-    logger.info('Writing outputs.', context='write')
-    ode_params = pd.concat([p.rename(name) for name, p in model_parameters.to_dict().items()], axis=1)
-    components = output_metrics.components
-    system_outputs = pd.concat([p.rename(name) for name, p in system_metrics.to_dict().items()], axis=1)
-    epi_metrics = pd.concat(
-        [p.rename(name) for name, p in output_metrics.to_dict().items() if name != 'components'], axis=1
-    )
-    outputs = pd.concat([system_outputs, epi_metrics], axis=1)
+    logger.info('Prepping outputs.', context='transform')
+    ode_params = model_parameters.to_df()
+    outputs = pd.concat([system_metrics.to_df(), output_metrics.to_df()], axis=1)
 
+    logger.info('Writing outputs.', context='write')
     data_interface.save_ode_params(ode_params, scenario, draw_id)
     data_interface.save_components(components, scenario, draw_id)
     data_interface.save_raw_covariates(covariates, scenario, draw_id)

@@ -121,6 +121,9 @@ class ModelParameters:
     def to_dict(self) -> Dict[str, pd.Series]:
         return utilities.asdict(self)
 
+    def to_df(self) -> pd.DataFrame:
+        return pd.concat([v.rename(k) for k, v in self.to_dict().items()], axis=1)
+
 
 @dataclass
 class InitialCondition:
@@ -182,14 +185,15 @@ class SystemMetrics:
     total_immune_wild: pd.Series
     total_immune_variant: pd.Series
 
-    def to_dict(self) -> Dict[str, Union[pd.Series, pd.DataFrame]]:
+    def to_dict(self) -> Dict[str, pd.Series]:
         return utilities.asdict(self)
+
+    def to_df(self) -> pd.DataFrame:
+        return pd.concat([v.rename(k) for k, v in self.to_dict().items()], axis=1)
 
 
 @dataclass
 class OutputMetrics:
-    components: pd.DataFrame
-
     # observed + modeled
     infections: pd.Series
     cases: pd.Series
@@ -198,15 +202,18 @@ class OutputMetrics:
     icu_admissions: pd.Series
     icu_census: pd.Series
     ventilator_census: pd.Series
-    deaths: pd.DataFrame
+    deaths: pd.Series
 
     # Other stuff
     r_controlled: pd.Series
     r_effective: pd.Series
     herd_immunity: pd.Series
 
-    def to_dict(self) -> Dict[str, Union[pd.Series, pd.DataFrame]]:
+    def to_dict(self) -> Dict[str, pd.Series]:
         return utilities.asdict(self)
+
+    def to_df(self) -> pd.DataFrame:
+        return pd.concat([v.rename(k) for k, v in self.to_dict().items()], axis=1)
 
 
 @dataclass
