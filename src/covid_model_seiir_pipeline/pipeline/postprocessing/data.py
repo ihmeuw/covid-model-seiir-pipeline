@@ -150,7 +150,6 @@ class PostprocessingDataInterface:
     def load_mortality_ratio(self) -> pd.Series:
         location_ids = self.load_location_ids()
         mr_df = io.load(self.mortality_ratio_root.mortality_ratio())
-        mr_df = mr_df.set_index('age_start', append=True)
         return mr_df.loc[location_ids, 'MRprob']
 
     def build_version_map(self) -> pd.Series:
