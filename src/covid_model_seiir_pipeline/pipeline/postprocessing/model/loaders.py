@@ -153,6 +153,24 @@ def load_herd_immunity(scenario: str, data_interface: 'PostprocessingDataInterfa
     return _load_output_data(scenario, 'herd_immunity', data_interface, num_cores)
 
 
+def load_betas(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int) -> List[pd.Series]:
+    _runner = functools.partial(
+        data_interface.load_betas,
+        scenario=scenario,
+    )
+    draws = range(data_interface.get_n_draws())
+    with multiprocessing.Pool(num_cores) as pool:
+        betas = pool.map(_runner, draws)
+    return betas
+
+
+def load_beta_residuals(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int) -> List[pd.Series]:
+    draws = range(data_interface.get_n_draws())
+    with multiprocessing.Pool(num_cores) as pool:
+        beta_residuals = pool.map(data_interface.load_beta_residuals, draws)
+    return beta_residuals
+
+
 
 #########################
 # Non-interface methods #
@@ -226,22 +244,7 @@ def load_covariate(covariate: str, time_varying: bool, scenario: str,
     return outputs
 
 
-def load_betas(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int) -> List[pd.Series]:
-    _runner = functools.partial(
-        data_interface.load_betas,
-        scenario=scenario,
-    )
-    draws = range(data_interface.get_n_draws())
-    with multiprocessing.Pool(num_cores) as pool:
-        betas = pool.map(_runner, draws)
-    return betas
 
-
-def load_beta_residuals(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int) -> List[pd.Series]:
-    draws = range(data_interface.get_n_draws())
-    with multiprocessing.Pool(num_cores) as pool:
-        beta_residuals = pool.map(data_interface.load_beta_residuals, draws)
-    return beta_residuals
 
 
 def load_full_data(data_interface: 'PostprocessingDataInterface') -> pd.DataFrame:

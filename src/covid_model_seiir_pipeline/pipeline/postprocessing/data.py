@@ -114,7 +114,6 @@ class PostprocessingDataInterface:
     def load_raw_outputs(self, draw_id: int, scenario: str, columns=None) -> pd.Series:
         return io.load(self.forecast_root.raw_outputs(scenario=scenario, draw_id=draw_id, columns=columns))
 
-
     ##############################
     # Miscellaneous data loaders #
     ##############################
