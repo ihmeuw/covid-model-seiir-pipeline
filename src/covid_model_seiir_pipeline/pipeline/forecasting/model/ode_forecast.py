@@ -298,10 +298,10 @@ def get_component_groups(model_parameters: ModelParameters,
         # variant prevalence is not a bad estimation of initial condition.
         for compartment in ['E', 'I1', 'I2']:
             variant_comp_diff[f'{compartment}_{risk_group}'] = (
-                simple_comp_diff[f'{compartment}_{risk_group}'] * pop_weight * (1 - variant_prevalence)
+                simple_comp_diff[compartment] * pop_weight * (1 - variant_prevalence)
             )
             variant_comp_diff[f'{compartment}_variant_{risk_group}'] = (
-                    simple_comp_diff[f'{compartment}_{risk_group}'] * pop_weight * variant_prevalence
+                    simple_comp_diff[compartment] * pop_weight * variant_prevalence
             )
         # Who's in R vs. S_variant depends roughly on the probability of cross immunity.
         # This is a bad approximation if variant prevalence is high and there have been a significant
