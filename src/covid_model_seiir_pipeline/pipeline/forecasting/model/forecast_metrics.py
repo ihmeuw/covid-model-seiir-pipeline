@@ -87,7 +87,7 @@ def normal_system_metrics(indices: Indices,
                           model_parameters: ModelParameters,
                           postprocessing_params: PostprocessingParameters,
                           components: pd.DataFrame) -> SystemMetrics:
-    components_diff = components.groupby('location_id').diff(-1)
+    components_diff = components.groupby('location_id').diff()
     modeled_infections = -components_diff['S'].rename('infections')
     modeled_deaths = compute_deaths(
         modeled_infections,
@@ -129,7 +129,7 @@ def vaccine_system_metrics(indices: Indices,
                            model_parameters: ModelParameters,
                            postprocessing_params: PostprocessingParameters,
                            components: pd.DataFrame) -> SystemMetrics:
-    components_diff = components.groupby('location_id').diff(-1)
+    components_diff = components.groupby('location_id').diff()
 
     modeled_infections = pd.Series(0, index=indices.full, name='infections')
     modeled_deaths = pd.Series(0, index=indices.full, name='deaths')
@@ -200,7 +200,7 @@ def variant_system_metrics(indices: Indices,
                            model_parameters: ModelParameters,
                            postprocessing_params: PostprocessingParameters,
                            components: pd.DataFrame) -> SystemMetrics:
-    components_diff = components.groupby('location_id').diff(-1)
+    components_diff = components.groupby('location_id').diff()
     cols = components_diff.columns
     modeled_infections_wild = components_diff[[c for c in cols if 'NewE_wild' in c]].sum(axis=1)
     modeled_infections_variant = components_diff[[c for c in cols if 'NewE_variant' in c]].sum(axis=1)
