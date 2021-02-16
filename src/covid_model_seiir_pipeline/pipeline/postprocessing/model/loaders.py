@@ -15,14 +15,7 @@ if TYPE_CHECKING:
 
 
 def load_deaths(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
-    _runner = functools.partial(
-        data_interface.load_raw_output_deaths,
-        scenario=scenario,
-    )
-    draws = range(data_interface.get_n_draws())
-    with multiprocessing.Pool(num_cores) as pool:
-        outputs = pool.map(_runner, draws)
-    return outputs
+    return _load_output_data(scenario, 'deaths', data_interface, num_cores)
 
 
 def load_deaths_wild(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
