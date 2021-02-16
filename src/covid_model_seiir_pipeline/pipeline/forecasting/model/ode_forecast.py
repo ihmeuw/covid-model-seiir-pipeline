@@ -244,7 +244,7 @@ def build_initial_condition(indices: Indices,
 
 def get_component_groups(beta_regression_df, infection_data, population, index):
     simple_comp = beta_regression_df.loc[index, seiir.COMPARTMENTS]
-    newE = infection_data.loc[index, 'infections']
+    new_e = infection_data.groupby('location_id').cumsum().loc[index, 'infections']
 
     risk_groups = ['lr', 'hr']
     total_pop = population.groupby('location_id')['population'].sum()
@@ -269,8 +269,9 @@ def get_component_groups(beta_regression_df, infection_data, population, index):
     for column in seiir.COMPARTMENTS:
         variant_comp[f'{column}_lr'] = simple_comp[column] * low_risk_pop / total_pop
         variant_comp[f'{column}_hr'] = simple_comp[column] * high_risk_pop / total_pop
-    variant_comp['NewE_wild_lr'] = newE * low_risk_pop / total_pop
-    variant_comp['NewE_wild_hr'] = newE * high_risk_pop / total_pop
+
+    variant_comp['NewE_wild_lr'] = new_e * low_risk_pop / total_pop
+    variant_comp['NewE_wild_hr'] = new_e * high_risk_pop / total_pop
 
     return simple_comp, vaccine_comp, variant_comp
 
