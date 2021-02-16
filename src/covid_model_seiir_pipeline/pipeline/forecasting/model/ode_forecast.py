@@ -6,15 +6,15 @@ import pandas as pd
 
 from covid_model_seiir_pipeline.lib import (
     math,
-    utilities,
 )
 from covid_model_seiir_pipeline.pipeline.forecasting.model.containers import (
     Indices,
     ModelParameters,
     InitialCondition,
+    PostprocessingParameters,
+    RatioData,
     HospitalCorrectionFactors,
     CompartmentInfo,
-    ScenarioData,
 )
 from covid_model_seiir_pipeline.pipeline.forecasting.model.ode_systems import (
     seiir,
@@ -126,7 +126,8 @@ def adjust_vaccinations_for_variants(vaccine_data: pd.DataFrame, covariates: pd.
                                          f'effective_variant_{risk_group}'],
         }
         b1351_vaccines = {name: vaccine_data[cols].sum(axis=1).rename(name) for name, cols in b1351_col_map.items()}
-        not_b1351_vaccines = {name: vaccine_data[cols].sum(axis=1).rename(name) for name, cols in not_b1351_col_map.items()}
+        not_b1351_vaccines = {name: vaccine_data[cols].sum(axis=1).rename(name)
+                              for name, cols in not_b1351_col_map.items()}
         for name in b1351_vaccines:
             vaccinations[name] = (
                 b1351_vaccines[name]
@@ -253,50 +254,95 @@ def get_component_groups(beta_regression_df, population, index):
     return simple_ic, vaccine_ic, variant_ic
 
 
-def forecast_correction_factors(correction_factors: HospitalCorrectionFactors,
-                                today: pd.Series,
-                                max_date: pd.Timestamp,
+#######################################
+# Construct postprocessing parameters #
+#######################################
+
+
+def build_postprocessing_parameters(indices: Indices,
+                                    beta_regression: pd.DataFrame,
+                                    infection_data: pd.DataFrame,
+                                    population: pd.DataFrame,
+                                    ratio_data: RatioData,
+                                    model_parameters: ModelParameters,
+                                    correction_factors: HospitalCorrectionFactors,
+                                    hospital_parameters: 'HospitalParameters',
+                                    scenario_spec: 'ScenarioSpecification') -> PostprocessingParameters:
+    beta, compartments = build_past_compartments(
+        indices.past,
+        beta_regression,
+        population,
+        scenario_spec.system,
+    )
+    ratio_data = correct_ratio_data(indices, ratio_data, model_parameters, scenario_spec.variant_ifr_scale)
+
+    correction_factors = forecast_correction_factors(
+        indices,
+        correction_factors,
+        hospital_parameters,
+    )
+
+    return PostprocessingParameters(
+        past_beta=beta,
+        past_compartments=compartments,
+        past_infections=infection_data.loc[indices.past, 'infections'],
+        past_deaths=infection_data.loc[indices.past, 'deaths'],
+        **ratio_data.to_dict(),
+        **correction_factors.to_dict()
+    )
+
+
+def build_past_compartments(index: pd.MultiIndex,
+                            beta_regression: pd.DataFrame,
+                            population: pd.DataFrame,
+                            system: str) -> Tuple[pd.Series, pd.DataFrame]:
+    simple_comp, vaccine_comp, variant_comp = get_component_groups(beta_regression, population, index)
+    if system == 'normal':
+        compartments = simple_comp
+    elif system == 'vaccine':
+        compartments = vaccine_comp
+    else:
+        compartments = variant_comp
+    beta = beta_regression.loc[index, 'beta']
+    return beta, compartments
+
+
+def correct_ratio_data(indices: Indices,
+                       ratio_data: RatioData,
+                       model_params: ModelParameters,
+                       ifr_scale: float) -> RatioData:
+    variant_prevalence = model_params.b117_prevalence + model_params.b1351_prevalence
+    ifr_scalar = ifr_scale * variant_prevalence + (1 - variant_prevalence)
+
+    ratio_data.ifr = ratio_data.ifr.reindex(indices.full, method='ffill') * ifr_scalar
+    ratio_data.ifr_lr = ratio_data.ifr_lr.reindex(indices.full, method='ffill') * ifr_scalar
+    ratio_data.ifr_hr = ratio_data.ifr_hr.reindex(indices.full, method='ffill') * ifr_scalar
+
+    ratio_data.idr = ratio_data.idr.reindex(indices.full, method='ffill')
+    ratio_data.ihr = ratio_data.ihr.reindex(indices.full, method='ffill')
+    return ratio_data
+
+
+def forecast_correction_factors(indices: Indices,
+                                correction_factors: HospitalCorrectionFactors,
                                 hospital_parameters: 'HospitalParameters') -> HospitalCorrectionFactors:
     averaging_window = pd.Timedelta(days=hospital_parameters.correction_factor_average_window)
     application_window = pd.Timedelta(days=hospital_parameters.correction_factor_application_window)
-    assert np.all(max_date > today + application_window)
 
     new_cfs = {}
-    for cf_name, cf in utilities.asdict(correction_factors).items():
+    for cf_name, cf in correction_factors.to_dict().items():
+        cf = cf.reindex(indices.full)
         loc_cfs = []
-        for loc_id in today.index:
+        for loc_id, loc_today in indices.initial_condition.tolist():
             loc_cf = cf.loc[loc_id]
-            loc_today = today.loc[loc_id]
             mean_cf = loc_cf.loc[loc_today - averaging_window: loc_today].mean()
-            loc_cf = loc_cf.loc[:loc_today]
-            loc_cf.loc[loc_today + application_window] = mean_cf
-            loc_cf.loc[max_date] = mean_cf
-            loc_cf = loc_cf.asfreq('D').interpolate().reset_index()
+            loc_cf.loc[loc_today:] = np.nan
+            loc_cf.loc[loc_today + application_window:] = mean_cf
+            loc_cf = loc_cf.interpolate().reset_index()
             loc_cf['location_id'] = loc_id
             loc_cfs.append(loc_cf.set_index(['location_id', 'date'])[cf_name])
         new_cfs[cf_name] = pd.concat(loc_cfs).sort_index()
     return HospitalCorrectionFactors(**new_cfs)
-
-
-def correct_ifr(ifr: pd.Series, variant_scalar: pd.Series, forecast_end_date: pd.Timestamp):
-    ifr = (ifr
-           .reindex(ifr.index.union(variant_scalar.index))
-           .groupby('location_id')
-           .fillna(method='ffill'))
-    ifr = ifr.loc[pd.IndexSlice[:, :forecast_end_date]]
-    ifr.loc[variant_scalar.index] *= variant_scalar
-    return ifr
-
-
-def prep_seiir_parameters(betas: pd.DataFrame,
-                          thetas: pd.Series,
-                          scenario_data: ScenarioData):
-    betas = betas.rename(columns={'beta_pred': 'beta'})
-    parameters = betas.merge(thetas, on='location_id')
-    if scenario_data.vaccinations is not None:
-        v = scenario_data.vaccinations
-        parameters = parameters.merge(v, on=['location_id', 'date'], how='left').fillna(0)
-    return parameters
 
 
 def run_normal_ode_model_by_location(initial_condition: pd.DataFrame,
