@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Any
+from typing import Any, List, Tuple, Union
 
 from covid_shared.shell_tools import mkdir
 import pandas as pd
@@ -18,7 +18,7 @@ class CSVMarshall:
     # interface methods
     @classmethod
     def dump(cls, data: pd.DataFrame, key: DatasetKey, strict: bool = True) -> None:
-        path = cls._resolve_key(key)
+        path, _ = cls._resolve_key(key)
 
         if strict and path.exists():
             msg = f"Cannot dump data for key {key} - would overwrite"
@@ -29,8 +29,8 @@ class CSVMarshall:
 
     @classmethod
     def load(cls, key: DatasetKey) -> pd.DataFrame:
-        path = cls._resolve_key(key)
-        data = pd.read_csv(path)
+        path, columns = cls._resolve_key(key)
+        data = pd.read_csv(path, usecols=columns)
         # Use list comp to keep ordering consistent.
         index_cols = [c for c in POTENTIAL_INDEX_COLUMNS if c in data.columns]
         if 'date' in index_cols:
@@ -46,18 +46,18 @@ class CSVMarshall:
 
     @classmethod
     def exists(cls, key: DatasetKey) -> bool:
-        path = cls._resolve_key(key)
+        path, _ = cls._resolve_key(key)
         return path.exists()
 
     @classmethod
-    def _resolve_key(cls, key: DatasetKey) -> Path:
+    def _resolve_key(cls, key: DatasetKey) -> Tuple[Path, Union[List[str], None]]:
         path = key.root
         if key.prefix:
             path /= key.prefix
         path /= key.data_type
         if key.leaf_name:
             path /= key.leaf_name
-        return path.with_suffix(".csv")
+        return path.with_suffix(".csv"), key.columns
 
 
 class ParquetMarshall:
@@ -65,7 +65,7 @@ class ParquetMarshall:
     # interface methods
     @classmethod
     def dump(cls, data: pd.DataFrame, key: DatasetKey, strict: bool = True) -> None:
-        path = cls._resolve_key(key)
+        path, _ = cls._resolve_key(key)
 
         if strict and path.exists():
             msg = f"Cannot dump data for key {key} - would overwrite"
@@ -75,8 +75,8 @@ class ParquetMarshall:
 
     @classmethod
     def load(cls, key: DatasetKey) -> pd.DataFrame:
-        path = cls._resolve_key(key)
-        data = pd.read_parquet(path)
+        path, columns = cls._resolve_key(key)
+        data = pd.read_parquet(path, columns=columns)
         return data
 
     @classmethod
@@ -86,18 +86,18 @@ class ParquetMarshall:
 
     @classmethod
     def exists(cls, key: DatasetKey) -> bool:
-        path = cls._resolve_key(key)
+        path, _ = cls._resolve_key(key)
         return path.exists()
 
     @classmethod
-    def _resolve_key(cls, key: DatasetKey) -> Path:
+    def _resolve_key(cls, key: DatasetKey) -> Tuple[Path, Union[List[str], None]]:
         path = key.root
         if key.prefix:
             path /= key.prefix
         path /= key.data_type
         if key.leaf_name:
             path /= key.leaf_name
-        return path.with_suffix(".parquet")
+        return path.with_suffix(".parquet"), key.columns
 
 
 class YamlMarshall:
