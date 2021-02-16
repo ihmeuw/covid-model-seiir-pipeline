@@ -118,18 +118,20 @@ def adjust_vaccinations_for_variants(vaccine_data: pd.DataFrame, covariates: pd.
             vaccinations[to_name] = vaccine_data[from_name].rename(to_name)
 
         bad_variant_col_map = {
-            f'old_unprotected_{risk_group}': [f'unprotected_{risk_group}',
-                                              f'effective_protected_wildtype_{risk_group}',
-                                              f'effective_wildtype_{risk_group}'],
-            f'old_protected_{risk_group}': [f'effective_protected_variant_{risk_group}'],
-            f'old_immune_{risk_group}': [f'effective_variant_{risk_group}'],
+            f'unprotected_{risk_group}': [f'unprotected_{risk_group}',
+                                          f'effective_protected_wildtype_{risk_group}',
+                                          f'effective_wildtype_{risk_group}'],
+            f'protected_wild_type_{risk_group}': [],
+            f'protected_all_types_{risk_group}': [f'effective_protected_variant_{risk_group}'],
+            f'immune_all_types_{risk_group}': [f'effective_variant_{risk_group}'],
         }
         not_bad_variant_col_map = {
-            f'old_unprotected_{risk_group}': [f'unprotected_{risk_group}'],
-            f'old_protected_{risk_group}': [f'effective_protected_wildtype_{risk_group}',
-                                            f'effective_protected_variant_{risk_group}'],
-            f'old_immune_{risk_group}': [f'effective_wildtype_{risk_group}',
-                                         f'effective_variant_{risk_group}'],
+            f'unprotected_{risk_group}': [f'unprotected_{risk_group}'],
+            f'protected_all_types_{risk_group}': [f'effective_protected_wildtype_{risk_group}',
+                                                  f'effective_protected_variant_{risk_group}'],
+            f'immune_wild_type_{risk_group}': [],
+            f'immune_all_types{risk_group}': [f'effective_wildtype_{risk_group}',
+                                              f'effective_variant_{risk_group}'],
         }
         bad_variant_vaccines = {
             name: vaccine_data[cols].sum(axis=1).rename(name) for name, cols in bad_variant_col_map.items()
@@ -266,6 +268,9 @@ def get_component_groups(beta_regression_df, infection_data, population, index):
         for variant_compartment in variant.COMPARTMENTS:
             variant_columns.append(f'{variant_compartment}_{risk_group}')
     variant_comp = pd.DataFrame(data=0., columns=variant_columns, index=index)
+    variant_comp['S_lr'] = simple_comp['S'] * low_risk_pop / total_pop
+    variant_comp['S_hr'] = simple_comp['S'] * high_risk_pop / total_pop
+
     for column in seiir.COMPARTMENTS:
         variant_comp[f'{column}_lr'] = simple_comp[column] * low_risk_pop / total_pop
         variant_comp[f'{column}_hr'] = simple_comp[column] * high_risk_pop / total_pop
@@ -423,12 +428,12 @@ def run_ode_model(initial_condition: InitialCondition,
                 model_parameters.gamma2,
                 model_parameters.theta_plus,
                 model_parameters.theta_minus,
-                model_parameters.old_unprotected_lr,
-                model_parameters.old_protected_lr,
-                model_parameters.old_immune_lr,
-                model_parameters.old_unprotected_hr,
-                model_parameters.old_protected_hr,
-                model_parameters.old_immune_hr,
+                model_parameters.unprotected_lr,
+                model_parameters.protected_all_types_lr,
+                model_parameters.immune_all_types_lr,
+                model_parameters.unprotected_hr,
+                model_parameters.protected_all_types_hr,
+                model_parameters.immune_all_types_hr,
             ]
         )
     }

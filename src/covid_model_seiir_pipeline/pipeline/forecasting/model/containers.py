@@ -93,18 +93,12 @@ class ModelParameters:
     protected_all_types_lr: pd.Series
     immune_wild_type_lr: pd.Series
     immune_all_types_lr: pd.Series
-    old_unprotected_lr: pd.Series
-    old_protected_lr: pd.Series
-    old_immune_lr: pd.Series
 
     unprotected_hr: pd.Series
     protected_wild_type_hr: pd.Series
     protected_all_types_hr: pd.Series
     immune_wild_type_hr: pd.Series
     immune_all_types_hr: pd.Series
-    old_unprotected_hr: pd.Series
-    old_protected_hr: pd.Series
-    old_immune_hr: pd.Series
 
     # Variant parameters
     beta_wild: pd.Series
