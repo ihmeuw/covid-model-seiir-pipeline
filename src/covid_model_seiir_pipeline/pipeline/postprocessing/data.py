@@ -102,11 +102,18 @@ class PostprocessingDataInterface:
         beta_residual = np.log(beta_regression['beta'] / beta_regression['beta_pred']).rename(draw_id)
         return beta_residual
 
-    def load_raw_outputs(self, draw_id: int, scenario: str, measure: str) -> pd.Series:
-        draw_df = io.load(self.forecast_root.raw_outputs(scenario=scenario, draw_id=draw_id))
-        if measure == 'deaths':
-            draw_df = draw_df.set_index('observed', append=True)
+    def load_single_raw_output(self, draw_id: int, scenario: str, measure: str) -> pd.Series:
+        draw_df = self.load_raw_outputs(scenario=scenario, draw_id=draw_id, columns=[measure])
         return draw_df[measure].rename(draw_id)
+
+    def load_raw_output_deaths(self, draw_id: int, scenario: str) -> pd.Series:
+        draw_df = self.load_raw_outputs(scenario=scenario, draw_id=draw_id, columns=['observed', 'deaths'])
+        draw_df = draw_df.set_index('observed', append=True)
+        return draw_df['deaths'].rename(draw_id)
+
+    def load_raw_outputs(self, draw_id: int, scenario: str, columns=None) -> pd.Series:
+        return io.load(self.forecast_root.raw_outputs(scenario=scenario, draw_id=draw_id, columns=columns))
+
 
     ##############################
     # Miscellaneous data loaders #
