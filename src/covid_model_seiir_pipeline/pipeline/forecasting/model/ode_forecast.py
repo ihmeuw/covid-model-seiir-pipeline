@@ -51,7 +51,7 @@ def build_model_parameters(indices: Indices,
     gamma1 = pd.Series(beta_params['gamma1'], index=indices.full, name='gamma1')
     gamma2 = pd.Series(beta_params['gamma2'], index=indices.full, name='gamma2')
 
-    beta, beta_b117, beta_b1351 = forecast_beta(covariates, coefficients, beta_scales)
+    beta, beta_b117, beta_b1351, beta_p1 = forecast_beta(covariates, coefficients, beta_scales)
 
     thetas = thetas.reindex(indices.full, level='location_id')
 
@@ -80,22 +80,28 @@ def build_model_parameters(indices: Indices,
         **adjusted_vaccinations,
         beta_b117=beta_b117,
         beta_b1351=beta_b1351,
+        beta_p1=beta_p1,
         b117_prevalence=covariates['variant_prevalence_B117'],
         b1351_prevalence=covariates['variant_prevalence_B1351'],
+        p1_prevalence=covariates['variant_prevalence_P1'],
         probability_cross_immune=probability_cross_immune,
     )
 
 
 def adjust_vaccinations_for_variants(vaccine_data: pd.DataFrame, covariates: pd.DataFrame):
-    vaccine_data = vaccine_data.reindex(covariates.index, fill_value=0)
-    if 'variant_prevalence_B1351' in covariates.columns:
-        b1351_prevalence = covariates['variant_prevalence_B1351']
-    else:
-        b1351_prevalence = pd.Series(0, index=vaccine_data.index)
-
-    max_prevalence = b1351_prevalence.groupby('location_id').max()
-    locs_with_b1351 = max_prevalence[max_prevalence > 0].index.tolist()
-    locs_without_b1351 = max_prevalence.index.difference(locs_with_b1351).tolist()
+    bad_variant_prevalence = covariates[['variant_prevalence_B1351', 'variant_prevalence_P1']].sum(axis=1)
+    variant_start_threshold = pd.Timestamp('2021-05-01')
+    location_ids = vaccine_data.reset_index().location_id.tolist()
+    bad_variant_entrance_date = (bad_variant_prevalence[bad_variant_prevalence > 1]
+                                 .reset_index()
+                                 .groupby('location_id')
+                                 .date
+                                 .min())
+    locs_with_bad_variant = (bad_variant_entrance_date[bad_variant_entrance_date < variant_start_threshold]
+                             .reset_index()
+                             .location_id
+                             .tolist())
+    locs_without_bad_variant = list(set(location_ids).difference(locs_with_bad_variant))
 
     risk_groups = ['lr', 'hr']
     vaccinations = {}
@@ -110,30 +116,33 @@ def adjust_vaccinations_for_variants(vaccine_data: pd.DataFrame, covariates: pd.
         for to_name, from_name in base_col_map.items():
             vaccinations[to_name] = vaccine_data[from_name].rename(to_name)
 
-        b1351_col_map = {
+        bad_variant_col_map = {
             f'old_unprotected_{risk_group}': [f'unprotected_{risk_group}',
                                               f'effective_protected_wildtype_{risk_group}',
                                               f'effective_wildtype_{risk_group}'],
             f'old_protected_{risk_group}': [f'effective_protected_variant_{risk_group}'],
             f'old_immune_{risk_group}': [f'effective_variant_{risk_group}'],
         }
-        not_b1351_col_map = {
+        not_bad_variant_col_map = {
             f'old_unprotected_{risk_group}': [f'unprotected_{risk_group}'],
             f'old_protected_{risk_group}': [f'effective_protected_wildtype_{risk_group}',
                                             f'effective_protected_variant_{risk_group}'],
             f'old_immune_{risk_group}': [f'effective_wildtype_{risk_group}',
                                          f'effective_variant_{risk_group}'],
         }
-        b1351_vaccines = {name: vaccine_data[cols].sum(axis=1).rename(name) for name, cols in b1351_col_map.items()}
-        not_b1351_vaccines = {name: vaccine_data[cols].sum(axis=1).rename(name)
-                              for name, cols in not_b1351_col_map.items()}
-        for name in b1351_vaccines:
+        bad_variant_vaccines = {
+            name: vaccine_data[cols].sum(axis=1).rename(name) for name, cols in bad_variant_col_map.items()
+        }
+        not_bad_variant_vaccines = {
+            name: vaccine_data[cols].sum(axis=1).rename(name) for name, cols in not_bad_variant_col_map.items()
+        }
+        for name in bad_variant_vaccines:
             vaccinations[name] = (
-                b1351_vaccines[name]
-                .loc[locs_with_b1351]
+                bad_variant_vaccines[name]
+                .loc[locs_with_bad_variant]
                 .append(
-                    not_b1351_vaccines[name]
-                    .loc[locs_without_b1351]
+                    not_bad_variant_vaccines[name]
+                    .loc[locs_without_bad_variant]
                 ).sort_index()
             )
     return vaccinations
@@ -141,10 +150,11 @@ def adjust_vaccinations_for_variants(vaccine_data: pd.DataFrame, covariates: pd.
 
 def forecast_beta(covariates: pd.DataFrame,
                   coefficients: pd.DataFrame,
-                  beta_shift_parameters: pd.DataFrame) -> Tuple[pd.Series, pd.Series, pd.Series]:
-    drop_cols = {'beta': ['variant_prevalence_B117', 'variant_prevalence_B1351'],
-                 'beta_b117': ['variant_prevalence_B1351'],
-                 'beta_b1351': ['variant_prevalence_B117']}
+                  beta_shift_parameters: pd.DataFrame) -> Tuple[pd.Series, pd.Series, pd.Series, pd.Series]:
+    drop_cols = {'beta': ['variant_prevalence_B117', 'variant_prevalence_B1351', 'variant_prevalence_P1'],
+                 'beta_b117': ['variant_prevalence_B1351', 'variant_prevalence_P1'],
+                 'beta_b1351': ['variant_prevalence_B117', 'variant_prevalence_P1'],
+                 'beta_p1': ['variant_prevalence_B117', 'variant_prevalence_B1351']}
 
     betas = {}
     for beta_name, drop in drop_cols.items():
@@ -161,7 +171,7 @@ def forecast_beta(covariates: pd.DataFrame,
                 .rename(beta_name))
         betas[beta_name] = beta
 
-    return betas['beta'], betas['beta_b117'], betas['beta_b1351']
+    return betas['beta'], betas['beta_b117'], betas['beta_b1351'], betas['beta_p1']
 
 
 def beta_shift(beta_hat: pd.DataFrame,
@@ -408,6 +418,7 @@ def run_ode_model(initial_condition: InitialCondition,
                 model_parameters.beta,
                 model_parameters.beta_b117,
                 model_parameters.beta_b1351,
+                model_parameters.beta_p1,
                 model_parameters.sigma,
                 model_parameters.gamma1,
                 model_parameters.gamma2,
@@ -415,6 +426,7 @@ def run_ode_model(initial_condition: InitialCondition,
                 model_parameters.theta_minus,
                 model_parameters.b117_prevalence,
                 model_parameters.b1351_prevalence,
+                model_parameters.p1_prevalence,
                 model_parameters.probability_cross_immune,
                 model_parameters.unprotected_lr,
                 model_parameters.protected_wild_type_lr,

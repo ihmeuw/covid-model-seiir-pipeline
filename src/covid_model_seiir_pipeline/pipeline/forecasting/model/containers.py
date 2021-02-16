@@ -109,8 +109,10 @@ class ModelParameters:
     # Variant parameters
     beta_b117: pd.Series
     beta_b1351: pd.Series
+    beta_p1: pd.Series
     b117_prevalence: pd.Series
     b1351_prevalence: pd.Series
+    p1_prevalence: pd.Series
     probability_cross_immune: pd.Series
 
     def with_index(self, index: pd.MultiIndex):
@@ -184,6 +186,10 @@ class SystemMetrics:
     total_susceptible_variant: pd.Series
     total_immune_wild: pd.Series
     total_immune_variant: pd.Series
+
+    beta_wild: pd.Series
+    beta_variant: pd.Series
+    beta_total: pd.Series
 
     def to_dict(self) -> Dict[str, pd.Series]:
         return utilities.asdict(self)

@@ -83,6 +83,7 @@ def compute_output_metrics(indices: Indices,
 
 
 def normal_system_metrics(indices: Indices,
+                          model_parameters: ModelParameters,
                           postprocessing_params: PostprocessingParameters,
                           components: pd.DataFrame) -> SystemMetrics:
     components_diff = components.groupby('location_id').diff(-1)
@@ -116,10 +117,15 @@ def normal_system_metrics(indices: Indices,
         total_susceptible_variant=pd.Series(np.nan, index=indices.full),
         total_immune_wild=components['R'],
         total_immune_variant=pd.Series(np.nan, index=indices.full),
+
+        beta_wild=pd.Series(np.nan, index=indices.full),
+        beta_variant=pd.Series(np.nan, index=indices.full),
+        beta_total=model_parameters.beta,
     )
 
 
 def vaccine_system_metrics(indices: Indices,
+                           model_parameters: ModelParameters,
                            postprocessing_params: PostprocessingParameters,
                            components: pd.DataFrame) -> SystemMetrics:
     components_diff = components.groupby('location_id').diff(-1)
@@ -182,10 +188,15 @@ def vaccine_system_metrics(indices: Indices,
         total_susceptible_variant=pd.Series(np.nan, index=indices.full),
         total_immune_wild=total_immune,
         total_immune_variant=pd.Series(np.nan, index=indices.full),
+
+        beta_wild=pd.Series(np.nan, index=indices.full),
+        beta_variant=pd.Series(np.nan, index=indices.full),
+        beta_total=model_parameters.beta,
     )
 
 
 def variant_system_metrics(indices: Indices,
+                           model_parameters: ModelParameters,
                            postprocessing_params: PostprocessingParameters,
                            components: pd.DataFrame) -> SystemMetrics:
     components_diff = components.groupby('location_id').diff(-1)
@@ -227,6 +238,16 @@ def variant_system_metrics(indices: Indices,
     s_wild = components[[c for c in cols if 'S' in c and 'variant' not in c and 'm' not in c]].sum(axis=1)
     s_variant = components[[c for c in cols if 'S' in c]].sum(axis=1)
 
+    i_wild = components[[c for c in cols if 'I' in c and 'variant' not in c]].sum(axis=1)
+    i_variant = components[[c for c in cols if 'I' in c and 'variant' in c]].sum(axis=1)
+    i_total = i_wild + i_variant
+
+    total_pop = components.sum(axis=1)
+    beta_wild = modeled_infections_wild / (s_wild * i_wild ** model_parameters.alpha / total_pop)
+    beta_variant = modeled_infections_variant / (s_variant * i_variant ** model_parameters.alpha / total_pop)
+    modeled_infections_total = modeled_infections_wild + modeled_infections_variant
+    beta_total = modeled_infections_total / (s_variant * i_total ** model_parameters.alpha / total_pop)
+
     immune_wild = components[[c for c in cols if ('R' in c or 'S_m' in c) and 'variant' not in c]].sum(axis=1)
     immune_variant = components[[c for c in cols if 'R' in c]].sum(axis=1)
 
@@ -253,6 +274,10 @@ def variant_system_metrics(indices: Indices,
         total_susceptible_variant=s_variant,
         total_immune_wild=immune_wild,
         total_immune_variant=immune_variant,
+
+        beta_wild=beta_wild,
+        beta_variant=beta_variant,
+        beta_total=beta_total,
     )
 
 
