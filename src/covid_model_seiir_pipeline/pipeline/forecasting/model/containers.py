@@ -107,6 +107,7 @@ class ModelParameters:
     old_immune_hr: pd.Series
 
     # Variant parameters
+    beta_wild: pd.Series
     beta_b117: pd.Series
     beta_b1351: pd.Series
     beta_p1: pd.Series
