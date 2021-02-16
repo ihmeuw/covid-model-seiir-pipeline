@@ -342,13 +342,21 @@ def correct_ratio_data(indices: Indices,
     variant_prevalence = model_params.b117_prevalence + model_params.b1351_prevalence
     ifr_scalar = ifr_scale * variant_prevalence + (1 - variant_prevalence)
 
-    ratio_data.ifr = ratio_data.ifr.reindex(indices.full, method='ffill') * ifr_scalar
-    ratio_data.ifr_lr = ratio_data.ifr_lr.reindex(indices.full, method='ffill') * ifr_scalar
-    ratio_data.ifr_hr = ratio_data.ifr_hr.reindex(indices.full, method='ffill') * ifr_scalar
+    ratio_data.ifr = ifr_scalar * _expand_rate(ratio_data.ifr, indices.full)
+    ratio_data.ifr_lr = ifr_scalar * _expand_rate(ratio_data.ifr_lr, indices.full)
+    ratio_data.ifr_hr = ifr_scalar * _expand_rate(ratio_data.ifr_lr, indices.full)
 
-    ratio_data.idr = ratio_data.idr.reindex(indices.full, method='ffill')
-    ratio_data.ihr = ratio_data.ihr.reindex(indices.full, method='ffill')
+    ratio_data.idr = _expand_rate(ratio_data.idr, indices.full)
+    ratio_data.ihr = ihr * _expand_rate(ratio_data.ihr, indices.full)
     return ratio_data
+
+
+def _expand_rate(rate: pd.Series, index: pd.MultiIndex):
+    return (rate
+            .reindex(index)
+            .groupby('location_id')
+            .fillna(method='ffill')
+            .fillna(method='bfill'))
 
 
 def forecast_correction_factors(indices: Indices,
