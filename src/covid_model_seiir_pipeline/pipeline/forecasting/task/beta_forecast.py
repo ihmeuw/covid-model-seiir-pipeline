@@ -16,7 +16,7 @@ from covid_model_seiir_pipeline.pipeline.forecasting.data import ForecastDataInt
 logger = cli_tools.task_performance_logger
 
 
-def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int):
+def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progress_bar: bool):
     logger.info(f"Initiating SEIIR beta forecasting for scenario {scenario}, draw {draw_id}.", context='setup')
     forecast_spec: ForecastSpecification = ForecastSpecification.from_path(
         Path(forecast_version) / static_vars.FORECAST_SPECIFICATION_FILE
@@ -106,16 +106,14 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int):
         scenario_spec,
     )
 
-
-
     logger.info('Running ODE forecast.', context='compute_ode')
-    future_components = model.run_normal_ode_model_by_location(
+    future_components = model.run_ode_model(
         initial_condition,
-        beta_params,
-        seiir_parameters,
-        scenario_spec,
-        compartment_info,
+        model_parameters.with_index(indices.future),
+        scenario_spec.system,
+        progress_bar,
     )
+
     logger.info('Processing ODE results and computing deaths and infections.', context='compute_results')
     output_metrics = model.compute_output_metrics(
         infection_data,
