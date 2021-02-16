@@ -63,10 +63,8 @@ class ScenarioSpecification:
     ALLOWED_SYSTEMS = (
         'normal',
         'vaccine',
-        'variant_explicit_even',
-        'variant_explicit_max',
-        'variant_implicit_even',
-        'variant_implicit_max',
+        'variant_explicit',
+        'variant_implicit',
     )
     BETA_SCALING_KEYS = (
         'window_size',
