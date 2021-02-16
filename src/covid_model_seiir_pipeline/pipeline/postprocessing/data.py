@@ -1,3 +1,4 @@
+import itertools
 from pathlib import Path
 from typing import Dict, List
 
@@ -93,9 +94,20 @@ class PostprocessingDataInterface:
     def load_input_covariate(self, covariate: str, covariate_version: str):
         return self._get_forecast_data_inteface().load_covariate(covariate, covariate_version, with_observed=True)
 
-    def load_betas(self, draw_id: int, scenario: str) -> pd.Series:
-        ode_params = io.load(self.forecast_root.ode_params(scenario=scenario, draw_id=draw_id))
-        return ode_params['beta'].rename(draw_id)
+    def load_effectively_vaccinated(self, draw_id: int, scenario: str) -> pd.Series:
+        eff_types = ['protected', 'immune']
+        covid_types = ['wild_type', 'all_types']
+        risk_groups = ['lr', 'hr']
+        cols = [f'{e}_{c}_{r}' for e, c, r in itertools.product(eff_types, covid_types, risk_groups)]
+        draw_df = self.load_ode_params(draw_id=draw_id, scenario=scenario, columns=cols)
+        return draw_df.sum(axis=1).rename(draw_id)
+
+    def load_single_ode_param(self, draw_id: int, scenario: str, measure: str) -> pd.Series:
+        draw_df = self.load_ode_params(draw_id=draw_id, scenario=scenario, columns=[measure])
+        return draw_df[measure].rename(draw_id)
+
+    def load_ode_params(self, draw_id: int, scenario: str, columns=None):
+        return io.load(self.forecast_root.ode_params(scenario=scenario, draw_id=draw_id, columns=columns))
 
     def load_beta_residuals(self, draw_id: int) -> pd.Series:
         beta_regression = self._get_forecast_data_inteface().load_beta_regression(draw_id)

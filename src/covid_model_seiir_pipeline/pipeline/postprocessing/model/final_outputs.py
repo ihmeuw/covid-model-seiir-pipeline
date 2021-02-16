@@ -149,6 +149,11 @@ MEASURES = {
         'ventilator_census',
         aggregator=aggregators.sum_aggregator,
     ),
+    'effectively_vaccinated': MeasureConfig(
+        loaders.load_effectively_vaccinated,
+        'effectively_vaccinated',
+        aggregator=aggregators.sum_aggregator,
+    ),
     'vaccines_immune_all': MeasureConfig(
         loaders.load_vaccinations_immune_all,
         'daily_vaccinations_all_immune',
@@ -211,13 +216,21 @@ MEASURES = {
         loaders.load_herd_immunity,
         'herd_immunity',
     ),
-    'beta': MeasureConfig(
-        loaders
-    )
-
     'betas': MeasureConfig(
         loaders.load_betas,
         'betas',
+    ),
+    'beta_wild': MeasureConfig(
+        loaders.load_beta_wild,
+        'beta_wild',
+    ),
+    'beta_variant': MeasureConfig(
+        loaders.load_beta_variant,
+        'beta_variant',
+    ),
+    'beta_total': MeasureConfig(
+        loaders.load_beta_total,
+        'beta_total',
     ),
     'beta_residuals': MeasureConfig(
         loaders.load_beta_residuals,

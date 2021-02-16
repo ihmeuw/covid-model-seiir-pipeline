@@ -93,6 +93,17 @@ def load_ventilator_census(scenario: str, data_interface: 'PostprocessingDataInt
 # Vaccinations #
 ################
 
+def load_effectively_vaccinated(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
+    _runner = functools.partial(
+        data_interface.load_effectively_vaccinated,
+        scenario=scenario,
+    )
+    draws = range(data_interface.get_n_draws())
+    with multiprocessing.Pool(num_cores) as pool:
+        outputs = pool.map(_runner, draws)
+    return outputs
+
+
 def load_vaccinations_immune_all(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
     return _load_output_data(scenario, 'vaccinations_immune_all', data_interface, num_cores)
 
@@ -154,14 +165,19 @@ def load_herd_immunity(scenario: str, data_interface: 'PostprocessingDataInterfa
 
 
 def load_betas(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int) -> List[pd.Series]:
-    _runner = functools.partial(
-        data_interface.load_betas,
-        scenario=scenario,
-    )
-    draws = range(data_interface.get_n_draws())
-    with multiprocessing.Pool(num_cores) as pool:
-        betas = pool.map(_runner, draws)
-    return betas
+    return _load_ode_params(scenario, 'beta', data_interface, num_cores)
+
+
+def load_beta_wild(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
+    return _load_output_data(scenario, 'beta_wild', data_interface, num_cores)
+
+
+def load_beta_variant(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
+    return _load_output_data(scenario, 'beta_variant', data_interface, num_cores)
+
+
+def load_beta_total(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
+    return _load_output_data(scenario, 'beta_total', data_interface, num_cores)
 
 
 def load_beta_residuals(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int) -> List[pd.Series]:
@@ -171,22 +187,35 @@ def load_beta_residuals(scenario: str, data_interface: 'PostprocessingDataInterf
     return beta_residuals
 
 
+##############
+# Covariates #
+##############
 
-#########################
-# Non-interface methods #
-#########################
-
-def _load_output_data(scenario: str, measure: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
+def load_covariate(covariate: str, time_varying: bool, scenario: str,
+                   data_interface: 'PostprocessingDataInterface', num_cores: int) -> List[pd.Series]:
     _runner = functools.partial(
-        data_interface.load_single_raw_output,
+        data_interface.load_covariate,
+        covariate=covariate,
+        time_varying=time_varying,
         scenario=scenario,
-        measure=measure,
     )
     draws = range(data_interface.get_n_draws())
     with multiprocessing.Pool(num_cores) as pool:
         outputs = pool.map(_runner, draws)
+
     return outputs
 
+
+def load_coefficients(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
+    draws = range(data_interface.get_n_draws())
+    with multiprocessing.Pool(num_cores) as pool:
+        outputs = pool.map(data_interface.load_regression_coefficients, draws)
+    return outputs
+
+
+#########################
+# Miscellaneous metrics #
+#########################
 
 def load_hospital_correction_factors(data_interface: 'PostprocessingDataInterface'):
     dfs = []
@@ -208,16 +237,6 @@ def load_raw_census_data(data_interface: 'PostprocessingDataInterface'):
     ], axis=1)
 
 
-
-
-
-def load_coefficients(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
-    draws = range(data_interface.get_n_draws())
-    with multiprocessing.Pool(num_cores) as pool:
-        outputs = pool.map(data_interface.load_regression_coefficients, draws)
-    return outputs
-
-
 def load_scaling_parameters(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
     _runner = functools.partial(
         data_interface.load_scaling_parameters,
@@ -227,24 +246,6 @@ def load_scaling_parameters(scenario: str, data_interface: 'PostprocessingDataIn
     with multiprocessing.Pool(num_cores) as pool:
         outputs = pool.map(_runner, draws)
     return outputs
-
-
-def load_covariate(covariate: str, time_varying: bool, scenario: str,
-                   data_interface: 'PostprocessingDataInterface', num_cores: int) -> List[pd.Series]:
-    _runner = functools.partial(
-        data_interface.load_covariate,
-        covariate=covariate,
-        time_varying=time_varying,
-        scenario=scenario,
-    )
-    draws = range(data_interface.get_n_draws())
-    with multiprocessing.Pool(num_cores) as pool:
-        outputs = pool.map(_runner, draws)
-
-    return outputs
-
-
-
 
 
 def load_full_data(data_interface: 'PostprocessingDataInterface') -> pd.DataFrame:
@@ -277,3 +278,31 @@ def load_hierarchy(data_interface: 'PostprocessingDataInterface'):
 
 def get_locations_modeled_and_missing(data_interface: 'PostprocessingDataInterface'):
     return data_interface.get_locations_modeled_and_missing()
+
+
+#########################
+# Non-interface methods #
+#########################
+
+def _load_output_data(scenario: str, measure: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
+    _runner = functools.partial(
+        data_interface.load_single_raw_output,
+        scenario=scenario,
+        measure=measure,
+    )
+    draws = range(data_interface.get_n_draws())
+    with multiprocessing.Pool(num_cores) as pool:
+        outputs = pool.map(_runner, draws)
+    return outputs
+
+
+def _load_ode_params(scenario: str, measure: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
+    _runner = functools.partial(
+        data_interface.load_single_ode_param,
+        scenario=scenario,
+        measure=measure,
+    )
+    draws = range(data_interface.get_n_draws())
+    with multiprocessing.Pool(num_cores) as pool:
+        outputs = pool.map(_runner, draws)
+    return outputs
