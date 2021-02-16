@@ -77,10 +77,12 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
     logger.info('Loading initial condition input data.', context='read')
     beta_regression = data_interface.load_beta_regression(draw_id)
     population = data_interface.load_five_year_population()
+    infection_data = data_interface.load_infection_data(draw_id)
     logger.info('Constructing initial condition.', context='transform')
     initial_condition = model.build_initial_condition(
         indices,
         beta_regression,
+        infection_data,
         population,
     )
 
@@ -89,7 +91,6 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
     ###################################################
     logger.info('Loading results processing input data.', context='read')
     ratio_data = data_interface.load_ratio_data(draw_id=draw_id)
-    infection_data = data_interface.load_infection_data(draw_id)
     hospital_parameters = data_interface.get_hospital_parameters()
     correction_factors = data_interface.load_hospital_correction_factors()
     logger.info('Prepping results processing parameters.', context='transform')

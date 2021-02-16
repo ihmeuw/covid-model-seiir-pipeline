@@ -226,8 +226,14 @@ def beta_shift(beta_hat: pd.DataFrame,
 
 def build_initial_condition(indices: Indices,
                             beta_regression: pd.DataFrame,
+                            infection_data: pd.DataFrame,
                             population: pd.DataFrame) -> InitialCondition:
-    simple_ic, vaccine_ic, variant_ic = get_component_groups(beta_regression, population, indices.initial_condition)
+    simple_ic, vaccine_ic, variant_ic = get_component_groups(
+        beta_regression,
+        infection_data,
+        population,
+        indices.initial_condition
+    )
     # Date column has served its purpose.  ODE only cares about t0, not what it is.
     return InitialCondition(
         simple=simple_ic.reset_index(level='date', drop=True),
@@ -236,8 +242,9 @@ def build_initial_condition(indices: Indices,
     )
 
 
-def get_component_groups(beta_regression_df, population, index):
+def get_component_groups(beta_regression_df, infection_data, population, index):
     simple_comp = beta_regression_df.loc[index, seiir.COMPARTMENTS]
+    newE = infection_data.loc[index, 'infections']
 
     risk_groups = ['lr', 'hr']
     total_pop = population.groupby('location_id')['population'].sum()
@@ -262,6 +269,8 @@ def get_component_groups(beta_regression_df, population, index):
     for column in seiir.COMPARTMENTS:
         variant_comp[f'{column}_lr'] = simple_comp[column] * low_risk_pop / total_pop
         variant_comp[f'{column}_hr'] = simple_comp[column] * high_risk_pop / total_pop
+    variant_comp['NewE_wild_lr'] = newE * low_risk_pop / total_pop
+    variant_comp['NewE_wild_hr'] = newE * high_risk_pop / total_pop
 
     return simple_comp, vaccine_comp, variant_comp
 
