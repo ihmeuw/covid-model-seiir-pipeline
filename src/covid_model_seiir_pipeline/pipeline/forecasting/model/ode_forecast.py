@@ -51,7 +51,7 @@ def build_model_parameters(indices: Indices,
     gamma1 = pd.Series(beta_params['gamma1'], index=indices.full, name='gamma1')
     gamma2 = pd.Series(beta_params['gamma2'], index=indices.full, name='gamma2')
 
-    beta, beta_b117, beta_b1351, beta_p1 = forecast_beta(covariates, coefficients, beta_scales)
+    beta, beta_wild, beta_b117, beta_b1351, beta_p1 = forecast_beta(covariates, coefficients, beta_scales)
 
     thetas = thetas.reindex(indices.full, level='location_id')
 
@@ -78,6 +78,7 @@ def build_model_parameters(indices: Indices,
         theta_plus=theta_plus,
         theta_minus=theta_minus,
         **adjusted_vaccinations,
+        beta_wild=beta_wild,
         beta_b117=beta_b117,
         beta_b1351=beta_b1351,
         beta_p1=beta_p1,
@@ -150,11 +151,14 @@ def adjust_vaccinations_for_variants(vaccine_data: pd.DataFrame, covariates: pd.
 
 def forecast_beta(covariates: pd.DataFrame,
                   coefficients: pd.DataFrame,
-                  beta_shift_parameters: pd.DataFrame) -> Tuple[pd.Series, pd.Series, pd.Series, pd.Series]:
-    drop_cols = {'beta': ['variant_prevalence_B117', 'variant_prevalence_B1351', 'variant_prevalence_P1'],
-                 'beta_b117': ['variant_prevalence_B1351', 'variant_prevalence_P1'],
-                 'beta_b1351': ['variant_prevalence_B117', 'variant_prevalence_P1'],
-                 'beta_p1': ['variant_prevalence_B117', 'variant_prevalence_B1351']}
+                  beta_shift_parameters: pd.DataFrame) -> Tuple[pd.Series, pd.Series, pd.Series, pd.Series, pd.Series]:
+    drop_cols = {
+        'beta': [],
+        'beta_wild': ['variant_prevalence_B117', 'variant_prevalence_B1351', 'variant_prevalence_P1'],
+        'beta_b117': ['variant_prevalence_B1351', 'variant_prevalence_P1'],
+        'beta_b1351': ['variant_prevalence_B117', 'variant_prevalence_P1'],
+        'beta_p1': ['variant_prevalence_B117', 'variant_prevalence_B1351'],
+    }
 
     betas = {}
     for beta_name, drop in drop_cols.items():
@@ -171,7 +175,7 @@ def forecast_beta(covariates: pd.DataFrame,
                 .rename(beta_name))
         betas[beta_name] = beta
 
-    return betas['beta'], betas['beta_b117'], betas['beta_b1351'], betas['beta_p1']
+    return betas['beta'], betas['beta_wild'], betas['beta_b117'], betas['beta_b1351'], betas['beta_p1']
 
 
 def beta_shift(beta_hat: pd.DataFrame,
@@ -413,7 +417,7 @@ def run_ode_model(initial_condition: InitialCondition,
             initial_condition=initial_condition.variant,
             parameters=[
                 model_parameters.alpha,
-                model_parameters.beta,
+                model_parameters.beta_wild,
                 model_parameters.beta_b117,
                 model_parameters.beta_b1351,
                 model_parameters.beta_p1,
