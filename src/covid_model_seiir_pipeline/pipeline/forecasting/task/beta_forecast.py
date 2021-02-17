@@ -86,7 +86,6 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
         infection_data,
         population,
     )
-
     ###################################################
     # Construct parameters for postprocessing results #
     ###################################################

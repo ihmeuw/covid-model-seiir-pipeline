@@ -13,7 +13,7 @@ grid_plots:
     date_start: '2020-03-01'
     date_end: '2022-08-31'
     comparators:
-      - version: '/ihme/covid-19/seir-outputs/2021_02_16.07'
+      - version: '/ihme/covid-19/seir-outputs/2021_02_16.09'
         scenarios:
           reference: 'explicit'
           explicit_ci: 'explicit_ci'

@@ -253,13 +253,13 @@ def build_initial_condition(indices: Indices,
         beta_regression,
         infection_data,
         population,
-        indices.past,
+        indices.initial_condition,
     )
     # Date column has served its purpose.  ODE only cares about t0, not what it is.
     return InitialCondition(
-        simple=simple_ic.loc[indices.initial_condition].reset_index(level='date', drop=True),
-        vaccine=vaccine_ic.loc[indices.initial_condition].reset_index(level='date', drop=True),
-        variant=variant_ic.loc[indices.initial_condition].reset_index(level='date', drop=True),
+        simple=simple_ic.reset_index(level='date', drop=True),
+        vaccine=vaccine_ic.reset_index(level='date', drop=True),
+        variant=variant_ic.reset_index(level='date', drop=True),
     )
 
 
@@ -268,9 +268,8 @@ def get_component_groups(model_parameters: ModelParameters,
                          infection_data: pd.DataFrame,
                          population: pd.DataFrame,
                          index: pd.MultiIndex):
-    simple_comp = beta_regression_df.loc[index, seiir.COMPARTMENTS]
-    new_e = infection_data.loc[index, 'infections']
-
+    simple_comp = beta_regression_df.loc[:, seiir.COMPARTMENTS].groupby('location_id').fillna(0)
+    new_e = infection_data.loc[:, 'infections'].groupby('location_id').fillna(0)
     total_pop = population.groupby('location_id')['population'].sum()
     low_risk_pop = population[population['age_group_years_start'] < 65].groupby('location_id')['population'].sum()
     high_risk_pop = total_pop - low_risk_pop
@@ -278,20 +277,20 @@ def get_component_groups(model_parameters: ModelParameters,
         'lr': low_risk_pop / total_pop,
         'hr': high_risk_pop / total_pop,
     }
-    simple_comp_diff = simple_comp.diff()
+    simple_comp_diff = simple_comp.groupby('location_id').diff()
 
     # FIXME: These both need some real attention.
     vaccine_columns = [f'{c}_{g}' for g, c in itertools.product(pop_weights, vaccine.COMPARTMENTS)]
-    vaccine_comp_diff = pd.DataFrame(data=0., columns=vaccine_columns, index=index)
+    vaccine_comp_diff = pd.DataFrame(data=0., columns=vaccine_columns, index=simple_comp.index)
     for risk_group, pop_weight in pop_weights.items():
         for column in seiir.COMPARTMENTS:
             vaccine_comp_diff[f'{column}_{risk_group}'] = simple_comp_diff[column] * pop_weight
-    vaccine_comp = vaccine_comp_diff.cumsum()
+    vaccine_comp = vaccine_comp_diff.groupby('location_id').cumsum()
 
     variant_columns = [f'{c}_{g}' for g, c in itertools.product(pop_weights, variant.COMPARTMENTS)]
-    variant_comp_diff = pd.DataFrame(data=0., columns=variant_columns, index=index)
-    variant_prevalence = (model_parameters.b1351_prevalence + model_parameters.p1_prevalence).loc[index]
-    prob_cross_immune = model_parameters.probability_cross_immune.loc[index]
+    variant_comp_diff = pd.DataFrame(data=0., columns=variant_columns, index=simple_comp.index)
+    variant_prevalence = (model_parameters.b1351_prevalence + model_parameters.p1_prevalence).loc[simple_comp.index]
+    prob_cross_immune = model_parameters.probability_cross_immune.loc[simple_comp.index]
     for risk_group, pop_weight in pop_weights.items():
         # Just split S by demography.
         variant_comp_diff[f'S_{risk_group}'] = simple_comp_diff['S'] * pop_weight
@@ -313,9 +312,9 @@ def get_component_groups(model_parameters: ModelParameters,
         variant_comp_diff[f'NewE_wild_{risk_group}'] = new_e * pop_weight * (1 - variant_prevalence)
         variant_comp_diff[f'NewE_variant_{risk_group}'] = new_e * pop_weight * variant_prevalence
 
-    variant_comp = variant_comp_diff.cumsum()
+    variant_comp = variant_comp_diff.groupby('location_id').cumsum()
 
-    return simple_comp, vaccine_comp, variant_comp
+    return simple_comp.loc[index], vaccine_comp.loc[index], variant_comp.loc[index]
 
 
 #######################################
