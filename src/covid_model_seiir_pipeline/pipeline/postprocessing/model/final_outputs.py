@@ -221,7 +221,7 @@ MEASURES = {
         'herd_immunity',
     ),
     'betas': MeasureConfig(
-        loaders.load_betas,
+        loaders.load_beta,
         'betas',
     ),
     'beta_wild': MeasureConfig(

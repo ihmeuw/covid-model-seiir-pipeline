@@ -161,15 +161,15 @@ def load_betas(scenario: str, data_interface: 'PostprocessingDataInterface', num
     return _load_ode_params(scenario, 'beta', data_interface, num_cores)
 
 
-def load_beta_wild(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
+def load_empirical_beta_wild(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
     return _load_output_data(scenario, 'beta_wild', data_interface, num_cores)
 
 
-def load_beta_variant(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
+def load_empirical_beta_variant(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
     return _load_output_data(scenario, 'beta_variant', data_interface, num_cores)
 
 
-def load_beta_total(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
+def load_empirical_beta_total(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
     return _load_output_data(scenario, 'beta_total', data_interface, num_cores)
 
 
