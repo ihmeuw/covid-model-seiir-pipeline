@@ -52,7 +52,7 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
     # validity testing to curtail some of the bad behavior of the model.
     thetas = data_interface.load_thetas(scenario_spec.theta, beta_params['sigma'])
     # Regression coefficients for forecasting beta.
-    coefficients = data_interface.load_regression_coefficients(draw_id).reset_index()
+    coefficients = data_interface.load_regression_coefficients(draw_id)
     # Rescaling parameters for the beta forecast.
     beta_scales = data_interface.load_beta_scales(scenario=scenario, draw_id=draw_id)
     # Vaccine data, of course.

@@ -289,7 +289,7 @@ def get_component_groups(model_parameters: ModelParameters,
 
     variant_columns = [f'{c}_{g}' for g, c in itertools.product(pop_weights, variant.COMPARTMENTS)]
     variant_comp_diff = pd.DataFrame(data=0., columns=variant_columns, index=simple_comp.index)
-    variant_prevalence = (model_parameters.b1351_prevalence + model_parameters.p1_prevalence).loc[simple_comp.index]
+    variant_prevalence = model_parameters.p_variant.loc[simple_comp.index]
     prob_cross_immune = model_parameters.probability_cross_immune.loc[simple_comp.index]
     for risk_group, pop_weight in pop_weights.items():
         # Just split S by demography.
@@ -384,7 +384,7 @@ def correct_ratio_data(indices: Indices,
                        ratio_data: RatioData,
                        model_params: ModelParameters,
                        ifr_scale: float) -> RatioData:
-    variant_prevalence = model_params.b117_prevalence + model_params.b1351_prevalence
+    variant_prevalence = model_params.p_variant
     ifr_scalar = ifr_scale * variant_prevalence + (1 - variant_prevalence)
 
     ratio_data.ifr = ifr_scalar * _expand_rate(ratio_data.ifr, indices.full)
