@@ -52,7 +52,7 @@ def build_model_parameters(indices: Indices,
     gamma1 = pd.Series(beta_params['gamma1'], index=indices.full, name='gamma1')
     gamma2 = pd.Series(beta_params['gamma2'], index=indices.full, name='gamma2')
 
-    beta, beta_wild, beta_b117, beta_b1351, beta_p1 = forecast_beta(covariates, coefficients, beta_scales)
+    beta, beta_wild, beta_variant, p_wild, p_variant = get_betas_and_prevalences(covariates, coefficients, beta_scales)
 
     thetas = thetas.reindex(indices.full, level='location_id')
 
@@ -80,12 +80,9 @@ def build_model_parameters(indices: Indices,
         theta_minus=theta_minus,
         **adjusted_vaccinations,
         beta_wild=beta_wild,
-        beta_b117=beta_b117,
-        beta_b1351=beta_b1351,
-        beta_p1=beta_p1,
-        b117_prevalence=covariates['variant_prevalence_B117'],
-        b1351_prevalence=covariates['variant_prevalence_B1351'],
-        p1_prevalence=covariates['variant_prevalence_P1'],
+        beta_variant=beta_variant,
+        p_wild=p_wild,
+        p_variant=p_variant,
         probability_cross_immune=probability_cross_immune,
     )
 
@@ -157,44 +154,47 @@ def _adjust_non_variant_vaccines(vaccine_data, covariates):
             name: vaccine_data[cols].sum(axis=1).rename(name) for name, cols in not_bad_variant_col_map.items()
         }
         for name in bad_variant_vaccines:
-            vaccinations[name] = (
-                bad_variant_vaccines[name]
-                    .loc[locs_with_bad_variant]
-                    .append(
-                    not_bad_variant_vaccines[name]
-                        .loc[locs_without_bad_variant]
-                ).sort_index()
-            )
+            vaccinations[name] = (bad_variant_vaccines[name]
+                                  .loc[locs_with_bad_variant]
+                                  .append(not_bad_variant_vaccines[name].loc[locs_without_bad_variant])
+                                  .sort_index())
     return vaccinations
 
 
-def forecast_beta(covariates: pd.DataFrame,
-                  coefficients: pd.DataFrame,
-                  beta_shift_parameters: pd.DataFrame) -> Tuple[pd.Series, pd.Series, pd.Series, pd.Series, pd.Series]:
-    drop_cols = {
-        'beta': [],
-        'beta_wild': ['variant_prevalence_B117', 'variant_prevalence_B1351', 'variant_prevalence_P1'],
-        'beta_b117': ['variant_prevalence_B1351', 'variant_prevalence_P1'],
-        'beta_b1351': ['variant_prevalence_B117', 'variant_prevalence_P1'],
-        'beta_p1': ['variant_prevalence_B117', 'variant_prevalence_B1351'],
-    }
+def get_betas_and_prevalences(covariates: pd.DataFrame,
+                              coefficients: pd.DataFrame,
+                              beta_shift_parameters: pd.DataFrame) -> Tuple[pd.Series, pd.Series,
+                                                                            pd.Series, pd.Series, pd.Series]:
+    log_beta_hat = math.compute_beta_hat(covariates.reset_index(), coefficients.reset_index())
+    beta_hat = np.exp(log_beta_hat).rename('beta_pred').reset_index()
+    beta = (beta_shift(beta_hat, beta_shift_parameters)
+            .set_index(['location_id', 'date'])
+            .beta_pred
+            .rename('beta'))
+    log_beta = np.log(beta)
 
-    betas = {}
-    for beta_name, drop in drop_cols.items():
+    coef = {}
+    prev = {}
+    effects = {}
+    for v in ['B117', 'B1351', 'P1']:
+        coef[v] = coefficients[f'variant_prevalence_{v}']
+        prev[v] = covariates[f'variant_prevalence_{v}']
+        effects[v] = coefficients[f'variant_prevalence_{v}'] * covariates[f'variant_prevalence_{v}']
 
-        log_beta_hat = math.compute_beta_hat(
-            covariates.drop(columns=drop).reset_index(),
-            coefficients.drop(columns=drop).reset_index(),
-        )
-        beta_hat = np.exp(log_beta_hat).rename('beta_pred').reset_index()
+    p_variant = prev['B1351'] + prev['P1']
+    p_wild = 1 - p_variant
+    p_w = 1 - sum(prev.values())
 
-        beta = (beta_shift(beta_hat, beta_shift_parameters)
-                .set_index(['location_id', 'date'])
-                .beta_pred
-                .rename(beta_name))
-        betas[beta_name] = beta
+    log_beta_w = log_beta - sum(effects.values())
+    beta_w = np.exp(log_beta_w)
+    beta_b117 = np.exp(log_beta_w + coef['B117'])
+    beta_b1351 = np.exp(log_beta_w + coef['B1351'])
+    beta_p1 = np.exp(log_beta_w + coef['P1'])
 
-    return betas['beta'], betas['beta_wild'], betas['beta_b117'], betas['beta_b1351'], betas['beta_p1']
+    beta_wild = ((p_w * beta_w + prev['B117'] * beta_b117) / p_wild).rename('beta_wild')
+    beta_variant = ((prev['B1351'] * beta_b1351 + prev['P1'] * beta_p1) / p_variant).rename('beta_variant')
+
+    return beta, beta_wild, beta_variant, p_wild, p_variant
 
 
 def beta_shift(beta_hat: pd.DataFrame,
@@ -487,17 +487,14 @@ def run_ode_model(initial_condition: InitialCondition,
             parameters=[
                 model_parameters.alpha,
                 model_parameters.beta_wild,
-                model_parameters.beta_b117,
-                model_parameters.beta_b1351,
-                model_parameters.beta_p1,
+                model_parameters.beta_variant,
                 model_parameters.sigma,
                 model_parameters.gamma1,
                 model_parameters.gamma2,
                 model_parameters.theta_plus,
                 model_parameters.theta_minus,
-                model_parameters.b117_prevalence,
-                model_parameters.b1351_prevalence,
-                model_parameters.p1_prevalence,
+                model_parameters.p_wild,
+                model_parameters.p_variant,
                 model_parameters.probability_cross_immune,
                 model_parameters.unprotected_lr,
                 model_parameters.protected_wild_type_lr,
