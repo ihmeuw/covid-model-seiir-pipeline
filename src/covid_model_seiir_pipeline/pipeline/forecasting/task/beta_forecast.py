@@ -46,15 +46,21 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int):
     forecast_end_date = covariates.date.max()
     # Rescaling parameters for the beta forecast.
     beta_scales = data_interface.load_beta_scales(scenario=scenario, draw_id=draw_id)
+
     # Beta scale-up due to variant
     covariates = covariates.set_index(['location_id', 'date'])
     variant_cols = ['variant_prevalence_B117', 'variant_prevalence_B1351', 'variant_prevalence_P1']
-    total_variant_prevalence = covariates[variant_cols].sum(axis=1)
+    adjusted_variant_prevalence = covariates[variant_cols].sum(axis=1).reset_index(level='date')
+    for location_id, date in transition_date.iteritems():
+        adjusted_variant_prevalence.loc[location_id] -= adjusted_variant_prevalence.loc[(location_id, date)]
+    adjusted_variant_prevalence[adjusted_variant_prevalence < 0] = 0
+
     bad_vacc_variant_prevalence = ['variant_prevalence_B1351', 'variant_prevalence_P1']
     bad_vacc_variant_prevalence = covariates[bad_vacc_variant_prevalence].sum(axis=1)
+
     covariates = covariates.reset_index()
     raw_ifr_scalar = scenario_spec.variant.get('ifr_scalar', 1.)
-    ifr_scalar = raw_ifr_scalar * total_variant_prevalence + (1 - total_variant_prevalence)
+    ifr_scalar = raw_ifr_scalar * adjusted_variant_prevalence + (1 - adjusted_variant_prevalence)
     # We'll need this to compute deaths and to splice with the forecasts.
     infection_data = data_interface.load_infection_data(draw_id)
     ratio_data = data_interface.load_ratio_data(draw_id=draw_id)
