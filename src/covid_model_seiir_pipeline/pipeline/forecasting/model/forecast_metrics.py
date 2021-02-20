@@ -51,9 +51,9 @@ def compute_output_metrics(infection_data: pd.DataFrame,
     modeled_deaths = modeled_deaths.reset_index(level='observed')
     infection_data = infection_data.set_index(['location_id', 'date'])
     infections = infection_data.loc[past_infections_idx, ['infections']].combine_first(modeled_infections).infections
-    deaths = infection_data[['deaths']].fillna(0)
+    deaths = infection_data[['deaths']]
     deaths['observed'] = 1
-    deaths = deaths.combine_first(modeled_deaths)
+    deaths = deaths.combine_first(modeled_deaths).fillna(0)
 
     cases = ((infections
               .groupby('location_id')

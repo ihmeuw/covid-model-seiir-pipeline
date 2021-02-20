@@ -16,24 +16,9 @@ grid_plots:
       - version: '/ihme/covid-19/seir-outputs/2021_02_12.03'
         scenarios:
           reference*: 'public reference'
-      - version: '/ihme/covid-19/seir-outputs/2021_02_18.02'
+      - version: '/ihme/covid-19/seir-outputs/2021_02_19.10'
         scenarios:
-          worse: 'worse'
           reference*: 'reference'
-          best_masks: 'best_masks'
-          vaccine_fast: 'vaccine_fast'
-          no_vaccine: 'no_vaccine'
-  - name: 'compare_shortrange'
-    date_start: '2020-03-01'
-    date_end: '2021-06-01'
-    comparators:
-      - version: '/ihme/covid-19/seir-outputs/2021_02_12.03'
+      - version: '/ihme/covid-19/seir-outputs/2021_02_18.06'
         scenarios:
-          reference*: 'public reference'
-      - version: '/ihme/covid-19/seir-outputs/2021_02_18.02'
-        scenarios:
-          worse: 'worse'
-          reference*: 'reference'
-          best_masks: 'best_masks'
-          vaccine_fast: 'vaccine_fast'
-          no_vaccine: 'no_vaccine'
+          reference: 'almost published'

@@ -50,11 +50,10 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int):
     # Beta scale-up due to variant
     covariates = covariates.set_index(['location_id', 'date'])
     variant_cols = ['variant_prevalence_B117', 'variant_prevalence_B1351', 'variant_prevalence_P1']
-    adjusted_variant_prevalence = covariates[variant_cols].sum(axis=1).reset_index(level='date')
+    adjusted_variant_prevalence = covariates[variant_cols].sum(axis=1)
     for location_id, date in transition_date.iteritems():
-        adjusted_variant_prevalence.loc[location_id] -= adjusted_variant_prevalence.loc[(location_id, date)]
+        adjusted_variant_prevalence.loc[pd.IndexSlice[location_id, :]] -= adjusted_variant_prevalence.loc[(location_id, date)]
     adjusted_variant_prevalence[adjusted_variant_prevalence < 0] = 0
-
     bad_vacc_variant_prevalence = ['variant_prevalence_B1351', 'variant_prevalence_P1']
     bad_vacc_variant_prevalence = covariates[bad_vacc_variant_prevalence].sum(axis=1)
 
