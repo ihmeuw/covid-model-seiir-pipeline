@@ -1,13 +1,13 @@
 data:
-  infection_version: '2021_02_10.11'
-  covariate_version: '2021_02_10.04'
+  infection_version: '2021_02_17.03'
+  covariate_version: '2021_02_18.01'
   coefficient_version: ''
   location_set_version_id: ''
   location_set_file: '/ihme/covid-19/seir-pipeline-outputs/metadata-inputs/location_metadata_810.csv'
   output_root: ''
 workflow:
   project: 'proj_covid_prod'
-  queue: 'all.q'
+  queue: 'd.q'
   tasks:
     beta_regression:
       max_runtime_seconds: 6000
@@ -124,21 +124,21 @@ covariates:
   variant_prevalence_B117:
     order: 0
     use_re: False
-    gprior: [0.3075, 0.1]
-    bounds: [0.0, 1000.0]
+    gprior: [0.0, 1000.0]
+    bounds: [0.262, 0.336]
     re_var: 1.0
     draws: False
   variant_prevalence_B1351:
     order: 0
     use_re: False
-    gprior: [0.3075, 0.1]
-    bounds: [0.0, 1000.0]
+    gprior: [0.0, 1000.0]
+    bounds: [0.262, 0.336]
     re_var: 1.0
     draws: False
   variant_prevalence_P1:
     order: 0
     use_re: False
-    gprior: [0.3075, 0.1]
-    bounds: [0.0, 1000.0]
+    gprior: [0.0, 1000.0]
+    bounds: [0.262, 0.336]
     re_var: 1.0
     draws: False
