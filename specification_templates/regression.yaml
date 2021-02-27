@@ -5,6 +5,7 @@ data:
   location_set_version_id: ''
   location_set_file: '/ihme/covid-19/seir-pipeline-outputs/metadata-inputs/location_metadata_810.csv'
   output_root: ''
+  output_format: 'parquet'
 workflow:
   project: 'proj_covid_prod'
   queue: 'd.q'
@@ -18,7 +19,7 @@ workflow:
       m_mem_free: '20G'
       num_cores: 26
 regression_parameters:
-  n_draws: 100
+  n_draws: 1000
   day_shift: [0, 11]
   alpha: [0.9, 1.0]
   sigma: [0.2, 0.3333]
