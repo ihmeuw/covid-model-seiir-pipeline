@@ -72,33 +72,33 @@ class ForecastDataInterface:
     def load_location_ids(self) -> List[int]:
         return self._get_regression_data_interface().load_location_ids()
 
-    def load_regression_coefficients(self, draw_id: int) -> pd.DataFrame:
-        return self._get_regression_data_interface().load_regression_coefficients(draw_id=draw_id)
+    def load_betas(self, draw_id: int):
+        return self._get_regression_data_interface().load_betas(draw_id=draw_id)
 
-    def load_transition_date(self, draw_id: int) -> pd.Series:
-        dates_df = self._get_regression_data_interface().load_date_file(draw_id=draw_id)
-        dates_df['end_date'] = pd.to_datetime(dates_df['end_date'])
-        return dates_df['end_date'].rename('date')
+    def load_coefficients(self, draw_id: int) -> pd.DataFrame:
+        return self._get_regression_data_interface().load_coefficients(draw_id=draw_id)
 
-    def load_beta_regression(self, draw_id: int) -> pd.DataFrame:
-        return self._get_regression_data_interface().load_regression_betas(draw_id=draw_id)
+    def load_compartments(self, draw_id: int) -> pd.DataFrame:
+        return self._get_regression_data_interface().load_compartments(draw_id=draw_id)
 
-    def load_infection_data(self, draw_id: int) -> pd.DataFrame:
-        return self._get_regression_data_interface().load_infection_data(draw_id=draw_id)
+    def load_ode_parameters(self, draw_id: int) -> pd.DataFrame:
+        return self._get_regression_data_interface().load_ode_parameters(draw_id=draw_id)
 
-    def load_beta_params(self, draw_id: int) -> Dict[str, float]:
-        df = self._get_regression_data_interface().load_beta_param_file(draw_id=draw_id)
-        return df.set_index('params')['values'].to_dict()
+    def load_past_infections(self, draw_id: int) -> pd.Series:
+        return self._get_regression_data_interface().load_infections(draw_id=draw_id)
+
+    def load_past_deaths(self, draw_id: int) -> pd.Series:
+        return self._get_regression_data_interface().load_deaths(draw_id=draw_id)
 
     def get_hospital_parameters(self) -> HospitalParameters:
         return self._get_regression_data_interface().load_specification().hospital_parameters
 
     def load_hospital_usage(self) -> HospitalMetrics:
-        df = self._get_regression_data_interface().load_hospital_data(measure='usage')
+        df = self._get_regression_data_interface().load_hospitalizations(measure='usage')
         return HospitalMetrics(**{metric: df[metric] for metric in df.columns})
 
     def load_hospital_correction_factors(self) -> HospitalCorrectionFactors:
-        df = self._get_regression_data_interface().load_hospital_data(measure='correction_factors')
+        df = self._get_regression_data_interface().load_hospitalizations(measure='correction_factors')
         return HospitalCorrectionFactors(**{metric: df[metric] for metric in df.columns})
 
     def load_hospital_census_data(self) -> HospitalCensusData:
