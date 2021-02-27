@@ -54,76 +54,39 @@ def run_loc_beta_fit(infections: pd.Series,
     t = (date - date.min()).dt.days.values
     obs = infections.values
 
-    shared_options = {'system': linear_first_order, 't': t, 'dt': ode_parameters.solver_dt}
+    initial_condition = np.array([
+        total_population - obs[0] - (obs[0] / 5) ** (1.0 / ode_parameters.alpha),  # S
+        obs[0],                                                                    # E
+        (obs[0] / 5) ** (1.0 / ode_parameters.alpha),                              # I1
+        0,                                                                         # I2
+        0,                                                                         # R
+    ])
+    parameters = np.vstack([
+        obs,
+        [ode_parameters.sigma] * len(obs),
+        [ode_parameters.gamma1] * len(obs),
+        [ode_parameters.gamma2] * len(obs),
+    ])
 
-    susceptible = math.solve_ode(
-        init_cond=np.array([total_population - obs[0] - (obs[0] / 5.0) ** (1.0 / ode_parameters.alpha)]),
-        params=np.vstack([
-            [0.] * len(t),
-            -obs,
-        ]),
-        **shared_options,
-    ).ravel()
+    result = math.solve_ode(
+        system=past_system,
+        t=t,
+        init_cond=initial_condition,
+        params=parameters,
+        dt=ode_parameters.solver_dt,
+    )
+    components = pd.DataFrame(
+        data=result,
+        columns=['S', 'E', 'I1', 'I2', 'R']
+    )
+    components['date'] = date
+    components['location_id'] = location_id
+    disease_density = components['S'] * (components['I1'] + components['I2'])**ode_parameters.alpha / total_population
+    components['beta'] = obs / disease_density
 
-    exposed = math.solve_ode(
-        init_cond=np.array([obs[0]]),
-        params=np.vstack([
-            [ode_parameters.sigma] * len(t),
-            obs,
-        ]),
-        **shared_options,
-    ).ravel()
+    assert (components['S'] >= 0.0).all()
 
-    infectious_1 = math.solve_ode(
-        init_cond=np.array([(obs[0] / 5.0) ** (1.0 / ode_parameters.alpha)]),
-        params=np.vstack([
-            [ode_parameters.gamma1] * len(t),
-            ode_parameters.sigma * exposed,
-        ]),
-        **shared_options,
-    ).ravel()
-
-    infectious_2 = math.solve_ode(
-        init_cond=np.array([0.]),
-        params=np.vstack([
-            [ode_parameters.gamma2] * len(t),
-            ode_parameters.gamma1 * infectious_1,
-        ]),
-        **shared_options,
-    ).ravel()
-
-    removed = math.solve_ode(
-        init_cond=np.array([0.]),
-        params=np.vstack([
-            [0.] * len(t),
-            ode_parameters.gamma2 * infectious_2,
-        ]),
-        **shared_options
-    ).ravel()
-
-    components = {
-        'S': susceptible,
-        'E': exposed,
-        'I1': infectious_1,
-        'I2': infectious_2,
-        'R': removed,
-    }
-
-    neg_susceptible_idx = susceptible < 0.0
-    if np.any(neg_susceptible_idx):
-        id_min = np.min(np.arange(susceptible.size)[neg_susceptible_idx])
-        for c in components:
-            components[c][id_min:] = components[c][id_min - 1]
-
-    # get beta
-    infectious = infectious_1 + infectious_2
-    disease_density = susceptible * infectious**ode_parameters.alpha / total_population
-    return pd.DataFrame({
-        'location_id': location_id,
-        'date': date,
-        'beta': obs / disease_density,
-        **components
-    })
+    return components
 
 
 @numba.njit
@@ -132,6 +95,22 @@ def linear_first_order(_: float, y: np.ndarray, p: np.ndarray):
     x = y[0]
     dx = -c * x + f
     return np.array([dx])
+
+
+@numba.njit
+def past_system(_: float, y: np.ndarray, p: np.ndarray):
+    s, e, i1, i2, r = y
+    new_e, sigma, gamma1, gamma2 = p
+
+    ds = -new_e
+    de = new_e - sigma*e
+    di1 = sigma*e - gamma1*i1
+    di2 = gamma1*i1 - gamma2*i2
+    dr = gamma2*i2
+
+    return np.array([
+        ds, de, di1, di2, dr,
+    ])
 
 
 def filter_to_epi_threshold(location_id: int,
