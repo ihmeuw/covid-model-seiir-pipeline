@@ -73,7 +73,6 @@ def run_grid_plots(diagnostics_version: str, name: str, progress_bar: bool) -> N
             date_end=pd.to_datetime(grid_plot_spec.date_end),
             output_dir=plot_cache,
         )
-        _runner(locs_to_plot[0])
         num_cores = diagnostics_spec.workflow.task_specifications['grid_plots'].num_cores
         with multiprocessing.Pool(num_cores) as pool:
             list(tqdm.tqdm(pool.imap(_runner, locs_to_plot), total=len(locs_to_plot), disable=not progress_bar))
