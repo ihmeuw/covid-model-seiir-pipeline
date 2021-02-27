@@ -51,9 +51,10 @@ class ODEParameters:
     def __iter__(self) -> Iterator[Tuple[int, 'ODEParameters']]:
         location_ids = self.population.reset_index().location_id.unique()
         for location_id in location_ids:
-            yield ODEParameters(**{
+            loc_parameters = ODEParameters(**{
                 key: value.loc[location_id] for key, value in self.to_dict().items()
             })
+            yield location_id, loc_parameters
 
 
 
