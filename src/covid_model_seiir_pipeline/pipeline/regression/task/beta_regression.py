@@ -60,13 +60,15 @@ def run_beta_regression(regression_version: str, draw_id: int, progress_bar: boo
         beta_fit,
         covariates,
     )
-    import pdb; pdb.set_trace()
     regressor = model.build_regressor(regression_specification.covariates.values(), prior_coefficients)
     logger.info('Fitting beta regression', context='compute_regression')
-    coefficients = regressor.fit(mr_data, regression_specification.regression_parameters.sequential_refit)
+    coefficients = regressor.fit(
+        regression_inputs,
+        regression_specification.regression_parameters.sequential_refit
+    )
     log_beta_hat = math.compute_beta_hat(covariates.reset_index(), coefficients)
     beta_hat = np.exp(log_beta_hat).rename('beta_pred').reset_index()
-
+    import pdb; pdb.set_trace()
     # Format and save data.
     logger.info('Prepping outputs', context='transform')
     merge_cols = ['location_id', 'date']
