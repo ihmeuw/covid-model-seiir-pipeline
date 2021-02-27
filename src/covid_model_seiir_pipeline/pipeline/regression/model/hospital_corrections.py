@@ -46,7 +46,7 @@ def _load_admissions_and_hfr_draw(draw_id: int,
     admissions = convert_infections(infections, ratio_data.ihr, ratio_data.infection_to_admission)
     admissions = admissions.rename(f'draw_{draw_id}')
 
-    hfr = (ratio_data.ifr / ratio_data.ihr).rename(f'draw_{draw_id}')
+    hfr = (ratio_data.ihr / ratio_data.ifr).rename(f'draw_{draw_id}')
     hfr[hfr < 1] = 1
 
     return admissions, hfr
