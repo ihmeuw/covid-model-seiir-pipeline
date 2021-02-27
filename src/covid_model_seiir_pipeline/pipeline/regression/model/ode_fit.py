@@ -21,7 +21,6 @@ def sample_parameters(draw_id: int, regression_parameters: Dict) -> ODEParameter
         gamma1=np.random.uniform(*regression_parameters['gamma1']),
         gamma2=np.random.uniform(*regression_parameters['gamma2']),
         day_shift=int(np.random.uniform(*regression_parameters['day_shift'])),
-        solver_dt=regression_parameters['solver_dt'],
     )
 
 
@@ -73,7 +72,6 @@ def run_loc_beta_fit(infections: pd.Series,
         t=t,
         init_cond=initial_condition,
         params=parameters,
-        dt=ode_parameters.solver_dt,
     )
     components = pd.DataFrame(
         data=result,

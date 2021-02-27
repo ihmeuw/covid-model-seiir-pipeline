@@ -3,6 +3,9 @@ import numpy as np
 import pandas as pd
 
 
+SOLVER_DT = 0.1
+
+
 def compute_beta_hat(covariates: pd.DataFrame, coefficients: pd.DataFrame) -> pd.Series:
     """Computes beta from a set of covariates and their coefficients.
 
@@ -32,14 +35,14 @@ def compute_beta_hat(covariates: pd.DataFrame, coefficients: pd.DataFrame) -> pd
     return (covariates * coefficients).sum(axis=1)
 
 
-def solve_ode(system, t, init_cond, params, dt):
-    t_solve = np.arange(np.min(t), np.max(t) + dt, dt / 2)
+def solve_ode(system, t, init_cond, params):
+    t_solve = np.arange(np.min(t), np.max(t) + SOLVER_DT, SOLVER_DT / 2)
     y_solve = np.zeros((init_cond.size, t_solve.size),
                        dtype=init_cond.dtype)
     y_solve[:, 0] = init_cond
     # linear interpolate the parameters
     params = linear_interpolate(t_solve, t, params)
-    y_solve = _rk45(system, t_solve, y_solve, params, dt)
+    y_solve = _rk45(system, t_solve, y_solve, params, SOLVER_DT)
     # linear interpolate the solutions.
     y_solve = linear_interpolate(t, t_solve, y_solve)
     return y_solve

@@ -215,7 +215,6 @@ class _SeiirModelSpecs:
     gamma2: float
     N: float
     system_params: dict
-    delta: float = 0.1
 
     def __post_init__(self):
         assert 0 < self.alpha <= 1.0
@@ -318,7 +317,6 @@ class _ODERunner:
             t=times,
             init_cond=initial_condition,
             params=system_params,
-            dt=self.model_specs.delta,
         )
 
         result_array = np.concatenate([
