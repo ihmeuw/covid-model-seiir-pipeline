@@ -110,7 +110,6 @@ def run_loc_ode_fit(infections: pd.Series, ode_parameters: ODEParameters) -> pd.
     parameters[past_system.new_e] = obs
     parameters[past_system.m] = ode_parameters.vaccines_immune.values
     parameters[past_system.u] = ode_parameters.vaccines_other.values
-
     result = math.solve_ode(
         system=past_system.system,
         t=t,
