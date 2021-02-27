@@ -302,16 +302,16 @@ class RegressionDataInterface:
         return io.load(self.regression_root.ode_parameters(draw_id=draw_id))
 
     def save_infections(self, infections: pd.Series, draw_id: int) -> None:
-        io.dump(infections, self.regression_root.infections(draw_id=draw_id))
+        io.dump(infections.to_frame(), self.regression_root.infections(draw_id=draw_id))
 
     def load_infections(self, draw_id: int) -> pd.Series:
-        return io.load(self.regression_root.infections(draw_id=draw_id))
+        return io.load(self.regression_root.infections(draw_id=draw_id)).infections
 
     def save_deaths(self, deaths: pd.Series, draw_id: int) -> None:
-        io.dump(deaths, self.regression_root.deaths(draw_id=draw_id))
+        io.dump(deaths.to_frame(), self.regression_root.deaths(draw_id=draw_id))
 
     def load_deaths(self, draw_id: int) -> pd.Series:
-        return io.load(self.regression_root.deaths(draw_id=draw_id))
+        return io.load(self.regression_root.deaths(draw_id=draw_id)).deaths
 
     def save_hospitalizations(self, df: pd.DataFrame, measure: str) -> None:
         io.dump(df, self.regression_root.hospitalizations(measure=measure))
