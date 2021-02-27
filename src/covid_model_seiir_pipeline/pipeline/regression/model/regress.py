@@ -101,9 +101,8 @@ class BetaRegressorSequential(IBetaRegressor):
         return regressor.fit(mr_data)
 
 
-def align_beta_with_covariates(covariate_df: pd.DataFrame,
-                               beta_df: pd.DataFrame,
-                               cov_names: List[str]) -> MRData:
+def prep_regression_inputs(beta_fit: pd.Series,
+                           covariates: pd.DataFrame) -> MRData:
     """Convert inputs for the beta regression model."""
     join_cols = ['location_id', 'date']
     df = beta_df.merge(covariate_df, on=join_cols)

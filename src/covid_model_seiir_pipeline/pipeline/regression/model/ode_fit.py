@@ -1,4 +1,4 @@
-from typing import Dict
+from typing import Dict, Tuple
 
 import numpy as np
 import pandas as pd
@@ -72,18 +72,20 @@ def clean_infection_data_measure(infection_data: pd.DataFrame, measure: str) -> 
     return data.append(prepend).sort_index()
 
 
-def run_ode_fit(infections: pd.Series, ode_parameters: ODEParameters, progress_bar: bool) -> pd.DataFrame:
-    beta_fit = []
+def run_ode_fit(infections: pd.Series, ode_parameters: ODEParameters,
+                progress_bar: bool) -> Tuple[pd.Series, pd.DataFrame]:
+    fit_results = []
     ode_parameter_list = tqdm.tqdm(list(ode_parameters), disable=not progress_bar)
     for location_id, location_params in ode_parameter_list:
-        loc_beta_fit = run_loc_ode_fit(
+        loc_fit_results = run_loc_ode_fit(
             infections.loc[location_id],
             location_params
         )
-        loc_beta_fit['location_id'] = location_id
-        loc_beta_fit = loc_beta_fit.set_index(['location_id', 'date'])
-        beta_fit.append(loc_beta_fit)
-    return pd.concat(beta_fit).sort_index()
+        loc_fit_results['location_id'] = location_id
+        loc_fit_results = loc_fit_results.set_index(['location_id', 'date'])
+        fit_results.append(loc_fit_results)
+    fit_results = pd.concat(fit_results).sort_index()
+    return fit_results['beta'], fit_results[[c for c in fit_results if c != 'beta']]
 
 
 def run_loc_ode_fit(infections: pd.Series, ode_parameters: ODEParameters) -> pd.DataFrame:

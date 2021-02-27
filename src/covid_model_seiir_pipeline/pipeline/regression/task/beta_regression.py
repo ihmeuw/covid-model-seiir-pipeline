@@ -49,13 +49,17 @@ def run_beta_regression(regression_version: str, draw_id: int, progress_bar: boo
         prior_coefficients = None
 
     logger.info('Running ODE fit', context='compute_ode')
-    beta_fit = model.run_ode_fit(
+    beta_fit, compartments = model.run_ode_fit(
         infections=infections,
         ode_parameters=ode_parameters,
         progress_bar=progress_bar,
     )
+
     logger.info('Prepping regression.', context='transform')
-    mr_data = model.align_beta_with_covariates(covariates, beta_fit, list(regression_specification.covariates))
+    regression_inputs = model.prep_regression_inputs(
+        beta_fit,
+        covariates,
+    )
     regressor = model.build_regressor(regression_specification.covariates.values(), prior_coefficients)
     logger.info('Fitting beta regression', context='compute_regression')
     coefficients = regressor.fit(mr_data, regression_specification.regression_parameters.sequential_refit)
