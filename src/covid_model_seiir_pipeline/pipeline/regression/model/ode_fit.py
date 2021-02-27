@@ -87,7 +87,10 @@ def run_ode_fit(infections: pd.Series, ode_parameters: ODEParameters, progress_b
 
 
 def run_loc_ode_fit(infections: pd.Series, ode_parameters: ODEParameters) -> pd.DataFrame:
+    # Filter out early dates with few infections
+    # to reduce noise in the past fit from leaking into the beta regression.
     infections = filter_to_epi_threshold(infections)
+    ode_parameters = ode_parameters.reindex(infections.index)
 
     date = pd.Series(infections.index.values)
     t = (date - date.min()).dt.days.values

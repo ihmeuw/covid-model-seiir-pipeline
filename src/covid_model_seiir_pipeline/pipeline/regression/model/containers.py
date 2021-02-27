@@ -48,6 +48,11 @@ class ODEParameters:
     def to_df(self) -> pd.DataFrame:
         return pd.concat([v.rename(k) for k, v in self.to_dict().items()], axis=1)
 
+    def reindex(self, index: pd.Index) -> 'ODEParameters':
+        return ODEParameters(**{
+            key: value.reindex(index) for key, value in self.to_dict().items()
+        })
+
     def __iter__(self) -> Iterator[Tuple[int, 'ODEParameters']]:
         location_ids = self.population.reset_index().location_id.unique()
         for location_id in location_ids:
