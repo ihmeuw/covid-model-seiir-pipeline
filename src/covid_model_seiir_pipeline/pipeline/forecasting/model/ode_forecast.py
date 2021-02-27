@@ -132,9 +132,6 @@ def get_past_components(beta_regression_df: pd.DataFrame,
     }
     system_compartments = system_compartment_map[ode_system]
 
-    beta_regression_df = (beta_regression_df
-                          .set_index(['location_id', 'date'])
-                          .sort_index())
     past_beta = beta_regression_df['beta']
     past_components = beta_regression_df[regression_compartments]
 

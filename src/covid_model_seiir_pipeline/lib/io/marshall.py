@@ -10,6 +10,8 @@ from covid_model_seiir_pipeline.lib.io.keys import (
     MetadataKey,
 )
 
+POTENTIAL_INDEX_COLUMNS = ('location_id', 'date', 'age_start')
+
 
 class CSVMarshall:
     """
@@ -27,12 +29,20 @@ class CSVMarshall:
             msg = f"Cannot dump data for key {key} - would overwrite"
             raise LookupError(msg)
 
-        data.to_csv(path, index=False)
+        write_index = bool(set(data.index.names).intersection(POTENTIAL_INDEX_COLUMNS))
+        data.to_csv(path, index=write_index)
 
     @classmethod
     def load(cls, key: DatasetKey) -> pd.DataFrame:
         path = cls._resolve_key(key)
-        return pd.read_csv(path)
+        data = pd.read_csv(path)
+        # Use list comp to keep ordering consistent.
+        index_cols = [c for c in POTENTIAL_INDEX_COLUMNS if c in data.columns]
+        if 'date' in index_cols:
+            data['date'] = pd.to_datetime(data['date'])
+        if index_cols:
+            data = data.set_index(index_cols).sort_index()
+        return data
 
     @classmethod
     def touch(cls, *paths: Path) -> None:

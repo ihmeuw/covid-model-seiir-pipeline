@@ -42,11 +42,10 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int):
     # Covariates and coefficients, and scaling parameters are
     # used to compute beta hat in the future.
     covariates = data_interface.load_covariates(scenario_spec)
-    coefficients = data_interface.load_regression_coefficients(draw_id)
+    coefficients = data_interface.load_regression_coefficients(draw_id).reset_index()
     forecast_end_date = covariates.date.max()
     # Rescaling parameters for the beta forecast.
-    beta_scales = data_interface.load_beta_scales(scenario=scenario, draw_id=draw_id)
-
+    beta_scales = data_interface.load_beta_scales(scenario=scenario, draw_id=draw_id).reset_index()
     # Beta scale-up due to variant
     covariates = covariates.set_index(['location_id', 'date'])
     variant_cols = ['variant_prevalence_B117', 'variant_prevalence_B1351', 'variant_prevalence_P1']

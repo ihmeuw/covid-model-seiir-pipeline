@@ -66,14 +66,14 @@ class PostprocessingDataInterface:
 
     def load_regression_coefficients(self, draw_id: int) -> pd.Series:
         coefficients = self._get_forecast_data_inteface().load_regression_coefficients(draw_id)
-        coefficients = coefficients.set_index('location_id').stack().reset_index()
+        coefficients = coefficients.stack().reset_index()
         coefficients.columns = ['location_id', 'covariate', draw_id]
         coefficients = coefficients.set_index(['location_id', 'covariate'])[draw_id]
         return coefficients
 
     def load_scaling_parameters(self, draw_id: int, scenario: str) -> pd.Series:
         scaling_parameters = self._get_forecast_data_inteface().load_beta_scales(scenario, draw_id)
-        scaling_parameters = scaling_parameters.set_index('location_id').stack().reset_index()
+        scaling_parameters = scaling_parameters.stack().reset_index()
         scaling_parameters.columns = ['location_id', 'scaling_parameter', draw_id]
         scaling_parameters = scaling_parameters.set_index(['location_id', 'scaling_parameter'])[draw_id]
         return scaling_parameters
@@ -81,8 +81,6 @@ class PostprocessingDataInterface:
     def load_covariate(self, draw_id: int, covariate: str, time_varying: bool,
                        scenario: str, with_observed: bool = False) -> pd.Series:
         covariates = io.load(self.forecast_root.raw_covariates(scenario=scenario, draw_id=draw_id))
-        covariates['date'] = pd.to_datetime(covariates['date'])
-        covariates = covariates.set_index(['location_id', 'date']).sort_index()
         if time_varying:
             covariate = covariates[covariate].rename(draw_id)
         else:
@@ -94,28 +92,18 @@ class PostprocessingDataInterface:
 
     def load_betas(self, draw_id: int, scenario: str) -> pd.Series:
         ode_params = io.load(self.forecast_root.ode_params(scenario=scenario, draw_id=draw_id))
-        ode_params['date'] = pd.to_datetime(ode_params['date'])
-        betas = (ode_params
-                 .set_index(['location_id', 'date'])['beta']
-                 .sort_index()
-                 .rename(draw_id))
-        return betas
+        return ode_params['beta'].rename(draw_id)
 
     def load_beta_residuals(self, draw_id: int) -> pd.Series:
         beta_regression = self._get_forecast_data_inteface().load_beta_regression(draw_id)
-        beta_regression = (beta_regression
-                           .set_index(['location_id', 'date'])
-                           .sort_index()[['beta', 'beta_pred']])
         beta_residual = np.log(beta_regression['beta'] / beta_regression['beta_pred']).rename(draw_id)
         return beta_residual
 
     def load_raw_outputs(self, draw_id: int, scenario: str, measure: str) -> pd.Series:
         draw_df = io.load(self.forecast_root.raw_outputs(scenario=scenario, draw_id=draw_id))
-        index_cols = ['location_id', 'date']
         if measure == 'deaths':
-            index_cols.append('observed')
-        draw_data = draw_df.set_index(index_cols)[measure].sort_index().rename(draw_id)
-        return draw_data
+            draw_df = draw_df.set_index('observed', append=True)
+        return draw_df[measure].rename(draw_id)
 
     ##############################
     # Miscellaneous data loaders #
@@ -141,8 +129,8 @@ class PostprocessingDataInterface:
     def load_mortality_ratio(self) -> pd.Series:
         location_ids = self.load_location_ids()
         mr_df = io.load(self.mortality_ratio_root.mortality_ratio())
-        mr = mr_df.set_index(['location_id', 'age_start']).MRprob
-        return mr.loc[location_ids]
+        mr_df = mr_df.set_index('age_start', append=True)
+        return mr_df.loc[location_ids, 'MRprob']
 
     def build_version_map(self) -> pd.Series:
         forecast_di = self._get_forecast_data_inteface()

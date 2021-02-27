@@ -51,12 +51,11 @@ class TestForecastDataInterfaceIO:
 
         # Step 3: test files
         pandas.testing.assert_frame_equal(coefficients, loaded_coefficients)
-        # some load methods do pandas.to_datetime conversion on columns
-        transition_dates = dates.set_index('location_id').sort_index()['end_date'].rename('date').reset_index()
+        transition_dates = pandas.to_datetime(dates['end_date']).rename('date').reset_index()
         loaded_transition_dates = loaded_transition_dates.reset_index()
-        assert_equal_after_date_conversion(transition_dates, loaded_transition_dates, date_cols=['date'])
-        assert_equal_after_date_conversion(regression_beta, loaded_regression_beta, date_cols=['date'])
-        assert_equal_after_date_conversion(location_data, loaded_location_data, date_cols=['date'])
+        pandas.testing.assert_frame_equal(transition_dates, loaded_transition_dates)
+        pandas.testing.assert_frame_equal(regression_beta, loaded_regression_beta)
+        pandas.testing.assert_frame_equal(location_data, loaded_location_data)
 
         # load_beta_params does not return a DataFrame but instead a dict
         # in addition, some rounding error occurs in the save/load from CSV
@@ -94,12 +93,6 @@ class TestForecastDataInterfaceIO:
 
         # Step 3: load those files
         loaded_components = di.load_components(scenario="happy", draw_id=4)
-        # Load components now does some formatting, which broke the tests.
-        # Back out these changes here.
-        loaded_components = loaded_components.reset_index()
-        loaded_components['date'] = loaded_components['date'].astype(str)
-        loaded_components = loaded_components[components.columns]  # Use the same sort order.
-
         loaded_beta_scales = di.load_beta_scales(scenario="happy", draw_id=4)
         loaded_forecast_outputs = di.load_raw_outputs(scenario="happy", draw_id=4)
 

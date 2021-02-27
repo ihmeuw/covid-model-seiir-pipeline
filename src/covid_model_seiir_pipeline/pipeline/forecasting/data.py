@@ -74,18 +74,13 @@ class ForecastDataInterface:
     def load_transition_date(self, draw_id: int) -> pd.Series:
         dates_df = self._get_regression_data_interface().load_date_file(draw_id=draw_id)
         dates_df['end_date'] = pd.to_datetime(dates_df['end_date'])
-        transition_date = dates_df.set_index('location_id').sort_index()['end_date'].rename('date')
-        return transition_date
+        return dates_df['end_date'].rename('date')
 
     def load_beta_regression(self, draw_id: int) -> pd.DataFrame:
-        beta_regression = self._get_regression_data_interface().load_regression_betas(draw_id=draw_id)
-        beta_regression['date'] = pd.to_datetime(beta_regression['date'])
-        return beta_regression
+        return self._get_regression_data_interface().load_regression_betas(draw_id=draw_id)
 
     def load_infection_data(self, draw_id: int) -> pd.DataFrame:
-        infection_data = self._get_regression_data_interface().load_infection_data(draw_id=draw_id)
-        infection_data['date'] = pd.to_datetime(infection_data['date'])
-        return infection_data
+        return self._get_regression_data_interface().load_infection_data(draw_id=draw_id)
 
     def load_beta_params(self, draw_id: int) -> Dict[str, float]:
         df = self._get_regression_data_interface().load_beta_param_file(draw_id=draw_id)
@@ -96,14 +91,10 @@ class ForecastDataInterface:
 
     def load_hospital_usage(self) -> HospitalMetrics:
         df = self._get_regression_data_interface().load_hospital_data(measure='usage')
-        df['date'] = pd.to_datetime(df['date'])
-        df = df.set_index(['location_id', 'date']).sort_index()
         return HospitalMetrics(**{metric: df[metric] for metric in df.columns})
 
     def load_hospital_correction_factors(self) -> HospitalCorrectionFactors:
         df = self._get_regression_data_interface().load_hospital_data(measure='correction_factors')
-        df['date'] = pd.to_datetime(df['date'])
-        df = df.set_index(['location_id', 'date']).sort_index()
         return HospitalCorrectionFactors(**{metric: df[metric] for metric in df.columns})
 
     def load_hospital_census_data(self) -> HospitalCensusData:
@@ -327,9 +318,7 @@ class ForecastDataInterface:
         io.dump(forecasts, self.forecast_root.component_draws(scenario=scenario, draw_id=draw_id))
 
     def load_components(self, scenario: str, draw_id: int):
-        components = io.load(self.forecast_root.component_draws(scenario=scenario, draw_id=draw_id))
-        components['date'] = pd.to_datetime(components['date'])
-        return components.set_index(['location_id', 'date'])
+        return io.load(self.forecast_root.component_draws(scenario=scenario, draw_id=draw_id))
 
     def save_beta_scales(self, scales: pd.DataFrame, scenario: str, draw_id: int):
         io.dump(scales, self.forecast_root.beta_scaling(scenario=scenario, draw_id=draw_id))
@@ -349,14 +338,10 @@ class ForecastDataInterface:
 
     @staticmethod
     def _format_covariate_data(dataset: pd.DataFrame, location_ids: List[int], with_observed: bool = False):
-        index_columns = ['location_id']
+        shared_locs = list(set(dataset.index.get_level_values('location_id')).intersection(location_ids))
+        dataset = dataset.loc[shared_locs]
         if with_observed:
-            index_columns.append('observed')
-        if 'date' in dataset.columns:
-            dataset['date'] = pd.to_datetime(dataset['date'])
-            index_columns.append('date')
-        dataset = dataset.loc[dataset.location_id.isin(location_ids)]
-        dataset = dataset.set_index(index_columns)
+            dataset = dataset.set_index('observed', append=True)
         return dataset
 
     def _get_regression_data_interface(self) -> RegressionDataInterface:
