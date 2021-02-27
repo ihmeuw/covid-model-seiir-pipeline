@@ -91,6 +91,7 @@ def run_ode_fit(infections: pd.Series, ode_parameters: ODEParameters,
 def run_loc_ode_fit(infections: pd.Series, ode_parameters: ODEParameters) -> pd.DataFrame:
     # Filter out early dates with few infections
     # to reduce noise in the past fit from leaking into the beta regression.
+    full_index = infections.index
     infections = filter_to_epi_threshold(infections)
     ode_parameters = ode_parameters.reindex(infections.index)
 
@@ -123,15 +124,20 @@ def run_loc_ode_fit(infections: pd.Series, ode_parameters: ODEParameters) -> pd.
         columns=past_system.COMPARTMENTS,
     )
     components['date'] = date
+    components = components.set_index('date')
 
     assert (components['S'] >= 0.0).all()
 
     susceptible = components.iloc[:, [past_system.s, past_system.s_u]].sum(axis=1)
     infectious = components.iloc[:, [past_system.i1, past_system.i2, past_system.i1_u, past_system.i2_u]].sum(axis=1)
     disease_density = susceptible * infectious**ode_parameters.alpha.values / total_population
-    components['beta'] = (obs / disease_density)
+    beta = (obs / disease_density).reindex(full_index)
 
-    return components
+    components = components.reindex(full_index, fill_value=0.)
+    components.loc[components['S'] == 0, 'S'] = total_population 
+    components['beta'] = beta
+
+    return components.reset_index()
 
 
 def filter_to_epi_threshold(infections: pd.Series,

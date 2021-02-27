@@ -71,10 +71,9 @@ def run_beta_regression(regression_version: str, draw_id: int, progress_bar: boo
 
     # Format and save data.
     logger.info('Prepping outputs', context='transform')
-    betas = pd.concat([beta_fit, beta_hat], axis=1)
+    betas = pd.concat([beta_fit, beta_hat], axis=1).reindex(infections.index)
     ode_parameters = ode_parameters.to_df()
 
-    import pdb; pdb.set_trace()
     logger.info('Writing outputs', context='write')
     data_interface.save_infections(infections, draw_id=draw_id)
     data_interface.save_deaths(deaths, draw_id=draw_id)
