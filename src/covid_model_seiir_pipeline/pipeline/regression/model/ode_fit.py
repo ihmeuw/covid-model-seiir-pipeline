@@ -21,12 +21,11 @@ def prepare_ode_fit_parameters(past_index: pd.Index,
                                regression_parameters: Dict,
                                draw_id: int) -> ODEParameters:
     population = population.reindex(past_index, level='location_id')
-
     np.random.seed(draw_id)
     sampled_params = {}
     for parameter in ['alpha', 'sigma', 'gamma1', 'gamma2']:
         sampled_params[parameter] = pd.Series(
-            np.random.uniform(**regression_parameters[parameter]),
+            np.random.uniform(*regression_parameters[parameter]),
             index=past_index,
             name=parameter,
         )
@@ -65,8 +64,8 @@ def clean_infection_data_measure(infection_data: pd.DataFrame, measure: str) -> 
     and cumulative space.
 
     """
-    data = infection_data[measure].dropna().reset_index()
-    min_date = data.groupby('location_id').date.min()
+    data = infection_data[measure].dropna()
+    min_date = data.reset_index().groupby('location_id').date.min()
     prepend_date = min_date - pd.Timedelta(days=1)
     prepend_idx = prepend_date.reset_index().set_index(['location_id', 'date']).index
     prepend = pd.Series(0., index=prepend_idx, name=measure)
@@ -95,10 +94,10 @@ def run_loc_ode_fit(infections: pd.Series, ode_parameters: ODEParameters) -> pd.
     obs = infections.values
     total_population = ode_parameters.population.iloc[0]
 
-    initial_condition = np.zeros_like(past_system.COMPARTMENTS)
-    initial_condition[past_system.s] = total_population - obs[0] - (obs[0] / 5) ** (1.0 / ode_parameters.alpha)
+    initial_condition = np.zeros(len(past_system.COMPARTMENTS))
+    initial_condition[past_system.s] = total_population - obs[0] - (obs[0] / 5) ** (1.0 / ode_parameters.alpha[0])
     initial_condition[past_system.e] = obs[0]
-    initial_condition[past_system.i1] = (obs[0] / 5) ** (1.0 / ode_parameters.alpha)
+    initial_condition[past_system.i1] = (obs[0] / 5) ** (1.0 / ode_parameters.alpha[0])
 
     parameters = np.zeros((len(past_system.PARAMETERS), len(obs)))
     parameters[past_system.alpha] = ode_parameters.alpha.values
@@ -106,8 +105,8 @@ def run_loc_ode_fit(infections: pd.Series, ode_parameters: ODEParameters) -> pd.
     parameters[past_system.gamma1] = ode_parameters.gamma1.values
     parameters[past_system.gamma2] = ode_parameters.gamma2.values
     parameters[past_system.new_e] = obs
-    parameters[past_system.m] = [0.] * np.ones(len(obs))
-    parameters[past_system.u] = [0.] * np.ones(len(obs))
+    parameters[past_system.m] = ode_parameters.vaccines_immune.values
+    parameters[past_system.u] = ode_parameters.vaccines_other.values
 
     result = math.solve_ode(
         system=past_system.system,

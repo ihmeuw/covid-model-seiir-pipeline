@@ -54,7 +54,7 @@ def run_beta_regression(regression_version: str, draw_id: int, progress_bar: boo
         ode_parameters=ode_parameters,
         progress_bar=progress_bar,
     )
-
+    import pdb; pdb.set_trace()
     logger.info('Prepping regression.', context='transform')
     mr_data = model.align_beta_with_covariates(covariates, beta_fit, list(regression_specification.covariates))
     regressor = model.build_regressor(regression_specification.covariates.values(), prior_coefficients)
