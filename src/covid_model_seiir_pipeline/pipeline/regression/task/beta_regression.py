@@ -24,28 +24,35 @@ def run_beta_regression(regression_version: str, draw_id: int) -> None:
     regression_specification = RegressionSpecification.from_path(regression_spec_file)
     data_interface = RegressionDataInterface.from_specification(regression_specification)
 
-    logger.info('Loading input data', context='read')
-    population = data_interface.load_five_year_population().groupby('location_id')['population'].sum()
-    past_infections = data_interface.load_past_infection_data(draw_id=draw_id)
+    logger.info('Loading ODE fit input data', context='read')
+    past_infection_data = data_interface.load_past_infection_data(draw_id=draw_id)
+    population = data_interface.load_total_population()
+    vaccinations = data_interface.load_vaccine_info('reference')
+
+    logger.info('Prepping ODE fit parameters.', context='transform')
+    infections = model.clean_infection_data_measure(past_infection_data, 'infections')
+    deaths = model.clean_infection_data_measure(past_infection_data, 'deaths')
+    regression_params = regression_specification.regression_parameters.to_dict()
+    ode_parameters = model.prepare_ode_fit_parameters(
+        infections.index,
+        population,
+        vaccinations,
+        regression_params,
+        draw_id,
+    )
+
+    logger.info('Loading regression input data', context='read')
     covariates = data_interface.load_covariates(regression_specification.covariates)
     if regression_specification.data.coefficient_version:
         prior_coefficients = data_interface.load_prior_run_coefficients(draw_id=draw_id)
     else:
         prior_coefficients = None
 
-    logger.info('Prepping ODE fit', context='transform')
-    regression_params = regression_specification.regression_parameters.to_dict()
-    ode_params = model.sample_parameters(draw_id, regression_params)
-
     logger.info('Running ODE fit', context='compute_ode')
-    beta_fit = model.run_beta_fit(
-        past_infections=past_infections['infections'].dropna(),  # Drop days with deaths but no infections.
-        population=population,
-        ode_parameters=ode_params,
+    beta_fit = model.run_ode_fit(
+        infections=infections,
+        ode_parameters=ode_parameters,
     )
-    beta_start_end_dates = (beta_fit
-                            .groupby('location_id')
-                            .agg(start_date=('date', 'min'), end_date=('date', 'max')))
 
     logger.info('Prepping regression.', context='transform')
     mr_data = model.align_beta_with_covariates(covariates, beta_fit, list(regression_specification.covariates))
