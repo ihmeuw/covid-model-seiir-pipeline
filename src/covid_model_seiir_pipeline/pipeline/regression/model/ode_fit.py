@@ -85,14 +85,6 @@ def run_loc_beta_fit(infections: pd.Series,
 
 
 @numba.njit
-def linear_first_order(_: float, y: np.ndarray, p: np.ndarray):
-    c, f = p
-    x = y[0]
-    dx = -c * x + f
-    return np.array([dx])
-
-
-@numba.njit
 def past_system(_: float, y: np.ndarray, p: np.ndarray):
     s, e, i1, i2, r = y
     new_e, sigma, gamma1, gamma2 = p
