@@ -31,7 +31,10 @@ class PostprocessingDataInterface:
 
     @classmethod
     def from_specification(cls, specification: PostprocessingSpecification):
-        forecast_root = io.ForecastRoot(specification.data.forecast_version)
+        forecast_spec_path = Path(specification.data.forecast_version) / static_vars.FORECAST_SPECIFICATION_FILE
+        forecast_spec = ForecastSpecification.from_path(forecast_spec_path)
+        forecast_root = io.ForecastRoot(specification.data.forecast_version,
+                                        data_format=forecast_spec.data.output_format)
         mortality_ratio_root = io.MortalityRatioRoot(specification.data.mortality_ratio_version)
         postprocessing_root = io.PostprocessingRoot(specification.data.output_root)
 

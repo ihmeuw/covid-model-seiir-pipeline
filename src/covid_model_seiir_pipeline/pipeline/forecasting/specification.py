@@ -19,7 +19,7 @@ FORECAST_JOBS = __ForecastJobs()
 class ScalingTaskSpecification(workflow.TaskSpecification):
     """Specification of execution parameters for beta scaling tasks."""
     default_max_runtime_seconds = 5000
-    default_m_mem_free = '5G'
+    default_m_mem_free = '50G'
     default_num_cores = 26
 
 
@@ -45,6 +45,7 @@ class ForecastData:
     regression_version: str = field(default='best')
     covariate_version: str = field(default='best')
     output_root: str = field(default='')
+    output_format: str = field(default='csv')
     fh_subnationals: bool = field(default=False)
 
     def to_dict(self) -> Dict:

@@ -8,6 +8,7 @@ import pandas as pd
 
 from covid_model_seiir_pipeline.lib import (
     io,
+    static_vars,
 )
 from covid_model_seiir_pipeline.pipeline.regression import (
     RegressionDataInterface,
@@ -42,11 +43,14 @@ class ForecastDataInterface:
 
     @classmethod
     def from_specification(cls, specification: ForecastSpecification) -> 'ForecastDataInterface':
-        # TODO: specify input format from config
-        regression_root = io.RegressionRoot(specification.data.regression_version)
+        regression_spec_path = Path(specification.data.regression_version) / static_vars.REGRESSION_SPECIFICATION_FILE
+        regression_spec = RegressionSpecification.from_path(regression_spec_path)
+        regression_root = io.RegressionRoot(specification.data.regression_version,
+                                            data_format=regression_spec.data.output_format)
         covariate_root = io.CovariateRoot(specification.data.covariate_version)
         # TODO: specify output format from config.
-        forecast_root = io.ForecastRoot(specification.data.output_root)
+        forecast_root = io.ForecastRoot(specification.data.output_root,
+                                        data_format=specification.data.output_format)
 
         return cls(
             regression_root=regression_root,

@@ -160,7 +160,6 @@ def compute_initial_beta_scaling_parameters_by_draw(draw_id: int,
     # Today in the data is unique by draw.  It's based on the number of tail
     # days we use from the infections elastispliner.
     transition_date = data_interface.load_transition_date(draw_id)
-
     beta_regression_df = data_interface.load_beta_regression(draw_id).reset_index(level='date')
     idx = beta_regression_df.index
 
@@ -218,7 +217,7 @@ def write_out_beta_scales_by_draw(beta_scales: pd.DataFrame, data_interface: For
     beta_scales['log_beta_residual_mean'] -= offset
     beta_scales['scale_final'] = np.exp(beta_scales['log_beta_residual_mean'])
     draw_id = beta_scales['draw'].iat[0]
-    data_interface.save_beta_scales(beta_scales.reset_index(), scenario, draw_id)
+    data_interface.save_beta_scales(beta_scales, scenario, draw_id)
 
 
 @click.command()
