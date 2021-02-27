@@ -161,8 +161,7 @@ def compute_initial_beta_scaling_parameters_by_draw(draw_id: int,
     # days we use from the infections elastispliner.
     transition_date = data_interface.load_transition_date(draw_id)
 
-    beta_regression_df = data_interface.load_beta_regression(draw_id)
-    beta_regression_df = beta_regression_df.set_index('location_id').sort_index()
+    beta_regression_df = data_interface.load_beta_regression(draw_id).reset_index(level='date')
     idx = beta_regression_df.index
 
     # Select out the transition day to compute the initial scaling parameter.

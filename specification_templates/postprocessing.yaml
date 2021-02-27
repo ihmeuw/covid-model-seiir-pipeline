@@ -4,9 +4,9 @@ data:
   scenarios:
     - 'worse'
     - 'reference'
-    - 'best_masks'
-    - 'no_vaccine'
-    - 'vaccine_fast'
+#    - 'best_masks'
+#    - 'no_vaccine'
+#    - 'vaccine_fast'
   output_root: ''
 workflow:
   project: 'proj_covid_prod'

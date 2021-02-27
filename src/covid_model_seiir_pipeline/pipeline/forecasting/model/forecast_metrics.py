@@ -49,7 +49,6 @@ def compute_output_metrics(infection_data: pd.DataFrame,
     past_infections_idx = components_past.set_index('date', append=True).index
     modeled_infections = modeled_infections.to_frame()
     modeled_deaths = modeled_deaths.reset_index(level='observed')
-    infection_data = infection_data.set_index(['location_id', 'date'])
     infections = infection_data.loc[past_infections_idx, ['infections']].combine_first(modeled_infections).infections
     def _backfill_zero(x):
         past_nulls = x.ffill().isnull()

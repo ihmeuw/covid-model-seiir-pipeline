@@ -32,7 +32,7 @@ def run_hospital_correction_factors(regression_version: str, with_progress_bar: 
     data_interface = RegressionDataInterface.from_specification(regression_specification)
 
     logger.info('Loading input data', context='read')
-    hierarchy = data_interface.load_hierarchy()
+    hierarchy = data_interface.load_hierarchy().reset_index()
     n_draws = data_interface.get_n_draws()
     n_cores = (regression_specification
                .workflow
