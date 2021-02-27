@@ -141,6 +141,9 @@ def compute_initial_beta_scaling_parameters(total_deaths: pd.Series,
         beta_scaling=beta_scaling,
         data_interface=data_interface
     )
+    x = _runner(0)
+    import pdb; pdb.set_trace()
+
     draws = list(range(data_interface.get_n_draws()))
     with multiprocessing.Pool(num_cores) as pool:
         scaling_data = list(pool.imap(_runner, draws))
@@ -157,14 +160,10 @@ def compute_initial_beta_scaling_parameters_by_draw(draw_id: int,
     draw_data = [total_deaths.copy(),
                  pd.Series(beta_scaling['window_size'], index=total_deaths.index, name='window_size')]
 
-    # Today in the data is unique by draw.  It's based on the number of tail
-    # days we use from the infections elastispliner.
-    transition_date = data_interface.load_transition_date(draw_id)
-    beta_regression_df = data_interface.load_beta_regression(draw_id).reset_index(level='date')
-    idx = beta_regression_df.index
+    betas = data_interface.load_betas(draw_id)
 
     # Select out the transition day to compute the initial scaling parameter.
-    beta_transition = beta_regression_df.loc[beta_regression_df['date'] == transition_date.loc[idx]]
+    beta_transition = betas.groupby('location_id').last()
     draw_data.append(beta_transition['beta'].rename('fit_final'))
     draw_data.append(beta_transition['beta_pred'].rename('pred_start'))
     draw_data.append((beta_transition['beta'] / beta_transition['beta_pred']).rename('scale_init'))
@@ -179,13 +178,7 @@ def compute_initial_beta_scaling_parameters_by_draw(draw_id: int,
     draw_data.append(pd.Series(a, index=total_deaths.index, name='history_days_start'))
     draw_data.append(pd.Series(b, index=total_deaths.index, name='history_days_end'))
 
-    beta_past = (beta_regression_df
-                 .loc[beta_regression_df['date'] <= transition_date.loc[idx]]
-                 .reset_index()
-                 .set_index(['location_id', 'date'])
-                 .sort_index())
-
-    log_beta_residual_mean = (np.log(beta_past['beta'] / beta_past['beta_pred'])
+    log_beta_residual_mean = (np.log(betas['beta'] / betas['beta_hat'])
                               .groupby(level='location_id')
                               .apply(lambda x: x.iloc[-b: -a].mean())
                               .rename('log_beta_residual_mean'))
