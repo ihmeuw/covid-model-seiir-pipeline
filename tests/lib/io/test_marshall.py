@@ -15,11 +15,7 @@ class MarshallInterfaceTests:
 
     def test_parameters_marshall(self, instance, regression_root, parameters):
         self.assert_load_dump_workflow_correct(instance, regression_root,
-                                               parameters, key=regression_root.parameters(draw_id=4))
-
-    def test_date_marshall(self, instance, regression_root, dates):
-        self.assert_load_dump_workflow_correct(instance, regression_root,
-                                               dates, key=regression_root.dates(draw_id=4))
+                                               parameters, key=regression_root.ode_parameters(draw_id=4))
 
     def test_coefficients_marshall(self, instance, regression_root, coefficients):
         self.assert_load_dump_workflow_correct(instance, regression_root,
@@ -29,13 +25,9 @@ class MarshallInterfaceTests:
         self.assert_load_dump_workflow_correct(instance, regression_root,
                                                regression_beta, key=regression_root.beta(draw_id=4))
 
-    def test_location_data_marshall(self, instance, regression_root, location_data):
-        self.assert_load_dump_workflow_correct(instance, regression_root,
-                                               location_data, key=regression_root.infection_data(draw_id=4))
-
     def test_no_overwriting(self, instance, regression_root, parameters):
         self.assert_load_dump_workflow_correct(instance, regression_root,
-                                               parameters, key=regression_root.parameters(draw_id=4))
+                                               parameters, key=regression_root.ode_parameters(draw_id=4))
 
     def test_interface_methods(self, instance):
         "Test mandatory interface methods exist."
