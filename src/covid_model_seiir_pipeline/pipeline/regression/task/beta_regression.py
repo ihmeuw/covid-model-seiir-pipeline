@@ -67,36 +67,21 @@ def run_beta_regression(regression_version: str, draw_id: int, progress_bar: boo
         regression_specification.regression_parameters.sequential_refit
     )
     log_beta_hat = math.compute_beta_hat(covariates.reset_index(), coefficients)
-    beta_hat = np.exp(log_beta_hat).rename('beta_pred').reset_index()
-    import pdb; pdb.set_trace()
+    beta_hat = np.exp(log_beta_hat).rename('beta_pred')
+
     # Format and save data.
     logger.info('Prepping outputs', context='transform')
-    merge_cols = ['location_id', 'date']
-    # These two datasets are aligned, but go out into the future
-    regression_betas = beta_hat.merge(covariates, on=merge_cols)
-    # Regression betas include the forecast.  Subset to just the modeled past
-    # based on data in beta fit.
-    regression_betas = beta_fit.merge(regression_betas, how='left').sort_values(['location_id', 'date'])
-    # There is more observed data than there is modeled, based on the day_shift
-    # parameter and infection drops in the ode fit. Expand to the size of the
-    # data, leaving NAs.
-    merged = past_infections.reset_index().merge(regression_betas, how='left').sort_values(['location_id', 'date'])
-    data_df = merged[['location_id', 'date', 'infections', 'deaths']].set_index(['location_id', 'date'])
-    regression_betas = merged[regression_betas.columns].set_index(['location_id', 'date'])
-    coefficients = coefficients.set_index('location_id')
-    # Save the parameters of alpha, sigma, gamma1, and gamma2 that were drawn
-    ode_params = ode_params.to_dict()
-    draw_beta_params = pd.DataFrame({
-        'params': ode_params.keys(),
-        'values': ode_params.values(),
-    })
+    betas = pd.concat([beta_fit, beta_hat], axis=1)
+    ode_parameters = ode_parameters.to_df()
 
+    import pdb; pdb.set_trace()
     logger.info('Writing outputs', context='write')
-    data_interface.save_infection_data(data_df, draw_id)
-    data_interface.save_regression_betas(regression_betas, draw_id)
-    data_interface.save_regression_coefficients(coefficients, draw_id)
-    data_interface.save_beta_param_file(draw_beta_params, draw_id)
-    data_interface.save_date_file(beta_start_end_dates, draw_id)
+    data_interface.save_infections(infections, draw_id=draw_id)
+    data_interface.save_deaths(deaths, draw_id=draw_id)
+    data_interface.save_betas(betas, draw_id=draw_id)
+    data_interface.save_compartments(compartments, draw_id=draw_id)
+    data_interface.save_coefficients(coefficients, draw_id=draw_id)
+    data_interface.save_ode_parameters(ode_parameters, draw_id=draw_id)
 
     logger.report()
 
