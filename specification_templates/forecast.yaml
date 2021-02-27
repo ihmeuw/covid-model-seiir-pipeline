@@ -1,6 +1,6 @@
 data:
-  regression_version: '2021_02_18.05'
-  covariate_version: '2021_02_18.01'
+  regression_version: '2021_02_24.01'
+  covariate_version: '2021_02_23.02'
   output_root: ''
   output_format: 'parquet'
   fh_subnationals: False
@@ -41,7 +41,7 @@ scenarios:
     covariates:
       pneumonia: 'reference'
       mobility: 'worse'
-      mask_use: 'reference'
+      mask_use: 'worse'
       testing: 'reference'
       air_pollution_pm_2_5: 'reference'
       smoking_prevalence: 'reference'
