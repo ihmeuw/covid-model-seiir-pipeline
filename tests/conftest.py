@@ -5,8 +5,6 @@ import pandas
 import pytest
 
 
-
-
 # Data fixtures
 #
 # These represent actual data in various parts of the system that needs to be
@@ -21,17 +19,6 @@ def parameters():
         ['gamma2', 0.809867822982699],
         ['day_shift', 5.0],
     ], columns=['params', 'values'])
-
-
-@pytest.fixture
-def dates():
-    "Example dates data from an ODE model."
-    return pandas.DataFrame([
-        [523, '2020-03-06', '2020-05-05'],
-        [526, '2020-03-08', '2020-05-05'],
-        [533, '2020-02-23', '2020-05-05'],
-        [537, '2020-02-26', '2020-05-05'],
-    ], columns=['location_id', 'start_date', 'end_date']).set_index('location_id')
 
 
 @pytest.fixture
@@ -71,56 +58,3 @@ def regression_beta():
         "newE_obs", "location_id", "intercept", "mobility", "proportion_over_1k",
         "testing", "beta_pred",
     ]).set_index(['location_id', 'date'])
-
-
-@pytest.fixture
-def location_data():
-    """
-    Example location data for one location.
-
-    Normal location data would include values for many locations for a much
-    larger date range.
-    """
-    return pandas.DataFrame([
-        ["Georgia", 35, "age1", pandas.Timestamp("2020-01-10"), 0, 0, 0, 3664751.9351746, 17, 1, 1],
-        ["Georgia", 35, "age1", pandas.Timestamp("2020-01-11"), 0, 0, 0, 3664751.9351746, 17, 1, 1],
-        ["Georgia", 35, "age1", pandas.Timestamp("2020-01-11"), 0, 0, 0, 3664751.9351746, 17, 1, 1],
-    ], columns=["location", "location_id", "age", "date", "cases_draw",
-                "deaths_draw", "deaths_mean", "pop", "i_d_lag", "obs_deaths",
-                "obs_infecs"]).set_index(['location_id', 'date'])
-
-
-@pytest.fixture
-def beta_scales():
-    "Example beta_scales from forecasting. This is before re-orientation to per-location"
-    return pandas.DataFrame([
-        [523, 42, 19, 0.5102710680186469, 1.9536616573451457, 0.23937731744901722, -1.4297142378449315],
-        [524, 42, 19, 0.337742881941994, 2.288522214755621, 0.12839967017032047, -2.05260745649655],
-        [525, 42, 19, 0.4407337644202013, 1.8260965896095822, 0.27446608975078923, -1.2929275602690833],
-        [526, 42, 19, 0.33158362481548936, 1.9785807689859762, 0.2106927417577173, -1.5573544069963998],
-
-    ], columns=['location_id', "window_size", "history_days", "fit_final",
-                "pred_start", "beta_ratio_mean", "beta_residual_mean"]).set_index('location_id')
-
-
-@pytest.fixture
-def components():
-    "Example component draws from forecasting."
-    return pandas.DataFrame([
-        [523, 4863604.1266471315, 5444.82727070014, 3143.398035154036, 2867.3620553313203, 102628.58881427224,
-         0.0, 0.47457643145023976, 2.0, pandas.Timestamp("2020-06-14")],
-        [524, 786251.4055127738, 88.26780716536842, 52.89251926343722, 49.59755184317147, 1585.3514153472793,
-         0.0, 0.3246745187254681, -25.0, pandas.Timestamp("2020-06-14")],
-        [525, 7052421.641838077, 11963.26570146024, 6796.7742256542615, 6089.061664358247, 172409.07925075648,
-         0.0, 0.5224992562447484, 20.0, pandas.Timestamp("2020-06-14")],
-        [526, 3025082.20659897, 1956.2847143040935, 1210.0356364200209, 1158.6355734951346, 27941.34379648508,
-         0.0, 0.35164960033097264, 0.0, pandas.Timestamp("2020-06-14")],
-    ], columns=["location_id", "S", "E", "I1", "I2", "R", "t", "beta", "theta", "date"]
-    ).set_index(['location_id', 'date'])
-
-
-@pytest.fixture
-def forecast_outputs():
-    "Example forecast outputs."
-    # TODO: Mike couldn't find real data for this
-    return pandas.DataFrame({'forecasts': ['good', 'ok', 'not great']})
