@@ -17,7 +17,7 @@ from covid_model_seiir_pipeline.pipeline.regression import model
 logger = cli_tools.task_performance_logger
 
 
-def run_beta_regression(regression_version: str, draw_id: int) -> None:
+def run_beta_regression(regression_version: str, draw_id: int, progress_bar: bool) -> None:
     logger.info('Starting beta regression.', context='setup')
     # Build helper abstractions
     regression_spec_file = Path(regression_version) / static_vars.REGRESSION_SPECIFICATION_FILE
@@ -52,6 +52,7 @@ def run_beta_regression(regression_version: str, draw_id: int) -> None:
     beta_fit = model.run_ode_fit(
         infections=infections,
         ode_parameters=ode_parameters,
+        progress_bar=progress_bar,
     )
 
     logger.info('Prepping regression.', context='transform')
@@ -98,12 +99,14 @@ def run_beta_regression(regression_version: str, draw_id: int) -> None:
 @cli_tools.with_task_regression_version
 @cli_tools.with_draw_id
 @cli_tools.add_verbose_and_with_debugger
+@cli_tools.with_progress_bar
 def beta_regression(regression_version: str, draw_id: int,
-                    verbose: int, with_debugger: bool):
+                    progress_bar: bool, verbose: int, with_debugger: bool):
     cli_tools.configure_logging_to_terminal(verbose)
     run = cli_tools.handle_exceptions(run_beta_regression, logger, with_debugger)
     run(regression_version=regression_version,
-        draw_id=draw_id)
+        draw_id=draw_id,
+        progress_bar=progress_bar)
 
 
 if __name__ == '__main__':

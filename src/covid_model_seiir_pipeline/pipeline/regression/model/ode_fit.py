@@ -2,6 +2,7 @@ from typing import Dict
 
 import numpy as np
 import pandas as pd
+import tqdm
 
 from covid_model_seiir_pipeline.lib import (
     math,
@@ -72,9 +73,10 @@ def clean_infection_data_measure(infection_data: pd.DataFrame, measure: str) -> 
     return data.append(prepend).sort_index()
 
 
-def run_ode_fit(infections: pd.Series, ode_parameters: ODEParameters) -> pd.DataFrame:
+def run_ode_fit(infections: pd.Series, ode_parameters: ODEParameters, progress_bar: bool) -> pd.DataFrame:
     beta_fit = []
-    for location_id, location_params in ode_parameters:
+    ode_parameter_list = tqdm.tqdm(list(ode_parameters), disable=not progress_bar)
+    for location_id, location_params in ode_parameter_list:
         loc_beta_fit = run_loc_ode_fit(
             infections.loc[location_id],
             location_params
