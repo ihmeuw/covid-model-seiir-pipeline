@@ -20,7 +20,6 @@ def sample_parameters(draw_id: int, regression_parameters: Dict) -> ODEParameter
         sigma=np.random.uniform(*regression_parameters['sigma']),
         gamma1=np.random.uniform(*regression_parameters['gamma1']),
         gamma2=np.random.uniform(*regression_parameters['gamma2']),
-        day_shift=int(np.random.uniform(*regression_parameters['day_shift'])),
     )
 
 
@@ -45,9 +44,7 @@ def run_loc_beta_fit(infections: pd.Series,
                      total_population: float,
                      location_id: int,
                      ode_parameters: ODEParameters) -> pd.DataFrame:
-    today = infections.index.max()
-    end_date = today - pd.Timedelta(days=ode_parameters.day_shift)
-    infections = filter_to_epi_threshold(location_id, infections, end_date)
+    infections = filter_to_epi_threshold(location_id, infections)
 
     date = pd.Series(infections.index.values)
     t = (date - date.min()).dt.days.values
@@ -113,11 +110,10 @@ def past_system(_: float, y: np.ndarray, p: np.ndarray):
 
 def filter_to_epi_threshold(location_id: int,
                             infections: pd.Series,
-                            end_date: pd.Timestamp,
                             threshold: float = 50.) -> pd.Series:
     # noinspection PyTypeChecker
     start_date = infections.loc[threshold <= infections].index.min()
-    while infections.loc[start_date:end_date].count() <= 2:
+    while infections.loc[start_date:].count() <= 2:
         threshold *= 0.5
         logger.debug(f'Reduce infections threshold to {threshold} for location {location_id}.')
         # noinspection PyTypeChecker
@@ -125,4 +121,4 @@ def filter_to_epi_threshold(location_id: int,
         if threshold < 1e-6:
             start_date = infections.index.min()
             break
-    return infections.loc[start_date:end_date]
+    return infections.loc[start_date:]

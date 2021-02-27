@@ -31,7 +31,6 @@ class ODEParameters:
     sigma: float
     gamma1: float
     gamma2: float
-    day_shift: int
 
     def to_dict(self) -> Dict[str, Union[int, float]]:
         return utilities.asdict(self)

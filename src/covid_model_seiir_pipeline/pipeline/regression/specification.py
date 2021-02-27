@@ -58,8 +58,6 @@ class RegressionParameters:
     """Specifies the parameters of the beta fit and regression."""
     n_draws: int = field(default=1000)
 
-    day_shift: Tuple[int, int] = field(default=(0, 8))
-
     alpha: Tuple[float, float] = field(default=(0.9, 1.0))
     sigma: Tuple[float, float] = field(default=(0.2, 1/3))
     gamma1: Tuple[float, float] = field(default=(0.5, 0.5))
