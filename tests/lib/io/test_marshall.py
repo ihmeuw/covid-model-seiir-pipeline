@@ -4,6 +4,7 @@ import pytest
 from covid_model_seiir_pipeline.lib.io import RegressionRoot
 from covid_model_seiir_pipeline.lib.io.marshall import (
     CSVMarshall,
+    ParquetMarshall,
 )
 
 
@@ -62,7 +63,16 @@ class TestCSVMarshall(MarshallInterfaceTests):
     def regression_root(self, tmpdir):
         return RegressionRoot(tmpdir)
 
-
     @pytest.fixture
     def instance(self):
         return CSVMarshall
+
+
+class TestParquetMarshall(MarshallInterfaceTests):
+    @pytest.fixture
+    def regression_root(self, tmpdir):
+        return RegressionRoot(tmpdir)
+
+    @pytest.fixture
+    def instance(self):
+        return ParquetMarshall

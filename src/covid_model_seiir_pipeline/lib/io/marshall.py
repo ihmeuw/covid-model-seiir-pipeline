@@ -14,12 +14,7 @@ POTENTIAL_INDEX_COLUMNS = ('location_id', 'date', 'age_start')
 
 
 class CSVMarshall:
-    """
-    Marshalls DataFrames to/from CSV files.
-
-    This implementation directly mirrors existing behavior but does so within a
-    new marshalling interface.
-    """
+    """Marshalls DataFrames to/from CSV files."""
     # interface methods
     @classmethod
     def dump(cls, data: pd.DataFrame, key: DatasetKey, strict: bool = True) -> None:
@@ -65,6 +60,46 @@ class CSVMarshall:
         return path.with_suffix(".csv")
 
 
+class ParquetMarshall:
+    """Marshalls DataFrames to/from Parquet files."""
+    # interface methods
+    @classmethod
+    def dump(cls, data: pd.DataFrame, key: DatasetKey, strict: bool = True) -> None:
+        path = cls._resolve_key(key)
+
+        if strict and path.exists():
+            msg = f"Cannot dump data for key {key} - would overwrite"
+            raise LookupError(msg)
+
+        data.to_parquet(path, engine='fastparquet', compression='gzip')
+
+    @classmethod
+    def load(cls, key: DatasetKey) -> pd.DataFrame:
+        path = cls._resolve_key(key)
+        data = pd.read_parquet(path)
+        return data
+
+    @classmethod
+    def touch(cls, *paths: Path) -> None:
+        for path in paths:
+            mkdir(path, parents=True, exists_ok=True)
+
+    @classmethod
+    def exists(cls, key: DatasetKey) -> bool:
+        path = cls._resolve_key(key)
+        return path.exists()
+
+    @classmethod
+    def _resolve_key(cls, key: DatasetKey) -> Path:
+        path = key.root
+        if key.prefix:
+            path /= key.prefix
+        path /= key.data_type
+        if key.leaf_name:
+            path /= key.leaf_name
+        return path.with_suffix(".parquet")
+
+
 class YamlMarshall:
     """Marshalls primitive python data structures to and from yaml."""
 
@@ -98,6 +133,7 @@ class YamlMarshall:
 
 DATA_STRATEGIES = {
     'csv': CSVMarshall,
+    'parquet': ParquetMarshall,
 }
 METADATA_STRATEGIES = {
     'yaml': YamlMarshall,
