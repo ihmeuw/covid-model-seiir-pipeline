@@ -19,8 +19,6 @@ from covid_model_seiir_pipeline.pipeline.regression.model import (
 )
 
 
-# TODO: move data interfaces up a package level and fuse with forecast data interface.
-
 class RegressionDataInterface:
 
     def __init__(self,
@@ -82,11 +80,9 @@ class RegressionDataInterface:
 
     def filter_location_ids(self, desired_location_hierarchy: pd.DataFrame = None) -> List[int]:
         """Get the list of location ids to model.
-
         This list is the intersection of a location metadata's
         locations, if provided, and the available locations in the infections
         directory.
-
         """
         draw_0_data = self.load_full_past_infection_data(draw_id=0)
         total_deaths = draw_0_data.groupby('location_id').deaths.sum()
@@ -120,16 +116,25 @@ class RegressionDataInterface:
         infection_data = self.load_full_past_infection_data(draw_id=draw_id)
         return infection_data.loc[location_ids]
 
-    def load_ratio_data(self, draw_id: int) -> RatioData:
+    def load_ifr(self, draw_id: int) -> pd.DataFrame:
         ifr = io.load(self.infection_root.ifr(draw_id=draw_id))
         ifr = self.format_ratio_data(ifr)
+        return ifr
 
+    def load_ihr(self, draw_id: int) -> pd.DataFrame:
         ihr = io.load(self.infection_root.ihr(draw_id=draw_id))
         ihr = self.format_ratio_data(ihr)
+        return ihr
 
+    def load_idr(self, draw_id: int) -> pd.DataFrame:
         idr = io.load(self.infection_root.idr(draw_id=draw_id))
         idr = self.format_ratio_data(idr)
+        return idr
 
+    def load_ratio_data(self, draw_id: int) -> RatioData:
+        ifr = self.load_ifr(draw_id)
+        ihr = self.load_ihr(draw_id)
+        idr = self.load_idr(draw_id)
         return RatioData(
             infection_to_death=int(ifr.duration.max()),
             infection_to_admission=int(ihr.duration.max()),
@@ -154,10 +159,8 @@ class RegressionDataInterface:
 
     def check_covariates(self, covariates: Iterable[str]) -> None:
         """Ensure a reference scenario exists for all covariates.
-
         The reference scenario file is used to find the covariate values
         in the past (which we'll use to perform the regression).
-
         """
         missing = []
 
@@ -184,6 +187,11 @@ class RegressionDataInterface:
                 covariate_data.append(self.load_covariate(covariate))
         covariate_data = reduce(lambda x, y: x.merge(y, left_index=True, right_index=True), covariate_data)
         return covariate_data
+
+    def load_vaccine_info(self, vaccine_scenario: str):
+        location_ids = self.load_location_ids()
+        info_df = io.load(self.covariate_root.vaccine_info(info_type=f'vaccinations_{vaccine_scenario}'))
+        return self._format_covariate_data(info_df, location_ids)
 
     ##############################
     # Miscellaneous data loaders #
@@ -212,6 +220,11 @@ class RegressionDataInterface:
         five_year_bins = [1, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 30, 31, 32, 235]
         is_five_year_bins = population['age_group_id'].isin(five_year_bins)
         population = population.loc[in_locations & is_2019 & is_both_sexes & is_five_year_bins, :]
+        return population
+
+    def load_total_population(self) -> pd.Series:
+        population = self.load_five_year_population()
+        population = population.groupby('location_id')['population'].sum()
         return population
 
     def load_hospital_census_data(self) -> 'HospitalCensusData':
@@ -299,3 +312,15 @@ class RegressionDataInterface:
 
     def load_hospital_data(self, measure: str) -> pd.DataFrame:
         return io.load(self.regression_root.hospitalizations(measure=measure))
+
+    #########################
+    # Non-interface helpers #
+    #########################
+
+    @staticmethod
+    def _format_covariate_data(dataset: pd.DataFrame, location_ids: List[int], with_observed: bool = False):
+        shared_locs = list(set(dataset.index.get_level_values('location_id')).intersection(location_ids))
+        dataset = dataset.loc[shared_locs]
+        if with_observed:
+            dataset = dataset.set_index('observed', append=True)
+        return dataset

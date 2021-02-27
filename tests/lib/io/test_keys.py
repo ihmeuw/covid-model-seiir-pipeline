@@ -95,7 +95,7 @@ def test_both_types_binding_and_call():
     expected = MetadataType('metadata', mdr._root, mdr._metadata_format)
     assert mdr.metadata == expected
 
-    expected_key = DatasetKey(mdr._root, mdr._data_format, 'saturn', 'draw_0', 'cassini')
+    expected_key = DatasetKey(mdr._root, mdr._data_format, 'saturn', 'draw_0', 'cassini', None)
     assert mdr.saturn(draw_id=0, scenario='cassini') == expected_key
     assert mdr.saturn(scenario='cassini', draw_id=0) == expected_key
     # We silently ignore extra keys because I haven't thought of a clever thing yet.

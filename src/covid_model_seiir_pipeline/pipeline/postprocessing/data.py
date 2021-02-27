@@ -93,20 +93,41 @@ class PostprocessingDataInterface:
     def load_input_covariate(self, covariate: str, covariate_version: str):
         return self._get_forecast_data_inteface().load_covariate(covariate, covariate_version, with_observed=True)
 
-    def load_betas(self, draw_id: int, scenario: str) -> pd.Series:
-        ode_params = io.load(self.forecast_root.ode_params(scenario=scenario, draw_id=draw_id))
-        return ode_params['beta'].rename(draw_id)
+    def load_ifr(self, draw_id: int):
+        ifr = self._get_forecast_data_inteface().load_ifr(draw_id=draw_id)
+        return ifr['ifr'].rename(draw_id)
+
+    def load_ihr(self, draw_id: int):
+        ihr = self._get_forecast_data_inteface().load_ihr(draw_id=draw_id)
+        return ihr['ihr'].rename(draw_id)
+
+    def load_idr(self, draw_id: int):
+        idr = self._get_forecast_data_inteface().load_idr(draw_id=draw_id)
+        return idr['idr'].rename(draw_id)
+
+    def load_single_ode_param(self, draw_id: int, scenario: str, measure: str) -> pd.Series:
+        draw_df = self.load_ode_params(draw_id=draw_id, scenario=scenario, columns=[measure])
+        return draw_df[measure].rename(draw_id)
+
+    def load_ode_params(self, draw_id: int, scenario: str, columns=None):
+        return io.load(self.forecast_root.ode_params(scenario=scenario, draw_id=draw_id, columns=columns))
 
     def load_beta_residuals(self, draw_id: int) -> pd.Series:
         beta_regression = self._get_forecast_data_inteface().load_beta_regression(draw_id)
         beta_residual = np.log(beta_regression['beta'] / beta_regression['beta_pred']).rename(draw_id)
         return beta_residual
 
-    def load_raw_outputs(self, draw_id: int, scenario: str, measure: str) -> pd.Series:
-        draw_df = io.load(self.forecast_root.raw_outputs(scenario=scenario, draw_id=draw_id))
-        if measure == 'deaths':
-            draw_df = draw_df.set_index('observed', append=True)
+    def load_single_raw_output(self, draw_id: int, scenario: str, measure: str) -> pd.Series:
+        draw_df = self.load_raw_outputs(scenario=scenario, draw_id=draw_id, columns=[measure])
         return draw_df[measure].rename(draw_id)
+
+    def load_raw_output_deaths(self, draw_id: int, scenario: str) -> pd.Series:
+        draw_df = self.load_raw_outputs(scenario=scenario, draw_id=draw_id, columns=['observed', 'deaths'])
+        draw_df = draw_df.set_index('observed', append=True)
+        return draw_df['deaths'].rename(draw_id)
+
+    def load_raw_outputs(self, draw_id: int, scenario: str, columns=None) -> pd.Series:
+        return io.load(self.forecast_root.raw_outputs(scenario=scenario, draw_id=draw_id, columns=columns))
 
     ##############################
     # Miscellaneous data loaders #

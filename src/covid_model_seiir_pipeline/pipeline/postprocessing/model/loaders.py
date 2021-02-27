@@ -175,3 +175,31 @@ def load_hierarchy(data_interface: 'PostprocessingDataInterface'):
 
 def get_locations_modeled_and_missing(data_interface: 'PostprocessingDataInterface'):
     return data_interface.get_locations_modeled_and_missing()
+
+
+#########################
+# Non-interface methods #
+#########################
+
+def _load_output_data(scenario: str, measure: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
+    _runner = functools.partial(
+        data_interface.load_single_raw_output,
+        scenario=scenario,
+        measure=measure,
+    )
+    draws = range(data_interface.get_n_draws())
+    with multiprocessing.Pool(num_cores) as pool:
+        outputs = pool.map(_runner, draws)
+    return outputs
+
+
+def _load_ode_params(scenario: str, measure: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
+    _runner = functools.partial(
+        data_interface.load_single_ode_param,
+        scenario=scenario,
+        measure=measure,
+    )
+    draws = range(data_interface.get_n_draws())
+    with multiprocessing.Pool(num_cores) as pool:
+        outputs = pool.map(_runner, draws)
+    return outputs

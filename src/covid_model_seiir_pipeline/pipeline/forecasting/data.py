@@ -104,6 +104,15 @@ class ForecastDataInterface:
     def load_hospital_census_data(self) -> HospitalCensusData:
         return self._get_regression_data_interface().load_hospital_census_data()
 
+    def load_ifr(self, draw_id: int) -> pd.DataFrame:
+        return self._get_regression_data_interface().load_ifr(draw_id=draw_id)
+
+    def load_ihr(self, draw_id: int) -> pd.DataFrame:
+        return self._get_regression_data_interface().load_ihr(draw_id=draw_id)
+
+    def load_idr(self, draw_id: int) -> pd.DataFrame:
+        return self._get_regression_data_interface().load_idr(draw_id=draw_id)
+
     def load_ratio_data(self, draw_id: int) -> RatioData:
         return self._get_regression_data_interface().load_ratio_data(draw_id=draw_id)
 
