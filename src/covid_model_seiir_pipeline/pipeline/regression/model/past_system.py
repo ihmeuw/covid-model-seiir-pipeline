@@ -31,8 +31,9 @@ def system(t: float, y: np.ndarray, params: np.ndarray):
     n_unvaccinated = y[s] + y[e] + y[i1] + y[i2] + y[r]
 
     # Fraction of new infections coming from S vs S_u
-    new_e_s = params[new_e] * y[s] / (y[s] + y[s_u])
-    new_e_s_u = params[new_e] - new_e_s
+    total_susceptible = y[s] + y[s_u]
+    new_e_s = params[new_e] * y[s] / total_susceptible
+    new_e_s_u = params[new_e] * y[s_u] / total_susceptible
 
     v_total = params[m] + params[u]
     if v_total:
@@ -58,15 +59,15 @@ def system(t: float, y: np.ndarray, params: np.ndarray):
 
     ds = -new_e_s - s_vaccines_u - s_vaccines_m
     de = new_e_s - sigma*e - e_vaccines
-    di1 = sigma*e - gamma1*i1 - i1_vaccines
-    di2 = gamma1*i1 - gamma2*i2 - i2_vaccines
-    dr = gamma2*i2 - r_vaccines
+    di1 = sigma*y[e] - gamma1*y[i1] - i1_vaccines
+    di2 = gamma1*y[i1] - gamma2*y[i2] - i2_vaccines
+    dr = gamma2*y[i2] - r_vaccines
 
     ds_u = -new_e_s_u + s_vaccines_u
-    de_u = new_e_s_u - sigma*e_u + e_vaccines
-    di1_u = sigma*e_u - gamma1*i1_u + i1_vaccines
-    di2_u = gamma1*i1_u - gamma2*i2_u + i2_vaccines
-    dr_u = gamma2*i2_u + r_vaccines
+    de_u = new_e_s_u - sigma*y[e_u] + e_vaccines
+    di1_u = sigma*y[e_u] - gamma1*y[i1_u] + i1_vaccines
+    di2_u = gamma1*y[i1_u] - gamma2*y[i2_u] + i2_vaccines
+    dr_u = gamma2*y[i2_u] + r_vaccines
 
     dr_m = s_vaccines_m
 
