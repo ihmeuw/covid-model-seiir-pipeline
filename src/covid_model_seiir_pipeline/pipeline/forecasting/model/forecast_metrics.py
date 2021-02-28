@@ -34,13 +34,11 @@ def compute_output_metrics(indices: Indices,
                            hospital_parameters: 'HospitalParameters',
                            system: str) -> Tuple[pd.DataFrame, SystemMetrics, OutputMetrics]:
     components = postprocessing_params.past_compartments
-    import pdb; pdb.set_trace()
     components = (components
+                  .loc[indices.past]  # Need to drop transition day.
                   .append(future_components)
-                  .sort_index()
-                  .groupby('location_id')
-                  .fillna(method='bfill'))
-
+                  .sort_index())
+    import pdb; pdb.set_trace()
     system_metrics = build_system_metrics(
         indices,
         model_parameters,
