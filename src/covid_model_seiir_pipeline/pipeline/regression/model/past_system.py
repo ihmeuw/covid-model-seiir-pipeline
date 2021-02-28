@@ -58,21 +58,22 @@ def system(t: float, y: np.ndarray, params: np.ndarray):
         r_vaccines = 0
 
     ds = -new_e_s - s_vaccines_u - s_vaccines_m
-    de = new_e_s - sigma*e - e_vaccines
-    di1 = sigma*y[e] - gamma1*y[i1] - i1_vaccines
-    di2 = gamma1*y[i1] - gamma2*y[i2] - i2_vaccines
-    dr = gamma2*y[i2] - r_vaccines
+    de = new_e_s - params[sigma]*y[e] - e_vaccines
+    di1 = params[sigma]*y[e] - params[gamma1]*y[i1] - i1_vaccines
+    di2 = params[gamma1]*y[i1] - params[gamma2]*y[i2] - i2_vaccines
+    dr = params[gamma2]*y[i2] - r_vaccines
 
     ds_u = -new_e_s_u + s_vaccines_u
     de_u = new_e_s_u - sigma*y[e_u] + e_vaccines
-    di1_u = sigma*y[e_u] - gamma1*y[i1_u] + i1_vaccines
-    di2_u = gamma1*y[i1_u] - gamma2*y[i2_u] + i2_vaccines
-    dr_u = gamma2*y[i2_u] + r_vaccines
-
+    di1_u = params[sigma]*y[e_u] - params[gamma1]*y[i1_u] + i1_vaccines
+    di2_u = params[gamma1]*y[i1_u] - params[gamma2]*y[i2_u] + i2_vaccines
+    dr_u = params[gamma2]*y[i2_u] + r_vaccines
+    
     dr_m = s_vaccines_m
-
-    return np.array([
+    dy = np.array([
         ds, de, di1, di2, dr,
         ds_u, de_u, di1_u, di2_u, dr_u,
         dr_m,
     ])
+    assert dy.sum() < 1e-10
+    return dy

@@ -142,8 +142,6 @@ def compute_initial_beta_scaling_parameters(total_deaths: pd.Series,
         data_interface=data_interface
     )
     x = _runner(0)
-    import pdb; pdb.set_trace()
-
     draws = list(range(data_interface.get_n_draws()))
     with multiprocessing.Pool(num_cores) as pool:
         scaling_data = list(pool.imap(_runner, draws))
@@ -161,12 +159,12 @@ def compute_initial_beta_scaling_parameters_by_draw(draw_id: int,
                  pd.Series(beta_scaling['window_size'], index=total_deaths.index, name='window_size')]
 
     betas = data_interface.load_betas(draw_id)
-
+    import pdb; pdb.set_trace()
     # Select out the transition day to compute the initial scaling parameter.
     beta_transition = betas.groupby('location_id').last()
     draw_data.append(beta_transition['beta'].rename('fit_final'))
-    draw_data.append(beta_transition['beta_pred'].rename('pred_start'))
-    draw_data.append((beta_transition['beta'] / beta_transition['beta_pred']).rename('scale_init'))
+    draw_data.append(beta_transition['beta_hat'].rename('pred_start'))
+    draw_data.append((beta_transition['beta'] / beta_transition['beta_hat']).rename('scale_init'))
 
     # Compute the beta residual mean for our parameterization and hang on
     # to some ancillary information that may be useful for plotting/debugging.
