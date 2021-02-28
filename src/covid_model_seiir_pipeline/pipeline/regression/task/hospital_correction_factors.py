@@ -67,8 +67,8 @@ def run_hospital_correction_factors(regression_version: str, with_progress_bar: 
     corrections_df = pd.concat(corrections, axis=1)
 
     logger.info('Writing outputs', context='write')
-    data_interface.save_hospital_data(usage_df, 'usage')
-    data_interface.save_hospital_data(corrections_df, 'correction_factors')
+    data_interface.save_hospitalizations(usage_df, 'usage')
+    data_interface.save_hospitalizations(corrections_df, 'correction_factors')
 
     logger.report()
 

@@ -274,43 +274,49 @@ class RegressionDataInterface:
     def load_hierarchy(self) -> pd.DataFrame:
         return io.load(self.regression_root.hierarchy())
 
-    def save_beta_param_file(self, df: pd.DataFrame, draw_id: int) -> None:
-        io.dump(df, self.regression_root.parameters(draw_id=draw_id))
+    def save_betas(self, betas: pd.DataFrame, draw_id: int) -> None:
+        io.dump(betas, self.regression_root.beta(draw_id=draw_id))
 
-    def load_beta_param_file(self, draw_id: int) -> pd.DataFrame:
-        return io.load(self.regression_root.parameters(draw_id=draw_id))
+    def load_betas(self, draw_id: int) -> pd.DataFrame:
+        return io.load(self.regression_root.beta(draw_id=draw_id))
 
-    def save_date_file(self, df: pd.DataFrame, draw_id: int) -> None:
-        io.dump(df, self.regression_root.dates(draw_id=draw_id))
-
-    def load_date_file(self, draw_id: int) -> pd.DataFrame:
-        return io.load(self.regression_root.dates(draw_id=draw_id))
-
-    def save_regression_coefficients(self, coefficients: pd.DataFrame, draw_id: int) -> None:
+    def save_coefficients(self, coefficients: pd.DataFrame, draw_id: int) -> None:
         io.dump(coefficients, self.regression_root.coefficients(draw_id=draw_id))
 
-    def load_regression_coefficients(self, draw_id: int) -> pd.DataFrame:
+    def load_coefficients(self, draw_id: int) -> pd.DataFrame:
         return io.load(self.regression_root.coefficients(draw_id=draw_id))
 
     def load_prior_run_coefficients(self, draw_id: int) -> pd.DataFrame:
         return io.load(self.coefficient_root.coefficients(draw_id=draw_id))
 
-    def save_regression_betas(self, df: pd.DataFrame, draw_id: int) -> None:
-        io.dump(df, self.regression_root.beta(draw_id=draw_id))
+    def save_compartments(self, compartments: pd.DataFrame, draw_id: int) -> None:
+        io.dump(compartments, self.regression_root.compartments(draw_id=draw_id))
 
-    def load_regression_betas(self, draw_id: int) -> pd.DataFrame:
-        return io.load(self.regression_root.beta(draw_id=draw_id))
+    def load_compartments(self, draw_id: int) -> pd.DataFrame:
+        return io.load(self.regression_root.compartments(draw_id=draw_id))
 
-    def save_infection_data(self, df: pd.DataFrame, draw_id: int) -> None:
-        io.dump(df, self.regression_root.infection_data(draw_id=draw_id))
+    def save_ode_parameters(self, df: pd.DataFrame, draw_id: int) -> None:
+        io.dump(df, self.regression_root.ode_parameters(draw_id=draw_id))
 
-    def load_infection_data(self, draw_id: int) -> pd.DataFrame:
-        return io.load(self.regression_root.infection_data(draw_id=draw_id))
+    def load_ode_parameters(self, draw_id: int) -> pd.DataFrame:
+        return io.load(self.regression_root.ode_parameters(draw_id=draw_id))
 
-    def save_hospital_data(self, df: pd.DataFrame, measure: str) -> None:
+    def save_infections(self, infections: pd.Series, draw_id: int) -> None:
+        io.dump(infections.to_frame(), self.regression_root.infections(draw_id=draw_id))
+
+    def load_infections(self, draw_id: int) -> pd.Series:
+        return io.load(self.regression_root.infections(draw_id=draw_id)).infections
+
+    def save_deaths(self, deaths: pd.Series, draw_id: int) -> None:
+        io.dump(deaths.to_frame(), self.regression_root.deaths(draw_id=draw_id))
+
+    def load_deaths(self, draw_id: int) -> pd.Series:
+        return io.load(self.regression_root.deaths(draw_id=draw_id)).deaths
+
+    def save_hospitalizations(self, df: pd.DataFrame, measure: str) -> None:
         io.dump(df, self.regression_root.hospitalizations(measure=measure))
 
-    def load_hospital_data(self, measure: str) -> pd.DataFrame:
+    def load_hospitalizations(self, measure: str) -> pd.DataFrame:
         return io.load(self.regression_root.hospitalizations(measure=measure))
 
     #########################
