@@ -1,5 +1,5 @@
-from typing import Dict, Tuple, TYPE_CHECKING
 import itertools
+from typing import Dict, Tuple, TYPE_CHECKING
 
 import numpy as np
 import pandas as pd
@@ -321,7 +321,6 @@ def _get_unprotected_vaccine_weights(model_parameters: ModelParameters) -> Dict[
 # Construct postprocessing parameters #
 #######################################
 
-
 def build_postprocessing_parameters(indices: Indices,
                                     past_compartments: pd.DataFrame,
                                     past_infections: pd.Series,
@@ -396,7 +395,6 @@ def forecast_correction_factors(indices: Indices,
     return HospitalCorrectionFactors(**new_cfs)
 
 
-
 def get_component_groups(model_parameters: ModelParameters):
     new_e = infection_data.loc[:, 'infections'].groupby('location_id').fillna(0)
 
@@ -439,7 +437,6 @@ def get_component_groups(model_parameters: ModelParameters):
     variant_comp = variant_comp_diff.groupby('location_id').cumsum()
     variant_comp['S_lr'] += low_risk_pop
     variant_comp['S_hr'] += high_risk_pop
-
     return vaccine_comp.loc[index], variant_comp.loc[index]
 
 

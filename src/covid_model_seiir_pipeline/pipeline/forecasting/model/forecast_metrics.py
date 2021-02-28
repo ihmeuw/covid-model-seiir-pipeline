@@ -45,6 +45,7 @@ def compute_output_metrics(indices: Indices,
         postprocessing_params,
         components,
     )
+
     infections = postprocessing_params.past_infections.loc[indices.past].append(
         system_metrics.modeled_infections_total.loc[indices.future]
     )

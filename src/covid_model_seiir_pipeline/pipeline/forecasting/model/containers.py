@@ -48,6 +48,7 @@ class Indices:
     @property
     def initial_condition(self) -> pd.MultiIndex:
         """Location-date index for the initial condition.
+
         This index has one date per location.
         """
         return self._initial_condition_index.copy()
