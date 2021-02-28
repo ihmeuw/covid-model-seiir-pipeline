@@ -173,9 +173,9 @@ class ForecastDataInterface:
         info_df = io.load(self.covariate_root.mobility_info(info_type=info_type))
         return self._format_covariate_data(info_df, location_ids)
 
-    def load_vaccine_info(self, info_type: str):
+    def load_vaccinations(self, vaccine_scenario: str):
         location_ids = self.load_location_ids()
-        info_df = io.load(self.covariate_root.vaccine_info(info_type=info_type))
+        info_df = io.load(self.covariate_root.vaccine_info(info_type=f'vaccinations_{vaccine_scenario}'))
         return self._format_covariate_data(info_df, location_ids)
 
     ##############################
