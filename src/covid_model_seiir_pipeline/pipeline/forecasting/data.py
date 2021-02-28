@@ -1,6 +1,6 @@
 from functools import reduce
 from pathlib import Path
-from typing import Dict, List, Union
+from typing import Dict, List, Tuple, Union
 
 from loguru import logger
 import pandas as pd
@@ -164,10 +164,6 @@ class ForecastDataInterface:
         covariate_data = reduce(lambda x, y: x.merge(y, left_index=True, right_index=True), covariate_data)
         return covariate_data
 
-    #########################
-    # Scenario data loaders #
-    #########################
-
     def load_mobility_info(self, info_type: str):
         location_ids = self.load_location_ids()
         info_df = io.load(self.covariate_root.mobility_info(info_type=info_type))
@@ -177,6 +173,15 @@ class ForecastDataInterface:
         location_ids = self.load_location_ids()
         info_df = io.load(self.covariate_root.vaccine_info(info_type=f'vaccinations_{vaccine_scenario}'))
         return self._format_covariate_data(info_df, location_ids)
+
+    #########################
+    # Scenario data loaders #
+    #########################
+
+    def load_mandate_data(self, mobility_scenario: str) -> Tuple[pd.DataFrame, pd.DataFrame]:
+        percent_mandates = self.load_mobility_info(f'{mobility_scenario}_mandate_lift')
+        mandate_effects = self.load_mobility_info(f'effect')
+        return percent_mandates, mandate_effects
 
     ##############################
     # Miscellaneous data loaders #
