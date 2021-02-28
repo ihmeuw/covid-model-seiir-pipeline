@@ -1,6 +1,7 @@
 from covid_model_seiir_pipeline.pipeline.forecasting.model.containers import (
     Indices,
     ModelParameters,
+    PostprocessingParameters,
     RatioData,
     HospitalCensusData,
     HospitalMetrics,
@@ -12,6 +13,7 @@ from covid_model_seiir_pipeline.pipeline.forecasting.model.containers import (
 from covid_model_seiir_pipeline.pipeline.forecasting.model.ode_forecast import (
     build_model_parameters,
     redistribute_past_compartments,
+    build_postprocessing_parameters,
     run_normal_ode_model_by_location,
 )
 from covid_model_seiir_pipeline.pipeline.forecasting.model.forecast_metrics import (

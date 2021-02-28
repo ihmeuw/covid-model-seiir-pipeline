@@ -37,6 +37,7 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
     # Forecast is run to the end of the covariates
     covariates = data_interface.load_covariates(scenario_spec)
     forecast_end_dates = covariates.reset_index().groupby('location_id').date.max()
+
     logger.info('Building indices', context='transform')
     indices = model.Indices(
         past_start_dates,
@@ -61,6 +62,7 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
     beta_scales = data_interface.load_beta_scales(scenario=scenario, draw_id=draw_id)
     # Vaccine data, of course.
     vaccinations = data_interface.load_vaccinations(scenario_spec.vaccine_version)
+
     # Collate all the parameters, ensure consistent index, etc.
     logger.info('Processing inputs into model parameters.', context='transform')
     covariates = covariates.reindex(indices.full)
@@ -82,6 +84,7 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
     logger.info('Loading past compartment data.', context='read')
     compartments = data_interface.load_compartments(draw_id=draw_id)
     population = data_interface.load_five_year_population()
+
     logger.info('Redistributing past compartments.', context='transform')
     past_compartments = model.redistribute_past_compartments(
         compartments=compartments,
@@ -90,11 +93,29 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
     )
     initial_condition = past_compartments.loc[indices.initial_condition].reset_index(level='date', drop=True)
 
+    ###################################################
+    # Construct parameters for postprocessing results #
+    ###################################################
 
+    logger.info('Loading results processing input data.', context='read')
+    past_deaths = data_interface.load_past_deaths(draw_id=draw_id)
+    ratio_data = data_interface.load_ratio_data(draw_id=draw_id)
+    hospital_parameters = data_interface.get_hospital_parameters()
+    correction_factors = data_interface.load_hospital_correction_factors()
 
-
-
-
+    logger.info('Prepping results processing parameters.', context='transform')
+    postprocessing_params = model.build_postprocessing_parameters(
+        indices,
+        past_compartments,
+        past_infections,
+        past_deaths,
+        betas,
+        ratio_data,
+        model_parameters,
+        correction_factors,
+        hospital_parameters,
+        scenario_spec,
+    )
 
     logger.info('Running ODE forecast.', context='compute_ode')
     future_components = model.run_normal_ode_model_by_location(
