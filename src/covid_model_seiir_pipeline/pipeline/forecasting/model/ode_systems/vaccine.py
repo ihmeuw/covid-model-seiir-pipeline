@@ -13,12 +13,12 @@ PARAMETERS = [
     theta_plus, theta_minus
 ) = range(len(PARAMETERS))
 
-COMPARTMENTS = [
+COMPARTMENTS = (
     'S',   'E',   'I1',   'I2',   'R',    # Unvaccinated
     'S_u', 'E_u', 'I1_u', 'I2_u', 'R_u',  # Vaccinated and unprotected
     'S_p', 'E_p', 'I1_p', 'I2_p', 'R_p',  # Vaccinated and protected
                                   'R_m',  # Vaccinated and immune
-]
+)
 (
     s, e, i1, i2, r,
     s_u, e_u, i1_u, i2_u, r_u,
@@ -26,9 +26,9 @@ COMPARTMENTS = [
     r_m,
 ) = range(len(COMPARTMENTS))
 
-VACCINE_CATEGORIES = [
+VACCINE_CATEGORIES = (
     'u', 'p', 'm'
-]
+)
 (
     u, p, m
 ) = range(len(VACCINE_CATEGORIES))
@@ -44,7 +44,7 @@ LOCAL_I2 = 3
 @numba.njit
 def system(t: float, y: np.ndarray, params: np.array):
     system_size = len(COMPARTMENTS)
-    n_groups = y.size / system_size
+    n_groups = y.size // system_size
     n_vaccines = len(VACCINE_CATEGORIES) * n_groups
 
     # Split parameters from vaccines.
@@ -64,8 +64,8 @@ def system(t: float, y: np.ndarray, params: np.array):
     for i in range(n_groups):
         group_start = i * system_size
         group_end = (i + 1) * system_size
-        group_vaccine_start = i * n_vaccines
-        group_vaccine_end = (i + 1) * n_vaccines
+        group_vaccine_start = i * len(VACCINE_CATEGORIES)
+        group_vaccine_end = (i + 1) * len(VACCINE_CATEGORIES)
 
         dy[group_start:group_end] = single_group_system(
             t,
@@ -91,7 +91,7 @@ def single_group_system(t: float,
     b = params[beta] * infectious**params[alpha] / n_total
 
     # Vaccinations from each compartment indexed by out compartment and
-    # vaccine category (u, p, pa, m, ma)
+    # vaccine category (u, p, ma)
     vaccines_out = get_vaccines_out(y, vaccines, params, b)
 
     # Unvaccinated
@@ -153,7 +153,8 @@ def get_vaccines_out(y: np.ndarray, vaccines: np.ndarray, params: np.ndarray, b:
             vaccines_out,
         )
         vaccines_out = vaccinate_from_not_s(
-            y, vaccines, params,
+            y, params,
+            n_unvaccinated, v_total,
             e, i1, i2, r,
             vaccines_out,
         )
