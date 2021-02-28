@@ -11,7 +11,6 @@ from covid_model_seiir_pipeline.lib import (
 from covid_model_seiir_pipeline.pipeline.forecasting.model.containers import (
     Indices,
     ModelParameters,
-    InitialCondition,
     CompartmentInfo,
 )
 from covid_model_seiir_pipeline.pipeline.forecasting.model.ode_systems import (
@@ -264,11 +263,14 @@ def redistribute_past_compartments(indices: Indices,
     unprotected_weights = _get_unprotected_vaccine_weights(model_parameters)
 
     redistributed_compartments = []
-    for group, weight in pop_weights.items():
-        group_compartments = compartments * weight
+    for group in ['lr', 'hr']:
+        pop_weight = pop_weights[group]
+        unprotected_weight = unprotected_weights[group]
+
+        group_compartments = compartments * pop_weight
         other_vacc_columns = [c for c in group_compartments if '_u' in c]
         protected_compartments = [c.replace('_u', '_p') for c in other_vacc_columns]
-        unprotected_weight = unprotected_weights[group]
+
         group_compartments.loc[:, protected_compartments] = (
             (group_compartments.loc[:, other_vacc_columns] * (1 - unprotected_weight))
             .rename(columns=dict(zip(other_vacc_columns, protected_compartments)))
@@ -276,12 +278,13 @@ def redistribute_past_compartments(indices: Indices,
         group_compartments.loc[: other_vacc_columns] = (
             (group_compartments.loc[:, other_vacc_columns] * unprotected_weight)
         )
+        # sort the columns
+        group_compartments = group_compartments.loc[:, vaccine.COMPARTMENTS]
         group_compartments.columns = [f'{c}_{group}' for c in group_compartments]
         redistributed_compartments.append(group_compartments)
     redistributed_compartments = pd.concat(redistributed_compartments, axis=1)
 
     import pdb; pdb.set_trace()
-    pass
 
 
 def _get_pop_weights(population: pd.DataFrame) -> Dict[str, pd.Series]:
