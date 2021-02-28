@@ -118,13 +118,13 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
     )
 
     logger.info('Running ODE forecast.', context='compute_ode')
-    future_components = model.run_normal_ode_model_by_location(
+    future_components = model.run_ode_model(
         initial_condition,
-        beta_params,
-        seiir_parameters,
-        scenario_spec,
-        compartment_info,
+        model_parameters.with_index(indices.future),
+        progress_bar,
     )
+    import pdb; pdb.set_trace()
+
     logger.info('Processing ODE results and computing deaths and infections.', context='compute_results')
     output_metrics = model.compute_output_metrics(
         infection_data,
