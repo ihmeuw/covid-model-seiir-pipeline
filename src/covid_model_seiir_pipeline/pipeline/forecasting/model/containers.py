@@ -146,16 +146,6 @@ class CompartmentInfo:
 
 
 @dataclass
-class ScenarioData:
-    vaccinations: Union[pd.DataFrame, None]
-    percent_mandates: Union[pd.DataFrame, None]
-    mandate_effects: Union[pd.DataFrame, None]
-
-    def to_dict(self) -> Dict[str, Union[pd.DataFrame, None]]:
-        return utilities.asdict(self)
-
-
-@dataclass
 class VariantScalars:
     beta: pd.Series
     ifr: pd.Series
