@@ -75,7 +75,6 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
         vaccinations,
         scenario_spec,
     )
-
     logger.info('Loading input data.', context='read')
     # We'll use the same params in the ODE forecast as we did in the fit.
     beta_params = data_interface.load_beta_params(draw_id=draw_id)

@@ -177,7 +177,7 @@ def get_betas_and_prevalences(indices: Indices,
                               beta_shift_parameters: pd.DataFrame,
                               variant_beta_scale: float) -> Tuple[pd.Series, pd.Series, pd.Series,
                                                                   pd.Series, pd.Series, pd.Series]:
-    log_beta_hat = math.compute_beta_hat(covariates.reset_index(), coefficients.reset_index())
+    log_beta_hat = math.compute_beta_hat(covariates, coefficients)
     beta_hat = np.exp(log_beta_hat).loc[indices.future].rename('beta_hat').reset_index()
     beta = (beta_shift(beta_hat, beta_shift_parameters)
             .set_index(['location_id', 'date'])
@@ -242,7 +242,7 @@ def beta_shift(beta_hat: pd.DataFrame,
             scale[(window_size.at[location_id] + 1):] = scale_final.at[location_id]
         else:
             scale = scale_init.at[location_id]
-        loc_beta_hat = beta_hat.loc[location_id].set_index('date', append=True)['beta_pred']
+        loc_beta_hat = beta_hat.loc[location_id].set_index('date', append=True)['beta_hat']
         loc_beta_final = loc_beta_hat * scale
         beta_final.append(loc_beta_final)
 
