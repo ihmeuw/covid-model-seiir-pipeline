@@ -38,7 +38,7 @@ def compute_output_metrics(indices: Indices,
                   .loc[indices.past]  # Need to drop transition day.
                   .append(future_components)
                   .sort_index())
-    import pdb; pdb.set_trace()
+
     system_metrics = build_system_metrics(
         indices,
         model_parameters,
@@ -51,6 +51,7 @@ def compute_output_metrics(indices: Indices,
         + system_metrics.modeled_infections_variant
     ).rename('infections')
     infections = postprocessing_params.past_infections.append(modeled_infections.loc[indices.future])
+
     deaths = postprocessing_params.past_deaths.append(system_metrics.modeled_deaths_total.loc[indices.future])
 
     cases = (infections
@@ -129,6 +130,7 @@ def build_system_metrics(indices: Indices,
     return SystemMetrics(
         modeled_infections_wild=modeled_infections,
         modeled_infections_variant=pd.Series(np.nan, index=indices.full),
+        variant_prevalence=pd.Series(np.nan, index=indices.full),
 
         natural_immunity_breakthrough=pd.Series(np.nan, index=indices.full),
         vaccine_breakthrough=pd.Series(np.nan, index=indices.full),
@@ -263,7 +265,9 @@ def compute_corrected_hospital_usage(admissions: pd.Series,
     return hospital_usage
 
 
-def compute_deaths(modeled_infections: pd.Series, infection_death_lag: int, ifr: pd.Series) -> pd.Series:
+def compute_deaths(modeled_infections: pd.Series,
+                   infection_death_lag: int,
+                   ifr: pd.Series) -> pd.Series:
     modeled_deaths = (modeled_infections
                       .groupby('location_id')
                       .shift(infection_death_lag) * ifr)
