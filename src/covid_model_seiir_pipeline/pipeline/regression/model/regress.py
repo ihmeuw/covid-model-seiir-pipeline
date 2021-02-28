@@ -58,7 +58,7 @@ class BetaRegressor(IBetaRegressor):
         cov_coef = mr_model.result
         coef = pd.DataFrame.from_dict(cov_coef, orient='index').reset_index()
         coef.columns = ['location_id'] + self.col_covs
-        return coef
+        return coef.set_index('location_id')
 
 
 class BetaRegressorSequential(IBetaRegressor):
@@ -110,8 +110,8 @@ def prep_regression_inputs(beta_fit: pd.Series,
     regression_inputs['ln_beta'] = np.log(regression_inputs['beta'])
     mrdata = MRData(
         regression_inputs,
-        col_group='location_id', 
-        col_obs='ln_beta', 
+        col_group='location_id',
+        col_obs='ln_beta',
         col_covs=covariates.columns.tolist(),
     )
     return mrdata
