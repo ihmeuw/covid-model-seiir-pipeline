@@ -45,14 +45,17 @@ def compute_output_metrics(indices: Indices,
         postprocessing_params,
         components,
     )
-    infections = postprocessing_params.past_infections.append(
+    infections = postprocessing_params.past_infections.loc[indices.past].append(
         system_metrics.modeled_infections_total.loc[indices.future]
     )
-
-    deaths = postprocessing_params.past_deaths.append(
-        system_metrics.modeled_deaths_total.loc[indices.future]
-    )
-
+    past_deaths = postprocessing_params.past_deaths
+    modeled_deaths = system_metrics.modeled_deaths_total
+    deaths = (past_deaths
+              .append(modeled_deaths
+                      .loc[modeled_deaths
+                           .dropna()
+                           .index
+                           .difference(past_deaths.index)]))
     cases = (infections
              .groupby('location_id')
              .shift(postprocessing_params.infection_to_case)
