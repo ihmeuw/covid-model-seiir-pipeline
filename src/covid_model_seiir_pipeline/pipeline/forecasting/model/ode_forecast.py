@@ -264,20 +264,23 @@ def redistribute_past_compartments(indices: Indices,
 
     redistributed_compartments = []
     for group in ['lr', 'hr']:
-        pop_weight = pop_weights[group]
-        unprotected_weight = unprotected_weights[group]
+        # Need to broadcast pop weights.
+        pop_weight = pop_weights[group].reindex(compartments.index, level='location_id')
+        # vaccinations just needs a subset.
+        unprotected_weight = unprotected_weights[group].loc[compartments.index]
 
-        group_compartments = compartments * pop_weight
+        group_compartments = compartments.mul(pop_weight, axis=0)
         other_vacc_columns = [c for c in group_compartments if '_u' in c]
         protected_compartments = [c.replace('_u', '_p') for c in other_vacc_columns]
 
-        group_compartments.loc[:, protected_compartments] = (
-            (group_compartments.loc[:, other_vacc_columns] * (1 - unprotected_weight))
-            .rename(columns=dict(zip(other_vacc_columns, protected_compartments)))
-        )
-        group_compartments.loc[: other_vacc_columns] = (
-            (group_compartments.loc[:, other_vacc_columns] * unprotected_weight)
-        )
+        group_compartments.loc[:, protected_compartments] = (group_compartments
+                                                             .loc[:, other_vacc_columns]
+                                                             .mul(1 - unprotected_weight, axis=0)
+                                                             .rename(columns=dict(zip(other_vacc_columns,
+                                                                                      protected_compartments))))
+        group_compartments.loc[: other_vacc_columns] = (group_compartments
+                                                        .loc[:, other_vacc_columns]
+                                                        .mul(unprotected_weight, axis=0))
         # sort the columns
         group_compartments = group_compartments.loc[:, vaccine.COMPARTMENTS]
         group_compartments.columns = [f'{c}_{group}' for c in group_compartments]
