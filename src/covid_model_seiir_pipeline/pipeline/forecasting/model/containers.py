@@ -120,6 +120,32 @@ class ModelParameters:
 
 
 @dataclass
+class PostprocessingParameters:
+    past_beta: pd.Series
+    past_compartments: pd.DataFrame
+
+    past_infections: pd.Series
+    past_deaths: pd.Series
+
+    infection_to_death: int
+    infection_to_admission: int
+    infection_to_case: int
+
+    ifr: pd.Series
+    ifr_hr: pd.Series
+    ifr_lr: pd.Series
+    ihr: pd.Series
+    idr: pd.Series
+
+    hospital_census: pd.Series
+    icu_census: pd.Series
+    ventilator_census: pd.Series
+
+    def to_dict(self) -> Dict[str, Union[int, pd.Series, pd.DataFrame]]:
+        return utilities.asdict(self)
+
+
+@dataclass
 class OutputMetrics:
     components: pd.DataFrame
     infections: pd.Series

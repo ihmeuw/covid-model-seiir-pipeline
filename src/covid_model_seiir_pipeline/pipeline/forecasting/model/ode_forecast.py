@@ -11,6 +11,9 @@ from covid_model_seiir_pipeline.lib import (
 from covid_model_seiir_pipeline.pipeline.forecasting.model.containers import (
     Indices,
     ModelParameters,
+    PostprocessingParameters,
+    RatioData,
+    HospitalCorrectionFactors,
     CompartmentInfo,
 )
 from covid_model_seiir_pipeline.pipeline.forecasting.model.ode_systems import (
@@ -315,9 +318,83 @@ def _get_unprotected_vaccine_weights(model_parameters: ModelParameters) -> Dict[
     return unprotected_vaccine_weights
 
 
+#######################################
+# Construct postprocessing parameters #
+#######################################
 
 
+def build_postprocessing_parameters(indices: Indices,
+                                    past_compartments: pd.Series,
+                                    past_infections: pd.Series,
+                                    past_deaths: pd.Series,
+                                    betas: pd.DataFrame,
+                                    ratio_data: RatioData,
+                                    model_parameters: ModelParameters,
+                                    correction_factors: HospitalCorrectionFactors,
+                                    hospital_parameters: 'HospitalParameters',
+                                    scenario_spec: 'ScenarioSpecification') -> PostprocessingParameters:
+    ratio_data = correct_ratio_data(indices, ratio_data, model_parameters, scenario_spec.variant_ifr_scale)
 
+    correction_factors = forecast_correction_factors(
+        indices,
+        correction_factors,
+        hospital_parameters,
+    )
+
+    return PostprocessingParameters(
+        past_beta=betas.loc[indices.past, 'beta'],
+        past_compartments=past_compartments.loc[indices.past],
+        past_infections=past_infections.loc[indices.past],
+        past_deaths=past_deaths.loc[indices.past],
+        **ratio_data.to_dict(),
+        **correction_factors.to_dict()
+    )
+
+
+def correct_ratio_data(indices: Indices,
+                       ratio_data: RatioData,
+                       model_params: ModelParameters,
+                       ifr_scale: float) -> RatioData:
+    variant_prevalence = model_params.p_all_variant
+    ifr_scalar = ifr_scale * variant_prevalence + (1 - variant_prevalence)
+
+    ratio_data.ifr = ifr_scalar * _expand_rate(ratio_data.ifr, indices.full)
+    ratio_data.ifr_lr = ifr_scalar * _expand_rate(ratio_data.ifr_lr, indices.full)
+    ratio_data.ifr_hr = ifr_scalar * _expand_rate(ratio_data.ifr_hr, indices.full)
+
+    ratio_data.idr = _expand_rate(ratio_data.idr, indices.full)
+    ratio_data.ihr = _expand_rate(ratio_data.ihr, indices.full)
+    return ratio_data
+
+
+def _expand_rate(rate: pd.Series, index: pd.MultiIndex):
+    return (rate
+            .reindex(index)
+            .groupby('location_id')
+            .fillna(method='ffill')
+            .fillna(method='bfill'))
+
+
+def forecast_correction_factors(indices: Indices,
+                                correction_factors: HospitalCorrectionFactors,
+                                hospital_parameters: 'HospitalParameters') -> HospitalCorrectionFactors:
+    averaging_window = pd.Timedelta(days=hospital_parameters.correction_factor_average_window)
+    application_window = pd.Timedelta(days=hospital_parameters.correction_factor_application_window)
+
+    new_cfs = {}
+    for cf_name, cf in correction_factors.to_dict().items():
+        cf = cf.reindex(indices.full)
+        loc_cfs = []
+        for loc_id, loc_today in indices.initial_condition.tolist():
+            loc_cf = cf.loc[loc_id]
+            mean_cf = loc_cf.loc[loc_today - averaging_window: loc_today].mean()
+            loc_cf.loc[loc_today:] = np.nan
+            loc_cf.loc[loc_today + application_window:] = mean_cf
+            loc_cf = loc_cf.interpolate().reset_index()
+            loc_cf['location_id'] = loc_id
+            loc_cfs.append(loc_cf.set_index(['location_id', 'date'])[cf_name])
+        new_cfs[cf_name] = pd.concat(loc_cfs).sort_index()
+    return HospitalCorrectionFactors(**new_cfs)
 
 
 
