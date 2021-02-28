@@ -260,8 +260,54 @@ def redistribute_past_compartments(indices: Indices,
                                    compartments: pd.DataFrame,
                                    population: pd.DataFrame,
                                    model_parameters: ModelParameters):
+    pop_weights = _get_pop_weights(population)
+    unprotected_weights = _get_unprotected_vaccine_weights(model_parameters)
+
+    redistributed_compartments = []
+    for group, weight in pop_weights.items():
+        group_compartments = compartments * weight
+        other_vacc_columns = [c for c in group_compartments if '_u' in c]
+        protected_compartments = [c.replace('_u', '_p') for c in other_vacc_columns]
+        unprotected_weight = unprotected_weights[group]
+        group_compartments.loc[:, protected_compartments] = (
+            (group_compartments.loc[:, other_vacc_columns] * (1 - unprotected_weight))
+            .rename(columns=dict(zip(other_vacc_columns, protected_compartments)))
+        )
+        group_compartments.loc[: other_vacc_columns] = (
+            (group_compartments.loc[:, other_vacc_columns] * unprotected_weight)
+        )
+        group_compartments.columns = [f'{c}_{group}' for c in group_compartments]
+        redistributed_compartments.append(group_compartments)
+    redistributed_compartments = pd.concat(redistributed_compartments, axis=1)
+
     import pdb; pdb.set_trace()
     pass
+
+
+def _get_pop_weights(population: pd.DataFrame) -> Dict[str, pd.Series]:
+    total_pop = population.groupby('location_id')['population'].sum()
+    low_risk_pop = population[population['age_group_years_start'] < 65].groupby('location_id')['population'].sum()
+    high_risk_pop = total_pop - low_risk_pop
+    pop_weights = {
+        'lr': low_risk_pop / total_pop,
+        'hr': high_risk_pop / total_pop,
+    }
+    return pop_weights
+
+
+def _get_unprotected_vaccine_weights(model_parameters: ModelParameters) -> Dict[str, pd.Series]:
+    mp_dict = model_parameters.to_dict()
+    non_immune_cols = [
+        'unprotected',
+        'protected_wild_type',
+        'protected_all_types',
+    ]
+    unprotected_vaccine_weights = {}
+    for risk_group in ['lr', 'hr']:
+        non_immune_vaccines = sum([mp_dict[f'{c}_{risk_group}'] for c in non_immune_cols])
+        unprotected_weight = (mp_dict[f'unprotected_{risk_group}'] / non_immune_vaccines).fillna(0)
+        unprotected_vaccine_weights[risk_group] = unprotected_weight
+    return unprotected_vaccine_weights
 
 
 
@@ -272,13 +318,7 @@ def redistribute_past_compartments(indices: Indices,
 
 def get_component_groups(model_parameters: ModelParameters):
     new_e = infection_data.loc[:, 'infections'].groupby('location_id').fillna(0)
-    total_pop = population.groupby('location_id')['population'].sum()
-    low_risk_pop = population[population['age_group_years_start'] < 65].groupby('location_id')['population'].sum()
-    high_risk_pop = total_pop - low_risk_pop
-    pop_weights = {
-        'lr': low_risk_pop / total_pop,
-        'hr': high_risk_pop / total_pop,
-    }
+
     simple_comp_diff = simple_comp.groupby('location_id').diff()
 
     # FIXME: These both need some real attention.
