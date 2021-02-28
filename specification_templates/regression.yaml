@@ -3,7 +3,7 @@ data:
   covariate_version: '2021_02_23.02'
   coefficient_version: ''
   location_set_version_id: ''
-  location_set_file: '/ihme/covid-19/seir-pipeline-outputs/metadata-inputs/location_metadata_810.1.csv'
+  location_set_file: '/ihme/covid-19/seir-pipeline-outputs/metadata-inputs/location_metadata_810.csv'
   output_root: ''
   output_format: 'parquet'
 workflow:
