@@ -45,14 +45,13 @@ def compute_output_metrics(indices: Indices,
         postprocessing_params,
         components,
     )
+    infections = postprocessing_params.past_infections.append(
+        system_metrics.modeled_infections_total.loc[indices.future]
+    )
 
-    modeled_infections = (
-        system_metrics.modeled_infections_wild
-        + system_metrics.modeled_infections_variant
-    ).rename('infections')
-    infections = postprocessing_params.past_infections.append(modeled_infections.loc[indices.future])
-
-    deaths = postprocessing_params.past_deaths.append(system_metrics.modeled_deaths_total.loc[indices.future])
+    deaths = postprocessing_params.past_deaths.append(
+        system_metrics.modeled_deaths_total.loc[indices.future]
+    )
 
     cases = (infections
              .groupby('location_id')
@@ -106,8 +105,8 @@ def build_system_metrics(indices: Indices,
                          .sum(axis=1))
         delta_r_m = group_components_diff.loc[:, f'R_m_{group}']
 
-        group_modeled_infections = (delta_s + delta_r_m).rename('infections')
-        group_vulnerable_infections = (delta_s + delta_new_e_p + delta_r_m).rename('infections')
+        group_modeled_infections = -(delta_s + delta_r_m).rename('infections')
+        group_vulnerable_infections = -(delta_s + delta_new_e_p + delta_r_m).rename('infections')
         group_ifr = getattr(postprocessing_params, f'ifr_{group}').rename('ifr')
         group_deaths = compute_deaths(
             group_vulnerable_infections,
@@ -130,8 +129,9 @@ def build_system_metrics(indices: Indices,
     return SystemMetrics(
         modeled_infections_wild=modeled_infections,
         modeled_infections_variant=pd.Series(np.nan, index=indices.full),
-        variant_prevalence=pd.Series(np.nan, index=indices.full),
+        modeled_infections_total=modeled_infections,
 
+        variant_prevalence=pd.Series(np.nan, index=indices.full),
         natural_immunity_breakthrough=pd.Series(np.nan, index=indices.full),
         vaccine_breakthrough=pd.Series(np.nan, index=indices.full),
         proportion_cross_immune=pd.Series(np.nan, index=indices.full),
