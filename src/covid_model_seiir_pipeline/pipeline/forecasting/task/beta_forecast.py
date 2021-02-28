@@ -75,85 +75,26 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
         vaccinations,
         scenario_spec,
     )
-    logger.info('Loading input data.', context='read')
-    # We'll use the same params in the ODE forecast as we did in the fit.
-    beta_params = data_interface.load_beta_params(draw_id=draw_id)
-    # Thetas are a parameter generated from assumption or OOS predictive
-    # validity testing to curtail some of the bad behavior of the model.
-    thetas = data_interface.load_thetas(scenario_spec.theta, beta_params['sigma'])
-    # Grab the last day of data in the model by location id.  This will
-    # correspond to the initial condition for the projection.
-    transition_date = data_interface.load_transition_date(draw_id)
-    # The population will be used to partition the SEIIR compartments into
-    # different sub groups for the forecast.
+
+    ##################################
+    # Redistribute  past compartments#
+    ##################################
+    logger.info('Loading past compartment data.', context='read')
+    compartments = data_interface.load_compartments(draw_id=draw_id)
     population = data_interface.load_five_year_population()
-    # We'll use the beta and SEIIR compartments from this data set to get
-    # the ODE initial condition.
-    beta_regression_df = data_interface.load_beta_regression(draw_id)
-    # Covariates and coefficients, and scaling parameters are
-    # used to compute beta hat in the future.
-    covariates = data_interface.load_covariates(scenario_spec)
-    coefficients = data_interface.load_regression_coefficients(draw_id).reset_index()
-    forecast_end_date = covariates.date.max()
-    # Rescaling parameters for the beta forecast.
-    beta_scales = data_interface.load_beta_scales(scenario=scenario, draw_id=draw_id).reset_index()
-    # Beta scale-up due to variant
-    covariates = covariates.set_index(['location_id', 'date'])
-    variant_cols = ['variant_prevalence_B117', 'variant_prevalence_B1351', 'variant_prevalence_P1']
-    adjusted_variant_prevalence = covariates[variant_cols].sum(axis=1)
-    for location_id, date in transition_date.iteritems():
-        adjusted_variant_prevalence.loc[pd.IndexSlice[location_id, :]] -= adjusted_variant_prevalence.loc[(location_id, date)]
-    adjusted_variant_prevalence[adjusted_variant_prevalence < 0] = 0
-    bad_vacc_variant_prevalence = ['variant_prevalence_B1351', 'variant_prevalence_P1']
-    bad_vacc_variant_prevalence = covariates[bad_vacc_variant_prevalence].sum(axis=1)
-
-    covariates = covariates.reset_index()
-    raw_ifr_scalar = scenario_spec.variant.get('ifr_scalar', 1.)
-    ifr_scalar = raw_ifr_scalar * adjusted_variant_prevalence + (1 - adjusted_variant_prevalence)
-    # We'll need this to compute deaths and to splice with the forecasts.
-    infection_data = data_interface.load_infection_data(draw_id)
-    ratio_data = data_interface.load_ratio_data(draw_id=draw_id)
-    ratio_data.ifr = model.correct_ifr(ratio_data.ifr, ifr_scalar, forecast_end_date)
-    ratio_data.ifr_lr = model.correct_ifr(ratio_data.ifr_lr, ifr_scalar, forecast_end_date)
-    ratio_data.ifr_hr = model.correct_ifr(ratio_data.ifr_hr, ifr_scalar, forecast_end_date)
-    # Data for computing hospital usage
-    hospital_parameters = data_interface.get_hospital_parameters()
-    correction_factors = data_interface.load_hospital_correction_factors()
-    # Load any data specific to the particular scenario we're running
-    scenario_data = data_interface.load_scenario_specific_data(scenario_spec, bad_vacc_variant_prevalence)
-
-    logger.info('Processing inputs into model parameters.', context='transform')
-    # Split the population into risk groups according to the specification.
-    population_partition = model.get_population_partition(population, scenario_spec.population_partition)
-    compartment_info, past_components = model.get_past_components(
-        beta_regression_df,
-        population_partition,
-        scenario_spec.system
-    )
-    # Select out the initial condition using the day of transition.
-    transition_day = past_components['date'] == transition_date.loc[past_components.index]
-    initial_condition = past_components.loc[transition_day, compartment_info.compartments]
-    before_model = past_components['date'] < transition_date.loc[past_components.index]
-    past_components = past_components[before_model]
-
-    # Grab the projection of the covariates into the future, keeping the
-    # day of transition from past model to future model.
-    covariates = covariates.set_index('location_id').sort_index()
-    the_future = covariates['date'] >= transition_date.loc[covariates.index]
-    covariate_pred = covariates.loc[the_future].reset_index()
-    betas = model.forecast_beta(covariate_pred, coefficients, beta_scales)
-    seiir_parameters = model.prep_seiir_parameters(
-        betas,
-        thetas,
-        scenario_data,
+    logger.info('Redistributing past compartments.', context='transform')
+    compartments = model.redistribute_past_compartments(
+        indices=indices,
+        compartments=compartments,
+        population=population,
+        model_parameters=model_parameters,
     )
 
-    correction_factors = model.forecast_correction_factors(
-        correction_factors,
-        transition_date,
-        forecast_end_date,
-        hospital_parameters,
-    )
+
+
+
+
+
 
     logger.info('Running ODE forecast.', context='compute_ode')
     future_components = model.run_normal_ode_model_by_location(

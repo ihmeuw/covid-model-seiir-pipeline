@@ -7,17 +7,14 @@ import pandas as pd
 
 from covid_model_seiir_pipeline.lib import (
     math,
-    static_vars,
-    utilities,
 )
 from covid_model_seiir_pipeline.pipeline.forecasting.model.containers import (
     Indices,
     ModelParameters,
-    HospitalCorrectionFactors,
+    InitialCondition,
     CompartmentInfo,
 )
 from covid_model_seiir_pipeline.pipeline.forecasting.model.ode_systems import (
-    seiir,
     vaccine,
 )
 
@@ -216,8 +213,10 @@ def get_betas_and_prevalences(indices: Indices,
 def beta_shift(beta_hat: pd.DataFrame,
                beta_scales: pd.DataFrame) -> pd.DataFrame:
     """Shift the raw predicted beta to line up with beta in the past.
+
     This method performs both an intercept shift and a scaling based on the
     residuals of the ode fit beta and the beta hat regression in the past.
+
     Parameters
     ----------
         beta_hat
@@ -225,9 +224,11 @@ def beta_shift(beta_hat: pd.DataFrame,
             future.
         beta_scales
             Dataframe containing precomputed parameters for the scaling.
+
     Returns
     -------
         Predicted beta, after scaling (shift).
+
     """
     beta_hat = beta_hat.sort_values(['location_id', 'date']).set_index('location_id')
     scale_init = beta_scales['scale_init']
@@ -251,128 +252,75 @@ def beta_shift(beta_hat: pd.DataFrame,
     return beta_final
 
 
-def forecast_correction_factors(correction_factors: HospitalCorrectionFactors,
-                                today: pd.Series,
-                                max_date: pd.Timestamp,
-                                hospital_parameters: 'HospitalParameters') -> HospitalCorrectionFactors:
-    averaging_window = pd.Timedelta(days=hospital_parameters.correction_factor_average_window)
-    application_window = pd.Timedelta(days=hospital_parameters.correction_factor_application_window)
-    assert np.all(max_date > today + application_window)
+###################################
+# Past compartment redistribution #
+###################################
 
-    new_cfs = {}
-    for cf_name, cf in utilities.asdict(correction_factors).items():
-        loc_cfs = []
-        for loc_id in today.index:
-            loc_cf = cf.loc[loc_id]
-            loc_today = today.loc[loc_id]
-            mean_cf = loc_cf.loc[loc_today - averaging_window: loc_today].mean()
-            loc_cf = loc_cf.loc[:loc_today]
-            loc_cf.loc[loc_today + application_window] = mean_cf
-            loc_cf.loc[max_date] = mean_cf
-            loc_cf = loc_cf.asfreq('D').interpolate().reset_index()
-            loc_cf['location_id'] = loc_id
-            loc_cfs.append(loc_cf.set_index(['location_id', 'date'])[cf_name])
-        new_cfs[cf_name] = pd.concat(loc_cfs).sort_index()
-    return HospitalCorrectionFactors(**new_cfs)
+def redistribute_past_compartments(indices: Indices,
+                                   compartments: pd.DataFrame,
+                                   population: pd.DataFrame,
+                                   model_parameters: ModelParameters):
+    import pdb; pdb.set_trace()
+    pass
 
 
-def correct_ifr(ifr: pd.Series, variant_scalar: pd.Series, forecast_end_date: pd.Timestamp):
-    ifr = (ifr
-           .reindex(ifr.index.union(variant_scalar.index))
-           .groupby('location_id')
-           .fillna(method='ffill'))
-    ifr = ifr.loc[pd.IndexSlice[:, :forecast_end_date]]
-    ifr.loc[variant_scalar.index] *= variant_scalar
-    return ifr
 
 
-def prep_seiir_parameters(betas: pd.DataFrame,
-                          thetas: pd.Series):
-    betas = betas.rename(columns={'beta_pred': 'beta'})
-    parameters = betas.merge(thetas, on='location_id')
-    if scenario_data.vaccinations is not None:
-        v = scenario_data.vaccinations
-        parameters = parameters.merge(v, on=['location_id', 'date'], how='left').fillna(0)
-    return parameters
 
 
-def get_population_partition(population: pd.DataFrame,
-                             population_partition: str) -> Dict[str, pd.Series]:
-    """Create a location-specific partition of the population.
-
-    Parameters
-    ----------
-    population
-        A dataframe with location, age, and sex specific populations.
-    population_partition
-        A string describing how the population should be partitioned.
-
-    Returns
-    -------
-        A mapping between the SEIIR compartment suffix for the partition groups
-        and a series mapping location ids to the proportion of people in each
-        compartment that should be allocated to the partition group.
-
-    """
-    if population_partition == 'none':
-        partition_map = {}
-    elif population_partition == 'high_and_low_risk':
-        total_pop = population.groupby('location_id')['population'].sum()
-        low_risk_pop = population[population['age_group_years_start'] < 65].groupby('location_id')['population'].sum()
-        high_risk_pop = total_pop - low_risk_pop
-
-        partition_map = {
-            'lr': low_risk_pop / total_pop,
-            'hr': high_risk_pop / total_pop,
-        }
-    else:
-        raise NotImplementedError
-
-    return partition_map
 
 
-def get_past_components(beta_regression_df: pd.DataFrame,
-                        population_partition: Dict[str, pd.Series],
-                        ode_system: str) -> Tuple[CompartmentInfo, pd.DataFrame]:
-    regression_compartments = static_vars.SEIIR_COMPARTMENTS
-    system_compartment_map = {
-        'normal': _split_compartments(static_vars.SEIIR_COMPARTMENTS, population_partition),
-        'vaccine': _split_compartments(static_vars.VACCINE_SEIIR_COMPARTMENTS, population_partition),
+def get_component_groups(model_parameters: ModelParameters):
+    new_e = infection_data.loc[:, 'infections'].groupby('location_id').fillna(0)
+    total_pop = population.groupby('location_id')['population'].sum()
+    low_risk_pop = population[population['age_group_years_start'] < 65].groupby('location_id')['population'].sum()
+    high_risk_pop = total_pop - low_risk_pop
+    pop_weights = {
+        'lr': low_risk_pop / total_pop,
+        'hr': high_risk_pop / total_pop,
     }
-    system_compartments = system_compartment_map[ode_system]
+    simple_comp_diff = simple_comp.groupby('location_id').diff()
 
-    past_beta = beta_regression_df['beta']
-    past_components = beta_regression_df[regression_compartments]
+    # FIXME: These both need some real attention.
+    vaccine_columns = [f'{c}_{g}' for g, c in itertools.product(pop_weights, vaccine.COMPARTMENTS)]
+    vaccine_comp_diff = pd.DataFrame(data=0., columns=vaccine_columns, index=simple_comp.index)
+    for risk_group, pop_weight in pop_weights.items():
+        for column in seiir.COMPARTMENTS:
+            vaccine_comp_diff[f'{column}_{risk_group}'] = simple_comp_diff[column] * pop_weight
+    vaccine_comp = vaccine_comp_diff.groupby('location_id').cumsum()
+    vaccine_comp['S_lr'] += low_risk_pop
+    vaccine_comp['S_hr'] += high_risk_pop
 
-    if population_partition:
-        partitioned_past_components = []
-        for compartment in regression_compartments:
-            for partition_group, proportion in population_partition.items():
-                partitioned_past_components.append(
-                    (past_components[compartment] * proportion).rename(f'{compartment}_{partition_group}')
-                )
-        past_components = pd.concat(partitioned_past_components, axis=1)
+    variant_columns = [f'{c}_{g}' for g, c in itertools.product(pop_weights, variant.COMPARTMENTS)]
+    variant_comp_diff = pd.DataFrame(data=0., columns=variant_columns, index=simple_comp.index)
+    variant_prevalence = model_parameters.p_variant.loc[simple_comp.index]
+    prob_cross_immune = model_parameters.probability_cross_immune.loc[simple_comp.index]
+    for risk_group, pop_weight in pop_weights.items():
+        # Just split S by demography.
+        variant_comp_diff[f'S_{risk_group}'] = simple_comp_diff['S'] * pop_weight
+        # E, I1, and I2 are fast enough to move through that just using the
+        # variant prevalence is not a bad estimation of initial condition.
+        for compartment in ['E', 'I1', 'I2']:
+            variant_comp_diff[f'{compartment}_{risk_group}'] = (
+                simple_comp_diff[compartment] * pop_weight * (1 - variant_prevalence)
+            )
+            variant_comp_diff[f'{compartment}_variant_{risk_group}'] = (
+                simple_comp_diff[compartment] * pop_weight * variant_prevalence
+            )
+        # Who's in R vs. S_variant depends roughly on the probability of cross immunity.
+        # This is a bad approximation if variant prevalence is high and there have been a significant
+        # of infections.
+        variant_comp_diff[f'S_variant_{risk_group}'] = simple_comp_diff['R'] * pop_weight * (1 - prob_cross_immune)
+        variant_comp_diff[f'R_{risk_group}'] = simple_comp_diff['R'] * pop_weight * prob_cross_immune
 
-    rows_to_fill = past_components.notnull().all(axis=1)
-    compartments_to_fill = set(system_compartments).difference(past_components.columns)
-    past_components = past_components.reindex(system_compartments, axis=1)
-    for compartment_to_fill in compartments_to_fill:
-        past_components.loc[rows_to_fill, compartment_to_fill] = 0
+        variant_comp_diff[f'NewE_wild_{risk_group}'] = new_e * pop_weight * (1 - variant_prevalence)
+        variant_comp_diff[f'NewE_variant_{risk_group}'] = new_e * pop_weight * variant_prevalence
+    variant_comp = variant_comp_diff.groupby('location_id').cumsum()
+    variant_comp['S_lr'] += low_risk_pop
+    variant_comp['S_hr'] += high_risk_pop
 
-    past_components = pd.concat([past_beta, past_components], axis=1).reset_index(level='date')
+    return vaccine_comp.loc[index], variant_comp.loc[index]
 
-    compartment_info = CompartmentInfo(list(system_compartments), list(population_partition))
-
-    return compartment_info, past_components
-
-
-def _split_compartments(compartments: List[str],
-                        partition: Dict[str, pd.Series]) -> List[str]:
-    # Order of the groupings here matters!
-    if not partition:
-        return compartments
-    return [f'{compartment}_{partition_group}'
-            for partition_group, compartment in itertools.product(partition, compartments)]
 
 
 def run_normal_ode_model_by_location(initial_condition: pd.DataFrame,
@@ -431,7 +379,6 @@ class _SeiirModelSpecs:
 
 class _ODERunner:
     systems: Dict[str, Callable] = {
-        'normal': seiir.system,
         'vaccine': vaccine.system,
     }
 
