@@ -1,5 +1,4 @@
 from functools import reduce
-from itertools import product
 from pathlib import Path
 from typing import Dict, List, Union
 
@@ -24,8 +23,6 @@ from covid_model_seiir_pipeline.pipeline.forecasting.model import (
     HospitalMetrics,
     HospitalCorrectionFactors,
     HospitalCensusData,
-    ScenarioData,
-    VariantScalars,
 )
 
 

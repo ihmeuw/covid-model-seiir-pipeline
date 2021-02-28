@@ -6,7 +6,6 @@ from covid_model_seiir_pipeline.pipeline.forecasting.model.containers import (
     HospitalMetrics,
     HospitalCorrectionFactors,
     CompartmentInfo,
-    ScenarioData,
     OutputMetrics,
     VariantScalars,
 )
