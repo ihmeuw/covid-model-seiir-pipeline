@@ -1,70 +1,86 @@
+import itertools
+
 import numba
 import numpy as np
 
-
-N_SEIIR_COMPARTMENTS = 5
-N_WILD_TYPE_SEIIR_GROUPS = 4
-N_VARIANT_TYPE_SEIIR_GROUPS = 3
-N_IMMUNE_COMPARTMENTS = 2
-N_TRACKING_COMPARTMENTS = 13
-N_GROUPS = 2
-N_VACCINE_CATEGORIES = 5
-
-GROUP_SYSTEM_SIZE = (
-    (N_WILD_TYPE_SEIIR_GROUPS + N_VARIANT_TYPE_SEIIR_GROUPS) * N_SEIIR_COMPARTMENTS
-    + N_IMMUNE_COMPARTMENTS
-    + N_TRACKING_COMPARTMENTS
-)
-N_VACCINE_PARAMETERS = N_VACCINE_CATEGORIES * N_GROUPS
-
-# 3rd and 4th compartment of each seiir group are infectious.
-LOCAL_I1 = 2
-LOCAL_I2 = 3
-
-COMPARTMENTS = [
-    'S',            'E',            'I1',            'I2',            'R',             # Unvaccinated
-    'S_u',          'E_u',          'I1_u',          'I2_u',          'R_u',           # Vaccinated and unprotected
-    'S_p',          'E_p',          'I1_p',          'I2_p',          'R_p',           # Vaccinated and protected wild type only
-    'S_pa',         'E_pa',         'I1_pa',         'I2_pa',         'R_pa',          # Vaccinated and protected all
-    'S_variant',    'E_variant',    'I1_variant',    'I2_variant',    'R_variant',     # Unvaccinated
-    'S_variant_u',  'E_variant_u',  'I1_variant_u',  'I2_variant_u',  'R_variant_u',   # Vaccinated and unprotected
-    'S_variant_pa', 'E_variant_pa', 'I1_variant_pa', 'I2_variant_pa', 'R_variant_pa',  # Vaccinated and protected all
-    'S_m',                                                                             # Immunized wild type only
-    'R_m',                                                                             # Immunized all
-    'NewE_wild', 'NewE_variant', 'NewE_p_wild', 'NewE_p_variant',                      # Tracking compartments.
-    'NewE_nbt', 'NewE_vbt', 'NewS_v', 'NewR_w',
-    'V_u', 'V_p', 'V_pa', 'V_m', 'V_ma',
-]
 
 ##############################################
 # Give indices semantically meaningful names #
 ##############################################
 # Parameters
-alpha, beta, beta_b117, beta_b1351, sigma, gamma1, gamma2 = 0, 1, 2, 3, 4, 5, 6
-theta_plus, theta_minus = 7, 8
-b117_prevalence, b1351_prevalence = 9, 10
-p_cross_immune = 11
+PARAMETERS = [
+    'alpha', 'beta_wild', 'beta_variant', 'sigma', 'gamma1', 'gamma2',
+    'theta_plus', 'theta_minus',
+    'p_wild', 'p_variant',
+    'p_cross_immune',
+]
+(
+    alpha, beta_wild, beta_variant, sigma, gamma1, gamma2,
+    theta_plus, theta_minus,
+    p_wild, p_variant,
+    p_cross_immune
+) = range(len(PARAMETERS))
 
 # Compartments
-# See ordering in /lib/static_vars.py
-s, e, i1, i2, r = 0, 1, 2, 3, 4
-s_u, e_u, i1_u, i2_u, r_u = 5, 6, 7, 8, 9
-s_p, e_p, i1_p, i2_p, r_p = 10, 11, 12, 13, 14
-s_pa, e_pa, i1_pa, i2_pa, r_pa = 15, 16, 17, 18, 19
+SEIIR_COMPARTMENTS = ['S', 'E', 'I1', 'I2', 'R']
+WILD_TYPE_GROUPS = ['', '_u', '_p', '_pa']
+VARIANT_TYPE_GROUPS = ['', '_u', '_pa']
 
-s_variant, e_variant, i1_variant, i2_variant, r_variant = 20, 21, 22, 23, 24
-s_u_variant, e_u_variant, i1_u_variant, i2_u_variant, r_u_variant = 25, 26, 27, 28, 29
-s_pa_variant, e_pa_variant, i1_pa_variant, i2_pa_variant, r_pa_variant = 30, 31, 32, 33, 34
+WILD_TYPE_COMPARTMENTS = [f'{compartment}{group}' for group, compartment
+                          in itertools.product(WILD_TYPE_GROUPS, SEIIR_COMPARTMENTS)]
+VARIANT_TYPE_COMPARTMENTS = [f'{compartment}_variant{group}' for group, compartment
+                             in itertools.product(VARIANT_TYPE_GROUPS, SEIIR_COMPARTMENTS)]
+IMMUNE_COMPARTMENTS = ['S_m', 'R_m']
+TRACKING_COMPARTMENTS = [
+    'NewE_wild', 'NewE_variant', 'NewE_p_wild', 'NewE_p_variant',
+    'NewE_nbt', 'NewE_vbt', 'NewS_v', 'NewR_w',
+    'V_u', 'V_p', 'V_pa', 'V_m', 'V_ma',
+]
+REAL_COMPARTMENTS = WILD_TYPE_COMPARTMENTS + VARIANT_TYPE_COMPARTMENTS + IMMUNE_COMPARTMENTS
+COMPARTMENTS = REAL_COMPARTMENTS + TRACKING_COMPARTMENTS
 
-s_m, r_ma = 35, 36
-
-# Composite tracking compartments.
-new_e_wild, new_e_variant, new_e_p_wild, new_e_p_variant = 37, 38, 39, 40
-new_e_nbt, new_e_vbt, new_s_v, new_r_w = 41, 42, 43, 44
-v_u, v_p, v_pa, v_m, v_ma = 45, 46, 47, 48, 49
+(
+    # Wild type compartments
+    s, e, i1, i2, r,
+    s_u, e_u, i1_u, i2_u, r_u,
+    s_p, e_p, i1_p, i2_p, r_p,
+    s_pa, e_pa, i1_pa, i2_pa, r_pa,
+    # Variant type compartments
+    s_variant, e_variant, i1_variant, i2_variant, r_variant,
+    s_u_variant, e_u_variant, i1_u_variant, i2_u_variant, r_u_variant,
+    s_pa_variant, e_pa_variant, i1_pa_variant, i2_pa_variant, r_pa_variant,
+    # Immune compartments
+    s_m, r_ma,
+    # Composite tracking compartments.
+    new_e_wild, new_e_variant, new_e_p_wild, new_e_p_variant,
+    new_e_nbt, new_e_vbt, new_s_v, new_r_w,
+    v_u, v_p, v_pa, v_m, v_ma,
+) = range(len(COMPARTMENTS))
 
 # Vaccine categories.
-u, p, pa, m, ma = 0, 1, 2, 3, 4
+VACCINE_CATEGORIES = [
+    'u', 'p', 'pa', 'm', 'ma'
+]
+(
+    u, p, pa, m, ma
+) = range(len(VACCINE_CATEGORIES))
+
+
+N_SEIIR_COMPARTMENTS = len(SEIIR_COMPARTMENTS)
+N_WILD_TYPE_SEIIR_GROUPS = len(WILD_TYPE_GROUPS)
+N_VARIANT_TYPE_SEIIR_GROUPS = len(VARIANT_TYPE_GROUPS)
+N_IMMUNE_COMPARTMENTS = len(IMMUNE_COMPARTMENTS)
+N_TRACKING_COMPARTMENTS = len(TRACKING_COMPARTMENTS)
+GROUP_SYSTEM_SIZE = len(COMPARTMENTS)
+REAL_SYSTEM_SIZE = len(REAL_COMPARTMENTS)
+
+N_GROUPS = 2
+N_VACCINE_CATEGORIES = 5
+N_VACCINE_PARAMETERS = N_VACCINE_CATEGORIES * N_GROUPS
+
+# 3rd and 4th compartment of each seiir group are infectious.
+LOCAL_I1 = 2
+LOCAL_I2 = 3
 
 
 # TODO: We're one layer of abstraction deeper than necessary.
@@ -74,23 +90,13 @@ def variant_natural_system(t: float, y: np.ndarray, params: np.ndarray):
 
 
 @numba.njit
-def variant_implicit_even_system(t: float, y: np.ndarray, params: np.ndarray):
-    return variant_system(t, y, params, variant_implicit_even_single_group_system)
+def variant_implicit_system(t: float, y: np.ndarray, params: np.ndarray):
+    return variant_system(t, y, params, variant_implicit_single_group_system)
 
 
 @numba.njit
-def variant_implicit_max_system(t: float, y: np.ndarray, params: np.ndarray):
-    return variant_system(t, y, params, variant_implicit_max_single_group_system)
-
-
-@numba.njit
-def variant_explicit_even_system(t: float, y: np.ndarray, params: np.ndarray):
-    return variant_system(t, y, params, variant_explicit_even_single_group_system)
-
-
-@numba.njit
-def variant_explicit_max_system(t: float, y: np.ndarray, params: np.ndarray):
-    return variant_system(t, y, params, variant_explicit_max_single_group_system)
+def variant_explicit_system(t: float, y: np.ndarray, params: np.ndarray):
+    return variant_system(t, y, params, variant_explicit_single_group_system)
 
 
 @numba.njit
@@ -101,7 +107,7 @@ def variant_system(t: float, y: np.ndarray, params: np.ndarray, single_group_sys
     # Demographic groups mix, so we need to precompute infectious folks.
     infectious_wild = 0.
     infectious_variant = 0.
-    n_total = y.sum()
+    n_total = 0.
     for i in range(N_GROUPS):
         for j in range(N_WILD_TYPE_SEIIR_GROUPS):
             local_s = i*GROUP_SYSTEM_SIZE + j*N_SEIIR_COMPARTMENTS
@@ -111,8 +117,11 @@ def variant_system(t: float, y: np.ndarray, params: np.ndarray, single_group_sys
             local_s = i*GROUP_SYSTEM_SIZE + (j + N_WILD_TYPE_SEIIR_GROUPS)*N_SEIIR_COMPARTMENTS
             infectious_variant = infectious_variant + y[local_s + LOCAL_I1] + y[local_s + LOCAL_I2]
 
-    infectious = np.array([infectious_wild, infectious_variant])
+        real_sys_start = i*GROUP_SYSTEM_SIZE
+        real_sys_end = real_sys_start + REAL_SYSTEM_SIZE
+        n_total += y[real_sys_start:real_sys_end].sum()
 
+    infectious = np.array([infectious_wild, infectious_variant])
     # Do the thing!
     dy = np.zeros_like(y)
     for i in range(N_GROUPS):
@@ -129,121 +138,48 @@ def variant_system(t: float, y: np.ndarray, params: np.ndarray, single_group_sys
             n_total,
             infectious
         )
-
     return dy
 
 
 @numba.njit
 def variant_natural_single_group_system(t: float, y: np.ndarray, params: np.ndarray,
                                         vaccines: np.ndarray, n_total: float, infectious: np.ndarray):
-    # Methodology keeps changing.  This doesn't make sense now, but might soon.
-    raise NotImplementedError
-    # alpha, beta, beta_b117, beta_b1351, sigma, gamma1, gamma2 = 0, 1, 2, 3, 4, 5, 6
-    # b117_prevalence, b1351_prevalence = 9, 10
-    #
-    # infectious_wild, infectious_variant = infectious
-    # b_wild = params[beta] * infectious_wild ** params[alpha] / n_total
-    # b_variant_s = params[beta_variant] * infectious_variant ** params[alpha] / n_total
-    # b_variant_s_variant = b_variant_s
-    # return variant_single_group_system(t, y, params, b_wild, b_variant_s, b_variant_s_variant, vaccines)
+    infectious_wild, infectious_variant = infectious
+    infectious_total = infectious_wild + infectious_variant
+    infectious_variant = max((infectious_wild + infectious_variant) * params[p_variant], infectious_variant)
+    infectious_wild = infectious_total - infectious_variant
 
-
-@numba.njit
-def variant_implicit_even_single_group_system(t: float, y: np.ndarray, params: np.ndarray,
-                                              vaccines: np.ndarray, n_total: float, infectious: np.ndarray):
-    b_wild, b_variant_s, b_variant_s_variant = implicit(
-        params=params,
-        infectious=infectious,
-        n_total=n_total,
-        prevalence_weight_func=even,
-    )
+    b_wild = params[beta_wild] * infectious_wild ** params[alpha] / n_total
+    b_variant_s = params[beta_variant] * infectious_variant ** params[alpha] / n_total
+    b_variant_s_variant = b_variant_s
     return variant_single_group_system(t, y, params, b_wild, b_variant_s, b_variant_s_variant, vaccines)
 
 
 @numba.njit
-def variant_implicit_max_single_group_system(t: float, y: np.ndarray, params: np.ndarray,
-                                             vaccines: np.ndarray, n_total: float, infectious: np.ndarray):
-    b_wild, b_variant_s, b_variant_s_variant = implicit(
-        params=params,
-        infectious=infectious,
-        n_total=n_total,
-        prevalence_weight_func=dominant,
-    )
-    return variant_single_group_system(t, y, params, b_wild, b_variant_s, b_variant_s_variant, vaccines)
-
-
-@numba.njit
-def variant_explicit_even_single_group_system(t: float, y: np.ndarray, params: np.ndarray,
-                                              vaccines: np.ndarray, n_total: float, infectious: np.ndarray):
-    b_wild, b_variant_s, b_variant_s_variant = explicit(
-        params=params,
-        infectious=infectious,
-        n_total=n_total,
-        prevalence_weight_func=even,
-    )
-    return variant_single_group_system(t, y, params, b_wild, b_variant_s, b_variant_s_variant, vaccines)
-
-
-@numba.njit
-def variant_explicit_max_single_group_system(t: float, y: np.ndarray, params: np.ndarray,
-                                             vaccines: np.ndarray, n_total: float, infectious: np.ndarray):
-    b_wild, b_variant_s, b_variant_s_variant = explicit(
-        params=params,
-        infectious=infectious,
-        n_total=n_total,
-        prevalence_weight_func=dominant,
-    )
-    return variant_single_group_system(t, y, params, b_wild, b_variant_s, b_variant_s_variant, vaccines)
-
-
-@numba.njit
-def dominant(params):
-    """Weight prevalences so B1351 dominates in the long run."""
-    rho1 = params[b117_prevalence] * (1 - params[b1351_prevalence])
-    rho2 = params[b1351_prevalence]
-    w = 1 - rho1 - rho2
-    return rho1, rho2, w
-
-
-@numba.njit
-def even(params):
-    """Weight prevalences so B1351 approaches equilibrium with B117 in the long run."""
-    rho = params[b117_prevalence] + params[b1351_prevalence]
-    if rho:
-        rho1 = params[b117_prevalence] / rho
-        rho2 = params[b1351_prevalence] / rho
-        w = 1 - rho1 - rho2
-    else:
-        rho1 = 0
-        rho2 = 0
-        w = 1
-    return rho1, rho2, w
-
-
-@numba.njit
-def implicit(params, infectious, n_total, prevalence_weight_func):
-    p1, p2, w = prevalence_weight_func(params)
+def variant_implicit_single_group_system(t: float, y: np.ndarray, params: np.ndarray,
+                                         vaccines: np.ndarray, n_total: float, infectious: np.ndarray):
+    infectious_wild, infectious_variant = infectious
     i_total = infectious.sum()
-    b_wild = (params[beta] * w + params[beta_b117] * p1) * i_total ** params[alpha] / n_total
-    b_variant_s = params[beta_b1351] * p2 * i_total ** params[alpha] / n_total
-    b_variant_s_variant = params[beta_b1351] * params[b1351_prevalence] * i_total ** params[alpha] / n_total
-    return b_wild, b_variant_s, b_variant_s_variant
+
+    b_wild = params[beta_wild] * params[p_wild] * i_total ** params[alpha] / n_total
+    b_variant_s = params[beta_variant] * params[p_variant] * i_total ** params[alpha] / n_total
+    b_variant_s_variant = params[beta_variant] * params[p_variant] * infectious_variant ** params[alpha] / n_total
+
+    return variant_single_group_system(t, y, params, b_wild, b_variant_s, b_variant_s_variant, vaccines)
 
 
 @numba.njit
-def explicit(params, infectious, n_total, prevalence_weight_func):
-    p1, p2, w = prevalence_weight_func(params)
+def variant_explicit_single_group_system(t: float, y: np.ndarray, params: np.ndarray,
+                                         vaccines: np.ndarray, n_total: float, infectious: np.ndarray):
     infectious_wild, infectious_variant = infectious
 
-    b_combined = (params[beta] * infectious_wild ** params[alpha] / n_total
-                  + params[beta_b117] * infectious_wild ** params[alpha] / n_total
-                  + params[beta_b1351] * infectious_variant ** params[alpha] / n_total)
-    b_wild = (p1 + w) * b_combined
-    b_variant_s = p2 * b_combined
-    b_variant_s_variant = (
-            params[b1351_prevalence] * params[beta_b1351] * infectious_variant ** params[alpha] / n_total
-    )
-    return b_wild, b_variant_s, b_variant_s_variant
+    b_combined = (params[beta_wild] * infectious_wild ** params[alpha] / n_total
+                  + params[beta_variant] * infectious_variant ** params[alpha] / n_total)
+    b_wild = params[p_wild] * b_combined
+    b_variant_s = params[p_variant] * b_combined
+    b_variant_s_variant = params[beta_variant] * params[p_variant] * infectious_variant ** params[alpha] / n_total
+
+    return variant_single_group_system(t, y, params, b_wild, b_variant_s, b_variant_s_variant, vaccines)
 
 
 @numba.njit
@@ -254,11 +190,9 @@ def variant_single_group_system(t: float,
     # Allocate our working space.  Transition matrix map.
     # Each row is a FROM compartment and each column is a TO compartment
     outflow_map = np.zeros((y.size, y.size))
-
     # Vaccinations from each compartment indexed by out compartment and
     # vaccine category (u, p, pa, m, ma)
     vaccines_out = get_vaccines_out(y, vaccines, params, b_wild, b_variant_s, b_variant_s_variant)
-
     # Unvaccinated
     # Epi transitions
     outflow_map = seiir_transition_wild(
