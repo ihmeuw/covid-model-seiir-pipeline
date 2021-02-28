@@ -29,9 +29,7 @@ def compute_beta_hat(covariates: pd.DataFrame, coefficients: pd.DataFrame) -> pd
         and beta.
 
     """
-    covariates = covariates.set_index(['location_id', 'date']).sort_index()
     covariates['intercept'] = 1.0
-    coefficients = coefficients.set_index(['location_id']).sort_index()
     return (covariates * coefficients).sum(axis=1)
 
 
