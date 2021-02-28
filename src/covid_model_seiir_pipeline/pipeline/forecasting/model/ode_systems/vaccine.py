@@ -1,138 +1,229 @@
 import numba
 import numpy as np
 
+##############################################
+# Give indices semantically meaningful names #
+##############################################
+PARAMETERS = [
+    'alpha', 'beta', 'sigma', 'gamma1', 'gamma2',
+    'p_immune', 'theta_plus', 'theta_minus'
+]
+(
+    alpha, beta, sigma, gamma1, gamma2,
+    p_immune, theta_plus, theta_minus
+) = range(len(PARAMETERS))
+
 COMPARTMENTS = [
     'S',   'E',   'I1',   'I2',   'R',    # Unvaccinated
     'S_u', 'E_u', 'I1_u', 'I2_u', 'R_u',  # Vaccinated and unprotected
     'S_p', 'E_p', 'I1_p', 'I2_p', 'R_p',  # Vaccinated and protected
                                   'R_m',  # Vaccinated and immune
 ]
-PARAMETERS = ['alpha', 'beta', 'sigma', 'gamma1', 'gamma2', 'p_immune', 'theta_plus', 'theta_minus']
+(
+    s, e, i1, i2, r,
+    s_u, e_u, i1_u, i2_u, r_u,
+    s_p, e_p, i1_p, i2_p, r_p,
+    r_m,
+) = range(len(COMPARTMENTS))
+
+VACCINE_CATEGORIES = [
+    'u', 'p', 'm'
+]
+(
+    u, p, m
+) = range(len(COMPARTMENTS))
+
+
+N_SEIIR_COMPARTMENTS = 5
+
+# 3rd and 4th compartment of each seiir group are infectious.
+LOCAL_I1 = 2
+LOCAL_I2 = 3
 
 
 @numba.njit
-def system(t: float, y: np.ndarray, p: np.array):
-    system_size = 16
-    num_seiir_compartments = 5
-    n_groups = y.size // system_size
-    n_vaccines = 3 * n_groups
-    p, vaccines = p[:-n_vaccines], p[-n_vaccines:]
+def system(t: float, y: np.ndarray, params: np.array):
+    system_size = len(COMPARTMENTS)
+    n_groups = y.size / system_size
+    n_vaccines = len(VACCINE_CATEGORIES) * n_groups
+
+    # Split parameters from vaccines.
+    params, vaccines = params[:-n_vaccines], params[-n_vaccines:]
+
+    # Demographic groups mix, so we need to precompute infectious folks.
     infectious = 0.
     n_total = y.sum()
     for i in range(n_groups):
-        for j in range(3):  # Three sets of seiir compartments per group.
+        # len(vaccine_categories) - 1 for immune + 1 for unvaccinated
+        for j in range(len(VACCINE_CATEGORIES)):
             # 3rd and 4th compartment of each group + seiir are infectious.
-            infectious = (infectious
-                          + y[i * system_size + j * num_seiir_compartments + 2]
-                          + y[i * system_size + j * num_seiir_compartments + 3])
+            local_s = i*system_size + j*N_SEIIR_COMPARTMENTS
+            infectious = (infectious + y[local_s + LOCAL_I1] + y[local_s + LOCAL_I2])
 
     dy = np.zeros_like(y)
     for i in range(n_groups):
-        dy[i * system_size:(i + 1) * system_size] = single_group_system(
-            t, y[i * system_size:(i + 1) * system_size], p, vaccines[i * 3:(i + 1) * 3], n_total, infectious
+        group_start = i * system_size
+        group_end = (i + 1) * system_size
+        group_vaccine_start = i * n_vaccines
+        group_vaccine_end = (i + 1) * n_vaccines
+
+        dy[group_start:group_end] = single_group_system(
+            t,
+            y[group_start:group_end],
+            params,
+            vaccines[group_vaccine_start:group_vaccine_end],
+            n_total,
+            infectious
         )
 
     return dy
 
 
 @numba.njit
-def single_group_system(t: float, y: np.ndarray, p: np.ndarray,
+def single_group_system(t: float,
+                        y: np.ndarray, params: np.ndarray,
                         vaccines: np.array, n_total: float, infectious: float):
-    unvaccinated, unprotected, protected, r_m = y[:5], y[5:10], y[10:15], y[15]
-    s, e, i1, i2, r = unvaccinated
-    s_u, e_u, i1_u, i2_u, r_u = unprotected
-    s_p, e_p, i1_p, i2_p, r_p = protected
-    n_unvaccinated = unvaccinated.sum()
+    # Allocate our working space.  Transition matrix map.
+    # Each row is a FROM compartment and each column is a TO compartment
+    outflow_map = np.zeros((y.size, y.size))
 
-    alpha, beta, sigma, gamma1, gamma2, p_immune, theta_plus, theta_minus = p
+    # b is the relative rate of infections from S compartments.
+    b = params[beta] * infectious**params[alpha] / n_total
 
-    v_non_efficacious, v_protective, v_immune = vaccines
-    v_efficacious = v_protective + v_immune
-    if v_efficacious:
-        p_immune = v_immune / v_efficacious
-    else:
-        p_immune = 0.
+    # Vaccinations from each compartment indexed by out compartment and
+    # vaccine category (u, p, pa, m, ma)
+    vaccines_out = get_vaccines_out(y, vaccines, params, b)
 
-    v_total = v_non_efficacious + v_efficacious
-    # Effective vaccines are efficacious vaccines delivered to
-    # susceptible, unvaccinated individuals.
-    v_effective = s / n_unvaccinated * v_efficacious
-    # Some effective vaccines confer immunity, others just protect
-    # from death after infection.
-    v_immune = p_immune * v_effective
-    v_protected = v_effective - v_immune
+    # Unvaccinated
+    # Epi transitions
+    outflow_map = seiir_transition(
+        y, params, b,
+        s, e, i1, i2, r,
+        outflow_map,
+    )
+    # Vaccines
+    outflow_map[s, s_u] += vaccines_out[s, u]
+    outflow_map[s, s_p] += vaccines_out[s, p]
+    outflow_map[s, r_m] += vaccines_out[s, m]
 
-    # vaccinated and unprotected come from all bins.
-    # Get count coming from S.
-    v_unprotected_s = s / n_unvaccinated * v_non_efficacious
+    outflow_map[e, e_u] += vaccines_out[e, u]
+    outflow_map[i1, i1_u] += vaccines_out[i1, u]
+    outflow_map[i2, i2_u] += vaccines_out[i2, u]
+    outflow_map[r, r_u] += vaccines_out[r, u]
 
-    # Expected vaccines coming out of S.
-    s_vaccines = v_unprotected_s + v_protected + v_immune
+    # Unprotected
+    outflow_map = seiir_transition(
+        y, params, b,
+        s_u, e_u, i1_u, i2_u, r_u,
+        outflow_map,
+    )
 
-    if s_vaccines:
-        rho_unprotected = v_unprotected_s / s_vaccines
-        rho_protected = v_protected / s_vaccines
-        rho_immune = v_immune / s_vaccines
-    else:
-        rho_unprotected, rho_protected, rho_immune = 0, 0, 0
-    # Actual count of vaccines coming out of S.
-    s_vaccines = min(1 - beta * infectious ** alpha / n_total - theta_plus, s_vaccines / s) * s
+    # Protected
+    outflow_map = seiir_transition(
+        y, params, b,
+        s_p, e_p, i1_p, i2_p, r_p,
+        outflow_map,
+    )
 
-    # Expected vaccines coming out of E.
-    e_vaccines = e / n_unvaccinated * v_total
-    # Actual vaccines coming out of E.
-    e_vaccines = min(1 - sigma - theta_minus, e_vaccines / e) * e
+    inflow = outflow_map.sum(axis=0)
+    outflow = outflow_map.sum(axis=1)
+    result = inflow - outflow
 
-    # Expected vaccines coming out of I1.
-    i1_vaccines = i1 / n_unvaccinated * v_total
-    # Actual vaccines coming out of I1.
-    i1_vaccines = min(1 - gamma1, i1_vaccines / i1) * i1
+    if result.sum() > 1e-5:
+        print('Compartment mismatch: ', result.sum())
 
-    # Expected vaccines coming out of I2.
-    i2_vaccines = i2 / n_unvaccinated * v_total
-    # Actual vaccines coming out of I2.
-    i2_vaccines = min(1 - gamma2, i2_vaccines / i2) * i2
+    return result
 
-    # Expected vaccines coming out of R.
-    r_vaccines = r / n_unvaccinated * v_total
-    # Actual vaccines coming out of R
-    r_vaccines = min(1, r_vaccines / r) * r
 
-    # Unvaccinated equations.
-    # Normal Epi + vaccines causing exits from all compartments.
-    new_e = beta * s * infectious ** alpha / n_total + theta_plus * s
-    ds = -new_e - s_vaccines
-    de = new_e - sigma * e - theta_minus * e - e_vaccines
-    di1 = sigma * e - gamma1 * i1 - i1_vaccines
-    di2 = gamma1 * i1 - gamma2 * i2 - i2_vaccines
-    dr = gamma2 * i2 + theta_minus * e - r_vaccines
+@numba.njit
+def get_vaccines_out(y: np.ndarray, vaccines: np.ndarray, params: np.ndarray, b: float) -> np.ndarray:
+    # Allocate our output space.
+    vaccines_out = np.zeros((y.size, vaccines.size))
+    v_total = vaccines.sum()
+    # Don't vaccinate if no vaccines to deliver.
+    if not v_total:
+        return vaccines_out
 
-    # Vaccinated and unprotected equations
-    # Normal epi + vaccines causing entrances to all compartments from
-    # their unvaccinated counterparts.
-    new_e_u = beta * s_u * infectious ** alpha / n_total + theta_plus * s_u
-    ds_u = -new_e_u + rho_unprotected * s_vaccines
-    de_u = new_e_u - sigma * e_u - theta_minus * e_u + e_vaccines
-    di1_u = sigma * e_u - gamma1 * i1_u + i1_vaccines
-    di2_u = gamma1 * i1_u - gamma2 * i2_u + i2_vaccines
-    dr_u = gamma2 * i2_u + theta_minus * e_u + r_vaccines
+    n_unvaccinated = count_unvaccinated(y)
+    if n_unvaccinated:
+        # S has many kinds of effective and ineffective vaccines
+        vaccines_out = vaccinate_from_s(
+            y, vaccines, params, b,
+            n_unvaccinated, v_total,
+            vaccines_out,
+        )
+        vaccines_out = vaccinate_from_not_s(
+            y, vaccines, params,
+            e, i1, i2, r,
+            vaccines_out,
+        )
 
-    # Vaccinated and protected equations
-    # Normal epi + protective vaccines taking people from S and putting
-    # them in S_p
-    new_e_p = beta * s_p * infectious ** alpha / n_total + theta_plus * s_p
-    ds_p = -new_e_p + rho_protected * s_vaccines
-    de_p = new_e_p - sigma * e_p - theta_minus * e_p
-    di1_p = sigma * e_p - gamma1 * i1_p
-    di2_p = gamma1 * i1_p - gamma2 * i2_p
-    dr_p = gamma2 * i2_p + theta_minus * e_p
+    return vaccines_out
 
-    # Vaccinated and immune
-    dm = rho_immune * s_vaccines
 
-    return np.array([
-        ds, de, di1, di2, dr,
-        ds_u, de_u, di1_u, di2_u, dr_u,
-        ds_p, de_p, di1_p, di2_p, dr_p,
-        dm
-    ])
+@numba.njit
+def count_unvaccinated(y: np.ndarray) -> float:
+    unvaccinated_compartments = [
+        s, e, i1, i2, r,
+    ]
+    n_unvaccinated = 0.
+    for compartment in unvaccinated_compartments:
+        n_unvaccinated = n_unvaccinated + y[compartment]
+    return n_unvaccinated
+
+
+@numba.njit
+def vaccinate_from_s(y: np.ndarray, vaccines: np.ndarray, params: np.ndarray, b: float,
+                     n_unvaccinated, v_total,
+                     vaccines_out):
+    # Folks in S can have all vaccine outcomes
+    new_e = b * y[s] + params[theta_plus] * y[s]
+
+    expected_total_vaccines_s = y[s] / n_unvaccinated * v_total
+    total_vaccines_s = min(y[s] - new_e, expected_total_vaccines_s)
+
+    if expected_total_vaccines_s:
+        for vaccine_type in [u, p, m]:
+            expected_vaccines = y[s] / n_unvaccinated * vaccines[vaccine_type]
+            rho = expected_vaccines / expected_total_vaccines_s
+            vaccines_out[s, vaccine_type] = rho * total_vaccines_s
+    return vaccines_out
+
+
+@numba.njit
+def vaccinate_from_not_s(y: np.ndarray, params: np.ndarray,
+                         n_unvaccinated: float, v_total: float,
+                         exposed: int, infectious1: int, infectious2: int, removed: int,
+                         vaccines_out: np.ndarray):
+    vaccines_out[exposed, u] = min(
+        (1 - params[sigma] - params[theta_minus]) * y[exposed],
+        y[exposed] / n_unvaccinated * v_total
+    )
+    vaccines_out[infectious1, u] = min(
+        (1 - params[gamma1]) * y[infectious1],
+        y[infectious1] / n_unvaccinated * v_total
+    )
+    vaccines_out[infectious2, u] = min(
+        (1 - params[gamma2]) * y[infectious2],
+        y[infectious2] / n_unvaccinated * v_total
+    )
+    vaccines_out[removed, u] = min(
+        y[removed],
+        y[removed] / n_unvaccinated * v_total
+    )
+    return vaccines_out
+
+
+@numba.njit
+def seiir_transition(y: np.ndarray, params: np.ndarray, b: float,
+                     susceptible: int, exposed: int, infectious1: int, infectious2: int, removed: int,
+                     outflow_map: np.ndarray):
+    # Normal epi + theta plus
+    outflow_map[susceptible, exposed] += (b + params[theta_plus]) * y[susceptible]
+    outflow_map[exposed, infectious1] += params[sigma] * y[exposed]
+    outflow_map[infectious1, infectious2] += params[gamma1] * y[infectious1]
+    outflow_map[infectious2, removed] += params[gamma2] * y[infectious2]
+    # Theta minus
+    outflow_map[exposed, removed] += params[theta_minus] * y[exposed]
+
+    return outflow_map
