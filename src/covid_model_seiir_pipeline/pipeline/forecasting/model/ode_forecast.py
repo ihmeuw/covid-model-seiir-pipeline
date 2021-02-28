@@ -255,8 +255,7 @@ def beta_shift(beta_hat: pd.DataFrame,
 # Past compartment redistribution #
 ###################################
 
-def redistribute_past_compartments(indices: Indices,
-                                   compartments: pd.DataFrame,
+def redistribute_past_compartments(compartments: pd.DataFrame,
                                    population: pd.DataFrame,
                                    model_parameters: ModelParameters):
     pop_weights = _get_pop_weights(population)
@@ -287,7 +286,7 @@ def redistribute_past_compartments(indices: Indices,
         redistributed_compartments.append(group_compartments)
     redistributed_compartments = pd.concat(redistributed_compartments, axis=1)
 
-    import pdb; pdb.set_trace()
+    return redistributed_compartments
 
 
 def _get_pop_weights(population: pd.DataFrame) -> Dict[str, pd.Series]:
