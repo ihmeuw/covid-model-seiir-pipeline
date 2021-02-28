@@ -6,11 +6,11 @@ import numpy as np
 ##############################################
 PARAMETERS = [
     'alpha', 'beta', 'sigma', 'gamma1', 'gamma2',
-    'p_immune', 'theta_plus', 'theta_minus'
+    'theta_plus', 'theta_minus'
 ]
 (
     alpha, beta, sigma, gamma1, gamma2,
-    p_immune, theta_plus, theta_minus
+    theta_plus, theta_minus
 ) = range(len(PARAMETERS))
 
 COMPARTMENTS = [

@@ -1,9 +1,9 @@
-from dataclasses import dataclass
-from typing import Callable, Dict, List, Tuple, TYPE_CHECKING
+from typing import Dict, Tuple, TYPE_CHECKING
 import itertools
 
 import numpy as np
 import pandas as pd
+import tqdm
 
 from covid_model_seiir_pipeline.lib import (
     math,
@@ -14,7 +14,6 @@ from covid_model_seiir_pipeline.pipeline.forecasting.model.containers import (
     PostprocessingParameters,
     RatioData,
     HospitalCorrectionFactors,
-    CompartmentInfo,
 )
 from covid_model_seiir_pipeline.pipeline.forecasting.model.ode_systems import (
     vaccine,
@@ -444,120 +443,42 @@ def get_component_groups(model_parameters: ModelParameters):
     return vaccine_comp.loc[index], variant_comp.loc[index]
 
 
+###########
+# Run ODE #
+###########
 
-def run_normal_ode_model_by_location(initial_condition: pd.DataFrame,
-                                     beta_params: Dict[str, float],
-                                     seiir_parameters: pd.DataFrame,
-                                     scenario_spec: 'ScenarioSpecification',
-                                     compartment_info: CompartmentInfo):
+def run_ode_model(initial_conditions: pd.DataFrame,
+                  model_parameters: ModelParameters,
+                  progress_bar: bool) -> pd.DataFrame:
+    system = vaccine.system,
+    mp_dict = model_parameters.to_dict()
+    parameters = pd.concat([mp_dict[p] for p in vaccine.PARAMETERS], axis=1)
+
     forecasts = []
-
-    for location_id, init_cond in initial_condition.iterrows():
-        # Index columns to ensure sort order
-        init_cond = init_cond[compartment_info.compartments].values
-        total_population = init_cond.sum()
-
-        model_specs = _SeiirModelSpecs(
-            alpha=beta_params['alpha'],
-            sigma=beta_params['sigma'],
-            gamma1=beta_params['gamma1'],
-            gamma2=beta_params['gamma2'],
-            N=total_population,
-            system_params=scenario_spec.system_params.copy(),
-        )
-        loc_parameters = seiir_parameters.loc[location_id].sort_values('date')
-        loc_date = loc_parameters['date']
+    initial_conditions_iter = tqdm.tqdm(initial_conditions.iterrows(),
+                                        total=len(initial_conditions),
+                                        disable=not progress_bar)
+    for location_id, initial_condition in initial_conditions_iter:
+        loc_parameters = parameters.loc[location_id].sort_index()
+        loc_date = loc_parameters.reset_index().date
         loc_times = np.array((loc_date - loc_date.min()).dt.days)
-        loc_parameters = loc_parameters.set_index('date')
 
-        ode_runner = _ODERunner(model_specs, scenario_spec, compartment_info, loc_parameters.columns.tolist())
-        forecasted_components = ode_runner.get_solution(init_cond, loc_times, loc_parameters.values)
-        forecasted_components['date'] = loc_date.values
-        forecasted_components['location_id'] = location_id
-        forecasts.append(forecasted_components)
-    forecasts = (pd.concat(forecasts)
-                 .drop(columns='t')  # Convenience column in the ode.
-                 .set_index(['location_id', 'date'])
-                 .reset_index(level='date'))  # Move date out front.
-    return forecasts
-
-
-@dataclass(frozen=True)
-class _SeiirModelSpecs:
-    alpha: float
-    sigma: float
-    gamma1: float
-    gamma2: float
-    N: float
-    system_params: dict
-
-    def __post_init__(self):
-        assert 0 < self.alpha <= 1.0
-        assert self.sigma >= 0.0
-        assert self.gamma1 >= 0
-        assert self.gamma2 >= 0
-        assert self.N > 0
-
-
-class _ODERunner:
-    systems: Dict[str, Callable] = {
-        'vaccine': vaccine.system,
-    }
-
-    def __init__(self,
-                 model_specs: _SeiirModelSpecs,
-                 scenario_spec: 'ScenarioSpecification',
-                 compartment_info: CompartmentInfo,
-                 parameters: List[str]):
-        self.system = self.systems[scenario_spec.system]
-        self.model_specs = model_specs
-        self.scenario_spec = scenario_spec
-        self.compartment_info = compartment_info
-        self.parameters_map = {p: i for i, p in enumerate(parameters)}
-
-    def get_solution(self, initial_condition, times, parameters):
-        parameters = parameters.T  # Each row is a param, each column a day
-        # Add the time invariant constants up front.
-        constants = [
-            self.model_specs.alpha * np.ones_like(parameters[0]),
-            self.model_specs.sigma * np.ones_like(parameters[0]),
-            self.model_specs.gamma1 * np.ones_like(parameters[0]),
-            self.model_specs.gamma2 * np.ones_like(parameters[0]),
-        ]
-        system_params = [
-            parameters[self.parameters_map['beta']],
-            np.maximum(parameters[self.parameters_map['theta']], 0),  # Theta plus
-            -np.minimum(parameters[self.parameters_map['theta']], 0),  # Theta minus
-        ]
-        if self.scenario_spec.system == 'vaccine':
-            constants.append(
-                self.model_specs.system_params.get('proportion_immune', 0.5) * np.ones_like(parameters[0])
-            )
-            for risk_group in self.compartment_info.group_suffixes:
-                system_params.append(parameters[self.parameters_map[f'unprotected_{risk_group}']])
-                system_params.append(parameters[self.parameters_map[f'protected_{risk_group}']])
-                system_params.append(parameters[self.parameters_map[f'immune_{risk_group}']])
-
-        system_params = np.vstack([
-            constants,
-            system_params,
-        ])
+        ic = initial_condition.values
+        p = loc_parameters.values.T  # Each row is a param, each column a day
 
         solution = math.solve_ode(
-            system=self.system,
-            t=times,
-            init_cond=initial_condition,
-            params=system_params,
+            system=system,
+            t=loc_times,
+            init_cond=ic,
+            params=p
         )
 
-        result_array = np.concatenate([
-            solution,
-            parameters,
-            times.reshape((1, -1)),
-        ], axis=0).T
         result = pd.DataFrame(
-            data=result_array,
-            columns=self.compartment_info.compartments + list(self.parameters_map) + ['t'],
+            data=solution.T,
+            columns=initial_conditions.columns.tolist()
         )
-
-        return result
+        result['date'] = loc_date
+        result['location_id'] = location_id
+        forecasts.append(result.set_index(['location_id', 'date']))
+    forecasts = pd.concat(forecasts).sort_index()
+    return forecasts
