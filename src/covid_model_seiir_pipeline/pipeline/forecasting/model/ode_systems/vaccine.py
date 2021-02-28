@@ -31,7 +31,7 @@ VACCINE_CATEGORIES = [
 ]
 (
     u, p, m
-) = range(len(COMPARTMENTS))
+) = range(len(VACCINE_CATEGORIES))
 
 
 N_SEIIR_COMPARTMENTS = 5

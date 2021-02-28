@@ -450,7 +450,7 @@ def get_component_groups(model_parameters: ModelParameters):
 def run_ode_model(initial_conditions: pd.DataFrame,
                   model_parameters: ModelParameters,
                   progress_bar: bool) -> pd.DataFrame:
-    system = vaccine.system,
+    system = vaccine.system
     mp_dict = model_parameters.to_dict()
     parameters = pd.concat([mp_dict[p] for p in vaccine.PARAMETERS], axis=1)
 
