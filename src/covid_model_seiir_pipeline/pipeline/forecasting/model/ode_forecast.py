@@ -278,9 +278,9 @@ def redistribute_past_compartments(indices: Indices,
                                                              .mul(1 - unprotected_weight, axis=0)
                                                              .rename(columns=dict(zip(other_vacc_columns,
                                                                                       protected_compartments))))
-        group_compartments.loc[: other_vacc_columns] = (group_compartments
-                                                        .loc[:, other_vacc_columns]
-                                                        .mul(unprotected_weight, axis=0))
+        group_compartments.loc[:, other_vacc_columns] = (group_compartments
+                                                         .loc[:, other_vacc_columns]
+                                                         .mul(unprotected_weight, axis=0))
         # sort the columns
         group_compartments = group_compartments.loc[:, vaccine.COMPARTMENTS]
         group_compartments.columns = [f'{c}_{group}' for c in group_compartments]
