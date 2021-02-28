@@ -11,6 +11,8 @@ from covid_model_seiir_pipeline.lib import (
     utilities,
 )
 from covid_model_seiir_pipeline.pipeline.forecasting.model.containers import (
+    Indices,
+    ModelParameters,
     HospitalCorrectionFactors,
     CompartmentInfo,
     ScenarioData,
@@ -33,16 +35,221 @@ if TYPE_CHECKING:
     )
 
 
-def forecast_beta(covariates: pd.DataFrame,
-                  coefficients: pd.DataFrame,
-                  beta_shift_parameters: pd.DataFrame) -> pd.DataFrame:
-    log_beta_hat = math.compute_beta_hat(covariates, coefficients)
-    beta_hat = np.exp(log_beta_hat).rename('beta_pred').reset_index()
+##############################
+# ODE parameter construction #
+##############################
 
-    # Rescale the predictions of beta based on the residuals from the
-    # regression.
-    betas = _beta_shift(beta_hat, beta_shift_parameters).set_index('location_id')
-    return betas
+def build_model_parameters(indices: Indices,
+                           ode_parameters: pd.DataFrame,
+                           beta_regression: pd.DataFrame,
+                           thetas: pd.Series,
+                           covariates: pd.DataFrame,
+                           coefficients: pd.DataFrame,
+                           beta_scales: pd.DataFrame,
+                           vaccine_data: pd.DataFrame,
+                           scenario_spec: 'ScenarioSpecification') -> ModelParameters:
+    # These are all the same by draw.  Just broadcasting them over a new index.
+    alpha = pd.Series(ode_parameters.alpha.mean(), index=indices.full, name='alpha')
+    sigma = pd.Series(ode_parameters.sigma.mean(), index=indices.full, name='sigma')
+    gamma1 = pd.Series(ode_parameters.gamma1.mean(), index=indices.full, name='gamma1')
+    gamma2 = pd.Series(ode_parameters.gamma2.mean(), index=indices.full, name='gamma2')
+
+    beta, beta_wild, beta_variant, p_wild, p_variant, p_all_variant = get_betas_and_prevalences(
+        indices,
+        beta_regression,
+        covariates,
+        coefficients,
+        beta_scales,
+        scenario_spec.variant_beta_scale,
+    )
+
+    thetas = thetas.reindex(indices.full, level='location_id')
+
+    if ((1 < thetas) | thetas < -1).any():
+        raise ValueError('Theta must be between -1 and 1.')
+    if (sigma - thetas >= 1).any():
+        raise ValueError('Sigma - theta must be smaller than 1')
+
+    theta_plus = np.maximum(thetas, 0).rename('theta_plus')
+    theta_minus = -np.minimum(thetas, 0).rename('theta_minus')
+
+    vaccine_data = vaccine_data.reindex(indices.full, fill_value=0)
+    adjusted_vaccinations = adjust_vaccinations_for_variants(vaccine_data, covariates, scenario_spec.system)
+
+    probability_cross_immune = pd.Series(scenario_spec.probability_cross_immune,
+                                         index=indices.full, name='probability_cross_immune')
+
+    return ModelParameters(
+        alpha=alpha,
+        beta=beta,
+        sigma=sigma,
+        gamma1=gamma1,
+        gamma2=gamma2,
+        theta_plus=theta_plus,
+        theta_minus=theta_minus,
+        **adjusted_vaccinations,
+        beta_wild=beta_wild,
+        beta_variant=beta_variant,
+        p_wild=p_wild,
+        p_variant=p_variant,
+        p_all_variant=p_all_variant,
+        probability_cross_immune=probability_cross_immune,
+    )
+
+
+def adjust_vaccinations_for_variants(vaccine_data: pd.DataFrame, covariates: pd.DataFrame, system: str):
+    if 'variant' in system:
+        return _adjust_variant_vaccines(vaccine_data)
+    else:
+        return _adjust_non_variant_vaccines(vaccine_data, covariates)
+
+
+def _adjust_variant_vaccines(vaccine_data):
+    risk_groups = ['lr', 'hr']
+    vaccinations = {}
+
+    for risk_group in risk_groups:
+        base_col_map = {
+            f'unprotected_{risk_group}': f'unprotected_{risk_group}',
+            f'protected_wild_type_{risk_group}': f'effective_protected_wildtype_{risk_group}',
+            f'protected_all_types_{risk_group}': f'effective_protected_variant_{risk_group}',
+            f'immune_wild_type_{risk_group}': f'effective_wildtype_{risk_group}',
+            f'immune_all_types_{risk_group}': f'effective_variant_{risk_group}',
+        }
+        for to_name, from_name in base_col_map.items():
+            vaccinations[to_name] = vaccine_data[from_name].rename(to_name)
+    return vaccinations
+
+
+def _adjust_non_variant_vaccines(vaccine_data, covariates):
+    bad_variant_prevalence = covariates[['variant_prevalence_B1351', 'variant_prevalence_P1']].sum(axis=1)
+    variant_start_threshold = pd.Timestamp('2021-05-01')
+    location_ids = vaccine_data.reset_index().location_id.tolist()
+    bad_variant_entrance_date = (bad_variant_prevalence[bad_variant_prevalence > 1]
+                                 .reset_index()
+                                 .groupby('location_id')
+                                 .date
+                                 .min())
+    locs_with_bad_variant = (bad_variant_entrance_date[bad_variant_entrance_date < variant_start_threshold]
+                             .reset_index()
+                             .location_id
+                             .tolist())
+    locs_without_bad_variant = list(set(location_ids).difference(locs_with_bad_variant))
+
+    risk_groups = ['lr', 'hr']
+    vaccinations = {}
+    for risk_group in risk_groups:
+        bad_variant_col_map = {
+            f'unprotected_{risk_group}': [f'unprotected_{risk_group}',
+                                          f'effective_protected_wildtype_{risk_group}',
+                                          f'effective_wildtype_{risk_group}'],
+            f'protected_wild_type_{risk_group}': [],
+            f'protected_all_types_{risk_group}': [f'effective_protected_variant_{risk_group}'],
+            f'immune_wild_type_{risk_group}': [],
+            f'immune_all_types_{risk_group}': [f'effective_variant_{risk_group}'],
+        }
+        not_bad_variant_col_map = {
+            f'unprotected_{risk_group}': [f'unprotected_{risk_group}'],
+            f'protected_wild_type_{risk_group}': [],
+            f'protected_all_types_{risk_group}': [f'effective_protected_wildtype_{risk_group}',
+                                                  f'effective_protected_variant_{risk_group}'],
+            f'immune_wild_type_{risk_group}': [],
+            f'immune_all_types_{risk_group}': [f'effective_wildtype_{risk_group}',
+                                               f'effective_variant_{risk_group}'],
+        }
+        bad_variant_vaccines = {
+            name: vaccine_data[cols].sum(axis=1).rename(name) for name, cols in bad_variant_col_map.items()
+        }
+        not_bad_variant_vaccines = {
+            name: vaccine_data[cols].sum(axis=1).rename(name) for name, cols in not_bad_variant_col_map.items()
+        }
+        for name in bad_variant_vaccines:
+            vaccinations[name] = (bad_variant_vaccines[name]
+                                  .loc[locs_with_bad_variant]
+                                  .append(not_bad_variant_vaccines[name].loc[locs_without_bad_variant])
+                                  .sort_index())
+    return vaccinations
+
+
+def get_betas_and_prevalences(indices: Indices,
+                              beta_regression: pd.DataFrame,
+                              covariates: pd.DataFrame,
+                              coefficients: pd.DataFrame,
+                              beta_shift_parameters: pd.DataFrame,
+                              variant_beta_scale: float) -> Tuple[pd.Series, pd.Series, pd.Series,
+                                                                  pd.Series, pd.Series, pd.Series]:
+    log_beta_hat = math.compute_beta_hat(covariates.reset_index(), coefficients.reset_index())
+    beta_hat = np.exp(log_beta_hat).loc[indices.future].rename('beta_hat').reset_index()
+    beta = (beta_shift(beta_hat, beta_shift_parameters)
+            .set_index(['location_id', 'date'])
+            .beta_hat
+            .rename('beta'))
+    beta = beta_regression.loc[indices.past, 'beta'].append(beta)
+    log_beta = np.log(beta)
+
+    coef = {}
+    prev = {}
+    effects = {}
+    for v in ['B117', 'B1351', 'P1']:
+        coef[v] = coefficients[f'variant_prevalence_{v}']
+        prev[v] = covariates[f'variant_prevalence_{v}'].fillna(0)
+        effects[v] = coef[v] * prev[v]
+
+    p_variant = (prev['B1351'] + prev['P1']).rename('p_variant')
+    p_wild = (1 - p_variant).rename('p_wild')
+    p_w = 1 - sum(prev.values())
+
+    log_beta_w = log_beta - sum(effects.values())
+    beta_w = np.exp(log_beta_w)
+    beta_b117 = np.exp(log_beta_w + coef['B117'])
+
+    beta_wild = (((p_w * beta_w + prev['B117'] * beta_b117) / p_wild)
+                 .groupby('location_id')
+                 .fillna(method='bfill')
+                 .rename('beta_wild'))
+    beta_variant = (beta_w + variant_beta_scale * (beta_b117 - beta_w)).rename('beta_variant')
+
+    p_all_variant = sum(prev.values()).rename('p_all_variant')
+
+    return beta, beta_wild, beta_variant, p_wild, p_variant, p_all_variant
+
+
+def beta_shift(beta_hat: pd.DataFrame,
+               beta_scales: pd.DataFrame) -> pd.DataFrame:
+    """Shift the raw predicted beta to line up with beta in the past.
+    This method performs both an intercept shift and a scaling based on the
+    residuals of the ode fit beta and the beta hat regression in the past.
+    Parameters
+    ----------
+        beta_hat
+            Dataframe containing the date, location_id, and beta hat in the
+            future.
+        beta_scales
+            Dataframe containing precomputed parameters for the scaling.
+    Returns
+    -------
+        Predicted beta, after scaling (shift).
+    """
+    beta_hat = beta_hat.sort_values(['location_id', 'date']).set_index('location_id')
+    scale_init = beta_scales['scale_init']
+    scale_final = beta_scales['scale_final']
+    window_size = beta_scales['window_size']
+
+    beta_final = []
+    for location_id in beta_hat.index.unique():
+        if window_size is not None:
+            t = np.arange(len(beta_hat.loc[location_id])) / window_size.at[location_id]
+            scale = scale_init.at[location_id] + (scale_final.at[location_id] - scale_init.at[location_id]) * t
+            scale[(window_size.at[location_id] + 1):] = scale_final.at[location_id]
+        else:
+            scale = scale_init.at[location_id]
+        loc_beta_hat = beta_hat.loc[location_id].set_index('date', append=True)['beta_pred']
+        loc_beta_final = loc_beta_hat * scale
+        beta_final.append(loc_beta_final)
+
+    beta_final = pd.concat(beta_final).reset_index()
+
+    return beta_final
 
 
 def forecast_correction_factors(correction_factors: HospitalCorrectionFactors,
@@ -222,49 +429,6 @@ class _SeiirModelSpecs:
         assert self.gamma1 >= 0
         assert self.gamma2 >= 0
         assert self.N > 0
-
-
-def _beta_shift(beta_hat: pd.DataFrame,
-                beta_scales: pd.DataFrame) -> pd.DataFrame:
-    """Shift the raw predicted beta to line up with beta in the past.
-
-    This method performs both an intercept shift and a scaling based on the
-    residuals of the ode fit beta and the beta hat regression in the past.
-
-    Parameters
-    ----------
-        beta_hat
-            Dataframe containing the date, location_id, and beta hat in the
-            future.
-        beta_scales
-            Dataframe containing precomputed parameters for the scaling.
-
-    Returns
-    -------
-        Predicted beta, after scaling (shift).
-
-    """
-    beta_scales = beta_scales.set_index('location_id')
-    beta_hat = beta_hat.sort_values(['location_id', 'date']).set_index('location_id')
-    scale_init = beta_scales['scale_init']
-    scale_final = beta_scales['scale_final']
-    window_size = beta_scales['window_size']
-
-    beta_final = []
-    for location_id in beta_hat.index.unique():
-        if window_size is not None:
-            t = np.arange(len(beta_hat.loc[location_id])) / window_size.at[location_id]
-            scale = scale_init.at[location_id] + (scale_final.at[location_id] - scale_init.at[location_id]) * t
-            scale[(window_size.at[location_id] + 1):] = scale_final.at[location_id]
-        else:
-            scale = scale_init.at[location_id]
-        loc_beta_hat = beta_hat.loc[location_id].set_index('date', append=True)['beta_pred']
-        loc_beta_final = loc_beta_hat * scale
-        beta_final.append(loc_beta_final)
-
-    beta_final = pd.concat(beta_final).reset_index()
-
-    return beta_final
 
 
 class _ODERunner:

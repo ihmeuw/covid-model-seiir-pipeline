@@ -74,6 +74,52 @@ class Indices:
 
 
 @dataclass
+class ModelParameters:
+    # Core parameters
+    alpha: pd.Series
+    beta: pd.Series
+    sigma: pd.Series
+    gamma1: pd.Series
+    gamma2: pd.Series
+
+    # Theta parameters
+    theta_plus: pd.Series
+    theta_minus: pd.Series
+
+    # Vaccine parameters
+    unprotected_lr: pd.Series
+    protected_wild_type_lr: pd.Series
+    protected_all_types_lr: pd.Series
+    immune_wild_type_lr: pd.Series
+    immune_all_types_lr: pd.Series
+
+    unprotected_hr: pd.Series
+    protected_wild_type_hr: pd.Series
+    protected_all_types_hr: pd.Series
+    immune_wild_type_hr: pd.Series
+    immune_all_types_hr: pd.Series
+
+    # Variant parameters
+    beta_wild: pd.Series
+    beta_variant: pd.Series
+    p_wild: pd.Series
+    p_variant: pd.Series
+    p_all_variant: pd.Series
+    probability_cross_immune: pd.Series
+
+    def with_index(self, index: pd.MultiIndex):
+        return ModelParameters(**{
+            parameter_name: parameter.loc[index] for parameter_name, parameter in self.to_dict().items()
+        })
+
+    def to_dict(self) -> Dict[str, pd.Series]:
+        return utilities.asdict(self)
+
+    def to_df(self) -> pd.DataFrame:
+        return pd.concat([v.rename(k) for k, v in self.to_dict().items()], axis=1)
+
+
+@dataclass
 class OutputMetrics:
     components: pd.DataFrame
     infections: pd.Series
