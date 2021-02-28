@@ -452,7 +452,14 @@ def run_ode_model(initial_conditions: pd.DataFrame,
                   progress_bar: bool) -> pd.DataFrame:
     system = vaccine.system
     mp_dict = model_parameters.to_dict()
-    parameters = pd.concat([mp_dict[p] for p in vaccine.PARAMETERS], axis=1)
+
+    parameters = pd.concat([mp_dict[p] for p in vaccine.PARAMETERS]
+                           + [model_parameters.unprotected_lr,
+                              model_parameters.protected_all_types_lr,
+                              model_parameters.immune_all_types_lr,
+                              model_parameters.unprotected_hr,
+                              model_parameters.protected_all_types_hr,
+                              model_parameters.immune_all_types_hr], axis=1)
 
     forecasts = []
     initial_conditions_iter = tqdm.tqdm(initial_conditions.iterrows(),
