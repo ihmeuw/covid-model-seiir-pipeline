@@ -324,7 +324,7 @@ def _get_unprotected_vaccine_weights(model_parameters: ModelParameters) -> Dict[
 
 
 def build_postprocessing_parameters(indices: Indices,
-                                    past_compartments: pd.Series,
+                                    past_compartments: pd.DataFrame,
                                     past_infections: pd.Series,
                                     past_deaths: pd.Series,
                                     betas: pd.DataFrame,
@@ -342,10 +342,10 @@ def build_postprocessing_parameters(indices: Indices,
     )
 
     return PostprocessingParameters(
-        past_beta=betas.loc[indices.past, 'beta'],
-        past_compartments=past_compartments.loc[indices.past],
-        past_infections=past_infections.loc[indices.past],
-        past_deaths=past_deaths.loc[indices.past],
+        past_beta=betas['beta'],
+        past_compartments=past_compartments,
+        past_infections=past_infections,
+        past_deaths=past_deaths,
         **ratio_data.to_dict(),
         **correction_factors.to_dict()
     )

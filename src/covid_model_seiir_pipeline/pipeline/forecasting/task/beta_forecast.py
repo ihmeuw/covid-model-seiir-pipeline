@@ -106,9 +106,9 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
     logger.info('Prepping results processing parameters.', context='transform')
     postprocessing_params = model.build_postprocessing_parameters(
         indices,
+        past_compartments,
         past_infections,
         past_deaths,
-        past_compartments,
         betas,
         ratio_data,
         model_parameters,
@@ -116,13 +116,6 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
         hospital_parameters,
         scenario_spec,
     )
-
-
-
-
-
-
-
 
     logger.info('Running ODE forecast.', context='compute_ode')
     future_components = model.run_normal_ode_model_by_location(
