@@ -15,7 +15,6 @@ from covid_model_seiir_pipeline.pipeline.forecasting.model.containers import (
     ModelParameters,
     HospitalCorrectionFactors,
     CompartmentInfo,
-    ScenarioData,
 )
 from covid_model_seiir_pipeline.pipeline.forecasting.model.ode_systems import (
     seiir,
@@ -288,8 +287,7 @@ def correct_ifr(ifr: pd.Series, variant_scalar: pd.Series, forecast_end_date: pd
 
 
 def prep_seiir_parameters(betas: pd.DataFrame,
-                          thetas: pd.Series,
-                          scenario_data: ScenarioData):
+                          thetas: pd.Series):
     betas = betas.rename(columns={'beta_pred': 'beta'})
     parameters = betas.merge(thetas, on='location_id')
     if scenario_data.vaccinations is not None:
