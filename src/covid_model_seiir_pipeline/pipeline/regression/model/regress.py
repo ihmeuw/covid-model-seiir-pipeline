@@ -104,7 +104,7 @@ class BetaRegressorSequential(IBetaRegressor):
 def prep_regression_inputs(beta_fit: pd.Series,
                            covariates: pd.DataFrame) -> MRData:
     """Convert inputs for the beta regression model."""
-    regression_inputs = (pd.merge(beta_fit, covariates, on=beta_fit.index.names)
+    regression_inputs = (pd.merge(beta_fit.dropna(), covariates, on=beta_fit.index.names)
                          .sort_index()
                          .reset_index())
     regression_inputs['ln_beta'] = np.log(regression_inputs['beta'])

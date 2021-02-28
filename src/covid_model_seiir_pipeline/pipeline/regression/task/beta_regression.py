@@ -67,7 +67,7 @@ def run_beta_regression(regression_version: str, draw_id: int, progress_bar: boo
         regression_specification.regression_parameters.sequential_refit
     )
     log_beta_hat = math.compute_beta_hat(covariates.reset_index(), coefficients)
-    beta_hat = np.exp(log_beta_hat).rename('beta_pred')
+    beta_hat = np.exp(log_beta_hat).rename('beta_hat')
 
     # Format and save data.
     logger.info('Prepping outputs', context='transform')

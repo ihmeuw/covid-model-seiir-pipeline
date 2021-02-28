@@ -16,13 +16,33 @@ from covid_model_seiir_pipeline.pipeline.forecasting.data import ForecastDataInt
 logger = cli_tools.task_performance_logger
 
 
-def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int):
+def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progress_bar: bool):
     logger.info(f"Initiating SEIIR beta forecasting for scenario {scenario}, draw {draw_id}.", context='setup')
     forecast_spec: ForecastSpecification = ForecastSpecification.from_path(
         Path(forecast_version) / static_vars.FORECAST_SPECIFICATION_FILE
     )
     scenario_spec = forecast_spec.scenarios[scenario]
     data_interface = ForecastDataInterface.from_specification(forecast_spec)
+
+    #################
+    # Build indices #
+    #################
+    # The hardest thing to keep consistent is data alignment. We have about 100
+    # unique datasets in this model and they need to be aligned consistently
+    # to do computation.
+    logger.info('Loading index building data', context='read')
+    past_infections = data_interface.load_past_infections(draw_id)
+    past_start_dates = past_infections.reset_index().groupby('location_id').date.min()
+    forecast_start_dates = past_infections.reset_index().groupby('location_id').date.max()
+    # Forecast is run to the end of the covariates
+    covariates = data_interface.load_covariates(scenario_spec)
+    forecast_end_dates = covariates.reset_index().groupby('location_id').date.max()
+    logger.info('Building indices', context='transform')
+    indices = model.Indices(
+        past_start_dates,
+        forecast_start_dates,
+        forecast_end_dates,
+    )
 
     logger.info('Loading input data.', context='read')
     # We'll use the same params in the ODE forecast as we did in the fit.
@@ -257,15 +277,17 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int):
 @cli_tools.with_task_forecast_version
 @cli_tools.with_scenario
 @cli_tools.with_draw_id
+@cli_tools.with_progress_bar
 @cli_tools.add_verbose_and_with_debugger
 def beta_forecast(forecast_version: str, scenario: str, draw_id: int,
-                  verbose: int, with_debugger: bool):
+                  progress_bar: bool, verbose: int, with_debugger: bool):
     cli_tools.configure_logging_to_terminal(verbose)
 
     run = cli_tools.handle_exceptions(run_beta_forecast, logger, with_debugger)
     run(forecast_version=forecast_version,
         scenario=scenario,
-        draw_id=draw_id)
+        draw_id=draw_id,
+        progress_bar=progress_bar)
 
 
 if __name__ == '__main__':

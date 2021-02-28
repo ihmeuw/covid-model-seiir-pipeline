@@ -1,6 +1,6 @@
 data:
-  regression_version: '2021_02_13.03'
-  covariate_version: '2021_02_11.01'
+  regression_version: '2021_02_27.15'
+  covariate_version: '2021_02_23.02'
   output_root: ''
   output_format: 'parquet'
   fh_subnationals: False
