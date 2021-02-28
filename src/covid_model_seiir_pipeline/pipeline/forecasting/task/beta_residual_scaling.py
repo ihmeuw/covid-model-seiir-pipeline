@@ -141,7 +141,6 @@ def compute_initial_beta_scaling_parameters(total_deaths: pd.Series,
         beta_scaling=beta_scaling,
         data_interface=data_interface
     )
-    x = _runner(0)
     draws = list(range(data_interface.get_n_draws()))
     with multiprocessing.Pool(num_cores) as pool:
         scaling_data = list(pool.imap(_runner, draws))
@@ -159,7 +158,6 @@ def compute_initial_beta_scaling_parameters_by_draw(draw_id: int,
                  pd.Series(beta_scaling['window_size'], index=total_deaths.index, name='window_size')]
 
     betas = data_interface.load_betas(draw_id)
-    import pdb; pdb.set_trace()
     # Select out the transition day to compute the initial scaling parameter.
     beta_transition = betas.groupby('location_id').last()
     draw_data.append(beta_transition['beta'].rename('fit_final'))
