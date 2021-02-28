@@ -123,22 +123,15 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
         model_parameters.with_index(indices.future),
         progress_bar,
     )
-    import pdb; pdb.set_trace()
 
     logger.info('Processing ODE results and computing deaths and infections.', context='compute_results')
-    output_metrics = model.compute_output_metrics(
-        infection_data,
-        ratio_data,
-        past_components,
+    components, system_metrics, output_metrics = model.compute_output_metrics(
+        indices,
         future_components,
-        beta_params,
-        compartment_info,
-    )
-    hospital_usage = model.compute_corrected_hospital_usage(
-        output_metrics.admissions,
-        ratio_data.ihr / ratio_data.ifr,
+        postprocessing_params,
+        model_parameters,
         hospital_parameters,
-        correction_factors,
+        scenario_spec.system
     )
 
     if scenario_spec.algorithm == 'draw_level_mandate_reimposition':

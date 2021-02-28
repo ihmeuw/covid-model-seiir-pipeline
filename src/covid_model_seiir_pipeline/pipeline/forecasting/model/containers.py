@@ -146,35 +146,62 @@ class PostprocessingParameters:
 
 
 @dataclass
-class OutputMetrics:
-    components: pd.DataFrame
-    infections: pd.Series
-    cases: pd.Series
-    admissions: pd.Series
-    deaths: pd.DataFrame
-    r_controlled: pd.Series
-    r_effective: pd.Series
-    herd_immunity: pd.Series
-    total_susceptible: pd.Series
-    total_immune: pd.Series
+class SystemMetrics:
+    modeled_infections_wild: pd.Series
+    modeled_infections_variant: pd.Series
+    modeled_infections_total: pd.Series
 
-    def to_dict(self) -> Dict[str, pd.DataFrame]:
-        return utilities.asdict(self)
+    variant_prevalence: pd.Series
+    natural_immunity_breakthrough: pd.Series
+    vaccine_breakthrough: pd.Series
+    proportion_cross_immune: pd.Series
 
+    modeled_deaths_wild: pd.Series
+    modeled_deaths_variant: pd.Series
+    modeled_deaths_total: pd.Series
 
-@dataclass
-class CompartmentInfo:
-    compartments: List[str]
-    group_suffixes: List[str]
+    vaccinations_protected_wild: pd.Series
+    vaccinations_protected_all: pd.Series
+    vaccinations_immune_wild: pd.Series
+    vaccinations_immune_all: pd.Series
+    vaccinations_effective: pd.Series
+    vaccinations_ineffective: pd.Series
 
-    def to_dict(self) -> Dict[str, List[str]]:
-        return utilities.asdict(self)
+    total_susceptible_wild: pd.Series
+    total_susceptible_variant: pd.Series
+    total_immune_wild: pd.Series
+    total_immune_variant: pd.Series
 
-
-@dataclass
-class VariantScalars:
     beta: pd.Series
-    ifr: pd.Series
+    beta_wild: pd.Series
+    beta_variant: pd.Series
 
     def to_dict(self) -> Dict[str, pd.Series]:
         return utilities.asdict(self)
+
+    def to_df(self) -> pd.DataFrame:
+        return pd.concat([v.rename(k) for k, v in self.to_dict().items()], axis=1)
+
+
+@dataclass
+class OutputMetrics:
+    # observed + modeled
+    infections: pd.Series
+    cases: pd.Series
+    hospital_admissions: pd.Series
+    hospital_census: pd.Series
+    icu_admissions: pd.Series
+    icu_census: pd.Series
+    ventilator_census: pd.Series
+    deaths: pd.Series
+
+    # Other stuff
+    r_controlled: pd.Series
+    r_effective: pd.Series
+    herd_immunity: pd.Series
+
+    def to_dict(self) -> Dict[str, pd.Series]:
+        return utilities.asdict(self)
+
+    def to_df(self) -> pd.DataFrame:
+        return pd.concat([v.rename(k) for k, v in self.to_dict().items()], axis=1)
