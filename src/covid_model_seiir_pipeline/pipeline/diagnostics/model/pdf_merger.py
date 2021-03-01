@@ -16,10 +16,8 @@ class PdfFileMerger(PdfFileMerger_):
 
 def merge_pdfs(plot_cache: Path, output_path: Path, hierarchy: pd.DataFrame):
     """Merge together all pdfs in the plot cache and write to the output path.
-
     The final pdf will have locations ordered by a depth first search of the
     provided hierarchy with nodes at the same level sorted alphabetically.
-
     """
     parent_map = hierarchy.set_index('location_id').parent_id
     name_map = hierarchy.set_index('location_id').location_ascii_name
@@ -30,6 +28,7 @@ def merge_pdfs(plot_cache: Path, output_path: Path, hierarchy: pd.DataFrame):
         current_page = 0
         for location_id in sorted_locations:
             result_page_path = plot_cache / f'{location_id}_results.pdf'
+            variants_page_path = plot_cache / f'{location_id}_variants.pdf'
             covariate_page_path = plot_cache / f'{location_id}_covariates.pdf'
 
             if not result_page_path.exists():
@@ -47,10 +46,12 @@ def merge_pdfs(plot_cache: Path, output_path: Path, hierarchy: pd.DataFrame):
                 parent = None
             merger.addBookmark(name_map.loc[location_id], current_page, parent)
 
-            # Add the covariates page.
-            merger.merge(current_page + 1, str(covariate_page_path))
+            # Add the variants and covariates pages.
+            merger.merge(current_page + 1, str(variants_page_path))
+            merger.merge(current_page + 2, str(covariate_page_path))
+
             merged.append(location_id)
-            current_page += 2
+            current_page += 3
 
         if output_path.exists():
             output_path.unlink()
@@ -59,9 +60,7 @@ def merge_pdfs(plot_cache: Path, output_path: Path, hierarchy: pd.DataFrame):
 
 def get_locations_dfs(hierarchy: pd.DataFrame) -> List[int]:
     """Return location ids sorted by a depth first search of the hierarchy.
-
     Locations at the same level are sorted alphabetically by name.
-
     """
     def _get_locations(location: pd.Series):
         locs = [location.location_id]
@@ -78,4 +77,3 @@ def get_locations_dfs(hierarchy: pd.DataFrame) -> List[int]:
         locations.extend(_get_locations(top_loc))
 
     return locations
-
