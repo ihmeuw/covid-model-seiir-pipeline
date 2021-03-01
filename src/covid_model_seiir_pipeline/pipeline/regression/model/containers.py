@@ -1,6 +1,6 @@
 """Containers for regression data."""
 from dataclasses import dataclass
-from typing import Dict, Union
+from typing import Dict, Iterator, Tuple, Union
 
 import pandas as pd
 
@@ -27,13 +27,40 @@ class RatioData:
 
 @dataclass
 class ODEParameters:
-    alpha: float
-    sigma: float
-    gamma1: float
-    gamma2: float
+    """Parameter container for the ODE fit of beta.
 
-    def to_dict(self) -> Dict[str, Union[int, float]]:
+    This should be constructed such that each parameter series has a shared
+    location-date index.
+    """
+    population: pd.Series
+
+    alpha: pd.Series
+    sigma: pd.Series
+    gamma1: pd.Series
+    gamma2: pd.Series
+
+    vaccines_immune: pd.Series
+    vaccines_other: pd.Series
+
+    def to_dict(self) -> Dict[str, pd.Series]:
         return utilities.asdict(self)
+
+    def to_df(self) -> pd.DataFrame:
+        return pd.concat([v.rename(k) for k, v in self.to_dict().items()], axis=1)
+
+    def reindex(self, index: pd.Index) -> 'ODEParameters':
+        return ODEParameters(**{
+            key: value.reindex(index) for key, value in self.to_dict().items()
+        })
+
+    def __iter__(self) -> Iterator[Tuple[int, 'ODEParameters']]:
+        location_ids = self.population.reset_index().location_id.unique()
+        for location_id in location_ids:
+            loc_parameters = ODEParameters(**{
+                key: value.loc[location_id] for key, value in self.to_dict().items()
+            })
+            yield location_id, loc_parameters
+
 
 
 @dataclass

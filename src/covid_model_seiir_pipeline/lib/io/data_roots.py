@@ -160,10 +160,12 @@ class RegressionRoot(DataRoot):
 
     beta = DatasetType('beta', LEAF_TEMPLATES.DRAW_TEMPLATE)
     coefficients = DatasetType('coefficients', LEAF_TEMPLATES.DRAW_TEMPLATE)
-    infection_data = DatasetType('data', LEAF_TEMPLATES.DRAW_TEMPLATE)
-    dates = DatasetType('dates', LEAF_TEMPLATES.DRAW_TEMPLATE)
-    parameters = DatasetType('parameters', LEAF_TEMPLATES.DRAW_TEMPLATE)
-    hospitalizations = DatasetType('hospitalization', LEAF_TEMPLATES.MEASURE_TEMPLATE)
+    compartments = DatasetType('compartments', LEAF_TEMPLATES.DRAW_TEMPLATE)
+    ode_parameters = DatasetType('ode_parameters', LEAF_TEMPLATES.DRAW_TEMPLATE)
+
+    infections = DatasetType('infections', LEAF_TEMPLATES.DRAW_TEMPLATE)
+    deaths = DatasetType('deaths', LEAF_TEMPLATES.DRAW_TEMPLATE)
+    hospitalizations = DatasetType('hospitalizations', LEAF_TEMPLATES.MEASURE_TEMPLATE)
 
 
 class ForecastRoot(DataRoot):

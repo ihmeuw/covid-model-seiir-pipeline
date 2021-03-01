@@ -8,18 +8,9 @@ data:
   output_format: 'parquet'
 workflow:
   project: 'proj_covid_prod'
-  queue: 'd.q'
-  tasks:
-    beta_regression:
-      max_runtime_seconds: 6000
-      m_mem_free: '2G'
-      num_cores: 1
-    hospital_correction_factors:
-      max_runtime_seconds: 3000
-      m_mem_free: '20G'
-      num_cores: 26
+  queue: 'all.q'
 regression_parameters:
-  n_draws: 1000
+  n_draws: 100
   alpha: [0.9, 1.0]
   sigma: [0.2, 0.3333]
   gamma1: [0.5, 0.5]

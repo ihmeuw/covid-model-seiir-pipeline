@@ -1,3 +1,4 @@
+import itertools
 from pathlib import Path
 from typing import Dict, List
 
@@ -68,7 +69,7 @@ class PostprocessingDataInterface:
         return forecast_spec.scenarios[scenario].covariates[covariate_name]
 
     def load_regression_coefficients(self, draw_id: int) -> pd.Series:
-        coefficients = self._get_forecast_data_inteface().load_regression_coefficients(draw_id)
+        coefficients = self._get_forecast_data_inteface().load_coefficients(draw_id)
         coefficients = coefficients.stack().reset_index()
         coefficients.columns = ['location_id', 'covariate', draw_id]
         coefficients = coefficients.set_index(['location_id', 'covariate'])[draw_id]
@@ -109,12 +110,20 @@ class PostprocessingDataInterface:
         draw_df = self.load_ode_params(draw_id=draw_id, scenario=scenario, columns=[measure])
         return draw_df[measure].rename(draw_id)
 
+    def load_effectively_vaccinated(self, draw_id: int, scenario: str) -> pd.Series:
+        eff_types = ['protected', 'immune']
+        covid_types = ['wild_type', 'all_types']
+        risk_groups = ['lr', 'hr']
+        cols = [f'{e}_{c}_{r}' for e, c, r in itertools.product(eff_types, covid_types, risk_groups)]
+        draw_df = self.load_ode_params(draw_id=draw_id, scenario=scenario, columns=cols)
+        return draw_df.sum(axis=1).rename(draw_id)
+
     def load_ode_params(self, draw_id: int, scenario: str, columns=None):
         return io.load(self.forecast_root.ode_params(scenario=scenario, draw_id=draw_id, columns=columns))
 
     def load_beta_residuals(self, draw_id: int) -> pd.Series:
-        beta_regression = self._get_forecast_data_inteface().load_beta_regression(draw_id)
-        beta_residual = np.log(beta_regression['beta'] / beta_regression['beta_pred']).rename(draw_id)
+        beta_regression = self._get_forecast_data_inteface().load_betas(draw_id)
+        beta_residual = np.log(beta_regression['beta'] / beta_regression['beta_hat']).rename(draw_id)
         return beta_residual
 
     def load_single_raw_output(self, draw_id: int, scenario: str, measure: str) -> pd.Series:
@@ -153,7 +162,6 @@ class PostprocessingDataInterface:
     def load_mortality_ratio(self) -> pd.Series:
         location_ids = self.load_location_ids()
         mr_df = io.load(self.mortality_ratio_root.mortality_ratio())
-        mr_df = mr_df.set_index('age_start', append=True)
         return mr_df.loc[location_ids, 'MRprob']
 
     def build_version_map(self) -> pd.Series:

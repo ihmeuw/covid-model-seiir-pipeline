@@ -1,7 +1,6 @@
 from functools import reduce
-from itertools import product
 from pathlib import Path
-from typing import Dict, List, Union
+from typing import Dict, List, Tuple, Union
 
 from loguru import logger
 import pandas as pd
@@ -24,8 +23,6 @@ from covid_model_seiir_pipeline.pipeline.forecasting.model import (
     HospitalMetrics,
     HospitalCorrectionFactors,
     HospitalCensusData,
-    ScenarioData,
-    VariantScalars,
 )
 
 
@@ -72,33 +69,33 @@ class ForecastDataInterface:
     def load_location_ids(self) -> List[int]:
         return self._get_regression_data_interface().load_location_ids()
 
-    def load_regression_coefficients(self, draw_id: int) -> pd.DataFrame:
-        return self._get_regression_data_interface().load_regression_coefficients(draw_id=draw_id)
+    def load_betas(self, draw_id: int):
+        return self._get_regression_data_interface().load_betas(draw_id=draw_id)
 
-    def load_transition_date(self, draw_id: int) -> pd.Series:
-        dates_df = self._get_regression_data_interface().load_date_file(draw_id=draw_id)
-        dates_df['end_date'] = pd.to_datetime(dates_df['end_date'])
-        return dates_df['end_date'].rename('date')
+    def load_coefficients(self, draw_id: int) -> pd.DataFrame:
+        return self._get_regression_data_interface().load_coefficients(draw_id=draw_id)
 
-    def load_beta_regression(self, draw_id: int) -> pd.DataFrame:
-        return self._get_regression_data_interface().load_regression_betas(draw_id=draw_id)
+    def load_compartments(self, draw_id: int) -> pd.DataFrame:
+        return self._get_regression_data_interface().load_compartments(draw_id=draw_id)
 
-    def load_infection_data(self, draw_id: int) -> pd.DataFrame:
-        return self._get_regression_data_interface().load_infection_data(draw_id=draw_id)
+    def load_ode_parameters(self, draw_id: int) -> pd.DataFrame:
+        return self._get_regression_data_interface().load_ode_parameters(draw_id=draw_id)
 
-    def load_beta_params(self, draw_id: int) -> Dict[str, float]:
-        df = self._get_regression_data_interface().load_beta_param_file(draw_id=draw_id)
-        return df.set_index('params')['values'].to_dict()
+    def load_past_infections(self, draw_id: int) -> pd.Series:
+        return self._get_regression_data_interface().load_infections(draw_id=draw_id)
+
+    def load_past_deaths(self, draw_id: int) -> pd.Series:
+        return self._get_regression_data_interface().load_deaths(draw_id=draw_id)
 
     def get_hospital_parameters(self) -> HospitalParameters:
         return self._get_regression_data_interface().load_specification().hospital_parameters
 
     def load_hospital_usage(self) -> HospitalMetrics:
-        df = self._get_regression_data_interface().load_hospital_data(measure='usage')
+        df = self._get_regression_data_interface().load_hospitalizations(measure='usage')
         return HospitalMetrics(**{metric: df[metric] for metric in df.columns})
 
     def load_hospital_correction_factors(self) -> HospitalCorrectionFactors:
-        df = self._get_regression_data_interface().load_hospital_data(measure='correction_factors')
+        df = self._get_regression_data_interface().load_hospitalizations(measure='correction_factors')
         return HospitalCorrectionFactors(**{metric: df[metric] for metric in df.columns})
 
     def load_hospital_census_data(self) -> HospitalCensusData:
@@ -165,96 +162,32 @@ class ForecastDataInterface:
             if covariate != 'intercept':
                 covariate_data.append(self.load_covariate(covariate, covariate_version))
         covariate_data = reduce(lambda x, y: x.merge(y, left_index=True, right_index=True), covariate_data)
-        return covariate_data.reset_index()
-
-    #########################
-    # Scenario data loaders #
-    #########################
-
-    def load_scenario_specific_data(self, scenario_spec: ScenarioSpecification,
-                                    variant_prevalence: pd.Series) -> ScenarioData:
-        if scenario_spec.system == 'vaccine':
-            forecast_scenario = scenario_spec.system_params.get('forecast_version', 'reference')
-            vaccinations = self.load_vaccine_info(f'vaccinations_{forecast_scenario}')
-            location_ids = vaccinations.reset_index().location_id.tolist()
-
-            variant_start_threshold = pd.Timestamp('2021-05-01')
-            bad_variant_entrance_date = (variant_prevalence[variant_prevalence > 1]
-                                         .reset_index()
-                                         .groupby('location_id')
-                                         .date
-                                         .min())
-            locs_with_bad_variant = (bad_variant_entrance_date[bad_variant_entrance_date < variant_start_threshold]
-                                     .reset_index()
-                                     .location_id
-                                     .tolist())
-
-            locs_without_bad_variant = list(set(location_ids).difference(locs_with_bad_variant))
-            bad_variant_vaccinations = vaccinations.loc[locs_with_bad_variant]
-            not_bad_variant_vaccinations = vaccinations.loc[locs_without_bad_variant]
-            # FIXME: should get from population partition
-            risk_groups = ['lr', 'hr']
-            vaccination_groups = ['unprotected', 'protected', 'immune']
-            out_cols = [f'{vaccination_group}_{risk_group}'
-                        for vaccination_group, risk_group in product(vaccination_groups, risk_groups)]
-            vaccinations = pd.DataFrame(columns=out_cols, index=vaccinations.index)
-            for risk_group in risk_groups:
-                vaccinations.loc[bad_variant_vaccinations.index, f'unprotected_{risk_group}'] = (
-                    bad_variant_vaccinations[f'unprotected_{risk_group}']
-                    + bad_variant_vaccinations[f'effective_protected_wildtype_{risk_group}']
-                    + bad_variant_vaccinations[f'effective_wildtype_{risk_group}']
-                )
-                vaccinations.loc[bad_variant_vaccinations.index, f'protected_{risk_group}'] = (
-                    bad_variant_vaccinations[f'effective_protected_variant_{risk_group}']
-                )
-                vaccinations.loc[bad_variant_vaccinations.index, f'immune_{risk_group}'] = (
-                    bad_variant_vaccinations[f'effective_variant_{risk_group}']
-                )
-
-                vaccinations.loc[not_bad_variant_vaccinations.index, f'unprotected_{risk_group}'] = (
-                    not_bad_variant_vaccinations[f'unprotected_{risk_group}']
-                )
-                vaccinations.loc[not_bad_variant_vaccinations.index, f'protected_{risk_group}'] = (
-                    not_bad_variant_vaccinations[f'effective_protected_wildtype_{risk_group}']
-                    + not_bad_variant_vaccinations[f'effective_protected_variant_{risk_group}']
-                )
-                vaccinations.loc[not_bad_variant_vaccinations.index, f'immune_{risk_group}'] = (
-                    not_bad_variant_vaccinations[f'effective_wildtype_{risk_group}']
-                    + not_bad_variant_vaccinations[f'effective_variant_{risk_group}']
-                )
-        else:
-            vaccinations = None
-
-        if scenario_spec.algorithm == 'draw_level_mandate_reimposition':
-            mobility_scenario = scenario_spec.covariates['mobility']
-            percent_mandates = self.load_mobility_info(f'{mobility_scenario}_mandate_lift')
-            mandate_effects = self.load_mobility_info(f'effect')
-        else:
-            percent_mandates = None
-            mandate_effects = None
-
-        scenario_data = ScenarioData(
-            vaccinations=vaccinations,
-            percent_mandates=percent_mandates,
-            mandate_effects=mandate_effects
-        )
-        return scenario_data
+        return covariate_data
 
     def load_mobility_info(self, info_type: str):
         location_ids = self.load_location_ids()
         info_df = io.load(self.covariate_root.mobility_info(info_type=info_type))
         return self._format_covariate_data(info_df, location_ids)
 
-    def load_vaccine_info(self, info_type: str):
+    def load_vaccinations(self, vaccine_scenario: str):
         location_ids = self.load_location_ids()
-        info_df = io.load(self.covariate_root.vaccine_info(info_type=info_type))
+        info_df = io.load(self.covariate_root.vaccine_info(info_type=f'vaccinations_{vaccine_scenario}'))
         return self._format_covariate_data(info_df, location_ids)
+
+    #########################
+    # Scenario data loaders #
+    #########################
+
+    def load_mandate_data(self, mobility_scenario: str) -> Tuple[pd.DataFrame, pd.DataFrame]:
+        percent_mandates = self.load_mobility_info(f'{mobility_scenario}_mandate_lift')
+        mandate_effects = self.load_mobility_info(f'effect')
+        return percent_mandates, mandate_effects
 
     ##############################
     # Miscellaneous data loaders #
     ##############################
 
-    def load_thetas(self, theta_specification: Union[str, int], sigma: float) -> pd.Series:
+    def load_thetas(self, theta_specification: Union[str, int]) -> pd.Series:
         location_ids = self.load_location_ids()
         if isinstance(theta_specification, str):
             thetas = pd.read_csv(theta_specification).set_index('location_id')['theta']
@@ -263,12 +196,6 @@ class ForecastDataInterface:
             thetas = pd.Series(theta_specification,
                                index=pd.Index(location_ids, name='location_id'),
                                name='theta')
-
-        if ((1 < thetas) | thetas < -1).any():
-            raise ValueError('Theta must be between -1 and 1.')
-        if (sigma - thetas >= 1).any():
-            raise ValueError('Sigma - theta must be smaller than 1')
-
         return thetas
 
     def get_infections_metadata(self):

@@ -1,8 +1,8 @@
 data:
-  forecast_version: '/ihme/covid-19/seir-forecast/2021_02_20.01'
+  forecast_version: '/ihme/covid-19/seir-forecast/2021_02_28.03'
   mortality_ratio_version: 'best'
   scenarios:
-    - 'worse'
+#    - 'worse'
     - 'reference'
 #    - 'best_masks'
 #    - 'no_vaccine'
@@ -11,15 +11,6 @@ data:
 workflow:
   project: 'proj_covid_prod'
   queue: 'd.q'
-  tasks:
-    resample_map:
-      max_runtime_seconds: 5000
-      m_mem_free: '50G'
-      num_cores: 26
-    postprocess:
-      max_runtime_seconds: 15000
-      m_mem_free: '60G'
-      num_cores: 26
 resampling:
   reference_scenario: 'reference'
   reference_date: '2021-12-31'

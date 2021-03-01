@@ -1,16 +1,22 @@
-from typing import Dict, List, Tuple, Union, TYPE_CHECKING
+import itertools
+from typing import Tuple, TYPE_CHECKING
 
+import numpy as np
 import pandas as pd
 
 from covid_model_seiir_pipeline.pipeline.forecasting.model.containers import (
-    RatioData,
-    CompartmentInfo,
-    HospitalCorrectionFactors,
+    Indices,
+    ModelParameters,
+    PostprocessingParameters,
     HospitalMetrics,
+    SystemMetrics,
     OutputMetrics,
 )
 from covid_model_seiir_pipeline.pipeline.regression.model import (
     compute_hospital_usage,
+)
+from covid_model_seiir_pipeline.pipeline.forecasting.model.ode_systems import (
+    variant,
 )
 
 
@@ -21,167 +27,275 @@ if TYPE_CHECKING:
     )
 
 
-def compute_output_metrics(infection_data: pd.DataFrame,
-                           ratio_data: RatioData,
-                           components_past: pd.DataFrame,
-                           components_forecast: pd.DataFrame,
-                           seiir_params: Dict[str, float],
-                           compartment_info: CompartmentInfo) -> OutputMetrics:
-    components = splice_components(components_past, components_forecast)
+def compute_output_metrics(indices: Indices,
+                           future_components: pd.DataFrame,
+                           postprocessing_params: PostprocessingParameters,
+                           model_parameters: ModelParameters,
+                           hospital_parameters: 'HospitalParameters',
+                           system: str) -> Tuple[pd.DataFrame, SystemMetrics, OutputMetrics]:
+    components = postprocessing_params.past_compartments
+    components = (components
+                  .loc[indices.past]  # Need to drop transition day.
+                  .append(future_components)
+                  .sort_index())
 
-    if compartment_info.group_suffixes:
-        modeled_infections, modeled_deaths = 0, 0
-        for group in compartment_info.group_suffixes:
-            group_compartments = [c for c in compartment_info.compartments if group in c]
-            group_infections, vulnerable_infections = compute_infections(components[['date'] + group_compartments])
-
-            group_ifr = getattr(ratio_data, f'ifr_{group}').rename('ifr')
-            group_deaths = compute_deaths(vulnerable_infections, ratio_data.infection_to_death, group_ifr)
-
-            modeled_infections += group_infections
-            modeled_deaths += group_deaths
-    else:
-        modeled_infections, vulnerable_infections = compute_infections(
-            components[['date'] + compartment_info.compartments]
-        )
-        modeled_deaths = compute_deaths(vulnerable_infections, ratio_data.infection_to_death, ratio_data.ifr)
-
-    past_infections_idx = components_past.set_index('date', append=True).index
-    modeled_infections = modeled_infections.to_frame()
-    modeled_deaths = modeled_deaths.reset_index(level='observed')
-    infections = infection_data.loc[past_infections_idx, ['infections']].combine_first(modeled_infections).infections
-    def _backfill_zero(x):
-        past_nulls = x.ffill().isnull()
-        x[past_nulls] = 0
-        return x
-    deaths = (infection_data
-              .deaths
-              .groupby('location_id')
-              .apply(_backfill_zero)
-              .to_frame())
-    deaths['observed'] = 1
-    deaths = deaths.combine_first(modeled_deaths)
-
-    cases = ((infections
-              .groupby('location_id')
-              .shift(ratio_data.infection_to_case)
-              * ratio_data.idr)
-             .dropna()
-             .rename('cases'))
-    admissions = ((infections
-                   .groupby('location_id')
-                   .shift(ratio_data.infection_to_admission)
-                   * ratio_data.ihr)
-                  .dropna()
-                  .rename('admissions'))
-
-    r_controlled, r_effective = compute_effective_r(
+    system_metrics = build_system_metrics(
+        indices,
+        model_parameters,
+        postprocessing_params,
         components,
-        seiir_params,
-        compartment_info.compartments
     )
-    components = components.set_index('date', append=True)
-    susceptible_columns = [c for c in components.columns if 'S' in c]
-    immune_columns = [c for c in components.columns if 'M' in c or 'R' in c]
-    return OutputMetrics(
-        components=components,
+
+    infections = postprocessing_params.past_infections.loc[indices.past].append(
+        system_metrics.modeled_infections_total.loc[indices.future]
+    )
+    past_deaths = postprocessing_params.past_deaths
+    modeled_deaths = system_metrics.modeled_deaths_total
+    deaths = (past_deaths
+              .append(modeled_deaths
+                      .loc[modeled_deaths
+                           .dropna()
+                           .index
+                           .difference(past_deaths.index)])
+              .to_frame())
+    deaths['observed'] = 0
+    deaths.loc[past_deaths.index, 'observed'] = 1
+    deaths = deaths.set_index('observed', append=True).deaths
+    cases = (infections
+             .groupby('location_id')
+             .shift(postprocessing_params.infection_to_case)
+             * postprocessing_params.idr)
+    admissions = (infections
+                  .groupby('location_id')
+                  .shift(postprocessing_params.infection_to_admission)
+                  * postprocessing_params.ihr)
+    hospital_usage = compute_corrected_hospital_usage(
+        admissions,
+        hospital_parameters,
+        postprocessing_params,
+    )
+
+    output_metrics = OutputMetrics(
         infections=infections,
         cases=cases,
-        admissions=admissions,
         deaths=deaths,
-        r_controlled=r_controlled,
-        r_effective=r_effective,
-        herd_immunity=(1 - 1 / r_controlled).rename('herd_immunity'),
-        total_susceptible=components[susceptible_columns].sum(axis=1).rename('total_susceptible'),
-        total_immune=components[immune_columns].sum(axis=1).rename('total_immune'),
+        **hospital_usage.to_dict(),
+        # Other stuff
+        r_controlled=pd.Series(np.nan, index=indices.full),
+        r_effective=pd.Series(np.nan, index=indices.full),
+        herd_immunity=pd.Series(np.nan, index=indices.full),
+    )
+    return components, system_metrics, output_metrics
+
+
+def build_system_metrics(indices: Indices,
+                         model_parameters: ModelParameters,
+                         postprocessing_params: PostprocessingParameters,
+                         components: pd.DataFrame) -> SystemMetrics:
+    components_diff = components.groupby('location_id').diff()
+    cols = components_diff.columns
+
+    modeled_infections = pd.Series(0, index=indices.full, name='infections')
+    modeled_deaths = pd.Series(0, index=indices.full, name='deaths')
+    effective_vaccinations = pd.Series(0, index=indices.full, name='effective_vaccinations')
+    for group in ['hr', 'lr']:
+        group_compartments = [c for c in cols if group in c]
+        group_components_diff = components_diff.loc[:, group_compartments]
+
+        delta_s = (group_components_diff
+                   .loc[:, [c for c in group_compartments if 'S' in c]]
+                   .sum(axis=1))
+        delta_p = (group_components_diff
+                   .loc[:, [c for c in group_compartments if '_p' in c]]
+                   .sum(axis=1))
+        delta_new_e_p = (group_components_diff
+                         .loc[:, [c for c in group_compartments if '_p' in c and 'S' not in c]]
+                         .sum(axis=1))
+        delta_r_m = group_components_diff.loc[:, f'R_m_{group}']
+
+        group_modeled_infections = -(delta_s + delta_r_m).rename('infections')
+        group_vulnerable_infections = -(delta_s + delta_new_e_p + delta_r_m).rename('infections')
+        group_ifr = getattr(postprocessing_params, f'ifr_{group}').rename('ifr')
+        group_deaths = compute_deaths(
+            group_vulnerable_infections,
+            postprocessing_params.infection_to_death,
+            group_ifr
+        )
+        group_effective_vaccinations = (delta_p + delta_r_m).rename('effective_vaccinations')
+
+        modeled_infections += group_modeled_infections
+        modeled_deaths += group_deaths
+        effective_vaccinations += group_effective_vaccinations
+
+    s = components[[c for c in cols if 'S' in c]].sum(axis=1)
+    i = components[[c for c in cols if 'I' in c]].sum(axis=1)
+    total_pop = components.sum(axis=1)
+    beta = modeled_infections / (s * i ** model_parameters.alpha / total_pop)
+
+    total_immune = components[[c for c in components.columns if 'R' in c]].sum(axis=1)
+
+    return SystemMetrics(
+        modeled_infections_wild=modeled_infections,
+        modeled_infections_variant=pd.Series(np.nan, index=indices.full),
+        modeled_infections_total=modeled_infections,
+
+        variant_prevalence=pd.Series(np.nan, index=indices.full),
+        natural_immunity_breakthrough=pd.Series(np.nan, index=indices.full),
+        vaccine_breakthrough=pd.Series(np.nan, index=indices.full),
+        proportion_cross_immune=pd.Series(np.nan, index=indices.full),
+
+        modeled_deaths_wild=modeled_deaths,
+        modeled_deaths_variant=pd.Series(np.nan, index=indices.full),
+        modeled_deaths_total=modeled_deaths,
+
+        vaccinations_protected_wild=pd.Series(np.nan, index=indices.full),
+        vaccinations_protected_all=pd.Series(np.nan, index=indices.full),
+        vaccinations_immune_wild=pd.Series(np.nan, index=indices.full),
+        vaccinations_immune_all=pd.Series(np.nan, index=indices.full),
+        vaccinations_effective=effective_vaccinations,
+        vaccinations_ineffective=pd.Series(np.nan, index=indices.full),
+
+        total_susceptible_wild=s,
+        total_susceptible_variant=pd.Series(np.nan, index=indices.full),
+        total_immune_wild=total_immune,
+        total_immune_variant=pd.Series(np.nan, index=indices.full),
+
+        beta=beta,
+        beta_wild=pd.Series(np.nan, index=indices.full),
+        beta_variant=pd.Series(np.nan, index=indices.full),
+    )
+
+
+def variant_system_metrics(indices: Indices,
+                           model_parameters: ModelParameters,
+                           postprocessing_params: PostprocessingParameters,
+                           components: pd.DataFrame) -> SystemMetrics:
+    components_diff = components.groupby('location_id').diff()
+    cols = [f'{c}_{g}' for g, c in itertools.product(['lr', 'hr'], variant.REAL_COMPARTMENTS)]
+    tracking_cols = [f'{c}_{g}' for g, c in itertools.product(['lr', 'hr'], variant.TRACKING_COMPARTMENTS)]
+    modeled_infections_wild = components_diff[[c for c in tracking_cols if 'NewE_wild' in c]].sum(axis=1)
+    modeled_infections_variant = components_diff[[c for c in tracking_cols if 'NewE_variant' in c]].sum(axis=1)
+    natural_immunity_breakthrough = components_diff[[c for c in tracking_cols if 'NewE_nbt' in c]].sum(axis=1)
+    vaccine_breakthrough = components_diff[[c for c in tracking_cols if 'NewE_vbt' in c]].sum(axis=1)
+    new_s_variant = components_diff[[c for c in tracking_cols if 'NewS_v' in c]].sum(axis=1)
+    new_r_wild = components_diff[[c for c in tracking_cols if 'NewR_w' in c]].sum(axis=1)
+    proportion_cross_immune = new_r_wild / (new_s_variant + new_r_wild)
+
+    modeled_deaths_wild = pd.Series(0, index=indices.full)
+    modeled_deaths_variant = pd.Series(0, index=indices.full)
+    for group in ['hr', 'lr']:
+        group_compartments = [c for c in components.columns if group in c]
+        group_components_diff = components_diff.loc[:, group_compartments]
+        group_ifr = getattr(postprocessing_params, f'ifr_{group}').rename('ifr')
+
+        group_deaths = {}
+        for covid_type in ['wild', 'variant']:
+            group_infections = group_components_diff[f'NewE_{covid_type}_{group}'].rename('infections')
+            group_infections_p = group_components_diff[f'NewE_p_{covid_type}_{group}'].rename('infections')
+            group_infections_not_p = group_infections - group_infections_p
+            group_deaths[covid_type] = compute_deaths(
+                group_infections_not_p,
+                postprocessing_params.infection_to_death,
+                group_ifr,
+            )
+        modeled_deaths_wild += group_deaths['wild']
+        modeled_deaths_variant += group_deaths['variant']
+
+    vaccines_u = components_diff[[c for c in tracking_cols if 'V_u' in c]].sum(axis=1)
+    vaccines_p = components_diff[[c for c in tracking_cols if 'V_p' in c and 'pa' not in c]].sum(axis=1)
+    vaccines_pa = components_diff[[c for c in tracking_cols if 'V_pa' in c]].sum(axis=1)
+    vaccines_m = components_diff[[c for c in tracking_cols if 'V_m' in c and 'ma' not in c]].sum(axis=1)
+    vaccines_ma = components_diff[[c for c in tracking_cols if 'V_ma' in c]].sum(axis=1)
+
+    s_wild = components[[c for c in cols if 'S' in c and 'variant' not in c and 'm' not in c]].sum(axis=1)
+    s_variant = components[[c for c in cols if 'S' in c]].sum(axis=1)
+
+    i_wild = components[[c for c in cols if 'I' in c and 'variant' not in c]].sum(axis=1)
+    i_variant = components[[c for c in cols if 'I' in c and 'variant' in c]].sum(axis=1)
+    i_total = i_wild + i_variant
+
+    total_pop = components[cols].sum(axis=1)
+    beta_wild = modeled_infections_wild / (s_wild * i_wild ** model_parameters.alpha / total_pop)
+    beta_variant = modeled_infections_variant / (s_variant * i_variant ** model_parameters.alpha / total_pop)
+    modeled_infections_total = modeled_infections_wild + modeled_infections_variant
+    beta_total = modeled_infections_total / (s_variant * i_total ** model_parameters.alpha / total_pop)
+
+    immune_wild = components[[c for c in cols if ('R' in c or 'S_m' in c) and 'variant' not in c]].sum(axis=1)
+    immune_variant = components[[c for c in cols if 'R' in c]].sum(axis=1)
+
+    return SystemMetrics(
+        modeled_infections_wild=modeled_infections_wild,
+        modeled_infections_variant=modeled_infections_variant,
+        variant_prevalence=modeled_infections_variant / (modeled_infections_wild + modeled_infections_variant),
+
+        natural_immunity_breakthrough=natural_immunity_breakthrough,
+        vaccine_breakthrough=vaccine_breakthrough,
+        proportion_cross_immune=proportion_cross_immune,
+
+        modeled_deaths_wild=modeled_deaths_wild,
+        modeled_deaths_variant=modeled_deaths_variant,
+        modeled_deaths_total=modeled_deaths_wild + modeled_deaths_variant,
+
+        vaccinations_protected_wild=vaccines_p,
+        vaccinations_protected_all=vaccines_pa,
+        vaccinations_immune_wild=vaccines_m,
+        vaccinations_immune_all=vaccines_ma,
+        vaccinations_effective=vaccines_p + vaccines_pa + vaccines_m + vaccines_ma,
+        vaccinations_ineffective=vaccines_u,
+
+        total_susceptible_wild=s_wild,
+        total_susceptible_variant=s_variant,
+        total_immune_wild=immune_wild,
+        total_immune_variant=immune_variant,
+
+        beta=beta_total,
+        beta_wild=beta_wild,
+        beta_variant=beta_variant,
     )
 
 
 def compute_corrected_hospital_usage(admissions: pd.Series,
-                                     hospital_fatality_ratio: pd.Series,
                                      hospital_parameters: 'HospitalParameters',
-                                     correction_factors: HospitalCorrectionFactors) -> HospitalMetrics:
+                                     postprocessing_parameters: PostprocessingParameters) -> HospitalMetrics:
+    hfr = postprocessing_parameters.ihr / postprocessing_parameters.ifr
+    hfr[hfr < 1] = 1.0
     hospital_usage = compute_hospital_usage(
         admissions,
-        hospital_fatality_ratio,
+        hfr,
         hospital_parameters,
     )
     hospital_usage.hospital_census = (hospital_usage.hospital_census
-                                      * correction_factors.hospital_census).fillna(method='ffill')
+                                      * postprocessing_parameters.hospital_census).fillna(method='ffill')
     hospital_usage.icu_census = (hospital_usage.icu_census
-                                 * correction_factors.icu_census).fillna(method='ffill')
+                                 * postprocessing_parameters.icu_census).fillna(method='ffill')
     hospital_usage.ventilator_census = (hospital_usage.ventilator_census
-                                        * correction_factors.ventilator_census).fillna(method='ffill')
+                                        * postprocessing_parameters.ventilator_census).fillna(method='ffill')
     return hospital_usage
 
 
-def splice_components(components_past: pd.DataFrame, components_forecast: pd.DataFrame):
-    components_past = components_past.reindex(components_forecast.columns, axis='columns').reset_index()
-    components_forecast = components_forecast.reset_index()
-    components = (pd.concat([components_past, components_forecast])
-                  .sort_values(['location_id', 'date'])
-                  .set_index(['location_id']))
-    return components
-
-
-def compute_infections(components: pd.DataFrame) -> Tuple[pd.Series, pd.Series]:
-
-    def _get_daily_subgroup(data: pd.DataFrame, sub_group_columns: List[str]) -> Union[pd.Series, int]:
-        if sub_group_columns:
-            daily_data = (data[sub_group_columns]
-                          .sum(axis=1, skipna=False)
-                          .groupby('location_id')
-                          .apply(lambda x: x.shift(1) - x)
-                          .fillna(0)
-                          .rename('infections'))
-        else:
-            daily_data = 0
-        return daily_data
-
-    def _cleanup(infections: pd.Series) -> pd.Series:
-        return (pd.concat([components['date'], infections], axis=1)
-                .reset_index()
-                .set_index(['location_id', 'date'])
-                .sort_index()['infections'])
-
-    # Columns that will, when summed, give the desired group.
-    susceptible_columns = [c for c in components.columns if 'S' in c]
-    # E_p has both inflows and outflows so we have to sum
-    # everything downstream of it.
-    new_e_protected_columns = [c for c in components.columns if '_p' in c and 'S' not in c]
-    immune_cols = [c for c in components.columns if 'M' in c]
-    delta_susceptible = _get_daily_subgroup(components, susceptible_columns)
-    delta_new_e_protected = _get_daily_subgroup(components, new_e_protected_columns)
-    delta_immune = _get_daily_subgroup(components, immune_cols)
-
-    # noinspection PyTypeChecker
-    modeled_infections = _cleanup(delta_susceptible + delta_immune)
-    # noinspection PyTypeChecker
-    vulnerable_infections = _cleanup(delta_susceptible + delta_immune + delta_new_e_protected)
-
-    return modeled_infections, vulnerable_infections
-
-
-def compute_deaths(modeled_infections: pd.Series, infection_death_lag: int, ifr: pd.Series) -> pd.Series:
-    modeled_deaths = (modeled_infections.shift(infection_death_lag) * ifr).dropna().rename('deaths').reset_index()
+def compute_deaths(modeled_infections: pd.Series,
+                   infection_death_lag: int,
+                   ifr: pd.Series) -> pd.Series:
+    modeled_deaths = (modeled_infections
+                      .groupby('location_id')
+                      .shift(infection_death_lag) * ifr)
+    modeled_deaths = modeled_deaths.rename('deaths').reset_index()
     modeled_deaths['observed'] = 0
-    modeled_deaths = modeled_deaths.set_index(['location_id', 'date', 'observed'])['deaths']
+    modeled_deaths = modeled_deaths.set_index(['location_id', 'date', 'observed']).deaths
     return modeled_deaths
 
 
 def compute_effective_r(components: pd.DataFrame,
-                        beta_params: Dict[str, float],
-                        compartments: List[str]) -> Tuple[pd.Series, pd.Series]:
-    alpha, sigma = beta_params['alpha'], beta_params['sigma']
-    gamma1, gamma2 = beta_params['gamma1'], beta_params['gamma2']
+                        model_params: ModelParameters) -> Tuple[pd.Series, pd.Series]:
+    alpha, sigma = model_params.alpha, model_params.sigma
+    gamma1, gamma2 = model_params.gamma1, model_params.gamma2
 
     components = components.reset_index().set_index(['location_id', 'date'])
 
-    beta, theta = components['beta'], components['theta']
-    theta = theta.fillna(0.)
-    susceptible = components[[c for c in compartments if 'S' in c]].sum(axis=1)
-    infected = components[[c for c in compartments if 'I' in c]].sum(axis=1)
-    n = components[compartments].sum(axis=1).groupby('location_id').max()
+    beta, theta = model_params.beta, model_params.theta_minus
+    susceptible = components[[c for c in components.columns if 'S' in c]].sum(axis=1)
+    infected = components[[c for c in components.columns if 'I' in c]].sum(axis=1)
+    n = components[[c for c in components.columns if 'beta' not in c]].sum(axis=1).groupby('location_id').max()
     avg_gamma = 1 / (1 / (gamma1*(sigma - theta)) + 1 / (gamma2*(sigma - theta)))
 
     r_controlled = (beta * alpha * sigma / avg_gamma * infected**(alpha - 1)).rename('r_controlled')
