@@ -6,7 +6,6 @@ import pandas as pd
 from covid_model_seiir_pipeline.lib import (
     cli_tools,
     static_vars,
-    utilities,
 )
 from covid_model_seiir_pipeline.pipeline.forecasting import model
 from covid_model_seiir_pipeline.pipeline.forecasting.specification import ForecastSpecification
@@ -229,7 +228,7 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
                 last_reimposition_end_date,
             )
 
-    logger.info('Prepping outputs', context='transform')
+    logger.info('Prepping outputs.', context='transform')
     ode_params = model_parameters.to_df()
     outputs = pd.concat([system_metrics.to_df(), output_metrics.to_df()], axis=1)
 
