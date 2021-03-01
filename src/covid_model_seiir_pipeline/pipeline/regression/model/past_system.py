@@ -75,5 +75,5 @@ def system(t: float, y: np.ndarray, params: np.ndarray):
         ds_u, de_u, di1_u, di2_u, dr_u,
         dr_m,
     ])
-    assert dy.sum() < 1e-10
+    assert dy.sum() < 1e-5
     return dy
