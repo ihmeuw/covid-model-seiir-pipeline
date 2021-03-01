@@ -71,6 +71,8 @@ class MiscellaneousConfig:
 
 
 MEASURES = {
+    # Death measures
+
     'deaths': MeasureConfig(
         loaders.load_deaths,
         'daily_deaths',
@@ -79,6 +81,19 @@ MEASURES = {
         aggregator=aggregators.sum_aggregator,
         write_draws=True,
     ),
+    'deaths_wild': MeasureConfig(
+        loaders.load_deaths_wild,
+        'daily_deaths_wild',
+        aggregator=aggregators.sum_aggregator,
+    ),
+    'deaths_variant': MeasureConfig(
+        loaders.load_deaths_variant,
+        'daily_deaths_variant',
+        aggregator=aggregators.sum_aggregator,
+    ),
+
+    # Infection measures
+
     'infections': MeasureConfig(
         loaders.load_infections,
         'daily_infections',
@@ -87,6 +102,26 @@ MEASURES = {
         aggregator=aggregators.sum_aggregator,
         write_draws=True,
     ),
+    'infections_wild': MeasureConfig(
+        loaders.load_infections_wild,
+        'daily_infections_wild',
+        aggregator=aggregators.sum_aggregator,
+    ),
+    'infections_variant': MeasureConfig(
+        loaders.load_infections_variant,
+        'daily_infections_variant',
+        aggregator=aggregators.sum_aggregator,
+    ),
+    'infections_natural_breakthrough': MeasureConfig(
+        loaders.load_infections_natural_breakthrough,
+        'daily_infections_natural_immunity_breakthrough',
+        aggregator=aggregators.sum_aggregator,
+    ),
+    'infections_vaccine_breakthrough': MeasureConfig(
+        loaders.load_infections_vaccine_breakthrough,
+        'daily_infections_vaccine_breakthrough',
+        aggregator=aggregators.sum_aggregator,
+    ),
     'cases': MeasureConfig(
         loaders.load_cases,
         'daily_cases',
@@ -94,28 +129,9 @@ MEASURES = {
         cumulative_label='cumulative_cases',
         aggregator=aggregators.sum_aggregator,
     ),
-    'r_controlled': MeasureConfig(
-        loaders.load_r_controlled,
-        'r_controlled',
-    ),
-    'r_effective': MeasureConfig(
-        loaders.load_r_effective,
-        'r_effective',
-    ),
-    'herd_immunity': MeasureConfig(
-        loaders.load_herd_immunity,
-        'herd_immunity',
-    ),
-    'total_susceptible': MeasureConfig(
-        loaders.load_total_susceptible,
-        'total_susceptible',
-        aggregator=aggregators.sum_aggregator,
-    ),
-    'total_immune': MeasureConfig(
-        loaders.load_total_immune,
-        'total_immune',
-        aggregator=aggregators.sum_aggregator,
-    ),
+
+    # Hospital measures
+
     'hospital_admissions': MeasureConfig(
         loaders.load_hospital_admissions,
         'hospital_admissions',
@@ -141,10 +157,122 @@ MEASURES = {
         'ventilator_census',
         aggregator=aggregators.sum_aggregator,
     ),
-    'betas': MeasureConfig(
-        loaders.load_betas,
+
+    # Vaccination measures
+
+    'effectively_vaccinated': MeasureConfig(
+        loaders.load_effectively_vaccinated,
+        'daily_vaccinations_effective_input',
+        calculate_cumulative=True,
+        cumulative_label='cumulative_vaccinations_effective_input',
+        aggregator=aggregators.sum_aggregator,
+    ),
+    'vaccines_immune_all': MeasureConfig(
+        loaders.load_vaccinations_immune_all,
+        'daily_vaccinations_all_immune',
+        aggregator=aggregators.sum_aggregator,
+    ),
+    'vaccines_immune_wild': MeasureConfig(
+        loaders.load_vaccinations_immune_wild,
+        'daily_vaccinations_wild_immune',
+        aggregator=aggregators.sum_aggregator,
+    ),
+    'vaccines_protected_all': MeasureConfig(
+        loaders.load_vaccinations_protected_all,
+        'daily_vaccinations_all_protected',
+        aggregator=aggregators.sum_aggregator,
+    ),
+    'vaccines_protected_wild': MeasureConfig(
+        loaders.load_vaccinations_protected_wild,
+        'daily_vaccinations_wild_protected',
+        aggregator=aggregators.sum_aggregator,
+    ),
+    'vaccines_effective': MeasureConfig(
+        loaders.load_vaccinations_effective,
+        'daily_vaccinations_effective',
+        calculate_cumulative=True,
+        cumulative_label='cumulative_vaccinations_effective',
+        aggregator=aggregators.sum_aggregator,
+    ),
+    'vaccines_ineffective': MeasureConfig(
+        loaders.load_vaccinations_ineffective,
+        'daily_vaccinations_ineffective',
+        aggregator=aggregators.sum_aggregator,
+    ),
+
+    # Other epi measures
+
+    'total_susceptible_wild': MeasureConfig(
+        loaders.load_total_susceptible_wild,
+        'total_susceptible_wild',
+        aggregator=aggregators.sum_aggregator,
+    ),
+    'total_susceptible_variant': MeasureConfig(
+        loaders.load_total_susceptible_variant,
+        'total_susceptible_variant',
+        aggregator=aggregators.sum_aggregator,
+    ),
+    'total_immune_wild': MeasureConfig(
+        loaders.load_total_immune_wild,
+        'total_immune_wild',
+        aggregator=aggregators.sum_aggregator,
+    ),
+    'total_immune_variant': MeasureConfig(
+        loaders.load_total_immune_variant,
+        'total_immune_variant',
+        aggregator=aggregators.sum_aggregator,
+    ),
+    'r_controlled': MeasureConfig(
+        loaders.load_r_controlled,
+        'r_controlled',
+    ),
+    'r_effective': MeasureConfig(
+        loaders.load_r_effective,
+        'r_effective',
+    ),
+    'herd_immunity': MeasureConfig(
+        loaders.load_herd_immunity,
+        'herd_immunity',
+    ),
+
+    # Betas
+
+    'beta': MeasureConfig(
+        loaders.load_beta,
         'betas',
     ),
+    'beta_wild': MeasureConfig(
+        loaders.load_beta_wild,
+        'beta_wild',
+    ),
+    'beta_variant': MeasureConfig(
+        loaders.load_beta_variant,
+        'beta_variant',
+    ),
+    'empirical_beta': MeasureConfig(
+        loaders.load_empirical_beta,
+        'empirical_beta',
+    ),
+    'empirical_beta_wild': MeasureConfig(
+        loaders.load_empirical_beta_wild,
+        'empirical_beta_wild',
+    ),
+    'empirical_beta_variant': MeasureConfig(
+        loaders.load_empirical_beta_variant,
+        'empirical_beta_variant',
+    ),
+
+    'variant_prevalence': MeasureConfig(
+        loaders.load_variant_prevalence,
+        'variant_prevalence',
+    ),
+    'empirical_variant_prevalence': MeasureConfig(
+        loaders.load_empirical_variant_prevalence,
+        'empirical_variant_prevalence',
+    ),
+
+    # Beta calculation inputs
+
     'beta_residuals': MeasureConfig(
         loaders.load_beta_residuals,
         'log_beta_residuals',
@@ -158,6 +286,18 @@ MEASURES = {
         loaders.load_scaling_parameters,
         'beta_scaling_parameters',
         write_draws=True,
+    ),
+    'infection_fatality_ratio_es': MeasureConfig(
+        loaders.load_ifr_es,
+        'infection_fatality_ratio_es',
+    ),
+    'infection_detection_ratio_es': MeasureConfig(
+        loaders.load_idr_es,
+        'infection_detection_ratio_es',
+    ),
+    'infection_hospitalization_ratio_es': MeasureConfig(
+        loaders.load_ihr_es,
+        'infection_hospitalization_ratio_es',
     ),
 }
 
@@ -266,10 +406,10 @@ MISCELLANEOUS = {
         'age_specific_deaths',
         aggregator=aggregators.sum_aggregator,
     ),
-    'hospital_correction_factors': MiscellaneousConfig(
-        loaders.load_hospital_correction_factors,
-        'hospital_correction_factors',
-    ),
+#    'hospital_correction_factors': MiscellaneousConfig(
+#        loaders.load_hospital_correction_factors,
+#        'hospital_correction_factors',
+#    ),
     'hospital_census_data': MiscellaneousConfig(
         loaders.load_raw_census_data,
         'hospital_census_data',
