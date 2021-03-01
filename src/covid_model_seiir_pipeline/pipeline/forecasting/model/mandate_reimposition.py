@@ -6,33 +6,39 @@ import pandas as pd
 from covid_model_seiir_pipeline.lib import static_vars
 
 
-def compute_reimposition_threshold(deaths, population, reimposition_threshold, max_threshold):
-    death_rate = deaths.reset_index(level='date').merge(population, on='location_id')
-    death_rate['death_rate'] = death_rate['deaths'] / death_rate['population']
-    death_rate = (death_rate[death_rate.observed == 1]
+def compute_reimposition_threshold(past_deaths, population, reimposition_threshold, max_threshold):
+    population = population.reindex(past_deaths.index, level='location_id')
+    death_rate = past_deaths / population
+    death_rate = (death_rate
                   .groupby('location_id')
                   .apply(lambda x: x.iloc[-14:])
                   .reset_index(level=0, drop=True))
-    days_over_death_rate = ((death_rate.death_rate > reimposition_threshold.reindex(death_rate.index))
-                            .groupby('location_id')
-                            .sum())
+    days_over_death_rate = (
+        (death_rate > reimposition_threshold.reindex(death_rate.index, level='location_id'))
+         .groupby('location_id')
+         .sum()
+    )
     reimposition_threshold.loc[days_over_death_rate >= 7] = max_threshold / 1e6
     return reimposition_threshold
 
 
 def compute_reimposition_date(deaths, population, reimposition_threshold,
                               min_wait, last_reimposition_end_date) -> pd.Series:
-    death_rate = deaths.reset_index(level='date').merge(population, on='location_id')
-    death_rate['death_rate'] = death_rate['deaths'] / death_rate['population']
-
-    projected = death_rate['observed'] == 0
-    last_observed_date = death_rate[~projected].groupby('location_id')['date'].max()
-    min_reimposition_date = (last_observed_date + min_wait)
+    population = population.reindex(deaths.index, level='location_id')
+    death_rate = (deaths / population).rename('death_rate')
+    
+    last_observed_date = (death_rate
+                          .loc[pd.IndexSlice[:, :, 1]]
+                          .reset_index(level='date')
+                          .groupby('location_id')
+                          .date
+                          .max())
+    min_reimposition_date = last_observed_date + min_wait
     previously_implemented = last_reimposition_end_date[last_reimposition_end_date.notnull()].index
     min_reimposition_date.loc[previously_implemented] = (
             last_reimposition_end_date.loc[previously_implemented] + min_wait
     )
-
+    death_rate = death_rate.reset_index().set_index('location_id')
     after_min_reimposition_date = death_rate['date'] >= min_reimposition_date.loc[death_rate.index]
     over_threshold = death_rate['death_rate'] > reimposition_threshold.reindex(death_rate.index)
     reimposition_date = (death_rate[over_threshold & after_min_reimposition_date]

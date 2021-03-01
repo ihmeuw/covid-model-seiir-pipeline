@@ -142,9 +142,9 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
             scenario_spec.algorithm_params,
             location_ids
         )
-        population = population.groupby('location_id').sum()
+        population = population.groupby('location_id').population.sum()
         reimposition_threshold = model.compute_reimposition_threshold(
-            output_metrics.deaths,
+            postprocessing_params.past_deaths,
             population,
             reimposition_threshold,
             max_threshold,
