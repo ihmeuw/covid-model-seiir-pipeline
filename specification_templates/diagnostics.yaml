@@ -3,11 +3,6 @@ data:
 workflow:
   project: 'proj_covid_prod'
   queue: 'd.q'
-  tasks:
-    grid_plots:
-      max_runtime_seconds: 5000
-      m_mem_free: '200G'
-      num_cores: 70
 grid_plots:
   - name: 'compare_longrange'
     date_start: '2020-03-01'

@@ -11,15 +11,6 @@ data:
 workflow:
   project: 'proj_covid_prod'
   queue: 'd.q'
-  tasks:
-    resample_map:
-      max_runtime_seconds: 5000
-      m_mem_free: '50G'
-      num_cores: 26
-    postprocess:
-      max_runtime_seconds: 15000
-      m_mem_free: '60G'
-      num_cores: 26
 resampling:
   reference_scenario: 'reference'
   reference_date: '2021-12-31'
