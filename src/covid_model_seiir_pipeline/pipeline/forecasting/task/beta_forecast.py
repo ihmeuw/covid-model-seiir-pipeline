@@ -96,7 +96,6 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
     ###################################################
     # Construct parameters for postprocessing results #
     ###################################################
-
     logger.info('Loading results processing input data.', context='read')
     past_deaths = data_interface.load_past_deaths(draw_id=draw_id)
     ratio_data = data_interface.load_ratio_data(draw_id=draw_id)
@@ -131,24 +130,21 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
         postprocessing_params,
         model_parameters,
         hospital_parameters,
-        scenario_spec.system
+        scenario_spec.system,
     )
 
     if scenario_spec.algorithm == 'draw_level_mandate_reimposition':
         logger.info('Entering mandate reimposition.', context='compute_mandates')
         # Info data specific to mandate reimposition
         location_ids = data_interface.load_location_ids()
+        percent_mandates, mandate_effects = data_interface.load_mandate_data(scenario_spec.covariates['mobility'])
         min_wait, days_on, reimposition_threshold, max_threshold = model.unpack_parameters(
             scenario_spec.algorithm_params,
             location_ids
         )
-        population = (output_metrics.components[compartment_info.compartments]
-                      .sum(axis=1)
-                      .rename('population')
-                      .groupby('location_id')
-                      .max())
+        population = population.groupby('location_id').population.sum()
         reimposition_threshold = model.compute_reimposition_threshold(
-            output_metrics.deaths,
+            postprocessing_params.past_deaths,
             population,
             reimposition_threshold,
             max_threshold,
@@ -167,30 +163,32 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
         while len(reimposition_date):  # any place reimposes mandates.
             logger.info(f'On mandate reimposition {reimposition_count + 1}. {len(reimposition_date)} locations '
                         f'are reimposing mandates.')
-            mobility = covariates[['date', 'mobility']].reset_index().set_index(['location_id', 'date'])['mobility']
+            mobility = covariates['mobility']
             mobility_lower_bound = model.compute_mobility_lower_bound(
                 mobility,
-                scenario_data.mandate_effects
+                mandate_effects,
             )
 
             new_mobility = model.compute_new_mobility(
                 mobility,
                 reimposition_date,
                 mobility_lower_bound,
-                scenario_data.percent_mandates,
-                days_on
+                percent_mandates,
+                days_on,
             )
 
-            covariates = covariates.reset_index().set_index(['location_id', 'date'])
             covariates['mobility'] = new_mobility
-            covariates = covariates.reset_index(level='date')
-            covariate_pred = covariates.loc[the_future].reset_index()
 
-            betas = model.forecast_beta(covariate_pred, coefficients, beta_scales)
-            seiir_parameters = model.prep_seiir_parameters(
+            model_parameters = model.build_model_parameters(
+                indices,
+                ode_params,
                 betas,
                 thetas,
-                scenario_data,
+                covariates,
+                coefficients,
+                beta_scales,
+                vaccinations,
+                scenario_spec,
             )
 
             # The ode is done as a loop over the locations in the initial condition.
@@ -198,35 +196,25 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
             # subset here to only the locations that reimpose mandates for speed.
             initial_condition_subset = initial_condition.loc[reimposition_date.index]
             logger.info('Running ODE forecast.', context='compute_ode')
-            future_components_subset = model.run_normal_ode_model_by_location(
+            future_components_subset = model.run_ode_model(
                 initial_condition_subset,
-                beta_params,
-                seiir_parameters,
-                scenario_spec,
-                compartment_info,
-            ).set_index('date', append=True).sort_index()
+                model_parameters.with_index(indices.future),
+                progress_bar,
+            )
 
             logger.info('Processing ODE results and computing deaths and infections.', context='compute_results')
             future_components = (future_components
-                                 .set_index('date', append=True)
                                  .sort_index()
                                  .drop(future_components_subset.index)
                                  .append(future_components_subset)
-                                 .sort_index()
-                                 .reset_index(level='date'))
-            output_metrics = model.compute_output_metrics(
-                infection_data,
-                ratio_data,
-                past_components,
+                                 .sort_index())
+            components, system_metrics, output_metrics = model.compute_output_metrics(
+                indices,
                 future_components,
-                beta_params,
-                compartment_info,
-            )
-            hospital_usage = model.compute_corrected_hospital_usage(
-                output_metrics.admissions,
-                ratio_data.ihr / ratio_data.ifr,
+                postprocessing_params,
+                model_parameters,
                 hospital_parameters,
-                correction_factors,
+                scenario_spec.system,
             )
 
             logger.info('Recomputing reimposition dates', context='compute_mandates')
@@ -241,16 +229,11 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
                 last_reimposition_end_date,
             )
 
-    logger.info('Writing outputs.', context='write')
-    ode_param_cols = output_metrics.components.columns.difference(compartment_info.compartments)
-    ode_params = output_metrics.components[ode_param_cols]
-    components = output_metrics.components[compartment_info.compartments]
-    covariates = covariates.set_index('date', append=True)
-    epi_metrics = [value for key, value in utilities.asdict(output_metrics).items() if key != 'components']
-    usage = [value.rename(key) for key, value in utilities.asdict(hospital_usage).items()]
-    corrections = [value.rename(key + '_correction') for key, value in utilities.asdict(correction_factors).items()]
-    outputs = pd.concat(epi_metrics + usage + corrections, axis=1)
+    logger.info('Prepping outputs', context='transform')
+    ode_params = model_parameters.to_df()
+    outputs = pd.concat([system_metrics.to_df(), output_metrics.to_df()], axis=1)
 
+    logger.info('Writing outputs.', context='write')
     data_interface.save_ode_params(ode_params, scenario, draw_id)
     data_interface.save_components(components, scenario, draw_id)
     data_interface.save_raw_covariates(covariates, scenario, draw_id)

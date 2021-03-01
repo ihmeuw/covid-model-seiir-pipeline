@@ -56,7 +56,11 @@ def compute_output_metrics(indices: Indices,
                       .loc[modeled_deaths
                            .dropna()
                            .index
-                           .difference(past_deaths.index)]))
+                           .difference(past_deaths.index)])
+              .to_frame())
+    deaths['observed'] = 0
+    deaths.loc[past_deaths.index, 'observed'] = 1
+    deaths = deaths.set_index('observed', append=True).deaths
     cases = (infections
              .groupby('location_id')
              .shift(postprocessing_params.infection_to_case)

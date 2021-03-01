@@ -205,4 +205,10 @@ class OutputMetrics:
         return utilities.asdict(self)
 
     def to_df(self) -> pd.DataFrame:
-        return pd.concat([v.rename(k) for k, v in self.to_dict().items()], axis=1)
+        out_list = []
+        for k, v in self.to_dict().items():
+            v = v.rename(k)
+            if k == 'deaths':
+                v = v.reset_index(level='observed')
+            out_list.append(v)
+        return pd.concat(out_list, axis=1)
