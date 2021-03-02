@@ -29,10 +29,10 @@ COMPARTMENTS = (
 ) = range(len(COMPARTMENTS))
 
 VACCINE_CATEGORIES = (
-    'u', 'p', 'm'
+    'u', 'p', 'pa', 'm', 'ma',
 )
 (
-    u, p, m
+    u, p, pa, m, ma,
 ) = range(len(VACCINE_CATEGORIES))
 
 
@@ -106,7 +106,9 @@ def single_group_system(t: float,
     # Vaccines
     outflow_map[s, s_u] += vaccines_out[s, u]
     outflow_map[s, s_p] += vaccines_out[s, p]
-    outflow_map[s, r_m] += vaccines_out[s, m]
+    outflow_map[s, s_pa] += vaccines_out[s, pa]
+    outflow_map[s, s_m] += vaccines_out[s, m]
+    outflow_map[s, r_m] += vaccines_out[s, ma]
 
     outflow_map[e, e_u] += vaccines_out[e, u]
     outflow_map[i1, i1_u] += vaccines_out[i1, u]
@@ -124,6 +126,13 @@ def single_group_system(t: float,
     outflow_map = seiir_transition(
         y, params, b,
         s_p, e_p, i1_p, i2_p, r_p,
+        outflow_map,
+    )
+
+    # Protected all
+    outflow_map = seiir_transition(
+        y, params, b,
+        s_pa, e_pa, i1_pa, i2_pa, r_pa,
         outflow_map,
     )
 
@@ -186,7 +195,7 @@ def vaccinate_from_s(y: np.ndarray, vaccines: np.ndarray, params: np.ndarray, b:
     total_vaccines_s = min(y[s] - new_e, expected_total_vaccines_s)
 
     if expected_total_vaccines_s:
-        for vaccine_type in [u, p, m]:
+        for vaccine_type in [u, p, pa, m, ma]:
             expected_vaccines = y[s] / n_unvaccinated * vaccines[vaccine_type]
             rho = expected_vaccines / expected_total_vaccines_s
             vaccines_out[s, vaccine_type] = rho * total_vaccines_s
