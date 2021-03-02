@@ -251,6 +251,9 @@ def correct_ratio_data(indices: Indices,
                        model_params: ModelParameters,
                        ifr_scale: float) -> RatioData:
     variant_prevalence = model_params.p_all_variant
+    p_start = variant_prevalence.loc[indices.initial_condition].reset_index(level='date', drop=True)
+    variant_prevalence -= p_start.reindex(variant_prevalence.index, level='location_id')
+    variant_prevalence[variant_prevalence < 0] = 0.0
     ifr_scalar = ifr_scale * variant_prevalence + (1 - variant_prevalence)
 
     ratio_data.ifr = ifr_scalar * _expand_rate(ratio_data.ifr, indices.full)
