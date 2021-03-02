@@ -39,8 +39,9 @@ class ODEParameters:
     gamma1: pd.Series
     gamma2: pd.Series
 
+    vaccines_unprotected: pd.Series
+    vaccines_protected: pd.Series
     vaccines_immune: pd.Series
-    vaccines_other: pd.Series
 
     def to_dict(self) -> Dict[str, pd.Series]:
         return utilities.asdict(self)
@@ -60,7 +61,6 @@ class ODEParameters:
                 key: value.loc[location_id] for key, value in self.to_dict().items()
             })
             yield location_id, loc_parameters
-
 
 
 @dataclass
