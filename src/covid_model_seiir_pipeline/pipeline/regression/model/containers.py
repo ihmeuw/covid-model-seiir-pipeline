@@ -40,8 +40,10 @@ class ODEParameters:
     gamma2: pd.Series
 
     vaccines_unprotected: pd.Series
-    vaccines_protected: pd.Series
-    vaccines_immune: pd.Series
+    vaccines_protected_wild_type: pd.Series
+    vaccines_protected_all_types: pd.Series
+    vaccines_immune_wild_type: pd.Series
+    vaccines_immune_all_types: pd.Series
 
     def to_dict(self) -> Dict[str, pd.Series]:
         return utilities.asdict(self)

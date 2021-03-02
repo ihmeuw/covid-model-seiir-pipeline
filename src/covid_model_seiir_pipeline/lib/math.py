@@ -33,14 +33,7 @@ def compute_beta_hat(covariates: pd.DataFrame, coefficients: pd.DataFrame) -> pd
     return (covariates * coefficients).sum(axis=1)
 
 
-def adjust_vaccinations(vaccine_data: pd.DataFrame, covariates: pd.DataFrame, system: str):
-    if 'variant' in system:
-        return _adjust_variant_vaccines(vaccine_data)
-    else:
-        return _adjust_non_variant_vaccines(vaccine_data, covariates)
-
-
-def _adjust_variant_vaccines(vaccine_data):
+def adjust_vaccinations(vaccine_data: pd.DataFrame):
     risk_groups = ['lr', 'hr']
     vaccinations = {}
 
@@ -54,56 +47,6 @@ def _adjust_variant_vaccines(vaccine_data):
         }
         for to_name, from_name in base_col_map.items():
             vaccinations[to_name] = vaccine_data[from_name].rename(to_name)
-    return vaccinations
-
-
-def _adjust_non_variant_vaccines(vaccine_data, covariates):
-    bad_variant_prevalence = covariates[['variant_prevalence_B1351', 'variant_prevalence_P1']].sum(axis=1)
-    variant_start_threshold = pd.Timestamp('2021-05-01')
-    location_ids = vaccine_data.reset_index().location_id.tolist()
-    bad_variant_entrance_date = (bad_variant_prevalence[bad_variant_prevalence > 1]
-                                 .reset_index()
-                                 .groupby('location_id')
-                                 .date
-                                 .min())
-    locs_with_bad_variant = (bad_variant_entrance_date[bad_variant_entrance_date < variant_start_threshold]
-                             .reset_index()
-                             .location_id
-                             .tolist())
-    locs_without_bad_variant = list(set(location_ids).difference(locs_with_bad_variant))
-
-    risk_groups = ['lr', 'hr']
-    vaccinations = {}
-    for risk_group in risk_groups:
-        bad_variant_col_map = {
-            f'unprotected_{risk_group}': [f'unprotected_{risk_group}',
-                                          f'effective_protected_wildtype_{risk_group}',
-                                          f'effective_wildtype_{risk_group}'],
-            f'protected_wild_type_{risk_group}': [],
-            f'protected_all_types_{risk_group}': [f'effective_protected_variant_{risk_group}'],
-            f'immune_wild_type_{risk_group}': [],
-            f'immune_all_types_{risk_group}': [f'effective_variant_{risk_group}'],
-        }
-        not_bad_variant_col_map = {
-            f'unprotected_{risk_group}': [f'unprotected_{risk_group}'],
-            f'protected_wild_type_{risk_group}': [],
-            f'protected_all_types_{risk_group}': [f'effective_protected_wildtype_{risk_group}',
-                                                  f'effective_protected_variant_{risk_group}'],
-            f'immune_wild_type_{risk_group}': [],
-            f'immune_all_types_{risk_group}': [f'effective_wildtype_{risk_group}',
-                                               f'effective_variant_{risk_group}'],
-        }
-        bad_variant_vaccines = {
-            name: vaccine_data[cols].sum(axis=1).rename(name) for name, cols in bad_variant_col_map.items()
-        }
-        not_bad_variant_vaccines = {
-            name: vaccine_data[cols].sum(axis=1).rename(name) for name, cols in not_bad_variant_col_map.items()
-        }
-        for name in bad_variant_vaccines:
-            vaccinations[name] = (bad_variant_vaccines[name]
-                                  .loc[locs_with_bad_variant]
-                                  .append(not_bad_variant_vaccines[name].loc[locs_without_bad_variant])
-                                  .sort_index())
     return vaccinations
 
 

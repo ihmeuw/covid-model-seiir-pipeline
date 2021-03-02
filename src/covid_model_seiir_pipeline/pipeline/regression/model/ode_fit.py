@@ -31,30 +31,18 @@ def prepare_ode_fit_parameters(past_index: pd.Index,
             name=parameter,
         )
 
-    vaccinations = math.adjust_vaccinations(
-        vaccinations,
-        covariates,
-        'vaccine',
-    )
-    # TODO: test out vaccine system.
-    ready_to_switch = False
-    if not ready_to_switch:
-        vaccines_unprotected = pd.Series(0., index=past_index, name='vaccines_unprotected')
-        vaccines_protected = pd.Series(0., index=past_index, name='vaccines_protected')
-        vaccines_immune = pd.Series(0., index=past_index, name='vaccines_immune')
-
-    else:
-        vaccinations = vaccinations.reindex(past_index, fill_value=0)
-        vaccines_unprotected = vaccinations[[c for c in vaccinations if c.split('_')[0] == 'unprotected']].sum(axis=1)
-        vaccines_protected = vaccinations[[c for c in vaccinations if c.split('_')[0] == 'protected']].sum(axis=1)
-        vaccines_immune = vaccinations[[c for c in vaccinations if c.split('_')[0] == 'immune']].sum(axis=1)
+    vaccinations = math.adjust_vaccinations(vaccinations)
+    vaccinations = pd.concat([v.rename(k) for k, v in vaccinations.items()], axis=1)
+    vaccinations = vaccinations.reindex(past_index, fill_value=0.)
 
     return ODEParameters(
         population=population,
         **sampled_params,
-        vaccines_unprotected=vaccines_unprotected,
-        vaccines_protected=vaccines_protected,
-        vaccines_immune=vaccines_immune,
+        vaccines_unprotected=vaccinations.filter(like='unprotected').sum(axis=1),
+        vaccines_protected_wild_type=vaccinations.filter(like='protected_wild').sum(axis=1),
+        vaccines_protected_all_types=vaccinations.filter(like='protected_all').sum(axis=1),
+        vaccines_immune_wild_type=vaccinations.filter(like='immune_wild').sum(axis=1),
+        vaccines_immune_all_types=vaccinations.filter(like='immune_all').sum(axis=1),
     )
 
 
@@ -119,9 +107,12 @@ def run_loc_ode_fit(infections: pd.Series, ode_parameters: ODEParameters) -> pd.
     parameters[past_system.gamma1] = ode_parameters.gamma1.values
     parameters[past_system.gamma2] = ode_parameters.gamma2.values
     parameters[past_system.new_e] = obs
-    parameters[past_system.m] = ode_parameters.vaccines_immune.values
-    parameters[past_system.p] = ode_parameters.vaccines_protected.values
     parameters[past_system.u] = ode_parameters.vaccines_unprotected.values
+    parameters[past_system.p] = ode_parameters.vaccines_protected_wild_type.values
+    parameters[past_system.pa] = ode_parameters.vaccines_protected_all_types.values
+    parameters[past_system.m] = ode_parameters.vaccines_immune_wild_type.values
+    parameters[past_system.ma] = ode_parameters.vaccines_immune_all_types.values
+
     result = math.solve_ode(
         system=past_system.system,
         t=t,

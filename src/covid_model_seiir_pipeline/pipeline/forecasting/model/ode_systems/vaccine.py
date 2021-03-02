@@ -14,27 +14,30 @@ PARAMETERS = [
 ) = range(len(PARAMETERS))
 
 COMPARTMENTS = (
-    'S',   'E',   'I1',   'I2',   'R',    # Unvaccinated
-    'S_u', 'E_u', 'I1_u', 'I2_u', 'R_u',  # Vaccinated and unprotected
-    'S_p', 'E_p', 'I1_p', 'I2_p', 'R_p',  # Vaccinated and protected
-                                  'R_m',  # Vaccinated and immune
+    'S',    'E',    'I1',    'I2',    'R',
+    'S_u',  'E_u',  'I1_u',  'I2_u',  'R_u',
+    'S_p',  'E_p',  'I1_p',  'I2_p',  'R_p',
+    'S_pa', 'E_pa', 'I1_pa', 'I2_pa', 'R_pa',
+    'S_m',                            'R_m',
 )
 (
-    s, e, i1, i2, r,
-    s_u, e_u, i1_u, i2_u, r_u,
-    s_p, e_p, i1_p, i2_p, r_p,
-    r_m,
+    s,    e,    i1,    i2,    r,
+    s_u,  e_u,  i1_u,  i2_u,  r_u,
+    s_p,  e_p,  i1_p,  i2_p,  r_p,
+    s_pa, e_pa, i1_pa, i2_pa, r_pa,
+    s_m,                      r_m,
 ) = range(len(COMPARTMENTS))
 
 VACCINE_CATEGORIES = (
-    'u', 'p', 'm'
+    'u', 'p', 'pa', 'm', 'ma',
 )
 (
-    u, p, m
+    u, p, pa, m, ma,
 ) = range(len(VACCINE_CATEGORIES))
 
 
 N_SEIIR_COMPARTMENTS = 5
+N_SEIIR_GROUPS = 4
 
 # 3rd and 4th compartment of each seiir group are infectious.
 LOCAL_I1 = 2
@@ -54,8 +57,8 @@ def system(t: float, y: np.ndarray, params: np.array):
     infectious = 0.
     n_total = y.sum()
     for i in range(n_groups):
-        # len(vaccine_categories) - 1 for immune + 1 for unvaccinated
-        for j in range(len(VACCINE_CATEGORIES)):
+        
+        for j in range(N_SEIIR_GROUPS):
             # 3rd and 4th compartment of each group + seiir are infectious.
             local_s = i*system_size + j*N_SEIIR_COMPARTMENTS
             infectious = (infectious + y[local_s + LOCAL_I1] + y[local_s + LOCAL_I2])
@@ -104,7 +107,9 @@ def single_group_system(t: float,
     # Vaccines
     outflow_map[s, s_u] += vaccines_out[s, u]
     outflow_map[s, s_p] += vaccines_out[s, p]
-    outflow_map[s, r_m] += vaccines_out[s, m]
+    outflow_map[s, s_pa] += vaccines_out[s, pa]
+    outflow_map[s, s_m] += vaccines_out[s, m]
+    outflow_map[s, r_m] += vaccines_out[s, ma]
 
     outflow_map[e, e_u] += vaccines_out[e, u]
     outflow_map[i1, i1_u] += vaccines_out[i1, u]
@@ -125,12 +130,18 @@ def single_group_system(t: float,
         outflow_map,
     )
 
+    # Protected all
+    outflow_map = seiir_transition(
+        y, params, b,
+        s_pa, e_pa, i1_pa, i2_pa, r_pa,
+        outflow_map,
+    )
+
     inflow = outflow_map.sum(axis=0)
     outflow = outflow_map.sum(axis=1)
     result = inflow - outflow
 
-    if result.sum() > 1e-5:
-        print('Compartment mismatch: ', result.sum())
+    assert result.sum() < 1e-5, 'Compartment mismatch'
 
     return result
 
@@ -184,7 +195,7 @@ def vaccinate_from_s(y: np.ndarray, vaccines: np.ndarray, params: np.ndarray, b:
     total_vaccines_s = min(y[s] - new_e, expected_total_vaccines_s)
 
     if expected_total_vaccines_s:
-        for vaccine_type in [u, p, m]:
+        for vaccine_type in [u, p, pa, m, ma]:
             expected_vaccines = y[s] / n_unvaccinated * vaccines[vaccine_type]
             rho = expected_vaccines / expected_total_vaccines_s
             vaccines_out[s, vaccine_type] = rho * total_vaccines_s
