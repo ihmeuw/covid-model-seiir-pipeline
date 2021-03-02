@@ -72,72 +72,24 @@ def run_compute_beta_scaling_parameters(forecast_version: str, scenario: str):
     data_interface = ForecastDataInterface.from_specification(forecast_spec)
 
     logger.info('Loading input data.', context='read')
-    total_deaths = data_interface.load_total_deaths()
     beta_scaling = forecast_spec.scenarios[scenario].beta_scaling
 
     logger.info('Computing scaling parameters.', context='compute')
-    scaling_data = compute_initial_beta_scaling_parameters(total_deaths, beta_scaling, data_interface, num_cores)
-    residual_mean_offset = compute_residual_mean_offset(scaling_data, beta_scaling, total_deaths)
+    scaling_data = compute_initial_beta_scaling_parameters(beta_scaling, data_interface, num_cores)
 
     logger.info('Writing scaling parameters to disk.', context='write')
-    write_out_beta_scale(scaling_data, residual_mean_offset, scenario, data_interface, num_cores)
+    write_out_beta_scale(scaling_data, scenario, data_interface, num_cores)
 
     logger.report()
 
 
-def compute_residual_mean_offset(scaling_data: List[pd.DataFrame],
-                                 beta_scaling: Dict,
-                                 total_deaths: pd.Series) -> pd.Series:
-    """Calculates the final scaling factor offset based on total deaths.
-
-    The offset is used to totally or partially recenter the residual average
-    of beta around zero based on the total number of deaths in a location.
-
-    Parameters
-    ----------
-    scaling_data
-        A list with a dataframe per draw being modeled. Each dataframe has
-        the draw level mean of the residuals of log beta from the
-        regression over a time period in the past.
-    beta_scaling
-        A set of parameters for the beta scaling computation. For this function
-        the important parameters are the bounds on a small number of deaths,
-        `offset_deaths_lower`, below which the distribution will be centered
-        around zero, and a large number of deaths, `offset_deaths_upper`,
-        above which the distribution of wil not be altered. In between,
-        the distribution is partially re-centered.
-    total_deaths
-        Total number of deaths by location at the latest date observed.
-
-    Returns
-    -------
-        A series with the computed offset by location.
-
-    """
-    average_log_beta_residual_mean = (pd.concat([d.log_beta_residual_mean for d in scaling_data])
-                                      .groupby(level='location_id')
-                                      .mean())
-    deaths_lower, deaths_upper = beta_scaling['offset_deaths_lower'], beta_scaling['offset_deaths_upper']
-
-    scaled_offset = (deaths_lower <= total_deaths) & (total_deaths < deaths_upper)
-    full_offset = total_deaths < deaths_lower
-
-    offset = pd.Series(0, index=total_deaths.index, name='log_beta_residual_mean_offset')
-    scale_factor = (deaths_upper - total_deaths) / (deaths_upper - deaths_lower)
-    offset.loc[scaled_offset] = scale_factor[scaled_offset] * average_log_beta_residual_mean[scaled_offset]
-    offset.loc[full_offset] = average_log_beta_residual_mean[full_offset]
-    return offset
-
-
-def compute_initial_beta_scaling_parameters(total_deaths: pd.Series,
-                                            beta_scaling: dict,
+def compute_initial_beta_scaling_parameters(beta_scaling: dict,
                                             data_interface: ForecastDataInterface,
                                             num_cores: int) -> List[pd.DataFrame]:
     # Serialization is our bottleneck, so we parallelize draw level data
     # ingestion and computation across multiple processes.
     _runner = functools.partial(
         compute_initial_beta_scaling_parameters_by_draw,
-        total_deaths=total_deaths,
         beta_scaling=beta_scaling,
         data_interface=data_interface
     )
@@ -148,18 +100,18 @@ def compute_initial_beta_scaling_parameters(total_deaths: pd.Series,
 
 
 def compute_initial_beta_scaling_parameters_by_draw(draw_id: int,
-                                                    total_deaths: pd.Series,
                                                     beta_scaling: Dict,
                                                     data_interface: ForecastDataInterface) -> pd.DataFrame:
+
     # Construct a list of pandas Series indexed by location and named
     # as their column will be in the output dataframe. We'll append
     # to this list as we construct the parameters.
-    draw_data = [total_deaths.copy(),
-                 pd.Series(beta_scaling['window_size'], index=total_deaths.index, name='window_size')]
+    draw_data = []
 
     betas = data_interface.load_betas(draw_id)
     # Select out the transition day to compute the initial scaling parameter.
     beta_transition = betas.groupby('location_id').last()
+
     draw_data.append(beta_transition['beta'].rename('fit_final'))
     draw_data.append(beta_transition['beta_hat'].rename('pred_start'))
     draw_data.append((beta_transition['beta'] / beta_transition['beta_hat']).rename('scale_init'))
@@ -171,39 +123,37 @@ def compute_initial_beta_scaling_parameters_by_draw(draw_id: int,
     a = rs.randint(1, beta_scaling['average_over_min'])
     b = rs.randint(a + 21, beta_scaling['average_over_max'])
 
-    draw_data.append(pd.Series(a, index=total_deaths.index, name='history_days_start'))
-    draw_data.append(pd.Series(b, index=total_deaths.index, name='history_days_end'))
+    draw_data.append(pd.Series(a, index=beta_transition.index, name='history_days_start'))
+    draw_data.append(pd.Series(b, index=beta_transition.index, name='history_days_end'))
+    draw_data.append(pd.Series(beta_scaling['window_size'], index=beta_transition.index, name='window_size'))
 
     log_beta_residual_mean = (np.log(betas['beta'] / betas['beta_hat'])
                               .groupby(level='location_id')
                               .apply(lambda x: x.iloc[-b: -a].mean())
                               .rename('log_beta_residual_mean'))
     draw_data.append(log_beta_residual_mean)
-    draw_data.append(pd.Series(draw_id, index=total_deaths.index, name='draw'))
+    draw_data.append(pd.Series(draw_id, index=beta_transition.index, name='draw'))
 
     return pd.concat(draw_data, axis=1)
 
 
 def write_out_beta_scale(beta_scales: List[pd.DataFrame],
-                         offset: pd.Series,
                          scenario: str,
                          data_interface: ForecastDataInterface,
                          num_cores: int) -> None:
     _runner = functools.partial(
         write_out_beta_scales_by_draw,
         data_interface=data_interface,
-        offset=offset,
         scenario=scenario
     )
     with multiprocessing.Pool(num_cores) as pool:
         pool.map(_runner, beta_scales)
 
 
-def write_out_beta_scales_by_draw(beta_scales: pd.DataFrame, data_interface: ForecastDataInterface,
-                                  offset: pd.Series, scenario: str) -> None:
+def write_out_beta_scales_by_draw(beta_scales: pd.DataFrame,
+                                  data_interface: ForecastDataInterface,
+                                  scenario: str) -> None:
     # Compute these draw specific parameters now that we have the offset.
-    beta_scales['log_beta_residual_mean_offset'] = offset
-    beta_scales['log_beta_residual_mean'] -= offset
     beta_scales['scale_final'] = np.exp(beta_scales['log_beta_residual_mean'])
     draw_id = beta_scales['draw'].iat[0]
     data_interface.save_beta_scales(beta_scales, scenario, draw_id)

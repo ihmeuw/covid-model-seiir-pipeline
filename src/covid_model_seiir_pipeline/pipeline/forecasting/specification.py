@@ -67,8 +67,6 @@ class ScenarioSpecification:
         'window_size',
         'average_over_min',
         'average_over_max',
-        'offset_deaths_lower',
-        'offset_deaths_upper',
     )
 
     name: str = field(default='dummy_scenario')
@@ -92,10 +90,10 @@ class ScenarioSpecification:
             raise ValueError(f'Unknown system {self.system} in scenario {self.name}. '
                              f'Allowed systems are {self.ALLOWED_SYSTEMS}.')
 
-        bad_scaling_keys = set(self.beta_scaling).difference(self.BETA_SCALING_KEYS)
-        if bad_scaling_keys:
-            raise ValueError(f'Unknown beta scaling configuration option(s) {list(bad_scaling_keys)} '
-                             f'in scenario {self.name}. Expected options: {self.BETA_SCALING_KEYS}.')
+#        bad_scaling_keys = set(self.beta_scaling).difference(self.BETA_SCALING_KEYS)
+#        if bad_scaling_keys:
+#            raise ValueError(f'Unknown beta scaling configuration option(s) {list(bad_scaling_keys)} '
+#                             f'in scenario {self.name}. Expected options: {self.BETA_SCALING_KEYS}.')
 
         window_size = self.beta_scaling.get('window_size', None)
         if window_size is None:
