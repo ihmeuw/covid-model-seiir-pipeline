@@ -103,7 +103,7 @@ def build_system_metrics(indices: Indices,
         group_components_diff = components_diff.loc[:, group_compartments]
 
         delta_s = (group_components_diff
-                   .loc[:, [c for c in group_compartments if 'S' in c]]
+                   .loc[:, [c for c in group_compartments if 'S' in c and 'S_m' not in c]]
                    .sum(axis=1))
         delta_p = (group_components_diff
                    .loc[:, [c for c in group_compartments if '_p' in c]]
@@ -111,7 +111,9 @@ def build_system_metrics(indices: Indices,
         delta_new_e_p = (group_components_diff
                          .loc[:, [c for c in group_compartments if '_p' in c and 'S' not in c]]
                          .sum(axis=1))
-        delta_r_m = group_components_diff.loc[:, f'R_m_{group}']
+        delta_r_m = (group_components_diff
+                     .loc[:, [c for c in group_compartments if '_m' in c]]
+                     .sum(axis=1))
 
         group_modeled_infections = -(delta_s + delta_r_m).rename('infections')
         group_vulnerable_infections = -(delta_s + delta_new_e_p + delta_r_m).rename('infections')
@@ -127,7 +129,7 @@ def build_system_metrics(indices: Indices,
         modeled_deaths += group_deaths
         effective_vaccinations += group_effective_vaccinations
 
-    s = components[[c for c in cols if 'S' in c]].sum(axis=1)
+    s = components[[c for c in cols if 'S' in c and '_m' not in c]].sum(axis=1)
     i = components[[c for c in cols if 'I' in c]].sum(axis=1)
     total_pop = components.sum(axis=1)
     beta = modeled_infections / (s * i ** model_parameters.alpha / total_pop)
