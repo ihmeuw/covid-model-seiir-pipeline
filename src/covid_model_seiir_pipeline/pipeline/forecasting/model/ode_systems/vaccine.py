@@ -21,10 +21,11 @@ COMPARTMENTS = (
     'S_m'                             'R_m',
 )
 (
-    s, e, i1, i2, r,
-    s_u, e_u, i1_u, i2_u, r_u,
-    s_p, e_p, i1_p, i2_p, r_p,
-    r_m,
+    s,    e,    i1,    i2,    r,
+    s_u,  e_u,  i1_u,  i2_u,  r_u,
+    s_p,  e_p,  i1_p,  i2_p,  r_p,
+    s_pa, e_pa, i1_pa, i2_pa, r_pa,
+    s_m,                      r_m,
 ) = range(len(COMPARTMENTS))
 
 VACCINE_CATEGORIES = (
