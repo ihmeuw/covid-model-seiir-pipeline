@@ -31,11 +31,8 @@ def prepare_ode_fit_parameters(past_index: pd.Index,
             name=parameter,
         )
 
-    vaccinations = math.adjust_vaccinations(
-        vaccinations,
-        covariates,
-        'vaccine',
-    ).reindex(past_index, fill_value=0)
+    vaccinations = math.adjust_vaccinations(vaccinations)
+    vaccinations = pd.concat([v.rename(k) for k, v in vaccinations.items()], axis=1)
 
     return ODEParameters(
         population=population,

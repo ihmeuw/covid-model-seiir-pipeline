@@ -71,7 +71,7 @@ def build_model_parameters(indices: Indices,
     theta_minus = -np.minimum(thetas, 0).rename('theta_minus')
 
     vaccine_data = vaccine_data.reindex(indices.full, fill_value=0)
-    adjusted_vaccinations = math.adjust_vaccinations(vaccine_data, covariates, scenario_spec.system)
+    adjusted_vaccinations = math.adjust_vaccinations(vaccine_data)
 
     probability_cross_immune = pd.Series(scenario_spec.probability_cross_immune,
                                          index=indices.full, name='probability_cross_immune')
