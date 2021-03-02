@@ -1,5 +1,5 @@
 data:
-  forecast_version: '/ihme/covid-19/seir-forecast/2021_02_28.03'
+  forecast_version: '/ihme/covid-19/seir-forecast/2021_03_01.03'
   mortality_ratio_version: 'best'
   scenarios:
 #    - 'worse'

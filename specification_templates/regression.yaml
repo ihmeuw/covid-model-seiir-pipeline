@@ -8,7 +8,7 @@ data:
   output_format: 'parquet'
 workflow:
   project: 'proj_covid_prod'
-  queue: 'all.q'
+  queue: 'd.q'
 regression_parameters:
   n_draws: 100
   alpha: [0.9, 1.0]
