@@ -37,6 +37,7 @@ VACCINE_CATEGORIES = (
 
 
 N_SEIIR_COMPARTMENTS = 5
+N_SEIIR_GROUPS = 4
 
 # 3rd and 4th compartment of each seiir group are infectious.
 LOCAL_I1 = 2
@@ -56,8 +57,8 @@ def system(t: float, y: np.ndarray, params: np.array):
     infectious = 0.
     n_total = y.sum()
     for i in range(n_groups):
-        # len(vaccine_categories) - 1 for immune + 1 for unvaccinated
-        for j in range(len(VACCINE_CATEGORIES)):
+        
+        for j in range(N_SEIIR_GROUPS):
             # 3rd and 4th compartment of each group + seiir are infectious.
             local_s = i*system_size + j*N_SEIIR_COMPARTMENTS
             infectious = (infectious + y[local_s + LOCAL_I1] + y[local_s + LOCAL_I2])
@@ -140,8 +141,7 @@ def single_group_system(t: float,
     outflow = outflow_map.sum(axis=1)
     result = inflow - outflow
 
-    if result.sum() > 1e-5:
-        print('Compartment mismatch: ', result.sum())
+    assert result.sum() < 1e-5, 'Compartment mismatch'
 
     return result
 

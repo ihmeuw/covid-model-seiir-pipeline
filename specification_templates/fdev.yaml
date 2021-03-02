@@ -6,7 +6,7 @@ data:
   fh_subnationals: False
 workflow:
   project: 'proj_covid_prod'
-  queue: 'all.q'
+  queue: 'd.q'
 scenarios:
   reference:
     algorithm: 'draw_level_mandate_reimposition'
