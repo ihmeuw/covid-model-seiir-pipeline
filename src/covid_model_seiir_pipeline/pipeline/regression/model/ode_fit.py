@@ -18,6 +18,7 @@ from covid_model_seiir_pipeline.pipeline.regression.model import (
 def prepare_ode_fit_parameters(past_index: pd.Index,
                                population: pd.Series,
                                vaccinations: pd.DataFrame,
+                               covariates: pd.DataFrame,
                                regression_parameters: Dict,
                                draw_id: int) -> ODEParameters:
     population = population.reindex(past_index, level='location_id')
@@ -30,23 +31,30 @@ def prepare_ode_fit_parameters(past_index: pd.Index,
             name=parameter,
         )
 
+    vaccinations = math.adjust_vaccinations(
+        vaccinations,
+        covariates,
+        'vaccine',
+    )
     # TODO: test out vaccine system.
     ready_to_switch = False
     if not ready_to_switch:
+        vaccines_unprotected = pd.Series(0., index=past_index, name='vaccines_unprotected')
+        vaccines_protected = pd.Series(0., index=past_index, name='vaccines_protected')
         vaccines_immune = pd.Series(0., index=past_index, name='vaccines_immune')
-        vaccines_other = pd.Series(0., index=past_index, name='vaccines_other')
+
     else:
         vaccinations = vaccinations.reindex(past_index, fill_value=0)
-        vaccines_all = vaccinations.sum(axis=1).loc[past_index]
-        vaccines_immune = vaccinations[[c for c in vaccinations
-                                        if 'effective' in c and 'protected' not in c]].sum(axis=1)
-        vaccines_other = vaccines_all - vaccines_immune
+        vaccines_unprotected = vaccinations[[c for c in vaccinations if c.split('_')[0] == 'unprotected']].sum(axis=1)
+        vaccines_protected = vaccinations[[c for c in vaccinations if c.split('_')[0] == 'protected']].sum(axis=1)
+        vaccines_immune = vaccinations[[c for c in vaccinations if c.split('_')[0] == 'immune']].sum(axis=1)
 
     return ODEParameters(
         population=population,
         **sampled_params,
+        vaccines_unprotected=vaccines_unprotected,
+        vaccines_protected=vaccines_protected,
         vaccines_immune=vaccines_immune,
-        vaccines_other=vaccines_other,
     )
 
 
@@ -112,7 +120,8 @@ def run_loc_ode_fit(infections: pd.Series, ode_parameters: ODEParameters) -> pd.
     parameters[past_system.gamma2] = ode_parameters.gamma2.values
     parameters[past_system.new_e] = obs
     parameters[past_system.m] = ode_parameters.vaccines_immune.values
-    parameters[past_system.u] = ode_parameters.vaccines_other.values
+    parameters[past_system.p] = ode_parameters.vaccines_protected.values
+    parameters[past_system.u] = ode_parameters.vaccines_unprotected.values
     result = math.solve_ode(
         system=past_system.system,
         t=t,
@@ -134,7 +143,7 @@ def run_loc_ode_fit(infections: pd.Series, ode_parameters: ODEParameters) -> pd.
     beta = (obs / disease_density).reindex(full_index)
 
     components = components.reindex(full_index, fill_value=0.)
-    components.loc[components['S'] == 0, 'S'] = total_population 
+    components.loc[components['S'] == 0, 'S'] = total_population
     components['beta'] = beta
 
     return components.reset_index()
