@@ -137,8 +137,8 @@ def run_loc_ode_fit(infections: pd.Series, ode_parameters: ODEParameters) -> pd.
 
     assert (components['S'] >= 0.0).all()
 
-    susceptible = components.iloc[:, [past_system.s, past_system.s_u]].sum(axis=1)
-    infectious = components.iloc[:, [past_system.i1, past_system.i2, past_system.i1_u, past_system.i2_u]].sum(axis=1)
+    susceptible = components.iloc[:, [c for c in components if c[0] == 'S']].sum(axis=1)
+    infectious = components.iloc[:, [c for c in components if c[0] == 'I']].sum(axis=1)
     disease_density = susceptible * infectious**ode_parameters.alpha.values / total_population
     beta = (obs / disease_density).reindex(full_index)
 
