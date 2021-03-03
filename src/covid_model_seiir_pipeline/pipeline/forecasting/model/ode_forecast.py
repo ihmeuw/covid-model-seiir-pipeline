@@ -195,8 +195,11 @@ def beta_shift(beta_hat: pd.DataFrame,
 
 def redistribute_past_compartments(infections: pd.Series,
                                    compartments: pd.DataFrame,
-                                   population: pd.DataFrame):
+                                   population: pd.DataFrame,
+                                   model_parameters: ModelParameters):
     pop_weights = _get_pop_weights(population)
+    variant_prevalence = model_parameters.p_variant.loc[compartments.index]
+    p_ci = model_parameters.probability_cross_immune.loc[compartments.index]
 
     redistributed_compartments = []
     for group in ['lr', 'hr']:
@@ -205,8 +208,70 @@ def redistribute_past_compartments(infections: pd.Series,
 
         group_compartments = compartments.mul(pop_weight, axis=0)
         group_compartments = group_compartments.reindex(variant.COMPARTMENTS, axis='columns', fill_value=0.0)
+
+        for compartment in ['E', 'I1', 'I2']:
+            group_compartments[f'{compartment}_variant'] = (
+                group_compartments[compartment] * variant_prevalence
+            )
+            group_compartments[f'{compartment}'] = (
+                    group_compartments[compartment] * (1 - variant_prevalence)
+            )
+
+            group_compartments[f'{compartment}_variant_u'] = (
+                (group_compartments[f'{compartment}_u'] + group_compartments[f'{compartment}_p']) * variant_prevalence
+            )
+            group_compartments[f'{compartment}_u'] = (
+                group_compartments[f'{compartment}_u'] * (1 - variant_prevalence)
+            )
+            group_compartments[f'{compartment}_p'] = (
+                    group_compartments[f'{compartment}_p'] * (1 - variant_prevalence)
+            )
+
+            group_compartments[f'{compartment}_variant_pa'] = (
+                    group_compartments[f'{compartment}_pa'] * variant_prevalence
+            )
+            group_compartments[f'{compartment}_pa'] = (
+                    group_compartments[f'{compartment}_pa'] * (1 - variant_prevalence)
+            )
+
+        # Who's in R vs. S_variant depends roughly on the probability of cross immunity.
+        # This is a bad approximation if variant prevalence is high and there have been a significant
+        # of infections.
+        group_compartments['S_variant'] = group_compartments['R'] * (1 - p_ci)
+        group_compartments['R'] = group_compartments['R'] * p_ci
+
+        group_compartments['S_variant_u'] = (group_compartments['R_u'] + group_compartments['R_p']) * (1 - p_ci)
+        group_compartments['R_u'] = group_compartments['R_u'] * p_ci
+        group_compartments['R_p'] = group_compartments['R_p'] * p_ci
+
+        group_compartments['S_variant_pa'] = group_compartments['R_pa'] * (1 - p_ci)
+        group_compartments['R_pa'] = group_compartments['R_pa'] * p_ci
+
+        # Tracking compartments
         cum_infecs = infections.reindex(group_compartments.index).groupby('location_id').cumsum().fillna(0.0)
-        group_compartments['NewE_wild'] = pop_weight * cum_infecs
+        s_wild = group_compartments[['S', 'S_u', 'S_p', 'S_pa']].sum(axis=1)
+        s_wild_p = group_compartments[['S_p', 'S_pa']].sum(axis=1)
+        group_compartments['NewE_wild'] = (
+                cum_infecs * pop_weight * (1 - variant_prevalence) * (s_wild - s_wild_p) / s_wild
+        )
+        group_compartments['NewE_p_wild'] = (
+                cum_infecs * pop_weight * (1 - variant_prevalence) * s_wild_p / s_wild
+        )
+
+        s_variant = s_wild + group_compartments[['S_variant', 'S_variant_u', 'S_variant_pa', 'S_m']].sum(axis=1)
+        s_variant_p = group_compartments[['S_pa', 'S_variant_pa', 'S_m']].sum(axis=1)
+        group_compartments['NewE_variant'] = (
+                cum_infecs * pop_weight * variant_prevalence * (s_variant - s_variant_p) / s_variant
+        )
+        group_compartments['NewE_p_variant'] = (
+                cum_infecs * pop_weight * variant_prevalence * s_variant_p / s_variant
+        )
+
+        group_compartments['V_u'] = group_compartments[[c for c in group_compartments if '_u' in c]].sum(axis=1)
+        group_compartments['V_p'] = group_compartments[[c for c in group_compartments if '_p' in c and '_pa' not in c]].sum(axis=1)
+        group_compartments['V_pa'] = group_compartments[[c for c in group_compartments if '_pa' in c]].sum(axis=1)
+        group_compartments['V_m'] = group_compartments['S_m']
+        group_compartments['V_ma'] = group_compartments['R_m']
 
         group_compartments.columns = [f'{c}_{group}' for c in group_compartments]
         redistributed_compartments.append(group_compartments)
