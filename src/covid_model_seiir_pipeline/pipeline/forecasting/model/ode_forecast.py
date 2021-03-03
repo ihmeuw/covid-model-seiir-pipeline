@@ -140,7 +140,7 @@ def get_betas_and_prevalences(indices: Indices,
     beta_wild = beta.rename('beta_wild')
     beta_variant = pd.Series(0.0, index=beta.index).rename('beta_variant')
     p_wild = pd.Series(1.0, index=beta.index).rename('p_wild')
-    p_variant = pd.Series(1.0, index=beta.index).rename('p_variant')
+    p_variant = pd.Series(0.0, index=beta.index).rename('p_variant')
 
     return beta, beta_wild, beta_variant, p_wild, p_variant, p_all_variant
 

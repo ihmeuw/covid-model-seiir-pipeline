@@ -57,6 +57,7 @@ def compute_output_metrics(indices: Indices,
                            .dropna()
                            .index
                            .difference(past_deaths.index)])
+              .rename('deaths')
               .to_frame())
     deaths['observed'] = 0
     deaths.loc[past_deaths.index, 'observed'] = 1

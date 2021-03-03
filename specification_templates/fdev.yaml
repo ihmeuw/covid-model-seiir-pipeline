@@ -23,7 +23,7 @@ scenarios:
     theta: '/ihme/covid-19/seir-parameters/2020_10_06.01/thetas.csv'
     vaccine_version: 'reference'
     variant_ifr_scale: 1.29
-    probability_cross_immune: 0.0
+    probability_cross_immune: 1.0
     variant_beta_scale: 0.5
     covariates:
       pneumonia: 'reference'
