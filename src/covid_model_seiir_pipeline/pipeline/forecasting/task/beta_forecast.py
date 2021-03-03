@@ -121,7 +121,6 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
         model_parameters.with_index(indices.future),
         progress_bar,
     )
-
     logger.info('Processing ODE results and computing deaths and infections.', context='compute_results')
     components, system_metrics, output_metrics = model.compute_output_metrics(
         indices,
