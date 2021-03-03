@@ -24,7 +24,7 @@ scenarios:
     vaccine_version: 'reference'
     variant_ifr_scale: 1.29
     probability_cross_immune: 1.0
-    variant_beta_scale: 0.5
+    variant_beta_scale: 1.0
     covariates:
       pneumonia: 'reference'
       mobility: 'reference'
