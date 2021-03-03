@@ -31,8 +31,9 @@ def compute_output_metrics(indices: Indices,
                            future_components: pd.DataFrame,
                            postprocessing_params: PostprocessingParameters,
                            model_parameters: ModelParameters,
-                           hospital_parameters: 'HospitalParameters',
-                           system: str) -> Tuple[pd.DataFrame, SystemMetrics, OutputMetrics]:
+                           hospital_parameters: 'HospitalParameters') -> Tuple[pd.DataFrame,
+                                                                               SystemMetrics,
+                                                                               OutputMetrics]:
     components = postprocessing_params.past_compartments
     components = (components
                   .loc[indices.past]  # Need to drop transition day.

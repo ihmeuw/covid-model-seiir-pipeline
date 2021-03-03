@@ -129,7 +129,6 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
         postprocessing_params,
         model_parameters,
         hospital_parameters,
-        scenario_spec.system,
     )
 
     if scenario_spec.algorithm == 'draw_level_mandate_reimposition':
@@ -213,7 +212,6 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
                 postprocessing_params,
                 model_parameters,
                 hospital_parameters,
-                scenario_spec.system,
             )
 
             logger.info('Recomputing reimposition dates', context='compute_mandates')

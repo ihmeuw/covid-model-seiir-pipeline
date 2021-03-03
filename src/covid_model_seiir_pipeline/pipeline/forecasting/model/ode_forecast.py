@@ -44,12 +44,20 @@ def build_model_parameters(indices: Indices,
                            coefficients: pd.DataFrame,
                            beta_scales: pd.DataFrame,
                            vaccine_data: pd.DataFrame,
-                           scenario_spec: 'ScenarioSpecification') -> ModelParameters:
+                           scenario_spec: 'ScenarioSpecification',
+                           draw_id: int) -> ModelParameters:
     # These are all the same by draw.  Just broadcasting them over a new index.
     alpha = pd.Series(ode_parameters.alpha.mean(), index=indices.full, name='alpha')
     sigma = pd.Series(ode_parameters.sigma.mean(), index=indices.full, name='sigma')
     gamma1 = pd.Series(ode_parameters.gamma1.mean(), index=indices.full, name='gamma1')
     gamma2 = pd.Series(ode_parameters.gamma2.mean(), index=indices.full, name='gamma2')
+
+    np.random.seed(draw_id)
+    variant_beta_scale = np.random.uniform(*scenario_spec.variant_beta_scale)
+    probability_cross_immune = pd.Series(
+        np.random.uniform(*scenario_spec.probability_cross_immune),
+        index=indices.full, name='probability_cross_immune'
+    )
 
     beta, beta_wild, beta_variant, p_wild, p_variant, p_all_variant = get_betas_and_prevalences(
         indices,
@@ -57,7 +65,7 @@ def build_model_parameters(indices: Indices,
         covariates,
         coefficients,
         beta_scales,
-        scenario_spec.variant_beta_scale,
+        variant_beta_scale,
     )
 
     thetas = thetas.reindex(indices.full, level='location_id')
@@ -73,8 +81,7 @@ def build_model_parameters(indices: Indices,
     vaccine_data = vaccine_data.reindex(indices.full, fill_value=0)
     adjusted_vaccinations = math.adjust_vaccinations(vaccine_data)
 
-    probability_cross_immune = pd.Series(scenario_spec.probability_cross_immune,
-                                         index=indices.full, name='probability_cross_immune')
+
 
     return ModelParameters(
         alpha=alpha,
@@ -133,16 +140,6 @@ def get_betas_and_prevalences(indices: Indices,
     beta_variant = (beta_w + variant_beta_scale * (beta_b117 - beta_w)).rename('beta_variant')
 
     p_all_variant = sum(prev.values()).rename('p_all_variant')
-
-    ########
-    # HACK #
-    ########
-    hack = False
-    if hack:
-        beta_wild = beta.rename('beta_wild')
-        beta_variant = pd.Series(0.0, index=beta.index).rename('beta_variant')
-        p_wild = pd.Series(1.0, index=beta.index).rename('p_wild')
-        p_variant = pd.Series(0.0, index=beta.index).rename('p_variant')
 
     return beta, beta_wild, beta_variant, p_wild, p_variant, p_all_variant
 
