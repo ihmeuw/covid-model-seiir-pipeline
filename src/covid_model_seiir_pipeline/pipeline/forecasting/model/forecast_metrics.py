@@ -39,7 +39,7 @@ def compute_output_metrics(indices: Indices,
                   .append(future_components)
                   .sort_index())
 
-    system_metrics = build_system_metrics(
+    system_metrics = variant_system_metrics(
         indices,
         model_parameters,
         postprocessing_params,
