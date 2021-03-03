@@ -1,4 +1,3 @@
-import itertools
 from typing import Dict, Tuple, TYPE_CHECKING
 
 import numpy as np
@@ -17,6 +16,7 @@ from covid_model_seiir_pipeline.pipeline.forecasting.model.containers import (
 )
 from covid_model_seiir_pipeline.pipeline.forecasting.model.ode_systems import (
     vaccine,
+    variant,
 )
 
 
@@ -134,6 +134,14 @@ def get_betas_and_prevalences(indices: Indices,
 
     p_all_variant = sum(prev.values()).rename('p_all_variant')
 
+    ########
+    # HACK #
+    ########
+    beta_wild = beta.rename('beta_wild')
+    beta_variant = pd.Series(0.0, index=beta.index).rename('beta_variant')
+    p_wild = pd.Series(1.0, index=beta.index).rename('p_wild')
+    p_variant = pd.Series(1.0, index=beta.index).rename('p_variant')
+
     return beta, beta_wild, beta_variant, p_wild, p_variant, p_all_variant
 
 
@@ -183,7 +191,8 @@ def beta_shift(beta_hat: pd.DataFrame,
 # Past compartment redistribution #
 ###################################
 
-def redistribute_past_compartments(compartments: pd.DataFrame,
+def redistribute_past_compartments(infections: pd.Series,
+                                   compartments: pd.DataFrame,
                                    population: pd.DataFrame):
     pop_weights = _get_pop_weights(population)
 
@@ -193,9 +202,9 @@ def redistribute_past_compartments(compartments: pd.DataFrame,
         pop_weight = pop_weights[group].reindex(compartments.index, level='location_id')
 
         group_compartments = compartments.mul(pop_weight, axis=0)
+        group_compartments = group_compartments.reindex(variant.COMPARTMENTS, axis='columns', fill_value=0.0)
+        group_compartments['NewE_wild'] = infections.reindex(group_compartments.index).cumsum(fill_value=0.0)
 
-        # sort the columns
-        group_compartments = group_compartments.loc[:, vaccine.COMPARTMENTS]
         group_compartments.columns = [f'{c}_{group}' for c in group_compartments]
         redistributed_compartments.append(group_compartments)
     redistributed_compartments = pd.concat(redistributed_compartments, axis=1)
@@ -302,11 +311,11 @@ def forecast_correction_factors(indices: Indices,
 def run_ode_model(initial_conditions: pd.DataFrame,
                   model_parameters: ModelParameters,
                   progress_bar: bool) -> pd.DataFrame:
-    system = vaccine.system
+    system = variant.variant_natural_system
     mp_dict = model_parameters.to_dict()
 
     parameters = pd.concat(
-        [mp_dict[p] for p in vaccine.PARAMETERS]
+        [mp_dict[p] for p in variant.PARAMETERS]
         + [model_parameters.unprotected_lr,
            model_parameters.protected_wild_type_lr,
            model_parameters.protected_all_types_lr,

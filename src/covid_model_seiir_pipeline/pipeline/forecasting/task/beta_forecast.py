@@ -86,6 +86,7 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
 
     logger.info('Redistributing past compartments.', context='transform')
     past_compartments = model.redistribute_past_compartments(
+        infections=past_infections,
         compartments=compartments,
         population=population,
     )
