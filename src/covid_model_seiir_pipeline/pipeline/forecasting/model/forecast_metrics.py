@@ -228,6 +228,8 @@ def variant_system_metrics(indices: Indices,
     return SystemMetrics(
         modeled_infections_wild=modeled_infections_wild,
         modeled_infections_variant=modeled_infections_variant,
+        modeled_infections_total=modeled_infections_wild + modeled_infections_variant,
+
         variant_prevalence=modeled_infections_variant / (modeled_infections_wild + modeled_infections_variant),
 
         natural_immunity_breakthrough=natural_immunity_breakthrough,
