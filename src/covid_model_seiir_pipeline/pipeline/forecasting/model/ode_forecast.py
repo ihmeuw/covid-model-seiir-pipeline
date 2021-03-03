@@ -252,7 +252,7 @@ def redistribute_past_compartments(infections: pd.Series,
         s_wild = group_compartments[['S', 'S_u', 'S_p', 'S_pa']].sum(axis=1)
         s_wild_p = group_compartments[['S_p', 'S_pa']].sum(axis=1)
         group_compartments['NewE_wild'] = (
-                cum_infecs * pop_weight * (1 - variant_prevalence) * (s_wild - s_wild_p) / s_wild
+                cum_infecs * pop_weight * (1 - variant_prevalence)
         )
         group_compartments['NewE_p_wild'] = (
                 cum_infecs * pop_weight * (1 - variant_prevalence) * s_wild_p / s_wild
@@ -261,7 +261,7 @@ def redistribute_past_compartments(infections: pd.Series,
         s_variant = s_wild + group_compartments[['S_variant', 'S_variant_u', 'S_variant_pa', 'S_m']].sum(axis=1)
         s_variant_p = group_compartments[['S_pa', 'S_variant_pa', 'S_m']].sum(axis=1)
         group_compartments['NewE_variant'] = (
-                cum_infecs * pop_weight * variant_prevalence * (s_variant - s_variant_p) / s_variant
+                cum_infecs * pop_weight * variant_prevalence
         )
         group_compartments['NewE_p_variant'] = (
                 cum_infecs * pop_weight * variant_prevalence * s_variant_p / s_variant
