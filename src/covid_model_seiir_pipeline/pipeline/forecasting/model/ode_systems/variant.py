@@ -12,7 +12,7 @@ PARAMETERS = [
     'alpha', 'beta_wild', 'beta_variant', 'sigma', 'gamma1', 'gamma2',
     'theta_plus', 'theta_minus',
     'p_wild', 'p_variant',
-    'p_cross_immune',
+    'probability_cross_immune',
 ]
 (
     alpha, beta_wild, beta_variant, sigma, gamma1, gamma2,
