@@ -255,6 +255,7 @@ def correct_ratio_data(indices: Indices,
     variant_prevalence -= p_start.reindex(variant_prevalence.index, level='location_id')
     variant_prevalence[variant_prevalence < 0] = 0.0
     ifr_scalar = ifr_scale * variant_prevalence + (1 - variant_prevalence)
+    ifr_scalar = ifr_scalar.groupby('location_id').shift(ratio_data.infection_to_death).fillna(0.)
 
     ratio_data.ifr = ifr_scalar * _expand_rate(ratio_data.ifr, indices.full)
     ratio_data.ifr_lr = ifr_scalar * _expand_rate(ratio_data.ifr_lr, indices.full)
