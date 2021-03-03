@@ -89,6 +89,7 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
         infections=past_infections,
         compartments=compartments,
         population=population,
+        model_parameters=model_parameters,
     )
     initial_condition = past_compartments.loc[indices.initial_condition].reset_index(level='date', drop=True)
 
