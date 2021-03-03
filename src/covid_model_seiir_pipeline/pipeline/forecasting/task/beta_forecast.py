@@ -75,6 +75,7 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
         beta_scales,
         vaccinations,
         scenario_spec,
+        draw_id,
     )
 
     ############################################################
