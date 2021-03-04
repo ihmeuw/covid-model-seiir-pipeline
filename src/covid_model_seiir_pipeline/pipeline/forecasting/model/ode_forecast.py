@@ -81,8 +81,6 @@ def build_model_parameters(indices: Indices,
     vaccine_data = vaccine_data.reindex(indices.full, fill_value=0)
     adjusted_vaccinations = math.adjust_vaccinations(vaccine_data)
 
-
-
     return ModelParameters(
         alpha=alpha,
         beta=beta,
@@ -245,24 +243,24 @@ def redistribute_past_compartments(infections: pd.Series,
         group_compartments['R_pa'] = group_compartments['R_pa'] * p_ci
 
         # Tracking compartments
-        cum_infecs = infections.reindex(group_compartments.index).groupby('location_id').cumsum().fillna(0.0)
+        infecs = infections.reindex(group_compartments.index).groupby('location_id')
         s_wild = group_compartments[['S', 'S_u', 'S_p', 'S_pa']].sum(axis=1)
         s_wild_p = group_compartments[['S_p', 'S_pa']].sum(axis=1)
         group_compartments['NewE_wild'] = (
-                cum_infecs * pop_weight * (1 - variant_prevalence)
-        )
+                infecs * pop_weight * (1 - variant_prevalence)
+        ).cumsum()
         group_compartments['NewE_p_wild'] = (
-                cum_infecs * pop_weight * (1 - variant_prevalence) * s_wild_p / s_wild
-        )
+                infecs * pop_weight * (1 - variant_prevalence) * s_wild_p / s_wild
+        ).cumsum()
 
         s_variant = s_wild + group_compartments[['S_variant', 'S_variant_u', 'S_variant_pa', 'S_m']].sum(axis=1)
         s_variant_p = group_compartments[['S_pa', 'S_variant_pa', 'S_m']].sum(axis=1)
         group_compartments['NewE_variant'] = (
-                cum_infecs * pop_weight * variant_prevalence
-        )
+                infecs * pop_weight * variant_prevalence
+        ).cumsum()
         group_compartments['NewE_p_variant'] = (
-                cum_infecs * pop_weight * variant_prevalence * s_variant_p / s_variant
-        )
+                infecs * pop_weight * variant_prevalence * s_variant_p / s_variant
+        ).cumsum()
 
         group_compartments['V_u'] = group_compartments[[c for c in group_compartments if '_u' in c]].sum(axis=1)
         group_compartments['V_p'] = group_compartments[[c for c in group_compartments if '_p' in c and '_pa' not in c]].sum(axis=1)

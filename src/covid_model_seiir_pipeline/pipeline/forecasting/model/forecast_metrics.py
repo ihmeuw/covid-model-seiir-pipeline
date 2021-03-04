@@ -90,91 +90,12 @@ def compute_output_metrics(indices: Indices,
     return components, system_metrics, output_metrics
 
 
-def build_system_metrics(indices: Indices,
-                         model_parameters: ModelParameters,
-                         postprocessing_params: PostprocessingParameters,
-                         components: pd.DataFrame) -> SystemMetrics:
-    components_diff = components.groupby('location_id').diff()
-    cols = components_diff.columns
-
-    modeled_infections = pd.Series(0, index=indices.full, name='infections')
-    modeled_deaths = pd.Series(0, index=indices.full, name='deaths')
-    effective_vaccinations = pd.Series(0, index=indices.full, name='effective_vaccinations')
-    for group in ['hr', 'lr']:
-        group_compartments = [c for c in cols if group in c]
-        group_components_diff = components_diff.loc[:, group_compartments]
-
-        delta_s = (group_components_diff
-                   .loc[:, [c for c in group_compartments if 'S' in c and 'S_m' not in c]]
-                   .sum(axis=1))
-        delta_p = (group_components_diff
-                   .loc[:, [c for c in group_compartments if '_p' in c]]
-                   .sum(axis=1))
-        delta_new_e_p = (group_components_diff
-                         .loc[:, [c for c in group_compartments if '_p' in c and 'S' not in c]]
-                         .sum(axis=1))
-        delta_r_m = (group_components_diff
-                     .loc[:, [c for c in group_compartments if '_m' in c]]
-                     .sum(axis=1))
-
-        group_modeled_infections = -(delta_s + delta_r_m).rename('infections')
-        group_vulnerable_infections = -(delta_s + delta_new_e_p + delta_r_m).rename('infections')
-        group_ifr = getattr(postprocessing_params, f'ifr_{group}').rename('ifr')
-        group_deaths = compute_deaths(
-            group_vulnerable_infections,
-            postprocessing_params.infection_to_death,
-            group_ifr
-        )
-        group_effective_vaccinations = (delta_p + delta_r_m).rename('effective_vaccinations')
-
-        modeled_infections += group_modeled_infections
-        modeled_deaths += group_deaths
-        effective_vaccinations += group_effective_vaccinations
-
-    s = components[[c for c in cols if 'S' in c and '_m' not in c]].sum(axis=1)
-    i = components[[c for c in cols if 'I' in c]].sum(axis=1)
-    total_pop = components.sum(axis=1)
-    beta = modeled_infections / (s * i ** model_parameters.alpha / total_pop)
-
-    total_immune = components[[c for c in components.columns if 'R' in c]].sum(axis=1)
-
-    return SystemMetrics(
-        modeled_infections_wild=modeled_infections,
-        modeled_infections_variant=pd.Series(np.nan, index=indices.full),
-        modeled_infections_total=modeled_infections,
-
-        variant_prevalence=pd.Series(np.nan, index=indices.full),
-        natural_immunity_breakthrough=pd.Series(np.nan, index=indices.full),
-        vaccine_breakthrough=pd.Series(np.nan, index=indices.full),
-        proportion_cross_immune=pd.Series(np.nan, index=indices.full),
-
-        modeled_deaths_wild=modeled_deaths,
-        modeled_deaths_variant=pd.Series(np.nan, index=indices.full),
-        modeled_deaths_total=modeled_deaths,
-
-        vaccinations_protected_wild=pd.Series(np.nan, index=indices.full),
-        vaccinations_protected_all=pd.Series(np.nan, index=indices.full),
-        vaccinations_immune_wild=pd.Series(np.nan, index=indices.full),
-        vaccinations_immune_all=pd.Series(np.nan, index=indices.full),
-        vaccinations_effective=effective_vaccinations,
-        vaccinations_ineffective=pd.Series(np.nan, index=indices.full),
-
-        total_susceptible_wild=s,
-        total_susceptible_variant=pd.Series(np.nan, index=indices.full),
-        total_immune_wild=total_immune,
-        total_immune_variant=pd.Series(np.nan, index=indices.full),
-
-        beta=beta,
-        beta_wild=pd.Series(np.nan, index=indices.full),
-        beta_variant=pd.Series(np.nan, index=indices.full),
-    )
-
-
 def variant_system_metrics(indices: Indices,
                            model_parameters: ModelParameters,
                            postprocessing_params: PostprocessingParameters,
                            components: pd.DataFrame) -> SystemMetrics:
     components_diff = components.groupby('location_id').diff()
+
     cols = [f'{c}_{g}' for g, c in itertools.product(['lr', 'hr'], variant.REAL_COMPARTMENTS)]
     tracking_cols = [f'{c}_{g}' for g, c in itertools.product(['lr', 'hr'], variant.TRACKING_COMPARTMENTS)]
     modeled_infections_wild = components_diff[[c for c in tracking_cols if 'NewE_wild' in c]].sum(axis=1)
