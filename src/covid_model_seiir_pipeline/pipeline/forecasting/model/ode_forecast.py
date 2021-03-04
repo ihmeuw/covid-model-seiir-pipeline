@@ -205,7 +205,7 @@ def redistribute_past_compartments(infections: pd.Series,
         group_compartments = group_compartments.reindex(variant.COMPARTMENTS, axis='columns', fill_value=0.0)
         group_compartments_diff = group_compartments.groupby('location_id').diff()
 
-        for compartment in ['E', 'I1', 'I2']:
+        for compartment in ['E', 'I1', 'I2', 'R']:
             group_compartments_diff[f'{compartment}_variant'] = (
                 group_compartments_diff[compartment] * variant_prevalence
             )
