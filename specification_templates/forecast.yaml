@@ -19,7 +19,7 @@ scenarios:
       window_size: 42
       average_over_min: 7
       average_over_max: 42
-    theta: '/ihme/covid-19/seir-parameters/2020_10_06.01/thetas.csv'
+    theta: '/ihme/covid-19/seir-parameters/2021_03_03.01/thetas.csv'
     vaccine_version: 'reference'
     variant_ifr_scale: 1.29
     probability_cross_immune: [0.25, 0.5]
@@ -48,7 +48,7 @@ scenarios:
       window_size: 42
       average_over_min: 7
       average_over_max: 42
-    theta: '/ihme/covid-19/seir-parameters/2020_10_06.01/thetas.csv'
+    theta: '/ihme/covid-19/seir-parameters/2021_03_03.01/thetas.csv'
     vaccine_version: 'reference'
     variant_ifr_scale: 1.29
     probability_cross_immune: [0.0, 0.5]
@@ -77,7 +77,7 @@ scenarios:
       window_size: 42
       average_over_min: 7
       average_over_max: 42
-    theta: '/ihme/covid-19/seir-parameters/2020_10_06.01/thetas.csv'
+    theta: '/ihme/covid-19/seir-parameters/2021_03_03.01/thetas.csv'
     vaccine_version: 'none'
     variant_ifr_scale: 1.29
     probability_cross_immune: [0.25, 0.5]
@@ -106,7 +106,7 @@ scenarios:
       window_size: 42
       average_over_min: 7
       average_over_max: 42
-    theta: '/ihme/covid-19/seir-parameters/2020_10_06.01/thetas.csv'
+    theta: '/ihme/covid-19/seir-parameters/2021_03_03.01/thetas.csv'
     vaccine_version: 'reference'
     variant_ifr_scale: 1.29
     probability_cross_immune: [0.25, 0.5]
@@ -135,7 +135,7 @@ scenarios:
       window_size: 42
       average_over_min: 7
       average_over_max: 42
-    theta: '/ihme/covid-19/seir-parameters/2020_10_06.01/thetas.csv'
+    theta: '/ihme/covid-19/seir-parameters/2021_03_03.01/thetas.csv'
     vaccine_version: 'fast_balanced'
     variant_ifr_scale: 1.29
     probability_cross_immune: [ 0.25, 0.5 ]
