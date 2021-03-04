@@ -22,6 +22,11 @@ def load_deaths(scenario: str, data_interface: 'PostprocessingDataInterface', nu
     draws = range(data_interface.get_n_draws())
     with multiprocessing.Pool(num_cores) as pool:
         outputs = pool.map(_runner, draws)
+
+    outputs = [o.reset_index(level='observed').fillna('bfill')]
+
+    observed = outputs[0].reset_index(level='observed').observed
+    outputs = [o.reset_index(level='observed', drop=)]
     return outputs
 
 

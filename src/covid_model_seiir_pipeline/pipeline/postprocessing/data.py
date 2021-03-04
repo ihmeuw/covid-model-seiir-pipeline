@@ -132,7 +132,7 @@ class PostprocessingDataInterface:
 
     def load_raw_output_deaths(self, draw_id: int, scenario: str) -> pd.Series:
         draw_df = self.load_raw_outputs(scenario=scenario, draw_id=draw_id, columns=['observed', 'deaths'])
-        draw_df = draw_df.set_index('observed', append=True)
+        draw_df = draw_df.groupby('location_id').bfill().set_index('observed', append=True)
         return draw_df['deaths'].rename(draw_id)
 
     def load_raw_outputs(self, draw_id: int, scenario: str, columns=None) -> pd.Series:
