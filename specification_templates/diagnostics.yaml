@@ -11,8 +11,13 @@ grid_plots:
       - version: '/ihme/covid-19/seir-outputs/2021_02_28.02'
         scenarios:
           reference*: 'public reference'
-          worse: 'public worse'
-      - version: '/ihme/covid-19/seir-outputs/2021_03_03.08'
+      - version: '/ihme/covid-19/seir-outputs/2021_03_03.09'
         scenarios:
           reference*: 'new reference'
-          worse: 'new worse'
+      - version: '/ihme/covid-19/seir-outputs/2021_03_03.10'
+        scenarios:
+          reference*: 'ref no mandate'
+      - version: '/ihme/covid-19/seir-outputs/2021_03_03.11'
+        scenarios:
+          reference*: 'ref fix r'
+

@@ -203,9 +203,10 @@ def redistribute_past_compartments(infections: pd.Series,
 
         group_compartments = compartments.mul(pop_weight, axis=0)
         group_compartments = group_compartments.reindex(variant.COMPARTMENTS, axis='columns', fill_value=0.0)
+        s_start = group_compartments.groupby('location_id')['S'].max()
         group_compartments_diff = group_compartments.groupby('location_id').diff()
 
-        for compartment in ['E', 'I1', 'I2']:
+        for compartment in ['E', 'I1', 'I2', 'R']:
             group_compartments_diff[f'{compartment}_variant'] = (
                 group_compartments_diff[compartment] * variant_prevalence
             )
@@ -266,7 +267,8 @@ def redistribute_past_compartments(infections: pd.Series,
             infecs * pop_weight * variant_prevalence * s_variant_p / s_variant
         )
 
-        group_compartments = group_compartments_diff.groupby('location_id').cumsum()
+        group_compartments = group_compartments_diff.groupby('location_id').cumsum().fillna(0)
+        group_compartments['S'] += s_start.reindex(group_compartments.index, level='location_id')
 
         group_compartments['V_u'] = group_compartments[[c for c in group_compartments if '_u' in c]].sum(axis=1)
         group_compartments['V_p'] = group_compartments[[c for c in group_compartments if '_p' in c and '_pa' not in c]].sum(axis=1)
