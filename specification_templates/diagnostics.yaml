@@ -11,13 +11,10 @@ grid_plots:
       - version: '/ihme/covid-19/seir-outputs/2021_02_28.02'
         scenarios:
           reference*: 'public reference'
-      - version: '/ihme/covid-19/seir-outputs/2021_03_03.09'
+      - version: '/ihme/covid-19/seir-outputs/2021_03_04.04'
         scenarios:
-          reference*: 'new reference'
-      - version: '/ihme/covid-19/seir-outputs/2021_03_03.10'
-        scenarios:
-          reference*: 'ref no mandate'
-      - version: '/ihme/covid-19/seir-outputs/2021_03_03.11'
-        scenarios:
-          reference*: 'ref fix r'
+          reference*: 'reference'
+          worse: 'worse'
+          best_masks: 'best_masks'
+          no_vaccine: 'no_vaccine'
 

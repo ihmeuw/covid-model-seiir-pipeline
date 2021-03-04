@@ -173,7 +173,7 @@ class ForecastDataInterface:
         location_ids = self.load_location_ids()
         if vaccine_scenario == 'none':
             # Grab the reference so we get the right index/schema.
-            info_df = io.load(self.covariate_root.vaccine_info(info_type=f'vaccinations_{vaccine_scenario}'))
+            info_df = io.load(self.covariate_root.vaccine_info(info_type='vaccinations_reference'))
             info_df.loc[:, :] = 0.0
         else:
             info_df = io.load(self.covariate_root.vaccine_info(info_type=f'vaccinations_{vaccine_scenario}'))

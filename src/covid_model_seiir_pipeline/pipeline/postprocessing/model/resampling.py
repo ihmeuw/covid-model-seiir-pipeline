@@ -15,7 +15,7 @@ def build_resampling_map(deaths: pd.DataFrame, resampling_params: 'ResamplingSpe
     cumulative_deaths['date'] = pd.to_datetime(cumulative_deaths['date'])
     reference_date = pd.to_datetime(resampling_params.reference_date)
     reference_deaths = (cumulative_deaths[cumulative_deaths['date'] == reference_date]
-                        .drop(columns=['date'])
+                        .drop(columns=['date', 'observed'])
                         .set_index('location_id'))
     upper_deaths = reference_deaths.quantile(resampling_params.upper_quantile, axis=1)
     lower_deaths = reference_deaths.quantile(resampling_params.lower_quantile, axis=1)
