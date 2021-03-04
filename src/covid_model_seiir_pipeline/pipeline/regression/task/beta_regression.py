@@ -28,6 +28,7 @@ def run_beta_regression(regression_version: str, draw_id: int, progress_bar: boo
     past_infection_data = data_interface.load_past_infection_data(draw_id=draw_id)
     population = data_interface.load_total_population()
     covariates = data_interface.load_covariates(regression_specification.covariates)
+
     vaccinations = data_interface.load_vaccine_info('reference')
 
     logger.info('Prepping ODE fit parameters.', context='transform')

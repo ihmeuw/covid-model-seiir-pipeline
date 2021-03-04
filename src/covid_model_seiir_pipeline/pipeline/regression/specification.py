@@ -62,6 +62,7 @@ class RegressionParameters:
     sigma: Tuple[float, float] = field(default=(0.2, 1/3))
     gamma1: Tuple[float, float] = field(default=(0.5, 0.5))
     gamma2: Tuple[float, float] = field(default=(1/3, 1.0))
+    variant_shift: float = field(default=0.0)
     sequential_refit: bool = field(default=False)
 
     def to_dict(self) -> Dict:

@@ -15,6 +15,7 @@ regression_parameters:
   sigma: [0.2, 0.3333]
   gamma1: [0.5, 0.5]
   gamma2: [0.3333, 1.0]
+  variant_shift: 0
   sequential_refit: False
 hospital_parameters:
   hospital_stay_death: 6
@@ -115,20 +116,20 @@ covariates:
     order: 0
     use_re: False
     gprior: [0.0, 1000.0]
-    bounds: [0.262, 0.336]
+    bounds: [0.3074, 0.3075]
     re_var: 1.0
     draws: False
   variant_prevalence_B1351:
     order: 0
     use_re: False
     gprior: [0.0, 1000.0]
-    bounds: [0.262, 0.336]
+    bounds: [0.3074, 0.3075]
     re_var: 1.0
     draws: False
   variant_prevalence_P1:
     order: 0
     use_re: False
     gprior: [0.0, 1000.0]
-    bounds: [0.262, 0.336]
+    bounds: [0.3074, 0.3075]
     re_var: 1.0
     draws: False
