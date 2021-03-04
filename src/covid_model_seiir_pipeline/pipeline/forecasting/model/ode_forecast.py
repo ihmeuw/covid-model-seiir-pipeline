@@ -243,7 +243,7 @@ def redistribute_past_compartments(infections: pd.Series,
         group_compartments['R_pa'] = group_compartments['R_pa'] * p_ci
 
         # Tracking compartments
-        infecs = infections.reindex(group_compartments.index).groupby('location_id')
+        infecs = infections.reindex(group_compartments.index)
         s_wild = group_compartments[['S', 'S_u', 'S_p', 'S_pa']].sum(axis=1)
         s_wild_p = group_compartments[['S_p', 'S_pa']].sum(axis=1)
         group_compartments['NewE_wild'] = (

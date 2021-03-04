@@ -11,10 +11,8 @@ grid_plots:
       - version: '/ihme/covid-19/seir-outputs/2021_02_28.02'
         scenarios:
           reference*: 'public reference'
-      - version: '/ihme/covid-19/seir-outputs/2021_03_03.06'
+          worse: 'public worse'
+      - version: '/ihme/covid-19/seir-outputs/2021_03_03.08'
         scenarios:
-          reference*: 'cvi_1_beta_scale_1'
-          ci_0_s_0: 'cvi_0_beta_scale_0'
-          ci_1_s_0: 'cvi_1_beta_scale_0'
-          ci_0_s_1: 'cvi_0_beta_scale_1'
-          ci_05_s_05: 'cvi_0.5_beta_scale_0.5'
+          reference*: 'new reference'
+          worse: 'new worse'

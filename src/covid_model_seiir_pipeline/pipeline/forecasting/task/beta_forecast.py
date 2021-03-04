@@ -188,6 +188,7 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
                 beta_scales,
                 vaccinations,
                 scenario_spec,
+                draw_id,
             )
 
             # The ode is done as a loop over the locations in the initial condition.
