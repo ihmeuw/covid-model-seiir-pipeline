@@ -6,6 +6,7 @@ from pathlib import Path
 import click
 import pandas as pd
 import numpy as np
+import tqdm
 
 from covid_model_seiir_pipeline.lib import (
     cli_tools,
@@ -22,7 +23,7 @@ from covid_model_seiir_pipeline.pipeline.forecasting.data import ForecastDataInt
 logger = cli_tools.task_performance_logger
 
 
-def run_compute_beta_scaling_parameters(forecast_version: str, scenario: str):
+def run_compute_beta_scaling_parameters(forecast_version: str, scenario: str, progress_bar: bool):
     """Pre-compute the parameters for rescaling predicted beta and write out.
 
     The predicted beta has two issues we're attempting to adjust.
@@ -55,6 +56,8 @@ def run_compute_beta_scaling_parameters(forecast_version: str, scenario: str):
         The path to the forecast version to run this process for.
     scenario
         Which scenario in the forecast version to run this process for.
+    progress_bar
+        Whether to display the progress bar.
 
     Notes
     -----
@@ -76,7 +79,7 @@ def run_compute_beta_scaling_parameters(forecast_version: str, scenario: str):
     scenario_spec = forecast_spec.scenarios[scenario]
 
     logger.info('Computing scaling parameters.', context='compute')
-    scaling_data = compute_initial_beta_scaling_parameters(scenario_spec, data_interface, num_cores)
+    scaling_data = compute_initial_beta_scaling_parameters(scenario_spec, data_interface, num_cores, progress_bar)
 
     logger.info('Writing scaling parameters to disk.', context='write')
     write_out_beta_scale(scaling_data, scenario, data_interface, num_cores)
@@ -86,7 +89,8 @@ def run_compute_beta_scaling_parameters(forecast_version: str, scenario: str):
 
 def compute_initial_beta_scaling_parameters(scenario_spec: ScenarioSpecification,
                                             data_interface: ForecastDataInterface,
-                                            num_cores: int) -> List[pd.DataFrame]:
+                                            num_cores: int,
+                                            progress_bar: bool) -> List[pd.DataFrame]:
     # Serialization is our bottleneck, so we parallelize draw level data
     # ingestion and computation across multiple processes.
     covariates = data_interface.load_covariates(scenario_spec)
@@ -101,7 +105,7 @@ def compute_initial_beta_scaling_parameters(scenario_spec: ScenarioSpecification
     )
     draws = list(range(data_interface.get_n_draws()))
     with multiprocessing.Pool(num_cores) as pool:
-        scaling_data = list(pool.imap(_runner, draws))
+        scaling_data = list(tqdm.tqdm(pool.imap(_runner, draws), total=len(draws), disable=not progress_bar))
     return scaling_data
 
 
@@ -178,13 +182,15 @@ def write_out_beta_scales_by_draw(beta_scales: pd.DataFrame,
 @click.command()
 @cli_tools.with_task_forecast_version
 @cli_tools.with_scenario
+@cli_tools.with_progress_bar
 @cli_tools.add_verbose_and_with_debugger
-def beta_residual_scaling(forecast_version: str, scenario: str,
+def beta_residual_scaling(forecast_version: str, scenario: str, progress_bar: bool,
                           verbose: int, with_debugger: bool):
     cli_tools.configure_logging_to_terminal(verbose)
     run = cli_tools.handle_exceptions(run_compute_beta_scaling_parameters, logger, with_debugger)
     run(forecast_version=forecast_version,
-        scenario=scenario)
+        scenario=scenario,
+        progress_bar=progress_bar)
 
 
 if __name__ == '__main__':
