@@ -89,9 +89,14 @@ def compute_initial_beta_scaling_parameters(scenario_spec: ScenarioSpecification
                                             num_cores: int) -> List[pd.DataFrame]:
     # Serialization is our bottleneck, so we parallelize draw level data
     # ingestion and computation across multiple processes.
+    covariates = data_interface.load_covariates(scenario_spec)
+    variant_prevalence = covariates[['variant_prevalence_B1351', 'variant_prevalence_P1']].sum(axis=1)
+    average_over_min_min = variant_prevalence[variant_prevalence > 0].reset_index().groupby('location_id').date.min()
+
     _runner = functools.partial(
         compute_initial_beta_scaling_parameters_by_draw,
-        scenario_spec=scenario_spec,
+        beta_scaling=scenario_spec.beta_scaling,
+        average_over_min_min=average_over_min_min,
         data_interface=data_interface
     )
     draws = list(range(data_interface.get_n_draws()))
@@ -101,21 +106,17 @@ def compute_initial_beta_scaling_parameters(scenario_spec: ScenarioSpecification
 
 
 def compute_initial_beta_scaling_parameters_by_draw(draw_id: int,
-                                                    scenario_spec: ScenarioSpecification,
+                                                    beta_scaling: Dict,
+                                                    average_over_min_min: pd.Series,
                                                     data_interface: ForecastDataInterface) -> pd.DataFrame:
 
     # Construct a list of pandas Series indexed by location and named
     # as their column will be in the output dataframe. We'll append
     # to this list as we construct the parameters.
     draw_data = []
-
-    beta_scaling = scenario_spec.beta_scaling
     betas = data_interface.load_betas(draw_id)
-    covariates = data_interface.load_covariates(scenario_spec)
-
     transition_date = betas.reset_index().groupby('location_id').date.max()
-    variant_prevalence = covariates[['variant_prevalence_B1351', 'variant_prevalence_P1']].sum(axis=1)
-    average_over_min_min = variant_prevalence[variant_prevalence > 0].reset_index().groupby('location_id').date.min()
+
     average_over_min_min = average_over_min_min.reindex(transition_date.index, fill_value=transition_date.max())
     average_over_min_min = np.maximum((transition_date - average_over_min_min).dt.days, 1)
 
