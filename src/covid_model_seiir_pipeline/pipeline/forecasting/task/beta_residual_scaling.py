@@ -112,8 +112,12 @@ def compute_initial_beta_scaling_parameters_by_draw(draw_id: int,
     beta_scaling = scenario_spec.beta_scaling
     betas = data_interface.load_betas(draw_id)
     covariates = data_interface.load_covariates(scenario_spec)
+
+    transition_date = betas.reset_index().groupby('location_id').date.max()
     variant_prevalence = covariates[['variant_prevalence_B1351', 'variant_prevalence_P1']].sum(axis=1)
     average_over_min_min = variant_prevalence[variant_prevalence > 0].reset_index().groupby('location_id').date.min()
+    average_over_min_min = average_over_min_min.reindex(transition_date.index, fill_value=transition_date.max())
+    average_over_min_min = np.maximum((average_over_min_min - transition_date).dt.days, 1)
 
     # Select out the transition day to compute the initial scaling parameter.
     beta_transition = betas.groupby('location_id').last()
