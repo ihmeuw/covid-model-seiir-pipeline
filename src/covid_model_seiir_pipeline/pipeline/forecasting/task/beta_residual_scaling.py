@@ -117,7 +117,7 @@ def compute_initial_beta_scaling_parameters_by_draw(draw_id: int,
     variant_prevalence = covariates[['variant_prevalence_B1351', 'variant_prevalence_P1']].sum(axis=1)
     average_over_min_min = variant_prevalence[variant_prevalence > 0].reset_index().groupby('location_id').date.min()
     average_over_min_min = average_over_min_min.reindex(transition_date.index, fill_value=transition_date.max())
-    average_over_min_min = np.maximum((average_over_min_min - transition_date).dt.days, 1)
+    average_over_min_min = np.maximum((transition_date - average_over_min_min).dt.days, 1)
 
     # Select out the transition day to compute the initial scaling parameter.
     beta_transition = betas.groupby('location_id').last()
@@ -130,17 +130,22 @@ def compute_initial_beta_scaling_parameters_by_draw(draw_id: int,
     # to some ancillary information that may be useful for plotting/debugging.
     rs = np.random.RandomState(draw_id)
 
-    a = rs.randint(1, beta_scaling['average_over_min'])
-    b = rs.randint(a + 21, beta_scaling['average_over_max'])
+    a = pd.Series(rs.randint(average_over_min_min, average_over_min_min + beta_scaling['average_over_min']),
+                  index=average_over_min_min.index)
+    b = pd.Series(rs.randint(a + 21, a + beta_scaling['average_over_max']),
+                  index=average_over_min_min.index)
 
-    draw_data.append(pd.Series(a, index=beta_transition.index, name='history_days_start'))
-    draw_data.append(pd.Series(b, index=beta_transition.index, name='history_days_end'))
+    draw_data.append(a.rename('history_days_start'))
+    draw_data.append(b.rename('history_days_end'))
     draw_data.append(pd.Series(beta_scaling['window_size'], index=beta_transition.index, name='window_size'))
 
-    log_beta_residual_mean = (np.log(betas['beta'] / betas['beta_hat'])
-                              .groupby(level='location_id')
-                              .apply(lambda x: x.iloc[-b: -a].mean())
-                              .rename('log_beta_residual_mean'))
+    log_beta_residual = np.log(betas['beta'] / betas['beta_hat'])
+    log_beta_residual_mean = pd.Series(0.0, name='log_beta_residual_mean', index=a.index)
+    for location_id in log_beta_residual_mean.index:
+        loc_log_beta_residual = log_beta_residual.loc[location_id]
+        loc_a, loc_b = a.loc[location_id], b.loc[location_id]
+        log_beta_residual_mean.loc[location_id] = loc_log_beta_residual.iloc[-loc_b:-loc_a].mean()
+
     draw_data.append(log_beta_residual_mean)
     draw_data.append(pd.Series(draw_id, index=beta_transition.index, name='draw'))
 
