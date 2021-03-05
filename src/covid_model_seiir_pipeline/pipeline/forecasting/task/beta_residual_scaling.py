@@ -13,6 +13,7 @@ from covid_model_seiir_pipeline.lib import (
 )
 from covid_model_seiir_pipeline.pipeline.forecasting.specification import (
     ForecastSpecification,
+    ScenarioSpecification,
     FORECAST_JOBS,
 )
 from covid_model_seiir_pipeline.pipeline.forecasting.data import ForecastDataInterface
@@ -72,10 +73,10 @@ def run_compute_beta_scaling_parameters(forecast_version: str, scenario: str):
     data_interface = ForecastDataInterface.from_specification(forecast_spec)
 
     logger.info('Loading input data.', context='read')
-    beta_scaling = forecast_spec.scenarios[scenario].beta_scaling
+    scenario_spec = forecast_spec.scenarios[scenario]
 
     logger.info('Computing scaling parameters.', context='compute')
-    scaling_data = compute_initial_beta_scaling_parameters(beta_scaling, data_interface, num_cores)
+    scaling_data = compute_initial_beta_scaling_parameters(scenario_spec, data_interface, num_cores)
 
     logger.info('Writing scaling parameters to disk.', context='write')
     write_out_beta_scale(scaling_data, scenario, data_interface, num_cores)
@@ -83,14 +84,14 @@ def run_compute_beta_scaling_parameters(forecast_version: str, scenario: str):
     logger.report()
 
 
-def compute_initial_beta_scaling_parameters(beta_scaling: dict,
+def compute_initial_beta_scaling_parameters(scenario_spec: ScenarioSpecification,
                                             data_interface: ForecastDataInterface,
                                             num_cores: int) -> List[pd.DataFrame]:
     # Serialization is our bottleneck, so we parallelize draw level data
     # ingestion and computation across multiple processes.
     _runner = functools.partial(
         compute_initial_beta_scaling_parameters_by_draw,
-        beta_scaling=beta_scaling,
+        scenario_spec=scenario_spec,
         data_interface=data_interface
     )
     draws = list(range(data_interface.get_n_draws()))
@@ -100,7 +101,7 @@ def compute_initial_beta_scaling_parameters(beta_scaling: dict,
 
 
 def compute_initial_beta_scaling_parameters_by_draw(draw_id: int,
-                                                    beta_scaling: Dict,
+                                                    scenario_spec: ScenarioSpecification,
                                                     data_interface: ForecastDataInterface) -> pd.DataFrame:
 
     # Construct a list of pandas Series indexed by location and named
@@ -108,7 +109,12 @@ def compute_initial_beta_scaling_parameters_by_draw(draw_id: int,
     # to this list as we construct the parameters.
     draw_data = []
 
+    beta_scaling = scenario_spec.beta_scaling
     betas = data_interface.load_betas(draw_id)
+    covariates = data_interface.load_covariates(scenario_spec)
+    variant_prevalence = covariates[['variant_prevalence_B1351', 'variant_prevalence_P1']].sum(axis=1)
+    average_over_min_min = variant_prevalence[variant_prevalence > 0].reset_index().groupby('location_id').date.min()
+
     # Select out the transition day to compute the initial scaling parameter.
     beta_transition = betas.groupby('location_id').last()
 
