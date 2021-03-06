@@ -289,10 +289,23 @@ def redistribute(compartment: str, components: pd.DataFrame, variant_prevalence:
     return components
 
 
-def adjust_beta(model_parameters: ModelParameters, correction_factor: pd.Series) -> ModelParameters:
-    idx = model_parameters.beta.index
-    model_parameters.beta = model_parameters.beta * correction_factor.reindex(idx, level='location_id')
-    model_parameters.beta_wild = model_parameters.beta_wild * correction_factor.reindex(idx, level='location_id')
+def adjust_beta(model_parameters: ModelParameters, compartments: pd.DataFrame) -> ModelParameters:
+    s_wild = compartments[
+        [c for c in compartments if c[0] == 'S' and 'variant' not in c and 'm' not in c]
+    ].sum(axis=1)
+    s_variant = compartments[
+        [c for c in compartments if c[0] == 'S' and 'm' not in c]
+    ].sum(axis=1)
+    raw_correction_factor = s_wild / s_variant
+    p = model_parameters.p_variant
+    threshold = p[p > 0.1].reset_index().groupby('location_id').date.min()
+
+    correction_factor = pd.Series(1.0, index=raw_correction_factor.reset_index().location_id.unique())
+    for location_id, threshold_date in threshold.iteritems():
+        correction_factor.loc[location_id] = (raw_correction_factor
+                                              .loc[pd.IndexSlice[location_id, threshold_date:]]
+                                              .mean())
+    idx = model_parameters.beta_variant.index
     model_parameters.beta_variant = model_parameters.beta_variant * correction_factor.reindex(idx, level='location_id')
     return model_parameters
 
