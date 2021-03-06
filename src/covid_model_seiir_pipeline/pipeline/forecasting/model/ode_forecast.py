@@ -230,18 +230,21 @@ def redistribute_past_compartments(infections: pd.Series,
         # Who's in R vs. S_variant depends roughly on the probability of cross immunity.
         # This is a bad approximation if variant prevalence is high and there have been a significant
         # of infections.
-        group_compartments['S_variant'] = group_compartments['R'] * (1 - p_ci) - group_compartments['R_variant']
-        group_compartments_diff['R'] = group_compartments_diff['R'] * p_ci
-
-        group_compartments_diff['S_variant_u'] = (
-            (group_compartments_diff['R_u'] + group_compartments_diff['R_p']) * (1 - p_ci)
-            - group_compartments['R_variant_u']
+        group_compartments['S_variant'] = (
+            (group_compartments['R'] + group_compartments['R_variant']) * (1 - p_ci) - group_compartments['R_variant']
         )
-        group_compartments_diff['R_u'] = group_compartments_diff['R_u'] * p_ci
-        group_compartments_diff['R_p'] = group_compartments_diff['R_p'] * p_ci
+        group_compartments['R'] = group_compartments['R'] * p_ci
 
-        group_compartments_diff['S_variant_pa'] = (
-                group_compartments_diff['R_pa'] * (1 - p_ci) - group_compartments['R_variant_pa']
+        group_compartments['S_variant_u'] = (
+            group_compartments[['R_u', 'R_p', 'R_variant_u', 'R_variant_p']].sum(axis=1) * (1 - p_ci)
+            - group_compartments[['R_variant_u', 'R_variant_p']].sum(axis=1)
+        )
+        group_compartments['R_u'] = group_compartments['R_u'] * p_ci
+        group_compartments['R_p'] = group_compartments['R_p'] * p_ci
+
+        group_compartments['S_variant_pa'] = (
+                group_compartments[['R_pa', 'R_variant_pa']].sum(axis=1) * (1 - p_ci)
+                - group_compartments['R_variant_pa']
         )
         group_compartments_diff['R_pa'] = group_compartments_diff['R_pa'] * p_ci
 
