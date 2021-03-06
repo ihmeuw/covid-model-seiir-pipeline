@@ -96,6 +96,15 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
         model_parameters=model_parameters,
     )
     initial_condition = past_compartments.loc[indices.initial_condition].reset_index(level='date', drop=True)
+    s_wild = initial_condition[
+        [c for c in initial_condition if c[0] == 'S' and 'variant' not in c and 'm' not in c]
+    ].sum(axis=1)
+    s_variant = initial_condition[
+        [c for c in initial_condition if c[0] == 'S' and 'm' not in c]
+    ].sum(axis=1)
+
+    model.adjust_beta(model_parameters, s_wild / s_variant)
+
 
     ###################################################
     # Construct parameters for postprocessing results #
