@@ -206,31 +206,8 @@ def redistribute_past_compartments(infections: pd.Series,
         s_start = group_compartments.groupby('location_id')['S'].max()
         group_compartments_diff = group_compartments.groupby('location_id').diff()
 
-        for compartment in ['E', 'I1', 'I2', 'R']:
-            group_compartments_diff[f'{compartment}_variant'] = (
-                group_compartments_diff[compartment] * variant_prevalence
-            )
-            group_compartments_diff[f'{compartment}'] = (
-                    group_compartments_diff[compartment] * (1 - variant_prevalence)
-            )
-
-            group_compartments_diff[f'{compartment}_variant_u'] = (
-                (group_compartments_diff[f'{compartment}_u'] + group_compartments_diff[f'{compartment}_p'])
-                * variant_prevalence
-            )
-            group_compartments_diff[f'{compartment}_u'] = (
-                group_compartments_diff[f'{compartment}_u'] * (1 - variant_prevalence)
-            )
-            group_compartments_diff[f'{compartment}_p'] = (
-                    group_compartments_diff[f'{compartment}_p'] * (1 - variant_prevalence)
-            )
-
-            group_compartments_diff[f'{compartment}_variant_pa'] = (
-                    group_compartments_diff[f'{compartment}_pa'] * variant_prevalence
-            )
-            group_compartments_diff[f'{compartment}_pa'] = (
-                    group_compartments_diff[f'{compartment}_pa'] * (1 - variant_prevalence)
-            )
+        # R needs to to be redistributed in diff space since it's a sink only.
+        group_compartments_diff = redistribute('R', group_compartments_diff, variant_prevalence)
 
         # Who's in R vs. S_variant depends roughly on the probability of cross immunity.
         # This is a bad approximation if variant prevalence is high and there have been a significant
@@ -251,23 +228,20 @@ def redistribute_past_compartments(infections: pd.Series,
         infecs = infections.reindex(group_compartments_diff.index)
         s_wild = group_compartments[['S', 'S_u', 'S_p', 'S_pa']].sum(axis=1)
         s_wild_p = group_compartments[['S_p', 'S_pa']].sum(axis=1)
-        group_compartments_diff['NewE_wild'] = (
-            infecs * pop_weight * (1 - variant_prevalence)
-        )
-        group_compartments_diff['NewE_p_wild'] = (
-            infecs * pop_weight * (1 - variant_prevalence) * s_wild_p / s_wild
-        )
+        group_compartments_diff['NewE_wild'] = infecs * pop_weight * (1 - variant_prevalence)
+        group_compartments_diff['NewE_p_wild'] = infecs * pop_weight * (1 - variant_prevalence) * s_wild_p / s_wild
 
         s_variant = s_wild + group_compartments[['S_variant', 'S_variant_u', 'S_variant_pa', 'S_m']].sum(axis=1)
         s_variant_p = group_compartments[['S_pa', 'S_variant_pa', 'S_m']].sum(axis=1)
-        group_compartments_diff['NewE_variant'] = (
-            infecs * pop_weight * variant_prevalence
-        )
-        group_compartments_diff['NewE_p_variant'] = (
-            infecs * pop_weight * variant_prevalence * s_variant_p / s_variant
-        )
+        group_compartments_diff['NewE_variant'] = infecs * pop_weight * variant_prevalence
+        group_compartments_diff['NewE_p_variant'] = infecs * pop_weight * variant_prevalence * s_variant_p / s_variant
 
         group_compartments = group_compartments_diff.groupby('location_id').cumsum().fillna(0)
+        # Because these compartments have inflows and outflows and people spend a short time in them,
+        # the best approximation is a redistribution in cumulative space.
+        for compartment in ['E', 'I1', 'I2']:
+            group_compartments = redistribute(compartment, group_compartments, variant_prevalence)
+
         group_compartments['S'] += s_start.reindex(group_compartments.index, level='location_id')
 
         group_compartments['V_u'] = group_compartments[[c for c in group_compartments if '_u' in c]].sum(axis=1)
@@ -292,6 +266,21 @@ def _get_pop_weights(population: pd.DataFrame) -> Dict[str, pd.Series]:
         'hr': high_risk_pop / total_pop,
     }
     return pop_weights
+
+
+def redistribute(compartment: str, components: pd.DataFrame, variant_prevalence: pd.Series) -> pd.DataFrame:
+    components[f'{compartment}_variant'] = components[compartment] * variant_prevalence
+    components[f'{compartment}'] = components[compartment] * (1 - variant_prevalence)
+
+    components[f'{compartment}_variant_u'] =  (
+        (components[f'{compartment}_u'] + components[f'{compartment}_p']) * variant_prevalence
+    )
+    components[f'{compartment}_u'] = components[f'{compartment}_u'] * (1 - variant_prevalence)
+    components[f'{compartment}_p'] = components[f'{compartment}_p'] * (1 - variant_prevalence)
+
+    components[f'{compartment}_variant_pa'] = components[f'{compartment}_pa'] * variant_prevalence
+    components[f'{compartment}_pa'] = components[f'{compartment}_pa'] * (1 - variant_prevalence)
+    return components
 
 
 #######################################
