@@ -298,7 +298,7 @@ def adjust_beta(model_parameters: ModelParameters, compartments: pd.DataFrame) -
     ].sum(axis=1)
     raw_correction_factor = s_wild / s_variant
     p = model_parameters.p_variant
-    threshold = p[p > 0.1].reset_index().groupby('location_id').date.min()
+    threshold = p[p > 0.15].reset_index().groupby('location_id').date.min()
 
     correction_factor = pd.Series(1.0, index=raw_correction_factor.reset_index().location_id.unique())
     for location_id, threshold_date in threshold.iteritems():
