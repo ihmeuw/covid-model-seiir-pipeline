@@ -236,8 +236,8 @@ def redistribute_past_compartments(infections: pd.Series,
         group_compartments['R'] = group_compartments['R'] * p_ci
 
         group_compartments['S_variant_u'] = (
-            group_compartments[['R_u', 'R_p', 'R_variant_u', 'R_variant_p']].sum(axis=1) * (1 - p_ci)
-            - group_compartments[['R_variant_u', 'R_variant_p']].sum(axis=1)
+            group_compartments[['R_u', 'R_p', 'R_variant_u']].sum(axis=1) * (1 - p_ci)
+            - group_compartments['R_variant_u']
         )
         group_compartments['R_u'] = group_compartments['R_u'] * p_ci
         group_compartments['R_p'] = group_compartments['R_p'] * p_ci
