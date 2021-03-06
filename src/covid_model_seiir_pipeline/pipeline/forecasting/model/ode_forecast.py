@@ -289,6 +289,14 @@ def redistribute(compartment: str, components: pd.DataFrame, variant_prevalence:
     return components
 
 
+def adjust_beta(model_parameters: ModelParameters, correction_factor: pd.Series) -> ModelParameters:
+    idx = model_parameters.beta.index
+    model_parameters.beta = model_parameters.beta * correction_factor.reindex(idx, level='location_id')
+    model_parameters.beta_wild = model_parameters.beta_wild * correction_factor.reindex(idx, level='location_id')
+    model_parameters.beta_variant = model_parameters.beta_variant * correction_factor.reindex(idx, level='location_id')
+    return model_parameters
+
+
 #######################################
 # Construct postprocessing parameters #
 #######################################
