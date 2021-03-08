@@ -6,6 +6,7 @@ import pandas as pd
 from covid_model_seiir_pipeline.lib import (
     cli_tools,
     static_vars,
+    math,
 )
 from covid_model_seiir_pipeline.pipeline.forecasting import model
 from covid_model_seiir_pipeline.pipeline.forecasting.specification import ForecastSpecification
@@ -34,7 +35,9 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
     past_start_dates = past_infections.reset_index().groupby('location_id').date.min()
     forecast_start_dates = past_infections.reset_index().groupby('location_id').date.max()
     # Forecast is run to the end of the covariates
+    variant_shift = data_interface.get_variant_shift()
     covariates = data_interface.load_covariates(scenario_spec)
+    covariates = math.shift_variants(covariates, variant_shift)
     forecast_end_dates = covariates.reset_index().groupby('location_id').date.max()
 
     logger.info('Building indices', context='transform')
@@ -75,6 +78,7 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
         beta_scales,
         vaccinations,
         scenario_spec,
+        draw_id,
     )
 
     ############################################################
@@ -86,10 +90,13 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
 
     logger.info('Redistributing past compartments.', context='transform')
     past_compartments = model.redistribute_past_compartments(
+        infections=past_infections,
         compartments=compartments,
         population=population,
+        model_parameters=model_parameters,
     )
     initial_condition = past_compartments.loc[indices.initial_condition].reset_index(level='date', drop=True)
+    model_parameters = model.adjust_beta(model_parameters, past_compartments)
 
     ###################################################
     # Construct parameters for postprocessing results #
@@ -120,7 +127,6 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
         model_parameters.with_index(indices.future),
         progress_bar,
     )
-
     logger.info('Processing ODE results and computing deaths and infections.', context='compute_results')
     components, system_metrics, output_metrics = model.compute_output_metrics(
         indices,
@@ -128,7 +134,6 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
         postprocessing_params,
         model_parameters,
         hospital_parameters,
-        scenario_spec.system,
     )
 
     if scenario_spec.algorithm == 'draw_level_mandate_reimposition':
@@ -187,7 +192,9 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
                 beta_scales,
                 vaccinations,
                 scenario_spec,
+                draw_id,
             )
+            model_parameters = model.adjust_beta(model_parameters, past_compartments)
 
             # The ode is done as a loop over the locations in the initial condition.
             # As locations that don't reimpose mandates produce identical forecasts,
@@ -212,7 +219,6 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
                 postprocessing_params,
                 model_parameters,
                 hospital_parameters,
-                scenario_spec.system,
             )
 
             logger.info('Recomputing reimposition dates', context='compute_mandates')

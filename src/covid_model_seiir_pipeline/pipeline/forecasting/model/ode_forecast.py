@@ -1,4 +1,3 @@
-import itertools
 from typing import Dict, Tuple, TYPE_CHECKING
 
 import numpy as np
@@ -17,6 +16,7 @@ from covid_model_seiir_pipeline.pipeline.forecasting.model.containers import (
 )
 from covid_model_seiir_pipeline.pipeline.forecasting.model.ode_systems import (
     vaccine,
+    variant,
 )
 
 
@@ -44,12 +44,20 @@ def build_model_parameters(indices: Indices,
                            coefficients: pd.DataFrame,
                            beta_scales: pd.DataFrame,
                            vaccine_data: pd.DataFrame,
-                           scenario_spec: 'ScenarioSpecification') -> ModelParameters:
+                           scenario_spec: 'ScenarioSpecification',
+                           draw_id: int) -> ModelParameters:
     # These are all the same by draw.  Just broadcasting them over a new index.
     alpha = pd.Series(ode_parameters.alpha.mean(), index=indices.full, name='alpha')
     sigma = pd.Series(ode_parameters.sigma.mean(), index=indices.full, name='sigma')
     gamma1 = pd.Series(ode_parameters.gamma1.mean(), index=indices.full, name='gamma1')
     gamma2 = pd.Series(ode_parameters.gamma2.mean(), index=indices.full, name='gamma2')
+
+    np.random.seed(draw_id)
+    variant_beta_scale = np.random.uniform(*scenario_spec.variant_beta_scale)
+    probability_cross_immune = pd.Series(
+        np.random.uniform(*scenario_spec.probability_cross_immune),
+        index=indices.full, name='probability_cross_immune'
+    )
 
     beta, beta_wild, beta_variant, p_wild, p_variant, p_all_variant = get_betas_and_prevalences(
         indices,
@@ -57,7 +65,7 @@ def build_model_parameters(indices: Indices,
         covariates,
         coefficients,
         beta_scales,
-        scenario_spec.variant_beta_scale,
+        variant_beta_scale,
     )
 
     thetas = thetas.reindex(indices.full, level='location_id')
@@ -72,9 +80,6 @@ def build_model_parameters(indices: Indices,
 
     vaccine_data = vaccine_data.reindex(indices.full, fill_value=0)
     adjusted_vaccinations = math.adjust_vaccinations(vaccine_data)
-
-    probability_cross_immune = pd.Series(scenario_spec.probability_cross_immune,
-                                         index=indices.full, name='probability_cross_immune')
 
     return ModelParameters(
         alpha=alpha,
@@ -183,9 +188,13 @@ def beta_shift(beta_hat: pd.DataFrame,
 # Past compartment redistribution #
 ###################################
 
-def redistribute_past_compartments(compartments: pd.DataFrame,
-                                   population: pd.DataFrame):
+def redistribute_past_compartments(infections: pd.Series,
+                                   compartments: pd.DataFrame,
+                                   population: pd.DataFrame,
+                                   model_parameters: ModelParameters):
     pop_weights = _get_pop_weights(population)
+    variant_prevalence = model_parameters.p_variant.loc[compartments.index]
+    p_ci = model_parameters.probability_cross_immune.loc[compartments.index]
 
     redistributed_compartments = []
     for group in ['lr', 'hr']:
@@ -193,9 +202,60 @@ def redistribute_past_compartments(compartments: pd.DataFrame,
         pop_weight = pop_weights[group].reindex(compartments.index, level='location_id')
 
         group_compartments = compartments.mul(pop_weight, axis=0)
+        group_compartments = group_compartments.reindex(variant.COMPARTMENTS, axis='columns', fill_value=0.0)
+        s_start = group_compartments.groupby('location_id')['S'].max()
+        group_compartments_diff = group_compartments.groupby('location_id').diff()
 
-        # sort the columns
-        group_compartments = group_compartments.loc[:, vaccine.COMPARTMENTS]
+        # R needs to to be redistributed in diff space since it's a sink only.
+        group_compartments_diff = redistribute('R', group_compartments_diff, variant_prevalence)
+
+        # Tracking compartments
+        infecs = infections.reindex(group_compartments_diff.index)
+        s_wild = group_compartments[['S', 'S_u', 'S_p', 'S_pa']].sum(axis=1)
+        s_wild_p = group_compartments[['S_p', 'S_pa']].sum(axis=1)
+        group_compartments_diff['NewE_wild'] = infecs * pop_weight * (1 - variant_prevalence)
+        group_compartments_diff['NewE_p_wild'] = infecs * pop_weight * (1 - variant_prevalence) * s_wild_p / s_wild
+
+        s_variant = s_wild + group_compartments[['S_variant', 'S_variant_u', 'S_variant_pa', 'S_m']].sum(axis=1)
+        s_variant_p = group_compartments[['S_pa', 'S_variant_pa', 'S_m']].sum(axis=1)
+        group_compartments_diff['NewE_variant'] = infecs * pop_weight * variant_prevalence
+        group_compartments_diff['NewE_p_variant'] = infecs * pop_weight * variant_prevalence * s_variant_p / s_variant
+
+        group_compartments = group_compartments_diff.groupby('location_id').cumsum().fillna(0)
+        # Because these compartments have inflows and outflows and people spend a short time in them,
+        # the best approximation is a redistribution in cumulative space.
+        for compartment in ['E', 'I1', 'I2']:
+            group_compartments = redistribute(compartment, group_compartments, variant_prevalence)
+
+        # Who's in R vs. S_variant depends roughly on the probability of cross immunity.
+        # This is a bad approximation if variant prevalence is high and there have been a significant
+        # of infections.
+        group_compartments['S_variant'] = (
+            (group_compartments['R'] + group_compartments['R_variant']) * (1 - p_ci) - group_compartments['R_variant']
+        )
+        group_compartments['R'] = group_compartments['R'] * p_ci
+
+        group_compartments['S_variant_u'] = (
+            group_compartments[['R_u', 'R_p', 'R_variant_u']].sum(axis=1) * (1 - p_ci)
+            - group_compartments['R_variant_u']
+        )
+        group_compartments['R_u'] = group_compartments['R_u'] * p_ci
+        group_compartments['R_p'] = group_compartments['R_p'] * p_ci
+
+        group_compartments['S_variant_pa'] = (
+                group_compartments[['R_pa', 'R_variant_pa']].sum(axis=1) * (1 - p_ci)
+                - group_compartments['R_variant_pa']
+        )
+        group_compartments_diff['R_pa'] = group_compartments_diff['R_pa'] * p_ci
+
+        group_compartments['S'] += s_start.reindex(group_compartments.index, level='location_id')
+
+        group_compartments['V_u'] = group_compartments[[c for c in group_compartments if '_u' in c]].sum(axis=1)
+        group_compartments['V_p'] = group_compartments[[c for c in group_compartments if '_p' in c and '_pa' not in c]].sum(axis=1)
+        group_compartments['V_pa'] = group_compartments[[c for c in group_compartments if '_pa' in c]].sum(axis=1)
+        group_compartments['V_m'] = group_compartments['S_m']
+        group_compartments['V_ma'] = group_compartments['R_m']
+
         group_compartments.columns = [f'{c}_{group}' for c in group_compartments]
         redistributed_compartments.append(group_compartments)
     redistributed_compartments = pd.concat(redistributed_compartments, axis=1)
@@ -212,6 +272,43 @@ def _get_pop_weights(population: pd.DataFrame) -> Dict[str, pd.Series]:
         'hr': high_risk_pop / total_pop,
     }
     return pop_weights
+
+
+def redistribute(compartment: str, components: pd.DataFrame, variant_prevalence: pd.Series) -> pd.DataFrame:
+    components[f'{compartment}_variant'] = components[compartment] * variant_prevalence
+    components[f'{compartment}'] = components[compartment] * (1 - variant_prevalence)
+
+    components[f'{compartment}_variant_u'] = (
+        (components[f'{compartment}_u'] + components[f'{compartment}_p']) * variant_prevalence
+    )
+    components[f'{compartment}_u'] = components[f'{compartment}_u'] * (1 - variant_prevalence)
+    components[f'{compartment}_p'] = components[f'{compartment}_p'] * (1 - variant_prevalence)
+
+    components[f'{compartment}_variant_pa'] = components[f'{compartment}_pa'] * variant_prevalence
+    components[f'{compartment}_pa'] = components[f'{compartment}_pa'] * (1 - variant_prevalence)
+    return components
+
+
+def adjust_beta(model_parameters: ModelParameters, compartments: pd.DataFrame) -> ModelParameters:
+    s_wild = compartments[
+        [c for c in compartments if c[0] == 'S' and 'variant' not in c and 'm' not in c]
+    ].sum(axis=1)
+    s_variant = compartments[
+        [c for c in compartments if c[0] == 'S' and 'm' not in c]
+    ].sum(axis=1)
+    raw_correction_factor = s_wild / s_variant
+    p = model_parameters.p_variant
+    threshold = p[p > 0.15].reset_index().groupby('location_id').date.min()
+
+    correction_factor = pd.Series(index=raw_correction_factor.reset_index().location_id.unique())
+    for location_id, threshold_date in threshold.iteritems():
+        correction_factor.loc[location_id] = (raw_correction_factor
+                                              .loc[pd.IndexSlice[location_id, threshold_date:]]
+                                              .mean())
+    correction_factor = correction_factor.fillna(1.0)
+    idx = model_parameters.beta_variant.index
+    model_parameters.beta_variant = model_parameters.beta_variant * correction_factor.reindex(idx, level='location_id')
+    return model_parameters
 
 
 #######################################
@@ -303,11 +400,11 @@ def forecast_correction_factors(indices: Indices,
 def run_ode_model(initial_conditions: pd.DataFrame,
                   model_parameters: ModelParameters,
                   progress_bar: bool) -> pd.DataFrame:
-    system = vaccine.system
+    system = variant.variant_natural_system
     mp_dict = model_parameters.to_dict()
 
     parameters = pd.concat(
-        [mp_dict[p] for p in vaccine.PARAMETERS]
+        [mp_dict[p] for p in variant.PARAMETERS]
         + [model_parameters.unprotected_lr,
            model_parameters.protected_wild_type_lr,
            model_parameters.protected_all_types_lr,

@@ -12,7 +12,7 @@ PARAMETERS = [
     'alpha', 'beta_wild', 'beta_variant', 'sigma', 'gamma1', 'gamma2',
     'theta_plus', 'theta_minus',
     'p_wild', 'p_variant',
-    'p_cross_immune',
+    'probability_cross_immune',
 ]
 (
     alpha, beta_wild, beta_variant, sigma, gamma1, gamma2,
@@ -146,7 +146,14 @@ def variant_natural_single_group_system(t: float, y: np.ndarray, params: np.ndar
                                         vaccines: np.ndarray, n_total: float, infectious: np.ndarray):
     infectious_wild, infectious_variant = infectious
     infectious_total = infectious_wild + infectious_variant
-    infectious_variant = max((infectious_wild + infectious_variant) * params[p_variant], infectious_variant)
+    if params[p_variant] < 0.05:
+        lower_bound = infectious_total * params[p_variant]
+    elif params[p_variant] < 0.25:
+        z = infectious_total * params[p_variant]
+        lower_bound = z + (params[p_variant] - 0.05) / (0.25 - 0.05) * (z - infectious_variant)
+    else:
+        lower_bound = infectious_variant
+    infectious_variant = max(lower_bound, infectious_variant)
     infectious_wild = infectious_total - infectious_variant
 
     b_wild = params[beta_wild] * infectious_wild ** params[alpha] / n_total

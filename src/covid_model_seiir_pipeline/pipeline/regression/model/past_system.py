@@ -108,6 +108,7 @@ def system(t: float, y: np.ndarray, params: np.ndarray):
         ds_pa, de_pa, di1_pa, di2_pa, dr_pa,
         ds_m, dr_m,
     ])
-    assert dy.sum() < 1e-5
+    if dy.sum() > 1e-5:
+        print('Compartment mismatch: ', dy.sum())
 
     return dy

@@ -15,7 +15,7 @@ def build_resampling_map(deaths: pd.DataFrame, resampling_params: 'ResamplingSpe
     cumulative_deaths['date'] = pd.to_datetime(cumulative_deaths['date'])
     reference_date = pd.to_datetime(resampling_params.reference_date)
     reference_deaths = (cumulative_deaths[cumulative_deaths['date'] == reference_date]
-                        .drop(columns=['date'])
+                        .drop(columns=['date', 'observed'])
                         .set_index('location_id'))
     upper_deaths = reference_deaths.quantile(resampling_params.upper_quantile, axis=1)
     lower_deaths = reference_deaths.quantile(resampling_params.lower_quantile, axis=1)
@@ -25,10 +25,13 @@ def build_resampling_map(deaths: pd.DataFrame, resampling_params: 'ResamplingSpe
         loc_deaths = reference_deaths.loc[location_id]
         to_resample = loc_deaths[(upper < loc_deaths) | (loc_deaths < lower)].index.tolist()
         np.random.seed(location_id)
-        to_fill = np.random.choice(loc_deaths.index.difference(to_resample),
-                                   len(to_resample), replace=False).tolist()
-        resample_map[location_id] = {'to_resample': to_resample,
-                                     'to_fill': to_fill}
+        # Degenerate case
+        keep_draws = loc_deaths.index.difference(to_resample)
+        resample_count = min(len(keep_draws), len(to_resample))
+        if resample_count:
+            to_fill = np.random.choice(keep_draws, resample_count, replace=False).tolist()
+            resample_map[location_id] = {'to_resample': to_resample,
+                                         'to_fill': to_fill}
     return resample_map
 
 

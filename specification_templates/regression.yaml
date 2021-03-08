@@ -1,6 +1,6 @@
 data:
-  infection_version: '2021_02_23.14'
-  covariate_version: '2021_02_23.02'
+  infection_version: '2021_03_04.01'
+  covariate_version: '2021_03_04.02'
   coefficient_version: ''
   location_set_version_id: ''
   location_set_file: '/ihme/covid-19/seir-pipeline-outputs/metadata-inputs/location_metadata_810.1.csv'
@@ -10,11 +10,12 @@ workflow:
   project: 'proj_covid_prod'
   queue: 'd.q'
 regression_parameters:
-  n_draws: 100
+  n_draws: 500
   alpha: [0.9, 1.0]
   sigma: [0.2, 0.3333]
   gamma1: [0.5, 0.5]
   gamma2: [0.3333, 1.0]
+  variant_shift: 0
   sequential_refit: False
 hospital_parameters:
   hospital_stay_death: 6
@@ -115,20 +116,20 @@ covariates:
     order: 0
     use_re: False
     gprior: [0.0, 1000.0]
-    bounds: [0.262, 0.336]
+    bounds: [0.3074, 0.3075]
     re_var: 1.0
     draws: False
   variant_prevalence_B1351:
     order: 0
     use_re: False
     gprior: [0.0, 1000.0]
-    bounds: [0.262, 0.336]
+    bounds: [0.3074, 0.3075]
     re_var: 1.0
     draws: False
   variant_prevalence_P1:
     order: 0
     use_re: False
     gprior: [0.0, 1000.0]
-    bounds: [0.262, 0.336]
+    bounds: [0.3074, 0.3075]
     re_var: 1.0
     draws: False

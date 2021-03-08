@@ -26,7 +26,7 @@ class ScalingTaskSpecification(workflow.TaskSpecification):
 class ForecastTaskSpecification(workflow.TaskSpecification):
     """Specification of execution parameters for beta forecasting tasks."""
     default_max_runtime_seconds = 15000
-    default_m_mem_free = '5G'
+    default_m_mem_free = '12G'
     default_num_cores = 1
 
 
@@ -72,23 +72,18 @@ class ScenarioSpecification:
     name: str = field(default='dummy_scenario')
     algorithm: str = field(default='normal')
     algorithm_params: Dict = field(default_factory=dict)
-    system: str = field(default='vaccine')
     beta_scaling: Dict[str, int] = field(default_factory=dict)
     theta: Union[str, int] = field(default=0)
     vaccine_version: str = field(default='reference')
     variant_ifr_scale: float = field(default=1.29)
-    probability_cross_immune: float = field(default=0.0)
-    variant_beta_scale: float = field(default=1.0)
+    probability_cross_immune: Tuple[float, float] = field(default=(0.0, 0.5))
+    variant_beta_scale: Tuple[float, float] = field(default=(0.5, 1.0))
     covariates: Dict[str, str] = field(default_factory=dict)
 
     def __post_init__(self):
         if self.algorithm not in self.ALLOWED_ALGORITHMS:
             raise ValueError(f'Unknown algorithm {self.algorithm} in scenario {self.name}. '
                              f'Allowed algorithms are {self.ALLOWED_ALGORITHMS}.')
-
-        if self.system not in self.ALLOWED_SYSTEMS:
-            raise ValueError(f'Unknown system {self.system} in scenario {self.name}. '
-                             f'Allowed systems are {self.ALLOWED_SYSTEMS}.')
 
 #        bad_scaling_keys = set(self.beta_scaling).difference(self.BETA_SCALING_KEYS)
 #        if bad_scaling_keys:

@@ -66,6 +66,9 @@ class ForecastDataInterface:
     def get_n_draws(self) -> int:
         return self._get_regression_data_interface().get_n_draws()
 
+    def get_variant_shift(self) -> int:
+        return self._get_regression_data_interface().load_specification().regression_parameters.variant_shift
+
     def load_location_ids(self) -> List[int]:
         return self._get_regression_data_interface().load_location_ids()
 
@@ -171,7 +174,12 @@ class ForecastDataInterface:
 
     def load_vaccinations(self, vaccine_scenario: str):
         location_ids = self.load_location_ids()
-        info_df = io.load(self.covariate_root.vaccine_info(info_type=f'vaccinations_{vaccine_scenario}'))
+        if vaccine_scenario == 'none':
+            # Grab the reference so we get the right index/schema.
+            info_df = io.load(self.covariate_root.vaccine_info(info_type='vaccinations_reference'))
+            info_df.loc[:, :] = 0.0
+        else:
+            info_df = io.load(self.covariate_root.vaccine_info(info_type=f'vaccinations_{vaccine_scenario}'))
         return self._format_covariate_data(info_df, location_ids)
 
     #########################
