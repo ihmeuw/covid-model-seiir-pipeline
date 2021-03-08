@@ -198,7 +198,11 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
                 scenario_spec,
                 draw_id,
             )
-            model_parameters = model.adjust_beta(model_parameters, past_compartments)
+            model_parameters = model.adjust_beta(
+                model_parameters,
+                initial_condition,
+                past_infections.loc[indices.initial_condition],
+            )
 
             # The ode is done as a loop over the locations in the initial condition.
             # As locations that don't reimpose mandates produce identical forecasts,
