@@ -315,8 +315,12 @@ def adjust_beta(model_parameters: ModelParameters,
     beta_wild = new_e * (1 - variant_prevalence) / (s_wild * i_wild**alpha / total_pop)
     beta_variant = new_e * variant_prevalence / (s_variant * i_variant**alpha / total_pop)
 
-    wild_correction_factor = beta_wild - model_parameters.beta_wild.loc[beta_wild.index]
-    variant_correction_factor = beta_variant - model_parameters.beta_variant.loc[beta_variant.index]
+    wild_correction_factor = (
+        beta_wild - model_parameters.beta_wild.loc[beta_wild.index]
+    ).fillna(0).reset_index(level='date', drop=True)
+    variant_correction_factor = (
+        beta_variant - model_parameters.beta_variant.loc[beta_variant.index]
+    ).fillna(0).reset_index(level='date', drop=True)
 
     idx = model_parameters.beta_wild.index
     model_parameters.beta_wild = (
