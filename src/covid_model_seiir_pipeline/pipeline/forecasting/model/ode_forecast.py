@@ -300,11 +300,12 @@ def adjust_beta(model_parameters: ModelParameters, compartments: pd.DataFrame) -
     p = model_parameters.p_variant
     threshold = p[p > 0.15].reset_index().groupby('location_id').date.min()
 
-    correction_factor = pd.Series(1.0, index=raw_correction_factor.reset_index().location_id.unique())
+    correction_factor = pd.Series(index=raw_correction_factor.reset_index().location_id.unique())
     for location_id, threshold_date in threshold.iteritems():
         correction_factor.loc[location_id] = (raw_correction_factor
                                               .loc[pd.IndexSlice[location_id, threshold_date:]]
                                               .mean())
+    correction_factor = correction_factor.fillna(1.0)
     idx = model_parameters.beta_variant.index
     model_parameters.beta_variant = model_parameters.beta_variant * correction_factor.reindex(idx, level='location_id')
     return model_parameters

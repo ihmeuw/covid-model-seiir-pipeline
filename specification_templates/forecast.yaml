@@ -1,5 +1,5 @@
 data:
-  regression_version: '2021_03_04.06'
+  regression_version: '2021_03_04.18'
   covariate_version: '2021_03_04.02'
   output_root: ''
   output_format: 'parquet'

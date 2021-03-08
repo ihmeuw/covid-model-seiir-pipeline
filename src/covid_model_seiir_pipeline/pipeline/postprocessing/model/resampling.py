@@ -26,14 +26,12 @@ def build_resampling_map(deaths: pd.DataFrame, resampling_params: 'ResamplingSpe
         to_resample = loc_deaths[(upper < loc_deaths) | (loc_deaths < lower)].index.tolist()
         np.random.seed(location_id)
         # Degenerate case
-        keep_draws = loc_deaths.index.difference.to_resample
+        keep_draws = loc_deaths.index.difference(to_resample)
         resample_count = min(len(keep_draws), len(to_resample))
         if resample_count:
             to_fill = np.random.choice(keep_draws, resample_count, replace=False).tolist()
-        else:
-            to_resample, to_fill = [], []
-        resample_map[location_id] = {'to_resample': to_resample,
-                                     'to_fill': to_fill}
+            resample_map[location_id] = {'to_resample': to_resample,
+                                         'to_fill': to_fill}
     return resample_map
 
 
