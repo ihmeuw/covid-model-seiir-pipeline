@@ -3,6 +3,9 @@ import numpy as np
 import pandas as pd
 
 
+SOLVER_DT = 0.1
+
+
 def compute_beta_hat(covariates: pd.DataFrame, coefficients: pd.DataFrame) -> pd.Series:
     """Computes beta from a set of covariates and their coefficients.
 
@@ -26,20 +29,35 @@ def compute_beta_hat(covariates: pd.DataFrame, coefficients: pd.DataFrame) -> pd
         and beta.
 
     """
-    covariates = covariates.set_index(['location_id', 'date']).sort_index()
     covariates['intercept'] = 1.0
-    coefficients = coefficients.set_index(['location_id']).sort_index()
     return (covariates * coefficients).sum(axis=1)
 
 
-def solve_ode(system, t, init_cond, params, dt):
-    t_solve = np.arange(np.min(t), np.max(t) + dt, dt / 2)
+def adjust_vaccinations(vaccine_data: pd.DataFrame):
+    risk_groups = ['lr', 'hr']
+    vaccinations = {}
+
+    for risk_group in risk_groups:
+        base_col_map = {
+            f'unprotected_{risk_group}': f'unprotected_{risk_group}',
+            f'protected_wild_type_{risk_group}': f'effective_protected_wildtype_{risk_group}',
+            f'protected_all_types_{risk_group}': f'effective_protected_variant_{risk_group}',
+            f'immune_wild_type_{risk_group}': f'effective_wildtype_{risk_group}',
+            f'immune_all_types_{risk_group}': f'effective_variant_{risk_group}',
+        }
+        for to_name, from_name in base_col_map.items():
+            vaccinations[to_name] = vaccine_data[from_name].rename(to_name)
+    return vaccinations
+
+
+def solve_ode(system, t, init_cond, params):
+    t_solve = np.arange(np.min(t), np.max(t) + SOLVER_DT, SOLVER_DT / 2)
     y_solve = np.zeros((init_cond.size, t_solve.size),
                        dtype=init_cond.dtype)
     y_solve[:, 0] = init_cond
     # linear interpolate the parameters
     params = linear_interpolate(t_solve, t, params)
-    y_solve = _rk45(system, t_solve, y_solve, params, dt)
+    y_solve = _rk45(system, t_solve, y_solve, params, SOLVER_DT)
     # linear interpolate the solutions.
     y_solve = linear_interpolate(t, t_solve, y_solve)
     return y_solve
@@ -78,3 +96,15 @@ def linear_interpolate(t_target: np.ndarray,
         return x_target.ravel()
     else:
         return x_target
+
+
+def shift_variants(covariates: pd.DataFrame, shift: int):
+    variants = (covariates.loc[:, [c for c in covariates if 'variant' in c]]
+                .groupby('location_id')
+                .shift(shift)
+                .groupby('location_id')
+                .ffill()
+                .groupby('location_id')
+                .bfill())
+    covariates.update(variants)
+    return covariates

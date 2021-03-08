@@ -3,37 +3,33 @@ data:
 workflow:
   project: 'proj_covid_prod'
   queue: 'd.q'
-  tasks:
-    grid_plots:
-      max_runtime_seconds: 5000
-      m_mem_free: '200G'
-      num_cores: 70
 grid_plots:
+  - name: 'compare_shortrange'
+    date_start: '2020-03-01'
+    date_end: '2021-06-30'
+    comparators:
+      - version: '/ihme/covid-19/seir-outputs/2021_02_28.02'
+        scenarios:
+          reference*: 'public reference'
+      - version: '/ihme/covid-19/seir-outputs/2021_03_06.07'
+        scenarios:
+          reference*: 'reference'
+          worse: 'worse'
+          best_masks: 'best_masks'
+          no_vaccine: 'no_vaccine'
+          vaccine_fast: 'vaccine_fast'
   - name: 'compare_longrange'
     date_start: '2020-03-01'
     date_end: '2022-08-31'
     comparators:
-      - version: '/ihme/covid-19/seir-outputs/2021_02_12.03'
+      - version: '/ihme/covid-19/seir-outputs/2021_02_28.02'
         scenarios:
           reference*: 'public reference'
-      - version: '/ihme/covid-19/seir-outputs/2021_02_20.01'
+      - version: '/ihme/covid-19/seir-outputs/2021_03_06.07'
         scenarios:
-          worse: 'worse'
           reference*: 'reference'
-          best_masks: 'best_masks'
-          vaccine_fast: 'vaccine_fast'
-          no_vaccine: 'no_vaccine'
-  - name: 'compare_shortrange'
-    date_start: '2020-03-01'
-    date_end: '2021-06-01'
-    comparators:
-      - version: '/ihme/covid-19/seir-outputs/2021_02_12.03'
-        scenarios:
-          reference*: 'public reference'
-      - version: '/ihme/covid-19/seir-outputs/2021_02_20.01'
-        scenarios:
           worse: 'worse'
-          reference*: 'reference'
           best_masks: 'best_masks'
-          vaccine_fast: 'vaccine_fast'
           no_vaccine: 'no_vaccine'
+          vaccine_fast: 'vaccine_fast'
+

@@ -62,6 +62,8 @@ class DatasetKey(NamedTuple):
     prefix
         An optional grouping prefix for high level partitioning of the data
         if required.
+    columns
+        Particular columns to select out of a dataset.
 
     """
     root: Path
@@ -69,6 +71,7 @@ class DatasetKey(NamedTuple):
     data_type: str
     leaf_name: Optional[str]
     prefix: Optional[str]
+    columns: Optional[str]
 
 
 class MetadataKey(NamedTuple):
@@ -180,7 +183,8 @@ class DatasetType:
 
         leaf_name = self.leaf_template.format(**key_kwargs) if self.leaf_template else None
         path_name = self.prefix_template.format(**key_kwargs) if self.prefix_template else None
-        return DatasetKey(self.root, self.disk_format, self.name, leaf_name, path_name)
+        columns = key_kwargs.get('columns', None)
+        return DatasetKey(self.root, self.disk_format, self.name, leaf_name, path_name, columns)
 
     def __eq__(self, other):
         return self.__dict__ == other.__dict__

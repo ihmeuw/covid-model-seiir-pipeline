@@ -1,3 +1,4 @@
+import itertools
 from pathlib import Path
 from typing import Dict, List
 
@@ -31,7 +32,10 @@ class PostprocessingDataInterface:
 
     @classmethod
     def from_specification(cls, specification: PostprocessingSpecification):
-        forecast_root = io.ForecastRoot(specification.data.forecast_version)
+        forecast_spec_path = Path(specification.data.forecast_version) / static_vars.FORECAST_SPECIFICATION_FILE
+        forecast_spec = ForecastSpecification.from_path(forecast_spec_path)
+        forecast_root = io.ForecastRoot(specification.data.forecast_version,
+                                        data_format=forecast_spec.data.output_format)
         mortality_ratio_root = io.MortalityRatioRoot(specification.data.mortality_ratio_version)
         postprocessing_root = io.PostprocessingRoot(specification.data.output_root)
 
@@ -65,15 +69,15 @@ class PostprocessingDataInterface:
         return forecast_spec.scenarios[scenario].covariates[covariate_name]
 
     def load_regression_coefficients(self, draw_id: int) -> pd.Series:
-        coefficients = self._get_forecast_data_inteface().load_regression_coefficients(draw_id)
-        coefficients = coefficients.set_index('location_id').stack().reset_index()
+        coefficients = self._get_forecast_data_inteface().load_coefficients(draw_id)
+        coefficients = coefficients.stack().reset_index()
         coefficients.columns = ['location_id', 'covariate', draw_id]
         coefficients = coefficients.set_index(['location_id', 'covariate'])[draw_id]
         return coefficients
 
     def load_scaling_parameters(self, draw_id: int, scenario: str) -> pd.Series:
         scaling_parameters = self._get_forecast_data_inteface().load_beta_scales(scenario, draw_id)
-        scaling_parameters = scaling_parameters.set_index('location_id').stack().reset_index()
+        scaling_parameters = scaling_parameters.stack().reset_index()
         scaling_parameters.columns = ['location_id', 'scaling_parameter', draw_id]
         scaling_parameters = scaling_parameters.set_index(['location_id', 'scaling_parameter'])[draw_id]
         return scaling_parameters
@@ -81,8 +85,6 @@ class PostprocessingDataInterface:
     def load_covariate(self, draw_id: int, covariate: str, time_varying: bool,
                        scenario: str, with_observed: bool = False) -> pd.Series:
         covariates = io.load(self.forecast_root.raw_covariates(scenario=scenario, draw_id=draw_id))
-        covariates['date'] = pd.to_datetime(covariates['date'])
-        covariates = covariates.set_index(['location_id', 'date']).sort_index()
         if time_varying:
             covariate = covariates[covariate].rename(draw_id)
         else:
@@ -92,30 +94,51 @@ class PostprocessingDataInterface:
     def load_input_covariate(self, covariate: str, covariate_version: str):
         return self._get_forecast_data_inteface().load_covariate(covariate, covariate_version, with_observed=True)
 
-    def load_betas(self, draw_id: int, scenario: str) -> pd.Series:
-        ode_params = io.load(self.forecast_root.ode_params(scenario=scenario, draw_id=draw_id))
-        ode_params['date'] = pd.to_datetime(ode_params['date'])
-        betas = (ode_params
-                 .set_index(['location_id', 'date'])['beta']
-                 .sort_index()
-                 .rename(draw_id))
-        return betas
+    def load_ifr(self, draw_id: int):
+        ifr = self._get_forecast_data_inteface().load_ifr(draw_id=draw_id)
+        return ifr['ifr'].rename(draw_id)
+
+    def load_ihr(self, draw_id: int):
+        ihr = self._get_forecast_data_inteface().load_ihr(draw_id=draw_id)
+        return ihr['ihr'].rename(draw_id)
+
+    def load_idr(self, draw_id: int):
+        idr = self._get_forecast_data_inteface().load_idr(draw_id=draw_id)
+        return idr['idr'].rename(draw_id)
+
+    def load_single_ode_param(self, draw_id: int, scenario: str, measure: str) -> pd.Series:
+        draw_df = self.load_ode_params(draw_id=draw_id, scenario=scenario, columns=[measure])
+        return draw_df[measure].rename(draw_id)
+
+    def load_effectively_vaccinated(self, draw_id: int, scenario: str) -> pd.Series:
+        eff_types = ['protected', 'immune']
+        covid_types = ['wild_type', 'all_types']
+        risk_groups = ['lr', 'hr']
+        cols = [f'{e}_{c}_{r}' for e, c, r in itertools.product(eff_types, covid_types, risk_groups)]
+        draw_df = self.load_ode_params(draw_id=draw_id, scenario=scenario, columns=cols)
+        return draw_df.sum(axis=1).rename(draw_id)
+
+    def load_ode_params(self, draw_id: int, scenario: str, columns=None):
+        return io.load(self.forecast_root.ode_params(scenario=scenario, draw_id=draw_id, columns=columns))
 
     def load_beta_residuals(self, draw_id: int) -> pd.Series:
-        beta_regression = self._get_forecast_data_inteface().load_beta_regression(draw_id)
-        beta_regression = (beta_regression
-                           .set_index(['location_id', 'date'])
-                           .sort_index()[['beta', 'beta_pred']])
-        beta_residual = np.log(beta_regression['beta'] / beta_regression['beta_pred']).rename(draw_id)
+        beta_regression = self._get_forecast_data_inteface().load_betas(draw_id)
+        beta_residual = np.log(beta_regression['beta'] / beta_regression['beta_hat']).rename(draw_id)
         return beta_residual
 
-    def load_raw_outputs(self, draw_id: int, scenario: str, measure: str) -> pd.Series:
-        draw_df = io.load(self.forecast_root.raw_outputs(scenario=scenario, draw_id=draw_id))
-        index_cols = ['location_id', 'date']
-        if measure == 'deaths':
-            index_cols.append('observed')
-        draw_data = draw_df.set_index(index_cols)[measure].sort_index().rename(draw_id)
-        return draw_data
+    def load_single_raw_output(self, draw_id: int, scenario: str, measure: str) -> pd.Series:
+        draw_df = self.load_raw_outputs(scenario=scenario, draw_id=draw_id, columns=[measure])
+        return draw_df[measure].rename(draw_id)
+
+    def load_raw_output_deaths(self, draw_id: int, scenario: str) -> pd.Series:
+        draw_df = self.load_raw_outputs(scenario=scenario, draw_id=draw_id, columns=['observed', 'deaths'])
+        draw_df = draw_df.groupby('location_id').bfill().groupby('location_id').ffill()
+        draw_df['observed'] = draw_df['observed'].astype(int)
+        draw_df = draw_df.set_index('observed', append=True).deaths.rename(draw_id)
+        return draw_df
+
+    def load_raw_outputs(self, draw_id: int, scenario: str, columns=None) -> pd.Series:
+        return io.load(self.forecast_root.raw_outputs(scenario=scenario, draw_id=draw_id, columns=columns))
 
     ##############################
     # Miscellaneous data loaders #
@@ -141,8 +164,7 @@ class PostprocessingDataInterface:
     def load_mortality_ratio(self) -> pd.Series:
         location_ids = self.load_location_ids()
         mr_df = io.load(self.mortality_ratio_root.mortality_ratio())
-        mr = mr_df.set_index(['location_id', 'age_start']).MRprob
-        return mr.loc[location_ids]
+        return mr_df.loc[location_ids, 'MRprob']
 
     def build_version_map(self) -> pd.Series:
         forecast_di = self._get_forecast_data_inteface()

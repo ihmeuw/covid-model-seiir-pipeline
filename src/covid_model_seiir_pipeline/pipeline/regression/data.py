@@ -8,6 +8,7 @@ import pandas as pd
 from covid_model_seiir_pipeline.lib import (
     io,
     utilities,
+    static_vars,
 )
 from covid_model_seiir_pipeline.pipeline.regression.specification import (
     RegressionSpecification,
@@ -17,8 +18,6 @@ from covid_model_seiir_pipeline.pipeline.regression.model import (
     HospitalCensusData,
 )
 
-
-# TODO: move data interfaces up a package level and fuse with forecast data interface.
 
 class RegressionDataInterface:
 
@@ -34,15 +33,18 @@ class RegressionDataInterface:
 
     @classmethod
     def from_specification(cls, specification: RegressionSpecification) -> 'RegressionDataInterface':
-        # TODO: specify input format from config
         infection_root = io.InfectionRoot(specification.data.infection_version)
         covariate_root = io.CovariateRoot(specification.data.covariate_version)
         if specification.data.coefficient_version:
-            coefficient_root = io.RegressionRoot(specification.data.coefficient_version)
+            coefficient_root = Path(specification.data.coefficient_version)
+            coefficient_spec_path = coefficient_root / static_vars.REGRESSION_SPECIFICATION_FILE
+            coefficient_spec = RegressionSpecification.from_path(coefficient_spec_path)
+            coefficient_root = io.RegressionRoot(coefficient_spec.data.output_root,
+                                                 data_format=coefficient_spec.data.output_format)
         else:
             coefficient_root = None
-        # TODO: specify output format from config.
-        regression_root = io.RegressionRoot(specification.data.output_root)
+        regression_root = io.RegressionRoot(specification.data.output_root,
+                                            data_format=specification.data.output_format)
 
         return cls(
             infection_root=infection_root,
@@ -78,11 +80,9 @@ class RegressionDataInterface:
 
     def filter_location_ids(self, desired_location_hierarchy: pd.DataFrame = None) -> List[int]:
         """Get the list of location ids to model.
-
         This list is the intersection of a location metadata's
         locations, if provided, and the available locations in the infections
         directory.
-
         """
         draw_0_data = self.load_full_past_infection_data(draw_id=0)
         total_deaths = draw_0_data.groupby('location_id').deaths.sum()
@@ -106,10 +106,7 @@ class RegressionDataInterface:
 
     def load_full_past_infection_data(self, draw_id: int) -> pd.DataFrame:
         infection_data = io.load(self.infection_root.infections(draw_id=draw_id))
-        infection_data['date'] = pd.to_datetime(infection_data['date'])
         infection_data = (infection_data
-                          .set_index(['location_id', 'date'])
-                          .sort_index()
                           .loc[:, ['infections_draw', 'deaths']]
                           .rename(columns={'infections_draw': 'infections'}))
         return infection_data
@@ -119,16 +116,25 @@ class RegressionDataInterface:
         infection_data = self.load_full_past_infection_data(draw_id=draw_id)
         return infection_data.loc[location_ids]
 
-    def load_ratio_data(self, draw_id: int) -> RatioData:
+    def load_ifr(self, draw_id: int) -> pd.DataFrame:
         ifr = io.load(self.infection_root.ifr(draw_id=draw_id))
         ifr = self.format_ratio_data(ifr)
+        return ifr
 
+    def load_ihr(self, draw_id: int) -> pd.DataFrame:
         ihr = io.load(self.infection_root.ihr(draw_id=draw_id))
         ihr = self.format_ratio_data(ihr)
+        return ihr
 
+    def load_idr(self, draw_id: int) -> pd.DataFrame:
         idr = io.load(self.infection_root.idr(draw_id=draw_id))
         idr = self.format_ratio_data(idr)
+        return idr
 
+    def load_ratio_data(self, draw_id: int) -> RatioData:
+        ifr = self.load_ifr(draw_id)
+        ihr = self.load_ihr(draw_id)
+        idr = self.load_idr(draw_id)
         return RatioData(
             infection_to_death=int(ifr.duration.max()),
             infection_to_admission=int(ihr.duration.max()),
@@ -142,8 +148,6 @@ class RegressionDataInterface:
 
     def format_ratio_data(self, ratio_data: pd.DataFrame) -> pd.DataFrame:
         location_ids = self.load_location_ids()
-        ratio_data['date'] = pd.to_datetime(ratio_data['date'])
-        ratio_data = ratio_data.set_index(['location_id', 'date']).sort_index()
         ratio_data = ratio_data.loc[location_ids]
         col_map = {c: c.split('_draw')[0] for c in ratio_data.columns if '_draw' in c}
         ratio_data = ratio_data.loc[:, ['duration'] + list(col_map)].rename(columns=col_map)
@@ -155,10 +159,8 @@ class RegressionDataInterface:
 
     def check_covariates(self, covariates: Iterable[str]) -> None:
         """Ensure a reference scenario exists for all covariates.
-
         The reference scenario file is used to find the covariate values
         in the past (which we'll use to perform the regression).
-
         """
         missing = []
 
@@ -175,13 +177,8 @@ class RegressionDataInterface:
     def load_covariate(self, covariate: str) -> pd.DataFrame:
         location_ids = self.load_location_ids()
         covariate_df = io.load(self.covariate_root[covariate](covariate_scenario='reference'))
-        index_columns = ['location_id']
-        covariate_df = covariate_df.loc[covariate_df['location_id'].isin(location_ids), :]
-        if 'date' in covariate_df.columns:
-            covariate_df['date'] = pd.to_datetime(covariate_df['date'])
-            index_columns.append('date')
-        covariate_df = covariate_df.rename(columns={f'{covariate}_reference': covariate})
-        return covariate_df.loc[:, index_columns + [covariate]].set_index(index_columns)
+        covariate_df = covariate_df.loc[location_ids].rename(columns={f'{covariate}_reference': covariate})
+        return covariate_df.loc[:, [covariate]]
 
     def load_covariates(self, covariates: Iterable[str]) -> pd.DataFrame:
         covariate_data = []
@@ -189,7 +186,12 @@ class RegressionDataInterface:
             if covariate != 'intercept':
                 covariate_data.append(self.load_covariate(covariate))
         covariate_data = reduce(lambda x, y: x.merge(y, left_index=True, right_index=True), covariate_data)
-        return covariate_data.reset_index()
+        return covariate_data
+
+    def load_vaccine_info(self, vaccine_scenario: str):
+        location_ids = self.load_location_ids()
+        info_df = io.load(self.covariate_root.vaccine_info(info_type=f'vaccinations_{vaccine_scenario}'))
+        return self._format_covariate_data(info_df, location_ids)
 
     ##############################
     # Miscellaneous data loaders #
@@ -218,6 +220,11 @@ class RegressionDataInterface:
         five_year_bins = [1, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 30, 31, 32, 235]
         is_five_year_bins = population['age_group_id'].isin(five_year_bins)
         population = population.loc[in_locations & is_2019 & is_both_sexes & is_five_year_bins, :]
+        return population
+
+    def load_total_population(self) -> pd.Series:
+        population = self.load_five_year_population()
+        population = population.groupby('location_id')['population'].sum()
         return population
 
     def load_hospital_census_data(self) -> 'HospitalCensusData':
@@ -267,41 +274,59 @@ class RegressionDataInterface:
     def load_hierarchy(self) -> pd.DataFrame:
         return io.load(self.regression_root.hierarchy())
 
-    def save_beta_param_file(self, df: pd.DataFrame, draw_id: int) -> None:
-        io.dump(df, self.regression_root.parameters(draw_id=draw_id))
+    def save_betas(self, betas: pd.DataFrame, draw_id: int) -> None:
+        io.dump(betas, self.regression_root.beta(draw_id=draw_id))
 
-    def load_beta_param_file(self, draw_id: int) -> pd.DataFrame:
-        return io.load(self.regression_root.parameters(draw_id=draw_id))
+    def load_betas(self, draw_id: int) -> pd.DataFrame:
+        return io.load(self.regression_root.beta(draw_id=draw_id))
 
-    def save_date_file(self, df: pd.DataFrame, draw_id: int) -> None:
-        io.dump(df, self.regression_root.dates(draw_id=draw_id))
-
-    def load_date_file(self, draw_id: int) -> pd.DataFrame:
-        return io.load(self.regression_root.dates(draw_id=draw_id))
-
-    def save_regression_coefficients(self, coefficients: pd.DataFrame, draw_id: int) -> None:
+    def save_coefficients(self, coefficients: pd.DataFrame, draw_id: int) -> None:
         io.dump(coefficients, self.regression_root.coefficients(draw_id=draw_id))
 
-    def load_regression_coefficients(self, draw_id: int) -> pd.DataFrame:
+    def load_coefficients(self, draw_id: int) -> pd.DataFrame:
         return io.load(self.regression_root.coefficients(draw_id=draw_id))
 
     def load_prior_run_coefficients(self, draw_id: int) -> pd.DataFrame:
         return io.load(self.coefficient_root.coefficients(draw_id=draw_id))
 
-    def save_regression_betas(self, df: pd.DataFrame, draw_id: int) -> None:
-        io.dump(df, self.regression_root.beta(draw_id=draw_id))
+    def save_compartments(self, compartments: pd.DataFrame, draw_id: int) -> None:
+        io.dump(compartments, self.regression_root.compartments(draw_id=draw_id))
 
-    def load_regression_betas(self, draw_id: int) -> pd.DataFrame:
-        return io.load(self.regression_root.beta(draw_id=draw_id))
+    def load_compartments(self, draw_id: int) -> pd.DataFrame:
+        return io.load(self.regression_root.compartments(draw_id=draw_id))
 
-    def save_infection_data(self, df: pd.DataFrame, draw_id: int) -> None:
-        io.dump(df, self.regression_root.infection_data(draw_id=draw_id))
+    def save_ode_parameters(self, df: pd.DataFrame, draw_id: int) -> None:
+        io.dump(df, self.regression_root.ode_parameters(draw_id=draw_id))
 
-    def load_infection_data(self, draw_id: int) -> pd.DataFrame:
-        return io.load(self.regression_root.infection_data(draw_id=draw_id))
+    def load_ode_parameters(self, draw_id: int) -> pd.DataFrame:
+        return io.load(self.regression_root.ode_parameters(draw_id=draw_id))
 
-    def save_hospital_data(self, df: pd.DataFrame, measure: str) -> None:
+    def save_infections(self, infections: pd.Series, draw_id: int) -> None:
+        io.dump(infections.to_frame(), self.regression_root.infections(draw_id=draw_id))
+
+    def load_infections(self, draw_id: int) -> pd.Series:
+        return io.load(self.regression_root.infections(draw_id=draw_id)).infections
+
+    def save_deaths(self, deaths: pd.Series, draw_id: int) -> None:
+        io.dump(deaths.to_frame(), self.regression_root.deaths(draw_id=draw_id))
+
+    def load_deaths(self, draw_id: int) -> pd.Series:
+        return io.load(self.regression_root.deaths(draw_id=draw_id)).deaths
+
+    def save_hospitalizations(self, df: pd.DataFrame, measure: str) -> None:
         io.dump(df, self.regression_root.hospitalizations(measure=measure))
 
-    def load_hospital_data(self, measure: str) -> pd.DataFrame:
+    def load_hospitalizations(self, measure: str) -> pd.DataFrame:
         return io.load(self.regression_root.hospitalizations(measure=measure))
+
+    #########################
+    # Non-interface helpers #
+    #########################
+
+    @staticmethod
+    def _format_covariate_data(dataset: pd.DataFrame, location_ids: List[int], with_observed: bool = False):
+        shared_locs = list(set(dataset.index.get_level_values('location_id')).intersection(location_ids))
+        dataset = dataset.loc[shared_locs]
+        if with_observed:
+            dataset = dataset.set_index('observed', append=True)
+        return dataset

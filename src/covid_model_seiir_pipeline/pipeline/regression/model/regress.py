@@ -58,7 +58,7 @@ class BetaRegressor(IBetaRegressor):
         cov_coef = mr_model.result
         coef = pd.DataFrame.from_dict(cov_coef, orient='index').reset_index()
         coef.columns = ['location_id'] + self.col_covs
-        return coef
+        return coef.set_index('location_id')
 
 
 class BetaRegressorSequential(IBetaRegressor):
@@ -101,16 +101,19 @@ class BetaRegressorSequential(IBetaRegressor):
         return regressor.fit(mr_data)
 
 
-def align_beta_with_covariates(covariate_df: pd.DataFrame,
-                               beta_df: pd.DataFrame,
-                               cov_names: List[str]) -> MRData:
+def prep_regression_inputs(beta_fit: pd.Series,
+                           covariates: pd.DataFrame) -> MRData:
     """Convert inputs for the beta regression model."""
-    join_cols = ['location_id', 'date']
-    df = beta_df.merge(covariate_df, on=join_cols)
-    df = df.loc[df['beta'] != 0]
-    df = df.sort_values(by=join_cols)
-    df['ln_beta'] = np.log(df['beta'])
-    mrdata = MRData(df, col_group='location_id', col_obs='ln_beta', col_covs=cov_names)
+    regression_inputs = (pd.merge(beta_fit.dropna(), covariates, on=beta_fit.index.names)
+                         .sort_index()
+                         .reset_index())
+    regression_inputs['ln_beta'] = np.log(regression_inputs['beta'])
+    mrdata = MRData(
+        regression_inputs,
+        col_group='location_id',
+        col_obs='ln_beta',
+        col_covs=covariates.columns.tolist(),
+    )
     return mrdata
 
 

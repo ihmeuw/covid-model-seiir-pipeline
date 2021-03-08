@@ -18,7 +18,7 @@ REGRESSION_JOBS = __RegressionJobs()
 class RegressionTaskSpecification(workflow.TaskSpecification):
     """Specification of execution parameters for regression tasks."""
     default_max_runtime_seconds = 3000
-    default_m_mem_free = '2G'
+    default_m_mem_free = '6G'
     default_num_cores = 1
 
 
@@ -46,6 +46,7 @@ class RegressionData:
     location_set_version_id: int = field(default=0)
     location_set_file: str = field(default='')
     output_root: str = field(default='')
+    output_format: str = field(default='csv')
 
     def to_dict(self) -> Dict:
         """Converts to a dict, coercing list-like items to lists."""
@@ -57,13 +58,11 @@ class RegressionParameters:
     """Specifies the parameters of the beta fit and regression."""
     n_draws: int = field(default=1000)
 
-    day_shift: Tuple[int, int] = field(default=(0, 8))
-
     alpha: Tuple[float, float] = field(default=(0.9, 1.0))
     sigma: Tuple[float, float] = field(default=(0.2, 1/3))
     gamma1: Tuple[float, float] = field(default=(0.5, 0.5))
     gamma2: Tuple[float, float] = field(default=(1/3, 1.0))
-    solver_dt: float = field(default=0.1)
+    variant_shift: int = field(default=0)
     sequential_refit: bool = field(default=False)
 
     def to_dict(self) -> Dict:

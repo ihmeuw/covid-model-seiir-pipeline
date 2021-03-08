@@ -16,8 +16,6 @@ from covid_model_seiir_pipeline.pipeline import (
     do_beta_forecast,
     PostprocessingSpecification,
     do_postprocessing,
-    PredictiveValiditySpecification,
-    do_predictive_validity,
     DiagnosticsSpecification,
     do_diagnostics,
 )
@@ -280,37 +278,6 @@ def run_all(run_metadata,
     )
 
     logger.info('All stages complete!')
-
-
-@seiir.command(name='predictive_validity')
-@cli_tools.pass_run_metadata()
-@cli_tools.with_regression_specification
-@cli_tools.with_forecast_specification
-@cli_tools.with_predictive_validity_specification
-@cli_tools.add_verbose_and_with_debugger
-def predictive_validity(run_metadata,
-                        regression_specification,
-                        forecast_specification,
-                        predictive_validity_specification,
-                        verbose, with_debugger):
-    """Perform OOS predictive validity testing."""
-    cli_tools.configure_logging_to_terminal(verbose)
-
-    regression_spec = RegressionSpecification.from_path(regression_specification)
-    forecast_spec = ForecastSpecification.from_path(forecast_specification)
-    predictive_validity_spec = PredictiveValiditySpecification.from_path(predictive_validity_specification)
-
-    run_directory = Path(predictive_validity_spec.output_root)
-    shell_tools.mkdir(run_directory, exists_ok=True)
-
-    # noinspection PyTypeChecker
-    main = cli_tools.monitor_application(do_predictive_validity, logger, with_debugger)
-    app_metadata, _ = main(regression_spec, forecast_spec, predictive_validity_spec)
-
-    run_metadata['app_metadata'] = app_metadata.to_dict()
-    run_metadata.dump(run_directory / 'metadata.yaml')
-
-    logger.info('Done')
 
 
 def _do_regression(run_metadata: cli_tools.RunMetadata,
