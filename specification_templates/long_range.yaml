@@ -1,0 +1,4042 @@
+data:
+  covariate_version: '2021_03_02.01'
+  fh_subnationals: false
+  output_format: parquet
+  output_root: ''
+  regression_version: '2021_03_04.17'
+scenarios:
+  variant_reference_mask_best_vaccine_best_mobility_average_cvi_high_scale_high:
+    algorithm: normal
+    beta_scaling:
+      average_over_max: 42
+      average_over_min: 7
+      window_size: 42
+    covariates:
+      air_pollution_pm_2_5: reference
+      lri_mortality: reference
+      mask_use: best
+      mobility: average
+      pneumonia: reference
+      proportion_over_2_5k: reference
+      proportion_under_100m: reference
+      smoking_prevalence: reference
+      testing: reference
+      variant_prevalence_B117: reference
+      variant_prevalence_B1351: reference
+      variant_prevalence_P1: reference
+    probability_cross_immune:
+    - 0.5
+    - 1.0
+    theta: /ihme/covid-19/seir-parameters/2021_03_03.01/thetas.csv
+    vaccine_version: best
+    variant_beta_scale:
+    - 0.5
+    - 1.0
+    variant_ifr_scale: 1.29
+  variant_reference_mask_best_vaccine_best_mobility_average_cvi_high_scale_low:
+    algorithm: normal
+    beta_scaling:
+      average_over_max: 42
+      average_over_min: 7
+      window_size: 42
+    covariates:
+      air_pollution_pm_2_5: reference
+      lri_mortality: reference
+      mask_use: best
+      mobility: average
+      pneumonia: reference
+      proportion_over_2_5k: reference
+      proportion_under_100m: reference
+      smoking_prevalence: reference
+      testing: reference
+      variant_prevalence_B117: reference
+      variant_prevalence_B1351: reference
+      variant_prevalence_P1: reference
+    probability_cross_immune:
+    - 0.5
+    - 1.0
+    theta: /ihme/covid-19/seir-parameters/2021_03_03.01/thetas.csv
+    vaccine_version: best
+    variant_beta_scale:
+    - 0.0
+    - 0.5
+    variant_ifr_scale: 1.29
+  variant_reference_mask_best_vaccine_best_mobility_average_cvi_low_scale_high:
+    algorithm: normal
+    beta_scaling:
+      average_over_max: 42
+      average_over_min: 7
+      window_size: 42
+    covariates:
+      air_pollution_pm_2_5: reference
+      lri_mortality: reference
+      mask_use: best
+      mobility: average
+      pneumonia: reference
+      proportion_over_2_5k: reference
+      proportion_under_100m: reference
+      smoking_prevalence: reference
+      testing: reference
+      variant_prevalence_B117: reference
+      variant_prevalence_B1351: reference
+      variant_prevalence_P1: reference
+    probability_cross_immune:
+    - 0.0
+    - 0.5
+    theta: /ihme/covid-19/seir-parameters/2021_03_03.01/thetas.csv
+    vaccine_version: best
+    variant_beta_scale:
+    - 0.5
+    - 1.0
+    variant_ifr_scale: 1.29
+  variant_reference_mask_best_vaccine_best_mobility_average_cvi_low_scale_low:
+    algorithm: normal
+    beta_scaling:
+      average_over_max: 42
+      average_over_min: 7
+      window_size: 42
+    covariates:
+      air_pollution_pm_2_5: reference
+      lri_mortality: reference
+      mask_use: best
+      mobility: average
+      pneumonia: reference
+      proportion_over_2_5k: reference
+      proportion_under_100m: reference
+      smoking_prevalence: reference
+      testing: reference
+      variant_prevalence_B117: reference
+      variant_prevalence_B1351: reference
+      variant_prevalence_P1: reference
+    probability_cross_immune:
+    - 0.0
+    - 0.5
+    theta: /ihme/covid-19/seir-parameters/2021_03_03.01/thetas.csv
+    vaccine_version: best
+    variant_beta_scale:
+    - 0.0
+    - 0.5
+    variant_ifr_scale: 1.29
+  variant_reference_mask_best_vaccine_best_mobility_average_cvi_moderate_scale_high:
+    algorithm: normal
+    beta_scaling:
+      average_over_max: 42
+      average_over_min: 7
+      window_size: 42
+    covariates:
+      air_pollution_pm_2_5: reference
+      lri_mortality: reference
+      mask_use: best
+      mobility: average
+      pneumonia: reference
+      proportion_over_2_5k: reference
+      proportion_under_100m: reference
+      smoking_prevalence: reference
+      testing: reference
+      variant_prevalence_B117: reference
+      variant_prevalence_B1351: reference
+      variant_prevalence_P1: reference
+    probability_cross_immune:
+    - 0.25
+    - 0.75
+    theta: /ihme/covid-19/seir-parameters/2021_03_03.01/thetas.csv
+    vaccine_version: best
+    variant_beta_scale:
+    - 0.5
+    - 1.0
+    variant_ifr_scale: 1.29
+  variant_reference_mask_best_vaccine_best_mobility_average_cvi_moderate_scale_low:
+    algorithm: normal
+    beta_scaling:
+      average_over_max: 42
+      average_over_min: 7
+      window_size: 42
+    covariates:
+      air_pollution_pm_2_5: reference
+      lri_mortality: reference
+      mask_use: best
+      mobility: average
+      pneumonia: reference
+      proportion_over_2_5k: reference
+      proportion_under_100m: reference
+      smoking_prevalence: reference
+      testing: reference
+      variant_prevalence_B117: reference
+      variant_prevalence_B1351: reference
+      variant_prevalence_P1: reference
+    probability_cross_immune:
+    - 0.25
+    - 0.75
+    theta: /ihme/covid-19/seir-parameters/2021_03_03.01/thetas.csv
+    vaccine_version: best
+    variant_beta_scale:
+    - 0.0
+    - 0.5
+    variant_ifr_scale: 1.29
+  variant_reference_mask_best_vaccine_best_mobility_return_cvi_high_scale_high:
+    algorithm: normal
+    beta_scaling:
+      average_over_max: 42
+      average_over_min: 7
+      window_size: 42
+    covariates:
+      air_pollution_pm_2_5: reference
+      lri_mortality: reference
+      mask_use: best
+      mobility: return
+      pneumonia: reference
+      proportion_over_2_5k: reference
+      proportion_under_100m: reference
+      smoking_prevalence: reference
+      testing: reference
+      variant_prevalence_B117: reference
+      variant_prevalence_B1351: reference
+      variant_prevalence_P1: reference
+    probability_cross_immune:
+    - 0.5
+    - 1.0
+    theta: /ihme/covid-19/seir-parameters/2021_03_03.01/thetas.csv
+    vaccine_version: best
+    variant_beta_scale:
+    - 0.5
+    - 1.0
+    variant_ifr_scale: 1.29
+  variant_reference_mask_best_vaccine_best_mobility_return_cvi_high_scale_low:
+    algorithm: normal
+    beta_scaling:
+      average_over_max: 42
+      average_over_min: 7
+      window_size: 42
+    covariates:
+      air_pollution_pm_2_5: reference
+      lri_mortality: reference
+      mask_use: best
+      mobility: return
+      pneumonia: reference
+      proportion_over_2_5k: reference
+      proportion_under_100m: reference
+      smoking_prevalence: reference
+      testing: reference
+      variant_prevalence_B117: reference
+      variant_prevalence_B1351: reference
+      variant_prevalence_P1: reference
+    probability_cross_immune:
+    - 0.5
+    - 1.0
+    theta: /ihme/covid-19/seir-parameters/2021_03_03.01/thetas.csv
+    vaccine_version: best
+    variant_beta_scale:
+    - 0.0
+    - 0.5
+    variant_ifr_scale: 1.29
+  variant_reference_mask_best_vaccine_best_mobility_return_cvi_low_scale_high:
+    algorithm: normal
+    beta_scaling:
+      average_over_max: 42
+      average_over_min: 7
+      window_size: 42
+    covariates:
+      air_pollution_pm_2_5: reference
+      lri_mortality: reference
+      mask_use: best
+      mobility: return
+      pneumonia: reference
+      proportion_over_2_5k: reference
+      proportion_under_100m: reference
+      smoking_prevalence: reference
+      testing: reference
+      variant_prevalence_B117: reference
+      variant_prevalence_B1351: reference
+      variant_prevalence_P1: reference
+    probability_cross_immune:
+    - 0.0
+    - 0.5
+    theta: /ihme/covid-19/seir-parameters/2021_03_03.01/thetas.csv
+    vaccine_version: best
+    variant_beta_scale:
+    - 0.5
+    - 1.0
+    variant_ifr_scale: 1.29
+  variant_reference_mask_best_vaccine_best_mobility_return_cvi_low_scale_low:
+    algorithm: normal
+    beta_scaling:
+      average_over_max: 42
+      average_over_min: 7
+      window_size: 42
+    covariates:
+      air_pollution_pm_2_5: reference
+      lri_mortality: reference
+      mask_use: best
+      mobility: return
+      pneumonia: reference
+      proportion_over_2_5k: reference
+      proportion_under_100m: reference
+      smoking_prevalence: reference
+      testing: reference
+      variant_prevalence_B117: reference
+      variant_prevalence_B1351: reference
+      variant_prevalence_P1: reference
+    probability_cross_immune:
+    - 0.0
+    - 0.5
+    theta: /ihme/covid-19/seir-parameters/2021_03_03.01/thetas.csv
+    vaccine_version: best
+    variant_beta_scale:
+    - 0.0
+    - 0.5
+    variant_ifr_scale: 1.29
+  variant_reference_mask_best_vaccine_best_mobility_return_cvi_moderate_scale_high:
+    algorithm: normal
+    beta_scaling:
+      average_over_max: 42
+      average_over_min: 7
+      window_size: 42
+    covariates:
+      air_pollution_pm_2_5: reference
+      lri_mortality: reference
+      mask_use: best
+      mobility: return
+      pneumonia: reference
+      proportion_over_2_5k: reference
+      proportion_under_100m: reference
+      smoking_prevalence: reference
+      testing: reference
+      variant_prevalence_B117: reference
+      variant_prevalence_B1351: reference
+      variant_prevalence_P1: reference
+    probability_cross_immune:
+    - 0.25
+    - 0.75
+    theta: /ihme/covid-19/seir-parameters/2021_03_03.01/thetas.csv
+    vaccine_version: best
+    variant_beta_scale:
+    - 0.5
+    - 1.0
+    variant_ifr_scale: 1.29
+  variant_reference_mask_best_vaccine_best_mobility_return_cvi_moderate_scale_low:
+    algorithm: normal
+    beta_scaling:
+      average_over_max: 42
+      average_over_min: 7
+      window_size: 42
+    covariates:
+      air_pollution_pm_2_5: reference
+      lri_mortality: reference
+      mask_use: best
+      mobility: return
+      pneumonia: reference
+      proportion_over_2_5k: reference
+      proportion_under_100m: reference
+      smoking_prevalence: reference
+      testing: reference
+      variant_prevalence_B117: reference
+      variant_prevalence_B1351: reference
+      variant_prevalence_P1: reference
+    probability_cross_immune:
+    - 0.25
+    - 0.75
+    theta: /ihme/covid-19/seir-parameters/2021_03_03.01/thetas.csv
+    vaccine_version: best
+    variant_beta_scale:
+    - 0.0
+    - 0.5
+    variant_ifr_scale: 1.29
+  variant_reference_mask_best_vaccine_reference_mobility_average_cvi_high_scale_high:
+    algorithm: normal
+    beta_scaling:
+      average_over_max: 42
+      average_over_min: 7
+      window_size: 42
+    covariates:
+      air_pollution_pm_2_5: reference
+      lri_mortality: reference
+      mask_use: best
+      mobility: average
+      pneumonia: reference
+      proportion_over_2_5k: reference
+      proportion_under_100m: reference
+      smoking_prevalence: reference
+      testing: reference
+      variant_prevalence_B117: reference
+      variant_prevalence_B1351: reference
+      variant_prevalence_P1: reference
+    probability_cross_immune:
+    - 0.5
+    - 1.0
+    theta: /ihme/covid-19/seir-parameters/2021_03_03.01/thetas.csv
+    vaccine_version: reference
+    variant_beta_scale:
+    - 0.5
+    - 1.0
+    variant_ifr_scale: 1.29
+  variant_reference_mask_best_vaccine_reference_mobility_average_cvi_high_scale_low:
+    algorithm: normal
+    beta_scaling:
+      average_over_max: 42
+      average_over_min: 7
+      window_size: 42
+    covariates:
+      air_pollution_pm_2_5: reference
+      lri_mortality: reference
+      mask_use: best
+      mobility: average
+      pneumonia: reference
+      proportion_over_2_5k: reference
+      proportion_under_100m: reference
+      smoking_prevalence: reference
+      testing: reference
+      variant_prevalence_B117: reference
+      variant_prevalence_B1351: reference
+      variant_prevalence_P1: reference
+    probability_cross_immune:
+    - 0.5
+    - 1.0
+    theta: /ihme/covid-19/seir-parameters/2021_03_03.01/thetas.csv
+    vaccine_version: reference
+    variant_beta_scale:
+    - 0.0
+    - 0.5
+    variant_ifr_scale: 1.29
+  variant_reference_mask_best_vaccine_reference_mobility_average_cvi_low_scale_high:
+    algorithm: normal
+    beta_scaling:
+      average_over_max: 42
+      average_over_min: 7
+      window_size: 42
+    covariates:
+      air_pollution_pm_2_5: reference
+      lri_mortality: reference
+      mask_use: best
+      mobility: average
+      pneumonia: reference
+      proportion_over_2_5k: reference
+      proportion_under_100m: reference
+      smoking_prevalence: reference
+      testing: reference
+      variant_prevalence_B117: reference
+      variant_prevalence_B1351: reference
+      variant_prevalence_P1: reference
+    probability_cross_immune:
+    - 0.0
+    - 0.5
+    theta: /ihme/covid-19/seir-parameters/2021_03_03.01/thetas.csv
+    vaccine_version: reference
+    variant_beta_scale:
+    - 0.5
+    - 1.0
+    variant_ifr_scale: 1.29
+  variant_reference_mask_best_vaccine_reference_mobility_average_cvi_low_scale_low:
+    algorithm: normal
+    beta_scaling:
+      average_over_max: 42
+      average_over_min: 7
+      window_size: 42
+    covariates:
+      air_pollution_pm_2_5: reference
+      lri_mortality: reference
+      mask_use: best
+      mobility: average
+      pneumonia: reference
+      proportion_over_2_5k: reference
+      proportion_under_100m: reference
+      smoking_prevalence: reference
+      testing: reference
+      variant_prevalence_B117: reference
+      variant_prevalence_B1351: reference
+      variant_prevalence_P1: reference
+    probability_cross_immune:
+    - 0.0
+    - 0.5
+    theta: /ihme/covid-19/seir-parameters/2021_03_03.01/thetas.csv
+    vaccine_version: reference
+    variant_beta_scale:
+    - 0.0
+    - 0.5
+    variant_ifr_scale: 1.29
+  variant_reference_mask_best_vaccine_reference_mobility_average_cvi_moderate_scale_high:
+    algorithm: normal
+    beta_scaling:
+      average_over_max: 42
+      average_over_min: 7
+      window_size: 42
+    covariates:
+      air_pollution_pm_2_5: reference
+      lri_mortality: reference
+      mask_use: best
+      mobility: average
+      pneumonia: reference
+      proportion_over_2_5k: reference
+      proportion_under_100m: reference
+      smoking_prevalence: reference
+      testing: reference
+      variant_prevalence_B117: reference
+      variant_prevalence_B1351: reference
+      variant_prevalence_P1: reference
+    probability_cross_immune:
+    - 0.25
+    - 0.75
+    theta: /ihme/covid-19/seir-parameters/2021_03_03.01/thetas.csv
+    vaccine_version: reference
+    variant_beta_scale:
+    - 0.5
+    - 1.0
+    variant_ifr_scale: 1.29
+  variant_reference_mask_best_vaccine_reference_mobility_average_cvi_moderate_scale_low:
+    algorithm: normal
+    beta_scaling:
+      average_over_max: 42
+      average_over_min: 7
+      window_size: 42
+    covariates:
+      air_pollution_pm_2_5: reference
+      lri_mortality: reference
+      mask_use: best
+      mobility: average
+      pneumonia: reference
+      proportion_over_2_5k: reference
+      proportion_under_100m: reference
+      smoking_prevalence: reference
+      testing: reference
+      variant_prevalence_B117: reference
+      variant_prevalence_B1351: reference
+      variant_prevalence_P1: reference
+    probability_cross_immune:
+    - 0.25
+    - 0.75
+    theta: /ihme/covid-19/seir-parameters/2021_03_03.01/thetas.csv
+    vaccine_version: reference
+    variant_beta_scale:
+    - 0.0
+    - 0.5
+    variant_ifr_scale: 1.29
+  variant_reference_mask_best_vaccine_reference_mobility_return_cvi_high_scale_high:
+    algorithm: normal
+    beta_scaling:
+      average_over_max: 42
+      average_over_min: 7
+      window_size: 42
+    covariates:
+      air_pollution_pm_2_5: reference
+      lri_mortality: reference
+      mask_use: best
+      mobility: return
+      pneumonia: reference
+      proportion_over_2_5k: reference
+      proportion_under_100m: reference
+      smoking_prevalence: reference
+      testing: reference
+      variant_prevalence_B117: reference
+      variant_prevalence_B1351: reference
+      variant_prevalence_P1: reference
+    probability_cross_immune:
+    - 0.5
+    - 1.0
+    theta: /ihme/covid-19/seir-parameters/2021_03_03.01/thetas.csv
+    vaccine_version: reference
+    variant_beta_scale:
+    - 0.5
+    - 1.0
+    variant_ifr_scale: 1.29
+  variant_reference_mask_best_vaccine_reference_mobility_return_cvi_high_scale_low:
+    algorithm: normal
+    beta_scaling:
+      average_over_max: 42
+      average_over_min: 7
+      window_size: 42
+    covariates:
+      air_pollution_pm_2_5: reference
+      lri_mortality: reference
+      mask_use: best
+      mobility: return
+      pneumonia: reference
+      proportion_over_2_5k: reference
+      proportion_under_100m: reference
+      smoking_prevalence: reference
+      testing: reference
+      variant_prevalence_B117: reference
+      variant_prevalence_B1351: reference
+      variant_prevalence_P1: reference
+    probability_cross_immune:
+    - 0.5
+    - 1.0
+    theta: /ihme/covid-19/seir-parameters/2021_03_03.01/thetas.csv
+    vaccine_version: reference
+    variant_beta_scale:
+    - 0.0
+    - 0.5
+    variant_ifr_scale: 1.29
+  variant_reference_mask_best_vaccine_reference_mobility_return_cvi_low_scale_high:
+    algorithm: normal
+    beta_scaling:
+      average_over_max: 42
+      average_over_min: 7
+      window_size: 42
+    covariates:
+      air_pollution_pm_2_5: reference
+      lri_mortality: reference
+      mask_use: best
+      mobility: return
+      pneumonia: reference
+      proportion_over_2_5k: reference
+      proportion_under_100m: reference
+      smoking_prevalence: reference
+      testing: reference
+      variant_prevalence_B117: reference
+      variant_prevalence_B1351: reference
+      variant_prevalence_P1: reference
+    probability_cross_immune:
+    - 0.0
+    - 0.5
+    theta: /ihme/covid-19/seir-parameters/2021_03_03.01/thetas.csv
+    vaccine_version: reference
+    variant_beta_scale:
+    - 0.5
+    - 1.0
+    variant_ifr_scale: 1.29
+  variant_reference_mask_best_vaccine_reference_mobility_return_cvi_low_scale_low:
+    algorithm: normal
+    beta_scaling:
+      average_over_max: 42
+      average_over_min: 7
+      window_size: 42
+    covariates:
+      air_pollution_pm_2_5: reference
+      lri_mortality: reference
+      mask_use: best
+      mobility: return
+      pneumonia: reference
+      proportion_over_2_5k: reference
+      proportion_under_100m: reference
+      smoking_prevalence: reference
+      testing: reference
+      variant_prevalence_B117: reference
+      variant_prevalence_B1351: reference
+      variant_prevalence_P1: reference
+    probability_cross_immune:
+    - 0.0
+    - 0.5
+    theta: /ihme/covid-19/seir-parameters/2021_03_03.01/thetas.csv
+    vaccine_version: reference
+    variant_beta_scale:
+    - 0.0
+    - 0.5
+    variant_ifr_scale: 1.29
+  variant_reference_mask_best_vaccine_reference_mobility_return_cvi_moderate_scale_high:
+    algorithm: normal
+    beta_scaling:
+      average_over_max: 42
+      average_over_min: 7
+      window_size: 42
+    covariates:
+      air_pollution_pm_2_5: reference
+      lri_mortality: reference
+      mask_use: best
+      mobility: return
+      pneumonia: reference
+      proportion_over_2_5k: reference
+      proportion_under_100m: reference
+      smoking_prevalence: reference
+      testing: reference
+      variant_prevalence_B117: reference
+      variant_prevalence_B1351: reference
+      variant_prevalence_P1: reference
+    probability_cross_immune:
+    - 0.25
+    - 0.75
+    theta: /ihme/covid-19/seir-parameters/2021_03_03.01/thetas.csv
+    vaccine_version: reference
+    variant_beta_scale:
+    - 0.5
+    - 1.0
+    variant_ifr_scale: 1.29
+  variant_reference_mask_best_vaccine_reference_mobility_return_cvi_moderate_scale_low:
+    algorithm: normal
+    beta_scaling:
+      average_over_max: 42
+      average_over_min: 7
+      window_size: 42
+    covariates:
+      air_pollution_pm_2_5: reference
+      lri_mortality: reference
+      mask_use: best
+      mobility: return
+      pneumonia: reference
+      proportion_over_2_5k: reference
+      proportion_under_100m: reference
+      smoking_prevalence: reference
+      testing: reference
+      variant_prevalence_B117: reference
+      variant_prevalence_B1351: reference
+      variant_prevalence_P1: reference
+    probability_cross_immune:
+    - 0.25
+    - 0.75
+    theta: /ihme/covid-19/seir-parameters/2021_03_03.01/thetas.csv
+    vaccine_version: reference
+    variant_beta_scale:
+    - 0.0
+    - 0.5
+    variant_ifr_scale: 1.29
+  variant_reference_mask_flat_vaccine_best_mobility_average_cvi_high_scale_high:
+    algorithm: normal
+    beta_scaling:
+      average_over_max: 42
+      average_over_min: 7
+      window_size: 42
+    covariates:
+      air_pollution_pm_2_5: reference
+      lri_mortality: reference
+      mask_use: flat
+      mobility: average
+      pneumonia: reference
+      proportion_over_2_5k: reference
+      proportion_under_100m: reference
+      smoking_prevalence: reference
+      testing: reference
+      variant_prevalence_B117: reference
+      variant_prevalence_B1351: reference
+      variant_prevalence_P1: reference
+    probability_cross_immune:
+    - 0.5
+    - 1.0
+    theta: /ihme/covid-19/seir-parameters/2021_03_03.01/thetas.csv
+    vaccine_version: best
+    variant_beta_scale:
+    - 0.5
+    - 1.0
+    variant_ifr_scale: 1.29
+  variant_reference_mask_flat_vaccine_best_mobility_average_cvi_high_scale_low:
+    algorithm: normal
+    beta_scaling:
+      average_over_max: 42
+      average_over_min: 7
+      window_size: 42
+    covariates:
+      air_pollution_pm_2_5: reference
+      lri_mortality: reference
+      mask_use: flat
+      mobility: average
+      pneumonia: reference
+      proportion_over_2_5k: reference
+      proportion_under_100m: reference
+      smoking_prevalence: reference
+      testing: reference
+      variant_prevalence_B117: reference
+      variant_prevalence_B1351: reference
+      variant_prevalence_P1: reference
+    probability_cross_immune:
+    - 0.5
+    - 1.0
+    theta: /ihme/covid-19/seir-parameters/2021_03_03.01/thetas.csv
+    vaccine_version: best
+    variant_beta_scale:
+    - 0.0
+    - 0.5
+    variant_ifr_scale: 1.29
+  variant_reference_mask_flat_vaccine_best_mobility_average_cvi_low_scale_high:
+    algorithm: normal
+    beta_scaling:
+      average_over_max: 42
+      average_over_min: 7
+      window_size: 42
+    covariates:
+      air_pollution_pm_2_5: reference
+      lri_mortality: reference
+      mask_use: flat
+      mobility: average
+      pneumonia: reference
+      proportion_over_2_5k: reference
+      proportion_under_100m: reference
+      smoking_prevalence: reference
+      testing: reference
+      variant_prevalence_B117: reference
+      variant_prevalence_B1351: reference
+      variant_prevalence_P1: reference
+    probability_cross_immune:
+    - 0.0
+    - 0.5
+    theta: /ihme/covid-19/seir-parameters/2021_03_03.01/thetas.csv
+    vaccine_version: best
+    variant_beta_scale:
+    - 0.5
+    - 1.0
+    variant_ifr_scale: 1.29
+  variant_reference_mask_flat_vaccine_best_mobility_average_cvi_low_scale_low:
+    algorithm: normal
+    beta_scaling:
+      average_over_max: 42
+      average_over_min: 7
+      window_size: 42
+    covariates:
+      air_pollution_pm_2_5: reference
+      lri_mortality: reference
+      mask_use: flat
+      mobility: average
+      pneumonia: reference
+      proportion_over_2_5k: reference
+      proportion_under_100m: reference
+      smoking_prevalence: reference
+      testing: reference
+      variant_prevalence_B117: reference
+      variant_prevalence_B1351: reference
+      variant_prevalence_P1: reference
+    probability_cross_immune:
+    - 0.0
+    - 0.5
+    theta: /ihme/covid-19/seir-parameters/2021_03_03.01/thetas.csv
+    vaccine_version: best
+    variant_beta_scale:
+    - 0.0
+    - 0.5
+    variant_ifr_scale: 1.29
+  variant_reference_mask_flat_vaccine_best_mobility_average_cvi_moderate_scale_high:
+    algorithm: normal
+    beta_scaling:
+      average_over_max: 42
+      average_over_min: 7
+      window_size: 42
+    covariates:
+      air_pollution_pm_2_5: reference
+      lri_mortality: reference
+      mask_use: flat
+      mobility: average
+      pneumonia: reference
+      proportion_over_2_5k: reference
+      proportion_under_100m: reference
+      smoking_prevalence: reference
+      testing: reference
+      variant_prevalence_B117: reference
+      variant_prevalence_B1351: reference
+      variant_prevalence_P1: reference
+    probability_cross_immune:
+    - 0.25
+    - 0.75
+    theta: /ihme/covid-19/seir-parameters/2021_03_03.01/thetas.csv
+    vaccine_version: best
+    variant_beta_scale:
+    - 0.5
+    - 1.0
+    variant_ifr_scale: 1.29
+  variant_reference_mask_flat_vaccine_best_mobility_average_cvi_moderate_scale_low:
+    algorithm: normal
+    beta_scaling:
+      average_over_max: 42
+      average_over_min: 7
+      window_size: 42
+    covariates:
+      air_pollution_pm_2_5: reference
+      lri_mortality: reference
+      mask_use: flat
+      mobility: average
+      pneumonia: reference
+      proportion_over_2_5k: reference
+      proportion_under_100m: reference
+      smoking_prevalence: reference
+      testing: reference
+      variant_prevalence_B117: reference
+      variant_prevalence_B1351: reference
+      variant_prevalence_P1: reference
+    probability_cross_immune:
+    - 0.25
+    - 0.75
+    theta: /ihme/covid-19/seir-parameters/2021_03_03.01/thetas.csv
+    vaccine_version: best
+    variant_beta_scale:
+    - 0.0
+    - 0.5
+    variant_ifr_scale: 1.29
+  variant_reference_mask_flat_vaccine_best_mobility_return_cvi_high_scale_high:
+    algorithm: normal
+    beta_scaling:
+      average_over_max: 42
+      average_over_min: 7
+      window_size: 42
+    covariates:
+      air_pollution_pm_2_5: reference
+      lri_mortality: reference
+      mask_use: flat
+      mobility: return
+      pneumonia: reference
+      proportion_over_2_5k: reference
+      proportion_under_100m: reference
+      smoking_prevalence: reference
+      testing: reference
+      variant_prevalence_B117: reference
+      variant_prevalence_B1351: reference
+      variant_prevalence_P1: reference
+    probability_cross_immune:
+    - 0.5
+    - 1.0
+    theta: /ihme/covid-19/seir-parameters/2021_03_03.01/thetas.csv
+    vaccine_version: best
+    variant_beta_scale:
+    - 0.5
+    - 1.0
+    variant_ifr_scale: 1.29
+  variant_reference_mask_flat_vaccine_best_mobility_return_cvi_high_scale_low:
+    algorithm: normal
+    beta_scaling:
+      average_over_max: 42
+      average_over_min: 7
+      window_size: 42
+    covariates:
+      air_pollution_pm_2_5: reference
+      lri_mortality: reference
+      mask_use: flat
+      mobility: return
+      pneumonia: reference
+      proportion_over_2_5k: reference
+      proportion_under_100m: reference
+      smoking_prevalence: reference
+      testing: reference
+      variant_prevalence_B117: reference
+      variant_prevalence_B1351: reference
+      variant_prevalence_P1: reference
+    probability_cross_immune:
+    - 0.5
+    - 1.0
+    theta: /ihme/covid-19/seir-parameters/2021_03_03.01/thetas.csv
+    vaccine_version: best
+    variant_beta_scale:
+    - 0.0
+    - 0.5
+    variant_ifr_scale: 1.29
+  variant_reference_mask_flat_vaccine_best_mobility_return_cvi_low_scale_high:
+    algorithm: normal
+    beta_scaling:
+      average_over_max: 42
+      average_over_min: 7
+      window_size: 42
+    covariates:
+      air_pollution_pm_2_5: reference
+      lri_mortality: reference
+      mask_use: flat
+      mobility: return
+      pneumonia: reference
+      proportion_over_2_5k: reference
+      proportion_under_100m: reference
+      smoking_prevalence: reference
+      testing: reference
+      variant_prevalence_B117: reference
+      variant_prevalence_B1351: reference
+      variant_prevalence_P1: reference
+    probability_cross_immune:
+    - 0.0
+    - 0.5
+    theta: /ihme/covid-19/seir-parameters/2021_03_03.01/thetas.csv
+    vaccine_version: best
+    variant_beta_scale:
+    - 0.5
+    - 1.0
+    variant_ifr_scale: 1.29
+  variant_reference_mask_flat_vaccine_best_mobility_return_cvi_low_scale_low:
+    algorithm: normal
+    beta_scaling:
+      average_over_max: 42
+      average_over_min: 7
+      window_size: 42
+    covariates:
+      air_pollution_pm_2_5: reference
+      lri_mortality: reference
+      mask_use: flat
+      mobility: return
+      pneumonia: reference
+      proportion_over_2_5k: reference
+      proportion_under_100m: reference
+      smoking_prevalence: reference
+      testing: reference
+      variant_prevalence_B117: reference
+      variant_prevalence_B1351: reference
+      variant_prevalence_P1: reference
+    probability_cross_immune:
+    - 0.0
+    - 0.5
+    theta: /ihme/covid-19/seir-parameters/2021_03_03.01/thetas.csv
+    vaccine_version: best
+    variant_beta_scale:
+    - 0.0
+    - 0.5
+    variant_ifr_scale: 1.29
+  variant_reference_mask_flat_vaccine_best_mobility_return_cvi_moderate_scale_high:
+    algorithm: normal
+    beta_scaling:
+      average_over_max: 42
+      average_over_min: 7
+      window_size: 42
+    covariates:
+      air_pollution_pm_2_5: reference
+      lri_mortality: reference
+      mask_use: flat
+      mobility: return
+      pneumonia: reference
+      proportion_over_2_5k: reference
+      proportion_under_100m: reference
+      smoking_prevalence: reference
+      testing: reference
+      variant_prevalence_B117: reference
+      variant_prevalence_B1351: reference
+      variant_prevalence_P1: reference
+    probability_cross_immune:
+    - 0.25
+    - 0.75
+    theta: /ihme/covid-19/seir-parameters/2021_03_03.01/thetas.csv
+    vaccine_version: best
+    variant_beta_scale:
+    - 0.5
+    - 1.0
+    variant_ifr_scale: 1.29
+  variant_reference_mask_flat_vaccine_best_mobility_return_cvi_moderate_scale_low:
+    algorithm: normal
+    beta_scaling:
+      average_over_max: 42
+      average_over_min: 7
+      window_size: 42
+    covariates:
+      air_pollution_pm_2_5: reference
+      lri_mortality: reference
+      mask_use: flat
+      mobility: return
+      pneumonia: reference
+      proportion_over_2_5k: reference
+      proportion_under_100m: reference
+      smoking_prevalence: reference
+      testing: reference
+      variant_prevalence_B117: reference
+      variant_prevalence_B1351: reference
+      variant_prevalence_P1: reference
+    probability_cross_immune:
+    - 0.25
+    - 0.75
+    theta: /ihme/covid-19/seir-parameters/2021_03_03.01/thetas.csv
+    vaccine_version: best
+    variant_beta_scale:
+    - 0.0
+    - 0.5
+    variant_ifr_scale: 1.29
+  variant_reference_mask_flat_vaccine_reference_mobility_average_cvi_high_scale_high:
+    algorithm: normal
+    beta_scaling:
+      average_over_max: 42
+      average_over_min: 7
+      window_size: 42
+    covariates:
+      air_pollution_pm_2_5: reference
+      lri_mortality: reference
+      mask_use: flat
+      mobility: average
+      pneumonia: reference
+      proportion_over_2_5k: reference
+      proportion_under_100m: reference
+      smoking_prevalence: reference
+      testing: reference
+      variant_prevalence_B117: reference
+      variant_prevalence_B1351: reference
+      variant_prevalence_P1: reference
+    probability_cross_immune:
+    - 0.5
+    - 1.0
+    theta: /ihme/covid-19/seir-parameters/2021_03_03.01/thetas.csv
+    vaccine_version: reference
+    variant_beta_scale:
+    - 0.5
+    - 1.0
+    variant_ifr_scale: 1.29
+  variant_reference_mask_flat_vaccine_reference_mobility_average_cvi_high_scale_low:
+    algorithm: normal
+    beta_scaling:
+      average_over_max: 42
+      average_over_min: 7
+      window_size: 42
+    covariates:
+      air_pollution_pm_2_5: reference
+      lri_mortality: reference
+      mask_use: flat
+      mobility: average
+      pneumonia: reference
+      proportion_over_2_5k: reference
+      proportion_under_100m: reference
+      smoking_prevalence: reference
+      testing: reference
+      variant_prevalence_B117: reference
+      variant_prevalence_B1351: reference
+      variant_prevalence_P1: reference
+    probability_cross_immune:
+    - 0.5
+    - 1.0
+    theta: /ihme/covid-19/seir-parameters/2021_03_03.01/thetas.csv
+    vaccine_version: reference
+    variant_beta_scale:
+    - 0.0
+    - 0.5
+    variant_ifr_scale: 1.29
+  variant_reference_mask_flat_vaccine_reference_mobility_average_cvi_low_scale_high:
+    algorithm: normal
+    beta_scaling:
+      average_over_max: 42
+      average_over_min: 7
+      window_size: 42
+    covariates:
+      air_pollution_pm_2_5: reference
+      lri_mortality: reference
+      mask_use: flat
+      mobility: average
+      pneumonia: reference
+      proportion_over_2_5k: reference
+      proportion_under_100m: reference
+      smoking_prevalence: reference
+      testing: reference
+      variant_prevalence_B117: reference
+      variant_prevalence_B1351: reference
+      variant_prevalence_P1: reference
+    probability_cross_immune:
+    - 0.0
+    - 0.5
+    theta: /ihme/covid-19/seir-parameters/2021_03_03.01/thetas.csv
+    vaccine_version: reference
+    variant_beta_scale:
+    - 0.5
+    - 1.0
+    variant_ifr_scale: 1.29
+  variant_reference_mask_flat_vaccine_reference_mobility_average_cvi_low_scale_low:
+    algorithm: normal
+    beta_scaling:
+      average_over_max: 42
+      average_over_min: 7
+      window_size: 42
+    covariates:
+      air_pollution_pm_2_5: reference
+      lri_mortality: reference
+      mask_use: flat
+      mobility: average
+      pneumonia: reference
+      proportion_over_2_5k: reference
+      proportion_under_100m: reference
+      smoking_prevalence: reference
+      testing: reference
+      variant_prevalence_B117: reference
+      variant_prevalence_B1351: reference
+      variant_prevalence_P1: reference
+    probability_cross_immune:
+    - 0.0
+    - 0.5
+    theta: /ihme/covid-19/seir-parameters/2021_03_03.01/thetas.csv
+    vaccine_version: reference
+    variant_beta_scale:
+    - 0.0
+    - 0.5
+    variant_ifr_scale: 1.29
+  variant_reference_mask_flat_vaccine_reference_mobility_average_cvi_moderate_scale_high:
+    algorithm: normal
+    beta_scaling:
+      average_over_max: 42
+      average_over_min: 7
+      window_size: 42
+    covariates:
+      air_pollution_pm_2_5: reference
+      lri_mortality: reference
+      mask_use: flat
+      mobility: average
+      pneumonia: reference
+      proportion_over_2_5k: reference
+      proportion_under_100m: reference
+      smoking_prevalence: reference
+      testing: reference
+      variant_prevalence_B117: reference
+      variant_prevalence_B1351: reference
+      variant_prevalence_P1: reference
+    probability_cross_immune:
+    - 0.25
+    - 0.75
+    theta: /ihme/covid-19/seir-parameters/2021_03_03.01/thetas.csv
+    vaccine_version: reference
+    variant_beta_scale:
+    - 0.5
+    - 1.0
+    variant_ifr_scale: 1.29
+  variant_reference_mask_flat_vaccine_reference_mobility_average_cvi_moderate_scale_low:
+    algorithm: normal
+    beta_scaling:
+      average_over_max: 42
+      average_over_min: 7
+      window_size: 42
+    covariates:
+      air_pollution_pm_2_5: reference
+      lri_mortality: reference
+      mask_use: flat
+      mobility: average
+      pneumonia: reference
+      proportion_over_2_5k: reference
+      proportion_under_100m: reference
+      smoking_prevalence: reference
+      testing: reference
+      variant_prevalence_B117: reference
+      variant_prevalence_B1351: reference
+      variant_prevalence_P1: reference
+    probability_cross_immune:
+    - 0.25
+    - 0.75
+    theta: /ihme/covid-19/seir-parameters/2021_03_03.01/thetas.csv
+    vaccine_version: reference
+    variant_beta_scale:
+    - 0.0
+    - 0.5
+    variant_ifr_scale: 1.29
+  variant_reference_mask_flat_vaccine_reference_mobility_return_cvi_high_scale_high:
+    algorithm: normal
+    beta_scaling:
+      average_over_max: 42
+      average_over_min: 7
+      window_size: 42
+    covariates:
+      air_pollution_pm_2_5: reference
+      lri_mortality: reference
+      mask_use: flat
+      mobility: return
+      pneumonia: reference
+      proportion_over_2_5k: reference
+      proportion_under_100m: reference
+      smoking_prevalence: reference
+      testing: reference
+      variant_prevalence_B117: reference
+      variant_prevalence_B1351: reference
+      variant_prevalence_P1: reference
+    probability_cross_immune:
+    - 0.5
+    - 1.0
+    theta: /ihme/covid-19/seir-parameters/2021_03_03.01/thetas.csv
+    vaccine_version: reference
+    variant_beta_scale:
+    - 0.5
+    - 1.0
+    variant_ifr_scale: 1.29
+  variant_reference_mask_flat_vaccine_reference_mobility_return_cvi_high_scale_low:
+    algorithm: normal
+    beta_scaling:
+      average_over_max: 42
+      average_over_min: 7
+      window_size: 42
+    covariates:
+      air_pollution_pm_2_5: reference
+      lri_mortality: reference
+      mask_use: flat
+      mobility: return
+      pneumonia: reference
+      proportion_over_2_5k: reference
+      proportion_under_100m: reference
+      smoking_prevalence: reference
+      testing: reference
+      variant_prevalence_B117: reference
+      variant_prevalence_B1351: reference
+      variant_prevalence_P1: reference
+    probability_cross_immune:
+    - 0.5
+    - 1.0
+    theta: /ihme/covid-19/seir-parameters/2021_03_03.01/thetas.csv
+    vaccine_version: reference
+    variant_beta_scale:
+    - 0.0
+    - 0.5
+    variant_ifr_scale: 1.29
+  variant_reference_mask_flat_vaccine_reference_mobility_return_cvi_low_scale_high:
+    algorithm: normal
+    beta_scaling:
+      average_over_max: 42
+      average_over_min: 7
+      window_size: 42
+    covariates:
+      air_pollution_pm_2_5: reference
+      lri_mortality: reference
+      mask_use: flat
+      mobility: return
+      pneumonia: reference
+      proportion_over_2_5k: reference
+      proportion_under_100m: reference
+      smoking_prevalence: reference
+      testing: reference
+      variant_prevalence_B117: reference
+      variant_prevalence_B1351: reference
+      variant_prevalence_P1: reference
+    probability_cross_immune:
+    - 0.0
+    - 0.5
+    theta: /ihme/covid-19/seir-parameters/2021_03_03.01/thetas.csv
+    vaccine_version: reference
+    variant_beta_scale:
+    - 0.5
+    - 1.0
+    variant_ifr_scale: 1.29
+  variant_reference_mask_flat_vaccine_reference_mobility_return_cvi_low_scale_low:
+    algorithm: normal
+    beta_scaling:
+      average_over_max: 42
+      average_over_min: 7
+      window_size: 42
+    covariates:
+      air_pollution_pm_2_5: reference
+      lri_mortality: reference
+      mask_use: flat
+      mobility: return
+      pneumonia: reference
+      proportion_over_2_5k: reference
+      proportion_under_100m: reference
+      smoking_prevalence: reference
+      testing: reference
+      variant_prevalence_B117: reference
+      variant_prevalence_B1351: reference
+      variant_prevalence_P1: reference
+    probability_cross_immune:
+    - 0.0
+    - 0.5
+    theta: /ihme/covid-19/seir-parameters/2021_03_03.01/thetas.csv
+    vaccine_version: reference
+    variant_beta_scale:
+    - 0.0
+    - 0.5
+    variant_ifr_scale: 1.29
+  variant_reference_mask_flat_vaccine_reference_mobility_return_cvi_moderate_scale_high:
+    algorithm: normal
+    beta_scaling:
+      average_over_max: 42
+      average_over_min: 7
+      window_size: 42
+    covariates:
+      air_pollution_pm_2_5: reference
+      lri_mortality: reference
+      mask_use: flat
+      mobility: return
+      pneumonia: reference
+      proportion_over_2_5k: reference
+      proportion_under_100m: reference
+      smoking_prevalence: reference
+      testing: reference
+      variant_prevalence_B117: reference
+      variant_prevalence_B1351: reference
+      variant_prevalence_P1: reference
+    probability_cross_immune:
+    - 0.25
+    - 0.75
+    theta: /ihme/covid-19/seir-parameters/2021_03_03.01/thetas.csv
+    vaccine_version: reference
+    variant_beta_scale:
+    - 0.5
+    - 1.0
+    variant_ifr_scale: 1.29
+  variant_reference_mask_flat_vaccine_reference_mobility_return_cvi_moderate_scale_low:
+    algorithm: normal
+    beta_scaling:
+      average_over_max: 42
+      average_over_min: 7
+      window_size: 42
+    covariates:
+      air_pollution_pm_2_5: reference
+      lri_mortality: reference
+      mask_use: flat
+      mobility: return
+      pneumonia: reference
+      proportion_over_2_5k: reference
+      proportion_under_100m: reference
+      smoking_prevalence: reference
+      testing: reference
+      variant_prevalence_B117: reference
+      variant_prevalence_B1351: reference
+      variant_prevalence_P1: reference
+    probability_cross_immune:
+    - 0.25
+    - 0.75
+    theta: /ihme/covid-19/seir-parameters/2021_03_03.01/thetas.csv
+    vaccine_version: reference
+    variant_beta_scale:
+    - 0.0
+    - 0.5
+    variant_ifr_scale: 1.29
+  variant_reference_mask_return_vaccine_best_mobility_average_cvi_high_scale_high:
+    algorithm: normal
+    beta_scaling:
+      average_over_max: 42
+      average_over_min: 7
+      window_size: 42
+    covariates:
+      air_pollution_pm_2_5: reference
+      lri_mortality: reference
+      mask_use: return
+      mobility: average
+      pneumonia: reference
+      proportion_over_2_5k: reference
+      proportion_under_100m: reference
+      smoking_prevalence: reference
+      testing: reference
+      variant_prevalence_B117: reference
+      variant_prevalence_B1351: reference
+      variant_prevalence_P1: reference
+    probability_cross_immune:
+    - 0.5
+    - 1.0
+    theta: /ihme/covid-19/seir-parameters/2021_03_03.01/thetas.csv
+    vaccine_version: best
+    variant_beta_scale:
+    - 0.5
+    - 1.0
+    variant_ifr_scale: 1.29
+  variant_reference_mask_return_vaccine_best_mobility_average_cvi_high_scale_low:
+    algorithm: normal
+    beta_scaling:
+      average_over_max: 42
+      average_over_min: 7
+      window_size: 42
+    covariates:
+      air_pollution_pm_2_5: reference
+      lri_mortality: reference
+      mask_use: return
+      mobility: average
+      pneumonia: reference
+      proportion_over_2_5k: reference
+      proportion_under_100m: reference
+      smoking_prevalence: reference
+      testing: reference
+      variant_prevalence_B117: reference
+      variant_prevalence_B1351: reference
+      variant_prevalence_P1: reference
+    probability_cross_immune:
+    - 0.5
+    - 1.0
+    theta: /ihme/covid-19/seir-parameters/2021_03_03.01/thetas.csv
+    vaccine_version: best
+    variant_beta_scale:
+    - 0.0
+    - 0.5
+    variant_ifr_scale: 1.29
+  variant_reference_mask_return_vaccine_best_mobility_average_cvi_low_scale_high:
+    algorithm: normal
+    beta_scaling:
+      average_over_max: 42
+      average_over_min: 7
+      window_size: 42
+    covariates:
+      air_pollution_pm_2_5: reference
+      lri_mortality: reference
+      mask_use: return
+      mobility: average
+      pneumonia: reference
+      proportion_over_2_5k: reference
+      proportion_under_100m: reference
+      smoking_prevalence: reference
+      testing: reference
+      variant_prevalence_B117: reference
+      variant_prevalence_B1351: reference
+      variant_prevalence_P1: reference
+    probability_cross_immune:
+    - 0.0
+    - 0.5
+    theta: /ihme/covid-19/seir-parameters/2021_03_03.01/thetas.csv
+    vaccine_version: best
+    variant_beta_scale:
+    - 0.5
+    - 1.0
+    variant_ifr_scale: 1.29
+  variant_reference_mask_return_vaccine_best_mobility_average_cvi_low_scale_low:
+    algorithm: normal
+    beta_scaling:
+      average_over_max: 42
+      average_over_min: 7
+      window_size: 42
+    covariates:
+      air_pollution_pm_2_5: reference
+      lri_mortality: reference
+      mask_use: return
+      mobility: average
+      pneumonia: reference
+      proportion_over_2_5k: reference
+      proportion_under_100m: reference
+      smoking_prevalence: reference
+      testing: reference
+      variant_prevalence_B117: reference
+      variant_prevalence_B1351: reference
+      variant_prevalence_P1: reference
+    probability_cross_immune:
+    - 0.0
+    - 0.5
+    theta: /ihme/covid-19/seir-parameters/2021_03_03.01/thetas.csv
+    vaccine_version: best
+    variant_beta_scale:
+    - 0.0
+    - 0.5
+    variant_ifr_scale: 1.29
+  variant_reference_mask_return_vaccine_best_mobility_average_cvi_moderate_scale_high:
+    algorithm: normal
+    beta_scaling:
+      average_over_max: 42
+      average_over_min: 7
+      window_size: 42
+    covariates:
+      air_pollution_pm_2_5: reference
+      lri_mortality: reference
+      mask_use: return
+      mobility: average
+      pneumonia: reference
+      proportion_over_2_5k: reference
+      proportion_under_100m: reference
+      smoking_prevalence: reference
+      testing: reference
+      variant_prevalence_B117: reference
+      variant_prevalence_B1351: reference
+      variant_prevalence_P1: reference
+    probability_cross_immune:
+    - 0.25
+    - 0.75
+    theta: /ihme/covid-19/seir-parameters/2021_03_03.01/thetas.csv
+    vaccine_version: best
+    variant_beta_scale:
+    - 0.5
+    - 1.0
+    variant_ifr_scale: 1.29
+  variant_reference_mask_return_vaccine_best_mobility_average_cvi_moderate_scale_low:
+    algorithm: normal
+    beta_scaling:
+      average_over_max: 42
+      average_over_min: 7
+      window_size: 42
+    covariates:
+      air_pollution_pm_2_5: reference
+      lri_mortality: reference
+      mask_use: return
+      mobility: average
+      pneumonia: reference
+      proportion_over_2_5k: reference
+      proportion_under_100m: reference
+      smoking_prevalence: reference
+      testing: reference
+      variant_prevalence_B117: reference
+      variant_prevalence_B1351: reference
+      variant_prevalence_P1: reference
+    probability_cross_immune:
+    - 0.25
+    - 0.75
+    theta: /ihme/covid-19/seir-parameters/2021_03_03.01/thetas.csv
+    vaccine_version: best
+    variant_beta_scale:
+    - 0.0
+    - 0.5
+    variant_ifr_scale: 1.29
+  variant_reference_mask_return_vaccine_best_mobility_return_cvi_high_scale_high:
+    algorithm: normal
+    beta_scaling:
+      average_over_max: 42
+      average_over_min: 7
+      window_size: 42
+    covariates:
+      air_pollution_pm_2_5: reference
+      lri_mortality: reference
+      mask_use: return
+      mobility: return
+      pneumonia: reference
+      proportion_over_2_5k: reference
+      proportion_under_100m: reference
+      smoking_prevalence: reference
+      testing: reference
+      variant_prevalence_B117: reference
+      variant_prevalence_B1351: reference
+      variant_prevalence_P1: reference
+    probability_cross_immune:
+    - 0.5
+    - 1.0
+    theta: /ihme/covid-19/seir-parameters/2021_03_03.01/thetas.csv
+    vaccine_version: best
+    variant_beta_scale:
+    - 0.5
+    - 1.0
+    variant_ifr_scale: 1.29
+  variant_reference_mask_return_vaccine_best_mobility_return_cvi_high_scale_low:
+    algorithm: normal
+    beta_scaling:
+      average_over_max: 42
+      average_over_min: 7
+      window_size: 42
+    covariates:
+      air_pollution_pm_2_5: reference
+      lri_mortality: reference
+      mask_use: return
+      mobility: return
+      pneumonia: reference
+      proportion_over_2_5k: reference
+      proportion_under_100m: reference
+      smoking_prevalence: reference
+      testing: reference
+      variant_prevalence_B117: reference
+      variant_prevalence_B1351: reference
+      variant_prevalence_P1: reference
+    probability_cross_immune:
+    - 0.5
+    - 1.0
+    theta: /ihme/covid-19/seir-parameters/2021_03_03.01/thetas.csv
+    vaccine_version: best
+    variant_beta_scale:
+    - 0.0
+    - 0.5
+    variant_ifr_scale: 1.29
+  variant_reference_mask_return_vaccine_best_mobility_return_cvi_low_scale_high:
+    algorithm: normal
+    beta_scaling:
+      average_over_max: 42
+      average_over_min: 7
+      window_size: 42
+    covariates:
+      air_pollution_pm_2_5: reference
+      lri_mortality: reference
+      mask_use: return
+      mobility: return
+      pneumonia: reference
+      proportion_over_2_5k: reference
+      proportion_under_100m: reference
+      smoking_prevalence: reference
+      testing: reference
+      variant_prevalence_B117: reference
+      variant_prevalence_B1351: reference
+      variant_prevalence_P1: reference
+    probability_cross_immune:
+    - 0.0
+    - 0.5
+    theta: /ihme/covid-19/seir-parameters/2021_03_03.01/thetas.csv
+    vaccine_version: best
+    variant_beta_scale:
+    - 0.5
+    - 1.0
+    variant_ifr_scale: 1.29
+  variant_reference_mask_return_vaccine_best_mobility_return_cvi_low_scale_low:
+    algorithm: normal
+    beta_scaling:
+      average_over_max: 42
+      average_over_min: 7
+      window_size: 42
+    covariates:
+      air_pollution_pm_2_5: reference
+      lri_mortality: reference
+      mask_use: return
+      mobility: return
+      pneumonia: reference
+      proportion_over_2_5k: reference
+      proportion_under_100m: reference
+      smoking_prevalence: reference
+      testing: reference
+      variant_prevalence_B117: reference
+      variant_prevalence_B1351: reference
+      variant_prevalence_P1: reference
+    probability_cross_immune:
+    - 0.0
+    - 0.5
+    theta: /ihme/covid-19/seir-parameters/2021_03_03.01/thetas.csv
+    vaccine_version: best
+    variant_beta_scale:
+    - 0.0
+    - 0.5
+    variant_ifr_scale: 1.29
+  variant_reference_mask_return_vaccine_best_mobility_return_cvi_moderate_scale_high:
+    algorithm: normal
+    beta_scaling:
+      average_over_max: 42
+      average_over_min: 7
+      window_size: 42
+    covariates:
+      air_pollution_pm_2_5: reference
+      lri_mortality: reference
+      mask_use: return
+      mobility: return
+      pneumonia: reference
+      proportion_over_2_5k: reference
+      proportion_under_100m: reference
+      smoking_prevalence: reference
+      testing: reference
+      variant_prevalence_B117: reference
+      variant_prevalence_B1351: reference
+      variant_prevalence_P1: reference
+    probability_cross_immune:
+    - 0.25
+    - 0.75
+    theta: /ihme/covid-19/seir-parameters/2021_03_03.01/thetas.csv
+    vaccine_version: best
+    variant_beta_scale:
+    - 0.5
+    - 1.0
+    variant_ifr_scale: 1.29
+  variant_reference_mask_return_vaccine_best_mobility_return_cvi_moderate_scale_low:
+    algorithm: normal
+    beta_scaling:
+      average_over_max: 42
+      average_over_min: 7
+      window_size: 42
+    covariates:
+      air_pollution_pm_2_5: reference
+      lri_mortality: reference
+      mask_use: return
+      mobility: return
+      pneumonia: reference
+      proportion_over_2_5k: reference
+      proportion_under_100m: reference
+      smoking_prevalence: reference
+      testing: reference
+      variant_prevalence_B117: reference
+      variant_prevalence_B1351: reference
+      variant_prevalence_P1: reference
+    probability_cross_immune:
+    - 0.25
+    - 0.75
+    theta: /ihme/covid-19/seir-parameters/2021_03_03.01/thetas.csv
+    vaccine_version: best
+    variant_beta_scale:
+    - 0.0
+    - 0.5
+    variant_ifr_scale: 1.29
+  variant_reference_mask_return_vaccine_reference_mobility_average_cvi_high_scale_high:
+    algorithm: normal
+    beta_scaling:
+      average_over_max: 42
+      average_over_min: 7
+      window_size: 42
+    covariates:
+      air_pollution_pm_2_5: reference
+      lri_mortality: reference
+      mask_use: return
+      mobility: average
+      pneumonia: reference
+      proportion_over_2_5k: reference
+      proportion_under_100m: reference
+      smoking_prevalence: reference
+      testing: reference
+      variant_prevalence_B117: reference
+      variant_prevalence_B1351: reference
+      variant_prevalence_P1: reference
+    probability_cross_immune:
+    - 0.5
+    - 1.0
+    theta: /ihme/covid-19/seir-parameters/2021_03_03.01/thetas.csv
+    vaccine_version: reference
+    variant_beta_scale:
+    - 0.5
+    - 1.0
+    variant_ifr_scale: 1.29
+  variant_reference_mask_return_vaccine_reference_mobility_average_cvi_high_scale_low:
+    algorithm: normal
+    beta_scaling:
+      average_over_max: 42
+      average_over_min: 7
+      window_size: 42
+    covariates:
+      air_pollution_pm_2_5: reference
+      lri_mortality: reference
+      mask_use: return
+      mobility: average
+      pneumonia: reference
+      proportion_over_2_5k: reference
+      proportion_under_100m: reference
+      smoking_prevalence: reference
+      testing: reference
+      variant_prevalence_B117: reference
+      variant_prevalence_B1351: reference
+      variant_prevalence_P1: reference
+    probability_cross_immune:
+    - 0.5
+    - 1.0
+    theta: /ihme/covid-19/seir-parameters/2021_03_03.01/thetas.csv
+    vaccine_version: reference
+    variant_beta_scale:
+    - 0.0
+    - 0.5
+    variant_ifr_scale: 1.29
+  variant_reference_mask_return_vaccine_reference_mobility_average_cvi_low_scale_high:
+    algorithm: normal
+    beta_scaling:
+      average_over_max: 42
+      average_over_min: 7
+      window_size: 42
+    covariates:
+      air_pollution_pm_2_5: reference
+      lri_mortality: reference
+      mask_use: return
+      mobility: average
+      pneumonia: reference
+      proportion_over_2_5k: reference
+      proportion_under_100m: reference
+      smoking_prevalence: reference
+      testing: reference
+      variant_prevalence_B117: reference
+      variant_prevalence_B1351: reference
+      variant_prevalence_P1: reference
+    probability_cross_immune:
+    - 0.0
+    - 0.5
+    theta: /ihme/covid-19/seir-parameters/2021_03_03.01/thetas.csv
+    vaccine_version: reference
+    variant_beta_scale:
+    - 0.5
+    - 1.0
+    variant_ifr_scale: 1.29
+  variant_reference_mask_return_vaccine_reference_mobility_average_cvi_low_scale_low:
+    algorithm: normal
+    beta_scaling:
+      average_over_max: 42
+      average_over_min: 7
+      window_size: 42
+    covariates:
+      air_pollution_pm_2_5: reference
+      lri_mortality: reference
+      mask_use: return
+      mobility: average
+      pneumonia: reference
+      proportion_over_2_5k: reference
+      proportion_under_100m: reference
+      smoking_prevalence: reference
+      testing: reference
+      variant_prevalence_B117: reference
+      variant_prevalence_B1351: reference
+      variant_prevalence_P1: reference
+    probability_cross_immune:
+    - 0.0
+    - 0.5
+    theta: /ihme/covid-19/seir-parameters/2021_03_03.01/thetas.csv
+    vaccine_version: reference
+    variant_beta_scale:
+    - 0.0
+    - 0.5
+    variant_ifr_scale: 1.29
+  variant_reference_mask_return_vaccine_reference_mobility_average_cvi_moderate_scale_high:
+    algorithm: normal
+    beta_scaling:
+      average_over_max: 42
+      average_over_min: 7
+      window_size: 42
+    covariates:
+      air_pollution_pm_2_5: reference
+      lri_mortality: reference
+      mask_use: return
+      mobility: average
+      pneumonia: reference
+      proportion_over_2_5k: reference
+      proportion_under_100m: reference
+      smoking_prevalence: reference
+      testing: reference
+      variant_prevalence_B117: reference
+      variant_prevalence_B1351: reference
+      variant_prevalence_P1: reference
+    probability_cross_immune:
+    - 0.25
+    - 0.75
+    theta: /ihme/covid-19/seir-parameters/2021_03_03.01/thetas.csv
+    vaccine_version: reference
+    variant_beta_scale:
+    - 0.5
+    - 1.0
+    variant_ifr_scale: 1.29
+  variant_reference_mask_return_vaccine_reference_mobility_average_cvi_moderate_scale_low:
+    algorithm: normal
+    beta_scaling:
+      average_over_max: 42
+      average_over_min: 7
+      window_size: 42
+    covariates:
+      air_pollution_pm_2_5: reference
+      lri_mortality: reference
+      mask_use: return
+      mobility: average
+      pneumonia: reference
+      proportion_over_2_5k: reference
+      proportion_under_100m: reference
+      smoking_prevalence: reference
+      testing: reference
+      variant_prevalence_B117: reference
+      variant_prevalence_B1351: reference
+      variant_prevalence_P1: reference
+    probability_cross_immune:
+    - 0.25
+    - 0.75
+    theta: /ihme/covid-19/seir-parameters/2021_03_03.01/thetas.csv
+    vaccine_version: reference
+    variant_beta_scale:
+    - 0.0
+    - 0.5
+    variant_ifr_scale: 1.29
+  variant_reference_mask_return_vaccine_reference_mobility_return_cvi_high_scale_high:
+    algorithm: normal
+    beta_scaling:
+      average_over_max: 42
+      average_over_min: 7
+      window_size: 42
+    covariates:
+      air_pollution_pm_2_5: reference
+      lri_mortality: reference
+      mask_use: return
+      mobility: return
+      pneumonia: reference
+      proportion_over_2_5k: reference
+      proportion_under_100m: reference
+      smoking_prevalence: reference
+      testing: reference
+      variant_prevalence_B117: reference
+      variant_prevalence_B1351: reference
+      variant_prevalence_P1: reference
+    probability_cross_immune:
+    - 0.5
+    - 1.0
+    theta: /ihme/covid-19/seir-parameters/2021_03_03.01/thetas.csv
+    vaccine_version: reference
+    variant_beta_scale:
+    - 0.5
+    - 1.0
+    variant_ifr_scale: 1.29
+  variant_reference_mask_return_vaccine_reference_mobility_return_cvi_high_scale_low:
+    algorithm: normal
+    beta_scaling:
+      average_over_max: 42
+      average_over_min: 7
+      window_size: 42
+    covariates:
+      air_pollution_pm_2_5: reference
+      lri_mortality: reference
+      mask_use: return
+      mobility: return
+      pneumonia: reference
+      proportion_over_2_5k: reference
+      proportion_under_100m: reference
+      smoking_prevalence: reference
+      testing: reference
+      variant_prevalence_B117: reference
+      variant_prevalence_B1351: reference
+      variant_prevalence_P1: reference
+    probability_cross_immune:
+    - 0.5
+    - 1.0
+    theta: /ihme/covid-19/seir-parameters/2021_03_03.01/thetas.csv
+    vaccine_version: reference
+    variant_beta_scale:
+    - 0.0
+    - 0.5
+    variant_ifr_scale: 1.29
+  variant_reference_mask_return_vaccine_reference_mobility_return_cvi_low_scale_high:
+    algorithm: normal
+    beta_scaling:
+      average_over_max: 42
+      average_over_min: 7
+      window_size: 42
+    covariates:
+      air_pollution_pm_2_5: reference
+      lri_mortality: reference
+      mask_use: return
+      mobility: return
+      pneumonia: reference
+      proportion_over_2_5k: reference
+      proportion_under_100m: reference
+      smoking_prevalence: reference
+      testing: reference
+      variant_prevalence_B117: reference
+      variant_prevalence_B1351: reference
+      variant_prevalence_P1: reference
+    probability_cross_immune:
+    - 0.0
+    - 0.5
+    theta: /ihme/covid-19/seir-parameters/2021_03_03.01/thetas.csv
+    vaccine_version: reference
+    variant_beta_scale:
+    - 0.5
+    - 1.0
+    variant_ifr_scale: 1.29
+  variant_reference_mask_return_vaccine_reference_mobility_return_cvi_low_scale_low:
+    algorithm: normal
+    beta_scaling:
+      average_over_max: 42
+      average_over_min: 7
+      window_size: 42
+    covariates:
+      air_pollution_pm_2_5: reference
+      lri_mortality: reference
+      mask_use: return
+      mobility: return
+      pneumonia: reference
+      proportion_over_2_5k: reference
+      proportion_under_100m: reference
+      smoking_prevalence: reference
+      testing: reference
+      variant_prevalence_B117: reference
+      variant_prevalence_B1351: reference
+      variant_prevalence_P1: reference
+    probability_cross_immune:
+    - 0.0
+    - 0.5
+    theta: /ihme/covid-19/seir-parameters/2021_03_03.01/thetas.csv
+    vaccine_version: reference
+    variant_beta_scale:
+    - 0.0
+    - 0.5
+    variant_ifr_scale: 1.29
+  variant_reference_mask_return_vaccine_reference_mobility_return_cvi_moderate_scale_high:
+    algorithm: normal
+    beta_scaling:
+      average_over_max: 42
+      average_over_min: 7
+      window_size: 42
+    covariates:
+      air_pollution_pm_2_5: reference
+      lri_mortality: reference
+      mask_use: return
+      mobility: return
+      pneumonia: reference
+      proportion_over_2_5k: reference
+      proportion_under_100m: reference
+      smoking_prevalence: reference
+      testing: reference
+      variant_prevalence_B117: reference
+      variant_prevalence_B1351: reference
+      variant_prevalence_P1: reference
+    probability_cross_immune:
+    - 0.25
+    - 0.75
+    theta: /ihme/covid-19/seir-parameters/2021_03_03.01/thetas.csv
+    vaccine_version: reference
+    variant_beta_scale:
+    - 0.5
+    - 1.0
+    variant_ifr_scale: 1.29
+  variant_reference_mask_return_vaccine_reference_mobility_return_cvi_moderate_scale_low:
+    algorithm: normal
+    beta_scaling:
+      average_over_max: 42
+      average_over_min: 7
+      window_size: 42
+    covariates:
+      air_pollution_pm_2_5: reference
+      lri_mortality: reference
+      mask_use: return
+      mobility: return
+      pneumonia: reference
+      proportion_over_2_5k: reference
+      proportion_under_100m: reference
+      smoking_prevalence: reference
+      testing: reference
+      variant_prevalence_B117: reference
+      variant_prevalence_B1351: reference
+      variant_prevalence_P1: reference
+    probability_cross_immune:
+    - 0.25
+    - 0.75
+    theta: /ihme/covid-19/seir-parameters/2021_03_03.01/thetas.csv
+    vaccine_version: reference
+    variant_beta_scale:
+    - 0.0
+    - 0.5
+    variant_ifr_scale: 1.29
+  variant_worse_mask_best_vaccine_best_mobility_average_cvi_high_scale_high:
+    algorithm: normal
+    beta_scaling:
+      average_over_max: 42
+      average_over_min: 7
+      window_size: 42
+    covariates:
+      air_pollution_pm_2_5: reference
+      lri_mortality: reference
+      mask_use: best
+      mobility: average
+      pneumonia: reference
+      proportion_over_2_5k: reference
+      proportion_under_100m: reference
+      smoking_prevalence: reference
+      testing: reference
+      variant_prevalence_B117: worse
+      variant_prevalence_B1351: worse
+      variant_prevalence_P1: worse
+    probability_cross_immune:
+    - 0.5
+    - 1.0
+    theta: /ihme/covid-19/seir-parameters/2021_03_03.01/thetas.csv
+    vaccine_version: best
+    variant_beta_scale:
+    - 0.5
+    - 1.0
+    variant_ifr_scale: 1.29
+  variant_worse_mask_best_vaccine_best_mobility_average_cvi_high_scale_low:
+    algorithm: normal
+    beta_scaling:
+      average_over_max: 42
+      average_over_min: 7
+      window_size: 42
+    covariates:
+      air_pollution_pm_2_5: reference
+      lri_mortality: reference
+      mask_use: best
+      mobility: average
+      pneumonia: reference
+      proportion_over_2_5k: reference
+      proportion_under_100m: reference
+      smoking_prevalence: reference
+      testing: reference
+      variant_prevalence_B117: worse
+      variant_prevalence_B1351: worse
+      variant_prevalence_P1: worse
+    probability_cross_immune:
+    - 0.5
+    - 1.0
+    theta: /ihme/covid-19/seir-parameters/2021_03_03.01/thetas.csv
+    vaccine_version: best
+    variant_beta_scale:
+    - 0.0
+    - 0.5
+    variant_ifr_scale: 1.29
+  variant_worse_mask_best_vaccine_best_mobility_average_cvi_low_scale_high:
+    algorithm: normal
+    beta_scaling:
+      average_over_max: 42
+      average_over_min: 7
+      window_size: 42
+    covariates:
+      air_pollution_pm_2_5: reference
+      lri_mortality: reference
+      mask_use: best
+      mobility: average
+      pneumonia: reference
+      proportion_over_2_5k: reference
+      proportion_under_100m: reference
+      smoking_prevalence: reference
+      testing: reference
+      variant_prevalence_B117: worse
+      variant_prevalence_B1351: worse
+      variant_prevalence_P1: worse
+    probability_cross_immune:
+    - 0.0
+    - 0.5
+    theta: /ihme/covid-19/seir-parameters/2021_03_03.01/thetas.csv
+    vaccine_version: best
+    variant_beta_scale:
+    - 0.5
+    - 1.0
+    variant_ifr_scale: 1.29
+  variant_worse_mask_best_vaccine_best_mobility_average_cvi_low_scale_low:
+    algorithm: normal
+    beta_scaling:
+      average_over_max: 42
+      average_over_min: 7
+      window_size: 42
+    covariates:
+      air_pollution_pm_2_5: reference
+      lri_mortality: reference
+      mask_use: best
+      mobility: average
+      pneumonia: reference
+      proportion_over_2_5k: reference
+      proportion_under_100m: reference
+      smoking_prevalence: reference
+      testing: reference
+      variant_prevalence_B117: worse
+      variant_prevalence_B1351: worse
+      variant_prevalence_P1: worse
+    probability_cross_immune:
+    - 0.0
+    - 0.5
+    theta: /ihme/covid-19/seir-parameters/2021_03_03.01/thetas.csv
+    vaccine_version: best
+    variant_beta_scale:
+    - 0.0
+    - 0.5
+    variant_ifr_scale: 1.29
+  variant_worse_mask_best_vaccine_best_mobility_average_cvi_moderate_scale_high:
+    algorithm: normal
+    beta_scaling:
+      average_over_max: 42
+      average_over_min: 7
+      window_size: 42
+    covariates:
+      air_pollution_pm_2_5: reference
+      lri_mortality: reference
+      mask_use: best
+      mobility: average
+      pneumonia: reference
+      proportion_over_2_5k: reference
+      proportion_under_100m: reference
+      smoking_prevalence: reference
+      testing: reference
+      variant_prevalence_B117: worse
+      variant_prevalence_B1351: worse
+      variant_prevalence_P1: worse
+    probability_cross_immune:
+    - 0.25
+    - 0.75
+    theta: /ihme/covid-19/seir-parameters/2021_03_03.01/thetas.csv
+    vaccine_version: best
+    variant_beta_scale:
+    - 0.5
+    - 1.0
+    variant_ifr_scale: 1.29
+  variant_worse_mask_best_vaccine_best_mobility_average_cvi_moderate_scale_low:
+    algorithm: normal
+    beta_scaling:
+      average_over_max: 42
+      average_over_min: 7
+      window_size: 42
+    covariates:
+      air_pollution_pm_2_5: reference
+      lri_mortality: reference
+      mask_use: best
+      mobility: average
+      pneumonia: reference
+      proportion_over_2_5k: reference
+      proportion_under_100m: reference
+      smoking_prevalence: reference
+      testing: reference
+      variant_prevalence_B117: worse
+      variant_prevalence_B1351: worse
+      variant_prevalence_P1: worse
+    probability_cross_immune:
+    - 0.25
+    - 0.75
+    theta: /ihme/covid-19/seir-parameters/2021_03_03.01/thetas.csv
+    vaccine_version: best
+    variant_beta_scale:
+    - 0.0
+    - 0.5
+    variant_ifr_scale: 1.29
+  variant_worse_mask_best_vaccine_best_mobility_return_cvi_high_scale_high:
+    algorithm: normal
+    beta_scaling:
+      average_over_max: 42
+      average_over_min: 7
+      window_size: 42
+    covariates:
+      air_pollution_pm_2_5: reference
+      lri_mortality: reference
+      mask_use: best
+      mobility: return
+      pneumonia: reference
+      proportion_over_2_5k: reference
+      proportion_under_100m: reference
+      smoking_prevalence: reference
+      testing: reference
+      variant_prevalence_B117: worse
+      variant_prevalence_B1351: worse
+      variant_prevalence_P1: worse
+    probability_cross_immune:
+    - 0.5
+    - 1.0
+    theta: /ihme/covid-19/seir-parameters/2021_03_03.01/thetas.csv
+    vaccine_version: best
+    variant_beta_scale:
+    - 0.5
+    - 1.0
+    variant_ifr_scale: 1.29
+  variant_worse_mask_best_vaccine_best_mobility_return_cvi_high_scale_low:
+    algorithm: normal
+    beta_scaling:
+      average_over_max: 42
+      average_over_min: 7
+      window_size: 42
+    covariates:
+      air_pollution_pm_2_5: reference
+      lri_mortality: reference
+      mask_use: best
+      mobility: return
+      pneumonia: reference
+      proportion_over_2_5k: reference
+      proportion_under_100m: reference
+      smoking_prevalence: reference
+      testing: reference
+      variant_prevalence_B117: worse
+      variant_prevalence_B1351: worse
+      variant_prevalence_P1: worse
+    probability_cross_immune:
+    - 0.5
+    - 1.0
+    theta: /ihme/covid-19/seir-parameters/2021_03_03.01/thetas.csv
+    vaccine_version: best
+    variant_beta_scale:
+    - 0.0
+    - 0.5
+    variant_ifr_scale: 1.29
+  variant_worse_mask_best_vaccine_best_mobility_return_cvi_low_scale_high:
+    algorithm: normal
+    beta_scaling:
+      average_over_max: 42
+      average_over_min: 7
+      window_size: 42
+    covariates:
+      air_pollution_pm_2_5: reference
+      lri_mortality: reference
+      mask_use: best
+      mobility: return
+      pneumonia: reference
+      proportion_over_2_5k: reference
+      proportion_under_100m: reference
+      smoking_prevalence: reference
+      testing: reference
+      variant_prevalence_B117: worse
+      variant_prevalence_B1351: worse
+      variant_prevalence_P1: worse
+    probability_cross_immune:
+    - 0.0
+    - 0.5
+    theta: /ihme/covid-19/seir-parameters/2021_03_03.01/thetas.csv
+    vaccine_version: best
+    variant_beta_scale:
+    - 0.5
+    - 1.0
+    variant_ifr_scale: 1.29
+  variant_worse_mask_best_vaccine_best_mobility_return_cvi_low_scale_low:
+    algorithm: normal
+    beta_scaling:
+      average_over_max: 42
+      average_over_min: 7
+      window_size: 42
+    covariates:
+      air_pollution_pm_2_5: reference
+      lri_mortality: reference
+      mask_use: best
+      mobility: return
+      pneumonia: reference
+      proportion_over_2_5k: reference
+      proportion_under_100m: reference
+      smoking_prevalence: reference
+      testing: reference
+      variant_prevalence_B117: worse
+      variant_prevalence_B1351: worse
+      variant_prevalence_P1: worse
+    probability_cross_immune:
+    - 0.0
+    - 0.5
+    theta: /ihme/covid-19/seir-parameters/2021_03_03.01/thetas.csv
+    vaccine_version: best
+    variant_beta_scale:
+    - 0.0
+    - 0.5
+    variant_ifr_scale: 1.29
+  variant_worse_mask_best_vaccine_best_mobility_return_cvi_moderate_scale_high:
+    algorithm: normal
+    beta_scaling:
+      average_over_max: 42
+      average_over_min: 7
+      window_size: 42
+    covariates:
+      air_pollution_pm_2_5: reference
+      lri_mortality: reference
+      mask_use: best
+      mobility: return
+      pneumonia: reference
+      proportion_over_2_5k: reference
+      proportion_under_100m: reference
+      smoking_prevalence: reference
+      testing: reference
+      variant_prevalence_B117: worse
+      variant_prevalence_B1351: worse
+      variant_prevalence_P1: worse
+    probability_cross_immune:
+    - 0.25
+    - 0.75
+    theta: /ihme/covid-19/seir-parameters/2021_03_03.01/thetas.csv
+    vaccine_version: best
+    variant_beta_scale:
+    - 0.5
+    - 1.0
+    variant_ifr_scale: 1.29
+  variant_worse_mask_best_vaccine_best_mobility_return_cvi_moderate_scale_low:
+    algorithm: normal
+    beta_scaling:
+      average_over_max: 42
+      average_over_min: 7
+      window_size: 42
+    covariates:
+      air_pollution_pm_2_5: reference
+      lri_mortality: reference
+      mask_use: best
+      mobility: return
+      pneumonia: reference
+      proportion_over_2_5k: reference
+      proportion_under_100m: reference
+      smoking_prevalence: reference
+      testing: reference
+      variant_prevalence_B117: worse
+      variant_prevalence_B1351: worse
+      variant_prevalence_P1: worse
+    probability_cross_immune:
+    - 0.25
+    - 0.75
+    theta: /ihme/covid-19/seir-parameters/2021_03_03.01/thetas.csv
+    vaccine_version: best
+    variant_beta_scale:
+    - 0.0
+    - 0.5
+    variant_ifr_scale: 1.29
+  variant_worse_mask_best_vaccine_reference_mobility_average_cvi_high_scale_high:
+    algorithm: normal
+    beta_scaling:
+      average_over_max: 42
+      average_over_min: 7
+      window_size: 42
+    covariates:
+      air_pollution_pm_2_5: reference
+      lri_mortality: reference
+      mask_use: best
+      mobility: average
+      pneumonia: reference
+      proportion_over_2_5k: reference
+      proportion_under_100m: reference
+      smoking_prevalence: reference
+      testing: reference
+      variant_prevalence_B117: worse
+      variant_prevalence_B1351: worse
+      variant_prevalence_P1: worse
+    probability_cross_immune:
+    - 0.5
+    - 1.0
+    theta: /ihme/covid-19/seir-parameters/2021_03_03.01/thetas.csv
+    vaccine_version: reference
+    variant_beta_scale:
+    - 0.5
+    - 1.0
+    variant_ifr_scale: 1.29
+  variant_worse_mask_best_vaccine_reference_mobility_average_cvi_high_scale_low:
+    algorithm: normal
+    beta_scaling:
+      average_over_max: 42
+      average_over_min: 7
+      window_size: 42
+    covariates:
+      air_pollution_pm_2_5: reference
+      lri_mortality: reference
+      mask_use: best
+      mobility: average
+      pneumonia: reference
+      proportion_over_2_5k: reference
+      proportion_under_100m: reference
+      smoking_prevalence: reference
+      testing: reference
+      variant_prevalence_B117: worse
+      variant_prevalence_B1351: worse
+      variant_prevalence_P1: worse
+    probability_cross_immune:
+    - 0.5
+    - 1.0
+    theta: /ihme/covid-19/seir-parameters/2021_03_03.01/thetas.csv
+    vaccine_version: reference
+    variant_beta_scale:
+    - 0.0
+    - 0.5
+    variant_ifr_scale: 1.29
+  variant_worse_mask_best_vaccine_reference_mobility_average_cvi_low_scale_high:
+    algorithm: normal
+    beta_scaling:
+      average_over_max: 42
+      average_over_min: 7
+      window_size: 42
+    covariates:
+      air_pollution_pm_2_5: reference
+      lri_mortality: reference
+      mask_use: best
+      mobility: average
+      pneumonia: reference
+      proportion_over_2_5k: reference
+      proportion_under_100m: reference
+      smoking_prevalence: reference
+      testing: reference
+      variant_prevalence_B117: worse
+      variant_prevalence_B1351: worse
+      variant_prevalence_P1: worse
+    probability_cross_immune:
+    - 0.0
+    - 0.5
+    theta: /ihme/covid-19/seir-parameters/2021_03_03.01/thetas.csv
+    vaccine_version: reference
+    variant_beta_scale:
+    - 0.5
+    - 1.0
+    variant_ifr_scale: 1.29
+  variant_worse_mask_best_vaccine_reference_mobility_average_cvi_low_scale_low:
+    algorithm: normal
+    beta_scaling:
+      average_over_max: 42
+      average_over_min: 7
+      window_size: 42
+    covariates:
+      air_pollution_pm_2_5: reference
+      lri_mortality: reference
+      mask_use: best
+      mobility: average
+      pneumonia: reference
+      proportion_over_2_5k: reference
+      proportion_under_100m: reference
+      smoking_prevalence: reference
+      testing: reference
+      variant_prevalence_B117: worse
+      variant_prevalence_B1351: worse
+      variant_prevalence_P1: worse
+    probability_cross_immune:
+    - 0.0
+    - 0.5
+    theta: /ihme/covid-19/seir-parameters/2021_03_03.01/thetas.csv
+    vaccine_version: reference
+    variant_beta_scale:
+    - 0.0
+    - 0.5
+    variant_ifr_scale: 1.29
+  variant_worse_mask_best_vaccine_reference_mobility_average_cvi_moderate_scale_high:
+    algorithm: normal
+    beta_scaling:
+      average_over_max: 42
+      average_over_min: 7
+      window_size: 42
+    covariates:
+      air_pollution_pm_2_5: reference
+      lri_mortality: reference
+      mask_use: best
+      mobility: average
+      pneumonia: reference
+      proportion_over_2_5k: reference
+      proportion_under_100m: reference
+      smoking_prevalence: reference
+      testing: reference
+      variant_prevalence_B117: worse
+      variant_prevalence_B1351: worse
+      variant_prevalence_P1: worse
+    probability_cross_immune:
+    - 0.25
+    - 0.75
+    theta: /ihme/covid-19/seir-parameters/2021_03_03.01/thetas.csv
+    vaccine_version: reference
+    variant_beta_scale:
+    - 0.5
+    - 1.0
+    variant_ifr_scale: 1.29
+  variant_worse_mask_best_vaccine_reference_mobility_average_cvi_moderate_scale_low:
+    algorithm: normal
+    beta_scaling:
+      average_over_max: 42
+      average_over_min: 7
+      window_size: 42
+    covariates:
+      air_pollution_pm_2_5: reference
+      lri_mortality: reference
+      mask_use: best
+      mobility: average
+      pneumonia: reference
+      proportion_over_2_5k: reference
+      proportion_under_100m: reference
+      smoking_prevalence: reference
+      testing: reference
+      variant_prevalence_B117: worse
+      variant_prevalence_B1351: worse
+      variant_prevalence_P1: worse
+    probability_cross_immune:
+    - 0.25
+    - 0.75
+    theta: /ihme/covid-19/seir-parameters/2021_03_03.01/thetas.csv
+    vaccine_version: reference
+    variant_beta_scale:
+    - 0.0
+    - 0.5
+    variant_ifr_scale: 1.29
+  variant_worse_mask_best_vaccine_reference_mobility_return_cvi_high_scale_high:
+    algorithm: normal
+    beta_scaling:
+      average_over_max: 42
+      average_over_min: 7
+      window_size: 42
+    covariates:
+      air_pollution_pm_2_5: reference
+      lri_mortality: reference
+      mask_use: best
+      mobility: return
+      pneumonia: reference
+      proportion_over_2_5k: reference
+      proportion_under_100m: reference
+      smoking_prevalence: reference
+      testing: reference
+      variant_prevalence_B117: worse
+      variant_prevalence_B1351: worse
+      variant_prevalence_P1: worse
+    probability_cross_immune:
+    - 0.5
+    - 1.0
+    theta: /ihme/covid-19/seir-parameters/2021_03_03.01/thetas.csv
+    vaccine_version: reference
+    variant_beta_scale:
+    - 0.5
+    - 1.0
+    variant_ifr_scale: 1.29
+  variant_worse_mask_best_vaccine_reference_mobility_return_cvi_high_scale_low:
+    algorithm: normal
+    beta_scaling:
+      average_over_max: 42
+      average_over_min: 7
+      window_size: 42
+    covariates:
+      air_pollution_pm_2_5: reference
+      lri_mortality: reference
+      mask_use: best
+      mobility: return
+      pneumonia: reference
+      proportion_over_2_5k: reference
+      proportion_under_100m: reference
+      smoking_prevalence: reference
+      testing: reference
+      variant_prevalence_B117: worse
+      variant_prevalence_B1351: worse
+      variant_prevalence_P1: worse
+    probability_cross_immune:
+    - 0.5
+    - 1.0
+    theta: /ihme/covid-19/seir-parameters/2021_03_03.01/thetas.csv
+    vaccine_version: reference
+    variant_beta_scale:
+    - 0.0
+    - 0.5
+    variant_ifr_scale: 1.29
+  variant_worse_mask_best_vaccine_reference_mobility_return_cvi_low_scale_high:
+    algorithm: normal
+    beta_scaling:
+      average_over_max: 42
+      average_over_min: 7
+      window_size: 42
+    covariates:
+      air_pollution_pm_2_5: reference
+      lri_mortality: reference
+      mask_use: best
+      mobility: return
+      pneumonia: reference
+      proportion_over_2_5k: reference
+      proportion_under_100m: reference
+      smoking_prevalence: reference
+      testing: reference
+      variant_prevalence_B117: worse
+      variant_prevalence_B1351: worse
+      variant_prevalence_P1: worse
+    probability_cross_immune:
+    - 0.0
+    - 0.5
+    theta: /ihme/covid-19/seir-parameters/2021_03_03.01/thetas.csv
+    vaccine_version: reference
+    variant_beta_scale:
+    - 0.5
+    - 1.0
+    variant_ifr_scale: 1.29
+  variant_worse_mask_best_vaccine_reference_mobility_return_cvi_low_scale_low:
+    algorithm: normal
+    beta_scaling:
+      average_over_max: 42
+      average_over_min: 7
+      window_size: 42
+    covariates:
+      air_pollution_pm_2_5: reference
+      lri_mortality: reference
+      mask_use: best
+      mobility: return
+      pneumonia: reference
+      proportion_over_2_5k: reference
+      proportion_under_100m: reference
+      smoking_prevalence: reference
+      testing: reference
+      variant_prevalence_B117: worse
+      variant_prevalence_B1351: worse
+      variant_prevalence_P1: worse
+    probability_cross_immune:
+    - 0.0
+    - 0.5
+    theta: /ihme/covid-19/seir-parameters/2021_03_03.01/thetas.csv
+    vaccine_version: reference
+    variant_beta_scale:
+    - 0.0
+    - 0.5
+    variant_ifr_scale: 1.29
+  variant_worse_mask_best_vaccine_reference_mobility_return_cvi_moderate_scale_high:
+    algorithm: normal
+    beta_scaling:
+      average_over_max: 42
+      average_over_min: 7
+      window_size: 42
+    covariates:
+      air_pollution_pm_2_5: reference
+      lri_mortality: reference
+      mask_use: best
+      mobility: return
+      pneumonia: reference
+      proportion_over_2_5k: reference
+      proportion_under_100m: reference
+      smoking_prevalence: reference
+      testing: reference
+      variant_prevalence_B117: worse
+      variant_prevalence_B1351: worse
+      variant_prevalence_P1: worse
+    probability_cross_immune:
+    - 0.25
+    - 0.75
+    theta: /ihme/covid-19/seir-parameters/2021_03_03.01/thetas.csv
+    vaccine_version: reference
+    variant_beta_scale:
+    - 0.5
+    - 1.0
+    variant_ifr_scale: 1.29
+  variant_worse_mask_best_vaccine_reference_mobility_return_cvi_moderate_scale_low:
+    algorithm: normal
+    beta_scaling:
+      average_over_max: 42
+      average_over_min: 7
+      window_size: 42
+    covariates:
+      air_pollution_pm_2_5: reference
+      lri_mortality: reference
+      mask_use: best
+      mobility: return
+      pneumonia: reference
+      proportion_over_2_5k: reference
+      proportion_under_100m: reference
+      smoking_prevalence: reference
+      testing: reference
+      variant_prevalence_B117: worse
+      variant_prevalence_B1351: worse
+      variant_prevalence_P1: worse
+    probability_cross_immune:
+    - 0.25
+    - 0.75
+    theta: /ihme/covid-19/seir-parameters/2021_03_03.01/thetas.csv
+    vaccine_version: reference
+    variant_beta_scale:
+    - 0.0
+    - 0.5
+    variant_ifr_scale: 1.29
+  variant_worse_mask_flat_vaccine_best_mobility_average_cvi_high_scale_high:
+    algorithm: normal
+    beta_scaling:
+      average_over_max: 42
+      average_over_min: 7
+      window_size: 42
+    covariates:
+      air_pollution_pm_2_5: reference
+      lri_mortality: reference
+      mask_use: flat
+      mobility: average
+      pneumonia: reference
+      proportion_over_2_5k: reference
+      proportion_under_100m: reference
+      smoking_prevalence: reference
+      testing: reference
+      variant_prevalence_B117: worse
+      variant_prevalence_B1351: worse
+      variant_prevalence_P1: worse
+    probability_cross_immune:
+    - 0.5
+    - 1.0
+    theta: /ihme/covid-19/seir-parameters/2021_03_03.01/thetas.csv
+    vaccine_version: best
+    variant_beta_scale:
+    - 0.5
+    - 1.0
+    variant_ifr_scale: 1.29
+  variant_worse_mask_flat_vaccine_best_mobility_average_cvi_high_scale_low:
+    algorithm: normal
+    beta_scaling:
+      average_over_max: 42
+      average_over_min: 7
+      window_size: 42
+    covariates:
+      air_pollution_pm_2_5: reference
+      lri_mortality: reference
+      mask_use: flat
+      mobility: average
+      pneumonia: reference
+      proportion_over_2_5k: reference
+      proportion_under_100m: reference
+      smoking_prevalence: reference
+      testing: reference
+      variant_prevalence_B117: worse
+      variant_prevalence_B1351: worse
+      variant_prevalence_P1: worse
+    probability_cross_immune:
+    - 0.5
+    - 1.0
+    theta: /ihme/covid-19/seir-parameters/2021_03_03.01/thetas.csv
+    vaccine_version: best
+    variant_beta_scale:
+    - 0.0
+    - 0.5
+    variant_ifr_scale: 1.29
+  variant_worse_mask_flat_vaccine_best_mobility_average_cvi_low_scale_high:
+    algorithm: normal
+    beta_scaling:
+      average_over_max: 42
+      average_over_min: 7
+      window_size: 42
+    covariates:
+      air_pollution_pm_2_5: reference
+      lri_mortality: reference
+      mask_use: flat
+      mobility: average
+      pneumonia: reference
+      proportion_over_2_5k: reference
+      proportion_under_100m: reference
+      smoking_prevalence: reference
+      testing: reference
+      variant_prevalence_B117: worse
+      variant_prevalence_B1351: worse
+      variant_prevalence_P1: worse
+    probability_cross_immune:
+    - 0.0
+    - 0.5
+    theta: /ihme/covid-19/seir-parameters/2021_03_03.01/thetas.csv
+    vaccine_version: best
+    variant_beta_scale:
+    - 0.5
+    - 1.0
+    variant_ifr_scale: 1.29
+  variant_worse_mask_flat_vaccine_best_mobility_average_cvi_low_scale_low:
+    algorithm: normal
+    beta_scaling:
+      average_over_max: 42
+      average_over_min: 7
+      window_size: 42
+    covariates:
+      air_pollution_pm_2_5: reference
+      lri_mortality: reference
+      mask_use: flat
+      mobility: average
+      pneumonia: reference
+      proportion_over_2_5k: reference
+      proportion_under_100m: reference
+      smoking_prevalence: reference
+      testing: reference
+      variant_prevalence_B117: worse
+      variant_prevalence_B1351: worse
+      variant_prevalence_P1: worse
+    probability_cross_immune:
+    - 0.0
+    - 0.5
+    theta: /ihme/covid-19/seir-parameters/2021_03_03.01/thetas.csv
+    vaccine_version: best
+    variant_beta_scale:
+    - 0.0
+    - 0.5
+    variant_ifr_scale: 1.29
+  variant_worse_mask_flat_vaccine_best_mobility_average_cvi_moderate_scale_high:
+    algorithm: normal
+    beta_scaling:
+      average_over_max: 42
+      average_over_min: 7
+      window_size: 42
+    covariates:
+      air_pollution_pm_2_5: reference
+      lri_mortality: reference
+      mask_use: flat
+      mobility: average
+      pneumonia: reference
+      proportion_over_2_5k: reference
+      proportion_under_100m: reference
+      smoking_prevalence: reference
+      testing: reference
+      variant_prevalence_B117: worse
+      variant_prevalence_B1351: worse
+      variant_prevalence_P1: worse
+    probability_cross_immune:
+    - 0.25
+    - 0.75
+    theta: /ihme/covid-19/seir-parameters/2021_03_03.01/thetas.csv
+    vaccine_version: best
+    variant_beta_scale:
+    - 0.5
+    - 1.0
+    variant_ifr_scale: 1.29
+  variant_worse_mask_flat_vaccine_best_mobility_average_cvi_moderate_scale_low:
+    algorithm: normal
+    beta_scaling:
+      average_over_max: 42
+      average_over_min: 7
+      window_size: 42
+    covariates:
+      air_pollution_pm_2_5: reference
+      lri_mortality: reference
+      mask_use: flat
+      mobility: average
+      pneumonia: reference
+      proportion_over_2_5k: reference
+      proportion_under_100m: reference
+      smoking_prevalence: reference
+      testing: reference
+      variant_prevalence_B117: worse
+      variant_prevalence_B1351: worse
+      variant_prevalence_P1: worse
+    probability_cross_immune:
+    - 0.25
+    - 0.75
+    theta: /ihme/covid-19/seir-parameters/2021_03_03.01/thetas.csv
+    vaccine_version: best
+    variant_beta_scale:
+    - 0.0
+    - 0.5
+    variant_ifr_scale: 1.29
+  variant_worse_mask_flat_vaccine_best_mobility_return_cvi_high_scale_high:
+    algorithm: normal
+    beta_scaling:
+      average_over_max: 42
+      average_over_min: 7
+      window_size: 42
+    covariates:
+      air_pollution_pm_2_5: reference
+      lri_mortality: reference
+      mask_use: flat
+      mobility: return
+      pneumonia: reference
+      proportion_over_2_5k: reference
+      proportion_under_100m: reference
+      smoking_prevalence: reference
+      testing: reference
+      variant_prevalence_B117: worse
+      variant_prevalence_B1351: worse
+      variant_prevalence_P1: worse
+    probability_cross_immune:
+    - 0.5
+    - 1.0
+    theta: /ihme/covid-19/seir-parameters/2021_03_03.01/thetas.csv
+    vaccine_version: best
+    variant_beta_scale:
+    - 0.5
+    - 1.0
+    variant_ifr_scale: 1.29
+  variant_worse_mask_flat_vaccine_best_mobility_return_cvi_high_scale_low:
+    algorithm: normal
+    beta_scaling:
+      average_over_max: 42
+      average_over_min: 7
+      window_size: 42
+    covariates:
+      air_pollution_pm_2_5: reference
+      lri_mortality: reference
+      mask_use: flat
+      mobility: return
+      pneumonia: reference
+      proportion_over_2_5k: reference
+      proportion_under_100m: reference
+      smoking_prevalence: reference
+      testing: reference
+      variant_prevalence_B117: worse
+      variant_prevalence_B1351: worse
+      variant_prevalence_P1: worse
+    probability_cross_immune:
+    - 0.5
+    - 1.0
+    theta: /ihme/covid-19/seir-parameters/2021_03_03.01/thetas.csv
+    vaccine_version: best
+    variant_beta_scale:
+    - 0.0
+    - 0.5
+    variant_ifr_scale: 1.29
+  variant_worse_mask_flat_vaccine_best_mobility_return_cvi_low_scale_high:
+    algorithm: normal
+    beta_scaling:
+      average_over_max: 42
+      average_over_min: 7
+      window_size: 42
+    covariates:
+      air_pollution_pm_2_5: reference
+      lri_mortality: reference
+      mask_use: flat
+      mobility: return
+      pneumonia: reference
+      proportion_over_2_5k: reference
+      proportion_under_100m: reference
+      smoking_prevalence: reference
+      testing: reference
+      variant_prevalence_B117: worse
+      variant_prevalence_B1351: worse
+      variant_prevalence_P1: worse
+    probability_cross_immune:
+    - 0.0
+    - 0.5
+    theta: /ihme/covid-19/seir-parameters/2021_03_03.01/thetas.csv
+    vaccine_version: best
+    variant_beta_scale:
+    - 0.5
+    - 1.0
+    variant_ifr_scale: 1.29
+  variant_worse_mask_flat_vaccine_best_mobility_return_cvi_low_scale_low:
+    algorithm: normal
+    beta_scaling:
+      average_over_max: 42
+      average_over_min: 7
+      window_size: 42
+    covariates:
+      air_pollution_pm_2_5: reference
+      lri_mortality: reference
+      mask_use: flat
+      mobility: return
+      pneumonia: reference
+      proportion_over_2_5k: reference
+      proportion_under_100m: reference
+      smoking_prevalence: reference
+      testing: reference
+      variant_prevalence_B117: worse
+      variant_prevalence_B1351: worse
+      variant_prevalence_P1: worse
+    probability_cross_immune:
+    - 0.0
+    - 0.5
+    theta: /ihme/covid-19/seir-parameters/2021_03_03.01/thetas.csv
+    vaccine_version: best
+    variant_beta_scale:
+    - 0.0
+    - 0.5
+    variant_ifr_scale: 1.29
+  variant_worse_mask_flat_vaccine_best_mobility_return_cvi_moderate_scale_high:
+    algorithm: normal
+    beta_scaling:
+      average_over_max: 42
+      average_over_min: 7
+      window_size: 42
+    covariates:
+      air_pollution_pm_2_5: reference
+      lri_mortality: reference
+      mask_use: flat
+      mobility: return
+      pneumonia: reference
+      proportion_over_2_5k: reference
+      proportion_under_100m: reference
+      smoking_prevalence: reference
+      testing: reference
+      variant_prevalence_B117: worse
+      variant_prevalence_B1351: worse
+      variant_prevalence_P1: worse
+    probability_cross_immune:
+    - 0.25
+    - 0.75
+    theta: /ihme/covid-19/seir-parameters/2021_03_03.01/thetas.csv
+    vaccine_version: best
+    variant_beta_scale:
+    - 0.5
+    - 1.0
+    variant_ifr_scale: 1.29
+  variant_worse_mask_flat_vaccine_best_mobility_return_cvi_moderate_scale_low:
+    algorithm: normal
+    beta_scaling:
+      average_over_max: 42
+      average_over_min: 7
+      window_size: 42
+    covariates:
+      air_pollution_pm_2_5: reference
+      lri_mortality: reference
+      mask_use: flat
+      mobility: return
+      pneumonia: reference
+      proportion_over_2_5k: reference
+      proportion_under_100m: reference
+      smoking_prevalence: reference
+      testing: reference
+      variant_prevalence_B117: worse
+      variant_prevalence_B1351: worse
+      variant_prevalence_P1: worse
+    probability_cross_immune:
+    - 0.25
+    - 0.75
+    theta: /ihme/covid-19/seir-parameters/2021_03_03.01/thetas.csv
+    vaccine_version: best
+    variant_beta_scale:
+    - 0.0
+    - 0.5
+    variant_ifr_scale: 1.29
+  variant_worse_mask_flat_vaccine_reference_mobility_average_cvi_high_scale_high:
+    algorithm: normal
+    beta_scaling:
+      average_over_max: 42
+      average_over_min: 7
+      window_size: 42
+    covariates:
+      air_pollution_pm_2_5: reference
+      lri_mortality: reference
+      mask_use: flat
+      mobility: average
+      pneumonia: reference
+      proportion_over_2_5k: reference
+      proportion_under_100m: reference
+      smoking_prevalence: reference
+      testing: reference
+      variant_prevalence_B117: worse
+      variant_prevalence_B1351: worse
+      variant_prevalence_P1: worse
+    probability_cross_immune:
+    - 0.5
+    - 1.0
+    theta: /ihme/covid-19/seir-parameters/2021_03_03.01/thetas.csv
+    vaccine_version: reference
+    variant_beta_scale:
+    - 0.5
+    - 1.0
+    variant_ifr_scale: 1.29
+  variant_worse_mask_flat_vaccine_reference_mobility_average_cvi_high_scale_low:
+    algorithm: normal
+    beta_scaling:
+      average_over_max: 42
+      average_over_min: 7
+      window_size: 42
+    covariates:
+      air_pollution_pm_2_5: reference
+      lri_mortality: reference
+      mask_use: flat
+      mobility: average
+      pneumonia: reference
+      proportion_over_2_5k: reference
+      proportion_under_100m: reference
+      smoking_prevalence: reference
+      testing: reference
+      variant_prevalence_B117: worse
+      variant_prevalence_B1351: worse
+      variant_prevalence_P1: worse
+    probability_cross_immune:
+    - 0.5
+    - 1.0
+    theta: /ihme/covid-19/seir-parameters/2021_03_03.01/thetas.csv
+    vaccine_version: reference
+    variant_beta_scale:
+    - 0.0
+    - 0.5
+    variant_ifr_scale: 1.29
+  variant_worse_mask_flat_vaccine_reference_mobility_average_cvi_low_scale_high:
+    algorithm: normal
+    beta_scaling:
+      average_over_max: 42
+      average_over_min: 7
+      window_size: 42
+    covariates:
+      air_pollution_pm_2_5: reference
+      lri_mortality: reference
+      mask_use: flat
+      mobility: average
+      pneumonia: reference
+      proportion_over_2_5k: reference
+      proportion_under_100m: reference
+      smoking_prevalence: reference
+      testing: reference
+      variant_prevalence_B117: worse
+      variant_prevalence_B1351: worse
+      variant_prevalence_P1: worse
+    probability_cross_immune:
+    - 0.0
+    - 0.5
+    theta: /ihme/covid-19/seir-parameters/2021_03_03.01/thetas.csv
+    vaccine_version: reference
+    variant_beta_scale:
+    - 0.5
+    - 1.0
+    variant_ifr_scale: 1.29
+  variant_worse_mask_flat_vaccine_reference_mobility_average_cvi_low_scale_low:
+    algorithm: normal
+    beta_scaling:
+      average_over_max: 42
+      average_over_min: 7
+      window_size: 42
+    covariates:
+      air_pollution_pm_2_5: reference
+      lri_mortality: reference
+      mask_use: flat
+      mobility: average
+      pneumonia: reference
+      proportion_over_2_5k: reference
+      proportion_under_100m: reference
+      smoking_prevalence: reference
+      testing: reference
+      variant_prevalence_B117: worse
+      variant_prevalence_B1351: worse
+      variant_prevalence_P1: worse
+    probability_cross_immune:
+    - 0.0
+    - 0.5
+    theta: /ihme/covid-19/seir-parameters/2021_03_03.01/thetas.csv
+    vaccine_version: reference
+    variant_beta_scale:
+    - 0.0
+    - 0.5
+    variant_ifr_scale: 1.29
+  variant_worse_mask_flat_vaccine_reference_mobility_average_cvi_moderate_scale_high:
+    algorithm: normal
+    beta_scaling:
+      average_over_max: 42
+      average_over_min: 7
+      window_size: 42
+    covariates:
+      air_pollution_pm_2_5: reference
+      lri_mortality: reference
+      mask_use: flat
+      mobility: average
+      pneumonia: reference
+      proportion_over_2_5k: reference
+      proportion_under_100m: reference
+      smoking_prevalence: reference
+      testing: reference
+      variant_prevalence_B117: worse
+      variant_prevalence_B1351: worse
+      variant_prevalence_P1: worse
+    probability_cross_immune:
+    - 0.25
+    - 0.75
+    theta: /ihme/covid-19/seir-parameters/2021_03_03.01/thetas.csv
+    vaccine_version: reference
+    variant_beta_scale:
+    - 0.5
+    - 1.0
+    variant_ifr_scale: 1.29
+  variant_worse_mask_flat_vaccine_reference_mobility_average_cvi_moderate_scale_low:
+    algorithm: normal
+    beta_scaling:
+      average_over_max: 42
+      average_over_min: 7
+      window_size: 42
+    covariates:
+      air_pollution_pm_2_5: reference
+      lri_mortality: reference
+      mask_use: flat
+      mobility: average
+      pneumonia: reference
+      proportion_over_2_5k: reference
+      proportion_under_100m: reference
+      smoking_prevalence: reference
+      testing: reference
+      variant_prevalence_B117: worse
+      variant_prevalence_B1351: worse
+      variant_prevalence_P1: worse
+    probability_cross_immune:
+    - 0.25
+    - 0.75
+    theta: /ihme/covid-19/seir-parameters/2021_03_03.01/thetas.csv
+    vaccine_version: reference
+    variant_beta_scale:
+    - 0.0
+    - 0.5
+    variant_ifr_scale: 1.29
+  variant_worse_mask_flat_vaccine_reference_mobility_return_cvi_high_scale_high:
+    algorithm: normal
+    beta_scaling:
+      average_over_max: 42
+      average_over_min: 7
+      window_size: 42
+    covariates:
+      air_pollution_pm_2_5: reference
+      lri_mortality: reference
+      mask_use: flat
+      mobility: return
+      pneumonia: reference
+      proportion_over_2_5k: reference
+      proportion_under_100m: reference
+      smoking_prevalence: reference
+      testing: reference
+      variant_prevalence_B117: worse
+      variant_prevalence_B1351: worse
+      variant_prevalence_P1: worse
+    probability_cross_immune:
+    - 0.5
+    - 1.0
+    theta: /ihme/covid-19/seir-parameters/2021_03_03.01/thetas.csv
+    vaccine_version: reference
+    variant_beta_scale:
+    - 0.5
+    - 1.0
+    variant_ifr_scale: 1.29
+  variant_worse_mask_flat_vaccine_reference_mobility_return_cvi_high_scale_low:
+    algorithm: normal
+    beta_scaling:
+      average_over_max: 42
+      average_over_min: 7
+      window_size: 42
+    covariates:
+      air_pollution_pm_2_5: reference
+      lri_mortality: reference
+      mask_use: flat
+      mobility: return
+      pneumonia: reference
+      proportion_over_2_5k: reference
+      proportion_under_100m: reference
+      smoking_prevalence: reference
+      testing: reference
+      variant_prevalence_B117: worse
+      variant_prevalence_B1351: worse
+      variant_prevalence_P1: worse
+    probability_cross_immune:
+    - 0.5
+    - 1.0
+    theta: /ihme/covid-19/seir-parameters/2021_03_03.01/thetas.csv
+    vaccine_version: reference
+    variant_beta_scale:
+    - 0.0
+    - 0.5
+    variant_ifr_scale: 1.29
+  variant_worse_mask_flat_vaccine_reference_mobility_return_cvi_low_scale_high:
+    algorithm: normal
+    beta_scaling:
+      average_over_max: 42
+      average_over_min: 7
+      window_size: 42
+    covariates:
+      air_pollution_pm_2_5: reference
+      lri_mortality: reference
+      mask_use: flat
+      mobility: return
+      pneumonia: reference
+      proportion_over_2_5k: reference
+      proportion_under_100m: reference
+      smoking_prevalence: reference
+      testing: reference
+      variant_prevalence_B117: worse
+      variant_prevalence_B1351: worse
+      variant_prevalence_P1: worse
+    probability_cross_immune:
+    - 0.0
+    - 0.5
+    theta: /ihme/covid-19/seir-parameters/2021_03_03.01/thetas.csv
+    vaccine_version: reference
+    variant_beta_scale:
+    - 0.5
+    - 1.0
+    variant_ifr_scale: 1.29
+  variant_worse_mask_flat_vaccine_reference_mobility_return_cvi_low_scale_low:
+    algorithm: normal
+    beta_scaling:
+      average_over_max: 42
+      average_over_min: 7
+      window_size: 42
+    covariates:
+      air_pollution_pm_2_5: reference
+      lri_mortality: reference
+      mask_use: flat
+      mobility: return
+      pneumonia: reference
+      proportion_over_2_5k: reference
+      proportion_under_100m: reference
+      smoking_prevalence: reference
+      testing: reference
+      variant_prevalence_B117: worse
+      variant_prevalence_B1351: worse
+      variant_prevalence_P1: worse
+    probability_cross_immune:
+    - 0.0
+    - 0.5
+    theta: /ihme/covid-19/seir-parameters/2021_03_03.01/thetas.csv
+    vaccine_version: reference
+    variant_beta_scale:
+    - 0.0
+    - 0.5
+    variant_ifr_scale: 1.29
+  variant_worse_mask_flat_vaccine_reference_mobility_return_cvi_moderate_scale_high:
+    algorithm: normal
+    beta_scaling:
+      average_over_max: 42
+      average_over_min: 7
+      window_size: 42
+    covariates:
+      air_pollution_pm_2_5: reference
+      lri_mortality: reference
+      mask_use: flat
+      mobility: return
+      pneumonia: reference
+      proportion_over_2_5k: reference
+      proportion_under_100m: reference
+      smoking_prevalence: reference
+      testing: reference
+      variant_prevalence_B117: worse
+      variant_prevalence_B1351: worse
+      variant_prevalence_P1: worse
+    probability_cross_immune:
+    - 0.25
+    - 0.75
+    theta: /ihme/covid-19/seir-parameters/2021_03_03.01/thetas.csv
+    vaccine_version: reference
+    variant_beta_scale:
+    - 0.5
+    - 1.0
+    variant_ifr_scale: 1.29
+  variant_worse_mask_flat_vaccine_reference_mobility_return_cvi_moderate_scale_low:
+    algorithm: normal
+    beta_scaling:
+      average_over_max: 42
+      average_over_min: 7
+      window_size: 42
+    covariates:
+      air_pollution_pm_2_5: reference
+      lri_mortality: reference
+      mask_use: flat
+      mobility: return
+      pneumonia: reference
+      proportion_over_2_5k: reference
+      proportion_under_100m: reference
+      smoking_prevalence: reference
+      testing: reference
+      variant_prevalence_B117: worse
+      variant_prevalence_B1351: worse
+      variant_prevalence_P1: worse
+    probability_cross_immune:
+    - 0.25
+    - 0.75
+    theta: /ihme/covid-19/seir-parameters/2021_03_03.01/thetas.csv
+    vaccine_version: reference
+    variant_beta_scale:
+    - 0.0
+    - 0.5
+    variant_ifr_scale: 1.29
+  variant_worse_mask_return_vaccine_best_mobility_average_cvi_high_scale_high:
+    algorithm: normal
+    beta_scaling:
+      average_over_max: 42
+      average_over_min: 7
+      window_size: 42
+    covariates:
+      air_pollution_pm_2_5: reference
+      lri_mortality: reference
+      mask_use: return
+      mobility: average
+      pneumonia: reference
+      proportion_over_2_5k: reference
+      proportion_under_100m: reference
+      smoking_prevalence: reference
+      testing: reference
+      variant_prevalence_B117: worse
+      variant_prevalence_B1351: worse
+      variant_prevalence_P1: worse
+    probability_cross_immune:
+    - 0.5
+    - 1.0
+    theta: /ihme/covid-19/seir-parameters/2021_03_03.01/thetas.csv
+    vaccine_version: best
+    variant_beta_scale:
+    - 0.5
+    - 1.0
+    variant_ifr_scale: 1.29
+  variant_worse_mask_return_vaccine_best_mobility_average_cvi_high_scale_low:
+    algorithm: normal
+    beta_scaling:
+      average_over_max: 42
+      average_over_min: 7
+      window_size: 42
+    covariates:
+      air_pollution_pm_2_5: reference
+      lri_mortality: reference
+      mask_use: return
+      mobility: average
+      pneumonia: reference
+      proportion_over_2_5k: reference
+      proportion_under_100m: reference
+      smoking_prevalence: reference
+      testing: reference
+      variant_prevalence_B117: worse
+      variant_prevalence_B1351: worse
+      variant_prevalence_P1: worse
+    probability_cross_immune:
+    - 0.5
+    - 1.0
+    theta: /ihme/covid-19/seir-parameters/2021_03_03.01/thetas.csv
+    vaccine_version: best
+    variant_beta_scale:
+    - 0.0
+    - 0.5
+    variant_ifr_scale: 1.29
+  variant_worse_mask_return_vaccine_best_mobility_average_cvi_low_scale_high:
+    algorithm: normal
+    beta_scaling:
+      average_over_max: 42
+      average_over_min: 7
+      window_size: 42
+    covariates:
+      air_pollution_pm_2_5: reference
+      lri_mortality: reference
+      mask_use: return
+      mobility: average
+      pneumonia: reference
+      proportion_over_2_5k: reference
+      proportion_under_100m: reference
+      smoking_prevalence: reference
+      testing: reference
+      variant_prevalence_B117: worse
+      variant_prevalence_B1351: worse
+      variant_prevalence_P1: worse
+    probability_cross_immune:
+    - 0.0
+    - 0.5
+    theta: /ihme/covid-19/seir-parameters/2021_03_03.01/thetas.csv
+    vaccine_version: best
+    variant_beta_scale:
+    - 0.5
+    - 1.0
+    variant_ifr_scale: 1.29
+  variant_worse_mask_return_vaccine_best_mobility_average_cvi_low_scale_low:
+    algorithm: normal
+    beta_scaling:
+      average_over_max: 42
+      average_over_min: 7
+      window_size: 42
+    covariates:
+      air_pollution_pm_2_5: reference
+      lri_mortality: reference
+      mask_use: return
+      mobility: average
+      pneumonia: reference
+      proportion_over_2_5k: reference
+      proportion_under_100m: reference
+      smoking_prevalence: reference
+      testing: reference
+      variant_prevalence_B117: worse
+      variant_prevalence_B1351: worse
+      variant_prevalence_P1: worse
+    probability_cross_immune:
+    - 0.0
+    - 0.5
+    theta: /ihme/covid-19/seir-parameters/2021_03_03.01/thetas.csv
+    vaccine_version: best
+    variant_beta_scale:
+    - 0.0
+    - 0.5
+    variant_ifr_scale: 1.29
+  variant_worse_mask_return_vaccine_best_mobility_average_cvi_moderate_scale_high:
+    algorithm: normal
+    beta_scaling:
+      average_over_max: 42
+      average_over_min: 7
+      window_size: 42
+    covariates:
+      air_pollution_pm_2_5: reference
+      lri_mortality: reference
+      mask_use: return
+      mobility: average
+      pneumonia: reference
+      proportion_over_2_5k: reference
+      proportion_under_100m: reference
+      smoking_prevalence: reference
+      testing: reference
+      variant_prevalence_B117: worse
+      variant_prevalence_B1351: worse
+      variant_prevalence_P1: worse
+    probability_cross_immune:
+    - 0.25
+    - 0.75
+    theta: /ihme/covid-19/seir-parameters/2021_03_03.01/thetas.csv
+    vaccine_version: best
+    variant_beta_scale:
+    - 0.5
+    - 1.0
+    variant_ifr_scale: 1.29
+  variant_worse_mask_return_vaccine_best_mobility_average_cvi_moderate_scale_low:
+    algorithm: normal
+    beta_scaling:
+      average_over_max: 42
+      average_over_min: 7
+      window_size: 42
+    covariates:
+      air_pollution_pm_2_5: reference
+      lri_mortality: reference
+      mask_use: return
+      mobility: average
+      pneumonia: reference
+      proportion_over_2_5k: reference
+      proportion_under_100m: reference
+      smoking_prevalence: reference
+      testing: reference
+      variant_prevalence_B117: worse
+      variant_prevalence_B1351: worse
+      variant_prevalence_P1: worse
+    probability_cross_immune:
+    - 0.25
+    - 0.75
+    theta: /ihme/covid-19/seir-parameters/2021_03_03.01/thetas.csv
+    vaccine_version: best
+    variant_beta_scale:
+    - 0.0
+    - 0.5
+    variant_ifr_scale: 1.29
+  variant_worse_mask_return_vaccine_best_mobility_return_cvi_high_scale_high:
+    algorithm: normal
+    beta_scaling:
+      average_over_max: 42
+      average_over_min: 7
+      window_size: 42
+    covariates:
+      air_pollution_pm_2_5: reference
+      lri_mortality: reference
+      mask_use: return
+      mobility: return
+      pneumonia: reference
+      proportion_over_2_5k: reference
+      proportion_under_100m: reference
+      smoking_prevalence: reference
+      testing: reference
+      variant_prevalence_B117: worse
+      variant_prevalence_B1351: worse
+      variant_prevalence_P1: worse
+    probability_cross_immune:
+    - 0.5
+    - 1.0
+    theta: /ihme/covid-19/seir-parameters/2021_03_03.01/thetas.csv
+    vaccine_version: best
+    variant_beta_scale:
+    - 0.5
+    - 1.0
+    variant_ifr_scale: 1.29
+  variant_worse_mask_return_vaccine_best_mobility_return_cvi_high_scale_low:
+    algorithm: normal
+    beta_scaling:
+      average_over_max: 42
+      average_over_min: 7
+      window_size: 42
+    covariates:
+      air_pollution_pm_2_5: reference
+      lri_mortality: reference
+      mask_use: return
+      mobility: return
+      pneumonia: reference
+      proportion_over_2_5k: reference
+      proportion_under_100m: reference
+      smoking_prevalence: reference
+      testing: reference
+      variant_prevalence_B117: worse
+      variant_prevalence_B1351: worse
+      variant_prevalence_P1: worse
+    probability_cross_immune:
+    - 0.5
+    - 1.0
+    theta: /ihme/covid-19/seir-parameters/2021_03_03.01/thetas.csv
+    vaccine_version: best
+    variant_beta_scale:
+    - 0.0
+    - 0.5
+    variant_ifr_scale: 1.29
+  variant_worse_mask_return_vaccine_best_mobility_return_cvi_low_scale_high:
+    algorithm: normal
+    beta_scaling:
+      average_over_max: 42
+      average_over_min: 7
+      window_size: 42
+    covariates:
+      air_pollution_pm_2_5: reference
+      lri_mortality: reference
+      mask_use: return
+      mobility: return
+      pneumonia: reference
+      proportion_over_2_5k: reference
+      proportion_under_100m: reference
+      smoking_prevalence: reference
+      testing: reference
+      variant_prevalence_B117: worse
+      variant_prevalence_B1351: worse
+      variant_prevalence_P1: worse
+    probability_cross_immune:
+    - 0.0
+    - 0.5
+    theta: /ihme/covid-19/seir-parameters/2021_03_03.01/thetas.csv
+    vaccine_version: best
+    variant_beta_scale:
+    - 0.5
+    - 1.0
+    variant_ifr_scale: 1.29
+  variant_worse_mask_return_vaccine_best_mobility_return_cvi_low_scale_low:
+    algorithm: normal
+    beta_scaling:
+      average_over_max: 42
+      average_over_min: 7
+      window_size: 42
+    covariates:
+      air_pollution_pm_2_5: reference
+      lri_mortality: reference
+      mask_use: return
+      mobility: return
+      pneumonia: reference
+      proportion_over_2_5k: reference
+      proportion_under_100m: reference
+      smoking_prevalence: reference
+      testing: reference
+      variant_prevalence_B117: worse
+      variant_prevalence_B1351: worse
+      variant_prevalence_P1: worse
+    probability_cross_immune:
+    - 0.0
+    - 0.5
+    theta: /ihme/covid-19/seir-parameters/2021_03_03.01/thetas.csv
+    vaccine_version: best
+    variant_beta_scale:
+    - 0.0
+    - 0.5
+    variant_ifr_scale: 1.29
+  variant_worse_mask_return_vaccine_best_mobility_return_cvi_moderate_scale_high:
+    algorithm: normal
+    beta_scaling:
+      average_over_max: 42
+      average_over_min: 7
+      window_size: 42
+    covariates:
+      air_pollution_pm_2_5: reference
+      lri_mortality: reference
+      mask_use: return
+      mobility: return
+      pneumonia: reference
+      proportion_over_2_5k: reference
+      proportion_under_100m: reference
+      smoking_prevalence: reference
+      testing: reference
+      variant_prevalence_B117: worse
+      variant_prevalence_B1351: worse
+      variant_prevalence_P1: worse
+    probability_cross_immune:
+    - 0.25
+    - 0.75
+    theta: /ihme/covid-19/seir-parameters/2021_03_03.01/thetas.csv
+    vaccine_version: best
+    variant_beta_scale:
+    - 0.5
+    - 1.0
+    variant_ifr_scale: 1.29
+  variant_worse_mask_return_vaccine_best_mobility_return_cvi_moderate_scale_low:
+    algorithm: normal
+    beta_scaling:
+      average_over_max: 42
+      average_over_min: 7
+      window_size: 42
+    covariates:
+      air_pollution_pm_2_5: reference
+      lri_mortality: reference
+      mask_use: return
+      mobility: return
+      pneumonia: reference
+      proportion_over_2_5k: reference
+      proportion_under_100m: reference
+      smoking_prevalence: reference
+      testing: reference
+      variant_prevalence_B117: worse
+      variant_prevalence_B1351: worse
+      variant_prevalence_P1: worse
+    probability_cross_immune:
+    - 0.25
+    - 0.75
+    theta: /ihme/covid-19/seir-parameters/2021_03_03.01/thetas.csv
+    vaccine_version: best
+    variant_beta_scale:
+    - 0.0
+    - 0.5
+    variant_ifr_scale: 1.29
+  variant_worse_mask_return_vaccine_reference_mobility_average_cvi_high_scale_high:
+    algorithm: normal
+    beta_scaling:
+      average_over_max: 42
+      average_over_min: 7
+      window_size: 42
+    covariates:
+      air_pollution_pm_2_5: reference
+      lri_mortality: reference
+      mask_use: return
+      mobility: average
+      pneumonia: reference
+      proportion_over_2_5k: reference
+      proportion_under_100m: reference
+      smoking_prevalence: reference
+      testing: reference
+      variant_prevalence_B117: worse
+      variant_prevalence_B1351: worse
+      variant_prevalence_P1: worse
+    probability_cross_immune:
+    - 0.5
+    - 1.0
+    theta: /ihme/covid-19/seir-parameters/2021_03_03.01/thetas.csv
+    vaccine_version: reference
+    variant_beta_scale:
+    - 0.5
+    - 1.0
+    variant_ifr_scale: 1.29
+  variant_worse_mask_return_vaccine_reference_mobility_average_cvi_high_scale_low:
+    algorithm: normal
+    beta_scaling:
+      average_over_max: 42
+      average_over_min: 7
+      window_size: 42
+    covariates:
+      air_pollution_pm_2_5: reference
+      lri_mortality: reference
+      mask_use: return
+      mobility: average
+      pneumonia: reference
+      proportion_over_2_5k: reference
+      proportion_under_100m: reference
+      smoking_prevalence: reference
+      testing: reference
+      variant_prevalence_B117: worse
+      variant_prevalence_B1351: worse
+      variant_prevalence_P1: worse
+    probability_cross_immune:
+    - 0.5
+    - 1.0
+    theta: /ihme/covid-19/seir-parameters/2021_03_03.01/thetas.csv
+    vaccine_version: reference
+    variant_beta_scale:
+    - 0.0
+    - 0.5
+    variant_ifr_scale: 1.29
+  variant_worse_mask_return_vaccine_reference_mobility_average_cvi_low_scale_high:
+    algorithm: normal
+    beta_scaling:
+      average_over_max: 42
+      average_over_min: 7
+      window_size: 42
+    covariates:
+      air_pollution_pm_2_5: reference
+      lri_mortality: reference
+      mask_use: return
+      mobility: average
+      pneumonia: reference
+      proportion_over_2_5k: reference
+      proportion_under_100m: reference
+      smoking_prevalence: reference
+      testing: reference
+      variant_prevalence_B117: worse
+      variant_prevalence_B1351: worse
+      variant_prevalence_P1: worse
+    probability_cross_immune:
+    - 0.0
+    - 0.5
+    theta: /ihme/covid-19/seir-parameters/2021_03_03.01/thetas.csv
+    vaccine_version: reference
+    variant_beta_scale:
+    - 0.5
+    - 1.0
+    variant_ifr_scale: 1.29
+  variant_worse_mask_return_vaccine_reference_mobility_average_cvi_low_scale_low:
+    algorithm: normal
+    beta_scaling:
+      average_over_max: 42
+      average_over_min: 7
+      window_size: 42
+    covariates:
+      air_pollution_pm_2_5: reference
+      lri_mortality: reference
+      mask_use: return
+      mobility: average
+      pneumonia: reference
+      proportion_over_2_5k: reference
+      proportion_under_100m: reference
+      smoking_prevalence: reference
+      testing: reference
+      variant_prevalence_B117: worse
+      variant_prevalence_B1351: worse
+      variant_prevalence_P1: worse
+    probability_cross_immune:
+    - 0.0
+    - 0.5
+    theta: /ihme/covid-19/seir-parameters/2021_03_03.01/thetas.csv
+    vaccine_version: reference
+    variant_beta_scale:
+    - 0.0
+    - 0.5
+    variant_ifr_scale: 1.29
+  variant_worse_mask_return_vaccine_reference_mobility_average_cvi_moderate_scale_high:
+    algorithm: normal
+    beta_scaling:
+      average_over_max: 42
+      average_over_min: 7
+      window_size: 42
+    covariates:
+      air_pollution_pm_2_5: reference
+      lri_mortality: reference
+      mask_use: return
+      mobility: average
+      pneumonia: reference
+      proportion_over_2_5k: reference
+      proportion_under_100m: reference
+      smoking_prevalence: reference
+      testing: reference
+      variant_prevalence_B117: worse
+      variant_prevalence_B1351: worse
+      variant_prevalence_P1: worse
+    probability_cross_immune:
+    - 0.25
+    - 0.75
+    theta: /ihme/covid-19/seir-parameters/2021_03_03.01/thetas.csv
+    vaccine_version: reference
+    variant_beta_scale:
+    - 0.5
+    - 1.0
+    variant_ifr_scale: 1.29
+  variant_worse_mask_return_vaccine_reference_mobility_average_cvi_moderate_scale_low:
+    algorithm: normal
+    beta_scaling:
+      average_over_max: 42
+      average_over_min: 7
+      window_size: 42
+    covariates:
+      air_pollution_pm_2_5: reference
+      lri_mortality: reference
+      mask_use: return
+      mobility: average
+      pneumonia: reference
+      proportion_over_2_5k: reference
+      proportion_under_100m: reference
+      smoking_prevalence: reference
+      testing: reference
+      variant_prevalence_B117: worse
+      variant_prevalence_B1351: worse
+      variant_prevalence_P1: worse
+    probability_cross_immune:
+    - 0.25
+    - 0.75
+    theta: /ihme/covid-19/seir-parameters/2021_03_03.01/thetas.csv
+    vaccine_version: reference
+    variant_beta_scale:
+    - 0.0
+    - 0.5
+    variant_ifr_scale: 1.29
+  variant_worse_mask_return_vaccine_reference_mobility_return_cvi_high_scale_high:
+    algorithm: normal
+    beta_scaling:
+      average_over_max: 42
+      average_over_min: 7
+      window_size: 42
+    covariates:
+      air_pollution_pm_2_5: reference
+      lri_mortality: reference
+      mask_use: return
+      mobility: return
+      pneumonia: reference
+      proportion_over_2_5k: reference
+      proportion_under_100m: reference
+      smoking_prevalence: reference
+      testing: reference
+      variant_prevalence_B117: worse
+      variant_prevalence_B1351: worse
+      variant_prevalence_P1: worse
+    probability_cross_immune:
+    - 0.5
+    - 1.0
+    theta: /ihme/covid-19/seir-parameters/2021_03_03.01/thetas.csv
+    vaccine_version: reference
+    variant_beta_scale:
+    - 0.5
+    - 1.0
+    variant_ifr_scale: 1.29
+  variant_worse_mask_return_vaccine_reference_mobility_return_cvi_high_scale_low:
+    algorithm: normal
+    beta_scaling:
+      average_over_max: 42
+      average_over_min: 7
+      window_size: 42
+    covariates:
+      air_pollution_pm_2_5: reference
+      lri_mortality: reference
+      mask_use: return
+      mobility: return
+      pneumonia: reference
+      proportion_over_2_5k: reference
+      proportion_under_100m: reference
+      smoking_prevalence: reference
+      testing: reference
+      variant_prevalence_B117: worse
+      variant_prevalence_B1351: worse
+      variant_prevalence_P1: worse
+    probability_cross_immune:
+    - 0.5
+    - 1.0
+    theta: /ihme/covid-19/seir-parameters/2021_03_03.01/thetas.csv
+    vaccine_version: reference
+    variant_beta_scale:
+    - 0.0
+    - 0.5
+    variant_ifr_scale: 1.29
+  variant_worse_mask_return_vaccine_reference_mobility_return_cvi_low_scale_high:
+    algorithm: normal
+    beta_scaling:
+      average_over_max: 42
+      average_over_min: 7
+      window_size: 42
+    covariates:
+      air_pollution_pm_2_5: reference
+      lri_mortality: reference
+      mask_use: return
+      mobility: return
+      pneumonia: reference
+      proportion_over_2_5k: reference
+      proportion_under_100m: reference
+      smoking_prevalence: reference
+      testing: reference
+      variant_prevalence_B117: worse
+      variant_prevalence_B1351: worse
+      variant_prevalence_P1: worse
+    probability_cross_immune:
+    - 0.0
+    - 0.5
+    theta: /ihme/covid-19/seir-parameters/2021_03_03.01/thetas.csv
+    vaccine_version: reference
+    variant_beta_scale:
+    - 0.5
+    - 1.0
+    variant_ifr_scale: 1.29
+  variant_worse_mask_return_vaccine_reference_mobility_return_cvi_low_scale_low:
+    algorithm: normal
+    beta_scaling:
+      average_over_max: 42
+      average_over_min: 7
+      window_size: 42
+    covariates:
+      air_pollution_pm_2_5: reference
+      lri_mortality: reference
+      mask_use: return
+      mobility: return
+      pneumonia: reference
+      proportion_over_2_5k: reference
+      proportion_under_100m: reference
+      smoking_prevalence: reference
+      testing: reference
+      variant_prevalence_B117: worse
+      variant_prevalence_B1351: worse
+      variant_prevalence_P1: worse
+    probability_cross_immune:
+    - 0.0
+    - 0.5
+    theta: /ihme/covid-19/seir-parameters/2021_03_03.01/thetas.csv
+    vaccine_version: reference
+    variant_beta_scale:
+    - 0.0
+    - 0.5
+    variant_ifr_scale: 1.29
+  variant_worse_mask_return_vaccine_reference_mobility_return_cvi_moderate_scale_high:
+    algorithm: normal
+    beta_scaling:
+      average_over_max: 42
+      average_over_min: 7
+      window_size: 42
+    covariates:
+      air_pollution_pm_2_5: reference
+      lri_mortality: reference
+      mask_use: return
+      mobility: return
+      pneumonia: reference
+      proportion_over_2_5k: reference
+      proportion_under_100m: reference
+      smoking_prevalence: reference
+      testing: reference
+      variant_prevalence_B117: worse
+      variant_prevalence_B1351: worse
+      variant_prevalence_P1: worse
+    probability_cross_immune:
+    - 0.25
+    - 0.75
+    theta: /ihme/covid-19/seir-parameters/2021_03_03.01/thetas.csv
+    vaccine_version: reference
+    variant_beta_scale:
+    - 0.5
+    - 1.0
+    variant_ifr_scale: 1.29
+  variant_worse_mask_return_vaccine_reference_mobility_return_cvi_moderate_scale_low:
+    algorithm: normal
+    beta_scaling:
+      average_over_max: 42
+      average_over_min: 7
+      window_size: 42
+    covariates:
+      air_pollution_pm_2_5: reference
+      lri_mortality: reference
+      mask_use: return
+      mobility: return
+      pneumonia: reference
+      proportion_over_2_5k: reference
+      proportion_under_100m: reference
+      smoking_prevalence: reference
+      testing: reference
+      variant_prevalence_B117: worse
+      variant_prevalence_B1351: worse
+      variant_prevalence_P1: worse
+    probability_cross_immune:
+    - 0.25
+    - 0.75
+    theta: /ihme/covid-19/seir-parameters/2021_03_03.01/thetas.csv
+    vaccine_version: reference
+    variant_beta_scale:
+    - 0.0
+    - 0.5
+    variant_ifr_scale: 1.29
+workflow:
+  project: proj_covid_prod
+  queue: d.q
