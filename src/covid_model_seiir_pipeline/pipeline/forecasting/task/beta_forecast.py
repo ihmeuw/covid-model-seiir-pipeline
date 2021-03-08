@@ -96,7 +96,11 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
         model_parameters=model_parameters,
     )
     initial_condition = past_compartments.loc[indices.initial_condition].reset_index(level='date', drop=True)
-    model_parameters = model.adjust_beta(model_parameters, past_compartments)
+    model_parameters = model.adjust_beta(
+        model_parameters,
+        initial_condition,
+        past_infections.loc[indices.initial_condition],
+    )
 
     ###################################################
     # Construct parameters for postprocessing results #
