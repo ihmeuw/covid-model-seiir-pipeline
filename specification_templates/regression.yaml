@@ -9,6 +9,8 @@ data:
 workflow:
   project: 'proj_covid_prod'
   queue: 'd.q'
+  # one of true, false
+  run_hospital: true
 regression_parameters:
   n_draws: 100
   alpha: [0.9, 1.0]

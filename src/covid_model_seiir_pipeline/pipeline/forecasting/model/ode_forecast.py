@@ -291,7 +291,6 @@ def redistribute(compartment: str, components: pd.DataFrame, variant_prevalence:
 def adjust_beta(model_parameters: ModelParameters,
                 initial_condition: pd.DataFrame,
                 new_e: pd.Series) -> ModelParameters:
-
     s_wild = initial_condition[
         [c for c in initial_condition if c[0] == 'S' and 'variant' not in c and 'm' not in c]
     ].sum(axis=1)
