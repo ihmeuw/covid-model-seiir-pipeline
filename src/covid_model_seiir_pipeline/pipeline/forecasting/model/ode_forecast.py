@@ -15,7 +15,7 @@ from covid_model_seiir_pipeline.pipeline.forecasting.model.containers import (
     HospitalCorrectionFactors,
 )
 from covid_model_seiir_pipeline.pipeline.forecasting.model.ode_systems import (
-    vaccine,
+
     variant,
 )
 
