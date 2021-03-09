@@ -77,15 +77,24 @@ def compute_output_metrics(indices: Indices,
         postprocessing_params,
     )
 
+    rcw, rew, rcv, rev, re = compute_effective_r(
+        model_parameters,
+        system_metrics,
+        infections,
+
+    )
+
     output_metrics = OutputMetrics(
         infections=infections,
         cases=cases,
         deaths=deaths,
         **hospital_usage.to_dict(),
         # Other stuff
-        r_controlled=pd.Series(np.nan, index=indices.full),
-        r_effective=pd.Series(np.nan, index=indices.full),
-        herd_immunity=pd.Series(np.nan, index=indices.full),
+        r_controlled_wild=rcw,
+        r_effective_wild=rew,
+        r_controlled_variant=rcv,
+        r_effective_variant=rev,
+        r_effective=re,
     )
     return components, system_metrics, output_metrics
 
@@ -139,6 +148,8 @@ def variant_system_metrics(indices: Indices,
     i_variant = components[[c for c in cols if 'I' in c and 'variant' in c]].sum(axis=1)
     i_total = i_wild + i_variant
 
+    total_population = components[cols].sum(axis=1)
+
     total_pop = components[cols].sum(axis=1)
     beta_wild = modeled_infections_wild / (s_wild * i_wild ** model_parameters.alpha / total_pop)
     beta_variant = modeled_infections_variant / (s_variant * i_variant ** model_parameters.alpha / total_pop)
@@ -172,8 +183,12 @@ def variant_system_metrics(indices: Indices,
 
         total_susceptible_wild=s_wild,
         total_susceptible_variant=s_variant,
+        total_infectious_wild=i_wild,
+        total_infectious_variant=i_variant,
         total_immune_wild=immune_wild,
         total_immune_variant=immune_variant,
+
+        total_population=total_population,
 
         beta=beta_total,
         beta_wild=beta_wild,
@@ -212,20 +227,38 @@ def compute_deaths(modeled_infections: pd.Series,
     return modeled_deaths
 
 
-def compute_effective_r(components: pd.DataFrame,
-                        model_params: ModelParameters) -> Tuple[pd.Series, pd.Series]:
+def compute_effective_r(model_params: ModelParameters,
+                        system_metrics: SystemMetrics,
+                        infections: pd.Series) -> Tuple[pd.Series, pd.Series, pd.Series, pd.Series, pd.Series]:
     alpha, sigma = model_params.alpha, model_params.sigma
+    beta_wild, beta_variant = model_params.beta_wild, model_params.beta_variant
     gamma1, gamma2 = model_params.gamma1, model_params.gamma2
+    theta = model_params.theta_minus
 
-    components = components.reset_index().set_index(['location_id', 'date'])
+    s_wild, s_variant = system_metrics.total_susceptible_wild, system_metrics.total_susceptible_variant
+    i_wild, i_variant = system_metrics.total_infectious_wild, system_metrics.total_infectious_variant
+    population = system_metrics.total_population
 
-    beta, theta = model_params.beta, model_params.theta_minus
-    susceptible = components[[c for c in components.columns if 'S' in c]].sum(axis=1)
-    infected = components[[c for c in components.columns if 'I' in c]].sum(axis=1)
-    n = components[[c for c in components.columns if 'beta' not in c]].sum(axis=1).groupby('location_id').max()
-    avg_gamma = 1 / (1 / (gamma1*(sigma - theta)) + 1 / (gamma2*(sigma - theta)))
+    avg_gamma_wild = 1 / (1 / (gamma1*(sigma - theta)) + 1 / (gamma2*(sigma - theta)))
+    r_controlled_wild = (
+        beta_wild * alpha * sigma / avg_gamma_wild * i_wild**(alpha - 1)
+    ).rename('r_controlled_wild')
+    r_effective_wild = (r_controlled_wild * s_wild / population).rename('r_effective_wild')
 
-    r_controlled = (beta * alpha * sigma / avg_gamma * infected**(alpha - 1)).rename('r_controlled')
-    r_effective = (r_controlled * susceptible / n).rename('r_effective')
+    avg_gamma_variant = 1 / (1 / gamma1 + 1 / gamma2)
+    r_controlled_variant = (
+        beta_variant * alpha * sigma / avg_gamma_variant * i_variant**(alpha - 1)
+    ).rename('r_controlled_variant')
+    r_effective_variant = (r_controlled_variant * s_variant / population).rename('r_effective_variant')
 
-    return r_controlled, r_effective
+    # TODO: I don't know, compute this from something? Sample from gamma dist?
+    average_generation_time = 7
+    r_effective_empirical = infections.groupby('location_id').apply(lambda x: x.shift(-average_generation_time) / x)
+
+    return (
+        r_controlled_wild,
+        r_effective_wild,
+        r_controlled_variant,
+        r_effective_variant,
+        r_effective_empirical,
+    )

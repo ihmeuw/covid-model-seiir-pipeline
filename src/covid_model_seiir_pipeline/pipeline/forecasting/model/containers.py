@@ -170,8 +170,12 @@ class SystemMetrics:
 
     total_susceptible_wild: pd.Series
     total_susceptible_variant: pd.Series
+    total_infectious_wild: pd.Series
+    total_infectious_variant: pd.Series
     total_immune_wild: pd.Series
     total_immune_variant: pd.Series
+
+    total_population: pd.Series
 
     beta: pd.Series
     beta_wild: pd.Series
@@ -197,9 +201,11 @@ class OutputMetrics:
     deaths: pd.Series
 
     # Other stuff
-    r_controlled: pd.Series
+    r_controlled_wild: pd.Series
+    r_effective_wild: pd.Series
+    r_controlled_variant: pd.Series
+    r_effective_variant: pd.Series
     r_effective: pd.Series
-    herd_immunity: pd.Series
 
     def to_dict(self) -> Dict[str, pd.Series]:
         return utilities.asdict(self)
