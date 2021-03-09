@@ -1,9 +1,9 @@
 data:
-  covariate_version: '2021_03_02.01'
+  covariate_version: '2021_03_08.05'
   fh_subnationals: false
   output_format: parquet
   output_root: ''
-  regression_version: '2021_03_04.17'
+  regression_version: '2021_03_04.19'
 scenarios:
   variant_reference_mask_best_vaccine_best_mobility_average_cvi_high_scale_high:
     algorithm: normal
