@@ -222,17 +222,25 @@ MEASURES = {
         'total_immune_variant',
         aggregator=aggregators.sum_aggregator,
     ),
-    'r_controlled': MeasureConfig(
-        loaders.load_r_controlled,
-        'r_controlled',
+    'r_controlled_wild': MeasureConfig(
+        loaders.load_r_controlled_wild,
+        'r_controlled_wild',
+    ),
+    'r_effective_wild': MeasureConfig(
+        loaders.load_r_effective_wild,
+        'r_effective_wild',
+    ),
+    'r_controlled_variant': MeasureConfig(
+        loaders.load_r_controlled_variant,
+        'r_controlled_variant',
+    ),
+    'r_effective_variant': MeasureConfig(
+        loaders.load_r_effective_variant,
+        'r_effective_variant',
     ),
     'r_effective': MeasureConfig(
         loaders.load_r_effective,
         'r_effective',
-    ),
-    'herd_immunity': MeasureConfig(
-        loaders.load_herd_immunity,
-        'herd_immunity',
     ),
 
     # Betas
