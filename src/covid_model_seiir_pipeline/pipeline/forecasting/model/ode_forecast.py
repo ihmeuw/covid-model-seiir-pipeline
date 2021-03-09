@@ -14,9 +14,8 @@ from covid_model_seiir_pipeline.pipeline.forecasting.model.containers import (
     RatioData,
     HospitalCorrectionFactors,
 )
-from covid_model_seiir_pipeline.pipeline.forecasting.model.ode_systems import (
-
-    variant,
+from covid_model_seiir_pipeline.pipeline.forecasting.model import (
+    ode_system,
 )
 
 
@@ -202,7 +201,7 @@ def redistribute_past_compartments(infections: pd.Series,
         pop_weight = pop_weights[group].reindex(compartments.index, level='location_id')
 
         group_compartments = compartments.mul(pop_weight, axis=0)
-        group_compartments = group_compartments.reindex(variant.COMPARTMENTS, axis='columns', fill_value=0.0)
+        group_compartments = group_compartments.reindex(ode_system.COMPARTMENTS, axis='columns', fill_value=0.0)
         s_start = group_compartments.groupby('location_id')['S'].max()
         group_compartments_diff = group_compartments.groupby('location_id').diff()
 
@@ -306,7 +305,7 @@ def adjust_beta(model_parameters: ModelParameters,
         [c for c in initial_condition if c[0] == 'I' and 'variant' in c]
     ].sum(axis=1)
     total_pop = initial_condition[
-        [c for c in initial_condition if c[:-3] not in variant.TRACKING_COMPARTMENTS]
+        [c for c in initial_condition if c[:-3] not in ode_system.TRACKING_COMPARTMENTS]
     ].sum(axis=1)
 
     variant_prevalence = model_parameters.p_variant.loc[new_e.index]
@@ -422,11 +421,11 @@ def forecast_correction_factors(indices: Indices,
 def run_ode_model(initial_conditions: pd.DataFrame,
                   model_parameters: ModelParameters,
                   progress_bar: bool) -> pd.DataFrame:
-    system = variant.variant_natural_system
+    system = ode_system.variant_natural_system
     mp_dict = model_parameters.to_dict()
 
     parameters = pd.concat(
-        [mp_dict[p] for p in variant.PARAMETERS]
+        [mp_dict[p] for p in ode_system.PARAMETERS]
         + [model_parameters.unprotected_lr,
            model_parameters.protected_wild_type_lr,
            model_parameters.protected_all_types_lr,

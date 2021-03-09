@@ -15,8 +15,8 @@ from covid_model_seiir_pipeline.pipeline.forecasting.model.containers import (
 from covid_model_seiir_pipeline.pipeline.regression.model import (
     compute_hospital_usage,
 )
-from covid_model_seiir_pipeline.pipeline.forecasting.model.ode_systems import (
-    variant,
+from covid_model_seiir_pipeline.pipeline.forecasting.model import (
+    ode_system,
 )
 
 
@@ -96,8 +96,8 @@ def variant_system_metrics(indices: Indices,
                            components: pd.DataFrame) -> SystemMetrics:
     components_diff = components.groupby('location_id').diff()
 
-    cols = [f'{c}_{g}' for g, c in itertools.product(['lr', 'hr'], variant.REAL_COMPARTMENTS)]
-    tracking_cols = [f'{c}_{g}' for g, c in itertools.product(['lr', 'hr'], variant.TRACKING_COMPARTMENTS)]
+    cols = [f'{c}_{g}' for g, c in itertools.product(['lr', 'hr'], ode_system.REAL_COMPARTMENTS)]
+    tracking_cols = [f'{c}_{g}' for g, c in itertools.product(['lr', 'hr'], ode_system.TRACKING_COMPARTMENTS)]
     modeled_infections_wild = components_diff[[c for c in tracking_cols if 'NewE_wild' in c]].sum(axis=1)
     modeled_infections_variant = components_diff[[c for c in tracking_cols if 'NewE_variant' in c]].sum(axis=1)
     natural_immunity_breakthrough = components_diff[[c for c in tracking_cols if 'NewE_nbt' in c]].sum(axis=1)
