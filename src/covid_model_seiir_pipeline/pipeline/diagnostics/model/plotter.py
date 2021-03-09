@@ -81,8 +81,8 @@ def make_covariates_page(plot_versions: List[PlotVersion],
 
     gs_coef = grid_spec[0, 0].subgridspec(len(time_varying), 1)
     gs_cov = grid_spec[0, 1].subgridspec(len(time_varying), 1)
-    gs_beta_emp = grid_spec[0, 2].subgridspec(3, 1)
-    gs_beta = grid_spec[0, 3].subgridspec(3, 1, height_ratios=[2, 1, 1])
+    gs_beta = grid_spec[0, 2].subgridspec(4, 1)
+    gs_r = grid_spec[0, 3].subgridspec(4, 1)
 
     ylim_map = {
         'mobility': (-100, 20),
@@ -121,7 +121,7 @@ def make_covariates_page(plot_versions: List[PlotVersion],
         if ylims is not None:
             ax_cov.set_ylim(*ylims)
 
-    ax_beta_total = fig.add_subplot(gs_beta_emp[0])
+    ax_beta_total = fig.add_subplot(gs_beta[0])
     make_time_plot(
         ax_beta_total,
         plot_versions,
@@ -144,7 +144,7 @@ def make_covariates_page(plot_versions: List[PlotVersion],
     )
     ax_beta_total.set_ylim(-2, 0.5)
 
-    ax_beta_wild = fig.add_subplot(gs_beta_emp[1])
+    ax_beta_wild = fig.add_subplot(gs_beta[1])
     make_time_plot(
         ax_beta_wild,
         plot_versions,
@@ -167,7 +167,7 @@ def make_covariates_page(plot_versions: List[PlotVersion],
     )
     ax_beta_wild.set_ylim(-2, 0.5)
 
-    ax_beta_variant = fig.add_subplot(gs_beta_emp[2])
+    ax_beta_variant = fig.add_subplot(gs_beta[2])
     make_time_plot(
         ax_beta_variant,
         plot_versions,
@@ -190,14 +190,7 @@ def make_covariates_page(plot_versions: List[PlotVersion],
     )
     ax_beta_variant.set_ylim(-2, 0.5)
 
-    ax_reff = fig.add_subplot(gs_beta[0])
-    ax_reff.axis([0, 1, 0, 1])
-    ax_reff.text(0.5, 0.5, "TODO: R effective",
-                 verticalalignment='center', horizontalalignment='center',
-                 transform=ax_reff.transAxes,
-                 fontsize=20)
-
-    ax_resid = fig.add_subplot(gs_beta[1])
+    ax_resid = fig.add_subplot(gs_beta[3])
     make_time_plot(
         ax_resid,
         plot_versions,
@@ -208,7 +201,56 @@ def make_covariates_page(plot_versions: List[PlotVersion],
         vlines=vlines,
     )
 
-    ax_rhist = fig.add_subplot(gs_beta[2])
+    ax_reff = fig.add_subplot(gs_r[0])
+    make_time_plot(
+        ax_reff,
+        plot_versions,
+        'r_effective',
+        location.id,
+        start, end,
+        label='R effective (system)',
+        vlines=vlines,
+    )
+
+    ax_r_wild = fig.add_subplot(gs_r[1])
+    make_time_plot(
+        ax_r_wild,
+        plot_versions,
+        'r_effective_wild',
+        location.id,
+        start, end,
+        label='R wild-type',
+        vlines=vlines,
+    )
+    make_time_plot(
+        ax_r_wild,
+        plot_versions,
+        'r_controlled_wild',
+        location.id,
+        start, end,
+        linestyle='dashed'
+    )
+
+    ax_r_variant = fig.add_subplot(gs_r[2])
+    make_time_plot(
+        ax_r_variant,
+        plot_versions,
+        'r_effective_variant',
+        location.id,
+        start, end,
+        label='R variant-type',
+        vlines=vlines,
+    )
+    make_time_plot(
+        ax_r_variant,
+        plot_versions,
+        'r_controlled_variant',
+        location.id,
+        start, end,
+        linestyle='dashed'
+    )
+
+    ax_rhist = fig.add_subplot(gs_r[3])
     make_log_beta_resid_hist(
         ax_rhist,
         plot_versions,
