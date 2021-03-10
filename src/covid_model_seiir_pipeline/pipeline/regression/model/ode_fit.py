@@ -18,7 +18,6 @@ from covid_model_seiir_pipeline.pipeline.regression.model import (
 def prepare_ode_fit_parameters(past_index: pd.Index,
                                population: pd.Series,
                                vaccinations: pd.DataFrame,
-                               covariates: pd.DataFrame,
                                regression_parameters: Dict,
                                draw_id: int) -> ODEParameters:
     population = population.reindex(past_index, level='location_id')

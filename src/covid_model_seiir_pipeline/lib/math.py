@@ -96,15 +96,3 @@ def linear_interpolate(t_target: np.ndarray,
         return x_target.ravel()
     else:
         return x_target
-
-
-def shift_variants(covariates: pd.DataFrame, shift: int):
-    variants = (covariates.loc[:, [c for c in covariates if 'variant' in c]]
-                .groupby('location_id')
-                .shift(shift)
-                .groupby('location_id')
-                .ffill()
-                .groupby('location_id')
-                .bfill())
-    covariates.update(variants)
-    return covariates

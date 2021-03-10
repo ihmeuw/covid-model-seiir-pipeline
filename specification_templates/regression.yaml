@@ -17,7 +17,6 @@ regression_parameters:
   sigma: [0.2, 0.3333]
   gamma1: [0.5, 0.5]
   gamma2: [0.3333, 1.0]
-  variant_shift: 0
   sequential_refit: False
 hospital_parameters:
   hospital_stay_death: 6
