@@ -135,7 +135,7 @@ def compute_initial_beta_scaling_parameters_by_draw(draw_id: int,
     # to some ancillary information that may be useful for plotting/debugging.
     rs = np.random.RandomState(draw_id)
 
-    a = pd.Series(rs.randint(average_over_min_min, average_over_min_min + beta_scaling['average_over_min']),
+    a = pd.Series(rs.randint(1, 1 + beta_scaling['average_over_min']),
                   index=average_over_min_min.index)
     b = pd.Series(rs.randint(a + 21, a + beta_scaling['average_over_max']),
                   index=average_over_min_min.index)
