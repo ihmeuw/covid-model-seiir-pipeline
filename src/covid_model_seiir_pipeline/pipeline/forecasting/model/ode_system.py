@@ -150,7 +150,7 @@ def variant_natural_single_group_system(t: float, y: np.ndarray, params: np.ndar
         lower_bound = infectious_total * params[p_variant]
     elif params[p_variant] < 0.25:
         z = infectious_total * params[p_variant]
-        lower_bound = z + (params[p_variant] - 0.05) / (0.25 - 0.05) * (z - infectious_variant)
+        lower_bound = z + (params[p_variant] - 0.05) / (0.25 - 0.05) * (infectious_variant - z)
     else:
         lower_bound = infectious_variant
     infectious_variant = max(lower_bound, infectious_variant)
