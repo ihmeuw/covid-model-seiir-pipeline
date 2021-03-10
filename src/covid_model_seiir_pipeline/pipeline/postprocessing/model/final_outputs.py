@@ -136,6 +136,7 @@ MEASURES = {
         loaders.load_hospital_admissions,
         'hospital_admissions',
         aggregator=aggregators.sum_aggregator,
+        write_draws=True,
     ),
     'icu_admissions': MeasureConfig(
         loaders.load_icu_admissions,
