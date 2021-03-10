@@ -253,7 +253,7 @@ def compute_effective_r(model_params: ModelParameters,
 
     # TODO: I don't know, compute this from something? Sample from gamma dist?
     average_generation_time = 7
-    r_effective_empirical = infections.groupby('location_id').apply(lambda x: x.shift(-average_generation_time) / x)
+    r_effective_empirical = infections.groupby('location_id').apply(lambda x: x / x.shift(average_generation_time))
 
     return (
         r_controlled_wild,
