@@ -27,10 +27,6 @@ def run_beta_regression(regression_version: str, draw_id: int, progress_bar: boo
     logger.info('Loading ODE fit input data', context='read')
     past_infection_data = data_interface.load_past_infection_data(draw_id=draw_id)
     population = data_interface.load_total_population()
-    covariates = data_interface.load_covariates(regression_specification.covariates)
-    variant_shift = regression_specification.regression_parameters.variant_shift
-    covariates = math.shift_variants(covariates, variant_shift)
-
     vaccinations = data_interface.load_vaccine_info('reference')
 
     logger.info('Prepping ODE fit parameters.', context='transform')
@@ -41,13 +37,12 @@ def run_beta_regression(regression_version: str, draw_id: int, progress_bar: boo
         infections.index,
         population,
         vaccinations,
-        covariates,
         regression_params,
         draw_id,
     )
 
     logger.info('Loading regression input data', context='read')
-
+    covariates = data_interface.load_covariates(regression_specification.covariates)
     if regression_specification.data.coefficient_version:
         prior_coefficients = data_interface.load_prior_run_coefficients(draw_id=draw_id)
     else:

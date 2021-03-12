@@ -14,9 +14,8 @@ from covid_model_seiir_pipeline.pipeline.forecasting.model.containers import (
     RatioData,
     HospitalCorrectionFactors,
 )
-from covid_model_seiir_pipeline.pipeline.forecasting.model.ode_systems import (
-    vaccine,
-    variant,
+from covid_model_seiir_pipeline.pipeline.forecasting.model import (
+    ode_system,
 )
 
 
@@ -202,7 +201,7 @@ def redistribute_past_compartments(infections: pd.Series,
         pop_weight = pop_weights[group].reindex(compartments.index, level='location_id')
 
         group_compartments = compartments.mul(pop_weight, axis=0)
-        group_compartments = group_compartments.reindex(variant.COMPARTMENTS, axis='columns', fill_value=0.0)
+        group_compartments = group_compartments.reindex(ode_system.COMPARTMENTS, axis='columns', fill_value=0.0)
         s_start = group_compartments.groupby('location_id')['S'].max()
         group_compartments_diff = group_compartments.groupby('location_id').diff()
 
@@ -289,25 +288,46 @@ def redistribute(compartment: str, components: pd.DataFrame, variant_prevalence:
     return components
 
 
-def adjust_beta(model_parameters: ModelParameters, compartments: pd.DataFrame) -> ModelParameters:
-    s_wild = compartments[
-        [c for c in compartments if c[0] == 'S' and 'variant' not in c and 'm' not in c]
+def adjust_beta(model_parameters: ModelParameters,
+                initial_condition: pd.DataFrame,
+                new_e: pd.Series) -> ModelParameters:
+    s_wild = initial_condition[
+        [c for c in initial_condition if c[0] == 'S' and 'variant' not in c and 'm' not in c]
     ].sum(axis=1)
-    s_variant = compartments[
-        [c for c in compartments if c[0] == 'S' and 'm' not in c]
+    s_variant = initial_condition[
+        [c for c in initial_condition if c[0] == 'S']
     ].sum(axis=1)
-    raw_correction_factor = s_wild / s_variant
-    p = model_parameters.p_variant
-    threshold = p[p > 0.15].reset_index().groupby('location_id').date.min()
+    i_wild = initial_condition[
+        [c for c in initial_condition if c[0] == 'I' and 'variant' not in c]
+    ].sum(axis=1)
+    i_variant = initial_condition[
+        [c for c in initial_condition if c[0] == 'I' and 'variant' in c]
+    ].sum(axis=1)
+    total_pop = initial_condition[
+        [c for c in initial_condition if c[:-3] not in ode_system.TRACKING_COMPARTMENTS]
+    ].sum(axis=1)
 
-    correction_factor = pd.Series(index=raw_correction_factor.reset_index().location_id.unique())
-    for location_id, threshold_date in threshold.iteritems():
-        correction_factor.loc[location_id] = (raw_correction_factor
-                                              .loc[pd.IndexSlice[location_id, threshold_date:]]
-                                              .mean())
-    correction_factor = correction_factor.fillna(1.0)
-    idx = model_parameters.beta_variant.index
-    model_parameters.beta_variant = model_parameters.beta_variant * correction_factor.reindex(idx, level='location_id')
+    variant_prevalence = model_parameters.p_variant.loc[new_e.index]
+    alpha = model_parameters.alpha.loc[new_e.index]
+
+    beta_wild = new_e * (1 - variant_prevalence) / (s_wild * i_wild**alpha / total_pop)
+    beta_variant = new_e * variant_prevalence / (s_variant * i_variant**alpha / total_pop)
+
+    wild_correction_factor = (
+        beta_wild - model_parameters.beta_wild.loc[beta_wild.index]
+    ).fillna(0).reset_index(level='date', drop=True)
+    variant_correction_factor = (
+        beta_variant - model_parameters.beta_variant.loc[beta_variant.index]
+    ).fillna(0).reset_index(level='date', drop=True)
+
+    idx = model_parameters.beta_wild.index
+    model_parameters.beta_wild = (
+        model_parameters.beta_wild + wild_correction_factor.reindex(idx, level='location_id')
+    )
+    model_parameters.beta_variant = (
+            model_parameters.beta_variant + variant_correction_factor.reindex(idx, level='location_id')
+    )
+
     return model_parameters
 
 
@@ -400,11 +420,11 @@ def forecast_correction_factors(indices: Indices,
 def run_ode_model(initial_conditions: pd.DataFrame,
                   model_parameters: ModelParameters,
                   progress_bar: bool) -> pd.DataFrame:
-    system = variant.variant_natural_system
+    system = ode_system.variant_natural_system
     mp_dict = model_parameters.to_dict()
 
     parameters = pd.concat(
-        [mp_dict[p] for p in variant.PARAMETERS]
+        [mp_dict[p] for p in ode_system.PARAMETERS]
         + [model_parameters.unprotected_lr,
            model_parameters.protected_wild_type_lr,
            model_parameters.protected_all_types_lr,

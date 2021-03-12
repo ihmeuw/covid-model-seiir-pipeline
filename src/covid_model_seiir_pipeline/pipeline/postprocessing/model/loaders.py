@@ -152,16 +152,24 @@ def load_total_immune_variant(scenario: str, data_interface: 'PostprocessingData
 # Other Epi metrics #
 #####################
 
-def load_r_controlled(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
-    return _load_output_data(scenario, 'r_controlled', data_interface, num_cores)
+def load_r_controlled_wild(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
+    return _load_output_data(scenario, 'r_controlled_wild', data_interface, num_cores)
+
+
+def load_r_effective_wild(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
+    return _load_output_data(scenario, 'r_effective_wild', data_interface, num_cores)
+
+
+def load_r_controlled_variant(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
+    return _load_output_data(scenario, 'r_controlled_variant', data_interface, num_cores)
+
+
+def load_r_effective_variant(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
+    return _load_output_data(scenario, 'r_effective_variant', data_interface, num_cores)
 
 
 def load_r_effective(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
     return _load_output_data(scenario, 'r_effective', data_interface, num_cores)
-
-
-def load_herd_immunity(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
-    return _load_output_data(scenario, 'herd_immunity', data_interface, num_cores)
 
 
 def load_beta(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int) -> List[pd.Series]:
