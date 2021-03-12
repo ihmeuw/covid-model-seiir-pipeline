@@ -142,7 +142,7 @@ def make_covariates_page(plot_versions: List[PlotVersion],
         linestyle='dashed',
         transform=lambda x: np.log(x)
     )
-    ax_beta_total.set_ylim(-2, 0.5)
+    ax_beta_total.set_ylim(-3, 1)
 
     ax_beta_wild = fig.add_subplot(gs_beta[1])
     make_time_plot(
@@ -165,7 +165,7 @@ def make_covariates_page(plot_versions: List[PlotVersion],
         linestyle='dashed',
         transform=lambda x: np.log(x)
     )
-    ax_beta_wild.set_ylim(-2, 0.5)
+    ax_beta_wild.set_ylim(-3, 1)
 
     ax_beta_variant = fig.add_subplot(gs_beta[2])
     make_time_plot(
@@ -188,7 +188,7 @@ def make_covariates_page(plot_versions: List[PlotVersion],
         linestyle='dashed',
         transform=lambda x: np.log(x)
     )
-    ax_beta_variant.set_ylim(-2, 0.5)
+    ax_beta_variant.set_ylim(-3, 1)
 
     ax_resid = fig.add_subplot(gs_beta[3])
     make_time_plot(
@@ -211,6 +211,7 @@ def make_covariates_page(plot_versions: List[PlotVersion],
         label='R effective (system)',
         vlines=vlines,
     )
+    ax_reff.set_ylim(-0.5, 3)
 
     ax_r_wild = fig.add_subplot(gs_r[1])
     make_time_plot(
@@ -230,6 +231,7 @@ def make_covariates_page(plot_versions: List[PlotVersion],
         start, end,
         linestyle='dashed'
     )
+    ax_r_wild.set_ylim(-0.5, 3)
 
     ax_r_variant = fig.add_subplot(gs_r[2])
     make_time_plot(
@@ -249,6 +251,7 @@ def make_covariates_page(plot_versions: List[PlotVersion],
         start, end,
         linestyle='dashed'
     )
+    ax_r_variant.set_ylim(-0.5, 3)
 
     ax_rhist = fig.add_subplot(gs_r[3])
     make_log_beta_resid_hist(
