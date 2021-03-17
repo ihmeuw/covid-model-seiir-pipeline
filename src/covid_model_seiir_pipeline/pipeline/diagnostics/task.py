@@ -59,8 +59,7 @@ def run_grid_plots(diagnostics_version: str, name: str, progress_bar: bool) -> N
         # Fixme: this is a bit brittle as it requires some ordering constraints
         #   on the user side to get the expected results.
         logger.info('Loading locations', context='setup')
-#        hierarchy = plot_versions[0].load_output_miscellaneous('hierarchy', is_table=True).reset_index()
-        hierarchy = pd.read_csv('/ihme/covid-19/seir-pipeline-outputs/metadata-inputs/location_metadata_841.csv')
+        hierarchy = plot_versions[0].load_output_miscellaneous('hierarchy', is_table=True).reset_index()
         deaths = plot_versions[0].load_output_summaries('daily_deaths').reset_index()
         modeled_locs = hierarchy.loc[hierarchy.location_id.isin(deaths.location_id.unique()),
                                      ['location_id', 'location_name']]

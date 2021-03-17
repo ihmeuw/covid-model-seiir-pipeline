@@ -8,9 +8,25 @@ grid_plots:
     date_start: '2020-03-01'
     date_end: '2021-06-30'
     comparators:
-      - version: '/ihme/covid-19/seir-outputs/2021_03_16.07'
+      - version: '/ihme/covid-19/seir-outputs/2021_03_10.09'
+        scenarios:
+          reference*: 'public reference'
+      - version: '/ihme/covid-19/seir-outputs/2021_03_10.10'
         scenarios:
           reference*: 'reference'
-          worse: 'worse'
-          no_vaccine: 'no_vaccine'
-          best_masks: 'best_masks'
+#          worse: 'worse'
+#          no_vaccine: 'no_vaccine'
+#          best_masks: 'best_masks'
+  - name: 'compare_longrange'
+    date_start: '2020-03-01'
+    date_end: '2022-08-31'
+    comparators:
+      - version: '/ihme/covid-19/seir-outputs/2021_03_10.09'
+        scenarios:
+          reference*: 'public reference'
+      - version: '/ihme/covid-19/seir-outputs/2021_03_10.10'
+        scenarios:
+          reference*: 'reference'
+#          worse: 'worse'
+#          no_vaccine: 'no_vaccine'
+#          best_masks: 'best_masks'
