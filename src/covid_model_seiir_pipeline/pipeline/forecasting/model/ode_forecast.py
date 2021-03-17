@@ -117,12 +117,12 @@ def get_betas_and_prevalences(indices: Indices,
     coef = {}
     prev = {}
     effects = {}
-    for v in ['B117', 'B1351', 'P1']:
+    for v in ['B117', 'B1351']:
         coef[v] = coefficients[f'variant_prevalence_{v}']
         prev[v] = covariates[f'variant_prevalence_{v}'].fillna(0)
         effects[v] = coef[v] * prev[v]
 
-    p_variant = (prev['B1351'] + prev['P1']).rename('p_variant')
+    p_variant = prev['B1351'].rename('p_variant')
     p_wild = (1 - p_variant).rename('p_wild')
     p_w = 1 - sum(prev.values())
 

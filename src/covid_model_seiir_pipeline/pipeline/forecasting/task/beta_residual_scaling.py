@@ -94,7 +94,7 @@ def compute_initial_beta_scaling_parameters(scenario_spec: ScenarioSpecification
     # Serialization is our bottleneck, so we parallelize draw level data
     # ingestion and computation across multiple processes.
     covariates = data_interface.load_covariates(scenario_spec)
-    variant_prevalence = covariates[['variant_prevalence_B1351', 'variant_prevalence_P1']].sum(axis=1)
+    variant_prevalence = covariates['variant_prevalence_B1351']
     average_over_min_min = variant_prevalence[variant_prevalence > 0].reset_index().groupby('location_id').date.min()
 
     _runner = functools.partial(

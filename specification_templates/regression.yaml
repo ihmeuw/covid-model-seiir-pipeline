@@ -1,9 +1,9 @@
 data:
-  infection_version: '2021_03_09.05'
-  covariate_version: '2021_03_09.02'
+  infection_version: '2021_03_16.13'
+  covariate_version: '2021_03_15.01'
   coefficient_version: ''
   location_set_version_id: ''
-  location_set_file: '/ihme/covid-19/seir-pipeline-outputs/metadata-inputs/location_metadata_810.2.csv'
+  location_set_file: '/ihme/covid-19/seir-pipeline-outputs/metadata-inputs/location_metadata_841.1.csv'
   output_root: ''
   output_format: 'parquet'
 workflow:
@@ -127,10 +127,10 @@ covariates:
     bounds: [0.3074, 0.3075]
     re_var: 1.0
     draws: False
-  variant_prevalence_P1:
-    order: 0
-    use_re: False
-    gprior: [0.0, 1000.0]
-    bounds: [0.3074, 0.3075]
-    re_var: 1.0
-    draws: False
+#  variant_prevalence_P1:
+#    order: 0
+#    use_re: False
+#    gprior: [0.0, 1000.0]
+#    bounds: [0.3074, 0.3075]
+#    re_var: 1.0
+#    draws: False

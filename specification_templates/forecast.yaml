@@ -1,9 +1,9 @@
 data:
-  regression_version: '2021_03_10.02'
-  covariate_version: '2021_03_09.02'
+  regression_version: '2021_03_16.07'
+  covariate_version: '2021_03_16.02'
   output_root: ''
   output_format: 'parquet'
-  fh_subnationals: False
+  fh_subnationals: True
 workflow:
   project: 'proj_covid_prod'
   queue: 'd.q'
@@ -36,7 +36,7 @@ scenarios:
       proportion_over_2_5k: 'reference'
       variant_prevalence_B117: 'reference'
       variant_prevalence_B1351: 'reference'
-      variant_prevalence_P1: 'reference'
+#      variant_prevalence_P1: 'reference'
   worse:
     algorithm: 'draw_level_mandate_reimposition'
     algorithm_params:
@@ -65,7 +65,7 @@ scenarios:
       proportion_over_2_5k: 'reference'
       variant_prevalence_B117: 'worse'
       variant_prevalence_B1351: 'worse'
-      variant_prevalence_P1: 'worse'
+#      variant_prevalence_P1: 'worse'
   no_vaccine:
     algorithm: 'draw_level_mandate_reimposition'
     algorithm_params:
@@ -94,7 +94,7 @@ scenarios:
       proportion_over_2_5k: 'reference'
       variant_prevalence_B117: 'reference'
       variant_prevalence_B1351: 'reference'
-      variant_prevalence_P1: 'reference'
+#      variant_prevalence_P1: 'reference'
   best_masks:
     algorithm: 'draw_level_mandate_reimposition'
     algorithm_params:
@@ -123,7 +123,7 @@ scenarios:
       proportion_over_2_5k: 'reference'
       variant_prevalence_B117: 'reference'
       variant_prevalence_B1351: 'reference'
-      variant_prevalence_P1: 'reference'
+#      variant_prevalence_P1: 'reference'
   vaccine_fast:
     algorithm: 'draw_level_mandate_reimposition'
     algorithm_params:
@@ -152,4 +152,4 @@ scenarios:
       proportion_over_2_5k: 'reference'
       variant_prevalence_B117: 'reference'
       variant_prevalence_B1351: 'reference'
-      variant_prevalence_P1: 'reference'
+#      variant_prevalence_P1: 'reference'

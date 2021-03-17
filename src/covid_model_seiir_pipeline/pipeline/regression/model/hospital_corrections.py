@@ -273,6 +273,11 @@ def calculate_hospital_correction_factors(usage: 'HospitalMetrics',
                                           hospital_parameters: 'HospitalParameters') -> HospitalCorrectionFactors:
     date = usage.hospital_census.reset_index().date
     min_date, max_date = date.min(), date.max()
+    return HospitalCorrectionFactors(
+        hospital_census=pd.Series(1.0, index=usage.hospital_census.index, name='hospital_census'),
+        icu_census=pd.Series(1.0, index=usage.hospital_census.index, name='icu_census'),
+        ventilator_census=pd.Series(1.0, index=usage.hospital_census.index, name='ventilator_census'),
+    )
 
     raw_log_hospital_cf = _safe_log_divide(census_data.hospital_census, usage.hospital_census)
 
