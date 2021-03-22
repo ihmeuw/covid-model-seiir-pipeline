@@ -87,6 +87,13 @@ add_preprocess_only = click.option(
 # Task version options #
 ########################
 
+with_task_fit_version = click.option(
+    '--fit-version', '-i',
+    type=click.Path(exists=True, file_okay=False),
+    required=True,
+    help='Full path to an existing directory containing a '
+         '"fit_specification.yaml".',
+)
 with_task_regression_version = click.option(
     '--regression-version', '-i',
     type=click.Path(exists=True, file_okay=False),

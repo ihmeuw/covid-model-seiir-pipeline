@@ -26,6 +26,7 @@ from covid_model_seiir_pipeline.lib.cli_tools.decorators import (
     with_location_specification,
     with_regression_version,
     with_forecast_version,
+    with_task_fit_version,
     with_task_regression_version,
     with_task_forecast_version,
     with_task_postprocessing_version,
