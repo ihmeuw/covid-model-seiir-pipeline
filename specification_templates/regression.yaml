@@ -1,6 +1,6 @@
 data:
-  infection_version: '2021_03_09.05'
-  covariate_version: '2021_03_09.02'
+  infection_version: '2021_03_16.14'
+  covariate_version: '2021_03_16.04'
   coefficient_version: ''
   location_set_version_id: ''
   location_set_file: '/ihme/covid-19/seir-pipeline-outputs/metadata-inputs/location_metadata_810.2.csv'
@@ -12,7 +12,7 @@ workflow:
   # one of true, false
   run_hospital: true
 regression_parameters:
-  n_draws: 100
+  n_draws: 1000
   alpha: [0.9, 1.0]
   sigma: [0.2, 0.3333]
   gamma1: [0.5, 0.5]

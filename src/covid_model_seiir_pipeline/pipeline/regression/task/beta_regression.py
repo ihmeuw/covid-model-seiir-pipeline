@@ -41,19 +41,19 @@ def run_beta_regression(regression_version: str, draw_id: int, progress_bar: boo
         draw_id,
     )
 
-    logger.info('Loading regression input data', context='read')
-    covariates = data_interface.load_covariates(regression_specification.covariates)
-    if regression_specification.data.coefficient_version:
-        prior_coefficients = data_interface.load_prior_run_coefficients(draw_id=draw_id)
-    else:
-        prior_coefficients = None
-
     logger.info('Running ODE fit', context='compute_ode')
     beta_fit, compartments = model.run_ode_fit(
         infections=infections,
         ode_parameters=ode_parameters,
         progress_bar=progress_bar,
     )
+
+    logger.info('Loading regression input data', context='read')
+    covariates = data_interface.load_covariates(regression_specification.covariates)
+    if regression_specification.data.coefficient_version:
+        prior_coefficients = data_interface.load_prior_run_coefficients(draw_id=draw_id)
+    else:
+        prior_coefficients = None
 
     logger.info('Prepping regression.', context='transform')
     regression_inputs = model.prep_regression_inputs(
