@@ -160,7 +160,7 @@ class CovariateRoot(DataRoot):
 
 class FitRoot(DataRoot):
     metadata = MetadataType('metadata')
-    specification = MetadataType('regression_specification')
+    specification = MetadataType('fit_specification')
     locations = MetadataType('locations')
 
     hierarchy = DatasetType('hierarchy')

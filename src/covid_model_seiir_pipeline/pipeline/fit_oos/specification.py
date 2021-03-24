@@ -8,7 +8,7 @@ from covid_model_seiir_pipeline.lib import (
 
 
 class __FitJobs(NamedTuple):
-    fit: str = 'ode_fit'
+    fit: str = 'beta_fit'
 
 
 FIT_JOBS = __FitJobs()
@@ -74,7 +74,7 @@ class FitScenario:
 
     def to_dict(self) -> Dict:
         """Converts to a dict, coercing list-like items to lists."""
-        return {k: v for k, v in utilities.asdict(self).items() if k != 'name'}
+        return {k: v for k, v in utilities.asdict(self).items() if k not in ['name', 'system']}
 
 
 class FitSpecification(utilities.Specification):
@@ -129,6 +129,6 @@ class FitSpecification(utilities.Specification):
         spec = {
             'data': self.data.to_dict(),
             'workflow': self.workflow.to_dict(),
-            'covariates': {k: v.to_dict() for k, v in self.scenarios.items()},
+            'scenarios': {k: v.to_dict() for k, v in self.scenarios.items()},
         }
         return spec

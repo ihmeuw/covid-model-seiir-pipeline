@@ -26,7 +26,7 @@ def run_beta_fit(fit_version: str, scenario: str, draw_id: int, progress_bar: bo
     population = data_interface.load_total_population()
     vaccinations = data_interface.load_vaccine_info('reference')
     variant_prevalence = data_interface.load_variant_prevalence()
-
+    import pdb; pdb.set_trace()
     logger.info('Prepping ODE fit parameters.', context='transform')
     infections = model.clean_infection_data_measure(past_infection_data, 'infections')
     fit_params = fit_specification.scenarios[scenario].to_dict()
@@ -58,7 +58,7 @@ def beta_fit(fit_version: str, scenario: str, draw_id: int,
              progress_bar: bool, verbose: int, with_debugger: bool):
     cli_tools.configure_logging_to_terminal(verbose)
     run = cli_tools.handle_exceptions(run_beta_fit, logger, with_debugger)
-    run(regression_version=fit_version,
+    run(fit_version=fit_version,
         scenario=scenario,
         draw_id=draw_id,
         progress_bar=progress_bar)
