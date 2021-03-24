@@ -83,7 +83,6 @@ def single_force_system(t: float, y: np.ndarray, params: np.ndarray):
         parameters.alpha, parameters.pi, parameters.epsilon, parameters.rho_variant
     ])]
     i_variant = y[_INFECTIOUS_VARIANT].sum()
-    import pdb; pdb.set_trace()
     if rho_variant and not i_variant:
         y = delta_shift(
             y, alpha, pi, epsilon,
@@ -156,7 +155,6 @@ def system(t: float, y: np.ndarray, params: np.ndarray, infectious_wild: float, 
         params, vaccines,
         new_e_wild, new_e_variant_naive, new_e_variant_reinf
     )
-
     # Unvaccinated
     # Epi transitions
     outflow_map = seiir_transition_wild(
@@ -434,6 +432,7 @@ def seiir_transition_variant(y, params,
                              new_e,
                              susceptible, exposed, infectious1, infectious2, removed,
                              outflow_map):
+    import pdb; pdb.set_trace()
     outflow_map[susceptible, exposed] += new_e
     outflow_map[exposed, infectious1] += params[parameters.sigma] * y[exposed]
     outflow_map[infectious1, infectious2] += params[parameters.gamma1] * y[infectious1]
