@@ -151,7 +151,11 @@ def system(t: float, y: np.ndarray, params: np.ndarray, infectious_wild: float, 
     susceptible_wild = y[_SUSCEPTIBLE_WILD].sum()
     susceptible_variant_only = y[_SUSCEPTIBLE_VARIANT_ONLY].sum()
     new_e_wild, new_e_variant_naive, new_e_variant_reinf = split_new_e(y, params, infectious_wild, infectious_variant)
-    vaccines_out = get_vaccines_out(y, vaccines, new_e_wild, new_e_variant_naive, new_e_variant_reinf)
+    vaccines_out = get_vaccines_out(
+        y,
+        params, vaccines,
+        new_e_wild, new_e_variant_naive, new_e_variant_reinf
+    )
 
     # Unvaccinated
     # Epi transitions
@@ -296,12 +300,13 @@ def split_new_e(y, params, infectious_wild, infectious_variant):
 
 
 @numba.njit
-def get_vaccines_out(y, vaccines,
+def get_vaccines_out(y,
+                     params, vaccines,
                      new_exposed_wild, new_exposed_variant_naive, new_exposed_variant_reinf):
     # Allocate our output space.
-    vaccines_out = np.zeros((y.size, len(vaccine_types)))
+    vaccines_out = np.zeros((y.size, len(vaccines)))
 
-    v_total = vaccines[np.array(vaccine_types)].sum()
+    v_total = vaccines.sum()
     n_unvaccinated = y[_UNVACCINATED].sum()
 
     # Don't vaccinate if no vaccines to deliver.
@@ -310,13 +315,17 @@ def get_vaccines_out(y, vaccines,
 
     # S has many kinds of effective and ineffective vaccines
     vaccines_out = vaccinate_from_s(
-        y, params, new_exposed_wild + new_exposed_variant_naive,
+        y,
+        vaccines,
+        new_exposed_wild + new_exposed_variant_naive,
         v_total, n_unvaccinated,
         vaccines_out,
     )
     # S_variant has many kinds of effective and ineffective vaccines
     vaccines_out = vaccinate_from_s_variant(
-        y, params, new_exposed_variant_reinf,
+        y,
+        vaccines,
+        new_exposed_variant_reinf,
         v_total, n_unvaccinated,
         vaccines_out,
     )
@@ -338,7 +347,9 @@ def get_vaccines_out(y, vaccines,
 
 
 @numba.njit
-def vaccinate_from_s(y, params, new_e_from_s,
+def vaccinate_from_s(y,
+                     vaccines,
+                     new_e_from_s,
                      v_total, n_unvaccinated,
                      vaccines_out):
     expected_total_vaccines_s = y[compartments.S] / n_unvaccinated * v_total
@@ -346,27 +357,29 @@ def vaccinate_from_s(y, params, new_e_from_s,
 
     if expected_total_vaccines_s:
         for vaccine_type in vaccine_types:
-            expected_vaccines = y[compartments.S] / n_unvaccinated * params[vaccine_type]
+            expected_vaccines = y[compartments.S] / n_unvaccinated * vaccines[vaccine_type]
             vaccine_ratio = expected_vaccines / expected_total_vaccines_s
             vaccines_out[compartments.S, vaccine_type] = vaccine_ratio * total_vaccines_s
     return vaccines_out
 
 
 @numba.njit
-def vaccinate_from_s_variant(y, params, new_e_from_s_variant,
+def vaccinate_from_s_variant(y,
+                             vaccines,
+                             new_e_from_s_variant,
                              v_total, n_unvaccinated,
                              vaccines_out):
     expected_total_vaccines_s_variant = y[compartments.S_variant] / n_unvaccinated * v_total
     total_vaccines_s_variant = min(y[compartments.S_variant] - new_e_from_s_variant, expected_total_vaccines_s_variant)
 
     if expected_total_vaccines_s_variant:
-        total_ineffective = params[vaccine_types.u] + params[vaccine_types.p] + params[vaccine_types.m]
+        total_ineffective = vaccines[vaccine_types.u] + vaccines[vaccine_types.p] + vaccines[vaccine_types.m]
         expected_u_vaccines = y[compartments.S_variant] / n_unvaccinated * total_ineffective
         vaccine_ratio = expected_u_vaccines / expected_total_vaccines_s_variant
         vaccines_out[compartments.S_variant, vaccine_types.u] = vaccine_ratio * total_vaccines_s_variant
 
         for vaccine_type in [vaccine_types.pa, vaccine_types.ma]:
-            expected_vaccines = y[compartments.S_variant] / n_unvaccinated * params[vaccine_type]
+            expected_vaccines = y[compartments.S_variant] / n_unvaccinated * vaccines[vaccine_type]
             vaccine_ratio = expected_vaccines / expected_total_vaccines_s_variant
             vaccines_out[compartments.S_variant, vaccine_type] = vaccine_ratio * total_vaccines_s_variant
 
@@ -374,7 +387,8 @@ def vaccinate_from_s_variant(y, params, new_e_from_s_variant,
 
 
 @numba.njit
-def get_unprotected_vaccines_from_not_s(y, params,
+def get_unprotected_vaccines_from_not_s(y,
+                                        params,
                                         v_total, n_unvaccinated,
                                         exposed, infectious1, infectious2, removed,
                                         vaccines_out):
