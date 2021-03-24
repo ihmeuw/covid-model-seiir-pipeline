@@ -74,7 +74,7 @@ class FitScenario:
 
     def to_dict(self) -> Dict:
         """Converts to a dict, coercing list-like items to lists."""
-        return utilities.asdict(self)
+        return {k: v for k, v in utilities.asdict(self).items() if k != 'name'}
 
 
 class FitSpecification(utilities.Specification):

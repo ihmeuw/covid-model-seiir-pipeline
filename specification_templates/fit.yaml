@@ -1,0 +1,23 @@
+data:
+  infection_version: '2021_03_23.08'
+  covariate_version: '2021_03_23.03'
+  variant_version: '2021_03_23.02'
+  location_set_version_id: ''
+  location_set_file: '/ihme/covid-19/seir-pipeline-outputs/metadata-inputs/location_metadata_810.2.csv'
+  output_root: ''
+  output_format: 'parquet'
+  n_draws: 100
+workflow:
+  project: 'proj_covid_prod'
+  queue: 'd.q'
+scenarios:
+  test:
+    alpha: [ 0.9, 1.0 ]
+    sigma: [ 0.2, 0.3333 ]
+    gamma1: [ 0.5, 0.5 ]
+    gamma2: [ 0.3333, 1.0 ]
+    kappa: 0.36
+    phi: 0.5
+    pi: 0.1
+    epsilon: 50
+    p_cross_immune: 0.5
