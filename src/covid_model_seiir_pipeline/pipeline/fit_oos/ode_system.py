@@ -83,6 +83,7 @@ def single_force_system(t: float, y: np.ndarray, params: np.ndarray):
         parameters.alpha, parameters.pi, parameters.epsilon, parameters.rho_variant
     ])]
     i_variant = y[_INFECTIOUS_VARIANT].sum()
+    import pdb; pdb.set_trace()
     if rho_variant and not i_variant:
         y = delta_shift(
             y, alpha, pi, epsilon,
@@ -150,7 +151,7 @@ def system(t: float, y: np.ndarray, params: np.ndarray, infectious_wild: float, 
     susceptible_wild = y[_SUSCEPTIBLE_WILD].sum()
     susceptible_variant_only = y[_SUSCEPTIBLE_VARIANT_ONLY].sum()
     new_e_wild, new_e_variant_naive, new_e_variant_reinf = split_new_e(y, params, infectious_wild, infectious_variant)
-    vaccines_out = get_vaccines_out(y, params, new_e_wild, new_e_variant_naive, new_e_variant_reinf)
+    vaccines_out = get_vaccines_out(y, vaccines, new_e_wild, new_e_variant_naive, new_e_variant_reinf)
 
     # Unvaccinated
     # Epi transitions
@@ -295,12 +296,12 @@ def split_new_e(y, params, infectious_wild, infectious_variant):
 
 
 @numba.njit
-def get_vaccines_out(y, params,
+def get_vaccines_out(y, vaccines,
                      new_exposed_wild, new_exposed_variant_naive, new_exposed_variant_reinf):
     # Allocate our output space.
     vaccines_out = np.zeros((y.size, len(vaccine_types)))
 
-    v_total = params[np.array(vaccine_types)].sum()
+    v_total = vaccines[np.array(vaccine_types)].sum()
     n_unvaccinated = y[_UNVACCINATED].sum()
 
     # Don't vaccinate if no vaccines to deliver.
