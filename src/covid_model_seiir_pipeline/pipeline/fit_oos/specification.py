@@ -98,10 +98,10 @@ class FitSpecification(utilities.Specification):
         sub_specs = {key: spec_class(**fit_spec_dict.get(key, {}))
                      for key, spec_class in sub_specs.items()}
 
-        fit_dicts = fit_spec_dict.get('covariates', {})
+        fit_dicts = fit_spec_dict.get('scenarios', {})
         fit_specs = []
         for name, fit_spec in fit_dicts.items():
-            fit_specs.append(FitSpecification(name, **fit_spec))
+            fit_specs.append(FitScenario(name, **fit_spec))
         if not fit_specs:
             raise ValueError('No fit specified')
 

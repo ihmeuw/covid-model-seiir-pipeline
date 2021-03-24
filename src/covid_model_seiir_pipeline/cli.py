@@ -28,9 +28,9 @@ def seiir():
     pass
 
 
-@seiir.command()
+@seiir.command(name='oos_fit')
 @cli_tools.pass_run_metadata()
-@cli_tools.with_regression_specification
+@cli_tools.with_fit_specification
 @cli_tools.with_infection_version
 @cli_tools.with_covariates_version
 @cli_tools.with_variant_version

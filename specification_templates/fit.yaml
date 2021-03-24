@@ -4,7 +4,7 @@ data:
   variant_version: '2021_03_23.02'
   location_set_version_id: ''
   location_set_file: '/ihme/covid-19/seir-pipeline-outputs/metadata-inputs/location_metadata_810.2.csv'
-  output_root: ''
+  output_root: '/share/scratch/users/collijk/fit_oos'
   output_format: 'parquet'
   n_draws: 100
 workflow:
