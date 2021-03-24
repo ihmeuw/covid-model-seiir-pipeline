@@ -17,28 +17,32 @@ from covid_model_seiir_pipeline.pipeline.fit_oos.ode_system import (
     single_force_system,
     ramp_force_system,
 )
+from covid_model_seiir_pipeline.pipeline.fit_oos.specification import (
+    FitScenario,
+)
 
 
 def prepare_ode_fit_parameters(past_infections: pd.Series,
                                population: pd.Series,
                                vaccinations: pd.DataFrame,
                                variant_prevalence: pd.DataFrame,
-                               fit_parameters: Dict,
+                               fit_parameters: FitScenario,
                                draw_id: int) -> ODEParameters:
     past_index = past_infections.index
     population = population.reindex(past_index, level='location_id')
 
     np.random.seed(draw_id)
     sampled_params = {}
+    fit_param_dict = fit_parameters.to_dict()
     for parameter in ['alpha', 'sigma', 'gamma1', 'gamma2']:
         sampled_params[parameter] = pd.Series(
-            np.random.uniform(*fit_parameters[parameter]),
+            np.random.uniform(*fit_param_dict[parameter]),
             index=past_index,
             name=parameter,
         )
     for parameter in ['kappa', 'phi', 'pi', 'epsilon', 'a', 'b', 'p_cross_immune']:
         sampled_params[parameter] = pd.Series(
-            fit_parameters[parameter],
+            fit_param_dict[parameter],
             index=past_index,
             name=parameter,
         )
@@ -48,7 +52,7 @@ def prepare_ode_fit_parameters(past_infections: pd.Series,
     vaccinations = vaccinations.reindex(past_index, fill_value=0.)
 
     return ODEParameters(
-        system=fit_parameters['system'],
+        system=fit_parameters.system,
         population=population,
         new_e=past_infections,
         **sampled_params,

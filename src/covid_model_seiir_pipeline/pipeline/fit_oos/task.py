@@ -29,7 +29,7 @@ def run_beta_fit(fit_version: str, scenario: str, draw_id: int, progress_bar: bo
     import pdb; pdb.set_trace()
     logger.info('Prepping ODE fit parameters.', context='transform')
     infections = model.clean_infection_data_measure(past_infection_data, 'infections')
-    fit_params = fit_specification.scenarios[scenario].to_dict()
+    fit_params = fit_specification.scenarios[scenario]
     ode_parameters = model.prepare_ode_fit_parameters(
         infections,
         population,
