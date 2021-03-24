@@ -359,7 +359,7 @@ def _do_oos_fit(run_metadata: cli_tools.RunMetadata,
         fit_spec.data.location_set_file
     )
 
-    output_root = cli_tools.get_output_root(output_root, fit_spec.data.output_root)
+    output_root = cli_tools.get_output_root(None, fit_spec.data.output_root)
     cli_tools.setup_directory_structure(output_root, with_production=True)
     run_directory = cli_tools.make_run_directory(output_root)
 
