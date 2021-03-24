@@ -71,6 +71,9 @@ class FitDataInterface:
         total_deaths = draw_0_data.groupby('location_id').deaths.sum()
         modeled_locations = total_deaths[total_deaths > 5].index.tolist()
 
+        variant_locs = self.get_escape_variant_special_locs()
+        modeled_locations = list(set(modeled_locations).intersection(variant_locs))
+
         if desired_location_hierarchy is None:
             desired_locations = modeled_locations
         else:
@@ -117,13 +120,47 @@ class FitDataInterface:
     def get_infections_metadata(self):
         return io.load(self.infection_root.metadata())
 
+    def get_model_inputs_metadata(self):
+        infection_metadata = self.get_infections_metadata()
+        return infection_metadata['model_inputs_metadata']
+
+    def load_population(self) -> pd.DataFrame:
+        metadata = self.get_model_inputs_metadata()
+        model_inputs_version = metadata['output_path']
+        population_path = Path(model_inputs_version) / 'output_measures' / 'population' / 'all_populations.csv'
+        population_data = pd.read_csv(population_path)
+        return population_data
+
+    def load_five_year_population(self) -> pd.DataFrame:
+        population = self.load_population()
+        location_ids = self.load_location_ids()
+        in_locations = population['location_id'].isin(location_ids)
+        is_2019 = population['year_id'] == 2019
+        is_both_sexes = population['sex_id'] == 3
+        five_year_bins = [1, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 30, 31, 32, 235]
+        is_five_year_bins = population['age_group_id'].isin(five_year_bins)
+        population = population.loc[in_locations & is_2019 & is_both_sexes & is_five_year_bins, :]
+        return population
+
+    def load_total_population(self) -> pd.Series:
+        population = self.load_five_year_population()
+        population = population.groupby('location_id')['population'].sum()
+        return population
+
     def get_escape_variant_special_locs(self):
-        io.load(self.variant_root.original_data(measure=''))
+        b1351 = io.load(self.variant_root.original_data(measure='Special_B1351_Final_2021_03_21.csv'))
+        b1351_locs = b1351.loc_id.unique().tolist()
+        p1 = io.load(self.variant_root.original_data(measure='Special_P1_Final_2021_03_21.csv'))
+        p1_locs = p1.loc_id.unique().tolist()
+        return list(set(b1351_locs + p1_locs))
 
     def load_variant_prevalence(self):
         b117 = self.load_covariate('variant_prevalence_B117')
         b1351 = self.load_covariate('variant_prevalence_B1351')
-        p1 = self.load_covariate('variant_prevalence_B117')
+        p1 = self.load_covariate('variant_prevalence_P1')
+        rho_variant = (b1351 + p1).rename('rho_variant')
+        rho = (b117 / (1 - rho_variant)).fillna(0).rename('rho')
+        return pd.concat([rho, rho_variant], axis=1)
 
     #######################
     # Fit data I/O #

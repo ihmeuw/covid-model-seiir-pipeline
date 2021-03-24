@@ -22,6 +22,7 @@ from covid_model_seiir_pipeline.pipeline.fit_oos.ode_system import (
 def prepare_ode_fit_parameters(past_infections: pd.Series,
                                population: pd.Series,
                                vaccinations: pd.DataFrame,
+                               variant_prevalence: pd.DataFrame,
                                fit_parameters: Dict,
                                draw_id: int) -> ODEParameters:
     past_index = past_infections.index
@@ -51,8 +52,8 @@ def prepare_ode_fit_parameters(past_infections: pd.Series,
         population=population,
         new_e=past_infections,
         **sampled_params,
-        rho=pd.Series(0, index=past_index, name='rho'),
-        rho_variant=pd.Series(0, index=past_index, name='rho'),
+        rho=variant_prevalence['rho'].reindex(past_index, fill_value=0),
+        rho_variant=variant_prevalence['rho_variant'].reindex(past_index, fill_value=0),
         vaccines_unprotected=vaccinations.filter(like='unprotected').sum(axis=1),
         vaccines_protected_wild_type=vaccinations.filter(like='protected_wild').sum(axis=1),
         vaccines_protected_all_types=vaccinations.filter(like='protected_all').sum(axis=1),
@@ -125,7 +126,6 @@ def run_loc_ode_fit(ode_parameters: ODEParameters) -> pd.DataFrame:
         'ramp': ramp_force_system,
     }[ode_parameters.system]
 
-
     result = math.solve_ode(
         system=system,
         t=t,
@@ -153,7 +153,6 @@ def run_loc_ode_fit(ode_parameters: ODEParameters) -> pd.DataFrame:
     s_variant = s_wild + s_variant_only
     i_wild = components.loc[:, [c for c in components if c[0] == 'I' and 'variant' not in c]].sum(axis=1)
     i_variant = components.loc[:, [c for c in components if c[0] == 'I' and 'variant' in c]].sum(axis=1)
-
 
     disease_density_wild = s_wild * i_wild**ode_parameters.alpha.values / total_population
     beta_wild = (new_e_wild / disease_density_wild).reindex(full_index)

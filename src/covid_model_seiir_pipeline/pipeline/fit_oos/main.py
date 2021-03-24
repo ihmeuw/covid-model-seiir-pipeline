@@ -14,8 +14,17 @@ def do_beta_fit(app_metadata: cli_tools.Metadata,
 
     data_interface = FitDataInterface.from_specification(fit_specification)
 
+    # Grab canonical location list from arguments
+    hierarchy = data_interface.load_hierarchy_from_primary_source(
+        location_set_version_id=fit_specification.data.location_set_version_id,
+        location_file=fit_specification.data.location_set_file
+    )
+    location_ids = data_interface.filter_location_ids(hierarchy)
+
     data_interface.make_dirs(scenario=list(fit_specification.scenarios))
     data_interface.save_specification(fit_specification)
+    data_interface.save_location_ids(location_ids)
+    data_interface.save_hierarchy(hierarchy)
 
     if not preprocess_only:
         fit_wf = FitWorkflow(fit_specification.data.output_root,

@@ -25,6 +25,7 @@ def run_beta_fit(fit_version: str, scenario: str, draw_id: int, progress_bar: bo
     past_infection_data = data_interface.load_past_infection_data(draw_id=draw_id)
     population = data_interface.load_total_population()
     vaccinations = data_interface.load_vaccine_info('reference')
+    variant_prevalence = data_interface.load_variant_prevalence()
 
     logger.info('Prepping ODE fit parameters.', context='transform')
     infections = model.clean_infection_data_measure(past_infection_data, 'infections')
@@ -33,6 +34,7 @@ def run_beta_fit(fit_version: str, scenario: str, draw_id: int, progress_bar: bo
         infections,
         population,
         vaccinations,
+        variant_prevalence,
         fit_params,
         draw_id,
     )
