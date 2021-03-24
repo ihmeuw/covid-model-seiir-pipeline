@@ -4,37 +4,27 @@ from loguru import logger
 from covid_model_seiir_pipeline.lib.ihme_deps import WorkflowAlreadyComplete
 from covid_model_seiir_pipeline.pipeline.fit_oos.specification import FitSpecification
 from covid_model_seiir_pipeline.pipeline.fit_oos.workflow import FitWorkflow
-from covid_model_seiir_pipeline.pipeline.forecasting.data import ForecastDataInterface
-
+from covid_model_seiir_pipeline.pipeline.fit_oos.data import FitDataInterface
 
 
 def do_beta_fit(app_metadata: cli_tools.Metadata,
-                forecast_specification: ForecastSpecification,
+                fit_specification: FitSpecification,
                 preprocess_only: bool):
-    logger.info(f'Starting beta forecast for version {forecast_specification.data.output_root}.')
+    logger.info(f'Starting beta fit for version {fit_specification.data.output_root}.')
 
-    data_interface = ForecastDataInterface.from_specification(forecast_specification)
-    if not data_interface.has_hospital_corrections():
-        raise ValueError(
-            'No hospital correction factors were produced in the regression stage. '
-            'Forecast model cannot be run using this regression version.'
-        )
+    data_interface = FitDataInterface.from_specification(fit_specification)
 
-    # Check scenario covariates the same as regression covariates and that
-    # covariate data versions match.
-    data_interface.check_covariates(forecast_specification.scenarios)
-
-    data_interface.make_dirs(scenario=list(forecast_specification.scenarios))
-    data_interface.save_specification(forecast_specification)
+    data_interface.make_dirs(scenario=list(fit_specification.scenarios))
+    data_interface.save_specification(fit_specification)
 
     if not preprocess_only:
-        forecast_wf = ForecastWorkflow(forecast_specification.data.output_root,
-                                       forecast_specification.workflow)
+        fit_wf = FitWorkflow(fit_specification.data.output_root,
+                             fit_specification.workflow)
         n_draws = data_interface.get_n_draws()
 
-        forecast_wf.attach_tasks(n_draws=n_draws,
-                                 scenarios=forecast_specification.scenarios)
+        fit_wf.attach_tasks(n_draws=n_draws,
+                            scenarios=fit_specification.scenarios)
         try:
-            forecast_wf.run()
+            fit_wf.run()
         except WorkflowAlreadyComplete:
             logger.info('Workflow already complete')

@@ -1,5 +1,9 @@
 import click
 
+from covid_model_seiir_pipeline.pipeline.fit_oos import (
+    FIT_JOBS,
+    beta_fit,
+)
 from covid_model_seiir_pipeline.pipeline.regression import (
     REGRESSION_JOBS,
     beta_regression,
@@ -27,6 +31,7 @@ def stask():
     pass
 
 
+stask.add_command(beta_fit, name=FIT_JOBS.fit)
 stask.add_command(beta_regression, name=REGRESSION_JOBS.regression)
 stask.add_command(hospital_correction_factors, name=REGRESSION_JOBS.hospital_correction_factors)
 stask.add_command(beta_residual_scaling, name=FORECAST_JOBS.scaling)

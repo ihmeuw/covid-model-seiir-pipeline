@@ -36,4 +36,4 @@ class FitWorkflow(workflow.WorkflowTemplate):
                     draw_id=draw,
                     scenario=scenario_name,
                 )
-            self.workflow.add_task(fit_task)
+                self.workflow.add_task(fit_task)

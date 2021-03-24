@@ -52,8 +52,8 @@ def run_beta_fit(fit_version: str, scenario: str, draw_id: int, progress_bar: bo
 @cli_tools.with_draw_id
 @cli_tools.with_progress_bar
 @cli_tools.add_verbose_and_with_debugger
-def beta_regression(fit_version: str, scenario: str, draw_id: int,
-                    progress_bar: bool, verbose: int, with_debugger: bool):
+def beta_fit(fit_version: str, scenario: str, draw_id: int,
+             progress_bar: bool, verbose: int, with_debugger: bool):
     cli_tools.configure_logging_to_terminal(verbose)
     run = cli_tools.handle_exceptions(run_beta_fit, logger, with_debugger)
     run(regression_version=fit_version,
@@ -63,4 +63,4 @@ def beta_regression(fit_version: str, scenario: str, draw_id: int,
 
 
 if __name__ == '__main__':
-    beta_regression()
+    beta_fit()

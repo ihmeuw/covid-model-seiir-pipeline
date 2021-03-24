@@ -18,18 +18,26 @@ class FitDataInterface:
 
     def __init__(self,
                  infection_root: io.InfectionRoot,
+                 covariate_root: io.CovariateRoot,
+                 variant_root: io.VariantRoot,
                  fit_root: io.FitRoot):
         self.infection_root = infection_root
+        self.covariate_root = covariate_root
+        self.variant_root = variant_root
         self.fit_root = fit_root
 
     @classmethod
     def from_specification(cls, specification: FitSpecification) -> 'FitDataInterface':
         infection_root = io.InfectionRoot(specification.data.infection_version)
+        covariate_root = io.CovariateRoot(specification.data.covariate_version)
+        variant_root = io.VariantRoot(specification.data.variant_version)
         fit_root = io.FitRoot(specification.data.output_root,
                               data_format=specification.data.output_format)
 
         return cls(
             infection_root=infection_root,
+            covariate_root=covariate_root,
+            variant_root=variant_root,
             fit_root=fit_root,
         )
 
@@ -59,12 +67,6 @@ class FitDataInterface:
         return location_metadata
 
     def filter_location_ids(self, desired_location_hierarchy: pd.DataFrame = None) -> List[int]:
-        """Get the list of location ids to model.
-
-        This list is the intersection of a location metadata's
-        locations, if provided, and the available locations in the infections
-        directory.
-        """
         draw_0_data = self.load_full_past_infection_data(draw_id=0)
         total_deaths = draw_0_data.groupby('location_id').deaths.sum()
         modeled_locations = total_deaths[total_deaths > 5].index.tolist()
@@ -97,77 +99,11 @@ class FitDataInterface:
         infection_data = self.load_full_past_infection_data(draw_id=draw_id)
         return infection_data.loc[location_ids]
 
-    def load_ifr(self, draw_id: int) -> pd.DataFrame:
-        ifr = io.load(self.infection_root.ifr(draw_id=draw_id))
-        ifr = self.format_ratio_data(ifr)
-        return ifr
-
-    def load_ihr(self, draw_id: int) -> pd.DataFrame:
-        ihr = io.load(self.infection_root.ihr(draw_id=draw_id))
-        ihr = self.format_ratio_data(ihr)
-        return ihr
-
-    def load_idr(self, draw_id: int) -> pd.DataFrame:
-        idr = io.load(self.infection_root.idr(draw_id=draw_id))
-        idr = self.format_ratio_data(idr)
-        return idr
-
-    def load_ratio_data(self, draw_id: int) -> RatioData:
-        ifr = self.load_ifr(draw_id)
-        ihr = self.load_ihr(draw_id)
-        idr = self.load_idr(draw_id)
-        return RatioData(
-            infection_to_death=int(ifr.duration.max()),
-            infection_to_admission=int(ihr.duration.max()),
-            infection_to_case=int(idr.duration.max()),
-            ifr=ifr.ifr,
-            ifr_hr=ifr.ifr_hr,
-            ifr_lr=ifr.ifr_lr,
-            ihr=ihr.ihr,
-            idr=idr.idr,
-        )
-
-    def format_ratio_data(self, ratio_data: pd.DataFrame) -> pd.DataFrame:
-        location_ids = self.load_location_ids()
-        ratio_data = ratio_data.loc[location_ids]
-        col_map = {c: c.split('_draw')[0] for c in ratio_data.columns if '_draw' in c}
-        ratio_data = ratio_data.loc[:, ['duration'] + list(col_map)].rename(columns=col_map)
-        return ratio_data
-
-    ##########################
-    # Covariate data loaders #
-    ##########################
-
-    def check_covariates(self, covariates: Iterable[str]) -> None:
-        """Ensure a reference scenario exists for all covariates.
-        The reference scenario file is used to find the covariate values
-        in the past (which we'll use to perform the regression).
-        """
-        missing = []
-
-        for covariate in covariates:
-            if covariate != 'intercept':
-                if not io.exists(self.covariate_root[covariate](covariate_scenario='reference')):
-                    missing.append(covariate)
-
-        if missing:
-            raise ValueError('All covariates supplied in the regression specification'
-                             'must have a reference scenario in the covariate pool. Covariates'
-                             f'missing a reference scenario: {missing}.')
-
     def load_covariate(self, covariate: str) -> pd.DataFrame:
         location_ids = self.load_location_ids()
         covariate_df = io.load(self.covariate_root[covariate](covariate_scenario='reference'))
         covariate_df = covariate_df.loc[location_ids].rename(columns={f'{covariate}_reference': covariate})
         return covariate_df.loc[:, [covariate]]
-
-    def load_covariates(self, covariates: Iterable[str]) -> pd.DataFrame:
-        covariate_data = []
-        for covariate in covariates:
-            if covariate != 'intercept':
-                covariate_data.append(self.load_covariate(covariate))
-        covariate_data = reduce(lambda x, y: x.merge(y, left_index=True, right_index=True), covariate_data)
-        return covariate_data
 
     def load_vaccine_info(self, vaccine_scenario: str):
         location_ids = self.load_location_ids()
@@ -181,124 +117,54 @@ class FitDataInterface:
     def get_infections_metadata(self):
         return io.load(self.infection_root.metadata())
 
-    def get_model_inputs_metadata(self):
-        infection_metadata = self.get_infections_metadata()
-        return infection_metadata['model_inputs_metadata']
+    def get_escape_variant_special_locs(self):
+        io.load(self.variant_root.original_data(measure=''))
 
-    def load_population(self) -> pd.DataFrame:
-        metadata = self.get_model_inputs_metadata()
-        model_inputs_version = metadata['output_path']
-        population_path = Path(model_inputs_version) / 'output_measures' / 'population' / 'all_populations.csv'
-        population_data = pd.read_csv(population_path)
-        return population_data
-
-    def load_five_year_population(self) -> pd.DataFrame:
-        population = self.load_population()
-        location_ids = self.load_location_ids()
-        in_locations = population['location_id'].isin(location_ids)
-        is_2019 = population['year_id'] == 2019
-        is_both_sexes = population['sex_id'] == 3
-        five_year_bins = [1, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 30, 31, 32, 235]
-        is_five_year_bins = population['age_group_id'].isin(five_year_bins)
-        population = population.loc[in_locations & is_2019 & is_both_sexes & is_five_year_bins, :]
-        return population
-
-    def load_total_population(self) -> pd.Series:
-        population = self.load_five_year_population()
-        population = population.groupby('location_id')['population'].sum()
-        return population
-
-    def load_hospital_census_data(self) -> 'HospitalCensusData':
-        metadata = self.get_model_inputs_metadata()
-
-        model_inputs_path = Path(metadata['output_path'])
-        corrections_data = {}
-        file_map = (
-            ('hospitalizations', 'hospital_census'),
-            ('icu', 'icu_census'),
-            ('ventilators', 'ventilator_census'),
-        )
-        for dir_name, measure in file_map:
-            path = model_inputs_path / 'output_measures' / dir_name / 'population.csv'
-            df = pd.read_csv(path)
-            df['date'] = pd.to_datetime(df['date'])
-            df = df.loc[(df.age_group_id == 22) & (df.sex_id == 3)]
-            df = df[["location_id", "date", "value"]]
-            if df.groupby(["location_id", "date"]).count().value.max() > 1:
-                raise ValueError(f"Duplicate usages for location_id and date in {path}")
-            # Location IDs to exclude from the census input data. Requested by Steve on 9/30
-            census_exclude_locs = [200, 69, 179, 172, 170, 144, 26, 74, 67, 58]
-            df = df.loc[~df.location_id.isin(census_exclude_locs)]
-            corrections_data[measure] = df.set_index(['location_id', 'date']).value
-        return HospitalCensusData(**corrections_data)
+    def load_variant_prevalence(self):
+        b117 = self.load_covariate('variant_prevalence_B117')
+        b1351 = self.load_covariate('variant_prevalence_B1351')
+        p1 = self.load_covariate('variant_prevalence_B117')
 
     #######################
-    # Regression data I/O #
+    # Fit data I/O #
     #######################
 
-    def save_specification(self, specification: RegressionSpecification) -> None:
-        io.dump(specification.to_dict(), self.regression_root.specification())
+    def save_specification(self, specification: FitSpecification) -> None:
+        io.dump(specification.to_dict(), self.fit_root.specification())
 
-    def load_specification(self) -> RegressionSpecification:
-        spec_dict = io.load(self.regression_root.specification())
-        return RegressionSpecification.from_dict(spec_dict)
+    def load_specification(self) -> FitSpecification:
+        spec_dict = io.load(self.fit_root.specification())
+        return FitSpecification.from_dict(spec_dict)
 
     def save_location_ids(self, location_ids: List[int]) -> None:
-        io.dump(location_ids, self.regression_root.locations())
+        io.dump(location_ids, self.fit_root.locations())
 
     def load_location_ids(self) -> List[int]:
-        return io.load(self.regression_root.locations())
+        return io.load(self.fit_root.locations())
 
     def save_hierarchy(self, hierarchy: pd.DataFrame) -> None:
-        io.dump(hierarchy, self.regression_root.hierarchy())
+        io.dump(hierarchy, self.fit_root.hierarchy())
 
     def load_hierarchy(self) -> pd.DataFrame:
-        return io.load(self.regression_root.hierarchy())
+        return io.load(self.fit_root.hierarchy())
 
     def save_betas(self, betas: pd.DataFrame, draw_id: int) -> None:
-        io.dump(betas, self.regression_root.beta(draw_id=draw_id))
+        io.dump(betas, self.fit_root.beta(draw_id=draw_id))
 
     def load_betas(self, draw_id: int) -> pd.DataFrame:
-        return io.load(self.regression_root.beta(draw_id=draw_id))
-
-    def save_coefficients(self, coefficients: pd.DataFrame, draw_id: int) -> None:
-        io.dump(coefficients, self.regression_root.coefficients(draw_id=draw_id))
-
-    def load_coefficients(self, draw_id: int) -> pd.DataFrame:
-        return io.load(self.regression_root.coefficients(draw_id=draw_id))
-
-    def load_prior_run_coefficients(self, draw_id: int) -> pd.DataFrame:
-        return io.load(self.coefficient_root.coefficients(draw_id=draw_id))
+        return io.load(self.fit_root.beta(draw_id=draw_id))
 
     def save_compartments(self, compartments: pd.DataFrame, draw_id: int) -> None:
-        io.dump(compartments, self.regression_root.compartments(draw_id=draw_id))
+        io.dump(compartments, self.fit_root.compartments(draw_id=draw_id))
 
     def load_compartments(self, draw_id: int) -> pd.DataFrame:
-        return io.load(self.regression_root.compartments(draw_id=draw_id))
+        return io.load(self.fit_root.compartments(draw_id=draw_id))
 
     def save_ode_parameters(self, df: pd.DataFrame, draw_id: int) -> None:
-        io.dump(df, self.regression_root.ode_parameters(draw_id=draw_id))
+        io.dump(df, self.fit_root.ode_parameters(draw_id=draw_id))
 
     def load_ode_parameters(self, draw_id: int) -> pd.DataFrame:
-        return io.load(self.regression_root.ode_parameters(draw_id=draw_id))
-
-    def save_infections(self, infections: pd.Series, draw_id: int) -> None:
-        io.dump(infections.to_frame(), self.regression_root.infections(draw_id=draw_id))
-
-    def load_infections(self, draw_id: int) -> pd.Series:
-        return io.load(self.regression_root.infections(draw_id=draw_id)).infections
-
-    def save_deaths(self, deaths: pd.Series, draw_id: int) -> None:
-        io.dump(deaths.to_frame(), self.regression_root.deaths(draw_id=draw_id))
-
-    def load_deaths(self, draw_id: int) -> pd.Series:
-        return io.load(self.regression_root.deaths(draw_id=draw_id)).deaths
-
-    def save_hospitalizations(self, df: pd.DataFrame, measure: str) -> None:
-        io.dump(df, self.regression_root.hospitalizations(measure=measure))
-
-    def load_hospitalizations(self, measure: str) -> pd.DataFrame:
-        return io.load(self.regression_root.hospitalizations(measure=measure))
+        return io.load(self.fit_root.ode_parameters(draw_id=draw_id))
 
     #########################
     # Non-interface helpers #

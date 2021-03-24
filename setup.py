@@ -16,7 +16,7 @@ if __name__ == "__main__":
 
     install_requirements = [
         'click',
-        'covid_shared>=1.0.52',
+        'covid_shared>=1.3.0',
         'fastparquet',
         'loguru',
         'matplotlib',

@@ -1,8 +1,7 @@
-from pathlib import Path
 from typing import Optional
 
 import click
-from covid_shared import paths, shell_tools
+from covid_shared import paths
 from loguru import logger
 import yaml
 
@@ -10,6 +9,8 @@ from covid_model_seiir_pipeline.lib import (
     cli_tools,
 )
 from covid_model_seiir_pipeline.pipeline import (
+    FitSpecification,
+    do_beta_fit,
     RegressionSpecification,
     do_beta_regression,
     ForecastSpecification,
@@ -25,6 +26,42 @@ from covid_model_seiir_pipeline.pipeline import (
 def seiir():
     """Top level entry point for running SEIIR pipeline stages."""
     pass
+
+
+@seiir.command()
+@cli_tools.pass_run_metadata()
+@cli_tools.with_regression_specification
+@cli_tools.with_infection_version
+@cli_tools.with_covariates_version
+@cli_tools.with_variant_version
+@cli_tools.with_location_specification
+@cli_tools.add_preprocess_only
+@cli_tools.add_output_options(paths.SEIR_REGRESSION_OUTPUTS)
+@cli_tools.add_verbose_and_with_debugger
+def oos_fit(run_metadata,
+            fit_specification,
+            infection_version, covariates_version, variant_version,
+            location_specification,
+            preprocess_only,
+            output_root, mark_best, production_tag,
+            verbose, with_debugger):
+    cli_tools.configure_logging_to_terminal(verbose)
+
+    _do_oos_fit(
+        run_metadata=run_metadata,
+        fit_specification=fit_specification,
+        infection_version=infection_version,
+        covariates_version=covariates_version,
+        variant_version=variant_version,
+        location_specification=location_specification,
+        preprocess_only=preprocess_only,
+        output_root=output_root,
+        mark_best=mark_best,
+        production_tag=production_tag,
+        with_debugger=with_debugger,
+    )
+
+    logger.info('**Done**')
 
 
 @seiir.command()
@@ -278,6 +315,71 @@ def run_all(run_metadata,
     )
 
     logger.info('All stages complete!')
+
+
+def _do_oos_fit(run_metadata: cli_tools.RunMetadata,
+                fit_specification: str,
+                infection_version: Optional[str],
+                covariates_version: Optional[str],
+                variant_version: Optional[str],
+                location_specification: Optional[str],
+                preprocess_only: bool,
+                output_root: Optional[str], mark_best: bool, production_tag: str,
+                with_debugger: bool) -> RegressionSpecification:
+    fit_spec = FitSpecification.from_path(fit_specification)
+
+    input_versions = {
+        'infection_version': cli_tools.VersionInfo(
+            infection_version,
+            fit_spec.data.infection_version,
+            paths.PAST_INFECTIONS_ROOT,
+            'infections_metadata',
+            True,
+        ),
+        'covariate_version': cli_tools.VersionInfo(
+            covariates_version,
+            fit_spec.data.covariate_version,
+            paths.SEIR_COVARIATES_OUTPUT_ROOT,
+            'covariates_metadata',
+            True,
+        ),
+        'variant_version': cli_tools.VersionInfo(
+            variant_version,
+            fit_spec.data.variant_version,
+            paths.VARIANT_OUTPUT_ROOT,
+            'variant_metadata',
+            True,
+        ),
+    }
+    fit_spec, run_metadata = cli_tools.resolve_version_info(fit_spec, run_metadata, input_versions)
+
+    locations_set_version_id, location_set_file = cli_tools.get_location_info(
+        location_specification,
+        fit_spec.data.location_set_version_id,
+        fit_spec.data.location_set_file
+    )
+
+    output_root = cli_tools.get_output_root(output_root, fit_spec.data.output_root)
+    cli_tools.setup_directory_structure(output_root, with_production=True)
+    run_directory = cli_tools.make_run_directory(output_root)
+
+    fit_spec.data.location_set_version_id = locations_set_version_id
+    fit_spec.data.location_set_file = location_set_file
+    fit_spec.data.output_root = str(run_directory)
+
+    run_metadata['output_path'] = str(run_directory)
+    run_metadata['regression_specification'] = fit_spec.to_dict()
+
+    cli_tools.configure_logging_to_files(run_directory)
+    # noinspection PyTypeChecker
+    main = cli_tools.monitor_application(do_beta_fit,
+                                         logger, with_debugger)
+    app_metadata, _ = main(fit_spec, preprocess_only)
+
+    cli_tools.finish_application(run_metadata, app_metadata,
+                                 run_directory, mark_best, production_tag)
+
+    return fit_spec
 
 
 def _do_regression(run_metadata: cli_tools.RunMetadata,

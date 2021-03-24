@@ -32,6 +32,7 @@ class FitWorkflowSpecification(workflow.WorkflowSpecification):
 class FitData:
     """Specifies the inputs and outputs for the fit"""
     infection_version: str = field(default='best')
+    covariate_version: str = field(default='best')
     variant_version: str = field(default='best')
     location_set_version_id: int = field(default=0)
     location_set_file: str = field(default='')
