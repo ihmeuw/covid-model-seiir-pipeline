@@ -182,8 +182,8 @@ def system(t: float, y: np.ndarray, params: np.ndarray, infectious_wild: float, 
     # Unprotected
     outflow_map = seiir_transition_wild(
         y, params,
-        new_e_wild * y[compartments.S_u] / susceptible_wild,
-        new_e_variant_naive * y[compartments.S_u] / susceptible_wild,
+        safe_divide(new_e_wild * y[compartments.S_u],  susceptible_wild),
+        safe_divide(new_e_variant_naive * y[compartments.S_u], susceptible_wild),
         compartments.S_u, compartments.E_u, compartments.I1_u, compartments.I2_u, compartments.R_u,
         compartments.S_variant_u, compartments.E_variant_u,
         outflow_map,
@@ -192,8 +192,8 @@ def system(t: float, y: np.ndarray, params: np.ndarray, infectious_wild: float, 
     # Protected from wild-type
     outflow_map = seiir_transition_wild(
         y, params,
-        new_e_wild * y[compartments.S_p] / susceptible_wild,
-        new_e_variant_naive * y[compartments.S_p] / susceptible_wild,
+        safe_divide(new_e_wild * y[compartments.S_p], susceptible_wild),
+        safe_divide(new_e_variant_naive * y[compartments.S_p], susceptible_wild),
         compartments.S_p, compartments.E_p, compartments.I1_p, compartments.I2_p, compartments.R_p,
         compartments.S_variant_u, compartments.E_variant_u,
         outflow_map,
@@ -202,8 +202,8 @@ def system(t: float, y: np.ndarray, params: np.ndarray, infectious_wild: float, 
     # Protected from all types
     outflow_map = seiir_transition_wild(
         y, params,
-        new_e_wild * y[compartments.S_pa] / susceptible_wild,
-        new_e_variant_naive * y[compartments.S_pa] / susceptible_wild,
+        safe_divide(new_e_wild * y[compartments.S_pa], susceptible_wild),
+        safe_divide(new_e_variant_naive * y[compartments.S_pa], susceptible_wild),
         compartments.S_pa, compartments.E_pa, compartments.I1_pa, compartments.I2_pa, compartments.R_pa,
         compartments.S_variant_pa, compartments.E_variant_pa,
         outflow_map,
@@ -213,7 +213,7 @@ def system(t: float, y: np.ndarray, params: np.ndarray, infectious_wild: float, 
     # Epi transitions
     outflow_map = seiir_transition_variant(
         y, params,
-        new_e_variant_reinf * y[compartments.S_variant] / susceptible_variant_only,
+        safe_divide(new_e_variant_reinf * y[compartments.S_variant], susceptible_variant_only),
         compartments.S_variant, compartments.E_variant, compartments.I1_variant,
         compartments.I2_variant, compartments.R_variant,
         outflow_map,
@@ -241,7 +241,7 @@ def system(t: float, y: np.ndarray, params: np.ndarray, infectious_wild: float, 
     # Unprotected variant
     outflow_map = seiir_transition_variant(
         y, params,
-        new_e_variant_reinf * y[compartments.S_variant_u] / susceptible_variant_only,
+        safe_divide(new_e_variant_reinf * y[compartments.S_variant_u], susceptible_variant_only),
         compartments.S_variant_u, compartments.E_variant_u, compartments.I1_variant_u,
         compartments.I2_variant_u, compartments.R_variant_u,
         outflow_map,
@@ -250,7 +250,7 @@ def system(t: float, y: np.ndarray, params: np.ndarray, infectious_wild: float, 
     # Protected variant
     outflow_map = seiir_transition_variant(
         y, params,
-        new_e_variant_reinf * y[compartments.S_variant_pa] / susceptible_variant_only,
+        safe_divide(new_e_variant_reinf * y[compartments.S_variant_pa], susceptible_variant_only),
         compartments.S_variant_pa, compartments.E_variant_pa, compartments.I1_variant_pa,
         compartments.I2_variant_pa, compartments.R_variant_pa,
         outflow_map,
@@ -258,7 +258,7 @@ def system(t: float, y: np.ndarray, params: np.ndarray, infectious_wild: float, 
 
     # Immunized
     outflow_map[compartments.S_m, compartments.E_variant_pa] = (
-        new_e_variant_reinf * y[compartments.S_m] / susceptible_variant_only
+        safe_divide(new_e_variant_reinf * y[compartments.S_m], susceptible_variant_only)
     )
 
     inflow = outflow_map.sum(axis=0)
@@ -504,3 +504,11 @@ def compute_tracking_columns(result, outflow_map, vaccines_out):
     result[tracking_compartments.V_ma] = vaccines_out[:, vaccine_types.ma].sum()
 
     return result
+
+
+@numba.njit
+def safe_divide(a: float, b: float):
+    if b == 0.0:
+        assert a == 0.0
+        return 0.0
+    return a / b
