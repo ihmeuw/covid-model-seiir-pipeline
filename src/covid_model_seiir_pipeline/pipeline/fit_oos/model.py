@@ -12,6 +12,7 @@ from covid_model_seiir_pipeline.pipeline.fit_oos.containers import (
 )
 from covid_model_seiir_pipeline.pipeline.fit_oos.ode_system import (
     compartments,
+    tracking_compartments,
     parameters,
     vaccine_types,
     single_force_system,
@@ -115,7 +116,7 @@ def run_loc_ode_fit(ode_parameters: ODEParameters) -> pd.DataFrame:
     obs = infections.values
     total_population = ode_parameters.population.iloc[0]
 
-    initial_condition = np.zeros(len(compartments))
+    initial_condition = np.zeros(len(compartments) + len(tracking_compartments))
     initial_condition[compartments.S] = total_population - obs[0] - (obs[0] / 5) ** (1.0 / ode_parameters.alpha[0])
     initial_condition[compartments.E] = obs[0]
     initial_condition[compartments.I1] = (obs[0] / 5) ** (1.0 / ode_parameters.alpha[0])
@@ -137,7 +138,7 @@ def run_loc_ode_fit(ode_parameters: ODEParameters) -> pd.DataFrame:
     )
     components = pd.DataFrame(
         data=result.T,
-        columns=compartments._fields,
+        columns=list(compartments._fields) + list(tracking_compartments._fields),
     )
     components['date'] = date
     components = components.set_index('date')
