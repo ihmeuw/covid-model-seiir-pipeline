@@ -321,12 +321,16 @@ def get_vaccines_out(y, params,
     )
     # Folks in E, I1, I2, R only unprotected.
     vaccines_out = get_unprotected_vaccines_from_not_s(
-        y, vaccines_out, params, n_unvaccinated, v_total,
+        y, params,
+        v_total, n_unvaccinated,
         compartments.E, compartments.I1, compartments.I2, compartments.R,
+        vaccines_out,
     )
     vaccines_out = get_unprotected_vaccines_from_not_s(
-        y, vaccines_out, params, n_unvaccinated, v_total,
-        compartments.E_variant, compartments.I1_variant, compartments.I2_variant, compartments.R_variant
+        y, params,
+        v_total, n_unvaccinated,
+        compartments.E_variant, compartments.I1_variant, compartments.I2_variant, compartments.R_variant,
+        vaccines_out,
     )
 
     return vaccines_out
