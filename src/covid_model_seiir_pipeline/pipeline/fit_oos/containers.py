@@ -46,7 +46,7 @@ class ODEParameters:
         return utilities.asdict(self)
 
     def to_df(self) -> pd.DataFrame:
-        return pd.concat([v.rename(k) for k, v in self.to_dict().items()], axis=1)
+        return pd.concat([v.rename(k) for k, v in self.to_dict().items() if isinstance(v, pd.Series)], axis=1)
 
     def get_vaccinations(self, vaccine_types: List[str]) -> pd.DataFrame:
         vaccine_type_map = {

@@ -121,10 +121,9 @@ def run_loc_ode_fit(ode_parameters: ODEParameters) -> pd.DataFrame:
     initial_condition[compartments.I1] = (obs[0] / 5) ** (1.0 / ode_parameters.alpha[0])
 
     params = np.hstack([
-        ode_parameters.to_df().loc[:, list(parameters._fields)].values.T,
-        ode_parameters.get_vaccinations(vaccine_types._fields).values.T,
-    ])
-
+        ode_parameters.to_df().loc[:, list(parameters._fields)].values,
+        ode_parameters.get_vaccinations(vaccine_types._fields).values,
+    ]).T
     system = {
         'single': single_force_system,
         'ramp': ramp_force_system,
