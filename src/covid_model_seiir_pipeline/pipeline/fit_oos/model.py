@@ -87,7 +87,7 @@ def clean_infection_data_measure(infection_data: pd.DataFrame, measure: str) -> 
     return data.append(prepend).sort_index()
 
 
-def run_ode_fit(ode_parameters: ODEParameters, progress_bar: bool) -> Tuple[pd.Series, pd.DataFrame]:
+def run_ode_fit(ode_parameters: ODEParameters, progress_bar: bool) -> Tuple[pd.DataFrame, pd.DataFrame]:
     fit_results = []
     ode_parameter_list = tqdm.tqdm(list(ode_parameters), disable=not progress_bar)
     for location_id, location_params in ode_parameter_list:
