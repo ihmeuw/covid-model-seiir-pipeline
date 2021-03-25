@@ -10,7 +10,7 @@ class BetaFitTaskTemplate(workflow.TaskTemplate):
     command_template = (
         f"{shutil.which('stask')} "
         f"{FIT_JOBS.fit} "
-        "--fit-version {forecast_version} "
+        "--fit-version {fit_version} "
         "--scenario {scenario} "
         "--draw-id {draw_id} "
         "-vv"
@@ -27,7 +27,7 @@ class FitWorkflow(workflow.WorkflowTemplate):
     }
 
     def attach_tasks(self, n_draws: int, scenarios: Dict[str, FitScenario]):
-        fit_template = self.task_templates[FIT_JOBS.forecast]
+        fit_template = self.task_templates[FIT_JOBS.fit]
 
         for scenario_name, scenario_spec in scenarios.items():
             for draw in range(n_draws):
