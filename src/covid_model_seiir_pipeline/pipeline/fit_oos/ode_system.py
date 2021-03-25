@@ -79,32 +79,36 @@ _INFECTIOUS_VARIANT = np.array([
 
 @numba.njit
 def single_force_system(t: float, y: np.ndarray, params: np.ndarray):
+    infectious_wild = y[_INFECTIOUS_WILD].sum()
+    infectious_variant = y[_INFECTIOUS_VARIANT].sum()
+    dy = system(t, y, params, infectious_wild, infectious_variant)
+
     alpha, pi, epsilon, rho_variant = params[np.array([
         parameters.alpha, parameters.pi, parameters.epsilon, parameters.rho_variant
     ])]
-    i_variant = y[_INFECTIOUS_VARIANT].sum()
-    if rho_variant and not i_variant:
-        y = delta_shift(
-            y, alpha, pi, epsilon,
+    if rho_variant and not infectious_variant:
+        dy = delta_shift(
+            y, dy,
+            alpha, pi, epsilon,
             compartments.S, compartments.E_variant, compartments.I1_variant,
         )
-        y = delta_shift(
-            y, alpha, pi, epsilon,
+        dy = delta_shift(
+            y, dy,
+            alpha, pi, epsilon,
             compartments.S_u, compartments.E_variant_u, compartments.I1_variant_u,
         )
-        y = delta_shift(
-            y, alpha, pi, epsilon,
+        dy = delta_shift(
+            y, dy,
+            alpha, pi, epsilon,
             compartments.S_p, compartments.E_variant_u, compartments.I1_variant_u,
         )
-        y = delta_shift(
-            y, alpha, pi, epsilon,
+        dy = delta_shift(
+            y, dy,
+            alpha, pi, epsilon,
             compartments.S_pa, compartments.E_variant_pa, compartments.I1_variant_pa,
         )
 
-    infectious_wild = y[_INFECTIOUS_WILD].sum()
-    infectious_variant = y[_INFECTIOUS_VARIANT].sum()
-
-    return system(t, y, params, infectious_wild, infectious_variant)
+    return dy
 
 
 @numba.njit
@@ -131,14 +135,14 @@ def ramp_force_system(t: float, y: np.ndarray, params: np.ndarray):
 
 
 @numba.njit
-def delta_shift(y,
+def delta_shift(y, dy,
                 alpha, pi, epsilon,
                 susceptible, exposed, infectious1):
     delta = min(max(pi * y[exposed], epsilon), 1/2 * y[susceptible])
-    y[susceptible] -= delta + (delta / 5)**(1 / alpha)
-    y[exposed] += delta
-    y[infectious1] += (delta / 5)**(1 / alpha)
-    return y
+    dy[susceptible] -= delta + (delta / 5)**(1 / alpha)
+    dy[exposed] += delta
+    dy[infectious1] += (delta / 5)**(1 / alpha)
+    return dy
 
 
 @numba.njit
