@@ -185,23 +185,23 @@ class FitDataInterface:
     def load_hierarchy(self) -> pd.DataFrame:
         return io.load(self.fit_root.hierarchy())
 
-    def save_betas(self, betas: pd.DataFrame, draw_id: int) -> None:
-        io.dump(betas, self.fit_root.beta(draw_id=draw_id))
+    def save_betas(self, betas: pd.DataFrame, scenario: str, draw_id: int) -> None:
+        io.dump(betas, self.fit_root.beta(scenario=scenario, draw_id=draw_id))
 
-    def load_betas(self, draw_id: int) -> pd.DataFrame:
-        return io.load(self.fit_root.beta(draw_id=draw_id))
+    def load_betas(self, scenario: str, draw_id: int) -> pd.DataFrame:
+        return io.load(self.fit_root.beta(scenario=scenario, draw_id=draw_id))
 
-    def save_compartments(self, compartments: pd.DataFrame, draw_id: int) -> None:
-        io.dump(compartments, self.fit_root.compartments(draw_id=draw_id))
+    def save_compartments(self, compartments: pd.DataFrame, scenario: str, draw_id: int) -> None:
+        io.dump(compartments, self.fit_root.compartments(scenario=scenario, draw_id=draw_id))
 
-    def load_compartments(self, draw_id: int) -> pd.DataFrame:
-        return io.load(self.fit_root.compartments(draw_id=draw_id))
+    def load_compartments(self, scenario: str, draw_id: int) -> pd.DataFrame:
+        return io.load(self.fit_root.compartments(scenario=scenario, draw_id=draw_id))
 
-    def save_ode_parameters(self, df: pd.DataFrame, draw_id: int) -> None:
-        io.dump(df, self.fit_root.ode_parameters(draw_id=draw_id))
+    def save_ode_parameters(self, df: pd.DataFrame, scenario: str, draw_id: int) -> None:
+        io.dump(df, self.fit_root.ode_parameters(scenario=scenario, draw_id=draw_id))
 
-    def load_ode_parameters(self, draw_id: int) -> pd.DataFrame:
-        return io.load(self.fit_root.ode_parameters(draw_id=draw_id))
+    def load_ode_parameters(self, scenario: str, draw_id: int) -> pd.DataFrame:
+        return io.load(self.fit_root.ode_parameters(scenario=scenario, draw_id=draw_id))
 
     #########################
     # Non-interface helpers #

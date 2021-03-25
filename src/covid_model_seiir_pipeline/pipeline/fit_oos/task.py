@@ -42,7 +42,10 @@ def run_beta_fit(fit_version: str, scenario: str, draw_id: int, progress_bar: bo
         ode_parameters=ode_parameters,
         progress_bar=progress_bar,
     )
-    import pdb; pdb.set_trace()
+    data_interface.save_betas(beta_fit, scenario=scenario, draw_id=draw_id)
+    data_interface.save_compartments(compartments, scenario=scenario, draw_id=draw_id)
+    data_interface.save_ode_parameters(ode_parameters.to_df(), scenario=scenario, draw_id=draw_id)
+
     logger.report()
 
 
