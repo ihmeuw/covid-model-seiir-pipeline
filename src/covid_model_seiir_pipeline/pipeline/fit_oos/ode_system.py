@@ -141,7 +141,7 @@ def delta_shift(y, dy,
     delta = min(max(pi * y[exposed], epsilon), 1/2 * y[susceptible])
     dy[susceptible] -= delta + (delta / 5)**(1 / alpha)
     dy[exposed] += delta
-    dy[infectious1] += (delta / 5)**(1 / alpha)
+    dy[infectious1] += (delta / 5)**(1 / alpha)    
     return dy
 
 
@@ -268,10 +268,10 @@ def system(t: float, y: np.ndarray, params: np.ndarray, infectious_wild: float, 
     inflow = outflow_map.sum(axis=0)
     outflow = outflow_map.sum(axis=1)
     result = inflow - outflow
-
+    assert np.all(np.isfinite(result))
     if result.sum() > 1e-5:
         print('Compartment mismatch: ', result.sum())
-
+    
     result = compute_tracking_columns(result, outflow_map, vaccines_out)
 
     return result
@@ -436,7 +436,6 @@ def seiir_transition_variant(y, params,
                              new_e,
                              susceptible, exposed, infectious1, infectious2, removed,
                              outflow_map):
-    import pdb; pdb.set_trace()
     outflow_map[susceptible, exposed] += new_e
     outflow_map[exposed, infectious1] += params[parameters.sigma] * y[exposed]
     outflow_map[infectious1, infectious2] += params[parameters.gamma1] * y[infectious1]

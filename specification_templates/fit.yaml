@@ -1,7 +1,7 @@
 data:
   infection_version: '2021_03_23.08'
-  covariate_version: '2021_03_23.03'
-  variant_version: '2021_03_23.02'
+  covariate_version: '2021_03_24.01'
+  variant_version: '2021_03_24.03'
   location_set_version_id: ''
   location_set_file: '/ihme/covid-19/seir-pipeline-outputs/metadata-inputs/location_metadata_810.2.csv'
   output_root: '/share/scratch/users/collijk/fit_oos'

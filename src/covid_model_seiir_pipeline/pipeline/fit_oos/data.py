@@ -149,9 +149,9 @@ class FitDataInterface:
 
     def get_escape_variant_special_locs(self):
         b1351 = io.load(self.variant_root.original_data(measure='Special_B1351_Final_2021_03_21.csv'))
-        b1351_locs = b1351.loc_id.unique().tolist()
+        b1351_locs = b1351.reset_index().location_id.unique().tolist()
         p1 = io.load(self.variant_root.original_data(measure='Special_P1_Final_2021_03_21.csv'))
-        p1_locs = p1.loc_id.unique().tolist()
+        p1_locs = p1.reset_index().location_id.unique().tolist()
         return list(set(b1351_locs + p1_locs))
 
     def load_variant_prevalence(self):

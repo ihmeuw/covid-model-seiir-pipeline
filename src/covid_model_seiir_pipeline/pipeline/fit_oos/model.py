@@ -31,7 +31,6 @@ def prepare_ode_fit_parameters(past_infections: pd.Series,
                                draw_id: int) -> ODEParameters:
     past_index = past_infections.index
     population = population.reindex(past_index, level='location_id')
-
     np.random.seed(draw_id)
     sampled_params = {}
     fit_param_dict = fit_parameters.to_dict()
@@ -51,7 +50,6 @@ def prepare_ode_fit_parameters(past_infections: pd.Series,
     vaccinations = math.adjust_vaccinations(vaccinations)
     vaccinations = pd.concat([v.rename(k) for k, v in vaccinations.items()], axis=1)
     vaccinations = vaccinations.reindex(past_index, fill_value=0.)
-
     return ODEParameters(
         system=fit_parameters.system,
         population=population,
@@ -148,8 +146,6 @@ def run_loc_ode_fit(ode_parameters: ODEParameters) -> pd.DataFrame:
     new_e_wild = components['NewE_wild']
     new_e_variant = components['NewE_variant']
 
-    assert np.allclose(obs, new_e_wild + new_e_variant)
-
     s_wild = components.loc[:, [c for c in components if c in ['S', 'S_u', 'S_p', 'S_pa']]].sum(axis=1)
     s_variant_only = (components
                       .loc[:, [c for c in components if c in ['S_variant', 'S_variant_u', 'S_varaint_pa', 'S_m']]]
@@ -157,13 +153,13 @@ def run_loc_ode_fit(ode_parameters: ODEParameters) -> pd.DataFrame:
     s_variant = s_wild + s_variant_only
     i_wild = components.loc[:, [c for c in components if c[0] == 'I' and 'variant' not in c]].sum(axis=1)
     i_variant = components.loc[:, [c for c in components if c[0] == 'I' and 'variant' in c]].sum(axis=1)
-
+ 
     disease_density_wild = s_wild * i_wild**ode_parameters.alpha.values / total_population
-    beta_wild = (new_e_wild / disease_density_wild).reindex(full_index)
+    beta_wild = (new_e_wild.diff() / disease_density_wild).reindex(full_index)
     disease_density_variant = s_variant * i_variant**ode_parameters.alpha.values / total_population
-    beta_variant = (new_e_variant / disease_density_variant).reindex(full_index)
+    beta_variant = (new_e_variant.diff() / disease_density_variant).reindex(full_index)
     disease_density_all = (s_wild + s_variant) * (i_wild + i_variant)**ode_parameters.alpha.values / total_population
-    beta = (obs / disease_density_all).reindex(full_index)
+    beta = ((new_e_wild + new_e_variant).diff() / disease_density_all).reindex(full_index)
 
     components = components.reindex(full_index, fill_value=0.)
     components.loc[components['S'] == 0, 'S'] = total_population
