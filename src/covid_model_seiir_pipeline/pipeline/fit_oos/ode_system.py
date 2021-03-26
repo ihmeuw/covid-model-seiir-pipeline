@@ -90,22 +90,26 @@ def single_force_system(t: float, y: np.ndarray, params: np.ndarray):
         dy = delta_shift(
             y, dy,
             alpha, pi, epsilon,
-            compartments.S, compartments.E_variant, compartments.I1_variant,
+            compartments.S, compartments.E,
+            compartments.E_variant, compartments.I1_variant,
         )
         dy = delta_shift(
             y, dy,
             alpha, pi, epsilon,
-            compartments.S_u, compartments.E_variant_u, compartments.I1_variant_u,
+            compartments.S_u, compartments.E_u,
+            compartments.E_variant_u, compartments.I1_variant_u,
         )
         dy = delta_shift(
             y, dy,
             alpha, pi, epsilon,
-            compartments.S_p, compartments.E_variant_u, compartments.I1_variant_u,
+            compartments.S_p, compartments.E_p,
+            compartments.E_variant_u, compartments.I1_variant_u,
         )
         dy = delta_shift(
             y, dy,
             alpha, pi, epsilon,
-            compartments.S_pa, compartments.E_variant_pa, compartments.I1_variant_pa,
+            compartments.S_pa, compartments.E_pa,
+            compartments.E_variant_pa, compartments.I1_variant_pa,
         )
 
     return dy
@@ -137,11 +141,12 @@ def ramp_force_system(t: float, y: np.ndarray, params: np.ndarray):
 @numba.njit
 def delta_shift(y, dy,
                 alpha, pi, epsilon,
-                susceptible, exposed, infectious1):
+                susceptible, exposed,
+                exposed_variant, infectious1_variant):
     delta = min(max(pi * y[exposed], epsilon), 1/2 * y[susceptible])
     dy[susceptible] -= delta + (delta / 5)**(1 / alpha)
-    dy[exposed] += delta
-    dy[infectious1] += (delta / 5)**(1 / alpha)
+    dy[exposed_variant] += delta
+    dy[infectious1_variant] += (delta / 5)**(1 / alpha)
     return dy
 
 
