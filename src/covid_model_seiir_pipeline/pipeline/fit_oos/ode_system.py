@@ -86,7 +86,7 @@ def single_force_system(t: float, y: np.ndarray, params: np.ndarray):
     alpha, pi, epsilon, rho_variant = params[np.array([
         parameters.alpha, parameters.pi, parameters.epsilon, parameters.rho_variant
     ])]
-    if rho_variant and not infectious_variant:
+    if rho_variant > 0.01 and not infectious_variant:
         dy = delta_shift(
             y, dy,
             alpha, pi, epsilon,
@@ -125,6 +125,8 @@ def ramp_force_system(t: float, y: np.ndarray, params: np.ndarray):
     infectious_variant = y[_INFECTIOUS_VARIANT].sum()
     infectious_total = infectious_wild + infectious_variant
 
+    if rho_variant < 0.01:
+        lower_bound = 0.0
     if rho_variant < a:
         lower_bound = infectious_total * rho_variant
     elif rho_variant < b:

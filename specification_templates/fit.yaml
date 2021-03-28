@@ -6,7 +6,7 @@ data:
   n_draws: 100
   output_format: parquet
   output_root: /share/scratch/users/collijk/fit_oos
-  variant_version: '2021_03_23.02'
+  variant_version: '2021_03_24.03'
 scenarios:
   phi_0.0_chi_0.0_a_0.05_b_0.1:
     a: 0.05
