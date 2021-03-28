@@ -12,7 +12,7 @@ import numpy as np
 Parameters = namedtuple(
     'Parameters', [
         'alpha', 'sigma', 'gamma1', 'gamma2', 'new_e',
-        'kappa', 'rho', 'phi', 'pi', 'epsilon', 'rho_variant', 'a', 'b',
+        'kappa', 'rho', 'phi', 'pi', 'rho_variant',
         'p_cross_immune',
     ]
 )
@@ -78,36 +78,36 @@ _INFECTIOUS_VARIANT = np.array([
 
 
 @numba.njit
-def single_force_system(t: float, y: np.ndarray, params: np.ndarray):
+def system(t: float, y: np.ndarray, params: np.ndarray):
     infectious_wild = y[_INFECTIOUS_WILD].sum()
     infectious_variant = y[_INFECTIOUS_VARIANT].sum()
-    dy = system(t, y, params, infectious_wild, infectious_variant)
+    dy = _system(t, y, params, infectious_wild, infectious_variant)
 
-    alpha, pi, epsilon, rho_variant = params[np.array([
-        parameters.alpha, parameters.pi, parameters.epsilon, parameters.rho_variant
+    alpha, pi, rho_variant = params[np.array([
+        parameters.alpha, parameters.pi, parameters.rho_variant
     ])]
     if rho_variant > 0.01 and not infectious_variant:
         dy = delta_shift(
             y, dy,
-            alpha, pi, epsilon,
+            alpha, pi,
             compartments.S, compartments.E,
             compartments.E_variant, compartments.I1_variant,
         )
         dy = delta_shift(
             y, dy,
-            alpha, pi, epsilon,
+            alpha, pi,
             compartments.S_u, compartments.E_u,
             compartments.E_variant_u, compartments.I1_variant_u,
         )
         dy = delta_shift(
             y, dy,
-            alpha, pi, epsilon,
+            alpha, pi,
             compartments.S_p, compartments.E_p,
             compartments.E_variant_u, compartments.I1_variant_u,
         )
         dy = delta_shift(
             y, dy,
-            alpha, pi, epsilon,
+            alpha, pi,
             compartments.S_pa, compartments.E_pa,
             compartments.E_variant_pa, compartments.I1_variant_pa,
         )
@@ -116,36 +116,11 @@ def single_force_system(t: float, y: np.ndarray, params: np.ndarray):
 
 
 @numba.njit
-def ramp_force_system(t: float, y: np.ndarray, params: np.ndarray):
-    alpha, rho_variant, a, b = params[np.array([
-        parameters.alpha, parameters.rho_variant, parameters.a, parameters.b,
-    ])]
-
-    infectious_wild = y[_INFECTIOUS_WILD].sum()
-    infectious_variant = y[_INFECTIOUS_VARIANT].sum()
-    infectious_total = infectious_wild + infectious_variant
-
-    if rho_variant < 0.01:
-        lower_bound = 0.0
-    if rho_variant < a:
-        lower_bound = infectious_total * rho_variant
-    elif rho_variant < b:
-        z = infectious_total * rho_variant
-        lower_bound = z + (rho_variant - a) / (b - a) * (infectious_variant - z)
-    else:
-        lower_bound = infectious_variant
-    infectious_variant = max(lower_bound, infectious_variant)
-    infectious_wild = infectious_total - infectious_variant
-
-    return system(t, y, params, infectious_wild, infectious_variant)
-
-
-@numba.njit
 def delta_shift(y, dy,
-                alpha, pi, epsilon,
+                alpha, pi,
                 susceptible, exposed,
                 exposed_variant, infectious1_variant):
-    delta = min(max(pi * y[exposed], epsilon), 1/2 * y[susceptible])
+    delta = min(max(pi * y[exposed], 1), 1/2 * y[susceptible])
     dy[susceptible] -= delta + (delta / 5)**(1 / alpha)
     dy[exposed_variant] += delta
     dy[infectious1_variant] += (delta / 5)**(1 / alpha)
@@ -153,7 +128,7 @@ def delta_shift(y, dy,
 
 
 @numba.njit
-def system(t: float, y: np.ndarray, params: np.ndarray, infectious_wild: float, infectious_variant: float):
+def _system(t: float, y: np.ndarray, params: np.ndarray, infectious_wild: float, infectious_variant: float):
     params, vaccines = params[:len(parameters)], params[len(parameters):]
 
     outflow_map = np.zeros((y.size, y.size))
@@ -278,7 +253,7 @@ def system(t: float, y: np.ndarray, params: np.ndarray, infectious_wild: float, 
     assert np.all(np.isfinite(result))
     if result.sum() > 1e-5:
         print('Compartment mismatch: ', result.sum())
-    
+
     result = compute_tracking_columns(result, outflow_map, vaccines_out)
 
     return result
@@ -307,7 +282,7 @@ def split_new_e(y, params, infectious_wild, infectious_variant):
     new_e_variant_reinf = si_variant_reinf / z * new_e
 
     #assert np.isclose(new_e, new_e_wild + new_e_variant_naive + new_e_variant_reinf)
-    
+
     return np.array([new_e_wild, new_e_variant_naive, new_e_variant_reinf])
 
 

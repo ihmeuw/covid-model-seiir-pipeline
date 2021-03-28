@@ -16,7 +16,6 @@ class ODEParameters:
     This should be constructed such that each parameter series has a shared
     location-date index.
     """
-    system: str
 
     population: pd.Series
     new_e: pd.Series
@@ -30,10 +29,7 @@ class ODEParameters:
     rho: pd.Series
     phi: pd.Series
     pi: pd.Series
-    epsilon: pd.Series
     rho_variant: pd.Series
-    a: pd.Series
-    b: pd.Series
     p_cross_immune: pd.Series
 
     vaccines_unprotected: pd.Series
@@ -63,7 +59,6 @@ class ODEParameters:
 
     def reindex(self, index: pd.Index) -> 'ODEParameters':
         return ODEParameters(
-            system=self.system,
             **{key: value.reindex(index) for key, value in self.to_dict().items() if isinstance(value, pd.Series)},
         )
 
@@ -71,7 +66,6 @@ class ODEParameters:
         location_ids = self.population.reset_index().location_id.unique()
         for location_id in location_ids:
             loc_parameters = ODEParameters(
-                system=self.system,
                 **{key: value.loc[location_id]
                    for key, value in self.to_dict().items() if isinstance(value, pd.Series)},
             )

@@ -15,8 +15,7 @@ from covid_model_seiir_pipeline.pipeline.fit_oos.ode_system import (
     tracking_compartments,
     parameters,
     vaccine_types,
-    single_force_system,
-    ramp_force_system,
+    system,
 )
 from covid_model_seiir_pipeline.pipeline.fit_oos.specification import (
     FitScenario,
@@ -40,7 +39,7 @@ def prepare_ode_fit_parameters(past_infections: pd.Series,
             index=past_index,
             name=parameter,
         )
-    for parameter in ['kappa', 'phi', 'pi', 'epsilon', 'a', 'b', 'p_cross_immune']:
+    for parameter in ['kappa', 'phi', 'pi', 'p_cross_immune']:
         sampled_params[parameter] = pd.Series(
             fit_param_dict[parameter],
             index=past_index,
@@ -51,7 +50,6 @@ def prepare_ode_fit_parameters(past_infections: pd.Series,
     vaccinations = pd.concat([v.rename(k) for k, v in vaccinations.items()], axis=1)
     vaccinations = vaccinations.reindex(past_index, fill_value=0.)
     return ODEParameters(
-        system=fit_parameters.system,
         population=population,
         new_e=past_infections,
         **sampled_params,
@@ -123,10 +121,6 @@ def run_loc_ode_fit(ode_parameters: ODEParameters) -> pd.DataFrame:
         ode_parameters.to_df().loc[:, list(parameters._fields)].values,
         ode_parameters.get_vaccinations(vaccine_types._fields).values,
     ]).T
-    system = {
-        'single': single_force_system,
-        'ramp': ramp_force_system,
-    }[ode_parameters.system]
 
     result = math.solve_ode(
         system=system,
@@ -153,7 +147,7 @@ def run_loc_ode_fit(ode_parameters: ODEParameters) -> pd.DataFrame:
     s_variant = s_wild + s_variant_only
     i_wild = components.loc[:, [c for c in components if c[0] == 'I' and 'variant' not in c]].sum(axis=1)
     i_variant = components.loc[:, [c for c in components if c[0] == 'I' and 'variant' in c]].sum(axis=1)
- 
+
     disease_density_wild = s_wild * i_wild**ode_parameters.alpha.values / total_population
     beta_wild = (new_e_wild.diff() / disease_density_wild).reindex(full_index)
     disease_density_variant = s_variant * i_variant**ode_parameters.alpha.values / total_population

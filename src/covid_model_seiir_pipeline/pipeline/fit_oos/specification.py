@@ -49,7 +49,6 @@ class FitData:
 class FitScenario:
     """Specifies the parameters of the beta fit."""
     name: str = field(default='')
-    system: str = field(init=False)
 
     alpha: Tuple[float, float] = field(default=(0.9, 1.0))
     sigma: Tuple[float, float] = field(default=(0.2, 1/3))
@@ -59,18 +58,8 @@ class FitScenario:
     kappa: float = field(default=0.36)
     phi: float = field(default=0.5)
     pi: Optional[float] = field(default=None)
-    epsilon: Optional[float] = field(default=None)
-    a: Optional[float] = field(default=None)
-    b: Optional[float] = field(default=None)
 
     p_cross_immune: float = field(default=1.0)
-
-    def __post_init__(self):
-        single_force = self.pi is not None and self.epsilon is not None
-        ramp_force = self.a is not None and self.b is not None
-        if not (single_force or ramp_force) or (single_force and ramp_force):
-            raise ValueError('Bad variant forcing specification.')
-        self.system = 'single' if single_force else 'ramp'
 
     def to_dict(self) -> Dict:
         """Converts to a dict, coercing list-like items to lists."""
