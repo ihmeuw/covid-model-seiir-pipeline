@@ -29,26 +29,21 @@ def prepare_ode_fit_parameters(past_infections: pd.Series,
     population = population.reindex(past_index, level='location_id')
     np.random.seed(draw_id)
     sampled_params = {}
-    for parameter in ['alpha', 'sigma', 'gamma1', 'gamma2', 'kappa', 'chi']:
+    for parameter in ['alpha', 'sigma', 'gamma1', 'gamma2', 'kappa']:
         sampled_params[parameter] = pd.Series(
             np.random.uniform(*regression_parameters[parameter]),
             index=past_index,
             name=parameter,
         )
 
-    sampled_params['phi'] = pd.Series(
-        np.random.normal(
-            loc=sampled_params['chi'] + regression_parameters['phi_mean_shift'],
-            scale=regression_parameters['phi_sd'],
-        ),
-        index=past_index,
-        name='phi',
+    chi = np.random.uniform(*regression_parameters['chi']
+    phi = np.random.normal(
+        loc=chi + regression_parameters['phi_mean_shift'], 
+        scale=regression_parameters['phi_sd'],
     )
-    sampled_params['pi'] = pd.Series(
-        regression_parameters['pi'],
-        index=past_index,
-        name='pi'
-    )
+    sampled_params['chi'] = pd.Series(chi, index=past_index, name='chi')
+    sampled_params['phi'] = pd.Series(phi, index=past_index, name='phi')
+    sampled_params['pi'] = pd.Series(regression_parameters['pi'], index=past_index, name='pi')
 
     vaccinations = math.adjust_vaccinations(vaccinations)
     vaccinations = pd.concat([v.rename(k) for k, v in vaccinations.items()], axis=1)

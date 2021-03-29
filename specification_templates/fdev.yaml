@@ -1,6 +1,6 @@
 data:
-  regression_version: '2021_03_04.17'
-  covariate_version: '2021_03_02.01'
+  regression_version: '2021_03_29.06'
+  covariate_version: '2021_03_29.06'
   output_root: ''
   output_format: 'parquet'
   fh_subnationals: False
@@ -29,6 +29,3 @@ scenarios:
       lri_mortality: 'reference'
       proportion_under_100m: 'reference'
       proportion_over_2_5k: 'reference'
-      variant_prevalence_B117: 'reference'
-      variant_prevalence_B1351: 'reference'
-      variant_prevalence_P1: 'reference'
