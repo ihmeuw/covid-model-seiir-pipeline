@@ -13,7 +13,7 @@ Parameters = namedtuple(
     'Parameters', [
         'alpha', 'sigma', 'gamma1', 'gamma2', 'new_e',
         'kappa', 'rho', 'phi', 'pi', 'rho_variant',
-        'p_cross_immune',
+        'chi',
     ]
 )
 parameters = Parameters(*list(range(len(Parameters._fields))))
@@ -407,11 +407,11 @@ def seiir_transition_wild(y, params,
     outflow_map[susceptible, exposed] += new_e_wild
     outflow_map[exposed, infectious1] += params[parameters.sigma] * y[exposed]
     outflow_map[infectious1, infectious2] += params[parameters.gamma1] * y[infectious1]
-    outflow_map[infectious2, removed] += params[parameters.p_cross_immune] * params[parameters.gamma2] * y[infectious2]
+    outflow_map[infectious2, removed] += params[parameters.chi] * params[parameters.gamma2] * y[infectious2]
 
     outflow_map[susceptible, exposed_variant] += new_e_variant
     outflow_map[infectious2, susceptible_variant] += (
-        (1 - params[parameters.p_cross_immune]) * params[parameters.gamma2] * y[infectious2]
+        (1 - params[parameters.chi]) * params[parameters.gamma2] * y[infectious2]
     )
     return outflow_map
 

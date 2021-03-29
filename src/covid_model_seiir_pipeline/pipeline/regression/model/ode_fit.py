@@ -55,6 +55,7 @@ def prepare_ode_fit_parameters(past_infections: pd.Series,
     vaccinations = vaccinations.reindex(past_index, fill_value=0.)
 
     return ODEParameters(
+        new_e=past_infections,
         population=population,
         rho=rhos['rho'].reindex(past_index, fill_value=0.0),
         rho_variant=rhos['rho_variant'].reindex(past_index, fill_value=0.0),
@@ -156,14 +157,18 @@ def run_loc_ode_fit(ode_parameters: ODEParameters) -> pd.DataFrame:
     beta_wild = (new_e_wild.diff() / disease_density_wild).reindex(full_index)
     disease_density_variant = s_variant * i_variant**ode_parameters.alpha.values / total_population
     beta_variant = (new_e_variant.diff() / disease_density_variant).reindex(full_index)
-    disease_density_all = (s_wild + s_variant) * (i_wild + i_variant)**ode_parameters.alpha.values / total_population
-    beta_system = ((new_e_wild + new_e_variant).diff() / disease_density_all).reindex(full_index)
 
     components = components.reindex(full_index, fill_value=0.)
     components.loc[components['S'] == 0, 'S'] = total_population
-    components['beta_system'] = beta_system
-    components['beta'] = beta_wild
+    components['beta_wild'] = beta_wild
     components['beta_variant'] = beta_variant
+
+    rho = ode_parameters.rho
+    kappa = ode_parameters.kappa
+    phi = ode_parameters.phi
+    beta1 = beta_wild / (1 + kappa * rho)
+    beta2 = beta_variant / (1 + kappa * phi)
+    components['beta'] = pd.concat([beta1, beta2], axis=1).mean(axis=1)
 
     return components.reset_index()
 

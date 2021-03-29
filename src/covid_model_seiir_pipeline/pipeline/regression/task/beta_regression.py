@@ -60,6 +60,7 @@ def run_beta_regression(regression_version: str, draw_id: int, progress_bar: boo
         beta_fit['beta'],
         covariates,
     )
+    import pdb; pdb.set_trace()
     regressor = model.build_regressor(regression_specification.covariates.values(), prior_coefficients)
     logger.info('Fitting beta regression', context='compute_regression')
     coefficients = regressor.fit(
