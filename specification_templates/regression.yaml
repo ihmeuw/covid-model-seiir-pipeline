@@ -13,10 +13,24 @@ workflow:
   run_hospital: true
 regression_parameters:
   n_draws: 100
+  # Mixing parameter.  dS/dt = -beta * S * I ** alpha
   alpha: [0.9, 1.0]
+  # 1 / incubation period.  dE/dt = -dS/dt - sigma * E
   sigma: [0.2, 0.3333]
+  # 1 / duration pre-symptomatic.  dI1/dt = sigma * E - gamma1 * I1
   gamma1: [0.5, 0.5]
+  # 1 / duration symptomatic or asymptomatic.  dI2/dt = gamma1 * I1 - gamma2 * I2
   gamma2: [0.3333, 1.0]
+  # proportion increase in transmission intensity for non-escape variants
+  kappa: [0.3, 0.5]
+  # cross-variant immunity
+  chi: [0.0, 0.6]
+  # proportion increase in transmission for escape variants relative to non-escape variants.
+  # Mean of phi will be chi + phi_mean_shift
+  phi_mean_shift: 0.5
+  phi_sd: 0.13
+  # Proportion of current E to send to escape variant E on invasion.
+  pi: 0.1
   sequential_refit: False
 hospital_parameters:
   hospital_stay_death: 6
@@ -111,26 +125,5 @@ covariates:
     use_re: False
     gprior: [0.0, 0.001]
     bounds: [0.0, 1000.0]
-    re_var: 1.0
-    draws: False
-  variant_prevalence_B117:
-    order: 0
-    use_re: False
-    gprior: [0.0, 1000.0]
-    bounds: [0.3074, 0.3075]
-    re_var: 1.0
-    draws: False
-  variant_prevalence_B1351:
-    order: 0
-    use_re: False
-    gprior: [0.0, 1000.0]
-    bounds: [0.3074, 0.3075]
-    re_var: 1.0
-    draws: False
-  variant_prevalence_P1:
-    order: 0
-    use_re: False
-    gprior: [0.0, 1000.0]
-    bounds: [0.3074, 0.3075]
     re_var: 1.0
     draws: False
