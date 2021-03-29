@@ -23,7 +23,6 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
     )
     scenario_spec = forecast_spec.scenarios[scenario]
     data_interface = ForecastDataInterface.from_specification(forecast_spec)
-
     #################
     # Build indices #
     #################
