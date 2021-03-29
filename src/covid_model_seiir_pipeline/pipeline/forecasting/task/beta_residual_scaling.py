@@ -14,7 +14,6 @@ from covid_model_seiir_pipeline.lib import (
 )
 from covid_model_seiir_pipeline.pipeline.forecasting.specification import (
     ForecastSpecification,
-    ScenarioSpecification,
     FORECAST_JOBS,
 )
 from covid_model_seiir_pipeline.pipeline.forecasting.data import ForecastDataInterface
@@ -76,10 +75,10 @@ def run_compute_beta_scaling_parameters(forecast_version: str, scenario: str, pr
     data_interface = ForecastDataInterface.from_specification(forecast_spec)
 
     logger.info('Loading input data.', context='read')
-    scenario_spec = forecast_spec.scenarios[scenario]
+    beta_scaling = forecast_spec.scenarios[scenario].beta_scaling
 
     logger.info('Computing scaling parameters.', context='compute')
-    scaling_data = compute_initial_beta_scaling_parameters(scenario_spec, data_interface, num_cores, progress_bar)
+    scaling_data = compute_initial_beta_scaling_parameters(beta_scaling, data_interface, num_cores, progress_bar)
 
     logger.info('Writing scaling parameters to disk.', context='write')
     write_out_beta_scale(scaling_data, scenario, data_interface, num_cores)
@@ -87,20 +86,15 @@ def run_compute_beta_scaling_parameters(forecast_version: str, scenario: str, pr
     logger.report()
 
 
-def compute_initial_beta_scaling_parameters(scenario_spec: ScenarioSpecification,
+def compute_initial_beta_scaling_parameters(beta_scaling: dict,
                                             data_interface: ForecastDataInterface,
                                             num_cores: int,
                                             progress_bar: bool) -> List[pd.DataFrame]:
     # Serialization is our bottleneck, so we parallelize draw level data
     # ingestion and computation across multiple processes.
-    covariates = data_interface.load_covariates(scenario_spec)
-    variant_prevalence = covariates[['variant_prevalence_B1351', 'variant_prevalence_P1']].sum(axis=1)
-    average_over_min_min = variant_prevalence[variant_prevalence > 0].reset_index().groupby('location_id').date.min()
-
     _runner = functools.partial(
         compute_initial_beta_scaling_parameters_by_draw,
-        beta_scaling=scenario_spec.beta_scaling,
-        average_over_min_min=average_over_min_min,
+        beta_scaling=beta_scaling,
         data_interface=data_interface
     )
     draws = list(range(data_interface.get_n_draws()))
@@ -111,19 +105,14 @@ def compute_initial_beta_scaling_parameters(scenario_spec: ScenarioSpecification
 
 def compute_initial_beta_scaling_parameters_by_draw(draw_id: int,
                                                     beta_scaling: Dict,
-                                                    average_over_min_min: pd.Series,
                                                     data_interface: ForecastDataInterface) -> pd.DataFrame:
 
     # Construct a list of pandas Series indexed by location and named
     # as their column will be in the output dataframe. We'll append
     # to this list as we construct the parameters.
     draw_data = []
+
     betas = data_interface.load_betas(draw_id)
-    transition_date = betas.reset_index().groupby('location_id').date.max()
-
-    average_over_min_min = average_over_min_min.reindex(transition_date.index, fill_value=transition_date.max())
-    average_over_min_min = np.maximum((transition_date - average_over_min_min).dt.days, 1)
-
     # Select out the transition day to compute the initial scaling parameter.
     beta_transition = betas.groupby('location_id').last()
 
@@ -135,22 +124,17 @@ def compute_initial_beta_scaling_parameters_by_draw(draw_id: int,
     # to some ancillary information that may be useful for plotting/debugging.
     rs = np.random.RandomState(draw_id)
 
-    a = pd.Series(rs.randint(average_over_min_min, average_over_min_min + beta_scaling['average_over_min']),
-                  index=average_over_min_min.index)
-    b = pd.Series(rs.randint(a + 21, a + beta_scaling['average_over_max']),
-                  index=average_over_min_min.index)
+    a = rs.randint(1, beta_scaling['average_over_min'])
+    b = rs.randint(a + 21, beta_scaling['average_over_max'])
 
-    draw_data.append(a.rename('history_days_start'))
-    draw_data.append(b.rename('history_days_end'))
+    draw_data.append(pd.Series(a, index=beta_transition.index, name='history_days_start'))
+    draw_data.append(pd.Series(b, index=beta_transition.index, name='history_days_end'))
     draw_data.append(pd.Series(beta_scaling['window_size'], index=beta_transition.index, name='window_size'))
 
-    log_beta_residual = np.log(betas['beta'] / betas['beta_hat'])
-    log_beta_residual_mean = pd.Series(0.0, name='log_beta_residual_mean', index=a.index)
-    for location_id in log_beta_residual_mean.index:
-        loc_log_beta_residual = log_beta_residual.loc[location_id]
-        loc_a, loc_b = a.loc[location_id], b.loc[location_id]
-        log_beta_residual_mean.loc[location_id] = loc_log_beta_residual.iloc[-loc_b:-loc_a].mean()
-
+    log_beta_residual_mean = (np.log(betas['beta'] / betas['beta_hat'])
+                              .groupby(level='location_id')
+                              .apply(lambda x: x.iloc[-b: -a].mean())
+                              .rename('log_beta_residual_mean'))
     draw_data.append(log_beta_residual_mean)
     draw_data.append(pd.Series(draw_id, index=beta_transition.index, name='draw'))
 
