@@ -36,7 +36,7 @@ def prepare_ode_fit_parameters(past_infections: pd.Series,
             name=parameter,
         )
 
-    chi = np.random.uniform(*regression_parameters['chi']
+    chi = np.random.uniform(*regression_parameters['chi'])
     phi = np.random.normal(
         loc=chi + regression_parameters['phi_mean_shift'], 
         scale=regression_parameters['phi_sd'],
