@@ -387,7 +387,7 @@ def get_unprotected_vaccines_from_not_s(y,
 
     for compartment, param in param_map:
         vaccines_out[compartment, vaccine_types.u] = min(
-            1 - param * y[compartment],
+            (1 - param) * y[compartment],
             y[compartment] / n_unvaccinated * v_total
         )
     vaccines_out[removed, vaccine_types.u] = min(

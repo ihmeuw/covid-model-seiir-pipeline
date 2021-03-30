@@ -11,14 +11,12 @@ import numpy as np
 PARAMETERS = [
     'alpha', 'beta_wild', 'beta_variant', 'sigma', 'gamma1', 'gamma2',
     'theta_plus', 'theta_minus',
-    'p_wild', 'p_variant',
-    'probability_cross_immune',
+    'rho_variant', 'pi', 'chi'
 ]
 (
     alpha, beta_wild, beta_variant, sigma, gamma1, gamma2,
     theta_plus, theta_minus,
-    p_wild, p_variant,
-    p_cross_immune
+    rho_variant, pi, chi,
 ) = range(len(PARAMETERS))
 
 # Compartments
@@ -83,24 +81,8 @@ LOCAL_I1 = 2
 LOCAL_I2 = 3
 
 
-# TODO: We're one layer of abstraction deeper than necessary.
 @numba.njit
-def variant_natural_system(t: float, y: np.ndarray, params: np.ndarray):
-    return variant_system(t, y, params, variant_natural_single_group_system)
-
-
-@numba.njit
-def variant_implicit_system(t: float, y: np.ndarray, params: np.ndarray):
-    return variant_system(t, y, params, variant_implicit_single_group_system)
-
-
-@numba.njit
-def variant_explicit_system(t: float, y: np.ndarray, params: np.ndarray):
-    return variant_system(t, y, params, variant_explicit_single_group_system)
-
-
-@numba.njit
-def variant_system(t: float, y: np.ndarray, params: np.ndarray, single_group_system):
+def system(t: float, y: np.ndarray, params: np.ndarray):
     # Split parameters from vaccines
     params, vaccines = params[:-N_VACCINE_PARAMETERS], params[-N_VACCINE_PARAMETERS:]
 
@@ -142,58 +124,64 @@ def variant_system(t: float, y: np.ndarray, params: np.ndarray, single_group_sys
 
 
 @numba.njit
-def variant_natural_single_group_system(t: float, y: np.ndarray, params: np.ndarray,
-                                        vaccines: np.ndarray, n_total: float, infectious: np.ndarray):
+def single_group_system(t: float, y: np.ndarray, params: np.ndarray,
+                        vaccines: np.ndarray, n_total: float, infectious: np.ndarray):
     infectious_wild, infectious_variant = infectious
-    infectious_total = infectious_wild + infectious_variant
-    if params[p_variant] < 0.25:
-        lower_bound = infectious_total * params[p_variant]
-    elif params[p_variant] < 0.50:
-        z = infectious_total * params[p_variant]
-        lower_bound = z + (params[p_variant] - 0.25) / (0.50 - 0.25) * (infectious_variant - z)
-    else:
-        lower_bound = infectious_variant
-    infectious_variant = max(lower_bound, infectious_variant)
-    infectious_wild = infectious_total - infectious_variant
 
     b_wild = params[beta_wild] * infectious_wild ** params[alpha] / n_total
     b_variant_s = params[beta_variant] * infectious_variant ** params[alpha] / n_total
     b_variant_s_variant = b_variant_s
-    return variant_single_group_system(t, y, params, b_wild, b_variant_s, b_variant_s_variant, vaccines)
+    dy = _system(t,
+                 y, params,
+                 b_wild, b_variant_s, b_variant_s_variant,
+                 vaccines)
+
+    if params[rho_variant] > 0.01 and not infectious_variant:
+        dy = delta_shift(
+            y, dy,
+            params,
+            s, e,
+            e_variant, i1_variant
+        )
+        dy = delta_shift(
+            y, dy,
+            params,
+            s_u, e_u,
+            e_u_variant, i1_u_variant
+        )
+        dy = delta_shift(
+            y, dy,
+            params,
+            s_p, e_p,
+            e_u_variant, i1_u_variant
+        )
+        dy = delta_shift(
+            y, dy,
+            params,
+            s_pa, e_pa,
+            e_pa_variant, i1_pa_variant
+        )
+
+    return dy
+
+@numba.njit
+def delta_shift(y, dy,
+                params,
+                susceptible, exposed,
+                exposed_variant, infectious1_variant):
+    delta = min(max(params[pi] * y[exposed], 1), 1/2 * y[susceptible])
+    dy[susceptible] -= delta + (delta / 5)**(1 / params[alpha])
+    dy[exposed_variant] += delta
+    dy[infectious1_variant] += (delta / 5)**(1 / params[alpha])
+    return dy
+
 
 
 @numba.njit
-def variant_implicit_single_group_system(t: float, y: np.ndarray, params: np.ndarray,
-                                         vaccines: np.ndarray, n_total: float, infectious: np.ndarray):
-    infectious_wild, infectious_variant = infectious
-    i_total = infectious.sum()
-
-    b_wild = params[beta_wild] * params[p_wild] * i_total ** params[alpha] / n_total
-    b_variant_s = params[beta_variant] * params[p_variant] * i_total ** params[alpha] / n_total
-    b_variant_s_variant = params[beta_variant] * params[p_variant] * infectious_variant ** params[alpha] / n_total
-
-    return variant_single_group_system(t, y, params, b_wild, b_variant_s, b_variant_s_variant, vaccines)
-
-
-@numba.njit
-def variant_explicit_single_group_system(t: float, y: np.ndarray, params: np.ndarray,
-                                         vaccines: np.ndarray, n_total: float, infectious: np.ndarray):
-    infectious_wild, infectious_variant = infectious
-
-    b_combined = (params[beta_wild] * infectious_wild ** params[alpha] / n_total
-                  + params[beta_variant] * infectious_variant ** params[alpha] / n_total)
-    b_wild = params[p_wild] * b_combined
-    b_variant_s = params[p_variant] * b_combined
-    b_variant_s_variant = params[beta_variant] * params[p_variant] * infectious_variant ** params[alpha] / n_total
-
-    return variant_single_group_system(t, y, params, b_wild, b_variant_s, b_variant_s_variant, vaccines)
-
-
-@numba.njit
-def variant_single_group_system(t: float,
-                                y: np.ndarray, params: np.ndarray,
-                                b_wild: float, b_variant_s: float, b_variant_s_variant: float,
-                                vaccines: np.ndarray):
+def _system(t: float,
+            y: np.ndarray, params: np.ndarray,
+            b_wild: float, b_variant_s: float, b_variant_s_variant: float,
+            vaccines: np.ndarray):
     # Allocate our working space.  Transition matrix map.
     # Each row is a FROM compartment and each column is a TO compartment
     outflow_map = np.zeros((y.size, y.size))
