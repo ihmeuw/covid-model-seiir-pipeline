@@ -38,40 +38,34 @@ if TYPE_CHECKING:
 def build_model_parameters(indices: Indices,
                            ode_parameters: pd.DataFrame,
                            beta_regression: pd.DataFrame,
-                           thetas: pd.Series,
                            covariates: pd.DataFrame,
                            coefficients: pd.DataFrame,
+                           thetas: pd.Series,
+                           rhos: pd.DataFrame,
                            beta_scales: pd.DataFrame,
-                           vaccine_data: pd.DataFrame,
-                           scenario_spec: 'ScenarioSpecification',
-                           draw_id: int) -> ModelParameters:
+                           vaccine_data: pd.DataFrame) -> ModelParameters:
     # These are all the same by draw.  Just broadcasting them over a new index.
-    alpha = pd.Series(ode_parameters.alpha.mean(), index=indices.full, name='alpha')
-    sigma = pd.Series(ode_parameters.sigma.mean(), index=indices.full, name='sigma')
-    gamma1 = pd.Series(ode_parameters.gamma1.mean(), index=indices.full, name='gamma1')
-    gamma2 = pd.Series(ode_parameters.gamma2.mean(), index=indices.full, name='gamma2')
+    ode_params = {
+        param: pd.Series(ode_parameters[param].mean(), index=indices.full, name=param)
+        for param in ['alpha', 'sigma', 'gamma1', 'gamma2', 'pi', 'chi']
+    }
 
-    np.random.seed(draw_id)
-    variant_beta_scale = np.random.uniform(*scenario_spec.variant_beta_scale)
-    probability_cross_immune = pd.Series(
-        np.random.uniform(*scenario_spec.probability_cross_immune),
-        index=indices.full, name='probability_cross_immune'
-    )
-
-    beta, beta_wild, beta_variant, p_wild, p_variant, p_all_variant = get_betas_and_prevalences(
+    beta, beta_wild, beta_variant, beta_hat, rho, rho_variant = get_betas_and_prevalences(
         indices,
         beta_regression,
         covariates,
         coefficients,
         beta_scales,
-        variant_beta_scale,
+        rhos,
+        ode_parameters['kappa'].mean(),
+        ode_parameters['phi'].mean(),
     )
 
     thetas = thetas.reindex(indices.full, level='location_id')
 
     if ((1 < thetas) | thetas < -1).any():
         raise ValueError('Theta must be between -1 and 1.')
-    if (sigma - thetas >= 1).any():
+    if (ode_params['sigma'] - thetas >= 1).any():
         raise ValueError('Sigma - theta must be smaller than 1')
 
     theta_plus = np.maximum(thetas, 0).rename('theta_plus')
@@ -81,20 +75,16 @@ def build_model_parameters(indices: Indices,
     adjusted_vaccinations = math.adjust_vaccinations(vaccine_data)
 
     return ModelParameters(
-        alpha=alpha,
+        **ode_params,
         beta=beta,
-        sigma=sigma,
-        gamma1=gamma1,
-        gamma2=gamma2,
+        beta_wild=beta_wild,
+        beta_variant=beta_variant,
+        beta_hat=beta_hat,
+        rho=rho,
+        rho_variant=rho_variant,
         theta_plus=theta_plus,
         theta_minus=theta_minus,
         **adjusted_vaccinations,
-        beta_wild=beta_wild,
-        beta_variant=beta_variant,
-        p_wild=p_wild,
-        p_variant=p_variant,
-        p_all_variant=p_all_variant,
-        probability_cross_immune=probability_cross_immune,
     )
 
 
@@ -103,8 +93,10 @@ def get_betas_and_prevalences(indices: Indices,
                               covariates: pd.DataFrame,
                               coefficients: pd.DataFrame,
                               beta_shift_parameters: pd.DataFrame,
-                              variant_beta_scale: float) -> Tuple[pd.Series, pd.Series, pd.Series,
-                                                                  pd.Series, pd.Series, pd.Series]:
+                              rhos: pd.DataFrame,
+                              kappa: float,
+                              phi: float,) -> Tuple[pd.Series, pd.Series, pd.Series,
+                                                    pd.Series, pd.Series, pd.Series]:
     log_beta_hat = math.compute_beta_hat(covariates, coefficients)
     beta_hat = np.exp(log_beta_hat).loc[indices.future].rename('beta_hat').reset_index()
     beta = (beta_shift(beta_hat, beta_shift_parameters)
@@ -112,33 +104,12 @@ def get_betas_and_prevalences(indices: Indices,
             .beta_hat
             .rename('beta'))
     beta = beta_regression.loc[indices.past, 'beta'].append(beta)
-    log_beta = np.log(beta)
+    beta_wild = beta * (1 + kappa * rhos['rho'])
+    beta_variant = (1 + kappa * phi)
+    rho = rhos['rho'].reindex(indices.full, method='ffill')
+    rho_variant = rhos['rho_variant'].reindex(indices.full, method='ffill')
 
-    coef = {}
-    prev = {}
-    effects = {}
-    for v in ['B117', 'B1351', 'P1']:
-        coef[v] = coefficients[f'variant_prevalence_{v}']
-        prev[v] = covariates[f'variant_prevalence_{v}'].fillna(0)
-        effects[v] = coef[v] * prev[v]
-
-    p_variant = (prev['B1351'] + prev['P1']).rename('p_variant')
-    p_wild = (1 - p_variant).rename('p_wild')
-    p_w = 1 - sum(prev.values())
-
-    log_beta_w = log_beta - sum(effects.values())
-    beta_w = np.exp(log_beta_w)
-    beta_b117 = np.exp(log_beta_w + coef['B117'])
-
-    beta_wild = (((p_w * beta_w + prev['B117'] * beta_b117) / p_wild)
-                 .groupby('location_id')
-                 .fillna(method='bfill')
-                 .rename('beta_wild'))
-    beta_variant = (beta_w + variant_beta_scale * (beta_b117 - beta_w)).rename('beta_variant')
-
-    p_all_variant = sum(prev.values()).rename('p_all_variant')
-
-    return beta, beta_wild, beta_variant, p_wild, p_variant, p_all_variant
+    return beta, beta_wild, beta_variant, np.exp(log_beta_hat), rho, rho_variant
 
 
 def beta_shift(beta_hat: pd.DataFrame,

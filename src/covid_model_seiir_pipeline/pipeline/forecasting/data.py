@@ -90,6 +90,9 @@ class ForecastDataInterface:
     def load_past_deaths(self, draw_id: int) -> pd.Series:
         return self._get_regression_data_interface().load_deaths(draw_id=draw_id)
 
+    def load_variant_prevalence(self):
+        return self._get_regression_data_interface().load_variant_prevalence()
+
     def get_hospital_parameters(self) -> HospitalParameters:
         return self._get_regression_data_interface().load_specification().hospital_parameters
 

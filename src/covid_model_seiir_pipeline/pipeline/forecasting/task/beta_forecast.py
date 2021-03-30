@@ -61,6 +61,9 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
     beta_scales = data_interface.load_beta_scales(scenario=scenario, draw_id=draw_id)
     # Vaccine data, of course.
     vaccinations = data_interface.load_vaccinations(scenario_spec.vaccine_version)
+    # Variant prevalences.
+    rhos = data_interface.load_variant_prevalence()
+
     import pdb; pdb.set_trace()
     # Collate all the parameters, ensure consistent index, etc.
     logger.info('Processing inputs into model parameters.', context='transform')
@@ -69,13 +72,12 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
         indices,
         ode_params,
         betas,
-        thetas,
         covariates,
         coefficients,
+        thetas,
+        rhos,
         beta_scales,
         vaccinations,
-        scenario_spec,
-        draw_id,
     )
 
     ############################################################

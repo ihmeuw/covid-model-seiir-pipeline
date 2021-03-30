@@ -76,8 +76,6 @@ class ScenarioSpecification:
     theta: Union[str, int] = field(default=0)
     vaccine_version: str = field(default='reference')
     variant_ifr_scale: float = field(default=1.29)
-    probability_cross_immune: Tuple[float, float] = field(default=(0.0, 0.5))
-    variant_beta_scale: Tuple[float, float] = field(default=(0.5, 1.0))
     covariates: Dict[str, str] = field(default_factory=dict)
 
     def __post_init__(self):
