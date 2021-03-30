@@ -78,7 +78,6 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
         beta_scales,
         vaccinations,
     )
-    import pdb; pdb.set_trace()
     ############################################################
     # Redistribute past compartments and get initial condition #
     ############################################################
@@ -88,18 +87,11 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
 
     logger.info('Redistributing past compartments.', context='transform')
     past_compartments = model.redistribute_past_compartments(
-        infections=past_infections,
         compartments=compartments,
         population=population,
-        model_parameters=model_parameters,
     )
     initial_condition = past_compartments.loc[indices.initial_condition].reset_index(level='date', drop=True)
-    model_parameters = model.adjust_beta(
-        model_parameters,
-        initial_condition,
-        past_infections.loc[indices.initial_condition],
-    )
-
+    import pdb; pdb.set_trace()
     ###################################################
     # Construct parameters for postprocessing results #
     ###################################################

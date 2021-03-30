@@ -159,75 +159,18 @@ def beta_shift(beta_hat: pd.DataFrame,
 # Past compartment redistribution #
 ###################################
 
-def redistribute_past_compartments(infections: pd.Series,
-                                   compartments: pd.DataFrame,
-                                   population: pd.DataFrame,
-                                   model_parameters: ModelParameters):
+def redistribute_past_compartments(compartments: pd.DataFrame,
+                                   population: pd.DataFrame):
     pop_weights = _get_pop_weights(population)
-    variant_prevalence = model_parameters.p_variant.loc[compartments.index]
-    p_ci = model_parameters.probability_cross_immune.loc[compartments.index]
-
     redistributed_compartments = []
+    import pdb; pdb.set_trace()
     for group in ['lr', 'hr']:
         # Need to broadcast pop weights.
         pop_weight = pop_weights[group].reindex(compartments.index, level='location_id')
 
         group_compartments = compartments.mul(pop_weight, axis=0)
         group_compartments = group_compartments.reindex(ode_system.COMPARTMENTS, axis='columns', fill_value=0.0)
-        s_start = group_compartments.groupby('location_id')['S'].max()
-        group_compartments_diff = group_compartments.groupby('location_id').diff()
 
-        # R needs to to be redistributed in diff space since it's a sink only.
-        group_compartments_diff = redistribute('R', group_compartments_diff, variant_prevalence)
-
-        # Tracking compartments
-        infecs = infections.reindex(group_compartments_diff.index)
-        s_wild = group_compartments[['S', 'S_u', 'S_p', 'S_pa']].sum(axis=1)
-        s_wild_p = group_compartments[['S_p', 'S_pa']].sum(axis=1)
-        group_compartments_diff['NewE_wild'] = infecs * pop_weight * (1 - variant_prevalence)
-        group_compartments_diff['NewE_p_wild'] = infecs * pop_weight * (1 - variant_prevalence) * s_wild_p / s_wild
-
-        s_variant = s_wild + group_compartments[['S_variant', 'S_variant_u', 'S_variant_pa', 'S_m']].sum(axis=1)
-        s_variant_p = group_compartments[['S_pa', 'S_variant_pa', 'S_m']].sum(axis=1)
-        group_compartments_diff['NewE_variant'] = infecs * pop_weight * variant_prevalence
-        group_compartments_diff['NewE_p_variant'] = infecs * pop_weight * variant_prevalence * s_variant_p / s_variant
-
-        group_compartments = group_compartments_diff.groupby('location_id').cumsum().fillna(0)
-        # Because these compartments have inflows and outflows and people spend a short time in them,
-        # the best approximation is a redistribution in cumulative space.
-        for compartment in ['E', 'I1', 'I2']:
-            group_compartments = redistribute(compartment, group_compartments, variant_prevalence)
-
-        # Who's in R vs. S_variant depends roughly on the probability of cross immunity.
-        # This is a bad approximation if variant prevalence is high and there have been a significant
-        # of infections.
-        group_compartments['S_variant'] = (
-            (group_compartments['R'] + group_compartments['R_variant']) * (1 - p_ci) - group_compartments['R_variant']
-        )
-        group_compartments['R'] = group_compartments['R'] * p_ci
-
-        group_compartments['S_variant_u'] = (
-            group_compartments[['R_u', 'R_p', 'R_variant_u']].sum(axis=1) * (1 - p_ci)
-            - group_compartments['R_variant_u']
-        )
-        group_compartments['R_u'] = group_compartments['R_u'] * p_ci
-        group_compartments['R_p'] = group_compartments['R_p'] * p_ci
-
-        group_compartments['S_variant_pa'] = (
-                group_compartments[['R_pa', 'R_variant_pa']].sum(axis=1) * (1 - p_ci)
-                - group_compartments['R_variant_pa']
-        )
-        group_compartments_diff['R_pa'] = group_compartments_diff['R_pa'] * p_ci
-
-        group_compartments['S'] += s_start.reindex(group_compartments.index, level='location_id')
-
-        group_compartments['V_u'] = group_compartments[[c for c in group_compartments if '_u' in c]].sum(axis=1)
-        group_compartments['V_p'] = group_compartments[[c for c in group_compartments if '_p' in c and '_pa' not in c]].sum(axis=1)
-        group_compartments['V_pa'] = group_compartments[[c for c in group_compartments if '_pa' in c]].sum(axis=1)
-        group_compartments['V_m'] = group_compartments['S_m']
-        group_compartments['V_ma'] = group_compartments['R_m']
-
-        group_compartments.columns = [f'{c}_{group}' for c in group_compartments]
         redistributed_compartments.append(group_compartments)
     redistributed_compartments = pd.concat(redistributed_compartments, axis=1)
 
@@ -243,64 +186,6 @@ def _get_pop_weights(population: pd.DataFrame) -> Dict[str, pd.Series]:
         'hr': high_risk_pop / total_pop,
     }
     return pop_weights
-
-
-def redistribute(compartment: str, components: pd.DataFrame, variant_prevalence: pd.Series) -> pd.DataFrame:
-    components[f'{compartment}_variant'] = components[compartment] * variant_prevalence
-    components[f'{compartment}'] = components[compartment] * (1 - variant_prevalence)
-
-    components[f'{compartment}_variant_u'] = (
-        (components[f'{compartment}_u'] + components[f'{compartment}_p']) * variant_prevalence
-    )
-    components[f'{compartment}_u'] = components[f'{compartment}_u'] * (1 - variant_prevalence)
-    components[f'{compartment}_p'] = components[f'{compartment}_p'] * (1 - variant_prevalence)
-
-    components[f'{compartment}_variant_pa'] = components[f'{compartment}_pa'] * variant_prevalence
-    components[f'{compartment}_pa'] = components[f'{compartment}_pa'] * (1 - variant_prevalence)
-    return components
-
-
-def adjust_beta(model_parameters: ModelParameters,
-                initial_condition: pd.DataFrame,
-                new_e: pd.Series) -> ModelParameters:
-    s_wild = initial_condition[
-        [c for c in initial_condition if c[0] == 'S' and 'variant' not in c and 'm' not in c]
-    ].sum(axis=1)
-    s_variant = initial_condition[
-        [c for c in initial_condition if c[0] == 'S']
-    ].sum(axis=1)
-    i_wild = initial_condition[
-        [c for c in initial_condition if c[0] == 'I' and 'variant' not in c]
-    ].sum(axis=1)
-    i_variant = initial_condition[
-        [c for c in initial_condition if c[0] == 'I' and 'variant' in c]
-    ].sum(axis=1)
-    total_pop = initial_condition[
-        [c for c in initial_condition if c[:-3] not in ode_system.TRACKING_COMPARTMENTS]
-    ].sum(axis=1)
-
-    variant_prevalence = model_parameters.p_variant.loc[new_e.index]
-    alpha = model_parameters.alpha.loc[new_e.index]
-
-    beta_wild = new_e * (1 - variant_prevalence) / (s_wild * i_wild**alpha / total_pop)
-    beta_variant = new_e * variant_prevalence / (s_variant * i_variant**alpha / total_pop)
-
-    wild_correction_factor = (
-        beta_wild - model_parameters.beta_wild.loc[beta_wild.index]
-    ).fillna(0).reset_index(level='date', drop=True)
-    variant_correction_factor = (
-        beta_variant - model_parameters.beta_variant.loc[beta_variant.index]
-    ).fillna(0).reset_index(level='date', drop=True)
-
-    idx = model_parameters.beta_wild.index
-    model_parameters.beta_wild = (
-        model_parameters.beta_wild + wild_correction_factor.reindex(idx, level='location_id')
-    )
-    model_parameters.beta_variant = (
-            model_parameters.beta_variant + variant_correction_factor.reindex(idx, level='location_id')
-    )
-
-    return model_parameters
 
 
 #######################################
