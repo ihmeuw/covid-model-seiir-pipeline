@@ -298,12 +298,12 @@ def seiir_transition_wild(y,
     outflow_map[susceptible, exposed] += (b_wild + params[theta_plus]) * y[susceptible]
     outflow_map[exposed, infectious1] += params[sigma] * y[exposed]
     outflow_map[infectious1, infectious2] += params[gamma1] * y[infectious1]
-    outflow_map[infectious2, removed] += params[p_cross_immune] * params[gamma2] * y[infectious2]
+    outflow_map[infectious2, removed] += params[chi] * params[gamma2] * y[infectious2]
     # Theta minus
     outflow_map[exposed, removed] += params[theta_minus] * y[exposed]
     # Variant
     outflow_map[susceptible, exposed_variant] += b_variant * y[susceptible]
-    outflow_map[infectious2, susceptible_variant] += (1 - params[p_cross_immune]) * params[gamma2] * y[infectious2]
+    outflow_map[infectious2, susceptible_variant] += (1 - params[chi]) * params[gamma2] * y[infectious2]
 
     return outflow_map
 
