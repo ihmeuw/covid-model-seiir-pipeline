@@ -329,7 +329,7 @@ def make_variants_page(plot_versions: List[PlotVersion],
     make_time_plot(
         ax_variant_prev,
         plot_versions,
-        'empirical_variant_prevalence',
+        'empirical_escape_variant_prevalence',
         location.id,
         start, end,
         vlines=vlines,
