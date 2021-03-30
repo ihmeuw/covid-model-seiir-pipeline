@@ -1,4 +1,4 @@
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, fields
 import itertools
 from typing import Any, Dict, NamedTuple, Tuple, Union
 
@@ -128,6 +128,7 @@ class ForecastSpecification(utilities.Specification):
         scenario_dicts = forecast_spec_dict.get('scenarios', {})
         scenarios = []
         for name, scenario_spec in scenario_dicts.items():
+            scenario_spec = {k: v for k, v in scenario_spec.items() if k in fields(ScenarioSpecification)}
             scenarios.append(ScenarioSpecification(name, **scenario_spec))
         if not scenarios:
             scenarios.append(ScenarioSpecification())
