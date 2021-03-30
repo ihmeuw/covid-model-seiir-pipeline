@@ -163,13 +163,13 @@ def redistribute_past_compartments(compartments: pd.DataFrame,
                                    population: pd.DataFrame):
     pop_weights = _get_pop_weights(population)
     redistributed_compartments = []
-    import pdb; pdb.set_trace()
     for group in ['lr', 'hr']:
         # Need to broadcast pop weights.
         pop_weight = pop_weights[group].reindex(compartments.index, level='location_id')
 
         group_compartments = compartments.mul(pop_weight, axis=0)
         group_compartments = group_compartments.reindex(ode_system.COMPARTMENTS, axis='columns', fill_value=0.0)
+        group_compartments.columns = [f'{c}_{group}' for c in group_compartments]
 
         redistributed_compartments.append(group_compartments)
     redistributed_compartments = pd.concat(redistributed_compartments, axis=1)
