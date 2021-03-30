@@ -464,6 +464,8 @@ def make_results_page(plot_versions: List[PlotVersion],
         uncertainty=False,
         linestyle='dashed',
     )
+    make_axis_legend(ax_daily_hosp, {'hospital': {'linestyle': 'solid'},
+                                     'icu': {'linestyle': 'dashed'}})
     ax_daily_hosp.plot(
         full_data['date'],
         full_data['cumulative_hospitalizations'].diff(),
@@ -529,6 +531,8 @@ def make_results_page(plot_versions: List[PlotVersion],
         vlines=vlines,
         linestyle='dashed',
     )
+    make_axis_legend(ax_census_hosp, {'hospital': {'linestyle': 'solid'},
+                                      'icu': {'linestyle': 'dashed'}})
 
     make_time_plot(
         ax_cumul_death,
@@ -559,7 +563,10 @@ def make_results_page(plot_versions: List[PlotVersion],
         start, end,
         vlines=vlines,
         linestyle='dashed',
+        transform=lambda x: x / pop * 100,
     )
+    make_axis_legend(ax_vacc, {'effective delivered': {'linestyle': 'solid'},
+                               'effective available': {'linestyle': 'dashed'}})
 
     idr = pv.load_output_summaries('infection_detection_ratio_es', location.id)
     make_time_plot(
@@ -749,7 +756,8 @@ def make_title_and_legend(fig, location: Location, plot_versions: List[PlotVersi
 
 
 def make_axis_legend(axis, elements: dict):
-    handles = [mlines.Line2D([], [], label=e_name, linewidth=2.5, **e_props) for e_name, e_props in elements.items()]
+    handles = [mlines.Line2D([], [], label=e_name, linewidth=2.5, color='k', **e_props)
+               for e_name, e_props in elements.items()]
     axis.legend(handles=handles,
                 loc='upper left',
                 fontsize=AX_LABEL_FONTSIZE,
