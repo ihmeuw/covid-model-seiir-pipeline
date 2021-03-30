@@ -129,13 +129,13 @@ def make_covariates_page(plot_versions: List[PlotVersion],
         location.id,
         start, end,
         vlines=vlines,
-        label='Log Beta (system)',
+        label='Regression Beta',
         transform=lambda x: np.log(x),
     )
     make_time_plot(
         ax_beta_total,
         plot_versions,
-        'empirical_beta',
+        'beta_hat',
         location.id,
         start, end,
         vlines=vlines,
@@ -143,6 +143,8 @@ def make_covariates_page(plot_versions: List[PlotVersion],
         transform=lambda x: np.log(x)
     )
     ax_beta_total.set_ylim(-3, 1)
+    make_axis_legend(ax_beta_total, {'beta fit': {'linestyle': 'solid'},
+                                     'beta hat': {'linestyle': 'dashed'}})
 
     ax_beta_wild = fig.add_subplot(gs_beta[1])
     make_time_plot(
@@ -152,7 +154,7 @@ def make_covariates_page(plot_versions: List[PlotVersion],
         location.id,
         start, end,
         vlines=vlines,
-        label='Empirical Beta Wild-type',
+        label='Non-escape Beta',
         transform=lambda x: np.log(x),
     )
     make_time_plot(
@@ -166,6 +168,8 @@ def make_covariates_page(plot_versions: List[PlotVersion],
         transform=lambda x: np.log(x)
     )
     ax_beta_wild.set_ylim(-3, 1)
+    make_axis_legend(ax_beta_wild, {'input beta': {'linestyle': 'solid'},
+                                    'empirical beta': {'linestyle': 'dashed'}})
 
     ax_beta_variant = fig.add_subplot(gs_beta[2])
     make_time_plot(
@@ -175,7 +179,7 @@ def make_covariates_page(plot_versions: List[PlotVersion],
         location.id,
         start, end,
         vlines=vlines,
-        label='Empirical Beta Variant-type',
+        label='Escape Beta',
         transform=lambda x: np.log(x),
     )
     make_time_plot(
@@ -189,6 +193,8 @@ def make_covariates_page(plot_versions: List[PlotVersion],
         transform=lambda x: np.log(x)
     )
     ax_beta_variant.set_ylim(-3, 1)
+    make_axis_legend(ax_beta_variant, {'input beta': {'linestyle': 'solid'},
+                                       'empirical': {'linestyle': 'dashed'}})
 
     ax_resid = fig.add_subplot(gs_beta[3])
     make_time_plot(
@@ -214,44 +220,10 @@ def make_covariates_page(plot_versions: List[PlotVersion],
     ax_reff.set_ylim(-0.5, 3)
 
     ax_r_wild = fig.add_subplot(gs_r[1])
-    make_time_plot(
-        ax_r_wild,
-        plot_versions,
-        'r_effective_wild',
-        location.id,
-        start, end,
-        label='R wild-type',
-        vlines=vlines,
-    )
-    make_time_plot(
-        ax_r_wild,
-        plot_versions,
-        'r_controlled_wild',
-        location.id,
-        start, end,
-        linestyle='dashed'
-    )
-    ax_r_wild.set_ylim(-0.5, 3)
+    make_placeholder(ax_r_wild, 'Non-escape R effective')
 
     ax_r_variant = fig.add_subplot(gs_r[2])
-    make_time_plot(
-        ax_r_variant,
-        plot_versions,
-        'r_effective_variant',
-        location.id,
-        start, end,
-        label='R variant-type',
-        vlines=vlines,
-    )
-    make_time_plot(
-        ax_r_variant,
-        plot_versions,
-        'r_controlled_variant',
-        location.id,
-        start, end,
-        linestyle='dashed'
-    )
-    ax_r_variant.set_ylim(-0.5, 3)
+    make_placeholder(ax_r_variant, 'Escape R effective')
 
     ax_rhist = fig.add_subplot(gs_r[3])
     make_log_beta_resid_hist(
@@ -348,10 +320,10 @@ def make_variants_page(plot_versions: List[PlotVersion],
     make_time_plot(
         ax_variant_prev,
         plot_versions,
-        'variant_prevalence',
+        'escape_variant_prevalence',
         location.id,
         start, end,
-        label='Variant prevalence',
+        label='Escape Variant Prevalence',
         vlines=vlines,
     )
     make_time_plot(
@@ -364,6 +336,8 @@ def make_variants_page(plot_versions: List[PlotVersion],
         linestyle='dashed',
     )
     ax_variant_prev.set_ylim([0, 1])
+    make_axis_legend(ax_variant_prev, {'naive ramp': {'linestyle': 'solid'},
+                                       'empirical': {'linestyle': 'dashed'}})
 
     make_time_plot(
         ax_deaths_wild,
@@ -771,6 +745,22 @@ def make_title_and_legend(fig, location: Location, plot_versions: List[PlotVersi
                fontsize=AX_LABEL_FONTSIZE,
                frameon=False,
                ncol=len(plot_versions))
+
+
+def make_axis_legend(axis, elements: dict):
+    handles = [mlines.Line2D([], [], label=e_name, linewidth=2.5, **e_props) for e_name, e_props in elements.items()]
+    axis.legend(handles=handles,
+                loc='upper left',
+                fontsize=AX_LABEL_FONTSIZE,
+                frameon=False)
+
+
+def make_placeholder(axis, label: str):
+    axis.axis([0, 1, 0, 1])
+    axis.text(0.5, 0.5, f"TODO: {label}",
+              verticalalignment='center', horizontalalignment='center',
+              transform=axis.transAxes,
+              fontsize=TITLE_FONTSIZE)
 
 
 def write_or_show(fig, plot_file: str):
