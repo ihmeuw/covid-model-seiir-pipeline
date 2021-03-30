@@ -547,8 +547,9 @@ def make_results_page(plot_versions: List[PlotVersion],
         'cumulative_vaccinations_effective',
         location.id,
         start, end,
-        label='Cumulative Vaccinations',
+        label='Cumulative Vaccinations (%)',
         vlines=vlines,
+        transform=lambda x: x / pop * 100,
     )
     make_time_plot(
         ax_vacc,
