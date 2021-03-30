@@ -75,6 +75,7 @@ class ScenarioSpecification:
     beta_scaling: Dict[str, int] = field(default_factory=dict)
     theta: Union[str, int] = field(default=0)
     vaccine_version: str = field(default='reference')
+    variant_version: str = field(default='reference')
     variant_ifr_scale: float = field(default=1.29)
     covariates: Dict[str, str] = field(default_factory=dict)
 

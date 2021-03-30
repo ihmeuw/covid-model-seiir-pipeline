@@ -16,6 +16,7 @@ scenarios:
       average_over_max: 42
     theta: '/ihme/covid-19/seir-parameters/2021_03_03.01/thetas.csv'
     vaccine_version: 'reference'
+    variant_version: 'reference'
     variant_ifr_scale: 1.29
     covariates:
       pneumonia: 'reference'

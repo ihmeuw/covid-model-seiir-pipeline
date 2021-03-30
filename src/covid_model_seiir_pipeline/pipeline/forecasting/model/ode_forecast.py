@@ -50,7 +50,7 @@ def build_model_parameters(indices: Indices,
         for param in ['alpha', 'sigma', 'gamma1', 'gamma2', 'pi', 'chi']
     }
 
-    beta, beta_wild, beta_variant, beta_hat, rho, rho_variant = get_betas_and_prevalences(
+    beta, beta_wild, beta_variant, beta_hat, rho, rho_variant, rho_total = get_betas_and_prevalences(
         indices,
         beta_regression,
         covariates,
@@ -82,6 +82,7 @@ def build_model_parameters(indices: Indices,
         beta_hat=beta_hat,
         rho=rho,
         rho_variant=rho_variant,
+        rho_total=rho_total,
         theta_plus=theta_plus,
         theta_minus=theta_minus,
         **adjusted_vaccinations,
@@ -96,9 +97,10 @@ def get_betas_and_prevalences(indices: Indices,
                               rhos: pd.DataFrame,
                               kappa: float,
                               phi: float,) -> Tuple[pd.Series, pd.Series, pd.Series,
-                                                    pd.Series, pd.Series, pd.Series]:
+                                                    pd.Series, pd.Series, pd.Series, pd.Series]:
     rho = rhos['rho'].reindex(indices.full, method='ffill')
     rho_variant = rhos['rho_variant'].reindex(indices.full, method='ffill')
+    rho_total = rhos['rho_total'].reindex(indices.full, method='ffill')
 
     log_beta_hat = math.compute_beta_hat(covariates, coefficients)
     beta_hat = np.exp(log_beta_hat).loc[indices.future].rename('beta_hat').reset_index()
@@ -110,7 +112,7 @@ def get_betas_and_prevalences(indices: Indices,
     beta_wild = beta * (1 + kappa * rho)
     beta_variant = beta * (1 + kappa * phi)
 
-    return beta, beta_wild, beta_variant, np.exp(log_beta_hat), rho, rho_variant
+    return beta, beta_wild, beta_variant, np.exp(log_beta_hat), rho, rho_variant, rho_total
 
 
 def beta_shift(beta_hat: pd.DataFrame,
@@ -224,7 +226,7 @@ def correct_ratio_data(indices: Indices,
                        ratio_data: RatioData,
                        model_params: ModelParameters,
                        ifr_scale: float) -> RatioData:
-    variant_prevalence = model_params.p_all_variant
+    variant_prevalence = model_params.rho_total
     p_start = variant_prevalence.loc[indices.initial_condition].reset_index(level='date', drop=True)
     variant_prevalence -= p_start.reindex(variant_prevalence.index, level='location_id')
     variant_prevalence[variant_prevalence < 0] = 0.0

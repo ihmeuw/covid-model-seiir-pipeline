@@ -61,7 +61,7 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
     # Vaccine data, of course.
     vaccinations = data_interface.load_vaccinations(scenario_spec.vaccine_version)
     # Variant prevalences.
-    rhos = data_interface.load_variant_prevalence()
+    rhos = data_interface.load_variant_prevalence(scenario_spec.variant_version)
 
     # Collate all the parameters, ensure consistent index, etc.
     logger.info('Processing inputs into model parameters.', context='transform')
@@ -90,7 +90,7 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
         population=population,
     )
     initial_condition = past_compartments.loc[indices.initial_condition].reset_index(level='date', drop=True)
-    import pdb; pdb.set_trace()
+
     ###################################################
     # Construct parameters for postprocessing results #
     ###################################################
