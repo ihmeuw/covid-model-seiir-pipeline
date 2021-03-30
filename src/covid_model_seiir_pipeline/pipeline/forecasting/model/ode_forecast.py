@@ -198,7 +198,6 @@ def build_postprocessing_parameters(indices: Indices,
                                     past_compartments: pd.DataFrame,
                                     past_infections: pd.Series,
                                     past_deaths: pd.Series,
-                                    betas: pd.DataFrame,
                                     ratio_data: RatioData,
                                     model_parameters: ModelParameters,
                                     correction_factors: HospitalCorrectionFactors,
@@ -213,7 +212,6 @@ def build_postprocessing_parameters(indices: Indices,
     )
 
     return PostprocessingParameters(
-        past_beta=betas['beta'],
         past_compartments=past_compartments,
         past_infections=past_infections,
         past_deaths=past_deaths,

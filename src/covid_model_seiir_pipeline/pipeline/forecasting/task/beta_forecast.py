@@ -106,7 +106,6 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
         past_compartments,
         past_infections,
         past_deaths,
-        betas,
         ratio_data,
         model_parameters,
         correction_factors,

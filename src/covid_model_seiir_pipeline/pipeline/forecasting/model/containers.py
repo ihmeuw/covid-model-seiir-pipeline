@@ -130,7 +130,6 @@ class ModelParameters:
 
 @dataclass
 class PostprocessingParameters:
-    past_beta: pd.Series
     past_compartments: pd.DataFrame
 
     past_infections: pd.Series
