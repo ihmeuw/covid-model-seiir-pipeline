@@ -97,6 +97,9 @@ def get_betas_and_prevalences(indices: Indices,
                               kappa: float,
                               phi: float,) -> Tuple[pd.Series, pd.Series, pd.Series,
                                                     pd.Series, pd.Series, pd.Series]:
+    rho = rhos['rho'].reindex(indices.full, method='ffill')
+    rho_variant = rhos['rho_variant'].reindex(indices.full, method='ffill')
+
     log_beta_hat = math.compute_beta_hat(covariates, coefficients)
     beta_hat = np.exp(log_beta_hat).loc[indices.future].rename('beta_hat').reset_index()
     beta = (beta_shift(beta_hat, beta_shift_parameters)
@@ -104,10 +107,8 @@ def get_betas_and_prevalences(indices: Indices,
             .beta_hat
             .rename('beta'))
     beta = beta_regression.loc[indices.past, 'beta'].append(beta)
-    beta_wild = beta * (1 + kappa * rhos['rho'])
-    beta_variant = (1 + kappa * phi)
-    rho = rhos['rho'].reindex(indices.full, method='ffill')
-    rho_variant = rhos['rho_variant'].reindex(indices.full, method='ffill')
+    beta_wild = beta * (1 + kappa * rho)
+    beta_variant = beta * (1 + kappa * phi)
 
     return beta, beta_wild, beta_variant, np.exp(log_beta_hat), rho, rho_variant
 

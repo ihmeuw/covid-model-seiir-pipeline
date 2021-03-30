@@ -64,7 +64,6 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
     # Variant prevalences.
     rhos = data_interface.load_variant_prevalence()
 
-    import pdb; pdb.set_trace()
     # Collate all the parameters, ensure consistent index, etc.
     logger.info('Processing inputs into model parameters.', context='transform')
     covariates = covariates.reindex(indices.full)
@@ -79,7 +78,7 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
         beta_scales,
         vaccinations,
     )
-
+    import pdb; pdb.set_trace()
     ############################################################
     # Redistribute past compartments and get initial condition #
     ############################################################
