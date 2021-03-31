@@ -19,6 +19,15 @@ def compute_reimposition_threshold(past_deaths, population, reimposition_thresho
          .sum()
     )
     reimposition_threshold.loc[days_over_death_rate >= 7] = max_threshold / 1e6
+
+    # Do it a second time to some crazy stuff happening in central europe.
+    days_over_death_rate = (
+        (death_rate > reimposition_threshold.reindex(death_rate.index, level='location_id'))
+         .groupby('location_id')
+         .sum()
+    )
+    reimposition_threshold.loc[days_over_death_rate >= 7] = 2*max_threshold / 1e6
+
     return reimposition_threshold
 
 
@@ -26,7 +35,7 @@ def compute_reimposition_date(deaths, population, reimposition_threshold,
                               min_wait, last_reimposition_end_date) -> pd.Series:
     population = population.reindex(deaths.index, level='location_id')
     death_rate = (deaths / population).rename('death_rate')
-    
+
     last_observed_date = (death_rate
                           .loc[pd.IndexSlice[:, :, 1]]
                           .reset_index(level='date')
