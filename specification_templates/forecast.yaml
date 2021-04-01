@@ -1,6 +1,6 @@
 data:
   regression_version: '2021_03_30.06'
-  covariate_version: '2021_03_30.04'
+  covariate_version: '2021_03_31.01'
   output_root: ''
   output_format: 'parquet'
   fh_subnationals: False
@@ -120,7 +120,7 @@ scenarios:
       average_over_min: 7
       average_over_max: 42
     theta: '/ihme/covid-19/seir-parameters/2021_03_03.01/thetas.csv'
-    vaccine_version: 'fast'
+    vaccine_version: 'fast_balanced'
     variant_version: 'reference'
     variant_ifr_scale: 1.29
     covariates:
