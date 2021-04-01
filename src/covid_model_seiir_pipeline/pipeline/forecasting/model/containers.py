@@ -78,10 +78,26 @@ class Indices:
 class ModelParameters:
     # Core parameters
     alpha: pd.Series
-    beta: pd.Series
     sigma: pd.Series
     gamma1: pd.Series
     gamma2: pd.Series
+
+    # Transmission intensity
+    beta: pd.Series
+    beta_wild: pd.Series
+    beta_variant: pd.Series
+    beta_hat: pd.Series
+
+    # Variant prevalences
+    rho: pd.Series
+    rho_variant: pd.Series
+    rho_total: pd.Series
+
+    # Escape variant initialization
+    pi: pd.Series
+
+    # Cross-variant immunity
+    chi: pd.Series
 
     # Theta parameters
     theta_plus: pd.Series
@@ -100,14 +116,6 @@ class ModelParameters:
     immune_wild_type_hr: pd.Series
     immune_all_types_hr: pd.Series
 
-    # Variant parameters
-    beta_wild: pd.Series
-    beta_variant: pd.Series
-    p_wild: pd.Series
-    p_variant: pd.Series
-    p_all_variant: pd.Series
-    probability_cross_immune: pd.Series
-
     def with_index(self, index: pd.MultiIndex):
         return ModelParameters(**{
             parameter_name: parameter.loc[index] for parameter_name, parameter in self.to_dict().items()
@@ -122,7 +130,6 @@ class ModelParameters:
 
 @dataclass
 class PostprocessingParameters:
-    past_beta: pd.Series
     past_compartments: pd.DataFrame
 
     past_infections: pd.Series

@@ -18,7 +18,7 @@ REGRESSION_JOBS = __RegressionJobs()
 class RegressionTaskSpecification(workflow.TaskSpecification):
     """Specification of execution parameters for regression tasks."""
     default_max_runtime_seconds = 3000
-    default_m_mem_free = '6G'
+    default_m_mem_free = '10G'
     default_num_cores = 1
 
 
@@ -66,6 +66,11 @@ class RegressionParameters:
     sigma: Tuple[float, float] = field(default=(0.2, 1/3))
     gamma1: Tuple[float, float] = field(default=(0.5, 0.5))
     gamma2: Tuple[float, float] = field(default=(1/3, 1.0))
+    kappa: Tuple[float, float] = field(default=(0.3, 0.5))
+    chi: Tuple[float, float] = field(default=(0.0, 0.6))
+    phi_mean_shift: float = field(default=0.5)
+    phi_sd: float = field(default=0.3)
+    pi: float = field(default=0.1)
     sequential_refit: bool = field(default=False)
 
     def to_dict(self) -> Dict:
