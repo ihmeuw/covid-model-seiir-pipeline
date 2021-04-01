@@ -1,6 +1,6 @@
 data:
-  regression_version: '2021_03_17.03'
-  covariate_version: '2021_03_16.04'
+  regression_version: '2021_03_30.06'
+  covariate_version: '2021_03_31.01'
   output_root: ''
   output_format: 'parquet'
   fh_subnationals: False
@@ -21,9 +21,8 @@ scenarios:
       average_over_max: 42
     theta: '/ihme/covid-19/seir-parameters/2021_03_03.01/thetas.csv'
     vaccine_version: 'reference'
+    variant_version: 'reference'
     variant_ifr_scale: 1.29
-    probability_cross_immune: [0.25, 0.5]
-    variant_beta_scale: [0.25, 0.75]
     covariates:
       pneumonia: 'reference'
       mobility: 'reference'
@@ -34,9 +33,6 @@ scenarios:
       lri_mortality: 'reference'
       proportion_under_100m: 'reference'
       proportion_over_2_5k: 'reference'
-      variant_prevalence_B117: 'reference'
-      variant_prevalence_B1351: 'reference'
-      variant_prevalence_P1: 'reference'
   worse:
     algorithm: 'draw_level_mandate_reimposition'
     algorithm_params:
@@ -50,9 +46,8 @@ scenarios:
       average_over_max: 42
     theta: '/ihme/covid-19/seir-parameters/2021_03_03.01/thetas.csv'
     vaccine_version: 'reference'
+    variant_version: 'worse'
     variant_ifr_scale: 1.29
-    probability_cross_immune: [0.0, 0.5]
-    variant_beta_scale: [0.5, 1.0]
     covariates:
       pneumonia: 'reference'
       mobility: 'worse'
@@ -63,9 +58,6 @@ scenarios:
       lri_mortality: 'reference'
       proportion_under_100m: 'reference'
       proportion_over_2_5k: 'reference'
-      variant_prevalence_B117: 'worse'
-      variant_prevalence_B1351: 'worse'
-      variant_prevalence_P1: 'worse'
   no_vaccine:
     algorithm: 'draw_level_mandate_reimposition'
     algorithm_params:
@@ -79,9 +71,8 @@ scenarios:
       average_over_max: 42
     theta: '/ihme/covid-19/seir-parameters/2021_03_03.01/thetas.csv'
     vaccine_version: 'none'
+    variant_version: 'reference'
     variant_ifr_scale: 1.29
-    probability_cross_immune: [0.25, 0.5]
-    variant_beta_scale: [0.25, 0.75]
     covariates:
       pneumonia: 'reference'
       mobility: 'reference'
@@ -92,9 +83,6 @@ scenarios:
       lri_mortality: 'reference'
       proportion_under_100m: 'reference'
       proportion_over_2_5k: 'reference'
-      variant_prevalence_B117: 'reference'
-      variant_prevalence_B1351: 'reference'
-      variant_prevalence_P1: 'reference'
   best_masks:
     algorithm: 'draw_level_mandate_reimposition'
     algorithm_params:
@@ -108,9 +96,8 @@ scenarios:
       average_over_max: 42
     theta: '/ihme/covid-19/seir-parameters/2021_03_03.01/thetas.csv'
     vaccine_version: 'reference'
+    variant_version: 'reference'
     variant_ifr_scale: 1.29
-    probability_cross_immune: [0.25, 0.5]
-    variant_beta_scale: [0.25, 0.75]
     covariates:
       pneumonia: 'reference'
       mobility: 'reference'
@@ -121,9 +108,6 @@ scenarios:
       lri_mortality: 'reference'
       proportion_under_100m: 'reference'
       proportion_over_2_5k: 'reference'
-      variant_prevalence_B117: 'reference'
-      variant_prevalence_B1351: 'reference'
-      variant_prevalence_P1: 'reference'
   vaccine_fast:
     algorithm: 'draw_level_mandate_reimposition'
     algorithm_params:
@@ -137,9 +121,8 @@ scenarios:
       average_over_max: 42
     theta: '/ihme/covid-19/seir-parameters/2021_03_03.01/thetas.csv'
     vaccine_version: 'fast_balanced'
+    variant_version: 'reference'
     variant_ifr_scale: 1.29
-    probability_cross_immune: [ 0.25, 0.5 ]
-    variant_beta_scale: [ 0.25, 0.75 ]
     covariates:
       pneumonia: 'reference'
       mobility: 'reference'
@@ -150,6 +133,3 @@ scenarios:
       lri_mortality: 'reference'
       proportion_under_100m: 'reference'
       proportion_over_2_5k: 'reference'
-      variant_prevalence_B117: 'reference'
-      variant_prevalence_B1351: 'reference'
-      variant_prevalence_P1: 'reference'

@@ -27,15 +27,16 @@ def run_beta_regression(regression_version: str, draw_id: int, progress_bar: boo
     logger.info('Loading ODE fit input data', context='read')
     past_infection_data = data_interface.load_past_infection_data(draw_id=draw_id)
     population = data_interface.load_total_population()
+    rhos = data_interface.load_variant_prevalence()
     vaccinations = data_interface.load_vaccine_info('reference')
 
     logger.info('Prepping ODE fit parameters.', context='transform')
     infections = model.clean_infection_data_measure(past_infection_data, 'infections')
-    deaths = model.clean_infection_data_measure(past_infection_data, 'deaths')
     regression_params = regression_specification.regression_parameters.to_dict()
     ode_parameters = model.prepare_ode_fit_parameters(
-        infections.index,
+        infections,
         population,
+        rhos,
         vaccinations,
         regression_params,
         draw_id,
@@ -43,7 +44,6 @@ def run_beta_regression(regression_version: str, draw_id: int, progress_bar: boo
 
     logger.info('Running ODE fit', context='compute_ode')
     beta_fit, compartments = model.run_ode_fit(
-        infections=infections,
         ode_parameters=ode_parameters,
         progress_bar=progress_bar,
     )
@@ -57,7 +57,7 @@ def run_beta_regression(regression_version: str, draw_id: int, progress_bar: boo
 
     logger.info('Prepping regression.', context='transform')
     regression_inputs = model.prep_regression_inputs(
-        beta_fit,
+        beta_fit['beta'],
         covariates,
     )
     regressor = model.build_regressor(regression_specification.covariates.values(), prior_coefficients)
@@ -72,6 +72,7 @@ def run_beta_regression(regression_version: str, draw_id: int, progress_bar: boo
     # Format and save data.
     logger.info('Prepping outputs', context='transform')
     betas = pd.concat([beta_fit, beta_hat], axis=1).reindex(infections.index)
+    deaths = model.clean_infection_data_measure(past_infection_data, 'deaths')
     ode_parameters = ode_parameters.to_df()
 
     logger.info('Writing outputs', context='write')

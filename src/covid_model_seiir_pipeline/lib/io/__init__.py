@@ -4,8 +4,10 @@ from covid_model_seiir_pipeline.lib.io.keys import (
 )
 from covid_model_seiir_pipeline.lib.io.data_roots import (
     InfectionRoot,
+    VariantRoot,
     CovariateRoot,
     MortalityRatioRoot,
+    FitRoot,
     RegressionRoot,
     ForecastRoot,
     PostprocessingRoot

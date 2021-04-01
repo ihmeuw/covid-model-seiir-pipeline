@@ -176,6 +176,10 @@ def load_beta(scenario: str, data_interface: 'PostprocessingDataInterface', num_
     return _load_ode_params(scenario, 'beta', data_interface, num_cores)
 
 
+def load_beta_hat(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int) -> List[pd.Series]:
+    return _load_ode_params(scenario, 'beta_hat', data_interface, num_cores)
+
+
 def load_beta_wild(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int) -> List[pd.Series]:
     return _load_ode_params(scenario, 'beta_wild', data_interface, num_cores)
 
@@ -203,11 +207,15 @@ def load_beta_residuals(scenario: str, data_interface: 'PostprocessingDataInterf
     return beta_residuals
 
 
-def load_variant_prevalence(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
-    return _load_ode_params(scenario, 'p_variant', data_interface, num_cores)
+def load_non_escape_variant_prevalence(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
+    return _load_ode_params(scenario, 'rho', data_interface, num_cores)
 
 
-def load_empirical_variant_prevalence(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
+def load_escape_variant_prevalence(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
+    return _load_ode_params(scenario, 'rho_variant', data_interface, num_cores)
+
+
+def load_empirical_escape_variant_prevalence(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
     return _load_output_data(scenario, 'variant_prevalence', data_interface, num_cores)
 
 

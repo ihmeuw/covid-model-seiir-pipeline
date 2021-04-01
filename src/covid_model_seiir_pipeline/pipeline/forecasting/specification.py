@@ -1,4 +1,4 @@
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, fields
 import itertools
 from typing import Any, Dict, NamedTuple, Tuple, Union
 
@@ -75,9 +75,8 @@ class ScenarioSpecification:
     beta_scaling: Dict[str, int] = field(default_factory=dict)
     theta: Union[str, int] = field(default=0)
     vaccine_version: str = field(default='reference')
+    variant_version: str = field(default='reference')
     variant_ifr_scale: float = field(default=1.29)
-    probability_cross_immune: Tuple[float, float] = field(default=(0.0, 0.5))
-    variant_beta_scale: Tuple[float, float] = field(default=(0.5, 1.0))
     covariates: Dict[str, str] = field(default_factory=dict)
 
     def __post_init__(self):
@@ -129,6 +128,7 @@ class ForecastSpecification(utilities.Specification):
         scenario_dicts = forecast_spec_dict.get('scenarios', {})
         scenarios = []
         for name, scenario_spec in scenario_dicts.items():
+            scenario_spec = {k: v for k, v in scenario_spec.items() if k in [f.name for f in fields(ScenarioSpecification())]}
             scenarios.append(ScenarioSpecification(name, **scenario_spec))
         if not scenarios:
             scenarios.append(ScenarioSpecification())

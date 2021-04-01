@@ -1,3 +1,5 @@
+from covid_model_seiir_pipeline.pipeline.fit_oos import FitSpecification
+from covid_model_seiir_pipeline.pipeline.fit_oos.main import do_beta_fit
 from covid_model_seiir_pipeline.pipeline.regression import RegressionSpecification
 from covid_model_seiir_pipeline.pipeline.regression.main import do_beta_regression
 from covid_model_seiir_pipeline.pipeline.forecasting import ForecastSpecification

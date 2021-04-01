@@ -251,6 +251,10 @@ MEASURES = {
         loaders.load_beta,
         'betas',
     ),
+    'beta_hat': MeasureConfig(
+        loaders.load_beta_hat,
+        'beta_hat',
+    ),
     'beta_wild': MeasureConfig(
         loaders.load_beta_wild,
         'beta_wild',
@@ -272,13 +276,17 @@ MEASURES = {
         'empirical_beta_variant',
     ),
 
-    'variant_prevalence': MeasureConfig(
-        loaders.load_variant_prevalence,
-        'variant_prevalence',
+    'non_escape_variant_prevalence': MeasureConfig(
+        loaders.load_non_escape_variant_prevalence,
+        'non_escape_variant_prevalence',
     ),
-    'empirical_variant_prevalence': MeasureConfig(
-        loaders.load_empirical_variant_prevalence,
-        'empirical_variant_prevalence',
+    'escape_variant_prevalence': MeasureConfig(
+        loaders.load_escape_variant_prevalence,
+        'escape_variant_prevalence',
+    ),
+    'empirical_escape_variant_prevalence': MeasureConfig(
+        loaders.load_empirical_escape_variant_prevalence,
+        'empirical_escape_variant_prevalence',
     ),
 
     # Beta calculation inputs
