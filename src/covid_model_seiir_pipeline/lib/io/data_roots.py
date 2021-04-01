@@ -111,6 +111,14 @@ class InfectionRoot(DataRoot):
     idr = DatasetType('idr_draws', LEAF_TEMPLATES.DRAW_TEMPLATE)
 
 
+class VariantRoot(DataRoot):
+    """Data root representing variant model outputs."""
+    metadata = MetadataType('metadata')
+
+    prevalence = DatasetType(LEAF_TEMPLATES.VARIANT_SCENARIO)
+    original_data = DatasetType('original_data', LEAF_TEMPLATES.MEASURE_TEMPLATE)
+
+
 class MortalityRatioRoot(DataRoot):
     """Data root representing age pattern of mortality."""
     metadata = MetadataType('metadata')
@@ -148,6 +156,18 @@ class CovariateRoot(DataRoot):
 
     def __setstate__(self, state):
         self.__dict__ = state
+
+
+class FitRoot(DataRoot):
+    metadata = MetadataType('metadata')
+    specification = MetadataType('fit_specification')
+    locations = MetadataType('locations')
+
+    hierarchy = DatasetType('hierarchy')
+
+    beta = DatasetType('beta', LEAF_TEMPLATES.DRAW_TEMPLATE, PREFIX_TEMPLATES.SCENARIO_TEMPLATE)
+    compartments = DatasetType('compartments', LEAF_TEMPLATES.DRAW_TEMPLATE, PREFIX_TEMPLATES.SCENARIO_TEMPLATE)
+    ode_parameters = DatasetType('ode_parameters', LEAF_TEMPLATES.DRAW_TEMPLATE, PREFIX_TEMPLATES.SCENARIO_TEMPLATE)
 
 
 class RegressionRoot(DataRoot):

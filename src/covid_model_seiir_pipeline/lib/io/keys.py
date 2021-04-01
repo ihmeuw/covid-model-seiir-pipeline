@@ -19,6 +19,7 @@ class __LeafTemplates(NamedTuple):
     MEASURE_TEMPLATE: str = '{measure}'
     COV_SCENARIO_TEMPLATE: str = '{covariate_scenario}_scenario'
     COV_INFO_TEMPLATE: str = '{info_type}_info'
+    VARIANT_SCENARIO: str = 'variant_{scenario}'
 
 
 LEAF_TEMPLATES = __LeafTemplates()

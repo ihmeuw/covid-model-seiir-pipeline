@@ -14,6 +14,7 @@ from covid_shared.cli_tools import (
     RunMetadata,
 )
 from covid_model_seiir_pipeline.lib.cli_tools.decorators import (
+    with_fit_specification,
     with_regression_specification,
     with_forecast_specification,
     with_postprocessing_specification,
@@ -21,11 +22,13 @@ from covid_model_seiir_pipeline.lib.cli_tools.decorators import (
     with_predictive_validity_specification,
     with_infection_version,
     with_covariates_version,
+    with_variant_version,
     with_mortality_ratio_version,
     with_coefficient_version,
     with_location_specification,
     with_regression_version,
     with_forecast_version,
+    with_task_fit_version,
     with_task_regression_version,
     with_task_forecast_version,
     with_task_postprocessing_version,

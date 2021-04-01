@@ -6,7 +6,6 @@ import pandas as pd
 from covid_model_seiir_pipeline.lib import (
     cli_tools,
     static_vars,
-    math,
 )
 from covid_model_seiir_pipeline.pipeline.forecasting import model
 from covid_model_seiir_pipeline.pipeline.forecasting.specification import ForecastSpecification
@@ -23,7 +22,6 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
     )
     scenario_spec = forecast_spec.scenarios[scenario]
     data_interface = ForecastDataInterface.from_specification(forecast_spec)
-
     #################
     # Build indices #
     #################
@@ -62,6 +60,8 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
     beta_scales = data_interface.load_beta_scales(scenario=scenario, draw_id=draw_id)
     # Vaccine data, of course.
     vaccinations = data_interface.load_vaccinations(scenario_spec.vaccine_version)
+    # Variant prevalences.
+    rhos = data_interface.load_variant_prevalence(scenario_spec.variant_version)
 
     # Collate all the parameters, ensure consistent index, etc.
     logger.info('Processing inputs into model parameters.', context='transform')
@@ -70,15 +70,13 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
         indices,
         ode_params,
         betas,
-        thetas,
         covariates,
         coefficients,
+        thetas,
+        rhos,
         beta_scales,
         vaccinations,
-        scenario_spec,
-        draw_id,
     )
-
     ############################################################
     # Redistribute past compartments and get initial condition #
     ############################################################
@@ -88,17 +86,10 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
 
     logger.info('Redistributing past compartments.', context='transform')
     past_compartments = model.redistribute_past_compartments(
-        infections=past_infections,
         compartments=compartments,
         population=population,
-        model_parameters=model_parameters,
     )
     initial_condition = past_compartments.loc[indices.initial_condition].reset_index(level='date', drop=True)
-    model_parameters = model.adjust_beta(
-        model_parameters,
-        initial_condition,
-        past_infections.loc[indices.initial_condition],
-    )
 
     ###################################################
     # Construct parameters for postprocessing results #
@@ -115,7 +106,6 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
         past_compartments,
         past_infections,
         past_deaths,
-        betas,
         ratio_data,
         model_parameters,
         correction_factors,
@@ -188,18 +178,12 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
                 indices,
                 ode_params,
                 betas,
-                thetas,
                 covariates,
                 coefficients,
+                thetas,
+                rhos,
                 beta_scales,
                 vaccinations,
-                scenario_spec,
-                draw_id,
-            )
-            model_parameters = model.adjust_beta(
-                model_parameters,
-                initial_condition,
-                past_infections.loc[indices.initial_condition],
             )
 
             # The ode is done as a loop over the locations in the initial condition.

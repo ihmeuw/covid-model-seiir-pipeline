@@ -1,28 +1,12 @@
-"""Containers for regression data."""
+"""Containers for ode fit data."""
 from dataclasses import dataclass
-from typing import Dict, List, Iterator, Tuple, Union
+from typing import Dict, List, Iterator, Tuple
 
 import pandas as pd
 
 from covid_model_seiir_pipeline.lib import (
     utilities,
 )
-
-
-@dataclass
-class RatioData:
-    infection_to_death: int
-    infection_to_admission: int
-    infection_to_case: int
-
-    ifr: pd.Series
-    ifr_hr: pd.Series
-    ifr_lr: pd.Series
-    ihr: pd.Series
-    idr: pd.Series
-
-    def to_dict(self) -> Dict[str, Union[int, pd.Series]]:
-        return utilities.asdict(self)
 
 
 @dataclass
@@ -46,7 +30,7 @@ class ODEParameters:
     phi: pd.Series
     pi: pd.Series
     rho_variant: pd.Series
-    chi: pd.Series
+    p_cross_immune: pd.Series
 
     vaccines_unprotected: pd.Series
     vaccines_protected_wild_type: pd.Series
@@ -86,35 +70,3 @@ class ODEParameters:
                    for key, value in self.to_dict().items() if isinstance(value, pd.Series)},
             )
             yield location_id, loc_parameters
-
-
-@dataclass
-class HospitalCensusData:
-    hospital_census: pd.Series
-    icu_census: pd.Series
-    ventilator_census: pd.Series
-
-    def to_dict(self) -> Dict[str, pd.Series]:
-        return utilities.asdict(self)
-
-
-@dataclass
-class HospitalMetrics:
-    hospital_admissions: pd.Series
-    hospital_census: pd.Series
-    icu_admissions: pd.Series
-    icu_census: pd.Series
-    ventilator_census: pd.Series
-
-    def to_dict(self) -> Dict[str, pd.Series]:
-        return utilities.asdict(self)
-
-
-@dataclass
-class HospitalCorrectionFactors:
-    hospital_census: pd.Series
-    icu_census: pd.Series
-    ventilator_census: pd.Series
-
-    def to_dict(self) -> Dict[str, pd.Series]:
-        return utilities.asdict(self)

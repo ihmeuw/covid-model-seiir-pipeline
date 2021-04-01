@@ -7,54 +7,54 @@ import tqdm
 from covid_model_seiir_pipeline.lib import (
     math,
 )
-from covid_model_seiir_pipeline.pipeline.regression.model.containers import (
+from covid_model_seiir_pipeline.pipeline.fit_oos.containers import (
     ODEParameters,
 )
-from covid_model_seiir_pipeline.pipeline.regression.model.past_system import (
+from covid_model_seiir_pipeline.pipeline.fit_oos.ode_system import (
     compartments,
     tracking_compartments,
     parameters,
     vaccine_types,
     system,
 )
+from covid_model_seiir_pipeline.pipeline.fit_oos.specification import (
+    FitScenario,
+)
 
 
 def prepare_ode_fit_parameters(past_infections: pd.Series,
                                population: pd.Series,
-                               rhos: pd.DataFrame,
                                vaccinations: pd.DataFrame,
-                               regression_parameters: Dict,
+                               variant_prevalence: pd.DataFrame,
+                               fit_parameters: FitScenario,
                                draw_id: int) -> ODEParameters:
     past_index = past_infections.index
     population = population.reindex(past_index, level='location_id')
     np.random.seed(draw_id)
     sampled_params = {}
-    for parameter in ['alpha', 'sigma', 'gamma1', 'gamma2', 'kappa']:
+    fit_param_dict = fit_parameters.to_dict()
+    for parameter in ['alpha', 'sigma', 'gamma1', 'gamma2']:
         sampled_params[parameter] = pd.Series(
-            np.random.uniform(*regression_parameters[parameter]),
+            np.random.uniform(*fit_param_dict[parameter]),
+            index=past_index,
+            name=parameter,
+        )
+    for parameter in ['kappa', 'phi', 'pi', 'p_cross_immune']:
+        sampled_params[parameter] = pd.Series(
+            fit_param_dict[parameter],
             index=past_index,
             name=parameter,
         )
 
-    chi = np.random.uniform(*regression_parameters['chi'])
-    phi = np.random.normal(
-        loc=chi + regression_parameters['phi_mean_shift'], 
-        scale=regression_parameters['phi_sd'],
-    )
-    sampled_params['chi'] = pd.Series(chi, index=past_index, name='chi')
-    sampled_params['phi'] = pd.Series(phi, index=past_index, name='phi')
-    sampled_params['pi'] = pd.Series(regression_parameters['pi'], index=past_index, name='pi')
-
     vaccinations = math.adjust_vaccinations(vaccinations)
     vaccinations = pd.concat([v.rename(k) for k, v in vaccinations.items()], axis=1)
     vaccinations = vaccinations.reindex(past_index, fill_value=0.)
-
     return ODEParameters(
-        new_e=past_infections,
         population=population,
-        rho=rhos['rho'].reindex(past_index, fill_value=0.0),
-        rho_variant=rhos['rho_variant'].reindex(past_index, fill_value=0.0),
+        new_e=past_infections,
         **sampled_params,
+        rho=variant_prevalence['rho'].reindex(past_index, fill_value=0),
+        rho_variant=variant_prevalence['rho_variant'].reindex(past_index, fill_value=0),
         vaccines_unprotected=vaccinations.filter(like='unprotected').sum(axis=1),
         vaccines_protected_wild_type=vaccinations.filter(like='protected_wild').sum(axis=1),
         vaccines_protected_all_types=vaccinations.filter(like='protected_all').sum(axis=1),
@@ -152,18 +152,14 @@ def run_loc_ode_fit(ode_parameters: ODEParameters) -> pd.DataFrame:
     beta_wild = (new_e_wild.diff() / disease_density_wild).reindex(full_index)
     disease_density_variant = s_variant * i_variant**ode_parameters.alpha.values / total_population
     beta_variant = (new_e_variant.diff() / disease_density_variant).reindex(full_index)
+    disease_density_all = (s_wild + s_variant) * (i_wild + i_variant)**ode_parameters.alpha.values / total_population
+    beta = ((new_e_wild + new_e_variant).diff() / disease_density_all).reindex(full_index)
 
     components = components.reindex(full_index, fill_value=0.)
     components.loc[components['S'] == 0, 'S'] = total_population
+    components['beta'] = beta
     components['beta_wild'] = beta_wild
     components['beta_variant'] = beta_variant
-
-    rho = ode_parameters.rho
-    kappa = ode_parameters.kappa
-    phi = ode_parameters.phi
-    beta1 = beta_wild / (1 + kappa * rho)
-    beta2 = beta_variant / (1 + kappa * phi)
-    components['beta'] = (i_wild * beta1 + (i_variant * beta2).fillna(0)) / (i_wild + i_variant)
 
     return components.reset_index()
 

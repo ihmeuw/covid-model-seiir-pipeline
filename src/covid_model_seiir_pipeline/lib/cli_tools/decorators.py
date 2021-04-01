@@ -4,6 +4,10 @@ import click
 # Specification arguments #
 ###########################
 
+with_fit_specification = click.argument(
+    'fit_specification',
+    type=click.Path(exists=True, dir_okay=False),
+)
 with_regression_specification = click.argument(
     'regression_specification',
     type=click.Path(exists=True, dir_okay=False),
@@ -39,6 +43,11 @@ with_covariates_version = click.option(
     '--covariates-version',
     type=click.Path(exists=True, file_okay=False),
     help='Which version of covariates to use.',
+)
+with_variant_version = click.option(
+    '--variant-version',
+    type=click.Path(exists=True, file_okay=False),
+    help='Which version of variants to use.',
 )
 with_mortality_ratio_version = click.option(
     '--mortality-ratio-version',
@@ -87,6 +96,13 @@ add_preprocess_only = click.option(
 # Task version options #
 ########################
 
+with_task_fit_version = click.option(
+    '--fit-version', '-i',
+    type=click.Path(exists=True, file_okay=False),
+    required=True,
+    help='Full path to an existing directory containing a '
+         '"fit_specification.yaml".',
+)
 with_task_regression_version = click.option(
     '--regression-version', '-i',
     type=click.Path(exists=True, file_okay=False),

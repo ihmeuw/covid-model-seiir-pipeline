@@ -182,6 +182,16 @@ class ForecastDataInterface:
             info_df = io.load(self.covariate_root.vaccine_info(info_type=f'vaccinations_{vaccine_scenario}'))
         return self._format_covariate_data(info_df, location_ids)
 
+    def load_variant_prevalence(self, variant_scenario: str):
+        b117_ramp = self.load_covariate('variant_prevalence_non_escape', variant_scenario).variant_prevalence_non_escape
+        b117 = self.load_covariate('variant_prevalence_B117', variant_scenario).variant_prevalence_B117
+        b1351 = self.load_covariate('variant_prevalence_B1351', variant_scenario).variant_prevalence_B1351
+        p1 = self.load_covariate('variant_prevalence_P1', variant_scenario).variant_prevalence_P1
+        rho_variant = (b1351 + p1).rename('rho_variant')
+        rho_total = (b117 + rho_variant).rename('rho_total')
+        rho = b117_ramp.rename('rho')
+        return pd.concat([rho, rho_variant, rho_total], axis=1)
+
     #########################
     # Scenario data loaders #
     #########################
