@@ -18,7 +18,8 @@ def compute_reimposition_threshold(past_deaths, population, reimposition_thresho
          .groupby('location_id')
          .sum()
     )
-    reimposition_threshold.loc[days_over_death_rate >= 7] = max_threshold / 1e6
+    bad_locs = days_over_death_rate[days_over_death_rate >= 7].index
+    reimposition_threshold.loc[bad_locs] = max_threshold.loc[bad_locs]
 
     # Do it a second time to some crazy stuff happening in central europe.
     days_over_death_rate = (
@@ -26,7 +27,8 @@ def compute_reimposition_threshold(past_deaths, population, reimposition_thresho
          .groupby('location_id')
          .sum()
     )
-    reimposition_threshold.loc[days_over_death_rate >= 7] = 2*max_threshold / 1e6
+    bad_locs = days_over_death_rate[days_over_death_rate >= 7].index
+    reimposition_threshold.loc[bad_locs] = 2*max_threshold.loc[bad_locs]
 
     return reimposition_threshold
 
@@ -115,13 +117,13 @@ class MandateReimpositionParams(NamedTuple):
     min_wait: pd.Timedelta
     days_on: pd.Timedelta
     reimposition_threshold: pd.Series
-    max_threshold: float
+    max_threshold: pd.Series
 
 
-def unpack_parameters(algorithm_parameters: Dict, location_ids: List[int]) -> MandateReimpositionParams:
+def unpack_parameters(algorithm_parameters: Dict,
+                      em_scalars: pd.Series) -> MandateReimpositionParams:
     min_wait = pd.Timedelta(days=algorithm_parameters['minimum_delay'])
     days_on = pd.Timedelta(days=static_vars.DAYS_PER_WEEK * algorithm_parameters['reimposition_duration'])
-    reimposition_threshold = pd.Series(algorithm_parameters['death_threshold'] / 1e6,
-                                       index=pd.Index(location_ids, name='location_id'), name='threshold')
-    max_threshold = algorithm_parameters['max_threshold']
+    reimposition_threshold = (algorithm_parameters['death_threshold'] / 1e6 * em_scalars).rename('threshold')
+    max_threshold = (algorithm_parameters['max_threshold'] / 1e6 * em_scalars).rename('threshold')
     return MandateReimpositionParams(min_wait, days_on, reimposition_threshold, max_threshold)

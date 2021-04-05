@@ -131,11 +131,11 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
     if scenario_spec.algorithm == 'draw_level_mandate_reimposition':
         logger.info('Entering mandate reimposition.', context='compute_mandates')
         # Info data specific to mandate reimposition
-        location_ids = data_interface.load_location_ids()
         percent_mandates, mandate_effects = data_interface.load_mandate_data(scenario_spec.covariates['mobility'])
+        em_scalars = data_interface.load_em_scalars()
         min_wait, days_on, reimposition_threshold, max_threshold = model.unpack_parameters(
             scenario_spec.algorithm_params,
-            location_ids
+            em_scalars,
         )
         population = population.groupby('location_id').population.sum()
         reimposition_threshold = model.compute_reimposition_threshold(

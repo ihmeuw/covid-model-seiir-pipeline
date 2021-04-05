@@ -105,6 +105,7 @@ class InfectionRoot(DataRoot):
     """Data root representing infectionator outputs."""
     metadata = MetadataType('metadata')
 
+    em_scalars = DatasetType('em_data')
     infections = DatasetType('infections_draws', LEAF_TEMPLATES.DRAW_TEMPLATE)
     ifr = DatasetType('ifr_draws', LEAF_TEMPLATES.DRAW_TEMPLATE)
     ihr = DatasetType('ihr_draws', LEAF_TEMPLATES.DRAW_TEMPLATE)
