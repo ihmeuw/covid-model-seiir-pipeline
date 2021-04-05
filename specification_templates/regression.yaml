@@ -1,6 +1,6 @@
 data:
-  infection_version: '2021_03_30.04'
-  covariate_version: '2021_03_30.04'
+  infection_version: '2021_04_02.08'
+  covariate_version: '2021_03_31.01'
   coefficient_version: ''
   location_set_version_id: ''
   location_set_file: '/ihme/covid-19/seir-pipeline-outputs/metadata-inputs/location_metadata_810.2.csv'
@@ -8,11 +8,11 @@ data:
   output_format: 'parquet'
 workflow:
   project: 'proj_covid_prod'
-  queue: 'long.q'
+  queue: 'd.q'
   # one of true, false
   run_hospital: true
 regression_parameters:
-  n_draws: 1000
+  n_draws: 100
   # Mixing parameter.  dS/dt = -beta * S * I ** alpha
   alpha: [0.9, 1.0]
   # 1 / incubation period.  dE/dt = -dS/dt - sigma * E

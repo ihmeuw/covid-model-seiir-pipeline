@@ -94,6 +94,9 @@ def run_ode_fit(ode_parameters: ODEParameters, progress_bar: bool) -> Tuple[pd.D
         )
         loc_fit_results['location_id'] = location_id
         loc_fit_results = loc_fit_results.set_index(['location_id', 'date'])
+        if not (loc_fit_results['S'] >= 0.0).all():
+            print(f'Something fishy in location {location_id}')
+
         fit_results.append(loc_fit_results)
     fit_results = pd.concat(fit_results).sort_index()
     return fit_results[['beta', 'beta_wild', 'beta_variant']], fit_results[[c for c in fit_results if 'beta' not in c]]
@@ -134,8 +137,6 @@ def run_loc_ode_fit(ode_parameters: ODEParameters) -> pd.DataFrame:
     )
     components['date'] = date
     components = components.set_index('date')
-
-    assert (components['S'] >= 0.0).all()
 
     new_e_wild = components['NewE_wild']
     new_e_variant = components['NewE_variant']

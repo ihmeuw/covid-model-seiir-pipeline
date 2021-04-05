@@ -17,7 +17,7 @@ POSTPROCESSING_JOBS = __PostprocessingJobs()
 
 class ResampleTaskSpecification(workflow.TaskSpecification):
     """Specification of execution parameters for draw resample mapping tasks."""
-    default_max_runtime_seconds = 5000
+    default_max_runtime_seconds = 10000
     default_m_mem_free = '50G'
     default_num_cores = 26
 
