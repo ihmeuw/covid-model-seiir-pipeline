@@ -17,6 +17,9 @@ grid_plots:
       - version: '/ihme/covid-19/seir-outputs/2021_04_04.02'
         scenarios:
           reference*: 'new with em scalar'
+      - version: '/ihme/covid-19/seir-outputs/2021_04_05.02'
+        scenarios:
+          reference*: 'new with em scalar, fixed e-brake'
   - name: 'compare_longrange'
     date_start: '2020-03-01'
     date_end: '2022-08-30'
@@ -24,11 +27,13 @@ grid_plots:
       - version: '/ihme/covid-19/seir-outputs/2021_03_31.02'
         scenarios:
           reference*: 'public reference'
-      - version: '/ihme/covid-19/seir-outputs/2021_04_04.02'
-        scenarios:
-          reference*: 'new without em scalar'
       - version: '/ihme/covid-19/seir-outputs/2021_04_04.04'
         scenarios:
+          reference*: 'new without em scalar'
+      - version: '/ihme/covid-19/seir-outputs/2021_04_04.02'
+        scenarios:
           reference*: 'new with em scalar'
-
+      - version: '/ihme/covid-19/seir-outputs/2021_04_05.02'
+        scenarios:
+          reference*: 'new with em scalar, fixed e-brake'
 

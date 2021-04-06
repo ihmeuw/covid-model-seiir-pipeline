@@ -119,7 +119,8 @@ class RegressionDataInterface:
     def load_em_scalars(self):
         location_ids = self.load_location_ids()
         em_scalars = io.load(self.infection_root.em_scalars())
-        return em_scalars.loc[location_ids].em_scalar
+        em_scalars = em_scalars.reindex(location_ids, fill_value=1.0)
+        return em_scalars.em_scalar
 
     def load_ifr(self, draw_id: int) -> pd.DataFrame:
         ifr = io.load(self.infection_root.ifr(draw_id=draw_id))
