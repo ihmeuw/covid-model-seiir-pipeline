@@ -6,6 +6,7 @@ import tqdm
 
 from covid_model_seiir_pipeline.lib import (
     math,
+    ode,
 )
 from covid_model_seiir_pipeline.pipeline.forecasting.model.containers import (
     Indices,
@@ -14,10 +15,6 @@ from covid_model_seiir_pipeline.pipeline.forecasting.model.containers import (
     RatioData,
     HospitalCorrectionFactors,
 )
-from covid_model_seiir_pipeline.pipeline.forecasting.model import (
-    ode_system,
-)
-
 
 if TYPE_CHECKING:
     # The model subpackage is a library for the pipeline stage and shouldn't
@@ -168,7 +165,7 @@ def redistribute_past_compartments(compartments: pd.DataFrame,
         pop_weight = pop_weights[group].reindex(compartments.index, level='location_id')
 
         group_compartments = compartments.mul(pop_weight, axis=0)
-        group_compartments = group_compartments.reindex(ode_system.COMPARTMENTS, axis='columns', fill_value=0.0)
+        group_compartments = group_compartments.reindex(ode.COMPARTMENTS, axis='columns', fill_value=0.0)
         group_compartments.columns = [f'{c}_{group}' for c in group_compartments]
 
         redistributed_compartments.append(group_compartments)
@@ -275,11 +272,10 @@ def forecast_correction_factors(indices: Indices,
 def run_ode_model(initial_conditions: pd.DataFrame,
                   model_parameters: ModelParameters,
                   progress_bar: bool) -> pd.DataFrame:
-    system = ode_system.system
     mp_dict = model_parameters.to_dict()
 
     parameters = pd.concat(
-        [mp_dict[p] for p in ode_system.PARAMETERS]
+        [mp_dict[p] for p in ode.FORECAST_PARAMETERS]
         + [model_parameters.unprotected_lr,
            model_parameters.protected_wild_type_lr,
            model_parameters.protected_all_types_lr,
@@ -307,7 +303,7 @@ def run_ode_model(initial_conditions: pd.DataFrame,
         p = loc_parameters.values.T  # Each row is a param, each column a day
 
         solution = math.solve_ode(
-            system=system,
+            system=ode.system,
             t=loc_times,
             init_cond=ic,
             params=p
