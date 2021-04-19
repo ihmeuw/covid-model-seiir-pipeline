@@ -304,7 +304,7 @@ def run_ode_model(initial_conditions: pd.DataFrame,
         p = loc_parameters.values.T  # Each row is a param, each column a day
 
         solution = math.solve_ode(
-            system=ode.system,
+            system=ode.forecast_system,
             t=loc_times,
             init_cond=ic,
             params=p

@@ -18,7 +18,17 @@ from covid_model_seiir_pipeline.lib.ode import (
 
 
 @numba.njit
-def system(t: float, y: np.ndarray, input_parameters: np.ndarray, forecast: bool = False):
+def fit_system(t: float, y: np.ndarray, input_parameters: np.ndarray):
+    return _system(t, y, input_parameters, forecast=False)
+
+
+@numba.njit
+def forecast_system(t: float, y: np.ndarray, input_parameters: np.ndarray):
+    return _system(t, y, input_parameters, forecast=True)
+
+
+@numba.njit
+def _system(t: float, y: np.ndarray, input_parameters: np.ndarray, forecast: bool):
     """The COVID ODE system.
 
     This is a shared representation of the COVID ODE system meant for use in
