@@ -273,9 +273,10 @@ def run_ode_model(initial_conditions: pd.DataFrame,
                   model_parameters: ModelParameters,
                   progress_bar: bool) -> pd.DataFrame:
     mp_dict = model_parameters.to_dict()
+    ordered_fields = list(ode.PARAMETERS._fields) + list(ode.FORECAST_PARAMETERS._fields)
 
     parameters = pd.concat(
-        [mp_dict[p] for p in ode.FORECAST_PARAMETERS]
+        [mp_dict[p] for p in ordered_fields]
         + [model_parameters.unprotected_lr,
            model_parameters.protected_wild_type_lr,
            model_parameters.protected_all_types_lr,
