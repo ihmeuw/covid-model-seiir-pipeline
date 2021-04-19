@@ -297,7 +297,7 @@ def run_ode_model(initial_conditions: pd.DataFrame,
                                         total=len(initial_conditions),
                                         disable=not progress_bar)
     for location_id, initial_condition in initial_conditions_iter:
-        if location_id != 177: continue
+        if location_id != 8: continue
         loc_parameters = parameters.loc[location_id].sort_index()
         loc_date = loc_parameters.reset_index().date
         loc_times = np.array((loc_date - loc_date.min()).dt.days)
