@@ -57,6 +57,7 @@ def prepare_ode_fit_parameters(past_infections: pd.Series,
         rho=rhos['rho'].reindex(past_index, fill_value=0.0),
         rho_variant=rhos['rho_variant'].reindex(past_index, fill_value=0.0),
         **sampled_params,
+        theta_minus=pd.Series(0.0, index=past_index, name='theta_minus'),
         **vaccinations,
     )
 
@@ -92,8 +93,6 @@ def run_ode_fit(ode_parameters: ODEParameters, progress_bar: bool) -> Tuple[pd.D
         )
         loc_fit_results['location_id'] = location_id
         loc_fit_results = loc_fit_results.set_index(['location_id', 'date'])
-        if not (loc_fit_results['S'] >= 0.0).all():
-            print(f'Something fishy in location {location_id}')
 
         fit_results.append(loc_fit_results)
     fit_results = pd.concat(fit_results).sort_index()
@@ -158,7 +157,7 @@ def run_loc_ode_fit(ode_parameters: ODEParameters) -> pd.DataFrame:
     s_wild_compartments = [f'{c}_{r}' for c, r in itertools.product(['S', 'S_u', 'S_p', 'S_pa'], pop_groups)]
     s_wild = components.loc[:, s_wild_compartments].sum(axis=1)
     s_variant_compartments = [f'{c}_{r}' for c, r
-                              in itertools.product(['S_variant', 'S_variant_u', 'S_varaint_pa', 'S_m'], pop_groups)]
+                              in itertools.product(['S_variant', 'S_variant_u', 'S_variant_pa', 'S_m'], pop_groups)]
     s_variant_only = components.loc[:, s_variant_compartments].sum(axis=1)
     s_variant = s_wild + s_variant_only
     i_wild = components.loc[:, [c for c in components if c[0] == 'I' and 'variant' not in c]].sum(axis=1)

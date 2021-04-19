@@ -12,7 +12,7 @@ workflow:
   # one of true, false
   run_hospital: true
 regression_parameters:
-  n_draws: 1000
+  n_draws: 100
   # Mixing parameter.  dS/dt = -beta * S * I ** alpha
   alpha: [0.9, 1.0]
   # 1 / incubation period.  dE/dt = -dS/dt - sigma * E
