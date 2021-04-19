@@ -35,6 +35,7 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
     # Forecast is run to the end of the covariates
     covariates = data_interface.load_covariates(scenario_spec)
     forecast_end_dates = covariates.reset_index().groupby('location_id').date.max()
+    population = data_interface.load_population()
 
     logger.info('Building indices', context='transform')
     indices = model.Indices(
@@ -129,7 +130,6 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
             scenario_spec.algorithm_params,
             em_scalars,
         )
-        population = population.groupby('location_id').population.sum()
         reimposition_threshold = model.compute_reimposition_threshold(
             postprocessing_params.past_deaths,
             population,
