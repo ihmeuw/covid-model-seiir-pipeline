@@ -125,7 +125,7 @@ class ModelParameters:
         return {k: v.rename(k) for k, v in utilities.asdict(self).items()}
 
     def to_df(self) -> pd.DataFrame:
-        return pd.concat(self.to_dict().values, axis=1)
+        return pd.concat(self.to_dict().values(), axis=1)
 
 
 @dataclass
