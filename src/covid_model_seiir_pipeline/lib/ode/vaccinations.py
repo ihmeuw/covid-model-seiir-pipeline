@@ -7,6 +7,7 @@ from covid_model_seiir_pipeline.lib import (
 from covid_model_seiir_pipeline.lib.ode.constants import (
     AGGREGATES,
     COMPARTMENTS,
+    DEBUG,
     NEW_E,
     PARAMETERS,
     UNVACCINATED,
@@ -103,6 +104,10 @@ def allocate(group_y: np.ndarray,
         vaccines_out,
     )
 
+    if DEBUG:
+        assert np.all(np.isfinite(vaccines_out))
+        assert np.all(vaccines_out >= 0)
+
     return vaccines_out
 
 
@@ -124,7 +129,10 @@ def _allocate_from_s(group_y: np.ndarray,
             vaccine_ratio = expected_vaccines / expected_total_vaccines_s
             vaccines_out[COMPARTMENTS.S, vaccine_type] = vaccine_ratio * total_vaccines_s
 
-#    assert np.all(vaccines_out >= 0)
+    if DEBUG:
+        assert np.all(np.isfinite(vaccines_out))
+        assert np.all(vaccines_out >= 0)
+
     return vaccines_out
 
 
@@ -153,7 +161,11 @@ def _allocate_from_s_variant(group_y: np.ndarray,
             expected_vaccines = group_y[COMPARTMENTS.S_variant] / n_unvaccinated * group_vaccines[vaccine_type]
             vaccine_ratio = expected_vaccines / expected_total_vaccines_s_variant
             vaccines_out[COMPARTMENTS.S_variant, vaccine_type] = vaccine_ratio * total_vaccines_s_variant
-#    assert np.all(vaccines_out >= 0)
+
+    if DEBUG:
+        assert np.all(np.isfinite(vaccines_out))
+        assert np.all(vaccines_out >= 0)
+
     return vaccines_out
 
 
@@ -179,5 +191,9 @@ def _allocate_from_not_s(group_y: np.ndarray,
         group_y[removed],
         group_y[removed] / n_unvaccinated * v_total
     )
-#    assert np.all(vaccines_out >= 0)
+
+    if DEBUG:
+        assert np.all(np.isfinite(vaccines_out))
+        assert np.all(vaccines_out >= 0)
+
     return vaccines_out

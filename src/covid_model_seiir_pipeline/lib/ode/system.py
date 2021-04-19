@@ -5,12 +5,13 @@ from covid_model_seiir_pipeline.lib import (
     math,
 )
 from covid_model_seiir_pipeline.lib.ode.constants import (
-    PARAMETERS,
-    NEW_E,
     AGGREGATES,
-    VACCINE_TYPES,
     COMPARTMENTS,
+    DEBUG,
     N_GROUPS,
+    NEW_E,
+    PARAMETERS,
+    VACCINE_TYPES,
 )
 from covid_model_seiir_pipeline.lib.ode import (
     accounting,
@@ -86,16 +87,19 @@ def _system(t: float, y: np.ndarray, input_parameters: np.ndarray, forecast: boo
             params,
             group_vaccines,
         )
-        assert np.all(np.isfinite(group_dy))
+
         group_dy = escape_variant.maybe_invade(
             group_y,
             group_dy,
             aggregates,
             params,
         )
-        assert np.all(np.isfinite(group_dy))
+
         dy[group_start:group_end] = group_dy
-#    assert np.all(np.isfinite(dy))
+
+    if DEBUG:
+        assert np.all(np.isfinite(dy))
+
     return dy
 
 
@@ -241,18 +245,18 @@ def _single_group_system(t: float,
     inflow = transition_map.sum(axis=0)
     outflow = transition_map.sum(axis=1)
     group_dy = inflow - outflow
-#    assert np.all(np.isfinite(group_dy))
-    
-#    assert np.all(group_y + group_dy >= -1e-10)
-#    if group_dy.sum() > 1e-5:
-#        print('Compartment mismatch: ', group_dy.sum())
+
+    if DEBUG:
+        assert np.all(np.isfinite(group_dy))
+        assert np.all(group_y + group_dy >= -1e-10)
+        assert group_dy.sum() > 1e-5
 
     group_dy = accounting.compute_tracking_columns(
         group_dy,
         transition_map,
         vaccines_out,
     )
-#    assert np.all(np.isfinite(group_dy))
+
     return group_dy
 
 
@@ -279,7 +283,10 @@ def _seiir_transition_wild(group_y: np.ndarray,
     transition_map[infectious2, susceptible_variant] += (
         (1 - params[PARAMETERS.chi]) * params[PARAMETERS.gamma2] * group_y[infectious2]
     )
-#    assert np.all(transition_map >= 0)
+
+    if DEBUG:
+        assert np.all(transition_map >= 0)
+
     return transition_map
 
 
@@ -299,5 +306,8 @@ def seiir_transition_variant(group_y: np.ndarray,
     transition_map[exposed, infectious1] += params[PARAMETERS.sigma] * group_y[exposed]
     transition_map[infectious1, infectious2] += params[PARAMETERS.gamma1] * group_y[infectious1]
     transition_map[infectious2, removed] += params[PARAMETERS.gamma2] * group_y[infectious2]
-#    assert np.all(transition_map >= 0)
+
+    if DEBUG:
+        assert np.all(transition_map >= 0)
+
     return transition_map

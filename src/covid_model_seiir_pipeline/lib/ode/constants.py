@@ -133,3 +133,4 @@ INFECTIOUS_VARIANT = np.array([
 ##########################
 
 N_GROUPS = 2
+DEBUG = False  # Not technically a constant

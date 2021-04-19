@@ -5,6 +5,7 @@ import numpy as np
 from covid_model_seiir_pipeline.lib.ode.constants import (
     AGGREGATES,
     COMPARTMENTS,
+    DEBUG,
     PARAMETERS,
 )
 
@@ -45,7 +46,7 @@ def maybe_invade(group_y: np.ndarray, group_dy: np.ndarray,
         return group_dy
 
     alpha, pi = params[PARAMETERS.alpha], params[PARAMETERS.pi]
-    
+
     group_dy = _invade_compartment_subset(
         group_y, group_dy,
         alpha, pi,
@@ -91,5 +92,8 @@ def _invade_compartment_subset(group_y: np.ndarray, group_dy: np.ndarray,
     group_dy[susceptible] -= delta + (delta / 5)**(1 / alpha)
     group_dy[exposed_variant] += delta
     group_dy[infectious1_variant] += (delta / 5)**(1 / alpha)
-#    assert np.all(np.isfinite(group_dy))
+
+    if DEBUG:
+        assert np.all(np.isfinite(group_dy))
+
     return group_dy
