@@ -45,7 +45,7 @@ def make_aggregates(y: np.ndarray) -> np.ndarray:
         aggregates[AGGREGATES.susceptible_variant_only] += group_y[SUSCEPTIBLE_VARIANT_ONLY].sum()
         # Ignore tracking compartments when computing the group sum.
         aggregates[AGGREGATES.n_total] += group_y[np.array(COMPARTMENTS)].sum()
-
+    assert np.all(np.isfinite(aggregates))
     return aggregates
 
 
@@ -86,7 +86,8 @@ def normalize_parameters(input_parameters: np.ndarray,
     alpha = input_parameters[PARAMETERS.alpha]
 
     if forecast:
-        params, vaccines = input_parameters[:len(FORECAST_PARAMETERS)], input_parameters[len(FORECAST_PARAMETERS):]
+        param_size = len(PARAMETERS) + len(FORECAST_PARAMETERS)
+        params, vaccines = input_parameters[:param_size], input_parameters[param_size:]
 
         beta_wild = params[FORECAST_PARAMETERS.beta_wild]
         beta_variant = params[FORECAST_PARAMETERS.beta_variant]
@@ -103,7 +104,8 @@ def normalize_parameters(input_parameters: np.ndarray,
         new_e[NEW_E.total] = new_e.sum()
 
     else:
-        params, vaccines = input_parameters[:len(FIT_PARAMETERS)], input_parameters[len(FIT_PARAMETERS):]
+        param_size = len(PARAMETERS) + len(FIT_PARAMETERS)
+        params, vaccines = input_parameters[:param_size], input_parameters[param_size:]
 
         new_e_total = params[FIT_PARAMETERS.new_e]
         kappa = params[FIT_PARAMETERS.kappa]
@@ -115,11 +117,11 @@ def normalize_parameters(input_parameters: np.ndarray,
         scale_variant = (1 + kappa * phi)
         scale = scale_variant / scale_wild
 
-        susceptible_wild, susceptible_variant_only, infectious_wild, infectious_variant, n_total = aggregates[np.array(
+        susceptible_wild, susceptible_variant_only, infectious_wild, infectious_variant, n_total = aggregates[np.array([
             AGGREGATES.susceptible_wild, AGGREGATES.susceptible_variant_only,
             AGGREGATES.infectious_wild, AGGREGATES.infectious_variant,
             AGGREGATES.n_total,
-        )]
+        ])]
 
         si_wild = susceptible_wild * infectious_wild ** alpha
         si_variant_naive = scale * susceptible_wild * infectious_variant ** alpha
@@ -129,8 +131,11 @@ def normalize_parameters(input_parameters: np.ndarray,
 
         new_e = np.zeros(len(NEW_E))
         new_e[NEW_E.wild] = si_wild / z * new_e_total
-        new_e[NEW_E.variant_naive] = si_variant_naive / z * new_e
-        new_e[NEW_E.variant_reinf] = si_variant_reinf / z * new_e
+        new_e[NEW_E.variant_naive] = si_variant_naive / z * new_e_total
+        new_e[NEW_E.variant_reinf] = si_variant_reinf / z * new_e_total
         new_e[NEW_E.total] = new_e_total
 
+    assert np.all(np.isfinite(params))
+    assert np.all(np.isfinite(vaccines))
+    assert np.all(np.isfinite(new_e))
     return params, vaccines, new_e

@@ -83,16 +83,16 @@ def _system(t: float, y: np.ndarray, input_parameters: np.ndarray, forecast: boo
             params,
             group_vaccines,
         )
-
+        assert np.all(np.isfinite(group_dy))
         group_dy = escape_variant.maybe_invade(
             group_y,
             group_dy,
             aggregates,
             params,
         )
-
+        assert np.all(np.isfinite(group_dy))
         dy[group_start:group_end] = group_dy
-
+    assert np.all(np.isfinite(dy))
     return dy
 
 
@@ -158,7 +158,7 @@ def _single_group_system(t: float,
     transition_map = _seiir_transition_wild(
         group_y, params, aggregates, new_e,
         COMPARTMENTS.S_p, COMPARTMENTS.E_p, COMPARTMENTS.I1_p, COMPARTMENTS.I2_p, COMPARTMENTS.R_p,
-        COMPARTMENTS.S_variant_p, COMPARTMENTS.E_variant_p,
+        COMPARTMENTS.S_variant_u, COMPARTMENTS.E_variant_u,
         transition_map,
     )
 
@@ -238,6 +238,7 @@ def _single_group_system(t: float,
     outflow = transition_map.sum(axis=1)
     group_dy = inflow - outflow
     assert np.all(np.isfinite(group_dy))
+    assert np.all(group_y + group_dy >= 0)
     if group_dy.sum() > 1e-5:
         print('Compartment mismatch: ', group_dy.sum())
 
@@ -246,6 +247,7 @@ def _single_group_system(t: float,
         transition_map,
         vaccines_out,
     )
+    assert np.all(np.isfinite(group_dy))
     return group_dy
 
 
@@ -272,6 +274,7 @@ def _seiir_transition_wild(group_y: np.ndarray,
     transition_map[infectious2, susceptible_variant] += (
         (1 - params[PARAMETERS.chi]) * params[PARAMETERS.gamma2] * group_y[infectious2]
     )
+    assert np.all(transition_map >= 0)
     return transition_map
 
 
@@ -291,7 +294,7 @@ def seiir_transition_variant(group_y: np.ndarray,
     transition_map[exposed, infectious1] += params[PARAMETERS.sigma] * group_y[exposed]
     transition_map[infectious1, infectious2] += params[PARAMETERS.gamma1] * group_y[infectious1]
     transition_map[infectious2, removed] += params[PARAMETERS.gamma2] * group_y[infectious2]
-
+    assert np.all(transition_map >= 0)
     return transition_map
 
 

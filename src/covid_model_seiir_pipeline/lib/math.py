@@ -75,6 +75,7 @@ def _rk45(system,
         k3 = system(t_solve[i - 1], y_solve[:, i - 2] + dt / 2 * k2, params[:, i - 1])
         k4 = system(t_solve[i], y_solve[:, i - 2] + dt * k3, params[:, i])
         y_solve[:, i] = y_solve[:, i - 2] + dt / 6 * (k1 + 2 * k2 + 2 * k3 + k4)
+        assert np.all(np.isfinite(y_solve[:, i]))
     return y_solve
 
 
