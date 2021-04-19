@@ -112,6 +112,7 @@ def _single_group_system(t: float,
     vaccines_out = vaccinations.allocate(
         group_y,
         params,
+        aggregates,
         group_vaccines,
         new_e,
     )
@@ -296,12 +297,3 @@ def seiir_transition_variant(group_y: np.ndarray,
     transition_map[infectious2, removed] += params[PARAMETERS.gamma2] * group_y[infectious2]
     assert np.all(transition_map >= 0)
     return transition_map
-
-
-@numba.njit
-def _safe_divide(a: float, b: float):
-    """Divide that returns zero if numerator and denominator are both zero."""
-    if b == 0.0:
-        assert a == 0.0
-        return 0.0
-    return a / b

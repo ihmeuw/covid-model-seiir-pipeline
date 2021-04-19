@@ -1,7 +1,11 @@
 import numpy as np
 import numba
 
+from covid_model_seiir_pipeline.lib import (
+    math,
+)
 from covid_model_seiir_pipeline.lib.ode.constants import (
+    AGGREGATES,
     COMPARTMENTS,
     NEW_E,
     PARAMETERS,
@@ -13,6 +17,7 @@ from covid_model_seiir_pipeline.lib.ode.constants import (
 @numba.njit
 def allocate(group_y: np.ndarray,
              params: np.ndarray,
+             aggregates: np.ndarray,
              group_vaccines: np.ndarray,
              new_e: np.ndarray):
     """Allocate vaccines to compartments by effectiveness.
@@ -33,6 +38,9 @@ def allocate(group_y: np.ndarray,
     params
         An array that aligns with the :obj:`PARAMETERS` index map representing
         the standard set of ODE parameters.
+    aggregates
+        An array that with values that can be indexed by the AGGREGATES
+        index mapping.
     group_vaccines
         An array that aligns with the :obj:`VACCINE_TYPES` index map
         representing the doses of vaccine to be delivered to the group split
@@ -62,18 +70,20 @@ def allocate(group_y: np.ndarray,
         return vaccines_out
 
     # S has many kinds of effective and ineffective vaccines
+    s_frac = math.safe_divide(group_y[COMPARTMENTS.S], aggregates[AGGREGATES.susceptible_wild])
     vaccines_out = _allocate_from_s(
         group_y,
         group_vaccines,
-        new_e[NEW_E.wild] + new_e[NEW_E.variant_naive],
+        (new_e[NEW_E.wild] + new_e[NEW_E.variant_naive]) * s_frac,
         n_vaccines_group, n_unvaccinated_group,
         vaccines_out,
     )
     # S_variant has many kinds of effective and ineffective vaccines
+    s_variant_frac = math.safe_divide(group_y[COMPARTMENTS.S_variant], aggregates[AGGREGATES.susceptible_variant_only])
     vaccines_out = _allocate_from_s_variant(
         group_y,
         group_vaccines,
-        new_e[NEW_E.variant_reinf],
+        new_e[NEW_E.variant_reinf] * s_variant_frac,
         n_vaccines_group, n_unvaccinated_group,
         vaccines_out,
     )

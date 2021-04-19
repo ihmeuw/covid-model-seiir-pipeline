@@ -45,6 +45,7 @@ def make_aggregates(y: np.ndarray) -> np.ndarray:
         aggregates[AGGREGATES.susceptible_variant_only] += group_y[SUSCEPTIBLE_VARIANT_ONLY].sum()
         # Ignore tracking compartments when computing the group sum.
         aggregates[AGGREGATES.n_total] += group_y[np.array(COMPARTMENTS)].sum()
+
     assert np.all(np.isfinite(aggregates))
     return aggregates
 
