@@ -1,6 +1,9 @@
 import numba
 import numpy as np
 
+from covid_model_seiir_pipeline.lib import (
+    math,
+)
 from covid_model_seiir_pipeline.lib.ode.constants import (
     PARAMETERS,
     NEW_E,
@@ -230,9 +233,9 @@ def _single_group_system(t: float,
     # Immunized #
     #############
     # Epi transition only
-    transition_map[COMPARTMENTS.S_m, COMPARTMENTS.E_variant_pa] = (
-        _safe_divide(new_e[NEW_E.variant_reinf] * group_y[COMPARTMENTS.S_m],
-                     aggregates[AGGREGATES.susceptible_variant_only])
+    transition_map[COMPARTMENTS.S_m, COMPARTMENTS.E_variant_pa] = math.safe_divide(
+        new_e[NEW_E.variant_reinf] * group_y[COMPARTMENTS.S_m],
+        aggregates[AGGREGATES.susceptible_variant_only],
     )
 
     inflow = transition_map.sum(axis=0)
@@ -263,8 +266,8 @@ def _seiir_transition_wild(group_y: np.ndarray,
     """Epi transitions from the wild type compartments among a vaccination subgroup."""
     total_susceptible = aggregates[AGGREGATES.susceptible_wild]
 
-    new_e_wild = _safe_divide(group_y[susceptible] * new_e[NEW_E.wild], total_susceptible)
-    new_e_variant = _safe_divide(group_y[susceptible] * new_e[NEW_E.variant_naive], total_susceptible)
+    new_e_wild = math.safe_divide(group_y[susceptible] * new_e[NEW_E.wild], total_susceptible)
+    new_e_variant = math.safe_divide(group_y[susceptible] * new_e[NEW_E.variant_naive], total_susceptible)
 
     transition_map[susceptible, exposed] += new_e_wild
     transition_map[exposed, infectious1] += params[PARAMETERS.sigma] * group_y[exposed]
@@ -289,7 +292,7 @@ def seiir_transition_variant(group_y: np.ndarray,
     """Epi transitions from the escape variant compartments among a vaccination subgroup."""
     total_susceptible = aggregates[AGGREGATES.susceptible_variant_only]
 
-    new_e_variant = _safe_divide(group_y[susceptible] * new_e[NEW_E.variant_reinf], total_susceptible)
+    new_e_variant = math.safe_divide(group_y[susceptible] * new_e[NEW_E.variant_reinf], total_susceptible)
 
     transition_map[susceptible, exposed] += new_e_variant
     transition_map[exposed, infectious1] += params[PARAMETERS.sigma] * group_y[exposed]
