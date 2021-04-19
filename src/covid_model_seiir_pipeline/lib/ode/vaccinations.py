@@ -128,6 +128,11 @@ def _allocate_from_s(group_y: np.ndarray,
             expected_vaccines = group_y[COMPARTMENTS.S] / n_unvaccinated * group_vaccines[vaccine_type]
             vaccine_ratio = expected_vaccines / expected_total_vaccines_s
             vaccines_out[COMPARTMENTS.S, vaccine_type] = vaccine_ratio * total_vaccines_s
+
+    if DEBUG:
+        assert np.all(np.isfinite(vaccines_out))
+        assert np.all(vaccines_out >= 0)
+
     return vaccines_out
 
 

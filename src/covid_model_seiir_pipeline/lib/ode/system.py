@@ -32,7 +32,7 @@ def forecast_system(t: float, y: np.ndarray, input_parameters: np.ndarray):
 
 
 @numba.njit
-def _system(t: float, y: np.ndarray, input_parameters: np.ndarray, forecast: bool = False):
+def _system(t: float, y: np.ndarray, input_parameters: np.ndarray, forecast: bool):
     """The COVID ODE system.
 
     This is a shared representation of the COVID ODE system meant for use in
@@ -239,7 +239,7 @@ def _single_group_system(t: float,
     # Epi transition only
     transition_map[COMPARTMENTS.S_m, COMPARTMENTS.E_variant_pa] = math.safe_divide(
         new_e[NEW_E.variant_reinf] * group_y[COMPARTMENTS.S_m],
-        aggregates[AGGREGATES.susceptible_variant_only]
+        aggregates[AGGREGATES.susceptible_variant_only],
     )
 
     inflow = transition_map.sum(axis=0)

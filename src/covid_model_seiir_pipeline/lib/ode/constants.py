@@ -134,6 +134,7 @@ INFECTIOUS_VARIANT = np.array([
 ##########################
 
 N_GROUPS = 2
+
 # Turning off the JIT is operationally 1-to-1 with
 # saying something is broken in the ODE code and
 # I need to figure it out.
