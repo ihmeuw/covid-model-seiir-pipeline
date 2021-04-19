@@ -20,7 +20,7 @@ def allocate(group_y: np.ndarray,
              params: np.ndarray,
              aggregates: np.ndarray,
              group_vaccines: np.ndarray,
-             new_e: np.ndarray):
+             new_e: np.ndarray) -> np.ndarray:
     """Allocate vaccines to compartments by effectiveness.
 
     The input `group_vaccines` tells us about the number of vaccine doses
