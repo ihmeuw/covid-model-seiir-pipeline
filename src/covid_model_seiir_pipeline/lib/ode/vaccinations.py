@@ -1,8 +1,13 @@
 import numpy as np
 import numba
 
+from covid_model_seiir_pipeline.lib import (
+    math,
+)
 from covid_model_seiir_pipeline.lib.ode.constants import (
+    AGGREGATES,
     COMPARTMENTS,
+    DEBUG,
     NEW_E,
     PARAMETERS,
     UNVACCINATED,
@@ -13,8 +18,9 @@ from covid_model_seiir_pipeline.lib.ode.constants import (
 @numba.njit
 def allocate(group_y: np.ndarray,
              params: np.ndarray,
+             aggregates: np.ndarray,
              group_vaccines: np.ndarray,
-             new_e: np.ndarray):
+             new_e: np.ndarray) -> np.ndarray:
     """Allocate vaccines to compartments by effectiveness.
 
     The input `group_vaccines` tells us about the number of vaccine doses
@@ -33,6 +39,9 @@ def allocate(group_y: np.ndarray,
     params
         An array that aligns with the :obj:`PARAMETERS` index map representing
         the standard set of ODE parameters.
+    aggregates
+        An array that with values that can be indexed by the AGGREGATES
+        index mapping.
     group_vaccines
         An array that aligns with the :obj:`VACCINE_TYPES` index map
         representing the doses of vaccine to be delivered to the group split
@@ -62,18 +71,20 @@ def allocate(group_y: np.ndarray,
         return vaccines_out
 
     # S has many kinds of effective and ineffective vaccines
+    s_frac = math.safe_divide(group_y[COMPARTMENTS.S], aggregates[AGGREGATES.susceptible_wild])
     vaccines_out = _allocate_from_s(
         group_y,
         group_vaccines,
-        new_e[NEW_E.wild] + new_e[NEW_E.variant_naive],
+        (new_e[NEW_E.wild] + new_e[NEW_E.variant_naive]) * s_frac,
         n_vaccines_group, n_unvaccinated_group,
         vaccines_out,
     )
     # S_variant has many kinds of effective and ineffective vaccines
+    s_variant_frac = math.safe_divide(group_y[COMPARTMENTS.S_variant], aggregates[AGGREGATES.susceptible_variant_only])
     vaccines_out = _allocate_from_s_variant(
         group_y,
         group_vaccines,
-        new_e[NEW_E.variant_reinf],
+        new_e[NEW_E.variant_reinf] * s_variant_frac,
         n_vaccines_group, n_unvaccinated_group,
         vaccines_out,
     )
@@ -92,6 +103,10 @@ def allocate(group_y: np.ndarray,
         COMPARTMENTS.E_variant, COMPARTMENTS.I1_variant, COMPARTMENTS.I2_variant, COMPARTMENTS.R_variant,
         vaccines_out,
     )
+
+    if DEBUG:
+        assert np.all(np.isfinite(vaccines_out))
+        assert np.all(vaccines_out >= 0)
 
     return vaccines_out
 
@@ -142,6 +157,10 @@ def _allocate_from_s_variant(group_y: np.ndarray,
             vaccine_ratio = expected_vaccines / expected_total_vaccines_s_variant
             vaccines_out[COMPARTMENTS.S_variant, vaccine_type] = vaccine_ratio * total_vaccines_s_variant
 
+    if DEBUG:
+        assert np.all(np.isfinite(vaccines_out))
+        assert np.all(vaccines_out >= 0)
+
     return vaccines_out
 
 
@@ -167,5 +186,9 @@ def _allocate_from_not_s(group_y: np.ndarray,
         group_y[removed],
         group_y[removed] / n_unvaccinated * v_total
     )
+
+    if DEBUG:
+        assert np.all(np.isfinite(vaccines_out))
+        assert np.all(vaccines_out >= 0)
 
     return vaccines_out

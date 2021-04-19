@@ -3,6 +3,7 @@ import numpy as np
 
 from covid_model_seiir_pipeline.lib.ode.constants import (
     COMPARTMENTS,
+    DEBUG,
     TRACKING_COMPARTMENTS,
     VACCINE_TYPES,
 )
@@ -100,5 +101,8 @@ def compute_tracking_columns(group_dy: np.ndarray,
     group_dy[TRACKING_COMPARTMENTS.V_m] = vaccines_out[:, VACCINE_TYPES.m].sum()
     group_dy[TRACKING_COMPARTMENTS.V_pa] = vaccines_out[:, VACCINE_TYPES.pa].sum()
     group_dy[TRACKING_COMPARTMENTS.V_ma] = vaccines_out[:, VACCINE_TYPES.ma].sum()
+
+    if DEBUG:
+        assert np.all(np.isfinite(group_dy))
 
     return group_dy

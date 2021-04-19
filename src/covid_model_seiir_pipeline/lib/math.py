@@ -78,6 +78,15 @@ def _rk45(system,
     return y_solve
 
 
+@numba.njit
+def safe_divide(a: float, b: float):
+    """Divide that returns zero if numerator and denominator are both zero."""
+    if b == 0.0:
+        assert a == 0.0
+        return 0.0
+    return a / b
+
+
 def linear_interpolate(t_target: np.ndarray,
                        t_org: np.ndarray,
                        x_org: np.ndarray) -> np.ndarray:

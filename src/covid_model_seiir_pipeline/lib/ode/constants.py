@@ -8,6 +8,7 @@ and parameters since numba plays nicely with named tuples.
 
 """
 from collections import namedtuple
+import os
 
 import numpy as np
 
@@ -133,3 +134,7 @@ INFECTIOUS_VARIANT = np.array([
 ##########################
 
 N_GROUPS = 2
+# Turning off the JIT is operationally 1-to-1 with
+# saying something is broken in the ODE code and
+# I need to figure it out.
+DEBUG = not bool(os.getenv('NUMBA_DISABLE_JIT', 0))

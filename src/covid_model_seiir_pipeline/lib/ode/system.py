@@ -1,13 +1,17 @@
 import numba
 import numpy as np
 
+from covid_model_seiir_pipeline.lib import (
+    math,
+)
 from covid_model_seiir_pipeline.lib.ode.constants import (
-    PARAMETERS,
-    NEW_E,
     AGGREGATES,
-    VACCINE_TYPES,
     COMPARTMENTS,
+    DEBUG,
     N_GROUPS,
+    NEW_E,
+    PARAMETERS,
+    VACCINE_TYPES,
 )
 from covid_model_seiir_pipeline.lib.ode import (
     accounting,
@@ -18,7 +22,17 @@ from covid_model_seiir_pipeline.lib.ode import (
 
 
 @numba.njit
-def system(t: float, y: np.ndarray, input_parameters: np.ndarray, forecast: bool = False):
+def fit_system(t: float, y: np.ndarray, input_parameters: np.ndarray):
+    return _system(t, y, input_parameters, forecast=False)
+
+
+@numba.njit
+def forecast_system(t: float, y: np.ndarray, input_parameters: np.ndarray):
+    return _system(t, y, input_parameters, forecast=True)
+
+
+@numba.njit
+def _system(t: float, y: np.ndarray, input_parameters: np.ndarray, forecast: bool = False):
     """The COVID ODE system.
 
     This is a shared representation of the COVID ODE system meant for use in
@@ -83,6 +97,9 @@ def system(t: float, y: np.ndarray, input_parameters: np.ndarray, forecast: bool
 
         dy[group_start:group_end] = group_dy
 
+    if DEBUG:
+        assert np.all(np.isfinite(dy))
+
     return dy
 
 
@@ -102,6 +119,7 @@ def _single_group_system(t: float,
     vaccines_out = vaccinations.allocate(
         group_y,
         params,
+        aggregates,
         group_vaccines,
         new_e,
     )
@@ -148,7 +166,7 @@ def _single_group_system(t: float,
     transition_map = _seiir_transition_wild(
         group_y, params, aggregates, new_e,
         COMPARTMENTS.S_p, COMPARTMENTS.E_p, COMPARTMENTS.I1_p, COMPARTMENTS.I2_p, COMPARTMENTS.R_p,
-        COMPARTMENTS.S_variant_p, COMPARTMENTS.E_variant_p,
+        COMPARTMENTS.S_variant_u, COMPARTMENTS.E_variant_u,
         transition_map,
     )
 
@@ -219,23 +237,26 @@ def _single_group_system(t: float,
     # Immunized #
     #############
     # Epi transition only
-    transition_map[COMPARTMENTS.S_m, COMPARTMENTS.E_variant_pa] = (
-        _safe_divide(new_e[NEW_E.variant_reinf] * group_y[COMPARTMENTS.S_m],
-                     aggregates[AGGREGATES.susceptible_variant_only])
+    transition_map[COMPARTMENTS.S_m, COMPARTMENTS.E_variant_pa] = math.safe_divide(
+        new_e[NEW_E.variant_reinf] * group_y[COMPARTMENTS.S_m],
+        aggregates[AGGREGATES.susceptible_variant_only]
     )
 
     inflow = transition_map.sum(axis=0)
     outflow = transition_map.sum(axis=1)
     group_dy = inflow - outflow
-    assert np.all(np.isfinite(group_dy))
-    if group_dy.sum() > 1e-5:
-        print('Compartment mismatch: ', group_dy.sum())
+
+    if DEBUG:
+        assert np.all(np.isfinite(group_dy))
+        assert np.all(group_y + group_dy >= -1e-10)
+        assert group_dy.sum() > 1e-5
 
     group_dy = accounting.compute_tracking_columns(
         group_dy,
         transition_map,
         vaccines_out,
     )
+
     return group_dy
 
 
@@ -250,8 +271,8 @@ def _seiir_transition_wild(group_y: np.ndarray,
     """Epi transitions from the wild type compartments among a vaccination subgroup."""
     total_susceptible = aggregates[AGGREGATES.susceptible_wild]
 
-    new_e_wild = _safe_divide(group_y[susceptible] * new_e[NEW_E.wild], total_susceptible)
-    new_e_variant = _safe_divide(group_y[susceptible] * new_e[NEW_E.variant_naive], total_susceptible)
+    new_e_wild = math.safe_divide(group_y[susceptible] * new_e[NEW_E.wild], total_susceptible)
+    new_e_variant = math.safe_divide(group_y[susceptible] * new_e[NEW_E.variant_naive], total_susceptible)
 
     transition_map[susceptible, exposed] += new_e_wild
     transition_map[exposed, infectious1] += params[PARAMETERS.sigma] * group_y[exposed]
@@ -262,6 +283,10 @@ def _seiir_transition_wild(group_y: np.ndarray,
     transition_map[infectious2, susceptible_variant] += (
         (1 - params[PARAMETERS.chi]) * params[PARAMETERS.gamma2] * group_y[infectious2]
     )
+
+    if DEBUG:
+        assert np.all(transition_map >= 0)
+
     return transition_map
 
 
@@ -275,20 +300,14 @@ def seiir_transition_variant(group_y: np.ndarray,
     """Epi transitions from the escape variant compartments among a vaccination subgroup."""
     total_susceptible = aggregates[AGGREGATES.susceptible_variant_only]
 
-    new_e_variant = _safe_divide(group_y[susceptible] * new_e[NEW_E.variant_reinf], total_susceptible)
+    new_e_variant = math.safe_divide(group_y[susceptible] * new_e[NEW_E.variant_reinf], total_susceptible)
 
     transition_map[susceptible, exposed] += new_e_variant
     transition_map[exposed, infectious1] += params[PARAMETERS.sigma] * group_y[exposed]
     transition_map[infectious1, infectious2] += params[PARAMETERS.gamma1] * group_y[infectious1]
     transition_map[infectious2, removed] += params[PARAMETERS.gamma2] * group_y[infectious2]
 
+    if DEBUG:
+        assert np.all(transition_map >= 0)
+
     return transition_map
-
-
-@numba.njit
-def _safe_divide(a: float, b: float):
-    """Divide that returns zero if numerator and denominator are both zero."""
-    if b == 0.0:
-        assert a == 0.0
-        return 0.0
-    return a / b
