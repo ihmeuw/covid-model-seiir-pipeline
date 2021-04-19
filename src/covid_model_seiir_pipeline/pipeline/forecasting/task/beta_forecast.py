@@ -77,18 +77,10 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
         beta_scales,
         vaccinations,
     )
-    ############################################################
-    # Redistribute past compartments and get initial condition #
-    ############################################################
-    logger.info('Loading past compartment data.', context='read')
-    compartments = data_interface.load_compartments(draw_id=draw_id)
-    population = data_interface.load_five_year_population()
 
-    logger.info('Redistributing past compartments.', context='transform')
-    past_compartments = model.redistribute_past_compartments(
-        compartments=compartments,
-        population=population,
-    )
+    # Pull in compartments from the fit and subset out the initial condition.
+    logger.info('Loading past compartment data.', context='read')
+    past_compartments = data_interface.load_compartments(draw_id=draw_id)
     initial_condition = past_compartments.loc[indices.initial_condition].reset_index(level='date', drop=True)
 
     ###################################################
