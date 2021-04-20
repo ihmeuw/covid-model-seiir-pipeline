@@ -13,6 +13,7 @@ def compute_reimposition_threshold(past_deaths, population, reimposition_thresho
                   .groupby('location_id')
                   .apply(lambda x: x.iloc[-14:])
                   .reset_index(level=0, drop=True))
+    import pdb; pdb.set_trace()
     days_over_death_rate = (
         (death_rate > reimposition_threshold.reindex(death_rate.index, level='location_id'))
          .groupby('location_id')
@@ -36,6 +37,7 @@ def compute_reimposition_threshold(past_deaths, population, reimposition_thresho
 def compute_reimposition_date(deaths, population, reimposition_threshold,
                               min_wait, last_reimposition_end_date) -> pd.Series:
     population = population.reindex(deaths.index, level='location_id')
+    import pdb; pdb.set_trace()
     death_rate = (deaths / population).rename('death_rate')
 
     last_observed_date = (death_rate

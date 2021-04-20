@@ -4,29 +4,13 @@ workflow:
   project: 'proj_covid_prod'
   queue: 'd.q'
 grid_plots:
-  - name: 'compare_shortrange'
-    date_start: '2020-03-01'
-    date_end: '2021-08-01'
-    comparators:
-      - version: '/ihme/covid-19/seir-outputs/2021_04_08.02'
-        scenarios:
-          reference*: 'public reference'
-      - version: ''
-        scenarios:
-          reference*: 'ref'
-          worse: 'worse'
-          best_masks: 'best masks;
-          no_vaccine: 'no vax'
   - name: 'compare_longrange'
     date_start: '2020-03-01'
     date_end: '2022-08-01'
     comparators:
-      - version: '/ihme/covid-19/seir-outputs/2021_04_08.02'
+      - version: '/ihme/covid-19/seir-outputs/2021_04_15.01'
         scenarios:
           reference*: 'public reference'
-      - version: ''
+      - version: '2021_04_19.04'
         scenarios:
-          reference*: 'ref'
-          worse: 'worse'
-          best_masks: 'best masks'
-          no_vaccine: 'no vax'
+          reference*: 'new'

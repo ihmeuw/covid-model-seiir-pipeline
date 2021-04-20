@@ -35,7 +35,7 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
     # Forecast is run to the end of the covariates
     covariates = data_interface.load_covariates(scenario_spec)
     forecast_end_dates = covariates.reset_index().groupby('location_id').date.max()
-    population = data_interface.load_population()
+    population = data_interface.load_five_year_population().groupby('location_id').population.sum()
 
     logger.info('Building indices', context='transform')
     indices = model.Indices(
