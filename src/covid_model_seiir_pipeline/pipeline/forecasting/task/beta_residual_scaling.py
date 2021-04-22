@@ -134,7 +134,8 @@ def compute_initial_beta_scaling_parameters_by_draw(draw_id: int,
     log_beta_residual_mean = (np.log(betas['beta'] / betas['beta_hat'])
                               .groupby(level='location_id')
                               .apply(lambda x: x.iloc[-b: -a].mean())
-                              .rename('log_beta_residual_mean'))
+                              .rename('log_beta_residual_mean')
+                              .fillna(0))
     draw_data.append(log_beta_residual_mean)
     draw_data.append(pd.Series(draw_id, index=beta_transition.index, name='draw'))
 
