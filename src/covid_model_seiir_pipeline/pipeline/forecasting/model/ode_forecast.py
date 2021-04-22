@@ -6,6 +6,7 @@ import tqdm
 
 from covid_model_seiir_pipeline.lib import (
     math,
+    ode,
 )
 from covid_model_seiir_pipeline.pipeline.forecasting.model.containers import (
     Indices,
@@ -14,10 +15,6 @@ from covid_model_seiir_pipeline.pipeline.forecasting.model.containers import (
     RatioData,
     HospitalCorrectionFactors,
 )
-from covid_model_seiir_pipeline.pipeline.forecasting.model import (
-    ode_system,
-)
-
 
 if TYPE_CHECKING:
     # The model subpackage is a library for the pipeline stage and shouldn't
@@ -155,39 +152,6 @@ def beta_shift(beta_hat: pd.DataFrame,
     return beta_final
 
 
-###################################
-# Past compartment redistribution #
-###################################
-
-def redistribute_past_compartments(compartments: pd.DataFrame,
-                                   population: pd.DataFrame):
-    pop_weights = _get_pop_weights(population)
-    redistributed_compartments = []
-    for group in ['lr', 'hr']:
-        # Need to broadcast pop weights.
-        pop_weight = pop_weights[group].reindex(compartments.index, level='location_id')
-
-        group_compartments = compartments.mul(pop_weight, axis=0)
-        group_compartments = group_compartments.reindex(ode_system.COMPARTMENTS, axis='columns', fill_value=0.0)
-        group_compartments.columns = [f'{c}_{group}' for c in group_compartments]
-
-        redistributed_compartments.append(group_compartments)
-    redistributed_compartments = pd.concat(redistributed_compartments, axis=1)
-
-    return redistributed_compartments
-
-
-def _get_pop_weights(population: pd.DataFrame) -> Dict[str, pd.Series]:
-    total_pop = population.groupby('location_id')['population'].sum()
-    low_risk_pop = population[population['age_group_years_start'] < 65].groupby('location_id')['population'].sum()
-    high_risk_pop = total_pop - low_risk_pop
-    pop_weights = {
-        'lr': low_risk_pop / total_pop,
-        'hr': high_risk_pop / total_pop,
-    }
-    return pop_weights
-
-
 #######################################
 # Construct postprocessing parameters #
 #######################################
@@ -275,11 +239,11 @@ def forecast_correction_factors(indices: Indices,
 def run_ode_model(initial_conditions: pd.DataFrame,
                   model_parameters: ModelParameters,
                   progress_bar: bool) -> pd.DataFrame:
-    system = ode_system.system
     mp_dict = model_parameters.to_dict()
+    ordered_fields = list(ode.PARAMETERS._fields) + list(ode.FORECAST_PARAMETERS._fields)
 
     parameters = pd.concat(
-        [mp_dict[p] for p in ode_system.PARAMETERS]
+        [mp_dict[p] for p in ordered_fields]
         + [model_parameters.unprotected_lr,
            model_parameters.protected_wild_type_lr,
            model_parameters.protected_all_types_lr,
@@ -307,7 +271,7 @@ def run_ode_model(initial_conditions: pd.DataFrame,
         p = loc_parameters.values.T  # Each row is a param, each column a day
 
         solution = math.solve_ode(
-            system=system,
+            system=ode.forecast_system,
             t=loc_times,
             init_cond=ic,
             params=p

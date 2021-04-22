@@ -1,9 +1,11 @@
 import itertools
 from typing import Tuple, TYPE_CHECKING
 
-import numpy as np
 import pandas as pd
 
+from covid_model_seiir_pipeline.lib import (
+    ode,
+)
 from covid_model_seiir_pipeline.pipeline.forecasting.model.containers import (
     Indices,
     ModelParameters,
@@ -15,10 +17,6 @@ from covid_model_seiir_pipeline.pipeline.forecasting.model.containers import (
 from covid_model_seiir_pipeline.pipeline.regression.model import (
     compute_hospital_usage,
 )
-from covid_model_seiir_pipeline.pipeline.forecasting.model import (
-    ode_system,
-)
-
 
 if TYPE_CHECKING:
     # Support type checking but keep the pipeline stages as isolated as possible.
@@ -105,8 +103,8 @@ def variant_system_metrics(indices: Indices,
                            components: pd.DataFrame) -> SystemMetrics:
     components_diff = components.groupby('location_id').diff()
 
-    cols = [f'{c}_{g}' for g, c in itertools.product(['lr', 'hr'], ode_system.REAL_COMPARTMENTS)]
-    tracking_cols = [f'{c}_{g}' for g, c in itertools.product(['lr', 'hr'], ode_system.TRACKING_COMPARTMENTS)]
+    cols = [f'{c}_{g}' for g, c in itertools.product(['lr', 'hr'], ode.COMPARTMENTS._fields)]
+    tracking_cols = [f'{c}_{g}' for g, c in itertools.product(['lr', 'hr'], ode.TRACKING_COMPARTMENTS._fields)]
     modeled_infections_wild = components_diff[[c for c in tracking_cols if 'NewE_wild' in c]].sum(axis=1)
     modeled_infections_variant = components_diff[[c for c in tracking_cols if 'NewE_variant' in c]].sum(axis=1)
     natural_immunity_breakthrough = components_diff[[c for c in tracking_cols if 'NewE_nbt' in c]].sum(axis=1)

@@ -11,7 +11,6 @@ from covid_model_seiir_pipeline.pipeline.forecasting.model.containers import (
 )
 from covid_model_seiir_pipeline.pipeline.forecasting.model.ode_forecast import (
     build_model_parameters,
-    redistribute_past_compartments,
     build_postprocessing_parameters,
     run_ode_model,
 )

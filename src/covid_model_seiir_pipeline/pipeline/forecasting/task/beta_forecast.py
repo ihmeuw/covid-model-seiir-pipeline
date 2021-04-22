@@ -35,6 +35,7 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
     # Forecast is run to the end of the covariates
     covariates = data_interface.load_covariates(scenario_spec)
     forecast_end_dates = covariates.reset_index().groupby('location_id').date.max()
+    population = data_interface.load_five_year_population().groupby('location_id').population.sum()
 
     logger.info('Building indices', context='transform')
     indices = model.Indices(
@@ -77,18 +78,10 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
         beta_scales,
         vaccinations,
     )
-    ############################################################
-    # Redistribute past compartments and get initial condition #
-    ############################################################
-    logger.info('Loading past compartment data.', context='read')
-    compartments = data_interface.load_compartments(draw_id=draw_id)
-    population = data_interface.load_five_year_population()
 
-    logger.info('Redistributing past compartments.', context='transform')
-    past_compartments = model.redistribute_past_compartments(
-        compartments=compartments,
-        population=population,
-    )
+    # Pull in compartments from the fit and subset out the initial condition.
+    logger.info('Loading past compartment data.', context='read')
+    past_compartments = data_interface.load_compartments(draw_id=draw_id)
     initial_condition = past_compartments.loc[indices.initial_condition].reset_index(level='date', drop=True)
 
     ###################################################
@@ -137,7 +130,6 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
             scenario_spec.algorithm_params,
             em_scalars,
         )
-        population = population.groupby('location_id').population.sum()
         reimposition_threshold = model.compute_reimposition_threshold(
             postprocessing_params.past_deaths,
             population,

@@ -5,35 +5,28 @@ workflow:
   queue: 'd.q'
 grid_plots:
   - name: 'compare_shortrange'
-    date_start: '2020-03-01'
-    date_end: '2021-06-30'
+    date_start: '2020-06-01'
+    date_end: '2021-07-31'
     comparators:
-      - version: '/ihme/covid-19/seir-outputs/2021_03_31.02'
+      - version: '/ihme/covid-19/seir-outputs/2021_04_15.02'
         scenarios:
           reference*: 'public reference'
-      - version: '/ihme/covid-19/seir-outputs/2021_04_04.04'
+      - version: '2021_04_21.03'
         scenarios:
-          reference*: 'new without em scalar'
-      - version: '/ihme/covid-19/seir-outputs/2021_04_04.02'
-        scenarios:
-          reference*: 'new with em scalar'
-      - version: '/ihme/covid-19/seir-outputs/2021_04_05.02'
-        scenarios:
-          reference*: 'new with em scalar, fixed e-brake'
+          reference*: 'reference'
+          worse: 'worse'
+          best_masks: 'best_masks'
+          no_vaccine: 'no_vaccine'
   - name: 'compare_longrange'
     date_start: '2020-03-01'
-    date_end: '2022-08-30'
+    date_end: '2022-08-01'
     comparators:
-      - version: '/ihme/covid-19/seir-outputs/2021_03_31.02'
+      - version: '/ihme/covid-19/seir-outputs/2021_04_15.02'
         scenarios:
           reference*: 'public reference'
-      - version: '/ihme/covid-19/seir-outputs/2021_04_04.04'
+      - version: '2021_04_21.03'
         scenarios:
-          reference*: 'new without em scalar'
-      - version: '/ihme/covid-19/seir-outputs/2021_04_04.02'
-        scenarios:
-          reference*: 'new with em scalar'
-      - version: '/ihme/covid-19/seir-outputs/2021_04_05.02'
-        scenarios:
-          reference*: 'new with em scalar, fixed e-brake'
-
+          reference*: 'reference'
+          worse: 'worse'
+          best_masks: 'best_masks'
+          no_vaccine: 'no_vaccine'

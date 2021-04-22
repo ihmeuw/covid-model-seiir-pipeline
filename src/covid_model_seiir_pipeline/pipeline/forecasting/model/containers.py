@@ -122,10 +122,10 @@ class ModelParameters:
         })
 
     def to_dict(self) -> Dict[str, pd.Series]:
-        return utilities.asdict(self)
+        return {k: v.rename(k) for k, v in utilities.asdict(self).items()}
 
     def to_df(self) -> pd.DataFrame:
-        return pd.concat([v.rename(k) for k, v in self.to_dict().items()], axis=1)
+        return pd.concat(self.to_dict().values(), axis=1)
 
 
 @dataclass
