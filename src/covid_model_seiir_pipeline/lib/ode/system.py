@@ -249,7 +249,7 @@ def _single_group_system(t: float,
     if DEBUG:
         assert np.all(np.isfinite(group_dy))
         assert np.all(group_y + group_dy >= -1e-10)
-        assert group_dy.sum() > 1e-5
+        assert group_dy.sum() < 1e-5
 
     group_dy = accounting.compute_tracking_columns(
         group_dy,
