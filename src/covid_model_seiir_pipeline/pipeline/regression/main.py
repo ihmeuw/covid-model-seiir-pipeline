@@ -36,8 +36,7 @@ def do_beta_regression(app_metadata: cli_tools.Metadata,
     if not preprocess_only:
         regression_wf = RegressionWorkflow(regression_specification.data.output_root,
                                            regression_specification.workflow)
-        regression_wf.attach_tasks(n_draws=data_interface.get_n_draws(),
-                                   run_hospital=regression_specification.workflow.run_hospital)
+        regression_wf.attach_tasks(n_draws=data_interface.get_n_draws())
         try:
             regression_wf.run()
         except WorkflowAlreadyComplete:

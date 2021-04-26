@@ -9,8 +9,6 @@ data:
 workflow:
   project: 'proj_covid_prod'
   queue: 'd.q'
-  # one of true, false
-  run_hospital: true
 regression_parameters:
   n_draws: 1000
   # Mixing parameter.  dS/dt = -beta * S * I ** alpha
@@ -33,6 +31,7 @@ regression_parameters:
   pi: 0.1
   sequential_refit: False
 hospital_parameters:
+  compute_correction_factors: True
   hospital_stay_death: 6
   hospital_stay_recover: 14
   hospital_stay_recover_icu: 20

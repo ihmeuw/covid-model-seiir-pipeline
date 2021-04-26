@@ -37,7 +37,7 @@ class RegressionWorkflow(workflow.WorkflowTemplate):
         REGRESSION_JOBS.hospital_correction_factors: HospitalCorrectionFactorTaskTemplate,
     }
 
-    def attach_tasks(self, n_draws: int, run_hospital: bool):
+    def attach_tasks(self, n_draws: int):
         regression_template = self.task_templates[REGRESSION_JOBS.regression]
         hospital_correction_factor_template = self.task_templates[REGRESSION_JOBS.hospital_correction_factors]
 
@@ -48,8 +48,7 @@ class RegressionWorkflow(workflow.WorkflowTemplate):
             )
             self.workflow.add_task(task)
 
-        if run_hospital:
-            hospital_correction_task = hospital_correction_factor_template.get_task(
-                regression_version=self.version,
-            )
-            self.workflow.add_task(hospital_correction_task)
+        hospital_correction_task = hospital_correction_factor_template.get_task(
+            regression_version=self.version,
+        )
+        self.workflow.add_task(hospital_correction_task)

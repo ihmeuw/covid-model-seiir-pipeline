@@ -66,9 +66,6 @@ class ForecastDataInterface:
     def get_n_draws(self) -> int:
         return self._get_regression_data_interface().get_n_draws()
 
-    def has_hospital_corrections(self) -> bool:
-        return self._get_regression_data_interface().load_specification().workflow.run_hospital
-
     def load_location_ids(self) -> List[int]:
         return self._get_regression_data_interface().load_location_ids()
 

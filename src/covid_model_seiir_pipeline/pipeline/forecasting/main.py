@@ -13,11 +13,6 @@ def do_beta_forecast(app_metadata: cli_tools.Metadata,
     logger.info(f'Starting beta forecast for version {forecast_specification.data.output_root}.')
 
     data_interface = ForecastDataInterface.from_specification(forecast_specification)
-    if not data_interface.has_hospital_corrections():
-        raise ValueError(
-            'No hospital correction factors were produced in the regression stage. '
-            'Forecast model cannot be run using this regression version.'
-        )
 
     # Check scenario covariates the same as regression covariates and that
     # covariate data versions match.
