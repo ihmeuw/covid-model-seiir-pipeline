@@ -36,10 +36,6 @@ class RegressionWorkflowSpecification(workflow.WorkflowSpecification):
         REGRESSION_JOBS.hospital_correction_factors: HospitalCorrectionFactorTaskSpecification,
     }
 
-    def __init__(self, run_hospital: bool = True, **kwargs):
-        super().__init__(**kwargs)
-        self.run_hospital = run_hospital
-
 
 @dataclass
 class RegressionData:
@@ -81,6 +77,7 @@ class RegressionParameters:
 @dataclass
 class HospitalParameters:
     """Parameters for the hospital model calculation."""
+    compute_correction_factors: bool = field(default=True)
     hospital_stay_death: int = field(default=6)
     hospital_stay_recover: int = field(default=14)
     hospital_stay_recover_icu: int = field(default=20)
