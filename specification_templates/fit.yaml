@@ -1,14 +1,14 @@
 data:
-  covariate_version: '2021_03_24.01'
-  infection_version: '2021_03_23.08'
+  covariate_version: '2021_04_22.01'
+  infection_version: '2021_04_26.06'
   location_set_file: /ihme/covid-19/seir-pipeline-outputs/metadata-inputs/location_metadata_810.2.csv
   location_set_version_id: ''
   n_draws: 100
   output_format: parquet
   output_root: /share/scratch/users/collijk/fit_oos
-  variant_version: '2021_03_24.03'
+  variant_version: '2021_04_20.03'
 scenarios:
-  phi_0.4_chi_0.0_kappa_0.3:
+  phi_0.4_chi_0.0_kappa_0.3_pi_0.01:
     alpha:
     - 0.9
     - 1.0
@@ -25,585 +25,7 @@ scenarios:
     sigma:
     - 0.2
     - 0.3333
-  phi_0.4_chi_0.0_kappa_0.5:
-    alpha:
-    - 0.9
-    - 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.5
-    p_cross_immune: 0.0
-    phi: 0.4
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.4_chi_0.0_kappa_0.7:
-    alpha:
-    - 0.9
-    - 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.7
-    p_cross_immune: 0.0
-    phi: 0.4
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.4_chi_0.0_kappa_0.9:
-    alpha:
-    - 0.9
-    - 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.9
-    p_cross_immune: 0.0
-    phi: 0.4
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.4_chi_0.0_kappa_1.1:
-    alpha:
-    - 0.9
-    - 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 1.1
-    p_cross_immune: 0.0
-    phi: 0.4
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.4_chi_0.0_kappa_1.3:
-    alpha:
-    - 0.9
-    - 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 1.3
-    p_cross_immune: 0.0
-    phi: 0.4
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.4_chi_0.0_kappa_1.5:
-    alpha:
-    - 0.9
-    - 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 1.5
-    p_cross_immune: 0.0
-    phi: 0.4
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.4_chi_0.15_kappa_0.3:
-    alpha:
-    - 0.9
-    - 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.3
-    p_cross_immune: 0.15
-    phi: 0.4
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.4_chi_0.15_kappa_0.5:
-    alpha:
-    - 0.9
-    - 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.5
-    p_cross_immune: 0.15
-    phi: 0.4
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.4_chi_0.15_kappa_0.7:
-    alpha:
-    - 0.9
-    - 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.7
-    p_cross_immune: 0.15
-    phi: 0.4
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.4_chi_0.15_kappa_0.9:
-    alpha:
-    - 0.9
-    - 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.9
-    p_cross_immune: 0.15
-    phi: 0.4
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.4_chi_0.15_kappa_1.1:
-    alpha:
-    - 0.9
-    - 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 1.1
-    p_cross_immune: 0.15
-    phi: 0.4
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.4_chi_0.15_kappa_1.3:
-    alpha:
-    - 0.9
-    - 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 1.3
-    p_cross_immune: 0.15
-    phi: 0.4
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.4_chi_0.15_kappa_1.5:
-    alpha:
-    - 0.9
-    - 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 1.5
-    p_cross_immune: 0.15
-    phi: 0.4
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.4_chi_0.3_kappa_0.3:
-    alpha:
-    - 0.9
-    - 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.3
-    p_cross_immune: 0.3
-    phi: 0.4
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.4_chi_0.3_kappa_0.5:
-    alpha:
-    - 0.9
-    - 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.5
-    p_cross_immune: 0.3
-    phi: 0.4
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.4_chi_0.3_kappa_0.7:
-    alpha:
-    - 0.9
-    - 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.7
-    p_cross_immune: 0.3
-    phi: 0.4
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.4_chi_0.3_kappa_0.9:
-    alpha:
-    - 0.9
-    - 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.9
-    p_cross_immune: 0.3
-    phi: 0.4
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.4_chi_0.3_kappa_1.1:
-    alpha:
-    - 0.9
-    - 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 1.1
-    p_cross_immune: 0.3
-    phi: 0.4
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.4_chi_0.3_kappa_1.3:
-    alpha:
-    - 0.9
-    - 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 1.3
-    p_cross_immune: 0.3
-    phi: 0.4
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.4_chi_0.3_kappa_1.5:
-    alpha:
-    - 0.9
-    - 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 1.5
-    p_cross_immune: 0.3
-    phi: 0.4
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.4_chi_0.45_kappa_0.3:
-    alpha:
-    - 0.9
-    - 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.3
-    p_cross_immune: 0.45
-    phi: 0.4
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.4_chi_0.45_kappa_0.5:
-    alpha:
-    - 0.9
-    - 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.5
-    p_cross_immune: 0.45
-    phi: 0.4
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.4_chi_0.45_kappa_0.7:
-    alpha:
-    - 0.9
-    - 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.7
-    p_cross_immune: 0.45
-    phi: 0.4
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.4_chi_0.45_kappa_0.9:
-    alpha:
-    - 0.9
-    - 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.9
-    p_cross_immune: 0.45
-    phi: 0.4
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.4_chi_0.45_kappa_1.1:
-    alpha:
-    - 0.9
-    - 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 1.1
-    p_cross_immune: 0.45
-    phi: 0.4
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.4_chi_0.45_kappa_1.3:
-    alpha:
-    - 0.9
-    - 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 1.3
-    p_cross_immune: 0.45
-    phi: 0.4
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.4_chi_0.45_kappa_1.5:
-    alpha:
-    - 0.9
-    - 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 1.5
-    p_cross_immune: 0.45
-    phi: 0.4
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.4_chi_0.6_kappa_0.3:
-    alpha:
-    - 0.9
-    - 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.3
-    p_cross_immune: 0.6
-    phi: 0.4
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.4_chi_0.6_kappa_0.5:
-    alpha:
-    - 0.9
-    - 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.5
-    p_cross_immune: 0.6
-    phi: 0.4
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.4_chi_0.6_kappa_0.7:
-    alpha:
-    - 0.9
-    - 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.7
-    p_cross_immune: 0.6
-    phi: 0.4
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.4_chi_0.6_kappa_0.9:
-    alpha:
-    - 0.9
-    - 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.9
-    p_cross_immune: 0.6
-    phi: 0.4
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.4_chi_0.6_kappa_1.1:
-    alpha:
-    - 0.9
-    - 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 1.1
-    p_cross_immune: 0.6
-    phi: 0.4
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.4_chi_0.6_kappa_1.3:
-    alpha:
-    - 0.9
-    - 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 1.3
-    p_cross_immune: 0.6
-    phi: 0.4
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.4_chi_0.6_kappa_1.5:
-    alpha:
-    - 0.9
-    - 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 1.5
-    p_cross_immune: 0.6
-    phi: 0.4
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.6_chi_0.0_kappa_0.3:
+  phi_0.4_chi_0.0_kappa_0.3_pi_0.05:
     alpha:
     - 0.9
     - 1.0
@@ -615,590 +37,12 @@ scenarios:
     - 1.0
     kappa: 0.3
     p_cross_immune: 0.0
-    phi: 0.6
+    phi: 0.4
     pi: 0.1
     sigma:
     - 0.2
     - 0.3333
-  phi_0.6_chi_0.0_kappa_0.5:
-    alpha:
-    - 0.9
-    - 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.5
-    p_cross_immune: 0.0
-    phi: 0.6
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.6_chi_0.0_kappa_0.7:
-    alpha:
-    - 0.9
-    - 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.7
-    p_cross_immune: 0.0
-    phi: 0.6
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.6_chi_0.0_kappa_0.9:
-    alpha:
-    - 0.9
-    - 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.9
-    p_cross_immune: 0.0
-    phi: 0.6
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.6_chi_0.0_kappa_1.1:
-    alpha:
-    - 0.9
-    - 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 1.1
-    p_cross_immune: 0.0
-    phi: 0.6
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.6_chi_0.0_kappa_1.3:
-    alpha:
-    - 0.9
-    - 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 1.3
-    p_cross_immune: 0.0
-    phi: 0.6
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.6_chi_0.0_kappa_1.5:
-    alpha:
-    - 0.9
-    - 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 1.5
-    p_cross_immune: 0.0
-    phi: 0.6
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.6_chi_0.15_kappa_0.3:
-    alpha:
-    - 0.9
-    - 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.3
-    p_cross_immune: 0.15
-    phi: 0.6
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.6_chi_0.15_kappa_0.5:
-    alpha:
-    - 0.9
-    - 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.5
-    p_cross_immune: 0.15
-    phi: 0.6
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.6_chi_0.15_kappa_0.7:
-    alpha:
-    - 0.9
-    - 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.7
-    p_cross_immune: 0.15
-    phi: 0.6
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.6_chi_0.15_kappa_0.9:
-    alpha:
-    - 0.9
-    - 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.9
-    p_cross_immune: 0.15
-    phi: 0.6
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.6_chi_0.15_kappa_1.1:
-    alpha:
-    - 0.9
-    - 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 1.1
-    p_cross_immune: 0.15
-    phi: 0.6
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.6_chi_0.15_kappa_1.3:
-    alpha:
-    - 0.9
-    - 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 1.3
-    p_cross_immune: 0.15
-    phi: 0.6
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.6_chi_0.15_kappa_1.5:
-    alpha:
-    - 0.9
-    - 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 1.5
-    p_cross_immune: 0.15
-    phi: 0.6
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.6_chi_0.3_kappa_0.3:
-    alpha:
-    - 0.9
-    - 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.3
-    p_cross_immune: 0.3
-    phi: 0.6
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.6_chi_0.3_kappa_0.5:
-    alpha:
-    - 0.9
-    - 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.5
-    p_cross_immune: 0.3
-    phi: 0.6
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.6_chi_0.3_kappa_0.7:
-    alpha:
-    - 0.9
-    - 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.7
-    p_cross_immune: 0.3
-    phi: 0.6
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.6_chi_0.3_kappa_0.9:
-    alpha:
-    - 0.9
-    - 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.9
-    p_cross_immune: 0.3
-    phi: 0.6
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.6_chi_0.3_kappa_1.1:
-    alpha:
-    - 0.9
-    - 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 1.1
-    p_cross_immune: 0.3
-    phi: 0.6
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.6_chi_0.3_kappa_1.3:
-    alpha:
-    - 0.9
-    - 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 1.3
-    p_cross_immune: 0.3
-    phi: 0.6
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.6_chi_0.3_kappa_1.5:
-    alpha:
-    - 0.9
-    - 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 1.5
-    p_cross_immune: 0.3
-    phi: 0.6
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.6_chi_0.45_kappa_0.3:
-    alpha:
-    - 0.9
-    - 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.3
-    p_cross_immune: 0.45
-    phi: 0.6
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.6_chi_0.45_kappa_0.5:
-    alpha:
-    - 0.9
-    - 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.5
-    p_cross_immune: 0.45
-    phi: 0.6
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.6_chi_0.45_kappa_0.7:
-    alpha:
-    - 0.9
-    - 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.7
-    p_cross_immune: 0.45
-    phi: 0.6
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.6_chi_0.45_kappa_0.9:
-    alpha:
-    - 0.9
-    - 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.9
-    p_cross_immune: 0.45
-    phi: 0.6
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.6_chi_0.45_kappa_1.1:
-    alpha:
-    - 0.9
-    - 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 1.1
-    p_cross_immune: 0.45
-    phi: 0.6
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.6_chi_0.45_kappa_1.3:
-    alpha:
-    - 0.9
-    - 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 1.3
-    p_cross_immune: 0.45
-    phi: 0.6
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.6_chi_0.45_kappa_1.5:
-    alpha:
-    - 0.9
-    - 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 1.5
-    p_cross_immune: 0.45
-    phi: 0.6
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.6_chi_0.6_kappa_0.3:
-    alpha:
-    - 0.9
-    - 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.3
-    p_cross_immune: 0.6
-    phi: 0.6
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.6_chi_0.6_kappa_0.5:
-    alpha:
-    - 0.9
-    - 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.5
-    p_cross_immune: 0.6
-    phi: 0.6
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.6_chi_0.6_kappa_0.7:
-    alpha:
-    - 0.9
-    - 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.7
-    p_cross_immune: 0.6
-    phi: 0.6
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.6_chi_0.6_kappa_0.9:
-    alpha:
-    - 0.9
-    - 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.9
-    p_cross_immune: 0.6
-    phi: 0.6
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.6_chi_0.6_kappa_1.1:
-    alpha:
-    - 0.9
-    - 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 1.1
-    p_cross_immune: 0.6
-    phi: 0.6
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.6_chi_0.6_kappa_1.3:
-    alpha:
-    - 0.9
-    - 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 1.3
-    p_cross_immune: 0.6
-    phi: 0.6
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.6_chi_0.6_kappa_1.5:
-    alpha:
-    - 0.9
-    - 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 1.5
-    p_cross_immune: 0.6
-    phi: 0.6
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.8_chi_0.0_kappa_0.3:
+  phi_0.4_chi_0.0_kappa_0.3_pi_0.1:
     alpha:
     - 0.9
     - 1.0
@@ -1210,12 +54,12 @@ scenarios:
     - 1.0
     kappa: 0.3
     p_cross_immune: 0.0
-    phi: 0.8
+    phi: 0.4
     pi: 0.1
     sigma:
     - 0.2
     - 0.3333
-  phi_0.8_chi_0.0_kappa_0.5:
+  phi_0.4_chi_0.0_kappa_0.5_pi_0.01:
     alpha:
     - 0.9
     - 1.0
@@ -1227,12 +71,46 @@ scenarios:
     - 1.0
     kappa: 0.5
     p_cross_immune: 0.0
-    phi: 0.8
+    phi: 0.4
     pi: 0.1
     sigma:
     - 0.2
     - 0.3333
-  phi_0.8_chi_0.0_kappa_0.7:
+  phi_0.4_chi_0.0_kappa_0.5_pi_0.05:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.5
+    p_cross_immune: 0.0
+    phi: 0.4
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.4_chi_0.0_kappa_0.5_pi_0.1:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.5
+    p_cross_immune: 0.0
+    phi: 0.4
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.4_chi_0.0_kappa_0.7_pi_0.01:
     alpha:
     - 0.9
     - 1.0
@@ -1244,12 +122,46 @@ scenarios:
     - 1.0
     kappa: 0.7
     p_cross_immune: 0.0
-    phi: 0.8
+    phi: 0.4
     pi: 0.1
     sigma:
     - 0.2
     - 0.3333
-  phi_0.8_chi_0.0_kappa_0.9:
+  phi_0.4_chi_0.0_kappa_0.7_pi_0.05:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.7
+    p_cross_immune: 0.0
+    phi: 0.4
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.4_chi_0.0_kappa_0.7_pi_0.1:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.7
+    p_cross_immune: 0.0
+    phi: 0.4
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.4_chi_0.0_kappa_0.9_pi_0.01:
     alpha:
     - 0.9
     - 1.0
@@ -1261,12 +173,12 @@ scenarios:
     - 1.0
     kappa: 0.9
     p_cross_immune: 0.0
-    phi: 0.8
+    phi: 0.4
     pi: 0.1
     sigma:
     - 0.2
     - 0.3333
-  phi_0.8_chi_0.0_kappa_1.1:
+  phi_0.4_chi_0.0_kappa_0.9_pi_0.05:
     alpha:
     - 0.9
     - 1.0
@@ -1276,14 +188,14 @@ scenarios:
     gamma2:
     - 0.3333
     - 1.0
-    kappa: 1.1
+    kappa: 0.9
     p_cross_immune: 0.0
-    phi: 0.8
+    phi: 0.4
     pi: 0.1
     sigma:
     - 0.2
     - 0.3333
-  phi_0.8_chi_0.0_kappa_1.3:
+  phi_0.4_chi_0.0_kappa_0.9_pi_0.1:
     alpha:
     - 0.9
     - 1.0
@@ -1293,31 +205,14 @@ scenarios:
     gamma2:
     - 0.3333
     - 1.0
-    kappa: 1.3
+    kappa: 0.9
     p_cross_immune: 0.0
-    phi: 0.8
+    phi: 0.4
     pi: 0.1
     sigma:
     - 0.2
     - 0.3333
-  phi_0.8_chi_0.0_kappa_1.5:
-    alpha:
-    - 0.9
-    - 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 1.5
-    p_cross_immune: 0.0
-    phi: 0.8
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.8_chi_0.15_kappa_0.3:
+  phi_0.4_chi_0.2_kappa_0.3_pi_0.01:
     alpha:
     - 0.9
     - 1.0
@@ -1328,115 +223,13 @@ scenarios:
     - 0.3333
     - 1.0
     kappa: 0.3
-    p_cross_immune: 0.15
-    phi: 0.8
+    p_cross_immune: 0.2
+    phi: 0.4
     pi: 0.1
     sigma:
     - 0.2
     - 0.3333
-  phi_0.8_chi_0.15_kappa_0.5:
-    alpha:
-    - 0.9
-    - 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.5
-    p_cross_immune: 0.15
-    phi: 0.8
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.8_chi_0.15_kappa_0.7:
-    alpha:
-    - 0.9
-    - 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.7
-    p_cross_immune: 0.15
-    phi: 0.8
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.8_chi_0.15_kappa_0.9:
-    alpha:
-    - 0.9
-    - 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.9
-    p_cross_immune: 0.15
-    phi: 0.8
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.8_chi_0.15_kappa_1.1:
-    alpha:
-    - 0.9
-    - 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 1.1
-    p_cross_immune: 0.15
-    phi: 0.8
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.8_chi_0.15_kappa_1.3:
-    alpha:
-    - 0.9
-    - 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 1.3
-    p_cross_immune: 0.15
-    phi: 0.8
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.8_chi_0.15_kappa_1.5:
-    alpha:
-    - 0.9
-    - 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 1.5
-    p_cross_immune: 0.15
-    phi: 0.8
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.8_chi_0.3_kappa_0.3:
+  phi_0.4_chi_0.2_kappa_0.3_pi_0.05:
     alpha:
     - 0.9
     - 1.0
@@ -1447,115 +240,13 @@ scenarios:
     - 0.3333
     - 1.0
     kappa: 0.3
-    p_cross_immune: 0.3
-    phi: 0.8
+    p_cross_immune: 0.2
+    phi: 0.4
     pi: 0.1
     sigma:
     - 0.2
     - 0.3333
-  phi_0.8_chi_0.3_kappa_0.5:
-    alpha:
-    - 0.9
-    - 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.5
-    p_cross_immune: 0.3
-    phi: 0.8
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.8_chi_0.3_kappa_0.7:
-    alpha:
-    - 0.9
-    - 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.7
-    p_cross_immune: 0.3
-    phi: 0.8
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.8_chi_0.3_kappa_0.9:
-    alpha:
-    - 0.9
-    - 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.9
-    p_cross_immune: 0.3
-    phi: 0.8
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.8_chi_0.3_kappa_1.1:
-    alpha:
-    - 0.9
-    - 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 1.1
-    p_cross_immune: 0.3
-    phi: 0.8
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.8_chi_0.3_kappa_1.3:
-    alpha:
-    - 0.9
-    - 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 1.3
-    p_cross_immune: 0.3
-    phi: 0.8
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.8_chi_0.3_kappa_1.5:
-    alpha:
-    - 0.9
-    - 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 1.5
-    p_cross_immune: 0.3
-    phi: 0.8
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.8_chi_0.45_kappa_0.3:
+  phi_0.4_chi_0.2_kappa_0.3_pi_0.1:
     alpha:
     - 0.9
     - 1.0
@@ -1566,13 +257,13 @@ scenarios:
     - 0.3333
     - 1.0
     kappa: 0.3
-    p_cross_immune: 0.45
-    phi: 0.8
+    p_cross_immune: 0.2
+    phi: 0.4
     pi: 0.1
     sigma:
     - 0.2
     - 0.3333
-  phi_0.8_chi_0.45_kappa_0.5:
+  phi_0.4_chi_0.2_kappa_0.5_pi_0.01:
     alpha:
     - 0.9
     - 1.0
@@ -1583,13 +274,47 @@ scenarios:
     - 0.3333
     - 1.0
     kappa: 0.5
-    p_cross_immune: 0.45
-    phi: 0.8
+    p_cross_immune: 0.2
+    phi: 0.4
     pi: 0.1
     sigma:
     - 0.2
     - 0.3333
-  phi_0.8_chi_0.45_kappa_0.7:
+  phi_0.4_chi_0.2_kappa_0.5_pi_0.05:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.5
+    p_cross_immune: 0.2
+    phi: 0.4
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.4_chi_0.2_kappa_0.5_pi_0.1:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.5
+    p_cross_immune: 0.2
+    phi: 0.4
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.4_chi_0.2_kappa_0.7_pi_0.01:
     alpha:
     - 0.9
     - 1.0
@@ -1600,13 +325,47 @@ scenarios:
     - 0.3333
     - 1.0
     kappa: 0.7
-    p_cross_immune: 0.45
-    phi: 0.8
+    p_cross_immune: 0.2
+    phi: 0.4
     pi: 0.1
     sigma:
     - 0.2
     - 0.3333
-  phi_0.8_chi_0.45_kappa_0.9:
+  phi_0.4_chi_0.2_kappa_0.7_pi_0.05:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.7
+    p_cross_immune: 0.2
+    phi: 0.4
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.4_chi_0.2_kappa_0.7_pi_0.1:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.7
+    p_cross_immune: 0.2
+    phi: 0.4
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.4_chi_0.2_kappa_0.9_pi_0.01:
     alpha:
     - 0.9
     - 1.0
@@ -1617,13 +376,13 @@ scenarios:
     - 0.3333
     - 1.0
     kappa: 0.9
-    p_cross_immune: 0.45
-    phi: 0.8
+    p_cross_immune: 0.2
+    phi: 0.4
     pi: 0.1
     sigma:
     - 0.2
     - 0.3333
-  phi_0.8_chi_0.45_kappa_1.1:
+  phi_0.4_chi_0.2_kappa_0.9_pi_0.05:
     alpha:
     - 0.9
     - 1.0
@@ -1633,14 +392,14 @@ scenarios:
     gamma2:
     - 0.3333
     - 1.0
-    kappa: 1.1
-    p_cross_immune: 0.45
-    phi: 0.8
+    kappa: 0.9
+    p_cross_immune: 0.2
+    phi: 0.4
     pi: 0.1
     sigma:
     - 0.2
     - 0.3333
-  phi_0.8_chi_0.45_kappa_1.3:
+  phi_0.4_chi_0.2_kappa_0.9_pi_0.1:
     alpha:
     - 0.9
     - 1.0
@@ -1650,31 +409,14 @@ scenarios:
     gamma2:
     - 0.3333
     - 1.0
-    kappa: 1.3
-    p_cross_immune: 0.45
-    phi: 0.8
+    kappa: 0.9
+    p_cross_immune: 0.2
+    phi: 0.4
     pi: 0.1
     sigma:
     - 0.2
     - 0.3333
-  phi_0.8_chi_0.45_kappa_1.5:
-    alpha:
-    - 0.9
-    - 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 1.5
-    p_cross_immune: 0.45
-    phi: 0.8
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.8_chi_0.6_kappa_0.3:
+  phi_0.4_chi_0.4_kappa_0.3_pi_0.01:
     alpha:
     - 0.9
     - 1.0
@@ -1685,115 +427,13 @@ scenarios:
     - 0.3333
     - 1.0
     kappa: 0.3
-    p_cross_immune: 0.6
-    phi: 0.8
+    p_cross_immune: 0.4
+    phi: 0.4
     pi: 0.1
     sigma:
     - 0.2
     - 0.3333
-  phi_0.8_chi_0.6_kappa_0.5:
-    alpha:
-    - 0.9
-    - 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.5
-    p_cross_immune: 0.6
-    phi: 0.8
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.8_chi_0.6_kappa_0.7:
-    alpha:
-    - 0.9
-    - 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.7
-    p_cross_immune: 0.6
-    phi: 0.8
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.8_chi_0.6_kappa_0.9:
-    alpha:
-    - 0.9
-    - 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.9
-    p_cross_immune: 0.6
-    phi: 0.8
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.8_chi_0.6_kappa_1.1:
-    alpha:
-    - 0.9
-    - 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 1.1
-    p_cross_immune: 0.6
-    phi: 0.8
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.8_chi_0.6_kappa_1.3:
-    alpha:
-    - 0.9
-    - 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 1.3
-    p_cross_immune: 0.6
-    phi: 0.8
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.8_chi_0.6_kappa_1.5:
-    alpha:
-    - 0.9
-    - 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 1.5
-    p_cross_immune: 0.6
-    phi: 0.8
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.0_chi_0.0_kappa_0.3:
+  phi_0.4_chi_0.4_kappa_0.3_pi_0.05:
     alpha:
     - 0.9
     - 1.0
@@ -1804,115 +444,13 @@ scenarios:
     - 0.3333
     - 1.0
     kappa: 0.3
-    p_cross_immune: 0.0
-    phi: 1.0
+    p_cross_immune: 0.4
+    phi: 0.4
     pi: 0.1
     sigma:
     - 0.2
     - 0.3333
-  phi_1.0_chi_0.0_kappa_0.5:
-    alpha:
-    - 0.9
-    - 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.5
-    p_cross_immune: 0.0
-    phi: 1.0
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.0_chi_0.0_kappa_0.7:
-    alpha:
-    - 0.9
-    - 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.7
-    p_cross_immune: 0.0
-    phi: 1.0
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.0_chi_0.0_kappa_0.9:
-    alpha:
-    - 0.9
-    - 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.9
-    p_cross_immune: 0.0
-    phi: 1.0
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.0_chi_0.0_kappa_1.1:
-    alpha:
-    - 0.9
-    - 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 1.1
-    p_cross_immune: 0.0
-    phi: 1.0
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.0_chi_0.0_kappa_1.3:
-    alpha:
-    - 0.9
-    - 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 1.3
-    p_cross_immune: 0.0
-    phi: 1.0
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.0_chi_0.0_kappa_1.5:
-    alpha:
-    - 0.9
-    - 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 1.5
-    p_cross_immune: 0.0
-    phi: 1.0
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.0_chi_0.15_kappa_0.3:
+  phi_0.4_chi_0.4_kappa_0.3_pi_0.1:
     alpha:
     - 0.9
     - 1.0
@@ -1923,13 +461,13 @@ scenarios:
     - 0.3333
     - 1.0
     kappa: 0.3
-    p_cross_immune: 0.15
-    phi: 1.0
+    p_cross_immune: 0.4
+    phi: 0.4
     pi: 0.1
     sigma:
     - 0.2
     - 0.3333
-  phi_1.0_chi_0.15_kappa_0.5:
+  phi_0.4_chi_0.4_kappa_0.5_pi_0.01:
     alpha:
     - 0.9
     - 1.0
@@ -1940,115 +478,13 @@ scenarios:
     - 0.3333
     - 1.0
     kappa: 0.5
-    p_cross_immune: 0.15
-    phi: 1.0
+    p_cross_immune: 0.4
+    phi: 0.4
     pi: 0.1
     sigma:
     - 0.2
     - 0.3333
-  phi_1.0_chi_0.15_kappa_0.7:
-    alpha:
-    - 0.9
-    - 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.7
-    p_cross_immune: 0.15
-    phi: 1.0
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.0_chi_0.15_kappa_0.9:
-    alpha:
-    - 0.9
-    - 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.9
-    p_cross_immune: 0.15
-    phi: 1.0
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.0_chi_0.15_kappa_1.1:
-    alpha:
-    - 0.9
-    - 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 1.1
-    p_cross_immune: 0.15
-    phi: 1.0
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.0_chi_0.15_kappa_1.3:
-    alpha:
-    - 0.9
-    - 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 1.3
-    p_cross_immune: 0.15
-    phi: 1.0
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.0_chi_0.15_kappa_1.5:
-    alpha:
-    - 0.9
-    - 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 1.5
-    p_cross_immune: 0.15
-    phi: 1.0
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.0_chi_0.3_kappa_0.3:
-    alpha:
-    - 0.9
-    - 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.3
-    p_cross_immune: 0.3
-    phi: 1.0
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.0_chi_0.3_kappa_0.5:
+  phi_0.4_chi_0.4_kappa_0.5_pi_0.05:
     alpha:
     - 0.9
     - 1.0
@@ -2059,115 +495,13 @@ scenarios:
     - 0.3333
     - 1.0
     kappa: 0.5
-    p_cross_immune: 0.3
-    phi: 1.0
+    p_cross_immune: 0.4
+    phi: 0.4
     pi: 0.1
     sigma:
     - 0.2
     - 0.3333
-  phi_1.0_chi_0.3_kappa_0.7:
-    alpha:
-    - 0.9
-    - 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.7
-    p_cross_immune: 0.3
-    phi: 1.0
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.0_chi_0.3_kappa_0.9:
-    alpha:
-    - 0.9
-    - 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.9
-    p_cross_immune: 0.3
-    phi: 1.0
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.0_chi_0.3_kappa_1.1:
-    alpha:
-    - 0.9
-    - 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 1.1
-    p_cross_immune: 0.3
-    phi: 1.0
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.0_chi_0.3_kappa_1.3:
-    alpha:
-    - 0.9
-    - 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 1.3
-    p_cross_immune: 0.3
-    phi: 1.0
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.0_chi_0.3_kappa_1.5:
-    alpha:
-    - 0.9
-    - 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 1.5
-    p_cross_immune: 0.3
-    phi: 1.0
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.0_chi_0.45_kappa_0.3:
-    alpha:
-    - 0.9
-    - 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.3
-    p_cross_immune: 0.45
-    phi: 1.0
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.0_chi_0.45_kappa_0.5:
+  phi_0.4_chi_0.4_kappa_0.5_pi_0.1:
     alpha:
     - 0.9
     - 1.0
@@ -2178,13 +512,13 @@ scenarios:
     - 0.3333
     - 1.0
     kappa: 0.5
-    p_cross_immune: 0.45
-    phi: 1.0
+    p_cross_immune: 0.4
+    phi: 0.4
     pi: 0.1
     sigma:
     - 0.2
     - 0.3333
-  phi_1.0_chi_0.45_kappa_0.7:
+  phi_0.4_chi_0.4_kappa_0.7_pi_0.01:
     alpha:
     - 0.9
     - 1.0
@@ -2195,13 +529,47 @@ scenarios:
     - 0.3333
     - 1.0
     kappa: 0.7
-    p_cross_immune: 0.45
-    phi: 1.0
+    p_cross_immune: 0.4
+    phi: 0.4
     pi: 0.1
     sigma:
     - 0.2
     - 0.3333
-  phi_1.0_chi_0.45_kappa_0.9:
+  phi_0.4_chi_0.4_kappa_0.7_pi_0.05:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.7
+    p_cross_immune: 0.4
+    phi: 0.4
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.4_chi_0.4_kappa_0.7_pi_0.1:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.7
+    p_cross_immune: 0.4
+    phi: 0.4
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.4_chi_0.4_kappa_0.9_pi_0.01:
     alpha:
     - 0.9
     - 1.0
@@ -2212,13 +580,13 @@ scenarios:
     - 0.3333
     - 1.0
     kappa: 0.9
-    p_cross_immune: 0.45
-    phi: 1.0
+    p_cross_immune: 0.4
+    phi: 0.4
     pi: 0.1
     sigma:
     - 0.2
     - 0.3333
-  phi_1.0_chi_0.45_kappa_1.1:
+  phi_0.4_chi_0.4_kappa_0.9_pi_0.05:
     alpha:
     - 0.9
     - 1.0
@@ -2228,14 +596,14 @@ scenarios:
     gamma2:
     - 0.3333
     - 1.0
-    kappa: 1.1
-    p_cross_immune: 0.45
-    phi: 1.0
+    kappa: 0.9
+    p_cross_immune: 0.4
+    phi: 0.4
     pi: 0.1
     sigma:
     - 0.2
     - 0.3333
-  phi_1.0_chi_0.45_kappa_1.3:
+  phi_0.4_chi_0.4_kappa_0.9_pi_0.1:
     alpha:
     - 0.9
     - 1.0
@@ -2245,31 +613,14 @@ scenarios:
     gamma2:
     - 0.3333
     - 1.0
-    kappa: 1.3
-    p_cross_immune: 0.45
-    phi: 1.0
+    kappa: 0.9
+    p_cross_immune: 0.4
+    phi: 0.4
     pi: 0.1
     sigma:
     - 0.2
     - 0.3333
-  phi_1.0_chi_0.45_kappa_1.5:
-    alpha:
-    - 0.9
-    - 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 1.5
-    p_cross_immune: 0.45
-    phi: 1.0
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.0_chi_0.6_kappa_0.3:
+  phi_0.4_chi_0.6_kappa_0.3_pi_0.01:
     alpha:
     - 0.9
     - 1.0
@@ -2281,12 +632,3718 @@ scenarios:
     - 1.0
     kappa: 0.3
     p_cross_immune: 0.6
+    phi: 0.4
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.4_chi_0.6_kappa_0.3_pi_0.05:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.3
+    p_cross_immune: 0.6
+    phi: 0.4
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.4_chi_0.6_kappa_0.3_pi_0.1:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.3
+    p_cross_immune: 0.6
+    phi: 0.4
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.4_chi_0.6_kappa_0.5_pi_0.01:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.5
+    p_cross_immune: 0.6
+    phi: 0.4
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.4_chi_0.6_kappa_0.5_pi_0.05:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.5
+    p_cross_immune: 0.6
+    phi: 0.4
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.4_chi_0.6_kappa_0.5_pi_0.1:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.5
+    p_cross_immune: 0.6
+    phi: 0.4
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.4_chi_0.6_kappa_0.7_pi_0.01:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.7
+    p_cross_immune: 0.6
+    phi: 0.4
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.4_chi_0.6_kappa_0.7_pi_0.05:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.7
+    p_cross_immune: 0.6
+    phi: 0.4
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.4_chi_0.6_kappa_0.7_pi_0.1:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.7
+    p_cross_immune: 0.6
+    phi: 0.4
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.4_chi_0.6_kappa_0.9_pi_0.01:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.9
+    p_cross_immune: 0.6
+    phi: 0.4
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.4_chi_0.6_kappa_0.9_pi_0.05:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.9
+    p_cross_immune: 0.6
+    phi: 0.4
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.4_chi_0.6_kappa_0.9_pi_0.1:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.9
+    p_cross_immune: 0.6
+    phi: 0.4
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.4_chi_0.8_kappa_0.3_pi_0.01:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.3
+    p_cross_immune: 0.8
+    phi: 0.4
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.4_chi_0.8_kappa_0.3_pi_0.05:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.3
+    p_cross_immune: 0.8
+    phi: 0.4
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.4_chi_0.8_kappa_0.3_pi_0.1:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.3
+    p_cross_immune: 0.8
+    phi: 0.4
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.4_chi_0.8_kappa_0.5_pi_0.01:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.5
+    p_cross_immune: 0.8
+    phi: 0.4
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.4_chi_0.8_kappa_0.5_pi_0.05:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.5
+    p_cross_immune: 0.8
+    phi: 0.4
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.4_chi_0.8_kappa_0.5_pi_0.1:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.5
+    p_cross_immune: 0.8
+    phi: 0.4
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.4_chi_0.8_kappa_0.7_pi_0.01:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.7
+    p_cross_immune: 0.8
+    phi: 0.4
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.4_chi_0.8_kappa_0.7_pi_0.05:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.7
+    p_cross_immune: 0.8
+    phi: 0.4
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.4_chi_0.8_kappa_0.7_pi_0.1:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.7
+    p_cross_immune: 0.8
+    phi: 0.4
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.4_chi_0.8_kappa_0.9_pi_0.01:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.9
+    p_cross_immune: 0.8
+    phi: 0.4
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.4_chi_0.8_kappa_0.9_pi_0.05:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.9
+    p_cross_immune: 0.8
+    phi: 0.4
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.4_chi_0.8_kappa_0.9_pi_0.1:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.9
+    p_cross_immune: 0.8
+    phi: 0.4
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.4_chi_1.0_kappa_0.3_pi_0.01:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.3
+    p_cross_immune: 1.0
+    phi: 0.4
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.4_chi_1.0_kappa_0.3_pi_0.05:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.3
+    p_cross_immune: 1.0
+    phi: 0.4
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.4_chi_1.0_kappa_0.3_pi_0.1:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.3
+    p_cross_immune: 1.0
+    phi: 0.4
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.4_chi_1.0_kappa_0.5_pi_0.01:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.5
+    p_cross_immune: 1.0
+    phi: 0.4
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.4_chi_1.0_kappa_0.5_pi_0.05:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.5
+    p_cross_immune: 1.0
+    phi: 0.4
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.4_chi_1.0_kappa_0.5_pi_0.1:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.5
+    p_cross_immune: 1.0
+    phi: 0.4
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.4_chi_1.0_kappa_0.7_pi_0.01:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.7
+    p_cross_immune: 1.0
+    phi: 0.4
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.4_chi_1.0_kappa_0.7_pi_0.05:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.7
+    p_cross_immune: 1.0
+    phi: 0.4
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.4_chi_1.0_kappa_0.7_pi_0.1:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.7
+    p_cross_immune: 1.0
+    phi: 0.4
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.4_chi_1.0_kappa_0.9_pi_0.01:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.9
+    p_cross_immune: 1.0
+    phi: 0.4
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.4_chi_1.0_kappa_0.9_pi_0.05:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.9
+    p_cross_immune: 1.0
+    phi: 0.4
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.4_chi_1.0_kappa_0.9_pi_0.1:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.9
+    p_cross_immune: 1.0
+    phi: 0.4
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.6_chi_0.0_kappa_0.3_pi_0.01:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.3
+    p_cross_immune: 0.0
+    phi: 0.6
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.6_chi_0.0_kappa_0.3_pi_0.05:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.3
+    p_cross_immune: 0.0
+    phi: 0.6
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.6_chi_0.0_kappa_0.3_pi_0.1:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.3
+    p_cross_immune: 0.0
+    phi: 0.6
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.6_chi_0.0_kappa_0.5_pi_0.01:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.5
+    p_cross_immune: 0.0
+    phi: 0.6
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.6_chi_0.0_kappa_0.5_pi_0.05:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.5
+    p_cross_immune: 0.0
+    phi: 0.6
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.6_chi_0.0_kappa_0.5_pi_0.1:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.5
+    p_cross_immune: 0.0
+    phi: 0.6
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.6_chi_0.0_kappa_0.7_pi_0.01:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.7
+    p_cross_immune: 0.0
+    phi: 0.6
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.6_chi_0.0_kappa_0.7_pi_0.05:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.7
+    p_cross_immune: 0.0
+    phi: 0.6
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.6_chi_0.0_kappa_0.7_pi_0.1:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.7
+    p_cross_immune: 0.0
+    phi: 0.6
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.6_chi_0.0_kappa_0.9_pi_0.01:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.9
+    p_cross_immune: 0.0
+    phi: 0.6
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.6_chi_0.0_kappa_0.9_pi_0.05:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.9
+    p_cross_immune: 0.0
+    phi: 0.6
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.6_chi_0.0_kappa_0.9_pi_0.1:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.9
+    p_cross_immune: 0.0
+    phi: 0.6
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.6_chi_0.2_kappa_0.3_pi_0.01:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.3
+    p_cross_immune: 0.2
+    phi: 0.6
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.6_chi_0.2_kappa_0.3_pi_0.05:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.3
+    p_cross_immune: 0.2
+    phi: 0.6
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.6_chi_0.2_kappa_0.3_pi_0.1:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.3
+    p_cross_immune: 0.2
+    phi: 0.6
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.6_chi_0.2_kappa_0.5_pi_0.01:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.5
+    p_cross_immune: 0.2
+    phi: 0.6
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.6_chi_0.2_kappa_0.5_pi_0.05:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.5
+    p_cross_immune: 0.2
+    phi: 0.6
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.6_chi_0.2_kappa_0.5_pi_0.1:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.5
+    p_cross_immune: 0.2
+    phi: 0.6
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.6_chi_0.2_kappa_0.7_pi_0.01:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.7
+    p_cross_immune: 0.2
+    phi: 0.6
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.6_chi_0.2_kappa_0.7_pi_0.05:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.7
+    p_cross_immune: 0.2
+    phi: 0.6
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.6_chi_0.2_kappa_0.7_pi_0.1:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.7
+    p_cross_immune: 0.2
+    phi: 0.6
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.6_chi_0.2_kappa_0.9_pi_0.01:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.9
+    p_cross_immune: 0.2
+    phi: 0.6
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.6_chi_0.2_kappa_0.9_pi_0.05:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.9
+    p_cross_immune: 0.2
+    phi: 0.6
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.6_chi_0.2_kappa_0.9_pi_0.1:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.9
+    p_cross_immune: 0.2
+    phi: 0.6
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.6_chi_0.4_kappa_0.3_pi_0.01:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.3
+    p_cross_immune: 0.4
+    phi: 0.6
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.6_chi_0.4_kappa_0.3_pi_0.05:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.3
+    p_cross_immune: 0.4
+    phi: 0.6
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.6_chi_0.4_kappa_0.3_pi_0.1:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.3
+    p_cross_immune: 0.4
+    phi: 0.6
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.6_chi_0.4_kappa_0.5_pi_0.01:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.5
+    p_cross_immune: 0.4
+    phi: 0.6
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.6_chi_0.4_kappa_0.5_pi_0.05:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.5
+    p_cross_immune: 0.4
+    phi: 0.6
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.6_chi_0.4_kappa_0.5_pi_0.1:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.5
+    p_cross_immune: 0.4
+    phi: 0.6
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.6_chi_0.4_kappa_0.7_pi_0.01:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.7
+    p_cross_immune: 0.4
+    phi: 0.6
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.6_chi_0.4_kappa_0.7_pi_0.05:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.7
+    p_cross_immune: 0.4
+    phi: 0.6
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.6_chi_0.4_kappa_0.7_pi_0.1:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.7
+    p_cross_immune: 0.4
+    phi: 0.6
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.6_chi_0.4_kappa_0.9_pi_0.01:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.9
+    p_cross_immune: 0.4
+    phi: 0.6
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.6_chi_0.4_kappa_0.9_pi_0.05:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.9
+    p_cross_immune: 0.4
+    phi: 0.6
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.6_chi_0.4_kappa_0.9_pi_0.1:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.9
+    p_cross_immune: 0.4
+    phi: 0.6
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.6_chi_0.6_kappa_0.3_pi_0.01:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.3
+    p_cross_immune: 0.6
+    phi: 0.6
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.6_chi_0.6_kappa_0.3_pi_0.05:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.3
+    p_cross_immune: 0.6
+    phi: 0.6
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.6_chi_0.6_kappa_0.3_pi_0.1:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.3
+    p_cross_immune: 0.6
+    phi: 0.6
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.6_chi_0.6_kappa_0.5_pi_0.01:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.5
+    p_cross_immune: 0.6
+    phi: 0.6
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.6_chi_0.6_kappa_0.5_pi_0.05:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.5
+    p_cross_immune: 0.6
+    phi: 0.6
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.6_chi_0.6_kappa_0.5_pi_0.1:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.5
+    p_cross_immune: 0.6
+    phi: 0.6
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.6_chi_0.6_kappa_0.7_pi_0.01:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.7
+    p_cross_immune: 0.6
+    phi: 0.6
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.6_chi_0.6_kappa_0.7_pi_0.05:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.7
+    p_cross_immune: 0.6
+    phi: 0.6
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.6_chi_0.6_kappa_0.7_pi_0.1:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.7
+    p_cross_immune: 0.6
+    phi: 0.6
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.6_chi_0.6_kappa_0.9_pi_0.01:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.9
+    p_cross_immune: 0.6
+    phi: 0.6
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.6_chi_0.6_kappa_0.9_pi_0.05:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.9
+    p_cross_immune: 0.6
+    phi: 0.6
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.6_chi_0.6_kappa_0.9_pi_0.1:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.9
+    p_cross_immune: 0.6
+    phi: 0.6
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.6_chi_0.8_kappa_0.3_pi_0.01:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.3
+    p_cross_immune: 0.8
+    phi: 0.6
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.6_chi_0.8_kappa_0.3_pi_0.05:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.3
+    p_cross_immune: 0.8
+    phi: 0.6
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.6_chi_0.8_kappa_0.3_pi_0.1:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.3
+    p_cross_immune: 0.8
+    phi: 0.6
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.6_chi_0.8_kappa_0.5_pi_0.01:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.5
+    p_cross_immune: 0.8
+    phi: 0.6
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.6_chi_0.8_kappa_0.5_pi_0.05:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.5
+    p_cross_immune: 0.8
+    phi: 0.6
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.6_chi_0.8_kappa_0.5_pi_0.1:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.5
+    p_cross_immune: 0.8
+    phi: 0.6
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.6_chi_0.8_kappa_0.7_pi_0.01:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.7
+    p_cross_immune: 0.8
+    phi: 0.6
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.6_chi_0.8_kappa_0.7_pi_0.05:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.7
+    p_cross_immune: 0.8
+    phi: 0.6
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.6_chi_0.8_kappa_0.7_pi_0.1:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.7
+    p_cross_immune: 0.8
+    phi: 0.6
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.6_chi_0.8_kappa_0.9_pi_0.01:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.9
+    p_cross_immune: 0.8
+    phi: 0.6
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.6_chi_0.8_kappa_0.9_pi_0.05:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.9
+    p_cross_immune: 0.8
+    phi: 0.6
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.6_chi_0.8_kappa_0.9_pi_0.1:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.9
+    p_cross_immune: 0.8
+    phi: 0.6
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.6_chi_1.0_kappa_0.3_pi_0.01:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.3
+    p_cross_immune: 1.0
+    phi: 0.6
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.6_chi_1.0_kappa_0.3_pi_0.05:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.3
+    p_cross_immune: 1.0
+    phi: 0.6
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.6_chi_1.0_kappa_0.3_pi_0.1:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.3
+    p_cross_immune: 1.0
+    phi: 0.6
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.6_chi_1.0_kappa_0.5_pi_0.01:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.5
+    p_cross_immune: 1.0
+    phi: 0.6
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.6_chi_1.0_kappa_0.5_pi_0.05:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.5
+    p_cross_immune: 1.0
+    phi: 0.6
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.6_chi_1.0_kappa_0.5_pi_0.1:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.5
+    p_cross_immune: 1.0
+    phi: 0.6
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.6_chi_1.0_kappa_0.7_pi_0.01:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.7
+    p_cross_immune: 1.0
+    phi: 0.6
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.6_chi_1.0_kappa_0.7_pi_0.05:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.7
+    p_cross_immune: 1.0
+    phi: 0.6
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.6_chi_1.0_kappa_0.7_pi_0.1:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.7
+    p_cross_immune: 1.0
+    phi: 0.6
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.6_chi_1.0_kappa_0.9_pi_0.01:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.9
+    p_cross_immune: 1.0
+    phi: 0.6
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.6_chi_1.0_kappa_0.9_pi_0.05:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.9
+    p_cross_immune: 1.0
+    phi: 0.6
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.6_chi_1.0_kappa_0.9_pi_0.1:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.9
+    p_cross_immune: 1.0
+    phi: 0.6
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.8_chi_0.0_kappa_0.3_pi_0.01:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.3
+    p_cross_immune: 0.0
+    phi: 0.8
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.8_chi_0.0_kappa_0.3_pi_0.05:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.3
+    p_cross_immune: 0.0
+    phi: 0.8
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.8_chi_0.0_kappa_0.3_pi_0.1:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.3
+    p_cross_immune: 0.0
+    phi: 0.8
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.8_chi_0.0_kappa_0.5_pi_0.01:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.5
+    p_cross_immune: 0.0
+    phi: 0.8
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.8_chi_0.0_kappa_0.5_pi_0.05:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.5
+    p_cross_immune: 0.0
+    phi: 0.8
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.8_chi_0.0_kappa_0.5_pi_0.1:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.5
+    p_cross_immune: 0.0
+    phi: 0.8
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.8_chi_0.0_kappa_0.7_pi_0.01:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.7
+    p_cross_immune: 0.0
+    phi: 0.8
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.8_chi_0.0_kappa_0.7_pi_0.05:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.7
+    p_cross_immune: 0.0
+    phi: 0.8
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.8_chi_0.0_kappa_0.7_pi_0.1:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.7
+    p_cross_immune: 0.0
+    phi: 0.8
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.8_chi_0.0_kappa_0.9_pi_0.01:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.9
+    p_cross_immune: 0.0
+    phi: 0.8
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.8_chi_0.0_kappa_0.9_pi_0.05:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.9
+    p_cross_immune: 0.0
+    phi: 0.8
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.8_chi_0.0_kappa_0.9_pi_0.1:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.9
+    p_cross_immune: 0.0
+    phi: 0.8
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.8_chi_0.2_kappa_0.3_pi_0.01:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.3
+    p_cross_immune: 0.2
+    phi: 0.8
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.8_chi_0.2_kappa_0.3_pi_0.05:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.3
+    p_cross_immune: 0.2
+    phi: 0.8
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.8_chi_0.2_kappa_0.3_pi_0.1:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.3
+    p_cross_immune: 0.2
+    phi: 0.8
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.8_chi_0.2_kappa_0.5_pi_0.01:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.5
+    p_cross_immune: 0.2
+    phi: 0.8
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.8_chi_0.2_kappa_0.5_pi_0.05:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.5
+    p_cross_immune: 0.2
+    phi: 0.8
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.8_chi_0.2_kappa_0.5_pi_0.1:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.5
+    p_cross_immune: 0.2
+    phi: 0.8
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.8_chi_0.2_kappa_0.7_pi_0.01:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.7
+    p_cross_immune: 0.2
+    phi: 0.8
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.8_chi_0.2_kappa_0.7_pi_0.05:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.7
+    p_cross_immune: 0.2
+    phi: 0.8
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.8_chi_0.2_kappa_0.7_pi_0.1:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.7
+    p_cross_immune: 0.2
+    phi: 0.8
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.8_chi_0.2_kappa_0.9_pi_0.01:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.9
+    p_cross_immune: 0.2
+    phi: 0.8
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.8_chi_0.2_kappa_0.9_pi_0.05:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.9
+    p_cross_immune: 0.2
+    phi: 0.8
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.8_chi_0.2_kappa_0.9_pi_0.1:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.9
+    p_cross_immune: 0.2
+    phi: 0.8
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.8_chi_0.4_kappa_0.3_pi_0.01:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.3
+    p_cross_immune: 0.4
+    phi: 0.8
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.8_chi_0.4_kappa_0.3_pi_0.05:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.3
+    p_cross_immune: 0.4
+    phi: 0.8
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.8_chi_0.4_kappa_0.3_pi_0.1:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.3
+    p_cross_immune: 0.4
+    phi: 0.8
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.8_chi_0.4_kappa_0.5_pi_0.01:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.5
+    p_cross_immune: 0.4
+    phi: 0.8
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.8_chi_0.4_kappa_0.5_pi_0.05:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.5
+    p_cross_immune: 0.4
+    phi: 0.8
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.8_chi_0.4_kappa_0.5_pi_0.1:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.5
+    p_cross_immune: 0.4
+    phi: 0.8
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.8_chi_0.4_kappa_0.7_pi_0.01:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.7
+    p_cross_immune: 0.4
+    phi: 0.8
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.8_chi_0.4_kappa_0.7_pi_0.05:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.7
+    p_cross_immune: 0.4
+    phi: 0.8
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.8_chi_0.4_kappa_0.7_pi_0.1:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.7
+    p_cross_immune: 0.4
+    phi: 0.8
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.8_chi_0.4_kappa_0.9_pi_0.01:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.9
+    p_cross_immune: 0.4
+    phi: 0.8
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.8_chi_0.4_kappa_0.9_pi_0.05:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.9
+    p_cross_immune: 0.4
+    phi: 0.8
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.8_chi_0.4_kappa_0.9_pi_0.1:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.9
+    p_cross_immune: 0.4
+    phi: 0.8
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.8_chi_0.6_kappa_0.3_pi_0.01:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.3
+    p_cross_immune: 0.6
+    phi: 0.8
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.8_chi_0.6_kappa_0.3_pi_0.05:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.3
+    p_cross_immune: 0.6
+    phi: 0.8
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.8_chi_0.6_kappa_0.3_pi_0.1:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.3
+    p_cross_immune: 0.6
+    phi: 0.8
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.8_chi_0.6_kappa_0.5_pi_0.01:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.5
+    p_cross_immune: 0.6
+    phi: 0.8
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.8_chi_0.6_kappa_0.5_pi_0.05:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.5
+    p_cross_immune: 0.6
+    phi: 0.8
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.8_chi_0.6_kappa_0.5_pi_0.1:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.5
+    p_cross_immune: 0.6
+    phi: 0.8
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.8_chi_0.6_kappa_0.7_pi_0.01:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.7
+    p_cross_immune: 0.6
+    phi: 0.8
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.8_chi_0.6_kappa_0.7_pi_0.05:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.7
+    p_cross_immune: 0.6
+    phi: 0.8
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.8_chi_0.6_kappa_0.7_pi_0.1:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.7
+    p_cross_immune: 0.6
+    phi: 0.8
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.8_chi_0.6_kappa_0.9_pi_0.01:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.9
+    p_cross_immune: 0.6
+    phi: 0.8
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.8_chi_0.6_kappa_0.9_pi_0.05:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.9
+    p_cross_immune: 0.6
+    phi: 0.8
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.8_chi_0.6_kappa_0.9_pi_0.1:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.9
+    p_cross_immune: 0.6
+    phi: 0.8
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.8_chi_0.8_kappa_0.3_pi_0.01:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.3
+    p_cross_immune: 0.8
+    phi: 0.8
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.8_chi_0.8_kappa_0.3_pi_0.05:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.3
+    p_cross_immune: 0.8
+    phi: 0.8
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.8_chi_0.8_kappa_0.3_pi_0.1:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.3
+    p_cross_immune: 0.8
+    phi: 0.8
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.8_chi_0.8_kappa_0.5_pi_0.01:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.5
+    p_cross_immune: 0.8
+    phi: 0.8
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.8_chi_0.8_kappa_0.5_pi_0.05:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.5
+    p_cross_immune: 0.8
+    phi: 0.8
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.8_chi_0.8_kappa_0.5_pi_0.1:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.5
+    p_cross_immune: 0.8
+    phi: 0.8
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.8_chi_0.8_kappa_0.7_pi_0.01:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.7
+    p_cross_immune: 0.8
+    phi: 0.8
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.8_chi_0.8_kappa_0.7_pi_0.05:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.7
+    p_cross_immune: 0.8
+    phi: 0.8
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.8_chi_0.8_kappa_0.7_pi_0.1:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.7
+    p_cross_immune: 0.8
+    phi: 0.8
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.8_chi_0.8_kappa_0.9_pi_0.01:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.9
+    p_cross_immune: 0.8
+    phi: 0.8
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.8_chi_0.8_kappa_0.9_pi_0.05:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.9
+    p_cross_immune: 0.8
+    phi: 0.8
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.8_chi_0.8_kappa_0.9_pi_0.1:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.9
+    p_cross_immune: 0.8
+    phi: 0.8
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.8_chi_1.0_kappa_0.3_pi_0.01:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.3
+    p_cross_immune: 1.0
+    phi: 0.8
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.8_chi_1.0_kappa_0.3_pi_0.05:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.3
+    p_cross_immune: 1.0
+    phi: 0.8
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.8_chi_1.0_kappa_0.3_pi_0.1:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.3
+    p_cross_immune: 1.0
+    phi: 0.8
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.8_chi_1.0_kappa_0.5_pi_0.01:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.5
+    p_cross_immune: 1.0
+    phi: 0.8
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.8_chi_1.0_kappa_0.5_pi_0.05:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.5
+    p_cross_immune: 1.0
+    phi: 0.8
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.8_chi_1.0_kappa_0.5_pi_0.1:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.5
+    p_cross_immune: 1.0
+    phi: 0.8
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.8_chi_1.0_kappa_0.7_pi_0.01:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.7
+    p_cross_immune: 1.0
+    phi: 0.8
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.8_chi_1.0_kappa_0.7_pi_0.05:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.7
+    p_cross_immune: 1.0
+    phi: 0.8
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.8_chi_1.0_kappa_0.7_pi_0.1:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.7
+    p_cross_immune: 1.0
+    phi: 0.8
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.8_chi_1.0_kappa_0.9_pi_0.01:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.9
+    p_cross_immune: 1.0
+    phi: 0.8
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.8_chi_1.0_kappa_0.9_pi_0.05:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.9
+    p_cross_immune: 1.0
+    phi: 0.8
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.8_chi_1.0_kappa_0.9_pi_0.1:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.9
+    p_cross_immune: 1.0
+    phi: 0.8
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.0_chi_0.0_kappa_0.3_pi_0.01:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.3
+    p_cross_immune: 0.0
     phi: 1.0
     pi: 0.1
     sigma:
     - 0.2
     - 0.3333
-  phi_1.0_chi_0.6_kappa_0.5:
+  phi_1.0_chi_0.0_kappa_0.3_pi_0.05:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.3
+    p_cross_immune: 0.0
+    phi: 1.0
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.0_chi_0.0_kappa_0.3_pi_0.1:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.3
+    p_cross_immune: 0.0
+    phi: 1.0
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.0_chi_0.0_kappa_0.5_pi_0.01:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.5
+    p_cross_immune: 0.0
+    phi: 1.0
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.0_chi_0.0_kappa_0.5_pi_0.05:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.5
+    p_cross_immune: 0.0
+    phi: 1.0
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.0_chi_0.0_kappa_0.5_pi_0.1:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.5
+    p_cross_immune: 0.0
+    phi: 1.0
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.0_chi_0.0_kappa_0.7_pi_0.01:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.7
+    p_cross_immune: 0.0
+    phi: 1.0
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.0_chi_0.0_kappa_0.7_pi_0.05:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.7
+    p_cross_immune: 0.0
+    phi: 1.0
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.0_chi_0.0_kappa_0.7_pi_0.1:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.7
+    p_cross_immune: 0.0
+    phi: 1.0
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.0_chi_0.0_kappa_0.9_pi_0.01:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.9
+    p_cross_immune: 0.0
+    phi: 1.0
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.0_chi_0.0_kappa_0.9_pi_0.05:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.9
+    p_cross_immune: 0.0
+    phi: 1.0
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.0_chi_0.0_kappa_0.9_pi_0.1:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.9
+    p_cross_immune: 0.0
+    phi: 1.0
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.0_chi_0.2_kappa_0.3_pi_0.01:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.3
+    p_cross_immune: 0.2
+    phi: 1.0
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.0_chi_0.2_kappa_0.3_pi_0.05:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.3
+    p_cross_immune: 0.2
+    phi: 1.0
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.0_chi_0.2_kappa_0.3_pi_0.1:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.3
+    p_cross_immune: 0.2
+    phi: 1.0
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.0_chi_0.2_kappa_0.5_pi_0.01:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.5
+    p_cross_immune: 0.2
+    phi: 1.0
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.0_chi_0.2_kappa_0.5_pi_0.05:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.5
+    p_cross_immune: 0.2
+    phi: 1.0
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.0_chi_0.2_kappa_0.5_pi_0.1:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.5
+    p_cross_immune: 0.2
+    phi: 1.0
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.0_chi_0.2_kappa_0.7_pi_0.01:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.7
+    p_cross_immune: 0.2
+    phi: 1.0
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.0_chi_0.2_kappa_0.7_pi_0.05:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.7
+    p_cross_immune: 0.2
+    phi: 1.0
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.0_chi_0.2_kappa_0.7_pi_0.1:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.7
+    p_cross_immune: 0.2
+    phi: 1.0
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.0_chi_0.2_kappa_0.9_pi_0.01:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.9
+    p_cross_immune: 0.2
+    phi: 1.0
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.0_chi_0.2_kappa_0.9_pi_0.05:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.9
+    p_cross_immune: 0.2
+    phi: 1.0
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.0_chi_0.2_kappa_0.9_pi_0.1:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.9
+    p_cross_immune: 0.2
+    phi: 1.0
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.0_chi_0.4_kappa_0.3_pi_0.01:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.3
+    p_cross_immune: 0.4
+    phi: 1.0
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.0_chi_0.4_kappa_0.3_pi_0.05:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.3
+    p_cross_immune: 0.4
+    phi: 1.0
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.0_chi_0.4_kappa_0.3_pi_0.1:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.3
+    p_cross_immune: 0.4
+    phi: 1.0
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.0_chi_0.4_kappa_0.5_pi_0.01:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.5
+    p_cross_immune: 0.4
+    phi: 1.0
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.0_chi_0.4_kappa_0.5_pi_0.05:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.5
+    p_cross_immune: 0.4
+    phi: 1.0
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.0_chi_0.4_kappa_0.5_pi_0.1:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.5
+    p_cross_immune: 0.4
+    phi: 1.0
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.0_chi_0.4_kappa_0.7_pi_0.01:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.7
+    p_cross_immune: 0.4
+    phi: 1.0
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.0_chi_0.4_kappa_0.7_pi_0.05:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.7
+    p_cross_immune: 0.4
+    phi: 1.0
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.0_chi_0.4_kappa_0.7_pi_0.1:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.7
+    p_cross_immune: 0.4
+    phi: 1.0
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.0_chi_0.4_kappa_0.9_pi_0.01:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.9
+    p_cross_immune: 0.4
+    phi: 1.0
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.0_chi_0.4_kappa_0.9_pi_0.05:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.9
+    p_cross_immune: 0.4
+    phi: 1.0
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.0_chi_0.4_kappa_0.9_pi_0.1:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.9
+    p_cross_immune: 0.4
+    phi: 1.0
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.0_chi_0.6_kappa_0.3_pi_0.01:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.3
+    p_cross_immune: 0.6
+    phi: 1.0
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.0_chi_0.6_kappa_0.3_pi_0.05:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.3
+    p_cross_immune: 0.6
+    phi: 1.0
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.0_chi_0.6_kappa_0.3_pi_0.1:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.3
+    p_cross_immune: 0.6
+    phi: 1.0
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.0_chi_0.6_kappa_0.5_pi_0.01:
     alpha:
     - 0.9
     - 1.0
@@ -2303,7 +4360,41 @@ scenarios:
     sigma:
     - 0.2
     - 0.3333
-  phi_1.0_chi_0.6_kappa_0.7:
+  phi_1.0_chi_0.6_kappa_0.5_pi_0.05:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.5
+    p_cross_immune: 0.6
+    phi: 1.0
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.0_chi_0.6_kappa_0.5_pi_0.1:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.5
+    p_cross_immune: 0.6
+    phi: 1.0
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.0_chi_0.6_kappa_0.7_pi_0.01:
     alpha:
     - 0.9
     - 1.0
@@ -2320,7 +4411,41 @@ scenarios:
     sigma:
     - 0.2
     - 0.3333
-  phi_1.0_chi_0.6_kappa_0.9:
+  phi_1.0_chi_0.6_kappa_0.7_pi_0.05:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.7
+    p_cross_immune: 0.6
+    phi: 1.0
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.0_chi_0.6_kappa_0.7_pi_0.1:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.7
+    p_cross_immune: 0.6
+    phi: 1.0
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.0_chi_0.6_kappa_0.9_pi_0.01:
     alpha:
     - 0.9
     - 1.0
@@ -2337,7 +4462,7 @@ scenarios:
     sigma:
     - 0.2
     - 0.3333
-  phi_1.0_chi_0.6_kappa_1.1:
+  phi_1.0_chi_0.6_kappa_0.9_pi_0.05:
     alpha:
     - 0.9
     - 1.0
@@ -2347,14 +4472,14 @@ scenarios:
     gamma2:
     - 0.3333
     - 1.0
-    kappa: 1.1
+    kappa: 0.9
     p_cross_immune: 0.6
     phi: 1.0
     pi: 0.1
     sigma:
     - 0.2
     - 0.3333
-  phi_1.0_chi_0.6_kappa_1.3:
+  phi_1.0_chi_0.6_kappa_0.9_pi_0.1:
     alpha:
     - 0.9
     - 1.0
@@ -2364,14 +4489,14 @@ scenarios:
     gamma2:
     - 0.3333
     - 1.0
-    kappa: 1.3
+    kappa: 0.9
     p_cross_immune: 0.6
     phi: 1.0
     pi: 0.1
     sigma:
     - 0.2
     - 0.3333
-  phi_1.0_chi_0.6_kappa_1.5:
+  phi_1.0_chi_0.8_kappa_0.3_pi_0.01:
     alpha:
     - 0.9
     - 1.0
@@ -2381,14 +4506,405 @@ scenarios:
     gamma2:
     - 0.3333
     - 1.0
-    kappa: 1.5
-    p_cross_immune: 0.6
+    kappa: 0.3
+    p_cross_immune: 0.8
     phi: 1.0
     pi: 0.1
     sigma:
     - 0.2
     - 0.3333
-  phi_1.2_chi_0.0_kappa_0.3:
+  phi_1.0_chi_0.8_kappa_0.3_pi_0.05:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.3
+    p_cross_immune: 0.8
+    phi: 1.0
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.0_chi_0.8_kappa_0.3_pi_0.1:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.3
+    p_cross_immune: 0.8
+    phi: 1.0
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.0_chi_0.8_kappa_0.5_pi_0.01:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.5
+    p_cross_immune: 0.8
+    phi: 1.0
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.0_chi_0.8_kappa_0.5_pi_0.05:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.5
+    p_cross_immune: 0.8
+    phi: 1.0
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.0_chi_0.8_kappa_0.5_pi_0.1:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.5
+    p_cross_immune: 0.8
+    phi: 1.0
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.0_chi_0.8_kappa_0.7_pi_0.01:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.7
+    p_cross_immune: 0.8
+    phi: 1.0
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.0_chi_0.8_kappa_0.7_pi_0.05:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.7
+    p_cross_immune: 0.8
+    phi: 1.0
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.0_chi_0.8_kappa_0.7_pi_0.1:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.7
+    p_cross_immune: 0.8
+    phi: 1.0
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.0_chi_0.8_kappa_0.9_pi_0.01:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.9
+    p_cross_immune: 0.8
+    phi: 1.0
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.0_chi_0.8_kappa_0.9_pi_0.05:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.9
+    p_cross_immune: 0.8
+    phi: 1.0
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.0_chi_0.8_kappa_0.9_pi_0.1:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.9
+    p_cross_immune: 0.8
+    phi: 1.0
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.0_chi_1.0_kappa_0.3_pi_0.01:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.3
+    p_cross_immune: 1.0
+    phi: 1.0
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.0_chi_1.0_kappa_0.3_pi_0.05:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.3
+    p_cross_immune: 1.0
+    phi: 1.0
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.0_chi_1.0_kappa_0.3_pi_0.1:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.3
+    p_cross_immune: 1.0
+    phi: 1.0
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.0_chi_1.0_kappa_0.5_pi_0.01:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.5
+    p_cross_immune: 1.0
+    phi: 1.0
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.0_chi_1.0_kappa_0.5_pi_0.05:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.5
+    p_cross_immune: 1.0
+    phi: 1.0
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.0_chi_1.0_kappa_0.5_pi_0.1:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.5
+    p_cross_immune: 1.0
+    phi: 1.0
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.0_chi_1.0_kappa_0.7_pi_0.01:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.7
+    p_cross_immune: 1.0
+    phi: 1.0
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.0_chi_1.0_kappa_0.7_pi_0.05:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.7
+    p_cross_immune: 1.0
+    phi: 1.0
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.0_chi_1.0_kappa_0.7_pi_0.1:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.7
+    p_cross_immune: 1.0
+    phi: 1.0
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.0_chi_1.0_kappa_0.9_pi_0.01:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.9
+    p_cross_immune: 1.0
+    phi: 1.0
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.0_chi_1.0_kappa_0.9_pi_0.05:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.9
+    p_cross_immune: 1.0
+    phi: 1.0
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.0_chi_1.0_kappa_0.9_pi_0.1:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.9
+    p_cross_immune: 1.0
+    phi: 1.0
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.2_chi_0.0_kappa_0.3_pi_0.01:
     alpha:
     - 0.9
     - 1.0
@@ -2405,585 +4921,7 @@ scenarios:
     sigma:
     - 0.2
     - 0.3333
-  phi_1.2_chi_0.0_kappa_0.5:
-    alpha:
-    - 0.9
-    - 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.5
-    p_cross_immune: 0.0
-    phi: 1.2
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.2_chi_0.0_kappa_0.7:
-    alpha:
-    - 0.9
-    - 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.7
-    p_cross_immune: 0.0
-    phi: 1.2
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.2_chi_0.0_kappa_0.9:
-    alpha:
-    - 0.9
-    - 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.9
-    p_cross_immune: 0.0
-    phi: 1.2
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.2_chi_0.0_kappa_1.1:
-    alpha:
-    - 0.9
-    - 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 1.1
-    p_cross_immune: 0.0
-    phi: 1.2
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.2_chi_0.0_kappa_1.3:
-    alpha:
-    - 0.9
-    - 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 1.3
-    p_cross_immune: 0.0
-    phi: 1.2
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.2_chi_0.0_kappa_1.5:
-    alpha:
-    - 0.9
-    - 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 1.5
-    p_cross_immune: 0.0
-    phi: 1.2
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.2_chi_0.15_kappa_0.3:
-    alpha:
-    - 0.9
-    - 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.3
-    p_cross_immune: 0.15
-    phi: 1.2
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.2_chi_0.15_kappa_0.5:
-    alpha:
-    - 0.9
-    - 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.5
-    p_cross_immune: 0.15
-    phi: 1.2
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.2_chi_0.15_kappa_0.7:
-    alpha:
-    - 0.9
-    - 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.7
-    p_cross_immune: 0.15
-    phi: 1.2
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.2_chi_0.15_kappa_0.9:
-    alpha:
-    - 0.9
-    - 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.9
-    p_cross_immune: 0.15
-    phi: 1.2
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.2_chi_0.15_kappa_1.1:
-    alpha:
-    - 0.9
-    - 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 1.1
-    p_cross_immune: 0.15
-    phi: 1.2
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.2_chi_0.15_kappa_1.3:
-    alpha:
-    - 0.9
-    - 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 1.3
-    p_cross_immune: 0.15
-    phi: 1.2
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.2_chi_0.15_kappa_1.5:
-    alpha:
-    - 0.9
-    - 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 1.5
-    p_cross_immune: 0.15
-    phi: 1.2
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.2_chi_0.3_kappa_0.3:
-    alpha:
-    - 0.9
-    - 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.3
-    p_cross_immune: 0.3
-    phi: 1.2
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.2_chi_0.3_kappa_0.5:
-    alpha:
-    - 0.9
-    - 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.5
-    p_cross_immune: 0.3
-    phi: 1.2
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.2_chi_0.3_kappa_0.7:
-    alpha:
-    - 0.9
-    - 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.7
-    p_cross_immune: 0.3
-    phi: 1.2
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.2_chi_0.3_kappa_0.9:
-    alpha:
-    - 0.9
-    - 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.9
-    p_cross_immune: 0.3
-    phi: 1.2
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.2_chi_0.3_kappa_1.1:
-    alpha:
-    - 0.9
-    - 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 1.1
-    p_cross_immune: 0.3
-    phi: 1.2
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.2_chi_0.3_kappa_1.3:
-    alpha:
-    - 0.9
-    - 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 1.3
-    p_cross_immune: 0.3
-    phi: 1.2
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.2_chi_0.3_kappa_1.5:
-    alpha:
-    - 0.9
-    - 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 1.5
-    p_cross_immune: 0.3
-    phi: 1.2
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.2_chi_0.45_kappa_0.3:
-    alpha:
-    - 0.9
-    - 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.3
-    p_cross_immune: 0.45
-    phi: 1.2
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.2_chi_0.45_kappa_0.5:
-    alpha:
-    - 0.9
-    - 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.5
-    p_cross_immune: 0.45
-    phi: 1.2
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.2_chi_0.45_kappa_0.7:
-    alpha:
-    - 0.9
-    - 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.7
-    p_cross_immune: 0.45
-    phi: 1.2
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.2_chi_0.45_kappa_0.9:
-    alpha:
-    - 0.9
-    - 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.9
-    p_cross_immune: 0.45
-    phi: 1.2
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.2_chi_0.45_kappa_1.1:
-    alpha:
-    - 0.9
-    - 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 1.1
-    p_cross_immune: 0.45
-    phi: 1.2
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.2_chi_0.45_kappa_1.3:
-    alpha:
-    - 0.9
-    - 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 1.3
-    p_cross_immune: 0.45
-    phi: 1.2
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.2_chi_0.45_kappa_1.5:
-    alpha:
-    - 0.9
-    - 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 1.5
-    p_cross_immune: 0.45
-    phi: 1.2
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.2_chi_0.6_kappa_0.3:
-    alpha:
-    - 0.9
-    - 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.3
-    p_cross_immune: 0.6
-    phi: 1.2
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.2_chi_0.6_kappa_0.5:
-    alpha:
-    - 0.9
-    - 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.5
-    p_cross_immune: 0.6
-    phi: 1.2
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.2_chi_0.6_kappa_0.7:
-    alpha:
-    - 0.9
-    - 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.7
-    p_cross_immune: 0.6
-    phi: 1.2
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.2_chi_0.6_kappa_0.9:
-    alpha:
-    - 0.9
-    - 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.9
-    p_cross_immune: 0.6
-    phi: 1.2
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.2_chi_0.6_kappa_1.1:
-    alpha:
-    - 0.9
-    - 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 1.1
-    p_cross_immune: 0.6
-    phi: 1.2
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.2_chi_0.6_kappa_1.3:
-    alpha:
-    - 0.9
-    - 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 1.3
-    p_cross_immune: 0.6
-    phi: 1.2
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.2_chi_0.6_kappa_1.5:
-    alpha:
-    - 0.9
-    - 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 1.5
-    p_cross_immune: 0.6
-    phi: 1.2
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.4_chi_0.0_kappa_0.3:
+  phi_1.2_chi_0.0_kappa_0.3_pi_0.05:
     alpha:
     - 0.9
     - 1.0
@@ -2995,114 +4933,12 @@ scenarios:
     - 1.0
     kappa: 0.3
     p_cross_immune: 0.0
-    phi: 1.4
+    phi: 1.2
     pi: 0.1
     sigma:
     - 0.2
     - 0.3333
-  phi_1.4_chi_0.0_kappa_0.5:
-    alpha:
-    - 0.9
-    - 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.5
-    p_cross_immune: 0.0
-    phi: 1.4
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.4_chi_0.0_kappa_0.7:
-    alpha:
-    - 0.9
-    - 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.7
-    p_cross_immune: 0.0
-    phi: 1.4
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.4_chi_0.0_kappa_0.9:
-    alpha:
-    - 0.9
-    - 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.9
-    p_cross_immune: 0.0
-    phi: 1.4
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.4_chi_0.0_kappa_1.1:
-    alpha:
-    - 0.9
-    - 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 1.1
-    p_cross_immune: 0.0
-    phi: 1.4
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.4_chi_0.0_kappa_1.3:
-    alpha:
-    - 0.9
-    - 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 1.3
-    p_cross_immune: 0.0
-    phi: 1.4
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.4_chi_0.0_kappa_1.5:
-    alpha:
-    - 0.9
-    - 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 1.5
-    p_cross_immune: 0.0
-    phi: 1.4
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.4_chi_0.15_kappa_0.3:
+  phi_1.2_chi_0.0_kappa_0.3_pi_0.1:
     alpha:
     - 0.9
     - 1.0
@@ -3113,13 +4949,13 @@ scenarios:
     - 0.3333
     - 1.0
     kappa: 0.3
-    p_cross_immune: 0.15
-    phi: 1.4
+    p_cross_immune: 0.0
+    phi: 1.2
     pi: 0.1
     sigma:
     - 0.2
     - 0.3333
-  phi_1.4_chi_0.15_kappa_0.5:
+  phi_1.2_chi_0.0_kappa_0.5_pi_0.01:
     alpha:
     - 0.9
     - 1.0
@@ -3130,13 +4966,47 @@ scenarios:
     - 0.3333
     - 1.0
     kappa: 0.5
-    p_cross_immune: 0.15
-    phi: 1.4
+    p_cross_immune: 0.0
+    phi: 1.2
     pi: 0.1
     sigma:
     - 0.2
     - 0.3333
-  phi_1.4_chi_0.15_kappa_0.7:
+  phi_1.2_chi_0.0_kappa_0.5_pi_0.05:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.5
+    p_cross_immune: 0.0
+    phi: 1.2
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.2_chi_0.0_kappa_0.5_pi_0.1:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.5
+    p_cross_immune: 0.0
+    phi: 1.2
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.2_chi_0.0_kappa_0.7_pi_0.01:
     alpha:
     - 0.9
     - 1.0
@@ -3147,13 +5017,47 @@ scenarios:
     - 0.3333
     - 1.0
     kappa: 0.7
-    p_cross_immune: 0.15
-    phi: 1.4
+    p_cross_immune: 0.0
+    phi: 1.2
     pi: 0.1
     sigma:
     - 0.2
     - 0.3333
-  phi_1.4_chi_0.15_kappa_0.9:
+  phi_1.2_chi_0.0_kappa_0.7_pi_0.05:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.7
+    p_cross_immune: 0.0
+    phi: 1.2
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.2_chi_0.0_kappa_0.7_pi_0.1:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.7
+    p_cross_immune: 0.0
+    phi: 1.2
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.2_chi_0.0_kappa_0.9_pi_0.01:
     alpha:
     - 0.9
     - 1.0
@@ -3164,13 +5068,13 @@ scenarios:
     - 0.3333
     - 1.0
     kappa: 0.9
-    p_cross_immune: 0.15
-    phi: 1.4
+    p_cross_immune: 0.0
+    phi: 1.2
     pi: 0.1
     sigma:
     - 0.2
     - 0.3333
-  phi_1.4_chi_0.15_kappa_1.1:
+  phi_1.2_chi_0.0_kappa_0.9_pi_0.05:
     alpha:
     - 0.9
     - 1.0
@@ -3180,14 +5084,14 @@ scenarios:
     gamma2:
     - 0.3333
     - 1.0
-    kappa: 1.1
-    p_cross_immune: 0.15
-    phi: 1.4
+    kappa: 0.9
+    p_cross_immune: 0.0
+    phi: 1.2
     pi: 0.1
     sigma:
     - 0.2
     - 0.3333
-  phi_1.4_chi_0.15_kappa_1.3:
+  phi_1.2_chi_0.0_kappa_0.9_pi_0.1:
     alpha:
     - 0.9
     - 1.0
@@ -3197,31 +5101,14 @@ scenarios:
     gamma2:
     - 0.3333
     - 1.0
-    kappa: 1.3
-    p_cross_immune: 0.15
-    phi: 1.4
+    kappa: 0.9
+    p_cross_immune: 0.0
+    phi: 1.2
     pi: 0.1
     sigma:
     - 0.2
     - 0.3333
-  phi_1.4_chi_0.15_kappa_1.5:
-    alpha:
-    - 0.9
-    - 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 1.5
-    p_cross_immune: 0.15
-    phi: 1.4
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.4_chi_0.3_kappa_0.3:
+  phi_1.2_chi_0.2_kappa_0.3_pi_0.01:
     alpha:
     - 0.9
     - 1.0
@@ -3232,115 +5119,13 @@ scenarios:
     - 0.3333
     - 1.0
     kappa: 0.3
-    p_cross_immune: 0.3
-    phi: 1.4
+    p_cross_immune: 0.2
+    phi: 1.2
     pi: 0.1
     sigma:
     - 0.2
     - 0.3333
-  phi_1.4_chi_0.3_kappa_0.5:
-    alpha:
-    - 0.9
-    - 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.5
-    p_cross_immune: 0.3
-    phi: 1.4
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.4_chi_0.3_kappa_0.7:
-    alpha:
-    - 0.9
-    - 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.7
-    p_cross_immune: 0.3
-    phi: 1.4
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.4_chi_0.3_kappa_0.9:
-    alpha:
-    - 0.9
-    - 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.9
-    p_cross_immune: 0.3
-    phi: 1.4
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.4_chi_0.3_kappa_1.1:
-    alpha:
-    - 0.9
-    - 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 1.1
-    p_cross_immune: 0.3
-    phi: 1.4
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.4_chi_0.3_kappa_1.3:
-    alpha:
-    - 0.9
-    - 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 1.3
-    p_cross_immune: 0.3
-    phi: 1.4
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.4_chi_0.3_kappa_1.5:
-    alpha:
-    - 0.9
-    - 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 1.5
-    p_cross_immune: 0.3
-    phi: 1.4
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.4_chi_0.45_kappa_0.3:
+  phi_1.2_chi_0.2_kappa_0.3_pi_0.05:
     alpha:
     - 0.9
     - 1.0
@@ -3351,13 +5136,30 @@ scenarios:
     - 0.3333
     - 1.0
     kappa: 0.3
-    p_cross_immune: 0.45
-    phi: 1.4
+    p_cross_immune: 0.2
+    phi: 1.2
     pi: 0.1
     sigma:
     - 0.2
     - 0.3333
-  phi_1.4_chi_0.45_kappa_0.5:
+  phi_1.2_chi_0.2_kappa_0.3_pi_0.1:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.3
+    p_cross_immune: 0.2
+    phi: 1.2
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.2_chi_0.2_kappa_0.5_pi_0.01:
     alpha:
     - 0.9
     - 1.0
@@ -3368,13 +5170,47 @@ scenarios:
     - 0.3333
     - 1.0
     kappa: 0.5
-    p_cross_immune: 0.45
-    phi: 1.4
+    p_cross_immune: 0.2
+    phi: 1.2
     pi: 0.1
     sigma:
     - 0.2
     - 0.3333
-  phi_1.4_chi_0.45_kappa_0.7:
+  phi_1.2_chi_0.2_kappa_0.5_pi_0.05:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.5
+    p_cross_immune: 0.2
+    phi: 1.2
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.2_chi_0.2_kappa_0.5_pi_0.1:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.5
+    p_cross_immune: 0.2
+    phi: 1.2
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.2_chi_0.2_kappa_0.7_pi_0.01:
     alpha:
     - 0.9
     - 1.0
@@ -3385,13 +5221,47 @@ scenarios:
     - 0.3333
     - 1.0
     kappa: 0.7
-    p_cross_immune: 0.45
-    phi: 1.4
+    p_cross_immune: 0.2
+    phi: 1.2
     pi: 0.1
     sigma:
     - 0.2
     - 0.3333
-  phi_1.4_chi_0.45_kappa_0.9:
+  phi_1.2_chi_0.2_kappa_0.7_pi_0.05:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.7
+    p_cross_immune: 0.2
+    phi: 1.2
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.2_chi_0.2_kappa_0.7_pi_0.1:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.7
+    p_cross_immune: 0.2
+    phi: 1.2
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.2_chi_0.2_kappa_0.9_pi_0.01:
     alpha:
     - 0.9
     - 1.0
@@ -3402,13 +5272,13 @@ scenarios:
     - 0.3333
     - 1.0
     kappa: 0.9
-    p_cross_immune: 0.45
-    phi: 1.4
+    p_cross_immune: 0.2
+    phi: 1.2
     pi: 0.1
     sigma:
     - 0.2
     - 0.3333
-  phi_1.4_chi_0.45_kappa_1.1:
+  phi_1.2_chi_0.2_kappa_0.9_pi_0.05:
     alpha:
     - 0.9
     - 1.0
@@ -3418,14 +5288,14 @@ scenarios:
     gamma2:
     - 0.3333
     - 1.0
-    kappa: 1.1
-    p_cross_immune: 0.45
-    phi: 1.4
+    kappa: 0.9
+    p_cross_immune: 0.2
+    phi: 1.2
     pi: 0.1
     sigma:
     - 0.2
     - 0.3333
-  phi_1.4_chi_0.45_kappa_1.3:
+  phi_1.2_chi_0.2_kappa_0.9_pi_0.1:
     alpha:
     - 0.9
     - 1.0
@@ -3435,14 +5305,14 @@ scenarios:
     gamma2:
     - 0.3333
     - 1.0
-    kappa: 1.3
-    p_cross_immune: 0.45
-    phi: 1.4
+    kappa: 0.9
+    p_cross_immune: 0.2
+    phi: 1.2
     pi: 0.1
     sigma:
     - 0.2
     - 0.3333
-  phi_1.4_chi_0.45_kappa_1.5:
+  phi_1.2_chi_0.4_kappa_0.3_pi_0.01:
     alpha:
     - 0.9
     - 1.0
@@ -3452,14 +5322,1425 @@ scenarios:
     gamma2:
     - 0.3333
     - 1.0
-    kappa: 1.5
-    p_cross_immune: 0.45
+    kappa: 0.3
+    p_cross_immune: 0.4
+    phi: 1.2
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.2_chi_0.4_kappa_0.3_pi_0.05:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.3
+    p_cross_immune: 0.4
+    phi: 1.2
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.2_chi_0.4_kappa_0.3_pi_0.1:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.3
+    p_cross_immune: 0.4
+    phi: 1.2
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.2_chi_0.4_kappa_0.5_pi_0.01:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.5
+    p_cross_immune: 0.4
+    phi: 1.2
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.2_chi_0.4_kappa_0.5_pi_0.05:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.5
+    p_cross_immune: 0.4
+    phi: 1.2
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.2_chi_0.4_kappa_0.5_pi_0.1:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.5
+    p_cross_immune: 0.4
+    phi: 1.2
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.2_chi_0.4_kappa_0.7_pi_0.01:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.7
+    p_cross_immune: 0.4
+    phi: 1.2
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.2_chi_0.4_kappa_0.7_pi_0.05:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.7
+    p_cross_immune: 0.4
+    phi: 1.2
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.2_chi_0.4_kappa_0.7_pi_0.1:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.7
+    p_cross_immune: 0.4
+    phi: 1.2
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.2_chi_0.4_kappa_0.9_pi_0.01:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.9
+    p_cross_immune: 0.4
+    phi: 1.2
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.2_chi_0.4_kappa_0.9_pi_0.05:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.9
+    p_cross_immune: 0.4
+    phi: 1.2
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.2_chi_0.4_kappa_0.9_pi_0.1:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.9
+    p_cross_immune: 0.4
+    phi: 1.2
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.2_chi_0.6_kappa_0.3_pi_0.01:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.3
+    p_cross_immune: 0.6
+    phi: 1.2
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.2_chi_0.6_kappa_0.3_pi_0.05:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.3
+    p_cross_immune: 0.6
+    phi: 1.2
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.2_chi_0.6_kappa_0.3_pi_0.1:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.3
+    p_cross_immune: 0.6
+    phi: 1.2
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.2_chi_0.6_kappa_0.5_pi_0.01:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.5
+    p_cross_immune: 0.6
+    phi: 1.2
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.2_chi_0.6_kappa_0.5_pi_0.05:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.5
+    p_cross_immune: 0.6
+    phi: 1.2
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.2_chi_0.6_kappa_0.5_pi_0.1:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.5
+    p_cross_immune: 0.6
+    phi: 1.2
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.2_chi_0.6_kappa_0.7_pi_0.01:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.7
+    p_cross_immune: 0.6
+    phi: 1.2
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.2_chi_0.6_kappa_0.7_pi_0.05:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.7
+    p_cross_immune: 0.6
+    phi: 1.2
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.2_chi_0.6_kappa_0.7_pi_0.1:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.7
+    p_cross_immune: 0.6
+    phi: 1.2
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.2_chi_0.6_kappa_0.9_pi_0.01:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.9
+    p_cross_immune: 0.6
+    phi: 1.2
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.2_chi_0.6_kappa_0.9_pi_0.05:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.9
+    p_cross_immune: 0.6
+    phi: 1.2
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.2_chi_0.6_kappa_0.9_pi_0.1:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.9
+    p_cross_immune: 0.6
+    phi: 1.2
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.2_chi_0.8_kappa_0.3_pi_0.01:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.3
+    p_cross_immune: 0.8
+    phi: 1.2
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.2_chi_0.8_kappa_0.3_pi_0.05:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.3
+    p_cross_immune: 0.8
+    phi: 1.2
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.2_chi_0.8_kappa_0.3_pi_0.1:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.3
+    p_cross_immune: 0.8
+    phi: 1.2
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.2_chi_0.8_kappa_0.5_pi_0.01:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.5
+    p_cross_immune: 0.8
+    phi: 1.2
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.2_chi_0.8_kappa_0.5_pi_0.05:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.5
+    p_cross_immune: 0.8
+    phi: 1.2
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.2_chi_0.8_kappa_0.5_pi_0.1:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.5
+    p_cross_immune: 0.8
+    phi: 1.2
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.2_chi_0.8_kappa_0.7_pi_0.01:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.7
+    p_cross_immune: 0.8
+    phi: 1.2
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.2_chi_0.8_kappa_0.7_pi_0.05:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.7
+    p_cross_immune: 0.8
+    phi: 1.2
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.2_chi_0.8_kappa_0.7_pi_0.1:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.7
+    p_cross_immune: 0.8
+    phi: 1.2
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.2_chi_0.8_kappa_0.9_pi_0.01:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.9
+    p_cross_immune: 0.8
+    phi: 1.2
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.2_chi_0.8_kappa_0.9_pi_0.05:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.9
+    p_cross_immune: 0.8
+    phi: 1.2
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.2_chi_0.8_kappa_0.9_pi_0.1:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.9
+    p_cross_immune: 0.8
+    phi: 1.2
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.2_chi_1.0_kappa_0.3_pi_0.01:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.3
+    p_cross_immune: 1.0
+    phi: 1.2
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.2_chi_1.0_kappa_0.3_pi_0.05:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.3
+    p_cross_immune: 1.0
+    phi: 1.2
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.2_chi_1.0_kappa_0.3_pi_0.1:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.3
+    p_cross_immune: 1.0
+    phi: 1.2
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.2_chi_1.0_kappa_0.5_pi_0.01:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.5
+    p_cross_immune: 1.0
+    phi: 1.2
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.2_chi_1.0_kappa_0.5_pi_0.05:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.5
+    p_cross_immune: 1.0
+    phi: 1.2
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.2_chi_1.0_kappa_0.5_pi_0.1:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.5
+    p_cross_immune: 1.0
+    phi: 1.2
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.2_chi_1.0_kappa_0.7_pi_0.01:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.7
+    p_cross_immune: 1.0
+    phi: 1.2
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.2_chi_1.0_kappa_0.7_pi_0.05:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.7
+    p_cross_immune: 1.0
+    phi: 1.2
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.2_chi_1.0_kappa_0.7_pi_0.1:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.7
+    p_cross_immune: 1.0
+    phi: 1.2
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.2_chi_1.0_kappa_0.9_pi_0.01:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.9
+    p_cross_immune: 1.0
+    phi: 1.2
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.2_chi_1.0_kappa_0.9_pi_0.05:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.9
+    p_cross_immune: 1.0
+    phi: 1.2
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.2_chi_1.0_kappa_0.9_pi_0.1:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.9
+    p_cross_immune: 1.0
+    phi: 1.2
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.4_chi_0.0_kappa_0.3_pi_0.01:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.3
+    p_cross_immune: 0.0
     phi: 1.4
     pi: 0.1
     sigma:
     - 0.2
     - 0.3333
-  phi_1.4_chi_0.6_kappa_0.3:
+  phi_1.4_chi_0.0_kappa_0.3_pi_0.05:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.3
+    p_cross_immune: 0.0
+    phi: 1.4
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.4_chi_0.0_kappa_0.3_pi_0.1:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.3
+    p_cross_immune: 0.0
+    phi: 1.4
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.4_chi_0.0_kappa_0.5_pi_0.01:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.5
+    p_cross_immune: 0.0
+    phi: 1.4
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.4_chi_0.0_kappa_0.5_pi_0.05:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.5
+    p_cross_immune: 0.0
+    phi: 1.4
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.4_chi_0.0_kappa_0.5_pi_0.1:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.5
+    p_cross_immune: 0.0
+    phi: 1.4
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.4_chi_0.0_kappa_0.7_pi_0.01:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.7
+    p_cross_immune: 0.0
+    phi: 1.4
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.4_chi_0.0_kappa_0.7_pi_0.05:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.7
+    p_cross_immune: 0.0
+    phi: 1.4
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.4_chi_0.0_kappa_0.7_pi_0.1:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.7
+    p_cross_immune: 0.0
+    phi: 1.4
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.4_chi_0.0_kappa_0.9_pi_0.01:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.9
+    p_cross_immune: 0.0
+    phi: 1.4
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.4_chi_0.0_kappa_0.9_pi_0.05:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.9
+    p_cross_immune: 0.0
+    phi: 1.4
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.4_chi_0.0_kappa_0.9_pi_0.1:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.9
+    p_cross_immune: 0.0
+    phi: 1.4
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.4_chi_0.2_kappa_0.3_pi_0.01:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.3
+    p_cross_immune: 0.2
+    phi: 1.4
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.4_chi_0.2_kappa_0.3_pi_0.05:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.3
+    p_cross_immune: 0.2
+    phi: 1.4
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.4_chi_0.2_kappa_0.3_pi_0.1:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.3
+    p_cross_immune: 0.2
+    phi: 1.4
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.4_chi_0.2_kappa_0.5_pi_0.01:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.5
+    p_cross_immune: 0.2
+    phi: 1.4
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.4_chi_0.2_kappa_0.5_pi_0.05:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.5
+    p_cross_immune: 0.2
+    phi: 1.4
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.4_chi_0.2_kappa_0.5_pi_0.1:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.5
+    p_cross_immune: 0.2
+    phi: 1.4
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.4_chi_0.2_kappa_0.7_pi_0.01:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.7
+    p_cross_immune: 0.2
+    phi: 1.4
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.4_chi_0.2_kappa_0.7_pi_0.05:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.7
+    p_cross_immune: 0.2
+    phi: 1.4
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.4_chi_0.2_kappa_0.7_pi_0.1:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.7
+    p_cross_immune: 0.2
+    phi: 1.4
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.4_chi_0.2_kappa_0.9_pi_0.01:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.9
+    p_cross_immune: 0.2
+    phi: 1.4
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.4_chi_0.2_kappa_0.9_pi_0.05:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.9
+    p_cross_immune: 0.2
+    phi: 1.4
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.4_chi_0.2_kappa_0.9_pi_0.1:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.9
+    p_cross_immune: 0.2
+    phi: 1.4
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.4_chi_0.4_kappa_0.3_pi_0.01:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.3
+    p_cross_immune: 0.4
+    phi: 1.4
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.4_chi_0.4_kappa_0.3_pi_0.05:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.3
+    p_cross_immune: 0.4
+    phi: 1.4
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.4_chi_0.4_kappa_0.3_pi_0.1:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.3
+    p_cross_immune: 0.4
+    phi: 1.4
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.4_chi_0.4_kappa_0.5_pi_0.01:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.5
+    p_cross_immune: 0.4
+    phi: 1.4
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.4_chi_0.4_kappa_0.5_pi_0.05:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.5
+    p_cross_immune: 0.4
+    phi: 1.4
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.4_chi_0.4_kappa_0.5_pi_0.1:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.5
+    p_cross_immune: 0.4
+    phi: 1.4
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.4_chi_0.4_kappa_0.7_pi_0.01:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.7
+    p_cross_immune: 0.4
+    phi: 1.4
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.4_chi_0.4_kappa_0.7_pi_0.05:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.7
+    p_cross_immune: 0.4
+    phi: 1.4
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.4_chi_0.4_kappa_0.7_pi_0.1:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.7
+    p_cross_immune: 0.4
+    phi: 1.4
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.4_chi_0.4_kappa_0.9_pi_0.01:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.9
+    p_cross_immune: 0.4
+    phi: 1.4
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.4_chi_0.4_kappa_0.9_pi_0.05:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.9
+    p_cross_immune: 0.4
+    phi: 1.4
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.4_chi_0.4_kappa_0.9_pi_0.1:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.9
+    p_cross_immune: 0.4
+    phi: 1.4
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.4_chi_0.6_kappa_0.3_pi_0.01:
     alpha:
     - 0.9
     - 1.0
@@ -3476,7 +6757,41 @@ scenarios:
     sigma:
     - 0.2
     - 0.3333
-  phi_1.4_chi_0.6_kappa_0.5:
+  phi_1.4_chi_0.6_kappa_0.3_pi_0.05:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.3
+    p_cross_immune: 0.6
+    phi: 1.4
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.4_chi_0.6_kappa_0.3_pi_0.1:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.3
+    p_cross_immune: 0.6
+    phi: 1.4
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.4_chi_0.6_kappa_0.5_pi_0.01:
     alpha:
     - 0.9
     - 1.0
@@ -3493,7 +6808,41 @@ scenarios:
     sigma:
     - 0.2
     - 0.3333
-  phi_1.4_chi_0.6_kappa_0.7:
+  phi_1.4_chi_0.6_kappa_0.5_pi_0.05:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.5
+    p_cross_immune: 0.6
+    phi: 1.4
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.4_chi_0.6_kappa_0.5_pi_0.1:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.5
+    p_cross_immune: 0.6
+    phi: 1.4
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.4_chi_0.6_kappa_0.7_pi_0.01:
     alpha:
     - 0.9
     - 1.0
@@ -3510,7 +6859,41 @@ scenarios:
     sigma:
     - 0.2
     - 0.3333
-  phi_1.4_chi_0.6_kappa_0.9:
+  phi_1.4_chi_0.6_kappa_0.7_pi_0.05:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.7
+    p_cross_immune: 0.6
+    phi: 1.4
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.4_chi_0.6_kappa_0.7_pi_0.1:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.7
+    p_cross_immune: 0.6
+    phi: 1.4
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.4_chi_0.6_kappa_0.9_pi_0.01:
     alpha:
     - 0.9
     - 1.0
@@ -3527,7 +6910,7 @@ scenarios:
     sigma:
     - 0.2
     - 0.3333
-  phi_1.4_chi_0.6_kappa_1.1:
+  phi_1.4_chi_0.6_kappa_0.9_pi_0.05:
     alpha:
     - 0.9
     - 1.0
@@ -3537,14 +6920,14 @@ scenarios:
     gamma2:
     - 0.3333
     - 1.0
-    kappa: 1.1
+    kappa: 0.9
     p_cross_immune: 0.6
     phi: 1.4
     pi: 0.1
     sigma:
     - 0.2
     - 0.3333
-  phi_1.4_chi_0.6_kappa_1.3:
+  phi_1.4_chi_0.6_kappa_0.9_pi_0.1:
     alpha:
     - 0.9
     - 1.0
@@ -3554,14 +6937,14 @@ scenarios:
     gamma2:
     - 0.3333
     - 1.0
-    kappa: 1.3
+    kappa: 0.9
     p_cross_immune: 0.6
     phi: 1.4
     pi: 0.1
     sigma:
     - 0.2
     - 0.3333
-  phi_1.4_chi_0.6_kappa_1.5:
+  phi_1.4_chi_0.8_kappa_0.3_pi_0.01:
     alpha:
     - 0.9
     - 1.0
@@ -3571,8 +6954,399 @@ scenarios:
     gamma2:
     - 0.3333
     - 1.0
-    kappa: 1.5
-    p_cross_immune: 0.6
+    kappa: 0.3
+    p_cross_immune: 0.8
+    phi: 1.4
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.4_chi_0.8_kappa_0.3_pi_0.05:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.3
+    p_cross_immune: 0.8
+    phi: 1.4
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.4_chi_0.8_kappa_0.3_pi_0.1:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.3
+    p_cross_immune: 0.8
+    phi: 1.4
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.4_chi_0.8_kappa_0.5_pi_0.01:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.5
+    p_cross_immune: 0.8
+    phi: 1.4
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.4_chi_0.8_kappa_0.5_pi_0.05:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.5
+    p_cross_immune: 0.8
+    phi: 1.4
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.4_chi_0.8_kappa_0.5_pi_0.1:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.5
+    p_cross_immune: 0.8
+    phi: 1.4
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.4_chi_0.8_kappa_0.7_pi_0.01:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.7
+    p_cross_immune: 0.8
+    phi: 1.4
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.4_chi_0.8_kappa_0.7_pi_0.05:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.7
+    p_cross_immune: 0.8
+    phi: 1.4
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.4_chi_0.8_kappa_0.7_pi_0.1:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.7
+    p_cross_immune: 0.8
+    phi: 1.4
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.4_chi_0.8_kappa_0.9_pi_0.01:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.9
+    p_cross_immune: 0.8
+    phi: 1.4
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.4_chi_0.8_kappa_0.9_pi_0.05:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.9
+    p_cross_immune: 0.8
+    phi: 1.4
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.4_chi_0.8_kappa_0.9_pi_0.1:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.9
+    p_cross_immune: 0.8
+    phi: 1.4
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.4_chi_1.0_kappa_0.3_pi_0.01:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.3
+    p_cross_immune: 1.0
+    phi: 1.4
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.4_chi_1.0_kappa_0.3_pi_0.05:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.3
+    p_cross_immune: 1.0
+    phi: 1.4
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.4_chi_1.0_kappa_0.3_pi_0.1:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.3
+    p_cross_immune: 1.0
+    phi: 1.4
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.4_chi_1.0_kappa_0.5_pi_0.01:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.5
+    p_cross_immune: 1.0
+    phi: 1.4
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.4_chi_1.0_kappa_0.5_pi_0.05:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.5
+    p_cross_immune: 1.0
+    phi: 1.4
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.4_chi_1.0_kappa_0.5_pi_0.1:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.5
+    p_cross_immune: 1.0
+    phi: 1.4
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.4_chi_1.0_kappa_0.7_pi_0.01:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.7
+    p_cross_immune: 1.0
+    phi: 1.4
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.4_chi_1.0_kappa_0.7_pi_0.05:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.7
+    p_cross_immune: 1.0
+    phi: 1.4
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.4_chi_1.0_kappa_0.7_pi_0.1:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.7
+    p_cross_immune: 1.0
+    phi: 1.4
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.4_chi_1.0_kappa_0.9_pi_0.01:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.9
+    p_cross_immune: 1.0
+    phi: 1.4
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.4_chi_1.0_kappa_0.9_pi_0.05:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.9
+    p_cross_immune: 1.0
+    phi: 1.4
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_1.4_chi_1.0_kappa_0.9_pi_0.1:
+    alpha:
+    - 0.9
+    - 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.9
+    p_cross_immune: 1.0
     phi: 1.4
     pi: 0.1
     sigma:
