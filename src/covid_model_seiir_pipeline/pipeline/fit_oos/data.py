@@ -1,6 +1,5 @@
-from functools import reduce
 from pathlib import Path
-from typing import List, Iterable, Optional, Union
+from typing import List, Optional, Union
 
 from loguru import logger
 import pandas as pd
@@ -155,11 +154,11 @@ class FitDataInterface:
         return list(set(b1351_locs + p1_locs))
 
     def load_variant_prevalence(self):
-        b117 = self.load_covariate('variant_prevalence_B117').variant_prevalence_B117
+        b117 = self.load_covariate('variant_prevalence_non_escape').variant_prevalence_non_escape
         b1351 = self.load_covariate('variant_prevalence_B1351').variant_prevalence_B1351
         p1 = self.load_covariate('variant_prevalence_P1').variant_prevalence_P1
         rho_variant = (b1351 + p1).rename('rho_variant')
-        rho = (b117 / (1 - rho_variant)).fillna(0).rename('rho')
+        rho = b117.rename('rho')
         return pd.concat([rho, rho_variant], axis=1)
 
     #######################
