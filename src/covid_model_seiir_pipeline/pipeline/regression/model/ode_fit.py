@@ -57,12 +57,12 @@ def sample_params(past_index: pd.Index,
     for parameter in params_to_sample:
         param_spec = param_dict[parameter]
         if isinstance(param_spec, (int, float)):
-            values = param_spec * np.ones_like(past_index)
+            value = param_spec
         else:
-            values = np.random.uniform(param_spec)
+            value = np.random.uniform(*param_spec)
 
         sampled_params[parameter] = pd.Series(
-            values,
+            value,
             index=past_index,
             name=parameter,
         )

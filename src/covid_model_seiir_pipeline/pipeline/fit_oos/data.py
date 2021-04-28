@@ -147,9 +147,10 @@ class FitDataInterface:
         return population
 
     def get_escape_variant_special_locs(self):
-        b1351 = io.load(self.variant_root.original_data(measure='Special_B1351_Final_2021_03_21.csv'))
+        date = self.variant_root._root.stem
+        b1351 = io.load(self.variant_root.original_data(measure=f'Special_B1351_Final_{date}.csv'))
         b1351_locs = b1351.reset_index().location_id.unique().tolist()
-        p1 = io.load(self.variant_root.original_data(measure='Special_P1_Final_2021_03_21.csv'))
+        p1 = io.load(self.variant_root.original_data(measure=f'Special_P1_Final_{date}.csv'))
         p1_locs = p1.reset_index().location_id.unique().tolist()
         return list(set(b1351_locs + p1_locs))
 
