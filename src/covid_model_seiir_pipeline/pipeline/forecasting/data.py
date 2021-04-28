@@ -284,6 +284,12 @@ class ForecastDataInterface:
     def load_beta_scales(self, scenario: str, draw_id: int):
         return io.load(self.forecast_root.beta_scaling(scenario=scenario, draw_id=draw_id))
 
+    def save_beta_residual(self, residual: pd.DataFrame, scenario: str, draw_id: int):
+        io.dump(residual, self.forecast_root.beta_residual(scenario=scenario, draw_id=draw_id))
+
+    def load_beta_residual(self, scenario: str, draw_id: int):
+        return io.load(self.forecast_root.beta_residual(scenario=scenario, draw_id=draw_id))
+
     def save_raw_outputs(self, raw_outputs: pd.DataFrame, scenario: str, draw_id: int):
         io.dump(raw_outputs, self.forecast_root.raw_outputs(scenario=scenario, draw_id=draw_id))
 

@@ -67,6 +67,8 @@ class ScenarioSpecification:
         'window_size',
         'average_over_min',
         'average_over_max',
+        'residual_min',
+        'residual_max',
     )
 
     name: str = field(default='dummy_scenario')

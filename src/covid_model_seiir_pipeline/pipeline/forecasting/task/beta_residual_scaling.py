@@ -105,7 +105,8 @@ def compute_initial_beta_scaling_parameters(beta_scaling: dict,
 
 def compute_initial_beta_scaling_parameters_by_draw(draw_id: int,
                                                     beta_scaling: Dict,
-                                                    data_interface: ForecastDataInterface) -> pd.DataFrame:
+                                                    data_interface: ForecastDataInterface) -> Tuple[pd.DataFrame, 
+                                                                                                    pd.Series]:
 
     # Construct a list of pandas Series indexed by location and named
     # as their column will be in the output dataframe. We'll append
@@ -130,8 +131,11 @@ def compute_initial_beta_scaling_parameters_by_draw(draw_id: int,
     draw_data.append(pd.Series(a, index=beta_transition.index, name='history_days_start'))
     draw_data.append(pd.Series(b, index=beta_transition.index, name='history_days_end'))
     draw_data.append(pd.Series(beta_scaling['window_size'], index=beta_transition.index, name='window_size'))
-
-    log_beta_residual_mean = (np.log(betas['beta'] / betas['beta_hat'])
+    
+    max_resid = beta_scaling.get('max_residual', None)
+    min_resid = beta_scaling.get('min_residual', None)
+    clipped_log_beta_residual = np.clip(np.log(betas['beta']) / betas['beta_hat']), min_resid, max_resid) 
+    log_beta_residual_mean = (clipped_log_beta_residual
                               .groupby(level='location_id')
                               .apply(lambda x: x.iloc[-b: -a].mean())
                               .rename('log_beta_residual_mean')
@@ -139,10 +143,10 @@ def compute_initial_beta_scaling_parameters_by_draw(draw_id: int,
     draw_data.append(log_beta_residual_mean)
     draw_data.append(pd.Series(draw_id, index=beta_transition.index, name='draw'))
 
-    return pd.concat(draw_data, axis=1)
+    return pd.concat(draw_data, axis=1), clipped_log_beta_residual
 
 
-def write_out_beta_scale(beta_scales: List[pd.DataFrame],
+def write_out_beta_scale(beta_scales: List[Tuple[pd.DataFrame, pd.Series]],
                          scenario: str,
                          data_interface: ForecastDataInterface,
                          num_cores: int) -> None:
@@ -155,13 +159,15 @@ def write_out_beta_scale(beta_scales: List[pd.DataFrame],
         pool.map(_runner, beta_scales)
 
 
-def write_out_beta_scales_by_draw(beta_scales: pd.DataFrame,
+def write_out_beta_scales_by_draw(beta_scales: Tuple[pd.DataFrame, pd.Series],
                                   data_interface: ForecastDataInterface,
                                   scenario: str) -> None:
     # Compute these draw specific parameters now that we have the offset.
+    beta_scales, clipped_residual = beta_scales
     beta_scales['scale_final'] = np.exp(beta_scales['log_beta_residual_mean'])
     draw_id = beta_scales['draw'].iat[0]
     data_interface.save_beta_scales(beta_scales, scenario, draw_id)
+    data_interface.save_beta_residual(clipped_residual, scenario, draw_id)
 
 
 @click.command()
