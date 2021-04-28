@@ -8,6 +8,1230 @@ data:
   output_root: /share/scratch/users/collijk/fit_oos
   variant_version: '2021_04_20.03'
 scenarios:
+  phi_0.0_chi_0.0_kappa_0.3_pi_0.01:
+    alpha:
+    - 0.9
+    - 1.0
+    chi: 0.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.3
+    phi: 0.0
+    pi: 0.01
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.0_chi_0.0_kappa_0.3_pi_0.05:
+    alpha:
+    - 0.9
+    - 1.0
+    chi: 0.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.3
+    phi: 0.0
+    pi: 0.05
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.0_chi_0.0_kappa_0.3_pi_0.1:
+    alpha:
+    - 0.9
+    - 1.0
+    chi: 0.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.3
+    phi: 0.0
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.0_chi_0.0_kappa_0.5_pi_0.01:
+    alpha:
+    - 0.9
+    - 1.0
+    chi: 0.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.5
+    phi: 0.0
+    pi: 0.01
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.0_chi_0.0_kappa_0.5_pi_0.05:
+    alpha:
+    - 0.9
+    - 1.0
+    chi: 0.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.5
+    phi: 0.0
+    pi: 0.05
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.0_chi_0.0_kappa_0.5_pi_0.1:
+    alpha:
+    - 0.9
+    - 1.0
+    chi: 0.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.5
+    phi: 0.0
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.0_chi_0.2_kappa_0.3_pi_0.01:
+    alpha:
+    - 0.9
+    - 1.0
+    chi: 0.2
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.3
+    phi: 0.0
+    pi: 0.01
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.0_chi_0.2_kappa_0.3_pi_0.05:
+    alpha:
+    - 0.9
+    - 1.0
+    chi: 0.2
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.3
+    phi: 0.0
+    pi: 0.05
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.0_chi_0.2_kappa_0.3_pi_0.1:
+    alpha:
+    - 0.9
+    - 1.0
+    chi: 0.2
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.3
+    phi: 0.0
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.0_chi_0.2_kappa_0.5_pi_0.01:
+    alpha:
+    - 0.9
+    - 1.0
+    chi: 0.2
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.5
+    phi: 0.0
+    pi: 0.01
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.0_chi_0.2_kappa_0.5_pi_0.05:
+    alpha:
+    - 0.9
+    - 1.0
+    chi: 0.2
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.5
+    phi: 0.0
+    pi: 0.05
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.0_chi_0.2_kappa_0.5_pi_0.1:
+    alpha:
+    - 0.9
+    - 1.0
+    chi: 0.2
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.5
+    phi: 0.0
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.0_chi_0.4_kappa_0.3_pi_0.01:
+    alpha:
+    - 0.9
+    - 1.0
+    chi: 0.4
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.3
+    phi: 0.0
+    pi: 0.01
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.0_chi_0.4_kappa_0.3_pi_0.05:
+    alpha:
+    - 0.9
+    - 1.0
+    chi: 0.4
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.3
+    phi: 0.0
+    pi: 0.05
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.0_chi_0.4_kappa_0.3_pi_0.1:
+    alpha:
+    - 0.9
+    - 1.0
+    chi: 0.4
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.3
+    phi: 0.0
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.0_chi_0.4_kappa_0.5_pi_0.01:
+    alpha:
+    - 0.9
+    - 1.0
+    chi: 0.4
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.5
+    phi: 0.0
+    pi: 0.01
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.0_chi_0.4_kappa_0.5_pi_0.05:
+    alpha:
+    - 0.9
+    - 1.0
+    chi: 0.4
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.5
+    phi: 0.0
+    pi: 0.05
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.0_chi_0.4_kappa_0.5_pi_0.1:
+    alpha:
+    - 0.9
+    - 1.0
+    chi: 0.4
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.5
+    phi: 0.0
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.0_chi_0.6_kappa_0.3_pi_0.01:
+    alpha:
+    - 0.9
+    - 1.0
+    chi: 0.6
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.3
+    phi: 0.0
+    pi: 0.01
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.0_chi_0.6_kappa_0.3_pi_0.05:
+    alpha:
+    - 0.9
+    - 1.0
+    chi: 0.6
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.3
+    phi: 0.0
+    pi: 0.05
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.0_chi_0.6_kappa_0.3_pi_0.1:
+    alpha:
+    - 0.9
+    - 1.0
+    chi: 0.6
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.3
+    phi: 0.0
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.0_chi_0.6_kappa_0.5_pi_0.01:
+    alpha:
+    - 0.9
+    - 1.0
+    chi: 0.6
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.5
+    phi: 0.0
+    pi: 0.01
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.0_chi_0.6_kappa_0.5_pi_0.05:
+    alpha:
+    - 0.9
+    - 1.0
+    chi: 0.6
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.5
+    phi: 0.0
+    pi: 0.05
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.0_chi_0.6_kappa_0.5_pi_0.1:
+    alpha:
+    - 0.9
+    - 1.0
+    chi: 0.6
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.5
+    phi: 0.0
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.0_chi_0.8_kappa_0.3_pi_0.01:
+    alpha:
+    - 0.9
+    - 1.0
+    chi: 0.8
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.3
+    phi: 0.0
+    pi: 0.01
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.0_chi_0.8_kappa_0.3_pi_0.05:
+    alpha:
+    - 0.9
+    - 1.0
+    chi: 0.8
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.3
+    phi: 0.0
+    pi: 0.05
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.0_chi_0.8_kappa_0.3_pi_0.1:
+    alpha:
+    - 0.9
+    - 1.0
+    chi: 0.8
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.3
+    phi: 0.0
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.0_chi_0.8_kappa_0.5_pi_0.01:
+    alpha:
+    - 0.9
+    - 1.0
+    chi: 0.8
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.5
+    phi: 0.0
+    pi: 0.01
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.0_chi_0.8_kappa_0.5_pi_0.05:
+    alpha:
+    - 0.9
+    - 1.0
+    chi: 0.8
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.5
+    phi: 0.0
+    pi: 0.05
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.0_chi_0.8_kappa_0.5_pi_0.1:
+    alpha:
+    - 0.9
+    - 1.0
+    chi: 0.8
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.5
+    phi: 0.0
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.0_chi_1.0_kappa_0.3_pi_0.01:
+    alpha:
+    - 0.9
+    - 1.0
+    chi: 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.3
+    phi: 0.0
+    pi: 0.01
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.0_chi_1.0_kappa_0.3_pi_0.05:
+    alpha:
+    - 0.9
+    - 1.0
+    chi: 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.3
+    phi: 0.0
+    pi: 0.05
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.0_chi_1.0_kappa_0.3_pi_0.1:
+    alpha:
+    - 0.9
+    - 1.0
+    chi: 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.3
+    phi: 0.0
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.0_chi_1.0_kappa_0.5_pi_0.01:
+    alpha:
+    - 0.9
+    - 1.0
+    chi: 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.5
+    phi: 0.0
+    pi: 0.01
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.0_chi_1.0_kappa_0.5_pi_0.05:
+    alpha:
+    - 0.9
+    - 1.0
+    chi: 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.5
+    phi: 0.0
+    pi: 0.05
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.0_chi_1.0_kappa_0.5_pi_0.1:
+    alpha:
+    - 0.9
+    - 1.0
+    chi: 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.5
+    phi: 0.0
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.2_chi_0.0_kappa_0.3_pi_0.01:
+    alpha:
+    - 0.9
+    - 1.0
+    chi: 0.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.3
+    phi: 0.2
+    pi: 0.01
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.2_chi_0.0_kappa_0.3_pi_0.05:
+    alpha:
+    - 0.9
+    - 1.0
+    chi: 0.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.3
+    phi: 0.2
+    pi: 0.05
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.2_chi_0.0_kappa_0.3_pi_0.1:
+    alpha:
+    - 0.9
+    - 1.0
+    chi: 0.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.3
+    phi: 0.2
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.2_chi_0.0_kappa_0.5_pi_0.01:
+    alpha:
+    - 0.9
+    - 1.0
+    chi: 0.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.5
+    phi: 0.2
+    pi: 0.01
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.2_chi_0.0_kappa_0.5_pi_0.05:
+    alpha:
+    - 0.9
+    - 1.0
+    chi: 0.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.5
+    phi: 0.2
+    pi: 0.05
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.2_chi_0.0_kappa_0.5_pi_0.1:
+    alpha:
+    - 0.9
+    - 1.0
+    chi: 0.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.5
+    phi: 0.2
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.2_chi_0.2_kappa_0.3_pi_0.01:
+    alpha:
+    - 0.9
+    - 1.0
+    chi: 0.2
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.3
+    phi: 0.2
+    pi: 0.01
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.2_chi_0.2_kappa_0.3_pi_0.05:
+    alpha:
+    - 0.9
+    - 1.0
+    chi: 0.2
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.3
+    phi: 0.2
+    pi: 0.05
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.2_chi_0.2_kappa_0.3_pi_0.1:
+    alpha:
+    - 0.9
+    - 1.0
+    chi: 0.2
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.3
+    phi: 0.2
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.2_chi_0.2_kappa_0.5_pi_0.01:
+    alpha:
+    - 0.9
+    - 1.0
+    chi: 0.2
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.5
+    phi: 0.2
+    pi: 0.01
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.2_chi_0.2_kappa_0.5_pi_0.05:
+    alpha:
+    - 0.9
+    - 1.0
+    chi: 0.2
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.5
+    phi: 0.2
+    pi: 0.05
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.2_chi_0.2_kappa_0.5_pi_0.1:
+    alpha:
+    - 0.9
+    - 1.0
+    chi: 0.2
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.5
+    phi: 0.2
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.2_chi_0.4_kappa_0.3_pi_0.01:
+    alpha:
+    - 0.9
+    - 1.0
+    chi: 0.4
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.3
+    phi: 0.2
+    pi: 0.01
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.2_chi_0.4_kappa_0.3_pi_0.05:
+    alpha:
+    - 0.9
+    - 1.0
+    chi: 0.4
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.3
+    phi: 0.2
+    pi: 0.05
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.2_chi_0.4_kappa_0.3_pi_0.1:
+    alpha:
+    - 0.9
+    - 1.0
+    chi: 0.4
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.3
+    phi: 0.2
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.2_chi_0.4_kappa_0.5_pi_0.01:
+    alpha:
+    - 0.9
+    - 1.0
+    chi: 0.4
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.5
+    phi: 0.2
+    pi: 0.01
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.2_chi_0.4_kappa_0.5_pi_0.05:
+    alpha:
+    - 0.9
+    - 1.0
+    chi: 0.4
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.5
+    phi: 0.2
+    pi: 0.05
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.2_chi_0.4_kappa_0.5_pi_0.1:
+    alpha:
+    - 0.9
+    - 1.0
+    chi: 0.4
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.5
+    phi: 0.2
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.2_chi_0.6_kappa_0.3_pi_0.01:
+    alpha:
+    - 0.9
+    - 1.0
+    chi: 0.6
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.3
+    phi: 0.2
+    pi: 0.01
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.2_chi_0.6_kappa_0.3_pi_0.05:
+    alpha:
+    - 0.9
+    - 1.0
+    chi: 0.6
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.3
+    phi: 0.2
+    pi: 0.05
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.2_chi_0.6_kappa_0.3_pi_0.1:
+    alpha:
+    - 0.9
+    - 1.0
+    chi: 0.6
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.3
+    phi: 0.2
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.2_chi_0.6_kappa_0.5_pi_0.01:
+    alpha:
+    - 0.9
+    - 1.0
+    chi: 0.6
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.5
+    phi: 0.2
+    pi: 0.01
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.2_chi_0.6_kappa_0.5_pi_0.05:
+    alpha:
+    - 0.9
+    - 1.0
+    chi: 0.6
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.5
+    phi: 0.2
+    pi: 0.05
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.2_chi_0.6_kappa_0.5_pi_0.1:
+    alpha:
+    - 0.9
+    - 1.0
+    chi: 0.6
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.5
+    phi: 0.2
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.2_chi_0.8_kappa_0.3_pi_0.01:
+    alpha:
+    - 0.9
+    - 1.0
+    chi: 0.8
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.3
+    phi: 0.2
+    pi: 0.01
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.2_chi_0.8_kappa_0.3_pi_0.05:
+    alpha:
+    - 0.9
+    - 1.0
+    chi: 0.8
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.3
+    phi: 0.2
+    pi: 0.05
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.2_chi_0.8_kappa_0.3_pi_0.1:
+    alpha:
+    - 0.9
+    - 1.0
+    chi: 0.8
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.3
+    phi: 0.2
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.2_chi_0.8_kappa_0.5_pi_0.01:
+    alpha:
+    - 0.9
+    - 1.0
+    chi: 0.8
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.5
+    phi: 0.2
+    pi: 0.01
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.2_chi_0.8_kappa_0.5_pi_0.05:
+    alpha:
+    - 0.9
+    - 1.0
+    chi: 0.8
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.5
+    phi: 0.2
+    pi: 0.05
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.2_chi_0.8_kappa_0.5_pi_0.1:
+    alpha:
+    - 0.9
+    - 1.0
+    chi: 0.8
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.5
+    phi: 0.2
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.2_chi_1.0_kappa_0.3_pi_0.01:
+    alpha:
+    - 0.9
+    - 1.0
+    chi: 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.3
+    phi: 0.2
+    pi: 0.01
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.2_chi_1.0_kappa_0.3_pi_0.05:
+    alpha:
+    - 0.9
+    - 1.0
+    chi: 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.3
+    phi: 0.2
+    pi: 0.05
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.2_chi_1.0_kappa_0.3_pi_0.1:
+    alpha:
+    - 0.9
+    - 1.0
+    chi: 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.3
+    phi: 0.2
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.2_chi_1.0_kappa_0.5_pi_0.01:
+    alpha:
+    - 0.9
+    - 1.0
+    chi: 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.5
+    phi: 0.2
+    pi: 0.01
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.2_chi_1.0_kappa_0.5_pi_0.05:
+    alpha:
+    - 0.9
+    - 1.0
+    chi: 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.5
+    phi: 0.2
+    pi: 0.05
+    sigma:
+    - 0.2
+    - 0.3333
+  phi_0.2_chi_1.0_kappa_0.5_pi_0.1:
+    alpha:
+    - 0.9
+    - 1.0
+    chi: 1.0
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.5
+    phi: 0.2
+    pi: 0.1
+    sigma:
+    - 0.2
+    - 0.3333
   phi_0.4_chi_0.0_kappa_0.3_pi_0.01:
     alpha:
     - 0.9
@@ -21,7 +1245,7 @@ scenarios:
     - 1.0
     kappa: 0.3
     phi: 0.4
-    pi: 0.1
+    pi: 0.01
     sigma:
     - 0.2
     - 0.3333
@@ -38,7 +1262,7 @@ scenarios:
     - 1.0
     kappa: 0.3
     phi: 0.4
-    pi: 0.1
+    pi: 0.05
     sigma:
     - 0.2
     - 0.3333
@@ -72,7 +1296,7 @@ scenarios:
     - 1.0
     kappa: 0.5
     phi: 0.4
-    pi: 0.1
+    pi: 0.01
     sigma:
     - 0.2
     - 0.3333
@@ -89,7 +1313,7 @@ scenarios:
     - 1.0
     kappa: 0.5
     phi: 0.4
-    pi: 0.1
+    pi: 0.05
     sigma:
     - 0.2
     - 0.3333
@@ -110,108 +1334,6 @@ scenarios:
     sigma:
     - 0.2
     - 0.3333
-  phi_0.4_chi_0.0_kappa_0.7_pi_0.01:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.7
-    phi: 0.4
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.4_chi_0.0_kappa_0.7_pi_0.05:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.7
-    phi: 0.4
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.4_chi_0.0_kappa_0.7_pi_0.1:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.7
-    phi: 0.4
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.4_chi_0.0_kappa_0.9_pi_0.01:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.9
-    phi: 0.4
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.4_chi_0.0_kappa_0.9_pi_0.05:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.9
-    phi: 0.4
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.4_chi_0.0_kappa_0.9_pi_0.1:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.9
-    phi: 0.4
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
   phi_0.4_chi_0.2_kappa_0.3_pi_0.01:
     alpha:
     - 0.9
@@ -225,7 +1347,7 @@ scenarios:
     - 1.0
     kappa: 0.3
     phi: 0.4
-    pi: 0.1
+    pi: 0.01
     sigma:
     - 0.2
     - 0.3333
@@ -242,7 +1364,7 @@ scenarios:
     - 1.0
     kappa: 0.3
     phi: 0.4
-    pi: 0.1
+    pi: 0.05
     sigma:
     - 0.2
     - 0.3333
@@ -276,7 +1398,7 @@ scenarios:
     - 1.0
     kappa: 0.5
     phi: 0.4
-    pi: 0.1
+    pi: 0.01
     sigma:
     - 0.2
     - 0.3333
@@ -293,7 +1415,7 @@ scenarios:
     - 1.0
     kappa: 0.5
     phi: 0.4
-    pi: 0.1
+    pi: 0.05
     sigma:
     - 0.2
     - 0.3333
@@ -314,108 +1436,6 @@ scenarios:
     sigma:
     - 0.2
     - 0.3333
-  phi_0.4_chi_0.2_kappa_0.7_pi_0.01:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.2
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.7
-    phi: 0.4
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.4_chi_0.2_kappa_0.7_pi_0.05:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.2
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.7
-    phi: 0.4
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.4_chi_0.2_kappa_0.7_pi_0.1:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.2
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.7
-    phi: 0.4
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.4_chi_0.2_kappa_0.9_pi_0.01:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.2
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.9
-    phi: 0.4
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.4_chi_0.2_kappa_0.9_pi_0.05:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.2
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.9
-    phi: 0.4
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.4_chi_0.2_kappa_0.9_pi_0.1:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.2
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.9
-    phi: 0.4
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
   phi_0.4_chi_0.4_kappa_0.3_pi_0.01:
     alpha:
     - 0.9
@@ -429,7 +1449,7 @@ scenarios:
     - 1.0
     kappa: 0.3
     phi: 0.4
-    pi: 0.1
+    pi: 0.01
     sigma:
     - 0.2
     - 0.3333
@@ -446,7 +1466,7 @@ scenarios:
     - 1.0
     kappa: 0.3
     phi: 0.4
-    pi: 0.1
+    pi: 0.05
     sigma:
     - 0.2
     - 0.3333
@@ -480,7 +1500,7 @@ scenarios:
     - 1.0
     kappa: 0.5
     phi: 0.4
-    pi: 0.1
+    pi: 0.01
     sigma:
     - 0.2
     - 0.3333
@@ -497,7 +1517,7 @@ scenarios:
     - 1.0
     kappa: 0.5
     phi: 0.4
-    pi: 0.1
+    pi: 0.05
     sigma:
     - 0.2
     - 0.3333
@@ -518,108 +1538,6 @@ scenarios:
     sigma:
     - 0.2
     - 0.3333
-  phi_0.4_chi_0.4_kappa_0.7_pi_0.01:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.4
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.7
-    phi: 0.4
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.4_chi_0.4_kappa_0.7_pi_0.05:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.4
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.7
-    phi: 0.4
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.4_chi_0.4_kappa_0.7_pi_0.1:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.4
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.7
-    phi: 0.4
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.4_chi_0.4_kappa_0.9_pi_0.01:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.4
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.9
-    phi: 0.4
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.4_chi_0.4_kappa_0.9_pi_0.05:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.4
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.9
-    phi: 0.4
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.4_chi_0.4_kappa_0.9_pi_0.1:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.4
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.9
-    phi: 0.4
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
   phi_0.4_chi_0.6_kappa_0.3_pi_0.01:
     alpha:
     - 0.9
@@ -633,7 +1551,7 @@ scenarios:
     - 1.0
     kappa: 0.3
     phi: 0.4
-    pi: 0.1
+    pi: 0.01
     sigma:
     - 0.2
     - 0.3333
@@ -650,7 +1568,7 @@ scenarios:
     - 1.0
     kappa: 0.3
     phi: 0.4
-    pi: 0.1
+    pi: 0.05
     sigma:
     - 0.2
     - 0.3333
@@ -684,7 +1602,7 @@ scenarios:
     - 1.0
     kappa: 0.5
     phi: 0.4
-    pi: 0.1
+    pi: 0.01
     sigma:
     - 0.2
     - 0.3333
@@ -701,7 +1619,7 @@ scenarios:
     - 1.0
     kappa: 0.5
     phi: 0.4
-    pi: 0.1
+    pi: 0.05
     sigma:
     - 0.2
     - 0.3333
@@ -722,108 +1640,6 @@ scenarios:
     sigma:
     - 0.2
     - 0.3333
-  phi_0.4_chi_0.6_kappa_0.7_pi_0.01:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.6
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.7
-    phi: 0.4
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.4_chi_0.6_kappa_0.7_pi_0.05:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.6
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.7
-    phi: 0.4
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.4_chi_0.6_kappa_0.7_pi_0.1:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.6
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.7
-    phi: 0.4
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.4_chi_0.6_kappa_0.9_pi_0.01:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.6
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.9
-    phi: 0.4
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.4_chi_0.6_kappa_0.9_pi_0.05:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.6
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.9
-    phi: 0.4
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.4_chi_0.6_kappa_0.9_pi_0.1:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.6
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.9
-    phi: 0.4
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
   phi_0.4_chi_0.8_kappa_0.3_pi_0.01:
     alpha:
     - 0.9
@@ -837,7 +1653,7 @@ scenarios:
     - 1.0
     kappa: 0.3
     phi: 0.4
-    pi: 0.1
+    pi: 0.01
     sigma:
     - 0.2
     - 0.3333
@@ -854,7 +1670,7 @@ scenarios:
     - 1.0
     kappa: 0.3
     phi: 0.4
-    pi: 0.1
+    pi: 0.05
     sigma:
     - 0.2
     - 0.3333
@@ -888,7 +1704,7 @@ scenarios:
     - 1.0
     kappa: 0.5
     phi: 0.4
-    pi: 0.1
+    pi: 0.01
     sigma:
     - 0.2
     - 0.3333
@@ -905,7 +1721,7 @@ scenarios:
     - 1.0
     kappa: 0.5
     phi: 0.4
-    pi: 0.1
+    pi: 0.05
     sigma:
     - 0.2
     - 0.3333
@@ -926,108 +1742,6 @@ scenarios:
     sigma:
     - 0.2
     - 0.3333
-  phi_0.4_chi_0.8_kappa_0.7_pi_0.01:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.8
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.7
-    phi: 0.4
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.4_chi_0.8_kappa_0.7_pi_0.05:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.8
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.7
-    phi: 0.4
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.4_chi_0.8_kappa_0.7_pi_0.1:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.8
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.7
-    phi: 0.4
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.4_chi_0.8_kappa_0.9_pi_0.01:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.8
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.9
-    phi: 0.4
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.4_chi_0.8_kappa_0.9_pi_0.05:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.8
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.9
-    phi: 0.4
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.4_chi_0.8_kappa_0.9_pi_0.1:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.8
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.9
-    phi: 0.4
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
   phi_0.4_chi_1.0_kappa_0.3_pi_0.01:
     alpha:
     - 0.9
@@ -1041,7 +1755,7 @@ scenarios:
     - 1.0
     kappa: 0.3
     phi: 0.4
-    pi: 0.1
+    pi: 0.01
     sigma:
     - 0.2
     - 0.3333
@@ -1058,7 +1772,7 @@ scenarios:
     - 1.0
     kappa: 0.3
     phi: 0.4
-    pi: 0.1
+    pi: 0.05
     sigma:
     - 0.2
     - 0.3333
@@ -1092,7 +1806,7 @@ scenarios:
     - 1.0
     kappa: 0.5
     phi: 0.4
-    pi: 0.1
+    pi: 0.01
     sigma:
     - 0.2
     - 0.3333
@@ -1109,7 +1823,7 @@ scenarios:
     - 1.0
     kappa: 0.5
     phi: 0.4
-    pi: 0.1
+    pi: 0.05
     sigma:
     - 0.2
     - 0.3333
@@ -1130,108 +1844,6 @@ scenarios:
     sigma:
     - 0.2
     - 0.3333
-  phi_0.4_chi_1.0_kappa_0.7_pi_0.01:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.7
-    phi: 0.4
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.4_chi_1.0_kappa_0.7_pi_0.05:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.7
-    phi: 0.4
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.4_chi_1.0_kappa_0.7_pi_0.1:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.7
-    phi: 0.4
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.4_chi_1.0_kappa_0.9_pi_0.01:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.9
-    phi: 0.4
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.4_chi_1.0_kappa_0.9_pi_0.05:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.9
-    phi: 0.4
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.4_chi_1.0_kappa_0.9_pi_0.1:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.9
-    phi: 0.4
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
   phi_0.6_chi_0.0_kappa_0.3_pi_0.01:
     alpha:
     - 0.9
@@ -1245,7 +1857,7 @@ scenarios:
     - 1.0
     kappa: 0.3
     phi: 0.6
-    pi: 0.1
+    pi: 0.01
     sigma:
     - 0.2
     - 0.3333
@@ -1262,7 +1874,7 @@ scenarios:
     - 1.0
     kappa: 0.3
     phi: 0.6
-    pi: 0.1
+    pi: 0.05
     sigma:
     - 0.2
     - 0.3333
@@ -1296,7 +1908,7 @@ scenarios:
     - 1.0
     kappa: 0.5
     phi: 0.6
-    pi: 0.1
+    pi: 0.01
     sigma:
     - 0.2
     - 0.3333
@@ -1313,7 +1925,7 @@ scenarios:
     - 1.0
     kappa: 0.5
     phi: 0.6
-    pi: 0.1
+    pi: 0.05
     sigma:
     - 0.2
     - 0.3333
@@ -1334,108 +1946,6 @@ scenarios:
     sigma:
     - 0.2
     - 0.3333
-  phi_0.6_chi_0.0_kappa_0.7_pi_0.01:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.7
-    phi: 0.6
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.6_chi_0.0_kappa_0.7_pi_0.05:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.7
-    phi: 0.6
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.6_chi_0.0_kappa_0.7_pi_0.1:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.7
-    phi: 0.6
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.6_chi_0.0_kappa_0.9_pi_0.01:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.9
-    phi: 0.6
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.6_chi_0.0_kappa_0.9_pi_0.05:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.9
-    phi: 0.6
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.6_chi_0.0_kappa_0.9_pi_0.1:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.9
-    phi: 0.6
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
   phi_0.6_chi_0.2_kappa_0.3_pi_0.01:
     alpha:
     - 0.9
@@ -1449,7 +1959,7 @@ scenarios:
     - 1.0
     kappa: 0.3
     phi: 0.6
-    pi: 0.1
+    pi: 0.01
     sigma:
     - 0.2
     - 0.3333
@@ -1466,7 +1976,7 @@ scenarios:
     - 1.0
     kappa: 0.3
     phi: 0.6
-    pi: 0.1
+    pi: 0.05
     sigma:
     - 0.2
     - 0.3333
@@ -1500,7 +2010,7 @@ scenarios:
     - 1.0
     kappa: 0.5
     phi: 0.6
-    pi: 0.1
+    pi: 0.01
     sigma:
     - 0.2
     - 0.3333
@@ -1517,7 +2027,7 @@ scenarios:
     - 1.0
     kappa: 0.5
     phi: 0.6
-    pi: 0.1
+    pi: 0.05
     sigma:
     - 0.2
     - 0.3333
@@ -1538,108 +2048,6 @@ scenarios:
     sigma:
     - 0.2
     - 0.3333
-  phi_0.6_chi_0.2_kappa_0.7_pi_0.01:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.2
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.7
-    phi: 0.6
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.6_chi_0.2_kappa_0.7_pi_0.05:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.2
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.7
-    phi: 0.6
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.6_chi_0.2_kappa_0.7_pi_0.1:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.2
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.7
-    phi: 0.6
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.6_chi_0.2_kappa_0.9_pi_0.01:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.2
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.9
-    phi: 0.6
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.6_chi_0.2_kappa_0.9_pi_0.05:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.2
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.9
-    phi: 0.6
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.6_chi_0.2_kappa_0.9_pi_0.1:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.2
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.9
-    phi: 0.6
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
   phi_0.6_chi_0.4_kappa_0.3_pi_0.01:
     alpha:
     - 0.9
@@ -1653,7 +2061,7 @@ scenarios:
     - 1.0
     kappa: 0.3
     phi: 0.6
-    pi: 0.1
+    pi: 0.01
     sigma:
     - 0.2
     - 0.3333
@@ -1670,7 +2078,7 @@ scenarios:
     - 1.0
     kappa: 0.3
     phi: 0.6
-    pi: 0.1
+    pi: 0.05
     sigma:
     - 0.2
     - 0.3333
@@ -1704,7 +2112,7 @@ scenarios:
     - 1.0
     kappa: 0.5
     phi: 0.6
-    pi: 0.1
+    pi: 0.01
     sigma:
     - 0.2
     - 0.3333
@@ -1721,7 +2129,7 @@ scenarios:
     - 1.0
     kappa: 0.5
     phi: 0.6
-    pi: 0.1
+    pi: 0.05
     sigma:
     - 0.2
     - 0.3333
@@ -1742,108 +2150,6 @@ scenarios:
     sigma:
     - 0.2
     - 0.3333
-  phi_0.6_chi_0.4_kappa_0.7_pi_0.01:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.4
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.7
-    phi: 0.6
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.6_chi_0.4_kappa_0.7_pi_0.05:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.4
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.7
-    phi: 0.6
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.6_chi_0.4_kappa_0.7_pi_0.1:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.4
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.7
-    phi: 0.6
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.6_chi_0.4_kappa_0.9_pi_0.01:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.4
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.9
-    phi: 0.6
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.6_chi_0.4_kappa_0.9_pi_0.05:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.4
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.9
-    phi: 0.6
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.6_chi_0.4_kappa_0.9_pi_0.1:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.4
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.9
-    phi: 0.6
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
   phi_0.6_chi_0.6_kappa_0.3_pi_0.01:
     alpha:
     - 0.9
@@ -1857,7 +2163,7 @@ scenarios:
     - 1.0
     kappa: 0.3
     phi: 0.6
-    pi: 0.1
+    pi: 0.01
     sigma:
     - 0.2
     - 0.3333
@@ -1874,7 +2180,7 @@ scenarios:
     - 1.0
     kappa: 0.3
     phi: 0.6
-    pi: 0.1
+    pi: 0.05
     sigma:
     - 0.2
     - 0.3333
@@ -1908,7 +2214,7 @@ scenarios:
     - 1.0
     kappa: 0.5
     phi: 0.6
-    pi: 0.1
+    pi: 0.01
     sigma:
     - 0.2
     - 0.3333
@@ -1925,7 +2231,7 @@ scenarios:
     - 1.0
     kappa: 0.5
     phi: 0.6
-    pi: 0.1
+    pi: 0.05
     sigma:
     - 0.2
     - 0.3333
@@ -1946,108 +2252,6 @@ scenarios:
     sigma:
     - 0.2
     - 0.3333
-  phi_0.6_chi_0.6_kappa_0.7_pi_0.01:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.6
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.7
-    phi: 0.6
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.6_chi_0.6_kappa_0.7_pi_0.05:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.6
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.7
-    phi: 0.6
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.6_chi_0.6_kappa_0.7_pi_0.1:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.6
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.7
-    phi: 0.6
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.6_chi_0.6_kappa_0.9_pi_0.01:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.6
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.9
-    phi: 0.6
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.6_chi_0.6_kappa_0.9_pi_0.05:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.6
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.9
-    phi: 0.6
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.6_chi_0.6_kappa_0.9_pi_0.1:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.6
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.9
-    phi: 0.6
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
   phi_0.6_chi_0.8_kappa_0.3_pi_0.01:
     alpha:
     - 0.9
@@ -2061,7 +2265,7 @@ scenarios:
     - 1.0
     kappa: 0.3
     phi: 0.6
-    pi: 0.1
+    pi: 0.01
     sigma:
     - 0.2
     - 0.3333
@@ -2078,7 +2282,7 @@ scenarios:
     - 1.0
     kappa: 0.3
     phi: 0.6
-    pi: 0.1
+    pi: 0.05
     sigma:
     - 0.2
     - 0.3333
@@ -2112,7 +2316,7 @@ scenarios:
     - 1.0
     kappa: 0.5
     phi: 0.6
-    pi: 0.1
+    pi: 0.01
     sigma:
     - 0.2
     - 0.3333
@@ -2129,7 +2333,7 @@ scenarios:
     - 1.0
     kappa: 0.5
     phi: 0.6
-    pi: 0.1
+    pi: 0.05
     sigma:
     - 0.2
     - 0.3333
@@ -2150,108 +2354,6 @@ scenarios:
     sigma:
     - 0.2
     - 0.3333
-  phi_0.6_chi_0.8_kappa_0.7_pi_0.01:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.8
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.7
-    phi: 0.6
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.6_chi_0.8_kappa_0.7_pi_0.05:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.8
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.7
-    phi: 0.6
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.6_chi_0.8_kappa_0.7_pi_0.1:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.8
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.7
-    phi: 0.6
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.6_chi_0.8_kappa_0.9_pi_0.01:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.8
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.9
-    phi: 0.6
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.6_chi_0.8_kappa_0.9_pi_0.05:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.8
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.9
-    phi: 0.6
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.6_chi_0.8_kappa_0.9_pi_0.1:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.8
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.9
-    phi: 0.6
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
   phi_0.6_chi_1.0_kappa_0.3_pi_0.01:
     alpha:
     - 0.9
@@ -2265,7 +2367,7 @@ scenarios:
     - 1.0
     kappa: 0.3
     phi: 0.6
-    pi: 0.1
+    pi: 0.01
     sigma:
     - 0.2
     - 0.3333
@@ -2282,7 +2384,7 @@ scenarios:
     - 1.0
     kappa: 0.3
     phi: 0.6
-    pi: 0.1
+    pi: 0.05
     sigma:
     - 0.2
     - 0.3333
@@ -2316,7 +2418,7 @@ scenarios:
     - 1.0
     kappa: 0.5
     phi: 0.6
-    pi: 0.1
+    pi: 0.01
     sigma:
     - 0.2
     - 0.3333
@@ -2333,7 +2435,7 @@ scenarios:
     - 1.0
     kappa: 0.5
     phi: 0.6
-    pi: 0.1
+    pi: 0.05
     sigma:
     - 0.2
     - 0.3333
@@ -2354,108 +2456,6 @@ scenarios:
     sigma:
     - 0.2
     - 0.3333
-  phi_0.6_chi_1.0_kappa_0.7_pi_0.01:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.7
-    phi: 0.6
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.6_chi_1.0_kappa_0.7_pi_0.05:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.7
-    phi: 0.6
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.6_chi_1.0_kappa_0.7_pi_0.1:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.7
-    phi: 0.6
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.6_chi_1.0_kappa_0.9_pi_0.01:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.9
-    phi: 0.6
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.6_chi_1.0_kappa_0.9_pi_0.05:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.9
-    phi: 0.6
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.6_chi_1.0_kappa_0.9_pi_0.1:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.9
-    phi: 0.6
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
   phi_0.8_chi_0.0_kappa_0.3_pi_0.01:
     alpha:
     - 0.9
@@ -2469,7 +2469,7 @@ scenarios:
     - 1.0
     kappa: 0.3
     phi: 0.8
-    pi: 0.1
+    pi: 0.01
     sigma:
     - 0.2
     - 0.3333
@@ -2486,7 +2486,7 @@ scenarios:
     - 1.0
     kappa: 0.3
     phi: 0.8
-    pi: 0.1
+    pi: 0.05
     sigma:
     - 0.2
     - 0.3333
@@ -2520,7 +2520,7 @@ scenarios:
     - 1.0
     kappa: 0.5
     phi: 0.8
-    pi: 0.1
+    pi: 0.01
     sigma:
     - 0.2
     - 0.3333
@@ -2537,7 +2537,7 @@ scenarios:
     - 1.0
     kappa: 0.5
     phi: 0.8
-    pi: 0.1
+    pi: 0.05
     sigma:
     - 0.2
     - 0.3333
@@ -2558,108 +2558,6 @@ scenarios:
     sigma:
     - 0.2
     - 0.3333
-  phi_0.8_chi_0.0_kappa_0.7_pi_0.01:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.7
-    phi: 0.8
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.8_chi_0.0_kappa_0.7_pi_0.05:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.7
-    phi: 0.8
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.8_chi_0.0_kappa_0.7_pi_0.1:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.7
-    phi: 0.8
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.8_chi_0.0_kappa_0.9_pi_0.01:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.9
-    phi: 0.8
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.8_chi_0.0_kappa_0.9_pi_0.05:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.9
-    phi: 0.8
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.8_chi_0.0_kappa_0.9_pi_0.1:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.9
-    phi: 0.8
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
   phi_0.8_chi_0.2_kappa_0.3_pi_0.01:
     alpha:
     - 0.9
@@ -2673,7 +2571,7 @@ scenarios:
     - 1.0
     kappa: 0.3
     phi: 0.8
-    pi: 0.1
+    pi: 0.01
     sigma:
     - 0.2
     - 0.3333
@@ -2690,7 +2588,7 @@ scenarios:
     - 1.0
     kappa: 0.3
     phi: 0.8
-    pi: 0.1
+    pi: 0.05
     sigma:
     - 0.2
     - 0.3333
@@ -2724,7 +2622,7 @@ scenarios:
     - 1.0
     kappa: 0.5
     phi: 0.8
-    pi: 0.1
+    pi: 0.01
     sigma:
     - 0.2
     - 0.3333
@@ -2741,7 +2639,7 @@ scenarios:
     - 1.0
     kappa: 0.5
     phi: 0.8
-    pi: 0.1
+    pi: 0.05
     sigma:
     - 0.2
     - 0.3333
@@ -2762,108 +2660,6 @@ scenarios:
     sigma:
     - 0.2
     - 0.3333
-  phi_0.8_chi_0.2_kappa_0.7_pi_0.01:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.2
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.7
-    phi: 0.8
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.8_chi_0.2_kappa_0.7_pi_0.05:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.2
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.7
-    phi: 0.8
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.8_chi_0.2_kappa_0.7_pi_0.1:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.2
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.7
-    phi: 0.8
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.8_chi_0.2_kappa_0.9_pi_0.01:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.2
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.9
-    phi: 0.8
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.8_chi_0.2_kappa_0.9_pi_0.05:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.2
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.9
-    phi: 0.8
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.8_chi_0.2_kappa_0.9_pi_0.1:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.2
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.9
-    phi: 0.8
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
   phi_0.8_chi_0.4_kappa_0.3_pi_0.01:
     alpha:
     - 0.9
@@ -2877,7 +2673,7 @@ scenarios:
     - 1.0
     kappa: 0.3
     phi: 0.8
-    pi: 0.1
+    pi: 0.01
     sigma:
     - 0.2
     - 0.3333
@@ -2894,7 +2690,7 @@ scenarios:
     - 1.0
     kappa: 0.3
     phi: 0.8
-    pi: 0.1
+    pi: 0.05
     sigma:
     - 0.2
     - 0.3333
@@ -2928,7 +2724,7 @@ scenarios:
     - 1.0
     kappa: 0.5
     phi: 0.8
-    pi: 0.1
+    pi: 0.01
     sigma:
     - 0.2
     - 0.3333
@@ -2945,7 +2741,7 @@ scenarios:
     - 1.0
     kappa: 0.5
     phi: 0.8
-    pi: 0.1
+    pi: 0.05
     sigma:
     - 0.2
     - 0.3333
@@ -2966,108 +2762,6 @@ scenarios:
     sigma:
     - 0.2
     - 0.3333
-  phi_0.8_chi_0.4_kappa_0.7_pi_0.01:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.4
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.7
-    phi: 0.8
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.8_chi_0.4_kappa_0.7_pi_0.05:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.4
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.7
-    phi: 0.8
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.8_chi_0.4_kappa_0.7_pi_0.1:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.4
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.7
-    phi: 0.8
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.8_chi_0.4_kappa_0.9_pi_0.01:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.4
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.9
-    phi: 0.8
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.8_chi_0.4_kappa_0.9_pi_0.05:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.4
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.9
-    phi: 0.8
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.8_chi_0.4_kappa_0.9_pi_0.1:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.4
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.9
-    phi: 0.8
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
   phi_0.8_chi_0.6_kappa_0.3_pi_0.01:
     alpha:
     - 0.9
@@ -3081,7 +2775,7 @@ scenarios:
     - 1.0
     kappa: 0.3
     phi: 0.8
-    pi: 0.1
+    pi: 0.01
     sigma:
     - 0.2
     - 0.3333
@@ -3098,7 +2792,7 @@ scenarios:
     - 1.0
     kappa: 0.3
     phi: 0.8
-    pi: 0.1
+    pi: 0.05
     sigma:
     - 0.2
     - 0.3333
@@ -3132,7 +2826,7 @@ scenarios:
     - 1.0
     kappa: 0.5
     phi: 0.8
-    pi: 0.1
+    pi: 0.01
     sigma:
     - 0.2
     - 0.3333
@@ -3149,7 +2843,7 @@ scenarios:
     - 1.0
     kappa: 0.5
     phi: 0.8
-    pi: 0.1
+    pi: 0.05
     sigma:
     - 0.2
     - 0.3333
@@ -3170,108 +2864,6 @@ scenarios:
     sigma:
     - 0.2
     - 0.3333
-  phi_0.8_chi_0.6_kappa_0.7_pi_0.01:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.6
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.7
-    phi: 0.8
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.8_chi_0.6_kappa_0.7_pi_0.05:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.6
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.7
-    phi: 0.8
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.8_chi_0.6_kappa_0.7_pi_0.1:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.6
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.7
-    phi: 0.8
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.8_chi_0.6_kappa_0.9_pi_0.01:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.6
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.9
-    phi: 0.8
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.8_chi_0.6_kappa_0.9_pi_0.05:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.6
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.9
-    phi: 0.8
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.8_chi_0.6_kappa_0.9_pi_0.1:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.6
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.9
-    phi: 0.8
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
   phi_0.8_chi_0.8_kappa_0.3_pi_0.01:
     alpha:
     - 0.9
@@ -3285,7 +2877,7 @@ scenarios:
     - 1.0
     kappa: 0.3
     phi: 0.8
-    pi: 0.1
+    pi: 0.01
     sigma:
     - 0.2
     - 0.3333
@@ -3302,7 +2894,7 @@ scenarios:
     - 1.0
     kappa: 0.3
     phi: 0.8
-    pi: 0.1
+    pi: 0.05
     sigma:
     - 0.2
     - 0.3333
@@ -3336,7 +2928,7 @@ scenarios:
     - 1.0
     kappa: 0.5
     phi: 0.8
-    pi: 0.1
+    pi: 0.01
     sigma:
     - 0.2
     - 0.3333
@@ -3353,7 +2945,7 @@ scenarios:
     - 1.0
     kappa: 0.5
     phi: 0.8
-    pi: 0.1
+    pi: 0.05
     sigma:
     - 0.2
     - 0.3333
@@ -3374,108 +2966,6 @@ scenarios:
     sigma:
     - 0.2
     - 0.3333
-  phi_0.8_chi_0.8_kappa_0.7_pi_0.01:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.8
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.7
-    phi: 0.8
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.8_chi_0.8_kappa_0.7_pi_0.05:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.8
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.7
-    phi: 0.8
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.8_chi_0.8_kappa_0.7_pi_0.1:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.8
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.7
-    phi: 0.8
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.8_chi_0.8_kappa_0.9_pi_0.01:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.8
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.9
-    phi: 0.8
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.8_chi_0.8_kappa_0.9_pi_0.05:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.8
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.9
-    phi: 0.8
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.8_chi_0.8_kappa_0.9_pi_0.1:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.8
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.9
-    phi: 0.8
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
   phi_0.8_chi_1.0_kappa_0.3_pi_0.01:
     alpha:
     - 0.9
@@ -3489,7 +2979,7 @@ scenarios:
     - 1.0
     kappa: 0.3
     phi: 0.8
-    pi: 0.1
+    pi: 0.01
     sigma:
     - 0.2
     - 0.3333
@@ -3506,7 +2996,7 @@ scenarios:
     - 1.0
     kappa: 0.3
     phi: 0.8
-    pi: 0.1
+    pi: 0.05
     sigma:
     - 0.2
     - 0.3333
@@ -3540,7 +3030,7 @@ scenarios:
     - 1.0
     kappa: 0.5
     phi: 0.8
-    pi: 0.1
+    pi: 0.01
     sigma:
     - 0.2
     - 0.3333
@@ -3557,7 +3047,7 @@ scenarios:
     - 1.0
     kappa: 0.5
     phi: 0.8
-    pi: 0.1
+    pi: 0.05
     sigma:
     - 0.2
     - 0.3333
@@ -3578,108 +3068,6 @@ scenarios:
     sigma:
     - 0.2
     - 0.3333
-  phi_0.8_chi_1.0_kappa_0.7_pi_0.01:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.7
-    phi: 0.8
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.8_chi_1.0_kappa_0.7_pi_0.05:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.7
-    phi: 0.8
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.8_chi_1.0_kappa_0.7_pi_0.1:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.7
-    phi: 0.8
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.8_chi_1.0_kappa_0.9_pi_0.01:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.9
-    phi: 0.8
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.8_chi_1.0_kappa_0.9_pi_0.05:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.9
-    phi: 0.8
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_0.8_chi_1.0_kappa_0.9_pi_0.1:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.9
-    phi: 0.8
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
   phi_1.0_chi_0.0_kappa_0.3_pi_0.01:
     alpha:
     - 0.9
@@ -3693,7 +3081,7 @@ scenarios:
     - 1.0
     kappa: 0.3
     phi: 1.0
-    pi: 0.1
+    pi: 0.01
     sigma:
     - 0.2
     - 0.3333
@@ -3710,7 +3098,7 @@ scenarios:
     - 1.0
     kappa: 0.3
     phi: 1.0
-    pi: 0.1
+    pi: 0.05
     sigma:
     - 0.2
     - 0.3333
@@ -3744,7 +3132,7 @@ scenarios:
     - 1.0
     kappa: 0.5
     phi: 1.0
-    pi: 0.1
+    pi: 0.01
     sigma:
     - 0.2
     - 0.3333
@@ -3761,7 +3149,7 @@ scenarios:
     - 1.0
     kappa: 0.5
     phi: 1.0
-    pi: 0.1
+    pi: 0.05
     sigma:
     - 0.2
     - 0.3333
@@ -3782,108 +3170,6 @@ scenarios:
     sigma:
     - 0.2
     - 0.3333
-  phi_1.0_chi_0.0_kappa_0.7_pi_0.01:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.7
-    phi: 1.0
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.0_chi_0.0_kappa_0.7_pi_0.05:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.7
-    phi: 1.0
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.0_chi_0.0_kappa_0.7_pi_0.1:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.7
-    phi: 1.0
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.0_chi_0.0_kappa_0.9_pi_0.01:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.9
-    phi: 1.0
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.0_chi_0.0_kappa_0.9_pi_0.05:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.9
-    phi: 1.0
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.0_chi_0.0_kappa_0.9_pi_0.1:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.9
-    phi: 1.0
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
   phi_1.0_chi_0.2_kappa_0.3_pi_0.01:
     alpha:
     - 0.9
@@ -3897,7 +3183,7 @@ scenarios:
     - 1.0
     kappa: 0.3
     phi: 1.0
-    pi: 0.1
+    pi: 0.01
     sigma:
     - 0.2
     - 0.3333
@@ -3914,7 +3200,7 @@ scenarios:
     - 1.0
     kappa: 0.3
     phi: 1.0
-    pi: 0.1
+    pi: 0.05
     sigma:
     - 0.2
     - 0.3333
@@ -3948,7 +3234,7 @@ scenarios:
     - 1.0
     kappa: 0.5
     phi: 1.0
-    pi: 0.1
+    pi: 0.01
     sigma:
     - 0.2
     - 0.3333
@@ -3965,7 +3251,7 @@ scenarios:
     - 1.0
     kappa: 0.5
     phi: 1.0
-    pi: 0.1
+    pi: 0.05
     sigma:
     - 0.2
     - 0.3333
@@ -3986,108 +3272,6 @@ scenarios:
     sigma:
     - 0.2
     - 0.3333
-  phi_1.0_chi_0.2_kappa_0.7_pi_0.01:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.2
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.7
-    phi: 1.0
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.0_chi_0.2_kappa_0.7_pi_0.05:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.2
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.7
-    phi: 1.0
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.0_chi_0.2_kappa_0.7_pi_0.1:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.2
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.7
-    phi: 1.0
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.0_chi_0.2_kappa_0.9_pi_0.01:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.2
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.9
-    phi: 1.0
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.0_chi_0.2_kappa_0.9_pi_0.05:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.2
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.9
-    phi: 1.0
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.0_chi_0.2_kappa_0.9_pi_0.1:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.2
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.9
-    phi: 1.0
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
   phi_1.0_chi_0.4_kappa_0.3_pi_0.01:
     alpha:
     - 0.9
@@ -4101,7 +3285,7 @@ scenarios:
     - 1.0
     kappa: 0.3
     phi: 1.0
-    pi: 0.1
+    pi: 0.01
     sigma:
     - 0.2
     - 0.3333
@@ -4118,7 +3302,7 @@ scenarios:
     - 1.0
     kappa: 0.3
     phi: 1.0
-    pi: 0.1
+    pi: 0.05
     sigma:
     - 0.2
     - 0.3333
@@ -4152,7 +3336,7 @@ scenarios:
     - 1.0
     kappa: 0.5
     phi: 1.0
-    pi: 0.1
+    pi: 0.01
     sigma:
     - 0.2
     - 0.3333
@@ -4169,7 +3353,7 @@ scenarios:
     - 1.0
     kappa: 0.5
     phi: 1.0
-    pi: 0.1
+    pi: 0.05
     sigma:
     - 0.2
     - 0.3333
@@ -4190,108 +3374,6 @@ scenarios:
     sigma:
     - 0.2
     - 0.3333
-  phi_1.0_chi_0.4_kappa_0.7_pi_0.01:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.4
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.7
-    phi: 1.0
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.0_chi_0.4_kappa_0.7_pi_0.05:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.4
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.7
-    phi: 1.0
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.0_chi_0.4_kappa_0.7_pi_0.1:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.4
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.7
-    phi: 1.0
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.0_chi_0.4_kappa_0.9_pi_0.01:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.4
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.9
-    phi: 1.0
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.0_chi_0.4_kappa_0.9_pi_0.05:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.4
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.9
-    phi: 1.0
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.0_chi_0.4_kappa_0.9_pi_0.1:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.4
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.9
-    phi: 1.0
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
   phi_1.0_chi_0.6_kappa_0.3_pi_0.01:
     alpha:
     - 0.9
@@ -4305,7 +3387,7 @@ scenarios:
     - 1.0
     kappa: 0.3
     phi: 1.0
-    pi: 0.1
+    pi: 0.01
     sigma:
     - 0.2
     - 0.3333
@@ -4322,7 +3404,7 @@ scenarios:
     - 1.0
     kappa: 0.3
     phi: 1.0
-    pi: 0.1
+    pi: 0.05
     sigma:
     - 0.2
     - 0.3333
@@ -4356,7 +3438,7 @@ scenarios:
     - 1.0
     kappa: 0.5
     phi: 1.0
-    pi: 0.1
+    pi: 0.01
     sigma:
     - 0.2
     - 0.3333
@@ -4373,7 +3455,7 @@ scenarios:
     - 1.0
     kappa: 0.5
     phi: 1.0
-    pi: 0.1
+    pi: 0.05
     sigma:
     - 0.2
     - 0.3333
@@ -4394,108 +3476,6 @@ scenarios:
     sigma:
     - 0.2
     - 0.3333
-  phi_1.0_chi_0.6_kappa_0.7_pi_0.01:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.6
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.7
-    phi: 1.0
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.0_chi_0.6_kappa_0.7_pi_0.05:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.6
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.7
-    phi: 1.0
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.0_chi_0.6_kappa_0.7_pi_0.1:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.6
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.7
-    phi: 1.0
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.0_chi_0.6_kappa_0.9_pi_0.01:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.6
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.9
-    phi: 1.0
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.0_chi_0.6_kappa_0.9_pi_0.05:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.6
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.9
-    phi: 1.0
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.0_chi_0.6_kappa_0.9_pi_0.1:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.6
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.9
-    phi: 1.0
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
   phi_1.0_chi_0.8_kappa_0.3_pi_0.01:
     alpha:
     - 0.9
@@ -4509,7 +3489,7 @@ scenarios:
     - 1.0
     kappa: 0.3
     phi: 1.0
-    pi: 0.1
+    pi: 0.01
     sigma:
     - 0.2
     - 0.3333
@@ -4526,7 +3506,7 @@ scenarios:
     - 1.0
     kappa: 0.3
     phi: 1.0
-    pi: 0.1
+    pi: 0.05
     sigma:
     - 0.2
     - 0.3333
@@ -4560,7 +3540,7 @@ scenarios:
     - 1.0
     kappa: 0.5
     phi: 1.0
-    pi: 0.1
+    pi: 0.01
     sigma:
     - 0.2
     - 0.3333
@@ -4577,7 +3557,7 @@ scenarios:
     - 1.0
     kappa: 0.5
     phi: 1.0
-    pi: 0.1
+    pi: 0.05
     sigma:
     - 0.2
     - 0.3333
@@ -4598,108 +3578,6 @@ scenarios:
     sigma:
     - 0.2
     - 0.3333
-  phi_1.0_chi_0.8_kappa_0.7_pi_0.01:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.8
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.7
-    phi: 1.0
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.0_chi_0.8_kappa_0.7_pi_0.05:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.8
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.7
-    phi: 1.0
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.0_chi_0.8_kappa_0.7_pi_0.1:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.8
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.7
-    phi: 1.0
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.0_chi_0.8_kappa_0.9_pi_0.01:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.8
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.9
-    phi: 1.0
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.0_chi_0.8_kappa_0.9_pi_0.05:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.8
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.9
-    phi: 1.0
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.0_chi_0.8_kappa_0.9_pi_0.1:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.8
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.9
-    phi: 1.0
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
   phi_1.0_chi_1.0_kappa_0.3_pi_0.01:
     alpha:
     - 0.9
@@ -4713,7 +3591,7 @@ scenarios:
     - 1.0
     kappa: 0.3
     phi: 1.0
-    pi: 0.1
+    pi: 0.01
     sigma:
     - 0.2
     - 0.3333
@@ -4730,7 +3608,7 @@ scenarios:
     - 1.0
     kappa: 0.3
     phi: 1.0
-    pi: 0.1
+    pi: 0.05
     sigma:
     - 0.2
     - 0.3333
@@ -4764,7 +3642,7 @@ scenarios:
     - 1.0
     kappa: 0.5
     phi: 1.0
-    pi: 0.1
+    pi: 0.01
     sigma:
     - 0.2
     - 0.3333
@@ -4781,7 +3659,7 @@ scenarios:
     - 1.0
     kappa: 0.5
     phi: 1.0
-    pi: 0.1
+    pi: 0.05
     sigma:
     - 0.2
     - 0.3333
@@ -4798,2556 +3676,6 @@ scenarios:
     - 1.0
     kappa: 0.5
     phi: 1.0
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.0_chi_1.0_kappa_0.7_pi_0.01:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.7
-    phi: 1.0
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.0_chi_1.0_kappa_0.7_pi_0.05:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.7
-    phi: 1.0
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.0_chi_1.0_kappa_0.7_pi_0.1:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.7
-    phi: 1.0
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.0_chi_1.0_kappa_0.9_pi_0.01:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.9
-    phi: 1.0
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.0_chi_1.0_kappa_0.9_pi_0.05:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.9
-    phi: 1.0
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.0_chi_1.0_kappa_0.9_pi_0.1:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.9
-    phi: 1.0
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.2_chi_0.0_kappa_0.3_pi_0.01:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.3
-    phi: 1.2
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.2_chi_0.0_kappa_0.3_pi_0.05:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.3
-    phi: 1.2
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.2_chi_0.0_kappa_0.3_pi_0.1:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.3
-    phi: 1.2
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.2_chi_0.0_kappa_0.5_pi_0.01:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.5
-    phi: 1.2
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.2_chi_0.0_kappa_0.5_pi_0.05:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.5
-    phi: 1.2
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.2_chi_0.0_kappa_0.5_pi_0.1:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.5
-    phi: 1.2
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.2_chi_0.0_kappa_0.7_pi_0.01:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.7
-    phi: 1.2
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.2_chi_0.0_kappa_0.7_pi_0.05:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.7
-    phi: 1.2
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.2_chi_0.0_kappa_0.7_pi_0.1:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.7
-    phi: 1.2
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.2_chi_0.0_kappa_0.9_pi_0.01:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.9
-    phi: 1.2
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.2_chi_0.0_kappa_0.9_pi_0.05:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.9
-    phi: 1.2
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.2_chi_0.0_kappa_0.9_pi_0.1:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.9
-    phi: 1.2
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.2_chi_0.2_kappa_0.3_pi_0.01:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.2
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.3
-    phi: 1.2
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.2_chi_0.2_kappa_0.3_pi_0.05:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.2
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.3
-    phi: 1.2
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.2_chi_0.2_kappa_0.3_pi_0.1:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.2
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.3
-    phi: 1.2
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.2_chi_0.2_kappa_0.5_pi_0.01:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.2
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.5
-    phi: 1.2
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.2_chi_0.2_kappa_0.5_pi_0.05:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.2
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.5
-    phi: 1.2
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.2_chi_0.2_kappa_0.5_pi_0.1:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.2
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.5
-    phi: 1.2
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.2_chi_0.2_kappa_0.7_pi_0.01:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.2
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.7
-    phi: 1.2
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.2_chi_0.2_kappa_0.7_pi_0.05:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.2
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.7
-    phi: 1.2
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.2_chi_0.2_kappa_0.7_pi_0.1:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.2
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.7
-    phi: 1.2
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.2_chi_0.2_kappa_0.9_pi_0.01:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.2
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.9
-    phi: 1.2
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.2_chi_0.2_kappa_0.9_pi_0.05:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.2
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.9
-    phi: 1.2
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.2_chi_0.2_kappa_0.9_pi_0.1:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.2
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.9
-    phi: 1.2
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.2_chi_0.4_kappa_0.3_pi_0.01:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.4
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.3
-    phi: 1.2
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.2_chi_0.4_kappa_0.3_pi_0.05:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.4
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.3
-    phi: 1.2
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.2_chi_0.4_kappa_0.3_pi_0.1:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.4
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.3
-    phi: 1.2
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.2_chi_0.4_kappa_0.5_pi_0.01:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.4
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.5
-    phi: 1.2
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.2_chi_0.4_kappa_0.5_pi_0.05:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.4
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.5
-    phi: 1.2
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.2_chi_0.4_kappa_0.5_pi_0.1:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.4
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.5
-    phi: 1.2
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.2_chi_0.4_kappa_0.7_pi_0.01:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.4
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.7
-    phi: 1.2
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.2_chi_0.4_kappa_0.7_pi_0.05:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.4
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.7
-    phi: 1.2
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.2_chi_0.4_kappa_0.7_pi_0.1:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.4
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.7
-    phi: 1.2
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.2_chi_0.4_kappa_0.9_pi_0.01:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.4
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.9
-    phi: 1.2
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.2_chi_0.4_kappa_0.9_pi_0.05:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.4
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.9
-    phi: 1.2
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.2_chi_0.4_kappa_0.9_pi_0.1:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.4
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.9
-    phi: 1.2
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.2_chi_0.6_kappa_0.3_pi_0.01:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.6
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.3
-    phi: 1.2
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.2_chi_0.6_kappa_0.3_pi_0.05:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.6
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.3
-    phi: 1.2
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.2_chi_0.6_kappa_0.3_pi_0.1:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.6
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.3
-    phi: 1.2
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.2_chi_0.6_kappa_0.5_pi_0.01:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.6
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.5
-    phi: 1.2
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.2_chi_0.6_kappa_0.5_pi_0.05:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.6
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.5
-    phi: 1.2
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.2_chi_0.6_kappa_0.5_pi_0.1:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.6
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.5
-    phi: 1.2
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.2_chi_0.6_kappa_0.7_pi_0.01:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.6
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.7
-    phi: 1.2
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.2_chi_0.6_kappa_0.7_pi_0.05:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.6
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.7
-    phi: 1.2
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.2_chi_0.6_kappa_0.7_pi_0.1:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.6
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.7
-    phi: 1.2
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.2_chi_0.6_kappa_0.9_pi_0.01:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.6
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.9
-    phi: 1.2
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.2_chi_0.6_kappa_0.9_pi_0.05:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.6
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.9
-    phi: 1.2
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.2_chi_0.6_kappa_0.9_pi_0.1:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.6
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.9
-    phi: 1.2
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.2_chi_0.8_kappa_0.3_pi_0.01:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.8
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.3
-    phi: 1.2
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.2_chi_0.8_kappa_0.3_pi_0.05:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.8
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.3
-    phi: 1.2
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.2_chi_0.8_kappa_0.3_pi_0.1:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.8
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.3
-    phi: 1.2
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.2_chi_0.8_kappa_0.5_pi_0.01:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.8
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.5
-    phi: 1.2
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.2_chi_0.8_kappa_0.5_pi_0.05:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.8
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.5
-    phi: 1.2
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.2_chi_0.8_kappa_0.5_pi_0.1:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.8
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.5
-    phi: 1.2
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.2_chi_0.8_kappa_0.7_pi_0.01:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.8
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.7
-    phi: 1.2
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.2_chi_0.8_kappa_0.7_pi_0.05:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.8
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.7
-    phi: 1.2
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.2_chi_0.8_kappa_0.7_pi_0.1:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.8
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.7
-    phi: 1.2
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.2_chi_0.8_kappa_0.9_pi_0.01:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.8
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.9
-    phi: 1.2
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.2_chi_0.8_kappa_0.9_pi_0.05:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.8
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.9
-    phi: 1.2
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.2_chi_0.8_kappa_0.9_pi_0.1:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.8
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.9
-    phi: 1.2
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.2_chi_1.0_kappa_0.3_pi_0.01:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.3
-    phi: 1.2
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.2_chi_1.0_kappa_0.3_pi_0.05:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.3
-    phi: 1.2
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.2_chi_1.0_kappa_0.3_pi_0.1:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.3
-    phi: 1.2
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.2_chi_1.0_kappa_0.5_pi_0.01:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.5
-    phi: 1.2
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.2_chi_1.0_kappa_0.5_pi_0.05:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.5
-    phi: 1.2
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.2_chi_1.0_kappa_0.5_pi_0.1:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.5
-    phi: 1.2
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.2_chi_1.0_kappa_0.7_pi_0.01:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.7
-    phi: 1.2
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.2_chi_1.0_kappa_0.7_pi_0.05:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.7
-    phi: 1.2
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.2_chi_1.0_kappa_0.7_pi_0.1:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.7
-    phi: 1.2
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.2_chi_1.0_kappa_0.9_pi_0.01:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.9
-    phi: 1.2
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.2_chi_1.0_kappa_0.9_pi_0.05:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.9
-    phi: 1.2
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.2_chi_1.0_kappa_0.9_pi_0.1:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.9
-    phi: 1.2
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.4_chi_0.0_kappa_0.3_pi_0.01:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.3
-    phi: 1.4
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.4_chi_0.0_kappa_0.3_pi_0.05:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.3
-    phi: 1.4
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.4_chi_0.0_kappa_0.3_pi_0.1:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.3
-    phi: 1.4
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.4_chi_0.0_kappa_0.5_pi_0.01:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.5
-    phi: 1.4
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.4_chi_0.0_kappa_0.5_pi_0.05:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.5
-    phi: 1.4
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.4_chi_0.0_kappa_0.5_pi_0.1:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.5
-    phi: 1.4
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.4_chi_0.0_kappa_0.7_pi_0.01:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.7
-    phi: 1.4
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.4_chi_0.0_kappa_0.7_pi_0.05:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.7
-    phi: 1.4
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.4_chi_0.0_kappa_0.7_pi_0.1:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.7
-    phi: 1.4
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.4_chi_0.0_kappa_0.9_pi_0.01:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.9
-    phi: 1.4
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.4_chi_0.0_kappa_0.9_pi_0.05:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.9
-    phi: 1.4
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.4_chi_0.0_kappa_0.9_pi_0.1:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.9
-    phi: 1.4
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.4_chi_0.2_kappa_0.3_pi_0.01:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.2
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.3
-    phi: 1.4
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.4_chi_0.2_kappa_0.3_pi_0.05:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.2
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.3
-    phi: 1.4
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.4_chi_0.2_kappa_0.3_pi_0.1:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.2
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.3
-    phi: 1.4
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.4_chi_0.2_kappa_0.5_pi_0.01:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.2
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.5
-    phi: 1.4
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.4_chi_0.2_kappa_0.5_pi_0.05:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.2
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.5
-    phi: 1.4
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.4_chi_0.2_kappa_0.5_pi_0.1:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.2
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.5
-    phi: 1.4
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.4_chi_0.2_kappa_0.7_pi_0.01:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.2
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.7
-    phi: 1.4
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.4_chi_0.2_kappa_0.7_pi_0.05:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.2
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.7
-    phi: 1.4
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.4_chi_0.2_kappa_0.7_pi_0.1:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.2
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.7
-    phi: 1.4
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.4_chi_0.2_kappa_0.9_pi_0.01:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.2
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.9
-    phi: 1.4
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.4_chi_0.2_kappa_0.9_pi_0.05:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.2
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.9
-    phi: 1.4
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.4_chi_0.2_kappa_0.9_pi_0.1:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.2
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.9
-    phi: 1.4
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.4_chi_0.4_kappa_0.3_pi_0.01:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.4
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.3
-    phi: 1.4
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.4_chi_0.4_kappa_0.3_pi_0.05:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.4
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.3
-    phi: 1.4
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.4_chi_0.4_kappa_0.3_pi_0.1:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.4
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.3
-    phi: 1.4
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.4_chi_0.4_kappa_0.5_pi_0.01:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.4
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.5
-    phi: 1.4
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.4_chi_0.4_kappa_0.5_pi_0.05:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.4
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.5
-    phi: 1.4
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.4_chi_0.4_kappa_0.5_pi_0.1:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.4
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.5
-    phi: 1.4
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.4_chi_0.4_kappa_0.7_pi_0.01:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.4
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.7
-    phi: 1.4
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.4_chi_0.4_kappa_0.7_pi_0.05:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.4
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.7
-    phi: 1.4
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.4_chi_0.4_kappa_0.7_pi_0.1:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.4
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.7
-    phi: 1.4
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.4_chi_0.4_kappa_0.9_pi_0.01:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.4
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.9
-    phi: 1.4
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.4_chi_0.4_kappa_0.9_pi_0.05:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.4
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.9
-    phi: 1.4
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.4_chi_0.4_kappa_0.9_pi_0.1:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.4
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.9
-    phi: 1.4
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.4_chi_0.6_kappa_0.3_pi_0.01:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.6
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.3
-    phi: 1.4
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.4_chi_0.6_kappa_0.3_pi_0.05:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.6
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.3
-    phi: 1.4
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.4_chi_0.6_kappa_0.3_pi_0.1:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.6
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.3
-    phi: 1.4
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.4_chi_0.6_kappa_0.5_pi_0.01:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.6
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.5
-    phi: 1.4
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.4_chi_0.6_kappa_0.5_pi_0.05:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.6
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.5
-    phi: 1.4
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.4_chi_0.6_kappa_0.5_pi_0.1:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.6
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.5
-    phi: 1.4
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.4_chi_0.6_kappa_0.7_pi_0.01:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.6
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.7
-    phi: 1.4
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.4_chi_0.6_kappa_0.7_pi_0.05:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.6
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.7
-    phi: 1.4
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.4_chi_0.6_kappa_0.7_pi_0.1:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.6
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.7
-    phi: 1.4
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.4_chi_0.6_kappa_0.9_pi_0.01:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.6
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.9
-    phi: 1.4
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.4_chi_0.6_kappa_0.9_pi_0.05:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.6
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.9
-    phi: 1.4
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.4_chi_0.6_kappa_0.9_pi_0.1:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.6
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.9
-    phi: 1.4
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.4_chi_0.8_kappa_0.3_pi_0.01:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.8
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.3
-    phi: 1.4
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.4_chi_0.8_kappa_0.3_pi_0.05:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.8
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.3
-    phi: 1.4
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.4_chi_0.8_kappa_0.3_pi_0.1:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.8
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.3
-    phi: 1.4
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.4_chi_0.8_kappa_0.5_pi_0.01:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.8
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.5
-    phi: 1.4
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.4_chi_0.8_kappa_0.5_pi_0.05:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.8
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.5
-    phi: 1.4
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.4_chi_0.8_kappa_0.5_pi_0.1:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.8
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.5
-    phi: 1.4
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.4_chi_0.8_kappa_0.7_pi_0.01:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.8
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.7
-    phi: 1.4
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.4_chi_0.8_kappa_0.7_pi_0.05:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.8
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.7
-    phi: 1.4
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.4_chi_0.8_kappa_0.7_pi_0.1:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.8
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.7
-    phi: 1.4
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.4_chi_0.8_kappa_0.9_pi_0.01:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.8
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.9
-    phi: 1.4
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.4_chi_0.8_kappa_0.9_pi_0.05:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.8
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.9
-    phi: 1.4
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.4_chi_0.8_kappa_0.9_pi_0.1:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.8
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.9
-    phi: 1.4
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.4_chi_1.0_kappa_0.3_pi_0.01:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.3
-    phi: 1.4
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.4_chi_1.0_kappa_0.3_pi_0.05:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.3
-    phi: 1.4
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.4_chi_1.0_kappa_0.3_pi_0.1:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.3
-    phi: 1.4
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.4_chi_1.0_kappa_0.5_pi_0.01:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.5
-    phi: 1.4
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.4_chi_1.0_kappa_0.5_pi_0.05:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.5
-    phi: 1.4
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.4_chi_1.0_kappa_0.5_pi_0.1:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.5
-    phi: 1.4
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.4_chi_1.0_kappa_0.7_pi_0.01:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.7
-    phi: 1.4
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.4_chi_1.0_kappa_0.7_pi_0.05:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.7
-    phi: 1.4
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.4_chi_1.0_kappa_0.7_pi_0.1:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.7
-    phi: 1.4
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.4_chi_1.0_kappa_0.9_pi_0.01:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.9
-    phi: 1.4
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.4_chi_1.0_kappa_0.9_pi_0.05:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.9
-    phi: 1.4
-    pi: 0.1
-    sigma:
-    - 0.2
-    - 0.3333
-  phi_1.4_chi_1.0_kappa_0.9_pi_0.1:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 1.0
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.9
-    phi: 1.4
     pi: 0.1
     sigma:
     - 0.2
