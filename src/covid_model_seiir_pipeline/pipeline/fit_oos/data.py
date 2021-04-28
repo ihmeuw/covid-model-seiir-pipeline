@@ -1,6 +1,5 @@
-from functools import reduce
 from pathlib import Path
-from typing import List, Iterable, Optional, Union
+from typing import List, Optional, Union
 
 from loguru import logger
 import pandas as pd
@@ -148,18 +147,19 @@ class FitDataInterface:
         return population
 
     def get_escape_variant_special_locs(self):
-        b1351 = io.load(self.variant_root.original_data(measure='Special_B1351_Final_2021_03_21.csv'))
+        date = self.variant_root._root.stem
+        b1351 = io.load(self.variant_root.original_data(measure=f'Special_B1351_Final_{date}.csv'))
         b1351_locs = b1351.reset_index().location_id.unique().tolist()
-        p1 = io.load(self.variant_root.original_data(measure='Special_P1_Final_2021_03_21.csv'))
+        p1 = io.load(self.variant_root.original_data(measure=f'Special_P1_Final_{date}.csv'))
         p1_locs = p1.reset_index().location_id.unique().tolist()
         return list(set(b1351_locs + p1_locs))
 
     def load_variant_prevalence(self):
-        b117 = self.load_covariate('variant_prevalence_B117').variant_prevalence_B117
+        b117 = self.load_covariate('variant_prevalence_non_escape').variant_prevalence_non_escape
         b1351 = self.load_covariate('variant_prevalence_B1351').variant_prevalence_B1351
         p1 = self.load_covariate('variant_prevalence_P1').variant_prevalence_P1
         rho_variant = (b1351 + p1).rename('rho_variant')
-        rho = (b117 / (1 - rho_variant)).fillna(0).rename('rho')
+        rho = b117.rename('rho')
         return pd.concat([rho, rho_variant], axis=1)
 
     #######################

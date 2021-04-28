@@ -1,5 +1,5 @@
 import itertools
-from typing import Dict, Tuple
+from typing import Dict, List, Tuple
 
 import numpy as np
 import pandas as pd
@@ -18,34 +18,10 @@ def prepare_ode_fit_parameters(past_infections: pd.Series,
                                population: pd.DataFrame,
                                rhos: pd.DataFrame,
                                vaccinations: pd.DataFrame,
-                               regression_parameters: Dict,
+                               sampled_params: Dict[str, pd.Series],
                                draw_id: int) -> ODEParameters:
     past_index = past_infections.index
-    population_low_risk = (population[population['age_group_years_start'] < 65]
-                           .groupby('location_id')['population']
-                           .sum()
-                           .reindex(past_index, level='location_id'))
-    population_high_risk = (population[population['age_group_years_start'] >= 65]
-                            .groupby('location_id')['population']
-                            .sum()
-                            .reindex(past_index, level='location_id'))
-    np.random.seed(draw_id)
-    sampled_params = {}
-    for parameter in ['alpha', 'sigma', 'gamma1', 'gamma2', 'kappa']:
-        sampled_params[parameter] = pd.Series(
-            np.random.uniform(*regression_parameters[parameter]),
-            index=past_index,
-            name=parameter,
-        )
-
-    chi = np.random.uniform(*regression_parameters['chi'])
-    phi = np.random.normal(
-        loc=chi + regression_parameters['phi_mean_shift'],
-        scale=regression_parameters['phi_sd'],
-    )
-    sampled_params['chi'] = pd.Series(chi, index=past_index, name='chi')
-    sampled_params['phi'] = pd.Series(phi, index=past_index, name='phi')
-    sampled_params['pi'] = pd.Series(regression_parameters['pi'], index=past_index, name='pi')
+    population_low_risk, population_high_risk = split_population(past_index, population)
 
     vaccinations = math.adjust_vaccinations(vaccinations)
     vaccinations = {k: v.rename(k).reindex(past_index, fill_value=0.) for k, v in vaccinations.items()}
@@ -60,6 +36,38 @@ def prepare_ode_fit_parameters(past_infections: pd.Series,
         theta_minus=pd.Series(0.0, index=past_index, name='theta_minus'),
         **vaccinations,
     )
+
+
+def split_population(past_index: pd.Index, population: pd.DataFrame):
+    population_low_risk = (population[population['age_group_years_start'] < 65]
+                           .groupby('location_id')['population']
+                           .sum()
+                           .reindex(past_index, level='location_id'))
+    population_high_risk = (population[population['age_group_years_start'] >= 65]
+                            .groupby('location_id')['population']
+                            .sum()
+                            .reindex(past_index, level='location_id'))
+    return population_low_risk, population_high_risk
+
+
+def sample_params(past_index: pd.Index,
+                  param_dict: Dict,
+                  params_to_sample: List[str]) -> Dict[str, pd.Series]:
+    sampled_params = {}
+    for parameter in params_to_sample:
+        param_spec = param_dict[parameter]
+        if isinstance(param_spec, (int, float)):
+            value = param_spec
+        else:
+            value = np.random.uniform(*param_spec)
+
+        sampled_params[parameter] = pd.Series(
+            value,
+            index=past_index,
+            name=parameter,
+        )
+
+    return sampled_params
 
 
 def clean_infection_data_measure(infection_data: pd.DataFrame, measure: str) -> pd.Series:

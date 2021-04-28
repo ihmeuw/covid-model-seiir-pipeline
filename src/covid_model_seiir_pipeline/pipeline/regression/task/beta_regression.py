@@ -33,12 +33,24 @@ def run_beta_regression(regression_version: str, draw_id: int, progress_bar: boo
     logger.info('Prepping ODE fit parameters.', context='transform')
     infections = model.clean_infection_data_measure(past_infection_data, 'infections')
     regression_params = regression_specification.regression_parameters.to_dict()
+
+    np.random.seed(draw_id)
+    sampled_params = model.sample_params(
+        infections.index, regression_params,
+        params_to_sample=['alpha', 'sigma', 'gamma1', 'gamma2', 'kappa', 'chi', 'pi']
+    )
+
+    sampled_params['phi'] = pd.Series(
+        np.random.normal(loc=sampled_params['chi'] + regression_params['phi_mean_shift'],
+                         scale=regression_params['phi_sd']),
+        index=infections.index, name='phi',
+    )
     ode_parameters = model.prepare_ode_fit_parameters(
         infections,
         population,
         rhos,
         vaccinations,
-        regression_params,
+        sampled_params,
         draw_id,
     )
 

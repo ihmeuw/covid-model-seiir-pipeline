@@ -59,7 +59,7 @@ class FitScenario:
     phi: float = field(default=0.5)
     pi: Optional[float] = field(default=None)
 
-    p_cross_immune: float = field(default=1.0)
+    chi: float = field(default=1.0)
 
     def to_dict(self) -> Dict:
         """Converts to a dict, coercing list-like items to lists."""
