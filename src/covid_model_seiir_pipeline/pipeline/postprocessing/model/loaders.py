@@ -249,17 +249,8 @@ def load_coefficients(scenario: str, data_interface: 'PostprocessingDataInterfac
 # Miscellaneous metrics #
 #########################
 
-def load_hospital_correction_factors(data_interface: 'PostprocessingDataInterface'):
-    dfs = []
-    for correction_type in ['hospital', 'icu', 'ventilator']:
-        df = data_interface.load_single_raw_output(
-            draw_id=0,  # All draws are identical.
-            scenario='reference',  # All scenarios the same.
-            measure=f'{correction_type}_census_correction',
-        )
-        df = df.rename(f'{correction_type}_census')
-        dfs.append(df)
-    return pd.concat(dfs, axis=1)
+def load_excess_mortality_scalars(data_interface: 'PostprocessingDataInterface'):
+    return data_interface.load_excess_mortality_scalars()
 
 
 def load_raw_census_data(data_interface: 'PostprocessingDataInterface'):

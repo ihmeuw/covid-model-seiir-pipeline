@@ -424,10 +424,10 @@ MISCELLANEOUS = {
         'age_specific_deaths',
         aggregator=aggregators.sum_aggregator,
     ),
-#    'hospital_correction_factors': MiscellaneousConfig(
-#        loaders.load_hospital_correction_factors,
-#        'hospital_correction_factors',
-#    ),
+    'excess_mortality_scalars': MiscellaneousConfig(
+        loaders.load_excess_mortality_scalars,
+        'excess_mortality_scalars',
+    ),
     'hospital_census_data': MiscellaneousConfig(
         loaders.load_raw_census_data,
         'hospital_census_data',

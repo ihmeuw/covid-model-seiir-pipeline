@@ -233,6 +233,9 @@ class PostprocessingDataInterface:
         locations_modeled_and_missing = {'modeled': modeled_locations, 'missing': missing_locations}
         return locations_modeled_and_missing
 
+    def load_excess_mortality_scalars(self):
+        return self._get_forecast_data_inteface().load_em_scalars()
+
     def load_hospital_census_data(self):
         return self._get_forecast_data_inteface().load_hospital_census_data()
 
