@@ -122,7 +122,11 @@ class PostprocessingDataInterface:
         return io.load(self.forecast_root.ode_params(scenario=scenario, draw_id=draw_id, columns=columns))
 
     def load_beta_residuals(self, draw_id: int, scenario: str) -> pd.Series:
-        beta_residual = self._get_forecast_data_inteface().load_beta_residual(scenario=scenario, draw_id=draw_id)
+        try:
+            beta_residual = self._get_forecast_data_inteface().load_beta_residual(scenario=scenario, draw_id=draw_id)
+        except FileNotFoundError:
+            beta_regression = self._get_forecast_data_inteface().load_betas(draw_id)
+            beta_residual = np.log(beta_regression['beta'] / beta_regression['beta_hat']).rename(draw_id)
         return beta_residual
 
     def load_single_raw_output(self, draw_id: int, scenario: str, measure: str) -> pd.Series:
