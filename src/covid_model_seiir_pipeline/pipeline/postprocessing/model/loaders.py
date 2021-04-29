@@ -25,6 +25,12 @@ def load_deaths(scenario: str, data_interface: 'PostprocessingDataInterface', nu
     return outputs
 
 
+def load_unscaled_deaths(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
+    death_draws = load_deaths(scenario, data_interface, num_cores)
+    em_scalars = load_excess_mortality_scalars(data_interface)
+    import pdb; pdb.set_trace()
+
+
 def load_deaths_wild(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
     return _load_output_data(scenario, 'modeled_deaths_wild', data_interface, num_cores)
 
