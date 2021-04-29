@@ -201,9 +201,14 @@ def load_empirical_beta_variant(scenario: str, data_interface: 'PostprocessingDa
 
 
 def load_beta_residuals(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int) -> List[pd.Series]:
+    _runner = functools.partial(
+        data_interface.load_beta_residuals,
+        scenario=scenario,
+    )
+
     draws = range(data_interface.get_n_draws())
     with multiprocessing.Pool(num_cores) as pool:
-        beta_residuals = pool.map(data_interface.load_beta_residuals, draws)
+        beta_residuals = pool.map(_runner, draws)
     return beta_residuals
 
 
