@@ -296,7 +296,7 @@ def load_full_data(data_interface: 'PostprocessingDataInterface') -> pd.DataFram
 
 
 def load_unscaled_full_data(data_interface: 'PostprocessingDataInterface') -> pd.DataFrame:
-    full_data = data_interface.load_full_data()
+    full_data = load_full_data(data_interface)
     cumulative_deaths = full_data['cumulative_deaths']
     em_scalars = (load_excess_mortality_scalars(data_interface)
                   .reindex(cumulative_deaths.index)
