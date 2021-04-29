@@ -28,7 +28,10 @@ def load_deaths(scenario: str, data_interface: 'PostprocessingDataInterface', nu
 def load_unscaled_deaths(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
     death_draws = load_deaths(scenario, data_interface, num_cores)
     em_scalars = load_excess_mortality_scalars(data_interface)
+    em_scalars = em_scalars.reindex(death_draws[0].index).groupby('location_id').fillna(method='ffill')
+    unscaled_deaths = [d / em_scalars for d in death_draws]
     import pdb; pdb.set_trace()
+    return unscaled_deaths
 
 
 def load_deaths_wild(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
