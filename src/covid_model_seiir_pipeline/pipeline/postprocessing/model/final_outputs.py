@@ -61,12 +61,10 @@ class MiscellaneousConfig:
                  loader: Callable[['PostprocessingDataInterface'], Any],
                  label: str,
                  is_table: bool = True,
-                 is_cumulative: bool = False,
                  aggregator: Callable = None):
         self.loader = loader
         self.label = label
         self.is_table = is_table
-        self.is_cumulative = is_cumulative
         self.aggregator = aggregator
 
 
@@ -78,6 +76,14 @@ MEASURES = {
         'daily_deaths',
         calculate_cumulative=True,
         cumulative_label='cumulative_deaths',
+        aggregator=aggregators.sum_aggregator,
+        write_draws=True,
+    ),
+    'unscaled_deaths': MeasureConfig(
+        loaders.load_unscaled_deaths,
+        'unscaled_daily_deaths',
+        calculate_cumulative=True,
+        cumulative_label='cumulative_unscaled_deaths',
         aggregator=aggregators.sum_aggregator,
         write_draws=True,
     ),
@@ -416,7 +422,11 @@ MISCELLANEOUS = {
     'full_data': MiscellaneousConfig(
         loaders.load_full_data,
         'full_data',
-        is_cumulative=True,
+        aggregator=aggregators.sum_aggregator,
+    ),
+    'unscaled_full_data': MiscellaneousConfig(
+        loaders.load_unscaled_full_data,
+        'unscaled_full_data',
         aggregator=aggregators.sum_aggregator,
     ),
     'age_specific_deaths': MiscellaneousConfig(
@@ -424,10 +434,10 @@ MISCELLANEOUS = {
         'age_specific_deaths',
         aggregator=aggregators.sum_aggregator,
     ),
-#    'hospital_correction_factors': MiscellaneousConfig(
-#        loaders.load_hospital_correction_factors,
-#        'hospital_correction_factors',
-#    ),
+    'excess_mortality_scalars': MiscellaneousConfig(
+        loaders.load_excess_mortality_scalars,
+        'excess_mortality_scalars',
+    ),
     'hospital_census_data': MiscellaneousConfig(
         loaders.load_raw_census_data,
         'hospital_census_data',

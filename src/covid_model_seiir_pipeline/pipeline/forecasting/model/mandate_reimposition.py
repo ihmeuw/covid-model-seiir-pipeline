@@ -14,7 +14,7 @@ def compute_reimposition_threshold(past_deaths, population, reimposition_thresho
                   .apply(lambda x: x.iloc[-14:])
                   .reset_index(level=0, drop=True))
     days_over_death_rate = (
-        (death_rate > reimposition_threshold.reindex(death_rate.index, level='location_id'))
+        (death_rate > reimposition_threshold.loc[death_rate.index])
          .groupby('location_id')
          .sum()
     )
@@ -23,7 +23,7 @@ def compute_reimposition_threshold(past_deaths, population, reimposition_thresho
 
     # Do it a second time to some crazy stuff happening in central europe.
     days_over_death_rate = (
-        (death_rate > reimposition_threshold.reindex(death_rate.index, level='location_id'))
+        (death_rate > reimposition_threshold.loc[death_rate.index])
          .groupby('location_id')
          .sum()
     )
@@ -35,28 +35,33 @@ def compute_reimposition_threshold(past_deaths, population, reimposition_thresho
 
 def compute_reimposition_date(deaths, population, reimposition_threshold,
                               min_wait, last_reimposition_end_date) -> pd.Series:
-    population = population.reindex(deaths.index, level='location_id')
-    death_rate = (deaths / population).rename('death_rate')
+    location_dates = deaths.index.to_frame().reset_index(drop=True)
+    deaths = deaths.reset_index(level='observed', drop=True)
+    death_rate = ((deaths / population.reindex(deaths.index, level='location_id'))
+                  .rename('death_rate'))
+    reimposition_threshold = (reimposition_threshold
+                              .reindex(death_rate.index)
+                              .groupby('location_id')
+                              .fillna(method='ffill'))
 
-    last_observed_date = (death_rate
-                          .loc[pd.IndexSlice[:, :, 1]]
-                          .reset_index(level='date')
+    over_threshold = death_rate > reimposition_threshold
+    last_observed_date = (location_dates[location_dates.observed == 1]
                           .groupby('location_id')
                           .date
                           .max())
     min_reimposition_date = last_observed_date + min_wait
+
     previously_implemented = last_reimposition_end_date[last_reimposition_end_date.notnull()].index
     min_reimposition_date.loc[previously_implemented] = (
             last_reimposition_end_date.loc[previously_implemented] + min_wait
     )
-    death_rate = death_rate.reset_index().set_index('location_id')
-    after_min_reimposition_date = death_rate['date'] >= min_reimposition_date.loc[death_rate.index]
-    over_threshold = death_rate['death_rate'] > reimposition_threshold.reindex(death_rate.index)
-    reimposition_date = (death_rate[over_threshold & after_min_reimposition_date]
+    min_reimposition_date = min_reimposition_date.loc[location_dates.location_id].reset_index(drop=True)
+    after_min_reimposition_date = location_dates['date'] >= min_reimposition_date
+    reimposition_date = (death_rate[over_threshold & after_min_reimposition_date.values]
+                         .reset_index()
                          .groupby('location_id')['date']
                          .min()
                          .rename('reimposition_date'))
-
     return reimposition_date
 
 

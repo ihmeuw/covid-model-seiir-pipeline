@@ -222,13 +222,7 @@ def postprocess_miscellaneous(postprocessing_spec: PostprocessingSpecification,
                               scenario_name: str, measure: str):
     miscellaneous_config = model.MISCELLANEOUS[measure]
     logger.info(f'Loading {measure}.', context='read')
-    location_ids = data_interface.load_location_ids()
     miscellaneous_data = miscellaneous_config.loader(data_interface)
-
-    if miscellaneous_config.is_cumulative:
-        logger.info('Filling missing dates.', context='fill_dates')
-        miscellaneous_data = miscellaneous_data.loc[location_ids]
-        miscellaneous_data = model.fill_cumulative_date_index(miscellaneous_data)
 
     miscellaneous_data = do_aggregation(
         miscellaneous_data,

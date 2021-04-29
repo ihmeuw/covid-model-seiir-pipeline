@@ -2,7 +2,10 @@ import functools
 import multiprocessing
 from typing import List, TYPE_CHECKING
 
+import numpy as np
 import pandas as pd
+
+from covid_model_seiir_pipeline.pipeline.postprocessing import model
 
 if TYPE_CHECKING:
     # The model subpackage is a library for the pipeline stage and shouldn't
@@ -23,6 +26,14 @@ def load_deaths(scenario: str, data_interface: 'PostprocessingDataInterface', nu
     with multiprocessing.Pool(num_cores) as pool:
         outputs = pool.map(_runner, draws)
     return outputs
+
+
+def load_unscaled_deaths(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
+    death_draws = load_deaths(scenario, data_interface, num_cores)
+    em_scalars = load_excess_mortality_scalars(data_interface)
+    em_scalars = em_scalars.reindex(death_draws[0].index).groupby('location_id').fillna(method='ffill')
+    unscaled_deaths = [d / em_scalars for d in death_draws]
+    return unscaled_deaths
 
 
 def load_deaths_wild(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
@@ -201,9 +212,14 @@ def load_empirical_beta_variant(scenario: str, data_interface: 'PostprocessingDa
 
 
 def load_beta_residuals(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int) -> List[pd.Series]:
+    _runner = functools.partial(
+        data_interface.load_beta_residuals,
+        scenario=scenario,
+    )
+
     draws = range(data_interface.get_n_draws())
     with multiprocessing.Pool(num_cores) as pool:
-        beta_residuals = pool.map(data_interface.load_beta_residuals, draws)
+        beta_residuals = pool.map(_runner, draws)
     return beta_residuals
 
 
@@ -249,17 +265,8 @@ def load_coefficients(scenario: str, data_interface: 'PostprocessingDataInterfac
 # Miscellaneous metrics #
 #########################
 
-def load_hospital_correction_factors(data_interface: 'PostprocessingDataInterface'):
-    dfs = []
-    for correction_type in ['hospital', 'icu', 'ventilator']:
-        df = data_interface.load_single_raw_output(
-            draw_id=0,  # All draws are identical.
-            scenario='reference',  # All scenarios the same.
-            measure=f'{correction_type}_census_correction',
-        )
-        df = df.rename(f'{correction_type}_census')
-        dfs.append(df)
-    return pd.concat(dfs, axis=1)
+def load_excess_mortality_scalars(data_interface: 'PostprocessingDataInterface'):
+    return data_interface.load_excess_mortality_scalars()
 
 
 def load_raw_census_data(data_interface: 'PostprocessingDataInterface'):
@@ -281,7 +288,27 @@ def load_scaling_parameters(scenario: str, data_interface: 'PostprocessingDataIn
 
 
 def load_full_data(data_interface: 'PostprocessingDataInterface') -> pd.DataFrame:
-    return data_interface.load_full_data()
+    full_data = data_interface.load_full_data()
+    location_ids = data_interface.load_location_ids()
+    full_data = full_data.loc[location_ids]
+    full_data = model.fill_cumulative_date_index(full_data)
+    return full_data
+
+
+def load_unscaled_full_data(data_interface: 'PostprocessingDataInterface') -> pd.DataFrame:
+    full_data = load_full_data(data_interface)
+    deaths = full_data['cumulative_deaths']
+    em_scalars = (load_excess_mortality_scalars(data_interface)
+                  .reindex(deaths.index)
+                  .groupby('location_id')
+                  .fillna(method='ffill'))
+    init_cond = (deaths / em_scalars).groupby('location_id').first()
+    scaled_deaths = (deaths.groupby('location_id').diff() / em_scalars).cumsum().fillna(0.0)
+    scaled_deaths = scaled_deaths + init_cond.reindex(scaled_deaths.index, level='location_id')
+
+    import pdb; pdb.set_trace()
+    full_data['cumulative_deaths'] = scaled_deaths
+    return full_data
 
 
 def load_age_specific_deaths(data_interface: 'PostprocessingDataInterface') -> pd.DataFrame:

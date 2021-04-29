@@ -1,6 +1,6 @@
 data:
-  infection_version: '2021_04_20.12'
-  covariate_version: '2021_04_20.03'
+  infection_version: '2021_04_27.09'
+  covariate_version: '2021_04_27.03'
   coefficient_version: ''
   location_set_version_id: ''
   location_set_file: '/ihme/covid-19/seir-pipeline-outputs/metadata-inputs/location_metadata_810.2.csv'
@@ -10,7 +10,7 @@ workflow:
   project: 'proj_covid_prod'
   queue: 'd.q'
 regression_parameters:
-  n_draws: 1000
+  n_draws: 100
   # Mixing parameter.  dS/dt = -beta * S * I ** alpha
   alpha: [0.9, 1.0]
   # 1 / incubation period.  dE/dt = -dS/dt - sigma * E
@@ -25,10 +25,10 @@ regression_parameters:
   chi: [0.0, 0.6]
   # proportion increase in transmission for escape variants relative to non-escape variants.
   # Mean of phi will be chi + phi_mean_shift
-  phi_mean_shift: 0.5
-  phi_sd: 0.13
+  phi_mean_shift: 0.3
+  phi_sd: 0.21
   # Proportion of current E to send to escape variant E on invasion.
-  pi: 0.1
+  pi: [0.01, 0.1]
   sequential_refit: False
 hospital_parameters:
   compute_correction_factors: True
@@ -80,7 +80,7 @@ covariates:
   mask_use:
     order: 0
     use_re: False
-    gprior: [0.0, 0.21]
+    gprior: [0.0, 1000.0]
     bounds: [-1000.0, -0.5]
     re_var: 1.0
     draws: False
