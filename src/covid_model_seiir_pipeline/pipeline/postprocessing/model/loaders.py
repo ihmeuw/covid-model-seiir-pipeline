@@ -297,6 +297,11 @@ def load_full_data(data_interface: 'PostprocessingDataInterface') -> pd.DataFram
 def load_unscaled_full_data(data_interface: 'PostprocessingDataInterface') -> pd.DataFrame:
     full_data = data_interface.load_full_data()
     em_scalars = load_excess_mortality_scalars(data_interface)
+    initial_cond = full_data.groupby('location_id').first().fillna(0)
+    daily_full_data = full_data.groupby('location_id').diff()
+    em_scalars = em_scalars.reindex(daily_full_data.index).grouby('location_id').fillna(method='fill_na')
+    daily_full_data['cumulative_deaths'] = daily_full_data['cumulative_deaths'] / em_scalars
+    daily_full_data = daily_full_data.cumsum() + initial_cond
     import pdb; pdb.set_trace()
 
 
