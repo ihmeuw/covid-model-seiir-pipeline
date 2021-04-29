@@ -61,12 +61,10 @@ class MiscellaneousConfig:
                  loader: Callable[['PostprocessingDataInterface'], Any],
                  label: str,
                  is_table: bool = True,
-                 is_cumulative: bool = False,
                  aggregator: Callable = None):
         self.loader = loader
         self.label = label
         self.is_table = is_table
-        self.is_cumulative = is_cumulative
         self.aggregator = aggregator
 
 
@@ -424,7 +422,11 @@ MISCELLANEOUS = {
     'full_data': MiscellaneousConfig(
         loaders.load_full_data,
         'full_data',
-        is_cumulative=True,
+        aggregator=aggregators.sum_aggregator,
+    ),
+    'unscaled_full_data': MiscellaneousConfig(
+        loaders.load_unscaled_full_data,
+        'unscaled_full_data',
         aggregator=aggregators.sum_aggregator,
     ),
     'age_specific_deaths': MiscellaneousConfig(

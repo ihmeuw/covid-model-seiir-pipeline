@@ -4,6 +4,8 @@ from typing import List, TYPE_CHECKING
 
 import pandas as pd
 
+from covid_model_seiir_pipeline.pipeline.postprocessing import model
+
 if TYPE_CHECKING:
     # The model subpackage is a library for the pipeline stage and shouldn't
     # explicitly depend on things outside the subpackage.
@@ -285,7 +287,11 @@ def load_scaling_parameters(scenario: str, data_interface: 'PostprocessingDataIn
 
 
 def load_full_data(data_interface: 'PostprocessingDataInterface') -> pd.DataFrame:
-    return data_interface.load_full_data()
+    full_data = data_interface.load_full_data()
+    location_ids = data_interface.load_location_ids()
+    full_data = full_data.loc[location_ids]
+    full_data = model.fill_cumulative_date_index(full_data)
+    return full_data
 
 
 def load_unscaled_full_data(data_interface: 'PostprocessingDataInterface') -> pd.DataFrame:
