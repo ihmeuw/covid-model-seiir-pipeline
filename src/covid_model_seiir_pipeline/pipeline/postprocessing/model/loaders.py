@@ -30,7 +30,6 @@ def load_unscaled_deaths(scenario: str, data_interface: 'PostprocessingDataInter
     em_scalars = load_excess_mortality_scalars(data_interface)
     em_scalars = em_scalars.reindex(death_draws[0].index).groupby('location_id').fillna(method='ffill')
     unscaled_deaths = [d / em_scalars for d in death_draws]
-    import pdb; pdb.set_trace()
     return unscaled_deaths
 
 
@@ -287,6 +286,12 @@ def load_scaling_parameters(scenario: str, data_interface: 'PostprocessingDataIn
 
 def load_full_data(data_interface: 'PostprocessingDataInterface') -> pd.DataFrame:
     return data_interface.load_full_data()
+
+
+def load_unscaled_full_data(data_interface: 'PostprocessingDataInterface') -> pd.DataFrame:
+    full_data = data_interface.load_full_data()
+    em_scalars = load_excess_mortality_scalars(data_interface)
+    import pdb; pdb.set_trace()
 
 
 def load_age_specific_deaths(data_interface: 'PostprocessingDataInterface') -> pd.DataFrame:
