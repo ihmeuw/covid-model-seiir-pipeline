@@ -1,6 +1,6 @@
 import functools
 import multiprocessing
-from typing import Dict, List
+from typing import Dict, List, Tuple
 from pathlib import Path
 
 import click
@@ -105,7 +105,7 @@ def compute_initial_beta_scaling_parameters(beta_scaling: dict,
 
 def compute_initial_beta_scaling_parameters_by_draw(draw_id: int,
                                                     beta_scaling: Dict,
-                                                    data_interface: ForecastDataInterface) -> Tuple[pd.DataFrame, 
+                                                    data_interface: ForecastDataInterface) -> Tuple[pd.DataFrame,
                                                                                                     pd.Series]:
 
     # Construct a list of pandas Series indexed by location and named
@@ -131,10 +131,12 @@ def compute_initial_beta_scaling_parameters_by_draw(draw_id: int,
     draw_data.append(pd.Series(a, index=beta_transition.index, name='history_days_start'))
     draw_data.append(pd.Series(b, index=beta_transition.index, name='history_days_end'))
     draw_data.append(pd.Series(beta_scaling['window_size'], index=beta_transition.index, name='window_size'))
-    
-    max_resid = beta_scaling.get('max_residual', None)
-    min_resid = beta_scaling.get('min_residual', None)
-    clipped_log_beta_residual = np.clip(np.log(betas['beta']) / betas['beta_hat']), min_resid, max_resid) 
+
+    min_resid = beta_scaling.get('residual_min', None)
+    max_resid = beta_scaling.get('residual_max', None)
+    clipped_log_beta_residual = np.clip(
+        np.log(betas['beta'] / betas['beta_hat']), min_resid, max_resid
+    )
     log_beta_residual_mean = (clipped_log_beta_residual
                               .groupby(level='location_id')
                               .apply(lambda x: x.iloc[-b: -a].mean())
@@ -167,7 +169,7 @@ def write_out_beta_scales_by_draw(beta_scales: Tuple[pd.DataFrame, pd.Series],
     beta_scales['scale_final'] = np.exp(beta_scales['log_beta_residual_mean'])
     draw_id = beta_scales['draw'].iat[0]
     data_interface.save_beta_scales(beta_scales, scenario, draw_id)
-    data_interface.save_beta_residual(clipped_residual, scenario, draw_id)
+    data_interface.save_beta_residual(clipped_residual.reset_index(), scenario, draw_id)
 
 
 @click.command()
