@@ -124,6 +124,7 @@ class PostprocessingDataInterface:
     def load_beta_residuals(self, draw_id: int, scenario: str) -> pd.Series:
         try:
             beta_residual = self._get_forecast_data_inteface().load_beta_residual(scenario=scenario, draw_id=draw_id)
+            beta_residual = beta_residual.set_index(['location_id', 'date'])['log_beta_residual'].rename(draw_id)
         except FileNotFoundError:
             beta_regression = self._get_forecast_data_inteface().load_betas(draw_id)
             beta_residual = np.log(beta_regression['beta'] / beta_regression['beta_hat']).rename(draw_id)

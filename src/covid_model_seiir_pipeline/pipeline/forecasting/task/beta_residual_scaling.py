@@ -136,7 +136,7 @@ def compute_initial_beta_scaling_parameters_by_draw(draw_id: int,
     max_resid = beta_scaling.get('residual_max', None)
     clipped_log_beta_residual = np.clip(
         np.log(betas['beta'] / betas['beta_hat']), min_resid, max_resid
-    )
+    ).rename('log_beta_residual')
     log_beta_residual_mean = (clipped_log_beta_residual
                               .groupby(level='location_id')
                               .apply(lambda x: x.iloc[-b: -a].mean())
