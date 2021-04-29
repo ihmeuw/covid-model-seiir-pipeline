@@ -297,40 +297,18 @@ def load_full_data(data_interface: 'PostprocessingDataInterface') -> pd.DataFram
 
 def load_unscaled_full_data(data_interface: 'PostprocessingDataInterface') -> pd.DataFrame:
     full_data = load_full_data(data_interface)
-    cumulative_deaths = full_data['cumulative_deaths']
+    deaths = full_data['cumulative_deaths']
     em_scalars = (load_excess_mortality_scalars(data_interface)
-                  .reindex(cumulative_deaths.index)
+                  .reindex(deaths.index)
                   .groupby('location_id')
                   .fillna(method='ffill'))
-
-    data = []
-    for location_id, loc_data in cumulative_deaths.groupby('location_id'):
-        if loc_data.notnull().any():
-            null_mask = loc_data.isnull()
-            loc_data = loc_data.fillna(0)
-            ic = loc_data.iloc[0]
-            scaled_loc_daily_data = loc_data.diff() * em_scalars.loc[location_id]
-            scaled_loc_data = scaled_loc_daily_data.cumsum() + ic
-            scaled_loc_data[null_mask] = np.nan
-            data.append(scaled_loc_data)
-        else:
-            data.append(loc_data)
-    scaled_cumulative_deaths = pd.concat(data)
-    import pdb; pdb.set_trace()
-
-
-
-
-
+    init_cond = (deaths / em_scalars).groupby('location_id').first()
+    scaled_deaths = (deaths.groupby('location_id').diff() / em_scalars).cumsum().fillna(0.0)
+    scaled_deaths = scaled_deaths + init_cond.reindex(scaled_deaths.index, level='location_id')
 
     import pdb; pdb.set_trace()
-
-
-    daily_full_data = full_data.groupby('location_id').diff()
-    em_scalars = em_scalars.reindex(daily_full_data.index).grouby('location_id').fillna(method='fill_na')
-    daily_full_data['cumulative_deaths'] = daily_full_data['cumulative_deaths'] / em_scalars
-    daily_full_data = daily_full_data.cumsum() + initial_cond
-    import pdb; pdb.set_trace()
+    full_data['cumulative_deaths'] = scaled_deaths
+    return full_data
 
 
 def load_age_specific_deaths(data_interface: 'PostprocessingDataInterface') -> pd.DataFrame:
