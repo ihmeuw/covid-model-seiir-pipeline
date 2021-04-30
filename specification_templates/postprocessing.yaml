@@ -1,14 +1,12 @@
 data:
-  forecast_version: '/ihme/covid-19/seir-forecast/2021_04_28.14'
+  forecast_version: '/ihme/covid-19/seir-forecast/2021_04_29.05'
   mortality_ratio_version: 'best'
   scenarios:
     - 'reference'
-    - 'windsorize_lower'
-    - 'windosrize_upper'
-#    - 'worse'
-#    - 'best_masks'
-#    - 'no_vaccine'
-#    - 'vaccine_fast'
+    - 'worse'
+    - 'best_masks'
+    - 'no_vaccine'
+    - 'vaccine_fast'
   output_root: ''
 workflow:
   project: 'proj_covid_prod'
