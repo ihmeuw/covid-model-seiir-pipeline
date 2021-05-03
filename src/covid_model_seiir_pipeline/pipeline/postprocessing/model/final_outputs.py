@@ -108,6 +108,14 @@ MEASURES = {
         aggregator=aggregators.sum_aggregator,
         write_draws=True,
     ),
+    'infected': MeasureConfig(
+        loaders.load_infected,
+        'daily_infected',
+        calculate_cumulative=True,
+        cumulative_label='cumulative_infected',
+        aggregator=aggregators.sum_aggregator,
+        write_draws=True,
+    ),
     'infections_wild': MeasureConfig(
         loaders.load_infections_wild,
         'daily_infections_wild',

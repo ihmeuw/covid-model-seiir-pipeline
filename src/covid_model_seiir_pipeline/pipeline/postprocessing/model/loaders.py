@@ -52,6 +52,10 @@ def load_infections(scenario: str, data_interface: 'PostprocessingDataInterface'
     return _load_output_data(scenario, 'infections', data_interface, num_cores)
 
 
+def load_infected(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
+    return _load_output_data(scenario, 'modeled_infected_total', data_interface, num_cores)
+
+
 def load_infections_wild(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
     return _load_output_data(scenario, 'modeled_infections_wild', data_interface, num_cores)
 
