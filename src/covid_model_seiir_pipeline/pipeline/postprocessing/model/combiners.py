@@ -15,3 +15,7 @@ def make_ihr(infections: pd.DataFrame, hospital_admissions: pd.DataFrame) -> pd.
 
 def make_idr(infections: pd.DataFrame, cases: pd.DataFrame) -> pd.DataFrame:
     return cases / infections.groupby('location_id').shift(INFECTION_TO_CASE)
+
+
+def make_empirical_escape_variant_prevalence(escape_variant_infections: pd.DataFrame, total_infections: pd.DataFrame) -> pd.DataFrame:
+    return escape_variant_infections / total_infections

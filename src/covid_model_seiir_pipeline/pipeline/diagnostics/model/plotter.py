@@ -67,7 +67,6 @@ def make_covariates_page(plot_versions: List[PlotVersion],
                          start: pd.Timestamp, end: pd.Timestamp,
                          plot_file: str = None):
     sns.set_style('whitegrid')
-    # FIXME: This is brittle w/r/t new covariates
     time_varying = [c for c, c_config in COVARIATES.items() if c_config.time_varying]
     vlines = []
 
@@ -86,20 +85,13 @@ def make_covariates_page(plot_versions: List[PlotVersion],
 
     ylim_map = {
         'mobility': (-100, 20),
-        'testing': (0, 0.015),
+        'testing': (0, 0.02),
         'pneumonia': (0.2, 1.5),
         'mask_use': (0, 1),
-        'variant_prevalence_B117': (0, 1),
-        'variant_prevalence_B1351': (0, 1),
-        'variant_prevalence_P1': (0, 1),
     }
 
     for i, covariate in enumerate(time_varying):
         ax_coef = fig.add_subplot(gs_coef[i])
-        if 'variant' in covariate:
-            label = covariate.split('_')[-1]
-        else:
-            label = covariate.title()
         make_coefficient_plot(
             ax_coef,
             plot_versions,
@@ -241,14 +233,7 @@ def make_variants_page(plot_versions: List[PlotVersion],
                        start: pd.Timestamp, end: pd.Timestamp,
                        plot_file: str = None):
     sns.set_style('whitegrid')
-    observed_color = COLOR_MAP(len(plot_versions))
 
-    # Load some shared data.
-    pv = plot_versions[0]
-    pop = pv.load_output_miscellaneous('populations', is_table=True, location_id=location.id)
-    pop = pop.loc[(pop.age_group_id == 22) & (pop.sex_id == 3), 'population'].iloc[0]
-
-    full_data = pv.load_output_miscellaneous('full_data', is_table=True, location_id=location.id)
     vlines = []
 
     # Configure the plot layout.

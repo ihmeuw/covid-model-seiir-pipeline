@@ -220,6 +220,11 @@ MEASURES = {
         'total_susceptible_variant',
         aggregator=aggregators.sum_aggregator,
     ),
+    'total_susceptible_variant_only': MeasureConfig(
+        loaders.load_total_susceptible_variant_only,
+        'total_susceptible_variant_only',
+        aggregator=aggregators.sum_aggregator,
+    ),
     'total_immune_wild': MeasureConfig(
         loaders.load_total_immune_wild,
         'total_immune_wild',
@@ -290,10 +295,6 @@ MEASURES = {
         loaders.load_escape_variant_prevalence,
         'escape_variant_prevalence',
     ),
-    'empirical_escape_variant_prevalence': MeasureConfig(
-        loaders.load_empirical_escape_variant_prevalence,
-        'empirical_escape_variant_prevalence',
-    ),
 
     # Beta calculation inputs
 
@@ -344,7 +345,13 @@ COMPOSITE_MEASURES = {
                        'cases': MEASURES['cases']},
         label='infection_detection_ratio',
         combiner=combiners.make_idr,
-    )
+    ),
+    'empirical_escape_variant_prevalence': CompositeMeasureConfig(
+        base_measures={'escape_variant_infections': MEASURES['infections_variant'],
+                       'total_infections': MEASURES['infections']},
+        label='empirical_escape_variant_prevalence',
+        combiner=combiners.make_empirical_escape_variant_prevalence,
+    ),
 }
 
 
@@ -396,24 +403,6 @@ COVARIATES = {
     'smoking_prevalence': CovariateConfig(
         loaders.load_covariate,
         'smoking_prevalence',
-        aggregator=aggregators.mean_aggregator,
-    ),
-    'variant_prevalence_B117': CovariateConfig(
-        loaders.load_covariate,
-        'variant_prevalence_B117',
-        time_varying=True,
-        aggregator=aggregators.mean_aggregator,
-    ),
-    'variant_prevalence_B1351': CovariateConfig(
-        loaders.load_covariate,
-        'variant_prevalence_B1351',
-        time_varying=True,
-        aggregator=aggregators.mean_aggregator,
-    ),
-    'variant_prevalence_P1': CovariateConfig(
-        loaders.load_covariate,
-        'variant_prevalence_P1',
-        time_varying=True,
         aggregator=aggregators.mean_aggregator,
     ),
 }
