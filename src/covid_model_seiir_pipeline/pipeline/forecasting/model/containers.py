@@ -158,6 +158,7 @@ class SystemMetrics:
     modeled_infections_wild: pd.Series
     modeled_infections_variant: pd.Series
     modeled_infections_total: pd.Series
+    modeled_infected_total = pd.Series
 
     variant_prevalence: pd.Series
     natural_immunity_breakthrough: pd.Series

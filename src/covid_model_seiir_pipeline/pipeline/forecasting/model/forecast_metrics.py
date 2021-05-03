@@ -162,6 +162,7 @@ def variant_system_metrics(indices: Indices,
         modeled_infections_wild=modeled_infections_wild,
         modeled_infections_variant=modeled_infections_variant,
         modeled_infections_total=modeled_infections_wild + modeled_infections_variant,
+        modeled_infected_total=modeled_infections_wild + modeled_infections_variant - natural_immunity_breakthrough,
 
         variant_prevalence=modeled_infections_variant / (modeled_infections_wild + modeled_infections_variant),
 
