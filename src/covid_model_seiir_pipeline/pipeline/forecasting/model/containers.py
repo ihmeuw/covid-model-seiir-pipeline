@@ -177,6 +177,7 @@ class SystemMetrics:
 
     total_susceptible_wild: pd.Series
     total_susceptible_variant: pd.Series
+    total_susceptible_variant_only: pd.Series
     total_infectious_wild: pd.Series
     total_infectious_variant: pd.Series
     total_immune_wild: pd.Series

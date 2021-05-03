@@ -141,6 +141,7 @@ def variant_system_metrics(indices: Indices,
 
     s_wild = components[[c for c in cols if 'S' in c and 'variant' not in c and 'm' not in c]].sum(axis=1)
     s_variant = components[[c for c in cols if 'S' in c]].sum(axis=1)
+    s_variant_only = components[[c for c in cols if 'S_variant' in c or 'S_m' in c]].sum(axis=1)
 
     i_wild = components[[c for c in cols if 'I' in c and 'variant' not in c]].sum(axis=1)
     i_variant = components[[c for c in cols if 'I' in c and 'variant' in c]].sum(axis=1)
@@ -154,8 +155,8 @@ def variant_system_metrics(indices: Indices,
     modeled_infections_total = modeled_infections_wild + modeled_infections_variant
     beta_total = modeled_infections_total / (s_variant * i_total ** model_parameters.alpha / total_pop)
 
-    immune_wild = components[[c for c in cols if ('R' in c or 'S_m' in c) and 'variant' not in c]].sum(axis=1)
     immune_variant = components[[c for c in cols if 'R' in c]].sum(axis=1)
+    immune_wild = immune_variant + s_variant_only
 
     return SystemMetrics(
         modeled_infections_wild=modeled_infections_wild,
@@ -181,6 +182,7 @@ def variant_system_metrics(indices: Indices,
 
         total_susceptible_wild=s_wild,
         total_susceptible_variant=s_variant,
+        total_susceptible_variant_only=s_variant_only,
         total_infectious_wild=i_wild,
         total_infectious_variant=i_variant,
         total_immune_wild=immune_wild,
