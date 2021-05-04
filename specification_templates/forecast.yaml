@@ -1,6 +1,6 @@
 data:
-  regression_version: '2021_03_30.06'
-  covariate_version: '2021_03_31.01'
+  regression_version: '2021_04_29.02'
+  covariate_version: '2021_04_27.03'
   output_root: ''
   output_format: 'parquet'
   fh_subnationals: False
@@ -19,6 +19,7 @@ scenarios:
       window_size: 42
       average_over_min: 7
       average_over_max: 42
+      residual_min: -0.5
     theta: '/ihme/covid-19/seir-parameters/2021_03_03.01/thetas.csv'
     vaccine_version: 'reference'
     variant_version: 'reference'
@@ -44,6 +45,7 @@ scenarios:
       window_size: 42
       average_over_min: 7
       average_over_max: 42
+      residual_min: -0.5
     theta: '/ihme/covid-19/seir-parameters/2021_03_03.01/thetas.csv'
     vaccine_version: 'reference'
     variant_version: 'worse'
@@ -69,6 +71,7 @@ scenarios:
       window_size: 42
       average_over_min: 7
       average_over_max: 42
+      residual_min: -0.5
     theta: '/ihme/covid-19/seir-parameters/2021_03_03.01/thetas.csv'
     vaccine_version: 'none'
     variant_version: 'reference'
@@ -94,6 +97,7 @@ scenarios:
       window_size: 42
       average_over_min: 7
       average_over_max: 42
+      residual_min: -0.5
     theta: '/ihme/covid-19/seir-parameters/2021_03_03.01/thetas.csv'
     vaccine_version: 'reference'
     variant_version: 'reference'
@@ -119,6 +123,7 @@ scenarios:
       window_size: 42
       average_over_min: 7
       average_over_max: 42
+      residual_min: -0.5
     theta: '/ihme/covid-19/seir-parameters/2021_03_03.01/thetas.csv'
     vaccine_version: 'fast_balanced'
     variant_version: 'reference'

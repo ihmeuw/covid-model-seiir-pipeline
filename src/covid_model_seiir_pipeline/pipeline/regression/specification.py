@@ -18,13 +18,13 @@ REGRESSION_JOBS = __RegressionJobs()
 class RegressionTaskSpecification(workflow.TaskSpecification):
     """Specification of execution parameters for regression tasks."""
     default_max_runtime_seconds = 3000
-    default_m_mem_free = '10G'
+    default_m_mem_free = '15G'
     default_num_cores = 1
 
 
 class HospitalCorrectionFactorTaskSpecification(workflow.TaskSpecification):
     """Specification of execution parameters for regression tasks."""
-    default_max_runtime_seconds = 3000
+    default_max_runtime_seconds = 6000
     default_m_mem_free = '20G'
     default_num_cores = 26
 
@@ -35,10 +35,6 @@ class RegressionWorkflowSpecification(workflow.WorkflowSpecification):
         REGRESSION_JOBS.regression: RegressionTaskSpecification,
         REGRESSION_JOBS.hospital_correction_factors: HospitalCorrectionFactorTaskSpecification,
     }
-
-    def __init__(self, run_hospital: bool = True, **kwargs):
-        super().__init__(**kwargs)
-        self.run_hospital = run_hospital
 
 
 @dataclass
@@ -81,6 +77,7 @@ class RegressionParameters:
 @dataclass
 class HospitalParameters:
     """Parameters for the hospital model calculation."""
+    compute_correction_factors: bool = field(default=True)
     hospital_stay_death: int = field(default=6)
     hospital_stay_recover: int = field(default=14)
     hospital_stay_recover_icu: int = field(default=20)

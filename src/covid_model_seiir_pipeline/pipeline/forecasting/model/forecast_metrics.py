@@ -1,9 +1,11 @@
 import itertools
 from typing import Tuple, TYPE_CHECKING
 
-import numpy as np
 import pandas as pd
 
+from covid_model_seiir_pipeline.lib import (
+    ode,
+)
 from covid_model_seiir_pipeline.pipeline.forecasting.model.containers import (
     Indices,
     ModelParameters,
@@ -15,10 +17,6 @@ from covid_model_seiir_pipeline.pipeline.forecasting.model.containers import (
 from covid_model_seiir_pipeline.pipeline.regression.model import (
     compute_hospital_usage,
 )
-from covid_model_seiir_pipeline.pipeline.forecasting.model import (
-    ode_system,
-)
-
 
 if TYPE_CHECKING:
     # Support type checking but keep the pipeline stages as isolated as possible.
@@ -105,8 +103,8 @@ def variant_system_metrics(indices: Indices,
                            components: pd.DataFrame) -> SystemMetrics:
     components_diff = components.groupby('location_id').diff()
 
-    cols = [f'{c}_{g}' for g, c in itertools.product(['lr', 'hr'], ode_system.REAL_COMPARTMENTS)]
-    tracking_cols = [f'{c}_{g}' for g, c in itertools.product(['lr', 'hr'], ode_system.TRACKING_COMPARTMENTS)]
+    cols = [f'{c}_{g}' for g, c in itertools.product(['lr', 'hr'], ode.COMPARTMENTS._fields)]
+    tracking_cols = [f'{c}_{g}' for g, c in itertools.product(['lr', 'hr'], ode.TRACKING_COMPARTMENTS._fields)]
     modeled_infections_wild = components_diff[[c for c in tracking_cols if 'NewE_wild' in c]].sum(axis=1)
     modeled_infections_variant = components_diff[[c for c in tracking_cols if 'NewE_variant' in c]].sum(axis=1)
     natural_immunity_breakthrough = components_diff[[c for c in tracking_cols if 'NewE_nbt' in c]].sum(axis=1)
@@ -143,6 +141,7 @@ def variant_system_metrics(indices: Indices,
 
     s_wild = components[[c for c in cols if 'S' in c and 'variant' not in c and 'm' not in c]].sum(axis=1)
     s_variant = components[[c for c in cols if 'S' in c]].sum(axis=1)
+    s_variant_only = components[[c for c in cols if 'S_variant' in c or 'S_m' in c]].sum(axis=1)
 
     i_wild = components[[c for c in cols if 'I' in c and 'variant' not in c]].sum(axis=1)
     i_variant = components[[c for c in cols if 'I' in c and 'variant' in c]].sum(axis=1)
@@ -156,13 +155,14 @@ def variant_system_metrics(indices: Indices,
     modeled_infections_total = modeled_infections_wild + modeled_infections_variant
     beta_total = modeled_infections_total / (s_variant * i_total ** model_parameters.alpha / total_pop)
 
-    immune_wild = components[[c for c in cols if ('R' in c or 'S_m' in c) and 'variant' not in c]].sum(axis=1)
     immune_variant = components[[c for c in cols if 'R' in c]].sum(axis=1)
+    immune_wild = immune_variant + s_variant_only
 
     return SystemMetrics(
         modeled_infections_wild=modeled_infections_wild,
         modeled_infections_variant=modeled_infections_variant,
         modeled_infections_total=modeled_infections_wild + modeled_infections_variant,
+        modeled_infected_total=modeled_infections_wild + modeled_infections_variant - natural_immunity_breakthrough,
 
         variant_prevalence=modeled_infections_variant / (modeled_infections_wild + modeled_infections_variant),
 
@@ -183,6 +183,7 @@ def variant_system_metrics(indices: Indices,
 
         total_susceptible_wild=s_wild,
         total_susceptible_variant=s_variant,
+        total_susceptible_variant_only=s_variant_only,
         total_infectious_wild=i_wild,
         total_infectious_variant=i_variant,
         total_immune_wild=immune_wild,
@@ -206,12 +207,17 @@ def compute_corrected_hospital_usage(admissions: pd.Series,
         hfr,
         hospital_parameters,
     )
-    hospital_usage.hospital_census = (hospital_usage.hospital_census
-                                      * postprocessing_parameters.hospital_census).fillna(method='ffill')
-    hospital_usage.icu_census = (hospital_usage.icu_census
-                                 * postprocessing_parameters.icu_census).fillna(method='ffill')
-    hospital_usage.ventilator_census = (hospital_usage.ventilator_census
-                                        * postprocessing_parameters.ventilator_census).fillna(method='ffill')
+    corrected_hospital_census = (hospital_usage.hospital_census
+                                 * postprocessing_parameters.hospital_census).fillna(method='ffill')
+    corrected_icu_census = (corrected_hospital_census
+                            * postprocessing_parameters.icu_census).fillna(method='ffill')
+    corrected_ventilator_census = (corrected_icu_census
+                                   * postprocessing_parameters.ventilator_census).fillna(method='ffill')
+
+    hospital_usage.hospital_census = corrected_hospital_census
+    hospital_usage.icu_census = corrected_icu_census
+    hospital_usage.ventilator_census = corrected_ventilator_census
+
     return hospital_usage
 
 

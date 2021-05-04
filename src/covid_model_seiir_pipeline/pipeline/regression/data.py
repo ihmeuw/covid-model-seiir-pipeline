@@ -116,6 +116,11 @@ class RegressionDataInterface:
         infection_data = self.load_full_past_infection_data(draw_id=draw_id)
         return infection_data.loc[location_ids]
 
+    def load_em_scalars(self) -> pd.Series:
+        location_ids = self.load_location_ids()
+        em_scalars = io.load(self.infection_root.em_scalars())
+        return em_scalars.loc[location_ids, 'em_scalar']
+
     def load_ifr(self, draw_id: int) -> pd.DataFrame:
         ifr = io.load(self.infection_root.ifr(draw_id=draw_id))
         ifr = self.format_ratio_data(ifr)

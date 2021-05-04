@@ -122,10 +122,10 @@ class ModelParameters:
         })
 
     def to_dict(self) -> Dict[str, pd.Series]:
-        return utilities.asdict(self)
+        return {k: v.rename(k) for k, v in utilities.asdict(self).items()}
 
     def to_df(self) -> pd.DataFrame:
-        return pd.concat([v.rename(k) for k, v in self.to_dict().items()], axis=1)
+        return pd.concat(self.to_dict().values(), axis=1)
 
 
 @dataclass
@@ -158,6 +158,7 @@ class SystemMetrics:
     modeled_infections_wild: pd.Series
     modeled_infections_variant: pd.Series
     modeled_infections_total: pd.Series
+    modeled_infected_total: pd.Series
 
     variant_prevalence: pd.Series
     natural_immunity_breakthrough: pd.Series
@@ -177,6 +178,7 @@ class SystemMetrics:
 
     total_susceptible_wild: pd.Series
     total_susceptible_variant: pd.Series
+    total_susceptible_variant_only: pd.Series
     total_infectious_wild: pd.Series
     total_infectious_variant: pd.Series
     total_immune_wild: pd.Series

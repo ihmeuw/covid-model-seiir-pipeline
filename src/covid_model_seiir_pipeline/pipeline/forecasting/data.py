@@ -66,9 +66,6 @@ class ForecastDataInterface:
     def get_n_draws(self) -> int:
         return self._get_regression_data_interface().get_n_draws()
 
-    def has_hospital_corrections(self) -> bool:
-        return self._get_regression_data_interface().load_specification().workflow.run_hospital
-
     def load_location_ids(self) -> List[int]:
         return self._get_regression_data_interface().load_location_ids()
 
@@ -86,6 +83,9 @@ class ForecastDataInterface:
 
     def load_past_infections(self, draw_id: int) -> pd.Series:
         return self._get_regression_data_interface().load_infections(draw_id=draw_id)
+
+    def load_em_scalars(self) -> pd.Series:
+        return self._get_regression_data_interface().load_em_scalars()
 
     def load_past_deaths(self, draw_id: int) -> pd.Series:
         return self._get_regression_data_interface().load_deaths(draw_id=draw_id)
@@ -283,6 +283,12 @@ class ForecastDataInterface:
 
     def load_beta_scales(self, scenario: str, draw_id: int):
         return io.load(self.forecast_root.beta_scaling(scenario=scenario, draw_id=draw_id))
+
+    def save_beta_residual(self, residual: pd.DataFrame, scenario: str, draw_id: int):
+        io.dump(residual, self.forecast_root.beta_residual(scenario=scenario, draw_id=draw_id))
+
+    def load_beta_residual(self, scenario: str, draw_id: int):
+        return io.load(self.forecast_root.beta_residual(scenario=scenario, draw_id=draw_id))
 
     def save_raw_outputs(self, raw_outputs: pd.DataFrame, scenario: str, draw_id: int):
         io.dump(raw_outputs, self.forecast_root.raw_outputs(scenario=scenario, draw_id=draw_id))

@@ -61,12 +61,10 @@ class MiscellaneousConfig:
                  loader: Callable[['PostprocessingDataInterface'], Any],
                  label: str,
                  is_table: bool = True,
-                 is_cumulative: bool = False,
                  aggregator: Callable = None):
         self.loader = loader
         self.label = label
         self.is_table = is_table
-        self.is_cumulative = is_cumulative
         self.aggregator = aggregator
 
 
@@ -78,6 +76,14 @@ MEASURES = {
         'daily_deaths',
         calculate_cumulative=True,
         cumulative_label='cumulative_deaths',
+        aggregator=aggregators.sum_aggregator,
+        write_draws=True,
+    ),
+    'unscaled_deaths': MeasureConfig(
+        loaders.load_unscaled_deaths,
+        'unscaled_daily_deaths',
+        calculate_cumulative=True,
+        cumulative_label='cumulative_unscaled_deaths',
         aggregator=aggregators.sum_aggregator,
         write_draws=True,
     ),
@@ -99,6 +105,14 @@ MEASURES = {
         'daily_infections',
         calculate_cumulative=True,
         cumulative_label='cumulative_infections',
+        aggregator=aggregators.sum_aggregator,
+        write_draws=True,
+    ),
+    'infected': MeasureConfig(
+        loaders.load_infected,
+        'daily_infected',
+        calculate_cumulative=True,
+        cumulative_label='cumulative_infected',
         aggregator=aggregators.sum_aggregator,
         write_draws=True,
     ),
@@ -214,6 +228,11 @@ MEASURES = {
         'total_susceptible_variant',
         aggregator=aggregators.sum_aggregator,
     ),
+    'total_susceptible_variant_only': MeasureConfig(
+        loaders.load_total_susceptible_variant_only,
+        'total_susceptible_variant_only',
+        aggregator=aggregators.sum_aggregator,
+    ),
     'total_immune_wild': MeasureConfig(
         loaders.load_total_immune_wild,
         'total_immune_wild',
@@ -284,10 +303,6 @@ MEASURES = {
         loaders.load_escape_variant_prevalence,
         'escape_variant_prevalence',
     ),
-    'empirical_escape_variant_prevalence': MeasureConfig(
-        loaders.load_empirical_escape_variant_prevalence,
-        'empirical_escape_variant_prevalence',
-    ),
 
     # Beta calculation inputs
 
@@ -338,7 +353,13 @@ COMPOSITE_MEASURES = {
                        'cases': MEASURES['cases']},
         label='infection_detection_ratio',
         combiner=combiners.make_idr,
-    )
+    ),
+    'empirical_escape_variant_prevalence': CompositeMeasureConfig(
+        base_measures={'escape_variant_infections': MEASURES['infections_variant'],
+                       'total_infections': MEASURES['infections']},
+        label='empirical_escape_variant_prevalence',
+        combiner=combiners.make_empirical_escape_variant_prevalence,
+    ),
 }
 
 
@@ -392,31 +413,17 @@ COVARIATES = {
         'smoking_prevalence',
         aggregator=aggregators.mean_aggregator,
     ),
-    'variant_prevalence_B117': CovariateConfig(
-        loaders.load_covariate,
-        'variant_prevalence_B117',
-        time_varying=True,
-        aggregator=aggregators.mean_aggregator,
-    ),
-    'variant_prevalence_B1351': CovariateConfig(
-        loaders.load_covariate,
-        'variant_prevalence_B1351',
-        time_varying=True,
-        aggregator=aggregators.mean_aggregator,
-    ),
-    'variant_prevalence_P1': CovariateConfig(
-        loaders.load_covariate,
-        'variant_prevalence_P1',
-        time_varying=True,
-        aggregator=aggregators.mean_aggregator,
-    ),
 }
 
 MISCELLANEOUS = {
     'full_data': MiscellaneousConfig(
         loaders.load_full_data,
         'full_data',
-        is_cumulative=True,
+        aggregator=aggregators.sum_aggregator,
+    ),
+    'unscaled_full_data': MiscellaneousConfig(
+        loaders.load_unscaled_full_data,
+        'unscaled_full_data',
         aggregator=aggregators.sum_aggregator,
     ),
     'age_specific_deaths': MiscellaneousConfig(
@@ -424,10 +431,10 @@ MISCELLANEOUS = {
         'age_specific_deaths',
         aggregator=aggregators.sum_aggregator,
     ),
-#    'hospital_correction_factors': MiscellaneousConfig(
-#        loaders.load_hospital_correction_factors,
-#        'hospital_correction_factors',
-#    ),
+    'excess_mortality_scalars': MiscellaneousConfig(
+        loaders.load_excess_mortality_scalars,
+        'excess_mortality_scalars',
+    ),
     'hospital_census_data': MiscellaneousConfig(
         loaders.load_raw_census_data,
         'hospital_census_data',

@@ -32,54 +32,73 @@ class ODEParameters:
     This should be constructed such that each parameter series has a shared
     location-date index.
     """
+    # Sub-populations
+    population_low_risk: pd.Series
+    population_high_risk: pd.Series
 
-    population: pd.Series
-    new_e: pd.Series
-
+    # Core parameters
     alpha: pd.Series
     sigma: pd.Series
     gamma1: pd.Series
     gamma2: pd.Series
+    theta_minus: pd.Series
 
+    # Transmission intensity
+    new_e: pd.Series
     kappa: pd.Series
-    rho: pd.Series
     phi: pd.Series
-    pi: pd.Series
+
+    # Variant prevalences
+    rho: pd.Series
     rho_variant: pd.Series
+
+    # Escape variant initialization
+    pi: pd.Series
+
+    # Cross-variant immunity
     chi: pd.Series
 
-    vaccines_unprotected: pd.Series
-    vaccines_protected_wild_type: pd.Series
-    vaccines_protected_all_types: pd.Series
-    vaccines_immune_wild_type: pd.Series
-    vaccines_immune_all_types: pd.Series
+    # Vaccine parameters
+    unprotected_lr: pd.Series
+    protected_wild_type_lr: pd.Series
+    protected_all_types_lr: pd.Series
+    immune_wild_type_lr: pd.Series
+    immune_all_types_lr: pd.Series
 
-    def to_dict(self) -> Dict[str, pd.Series]:
-        return utilities.asdict(self)
-
-    def to_df(self) -> pd.DataFrame:
-        return pd.concat([v.rename(k) for k, v in self.to_dict().items() if isinstance(v, pd.Series)], axis=1)
-
-    def get_vaccinations(self, vaccine_types: List[str]) -> pd.DataFrame:
-        vaccine_type_map = {
-            'u': self.vaccines_unprotected,
-            'p': self.vaccines_protected_wild_type,
-            'pa': self.vaccines_protected_all_types,
-            'm': self.vaccines_immune_wild_type,
-            'ma': self.vaccines_immune_all_types,
-        }
-        vaccinations = pd.DataFrame({
-            k: vaccine_type_map[k].rename(k) for k in vaccine_types
-        })
-        return vaccinations
+    unprotected_hr: pd.Series
+    protected_wild_type_hr: pd.Series
+    protected_all_types_hr: pd.Series
+    immune_wild_type_hr: pd.Series
+    immune_all_types_hr: pd.Series
 
     def reindex(self, index: pd.Index) -> 'ODEParameters':
         return ODEParameters(
             **{key: value.reindex(index) for key, value in self.to_dict().items() if isinstance(value, pd.Series)},
         )
 
+    def to_dict(self) -> Dict[str, pd.Series]:
+        return {k: v.rename(k) for k, v in utilities.asdict(self).items()}
+
+    def to_df(self) -> pd.DataFrame:
+        return pd.concat(self.to_dict().values(), axis=1)
+
+    def get_vaccinations(self, vaccine_types: List[str], risk_group: str) -> pd.DataFrame:
+        vaccine_type_map = {
+            'u': 'unprotected',
+            'p': 'protected_wild_type',
+            'pa': 'protected_all_types',
+            'm': 'immune_wild_type',
+            'ma': 'immune_all_types',
+        }
+        vaccinations = []
+        for vaccine_type in vaccine_types:
+            attr = f'{vaccine_type_map[vaccine_type]}_{risk_group}'
+            vaccinations.append(getattr(self, attr).rename(attr))
+
+        return pd.concat(vaccinations, axis=1)
+
     def __iter__(self) -> Iterator[Tuple[int, 'ODEParameters']]:
-        location_ids = self.population.reset_index().location_id.unique()
+        location_ids = self.population_low_risk.reset_index().location_id.unique()
         for location_id in location_ids:
             loc_parameters = ODEParameters(
                 **{key: value.loc[location_id]

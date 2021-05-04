@@ -67,9 +67,7 @@ def make_covariates_page(plot_versions: List[PlotVersion],
                          start: pd.Timestamp, end: pd.Timestamp,
                          plot_file: str = None):
     sns.set_style('whitegrid')
-    # FIXME: This is brittle w/r/t new covariates
     time_varying = [c for c, c_config in COVARIATES.items() if c_config.time_varying]
-    vlines = []
 
     # Configure the plot layout.
     fig = plt.figure(figsize=FIG_SIZE, tight_layout=True)
@@ -86,20 +84,13 @@ def make_covariates_page(plot_versions: List[PlotVersion],
 
     ylim_map = {
         'mobility': (-100, 20),
-        'testing': (0, 0.015),
+        'testing': (0, 0.02),
         'pneumonia': (0.2, 1.5),
         'mask_use': (0, 1),
-        'variant_prevalence_B117': (0, 1),
-        'variant_prevalence_B1351': (0, 1),
-        'variant_prevalence_P1': (0, 1),
     }
 
     for i, covariate in enumerate(time_varying):
         ax_coef = fig.add_subplot(gs_coef[i])
-        if 'variant' in covariate:
-            label = covariate.split('_')[-1]
-        else:
-            label = covariate.title()
         make_coefficient_plot(
             ax_coef,
             plot_versions,
@@ -128,7 +119,6 @@ def make_covariates_page(plot_versions: List[PlotVersion],
         'betas',
         location.id,
         start, end,
-        vlines=vlines,
         label='Regression Beta',
         transform=lambda x: np.log(x),
     )
@@ -138,7 +128,6 @@ def make_covariates_page(plot_versions: List[PlotVersion],
         'beta_hat',
         location.id,
         start, end,
-        vlines=vlines,
         linestyle='dashed',
         transform=lambda x: np.log(x)
     )
@@ -153,7 +142,6 @@ def make_covariates_page(plot_versions: List[PlotVersion],
         'beta_wild',
         location.id,
         start, end,
-        vlines=vlines,
         label='Non-escape Beta',
         transform=lambda x: np.log(x),
     )
@@ -163,7 +151,6 @@ def make_covariates_page(plot_versions: List[PlotVersion],
         'empirical_beta_wild',
         location.id,
         start, end,
-        vlines=vlines,
         linestyle='dashed',
         transform=lambda x: np.log(x)
     )
@@ -178,7 +165,6 @@ def make_covariates_page(plot_versions: List[PlotVersion],
         'beta_variant',
         location.id,
         start, end,
-        vlines=vlines,
         label='Escape Beta',
         transform=lambda x: np.log(x),
     )
@@ -188,7 +174,6 @@ def make_covariates_page(plot_versions: List[PlotVersion],
         'empirical_beta_variant',
         location.id,
         start, end,
-        vlines=vlines,
         linestyle='dashed',
         transform=lambda x: np.log(x)
     )
@@ -204,7 +189,6 @@ def make_covariates_page(plot_versions: List[PlotVersion],
         location.id,
         start, end,
         label='Log Beta Residuals',
-        vlines=vlines,
     )
 
     ax_reff = fig.add_subplot(gs_r[0])
@@ -215,7 +199,6 @@ def make_covariates_page(plot_versions: List[PlotVersion],
         location.id,
         start, end,
         label='R effective (system)',
-        vlines=vlines,
     )
     ax_reff.set_ylim(-0.5, 3)
 
@@ -241,15 +224,6 @@ def make_variants_page(plot_versions: List[PlotVersion],
                        start: pd.Timestamp, end: pd.Timestamp,
                        plot_file: str = None):
     sns.set_style('whitegrid')
-    observed_color = COLOR_MAP(len(plot_versions))
-
-    # Load some shared data.
-    pv = plot_versions[0]
-    pop = pv.load_output_miscellaneous('populations', is_table=True, location_id=location.id)
-    pop = pop.loc[(pop.age_group_id == 22) & (pop.sex_id == 3), 'population'].iloc[0]
-
-    full_data = pv.load_output_miscellaneous('full_data', is_table=True, location_id=location.id)
-    vlines = []
 
     # Configure the plot layout.
     fig = plt.figure(figsize=FIG_SIZE, tight_layout=True)
@@ -277,7 +251,6 @@ def make_variants_page(plot_versions: List[PlotVersion],
         location.id,
         start, end,
         label='Daily Infections Wild',
-        vlines=vlines,
     )
     make_time_plot(
         ax_infecs_variant,
@@ -286,7 +259,6 @@ def make_variants_page(plot_versions: List[PlotVersion],
         location.id,
         start, end,
         label='Daily Infections Variant',
-        vlines=vlines,
     )
     make_time_plot(
         ax_infecs,
@@ -295,7 +267,6 @@ def make_variants_page(plot_versions: List[PlotVersion],
         location.id,
         start, end,
         label='Daily Infections',
-        vlines=vlines,
     )
 
     make_time_plot(
@@ -305,7 +276,6 @@ def make_variants_page(plot_versions: List[PlotVersion],
         location.id,
         start, end,
         label='Daily Infections Natural Breakthrough',
-        vlines=vlines,
     )
     make_time_plot(
         ax_infecs_vb,
@@ -314,7 +284,6 @@ def make_variants_page(plot_versions: List[PlotVersion],
         location.id,
         start, end,
         label='Daily Infections Vaccine Breakthrough',
-        vlines=vlines,
     )
 
     make_time_plot(
@@ -324,7 +293,6 @@ def make_variants_page(plot_versions: List[PlotVersion],
         location.id,
         start, end,
         label='Escape Variant Prevalence',
-        vlines=vlines,
     )
     make_time_plot(
         ax_variant_prev,
@@ -332,7 +300,6 @@ def make_variants_page(plot_versions: List[PlotVersion],
         'empirical_escape_variant_prevalence',
         location.id,
         start, end,
-        vlines=vlines,
         linestyle='dashed',
     )
     ax_variant_prev.set_ylim([0, 1])
@@ -346,7 +313,6 @@ def make_variants_page(plot_versions: List[PlotVersion],
         location.id,
         start, end,
         label='Daily Deaths Wild',
-        vlines=vlines,
     )
     make_time_plot(
         ax_deaths_variant,
@@ -355,7 +321,6 @@ def make_variants_page(plot_versions: List[PlotVersion],
         location.id,
         start, end,
         label='Daily Deaths Variant',
-        vlines=vlines,
     )
     make_time_plot(
         ax_deaths,
@@ -364,7 +329,6 @@ def make_variants_page(plot_versions: List[PlotVersion],
         location.id,
         start, end,
         label='Daily Deaths',
-        vlines=vlines,
     )
     make_title_and_legend(fig, location, plot_versions)
     write_or_show(fig, plot_file)
@@ -383,7 +347,6 @@ def make_results_page(plot_versions: List[PlotVersion],
     pop = pop.loc[(pop.age_group_id == 22) & (pop.sex_id == 3), 'population'].iloc[0]
 
     full_data = pv.load_output_miscellaneous('full_data', is_table=True, location_id=location.id)
-    vlines = []
 
     # Configure the plot layout.
     fig = plt.figure(figsize=FIG_SIZE, tight_layout=True)
@@ -419,7 +382,6 @@ def make_results_page(plot_versions: List[PlotVersion],
         location.id,
         start, end,
         label='Daily Infections',
-        vlines=vlines,
     )
     ax_daily_infec.plot(
         full_data['date'],
@@ -435,7 +397,6 @@ def make_results_page(plot_versions: List[PlotVersion],
         location.id,
         start, end,
         label='Daily Cases',
-        vlines=vlines,
     )
     ax_daily_case.plot(
         full_data['date'],
@@ -451,7 +412,6 @@ def make_results_page(plot_versions: List[PlotVersion],
         location.id,
         start, end,
         label='Daily Hospital and ICU Admissions',
-        vlines=vlines,
         uncertainty=False,
     )
     make_time_plot(
@@ -460,7 +420,6 @@ def make_results_page(plot_versions: List[PlotVersion],
         'icu_admissions',
         location.id,
         start, end,
-        vlines=vlines,
         uncertainty=False,
         linestyle='dashed',
     )
@@ -480,7 +439,6 @@ def make_results_page(plot_versions: List[PlotVersion],
         location.id,
         start, end,
         label='Daily Deaths',
-        vlines=vlines,
     )
     ax_daily_death.plot(
         full_data['date'],
@@ -498,7 +456,6 @@ def make_results_page(plot_versions: List[PlotVersion],
         location.id,
         start, end,
         label='Cumulative Infected (%)',
-        vlines=vlines,
         transform=lambda x: 100 * x / pop,
     )
     ax_cumul_infec.set_ylim(0, 100)
@@ -510,7 +467,6 @@ def make_results_page(plot_versions: List[PlotVersion],
         location.id,
         start, end,
         label='Cumulative Cases',
-        vlines=vlines,
     )
 
     make_time_plot(
@@ -520,7 +476,6 @@ def make_results_page(plot_versions: List[PlotVersion],
         location.id,
         start, end,
         label='Hospital and ICU Census',
-        vlines=vlines,
     )
     make_time_plot(
         ax_census_hosp,
@@ -528,7 +483,6 @@ def make_results_page(plot_versions: List[PlotVersion],
         'icu_census',
         location.id,
         start, end,
-        vlines=vlines,
         linestyle='dashed',
     )
     make_axis_legend(ax_census_hosp, {'hospital': {'linestyle': 'solid'},
@@ -541,7 +495,6 @@ def make_results_page(plot_versions: List[PlotVersion],
         location.id,
         start, end,
         label='Cumulative Deaths',
-        vlines=vlines,
     )
 
     # Column 3, ratios
@@ -552,7 +505,6 @@ def make_results_page(plot_versions: List[PlotVersion],
         location.id,
         start, end,
         label='Cumulative Vaccinations (%)',
-        vlines=vlines,
         transform=lambda x: x / pop * 100,
     )
     make_time_plot(
@@ -561,7 +513,6 @@ def make_results_page(plot_versions: List[PlotVersion],
         'cumulative_vaccinations_effective_input',
         location.id,
         start, end,
-        vlines=vlines,
         linestyle='dashed',
         transform=lambda x: x / pop * 100,
     )
@@ -576,7 +527,6 @@ def make_results_page(plot_versions: List[PlotVersion],
         location.id,
         start, end,
         label='IDR',
-        vlines=vlines,
     )
     ax_idr.plot(
         idr['date'],
@@ -593,7 +543,6 @@ def make_results_page(plot_versions: List[PlotVersion],
         location.id,
         start, end,
         label='IHR',
-        vlines=vlines,
     )
     ax_ihr.plot(
         ihr['date'],
@@ -610,7 +559,6 @@ def make_results_page(plot_versions: List[PlotVersion],
         location.id,
         start, end,
         label='IFR',
-        vlines=vlines,
     )
     ax_ifr.plot(
         ifr['date'],
@@ -627,7 +575,6 @@ def make_results_page(plot_versions: List[PlotVersion],
         location.id,
         start, end,
         label='Immune Wild-type (%)',
-        vlines=vlines,
         transform=lambda x: 100 * x / pop,
     )
     ax_immune_wild.set_ylim(0, 100)
@@ -639,7 +586,6 @@ def make_results_page(plot_versions: List[PlotVersion],
         location.id,
         start, end,
         label='Immune All Types (%)',
-        vlines=vlines,
         transform=lambda x: 100 * x / pop,
     )
     ax_immune_variant.set_ylim(0, 100)
@@ -651,7 +597,6 @@ def make_results_page(plot_versions: List[PlotVersion],
         location.id,
         start, end,
         label='Susceptible Wild-type (%)',
-        vlines=vlines,
         transform=lambda x: 100 * x / pop,
     )
     ax_susceptible_wild.set_ylim(0, 100)
@@ -663,7 +608,6 @@ def make_results_page(plot_versions: List[PlotVersion],
         location.id,
         start, end,
         label='Susceptible All Types (%)',
-        vlines=vlines,
         transform=lambda x: 100 * x / pop,
     )
     ax_susceptible_variant.set_ylim(0, 100)
@@ -680,11 +624,12 @@ def make_time_plot(ax,
                    label: str = None,
                    linestyle: str = 'solid',
                    uncertainty: bool = False,
-                   vlines=(),
                    transform=lambda x: x):
     for plot_version in plot_versions:
         try:
             data = plot_version.load_output_summaries(measure, loc_id)
+            if 'observed' in data:
+                vlines = [data[data.observed == 1].date.max()]
         except FileNotFoundError:  # No data for this version, so skip.
             continue
         data[['mean', 'upper', 'lower']] = transform(data[['mean', 'upper', 'lower']])
