@@ -69,7 +69,6 @@ def make_results_page(plot_versions: List[PlotVersion],
                       start: pd.Timestamp, end: pd.Timestamp,
                       plot_file: str = None):
     sns.set_style('whitegrid')
-    observed_color = COLOR_MAP(len(plot_versions))
 
     # Load some shared data.
     pv = plot_versions[-1]
@@ -549,7 +548,6 @@ def make_placeholder(axis, label: str):
 
 
 def write_or_show(fig, plot_file: str):
-    fig.align_ylabels()
     if plot_file:
         fig.savefig(plot_file, bbox_inches='tight')
         plt.close(fig)
