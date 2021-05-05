@@ -192,6 +192,7 @@ def make_details_page(plot_versions: List[PlotVersion],
     pop = pv.load_output_miscellaneous('populations', is_table=True, location_id=location.id)
     pop = pop.loc[(pop.age_group_id == 22) & (pop.sex_id == 3), 'population'].iloc[0]
     full_data = pv.load_output_miscellaneous('full_data', is_table=True, location_id=location.id)
+    full_data_unscaled = pv.load_output_miscellaneous('full_data_unscaled', is_table=True, location_id=location.id)
     hospital_census = pv.load_output_miscellaneous('hospital_census_data', is_table=True, location_id=location.id)
 
     # Configure the plot layout.
@@ -203,9 +204,10 @@ def make_details_page(plot_versions: List[PlotVersion],
     grid_spec.update(**GRID_SPEC_MARGINS)
 
     gs_hospital = grid_spec[0, 0].subgridspec(3, 2)
-    gs_detail = grid_spec[0, 1].subgridspec(2, 1, height_ratios=[2, 1])
-    gs_infections = gs_detail[0, 0].subgridspec(3, 2)
-    gs_susceptible = gs_detail[1, 0].subgridspec(1, 3)
+    gs_detail = grid_spec[0, 1].subgridspec(3, 1, height_ratios=[2, 1, 1])
+    gs_infections = gs_detail[0, 0].subgridspec(2, 2)
+    gs_deaths = gs_detail[1, 0].subgridspec(1, 3)
+    gs_susceptible = gs_detail[2, 0].subgridspec(1, 3)
 
     plotter = Plotter(
         plot_versions=plot_versions,
@@ -256,6 +258,39 @@ def make_details_page(plot_versions: List[PlotVersion],
             measure,
             label=label,
         )
+
+    ax_unscaled = fig.add_subplot(gs_deaths[0])
+    plotter.make_time_plot(
+        ax_unscaled,
+        'unscaled_daily_deaths',
+        label='Unscaled Deaths',
+    )
+    plotter.make_observed_time_plot(
+        ax_unscaled,
+        full_data_unscaled['date'],
+        full_data_unscaled['cumulative_deaths'].diff(),
+    )
+    ax_scalars = fig.add_subplot(gs_deaths[1])
+    plotter.make_time_plot(
+        ax_scalars,
+        'excess_mortality_scalars',
+        label='EM Scalars'
+    )
+    ax_scaled = fig.add_subplot(gs_deaths[2])
+    plotter.make_time_plot(
+        ax_scaled,
+        'daily_deaths',
+        label='Deaths',
+    )
+    plotter.make_observed_time_plot(
+        ax_scaled,
+        full_data['date'],
+        full_data['cumulative_deaths'].diff(),
+    )
+
+
+
+
 
     susceptible_measures = [
         ('total_susceptible_wild', 'Naive Susceptible (%)'),

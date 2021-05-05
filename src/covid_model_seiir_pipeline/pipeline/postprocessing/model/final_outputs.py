@@ -81,7 +81,7 @@ MEASURES = {
     ),
     'unscaled_deaths': MeasureConfig(
         loaders.load_unscaled_deaths,
-        'unscaled_daily_deaths',
+        'daily_unscaled_deaths',
         calculate_cumulative=True,
         cumulative_label='cumulative_unscaled_deaths',
         aggregator=aggregators.sum_aggregator,
