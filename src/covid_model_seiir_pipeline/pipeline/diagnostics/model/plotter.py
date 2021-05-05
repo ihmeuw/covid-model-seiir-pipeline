@@ -436,7 +436,7 @@ class Plotter:
                  start: pd.Timestamp,
                  end: pd.Timestamp,
                  uncertainty: bool = False,
-                 transform = lambda x: x,
+                 transform=lambda x: x,
                  **extra_defaults):
         self._plot_versions = plot_versions
         self._loc_id = loc_id
@@ -445,7 +445,7 @@ class Plotter:
 
         self._uncertainty = uncertainty
         self._transform = transform
-        self._default_options = extra_defaults.update({'linewidth': 2.5})
+        self._default_options = {'linewidth': 2.5}.update(extra_defaults)
 
     def make_time_plot(self, ax, measure: str, label: str = None, **extra_options):
         uncertainty = extra_options.pop('uncertainty', self._uncertainty)
