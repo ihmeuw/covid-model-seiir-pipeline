@@ -91,6 +91,7 @@ def make_covariates_page(plot_versions: List[PlotVersion],
 
     for i, covariate in enumerate(time_varying):
         ax_coef = fig.add_subplot(gs_coef[i])
+        label = covariate.title()
         make_coefficient_plot(
             ax_coef,
             plot_versions,
@@ -628,8 +629,6 @@ def make_time_plot(ax,
     for plot_version in plot_versions:
         try:
             data = plot_version.load_output_summaries(measure, loc_id)
-            if 'observed' in data:
-                vlines = [data[data.observed == 1].date.max()]
         except FileNotFoundError:  # No data for this version, so skip.
             continue
         data[['mean', 'upper', 'lower']] = transform(data[['mean', 'upper', 'lower']])
@@ -637,9 +636,6 @@ def make_time_plot(ax,
         ax.plot(data['date'], data['mean'], color=plot_version.color, linestyle=linestyle, linewidth=2.5)
         if uncertainty:
             ax.fill_between(data['date'], data['upper'], data['lower'], alpha=FILL_ALPHA, color=plot_version.color)
-
-    for vline_x in vlines:
-        add_vline(ax, vline_x)
 
     if start is not None and end is not None:
         date_locator = mdates.AutoDateLocator(maxticks=15)
