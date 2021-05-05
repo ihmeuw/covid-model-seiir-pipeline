@@ -15,7 +15,6 @@ from covid_model_seiir_pipeline.pipeline.diagnostics.model.plot_version import (
 )
 from covid_model_seiir_pipeline.pipeline.postprocessing.model import (
     COVARIATES,
-    INFECTION_TO_CASE,
 )
 
 COLOR_MAP = ['#7F3C8D', '#11A579',
@@ -26,7 +25,7 @@ COLOR_MAP = ['#7F3C8D', '#11A579',
              '#4b4b8f', '#A5AA99'].__getitem__
 
 FILL_ALPHA = 0.2
-OBSERVED_ALPHA = 0.5
+OBSERVED_ALPHA = 0.3
 AX_LABEL_FONTSIZE = 14
 TITLE_FONTSIZE = 24
 HIST_BINS = 25
@@ -101,7 +100,7 @@ def make_results_page(plot_versions: List[PlotVersion],
     # Column 1, Daily
     daily_measures = [
         ('daily_cases', 'Daily Cases', 'cumulative_cases'),
-        ('hospital_admissions', 'Daily Hospital Admissions', 'cumulative_hospitalizations'),
+        ('hospital_admissions', 'Daily Admissions', 'cumulative_hospitalizations'),
         ('daily_deaths', 'Daily Deaths', 'cumulative_deaths'),
     ]
     for i, (measure, label, full_data_measure) in enumerate(daily_measures):
@@ -111,13 +110,11 @@ def make_results_page(plot_versions: List[PlotVersion],
             measure,
             label=label,
         )
-        ax_measure.scatter(
+        plotter.make_observed_time_plot(
+            ax_measure,
             full_data['date'],
             full_data[full_data_measure].diff(),
-            color=observed_color,
-            alpha=OBSERVED_ALPHA,
         )
-        add_vline(ax_measure, full_data.loc[full_data[full_data_measure].notnull(), 'date'].max())
 
         if measure == 'daily_deaths':
             # Mandate reimposition level.
@@ -125,17 +122,22 @@ def make_results_page(plot_versions: List[PlotVersion],
 
     # Column 2, Cumulative & rates
     cumulative_measures = [
-        ('daily_cases', 'Cumulative Cases'),
-        ('hospital_admissions', 'Cumulative Hospital Admissions'),
-        ('daily_deaths', 'Cumulative Deaths'),
+        ('daily_cases', 'Cumulative Cases', 'cumulative_cases'),
+        ('hospital_admissions', 'Cumulative Admissions', 'cumulative_hospitalizations'),
+        ('daily_deaths', 'Cumulative Deaths', 'cumulative_deaths'),
     ]
-    for i, (measure, label) in enumerate(cumulative_measures):
+    for i, (measure, label, full_data_measure) in enumerate(cumulative_measures):
         ax_measure = fig.add_subplot(gs_rates[2*i])
         plotter.make_time_plot(
             ax_measure,
             measure,
             label=label,
             transform=lambda x: x.cumsum(),
+        )
+        plotter.make_observed_time_plot(
+            ax_measure,
+            full_data['date'],
+            full_data[full_data_measure],
         )
 
     rates_measures = [
@@ -151,17 +153,16 @@ def make_results_page(plot_versions: List[PlotVersion],
             measure,
             label=label
         )
-        ax_measure.scatter(
+        plotter.make_observed_time_plot(
+            ax_measure,
             rate['date'],
             rate['mean'],
-            color=observed_color,
-            alpha=OBSERVED_ALPHA,
         )
 
     infections_measures = [
         ('daily_infections', 'Daily Infections'),
-        ('cumulative_infections', 'Cumulative Infections (% Population)'),
-        ('cumulative_infected', 'Cumulative Infected (% Population)'),
+        ('cumulative_infections', 'Cumulative Infections (%)'),
+        ('cumulative_infected', 'Cumulative Infected (%)'),
     ]
     for i, (measure, label) in enumerate(infections_measures):
         ax_measure = fig.add_subplot(gs_infecs[i])
@@ -175,14 +176,7 @@ def make_results_page(plot_versions: List[PlotVersion],
             label=label,
             transform=transform,
         )
-        if measure == 'daily_infections':
-            ax_measure.scatter(
-                full_data['date'],
-                full_data['cumulative_cases'].diff().shift(-INFECTION_TO_CASE),
-                color=observed_color,
-                alpha=OBSERVED_ALPHA,
-            )
-            
+
     make_title_and_legend(fig, location, plot_versions)
     write_or_show(fig, plot_file)
 
@@ -210,7 +204,7 @@ def make_details_page(plot_versions: List[PlotVersion],
     grid_spec.update(**GRID_SPEC_MARGINS)
 
     gs_hospital = grid_spec[0, 0].subgridspec(3, 2)
-    gs_detail = grid_spec[0, 1].subgridspec(2, 1, height_ratios=[3, 1])
+    gs_detail = grid_spec[0, 1].subgridspec(2, 1, height_ratios=[2, 1])
     gs_infections = gs_detail[0, 0].subgridspec(3, 2)
     gs_susceptible = gs_detail[1, 0].subgridspec(1, 3)
 
@@ -222,39 +216,39 @@ def make_details_page(plot_versions: List[PlotVersion],
 
     # Hospital model section
     for i, measure in enumerate(['hospital', 'icu', 'ventilator']):
+        label = measure.upper() if measure == 'icu' else measure.title()
         if measure != 'ventilator':
             ax_daily = fig.add_subplot(gs_hospital[i, 0])
             plotter.make_time_plot(
                 ax_daily,
                 f'{measure}_admissions',
-                label=f'{measure.title()} Admissions'
+                label=f'{label} Admissions'
             )
             if measure == 'hospital':
-                ax_daily.scatter(
+                plotter.make_observed_time_plot(
+                    ax_daily,
                     full_data['date'],
                     full_data['cumulative_hospitalizations'].diff(),
-                    color=observed_color,
-                    alpha=OBSERVED_ALPHA,
                 )
+
         ax_census = fig.add_subplot(gs_hospital[i, 1])
         plotter.make_time_plot(
             ax_census,
             f'{measure}_census',
-            label=f'{measure.title()} Census',
+            label=f'{label} Census',
         )
-        ax_census.scatter(
+        plotter.make_observed_time_plot(
+            ax_census,
             hospital_census['date'],
             hospital_census[f'{measure}_census'],
-            color=observed_color,
-            alpha=OBSERVED_ALPHA,
         )
 
     # Detailed infections section
     infections_measures = [
-        ('daily_infections_wild', 'Daily Infections Non-Escape'),
-        ('daily_infections_variant', 'Daily Infections Escape'),
-        ('daily_infections_vaccine_breakthrough', 'Daily Infections Vaccine Escape'),
-        ('daily_infections_natural_immunity_breakthrough', 'Daily Infections N. Immunity Escape'),
+        ('daily_infections_wild', 'Non-Escape Infections'),
+        ('daily_infections_variant', 'Escape Infections'),
+        ('daily_infections_vaccine_breakthrough', 'Vaccine Escape Infections'),
+        ('daily_infections_natural_immunity_breakthrough', 'N. Immunity Escape Infections'),
     ]
     for i, (measure, label) in enumerate(infections_measures):
         ax_measure = fig.add_subplot(gs_infections[i // 2, i % 2])
@@ -265,8 +259,8 @@ def make_details_page(plot_versions: List[PlotVersion],
         )
 
     susceptible_measures = [
-        ('total_susceptible_wild', 'Naive Susceptible (% Population)'),
-        ('total_susceptible_variant_only', 'Escape Variant Susceptible (% Population)'),
+        ('total_susceptible_wild', 'Naive Susceptible (%)'),
+        ('total_susceptible_variant_only', 'Exposed Susceptible (% Population)'),
         ('total_susceptible_variant', 'Total Susceptible (% Population)'),
     ]
     for i, (measure, label) in enumerate(susceptible_measures):
@@ -389,6 +383,7 @@ def make_drivers_page(plot_versions: List[PlotVersion],
         'non_escape_variant_prevalence',
         label='Non-Escape Variant Prevalence',
     )
+    ax_rho.set_ylim(0, 1)
 
     ax_resid = fig.add_subplot(gs_r[0])
     plotter.make_time_plot(
@@ -475,6 +470,19 @@ class Plotter:
         if label is not None:
             ax.set_ylabel(label, fontsize=AX_LABEL_FONTSIZE)
 
+    def make_observed_time_plot(self, ax, x, y):
+        observed_color = COLOR_MAP(len(self._plot_versions))
+        ax.scatter(
+            x, y,
+            color=observed_color,
+            alpha=OBSERVED_ALPHA,
+        )
+        ax.plot(
+            x, y,
+            color=observed_color,
+            alpha=OBSERVED_ALPHA,
+        )
+
     def make_log_beta_resid_hist(self, ax):
         for plot_version in self._plot_versions:
             data = plot_version.load_output_draws('beta_scaling_parameters', self._loc_id)
@@ -541,6 +549,7 @@ def make_placeholder(axis, label: str):
 
 
 def write_or_show(fig, plot_file: str):
+    fig.align_ylabels()
     if plot_file:
         fig.savefig(plot_file, bbox_inches='tight')
         plt.close(fig)
