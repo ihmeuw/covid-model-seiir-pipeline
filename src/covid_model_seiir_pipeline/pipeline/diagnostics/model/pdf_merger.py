@@ -28,7 +28,7 @@ def merge_pdfs(plot_cache: Path, output_path: Path, hierarchy: pd.DataFrame):
         current_page = 0
         for location_id in sorted_locations:
             result_page_path = plot_cache / f'{location_id}_results.pdf'
-            variants_page_path = plot_cache / f'{location_id}_variants.pdf'
+            variants_page_path = plot_cache / f'{location_id}_details.pdf'
             covariate_page_path = plot_cache / f'{location_id}_covariates.pdf'
 
             if not result_page_path.exists():

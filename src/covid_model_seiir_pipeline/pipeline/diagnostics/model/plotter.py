@@ -50,18 +50,18 @@ def make_grid_plot(location: Location,
             plot_file=str(output_dir / f'{location.id}_results.pdf')
         )
 
-
-        make_covariates_page(
+        make_details_page(
             plot_versions,
             location,
             date_start, date_end,
-            plot_file=str(output_dir / f'{location.id}_covariates.pdf')
+            plot_file=str(output_dir / f'{location.id}_details.pdf')
         )
-        make_variants_page(
+
+        make_drivers_page(
             plot_versions,
             location,
             date_start, date_end,
-            plot_file=str(output_dir / f'{location.id}_variants.pdf')
+            plot_file=str(output_dir / f'{location.id}_drivers.pdf')
         )
 
 
@@ -89,8 +89,8 @@ def make_results_page(plot_versions: List[PlotVersion],
     grid_spec.update(**GRID_SPEC_MARGINS)
 
     gs_daily = grid_spec[0, 0].subgridspec(3, 1)
-    gs_rates = grid_spec[1, 0].subgridspec(6, 1)
-    gs_infecs = grid_spec[2, 0].subgridspec(3, 1)
+    gs_rates = grid_spec[0, 1].subgridspec(6, 1)
+    gs_infecs = grid_spec[0, 2].subgridspec(3, 1)
 
     plotter = Plotter(
         plot_versions=plot_versions,
@@ -187,25 +187,134 @@ def make_results_page(plot_versions: List[PlotVersion],
     write_or_show(fig, plot_file)
 
 
-def make_covariates_page(plot_versions: List[PlotVersion],
-                         location: Location,
-                         start: pd.Timestamp, end: pd.Timestamp,
-                         plot_file: str = None):
+def make_details_page(plot_versions: List[PlotVersion],
+                      location: Location,
+                      start: pd.Timestamp, end: pd.Timestamp,
+                      plot_file: str = None):
     sns.set_style('whitegrid')
+    observed_color = COLOR_MAP(len(plot_versions))
+
+    # Load some shared data.
+    pv = plot_versions[-1]
+    pop = pv.load_output_miscellaneous('populations', is_table=True, location_id=location.id)
+    pop = pop.loc[(pop.age_group_id == 22) & (pop.sex_id == 3), 'population'].iloc[0]
+    full_data = pv.load_output_miscellaneous('full_data', is_table=True, location_id=location.id)
+    hospital_census = pv.load_output_miscellaneous('hospital_census_data', is_table=True, location_id=location.id)
+
+    # Configure the plot layout.
+    fig = plt.figure(figsize=FIG_SIZE, tight_layout=True)
+    grid_spec = fig.add_gridspec(
+        nrows=1, ncols=2,
+        wspace=0.2,
+    )
+    grid_spec.update(**GRID_SPEC_MARGINS)
+
+    gs_hospital = grid_spec[0, 0].subgridspec(3, 2)
+    gs_detail = grid_spec[0, 1].subgridspec(2, 1, height_ratios=[3, 1])
+    gs_infections = gs_detail[0, 0].subgridspec(3, 2)
+    gs_susceptible = gs_detail[1, 0].subgridspec(1, 3)
+
+    plotter = Plotter(
+        plot_versions=plot_versions,
+        loc_id=location.id,
+        start=start, end=end,
+    )
+
+    # Hospital model section
+    for i, measure in ['hospital', 'icu', 'ventilator']:
+        if measure != 'ventilator':
+            ax_daily = fig.add_subplot(gs_hospital[i, 0])
+            plotter.make_time_plot(
+                ax_daily,
+                f'{measure}_admissions',
+                label=f'{measure.title()} Admissions'
+            )
+            if measure == 'hospital':
+                ax_daily.scatter(
+                    full_data['date'],
+                    full_data['cumulative_admissions'].diff(),
+                    color=observed_color,
+                    alpha=OBSERVED_ALPHA,
+                )
+        ax_census = fig.add_subplot(gs_hospital[i, 1])
+        plotter.make_time_plot(
+            ax_census,
+            f'{measure}_census',
+            label=f'{measure.title()} Census',
+        )
+        ax_census.scatter(
+            hospital_census['date'],
+            hospital_census[f'{measure}_census'],
+            color=observed_color,
+            alpha=OBSERVED_ALPHA,
+        )
+
+    # Detailed infections section
+    infections_measures = [
+        ('daily_infections_wild', 'Daily Infections Non-Escape'),
+        ('daily_infections_variant', 'Daily Infections Escape'),
+        ('daily_infections_vaccine_breakthrough', 'Daily Infections Vaccine Escape'),
+        ('daily_infections_natural_immunity_breakthrough', 'Daily Infections N. Immunity Escape'),
+    ]
+    for i, (measure, label) in enumerate(infections_measures):
+        ax_measure = fig.add_subplot(gs_infections[i // 2, i % 2])
+        plotter.make_time_plot(
+            ax_measure,
+            measure,
+            label=label,
+        )
+
+    susceptible_measures = [
+        ('total_susceptible_wild', 'Naive Susceptible (% Population)'),
+        ('total_susceptible_variant_only', 'Escape Variant Susceptible (% Population)'),
+        ('total_susceptible_variant', 'Total Susceptible (% Population)'),
+    ]
+    for i, (measure, label) in enumerate(susceptible_measures):
+        ax_measure = fig.add_subplot(gs_susceptible[i])
+        plotter.make_time_plot(
+            ax_measure,
+            measure,
+            label=label,
+            transform=lambda x: x / pop * 100,
+        )
+        ax_measure.set_ylim(0, 100)
+
+    make_title_and_legend(fig, location, plot_versions)
+    write_or_show(fig, plot_file)
+
+
+def make_drivers_page(plot_versions: List[PlotVersion],
+                      location: Location,
+                      start: pd.Timestamp, end: pd.Timestamp,
+                      plot_file: str = None):
+    sns.set_style('whitegrid')
+
+    # Load some shared data.
+    pv = plot_versions[-1]
+    pop = pv.load_output_miscellaneous('populations', is_table=True, location_id=location.id)
+    pop = pop.loc[(pop.age_group_id == 22) & (pop.sex_id == 3), 'population'].iloc[0]
+
     time_varying = [c for c, c_config in COVARIATES.items() if c_config.time_varying]
 
     # Configure the plot layout.
     fig = plt.figure(figsize=FIG_SIZE, tight_layout=True)
-    grid_spec = fig.add_gridspec(nrows=1,
+    grid_spec = fig.add_gridspec(nrows=2,
                                  ncols=4,
-                                 width_ratios=[1, 3, 5, 5],
+                                 width_ratios=[1, 4, 5, 5],
+                                 height_ratios=[3, 1],
                                  wspace=0.2)
     grid_spec.update(**GRID_SPEC_MARGINS)
 
     gs_coef = grid_spec[0, 0].subgridspec(len(time_varying), 1)
     gs_cov = grid_spec[0, 1].subgridspec(len(time_varying), 1)
-    gs_beta = grid_spec[0, 2].subgridspec(4, 1)
-    gs_r = grid_spec[0, 3].subgridspec(4, 1)
+    gs_beta = grid_spec[:, 2].subgridspec(4, 1)
+    gs_r = grid_spec[:, 3].subgridspec(4, 1)
+
+    plotter = Plotter(
+        plot_versions=plot_versions,
+        loc_id=location.id,
+        start=start, end=end,
+    )
 
     ylim_map = {
         'mobility': (-100, 20),
@@ -216,245 +325,105 @@ def make_covariates_page(plot_versions: List[PlotVersion],
 
     for i, covariate in enumerate(time_varying):
         ax_coef = fig.add_subplot(gs_coef[i])
-        make_coefficient_plot(
+        plotter.make_coefficient_plot(
             ax_coef,
-            plot_versions,
             covariate,
-            location.id,
-            label=label,
+            label=covariate.title(),
         )
-
         ax_cov = fig.add_subplot(gs_cov[i])
-        make_time_plot(
+        plotter.make_time_plot(
             ax_cov,
-            plot_versions,
             covariate,
-            location.id,
-            start, end,
-            label=label,
+            label=covariate.title(),
         )
         ylims = ylim_map.get(covariate)
         if ylims is not None:
             ax_cov.set_ylim(*ylims)
 
-    ax_beta_total = fig.add_subplot(gs_beta[0])
-    make_time_plot(
-        ax_beta_total,
-        plot_versions,
-        'betas',
-        location.id,
-        start, end,
-        label='Regression Beta',
-        transform=lambda x: np.log(x),
-    )
-    make_time_plot(
-        ax_beta_total,
-        plot_versions,
-        'beta_hat',
-        location.id,
-        start, end,
-        linestyle='dashed',
-        transform=lambda x: np.log(x)
-    )
-    ax_beta_total.set_ylim(-3, 1)
-    make_axis_legend(ax_beta_total, {'beta fit': {'linestyle': 'solid'},
-                                     'beta hat': {'linestyle': 'dashed'}})
+    ax_vaccine = fig.add_subplot(grid_spec[1, :2])
 
-    ax_beta_wild = fig.add_subplot(gs_beta[1])
-    make_time_plot(
-        ax_beta_wild,
-        plot_versions,
-        'beta_wild',
-        location.id,
-        start, end,
-        label='Non-escape Beta',
-        transform=lambda x: np.log(x),
+    plotter.make_time_plot(
+        ax_vaccine,
+        'cumulative_vaccinations_effective',
+        label='Cumulative Vaccinations (%)',
+        transform=lambda x: x / pop * 100,
     )
-    make_time_plot(
-        ax_beta_wild,
-        plot_versions,
-        'empirical_beta_wild',
-        location.id,
-        start, end,
+    plotter.make_time_plot(
+        ax_vaccine,
+        'cumulative_vaccinations_effective_input',
         linestyle='dashed',
-        transform=lambda x: np.log(x)
+        transform=lambda x: x / pop * 100,
     )
-    ax_beta_wild.set_ylim(-3, 1)
-    make_axis_legend(ax_beta_wild, {'input beta': {'linestyle': 'solid'},
-                                    'empirical beta': {'linestyle': 'dashed'}})
+    make_axis_legend(ax_vaccine, {'effective delivered': {'linestyle': 'solid'},
+                                  'effective available': {'linestyle': 'dashed'}})
+    ax_vaccine.set_ylim(0, 100)
 
-    ax_beta_variant = fig.add_subplot(gs_beta[2])
-    make_time_plot(
-        ax_beta_variant,
-        plot_versions,
-        'beta_variant',
-        location.id,
-        start, end,
-        label='Escape Beta',
-        transform=lambda x: np.log(x),
-    )
-    make_time_plot(
-        ax_beta_variant,
-        plot_versions,
-        'empirical_beta_variant',
-        location.id,
-        start, end,
-        linestyle='dashed',
-        transform=lambda x: np.log(x)
-    )
-    ax_beta_variant.set_ylim(-3, 1)
-    make_axis_legend(ax_beta_variant, {'input beta': {'linestyle': 'solid'},
-                                       'empirical': {'linestyle': 'dashed'}})
+    beta_measures = [
+        ('betas', 'beta_hat', 'Regression Beta (log)', ('beta final', 'beta hat')),
+        ('beta_wild', 'empirical_beta_wild', 'Non-Escape Beta (log)', ('input beta', 'empirical beta')),
+        ('beta_variant', 'empirical_beta_variant', 'Escape Beta (log)', ('input beta', 'empirical beta')),
+    ]
+    for i, (measure1, measure2, label, legend_names) in enumerate(beta_measures):
+        ax_measure = fig.add_subplot(gs_beta[i])
+        plotter.make_time_plot(
+            ax_measure,
+            measure1,
+            label=label,
+            transform=lambda x: np.log(x),
+        )
+        plotter.make_time_plot(
+            ax_measure,
+            measure2,
+            linestyle='dashed',
+            transform=lambda x: np.log(x),
+        )
+        ax_measure.set_ylim(-3, 1)
+        make_axis_legend(
+            ax_measure,
+            {name: {'linestyle': style} for name, style in zip(legend_names, ['solid', 'dashed'])}
+        )
 
-    ax_resid = fig.add_subplot(gs_beta[3])
-    make_time_plot(
+    ax_rho = fig.add_subplot(gs_beta[-1])
+    plotter.make_time_plot(
+        ax_rho,
+        'non_escape_variant_prevalence',
+        label='Non-Escape Variant Prevalence',
+    )
+
+    ax_resid = fig.add_subplot(gs_r[0])
+    plotter.make_time_plot(
         ax_resid,
-        plot_versions,
         'log_beta_residuals',
-        location.id,
-        start, end,
         label='Log Beta Residuals',
     )
+    ax_rhist = fig.add_subplot(gs_r[1])
+    plotter.make_log_beta_resid_hist(
+        ax_rhist,
+    )
 
-    ax_reff = fig.add_subplot(gs_r[0])
-    make_time_plot(
+    ax_reff = fig.add_subplot(gs_r[2])
+    plotter.make_time_plot(
         ax_reff,
-        plot_versions,
         'r_effective',
-        location.id,
-        start, end,
-        label='R effective (system)',
+        label='R effective (empirical)',
     )
     ax_reff.set_ylim(-0.5, 3)
 
-    ax_r_wild = fig.add_subplot(gs_r[1])
-    make_placeholder(ax_r_wild, 'Non-escape R effective')
-
-    ax_r_variant = fig.add_subplot(gs_r[2])
-    make_placeholder(ax_r_variant, 'Escape R effective')
-
-    ax_rhist = fig.add_subplot(gs_r[3])
-    make_log_beta_resid_hist(
-        ax_rhist,
-        plot_versions,
-        location.id,
-    )
-
-    make_title_and_legend(fig, location, plot_versions)
-    write_or_show(fig, plot_file)
-
-
-def make_variants_page(plot_versions: List[PlotVersion],
-                       location: Location,
-                       start: pd.Timestamp, end: pd.Timestamp,
-                       plot_file: str = None):
-    sns.set_style('whitegrid')
-
-    # Configure the plot layout.
-    fig = plt.figure(figsize=FIG_SIZE, tight_layout=True)
-    grid_spec = fig.add_gridspec(nrows=3, ncols=3, wspace=0.2)
-    grid_spec.update(**GRID_SPEC_MARGINS)
-
-    ax_infecs_wild = fig.add_subplot(grid_spec[0, 0])
-    ax_infecs_variant = fig.add_subplot(grid_spec[1, 0])
-    ax_infecs = fig.add_subplot(grid_spec[2, 0])
-
-    ax_infecs_nib = fig.add_subplot(grid_spec[0, 1])
-    ax_infecs_vb = fig.add_subplot(grid_spec[1, 1])
-    ax_variant_prev = fig.add_subplot(grid_spec[2, 1])
-
-    ax_deaths_wild = fig.add_subplot(grid_spec[0, 2])
-    ax_deaths_variant = fig.add_subplot(grid_spec[1, 2])
-    ax_deaths = fig.add_subplot(grid_spec[2, 2])
-
-    # Column 1
-
-    make_time_plot(
-        ax_infecs_wild,
-        plot_versions,
-        'daily_infections_wild',
-        location.id,
-        start, end,
-        label='Daily Infections Wild',
-    )
-    make_time_plot(
-        ax_infecs_variant,
-        plot_versions,
-        'daily_infections_variant',
-        location.id,
-        start, end,
-        label='Daily Infections Variant',
-    )
-    make_time_plot(
-        ax_infecs,
-        plot_versions,
-        'daily_infections',
-        location.id,
-        start, end,
-        label='Daily Infections',
-    )
-
-    make_time_plot(
-        ax_infecs_nib,
-        plot_versions,
-        'daily_infections_natural_immunity_breakthrough',
-        location.id,
-        start, end,
-        label='Daily Infections Natural Breakthrough',
-    )
-    make_time_plot(
-        ax_infecs_vb,
-        plot_versions,
-        'daily_infections_vaccine_breakthrough',
-        location.id,
-        start, end,
-        label='Daily Infections Vaccine Breakthrough',
-    )
-
-    make_time_plot(
-        ax_variant_prev,
-        plot_versions,
+    ax_rho_escape = fig.add_subplot(gs_r[-1])
+    plotter.make_time_plot(
+        ax_rho_escape,
         'escape_variant_prevalence',
-        location.id,
-        start, end,
         label='Escape Variant Prevalence',
     )
-    make_time_plot(
-        ax_variant_prev,
-        plot_versions,
+    plotter.make_time_plot(
+        ax_rho_escape,
         'empirical_escape_variant_prevalence',
-        location.id,
-        start, end,
         linestyle='dashed',
     )
-    ax_variant_prev.set_ylim([0, 1])
-    make_axis_legend(ax_variant_prev, {'naive ramp': {'linestyle': 'solid'},
-                                       'empirical': {'linestyle': 'dashed'}})
+    ax_rho_escape.set_ylim([0, 1])
+    make_axis_legend(ax_rho_escape, {'naive ramp': {'linestyle': 'solid'},
+                                     'empirical': {'linestyle': 'dashed'}})
 
-    make_time_plot(
-        ax_deaths_wild,
-        plot_versions,
-        'daily_deaths_wild',
-        location.id,
-        start, end,
-        label='Daily Deaths Wild',
-    )
-    make_time_plot(
-        ax_deaths_variant,
-        plot_versions,
-        'daily_deaths_variant',
-        location.id,
-        start, end,
-        label='Daily Deaths Variant',
-    )
-    make_time_plot(
-        ax_deaths,
-        plot_versions,
-        'daily_deaths',
-        location.id,
-        start, end,
-        label='Daily Deaths',
-    )
     make_title_and_legend(fig, location, plot_versions)
     write_or_show(fig, plot_file)
 
@@ -478,7 +447,7 @@ class Plotter:
         self._transform = transform
         self._default_options = extra_defaults.update({'linewidth': 2.5})
 
-    def make_time_plot(self, ax, measure: str, label: str, **extra_options):
+    def make_time_plot(self, ax, measure: str, label: str = None, **extra_options):
         uncertainty = extra_options.pop('uncertainty', self._uncertainty)
         transform = extra_options.pop('transform', self._transform)
         start = extra_options.pop('start', self._start)
@@ -503,41 +472,40 @@ class Plotter:
         ax.xaxis.set_major_locator(date_locator)
         ax.xaxis.set_major_formatter(date_formatter)
 
+        if label is not None:
+            ax.set_ylabel(label, fontsize=AX_LABEL_FONTSIZE)
+
+    def make_log_beta_resid_hist(self, ax):
+        for plot_version in self._plot_versions:
+            data = plot_version.load_output_draws('beta_scaling_parameters', self._loc_id)
+            data = data[data.scaling_parameter == 'log_beta_residual_mean'].drop(columns='scaling_parameter').T
+
+            ax.hist(data.values, color=plot_version.color, bins=HIST_BINS, histtype='step')
+            ax.hist(data.values, color=plot_version.color, bins=HIST_BINS, histtype='stepfilled', alpha=FILL_ALPHA)
+        ax.set_xlim(-1, 1)
+        ax.set_ylabel('count of log beta residual mean', fontsize=AX_LABEL_FONTSIZE)
+        sns.despine(ax=ax, left=True, bottom=True)
+
+    def make_coefficient_plot(self, ax, covariate: str, label: str):
+        for i, plot_version in enumerate(self._plot_versions):
+            data = plot_version.load_output_draws('coefficients', self._loc_id)
+            data = data[data.covariate == covariate].drop(columns='covariate').T
+            # Boxplots are super annoying.
+            props = dict(color=plot_version.color, linewidth=2)
+            ax.boxplot(
+                data,
+                positions=[i],
+                widths=[.7],
+                boxprops=props,
+                capprops=props,
+                whiskerprops=props,
+                flierprops={**props, **dict(markeredgecolor=plot_version.color)},
+                medianprops=props,
+                labels=[' '],  # Keeps the plot vertical size consistent with other things on the same row.
+            )
+
         ax.set_ylabel(label, fontsize=AX_LABEL_FONTSIZE)
-
-
-def make_log_beta_resid_hist(ax, plot_versions: List[PlotVersion], loc_id: int):
-    for plot_version in plot_versions:
-        data = plot_version.load_output_draws('beta_scaling_parameters', loc_id)
-        data = data[data.scaling_parameter == 'log_beta_residual_mean'].drop(columns='scaling_parameter').T
-
-        ax.hist(data.values, color=plot_version.color, bins=HIST_BINS, histtype='step')
-        ax.hist(data.values, color=plot_version.color, bins=HIST_BINS, histtype='stepfilled', alpha=FILL_ALPHA)
-    ax.set_xlim(-1, 1)
-    ax.set_ylabel('count of log beta residual mean', fontsize=AX_LABEL_FONTSIZE)
-    sns.despine(ax=ax, left=True, bottom=True)
-
-
-def make_coefficient_plot(ax, plot_versions: List[PlotVersion], covariate: str, loc_id: int, label: str):
-    for i, plot_version in enumerate(plot_versions):
-        data = plot_version.load_output_draws('coefficients', loc_id)
-        data = data[data.covariate == covariate].drop(columns='covariate').T
-        # Boxplots are super annoying.
-        props = dict(color=plot_version.color, linewidth=2)
-        ax.boxplot(
-            data,
-            positions=[i],
-            widths=[.7],
-            boxprops=props,
-            capprops=props,
-            whiskerprops=props,
-            flierprops={**props, **dict(markeredgecolor=plot_version.color)},
-            medianprops=props,
-            labels=[' '],  # Keeps the plot vertical size consistent with other things on the same row.
-        )
-
-    ax.set_ylabel(label, fontsize=AX_LABEL_FONTSIZE)
-    sns.despine(ax=ax, left=True, bottom=True)
+        sns.despine(ax=ax, left=True, bottom=True)
 
 
 def add_vline(ax, x_position):
