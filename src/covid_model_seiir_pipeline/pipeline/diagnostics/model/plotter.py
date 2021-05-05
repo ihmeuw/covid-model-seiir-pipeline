@@ -192,7 +192,7 @@ def make_details_page(plot_versions: List[PlotVersion],
     pop = pv.load_output_miscellaneous('populations', is_table=True, location_id=location.id)
     pop = pop.loc[(pop.age_group_id == 22) & (pop.sex_id == 3), 'population'].iloc[0]
     full_data = pv.load_output_miscellaneous('full_data', is_table=True, location_id=location.id)
-    full_data_unscaled = pv.load_output_miscellaneous('full_data_unscaled', is_table=True, location_id=location.id)
+    full_data_unscaled = pv.load_output_miscellaneous('unscaled_full_data', is_table=True, location_id=location.id)
     hospital_census = pv.load_output_miscellaneous('hospital_census_data', is_table=True, location_id=location.id)
 
     # Configure the plot layout.
