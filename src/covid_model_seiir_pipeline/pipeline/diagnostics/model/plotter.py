@@ -97,11 +97,12 @@ def make_results_page(plot_versions: List[PlotVersion],
     )
 
     # Column 1, Daily
+    group_axes = []
     daily_measures = [
         ('daily_cases', 'Daily Cases', 'cumulative_cases'),
         ('hospital_admissions', 'Daily Admissions', 'cumulative_hospitalizations'),
         ('daily_deaths', 'Daily Deaths', 'cumulative_deaths'),
-    ]
+    ]    
     for i, (measure, label, full_data_measure) in enumerate(daily_measures):
         ax_measure = fig.add_subplot(gs_daily[i])
         plotter.make_time_plot(
@@ -118,8 +119,11 @@ def make_results_page(plot_versions: List[PlotVersion],
         if measure == 'daily_deaths':
             # Mandate reimposition level.
             ax_measure.hlines([8 * pop / 1e6], start, end)
+        group_axes.append(ax_measure)
+    fig.align_ylabels(group_axes)
 
     # Column 2, Cumulative & rates
+    group_axes = []
     cumulative_measures = [
         ('daily_cases', 'Cumulative Cases', 'cumulative_cases'),
         ('hospital_admissions', 'Cumulative Admissions', 'cumulative_hospitalizations'),
@@ -138,6 +142,7 @@ def make_results_page(plot_versions: List[PlotVersion],
             full_data['date'],
             full_data[full_data_measure],
         )
+        group_axes.append(ax_measure)
 
     rates_measures = [
         ('infection_detection_ratio_es', 'infection_detection_ratio', 'IDR'),
@@ -157,7 +162,10 @@ def make_results_page(plot_versions: List[PlotVersion],
             rate['date'],
             rate['mean'],
         )
+        group_axes.append(ax_measure)
+    fig.align_ylabels(group_axes)
 
+    group_axes = []
     infections_measures = [
         ('daily_infections', 'Daily Infections'),
         ('cumulative_infections', 'Cumulative Infections (%)'),
@@ -175,6 +183,8 @@ def make_results_page(plot_versions: List[PlotVersion],
             label=label,
             transform=transform,
         )
+        group_axes.append(ax_measure)
+    fig.align_ylabels(group_axes)
 
     make_title_and_legend(fig, location, plot_versions)
     write_or_show(fig, plot_file)
@@ -199,15 +209,15 @@ def make_details_page(plot_versions: List[PlotVersion],
     fig = plt.figure(figsize=FIG_SIZE, tight_layout=True)
     grid_spec = fig.add_gridspec(
         nrows=1, ncols=2,
-        wspace=0.2,
+        wspace=0.1,
     )
     grid_spec.update(**GRID_SPEC_MARGINS)
 
     gs_hospital = grid_spec[0, 0].subgridspec(3, 2)
     gs_detail = grid_spec[0, 1].subgridspec(3, 1, height_ratios=[2, 1, 1])
     gs_infections = gs_detail[0, 0].subgridspec(2, 2)
-    gs_deaths = gs_detail[1, 0].subgridspec(1, 3)
-    gs_susceptible = gs_detail[2, 0].subgridspec(1, 3)
+    gs_deaths = gs_detail[1, 0].subgridspec(1, 3, wspace=0.3)
+    gs_susceptible = gs_detail[2, 0].subgridspec(1, 3, wspace=0.3)
 
     plotter = Plotter(
         plot_versions=plot_versions,
@@ -216,6 +226,7 @@ def make_details_page(plot_versions: List[PlotVersion],
     )
 
     # Hospital model section
+    admissions_axes, census_axes = [], []
     for i, measure in enumerate(['hospital', 'icu', 'ventilator']):
         label = measure.upper() if measure == 'icu' else measure.title()
         if measure != 'ventilator':
@@ -231,6 +242,7 @@ def make_details_page(plot_versions: List[PlotVersion],
                     full_data['date'],
                     full_data['cumulative_hospitalizations'].diff(),
                 )
+            admissions_axes.append(ax_daily)
 
         ax_census = fig.add_subplot(gs_hospital[i, 1])
         plotter.make_time_plot(
@@ -243,8 +255,13 @@ def make_details_page(plot_versions: List[PlotVersion],
             hospital_census['date'],
             hospital_census[f'{measure}_census'],
         )
+        census_axes.append(ax_census)
+    fig.align_ylabels(admissions_axes)
+    fig.align_ylabels(census_axes)
 
     # Detailed infections section
+    shared_axes = []
+    unshared_axes = []
     infections_measures = [
         ('daily_infections_wild', 'Non-Escape Infections'),
         ('daily_infections_variant', 'Escape Infections'),
@@ -258,24 +275,32 @@ def make_details_page(plot_versions: List[PlotVersion],
             measure,
             label=label,
         )
+        if i % 2:
+            unshared_axes.append(ax_measure)
+        else:
+            shared_axes.append(ax_measure)
+    fig.align_ylabels(unshared_axes)
 
+    col_2_axes, col_3_axes = [], []
     ax_unscaled = fig.add_subplot(gs_deaths[0])
     plotter.make_time_plot(
         ax_unscaled,
         'unscaled_daily_deaths',
         label='Unscaled Deaths',
-    )
+    )    
     plotter.make_observed_time_plot(
         ax_unscaled,
         full_data_unscaled['date'],
         full_data_unscaled['cumulative_deaths'].diff(),
     )
+    shared_axes.append(ax_unscaled)
     ax_scalars = fig.add_subplot(gs_deaths[1])
     plotter.make_time_plot(
         ax_scalars,
         'excess_mortality_scalars',
         label='EM Scalars'
     )
+    col_2_axes.append(ax_scalars)
     ax_scaled = fig.add_subplot(gs_deaths[2])
     plotter.make_time_plot(
         ax_scaled,
@@ -287,16 +312,14 @@ def make_details_page(plot_versions: List[PlotVersion],
         full_data['date'],
         full_data['cumulative_deaths'].diff(),
     )
-
-
-
-
+    col_3_axes.append(ax_scaled)
 
     susceptible_measures = [
         ('total_susceptible_wild', 'Naive Susceptible (%)'),
-        ('total_susceptible_variant_only', 'Exposed Susceptible (% Population)'),
-        ('total_susceptible_variant', 'Total Susceptible (% Population)'),
+        ('total_susceptible_variant_only', 'Exposed Susceptible (%)'),
+        ('total_susceptible_variant', 'Total Susceptible (%)'),
     ]
+    ax_groups = [shared_axes, col_2_axes, col_3_axes]
     for i, (measure, label) in enumerate(susceptible_measures):
         ax_measure = fig.add_subplot(gs_susceptible[i])
         plotter.make_time_plot(
@@ -306,6 +329,9 @@ def make_details_page(plot_versions: List[PlotVersion],
             transform=lambda x: x / pop * 100,
         )
         ax_measure.set_ylim(0, 100)
+        ax_groups[i].append(ax_measure)
+    for ax_group in ax_groups:
+        fig.align_ylabels(ax_group)
 
     make_title_and_legend(fig, location, plot_versions)
     write_or_show(fig, plot_file)
@@ -326,7 +352,7 @@ def make_drivers_page(plot_versions: List[PlotVersion],
 
     # Configure the plot layout.
     fig = plt.figure(figsize=FIG_SIZE, tight_layout=True)
-    grid_spec = fig.add_gridspec(nrows=2,
+    grid_spec = fig.add_gridspec(nrows=,
                                  ncols=4,
                                  width_ratios=[1, 4, 5, 5],
                                  height_ratios=[3, 1],
@@ -350,7 +376,7 @@ def make_drivers_page(plot_versions: List[PlotVersion],
         'pneumonia': (0.2, 1.5),
         'mask_use': (0, 1),
     }
-
+    coef_axes, cov_axes = [], []
     for i, covariate in enumerate(time_varying):
         ax_coef = fig.add_subplot(gs_coef[i])
         plotter.make_coefficient_plot(
@@ -367,6 +393,9 @@ def make_drivers_page(plot_versions: List[PlotVersion],
         ylims = ylim_map.get(covariate)
         if ylims is not None:
             ax_cov.set_ylim(*ylims)
+        coef_axes.append(ax_coef)
+        cov_axes.append(ax_cov)
+    fig.align_ylabels(ax_cov)
 
     ax_vaccine = fig.add_subplot(grid_spec[1, :2])
 
@@ -385,7 +414,9 @@ def make_drivers_page(plot_versions: List[PlotVersion],
     make_axis_legend(ax_vaccine, {'effective delivered': {'linestyle': 'solid'},
                                   'effective available': {'linestyle': 'dashed'}})
     ax_vaccine.set_ylim(0, 100)
+    fig.align_ylabels(coef_axes + [ax_vaccine])
 
+    beta_axes = []
     beta_measures = [
         ('betas', 'beta_hat', 'Regression Beta (log)', ('beta final', 'beta hat')),
         ('beta_wild', 'empirical_beta_wild', 'Non-Escape Beta (log)', ('input beta', 'empirical beta')),
@@ -418,6 +449,7 @@ def make_drivers_page(plot_versions: List[PlotVersion],
         label='Non-Escape Variant Prevalence',
     )
     ax_rho.set_ylim(0, 1)
+    fig.align_ylabels(beta_axes + [ax_rho])
 
     ax_resid = fig.add_subplot(gs_r[0])
     plotter.make_time_plot(
@@ -452,6 +484,7 @@ def make_drivers_page(plot_versions: List[PlotVersion],
     ax_rho_escape.set_ylim([0, 1])
     make_axis_legend(ax_rho_escape, {'naive ramp': {'linestyle': 'solid'},
                                      'empirical': {'linestyle': 'dashed'}})
+    fig.align_ylabels([ax_resid, ax_rhist, ax_reff, ax_rho_escape])
 
     make_title_and_legend(fig, location, plot_versions)
     write_or_show(fig, plot_file)
