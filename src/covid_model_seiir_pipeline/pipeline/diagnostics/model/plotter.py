@@ -101,7 +101,7 @@ def make_results_page(plot_versions: List[PlotVersion],
     # Column 1, Daily
     daily_measures = [
         ('daily_cases', 'Daily Cases', 'cumulative_cases'),
-        ('hospital_admissions', 'Daily Hospital Admissions', 'cumulative_admissions'),
+        ('hospital_admissions', 'Daily Hospital Admissions', 'cumulative_hospitalizations'),
         ('daily_deaths', 'Daily Deaths', 'cumulative_deaths'),
     ]
     for i, (measure, label, full_data_measure) in enumerate(daily_measures):
@@ -129,7 +129,7 @@ def make_results_page(plot_versions: List[PlotVersion],
         ('hospital_admissions', 'Cumulative Hospital Admissions'),
         ('daily_deaths', 'Cumulative Deaths'),
     ]
-    for i, (measure, label) in cumulative_measures:
+    for i, (measure, label) in enumerate(cumulative_measures):
         ax_measure = fig.add_subplot(gs_rates[2*i])
         plotter.make_time_plot(
             ax_measure,
@@ -144,7 +144,7 @@ def make_results_page(plot_versions: List[PlotVersion],
         ('infection_fatality_ratio_es', 'infection_fatality_ratio', 'IFR'),
     ]
     for i, (ies_measure, measure, label) in enumerate(rates_measures):
-        rate = pv.load_output_summaries('ies_measure', location.id)
+        rate = pv.load_output_summaries(ies_measure, location.id)
         ax_measure = fig.add_subplot(gs_rates[2*i + 1])
         plotter.make_time_plot(
             ax_measure,
@@ -163,7 +163,7 @@ def make_results_page(plot_versions: List[PlotVersion],
         ('cumulative_infections', 'Cumulative Infections (% Population)'),
         ('cumulative_infected', 'Cumulative Infected (% Population)'),
     ]
-    for i, (measure, label) in infections_measures:
+    for i, (measure, label) in enumerate(infections_measures):
         ax_measure = fig.add_subplot(gs_infecs[i])
         if 'cumulative' in measure:
             transform = lambda x: x / pop * 100
@@ -221,7 +221,7 @@ def make_details_page(plot_versions: List[PlotVersion],
     )
 
     # Hospital model section
-    for i, measure in ['hospital', 'icu', 'ventilator']:
+    for i, measure in enumerate(['hospital', 'icu', 'ventilator']):
         if measure != 'ventilator':
             ax_daily = fig.add_subplot(gs_hospital[i, 0])
             plotter.make_time_plot(
@@ -232,7 +232,7 @@ def make_details_page(plot_versions: List[PlotVersion],
             if measure == 'hospital':
                 ax_daily.scatter(
                     full_data['date'],
-                    full_data['cumulative_admissions'].diff(),
+                    full_data['cumulative_hospitalizations'].diff(),
                     color=observed_color,
                     alpha=OBSERVED_ALPHA,
                 )
@@ -445,7 +445,7 @@ class Plotter:
 
         self._uncertainty = uncertainty
         self._transform = transform
-        self._default_options = {'linewidth': 2.5}.update(extra_defaults)
+        self._default_options = {'linewidth': 2.5, **extra_defaults}
 
     def make_time_plot(self, ax, measure: str, label: str = None, **extra_options):
         uncertainty = extra_options.pop('uncertainty', self._uncertainty)
@@ -453,7 +453,7 @@ class Plotter:
         start = extra_options.pop('start', self._start)
         end = extra_options.pop('end', self._end)
 
-        plot_options = self._default_options.copy().update(extra_options)
+        plot_options = {**self._default_options, **extra_options}
 
         for plot_version in self._plot_versions:
             try:
@@ -509,7 +509,8 @@ class Plotter:
 
 
 def add_vline(ax, x_position):
-    ax.vlines(x_position, 0, 1, transform=ax.get_xaxis_transform(), linestyle='dashed', color='grey', alpha=0.8)
+    if not pd.isnull(x_position):
+        ax.vlines(x_position, 0, 1, transform=ax.get_xaxis_transform(), linestyle='dashed', color='grey', alpha=0.8)
 
 
 def make_title_and_legend(fig, location: Location, plot_versions: List[PlotVersion]):
