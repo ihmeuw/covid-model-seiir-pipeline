@@ -25,7 +25,7 @@ COLOR_MAP = ['#7F3C8D', '#11A579',
              '#4b4b8f', '#A5AA99'].__getitem__
 
 FILL_ALPHA = 0.2
-OBSERVED_ALPHA = 0.5
+OBSERVED_ALPHA = 0.3
 AX_LABEL_FONTSIZE = 14
 TITLE_FONTSIZE = 24
 HIST_BINS = 25
@@ -42,18 +42,6 @@ def make_grid_plot(location: Location,
     with warnings.catch_warnings():
         # Suppress some noisy matplotlib warnings.
         warnings.filterwarnings('ignore')
-        make_covariates_page(
-            plot_versions,
-            location,
-            date_start, date_end,
-            plot_file=str(output_dir / f'{location.id}_covariates.pdf')
-        )
-        make_variants_page(
-            plot_versions,
-            location,
-            date_start, date_end,
-            plot_file=str(output_dir / f'{location.id}_variants.pdf')
-        )
         make_results_page(
             plot_versions,
             location,
@@ -61,278 +49,19 @@ def make_grid_plot(location: Location,
             plot_file=str(output_dir / f'{location.id}_results.pdf')
         )
 
-
-def make_covariates_page(plot_versions: List[PlotVersion],
-                         location: Location,
-                         start: pd.Timestamp, end: pd.Timestamp,
-                         plot_file: str = None):
-    sns.set_style('whitegrid')
-    time_varying = [c for c, c_config in COVARIATES.items() if c_config.time_varying]
-
-    # Configure the plot layout.
-    fig = plt.figure(figsize=FIG_SIZE, tight_layout=True)
-    grid_spec = fig.add_gridspec(nrows=1,
-                                 ncols=4,
-                                 width_ratios=[1, 3, 5, 5],
-                                 wspace=0.2)
-    grid_spec.update(**GRID_SPEC_MARGINS)
-
-    gs_coef = grid_spec[0, 0].subgridspec(len(time_varying), 1)
-    gs_cov = grid_spec[0, 1].subgridspec(len(time_varying), 1)
-    gs_beta = grid_spec[0, 2].subgridspec(4, 1)
-    gs_r = grid_spec[0, 3].subgridspec(4, 1)
-
-    ylim_map = {
-        'mobility': (-100, 20),
-        'testing': (0, 0.02),
-        'pneumonia': (0.2, 1.5),
-        'mask_use': (0, 1),
-    }
-
-    for i, covariate in enumerate(time_varying):
-        ax_coef = fig.add_subplot(gs_coef[i])
-        label = covariate.title()
-        make_coefficient_plot(
-            ax_coef,
+        make_details_page(
             plot_versions,
-            covariate,
-            location.id,
-            label=label,
+            location,
+            date_start, date_end,
+            plot_file=str(output_dir / f'{location.id}_details.pdf')
         )
 
-        ax_cov = fig.add_subplot(gs_cov[i])
-        make_time_plot(
-            ax_cov,
+        make_drivers_page(
             plot_versions,
-            covariate,
-            location.id,
-            start, end,
-            label=label,
+            location,
+            date_start, date_end,
+            plot_file=str(output_dir / f'{location.id}_drivers.pdf')
         )
-        ylims = ylim_map.get(covariate)
-        if ylims is not None:
-            ax_cov.set_ylim(*ylims)
-
-    ax_beta_total = fig.add_subplot(gs_beta[0])
-    make_time_plot(
-        ax_beta_total,
-        plot_versions,
-        'betas',
-        location.id,
-        start, end,
-        label='Regression Beta',
-        transform=lambda x: np.log(x),
-    )
-    make_time_plot(
-        ax_beta_total,
-        plot_versions,
-        'beta_hat',
-        location.id,
-        start, end,
-        linestyle='dashed',
-        transform=lambda x: np.log(x)
-    )
-    ax_beta_total.set_ylim(-3, 1)
-    make_axis_legend(ax_beta_total, {'beta fit': {'linestyle': 'solid'},
-                                     'beta hat': {'linestyle': 'dashed'}})
-
-    ax_beta_wild = fig.add_subplot(gs_beta[1])
-    make_time_plot(
-        ax_beta_wild,
-        plot_versions,
-        'beta_wild',
-        location.id,
-        start, end,
-        label='Non-escape Beta',
-        transform=lambda x: np.log(x),
-    )
-    make_time_plot(
-        ax_beta_wild,
-        plot_versions,
-        'empirical_beta_wild',
-        location.id,
-        start, end,
-        linestyle='dashed',
-        transform=lambda x: np.log(x)
-    )
-    ax_beta_wild.set_ylim(-3, 1)
-    make_axis_legend(ax_beta_wild, {'input beta': {'linestyle': 'solid'},
-                                    'empirical beta': {'linestyle': 'dashed'}})
-
-    ax_beta_variant = fig.add_subplot(gs_beta[2])
-    make_time_plot(
-        ax_beta_variant,
-        plot_versions,
-        'beta_variant',
-        location.id,
-        start, end,
-        label='Escape Beta',
-        transform=lambda x: np.log(x),
-    )
-    make_time_plot(
-        ax_beta_variant,
-        plot_versions,
-        'empirical_beta_variant',
-        location.id,
-        start, end,
-        linestyle='dashed',
-        transform=lambda x: np.log(x)
-    )
-    ax_beta_variant.set_ylim(-3, 1)
-    make_axis_legend(ax_beta_variant, {'input beta': {'linestyle': 'solid'},
-                                       'empirical': {'linestyle': 'dashed'}})
-
-    ax_resid = fig.add_subplot(gs_beta[3])
-    make_time_plot(
-        ax_resid,
-        plot_versions,
-        'log_beta_residuals',
-        location.id,
-        start, end,
-        label='Log Beta Residuals',
-    )
-
-    ax_reff = fig.add_subplot(gs_r[0])
-    make_time_plot(
-        ax_reff,
-        plot_versions,
-        'r_effective',
-        location.id,
-        start, end,
-        label='R effective (system)',
-    )
-    ax_reff.set_ylim(-0.5, 3)
-
-    ax_r_wild = fig.add_subplot(gs_r[1])
-    make_placeholder(ax_r_wild, 'Non-escape R effective')
-
-    ax_r_variant = fig.add_subplot(gs_r[2])
-    make_placeholder(ax_r_variant, 'Escape R effective')
-
-    ax_rhist = fig.add_subplot(gs_r[3])
-    make_log_beta_resid_hist(
-        ax_rhist,
-        plot_versions,
-        location.id,
-    )
-
-    make_title_and_legend(fig, location, plot_versions)
-    write_or_show(fig, plot_file)
-
-
-def make_variants_page(plot_versions: List[PlotVersion],
-                       location: Location,
-                       start: pd.Timestamp, end: pd.Timestamp,
-                       plot_file: str = None):
-    sns.set_style('whitegrid')
-
-    # Configure the plot layout.
-    fig = plt.figure(figsize=FIG_SIZE, tight_layout=True)
-    grid_spec = fig.add_gridspec(nrows=3, ncols=3, wspace=0.2)
-    grid_spec.update(**GRID_SPEC_MARGINS)
-
-    ax_infecs_wild = fig.add_subplot(grid_spec[0, 0])
-    ax_infecs_variant = fig.add_subplot(grid_spec[1, 0])
-    ax_infecs = fig.add_subplot(grid_spec[2, 0])
-
-    ax_infecs_nib = fig.add_subplot(grid_spec[0, 1])
-    ax_infecs_vb = fig.add_subplot(grid_spec[1, 1])
-    ax_variant_prev = fig.add_subplot(grid_spec[2, 1])
-
-    ax_deaths_wild = fig.add_subplot(grid_spec[0, 2])
-    ax_deaths_variant = fig.add_subplot(grid_spec[1, 2])
-    ax_deaths = fig.add_subplot(grid_spec[2, 2])
-
-    # Column 1
-
-    make_time_plot(
-        ax_infecs_wild,
-        plot_versions,
-        'daily_infections_wild',
-        location.id,
-        start, end,
-        label='Daily Infections Wild',
-    )
-    make_time_plot(
-        ax_infecs_variant,
-        plot_versions,
-        'daily_infections_variant',
-        location.id,
-        start, end,
-        label='Daily Infections Variant',
-    )
-    make_time_plot(
-        ax_infecs,
-        plot_versions,
-        'daily_infections',
-        location.id,
-        start, end,
-        label='Daily Infections',
-    )
-
-    make_time_plot(
-        ax_infecs_nib,
-        plot_versions,
-        'daily_infections_natural_immunity_breakthrough',
-        location.id,
-        start, end,
-        label='Daily Infections Natural Breakthrough',
-    )
-    make_time_plot(
-        ax_infecs_vb,
-        plot_versions,
-        'daily_infections_vaccine_breakthrough',
-        location.id,
-        start, end,
-        label='Daily Infections Vaccine Breakthrough',
-    )
-
-    make_time_plot(
-        ax_variant_prev,
-        plot_versions,
-        'escape_variant_prevalence',
-        location.id,
-        start, end,
-        label='Escape Variant Prevalence',
-    )
-    make_time_plot(
-        ax_variant_prev,
-        plot_versions,
-        'empirical_escape_variant_prevalence',
-        location.id,
-        start, end,
-        linestyle='dashed',
-    )
-    ax_variant_prev.set_ylim([0, 1])
-    make_axis_legend(ax_variant_prev, {'naive ramp': {'linestyle': 'solid'},
-                                       'empirical': {'linestyle': 'dashed'}})
-
-    make_time_plot(
-        ax_deaths_wild,
-        plot_versions,
-        'daily_deaths_wild',
-        location.id,
-        start, end,
-        label='Daily Deaths Wild',
-    )
-    make_time_plot(
-        ax_deaths_variant,
-        plot_versions,
-        'daily_deaths_variant',
-        location.id,
-        start, end,
-        label='Daily Deaths Variant',
-    )
-    make_time_plot(
-        ax_deaths,
-        plot_versions,
-        'daily_deaths',
-        location.id,
-        start, end,
-        label='Daily Deaths',
-    )
-    make_title_and_legend(fig, location, plot_versions)
-    write_or_show(fig, plot_file)
 
 
 def make_results_page(plot_versions: List[PlotVersion],
@@ -340,7 +69,6 @@ def make_results_page(plot_versions: List[PlotVersion],
                       start: pd.Timestamp, end: pd.Timestamp,
                       plot_file: str = None):
     sns.set_style('whitegrid')
-    observed_color = COLOR_MAP(len(plot_versions))
 
     # Load some shared data.
     pv = plot_versions[-1]
@@ -351,339 +79,519 @@ def make_results_page(plot_versions: List[PlotVersion],
 
     # Configure the plot layout.
     fig = plt.figure(figsize=FIG_SIZE, tight_layout=True)
-    grid_spec = fig.add_gridspec(nrows=4, ncols=4, wspace=0.2)
+    grid_spec = fig.add_gridspec(
+        nrows=1, ncols=3,
+        width_ratios=[5, 3, 5],
+        wspace=0.2,
+    )
     grid_spec.update(**GRID_SPEC_MARGINS)
 
-    ax_daily_infec = fig.add_subplot(grid_spec[0, 0])
-    ax_daily_case = fig.add_subplot(grid_spec[1, 0])
-    ax_daily_hosp = fig.add_subplot(grid_spec[2, 0])
-    ax_daily_death = fig.add_subplot(grid_spec[3, 0])
+    gs_daily = grid_spec[0, 0].subgridspec(3, 1)
+    gs_rates = grid_spec[0, 1].subgridspec(6, 1)
+    gs_infecs = grid_spec[0, 2].subgridspec(3, 1)
 
-    ax_cumul_infec = fig.add_subplot(grid_spec[0, 1])
-    ax_cumul_case = fig.add_subplot(grid_spec[1, 1])
-    ax_census_hosp = fig.add_subplot(grid_spec[2, 1])
-    ax_cumul_death = fig.add_subplot(grid_spec[3, 1])
-
-    ax_vacc = fig.add_subplot(grid_spec[0, 2])
-    ax_idr = fig.add_subplot(grid_spec[1, 2])
-    ax_ihr = fig.add_subplot(grid_spec[2, 2])
-    ax_ifr = fig.add_subplot(grid_spec[3, 2])
-
-    ax_immune_wild = fig.add_subplot(grid_spec[0, 3])
-    ax_immune_variant = fig.add_subplot(grid_spec[1, 3])
-    ax_susceptible_wild = fig.add_subplot(grid_spec[2, 3])
-    ax_susceptible_variant = fig.add_subplot(grid_spec[3, 3])
+    plotter = Plotter(
+        plot_versions=plot_versions,
+        loc_id=location.id,
+        start=start, end=end,
+    )
 
     # Column 1, Daily
+    group_axes = []
+    daily_measures = [
+        ('daily_cases', 'Daily Cases', 'cumulative_cases'),
+        ('hospital_admissions', 'Daily Admissions', 'cumulative_hospitalizations'),
+        ('daily_deaths', 'Daily Deaths', 'cumulative_deaths'),
+    ]    
+    for i, (measure, label, full_data_measure) in enumerate(daily_measures):
+        ax_measure = fig.add_subplot(gs_daily[i])
+        plotter.make_time_plot(
+            ax_measure,
+            measure,
+            label=label,
+        )
+        plotter.make_observed_time_plot(
+            ax_measure,
+            full_data['date'],
+            full_data[full_data_measure].diff(),
+        )
 
-    make_time_plot(
-        ax_daily_infec,
-        plot_versions,
-        'daily_infections',
-        location.id,
-        start, end,
-        label='Daily Infections',
-    )
-    ax_daily_infec.plot(
-        full_data['date'],
-        full_data['cumulative_cases'].diff(),
-        color=observed_color,
-        alpha=OBSERVED_ALPHA,
-    )
+        if measure == 'daily_deaths':
+            # Mandate reimposition level.
+            ax_measure.hlines([8 * pop / 1e6], start, end)
+        group_axes.append(ax_measure)
+    fig.align_ylabels(group_axes)
 
-    make_time_plot(
-        ax_daily_case,
-        plot_versions,
-        'daily_cases',
-        location.id,
-        start, end,
-        label='Daily Cases',
-    )
-    ax_daily_case.plot(
-        full_data['date'],
-        full_data['cumulative_cases'].diff(),
-        color=observed_color,
-        alpha=OBSERVED_ALPHA,
-    )
+    # Column 2, Cumulative & rates
+    group_axes = []
+    cumulative_measures = [
+        ('daily_cases', 'Cumulative Cases', 'cumulative_cases'),
+        ('hospital_admissions', 'Cumulative Admissions', 'cumulative_hospitalizations'),
+        ('daily_deaths', 'Cumulative Deaths', 'cumulative_deaths'),
+    ]
+    for i, (measure, label, full_data_measure) in enumerate(cumulative_measures):
+        ax_measure = fig.add_subplot(gs_rates[2*i])
+        plotter.make_time_plot(
+            ax_measure,
+            measure,
+            label=label,
+            transform=lambda x: x.cumsum(),
+        )
+        plotter.make_observed_time_plot(
+            ax_measure,
+            full_data['date'],
+            full_data[full_data_measure],
+        )
+        group_axes.append(ax_measure)
 
-    make_time_plot(
-        ax_daily_hosp,
-        plot_versions,
-        'hospital_admissions',
-        location.id,
-        start, end,
-        label='Daily Hospital and ICU Admissions',
-        uncertainty=False,
-    )
-    make_time_plot(
-        ax_daily_hosp,
-        plot_versions,
-        'icu_admissions',
-        location.id,
-        start, end,
-        uncertainty=False,
-        linestyle='dashed',
-    )
-    make_axis_legend(ax_daily_hosp, {'hospital': {'linestyle': 'solid'},
-                                     'icu': {'linestyle': 'dashed'}})
-    ax_daily_hosp.plot(
-        full_data['date'],
-        full_data['cumulative_hospitalizations'].diff(),
-        color=observed_color,
-        alpha=OBSERVED_ALPHA,
-    )
+    rates_measures = [
+        ('infection_detection_ratio_es', 'infection_detection_ratio', 'IDR'),
+        ('infection_hospitalization_ratio_es', 'infection_hospitalization_ratio', 'IHR'),
+        ('infection_fatality_ratio_es', 'infection_fatality_ratio', 'IFR'),
+    ]
+    for i, (ies_measure, measure, label) in enumerate(rates_measures):
+        rate = pv.load_output_summaries(ies_measure, location.id)
+        ax_measure = fig.add_subplot(gs_rates[2*i + 1])
+        plotter.make_time_plot(
+            ax_measure,
+            measure,
+            label=label
+        )
+        plotter.make_observed_time_plot(
+            ax_measure,
+            rate['date'],
+            rate['mean'],
+        )
+        group_axes.append(ax_measure)
+    fig.align_ylabels(group_axes)
 
-    make_time_plot(
-        ax_daily_death,
-        plot_versions,
-        'daily_deaths',
-        location.id,
-        start, end,
-        label='Daily Deaths',
-    )
-    ax_daily_death.plot(
-        full_data['date'],
-        full_data['cumulative_deaths'].diff(),
-        color=observed_color,
-        alpha=OBSERVED_ALPHA,
-    )
-    ax_daily_death.hlines([8 * pop / 1e6], start, end)
-    # Column 2, Cumulative
-
-    make_time_plot(
-        ax_cumul_infec,
-        plot_versions,
-        'cumulative_infections',
-        location.id,
-        start, end,
-        label='Cumulative Infected (%)',
-        transform=lambda x: 100 * x / pop,
-    )
-    ax_cumul_infec.set_ylim(0, 100)
-
-    make_time_plot(
-        ax_cumul_case,
-        plot_versions,
-        'cumulative_cases',
-        location.id,
-        start, end,
-        label='Cumulative Cases',
-    )
-
-    make_time_plot(
-        ax_census_hosp,
-        plot_versions,
-        'hospital_census',
-        location.id,
-        start, end,
-        label='Hospital and ICU Census',
-    )
-    make_time_plot(
-        ax_census_hosp,
-        plot_versions,
-        'icu_census',
-        location.id,
-        start, end,
-        linestyle='dashed',
-    )
-    make_axis_legend(ax_census_hosp, {'hospital': {'linestyle': 'solid'},
-                                      'icu': {'linestyle': 'dashed'}})
-
-    make_time_plot(
-        ax_cumul_death,
-        plot_versions,
-        'cumulative_deaths',
-        location.id,
-        start, end,
-        label='Cumulative Deaths',
-    )
-
-    # Column 3, ratios
-    make_time_plot(
-        ax_vacc,
-        plot_versions,
-        'cumulative_vaccinations_effective',
-        location.id,
-        start, end,
-        label='Cumulative Vaccinations (%)',
-        transform=lambda x: x / pop * 100,
-    )
-    make_time_plot(
-        ax_vacc,
-        plot_versions,
-        'cumulative_vaccinations_effective_input',
-        location.id,
-        start, end,
-        linestyle='dashed',
-        transform=lambda x: x / pop * 100,
-    )
-    make_axis_legend(ax_vacc, {'effective delivered': {'linestyle': 'solid'},
-                               'effective available': {'linestyle': 'dashed'}})
-
-    idr = pv.load_output_summaries('infection_detection_ratio_es', location.id)
-    make_time_plot(
-        ax_idr,
-        plot_versions,
-        'infection_detection_ratio',
-        location.id,
-        start, end,
-        label='IDR',
-    )
-    ax_idr.plot(
-        idr['date'],
-        idr['mean'],
-        color=observed_color,
-        alpha=OBSERVED_ALPHA,
-    )
-
-    ihr = pv.load_output_summaries('infection_hospitalization_ratio_es', location.id)
-    make_time_plot(
-        ax_ihr,
-        plot_versions,
-        'infection_hospitalization_ratio',
-        location.id,
-        start, end,
-        label='IHR',
-    )
-    ax_ihr.plot(
-        ihr['date'],
-        ihr['mean'],
-        color=observed_color,
-        alpha=OBSERVED_ALPHA,
-    )
-
-    ifr = pv.load_output_summaries('infection_fatality_ratio_es', location.id)
-    make_time_plot(
-        ax_ifr,
-        plot_versions,
-        'infection_fatality_ratio',
-        location.id,
-        start, end,
-        label='IFR',
-    )
-    ax_ifr.plot(
-        ifr['date'],
-        ifr['mean'],
-        color=observed_color,
-        alpha=OBSERVED_ALPHA,
-    )
-
-    # Column 4, miscellaneous
-    make_time_plot(
-        ax_immune_wild,
-        plot_versions,
-        'total_immune_wild',
-        location.id,
-        start, end,
-        label='Immune Wild-type (%)',
-        transform=lambda x: 100 * x / pop,
-    )
-    ax_immune_wild.set_ylim(0, 100)
-
-    make_time_plot(
-        ax_immune_variant,
-        plot_versions,
-        'total_immune_variant',
-        location.id,
-        start, end,
-        label='Immune All Types (%)',
-        transform=lambda x: 100 * x / pop,
-    )
-    ax_immune_variant.set_ylim(0, 100)
-
-    make_time_plot(
-        ax_susceptible_wild,
-        plot_versions,
-        'total_susceptible_wild',
-        location.id,
-        start, end,
-        label='Susceptible Wild-type (%)',
-        transform=lambda x: 100 * x / pop,
-    )
-    ax_susceptible_wild.set_ylim(0, 100)
-
-    make_time_plot(
-        ax_susceptible_variant,
-        plot_versions,
-        'total_susceptible_variant',
-        location.id,
-        start, end,
-        label='Susceptible All Types (%)',
-        transform=lambda x: 100 * x / pop,
-    )
-    ax_susceptible_variant.set_ylim(0, 100)
+    group_axes = []
+    infections_measures = [
+        ('daily_infections', 'Daily Infections'),
+        ('cumulative_infections', 'Cumulative Infections (%)'),
+        ('cumulative_infected', 'Cumulative Infected (%)'),
+    ]
+    for i, (measure, label) in enumerate(infections_measures):
+        ax_measure = fig.add_subplot(gs_infecs[i])
+        if 'cumulative' in measure:
+            transform = lambda x: x / pop * 100
+        else:
+            transform = lambda x: x
+        plotter.make_time_plot(
+            ax_measure,
+            measure,
+            label=label,
+            transform=transform,
+        )
+        group_axes.append(ax_measure)
+    fig.align_ylabels(group_axes)
 
     make_title_and_legend(fig, location, plot_versions)
     write_or_show(fig, plot_file)
 
 
-def make_time_plot(ax,
-                   plot_versions: List[PlotVersion],
-                   measure: str,
-                   loc_id: int,
-                   start: pd.Timestamp = None, end: pd.Timestamp = None,
-                   label: str = None,
-                   linestyle: str = 'solid',
-                   uncertainty: bool = False,
-                   transform=lambda x: x):
+def make_details_page(plot_versions: List[PlotVersion],
+                      location: Location,
+                      start: pd.Timestamp, end: pd.Timestamp,
+                      plot_file: str = None):
+    sns.set_style('whitegrid')
+    observed_color = COLOR_MAP(len(plot_versions))
+
+    # Load some shared data.
+    pv = plot_versions[-1]
+    pop = pv.load_output_miscellaneous('populations', is_table=True, location_id=location.id)
+    pop = pop.loc[(pop.age_group_id == 22) & (pop.sex_id == 3), 'population'].iloc[0]
+    full_data = pv.load_output_miscellaneous('full_data', is_table=True, location_id=location.id)
+    full_data_unscaled = pv.load_output_miscellaneous('unscaled_full_data', is_table=True, location_id=location.id)
+    hospital_census = pv.load_output_miscellaneous('hospital_census_data', is_table=True, location_id=location.id)   
+    # Configure the plot layout.
+    fig = plt.figure(figsize=FIG_SIZE, tight_layout=True)
+    grid_spec = fig.add_gridspec(
+        nrows=1, ncols=2,
+        wspace=0.1,
+    )
+    grid_spec.update(**GRID_SPEC_MARGINS)
+
+    gs_hospital = grid_spec[0, 0].subgridspec(3, 2)
+    gs_detail = grid_spec[0, 1].subgridspec(3, 1, height_ratios=[2, 1, 1])
+    gs_infections = gs_detail[0, 0].subgridspec(2, 2)
+    gs_deaths = gs_detail[1, 0].subgridspec(1, 3, wspace=0.3)
+    gs_susceptible = gs_detail[2, 0].subgridspec(1, 3, wspace=0.3)
+
+    plotter = Plotter(
+        plot_versions=plot_versions,
+        loc_id=location.id,
+        start=start, end=end,
+    )
+
+    # Hospital model section
+    admissions_axes, census_axes = [], []
+    for i, measure in enumerate(['hospital', 'icu', 'ventilator']):
+        label = measure.upper() if measure == 'icu' else measure.title()
+        if measure != 'ventilator':
+            ax_daily = fig.add_subplot(gs_hospital[i, 0])
+            plotter.make_time_plot(
+                ax_daily,
+                f'{measure}_admissions',
+                label=f'{label} Admissions'
+            )
+            if measure == 'hospital':
+                plotter.make_observed_time_plot(
+                    ax_daily,
+                    full_data['date'],
+                    full_data['cumulative_hospitalizations'].diff(),
+                )
+            admissions_axes.append(ax_daily)
+
+        ax_census = fig.add_subplot(gs_hospital[i, 1])
+        plotter.make_time_plot(
+            ax_census,
+            f'{measure}_census',
+            label=f'{label} Census',
+        )
+        plotter.make_observed_time_plot(
+            ax_census,
+            hospital_census['date'],
+            hospital_census[f'{measure}_census'],
+        )
+        census_axes.append(ax_census)
+    fig.align_ylabels(admissions_axes)
+    fig.align_ylabels(census_axes)
+
+    # Detailed infections section
+    shared_axes = []
+    unshared_axes = []
+    infections_measures = [
+        ('daily_infections_wild', 'Non-Escape Infections'),
+        ('daily_infections_variant', 'Escape Infections'),
+        ('daily_infections_vaccine_breakthrough', 'Vaccine Escape Infections'),
+        ('daily_infections_natural_immunity_breakthrough', 'N. Immunity Escape Infections'),
+    ]
+    for i, (measure, label) in enumerate(infections_measures):
+        ax_measure = fig.add_subplot(gs_infections[i // 2, i % 2])
+        plotter.make_time_plot(
+            ax_measure,
+            measure,
+            label=label,
+        )
+        if i % 2:
+            unshared_axes.append(ax_measure)
+        else:
+            shared_axes.append(ax_measure)
+    fig.align_ylabels(unshared_axes)
+
+    col_2_axes, col_3_axes = [], []
+    ax_unscaled = fig.add_subplot(gs_deaths[0])
+    plotter.make_time_plot(
+        ax_unscaled,
+        'unscaled_daily_deaths',
+        label='Unscaled Deaths',
+    )    
+    plotter.make_observed_time_plot(
+        ax_unscaled,
+        full_data_unscaled['date'],
+        full_data_unscaled['cumulative_deaths'].diff(),
+    )
+    shared_axes.append(ax_unscaled)
+    ax_scalars = fig.add_subplot(gs_deaths[1])
     for plot_version in plot_versions:
         try:
-            data = plot_version.load_output_summaries(measure, loc_id)
-        except FileNotFoundError:  # No data for this version, so skip.
+            data = plot_version.load_output_miscellaneous(
+                'excess_mortality_scalars', 
+                is_table=True, 
+                location_id=location.id
+            )
+        except FileNotFoundError:
             continue
-        data[['mean', 'upper', 'lower']] = transform(data[['mean', 'upper', 'lower']])
+        ax_scalars.plot(data['date'], data['em_scalar'], color=plot_version.color)
+        
+    col_2_axes.append(ax_scalars)
+    ax_scaled = fig.add_subplot(gs_deaths[2])
+    plotter.make_time_plot(
+        ax_scaled,
+        'daily_deaths',
+        label='Deaths',
+    )
+    plotter.make_observed_time_plot(
+        ax_scaled,
+        full_data['date'],
+        full_data['cumulative_deaths'].diff(),
+    )
+    ax_unscaled.set_ylim(ax_scaled.get_ylim())
+    col_3_axes.append(ax_scaled)
 
-        ax.plot(data['date'], data['mean'], color=plot_version.color, linestyle=linestyle, linewidth=2.5)
-        if uncertainty:
-            ax.fill_between(data['date'], data['upper'], data['lower'], alpha=FILL_ALPHA, color=plot_version.color)
+    susceptible_measures = [
+        ('total_susceptible_wild', 'Naive Susceptible (%)'),
+        ('total_susceptible_variant_only', 'Exposed Susceptible (%)'),
+        ('total_susceptible_variant', 'Total Susceptible (%)'),
+    ]
+    ax_groups = [shared_axes, col_2_axes, col_3_axes]
+    for i, (measure, label) in enumerate(susceptible_measures):
+        ax_measure = fig.add_subplot(gs_susceptible[i])
+        plotter.make_time_plot(
+            ax_measure,
+            measure,
+            label=label,
+            transform=lambda x: x / pop * 100,
+        )
+        ax_measure.set_ylim(0, 100)
+        ax_groups[i].append(ax_measure)
+    for ax_group in ax_groups:
+        fig.align_ylabels(ax_group)
 
-    if start is not None and end is not None:
+    make_title_and_legend(fig, location, plot_versions)
+    write_or_show(fig, plot_file)
+
+
+def make_drivers_page(plot_versions: List[PlotVersion],
+                      location: Location,
+                      start: pd.Timestamp, end: pd.Timestamp,
+                      plot_file: str = None):
+    sns.set_style('whitegrid')
+
+    # Load some shared data.
+    pv = plot_versions[-1]
+    pop = pv.load_output_miscellaneous('populations', is_table=True, location_id=location.id)
+    pop = pop.loc[(pop.age_group_id == 22) & (pop.sex_id == 3), 'population'].iloc[0]
+
+    time_varying = [c for c, c_config in COVARIATES.items() if c_config.time_varying]
+
+    # Configure the plot layout.
+    fig = plt.figure(figsize=FIG_SIZE, tight_layout=True)
+    grid_spec = fig.add_gridspec(nrows=2,
+                                 ncols=4,
+                                 width_ratios=[1, 4, 5, 5],
+                                 height_ratios=[3, 1],
+                                 wspace=0.2)
+    grid_spec.update(**GRID_SPEC_MARGINS)
+
+    gs_coef = grid_spec[0, 0].subgridspec(len(time_varying), 1)
+    gs_cov = grid_spec[0, 1].subgridspec(len(time_varying), 1)
+    gs_beta = grid_spec[:, 2].subgridspec(4, 1)
+    gs_r = grid_spec[:, 3].subgridspec(4, 1)
+
+    plotter = Plotter(
+        plot_versions=plot_versions,
+        loc_id=location.id,
+        start=start, end=end,
+    )
+
+    ylim_map = {
+        'mobility': (-100, 20),
+        'testing': (0, 0.02),
+        'pneumonia': (0.2, 1.5),
+        'mask_use': (0, 1),
+    }
+    coef_axes, cov_axes = [], []
+    for i, covariate in enumerate(time_varying):
+        ax_coef = fig.add_subplot(gs_coef[i])
+        plotter.make_coefficient_plot(
+            ax_coef,
+            covariate,
+            label=covariate.title(),
+        )
+        ax_cov = fig.add_subplot(gs_cov[i])
+        plotter.make_time_plot(
+            ax_cov,
+            covariate,
+            label=covariate.title(),
+        )
+        ylims = ylim_map.get(covariate)
+        if ylims is not None:
+            ax_cov.set_ylim(*ylims)
+        coef_axes.append(ax_coef)
+        cov_axes.append(ax_cov)
+    fig.align_ylabels(ax_cov)
+
+    ax_vaccine = fig.add_subplot(grid_spec[1, :2])
+
+    plotter.make_time_plot(
+        ax_vaccine,
+        'cumulative_vaccinations_effective',
+        label='Cumulative Vaccinations (%)',
+        transform=lambda x: x / pop * 100,
+    )
+    plotter.make_time_plot(
+        ax_vaccine,
+        'cumulative_vaccinations_effective_input',
+        linestyle='dashed',
+        transform=lambda x: x / pop * 100,
+    )
+    make_axis_legend(ax_vaccine, {'effective delivered': {'linestyle': 'solid'},
+                                  'effective available': {'linestyle': 'dashed'}})
+    ax_vaccine.set_ylim(0, 100)
+    fig.align_ylabels(coef_axes + [ax_vaccine])
+
+    beta_axes = []
+    beta_measures = [
+        ('betas', 'beta_hat', 'Regression Beta (log)', ('beta final', 'beta hat')),
+        ('beta_wild', 'empirical_beta_wild', 'Non-Escape Beta (log)', ('input beta', 'empirical beta')),
+        ('beta_variant', 'empirical_beta_variant', 'Escape Beta (log)', ('input beta', 'empirical beta')),
+    ]
+    for i, (measure1, measure2, label, legend_names) in enumerate(beta_measures):
+        ax_measure = fig.add_subplot(gs_beta[i])
+        plotter.make_time_plot(
+            ax_measure,
+            measure1,
+            label=label,
+            transform=lambda x: np.log(x),
+        )
+        plotter.make_time_plot(
+            ax_measure,
+            measure2,
+            linestyle='dashed',
+            transform=lambda x: np.log(x),
+        )
+        ax_measure.set_ylim(-3, 1)
+        make_axis_legend(
+            ax_measure,
+            {name: {'linestyle': style} for name, style in zip(legend_names, ['solid', 'dashed'])}
+        )
+
+    ax_rho = fig.add_subplot(gs_beta[-1])
+    plotter.make_time_plot(
+        ax_rho,
+        'non_escape_variant_prevalence',
+        label='Non-Escape Variant Prevalence',
+    )
+    ax_rho.set_ylim(0, 1)
+    fig.align_ylabels(beta_axes + [ax_rho])
+
+    ax_resid = fig.add_subplot(gs_r[0])
+    plotter.make_time_plot(
+        ax_resid,
+        'log_beta_residuals',
+        label='Log Beta Residuals',
+    )
+    ax_rhist = fig.add_subplot(gs_r[1])
+    plotter.make_log_beta_resid_hist(
+        ax_rhist,
+    )
+
+    ax_reff = fig.add_subplot(gs_r[2])
+    plotter.make_time_plot(
+        ax_reff,
+        'r_effective',
+        label='R effective (empirical)',
+    )
+    ax_reff.set_ylim(-0.5, 3)
+
+    ax_rho_escape = fig.add_subplot(gs_r[-1])
+    plotter.make_time_plot(
+        ax_rho_escape,
+        'escape_variant_prevalence',
+        label='Escape Variant Prevalence',
+    )
+    plotter.make_time_plot(
+        ax_rho_escape,
+        'empirical_escape_variant_prevalence',
+        linestyle='dashed',
+    )
+    ax_rho_escape.set_ylim([0, 1])
+    make_axis_legend(ax_rho_escape, {'naive ramp': {'linestyle': 'solid'},
+                                     'empirical': {'linestyle': 'dashed'}})
+    fig.align_ylabels([ax_resid, ax_rhist, ax_reff, ax_rho_escape])
+
+    make_title_and_legend(fig, location, plot_versions)
+    write_or_show(fig, plot_file)
+
+
+class Plotter:
+
+    def __init__(self,
+                 plot_versions: List[PlotVersion],
+                 loc_id: int,
+                 start: pd.Timestamp,
+                 end: pd.Timestamp,
+                 uncertainty: bool = False,
+                 transform=lambda x: x,
+                 **extra_defaults):
+        self._plot_versions = plot_versions
+        self._loc_id = loc_id
+        self._start = start
+        self._end = end
+
+        self._uncertainty = uncertainty
+        self._transform = transform
+        self._default_options = {'linewidth': 2.5, **extra_defaults}
+
+    def make_time_plot(self, ax, measure: str, label: str = None, miscellaneous: bool = False, **extra_options):
+        uncertainty = extra_options.pop('uncertainty', self._uncertainty)
+        transform = extra_options.pop('transform', self._transform)
+        start = extra_options.pop('start', self._start)
+        end = extra_options.pop('end', self._end)
+
+        plot_options = {**self._default_options, **extra_options}
+
+        for plot_version in self._plot_versions:
+            try:
+                data = plot_version.load_output_summaries(measure, self._loc_id)                
+            except FileNotFoundError:  # No data for this version, so skip.
+                continue
+            data[['mean', 'upper', 'lower']] = transform(data[['mean', 'upper', 'lower']])
+
+            ax.plot(data['date'], data['mean'], color=plot_version.color, **plot_options)
+            if uncertainty:
+                ax.fill_between(data['date'], data['upper'], data['lower'], alpha=FILL_ALPHA, color=plot_version.color)
+
         date_locator = mdates.AutoDateLocator(maxticks=15)
         date_formatter = mdates.ConciseDateFormatter(date_locator, show_offset=False)
         ax.set_xlim(start, end)
         ax.xaxis.set_major_locator(date_locator)
         ax.xaxis.set_major_formatter(date_formatter)
-    if label is not None:
-        ax.set_ylabel(label, fontsize=AX_LABEL_FONTSIZE)
-    sns.despine(ax=ax, left=True, bottom=True)
 
+        if label is not None:
+            ax.set_ylabel(label, fontsize=AX_LABEL_FONTSIZE)
 
-def make_log_beta_resid_hist(ax, plot_versions: List[PlotVersion], loc_id: int):
-    for plot_version in plot_versions:
-        data = plot_version.load_output_draws('beta_scaling_parameters', loc_id)
-        data = data[data.scaling_parameter == 'log_beta_residual_mean'].drop(columns='scaling_parameter').T
-
-        ax.hist(data.values, color=plot_version.color, bins=HIST_BINS, histtype='step')
-        ax.hist(data.values, color=plot_version.color, bins=HIST_BINS, histtype='stepfilled', alpha=FILL_ALPHA)
-    ax.set_xlim(-1, 1)
-    ax.set_ylabel('count of log beta residual mean', fontsize=AX_LABEL_FONTSIZE)
-    sns.despine(ax=ax, left=True, bottom=True)
-
-
-def make_coefficient_plot(ax, plot_versions: List[PlotVersion], covariate: str, loc_id: int, label: str):
-    for i, plot_version in enumerate(plot_versions):
-        data = plot_version.load_output_draws('coefficients', loc_id)
-        data = data[data.covariate == covariate].drop(columns='covariate').T
-        # Boxplots are super annoying.
-        props = dict(color=plot_version.color, linewidth=2)
-        ax.boxplot(
-            data,
-            positions=[i],
-            widths=[.7],
-            boxprops=props,
-            capprops=props,
-            whiskerprops=props,
-            flierprops={**props, **dict(markeredgecolor=plot_version.color)},
-            medianprops=props,
-            labels=[' '],  # Keeps the plot vertical size consistent with other things on the same row.
+    def make_observed_time_plot(self, ax, x, y):
+        observed_color = COLOR_MAP(len(self._plot_versions))
+        ax.scatter(
+            x, y,
+            color=observed_color,
+            alpha=OBSERVED_ALPHA,
+        )
+        ax.plot(
+            x, y,
+            color=observed_color,
+            alpha=OBSERVED_ALPHA,
         )
 
-    ax.set_ylabel(label, fontsize=AX_LABEL_FONTSIZE)
-    sns.despine(ax=ax, left=True, bottom=True)
+    def make_log_beta_resid_hist(self, ax):
+        for plot_version in self._plot_versions:
+            data = plot_version.load_output_draws('beta_scaling_parameters', self._loc_id)
+            data = data[data.scaling_parameter == 'log_beta_residual_mean'].drop(columns='scaling_parameter').T
+
+            ax.hist(data.values, color=plot_version.color, bins=HIST_BINS, histtype='step')
+            ax.hist(data.values, color=plot_version.color, bins=HIST_BINS, histtype='stepfilled', alpha=FILL_ALPHA)
+        ax.set_xlim(-1, 1)
+        ax.set_ylabel('count of log beta residual mean', fontsize=AX_LABEL_FONTSIZE)
+        sns.despine(ax=ax, left=True, bottom=True)
+
+    def make_coefficient_plot(self, ax, covariate: str, label: str):
+        for i, plot_version in enumerate(self._plot_versions):
+            data = plot_version.load_output_draws('coefficients', self._loc_id)
+            data = data[data.covariate == covariate].drop(columns='covariate').T
+            # Boxplots are super annoying.
+            props = dict(color=plot_version.color, linewidth=2)
+            ax.boxplot(
+                data,
+                positions=[i],
+                widths=[.7],
+                boxprops=props,
+                capprops=props,
+                whiskerprops=props,
+                flierprops={**props, **dict(markeredgecolor=plot_version.color)},
+                medianprops=props,
+                labels=[' '],  # Keeps the plot vertical size consistent with other things on the same row.
+            )
+
+        ax.set_ylabel(label, fontsize=AX_LABEL_FONTSIZE)
+        sns.despine(ax=ax, left=True, bottom=True)
 
 
 def add_vline(ax, x_position):
-    ax.vlines(x_position, 0, 1, transform=ax.get_xaxis_transform(), linestyle='dashed', color='grey', alpha=0.8)
+    if not pd.isnull(x_position):
+        ax.vlines(x_position, 0, 1, transform=ax.get_xaxis_transform(), linestyle='dashed', color='grey', alpha=0.8)
 
 
 def make_title_and_legend(fig, location: Location, plot_versions: List[PlotVersion]):

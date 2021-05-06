@@ -8,10 +8,10 @@ grid_plots:
     date_start: '2020-03-01'
     date_end: '2021-08-01'
     comparators:
-      - version: '/ihme/covid-19/seir-outputs/2021_04_22.02'
+      - version: '/ihme/covid-19/seir-outputs/2021_04_30.01'
         scenarios:
           reference*: 'public reference'
-      - version: '/ihme/covid-19/seir-outputs/2021_04_30.01'
+      - version: '/ihme/covid-19/seir-outputs/2021_05_05.04'
         scenarios:
           reference*: 'reference'
           worse: 'worse'
@@ -21,10 +21,10 @@ grid_plots:
     date_start: '2020-03-01'
     date_end: '2022-08-31'
     comparators:
-      - version: '/ihme/covid-19/seir-outputs/2021_04_22.02'
+      - version: '/ihme/covid-19/seir-outputs/2021_04_30.01'
         scenarios:
           reference*: 'public reference'
-      - version: '/ihme/covid-19/seir-outputs/2021_04_30.01'
+      - version: '/ihme/covid-19/seir-outputs/2021_05_05.04'
         scenarios:
           reference*: 'reference'
           worse: 'worse'
