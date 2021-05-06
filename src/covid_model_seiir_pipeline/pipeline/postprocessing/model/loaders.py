@@ -313,7 +313,6 @@ def load_unscaled_full_data(data_interface: 'PostprocessingDataInterface') -> pd
     init_cond = (deaths / em_scalars).groupby('location_id').first()
     scaled_deaths = (deaths.groupby('location_id').diff() / em_scalars).groupby('location_id').cumsum().fillna(0.0)
     scaled_deaths = scaled_deaths + init_cond.reindex(scaled_deaths.index, level='location_id')
-
     full_data['cumulative_deaths'] = scaled_deaths
     return full_data
 

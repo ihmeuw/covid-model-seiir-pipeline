@@ -203,8 +203,7 @@ def make_details_page(plot_versions: List[PlotVersion],
     pop = pop.loc[(pop.age_group_id == 22) & (pop.sex_id == 3), 'population'].iloc[0]
     full_data = pv.load_output_miscellaneous('full_data', is_table=True, location_id=location.id)
     full_data_unscaled = pv.load_output_miscellaneous('unscaled_full_data', is_table=True, location_id=location.id)
-    hospital_census = pv.load_output_miscellaneous('hospital_census_data', is_table=True, location_id=location.id)
-
+    hospital_census = pv.load_output_miscellaneous('hospital_census_data', is_table=True, location_id=location.id)   
     # Configure the plot layout.
     fig = plt.figure(figsize=FIG_SIZE, tight_layout=True)
     grid_spec = fig.add_gridspec(
@@ -295,11 +294,17 @@ def make_details_page(plot_versions: List[PlotVersion],
     )
     shared_axes.append(ax_unscaled)
     ax_scalars = fig.add_subplot(gs_deaths[1])
-    plotter.make_time_plot(
-        ax_scalars,
-        'excess_mortality_scalars',
-        label='EM Scalars'
-    )
+    for plot_version in plot_versions:
+        try:
+            data = plot_version.load_output_miscellaneous(
+                'excess_mortality_scalars', 
+                is_table=True, 
+                location_id=location.id
+            )
+        except FileNotFoundError:
+            continue
+        ax_scalars.plot(data['date'], data['em_scalar'], color=plot_version.color)
+        
     col_2_axes.append(ax_scalars)
     ax_scaled = fig.add_subplot(gs_deaths[2])
     plotter.make_time_plot(
@@ -312,6 +317,7 @@ def make_details_page(plot_versions: List[PlotVersion],
         full_data['date'],
         full_data['cumulative_deaths'].diff(),
     )
+    ax_unscaled.set_ylim(ax_scaled.get_ylim())
     col_3_axes.append(ax_scaled)
 
     susceptible_measures = [
@@ -352,7 +358,7 @@ def make_drivers_page(plot_versions: List[PlotVersion],
 
     # Configure the plot layout.
     fig = plt.figure(figsize=FIG_SIZE, tight_layout=True)
-    grid_spec = fig.add_gridspec(nrows=,
+    grid_spec = fig.add_gridspec(nrows=2,
                                  ncols=4,
                                  width_ratios=[1, 4, 5, 5],
                                  height_ratios=[3, 1],
@@ -509,7 +515,7 @@ class Plotter:
         self._transform = transform
         self._default_options = {'linewidth': 2.5, **extra_defaults}
 
-    def make_time_plot(self, ax, measure: str, label: str = None, **extra_options):
+    def make_time_plot(self, ax, measure: str, label: str = None, miscellaneous: bool = False, **extra_options):
         uncertainty = extra_options.pop('uncertainty', self._uncertainty)
         transform = extra_options.pop('transform', self._transform)
         start = extra_options.pop('start', self._start)
@@ -519,7 +525,7 @@ class Plotter:
 
         for plot_version in self._plot_versions:
             try:
-                data = plot_version.load_output_summaries(measure, self._loc_id)
+                data = plot_version.load_output_summaries(measure, self._loc_id)                
             except FileNotFoundError:  # No data for this version, so skip.
                 continue
             data[['mean', 'upper', 'lower']] = transform(data[['mean', 'upper', 'lower']])
