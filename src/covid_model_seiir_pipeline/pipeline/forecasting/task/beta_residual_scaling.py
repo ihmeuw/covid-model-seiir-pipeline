@@ -89,7 +89,7 @@ def run_compute_beta_scaling_parameters(forecast_version: str, scenario: str, pr
 def compute_initial_beta_scaling_parameters(beta_scaling: dict,
                                             data_interface: ForecastDataInterface,
                                             num_cores: int,
-                                            progress_bar: bool) -> List[pd.DataFrame]:
+                                            progress_bar: bool) -> List[Tuple[pd.DataFrame, pd.Series]]:
     # Serialization is our bottleneck, so we parallelize draw level data
     # ingestion and computation across multiple processes.
     _runner = functools.partial(
@@ -132,12 +132,15 @@ def compute_initial_beta_scaling_parameters_by_draw(draw_id: int,
     draw_data.append(pd.Series(b, index=beta_transition.index, name='history_days_end'))
     draw_data.append(pd.Series(beta_scaling['window_size'], index=beta_transition.index, name='window_size'))
 
-    min_resid = beta_scaling.get('residual_min', None)
-    max_resid = beta_scaling.get('residual_max', None)
-    clipped_log_beta_residual = np.clip(
-        np.log(betas['beta'] / betas['beta_hat']), min_resid, max_resid
-    ).rename('log_beta_residual')
-    log_beta_residual_mean = (clipped_log_beta_residual
+    # min_resid = beta_scaling.get('residual_min', None)
+    # max_resid = beta_scaling.get('residual_max', None)
+    # clipped_log_beta_residual = np.clip(
+    #     np.log(betas['beta'] / betas['beta_hat']), min_resid, max_resid
+    # ).rename('log_beta_residual')
+    residual_rescale = beta_scaling.get('residual_rescale', 0)
+    scaled_log_beta_residual = log_scale(np.log(betas['beta']/betas['beta_hat']), residual_rescale).rename('log_beta_residual')
+
+    log_beta_residual_mean = (scaled_log_beta_residual
                               .groupby(level='location_id')
                               .apply(lambda x: x.iloc[-b: -a].mean())
                               .rename('log_beta_residual_mean')
@@ -145,7 +148,14 @@ def compute_initial_beta_scaling_parameters_by_draw(draw_id: int,
     draw_data.append(log_beta_residual_mean)
     draw_data.append(pd.Series(draw_id, index=beta_transition.index, name='draw'))
 
-    return pd.concat(draw_data, axis=1), clipped_log_beta_residual
+    return pd.concat(draw_data, axis=1), scaled_log_beta_residual
+
+
+def log_scale(z, n_times):
+    y = np.abs(z)
+    for i in range(n_times):
+        y = np.log(y + 1)
+    return np.sign(z) * y
 
 
 def write_out_beta_scale(beta_scales: List[Tuple[pd.DataFrame, pd.Series]],
