@@ -26,7 +26,7 @@ _Parameters = namedtuple(
 
 _FitParameters = namedtuple(
     'FitParameters', [
-        'new_e', 'kappa', 'rho', 'phi',
+        'new_e', 'kappa', 'rho', 'rho_b1617', 'phi',
     ]
 )
 

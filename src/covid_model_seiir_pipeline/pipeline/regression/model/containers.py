@@ -51,6 +51,7 @@ class ODEParameters:
     # Variant prevalences
     rho: pd.Series
     rho_variant: pd.Series
+    rho_b1617: pd.Series
 
     # Escape variant initialization
     pi: pd.Series

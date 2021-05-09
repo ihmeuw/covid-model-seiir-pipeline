@@ -118,11 +118,12 @@ def normalize_parameters(input_parameters: np.ndarray,
         new_e_total = params[FIT_PARAMETERS.new_e]
         kappa = params[FIT_PARAMETERS.kappa]
         rho = params[FIT_PARAMETERS.rho]
+        rho_b1617 = params[FIT_PARAMETERS.rho_b1617]
         phi = params[FIT_PARAMETERS.phi]
         params = params[np.array(PARAMETERS)]
 
         scale_wild = (1 + kappa * rho)
-        scale_variant = (1 + kappa * phi)
+        scale_variant = (1 + kappa * (phi * (1 - rho_b1617) + rho_b1617))
         scale = scale_variant / scale_wild
 
         susceptible_wild, susceptible_variant_only, infectious_wild, infectious_variant, n_total = aggregates[np.array([
