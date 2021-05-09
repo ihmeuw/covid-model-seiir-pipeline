@@ -37,7 +37,6 @@ def build_model_parameters(indices: Indices,
                            beta_regression: pd.DataFrame,
                            covariates: pd.DataFrame,
                            coefficients: pd.DataFrame,
-                           thetas: pd.Series,
                            rhos: pd.DataFrame,
                            beta_scales: pd.DataFrame,
                            vaccine_data: pd.DataFrame) -> ModelParameters:
@@ -58,7 +57,7 @@ def build_model_parameters(indices: Indices,
         ode_parameters['phi'].mean(),
     )
 
-    thetas = thetas.reindex(indices.full, level='location_id')
+    thetas = beta_scales['theta'].reindex(indices.full, level='location_id')
 
     if ((1 < thetas) | thetas < -1).any():
         raise ValueError('Theta must be between -1 and 1.')

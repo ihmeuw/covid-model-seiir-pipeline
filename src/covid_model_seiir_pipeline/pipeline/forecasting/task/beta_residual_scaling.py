@@ -79,6 +79,10 @@ def run_compute_beta_scaling_parameters(forecast_version: str, scenario: str, pr
 
     logger.info('Computing scaling parameters.', context='compute')
     scaling_data = compute_initial_beta_scaling_parameters(beta_scaling, data_interface, num_cores, progress_bar)
+    final_scales = pd.concat([np.log(s['scale_final']) for s, _ in scaling_data], axis=1).median(axis=1)
+    theta = pd.Series(0.0, index=final_scales.index, name='theta')
+    theta[final_scales > -0.4] = 0.000006
+    scaling_data = [(s.join(theta), *other) for s, *other in scaling_data]
 
     logger.info('Writing scaling parameters to disk.', context='write')
     write_out_beta_scale(scaling_data, scenario, data_interface, num_cores)
@@ -89,7 +93,7 @@ def run_compute_beta_scaling_parameters(forecast_version: str, scenario: str, pr
 def compute_initial_beta_scaling_parameters(beta_scaling: dict,
                                             data_interface: ForecastDataInterface,
                                             num_cores: int,
-                                            progress_bar: bool) -> List[pd.DataFrame]:
+                                            progress_bar: bool) -> List[Tuple[pd.DataFrame, pd.Series]]:
     # Serialization is our bottleneck, so we parallelize draw level data
     # ingestion and computation across multiple processes.
     _runner = functools.partial(

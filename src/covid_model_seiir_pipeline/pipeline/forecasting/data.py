@@ -207,16 +207,6 @@ class ForecastDataInterface:
     # Miscellaneous data loaders #
     ##############################
 
-    def load_thetas(self, beta_scales: pd.DataFrame) -> pd.Series:
-        location_ids = self.load_location_ids()
-        thetas = pd.Series(0.0,
-                           index=pd.Index(location_ids, name='location_id'),
-                           name='theta')
-        log_beta_resid = np.log(beta_scales['scale_final'])
-        theta_plus = (log_beta_resid < -0.4).reindex(thetas.index, fill_value=False)
-        thetas[theta_plus] = 0.000006
-        return thetas
-
     def get_infections_metadata(self):
         return self._get_regression_data_interface().get_infections_metadata()
 
