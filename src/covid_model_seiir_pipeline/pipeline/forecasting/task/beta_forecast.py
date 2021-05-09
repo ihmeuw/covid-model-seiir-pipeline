@@ -169,7 +169,6 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
                 betas,
                 covariates,
                 coefficients,
-                thetas,
                 rhos,
                 beta_scales,
                 vaccinations,
