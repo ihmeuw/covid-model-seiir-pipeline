@@ -47,7 +47,7 @@ def build_model_parameters(indices: Indices,
         for param in ['alpha', 'sigma', 'gamma1', 'gamma2', 'pi', 'chi']
     }
 
-    beta, beta_wild, beta_variant, beta_hat, rho, rho_variant, rho_total = get_betas_and_prevalences(
+    beta, beta_wild, beta_variant, beta_hat, rho, rho_variant, rho_b1617, rho_total = get_betas_and_prevalences(
         indices,
         beta_regression,
         covariates,
@@ -79,6 +79,7 @@ def build_model_parameters(indices: Indices,
         beta_hat=beta_hat,
         rho=rho,
         rho_variant=rho_variant,
+        rho_b1617=rho_b1617,
         rho_total=rho_total,
         theta_plus=theta_plus,
         theta_minus=theta_minus,
@@ -93,7 +94,7 @@ def get_betas_and_prevalences(indices: Indices,
                               beta_shift_parameters: pd.DataFrame,
                               rhos: pd.DataFrame,
                               kappa: float,
-                              phi: float,) -> Tuple[pd.Series, pd.Series, pd.Series,
+                              phi: float,) -> Tuple[pd.Series, pd.Series, pd.Series, pd.Series,
                                                     pd.Series, pd.Series, pd.Series, pd.Series]:
     rhos = rhos.reindex(indices.full).fillna(method='ffill')
 
@@ -105,9 +106,10 @@ def get_betas_and_prevalences(indices: Indices,
             .rename('beta'))
     beta = beta_regression.loc[indices.past, 'beta'].append(beta)
     beta_wild = beta * (1 + kappa * rhos.rho)
-    beta_variant = beta * (1 + kappa * phi)
+    beta_variant = beta * (1 + kappa * (phi * (1 - rhos.rho_b1617) + rhos.rho_b1617))
 
-    return beta, beta_wild, beta_variant, np.exp(log_beta_hat), rhos.rho, rhos.rho_variant, rhos.rho_total
+    return (beta, beta_wild, beta_variant, np.exp(log_beta_hat),
+            rhos.rho, rhos.rho_variant, rhos.rho_b1617, rhos.rho_total)
 
 
 def beta_shift(beta_hat: pd.DataFrame,
