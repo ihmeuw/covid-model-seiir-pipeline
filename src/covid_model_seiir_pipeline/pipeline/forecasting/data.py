@@ -3,6 +3,7 @@ from pathlib import Path
 from typing import Dict, List, Tuple, Union
 
 from loguru import logger
+import numpy as np
 import pandas as pd
 
 from covid_model_seiir_pipeline.lib import (
@@ -211,7 +212,9 @@ class ForecastDataInterface:
         thetas = pd.Series(0.0,
                            index=pd.Index(location_ids, name='location_id'),
                            name='theta')
-        import pdb; pdb.set_trace()
+        log_beta_resid = np.log(beta_scales['scale_final'])
+        theta_plus = (log_beta_resid < -0.4).reindex(thetas.index, fill_value=False)
+        thetas[theta_plus] = 0.000006
         return thetas
 
     def get_infections_metadata(self):
