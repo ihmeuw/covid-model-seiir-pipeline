@@ -19,7 +19,6 @@ scenarios:
       window_size: 42
       average_over_min: 7
       average_over_max: 42
-    theta: 0.0
     vaccine_version: 'reference'
     variant_version: 'reference'
     variant_ifr_scale: 1.29

@@ -206,15 +206,12 @@ class ForecastDataInterface:
     # Miscellaneous data loaders #
     ##############################
 
-    def load_thetas(self, theta_specification: Union[str, int]) -> pd.Series:
+    def load_thetas(self, beta_scales: pd.DataFrame) -> pd.Series:
         location_ids = self.load_location_ids()
-        if isinstance(theta_specification, str):
-            thetas = pd.read_csv(theta_specification).set_index('location_id')['theta']
-            thetas = thetas.reindex(location_ids, fill_value=0)
-        else:
-            thetas = pd.Series(theta_specification,
-                               index=pd.Index(location_ids, name='location_id'),
-                               name='theta')
+        thetas = pd.Series(0.0,
+                           index=pd.Index(location_ids, name='location_id'),
+                           name='theta')
+        import pdb; pdb.set_trace()
         return thetas
 
     def get_infections_metadata(self):
