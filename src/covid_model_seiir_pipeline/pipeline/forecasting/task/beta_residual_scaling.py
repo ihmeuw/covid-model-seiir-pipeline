@@ -147,6 +147,7 @@ def compute_initial_beta_scaling_parameters_by_draw(draw_id: int,
                               .rename('log_beta_residual_mean')
                               .fillna(0))
     draw_data.append(log_beta_residual_mean)
+    draw_data.append(np.exp(log_beta_residual_mean).rename('scale_final'))
     draw_data.append(pd.Series(draw_id, index=beta_transition.index, name='draw'))
 
     return pd.concat(draw_data, axis=1), clipped_log_beta_residual
@@ -168,9 +169,7 @@ def write_out_beta_scale(beta_scales: List[Tuple[pd.DataFrame, pd.Series]],
 def write_out_beta_scales_by_draw(beta_scales: Tuple[pd.DataFrame, pd.Series],
                                   data_interface: ForecastDataInterface,
                                   scenario: str) -> None:
-    # Compute these draw specific parameters now that we have the offset.
     beta_scales, clipped_residual = beta_scales
-    beta_scales['scale_final'] = np.exp(beta_scales['log_beta_residual_mean'])
     draw_id = beta_scales['draw'].iat[0]
     data_interface.save_beta_scales(beta_scales, scenario, draw_id)
     data_interface.save_beta_residual(clipped_residual.reset_index(), scenario, draw_id)
