@@ -93,34 +93,6 @@ def get_p_icu_if_recover(prob_death: pd.Series, hospital_parameters: 'HospitalPa
     return _bound(0, 1, prob_icu_if_recover)
 
 
-def get_p_int_if_icu_and_recover(prob_death: pd.Series, hospital_parameters: 'HospitalParameters'):
-    """Get the probability of intubation among recovered ICU patients.
-    This fixes the long term average of [# intubated]/[# in icu] to be
-    the expected intubation ratio.
-    """
-    # noinspection PyTypeChecker
-    prob_recover = 1 - prob_death
-
-    prob_icu = get_p_icu_if_recover(prob_death, hospital_parameters)
-
-    int_ratio = hospital_parameters.intubation_ratio
-    days_to_death_prob = hospital_parameters.hospital_stay_death + 1
-    days_in_hosp_icu_prob = hospital_parameters.hospital_stay_recover_icu + 1
-
-    # Fixme: For some reason, this can be negative. This doesn't really make
-    #    sense, but it's how the R code works.
-    prob_int = (
-            (int_ratio * (days_to_death_prob * prob_death + days_in_hosp_icu_prob * prob_icu * prob_recover)
-             - days_to_death_prob * prob_death)
-            / (days_in_hosp_icu_prob * prob_icu * prob_recover)
-    )
-    # If the probability of icu is 0, the probability of being intubated
-    # conditional on ICU admission doesnt matter.
-    prob_int[prob_icu == 0] = 1
-
-    return _bound(0, 1, prob_int)
-
-
 def read_correction_data(correction_path):
     df = pd.read_csv(correction_path)
     df = df.loc[(df.age_group_id == 22) & (df.sex_id == 3), ['location_id', 'date', 'value']]
@@ -140,7 +112,6 @@ def compute_hospital_usage(admissions: pd.Series,
     prob_death_given_admission = 1 / hfr
     prob_icu = get_p_icu_if_recover(prob_death_given_admission, hospital_parameters)
     prob_no_icu = 1 - prob_icu
-    prob_invasive = get_p_int_if_icu_and_recover(prob_death_given_admission, hospital_parameters)
 
     recovered_hospital_admissions = admissions * (1 - prob_death_given_admission)
     # Split people into those who go to ICU and those who don't and count the
@@ -157,8 +128,6 @@ def compute_hospital_usage(admissions: pd.Series,
     )
     # Count number of days those who go to ICU spend there.
     recovered_icu_census = _to_census(recovered_icu_admissions, hospital_parameters.icu_stay_recover)
-    # Ventilation usage is just scaled ICU usage.
-    recovered_ventilator_census = prob_invasive * recovered_icu_census
 
     # Every death corresponds to a hospital admission shifted back some number
     # of days.
@@ -169,7 +138,6 @@ def compute_hospital_usage(admissions: pd.Series,
     # ICU for their full stay.
     dead_icu_admissions = dead_hospital_admissions.copy()
     dead_icu_census = dead_hospital_census.copy()
-    dead_ventilator_census = dead_icu_census.copy()
 
     def _combine(recovered, dead):
         # Drop data after the last admission since it will be incomplete.
@@ -185,7 +153,6 @@ def compute_hospital_usage(admissions: pd.Series,
         hospital_census=_combine(recovered_hospital_census, dead_hospital_census),
         icu_admissions=_combine(recovered_icu_admissions, dead_icu_admissions),
         icu_census=_combine(recovered_icu_census, dead_icu_census),
-        ventilator_census=_combine(recovered_ventilator_census, dead_ventilator_census),
     )
 
 
@@ -280,7 +247,6 @@ def calculate_hospital_correction_factors(usage: 'HospitalMetrics',
         return HospitalCorrectionFactors(
             hospital_census=pd.Series(1.0, index=idx, name='hospital_census'),
             icu_census=pd.Series(1.0, index=idx, name='icu_census'),
-            ventilator_census=pd.Series(1.0, index=idx, name='ventilator_census'),
         )
 
     raw_log_hospital_cf = _safe_log_divide(census_data.hospital_census, usage.hospital_census)
@@ -308,22 +274,7 @@ def calculate_hospital_correction_factors(usage: 'HospitalMetrics',
     icu_cf = icu_cf.clip(lower=hospital_parameters.icu_correction_factor_min,
                          upper=hospital_parameters.icu_correction_factor_max)
 
-    modeled_ventilator_log_ratio = _safe_log_divide(usage.ventilator_census, usage.icu_census)
-    historical_ventilator_log_ratio = _safe_log_divide(census_data.ventilator_census, census_data.icu_census)
-    raw_log_ventilator_ratio_cf = (historical_ventilator_log_ratio - modeled_ventilator_log_ratio).dropna()
-
-    log_ventilator_ratio_cf = _compute_correction_factor(
-        raw_log_ventilator_ratio_cf,
-        min_date, max_date,
-        hospital_parameters.correction_factor_smooth_window,
-    )
-    log_ventilator_cf = (modeled_ventilator_log_ratio + log_ventilator_ratio_cf).dropna()
-    ventilator_cf = np.exp(_fill_missing_locations(log_ventilator_cf, aggregation_hierarchy))
-    ventilator_cf = ventilator_cf.clip(lower=hospital_parameters.intubation_correction_factor_min,
-                                       upper=hospital_parameters.intubation_correction_factor_max)
-
     return HospitalCorrectionFactors(
         hospital_census=hospital_cf,
         icu_census=icu_cf,
-        ventilator_census=ventilator_cf,
     )

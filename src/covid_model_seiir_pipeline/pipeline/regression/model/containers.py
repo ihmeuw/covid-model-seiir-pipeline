@@ -112,7 +112,6 @@ class ODEParameters:
 class HospitalCensusData:
     hospital_census: pd.Series
     icu_census: pd.Series
-    ventilator_census: pd.Series
 
     def to_dict(self) -> Dict[str, pd.Series]:
         return utilities.asdict(self)
@@ -124,7 +123,6 @@ class HospitalMetrics:
     hospital_census: pd.Series
     icu_admissions: pd.Series
     icu_census: pd.Series
-    ventilator_census: pd.Series
 
     def to_dict(self) -> Dict[str, pd.Series]:
         return utilities.asdict(self)
@@ -134,7 +132,6 @@ class HospitalMetrics:
 class HospitalCorrectionFactors:
     hospital_census: pd.Series
     icu_census: pd.Series
-    ventilator_census: pd.Series
 
     def to_dict(self) -> Dict[str, pd.Series]:
         return utilities.asdict(self)
