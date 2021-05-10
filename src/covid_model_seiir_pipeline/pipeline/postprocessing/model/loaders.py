@@ -100,10 +100,6 @@ def load_icu_census(scenario: str, data_interface: 'PostprocessingDataInterface'
     return _load_output_data(scenario, 'icu_census', data_interface, num_cores)
 
 
-def load_ventilator_census(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
-    return _load_output_data(scenario, 'ventilator_census', data_interface, num_cores)
-
-
 ################
 # Vaccinations #
 ################

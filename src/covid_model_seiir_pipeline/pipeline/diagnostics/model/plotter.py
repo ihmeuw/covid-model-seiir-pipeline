@@ -102,7 +102,7 @@ def make_results_page(plot_versions: List[PlotVersion],
         ('daily_cases', 'Daily Cases', 'cumulative_cases'),
         ('hospital_admissions', 'Daily Admissions', 'cumulative_hospitalizations'),
         ('daily_deaths', 'Daily Deaths', 'cumulative_deaths'),
-    ]    
+    ]
     for i, (measure, label, full_data_measure) in enumerate(daily_measures):
         ax_measure = fig.add_subplot(gs_daily[i])
         plotter.make_time_plot(
@@ -203,7 +203,7 @@ def make_details_page(plot_versions: List[PlotVersion],
     pop = pop.loc[(pop.age_group_id == 22) & (pop.sex_id == 3), 'population'].iloc[0]
     full_data = pv.load_output_miscellaneous('full_data', is_table=True, location_id=location.id)
     full_data_unscaled = pv.load_output_miscellaneous('unscaled_full_data', is_table=True, location_id=location.id)
-    hospital_census = pv.load_output_miscellaneous('hospital_census_data', is_table=True, location_id=location.id)   
+    hospital_census = pv.load_output_miscellaneous('hospital_census_data', is_table=True, location_id=location.id)
     # Configure the plot layout.
     fig = plt.figure(figsize=FIG_SIZE, tight_layout=True)
     grid_spec = fig.add_gridspec(
@@ -226,22 +226,21 @@ def make_details_page(plot_versions: List[PlotVersion],
 
     # Hospital model section
     admissions_axes, census_axes = [], []
-    for i, measure in enumerate(['hospital', 'icu', 'ventilator']):
+    for i, measure in enumerate(['hospital', 'icu']):
         label = measure.upper() if measure == 'icu' else measure.title()
-        if measure != 'ventilator':
-            ax_daily = fig.add_subplot(gs_hospital[i, 0])
-            plotter.make_time_plot(
+        ax_daily = fig.add_subplot(gs_hospital[i, 0])
+        plotter.make_time_plot(
+            ax_daily,
+            f'{measure}_admissions',
+            label=f'{label} Admissions'
+        )
+        if measure == 'hospital':
+            plotter.make_observed_time_plot(
                 ax_daily,
-                f'{measure}_admissions',
-                label=f'{label} Admissions'
+                full_data['date'],
+                full_data['cumulative_hospitalizations'].diff(),
             )
-            if measure == 'hospital':
-                plotter.make_observed_time_plot(
-                    ax_daily,
-                    full_data['date'],
-                    full_data['cumulative_hospitalizations'].diff(),
-                )
-            admissions_axes.append(ax_daily)
+        admissions_axes.append(ax_daily)
 
         ax_census = fig.add_subplot(gs_hospital[i, 1])
         plotter.make_time_plot(
@@ -286,7 +285,7 @@ def make_details_page(plot_versions: List[PlotVersion],
         ax_unscaled,
         'unscaled_daily_deaths',
         label='Unscaled Deaths',
-    )    
+    )
     plotter.make_observed_time_plot(
         ax_unscaled,
         full_data_unscaled['date'],
@@ -297,14 +296,14 @@ def make_details_page(plot_versions: List[PlotVersion],
     for plot_version in plot_versions:
         try:
             data = plot_version.load_output_miscellaneous(
-                'excess_mortality_scalars', 
-                is_table=True, 
+                'excess_mortality_scalars',
+                is_table=True,
                 location_id=location.id
             )
         except FileNotFoundError:
             continue
         ax_scalars.plot(data['date'], data['em_scalar'], color=plot_version.color)
-        
+
     col_2_axes.append(ax_scalars)
     ax_scaled = fig.add_subplot(gs_deaths[2])
     plotter.make_time_plot(
@@ -525,7 +524,7 @@ class Plotter:
 
         for plot_version in self._plot_versions:
             try:
-                data = plot_version.load_output_summaries(measure, self._loc_id)                
+                data = plot_version.load_output_summaries(measure, self._loc_id)
             except FileNotFoundError:  # No data for this version, so skip.
                 continue
             data[['mean', 'upper', 'lower']] = transform(data[['mean', 'upper', 'lower']])

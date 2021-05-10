@@ -168,11 +168,6 @@ MEASURES = {
         'icu_census',
         aggregator=aggregators.sum_aggregator,
     ),
-    'ventilator_census': MeasureConfig(
-        loaders.load_ventilator_census,
-        'ventilator_census',
-        aggregator=aggregators.sum_aggregator,
-    ),
 
     # Vaccination measures
 
