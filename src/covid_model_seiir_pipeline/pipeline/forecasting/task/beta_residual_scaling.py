@@ -81,7 +81,7 @@ def run_compute_beta_scaling_parameters(forecast_version: str, scenario: str, pr
     scaling_data = compute_initial_beta_scaling_parameters(beta_scaling, data_interface, num_cores, progress_bar)
     final_scales = pd.concat([np.log(s['scale_final']) for s, _ in scaling_data], axis=1).median(axis=1)
     theta = pd.Series(0.0, index=final_scales.index, name='theta')
-    theta[final_scales > -0.4] = 0.000006
+#    theta[final_scales > -0.4] = 0.000006
     scaling_data = [(s.join(theta), *other) for s, *other in scaling_data]
 
     logger.info('Writing scaling parameters to disk.', context='write')
@@ -141,7 +141,7 @@ def compute_initial_beta_scaling_parameters_by_draw(draw_id: int,
     # clipped_log_beta_residual = np.clip(
     #     np.log(betas['beta'] / betas['beta_hat']), min_resid, max_resid
     # ).rename('log_beta_residual')
-    residual_rescale = beta_scaling.get('residual_rescale', 0)
+    residual_rescale = beta_scaling.get('residual_rescale', 4)
     scaled_log_beta_residual = log_scale(np.log(betas['beta']/betas['beta_hat']), residual_rescale).rename('log_beta_residual')
 
     log_beta_residual_mean = (scaled_log_beta_residual
