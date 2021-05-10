@@ -6,9 +6,9 @@ workflow:
 grid_plots:
   - name: 'compare_longrange'
     date_start: '2020-03-01'
-    date_end: '2023-12-31'
+    date_end: '2022-12-31'
     comparators:
-      - version: '/ihme/covid-19/seir-outputs/2021_05_09.03'
+      - version: '/ihme/covid-19/seir-outputs/2021_05_10.01'
         scenarios:
             vaccine_reference_mask_return_mobility_return_variant_worse: 'worse'
             vaccine_best_booster_children_mask_return_mobility_return_variant_worse: 'vaccine_only'
