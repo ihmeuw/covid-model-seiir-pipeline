@@ -116,6 +116,9 @@ class HospitalCensusData:
     def to_dict(self) -> Dict[str, pd.Series]:
         return utilities.asdict(self)
 
+    def to_df(self):
+        return pd.concat([v.rename(k) for k, v in self.to_dict().items()], axis=1)
+
 
 @dataclass
 class HospitalMetrics:
@@ -127,6 +130,9 @@ class HospitalMetrics:
     def to_dict(self) -> Dict[str, pd.Series]:
         return utilities.asdict(self)
 
+    def to_df(self):
+        return pd.concat([v.rename(k) for k, v in self.to_dict().items()], axis=1)
+
 
 @dataclass
 class HospitalCorrectionFactors:
@@ -135,3 +141,6 @@ class HospitalCorrectionFactors:
 
     def to_dict(self) -> Dict[str, pd.Series]:
         return utilities.asdict(self)
+
+    def to_df(self):
+        return pd.concat([v.rename(k) for k, v in self.to_dict().items()], axis=1)

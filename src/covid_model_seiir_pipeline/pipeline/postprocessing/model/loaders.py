@@ -274,10 +274,11 @@ def load_excess_mortality_scalars(data_interface: 'PostprocessingDataInterface')
 
 
 def load_raw_census_data(data_interface: 'PostprocessingDataInterface'):
-    census_data = data_interface.load_hospital_census_data()
-    return pd.concat([
-        data.rename(census_type) for census_type, data in census_data.to_dict().items()
-    ], axis=1)
+    return data_interface.load_hospital_census_data()
+
+
+def load_hospital_correction_factors(data_interface: 'PostprocessingDataInterface'):
+    return data_interface.load_hospital_correction_factors()
 
 
 def load_scaling_parameters(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):

@@ -434,6 +434,10 @@ MISCELLANEOUS = {
         loaders.load_raw_census_data,
         'hospital_census_data',
     ),
+    'hospital_correction_factors': MiscellaneousConfig(
+        loaders.load_hospital_correction_factors,
+        'hospital_correction_factors',
+    ),
     'version_map': MiscellaneousConfig(
         loaders.build_version_map,
         'version_map',
