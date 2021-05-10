@@ -1,3 +1,4 @@
+from collections import defaultdict
 from pathlib import Path
 from typing import List
 import warnings
@@ -195,7 +196,6 @@ def make_details_page(plot_versions: List[PlotVersion],
                       start: pd.Timestamp, end: pd.Timestamp,
                       plot_file: str = None):
     sns.set_style('whitegrid')
-    observed_color = COLOR_MAP(len(plot_versions))
 
     # Load some shared data.
     pv = plot_versions[-1]
@@ -204,6 +204,8 @@ def make_details_page(plot_versions: List[PlotVersion],
     full_data = pv.load_output_miscellaneous('full_data', is_table=True, location_id=location.id)
     full_data_unscaled = pv.load_output_miscellaneous('unscaled_full_data', is_table=True, location_id=location.id)
     hospital_census = pv.load_output_miscellaneous('hospital_census_data', is_table=True, location_id=location.id)
+    hospital_correction_factors = pv.load_output_miscellaneous('hospital_correction_factors', is_table=True,
+                                                               location_id=location.id)
     # Configure the plot layout.
     fig = plt.figure(figsize=FIG_SIZE, tight_layout=True)
     grid_spec = fig.add_gridspec(
@@ -225,24 +227,33 @@ def make_details_page(plot_versions: List[PlotVersion],
     )
 
     # Hospital model section
-    admissions_axes, census_axes = [], []
-    for i, measure in enumerate(['hospital', 'icu']):
+    axes = defaultdict(list)
+    for col, measure in enumerate(['hospital', 'icu']):
+        ax_daily = fig.add_subplot(gs_hospital[0, col])
         label = measure.upper() if measure == 'icu' else measure.title()
-        ax_daily = fig.add_subplot(gs_hospital[i, 0])
         plotter.make_time_plot(
             ax_daily,
             f'{measure}_admissions',
             label=f'{label} Admissions'
         )
+
         if measure == 'hospital':
             plotter.make_observed_time_plot(
                 ax_daily,
                 full_data['date'],
                 full_data['cumulative_hospitalizations'].diff(),
             )
-        admissions_axes.append(ax_daily)
+        axes[col].append(ax_daily)
 
-        ax_census = fig.add_subplot(gs_hospital[i, 1])
+        ax_correction = fig.add_subplot(gs_hospital[1, col])
+        ax_correction.plot(
+            hospital_correction_factors['date'],
+            hospital_correction_factors[f'{measure}_census'],
+        )
+        ax_correction.set_ylabel(f'{label} Scalar', fontsize=AX_LABEL_FONTSIZE)
+        axes[col].append(ax_correction)
+
+        ax_census = fig.add_subplot(gs_hospital[2, col])
         plotter.make_time_plot(
             ax_census,
             f'{measure}_census',
@@ -253,9 +264,9 @@ def make_details_page(plot_versions: List[PlotVersion],
             hospital_census['date'],
             hospital_census[f'{measure}_census'],
         )
-        census_axes.append(ax_census)
-    fig.align_ylabels(admissions_axes)
-    fig.align_ylabels(census_axes)
+        axes[col].append(ax_census)
+    for ax_set in axes:
+        fig.align_ylabels(ax_set)
 
     # Detailed infections section
     shared_axes = []
