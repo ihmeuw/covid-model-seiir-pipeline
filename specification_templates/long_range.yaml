@@ -1,9 +1,9 @@
 data:
-  covariate_version: '2021_05_09.08'
+  covariate_version: '2021_05_09.09'
   fh_subnationals: false
   output_format: parquet
   output_root: ''
-  regression_version: '2021_05_09.02'
+  regression_version: '2021_05_09.03'
 scenarios:
   vaccine_best_booster_children_mask_return_mobility_average_variant_reference:
     algorithm: draw_level_mandate_reimposition
@@ -2507,4 +2507,4 @@ scenarios:
     variant_version: worse
 workflow:
   project: proj_covid_prod
-  queue: d.q
+  queue: all.q
