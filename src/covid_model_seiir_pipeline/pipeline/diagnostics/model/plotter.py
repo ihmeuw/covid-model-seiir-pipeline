@@ -246,11 +246,12 @@ def make_details_page(plot_versions: List[PlotVersion],
         axes[col].append(ax_daily)
 
         ax_correction = fig.add_subplot(gs_hospital[1, col])
-        ax_correction.plot(
-            hospital_correction_factors['date'],
-            hospital_correction_factors[f'{measure}_census'],
+        plotter.make_raw_time_plot(
+            ax_correction,
+            hospital_correction_factors,
+            f'{measure}_census',
+            f'{label} Scalar'
         )
-        ax_correction.set_ylabel(f'{label} Scalar', fontsize=AX_LABEL_FONTSIZE)
         axes[col].append(ax_correction)
 
         ax_census = fig.add_subplot(gs_hospital[2, col])
@@ -314,8 +315,10 @@ def make_details_page(plot_versions: List[PlotVersion],
         except FileNotFoundError:
             continue
         ax_scalars.plot(data['date'], data['em_scalar'], color=plot_version.color)
-
+    ax_scalars.set_ylabel('EM Scalar', fontsize=AX_LABEL_FONTSIZE)
+    plotter.format_date_axis(ax_scalars)
     col_2_axes.append(ax_scalars)
+
     ax_scaled = fig.add_subplot(gs_deaths[2])
     plotter.make_time_plot(
         ax_scaled,
@@ -525,7 +528,7 @@ class Plotter:
         self._transform = transform
         self._default_options = {'linewidth': 2.5, **extra_defaults}
 
-    def make_time_plot(self, ax, measure: str, label: str = None, miscellaneous: bool = False, **extra_options):
+    def make_time_plot(self, ax, measure: str, label: str = None, **extra_options):
         uncertainty = extra_options.pop('uncertainty', self._uncertainty)
         transform = extra_options.pop('transform', self._transform)
         start = extra_options.pop('start', self._start)
@@ -544,11 +547,7 @@ class Plotter:
             if uncertainty:
                 ax.fill_between(data['date'], data['upper'], data['lower'], alpha=FILL_ALPHA, color=plot_version.color)
 
-        date_locator = mdates.AutoDateLocator(maxticks=15)
-        date_formatter = mdates.ConciseDateFormatter(date_locator, show_offset=False)
-        ax.set_xlim(start, end)
-        ax.xaxis.set_major_locator(date_locator)
-        ax.xaxis.set_major_formatter(date_formatter)
+        self.format_date_axis(ax, start, end)
 
         if label is not None:
             ax.set_ylabel(label, fontsize=AX_LABEL_FONTSIZE)
@@ -565,6 +564,16 @@ class Plotter:
             color=observed_color,
             alpha=OBSERVED_ALPHA,
         )
+
+    def make_raw_time_plot(self, ax, data, measure, label):
+        ax.plot(
+            data['date'],
+            data[measure],
+            color=self._plot_versions[-1].color,
+            linewidth=self._default_options['linewidth'],
+        )
+        ax.set_ylabel(label, fontsize=AX_LABEL_FONTSIZE)
+        self.format_date_axis(ax)
 
     def make_log_beta_resid_hist(self, ax):
         for plot_version in self._plot_versions:
@@ -597,6 +606,15 @@ class Plotter:
 
         ax.set_ylabel(label, fontsize=AX_LABEL_FONTSIZE)
         sns.despine(ax=ax, left=True, bottom=True)
+
+    def format_date_axis(self, ax, start=None, end=None):
+        start = start if start is not None else self._start
+        end = end if end is not None else self._end
+        date_locator = mdates.AutoDateLocator(maxticks=15)
+        date_formatter = mdates.ConciseDateFormatter(date_locator, show_offset=False)
+        ax.set_xlim(start, end)
+        ax.xaxis.set_major_locator(date_locator)
+        ax.xaxis.set_major_formatter(date_formatter)
 
 
 def add_vline(ax, x_position):
