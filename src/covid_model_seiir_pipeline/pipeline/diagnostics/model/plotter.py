@@ -265,7 +265,7 @@ def make_details_page(plot_versions: List[PlotVersion],
             hospital_census[f'{measure}_census'],
         )
         axes[col].append(ax_census)
-    for ax_set in axes:
+    for ax_set in axes.values():
         fig.align_ylabels(ax_set)
 
     # Detailed infections section

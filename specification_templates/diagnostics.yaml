@@ -6,15 +6,11 @@ workflow:
 grid_plots:
   - name: 'compare_longrange'
     date_start: '2020-03-01'
-    date_end: '2023-12-31'
+    date_end: '2022-08-01'
     comparators:
-      - version: '/ihme/covid-19/seir-outputs/2021_05_09.03'
+      - version: '2021_05_05.04'
         scenarios:
-            vaccine_reference_mask_return_mobility_return_variant_worse: 'worse'
-            vaccine_best_booster_children_mask_return_mobility_return_variant_worse: 'vaccine_only'
-            vaccine_reference_mask_seasonal_80_mobility_return_variant_worse: '80 mask'
-            vaccine_reference_mask_seasonal_50_mobility_average_variant_worse: 'mobility + mask'
-            vaccine_reference_booster_mask_seasonal_50_mobility_return_variant_reference: 'modest'
-            vaccine_best_booster_children_mask_seasonal_100_mobility_average_variant_reference: 'best'
-
-
+          reference*: 'public reference'
+      - version: '2021_05_10.04'
+        scenarios:
+          reference*: 'public reference'
