@@ -91,6 +91,7 @@ class ModelParameters:
     # Variant prevalences
     rho: pd.Series
     rho_variant: pd.Series
+    rho_b1617: pd.Series
     rho_total: pd.Series
 
     # Escape variant initialization

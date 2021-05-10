@@ -79,6 +79,10 @@ def run_compute_beta_scaling_parameters(forecast_version: str, scenario: str, pr
 
     logger.info('Computing scaling parameters.', context='compute')
     scaling_data = compute_initial_beta_scaling_parameters(beta_scaling, data_interface, num_cores, progress_bar)
+    final_scales = pd.concat([np.log(s['scale_final']) for s, _ in scaling_data], axis=1).median(axis=1)
+    theta = pd.Series(0.0, index=final_scales.index, name='theta')
+    theta[final_scales > -0.4] = 0.000006
+    scaling_data = [(s.join(theta), *other) for s, *other in scaling_data]
 
     logger.info('Writing scaling parameters to disk.', context='write')
     write_out_beta_scale(scaling_data, scenario, data_interface, num_cores)
@@ -146,6 +150,7 @@ def compute_initial_beta_scaling_parameters_by_draw(draw_id: int,
                               .rename('log_beta_residual_mean')
                               .fillna(0))
     draw_data.append(log_beta_residual_mean)
+    draw_data.append(np.exp(log_beta_residual_mean).rename('scale_final'))
     draw_data.append(pd.Series(draw_id, index=beta_transition.index, name='draw'))
 
     return pd.concat(draw_data, axis=1), scaled_log_beta_residual
@@ -174,9 +179,7 @@ def write_out_beta_scale(beta_scales: List[Tuple[pd.DataFrame, pd.Series]],
 def write_out_beta_scales_by_draw(beta_scales: Tuple[pd.DataFrame, pd.Series],
                                   data_interface: ForecastDataInterface,
                                   scenario: str) -> None:
-    # Compute these draw specific parameters now that we have the offset.
     beta_scales, clipped_residual = beta_scales
-    beta_scales['scale_final'] = np.exp(beta_scales['log_beta_residual_mean'])
     draw_id = beta_scales['draw'].iat[0]
     data_interface.save_beta_scales(beta_scales, scenario, draw_id)
     data_interface.save_beta_residual(clipped_residual.reset_index(), scenario, draw_id)

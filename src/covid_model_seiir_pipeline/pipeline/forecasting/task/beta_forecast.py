@@ -52,13 +52,11 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
     ode_params = data_interface.load_ode_parameters(draw_id=draw_id)
     # Contains both the fit and regression betas
     betas = data_interface.load_betas(draw_id)
-    # Thetas are a parameter generated from assumption or OOS predictive
-    # validity testing to curtail some of the bad behavior of the model.
-    thetas = data_interface.load_thetas(scenario_spec.theta)
-    # Regression coefficients for forecasting beta.
-    coefficients = data_interface.load_coefficients(draw_id)
     # Rescaling parameters for the beta forecast.
     beta_scales = data_interface.load_beta_scales(scenario=scenario, draw_id=draw_id)
+    # Regression coefficients for forecasting beta.
+    coefficients = data_interface.load_coefficients(draw_id)
+
     # Vaccine data, of course.
     vaccinations = data_interface.load_vaccinations(scenario_spec.vaccine_version)
     # Variant prevalences.
@@ -73,7 +71,6 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
         betas,
         covariates,
         coefficients,
-        thetas,
         rhos,
         beta_scales,
         vaccinations,
@@ -172,7 +169,6 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
                 betas,
                 covariates,
                 coefficients,
-                thetas,
                 rhos,
                 beta_scales,
                 vaccinations,
