@@ -47,6 +47,7 @@ class ODEParameters:
     new_e: pd.Series
     kappa: pd.Series
     phi: pd.Series
+    psi: pd.Series
 
     # Variant prevalences
     rho: pd.Series

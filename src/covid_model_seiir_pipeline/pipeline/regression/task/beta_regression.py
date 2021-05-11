@@ -37,7 +37,7 @@ def run_beta_regression(regression_version: str, draw_id: int, progress_bar: boo
     np.random.seed(draw_id)
     sampled_params = model.sample_params(
         infections.index, regression_params,
-        params_to_sample=['alpha', 'sigma', 'gamma1', 'gamma2', 'kappa', 'chi', 'pi']
+        params_to_sample=['alpha', 'sigma', 'gamma1', 'gamma2', 'kappa', 'chi', 'pi', 'psi']
     )
 
     sampled_params['phi'] = pd.Series(

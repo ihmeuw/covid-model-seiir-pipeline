@@ -188,8 +188,9 @@ def run_loc_ode_fit(ode_parameters: ODEParameters) -> pd.DataFrame:
     rho_b1617 = ode_parameters.rho_b1617
     kappa = ode_parameters.kappa
     phi = ode_parameters.phi
+    psi = ode_parameters.psi
     beta1 = beta_wild / (1 + kappa * rho)
-    beta2 = beta_variant / (1 + kappa * (phi * (1 - rho_b1617) + rho_b1617))
+    beta2 = beta_variant / (1 + kappa * (phi * (1 - rho_b1617) + rho_b1617 * psi))
     components['beta'] = (i_wild * beta1 + (i_variant * beta2).fillna(0)) / (i_wild + i_variant)
 
     return components.reset_index()

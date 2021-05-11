@@ -55,6 +55,7 @@ def build_model_parameters(indices: Indices,
         rhos,
         ode_parameters['kappa'].mean(),
         ode_parameters['phi'].mean(),
+        ode_parameters['psi'].mean(),
     )
 
     thetas = beta_scales['theta'].reindex(indices.full, level='location_id')
@@ -93,8 +94,9 @@ def get_betas_and_prevalences(indices: Indices,
                               beta_shift_parameters: pd.DataFrame,
                               rhos: pd.DataFrame,
                               kappa: float,
-                              phi: float,) -> Tuple[pd.Series, pd.Series, pd.Series, pd.Series,
-                                                    pd.Series, pd.Series, pd.Series, pd.Series]:
+                              phi: float,
+                              psi: float) -> Tuple[pd.Series, pd.Series, pd.Series, pd.Series,
+                                                   pd.Series, pd.Series, pd.Series, pd.Series]:
     rhos = rhos.reindex(indices.full).fillna(method='ffill')
 
     log_beta_hat = math.compute_beta_hat(covariates, coefficients)
@@ -105,7 +107,7 @@ def get_betas_and_prevalences(indices: Indices,
             .rename('beta'))
     beta = beta_regression.loc[indices.past, 'beta'].append(beta)
     beta_wild = beta * (1 + kappa * rhos.rho)
-    beta_variant = beta * (1 + kappa * (phi * (1 - rhos.rho_b1617) + rhos.rho_b1617))
+    beta_variant = beta * (1 + kappa * (phi * (1 - rhos.rho_b1617) + rhos.rho_b1617 * psi))
 
     return (beta, beta_wild, beta_variant, np.exp(log_beta_hat),
             rhos.rho, rhos.rho_variant, rhos.rho_b1617, rhos.rho_total)
