@@ -148,7 +148,6 @@ class PostprocessingParameters:
 
     hospital_census: pd.Series
     icu_census: pd.Series
-    ventilator_census: pd.Series
 
     def to_dict(self) -> Dict[str, Union[int, pd.Series, pd.DataFrame]]:
         return utilities.asdict(self)
@@ -207,7 +206,6 @@ class OutputMetrics:
     hospital_census: pd.Series
     icu_admissions: pd.Series
     icu_census: pd.Series
-    ventilator_census: pd.Series
     deaths: pd.Series
 
     # Other stuff

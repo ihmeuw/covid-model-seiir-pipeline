@@ -241,7 +241,10 @@ class PostprocessingDataInterface:
         return self._get_forecast_data_inteface().load_em_scalars()
 
     def load_hospital_census_data(self):
-        return self._get_forecast_data_inteface().load_hospital_census_data()
+        return self._get_forecast_data_inteface().load_hospital_census_data().to_df()
+
+    def load_hospital_correction_factors(self):
+        return self._get_forecast_data_inteface().load_hospital_correction_factors().to_df()
 
     ###########################
     # Postprocessing data I/O #

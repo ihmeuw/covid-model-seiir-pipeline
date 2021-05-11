@@ -249,7 +249,6 @@ class RegressionDataInterface:
         file_map = (
             ('hospitalizations', 'hospital_census'),
             ('icu', 'icu_census'),
-            ('ventilators', 'ventilator_census'),
         )
         for dir_name, measure in file_map:
             path = model_inputs_path / 'output_measures' / dir_name / 'population.csv'

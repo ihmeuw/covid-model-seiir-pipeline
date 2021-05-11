@@ -211,12 +211,9 @@ def compute_corrected_hospital_usage(admissions: pd.Series,
                                  * postprocessing_parameters.hospital_census).fillna(method='ffill')
     corrected_icu_census = (corrected_hospital_census
                             * postprocessing_parameters.icu_census).fillna(method='ffill')
-    corrected_ventilator_census = (corrected_icu_census
-                                   * postprocessing_parameters.ventilator_census).fillna(method='ffill')
 
     hospital_usage.hospital_census = corrected_hospital_census
     hospital_usage.icu_census = corrected_icu_census
-    hospital_usage.ventilator_census = corrected_ventilator_census
 
     return hospital_usage
 
