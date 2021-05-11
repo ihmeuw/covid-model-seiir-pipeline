@@ -27,6 +27,7 @@ regression_parameters:
   # Mean of phi will be chi + phi_mean_shift
   phi_mean_shift: 0.3
   phi_sd: 0.21
+  psi: 1.0
   # Proportion of current E to send to escape variant E on invasion.
   pi: [0.01, 0.1]
   sequential_refit: False
