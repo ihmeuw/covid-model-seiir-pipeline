@@ -13,4 +13,4 @@ grid_plots:
           reference*: 'public reference'
       - version: '2021_05_10.04'
         scenarios:
-          reference*: 'public reference'
+          reference*: 'reference'
