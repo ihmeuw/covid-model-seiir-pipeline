@@ -188,11 +188,12 @@ class ForecastDataInterface:
         b117 = self.load_covariate('variant_prevalence_B117', variant_scenario).variant_prevalence_B117
         b1351 = self.load_covariate('variant_prevalence_B1351', variant_scenario).variant_prevalence_B1351
         p1 = self.load_covariate('variant_prevalence_P1', variant_scenario).variant_prevalence_P1
-        b1617 = self.load_covariate('variant_prevalence_B1617', variant_scenario).variant_prevalence_B1617.rename('rho_b1617')
+        b1617 = self.load_covariate('variant_prevalence_B1617', variant_scenario).variant_prevalence_B1617
+        b1617_ramp = self.load_covariate('variant_prevalence_escape', variant_scenario).variant_prevalence_escape.rename('rho_b1617')
         rho_variant = (b1351 + p1 + b1617).rename('rho_variant')
         rho_total = (b117 + rho_variant).rename('rho_total')
         rho = b117_ramp.rename('rho')
-        return pd.concat([rho, rho_variant, b1617, rho_total], axis=1)
+        return pd.concat([rho, rho_variant, b1617_ramp, rho_total], axis=1)
 
     #########################
     # Scenario data loaders #

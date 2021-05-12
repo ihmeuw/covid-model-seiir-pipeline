@@ -1,6 +1,6 @@
 data:
   infection_version: '2021_05_05.03'
-  covariate_version: '2021_05_09.09'
+  covariate_version: '2021_05_10.04'
   coefficient_version: ''
   location_set_version_id: ''
   location_set_file: '/ihme/covid-19/seir-pipeline-outputs/metadata-inputs/location_metadata_810.2.csv'
@@ -27,7 +27,7 @@ regression_parameters:
   # Mean of phi will be chi + phi_mean_shift
   phi_mean_shift: 0.3
   phi_sd: 0.21
-  psi: 1.0
+  psi: 2.5
   # Proportion of current E to send to escape variant E on invasion.
   pi: [0.01, 0.1]
   sequential_refit: False
