@@ -66,7 +66,7 @@ class RegressionParameters:
     chi: Tuple[float, float] = field(default=(0.0, 0.6))
     phi_mean_shift: float = field(default=0.5)
     phi_sd: float = field(default=0.3)
-    psi: float = field(default=1.0)
+    psi: float = field(default=1.5)
     pi: float = field(default=0.1)
     sequential_refit: bool = field(default=False)
 
