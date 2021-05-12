@@ -95,20 +95,15 @@ def normalize_parameters(input_parameters: np.ndarray,
 
         beta_wild = params[FORECAST_PARAMETERS.beta_wild]
         beta_variant = params[FORECAST_PARAMETERS.beta_variant]
-        theta_plus = params[FORECAST_PARAMETERS.theta_plus]
         params = params[np.array(PARAMETERS)]
 
         b_wild = beta_wild * aggregates[AGGREGATES.infectious_wild]**alpha / aggregates[AGGREGATES.n_total]
         b_variant = beta_variant * aggregates[AGGREGATES.infectious_variant]**alpha / aggregates[AGGREGATES.n_total]
 
-        infectious_total = aggregates[AGGREGATES.infectious_wild] + aggregates[AGGREGATES.infectious_variant]
-        theta_plus_wild = theta_plus * aggregates[AGGREGATES.infectious_wild] / infectious_total
-        theta_plus_variant = theta_plus * aggregates[AGGREGATES.infectious_variant] / infectious_total
-
         new_e = np.zeros(len(NEW_E))
-        new_e[NEW_E.wild] = (b_wild + theta_plus_wild) * aggregates[AGGREGATES.susceptible_wild]
-        new_e[NEW_E.variant_naive] = (b_variant + theta_plus_variant) * aggregates[AGGREGATES.susceptible_wild]
-        new_e[NEW_E.variant_reinf] = (b_variant + theta_plus_variant) * aggregates[AGGREGATES.susceptible_variant_only]
+        new_e[NEW_E.wild] = b_wild * aggregates[AGGREGATES.susceptible_wild]
+        new_e[NEW_E.variant_naive] = b_variant * aggregates[AGGREGATES.susceptible_wild]
+        new_e[NEW_E.variant_reinf] = b_variant * aggregates[AGGREGATES.susceptible_variant_only]
         new_e[NEW_E.total] = new_e.sum()
 
     else:

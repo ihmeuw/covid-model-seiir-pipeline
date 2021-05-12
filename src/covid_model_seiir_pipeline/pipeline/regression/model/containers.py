@@ -41,7 +41,6 @@ class ODEParameters:
     sigma: pd.Series
     gamma1: pd.Series
     gamma2: pd.Series
-    theta_minus: pd.Series
 
     # Transmission intensity
     new_e: pd.Series

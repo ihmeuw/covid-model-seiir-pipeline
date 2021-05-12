@@ -58,16 +58,6 @@ def build_model_parameters(indices: Indices,
         ode_parameters['psi'].mean(),
     )
 
-    thetas = beta_scales['theta'].reindex(indices.full, level='location_id')
-
-    if ((1 < thetas) | thetas < -1).any():
-        raise ValueError('Theta must be between -1 and 1.')
-    if (ode_params['sigma'] - thetas >= 1).any():
-        raise ValueError('Sigma - theta must be smaller than 1')
-
-    theta_plus = np.maximum(thetas, 0).rename('theta_plus')
-    theta_minus = -np.minimum(thetas, 0).rename('theta_minus')
-
     vaccine_data = vaccine_data.reindex(indices.full, fill_value=0)
     adjusted_vaccinations = math.adjust_vaccinations(vaccine_data)
 
@@ -81,8 +71,6 @@ def build_model_parameters(indices: Indices,
         rho_variant=rho_variant,
         rho_b1617=rho_b1617,
         rho_total=rho_total,
-        theta_plus=theta_plus,
-        theta_minus=theta_minus,
         **adjusted_vaccinations,
     )
 
