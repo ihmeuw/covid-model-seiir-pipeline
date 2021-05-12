@@ -202,7 +202,7 @@ class RegressionDataInterface:
         b117 = self.load_covariate('variant_prevalence_non_escape').variant_prevalence_non_escape
         b1351 = self.load_covariate('variant_prevalence_B1351').variant_prevalence_B1351
         p1 = self.load_covariate('variant_prevalence_P1').variant_prevalence_P1
-        b1617 = self.load_covariate('variant_prevalence_B1617').variant_prevalence_B1617.rename('rho_b1617')
+        b1617 = self.load_covariate('variant_prevalence_escape').variant_prevalence_escape.rename('rho_b1617')
         rho_variant = (b1351 + p1 + b1617).rename('rho_variant')
         rho = b117.rename('rho')
         return pd.concat([rho, rho_variant, b1617], axis=1)
@@ -249,7 +249,6 @@ class RegressionDataInterface:
         file_map = (
             ('hospitalizations', 'hospital_census'),
             ('icu', 'icu_census'),
-            ('ventilators', 'ventilator_census'),
         )
         for dir_name, measure in file_map:
             path = model_inputs_path / 'output_measures' / dir_name / 'population.csv'

@@ -47,6 +47,7 @@ class ODEParameters:
     new_e: pd.Series
     kappa: pd.Series
     phi: pd.Series
+    psi: pd.Series
 
     # Variant prevalences
     rho: pd.Series
@@ -112,10 +113,12 @@ class ODEParameters:
 class HospitalCensusData:
     hospital_census: pd.Series
     icu_census: pd.Series
-    ventilator_census: pd.Series
 
     def to_dict(self) -> Dict[str, pd.Series]:
         return utilities.asdict(self)
+
+    def to_df(self):
+        return pd.concat([v.rename(k) for k, v in self.to_dict().items()], axis=1)
 
 
 @dataclass
@@ -124,17 +127,21 @@ class HospitalMetrics:
     hospital_census: pd.Series
     icu_admissions: pd.Series
     icu_census: pd.Series
-    ventilator_census: pd.Series
 
     def to_dict(self) -> Dict[str, pd.Series]:
         return utilities.asdict(self)
+
+    def to_df(self):
+        return pd.concat([v.rename(k) for k, v in self.to_dict().items()], axis=1)
 
 
 @dataclass
 class HospitalCorrectionFactors:
     hospital_census: pd.Series
     icu_census: pd.Series
-    ventilator_census: pd.Series
 
     def to_dict(self) -> Dict[str, pd.Series]:
         return utilities.asdict(self)
+
+    def to_df(self):
+        return pd.concat([v.rename(k) for k, v in self.to_dict().items()], axis=1)

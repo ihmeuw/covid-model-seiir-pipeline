@@ -1,12 +1,8 @@
 data:
-  forecast_version: '/ihme/covid-19/seir-forecast/2021_05_08.02'
+  forecast_version: '/ihme/covid-19/seir-forecast/2021_05_10.05'
   mortality_ratio_version: 'best'
   scenarios:
     - 'reference'
-    - 'scale_1'
-    - 'scale_2'
-    - 'scale_4'
-    - 'scale_8'
   output_root: ''
 workflow:
   project: 'proj_covid_prod'

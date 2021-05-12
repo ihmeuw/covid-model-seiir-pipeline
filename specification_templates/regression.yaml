@@ -1,6 +1,6 @@
 data:
   infection_version: '2021_05_05.03'
-  covariate_version: '2021_05_09.09'
+  covariate_version: '2021_05_10.04'
   coefficient_version: ''
   location_set_version_id: ''
   location_set_file: '/ihme/covid-19/seir-pipeline-outputs/metadata-inputs/location_metadata_810.2.csv'
@@ -27,6 +27,7 @@ regression_parameters:
   # Mean of phi will be chi + phi_mean_shift
   phi_mean_shift: 0.3
   phi_sd: 0.21
+  psi: 2.5
   # Proportion of current E to send to escape variant E on invasion.
   pi: [0.01, 0.1]
   sequential_refit: False
@@ -38,14 +39,11 @@ hospital_parameters:
   hospital_to_icu: 3
   icu_stay_recover: 13
   icu_ratio: 0.25
-  intubation_ratio: 0.85
   correction_factor_smooth_window: 14
   hospital_correction_factor_min: 0.5
   hospital_correction_factor_max: 25
   icu_correction_factor_min: 0.05
   icu_correction_factor_max: 0.95
-  intubation_correction_factor_min: 0.35
-  intubation_correction_factor_max: 1.0
   correction_factor_average_window: 42
   correction_factor_application_window: 42
 covariates:
