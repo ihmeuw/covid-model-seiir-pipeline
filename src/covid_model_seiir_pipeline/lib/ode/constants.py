@@ -19,7 +19,7 @@ import numpy as np
 
 _Parameters = namedtuple(
     'Parameters', [
-        'alpha', 'sigma', 'gamma1', 'gamma2', 'theta_minus',
+        'alpha', 'sigma', 'gamma1', 'gamma2',
         'rho_variant', 'pi', 'chi',
     ]
 )
@@ -32,7 +32,7 @@ _FitParameters = namedtuple(
 
 _ForecastParameters = namedtuple(
     'ForecastParameters', [
-        'beta_wild', 'beta_variant', 'theta_plus',
+        'beta_wild', 'beta_variant',
     ]
 )
 

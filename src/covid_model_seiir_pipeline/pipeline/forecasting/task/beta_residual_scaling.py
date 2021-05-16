@@ -79,10 +79,6 @@ def run_compute_beta_scaling_parameters(forecast_version: str, scenario: str, pr
 
     logger.info('Computing scaling parameters.', context='compute')
     scaling_data = compute_initial_beta_scaling_parameters(beta_scaling, data_interface, num_cores, progress_bar)
-    final_scales = pd.concat([np.log(s['scale_final']) for s, _ in scaling_data], axis=1).median(axis=1)
-    theta = pd.Series(0.0, index=final_scales.index, name='theta')
-    theta[final_scales > -0.4] = 0.000006
-    scaling_data = [(s.join(theta), *other) for s, *other in scaling_data]
 
     logger.info('Writing scaling parameters to disk.', context='write')
     write_out_beta_scale(scaling_data, scenario, data_interface, num_cores)
@@ -93,7 +89,7 @@ def run_compute_beta_scaling_parameters(forecast_version: str, scenario: str, pr
 def compute_initial_beta_scaling_parameters(beta_scaling: dict,
                                             data_interface: ForecastDataInterface,
                                             num_cores: int,
-                                            progress_bar: bool) -> List[Tuple[pd.DataFrame, pd.Series]]:
+                                            progress_bar: bool) -> List[Tuple[pd.DataFrame, pd.DataFrame]]:
     # Serialization is our bottleneck, so we parallelize draw level data
     # ingestion and computation across multiple processes.
     _runner = functools.partial(
@@ -110,7 +106,7 @@ def compute_initial_beta_scaling_parameters(beta_scaling: dict,
 def compute_initial_beta_scaling_parameters_by_draw(draw_id: int,
                                                     beta_scaling: Dict,
                                                     data_interface: ForecastDataInterface) -> Tuple[pd.DataFrame,
-                                                                                                    pd.Series]:
+                                                                                                    pd.DataFrame]:
 
     # Construct a list of pandas Series indexed by location and named
     # as their column will be in the output dataframe. We'll append
@@ -136,12 +132,14 @@ def compute_initial_beta_scaling_parameters_by_draw(draw_id: int,
     draw_data.append(pd.Series(b, index=beta_transition.index, name='history_days_end'))
     draw_data.append(pd.Series(beta_scaling['window_size'], index=beta_transition.index, name='window_size'))
 
-    min_resid = beta_scaling.get('residual_min', None)
-    max_resid = beta_scaling.get('residual_max', None)
-    clipped_log_beta_residual = np.clip(
-        np.log(betas['beta'] / betas['beta_hat']), min_resid, max_resid
-    ).rename('log_beta_residual')
-    log_beta_residual_mean = (clipped_log_beta_residual
+    residual_rescale_upper = beta_scaling.get('residual_rescale_upper', 1)
+    residual_rescale_lower = beta_scaling.get('residual_rescale_lower', 4)
+    log_beta_residual = np.log(betas['beta']/betas['beta_hat'])
+    scaled_log_beta_residual = log_scale(np.log(betas['beta']/betas['beta_hat']),
+                                         residual_rescale_upper,
+                                         residual_rescale_lower).rename('log_beta_residual')
+
+    log_beta_residual_mean = (scaled_log_beta_residual
                               .groupby(level='location_id')
                               .apply(lambda x: x.iloc[-b: -a].mean())
                               .rename('log_beta_residual_mean')
@@ -150,7 +148,17 @@ def compute_initial_beta_scaling_parameters_by_draw(draw_id: int,
     draw_data.append(np.exp(log_beta_residual_mean).rename('scale_final'))
     draw_data.append(pd.Series(draw_id, index=beta_transition.index, name='draw'))
 
-    return pd.concat(draw_data, axis=1), clipped_log_beta_residual
+    return pd.concat(draw_data, axis=1), pd.concat([log_beta_residual, scaled_log_beta_residual], axis=1)
+
+
+def log_scale(z, n_times_upper, n_times_lower):
+    for i in range(n_times_upper):
+        z[z > 0] = np.log(z[z > 1] + 1)
+    z = -z
+    for i in range(n_times_lower):
+        z[z > 0] = np.log(z[z > 1] + 1)
+    z = -z
+    return z
 
 
 def write_out_beta_scale(beta_scales: List[Tuple[pd.DataFrame, pd.Series]],
@@ -166,13 +174,13 @@ def write_out_beta_scale(beta_scales: List[Tuple[pd.DataFrame, pd.Series]],
         pool.map(_runner, beta_scales)
 
 
-def write_out_beta_scales_by_draw(beta_scales: Tuple[pd.DataFrame, pd.Series],
+def write_out_beta_scales_by_draw(beta_scales: Tuple[pd.DataFrame, pd.DataFrame],
                                   data_interface: ForecastDataInterface,
                                   scenario: str) -> None:
-    beta_scales, clipped_residual = beta_scales
+    beta_scales, residual = beta_scales
     draw_id = beta_scales['draw'].iat[0]
     data_interface.save_beta_scales(beta_scales, scenario, draw_id)
-    data_interface.save_beta_residual(clipped_residual.reset_index(), scenario, draw_id)
+    data_interface.save_beta_residual(residual.reset_index(), scenario, draw_id)
 
 
 @click.command()

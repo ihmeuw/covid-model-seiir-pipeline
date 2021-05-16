@@ -34,7 +34,6 @@ def prepare_ode_fit_parameters(past_infections: pd.Series,
         rho_variant=rhos['rho_variant'].reindex(past_index, fill_value=0.0),
         rho_b1617=rhos['rho_b1617'].reindex(past_index, fill_value=0.0),
         **sampled_params,
-        theta_minus=pd.Series(0.0, index=past_index, name='theta_minus'),
         **vaccinations,
     )
 

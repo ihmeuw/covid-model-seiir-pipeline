@@ -100,10 +100,6 @@ class ModelParameters:
     # Cross-variant immunity
     chi: pd.Series
 
-    # Theta parameters
-    theta_plus: pd.Series
-    theta_minus: pd.Series
-
     # Vaccine parameters
     unprotected_lr: pd.Series
     protected_wild_type_lr: pd.Series
