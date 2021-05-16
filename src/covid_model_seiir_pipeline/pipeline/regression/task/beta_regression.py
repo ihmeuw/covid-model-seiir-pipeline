@@ -37,7 +37,7 @@ def run_beta_regression(regression_version: str, draw_id: int, progress_bar: boo
     np.random.seed(draw_id)
     sampled_params = model.sample_params(
         infections.index, regression_params,
-        params_to_sample=['alpha', 'sigma', 'gamma1', 'gamma2', 'kappa', 'chi', 'pi', 'psi']
+        params_to_sample=['alpha', 'sigma', 'gamma1', 'gamma2', 'kappa', 'chi', 'pi']
     )
 
     sampled_params['phi'] = pd.Series(
@@ -45,6 +45,12 @@ def run_beta_regression(regression_version: str, draw_id: int, progress_bar: boo
                          scale=regression_params['phi_sd']),
         index=infections.index, name='phi',
     )
+    sampled_params['psi'] = pd.Series(
+        np.random.normal(loc=sampled_params['chi'] + regression_params['psi_mean_shift'],
+                         scale=regression_params['psi_sd']),
+        index=infections.index, name='psi',
+    )
+   
     ode_parameters = model.prepare_ode_fit_parameters(
         infections,
         population,

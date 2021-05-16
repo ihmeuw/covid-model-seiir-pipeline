@@ -134,10 +134,10 @@ def compute_initial_beta_scaling_parameters_by_draw(draw_id: int,
 
     residual_rescale_upper = beta_scaling.get('residual_rescale_upper', 1)
     residual_rescale_lower = beta_scaling.get('residual_rescale_lower', 4)
-    log_beta_residual = np.log(betas['beta']/betas['beta_hat'])
-    scaled_log_beta_residual = log_scale(np.log(betas['beta']/betas['beta_hat']),
+    log_beta_residual = np.log(betas['beta']/betas['beta_hat']).rename('log_beta_residual')
+    scaled_log_beta_residual = log_scale(log_beta_residual,
                                          residual_rescale_upper,
-                                         residual_rescale_lower).rename('log_beta_residual')
+                                         residual_rescale_lower).rename('scaled_log_beta_residual')
 
     log_beta_residual_mean = (scaled_log_beta_residual
                               .groupby(level='location_id')
@@ -147,16 +147,16 @@ def compute_initial_beta_scaling_parameters_by_draw(draw_id: int,
     draw_data.append(log_beta_residual_mean)
     draw_data.append(np.exp(log_beta_residual_mean).rename('scale_final'))
     draw_data.append(pd.Series(draw_id, index=beta_transition.index, name='draw'))
-
     return pd.concat(draw_data, axis=1), pd.concat([log_beta_residual, scaled_log_beta_residual], axis=1)
 
 
-def log_scale(z, n_times_upper, n_times_lower):
+def log_scale(y, n_times_upper, n_times_lower):
+    z = y.copy()
     for i in range(n_times_upper):
-        z[z > 0] = np.log(z[z > 1] + 1)
+        z[z > 0] = np.log(z[z > 0] + 1)
     z = -z
     for i in range(n_times_lower):
-        z[z > 0] = np.log(z[z > 1] + 1)
+        z[z > 0] = np.log(z[z > 0] + 1)
     z = -z
     return z
 

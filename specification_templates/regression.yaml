@@ -1,6 +1,6 @@
 data:
-  infection_version: '2021_05_05.03'
-  covariate_version: '2021_05_10.04'
+  infection_version: '2021_05_12.07'
+  covariate_version: '2021_05_12.04'
   coefficient_version: ''
   location_set_version_id: ''
   location_set_file: '/ihme/covid-19/seir-pipeline-outputs/metadata-inputs/location_metadata_810.2.csv'
@@ -10,7 +10,7 @@ workflow:
   project: 'proj_covid_prod'
   queue: 'd.q'
 regression_parameters:
-  n_draws: 100
+  n_draws: 1000
   # Mixing parameter.  dS/dt = -beta * S * I ** alpha
   alpha: [0.9, 1.0]
   # 1 / incubation period.  dE/dt = -dS/dt - sigma * E
@@ -27,7 +27,8 @@ regression_parameters:
   # Mean of phi will be chi + phi_mean_shift
   phi_mean_shift: 0.3
   phi_sd: 0.21
-  psi: 2.5
+  psi_mean_shift: 0.9
+  psi_sd: 0.21
   # Proportion of current E to send to escape variant E on invasion.
   pi: [0.01, 0.1]
   sequential_refit: False
