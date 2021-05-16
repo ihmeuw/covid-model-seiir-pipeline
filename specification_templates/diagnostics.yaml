@@ -8,55 +8,27 @@ grid_plots:
     date_start: '2020-03-01'
     date_end: '2022-08-31'
     comparators:
-      - version: '2021_05_11.02'
+      - version: '2021_05_05.04'
         scenarios:
-          vaccine_reference_booster_mask_seasonal_50_mobility_return_variant_reference*: 'Reference'
-          vaccine_best_booster_mask_seasonal_50_mobility_return_variant_reference: 'Low Hesitancy + Booster'
-          vaccine_reference_booster_mask_seasonal_100_mobility_return_variant_reference: '100% Seasonal Mask Use'
-          vaccine_reference_booster_mask_seasonal_50_mobility_average_variant_reference: 'Reduced Mobility'
-      - version: '2021_05_11.01'
+          reference*: 'public reference'
+      - version: '2021_05_13.02'
         scenarios:
-          vaccine_reference_booster_mask_seasonal_50_mobility_return_variant_reference: 'Reduced Variant Intensity'
-          vaccine_best_booster_mask_seasonal_100_mobility_average_variant_reference: 'Optimistic'
-      - version: '2021_05_11.02'
-        scenarios:
-          vaccine_reference_booster_mask_seasonal_50_mobility_return_variant_worse: 'Increased Variant Intensity'
-          vaccine_reference_mask_return_mobility_return_variant_worse: 'Pessimistic' 
-  - name: 'compare_mask'
+          reference*: 'reference'
+          worse: 'worse'
+          no_vaccine: 'no vaccine'
+          best_masks: 'best masks'
+  - name: 'compare_shortrange'
     date_start: '2020-03-01'
-    date_end: '2022-08-31'
+    date_end: '2021-08-31'
     comparators:
-      - version: '2021_05_11.02'
+      - version: '2021_05_05.04'
         scenarios:
-          vaccine_reference_booster_mask_seasonal_50_mobility_return_variant_reference*: 'Reference'
-          vaccine_reference_booster_mask_return_mobility_return_variant_reference: '10% Maximum Mask Usage'
-          vaccine_reference_booster_mask_seasonal_80_mobility_return_variant_reference: '80% Seasonal Mask Usage'
-          vaccine_reference_booster_mask_seasonal_100_mobility_return_variant_reference: '100% Seasonal Mask Usage'
-  - name: 'compare_vaccine'
-    date_start: '2020-03-01'
-    date_end: '2022-08-31'
-    comparators:
-      - version: '2021_05_11.02'
+          reference*: 'public reference'
+      - version: '2021_05_13.02'
         scenarios:
-          vaccine_reference_booster_mask_seasonal_50_mobility_return_variant_reference*: 'Reference'
-          vaccine_reference_mask_seasonal_50_mobility_return_variant_reference: 'No Booster'
-          vaccine_best_mask_seasonal_50_mobility_return_variant_reference: 'Reduced Hesitancy'
-          vaccine_best_booster_mask_seasonal_50_mobility_return_variant_reference*: 'Reduced Hesitancy + Booster'
-  - name: 'compare_variant'
-    date_start: '2020-03-01'
-    date_end: '2022-08-31'
-    comparators:
-      - version: '2021_05_11.02'
-        scenarios:
-          vaccine_reference_booster_mask_seasonal_50_mobility_return_variant_reference*: 'Reference'
-          vaccine_reference_booster_mask_seasonal_50_mobility_return_variant_worse: 'Increased Variant Spread'
-      - version: '2021_05_11.01'
-        scenarios:
-          vaccine_reference_booster_mask_seasonal_50_mobility_return_variant_reference: 'Reduced Transmission'
-          vaccine_reference_booster_mask_seasonal_50_mobility_return_variant_worse: 'Reduced Transmission + Increased Variant Spread'
-      - version: '2021_05_11.03'
-        scenarios:
-          vaccine_reference_booster_mask_seasonal_50_mobility_return_variant_reference: 'Increased Transmission'
-          vaccine_reference_booster_mask_seasonal_50_mobility_return_variant_worse: 'Increased Transmission + Increased Variant Spread'
+          reference*: 'reference'
+          worse: 'worse'
+          no_vaccine: 'no vaccine'
+          best_masks: 'best masks'
 
 

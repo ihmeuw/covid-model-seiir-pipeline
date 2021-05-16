@@ -56,7 +56,6 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
     beta_scales = data_interface.load_beta_scales(scenario=scenario, draw_id=draw_id)
     # Regression coefficients for forecasting beta.
     coefficients = data_interface.load_coefficients(draw_id)
-
     # Vaccine data, of course.
     vaccinations = data_interface.load_vaccinations(scenario_spec.vaccine_version)
     # Variant prevalences.

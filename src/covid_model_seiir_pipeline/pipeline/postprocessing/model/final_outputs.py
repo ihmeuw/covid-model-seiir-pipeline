@@ -305,6 +305,10 @@ MEASURES = {
         loaders.load_beta_residuals,
         'log_beta_residuals',
     ),
+    'scaled_beta_residuals': MeasureConfig(
+        loaders.load_scaled_beta_residuals,
+        'scaled_log_beta_residuals',
+    ),
     'coefficients': MeasureConfig(
         loaders.load_coefficients,
         'coefficients',

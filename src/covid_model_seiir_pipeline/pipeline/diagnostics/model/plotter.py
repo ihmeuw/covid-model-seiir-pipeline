@@ -476,6 +476,11 @@ def make_drivers_page(plot_versions: List[PlotVersion],
         'log_beta_residuals',
         label='Log Beta Residuals',
     )
+    plotter.make_time_plot(
+        ax_resid,
+        'scaled_log_beta_residuals',
+        linestyle='dashed',
+    )
     ax_rhist = fig.add_subplot(gs_r[1])
     plotter.make_log_beta_resid_hist(
         ax_rhist,

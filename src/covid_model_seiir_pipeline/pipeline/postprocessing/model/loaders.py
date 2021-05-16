@@ -227,6 +227,18 @@ def load_beta_residuals(scenario: str, data_interface: 'PostprocessingDataInterf
     return beta_residuals
 
 
+def load_scaled_beta_residuals(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int) -> List[pd.Series]:
+    _runner = functools.partial(
+        data_interface.load_scaled_beta_residuals,
+        scenario=scenario,
+    )
+
+    draws = range(data_interface.get_n_draws())
+    with multiprocessing.Pool(num_cores) as pool:
+        beta_residuals = pool.map(_runner, draws)
+    return beta_residuals
+
+
 def load_non_escape_variant_prevalence(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
     return _load_ode_params(scenario, 'rho', data_interface, num_cores)
 

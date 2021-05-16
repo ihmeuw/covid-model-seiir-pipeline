@@ -25,8 +25,8 @@ class ResampleTaskSpecification(workflow.TaskSpecification):
 class PostprocessingTaskSpecification(workflow.TaskSpecification):
     """Specification of execution parameters for postprocessing tasks."""
     default_max_runtime_seconds = 15000
-    default_m_mem_free = '25G'
-    default_num_cores = 5
+    default_m_mem_free = '100G'
+    default_num_cores = 10
 
 
 class PostprocessingWorkflowSpecification(workflow.WorkflowSpecification):
