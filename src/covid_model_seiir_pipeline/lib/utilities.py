@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import abc
-from dataclasses import asdict as asdict_, fields
+from dataclasses import asdict as asdict_, fields, is_dataclass
 from pathlib import Path
 from typing import Dict, Union, Tuple
 from pprint import pformat
@@ -90,10 +90,13 @@ def asdict(data_class) -> Dict:
 
 
 def filter_to_spec_fields(spec_dict: dict, specification):
-    return {
-        k: v for k, v in spec_dict.items()
-        if k in [f.name for f in fields(specification)]
-    }
+    if is_dataclass(specification):
+        return {
+            k: v for k, v in spec_dict.items()
+            if k in [f.name for f in fields(specification)]
+        }
+    else:
+        return spec_dict
 
 
 def make_log_dirs(output_dir: Union[str, Path], prefix: str = None) -> Tuple[str, str]:
