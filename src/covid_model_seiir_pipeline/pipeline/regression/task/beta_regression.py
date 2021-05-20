@@ -18,10 +18,6 @@ logger = cli_tools.task_performance_logger
 
 
 def run_beta_regression(regression_version: str, draw_id: int, progress_bar: bool) -> None:
-    import shutil
-    logger.info(f'Which conda: {shutil.which("conda")}')
-    logger.info(f'Which python: {shutil.which("python")}')
-    logger.info(f'Which stask: {shutil.which("stask")}')
     logger.info('Starting beta regression.', context='setup')
     # Build helper abstractions
     regression_spec_file = Path(regression_version) / static_vars.REGRESSION_SPECIFICATION_FILE
@@ -49,6 +45,12 @@ def run_beta_regression(regression_version: str, draw_id: int, progress_bar: boo
                          scale=regression_params['phi_sd']),
         index=infections.index, name='phi',
     )
+    sampled_params['psi'] = pd.Series(
+        np.random.normal(loc=sampled_params['chi'] + regression_params['psi_mean_shift'],
+                         scale=regression_params['psi_sd']),
+        index=infections.index, name='psi',
+    )
+   
     ode_parameters = model.prepare_ode_fit_parameters(
         infections,
         population,

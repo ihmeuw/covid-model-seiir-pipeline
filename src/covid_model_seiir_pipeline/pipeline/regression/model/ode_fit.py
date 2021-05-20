@@ -32,8 +32,8 @@ def prepare_ode_fit_parameters(past_infections: pd.Series,
         population_high_risk=population_high_risk,
         rho=rhos['rho'].reindex(past_index, fill_value=0.0),
         rho_variant=rhos['rho_variant'].reindex(past_index, fill_value=0.0),
+        rho_b1617=rhos['rho_b1617'].reindex(past_index, fill_value=0.0),
         **sampled_params,
-        theta_minus=pd.Series(0.0, index=past_index, name='theta_minus'),
         **vaccinations,
     )
 
@@ -184,10 +184,12 @@ def run_loc_ode_fit(ode_parameters: ODEParameters) -> pd.DataFrame:
     components['beta_variant'] = beta_variant
 
     rho = ode_parameters.rho
+    rho_b1617 = ode_parameters.rho_b1617
     kappa = ode_parameters.kappa
     phi = ode_parameters.phi
+    psi = ode_parameters.psi
     beta1 = beta_wild / (1 + kappa * rho)
-    beta2 = beta_variant / (1 + kappa * phi)
+    beta2 = beta_variant / (1 + kappa * (phi * (1 - rho_b1617) + rho_b1617 * psi))
     components['beta'] = (i_wild * beta1 + (i_variant * beta2).fillna(0)) / (i_wild + i_variant)
 
     return components.reset_index()

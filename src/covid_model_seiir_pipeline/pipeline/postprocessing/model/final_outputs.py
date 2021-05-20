@@ -168,11 +168,6 @@ MEASURES = {
         'icu_census',
         aggregator=aggregators.sum_aggregator,
     ),
-    'ventilator_census': MeasureConfig(
-        loaders.load_ventilator_census,
-        'ventilator_census',
-        aggregator=aggregators.sum_aggregator,
-    ),
 
     # Vaccination measures
 
@@ -310,6 +305,10 @@ MEASURES = {
         loaders.load_beta_residuals,
         'log_beta_residuals',
     ),
+    'scaled_beta_residuals': MeasureConfig(
+        loaders.load_scaled_beta_residuals,
+        'scaled_log_beta_residuals',
+    ),
     'coefficients': MeasureConfig(
         loaders.load_coefficients,
         'coefficients',
@@ -438,6 +437,10 @@ MISCELLANEOUS = {
     'hospital_census_data': MiscellaneousConfig(
         loaders.load_raw_census_data,
         'hospital_census_data',
+    ),
+    'hospital_correction_factors': MiscellaneousConfig(
+        loaders.load_hospital_correction_factors,
+        'hospital_correction_factors',
     ),
     'version_map': MiscellaneousConfig(
         loaders.build_version_map,

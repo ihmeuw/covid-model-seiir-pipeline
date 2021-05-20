@@ -1,12 +1,12 @@
 data:
-  regression_version: '2021_04_29.02'
-  covariate_version: '2021_04_27.03'
+  regression_version: '2021_05_12.04'
+  covariate_version: '2021_05_12.04'
   output_root: ''
   output_format: 'parquet'
   fh_subnationals: False
 workflow:
   project: 'proj_covid_prod'
-  queue: 'd.q'
+  queue: 'all.q'
 scenarios:
   reference:
     algorithm: 'draw_level_mandate_reimposition'
@@ -19,8 +19,6 @@ scenarios:
       window_size: 42
       average_over_min: 7
       average_over_max: 42
-      residual_min: -0.5
-    theta: '/ihme/covid-19/seir-parameters/2021_03_03.01/thetas.csv'
     vaccine_version: 'reference'
     variant_version: 'reference'
     variant_ifr_scale: 1.29
@@ -45,8 +43,6 @@ scenarios:
       window_size: 42
       average_over_min: 7
       average_over_max: 42
-      residual_min: -0.5
-    theta: '/ihme/covid-19/seir-parameters/2021_03_03.01/thetas.csv'
     vaccine_version: 'reference'
     variant_version: 'worse'
     variant_ifr_scale: 1.29
@@ -71,8 +67,6 @@ scenarios:
       window_size: 42
       average_over_min: 7
       average_over_max: 42
-      residual_min: -0.5
-    theta: '/ihme/covid-19/seir-parameters/2021_03_03.01/thetas.csv'
     vaccine_version: 'none'
     variant_version: 'reference'
     variant_ifr_scale: 1.29
@@ -97,8 +91,6 @@ scenarios:
       window_size: 42
       average_over_min: 7
       average_over_max: 42
-      residual_min: -0.5
-    theta: '/ihme/covid-19/seir-parameters/2021_03_03.01/thetas.csv'
     vaccine_version: 'reference'
     variant_version: 'reference'
     variant_ifr_scale: 1.29
@@ -123,8 +115,6 @@ scenarios:
       window_size: 42
       average_over_min: 7
       average_over_max: 42
-      residual_min: -0.5
-    theta: '/ihme/covid-19/seir-parameters/2021_03_03.01/thetas.csv'
     vaccine_version: 'fast_balanced'
     variant_version: 'reference'
     variant_ifr_scale: 1.29

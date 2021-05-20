@@ -1,3 +1,4 @@
+from collections import defaultdict
 from pathlib import Path
 from typing import List
 import warnings
@@ -102,7 +103,7 @@ def make_results_page(plot_versions: List[PlotVersion],
         ('daily_cases', 'Daily Cases', 'cumulative_cases'),
         ('hospital_admissions', 'Daily Admissions', 'cumulative_hospitalizations'),
         ('daily_deaths', 'Daily Deaths', 'cumulative_deaths'),
-    ]    
+    ]
     for i, (measure, label, full_data_measure) in enumerate(daily_measures):
         ax_measure = fig.add_subplot(gs_daily[i])
         plotter.make_time_plot(
@@ -195,7 +196,6 @@ def make_details_page(plot_versions: List[PlotVersion],
                       start: pd.Timestamp, end: pd.Timestamp,
                       plot_file: str = None):
     sns.set_style('whitegrid')
-    observed_color = COLOR_MAP(len(plot_versions))
 
     # Load some shared data.
     pv = plot_versions[-1]
@@ -203,7 +203,9 @@ def make_details_page(plot_versions: List[PlotVersion],
     pop = pop.loc[(pop.age_group_id == 22) & (pop.sex_id == 3), 'population'].iloc[0]
     full_data = pv.load_output_miscellaneous('full_data', is_table=True, location_id=location.id)
     full_data_unscaled = pv.load_output_miscellaneous('unscaled_full_data', is_table=True, location_id=location.id)
-    hospital_census = pv.load_output_miscellaneous('hospital_census_data', is_table=True, location_id=location.id)   
+    hospital_census = pv.load_output_miscellaneous('hospital_census_data', is_table=True, location_id=location.id)
+    hospital_correction_factors = pv.load_output_miscellaneous('hospital_correction_factors', is_table=True,
+                                                               location_id=location.id)
     # Configure the plot layout.
     fig = plt.figure(figsize=FIG_SIZE, tight_layout=True)
     grid_spec = fig.add_gridspec(
@@ -225,25 +227,34 @@ def make_details_page(plot_versions: List[PlotVersion],
     )
 
     # Hospital model section
-    admissions_axes, census_axes = [], []
-    for i, measure in enumerate(['hospital', 'icu', 'ventilator']):
+    axes = defaultdict(list)
+    for col, measure in enumerate(['hospital', 'icu']):
+        ax_daily = fig.add_subplot(gs_hospital[0, col])
         label = measure.upper() if measure == 'icu' else measure.title()
-        if measure != 'ventilator':
-            ax_daily = fig.add_subplot(gs_hospital[i, 0])
-            plotter.make_time_plot(
-                ax_daily,
-                f'{measure}_admissions',
-                label=f'{label} Admissions'
-            )
-            if measure == 'hospital':
-                plotter.make_observed_time_plot(
-                    ax_daily,
-                    full_data['date'],
-                    full_data['cumulative_hospitalizations'].diff(),
-                )
-            admissions_axes.append(ax_daily)
+        plotter.make_time_plot(
+            ax_daily,
+            f'{measure}_admissions',
+            label=f'{label} Admissions'
+        )
 
-        ax_census = fig.add_subplot(gs_hospital[i, 1])
+        if measure == 'hospital':
+            plotter.make_observed_time_plot(
+                ax_daily,
+                full_data['date'],
+                full_data['cumulative_hospitalizations'].diff(),
+            )
+        axes[col].append(ax_daily)
+
+        ax_correction = fig.add_subplot(gs_hospital[1, col])
+        plotter.make_raw_time_plot(
+            ax_correction,
+            hospital_correction_factors,
+            f'{measure}_census',
+            f'{label} Scalar'
+        )
+        axes[col].append(ax_correction)
+
+        ax_census = fig.add_subplot(gs_hospital[2, col])
         plotter.make_time_plot(
             ax_census,
             f'{measure}_census',
@@ -254,9 +265,9 @@ def make_details_page(plot_versions: List[PlotVersion],
             hospital_census['date'],
             hospital_census[f'{measure}_census'],
         )
-        census_axes.append(ax_census)
-    fig.align_ylabels(admissions_axes)
-    fig.align_ylabels(census_axes)
+        axes[col].append(ax_census)
+    for ax_set in axes.values():
+        fig.align_ylabels(ax_set)
 
     # Detailed infections section
     shared_axes = []
@@ -286,7 +297,7 @@ def make_details_page(plot_versions: List[PlotVersion],
         ax_unscaled,
         'unscaled_daily_deaths',
         label='Unscaled Deaths',
-    )    
+    )
     plotter.make_observed_time_plot(
         ax_unscaled,
         full_data_unscaled['date'],
@@ -297,15 +308,17 @@ def make_details_page(plot_versions: List[PlotVersion],
     for plot_version in plot_versions:
         try:
             data = plot_version.load_output_miscellaneous(
-                'excess_mortality_scalars', 
-                is_table=True, 
+                'excess_mortality_scalars',
+                is_table=True,
                 location_id=location.id
             )
         except FileNotFoundError:
             continue
         ax_scalars.plot(data['date'], data['em_scalar'], color=plot_version.color)
-        
+    ax_scalars.set_ylabel('EM Scalar', fontsize=AX_LABEL_FONTSIZE)
+    plotter.format_date_axis(ax_scalars)
     col_2_axes.append(ax_scalars)
+
     ax_scaled = fig.add_subplot(gs_deaths[2])
     plotter.make_time_plot(
         ax_scaled,
@@ -463,6 +476,11 @@ def make_drivers_page(plot_versions: List[PlotVersion],
         'log_beta_residuals',
         label='Log Beta Residuals',
     )
+    plotter.make_time_plot(
+        ax_resid,
+        'scaled_log_beta_residuals',
+        linestyle='dashed',
+    )
     ax_rhist = fig.add_subplot(gs_r[1])
     plotter.make_log_beta_resid_hist(
         ax_rhist,
@@ -515,7 +533,7 @@ class Plotter:
         self._transform = transform
         self._default_options = {'linewidth': 2.5, **extra_defaults}
 
-    def make_time_plot(self, ax, measure: str, label: str = None, miscellaneous: bool = False, **extra_options):
+    def make_time_plot(self, ax, measure: str, label: str = None, **extra_options):
         uncertainty = extra_options.pop('uncertainty', self._uncertainty)
         transform = extra_options.pop('transform', self._transform)
         start = extra_options.pop('start', self._start)
@@ -525,7 +543,7 @@ class Plotter:
 
         for plot_version in self._plot_versions:
             try:
-                data = plot_version.load_output_summaries(measure, self._loc_id)                
+                data = plot_version.load_output_summaries(measure, self._loc_id)
             except FileNotFoundError:  # No data for this version, so skip.
                 continue
             data[['mean', 'upper', 'lower']] = transform(data[['mean', 'upper', 'lower']])
@@ -534,11 +552,7 @@ class Plotter:
             if uncertainty:
                 ax.fill_between(data['date'], data['upper'], data['lower'], alpha=FILL_ALPHA, color=plot_version.color)
 
-        date_locator = mdates.AutoDateLocator(maxticks=15)
-        date_formatter = mdates.ConciseDateFormatter(date_locator, show_offset=False)
-        ax.set_xlim(start, end)
-        ax.xaxis.set_major_locator(date_locator)
-        ax.xaxis.set_major_formatter(date_formatter)
+        self.format_date_axis(ax, start, end)
 
         if label is not None:
             ax.set_ylabel(label, fontsize=AX_LABEL_FONTSIZE)
@@ -555,6 +569,16 @@ class Plotter:
             color=observed_color,
             alpha=OBSERVED_ALPHA,
         )
+
+    def make_raw_time_plot(self, ax, data, measure, label):
+        ax.plot(
+            data['date'],
+            data[measure],
+            color=self._plot_versions[-1].color,
+            linewidth=self._default_options['linewidth'],
+        )
+        ax.set_ylabel(label, fontsize=AX_LABEL_FONTSIZE)
+        self.format_date_axis(ax)
 
     def make_log_beta_resid_hist(self, ax):
         for plot_version in self._plot_versions:
@@ -587,6 +611,15 @@ class Plotter:
 
         ax.set_ylabel(label, fontsize=AX_LABEL_FONTSIZE)
         sns.despine(ax=ax, left=True, bottom=True)
+
+    def format_date_axis(self, ax, start=None, end=None):
+        start = start if start is not None else self._start
+        end = end if end is not None else self._end
+        date_locator = mdates.AutoDateLocator(maxticks=15)
+        date_formatter = mdates.ConciseDateFormatter(date_locator, show_offset=False)
+        ax.set_xlim(start, end)
+        ax.xaxis.set_major_locator(date_locator)
+        ax.xaxis.set_major_formatter(date_formatter)
 
 
 def add_vline(ax, x_position):

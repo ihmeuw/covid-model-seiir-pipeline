@@ -100,10 +100,6 @@ def load_icu_census(scenario: str, data_interface: 'PostprocessingDataInterface'
     return _load_output_data(scenario, 'icu_census', data_interface, num_cores)
 
 
-def load_ventilator_census(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
-    return _load_output_data(scenario, 'ventilator_census', data_interface, num_cores)
-
-
 ################
 # Vaccinations #
 ################
@@ -231,6 +227,18 @@ def load_beta_residuals(scenario: str, data_interface: 'PostprocessingDataInterf
     return beta_residuals
 
 
+def load_scaled_beta_residuals(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int) -> List[pd.Series]:
+    _runner = functools.partial(
+        data_interface.load_scaled_beta_residuals,
+        scenario=scenario,
+    )
+
+    draws = range(data_interface.get_n_draws())
+    with multiprocessing.Pool(num_cores) as pool:
+        beta_residuals = pool.map(_runner, draws)
+    return beta_residuals
+
+
 def load_non_escape_variant_prevalence(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
     return _load_ode_params(scenario, 'rho', data_interface, num_cores)
 
@@ -278,10 +286,11 @@ def load_excess_mortality_scalars(data_interface: 'PostprocessingDataInterface')
 
 
 def load_raw_census_data(data_interface: 'PostprocessingDataInterface'):
-    census_data = data_interface.load_hospital_census_data()
-    return pd.concat([
-        data.rename(census_type) for census_type, data in census_data.to_dict().items()
-    ], axis=1)
+    return data_interface.load_hospital_census_data()
+
+
+def load_hospital_correction_factors(data_interface: 'PostprocessingDataInterface'):
+    return data_interface.load_hospital_correction_factors()
 
 
 def load_scaling_parameters(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):

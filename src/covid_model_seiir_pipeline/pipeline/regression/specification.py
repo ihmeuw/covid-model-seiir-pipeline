@@ -66,6 +66,8 @@ class RegressionParameters:
     chi: Tuple[float, float] = field(default=(0.0, 0.6))
     phi_mean_shift: float = field(default=0.5)
     phi_sd: float = field(default=0.3)
+    psi_mean_shift: float = field(default=0.9)
+    psi_sd: float = field(default=0.3)
     pi: float = field(default=0.1)
     sequential_refit: bool = field(default=False)
 
@@ -84,14 +86,11 @@ class HospitalParameters:
     hospital_to_icu: int = field(default=3)
     icu_stay_recover: int = field(default=13)
     icu_ratio: float = field(default=0.25)
-    intubation_ratio: float = field(default=0.85)
     correction_factor_smooth_window: int = field(default=14)
     hospital_correction_factor_min: float = field(default=0.5)
     hospital_correction_factor_max: float = field(default=25.0)
     icu_correction_factor_min: float = field(default=0.05)
     icu_correction_factor_max: float = field(default=0.95)
-    intubation_correction_factor_min: float = field(default=0.35)
-    intubation_correction_factor_max: float = field(default=1.0)
     correction_factor_average_window: int = field(default=42)
     correction_factor_application_window: int = field(default=42)
 

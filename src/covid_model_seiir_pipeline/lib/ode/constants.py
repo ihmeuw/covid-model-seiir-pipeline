@@ -19,20 +19,20 @@ import numpy as np
 
 _Parameters = namedtuple(
     'Parameters', [
-        'alpha', 'sigma', 'gamma1', 'gamma2', 'theta_minus',
+        'alpha', 'sigma', 'gamma1', 'gamma2',
         'rho_variant', 'pi', 'chi',
     ]
 )
 
 _FitParameters = namedtuple(
     'FitParameters', [
-        'new_e', 'kappa', 'rho', 'phi',
+        'new_e', 'kappa', 'rho', 'rho_b1617', 'phi', 'psi',
     ]
 )
 
 _ForecastParameters = namedtuple(
     'ForecastParameters', [
-        'beta_wild', 'beta_variant', 'theta_plus',
+        'beta_wild', 'beta_variant',
     ]
 )
 

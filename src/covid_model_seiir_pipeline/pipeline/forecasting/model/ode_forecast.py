@@ -37,7 +37,6 @@ def build_model_parameters(indices: Indices,
                            beta_regression: pd.DataFrame,
                            covariates: pd.DataFrame,
                            coefficients: pd.DataFrame,
-                           thetas: pd.Series,
                            rhos: pd.DataFrame,
                            beta_scales: pd.DataFrame,
                            vaccine_data: pd.DataFrame) -> ModelParameters:
@@ -47,7 +46,7 @@ def build_model_parameters(indices: Indices,
         for param in ['alpha', 'sigma', 'gamma1', 'gamma2', 'pi', 'chi']
     }
 
-    beta, beta_wild, beta_variant, beta_hat, rho, rho_variant, rho_total = get_betas_and_prevalences(
+    beta, beta_wild, beta_variant, beta_hat, rho, rho_variant, rho_b1617, rho_total = get_betas_and_prevalences(
         indices,
         beta_regression,
         covariates,
@@ -56,17 +55,8 @@ def build_model_parameters(indices: Indices,
         rhos,
         ode_parameters['kappa'].mean(),
         ode_parameters['phi'].mean(),
+        ode_parameters['psi'].mean(),
     )
-
-    thetas = thetas.reindex(indices.full, level='location_id')
-
-    if ((1 < thetas) | thetas < -1).any():
-        raise ValueError('Theta must be between -1 and 1.')
-    if (ode_params['sigma'] - thetas >= 1).any():
-        raise ValueError('Sigma - theta must be smaller than 1')
-
-    theta_plus = np.maximum(thetas, 0).rename('theta_plus')
-    theta_minus = -np.minimum(thetas, 0).rename('theta_minus')
 
     vaccine_data = vaccine_data.reindex(indices.full, fill_value=0)
     adjusted_vaccinations = math.adjust_vaccinations(vaccine_data)
@@ -79,9 +69,8 @@ def build_model_parameters(indices: Indices,
         beta_hat=beta_hat,
         rho=rho,
         rho_variant=rho_variant,
+        rho_b1617=rho_b1617,
         rho_total=rho_total,
-        theta_plus=theta_plus,
-        theta_minus=theta_minus,
         **adjusted_vaccinations,
     )
 
@@ -93,8 +82,9 @@ def get_betas_and_prevalences(indices: Indices,
                               beta_shift_parameters: pd.DataFrame,
                               rhos: pd.DataFrame,
                               kappa: float,
-                              phi: float,) -> Tuple[pd.Series, pd.Series, pd.Series,
-                                                    pd.Series, pd.Series, pd.Series, pd.Series]:
+                              phi: float,
+                              psi: float) -> Tuple[pd.Series, pd.Series, pd.Series, pd.Series,
+                                                   pd.Series, pd.Series, pd.Series, pd.Series]:
     rhos = rhos.reindex(indices.full).fillna(method='ffill')
 
     log_beta_hat = math.compute_beta_hat(covariates, coefficients)
@@ -105,9 +95,10 @@ def get_betas_and_prevalences(indices: Indices,
             .rename('beta'))
     beta = beta_regression.loc[indices.past, 'beta'].append(beta)
     beta_wild = beta * (1 + kappa * rhos.rho)
-    beta_variant = beta * (1 + kappa * phi)
+    beta_variant = beta * (1 + kappa * (phi * (1 - rhos.rho_b1617) + rhos.rho_b1617 * psi))
 
-    return beta, beta_wild, beta_variant, np.exp(log_beta_hat), rhos.rho, rhos.rho_variant, rhos.rho_total
+    return (beta, beta_wild, beta_variant, np.exp(log_beta_hat),
+            rhos.rho, rhos.rho_variant, rhos.rho_b1617, rhos.rho_total)
 
 
 def beta_shift(beta_hat: pd.DataFrame,

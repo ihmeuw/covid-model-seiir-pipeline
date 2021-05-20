@@ -91,6 +91,7 @@ class ModelParameters:
     # Variant prevalences
     rho: pd.Series
     rho_variant: pd.Series
+    rho_b1617: pd.Series
     rho_total: pd.Series
 
     # Escape variant initialization
@@ -98,10 +99,6 @@ class ModelParameters:
 
     # Cross-variant immunity
     chi: pd.Series
-
-    # Theta parameters
-    theta_plus: pd.Series
-    theta_minus: pd.Series
 
     # Vaccine parameters
     unprotected_lr: pd.Series
@@ -147,7 +144,6 @@ class PostprocessingParameters:
 
     hospital_census: pd.Series
     icu_census: pd.Series
-    ventilator_census: pd.Series
 
     def to_dict(self) -> Dict[str, Union[int, pd.Series, pd.DataFrame]]:
         return utilities.asdict(self)
@@ -206,7 +202,6 @@ class OutputMetrics:
     hospital_census: pd.Series
     icu_admissions: pd.Series
     icu_census: pd.Series
-    ventilator_census: pd.Series
     deaths: pd.Series
 
     # Other stuff

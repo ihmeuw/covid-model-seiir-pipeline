@@ -211,12 +211,9 @@ def compute_corrected_hospital_usage(admissions: pd.Series,
                                  * postprocessing_parameters.hospital_census).fillna(method='ffill')
     corrected_icu_census = (corrected_hospital_census
                             * postprocessing_parameters.icu_census).fillna(method='ffill')
-    corrected_ventilator_census = (corrected_icu_census
-                                   * postprocessing_parameters.ventilator_census).fillna(method='ffill')
 
     hospital_usage.hospital_census = corrected_hospital_census
     hospital_usage.icu_census = corrected_icu_census
-    hospital_usage.ventilator_census = corrected_ventilator_census
 
     return hospital_usage
 
@@ -239,13 +236,12 @@ def compute_effective_r(model_params: ModelParameters,
     alpha, sigma = model_params.alpha, model_params.sigma
     beta_wild, beta_variant = model_params.beta_wild, model_params.beta_variant
     gamma1, gamma2 = model_params.gamma1, model_params.gamma2
-    theta = model_params.theta_minus
 
     s_wild, s_variant = system_metrics.total_susceptible_wild, system_metrics.total_susceptible_variant
     i_wild, i_variant = system_metrics.total_infectious_wild, system_metrics.total_infectious_variant
     population = system_metrics.total_population
 
-    avg_gamma_wild = 1 / (1 / (gamma1*(sigma - theta)) + 1 / (gamma2*(sigma - theta)))
+    avg_gamma_wild = 1 / (1 / gamma1 + 1 / gamma2)
     r_controlled_wild = (
         beta_wild * alpha * sigma / avg_gamma_wild * i_wild**(alpha - 1)
     ).rename('r_controlled_wild')

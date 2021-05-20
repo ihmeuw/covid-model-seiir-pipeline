@@ -3,6 +3,7 @@ from pathlib import Path
 from typing import Dict, List, Tuple, Union
 
 from loguru import logger
+import numpy as np
 import pandas as pd
 
 from covid_model_seiir_pipeline.lib import (
@@ -187,10 +188,12 @@ class ForecastDataInterface:
         b117 = self.load_covariate('variant_prevalence_B117', variant_scenario).variant_prevalence_B117
         b1351 = self.load_covariate('variant_prevalence_B1351', variant_scenario).variant_prevalence_B1351
         p1 = self.load_covariate('variant_prevalence_P1', variant_scenario).variant_prevalence_P1
-        rho_variant = (b1351 + p1).rename('rho_variant')
+        b1617 = self.load_covariate('variant_prevalence_B1617', variant_scenario).variant_prevalence_B1617
+        b1617_ramp = self.load_covariate('variant_prevalence_escape', variant_scenario).variant_prevalence_escape.rename('rho_b1617')
+        rho_variant = (b1351 + p1 + b1617).rename('rho_variant')
         rho_total = (b117 + rho_variant).rename('rho_total')
         rho = b117_ramp.rename('rho')
-        return pd.concat([rho, rho_variant, rho_total], axis=1)
+        return pd.concat([rho, rho_variant, b1617_ramp, rho_total], axis=1)
 
     #########################
     # Scenario data loaders #
@@ -204,17 +207,6 @@ class ForecastDataInterface:
     ##############################
     # Miscellaneous data loaders #
     ##############################
-
-    def load_thetas(self, theta_specification: Union[str, int]) -> pd.Series:
-        location_ids = self.load_location_ids()
-        if isinstance(theta_specification, str):
-            thetas = pd.read_csv(theta_specification).set_index('location_id')['theta']
-            thetas = thetas.reindex(location_ids, fill_value=0)
-        else:
-            thetas = pd.Series(theta_specification,
-                               index=pd.Index(location_ids, name='location_id'),
-                               name='theta')
-        return thetas
 
     def get_infections_metadata(self):
         return self._get_regression_data_interface().get_infections_metadata()

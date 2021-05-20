@@ -95,14 +95,13 @@ def normalize_parameters(input_parameters: np.ndarray,
 
         beta_wild = params[FORECAST_PARAMETERS.beta_wild]
         beta_variant = params[FORECAST_PARAMETERS.beta_variant]
-        theta_plus = params[FORECAST_PARAMETERS.theta_plus]
         params = params[np.array(PARAMETERS)]
 
         b_wild = beta_wild * aggregates[AGGREGATES.infectious_wild]**alpha / aggregates[AGGREGATES.n_total]
         b_variant = beta_variant * aggregates[AGGREGATES.infectious_variant]**alpha / aggregates[AGGREGATES.n_total]
 
         new_e = np.zeros(len(NEW_E))
-        new_e[NEW_E.wild] = (b_wild + theta_plus) * aggregates[AGGREGATES.susceptible_wild]
+        new_e[NEW_E.wild] = b_wild * aggregates[AGGREGATES.susceptible_wild]
         new_e[NEW_E.variant_naive] = b_variant * aggregates[AGGREGATES.susceptible_wild]
         new_e[NEW_E.variant_reinf] = b_variant * aggregates[AGGREGATES.susceptible_variant_only]
         new_e[NEW_E.total] = new_e.sum()
@@ -114,11 +113,13 @@ def normalize_parameters(input_parameters: np.ndarray,
         new_e_total = params[FIT_PARAMETERS.new_e]
         kappa = params[FIT_PARAMETERS.kappa]
         rho = params[FIT_PARAMETERS.rho]
+        rho_b1617 = params[FIT_PARAMETERS.rho_b1617]
         phi = params[FIT_PARAMETERS.phi]
+        psi = params[FIT_PARAMETERS.psi]
         params = params[np.array(PARAMETERS)]
 
         scale_wild = (1 + kappa * rho)
-        scale_variant = (1 + kappa * phi)
+        scale_variant = (1 + kappa * (phi * (1 - rho_b1617) + rho_b1617 * psi))
         scale = scale_variant / scale_wild
 
         susceptible_wild, susceptible_variant_only, infectious_wild, infectious_variant, n_total = aggregates[np.array([
