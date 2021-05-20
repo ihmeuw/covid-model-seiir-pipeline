@@ -35,15 +35,23 @@ def do_splicing(measure_data: pd.DataFrame,
                                                                                   scenario_name,
                                                                                   measure_config.label)
             except FileNotFoundError:
-                logger.warning(f"Can't find {measure_config.label} data for {splicing_config.output_version}. "
-                               f"Attempting to reconstruct.")
-                previous_spec, previous_data_interface = build_spec_and_data_interface(splicing_config.output_version)
-                previous_data = backup_loader(
-                    measure_config,
-                    previous_spec,
-                    previous_data_interface,
-                    scenario_name,
-                )
+                try:
+                    logger.warning(f"Can't find {measure_config.label} data for {splicing_config.output_version}. "
+                                   f"Attempting to reconstruct.")
+                    previous_spec, previous_data_interface = build_spec_and_data_interface(
+                        splicing_config.output_version
+                    )
+                    previous_data = backup_loader(
+                        measure_config,
+                        previous_spec,
+                        previous_data_interface,
+                        scenario_name,
+                    )
+                except FileNotFoundError:
+                    logger.warning(f"Cannot reconstruct {measure_config.label} data for "
+                                   f"{splicing_config.output_version}. Skipping splicing for this measure/version.")
+                    continue
+
             measure_data = model.splice_data(measure_data, previous_data, splicing_config.locations)
 
     return measure_data
