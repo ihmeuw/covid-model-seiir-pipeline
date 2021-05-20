@@ -145,7 +145,12 @@ class RegressionSpecification(utilities.Specification):
             'regression_parameters': RegressionParameters,
             'hospital_parameters': HospitalParameters,
         }
-        sub_specs = {key: spec_class(**regression_spec_dict.get(key, {})) for key, spec_class in sub_specs.items()}
+        for key, spec_class in list(sub_specs.items()):  # We're dynamically altering. Copy with list
+            spec_dict = utilities.filter_to_spec_fields(
+                regression_spec_dict.get(key, {}),
+                spec_class(),
+            )
+            sub_specs[key] = spec_class(**spec_dict)
 
         # covariates
         cov_dicts = regression_spec_dict.get('covariates', {})

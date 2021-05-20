@@ -1,4 +1,5 @@
-from typing import Any, Callable, Dict, List, TYPE_CHECKING
+import functools
+from typing import Any, Callable, Dict, List, Union, TYPE_CHECKING
 
 import pandas as pd
 
@@ -66,6 +67,9 @@ class MiscellaneousConfig:
         self.label = label
         self.is_table = is_table
         self.aggregator = aggregator
+
+
+DataConfig = Union[MeasureConfig, CovariateConfig, CompositeMeasureConfig, MiscellaneousConfig]
 
 
 MEASURES = {
