@@ -2,27 +2,17 @@
 
 Doing a direct include here so I can figure out how to speed up the regression.
 """
-from typing import Dict, Any
+from typing import Dict, Any, Tuple, Union
 
 import numpy as np
+import pandas as pd
 from scipy.linalg import block_diag
 import scipy.optimize as sciopt
 
 
 class MRData:
-    """Data used for fitting the simple linear mixed effects model.
-    """
 
     def __init__(self, df, col_group, col_obs, col_obs_se=None, col_covs=None):
-        """Constructor of the ODEData.
-        Args:
-            df (pd.DataFrame): Dataframe contains data.
-            col_group (str): Name of the group column.
-            col_obs (str): Name of the observation column.
-            col_obs_se (str | None, optional):
-                Name of the observation standard error.
-            col_covs (list{str} | None, optional): Names of the covariates.
-        """
         self.df_original = df.copy()
         self.col_group = col_group
         self.col_obs = col_obs
@@ -52,16 +42,6 @@ class MRData:
         self.group_idx = sizes_to_indices(self.group_sizes)
         self.num_groups = len(self.groups)
         self.num_obs = self.df.shape[0]
-
-    def df_by_group(self, group):
-        """Divide data by group.
-        Args:
-            group (any): Group id in the data frame.
-        Returns:
-            pd.DataFrame: The corresponding data frame.
-        """
-        assert group in self.groups
-        return self.df[self.df[self.col_group] == group]
 
 
 class MRModel:
@@ -179,6 +159,56 @@ class MRModel:
             for g in self.cov_models.groups
         }
         return soln_samples
+
+
+class CovariateModel:
+
+    def __init__(self,
+                 covariate: pd.Series,
+                 group_level: str = None,
+                 bounds: Tuple[float, float] = (-np.inf, np.inf),
+                 prior: Union[pd.DataFrame, Tuple[float, float]] = (0.0, np.inf)):
+
+        cov_df = covariate.reset_index()
+        if group_level is not None:
+            assert group_level in cov_df
+            assert cov_df.sort_values(group_level).equals(cov_df)
+
+
+        labels, sizes = np.unique(
+            cov_df[group_level],
+            return_counts=True
+        )
+        cov_values = covariate.values
+        cov_scale = np.linalg.norm(cov_values)
+        if cov_scale:
+            cov_values /= cov_scale
+
+        self.original_data = covariate.copy()
+        self.original_bounds = bounds
+
+        self.num_groups = len(labels)
+        self.group_labels = labels
+        self.group_sizes = sizes
+        self.group_indices = sizes_to_indices(self.group_sizes)
+
+        self.data = cov_values
+        self.scale = cov_scale
+        self.matrix = block_diag(*[
+            self.data[self.group_indices[i]].reshape((-1, 1))
+            for i in range(self.num_groups)
+        ])
+
+        self.bounds = np.repeat(
+            (np.array(bounds) * self.scale).reshape((-1, 1)),
+            self.num_groups,
+            axis=0,
+        )
+
+
+
+
+
 
 
 class CovModel:
