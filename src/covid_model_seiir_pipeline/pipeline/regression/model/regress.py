@@ -5,9 +5,9 @@ from typing import Iterable, List, Optional, Union, TYPE_CHECKING
 import pandas as pd
 import numpy as np
 
-from covid_model_seiir_pipeline.pipeline.regression.model.slime import (
-    CovModel,
-    CovModelSet,
+from covid_model_seiir_pipeline.pipeline.regression.model.reslime import (
+    PredictorModel,
+    PredictorModelSet,
     MRData,
     MRModel,
 )
@@ -18,29 +18,9 @@ if TYPE_CHECKING:
     from covid_model_seiir_pipeline.pipeline.regression.specification import CovariateSpecification
 
 
-class CovariateModel(CovModel):
-    """Adapter around slime CovModel to translate covariate specs."""
+class BetaRegressor:
 
-    @classmethod
-    def from_specification(cls, covariate: 'CovariateSpecification'):
-        return cls(
-            col_cov=covariate.name,
-            use_re=covariate.use_re,
-            bounds=np.array(covariate.bounds),
-            gprior=np.array(covariate.gprior),
-            re_var=covariate.re_var,
-        )
-
-
-class IBetaRegressor:
-
-    def fit(self, mr_data: MRData, sequential_refit: bool) -> pd.DataFrame:
-        raise NotImplementedError
-
-
-class BetaRegressor(IBetaRegressor):
-
-    def __init__(self, covmodel_set: CovModelSet):
+    def __init__(self, predictor_set: PredictorModelSet):
         self.covmodel_set = covmodel_set
         self.col_covs = [covmodel.col_cov for covmodel in covmodel_set.cov_models]
 
@@ -118,13 +98,12 @@ def prep_regression_inputs(beta_fit: pd.Series,
 
 
 def build_regressor(covariates: Iterable['CovariateSpecification'],
-                    prior_coefficients: Optional[pd.DataFrame]) -> Union[BetaRegressor, BetaRegressorSequential]:
-    """
-    Based on a list of `CovariateSpecification`s and an ordered list of lists of covariate
-    names, create a CovModelSet.
-    """
-    # construct each CovModel independently. add to dict of list by covariate order
-    covariate_models = defaultdict(list)
+                    prior_coefficients: Optional[pd.DataFrame],
+                    guassian_priors: pd.DataFrame) -> Union[BetaRegressor, BetaRegressorSequential]:
+    for covariates in covariates:
+        if covariate.
+
+
     for covariate in covariates:
         cov_model = CovariateModel.from_specification(covariate)
         if prior_coefficients is not None and not cov_model.use_re:

@@ -1,6 +1,6 @@
 from functools import reduce
 from pathlib import Path
-from typing import List, Iterable, Optional, Union
+from typing import Dict, List, Iterable, Optional, Union
 
 from loguru import logger
 import pandas as pd
@@ -12,6 +12,7 @@ from covid_model_seiir_pipeline.lib import (
 )
 from covid_model_seiir_pipeline.pipeline.regression.specification import (
     RegressionSpecification,
+    CovariateSpecification,
 )
 from covid_model_seiir_pipeline.pipeline.regression.model import (
     RatioData,
@@ -192,6 +193,12 @@ class RegressionDataInterface:
                 covariate_data.append(self.load_covariate(covariate))
         covariate_data = reduce(lambda x, y: x.merge(y, left_index=True, right_index=True), covariate_data)
         return covariate_data
+
+    def load_priors(self, prior_version: str, covariates: ) -> pd.DataFrame:
+        if prior_version:
+            return pd.read_csv(Path(prior_version) / 'priors.csv')
+        else:
+            return pd.DataFrame()
 
     def load_vaccine_info(self, vaccine_scenario: str):
         location_ids = self.load_location_ids()

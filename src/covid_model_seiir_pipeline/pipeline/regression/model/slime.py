@@ -2,10 +2,9 @@
 
 Doing a direct include here so I can figure out how to speed up the regression.
 """
-from typing import Dict, Any, Tuple, Union
+from typing import Dict, Any
 
 import numpy as np
-import pandas as pd
 from scipy.linalg import block_diag
 import scipy.optimize as sciopt
 
@@ -35,13 +34,25 @@ class MRData:
         assert all([name in df for name in self.col_covs])
         self.df = df[[self.col_group, self.col_obs, self.col_obs_se] +
                      self.col_covs].copy()
-        self.df.sort_values(col_group, inplace=True)
+
+        # Use merge sort for stability.
+        self.df.sort_values(col_group, inplace=True, kind='mergesort')
         self.groups, self.group_sizes = np.unique(self.df[self.col_group],
                                                   return_counts=True)
 
         self.group_idx = sizes_to_indices(self.group_sizes)
         self.num_groups = len(self.groups)
         self.num_obs = self.df.shape[0]
+
+    def df_by_group(self, group):
+        """Divide data by group.
+        Args:
+            group (any): Group id in the data frame.
+        Returns:
+            pd.DataFrame: The corresponding data frame.
+        """
+        assert group in self.groups
+        return self.df[self.df[self.col_group] == group]
 
 
 class MRModel:
@@ -159,56 +170,6 @@ class MRModel:
             for g in self.cov_models.groups
         }
         return soln_samples
-
-
-class CovariateModel:
-
-    def __init__(self,
-                 covariate: pd.Series,
-                 group_level: str = None,
-                 bounds: Tuple[float, float] = (-np.inf, np.inf),
-                 prior: Union[pd.DataFrame, Tuple[float, float]] = (0.0, np.inf)):
-
-        cov_df = covariate.reset_index()
-        if group_level is not None:
-            assert group_level in cov_df
-            assert cov_df.sort_values(group_level).equals(cov_df)
-
-
-        labels, sizes = np.unique(
-            cov_df[group_level],
-            return_counts=True
-        )
-        cov_values = covariate.values
-        cov_scale = np.linalg.norm(cov_values)
-        if cov_scale:
-            cov_values /= cov_scale
-
-        self.original_data = covariate.copy()
-        self.original_bounds = bounds
-
-        self.num_groups = len(labels)
-        self.group_labels = labels
-        self.group_sizes = sizes
-        self.group_indices = sizes_to_indices(self.group_sizes)
-
-        self.data = cov_values
-        self.scale = cov_scale
-        self.matrix = block_diag(*[
-            self.data[self.group_indices[i]].reshape((-1, 1))
-            for i in range(self.num_groups)
-        ])
-
-        self.bounds = np.repeat(
-            (np.array(bounds) * self.scale).reshape((-1, 1)),
-            self.num_groups,
-            axis=0,
-        )
-
-
-
-
-
 
 
 class CovModel:
@@ -349,6 +310,34 @@ class CovModel:
         """
         bounds = self.bounds*self.cov_scale
         return np.repeat(bounds[None, :], self.var_size, axis=0)
+
+    def __repr__(self) -> str:
+        return f'{self.__class__.__name__}({self.col_cov})'
+
+    def __eq__(self, other: 'CovModel') -> bool:
+         return (
+            np.all(self.bounds == other.bounds)
+            and self.col_cov == other.col_cov
+            and np.all(self.cov == other.cov)
+            and np.all(self.cov_mat == other.cov_mat)
+            and self.cov_scale == other.cov_scale
+            and np.all(self.gprior == other.gprior)
+            and np.all(np.hstack(self.group_idx) == np.hstack(other.group_idx))
+            and np.all(self.group_sizes == other.group_sizes)
+            and self.re_var == other.re_var
+            and self.use_re == other.use_re
+            and self.var_size == other.var_size
+        )
+
+    @classmethod
+    def from_specification(cls, covariate):
+        return cls(
+            col_cov=covariate.name,
+            use_re=covariate.use_re,
+            bounds=np.array(covariate.bounds),
+            gprior=np.array(covariate.gprior),
+            re_var=covariate.re_var,
+        )
 
 
 class CovModelSet:

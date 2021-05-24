@@ -50,7 +50,7 @@ def run_beta_regression(regression_version: str, draw_id: int, progress_bar: boo
                          scale=regression_params['psi_sd']),
         index=infections.index, name='psi',
     )
-   
+
     ode_parameters = model.prepare_ode_fit_parameters(
         infections,
         population,
@@ -68,6 +68,7 @@ def run_beta_regression(regression_version: str, draw_id: int, progress_bar: boo
 
     logger.info('Loading regression input data', context='read')
     covariates = data_interface.load_covariates(regression_specification.covariates)
+    gaussian_priors = data_interface.load_priors(regression_specification.data.priors_version)
     if regression_specification.data.coefficient_version:
         prior_coefficients = data_interface.load_prior_run_coefficients(draw_id=draw_id)
     else:
@@ -78,7 +79,11 @@ def run_beta_regression(regression_version: str, draw_id: int, progress_bar: boo
         beta_fit['beta'],
         covariates,
     )
-    regressor = model.build_regressor(regression_specification.covariates.values(), prior_coefficients)
+    regressor = model.build_regressor(
+        regression_specification.covariates.values(),
+        prior_coefficients,
+        gaussian_priors,
+    )
     logger.info('Fitting beta regression', context='compute_regression')
     coefficients = regressor.fit(
         regression_inputs,
