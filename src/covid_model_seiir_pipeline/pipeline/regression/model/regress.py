@@ -101,41 +101,46 @@ class BetaRegressorSequential(IBetaRegressor):
         return regressor.fit(mr_data)
 
 
-def prep_regression_inputs(beta_fit: pd.Series,
-                           covariates: pd.DataFrame) -> MRData:
-    """Convert inputs for the beta regression model."""
+def run_beta_regression(beta_fit: pd.Series,
+                        covariates: pd.DataFrame,
+                        covariate_specs: Iterable['CovariateSpecification'],
+                        prior_coefficients: Optional[pd.DataFrame],
+                        sequential_refit: bool) -> pd.DataFrame:
     regression_inputs = (pd.merge(beta_fit.dropna(), covariates, on=beta_fit.index.names)
                          .sort_index()
                          .reset_index())
     regression_inputs['ln_beta'] = np.log(regression_inputs['beta'])
+
+    covariate_models = defaultdict(list)
+    covariate_names = []
+    prior_coefs = {}
+    for covariate in covariate_specs:
+        cov_model = CovariateModel.from_specification(covariate)
+        if prior_coefficients is not None and not cov_model.use_re:
+            coefficient_val = prior_coefficients[covariate.name].mean()
+            regression_inputs['ln_beta'] -= coefficient_val * regression_inputs[covariate.name]
+            prior_coefs[covariate.name] = coefficient_val
+        else:
+            covariate_models[covariate.order].append(cov_model)
+            covariate_names.append(covariate.name)
+
     mrdata = MRData(
         regression_inputs,
         col_group='location_id',
         col_obs='ln_beta',
-        col_covs=covariates.columns.tolist(),
+        col_covs=covariate_names,
     )
-    return mrdata
 
-
-def build_regressor(covariates: Iterable['CovariateSpecification'],
-                    prior_coefficients: Optional[pd.DataFrame]) -> Union[BetaRegressor, BetaRegressorSequential]:
-    """
-    Based on a list of `CovariateSpecification`s and an ordered list of lists of covariate
-    names, create a CovModelSet.
-    """
-    # construct each CovModel independently. add to dict of list by covariate order
-    covariate_models = defaultdict(list)
-    for covariate in covariates:
-        cov_model = CovariateModel.from_specification(covariate)
-        if prior_coefficients is not None and not cov_model.use_re:
-            coefficient_val = prior_coefficients[covariate.name].mean()
-            cov_model.gprior = np.array([coefficient_val, 1e-10])
-        covariate_models[covariate.order].append(cov_model)
     ordered_covmodel_sets = [CovModelSet(covariate_group)
                              for _, covariate_group in sorted(covariate_models.items())]
+    # construct each CovModel independently. add to dict of list by covariate order
     if len(ordered_covmodel_sets) > 1:
         regressor = BetaRegressorSequential(ordered_covmodel_sets)
     else:
         regressor = BetaRegressor(ordered_covmodel_sets[0])
 
-    return regressor
+    coefficients = regressor.fit(mrdata, sequential_refit)
+    for cov_name, coef in prior_coefs.items():
+        coefficients[cov_name] = coef
+
+    return coefficients
