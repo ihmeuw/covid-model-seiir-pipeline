@@ -84,9 +84,10 @@ class RegressionDataInterface:
         locations, if provided, and the available locations in the infections
         directory.
         """
+        death_threshold = 5
         draw_0_data = self.load_full_past_infection_data(draw_id=0)
         total_deaths = draw_0_data.groupby('location_id').deaths.sum()
-        modeled_locations = total_deaths[total_deaths > 5].index.tolist()
+        modeled_locations = total_deaths[total_deaths > death_threshold].index.tolist()
 
         if desired_location_hierarchy is None:
             desired_locations = modeled_locations
@@ -94,10 +95,18 @@ class RegressionDataInterface:
             most_detailed = desired_location_hierarchy.most_detailed == 1
             desired_locations = desired_location_hierarchy.loc[most_detailed, 'location_id'].tolist()
 
-        missing_locations = list(set(desired_locations).difference(modeled_locations))
-        if missing_locations:
+        ies_missing_locations = list(set(desired_locations).difference(total_deaths.index))
+        not_enough_deaths_locations = list(set(desired_locations)
+                                           .difference(modeled_locations)
+                                           .difference(ies_missing_locations))
+        if ies_missing_locations:
             logger.warning("Some locations present in location metadata are missing from the "
-                           f"infection models. Missing locations are {sorted(missing_locations)}.")
+                           f"infection models. Missing locations are {sorted(ies_missing_locations)}.")
+        if not_enough_deaths_locations:
+            logger.warning("Some locations present in location metadata do not meet the epidemiological "
+                           f"threshold of {death_threshold} total deaths required for modeling. "
+                           f" Locations below the threshold are {sorted(not_enough_deaths_locations)}.")
+
         return list(set(desired_locations).intersection(modeled_locations))
 
     ##########################
