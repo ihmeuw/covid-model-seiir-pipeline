@@ -113,11 +113,13 @@ def run_beta_regression(beta_fit: pd.Series,
 
     covariate_models = defaultdict(list)
     covariate_names = []
+    prior_coefs = {}
     for covariate in covariate_specs:
         cov_model = CovariateModel.from_specification(covariate)
         if prior_coefficients is not None and not cov_model.use_re:
             coefficient_val = prior_coefficients[covariate.name].mean()
             regression_inputs['ln_beta'] -= coefficient_val * regression_inputs[covariate.name]
+            prior_coefs[covariate.name] = coefficient_val
         else:
             covariate_models[covariate.order].append(cov_model)
             covariate_names.append(covariate.name)
@@ -138,4 +140,7 @@ def run_beta_regression(beta_fit: pd.Series,
         regressor = BetaRegressor(ordered_covmodel_sets[0])
 
     coefficients = regressor.fit(mrdata, sequential_refit)
-    import pdb; pdb.set_trace()
+    for cov_name, coef in prior_coefs:
+        coefficients[cov_name] = coef
+
+    return coefficients
