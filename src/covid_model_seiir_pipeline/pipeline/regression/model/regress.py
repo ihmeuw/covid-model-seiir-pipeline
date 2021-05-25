@@ -140,7 +140,7 @@ def run_beta_regression(beta_fit: pd.Series,
         regressor = BetaRegressor(ordered_covmodel_sets[0])
 
     coefficients = regressor.fit(mrdata, sequential_refit)
-    for cov_name, coef in prior_coefs:
+    for cov_name, coef in prior_coefs.items():
         coefficients[cov_name] = coef
 
     return coefficients
