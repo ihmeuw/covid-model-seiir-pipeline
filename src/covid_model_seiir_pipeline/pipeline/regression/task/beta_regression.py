@@ -50,7 +50,7 @@ def run_beta_regression(regression_version: str, draw_id: int, progress_bar: boo
                          scale=regression_params['psi_sd']),
         index=infections.index, name='psi',
     )
-   
+
     ode_parameters = model.prepare_ode_fit_parameters(
         infections,
         population,
@@ -73,17 +73,15 @@ def run_beta_regression(regression_version: str, draw_id: int, progress_bar: boo
     else:
         prior_coefficients = None
 
-    logger.info('Prepping regression.', context='transform')
-    regression_inputs = model.prep_regression_inputs(
+    logger.info('Fitting beta regression', context='compute_regression')
+    coefficients = model.run_beta_regression(
         beta_fit['beta'],
         covariates,
+        regression_specification.covariates.values(),
+        prior_coefficients,
+        regression_specification.regression_parameters.sequential_refit,
     )
-    regressor = model.build_regressor(regression_specification.covariates.values(), prior_coefficients)
-    logger.info('Fitting beta regression', context='compute_regression')
-    coefficients = regressor.fit(
-        regression_inputs,
-        regression_specification.regression_parameters.sequential_refit
-    )
+
     log_beta_hat = math.compute_beta_hat(covariates, coefficients)
     beta_hat = np.exp(log_beta_hat).rename('beta_hat')
 
