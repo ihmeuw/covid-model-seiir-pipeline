@@ -18,8 +18,7 @@ def prepare_ode_fit_parameters(past_infections: pd.Series,
                                population: pd.DataFrame,
                                rhos: pd.DataFrame,
                                vaccinations: pd.DataFrame,
-                               sampled_params: Dict[str, pd.Series],
-                               draw_id: int) -> ODEParameters:
+                               sampled_params: Dict[str, pd.Series]) -> ODEParameters:
     past_index = past_infections.index
     population_low_risk, population_high_risk = split_population(past_index, population)
 

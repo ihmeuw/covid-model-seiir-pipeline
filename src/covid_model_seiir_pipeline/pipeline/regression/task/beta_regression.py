@@ -57,7 +57,6 @@ def run_beta_regression(regression_version: str, draw_id: int, progress_bar: boo
         rhos,
         vaccinations,
         sampled_params,
-        draw_id,
     )
 
     logger.info('Running ODE fit', context='compute_ode')
