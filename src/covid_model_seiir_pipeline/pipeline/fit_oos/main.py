@@ -1,7 +1,6 @@
-from covid_shared import cli_tools
+from covid_shared import cli_tools, ihme_deps
 from loguru import logger
 
-from covid_model_seiir_pipeline.lib.ihme_deps import WorkflowAlreadyComplete
 from covid_model_seiir_pipeline.pipeline.fit_oos.specification import FitSpecification
 from covid_model_seiir_pipeline.pipeline.fit_oos.workflow import FitWorkflow
 from covid_model_seiir_pipeline.pipeline.fit_oos.data import FitDataInterface
@@ -35,5 +34,5 @@ def do_beta_fit(app_metadata: cli_tools.Metadata,
                             scenarios=fit_specification.scenarios)
         try:
             fit_wf.run()
-        except WorkflowAlreadyComplete:
+        except ihme_deps.WorkflowAlreadyComplete:
             logger.info('Workflow already complete')

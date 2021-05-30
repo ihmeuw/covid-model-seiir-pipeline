@@ -2,14 +2,15 @@
 import abc
 from typing import Dict, Type, TypeVar
 
-import covid_model_seiir_pipeline
-from covid_model_seiir_pipeline.lib.utilities import make_log_dirs
-from covid_model_seiir_pipeline.lib.ihme_deps import (
+from covid_shared.ihme_deps import (
     Tool,
     Task,
     ExecutorParameters,
     WorkflowRunStatus,
 )
+
+import covid_model_seiir_pipeline
+from covid_model_seiir_pipeline.lib.utilities import make_log_dirs
 from covid_model_seiir_pipeline.lib.workflow.specification import (
     TaskSpecification,
     WorkflowSpecification

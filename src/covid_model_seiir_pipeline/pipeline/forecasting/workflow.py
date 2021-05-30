@@ -1,8 +1,9 @@
 import shutil
 from typing import Dict
 
+from covid_shared.ihme_deps import Task
+
 from covid_model_seiir_pipeline.lib import workflow
-from covid_model_seiir_pipeline.lib.ihme_deps import Task
 from covid_model_seiir_pipeline.pipeline.forecasting.specification import (
     ScenarioSpecification,
     FORECAST_JOBS,

@@ -1,7 +1,6 @@
-from covid_shared import cli_tools
+from covid_shared import cli_tools, ihme_deps
 from loguru import logger
 
-from covid_model_seiir_pipeline.lib.ihme_deps import WorkflowAlreadyComplete
 from covid_model_seiir_pipeline.pipeline.regression.specification import RegressionSpecification
 from covid_model_seiir_pipeline.pipeline.regression.data import RegressionDataInterface
 from covid_model_seiir_pipeline.pipeline.regression.workflow import RegressionWorkflow
@@ -39,5 +38,5 @@ def do_beta_regression(app_metadata: cli_tools.Metadata,
         regression_wf.attach_tasks(n_draws=data_interface.get_n_draws())
         try:
             regression_wf.run()
-        except WorkflowAlreadyComplete:
+        except ihme_deps.WorkflowAlreadyComplete:
             logger.info('Workflow already complete.')

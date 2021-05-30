@@ -6,12 +6,10 @@ from pathlib import Path
 from typing import Dict, Union, Tuple
 from pprint import pformat
 
-from covid_shared import shell_tools
+from covid_shared import shell_tools, ihme_deps
 import numpy as np
 import pandas as pd
 import yaml
-
-from covid_model_seiir_pipeline.lib.ihme_deps import  get_location_metadata
 
 
 class YamlIOMixin:
@@ -112,21 +110,14 @@ def make_log_dirs(output_dir: Union[str, Path], prefix: str = None) -> Tuple[str
     return str(std_out), str(std_err)
 
 
-def load_location_hierarchy(location_set_id: int = None,
-                            location_set_version_id: int = None,
+def load_location_hierarchy(location_set_version_id: int = None,
                             location_file: Path = None):
-    ids = location_set_id and location_set_version_id
-    assert (ids and not location_file) or (not ids and location_file)
+    assert ((location_set_version_id and not location_file)
+            or (not location_set_version_id and location_file))
 
-    if ids:
-        # Hide this import so the code stays portable outside IHME by using
-        # a locations file directly.
-        try:
-            return get_location_metadata(location_set_id=location_set_id,
-                                         location_set_version_id=location_set_version_id)
-        except ValueError:
-            return get_location_metadata(location_set_id=location_set_id,
-                                         location_set_version_id=location_set_version_id,
-                                         gbd_round_id=6)
+    if location_set_version_id:
+        return ihme_deps.get_location_hierarchy_by_version(
+            location_set_version_id=location_set_version_id,
+        )
     else:
         return pd.read_csv(location_file)
