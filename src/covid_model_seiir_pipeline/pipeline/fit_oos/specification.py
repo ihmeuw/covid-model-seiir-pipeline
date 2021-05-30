@@ -1,9 +1,10 @@
 from dataclasses import dataclass, field
 from typing import Dict, List, NamedTuple, Optional, Tuple
 
+from covid_shared import workflow
+
 from covid_model_seiir_pipeline.lib import (
     utilities,
-    workflow,
 )
 
 
