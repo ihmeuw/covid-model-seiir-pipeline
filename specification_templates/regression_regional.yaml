@@ -1,5 +1,5 @@
 data:
-  infection_version: '2021_05_26.03'
+  infection_version: '2021_05_26.04'
   covariate_version: '2021_05_26.01'
   coefficient_version: ''
   priors_version: '2021_05_31.01'
@@ -10,7 +10,7 @@ workflow:
   project: 'proj_covid_prod'
   queue: 'd.q'
 regression_parameters:
-  n_draws: 1000
+  n_draws: 100
   # Mixing parameter.  dS/dt = -beta * S * I ** alpha
   alpha: [0.9, 1.0]
   # 1 / incubation period.  dE/dt = -dS/dt - sigma * E

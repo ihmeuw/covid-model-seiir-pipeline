@@ -22,6 +22,7 @@ def run_beta_regression(beta_fit: pd.Series,
                         gaussian_priors: Dict[str, pd.DataFrame],
                         prior_coefficients: Optional[pd.DataFrame]) -> pd.DataFrame:
     regression_inputs = pd.merge(beta_fit.dropna(), covariates, on=beta_fit.index.names).sort_index()
+    regression_inputs['intercept'] = 1.0
     regression_inputs['ln_beta'] = np.log(regression_inputs['beta'])
 
     predictors = []
@@ -57,10 +58,10 @@ def run_beta_regression(beta_fit: pd.Series,
             predictors.append(predictor)
 
     mr_data = MRData(
-        data=regression_inputs,
+        data=regression_inputs.reset_index(),
         response_column='ln_beta',
         predictors=[p.name for p in predictors],
-        group_columns=list(set([p.group_level for p in predictors])),
+        group_columns=list(set([p.group_level for p in predictors if p.group_level])),
     )
     predictor_set = PredictorModelSet(predictors)
     mr_model = MRModel(mr_data, predictor_set)
