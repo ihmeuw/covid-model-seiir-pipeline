@@ -10,7 +10,7 @@ workflow:
   project: 'proj_covid_prod'
   queue: 'd.q'
 regression_parameters:
-  n_draws: 1000
+  n_draws: 10
   # Mixing parameter.  dS/dt = -beta * S * I ** alpha
   alpha: [0.9, 1.0]
   # 1 / incubation period.  dE/dt = -dS/dt - sigma * E
