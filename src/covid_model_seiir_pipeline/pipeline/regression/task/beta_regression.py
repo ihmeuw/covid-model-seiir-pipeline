@@ -57,7 +57,6 @@ def run_beta_regression(regression_version: str, draw_id: int, progress_bar: boo
         rhos,
         vaccinations,
         sampled_params,
-        draw_id,
     )
 
     logger.info('Running ODE fit', context='compute_ode')
@@ -74,20 +73,13 @@ def run_beta_regression(regression_version: str, draw_id: int, progress_bar: boo
     else:
         prior_coefficients = None
 
-    logger.info('Prepping regression.', context='transform')
-    regression_inputs = model.prep_regression_inputs(
+    logger.info('Fitting beta regression', context='compute_regression')
+    coefficients = model.run_beta_regression(
         beta_fit['beta'],
         covariates,
-    )
-    regressor = model.build_regressor(
         regression_specification.covariates.values(),
         prior_coefficients,
-        gaussian_priors,
-    )
-    logger.info('Fitting beta regression', context='compute_regression')
-    coefficients = regressor.fit(
-        regression_inputs,
-        regression_specification.regression_parameters.sequential_refit
+        regression_specification.regression_parameters.sequential_refit,
     )
     log_beta_hat = math.compute_beta_hat(covariates, coefficients)
     beta_hat = np.exp(log_beta_hat).rename('beta_hat')

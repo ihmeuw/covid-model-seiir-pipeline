@@ -47,7 +47,7 @@ def do_splicing(measure_data: pd.DataFrame,
                         previous_data_interface,
                         scenario_name,
                     )
-                except FileNotFoundError:
+                except (FileNotFoundError, KeyError):
                     logger.warning(f"Cannot reconstruct {measure_config.label} data for "
                                    f"{splicing_config.output_version}. Skipping splicing for this measure/version.")
                     continue
