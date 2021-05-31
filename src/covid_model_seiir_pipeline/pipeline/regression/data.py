@@ -67,16 +67,12 @@ class RegressionDataInterface:
 
     @staticmethod
     def load_hierarchy_from_primary_source(location_set_version_id: Optional[int],
-                                           location_file: Optional[Union[str, Path]]) -> Union[pd.DataFrame, None]:
+                                           location_file: Optional[Union[str, Path]]) -> pd.DataFrame:
         """Retrieve a location hierarchy from a file or from GBD if specified."""
-        if location_set_version_id:
-            location_metadata = utilities.load_location_hierarchy(location_set_id=111,
-                                                                  location_set_version_id=location_set_version_id)
-        elif location_file:
-            location_metadata = utilities.load_location_hierarchy(location_file=location_file)
-        else:
-            location_metadata = None
-
+        location_metadata = utilities.load_location_hierarchy(
+            location_set_version_id=location_set_version_id,
+            location_file=location_file,
+        )
         return location_metadata
 
     def filter_location_ids(self, desired_location_hierarchy: pd.DataFrame = None) -> List[int]:

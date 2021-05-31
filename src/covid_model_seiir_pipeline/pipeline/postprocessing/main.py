@@ -1,7 +1,6 @@
-from covid_shared import cli_tools
+from covid_shared import cli_tools, ihme_deps
 from loguru import logger
 
-from covid_model_seiir_pipeline.lib.ihme_deps import WorkflowAlreadyComplete
 from covid_model_seiir_pipeline.pipeline.postprocessing.specification import PostprocessingSpecification
 from covid_model_seiir_pipeline.pipeline.postprocessing.data import PostprocessingDataInterface
 from covid_model_seiir_pipeline.pipeline.postprocessing.workflow import PostprocessingWorkflow
@@ -35,5 +34,5 @@ def do_postprocessing(app_metadata: cli_tools.Metadata,
 
         try:
             workflow.run()
-        except WorkflowAlreadyComplete:
+        except ihme_deps.WorkflowAlreadyComplete:
             logger.info('Workflow already complete')

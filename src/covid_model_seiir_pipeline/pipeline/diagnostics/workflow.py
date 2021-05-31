@@ -1,7 +1,9 @@
 import shutil
 from typing import List
 
-from covid_model_seiir_pipeline.lib import workflow
+from covid_shared import workflow
+
+import covid_model_seiir_pipeline
 from covid_model_seiir_pipeline.pipeline.diagnostics.specification import (
     DIAGNOSTICS_JOBS,
 )
@@ -9,6 +11,7 @@ from covid_model_seiir_pipeline.pipeline.diagnostics.specification import (
 
 class GridPlotsTaskTemplate(workflow.TaskTemplate):
 
+    tool = workflow.get_jobmon_tool(covid_model_seiir_pipeline)
     task_name_template = f"{DIAGNOSTICS_JOBS.grid_plots}_{{plot_name}}"
     command_template = (
             f"{shutil.which('stask')} "
@@ -22,6 +25,7 @@ class GridPlotsTaskTemplate(workflow.TaskTemplate):
 
 
 class DiagnosticsWorkflow(workflow.WorkflowTemplate):
+    tool = workflow.get_jobmon_tool(covid_model_seiir_pipeline)
     workflow_name_template = 'seiir-diagnostics-{version}'
     task_template_classes = {
         DIAGNOSTICS_JOBS.grid_plots: GridPlotsTaskTemplate,

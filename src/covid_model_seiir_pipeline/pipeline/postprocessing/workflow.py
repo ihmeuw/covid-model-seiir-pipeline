@@ -2,14 +2,16 @@ import itertools
 import shutil
 from typing import List
 
-from covid_model_seiir_pipeline.lib import workflow
+from covid_shared import workflow
+
+import covid_model_seiir_pipeline
 from covid_model_seiir_pipeline.pipeline.postprocessing.specification import (
     POSTPROCESSING_JOBS,
 )
 
 
 class PostprocessingTaskTemplate(workflow.TaskTemplate):
-
+    tool = workflow.get_jobmon_tool(covid_model_seiir_pipeline)
     task_name_template = f"{POSTPROCESSING_JOBS.postprocess}_{{scenario}}_{{measure}}"
     command_template = (
             f"{shutil.which('stask')} "
@@ -24,6 +26,7 @@ class PostprocessingTaskTemplate(workflow.TaskTemplate):
 
 
 class ResampleMapTaskTemplate(workflow.TaskTemplate):
+    tool = workflow.get_jobmon_tool(covid_model_seiir_pipeline)
     task_name_template = f"{POSTPROCESSING_JOBS.resample}"
     command_template = (
             f"{shutil.which('stask')} "
@@ -36,6 +39,7 @@ class ResampleMapTaskTemplate(workflow.TaskTemplate):
 
 
 class PostprocessingWorkflow(workflow.WorkflowTemplate):
+    tool = workflow.get_jobmon_tool(covid_model_seiir_pipeline)
     workflow_name_template = 'seiir-postprocess-{version}'
     task_template_classes = {
         POSTPROCESSING_JOBS.resample: ResampleMapTaskTemplate,
