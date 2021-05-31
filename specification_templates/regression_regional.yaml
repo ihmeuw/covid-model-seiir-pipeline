@@ -32,7 +32,6 @@ regression_parameters:
   psi_sd: 0.21
   # Proportion of current E to send to escape variant E on invasion.
   pi: [0.01, 0.1]
-  sequential_refit: False
 hospital_parameters:
   compute_correction_factors: True
   hospital_stay_death: 6

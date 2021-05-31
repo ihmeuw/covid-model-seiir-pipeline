@@ -71,7 +71,6 @@ class RegressionParameters:
     psi_mean_shift: float = field(default=0.9)
     psi_sd: float = field(default=0.3)
     pi: float = field(default=0.1)
-    sequential_refit: bool = field(default=False)
 
     def to_dict(self) -> Dict:
         """Converts to a dict, coercing list-like items to lists."""

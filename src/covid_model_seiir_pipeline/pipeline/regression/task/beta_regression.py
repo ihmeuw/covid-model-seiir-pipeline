@@ -67,19 +67,18 @@ def run_beta_regression(regression_version: str, draw_id: int, progress_bar: boo
 
     logger.info('Loading regression input data', context='read')
     covariates = data_interface.load_covariates(regression_specification.covariates)
-    gaussian_priors = data_interface.load_priors(regression_specification.data.priors_version)
-    if regression_specification.data.coefficient_version:
-        prior_coefficients = data_interface.load_prior_run_coefficients(draw_id=draw_id)
-    else:
-        prior_coefficients = None
+    gaussian_priors = data_interface.load_priors(regression_specification.covariates.values())
+    prior_coefficients = data_interface.load_prior_run_coefficients(draw_id=draw_id)
+    if gaussian_priors and prior_coefficients:
+        raise NotImplementedError
 
     logger.info('Fitting beta regression', context='compute_regression')
     coefficients = model.run_beta_regression(
         beta_fit['beta'],
         covariates,
         regression_specification.covariates.values(),
+        gaussian_priors,
         prior_coefficients,
-        regression_specification.regression_parameters.sequential_refit,
     )
     log_beta_hat = math.compute_beta_hat(covariates, coefficients)
     beta_hat = np.exp(log_beta_hat).rename('beta_hat')
