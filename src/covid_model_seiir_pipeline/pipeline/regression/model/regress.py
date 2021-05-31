@@ -20,8 +20,11 @@ def run_beta_regression(beta_fit: pd.Series,
                         covariates: pd.DataFrame,
                         covariate_specs: Iterable['CovariateSpecification'],
                         gaussian_priors: Dict[str, pd.DataFrame],
-                        prior_coefficients: Optional[pd.DataFrame]) -> pd.DataFrame:
+                        prior_coefficients: Optional[pd.DataFrame],
+                        hierarchy: pd.DataFrame) -> pd.DataFrame:
     regression_inputs = pd.merge(beta_fit.dropna(), covariates, on=beta_fit.index.names).sort_index()
+    regression_inputs = regression_inputs.merge(hierarchy[['location_id', 'region_id', 'super_region_id']],
+                                                on='location_id')
     regression_inputs['intercept'] = 1.0
     regression_inputs['ln_beta'] = np.log(regression_inputs['beta'])
 

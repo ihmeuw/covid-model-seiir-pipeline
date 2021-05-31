@@ -25,6 +25,7 @@ def run_beta_regression(regression_version: str, draw_id: int, progress_bar: boo
     data_interface = RegressionDataInterface.from_specification(regression_specification)
 
     logger.info('Loading ODE fit input data', context='read')
+    hierarchy = data_interface.load_hierarchy()
     past_infection_data = data_interface.load_past_infection_data(draw_id=draw_id)
     population = data_interface.load_five_year_population()
     rhos = data_interface.load_variant_prevalence()
@@ -79,6 +80,7 @@ def run_beta_regression(regression_version: str, draw_id: int, progress_bar: boo
         regression_specification.covariates.values(),
         gaussian_priors,
         prior_coefficients,
+        hierarchy,
     )
     log_beta_hat = math.compute_beta_hat(covariates, coefficients)
     beta_hat = np.exp(log_beta_hat).rename('beta_hat')
