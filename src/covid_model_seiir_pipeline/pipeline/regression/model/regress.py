@@ -22,9 +22,13 @@ def run_beta_regression(beta_fit: pd.Series,
                         gaussian_priors: Dict[str, pd.DataFrame],
                         prior_coefficients: Optional[pd.DataFrame],
                         hierarchy: pd.DataFrame) -> pd.DataFrame:
-    regression_inputs = pd.merge(beta_fit.dropna(), covariates, on=beta_fit.index.names).sort_index()
-    regression_inputs = regression_inputs.merge(hierarchy[['location_id', 'region_id', 'super_region_id']],
-                                                on='location_id')
+    regression_inputs = pd.merge(beta_fit.dropna(), covariates, on=beta_fit.index.names)
+    group_cols = ['super_region_id', 'region_id', 'location_id']
+    regression_inputs = (regression_inputs
+                         .merge(hierarchy[group_cols], on='location_id')
+                         .reset_index()
+                         .set_index(group_cols)
+                         .sort_index())
     regression_inputs['intercept'] = 1.0
     regression_inputs['ln_beta'] = np.log(regression_inputs['beta'])
 
@@ -54,7 +58,7 @@ def run_beta_regression(beta_fit: pd.Series,
             prior = gaussian_priors[covariate.name] if covariate.gprior == 'data' else covariate.gprior
             predictor = PredictorModel(
                 predictor_name=covariate.name,
-                group_level=covariate.group_level,
+                group_level=covariate.group_level if covariate.group_level else 'no_group',
                 bounds=covariate.bounds,
                 gaussian_prior_params=prior,
             )
@@ -64,12 +68,13 @@ def run_beta_regression(beta_fit: pd.Series,
         data=regression_inputs.reset_index(),
         response_column='ln_beta',
         predictors=[p.name for p in predictors],
-        group_columns=list(set([p.group_level for p in predictors if p.group_level])),
+        group_columns=group_cols,
     )
     predictor_set = PredictorModelSet(predictors)
     mr_model = MRModel(mr_data, predictor_set)
     coefficients = mr_model.fit_model()
 
-    coefficients = pd.concat([coefficients] + fixed_coefficients, axis=1)
+    coefficients = pd.concat([coefficients] + fixed_coefficients, axis=1).reset_index()
+    coefficients = coefficients.drop(columns=['super_region_id', 'region_id']).set_index('location_id')
 
     return coefficients

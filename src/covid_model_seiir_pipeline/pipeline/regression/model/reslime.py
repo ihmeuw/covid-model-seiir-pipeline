@@ -363,9 +363,9 @@ def reshape_prior(
         assert group_level is not NO_GROUP
         assert set(effect_prior) == {'mean', 'sd'}
         assert len(effect_prior) == len(group_labels)
+        effect_prior = effect_prior.loc[group_labels.astype(effect_prior.index.dtype)]
         effect_prior_df = effect_prior.reset_index()
         assert set(effect_prior_df).difference({'mean', 'sd'}) == {group_level}
-        assert effect_prior_df.sort_values(group_level).equals(effect_prior_df)
         assert set(effect_prior_df[group_level]) == set(group_labels)
         effect_prior_mean = effect_prior['mean'].values
         effect_prior_sd = effect_prior['sd'].values
