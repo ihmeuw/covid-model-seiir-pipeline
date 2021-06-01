@@ -1,10 +1,11 @@
-from dataclasses import dataclass, field, fields
+from dataclasses import dataclass, field
 import itertools
 from typing import Dict, NamedTuple, Tuple
 
+from covid_shared import workflow
+
 from covid_model_seiir_pipeline.lib import (
     utilities,
-    workflow,
 )
 
 
