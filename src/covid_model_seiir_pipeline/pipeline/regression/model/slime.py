@@ -2,8 +2,11 @@
 
 Doing a direct include here so I can figure out how to speed up the regression.
 """
-from typing import Dict, Any
+from collections import defaultdict
+import copy
+from typing import Any, Dict, Iterable, Optional, Union
 
+import pandas as pd
 import numpy as np
 from scipy.linalg import block_diag
 import scipy.optimize as sciopt
@@ -333,10 +336,10 @@ class CovModel:
     def from_specification(cls, covariate):
         return cls(
             col_cov=covariate.name,
-            use_re=covariate.use_re,
+            use_re=bool(covariate.group_level),
             bounds=np.array(covariate.bounds),
             gprior=np.array(covariate.gprior),
-            re_var=covariate.re_var,
+            re_var=1.0,
         )
 
 
@@ -495,3 +498,112 @@ def sizes_to_indices(sizes):
     return [
         np.arange(l, u) for l, u in zip(l_id, u_id)
     ]
+
+
+class IBetaRegressor:
+
+    def fit(self, mr_data: MRData, sequential_refit: bool) -> pd.DataFrame:
+        raise NotImplementedError
+
+
+class BetaRegressor(IBetaRegressor):
+
+    def __init__(self, covmodel_set: CovModelSet):
+        self.covmodel_set = covmodel_set
+        self.col_covs = [covmodel.col_cov for covmodel in covmodel_set.cov_models]
+
+    def fit_no_random(self, mr_data: MRData) -> np.ndarray:
+        covmodel_set_fixed = copy.deepcopy(self.covmodel_set)
+        for covmodel in covmodel_set_fixed.cov_models:
+            covmodel.use_re = False
+        mr_model_fixed = MRModel(mr_data, covmodel_set_fixed)
+        mr_model_fixed.fit_model()
+        return list(mr_model_fixed.result.values())[0]
+
+    def fit(self, mr_data: MRData, _: bool = None) -> pd.DataFrame:
+        mr_model = MRModel(mr_data, self.covmodel_set)
+        mr_model.fit_model()
+        cov_coef = mr_model.result
+        coef = pd.DataFrame.from_dict(cov_coef, orient='index').reset_index()
+        coef.columns = ['location_id'] + self.col_covs
+        return coef.set_index('location_id')
+
+
+class BetaRegressorSequential(IBetaRegressor):
+
+    def __init__(self, ordered_covmodel_sets, default_std=1.0):
+        self.default_std = default_std
+        self.ordered_covmodel_sets = copy.deepcopy(ordered_covmodel_sets)
+        self.col_covs = []
+        for covmodel_set in self.ordered_covmodel_sets:
+            self.col_covs.extend([covmodel.col_cov for covmodel in covmodel_set.cov_models])
+
+    def fit(self, mr_data, sequential_refit: bool) -> pd.DataFrame:
+        covmodels = []
+        covmodel_bounds = []
+        covmodel_gprior_std = []
+        while len(self.ordered_covmodel_sets) > 0:
+            new_cov_models = self.ordered_covmodel_sets.pop(0).cov_models
+            covmodel_set = CovModelSet(covmodels + new_cov_models)
+            for cov_model in new_cov_models:
+                covmodel_bounds.append(cov_model.bounds)
+                covmodel_gprior_std.append(cov_model.gprior[1])
+                cov_model.gprior[1] = np.inf
+
+            regressor = BetaRegressor(covmodel_set)
+            cov_coef_fixed = regressor.fit_no_random(mr_data)
+
+            for covmodel, coef in zip(covmodel_set.cov_models[len(covmodels):],
+                                      cov_coef_fixed[len(covmodels):]):
+                covmodel.gprior[0] = coef
+                covmodel.bounds = np.array([coef, coef])
+            covmodels = covmodel_set.cov_models
+
+        if sequential_refit:
+            # Return the covariates to their original bounds and prior variance.
+            for i, cov_model in enumerate(covmodels):
+                cov_model.bounds = np.array(covmodel_bounds[i])
+                cov_model.gprior[1] = covmodel_gprior_std[i]
+            # Otherwise we'll do nothing and just refit the random effects.
+        regressor = BetaRegressor(CovModelSet(covmodels))
+        return regressor.fit(mr_data)
+
+
+def prep_regression_inputs(beta_fit: pd.Series,
+                           covariates: pd.DataFrame) -> MRData:
+    """Convert inputs for the beta regression model."""
+    regression_inputs = (pd.merge(beta_fit.dropna(), covariates, on=beta_fit.index.names)
+                         .sort_index()
+                         .reset_index())
+    regression_inputs['ln_beta'] = np.log(regression_inputs['beta'])
+    mrdata = MRData(
+        regression_inputs,
+        col_group='location_id',
+        col_obs='ln_beta',
+        col_covs=covariates.columns.tolist(),
+    )
+    return mrdata
+
+
+def build_regressor(covariates: Iterable,
+                    prior_coefficients: Optional[pd.DataFrame]) -> Union[BetaRegressor, BetaRegressorSequential]:
+    """
+    Based on a list of `CovariateSpecification`s and an ordered list of lists of covariate
+    names, create a CovModelSet.
+    """
+    # construct each CovModel independently. add to dict of list by covariate order
+    covariate_models = defaultdict(list)
+    for covariate in covariates:
+        cov_model = CovModel.from_specification(covariate)
+        if prior_coefficients is not None and not cov_model.use_re:
+            coefficient_val = prior_coefficients[covariate.name].mean()
+            cov_model.gprior = np.array([coefficient_val, 1e-10])
+        covariate_models[0].append(cov_model)
+    ordered_covmodel_sets = [CovModelSet(covariate_group)
+                             for _, covariate_group in sorted(covariate_models.items())]
+    if len(ordered_covmodel_sets) > 1:
+        regressor = BetaRegressorSequential(ordered_covmodel_sets)
+    else:
+        regressor = BetaRegressor(ordered_covmodel_sets[0])
+
+    return regressor

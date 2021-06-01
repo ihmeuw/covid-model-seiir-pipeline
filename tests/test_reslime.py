@@ -14,7 +14,6 @@ import pytest
 import covid_model_seiir_pipeline
 from covid_model_seiir_pipeline.pipeline.regression import (
     RegressionSpecification,
-    model,
 )
 from covid_model_seiir_pipeline.pipeline.regression.model import (
     slime,
@@ -62,7 +61,6 @@ def all_data(beta, covariates):
     return all_data
 
 
-
 @pytest.fixture
 def old_mr_data(all_data, covariates):
     mr_data = slime.MRData(
@@ -87,16 +85,16 @@ def new_mr_data(all_data, covariates):
 
 @pytest.fixture
 def old_model(beta, covariates, regression_spec):
-    regression_inputs = model.prep_regression_inputs(
+    regression_inputs = slime.prep_regression_inputs(
         beta,
         covariates,
     )
 
-    regressor = model.build_regressor(regression_spec.covariates.values(), prior_coefficients=None)
+    regressor = slime.build_regressor(regression_spec.covariates.values(), prior_coefficients=None)
 
     coefficients = regressor.fit(
         regression_inputs,
-        regression_spec.regression_parameters.sequential_refit,
+        False,
     )
     return regression_inputs, regressor, coefficients
 
@@ -153,7 +151,7 @@ def test_new_covariate_model_set(old_mr_data, new_mr_data, regression_spec):
     old_cov_model_set = slime.CovModelSet([
         slime.CovModel(
             covariate,
-            use_re=covariate_spec.use_re,
+            use_re=bool(covariate_spec.group_level),
             bounds=covariate_spec.bounds,
             gprior=covariate_spec.gprior,
             re_var=np.inf,
@@ -165,7 +163,7 @@ def test_new_covariate_model_set(old_mr_data, new_mr_data, regression_spec):
     new_cov_model_set = reslime.PredictorModelSet([
         reslime.PredictorModel(
             covariate,
-            group_level='location_id' if covariate_spec.use_re else reslime.NO_GROUP,
+            group_level=covariate_spec.group_level if covariate_spec.group_level else reslime.NO_GROUP,
             bounds=covariate_spec.bounds,
             gaussian_prior_params=covariate_spec.gprior,
         )
@@ -187,7 +185,7 @@ def test_new_mr_model(old_mr_data, new_mr_data, regression_spec):
     old_cov_model_set = slime.CovModelSet([
         slime.CovModel(
             covariate,
-            use_re=covariate_spec.use_re,
+            use_re=bool(covariate_spec.group_level),
             bounds=covariate_spec.bounds,
             gprior=covariate_spec.gprior,
             re_var=np.inf,
@@ -203,7 +201,7 @@ def test_new_mr_model(old_mr_data, new_mr_data, regression_spec):
     new_cov_model_set = reslime.PredictorModelSet([
         reslime.PredictorModel(
             covariate,
-            group_level='location_id' if covariate_spec.use_re else reslime.NO_GROUP,
+            group_level=covariate_spec.group_level if covariate_spec.group_level else reslime.NO_GROUP,
             bounds=covariate_spec.bounds,
             gaussian_prior_params=covariate_spec.gprior,
         )
