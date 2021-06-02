@@ -98,7 +98,7 @@ def filter_to_spec_fields(spec_dict: dict, specification):
 
 
 def load_location_hierarchy(location_set_version_id: int = None,
-                            location_file: Path = None):
+                            location_file: Path = None, **kwargs):
     assert ((location_set_version_id and not location_file)
             or (not location_set_version_id and location_file))
 

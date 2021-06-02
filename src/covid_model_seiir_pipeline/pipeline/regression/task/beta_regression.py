@@ -66,7 +66,7 @@ def run_beta_regression(regression_version: str, draw_id: int, progress_bar: boo
     )
 
     logger.info('Loading regression input data', context='read')
-    covariates = data_interface.load_covariates(regression_specification.covariates)
+    covariates = data_interface.load_covariates(list(regression_specification.covariates))
     if regression_specification.data.coefficient_version:
         prior_coefficients = data_interface.load_prior_run_coefficients(draw_id=draw_id)
     else:
