@@ -679,8 +679,6 @@ def autoscale(ax=None, axis='y', margin=0.1):
 
     Defaults to current axes object if not specified.
     '''
-    import matplotlib.pyplot as plt
-    import numpy as np
     if ax is None:
         ax = plt.gca()
     newlow, newhigh = np.inf, -np.inf
@@ -709,6 +707,10 @@ def calculate_new_limit(fixed, dependent, limit):
     '''Calculates the min/max of the dependent axis given
     a fixed axis with limits
     '''
+    if dependent.dtype.kind == 'M':
+        # We have a datetime axis
+        limit = mdates.num2date(limit)
+
     if len(fixed) > 2:
         mask = (fixed > limit[0]) & (fixed < limit[1])
         window = dependent[mask]
