@@ -1,6 +1,6 @@
 from functools import reduce
 from pathlib import Path
-from typing import List, Iterable, Optional, Union
+from typing import List, Iterable, Optional, Tuple, Union
 
 from loguru import logger
 import pandas as pd
@@ -56,6 +56,17 @@ class RegressionDataInterface:
     def make_dirs(self, **prefix_args) -> None:
         io.touch(self.regression_root, **prefix_args)
 
+    ####################
+    # Metadata loaders #
+    ####################
+
+    def get_infections_metadata(self):
+        return io.load(self.infection_root.metadata())
+
+    def get_model_inputs_metadata(self):
+        infection_metadata = self.get_infections_metadata()
+        return infection_metadata['model_inputs_metadata']
+
     def get_n_draws(self) -> int:
         regression_spec = io.load(self.regression_root.specification())
         return regression_spec['regression_parameters']['n_draws']
@@ -104,6 +115,80 @@ class RegressionDataInterface:
                            f" Locations below the threshold are {sorted(not_enough_deaths_locations)}.")
 
         return list(set(desired_locations).intersection(modeled_locations))
+
+    ######################
+    # Population loaders #
+    ######################
+
+    def load_population(self) -> pd.DataFrame:
+        metadata = self.get_model_inputs_metadata()
+        model_inputs_version = metadata['output_path']
+        population_path = Path(model_inputs_version) / 'output_measures' / 'population' / 'all_populations.csv'
+        population_data = pd.read_csv(population_path)
+        return population_data
+
+    def load_five_year_population(self) -> pd.DataFrame:
+        population = self.load_population()
+        location_ids = self.load_location_ids()
+        in_locations = population['location_id'].isin(location_ids)
+        is_2019 = population['year_id'] == 2019
+        is_both_sexes = population['sex_id'] == 3
+        five_year_bins = [1, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 30, 31, 32, 235]
+        is_five_year_bins = population['age_group_id'].isin(five_year_bins)
+        population = population.loc[in_locations & is_2019 & is_both_sexes & is_five_year_bins, :]
+        return population
+
+    def load_total_population(self) -> pd.Series:
+        population = self.load_five_year_population()
+        population = population.groupby('location_id')['population'].sum()
+        return population
+
+    ########################
+    # Observed epi loaders #
+    ########################
+
+    def load_full_data(self, fh_subnationals: bool = False) -> pd.DataFrame:
+        metadata = self.get_model_inputs_metadata()
+        model_inputs_version = metadata['output_path']
+        if fh_subnationals:
+            full_data_path = Path(model_inputs_version) / 'full_data_fh_subnationals.csv'
+        else:
+            full_data_path = Path(model_inputs_version) / 'full_data.csv'
+        full_data = pd.read_csv(full_data_path)
+        full_data['date'] = pd.to_datetime(full_data['Date'])
+        full_data = full_data.drop(columns=['Date'])
+        full_data['location_id'] = full_data['location_id'].astype(int)
+        return full_data
+
+    def load_total_deaths(self, fh_subnationals: bool = False):
+        """Load cumulative deaths by location."""
+        location_ids = self.load_location_ids()
+        full_data = self.load_full_data(fh_subnationals)
+        total_deaths = full_data.groupby('location_id')['Deaths'].max().rename('deaths')
+        return total_deaths.loc[location_ids]
+
+    def load_hospital_census_data(self) -> 'HospitalCensusData':
+        metadata = self.get_model_inputs_metadata()
+
+        model_inputs_path = Path(metadata['output_path'])
+        corrections_data = {}
+        file_map = (
+            ('hospitalizations', 'hospital_census'),
+            ('icu', 'icu_census'),
+        )
+        for dir_name, measure in file_map:
+            path = model_inputs_path / 'output_measures' / dir_name / 'population.csv'
+            df = pd.read_csv(path)
+            df['date'] = pd.to_datetime(df['date'])
+            df = df.loc[(df.age_group_id == 22) & (df.sex_id == 3)]
+            df = df[["location_id", "date", "value"]]
+            if df.groupby(["location_id", "date"]).count().value.max() > 1:
+                raise ValueError(f"Duplicate usages for location_id and date in {path}")
+            # Location IDs to exclude from the census input data. Requested by Steve on 9/30
+            census_exclude_locs = [200, 69, 179, 172, 170, 144, 26, 74, 67, 58]
+            df = df.loc[~df.location_id.isin(census_exclude_locs)]
+            corrections_data[measure] = df.set_index(['location_id', 'date']).value
+        return HospitalCensusData(**corrections_data)
 
     ##########################
     # Infection data loaders #
@@ -184,91 +269,75 @@ class RegressionDataInterface:
                              'must have a reference scenario in the covariate pool. Covariates'
                              f'missing a reference scenario: {missing}.')
 
-    def load_covariate(self, covariate: str) -> pd.DataFrame:
+    def load_covariate(self, covariate: str,
+                       covariate_version: str = 'reference',
+                       with_observed: bool = False,
+                       covariate_root: io.CovariateRoot = None) -> pd.DataFrame:
+        covariate_root = covariate_root if covariate_root is not None else self.covariate_root
         location_ids = self.load_location_ids()
-        covariate_df = io.load(self.covariate_root[covariate](covariate_scenario='reference'))
-        covariate_df = covariate_df.loc[location_ids].rename(columns={f'{covariate}_reference': covariate})
-        return covariate_df.loc[:, [covariate]]
+        covariate_df = io.load(covariate_root[covariate](covariate_scenario=covariate_version))
+        covariate_df = self._format_covariate_data(covariate_df, location_ids, with_observed)
+        covariate_df = (covariate_df
+                        .rename(columns={f'{covariate}_{covariate_version}': covariate})
+                        .loc[:, [covariate]])
+        return covariate_df
 
-    def load_covariates(self, covariates: Iterable[str]) -> pd.DataFrame:
+    def load_covariates(self, covariates: Iterable[str],
+                        covariate_root: io.CovariateRoot = None) -> pd.DataFrame:
+        if not isinstance(covariates, dict):
+            covariates = {c: 'reference' for c in covariates}
         covariate_data = []
-        for covariate in covariates:
+        for covariate, covariate_version in covariates.items():
             if covariate != 'intercept':
-                covariate_data.append(self.load_covariate(covariate))
+                covariate_data.append(
+                    self.load_covariate(covariate, covariate_version,
+                                        with_observed=False, covariate_root=covariate_root)
+                )
         covariate_data = reduce(lambda x, y: x.merge(y, left_index=True, right_index=True), covariate_data)
         return covariate_data
 
-    def load_vaccine_info(self, vaccine_scenario: str):
+    def load_vaccinations(self, vaccine_scenario: str = 'reference',
+                          covariate_root: io.CovariateRoot = None):
+        covariate_root = covariate_root if covariate_root is not None else self.covariate_root
         location_ids = self.load_location_ids()
-        info_df = io.load(self.covariate_root.vaccine_info(info_type=f'vaccinations_{vaccine_scenario}'))
+        if vaccine_scenario == 'none':
+            # Grab the reference so we get the right index/schema.
+            info_df = io.load(covariate_root.vaccine_info(info_type='vaccinations_reference'))
+            info_df.loc[:, :] = 0.0
+        else:
+            info_df = io.load(covariate_root.vaccine_info(info_type=f'vaccinations_{vaccine_scenario}'))
         return self._format_covariate_data(info_df, location_ids)
 
-    def load_variant_prevalence(self):
-        b117 = self.load_covariate('variant_prevalence_non_escape').variant_prevalence_non_escape
-        b1351 = self.load_covariate('variant_prevalence_B1351').variant_prevalence_B1351
-        p1 = self.load_covariate('variant_prevalence_P1').variant_prevalence_P1
-        b1617 = self.load_covariate('variant_prevalence_B1617').variant_prevalence_B1617
-        rho_b1617 = self.load_covariate('variant_prevalence_escape').variant_prevalence_escape.rename('rho_b1617')
-        rho_variant = (b1351 + p1 + b1617).rename('rho_variant')
-        rho = b117.rename('rho')
-        return pd.concat([rho, rho_variant, rho_b1617], axis=1)
-
-    ##############################
-    # Miscellaneous data loaders #
-    ##############################
-
-    def get_infections_metadata(self):
-        return io.load(self.infection_root.metadata())
-
-    def get_model_inputs_metadata(self):
-        infection_metadata = self.get_infections_metadata()
-        return infection_metadata['model_inputs_metadata']
-
-    def load_population(self) -> pd.DataFrame:
-        metadata = self.get_model_inputs_metadata()
-        model_inputs_version = metadata['output_path']
-        population_path = Path(model_inputs_version) / 'output_measures' / 'population' / 'all_populations.csv'
-        population_data = pd.read_csv(population_path)
-        return population_data
-
-    def load_five_year_population(self) -> pd.DataFrame:
-        population = self.load_population()
+    def load_mobility_info(self, info_type: str,
+                           covariate_root: io.CovariateRoot = None) -> pd.DataFrame:
+        covariate_root = covariate_root if covariate_root is not None else self.covariate_root
         location_ids = self.load_location_ids()
-        in_locations = population['location_id'].isin(location_ids)
-        is_2019 = population['year_id'] == 2019
-        is_both_sexes = population['sex_id'] == 3
-        five_year_bins = [1, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 30, 31, 32, 235]
-        is_five_year_bins = population['age_group_id'].isin(five_year_bins)
-        population = population.loc[in_locations & is_2019 & is_both_sexes & is_five_year_bins, :]
-        return population
+        info_df = io.load(covariate_root.mobility_info(info_type=info_type))
+        return self._format_covariate_data(info_df, location_ids)
 
-    def load_total_population(self) -> pd.Series:
-        population = self.load_five_year_population()
-        population = population.groupby('location_id')['population'].sum()
-        return population
+    def load_mandate_data(self, mobility_scenario: str,
+                          covariate_root: io.CovariateRoot = None) -> Tuple[pd.DataFrame, pd.DataFrame]:
+        percent_mandates = self.load_mobility_info(f'{mobility_scenario}_mandate_lift', covariate_root)
+        mandate_effects = self.load_mobility_info(f'effect', covariate_root)
+        return percent_mandates, mandate_effects
 
-    def load_hospital_census_data(self) -> 'HospitalCensusData':
-        metadata = self.get_model_inputs_metadata()
+    def load_variant_prevalence(self, variant_scenario: str = 'reference',
+                                covariate_root: io.CovariateRoot = None) -> pd.DataFrame:
+        variants = ['non_escape', 'escape', 'B117', 'B1351', 'B1617', 'P1']
+        cov_map = {
+            variant: self.load_covariate(
+                f'variant_prevalence_{variant}',
+                variant_scenario,
+                with_observed=False,
+                covariate_root=covariate_root,
+            )[f'variant_prevalence_{variant}'] for variant in variants
+        }
 
-        model_inputs_path = Path(metadata['output_path'])
-        corrections_data = {}
-        file_map = (
-            ('hospitalizations', 'hospital_census'),
-            ('icu', 'icu_census'),
-        )
-        for dir_name, measure in file_map:
-            path = model_inputs_path / 'output_measures' / dir_name / 'population.csv'
-            df = pd.read_csv(path)
-            df['date'] = pd.to_datetime(df['date'])
-            df = df.loc[(df.age_group_id == 22) & (df.sex_id == 3)]
-            df = df[["location_id", "date", "value"]]
-            if df.groupby(["location_id", "date"]).count().value.max() > 1:
-                raise ValueError(f"Duplicate usages for location_id and date in {path}")
-            # Location IDs to exclude from the census input data. Requested by Steve on 9/30
-            census_exclude_locs = [200, 69, 179, 172, 170, 144, 26, 74, 67, 58]
-            df = df.loc[~df.location_id.isin(census_exclude_locs)]
-            corrections_data[measure] = df.set_index(['location_id', 'date']).value
-        return HospitalCensusData(**corrections_data)
+        rho = cov_map['non_escape'].rename('rho')
+        rho_variant = sum([cov_map[k] for k in ['B1351', 'P1', 'B1617']]).rename('rho_variant')
+        rho_total = (cov_map['B117'] + rho_variant).rename('rho_total')
+        rho_b1617 = cov_map['escape'].rename('rho_b1617')
+        return pd.concat([rho, rho_variant, rho_b1617, rho_total], axis=1)
 
     #######################
     # Regression data I/O #

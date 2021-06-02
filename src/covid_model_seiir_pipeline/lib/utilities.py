@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import Dict, Union, Tuple
 from pprint import pformat
 
-from covid_shared import shell_tools, ihme_deps
+from covid_shared import ihme_deps
 import numpy as np
 import pandas as pd
 import yaml
@@ -95,19 +95,6 @@ def filter_to_spec_fields(spec_dict: dict, specification):
         }
     else:
         return spec_dict
-
-
-def make_log_dirs(output_dir: Union[str, Path], prefix: str = None) -> Tuple[str, str]:
-    """Create log directories in output root and return the paths."""
-    log_dir = Path(output_dir) / 'logs'
-    if prefix:
-        log_dir /= prefix
-    std_out = log_dir / 'output'
-    std_err = log_dir / 'error'
-    shell_tools.mkdir(std_out, exists_ok=True, parents=True)
-    shell_tools.mkdir(std_err, exists_ok=True, parents=True)
-
-    return str(std_out), str(std_err)
 
 
 def load_location_hierarchy(location_set_version_id: int = None,

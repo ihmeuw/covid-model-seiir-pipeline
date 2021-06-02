@@ -28,7 +28,7 @@ def run_beta_regression(regression_version: str, draw_id: int, progress_bar: boo
     past_infection_data = data_interface.load_past_infection_data(draw_id=draw_id)
     population = data_interface.load_five_year_population()
     rhos = data_interface.load_variant_prevalence()
-    vaccinations = data_interface.load_vaccine_info('reference')
+    vaccinations = data_interface.load_vaccinations()
 
     logger.info('Prepping ODE fit parameters.', context='transform')
     infections = model.clean_infection_data_measure(past_infection_data, 'infections')
