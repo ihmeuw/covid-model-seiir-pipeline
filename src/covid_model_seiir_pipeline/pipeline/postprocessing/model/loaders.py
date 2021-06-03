@@ -308,6 +308,7 @@ def load_full_data(data_interface: 'PostprocessingDataInterface') -> pd.DataFram
     full_data = data_interface.load_full_data()
     location_ids = data_interface.load_location_ids()
     full_data = full_data.loc[location_ids]
+    full_data = model.fill_cumulative_date_index(full_data)
     return full_data
 
 
