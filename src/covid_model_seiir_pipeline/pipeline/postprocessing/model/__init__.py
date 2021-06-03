@@ -1,6 +1,5 @@
 from covid_model_seiir_pipeline.pipeline.postprocessing.model.aggregators import (
     summarize,
-    fill_cumulative_date_index,
 )
 from covid_model_seiir_pipeline.pipeline.postprocessing.model.combiners import (
     INFECTION_TO_CASE,
