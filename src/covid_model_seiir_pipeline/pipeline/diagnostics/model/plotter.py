@@ -544,6 +544,7 @@ class Plotter:
         for plot_version in self._plot_versions:
             try:
                 data = plot_version.load_output_summaries(measure, self._loc_id)
+                data = data[(start <= data['date']) & (data['date'] <= end)]
             except FileNotFoundError:  # No data for this version, so skip.
                 continue
             data[['mean', 'upper', 'lower']] = transform(data[['mean', 'upper', 'lower']])

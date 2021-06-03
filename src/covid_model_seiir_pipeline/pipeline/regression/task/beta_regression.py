@@ -29,7 +29,7 @@ def run_beta_regression(regression_version: str, draw_id: int, progress_bar: boo
     past_infection_data = data_interface.load_past_infection_data(draw_id=draw_id)
     population = data_interface.load_five_year_population()
     rhos = data_interface.load_variant_prevalence()
-    vaccinations = data_interface.load_vaccine_info('reference')
+    vaccinations = data_interface.load_vaccinations()
 
     logger.info('Prepping ODE fit parameters.', context='transform')
     infections = model.clean_infection_data_measure(past_infection_data, 'infections')
@@ -67,7 +67,7 @@ def run_beta_regression(regression_version: str, draw_id: int, progress_bar: boo
     )
 
     logger.info('Loading regression input data', context='read')
-    covariates = data_interface.load_covariates(regression_specification.covariates)
+    covariates = data_interface.load_covariates(list(regression_specification.covariates))
     gaussian_priors = data_interface.load_priors(regression_specification.covariates.values())
     prior_coefficients = data_interface.load_prior_run_coefficients(draw_id=draw_id)
     if gaussian_priors and prior_coefficients:
