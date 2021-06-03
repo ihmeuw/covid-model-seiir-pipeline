@@ -166,7 +166,6 @@ class RegressionDataInterface:
         locs = full_data.location_id.unique()
         measures = ['cumulative_cases', 'cumulative_deaths', 'cumulative_hospitalizations']
         full_data = full_data.set_index(['location_id', 'date'])
-
         dfs = []
         for loc_id in locs:
             measure_series = []
