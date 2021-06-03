@@ -174,10 +174,9 @@ class RegressionDataInterface:
                      .loc[loc_id, measure]
                      .dropna()
                      .asfreq('D')
-                     .interpolate()
-                     .reset_index())
+                     .interpolate())
                 measure_series.append(s)
-            df = pd.concat(measure_series, axis=1)
+            df = pd.concat(measure_series, axis=1).reset_index()
             df['location_id'] = loc_id
             dfs.append(df.set_index(['location_id', 'date']).sort_index())
 
