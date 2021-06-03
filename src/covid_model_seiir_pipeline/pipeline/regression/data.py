@@ -1,10 +1,6 @@
 from functools import reduce
 from pathlib import Path
-<<<<<<< HEAD
-from typing import Dict, List, Iterable, Optional, Union
-=======
-from typing import List, Iterable, Optional, Tuple, Union
->>>>>>> 47977aa4ebf5ffefd03264b7c11c831c494661c3
+from typing import Dict, List, Iterable, Optional, Tuple, Union
 
 from loguru import logger
 import pandas as pd
