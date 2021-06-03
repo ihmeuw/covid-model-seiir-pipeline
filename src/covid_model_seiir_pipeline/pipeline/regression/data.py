@@ -154,11 +154,35 @@ class RegressionDataInterface:
             full_data_path = Path(model_inputs_version) / 'full_data_fh_subnationals.csv'
         else:
             full_data_path = Path(model_inputs_version) / 'full_data.csv'
-        full_data = pd.read_csv(full_data_path)
+        full_data = pd.read_csv(full_data_path).rename(columns={
+            'Deaths': 'cumulative_deaths',
+            'Confirmed': 'cumulative_cases',
+            'Hospitalizations': 'cumulative_hospitalizations',
+        })
+
         full_data['date'] = pd.to_datetime(full_data['Date'])
-        full_data = full_data.drop(columns=['Date'])
         full_data['location_id'] = full_data['location_id'].astype(int)
-        return full_data
+
+        locs = full_data.location_id.unique()
+        measures = ['cumulative_cases', 'cumulative_deaths', 'cumulative_hospitalizations']
+        full_data = full_data.set_index(['location_id', 'date'])
+
+        dfs = []
+        for loc_id in locs:
+            measure_series = []
+            for measure in measures:
+                s = (full_data
+                     .loc[loc_id, measure]
+                     .dropna()
+                     .asfreq('D')
+                     .interpolate()
+                     .reset_index())
+                measure_series.append(s)
+            df = pd.concat(measure_series, axis=1)
+            df['location_id'] = loc_id
+            dfs.append(df.set_index(['location_id', 'date']).sort_index())
+
+        return pd.concat(dfs)
 
     def load_total_deaths(self, fh_subnationals: bool = False):
         """Load cumulative deaths by location."""
