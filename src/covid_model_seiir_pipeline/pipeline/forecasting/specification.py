@@ -1,10 +1,11 @@
-from dataclasses import dataclass, field, fields
+from dataclasses import dataclass, field
 import itertools
-from typing import Any, Dict, NamedTuple, Tuple, Union
+from typing import Dict, NamedTuple, Tuple
+
+from covid_shared import workflow
 
 from covid_model_seiir_pipeline.lib import (
     utilities,
-    workflow,
 )
 
 
@@ -129,7 +130,7 @@ class ForecastSpecification(utilities.Specification):
         scenario_dicts = forecast_spec_dict.get('scenarios', {})
         scenarios = []
         for name, scenario_spec in scenario_dicts.items():
-            scenario_spec = {k: v for k, v in scenario_spec.items() if k in [f.name for f in fields(ScenarioSpecification())]}
+            scenario_spec = utilities.filter_to_spec_fields(scenario_spec, ScenarioSpecification())
             scenarios.append(ScenarioSpecification(name, **scenario_spec))
         if not scenarios:
             scenarios.append(ScenarioSpecification())

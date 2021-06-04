@@ -1,10 +1,13 @@
 import shutil
 
-from covid_model_seiir_pipeline.lib import workflow
+from covid_shared import workflow
+
+import covid_model_seiir_pipeline
 from covid_model_seiir_pipeline.pipeline.regression.specification import REGRESSION_JOBS
 
 
 class BetaRegressionTaskTemplate(workflow.TaskTemplate):
+    tool = workflow.get_jobmon_tool(covid_model_seiir_pipeline)
     task_name_template = f"{REGRESSION_JOBS.regression}_draw_{{draw_id}}"
     command_template = (
             f"{shutil.which('stask')} "
@@ -18,6 +21,7 @@ class BetaRegressionTaskTemplate(workflow.TaskTemplate):
 
 
 class HospitalCorrectionFactorTaskTemplate(workflow.TaskTemplate):
+    tool = workflow.get_jobmon_tool(covid_model_seiir_pipeline)
     task_name_template = f"{REGRESSION_JOBS.hospital_correction_factors}"
     command_template = (
             f"{shutil.which('stask')} "
@@ -30,7 +34,7 @@ class HospitalCorrectionFactorTaskTemplate(workflow.TaskTemplate):
 
 
 class RegressionWorkflow(workflow.WorkflowTemplate):
-
+    tool = workflow.get_jobmon_tool(covid_model_seiir_pipeline)
     workflow_name_template = 'seiir-regression-{version}'
     task_template_classes = {
         REGRESSION_JOBS.regression: BetaRegressionTaskTemplate,

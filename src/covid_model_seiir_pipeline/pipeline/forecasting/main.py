@@ -1,7 +1,6 @@
-from covid_shared import cli_tools
+from covid_shared import cli_tools, ihme_deps
 from loguru import logger
 
-from covid_model_seiir_pipeline.lib.ihme_deps import WorkflowAlreadyComplete
 from covid_model_seiir_pipeline.pipeline.forecasting.specification import ForecastSpecification
 from covid_model_seiir_pipeline.pipeline.forecasting.data import ForecastDataInterface
 from covid_model_seiir_pipeline.pipeline.forecasting.workflow import ForecastWorkflow
@@ -30,5 +29,5 @@ def do_beta_forecast(app_metadata: cli_tools.Metadata,
                                  scenarios=forecast_specification.scenarios)
         try:
             forecast_wf.run()
-        except WorkflowAlreadyComplete:
+        except ihme_deps.WorkflowAlreadyComplete:
             logger.info('Workflow already complete')

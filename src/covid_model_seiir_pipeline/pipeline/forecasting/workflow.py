@@ -1,8 +1,12 @@
 import shutil
 from typing import Dict
 
-from covid_model_seiir_pipeline.lib import workflow
-from covid_model_seiir_pipeline.lib.ihme_deps import Task
+from covid_shared import (
+    ihme_deps,
+    workflow,
+)
+
+import covid_model_seiir_pipeline
 from covid_model_seiir_pipeline.pipeline.forecasting.specification import (
     ScenarioSpecification,
     FORECAST_JOBS,
@@ -10,7 +14,7 @@ from covid_model_seiir_pipeline.pipeline.forecasting.specification import (
 
 
 class BetaResidualScalingTaskTemplate(workflow.TaskTemplate):
-
+    tool = workflow.get_jobmon_tool(covid_model_seiir_pipeline)
     task_name_template = f'{FORECAST_JOBS.scaling}_{{scenario}}'
     command_template = (
         f"{shutil.which('stask')} "
@@ -24,7 +28,7 @@ class BetaResidualScalingTaskTemplate(workflow.TaskTemplate):
 
 
 class BetaForecastTaskTemplate(workflow.TaskTemplate):
-
+    tool = workflow.get_jobmon_tool(covid_model_seiir_pipeline)
     task_name_template = f"{FORECAST_JOBS.forecast}_{{scenario}}_{{draw_id}}"
     command_template = (
         f"{shutil.which('stask')} "
@@ -39,7 +43,7 @@ class BetaForecastTaskTemplate(workflow.TaskTemplate):
 
 
 class ForecastWorkflow(workflow.WorkflowTemplate):
-
+    tool = workflow.get_jobmon_tool(covid_model_seiir_pipeline)
     workflow_name_template = 'seiir-forecast-{version}'
     task_template_classes = {
         FORECAST_JOBS.scaling: BetaResidualScalingTaskTemplate,
@@ -59,7 +63,7 @@ class ForecastWorkflow(workflow.WorkflowTemplate):
             self.workflow.add_task(scaling_task)
             self._attach_forecast_tasks(scenario_name, n_draws, scaling_task)
 
-    def _attach_forecast_tasks(self, scenario_name: str, n_draws: int, *upstream_tasks: Task) -> None:
+    def _attach_forecast_tasks(self, scenario_name: str, n_draws: int, *upstream_tasks: ihme_deps.Task) -> None:
         forecast_template = self.task_templates[FORECAST_JOBS.forecast]
 
         for draw in range(n_draws):

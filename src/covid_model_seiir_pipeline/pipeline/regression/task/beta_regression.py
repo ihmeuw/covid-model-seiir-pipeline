@@ -28,7 +28,7 @@ def run_beta_regression(regression_version: str, draw_id: int, progress_bar: boo
     past_infection_data = data_interface.load_past_infection_data(draw_id=draw_id)
     population = data_interface.load_five_year_population()
     rhos = data_interface.load_variant_prevalence()
-    vaccinations = data_interface.load_vaccine_info('reference')
+    vaccinations = data_interface.load_vaccinations()
 
     logger.info('Prepping ODE fit parameters.', context='transform')
     infections = model.clean_infection_data_measure(past_infection_data, 'infections')
@@ -50,14 +50,13 @@ def run_beta_regression(regression_version: str, draw_id: int, progress_bar: boo
                          scale=regression_params['psi_sd']),
         index=infections.index, name='psi',
     )
-   
+
     ode_parameters = model.prepare_ode_fit_parameters(
         infections,
         population,
         rhos,
         vaccinations,
         sampled_params,
-        draw_id,
     )
 
     logger.info('Running ODE fit', context='compute_ode')
@@ -67,23 +66,21 @@ def run_beta_regression(regression_version: str, draw_id: int, progress_bar: boo
     )
 
     logger.info('Loading regression input data', context='read')
-    covariates = data_interface.load_covariates(regression_specification.covariates)
+    covariates = data_interface.load_covariates(list(regression_specification.covariates))
     if regression_specification.data.coefficient_version:
         prior_coefficients = data_interface.load_prior_run_coefficients(draw_id=draw_id)
     else:
         prior_coefficients = None
 
-    logger.info('Prepping regression.', context='transform')
-    regression_inputs = model.prep_regression_inputs(
+    logger.info('Fitting beta regression', context='compute_regression')
+    coefficients = model.run_beta_regression(
         beta_fit['beta'],
         covariates,
+        regression_specification.covariates.values(),
+        prior_coefficients,
+        regression_specification.regression_parameters.sequential_refit,
     )
-    regressor = model.build_regressor(regression_specification.covariates.values(), prior_coefficients)
-    logger.info('Fitting beta regression', context='compute_regression')
-    coefficients = regressor.fit(
-        regression_inputs,
-        regression_specification.regression_parameters.sequential_refit
-    )
+
     log_beta_hat = math.compute_beta_hat(covariates, coefficients)
     beta_hat = np.exp(log_beta_hat).rename('beta_hat')
 

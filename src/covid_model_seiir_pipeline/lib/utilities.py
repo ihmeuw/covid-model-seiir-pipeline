@@ -1,17 +1,15 @@
 from __future__ import annotations
 
 import abc
-from dataclasses import asdict as asdict_
+from dataclasses import asdict as asdict_, fields, is_dataclass
 from pathlib import Path
 from typing import Dict, Union, Tuple
 from pprint import pformat
 
-from covid_shared import shell_tools
+from covid_shared import ihme_deps
 import numpy as np
 import pandas as pd
 import yaml
-
-from covid_model_seiir_pipeline.lib.ihme_deps import  get_location_metadata
 
 
 class YamlIOMixin:
@@ -89,34 +87,24 @@ def asdict(data_class) -> Dict:
     return out
 
 
-def make_log_dirs(output_dir: Union[str, Path], prefix: str = None) -> Tuple[str, str]:
-    """Create log directories in output root and return the paths."""
-    log_dir = Path(output_dir) / 'logs'
-    if prefix:
-        log_dir /= prefix
-    std_out = log_dir / 'output'
-    std_err = log_dir / 'error'
-    shell_tools.mkdir(std_out, exists_ok=True, parents=True)
-    shell_tools.mkdir(std_err, exists_ok=True, parents=True)
-
-    return str(std_out), str(std_err)
+def filter_to_spec_fields(spec_dict: dict, specification):
+    if is_dataclass(specification):
+        return {
+            k: v for k, v in spec_dict.items()
+            if k in [f.name for f in fields(specification)]
+        }
+    else:
+        return spec_dict
 
 
-def load_location_hierarchy(location_set_id: int = None,
-                            location_set_version_id: int = None,
-                            location_file: Path = None):
-    ids = location_set_id and location_set_version_id
-    assert (ids and not location_file) or (not ids and location_file)
+def load_location_hierarchy(location_set_version_id: int = None,
+                            location_file: Path = None, **kwargs):
+    assert ((location_set_version_id and not location_file)
+            or (not location_set_version_id and location_file))
 
-    if ids:
-        # Hide this import so the code stays portable outside IHME by using
-        # a locations file directly.
-        try:
-            return get_location_metadata(location_set_id=location_set_id,
-                                         location_set_version_id=location_set_version_id)
-        except ValueError:
-            return get_location_metadata(location_set_id=location_set_id,
-                                         location_set_version_id=location_set_version_id,
-                                         gbd_round_id=6)
+    if location_set_version_id:
+        return ihme_deps.get_location_hierarchy_by_version(
+            location_set_version_id=location_set_version_id,
+        )
     else:
         return pd.read_csv(location_file)

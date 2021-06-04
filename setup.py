@@ -16,7 +16,7 @@ if __name__ == "__main__":
 
     install_requirements = [
         'click',
-        'covid_shared>=1.3.0',
+        'covid_shared>=1.9.0',
         'fastparquet',
         'loguru',
         'matplotlib',
@@ -39,8 +39,7 @@ if __name__ == "__main__":
     doc_requirements = []
 
     internal_requirements = [
-        'jobmon>=2.2.1,<2.3',
-        'db_queries==23.*',
+        'covid-shared[internal]',
     ]
 
     setup(

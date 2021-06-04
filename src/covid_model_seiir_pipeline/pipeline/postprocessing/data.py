@@ -58,6 +58,9 @@ class PostprocessingDataInterface:
     def load_location_ids(self):
         return self._get_forecast_data_inteface().load_location_ids()
 
+    def load_full_data(self) -> pd.DataFrame:
+        return self._get_forecast_data_inteface().load_full_data()
+
     def get_covariate_names(self, scenarios: List[str]) -> List[str]:
         forecast_spec = ForecastSpecification.from_dict(io.load(self.forecast_root.specification()))
         forecast_di = ForecastDataInterface.from_specification(forecast_spec)
@@ -148,23 +151,6 @@ class PostprocessingDataInterface:
     ##############################
     # Miscellaneous data loaders #
     ##############################
-
-    def load_full_data(self) -> pd.DataFrame:
-        full_data = self._get_forecast_data_inteface().load_full_data()
-        locs = full_data.location_id.unique()
-        full_data = full_data.set_index(['location_id', 'date'])
-        full_data = full_data.rename(columns={
-            'Deaths': 'cumulative_deaths',
-            'Confirmed': 'cumulative_cases',
-            'Hospitalizations': 'cumulative_hospitalizations',
-        })
-        full_data = full_data[['cumulative_cases', 'cumulative_deaths', 'cumulative_hospitalizations']]
-        dfs = []
-        for loc_id in locs:
-            df = full_data.loc[loc_id].asfreq('D').reset_index().interpolate().fillna(method='pad')
-            df['location_id'] = loc_id
-            dfs.append(df.set_index(['location_id', 'date']).sort_index())
-        return pd.concat(dfs)
 
     def load_mortality_ratio(self) -> pd.Series:
         location_ids = self.load_location_ids()

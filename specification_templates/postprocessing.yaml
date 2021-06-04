@@ -1,10 +1,9 @@
 data:
-  forecast_version: '/ihme/covid-19/seir-forecast/2021_05_12.06'
+  forecast_version: '/ihme/covid-19/seir-forecast/2021_06_03.04'
   mortality_ratio_version: 'best'
   scenarios:
     - 'reference'
     - 'worse'
-    - 'vaccine_fast'
     - 'best_masks'
     - 'no_vaccine'
   output_root: ''
@@ -16,12 +15,12 @@ resampling:
   reference_date: '2021-12-31'
   lower_quantile: 0.025
   upper_quantile: 0.975
-splicing:
-  - locations: [33, 34, 36, 37, 62, 142, 178]
-    output_version: '/ihme/covid-19/seir-outputs/2021_05_05.04'
+#splicing:
+#  - locations: [33, 34, 36, 37, 62, 142, 178]
+#    output_version: '/ihme/covid-19/seir-outputs/2021_05_05.04'
 aggregation:
-  - location_file: '/ihme/covid-19/seir-pipeline-outputs/agg-hierarchies/modeling.csv'
-  - location_file: '/ihme/covid-19/seir-pipeline-outputs/agg-hierarchies/who_plus_palestine.csv'
-  - location_file: '/ihme/covid-19/seir-pipeline-outputs/agg-hierarchies/who_euro.csv'
-  - location_file: '/ihme/covid-19/seir-pipeline-outputs/agg-hierarchies/world_bank.csv'
-  - location_file: '/ihme/covid-19/seir-pipeline-outputs/agg-hierarchies/eu_minus_uk.csv'
+  - location_file: '/ihme/covid-19/seir-outputs/agg-hierarchies/modeling.csv'
+  - location_file: '/ihme/covid-19/seir-outputs/agg-hierarchies/who_plus_palestine.csv'
+  - location_file: '/ihme/covid-19/seir-outputs/agg-hierarchies/who_euro.csv'
+  - location_file: '/ihme/covid-19/seir-outputs/agg-hierarchies/world_bank.csv'
+  - location_file: '/ihme/covid-19/seir-outputs/agg-hierarchies/eu_minus_uk.csv'

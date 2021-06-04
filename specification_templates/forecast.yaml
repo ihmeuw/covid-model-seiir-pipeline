@@ -1,12 +1,12 @@
 data:
-  regression_version: '2021_05_12.04'
-  covariate_version: '2021_05_12.04'
+  regression_version: '2021_06_03.04'
+  covariate_version: '2021_06_02.01'
   output_root: ''
   output_format: 'parquet'
   fh_subnationals: False
 workflow:
   project: 'proj_covid_prod'
-  queue: 'all.q'
+  queue: 'd.q'
 scenarios:
   reference:
     algorithm: 'draw_level_mandate_reimposition'

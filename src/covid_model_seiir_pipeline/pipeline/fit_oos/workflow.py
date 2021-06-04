@@ -1,11 +1,14 @@
 import shutil
 from typing import Dict
 
-from covid_model_seiir_pipeline.lib import workflow
+from covid_shared import workflow
+
+import covid_model_seiir_pipeline
 from covid_model_seiir_pipeline.pipeline.fit_oos.specification import FIT_JOBS, FitScenario
 
 
 class BetaFitTaskTemplate(workflow.TaskTemplate):
+    tool = workflow.get_jobmon_tool(covid_model_seiir_pipeline)
     task_name_template = f"{FIT_JOBS.fit}_{{scenario}}_{{draw_id}}"
     command_template = (
         f"{shutil.which('stask')} "
@@ -20,7 +23,7 @@ class BetaFitTaskTemplate(workflow.TaskTemplate):
 
 
 class FitWorkflow(workflow.WorkflowTemplate):
-
+    tool = workflow.get_jobmon_tool(covid_model_seiir_pipeline)
     workflow_name_template = 'seiir-oos-fit-{version}'
     task_template_classes = {
         FIT_JOBS.fit: BetaFitTaskTemplate,
