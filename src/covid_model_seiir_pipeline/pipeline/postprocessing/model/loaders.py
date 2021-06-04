@@ -2,7 +2,6 @@ import functools
 import multiprocessing
 from typing import List, TYPE_CHECKING
 
-import numpy as np
 import pandas as pd
 
 from covid_model_seiir_pipeline.pipeline.postprocessing import model
@@ -308,13 +307,12 @@ def load_full_data(data_interface: 'PostprocessingDataInterface') -> pd.DataFram
     full_data = data_interface.load_full_data()
     location_ids = data_interface.load_location_ids()
     full_data = full_data.loc[location_ids]
-    full_data = model.fill_cumulative_date_index(full_data)
     return full_data
 
 
 def load_unscaled_full_data(data_interface: 'PostprocessingDataInterface') -> pd.DataFrame:
     full_data = load_full_data(data_interface)
-    deaths = full_data['cumulative_deaths']
+    deaths = full_data['cumulative_deaths'].dropna()
     em_scalars = (load_excess_mortality_scalars(data_interface)
                   .reindex(deaths.index)
                   .groupby('location_id')
