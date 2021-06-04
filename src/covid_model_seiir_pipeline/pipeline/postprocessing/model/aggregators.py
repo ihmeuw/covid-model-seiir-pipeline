@@ -1,7 +1,8 @@
 """Postprocessing aggregation strategies."""
-from typing import List
+from typing import List, Optional
 
 from loguru import logger
+import numpy as np
 import pandas as pd
 
 
@@ -12,11 +13,10 @@ def summarize(data: pd.DataFrame) -> pd.DataFrame:
     return pd.concat([mean, upper, lower], axis=1)
 
 
-def fill_cumulative_date_index(data: pd.DataFrame) -> pd.DataFrame:
+def fill_cumulative_date_index(data: pd.DataFrame, date_index: Optional[pd.Index]) -> pd.DataFrame:
     """Fills missing dates in cumulative data so in can be aggregated correctly."""
-    min_date = data.reset_index().date.min()
-    max_date = data.reset_index().date.max()
-    date_index = pd.Index(pd.date_range(min_date, max_date), name='date')
+    if date_index is None:
+        return data
 
     def _reindex(df):
         df = (df
@@ -29,7 +29,9 @@ def fill_cumulative_date_index(data: pd.DataFrame) -> pd.DataFrame:
     return data.groupby(level='location_id').apply(_reindex)
 
 
-def sum_aggregator(measure_data: pd.DataFrame, hierarchy: pd.DataFrame, _population: pd.DataFrame) -> pd.DataFrame:
+def sum_aggregator(measure_data: pd.DataFrame,
+                   hierarchy: pd.DataFrame,
+                   _population: pd.DataFrame) -> pd.DataFrame:
     """Aggregates most-detailed locations to locations in the hierarchy by sum.
 
     The ``_population`` argument is here for api consistency and is not used.
@@ -39,8 +41,17 @@ def sum_aggregator(measure_data: pd.DataFrame, hierarchy: pd.DataFrame, _populat
         measure_data = measure_data.reset_index(level='observed')
 
     agg_levels = []
+    date_index = None
     if 'date' in measure_data.index.names:
         agg_levels.append('date')
+
+        dates = measure_data.reset_index().set_index('location_id').date
+        min_date, max_date = dates.min(), dates.max()
+        lower_missing = np.any(dates.groupby('location_id').min() > min_date)
+        upper_missing = np.any(dates.groupby('location_id').max() < max_date)
+        if lower_missing or upper_missing:
+            date_index = pd.Index(pd.date_range(min_date, max_date), name='date')
+
     if 'age_start' in measure_data.index.names:
         agg_levels.append('age_start')
 
@@ -55,7 +66,8 @@ def sum_aggregator(measure_data: pd.DataFrame, hierarchy: pd.DataFrame, _populat
             child_locs = children.location_id.tolist()
             modeled_child_locs = list(set(child_locs).intersection(data_locs))
 
-            aggregate = measure_data.loc[modeled_child_locs].groupby(agg_levels).sum()
+            filled_measure_data = fill_cumulative_date_index(measure_data.loc[modeled_child_locs], date_index)
+            aggregate = filled_measure_data.groupby(agg_levels).sum()
             aggregate = pd.concat({parent_id: aggregate}, names=['location_id'])
 
             measure_data = measure_data.append(aggregate)
@@ -68,7 +80,9 @@ def sum_aggregator(measure_data: pd.DataFrame, hierarchy: pd.DataFrame, _populat
     return measure_data.sort_index()
 
 
-def mean_aggregator(measure_data: pd.DataFrame, hierarchy: pd.DataFrame, population: pd.DataFrame) -> pd.DataFrame:
+def mean_aggregator(measure_data: pd.DataFrame,
+                    hierarchy: pd.DataFrame,
+                    population: pd.DataFrame) -> pd.DataFrame:
     """Aggregates most-detailed locations to locations in the hierarchy by
     population-weighted mean.
 
