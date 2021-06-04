@@ -4,14 +4,27 @@ workflow:
   project: 'proj_covid_prod'
   queue: 'd.q'
 grid_plots:
+  - name: 'cross_compare'
+    date_start: '2020-03-01'
+    date_end: '2022-08-31'
+    comparators:
+      - version: '2021_05_27.03'
+        scenarios:
+          reference*: 'public reference'
+      - version: '2021_06_03.03'
+        scenarios:
+          reference*: 'reference'
+      - version: '2021_06_03.02'
+        scenarios:
+          reference*: 'first reference'
   - name: 'compare_longrange'
     date_start: '2020-03-01'
     date_end: '2022-08-31'
     comparators:
-      - version: '2021_05_05.04'
+      - version: '2021_05_27.03'
         scenarios:
           reference*: 'public reference'
-      - version: '2021_05_13.02'
+      - version: '2021_06_03.03'
         scenarios:
           reference*: 'reference'
           worse: 'worse'
@@ -21,14 +34,13 @@ grid_plots:
     date_start: '2020-03-01'
     date_end: '2021-08-31'
     comparators:
-      - version: '2021_05_05.04'
+      - version: '2021_05_27.03'
         scenarios:
           reference*: 'public reference'
-      - version: '2021_05_13.02'
+      - version: '2021_06_03.03'
         scenarios:
           reference*: 'reference'
           worse: 'worse'
           no_vaccine: 'no vaccine'
           best_masks: 'best masks'
-
 
