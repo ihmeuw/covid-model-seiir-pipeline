@@ -269,6 +269,15 @@ class PredictorModel:
             }).merge(all_groups).set_index(all_groups.columns.tolist())[self.name]
         return result
 
+    @classmethod
+    def from_specification(cls, covariate):
+        return cls(
+            predictor_name=covariate.name,
+            group_level=covariate.group_level if covariate.group_level else NO_GROUP,
+            bounds=covariate.bounds,
+            gaussian_prior_params=covariate.gprior,
+        )
+
     def __repr__(self) -> str:
         level = f', group={self.group_level}' if self.group_level else ''
         return f'{self.__class__.__name__}({self.name}{level}, prior_level={self.prior_level})'
@@ -332,6 +341,9 @@ class PredictorModelSet:
 
     def __len__(self) -> int:
         return len(self.predictors)
+
+    def __iter__(self):
+        return iter(self.predictors)
 
     def __repr__(self) -> str:
         predictors = ',\n    '.join([repr(predictor) for predictor in self.predictors])

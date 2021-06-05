@@ -81,6 +81,7 @@ def run_beta_regression(regression_version: str, draw_id: int, progress_bar: boo
         gaussian_priors,
         prior_coefficients,
         hierarchy,
+        model='slime',
     )
     log_beta_hat = math.compute_beta_hat(covariates, coefficients)
     beta_hat = np.exp(log_beta_hat).rename('beta_hat')

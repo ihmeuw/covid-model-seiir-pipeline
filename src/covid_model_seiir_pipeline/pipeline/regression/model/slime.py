@@ -339,7 +339,7 @@ class CovModel:
             use_re=bool(covariate.group_level),
             bounds=np.array(covariate.bounds),
             gprior=np.array(covariate.gprior),
-            re_var=1.0,
+            re_var=np.inf,
         )
 
 
@@ -481,6 +481,9 @@ class CovModelSet:
             g: coefs[:, i]
             for i, g in enumerate(self.groups)
         }
+
+    def __iter__(self):
+        return iter(self.cov_models)
 
 
 def sizes_to_indices(sizes):
