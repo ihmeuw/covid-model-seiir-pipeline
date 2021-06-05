@@ -29,18 +29,6 @@ def prep_regression_inputs(beta_fit: pd.Series,
     return regression_inputs
 
 
-def build_predictors_old(covariate_specs: Iterable['CovariateSpecification'],):
-    covariate_models = []
-    for covariate in covariates:
-        cov_model = CovariateModel.from_specification(covariate)
-        if prior_coefficients is not None and not cov_model.use_re:
-            coefficient_val = prior_coefficients[covariate.name].mean()
-            cov_model.gprior = np.array([coefficient_val, 1e-10])
-        covariate_models[covariate.order].append(cov_model)
-    ordered_covmodel_sets = [CovModelSet(covariate_group)
-                             for _, covariate_group in sorted(covariate_models.items())]
-
-
 def get_predictor(covariate: 'CovariateSpecification',
                   gaussian_priors: Dict[str, pd.DataFrame],
                   model: str,):
@@ -141,7 +129,7 @@ def run_beta_regression(beta_fit: pd.Series,
     )
     coefficients = pd.concat([coefficients] + fixed_coefficients, axis=1).reset_index()
     coefficients = (coefficients
-                    .drop(columns=['super_region_id', 'region_id'])
+                    .drop(columns=coefficients.columns.intersection(['super_region_id', 'region_id']).tolist())
                     .set_index('location_id'))
 
     return coefficients
