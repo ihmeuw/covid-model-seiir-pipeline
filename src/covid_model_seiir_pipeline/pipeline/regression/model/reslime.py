@@ -358,12 +358,23 @@ def unpack_levels(
 ) -> GroupInfo:
     if group_level is not NO_GROUP:
         assert group_level in data
-        labels, sizes = np.unique(data[group_level], return_counts=True)
+        labels, sizes = get_labels_and_counts(data[group_level])
         indices = sizes_to_indices(sizes)
     else:
         labels, sizes = np.array([1]), np.array([len(data)])
         indices = [np.arange(len(data))]
     return GroupInfo(labels, sizes, indices)
+
+
+def get_labels_and_counts(items: pd.Series):
+    item_counts = {}  # Dicts stay ordered, this is important.
+    for item in items.tolist():
+        if item in item_counts:
+            item_counts[item] += 1
+        else:
+            item_counts[item] = 1
+    labels, counts = zip(*item_counts.items())
+    return labels, counts
 
 
 def reshape_prior(
