@@ -128,8 +128,8 @@ def run_beta_regression(beta_fit: pd.Series,
         model,
     )
     coefficients = pd.concat([coefficients] + fixed_coefficients, axis=1).reset_index()
-    coefficients = (coefficients
-                    .drop(columns=coefficients.columns.intersection(['super_region_id', 'region_id']).tolist())
+    coefficients = (coefficients.merge(regression_inputs.reset_index()[['super_region_id', 'region_id', 'location_id']].drop_duplicates())
+                    .drop(columns=['super_region_id', 'region_id'])
                     .set_index('location_id'))
 
     return coefficients
