@@ -44,6 +44,7 @@ class RegressionData:
     covariate_version: str = field(default='best')
     infection_version: str = field(default='best')
     coefficient_version: str = field(default='')
+    priors_version: str = field(default='')
     location_set_version_id: int = field(default=0)
     location_set_file: str = field(default='')
     output_root: str = field(default='')
@@ -70,7 +71,6 @@ class RegressionParameters:
     psi_mean_shift: float = field(default=0.9)
     psi_sd: float = field(default=0.3)
     pi: float = field(default=0.1)
-    sequential_refit: bool = field(default=False)
 
     def to_dict(self) -> Dict:
         """Converts to a dict, coercing list-like items to lists."""
@@ -106,12 +106,9 @@ class CovariateSpecification:
 
     # model params
     name: str = field(default='covariate')
-    order: int = field(default=0)
-    use_re: bool = field(default=False)
+    group_level: str = field(default='')
     gprior: Tuple[float, float] = field(default=(0., 1000.))
     bounds: Tuple[float, float] = field(default=(-1000., 1000.))
-    re_var: float = field(default=1.)
-    draws: bool = field(default=False)
 
     def to_dict(self) -> Dict:
         """Converts to a dict, coercing list-like items to lists.

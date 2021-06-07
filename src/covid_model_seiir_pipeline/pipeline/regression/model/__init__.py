@@ -11,8 +11,6 @@ from covid_model_seiir_pipeline.pipeline.regression.model.ode_fit import (
     run_ode_fit,
 )
 from covid_model_seiir_pipeline.pipeline.regression.model.regress import (
-    BetaRegressor,
-    BetaRegressorSequential,
     run_beta_regression,
 )
 from covid_model_seiir_pipeline.pipeline.regression.model.hospital_corrections import (
