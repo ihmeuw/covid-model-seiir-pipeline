@@ -374,7 +374,7 @@ def get_labels_and_counts(items: pd.Series):
         else:
             item_counts[item] = 1
     labels, counts = zip(*item_counts.items())
-    return labels, counts
+    return np.array(labels), np.array(counts)
 
 
 def reshape_prior(
