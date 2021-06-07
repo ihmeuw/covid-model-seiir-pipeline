@@ -2,15 +2,15 @@ data:
   infection_version: '2021_06_03.08'
   covariate_version: '2021_06_02.01'
   coefficient_version: ''
+  priors_version: '2021_05_31.01'
   location_set_version_id: 771
-  location_set_file:
   output_root: ''
   output_format: 'parquet'
 workflow:
   project: 'proj_covid_prod'
   queue: 'd.q'
 regression_parameters:
-  n_draws: 1000
+  n_draws: 100
   # Mixing parameter.  dS/dt = -beta * S * I ** alpha
   alpha: [0.9, 1.0]
   # 1 / incubation period.  dE/dt = -dS/dt - sigma * E
@@ -31,7 +31,6 @@ regression_parameters:
   psi_sd: 0.21
   # Proportion of current E to send to escape variant E on invasion.
   pi: [0.01, 0.1]
-  sequential_refit: False
 hospital_parameters:
   compute_correction_factors: True
   hospital_stay_death: 6
@@ -49,79 +48,33 @@ hospital_parameters:
   correction_factor_application_window: 42
 covariates:
   intercept:
-    # Ordering of covariates in regression.  Covariates with the same order
-    # will be regressed simultaneously. Zero-indexed.
-    order: 0
-    # Whether to use random effects.
-    use_re: True
-    # Fixed effect Gaussian prior params. [mean, sd]
+    group_level: 'location_id'
     gprior: [0.0, 1000.0]
-    # Lower and upper bounds for fixed + random effects. [lower, upper]
     bounds: [-1000.0, 1000.0]
-    # Variance of the random effect.  Float
-    re_var: 1000.0
-    # Whether this covariate has draws or not.
-    draws: False
   pneumonia:
-    order: 0
-    use_re: False
     gprior: [0.0, 1000.0]
     bounds: [0.8, 1.3]
-    re_var: 1.0
-    draws: False
   mobility:
-    order: 0
-    use_re: False
     gprior: [0.0, 1000.0]
     bounds: [0.0, 1000.0]
-    re_var: 1.0
-    draws: False
   mask_use:
-    order: 0
-    use_re: False
     gprior: [0.0, 1000.0]
     bounds: [-1000.0, -0.5]
-    re_var: 1.0
-    draws: False
   testing:
-    order: 0
-    use_re: False
     gprior: [0.0, 1000.0]
     bounds: [-80.0, 0.0]
-    re_var: 1.0
-    draws: False
   air_pollution_pm_2_5:
-    order: 0
-    use_re: False
     gprior: [0.0, 1000.0]
     bounds: [0.0, 1000.0]
-    re_var: 1.0
-    draws: False
   smoking_prevalence:
-    order: 0
-    use_re: False
     gprior: [0.0, 1000]
     bounds: [0.0, 1.0]
-    re_var: 1.0
-    draws: False
   lri_mortality:
-    order: 0
-    use_re: False
     gprior: [0.0, 1000.0]
     bounds: [0.0, 1000.0]
-    re_var: 1.0
-    draws: False
   proportion_under_100m:
-    order: 0
-    use_re: False
     gprior: [0.0, 1000.0]
     bounds: [0.0, 1000.0]
-    re_var: 1.0
-    draws: False
   proportion_over_2_5k:
-    order: 0
-    use_re: False
     gprior: [0.0, 0.001]
     bounds: [0.0, 1000.0]
-    re_var: 1.0
-    draws: False

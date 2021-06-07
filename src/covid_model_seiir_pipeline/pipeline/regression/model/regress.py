@@ -1,17 +1,46 @@
-from typing import Dict, Iterable, Optional, Union, TYPE_CHECKING
+from typing import Dict, Iterable, Optional, TYPE_CHECKING
 
 import pandas as pd
 import numpy as np
 
-from covid_model_seiir_pipeline.pipeline.regression.model import (
-    slime,
-    reslime,
-)
+from covid_model_seiir_pipeline.pipeline.regression.model import reslime
 
 if TYPE_CHECKING:
     # The model subpackage is a library for the pipeline stage and shouldn't
     # explicitly depend on things outside the subpackage.
     from covid_model_seiir_pipeline.pipeline.regression.specification import CovariateSpecification
+
+
+def run_beta_regression(beta_fit: pd.Series,
+                        covariates: pd.DataFrame,
+                        covariate_specs: Iterable['CovariateSpecification'],
+                        gaussian_priors: Dict[str, pd.DataFrame],
+                        prior_coefficients: Optional[pd.DataFrame],
+                        hierarchy: pd.DataFrame) -> pd.DataFrame:
+    regression_inputs = prep_regression_inputs(
+        beta_fit,
+        covariates,
+        hierarchy
+    )
+    predictor_set, fixed_coefficients = build_predictors(
+        regression_inputs,
+        covariate_specs,
+        gaussian_priors,
+        prior_coefficients,
+    )
+    mr_data = reslime.MRData(
+        data=regression_inputs.reset_index(),
+        response_column='ln_beta',
+        predictors=[p.name for p in predictor_set],
+        group_columns=['super_region_id', 'region_id', 'location_id'],
+    )
+    mr_model = reslime.MRModel(mr_data, predictor_set)
+    coefficients = mr_model.fit_model()
+    coefficients = (pd.concat([coefficients] + fixed_coefficients, axis=1)
+                    .reset_index()
+                    .drop(columns=['super_region_id', 'region_id'])
+                    .set_index('location_id'))
+    return coefficients
 
 
 def prep_regression_inputs(beta_fit: pd.Series,
@@ -29,25 +58,10 @@ def prep_regression_inputs(beta_fit: pd.Series,
     return regression_inputs
 
 
-def get_predictor(covariate: 'CovariateSpecification',
-                  gaussian_priors: Dict[str, pd.DataFrame],
-                  model: str,):
-    if model == 'slime':
-        model = slime.CovModel.from_specification(covariate)
-    elif model == 'reslime':
-        model = reslime.PredictorModel.from_specification(covariate)
-        if model.original_prior == 'data':
-            model.original_prior = gaussian_priors[covariate.name]
-    else:
-        raise
-    return model
-
-
 def build_predictors(regression_inputs: pd.DataFrame,
                      covariate_specs: Iterable['CovariateSpecification'],
                      gaussian_priors: Dict[str, pd.DataFrame],
-                     prior_coefficients: Optional[pd.DataFrame],
-                     model: str):
+                     prior_coefficients: Optional[pd.DataFrame]):
     predictors = []
     fixed_coefficients = []
     for covariate in covariate_specs:
@@ -71,65 +85,10 @@ def build_predictors(regression_inputs: pd.DataFrame,
             coefficient_val = coefficient_val.reindex(regression_inputs.index, level='location_id')
             regression_inputs['ln_beta'] -= coefficient_val * regression_inputs[covariate.name]
         else:
-            predictors.append(get_predictor(covariate, gaussian_priors, model))
-    if model == 'slime':
-        predictor_set = slime.CovModelSet(predictors)
-    else:
-        predictor_set = reslime.PredictorModelSet(predictors)
+            predictor = reslime.PredictorModel.from_specification(covariate)
+            if predictor.original_prior == 'data':
+                predictor.original_prior = gaussian_priors[covariate.name]
+            predictors.append(predictor)
+    predictor_set = reslime.PredictorModelSet(predictors)
     return predictor_set, fixed_coefficients
 
-
-def run_model(regression_inputs: pd.DataFrame,
-              predictor_set: Union[slime.CovModelSet, reslime.PredictorModelSet],
-              model: str):
-    if model == 'slime':
-        mr_data = slime.MRData(
-            df=regression_inputs.reset_index(),
-            col_group='location_id',
-            col_obs='ln_beta',
-            col_covs=[p.name for p in predictor_set]
-        )
-        regressor = slime.BetaRegressor(predictor_set)
-        coefficients = regressor.fit(mr_data)
-    else:
-        mr_data = reslime.MRData(
-            data=regression_inputs.reset_index(),
-            response_column='ln_beta',
-            predictors=[p.name for p in predictor_set],
-            group_columns=['super_region_id', 'region_id', 'location_id'],
-        )
-        mr_model = reslime.MRModel(mr_data, predictor_set)
-        coefficients = mr_model.fit_model()
-    return coefficients
-
-
-def run_beta_regression(beta_fit: pd.Series,
-                        covariates: pd.DataFrame,
-                        covariate_specs: Iterable['CovariateSpecification'],
-                        gaussian_priors: Dict[str, pd.DataFrame],
-                        prior_coefficients: Optional[pd.DataFrame],
-                        hierarchy: pd.DataFrame,
-                        model: str = 'reslime') -> pd.DataFrame:
-    regression_inputs = prep_regression_inputs(
-        beta_fit,
-        covariates,
-        hierarchy
-    )
-    predictor_set, fixed_coefficients = build_predictors(
-        regression_inputs,
-        covariate_specs,
-        gaussian_priors,
-        prior_coefficients,
-        model,
-    )
-    coefficients = run_model(
-        regression_inputs,
-        predictor_set,
-        model,
-    )
-    coefficients = pd.concat([coefficients] + fixed_coefficients, axis=1).reset_index()
-    coefficients = (coefficients.merge(regression_inputs.reset_index()[['super_region_id', 'region_id', 'location_id']].drop_duplicates())
-                    .drop(columns=['super_region_id', 'region_id'])
-                    .set_index('location_id'))
-
-    return coefficients
