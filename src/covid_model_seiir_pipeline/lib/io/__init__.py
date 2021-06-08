@@ -11,11 +11,12 @@ from covid_model_seiir_pipeline.lib.io.data_roots import (
     FitRoot,
     RegressionRoot,
     ForecastRoot,
-    PostprocessingRoot
+    PostprocessingRoot,
+    DiagnosticsRoot,
 )
 from covid_model_seiir_pipeline.lib.io.api import (
     dump,
     load,
     exists,
-    touch
+    touch,
 )
