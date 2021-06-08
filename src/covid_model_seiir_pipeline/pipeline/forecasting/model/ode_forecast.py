@@ -10,7 +10,6 @@ from covid_model_seiir_pipeline.lib import (
 )
 from covid_model_seiir_pipeline.pipeline.forecasting.model.containers import (
     Indices,
-    ModelParameters,
     PostprocessingParameters,
     RatioData,
     HospitalCorrectionFactors,
@@ -39,7 +38,7 @@ def build_model_parameters(indices: Indices,
                            coefficients: pd.DataFrame,
                            rhos: pd.DataFrame,
                            beta_scales: pd.DataFrame,
-                           vaccine_data: pd.DataFrame) -> ModelParameters:
+                           vaccine_data: pd.DataFrame) -> ode.ForecastParameters:
     # These are all the same by draw.  Just broadcasting them over a new index.
     ode_params = {
         param: pd.Series(ode_parameters[param].mean(), index=indices.full, name=param)
@@ -61,7 +60,7 @@ def build_model_parameters(indices: Indices,
     vaccine_data = vaccine_data.reindex(indices.full, fill_value=0)
     adjusted_vaccinations = math.adjust_vaccinations(vaccine_data)
 
-    return ModelParameters(
+    return ode.ForecastParameters(
         **ode_params,
         beta=beta,
         beta_wild=beta_wild,
@@ -152,7 +151,7 @@ def build_postprocessing_parameters(indices: Indices,
                                     past_infections: pd.Series,
                                     past_deaths: pd.Series,
                                     ratio_data: RatioData,
-                                    model_parameters: ModelParameters,
+                                    model_parameters: ode.ForecastParameters,
                                     correction_factors: HospitalCorrectionFactors,
                                     hospital_parameters: 'HospitalParameters',
                                     scenario_spec: 'ScenarioSpecification') -> PostprocessingParameters:
@@ -175,7 +174,7 @@ def build_postprocessing_parameters(indices: Indices,
 
 def correct_ratio_data(indices: Indices,
                        ratio_data: RatioData,
-                       model_params: ModelParameters,
+                       model_params: ode.ForecastParameters,
                        ifr_scale: float) -> RatioData:
     variant_prevalence = model_params.rho_total
     p_start = variant_prevalence.loc[indices.initial_condition].reset_index(level='date', drop=True)
@@ -228,7 +227,7 @@ def forecast_correction_factors(indices: Indices,
 ###########
 
 def run_ode_model(initial_conditions: pd.DataFrame,
-                  model_parameters: ModelParameters,
+                  model_parameters: ode.ForecastParameters,
                   progress_bar: bool) -> pd.DataFrame:
     mp_dict = model_parameters.to_dict()
     ordered_fields = list(ode.PARAMETERS._fields) + list(ode.FORECAST_PARAMETERS._fields)
