@@ -62,6 +62,7 @@ def build_predictors(regression_inputs: pd.DataFrame,
                      covariate_specs: Iterable['CovariateSpecification'],
                      gaussian_priors: Dict[str, pd.DataFrame],
                      prior_coefficients: Optional[pd.DataFrame]):
+    location_ids = pd.Index(regression_inputs.reset_index()['location_id'].unique(), name='location_id')
     predictors = []
     fixed_coefficients = []
     for covariate in covariate_specs:
@@ -70,7 +71,7 @@ def build_predictors(regression_inputs: pd.DataFrame,
                 pd.Series(
                     0.0,
                     name=covariate.name,
-                    index=pd.Index(regression_inputs.reset_index()['location_id'].unique(), name='location_id'),
+                    index=location_ids,
                 )
             )
         elif prior_coefficients is not None and not covariate.group_level:
@@ -80,7 +81,8 @@ def build_predictors(regression_inputs: pd.DataFrame,
                 .set_index('location_id')[covariate.name]
                 .drop_duplicates()
             )
-            assert len(coefficient_val.index) == len(coefficient_val.index.drop_duplicates())
+            assert len(coefficient_val.index) == 1
+            coefficient_val = pd.Series(coefficient_val.iloc[0], name=covariate.name, index=location_ids)
             fixed_coefficients.append(coefficient_val)
             coefficient_val = coefficient_val.reindex(regression_inputs.index, level='location_id')
             regression_inputs['ln_beta'] -= coefficient_val * regression_inputs[covariate.name]
