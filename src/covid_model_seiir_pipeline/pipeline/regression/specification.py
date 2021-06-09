@@ -154,6 +154,7 @@ class RegressionSpecification(utilities.Specification):
         cov_dicts = regression_spec_dict.get('covariates', {})
         covariates = []
         for name, cov_spec in cov_dicts.items():
+            cov_spec = utilities.filter_to_spec_fields(cov_spec, CovariateSpecification())
             covariates.append(CovariateSpecification(name, **cov_spec))
         if not covariates:  # Assume we're generating for a template
             covariates.append(CovariateSpecification())
