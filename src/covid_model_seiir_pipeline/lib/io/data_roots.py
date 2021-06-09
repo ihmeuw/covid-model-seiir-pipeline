@@ -223,3 +223,9 @@ class PostprocessingRoot(DataRoot):
     output_miscellaneous = DatasetType('output_miscellaneous',
                                        LEAF_TEMPLATES.MEASURE_TEMPLATE,
                                        PREFIX_TEMPLATES.SCENARIO_TEMPLATE)
+
+
+class DiagnosticsRoot(DataRoot):
+    """Data root representing postprocessing stage outputs."""
+    metadata = MetadataType('metadata')
+    specification = MetadataType('diagnostics_specification')

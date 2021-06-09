@@ -8,7 +8,6 @@ from covid_model_seiir_pipeline.lib import (
 )
 from covid_model_seiir_pipeline.pipeline.forecasting.model.containers import (
     Indices,
-    ModelParameters,
     PostprocessingParameters,
     HospitalMetrics,
     SystemMetrics,
@@ -28,7 +27,7 @@ if TYPE_CHECKING:
 def compute_output_metrics(indices: Indices,
                            future_components: pd.DataFrame,
                            postprocessing_params: PostprocessingParameters,
-                           model_parameters: ModelParameters,
+                           model_parameters: ode.ForecastParameters,
                            hospital_parameters: 'HospitalParameters') -> Tuple[pd.DataFrame,
                                                                                SystemMetrics,
                                                                                OutputMetrics]:
@@ -98,7 +97,7 @@ def compute_output_metrics(indices: Indices,
 
 
 def variant_system_metrics(indices: Indices,
-                           model_parameters: ModelParameters,
+                           model_parameters: ode.ForecastParameters,
                            postprocessing_params: PostprocessingParameters,
                            components: pd.DataFrame) -> SystemMetrics:
     components_diff = components.groupby('location_id').diff()
@@ -230,7 +229,7 @@ def compute_deaths(modeled_infections: pd.Series,
     return modeled_deaths
 
 
-def compute_effective_r(model_params: ModelParameters,
+def compute_effective_r(model_params: ode.ForecastParameters,
                         system_metrics: SystemMetrics,
                         infections: pd.Series) -> Tuple[pd.Series, pd.Series, pd.Series, pd.Series, pd.Series]:
     alpha, sigma = model_params.alpha, model_params.sigma
