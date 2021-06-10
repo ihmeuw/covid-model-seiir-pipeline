@@ -35,11 +35,8 @@ def run_beta_regression(beta_fit: pd.Series,
         group_columns=['super_region_id', 'region_id', 'location_id'],
     )
     mr_model = reslime.MRModel(mr_data, predictor_set)
-    coefficients = mr_model.fit_model()
-    coefficients = (pd.concat([coefficients] + fixed_coefficients, axis=1)
-                    .reset_index()
-                    .drop(columns=['super_region_id', 'region_id'])
-                    .set_index('location_id'))
+    coefficients = mr_model.fit_model().reset_index(level=['super_region_id', 'region_id'], drop=True)
+    coefficients = pd.concat([coefficients] + fixed_coefficients, axis=1)
     return coefficients
 
 

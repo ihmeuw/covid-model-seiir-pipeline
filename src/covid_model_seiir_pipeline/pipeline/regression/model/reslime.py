@@ -135,10 +135,11 @@ class MRModel:
     ) -> float:
         """Objective function for minimization."""
         prediction = self.predictors.predict(coefficients)
-        return (
+        val = (
             0.5*np.sum(((self.data.response - prediction)/self.data.response_se)**2)
             + self.predictors.prior_objective(coefficients)
         )
+        return val
 
     def gradient(
             self,
