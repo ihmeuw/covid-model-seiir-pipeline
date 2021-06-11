@@ -12,7 +12,7 @@ def do_diagnostics(app_metadata: cli_tools.Metadata,
     logger.info(f'Starting diagnostics for version {diagnostics_specification.data.output_root}.')
 
     diagnostics_root = io.DiagnosticsRoot(diagnostics_specification.data.output_root)
-    io.dump(diagnostics_specification.to_dict(), diagnostics_root.specification)
+    io.dump(diagnostics_specification.to_dict(), diagnostics_root.specification())
 
     if not preprocess_only:
         workflow = DiagnosticsWorkflow(diagnostics_specification.data.output_root,
