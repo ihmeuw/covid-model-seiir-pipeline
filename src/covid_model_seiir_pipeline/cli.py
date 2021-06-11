@@ -526,7 +526,7 @@ def _do_postprocess(run_metadata: cli_tools.RunMetadata,
         'mortality_ratio_version': cli_tools.VersionInfo(
             mortality_ratio_version,
             postprocessing_spec.data.mortality_ratio_version,
-            paths.MORTALITY_RATIO_ROOT,
+            paths.MORTALITY_AGE_PATTERN_ROOT,
             'mortality_ratio_metadata',
             True,
         ),
