@@ -105,7 +105,7 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
     logger.info('Running ODE forecast.', context='compute_ode')
     future_components = model.run_ode_model(
         initial_condition,
-        model_parameters.with_index(indices.future),
+        model_parameters.reindex(indices.future),
         progress_bar,
     )
     logger.info('Processing ODE results and computing deaths and infections.', context='compute_results')
@@ -180,7 +180,7 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
             logger.info('Running ODE forecast.', context='compute_ode')
             future_components_subset = model.run_ode_model(
                 initial_condition_subset,
-                model_parameters.with_index(indices.future),
+                model_parameters.reindex(indices.future),
                 progress_bar,
             )
 

@@ -54,6 +54,11 @@ with_mortality_ratio_version = click.option(
     type=click.Path(exists=True, file_okay=False),
     help='Which version of the mortality age pattern to use.',
 )
+with_priors_version = click.option(
+    '--priors-version',
+    type=click.Path(exists=True, file_okay=False),
+    help='Data based priors for the regression.',
+)
 with_coefficient_version = click.option(
     '--coefficient-version',
     type=click.Path(exists=True, file_okay=False),

@@ -378,8 +378,8 @@ def make_drivers_page(plot_versions: List[PlotVersion],
                                  wspace=0.2)
     grid_spec.update(**GRID_SPEC_MARGINS)
 
-    gs_coef = grid_spec[0, 0].subgridspec(len(time_varying), 1)
-    gs_cov = grid_spec[0, 1].subgridspec(len(time_varying), 1)
+    gs_coef = grid_spec[0, 0].subgridspec(len(time_varying) + 1, 1)
+    gs_cov = grid_spec[0, 1].subgridspec(len(time_varying) + 1, 1)
     gs_beta = grid_spec[:, 2].subgridspec(4, 1)
     gs_r = grid_spec[:, 3].subgridspec(4, 1)
 
@@ -414,7 +414,13 @@ def make_drivers_page(plot_versions: List[PlotVersion],
             ax_cov.set_ylim(*ylims)
         coef_axes.append(ax_coef)
         cov_axes.append(ax_cov)
-    fig.align_ylabels(ax_cov)
+    ax_intercept = fig.add_subplot(gs_coef[-1])
+    plotter.make_coefficient_plot(
+        ax_intercept,
+        'intercept',
+        label='Intercept',
+    )
+    fig.align_ylabels(cov_axes)
 
     ax_vaccine = fig.add_subplot(grid_spec[1, :2])
 

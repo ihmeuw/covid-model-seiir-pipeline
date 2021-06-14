@@ -127,6 +127,12 @@ class MortalityRatioRoot(DataRoot):
     mortality_ratio = DatasetType('mortality_ratio_5yr')
 
 
+class CovariatePriorsRoot(DataRoot):
+    metadata = MetadataType('metadata')
+
+    priors = DatasetType('priors')
+
+
 class CovariateRoot(DataRoot):
     """Data root representing prepped covariates."""
     metadata = MetadataType('metadata')
@@ -217,3 +223,9 @@ class PostprocessingRoot(DataRoot):
     output_miscellaneous = DatasetType('output_miscellaneous',
                                        LEAF_TEMPLATES.MEASURE_TEMPLATE,
                                        PREFIX_TEMPLATES.SCENARIO_TEMPLATE)
+
+
+class DiagnosticsRoot(DataRoot):
+    """Data root representing postprocessing stage outputs."""
+    metadata = MetadataType('metadata')
+    specification = MetadataType('diagnostics_specification')

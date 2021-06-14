@@ -1,5 +1,5 @@
 data:
-  forecast_version: '/ihme/covid-19/seir-forecast/2021_06_03.04'
+  forecast_version: '/ihme/covid-19/seir-forecast/2021_06_09.01'
   mortality_ratio_version: 'best'
   scenarios:
     - 'reference'
@@ -9,15 +9,15 @@ data:
   output_root: ''
 workflow:
   project: 'proj_covid_prod'
-  queue: 'd.q'
+  queue: 'all.q'
 resampling:
   reference_scenario: 'reference'
   reference_date: '2021-12-31'
   lower_quantile: 0.025
   upper_quantile: 0.975
-#splicing:
-#  - locations: [33, 34, 36, 37, 62, 142, 178]
-#    output_version: '/ihme/covid-19/seir-outputs/2021_05_05.04'
+splicing:
+  - locations: [33, 43, 123, 172, 175, 197, 194]
+    output_version: '/ihme/covid-19/seir-outputs/2021_06_03.03'
 aggregation:
   - location_file: '/ihme/covid-19/seir-outputs/agg-hierarchies/modeling.csv'
   - location_file: '/ihme/covid-19/seir-outputs/agg-hierarchies/who_plus_palestine.csv'

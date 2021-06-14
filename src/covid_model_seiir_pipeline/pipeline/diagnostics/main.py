@@ -1,9 +1,7 @@
-from pathlib import Path
-
 from covid_shared import cli_tools, ihme_deps
 from loguru import logger
 
-from covid_model_seiir_pipeline.lib import static_vars
+from covid_model_seiir_pipeline.lib import io
 from covid_model_seiir_pipeline.pipeline.diagnostics.specification import DiagnosticsSpecification
 from covid_model_seiir_pipeline.pipeline.diagnostics.workflow import DiagnosticsWorkflow
 
@@ -13,8 +11,8 @@ def do_diagnostics(app_metadata: cli_tools.Metadata,
                    preprocess_only: bool):
     logger.info(f'Starting diagnostics for version {diagnostics_specification.data.output_root}.')
 
-    output_root = Path(diagnostics_specification.data.output_root)
-    diagnostics_specification.dump(output_root / static_vars.DIAGNOSTICS_SPECIFICATION_FILE)
+    diagnostics_root = io.DiagnosticsRoot(diagnostics_specification.data.output_root)
+    io.dump(diagnostics_specification.to_dict(), diagnostics_root.specification())
 
     if not preprocess_only:
         workflow = DiagnosticsWorkflow(diagnostics_specification.data.output_root,

@@ -1,6 +1,6 @@
 from functools import reduce
 from pathlib import Path
-from typing import List, Iterable, Optional, Tuple, Union
+from typing import Dict, List, Iterable, Optional, Tuple, Union
 
 from loguru import logger
 import pandas as pd
@@ -12,6 +12,7 @@ from covid_model_seiir_pipeline.lib import (
 )
 from covid_model_seiir_pipeline.pipeline.regression.specification import (
     RegressionSpecification,
+    CovariateSpecification,
 )
 from covid_model_seiir_pipeline.pipeline.regression.model import (
     RatioData,
@@ -24,10 +25,12 @@ class RegressionDataInterface:
     def __init__(self,
                  infection_root: io.InfectionRoot,
                  covariate_root: io.CovariateRoot,
+                 priors_root: Optional[io.CovariatePriorsRoot],
                  coefficient_root: Optional[io.RegressionRoot],
                  regression_root: io.RegressionRoot):
         self.infection_root = infection_root
         self.covariate_root = covariate_root
+        self.priors_root = priors_root
         self.coefficient_root = coefficient_root
         self.regression_root = regression_root
 
@@ -35,6 +38,11 @@ class RegressionDataInterface:
     def from_specification(cls, specification: RegressionSpecification) -> 'RegressionDataInterface':
         infection_root = io.InfectionRoot(specification.data.infection_version)
         covariate_root = io.CovariateRoot(specification.data.covariate_version)
+        if specification.data.priors_version:
+            priors_root = io.CovariatePriorsRoot(specification.data.priors_version)
+        else:
+            priors_root = None
+
         if specification.data.coefficient_version:
             coefficient_root = Path(specification.data.coefficient_version)
             coefficient_spec_path = coefficient_root / static_vars.REGRESSION_SPECIFICATION_FILE
@@ -43,12 +51,14 @@ class RegressionDataInterface:
                                                  data_format=coefficient_spec.data.output_format)
         else:
             coefficient_root = None
+
         regression_root = io.RegressionRoot(specification.data.output_root,
                                             data_format=specification.data.output_format)
 
         return cls(
             infection_root=infection_root,
             covariate_root=covariate_root,
+            priors_root=priors_root,
             coefficient_root=coefficient_root,
             regression_root=regression_root,
         )
@@ -318,6 +328,33 @@ class RegressionDataInterface:
         covariate_data = reduce(lambda x, y: x.merge(y, left_index=True, right_index=True), covariate_data)
         return covariate_data
 
+    def load_priors(self, covariates: Iterable[CovariateSpecification]) -> Dict[str, pd.DataFrame]:
+        cov_names = [cov.name for cov in covariates if cov.gprior == 'data']
+        if not cov_names:
+            return {}
+
+        if not self.priors_root:
+            raise ValueError(f'Covariates {cov_names} specified data-based priors but no priors version '
+                             f'was specified.')
+        priors = io.load(self.priors_root.priors())
+        missing_priors = set(cov_names).difference(priors.covariate.unique())
+        if missing_priors:
+            raise ValueError(f'Covariates {missing_priors} specified data-based priors but no priors were '
+                             f'found in the specified covariate priors version.')
+        out = {}
+        for covariate in covariates:
+            if covariate.gprior == 'data':
+                covariate_prior = (
+                    priors
+                    .set_index(['covariate', covariate.group_level])
+                    .loc[covariate.name, ['mean', 'sd']]
+                    .drop_duplicates()
+                )
+                assert set(covariate_prior.index) == set(covariate_prior.index.drop_duplicates())
+                out[covariate.name] = covariate_prior
+
+        return out
+
     def load_vaccinations(self, vaccine_scenario: str = 'reference',
                           covariate_root: io.CovariateRoot = None):
         covariate_root = covariate_root if covariate_root is not None else self.covariate_root
@@ -396,8 +433,10 @@ class RegressionDataInterface:
     def load_coefficients(self, draw_id: int) -> pd.DataFrame:
         return io.load(self.regression_root.coefficients(draw_id=draw_id))
 
-    def load_prior_run_coefficients(self, draw_id: int) -> pd.DataFrame:
-        return io.load(self.coefficient_root.coefficients(draw_id=draw_id))
+    def load_prior_run_coefficients(self, draw_id: int) -> Union[None, pd.DataFrame]:
+        if self.coefficient_root:
+            return io.load(self.coefficient_root.coefficients(draw_id=draw_id))
+        return None
 
     def save_compartments(self, compartments: pd.DataFrame, draw_id: int) -> None:
         io.dump(compartments, self.regression_root.compartments(draw_id=draw_id))

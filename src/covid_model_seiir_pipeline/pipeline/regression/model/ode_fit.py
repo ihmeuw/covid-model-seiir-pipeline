@@ -9,29 +9,27 @@ from covid_model_seiir_pipeline.lib import (
     math,
     ode,
 )
-from covid_model_seiir_pipeline.pipeline.regression.model.containers import (
-    ODEParameters,
-)
 
 
 def prepare_ode_fit_parameters(past_infections: pd.Series,
                                population: pd.DataFrame,
                                rhos: pd.DataFrame,
                                vaccinations: pd.DataFrame,
-                               sampled_params: Dict[str, pd.Series]) -> ODEParameters:
+                               sampled_params: Dict[str, pd.Series]) -> ode.FitParameters:
     past_index = past_infections.index
     population_low_risk, population_high_risk = split_population(past_index, population)
 
     vaccinations = math.adjust_vaccinations(vaccinations)
     vaccinations = {k: v.rename(k).reindex(past_index, fill_value=0.) for k, v in vaccinations.items()}
 
-    return ODEParameters(
+    return ode.FitParameters(
         new_e=past_infections,
         population_low_risk=population_low_risk,
         population_high_risk=population_high_risk,
         rho=rhos['rho'].reindex(past_index, fill_value=0.0),
         rho_variant=rhos['rho_variant'].reindex(past_index, fill_value=0.0),
         rho_b1617=rhos['rho_b1617'].reindex(past_index, fill_value=0.0),
+        rho_total=rhos['rho_total'].reindex(past_index, fill_value=0.0),
         **sampled_params,
         **vaccinations,
     )
@@ -91,7 +89,8 @@ def clean_infection_data_measure(infection_data: pd.DataFrame, measure: str) -> 
     return data.append(prepend).sort_index()
 
 
-def run_ode_fit(ode_parameters: ODEParameters, progress_bar: bool) -> Tuple[pd.DataFrame, pd.DataFrame]:
+def run_ode_fit(ode_parameters: ode.FitParameters,
+                progress_bar: bool) -> Tuple[pd.DataFrame, pd.DataFrame]:
     fit_results = []
     ode_parameter_list = tqdm.tqdm(list(ode_parameters), disable=not progress_bar)
     for location_id, location_params in ode_parameter_list:
@@ -106,7 +105,7 @@ def run_ode_fit(ode_parameters: ODEParameters, progress_bar: bool) -> Tuple[pd.D
     return fit_results[['beta', 'beta_wild', 'beta_variant']], fit_results[[c for c in fit_results if 'beta' not in c]]
 
 
-def run_loc_ode_fit(ode_parameters: ODEParameters) -> pd.DataFrame:
+def run_loc_ode_fit(ode_parameters: ode.FitParameters) -> pd.DataFrame:
     # Filter out early dates with few infections
     # to reduce noise in the past fit from leaking into the beta regression.
     infections = ode_parameters.new_e
