@@ -19,23 +19,7 @@ scenarios:
     gamma2:
     - 0.3333
     - 1.0
-    kappa: !!python/object/apply:numpy.core.multiarray.scalar
-    - &id001 !!python/object/apply:numpy.dtype
-      args:
-      - f8
-      - false
-      - true
-      state: !!python/tuple
-      - 3
-      - <
-      - null
-      - null
-      - null
-      - -1
-      - -1
-      - 0
-    - !!binary |
-      AAAAAAAAAAA=
+    kappa: 0.0
     phi: 0.0
     pi: 0.05
     psi: 0.6
@@ -53,10 +37,7 @@ scenarios:
     gamma2:
     - 0.3333
     - 1.0
-    kappa: !!python/object/apply:numpy.core.multiarray.scalar
-    - *id001
-    - !!binary |
-      mpmZmZmZqT8=
+    kappa: 0.05
     phi: 0.0
     pi: 0.05
     psi: 0.6
@@ -74,17 +55,14 @@ scenarios:
     gamma2:
     - 0.3333
     - 1.0
-    kappa: !!python/object/apply:numpy.core.multiarray.scalar
-    - *id001
-    - !!binary |
-      mpmZmZmZuT8=
+    kappa: 0.1
     phi: 0.0
     pi: 0.05
     psi: 0.6
     sigma:
     - 0.2
     - 0.3333
-  kappa_0.15000000000000002:
+  kappa_0.15:
     alpha:
     - 0.9
     - 1.0
@@ -95,10 +73,7 @@ scenarios:
     gamma2:
     - 0.3333
     - 1.0
-    kappa: !!python/object/apply:numpy.core.multiarray.scalar
-    - *id001
-    - !!binary |
-      NDMzMzMzwz8=
+    kappa: 0.15
     phi: 0.0
     pi: 0.05
     psi: 0.6
@@ -116,10 +91,7 @@ scenarios:
     gamma2:
     - 0.3333
     - 1.0
-    kappa: !!python/object/apply:numpy.core.multiarray.scalar
-    - *id001
-    - !!binary |
-      mpmZmZmZyT8=
+    kappa: 0.2
     phi: 0.0
     pi: 0.05
     psi: 0.6
@@ -137,17 +109,14 @@ scenarios:
     gamma2:
     - 0.3333
     - 1.0
-    kappa: !!python/object/apply:numpy.core.multiarray.scalar
-    - *id001
-    - !!binary |
-      AAAAAAAA0D8=
+    kappa: 0.25
     phi: 0.0
     pi: 0.05
     psi: 0.6
     sigma:
     - 0.2
     - 0.3333
-  kappa_0.30000000000000004:
+  kappa_0.3:
     alpha:
     - 0.9
     - 1.0
@@ -158,17 +127,14 @@ scenarios:
     gamma2:
     - 0.3333
     - 1.0
-    kappa: !!python/object/apply:numpy.core.multiarray.scalar
-    - *id001
-    - !!binary |
-      NDMzMzMz0z8=
+    kappa: 0.3
     phi: 0.0
     pi: 0.05
     psi: 0.6
     sigma:
     - 0.2
     - 0.3333
-  kappa_0.35000000000000003:
+  kappa_0.35:
     alpha:
     - 0.9
     - 1.0
@@ -179,10 +145,7 @@ scenarios:
     gamma2:
     - 0.3333
     - 1.0
-    kappa: !!python/object/apply:numpy.core.multiarray.scalar
-    - *id001
-    - !!binary |
-      Z2ZmZmZm1j8=
+    kappa: 0.35
     phi: 0.0
     pi: 0.05
     psi: 0.6
@@ -200,10 +163,7 @@ scenarios:
     gamma2:
     - 0.3333
     - 1.0
-    kappa: !!python/object/apply:numpy.core.multiarray.scalar
-    - *id001
-    - !!binary |
-      mpmZmZmZ2T8=
+    kappa: 0.4
     phi: 0.0
     pi: 0.05
     psi: 0.6
@@ -221,10 +181,7 @@ scenarios:
     gamma2:
     - 0.3333
     - 1.0
-    kappa: !!python/object/apply:numpy.core.multiarray.scalar
-    - *id001
-    - !!binary |
-      zczMzMzM3D8=
+    kappa: 0.45
     phi: 0.0
     pi: 0.05
     psi: 0.6
@@ -242,10 +199,7 @@ scenarios:
     gamma2:
     - 0.3333
     - 1.0
-    kappa: !!python/object/apply:numpy.core.multiarray.scalar
-    - *id001
-    - !!binary |
-      AAAAAAAA4D8=
+    kappa: 0.5
     phi: 0.0
     pi: 0.05
     psi: 0.6
@@ -263,17 +217,14 @@ scenarios:
     gamma2:
     - 0.3333
     - 1.0
-    kappa: !!python/object/apply:numpy.core.multiarray.scalar
-    - *id001
-    - !!binary |
-      mpmZmZmZ4T8=
+    kappa: 0.55
     phi: 0.0
     pi: 0.05
     psi: 0.6
     sigma:
     - 0.2
     - 0.3333
-  kappa_0.6000000000000001:
+  kappa_0.6:
     alpha:
     - 0.9
     - 1.0
@@ -284,10 +235,7 @@ scenarios:
     gamma2:
     - 0.3333
     - 1.0
-    kappa: !!python/object/apply:numpy.core.multiarray.scalar
-    - *id001
-    - !!binary |
-      NDMzMzMz4z8=
+    kappa: 0.6
     phi: 0.0
     pi: 0.05
     psi: 0.6
@@ -305,17 +253,14 @@ scenarios:
     gamma2:
     - 0.3333
     - 1.0
-    kappa: !!python/object/apply:numpy.core.multiarray.scalar
-    - *id001
-    - !!binary |
-      zczMzMzM5D8=
+    kappa: 0.65
     phi: 0.0
     pi: 0.05
     psi: 0.6
     sigma:
     - 0.2
     - 0.3333
-  kappa_0.7000000000000001:
+  kappa_0.7:
     alpha:
     - 0.9
     - 1.0
@@ -326,10 +271,7 @@ scenarios:
     gamma2:
     - 0.3333
     - 1.0
-    kappa: !!python/object/apply:numpy.core.multiarray.scalar
-    - *id001
-    - !!binary |
-      Z2ZmZmZm5j8=
+    kappa: 0.7
     phi: 0.0
     pi: 0.05
     psi: 0.6
@@ -347,10 +289,7 @@ scenarios:
     gamma2:
     - 0.3333
     - 1.0
-    kappa: !!python/object/apply:numpy.core.multiarray.scalar
-    - *id001
-    - !!binary |
-      AAAAAAAA6D8=
+    kappa: 0.75
     phi: 0.0
     pi: 0.05
     psi: 0.6
@@ -368,17 +307,14 @@ scenarios:
     gamma2:
     - 0.3333
     - 1.0
-    kappa: !!python/object/apply:numpy.core.multiarray.scalar
-    - *id001
-    - !!binary |
-      mpmZmZmZ6T8=
+    kappa: 0.8
     phi: 0.0
     pi: 0.05
     psi: 0.6
     sigma:
     - 0.2
     - 0.3333
-  kappa_0.8500000000000001:
+  kappa_0.85:
     alpha:
     - 0.9
     - 1.0
@@ -389,10 +325,7 @@ scenarios:
     gamma2:
     - 0.3333
     - 1.0
-    kappa: !!python/object/apply:numpy.core.multiarray.scalar
-    - *id001
-    - !!binary |
-      NDMzMzMz6z8=
+    kappa: 0.85
     phi: 0.0
     pi: 0.05
     psi: 0.6
@@ -410,17 +343,14 @@ scenarios:
     gamma2:
     - 0.3333
     - 1.0
-    kappa: !!python/object/apply:numpy.core.multiarray.scalar
-    - *id001
-    - !!binary |
-      zczMzMzM7D8=
+    kappa: 0.9
     phi: 0.0
     pi: 0.05
     psi: 0.6
     sigma:
     - 0.2
     - 0.3333
-  kappa_0.9500000000000001:
+  kappa_0.95:
     alpha:
     - 0.9
     - 1.0
@@ -431,10 +361,25 @@ scenarios:
     gamma2:
     - 0.3333
     - 1.0
-    kappa: !!python/object/apply:numpy.core.multiarray.scalar
-    - *id001
-    - !!binary |
-      Z2ZmZmZm7j8=
+    kappa: 0.95
+    phi: 0.0
+    pi: 0.05
+    psi: 0.6
+    sigma:
+    - 0.2
+    - 0.3333
+  kappa_1.0:
+    alpha:
+    - 0.9
+    - 1.0
+    chi: 0.6
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 1.0
     phi: 0.0
     pi: 0.05
     psi: 0.6
