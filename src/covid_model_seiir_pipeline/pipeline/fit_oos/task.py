@@ -31,7 +31,7 @@ def run_beta_fit(fit_version: str, scenario: str, draw_id: int, progress_bar: bo
     past_infection_data = data_interface.load_past_infection_data(draw_id=draw_id)
     population = data_interface.load_five_year_population()
     rhos = data_interface.load_variant_prevalence()
-    vaccinations = data_interface.load_vaccinations('reference')
+    vaccinations = data_interface.load_vaccinations()
 
     logger.info('Prepping ODE fit parameters.', context='transform')
     infections = clean_infection_data_measure(past_infection_data, 'infections')
@@ -40,7 +40,7 @@ def run_beta_fit(fit_version: str, scenario: str, draw_id: int, progress_bar: bo
     np.random.seed(draw_id)
     sampled_params = sample_params(
         infections.index, fit_params,
-        params_to_sample=['alpha', 'sigma', 'gamma1', 'gamma2', 'kappa', 'phi', 'pi', 'chi']
+        params_to_sample=['alpha', 'sigma', 'gamma1', 'gamma2', 'kappa', 'phi', 'psi', 'pi', 'chi']
     )
     ode_parameters = prepare_ode_fit_parameters(
         infections,
