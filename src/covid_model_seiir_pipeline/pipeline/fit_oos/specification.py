@@ -56,11 +56,11 @@ class FitScenario:
     gamma1: Tuple[float, float] = field(default=(0.5, 0.5))
     gamma2: Tuple[float, float] = field(default=(1/3, 1.0))
 
-    kappa: float = field(default=0.36)
-    phi: float = field(default=0.5)
-    pi: Optional[float] = field(default=None)
-
-    chi: float = field(default=1.0)
+    kappa: float = field(default=0.4)
+    chi: float = field(default=0.6)
+    phi: float = field(default=0.0)
+    psi: float = field(default=0.6)
+    pi: Optional[float] = field(default=0.05)
 
     def to_dict(self) -> Dict:
         """Converts to a dict, coercing list-like items to lists."""
