@@ -72,7 +72,7 @@ scenarios:
     - 0.2
     - 0.3333
     threshold: 0.2
-  b117_threshold_0.30000000000000004:
+  b117_threshold_0.3:
     alpha:
     - 0.9
     - 1.0
@@ -92,7 +92,7 @@ scenarios:
     sigma:
     - 0.2
     - 0.3333
-    threshold: 0.30000000000000004
+    threshold: 0.3
   b117_threshold_0.4:
     alpha:
     - 0.9
@@ -135,7 +135,7 @@ scenarios:
     - 0.2
     - 0.3333
     threshold: 0.5
-  b117_threshold_0.6000000000000001:
+  b117_threshold_0.6:
     alpha:
     - 0.9
     - 1.0
@@ -155,8 +155,8 @@ scenarios:
     sigma:
     - 0.2
     - 0.3333
-    threshold: 0.6000000000000001
-  b117_threshold_0.7000000000000001:
+    threshold: 0.6
+  b117_threshold_0.7:
     alpha:
     - 0.9
     - 1.0
@@ -176,7 +176,7 @@ scenarios:
     sigma:
     - 0.2
     - 0.3333
-    threshold: 0.7000000000000001
+    threshold: 0.7
   b117_threshold_0.8:
     alpha:
     - 0.9
@@ -219,27 +219,6 @@ scenarios:
     - 0.2
     - 0.3333
     threshold: 0.9
-  b117_threshold_1.0:
-    alpha:
-    - 0.9
-    - 1.0
-    chi: 0.6
-    gamma1:
-    - 0.5
-    - 0.5
-    gamma2:
-    - 0.3333
-    - 1.0
-    kappa: 0.5
-    location_filter: []
-    max_date: '2021-06-01'
-    phi: 0.0
-    pi: 0.05
-    psi: 0.6
-    sigma:
-    - 0.2
-    - 0.3333
-    threshold: 1.0
   england_only:
     alpha:
     - 0.9
