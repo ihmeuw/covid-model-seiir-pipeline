@@ -33,6 +33,7 @@ def seiir():
 @cli_tools.with_fit_specification
 @cli_tools.with_infection_version
 @cli_tools.with_covariates_version
+@cli_tools.with_coefficient_version
 @cli_tools.with_variant_version
 @cli_tools.with_location_specification
 @cli_tools.add_preprocess_only
@@ -40,7 +41,7 @@ def seiir():
 @cli_tools.add_verbose_and_with_debugger
 def oos_fit(run_metadata,
             fit_specification,
-            infection_version, covariates_version, variant_version,
+            infection_version, covariates_version, coefficient_version, variant_version,
             location_specification,
             preprocess_only,
             output_root, mark_best, production_tag,
@@ -52,6 +53,7 @@ def oos_fit(run_metadata,
         fit_specification=fit_specification,
         infection_version=infection_version,
         covariates_version=covariates_version,
+        coefficient_version=coefficient_version,
         variant_version=variant_version,
         location_specification=location_specification,
         preprocess_only=preprocess_only,
@@ -325,6 +327,7 @@ def _do_oos_fit(run_metadata: cli_tools.RunMetadata,
                 fit_specification: str,
                 infection_version: Optional[str],
                 covariates_version: Optional[str],
+                coefficient_version: Optional[str],
                 variant_version: Optional[str],
                 location_specification: Optional[str],
                 preprocess_only: bool,
@@ -346,6 +349,13 @@ def _do_oos_fit(run_metadata: cli_tools.RunMetadata,
             paths.SEIR_COVARIATES_OUTPUT_ROOT,
             'covariates_metadata',
             True,
+        ),
+        'coefficient_version': cli_tools.VersionInfo(
+            coefficient_version,
+            fit_spec.data.coefficient_version,
+            paths.SEIR_REGRESSION_OUTPUTS,
+            'coefficient_metadata',
+            False,
         ),
         'variant_version': cli_tools.VersionInfo(
             variant_version,

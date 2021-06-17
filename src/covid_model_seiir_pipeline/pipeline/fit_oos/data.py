@@ -1,14 +1,17 @@
+from pathlib import Path
 from typing import List, Optional
 
 import pandas as pd
 
 from covid_model_seiir_pipeline.lib import (
     io,
+    static_vars,
 )
 from covid_model_seiir_pipeline.pipeline.fit_oos.specification import (
     FitSpecification,
 )
 from covid_model_seiir_pipeline.pipeline.regression.data import (
+    RegressionSpecification,
     RegressionDataInterface,
 )
 
@@ -34,12 +37,16 @@ class FitDataInterface(RegressionDataInterface):
         variant_root = io.VariantRoot(specification.data.variant_version)
         fit_root = io.FitRoot(specification.data.output_root,
                               data_format=specification.data.output_format)
+        regression_spec_path = Path(specification.data.coefficient_version) / static_vars.REGRESSION_SPECIFICATION_FILE
+        regression_spec = RegressionSpecification.from_path(regression_spec_path)
+        coefficient_root = io.RegressionRoot(specification.data.coefficient_version,
+                                             data_format=regression_spec.data.output_format)
 
         return cls(
             infection_root=infection_root,
             covariate_root=covariate_root,
             priors_root=None,
-            coefficient_root=None,
+            coefficient_root=coefficient_root,
             regression_root=None,
             variant_root=variant_root,
             fit_root=fit_root,

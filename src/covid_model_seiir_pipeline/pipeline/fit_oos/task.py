@@ -2,6 +2,7 @@ from pathlib import Path
 
 import click
 import numpy as np
+import pandas as pd
 
 from covid_model_seiir_pipeline.lib import (
     cli_tools,
@@ -74,9 +75,19 @@ def run_beta_fit(fit_version: str, scenario: str, draw_id: int, progress_bar: bo
     log_beta_hat = math.compute_beta_hat(covariates, prior_coefficients)
     log_beta_residual = (np.log(beta['beta_wild']) - log_beta_hat).rename('log_beta_residual')
 
-    regression_index = rhos[(rhos['rho'] > 0) & (rhos['rho_variant'] == 0)].index
+    today = pd.Timestamp('2021-06-15')
+    b117_only = rhos[(rhos['rho'] > 0) & (rhos['rho_variant'] == 0)].reset_index()
+    b117_only = b117_only[(b117_only.date < today)]
+    max_rho = b117_only.groupby('location_id').rho.max()
+    above_threshold = max_rho[max_rho > 0.9].index.tolist()
+    above_threshold = [4749, 433, 434, 4636]
+    regression_index = b117_only[b117_only.location_id.isin(above_threshold)].set_index(['location_id', 'date']).index
+    
+    
+    
 
-    regression_inputs = pd.merge(log_beta_residual.loc[regression_index], rhos['rho'],
+    regression_inputs = pd.merge(log_beta_residual.dropna(), rhos.loc[regression_index, ['rho']],
+                                 how='inner',
                                  on=log_beta_residual.index.names)
     group_cols = ['super_region_id', 'region_id', 'location_id']
     regression_inputs = (regression_inputs
