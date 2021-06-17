@@ -5,6 +5,7 @@ import numpy as np
 
 from covid_model_seiir_pipeline.lib import (
     cli_tools,
+    math,
     static_vars,
 )
 from covid_model_seiir_pipeline.pipeline.regression.model import (
@@ -12,6 +13,7 @@ from covid_model_seiir_pipeline.pipeline.regression.model import (
     prepare_ode_fit_parameters,
     run_ode_fit,
     sample_params,
+    reslime,
 )
 from covid_model_seiir_pipeline.pipeline.fit_oos.data import FitDataInterface
 from covid_model_seiir_pipeline.pipeline.fit_oos.specification import FitSpecification
@@ -28,6 +30,7 @@ def run_beta_fit(fit_version: str, scenario: str, draw_id: int, progress_bar: bo
     data_interface = FitDataInterface.from_specification(fit_specification)
 
     logger.info('Loading ODE fit input data', context='read')
+    hierarchy = data_interface.load_hierarchy()
     past_infection_data = data_interface.load_past_infection_data(draw_id=draw_id)
     population = data_interface.load_five_year_population()
     rhos = data_interface.load_variant_prevalence()
@@ -55,9 +58,57 @@ def run_beta_fit(fit_version: str, scenario: str, draw_id: int, progress_bar: bo
         ode_parameters=ode_parameters,
         progress_bar=progress_bar,
     )
+
+    covariates = data_interface.load_covariates([
+        'pneumonia',
+        'mobility',
+        'mask_use',
+        'testing',
+        'air_pollution_pm_2_5',
+        'smoking_prevalence',
+        'lri_mortality',
+        'proportion_under_100m',
+        'proportion_over_2_5k',
+    ])
+    prior_coefficients = data_interface.load_prior_run_coefficients(draw_id=draw_id)
+    log_beta_hat = math.compute_beta_hat(covariates, prior_coefficients)
+    log_beta_residual = (np.log(beta['beta_wild']) - log_beta_hat).rename('log_beta_residual')
+
+    regression_index = rhos[(rhos['rho'] > 0) & (rhos['rho_variant'] == 0)].index
+
+    regression_inputs = pd.merge(log_beta_residual.loc[regression_index], rhos['rho'],
+                                 on=log_beta_residual.index.names)
+    group_cols = ['super_region_id', 'region_id', 'location_id']
+    regression_inputs = (regression_inputs
+                         .merge(hierarchy[group_cols], on='location_id')
+                         .reset_index()
+                         .set_index(group_cols)
+                         .sort_index())
+    regression_inputs['intercept'] = 1.0
+
+    intercept_model = reslime.PredictorModel(
+        'intercept',
+        group_level='location_id',
+    )
+    rho_model = reslime.PredictorModel(
+        'rho',
+        bounds=(0.0, np.inf),
+    )
+    predictor_set = reslime.PredictorModelSet([intercept_model, rho_model])
+    mr_data = reslime.MRData(
+        data=regression_inputs.reset_index(),
+        response_column='log_beta_residual',
+        predictors=[p.name for p in predictor_set],
+        group_columns=group_cols,
+    )
+    mr_model = reslime.MRModel(mr_data, predictor_set)
+    coefficients = mr_model.fit_model().reset_index(level=['super_region_id', 'region_id'], drop=True)
+
     data_interface.save_betas(beta, scenario=scenario, draw_id=draw_id)
     data_interface.save_compartments(compartments, scenario=scenario, draw_id=draw_id)
     data_interface.save_ode_parameters(ode_parameters.to_df(), scenario=scenario, draw_id=draw_id)
+    data_interface.save_regression_params(regression_inputs, scenario=scenario, draw_id=draw_id)
+    data_interface.save_coefficients(coefficients, scenario=scenario, draw_id=draw_id)
 
     logger.report()
 
