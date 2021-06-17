@@ -63,6 +63,10 @@ class FitScenario:
     psi: float = field(default=0.6)
     pi: Optional[float] = field(default=0.05)
 
+    max_date: str = field(default='2021-06-15')
+    threshold: float = field(default=0.5)
+    location_filter: list = field(default_factory=list)
+
     def to_dict(self) -> Dict:
         """Converts to a dict, coercing list-like items to lists."""
         return {k: v for k, v in utilities.asdict(self).items() if k not in ['name', 'system']}

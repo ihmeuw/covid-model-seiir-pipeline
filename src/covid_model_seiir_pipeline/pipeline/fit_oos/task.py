@@ -39,11 +39,11 @@ def run_beta_fit(fit_version: str, scenario: str, draw_id: int, progress_bar: bo
 
     logger.info('Prepping ODE fit parameters.', context='transform')
     infections = clean_infection_data_measure(past_infection_data, 'infections')
-    fit_params = fit_specification.scenarios[scenario].to_dict()
+    fit_params = fit_specification.scenarios[scenario]
 
     np.random.seed(draw_id)
     sampled_params = sample_params(
-        infections.index, fit_params,
+        infections.index, fit_params.to_dict(),
         params_to_sample=['alpha', 'sigma', 'gamma1', 'gamma2', 'kappa', 'phi', 'psi', 'pi', 'chi']
     )
     ode_parameters = prepare_ode_fit_parameters(
@@ -75,16 +75,15 @@ def run_beta_fit(fit_version: str, scenario: str, draw_id: int, progress_bar: bo
     log_beta_hat = math.compute_beta_hat(covariates, prior_coefficients)
     log_beta_residual = (np.log(beta['beta_wild']) - log_beta_hat).rename('log_beta_residual')
 
-    today = pd.Timestamp('2021-06-15')
+    today = pd.Timestamp(fit_params.max_date)
     b117_only = rhos[(rhos['rho'] > 0) & (rhos['rho_variant'] == 0)].reset_index()
     b117_only = b117_only[(b117_only.date < today)]
     max_rho = b117_only.groupby('location_id').rho.max()
-    above_threshold = max_rho[max_rho > 0.9].index.tolist()
-    above_threshold = [4749, 433, 434, 4636]
-    regression_index = b117_only[b117_only.location_id.isin(above_threshold)].set_index(['location_id', 'date']).index
-    
-    
-    
+    if fit_params.location_filter:
+        locs_to_fit = fit_params.location_filter
+    elif fit_params.threshold:
+        locs_to_fit = max_rho[max_rho > fit_params.threshold].index.tolist()
+    regression_index = b117_only[b117_only.location_id.isin(locs_to_fit)].set_index(['location_id', 'date']).index
 
     regression_inputs = pd.merge(log_beta_residual.dropna(), rhos.loc[regression_index, ['rho']],
                                  how='inner',
