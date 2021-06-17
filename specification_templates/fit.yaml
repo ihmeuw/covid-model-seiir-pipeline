@@ -1,7 +1,7 @@
 data:
+  coefficient_version: '2021_06_16.01'
   covariate_version: '2021_06_15.01'
   infection_version: '2021_06_15.16'
-  coefficient_version: '2021_06_16.01'
   location_set_file: ''
   location_set_version_id: 771
   n_draws: 100
@@ -9,7 +9,7 @@ data:
   output_root: /share/scratch/users/collijk/fit_oos
   variant_version: '2021_06_15.15'
 scenarios:
-  kappa_0.0:
+  b117_threshold_0.0:
     alpha:
     - 0.9
     - 1.0
@@ -20,13 +20,289 @@ scenarios:
     gamma2:
     - 0.3333
     - 1.0
-    kappa: 0.0
+    kappa: 0.5
+    location_filter: []
+    max_date: '2021-06-01'
     phi: 0.0
     pi: 0.05
     psi: 0.6
     sigma:
     - 0.2
     - 0.3333
+    threshold: 0.0
+  b117_threshold_0.1:
+    alpha:
+    - 0.9
+    - 1.0
+    chi: 0.6
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.5
+    location_filter: []
+    max_date: '2021-06-01'
+    phi: 0.0
+    pi: 0.05
+    psi: 0.6
+    sigma:
+    - 0.2
+    - 0.3333
+    threshold: 0.1
+  b117_threshold_0.2:
+    alpha:
+    - 0.9
+    - 1.0
+    chi: 0.6
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.5
+    location_filter: []
+    max_date: '2021-06-01'
+    phi: 0.0
+    pi: 0.05
+    psi: 0.6
+    sigma:
+    - 0.2
+    - 0.3333
+    threshold: 0.2
+  b117_threshold_0.30000000000000004:
+    alpha:
+    - 0.9
+    - 1.0
+    chi: 0.6
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.5
+    location_filter: []
+    max_date: '2021-06-01'
+    phi: 0.0
+    pi: 0.05
+    psi: 0.6
+    sigma:
+    - 0.2
+    - 0.3333
+    threshold: 0.30000000000000004
+  b117_threshold_0.4:
+    alpha:
+    - 0.9
+    - 1.0
+    chi: 0.6
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.5
+    location_filter: []
+    max_date: '2021-06-01'
+    phi: 0.0
+    pi: 0.05
+    psi: 0.6
+    sigma:
+    - 0.2
+    - 0.3333
+    threshold: 0.4
+  b117_threshold_0.5:
+    alpha:
+    - 0.9
+    - 1.0
+    chi: 0.6
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.5
+    location_filter: []
+    max_date: '2021-06-01'
+    phi: 0.0
+    pi: 0.05
+    psi: 0.6
+    sigma:
+    - 0.2
+    - 0.3333
+    threshold: 0.5
+  b117_threshold_0.6000000000000001:
+    alpha:
+    - 0.9
+    - 1.0
+    chi: 0.6
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.5
+    location_filter: []
+    max_date: '2021-06-01'
+    phi: 0.0
+    pi: 0.05
+    psi: 0.6
+    sigma:
+    - 0.2
+    - 0.3333
+    threshold: 0.6000000000000001
+  b117_threshold_0.7000000000000001:
+    alpha:
+    - 0.9
+    - 1.0
+    chi: 0.6
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.5
+    location_filter: []
+    max_date: '2021-06-01'
+    phi: 0.0
+    pi: 0.05
+    psi: 0.6
+    sigma:
+    - 0.2
+    - 0.3333
+    threshold: 0.7000000000000001
+  b117_threshold_0.8:
+    alpha:
+    - 0.9
+    - 1.0
+    chi: 0.6
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.5
+    location_filter: []
+    max_date: '2021-06-01'
+    phi: 0.0
+    pi: 0.05
+    psi: 0.6
+    sigma:
+    - 0.2
+    - 0.3333
+    threshold: 0.8
+  b117_threshold_0.9:
+    alpha:
+    - 0.9
+    - 1.0
+    chi: 0.6
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.5
+    location_filter: []
+    max_date: '2021-06-01'
+    phi: 0.0
+    pi: 0.05
+    psi: 0.6
+    sigma:
+    - 0.2
+    - 0.3333
+    threshold: 0.9
+  b117_threshold_1.0:
+    alpha:
+    - 0.9
+    - 1.0
+    chi: 0.6
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.5
+    location_filter: []
+    max_date: '2021-06-01'
+    phi: 0.0
+    pi: 0.05
+    psi: 0.6
+    sigma:
+    - 0.2
+    - 0.3333
+    threshold: 1.0
+  england_only:
+    alpha:
+    - 0.9
+    - 1.0
+    chi: 0.6
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.5
+    location_filter: [4749]
+    max_date: '2021-06-01'
+    phi: 0.0
+    pi: 0.05
+    psi: 0.6
+    sigma:
+    - 0.2
+    - 0.3333
+    threshold: 0.0
+  uk_only:
+    alpha:
+    - 0.9
+    - 1.0
+    chi: 0.6
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.5
+    location_filter: [4749, 433, 434, 4636]
+    max_date: '2021-06-01'
+    phi: 0.0
+    pi: 0.05
+    psi: 0.6
+    sigma:
+    - 0.2
+    - 0.3333
+    threshold: 0.0
+  uk_and_denmark:
+    alpha:
+    - 0.9
+    - 1.0
+    chi: 0.6
+    gamma1:
+    - 0.5
+    - 0.5
+    gamma2:
+    - 0.3333
+    - 1.0
+    kappa: 0.5
+    location_filter: [4749, 433, 434, 4636, 78]
+    max_date: '2021-06-01'
+    phi: 0.0
+    pi: 0.05
+    psi: 0.6
+    sigma:
+    - 0.2
+    - 0.3333
+    threshold: 0.0
 workflow:
   project: proj_covid_prod
   queue: all.q
