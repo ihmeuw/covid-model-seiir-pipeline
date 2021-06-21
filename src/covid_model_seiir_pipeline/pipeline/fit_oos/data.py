@@ -103,9 +103,3 @@ class FitDataInterface(RegressionDataInterface):
 
     def load_ode_parameters(self, scenario: str, draw_id: int) -> pd.DataFrame:
         return io.load(self.fit_root.ode_parameters(scenario=scenario, draw_id=draw_id))
-
-    def save_regression_params(self, df: pd.DataFrame, scenario: str, draw_id: int) -> None:
-        io.dump(df, self.fit_root.regression_parameters(scenario=scenario, draw_id=draw_id))
-
-    def save_coefficients(self, coefficients: pd.DataFrame, scenario: str, draw_id: int) -> None:
-        io.dump(coefficients, self.fit_root.coefficients(scenario=scenario, draw_id=draw_id))
