@@ -9,7 +9,7 @@ data:
   output_root: /share/scratch/users/collijk/fit_oos
   variant_version: '2021_06_15.15'
 scenarios:
-  pi_0.01_kappa_0.4_chi_0.0_phi_-0.2_psi_0.2:
+  pi_0.01_kappa_0.11_chi_0.0_phi_-0.2_psi_0.2:
     alpha:
     - 0.9
     - 1.0
@@ -20,10 +20,10 @@ scenarios:
     gamma2:
     - 0.3333
     - 1.0
-    kappa: 0.4
+    kappa: 0.11
     phi: -0.2
     psi: 0.2
-  pi_0.01_kappa_0.4_chi_0.0_phi_0.0_psi_0.4:
+  pi_0.01_kappa_0.11_chi_0.0_phi_0.0_psi_0.4:
     alpha:
     - 0.9
     - 1.0
@@ -34,10 +34,10 @@ scenarios:
     gamma2:
     - 0.3333
     - 1.0
-    kappa: 0.4
+    kappa: 0.11
     phi: 0.0
     psi: 0.4
-  pi_0.01_kappa_0.4_chi_0.0_phi_0.2_psi_0.6:
+  pi_0.01_kappa_0.11_chi_0.0_phi_0.2_psi_0.6:
     alpha:
     - 0.9
     - 1.0
@@ -48,10 +48,10 @@ scenarios:
     gamma2:
     - 0.3333
     - 1.0
-    kappa: 0.4
+    kappa: 0.11
     phi: 0.2
     psi: 0.6
-  pi_0.01_kappa_0.4_chi_0.0_phi_0.4_psi_0.8:
+  pi_0.01_kappa_0.11_chi_0.0_phi_0.4_psi_0.8:
     alpha:
     - 0.9
     - 1.0
@@ -62,10 +62,10 @@ scenarios:
     gamma2:
     - 0.3333
     - 1.0
-    kappa: 0.4
+    kappa: 0.11
     phi: 0.4
     psi: 0.8
-  pi_0.01_kappa_0.4_chi_0.0_phi_0.6_psi_1.0:
+  pi_0.01_kappa_0.11_chi_0.0_phi_0.6_psi_1.0:
     alpha:
     - 0.9
     - 1.0
@@ -76,10 +76,10 @@ scenarios:
     gamma2:
     - 0.3333
     - 1.0
-    kappa: 0.4
+    kappa: 0.11
     phi: 0.6
     psi: 1.0
-  pi_0.01_kappa_0.4_chi_0.0_phi_0.8_psi_1.2:
+  pi_0.01_kappa_0.11_chi_0.0_phi_0.8_psi_1.2:
     alpha:
     - 0.9
     - 1.0
@@ -90,10 +90,10 @@ scenarios:
     gamma2:
     - 0.3333
     - 1.0
-    kappa: 0.4
+    kappa: 0.11
     phi: 0.8
     psi: 1.2
-  pi_0.01_kappa_0.4_chi_0.2_phi_-0.2_psi_0.2:
+  pi_0.01_kappa_0.11_chi_0.2_phi_-0.2_psi_0.2:
     alpha:
     - 0.9
     - 1.0
@@ -104,10 +104,10 @@ scenarios:
     gamma2:
     - 0.3333
     - 1.0
-    kappa: 0.4
+    kappa: 0.11
     phi: -0.2
     psi: 0.2
-  pi_0.01_kappa_0.4_chi_0.2_phi_0.0_psi_0.4:
+  pi_0.01_kappa_0.11_chi_0.2_phi_0.0_psi_0.4:
     alpha:
     - 0.9
     - 1.0
@@ -118,10 +118,10 @@ scenarios:
     gamma2:
     - 0.3333
     - 1.0
-    kappa: 0.4
+    kappa: 0.11
     phi: 0.0
     psi: 0.4
-  pi_0.01_kappa_0.4_chi_0.2_phi_0.2_psi_0.6:
+  pi_0.01_kappa_0.11_chi_0.2_phi_0.2_psi_0.6:
     alpha:
     - 0.9
     - 1.0
@@ -132,10 +132,10 @@ scenarios:
     gamma2:
     - 0.3333
     - 1.0
-    kappa: 0.4
+    kappa: 0.11
     phi: 0.2
     psi: 0.6
-  pi_0.01_kappa_0.4_chi_0.2_phi_0.4_psi_0.8:
+  pi_0.01_kappa_0.11_chi_0.2_phi_0.4_psi_0.8:
     alpha:
     - 0.9
     - 1.0
@@ -146,10 +146,10 @@ scenarios:
     gamma2:
     - 0.3333
     - 1.0
-    kappa: 0.4
+    kappa: 0.11
     phi: 0.4
     psi: 0.8
-  pi_0.01_kappa_0.4_chi_0.2_phi_0.6_psi_1.0:
+  pi_0.01_kappa_0.11_chi_0.2_phi_0.6_psi_1.0:
     alpha:
     - 0.9
     - 1.0
@@ -160,10 +160,10 @@ scenarios:
     gamma2:
     - 0.3333
     - 1.0
-    kappa: 0.4
+    kappa: 0.11
     phi: 0.6
     psi: 1.0
-  pi_0.01_kappa_0.4_chi_0.2_phi_0.8_psi_1.2:
+  pi_0.01_kappa_0.11_chi_0.2_phi_0.8_psi_1.2:
     alpha:
     - 0.9
     - 1.0
@@ -174,10 +174,10 @@ scenarios:
     gamma2:
     - 0.3333
     - 1.0
-    kappa: 0.4
+    kappa: 0.11
     phi: 0.8
     psi: 1.2
-  pi_0.01_kappa_0.4_chi_0.4_phi_-0.2_psi_0.2:
+  pi_0.01_kappa_0.11_chi_0.4_phi_-0.2_psi_0.2:
     alpha:
     - 0.9
     - 1.0
@@ -188,10 +188,10 @@ scenarios:
     gamma2:
     - 0.3333
     - 1.0
-    kappa: 0.4
+    kappa: 0.11
     phi: -0.2
     psi: 0.2
-  pi_0.01_kappa_0.4_chi_0.4_phi_0.0_psi_0.4:
+  pi_0.01_kappa_0.11_chi_0.4_phi_0.0_psi_0.4:
     alpha:
     - 0.9
     - 1.0
@@ -202,10 +202,10 @@ scenarios:
     gamma2:
     - 0.3333
     - 1.0
-    kappa: 0.4
+    kappa: 0.11
     phi: 0.0
     psi: 0.4
-  pi_0.01_kappa_0.4_chi_0.4_phi_0.2_psi_0.6:
+  pi_0.01_kappa_0.11_chi_0.4_phi_0.2_psi_0.6:
     alpha:
     - 0.9
     - 1.0
@@ -216,10 +216,10 @@ scenarios:
     gamma2:
     - 0.3333
     - 1.0
-    kappa: 0.4
+    kappa: 0.11
     phi: 0.2
     psi: 0.6
-  pi_0.01_kappa_0.4_chi_0.4_phi_0.4_psi_0.8:
+  pi_0.01_kappa_0.11_chi_0.4_phi_0.4_psi_0.8:
     alpha:
     - 0.9
     - 1.0
@@ -230,10 +230,10 @@ scenarios:
     gamma2:
     - 0.3333
     - 1.0
-    kappa: 0.4
+    kappa: 0.11
     phi: 0.4
     psi: 0.8
-  pi_0.01_kappa_0.4_chi_0.4_phi_0.6_psi_1.0:
+  pi_0.01_kappa_0.11_chi_0.4_phi_0.6_psi_1.0:
     alpha:
     - 0.9
     - 1.0
@@ -244,10 +244,10 @@ scenarios:
     gamma2:
     - 0.3333
     - 1.0
-    kappa: 0.4
+    kappa: 0.11
     phi: 0.6
     psi: 1.0
-  pi_0.01_kappa_0.4_chi_0.4_phi_0.8_psi_1.2:
+  pi_0.01_kappa_0.11_chi_0.4_phi_0.8_psi_1.2:
     alpha:
     - 0.9
     - 1.0
@@ -258,10 +258,10 @@ scenarios:
     gamma2:
     - 0.3333
     - 1.0
-    kappa: 0.4
+    kappa: 0.11
     phi: 0.8
     psi: 1.2
-  pi_0.01_kappa_0.4_chi_0.6_phi_-0.2_psi_0.2:
+  pi_0.01_kappa_0.11_chi_0.6_phi_-0.2_psi_0.2:
     alpha:
     - 0.9
     - 1.0
@@ -272,10 +272,10 @@ scenarios:
     gamma2:
     - 0.3333
     - 1.0
-    kappa: 0.4
+    kappa: 0.11
     phi: -0.2
     psi: 0.2
-  pi_0.01_kappa_0.4_chi_0.6_phi_0.0_psi_0.4:
+  pi_0.01_kappa_0.11_chi_0.6_phi_0.0_psi_0.4:
     alpha:
     - 0.9
     - 1.0
@@ -286,10 +286,10 @@ scenarios:
     gamma2:
     - 0.3333
     - 1.0
-    kappa: 0.4
+    kappa: 0.11
     phi: 0.0
     psi: 0.4
-  pi_0.01_kappa_0.4_chi_0.6_phi_0.2_psi_0.6:
+  pi_0.01_kappa_0.11_chi_0.6_phi_0.2_psi_0.6:
     alpha:
     - 0.9
     - 1.0
@@ -300,10 +300,10 @@ scenarios:
     gamma2:
     - 0.3333
     - 1.0
-    kappa: 0.4
+    kappa: 0.11
     phi: 0.2
     psi: 0.6
-  pi_0.01_kappa_0.4_chi_0.6_phi_0.4_psi_0.8:
+  pi_0.01_kappa_0.11_chi_0.6_phi_0.4_psi_0.8:
     alpha:
     - 0.9
     - 1.0
@@ -314,10 +314,10 @@ scenarios:
     gamma2:
     - 0.3333
     - 1.0
-    kappa: 0.4
+    kappa: 0.11
     phi: 0.4
     psi: 0.8
-  pi_0.01_kappa_0.4_chi_0.6_phi_0.6_psi_1.0:
+  pi_0.01_kappa_0.11_chi_0.6_phi_0.6_psi_1.0:
     alpha:
     - 0.9
     - 1.0
@@ -328,10 +328,10 @@ scenarios:
     gamma2:
     - 0.3333
     - 1.0
-    kappa: 0.4
+    kappa: 0.11
     phi: 0.6
     psi: 1.0
-  pi_0.01_kappa_0.4_chi_0.6_phi_0.8_psi_1.2:
+  pi_0.01_kappa_0.11_chi_0.6_phi_0.8_psi_1.2:
     alpha:
     - 0.9
     - 1.0
@@ -342,10 +342,10 @@ scenarios:
     gamma2:
     - 0.3333
     - 1.0
-    kappa: 0.4
+    kappa: 0.11
     phi: 0.8
     psi: 1.2
-  pi_0.01_kappa_0.4_chi_0.8_phi_-0.2_psi_0.2:
+  pi_0.01_kappa_0.11_chi_0.8_phi_-0.2_psi_0.2:
     alpha:
     - 0.9
     - 1.0
@@ -356,10 +356,10 @@ scenarios:
     gamma2:
     - 0.3333
     - 1.0
-    kappa: 0.4
+    kappa: 0.11
     phi: -0.2
     psi: 0.2
-  pi_0.01_kappa_0.4_chi_0.8_phi_0.0_psi_0.4:
+  pi_0.01_kappa_0.11_chi_0.8_phi_0.0_psi_0.4:
     alpha:
     - 0.9
     - 1.0
@@ -370,10 +370,10 @@ scenarios:
     gamma2:
     - 0.3333
     - 1.0
-    kappa: 0.4
+    kappa: 0.11
     phi: 0.0
     psi: 0.4
-  pi_0.01_kappa_0.4_chi_0.8_phi_0.2_psi_0.6:
+  pi_0.01_kappa_0.11_chi_0.8_phi_0.2_psi_0.6:
     alpha:
     - 0.9
     - 1.0
@@ -384,10 +384,10 @@ scenarios:
     gamma2:
     - 0.3333
     - 1.0
-    kappa: 0.4
+    kappa: 0.11
     phi: 0.2
     psi: 0.6
-  pi_0.01_kappa_0.4_chi_0.8_phi_0.4_psi_0.8:
+  pi_0.01_kappa_0.11_chi_0.8_phi_0.4_psi_0.8:
     alpha:
     - 0.9
     - 1.0
@@ -398,10 +398,10 @@ scenarios:
     gamma2:
     - 0.3333
     - 1.0
-    kappa: 0.4
+    kappa: 0.11
     phi: 0.4
     psi: 0.8
-  pi_0.01_kappa_0.4_chi_0.8_phi_0.6_psi_1.0:
+  pi_0.01_kappa_0.11_chi_0.8_phi_0.6_psi_1.0:
     alpha:
     - 0.9
     - 1.0
@@ -412,10 +412,10 @@ scenarios:
     gamma2:
     - 0.3333
     - 1.0
-    kappa: 0.4
+    kappa: 0.11
     phi: 0.6
     psi: 1.0
-  pi_0.01_kappa_0.4_chi_0.8_phi_0.8_psi_1.2:
+  pi_0.01_kappa_0.11_chi_0.8_phi_0.8_psi_1.2:
     alpha:
     - 0.9
     - 1.0
@@ -426,10 +426,10 @@ scenarios:
     gamma2:
     - 0.3333
     - 1.0
-    kappa: 0.4
+    kappa: 0.11
     phi: 0.8
     psi: 1.2
-  pi_0.01_kappa_0.4_chi_0.99_phi_-0.2_psi_0.2:
+  pi_0.01_kappa_0.11_chi_0.99_phi_-0.2_psi_0.2:
     alpha:
     - 0.9
     - 1.0
@@ -440,10 +440,10 @@ scenarios:
     gamma2:
     - 0.3333
     - 1.0
-    kappa: 0.4
+    kappa: 0.11
     phi: -0.2
     psi: 0.2
-  pi_0.01_kappa_0.4_chi_0.99_phi_0.0_psi_0.4:
+  pi_0.01_kappa_0.11_chi_0.99_phi_0.0_psi_0.4:
     alpha:
     - 0.9
     - 1.0
@@ -454,10 +454,10 @@ scenarios:
     gamma2:
     - 0.3333
     - 1.0
-    kappa: 0.4
+    kappa: 0.11
     phi: 0.0
     psi: 0.4
-  pi_0.01_kappa_0.4_chi_0.99_phi_0.2_psi_0.6:
+  pi_0.01_kappa_0.11_chi_0.99_phi_0.2_psi_0.6:
     alpha:
     - 0.9
     - 1.0
@@ -468,10 +468,10 @@ scenarios:
     gamma2:
     - 0.3333
     - 1.0
-    kappa: 0.4
+    kappa: 0.11
     phi: 0.2
     psi: 0.6
-  pi_0.01_kappa_0.4_chi_0.99_phi_0.4_psi_0.8:
+  pi_0.01_kappa_0.11_chi_0.99_phi_0.4_psi_0.8:
     alpha:
     - 0.9
     - 1.0
@@ -482,10 +482,10 @@ scenarios:
     gamma2:
     - 0.3333
     - 1.0
-    kappa: 0.4
+    kappa: 0.11
     phi: 0.4
     psi: 0.8
-  pi_0.01_kappa_0.4_chi_0.99_phi_0.6_psi_1.0:
+  pi_0.01_kappa_0.11_chi_0.99_phi_0.6_psi_1.0:
     alpha:
     - 0.9
     - 1.0
@@ -496,10 +496,10 @@ scenarios:
     gamma2:
     - 0.3333
     - 1.0
-    kappa: 0.4
+    kappa: 0.11
     phi: 0.6
     psi: 1.0
-  pi_0.01_kappa_0.4_chi_0.99_phi_0.8_psi_1.2:
+  pi_0.01_kappa_0.11_chi_0.99_phi_0.8_psi_1.2:
     alpha:
     - 0.9
     - 1.0
@@ -510,10 +510,10 @@ scenarios:
     gamma2:
     - 0.3333
     - 1.0
-    kappa: 0.4
+    kappa: 0.11
     phi: 0.8
     psi: 1.2
-  pi_0.1_kappa_0.6_chi_0.0_phi_-0.2_psi_0.2:
+  pi_0.1_kappa_0.55_chi_0.0_phi_-0.2_psi_0.2:
     alpha:
     - 0.9
     - 1.0
@@ -524,10 +524,10 @@ scenarios:
     gamma2:
     - 0.3333
     - 1.0
-    kappa: 0.6
+    kappa: 0.55
     phi: -0.2
     psi: 0.2
-  pi_0.1_kappa_0.6_chi_0.0_phi_0.0_psi_0.4:
+  pi_0.1_kappa_0.55_chi_0.0_phi_0.0_psi_0.4:
     alpha:
     - 0.9
     - 1.0
@@ -538,10 +538,10 @@ scenarios:
     gamma2:
     - 0.3333
     - 1.0
-    kappa: 0.6
+    kappa: 0.55
     phi: 0.0
     psi: 0.4
-  pi_0.1_kappa_0.6_chi_0.0_phi_0.2_psi_0.6:
+  pi_0.1_kappa_0.55_chi_0.0_phi_0.2_psi_0.6:
     alpha:
     - 0.9
     - 1.0
@@ -552,10 +552,10 @@ scenarios:
     gamma2:
     - 0.3333
     - 1.0
-    kappa: 0.6
+    kappa: 0.55
     phi: 0.2
     psi: 0.6
-  pi_0.1_kappa_0.6_chi_0.0_phi_0.4_psi_0.8:
+  pi_0.1_kappa_0.55_chi_0.0_phi_0.4_psi_0.8:
     alpha:
     - 0.9
     - 1.0
@@ -566,10 +566,10 @@ scenarios:
     gamma2:
     - 0.3333
     - 1.0
-    kappa: 0.6
+    kappa: 0.55
     phi: 0.4
     psi: 0.8
-  pi_0.1_kappa_0.6_chi_0.0_phi_0.6_psi_1.0:
+  pi_0.1_kappa_0.55_chi_0.0_phi_0.6_psi_1.0:
     alpha:
     - 0.9
     - 1.0
@@ -580,10 +580,10 @@ scenarios:
     gamma2:
     - 0.3333
     - 1.0
-    kappa: 0.6
+    kappa: 0.55
     phi: 0.6
     psi: 1.0
-  pi_0.1_kappa_0.6_chi_0.0_phi_0.8_psi_1.2:
+  pi_0.1_kappa_0.55_chi_0.0_phi_0.8_psi_1.2:
     alpha:
     - 0.9
     - 1.0
@@ -594,10 +594,10 @@ scenarios:
     gamma2:
     - 0.3333
     - 1.0
-    kappa: 0.6
+    kappa: 0.55
     phi: 0.8
     psi: 1.2
-  pi_0.1_kappa_0.6_chi_0.2_phi_-0.2_psi_0.2:
+  pi_0.1_kappa_0.55_chi_0.2_phi_-0.2_psi_0.2:
     alpha:
     - 0.9
     - 1.0
@@ -608,10 +608,10 @@ scenarios:
     gamma2:
     - 0.3333
     - 1.0
-    kappa: 0.6
+    kappa: 0.55
     phi: -0.2
     psi: 0.2
-  pi_0.1_kappa_0.6_chi_0.2_phi_0.0_psi_0.4:
+  pi_0.1_kappa_0.55_chi_0.2_phi_0.0_psi_0.4:
     alpha:
     - 0.9
     - 1.0
@@ -622,10 +622,10 @@ scenarios:
     gamma2:
     - 0.3333
     - 1.0
-    kappa: 0.6
+    kappa: 0.55
     phi: 0.0
     psi: 0.4
-  pi_0.1_kappa_0.6_chi_0.2_phi_0.2_psi_0.6:
+  pi_0.1_kappa_0.55_chi_0.2_phi_0.2_psi_0.6:
     alpha:
     - 0.9
     - 1.0
@@ -636,10 +636,10 @@ scenarios:
     gamma2:
     - 0.3333
     - 1.0
-    kappa: 0.6
+    kappa: 0.55
     phi: 0.2
     psi: 0.6
-  pi_0.1_kappa_0.6_chi_0.2_phi_0.4_psi_0.8:
+  pi_0.1_kappa_0.55_chi_0.2_phi_0.4_psi_0.8:
     alpha:
     - 0.9
     - 1.0
@@ -650,10 +650,10 @@ scenarios:
     gamma2:
     - 0.3333
     - 1.0
-    kappa: 0.6
+    kappa: 0.55
     phi: 0.4
     psi: 0.8
-  pi_0.1_kappa_0.6_chi_0.2_phi_0.6_psi_1.0:
+  pi_0.1_kappa_0.55_chi_0.2_phi_0.6_psi_1.0:
     alpha:
     - 0.9
     - 1.0
@@ -664,10 +664,10 @@ scenarios:
     gamma2:
     - 0.3333
     - 1.0
-    kappa: 0.6
+    kappa: 0.55
     phi: 0.6
     psi: 1.0
-  pi_0.1_kappa_0.6_chi_0.2_phi_0.8_psi_1.2:
+  pi_0.1_kappa_0.55_chi_0.2_phi_0.8_psi_1.2:
     alpha:
     - 0.9
     - 1.0
@@ -678,10 +678,10 @@ scenarios:
     gamma2:
     - 0.3333
     - 1.0
-    kappa: 0.6
+    kappa: 0.55
     phi: 0.8
     psi: 1.2
-  pi_0.1_kappa_0.6_chi_0.4_phi_-0.2_psi_0.2:
+  pi_0.1_kappa_0.55_chi_0.4_phi_-0.2_psi_0.2:
     alpha:
     - 0.9
     - 1.0
@@ -692,10 +692,10 @@ scenarios:
     gamma2:
     - 0.3333
     - 1.0
-    kappa: 0.6
+    kappa: 0.55
     phi: -0.2
     psi: 0.2
-  pi_0.1_kappa_0.6_chi_0.4_phi_0.0_psi_0.4:
+  pi_0.1_kappa_0.55_chi_0.4_phi_0.0_psi_0.4:
     alpha:
     - 0.9
     - 1.0
@@ -706,10 +706,10 @@ scenarios:
     gamma2:
     - 0.3333
     - 1.0
-    kappa: 0.6
+    kappa: 0.55
     phi: 0.0
     psi: 0.4
-  pi_0.1_kappa_0.6_chi_0.4_phi_0.2_psi_0.6:
+  pi_0.1_kappa_0.55_chi_0.4_phi_0.2_psi_0.6:
     alpha:
     - 0.9
     - 1.0
@@ -720,10 +720,10 @@ scenarios:
     gamma2:
     - 0.3333
     - 1.0
-    kappa: 0.6
+    kappa: 0.55
     phi: 0.2
     psi: 0.6
-  pi_0.1_kappa_0.6_chi_0.4_phi_0.4_psi_0.8:
+  pi_0.1_kappa_0.55_chi_0.4_phi_0.4_psi_0.8:
     alpha:
     - 0.9
     - 1.0
@@ -734,10 +734,10 @@ scenarios:
     gamma2:
     - 0.3333
     - 1.0
-    kappa: 0.6
+    kappa: 0.55
     phi: 0.4
     psi: 0.8
-  pi_0.1_kappa_0.6_chi_0.4_phi_0.6_psi_1.0:
+  pi_0.1_kappa_0.55_chi_0.4_phi_0.6_psi_1.0:
     alpha:
     - 0.9
     - 1.0
@@ -748,10 +748,10 @@ scenarios:
     gamma2:
     - 0.3333
     - 1.0
-    kappa: 0.6
+    kappa: 0.55
     phi: 0.6
     psi: 1.0
-  pi_0.1_kappa_0.6_chi_0.4_phi_0.8_psi_1.2:
+  pi_0.1_kappa_0.55_chi_0.4_phi_0.8_psi_1.2:
     alpha:
     - 0.9
     - 1.0
@@ -762,10 +762,10 @@ scenarios:
     gamma2:
     - 0.3333
     - 1.0
-    kappa: 0.6
+    kappa: 0.55
     phi: 0.8
     psi: 1.2
-  pi_0.1_kappa_0.6_chi_0.6_phi_-0.2_psi_0.2:
+  pi_0.1_kappa_0.55_chi_0.6_phi_-0.2_psi_0.2:
     alpha:
     - 0.9
     - 1.0
@@ -776,10 +776,10 @@ scenarios:
     gamma2:
     - 0.3333
     - 1.0
-    kappa: 0.6
+    kappa: 0.55
     phi: -0.2
     psi: 0.2
-  pi_0.1_kappa_0.6_chi_0.6_phi_0.0_psi_0.4:
+  pi_0.1_kappa_0.55_chi_0.6_phi_0.0_psi_0.4:
     alpha:
     - 0.9
     - 1.0
@@ -790,10 +790,10 @@ scenarios:
     gamma2:
     - 0.3333
     - 1.0
-    kappa: 0.6
+    kappa: 0.55
     phi: 0.0
     psi: 0.4
-  pi_0.1_kappa_0.6_chi_0.6_phi_0.2_psi_0.6:
+  pi_0.1_kappa_0.55_chi_0.6_phi_0.2_psi_0.6:
     alpha:
     - 0.9
     - 1.0
@@ -804,10 +804,10 @@ scenarios:
     gamma2:
     - 0.3333
     - 1.0
-    kappa: 0.6
+    kappa: 0.55
     phi: 0.2
     psi: 0.6
-  pi_0.1_kappa_0.6_chi_0.6_phi_0.4_psi_0.8:
+  pi_0.1_kappa_0.55_chi_0.6_phi_0.4_psi_0.8:
     alpha:
     - 0.9
     - 1.0
@@ -818,10 +818,10 @@ scenarios:
     gamma2:
     - 0.3333
     - 1.0
-    kappa: 0.6
+    kappa: 0.55
     phi: 0.4
     psi: 0.8
-  pi_0.1_kappa_0.6_chi_0.6_phi_0.6_psi_1.0:
+  pi_0.1_kappa_0.55_chi_0.6_phi_0.6_psi_1.0:
     alpha:
     - 0.9
     - 1.0
@@ -832,10 +832,10 @@ scenarios:
     gamma2:
     - 0.3333
     - 1.0
-    kappa: 0.6
+    kappa: 0.55
     phi: 0.6
     psi: 1.0
-  pi_0.1_kappa_0.6_chi_0.6_phi_0.8_psi_1.2:
+  pi_0.1_kappa_0.55_chi_0.6_phi_0.8_psi_1.2:
     alpha:
     - 0.9
     - 1.0
@@ -846,10 +846,10 @@ scenarios:
     gamma2:
     - 0.3333
     - 1.0
-    kappa: 0.6
+    kappa: 0.55
     phi: 0.8
     psi: 1.2
-  pi_0.1_kappa_0.6_chi_0.8_phi_-0.2_psi_0.2:
+  pi_0.1_kappa_0.55_chi_0.8_phi_-0.2_psi_0.2:
     alpha:
     - 0.9
     - 1.0
@@ -860,10 +860,10 @@ scenarios:
     gamma2:
     - 0.3333
     - 1.0
-    kappa: 0.6
+    kappa: 0.55
     phi: -0.2
     psi: 0.2
-  pi_0.1_kappa_0.6_chi_0.8_phi_0.0_psi_0.4:
+  pi_0.1_kappa_0.55_chi_0.8_phi_0.0_psi_0.4:
     alpha:
     - 0.9
     - 1.0
@@ -874,10 +874,10 @@ scenarios:
     gamma2:
     - 0.3333
     - 1.0
-    kappa: 0.6
+    kappa: 0.55
     phi: 0.0
     psi: 0.4
-  pi_0.1_kappa_0.6_chi_0.8_phi_0.2_psi_0.6:
+  pi_0.1_kappa_0.55_chi_0.8_phi_0.2_psi_0.6:
     alpha:
     - 0.9
     - 1.0
@@ -888,10 +888,10 @@ scenarios:
     gamma2:
     - 0.3333
     - 1.0
-    kappa: 0.6
+    kappa: 0.55
     phi: 0.2
     psi: 0.6
-  pi_0.1_kappa_0.6_chi_0.8_phi_0.4_psi_0.8:
+  pi_0.1_kappa_0.55_chi_0.8_phi_0.4_psi_0.8:
     alpha:
     - 0.9
     - 1.0
@@ -902,10 +902,10 @@ scenarios:
     gamma2:
     - 0.3333
     - 1.0
-    kappa: 0.6
+    kappa: 0.55
     phi: 0.4
     psi: 0.8
-  pi_0.1_kappa_0.6_chi_0.8_phi_0.6_psi_1.0:
+  pi_0.1_kappa_0.55_chi_0.8_phi_0.6_psi_1.0:
     alpha:
     - 0.9
     - 1.0
@@ -916,10 +916,10 @@ scenarios:
     gamma2:
     - 0.3333
     - 1.0
-    kappa: 0.6
+    kappa: 0.55
     phi: 0.6
     psi: 1.0
-  pi_0.1_kappa_0.6_chi_0.8_phi_0.8_psi_1.2:
+  pi_0.1_kappa_0.55_chi_0.8_phi_0.8_psi_1.2:
     alpha:
     - 0.9
     - 1.0
@@ -930,10 +930,10 @@ scenarios:
     gamma2:
     - 0.3333
     - 1.0
-    kappa: 0.6
+    kappa: 0.55
     phi: 0.8
     psi: 1.2
-  pi_0.1_kappa_0.6_chi_0.99_phi_-0.2_psi_0.2:
+  pi_0.1_kappa_0.55_chi_0.99_phi_-0.2_psi_0.2:
     alpha:
     - 0.9
     - 1.0
@@ -944,10 +944,10 @@ scenarios:
     gamma2:
     - 0.3333
     - 1.0
-    kappa: 0.6
+    kappa: 0.55
     phi: -0.2
     psi: 0.2
-  pi_0.1_kappa_0.6_chi_0.99_phi_0.0_psi_0.4:
+  pi_0.1_kappa_0.55_chi_0.99_phi_0.0_psi_0.4:
     alpha:
     - 0.9
     - 1.0
@@ -958,10 +958,10 @@ scenarios:
     gamma2:
     - 0.3333
     - 1.0
-    kappa: 0.6
+    kappa: 0.55
     phi: 0.0
     psi: 0.4
-  pi_0.1_kappa_0.6_chi_0.99_phi_0.2_psi_0.6:
+  pi_0.1_kappa_0.55_chi_0.99_phi_0.2_psi_0.6:
     alpha:
     - 0.9
     - 1.0
@@ -972,10 +972,10 @@ scenarios:
     gamma2:
     - 0.3333
     - 1.0
-    kappa: 0.6
+    kappa: 0.55
     phi: 0.2
     psi: 0.6
-  pi_0.1_kappa_0.6_chi_0.99_phi_0.4_psi_0.8:
+  pi_0.1_kappa_0.55_chi_0.99_phi_0.4_psi_0.8:
     alpha:
     - 0.9
     - 1.0
@@ -986,10 +986,10 @@ scenarios:
     gamma2:
     - 0.3333
     - 1.0
-    kappa: 0.6
+    kappa: 0.55
     phi: 0.4
     psi: 0.8
-  pi_0.1_kappa_0.6_chi_0.99_phi_0.6_psi_1.0:
+  pi_0.1_kappa_0.55_chi_0.99_phi_0.6_psi_1.0:
     alpha:
     - 0.9
     - 1.0
@@ -1000,10 +1000,10 @@ scenarios:
     gamma2:
     - 0.3333
     - 1.0
-    kappa: 0.6
+    kappa: 0.55
     phi: 0.6
     psi: 1.0
-  pi_0.1_kappa_0.6_chi_0.99_phi_0.8_psi_1.2:
+  pi_0.1_kappa_0.55_chi_0.99_phi_0.8_psi_1.2:
     alpha:
     - 0.9
     - 1.0
@@ -1014,7 +1014,7 @@ scenarios:
     gamma2:
     - 0.3333
     - 1.0
-    kappa: 0.6
+    kappa: 0.55
     phi: 0.8
     psi: 1.2
 workflow:
