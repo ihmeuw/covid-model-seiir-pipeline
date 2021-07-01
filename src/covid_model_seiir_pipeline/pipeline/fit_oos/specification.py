@@ -18,7 +18,7 @@ FIT_JOBS = __FitJobs()
 class FitTaskSpecification(workflow.TaskSpecification):
     """Specification of execution parameters for fit OOS tasks."""
     default_max_runtime_seconds = 3000
-    default_m_mem_free = '20G'
+    default_m_mem_free = '25G'
     default_num_cores = 1
 
 

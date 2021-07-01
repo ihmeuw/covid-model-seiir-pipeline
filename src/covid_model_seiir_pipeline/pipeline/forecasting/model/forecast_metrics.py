@@ -254,7 +254,7 @@ def compute_effective_r(model_params: ode.ForecastParameters,
     ).rename('r_controlled_variant')
     r_effective_variant = (r_controlled_variant * s_variant / population).rename('r_effective_variant')
 
-    average_generation_time = round((1 / sigma + 1 / gamma1 + 1 / gamma2).mean())
+    average_generation_time = int(round((1 / sigma + 1 / gamma1 + 1 / gamma2).mean()))
     r_effective_empirical = infections.groupby('location_id').apply(lambda x: x / x.shift(average_generation_time))
 
     return (
