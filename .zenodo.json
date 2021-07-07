@@ -1,0 +1,39 @@
+{
+    "license": "BSD-3-Clause",
+    "title": "IHME COVID-19 Forecasting model.",
+    "upload_type": "software",
+    "creators": [
+        {
+            "orcid": "0000-0001-7633-7804",
+            "affiliation": "Institute for Health Metrics and Evaluation",
+            "name": "Collins, J.K."
+        },
+        {
+            "orcid": "0000-0001-6279-5978",
+            "affiliation": "Institute for Health Metrics and Evaluation",
+            "name": "Bannick, Marlena"
+        },
+        {
+            "orcid": "0000-0003-3313-215X",
+            "affiliation": "Institute for Health Metrics and Evaluation",
+            "name": "Zheng, Peng"
+        },
+        {
+            "orcid": "",
+            "affiliation": "Institute for Health Metrics and Evaluation",
+            "name": "Richards, Michael"
+        },
+        {
+            "orcid": "",
+            "affiliation": "Institute for Health Metrics and Evaluation",
+            "name": "Barber, Ryan"
+        },
+        {
+            "orcid": "",
+            "affiliation": "Institute for Health Metrics and Evaluation",
+            "name": "Sandar, Logan"
+        }
+    ],
+    "access_right": "open",
+    "description": "<p>This model fits transmission dynamics to past infections and forecasts the state of the epidemic into the future.</p>"
+}
