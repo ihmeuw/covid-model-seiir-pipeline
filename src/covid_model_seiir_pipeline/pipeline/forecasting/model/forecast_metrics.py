@@ -141,6 +141,7 @@ def variant_system_metrics(indices: Indices,
     s_wild = components[[c for c in cols if 'S' in c and 'variant' not in c and 'm' not in c]].sum(axis=1)
     s_variant = components[[c for c in cols if 'S' in c]].sum(axis=1)
     s_variant_only = components[[c for c in cols if 'S_variant' in c or 'S_m' in c]].sum(axis=1)
+    s_variant_unprotected = components[[c for c in cols if 'S' in c and 'pa' not in c and 'm' not in c]].sum(axis=1)
 
     i_wild = components[[c for c in cols if 'I' in c and 'variant' not in c]].sum(axis=1)
     i_variant = components[[c for c in cols if 'I' in c and 'variant' in c]].sum(axis=1)
@@ -183,6 +184,7 @@ def variant_system_metrics(indices: Indices,
         total_susceptible_wild=s_wild,
         total_susceptible_variant=s_variant,
         total_susceptible_variant_only=s_variant_only,
+        total_susceptible_variant_unprotected=s_variant_unprotected,
         total_infectious_wild=i_wild,
         total_infectious_variant=i_variant,
         total_immune_wild=immune_wild,
@@ -252,8 +254,7 @@ def compute_effective_r(model_params: ode.ForecastParameters,
     ).rename('r_controlled_variant')
     r_effective_variant = (r_controlled_variant * s_variant / population).rename('r_effective_variant')
 
-    # TODO: I don't know, compute this from something? Sample from gamma dist?
-    average_generation_time = 7
+    average_generation_time = int(round((1 / sigma + 1 / gamma1 + 1 / gamma2).mean()))
     r_effective_empirical = infections.groupby('location_id').apply(lambda x: x / x.shift(average_generation_time))
 
     return (

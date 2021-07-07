@@ -18,7 +18,7 @@ FIT_JOBS = __FitJobs()
 class FitTaskSpecification(workflow.TaskSpecification):
     """Specification of execution parameters for fit OOS tasks."""
     default_max_runtime_seconds = 3000
-    default_m_mem_free = '6G'
+    default_m_mem_free = '25G'
     default_num_cores = 1
 
 
@@ -34,6 +34,7 @@ class FitData:
     """Specifies the inputs and outputs for the fit"""
     infection_version: str = field(default='best')
     covariate_version: str = field(default='best')
+    coefficient_version: str = field(default='best')
     variant_version: str = field(default='best')
     location_set_version_id: int = field(default=0)
     location_set_file: str = field(default='')
@@ -56,11 +57,15 @@ class FitScenario:
     gamma1: Tuple[float, float] = field(default=(0.5, 0.5))
     gamma2: Tuple[float, float] = field(default=(1/3, 1.0))
 
-    kappa: float = field(default=0.36)
-    phi: float = field(default=0.5)
-    pi: Optional[float] = field(default=None)
+    kappa: float = field(default=0.4)
+    chi: float = field(default=0.6)
+    phi: float = field(default=0.0)
+    psi: float = field(default=0.6)
+    pi: Optional[float] = field(default=0.05)
 
-    chi: float = field(default=1.0)
+    max_date: str = field(default='2021-06-15')
+    threshold: float = field(default=0.5)
+    location_filter: list = field(default_factory=list)
 
     def to_dict(self) -> Dict:
         """Converts to a dict, coercing list-like items to lists."""

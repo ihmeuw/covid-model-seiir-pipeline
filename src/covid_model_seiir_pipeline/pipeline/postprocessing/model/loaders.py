@@ -154,6 +154,10 @@ def load_total_susceptible_variant_only(scenario: str, data_interface: 'Postproc
     return _load_output_data(scenario, 'total_susceptible_variant_only', data_interface, num_cores)
 
 
+def load_total_susceptible_variant_unprotected(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
+    return _load_output_data(scenario, 'total_susceptible_variant_unprotected', data_interface, num_cores)
+
+
 def load_total_immune_wild(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
     return _load_output_data(scenario, 'total_immune_wild', data_interface, num_cores)
 

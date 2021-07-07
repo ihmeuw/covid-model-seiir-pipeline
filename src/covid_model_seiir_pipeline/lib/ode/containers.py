@@ -69,10 +69,11 @@ class ODEParameters:
 
     def __iter__(self) -> Iterator[Tuple[int, 'ODEParameters']]:
         location_ids = self.alpha.reset_index().location_id.unique()
+        this_dict = self.to_dict().items()
         for location_id in location_ids:
             # noinspection PyArgumentList
             loc_parameters = type(self)(
-                **{key: value.loc[location_id] for key, value in self.to_dict().items()},
+                **{key: value.loc[location_id] for key, value in this_dict},
             )
             yield location_id, loc_parameters
 

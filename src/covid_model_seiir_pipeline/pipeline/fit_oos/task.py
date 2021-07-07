@@ -28,19 +28,20 @@ def run_beta_fit(fit_version: str, scenario: str, draw_id: int, progress_bar: bo
     data_interface = FitDataInterface.from_specification(fit_specification)
 
     logger.info('Loading ODE fit input data', context='read')
+    hierarchy = data_interface.load_hierarchy()
     past_infection_data = data_interface.load_past_infection_data(draw_id=draw_id)
     population = data_interface.load_five_year_population()
     rhos = data_interface.load_variant_prevalence()
-    vaccinations = data_interface.load_vaccine_info('reference')
+    vaccinations = data_interface.load_vaccinations()
 
     logger.info('Prepping ODE fit parameters.', context='transform')
     infections = clean_infection_data_measure(past_infection_data, 'infections')
-    fit_params = fit_specification.scenarios[scenario].to_dict()
+    fit_params = fit_specification.scenarios[scenario]
 
     np.random.seed(draw_id)
     sampled_params = sample_params(
-        infections.index, fit_params,
-        params_to_sample=['alpha', 'sigma', 'gamma1', 'gamma2', 'kappa', 'phi', 'pi', 'chi']
+        infections.index, fit_params.to_dict(),
+        params_to_sample=['alpha', 'sigma', 'gamma1', 'gamma2', 'kappa', 'phi', 'psi', 'pi', 'chi']
     )
     ode_parameters = prepare_ode_fit_parameters(
         infections,
@@ -48,7 +49,6 @@ def run_beta_fit(fit_version: str, scenario: str, draw_id: int, progress_bar: bo
         rhos,
         vaccinations,
         sampled_params,
-        draw_id,
     )
 
     logger.info('Running ODE fit', context='compute_ode')
@@ -56,6 +56,7 @@ def run_beta_fit(fit_version: str, scenario: str, draw_id: int, progress_bar: bo
         ode_parameters=ode_parameters,
         progress_bar=progress_bar,
     )
+
     data_interface.save_betas(beta, scenario=scenario, draw_id=draw_id)
     data_interface.save_compartments(compartments, scenario=scenario, draw_id=draw_id)
     data_interface.save_ode_parameters(ode_parameters.to_df(), scenario=scenario, draw_id=draw_id)
