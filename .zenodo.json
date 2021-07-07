@@ -19,19 +19,29 @@
             "name": "Zheng, Peng"
         },
         {
-            "orcid": "",
+            "orcid": "0000-0002-1116-8322",
             "affiliation": "Institute for Health Metrics and Evaluation",
             "name": "Richards, Michael"
         },
         {
-            "orcid": "",
+            "orcid": "0000-0003-0679-3745",
             "affiliation": "Institute for Health Metrics and Evaluation",
             "name": "Barber, Ryan"
         },
         {
-            "orcid": "",
+            "orcid": "0000-0002-8636-4459",
             "affiliation": "Institute for Health Metrics and Evaluation",
             "name": "Sandar, Logan"
+        },
+        {
+            "orcid": "0000-0001-8173-6236",
+            "affiliation": "Institute for Health Metrics and Evaluation",
+            "name": "Sholokhov, Aleksei"
+        },
+        {
+            "orcid": "",
+            "affiliation": "Institute for Health Metrics and Evaluation",
+            "name": "Zhang, Jize"
         }
     ],
     "access_right": "open",
