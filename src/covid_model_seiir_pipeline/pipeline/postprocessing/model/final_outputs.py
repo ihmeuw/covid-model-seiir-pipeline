@@ -236,6 +236,7 @@ MEASURES = {
         loaders.load_total_susceptible_variant_unprotected,
         'total_susceptible_variant_unprotected',
         aggregator=aggregators.sum_aggregator,
+        splice=False,
     ),
     'total_immune_wild': MeasureConfig(
         loaders.load_total_immune_wild,
