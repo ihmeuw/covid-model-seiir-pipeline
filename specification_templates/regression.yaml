@@ -1,6 +1,6 @@
 data:
-  infection_version: '2021_06_03.08'
-  covariate_version: '2021_06_02.01'
+  infection_version: '2021_07_16.01'
+  covariate_version: '2021_07_13.01'
   coefficient_version: ''
   priors_version: '2021_05_31.01'
   location_set_version_id: 771
@@ -27,7 +27,7 @@ regression_parameters:
   # Mean of phi will be chi + phi_mean_shift
   phi_mean_shift: 0.0
   phi_sd: 0.21
-  psi_mean_shift: 0.6
+  psi_mean_shift: 0.9
   psi_sd: 0.21
   # Proportion of current E to send to escape variant E on invasion.
   pi: [0.01, 0.1]
