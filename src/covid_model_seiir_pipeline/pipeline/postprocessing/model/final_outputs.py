@@ -203,7 +203,7 @@ MEASURES = {
     ),
     'icu_census_correction_factor': MeasureConfig(
         loaders.load_icu_census_correction_factor,
-        'hospital_census_correction_factor',
+        'icu_census_correction_factor',
     ),
 
     # Vaccination measures
@@ -395,19 +395,19 @@ COMPOSITE_MEASURES = {
     'infection_fatality_ratio_modeled': CompositeMeasureConfig(
         base_measures={'infections': MEASURES['infections'],
                        'deaths': MEASURES['deaths_modeled']},
-        label='infection_fatality_ratio',
+        label='infection_fatality_ratio_modeled',
         combiner=combiners.make_ifr,
     ),
     'infection_fatality_ratio_high_risk': CompositeMeasureConfig(
         base_measures={'infections': MEASURES['infections_hr'],
                        'deaths': MEASURES['deaths_hr']},
-        label='infection_fatality_ratio',
+        label='infection_fatality_ratio_high_risk',
         combiner=combiners.make_ifr,
     ),
     'infection_fatality_ratio_low_risk': CompositeMeasureConfig(
         base_measures={'infections': MEASURES['infections_lr'],
                        'deaths': MEASURES['deaths_lr']},
-        label='infection_fatality_ratio',
+        label='infection_fatality_ratio_high_risk',
         combiner=combiners.make_ifr,
     ),
 
