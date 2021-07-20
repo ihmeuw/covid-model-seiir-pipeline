@@ -407,7 +407,7 @@ COMPOSITE_MEASURES = {
     'infection_fatality_ratio_low_risk': CompositeMeasureConfig(
         base_measures={'infections': MEASURES['infections_lr'],
                        'deaths': MEASURES['deaths_lr']},
-        label='infection_fatality_ratio_high_risk',
+        label='infection_fatality_ratio_low_risk',
         combiner=combiners.make_ifr,
     ),
 
