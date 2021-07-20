@@ -212,7 +212,8 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
 
     logger.info('Prepping outputs.', context='transform')
     ode_params = model_parameters.to_df()
-    outputs = pd.concat([system_metrics.to_df(), output_metrics.to_df()], axis=1)
+    outputs = pd.concat([system_metrics.to_df(), output_metrics.to_df(),
+                         postprocessing_params.correction_factors_df], axis=1)
 
     logger.info('Writing outputs.', context='write')
     data_interface.save_ode_params(ode_params, scenario, draw_id)

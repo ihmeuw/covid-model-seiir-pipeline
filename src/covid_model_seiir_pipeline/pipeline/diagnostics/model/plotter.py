@@ -245,20 +245,11 @@ def make_details_page(plot_versions: List[PlotVersion],
         axes[col].append(ax_daily)
 
         ax_correction = fig.add_subplot(gs_hospital[1, col])
-        for plot_version in plot_versions:
-            hcf = plot_version.load_output_miscellaneous(
-                'hospital_correction_factors',
-                is_table=True,
-                location_id=location.id
-            )
-            ax_correction.plot(
-                hcf['date'],
-                hcf[f'{measure}_census'],
-                color=plot_version.color,
-                linewidth=3,
-            )
-            ax_correction.set_ylabel(f'{label} Scalar', fontsize=AX_LABEL_FONTSIZE)
-        plotter.format_date_axis(ax_correction)
+        plotter.make_time_plot(
+            ax_correction,
+            f'{measure}_census_correction_factor',
+            label=f'{label} Census Correction Factor'
+        )
         axes[col].append(ax_correction)
 
         ax_census = fig.add_subplot(gs_hospital[2, col])

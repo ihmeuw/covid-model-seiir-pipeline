@@ -197,6 +197,14 @@ MEASURES = {
         'icu_census',
         aggregator=aggregators.sum_aggregator,
     ),
+    'hospital_census_correction_factor': MeasureConfig(
+        loaders.load_hospital_census_correction_factor,
+        'hospital_census_correction_factor',
+    ),
+    'icu_census_correction_factor': MeasureConfig(
+        loaders.load_icu_census_correction_factor,
+        'hospital_census_correction_factor',
+    ),
 
     # Vaccination measures
 
@@ -480,10 +488,6 @@ MISCELLANEOUS = {
     'hospital_census_data': MiscellaneousConfig(
         loaders.load_raw_census_data,
         'hospital_census_data',
-    ),
-    'hospital_correction_factors': MiscellaneousConfig(
-        loaders.load_hospital_correction_factors,
-        'hospital_correction_factors',
     ),
     'version_map': MiscellaneousConfig(
         loaders.build_version_map,

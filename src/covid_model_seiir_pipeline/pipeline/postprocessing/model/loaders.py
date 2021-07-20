@@ -119,6 +119,14 @@ def load_icu_census(scenario: str, data_interface: 'PostprocessingDataInterface'
     return _load_output_data(scenario, 'icu_census', data_interface, num_cores)
 
 
+def load_hospital_census_correction_factor(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
+    return _load_output_data(scenario, 'hospital_census_correction_factor', data_interface, num_cores)
+
+
+def load_icu_census_correction_factor(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
+    return _load_output_data(scenario, 'icu_census_correction_factor', data_interface, num_cores)
+
+
 ################
 # Vaccinations #
 ################

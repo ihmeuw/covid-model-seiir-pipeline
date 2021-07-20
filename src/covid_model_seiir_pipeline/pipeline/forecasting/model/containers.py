@@ -97,6 +97,13 @@ class PostprocessingParameters:
     def to_dict(self) -> Dict[str, Union[int, pd.Series, pd.DataFrame]]:
         return utilities.asdict(self)
 
+    @property
+    def correction_factors_df(self) -> pd.DataFrame:
+        return pd.concat([
+            self.hospital_census.rename('hospital_census_correction_factor'),
+            self.icu_census.rename('icu_census_correction_factor'),
+        ], axis=1)
+
 
 @dataclass
 class SystemMetrics:
