@@ -204,8 +204,7 @@ def make_details_page(plot_versions: List[PlotVersion],
     full_data = pv.load_output_miscellaneous('full_data', is_table=True, location_id=location.id)
     full_data_unscaled = pv.load_output_miscellaneous('unscaled_full_data', is_table=True, location_id=location.id)
     hospital_census = pv.load_output_miscellaneous('hospital_census_data', is_table=True, location_id=location.id)
-    hospital_correction_factors = pv.load_output_miscellaneous('hospital_correction_factors', is_table=True,
-                                                               location_id=location.id)
+
     # Configure the plot layout.
     fig = plt.figure(figsize=FIG_SIZE, tight_layout=True)
     grid_spec = fig.add_gridspec(
@@ -246,12 +245,20 @@ def make_details_page(plot_versions: List[PlotVersion],
         axes[col].append(ax_daily)
 
         ax_correction = fig.add_subplot(gs_hospital[1, col])
-        plotter.make_raw_time_plot(
-            ax_correction,
-            hospital_correction_factors,
-            f'{measure}_census',
-            f'{label} Scalar'
-        )
+        for plot_version in plot_versions:
+            hcf = plot_version.load_output_miscellaneous(
+                'hospital_correction_factors',
+                is_table=True,
+                location_id=location.id
+            )
+            ax_correction.plot(
+                hcf['date'],
+                hcf[f'{measure}_census'],
+                color=plot_version.color,
+                linewidth=3,
+            )
+            ax_correction.set_ylabel(f'{label} Scalar', fontsize=AX_LABEL_FONTSIZE)
+        plotter.format_date_axis(ax_correction)
         axes[col].append(ax_correction)
 
         ax_census = fig.add_subplot(gs_hospital[2, col])
