@@ -33,7 +33,7 @@ def load_admissions_and_hfr(data_interface: 'RegressionDataInterface',
 
     admissions, hfr = zip(*draw_data)
     admissions_mean = pd.concat(admissions, axis=1).mean(axis=1).rename('admissions')
-    hfr_mean = pd.concat(hfr, axis=1).mean(axis=1).rename('hfr')
+    hfr_mean = pd.concat(hfr, axis=1).mean(axis=1).rename('hfr').loc[admissions_mean.index]
 
     return admissions_mean, hfr_mean
 

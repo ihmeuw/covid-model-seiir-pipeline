@@ -238,8 +238,7 @@ def compute_deaths(modeled_infections: pd.Series,
                       .groupby('location_id')
                       .shift(infection_death_lag) * ifr)
     modeled_deaths = modeled_deaths.rename('deaths').reset_index()
-    modeled_deaths['observed'] = 0
-    modeled_deaths = modeled_deaths.set_index(['location_id', 'date', 'observed']).deaths
+    modeled_deaths = modeled_deaths.set_index(['location_id', 'date']).deaths
     return modeled_deaths
 
 
