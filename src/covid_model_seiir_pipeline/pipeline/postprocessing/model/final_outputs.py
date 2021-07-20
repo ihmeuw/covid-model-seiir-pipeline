@@ -392,6 +392,25 @@ COMPOSITE_MEASURES = {
         label='infection_fatality_ratio',
         combiner=combiners.make_ifr,
     ),
+    'infection_fatality_ratio_modeled': CompositeMeasureConfig(
+        base_measures={'infections': MEASURES['infections'],
+                       'deaths': MEASURES['deaths_modeled']},
+        label='infection_fatality_ratio',
+        combiner=combiners.make_ifr,
+    ),
+    'infection_fatality_ratio_high_risk': CompositeMeasureConfig(
+        base_measures={'infections': MEASURES['infections_hr'],
+                       'deaths': MEASURES['deaths_hr']},
+        label='infection_fatality_ratio',
+        combiner=combiners.make_ifr,
+    ),
+    'infection_fatality_ratio_low_risk': CompositeMeasureConfig(
+        base_measures={'infections': MEASURES['infections_lr'],
+                       'deaths': MEASURES['deaths_lr']},
+        label='infection_fatality_ratio',
+        combiner=combiners.make_ifr,
+    ),
+
     'infection_hospitalization_ratio': CompositeMeasureConfig(
         base_measures={'infections': MEASURES['infections'],
                        'hospital_admissions': MEASURES['hospital_admissions']},
