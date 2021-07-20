@@ -101,6 +101,21 @@ MEASURES = {
         'daily_deaths_variant',
         aggregator=aggregators.sum_aggregator,
     ),
+    'deaths_lr': MeasureConfig(
+        loaders.load_deaths_lr,
+        'daily_deaths_low_risk',
+        aggregator=aggregators.sum_aggregator,
+    ),
+    'deaths_hr': MeasureConfig(
+        loaders.load_deaths_hr,
+        'daily_deaths_high_risk',
+        aggregator=aggregators.sum_aggregator,
+    ),
+    'deaths_modeled': MeasureConfig(
+        loaders.load_deaths_modeled,
+        'daily_deaths_modeled',
+        aggregator=aggregators.sum_aggregator,
+    ),
 
     # Infection measures
 
@@ -138,6 +153,16 @@ MEASURES = {
     'infections_vaccine_breakthrough': MeasureConfig(
         loaders.load_infections_vaccine_breakthrough,
         'daily_infections_vaccine_breakthrough',
+        aggregator=aggregators.sum_aggregator,
+    ),
+    'infections_lr': MeasureConfig(
+        loaders.load_infections_lr,
+        'daily_infections_low_risk',
+        aggregator=aggregators.sum_aggregator,
+    ),
+    'infections_hr': MeasureConfig(
+        loaders.load_infections_hr,
+        'daily_infections_high_risk',
         aggregator=aggregators.sum_aggregator,
     ),
     'cases': MeasureConfig(
@@ -267,6 +292,14 @@ MEASURES = {
     'r_effective': MeasureConfig(
         loaders.load_r_effective,
         'r_effective',
+    ),
+    'force_of_infection': MeasureConfig(
+        loaders.load_force_of_infection,
+        'force_of_infection',
+    ),
+    'force_of_infection_unvaccinated': MeasureConfig(
+        loaders.load_force_of_infection_unvaccinated,
+        'force_of_infection_unvaccinated',
     ),
 
     # Betas

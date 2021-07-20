@@ -43,6 +43,18 @@ def load_deaths_variant(scenario: str, data_interface: 'PostprocessingDataInterf
     return _load_output_data(scenario, 'modeled_deaths_variant', data_interface, num_cores)
 
 
+def load_deaths_lr(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
+    return _load_output_data(scenario, 'modeled_deaths_lr', data_interface, num_cores)
+
+
+def load_deaths_hr(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
+    return _load_output_data(scenario, 'modeled_deaths_hr', data_interface, num_cores)
+
+
+def load_deaths_modeled(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
+    return _load_output_data(scenario, 'modeled_deaths_total', data_interface, num_cores)
+
+
 ##############
 # Infections #
 ##############
@@ -69,6 +81,14 @@ def load_infections_natural_breakthrough(scenario: str, data_interface: 'Postpro
 
 def load_infections_vaccine_breakthrough(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
     return _load_output_data(scenario, 'vaccine_breakthrough', data_interface, num_cores)
+
+
+def load_infections_lr(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
+    return _load_output_data(scenario, 'modeled_infections_lr', data_interface, num_cores)
+
+
+def load_infections_hr(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
+    return _load_output_data(scenario, 'modeled_infections_hr', data_interface, num_cores)
 
 
 #########
@@ -188,6 +208,14 @@ def load_r_effective_variant(scenario: str, data_interface: 'PostprocessingDataI
 
 def load_r_effective(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
     return _load_output_data(scenario, 'r_effective', data_interface, num_cores)
+
+
+def load_force_of_infection(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
+    return _load_output_data(scenario, 'force_of_infection', data_interface, num_cores)
+
+
+def load_force_of_infection_unvaccinated(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
+    return _load_output_data(scenario, 'force_of_infection_unvaccinated', data_interface, num_cores)
 
 
 def load_beta(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int) -> List[pd.Series]:
