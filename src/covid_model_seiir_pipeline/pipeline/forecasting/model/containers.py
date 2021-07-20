@@ -102,6 +102,8 @@ class PostprocessingParameters:
 class SystemMetrics:
     modeled_infections_wild: pd.Series
     modeled_infections_variant: pd.Series
+    modeled_infections_lr: pd.Series
+    modeled_infections_hr: pd.Series
     modeled_infections_total: pd.Series
     modeled_infected_total: pd.Series
 
@@ -112,6 +114,8 @@ class SystemMetrics:
 
     modeled_deaths_wild: pd.Series
     modeled_deaths_variant: pd.Series
+    modeled_deaths_lr: pd.Series
+    modeled_deaths_hr: pd.Series
     modeled_deaths_total: pd.Series
 
     vaccinations_protected_wild: pd.Series
@@ -129,6 +133,9 @@ class SystemMetrics:
     total_infectious_variant: pd.Series
     total_immune_wild: pd.Series
     total_immune_variant: pd.Series
+
+    force_of_infection: pd.Series
+    force_of_infection_unvaccinated: pd.Series
 
     total_population: pd.Series
 

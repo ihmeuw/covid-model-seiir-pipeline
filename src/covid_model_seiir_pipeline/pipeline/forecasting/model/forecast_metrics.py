@@ -112,25 +112,24 @@ def variant_system_metrics(indices: Indices,
     new_r_wild = components_diff[[c for c in tracking_cols if 'NewR_w' in c]].sum(axis=1)
     proportion_cross_immune = new_r_wild / (new_s_variant + new_r_wild)
 
-    modeled_deaths_wild = pd.Series(0, index=indices.full)
-    modeled_deaths_variant = pd.Series(0, index=indices.full)
+    group_infections = {}
+    group_deaths = {}
     for group in ['hr', 'lr']:
         group_compartments = [c for c in components.columns if group in c]
         group_components_diff = components_diff.loc[:, group_compartments]
         group_ifr = getattr(postprocessing_params, f'ifr_{group}').rename('ifr')
 
-        group_deaths = {}
         for covid_type in ['wild', 'variant']:
-            group_infections = group_components_diff[f'NewE_{covid_type}_{group}'].rename('infections')
-            group_infections_p = group_components_diff[f'NewE_p_{covid_type}_{group}'].rename('infections')
-            group_infections_not_p = group_infections - group_infections_p
-            group_deaths[covid_type] = compute_deaths(
-                group_infections_not_p,
+            infections = group_components_diff[f'NewE_{covid_type}_{group}'].rename('infections')
+            infections_p = group_components_diff[f'NewE_p_{covid_type}_{group}'].rename('infections')
+            infections_not_p = infections - infections_p
+            deaths = compute_deaths(
+                infections_not_p,
                 postprocessing_params.infection_to_death,
                 group_ifr,
             )
-        modeled_deaths_wild += group_deaths['wild']
-        modeled_deaths_variant += group_deaths['variant']
+            group_infections[(group, covid_type)] = infections
+            group_deaths[(group, covid_type)] = deaths
 
     vaccines_u = components_diff[[c for c in tracking_cols if 'V_u' in c]].sum(axis=1)
     vaccines_p = components_diff[[c for c in tracking_cols if 'V_p' in c and 'pa' not in c]].sum(axis=1)
@@ -138,11 +137,14 @@ def variant_system_metrics(indices: Indices,
     vaccines_m = components_diff[[c for c in tracking_cols if 'V_m' in c and 'ma' not in c]].sum(axis=1)
     vaccines_ma = components_diff[[c for c in tracking_cols if 'V_ma' in c]].sum(axis=1)
 
+    s_unvaccinated = components[['S_lr', 'S_variant_lr', 'S_hr', 'S_variant_hr']].sum(axis=1)
     s_wild = components[[c for c in cols if 'S' in c and 'variant' not in c and 'm' not in c]].sum(axis=1)
     s_variant = components[[c for c in cols if 'S' in c]].sum(axis=1)
     s_variant_only = components[[c for c in cols if 'S_variant' in c or 'S_m' in c]].sum(axis=1)
     s_variant_unprotected = components[[c for c in cols if 'S' in c and 'pa' not in c and 'm' not in c]].sum(axis=1)
 
+    i_unvaccinated = components[['I1_lr', 'I2_lr', 'I1_variant_lr', 'I2_variant_lr',
+                                 'I1_hr', 'I2_hr', 'I1_variant_hr', 'I2_variant_hr']].sum(axis=1)
     i_wild = components[[c for c in cols if 'I' in c and 'variant' not in c]].sum(axis=1)
     i_variant = components[[c for c in cols if 'I' in c and 'variant' in c]].sum(axis=1)
     i_total = i_wild + i_variant
@@ -158,9 +160,14 @@ def variant_system_metrics(indices: Indices,
     immune_variant = components[[c for c in cols if 'R' in c]].sum(axis=1)
     immune_wild = immune_variant + s_variant_only
 
+    force_of_infection = i_total.groupby('location_id').shift(1) / s_variant
+    force_of_infection_unvaccinated = i_unvaccinated.groupby('location_id').shift(1) / s_unvaccinated
+
     return SystemMetrics(
         modeled_infections_wild=modeled_infections_wild,
         modeled_infections_variant=modeled_infections_variant,
+        modeled_infections_lr=group_infections[('lr', 'wild')] + group_infections[('lr', 'variant')],
+        modeled_infections_hr=group_infections[('hr', 'wild')] + group_infections[('hr', 'variant')],
         modeled_infections_total=modeled_infections_wild + modeled_infections_variant,
         modeled_infected_total=modeled_infections_wild + modeled_infections_variant - natural_immunity_breakthrough,
 
@@ -170,9 +177,11 @@ def variant_system_metrics(indices: Indices,
         vaccine_breakthrough=vaccine_breakthrough,
         proportion_cross_immune=proportion_cross_immune,
 
-        modeled_deaths_wild=modeled_deaths_wild,
-        modeled_deaths_variant=modeled_deaths_variant,
-        modeled_deaths_total=modeled_deaths_wild + modeled_deaths_variant,
+        modeled_deaths_wild=group_deaths[('lr', 'wild')] + group_deaths[('hr', 'wild')],
+        modeled_deaths_variant=group_deaths[('lr', 'variant')] + group_deaths[('hr', 'variant')],
+        modeled_deaths_lr=group_deaths[('lr', 'wild')] + group_deaths[('lr', 'variant')],
+        modeled_deaths_hr=group_deaths[('hr', 'wild')] + group_deaths[('hr', 'variant')],
+        modeled_deaths_total=sum(group_deaths.values()),
 
         vaccinations_protected_wild=vaccines_p,
         vaccinations_protected_all=vaccines_pa,
@@ -189,6 +198,9 @@ def variant_system_metrics(indices: Indices,
         total_infectious_variant=i_variant,
         total_immune_wild=immune_wild,
         total_immune_variant=immune_variant,
+
+        force_of_infection=force_of_infection,
+        force_of_infection_unvaccinated=force_of_infection_unvaccinated,
 
         total_population=total_population,
 
