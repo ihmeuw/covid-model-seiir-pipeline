@@ -399,6 +399,20 @@ def load_ifr_es(scenario: str, data_interface: 'PostprocessingDataInterface', nu
     return outputs
 
 
+def load_ifr_high_risk_es(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
+    draws = range(data_interface.get_n_draws())
+    with multiprocessing.Pool(num_cores) as pool:
+        outputs = pool.map(data_interface.load_ifr_hr, draws)
+    return outputs
+
+
+def load_ifr_low_risk_es(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
+    draws = range(data_interface.get_n_draws())
+    with multiprocessing.Pool(num_cores) as pool:
+        outputs = pool.map(data_interface.load_ifr_lr, draws)
+    return outputs
+
+
 def load_ihr_es(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
     draws = range(data_interface.get_n_draws())
     with multiprocessing.Pool(num_cores) as pool:

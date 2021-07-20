@@ -101,6 +101,14 @@ class PostprocessingDataInterface:
         ifr = self._get_forecast_data_inteface().load_ifr(draw_id=draw_id)
         return ifr['ifr'].rename(draw_id)
 
+    def load_ifr_hr(self, draw_id: int):
+        ifr = self._get_forecast_data_inteface().load_ifr(draw_id=draw_id)
+        return ifr['ifr_hr'].rename(draw_id)
+
+    def load_ifr_lr(self, draw_id: int):
+        ifr = self._get_forecast_data_inteface().load_ifr(draw_id=draw_id)
+        return ifr['ifr_lr'].rename(draw_id)
+
     def load_ihr(self, draw_id: int):
         ihr = self._get_forecast_data_inteface().load_ihr(draw_id=draw_id)
         return ihr['ihr'].rename(draw_id)

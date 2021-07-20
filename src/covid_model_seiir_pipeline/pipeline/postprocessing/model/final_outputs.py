@@ -374,6 +374,14 @@ MEASURES = {
         loaders.load_ifr_es,
         'infection_fatality_ratio_es',
     ),
+    'infection_fatality_ratio_high_risk_es': MeasureConfig(
+        loaders.load_ifr_high_risk_es,
+        'infection_fatality_ratio_high_risk_es',
+    ),
+    'infection_fatality_ratio_low_risk_es': MeasureConfig(
+        loaders.load_ifr_low_risk_es,
+        'infection_fatality_ratio_low_risk_es',
+    ),
     'infection_detection_ratio_es': MeasureConfig(
         loaders.load_idr_es,
         'infection_detection_ratio_es',
