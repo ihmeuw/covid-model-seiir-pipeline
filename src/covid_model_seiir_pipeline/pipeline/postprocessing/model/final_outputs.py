@@ -104,16 +104,19 @@ MEASURES = {
     'deaths_lr': MeasureConfig(
         loaders.load_deaths_lr,
         'daily_deaths_low_risk',
+        splice=False,
         aggregator=aggregators.sum_aggregator,
     ),
     'deaths_hr': MeasureConfig(
         loaders.load_deaths_hr,
         'daily_deaths_high_risk',
+        splice=False,
         aggregator=aggregators.sum_aggregator,
     ),
     'deaths_modeled': MeasureConfig(
         loaders.load_deaths_modeled,
         'daily_deaths_modeled',
+        splice=False,
         aggregator=aggregators.sum_aggregator,
     ),
 
@@ -158,12 +161,14 @@ MEASURES = {
     'infections_lr': MeasureConfig(
         loaders.load_infections_lr,
         'daily_infections_low_risk',
+        splice=False,
         aggregator=aggregators.sum_aggregator,
     ),
     'infections_hr': MeasureConfig(
         loaders.load_infections_hr,
         'daily_infections_high_risk',
         aggregator=aggregators.sum_aggregator,
+        splice=False,
     ),
     'cases': MeasureConfig(
         loaders.load_cases,
@@ -200,10 +205,12 @@ MEASURES = {
     'hospital_census_correction_factor': MeasureConfig(
         loaders.load_hospital_census_correction_factor,
         'hospital_census_correction_factor',
+        splice=False,
     ),
     'icu_census_correction_factor': MeasureConfig(
         loaders.load_icu_census_correction_factor,
         'icu_census_correction_factor',
+        splice=False,
     ),
 
     # Vaccination measures
@@ -304,10 +311,12 @@ MEASURES = {
     'force_of_infection': MeasureConfig(
         loaders.load_force_of_infection,
         'force_of_infection',
+        splice=False,
     ),
     'force_of_infection_unvaccinated': MeasureConfig(
         loaders.load_force_of_infection_unvaccinated,
         'force_of_infection_unvaccinated',
+        splice=False,
     ),
 
     # Betas
