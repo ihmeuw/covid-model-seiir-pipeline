@@ -88,8 +88,8 @@ with_forecast_version = click.option(
     type=click.Path(exists=True, file_okay=False),
     help='Which version of forecasts to use.'
 )
-with_counterfactual_inputs_version = click.option(
-    '--counterfactual-inputs-version',
+with_counterfactual_input_version = click.option(
+    '--counterfactual-input-version',
     type=click.Path(exists=True, file_okay=False),
     help='Which version of counterfactual inputs to use.'
 )

@@ -145,7 +145,7 @@ def forecast(run_metadata,
 @seiir.command()
 @cli_tools.pass_run_metadata()
 @cli_tools.with_counterfactual_specification
-@cli_tools.with_counterfactual_inputs_version
+@cli_tools.with_counterfactual_input_version
 @cli_tools.with_forecast_version
 @cli_tools.add_preprocess_only
 @cli_tools.add_output_options(paths.SEIR_COUNTERFACTUAL_ROOT)
@@ -162,9 +162,9 @@ def counterfactual(run_metadata,
 
     _do_counterfactual(
         run_metadata=run_metadata,
-        forecast_specification=forecast_specification,
-        regression_version=regression_version,
-        covariates_version=covariates_version,
+        counterfactual_specification=counterfactual_specification,
+        counterfactual_input_version=counterfactual_input_version,
+        forecast_version=forecast_version,
         preprocess_only=preprocess_only,
         output_root=output_root,
         mark_best=mark_best,
