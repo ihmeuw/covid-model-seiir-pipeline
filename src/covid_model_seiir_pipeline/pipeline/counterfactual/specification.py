@@ -117,6 +117,6 @@ class CounterfactualSpecification(utilities.Specification):
         spec = {
             'data': self.data.to_dict(),
             'workflow': self.workflow.to_dict(),
-            'covariates': {k: v.to_dict() for k, v in self._scenarios.items()},
+            'scenarios': {k: v.to_dict() for k, v in self._scenarios.items()},
         }
         return spec
