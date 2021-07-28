@@ -1,7 +1,6 @@
 from pathlib import Path
 from typing import Dict, List, Tuple
 
-from loguru import logger
 import pandas as pd
 
 from covid_model_seiir_pipeline.lib import (
@@ -9,8 +8,6 @@ from covid_model_seiir_pipeline.lib import (
     static_vars,
 )
 from covid_model_seiir_pipeline.pipeline.regression import (
-    RegressionDataInterface,
-    RegressionSpecification,
     HospitalParameters,
 )
 from covid_model_seiir_pipeline.pipeline.forecasting import (
@@ -25,7 +22,6 @@ from covid_model_seiir_pipeline.pipeline.forecasting.model import (
 )
 from covid_model_seiir_pipeline.pipeline.counterfactual.specification import (
     CounterfactualSpecification,
-    CounterfactualScenarioParameters,
 )
 
 
@@ -89,7 +85,7 @@ class CounterfactualDataInterface:
         return self._get_forecast_data_inteface().load_betas(draw_id=draw_id)
 
     def load_counterfactual_beta(self, scenario: str, draw_id: int):
-        return io.load(self.input_root.beta(scenario=scenario, draw_id=draw_id))
+        return io.load(self.input_root.beta(scenario=scenario, columns=[f'draw_{draw_id}']))
 
     def load_covariate(self, covariate: str, covariate_version: str, with_observed: bool = False) -> pd.DataFrame:
         return self._get_forecast_data_inteface().load_covariate(
