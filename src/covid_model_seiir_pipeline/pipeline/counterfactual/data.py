@@ -55,7 +55,7 @@ class CounterfactualDataInterface:
         )
 
     def make_dirs(self, **prefix_args):
-        io.touch(self.forecast_root, **prefix_args)
+        io.touch(self.output_root, **prefix_args)
 
     ############################
     # Regression paths loaders #
