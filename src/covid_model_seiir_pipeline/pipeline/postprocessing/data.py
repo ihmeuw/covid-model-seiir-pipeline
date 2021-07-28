@@ -71,14 +71,10 @@ class PostprocessingDataInterface:
         return self._get_forecast_data_inteface().load_full_data()
 
     def get_covariate_names(self, scenarios: List[str]) -> List[str]:
-        forecast_spec = ForecastSpecification.from_dict(io.load(self.forecast_root.specification()))
-        forecast_di = ForecastDataInterface.from_specification(forecast_spec)
-        scenarios = {scenario: spec for scenario, spec in forecast_spec.scenarios.items() if scenario in scenarios}
-        return forecast_di.check_covariates(scenarios)
+        return self._get_forecast_data_inteface().check_covariates(scenarios)
 
     def get_covariate_version(self, covariate_name: str, scenario: str) -> str:
-        forecast_spec = ForecastSpecification.from_dict(io.load(self.forecast_root.specification()))
-        return forecast_spec.scenarios[scenario].covariates[covariate_name]
+        return self._get_forecast_data_inteface().get_covariate_version(covariate_name, scenario)
 
     def load_regression_coefficients(self, draw_id: int) -> pd.Series:
         coefficients = self._get_forecast_data_inteface().load_coefficients(draw_id)
@@ -96,7 +92,7 @@ class PostprocessingDataInterface:
 
     def load_covariate(self, draw_id: int, covariate: str, time_varying: bool,
                        scenario: str, with_observed: bool = False) -> pd.Series:
-        covariates = io.load(self.forecast_root.raw_covariates(scenario=scenario, draw_id=draw_id))
+        covariates = self._get_forecast_data_inteface().load_raw_covariates(scenario=scenario, draw_id=draw_id)
         if time_varying:
             covariate = covariates[covariate].rename(draw_id)
         else:
@@ -176,6 +172,8 @@ class PostprocessingDataInterface:
 
     def build_version_map(self) -> pd.Series:
         forecast_di = self._get_forecast_data_inteface()
+        if isinstance(forecast_di, CounterfactualDataInterface):
+            forecast_di = forecast_di._get_forecast_data_interface()
         version_map = {
             'postprocessing_version': Path(self.postprocessing_root._root).name,
             'forecast_version': Path(forecast_di.forecast_root._root).name,
@@ -296,9 +294,13 @@ class PostprocessingDataInterface:
     # Non-interface methods #
     #########################
 
-    def _get_forecast_data_inteface(self):
-        forecast_spec = ForecastSpecification.from_dict(io.load(self.forecast_root.specification()))
-        forecast_di = ForecastDataInterface.from_specification(forecast_spec)
+    def _get_forecast_data_inteface(self) -> Union[ForecastDataInterface, CounterfactualDataInterface]:
+        if isinstance(self.forecast_root, io.ForecastRoot):
+            forecast_spec = ForecastSpecification.from_dict(io.load(self.forecast_root.specification()))
+            forecast_di = ForecastDataInterface.from_specification(forecast_spec)
+        else:
+            counterfactual_spec = CounterfactualSpecification.from_dict(io.load(self.forecast_root.specification()))
+            forecast_di = CounterfactualDataInterface.from_specification(counterfactual_spec)
         return forecast_di
 
     def _get_previous_version_data_interface(self, version: str) -> 'PostprocessingDataInterface':

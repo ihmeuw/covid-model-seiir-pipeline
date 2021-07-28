@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Dict, List, Tuple
+from typing import Dict, Iterable, List, Tuple
 
 from loguru import logger
 import pandas as pd
@@ -57,6 +57,10 @@ class ForecastDataInterface:
 
     def make_dirs(self, **prefix_args):
         io.touch(self.forecast_root, **prefix_args)
+
+    def get_covariate_version(self, covariate_name: str, scenario: str) -> str:
+        forecast_spec = self.load_specification()
+        return forecast_spec.scenarios[scenario].covariates[covariate_name]
 
     ############################
     # Regression paths loaders #
@@ -167,7 +171,9 @@ class ForecastDataInterface:
     # Covariate data loaders #
     ##########################
 
-    def check_covariates(self, scenarios: Dict[str, ScenarioSpecification]) -> List[str]:
+    def check_covariates(self, scenarios: Iterable[str]) -> List[str]:
+        forecast_spec = self.load_specification()
+        scenarios = {scenario: spec for scenario, spec in forecast_spec.scenarios.items() if scenario in scenarios}
         regression_spec = self._get_regression_data_interface().load_specification().to_dict()
         # Bit of a hack.
         forecast_version = str(self.covariate_root._root)
