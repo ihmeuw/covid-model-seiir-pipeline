@@ -285,6 +285,10 @@ def _seiir_transition_wild(group_y: np.ndarray,
     )
 
     if DEBUG:
+        inflow = transition_map.sum(axis=0)
+        outflow = transition_map.sum(axis=1)
+        group_dy = inflow - outflow
+        assert np.all(group_y + group_dy >= 0)
         assert np.all(transition_map >= 0)
 
     return transition_map

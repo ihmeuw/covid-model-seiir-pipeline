@@ -35,8 +35,9 @@ def run_counterfactual(counterfactual_version: str, scenario: str, draw_id: int,
     betas = data_interface.load_counterfactual_beta(scenario_spec.beta, draw_id)
 
     past_start_dates = past_infections.reset_index().groupby('location_id').date.min()
-    target_start_date = pd.Timestamp(scenario_spec.start_date)
-    forecast_start_dates = np.maximum(target_start_date, past_start_dates)
+    minimum_forecast_start_dates = betas.reset_index().groupby('location_id').date.min()
+    target_start_date = pd.Series(pd.Timestamp(scenario_spec.start_date), index=past_start_dates.index, name='date')
+    forecast_start_dates = np.maximum(target_start_date, minimum_forecast_start_dates)
     forecast_end_dates = betas.reset_index().groupby('location_id').date.max()
 
     logger.info('Building indices', context='transform')

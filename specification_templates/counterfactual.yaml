@@ -12,7 +12,7 @@ scenarios:
     vaccine_coverage: 'reference'
     variant_prevalence: 'reference'
   no_mandates:
-    beta: 'no_mandates'
+    beta: 'no_mobility'
     vaccine_coverage: 'reference'
     variant_prevalence: 'reference'
   no_mask_use:

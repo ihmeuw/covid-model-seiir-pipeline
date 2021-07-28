@@ -137,7 +137,7 @@ class CounterfactualInputRoot(DataRoot):
     """Data root representing counterfactual inputs."""
     metadata = MetadataType('metadata')
 
-    beta = DatasetType('betas', LEAF_TEMPLATES.SCENARIO_TEMPLATE)
+    beta = DatasetType('beta', LEAF_TEMPLATES.SCENARIO_TEMPLATE)
     vaccine_coverage = DatasetType('vaccine_coverage', LEAF_TEMPLATES.SCENARIO_TEMPLATE)
     variant_prevalence = DatasetType('variant_prevalence', LEAF_TEMPLATES.SCENARIO_TEMPLATE)
 
