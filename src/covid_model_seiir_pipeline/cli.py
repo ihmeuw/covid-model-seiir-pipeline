@@ -15,6 +15,8 @@ from covid_model_seiir_pipeline.pipeline import (
     do_beta_regression,
     ForecastSpecification,
     do_beta_forecast,
+    CounterfactualSpecification,
+    do_counterfactual,
     PostprocessingSpecification,
     do_postprocessing,
     DiagnosticsSpecification,
@@ -126,6 +128,39 @@ def forecast(run_metadata,
     cli_tools.configure_logging_to_terminal(verbose)
 
     _do_forecast(
+        run_metadata=run_metadata,
+        forecast_specification=forecast_specification,
+        regression_version=regression_version,
+        covariates_version=covariates_version,
+        preprocess_only=preprocess_only,
+        output_root=output_root,
+        mark_best=mark_best,
+        production_tag=production_tag,
+        with_debugger=with_debugger,
+    )
+
+    logger.info('**Done**')
+
+
+@seiir.command()
+@cli_tools.pass_run_metadata()
+@cli_tools.with_counterfactual_specification
+@cli_tools.with_counterfactual_inputs_version
+@cli_tools.with_forecast_version
+@cli_tools.add_preprocess_only
+@cli_tools.add_output_options(paths.SEIR_COUNTERFACTUAL_ROOT)
+@cli_tools.add_verbose_and_with_debugger
+def counterfactual(run_metadata,
+                   counterfactual_specification,
+                   counterfactual_input_version,
+                   forecast_version,
+                   preprocess_only,
+                   output_root, mark_best, production_tag,
+                   verbose, with_debugger):
+    """Run counterfactual analysis."""
+    cli_tools.configure_logging_to_terminal(verbose)
+
+    _do_counterfactual(
         run_metadata=run_metadata,
         forecast_specification=forecast_specification,
         regression_version=regression_version,
@@ -514,6 +549,59 @@ def _do_forecast(run_metadata: cli_tools.RunMetadata,
     cli_tools.finish_application(run_metadata, app_metadata,
                                  run_directory, mark_best, production_tag)
     return forecast_spec
+
+
+def _do_counterfactual(run_metadata: cli_tools.RunMetadata,
+                       counterfactual_specification: str,
+                       counterfactual_input_version: Optional[str],
+                       forecast_version: Optional[str],
+                       preprocess_only: bool,
+                       output_root: Optional[str], mark_best: bool, production_tag: str,
+                       with_debugger: bool) -> CounterfactualSpecification:
+    counterfactual_spec = CounterfactualSpecification.from_path(counterfactual_specification)
+
+    input_versions = {
+        'counterfactual_input_version': cli_tools.VersionInfo(
+            counterfactual_input_version,
+            counterfactual_spec.data.counterfactual_input_version,
+            paths.SEIR_COUNTERFACTUAL_INPUT_ROOT,
+            'counterfactual_input_metadata',
+            True,
+        ),
+        'forecast_version': cli_tools.VersionInfo(
+            forecast_version,
+            counterfactual_spec.data.forecast_version,
+            paths.SEIR_FORECAST_OUTPUTS,
+            'forecast_metadata',
+            True,
+        ),
+    }
+    counterfactual_spec, run_metadata = cli_tools.resolve_version_info(
+        counterfactual_spec,
+        run_metadata,
+        input_versions,
+    )
+
+    output_root = cli_tools.get_output_root(
+        output_root,
+        counterfactual_spec.data.output_root,
+    )
+    cli_tools.setup_directory_structure(output_root, with_production=True)
+    run_directory = cli_tools.make_run_directory(output_root)
+    counterfactual_spec.data.output_root = str(run_directory)
+
+    run_metadata['output_path'] = str(run_directory)
+    run_metadata['counterfactual_specification'] = counterfactual_spec.to_dict()
+
+    cli_tools.configure_logging_to_files(run_directory)
+    # noinspection PyTypeChecker
+    main = cli_tools.monitor_application(do_counterfactual,
+                                         logger, with_debugger)
+    app_metadata, _ = main(counterfactual_spec, preprocess_only)
+
+    cli_tools.finish_application(run_metadata, app_metadata,
+                                 run_directory, mark_best, production_tag)
+    return counterfactual_spec
 
 
 def _do_postprocess(run_metadata: cli_tools.RunMetadata,

@@ -16,6 +16,10 @@ with_forecast_specification = click.argument(
     'forecast_specification',
     type=click.Path(exists=True, dir_okay=False),
 )
+with_counterfactual_specification = click.argument(
+    'counterfactual_specification',
+    type=click.Path(exists=True, dir_okay=False),
+)
 with_postprocessing_specification = click.argument(
     'postprocessing_specification',
     type=click.Path(exists=True, dir_okay=False),
@@ -84,6 +88,11 @@ with_forecast_version = click.option(
     type=click.Path(exists=True, file_okay=False),
     help='Which version of forecasts to use.'
 )
+with_counterfactual_inputs_version = click.option(
+    '--counterfactual-inputs-version',
+    type=click.Path(exists=True, file_okay=False),
+    help='Which version of counterfactual inputs to use.'
+)
 
 ######################
 # Other main options #
@@ -121,6 +130,13 @@ with_task_forecast_version = click.option(
     required=True,
     help='Full path to an existing directory containing a '
          '"forecast_specification.yaml".',
+)
+with_task_counterfactual_version = click.option(
+    '--counterfactual-version', '-i',
+    type=click.Path(exists=True, file_okay=False),
+    required=True,
+    help='Full path to an existing directory containing a '
+         '"counterfactual_specification.yaml".',
 )
 with_task_postprocessing_version = click.option(
     '--postprocessing-version', '-i',

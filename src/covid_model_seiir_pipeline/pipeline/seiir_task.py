@@ -14,6 +14,10 @@ from covid_model_seiir_pipeline.pipeline.forecasting import (
     beta_residual_scaling,
     beta_forecast,
 )
+from covid_model_seiir_pipeline.pipeline.counterfactual import (
+    COUNTERFACTUAL_JOBS,
+    counterfactual,
+)
 from covid_model_seiir_pipeline.pipeline.postprocessing import (
     POSTPROCESSING_JOBS,
     resample_map,
@@ -36,6 +40,7 @@ stask.add_command(beta_regression, name=REGRESSION_JOBS.regression)
 stask.add_command(hospital_correction_factors, name=REGRESSION_JOBS.hospital_correction_factors)
 stask.add_command(beta_residual_scaling, name=FORECAST_JOBS.scaling)
 stask.add_command(beta_forecast, name=FORECAST_JOBS.forecast)
+stask.add_command(counterfactual, name=COUNTERFACTUAL_JOBS.counterfactual)
 stask.add_command(resample_map, name=POSTPROCESSING_JOBS.resample)
 stask.add_command(postprocess, name=POSTPROCESSING_JOBS.postprocess)
 stask.add_command(grid_plots, name=DIAGNOSTICS_JOBS.grid_plots)

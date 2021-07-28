@@ -59,6 +59,8 @@ class RegressionData:
 class RegressionParameters:
     """Specifies the parameters of the beta fit and regression."""
     n_draws: int = field(default=1000)
+    regression_start_date: str = field(default=None)
+    regression_end_date: str = field(default=None)
 
     alpha: Tuple[float, float] = field(default=(0.9, 1.0))
     sigma: Tuple[float, float] = field(default=(0.2, 1/3))

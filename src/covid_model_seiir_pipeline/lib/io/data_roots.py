@@ -133,6 +133,25 @@ class CovariatePriorsRoot(DataRoot):
     priors = DatasetType('priors')
 
 
+class CounterfactualInputRoot(DataRoot):
+    """Data root representing counterfactual inputs."""
+    metadata = MetadataType('metadata')
+
+    beta = DatasetType('betas', LEAF_TEMPLATES.COV_SCENARIO_TEMPLATE)
+    vaccine_coverage = DatasetType('vaccine_coverage', LEAF_TEMPLATES.COV_SCENARIO_TEMPLATE)
+    variant_prevalence = DatasetType('variant_prevalence', LEAF_TEMPLATES.COV_SCENARIO_TEMPLATE)
+
+
+class CounterfactualOutputRoot(DataRoot):
+    """Data root representing counterfactual outputs."""
+    metadata = MetadataType('metadata')
+    specification = MetadataType('counterfactual_specification')
+
+    ode_params = DatasetType('ode_params', LEAF_TEMPLATES.DRAW_TEMPLATE, PREFIX_TEMPLATES.SCENARIO_TEMPLATE)
+    component_draws = DatasetType('component_draws', LEAF_TEMPLATES.DRAW_TEMPLATE, PREFIX_TEMPLATES.SCENARIO_TEMPLATE)
+    raw_outputs = DatasetType('raw_outputs', LEAF_TEMPLATES.DRAW_TEMPLATE, PREFIX_TEMPLATES.SCENARIO_TEMPLATE)
+
+
 class CovariateRoot(DataRoot):
     """Data root representing prepped covariates."""
     metadata = MetadataType('metadata')

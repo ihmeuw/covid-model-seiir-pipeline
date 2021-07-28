@@ -1,0 +1,17 @@
+data:
+  counterfactual_input_version: ''
+  forecast_version: '2021_06_03.04'
+  output_root: ''
+  output_format: 'parquet'
+workflow:
+  project: 'proj_covid_prod'
+  queue: 'd.q'
+scenarios:
+  - reference:
+      beta: 'reference'
+      vaccine_coverage: 'reference'
+      variant_prevalence: 'reference'
+  - no_mandates:
+      beta: 'no_mandates'
+      vaccine_coverage: 'reference'
+      variant_prevalence: 'reference'
