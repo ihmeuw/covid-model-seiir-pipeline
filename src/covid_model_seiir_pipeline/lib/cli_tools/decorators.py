@@ -93,6 +93,11 @@ with_counterfactual_input_version = click.option(
     type=click.Path(exists=True, file_okay=False),
     help='Which version of counterfactual inputs to use.'
 )
+with_counterfactual_version = click.option(
+    '--counterfactual-version',
+    type=click.Path(exists=True, file_okay=False),
+    help='Which version of counterfactual outputs to use.'
+)
 
 ######################
 # Other main options #

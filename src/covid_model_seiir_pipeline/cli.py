@@ -179,6 +179,7 @@ def counterfactual(run_metadata,
 @cli_tools.pass_run_metadata()
 @cli_tools.with_postprocessing_specification
 @cli_tools.with_forecast_version
+@cli_tools.with_counterfactual_version
 @cli_tools.with_mortality_ratio_version
 @cli_tools.add_preprocess_only
 @cli_tools.add_output_options(paths.SEIR_FINAL_OUTPUTS)
@@ -186,6 +187,7 @@ def counterfactual(run_metadata,
 def postprocess(run_metadata,
                 postprocessing_specification,
                 forecast_version,
+                counterfactual_version,
                 mortality_ratio_version,
                 preprocess_only,
                 output_root, mark_best, production_tag,
@@ -196,6 +198,7 @@ def postprocess(run_metadata,
         run_metadata=run_metadata,
         postprocessing_specification=postprocessing_specification,
         forecast_version=forecast_version,
+        counterfactual_version=counterfactual_version,
         mortality_ratio_version=mortality_ratio_version,
         preprocess_only=preprocess_only,
         output_root=output_root,
@@ -607,6 +610,7 @@ def _do_counterfactual(run_metadata: cli_tools.RunMetadata,
 def _do_postprocess(run_metadata: cli_tools.RunMetadata,
                     postprocessing_specification: str,
                     forecast_version: Optional[str],
+                    counterfactual_version: Optional[str],
                     mortality_ratio_version: Optional[str],
                     preprocess_only: bool,
                     output_root: Optional[str], mark_best: bool, production_tag: str,
@@ -619,7 +623,14 @@ def _do_postprocess(run_metadata: cli_tools.RunMetadata,
             postprocessing_spec.data.forecast_version,
             paths.SEIR_FORECAST_OUTPUTS,
             'forecast_metadata',
-            True,
+            False,
+        ),
+        'counterfactual_version': cli_tools.VersionInfo(
+            forecast_version,
+            postprocessing_spec.data.counterfactual_version,
+            paths.SEIR_COUNTERFACTUAL_ROOT,
+            'counterfactual_metadata',
+            False,
         ),
         'mortality_ratio_version': cli_tools.VersionInfo(
             mortality_ratio_version,
@@ -635,6 +646,9 @@ def _do_postprocess(run_metadata: cli_tools.RunMetadata,
         run_metadata,
         input_versions,
     )
+    if (not (postprocessing_spec.data.forecast_version or postprocessing_spec.data.counterfactual_version)
+            or (postprocessing_spec.data.forecast_version and postprocessing_spec.data.counterfactual_version)):
+        raise ValueError('Must specify exactly one of a forecast version or a counterfactual version.')
 
     output_root = cli_tools.get_output_root(output_root,
                                             postprocessing_spec.data.output_root)

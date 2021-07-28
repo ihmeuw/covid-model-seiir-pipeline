@@ -1,8 +1,7 @@
 import itertools
 from pathlib import Path
-from typing import Dict, List
+from typing import Dict, List, Union
 
-import numpy as np
 import pandas as pd
 
 from covid_model_seiir_pipeline.lib import (
@@ -14,6 +13,10 @@ from covid_model_seiir_pipeline.pipeline.forecasting import (
     ForecastSpecification,
     ForecastDataInterface,
 )
+from covid_model_seiir_pipeline.pipeline.counterfactual import (
+    CounterfactualSpecification,
+    CounterfactualDataInterface,
+)
 from covid_model_seiir_pipeline.pipeline.postprocessing.specification import (
     PostprocessingSpecification,
     AggregationSpecification,
@@ -23,7 +26,7 @@ from covid_model_seiir_pipeline.pipeline.postprocessing.specification import (
 class PostprocessingDataInterface:
 
     def __init__(self,
-                 forecast_root: io.ForecastRoot,
+                 forecast_root: Union[io.ForecastRoot, io.CounterfactualOutputRoot],
                  mortality_ratio_root: io.MortalityRatioRoot,
                  postprocessing_root: io.PostprocessingRoot):
         self.forecast_root = forecast_root
@@ -32,10 +35,16 @@ class PostprocessingDataInterface:
 
     @classmethod
     def from_specification(cls, specification: PostprocessingSpecification):
-        forecast_spec_path = Path(specification.data.forecast_version) / static_vars.FORECAST_SPECIFICATION_FILE
-        forecast_spec = ForecastSpecification.from_path(forecast_spec_path)
-        forecast_root = io.ForecastRoot(specification.data.forecast_version,
-                                        data_format=forecast_spec.data.output_format)
+        if specification.data.forecast_version:
+            forecast_spec_path = Path(specification.data.forecast_version) / static_vars.FORECAST_SPECIFICATION_FILE
+            forecast_spec = ForecastSpecification.from_path(forecast_spec_path)
+            forecast_root = io.ForecastRoot(specification.data.forecast_version,
+                                            data_format=forecast_spec.data.output_format)
+        else:
+            counterfactual_spec_path = Path(specification.data.counterfactual_version) / static_vars.COUNTERFACTUAL_SPECIFICATION_FILE
+            counterfactual_spec = CounterfactualSpecification.from_path(counterfactual_spec_path)
+            forecast_root = io.CounterfactualOutputRoot(specification.data.counterfactual_version,
+                                                        data_format=counterfactual_spec.data.output_format)
         mortality_ratio_root = io.MortalityRatioRoot(specification.data.mortality_ratio_version)
         postprocessing_root = io.PostprocessingRoot(specification.data.output_root)
 
