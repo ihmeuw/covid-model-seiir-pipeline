@@ -174,7 +174,7 @@ class CounterfactualDataInterface:
         return self._get_forecast_data_interface().check_covariates(scenarios)
 
     def get_covariate_version(self, covariate_name: str, scenario: str) -> str:
-        return self._get_forecast_data_interface().get_covariate_version(covariate_name, scenario)
+        return self._get_forecast_data_interface().get_covariate_version(covariate_name, 'reference')
 
     #####################
     # Forecast data I/O #
