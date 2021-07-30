@@ -1,12 +1,12 @@
 data:
   forecast_version: ''
-  counterfactual_version: '2021_07_28.05'
+  counterfactual_version: '2021_07_29.01'
   mortality_ratio_version: 'best'
   scenarios:
     - 'reference'
     - 'no_mask_use'
     - 'no_mandates'
-#    - 'no_vaccine'
+    - 'no_vaccine'
   output_root: ''
 workflow:
   project: 'proj_covid_prod'

@@ -215,6 +215,8 @@ class PostprocessingDataInterface:
 
     def load_hierarchy(self) -> pd.DataFrame:
         fdi = self._get_forecast_data_inteface()
+        if isinstance(fdi, CounterfactualDataInterface):
+            fdi = fdi._get_forecast_data_interface()
         metadata = fdi.get_model_inputs_metadata()
         model_inputs_path = Path(metadata['output_path'])
         if fdi.fh_subnationals:

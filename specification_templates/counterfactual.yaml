@@ -19,3 +19,7 @@ scenarios:
     beta: 'no_mask'
     vaccine_coverage: 'reference'
     variant_prevalence: 'reference'
+  no_vaccine:
+    beta: 'reference'
+    vaccine_coverage: 'none'
+    variant_prevalence: 'reference'

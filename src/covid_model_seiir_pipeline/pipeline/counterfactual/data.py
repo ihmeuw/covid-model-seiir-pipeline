@@ -192,7 +192,7 @@ class CounterfactualDataInterface:
         return ForecastSpecification.from_dict(spec_dict)
 
     def load_raw_covariates(self, scenario: str, draw_id: int) -> pd.DataFrame:
-        return io.load(self.forecast_root.raw_covariates(scenario=scenario, draw_id=draw_id))
+        return io.load(self.forecast_root.raw_covariates(scenario='reference', draw_id=draw_id))
 
     def save_ode_params(self, ode_params: pd.DataFrame, scenario: str, draw_id: int) -> None:
         io.dump(ode_params, self.output_root.ode_params(scenario=scenario, draw_id=draw_id))
@@ -213,10 +213,10 @@ class CounterfactualDataInterface:
         return io.load(self.forecast_root.component_draws(scenario=scenario, draw_id=draw_id))
 
     def load_beta_scales(self, scenario: str, draw_id: int):
-        return io.load(self.forecast_root.beta_scaling(scenario=scenario, draw_id=draw_id))
+        return io.load(self.forecast_root.beta_scaling(scenario='reference', draw_id=draw_id))
 
     def load_beta_residual(self, scenario: str, draw_id: int):
-        return io.load(self.forecast_root.beta_residual(scenario=scenario, draw_id=draw_id))
+        return io.load(self.forecast_root.beta_residual(scenario='reference', draw_id=draw_id))
 
     def save_raw_outputs(self, raw_outputs: pd.DataFrame, scenario: str, draw_id: int):
         io.dump(raw_outputs, self.output_root.raw_outputs(scenario=scenario, draw_id=draw_id))
