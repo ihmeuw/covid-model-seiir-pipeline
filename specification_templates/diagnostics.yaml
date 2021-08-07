@@ -3,6 +3,21 @@ data:
 workflow:
   project: 'proj_covid_prod'
   queue: 'd.q'
+cumulative_deaths_compare_csv:
+  dates:
+    # Latest data date included automatically.  List other dates here
+    - '2021-12-01'
+  comparators:
+    - version: '2021_07_30.02'
+      scenarios:
+        reference: 'public_reference'
+        worse: 'public_worse'
+        best_masks: 'public_best_masks'
+    - version: '2021_08_01.02'
+        scenarios:
+          reference: 'reference'
+          worse: 'worse'
+          best_masks: 'best_masks'
 grid_plots:
   - name: 'compare_longrange'
     date_start: '2020-03-01'

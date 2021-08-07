@@ -2,7 +2,6 @@ import itertools
 from pathlib import Path
 from typing import Dict, List
 
-import numpy as np
 import pandas as pd
 
 from covid_model_seiir_pipeline.lib import (
