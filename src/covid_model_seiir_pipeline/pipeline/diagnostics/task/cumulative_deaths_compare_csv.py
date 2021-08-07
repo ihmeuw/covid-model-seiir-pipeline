@@ -46,13 +46,12 @@ def run_cumulative_deaths_compare_csv(diagnostics_version: str) -> None:
         )
         postprocessing_data_interface = PostprocessingDataInterface.from_specification(postprocessing_spec)
         full_data = postprocessing_data_interface.load_full_data()
-        max_date = max(max_date, full_data.date.max())
+        max_date = max(max_date, full_data.reset_index().date.max())
 
         for (scenario, label), measure in itertools.product(comparator.scenarios.items(), ['deaths', 'unscaled_deaths']):
             df = postprocessing_data_interface.load_output_summaries(scenario, measure=f'cumulative_{measure}')
             suffix = '_unscaled' if 'unscaled' in measure else ''
-            name = f'{label}{suffix}'
-            df = df.rename(columns={'mean': name}).set_index(['location_id', 'name'])[name]
+            df = df['mean'].rename(f'{label}{suffix}')
             data.append(df)
     data = pd.concat(data, axis=1)
     import pdb; pdb.set_trace()
