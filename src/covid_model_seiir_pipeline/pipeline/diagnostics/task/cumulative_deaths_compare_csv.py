@@ -46,7 +46,6 @@ def run_cumulative_deaths_compare_csv(diagnostics_version: str) -> None:
 @cli_tools.add_verbose_and_with_debugger
 def cumulative_deaths_compare_csv(diagnostics_version: str,
                                   verbose: int, with_debugger: bool):
-    """Produce grid plots corresponding to the configuration associated with NAME"""
     cli_tools.configure_logging_to_terminal(verbose)
     run = cli_tools.handle_exceptions(run_cumulative_deaths_compare_csv, logger, with_debugger)
     run(diagnostics_version=diagnostics_version)
