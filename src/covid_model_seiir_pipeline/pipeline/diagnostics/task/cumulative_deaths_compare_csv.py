@@ -53,10 +53,17 @@ def run_cumulative_deaths_compare_csv(diagnostics_version: str) -> None:
             suffix = '_unscaled' if 'unscaled' in measure else ''
             df = df['mean'].rename(f'{label}{suffix}')
             data.append(df)
-    data = pd.concat(data, axis=1)
+    data = pd.concat(data, axis=1).loc[sorted_locs].reset_index()
+    data['location_name'] = data.location_id.map(hierarchy.set_index('location_id').location_ascii_name)
+
+    dates = cumulative_death_spec.dates + [str(max_date.date)]
+    final_data = []
+    for date in dates:
+        date_data = data[data.date == pd.Timestamp(date)].set_index(['location_id', 'location_name'])
+        date_data.columns = [f'{date}_{c}'for c in date_data.columns]
+        final_data.append(date_data)
+    final_data = pd.concat(final_data, axis=1)
     import pdb; pdb.set_trace()
-
-
     logger.report()
 
 
