@@ -15,7 +15,7 @@ from covid_model_seiir_pipeline.pipeline.postprocessing.model import (
     MISCELLANEOUS,
 )
 from covid_model_seiir_pipeline.pipeline.diagnostics.specification import (
-    GridPlotsComparatorSpecification,
+    ComparatorSpecification,
 )
 
 
@@ -121,7 +121,7 @@ class PlotVersion:
         return data
 
 
-def make_plot_versions(comparators: List[GridPlotsComparatorSpecification], color_map) -> List[PlotVersion]:
+def make_plot_versions(comparators: List[ComparatorSpecification], color_map) -> List[PlotVersion]:
     primary_versions = []
     plot_versions = []
     for comparator in comparators:
