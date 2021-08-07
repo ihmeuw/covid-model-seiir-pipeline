@@ -116,7 +116,7 @@ class DiagnosticsSpecification(utilities.Specification):
     def parse_spec_dict(cls, specification: Dict) -> Tuple:
         data = DiagnosticsData(**specification.get('data', {}))
         workflow = DiagnosticsWorkflowSpecification(**specification.get('workflow', {}))
-        compare_csv = specification.get('cumulative_deaths_compare_csv', None)
+        compare_csv = CumulativeDeathsCompareCSVSpecification(**specification.get('cumulative_deaths_compare_csv', None))
         grid_plots_configs = specification.get('grid_plots', [])
         grid_plots = [GridPlotsSpecification(**grid_plots_config) for grid_plots_config in grid_plots_configs]
         return data, workflow, compare_csv, grid_plots
