@@ -64,7 +64,17 @@ def run_cumulative_deaths_compare_csv(diagnostics_version: str) -> None:
         date_data = data[data.date == pd.Timestamp(date)].set_index(['location_id', 'location_name']).drop(columns='date')
         date_data.columns = [f'{date}_{c}'for c in date_data.columns]
         final_data.append(date_data)
+
     final_data = pd.concat(final_data, axis=1)
+    pub_ref_col, ref_col = [f'{str(max_date.date())}_{s}' for s in ['public_reference', 'reference']]
+    try:
+        other_cols = final_data.columns.tolist()
+        final_data['diff_prev_current'] = final_data[ref_col] - final_data[pub_ref_col]
+        final_data['pct_diff_prev_current'] = final_data['diff_prev_current'] / final_data[pub_ref_col]
+        final_data = final_data[['diff_prev_current', 'pct_diff_prev_current'] + other_cols]
+    except KeyError:
+        pass
+
     import pdb; pdb.set_trace()
     logger.report()
 
