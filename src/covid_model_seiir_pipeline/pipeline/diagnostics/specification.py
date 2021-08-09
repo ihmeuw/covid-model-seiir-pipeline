@@ -14,7 +14,7 @@ class __DiagnosticsJobs(NamedTuple):
     scatters: str
 
 
-DIAGNOSTICS_JOBS = __DiagnosticsJobs(__DiagnosticsJobs._fields)
+DIAGNOSTICS_JOBS = __DiagnosticsJobs(*__DiagnosticsJobs._fields)
 
 
 class GridPlotsTaskSpecification(workflow.TaskSpecification):
