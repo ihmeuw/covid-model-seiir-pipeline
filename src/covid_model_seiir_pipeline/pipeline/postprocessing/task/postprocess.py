@@ -65,7 +65,7 @@ def do_aggregation(measure_data: pd.DataFrame,
         for aggregation_config in aggregation_configs:
             logger.info(f'Aggregating to hierarchy {aggregation_config.to_dict()}', context='aggregate')
             hierarchy = data_interface.load_aggregation_heirarchy(aggregation_config)
-            population = data_interface.load_populations()
+            population = data_interface.load_population()
             measure_data = measure_config.aggregator(measure_data, hierarchy, population)
     return measure_data
 

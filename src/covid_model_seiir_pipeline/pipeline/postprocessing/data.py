@@ -202,8 +202,14 @@ class PostprocessingDataInterface:
         version_map.columns = ['name', 'version']
         return version_map
 
-    def load_populations(self) -> pd.DataFrame:
+    def load_population(self) -> pd.DataFrame:
         return self._get_forecast_data_inteface().load_population()
+
+    def load_five_year_population(self) -> pd.DataFrame:
+        return self._get_forecast_data_inteface().load_five_year_population()
+
+    def load_total_population(self) -> pd.Series:
+        return self._get_forecast_data_inteface().load_total_population()
 
     def load_hierarchy(self) -> pd.DataFrame:
         fdi = self._get_forecast_data_inteface()

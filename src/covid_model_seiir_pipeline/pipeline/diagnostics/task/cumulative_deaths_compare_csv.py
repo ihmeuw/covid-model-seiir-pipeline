@@ -30,11 +30,16 @@ def run_cumulative_deaths_compare_csv(diagnostics_version: str) -> None:
     )
     cumulative_death_spec = diagnostics_spec.cumulative_deaths_compare_csv
 
+    labels = [label for c in cumulative_death_spec.comparators for label in c.scenarios.values()]
+    if 'reference' not in labels or 'public_reference' not in labels:
+        raise ValueError('Must have at least a "reference" and "public_reference" result label.')
+
     postprocessing_spec = PostprocessingSpecification.from_path(
         Path(cumulative_death_spec.comparators[-1].version) / static_vars.POSTPROCESSING_SPECIFICATION_FILE
     )
     postprocessing_data_interface = PostprocessingDataInterface.from_specification(postprocessing_spec)
     hierarchy = postprocessing_data_interface.load_hierarchy()
+    population = postprocessing_data_interface.load_total_population()
     sorted_locs = get_locations_dfs(hierarchy)
 
     data = []
@@ -61,21 +66,36 @@ def run_cumulative_deaths_compare_csv(diagnostics_version: str) -> None:
     dates = cumulative_death_spec.dates + [str(max_date.date())]
     final_data = []
     for date in dates:
-        date_data = data[data.date == pd.Timestamp(date)].set_index(['location_id', 'location_name']).drop(columns='date')
+        date_data = (data[data.date == pd.Timestamp(date)]
+                     .set_index(['location_id', 'location_name'])
+                     .drop(columns='date'))
         date_data.columns = [f'{date}_{c}'for c in date_data.columns]
         final_data.append(date_data)
 
     final_data = pd.concat(final_data, axis=1)
-    pub_ref_col, ref_col = [f'{str(max_date.date())}_{s}' for s in ['public_reference', 'reference']]
-    try:
-        other_cols = final_data.columns.tolist()
-        final_data['diff_prev_current'] = final_data[ref_col] - final_data[pub_ref_col]
-        final_data['pct_diff_prev_current'] = final_data['diff_prev_current'] / final_data[pub_ref_col]
-        final_data = final_data[['diff_prev_current', 'pct_diff_prev_current'] + other_cols]
-    except KeyError:
-        pass
+    pub_ref_col, ref_col, ref_unscaled_col = [f'{str(max_date.date())}_{s}'
+                                              for s in ['public_reference', 'reference', 'reference_unscaled']]
+    other_cols = final_data.columns.tolist()
+    final_data['diff_prev_current'] = final_data[ref_col] - final_data[pub_ref_col]
+    final_data['pct_diff_prev_current'] = final_data['diff_prev_current'] / final_data[pub_ref_col]
+    final_data = final_data[['diff_prev_current', 'pct_diff_prev_current'] + other_cols]
 
+    final_data_rates = (final_data
+                        .divide(population.loc[final_data.reset_index(level='location_name').index])
+                        .reset_index())
+    final_data = final_data.reset_index()
+
+    country_level = final_data.location_id.isin(hierarchy[hierarchy.level == 3].location_id.tolist())
+    top_20 = (final_data
+              .loc[country_level, ['location_id', 'location_name', ref_col, ref_unscaled_col]]
+              .sort_values(ref_col)
+              .iloc[:20])
+    top_20_rates = (final_data
+                    .loc[country_level, ['location_id', 'location_name', ref_col, ref_unscaled_col]]
+                    .sort_values(ref_col)
+                    .iloc[:20])
     import pdb; pdb.set_trace()
+
     logger.report()
 
 

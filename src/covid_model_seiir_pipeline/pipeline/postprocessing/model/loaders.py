@@ -381,7 +381,7 @@ def build_version_map(data_interface: 'PostprocessingDataInterface') -> pd.Serie
 
 
 def load_populations(data_interface: 'PostprocessingDataInterface'):
-    return data_interface.load_populations()
+    return data_interface.load_population()
 
 
 def load_hierarchy(data_interface: 'PostprocessingDataInterface'):
