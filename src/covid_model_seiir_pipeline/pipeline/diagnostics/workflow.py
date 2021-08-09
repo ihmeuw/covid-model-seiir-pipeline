@@ -24,18 +24,34 @@ class GridPlotsTaskTemplate(workflow.TaskTemplate):
     task_args = ['diagnostics_version']
 
 
+class CompareCSVTaskTemplate(workflow.TaskTemplate):
+
+    tool = workflow.get_jobmon_tool(covid_model_seiir_pipeline)
+    task_name_template = f"{DIAGNOSTICS_JOBS.compare_csv}"
+    command_template = (
+            f"{shutil.which('stask')} "
+            f"{DIAGNOSTICS_JOBS.compare_csv} "
+            "--diagnostics-version {diagnostics_version} "            
+            "-vv"
+    )
+    node_args = []
+    task_args = ['diagnostics_version']
+
+
 class DiagnosticsWorkflow(workflow.WorkflowTemplate):
     tool = workflow.get_jobmon_tool(covid_model_seiir_pipeline)
     workflow_name_template = 'seiir-diagnostics-{version}'
     task_template_classes = {
         DIAGNOSTICS_JOBS.grid_plots: GridPlotsTaskTemplate,
+        DIAGNOSTICS_JOBS.compare_csv: CompareCSVTaskTemplate,
     }
     # Jobs here are not homogeneous so it's useful to get all failures if
     # things do fail.
     fail_fast = False
 
-    def attach_tasks(self, grid_plots_task_names: List[str]) -> None:
+    def attach_tasks(self, grid_plots_task_names: List[str], compare_csv: bool) -> None:
         grid_plots_template = self.task_templates[DIAGNOSTICS_JOBS.grid_plots]
+        compare_csv_template = self.task_templates[DIAGNOSTICS_JOBS.compare_csv]
 
         for grid_plots_task_name in grid_plots_task_names:
             grid_plots_task = grid_plots_template.get_task(
@@ -43,3 +59,8 @@ class DiagnosticsWorkflow(workflow.WorkflowTemplate):
                 plot_name=grid_plots_task_name,
             )
             self.workflow.add_task(grid_plots_task)
+        if compare_csv:
+            compare_csv_task = compare_csv_template.get_task(
+                diagnostics_version=self.version,
+            )
+            self.workflow.add_task(compare_csv_task)
