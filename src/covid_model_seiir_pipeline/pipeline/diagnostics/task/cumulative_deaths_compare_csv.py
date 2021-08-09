@@ -81,7 +81,7 @@ def run_cumulative_deaths_compare_csv(diagnostics_version: str) -> None:
     final_data = final_data[['diff_prev_current', 'pct_diff_prev_current'] + other_cols]
 
     final_data_rates = (final_data
-                        .divide(population.loc[final_data.reset_index(level='location_name').index])
+                        .divide(population.reindex(final_data.reset_index(level='location_name').index))
                         .reset_index())
     final_data = final_data.reset_index()
 
