@@ -128,11 +128,11 @@ class ScattersSpecification:
 
     def __init__(self,
                  name: str,
-                 x_axis: ScattersAxisSpecification,
-                 y_axis: ScattersAxisSpecification):
+                 x_axis: Dict,
+                 y_axis: Dict):
         self.name = name
-        self.x_axis = x_axis
-        self.y_axis = y_axis
+        self.x_axis = ScattersAxisSpecification(**x_axis)
+        self.y_axis = ScattersAxisSpecification(**y_axis)
 
     def to_dict(self):
         return {k: v.to_dict() for k, v in self.__dict__.items()}
