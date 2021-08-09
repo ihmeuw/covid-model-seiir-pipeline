@@ -134,8 +134,8 @@ class ScattersSpecification:
         self.x_axis = ScattersAxisSpecification(**x_axis)
         self.y_axis = ScattersAxisSpecification(**y_axis)
 
-    def to_dict(self):
-        return {k: v.to_dict() for k, v in self.__dict__.items()}
+    def to_dict(self) -> Dict:
+        return {'name': self.name, 'x_axis': self.x_axis.to_dict(), 'y_axis': self.y_axis.to_dict()}
 
 
 class DiagnosticsSpecification(utilities.Specification):
