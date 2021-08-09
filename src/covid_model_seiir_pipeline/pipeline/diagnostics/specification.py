@@ -135,7 +135,7 @@ class ScattersSpecification:
         self.y_axis = y_axis
 
     def to_dict(self):
-        return {k: v.to_dict() for k, v in self.__dict__.items() if k != 'name'}
+        return {k: v.to_dict() for k, v in self.__dict__.items()}
 
 
 class DiagnosticsSpecification(utilities.Specification):
