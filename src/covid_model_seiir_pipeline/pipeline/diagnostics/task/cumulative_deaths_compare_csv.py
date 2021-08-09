@@ -39,7 +39,11 @@ def run_cumulative_deaths_compare_csv(diagnostics_version: str) -> None:
     )
     postprocessing_data_interface = PostprocessingDataInterface.from_specification(postprocessing_spec)
     hierarchy = postprocessing_data_interface.load_hierarchy()
-    population = postprocessing_data_interface.load_total_population()
+    population = postprocessing_data_interface.load_population()
+    population = (population
+                  .loc[(population.sex_id == 3) & (population.age_group_id == 22)]
+                  .set_index('location_id')
+                  .population)
     sorted_locs = get_locations_dfs(hierarchy)
 
     data = []
