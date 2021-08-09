@@ -83,6 +83,7 @@ def run_cumulative_deaths_compare_csv(diagnostics_version: str) -> None:
     final_data_rates = (final_data
                         .divide(population.reindex(final_data.reset_index(level='location_name').index))
                         .reset_index())
+    final_data_rates = final_data_rates.loc[final_data_rates.notnull().all(axis=1)]
     final_data = final_data.reset_index()
 
     country_level = final_data.location_id.isin(hierarchy[hierarchy.level == 3].location_id.tolist())
