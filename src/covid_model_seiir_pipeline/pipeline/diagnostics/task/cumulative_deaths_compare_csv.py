@@ -44,6 +44,17 @@ def run_cumulative_deaths_compare_csv(diagnostics_version: str) -> None:
                   .set_index('location_id')
                   .population)
     sorted_locs = get_locations_dfs(hierarchy)
+    other_hierarchies = [
+        '/ihme/covid-19/seir-outputs/agg-hierarchies/who_plus_palestine.csv',
+        '/ihme/covid-19/seir-outputs/agg-hierarchies/who_euro.csv',
+        '/ihme/covid-19/seir-outputs/agg-hierarchies/world_bank.csv',
+        '/ihme/covid-19/seir-outputs/agg-hierarchies/eu_minus_uk.csv',
+    ]
+    for h_file in other_hierarchies:
+        h = pd.read_csv(h_file)
+        h = (h[~h.location_id.isin(hierarchy.location_id)])
+        hierarchy.append(h)
+        sorted_locs.append(h.location_id.tolist())
 
     data = []
     max_date = pd.Timestamp('2000-01-01')
