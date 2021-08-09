@@ -54,8 +54,8 @@ def run_cumulative_deaths_compare_csv(diagnostics_version: str) -> None:
     for h_file in other_hierarchies:
         h = pd.read_csv(h_file)
         h = (h[~h.location_id.isin(hierarchy.location_id)])
-        hierarchy.append(h)
-        sorted_locs.append(h.location_id.tolist())
+        hierarchy = hierarchy.append(h)
+        sorted_locs.extend(h.location_id.tolist())
 
     data = []
     max_date = pd.Timestamp('2000-01-01')
