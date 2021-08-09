@@ -63,7 +63,7 @@ def run_scatters(diagnostics_version: str, name: str, progress_bar: bool) -> Non
     plotting_data['Above 45'] = pc > 0.45
     plotting_data['location_name'] = name_map.reindex(plotting_data.index)
 
-    with PdfPages('death_compare.pdf') as pdf:
+    with PdfPages(f'{diagnostics_version}/cumulative_deaths_scatters_{name}.pdf') as pdf:
         make_scatter_pages(plotting_data, hierarchy, deaths_x.name, deaths_y.name, pdf)
 
     logger.report()
