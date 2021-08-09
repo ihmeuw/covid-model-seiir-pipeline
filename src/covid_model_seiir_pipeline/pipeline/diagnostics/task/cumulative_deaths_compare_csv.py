@@ -23,7 +23,6 @@ logger = cli_tools.task_performance_logger
 
 
 def run_cumulative_deaths_compare_csv(diagnostics_version: str) -> None:
-    """Make the grid plots!"""
     logger.info(f'Starting cumulative death compare csv for version {diagnostics_version}', context='setup')
     diagnostics_spec = DiagnosticsSpecification.from_path(
         Path(diagnostics_version) / static_vars.DIAGNOSTICS_SPECIFICATION_FILE
@@ -87,8 +86,7 @@ def run_cumulative_deaths_compare_csv(diagnostics_version: str) -> None:
     population = population.reindex(final_data.reset_index(level='location_name').index)
     final_data_rates = final_data.loc[:, other_cols]
     final_data_rates = (final_data_rates
-                        .loc[:, other_cols]
-                        .divide(population.values, axis=1)
+                        .divide(population.values, axis=0)
                         .reset_index())
     final_data_rates = final_data_rates.loc[final_data_rates.notnull().all(axis=1)]
     final_data = final_data.reset_index()
@@ -96,13 +94,17 @@ def run_cumulative_deaths_compare_csv(diagnostics_version: str) -> None:
     country_level = final_data.location_id.isin(hierarchy[hierarchy.level == 3].location_id.tolist())
     top_20 = (final_data
               .loc[country_level, ['location_id', 'location_name', ref_col, ref_unscaled_col]]
-              .sort_values(ref_col)
+              .sort_values(ref_col, ascending=False)
               .iloc[:20])
-    top_20_rates = (final_data
+    top_20_rates = (final_data_rates
                     .loc[country_level, ['location_id', 'location_name', ref_col, ref_unscaled_col]]
-                    .sort_values(ref_col)
+                    .sort_values(ref_col, ascending=False)
                     .iloc[:20])
-    import pdb; pdb.set_trace()
+
+    final_data.to_csv(f'{diagnostics_version}/cumulative_death_compare.csv', index=False)
+    final_data_rates.to_csv(f'{diagnostics_version}/cumulative_death_rate_compare.csv', index=False)
+    top_20.to_csv(f'{diagnostics_version}/top_20_cumulative_death.csv', index=False)
+    top_20_rates.to_csv(f'{diagnostics_version}/top_20_cumulative_death_rate.csv', index=False)
 
     logger.report()
 
