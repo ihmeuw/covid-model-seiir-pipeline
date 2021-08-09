@@ -3,22 +3,6 @@ data:
 workflow:
   project: 'proj_covid_prod'
   queue: 'd.q'
-cumulative_deaths_compare_csv:
-  dates:
-    # Latest data date included automatically.  List other dates here
-    - '2021-12-01'
-    - '2021-12-31'
-  comparators:
-    - version: '2021_07_30.02'
-      scenarios:
-        reference: 'public_reference'
-        worse: 'public_worse'
-        best_masks: 'public_best_masks'
-    - version: '2021_08_04.05'
-      scenarios:
-        reference: 'reference'
-        worse: 'worse'
-        best_masks: 'best_masks'
 grid_plots:
   - name: 'compare_longrange'
     date_start: '2020-03-01'
@@ -46,4 +30,46 @@ grid_plots:
           worse: 'worse'
           no_vaccine: 'no vaccine'
           best_masks: 'best masks'
-
+cumulative_deaths_compare_csv:
+  dates:
+    # Latest data date included automatically.  List other dates to include here
+    - '2021-12-01'
+    - '2021-12-31'
+  comparators:
+    - version: '2021_07_30.02'
+      scenarios:
+        reference: 'public_reference'
+        worse: 'public_worse'
+        best_masks: 'public_best_masks'
+    - version: '2021_08_04.05'
+      scenarios:
+        reference: 'reference'
+        worse: 'worse'
+        best_masks: 'best_masks'
+scatters:
+  - reference_compare:
+      x_axis:
+        version: '2021_07_30.02'
+        scenario: 'reference'
+        # Leave date blank to automatically select the last day of data.
+        date: ''
+        label: 'public_reference'
+      y_axis:
+        version: '2021_08_04.05'
+        scenario: 'reference'
+        # Leave date blank to automatically select the last day of data.
+        date: ''
+        label: 'reference'
+  - best_masks_compare:
+      x_axis:
+        version: '2021_07_30.02'
+        scenario: 'best_masks'
+        # Leave date blank to automatically select the last day of data.
+        date: ''
+        label: 'public_best_masks'
+      y_axis:
+        version: '2021_08_04.05'
+        scenario: 'best_masks'
+        # Leave date blank to automatically select the last day of data.
+        date: ''
+        label: 'best_masks'

@@ -591,6 +591,17 @@ def _do_diagnostics(run_metadata: cli_tools.RunMetadata,
                                                                paths.SEIR_FINAL_OUTPUTS)
             outputs_versions.add(comparator_version_path)
             comparator.version = str(comparator_version_path)
+    for scatters_spec in diagnostics_spec.scatters:
+        x_axis_version_path = cli_tools.get_input_root(None,
+                                                       scatters_spec.x_axis.version,
+                                                       paths.SEIR_FINAL_OUTPUTS)
+        scatters_spec.x_axis.version = str(x_axis_version_path)
+        outputs_versions.add(x_axis_version_path)
+        y_axis_version_path = cli_tools.get_input_root(None,
+                                                       scatters_spec.y_axis.version,
+                                                       paths.SEIR_FINAL_OUTPUTS)
+        scatters_spec.y_axis.version = str(y_axis_version_path)
+        outputs_versions.add(y_axis_version_path)
 
     output_root = cli_tools.get_output_root(output_root,
                                             diagnostics_spec.data.output_root)
