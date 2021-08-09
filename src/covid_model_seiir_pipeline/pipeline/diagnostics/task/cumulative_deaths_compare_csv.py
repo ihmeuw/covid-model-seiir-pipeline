@@ -38,12 +38,24 @@ def run_cumulative_deaths_compare_csv(diagnostics_version: str) -> None:
     )
     postprocessing_data_interface = PostprocessingDataInterface.from_specification(postprocessing_spec)
     hierarchy = postprocessing_data_interface.load_hierarchy()
+    countries = hierarchy[hierarchy.level == 3].location_id.tolist()
     population = postprocessing_data_interface.load_population()
     population = (population
                   .loc[(population.sex_id == 3) & (population.age_group_id == 22)]
                   .set_index('location_id')
                   .population)
     sorted_locs = get_locations_dfs(hierarchy)
+    other_hierarchies = [
+        '/ihme/covid-19/seir-outputs/agg-hierarchies/who_plus_palestine.csv',
+        '/ihme/covid-19/seir-outputs/agg-hierarchies/who_euro.csv',
+        '/ihme/covid-19/seir-outputs/agg-hierarchies/world_bank.csv',
+        '/ihme/covid-19/seir-outputs/agg-hierarchies/eu_minus_uk.csv',
+    ]
+    for h_file in other_hierarchies:
+        h = pd.read_csv(h_file)
+        h = (h[~h.location_id.isin(hierarchy.location_id)])
+        hierarchy.append(h)
+        sorted_locs.append(h.location_id.tolist())
 
     data = []
     max_date = pd.Timestamp('2000-01-01')
@@ -91,7 +103,7 @@ def run_cumulative_deaths_compare_csv(diagnostics_version: str) -> None:
     final_data_rates = final_data_rates.loc[final_data_rates.notnull().all(axis=1)]
     final_data = final_data.reset_index()
 
-    country_level = final_data.location_id.isin(hierarchy[hierarchy.level == 3].location_id.tolist())
+    country_level = final_data.location_id.isin(countries)
     top_20 = (final_data
               .loc[country_level, ['location_id', 'location_name', ref_col, ref_unscaled_col]]
               .sort_values(ref_col, ascending=False)
