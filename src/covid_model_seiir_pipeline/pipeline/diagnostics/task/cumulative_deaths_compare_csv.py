@@ -84,9 +84,12 @@ def run_cumulative_deaths_compare_csv(diagnostics_version: str) -> None:
     final_data['pct_diff_prev_current'] = final_data['diff_prev_current'] / final_data[pub_ref_col]
     final_data = final_data[['diff_prev_current', 'pct_diff_prev_current'] + other_cols]
 
-    final_data_rates = (final_data
-                        .divide(population.reindex(final_data.reset_index(level='location_name').index))
-                        .reset_index())
+    population = population.reindex(final_data.reset_index(level='location_name').index)
+    final_data_rates = final_data.copy()
+    final_data_rates.loc[:, other_cols] = (final_data_rates
+                                           .loc[:, other_cols]
+                                           .divide(population.values, axis=1)
+                                           .reset_index())
     final_data_rates = final_data_rates.loc[final_data_rates.notnull().all(axis=1)]
     final_data = final_data.reset_index()
 
