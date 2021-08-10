@@ -121,10 +121,9 @@ def variant_system_metrics(indices: Indices,
 
         for covid_type in ['wild', 'variant']:
             infections = group_components_diff[f'NewE_{covid_type}_{group}'].rename('infections')
-            infections_p = group_components_diff[f'NewE_p_{covid_type}_{group}'].rename('infections')
-            infections_not_p = infections - infections_p
+
             deaths = compute_deaths(
-                infections_not_p,
+                infections,
                 postprocessing_params.infection_to_death,
                 group_ifr,
             )
