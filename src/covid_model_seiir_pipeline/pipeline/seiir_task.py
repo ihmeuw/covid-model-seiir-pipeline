@@ -21,7 +21,9 @@ from covid_model_seiir_pipeline.pipeline.postprocessing import (
 )
 from covid_model_seiir_pipeline.pipeline.diagnostics import (
     DIAGNOSTICS_JOBS,
+    cumulative_deaths_compare_csv,
     grid_plots,
+    scatters,
 )
 
 
@@ -38,4 +40,6 @@ stask.add_command(beta_residual_scaling, name=FORECAST_JOBS.scaling)
 stask.add_command(beta_forecast, name=FORECAST_JOBS.forecast)
 stask.add_command(resample_map, name=POSTPROCESSING_JOBS.resample)
 stask.add_command(postprocess, name=POSTPROCESSING_JOBS.postprocess)
+stask.add_command(cumulative_deaths_compare_csv, name=DIAGNOSTICS_JOBS.compare_csv)
 stask.add_command(grid_plots, name=DIAGNOSTICS_JOBS.grid_plots)
+stask.add_command(scatters, name=DIAGNOSTICS_JOBS.scatters)

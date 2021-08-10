@@ -81,6 +81,9 @@ class ForecastDataInterface:
     def load_five_year_population(self) -> pd.DataFrame:
         return self._get_regression_data_interface().load_five_year_population()
 
+    def load_total_population(self) -> pd.Series:
+        return self._get_regression_data_interface().load_total_population()
+
     def load_full_data(self) -> pd.DataFrame:
         return self._get_regression_data_interface().load_full_data(self.fh_subnationals)
 
