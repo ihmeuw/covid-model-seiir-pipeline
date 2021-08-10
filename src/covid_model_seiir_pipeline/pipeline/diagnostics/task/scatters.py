@@ -30,7 +30,7 @@ COLOR_MAP = ['#7F3C8D', '#11A579',
 
 AX_LABEL_FONTSIZE = 16
 TITLE_FONTSIZE = 24
-FIG_SIZE = (30, 13)
+FIG_SIZE = (20, 8)
 GRID_SPEC_MARGINS = {'top': 0.92, 'bottom': 0.08}
 
 logger = cli_tools.task_performance_logger
@@ -64,7 +64,7 @@ def run_scatters(diagnostics_version: str, name: str, progress_bar: bool) -> Non
     plotting_data['location_name'] = name_map.reindex(plotting_data.index)
 
     with PdfPages(f'{diagnostics_version}/cumulative_deaths_scatters_{name}.pdf') as pdf:
-        make_scatter_pages(plotting_data, hierarchy, deaths_x.name, deaths_y.name, pdf)
+        make_scatter_pages(plotting_data, hierarchy, deaths_x.name, deaths_y.name, progress_bar, pdf)
 
     logger.report()
 
@@ -166,7 +166,7 @@ def make_scatter_pages(plotting_data, hierarchy, xlabel, ylabel, progress_bar: b
             plotting_data.index.isin(child_locs), name_map.loc[agg_location], 'Above 25'
         ))
 
-    for loc_filter, label, threshold_col in tqdm.tqdm(filters_labels_and_thresholds):
+    for loc_filter, label, threshold_col in tqdm.tqdm(filters_labels_and_thresholds, disable=not progress_bar):
         make_scatter_page(
             plotting_data.loc[loc_filter],
             f'Cumulative Deaths Compare {label}',
