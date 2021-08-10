@@ -29,6 +29,13 @@ def compute_reimposition_threshold(past_deaths, population, reimposition_thresho
     )
     bad_locs = days_over_death_rate[days_over_death_rate >= 7].index
     reimposition_threshold.loc[bad_locs] = 2*max_threshold.loc[bad_locs]
+    # Locations that have shown a propensity to impose mandates at 
+    # any sign of covid in their populations.
+    immediate_lockdown_locations = [
+        71, # Australia
+    ]
+    for location in immediate_lockdown_locations:
+        reimposition_threshold.loc[location] = 0.1 / 1_000_000
 
     return reimposition_threshold
 

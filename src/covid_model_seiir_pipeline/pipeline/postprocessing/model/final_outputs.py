@@ -101,6 +101,24 @@ MEASURES = {
         'daily_deaths_variant',
         aggregator=aggregators.sum_aggregator,
     ),
+    'deaths_lr': MeasureConfig(
+        loaders.load_deaths_lr,
+        'daily_deaths_low_risk',
+        splice=False,
+        aggregator=aggregators.sum_aggregator,
+    ),
+    'deaths_hr': MeasureConfig(
+        loaders.load_deaths_hr,
+        'daily_deaths_high_risk',
+        splice=False,
+        aggregator=aggregators.sum_aggregator,
+    ),
+    'deaths_modeled': MeasureConfig(
+        loaders.load_deaths_modeled,
+        'daily_deaths_modeled',
+        splice=False,
+        aggregator=aggregators.sum_aggregator,
+    ),
 
     # Infection measures
 
@@ -140,6 +158,18 @@ MEASURES = {
         'daily_infections_vaccine_breakthrough',
         aggregator=aggregators.sum_aggregator,
     ),
+    'infections_lr': MeasureConfig(
+        loaders.load_infections_lr,
+        'daily_infections_low_risk',
+        splice=False,
+        aggregator=aggregators.sum_aggregator,
+    ),
+    'infections_hr': MeasureConfig(
+        loaders.load_infections_hr,
+        'daily_infections_high_risk',
+        aggregator=aggregators.sum_aggregator,
+        splice=False,
+    ),
     'cases': MeasureConfig(
         loaders.load_cases,
         'daily_cases',
@@ -171,6 +201,16 @@ MEASURES = {
         loaders.load_icu_census,
         'icu_census',
         aggregator=aggregators.sum_aggregator,
+    ),
+    'hospital_census_correction_factor': MeasureConfig(
+        loaders.load_hospital_census_correction_factor,
+        'hospital_census_correction_factor',
+        splice=False,
+    ),
+    'icu_census_correction_factor': MeasureConfig(
+        loaders.load_icu_census_correction_factor,
+        'icu_census_correction_factor',
+        splice=False,
     ),
 
     # Vaccination measures
@@ -236,6 +276,7 @@ MEASURES = {
         loaders.load_total_susceptible_variant_unprotected,
         'total_susceptible_variant_unprotected',
         aggregator=aggregators.sum_aggregator,
+        splice=False,
     ),
     'total_immune_wild': MeasureConfig(
         loaders.load_total_immune_wild,
@@ -266,6 +307,16 @@ MEASURES = {
     'r_effective': MeasureConfig(
         loaders.load_r_effective,
         'r_effective',
+    ),
+    'force_of_infection': MeasureConfig(
+        loaders.load_force_of_infection,
+        'force_of_infection',
+        splice=False,
+    ),
+    'force_of_infection_unvaccinated': MeasureConfig(
+        loaders.load_force_of_infection_unvaccinated,
+        'force_of_infection_unvaccinated',
+        splice=False,
     ),
 
     # Betas
@@ -332,6 +383,14 @@ MEASURES = {
         loaders.load_ifr_es,
         'infection_fatality_ratio_es',
     ),
+    'infection_fatality_ratio_high_risk_es': MeasureConfig(
+        loaders.load_ifr_high_risk_es,
+        'infection_fatality_ratio_high_risk_es',
+    ),
+    'infection_fatality_ratio_low_risk_es': MeasureConfig(
+        loaders.load_ifr_low_risk_es,
+        'infection_fatality_ratio_low_risk_es',
+    ),
     'infection_detection_ratio_es': MeasureConfig(
         loaders.load_idr_es,
         'infection_detection_ratio_es',
@@ -350,6 +409,25 @@ COMPOSITE_MEASURES = {
         label='infection_fatality_ratio',
         combiner=combiners.make_ifr,
     ),
+    'infection_fatality_ratio_modeled': CompositeMeasureConfig(
+        base_measures={'infections': MEASURES['infections'],
+                       'deaths': MEASURES['deaths_modeled']},
+        label='infection_fatality_ratio_modeled',
+        combiner=combiners.make_ifr,
+    ),
+    'infection_fatality_ratio_high_risk': CompositeMeasureConfig(
+        base_measures={'infections': MEASURES['infections_hr'],
+                       'deaths': MEASURES['deaths_hr']},
+        label='infection_fatality_ratio_high_risk',
+        combiner=combiners.make_ifr,
+    ),
+    'infection_fatality_ratio_low_risk': CompositeMeasureConfig(
+        base_measures={'infections': MEASURES['infections_lr'],
+                       'deaths': MEASURES['deaths_lr']},
+        label='infection_fatality_ratio_low_risk',
+        combiner=combiners.make_ifr,
+    ),
+
     'infection_hospitalization_ratio': CompositeMeasureConfig(
         base_measures={'infections': MEASURES['infections'],
                        'hospital_admissions': MEASURES['hospital_admissions']},
@@ -446,10 +524,6 @@ MISCELLANEOUS = {
     'hospital_census_data': MiscellaneousConfig(
         loaders.load_raw_census_data,
         'hospital_census_data',
-    ),
-    'hospital_correction_factors': MiscellaneousConfig(
-        loaders.load_hospital_correction_factors,
-        'hospital_correction_factors',
     ),
     'version_map': MiscellaneousConfig(
         loaders.build_version_map,

@@ -204,8 +204,7 @@ def make_details_page(plot_versions: List[PlotVersion],
     full_data = pv.load_output_miscellaneous('full_data', is_table=True, location_id=location.id)
     full_data_unscaled = pv.load_output_miscellaneous('unscaled_full_data', is_table=True, location_id=location.id)
     hospital_census = pv.load_output_miscellaneous('hospital_census_data', is_table=True, location_id=location.id)
-    hospital_correction_factors = pv.load_output_miscellaneous('hospital_correction_factors', is_table=True,
-                                                               location_id=location.id)
+
     # Configure the plot layout.
     fig = plt.figure(figsize=FIG_SIZE, tight_layout=True)
     grid_spec = fig.add_gridspec(
@@ -246,11 +245,10 @@ def make_details_page(plot_versions: List[PlotVersion],
         axes[col].append(ax_daily)
 
         ax_correction = fig.add_subplot(gs_hospital[1, col])
-        plotter.make_raw_time_plot(
+        plotter.make_time_plot(
             ax_correction,
-            hospital_correction_factors,
-            f'{measure}_census',
-            f'{label} Scalar'
+            f'{measure}_census_correction_factor',
+            label=f'{label} Census Correction Factor'
         )
         axes[col].append(ax_correction)
 

@@ -65,7 +65,7 @@ def do_aggregation(measure_data: pd.DataFrame,
         for aggregation_config in aggregation_configs:
             logger.info(f'Aggregating to hierarchy {aggregation_config.to_dict()}', context='aggregate')
             hierarchy = data_interface.load_aggregation_heirarchy(aggregation_config)
-            population = data_interface.load_populations()
+            population = data_interface.load_population()
             measure_data = measure_config.aggregator(measure_data, hierarchy, population)
     return measure_data
 
@@ -217,7 +217,6 @@ def postprocess_covariate(postprocessing_version: str,
 
     input_covariate_data = data_interface.load_input_covariate(covariate, covariate_version)
     covariate_observed = input_covariate_data.reset_index(level='observed')
-    covariate_observed['observed'] = covariate_observed['observed'].fillna(0)
 
     covariate_data = load_and_resample_covariate(
         covariate_config,
@@ -225,6 +224,11 @@ def postprocess_covariate(postprocessing_version: str,
         data_interface,
         scenario_name,
     )
+
+    observed_col = covariate_observed.reindex(covariate_data.index).observed
+    covariate_data = pd.concat([covariate_data, observed_col], axis=1)
+    covariate_data['observed'] = covariate_observed['observed'].fillna(0)
+    covariate_data = covariate_data.set_index('observed', append=True)
 
     covariate_data = do_splicing(
         covariate_data,
@@ -242,21 +246,16 @@ def postprocess_covariate(postprocessing_version: str,
     )
 
     logger.info(f'Combining {covariate} forecasts with history.', context='merge_history')
-    covariate_data = covariate_data.merge(covariate_observed, left_index=True,
-                                          right_index=True, how='outer').reset_index()
     draw_cols = [f'draw_{i}' for i in range(n_draws)]
-    if 'date' in covariate_data.columns:
+    if 'date' in covariate_data.index.names:
         index_cols = ['location_id', 'date', 'observed']
     else:
         index_cols = ['location_id', 'observed']
-
-    covariate_data = covariate_data.set_index(index_cols)[draw_cols]
     covariate_data['modeled'] = covariate_data.notnull().all(axis=1).astype(int)
 
     input_covariate = pd.concat([covariate_observed.reset_index().set_index(index_cols)] * n_draws, axis=1)
     input_covariate.columns = draw_cols
     covariate_data = covariate_data.combine_first(input_covariate).set_index('modeled', append=True)
-
     summarize_and_write(
         covariate_data,
         covariate_config,

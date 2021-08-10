@@ -382,7 +382,7 @@ class RegressionDataInterface:
 
     def load_variant_prevalence(self, variant_scenario: str = 'reference',
                                 covariate_root: io.CovariateRoot = None) -> pd.DataFrame:
-        variants = ['non_escape', 'escape', 'B117', 'B1351', 'B1617', 'P1']
+        variants = ['non_escape', 'escape', 'B117', 'B1351', 'B16172', 'P1']
         cov_map = {
             variant: self.load_covariate(
                 f'variant_prevalence_{variant}',
@@ -393,7 +393,7 @@ class RegressionDataInterface:
         }
 
         rho = cov_map['non_escape'].rename('rho')
-        rho_variant = sum([cov_map[k] for k in ['B1351', 'P1', 'B1617']]).rename('rho_variant')
+        rho_variant = sum([cov_map[k] for k in ['B1351', 'P1', 'B16172']]).rename('rho_variant')
         rho_total = (cov_map['B117'] + rho_variant).rename('rho_total')
         rho_b1617 = cov_map['escape'].rename('rho_b1617')
         return pd.concat([rho, rho_variant, rho_b1617, rho_total], axis=1)

@@ -2,7 +2,6 @@ import itertools
 from pathlib import Path
 from typing import Dict, List
 
-import numpy as np
 import pandas as pd
 
 from covid_model_seiir_pipeline.lib import (
@@ -101,6 +100,14 @@ class PostprocessingDataInterface:
         ifr = self._get_forecast_data_inteface().load_ifr(draw_id=draw_id)
         return ifr['ifr'].rename(draw_id)
 
+    def load_ifr_hr(self, draw_id: int):
+        ifr = self._get_forecast_data_inteface().load_ifr(draw_id=draw_id)
+        return ifr['ifr_hr'].rename(draw_id)
+
+    def load_ifr_lr(self, draw_id: int):
+        ifr = self._get_forecast_data_inteface().load_ifr(draw_id=draw_id)
+        return ifr['ifr_lr'].rename(draw_id)
+
     def load_ihr(self, draw_id: int):
         ihr = self._get_forecast_data_inteface().load_ihr(draw_id=draw_id)
         return ihr['ihr'].rename(draw_id)
@@ -139,10 +146,9 @@ class PostprocessingDataInterface:
         return draw_df[measure].rename(draw_id)
 
     def load_raw_output_deaths(self, draw_id: int, scenario: str) -> pd.Series:
-        draw_df = self.load_raw_outputs(scenario=scenario, draw_id=draw_id, columns=['observed', 'deaths'])
+        draw_df = self.load_raw_outputs(scenario=scenario, draw_id=draw_id, columns=['deaths'])
         draw_df = draw_df.groupby('location_id').bfill().groupby('location_id').ffill()
-        draw_df['observed'] = draw_df['observed'].astype(int)
-        draw_df = draw_df.set_index('observed', append=True).deaths.rename(draw_id)
+        draw_df = draw_df.deaths.rename(draw_id)
         return draw_df
 
     def load_raw_outputs(self, draw_id: int, scenario: str, columns=None) -> pd.Series:
@@ -196,8 +202,14 @@ class PostprocessingDataInterface:
         version_map.columns = ['name', 'version']
         return version_map
 
-    def load_populations(self) -> pd.DataFrame:
+    def load_population(self) -> pd.DataFrame:
         return self._get_forecast_data_inteface().load_population()
+
+    def load_five_year_population(self) -> pd.DataFrame:
+        return self._get_forecast_data_inteface().load_five_year_population()
+
+    def load_total_population(self) -> pd.Series:
+        return self._get_forecast_data_inteface().load_total_population()
 
     def load_hierarchy(self) -> pd.DataFrame:
         fdi = self._get_forecast_data_inteface()

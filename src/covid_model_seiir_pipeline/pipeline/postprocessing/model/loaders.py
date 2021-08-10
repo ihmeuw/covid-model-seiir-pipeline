@@ -43,6 +43,18 @@ def load_deaths_variant(scenario: str, data_interface: 'PostprocessingDataInterf
     return _load_output_data(scenario, 'modeled_deaths_variant', data_interface, num_cores)
 
 
+def load_deaths_lr(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
+    return _load_output_data(scenario, 'modeled_deaths_lr', data_interface, num_cores)
+
+
+def load_deaths_hr(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
+    return _load_output_data(scenario, 'modeled_deaths_hr', data_interface, num_cores)
+
+
+def load_deaths_modeled(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
+    return _load_output_data(scenario, 'modeled_deaths_total', data_interface, num_cores)
+
+
 ##############
 # Infections #
 ##############
@@ -71,6 +83,14 @@ def load_infections_vaccine_breakthrough(scenario: str, data_interface: 'Postpro
     return _load_output_data(scenario, 'vaccine_breakthrough', data_interface, num_cores)
 
 
+def load_infections_lr(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
+    return _load_output_data(scenario, 'modeled_infections_lr', data_interface, num_cores)
+
+
+def load_infections_hr(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
+    return _load_output_data(scenario, 'modeled_infections_hr', data_interface, num_cores)
+
+
 #########
 # Cases #
 #########
@@ -97,6 +117,14 @@ def load_hospital_census(scenario: str, data_interface: 'PostprocessingDataInter
 
 def load_icu_census(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
     return _load_output_data(scenario, 'icu_census', data_interface, num_cores)
+
+
+def load_hospital_census_correction_factor(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
+    return _load_output_data(scenario, 'hospital_census_correction_factor', data_interface, num_cores)
+
+
+def load_icu_census_correction_factor(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
+    return _load_output_data(scenario, 'icu_census_correction_factor', data_interface, num_cores)
 
 
 ################
@@ -188,6 +216,14 @@ def load_r_effective_variant(scenario: str, data_interface: 'PostprocessingDataI
 
 def load_r_effective(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
     return _load_output_data(scenario, 'r_effective', data_interface, num_cores)
+
+
+def load_force_of_infection(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
+    return _load_output_data(scenario, 'force_of_infection', data_interface, num_cores)
+
+
+def load_force_of_infection_unvaccinated(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
+    return _load_output_data(scenario, 'force_of_infection_unvaccinated', data_interface, num_cores)
 
 
 def load_beta(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int) -> List[pd.Series]:
@@ -345,7 +381,7 @@ def build_version_map(data_interface: 'PostprocessingDataInterface') -> pd.Serie
 
 
 def load_populations(data_interface: 'PostprocessingDataInterface'):
-    return data_interface.load_populations()
+    return data_interface.load_population()
 
 
 def load_hierarchy(data_interface: 'PostprocessingDataInterface'):
@@ -360,6 +396,20 @@ def load_ifr_es(scenario: str, data_interface: 'PostprocessingDataInterface', nu
     draws = range(data_interface.get_n_draws())
     with multiprocessing.Pool(num_cores) as pool:
         outputs = pool.map(data_interface.load_ifr, draws)
+    return outputs
+
+
+def load_ifr_high_risk_es(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
+    draws = range(data_interface.get_n_draws())
+    with multiprocessing.Pool(num_cores) as pool:
+        outputs = pool.map(data_interface.load_ifr_hr, draws)
+    return outputs
+
+
+def load_ifr_low_risk_es(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
+    draws = range(data_interface.get_n_draws())
+    with multiprocessing.Pool(num_cores) as pool:
+        outputs = pool.map(data_interface.load_ifr_lr, draws)
     return outputs
 
 
