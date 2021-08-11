@@ -6,9 +6,9 @@ from covid_model_seiir_pipeline.pipeline.parameter_fit.workflow import FitWorkfl
 from covid_model_seiir_pipeline.pipeline.parameter_fit.data import FitDataInterface
 
 
-def do_beta_fit(app_metadata: cli_tools.Metadata,
-                fit_specification: FitSpecification,
-                preprocess_only: bool):
+def do_parameter_fit(app_metadata: cli_tools.Metadata,
+                     fit_specification: FitSpecification,
+                     preprocess_only: bool):
     logger.info(f'Starting beta fit for version {fit_specification.data.output_root}.')
 
     data_interface = FitDataInterface.from_specification(fit_specification)

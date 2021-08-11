@@ -10,7 +10,7 @@ from covid_model_seiir_pipeline.lib import (
 )
 from covid_model_seiir_pipeline.pipeline import (
     FitSpecification,
-    do_beta_fit,
+    do_parameter_fit,
     RegressionSpecification,
     do_beta_regression,
     ForecastSpecification,
@@ -386,7 +386,7 @@ def _do_oos_fit(run_metadata: cli_tools.RunMetadata,
 
     cli_tools.configure_logging_to_files(run_directory)
     # noinspection PyTypeChecker
-    main = cli_tools.monitor_application(do_beta_fit,
+    main = cli_tools.monitor_application(do_parameter_fit,
                                          logger, with_debugger)
     app_metadata, _ = main(fit_spec, preprocess_only)
 
