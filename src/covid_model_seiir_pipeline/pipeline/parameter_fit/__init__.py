@@ -6,5 +6,5 @@ from covid_model_seiir_pipeline.pipeline.parameter_fit.data import (
     FitDataInterface
 )
 from covid_model_seiir_pipeline.pipeline.parameter_fit.task import (
-    beta_fit,
+    parameter_fit,
 )
