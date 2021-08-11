@@ -13,8 +13,8 @@ from covid_model_seiir_pipeline.pipeline.regression.model import (
     run_ode_fit,
     sample_params,
 )
-from covid_model_seiir_pipeline.pipeline.fit_oos.data import FitDataInterface
-from covid_model_seiir_pipeline.pipeline.fit_oos.specification import FitSpecification
+from covid_model_seiir_pipeline.pipeline.parameter_fit.data import FitDataInterface
+from covid_model_seiir_pipeline.pipeline.parameter_fit.specification import FitSpecification
 
 
 logger = cli_tools.task_performance_logger
