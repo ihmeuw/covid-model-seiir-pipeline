@@ -49,6 +49,11 @@ class RegressionData:
     location_set_file: str = field(default='')
     output_root: str = field(default='')
     output_format: str = field(default='csv')
+    n_draws: int = field(default=100)
+    run_counties: bool = field(init=False)
+
+    def __post_init__(self):
+        self.run_counties = self.location_set_version_id == 841
 
     def to_dict(self) -> Dict:
         """Converts to a dict, coercing list-like items to lists."""
@@ -58,8 +63,6 @@ class RegressionData:
 @dataclass
 class RegressionParameters:
     """Specifies the parameters of the beta fit and regression."""
-    n_draws: int = field(default=1000)
-
     alpha: Tuple[float, float] = field(default=(0.9, 1.0))
     sigma: Tuple[float, float] = field(default=(0.2, 1/3))
     gamma1: Tuple[float, float] = field(default=(0.5, 0.5))
@@ -149,6 +152,9 @@ class RegressionSpecification(utilities.Specification):
                 spec_class(),
             )
             sub_specs[key] = spec_class(**spec_dict)
+
+        if sub_specs['data'].run_counties:
+            sub_specs['hospital_parameters'].compute_correction_factors = False
 
         # covariates
         cov_dicts = regression_spec_dict.get('covariates', {})

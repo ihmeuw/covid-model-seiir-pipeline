@@ -62,11 +62,13 @@ class MiscellaneousConfig:
                  loader: Callable[['PostprocessingDataInterface'], Any],
                  label: str,
                  is_table: bool = True,
-                 aggregator: Callable = None):
+                 aggregator: Callable = None,
+                 include_in_counties: bool = True):
         self.loader = loader
         self.label = label
         self.is_table = is_table
         self.aggregator = aggregator
+        self.include_in_counties = include_in_counties
 
 
 DataConfig = Union[MeasureConfig, CovariateConfig, CompositeMeasureConfig, MiscellaneousConfig]
@@ -516,6 +518,7 @@ MISCELLANEOUS = {
         loaders.load_age_specific_deaths,
         'age_specific_deaths',
         aggregator=aggregators.sum_aggregator,
+        include_in_counties=False,
     ),
     'excess_mortality_scalars': MiscellaneousConfig(
         loaders.load_excess_mortality_scalars,

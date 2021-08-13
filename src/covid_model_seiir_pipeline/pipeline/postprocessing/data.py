@@ -213,9 +213,11 @@ class PostprocessingDataInterface:
 
     def load_hierarchy(self) -> pd.DataFrame:
         fdi = self._get_forecast_data_inteface()
+        rdi = fdi._get_regression_data_interface()
+        regression_spec = rdi.load_specification()
         metadata = fdi.get_model_inputs_metadata()
         model_inputs_path = Path(metadata['output_path'])
-        if fdi.fh_subnationals:
+        if regression_spec.data.run_counties:
             hierarchy_path = model_inputs_path / 'locations' / 'fh_small_area_hierarchy.csv'
         else:
             hierarchy_path = model_inputs_path / 'locations' / 'modeling_hierarchy.csv'

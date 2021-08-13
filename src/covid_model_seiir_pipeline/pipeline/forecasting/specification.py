@@ -47,7 +47,6 @@ class ForecastData:
     covariate_version: str = field(default='best')
     output_root: str = field(default='')
     output_format: str = field(default='csv')
-    fh_subnationals: bool = field(default=False)
 
     def to_dict(self) -> Dict:
         """Converts to a dict, coercing list-like items to lists."""

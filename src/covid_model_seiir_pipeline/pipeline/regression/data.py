@@ -78,8 +78,8 @@ class RegressionDataInterface:
         return infection_metadata['model_inputs_metadata']
 
     def get_n_draws(self) -> int:
-        regression_spec = io.load(self.regression_root.specification())
-        return regression_spec['regression_parameters']['n_draws']
+        regression_spec = self.load_specification()
+        return regression_spec.data.n_draws
 
     #########################
     # Raw location handling #
@@ -101,7 +101,8 @@ class RegressionDataInterface:
         locations, if provided, and the available locations in the infections
         directory.
         """
-        death_threshold = 5
+        regression_spec = self.load_specification()
+        death_threshold = 10 if regression_spec.data.run_counties else 5
         draw_0_data = self.load_full_past_infection_data(draw_id=0)
         total_deaths = draw_0_data.groupby('location_id').deaths.sum()
         modeled_locations = total_deaths[total_deaths > death_threshold].index.tolist()
@@ -157,10 +158,11 @@ class RegressionDataInterface:
     # Observed epi loaders #
     ########################
 
-    def load_full_data(self, fh_subnationals: bool = False) -> pd.DataFrame:
+    def load_full_data(self) -> pd.DataFrame:
+        regression_spec = self.load_specification()
         metadata = self.get_model_inputs_metadata()
         model_inputs_version = metadata['output_path']
-        if fh_subnationals:
+        if regression_spec.data.run_counties:
             full_data_path = Path(model_inputs_version) / 'full_data_fh_subnationals.csv'
         else:
             full_data_path = Path(model_inputs_version) / 'full_data.csv'
@@ -192,10 +194,10 @@ class RegressionDataInterface:
 
         return pd.concat(dfs)
 
-    def load_total_deaths(self, fh_subnationals: bool = False):
+    def load_total_deaths(self):
         """Load cumulative deaths by location."""
         location_ids = self.load_location_ids()
-        full_data = self.load_full_data(fh_subnationals)
+        full_data = self.load_full_data()
         total_deaths = full_data.groupby('location_id')['Deaths'].max().rename('deaths')
         return total_deaths.loc[location_ids]
 
