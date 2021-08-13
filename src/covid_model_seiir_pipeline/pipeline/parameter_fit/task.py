@@ -28,7 +28,6 @@ def run_parameter_fit(fit_version: str, scenario: str, draw_id: int, progress_ba
     data_interface = FitDataInterface.from_specification(fit_specification)
 
     logger.info('Loading ODE fit input data', context='read')
-    hierarchy = data_interface.load_hierarchy()
     past_infection_data = data_interface.load_past_infection_data(draw_id=draw_id)
     population = data_interface.load_five_year_population()
     rhos = data_interface.load_variant_prevalence()
