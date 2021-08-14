@@ -5,6 +5,14 @@ from covid_model_seiir_pipeline.lib.ode.constants import (
     COMPARTMENTS,
     TRACKING_COMPARTMENTS,
     VACCINE_TYPES,
+    UNVACCINATED,
+    SUSCEPTIBLE_WILD,
+    SUSCEPTIBLE_VARIANT_ONLY,
+    SUSCEPTIBLE_VARIANT_UNPROTECTED,
+    INFECTIOUS_WILD,
+    INFECTIOUS_VARIANT,
+    IMMUNE_WILD,
+    IMMUNE_VARIANT,
 )
 from covid_model_seiir_pipeline.lib.ode.containers import (
     FitParameters,

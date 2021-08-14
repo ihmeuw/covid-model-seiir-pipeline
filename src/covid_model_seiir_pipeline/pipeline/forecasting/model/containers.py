@@ -109,15 +109,18 @@ class PostprocessingParameters:
 class SystemMetrics:
     modeled_infections_wild: pd.Series
     modeled_infections_variant: pd.Series
+    modeled_infections_natural_breakthrough: pd.Series
+    modeled_infections_vaccine_breakthrough: pd.Series
+    modeled_infections_total: pd.Series
+
+    modeled_infections_unvaccinated_wild: pd.Series
+    modeled_infections_unvaccinated_variant: pd.Series
+    modeled_infections_unvaccinated_natural_breakthrough: pd.Series
+    modeled_infections_unvaccinated_total: pd.Series
+
     modeled_infections_lr: pd.Series
     modeled_infections_hr: pd.Series
-    modeled_infections_total: pd.Series
     modeled_infected_total: pd.Series
-
-    variant_prevalence: pd.Series
-    natural_immunity_breakthrough: pd.Series
-    vaccine_breakthrough: pd.Series
-    proportion_cross_immune: pd.Series
 
     modeled_deaths_wild: pd.Series
     modeled_deaths_variant: pd.Series
@@ -125,30 +128,49 @@ class SystemMetrics:
     modeled_deaths_hr: pd.Series
     modeled_deaths_total: pd.Series
 
+    total_susceptible_wild: pd.Series
+    total_susceptible_variant: pd.Series
+    total_susceptible_variant_only: pd.Series
+    total_susceptible_variant_unprotected: pd.Series
+
+    total_susceptible_unvaccinated_wild: pd.Series
+    total_susceptible_unvaccinated_variant: pd.Series
+    total_susceptible_unvaccinated_variant_only: pd.Series
+
+    total_infectious_wild: pd.Series
+    total_infectious_variant: pd.Series
+
+    total_immune_wild: pd.Series
+    total_immune_variant: pd.Series
+
     vaccinations_protected_wild: pd.Series
     vaccinations_protected_all: pd.Series
     vaccinations_immune_wild: pd.Series
     vaccinations_immune_all: pd.Series
     vaccinations_effective: pd.Series
     vaccinations_ineffective: pd.Series
-
-    total_susceptible_wild: pd.Series
-    total_susceptible_variant: pd.Series
-    total_susceptible_variant_only: pd.Series
-    total_susceptible_variant_unprotected: pd.Series
-    total_infectious_wild: pd.Series
-    total_infectious_variant: pd.Series
-    total_immune_wild: pd.Series
-    total_immune_variant: pd.Series
-
-    force_of_infection: pd.Series
-    force_of_infection_unvaccinated: pd.Series
+    vaccinations_n_unvaccinated: pd.Series
 
     total_population: pd.Series
 
     beta: pd.Series
     beta_wild: pd.Series
     beta_variant: pd.Series
+
+    incidence_wild: pd.Series
+    incidence_variant: pd.Series
+    incidence_total: pd.Series
+    incidence_unvaccinated_wild: pd.Series
+    incidence_unvaccinated_variant: pd.Series
+    incidence_unvaccinated_total: pd.Series
+
+    force_of_infection: pd.Series
+    force_of_infection_unvaccinated: pd.Series
+    force_of_infection_unvaccinated_naive: pd.Series
+    force_of_infection_unvaccinated_natural_breakthrough: pd.Series
+
+    variant_prevalence: pd.Series
+    proportion_cross_immune: pd.Series
 
     def to_dict(self) -> Dict[str, pd.Series]:
         return utilities.asdict(self)
@@ -173,6 +195,7 @@ class OutputMetrics:
     r_effective_wild: pd.Series
     r_controlled_variant: pd.Series
     r_effective_variant: pd.Series
+    r_controlled: pd.Series
     r_effective: pd.Series
 
     def to_dict(self) -> Dict[str, pd.Series]:

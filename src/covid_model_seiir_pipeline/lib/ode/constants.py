@@ -75,7 +75,9 @@ _Compartments = namedtuple(
 _TrackingCompartments = namedtuple(
     'TrackingCompartments', [
         'NewE_wild', 'NewE_variant', 'NewE_p_wild', 'NewE_p_variant',
-        'NewE_nbt', 'NewE_vbt', 'NewS_v', 'NewR_w',
+        'NewE_unvax_wild', 'NewE_unvax_variant',
+        'NewE_nbt', 'NewE_unvax_nbt',
+        'NewE_vbt', 'NewS_v', 'NewR_w',
         'V_u', 'V_p', 'V_pa', 'V_m', 'V_ma',
     ]
 )
@@ -116,6 +118,9 @@ SUSCEPTIBLE_WILD = np.array([
 SUSCEPTIBLE_VARIANT_ONLY = np.array([
     COMPARTMENTS.S_variant, COMPARTMENTS.S_variant_u, COMPARTMENTS.S_variant_pa, COMPARTMENTS.S_m,
 ])
+SUSCEPTIBLE_VARIANT_UNPROTECTED = np.array([
+    COMPARTMENTS.S, COMPARTMENTS.S_u, COMPARTMENTS.S_p, COMPARTMENTS.S_variant, COMPARTMENTS.S_variant_u,
+])
 INFECTIOUS_WILD = np.array([
     COMPARTMENTS.I1,    COMPARTMENTS.I2,
     COMPARTMENTS.I1_u,  COMPARTMENTS.I2_u,
@@ -127,7 +132,20 @@ INFECTIOUS_VARIANT = np.array([
     COMPARTMENTS.I1_variant_u,  COMPARTMENTS.I2_variant_u,
     COMPARTMENTS.I1_variant_pa, COMPARTMENTS.I2_variant_pa,
 ])
-
+IMMUNE_WILD = np.array([
+    COMPARTMENTS.R,    COMPARTMENTS.R_variant,
+    COMPARTMENTS.R_u,  COMPARTMENTS.R_variant_u,
+    COMPARTMENTS.R_p,
+    COMPARTMENTS.R_pa, COMPARTMENTS.R_variant_pa,
+    COMPARTMENTS.S_m,  COMPARTMENTS.R_m,
+])
+IMMUNE_VARIANT = np.array([
+    COMPARTMENTS.R,    COMPARTMENTS.R_variant,
+    COMPARTMENTS.R_u,  COMPARTMENTS.R_variant_u,
+    COMPARTMENTS.R_p,
+    COMPARTMENTS.R_pa, COMPARTMENTS.R_variant_pa,
+    COMPARTMENTS.R_m,
+])
 
 ##########################
 # Other public constants #
