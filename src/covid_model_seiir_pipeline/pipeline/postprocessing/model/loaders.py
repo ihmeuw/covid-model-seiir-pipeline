@@ -29,9 +29,15 @@ def load_unscaled_deaths(scenario: str, data_interface: 'PostprocessingDataInter
     return unscaled_deaths
 
 
-def load_output_data(output_name: str):
+def load_output_data(output_name: str, fallback: str = None):
     def inner(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
-        return _load_output_data(scenario, output_name, data_interface, num_cores)
+        try:
+            return _load_output_data(scenario, output_name, data_interface, num_cores)
+        except Exception as e:
+            if fallback is None:
+                raise
+            return _load_output_data(scenario, fallback, data_interface, num_cores)
+
     return inner
 
 

@@ -76,7 +76,6 @@ DataConfig = Union[MeasureConfig, CovariateConfig, CompositeMeasureConfig, Misce
 
 MEASURES = {
     # Death measures
-
     'deaths': MeasureConfig(
         loaders.load_deaths,
         'daily_deaths',
@@ -151,13 +150,41 @@ MEASURES = {
         aggregator=aggregators.sum_aggregator,
     ),
     'infections_natural_breakthrough': MeasureConfig(
-        loaders.load_output_data('natural_immunity_breakthrough'),
+        loaders.load_output_data(
+            'modeled_infections_natural_breakthrough',
+            # fallback='natural_immunity_breakthrough',
+        ),
         'daily_infections_natural_immunity_breakthrough',
         aggregator=aggregators.sum_aggregator,
     ),
     'infections_vaccine_breakthrough': MeasureConfig(
-        loaders.load_output_data('vaccine_breakthrough'),
+        loaders.load_output_data(
+            'modeled_infections_vaccine_breakthrough',
+            # fallback='vaccine_breakthrough',
+        ),
         'daily_infections_vaccine_breakthrough',
+        aggregator=aggregators.sum_aggregator,
+    ),
+    'infections_unvaccinated_wild': MeasureConfig(
+        loaders.load_output_data('modeled_infections_unvaccinated_wild'),
+        'daily_infections_unvaccinated_wild',
+        aggregator=aggregators.sum_aggregator,
+    ),
+    'infections_unvaccinated_variant': MeasureConfig(
+        loaders.load_output_data('modeled_infections_unvaccinated_variant'),
+        'daily_infections_unvaccinated_variant',
+        aggregator=aggregators.sum_aggregator,
+    ),
+    'infections_unvaccinated_total': MeasureConfig(
+        loaders.load_output_data('modeled_infections_unvaccinated_total'),
+        'daily_infections_unvaccinated_total',
+        aggregator=aggregators.sum_aggregator,
+    ),
+    'infections_unvaccinated_natural_breakthrough': MeasureConfig(
+        loaders.load_output_data(
+            'modeled_infections_unvaccinated_natural_breakthrough',
+        ),
+        'daily_infections_unvaccinated_natural_immunity_breakthrough',
         aggregator=aggregators.sum_aggregator,
     ),
     'infections_lr': MeasureConfig(
@@ -256,6 +283,11 @@ MEASURES = {
         'daily_vaccinations_ineffective',
         aggregator=aggregators.sum_aggregator,
     ),
+    'vaccines_n_unvaccinated': MeasureConfig(
+        loaders.load_output_data('vaccinations_n_unvaccinated'),
+        'total_unvaccinated',
+        aggregator=aggregators.sum_aggregator,
+    ),
 
     # Other epi measures
 
@@ -279,6 +311,21 @@ MEASURES = {
         'total_susceptible_variant_unprotected',
         aggregator=aggregators.sum_aggregator,
         splice=False,
+    ),
+    'total_susceptible_unvaccinated_wild': MeasureConfig(
+        loaders.load_output_data('total_susceptible_unvaccinated_wild'),
+        'total_susceptible_unvaccinated_wild',
+        aggregator=aggregators.sum_aggregator,
+    ),
+    'total_susceptible_unvaccinated_variant': MeasureConfig(
+        loaders.load_output_data('total_susceptible_unvaccinated_variant'),
+        'total_susceptible_unvaccinated_variant',
+        aggregator=aggregators.sum_aggregator,
+    ),
+    'total_susceptible_unvaccinated_variant_only': MeasureConfig(
+        loaders.load_output_data('total_susceptible_unvaccinated_variant_only'),
+        'total_susceptible_unvaccinated_variant_only',
+        aggregator=aggregators.sum_aggregator,
     ),
     'total_immune_wild': MeasureConfig(
         loaders.load_output_data('total_immune_wild'),
@@ -306,9 +353,37 @@ MEASURES = {
         loaders.load_output_data('r_effective_variant'),
         'r_effective_variant',
     ),
+    'r_controlled': MeasureConfig(
+        loaders.load_output_data('r_controlled'),
+        'r_controlled',
+    ),
     'r_effective': MeasureConfig(
         loaders.load_output_data('r_effective'),
         'r_effective',
+    ),
+    'incidence_wild': MeasureConfig(
+        loaders.load_output_data('incidence_wild'),
+        'incidence_wild',
+    ),
+    'incidence_variant': MeasureConfig(
+        loaders.load_output_data('incidence_variant'),
+        'incidence_variant',
+    ),
+    'incidence_total': MeasureConfig(
+        loaders.load_output_data('incidence_total'),
+        'incidence_total',
+    ),
+    'incidence_unvaccinated_wild': MeasureConfig(
+        loaders.load_output_data('incidence_unvaccinated_wild'),
+        'incidence_unvaccinated_wild',
+    ),
+    'incidence_unvaccinated_variant': MeasureConfig(
+        loaders.load_output_data('incidence_unvaccinated_variant'),
+        'incidence_unvaccinated_variant',
+    ),
+    'incidence_unvaccinated_total': MeasureConfig(
+        loaders.load_output_data('incidence_unvaccinated_total'),
+        'incidence_unvaccinated_total',
     ),
     'force_of_infection': MeasureConfig(
         loaders.load_output_data('force_of_infection'),
@@ -318,6 +393,16 @@ MEASURES = {
     'force_of_infection_unvaccinated': MeasureConfig(
         loaders.load_output_data('force_of_infection_unvaccinated'),
         'force_of_infection_unvaccinated',
+        splice=False,
+    ),
+    'force_of_infection_unvaccinated_naive': MeasureConfig(
+        loaders.load_output_data('force_of_infection_unvaccinated_naive'),
+        'force_of_infection_unvaccinated_naive',
+        splice=False,
+    ),
+    'force_of_infection_unvaccinated_natural_breakthrough': MeasureConfig(
+        loaders.load_output_data('force_of_infection_unvaccinated_natural_breakthrough'),
+        'force_of_infection_unvaccinated_natural_breakthrough',
         splice=False,
     ),
 
