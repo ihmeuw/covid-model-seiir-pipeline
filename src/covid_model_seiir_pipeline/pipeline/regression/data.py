@@ -231,8 +231,10 @@ class RegressionDataInterface:
     def load_full_past_infection_data(self, draw_id: int) -> pd.DataFrame:
         infection_data = io.load(self.infection_root.infections(draw_id=draw_id))
         infection_data = (infection_data
-                          .loc[:, ['infections_draw', 'deaths']]
-                          .rename(columns={'infections_draw': 'infections'}))
+                          .loc[:, ['infections_draw', 'infections_hr_draw', 'infections_lr_draw', 'deaths']]
+                          .rename(columns={'infections_draw': 'infections',
+                                           'infections_hr_draw': 'infections_hr',
+                                           'infections_lr_draw': 'infections_lr'}))
         return infection_data
 
     def load_past_infection_data(self, draw_id: int):
