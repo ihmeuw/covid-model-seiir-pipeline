@@ -196,7 +196,7 @@ def _make_vaccinations(components, components_diff) -> Dict[str, pd.Series]:
     }
     vaccinations = _make_outputs(components_diff, 'vaccinations', output_column_map)
     vaccinations.update(
-        _make_outputs(components, 'vaccinations', {'n_unvaccinated': ode.UNVACCINATED.tolist()})
+        _make_outputs(components, 'vaccinations', {'n_unvaccinated': ode.UNVACCINATED_NAMES.tolist()})
     )
     return vaccinations
 
