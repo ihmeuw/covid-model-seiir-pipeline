@@ -4,16 +4,10 @@ from typing import List, TYPE_CHECKING
 
 import pandas as pd
 
-from covid_model_seiir_pipeline.pipeline.postprocessing import model
-
 if TYPE_CHECKING:
     # The model subpackage is a library for the pipeline stage and shouldn't
     # explicitly depend on things outside the subpackage.
     from covid_model_seiir_pipeline.pipeline.postprocessing.data import PostprocessingDataInterface
-
-##########
-# Deaths #
-##########
 
 
 def load_deaths(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
@@ -35,101 +29,23 @@ def load_unscaled_deaths(scenario: str, data_interface: 'PostprocessingDataInter
     return unscaled_deaths
 
 
-def load_deaths_wild(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
-    return _load_output_data(scenario, 'modeled_deaths_wild', data_interface, num_cores)
+def load_output_data(output_name: str, fallback: str = None):
+    def inner(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
+        try:
+            return _load_output_data(scenario, output_name, data_interface, num_cores)
+        except Exception as e:
+            if fallback is None:
+                raise
+            return _load_output_data(scenario, fallback, data_interface, num_cores)
+
+    return inner
 
 
-def load_deaths_variant(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
-    return _load_output_data(scenario, 'modeled_deaths_variant', data_interface, num_cores)
+def load_ode_params(output_name: str):
+    def inner(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
+        return _load_ode_params(scenario, output_name, data_interface, num_cores)
+    return inner
 
-
-def load_deaths_lr(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
-    return _load_output_data(scenario, 'modeled_deaths_lr', data_interface, num_cores)
-
-
-def load_deaths_hr(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
-    return _load_output_data(scenario, 'modeled_deaths_hr', data_interface, num_cores)
-
-
-def load_deaths_modeled(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
-    return _load_output_data(scenario, 'modeled_deaths_total', data_interface, num_cores)
-
-
-##############
-# Infections #
-##############
-
-def load_infections(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
-    return _load_output_data(scenario, 'infections', data_interface, num_cores)
-
-
-def load_infected(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
-    return _load_output_data(scenario, 'modeled_infected_total', data_interface, num_cores)
-
-
-def load_infections_wild(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
-    return _load_output_data(scenario, 'modeled_infections_wild', data_interface, num_cores)
-
-
-def load_infections_variant(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
-    return _load_output_data(scenario, 'modeled_infections_variant', data_interface, num_cores)
-
-
-def load_infections_natural_breakthrough(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
-    return _load_output_data(scenario, 'natural_immunity_breakthrough', data_interface, num_cores)
-
-
-def load_infections_vaccine_breakthrough(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
-    return _load_output_data(scenario, 'vaccine_breakthrough', data_interface, num_cores)
-
-
-def load_infections_lr(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
-    return _load_output_data(scenario, 'modeled_infections_lr', data_interface, num_cores)
-
-
-def load_infections_hr(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
-    return _load_output_data(scenario, 'modeled_infections_hr', data_interface, num_cores)
-
-
-#########
-# Cases #
-#########
-
-def load_cases(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
-    return _load_output_data(scenario, 'cases', data_interface, num_cores)
-
-
-####################
-# Hospitalizations #
-####################
-
-def load_hospital_admissions(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
-    return _load_output_data(scenario, 'hospital_admissions', data_interface, num_cores)
-
-
-def load_icu_admissions(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
-    return _load_output_data(scenario, 'icu_admissions', data_interface, num_cores)
-
-
-def load_hospital_census(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
-    return _load_output_data(scenario, 'hospital_census', data_interface, num_cores)
-
-
-def load_icu_census(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
-    return _load_output_data(scenario, 'icu_census', data_interface, num_cores)
-
-
-def load_hospital_census_correction_factor(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
-    return _load_output_data(scenario, 'hospital_census_correction_factor', data_interface, num_cores)
-
-
-def load_icu_census_correction_factor(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
-    return _load_output_data(scenario, 'icu_census_correction_factor', data_interface, num_cores)
-
-
-################
-# Vaccinations #
-################
 
 def load_effectively_vaccinated(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
     _runner = functools.partial(
@@ -140,118 +56,6 @@ def load_effectively_vaccinated(scenario: str, data_interface: 'PostprocessingDa
     with multiprocessing.Pool(num_cores) as pool:
         outputs = pool.map(_runner, draws)
     return outputs
-
-
-def load_vaccinations_immune_all(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
-    return _load_output_data(scenario, 'vaccinations_immune_all', data_interface, num_cores)
-
-
-def load_vaccinations_immune_wild(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
-    return _load_output_data(scenario, 'vaccinations_immune_wild', data_interface, num_cores)
-
-
-def load_vaccinations_protected_all(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
-    return _load_output_data(scenario, 'vaccinations_protected_all', data_interface, num_cores)
-
-
-def load_vaccinations_protected_wild(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
-    return _load_output_data(scenario, 'vaccinations_protected_wild', data_interface, num_cores)
-
-
-def load_vaccinations_effective(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
-    return _load_output_data(scenario, 'vaccinations_effective', data_interface, num_cores)
-
-
-def load_vaccinations_ineffective(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
-    return _load_output_data(scenario, 'vaccinations_ineffective', data_interface, num_cores)
-
-
-######################
-# Susceptible/Immune #
-######################
-
-def load_total_susceptible_wild(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
-    return _load_output_data(scenario, 'total_susceptible_wild', data_interface, num_cores)
-
-
-def load_total_susceptible_variant(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
-    return _load_output_data(scenario, 'total_susceptible_variant', data_interface, num_cores)
-
-
-def load_total_susceptible_variant_only(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
-    return _load_output_data(scenario, 'total_susceptible_variant_only', data_interface, num_cores)
-
-
-def load_total_susceptible_variant_unprotected(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
-    return _load_output_data(scenario, 'total_susceptible_variant_unprotected', data_interface, num_cores)
-
-
-def load_total_immune_wild(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
-    return _load_output_data(scenario, 'total_immune_wild', data_interface, num_cores)
-
-
-def load_total_immune_variant(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
-    return _load_output_data(scenario, 'total_immune_variant', data_interface, num_cores)
-
-
-#####################
-# Other Epi metrics #
-#####################
-
-def load_r_controlled_wild(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
-    return _load_output_data(scenario, 'r_controlled_wild', data_interface, num_cores)
-
-
-def load_r_effective_wild(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
-    return _load_output_data(scenario, 'r_effective_wild', data_interface, num_cores)
-
-
-def load_r_controlled_variant(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
-    return _load_output_data(scenario, 'r_controlled_variant', data_interface, num_cores)
-
-
-def load_r_effective_variant(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
-    return _load_output_data(scenario, 'r_effective_variant', data_interface, num_cores)
-
-
-def load_r_effective(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
-    return _load_output_data(scenario, 'r_effective', data_interface, num_cores)
-
-
-def load_force_of_infection(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
-    return _load_output_data(scenario, 'force_of_infection', data_interface, num_cores)
-
-
-def load_force_of_infection_unvaccinated(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
-    return _load_output_data(scenario, 'force_of_infection_unvaccinated', data_interface, num_cores)
-
-
-def load_beta(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int) -> List[pd.Series]:
-    return _load_ode_params(scenario, 'beta', data_interface, num_cores)
-
-
-def load_beta_hat(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int) -> List[pd.Series]:
-    return _load_ode_params(scenario, 'beta_hat', data_interface, num_cores)
-
-
-def load_beta_wild(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int) -> List[pd.Series]:
-    return _load_ode_params(scenario, 'beta_wild', data_interface, num_cores)
-
-
-def load_beta_variant(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int) -> List[pd.Series]:
-    return _load_ode_params(scenario, 'beta_variant', data_interface, num_cores)
-
-
-def load_empirical_beta(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
-    return _load_output_data(scenario, 'beta', data_interface, num_cores)
-
-
-def load_empirical_beta_wild(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
-    return _load_output_data(scenario, 'beta_wild', data_interface, num_cores)
-
-
-def load_empirical_beta_variant(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
-    return _load_output_data(scenario, 'beta_variant', data_interface, num_cores)
 
 
 def load_beta_residuals(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int) -> List[pd.Series]:
@@ -278,22 +82,6 @@ def load_scaled_beta_residuals(scenario: str, data_interface: 'PostprocessingDat
     return beta_residuals
 
 
-def load_non_escape_variant_prevalence(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
-    return _load_ode_params(scenario, 'rho', data_interface, num_cores)
-
-
-def load_escape_variant_prevalence(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
-    return _load_ode_params(scenario, 'rho_variant', data_interface, num_cores)
-
-
-def load_empirical_escape_variant_prevalence(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
-    return _load_output_data(scenario, 'variant_prevalence', data_interface, num_cores)
-
-
-##############
-# Covariates #
-##############
-
 def load_covariate(covariate: str, time_varying: bool, scenario: str,
                    data_interface: 'PostprocessingDataInterface', num_cores: int) -> List[pd.Series]:
     _runner = functools.partial(
@@ -315,10 +103,6 @@ def load_coefficients(scenario: str, data_interface: 'PostprocessingDataInterfac
         outputs = pool.map(data_interface.load_regression_coefficients, draws)
     return outputs
 
-
-#########################
-# Miscellaneous metrics #
-#########################
 
 def load_excess_mortality_scalars(data_interface: 'PostprocessingDataInterface'):
     return data_interface.load_excess_mortality_scalars()
