@@ -172,6 +172,7 @@ def _make_infectious(components) -> Dict[str, pd.Series]:
     output_column_map = {
         'wild': ode.INFECTIOUS_WILD_NAMES,
         'variant': ode.INFECTIOUS_VARIANT_NAMES,
+        '': ode.INFECTIOUS_WILD_NAMES + ode.INFECTIOUS_VARIANT_NAMES,
     }
     return _make_outputs(components, 'total_infectious', output_column_map)
 
@@ -211,7 +212,7 @@ def _make_betas(infections, susceptible, infectious, alpha, total_pop):
         betas[f'beta{suffix}'] = _compute_beta(
             infections[f'modeled_infections_{beta_type}'],
             susceptible[f'total_susceptible_{s_type}'],
-            infectious[f'total_infectious_{beta_type}'],
+            infectious[f'total_infectious{suffix}'],
         )
     return betas
 
