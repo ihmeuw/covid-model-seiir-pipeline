@@ -100,6 +100,7 @@ def variant_system_metrics(indices: Indices,
     tracking_cols = [f'{c}_{g}' for g, c in itertools.product(['lr', 'hr'], ode.TRACKING_COMPARTMENT_NAMES)]
 
     infections = _make_infections(components_diff)
+    infected = infections['modeled_infections_total'] - infections['modeled_infections_natural_breakthrough']
     group_infections, group_deaths = _make_group_infections_and_deaths_metrics(
         components,
         components_diff,
@@ -122,6 +123,7 @@ def variant_system_metrics(indices: Indices,
 
     return SystemMetrics(
         **infections,
+        modeled_infected_total=infected,
         **group_infections,
         **group_deaths,
         **susceptible,
@@ -197,7 +199,7 @@ def _make_vaccinations(components, components_diff) -> Dict[str, pd.Series]:
     }
     vaccinations = _make_outputs(components_diff, 'vaccinations', output_column_map)
     vaccinations.update(
-        _make_outputs(components, 'vaccinations', {'n_unvaccinated': ode.UNVACCINATED_NAMES.tolist()})
+        _make_outputs(components, 'vaccinations', {'n_unvaccinated': ode.UNVACCINATED_NAMES})
     )
     return vaccinations
 
@@ -252,7 +254,7 @@ def _make_outputs(data, prefix, column_map):
     out = {}
     for suffix, base_cols in column_map.items():
         cols = [f'{c}_{g}' for g, c in itertools.product(['lr', 'hr'], base_cols)]
-        key = f'{prefix}_{suffix}'
+        key = f'{prefix}_{suffix}' if suffix else prefix
         out[key] = data[cols].sum(axis=1)
     return out
 

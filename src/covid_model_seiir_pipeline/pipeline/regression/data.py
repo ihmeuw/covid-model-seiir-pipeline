@@ -243,6 +243,7 @@ class RegressionDataInterface:
     def load_em_scalars(self) -> pd.Series:
         location_ids = self.load_location_ids()
         em_scalars = io.load(self.infection_root.em_scalars())
+        em_scalars = em_scalars[~em_scalars.index.duplicated()]
         return em_scalars.loc[location_ids, 'em_scalar']
 
     def load_ifr(self, draw_id: int) -> pd.DataFrame:
