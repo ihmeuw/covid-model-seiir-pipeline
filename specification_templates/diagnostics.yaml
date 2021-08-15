@@ -8,27 +8,25 @@ grid_plots:
     date_start: '2020-03-01'
     date_end: '2022-08-31'
     comparators:
-      - version: '2021_07_30.02'
+      - version: '2021_07_29.05'
         scenarios:
           reference*: 'public reference'
-      - version: '2021_08_04.05'
+      - version: '2021_08_14.01'
         scenarios:
           reference*: 'reference'
           worse: 'worse'
-          no_vaccine: 'no vaccine'
           best_masks: 'best masks'
   - name: 'compare_shortrange'
     date_start: '2020-03-01'
     date_end: '2021-09-30'
     comparators:
-      - version: '2021_07_30.02'
+      - version: '2021_07_29.05'
         scenarios:
           reference*: 'public reference'
-      - version: '2021_08_04.05'
+      - version: '2021_08_14.01'
         scenarios:
           reference*: 'reference'
           worse: 'worse'
-          no_vaccine: 'no vaccine'
           best_masks: 'best masks'
 cumulative_deaths_compare_csv:
   dates:
@@ -36,40 +34,40 @@ cumulative_deaths_compare_csv:
     - '2021-12-01'
     - '2021-12-31'
   comparators:
-    - version: '2021_07_30.02'
+    - version: '2021_07_29.05'
       scenarios:
         reference: 'public_reference'
         worse: 'public_worse'
         best_masks: 'public_best_masks'
-    - version: '2021_08_04.05'
+    - version: '2021_08_14.01'
       scenarios:
         reference: 'reference'
         worse: 'worse'
         best_masks: 'best_masks'
-scatters:
-  - name: 'reference_compare_data'
-    x_axis:
-      version: '2021_07_30.02'
-      scenario: 'reference'
-      # Leave date blank to automatically select the last day of data.
-      date: ''
-      label: 'public_reference'
-    y_axis:
-      version: '2021_08_04.05'
-      scenario: 'reference'
-      # Leave date blank to automatically select the last day of data.
-      date: ''
-      label: 'reference'
-  - name: 'reference_compare_forecast'
-    x_axis:
-      version: '2021_07_30.02'
-      scenario: 'reference'
-      # Leave date blank to automatically select the last day of data.
-      date: '2021-12-31'
-      label: 'public_reference'
-    y_axis:
-      version: '2021_08_04.05'
-      scenario: 'reference'
-      # Leave date blank to automatically select the last day of data.
-      date: '2021-12-31'
-      label: 'reference'
+#scatters:
+#  - name: 'reference_compare_data'
+#    x_axis:
+#      version: '2021_07_29.05'
+#      scenario: 'reference'
+#      # Leave date blank to automatically select the last day of data.
+#      date: ''
+#      label: 'public_reference'
+#    y_axis:
+#      version: '2021_08_14.01'
+#      scenario: 'reference'
+#      # Leave date blank to automatically select the last day of data.
+#      date: ''
+#      label: 'reference'
+#  - name: 'reference_compare_forecast'
+#    x_axis:
+#      version: '2021_07_29.05'
+#      scenario: 'reference'
+#      # Leave date blank to automatically select the last day of data.
+#      date: '2021-12-31'
+#      label: 'public_reference'
+#    y_axis:
+#      version: '2021_08_14.01'
+#      scenario: 'reference'
+#      # Leave date blank to automatically select the last day of data.
+#      date: '2021-12-31'
+#      label: 'reference'
