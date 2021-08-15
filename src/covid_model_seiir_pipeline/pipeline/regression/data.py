@@ -149,6 +149,12 @@ class RegressionDataInterface:
         population = population.loc[in_locations & is_2019 & is_both_sexes & is_five_year_bins, :]
         return population
 
+    def load_risk_group_populations(self) -> pd.DataFrame:
+        population = self.load_five_year_population()
+        pop_lr = population[population['age_group_years_start'] < 65].groupby('location_id')['population'].sum()
+        pop_hr = population[population['age_group_years_start'] >= 65].groupby('location_id')['population'].sum()
+        return pd.concat([pop_lr.rename('population_lr'), pop_hr.rename('population_hr')], axis=1)
+
     def load_total_population(self) -> pd.Series:
         population = self.load_five_year_population()
         population = population.groupby('location_id')['population'].sum()
@@ -231,10 +237,8 @@ class RegressionDataInterface:
     def load_full_past_infection_data(self, draw_id: int) -> pd.DataFrame:
         infection_data = io.load(self.infection_root.infections(draw_id=draw_id))
         infection_data = (infection_data
-                          .loc[:, ['infections_draw', 'infections_hr_draw', 'infections_lr_draw', 'deaths']]
-                          .rename(columns={'infections_draw': 'infections',
-                                           'infections_hr_draw': 'infections_hr',
-                                           'infections_lr_draw': 'infections_lr'}))
+                          .loc[:, ['infections_draw', 'deaths']]
+                          .rename(columns={'infections_draw': 'infections'}))
         return infection_data
 
     def load_past_infection_data(self, draw_id: int):
@@ -251,6 +255,9 @@ class RegressionDataInterface:
     def load_ifr(self, draw_id: int) -> pd.DataFrame:
         ifr = io.load(self.infection_root.ifr(draw_id=draw_id))
         ifr = self.format_ratio_data(ifr)
+        population = self.load_risk_group_populations()
+        vaccinations = self.load_vaccinations()
+        import pdb; pdb.set_trace()
         return ifr
 
     def load_ihr(self, draw_id: int) -> pd.DataFrame:
