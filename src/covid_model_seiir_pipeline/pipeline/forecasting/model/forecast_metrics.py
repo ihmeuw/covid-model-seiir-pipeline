@@ -96,8 +96,8 @@ def variant_system_metrics(indices: Indices,
                            components: pd.DataFrame) -> SystemMetrics:
     components_diff = components.groupby('location_id').diff()
 
-    cols = [f'{c}_{g}' for g, c in itertools.product(['lr', 'hr'], ode.COMPARTMENTS._fields)]
-    tracking_cols = [f'{c}_{g}' for g, c in itertools.product(['lr', 'hr'], ode.TRACKING_COMPARTMENTS._fields)]
+    cols = [f'{c}_{g}' for g, c in itertools.product(['lr', 'hr'], ode.COMPARTMENT_NAMES)]
+    tracking_cols = [f'{c}_{g}' for g, c in itertools.product(['lr', 'hr'], ode.TRACKING_COMPARTMENT_NAMES)]
 
     infections = _make_infections(components_diff)
     group_infections, group_deaths = _make_group_infections_and_deaths_metrics(
@@ -139,59 +139,60 @@ def variant_system_metrics(indices: Indices,
 
 def _make_infections(components_diff) -> Dict[str, pd.Series]:
     output_column_map = {
-        'wild': (ode.TRACKING_COMPARTMENTS.NewE_wild,),
-        'variant': (ode.TRACKING_COMPARTMENTS.NewE_variant,),
-        'natural_breakthrough': (ode.TRACKING_COMPARTMENTS.NewE_nbt,),
-        'vaccine_breakthrough': (ode.TRACKING_COMPARTMENTS.NewE_vbt,),
-        'total': (ode.TRACKING_COMPARTMENTS.NewE_wild, ode.TRACKING_COMPARTMENTS.NewE_variant),
+        'wild': (ode.TRACKING_COMPARTMENT_NAMES.NewE_wild,),
+        'variant': (ode.TRACKING_COMPARTMENT_NAMES.NewE_variant,),
+        'natural_breakthrough': (ode.TRACKING_COMPARTMENT_NAMES.NewE_nbt,),
+        'vaccine_breakthrough': (ode.TRACKING_COMPARTMENT_NAMES.NewE_vbt,),
+        'total': (ode.TRACKING_COMPARTMENT_NAMES.NewE_wild, ode.TRACKING_COMPARTMENT_NAMES.NewE_variant),
 
-        'unvaccinated_wild': (ode.TRACKING_COMPARTMENTS.NewE_unvax_wild,),
-        'unvaccinated_variant': (ode.TRACKING_COMPARTMENTS.NewE_unvax_variant,),
-        'unvaccinated_natural_breakthrough': (ode.TRACKING_COMPARTMENTS.NewE_unvax_nbt,),
-        'unvaccinated_total': (ode.TRACKING_COMPARTMENTS.NewE_unvax_wild, ode.TRACKING_COMPARTMENTS.NewE_unvax_variant),
+        'unvaccinated_wild': (ode.TRACKING_COMPARTMENT_NAMES.NewE_unvax_wild,),
+        'unvaccinated_variant': (ode.TRACKING_COMPARTMENT_NAMES.NewE_unvax_variant,),
+        'unvaccinated_natural_breakthrough': (ode.TRACKING_COMPARTMENT_NAMES.NewE_unvax_nbt,),
+        'unvaccinated_total': (ode.TRACKING_COMPARTMENT_NAMES.NewE_unvax_wild,
+                               ode.TRACKING_COMPARTMENT_NAMES.NewE_unvax_variant),
     }
     return _make_outputs(components_diff, 'modeled_infections', output_column_map)
 
 
 def _make_susceptible(components) -> Dict[str, pd.Series]:
     output_column_map = {
-        'wild': ode.SUSCEPTIBLE_WILD.tolist(),
-        'variant': ode.SUSCEPTIBLE_WILD.tolist() + ode.SUSCEPTIBLE_VARIANT_ONLY.tolist(),
-        'variant_only': ode.SUSCEPTIBLE_VARIANT_ONLY.tolist(),
-        'variant_unprotected': ode.SUSCEPTIBLE_VARIANT_UNPROTECTED.tolist(),
+        'wild': ode.SUSCEPTIBLE_WILD_NAMES,
+        'variant': ode.SUSCEPTIBLE_WILD_NAMES + ode.SUSCEPTIBLE_VARIANT_ONLY_NAMES,
+        'variant_only': ode.SUSCEPTIBLE_VARIANT_ONLY_NAMES,
+        'variant_unprotected': ode.SUSCEPTIBLE_VARIANT_UNPROTECTED_NAMES,
 
-        'unvaccinated_wild': (ode.COMPARTMENTS.S,),
-        'unvaccinated_variant': (ode.COMPARTMENTS.S, ode.COMPARTMENTS.S_variant),
-        'unvaccinated_variant_only': (ode.COMPARTMENTS.S_variant,),
+        'unvaccinated_wild': (ode.COMPARTMENT_NAMES.S,),
+        'unvaccinated_variant': (ode.COMPARTMENT_NAMES.S, ode.COMPARTMENT_NAMES.S_variant),
+        'unvaccinated_variant_only': (ode.COMPARTMENT_NAMES.S_variant,),
     }
     return _make_outputs(components, 'total_susceptible', output_column_map)
 
 
 def _make_infectious(components) -> Dict[str, pd.Series]:
     output_column_map = {
-        'wild': ode.INFECTIOUS_WILD.tolist(),
-        'variant': ode.INFECTIOUS_VARIANT.tolist(),
+        'wild': ode.INFECTIOUS_WILD_NAMES,
+        'variant': ode.INFECTIOUS_VARIANT_NAMES,
     }
     return _make_outputs(components, 'total_infectious', output_column_map)
 
 
 def _make_immune(components) -> Dict[str, pd.Series]:
     output_column_map = {
-        'wild': ode.IMMUNE_WILD.tolist(),
-        'variant': ode.IMMUNE_VARIANT.tolist(),
+        'wild': ode.IMMUNE_WILD_NAMES,
+        'variant': ode.IMMUNE_VARIANT_NAMES,
     }
     return _make_outputs(components, 'total_immune', output_column_map)
 
 
 def _make_vaccinations(components, components_diff) -> Dict[str, pd.Series]:
     output_column_map = {
-        'ineffective': (ode.TRACKING_COMPARTMENTS.V_u,),
-        'protected_wild': (ode.TRACKING_COMPARTMENTS.V_p,),
-        'protected_all': (ode.TRACKING_COMPARTMENTS.V_pa,),
-        'immune_wild': (ode.TRACKING_COMPARTMENTS.V_m,),
-        'immune_all': (ode.TRACKING_COMPARTMENTS.V_ma,),
-        'effective': (ode.TRACKING_COMPARTMENTS.V_p, ode.TRACKING_COMPARTMENTS.V_pa,
-                      ode.TRACKING_COMPARTMENTS.V_m, ode.TRACKING_COMPARTMENTS.V_ma),
+        'ineffective': (ode.TRACKING_COMPARTMENT_NAMES.V_u,),
+        'protected_wild': (ode.TRACKING_COMPARTMENT_NAMES.V_p,),
+        'protected_all': (ode.TRACKING_COMPARTMENT_NAMES.V_pa,),
+        'immune_wild': (ode.TRACKING_COMPARTMENT_NAMES.V_m,),
+        'immune_all': (ode.TRACKING_COMPARTMENT_NAMES.V_ma,),
+        'effective': (ode.TRACKING_COMPARTMENT_NAMES.V_p, ode.TRACKING_COMPARTMENT_NAMES.V_pa,
+                      ode.TRACKING_COMPARTMENT_NAMES.V_m, ode.TRACKING_COMPARTMENT_NAMES.V_ma),
     }
     vaccinations = _make_outputs(components_diff, 'vaccinations', output_column_map)
     vaccinations.update(
