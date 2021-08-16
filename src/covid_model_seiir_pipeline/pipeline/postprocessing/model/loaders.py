@@ -33,12 +33,26 @@ def load_output_data(output_name: str, fallback: str = None):
     def inner(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
         try:
             return _load_output_data(scenario, output_name, data_interface, num_cores)
-        except Exception as e:
+        except ValueError:
             if fallback is None:
                 raise
             return _load_output_data(scenario, fallback, data_interface, num_cores)
 
     return inner
+
+
+def load_vaccine_summaries(output_name: str):
+    def inner(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
+        n_draws = data_interface.get_n_draws()
+        summary = data_interface.load_vaccination_summaries(output_name, scenario)
+        summary = pd.concat([summary]*n_draws, axis=1)    
+        summary.columns = list(range(n_draws))
+        return summary
+    return inner
+
+
+def load_vaccine_efficacy_table(data_interface: 'PostprocessingDataInterface'):
+    return data_interface.load_vaccine_efficacy()
 
 
 def load_ode_params(output_name: str):
