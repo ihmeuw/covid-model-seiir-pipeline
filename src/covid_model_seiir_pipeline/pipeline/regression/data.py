@@ -149,6 +149,12 @@ class RegressionDataInterface:
         population = population.loc[in_locations & is_2019 & is_both_sexes & is_five_year_bins, :]
         return population
 
+    def load_risk_group_populations(self) -> pd.DataFrame:
+        population = self.load_five_year_population()
+        pop_lr = population[population['age_group_years_start'] < 65].groupby('location_id')['population'].sum()
+        pop_hr = population[population['age_group_years_start'] >= 65].groupby('location_id')['population'].sum()
+        return pd.concat([pop_lr.rename('population_lr'), pop_hr.rename('population_hr')], axis=1)
+
     def load_total_population(self) -> pd.Series:
         population = self.load_five_year_population()
         population = population.groupby('location_id')['population'].sum()
@@ -249,6 +255,20 @@ class RegressionDataInterface:
     def load_ifr(self, draw_id: int) -> pd.DataFrame:
         ifr = io.load(self.infection_root.ifr(draw_id=draw_id))
         ifr = self.format_ratio_data(ifr)
+        vaccinations = self.load_vaccinations().groupby('location_id').cumsum()
+        population = self.load_risk_group_populations().reindex(vaccinations.index, level='location_id')
+        for risk_group in ['lr', 'hr']:
+            total_pop = population[f'population_{risk_group}']
+            immune = vaccinations[[
+                f'effective_wildtype_{risk_group}', f'effective_variant_{risk_group}'
+            ]].sum(axis=1)
+            protected = vaccinations[[
+                f'effective_protected_wildtype_{risk_group}', f'effective_protected_variant_{risk_group}'
+            ]].sum(axis=1)
+            denom = total_pop - immune
+            target_denom = total_pop - immune - protected
+            ifr[f'ifr_{risk_group}'] *= (denom / target_denom).reindex(ifr.index).fillna(1.0)
+
         return ifr
 
     def load_ihr(self, draw_id: int) -> pd.DataFrame:
