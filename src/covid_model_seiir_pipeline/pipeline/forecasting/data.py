@@ -105,7 +105,9 @@ class ForecastDataInterface:
             vaccine_scenario, self.covariate_root,
         )
 
-    def load_vaccination_summaries(self, measure: str, vaccine_scenario: str):
+    def load_vaccination_summaries(self, measure: str, scenario: str):
+        spec = self.load_specification()
+        vaccine_scenario = spec.scenarios[scenario].vaccine_version
         return self._get_regression_data_interface().load_vaccination_summaries(
             measure, vaccine_scenario, self.covariate_root,
         )
