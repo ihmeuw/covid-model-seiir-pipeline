@@ -413,13 +413,14 @@ class RegressionDataInterface:
             info_df.loc[:, :] = 0.0
         else:
             info_df = io.load(covariate_root.vaccine_info(info_type=f'vaccinations_{vaccine_scenario}_summary'))
+            info_df = info_df.loc[:, [measure]]
         if measure == 'vaccine_acceptance_point':
             info_df = info_df.groupby('location_id').max()
         return self._format_covariate_data(info_df, location_ids)
 
     def load_vaccine_efficacy(self, covariate_root: io.CovariateRoot = None):
         covariate_root = covariate_root if covariate_root is not None else self.covariate_root
-        df = io.load(covariate_root.vaccine_info(info_type='vaccine_efficacy_info'))
+        df = io.load(covariate_root.vaccine_info(info_type='vaccine_efficacy'))
         return df
 
     def load_mobility_info(self, info_type: str,

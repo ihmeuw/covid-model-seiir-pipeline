@@ -274,13 +274,13 @@ MEASURES = {
         splice=False
     ),
     'cumulative_lr_vaccinated': MeasureConfig(
-        loaders.load_vaccine_summaries('cumulative_lr_vaccinated'),
+        loaders.load_vaccine_summaries('lr_vaccinated'),
         'cumulative_vaccinations_lr',
         aggregator=aggregators.sum_aggregator,
         splice=False
     ),
     'cumulative_hr_vaccinated': MeasureConfig(
-        loaders.load_vaccine_summaries('cumulative_hr_vaccinated'),
+        loaders.load_vaccine_summaries('hr_vaccinated'),
         'cumulative_vaccinations_hr',
         aggregator=aggregators.sum_aggregator,
         splice=False
