@@ -255,8 +255,21 @@ class RegressionDataInterface:
     def load_ifr(self, draw_id: int) -> pd.DataFrame:
         ifr = io.load(self.infection_root.ifr(draw_id=draw_id))
         ifr = self.format_ratio_data(ifr)
-        population = self.load_risk_group_populations()
-        vaccinations = self.load_vaccinations()
+        vaccinations = self.load_vaccinations().groupby('location_id').cumsum()
+        population = self.load_risk_group_populations().reindex(vaccinations.index, level='location_id')
+        for risk_group in ['lr', 'hr']:
+            total_pop = population[f'population_{risk_group}']
+            immune = vaccinations[[
+                f'effective_wildtype_{risk_group}', f'effective_variant_{risk_group}'
+            ]].sum(axis=1)
+            protected = vaccinations[[
+                f'effective_protected_wildtype_{risk_group}', f'effective_protected_variant_{risk_group}'
+            ]]
+            denom = total_pop - immune
+            target_denom = total_pop - protected
+            import pdb; pdb.set_trace()
+            ifr[f'ifr_{risk_group}'] *= (denom / target_denom).reindex(ifr.index)
+
         import pdb; pdb.set_trace()
         return ifr
 
