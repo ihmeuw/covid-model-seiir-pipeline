@@ -128,9 +128,9 @@ class PostprocessingDataInterface:
         draw_df = self.load_ode_params(draw_id=draw_id, scenario=scenario, columns=cols)
         return draw_df.sum(axis=1).rename(draw_id)
 
-    def load_vaccination_summaries(self, measure: str, vaccine_scenario: str):
+    def load_vaccination_summaries(self, measure: str, scenario: str):
         return self._get_forecast_data_inteface().load_vaccination_summaries(
-            measure, vaccine_scenario,
+            measure, scenario,
         )
 
     def load_vaccine_efficacy(self):
