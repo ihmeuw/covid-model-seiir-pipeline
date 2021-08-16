@@ -105,6 +105,16 @@ class ForecastDataInterface:
             vaccine_scenario, self.covariate_root,
         )
 
+    def load_vaccination_summaries(self, measure: str, vaccine_scenario: str):
+        return self._get_regression_data_interface().load_vaccination_summaries(
+            measure, vaccine_scenario, self.covariate_root,
+        )
+
+    def load_vaccine_efficacy(self):
+        return self._get_regression_data_interface().load_vaccine_efficacy(
+            self.covariate_root,
+        )
+
     def load_mobility_info(self, info_type: str) -> pd.DataFrame:
         return self._get_regression_data_interface().load_mobility_info(
             info_type, self.covariate_root,

@@ -251,6 +251,49 @@ MEASURES = {
         cumulative_label='cumulative_vaccinations_effective_input',
         aggregator=aggregators.sum_aggregator,
     ),
+    'cumulative_all_effective': MeasureConfig(
+        loaders.load_vaccine_summaries('cumulative_all_effective'),
+        'cumulative_vaccinations_all_effective',
+        aggregator=aggregators.sum_aggregator,
+        splice=False,
+    ),
+    'cumulative_all_vaccinated': MeasureConfig(
+        loaders.load_vaccine_summaries('cumulative_all_vaccinated'),
+        'cumulative_vaccinations_all_vaccinated',
+        aggregator=aggregators.sum_aggregator,
+        splice=False,
+    ),
+    'cumulative_all_fully_vaccinated': MeasureConfig(
+        loaders.load_vaccine_summaries('cumulative_all_fully_vaccinated'),
+        'cumulative_vaccinations_all_fully_vaccinated',
+        aggregator=aggregators.sum_aggregator,
+        splice=False
+    ),
+    'cumulative_lr_vaccinated': MeasureConfig(
+        loaders.load_vaccine_summaries('cumulative_lr_vaccinated'),
+        'cumulative_vaccinations_lr',
+        aggregator=aggregators.sum_aggregator,
+        splice=False
+    ),
+    'cumulative_hr_vaccinated': MeasureConfig(
+        loaders.load_vaccine_summaries('cumulative_hr_vaccinated'),
+        'cumulative_vaccinations_hr',
+        aggregator=aggregators.sum_aggregator,
+        splice=False
+    ),
+    'vaccine_acceptance': MeasureConfig(
+        loaders.load_vaccine_summaries('vaccine_acceptance'),
+        'vaccine_acceptance',
+        aggregator=aggregators.mean_aggregator,
+        splice=False
+    ),
+    'vaccine_acceptance_point': MeasureConfig(
+        loaders.load_vaccine_summaries('vaccine_acceptance_point'),
+        'vaccine_acceptance_point',
+        aggregator=aggregators.mean_aggregator,
+        splice=False
+    ),
+
     'vaccines_immune_all': MeasureConfig(
         loaders.load_output_data('vaccinations_immune_all'),
         'daily_vaccinations_all_immune',
@@ -612,6 +655,10 @@ MISCELLANEOUS = {
     'hospital_census_data': MiscellaneousConfig(
         loaders.load_raw_census_data,
         'hospital_census_data',
+    ),
+    'vaccine_efficacy_table': MiscellaneousConfig(
+        loaders.load_vaccine_efficacy_table,
+        'vaccine_efficacy_table',
     ),
     'version_map': MiscellaneousConfig(
         loaders.build_version_map,

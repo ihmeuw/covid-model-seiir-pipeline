@@ -390,6 +390,38 @@ class RegressionDataInterface:
             info_df = io.load(covariate_root.vaccine_info(info_type=f'vaccinations_{vaccine_scenario}'))
         return self._format_covariate_data(info_df, location_ids)
 
+    def load_vaccination_summaries(self,
+                                   measure: str,
+                                   vaccine_scenario: str = 'reference',
+                                   covariate_root: io.CovariateRoot = None):
+        covariate_root = covariate_root if covariate_root is not None else self.covariate_root
+        location_ids = self.load_location_ids()
+        measures = [
+            'cumulative_all_effective',
+            'cumulative_all_vaccinated',
+            'cumulative_all_fully_vaccinated',
+            'hr_vaccinated',
+            'lr_vaccinated',
+            'vaccine_acceptance',
+            'vaccine_acceptance_point',
+        ]
+        assert measure in measures
+        if vaccine_scenario == 'none':
+            # Grab the reference so we get the right index/schema.
+            info_df = io.load(covariate_root.vaccine_info(info_type='vaccinations_reference_summary'))
+            info_df = info_df.loc[:, [measure]]
+            info_df.loc[:, :] = 0.0
+        else:
+            info_df = io.load(covariate_root.vaccine_info(info_type=f'vaccinations_{vaccine_scenario}_summary'))
+        if measure == 'vaccine_acceptance_point':
+            info_df = info_df.groupby('location_id').max()
+        return self._format_covariate_data(info_df, location_ids)
+
+    def load_vaccine_efficacy(self, covariate_root: io.CovariateRoot = None):
+        covariate_root = covariate_root if covariate_root is not None else self.covariate_root
+        df = io.load(covariate_root.vaccine_info(info_type='vaccine_efficacy_info'))
+        return df
+
     def load_mobility_info(self, info_type: str,
                            covariate_root: io.CovariateRoot = None) -> pd.DataFrame:
         covariate_root = covariate_root if covariate_root is not None else self.covariate_root
