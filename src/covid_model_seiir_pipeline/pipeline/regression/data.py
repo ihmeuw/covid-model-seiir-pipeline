@@ -264,13 +264,11 @@ class RegressionDataInterface:
             ]].sum(axis=1)
             protected = vaccinations[[
                 f'effective_protected_wildtype_{risk_group}', f'effective_protected_variant_{risk_group}'
-            ]]
+            ]].sum(axis=1)
             denom = total_pop - immune
-            target_denom = total_pop - protected
-            import pdb; pdb.set_trace()
-            ifr[f'ifr_{risk_group}'] *= (denom / target_denom).reindex(ifr.index)
+            target_denom = total_pop - immune - protected
+            ifr[f'ifr_{risk_group}'] *= (denom / target_denom).reindex(ifr.index).fillna(1.0)
 
-        import pdb; pdb.set_trace()
         return ifr
 
     def load_ihr(self, draw_id: int) -> pd.DataFrame:
