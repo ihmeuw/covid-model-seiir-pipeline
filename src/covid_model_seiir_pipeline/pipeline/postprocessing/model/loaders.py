@@ -33,8 +33,7 @@ def load_output_data(output_name: str, fallback: str = None):
     def inner(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
         try:
             return _load_output_data(scenario, output_name, data_interface, num_cores)
-        except Exception as e:
-            import pdb; pdb.set_trace()
+        except ValueError:
             if fallback is None:
                 raise
             return _load_output_data(scenario, fallback, data_interface, num_cores)

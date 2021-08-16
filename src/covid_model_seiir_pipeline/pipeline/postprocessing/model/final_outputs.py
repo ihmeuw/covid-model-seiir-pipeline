@@ -152,7 +152,7 @@ MEASURES = {
     'infections_natural_breakthrough': MeasureConfig(
         loaders.load_output_data(
             'modeled_infections_natural_breakthrough',
-            # fallback='natural_immunity_breakthrough',
+            fallback='natural_immunity_breakthrough',
         ),
         'daily_infections_natural_immunity_breakthrough',
         aggregator=aggregators.sum_aggregator,
@@ -160,7 +160,7 @@ MEASURES = {
     'infections_vaccine_breakthrough': MeasureConfig(
         loaders.load_output_data(
             'modeled_infections_vaccine_breakthrough',
-            # fallback='vaccine_breakthrough',
+            fallback='vaccine_breakthrough',
         ),
         'daily_infections_vaccine_breakthrough',
         aggregator=aggregators.sum_aggregator,
