@@ -11,7 +11,7 @@ grid_plots:
       - version: '2021_08_04.04'
         scenarios:
           reference*: 'public reference'
-      - version: '2021_08_15.02'
+      - version: '2021_08_16.09'
         scenarios:
           reference*: 'reference'
           worse: 'worse'
@@ -23,7 +23,7 @@ grid_plots:
       - version: '2021_08_04.04'
         scenarios:
           reference*: 'public reference'
-      - version: '2021_08_15.02'
+      - version: '2021_08_16.09'
         scenarios:
           reference*: 'reference'
           worse: 'worse'
@@ -39,7 +39,7 @@ cumulative_deaths_compare_csv:
         reference: 'public_reference'
         worse: 'public_worse'
         best_masks: 'public_best_masks'
-    - version: '2021_08_15.02'
+    - version: '2021_08_16.09'
       scenarios:
         reference: 'reference'
         worse: 'worse'
@@ -53,7 +53,7 @@ scatters:
       date: ''
       label: 'public_reference'
     y_axis:
-      version: '2021_08_15.02'
+      version: '2021_08_16.09'
       scenario: 'reference'
       # Leave date blank to automatically select the last day of data.
       date: ''
@@ -66,7 +66,7 @@ scatters:
       date: '2021-12-31'
       label: 'public_reference'
     y_axis:
-      version: '2021_08_15.02'
+      version: '2021_08_16.09'
       scenario: 'reference'
       # Leave date blank to automatically select the last day of data.
       date: '2021-12-31'

@@ -14,9 +14,9 @@ resampling:
   reference_date: '2021-12-31'
   lower_quantile: 0.025
   upper_quantile: 0.975
-splicing:
-  - locations: [385, 11, 161, 207, 213, 214, 4765]
-    output_version: '/ihme/covid-19/seir-outputs/2021_07_20.07'
+#splicing:
+#  - locations: [385, 11, 161, 207, 213, 214, 4765]
+#    output_version: '/ihme/covid-19/seir-outputs/2021_07_20.07'
 #  - locations: [89]
 #    output_version: '/ihme/covid-19/seir-outputs/2021_07_14.03'
 aggregation:
