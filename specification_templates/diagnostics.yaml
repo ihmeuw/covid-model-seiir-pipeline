@@ -36,7 +36,7 @@ cumulative_deaths_compare_csv:
   comparators:
     - version: '2021_08_04.04'
       scenarios:
-        reference: 'public_reference'
+        reference: 'public_ref'
         worse: 'public_worse'
         best_masks: 'public_best_masks'
     - version: '2021_08_15.02'

@@ -20,13 +20,13 @@ regression_parameters:
   # 1 / duration symptomatic or asymptomatic.  dI2/dt = gamma1 * I1 - gamma2 * I2
   gamma2: [0.3333, 1.0]
   # proportion increase in transmission intensity for non-escape variants
-  kappa: [0.3, 0.5]
+  kappa: [0.2, 0.5]
   # cross-variant immunity
   chi: [0.4, 0.8]
   # proportion increase in transmission for escape variants relative to non-escape variants.
   # Mean of phi will be chi + phi_mean_shift
-  phi_mean_shift: 0.0
-  phi_sd: 0.21
+  phi_mean_shift: 0.3
+  phi_sd: 0.15
   psi_mean_shift: 0.9
   psi_sd: 0.21
   # Proportion of current E to send to escape variant E on invasion.

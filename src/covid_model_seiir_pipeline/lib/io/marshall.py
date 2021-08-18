@@ -115,7 +115,7 @@ class YamlMarshall:
             raise LookupError(msg)
 
         with path.open('w') as file:
-            yaml.dump(data, file)
+            yaml.dump(data, file, sort_keys=False)
 
     @classmethod
     def load(cls, key: MetadataKey) -> Any:
