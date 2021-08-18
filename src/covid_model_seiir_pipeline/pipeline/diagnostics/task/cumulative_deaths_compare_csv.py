@@ -78,25 +78,28 @@ def run_cumulative_deaths_compare_csv(diagnostics_version: str) -> None:
     data = data.loc[sorted_locs_subset].reset_index()
     data['location_name'] = data.location_id.map(hierarchy.set_index('location_id').location_ascii_name)
 
-    dates = cumulative_death_spec.dates + [str(max_date.date())]
+    dates = [max_date] + [pd.Timestamp(date) for date in cumulative_death_spec.dates]
+    date_labels = [date.strftime("%b%d_%Y") for date in dates]
     final_data = []
-    for date in dates:
-        date_data = (data[data.date == pd.Timestamp(date)]
+    for date, label in zip(dates, date_labels):
+        date_data = (data[data.date == date]
                      .set_index(['location_id', 'location_name'])
                      .drop(columns='date'))
-        date_data.columns = [f'{date}_{c}'for c in date_data.columns]
+        date_data.columns = [f'{label}_{c}'for c in date_data.columns]
         final_data.append(date_data)
 
     final_data = pd.concat(final_data, axis=1)
-    pub_ref_col, ref_col, ref_unscaled_col = [f'{str(max_date.date())}_{s}'
+    col_order = [f'{date_label}_{scenario_label}'
+                 for date_label, scenario_label in itertools.product(date_labels, labels)]
+    assert sorted(col_order) == sorted(final_data.columns.tolist()), 'Column mismatch'
+    pub_ref_col, ref_col, ref_unscaled_col = [f'{date_labels[0]}_{s}'
                                               for s in ['public_reference', 'reference', 'reference_unscaled']]
-    other_cols = final_data.columns.tolist()
     final_data['diff_prev_current'] = final_data[ref_col] - final_data[pub_ref_col]
     final_data['pct_diff_prev_current'] = final_data['diff_prev_current'] / final_data[pub_ref_col]
-    final_data = final_data[['diff_prev_current', 'pct_diff_prev_current'] + other_cols]
+    final_data = final_data[['diff_prev_current', 'pct_diff_prev_current'] + col_order]
 
     population = population.reindex(final_data.reset_index(level='location_name').index)
-    final_data_rates = final_data.loc[:, other_cols]
+    final_data_rates = final_data.loc[:, col_order]
     final_data_rates = (final_data_rates
                         .divide(population.values, axis=0)
                         .reset_index())
