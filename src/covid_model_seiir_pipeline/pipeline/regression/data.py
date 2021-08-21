@@ -106,6 +106,7 @@ class RegressionDataInterface:
         draw_0_data = self.load_full_past_infection_data(draw_id=0)
         total_deaths = draw_0_data.groupby('location_id').deaths.sum()
         modeled_locations = total_deaths[total_deaths > death_threshold].index.tolist()
+        modeled_locations = list(set(modeled_locations).difference([189]))
 
         if desired_location_hierarchy is None:
             desired_locations = modeled_locations
