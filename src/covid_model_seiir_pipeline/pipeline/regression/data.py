@@ -78,8 +78,8 @@ class RegressionDataInterface:
         return infection_metadata['model_inputs_metadata']
 
     def get_n_draws(self) -> int:
-        regression_spec = io.load(self.regression_root.specification())
-        return regression_spec['regression_parameters']['n_draws']
+        regression_spec = self.load_specification()
+        return regression_spec.data.n_draws
 
     #########################
     # Raw location handling #
@@ -101,10 +101,12 @@ class RegressionDataInterface:
         locations, if provided, and the available locations in the infections
         directory.
         """
-        death_threshold = 5
+        regression_spec = self.load_specification()
+        death_threshold = 10 if regression_spec.data.run_counties else 5
         draw_0_data = self.load_full_past_infection_data(draw_id=0)
         total_deaths = draw_0_data.groupby('location_id').deaths.sum()
         modeled_locations = total_deaths[total_deaths > death_threshold].index.tolist()
+        modeled_locations = list(set(modeled_locations).difference([189]))
 
         if desired_location_hierarchy is None:
             desired_locations = modeled_locations
@@ -148,6 +150,12 @@ class RegressionDataInterface:
         population = population.loc[in_locations & is_2019 & is_both_sexes & is_five_year_bins, :]
         return population
 
+    def load_risk_group_populations(self) -> pd.DataFrame:
+        population = self.load_five_year_population()
+        pop_lr = population[population['age_group_years_start'] < 65].groupby('location_id')['population'].sum()
+        pop_hr = population[population['age_group_years_start'] >= 65].groupby('location_id')['population'].sum()
+        return pd.concat([pop_lr.rename('population_lr'), pop_hr.rename('population_hr')], axis=1)
+
     def load_total_population(self) -> pd.Series:
         population = self.load_five_year_population()
         population = population.groupby('location_id')['population'].sum()
@@ -157,10 +165,11 @@ class RegressionDataInterface:
     # Observed epi loaders #
     ########################
 
-    def load_full_data(self, fh_subnationals: bool = False) -> pd.DataFrame:
+    def load_full_data(self) -> pd.DataFrame:
+        regression_spec = self.load_specification()
         metadata = self.get_model_inputs_metadata()
         model_inputs_version = metadata['output_path']
-        if fh_subnationals:
+        if regression_spec.data.run_counties:
             full_data_path = Path(model_inputs_version) / 'full_data_fh_subnationals.csv'
         else:
             full_data_path = Path(model_inputs_version) / 'full_data.csv'
@@ -192,10 +201,10 @@ class RegressionDataInterface:
 
         return pd.concat(dfs)
 
-    def load_total_deaths(self, fh_subnationals: bool = False):
+    def load_total_deaths(self):
         """Load cumulative deaths by location."""
         location_ids = self.load_location_ids()
-        full_data = self.load_full_data(fh_subnationals)
+        full_data = self.load_full_data()
         total_deaths = full_data.groupby('location_id')['Deaths'].max().rename('deaths')
         return total_deaths.loc[location_ids]
 
@@ -241,11 +250,26 @@ class RegressionDataInterface:
     def load_em_scalars(self) -> pd.Series:
         location_ids = self.load_location_ids()
         em_scalars = io.load(self.infection_root.em_scalars())
+        em_scalars = em_scalars[~em_scalars.index.duplicated()]
         return em_scalars.loc[location_ids, 'em_scalar']
 
     def load_ifr(self, draw_id: int) -> pd.DataFrame:
         ifr = io.load(self.infection_root.ifr(draw_id=draw_id))
         ifr = self.format_ratio_data(ifr)
+        vaccinations = self.load_vaccinations().groupby('location_id').cumsum()
+        population = self.load_risk_group_populations().reindex(vaccinations.index, level='location_id')
+        for risk_group in ['lr', 'hr']:
+            total_pop = population[f'population_{risk_group}']
+            immune = vaccinations[[
+                f'effective_wildtype_{risk_group}', f'effective_variant_{risk_group}'
+            ]].sum(axis=1)
+            protected = vaccinations[[
+                f'effective_protected_wildtype_{risk_group}', f'effective_protected_variant_{risk_group}'
+            ]].sum(axis=1)
+            denom = total_pop - immune
+            target_denom = total_pop - immune - protected
+            ifr[f'ifr_{risk_group}'] *= (denom / target_denom).reindex(ifr.index).fillna(1.0)
+
         return ifr
 
     def load_ihr(self, draw_id: int) -> pd.DataFrame:
@@ -366,6 +390,39 @@ class RegressionDataInterface:
         else:
             info_df = io.load(covariate_root.vaccine_info(info_type=f'vaccinations_{vaccine_scenario}'))
         return self._format_covariate_data(info_df, location_ids)
+
+    def load_vaccination_summaries(self,
+                                   measure: str,
+                                   vaccine_scenario: str = 'reference',
+                                   covariate_root: io.CovariateRoot = None):
+        covariate_root = covariate_root if covariate_root is not None else self.covariate_root
+        location_ids = self.load_location_ids()
+        measures = [
+            'cumulative_all_effective',
+            'cumulative_all_vaccinated',
+            'cumulative_all_fully_vaccinated',
+            'hr_vaccinated',
+            'lr_vaccinated',
+            'vaccine_acceptance',
+            'vaccine_acceptance_point',
+        ]
+        assert measure in measures
+        if vaccine_scenario == 'none':
+            # Grab the reference so we get the right index/schema.
+            info_df = io.load(covariate_root.vaccine_info(info_type='vaccinations_reference_summary'))
+            info_df = info_df.loc[:, [measure]]
+            info_df.loc[:, :] = 0.0
+        else:
+            info_df = io.load(covariate_root.vaccine_info(info_type=f'vaccinations_{vaccine_scenario}_summary'))
+            info_df = info_df.loc[:, [measure]]
+        if measure == 'vaccine_acceptance_point':
+            info_df = info_df.groupby('location_id').max()
+        return self._format_covariate_data(info_df, location_ids)
+
+    def load_vaccine_efficacy(self, covariate_root: io.CovariateRoot = None):
+        covariate_root = covariate_root if covariate_root is not None else self.covariate_root
+        df = io.load(covariate_root.vaccine_info(info_type='vaccine_efficacy'))
+        return df
 
     def load_mobility_info(self, info_type: str,
                            covariate_root: io.CovariateRoot = None) -> pd.DataFrame:

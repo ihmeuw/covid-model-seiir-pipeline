@@ -75,7 +75,9 @@ _Compartments = namedtuple(
 _TrackingCompartments = namedtuple(
     'TrackingCompartments', [
         'NewE_wild', 'NewE_variant', 'NewE_p_wild', 'NewE_p_variant',
-        'NewE_nbt', 'NewE_vbt', 'NewS_v', 'NewR_w',
+        'NewE_unvax_wild', 'NewE_unvax_variant',
+        'NewE_nbt', 'NewE_unvax_nbt',
+        'NewE_vbt', 'NewS_v', 'NewR_w',
         'V_u', 'V_p', 'V_pa', 'V_m', 'V_ma',
     ]
 )
@@ -84,20 +86,30 @@ _TrackingCompartments = namedtuple(
 # Public index maps #
 #####################
 
-PARAMETERS = _Parameters(*list(range(len(_Parameters._fields))))
+def _make_maps(cls: namedtuple):
+    index_map = cls(*list(range(len(cls._fields))))
+    name_map = cls(*cls._fields)
+    return index_map, name_map
+
+
+PARAMETERS, PARAMETER_NAMES = _make_maps(_Parameters)
 FIT_PARAMETERS = _FitParameters(*[
     i + len(PARAMETERS) for i in range(len(_FitParameters._fields))
 ])
+FIT_PARAMETER_NAMES = _FitParameters(*_FitParameters._fields)
 FORECAST_PARAMETERS = _ForecastParameters(*[
     i + len(PARAMETERS) for i in range(len(_ForecastParameters._fields))
 ])
-NEW_E = _NewE(*list(range(len(_NewE._fields))))
-AGGREGATES = _Aggregates(*list(range(len(_Aggregates._fields))))
-VACCINE_TYPES = _VaccineTypes(*list(range(len(_VaccineTypes._fields))))
-COMPARTMENTS = _Compartments(*list(range(len(_Compartments._fields))))
+FORECAST_PARAMETER_NAMES = _ForecastParameters(*_ForecastParameters._fields)
+
+NEW_E, NEW_E_NAMES = _make_maps(_NewE)
+AGGREGATES, AGGREGATE_NAMES = _make_maps(_Aggregates)
+VACCINE_TYPES, VACCINE_TYPE_NAMES = _make_maps(_VaccineTypes)
+COMPARTMENTS, COMPARTMENT_NAMES = _make_maps(_Compartments)
 TRACKING_COMPARTMENTS = _TrackingCompartments(*[
     i + len(COMPARTMENTS) for i in range(len(_TrackingCompartments._fields))
 ])
+TRACKING_COMPARTMENT_NAMES = _TrackingCompartments(*_TrackingCompartments._fields)
 
 ##############################
 # Public component groupings #
@@ -110,24 +122,55 @@ UNVACCINATED = np.array([
     COMPARTMENTS.I2, COMPARTMENTS.I2_variant,
     COMPARTMENTS.R,  COMPARTMENTS.R_variant,
 ])
+UNVACCINATED_NAMES = [COMPARTMENT_NAMES[i] for i in UNVACCINATED]
 SUSCEPTIBLE_WILD = np.array([
     COMPARTMENTS.S, COMPARTMENTS.S_u, COMPARTMENTS.S_p, COMPARTMENTS.S_pa,
 ])
+SUSCEPTIBLE_WILD_NAMES = [COMPARTMENT_NAMES[i] for i in SUSCEPTIBLE_WILD]
 SUSCEPTIBLE_VARIANT_ONLY = np.array([
     COMPARTMENTS.S_variant, COMPARTMENTS.S_variant_u, COMPARTMENTS.S_variant_pa, COMPARTMENTS.S_m,
 ])
+SUSCEPTIBLE_VARIANT_ONLY_NAMES = [COMPARTMENT_NAMES[i] for i in SUSCEPTIBLE_VARIANT_ONLY]
+SUSCEPTIBLE_VARIANT_UNPROTECTED = np.array([
+    COMPARTMENTS.S, COMPARTMENTS.S_u, COMPARTMENTS.S_p, COMPARTMENTS.S_variant, COMPARTMENTS.S_variant_u,
+])
+SUSCEPTIBLE_VARIANT_UNPROTECTED_NAMES = [COMPARTMENT_NAMES[i] for i in SUSCEPTIBLE_VARIANT_UNPROTECTED]
 INFECTIOUS_WILD = np.array([
     COMPARTMENTS.I1,    COMPARTMENTS.I2,
     COMPARTMENTS.I1_u,  COMPARTMENTS.I2_u,
     COMPARTMENTS.I1_p,  COMPARTMENTS.I2_p,
     COMPARTMENTS.I1_pa, COMPARTMENTS.I2_pa,
 ])
+INFECTIOUS_WILD_NAMES = [COMPARTMENT_NAMES[i] for i in INFECTIOUS_WILD]
 INFECTIOUS_VARIANT = np.array([
     COMPARTMENTS.I1_variant,    COMPARTMENTS.I2_variant,
     COMPARTMENTS.I1_variant_u,  COMPARTMENTS.I2_variant_u,
     COMPARTMENTS.I1_variant_pa, COMPARTMENTS.I2_variant_pa,
 ])
+INFECTIOUS_VARIANT_NAMES = [COMPARTMENT_NAMES[i] for i in INFECTIOUS_VARIANT]
+IMMUNE_WILD = np.array([
+    COMPARTMENTS.R, COMPARTMENTS.R_u, COMPARTMENTS.R_p, COMPARTMENTS.R_pa, COMPARTMENTS.S_m, COMPARTMENTS.R_m,
+    COMPARTMENTS.S_variant, COMPARTMENTS.E_variant,
+    COMPARTMENTS.I1_variant, COMPARTMENTS.I2_variant, COMPARTMENTS.R_variant,
 
+    COMPARTMENTS.S_variant_u, COMPARTMENTS.E_variant_u,
+    COMPARTMENTS.I1_variant_u, COMPARTMENTS.I2_variant_u, COMPARTMENTS.R_variant_u,
+
+    COMPARTMENTS.S_variant_pa, COMPARTMENTS.E_variant_pa,
+    COMPARTMENTS.I1_variant_pa, COMPARTMENTS.I2_variant_pa, COMPARTMENTS.R_variant_pa,
+])
+IMMUNE_WILD_NAMES = [COMPARTMENT_NAMES[i] for i in IMMUNE_WILD]
+IMMUNE_VARIANT = np.array([
+    COMPARTMENTS.R,    COMPARTMENTS.R_variant,
+
+    COMPARTMENTS.R_u,  COMPARTMENTS.R_variant_u,
+    COMPARTMENTS.R_p,
+
+    COMPARTMENTS.R_pa, COMPARTMENTS.R_variant_pa,
+
+    COMPARTMENTS.R_m,
+])
+IMMUNE_VARIANT_NAMES = [COMPARTMENT_NAMES[i] for i in IMMUNE_VARIANT]
 
 ##########################
 # Other public constants #

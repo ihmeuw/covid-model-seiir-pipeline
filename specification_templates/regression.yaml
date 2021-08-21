@@ -1,16 +1,16 @@
 data:
-  infection_version: '2021_08_04.02'
-  covariate_version: '2021_08_04.05'
+  infection_version: '2021_08_17.06'
+  covariate_version: '2021_08_18.01'
   coefficient_version: ''
   priors_version: '2021_05_31.01'
   location_set_version_id: 771
   output_root: ''
   output_format: 'parquet'
+  n_draws: 100
 workflow:
   project: 'proj_covid_prod'
   queue: 'd.q'
 regression_parameters:
-  n_draws: 100
   # Mixing parameter.  dS/dt = -beta * S * I ** alpha
   alpha: [0.9, 1.0]
   # 1 / incubation period.  dE/dt = -dS/dt - sigma * E
@@ -20,15 +20,15 @@ regression_parameters:
   # 1 / duration symptomatic or asymptomatic.  dI2/dt = gamma1 * I1 - gamma2 * I2
   gamma2: [0.3333, 1.0]
   # proportion increase in transmission intensity for non-escape variants
-  kappa: [0.3, 0.5]
+  kappa: [0.2, 0.62]
   # cross-variant immunity
-  chi: [0.4, 0.8]
+  chi: [0.3, 0.7]
   # proportion increase in transmission for escape variants relative to non-escape variants.
   # Mean of phi will be chi + phi_mean_shift
-  phi_mean_shift: 0.0
-  phi_sd: 0.21
-  psi_mean_shift: 0.9
-  psi_sd: 0.21
+  phi_mean_shift: 0.3
+  phi_sd: 0.15
+  psi_mean_shift: 1.3
+  psi_sd: 0.30
   # Proportion of current E to send to escape variant E on invasion.
   pi: [0.01, 0.1]
 hospital_parameters:

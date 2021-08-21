@@ -1,5 +1,5 @@
 import itertools
-from typing import Tuple, TYPE_CHECKING
+from typing import Dict, Tuple, TYPE_CHECKING
 
 import pandas as pd
 
@@ -74,11 +74,9 @@ def compute_output_metrics(indices: Indices,
         postprocessing_params,
     )
 
-    rcw, rew, rcv, rev, re = compute_effective_r(
+    effective_r = compute_effective_r(
         model_parameters,
         system_metrics,
-        infections,
-
     )
 
     output_metrics = OutputMetrics(
@@ -87,11 +85,7 @@ def compute_output_metrics(indices: Indices,
         deaths=deaths,
         **hospital_usage.to_dict(),
         # Other stuff
-        r_controlled_wild=rcw,
-        r_effective_wild=rew,
-        r_controlled_variant=rcv,
-        r_effective_variant=rev,
-        r_effective=re,
+        **effective_r,
     )
     return components, system_metrics, output_metrics
 
@@ -102,16 +96,174 @@ def variant_system_metrics(indices: Indices,
                            components: pd.DataFrame) -> SystemMetrics:
     components_diff = components.groupby('location_id').diff()
 
-    cols = [f'{c}_{g}' for g, c in itertools.product(['lr', 'hr'], ode.COMPARTMENTS._fields)]
-    tracking_cols = [f'{c}_{g}' for g, c in itertools.product(['lr', 'hr'], ode.TRACKING_COMPARTMENTS._fields)]
-    modeled_infections_wild = components_diff[[c for c in tracking_cols if 'NewE_wild' in c]].sum(axis=1)
-    modeled_infections_variant = components_diff[[c for c in tracking_cols if 'NewE_variant' in c]].sum(axis=1)
-    natural_immunity_breakthrough = components_diff[[c for c in tracking_cols if 'NewE_nbt' in c]].sum(axis=1)
-    vaccine_breakthrough = components_diff[[c for c in tracking_cols if 'NewE_vbt' in c]].sum(axis=1)
+    cols = [f'{c}_{g}' for g, c in itertools.product(['lr', 'hr'], ode.COMPARTMENT_NAMES)]
+    tracking_cols = [f'{c}_{g}' for g, c in itertools.product(['lr', 'hr'], ode.TRACKING_COMPARTMENT_NAMES)]
+
+    infections = _make_infections(components_diff)
+    infected = infections['modeled_infections_total'] - infections['modeled_infections_natural_breakthrough']
+    group_infections, group_deaths = _make_group_infections_and_deaths_metrics(
+        components,
+        components_diff,
+        postprocessing_params,
+    )
+
+    susceptible = _make_susceptible(components)
+    infectious = _make_infectious(components)
+    immune = _make_immune(components)
+    vaccinations = _make_vaccinations(components, components_diff)
+    total_pop = components[cols].sum(axis=1)
+    betas = _make_betas(infections, susceptible, infectious, model_parameters.alpha, total_pop)
+    incidence = _make_incidence(infections, total_pop)
+    force_of_infection = _make_force_of_infection(infections, susceptible)
+
+    variant_prevalence = infections['modeled_infections_variant'] / infections['modeled_infections_total']
     new_s_variant = components_diff[[c for c in tracking_cols if 'NewS_v' in c]].sum(axis=1)
     new_r_wild = components_diff[[c for c in tracking_cols if 'NewR_w' in c]].sum(axis=1)
     proportion_cross_immune = new_r_wild / (new_s_variant + new_r_wild)
 
+    return SystemMetrics(
+        **infections,
+        modeled_infected_total=infected,
+        **group_infections,
+        **group_deaths,
+        **susceptible,
+        **infectious,
+        **immune,
+        **vaccinations,
+        total_population=total_pop,
+        **betas,
+        **incidence,
+        **force_of_infection,
+        variant_prevalence=variant_prevalence,
+        proportion_cross_immune=proportion_cross_immune,
+    )
+
+
+def _make_infections(components_diff) -> Dict[str, pd.Series]:
+    output_column_map = {
+        'wild': (ode.TRACKING_COMPARTMENT_NAMES.NewE_wild,),
+        'variant': (ode.TRACKING_COMPARTMENT_NAMES.NewE_variant,),
+        'natural_breakthrough': (ode.TRACKING_COMPARTMENT_NAMES.NewE_nbt,),
+        'vaccine_breakthrough': (ode.TRACKING_COMPARTMENT_NAMES.NewE_vbt,),
+        'total': (ode.TRACKING_COMPARTMENT_NAMES.NewE_wild, ode.TRACKING_COMPARTMENT_NAMES.NewE_variant),
+
+        'unvaccinated_wild': (ode.TRACKING_COMPARTMENT_NAMES.NewE_unvax_wild,),
+        'unvaccinated_variant': (ode.TRACKING_COMPARTMENT_NAMES.NewE_unvax_variant,),
+        'unvaccinated_natural_breakthrough': (ode.TRACKING_COMPARTMENT_NAMES.NewE_unvax_nbt,),
+        'unvaccinated_total': (ode.TRACKING_COMPARTMENT_NAMES.NewE_unvax_wild,
+                               ode.TRACKING_COMPARTMENT_NAMES.NewE_unvax_variant),
+    }
+    return _make_outputs(components_diff, 'modeled_infections', output_column_map)
+
+
+def _make_susceptible(components) -> Dict[str, pd.Series]:
+    output_column_map = {
+        'wild': ode.SUSCEPTIBLE_WILD_NAMES,
+        'variant': ode.SUSCEPTIBLE_WILD_NAMES + ode.SUSCEPTIBLE_VARIANT_ONLY_NAMES,
+        'variant_only': ode.SUSCEPTIBLE_VARIANT_ONLY_NAMES,
+        'variant_unprotected': ode.SUSCEPTIBLE_VARIANT_UNPROTECTED_NAMES,
+
+        'unvaccinated_wild': (ode.COMPARTMENT_NAMES.S,),
+        'unvaccinated_variant': (ode.COMPARTMENT_NAMES.S, ode.COMPARTMENT_NAMES.S_variant),
+        'unvaccinated_variant_only': (ode.COMPARTMENT_NAMES.S_variant,),
+    }
+    return _make_outputs(components, 'total_susceptible', output_column_map)
+
+
+def _make_infectious(components) -> Dict[str, pd.Series]:
+    output_column_map = {
+        'wild': ode.INFECTIOUS_WILD_NAMES,
+        'variant': ode.INFECTIOUS_VARIANT_NAMES,
+        '': ode.INFECTIOUS_WILD_NAMES + ode.INFECTIOUS_VARIANT_NAMES,
+    }
+    return _make_outputs(components, 'total_infectious', output_column_map)
+
+
+def _make_immune(components) -> Dict[str, pd.Series]:
+    output_column_map = {
+        'wild': ode.IMMUNE_WILD_NAMES,
+        'variant': ode.IMMUNE_VARIANT_NAMES,
+    }
+    return _make_outputs(components, 'total_immune', output_column_map)
+
+
+def _make_vaccinations(components, components_diff) -> Dict[str, pd.Series]:
+    output_column_map = {
+        'ineffective': (ode.TRACKING_COMPARTMENT_NAMES.V_u,),
+        'protected_wild': (ode.TRACKING_COMPARTMENT_NAMES.V_p,),
+        'protected_all': (ode.TRACKING_COMPARTMENT_NAMES.V_pa,),
+        'immune_wild': (ode.TRACKING_COMPARTMENT_NAMES.V_m,),
+        'immune_all': (ode.TRACKING_COMPARTMENT_NAMES.V_ma,),
+        'effective': (ode.TRACKING_COMPARTMENT_NAMES.V_p, ode.TRACKING_COMPARTMENT_NAMES.V_pa,
+                      ode.TRACKING_COMPARTMENT_NAMES.V_m, ode.TRACKING_COMPARTMENT_NAMES.V_ma),
+    }
+    vaccinations = _make_outputs(components_diff, 'vaccinations', output_column_map)
+    vaccinations.update(
+        _make_outputs(components, 'vaccinations', {'n_unvaccinated': ode.UNVACCINATED_NAMES})
+    )
+    return vaccinations
+
+
+def _make_betas(infections, susceptible, infectious, alpha, total_pop):
+    def _compute_beta(new_e, s, i):
+        return new_e / (s * i**alpha / total_pop)
+    betas = {}
+    for beta_type in ['wild', 'variant', 'total']:
+        suffix = '' if beta_type == 'total' else f'_{beta_type}'
+        s_type = 'variant' if beta_type == 'total' else beta_type
+        betas[f'beta{suffix}'] = _compute_beta(
+            infections[f'modeled_infections_{beta_type}'],
+            susceptible[f'total_susceptible_{s_type}'],
+            infectious[f'total_infectious{suffix}'],
+        )
+    return betas
+
+
+def _make_incidence(infections: Dict[str, pd.Series], total_pop: pd.Series) -> Dict[str, pd.Series]:
+    return {
+        f'incidence_{i_type}': infections[f'modeled_infections_{i_type}'] / total_pop
+        for i_type in ['wild', 'variant', 'total', 'unvaccinated_wild', 'unvaccinated_variant', 'unvaccinated_total']
+    }
+
+
+def _make_force_of_infection(infections: Dict[str, pd.Series],
+                             susceptible: Dict[str, pd.Series]) -> Dict[str, pd.Series]:
+    foi = infections['modeled_infections_total'] / susceptible['total_susceptible_variant']
+    foi_novax = (
+        infections['modeled_infections_unvaccinated_total']
+        / susceptible['total_susceptible_unvaccinated_variant']
+    )
+    foi_novax_naive = (
+        (infections['modeled_infections_unvaccinated_total']
+         - infections['modeled_infections_unvaccinated_natural_breakthrough'])
+        / susceptible['total_susceptible_unvaccinated_wild'])
+
+    foi_novax_breakthrough = (
+        infections['modeled_infections_unvaccinated_natural_breakthrough']
+        / susceptible['total_susceptible_unvaccinated_variant_only']
+    )
+    return {
+        'force_of_infection': foi,
+        'force_of_infection_unvaccinated': foi_novax,
+        'force_of_infection_unvaccinated_naive': foi_novax_naive,
+        'force_of_infection_unvaccinated_natural_breakthrough': foi_novax_breakthrough,
+    }
+
+
+def _make_outputs(data, prefix, column_map):
+    out = {}
+    for suffix, base_cols in column_map.items():
+        cols = [f'{c}_{g}' for g, c in itertools.product(['lr', 'hr'], base_cols)]
+        key = f'{prefix}_{suffix}' if suffix else prefix
+        out[key] = data[cols].sum(axis=1)
+    return out
+
+
+def _make_group_infections_and_deaths_metrics(
+        components: pd.DataFrame,
+        components_diff: pd.DataFrame,
+        postprocessing_params: PostprocessingParameters
+) -> Tuple[Dict[str, pd.Series], Dict[str, pd.Series]]:
     group_infections = {}
     group_deaths = {}
     for group in ['hr', 'lr']:
@@ -123,91 +275,37 @@ def variant_system_metrics(indices: Indices,
             infections = group_components_diff[f'NewE_{covid_type}_{group}'].rename('infections')
             infections_p = group_components_diff[f'NewE_p_{covid_type}_{group}'].rename('infections')
             infections_not_p = infections - infections_p
-            deaths = compute_deaths(
+            deaths = _compute_deaths(
                 infections_not_p,
                 postprocessing_params.infection_to_death,
                 group_ifr,
             )
             group_infections[(group, covid_type)] = infections
             group_deaths[(group, covid_type)] = deaths
-
-    vaccines_u = components_diff[[c for c in tracking_cols if 'V_u' in c]].sum(axis=1)
-    vaccines_p = components_diff[[c for c in tracking_cols if 'V_p' in c and 'pa' not in c]].sum(axis=1)
-    vaccines_pa = components_diff[[c for c in tracking_cols if 'V_pa' in c]].sum(axis=1)
-    vaccines_m = components_diff[[c for c in tracking_cols if 'V_m' in c and 'ma' not in c]].sum(axis=1)
-    vaccines_ma = components_diff[[c for c in tracking_cols if 'V_ma' in c]].sum(axis=1)
-
-    s_unvaccinated = components[['S_lr', 'S_variant_lr', 'S_hr', 'S_variant_hr']].sum(axis=1)
-    s_wild = components[[c for c in cols if 'S' in c and 'variant' not in c and 'm' not in c]].sum(axis=1)
-    s_variant = components[[c for c in cols if 'S' in c]].sum(axis=1)
-    s_variant_only = components[[c for c in cols if 'S_variant' in c or 'S_m' in c]].sum(axis=1)
-    s_variant_unprotected = components[[c for c in cols if 'S' in c and 'pa' not in c and 'm' not in c]].sum(axis=1)
-
-    i_unvaccinated = components[['I1_lr', 'I2_lr', 'I1_variant_lr', 'I2_variant_lr',
-                                 'I1_hr', 'I2_hr', 'I1_variant_hr', 'I2_variant_hr']].sum(axis=1)
-    i_wild = components[[c for c in cols if 'I' in c and 'variant' not in c]].sum(axis=1)
-    i_variant = components[[c for c in cols if 'I' in c and 'variant' in c]].sum(axis=1)
-    i_total = i_wild + i_variant
-
-    total_population = components[cols].sum(axis=1)
-
-    total_pop = components[cols].sum(axis=1)
-    beta_wild = modeled_infections_wild / (s_wild * i_wild ** model_parameters.alpha / total_pop)
-    beta_variant = modeled_infections_variant / (s_variant * i_variant ** model_parameters.alpha / total_pop)
-    modeled_infections_total = modeled_infections_wild + modeled_infections_variant
-    beta_total = modeled_infections_total / (s_variant * i_total ** model_parameters.alpha / total_pop)
-
-    immune_variant = components[[c for c in cols if 'R' in c]].sum(axis=1)
-    immune_wild = immune_variant + s_variant_only
-
-    force_of_infection = i_total.groupby('location_id').shift(1) / s_variant
-    force_of_infection_unvaccinated = i_unvaccinated.groupby('location_id').shift(1) / s_unvaccinated
-
-    return SystemMetrics(
-        modeled_infections_wild=modeled_infections_wild,
-        modeled_infections_variant=modeled_infections_variant,
+    modeled_infections = dict(
         modeled_infections_lr=group_infections[('lr', 'wild')] + group_infections[('lr', 'variant')],
         modeled_infections_hr=group_infections[('hr', 'wild')] + group_infections[('hr', 'variant')],
-        modeled_infections_total=modeled_infections_wild + modeled_infections_variant,
-        modeled_infected_total=modeled_infections_wild + modeled_infections_variant - natural_immunity_breakthrough,
+    )
 
-        variant_prevalence=modeled_infections_variant / (modeled_infections_wild + modeled_infections_variant),
-
-        natural_immunity_breakthrough=natural_immunity_breakthrough,
-        vaccine_breakthrough=vaccine_breakthrough,
-        proportion_cross_immune=proportion_cross_immune,
-
+    modeled_deaths = dict(
         modeled_deaths_wild=group_deaths[('lr', 'wild')] + group_deaths[('hr', 'wild')],
         modeled_deaths_variant=group_deaths[('lr', 'variant')] + group_deaths[('hr', 'variant')],
         modeled_deaths_lr=group_deaths[('lr', 'wild')] + group_deaths[('lr', 'variant')],
         modeled_deaths_hr=group_deaths[('hr', 'wild')] + group_deaths[('hr', 'variant')],
         modeled_deaths_total=sum(group_deaths.values()),
-
-        vaccinations_protected_wild=vaccines_p,
-        vaccinations_protected_all=vaccines_pa,
-        vaccinations_immune_wild=vaccines_m,
-        vaccinations_immune_all=vaccines_ma,
-        vaccinations_effective=vaccines_p + vaccines_pa + vaccines_m + vaccines_ma,
-        vaccinations_ineffective=vaccines_u,
-
-        total_susceptible_wild=s_wild,
-        total_susceptible_variant=s_variant,
-        total_susceptible_variant_only=s_variant_only,
-        total_susceptible_variant_unprotected=s_variant_unprotected,
-        total_infectious_wild=i_wild,
-        total_infectious_variant=i_variant,
-        total_immune_wild=immune_wild,
-        total_immune_variant=immune_variant,
-
-        force_of_infection=force_of_infection,
-        force_of_infection_unvaccinated=force_of_infection_unvaccinated,
-
-        total_population=total_population,
-
-        beta=beta_total,
-        beta_wild=beta_wild,
-        beta_variant=beta_variant,
     )
+    return modeled_infections, modeled_deaths
+
+
+def _compute_deaths(modeled_infections: pd.Series,
+                    infection_death_lag: int,
+                    ifr: pd.Series) -> pd.Series:
+    modeled_deaths = (modeled_infections
+                      .groupby('location_id')
+                      .shift(infection_death_lag) * ifr)
+    modeled_deaths = modeled_deaths.rename('deaths').reset_index()
+    modeled_deaths = modeled_deaths.set_index(['location_id', 'date']).deaths
+    return modeled_deaths
 
 
 def compute_corrected_hospital_usage(admissions: pd.Series,
@@ -231,47 +329,22 @@ def compute_corrected_hospital_usage(admissions: pd.Series,
     return hospital_usage
 
 
-def compute_deaths(modeled_infections: pd.Series,
-                   infection_death_lag: int,
-                   ifr: pd.Series) -> pd.Series:
-    modeled_deaths = (modeled_infections
-                      .groupby('location_id')
-                      .shift(infection_death_lag) * ifr)
-    modeled_deaths = modeled_deaths.rename('deaths').reset_index()
-    modeled_deaths = modeled_deaths.set_index(['location_id', 'date']).deaths
-    return modeled_deaths
-
-
 def compute_effective_r(model_params: ode.ForecastParameters,
-                        system_metrics: SystemMetrics,
-                        infections: pd.Series) -> Tuple[pd.Series, pd.Series, pd.Series, pd.Series, pd.Series]:
-    alpha, sigma = model_params.alpha, model_params.sigma
-    beta_wild, beta_variant = model_params.beta_wild, model_params.beta_variant
-    gamma1, gamma2 = model_params.gamma1, model_params.gamma2
-
-    s_wild, s_variant = system_metrics.total_susceptible_wild, system_metrics.total_susceptible_variant
-    i_wild, i_variant = system_metrics.total_infectious_wild, system_metrics.total_infectious_variant
-    population = system_metrics.total_population
-
-    avg_gamma_wild = 1 / (1 / gamma1 + 1 / gamma2)
-    r_controlled_wild = (
-        beta_wild * alpha * sigma / avg_gamma_wild * i_wild**(alpha - 1)
-    ).rename('r_controlled_wild')
-    r_effective_wild = (r_controlled_wild * s_wild / population).rename('r_effective_wild')
-
-    avg_gamma_variant = 1 / (1 / gamma1 + 1 / gamma2)
-    r_controlled_variant = (
-        beta_variant * alpha * sigma / avg_gamma_variant * i_variant**(alpha - 1)
-    ).rename('r_controlled_variant')
-    r_effective_variant = (r_controlled_variant * s_variant / population).rename('r_effective_variant')
-
+                        system_metrics: SystemMetrics) -> Dict[str, pd.Series]:
+    sigma, gamma1, gamma2 = model_params.sigma, model_params.gamma1, model_params.gamma2
     average_generation_time = int(round((1 / sigma + 1 / gamma1 + 1 / gamma2).mean()))
-    r_effective_empirical = infections.groupby('location_id').apply(lambda x: x / x.shift(average_generation_time))
 
-    return (
-        r_controlled_wild,
-        r_effective_wild,
-        r_controlled_variant,
-        r_effective_variant,
-        r_effective_empirical,
-    )
+    system_metrics = system_metrics.to_dict()
+    pop = system_metrics['total_population']
+    out = {}
+    for label in ['wild', 'variant', 'total']:
+        suffix = '' if label == 'total' else f'_{label}'
+        s_label = 'variant' if label == 'total' else label
+        infections = system_metrics[f'modeled_infections_{label}']
+        susceptible = system_metrics[f'total_susceptible_{s_label}']
+        out[f'r_effective{suffix}'] = (infections
+                                       .groupby('location_id')
+                                       .apply(lambda x: x / x.shift(average_generation_time)))
+        out[f'r_controlled{suffix}'] = out[f'r_effective{suffix}'] * pop / susceptible
+
+    return out

@@ -128,6 +128,14 @@ class PostprocessingDataInterface:
         draw_df = self.load_ode_params(draw_id=draw_id, scenario=scenario, columns=cols)
         return draw_df.sum(axis=1).rename(draw_id)
 
+    def load_vaccination_summaries(self, measure: str, scenario: str):
+        return self._get_forecast_data_inteface().load_vaccination_summaries(
+            measure, scenario,
+        )
+
+    def load_vaccine_efficacy(self):
+        return self._get_forecast_data_inteface().load_vaccine_efficacy()
+
     def load_ode_params(self, draw_id: int, scenario: str, columns=None):
         return io.load(self.forecast_root.ode_params(scenario=scenario, draw_id=draw_id, columns=columns))
 
@@ -213,9 +221,11 @@ class PostprocessingDataInterface:
 
     def load_hierarchy(self) -> pd.DataFrame:
         fdi = self._get_forecast_data_inteface()
+        rdi = fdi._get_regression_data_interface()
+        regression_spec = rdi.load_specification()
         metadata = fdi.get_model_inputs_metadata()
         model_inputs_path = Path(metadata['output_path'])
-        if fdi.fh_subnationals:
+        if regression_spec.data.run_counties:
             hierarchy_path = model_inputs_path / 'locations' / 'fh_small_area_hierarchy.csv'
         else:
             hierarchy_path = model_inputs_path / 'locations' / 'modeling_hierarchy.csv'

@@ -211,12 +211,12 @@ def postprocess_covariate(postprocessing_version: str,
                           scenario_name: str, covariate: str) -> None:
     postprocessing_spec, data_interface = build_spec_and_data_interface(postprocessing_version)
     covariate_config = model.COVARIATES[covariate]
-
     covariate_version = data_interface.get_covariate_version(covariate, scenario_name)
     n_draws = data_interface.get_n_draws()
 
     input_covariate_data = data_interface.load_input_covariate(covariate, covariate_version)
     covariate_observed = input_covariate_data.reset_index(level='observed')
+    covariate_observed['observed'] = covariate_observed['observed'].fillna(0.)
 
     covariate_data = load_and_resample_covariate(
         covariate_config,
@@ -268,7 +268,12 @@ def postprocess_covariate(postprocessing_version: str,
 def postprocess_miscellaneous(postprocessing_version: str,
                               scenario_name: str, measure: str):
     postprocessing_spec, data_interface = build_spec_and_data_interface(postprocessing_version)
+    rdi = data_interface._get_forecast_data_inteface()._get_regression_data_interface()
+    regression_spec = rdi.load_specification()
     miscellaneous_config = model.MISCELLANEOUS[measure]
+    if regression_spec.data.run_counties and not miscellaneous_config.include_in_counties:
+        logger.info(f'Skipping {measure}')
+        return
     logger.info(f'Loading {measure}.', context='read')
     miscellaneous_data = miscellaneous_config.loader(data_interface)
 

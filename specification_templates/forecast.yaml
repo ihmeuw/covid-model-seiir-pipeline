@@ -1,9 +1,8 @@
 data:
-  regression_version: ''
-  covariate_version: '2021_08_04.05'
+  regression_version: '2021_08_18.05'
+  covariate_version: '2021_08_18.01'
   output_root: ''
   output_format: 'parquet'
-  fh_subnationals: False
 workflow:
   project: 'proj_covid_prod'
   queue: 'd.q'

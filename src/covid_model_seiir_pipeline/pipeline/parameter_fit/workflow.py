@@ -4,7 +4,7 @@ from typing import Dict
 from covid_shared import workflow
 
 import covid_model_seiir_pipeline
-from covid_model_seiir_pipeline.pipeline.fit_oos.specification import FIT_JOBS, FitScenario
+from covid_model_seiir_pipeline.pipeline.parameter_fit.specification import FIT_JOBS, FitScenario
 
 
 class BetaFitTaskTemplate(workflow.TaskTemplate):

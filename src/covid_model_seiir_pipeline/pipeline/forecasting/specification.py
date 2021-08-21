@@ -47,7 +47,6 @@ class ForecastData:
     covariate_version: str = field(default='best')
     output_root: str = field(default='')
     output_format: str = field(default='csv')
-    fh_subnationals: bool = field(default=False)
 
     def to_dict(self) -> Dict:
         """Converts to a dict, coercing list-like items to lists."""
@@ -125,7 +124,9 @@ class ForecastSpecification(utilities.Specification):
     @classmethod
     def parse_spec_dict(cls, forecast_spec_dict: Dict) -> Tuple:
         """Construct forecast specification args from a dict."""
-        data = ForecastData(**forecast_spec_dict.get('data', {}))
+        data_dict = forecast_spec_dict.get('data', {})
+        data_dict = utilities.filter_to_spec_fields(data_dict, ForecastData())
+        data = ForecastData(**data_dict)
         workflow = ForecastWorkflowSpecification(**forecast_spec_dict.get('workflow', {}))
         scenario_dicts = forecast_spec_dict.get('scenarios', {})
         scenarios = []

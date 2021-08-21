@@ -1,14 +1,14 @@
 from covid_shared import cli_tools, ihme_deps
 from loguru import logger
 
-from covid_model_seiir_pipeline.pipeline.fit_oos.specification import FitSpecification
-from covid_model_seiir_pipeline.pipeline.fit_oos.workflow import FitWorkflow
-from covid_model_seiir_pipeline.pipeline.fit_oos.data import FitDataInterface
+from covid_model_seiir_pipeline.pipeline.parameter_fit.specification import FitSpecification
+from covid_model_seiir_pipeline.pipeline.parameter_fit.workflow import FitWorkflow
+from covid_model_seiir_pipeline.pipeline.parameter_fit.data import FitDataInterface
 
 
-def do_beta_fit(app_metadata: cli_tools.Metadata,
-                fit_specification: FitSpecification,
-                preprocess_only: bool):
+def do_parameter_fit(app_metadata: cli_tools.Metadata,
+                     fit_specification: FitSpecification,
+                     preprocess_only: bool):
     logger.info(f'Starting beta fit for version {fit_specification.data.output_root}.')
 
     data_interface = FitDataInterface.from_specification(fit_specification)

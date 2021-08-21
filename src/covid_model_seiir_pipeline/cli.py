@@ -10,7 +10,7 @@ from covid_model_seiir_pipeline.lib import (
 )
 from covid_model_seiir_pipeline.pipeline import (
     FitSpecification,
-    do_beta_fit,
+    do_parameter_fit,
     RegressionSpecification,
     do_beta_regression,
     ForecastSpecification,
@@ -386,7 +386,7 @@ def _do_oos_fit(run_metadata: cli_tools.RunMetadata,
 
     cli_tools.configure_logging_to_files(run_directory)
     # noinspection PyTypeChecker
-    main = cli_tools.monitor_application(do_beta_fit,
+    main = cli_tools.monitor_application(do_parameter_fit,
                                          logger, with_debugger)
     app_metadata, _ = main(fit_spec, preprocess_only)
 
@@ -591,6 +591,17 @@ def _do_diagnostics(run_metadata: cli_tools.RunMetadata,
                                                                paths.SEIR_FINAL_OUTPUTS)
             outputs_versions.add(comparator_version_path)
             comparator.version = str(comparator_version_path)
+    for scatters_spec in diagnostics_spec.scatters:
+        x_axis_version_path = cli_tools.get_input_root(None,
+                                                       scatters_spec.x_axis.version,
+                                                       paths.SEIR_FINAL_OUTPUTS)
+        scatters_spec.x_axis.version = str(x_axis_version_path)
+        outputs_versions.add(x_axis_version_path)
+        y_axis_version_path = cli_tools.get_input_root(None,
+                                                       scatters_spec.y_axis.version,
+                                                       paths.SEIR_FINAL_OUTPUTS)
+        scatters_spec.y_axis.version = str(y_axis_version_path)
+        outputs_versions.add(y_axis_version_path)
 
     output_root = cli_tools.get_output_root(output_root,
                                             diagnostics_spec.data.output_root)

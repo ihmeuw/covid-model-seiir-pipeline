@@ -11,7 +11,7 @@ grid_plots:
       - version: &public '2021_08_04.04'
         scenarios:
           reference*: 'public reference'
-      - version: &new '2021_08_19.01'
+      - version: &new '2021_08_17.06'
         scenarios:
           reference*: 'reference'
           worse: 'worse'

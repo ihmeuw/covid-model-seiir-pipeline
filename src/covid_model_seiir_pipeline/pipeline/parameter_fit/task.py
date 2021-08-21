@@ -13,14 +13,14 @@ from covid_model_seiir_pipeline.pipeline.regression.model import (
     run_ode_fit,
     sample_params,
 )
-from covid_model_seiir_pipeline.pipeline.fit_oos.data import FitDataInterface
-from covid_model_seiir_pipeline.pipeline.fit_oos.specification import FitSpecification
+from covid_model_seiir_pipeline.pipeline.parameter_fit.data import FitDataInterface
+from covid_model_seiir_pipeline.pipeline.parameter_fit.specification import FitSpecification
 
 
 logger = cli_tools.task_performance_logger
 
 
-def run_beta_fit(fit_version: str, scenario: str, draw_id: int, progress_bar: bool) -> None:
+def run_parameter_fit(fit_version: str, scenario: str, draw_id: int, progress_bar: bool) -> None:
     logger.info('Starting beta fit.', context='setup')
     # Build helper abstractions
     fit_spec_file = Path(fit_version) / static_vars.FIT_SPECIFICATION_FILE
@@ -28,7 +28,6 @@ def run_beta_fit(fit_version: str, scenario: str, draw_id: int, progress_bar: bo
     data_interface = FitDataInterface.from_specification(fit_specification)
 
     logger.info('Loading ODE fit input data', context='read')
-    hierarchy = data_interface.load_hierarchy()
     past_infection_data = data_interface.load_past_infection_data(draw_id=draw_id)
     population = data_interface.load_five_year_population()
     rhos = data_interface.load_variant_prevalence()
@@ -70,10 +69,10 @@ def run_beta_fit(fit_version: str, scenario: str, draw_id: int, progress_bar: bo
 @cli_tools.with_draw_id
 @cli_tools.with_progress_bar
 @cli_tools.add_verbose_and_with_debugger
-def beta_fit(fit_version: str, scenario: str, draw_id: int,
-             progress_bar: bool, verbose: int, with_debugger: bool):
+def parameter_fit(fit_version: str, scenario: str, draw_id: int,
+                  progress_bar: bool, verbose: int, with_debugger: bool):
     cli_tools.configure_logging_to_terminal(verbose)
-    run = cli_tools.handle_exceptions(run_beta_fit, logger, with_debugger)
+    run = cli_tools.handle_exceptions(run_parameter_fit, logger, with_debugger)
     run(fit_version=fit_version,
         scenario=scenario,
         draw_id=draw_id,
@@ -81,4 +80,4 @@ def beta_fit(fit_version: str, scenario: str, draw_id: int,
 
 
 if __name__ == '__main__':
-    beta_fit()
+    parameter_fit()

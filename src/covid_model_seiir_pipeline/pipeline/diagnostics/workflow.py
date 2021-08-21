@@ -38,20 +38,40 @@ class CompareCSVTaskTemplate(workflow.TaskTemplate):
     task_args = ['diagnostics_version']
 
 
+class ScattersTaskTemplate(workflow.TaskTemplate):
+
+    tool = workflow.get_jobmon_tool(covid_model_seiir_pipeline)
+    task_name_template = f"{DIAGNOSTICS_JOBS.scatters}_{{plot_name}}"
+    command_template = (
+            f"{shutil.which('stask')} "
+            f"{DIAGNOSTICS_JOBS.scatters} "
+            "--diagnostics-version {diagnostics_version} "
+            "--name {plot_name} "
+            "-vv"
+    )
+    node_args = ['plot_name']
+    task_args = ['diagnostics_version']
+
+
 class DiagnosticsWorkflow(workflow.WorkflowTemplate):
     tool = workflow.get_jobmon_tool(covid_model_seiir_pipeline)
     workflow_name_template = 'seiir-diagnostics-{version}'
     task_template_classes = {
         DIAGNOSTICS_JOBS.grid_plots: GridPlotsTaskTemplate,
         DIAGNOSTICS_JOBS.compare_csv: CompareCSVTaskTemplate,
+        DIAGNOSTICS_JOBS.scatters: ScattersTaskTemplate,
     }
     # Jobs here are not homogeneous so it's useful to get all failures if
     # things do fail.
     fail_fast = False
 
-    def attach_tasks(self, grid_plots_task_names: List[str], compare_csv: bool) -> None:
+    def attach_tasks(self,
+                     grid_plots_task_names: List[str],
+                     compare_csv: bool,
+                     scatters_task_names: List[str]) -> None:
         grid_plots_template = self.task_templates[DIAGNOSTICS_JOBS.grid_plots]
         compare_csv_template = self.task_templates[DIAGNOSTICS_JOBS.compare_csv]
+        scatters_template = self.task_templates[DIAGNOSTICS_JOBS.scatters]
 
         for grid_plots_task_name in grid_plots_task_names:
             grid_plots_task = grid_plots_template.get_task(
@@ -64,3 +84,10 @@ class DiagnosticsWorkflow(workflow.WorkflowTemplate):
                 diagnostics_version=self.version,
             )
             self.workflow.add_task(compare_csv_task)
+        for scatters_task_name in scatters_task_names:
+            scatters_task = scatters_template.get_task(
+                diagnostics_version=self.version,
+                plot_name=scatters_task_name,
+            )
+            self.workflow.add_task(scatters_task)
+

@@ -31,12 +31,10 @@ class ForecastDataInterface:
     def __init__(self,
                  regression_root: io.RegressionRoot,
                  covariate_root: io.CovariateRoot,
-                 forecast_root: io.ForecastRoot,
-                 fh_subnationals: bool):
+                 forecast_root: io.ForecastRoot):
         self.regression_root = regression_root
         self.covariate_root = covariate_root
         self.forecast_root = forecast_root
-        self.fh_subnationals = fh_subnationals
 
     @classmethod
     def from_specification(cls, specification: ForecastSpecification) -> 'ForecastDataInterface':
@@ -53,7 +51,6 @@ class ForecastDataInterface:
             regression_root=regression_root,
             covariate_root=covariate_root,
             forecast_root=forecast_root,
-            fh_subnationals=specification.data.fh_subnationals
         )
 
     def make_dirs(self, **prefix_args):
@@ -85,10 +82,10 @@ class ForecastDataInterface:
         return self._get_regression_data_interface().load_total_population()
 
     def load_full_data(self) -> pd.DataFrame:
-        return self._get_regression_data_interface().load_full_data(self.fh_subnationals)
+        return self._get_regression_data_interface().load_full_data()
 
     def load_total_deaths(self) -> pd.Series:
-        return self._get_regression_data_interface().load_total_deaths(self.fh_subnationals)
+        return self._get_regression_data_interface().load_total_deaths()
 
     def load_betas(self, draw_id: int):
         return self._get_regression_data_interface().load_betas(draw_id=draw_id)
@@ -106,6 +103,18 @@ class ForecastDataInterface:
     def load_vaccinations(self, vaccine_scenario: str) -> pd.DataFrame:
         return self._get_regression_data_interface().load_vaccinations(
             vaccine_scenario, self.covariate_root,
+        )
+
+    def load_vaccination_summaries(self, measure: str, scenario: str):
+        spec = self.load_specification()
+        vaccine_scenario = spec.scenarios[scenario].vaccine_version
+        return self._get_regression_data_interface().load_vaccination_summaries(
+            measure, vaccine_scenario, self.covariate_root,
+        )
+
+    def load_vaccine_efficacy(self):
+        return self._get_regression_data_interface().load_vaccine_efficacy(
+            self.covariate_root,
         )
 
     def load_mobility_info(self, info_type: str) -> pd.DataFrame:

@@ -49,6 +49,10 @@ def compute_tracking_columns(group_dy: np.ndarray,
         + transition_map[COMPARTMENTS.S_p, COMPARTMENTS.E_p]
         + transition_map[COMPARTMENTS.S_pa, COMPARTMENTS.E_pa]
     )
+    # New wild type infections among unvaccinated
+    group_dy[TRACKING_COMPARTMENTS.NewE_unvax_wild] = (
+        transition_map[COMPARTMENTS.S, COMPARTMENTS.E]
+    )
     # New variant type infections
     group_dy[TRACKING_COMPARTMENTS.NewE_variant] = (
         transition_map[COMPARTMENTS.S, COMPARTMENTS.E_variant]
@@ -59,6 +63,11 @@ def compute_tracking_columns(group_dy: np.ndarray,
         + transition_map[COMPARTMENTS.S_pa, COMPARTMENTS.E_variant_pa]
         + transition_map[COMPARTMENTS.S_variant_pa, COMPARTMENTS.E_variant_pa]
         + transition_map[COMPARTMENTS.S_m, COMPARTMENTS.E_variant_pa]
+    )
+    # New variant type infections among unvaccinated
+    group_dy[TRACKING_COMPARTMENTS.NewE_unvax_variant] = (
+        transition_map[COMPARTMENTS.S, COMPARTMENTS.E_variant]
+        + transition_map[COMPARTMENTS.S_variant, COMPARTMENTS.E_variant]
     )
     # New wild type protected infections
     group_dy[TRACKING_COMPARTMENTS.NewE_p_wild] = (
@@ -77,6 +86,9 @@ def compute_tracking_columns(group_dy: np.ndarray,
         transition_map[COMPARTMENTS.S_variant, COMPARTMENTS.E_variant]
         + transition_map[COMPARTMENTS.S_variant_u, COMPARTMENTS.E_variant_u]
         + transition_map[COMPARTMENTS.S_variant_pa, COMPARTMENTS.E_variant_pa]
+    )
+    group_dy[TRACKING_COMPARTMENTS.NewE_unvax_nbt] = (
+            transition_map[COMPARTMENTS.S_variant, COMPARTMENTS.E_variant]
     )
     # New variant type infections breaking through vaccine immunity
     group_dy[TRACKING_COMPARTMENTS.NewE_vbt] = transition_map[COMPARTMENTS.S_m, COMPARTMENTS.E_variant_pa]
