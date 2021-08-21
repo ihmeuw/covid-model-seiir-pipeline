@@ -211,12 +211,12 @@ def postprocess_covariate(postprocessing_version: str,
                           scenario_name: str, covariate: str) -> None:
     postprocessing_spec, data_interface = build_spec_and_data_interface(postprocessing_version)
     covariate_config = model.COVARIATES[covariate]
-
     covariate_version = data_interface.get_covariate_version(covariate, scenario_name)
     n_draws = data_interface.get_n_draws()
 
     input_covariate_data = data_interface.load_input_covariate(covariate, covariate_version)
     covariate_observed = input_covariate_data.reset_index(level='observed')
+    covariate_observed['observed'] = covariate_observed['observed'].fillna(0.)
 
     covariate_data = load_and_resample_covariate(
         covariate_config,

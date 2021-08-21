@@ -33,6 +33,7 @@ def run_cumulative_deaths_compare_csv(diagnostics_version: str) -> None:
     if 'reference' not in labels or 'public_reference' not in labels:
         raise ValueError('Must have at least a "reference" and "public_reference" result label.')
 
+    logger.info('Reading utility data', context='read')
     postprocessing_spec = PostprocessingSpecification.from_path(
         Path(cumulative_death_spec.comparators[-1].version) / static_vars.POSTPROCESSING_SPECIFICATION_FILE
     )
@@ -57,6 +58,7 @@ def run_cumulative_deaths_compare_csv(diagnostics_version: str) -> None:
         hierarchy = hierarchy.append(h)
         sorted_locs.extend(h.location_id.tolist())
 
+    logger.info('Collating deaths', context='transform')
     data = []
     max_date = pd.Timestamp('2000-01-01')
 
@@ -73,6 +75,8 @@ def run_cumulative_deaths_compare_csv(diagnostics_version: str) -> None:
             suffix = '_unscaled' if 'unscaled' in measure else ''
             df = df['mean'].rename(f'{label}{suffix}')
             data.append(df)
+
+    logger.info('Producing cumulative deaths compare csv', context='transform')
     data = pd.concat(data, axis=1)
     sorted_locs_subset = [l for l in sorted_locs if l in data.reset_index().location_id.unique()]
     data = data.loc[sorted_locs_subset].reset_index()
@@ -89,8 +93,8 @@ def run_cumulative_deaths_compare_csv(diagnostics_version: str) -> None:
         final_data.append(date_data)
 
     final_data = pd.concat(final_data, axis=1)
-    col_order = [f'{date_label}_{scenario_label}'
-                 for date_label, scenario_label in itertools.product(date_labels, labels)]
+    col_order = [f'{date_label}_{scenario_label}{suffix}'
+                 for suffix, date_label, scenario_label in itertools.product(['', '_unscaled'], date_labels, labels)]
     assert sorted(col_order) == sorted(final_data.columns.tolist()), 'Column mismatch'
     pub_ref_col, ref_col, ref_unscaled_col = [f'{date_labels[0]}_{s}'
                                               for s in ['public_reference', 'reference', 'reference_unscaled']]
@@ -98,6 +102,7 @@ def run_cumulative_deaths_compare_csv(diagnostics_version: str) -> None:
     final_data['pct_diff_prev_current'] = final_data['diff_prev_current'] / final_data[pub_ref_col]
     final_data = final_data[['diff_prev_current', 'pct_diff_prev_current'] + col_order]
 
+    logger.info('Producing rates csv', context='transform')
     population = population.reindex(final_data.reset_index(level='location_name').index)
     final_data_rates = final_data.loc[:, col_order]
     final_data_rates = (final_data_rates
@@ -106,6 +111,7 @@ def run_cumulative_deaths_compare_csv(diagnostics_version: str) -> None:
     final_data_rates = final_data_rates.loc[final_data_rates.notnull().all(axis=1)]
     final_data = final_data.reset_index()
 
+    logger.info('Producing demographics csvs', context='transform')
     country_level = final_data.location_id.isin(countries)
     top_20 = (final_data
               .loc[country_level, ['location_id', 'location_name', ref_col, ref_unscaled_col]]
@@ -116,6 +122,7 @@ def run_cumulative_deaths_compare_csv(diagnostics_version: str) -> None:
                     .sort_values(ref_col, ascending=False)
                     .iloc[:20])
 
+    logger.info('Writing results', context='write')
     final_data.to_csv(f'{diagnostics_version}/cumulative_death_compare.csv', index=False)
     final_data_rates.to_csv(f'{diagnostics_version}/cumulative_death_rate_compare.csv', index=False)
     top_20.to_csv(f'{diagnostics_version}/top_20_cumulative_death.csv', index=False)
