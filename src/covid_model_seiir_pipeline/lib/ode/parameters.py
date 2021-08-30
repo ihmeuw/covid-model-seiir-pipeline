@@ -110,7 +110,7 @@ def normalize_parameters(input_parameters: np.ndarray,
         param_size = len(PARAMETERS) + len(FIT_PARAMETERS)
         params, vaccines = input_parameters[:param_size], input_parameters[param_size:]
 
-        new_e_total = params[FIT_PARAMETERS.new_e]
+        new_e_total = params[FIT_PARAMETERS.NEW_E]
         kappa = params[FIT_PARAMETERS.kappa]
         rho = params[FIT_PARAMETERS.rho]
         rho_b1617 = params[FIT_PARAMETERS.rho_b1617]
