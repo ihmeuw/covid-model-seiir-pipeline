@@ -1,6 +1,7 @@
 import numba
 import numpy as np
 import pandas as pd
+import scipy.stats
 
 
 SOLVER_DT = 0.1
@@ -105,3 +106,19 @@ def linear_interpolate(t_target: np.ndarray,
         return x_target.ravel()
     else:
         return x_target
+
+
+def get_waning_dist(ode_parameters):
+    start = ode_parameters.waning_start.mean()
+    mean = ode_parameters.waning_mean.mean()
+    var = ode_parameters.waning_sd.mean()**2
+    return scipy.stats.gamma(loc=start, scale=var/mean, a=mean**2/var)
+
+
+def sample_dist(dist, t, rate=1):
+    dist_cdf = dist.cdf(t[::rate])
+    dist_discrete_pdf = dist_cdf[1:] - dist_cdf[:-1]
+    dist_discrete_pdf = np.hstack([dist_discrete_pdf, dist_discrete_pdf[-1]])
+    sampled_dist = np.zeros_like(t, dtype=dist_cdf.dtype)
+    sampled_dist[::rate] = dist_discrete_pdf
+    return sampled_dist

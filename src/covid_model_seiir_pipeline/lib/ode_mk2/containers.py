@@ -1,0 +1,78 @@
+from dataclasses import dataclass
+from typing import Dict, List, Iterator, Tuple
+
+import pandas as pd
+
+from covid_model_seiir_pipeline.lib import (
+    utilities,
+)
+
+
+@dataclass(repr=False, eq=False)
+class ODEParameters:
+    # Core parameters
+    alpha: pd.Series
+    sigma: pd.Series
+    gamma1: pd.Series
+    gamma2: pd.Series
+
+    # Variant prevalences
+    rho: pd.Series
+    rho_variant: pd.Series
+    rho_b1617: pd.Series
+    rho_total: pd.Series
+
+    # Escape variant initialization
+    pi: pd.Series
+
+    # Cross-variant immunity
+    chi: pd.Series
+
+    # Vaccine parameters
+    unprotected_lr: pd.Series
+    protected_wild_type_lr: pd.Series
+    protected_all_types_lr: pd.Series
+    immune_wild_type_lr: pd.Series
+    immune_all_types_lr: pd.Series
+
+    unprotected_hr: pd.Series
+    protected_wild_type_hr: pd.Series
+    protected_all_types_hr: pd.Series
+    immune_wild_type_hr: pd.Series
+    immune_all_types_hr: pd.Series
+
+    def to_dict(self) -> Dict[str, pd.Series]:
+        return {k: v.rename(k) for k, v in utilities.asdict(self).items()}
+
+    def to_df(self) -> pd.DataFrame:
+        return pd.concat(self.to_dict().values(), axis=1)
+
+    def reindex(self, index: pd.Index) -> 'ODEParameters':
+        # noinspection PyArgumentList
+        return type(self)(
+            **{key: value.reindex(index) for key, value in self.to_dict().items()}
+        )
+
+    def get_vaccinations(self, vaccine_types: List[str], risk_group: str) -> pd.DataFrame:
+        vaccine_type_map = {
+            'u': 'unprotected',
+            'p': 'protected_wild_type',
+            'pa': 'protected_all_types',
+            'm': 'immune_wild_type',
+            'ma': 'immune_all_types',
+        }
+        vaccinations = []
+        for vaccine_type in vaccine_types:
+            attr = f'{vaccine_type_map[vaccine_type]}_{risk_group}'
+            vaccinations.append(getattr(self, attr).rename(attr))
+        return pd.concat(vaccinations, axis=1)
+
+    def __iter__(self) -> Iterator[Tuple[int, 'ODEParameters']]:
+        location_ids = self.alpha.reset_index().location_id.unique()
+        this_dict = self.to_dict().items()
+        for location_id in location_ids:
+            # noinspection PyArgumentList
+            loc_parameters = type(self)(
+                **{key: value.loc[location_id] for key, value in this_dict},
+            )
+            yield location_id, loc_parameters

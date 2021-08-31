@@ -39,11 +39,16 @@ _Variant = namedtuple('Variant', [
 ])
 
 _BaseParameter = namedtuple('BaseParameter', [
-    'beta',  
-    'kappa', 
     'alpha', 
     'sigma', 
     'gamma', 
+    'pi',    
+])
+
+_VariantParameter = namedtuple('VariantParameter', [
+    'beta',  
+    'kappa', 
+    'rho',   
 ])
 
 _RiskGroup = namedtuple('RiskGroup', [
@@ -88,6 +93,7 @@ _VaccineType = namedtuple('VaccineType', [
 BASE_COMPARTMENT = _BaseCompartment(*_BaseCompartment._fields)
 VARIANT = _Variant(*_Variant._fields)
 BASE_PARAMETER = _BaseParameter(*_BaseParameter._fields)
+VARIANT_PARAMETER = _VariantParameter(*_VariantParameter._fields)
 RISK_GROUP = _RiskGroup(*_RiskGroup._fields)
 PROTECTION_STATUS = _ProtectionStatus(*_ProtectionStatus._fields)
 IMMUNE_STATUS = _ImmuneStatus(*_ImmuneStatus._fields)
@@ -99,37 +105,29 @@ PARAMETERS = Dict.empty(
     types.UniTuple(types.unicode_type, 2),
     types.int8,
 )
-PARAMETERS[('beta', 'ancestral')] = np.int8(0)
-PARAMETERS[('beta', 'alpha')] = np.int8(1)
-PARAMETERS[('beta', 'beta')] = np.int8(2)
-PARAMETERS[('beta', 'gamma')] = np.int8(3)
-PARAMETERS[('beta', 'delta')] = np.int8(4)
-PARAMETERS[('beta', 'omega')] = np.int8(5)
-PARAMETERS[('kappa', 'ancestral')] = np.int8(6)
-PARAMETERS[('kappa', 'alpha')] = np.int8(7)
-PARAMETERS[('kappa', 'beta')] = np.int8(8)
-PARAMETERS[('kappa', 'gamma')] = np.int8(9)
-PARAMETERS[('kappa', 'delta')] = np.int8(10)
-PARAMETERS[('kappa', 'omega')] = np.int8(11)
-PARAMETERS[('alpha', 'ancestral')] = np.int8(12)
-PARAMETERS[('alpha', 'alpha')] = np.int8(13)
-PARAMETERS[('alpha', 'beta')] = np.int8(14)
-PARAMETERS[('alpha', 'gamma')] = np.int8(15)
-PARAMETERS[('alpha', 'delta')] = np.int8(16)
-PARAMETERS[('alpha', 'omega')] = np.int8(17)
-PARAMETERS[('sigma', 'ancestral')] = np.int8(18)
-PARAMETERS[('sigma', 'alpha')] = np.int8(19)
-PARAMETERS[('sigma', 'beta')] = np.int8(20)
-PARAMETERS[('sigma', 'gamma')] = np.int8(21)
-PARAMETERS[('sigma', 'delta')] = np.int8(22)
-PARAMETERS[('sigma', 'omega')] = np.int8(23)
-PARAMETERS[('gamma', 'ancestral')] = np.int8(24)
-PARAMETERS[('gamma', 'alpha')] = np.int8(25)
-PARAMETERS[('gamma', 'beta')] = np.int8(26)
-PARAMETERS[('gamma', 'gamma')] = np.int8(27)
-PARAMETERS[('gamma', 'delta')] = np.int8(28)
-PARAMETERS[('gamma', 'omega')] = np.int8(29)
-PARAMETERS[('new_e', 'total')] = np.int8(30)
+PARAMETERS[('alpha', 'all')] = np.int8(0)
+PARAMETERS[('sigma', 'all')] = np.int8(1)
+PARAMETERS[('gamma', 'all')] = np.int8(2)
+PARAMETERS[('pi', 'all')] = np.int8(3)
+PARAMETERS[('beta', 'ancestral')] = np.int8(4)
+PARAMETERS[('beta', 'alpha')] = np.int8(5)
+PARAMETERS[('beta', 'beta')] = np.int8(6)
+PARAMETERS[('beta', 'gamma')] = np.int8(7)
+PARAMETERS[('beta', 'delta')] = np.int8(8)
+PARAMETERS[('beta', 'omega')] = np.int8(9)
+PARAMETERS[('kappa', 'ancestral')] = np.int8(10)
+PARAMETERS[('kappa', 'alpha')] = np.int8(11)
+PARAMETERS[('kappa', 'beta')] = np.int8(12)
+PARAMETERS[('kappa', 'gamma')] = np.int8(13)
+PARAMETERS[('kappa', 'delta')] = np.int8(14)
+PARAMETERS[('kappa', 'omega')] = np.int8(15)
+PARAMETERS[('rho', 'ancestral')] = np.int8(16)
+PARAMETERS[('rho', 'alpha')] = np.int8(17)
+PARAMETERS[('rho', 'beta')] = np.int8(18)
+PARAMETERS[('rho', 'gamma')] = np.int8(19)
+PARAMETERS[('rho', 'delta')] = np.int8(20)
+PARAMETERS[('rho', 'omega')] = np.int8(21)
+PARAMETERS[('new_e', 'total')] = np.int8(22)
 PARAMETERS_NAMES = ['_'.join(k) for k in PARAMETERS]
 
 VACCINE_TYPES = Dict.empty(

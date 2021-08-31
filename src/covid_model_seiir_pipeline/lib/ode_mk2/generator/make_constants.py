@@ -22,12 +22,15 @@ PRIMITIVES = {
         'omega',
     ],
     'base_parameter': [
-        'beta',
-        'kappa',
-
         'alpha',
         'sigma',
         'gamma',
+        'pi',
+    ],
+    'variant_parameter': [
+        'beta',
+        'kappa',
+        'rho',
     ],
     'risk_group': [
         'lr',
@@ -60,7 +63,8 @@ PRIMITIVES['vaccine_type'] = PRIMITIVES['protection_status'] + PRIMITIVES['immun
 
 SPECS = {
     'PARAMETERS': [
-        ['base_parameter', 'variant'],
+        ['base_parameter', 'all'],
+        ['variant_parameter', 'variant'],
         ['new_e', 'total'],
     ],
     'VACCINE_TYPES': [
@@ -260,5 +264,3 @@ if __name__ == '__main__':
     constants_string = make_constants()
     with constants_file.open('w') as f:
         f.write(constants_string)
-
-
