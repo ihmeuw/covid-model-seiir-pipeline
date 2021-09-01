@@ -682,7 +682,6 @@ MISCELLANEOUS = {
     'populations': MiscellaneousConfig(
         loaders.load_populations,
         'populations',
-        aggregator=aggregators.sum_aggregator,
     ),
     'hierarchy': MiscellaneousConfig(
         loaders.load_hierarchy,
