@@ -10,11 +10,11 @@ from covid_model_seiir_pipeline.lib import (
 
 @dataclass(repr=False, eq=False)
 class ODEParameters:
+
     # Core parameters
     alpha: pd.Series
     sigma: pd.Series
-    gamma1: pd.Series
-    gamma2: pd.Series
+    gamma: pd.Series
 
     # Variant prevalences
     rho: pd.Series

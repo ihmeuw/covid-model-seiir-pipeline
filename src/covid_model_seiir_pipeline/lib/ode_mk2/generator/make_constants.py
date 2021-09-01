@@ -26,6 +26,7 @@ PRIMITIVES = {
         'sigma',
         'gamma',
         'pi',
+        'new_e',
     ],
     'variant_parameter': [
         'beta',
@@ -62,10 +63,11 @@ PRIMITIVES['vaccine_type'] = PRIMITIVES['protection_status'] + PRIMITIVES['immun
 
 
 SPECS = {
-    'PARAMETERS': [
-        ['base_parameter', 'all'],
+    'BASE_PARAMETERS': [
+        ['base_parameter'],
+    ],
+    'VARIANT_PARAMETERS': [
         ['variant_parameter', 'variant'],
-        ['new_e', 'total'],
     ],
     'VACCINE_TYPES': [
         ['vaccine_type'],
@@ -115,7 +117,7 @@ SUSCEPTIBLE_BY_VARIANT = {
 
 
 def make_doctring() -> str:
-    description = "Statically definitions for the compartments and model parameters."
+    description = "Static definitions for the compartments and model parameters."
     return utils.make_module_docstring(description, __file__)
 
 
