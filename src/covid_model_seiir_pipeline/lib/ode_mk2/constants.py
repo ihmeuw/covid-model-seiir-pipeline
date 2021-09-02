@@ -102,40 +102,34 @@ VACCINATION_STATUS = _VaccinationStatus(*_VaccinationStatus._fields)
 REMOVED_VACCINATION_STATUS = _RemovedVaccinationStatus(*_RemovedVaccinationStatus._fields)
 VACCINE_TYPE = _VaccineType(*_VaccineType._fields)
 
-BASE_PARAMETERS = Dict.empty(
-    types.UniTuple(types.unicode_type, 1),
-    types.int8,
-)
-BASE_PARAMETERS[('alpha',)] = np.int8(0)
-BASE_PARAMETERS[('sigma',)] = np.int8(1)
-BASE_PARAMETERS[('gamma',)] = np.int8(2)
-BASE_PARAMETERS[('pi',)] = np.int8(3)
-BASE_PARAMETERS[('new_e',)] = np.int8(4)
-BASE_PARAMETERS_NAMES = ['_'.join(k) for k in BASE_PARAMETERS]
-
-VARIANT_PARAMETERS = Dict.empty(
+PARAMETERS = Dict.empty(
     types.UniTuple(types.unicode_type, 2),
     types.int8,
 )
-VARIANT_PARAMETERS[('beta', 'ancestral')] = np.int8(0)
-VARIANT_PARAMETERS[('beta', 'alpha')] = np.int8(1)
-VARIANT_PARAMETERS[('beta', 'beta')] = np.int8(2)
-VARIANT_PARAMETERS[('beta', 'gamma')] = np.int8(3)
-VARIANT_PARAMETERS[('beta', 'delta')] = np.int8(4)
-VARIANT_PARAMETERS[('beta', 'omega')] = np.int8(5)
-VARIANT_PARAMETERS[('kappa', 'ancestral')] = np.int8(6)
-VARIANT_PARAMETERS[('kappa', 'alpha')] = np.int8(7)
-VARIANT_PARAMETERS[('kappa', 'beta')] = np.int8(8)
-VARIANT_PARAMETERS[('kappa', 'gamma')] = np.int8(9)
-VARIANT_PARAMETERS[('kappa', 'delta')] = np.int8(10)
-VARIANT_PARAMETERS[('kappa', 'omega')] = np.int8(11)
-VARIANT_PARAMETERS[('rho', 'ancestral')] = np.int8(12)
-VARIANT_PARAMETERS[('rho', 'alpha')] = np.int8(13)
-VARIANT_PARAMETERS[('rho', 'beta')] = np.int8(14)
-VARIANT_PARAMETERS[('rho', 'gamma')] = np.int8(15)
-VARIANT_PARAMETERS[('rho', 'delta')] = np.int8(16)
-VARIANT_PARAMETERS[('rho', 'omega')] = np.int8(17)
-VARIANT_PARAMETERS_NAMES = ['_'.join(k) for k in VARIANT_PARAMETERS]
+PARAMETERS[('alpha', 'all')] = np.int8(0)
+PARAMETERS[('sigma', 'all')] = np.int8(1)
+PARAMETERS[('gamma', 'all')] = np.int8(2)
+PARAMETERS[('pi', 'all')] = np.int8(3)
+PARAMETERS[('new_e', 'all')] = np.int8(4)
+PARAMETERS[('beta', 'ancestral')] = np.int8(5)
+PARAMETERS[('beta', 'alpha')] = np.int8(6)
+PARAMETERS[('beta', 'beta')] = np.int8(7)
+PARAMETERS[('beta', 'gamma')] = np.int8(8)
+PARAMETERS[('beta', 'delta')] = np.int8(9)
+PARAMETERS[('beta', 'omega')] = np.int8(10)
+PARAMETERS[('kappa', 'ancestral')] = np.int8(11)
+PARAMETERS[('kappa', 'alpha')] = np.int8(12)
+PARAMETERS[('kappa', 'beta')] = np.int8(13)
+PARAMETERS[('kappa', 'gamma')] = np.int8(14)
+PARAMETERS[('kappa', 'delta')] = np.int8(15)
+PARAMETERS[('kappa', 'omega')] = np.int8(16)
+PARAMETERS[('rho', 'ancestral')] = np.int8(17)
+PARAMETERS[('rho', 'alpha')] = np.int8(18)
+PARAMETERS[('rho', 'beta')] = np.int8(19)
+PARAMETERS[('rho', 'gamma')] = np.int8(20)
+PARAMETERS[('rho', 'delta')] = np.int8(21)
+PARAMETERS[('rho', 'omega')] = np.int8(22)
+PARAMETERS_NAMES = ['_'.join(k) for k in PARAMETERS]
 
 VACCINE_TYPES = Dict.empty(
     types.UniTuple(types.unicode_type, 1),

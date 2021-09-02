@@ -1,4 +1,5 @@
 import itertools
+import textwrap
 from pathlib import Path
 from typing import List
 
@@ -27,11 +28,12 @@ def make_imports() -> str:
     return out + '\n'
 
 
-def make_fields(field_specs: List[List[str]]) -> str:
+def make_fields(field_specs: List[List[str]], prefix=None) -> str:
     out = ""
     for field_spec in field_specs:
-        field_vars = [PRIMITIVES[field_var_name] for field_var_name in field_spec]
+        field_vars = [PRIMITIVES[field_var_name] for field_var_name in field_spec if field_var_name != 'all']
         for elements in itertools.product(*field_vars):
+            elements = elements if prefix is None else [prefix] + list(elements)
             out += f"{TAB}{'_'.join(elements)}: pd.Series\n"
     return out
 
@@ -39,13 +41,25 @@ def make_fields(field_specs: List[List[str]]) -> str:
 def make_ode_parameters() -> str:
     out = ""
     out += "@dataclass(repr=False, eq=False)\n"
-    out += "class BaseParameters:\n"
+    out += "class Parameters:\n"
+    out += make_fields(SPECS['PARAMETERS']) + "\n"
 
-    out += f"{TAB}\n"
-    out += make_fields(SPECS['BASE_PARAMETERS']) + "\n"
+    vaccine_field_spec = [s + ['risk_group'] for s in SPECS['VACCINE_TYPES']]
+    out += make_fields(vaccine_field_spec, 'vaccinations')
 
-    out += f"{TAB}# Variant-specific parameters\n"
-    out += make_fields(SPECS['VARIANT_PARAMETERS']) + "\n"
+    out += """
+    def to_dict(self) -> Dict[str, pd.Series]:
+        return {k: v.rename(k) for k, v in utilities.asdict(self).items()}
+
+    def to_df(self) -> pd.DataFrame:
+        return pd.concat(self.to_dict().values(), axis=1)
+
+    def reindex(self, index: pd.Index) -> 'Parameters':
+        # noinspection PyArgumentList
+        return type(self)(
+            **{key: value.reindex(index) for key, value in self.to_dict().items()}
+        )
+    """
     return out
 
 

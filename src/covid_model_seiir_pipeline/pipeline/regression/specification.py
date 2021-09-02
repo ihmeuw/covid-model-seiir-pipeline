@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import Dict, List, NamedTuple, Tuple
+from typing import Dict, List, NamedTuple, Tuple, Union
 
 from covid_shared import workflow
 
@@ -19,13 +19,13 @@ REGRESSION_JOBS = __RegressionJobs()
 class RegressionTaskSpecification(workflow.TaskSpecification):
     """Specification of execution parameters for regression tasks."""
     default_max_runtime_seconds = 3000
-    default_m_mem_free = '18G'
+    default_m_mem_free = '5G'
     default_num_cores = 1
 
 
 class HospitalCorrectionFactorTaskSpecification(workflow.TaskSpecification):
     """Specification of execution parameters for regression tasks."""
-    default_max_runtime_seconds = 6000
+    default_max_runtime_seconds = 1000
     default_m_mem_free = '20G'
     default_num_cores = 26
 
@@ -41,8 +41,8 @@ class RegressionWorkflowSpecification(workflow.WorkflowSpecification):
 @dataclass
 class RegressionData:
     """Specifies the inputs and outputs for a regression"""
-    covariate_version: str = field(default='best')
     infection_version: str = field(default='best')
+    covariate_version: str = field(default='best')
     coefficient_version: str = field(default='')
     priors_version: str = field(default='')
     location_set_version_id: int = field(default=0)
@@ -60,20 +60,23 @@ class RegressionData:
         return {k: v for k, v in utilities.asdict(self).items() if k != 'run_counties'}
 
 
+Sampleable = Union[Tuple[float, float], float]
+
+
 @dataclass
 class RegressionParameters:
     """Specifies the parameters of the beta fit and regression."""
-    alpha: Tuple[float, float] = field(default=(0.9, 1.0))
-    sigma: Tuple[float, float] = field(default=(0.2, 1/3))
-    gamma1: Tuple[float, float] = field(default=(0.5, 0.5))
-    gamma2: Tuple[float, float] = field(default=(1/3, 1.0))
-    kappa: Tuple[float, float] = field(default=(0.3, 0.5))
-    chi: Tuple[float, float] = field(default=(0.0, 0.6))
-    phi_mean_shift: float = field(default=0.5)
-    phi_sd: float = field(default=0.3)
-    psi_mean_shift: float = field(default=0.9)
-    psi_sd: float = field(default=0.3)
-    pi: float = field(default=0.1)
+    alpha: Sampleable = field(default=(0.9, 1.0))
+    sigma: Sampleable = field(default=(0.2, 1/3))
+    gamma: Sampleable = field(default=(0.2, 1/3))
+    pi: Sampleable = field(default=(0.01, 0.1))
+
+    kappa_ancestral: Sampleable = field(default=1.0)
+    kappa_alpha: Sampleable = field(default=1.0)
+    kappa_beta: Sampleable = field(default=1.0)
+    kappa_gamma: Sampleable = field(default=1.0)
+    kappa_delta: Sampleable = field(default=1.0)
+    kappa_omega: Sampleable = field(default=1.0)
 
     def to_dict(self) -> Dict:
         """Converts to a dict, coercing list-like items to lists."""

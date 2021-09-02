@@ -63,10 +63,8 @@ PRIMITIVES['vaccine_type'] = PRIMITIVES['protection_status'] + PRIMITIVES['immun
 
 
 SPECS = {
-    'BASE_PARAMETERS': [
-        ['base_parameter'],
-    ],
-    'VARIANT_PARAMETERS': [
+    'PARAMETERS': [
+        ['base_parameter', 'all'],
         ['variant_parameter', 'variant'],
     ],
     'VACCINE_TYPES': [

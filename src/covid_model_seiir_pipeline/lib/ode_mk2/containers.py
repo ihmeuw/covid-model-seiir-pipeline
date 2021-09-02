@@ -22,15 +22,12 @@ from covid_model_seiir_pipeline.lib import (
 
 
 @dataclass(repr=False, eq=False)
-class ODEParameters:
-    # Core parameters
+class Parameters:
     alpha: pd.Series
     sigma: pd.Series
     gamma: pd.Series
     pi: pd.Series
     new_e: pd.Series
-
-    # Variant-specific parameters
     beta_ancestral: pd.Series
     beta_alpha: pd.Series
     beta_beta: pd.Series
@@ -50,3 +47,30 @@ class ODEParameters:
     rho_delta: pd.Series
     rho_omega: pd.Series
 
+    vaccinations_unprotected_lr: pd.Series
+    vaccinations_unprotected_hr: pd.Series
+    vaccinations_non_escape_protected_lr: pd.Series
+    vaccinations_non_escape_protected_hr: pd.Series
+    vaccinations_escape_protected_lr: pd.Series
+    vaccinations_escape_protected_hr: pd.Series
+    vaccinations_omega_protected_lr: pd.Series
+    vaccinations_omega_protected_hr: pd.Series
+    vaccinations_non_escape_immune_lr: pd.Series
+    vaccinations_non_escape_immune_hr: pd.Series
+    vaccinations_escape_immune_lr: pd.Series
+    vaccinations_escape_immune_hr: pd.Series
+    vaccinations_omega_immune_lr: pd.Series
+    vaccinations_omega_immune_hr: pd.Series
+
+    def to_dict(self) -> Dict[str, pd.Series]:
+        return {k: v.rename(k) for k, v in utilities.asdict(self).items()}
+
+    def to_df(self) -> pd.DataFrame:
+        return pd.concat(self.to_dict().values(), axis=1)
+
+    def reindex(self, index: pd.Index) -> 'Parameters':
+        # noinspection PyArgumentList
+        return type(self)(
+            **{key: value.reindex(index) for key, value in self.to_dict().items()}
+        )
+    
