@@ -10,6 +10,9 @@ from covid_model_seiir_pipeline.lib import (
     utilities,
     static_vars,
 )
+from covid_model_seiir_pipeline.lib.ode_mk2.constants import (
+    VARIANT,
+)
 from covid_model_seiir_pipeline.pipeline.regression.specification import (
     RegressionSpecification,
     CovariateSpecification,
@@ -439,7 +442,7 @@ class RegressionDataInterface:
 
     def load_variant_prevalence(self, variant_scenario: str = 'reference',
                                 covariate_root: io.CovariateRoot = None) -> pd.DataFrame:
-        variants = ['non_escape', 'escape', 'B117', 'B1351', 'B16172', 'P1']
+
         cov_map = {
             variant: self.load_covariate(
                 f'variant_prevalence_{variant}',
