@@ -209,6 +209,7 @@ MEASURES = {
         calculate_cumulative=True,
         cumulative_label='cumulative_cases',
         aggregator=aggregators.sum_aggregator,
+        write_draws=True,
     ),
 
     # Hospital measures
