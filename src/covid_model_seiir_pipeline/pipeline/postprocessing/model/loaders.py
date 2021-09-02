@@ -179,7 +179,10 @@ def build_version_map(data_interface: 'PostprocessingDataInterface') -> pd.Serie
 
 
 def load_populations(data_interface: 'PostprocessingDataInterface'):
-    return data_interface.load_population()
+    idx_cols = ['location_id', 'sex_id', 'year_id', 
+                'age_group_id', 'age_group_years_start', 'age_group_years_end']
+    return data_interface.load_population().set_index(idx_cols)
+    
 
 
 def load_hierarchy(data_interface: 'PostprocessingDataInterface'):
