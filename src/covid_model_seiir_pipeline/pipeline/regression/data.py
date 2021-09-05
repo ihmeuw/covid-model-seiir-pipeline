@@ -262,13 +262,15 @@ class RegressionDataInterface:
         ifr = self.format_ratio_data(ifr)
         vaccinations = self.load_vaccinations().groupby('location_id').cumsum()
         population = self.load_risk_group_populations().reindex(vaccinations.index, level='location_id')
+        vax_groups = ['non_escape', 'escape', 'omega']
+
         for risk_group in ['lr', 'hr']:
             total_pop = population[f'population_{risk_group}']
             immune = vaccinations[[
-                f'effective_wildtype_{risk_group}', f'effective_variant_{risk_group}'
+                f'{vax_group}_immune_{risk_group}' for vax_group in vax_groups
             ]].sum(axis=1)
             protected = vaccinations[[
-                f'effective_protected_wildtype_{risk_group}', f'effective_protected_variant_{risk_group}'
+                f'{vax_group}_protected_{risk_group}' for vax_group in vax_groups
             ]].sum(axis=1)
             denom = total_pop - immune
             target_denom = total_pop - immune - protected
