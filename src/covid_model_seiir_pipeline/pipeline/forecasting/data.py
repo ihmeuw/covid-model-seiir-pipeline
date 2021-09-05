@@ -63,6 +63,9 @@ class ForecastDataInterface:
     def get_n_draws(self) -> int:
         return self._get_regression_data_interface().get_n_draws()
 
+    def is_counties_run(self) -> bool:
+        return self._get_regression_data_interface().is_counties_run()
+
     def get_infections_metadata(self):
         return self._get_regression_data_interface().get_infections_metadata()
 

@@ -54,6 +54,9 @@ class PostprocessingDataInterface:
     def get_n_draws(self) -> int:
         return self._get_forecast_data_inteface().get_n_draws()
 
+    def is_counties_run(self) -> bool:
+        return self._get_forecast_data_inteface().is_counties_run()
+
     def load_location_ids(self):
         return self._get_forecast_data_inteface().load_location_ids()
 

@@ -49,6 +49,10 @@ def run_scatters(diagnostics_version: str, name: str, progress_bar: bool) -> Non
         Path(scatters_spec.x_axis.version) / static_vars.POSTPROCESSING_SPECIFICATION_FILE
     )
     pp_di = PostprocessingDataInterface.from_specification(pp_spec)
+    
+    if pp_di.is_counties_run():
+        logger.info('No scatters for counties')
+        return
     hierarchy = pp_di.load_hierarchy()
     name_map = hierarchy.set_index('location_id').location_ascii_name
 

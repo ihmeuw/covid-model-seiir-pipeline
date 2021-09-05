@@ -81,6 +81,10 @@ class RegressionDataInterface:
         regression_spec = self.load_specification()
         return regression_spec.data.n_draws
 
+    def is_counties_run(self) -> bool:
+        regression_spec = self.load_specification()
+        return regression_spec.data.run_counties
+
     #########################
     # Raw location handling #
     #########################
