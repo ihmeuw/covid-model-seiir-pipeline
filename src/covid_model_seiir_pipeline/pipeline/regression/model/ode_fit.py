@@ -18,8 +18,8 @@ def prepare_ode_fit_parameters(past_infections: pd.Series,
                                sampled_params: Dict[str, pd.Series]) -> ode.FitParameters:
     past_index = past_infections.index
     population_low_risk, population_high_risk = split_population(past_index, population)
-
-    vaccinations = {k: vaccinations[k].reindex(past_index, fill_value=0.) for k in vaccinations}
+    vaccinations = vaccinations.reindex(past_index, fill_value=0.)
+    vaccinations = {k: vaccinations[k] for k in vaccinations}
 
     return ode.FitParameters(
         new_e=past_infections,

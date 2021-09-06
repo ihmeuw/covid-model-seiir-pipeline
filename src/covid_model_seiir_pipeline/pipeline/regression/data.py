@@ -262,7 +262,7 @@ class RegressionDataInterface:
         ifr = self.format_ratio_data(ifr)
         vaccinations = self.load_vaccinations().groupby('location_id').cumsum()
         population = self.load_risk_group_populations().reindex(vaccinations.index, level='location_id')
-        vax_groups = ['non_escape', 'escape', 'omega']
+        vax_groups = ['non_escape', 'escape']
 
         for risk_group in ['lr', 'hr']:
             total_pop = population[f'population_{risk_group}']
@@ -395,6 +395,7 @@ class RegressionDataInterface:
             info_df.loc[:, :] = 0.0
         else:
             info_df = io.load(covariate_root.vaccine_info(info_type=f'vaccinations_{vaccine_scenario}'))
+        info_df = info_df[[c for c in info_df if 'omega' not in c]]
         return self._format_covariate_data(info_df, location_ids)
 
     def load_vaccination_summaries(self,
@@ -447,11 +448,10 @@ class RegressionDataInterface:
                                 covariate_root: io.CovariateRoot = None) -> pd.DataFrame:
         covariate_root = covariate_root if covariate_root is not None else self.covariate_root
         data = io.load(covariate_root.variant_info(info_type=variant_scenario))
-        import pdb; pdb.set_trace()
-        rho = (data['alpha'] / (data['alpha'] + data['ancestral'])).rename('rho').fillna(0.)
+        rho = (data['alpha'] / (data['alpha'] + data['ancestral'])).rename('rho').groupby('location_id').ffill().fillna(0.)
         rho_variant = data[['beta', 'gamma', 'delta', 'other']].sum(axis=1).rename('rho_variant')
         rho_total = (data['alpha'] + rho_variant).rename('rho_total')
-        rho_b1617 = (data['delta'] / rho_variant).rename('rho_b1617').fillna(0.)
+        rho_b1617 = (data['delta'] / rho_variant).rename('rho_b1617').groupby('location_id').ffill().fillna(0.)
         return pd.concat([rho, rho_variant, rho_b1617, rho_total], axis=1)
 
     #######################
