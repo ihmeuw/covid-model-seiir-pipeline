@@ -71,7 +71,7 @@ def build_predictors(regression_inputs: pd.DataFrame,
                     index=location_ids,
                 )
             )
-        elif prior_coefficients is not None and not covariate.group_level:
+        elif prior_coefficients is not None and not covariate.group_level and covariate.name in prior_coefficients:
             coefficient_val = (
                 prior_coefficients
                 .reset_index()
