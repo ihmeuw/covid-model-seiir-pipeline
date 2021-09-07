@@ -76,6 +76,7 @@ class RegressionParameters:
     kappa_beta: Sampleable = field(default=1.0)
     kappa_gamma: Sampleable = field(default=1.0)
     kappa_delta: Sampleable = field(default=1.0)
+    kappa_other: Sampleable = field(default=1.0)
     kappa_omega: Sampleable = field(default=1.0)
 
     def to_dict(self) -> Dict:

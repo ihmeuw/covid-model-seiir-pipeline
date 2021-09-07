@@ -1,6 +1,6 @@
 data:
   infection_version: '2021_09_01.04'
-  covariate_version: '2021_09_05.09'
+  covariate_version: '2021_09_07.01'
   coefficient_version: ''
   priors_version: '2021_05_31.01'
   location_set_version_id: 771
@@ -21,11 +21,12 @@ regression_parameters:
   pi: [ 0.01, 0.1 ]
   # proportion increase in transmission intensity
   kappa_ancestral: 1.0
-  kappa_alpha: [0.2, 0.62]
-  kappa_beta: [0.2, 0.62]
-  kappa_gamma: [0.2, 0.62]
-  kappa_delta: [0.2, 0.62]
-  kappa_omega: [0.2, 0.62]
+  kappa_alpha: 1.0
+  kappa_beta: 1.0
+  kappa_gamma: 1.0
+  kappa_delta: 1.0
+  kappa_other: 1.0
+  kappa_omega: 1.0
 hospital_parameters:
   compute_correction_factors: True
   hospital_stay_death: 6

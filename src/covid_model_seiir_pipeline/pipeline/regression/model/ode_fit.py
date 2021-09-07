@@ -128,7 +128,7 @@ def filter_to_epi_threshold(infections: pd.Series,
     return infections.loc[start_date:]
 
 
-def run_ode_fit(ode_parameters: ode.FitParameters,
+def run_ode_fit(ode_parameters: Parameters,
                 progress_bar: bool) -> Tuple[pd.DataFrame, pd.DataFrame]:
     fit_results = []
     ode_parameter_list = tqdm.tqdm(list(ode_parameters), disable=not progress_bar)
@@ -144,7 +144,7 @@ def run_ode_fit(ode_parameters: ode.FitParameters,
     return fit_results[['beta', 'beta_wild', 'beta_variant']], fit_results[[c for c in fit_results if 'beta' not in c]]
 
 
-def run_loc_ode_fit(ode_parameters: ode.FitParameters) -> pd.DataFrame:
+def run_loc_ode_fit(ode_parameters: Parameters) -> pd.DataFrame:
     # Filter out early dates with few infections
     # to reduce noise in the past fit from leaking into the beta regression.
     infections = ode_parameters.new_e
