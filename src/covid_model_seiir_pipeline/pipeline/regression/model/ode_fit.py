@@ -82,17 +82,18 @@ def make_initial_condition(parameters: Parameters, population: pd.DataFrame):
     # Alpha is time-invariant
     alpha = parameters.alpha.groupby('location_id').first()
 
-    group_pop_ratio = get_risk_group_pop_ratio(population)
+    group_pop = get_risk_group_pop(population)
+    import pdb; pdb.set_trace()
 
     infections = parameters.new_e.groupby('location_id').apply(filter_to_epi_threshold)
-    infections_by_group = group_pop_ratio.mul(infections, axis=0)
+    infections_by_group = group_pop.div(group_pop.sum(axis=1), axis=0).mul(infections, axis=0)
     new_e_start = infections_by_group.groupby('location_id').first()
 
     compartments = [f'{compartment}_{risk_group}'
                     for risk_group, compartment in itertools.product(RISK_GROUP, COMPARTMENTS_NAMES)]
-    initial_condition = pd.DataFrame(0., columns=compartments, index=group_pop_ratio.index)
+    initial_condition = pd.DataFrame(0., columns=compartments, index=new_e_start.index)
     for risk_group in RISK_GROUP:
-        pop = group_pop_ratio[risk_group] * population
+        pop = group_pop[risk_group]
         new_e = new_e_start[risk_group]
         initial_condition.loc[:, f'S_unprotected_unvaccinated_{risk_group}'] = pop - new_e - (new_e / 5) ** (1 / alpha)
         initial_condition.loc[:, f'E_unprotected_unvaccinated_{risk_group}'] = new_e
@@ -100,7 +101,7 @@ def make_initial_condition(parameters: Parameters, population: pd.DataFrame):
     return initial_condition
 
 
-def get_risk_group_pop_ratio(population: pd.DataFrame):
+def get_risk_group_pop(population: pd.DataFrame):
     population_low_risk = (population[population['age_group_years_start'] < 65]
                            .groupby('location_id')['population']
                            .sum()
@@ -110,12 +111,12 @@ def get_risk_group_pop_ratio(population: pd.DataFrame):
                             .sum()
                             .rename('hr'))
     pop = pd.concat([population_low_risk, population_high_risk], axis=1)
-    pop_ratio = pop.divide(pop.sum(axis=1), axis=0)
-    return pop_ratio
+    return pop
 
 
 def filter_to_epi_threshold(infections: pd.Series,
                             threshold: float = 50.) -> pd.Series:
+    infections = infections.reset_index(level='location_id', drop=True)
     # noinspection PyTypeChecker
     start_date = infections.loc[threshold <= infections].index.min()
     while infections.loc[start_date:].count() <= 2:
