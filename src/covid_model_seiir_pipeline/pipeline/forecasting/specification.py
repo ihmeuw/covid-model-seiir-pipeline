@@ -78,6 +78,8 @@ class ScenarioSpecification:
     vaccine_version: str = field(default='reference')
     variant_version: str = field(default='reference')
     variant_ifr_scale: float = field(default=1.29)
+    log_beta_shift: float = field(default=0.0)
+    log_beta_shift_date: str = field(default='2025-01-01')
     covariates: Dict[str, str] = field(default_factory=dict)
 
     def __post_init__(self):

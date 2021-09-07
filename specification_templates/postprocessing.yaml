@@ -1,11 +1,16 @@
 data:
-  forecast_version: '2021_09_05.06'
+  forecast_version: '2021_09_07.03'
   mortality_ratio_version: 'best'
   scenarios:
     - 'reference'
-    - 'worse'
-    - 'best_masks'
-    - 'no_vaccine'
+    - 'gather_all_mandate_05'
+    - 'gather_individual_05'
+    - 'dining_bar_leisure_all_mandate_05'
+    - 'dining_bar_leisure_all_mandate_50'
+    - 'dining_bar_leisure_all_mandate_95'
+    - 'dining_bar_leisure_individual_05'
+    - 'dining_bar_leisure_individual_50'
+    - 'dining_bar_leisure_individual_95'
   output_root: ''
 workflow:
   project: 'proj_covid_prod'

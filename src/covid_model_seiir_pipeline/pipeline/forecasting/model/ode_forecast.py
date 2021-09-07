@@ -38,7 +38,8 @@ def build_model_parameters(indices: Indices,
                            coefficients: pd.DataFrame,
                            rhos: pd.DataFrame,
                            beta_scales: pd.DataFrame,
-                           vaccine_data: pd.DataFrame) -> ode.ForecastParameters:
+                           vaccine_data: pd.DataFrame,
+                           log_beta_shift: Tuple[float, pd.Timestamp]) -> ode.ForecastParameters:
     # These are all the same by draw.  Just broadcasting them over a new index.
     ode_params = {
         param: pd.Series(ode_parameters[param].mean(), index=indices.full, name=param)
@@ -50,6 +51,7 @@ def build_model_parameters(indices: Indices,
         beta_regression,
         covariates,
         coefficients,
+        log_beta_shift,
         beta_scales,
         rhos,
         ode_parameters['kappa'].mean(),
@@ -78,6 +80,7 @@ def get_betas_and_prevalences(indices: Indices,
                               beta_regression: pd.DataFrame,
                               covariates: pd.DataFrame,
                               coefficients: pd.DataFrame,
+                              log_beta_shift: Tuple[float, pd.Timestamp],
                               beta_shift_parameters: pd.DataFrame,
                               rhos: pd.DataFrame,
                               kappa: float,
@@ -87,6 +90,7 @@ def get_betas_and_prevalences(indices: Indices,
     rhos = rhos.reindex(indices.full).fillna(method='ffill')
 
     log_beta_hat = math.compute_beta_hat(covariates, coefficients)
+    log_beta_hat.loc[pd.IndexSlice[:, log_beta_shift[1]:]] += log_beta_shift[0]
     beta_hat = np.exp(log_beta_hat).loc[indices.future].rename('beta_hat').reset_index()
     beta = (beta_shift(beta_hat, beta_shift_parameters)
             .set_index(['location_id', 'date'])
