@@ -19,6 +19,7 @@ PRIMITIVES = {
         'beta',
         'gamma',
         'delta',
+        'other',
         'omega',
     ],
     'base_parameter': [
@@ -72,7 +73,7 @@ SPECS = {
     ],
     'COMPARTMENTS': [
         ['S', 'protection_status', 'vaccination_status'],
-        ['S', 'immune_status', 'vaccinated'],
+        ['S', 'immune_status', 'removed_vaccination_status'],
         ['E', 'variant', 'vaccination_status'],
         ['I', 'variant', 'vaccination_status'],
         ['R', 'variant', 'removed_vaccination_status'],
@@ -209,10 +210,15 @@ def make_compartment_groups() -> str:
     out += f'{TAB}types.int8[:],\n'
     out += f')\n'
     for variant, protection_groups in SUSCEPTIBLE_BY_VARIANT.items():
-        out += make_compartment_group(
-            'S', variant,
-            protection_groups, PRIMITIVES['vaccination_status'],
-        )
+        out += f"COMPARTMENT_GROUPS[('S', '{variant}')] = np.array([\n"
+        for protection_group in protection_groups:
+            if protection_group in PRIMITIVES['protection_status']:
+                vaccination_statuses = PRIMITIVES['vaccination_status']
+            else:
+                vaccination_statuses = PRIMITIVES['removed_vaccination_status']
+            for vaccination_status in vaccination_statuses:
+                out += f"{TAB}COMPARTMENTS[('S', '{protection_group}', '{vaccination_status}')],\n"
+        out += "], dtype=np.int8)\n"
     for compartment in ['E', 'I']:
         for variant in PRIMITIVES['variant']:
             out += make_compartment_group(
@@ -227,13 +233,13 @@ def make_compartment_groups() -> str:
     for vaccination_status in PRIMITIVES['vaccination_status']:
         out += f"COMPARTMENT_GROUPS[('N', '{vaccination_status}')] = np.array([\n"
         out += f"{TAB}v for k, v in COMPARTMENTS.items() if k[2] == '{vaccination_status}'\n"
-        out += "])\n"
+        out += "], dtype=np.int8)\n"
     out += f"COMPARTMENT_GROUPS[('N', 'vaccine_eligible')] = np.array([\n"
     out += f"{TAB}v for k, v in COMPARTMENTS.items() if k[2] == 'unvaccinated' and k[0] not in ['E', 'I']\n"
-    out += "])\n"
+    out += "], dtype=np.int8)\n"
     out += f"COMPARTMENT_GROUPS[('N', 'total')] = np.array([\n"
     out += f"{TAB}v for k, v in COMPARTMENTS.items()\n"
-    out += "])\n"
+    out += "], dtype=np.int8)\n"
 
     return out
 
