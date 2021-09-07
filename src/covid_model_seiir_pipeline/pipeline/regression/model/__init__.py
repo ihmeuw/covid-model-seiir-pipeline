@@ -8,6 +8,7 @@ from covid_model_seiir_pipeline.pipeline.regression.model.ode_fit import (
     sample_params,
     prepare_ode_fit_parameters,
     clean_infection_data_measure,
+    make_initial_condition,
     run_ode_fit,
 )
 from covid_model_seiir_pipeline.pipeline.regression.model.regress import (

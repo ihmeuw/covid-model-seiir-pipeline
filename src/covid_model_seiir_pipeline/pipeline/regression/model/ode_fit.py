@@ -7,43 +7,33 @@ import tqdm
 
 from covid_model_seiir_pipeline.lib import (
     math,
-    ode,
+)
+from covid_model_seiir_pipeline.lib.ode_mk2.containers import (
+    Parameters,
+)
+from covid_model_seiir_pipeline.lib.ode_mk2.constants import (
+    VARIANT,
+    RISK_GROUP,
+    COMPARTMENTS_NAMES,
 )
 
 
 def prepare_ode_fit_parameters(past_infections: pd.Series,
-                               population: pd.DataFrame,
                                rhos: pd.DataFrame,
                                vaccinations: pd.DataFrame,
-                               sampled_params: Dict[str, pd.Series]) -> ode.FitParameters:
+                               sampled_params: Dict[str, pd.Series]) -> Parameters:
     past_index = past_infections.index
-    population_low_risk, population_high_risk = split_population(past_index, population)
-    vaccinations = vaccinations.reindex(past_index, fill_value=0.)
-    vaccinations = {k: vaccinations[k] for k in vaccinations}
+    rhos = rhos.reindex(past_index, fill_value=0.).to_dict('series')
+    betas = {f'beta_{variant}': pd.Series(np.nan, index=past_index, name=f'beta_{variant}') for variant in VARIANT}
+    vaccinations = vaccinations.reindex(past_index, fill_value=0.).to_dict('series')
 
-    return ode.FitParameters(
-        new_e=past_infections,
-        population_low_risk=population_low_risk,
-        population_high_risk=population_high_risk,
-        rho=rhos['rho'].reindex(past_index, fill_value=0.0),
-        rho_variant=rhos['rho_variant'].reindex(past_index, fill_value=0.0),
-        rho_b1617=rhos['rho_b1617'].reindex(past_index, fill_value=0.0),
-        rho_total=rhos['rho_total'].reindex(past_index, fill_value=0.0),
+    return Parameters(
         **sampled_params,
+        new_e=past_infections,
+        **betas,
+        **rhos,
         **vaccinations,
     )
-
-
-def split_population(past_index: pd.Index, population: pd.DataFrame):
-    population_low_risk = (population[population['age_group_years_start'] < 65]
-                           .groupby('location_id')['population']
-                           .sum()
-                           .reindex(past_index, level='location_id'))
-    population_high_risk = (population[population['age_group_years_start'] >= 65]
-                            .groupby('location_id')['population']
-                            .sum()
-                            .reindex(past_index, level='location_id'))
-    return population_low_risk, population_high_risk
 
 
 def sample_params(past_index: pd.Index,
@@ -88,6 +78,56 @@ def clean_infection_data_measure(infection_data: pd.DataFrame, measure: str) -> 
     return data.append(prepend).sort_index()
 
 
+def make_initial_condition(parameters: Parameters, population: pd.DataFrame):
+    # Alpha is time-invariant
+    alpha = parameters.alpha.groupby('location_id').first()
+
+    group_pop_ratio = get_risk_group_pop_ratio(population)
+
+    infections = parameters.new_e.groupby('location_id').apply(filter_to_epi_threshold)
+    infections_by_group = group_pop_ratio.mul(infections, axis=0)
+    new_e_start = infections_by_group.groupby('location_id').first()
+
+    compartments = [f'{compartment}_{risk_group}'
+                    for risk_group, compartment in itertools.product(RISK_GROUP, COMPARTMENTS_NAMES)]
+    initial_condition = pd.DataFrame(0., columns=compartments, index=group_pop_ratio.index)
+    for risk_group in RISK_GROUP:
+        pop = group_pop_ratio[risk_group] * population
+        new_e = new_e_start[risk_group]
+        initial_condition.loc[:, f'S_unprotected_unvaccinated_{risk_group}'] = pop - new_e - (new_e / 5) ** (1 / alpha)
+        initial_condition.loc[:, f'E_unprotected_unvaccinated_{risk_group}'] = new_e
+        initial_condition.loc[:, f'I_unprotected_unvaccinated_{risk_group}'] = (new_e / 5) ** (1 / alpha)
+    return initial_condition
+
+
+def get_risk_group_pop_ratio(population: pd.DataFrame):
+    population_low_risk = (population[population['age_group_years_start'] < 65]
+                           .groupby('location_id')['population']
+                           .sum()
+                           .rename('lr'))
+    population_high_risk = (population[population['age_group_years_start'] >= 65]
+                            .groupby('location_id')['population']
+                            .sum()
+                            .rename('hr'))
+    pop = pd.concat([population_low_risk, population_high_risk], axis=1)
+    pop_ratio = pop.divide(pop.sum(axis=1), axis=0)
+    return pop_ratio
+
+
+def filter_to_epi_threshold(infections: pd.Series,
+                            threshold: float = 50.) -> pd.Series:
+    # noinspection PyTypeChecker
+    start_date = infections.loc[threshold <= infections].index.min()
+    while infections.loc[start_date:].count() <= 2:
+        threshold *= 0.5
+        # noinspection PyTypeChecker
+        start_date = infections.loc[threshold <= infections].index.min()
+        if threshold < 1e-6:
+            start_date = infections.index.min()
+            break
+    return infections.loc[start_date:]
+
+
 def run_ode_fit(ode_parameters: ode.FitParameters,
                 progress_bar: bool) -> Tuple[pd.DataFrame, pd.DataFrame]:
     fit_results = []
@@ -116,15 +156,9 @@ def run_loc_ode_fit(ode_parameters: ode.FitParameters) -> pd.DataFrame:
     t = (date - date.min()).dt.days.values
     obs = infections.values
 
-    pop_groups = {
-        'lr': ode_parameters.population_low_risk.iloc[0],
-        'hr': ode_parameters.population_high_risk.iloc[0]
-    }
-    pop = sum(pop_groups.values())
 
-    all_compartments = list(ode.COMPARTMENTS._fields) + list(ode.TRACKING_COMPARTMENTS._fields)
-    system_size = len(all_compartments)
-    initial_condition = np.zeros(2*system_size)
+
+
     params = [ode_parameters.to_df().loc[:, list(ode.PARAMETERS._fields) + list(ode.FIT_PARAMETERS._fields)].values]
 
     for i, (risk_group, group_pop) in enumerate(pop_groups.items()):
@@ -192,26 +226,7 @@ def run_loc_ode_fit(ode_parameters: ode.FitParameters) -> pd.DataFrame:
     return components.reset_index()
 
 
-def _distribute_initial_condition(infections: float, group_pop: float, total_pop: float, alpha: float,
-                                  initial_condition: np.ndarray, offset: int = 0) -> np.ndarray:
-    new_e = infections * group_pop / total_pop
-    initial_condition[offset + ode.COMPARTMENTS.S] = (
-        group_pop - new_e - (new_e / 5)**(1.0 / alpha)
-    )
-    initial_condition[offset + ode.COMPARTMENTS.E] = new_e
-    initial_condition[offset + ode.COMPARTMENTS.I1] = (new_e / 5) ** (1.0 / alpha)
-    return initial_condition
 
 
-def filter_to_epi_threshold(infections: pd.Series,
-                            threshold: float = 50.) -> pd.Series:
-    # noinspection PyTypeChecker
-    start_date = infections.loc[threshold <= infections].index.min()
-    while infections.loc[start_date:].count() <= 2:
-        threshold *= 0.5
-        # noinspection PyTypeChecker
-        start_date = infections.loc[threshold <= infections].index.min()
-        if threshold < 1e-6:
-            start_date = infections.index.min()
-            break
-    return infections.loc[start_date:]
+
+

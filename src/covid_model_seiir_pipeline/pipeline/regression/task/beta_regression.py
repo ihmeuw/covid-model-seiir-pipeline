@@ -9,6 +9,9 @@ from covid_model_seiir_pipeline.lib import (
     math,
     static_vars,
 )
+from covid_model_seiir_pipeline.lib.ode_mk2.constants import (
+    VARIANT,
+)
 from covid_model_seiir_pipeline.pipeline.regression.data import RegressionDataInterface
 from covid_model_seiir_pipeline.pipeline.regression.specification import RegressionSpecification
 from covid_model_seiir_pipeline.pipeline.regression import model
@@ -38,26 +41,19 @@ def run_beta_regression(regression_version: str, draw_id: int, progress_bar: boo
     np.random.seed(draw_id)
     sampled_params = model.sample_params(
         infections.index, regression_params,
-        params_to_sample=['alpha', 'sigma', 'gamma1', 'gamma2', 'kappa', 'chi', 'pi']
-    )
-
-    sampled_params['phi'] = pd.Series(
-        np.random.normal(loc=sampled_params['chi'] + regression_params['phi_mean_shift'],
-                         scale=regression_params['phi_sd']),
-        index=infections.index, name='phi',
-    )
-    sampled_params['psi'] = pd.Series(
-        np.random.normal(loc=sampled_params['chi'] + regression_params['psi_mean_shift'],
-                         scale=regression_params['psi_sd']),
-        index=infections.index, name='psi',
+        params_to_sample=['alpha', 'sigma', 'gamma', 'pi'] + [f'kappa_{v}' for v in VARIANT]
     )
 
     ode_parameters = model.prepare_ode_fit_parameters(
         infections,
-        population,
         rhos,
         vaccinations,
         sampled_params,
+    )
+
+    initial_condition = model.make_initial_condition(
+        ode_parameters,
+        population,
     )
 
     logger.info('Running ODE fit', context='compute_ode')

@@ -398,7 +398,6 @@ class RegressionDataInterface:
             info_df.loc[:, :] = 0.0
         else:
             info_df = io.load(covariate_root.vaccine_info(info_type=f'vaccinations_{vaccine_scenario}'))
-        info_df = info_df[[c for c in info_df if 'omega' not in c]]
         return self._format_covariate_data(info_df, location_ids)
 
     def load_vaccination_summaries(self,
@@ -450,12 +449,10 @@ class RegressionDataInterface:
     def load_variant_prevalence(self, variant_scenario: str = 'reference',
                                 covariate_root: io.CovariateRoot = None) -> pd.DataFrame:
         covariate_root = covariate_root if covariate_root is not None else self.covariate_root
+        location_ids = self.load_location_ids()
         data = io.load(covariate_root.variant_info(info_type=variant_scenario))
-        rho = (data['alpha'] / (data['alpha'] + data['ancestral'])).rename('rho').groupby('location_id').ffill().fillna(0.)
-        rho_variant = data[['beta', 'gamma', 'delta', 'other']].sum(axis=1).rename('rho_variant')
-        rho_total = (data['alpha'] + rho_variant).rename('rho_total')
-        rho_b1617 = (data['delta'] / rho_variant).rename('rho_b1617').groupby('location_id').ffill().fillna(0.)
-        return pd.concat([rho, rho_variant, rho_b1617, rho_total], axis=1)
+        data.columns = [f'rho_{variant}' for variant in data]
+        return self._format_covariate_data(data, location_ids)
 
     #######################
     # Regression data I/O #
