@@ -154,7 +154,7 @@ def make_dict(name: str, num_levels: int) -> str:
 
     out = f"{name} = Dict.empty(\n"
     out += f"{TAB}types.UniTuple(types.unicode_type, {num_levels}),\n"
-    out += f"{TAB}types.int8,\n"
+    out += f"{TAB}types.int64,\n"
     out += ")\n"
     return out
 
@@ -163,7 +163,7 @@ def make_dict_items(name: str, *levels: str, count: int = 0):
     levels = [PRIMITIVES.get(level, [level]) for level in levels]
     out = ''
     for elements in itertools.product(*levels):
-        out += f"{name}[{tuple(elements)}] = np.int8({count})\n"
+        out += f"{name}[{tuple(elements)}] = np.int64({count})\n"
         count += 1
     return out, count
 
