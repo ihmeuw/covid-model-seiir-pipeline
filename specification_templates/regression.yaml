@@ -1,6 +1,6 @@
 data:
-  infection_version: '2021_08_17.06'
-  covariate_version: '2021_08_18.01'
+  infection_version: '2021_09_01.04'
+  covariate_version: '2021_09_05.09'
   coefficient_version: ''
   priors_version: '2021_05_31.01'
   location_set_version_id: 771

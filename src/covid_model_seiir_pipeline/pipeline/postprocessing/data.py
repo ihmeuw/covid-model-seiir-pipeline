@@ -54,6 +54,9 @@ class PostprocessingDataInterface:
     def get_n_draws(self) -> int:
         return self._get_forecast_data_inteface().get_n_draws()
 
+    def is_counties_run(self) -> bool:
+        return self._get_forecast_data_inteface().is_counties_run()
+
     def load_location_ids(self):
         return self._get_forecast_data_inteface().load_location_ids()
 
@@ -122,9 +125,9 @@ class PostprocessingDataInterface:
 
     def load_effectively_vaccinated(self, draw_id: int, scenario: str) -> pd.Series:
         eff_types = ['protected', 'immune']
-        covid_types = ['wild_type', 'all_types']
+        covid_types = ['escape', 'non_escape']
         risk_groups = ['lr', 'hr']
-        cols = [f'{e}_{c}_{r}' for e, c, r in itertools.product(eff_types, covid_types, risk_groups)]
+        cols = [f'{c}_{e}_{r}' for e, c, r in itertools.product(eff_types, covid_types, risk_groups)]
         draw_df = self.load_ode_params(draw_id=draw_id, scenario=scenario, columns=cols)
         return draw_df.sum(axis=1).rename(draw_id)
 

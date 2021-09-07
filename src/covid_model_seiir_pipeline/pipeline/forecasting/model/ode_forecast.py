@@ -58,7 +58,7 @@ def build_model_parameters(indices: Indices,
     )
 
     vaccine_data = vaccine_data.reindex(indices.full, fill_value=0)
-    adjusted_vaccinations = math.adjust_vaccinations(vaccine_data)
+    vaccine_data = {k: vaccine_data[k] for k in vaccine_data}
 
     return ode.ForecastParameters(
         **ode_params,
@@ -70,7 +70,7 @@ def build_model_parameters(indices: Indices,
         rho_variant=rho_variant,
         rho_b1617=rho_b1617,
         rho_total=rho_total,
-        **adjusted_vaccinations,
+        **vaccine_data,
     )
 
 
@@ -235,16 +235,16 @@ def run_ode_model(initial_conditions: pd.DataFrame,
     parameters = pd.concat(
         [mp_dict[p] for p in ordered_fields]
         + [model_parameters.unprotected_lr,
-           model_parameters.protected_wild_type_lr,
-           model_parameters.protected_all_types_lr,
-           model_parameters.immune_wild_type_lr,
-           model_parameters.immune_all_types_lr,
-
+           model_parameters.non_escape_protected_lr,
+           model_parameters.escape_protected_lr,
+           model_parameters.non_escape_immune_lr,
+           model_parameters.escape_immune_lr,
+           
            model_parameters.unprotected_hr,
-           model_parameters.protected_wild_type_hr,
-           model_parameters.protected_all_types_hr,
-           model_parameters.immune_wild_type_hr,
-           model_parameters.immune_all_types_hr],
+           model_parameters.non_escape_protected_hr,                                                                                                                                                
+           model_parameters.escape_protected_hr,                                                                                                                                                    
+           model_parameters.non_escape_immune_hr,                                                                                                                                                   
+           model_parameters.escape_immune_hr,],
         axis=1
     )
 

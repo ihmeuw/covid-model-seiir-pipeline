@@ -34,23 +34,6 @@ def compute_beta_hat(covariates: pd.DataFrame, coefficients: pd.DataFrame) -> pd
     return (covariates * coefficients).sum(axis=1)
 
 
-def adjust_vaccinations(vaccine_data: pd.DataFrame):
-    risk_groups = ['lr', 'hr']
-    vaccinations = {}
-
-    for risk_group in risk_groups:
-        base_col_map = {
-            f'unprotected_{risk_group}': f'unprotected_{risk_group}',
-            f'protected_wild_type_{risk_group}': f'effective_protected_wildtype_{risk_group}',
-            f'protected_all_types_{risk_group}': f'effective_protected_variant_{risk_group}',
-            f'immune_wild_type_{risk_group}': f'effective_wildtype_{risk_group}',
-            f'immune_all_types_{risk_group}': f'effective_variant_{risk_group}',
-        }
-        for to_name, from_name in base_col_map.items():
-            vaccinations[to_name] = vaccine_data[from_name].rename(to_name)
-    return vaccinations
-
-
 def solve_ode(system, t, init_cond, params):
     t_solve = np.arange(np.min(t), np.max(t) + SOLVER_DT, SOLVER_DT / 2)
     y_solve = np.zeros((init_cond.size, t_solve.size),

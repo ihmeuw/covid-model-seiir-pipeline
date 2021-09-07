@@ -84,6 +84,10 @@ class RegressionDataInterface:
         regression_spec = self.load_specification()
         return regression_spec.data.n_draws
 
+    def is_counties_run(self) -> bool:
+        regression_spec = self.load_specification()
+        return regression_spec.data.run_counties
+
     #########################
     # Raw location handling #
     #########################
@@ -261,13 +265,15 @@ class RegressionDataInterface:
         ifr = self.format_ratio_data(ifr)
         vaccinations = self.load_vaccinations().groupby('location_id').cumsum()
         population = self.load_risk_group_populations().reindex(vaccinations.index, level='location_id')
+        vax_groups = ['non_escape', 'escape']
+
         for risk_group in ['lr', 'hr']:
             total_pop = population[f'population_{risk_group}']
             immune = vaccinations[[
-                f'effective_wildtype_{risk_group}', f'effective_variant_{risk_group}'
+                f'{vax_group}_immune_{risk_group}' for vax_group in vax_groups
             ]].sum(axis=1)
             protected = vaccinations[[
-                f'effective_protected_wildtype_{risk_group}', f'effective_protected_variant_{risk_group}'
+                f'{vax_group}_protected_{risk_group}' for vax_group in vax_groups
             ]].sum(axis=1)
             denom = total_pop - immune
             target_denom = total_pop - immune - protected
@@ -392,6 +398,7 @@ class RegressionDataInterface:
             info_df.loc[:, :] = 0.0
         else:
             info_df = io.load(covariate_root.vaccine_info(info_type=f'vaccinations_{vaccine_scenario}'))
+        info_df = info_df[[c for c in info_df if 'omega' not in c]]
         return self._format_covariate_data(info_df, location_ids)
 
     def load_vaccination_summaries(self,
@@ -442,20 +449,12 @@ class RegressionDataInterface:
 
     def load_variant_prevalence(self, variant_scenario: str = 'reference',
                                 covariate_root: io.CovariateRoot = None) -> pd.DataFrame:
-
-        cov_map = {
-            variant: self.load_covariate(
-                f'variant_prevalence_{variant}',
-                variant_scenario,
-                with_observed=False,
-                covariate_root=covariate_root,
-            )[f'variant_prevalence_{variant}'] for variant in variants
-        }
-
-        rho = cov_map['non_escape'].rename('rho')
-        rho_variant = sum([cov_map[k] for k in ['B1351', 'P1', 'B16172']]).rename('rho_variant')
-        rho_total = (cov_map['B117'] + rho_variant).rename('rho_total')
-        rho_b1617 = cov_map['escape'].rename('rho_b1617')
+        covariate_root = covariate_root if covariate_root is not None else self.covariate_root
+        data = io.load(covariate_root.variant_info(info_type=variant_scenario))
+        rho = (data['alpha'] / (data['alpha'] + data['ancestral'])).rename('rho').groupby('location_id').ffill().fillna(0.)
+        rho_variant = data[['beta', 'gamma', 'delta', 'other']].sum(axis=1).rename('rho_variant')
+        rho_total = (data['alpha'] + rho_variant).rename('rho_total')
+        rho_b1617 = (data['delta'] / rho_variant).rename('rho_b1617').groupby('location_id').ffill().fillna(0.)
         return pd.concat([rho, rho_variant, rho_b1617, rho_total], axis=1)
 
     #######################

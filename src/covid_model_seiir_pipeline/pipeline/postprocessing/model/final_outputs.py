@@ -209,6 +209,7 @@ MEASURES = {
         calculate_cumulative=True,
         cumulative_label='cumulative_cases',
         aggregator=aggregators.sum_aggregator,
+        write_draws=True,
     ),
 
     # Hospital measures
@@ -682,6 +683,7 @@ MISCELLANEOUS = {
     'populations': MiscellaneousConfig(
         loaders.load_populations,
         'populations',
+        aggregator=aggregators.sum_aggregator,
     ),
     'hierarchy': MiscellaneousConfig(
         loaders.load_hierarchy,

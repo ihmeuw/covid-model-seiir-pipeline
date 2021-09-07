@@ -242,8 +242,10 @@ def calculate_hospital_correction_factors(usage: 'HospitalMetrics',
     min_date, max_date = date.min(), date.max()
 
     if not hospital_parameters.compute_correction_factors:
-        idx = pd.MultiIndex.from_product([pd.date_range(min_date, max_date),
-                                          aggregation_hierarchy.location_id.unique()])
+        idx = pd.MultiIndex.from_product([
+            aggregation_hierarchy.location_id.unique(),
+            pd.date_range(min_date, max_date),
+        ], names=['location_id', 'date'])
         return HospitalCorrectionFactors(
             hospital_census=pd.Series(1.0, index=idx, name='hospital_census'),
             icu_census=pd.Series(1.0, index=idx, name='icu_census'),
