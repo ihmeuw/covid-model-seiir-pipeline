@@ -83,11 +83,11 @@ def make_initial_condition(parameters: Parameters, population: pd.DataFrame):
     alpha = parameters.alpha.groupby('location_id').first()
 
     group_pop = get_risk_group_pop(population)
-    import pdb; pdb.set_trace()
 
     infections = parameters.new_e.groupby('location_id').apply(filter_to_epi_threshold)
     infections_by_group = group_pop.div(group_pop.sum(axis=1), axis=0).mul(infections, axis=0)
-    new_e_start = infections_by_group.groupby('location_id').first()
+    new_e_start = infections_by_group.reset_index(level='date').groupby('location_id').first()
+    start_date, new_e_start = new_e_start['date'], new_e_start[list(RISK_GROUP)]
 
     compartments = [f'{compartment}_{risk_group}'
                     for risk_group, compartment in itertools.product(RISK_GROUP, COMPARTMENTS_NAMES)]
@@ -98,7 +98,7 @@ def make_initial_condition(parameters: Parameters, population: pd.DataFrame):
         initial_condition.loc[:, f'S_unprotected_unvaccinated_{risk_group}'] = pop - new_e - (new_e / 5) ** (1 / alpha)
         initial_condition.loc[:, f'E_unprotected_unvaccinated_{risk_group}'] = new_e
         initial_condition.loc[:, f'I_unprotected_unvaccinated_{risk_group}'] = (new_e / 5) ** (1 / alpha)
-    return initial_condition
+    return start_date, initial_condition
 
 
 def get_risk_group_pop(population: pd.DataFrame):
