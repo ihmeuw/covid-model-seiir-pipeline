@@ -33,18 +33,21 @@ class Parameters:
     beta_beta: pd.Series
     beta_gamma: pd.Series
     beta_delta: pd.Series
+    beta_other: pd.Series
     beta_omega: pd.Series
     kappa_ancestral: pd.Series
     kappa_alpha: pd.Series
     kappa_beta: pd.Series
     kappa_gamma: pd.Series
     kappa_delta: pd.Series
+    kappa_other: pd.Series
     kappa_omega: pd.Series
     rho_ancestral: pd.Series
     rho_alpha: pd.Series
     rho_beta: pd.Series
     rho_gamma: pd.Series
     rho_delta: pd.Series
+    rho_other: pd.Series
     rho_omega: pd.Series
 
     vaccinations_unprotected_lr: pd.Series
