@@ -198,7 +198,7 @@ def make_compartment_group(compartment: str, variant: str, *levels: List[str]):
         for element in elements:
             out += f"'{element}', "
         out = out[:-2] + ")],\n"
-    out += "])\n"
+    out += "], dtype=np.int8)\n"
     return out
 
 
