@@ -51,7 +51,7 @@ def run_beta_regression(regression_version: str, draw_id: int, progress_bar: boo
         sampled_params,
     )
 
-    initial_condition = model.make_initial_condition(
+    start_date, initial_condition = model.make_initial_condition(
         ode_parameters,
         population,
     )

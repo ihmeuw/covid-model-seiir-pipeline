@@ -83,7 +83,8 @@ def make_initial_condition(parameters: Parameters, population: pd.DataFrame):
     alpha = parameters.alpha.groupby('location_id').first()
 
     group_pop = get_risk_group_pop(population)
-
+    # Filter out early dates with few infections
+    # to reduce noise in the past fit from leaking into the beta regression.
     infections = parameters.new_e.groupby('location_id').apply(filter_to_epi_threshold)
     infections_by_group = group_pop.div(group_pop.sum(axis=1), axis=0).mul(infections, axis=0)
     new_e_start = infections_by_group.reset_index(level='date').groupby('location_id').first()
@@ -146,13 +147,6 @@ def run_ode_fit(ode_parameters: Parameters,
 
 
 def run_loc_ode_fit(ode_parameters: Parameters) -> pd.DataFrame:
-    # Filter out early dates with few infections
-    # to reduce noise in the past fit from leaking into the beta regression.
-    infections = ode_parameters.new_e
-    full_index = infections.index
-    infections = filter_to_epi_threshold(infections)
-    ode_parameters = ode_parameters.reindex(infections.index)
-
     date = pd.Series(infections.index.values)
     t = (date - date.min()).dt.days.values
     obs = infections.values
@@ -160,20 +154,7 @@ def run_loc_ode_fit(ode_parameters: Parameters) -> pd.DataFrame:
 
 
 
-    params = [ode_parameters.to_df().loc[:, list(ode.PARAMETERS._fields) + list(ode.FIT_PARAMETERS._fields)].values]
 
-    for i, (risk_group, group_pop) in enumerate(pop_groups.items()):
-        initial_condition = _distribute_initial_condition(
-            infections=obs[0],
-            group_pop=group_pop,
-            total_pop=pop,
-            alpha=ode_parameters.alpha[0],
-            initial_condition=initial_condition,
-            offset=i * system_size,
-        )
-        params.append(
-            ode_parameters.get_vaccinations(ode.VACCINE_TYPES._fields, risk_group)
-        )
 
     params = np.hstack(params).T
 
