@@ -57,25 +57,18 @@ def sample_params(past_index: pd.Index,
 
 
 def clean_infection_data_measure(infection_data: pd.DataFrame, measure: str) -> pd.Series:
-    """Extracts measure, drops nulls, adds a leading zero.
-
-    Infections and deaths have a non-overlapping past index due to the way
-    the infections ES is built. This function, pulls out a measure, drops
-    nulls from the non-overlaping region, and then pads the front of the
-    series with a 0 so that the resulting series has the property:
-
-        s == s.groupby('location_id').cumsum().groupby('location_id').diff().fillna(0)
-
-    which is to say we can preserve the counts under conversions between daily
-    and cumulative space.
-
-    """
     data = infection_data[measure].dropna()
     min_date = data.reset_index().groupby('location_id').date.min()
     prepend_date = min_date - pd.Timedelta(days=1)
     prepend_idx = prepend_date.reset_index().set_index(['location_id', 'date']).index
     prepend = pd.Series(0., index=prepend_idx, name=measure)
-    return data.append(prepend).sort_index()
+    data = data.append(prepend).sort_index().reset_index()
+
+    all_locs = data.location_id.unique().tolist()
+    global_date_range = pd.date_range(data.date.min(), data.date.max())
+    square_idx = pd.MultiIndex.from_product((all_locs, global_date_range), names=['location_id', 'date']).sort_values()
+    data = data.set_index(['location_id', 'date']).reindex(square_idx).groupby('location_id').bfill()
+    return data
 
 
 def make_initial_condition(parameters: Parameters, population: pd.DataFrame):
@@ -120,7 +113,7 @@ def filter_to_epi_threshold(infections: pd.Series,
     infections = infections.reset_index(level='location_id', drop=True)
     # noinspection PyTypeChecker
     start_date = infections.loc[threshold <= infections].index.min()
-    while infections.loc[start_date:].count() <= 2:
+    while infections.loc[start_date:].dropna().count() <= 2:
         threshold *= 0.5
         # noinspection PyTypeChecker
         start_date = infections.loc[threshold <= infections].index.min()
@@ -128,6 +121,13 @@ def filter_to_epi_threshold(infections: pd.Series,
             start_date = infections.index.min()
             break
     return infections.loc[start_date:]
+
+
+def run_ode_fit(start_dates: pd.Series,
+                initial_condition: pd.DataFrame,
+                ode_parameters: Parameters,):
+    past_index = ode_parameters.new_e.index
+
 
 
 def run_ode_fit(ode_parameters: Parameters,
