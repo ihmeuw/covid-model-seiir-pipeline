@@ -1,0 +1,995 @@
+data:
+  covariate_version: '2021_09_05.09'
+  output_format: parquet
+  output_root: ''
+  regression_version: '2021_09_07.04'
+scenarios:
+  dining_bar_leisure_all_mandate_05_scale_0.25_date_early:
+    algorithm: draw_level_mandate_reimposition
+    algorithm_params: &id001
+      death_threshold: 8
+      max_threshold: 15
+      minimum_delay: 7
+      reimposition_duration: 6
+    beta_scaling: &id002
+      average_over_max: 42
+      average_over_min: 7
+      window_size: 42
+    covariates: &id003
+      air_pollution_pm_2_5: reference
+      lri_mortality: reference
+      mask_use: reference
+      mobility: reference
+      pneumonia: reference
+      proportion_over_2_5k: reference
+      proportion_under_100m: reference
+      smoking_prevalence: reference
+      testing: reference
+    log_beta_shift: -0.0205
+    log_beta_shift_date: '2021-09-27'
+    vaccine_version: reference
+    variant_ifr_scale: 1.29
+    variant_version: reference
+  dining_bar_leisure_all_mandate_05_scale_0.25_date_requested:
+    algorithm: draw_level_mandate_reimposition
+    algorithm_params: *id001
+    beta_scaling: *id002
+    covariates: *id003
+    log_beta_shift: -0.0205
+    log_beta_shift_date: '2021-10-25'
+    vaccine_version: reference
+    variant_ifr_scale: 1.29
+    variant_version: reference
+  dining_bar_leisure_all_mandate_05_scale_0.25_date_super_early:
+    algorithm: draw_level_mandate_reimposition
+    algorithm_params: *id001
+    beta_scaling: *id002
+    covariates: *id003
+    log_beta_shift: -0.0205
+    log_beta_shift_date: '2021-09-13'
+    vaccine_version: reference
+    variant_ifr_scale: 1.29
+    variant_version: reference
+  dining_bar_leisure_all_mandate_05_scale_0.25_date_timely:
+    algorithm: draw_level_mandate_reimposition
+    algorithm_params: *id001
+    beta_scaling: *id002
+    covariates: *id003
+    log_beta_shift: -0.0205
+    log_beta_shift_date: '2021-10-11'
+    vaccine_version: reference
+    variant_ifr_scale: 1.29
+    variant_version: reference
+  dining_bar_leisure_all_mandate_05_scale_0.5_date_early:
+    algorithm: draw_level_mandate_reimposition
+    algorithm_params: *id001
+    beta_scaling: *id002
+    covariates: *id003
+    log_beta_shift: -0.041
+    log_beta_shift_date: '2021-09-27'
+    vaccine_version: reference
+    variant_ifr_scale: 1.29
+    variant_version: reference
+  dining_bar_leisure_all_mandate_05_scale_0.5_date_requested:
+    algorithm: draw_level_mandate_reimposition
+    algorithm_params: *id001
+    beta_scaling: *id002
+    covariates: *id003
+    log_beta_shift: -0.041
+    log_beta_shift_date: '2021-10-25'
+    vaccine_version: reference
+    variant_ifr_scale: 1.29
+    variant_version: reference
+  dining_bar_leisure_all_mandate_05_scale_0.5_date_super_early:
+    algorithm: draw_level_mandate_reimposition
+    algorithm_params: *id001
+    beta_scaling: *id002
+    covariates: *id003
+    log_beta_shift: -0.041
+    log_beta_shift_date: '2021-09-13'
+    vaccine_version: reference
+    variant_ifr_scale: 1.29
+    variant_version: reference
+  dining_bar_leisure_all_mandate_05_scale_0.5_date_timely:
+    algorithm: draw_level_mandate_reimposition
+    algorithm_params: *id001
+    beta_scaling: *id002
+    covariates: *id003
+    log_beta_shift: -0.041
+    log_beta_shift_date: '2021-10-11'
+    vaccine_version: reference
+    variant_ifr_scale: 1.29
+    variant_version: reference
+  dining_bar_leisure_all_mandate_05_scale_0.75_date_early:
+    algorithm: draw_level_mandate_reimposition
+    algorithm_params: *id001
+    beta_scaling: *id002
+    covariates: *id003
+    log_beta_shift: -0.0615
+    log_beta_shift_date: '2021-09-27'
+    vaccine_version: reference
+    variant_ifr_scale: 1.29
+    variant_version: reference
+  dining_bar_leisure_all_mandate_05_scale_0.75_date_requested:
+    algorithm: draw_level_mandate_reimposition
+    algorithm_params: *id001
+    beta_scaling: *id002
+    covariates: *id003
+    log_beta_shift: -0.0615
+    log_beta_shift_date: '2021-10-25'
+    vaccine_version: reference
+    variant_ifr_scale: 1.29
+    variant_version: reference
+  dining_bar_leisure_all_mandate_05_scale_0.75_date_super_early:
+    algorithm: draw_level_mandate_reimposition
+    algorithm_params: *id001
+    beta_scaling: *id002
+    covariates: *id003
+    log_beta_shift: -0.0615
+    log_beta_shift_date: '2021-09-13'
+    vaccine_version: reference
+    variant_ifr_scale: 1.29
+    variant_version: reference
+  dining_bar_leisure_all_mandate_05_scale_0.75_date_timely:
+    algorithm: draw_level_mandate_reimposition
+    algorithm_params: *id001
+    beta_scaling: *id002
+    covariates: *id003
+    log_beta_shift: -0.0615
+    log_beta_shift_date: '2021-10-11'
+    vaccine_version: reference
+    variant_ifr_scale: 1.29
+    variant_version: reference
+  dining_bar_leisure_all_mandate_05_scale_1.0_date_early:
+    algorithm: draw_level_mandate_reimposition
+    algorithm_params: *id001
+    beta_scaling: *id002
+    covariates: *id003
+    log_beta_shift: -0.082
+    log_beta_shift_date: '2021-09-27'
+    vaccine_version: reference
+    variant_ifr_scale: 1.29
+    variant_version: reference
+  dining_bar_leisure_all_mandate_05_scale_1.0_date_requested:
+    algorithm: draw_level_mandate_reimposition
+    algorithm_params: *id001
+    beta_scaling: *id002
+    covariates: *id003
+    log_beta_shift: -0.082
+    log_beta_shift_date: '2021-10-25'
+    vaccine_version: reference
+    variant_ifr_scale: 1.29
+    variant_version: reference
+  dining_bar_leisure_all_mandate_05_scale_1.0_date_super_early:
+    algorithm: draw_level_mandate_reimposition
+    algorithm_params: *id001
+    beta_scaling: *id002
+    covariates: *id003
+    log_beta_shift: -0.082
+    log_beta_shift_date: '2021-09-13'
+    vaccine_version: reference
+    variant_ifr_scale: 1.29
+    variant_version: reference
+  dining_bar_leisure_all_mandate_05_scale_1.0_date_timely:
+    algorithm: draw_level_mandate_reimposition
+    algorithm_params: *id001
+    beta_scaling: *id002
+    covariates: *id003
+    log_beta_shift: -0.082
+    log_beta_shift_date: '2021-10-11'
+    vaccine_version: reference
+    variant_ifr_scale: 1.29
+    variant_version: reference
+  dining_bar_leisure_all_mandate_50_scale_0.25_date_early:
+    algorithm: draw_level_mandate_reimposition
+    algorithm_params: *id001
+    beta_scaling: *id002
+    covariates: *id003
+    log_beta_shift: -0.006
+    log_beta_shift_date: '2021-09-27'
+    vaccine_version: reference
+    variant_ifr_scale: 1.29
+    variant_version: reference
+  dining_bar_leisure_all_mandate_50_scale_0.25_date_requested:
+    algorithm: draw_level_mandate_reimposition
+    algorithm_params: *id001
+    beta_scaling: *id002
+    covariates: *id003
+    log_beta_shift: -0.006
+    log_beta_shift_date: '2021-10-25'
+    vaccine_version: reference
+    variant_ifr_scale: 1.29
+    variant_version: reference
+  dining_bar_leisure_all_mandate_50_scale_0.25_date_super_early:
+    algorithm: draw_level_mandate_reimposition
+    algorithm_params: *id001
+    beta_scaling: *id002
+    covariates: *id003
+    log_beta_shift: -0.006
+    log_beta_shift_date: '2021-09-13'
+    vaccine_version: reference
+    variant_ifr_scale: 1.29
+    variant_version: reference
+  dining_bar_leisure_all_mandate_50_scale_0.25_date_timely:
+    algorithm: draw_level_mandate_reimposition
+    algorithm_params: *id001
+    beta_scaling: *id002
+    covariates: *id003
+    log_beta_shift: -0.006
+    log_beta_shift_date: '2021-10-11'
+    vaccine_version: reference
+    variant_ifr_scale: 1.29
+    variant_version: reference
+  dining_bar_leisure_all_mandate_50_scale_0.5_date_early:
+    algorithm: draw_level_mandate_reimposition
+    algorithm_params: *id001
+    beta_scaling: *id002
+    covariates: *id003
+    log_beta_shift: -0.012
+    log_beta_shift_date: '2021-09-27'
+    vaccine_version: reference
+    variant_ifr_scale: 1.29
+    variant_version: reference
+  dining_bar_leisure_all_mandate_50_scale_0.5_date_requested:
+    algorithm: draw_level_mandate_reimposition
+    algorithm_params: *id001
+    beta_scaling: *id002
+    covariates: *id003
+    log_beta_shift: -0.012
+    log_beta_shift_date: '2021-10-25'
+    vaccine_version: reference
+    variant_ifr_scale: 1.29
+    variant_version: reference
+  dining_bar_leisure_all_mandate_50_scale_0.5_date_super_early:
+    algorithm: draw_level_mandate_reimposition
+    algorithm_params: *id001
+    beta_scaling: *id002
+    covariates: *id003
+    log_beta_shift: -0.012
+    log_beta_shift_date: '2021-09-13'
+    vaccine_version: reference
+    variant_ifr_scale: 1.29
+    variant_version: reference
+  dining_bar_leisure_all_mandate_50_scale_0.5_date_timely:
+    algorithm: draw_level_mandate_reimposition
+    algorithm_params: *id001
+    beta_scaling: *id002
+    covariates: *id003
+    log_beta_shift: -0.012
+    log_beta_shift_date: '2021-10-11'
+    vaccine_version: reference
+    variant_ifr_scale: 1.29
+    variant_version: reference
+  dining_bar_leisure_all_mandate_50_scale_0.75_date_early:
+    algorithm: draw_level_mandate_reimposition
+    algorithm_params: *id001
+    beta_scaling: *id002
+    covariates: *id003
+    log_beta_shift: -0.018000000000000002
+    log_beta_shift_date: '2021-09-27'
+    vaccine_version: reference
+    variant_ifr_scale: 1.29
+    variant_version: reference
+  dining_bar_leisure_all_mandate_50_scale_0.75_date_requested:
+    algorithm: draw_level_mandate_reimposition
+    algorithm_params: *id001
+    beta_scaling: *id002
+    covariates: *id003
+    log_beta_shift: -0.018000000000000002
+    log_beta_shift_date: '2021-10-25'
+    vaccine_version: reference
+    variant_ifr_scale: 1.29
+    variant_version: reference
+  dining_bar_leisure_all_mandate_50_scale_0.75_date_super_early:
+    algorithm: draw_level_mandate_reimposition
+    algorithm_params: *id001
+    beta_scaling: *id002
+    covariates: *id003
+    log_beta_shift: -0.018000000000000002
+    log_beta_shift_date: '2021-09-13'
+    vaccine_version: reference
+    variant_ifr_scale: 1.29
+    variant_version: reference
+  dining_bar_leisure_all_mandate_50_scale_0.75_date_timely:
+    algorithm: draw_level_mandate_reimposition
+    algorithm_params: *id001
+    beta_scaling: *id002
+    covariates: *id003
+    log_beta_shift: -0.018000000000000002
+    log_beta_shift_date: '2021-10-11'
+    vaccine_version: reference
+    variant_ifr_scale: 1.29
+    variant_version: reference
+  dining_bar_leisure_all_mandate_50_scale_1.0_date_early:
+    algorithm: draw_level_mandate_reimposition
+    algorithm_params: *id001
+    beta_scaling: *id002
+    covariates: *id003
+    log_beta_shift: -0.024
+    log_beta_shift_date: '2021-09-27'
+    vaccine_version: reference
+    variant_ifr_scale: 1.29
+    variant_version: reference
+  dining_bar_leisure_all_mandate_50_scale_1.0_date_requested:
+    algorithm: draw_level_mandate_reimposition
+    algorithm_params: *id001
+    beta_scaling: *id002
+    covariates: *id003
+    log_beta_shift: -0.024
+    log_beta_shift_date: '2021-10-25'
+    vaccine_version: reference
+    variant_ifr_scale: 1.29
+    variant_version: reference
+  dining_bar_leisure_all_mandate_50_scale_1.0_date_super_early:
+    algorithm: draw_level_mandate_reimposition
+    algorithm_params: *id001
+    beta_scaling: *id002
+    covariates: *id003
+    log_beta_shift: -0.024
+    log_beta_shift_date: '2021-09-13'
+    vaccine_version: reference
+    variant_ifr_scale: 1.29
+    variant_version: reference
+  dining_bar_leisure_all_mandate_50_scale_1.0_date_timely:
+    algorithm: draw_level_mandate_reimposition
+    algorithm_params: *id001
+    beta_scaling: *id002
+    covariates: *id003
+    log_beta_shift: -0.024
+    log_beta_shift_date: '2021-10-11'
+    vaccine_version: reference
+    variant_ifr_scale: 1.29
+    variant_version: reference
+  dining_bar_leisure_all_mandate_95_scale_0.25_date_early:
+    algorithm: draw_level_mandate_reimposition
+    algorithm_params: *id001
+    beta_scaling: *id002
+    covariates: *id003
+    log_beta_shift: -0.00125
+    log_beta_shift_date: '2021-09-27'
+    vaccine_version: reference
+    variant_ifr_scale: 1.29
+    variant_version: reference
+  dining_bar_leisure_all_mandate_95_scale_0.25_date_requested:
+    algorithm: draw_level_mandate_reimposition
+    algorithm_params: *id001
+    beta_scaling: *id002
+    covariates: *id003
+    log_beta_shift: -0.00125
+    log_beta_shift_date: '2021-10-25'
+    vaccine_version: reference
+    variant_ifr_scale: 1.29
+    variant_version: reference
+  dining_bar_leisure_all_mandate_95_scale_0.25_date_super_early:
+    algorithm: draw_level_mandate_reimposition
+    algorithm_params: *id001
+    beta_scaling: *id002
+    covariates: *id003
+    log_beta_shift: -0.00125
+    log_beta_shift_date: '2021-09-13'
+    vaccine_version: reference
+    variant_ifr_scale: 1.29
+    variant_version: reference
+  dining_bar_leisure_all_mandate_95_scale_0.25_date_timely:
+    algorithm: draw_level_mandate_reimposition
+    algorithm_params: *id001
+    beta_scaling: *id002
+    covariates: *id003
+    log_beta_shift: -0.00125
+    log_beta_shift_date: '2021-10-11'
+    vaccine_version: reference
+    variant_ifr_scale: 1.29
+    variant_version: reference
+  dining_bar_leisure_all_mandate_95_scale_0.5_date_early:
+    algorithm: draw_level_mandate_reimposition
+    algorithm_params: *id001
+    beta_scaling: *id002
+    covariates: *id003
+    log_beta_shift: -0.0025
+    log_beta_shift_date: '2021-09-27'
+    vaccine_version: reference
+    variant_ifr_scale: 1.29
+    variant_version: reference
+  dining_bar_leisure_all_mandate_95_scale_0.5_date_requested:
+    algorithm: draw_level_mandate_reimposition
+    algorithm_params: *id001
+    beta_scaling: *id002
+    covariates: *id003
+    log_beta_shift: -0.0025
+    log_beta_shift_date: '2021-10-25'
+    vaccine_version: reference
+    variant_ifr_scale: 1.29
+    variant_version: reference
+  dining_bar_leisure_all_mandate_95_scale_0.5_date_super_early:
+    algorithm: draw_level_mandate_reimposition
+    algorithm_params: *id001
+    beta_scaling: *id002
+    covariates: *id003
+    log_beta_shift: -0.0025
+    log_beta_shift_date: '2021-09-13'
+    vaccine_version: reference
+    variant_ifr_scale: 1.29
+    variant_version: reference
+  dining_bar_leisure_all_mandate_95_scale_0.5_date_timely:
+    algorithm: draw_level_mandate_reimposition
+    algorithm_params: *id001
+    beta_scaling: *id002
+    covariates: *id003
+    log_beta_shift: -0.0025
+    log_beta_shift_date: '2021-10-11'
+    vaccine_version: reference
+    variant_ifr_scale: 1.29
+    variant_version: reference
+  dining_bar_leisure_all_mandate_95_scale_0.75_date_early:
+    algorithm: draw_level_mandate_reimposition
+    algorithm_params: *id001
+    beta_scaling: *id002
+    covariates: *id003
+    log_beta_shift: -0.00375
+    log_beta_shift_date: '2021-09-27'
+    vaccine_version: reference
+    variant_ifr_scale: 1.29
+    variant_version: reference
+  dining_bar_leisure_all_mandate_95_scale_0.75_date_requested:
+    algorithm: draw_level_mandate_reimposition
+    algorithm_params: *id001
+    beta_scaling: *id002
+    covariates: *id003
+    log_beta_shift: -0.00375
+    log_beta_shift_date: '2021-10-25'
+    vaccine_version: reference
+    variant_ifr_scale: 1.29
+    variant_version: reference
+  dining_bar_leisure_all_mandate_95_scale_0.75_date_super_early:
+    algorithm: draw_level_mandate_reimposition
+    algorithm_params: *id001
+    beta_scaling: *id002
+    covariates: *id003
+    log_beta_shift: -0.00375
+    log_beta_shift_date: '2021-09-13'
+    vaccine_version: reference
+    variant_ifr_scale: 1.29
+    variant_version: reference
+  dining_bar_leisure_all_mandate_95_scale_0.75_date_timely:
+    algorithm: draw_level_mandate_reimposition
+    algorithm_params: *id001
+    beta_scaling: *id002
+    covariates: *id003
+    log_beta_shift: -0.00375
+    log_beta_shift_date: '2021-10-11'
+    vaccine_version: reference
+    variant_ifr_scale: 1.29
+    variant_version: reference
+  dining_bar_leisure_all_mandate_95_scale_1.0_date_early:
+    algorithm: draw_level_mandate_reimposition
+    algorithm_params: *id001
+    beta_scaling: *id002
+    covariates: *id003
+    log_beta_shift: -0.005
+    log_beta_shift_date: '2021-09-27'
+    vaccine_version: reference
+    variant_ifr_scale: 1.29
+    variant_version: reference
+  dining_bar_leisure_all_mandate_95_scale_1.0_date_requested:
+    algorithm: draw_level_mandate_reimposition
+    algorithm_params: *id001
+    beta_scaling: *id002
+    covariates: *id003
+    log_beta_shift: -0.005
+    log_beta_shift_date: '2021-10-25'
+    vaccine_version: reference
+    variant_ifr_scale: 1.29
+    variant_version: reference
+  dining_bar_leisure_all_mandate_95_scale_1.0_date_super_early:
+    algorithm: draw_level_mandate_reimposition
+    algorithm_params: *id001
+    beta_scaling: *id002
+    covariates: *id003
+    log_beta_shift: -0.005
+    log_beta_shift_date: '2021-09-13'
+    vaccine_version: reference
+    variant_ifr_scale: 1.29
+    variant_version: reference
+  dining_bar_leisure_all_mandate_95_scale_1.0_date_timely:
+    algorithm: draw_level_mandate_reimposition
+    algorithm_params: *id001
+    beta_scaling: *id002
+    covariates: *id003
+    log_beta_shift: -0.005
+    log_beta_shift_date: '2021-10-11'
+    vaccine_version: reference
+    variant_ifr_scale: 1.29
+    variant_version: reference
+  dining_bar_leisure_individual_05_scale_0.25_date_early:
+    algorithm: draw_level_mandate_reimposition
+    algorithm_params: *id001
+    beta_scaling: *id002
+    covariates: *id003
+    log_beta_shift: -0.057
+    log_beta_shift_date: '2021-09-27'
+    vaccine_version: reference
+    variant_ifr_scale: 1.29
+    variant_version: reference
+  dining_bar_leisure_individual_05_scale_0.25_date_requested:
+    algorithm: draw_level_mandate_reimposition
+    algorithm_params: *id001
+    beta_scaling: *id002
+    covariates: *id003
+    log_beta_shift: -0.057
+    log_beta_shift_date: '2021-10-25'
+    vaccine_version: reference
+    variant_ifr_scale: 1.29
+    variant_version: reference
+  dining_bar_leisure_individual_05_scale_0.25_date_super_early:
+    algorithm: draw_level_mandate_reimposition
+    algorithm_params: *id001
+    beta_scaling: *id002
+    covariates: *id003
+    log_beta_shift: -0.057
+    log_beta_shift_date: '2021-09-13'
+    vaccine_version: reference
+    variant_ifr_scale: 1.29
+    variant_version: reference
+  dining_bar_leisure_individual_05_scale_0.25_date_timely:
+    algorithm: draw_level_mandate_reimposition
+    algorithm_params: *id001
+    beta_scaling: *id002
+    covariates: *id003
+    log_beta_shift: -0.057
+    log_beta_shift_date: '2021-10-11'
+    vaccine_version: reference
+    variant_ifr_scale: 1.29
+    variant_version: reference
+  dining_bar_leisure_individual_05_scale_0.5_date_early:
+    algorithm: draw_level_mandate_reimposition
+    algorithm_params: *id001
+    beta_scaling: *id002
+    covariates: *id003
+    log_beta_shift: -0.114
+    log_beta_shift_date: '2021-09-27'
+    vaccine_version: reference
+    variant_ifr_scale: 1.29
+    variant_version: reference
+  dining_bar_leisure_individual_05_scale_0.5_date_requested:
+    algorithm: draw_level_mandate_reimposition
+    algorithm_params: *id001
+    beta_scaling: *id002
+    covariates: *id003
+    log_beta_shift: -0.114
+    log_beta_shift_date: '2021-10-25'
+    vaccine_version: reference
+    variant_ifr_scale: 1.29
+    variant_version: reference
+  dining_bar_leisure_individual_05_scale_0.5_date_super_early:
+    algorithm: draw_level_mandate_reimposition
+    algorithm_params: *id001
+    beta_scaling: *id002
+    covariates: *id003
+    log_beta_shift: -0.114
+    log_beta_shift_date: '2021-09-13'
+    vaccine_version: reference
+    variant_ifr_scale: 1.29
+    variant_version: reference
+  dining_bar_leisure_individual_05_scale_0.5_date_timely:
+    algorithm: draw_level_mandate_reimposition
+    algorithm_params: *id001
+    beta_scaling: *id002
+    covariates: *id003
+    log_beta_shift: -0.114
+    log_beta_shift_date: '2021-10-11'
+    vaccine_version: reference
+    variant_ifr_scale: 1.29
+    variant_version: reference
+  dining_bar_leisure_individual_05_scale_0.75_date_early:
+    algorithm: draw_level_mandate_reimposition
+    algorithm_params: *id001
+    beta_scaling: *id002
+    covariates: *id003
+    log_beta_shift: -0.171
+    log_beta_shift_date: '2021-09-27'
+    vaccine_version: reference
+    variant_ifr_scale: 1.29
+    variant_version: reference
+  dining_bar_leisure_individual_05_scale_0.75_date_requested:
+    algorithm: draw_level_mandate_reimposition
+    algorithm_params: *id001
+    beta_scaling: *id002
+    covariates: *id003
+    log_beta_shift: -0.171
+    log_beta_shift_date: '2021-10-25'
+    vaccine_version: reference
+    variant_ifr_scale: 1.29
+    variant_version: reference
+  dining_bar_leisure_individual_05_scale_0.75_date_super_early:
+    algorithm: draw_level_mandate_reimposition
+    algorithm_params: *id001
+    beta_scaling: *id002
+    covariates: *id003
+    log_beta_shift: -0.171
+    log_beta_shift_date: '2021-09-13'
+    vaccine_version: reference
+    variant_ifr_scale: 1.29
+    variant_version: reference
+  dining_bar_leisure_individual_05_scale_0.75_date_timely:
+    algorithm: draw_level_mandate_reimposition
+    algorithm_params: *id001
+    beta_scaling: *id002
+    covariates: *id003
+    log_beta_shift: -0.171
+    log_beta_shift_date: '2021-10-11'
+    vaccine_version: reference
+    variant_ifr_scale: 1.29
+    variant_version: reference
+  dining_bar_leisure_individual_05_scale_1.0_date_early:
+    algorithm: draw_level_mandate_reimposition
+    algorithm_params: *id001
+    beta_scaling: *id002
+    covariates: *id003
+    log_beta_shift: -0.228
+    log_beta_shift_date: '2021-09-27'
+    vaccine_version: reference
+    variant_ifr_scale: 1.29
+    variant_version: reference
+  dining_bar_leisure_individual_05_scale_1.0_date_requested:
+    algorithm: draw_level_mandate_reimposition
+    algorithm_params: *id001
+    beta_scaling: *id002
+    covariates: *id003
+    log_beta_shift: -0.228
+    log_beta_shift_date: '2021-10-25'
+    vaccine_version: reference
+    variant_ifr_scale: 1.29
+    variant_version: reference
+  dining_bar_leisure_individual_05_scale_1.0_date_super_early:
+    algorithm: draw_level_mandate_reimposition
+    algorithm_params: *id001
+    beta_scaling: *id002
+    covariates: *id003
+    log_beta_shift: -0.228
+    log_beta_shift_date: '2021-09-13'
+    vaccine_version: reference
+    variant_ifr_scale: 1.29
+    variant_version: reference
+  dining_bar_leisure_individual_05_scale_1.0_date_timely:
+    algorithm: draw_level_mandate_reimposition
+    algorithm_params: *id001
+    beta_scaling: *id002
+    covariates: *id003
+    log_beta_shift: -0.228
+    log_beta_shift_date: '2021-10-11'
+    vaccine_version: reference
+    variant_ifr_scale: 1.29
+    variant_version: reference
+  dining_bar_leisure_individual_50_scale_0.25_date_early:
+    algorithm: draw_level_mandate_reimposition
+    algorithm_params: *id001
+    beta_scaling: *id002
+    covariates: *id003
+    log_beta_shift: -0.02325
+    log_beta_shift_date: '2021-09-27'
+    vaccine_version: reference
+    variant_ifr_scale: 1.29
+    variant_version: reference
+  dining_bar_leisure_individual_50_scale_0.25_date_requested:
+    algorithm: draw_level_mandate_reimposition
+    algorithm_params: *id001
+    beta_scaling: *id002
+    covariates: *id003
+    log_beta_shift: -0.02325
+    log_beta_shift_date: '2021-10-25'
+    vaccine_version: reference
+    variant_ifr_scale: 1.29
+    variant_version: reference
+  dining_bar_leisure_individual_50_scale_0.25_date_super_early:
+    algorithm: draw_level_mandate_reimposition
+    algorithm_params: *id001
+    beta_scaling: *id002
+    covariates: *id003
+    log_beta_shift: -0.02325
+    log_beta_shift_date: '2021-09-13'
+    vaccine_version: reference
+    variant_ifr_scale: 1.29
+    variant_version: reference
+  dining_bar_leisure_individual_50_scale_0.25_date_timely:
+    algorithm: draw_level_mandate_reimposition
+    algorithm_params: *id001
+    beta_scaling: *id002
+    covariates: *id003
+    log_beta_shift: -0.02325
+    log_beta_shift_date: '2021-10-11'
+    vaccine_version: reference
+    variant_ifr_scale: 1.29
+    variant_version: reference
+  dining_bar_leisure_individual_50_scale_0.5_date_early:
+    algorithm: draw_level_mandate_reimposition
+    algorithm_params: *id001
+    beta_scaling: *id002
+    covariates: *id003
+    log_beta_shift: -0.0465
+    log_beta_shift_date: '2021-09-27'
+    vaccine_version: reference
+    variant_ifr_scale: 1.29
+    variant_version: reference
+  dining_bar_leisure_individual_50_scale_0.5_date_requested:
+    algorithm: draw_level_mandate_reimposition
+    algorithm_params: *id001
+    beta_scaling: *id002
+    covariates: *id003
+    log_beta_shift: -0.0465
+    log_beta_shift_date: '2021-10-25'
+    vaccine_version: reference
+    variant_ifr_scale: 1.29
+    variant_version: reference
+  dining_bar_leisure_individual_50_scale_0.5_date_super_early:
+    algorithm: draw_level_mandate_reimposition
+    algorithm_params: *id001
+    beta_scaling: *id002
+    covariates: *id003
+    log_beta_shift: -0.0465
+    log_beta_shift_date: '2021-09-13'
+    vaccine_version: reference
+    variant_ifr_scale: 1.29
+    variant_version: reference
+  dining_bar_leisure_individual_50_scale_0.5_date_timely:
+    algorithm: draw_level_mandate_reimposition
+    algorithm_params: *id001
+    beta_scaling: *id002
+    covariates: *id003
+    log_beta_shift: -0.0465
+    log_beta_shift_date: '2021-10-11'
+    vaccine_version: reference
+    variant_ifr_scale: 1.29
+    variant_version: reference
+  dining_bar_leisure_individual_50_scale_0.75_date_early:
+    algorithm: draw_level_mandate_reimposition
+    algorithm_params: *id001
+    beta_scaling: *id002
+    covariates: *id003
+    log_beta_shift: -0.06975
+    log_beta_shift_date: '2021-09-27'
+    vaccine_version: reference
+    variant_ifr_scale: 1.29
+    variant_version: reference
+  dining_bar_leisure_individual_50_scale_0.75_date_requested:
+    algorithm: draw_level_mandate_reimposition
+    algorithm_params: *id001
+    beta_scaling: *id002
+    covariates: *id003
+    log_beta_shift: -0.06975
+    log_beta_shift_date: '2021-10-25'
+    vaccine_version: reference
+    variant_ifr_scale: 1.29
+    variant_version: reference
+  dining_bar_leisure_individual_50_scale_0.75_date_super_early:
+    algorithm: draw_level_mandate_reimposition
+    algorithm_params: *id001
+    beta_scaling: *id002
+    covariates: *id003
+    log_beta_shift: -0.06975
+    log_beta_shift_date: '2021-09-13'
+    vaccine_version: reference
+    variant_ifr_scale: 1.29
+    variant_version: reference
+  dining_bar_leisure_individual_50_scale_0.75_date_timely:
+    algorithm: draw_level_mandate_reimposition
+    algorithm_params: *id001
+    beta_scaling: *id002
+    covariates: *id003
+    log_beta_shift: -0.06975
+    log_beta_shift_date: '2021-10-11'
+    vaccine_version: reference
+    variant_ifr_scale: 1.29
+    variant_version: reference
+  dining_bar_leisure_individual_50_scale_1.0_date_early:
+    algorithm: draw_level_mandate_reimposition
+    algorithm_params: *id001
+    beta_scaling: *id002
+    covariates: *id003
+    log_beta_shift: -0.093
+    log_beta_shift_date: '2021-09-27'
+    vaccine_version: reference
+    variant_ifr_scale: 1.29
+    variant_version: reference
+  dining_bar_leisure_individual_50_scale_1.0_date_requested:
+    algorithm: draw_level_mandate_reimposition
+    algorithm_params: *id001
+    beta_scaling: *id002
+    covariates: *id003
+    log_beta_shift: -0.093
+    log_beta_shift_date: '2021-10-25'
+    vaccine_version: reference
+    variant_ifr_scale: 1.29
+    variant_version: reference
+  dining_bar_leisure_individual_50_scale_1.0_date_super_early:
+    algorithm: draw_level_mandate_reimposition
+    algorithm_params: *id001
+    beta_scaling: *id002
+    covariates: *id003
+    log_beta_shift: -0.093
+    log_beta_shift_date: '2021-09-13'
+    vaccine_version: reference
+    variant_ifr_scale: 1.29
+    variant_version: reference
+  dining_bar_leisure_individual_50_scale_1.0_date_timely:
+    algorithm: draw_level_mandate_reimposition
+    algorithm_params: *id001
+    beta_scaling: *id002
+    covariates: *id003
+    log_beta_shift: -0.093
+    log_beta_shift_date: '2021-10-11'
+    vaccine_version: reference
+    variant_ifr_scale: 1.29
+    variant_version: reference
+  dining_bar_leisure_individual_95_scale_0.25_date_early:
+    algorithm: draw_level_mandate_reimposition
+    algorithm_params: *id001
+    beta_scaling: *id002
+    covariates: *id003
+    log_beta_shift: -0.0085
+    log_beta_shift_date: '2021-09-27'
+    vaccine_version: reference
+    variant_ifr_scale: 1.29
+    variant_version: reference
+  dining_bar_leisure_individual_95_scale_0.25_date_requested:
+    algorithm: draw_level_mandate_reimposition
+    algorithm_params: *id001
+    beta_scaling: *id002
+    covariates: *id003
+    log_beta_shift: -0.0085
+    log_beta_shift_date: '2021-10-25'
+    vaccine_version: reference
+    variant_ifr_scale: 1.29
+    variant_version: reference
+  dining_bar_leisure_individual_95_scale_0.25_date_super_early:
+    algorithm: draw_level_mandate_reimposition
+    algorithm_params: *id001
+    beta_scaling: *id002
+    covariates: *id003
+    log_beta_shift: -0.0085
+    log_beta_shift_date: '2021-09-13'
+    vaccine_version: reference
+    variant_ifr_scale: 1.29
+    variant_version: reference
+  dining_bar_leisure_individual_95_scale_0.25_date_timely:
+    algorithm: draw_level_mandate_reimposition
+    algorithm_params: *id001
+    beta_scaling: *id002
+    covariates: *id003
+    log_beta_shift: -0.0085
+    log_beta_shift_date: '2021-10-11'
+    vaccine_version: reference
+    variant_ifr_scale: 1.29
+    variant_version: reference
+  dining_bar_leisure_individual_95_scale_0.5_date_early:
+    algorithm: draw_level_mandate_reimposition
+    algorithm_params: *id001
+    beta_scaling: *id002
+    covariates: *id003
+    log_beta_shift: -0.017
+    log_beta_shift_date: '2021-09-27'
+    vaccine_version: reference
+    variant_ifr_scale: 1.29
+    variant_version: reference
+  dining_bar_leisure_individual_95_scale_0.5_date_requested:
+    algorithm: draw_level_mandate_reimposition
+    algorithm_params: *id001
+    beta_scaling: *id002
+    covariates: *id003
+    log_beta_shift: -0.017
+    log_beta_shift_date: '2021-10-25'
+    vaccine_version: reference
+    variant_ifr_scale: 1.29
+    variant_version: reference
+  dining_bar_leisure_individual_95_scale_0.5_date_super_early:
+    algorithm: draw_level_mandate_reimposition
+    algorithm_params: *id001
+    beta_scaling: *id002
+    covariates: *id003
+    log_beta_shift: -0.017
+    log_beta_shift_date: '2021-09-13'
+    vaccine_version: reference
+    variant_ifr_scale: 1.29
+    variant_version: reference
+  dining_bar_leisure_individual_95_scale_0.5_date_timely:
+    algorithm: draw_level_mandate_reimposition
+    algorithm_params: *id001
+    beta_scaling: *id002
+    covariates: *id003
+    log_beta_shift: -0.017
+    log_beta_shift_date: '2021-10-11'
+    vaccine_version: reference
+    variant_ifr_scale: 1.29
+    variant_version: reference
+  dining_bar_leisure_individual_95_scale_0.75_date_early:
+    algorithm: draw_level_mandate_reimposition
+    algorithm_params: *id001
+    beta_scaling: *id002
+    covariates: *id003
+    log_beta_shift: -0.025500000000000002
+    log_beta_shift_date: '2021-09-27'
+    vaccine_version: reference
+    variant_ifr_scale: 1.29
+    variant_version: reference
+  dining_bar_leisure_individual_95_scale_0.75_date_requested:
+    algorithm: draw_level_mandate_reimposition
+    algorithm_params: *id001
+    beta_scaling: *id002
+    covariates: *id003
+    log_beta_shift: -0.025500000000000002
+    log_beta_shift_date: '2021-10-25'
+    vaccine_version: reference
+    variant_ifr_scale: 1.29
+    variant_version: reference
+  dining_bar_leisure_individual_95_scale_0.75_date_super_early:
+    algorithm: draw_level_mandate_reimposition
+    algorithm_params: *id001
+    beta_scaling: *id002
+    covariates: *id003
+    log_beta_shift: -0.025500000000000002
+    log_beta_shift_date: '2021-09-13'
+    vaccine_version: reference
+    variant_ifr_scale: 1.29
+    variant_version: reference
+  dining_bar_leisure_individual_95_scale_0.75_date_timely:
+    algorithm: draw_level_mandate_reimposition
+    algorithm_params: *id001
+    beta_scaling: *id002
+    covariates: *id003
+    log_beta_shift: -0.025500000000000002
+    log_beta_shift_date: '2021-10-11'
+    vaccine_version: reference
+    variant_ifr_scale: 1.29
+    variant_version: reference
+  dining_bar_leisure_individual_95_scale_1.0_date_early:
+    algorithm: draw_level_mandate_reimposition
+    algorithm_params: *id001
+    beta_scaling: *id002
+    covariates: *id003
+    log_beta_shift: -0.034
+    log_beta_shift_date: '2021-09-27'
+    vaccine_version: reference
+    variant_ifr_scale: 1.29
+    variant_version: reference
+  dining_bar_leisure_individual_95_scale_1.0_date_requested:
+    algorithm: draw_level_mandate_reimposition
+    algorithm_params: *id001
+    beta_scaling: *id002
+    covariates: *id003
+    log_beta_shift: -0.034
+    log_beta_shift_date: '2021-10-25'
+    vaccine_version: reference
+    variant_ifr_scale: 1.29
+    variant_version: reference
+  dining_bar_leisure_individual_95_scale_1.0_date_super_early:
+    algorithm: draw_level_mandate_reimposition
+    algorithm_params: *id001
+    beta_scaling: *id002
+    covariates: *id003
+    log_beta_shift: -0.034
+    log_beta_shift_date: '2021-09-13'
+    vaccine_version: reference
+    variant_ifr_scale: 1.29
+    variant_version: reference
+  dining_bar_leisure_individual_95_scale_1.0_date_timely:
+    algorithm: draw_level_mandate_reimposition
+    algorithm_params: *id001
+    beta_scaling: *id002
+    covariates: *id003
+    log_beta_shift: -0.034
+    log_beta_shift_date: '2021-10-11'
+    vaccine_version: reference
+    variant_ifr_scale: 1.29
+    variant_version: reference
+  reference:
+    algorithm: draw_level_mandate_reimposition
+    algorithm_params: *id001
+    beta_scaling: *id002
+    covariates: *id003
+    log_beta_shift: 0.0
+    log_beta_shift_date: '2021-09-08'
+    vaccine_version: reference
+    variant_ifr_scale: 1.29
+    variant_version: reference
+workflow:
+  project: proj_covid_prod
+  queue: d.q

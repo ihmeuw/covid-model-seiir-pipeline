@@ -1,31 +1,116 @@
+#aggregation:
+#- location_file: /ihme/covid-19/seir-outputs/agg-hierarchies/modeling.csv
+#- location_file: /ihme/covid-19/seir-outputs/agg-hierarchies/who_plus_palestine.csv
+#- location_file: /ihme/covid-19/seir-outputs/agg-hierarchies/who_euro.csv
+#- location_file: /ihme/covid-19/seir-outputs/agg-hierarchies/world_bank.csv
+#- location_file: /ihme/covid-19/seir-outputs/agg-hierarchies/eu_minus_uk.csv
 data:
-  forecast_version: '2021_09_07.03'
-  mortality_ratio_version: 'best'
-  scenarios:
-    - 'reference'
-    - 'gather_all_mandate_05'
-    - 'gather_individual_05'
-    - 'dining_bar_leisure_all_mandate_05'
-    - 'dining_bar_leisure_all_mandate_50'
-    - 'dining_bar_leisure_all_mandate_95'
-    - 'dining_bar_leisure_individual_05'
-    - 'dining_bar_leisure_individual_50'
-    - 'dining_bar_leisure_individual_95'
+  forecast_version: '2021_09_09.03'
+  mortality_ratio_version: best
   output_root: ''
-workflow:
-  project: 'proj_covid_prod'
-  queue: 'd.q'
+  scenarios:
+  - dining_bar_leisure_all_mandate_05_scale_0.25_date_early
+  - dining_bar_leisure_all_mandate_05_scale_0.25_date_requested
+  - dining_bar_leisure_all_mandate_05_scale_0.25_date_super_early
+  - dining_bar_leisure_all_mandate_05_scale_0.25_date_timely
+  - dining_bar_leisure_all_mandate_05_scale_0.5_date_early
+  - dining_bar_leisure_all_mandate_05_scale_0.5_date_requested
+  - dining_bar_leisure_all_mandate_05_scale_0.5_date_super_early
+  - dining_bar_leisure_all_mandate_05_scale_0.5_date_timely
+  - dining_bar_leisure_all_mandate_05_scale_0.75_date_early
+  - dining_bar_leisure_all_mandate_05_scale_0.75_date_requested
+  - dining_bar_leisure_all_mandate_05_scale_0.75_date_super_early
+  - dining_bar_leisure_all_mandate_05_scale_0.75_date_timely
+  - dining_bar_leisure_all_mandate_05_scale_1.0_date_early
+  - dining_bar_leisure_all_mandate_05_scale_1.0_date_requested
+  - dining_bar_leisure_all_mandate_05_scale_1.0_date_super_early
+  - dining_bar_leisure_all_mandate_05_scale_1.0_date_timely
+  - dining_bar_leisure_all_mandate_50_scale_0.25_date_early
+  - dining_bar_leisure_all_mandate_50_scale_0.25_date_requested
+  - dining_bar_leisure_all_mandate_50_scale_0.25_date_super_early
+  - dining_bar_leisure_all_mandate_50_scale_0.25_date_timely
+  - dining_bar_leisure_all_mandate_50_scale_0.5_date_early
+  - dining_bar_leisure_all_mandate_50_scale_0.5_date_requested
+  - dining_bar_leisure_all_mandate_50_scale_0.5_date_super_early
+  - dining_bar_leisure_all_mandate_50_scale_0.5_date_timely
+  - dining_bar_leisure_all_mandate_50_scale_0.75_date_early
+  - dining_bar_leisure_all_mandate_50_scale_0.75_date_requested
+  - dining_bar_leisure_all_mandate_50_scale_0.75_date_super_early
+  - dining_bar_leisure_all_mandate_50_scale_0.75_date_timely
+  - dining_bar_leisure_all_mandate_50_scale_1.0_date_early
+  - dining_bar_leisure_all_mandate_50_scale_1.0_date_requested
+  - dining_bar_leisure_all_mandate_50_scale_1.0_date_super_early
+  - dining_bar_leisure_all_mandate_50_scale_1.0_date_timely
+  - dining_bar_leisure_all_mandate_95_scale_0.25_date_early
+  - dining_bar_leisure_all_mandate_95_scale_0.25_date_requested
+  - dining_bar_leisure_all_mandate_95_scale_0.25_date_super_early
+  - dining_bar_leisure_all_mandate_95_scale_0.25_date_timely
+  - dining_bar_leisure_all_mandate_95_scale_0.5_date_early
+  - dining_bar_leisure_all_mandate_95_scale_0.5_date_requested
+  - dining_bar_leisure_all_mandate_95_scale_0.5_date_super_early
+  - dining_bar_leisure_all_mandate_95_scale_0.5_date_timely
+  - dining_bar_leisure_all_mandate_95_scale_0.75_date_early
+  - dining_bar_leisure_all_mandate_95_scale_0.75_date_requested
+  - dining_bar_leisure_all_mandate_95_scale_0.75_date_super_early
+  - dining_bar_leisure_all_mandate_95_scale_0.75_date_timely
+  - dining_bar_leisure_all_mandate_95_scale_1.0_date_early
+  - dining_bar_leisure_all_mandate_95_scale_1.0_date_requested
+  - dining_bar_leisure_all_mandate_95_scale_1.0_date_super_early
+  - dining_bar_leisure_all_mandate_95_scale_1.0_date_timely
+  - dining_bar_leisure_individual_05_scale_0.25_date_early
+  - dining_bar_leisure_individual_05_scale_0.25_date_requested
+  - dining_bar_leisure_individual_05_scale_0.25_date_super_early
+  - dining_bar_leisure_individual_05_scale_0.25_date_timely
+  - dining_bar_leisure_individual_05_scale_0.5_date_early
+  - dining_bar_leisure_individual_05_scale_0.5_date_requested
+  - dining_bar_leisure_individual_05_scale_0.5_date_super_early
+  - dining_bar_leisure_individual_05_scale_0.5_date_timely
+  - dining_bar_leisure_individual_05_scale_0.75_date_early
+  - dining_bar_leisure_individual_05_scale_0.75_date_requested
+  - dining_bar_leisure_individual_05_scale_0.75_date_super_early
+  - dining_bar_leisure_individual_05_scale_0.75_date_timely
+  - dining_bar_leisure_individual_05_scale_1.0_date_early
+  - dining_bar_leisure_individual_05_scale_1.0_date_requested
+  - dining_bar_leisure_individual_05_scale_1.0_date_super_early
+  - dining_bar_leisure_individual_05_scale_1.0_date_timely
+  - dining_bar_leisure_individual_50_scale_0.25_date_early
+  - dining_bar_leisure_individual_50_scale_0.25_date_requested
+  - dining_bar_leisure_individual_50_scale_0.25_date_super_early
+  - dining_bar_leisure_individual_50_scale_0.25_date_timely
+  - dining_bar_leisure_individual_50_scale_0.5_date_early
+  - dining_bar_leisure_individual_50_scale_0.5_date_requested
+  - dining_bar_leisure_individual_50_scale_0.5_date_super_early
+  - dining_bar_leisure_individual_50_scale_0.5_date_timely
+  - dining_bar_leisure_individual_50_scale_0.75_date_early
+  - dining_bar_leisure_individual_50_scale_0.75_date_requested
+  - dining_bar_leisure_individual_50_scale_0.75_date_super_early
+  - dining_bar_leisure_individual_50_scale_0.75_date_timely
+  - dining_bar_leisure_individual_50_scale_1.0_date_early
+  - dining_bar_leisure_individual_50_scale_1.0_date_requested
+  - dining_bar_leisure_individual_50_scale_1.0_date_super_early
+  - dining_bar_leisure_individual_50_scale_1.0_date_timely
+  - dining_bar_leisure_individual_95_scale_0.25_date_early
+  - dining_bar_leisure_individual_95_scale_0.25_date_requested
+  - dining_bar_leisure_individual_95_scale_0.25_date_super_early
+  - dining_bar_leisure_individual_95_scale_0.25_date_timely
+  - dining_bar_leisure_individual_95_scale_0.5_date_early
+  - dining_bar_leisure_individual_95_scale_0.5_date_requested
+  - dining_bar_leisure_individual_95_scale_0.5_date_super_early
+  - dining_bar_leisure_individual_95_scale_0.5_date_timely
+  - dining_bar_leisure_individual_95_scale_0.75_date_early
+  - dining_bar_leisure_individual_95_scale_0.75_date_requested
+  - dining_bar_leisure_individual_95_scale_0.75_date_super_early
+  - dining_bar_leisure_individual_95_scale_0.75_date_timely
+  - dining_bar_leisure_individual_95_scale_1.0_date_early
+  - dining_bar_leisure_individual_95_scale_1.0_date_requested
+  - dining_bar_leisure_individual_95_scale_1.0_date_super_early
+  - dining_bar_leisure_individual_95_scale_1.0_date_timely
+  - reference
 resampling:
-  reference_scenario: 'reference'
-  reference_date: '2021-12-31'
   lower_quantile: 0.025
+  reference_date: '2021-12-31'
+  reference_scenario: reference
   upper_quantile: 0.975
-#splicing:
-#  - locations: [179, 214]
-#    output_version: '/ihme/covid-19/seir-outputs/2021_08_04.04'
-aggregation:
-  - location_file: '/ihme/covid-19/seir-outputs/agg-hierarchies/modeling.csv'
-  - location_file: '/ihme/covid-19/seir-outputs/agg-hierarchies/who_plus_palestine.csv'
-  - location_file: '/ihme/covid-19/seir-outputs/agg-hierarchies/who_euro.csv'
-  - location_file: '/ihme/covid-19/seir-outputs/agg-hierarchies/world_bank.csv'
-  - location_file: '/ihme/covid-19/seir-outputs/agg-hierarchies/eu_minus_uk.csv'
+workflow:
+  project: proj_covid_prod
+  queue: d.q
