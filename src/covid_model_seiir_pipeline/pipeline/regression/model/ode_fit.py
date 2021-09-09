@@ -68,7 +68,7 @@ def clean_infection_data_measure(infection_data: pd.DataFrame, measure: str) -> 
     global_date_range = pd.date_range(data.date.min(), data.date.max())
     square_idx = pd.MultiIndex.from_product((all_locs, global_date_range), names=['location_id', 'date']).sort_values()
     data = data.set_index(['location_id', 'date']).reindex(square_idx).groupby('location_id').bfill()
-    return data
+    return data.infections
 
 
 def make_initial_condition(parameters: Parameters, population: pd.DataFrame):
