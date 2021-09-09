@@ -8,17 +8,17 @@ grid_plots:
     date_start: '2020-03-01'
     date_end: '2022-08-31'
     comparators:
-      - version: &public '2021_09_01.01'
+      - version: &public '2021_09_01.02'
         scenarios:
           reference*: 'public reference'
-      - version: &new '2021_09_05.04'
+      - version: &new '2021_09_09.02'
         scenarios:
           reference*: 'reference'
           worse: 'worse'
           best_masks: 'best masks'
   - name: 'compare_shortrange'
     date_start: '2020-03-01'
-    date_end: '2021-09-30'
+    date_end: '2021-12-31'
     comparators:
       - version: *public
         scenarios:

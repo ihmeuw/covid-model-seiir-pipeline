@@ -29,17 +29,17 @@ class ODEParameters:
     chi: pd.Series
 
     # Vaccine parameters
-    unprotected_lr: pd.Series
-    non_escape_protected_lr: pd.Series
-    escape_protected_lr: pd.Series
-    non_escape_immune_lr: pd.Series
-    escape_immune_lr: pd.Series
+    vaccinations_unprotected_lr: pd.Series
+    vaccinations_non_escape_protected_lr: pd.Series
+    vaccinations_escape_protected_lr: pd.Series
+    vaccinations_non_escape_immune_lr: pd.Series
+    vaccinations_escape_immune_lr: pd.Series
 
-    unprotected_hr: pd.Series
-    non_escape_protected_hr: pd.Series
-    escape_protected_hr: pd.Series
-    non_escape_immune_hr: pd.Series
-    escape_immune_hr: pd.Series
+    vaccinations_unprotected_hr: pd.Series
+    vaccinations_non_escape_protected_hr: pd.Series
+    vaccinations_escape_protected_hr: pd.Series
+    vaccinations_non_escape_immune_hr: pd.Series
+    vaccinations_escape_immune_hr: pd.Series
 
     def to_dict(self) -> Dict[str, pd.Series]:
         return {k: v.rename(k) for k, v in utilities.asdict(self).items()}
@@ -55,11 +55,11 @@ class ODEParameters:
 
     def get_vaccinations(self, vaccine_types: List[str], risk_group: str) -> pd.DataFrame:
         vaccine_type_map = {
-            'u': 'unprotected',
-            'p': 'non_escape_protected',
-            'pa': 'escape_protected',
-            'm': 'non_escape_immune',
-            'ma': 'escape_immune',
+            'u': 'vaccinations_unprotected',
+            'p': 'vaccinations_non_escape_protected',
+            'pa': 'vaccinations_escape_protected',
+            'm': 'vaccinations_non_escape_immune',
+            'ma': 'vaccinations_escape_immune',
         }
         vaccinations = []
         for vaccine_type in vaccine_types:

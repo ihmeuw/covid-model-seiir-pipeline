@@ -127,7 +127,7 @@ class PostprocessingDataInterface:
         eff_types = ['protected', 'immune']
         covid_types = ['escape', 'non_escape']
         risk_groups = ['lr', 'hr']
-        cols = [f'{c}_{e}_{r}' for e, c, r in itertools.product(eff_types, covid_types, risk_groups)]
+        cols = [f'vaccinations_{c}_{e}_{r}' for e, c, r in itertools.product(eff_types, covid_types, risk_groups)]
         draw_df = self.load_ode_params(draw_id=draw_id, scenario=scenario, columns=cols)
         return draw_df.sum(axis=1).rename(draw_id)
 
