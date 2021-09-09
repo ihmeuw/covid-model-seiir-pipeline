@@ -255,6 +255,7 @@ MEASURES = {
         calculate_cumulative=True,
         cumulative_label='cumulative_vaccinations_effective_input',
         aggregator=aggregators.sum_aggregator,
+        splice=False,
     ),
     'cumulative_all_effective': MeasureConfig(
         loaders.load_vaccine_summaries('cumulative_all_effective'),
