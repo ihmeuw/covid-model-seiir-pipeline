@@ -85,14 +85,20 @@ def make_initial_condition(parameters: Parameters, population: pd.DataFrame):
 
     compartments = [f'{compartment}_{risk_group}'
                     for risk_group, compartment in itertools.product(RISK_GROUP, COMPARTMENTS_NAMES)]
-    initial_condition = pd.DataFrame(0., columns=compartments, index=new_e_start.index)
-    for risk_group in RISK_GROUP:
-        pop = group_pop[risk_group]
-        new_e = new_e_start[risk_group]
-        initial_condition.loc[:, f'S_unprotected_unvaccinated_{risk_group}'] = pop - new_e - (new_e / 5) ** (1 / alpha)
-        initial_condition.loc[:, f'E_unprotected_unvaccinated_{risk_group}'] = new_e
-        initial_condition.loc[:, f'I_unprotected_unvaccinated_{risk_group}'] = (new_e / 5) ** (1 / alpha)
-    return start_date, initial_condition
+    initial_condition = pd.DataFrame(0., columns=compartments, index=parameters.new_e.index)
+    for location_id, loc_start_date in start_date.iteritems():
+        for risk_group in RISK_GROUP:
+            pop = group_pop.loc[location_id, risk_group]
+            new_e = new_e_start.loc[location_id, risk_group]
+            suffix = f'_unvaccinated_{risk_group}'
+            # Backfill everyone susceptible
+            initial_condition.loc[pd.IndexSlice[location_id, :loc_start_date], f'S_unprotected{suffix}'] = pop
+            # Set initial condition on start date
+            infectious = (new_e / 5) ** (1 / alpha.loc[location_id])
+            initial_condition.loc[(location_id, loc_start_date), f'S_unprotected{suffix}'] = pop - new_e - infectious
+            initial_condition.loc[(location_id, loc_start_date), f'E_ancestral{suffix}'] = new_e
+            initial_condition.loc[(location_id, loc_start_date), f'I_ancestral{suffix}'] = infectious
+    return initial_condition
 
 
 def get_risk_group_pop(population: pd.DataFrame):
