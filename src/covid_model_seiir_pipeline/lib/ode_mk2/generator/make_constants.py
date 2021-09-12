@@ -225,11 +225,19 @@ def make_compartment_groups() -> str:
                 compartment, variant,
                 [variant], PRIMITIVES['vaccination_status'],
             )
+        out += make_compartment_group(
+            compartment, 'all',
+            PRIMITIVES['variant'], PRIMITIVES['vaccination_status']
+        )
     for variant in PRIMITIVES['variant']:
         out += make_compartment_group(
             'R', variant,
             [variant], PRIMITIVES['removed_vaccination_status'],
         )
+    out += make_compartment_group(
+        'R', 'all',
+        PRIMITIVES['variant'], PRIMITIVES['removed_vaccination_status']
+    )
     for vaccination_status in PRIMITIVES['vaccination_status']:
         out += f"COMPARTMENT_GROUPS[('N', '{vaccination_status}')] = np.array([\n"
         out += f"{TAB}v for k, v in COMPARTMENTS.items() if k[2] == '{vaccination_status}'\n"
