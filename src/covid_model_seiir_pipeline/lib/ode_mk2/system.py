@@ -65,12 +65,12 @@ def _system(t: float, y: np.ndarray, waned: np.ndarray, input_parameters: np.nda
             group_vaccines,
         )
 
-        group_dy = escape_variant.maybe_invade(
-            group_y,
-            group_dy,
-            aggregates,
-            params,
-        )
+        # group_dy = escape_variant.maybe_invade(
+        #     group_y,
+        #     group_dy,
+        #     aggregates,
+        #     params,
+        # )
 
         dy[group_start:group_end] = group_dy
 
