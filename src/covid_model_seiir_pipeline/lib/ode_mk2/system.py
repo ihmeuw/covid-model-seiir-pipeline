@@ -8,37 +8,38 @@ from covid_model_seiir_pipeline.lib.ode_mk2.constants import (
     VARIANT,
     RISK_GROUP,
     FORCE_OF_INFECTION,
-    VACCINE_TYPE,
-    VACCINE_TYPES,
+    SUSCEPTIBLE_TYPE,
     VACCINATION_STATUS,
     PROTECTION_STATUS,
+    IMMUNE_STATUS,
     REMOVED_VACCINATION_STATUS,
-    VACCINE_IMMUNITY_WANED,
+    VACCINE_TYPES,
     COMPARTMENTS,
     PARAMETERS,
     DEBUG,
 )
 from covid_model_seiir_pipeline.lib.ode_mk2 import (
+    accounting,
+    escape_variant,
     parameters,
     vaccinations,
-    escape_variant,
 )
 
 
 @numba.njit
-def fit_system(t: float, y: np.ndarray, input_parameters: np.ndarray):
-    return _system(t, y, input_parameters, forecast=False)
+def fit_system(t: float, y: np.ndarray, waned: np.ndarray, input_parameters: np.ndarray):
+    return _system(t, y, waned, input_parameters, forecast=False)
 
 
 @numba.njit
-def forecast_system(t: float, y: np.ndarray, input_parameters: np.ndarray):
-    return _system(t, y, input_parameters, forecast=True)
+def forecast_system(t: float, y: np.ndarray, waned: np.ndarray, input_parameters: np.ndarray):
+    return _system(t, y, waned, input_parameters, forecast=True)
 
 
 @numba.njit
-def _system(t: float, y: np.ndarray, input_parameters: np.ndarray, forecast: bool):
+def _system(t: float, y: np.ndarray, waned: np.ndarray, input_parameters: np.ndarray, forecast: bool):
     aggregates = parameters.make_aggregates(y)
-    params, vaccines, new_e, force_of_infection, natural_immunity_waned, vaccine_immunity_waned = parameters.normalize_parameters(
+    params, vaccines, force_of_infection = parameters.normalize_parameters(
         input_parameters,
         aggregates,
         forecast,
@@ -48,8 +49,8 @@ def _system(t: float, y: np.ndarray, input_parameters: np.ndarray, forecast: boo
     for i in range(len(RISK_GROUP)):
         group_start = i * len(COMPARTMENTS)
         group_end = (i + 1) * len(COMPARTMENTS)
-        group_vaccine_start = i * len(VACCINE_TYPE)
-        group_vaccine_end = (i + 1) * len(VACCINE_TYPE)
+        group_vaccine_start = i * len(SUSCEPTIBLE_TYPE)
+        group_vaccine_end = (i + 1) * len(SUSCEPTIBLE_TYPE)
 
         group_y = y[group_start:group_end]
         group_vaccines = vaccines[group_vaccine_start:group_vaccine_end]
@@ -57,10 +58,8 @@ def _system(t: float, y: np.ndarray, input_parameters: np.ndarray, forecast: boo
         group_dy = _single_group_system(
             t,
             group_y,
-            new_e,
             force_of_infection,
-            natural_immunity_waned,
-            vaccine_immunity_waned,
+            waned,
             aggregates,
             params,
             group_vaccines,
@@ -84,10 +83,8 @@ def _system(t: float, y: np.ndarray, input_parameters: np.ndarray, forecast: boo
 @numba.njit
 def _single_group_system(t: float,
                          group_y: np.ndarray,
-                         new_e: np.ndarray,
                          force_of_infection: np.ndarray,
-                         natural_immunity_waned: np.ndarray,
-                         vaccine_immunity_waned: np.ndarray,
+                         waned: np.ndarray,
                          aggregates: np.ndarray,
                          params: np.ndarray,
                          group_vaccines: np.ndarray):
@@ -116,13 +113,13 @@ def _single_group_system(t: float,
         transition_map = do_natural_immunity_waning(
             variant,
             group_y,
-            natural_immunity_waned[(variant,)],
+            waned[('natural',)],
             aggregates[('R', variant)],
             transition_map,
         )
 
     transition_map = do_vaccine_immunity_waning(
-        vaccine_immunity_waned,
+        waned[('vaccine',)],
         transition_map,
     )
 
@@ -135,11 +132,10 @@ def _single_group_system(t: float,
         assert np.all(group_y + group_dy >= -1e-10)
         assert group_dy.sum() < 1e-5
 
-    # group_dy = accounting.compute_tracking_columns(
-    #     group_dy,
-    #     transition_map,
-    #     vaccines_out,
-    # )
+    group_dy = accounting.compute_tracking_compartments(
+        group_dy,
+        transition_map,
+    )
 
     return group_dy
 
@@ -178,8 +174,8 @@ def do_transmission(
         i_idx = COMPARTMENTS[('I', variant, vaccination_status)]
         r_idx = COMPARTMENTS[('R', variant, vaccination_status)]
 
-        for vaccine_protection_status in VACCINE_TYPE:
-            s_idx = COMPARTMENTS[('S', vaccine_protection_status, vaccination_status)]
+        for susceptible_type in SUSCEPTIBLE_TYPE:
+            s_idx = COMPARTMENTS[('S', susceptible_type, vaccination_status)]
             transition_map[s_idx, e_idx] = group_y[s_idx] * force_of_infection
 
         transition_map[e_idx, i_idx] = sigma * group_y[e_idx]
@@ -216,7 +212,7 @@ def do_vaccine_immunity_waning(
     vaccine_immunity_waned: np.ndarray,
     transition_map: np.ndarray,
 ) -> np.ndarray:
-    for immunity_status, i_idx in VACCINE_IMMUNITY_WANED.items():
+    for immunity_status, i_idx in IMMUNE_STATUS.items():
         from_index = COMPARTMENTS[('S', immunity_status, 'vaccinated')]
         waned = vaccine_immunity_waned[i_idx]
         # TODO: make a parameter

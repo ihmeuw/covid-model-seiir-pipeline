@@ -82,7 +82,7 @@ _RemovedVaccinationStatus = namedtuple('RemovedVaccinationStatus', [
     'newly_vaccinated', 
 ])
 
-_VaccineType = namedtuple('VaccineType', [
+_SusceptibleType = namedtuple('SusceptibleType', [
     'unprotected',          
     'non_escape_protected', 
     'escape_protected',     
@@ -101,7 +101,7 @@ PROTECTION_STATUS = _ProtectionStatus(*_ProtectionStatus._fields)
 IMMUNE_STATUS = _ImmuneStatus(*_ImmuneStatus._fields)
 VACCINATION_STATUS = _VaccinationStatus(*_VaccinationStatus._fields)
 REMOVED_VACCINATION_STATUS = _RemovedVaccinationStatus(*_RemovedVaccinationStatus._fields)
-VACCINE_TYPE = _VaccineType(*_VaccineType._fields)
+SUSCEPTIBLE_TYPE = _SusceptibleType(*_SusceptibleType._fields)
 
 PARAMETERS = Dict.empty(
     types.UniTuple(types.unicode_type, 2),
@@ -162,63 +162,99 @@ COMPARTMENTS[('S', 'omega_protected', 'unvaccinated')] = np.int8(6)
 COMPARTMENTS[('S', 'omega_protected', 'vaccinated')] = np.int8(7)
 COMPARTMENTS[('S', 'non_escape_immune', 'unvaccinated')] = np.int8(8)
 COMPARTMENTS[('S', 'non_escape_immune', 'vaccinated')] = np.int8(9)
-COMPARTMENTS[('S', 'non_escape_immune', 'newly_vaccinated')] = np.int8(10)
-COMPARTMENTS[('S', 'escape_immune', 'unvaccinated')] = np.int8(11)
-COMPARTMENTS[('S', 'escape_immune', 'vaccinated')] = np.int8(12)
-COMPARTMENTS[('S', 'escape_immune', 'newly_vaccinated')] = np.int8(13)
-COMPARTMENTS[('S', 'omega_immune', 'unvaccinated')] = np.int8(14)
-COMPARTMENTS[('S', 'omega_immune', 'vaccinated')] = np.int8(15)
-COMPARTMENTS[('S', 'omega_immune', 'newly_vaccinated')] = np.int8(16)
-COMPARTMENTS[('E', 'ancestral', 'unvaccinated')] = np.int8(17)
-COMPARTMENTS[('E', 'ancestral', 'vaccinated')] = np.int8(18)
-COMPARTMENTS[('E', 'alpha', 'unvaccinated')] = np.int8(19)
-COMPARTMENTS[('E', 'alpha', 'vaccinated')] = np.int8(20)
-COMPARTMENTS[('E', 'beta', 'unvaccinated')] = np.int8(21)
-COMPARTMENTS[('E', 'beta', 'vaccinated')] = np.int8(22)
-COMPARTMENTS[('E', 'gamma', 'unvaccinated')] = np.int8(23)
-COMPARTMENTS[('E', 'gamma', 'vaccinated')] = np.int8(24)
-COMPARTMENTS[('E', 'delta', 'unvaccinated')] = np.int8(25)
-COMPARTMENTS[('E', 'delta', 'vaccinated')] = np.int8(26)
-COMPARTMENTS[('E', 'other', 'unvaccinated')] = np.int8(27)
-COMPARTMENTS[('E', 'other', 'vaccinated')] = np.int8(28)
-COMPARTMENTS[('E', 'omega', 'unvaccinated')] = np.int8(29)
-COMPARTMENTS[('E', 'omega', 'vaccinated')] = np.int8(30)
-COMPARTMENTS[('I', 'ancestral', 'unvaccinated')] = np.int8(31)
-COMPARTMENTS[('I', 'ancestral', 'vaccinated')] = np.int8(32)
-COMPARTMENTS[('I', 'alpha', 'unvaccinated')] = np.int8(33)
-COMPARTMENTS[('I', 'alpha', 'vaccinated')] = np.int8(34)
-COMPARTMENTS[('I', 'beta', 'unvaccinated')] = np.int8(35)
-COMPARTMENTS[('I', 'beta', 'vaccinated')] = np.int8(36)
-COMPARTMENTS[('I', 'gamma', 'unvaccinated')] = np.int8(37)
-COMPARTMENTS[('I', 'gamma', 'vaccinated')] = np.int8(38)
-COMPARTMENTS[('I', 'delta', 'unvaccinated')] = np.int8(39)
-COMPARTMENTS[('I', 'delta', 'vaccinated')] = np.int8(40)
-COMPARTMENTS[('I', 'other', 'unvaccinated')] = np.int8(41)
-COMPARTMENTS[('I', 'other', 'vaccinated')] = np.int8(42)
-COMPARTMENTS[('I', 'omega', 'unvaccinated')] = np.int8(43)
-COMPARTMENTS[('I', 'omega', 'vaccinated')] = np.int8(44)
-COMPARTMENTS[('R', 'ancestral', 'unvaccinated')] = np.int8(45)
-COMPARTMENTS[('R', 'ancestral', 'vaccinated')] = np.int8(46)
-COMPARTMENTS[('R', 'ancestral', 'newly_vaccinated')] = np.int8(47)
-COMPARTMENTS[('R', 'alpha', 'unvaccinated')] = np.int8(48)
-COMPARTMENTS[('R', 'alpha', 'vaccinated')] = np.int8(49)
-COMPARTMENTS[('R', 'alpha', 'newly_vaccinated')] = np.int8(50)
-COMPARTMENTS[('R', 'beta', 'unvaccinated')] = np.int8(51)
-COMPARTMENTS[('R', 'beta', 'vaccinated')] = np.int8(52)
-COMPARTMENTS[('R', 'beta', 'newly_vaccinated')] = np.int8(53)
-COMPARTMENTS[('R', 'gamma', 'unvaccinated')] = np.int8(54)
-COMPARTMENTS[('R', 'gamma', 'vaccinated')] = np.int8(55)
-COMPARTMENTS[('R', 'gamma', 'newly_vaccinated')] = np.int8(56)
-COMPARTMENTS[('R', 'delta', 'unvaccinated')] = np.int8(57)
-COMPARTMENTS[('R', 'delta', 'vaccinated')] = np.int8(58)
-COMPARTMENTS[('R', 'delta', 'newly_vaccinated')] = np.int8(59)
-COMPARTMENTS[('R', 'other', 'unvaccinated')] = np.int8(60)
-COMPARTMENTS[('R', 'other', 'vaccinated')] = np.int8(61)
-COMPARTMENTS[('R', 'other', 'newly_vaccinated')] = np.int8(62)
-COMPARTMENTS[('R', 'omega', 'unvaccinated')] = np.int8(63)
-COMPARTMENTS[('R', 'omega', 'vaccinated')] = np.int8(64)
-COMPARTMENTS[('R', 'omega', 'newly_vaccinated')] = np.int8(65)
+COMPARTMENTS[('S', 'escape_immune', 'unvaccinated')] = np.int8(10)
+COMPARTMENTS[('S', 'escape_immune', 'vaccinated')] = np.int8(11)
+COMPARTMENTS[('S', 'omega_immune', 'unvaccinated')] = np.int8(12)
+COMPARTMENTS[('S', 'omega_immune', 'vaccinated')] = np.int8(13)
+COMPARTMENTS[('E', 'ancestral', 'unvaccinated')] = np.int8(14)
+COMPARTMENTS[('E', 'ancestral', 'vaccinated')] = np.int8(15)
+COMPARTMENTS[('E', 'alpha', 'unvaccinated')] = np.int8(16)
+COMPARTMENTS[('E', 'alpha', 'vaccinated')] = np.int8(17)
+COMPARTMENTS[('E', 'beta', 'unvaccinated')] = np.int8(18)
+COMPARTMENTS[('E', 'beta', 'vaccinated')] = np.int8(19)
+COMPARTMENTS[('E', 'gamma', 'unvaccinated')] = np.int8(20)
+COMPARTMENTS[('E', 'gamma', 'vaccinated')] = np.int8(21)
+COMPARTMENTS[('E', 'delta', 'unvaccinated')] = np.int8(22)
+COMPARTMENTS[('E', 'delta', 'vaccinated')] = np.int8(23)
+COMPARTMENTS[('E', 'other', 'unvaccinated')] = np.int8(24)
+COMPARTMENTS[('E', 'other', 'vaccinated')] = np.int8(25)
+COMPARTMENTS[('E', 'omega', 'unvaccinated')] = np.int8(26)
+COMPARTMENTS[('E', 'omega', 'vaccinated')] = np.int8(27)
+COMPARTMENTS[('I', 'ancestral', 'unvaccinated')] = np.int8(28)
+COMPARTMENTS[('I', 'ancestral', 'vaccinated')] = np.int8(29)
+COMPARTMENTS[('I', 'alpha', 'unvaccinated')] = np.int8(30)
+COMPARTMENTS[('I', 'alpha', 'vaccinated')] = np.int8(31)
+COMPARTMENTS[('I', 'beta', 'unvaccinated')] = np.int8(32)
+COMPARTMENTS[('I', 'beta', 'vaccinated')] = np.int8(33)
+COMPARTMENTS[('I', 'gamma', 'unvaccinated')] = np.int8(34)
+COMPARTMENTS[('I', 'gamma', 'vaccinated')] = np.int8(35)
+COMPARTMENTS[('I', 'delta', 'unvaccinated')] = np.int8(36)
+COMPARTMENTS[('I', 'delta', 'vaccinated')] = np.int8(37)
+COMPARTMENTS[('I', 'other', 'unvaccinated')] = np.int8(38)
+COMPARTMENTS[('I', 'other', 'vaccinated')] = np.int8(39)
+COMPARTMENTS[('I', 'omega', 'unvaccinated')] = np.int8(40)
+COMPARTMENTS[('I', 'omega', 'vaccinated')] = np.int8(41)
+COMPARTMENTS[('R', 'ancestral', 'unvaccinated')] = np.int8(42)
+COMPARTMENTS[('R', 'ancestral', 'vaccinated')] = np.int8(43)
+COMPARTMENTS[('R', 'ancestral', 'newly_vaccinated')] = np.int8(44)
+COMPARTMENTS[('R', 'alpha', 'unvaccinated')] = np.int8(45)
+COMPARTMENTS[('R', 'alpha', 'vaccinated')] = np.int8(46)
+COMPARTMENTS[('R', 'alpha', 'newly_vaccinated')] = np.int8(47)
+COMPARTMENTS[('R', 'beta', 'unvaccinated')] = np.int8(48)
+COMPARTMENTS[('R', 'beta', 'vaccinated')] = np.int8(49)
+COMPARTMENTS[('R', 'beta', 'newly_vaccinated')] = np.int8(50)
+COMPARTMENTS[('R', 'gamma', 'unvaccinated')] = np.int8(51)
+COMPARTMENTS[('R', 'gamma', 'vaccinated')] = np.int8(52)
+COMPARTMENTS[('R', 'gamma', 'newly_vaccinated')] = np.int8(53)
+COMPARTMENTS[('R', 'delta', 'unvaccinated')] = np.int8(54)
+COMPARTMENTS[('R', 'delta', 'vaccinated')] = np.int8(55)
+COMPARTMENTS[('R', 'delta', 'newly_vaccinated')] = np.int8(56)
+COMPARTMENTS[('R', 'other', 'unvaccinated')] = np.int8(57)
+COMPARTMENTS[('R', 'other', 'vaccinated')] = np.int8(58)
+COMPARTMENTS[('R', 'other', 'newly_vaccinated')] = np.int8(59)
+COMPARTMENTS[('R', 'omega', 'unvaccinated')] = np.int8(60)
+COMPARTMENTS[('R', 'omega', 'vaccinated')] = np.int8(61)
+COMPARTMENTS[('R', 'omega', 'newly_vaccinated')] = np.int8(62)
 COMPARTMENTS_NAMES = ['_'.join(k) for k in COMPARTMENTS]
+
+TRACKING_COMPARTMENTS = Dict.empty(
+    types.UniTuple(types.unicode_type, 2),
+    types.int8,
+)
+TRACKING_COMPARTMENTS[('NewE', 'unvaccinated')] = np.int8(63)
+TRACKING_COMPARTMENTS[('NewE', 'vaccinated')] = np.int8(64)
+TRACKING_COMPARTMENTS[('NewE', 'ancestral')] = np.int8(65)
+TRACKING_COMPARTMENTS[('NewE', 'alpha')] = np.int8(66)
+TRACKING_COMPARTMENTS[('NewE', 'beta')] = np.int8(67)
+TRACKING_COMPARTMENTS[('NewE', 'gamma')] = np.int8(68)
+TRACKING_COMPARTMENTS[('NewE', 'delta')] = np.int8(69)
+TRACKING_COMPARTMENTS[('NewE', 'other')] = np.int8(70)
+TRACKING_COMPARTMENTS[('NewE', 'omega')] = np.int8(71)
+TRACKING_COMPARTMENTS[('NewE', 'total')] = np.int8(72)
+TRACKING_COMPARTMENTS[('NewVaxImmune', 'non_escape_immune')] = np.int8(73)
+TRACKING_COMPARTMENTS[('NewVaxImmune', 'escape_immune')] = np.int8(74)
+TRACKING_COMPARTMENTS[('NewVaxImmune', 'omega_immune')] = np.int8(75)
+TRACKING_COMPARTMENTS[('NewR', 'ancestral')] = np.int8(76)
+TRACKING_COMPARTMENTS[('NewR', 'alpha')] = np.int8(77)
+TRACKING_COMPARTMENTS[('NewR', 'beta')] = np.int8(78)
+TRACKING_COMPARTMENTS[('NewR', 'gamma')] = np.int8(79)
+TRACKING_COMPARTMENTS[('NewR', 'delta')] = np.int8(80)
+TRACKING_COMPARTMENTS[('NewR', 'other')] = np.int8(81)
+TRACKING_COMPARTMENTS[('NewR', 'omega')] = np.int8(82)
+TRACKING_COMPARTMENTS[('NewR', 'total')] = np.int8(83)
+TRACKING_COMPARTMENTS[('Waned', 'natural')] = np.int8(84)
+TRACKING_COMPARTMENTS[('Waned', 'vaccine')] = np.int8(85)
+TRACKING_COMPARTMENTS[('Waned', 'ancestral')] = np.int8(86)
+TRACKING_COMPARTMENTS[('Waned', 'alpha')] = np.int8(87)
+TRACKING_COMPARTMENTS[('Waned', 'beta')] = np.int8(88)
+TRACKING_COMPARTMENTS[('Waned', 'gamma')] = np.int8(89)
+TRACKING_COMPARTMENTS[('Waned', 'delta')] = np.int8(90)
+TRACKING_COMPARTMENTS[('Waned', 'other')] = np.int8(91)
+TRACKING_COMPARTMENTS[('Waned', 'omega')] = np.int8(92)
+TRACKING_COMPARTMENTS[('Waned', 'non_escape_immune')] = np.int8(93)
+TRACKING_COMPARTMENTS[('Waned', 'escape_immune')] = np.int8(94)
+TRACKING_COMPARTMENTS[('Waned', 'omega_immune')] = np.int8(95)
+TRACKING_COMPARTMENTS_NAMES = ['_'.join(k) for k in TRACKING_COMPARTMENTS]
 
 AGGREGATES = Dict.empty(
     types.UniTuple(types.unicode_type, 2),
@@ -256,19 +292,6 @@ AGGREGATES[('N', 'unvaccinated')] = np.int8(28)
 AGGREGATES[('N', 'vaccinated')] = np.int8(29)
 AGGREGATES_NAMES = ['_'.join(k) for k in AGGREGATES]
 
-NEW_E = Dict.empty(
-    types.UniTuple(types.unicode_type, 1),
-    types.int8,
-)
-NEW_E[('ancestral',)] = np.int8(0)
-NEW_E[('alpha',)] = np.int8(1)
-NEW_E[('beta',)] = np.int8(2)
-NEW_E[('gamma',)] = np.int8(3)
-NEW_E[('delta',)] = np.int8(4)
-NEW_E[('other',)] = np.int8(5)
-NEW_E[('omega',)] = np.int8(6)
-NEW_E_NAMES = ['_'.join(k) for k in NEW_E]
-
 FORCE_OF_INFECTION = Dict.empty(
     types.UniTuple(types.unicode_type, 1),
     types.int8,
@@ -282,27 +305,13 @@ FORCE_OF_INFECTION[('other',)] = np.int8(5)
 FORCE_OF_INFECTION[('omega',)] = np.int8(6)
 FORCE_OF_INFECTION_NAMES = ['_'.join(k) for k in FORCE_OF_INFECTION]
 
-NATURAL_IMMUNITY_WANED = Dict.empty(
+WANED = Dict.empty(
     types.UniTuple(types.unicode_type, 1),
     types.int8,
 )
-NATURAL_IMMUNITY_WANED[('ancestral',)] = np.int8(0)
-NATURAL_IMMUNITY_WANED[('alpha',)] = np.int8(1)
-NATURAL_IMMUNITY_WANED[('beta',)] = np.int8(2)
-NATURAL_IMMUNITY_WANED[('gamma',)] = np.int8(3)
-NATURAL_IMMUNITY_WANED[('delta',)] = np.int8(4)
-NATURAL_IMMUNITY_WANED[('other',)] = np.int8(5)
-NATURAL_IMMUNITY_WANED[('omega',)] = np.int8(6)
-NATURAL_IMMUNITY_WANED_NAMES = ['_'.join(k) for k in NATURAL_IMMUNITY_WANED]
-
-VACCINE_IMMUNITY_WANED = Dict.empty(
-    types.UniTuple(types.unicode_type, 1),
-    types.int8,
-)
-VACCINE_IMMUNITY_WANED[('non_escape_immune',)] = np.int8(0)
-VACCINE_IMMUNITY_WANED[('escape_immune',)] = np.int8(1)
-VACCINE_IMMUNITY_WANED[('omega_immune',)] = np.int8(2)
-VACCINE_IMMUNITY_WANED_NAMES = ['_'.join(k) for k in VACCINE_IMMUNITY_WANED]
+WANED[('natural',)] = np.int8(0)
+WANED[('vaccine',)] = np.int8(1)
+WANED_NAMES = ['_'.join(k) for k in WANED]
 
 COMPARTMENT_GROUPS = Dict.empty(
     types.UniTuple(types.unicode_type, 2),
@@ -339,7 +348,6 @@ COMPARTMENT_GROUPS[('S', 'beta')] = np.array([
     COMPARTMENTS[('S', 'omega_protected', 'vaccinated')],
     COMPARTMENTS[('S', 'non_escape_immune', 'unvaccinated')],
     COMPARTMENTS[('S', 'non_escape_immune', 'vaccinated')],
-    COMPARTMENTS[('S', 'non_escape_immune', 'newly_vaccinated')],
 ], dtype=np.int8)
 COMPARTMENT_GROUPS[('S', 'gamma')] = np.array([
     COMPARTMENTS[('S', 'unprotected', 'unvaccinated')],
@@ -352,7 +360,6 @@ COMPARTMENT_GROUPS[('S', 'gamma')] = np.array([
     COMPARTMENTS[('S', 'omega_protected', 'vaccinated')],
     COMPARTMENTS[('S', 'non_escape_immune', 'unvaccinated')],
     COMPARTMENTS[('S', 'non_escape_immune', 'vaccinated')],
-    COMPARTMENTS[('S', 'non_escape_immune', 'newly_vaccinated')],
 ], dtype=np.int8)
 COMPARTMENT_GROUPS[('S', 'delta')] = np.array([
     COMPARTMENTS[('S', 'unprotected', 'unvaccinated')],
@@ -365,7 +372,6 @@ COMPARTMENT_GROUPS[('S', 'delta')] = np.array([
     COMPARTMENTS[('S', 'omega_protected', 'vaccinated')],
     COMPARTMENTS[('S', 'non_escape_immune', 'unvaccinated')],
     COMPARTMENTS[('S', 'non_escape_immune', 'vaccinated')],
-    COMPARTMENTS[('S', 'non_escape_immune', 'newly_vaccinated')],
 ], dtype=np.int8)
 COMPARTMENT_GROUPS[('S', 'omega')] = np.array([
     COMPARTMENTS[('S', 'unprotected', 'unvaccinated')],
@@ -378,10 +384,34 @@ COMPARTMENT_GROUPS[('S', 'omega')] = np.array([
     COMPARTMENTS[('S', 'omega_protected', 'vaccinated')],
     COMPARTMENTS[('S', 'non_escape_immune', 'unvaccinated')],
     COMPARTMENTS[('S', 'non_escape_immune', 'vaccinated')],
-    COMPARTMENTS[('S', 'non_escape_immune', 'newly_vaccinated')],
     COMPARTMENTS[('S', 'escape_immune', 'unvaccinated')],
     COMPARTMENTS[('S', 'escape_immune', 'vaccinated')],
-    COMPARTMENTS[('S', 'escape_immune', 'newly_vaccinated')],
+], dtype=np.int8)
+COMPARTMENT_GROUPS[('S', 'total')] = np.array([
+    COMPARTMENTS[('S', 'unprotected', 'unvaccinated')],
+    COMPARTMENTS[('S', 'unprotected', 'vaccinated')],
+    COMPARTMENTS[('S', 'non_escape_protected', 'unvaccinated')],
+    COMPARTMENTS[('S', 'non_escape_protected', 'vaccinated')],
+    COMPARTMENTS[('S', 'escape_protected', 'unvaccinated')],
+    COMPARTMENTS[('S', 'escape_protected', 'vaccinated')],
+    COMPARTMENTS[('S', 'omega_protected', 'unvaccinated')],
+    COMPARTMENTS[('S', 'omega_protected', 'vaccinated')],
+    COMPARTMENTS[('S', 'non_escape_immune', 'unvaccinated')],
+    COMPARTMENTS[('S', 'non_escape_immune', 'vaccinated')],
+    COMPARTMENTS[('S', 'escape_immune', 'unvaccinated')],
+    COMPARTMENTS[('S', 'escape_immune', 'vaccinated')],
+    COMPARTMENTS[('S', 'omega_immune', 'unvaccinated')],
+    COMPARTMENTS[('S', 'omega_immune', 'vaccinated')],
+], dtype=np.int8)
+COMPARTMENT_GROUPS[('S', 'non_immune')] = np.array([
+    COMPARTMENTS[('S', 'unprotected', 'unvaccinated')],
+    COMPARTMENTS[('S', 'unprotected', 'vaccinated')],
+    COMPARTMENTS[('S', 'non_escape_protected', 'unvaccinated')],
+    COMPARTMENTS[('S', 'non_escape_protected', 'vaccinated')],
+    COMPARTMENTS[('S', 'escape_protected', 'unvaccinated')],
+    COMPARTMENTS[('S', 'escape_protected', 'vaccinated')],
+    COMPARTMENTS[('S', 'omega_protected', 'unvaccinated')],
+    COMPARTMENTS[('S', 'omega_protected', 'vaccinated')],
 ], dtype=np.int8)
 COMPARTMENT_GROUPS[('E', 'ancestral')] = np.array([
     COMPARTMENTS[('E', 'ancestral', 'unvaccinated')],
@@ -411,7 +441,7 @@ COMPARTMENT_GROUPS[('E', 'omega')] = np.array([
     COMPARTMENTS[('E', 'omega', 'unvaccinated')],
     COMPARTMENTS[('E', 'omega', 'vaccinated')],
 ], dtype=np.int8)
-COMPARTMENT_GROUPS[('E', 'all')] = np.array([
+COMPARTMENT_GROUPS[('E', 'total')] = np.array([
     COMPARTMENTS[('E', 'ancestral', 'unvaccinated')],
     COMPARTMENTS[('E', 'ancestral', 'vaccinated')],
     COMPARTMENTS[('E', 'alpha', 'unvaccinated')],
@@ -455,7 +485,7 @@ COMPARTMENT_GROUPS[('I', 'omega')] = np.array([
     COMPARTMENTS[('I', 'omega', 'unvaccinated')],
     COMPARTMENTS[('I', 'omega', 'vaccinated')],
 ], dtype=np.int8)
-COMPARTMENT_GROUPS[('I', 'all')] = np.array([
+COMPARTMENT_GROUPS[('I', 'total')] = np.array([
     COMPARTMENTS[('I', 'ancestral', 'unvaccinated')],
     COMPARTMENTS[('I', 'ancestral', 'vaccinated')],
     COMPARTMENTS[('I', 'alpha', 'unvaccinated')],
@@ -506,7 +536,7 @@ COMPARTMENT_GROUPS[('R', 'omega')] = np.array([
     COMPARTMENTS[('R', 'omega', 'vaccinated')],
     COMPARTMENTS[('R', 'omega', 'newly_vaccinated')],
 ], dtype=np.int8)
-COMPARTMENT_GROUPS[('R', 'all')] = np.array([
+COMPARTMENT_GROUPS[('R', 'total')] = np.array([
     COMPARTMENTS[('R', 'ancestral', 'unvaccinated')],
     COMPARTMENTS[('R', 'ancestral', 'vaccinated')],
     COMPARTMENTS[('R', 'ancestral', 'newly_vaccinated')],
