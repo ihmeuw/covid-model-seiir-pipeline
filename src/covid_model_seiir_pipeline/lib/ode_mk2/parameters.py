@@ -19,7 +19,7 @@ from covid_model_seiir_pipeline.lib.ode_mk2.constants import (
 def make_aggregates(y: np.ndarray) -> np.ndarray:
     aggregates = np.zeros(len(AGGREGATES))
     for group_y in np.split(y, len(RISK_GROUP)):
-        for key, agg_idx in AGGREGATES:
+        for key, agg_idx in AGGREGATES.items():
             aggregates[agg_idx] = group_y[COMPARTMENT_GROUPS[key]].sum()
 
     if DEBUG:
