@@ -13,7 +13,7 @@ from covid_model_seiir_pipeline.lib.ode_mk2.constants import (
     PROTECTION_STATUS,
     IMMUNE_STATUS,
     REMOVED_VACCINATION_STATUS,
-    VACCINE_TYPES,
+    VACCINE_TYPE,
     COMPARTMENTS,
     PARAMETERS,
     DEBUG,

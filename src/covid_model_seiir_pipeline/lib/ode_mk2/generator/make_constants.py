@@ -1,6 +1,7 @@
+from collections import namedtuple
 import itertools
 from pathlib import Path
-from typing import List
+from typing import List, Tuple
 import textwrap
 
 import inflection
@@ -9,27 +10,26 @@ from covid_model_seiir_pipeline.lib.ode_mk2.generator import utils
 
 TAB = '    '  # type: str
 
-PRIMITIVES = {
-    'base_compartment': [
-        'S', 'E', 'I', 'R',
+PRIMITIVE_TYPES = {
+    'compartment_type': [
+        'S',
+        'E',
+        'I',
+        'R',
+        'N',
     ],
-    'variant': [
-        'ancestral',
-        'alpha',
-        'beta',
-        'gamma',
-        'delta',
-        'other',
-        'omega',
+    'tracking_compartment_type': [
+        'NewE',
+        'NewR',
+        'NewVaxImmune',
+        'Waned',
     ],
-    'base_parameter': [
+    'parameter_type': [
         'alpha',
         'sigma',
         'gamma',
         'pi',
         'new_e',
-    ],
-    'variant_parameter': [
         'beta',
         'kappa',
         'rho',
@@ -38,87 +38,280 @@ PRIMITIVES = {
         'lr',
         'hr',
     ],
-    'protection_status': [
-        'unprotected',
+    'index_1_type': [
+        'all',
+        'total',
 
+        'ancestral',
+        'alpha',
+        'beta',
+        'gamma',
+        'delta',
+        'other',
+        'omega',
+
+        'unprotected',
         'non_escape_protected',
         'escape_protected',
         'omega_protected',
-    ],
-    'immune_status': [
         'non_escape_immune',
         'escape_immune',
         'omega_immune',
     ],
-    'vaccination_status': [
-        'unvaccinated',
-        'vaccinated',
-    ],
-    'removed_vaccination_status': [
+    'index_2_type': [
         'unvaccinated',
         'vaccinated',
         'newly_vaccinated',
     ],
-}
-PRIMITIVES['susceptible_type'] = PRIMITIVES['protection_status'] + PRIMITIVES['immune_status']
+    'agg_index_type': [
+        'all',
+        'total',
+        'non_immune',
+        'natural',
+        'vaccine',
+        'vaccine_eligible',
 
+        'ancestral',
+        'alpha',
+        'beta',
+        'gamma',
+        'delta',
+        'other',
+        'omega',
+
+        'unprotected',
+        'non_escape_protected',
+        'escape_protected',
+        'omega_protected',
+        'non_escape_immune',
+        'escape_immune',
+        'omega_immune',
+
+        'unvaccinated',
+        'vaccinated',
+        'newly_vaccinated',
+    ]
+}
+
+DERIVED_TYPES = {
+    'base_compartment': ('compartment_type', [
+        'S',
+        'E',
+        'I',
+        'R',
+    ]),
+    'base_parameter': ('parameter_type', [
+        'alpha',
+        'sigma',
+        'gamma',
+        'pi',
+        'new_e',
+    ]),
+    'variant_parameter': ('parameter_type', [
+        'beta',
+        'kappa',
+        'rho',
+    ]),
+    'variant_group': ('index_1_type', [
+        'all',
+        'total'
+    ]),
+    'variant': ('index_1_type', [
+        'ancestral',
+        'alpha',
+        'beta',
+        'gamma',
+        'delta',
+        'other',
+        'omega',
+    ]),
+    'susceptible_type': ('index_1_type', [
+        'unprotected',
+        'non_escape_protected',
+        'escape_protected',
+        'omega_protected',
+        'non_escape_immune',
+        'escape_immune',
+        'omega_immune',
+    ]),
+    'protection_status': ('index_1_type', [
+        'unprotected',
+        'non_escape_protected',
+        'escape_protected',
+        'omega_protected',
+    ]),
+    'immune_status': ('index_1_type', [
+        'non_escape_immune',
+        'escape_immune',
+        'omega_immune',
+    ]),
+    'vaccine_type': ('index_1_type', [
+        'unprotected',
+        'non_escape_protected',
+        'escape_protected',
+        'omega_protected',
+        'non_escape_immune',
+        'escape_immune',
+        'omega_immune',
+    ]),
+    'vaccination_status': ('index_2_type', [
+        'unvaccinated',
+        'vaccinated',
+    ]),
+    'removed_vaccination_status': ('index_2_type', [
+        'unvaccinated',
+        'vaccinated',
+        'newly_vaccinated',
+    ]),
+    'agg_variant': ('agg_index_type', [
+        'ancestral',
+        'alpha',
+        'beta',
+        'gamma',
+        'delta',
+        'other',
+        'omega',
+    ]),
+    'agg_immune_status': ('agg_index_type', [
+        'non_escape_immune',
+        'escape_immune',
+        'omega_immune',
+    ]),
+    'agg_vaccination_status': ('agg_index_type', [
+        'unvaccinated',
+        'vaccinated',
+    ]),
+    'agg_other': ('agg_index_type', [
+        'all',
+        'total',
+        'non_immune',
+        'unvaccinated',
+        'vaccinated',
+        'vaccine_eligible'
+    ])
+}
+
+Spec = namedtuple('Spec', ['offset', 'axes_primitives', 'field_specs'])
 
 SPECS = {
-    'PARAMETERS': ('', [
-        ['base_parameter', 'all'],
-        ['variant_parameter', 'variant'],
-    ]),
-    'VACCINE_TYPES': ('', [
-        ['susceptible_type'],
-    ]),
-    'COMPARTMENTS': ('', [
-        ['S', 'susceptible_type', 'vaccination_status'],
-        ['E', 'variant', 'vaccination_status'],
-        ['I', 'variant', 'vaccination_status'],
-        ['R', 'variant', 'removed_vaccination_status'],
-    ]),
-    'TRACKING_COMPARTMENTS': ('COMPARTMENTS', [
-        ['NewE', 'vaccination_status'],
-        ['NewE', 'variant'],
-        ['NewE', 'total'],
-        ['NewVaxImmune', 'immune_status'],
-        ['NewVaxImmune', 'total'],
-        ['NewR', 'variant'],
-        ['NewR', 'total'],
-        ['Waned', 'natural'],
-        ['Waned', 'vaccine'],
-        ['Waned', 'variant'],
-        ['Waned', 'immune_status'],
-    ]),
-    'AGGREGATES': ('', [
-        ['S', 'variant'],
-        ['E', 'variant'],
-        ['I', 'variant'],
-        ['R', 'variant'],
-        ['N', 'vaccination_status'],
-    ]),
-    'FORCE_OF_INFECTION': ('', [
-        ['variant'],
-    ]),
-    'WANED': ('', [
-        ['natural'],
-        ['vaccine'],
-    ]),
+    'PARAMETERS': Spec(
+        offset='',
+        axes_primitives=['parameter_type', 'index_1_type'],
+        field_specs=[
+            ['base_parameter', 'all'],
+            ['variant_parameter', 'variant'],
+        ],
+    ),
+    'VACCINATIONS': Spec(
+        offset='',
+        axes_primitives=['index_1_type'],
+        field_specs=[
+            ['vaccine_type'],
+        ],
+    ),
+    'COMPARTMENTS': Spec(
+        offset='',
+        axes_primitives=['compartment_type', 'index_1_type', 'index_2_type'],
+        field_specs=[
+            ['S', 'susceptible_type', 'vaccination_status'],
+            ['E', 'variant', 'vaccination_status'],
+            ['I', 'variant', 'vaccination_status'],
+            ['R', 'variant', 'removed_vaccination_status'],
+        ]
+    ),
+    'TRACKING_COMPARTMENTS': Spec(
+        offset='COMPARTMENTS',
+        axes_primitives=['tracking_compartment_type', 'agg_index_type'],
+        field_specs=[
+            ['NewE', 'agg_vaccination_status'],
+            ['NewE', 'agg_variant'],
+            ['NewE', 'total'],
+            ['NewVaxImmune', 'agg_immune_status'],
+            ['NewVaxImmune', 'total'],
+            ['NewR', 'agg_variant'],
+            ['NewR', 'total'],
+            ['Waned', 'natural'],
+            ['Waned', 'vaccine'],
+            ['Waned', 'agg_variant'],
+            ['Waned', 'agg_immune_status'],
+        ],
+    ),
+    'AGGREGATES': Spec(
+        offset='',
+        axes_primitives=['compartment_type', 'agg_index_type'],
+        field_specs=[
+            ['base_compartment', 'agg_variant'],
+            ['N', 'agg_vaccination_status'],
+        ],
+    ),
+    'FORCE_OF_INFECTION': Spec(
+        offset='',
+        axes_primitives=['index_1_type'],
+        field_specs=[
+            ['variant'],
+        ],
+    ),
+    'WANED': Spec(
+        offset='',
+        axes_primitives=['agg_index_type'],
+        field_specs=[
+            ['natural'],
+            ['vaccine'],
+        ],
+    ),
 }
-
 
 # Susceptible statuses are rank ordered. Here we map susceptible statuses
 # onto which variants they're susceptible to.
 SUSCEPTIBLE_BY_VARIANT = {
-    # Non-immune compartments
-    'ancestral': PRIMITIVES['protection_status'],
-    'alpha': PRIMITIVES['protection_status'],
-    # Non-immune + non-escape immune
-    'beta': PRIMITIVES['protection_status'] + PRIMITIVES['immune_status'][:1],
-    'gamma': PRIMITIVES['protection_status'] + PRIMITIVES['immune_status'][:1],
-    'delta': PRIMITIVES['protection_status'] + PRIMITIVES['immune_status'][:1],
-    # Non-immune + non-escape immune + escape immune
-    'omega': PRIMITIVES['protection_status'] + PRIMITIVES['immune_status'][:2],
+    'ancestral': [
+        'unprotected',
+        'non_escape_protected',
+        'escape_protected',
+        'omega_protected',
+    ],
+    'alpha': [
+        'unprotected',
+        'non_escape_protected',
+        'escape_protected',
+        'omega_protected',
+    ],
+    'beta': [
+        'unprotected',
+        'non_escape_protected',
+        'escape_protected',
+        'omega_protected',
+        'non_escape_immune',
+    ],
+    'gamma': [
+        'unprotected',
+        'non_escape_protected',
+        'escape_protected',
+        'omega_protected',
+        'non_escape_immune',
+    ],
+    'delta': [
+        'unprotected',
+        'non_escape_protected',
+        'escape_protected',
+        'omega_protected',
+        'non_escape_immune',
+    ],
+    'other': [
+        'unprotected',
+        'non_escape_protected',
+        'escape_protected',
+        'omega_protected',
+        'non_escape_immune',
+    ],
+    'omega': [
+        'unprotected',
+        'non_escape_protected',
+        'escape_protected',
+        'omega_protected',
+        'non_escape_immune',
+        'escape_immune',
+    ],
 }
 
 
@@ -137,64 +330,85 @@ def make_imports() -> str:
     return out + '\n'
 
 
-def make_primitives() -> str:
+def make_primitive_types() -> str:
     out = textwrap.dedent("""
     #######################
     # Primitive variables #
     #######################
            
     """)
-    for primitive_group_name, variables in PRIMITIVES.items():
+    for primitive_group_name, variables in PRIMITIVE_TYPES.items():
         content = utils.make_content_array(rows=variables, columns=[''])
         out += utils.make_named_tuple(
-            inflection.camelize(primitive_group_name),
+            primitive_group_name,
             content,
         ) + '\n'
 
-    for primitive_group_name in PRIMITIVES:
-        out += utils.make_name_map(inflection.camelize(primitive_group_name), suffix='')
-    return out + '\n'
-
-
-def make_dict(name: str, num_levels: int) -> str:
-    if not num_levels:
-        raise
-
-    out = f"{name} = Dict.empty(\n"
-    out += f"{TAB}types.UniTuple(types.unicode_type, {num_levels}),\n"
-    out += f"{TAB}types.int8,\n"
-    out += ")\n"
+    for primitive_group_name in PRIMITIVE_TYPES:
+        out += utils.make_index_map(primitive_group_name)
     return out
 
 
-def make_dict_items(name: str, *levels: str, count: int = 0):
-    levels = [PRIMITIVES.get(level, [level]) for level in levels]
-    out = ''
-    for elements in itertools.product(*levels):
-        out += f"{name}[{tuple(elements)}] = np.int8({count})\n"
-        count += 1
-    return out, count
+def make_derived_types() -> str:
+    out = textwrap.dedent("""
+    #####################
+    # Derived variables #
+    #####################
 
+    """)
+    for derived_group_name, (primitive_type, variables) in DERIVED_TYPES.items():
+        content = utils.make_content_array(rows=variables, columns=[''])
+        out += utils.make_named_tuple(
+            derived_group_name,
+            content,
+        )
 
-def validate_spec(name: str, field_groups: List[List[str]]) -> None:
-    field_group_lengths = [len(fg) for fg in field_groups]
-    if len(set(field_group_lengths)) != 1:
-        raise ValueError(f'{name}: All field groups must have the same number of fields.')
-    if field_group_lengths[0] == 0:
-        raise ValueError(f'{name}: No fields in spec!')
+        out += f'{inflection.underscore(derived_group_name).upper()} = _{inflection.camelize(derived_group_name)}(\n'
+        for variable in variables:
+            out += f'{TAB}{variable}={inflection.underscore(primitive_type).upper()}.{variable},\n'
+        out += ')\n\n'
+    return out
+
+def unpack_spec_fields(spec: Spec) -> Tuple[List[str], List[str]]:
+    field_keys = []
+    field_names = []
+    for field_spec in spec.field_specs:
+        fields = {}
+        for field_type, primitive in zip(field_spec, spec.axes_primitives):
+            if field_type in DERIVED_TYPES:
+                fields[field_type] = DERIVED_TYPES[field_type][1]
+            else:
+                fields[primitive] = [field_type]
+        for elements in itertools.product(*fields.values()):
+            field_keys.append(
+                '['
+                + ', '.join([f'{inflection.underscore(primitive).upper()}.{element}'
+                             for primitive, element in zip(fields.keys(), elements)])
+                + ']'
+            )
+            field_names.append('_'.join(elements))
+    return field_keys, field_names
 
 
 def make_specs() -> str:
     out = ''
     counts = {'': 0}
-    for spec_name, (offset, field_groups) in SPECS.items():
-        validate_spec(spec_name, field_groups)
-        out += make_dict(spec_name, len(field_groups[0]))
-        count = counts[offset]
-        for field_group in field_groups:
-            group_items, count = make_dict_items(spec_name, *field_group, count=count)
-            out += group_items
-        out += f"{spec_name}_NAMES = ['_'.join(k) for k in {spec_name}]\n"
+    for spec_name, spec in SPECS.items():
+        out += f'{spec_name} = np.zeros(('
+        out += ', '.join([f'len({inflection.underscore(axis_primitive).upper()})'
+                          for axis_primitive in spec.axes_primitives])
+        out += '), dtype=np.int8)\n'
+
+        count = counts[spec.offset]
+        field_keys, field_names = unpack_spec_fields(spec)
+        for field_key in field_keys:
+            out += f'{spec_name}{field_key} = np.int8({count})\n'
+            count += 1
+
+        out += f"{spec_name}_NAMES = [\n"
+        for name in field_names:
+            out += f"{TAB}'{name}',\n"
+        out += ']\n'
         out += '\n'
         counts[spec_name] = count
     return out
@@ -211,55 +425,102 @@ def make_compartment_group(compartment: str, variant: str, *levels: List[str]):
     return out
 
 
+def make_susceptible_compartment_group(label: str, susceptible_types: List[str]) -> str:
+    out = f"CG_SUSCEPTIBLE[{label}] = np.array([\n"
+    s_groups = itertools.product(susceptible_types, DERIVED_TYPES['vaccination_status'][1])
+    for susceptible_type, vaccination_status in s_groups:
+        out += f"{TAB}COMPARTMENTS["
+        out += f"COMPARTMENT_TYPE.S, "
+        out += f"SUSCEPTIBLE_TYPE.{susceptible_type}, "
+        out += f"VACCINATION_STATUS.{vaccination_status}],\n"
+    out += "], dtype=np.int8)\n"
+    return out
+
+
+def make_eir_compartment_group(compartment: str, label: str,
+                              variants: List[str], vaccination_statuses: List[str]) -> str:
+    out = f'CG_{compartment.upper()}[{label}] = np.array([\n'
+    groups = itertools.product(variants, vaccination_statuses)
+    for variant, vaccination_status in groups:
+        out += f"{TAB}COMPARTMENTS["
+        out += f"COMPARTMENT_TYPE.{compartment[0].upper()}, "
+        out += f"AGG_VARIANT.{variant}, "
+        out += f"REMOVED_VACCINATION_STATUS.{vaccination_status}],\n"
+    out += "], dtype=np.int8)\n"
+    return out
+
+
 def make_compartment_groups() -> str:
     out = ''
-    out += 'COMPARTMENT_GROUPS = Dict.empty(\n'
-    out += f'{TAB}types.UniTuple(types.unicode_type, 2),\n'
+    out += 'CG_SUSCEPTIBLE = Dict.empty(\n'
+    out += f'{TAB}types.int8,\n'
     out += f'{TAB}types.int8[:],\n'
     out += f')\n'
-    for variant, protection_groups in SUSCEPTIBLE_BY_VARIANT.items():
-        out += f"COMPARTMENT_GROUPS[('S', '{variant}')] = np.array([\n"
-        for protection_group in protection_groups:
-            for vaccination_status in PRIMITIVES['vaccination_status']:
-                out += f"{TAB}COMPARTMENTS[('S', '{protection_group}', '{vaccination_status}')],\n"
-        out += "], dtype=np.int8)\n"
-    out += make_compartment_group(
-        'S', 'total',
-        PRIMITIVES['susceptible_type'], PRIMITIVES['vaccination_status'],
-    )
-    out += make_compartment_group(
-        'S', 'non_immune',
-        PRIMITIVES['protection_status'], PRIMITIVES['vaccination_status'],
-    )
-    for compartment in ['E', 'I']:
-        for variant in PRIMITIVES['variant']:
-            out += make_compartment_group(
-                compartment, variant,
-                [variant], PRIMITIVES['vaccination_status'],
-            )
-        out += make_compartment_group(
-            compartment, 'total',
-            PRIMITIVES['variant'], PRIMITIVES['vaccination_status']
-        )
-    for variant in PRIMITIVES['variant']:
-        out += make_compartment_group(
-            'R', variant,
-            [variant], PRIMITIVES['removed_vaccination_status'],
-        )
-    out += make_compartment_group(
-        'R', 'total',
-        PRIMITIVES['variant'], PRIMITIVES['removed_vaccination_status']
-    )
-    for vaccination_status in PRIMITIVES['vaccination_status']:
-        out += f"COMPARTMENT_GROUPS[('N', '{vaccination_status}')] = np.array([\n"
-        out += f"{TAB}v for k, v in COMPARTMENTS.items() if k[2] == '{vaccination_status}'\n"
-        out += "], dtype=np.int8)\n"
-    out += f"COMPARTMENT_GROUPS[('N', 'vaccine_eligible')] = np.array([\n"
-    out += f"{TAB}v for k, v in COMPARTMENTS.items() if k[2] == 'unvaccinated' and k[0] not in ['E', 'I']\n"
+    for variant, susceptible_types in SUSCEPTIBLE_BY_VARIANT.items():
+        out += make_susceptible_compartment_group(f'AGG_VARIANT.{variant}', susceptible_types)
+    out += make_susceptible_compartment_group(f'AGG_OTHER.non_immune', DERIVED_TYPES['protection_status'][1])
+    out += make_susceptible_compartment_group(f'AGG_OTHER.total', DERIVED_TYPES['susceptible_type'][1])
+
+    for compartment in ['exposed', 'infectious', 'removed']:
+        out += ''
+        out += f'CG_{compartment.upper()} = Dict.empty(\n'
+        out += f'{TAB}types.int8,\n'
+        out += f'{TAB}types.int8[:],\n'
+        out += f')\n'
+
+        if compartment == 'removed':
+            vaccination_status = DERIVED_TYPES['removed_vaccination_status'][1]
+        else:
+            vaccination_status = DERIVED_TYPES['vaccination_status'][1]
+
+        for variant in DERIVED_TYPES['variant'][1]:
+            out += make_eir_compartment_group(compartment, f'AGG_VARIANT.{variant}',
+                                              [variant], vaccination_status)
+        out += make_eir_compartment_group(compartment, f'AGG_OTHER.total',
+                                          DERIVED_TYPES['variant'][1], vaccination_status)
+
+    out += f'CG_TOTAL = Dict.empty(\n'
+    out += f'{TAB}types.int8,\n'
+    out += f'{TAB}types.int8[:],\n'
+    out += f')\n'
+
+    compartment_keys, _ = unpack_spec_fields(SPECS['COMPARTMENTS'])
+
+    out += f"CG_TOTAL[AGG_OTHER.total] = np.array([\n"
+    for compartment_key in compartment_keys:
+        out += f"{TAB}COMPARTMENTS{compartment_key},\n"
     out += "], dtype=np.int8)\n"
-    out += f"COMPARTMENT_GROUPS[('N', 'total')] = np.array([\n"
-    out += f"{TAB}v for k, v in COMPARTMENTS.items()\n"
+    out += f"CG_TOTAL[AGG_OTHER.unvaccinated] = np.array([\n"
+    for compartment_key in compartment_keys:
+        out += f"{TAB}COMPARTMENTS{compartment_key},\n"
+        if 'VACCINATION_STATUS.unvaccinated' in compartment_key:
+            out += f"{TAB}COMPARTMENTS{compartment_key},\n"
     out += "], dtype=np.int8)\n"
+    out += f"CG_TOTAL[AGG_OTHER.vaccinated] = np.array([\n"
+    for compartment_key in compartment_keys:
+        out += f"{TAB}COMPARTMENTS{compartment_key},\n"
+        if 'VACCINATION_STATUS.vaccinated' in compartment_key:
+            out += f"{TAB}COMPARTMENTS{compartment_key},\n"
+    out += "], dtype=np.int8)\n"
+    out += f"CG_TOTAL[AGG_OTHER.vaccine_eligible] = np.array([\n"
+    for compartment_key in compartment_keys:
+        out += f"{TAB}COMPARTMENTS{compartment_key},\n"
+        if ('VACCINATION_STATUS.unvaccinated' in compartment_key
+                and 'COMPARTMENTS.E' not in compartment_key
+                and 'COMPARTMENTS.I' not in compartment_key):
+            out += f"{TAB}COMPARTMENTS{compartment_key},\n"
+    out += "], dtype=np.int8)\n"
+
+    # for vaccination_status in PRIMITIVE_TYPES['vaccination_status']:
+    #     out += f"COMPARTMENT_GROUPS[('N', '{vaccination_status}')] = np.array([\n"
+    #     out += f"{TAB}v for k, v in COMPARTMENTS.items() if k[2] == '{vaccination_status}'\n"
+    #     out += "], dtype=np.int8)\n"
+    # out += f"COMPARTMENT_GROUPS[('N', 'vaccine_eligible')] = np.array([\n"
+    # out += f"{TAB}v for k, v in COMPARTMENTS.items() if k[2] == 'unvaccinated' and k[0] not in ['E', 'I']\n"
+    # out += "], dtype=np.int8)\n"
+    # out += f"COMPARTMENT_GROUPS[('N', 'total')] = np.array([\n"
+    # out += f"{TAB}v for k, v in COMPARTMENTS.items()\n"
+    # out += "], dtype=np.int8)\n"
 
     return out
 
@@ -276,7 +537,8 @@ def make_debug_flag() -> str:
 def make_constants() -> str:
     out = make_doctring()
     out += make_imports()
-    out += make_primitives()
+    out += make_primitive_types()
+    out += make_derived_types()
     out += make_specs()
     out += make_compartment_groups()
     out += make_debug_flag()

@@ -110,6 +110,7 @@ def get_longest_item_by_column(content: List[List[str]]):
 
 def make_named_tuple(name: str, content: Union[List[str], List[List[str]]], private: bool =True):
     prefix = '_' if private else ''
+    name = inflection.camelize(name)
     return f"{prefix}{name} = namedtuple('{name}', [\n{format_lines(content)}])\n"
 
 
@@ -130,11 +131,15 @@ def make_content_array(rows: Union[List[str], List[List[str]]],
 
 
 def make_index_map(map_name: str):
-    return f'{inflection.underscore(map_name).upper()} = _{map_name}(*list(range(len(_{map_name}._fields))))\n'
+    map_name_constant = inflection.underscore(map_name).upper()
+    map_name_camel = inflection.camelize(map_name)
+    return f'{map_name_constant} = _{map_name_camel}(*list(range(len(_{map_name_camel}._fields))))\n'
 
 
 def make_name_map(map_name: str, suffix: str = '_NAMES'):
-    return f'{inflection.underscore(map_name).upper()}{suffix} = _{map_name}(*_{map_name}._fields)\n'
+    map_name_constant = inflection.underscore(map_name).upper() + suffix
+    map_name_camel = inflection.camelize(map_name)
+    return f'{map_name_constant} = _{map_name_camel}(*_{map_name}._fields)\n'
 
 
 

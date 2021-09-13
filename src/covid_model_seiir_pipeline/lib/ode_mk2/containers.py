@@ -51,18 +51,18 @@ class Parameters:
     rho_omega: pd.Series
 
     vaccinations_unprotected_lr: pd.Series
-    vaccinations_unprotected_hr: pd.Series
     vaccinations_non_escape_protected_lr: pd.Series
-    vaccinations_non_escape_protected_hr: pd.Series
     vaccinations_escape_protected_lr: pd.Series
-    vaccinations_escape_protected_hr: pd.Series
     vaccinations_omega_protected_lr: pd.Series
-    vaccinations_omega_protected_hr: pd.Series
     vaccinations_non_escape_immune_lr: pd.Series
-    vaccinations_non_escape_immune_hr: pd.Series
     vaccinations_escape_immune_lr: pd.Series
-    vaccinations_escape_immune_hr: pd.Series
     vaccinations_omega_immune_lr: pd.Series
+    vaccinations_unprotected_hr: pd.Series
+    vaccinations_non_escape_protected_hr: pd.Series
+    vaccinations_escape_protected_hr: pd.Series
+    vaccinations_omega_protected_hr: pd.Series
+    vaccinations_non_escape_immune_hr: pd.Series
+    vaccinations_escape_immune_hr: pd.Series
     vaccinations_omega_immune_hr: pd.Series
 
     def to_dict(self) -> Dict[str, pd.Series]:

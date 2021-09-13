@@ -22,32 +22,27 @@ from numba.typed import (
 # Primitive variables #
 #######################
 
-_BaseCompartment = namedtuple('BaseCompartment', [
+_CompartmentType = namedtuple('CompartmentType', [
     'S', 
     'E', 
     'I', 
     'R', 
+    'N', 
 ])
 
-_Variant = namedtuple('Variant', [
-    'ancestral', 
-    'alpha',     
-    'beta',      
-    'gamma',     
-    'delta',     
-    'other',     
-    'omega',     
+_TrackingCompartmentType = namedtuple('TrackingCompartmentType', [
+    'NewE',         
+    'NewR',         
+    'NewVaxImmune', 
+    'Waned',        
 ])
 
-_BaseParameter = namedtuple('BaseParameter', [
+_ParameterType = namedtuple('ParameterType', [
     'alpha', 
     'sigma', 
     'gamma', 
     'pi',    
     'new_e', 
-])
-
-_VariantParameter = namedtuple('VariantParameter', [
     'beta',  
     'kappa', 
     'rho',   
@@ -58,29 +53,135 @@ _RiskGroup = namedtuple('RiskGroup', [
     'hr', 
 ])
 
-_ProtectionStatus = namedtuple('ProtectionStatus', [
+_Index1Type = namedtuple('Index1Type', [
+    'all',                  
+    'total',                
+    'ancestral',            
+    'alpha',                
+    'beta',                 
+    'gamma',                
+    'delta',                
+    'other',                
+    'omega',                
     'unprotected',          
     'non_escape_protected', 
     'escape_protected',     
     'omega_protected',      
+    'non_escape_immune',    
+    'escape_immune',        
+    'omega_immune',         
 ])
 
-_ImmuneStatus = namedtuple('ImmuneStatus', [
-    'non_escape_immune', 
-    'escape_immune',     
-    'omega_immune',      
-])
-
-_VaccinationStatus = namedtuple('VaccinationStatus', [
-    'unvaccinated', 
-    'vaccinated',   
-])
-
-_RemovedVaccinationStatus = namedtuple('RemovedVaccinationStatus', [
+_Index2Type = namedtuple('Index2Type', [
     'unvaccinated',     
     'vaccinated',       
     'newly_vaccinated', 
 ])
+
+_AggIndexType = namedtuple('AggIndexType', [
+    'all',                  
+    'total',                
+    'non_immune',           
+    'natural',              
+    'vaccine',              
+    'vaccine_eligible',     
+    'ancestral',            
+    'alpha',                
+    'beta',                 
+    'gamma',                
+    'delta',                
+    'other',                
+    'omega',                
+    'unprotected',          
+    'non_escape_protected', 
+    'escape_protected',     
+    'omega_protected',      
+    'non_escape_immune',    
+    'escape_immune',        
+    'omega_immune',         
+    'unvaccinated',         
+    'vaccinated',           
+    'newly_vaccinated',     
+])
+
+COMPARTMENT_TYPE = _CompartmentType(*list(range(len(_CompartmentType._fields))))
+TRACKING_COMPARTMENT_TYPE = _TrackingCompartmentType(*list(range(len(_TrackingCompartmentType._fields))))
+PARAMETER_TYPE = _ParameterType(*list(range(len(_ParameterType._fields))))
+RISK_GROUP = _RiskGroup(*list(range(len(_RiskGroup._fields))))
+INDEX_1_TYPE = _Index1Type(*list(range(len(_Index1Type._fields))))
+INDEX_2_TYPE = _Index2Type(*list(range(len(_Index2Type._fields))))
+AGG_INDEX_TYPE = _AggIndexType(*list(range(len(_AggIndexType._fields))))
+
+#####################
+# Derived variables #
+#####################
+
+_BaseCompartment = namedtuple('BaseCompartment', [
+    'S', 
+    'E', 
+    'I', 
+    'R', 
+])
+BASE_COMPARTMENT = _BaseCompartment(
+    S=COMPARTMENT_TYPE.S,
+    E=COMPARTMENT_TYPE.E,
+    I=COMPARTMENT_TYPE.I,
+    R=COMPARTMENT_TYPE.R,
+)
+
+_BaseParameter = namedtuple('BaseParameter', [
+    'alpha', 
+    'sigma', 
+    'gamma', 
+    'pi',    
+    'new_e', 
+])
+BASE_PARAMETER = _BaseParameter(
+    alpha=PARAMETER_TYPE.alpha,
+    sigma=PARAMETER_TYPE.sigma,
+    gamma=PARAMETER_TYPE.gamma,
+    pi=PARAMETER_TYPE.pi,
+    new_e=PARAMETER_TYPE.new_e,
+)
+
+_VariantParameter = namedtuple('VariantParameter', [
+    'beta',  
+    'kappa', 
+    'rho',   
+])
+VARIANT_PARAMETER = _VariantParameter(
+    beta=PARAMETER_TYPE.beta,
+    kappa=PARAMETER_TYPE.kappa,
+    rho=PARAMETER_TYPE.rho,
+)
+
+_VariantGroup = namedtuple('VariantGroup', [
+    'all',   
+    'total', 
+])
+VARIANT_GROUP = _VariantGroup(
+    all=INDEX_1_TYPE.all,
+    total=INDEX_1_TYPE.total,
+)
+
+_Variant = namedtuple('Variant', [
+    'ancestral', 
+    'alpha',     
+    'beta',      
+    'gamma',     
+    'delta',     
+    'other',     
+    'omega',     
+])
+VARIANT = _Variant(
+    ancestral=INDEX_1_TYPE.ancestral,
+    alpha=INDEX_1_TYPE.alpha,
+    beta=INDEX_1_TYPE.beta,
+    gamma=INDEX_1_TYPE.gamma,
+    delta=INDEX_1_TYPE.delta,
+    other=INDEX_1_TYPE.other,
+    omega=INDEX_1_TYPE.omega,
+)
 
 _SusceptibleType = namedtuple('SusceptibleType', [
     'unprotected',          
@@ -91,486 +192,1118 @@ _SusceptibleType = namedtuple('SusceptibleType', [
     'escape_immune',        
     'omega_immune',         
 ])
-
-BASE_COMPARTMENT = _BaseCompartment(*_BaseCompartment._fields)
-VARIANT = _Variant(*_Variant._fields)
-BASE_PARAMETER = _BaseParameter(*_BaseParameter._fields)
-VARIANT_PARAMETER = _VariantParameter(*_VariantParameter._fields)
-RISK_GROUP = _RiskGroup(*_RiskGroup._fields)
-PROTECTION_STATUS = _ProtectionStatus(*_ProtectionStatus._fields)
-IMMUNE_STATUS = _ImmuneStatus(*_ImmuneStatus._fields)
-VACCINATION_STATUS = _VaccinationStatus(*_VaccinationStatus._fields)
-REMOVED_VACCINATION_STATUS = _RemovedVaccinationStatus(*_RemovedVaccinationStatus._fields)
-SUSCEPTIBLE_TYPE = _SusceptibleType(*_SusceptibleType._fields)
-
-PARAMETERS = Dict.empty(
-    types.UniTuple(types.unicode_type, 2),
-    types.int8,
+SUSCEPTIBLE_TYPE = _SusceptibleType(
+    unprotected=INDEX_1_TYPE.unprotected,
+    non_escape_protected=INDEX_1_TYPE.non_escape_protected,
+    escape_protected=INDEX_1_TYPE.escape_protected,
+    omega_protected=INDEX_1_TYPE.omega_protected,
+    non_escape_immune=INDEX_1_TYPE.non_escape_immune,
+    escape_immune=INDEX_1_TYPE.escape_immune,
+    omega_immune=INDEX_1_TYPE.omega_immune,
 )
-PARAMETERS[('alpha', 'all')] = np.int8(0)
-PARAMETERS[('sigma', 'all')] = np.int8(1)
-PARAMETERS[('gamma', 'all')] = np.int8(2)
-PARAMETERS[('pi', 'all')] = np.int8(3)
-PARAMETERS[('new_e', 'all')] = np.int8(4)
-PARAMETERS[('beta', 'ancestral')] = np.int8(5)
-PARAMETERS[('beta', 'alpha')] = np.int8(6)
-PARAMETERS[('beta', 'beta')] = np.int8(7)
-PARAMETERS[('beta', 'gamma')] = np.int8(8)
-PARAMETERS[('beta', 'delta')] = np.int8(9)
-PARAMETERS[('beta', 'other')] = np.int8(10)
-PARAMETERS[('beta', 'omega')] = np.int8(11)
-PARAMETERS[('kappa', 'ancestral')] = np.int8(12)
-PARAMETERS[('kappa', 'alpha')] = np.int8(13)
-PARAMETERS[('kappa', 'beta')] = np.int8(14)
-PARAMETERS[('kappa', 'gamma')] = np.int8(15)
-PARAMETERS[('kappa', 'delta')] = np.int8(16)
-PARAMETERS[('kappa', 'other')] = np.int8(17)
-PARAMETERS[('kappa', 'omega')] = np.int8(18)
-PARAMETERS[('rho', 'ancestral')] = np.int8(19)
-PARAMETERS[('rho', 'alpha')] = np.int8(20)
-PARAMETERS[('rho', 'beta')] = np.int8(21)
-PARAMETERS[('rho', 'gamma')] = np.int8(22)
-PARAMETERS[('rho', 'delta')] = np.int8(23)
-PARAMETERS[('rho', 'other')] = np.int8(24)
-PARAMETERS[('rho', 'omega')] = np.int8(25)
-PARAMETERS_NAMES = ['_'.join(k) for k in PARAMETERS]
 
-VACCINE_TYPES = Dict.empty(
-    types.UniTuple(types.unicode_type, 1),
-    types.int8,
+_ProtectionStatus = namedtuple('ProtectionStatus', [
+    'unprotected',          
+    'non_escape_protected', 
+    'escape_protected',     
+    'omega_protected',      
+])
+PROTECTION_STATUS = _ProtectionStatus(
+    unprotected=INDEX_1_TYPE.unprotected,
+    non_escape_protected=INDEX_1_TYPE.non_escape_protected,
+    escape_protected=INDEX_1_TYPE.escape_protected,
+    omega_protected=INDEX_1_TYPE.omega_protected,
 )
-VACCINE_TYPES[('unprotected',)] = np.int8(0)
-VACCINE_TYPES[('non_escape_protected',)] = np.int8(1)
-VACCINE_TYPES[('escape_protected',)] = np.int8(2)
-VACCINE_TYPES[('omega_protected',)] = np.int8(3)
-VACCINE_TYPES[('non_escape_immune',)] = np.int8(4)
-VACCINE_TYPES[('escape_immune',)] = np.int8(5)
-VACCINE_TYPES[('omega_immune',)] = np.int8(6)
-VACCINE_TYPES_NAMES = ['_'.join(k) for k in VACCINE_TYPES]
 
-COMPARTMENTS = Dict.empty(
-    types.UniTuple(types.unicode_type, 3),
-    types.int8,
+_ImmuneStatus = namedtuple('ImmuneStatus', [
+    'non_escape_immune', 
+    'escape_immune',     
+    'omega_immune',      
+])
+IMMUNE_STATUS = _ImmuneStatus(
+    non_escape_immune=INDEX_1_TYPE.non_escape_immune,
+    escape_immune=INDEX_1_TYPE.escape_immune,
+    omega_immune=INDEX_1_TYPE.omega_immune,
 )
-COMPARTMENTS[('S', 'unprotected', 'unvaccinated')] = np.int8(0)
-COMPARTMENTS[('S', 'unprotected', 'vaccinated')] = np.int8(1)
-COMPARTMENTS[('S', 'non_escape_protected', 'unvaccinated')] = np.int8(2)
-COMPARTMENTS[('S', 'non_escape_protected', 'vaccinated')] = np.int8(3)
-COMPARTMENTS[('S', 'escape_protected', 'unvaccinated')] = np.int8(4)
-COMPARTMENTS[('S', 'escape_protected', 'vaccinated')] = np.int8(5)
-COMPARTMENTS[('S', 'omega_protected', 'unvaccinated')] = np.int8(6)
-COMPARTMENTS[('S', 'omega_protected', 'vaccinated')] = np.int8(7)
-COMPARTMENTS[('S', 'non_escape_immune', 'unvaccinated')] = np.int8(8)
-COMPARTMENTS[('S', 'non_escape_immune', 'vaccinated')] = np.int8(9)
-COMPARTMENTS[('S', 'escape_immune', 'unvaccinated')] = np.int8(10)
-COMPARTMENTS[('S', 'escape_immune', 'vaccinated')] = np.int8(11)
-COMPARTMENTS[('S', 'omega_immune', 'unvaccinated')] = np.int8(12)
-COMPARTMENTS[('S', 'omega_immune', 'vaccinated')] = np.int8(13)
-COMPARTMENTS[('E', 'ancestral', 'unvaccinated')] = np.int8(14)
-COMPARTMENTS[('E', 'ancestral', 'vaccinated')] = np.int8(15)
-COMPARTMENTS[('E', 'alpha', 'unvaccinated')] = np.int8(16)
-COMPARTMENTS[('E', 'alpha', 'vaccinated')] = np.int8(17)
-COMPARTMENTS[('E', 'beta', 'unvaccinated')] = np.int8(18)
-COMPARTMENTS[('E', 'beta', 'vaccinated')] = np.int8(19)
-COMPARTMENTS[('E', 'gamma', 'unvaccinated')] = np.int8(20)
-COMPARTMENTS[('E', 'gamma', 'vaccinated')] = np.int8(21)
-COMPARTMENTS[('E', 'delta', 'unvaccinated')] = np.int8(22)
-COMPARTMENTS[('E', 'delta', 'vaccinated')] = np.int8(23)
-COMPARTMENTS[('E', 'other', 'unvaccinated')] = np.int8(24)
-COMPARTMENTS[('E', 'other', 'vaccinated')] = np.int8(25)
-COMPARTMENTS[('E', 'omega', 'unvaccinated')] = np.int8(26)
-COMPARTMENTS[('E', 'omega', 'vaccinated')] = np.int8(27)
-COMPARTMENTS[('I', 'ancestral', 'unvaccinated')] = np.int8(28)
-COMPARTMENTS[('I', 'ancestral', 'vaccinated')] = np.int8(29)
-COMPARTMENTS[('I', 'alpha', 'unvaccinated')] = np.int8(30)
-COMPARTMENTS[('I', 'alpha', 'vaccinated')] = np.int8(31)
-COMPARTMENTS[('I', 'beta', 'unvaccinated')] = np.int8(32)
-COMPARTMENTS[('I', 'beta', 'vaccinated')] = np.int8(33)
-COMPARTMENTS[('I', 'gamma', 'unvaccinated')] = np.int8(34)
-COMPARTMENTS[('I', 'gamma', 'vaccinated')] = np.int8(35)
-COMPARTMENTS[('I', 'delta', 'unvaccinated')] = np.int8(36)
-COMPARTMENTS[('I', 'delta', 'vaccinated')] = np.int8(37)
-COMPARTMENTS[('I', 'other', 'unvaccinated')] = np.int8(38)
-COMPARTMENTS[('I', 'other', 'vaccinated')] = np.int8(39)
-COMPARTMENTS[('I', 'omega', 'unvaccinated')] = np.int8(40)
-COMPARTMENTS[('I', 'omega', 'vaccinated')] = np.int8(41)
-COMPARTMENTS[('R', 'ancestral', 'unvaccinated')] = np.int8(42)
-COMPARTMENTS[('R', 'ancestral', 'vaccinated')] = np.int8(43)
-COMPARTMENTS[('R', 'ancestral', 'newly_vaccinated')] = np.int8(44)
-COMPARTMENTS[('R', 'alpha', 'unvaccinated')] = np.int8(45)
-COMPARTMENTS[('R', 'alpha', 'vaccinated')] = np.int8(46)
-COMPARTMENTS[('R', 'alpha', 'newly_vaccinated')] = np.int8(47)
-COMPARTMENTS[('R', 'beta', 'unvaccinated')] = np.int8(48)
-COMPARTMENTS[('R', 'beta', 'vaccinated')] = np.int8(49)
-COMPARTMENTS[('R', 'beta', 'newly_vaccinated')] = np.int8(50)
-COMPARTMENTS[('R', 'gamma', 'unvaccinated')] = np.int8(51)
-COMPARTMENTS[('R', 'gamma', 'vaccinated')] = np.int8(52)
-COMPARTMENTS[('R', 'gamma', 'newly_vaccinated')] = np.int8(53)
-COMPARTMENTS[('R', 'delta', 'unvaccinated')] = np.int8(54)
-COMPARTMENTS[('R', 'delta', 'vaccinated')] = np.int8(55)
-COMPARTMENTS[('R', 'delta', 'newly_vaccinated')] = np.int8(56)
-COMPARTMENTS[('R', 'other', 'unvaccinated')] = np.int8(57)
-COMPARTMENTS[('R', 'other', 'vaccinated')] = np.int8(58)
-COMPARTMENTS[('R', 'other', 'newly_vaccinated')] = np.int8(59)
-COMPARTMENTS[('R', 'omega', 'unvaccinated')] = np.int8(60)
-COMPARTMENTS[('R', 'omega', 'vaccinated')] = np.int8(61)
-COMPARTMENTS[('R', 'omega', 'newly_vaccinated')] = np.int8(62)
-COMPARTMENTS_NAMES = ['_'.join(k) for k in COMPARTMENTS]
 
-TRACKING_COMPARTMENTS = Dict.empty(
-    types.UniTuple(types.unicode_type, 2),
-    types.int8,
+_VaccineType = namedtuple('VaccineType', [
+    'unprotected',          
+    'non_escape_protected', 
+    'escape_protected',     
+    'omega_protected',      
+    'non_escape_immune',    
+    'escape_immune',        
+    'omega_immune',         
+])
+VACCINE_TYPE = _VaccineType(
+    unprotected=INDEX_1_TYPE.unprotected,
+    non_escape_protected=INDEX_1_TYPE.non_escape_protected,
+    escape_protected=INDEX_1_TYPE.escape_protected,
+    omega_protected=INDEX_1_TYPE.omega_protected,
+    non_escape_immune=INDEX_1_TYPE.non_escape_immune,
+    escape_immune=INDEX_1_TYPE.escape_immune,
+    omega_immune=INDEX_1_TYPE.omega_immune,
 )
-TRACKING_COMPARTMENTS[('NewE', 'unvaccinated')] = np.int8(63)
-TRACKING_COMPARTMENTS[('NewE', 'vaccinated')] = np.int8(64)
-TRACKING_COMPARTMENTS[('NewE', 'ancestral')] = np.int8(65)
-TRACKING_COMPARTMENTS[('NewE', 'alpha')] = np.int8(66)
-TRACKING_COMPARTMENTS[('NewE', 'beta')] = np.int8(67)
-TRACKING_COMPARTMENTS[('NewE', 'gamma')] = np.int8(68)
-TRACKING_COMPARTMENTS[('NewE', 'delta')] = np.int8(69)
-TRACKING_COMPARTMENTS[('NewE', 'other')] = np.int8(70)
-TRACKING_COMPARTMENTS[('NewE', 'omega')] = np.int8(71)
-TRACKING_COMPARTMENTS[('NewE', 'total')] = np.int8(72)
-TRACKING_COMPARTMENTS[('NewVaxImmune', 'non_escape_immune')] = np.int8(73)
-TRACKING_COMPARTMENTS[('NewVaxImmune', 'escape_immune')] = np.int8(74)
-TRACKING_COMPARTMENTS[('NewVaxImmune', 'omega_immune')] = np.int8(75)
-TRACKING_COMPARTMENTS[('NewVaxImmune', 'total')] = np.int8(76)
-TRACKING_COMPARTMENTS[('NewR', 'ancestral')] = np.int8(77)
-TRACKING_COMPARTMENTS[('NewR', 'alpha')] = np.int8(78)
-TRACKING_COMPARTMENTS[('NewR', 'beta')] = np.int8(79)
-TRACKING_COMPARTMENTS[('NewR', 'gamma')] = np.int8(80)
-TRACKING_COMPARTMENTS[('NewR', 'delta')] = np.int8(81)
-TRACKING_COMPARTMENTS[('NewR', 'other')] = np.int8(82)
-TRACKING_COMPARTMENTS[('NewR', 'omega')] = np.int8(83)
-TRACKING_COMPARTMENTS[('NewR', 'total')] = np.int8(84)
-TRACKING_COMPARTMENTS[('Waned', 'natural')] = np.int8(85)
-TRACKING_COMPARTMENTS[('Waned', 'vaccine')] = np.int8(86)
-TRACKING_COMPARTMENTS[('Waned', 'ancestral')] = np.int8(87)
-TRACKING_COMPARTMENTS[('Waned', 'alpha')] = np.int8(88)
-TRACKING_COMPARTMENTS[('Waned', 'beta')] = np.int8(89)
-TRACKING_COMPARTMENTS[('Waned', 'gamma')] = np.int8(90)
-TRACKING_COMPARTMENTS[('Waned', 'delta')] = np.int8(91)
-TRACKING_COMPARTMENTS[('Waned', 'other')] = np.int8(92)
-TRACKING_COMPARTMENTS[('Waned', 'omega')] = np.int8(93)
-TRACKING_COMPARTMENTS[('Waned', 'non_escape_immune')] = np.int8(94)
-TRACKING_COMPARTMENTS[('Waned', 'escape_immune')] = np.int8(95)
-TRACKING_COMPARTMENTS[('Waned', 'omega_immune')] = np.int8(96)
-TRACKING_COMPARTMENTS_NAMES = ['_'.join(k) for k in TRACKING_COMPARTMENTS]
 
-AGGREGATES = Dict.empty(
-    types.UniTuple(types.unicode_type, 2),
-    types.int8,
+_VaccinationStatus = namedtuple('VaccinationStatus', [
+    'unvaccinated', 
+    'vaccinated',   
+])
+VACCINATION_STATUS = _VaccinationStatus(
+    unvaccinated=INDEX_2_TYPE.unvaccinated,
+    vaccinated=INDEX_2_TYPE.vaccinated,
 )
-AGGREGATES[('S', 'ancestral')] = np.int8(0)
-AGGREGATES[('S', 'alpha')] = np.int8(1)
-AGGREGATES[('S', 'beta')] = np.int8(2)
-AGGREGATES[('S', 'gamma')] = np.int8(3)
-AGGREGATES[('S', 'delta')] = np.int8(4)
-AGGREGATES[('S', 'other')] = np.int8(5)
-AGGREGATES[('S', 'omega')] = np.int8(6)
-AGGREGATES[('E', 'ancestral')] = np.int8(7)
-AGGREGATES[('E', 'alpha')] = np.int8(8)
-AGGREGATES[('E', 'beta')] = np.int8(9)
-AGGREGATES[('E', 'gamma')] = np.int8(10)
-AGGREGATES[('E', 'delta')] = np.int8(11)
-AGGREGATES[('E', 'other')] = np.int8(12)
-AGGREGATES[('E', 'omega')] = np.int8(13)
-AGGREGATES[('I', 'ancestral')] = np.int8(14)
-AGGREGATES[('I', 'alpha')] = np.int8(15)
-AGGREGATES[('I', 'beta')] = np.int8(16)
-AGGREGATES[('I', 'gamma')] = np.int8(17)
-AGGREGATES[('I', 'delta')] = np.int8(18)
-AGGREGATES[('I', 'other')] = np.int8(19)
-AGGREGATES[('I', 'omega')] = np.int8(20)
-AGGREGATES[('R', 'ancestral')] = np.int8(21)
-AGGREGATES[('R', 'alpha')] = np.int8(22)
-AGGREGATES[('R', 'beta')] = np.int8(23)
-AGGREGATES[('R', 'gamma')] = np.int8(24)
-AGGREGATES[('R', 'delta')] = np.int8(25)
-AGGREGATES[('R', 'other')] = np.int8(26)
-AGGREGATES[('R', 'omega')] = np.int8(27)
-AGGREGATES[('N', 'unvaccinated')] = np.int8(28)
-AGGREGATES[('N', 'vaccinated')] = np.int8(29)
-AGGREGATES_NAMES = ['_'.join(k) for k in AGGREGATES]
 
-FORCE_OF_INFECTION = Dict.empty(
-    types.UniTuple(types.unicode_type, 1),
-    types.int8,
+_RemovedVaccinationStatus = namedtuple('RemovedVaccinationStatus', [
+    'unvaccinated',     
+    'vaccinated',       
+    'newly_vaccinated', 
+])
+REMOVED_VACCINATION_STATUS = _RemovedVaccinationStatus(
+    unvaccinated=INDEX_2_TYPE.unvaccinated,
+    vaccinated=INDEX_2_TYPE.vaccinated,
+    newly_vaccinated=INDEX_2_TYPE.newly_vaccinated,
 )
-FORCE_OF_INFECTION[('ancestral',)] = np.int8(0)
-FORCE_OF_INFECTION[('alpha',)] = np.int8(1)
-FORCE_OF_INFECTION[('beta',)] = np.int8(2)
-FORCE_OF_INFECTION[('gamma',)] = np.int8(3)
-FORCE_OF_INFECTION[('delta',)] = np.int8(4)
-FORCE_OF_INFECTION[('other',)] = np.int8(5)
-FORCE_OF_INFECTION[('omega',)] = np.int8(6)
-FORCE_OF_INFECTION_NAMES = ['_'.join(k) for k in FORCE_OF_INFECTION]
 
-WANED = Dict.empty(
-    types.UniTuple(types.unicode_type, 1),
-    types.int8,
+_AggVariant = namedtuple('AggVariant', [
+    'ancestral', 
+    'alpha',     
+    'beta',      
+    'gamma',     
+    'delta',     
+    'other',     
+    'omega',     
+])
+AGG_VARIANT = _AggVariant(
+    ancestral=AGG_INDEX_TYPE.ancestral,
+    alpha=AGG_INDEX_TYPE.alpha,
+    beta=AGG_INDEX_TYPE.beta,
+    gamma=AGG_INDEX_TYPE.gamma,
+    delta=AGG_INDEX_TYPE.delta,
+    other=AGG_INDEX_TYPE.other,
+    omega=AGG_INDEX_TYPE.omega,
 )
-WANED[('natural',)] = np.int8(0)
-WANED[('vaccine',)] = np.int8(1)
-WANED_NAMES = ['_'.join(k) for k in WANED]
 
-COMPARTMENT_GROUPS = Dict.empty(
-    types.UniTuple(types.unicode_type, 2),
+_AggImmuneStatus = namedtuple('AggImmuneStatus', [
+    'non_escape_immune', 
+    'escape_immune',     
+    'omega_immune',      
+])
+AGG_IMMUNE_STATUS = _AggImmuneStatus(
+    non_escape_immune=AGG_INDEX_TYPE.non_escape_immune,
+    escape_immune=AGG_INDEX_TYPE.escape_immune,
+    omega_immune=AGG_INDEX_TYPE.omega_immune,
+)
+
+_AggVaccinationStatus = namedtuple('AggVaccinationStatus', [
+    'unvaccinated', 
+    'vaccinated',   
+])
+AGG_VACCINATION_STATUS = _AggVaccinationStatus(
+    unvaccinated=AGG_INDEX_TYPE.unvaccinated,
+    vaccinated=AGG_INDEX_TYPE.vaccinated,
+)
+
+_AggOther = namedtuple('AggOther', [
+    'all',              
+    'total',            
+    'non_immune',       
+    'unvaccinated',     
+    'vaccinated',       
+    'vaccine_eligible', 
+])
+AGG_OTHER = _AggOther(
+    all=AGG_INDEX_TYPE.all,
+    total=AGG_INDEX_TYPE.total,
+    non_immune=AGG_INDEX_TYPE.non_immune,
+    unvaccinated=AGG_INDEX_TYPE.unvaccinated,
+    vaccinated=AGG_INDEX_TYPE.vaccinated,
+    vaccine_eligible=AGG_INDEX_TYPE.vaccine_eligible,
+)
+
+PARAMETERS = np.zeros((len(PARAMETER_TYPE), len(INDEX_1_TYPE)), dtype=np.int8)
+PARAMETERS[BASE_PARAMETER.alpha, INDEX_1_TYPE.all] = np.int8(0)
+PARAMETERS[BASE_PARAMETER.sigma, INDEX_1_TYPE.all] = np.int8(1)
+PARAMETERS[BASE_PARAMETER.gamma, INDEX_1_TYPE.all] = np.int8(2)
+PARAMETERS[BASE_PARAMETER.pi, INDEX_1_TYPE.all] = np.int8(3)
+PARAMETERS[BASE_PARAMETER.new_e, INDEX_1_TYPE.all] = np.int8(4)
+PARAMETERS[VARIANT_PARAMETER.beta, VARIANT.ancestral] = np.int8(5)
+PARAMETERS[VARIANT_PARAMETER.beta, VARIANT.alpha] = np.int8(6)
+PARAMETERS[VARIANT_PARAMETER.beta, VARIANT.beta] = np.int8(7)
+PARAMETERS[VARIANT_PARAMETER.beta, VARIANT.gamma] = np.int8(8)
+PARAMETERS[VARIANT_PARAMETER.beta, VARIANT.delta] = np.int8(9)
+PARAMETERS[VARIANT_PARAMETER.beta, VARIANT.other] = np.int8(10)
+PARAMETERS[VARIANT_PARAMETER.beta, VARIANT.omega] = np.int8(11)
+PARAMETERS[VARIANT_PARAMETER.kappa, VARIANT.ancestral] = np.int8(12)
+PARAMETERS[VARIANT_PARAMETER.kappa, VARIANT.alpha] = np.int8(13)
+PARAMETERS[VARIANT_PARAMETER.kappa, VARIANT.beta] = np.int8(14)
+PARAMETERS[VARIANT_PARAMETER.kappa, VARIANT.gamma] = np.int8(15)
+PARAMETERS[VARIANT_PARAMETER.kappa, VARIANT.delta] = np.int8(16)
+PARAMETERS[VARIANT_PARAMETER.kappa, VARIANT.other] = np.int8(17)
+PARAMETERS[VARIANT_PARAMETER.kappa, VARIANT.omega] = np.int8(18)
+PARAMETERS[VARIANT_PARAMETER.rho, VARIANT.ancestral] = np.int8(19)
+PARAMETERS[VARIANT_PARAMETER.rho, VARIANT.alpha] = np.int8(20)
+PARAMETERS[VARIANT_PARAMETER.rho, VARIANT.beta] = np.int8(21)
+PARAMETERS[VARIANT_PARAMETER.rho, VARIANT.gamma] = np.int8(22)
+PARAMETERS[VARIANT_PARAMETER.rho, VARIANT.delta] = np.int8(23)
+PARAMETERS[VARIANT_PARAMETER.rho, VARIANT.other] = np.int8(24)
+PARAMETERS[VARIANT_PARAMETER.rho, VARIANT.omega] = np.int8(25)
+PARAMETERS_NAMES = [
+    'alpha_all',
+    'sigma_all',
+    'gamma_all',
+    'pi_all',
+    'new_e_all',
+    'beta_ancestral',
+    'beta_alpha',
+    'beta_beta',
+    'beta_gamma',
+    'beta_delta',
+    'beta_other',
+    'beta_omega',
+    'kappa_ancestral',
+    'kappa_alpha',
+    'kappa_beta',
+    'kappa_gamma',
+    'kappa_delta',
+    'kappa_other',
+    'kappa_omega',
+    'rho_ancestral',
+    'rho_alpha',
+    'rho_beta',
+    'rho_gamma',
+    'rho_delta',
+    'rho_other',
+    'rho_omega',
+]
+
+VACCINATIONS = np.zeros((len(INDEX_1_TYPE)), dtype=np.int8)
+VACCINATIONS[VACCINE_TYPE.unprotected] = np.int8(0)
+VACCINATIONS[VACCINE_TYPE.non_escape_protected] = np.int8(1)
+VACCINATIONS[VACCINE_TYPE.escape_protected] = np.int8(2)
+VACCINATIONS[VACCINE_TYPE.omega_protected] = np.int8(3)
+VACCINATIONS[VACCINE_TYPE.non_escape_immune] = np.int8(4)
+VACCINATIONS[VACCINE_TYPE.escape_immune] = np.int8(5)
+VACCINATIONS[VACCINE_TYPE.omega_immune] = np.int8(6)
+VACCINATIONS_NAMES = [
+    'unprotected',
+    'non_escape_protected',
+    'escape_protected',
+    'omega_protected',
+    'non_escape_immune',
+    'escape_immune',
+    'omega_immune',
+]
+
+COMPARTMENTS = np.zeros((len(COMPARTMENT_TYPE), len(INDEX_1_TYPE), len(INDEX_2_TYPE)), dtype=np.int8)
+COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.unprotected, VACCINATION_STATUS.unvaccinated] = np.int8(0)
+COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.unprotected, VACCINATION_STATUS.vaccinated] = np.int8(1)
+COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.non_escape_protected, VACCINATION_STATUS.unvaccinated] = np.int8(2)
+COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.non_escape_protected, VACCINATION_STATUS.vaccinated] = np.int8(3)
+COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.escape_protected, VACCINATION_STATUS.unvaccinated] = np.int8(4)
+COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.escape_protected, VACCINATION_STATUS.vaccinated] = np.int8(5)
+COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.omega_protected, VACCINATION_STATUS.unvaccinated] = np.int8(6)
+COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.omega_protected, VACCINATION_STATUS.vaccinated] = np.int8(7)
+COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.non_escape_immune, VACCINATION_STATUS.unvaccinated] = np.int8(8)
+COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.non_escape_immune, VACCINATION_STATUS.vaccinated] = np.int8(9)
+COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.escape_immune, VACCINATION_STATUS.unvaccinated] = np.int8(10)
+COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.escape_immune, VACCINATION_STATUS.vaccinated] = np.int8(11)
+COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.omega_immune, VACCINATION_STATUS.unvaccinated] = np.int8(12)
+COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.omega_immune, VACCINATION_STATUS.vaccinated] = np.int8(13)
+COMPARTMENTS[COMPARTMENT_TYPE.E, VARIANT.ancestral, VACCINATION_STATUS.unvaccinated] = np.int8(14)
+COMPARTMENTS[COMPARTMENT_TYPE.E, VARIANT.ancestral, VACCINATION_STATUS.vaccinated] = np.int8(15)
+COMPARTMENTS[COMPARTMENT_TYPE.E, VARIANT.alpha, VACCINATION_STATUS.unvaccinated] = np.int8(16)
+COMPARTMENTS[COMPARTMENT_TYPE.E, VARIANT.alpha, VACCINATION_STATUS.vaccinated] = np.int8(17)
+COMPARTMENTS[COMPARTMENT_TYPE.E, VARIANT.beta, VACCINATION_STATUS.unvaccinated] = np.int8(18)
+COMPARTMENTS[COMPARTMENT_TYPE.E, VARIANT.beta, VACCINATION_STATUS.vaccinated] = np.int8(19)
+COMPARTMENTS[COMPARTMENT_TYPE.E, VARIANT.gamma, VACCINATION_STATUS.unvaccinated] = np.int8(20)
+COMPARTMENTS[COMPARTMENT_TYPE.E, VARIANT.gamma, VACCINATION_STATUS.vaccinated] = np.int8(21)
+COMPARTMENTS[COMPARTMENT_TYPE.E, VARIANT.delta, VACCINATION_STATUS.unvaccinated] = np.int8(22)
+COMPARTMENTS[COMPARTMENT_TYPE.E, VARIANT.delta, VACCINATION_STATUS.vaccinated] = np.int8(23)
+COMPARTMENTS[COMPARTMENT_TYPE.E, VARIANT.other, VACCINATION_STATUS.unvaccinated] = np.int8(24)
+COMPARTMENTS[COMPARTMENT_TYPE.E, VARIANT.other, VACCINATION_STATUS.vaccinated] = np.int8(25)
+COMPARTMENTS[COMPARTMENT_TYPE.E, VARIANT.omega, VACCINATION_STATUS.unvaccinated] = np.int8(26)
+COMPARTMENTS[COMPARTMENT_TYPE.E, VARIANT.omega, VACCINATION_STATUS.vaccinated] = np.int8(27)
+COMPARTMENTS[COMPARTMENT_TYPE.I, VARIANT.ancestral, VACCINATION_STATUS.unvaccinated] = np.int8(28)
+COMPARTMENTS[COMPARTMENT_TYPE.I, VARIANT.ancestral, VACCINATION_STATUS.vaccinated] = np.int8(29)
+COMPARTMENTS[COMPARTMENT_TYPE.I, VARIANT.alpha, VACCINATION_STATUS.unvaccinated] = np.int8(30)
+COMPARTMENTS[COMPARTMENT_TYPE.I, VARIANT.alpha, VACCINATION_STATUS.vaccinated] = np.int8(31)
+COMPARTMENTS[COMPARTMENT_TYPE.I, VARIANT.beta, VACCINATION_STATUS.unvaccinated] = np.int8(32)
+COMPARTMENTS[COMPARTMENT_TYPE.I, VARIANT.beta, VACCINATION_STATUS.vaccinated] = np.int8(33)
+COMPARTMENTS[COMPARTMENT_TYPE.I, VARIANT.gamma, VACCINATION_STATUS.unvaccinated] = np.int8(34)
+COMPARTMENTS[COMPARTMENT_TYPE.I, VARIANT.gamma, VACCINATION_STATUS.vaccinated] = np.int8(35)
+COMPARTMENTS[COMPARTMENT_TYPE.I, VARIANT.delta, VACCINATION_STATUS.unvaccinated] = np.int8(36)
+COMPARTMENTS[COMPARTMENT_TYPE.I, VARIANT.delta, VACCINATION_STATUS.vaccinated] = np.int8(37)
+COMPARTMENTS[COMPARTMENT_TYPE.I, VARIANT.other, VACCINATION_STATUS.unvaccinated] = np.int8(38)
+COMPARTMENTS[COMPARTMENT_TYPE.I, VARIANT.other, VACCINATION_STATUS.vaccinated] = np.int8(39)
+COMPARTMENTS[COMPARTMENT_TYPE.I, VARIANT.omega, VACCINATION_STATUS.unvaccinated] = np.int8(40)
+COMPARTMENTS[COMPARTMENT_TYPE.I, VARIANT.omega, VACCINATION_STATUS.vaccinated] = np.int8(41)
+COMPARTMENTS[COMPARTMENT_TYPE.R, VARIANT.ancestral, REMOVED_VACCINATION_STATUS.unvaccinated] = np.int8(42)
+COMPARTMENTS[COMPARTMENT_TYPE.R, VARIANT.ancestral, REMOVED_VACCINATION_STATUS.vaccinated] = np.int8(43)
+COMPARTMENTS[COMPARTMENT_TYPE.R, VARIANT.ancestral, REMOVED_VACCINATION_STATUS.newly_vaccinated] = np.int8(44)
+COMPARTMENTS[COMPARTMENT_TYPE.R, VARIANT.alpha, REMOVED_VACCINATION_STATUS.unvaccinated] = np.int8(45)
+COMPARTMENTS[COMPARTMENT_TYPE.R, VARIANT.alpha, REMOVED_VACCINATION_STATUS.vaccinated] = np.int8(46)
+COMPARTMENTS[COMPARTMENT_TYPE.R, VARIANT.alpha, REMOVED_VACCINATION_STATUS.newly_vaccinated] = np.int8(47)
+COMPARTMENTS[COMPARTMENT_TYPE.R, VARIANT.beta, REMOVED_VACCINATION_STATUS.unvaccinated] = np.int8(48)
+COMPARTMENTS[COMPARTMENT_TYPE.R, VARIANT.beta, REMOVED_VACCINATION_STATUS.vaccinated] = np.int8(49)
+COMPARTMENTS[COMPARTMENT_TYPE.R, VARIANT.beta, REMOVED_VACCINATION_STATUS.newly_vaccinated] = np.int8(50)
+COMPARTMENTS[COMPARTMENT_TYPE.R, VARIANT.gamma, REMOVED_VACCINATION_STATUS.unvaccinated] = np.int8(51)
+COMPARTMENTS[COMPARTMENT_TYPE.R, VARIANT.gamma, REMOVED_VACCINATION_STATUS.vaccinated] = np.int8(52)
+COMPARTMENTS[COMPARTMENT_TYPE.R, VARIANT.gamma, REMOVED_VACCINATION_STATUS.newly_vaccinated] = np.int8(53)
+COMPARTMENTS[COMPARTMENT_TYPE.R, VARIANT.delta, REMOVED_VACCINATION_STATUS.unvaccinated] = np.int8(54)
+COMPARTMENTS[COMPARTMENT_TYPE.R, VARIANT.delta, REMOVED_VACCINATION_STATUS.vaccinated] = np.int8(55)
+COMPARTMENTS[COMPARTMENT_TYPE.R, VARIANT.delta, REMOVED_VACCINATION_STATUS.newly_vaccinated] = np.int8(56)
+COMPARTMENTS[COMPARTMENT_TYPE.R, VARIANT.other, REMOVED_VACCINATION_STATUS.unvaccinated] = np.int8(57)
+COMPARTMENTS[COMPARTMENT_TYPE.R, VARIANT.other, REMOVED_VACCINATION_STATUS.vaccinated] = np.int8(58)
+COMPARTMENTS[COMPARTMENT_TYPE.R, VARIANT.other, REMOVED_VACCINATION_STATUS.newly_vaccinated] = np.int8(59)
+COMPARTMENTS[COMPARTMENT_TYPE.R, VARIANT.omega, REMOVED_VACCINATION_STATUS.unvaccinated] = np.int8(60)
+COMPARTMENTS[COMPARTMENT_TYPE.R, VARIANT.omega, REMOVED_VACCINATION_STATUS.vaccinated] = np.int8(61)
+COMPARTMENTS[COMPARTMENT_TYPE.R, VARIANT.omega, REMOVED_VACCINATION_STATUS.newly_vaccinated] = np.int8(62)
+COMPARTMENTS_NAMES = [
+    'S_unprotected_unvaccinated',
+    'S_unprotected_vaccinated',
+    'S_non_escape_protected_unvaccinated',
+    'S_non_escape_protected_vaccinated',
+    'S_escape_protected_unvaccinated',
+    'S_escape_protected_vaccinated',
+    'S_omega_protected_unvaccinated',
+    'S_omega_protected_vaccinated',
+    'S_non_escape_immune_unvaccinated',
+    'S_non_escape_immune_vaccinated',
+    'S_escape_immune_unvaccinated',
+    'S_escape_immune_vaccinated',
+    'S_omega_immune_unvaccinated',
+    'S_omega_immune_vaccinated',
+    'E_ancestral_unvaccinated',
+    'E_ancestral_vaccinated',
+    'E_alpha_unvaccinated',
+    'E_alpha_vaccinated',
+    'E_beta_unvaccinated',
+    'E_beta_vaccinated',
+    'E_gamma_unvaccinated',
+    'E_gamma_vaccinated',
+    'E_delta_unvaccinated',
+    'E_delta_vaccinated',
+    'E_other_unvaccinated',
+    'E_other_vaccinated',
+    'E_omega_unvaccinated',
+    'E_omega_vaccinated',
+    'I_ancestral_unvaccinated',
+    'I_ancestral_vaccinated',
+    'I_alpha_unvaccinated',
+    'I_alpha_vaccinated',
+    'I_beta_unvaccinated',
+    'I_beta_vaccinated',
+    'I_gamma_unvaccinated',
+    'I_gamma_vaccinated',
+    'I_delta_unvaccinated',
+    'I_delta_vaccinated',
+    'I_other_unvaccinated',
+    'I_other_vaccinated',
+    'I_omega_unvaccinated',
+    'I_omega_vaccinated',
+    'R_ancestral_unvaccinated',
+    'R_ancestral_vaccinated',
+    'R_ancestral_newly_vaccinated',
+    'R_alpha_unvaccinated',
+    'R_alpha_vaccinated',
+    'R_alpha_newly_vaccinated',
+    'R_beta_unvaccinated',
+    'R_beta_vaccinated',
+    'R_beta_newly_vaccinated',
+    'R_gamma_unvaccinated',
+    'R_gamma_vaccinated',
+    'R_gamma_newly_vaccinated',
+    'R_delta_unvaccinated',
+    'R_delta_vaccinated',
+    'R_delta_newly_vaccinated',
+    'R_other_unvaccinated',
+    'R_other_vaccinated',
+    'R_other_newly_vaccinated',
+    'R_omega_unvaccinated',
+    'R_omega_vaccinated',
+    'R_omega_newly_vaccinated',
+]
+
+TRACKING_COMPARTMENTS = np.zeros((len(TRACKING_COMPARTMENT_TYPE), len(AGG_INDEX_TYPE)), dtype=np.int8)
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.NewE, AGG_VACCINATION_STATUS.unvaccinated] = np.int8(63)
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.NewE, AGG_VACCINATION_STATUS.vaccinated] = np.int8(64)
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.NewE, AGG_VARIANT.ancestral] = np.int8(65)
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.NewE, AGG_VARIANT.alpha] = np.int8(66)
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.NewE, AGG_VARIANT.beta] = np.int8(67)
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.NewE, AGG_VARIANT.gamma] = np.int8(68)
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.NewE, AGG_VARIANT.delta] = np.int8(69)
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.NewE, AGG_VARIANT.other] = np.int8(70)
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.NewE, AGG_VARIANT.omega] = np.int8(71)
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.NewE, AGG_INDEX_TYPE.total] = np.int8(72)
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.NewVaxImmune, AGG_IMMUNE_STATUS.non_escape_immune] = np.int8(73)
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.NewVaxImmune, AGG_IMMUNE_STATUS.escape_immune] = np.int8(74)
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.NewVaxImmune, AGG_IMMUNE_STATUS.omega_immune] = np.int8(75)
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.NewVaxImmune, AGG_INDEX_TYPE.total] = np.int8(76)
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.NewR, AGG_VARIANT.ancestral] = np.int8(77)
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.NewR, AGG_VARIANT.alpha] = np.int8(78)
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.NewR, AGG_VARIANT.beta] = np.int8(79)
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.NewR, AGG_VARIANT.gamma] = np.int8(80)
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.NewR, AGG_VARIANT.delta] = np.int8(81)
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.NewR, AGG_VARIANT.other] = np.int8(82)
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.NewR, AGG_VARIANT.omega] = np.int8(83)
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.NewR, AGG_INDEX_TYPE.total] = np.int8(84)
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.Waned, AGG_INDEX_TYPE.natural] = np.int8(85)
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.Waned, AGG_INDEX_TYPE.vaccine] = np.int8(86)
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.Waned, AGG_VARIANT.ancestral] = np.int8(87)
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.Waned, AGG_VARIANT.alpha] = np.int8(88)
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.Waned, AGG_VARIANT.beta] = np.int8(89)
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.Waned, AGG_VARIANT.gamma] = np.int8(90)
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.Waned, AGG_VARIANT.delta] = np.int8(91)
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.Waned, AGG_VARIANT.other] = np.int8(92)
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.Waned, AGG_VARIANT.omega] = np.int8(93)
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.Waned, AGG_IMMUNE_STATUS.non_escape_immune] = np.int8(94)
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.Waned, AGG_IMMUNE_STATUS.escape_immune] = np.int8(95)
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.Waned, AGG_IMMUNE_STATUS.omega_immune] = np.int8(96)
+TRACKING_COMPARTMENTS_NAMES = [
+    'NewE_unvaccinated',
+    'NewE_vaccinated',
+    'NewE_ancestral',
+    'NewE_alpha',
+    'NewE_beta',
+    'NewE_gamma',
+    'NewE_delta',
+    'NewE_other',
+    'NewE_omega',
+    'NewE_total',
+    'NewVaxImmune_non_escape_immune',
+    'NewVaxImmune_escape_immune',
+    'NewVaxImmune_omega_immune',
+    'NewVaxImmune_total',
+    'NewR_ancestral',
+    'NewR_alpha',
+    'NewR_beta',
+    'NewR_gamma',
+    'NewR_delta',
+    'NewR_other',
+    'NewR_omega',
+    'NewR_total',
+    'Waned_natural',
+    'Waned_vaccine',
+    'Waned_ancestral',
+    'Waned_alpha',
+    'Waned_beta',
+    'Waned_gamma',
+    'Waned_delta',
+    'Waned_other',
+    'Waned_omega',
+    'Waned_non_escape_immune',
+    'Waned_escape_immune',
+    'Waned_omega_immune',
+]
+
+AGGREGATES = np.zeros((len(COMPARTMENT_TYPE), len(AGG_INDEX_TYPE)), dtype=np.int8)
+AGGREGATES[BASE_COMPARTMENT.S, AGG_VARIANT.ancestral] = np.int8(0)
+AGGREGATES[BASE_COMPARTMENT.S, AGG_VARIANT.alpha] = np.int8(1)
+AGGREGATES[BASE_COMPARTMENT.S, AGG_VARIANT.beta] = np.int8(2)
+AGGREGATES[BASE_COMPARTMENT.S, AGG_VARIANT.gamma] = np.int8(3)
+AGGREGATES[BASE_COMPARTMENT.S, AGG_VARIANT.delta] = np.int8(4)
+AGGREGATES[BASE_COMPARTMENT.S, AGG_VARIANT.other] = np.int8(5)
+AGGREGATES[BASE_COMPARTMENT.S, AGG_VARIANT.omega] = np.int8(6)
+AGGREGATES[BASE_COMPARTMENT.E, AGG_VARIANT.ancestral] = np.int8(7)
+AGGREGATES[BASE_COMPARTMENT.E, AGG_VARIANT.alpha] = np.int8(8)
+AGGREGATES[BASE_COMPARTMENT.E, AGG_VARIANT.beta] = np.int8(9)
+AGGREGATES[BASE_COMPARTMENT.E, AGG_VARIANT.gamma] = np.int8(10)
+AGGREGATES[BASE_COMPARTMENT.E, AGG_VARIANT.delta] = np.int8(11)
+AGGREGATES[BASE_COMPARTMENT.E, AGG_VARIANT.other] = np.int8(12)
+AGGREGATES[BASE_COMPARTMENT.E, AGG_VARIANT.omega] = np.int8(13)
+AGGREGATES[BASE_COMPARTMENT.I, AGG_VARIANT.ancestral] = np.int8(14)
+AGGREGATES[BASE_COMPARTMENT.I, AGG_VARIANT.alpha] = np.int8(15)
+AGGREGATES[BASE_COMPARTMENT.I, AGG_VARIANT.beta] = np.int8(16)
+AGGREGATES[BASE_COMPARTMENT.I, AGG_VARIANT.gamma] = np.int8(17)
+AGGREGATES[BASE_COMPARTMENT.I, AGG_VARIANT.delta] = np.int8(18)
+AGGREGATES[BASE_COMPARTMENT.I, AGG_VARIANT.other] = np.int8(19)
+AGGREGATES[BASE_COMPARTMENT.I, AGG_VARIANT.omega] = np.int8(20)
+AGGREGATES[BASE_COMPARTMENT.R, AGG_VARIANT.ancestral] = np.int8(21)
+AGGREGATES[BASE_COMPARTMENT.R, AGG_VARIANT.alpha] = np.int8(22)
+AGGREGATES[BASE_COMPARTMENT.R, AGG_VARIANT.beta] = np.int8(23)
+AGGREGATES[BASE_COMPARTMENT.R, AGG_VARIANT.gamma] = np.int8(24)
+AGGREGATES[BASE_COMPARTMENT.R, AGG_VARIANT.delta] = np.int8(25)
+AGGREGATES[BASE_COMPARTMENT.R, AGG_VARIANT.other] = np.int8(26)
+AGGREGATES[BASE_COMPARTMENT.R, AGG_VARIANT.omega] = np.int8(27)
+AGGREGATES[COMPARTMENT_TYPE.N, AGG_VACCINATION_STATUS.unvaccinated] = np.int8(28)
+AGGREGATES[COMPARTMENT_TYPE.N, AGG_VACCINATION_STATUS.vaccinated] = np.int8(29)
+AGGREGATES_NAMES = [
+    'S_ancestral',
+    'S_alpha',
+    'S_beta',
+    'S_gamma',
+    'S_delta',
+    'S_other',
+    'S_omega',
+    'E_ancestral',
+    'E_alpha',
+    'E_beta',
+    'E_gamma',
+    'E_delta',
+    'E_other',
+    'E_omega',
+    'I_ancestral',
+    'I_alpha',
+    'I_beta',
+    'I_gamma',
+    'I_delta',
+    'I_other',
+    'I_omega',
+    'R_ancestral',
+    'R_alpha',
+    'R_beta',
+    'R_gamma',
+    'R_delta',
+    'R_other',
+    'R_omega',
+    'N_unvaccinated',
+    'N_vaccinated',
+]
+
+FORCE_OF_INFECTION = np.zeros((len(INDEX_1_TYPE)), dtype=np.int8)
+FORCE_OF_INFECTION[VARIANT.ancestral] = np.int8(0)
+FORCE_OF_INFECTION[VARIANT.alpha] = np.int8(1)
+FORCE_OF_INFECTION[VARIANT.beta] = np.int8(2)
+FORCE_OF_INFECTION[VARIANT.gamma] = np.int8(3)
+FORCE_OF_INFECTION[VARIANT.delta] = np.int8(4)
+FORCE_OF_INFECTION[VARIANT.other] = np.int8(5)
+FORCE_OF_INFECTION[VARIANT.omega] = np.int8(6)
+FORCE_OF_INFECTION_NAMES = [
+    'ancestral',
+    'alpha',
+    'beta',
+    'gamma',
+    'delta',
+    'other',
+    'omega',
+]
+
+WANED = np.zeros((len(AGG_INDEX_TYPE)), dtype=np.int8)
+WANED[AGG_INDEX_TYPE.natural] = np.int8(0)
+WANED[AGG_INDEX_TYPE.vaccine] = np.int8(1)
+WANED_NAMES = [
+    'natural',
+    'vaccine',
+]
+
+CG_SUSCEPTIBLE = Dict.empty(
+    types.int8,
     types.int8[:],
 )
-COMPARTMENT_GROUPS[('S', 'ancestral')] = np.array([
-    COMPARTMENTS[('S', 'unprotected', 'unvaccinated')],
-    COMPARTMENTS[('S', 'unprotected', 'vaccinated')],
-    COMPARTMENTS[('S', 'non_escape_protected', 'unvaccinated')],
-    COMPARTMENTS[('S', 'non_escape_protected', 'vaccinated')],
-    COMPARTMENTS[('S', 'escape_protected', 'unvaccinated')],
-    COMPARTMENTS[('S', 'escape_protected', 'vaccinated')],
-    COMPARTMENTS[('S', 'omega_protected', 'unvaccinated')],
-    COMPARTMENTS[('S', 'omega_protected', 'vaccinated')],
+CG_SUSCEPTIBLE[AGG_VARIANT.ancestral] = np.array([
+    COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.unprotected, VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.unprotected, VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.non_escape_protected, VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.non_escape_protected, VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.escape_protected, VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.escape_protected, VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.omega_protected, VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.omega_protected, VACCINATION_STATUS.vaccinated],
 ], dtype=np.int8)
-COMPARTMENT_GROUPS[('S', 'alpha')] = np.array([
-    COMPARTMENTS[('S', 'unprotected', 'unvaccinated')],
-    COMPARTMENTS[('S', 'unprotected', 'vaccinated')],
-    COMPARTMENTS[('S', 'non_escape_protected', 'unvaccinated')],
-    COMPARTMENTS[('S', 'non_escape_protected', 'vaccinated')],
-    COMPARTMENTS[('S', 'escape_protected', 'unvaccinated')],
-    COMPARTMENTS[('S', 'escape_protected', 'vaccinated')],
-    COMPARTMENTS[('S', 'omega_protected', 'unvaccinated')],
-    COMPARTMENTS[('S', 'omega_protected', 'vaccinated')],
+CG_SUSCEPTIBLE[AGG_VARIANT.alpha] = np.array([
+    COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.unprotected, VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.unprotected, VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.non_escape_protected, VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.non_escape_protected, VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.escape_protected, VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.escape_protected, VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.omega_protected, VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.omega_protected, VACCINATION_STATUS.vaccinated],
 ], dtype=np.int8)
-COMPARTMENT_GROUPS[('S', 'beta')] = np.array([
-    COMPARTMENTS[('S', 'unprotected', 'unvaccinated')],
-    COMPARTMENTS[('S', 'unprotected', 'vaccinated')],
-    COMPARTMENTS[('S', 'non_escape_protected', 'unvaccinated')],
-    COMPARTMENTS[('S', 'non_escape_protected', 'vaccinated')],
-    COMPARTMENTS[('S', 'escape_protected', 'unvaccinated')],
-    COMPARTMENTS[('S', 'escape_protected', 'vaccinated')],
-    COMPARTMENTS[('S', 'omega_protected', 'unvaccinated')],
-    COMPARTMENTS[('S', 'omega_protected', 'vaccinated')],
-    COMPARTMENTS[('S', 'non_escape_immune', 'unvaccinated')],
-    COMPARTMENTS[('S', 'non_escape_immune', 'vaccinated')],
+CG_SUSCEPTIBLE[AGG_VARIANT.beta] = np.array([
+    COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.unprotected, VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.unprotected, VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.non_escape_protected, VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.non_escape_protected, VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.escape_protected, VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.escape_protected, VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.omega_protected, VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.omega_protected, VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.non_escape_immune, VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.non_escape_immune, VACCINATION_STATUS.vaccinated],
 ], dtype=np.int8)
-COMPARTMENT_GROUPS[('S', 'gamma')] = np.array([
-    COMPARTMENTS[('S', 'unprotected', 'unvaccinated')],
-    COMPARTMENTS[('S', 'unprotected', 'vaccinated')],
-    COMPARTMENTS[('S', 'non_escape_protected', 'unvaccinated')],
-    COMPARTMENTS[('S', 'non_escape_protected', 'vaccinated')],
-    COMPARTMENTS[('S', 'escape_protected', 'unvaccinated')],
-    COMPARTMENTS[('S', 'escape_protected', 'vaccinated')],
-    COMPARTMENTS[('S', 'omega_protected', 'unvaccinated')],
-    COMPARTMENTS[('S', 'omega_protected', 'vaccinated')],
-    COMPARTMENTS[('S', 'non_escape_immune', 'unvaccinated')],
-    COMPARTMENTS[('S', 'non_escape_immune', 'vaccinated')],
+CG_SUSCEPTIBLE[AGG_VARIANT.gamma] = np.array([
+    COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.unprotected, VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.unprotected, VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.non_escape_protected, VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.non_escape_protected, VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.escape_protected, VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.escape_protected, VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.omega_protected, VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.omega_protected, VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.non_escape_immune, VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.non_escape_immune, VACCINATION_STATUS.vaccinated],
 ], dtype=np.int8)
-COMPARTMENT_GROUPS[('S', 'delta')] = np.array([
-    COMPARTMENTS[('S', 'unprotected', 'unvaccinated')],
-    COMPARTMENTS[('S', 'unprotected', 'vaccinated')],
-    COMPARTMENTS[('S', 'non_escape_protected', 'unvaccinated')],
-    COMPARTMENTS[('S', 'non_escape_protected', 'vaccinated')],
-    COMPARTMENTS[('S', 'escape_protected', 'unvaccinated')],
-    COMPARTMENTS[('S', 'escape_protected', 'vaccinated')],
-    COMPARTMENTS[('S', 'omega_protected', 'unvaccinated')],
-    COMPARTMENTS[('S', 'omega_protected', 'vaccinated')],
-    COMPARTMENTS[('S', 'non_escape_immune', 'unvaccinated')],
-    COMPARTMENTS[('S', 'non_escape_immune', 'vaccinated')],
+CG_SUSCEPTIBLE[AGG_VARIANT.delta] = np.array([
+    COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.unprotected, VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.unprotected, VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.non_escape_protected, VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.non_escape_protected, VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.escape_protected, VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.escape_protected, VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.omega_protected, VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.omega_protected, VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.non_escape_immune, VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.non_escape_immune, VACCINATION_STATUS.vaccinated],
 ], dtype=np.int8)
-COMPARTMENT_GROUPS[('S', 'omega')] = np.array([
-    COMPARTMENTS[('S', 'unprotected', 'unvaccinated')],
-    COMPARTMENTS[('S', 'unprotected', 'vaccinated')],
-    COMPARTMENTS[('S', 'non_escape_protected', 'unvaccinated')],
-    COMPARTMENTS[('S', 'non_escape_protected', 'vaccinated')],
-    COMPARTMENTS[('S', 'escape_protected', 'unvaccinated')],
-    COMPARTMENTS[('S', 'escape_protected', 'vaccinated')],
-    COMPARTMENTS[('S', 'omega_protected', 'unvaccinated')],
-    COMPARTMENTS[('S', 'omega_protected', 'vaccinated')],
-    COMPARTMENTS[('S', 'non_escape_immune', 'unvaccinated')],
-    COMPARTMENTS[('S', 'non_escape_immune', 'vaccinated')],
-    COMPARTMENTS[('S', 'escape_immune', 'unvaccinated')],
-    COMPARTMENTS[('S', 'escape_immune', 'vaccinated')],
+CG_SUSCEPTIBLE[AGG_VARIANT.other] = np.array([
+    COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.unprotected, VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.unprotected, VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.non_escape_protected, VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.non_escape_protected, VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.escape_protected, VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.escape_protected, VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.omega_protected, VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.omega_protected, VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.non_escape_immune, VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.non_escape_immune, VACCINATION_STATUS.vaccinated],
 ], dtype=np.int8)
-COMPARTMENT_GROUPS[('S', 'total')] = np.array([
-    COMPARTMENTS[('S', 'unprotected', 'unvaccinated')],
-    COMPARTMENTS[('S', 'unprotected', 'vaccinated')],
-    COMPARTMENTS[('S', 'non_escape_protected', 'unvaccinated')],
-    COMPARTMENTS[('S', 'non_escape_protected', 'vaccinated')],
-    COMPARTMENTS[('S', 'escape_protected', 'unvaccinated')],
-    COMPARTMENTS[('S', 'escape_protected', 'vaccinated')],
-    COMPARTMENTS[('S', 'omega_protected', 'unvaccinated')],
-    COMPARTMENTS[('S', 'omega_protected', 'vaccinated')],
-    COMPARTMENTS[('S', 'non_escape_immune', 'unvaccinated')],
-    COMPARTMENTS[('S', 'non_escape_immune', 'vaccinated')],
-    COMPARTMENTS[('S', 'escape_immune', 'unvaccinated')],
-    COMPARTMENTS[('S', 'escape_immune', 'vaccinated')],
-    COMPARTMENTS[('S', 'omega_immune', 'unvaccinated')],
-    COMPARTMENTS[('S', 'omega_immune', 'vaccinated')],
+CG_SUSCEPTIBLE[AGG_VARIANT.omega] = np.array([
+    COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.unprotected, VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.unprotected, VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.non_escape_protected, VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.non_escape_protected, VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.escape_protected, VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.escape_protected, VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.omega_protected, VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.omega_protected, VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.non_escape_immune, VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.non_escape_immune, VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.escape_immune, VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.escape_immune, VACCINATION_STATUS.vaccinated],
 ], dtype=np.int8)
-COMPARTMENT_GROUPS[('S', 'non_immune')] = np.array([
-    COMPARTMENTS[('S', 'unprotected', 'unvaccinated')],
-    COMPARTMENTS[('S', 'unprotected', 'vaccinated')],
-    COMPARTMENTS[('S', 'non_escape_protected', 'unvaccinated')],
-    COMPARTMENTS[('S', 'non_escape_protected', 'vaccinated')],
-    COMPARTMENTS[('S', 'escape_protected', 'unvaccinated')],
-    COMPARTMENTS[('S', 'escape_protected', 'vaccinated')],
-    COMPARTMENTS[('S', 'omega_protected', 'unvaccinated')],
-    COMPARTMENTS[('S', 'omega_protected', 'vaccinated')],
+CG_SUSCEPTIBLE[AGG_OTHER.non_immune] = np.array([
+    COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.unprotected, VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.unprotected, VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.non_escape_protected, VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.non_escape_protected, VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.escape_protected, VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.escape_protected, VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.omega_protected, VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.omega_protected, VACCINATION_STATUS.vaccinated],
 ], dtype=np.int8)
-COMPARTMENT_GROUPS[('E', 'ancestral')] = np.array([
-    COMPARTMENTS[('E', 'ancestral', 'unvaccinated')],
-    COMPARTMENTS[('E', 'ancestral', 'vaccinated')],
+CG_SUSCEPTIBLE[AGG_OTHER.total] = np.array([
+    COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.unprotected, VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.unprotected, VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.non_escape_protected, VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.non_escape_protected, VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.escape_protected, VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.escape_protected, VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.omega_protected, VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.omega_protected, VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.non_escape_immune, VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.non_escape_immune, VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.escape_immune, VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.escape_immune, VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.omega_immune, VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.omega_immune, VACCINATION_STATUS.vaccinated],
 ], dtype=np.int8)
-COMPARTMENT_GROUPS[('E', 'alpha')] = np.array([
-    COMPARTMENTS[('E', 'alpha', 'unvaccinated')],
-    COMPARTMENTS[('E', 'alpha', 'vaccinated')],
+CG_EXPOSED = Dict.empty(
+    types.int8,
+    types.int8[:],
+)
+CG_EXPOSED[AGG_VARIANT.ancestral] = np.array([
+    COMPARTMENTS[COMPARTMENT_TYPE.E, AGG_VARIANT.ancestral, REMOVED_VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.E, AGG_VARIANT.ancestral, REMOVED_VACCINATION_STATUS.vaccinated],
 ], dtype=np.int8)
-COMPARTMENT_GROUPS[('E', 'beta')] = np.array([
-    COMPARTMENTS[('E', 'beta', 'unvaccinated')],
-    COMPARTMENTS[('E', 'beta', 'vaccinated')],
+CG_EXPOSED[AGG_VARIANT.alpha] = np.array([
+    COMPARTMENTS[COMPARTMENT_TYPE.E, AGG_VARIANT.alpha, REMOVED_VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.E, AGG_VARIANT.alpha, REMOVED_VACCINATION_STATUS.vaccinated],
 ], dtype=np.int8)
-COMPARTMENT_GROUPS[('E', 'gamma')] = np.array([
-    COMPARTMENTS[('E', 'gamma', 'unvaccinated')],
-    COMPARTMENTS[('E', 'gamma', 'vaccinated')],
+CG_EXPOSED[AGG_VARIANT.beta] = np.array([
+    COMPARTMENTS[COMPARTMENT_TYPE.E, AGG_VARIANT.beta, REMOVED_VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.E, AGG_VARIANT.beta, REMOVED_VACCINATION_STATUS.vaccinated],
 ], dtype=np.int8)
-COMPARTMENT_GROUPS[('E', 'delta')] = np.array([
-    COMPARTMENTS[('E', 'delta', 'unvaccinated')],
-    COMPARTMENTS[('E', 'delta', 'vaccinated')],
+CG_EXPOSED[AGG_VARIANT.gamma] = np.array([
+    COMPARTMENTS[COMPARTMENT_TYPE.E, AGG_VARIANT.gamma, REMOVED_VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.E, AGG_VARIANT.gamma, REMOVED_VACCINATION_STATUS.vaccinated],
 ], dtype=np.int8)
-COMPARTMENT_GROUPS[('E', 'other')] = np.array([
-    COMPARTMENTS[('E', 'other', 'unvaccinated')],
-    COMPARTMENTS[('E', 'other', 'vaccinated')],
+CG_EXPOSED[AGG_VARIANT.delta] = np.array([
+    COMPARTMENTS[COMPARTMENT_TYPE.E, AGG_VARIANT.delta, REMOVED_VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.E, AGG_VARIANT.delta, REMOVED_VACCINATION_STATUS.vaccinated],
 ], dtype=np.int8)
-COMPARTMENT_GROUPS[('E', 'omega')] = np.array([
-    COMPARTMENTS[('E', 'omega', 'unvaccinated')],
-    COMPARTMENTS[('E', 'omega', 'vaccinated')],
+CG_EXPOSED[AGG_VARIANT.other] = np.array([
+    COMPARTMENTS[COMPARTMENT_TYPE.E, AGG_VARIANT.other, REMOVED_VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.E, AGG_VARIANT.other, REMOVED_VACCINATION_STATUS.vaccinated],
 ], dtype=np.int8)
-COMPARTMENT_GROUPS[('E', 'total')] = np.array([
-    COMPARTMENTS[('E', 'ancestral', 'unvaccinated')],
-    COMPARTMENTS[('E', 'ancestral', 'vaccinated')],
-    COMPARTMENTS[('E', 'alpha', 'unvaccinated')],
-    COMPARTMENTS[('E', 'alpha', 'vaccinated')],
-    COMPARTMENTS[('E', 'beta', 'unvaccinated')],
-    COMPARTMENTS[('E', 'beta', 'vaccinated')],
-    COMPARTMENTS[('E', 'gamma', 'unvaccinated')],
-    COMPARTMENTS[('E', 'gamma', 'vaccinated')],
-    COMPARTMENTS[('E', 'delta', 'unvaccinated')],
-    COMPARTMENTS[('E', 'delta', 'vaccinated')],
-    COMPARTMENTS[('E', 'other', 'unvaccinated')],
-    COMPARTMENTS[('E', 'other', 'vaccinated')],
-    COMPARTMENTS[('E', 'omega', 'unvaccinated')],
-    COMPARTMENTS[('E', 'omega', 'vaccinated')],
+CG_EXPOSED[AGG_VARIANT.omega] = np.array([
+    COMPARTMENTS[COMPARTMENT_TYPE.E, AGG_VARIANT.omega, REMOVED_VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.E, AGG_VARIANT.omega, REMOVED_VACCINATION_STATUS.vaccinated],
 ], dtype=np.int8)
-COMPARTMENT_GROUPS[('I', 'ancestral')] = np.array([
-    COMPARTMENTS[('I', 'ancestral', 'unvaccinated')],
-    COMPARTMENTS[('I', 'ancestral', 'vaccinated')],
+CG_EXPOSED[AGG_OTHER.total] = np.array([
+    COMPARTMENTS[COMPARTMENT_TYPE.E, AGG_VARIANT.ancestral, REMOVED_VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.E, AGG_VARIANT.ancestral, REMOVED_VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.E, AGG_VARIANT.alpha, REMOVED_VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.E, AGG_VARIANT.alpha, REMOVED_VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.E, AGG_VARIANT.beta, REMOVED_VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.E, AGG_VARIANT.beta, REMOVED_VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.E, AGG_VARIANT.gamma, REMOVED_VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.E, AGG_VARIANT.gamma, REMOVED_VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.E, AGG_VARIANT.delta, REMOVED_VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.E, AGG_VARIANT.delta, REMOVED_VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.E, AGG_VARIANT.other, REMOVED_VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.E, AGG_VARIANT.other, REMOVED_VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.E, AGG_VARIANT.omega, REMOVED_VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.E, AGG_VARIANT.omega, REMOVED_VACCINATION_STATUS.vaccinated],
 ], dtype=np.int8)
-COMPARTMENT_GROUPS[('I', 'alpha')] = np.array([
-    COMPARTMENTS[('I', 'alpha', 'unvaccinated')],
-    COMPARTMENTS[('I', 'alpha', 'vaccinated')],
+CG_INFECTIOUS = Dict.empty(
+    types.int8,
+    types.int8[:],
+)
+CG_INFECTIOUS[AGG_VARIANT.ancestral] = np.array([
+    COMPARTMENTS[COMPARTMENT_TYPE.I, AGG_VARIANT.ancestral, REMOVED_VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.I, AGG_VARIANT.ancestral, REMOVED_VACCINATION_STATUS.vaccinated],
 ], dtype=np.int8)
-COMPARTMENT_GROUPS[('I', 'beta')] = np.array([
-    COMPARTMENTS[('I', 'beta', 'unvaccinated')],
-    COMPARTMENTS[('I', 'beta', 'vaccinated')],
+CG_INFECTIOUS[AGG_VARIANT.alpha] = np.array([
+    COMPARTMENTS[COMPARTMENT_TYPE.I, AGG_VARIANT.alpha, REMOVED_VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.I, AGG_VARIANT.alpha, REMOVED_VACCINATION_STATUS.vaccinated],
 ], dtype=np.int8)
-COMPARTMENT_GROUPS[('I', 'gamma')] = np.array([
-    COMPARTMENTS[('I', 'gamma', 'unvaccinated')],
-    COMPARTMENTS[('I', 'gamma', 'vaccinated')],
+CG_INFECTIOUS[AGG_VARIANT.beta] = np.array([
+    COMPARTMENTS[COMPARTMENT_TYPE.I, AGG_VARIANT.beta, REMOVED_VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.I, AGG_VARIANT.beta, REMOVED_VACCINATION_STATUS.vaccinated],
 ], dtype=np.int8)
-COMPARTMENT_GROUPS[('I', 'delta')] = np.array([
-    COMPARTMENTS[('I', 'delta', 'unvaccinated')],
-    COMPARTMENTS[('I', 'delta', 'vaccinated')],
+CG_INFECTIOUS[AGG_VARIANT.gamma] = np.array([
+    COMPARTMENTS[COMPARTMENT_TYPE.I, AGG_VARIANT.gamma, REMOVED_VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.I, AGG_VARIANT.gamma, REMOVED_VACCINATION_STATUS.vaccinated],
 ], dtype=np.int8)
-COMPARTMENT_GROUPS[('I', 'other')] = np.array([
-    COMPARTMENTS[('I', 'other', 'unvaccinated')],
-    COMPARTMENTS[('I', 'other', 'vaccinated')],
+CG_INFECTIOUS[AGG_VARIANT.delta] = np.array([
+    COMPARTMENTS[COMPARTMENT_TYPE.I, AGG_VARIANT.delta, REMOVED_VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.I, AGG_VARIANT.delta, REMOVED_VACCINATION_STATUS.vaccinated],
 ], dtype=np.int8)
-COMPARTMENT_GROUPS[('I', 'omega')] = np.array([
-    COMPARTMENTS[('I', 'omega', 'unvaccinated')],
-    COMPARTMENTS[('I', 'omega', 'vaccinated')],
+CG_INFECTIOUS[AGG_VARIANT.other] = np.array([
+    COMPARTMENTS[COMPARTMENT_TYPE.I, AGG_VARIANT.other, REMOVED_VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.I, AGG_VARIANT.other, REMOVED_VACCINATION_STATUS.vaccinated],
 ], dtype=np.int8)
-COMPARTMENT_GROUPS[('I', 'total')] = np.array([
-    COMPARTMENTS[('I', 'ancestral', 'unvaccinated')],
-    COMPARTMENTS[('I', 'ancestral', 'vaccinated')],
-    COMPARTMENTS[('I', 'alpha', 'unvaccinated')],
-    COMPARTMENTS[('I', 'alpha', 'vaccinated')],
-    COMPARTMENTS[('I', 'beta', 'unvaccinated')],
-    COMPARTMENTS[('I', 'beta', 'vaccinated')],
-    COMPARTMENTS[('I', 'gamma', 'unvaccinated')],
-    COMPARTMENTS[('I', 'gamma', 'vaccinated')],
-    COMPARTMENTS[('I', 'delta', 'unvaccinated')],
-    COMPARTMENTS[('I', 'delta', 'vaccinated')],
-    COMPARTMENTS[('I', 'other', 'unvaccinated')],
-    COMPARTMENTS[('I', 'other', 'vaccinated')],
-    COMPARTMENTS[('I', 'omega', 'unvaccinated')],
-    COMPARTMENTS[('I', 'omega', 'vaccinated')],
+CG_INFECTIOUS[AGG_VARIANT.omega] = np.array([
+    COMPARTMENTS[COMPARTMENT_TYPE.I, AGG_VARIANT.omega, REMOVED_VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.I, AGG_VARIANT.omega, REMOVED_VACCINATION_STATUS.vaccinated],
 ], dtype=np.int8)
-COMPARTMENT_GROUPS[('R', 'ancestral')] = np.array([
-    COMPARTMENTS[('R', 'ancestral', 'unvaccinated')],
-    COMPARTMENTS[('R', 'ancestral', 'vaccinated')],
-    COMPARTMENTS[('R', 'ancestral', 'newly_vaccinated')],
+CG_INFECTIOUS[AGG_OTHER.total] = np.array([
+    COMPARTMENTS[COMPARTMENT_TYPE.I, AGG_VARIANT.ancestral, REMOVED_VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.I, AGG_VARIANT.ancestral, REMOVED_VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.I, AGG_VARIANT.alpha, REMOVED_VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.I, AGG_VARIANT.alpha, REMOVED_VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.I, AGG_VARIANT.beta, REMOVED_VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.I, AGG_VARIANT.beta, REMOVED_VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.I, AGG_VARIANT.gamma, REMOVED_VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.I, AGG_VARIANT.gamma, REMOVED_VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.I, AGG_VARIANT.delta, REMOVED_VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.I, AGG_VARIANT.delta, REMOVED_VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.I, AGG_VARIANT.other, REMOVED_VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.I, AGG_VARIANT.other, REMOVED_VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.I, AGG_VARIANT.omega, REMOVED_VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.I, AGG_VARIANT.omega, REMOVED_VACCINATION_STATUS.vaccinated],
 ], dtype=np.int8)
-COMPARTMENT_GROUPS[('R', 'alpha')] = np.array([
-    COMPARTMENTS[('R', 'alpha', 'unvaccinated')],
-    COMPARTMENTS[('R', 'alpha', 'vaccinated')],
-    COMPARTMENTS[('R', 'alpha', 'newly_vaccinated')],
+CG_REMOVED = Dict.empty(
+    types.int8,
+    types.int8[:],
+)
+CG_REMOVED[AGG_VARIANT.ancestral] = np.array([
+    COMPARTMENTS[COMPARTMENT_TYPE.R, AGG_VARIANT.ancestral, REMOVED_VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.R, AGG_VARIANT.ancestral, REMOVED_VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.R, AGG_VARIANT.ancestral, REMOVED_VACCINATION_STATUS.newly_vaccinated],
 ], dtype=np.int8)
-COMPARTMENT_GROUPS[('R', 'beta')] = np.array([
-    COMPARTMENTS[('R', 'beta', 'unvaccinated')],
-    COMPARTMENTS[('R', 'beta', 'vaccinated')],
-    COMPARTMENTS[('R', 'beta', 'newly_vaccinated')],
+CG_REMOVED[AGG_VARIANT.alpha] = np.array([
+    COMPARTMENTS[COMPARTMENT_TYPE.R, AGG_VARIANT.alpha, REMOVED_VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.R, AGG_VARIANT.alpha, REMOVED_VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.R, AGG_VARIANT.alpha, REMOVED_VACCINATION_STATUS.newly_vaccinated],
 ], dtype=np.int8)
-COMPARTMENT_GROUPS[('R', 'gamma')] = np.array([
-    COMPARTMENTS[('R', 'gamma', 'unvaccinated')],
-    COMPARTMENTS[('R', 'gamma', 'vaccinated')],
-    COMPARTMENTS[('R', 'gamma', 'newly_vaccinated')],
+CG_REMOVED[AGG_VARIANT.beta] = np.array([
+    COMPARTMENTS[COMPARTMENT_TYPE.R, AGG_VARIANT.beta, REMOVED_VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.R, AGG_VARIANT.beta, REMOVED_VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.R, AGG_VARIANT.beta, REMOVED_VACCINATION_STATUS.newly_vaccinated],
 ], dtype=np.int8)
-COMPARTMENT_GROUPS[('R', 'delta')] = np.array([
-    COMPARTMENTS[('R', 'delta', 'unvaccinated')],
-    COMPARTMENTS[('R', 'delta', 'vaccinated')],
-    COMPARTMENTS[('R', 'delta', 'newly_vaccinated')],
+CG_REMOVED[AGG_VARIANT.gamma] = np.array([
+    COMPARTMENTS[COMPARTMENT_TYPE.R, AGG_VARIANT.gamma, REMOVED_VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.R, AGG_VARIANT.gamma, REMOVED_VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.R, AGG_VARIANT.gamma, REMOVED_VACCINATION_STATUS.newly_vaccinated],
 ], dtype=np.int8)
-COMPARTMENT_GROUPS[('R', 'other')] = np.array([
-    COMPARTMENTS[('R', 'other', 'unvaccinated')],
-    COMPARTMENTS[('R', 'other', 'vaccinated')],
-    COMPARTMENTS[('R', 'other', 'newly_vaccinated')],
+CG_REMOVED[AGG_VARIANT.delta] = np.array([
+    COMPARTMENTS[COMPARTMENT_TYPE.R, AGG_VARIANT.delta, REMOVED_VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.R, AGG_VARIANT.delta, REMOVED_VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.R, AGG_VARIANT.delta, REMOVED_VACCINATION_STATUS.newly_vaccinated],
 ], dtype=np.int8)
-COMPARTMENT_GROUPS[('R', 'omega')] = np.array([
-    COMPARTMENTS[('R', 'omega', 'unvaccinated')],
-    COMPARTMENTS[('R', 'omega', 'vaccinated')],
-    COMPARTMENTS[('R', 'omega', 'newly_vaccinated')],
+CG_REMOVED[AGG_VARIANT.other] = np.array([
+    COMPARTMENTS[COMPARTMENT_TYPE.R, AGG_VARIANT.other, REMOVED_VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.R, AGG_VARIANT.other, REMOVED_VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.R, AGG_VARIANT.other, REMOVED_VACCINATION_STATUS.newly_vaccinated],
 ], dtype=np.int8)
-COMPARTMENT_GROUPS[('R', 'total')] = np.array([
-    COMPARTMENTS[('R', 'ancestral', 'unvaccinated')],
-    COMPARTMENTS[('R', 'ancestral', 'vaccinated')],
-    COMPARTMENTS[('R', 'ancestral', 'newly_vaccinated')],
-    COMPARTMENTS[('R', 'alpha', 'unvaccinated')],
-    COMPARTMENTS[('R', 'alpha', 'vaccinated')],
-    COMPARTMENTS[('R', 'alpha', 'newly_vaccinated')],
-    COMPARTMENTS[('R', 'beta', 'unvaccinated')],
-    COMPARTMENTS[('R', 'beta', 'vaccinated')],
-    COMPARTMENTS[('R', 'beta', 'newly_vaccinated')],
-    COMPARTMENTS[('R', 'gamma', 'unvaccinated')],
-    COMPARTMENTS[('R', 'gamma', 'vaccinated')],
-    COMPARTMENTS[('R', 'gamma', 'newly_vaccinated')],
-    COMPARTMENTS[('R', 'delta', 'unvaccinated')],
-    COMPARTMENTS[('R', 'delta', 'vaccinated')],
-    COMPARTMENTS[('R', 'delta', 'newly_vaccinated')],
-    COMPARTMENTS[('R', 'other', 'unvaccinated')],
-    COMPARTMENTS[('R', 'other', 'vaccinated')],
-    COMPARTMENTS[('R', 'other', 'newly_vaccinated')],
-    COMPARTMENTS[('R', 'omega', 'unvaccinated')],
-    COMPARTMENTS[('R', 'omega', 'vaccinated')],
-    COMPARTMENTS[('R', 'omega', 'newly_vaccinated')],
+CG_REMOVED[AGG_VARIANT.omega] = np.array([
+    COMPARTMENTS[COMPARTMENT_TYPE.R, AGG_VARIANT.omega, REMOVED_VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.R, AGG_VARIANT.omega, REMOVED_VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.R, AGG_VARIANT.omega, REMOVED_VACCINATION_STATUS.newly_vaccinated],
 ], dtype=np.int8)
-COMPARTMENT_GROUPS[('N', 'unvaccinated')] = np.array([
-    v for k, v in COMPARTMENTS.items() if k[2] == 'unvaccinated'
+CG_REMOVED[AGG_OTHER.total] = np.array([
+    COMPARTMENTS[COMPARTMENT_TYPE.R, AGG_VARIANT.ancestral, REMOVED_VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.R, AGG_VARIANT.ancestral, REMOVED_VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.R, AGG_VARIANT.ancestral, REMOVED_VACCINATION_STATUS.newly_vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.R, AGG_VARIANT.alpha, REMOVED_VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.R, AGG_VARIANT.alpha, REMOVED_VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.R, AGG_VARIANT.alpha, REMOVED_VACCINATION_STATUS.newly_vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.R, AGG_VARIANT.beta, REMOVED_VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.R, AGG_VARIANT.beta, REMOVED_VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.R, AGG_VARIANT.beta, REMOVED_VACCINATION_STATUS.newly_vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.R, AGG_VARIANT.gamma, REMOVED_VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.R, AGG_VARIANT.gamma, REMOVED_VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.R, AGG_VARIANT.gamma, REMOVED_VACCINATION_STATUS.newly_vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.R, AGG_VARIANT.delta, REMOVED_VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.R, AGG_VARIANT.delta, REMOVED_VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.R, AGG_VARIANT.delta, REMOVED_VACCINATION_STATUS.newly_vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.R, AGG_VARIANT.other, REMOVED_VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.R, AGG_VARIANT.other, REMOVED_VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.R, AGG_VARIANT.other, REMOVED_VACCINATION_STATUS.newly_vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.R, AGG_VARIANT.omega, REMOVED_VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.R, AGG_VARIANT.omega, REMOVED_VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.R, AGG_VARIANT.omega, REMOVED_VACCINATION_STATUS.newly_vaccinated],
 ], dtype=np.int8)
-COMPARTMENT_GROUPS[('N', 'vaccinated')] = np.array([
-    v for k, v in COMPARTMENTS.items() if k[2] == 'vaccinated'
+CG_TOTAL = Dict.empty(
+    types.int8,
+    types.int8[:],
+)
+CG_TOTAL[AGG_OTHER.total] = np.array([
+    COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.unprotected, VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.unprotected, VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.non_escape_protected, VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.non_escape_protected, VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.escape_protected, VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.escape_protected, VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.omega_protected, VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.omega_protected, VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.non_escape_immune, VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.non_escape_immune, VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.escape_immune, VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.escape_immune, VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.omega_immune, VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.omega_immune, VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.E, VARIANT.ancestral, VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.E, VARIANT.ancestral, VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.E, VARIANT.alpha, VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.E, VARIANT.alpha, VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.E, VARIANT.beta, VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.E, VARIANT.beta, VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.E, VARIANT.gamma, VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.E, VARIANT.gamma, VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.E, VARIANT.delta, VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.E, VARIANT.delta, VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.E, VARIANT.other, VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.E, VARIANT.other, VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.E, VARIANT.omega, VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.E, VARIANT.omega, VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.I, VARIANT.ancestral, VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.I, VARIANT.ancestral, VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.I, VARIANT.alpha, VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.I, VARIANT.alpha, VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.I, VARIANT.beta, VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.I, VARIANT.beta, VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.I, VARIANT.gamma, VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.I, VARIANT.gamma, VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.I, VARIANT.delta, VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.I, VARIANT.delta, VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.I, VARIANT.other, VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.I, VARIANT.other, VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.I, VARIANT.omega, VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.I, VARIANT.omega, VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.R, VARIANT.ancestral, REMOVED_VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.R, VARIANT.ancestral, REMOVED_VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.R, VARIANT.ancestral, REMOVED_VACCINATION_STATUS.newly_vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.R, VARIANT.alpha, REMOVED_VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.R, VARIANT.alpha, REMOVED_VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.R, VARIANT.alpha, REMOVED_VACCINATION_STATUS.newly_vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.R, VARIANT.beta, REMOVED_VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.R, VARIANT.beta, REMOVED_VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.R, VARIANT.beta, REMOVED_VACCINATION_STATUS.newly_vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.R, VARIANT.gamma, REMOVED_VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.R, VARIANT.gamma, REMOVED_VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.R, VARIANT.gamma, REMOVED_VACCINATION_STATUS.newly_vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.R, VARIANT.delta, REMOVED_VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.R, VARIANT.delta, REMOVED_VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.R, VARIANT.delta, REMOVED_VACCINATION_STATUS.newly_vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.R, VARIANT.other, REMOVED_VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.R, VARIANT.other, REMOVED_VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.R, VARIANT.other, REMOVED_VACCINATION_STATUS.newly_vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.R, VARIANT.omega, REMOVED_VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.R, VARIANT.omega, REMOVED_VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.R, VARIANT.omega, REMOVED_VACCINATION_STATUS.newly_vaccinated],
 ], dtype=np.int8)
-COMPARTMENT_GROUPS[('N', 'vaccine_eligible')] = np.array([
-    v for k, v in COMPARTMENTS.items() if k[2] == 'unvaccinated' and k[0] not in ['E', 'I']
+CG_TOTAL[AGG_OTHER.unvaccinated] = np.array([
+    COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.unprotected, VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.unprotected, VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.unprotected, VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.non_escape_protected, VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.non_escape_protected, VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.non_escape_protected, VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.escape_protected, VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.escape_protected, VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.escape_protected, VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.omega_protected, VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.omega_protected, VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.omega_protected, VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.non_escape_immune, VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.non_escape_immune, VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.non_escape_immune, VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.escape_immune, VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.escape_immune, VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.escape_immune, VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.omega_immune, VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.omega_immune, VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.omega_immune, VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.E, VARIANT.ancestral, VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.E, VARIANT.ancestral, VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.E, VARIANT.ancestral, VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.E, VARIANT.alpha, VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.E, VARIANT.alpha, VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.E, VARIANT.alpha, VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.E, VARIANT.beta, VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.E, VARIANT.beta, VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.E, VARIANT.beta, VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.E, VARIANT.gamma, VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.E, VARIANT.gamma, VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.E, VARIANT.gamma, VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.E, VARIANT.delta, VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.E, VARIANT.delta, VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.E, VARIANT.delta, VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.E, VARIANT.other, VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.E, VARIANT.other, VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.E, VARIANT.other, VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.E, VARIANT.omega, VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.E, VARIANT.omega, VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.E, VARIANT.omega, VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.I, VARIANT.ancestral, VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.I, VARIANT.ancestral, VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.I, VARIANT.ancestral, VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.I, VARIANT.alpha, VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.I, VARIANT.alpha, VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.I, VARIANT.alpha, VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.I, VARIANT.beta, VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.I, VARIANT.beta, VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.I, VARIANT.beta, VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.I, VARIANT.gamma, VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.I, VARIANT.gamma, VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.I, VARIANT.gamma, VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.I, VARIANT.delta, VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.I, VARIANT.delta, VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.I, VARIANT.delta, VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.I, VARIANT.other, VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.I, VARIANT.other, VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.I, VARIANT.other, VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.I, VARIANT.omega, VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.I, VARIANT.omega, VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.I, VARIANT.omega, VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.R, VARIANT.ancestral, REMOVED_VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.R, VARIANT.ancestral, REMOVED_VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.R, VARIANT.ancestral, REMOVED_VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.R, VARIANT.ancestral, REMOVED_VACCINATION_STATUS.newly_vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.R, VARIANT.alpha, REMOVED_VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.R, VARIANT.alpha, REMOVED_VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.R, VARIANT.alpha, REMOVED_VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.R, VARIANT.alpha, REMOVED_VACCINATION_STATUS.newly_vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.R, VARIANT.beta, REMOVED_VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.R, VARIANT.beta, REMOVED_VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.R, VARIANT.beta, REMOVED_VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.R, VARIANT.beta, REMOVED_VACCINATION_STATUS.newly_vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.R, VARIANT.gamma, REMOVED_VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.R, VARIANT.gamma, REMOVED_VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.R, VARIANT.gamma, REMOVED_VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.R, VARIANT.gamma, REMOVED_VACCINATION_STATUS.newly_vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.R, VARIANT.delta, REMOVED_VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.R, VARIANT.delta, REMOVED_VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.R, VARIANT.delta, REMOVED_VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.R, VARIANT.delta, REMOVED_VACCINATION_STATUS.newly_vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.R, VARIANT.other, REMOVED_VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.R, VARIANT.other, REMOVED_VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.R, VARIANT.other, REMOVED_VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.R, VARIANT.other, REMOVED_VACCINATION_STATUS.newly_vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.R, VARIANT.omega, REMOVED_VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.R, VARIANT.omega, REMOVED_VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.R, VARIANT.omega, REMOVED_VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.R, VARIANT.omega, REMOVED_VACCINATION_STATUS.newly_vaccinated],
 ], dtype=np.int8)
-COMPARTMENT_GROUPS[('N', 'total')] = np.array([
-    v for k, v in COMPARTMENTS.items()
+CG_TOTAL[AGG_OTHER.vaccinated] = np.array([
+    COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.unprotected, VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.unprotected, VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.unprotected, VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.non_escape_protected, VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.non_escape_protected, VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.non_escape_protected, VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.escape_protected, VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.escape_protected, VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.escape_protected, VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.omega_protected, VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.omega_protected, VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.omega_protected, VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.non_escape_immune, VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.non_escape_immune, VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.non_escape_immune, VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.escape_immune, VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.escape_immune, VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.escape_immune, VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.omega_immune, VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.omega_immune, VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.omega_immune, VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.E, VARIANT.ancestral, VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.E, VARIANT.ancestral, VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.E, VARIANT.ancestral, VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.E, VARIANT.alpha, VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.E, VARIANT.alpha, VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.E, VARIANT.alpha, VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.E, VARIANT.beta, VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.E, VARIANT.beta, VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.E, VARIANT.beta, VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.E, VARIANT.gamma, VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.E, VARIANT.gamma, VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.E, VARIANT.gamma, VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.E, VARIANT.delta, VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.E, VARIANT.delta, VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.E, VARIANT.delta, VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.E, VARIANT.other, VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.E, VARIANT.other, VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.E, VARIANT.other, VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.E, VARIANT.omega, VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.E, VARIANT.omega, VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.E, VARIANT.omega, VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.I, VARIANT.ancestral, VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.I, VARIANT.ancestral, VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.I, VARIANT.ancestral, VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.I, VARIANT.alpha, VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.I, VARIANT.alpha, VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.I, VARIANT.alpha, VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.I, VARIANT.beta, VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.I, VARIANT.beta, VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.I, VARIANT.beta, VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.I, VARIANT.gamma, VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.I, VARIANT.gamma, VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.I, VARIANT.gamma, VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.I, VARIANT.delta, VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.I, VARIANT.delta, VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.I, VARIANT.delta, VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.I, VARIANT.other, VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.I, VARIANT.other, VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.I, VARIANT.other, VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.I, VARIANT.omega, VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.I, VARIANT.omega, VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.I, VARIANT.omega, VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.R, VARIANT.ancestral, REMOVED_VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.R, VARIANT.ancestral, REMOVED_VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.R, VARIANT.ancestral, REMOVED_VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.R, VARIANT.ancestral, REMOVED_VACCINATION_STATUS.newly_vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.R, VARIANT.alpha, REMOVED_VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.R, VARIANT.alpha, REMOVED_VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.R, VARIANT.alpha, REMOVED_VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.R, VARIANT.alpha, REMOVED_VACCINATION_STATUS.newly_vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.R, VARIANT.beta, REMOVED_VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.R, VARIANT.beta, REMOVED_VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.R, VARIANT.beta, REMOVED_VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.R, VARIANT.beta, REMOVED_VACCINATION_STATUS.newly_vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.R, VARIANT.gamma, REMOVED_VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.R, VARIANT.gamma, REMOVED_VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.R, VARIANT.gamma, REMOVED_VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.R, VARIANT.gamma, REMOVED_VACCINATION_STATUS.newly_vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.R, VARIANT.delta, REMOVED_VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.R, VARIANT.delta, REMOVED_VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.R, VARIANT.delta, REMOVED_VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.R, VARIANT.delta, REMOVED_VACCINATION_STATUS.newly_vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.R, VARIANT.other, REMOVED_VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.R, VARIANT.other, REMOVED_VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.R, VARIANT.other, REMOVED_VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.R, VARIANT.other, REMOVED_VACCINATION_STATUS.newly_vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.R, VARIANT.omega, REMOVED_VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.R, VARIANT.omega, REMOVED_VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.R, VARIANT.omega, REMOVED_VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.R, VARIANT.omega, REMOVED_VACCINATION_STATUS.newly_vaccinated],
+], dtype=np.int8)
+CG_TOTAL[AGG_OTHER.vaccine_eligible] = np.array([
+    COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.unprotected, VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.unprotected, VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.unprotected, VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.non_escape_protected, VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.non_escape_protected, VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.non_escape_protected, VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.escape_protected, VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.escape_protected, VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.escape_protected, VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.omega_protected, VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.omega_protected, VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.omega_protected, VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.non_escape_immune, VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.non_escape_immune, VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.non_escape_immune, VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.escape_immune, VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.escape_immune, VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.escape_immune, VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.omega_immune, VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.omega_immune, VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.omega_immune, VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.E, VARIANT.ancestral, VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.E, VARIANT.ancestral, VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.E, VARIANT.ancestral, VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.E, VARIANT.alpha, VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.E, VARIANT.alpha, VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.E, VARIANT.alpha, VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.E, VARIANT.beta, VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.E, VARIANT.beta, VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.E, VARIANT.beta, VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.E, VARIANT.gamma, VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.E, VARIANT.gamma, VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.E, VARIANT.gamma, VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.E, VARIANT.delta, VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.E, VARIANT.delta, VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.E, VARIANT.delta, VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.E, VARIANT.other, VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.E, VARIANT.other, VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.E, VARIANT.other, VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.E, VARIANT.omega, VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.E, VARIANT.omega, VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.E, VARIANT.omega, VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.I, VARIANT.ancestral, VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.I, VARIANT.ancestral, VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.I, VARIANT.ancestral, VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.I, VARIANT.alpha, VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.I, VARIANT.alpha, VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.I, VARIANT.alpha, VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.I, VARIANT.beta, VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.I, VARIANT.beta, VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.I, VARIANT.beta, VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.I, VARIANT.gamma, VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.I, VARIANT.gamma, VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.I, VARIANT.gamma, VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.I, VARIANT.delta, VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.I, VARIANT.delta, VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.I, VARIANT.delta, VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.I, VARIANT.other, VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.I, VARIANT.other, VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.I, VARIANT.other, VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.I, VARIANT.omega, VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.I, VARIANT.omega, VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.I, VARIANT.omega, VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.R, VARIANT.ancestral, REMOVED_VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.R, VARIANT.ancestral, REMOVED_VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.R, VARIANT.ancestral, REMOVED_VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.R, VARIANT.ancestral, REMOVED_VACCINATION_STATUS.newly_vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.R, VARIANT.alpha, REMOVED_VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.R, VARIANT.alpha, REMOVED_VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.R, VARIANT.alpha, REMOVED_VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.R, VARIANT.alpha, REMOVED_VACCINATION_STATUS.newly_vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.R, VARIANT.beta, REMOVED_VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.R, VARIANT.beta, REMOVED_VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.R, VARIANT.beta, REMOVED_VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.R, VARIANT.beta, REMOVED_VACCINATION_STATUS.newly_vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.R, VARIANT.gamma, REMOVED_VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.R, VARIANT.gamma, REMOVED_VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.R, VARIANT.gamma, REMOVED_VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.R, VARIANT.gamma, REMOVED_VACCINATION_STATUS.newly_vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.R, VARIANT.delta, REMOVED_VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.R, VARIANT.delta, REMOVED_VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.R, VARIANT.delta, REMOVED_VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.R, VARIANT.delta, REMOVED_VACCINATION_STATUS.newly_vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.R, VARIANT.other, REMOVED_VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.R, VARIANT.other, REMOVED_VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.R, VARIANT.other, REMOVED_VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.R, VARIANT.other, REMOVED_VACCINATION_STATUS.newly_vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.R, VARIANT.omega, REMOVED_VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.R, VARIANT.omega, REMOVED_VACCINATION_STATUS.unvaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.R, VARIANT.omega, REMOVED_VACCINATION_STATUS.vaccinated],
+    COMPARTMENTS[COMPARTMENT_TYPE.R, VARIANT.omega, REMOVED_VACCINATION_STATUS.newly_vaccinated],
 ], dtype=np.int8)
 
 # Turning off the JIT is operationally 1-to-1 with

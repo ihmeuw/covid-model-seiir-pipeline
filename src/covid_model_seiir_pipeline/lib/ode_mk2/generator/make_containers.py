@@ -1,5 +1,4 @@
 import itertools
-import textwrap
 from pathlib import Path
 from typing import List
 
@@ -8,8 +7,10 @@ from covid_model_seiir_pipeline.lib.ode_mk2.generator import (
 )
 from covid_model_seiir_pipeline.lib.ode_mk2.generator.make_constants import (
     TAB,
-    PRIMITIVES,
+    PRIMITIVE_TYPES,
+    Spec,
     SPECS,
+    unpack_spec_fields,
 )
 
 
@@ -28,13 +29,13 @@ def make_imports() -> str:
     return out + '\n'
 
 
-def make_fields(field_specs: List[List[str]], prefix=None) -> str:
+def make_fields(group_spec: Spec, prefix: str = '', suffix: str = '') -> str:
     out = ""
-    for field_spec in field_specs:
-        field_vars = [PRIMITIVES[field_var_name] for field_var_name in field_spec if field_var_name != 'all']
-        for elements in itertools.product(*field_vars):
-            elements = elements if prefix is None else [prefix] + list(elements)
-            out += f"{TAB}{'_'.join(elements)}: pd.Series\n"
+    _, field_names = unpack_spec_fields(group_spec)
+    for field_name in field_names:
+        if field_name[-4:] == '_all':
+            field_name = field_name[:-4]
+        out += f"{TAB}{prefix}{field_name}{suffix}: pd.Series\n"
     return out
 
 
@@ -44,8 +45,8 @@ def make_ode_parameters() -> str:
     out += "class Parameters:\n"
     out += make_fields(SPECS['PARAMETERS']) + "\n"
 
-    vaccine_field_spec = [s + ['risk_group'] for s in SPECS['VACCINE_TYPES']]
-    out += make_fields(vaccine_field_spec, 'vaccinations')
+    for risk_group in PRIMITIVE_TYPES['risk_group']:
+        out += make_fields(SPECS['VACCINATIONS'], 'vaccinations_', f'_{risk_group}')
 
     out += """
     def to_dict(self) -> Dict[str, pd.Series]:
