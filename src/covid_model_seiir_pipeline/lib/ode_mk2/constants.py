@@ -129,6 +129,19 @@ BASE_COMPARTMENT = _BaseCompartment(
     R=COMPARTMENT_TYPE.R,
 )
 
+_TrackingCompartment = namedtuple('TrackingCompartment', [
+    'NewE',         
+    'NewR',         
+    'NewVaxImmune', 
+    'Waned',        
+])
+TRACKING_COMPARTMENT = _TrackingCompartment(
+    NewE=TRACKING_COMPARTMENT_TYPE.NewE,
+    NewR=TRACKING_COMPARTMENT_TYPE.NewR,
+    NewVaxImmune=TRACKING_COMPARTMENT_TYPE.NewVaxImmune,
+    Waned=TRACKING_COMPARTMENT_TYPE.Waned,
+)
+
 _BaseParameter = namedtuple('BaseParameter', [
     'alpha', 
     'sigma', 
@@ -282,6 +295,15 @@ AGG_VARIANT = _AggVariant(
     delta=AGG_INDEX_TYPE.delta,
     other=AGG_INDEX_TYPE.other,
     omega=AGG_INDEX_TYPE.omega,
+)
+
+_AggWaned = namedtuple('AggWaned', [
+    'natural', 
+    'vaccine', 
+])
+AGG_WANED = _AggWaned(
+    natural=AGG_INDEX_TYPE.natural,
+    vaccine=AGG_INDEX_TYPE.vaccine,
 )
 
 _AggImmuneStatus = namedtuple('AggImmuneStatus', [

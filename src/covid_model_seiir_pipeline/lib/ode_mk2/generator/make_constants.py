@@ -100,6 +100,12 @@ DERIVED_TYPES = {
         'I',
         'R',
     ]),
+    'tracking_compartment': ('tracking_compartment_type', [
+        'NewE',
+        'NewR',
+        'NewVaxImmune',
+        'Waned',
+    ]),
     'base_parameter': ('parameter_type', [
         'alpha',
         'sigma',
@@ -172,7 +178,12 @@ DERIVED_TYPES = {
         'other',
         'omega',
     ]),
+    'agg_waned': ('agg_index_type', [
+        'natural',
+        'vaccine',
+    ]),
     'agg_immune_status': ('agg_index_type', [
+        'non_immune',
         'non_escape_immune',
         'escape_immune',
         'omega_immune',
