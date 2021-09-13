@@ -19,7 +19,6 @@ def allocate(
     group_y: np.ndarray,
     group_vaccines: np.ndarray,
     force_of_infection: np.ndarray,
-    natural_immunity_waned: np.ndarray,
 ) -> np.ndarray:
     # Allocate our output space.
     vaccines_out = np.zeros((group_y.size, group_vaccines.size))

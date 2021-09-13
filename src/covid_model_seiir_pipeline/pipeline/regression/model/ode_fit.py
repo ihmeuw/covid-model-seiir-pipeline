@@ -15,6 +15,7 @@ from covid_model_seiir_pipeline.lib.ode_mk2.constants import (
     VARIANT,
     RISK_GROUP,
     COMPARTMENTS_NAMES,
+    TRACKING_COMPARTMENTS_NAMES,
 )
 
 
@@ -84,7 +85,8 @@ def make_initial_condition(parameters: Parameters, population: pd.DataFrame):
     start_date, new_e_start = new_e_start['date'], new_e_start[list(RISK_GROUP)]
 
     compartments = [f'{compartment}_{risk_group}'
-                    for risk_group, compartment in itertools.product(RISK_GROUP, COMPARTMENTS_NAMES)]
+                    for risk_group, compartment
+                    in itertools.product(RISK_GROUP, COMPARTMENTS_NAMES + TRACKING_COMPARTMENTS_NAMES)]
     initial_condition = pd.DataFrame(0., columns=compartments, index=parameters.new_e.index)
     for location_id, loc_start_date in start_date.iteritems():
         for risk_group in RISK_GROUP:
@@ -97,6 +99,8 @@ def make_initial_condition(parameters: Parameters, population: pd.DataFrame):
             infectious = (new_e / 5) ** (1 / alpha.loc[location_id])
             initial_condition.loc[(location_id, loc_start_date), f'S_unprotected{suffix}'] = pop - new_e - infectious
             initial_condition.loc[(location_id, loc_start_date), f'E_ancestral{suffix}'] = new_e
+            initial_condition.loc[(location_id, loc_start_date), f'NewE_unvaccinated_{risk_group}'] = new_e
+            initial_condition.loc[(location_id, loc_start_date), f'NewE_ancestral_{risk_group}'] = new_e
             initial_condition.loc[(location_id, loc_start_date), f'I_ancestral{suffix}'] = infectious
     return initial_condition
 
