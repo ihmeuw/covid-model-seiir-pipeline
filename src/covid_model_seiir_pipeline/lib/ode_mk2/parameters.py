@@ -15,7 +15,7 @@ from covid_model_seiir_pipeline.lib.ode_mk2.constants import (
 )
 
 
-@numba.njit(numba.float64[:](numba.float64[:]))
+@numba.njit
 def make_aggregates(y: np.ndarray) -> np.ndarray:
     aggregates = np.zeros(len(AGGREGATES))
     for group_y in np.split(y, len(RISK_GROUP)):
