@@ -213,13 +213,6 @@ SPECS = {
             ['variant_parameter', 'variant'],
         ],
     ),
-    'VACCINATIONS': Spec(
-        offset='',
-        axes_primitives=['index_1_type'],
-        field_specs=[
-            ['vaccine_type'],
-        ],
-    ),
     'COMPARTMENTS': Spec(
         offset='',
         axes_primitives=['compartment_type', 'index_1_type', 'index_2_type'],
@@ -253,13 +246,7 @@ SPECS = {
         field_specs=[
             ['base_compartment', 'agg_variant'],
             ['N', 'agg_vaccination_status'],
-        ],
-    ),
-    'FORCE_OF_INFECTION': Spec(
-        offset='',
-        axes_primitives=['index_1_type'],
-        field_specs=[
-            ['variant'],
+            ['N', 'total'],
         ],
     ),
     'WANED': Spec(
@@ -405,10 +392,10 @@ def make_specs() -> str:
     out = ''
     counts = {'': 0}
     for spec_name, spec in SPECS.items():
-        out += f'{spec_name} = np.zeros(('
+        out += f'{spec_name} = np.full(('
         out += ', '.join([f'len({inflection.underscore(axis_primitive).upper()})'
                           for axis_primitive in spec.axes_primitives])
-        out += '), dtype=np.int8)\n'
+        out += '), -1, dtype=np.int8)\n'
 
         count = counts[spec.offset]
         field_keys, field_names = unpack_spec_fields(spec)
@@ -521,17 +508,6 @@ def make_compartment_groups() -> str:
                 and 'COMPARTMENTS.I' not in compartment_key):
             out += f"{TAB}COMPARTMENTS{compartment_key},\n"
     out += "], dtype=np.int8)\n"
-
-    # for vaccination_status in PRIMITIVE_TYPES['vaccination_status']:
-    #     out += f"COMPARTMENT_GROUPS[('N', '{vaccination_status}')] = np.array([\n"
-    #     out += f"{TAB}v for k, v in COMPARTMENTS.items() if k[2] == '{vaccination_status}'\n"
-    #     out += "], dtype=np.int8)\n"
-    # out += f"COMPARTMENT_GROUPS[('N', 'vaccine_eligible')] = np.array([\n"
-    # out += f"{TAB}v for k, v in COMPARTMENTS.items() if k[2] == 'unvaccinated' and k[0] not in ['E', 'I']\n"
-    # out += "], dtype=np.int8)\n"
-    # out += f"COMPARTMENT_GROUPS[('N', 'total')] = np.array([\n"
-    # out += f"{TAB}v for k, v in COMPARTMENTS.items()\n"
-    # out += "], dtype=np.int8)\n"
 
     return out
 

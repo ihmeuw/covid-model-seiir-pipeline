@@ -20,7 +20,6 @@ from covid_model_seiir_pipeline.lib.ode_mk2.constants import (
     CG_SUSCEPTIBLE,
     # Debug flag
     DEBUG,
-
 )
 
 
