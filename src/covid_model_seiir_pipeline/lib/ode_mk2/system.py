@@ -13,6 +13,7 @@ from covid_model_seiir_pipeline.lib.ode_mk2.constants import (
     PROTECTION_STATUS,
     IMMUNE_STATUS,
     REMOVED_VACCINATION_STATUS,
+    VACCINE_TYPES,
     COMPARTMENTS,
     PARAMETERS,
     DEBUG,
@@ -144,7 +145,7 @@ def do_vaccination(
     vaccines_out: np.ndarray,
     transition_map: np.ndarray,
 ) -> np.ndarray:
-    for to_protection_status, v_index in SUSCEPTIBLE_TYPE.items():
+    for to_protection_status, v_index in VACCINE_TYPES.items():
         for from_protection_status in PROTECTION_STATUS:
             from_index = COMPARTMENTS[('S', from_protection_status, 'unvaccinated')]
             to_index = COMPARTMENTS[('S', to_protection_status, 'vaccinated')]

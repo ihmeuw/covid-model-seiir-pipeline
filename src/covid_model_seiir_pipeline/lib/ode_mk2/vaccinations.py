@@ -10,7 +10,6 @@ from covid_model_seiir_pipeline.lib.ode_mk2.constants import (
     PROTECTION_STATUS,
     VACCINE_TYPES,
     COMPARTMENT_GROUPS,
-    NATURAL_IMMUNITY_WANED,
     DEBUG,
 )
 
@@ -52,8 +51,10 @@ def allocate(
     for variant in VARIANT:
         r_index = COMPARTMENTS[('R', variant, 'unvaccinated')]
         r = group_y[r_index]
-        waned_index = NATURAL_IMMUNITY_WANED[(variant,)]
-        waned_from_r = natural_immunity_waned[waned_index]
+        # TODO:
+        #waned_index = NATURAL_IMMUNITY_WANED[(variant,)]
+        #waned_from_r = natural_immunity_waned[waned_index]
+        waned_from_r = 0.
 
         expected_vaccinations_from_r_by_type = r / vaccine_eligible * group_vaccines
         expected_vaccinations_from_r = expected_vaccinations_from_r_by_type.sum()

@@ -135,6 +135,19 @@ PARAMETERS[('rho', 'other')] = np.int8(24)
 PARAMETERS[('rho', 'omega')] = np.int8(25)
 PARAMETERS_NAMES = ['_'.join(k) for k in PARAMETERS]
 
+VACCINE_TYPES = Dict.empty(
+    types.UniTuple(types.unicode_type, 1),
+    types.int8,
+)
+VACCINE_TYPES[('unprotected',)] = np.int8(0)
+VACCINE_TYPES[('non_escape_protected',)] = np.int8(1)
+VACCINE_TYPES[('escape_protected',)] = np.int8(2)
+VACCINE_TYPES[('omega_protected',)] = np.int8(3)
+VACCINE_TYPES[('non_escape_immune',)] = np.int8(4)
+VACCINE_TYPES[('escape_immune',)] = np.int8(5)
+VACCINE_TYPES[('omega_immune',)] = np.int8(6)
+VACCINE_TYPES_NAMES = ['_'.join(k) for k in VACCINE_TYPES]
+
 COMPARTMENTS = Dict.empty(
     types.UniTuple(types.unicode_type, 3),
     types.int8,

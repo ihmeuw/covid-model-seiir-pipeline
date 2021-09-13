@@ -68,6 +68,9 @@ SPECS = {
         ['base_parameter', 'all'],
         ['variant_parameter', 'variant'],
     ]),
+    'VACCINE_TYPES': ('', [
+        ['susceptible_type'],
+    ]),
     'COMPARTMENTS': ('', [
         ['S', 'susceptible_type', 'vaccination_status'],
         ['E', 'variant', 'vaccination_status'],
