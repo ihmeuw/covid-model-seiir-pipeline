@@ -5,11 +5,18 @@ from covid_model_seiir_pipeline.lib import (
     math,
 )
 from covid_model_seiir_pipeline.lib.ode_mk2.constants import (
+    # Indexing tuples
+    BASE_COMPARTMENT,
     VARIANT,
-    COMPARTMENTS,
     PROTECTION_STATUS,
-    VACCINE_TYPES,
-    COMPARTMENT_GROUPS,
+    VACCINE_TYPE,
+    VACCINATION_STATUS,
+    AGG_OTHER,
+    # Indexing arrays
+    COMPARTMENTS,
+    # Compartment groups
+    CG_TOTAL,
+    # Debug flag
     DEBUG,
 )
 
@@ -24,14 +31,14 @@ def allocate(
     vaccines_out = np.zeros((group_y.size, group_vaccines.size))
 
     available_vaccines = group_vaccines.sum()
-    vaccine_eligible = group_y[COMPARTMENT_GROUPS[('N', 'vaccine_eligible')]].sum()
+    vaccine_eligible = group_y[CG_TOTAL[AGG_OTHER.total]].sum()
 
     # Don't vaccinate if no vaccines to deliver or there is no-one to vaccinate.
     if available_vaccines == 0 or vaccine_eligible == 0:
         return vaccines_out
 
     for protection_status in PROTECTION_STATUS:
-        s_index = COMPARTMENTS[('S', protection_status, 'unvaccinated')]
+        s_index = COMPARTMENTS[BASE_COMPARTMENT.S, protection_status, VACCINATION_STATUS.unvaccinated]
         s = group_y[s_index]
         new_e_from_s = s * force_of_infection.sum()
 
@@ -42,13 +49,13 @@ def allocate(
         vaccine_scale = math.safe_divide(total_vaccinations_from_s, expected_vaccinations_from_s)
         total_vaccinations_from_s_by_type = vaccine_scale * expected_vaccinations_from_s_by_type
 
-        for v_index in VACCINE_TYPES.values():
+        for v_index in VACCINE_TYPE:
             # Vaccines can't remove protection
-            to_v_index = max(v_index, VACCINE_TYPES[(protection_status,)])
+            to_v_index = max(v_index, protection_status)
             vaccines_out[s_index, to_v_index] += total_vaccinations_from_s_by_type[v_index]
 
     for variant in VARIANT:
-        r_index = COMPARTMENTS[('R', variant, 'unvaccinated')]
+        r_index = COMPARTMENTS[BASE_COMPARTMENT.R, variant, VACCINATION_STATUS.unvaccinated]
         r = group_y[r_index]
         # TODO:
         #waned_index = NATURAL_IMMUNITY_WANED[(variant,)]
@@ -63,10 +70,8 @@ def allocate(
         total_vaccinations_from_r_by_type = vaccine_scale * expected_vaccinations_from_r_by_type
 
         # Non-immunizing vaccines all have the same impact (move to newly vaccinated).
-        unprotected_index = VACCINE_TYPES[('unprotected',)]
-        min_index = VACCINE_TYPES[('non_escape_immune',)]
-        for v_index in VACCINE_TYPES.values():
-            to_v_index = unprotected_index if v_index < min_index else v_index
+        for v_index in VACCINE_TYPE:
+            to_v_index = VACCINE_TYPE.unprotected if v_index < VACCINE_TYPE.non_escape_immune else v_index
             vaccines_out[r_index, to_v_index] += total_vaccinations_from_r_by_type[v_index]
 
     if DEBUG:
