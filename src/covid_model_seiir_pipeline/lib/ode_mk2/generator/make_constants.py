@@ -82,6 +82,7 @@ SPECS = {
         ['NewE', 'variant'],
         ['NewE', 'total'],
         ['NewVaxImmune', 'immune_status'],
+        ['NewVaxImmune', 'total'],
         ['NewR', 'variant'],
         ['NewR', 'total'],
         ['Waned', 'natural'],
