@@ -60,43 +60,46 @@ PRIMITIVES = {
         'newly_vaccinated',
     ],
 }
-PRIMITIVES['vaccine_type'] = PRIMITIVES['protection_status'] + PRIMITIVES['immune_status']
+PRIMITIVES['susceptible_type'] = PRIMITIVES['protection_status'] + PRIMITIVES['immune_status']
 
 
 SPECS = {
-    'PARAMETERS': [
+    'PARAMETERS': ('', [
         ['base_parameter', 'all'],
         ['variant_parameter', 'variant'],
-    ],
-    'VACCINE_TYPES': [
-        ['vaccine_type'],
-    ],
-    'COMPARTMENTS': [
-        ['S', 'protection_status', 'vaccination_status'],
-        ['S', 'immune_status', 'removed_vaccination_status'],
+    ]),
+    'COMPARTMENTS': ('', [
+        ['S', 'susceptible_type', 'vaccination_status'],
         ['E', 'variant', 'vaccination_status'],
         ['I', 'variant', 'vaccination_status'],
         ['R', 'variant', 'removed_vaccination_status'],
-    ],
-    'AGGREGATES': [
+    ]),
+    'TRACKING_COMPARTMENTS': ('COMPARTMENTS', [
+        ['NewE', 'vaccination_status'],
+        ['NewE', 'variant'],
+        ['NewE', 'total'],
+        ['NewVaxImmune', 'immune_status'],
+        ['NewR', 'variant'],
+        ['NewR', 'total'],
+        ['Waned', 'natural'],
+        ['Waned', 'vaccine'],
+        ['Waned', 'variant'],
+        ['Waned', 'immune_status'],
+    ]),
+    'AGGREGATES': ('', [
         ['S', 'variant'],
         ['E', 'variant'],
         ['I', 'variant'],
         ['R', 'variant'],
         ['N', 'vaccination_status'],
-    ],
-    'NEW_E': [
+    ]),
+    'FORCE_OF_INFECTION': ('', [
         ['variant'],
-    ],
-    'FORCE_OF_INFECTION': [
-        ['variant'],
-    ],
-    'NATURAL_IMMUNITY_WANED': [
-        ['variant'],
-    ],
-    'VACCINE_IMMUNITY_WANED': [
-        ['immune_status'],
-    ],
+    ]),
+    'WANED': ('', [
+        ['natural'],
+        ['vaccine'],
+    ]),
 }
 
 
@@ -179,16 +182,17 @@ def validate_spec(name: str, field_groups: List[List[str]]) -> None:
 
 def make_specs() -> str:
     out = ''
-    for spec_name, field_groups in SPECS.items():
+    counts = {'': 0}
+    for spec_name, (offset, field_groups) in SPECS.items():
         validate_spec(spec_name, field_groups)
         out += make_dict(spec_name, len(field_groups[0]))
-        count = 0
+        count = counts[offset]
         for field_group in field_groups:
             group_items, count = make_dict_items(spec_name, *field_group, count=count)
             out += group_items
         out += f"{spec_name}_NAMES = ['_'.join(k) for k in {spec_name}]\n"
-
         out += '\n'
+        counts[spec_name] = count
     return out
 
 
@@ -212,13 +216,17 @@ def make_compartment_groups() -> str:
     for variant, protection_groups in SUSCEPTIBLE_BY_VARIANT.items():
         out += f"COMPARTMENT_GROUPS[('S', '{variant}')] = np.array([\n"
         for protection_group in protection_groups:
-            if protection_group in PRIMITIVES['protection_status']:
-                vaccination_statuses = PRIMITIVES['vaccination_status']
-            else:
-                vaccination_statuses = PRIMITIVES['removed_vaccination_status']
-            for vaccination_status in vaccination_statuses:
+            for vaccination_status in PRIMITIVES['vaccination_status']:
                 out += f"{TAB}COMPARTMENTS[('S', '{protection_group}', '{vaccination_status}')],\n"
         out += "], dtype=np.int8)\n"
+    out += make_compartment_group(
+        'S', 'total',
+        PRIMITIVES['susceptible_type'], PRIMITIVES['vaccination_status'],
+    )
+    out += make_compartment_group(
+        'S', 'non_immune',
+        PRIMITIVES['protection_status'], PRIMITIVES['vaccination_status'],
+    )
     for compartment in ['E', 'I']:
         for variant in PRIMITIVES['variant']:
             out += make_compartment_group(
@@ -226,7 +234,7 @@ def make_compartment_groups() -> str:
                 [variant], PRIMITIVES['vaccination_status'],
             )
         out += make_compartment_group(
-            compartment, 'all',
+            compartment, 'total',
             PRIMITIVES['variant'], PRIMITIVES['vaccination_status']
         )
     for variant in PRIMITIVES['variant']:
@@ -235,7 +243,7 @@ def make_compartment_groups() -> str:
             [variant], PRIMITIVES['removed_vaccination_status'],
         )
     out += make_compartment_group(
-        'R', 'all',
+        'R', 'total',
         PRIMITIVES['variant'], PRIMITIVES['removed_vaccination_status']
     )
     for vaccination_status in PRIMITIVES['vaccination_status']:
