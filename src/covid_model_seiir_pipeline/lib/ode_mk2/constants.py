@@ -1311,3 +1311,4 @@ CG_TOTAL[AGG_OTHER.vaccine_eligible] = np.array([
 # saying something is broken in the ODE code and
 # I need to figure it out.
 DEBUG = int(os.getenv('NUMBA_DISABLE_JIT', 0))
+

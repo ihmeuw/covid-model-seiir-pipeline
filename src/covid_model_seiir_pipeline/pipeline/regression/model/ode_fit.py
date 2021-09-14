@@ -12,8 +12,8 @@ from covid_model_seiir_pipeline.lib.ode_mk2.containers import (
     Parameters,
 )
 from covid_model_seiir_pipeline.lib.ode_mk2.constants import (
-    VARIANT,
-    RISK_GROUP,
+    VARIANT_NAMES,
+    RISK_GROUP_NAMES,
     COMPARTMENTS_NAMES,
     TRACKING_COMPARTMENTS_NAMES,
 )
@@ -25,7 +25,7 @@ def prepare_ode_fit_parameters(past_infections: pd.Series,
                                sampled_params: Dict[str, pd.Series]) -> Parameters:
     past_index = past_infections.index
     rhos = rhos.reindex(past_index, fill_value=0.).to_dict('series')
-    betas = {f'beta_{variant}': pd.Series(np.nan, index=past_index, name=f'beta_{variant}') for variant in VARIANT}
+    betas = {f'beta_{variant}': pd.Series(np.nan, index=past_index, name=f'beta_{variant}') for variant in VARIANT_NAMES}
     vaccinations = vaccinations.reindex(past_index, fill_value=0.).to_dict('series')
 
     return Parameters(
@@ -82,14 +82,14 @@ def make_initial_condition(parameters: Parameters, population: pd.DataFrame):
     infections = parameters.new_e.groupby('location_id').apply(filter_to_epi_threshold)
     infections_by_group = group_pop.div(group_pop.sum(axis=1), axis=0).mul(infections, axis=0)
     new_e_start = infections_by_group.reset_index(level='date').groupby('location_id').first()
-    start_date, new_e_start = new_e_start['date'], new_e_start[list(RISK_GROUP)]
+    start_date, new_e_start = new_e_start['date'], new_e_start[list(RISK_GROUP_NAMES)]
 
     compartments = [f'{compartment}_{risk_group}'
                     for risk_group, compartment
-                    in itertools.product(RISK_GROUP, COMPARTMENTS_NAMES + TRACKING_COMPARTMENTS_NAMES)]
+                    in itertools.product(RISK_GROUP_NAMES, COMPARTMENTS_NAMES + TRACKING_COMPARTMENTS_NAMES)]
     initial_condition = pd.DataFrame(0., columns=compartments, index=parameters.new_e.index)
     for location_id, loc_start_date in start_date.iteritems():
-        for risk_group in RISK_GROUP:
+        for risk_group in RISK_GROUP_NAMES:
             pop = group_pop.loc[location_id, risk_group]
             new_e = new_e_start.loc[location_id, risk_group]
             suffix = f'_unvaccinated_{risk_group}'
