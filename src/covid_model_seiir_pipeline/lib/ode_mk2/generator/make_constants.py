@@ -397,12 +397,12 @@ def make_specs() -> str:
         out += f'{spec_name} = np.full(('
         out += ', '.join([f'len({inflection.underscore(axis_primitive).upper()})'
                           for axis_primitive in spec.axes_primitives])
-        out += '), -1, dtype=np.int8)\n'
+        out += '), -1, dtype=np.int64)\n'
 
         count = counts[spec.offset]
         field_keys, field_names = unpack_spec_fields(spec)
         for field_key in field_keys:
-            out += f'{spec_name}{field_key} = np.int8({count})\n'
+            out += f'{spec_name}{field_key} = {count}\n'
             count += 1
 
         out += f"{spec_name}_NAMES = [\n"
@@ -421,7 +421,7 @@ def make_compartment_group(compartment: str, variant: str, *levels: List[str]):
         for element in elements:
             out += f"'{element}', "
         out = out[:-2] + ")],\n"
-    out += "], dtype=np.int8)\n"
+    out += "], dtype=np.int64)\n"
     return out
 
 
@@ -433,7 +433,7 @@ def make_susceptible_compartment_group(label: str, susceptible_types: List[str])
         out += f"COMPARTMENT_TYPE.S, "
         out += f"SUSCEPTIBLE_TYPE.{susceptible_type}, "
         out += f"VACCINATION_STATUS.{vaccination_status}],\n"
-    out += "], dtype=np.int8)\n"
+    out += "], dtype=np.int64)\n"
     return out
 
 
@@ -446,15 +446,15 @@ def make_eir_compartment_group(compartment: str, label: str,
         out += f"COMPARTMENT_TYPE.{compartment[0].upper()}, "
         out += f"AGG_VARIANT.{variant}, "
         out += f"REMOVED_VACCINATION_STATUS.{vaccination_status}],\n"
-    out += "], dtype=np.int8)\n"
+    out += "], dtype=np.int64)\n"
     return out
 
 
 def make_compartment_groups() -> str:
     out = ''
     out += 'CG_SUSCEPTIBLE = Dict.empty(\n'
-    out += f'{TAB}types.int8,\n'
-    out += f'{TAB}types.int8[:],\n'
+    out += f'{TAB}types.int64,\n'
+    out += f'{TAB}types.int64[:],\n'
     out += f')\n'
     for variant, susceptible_types in SUSCEPTIBLE_BY_VARIANT.items():
         out += make_susceptible_compartment_group(f'AGG_VARIANT.{variant}', susceptible_types)
@@ -464,8 +464,8 @@ def make_compartment_groups() -> str:
     for compartment in ['exposed', 'infectious', 'removed']:
         out += ''
         out += f'CG_{compartment.upper()} = Dict.empty(\n'
-        out += f'{TAB}types.int8,\n'
-        out += f'{TAB}types.int8[:],\n'
+        out += f'{TAB}types.int64,\n'
+        out += f'{TAB}types.int64[:],\n'
         out += f')\n'
 
         if compartment == 'removed':
@@ -480,8 +480,8 @@ def make_compartment_groups() -> str:
                                           DERIVED_TYPES['variant'][1], vaccination_status)
 
     out += f'CG_TOTAL = Dict.empty(\n'
-    out += f'{TAB}types.int8,\n'
-    out += f'{TAB}types.int8[:],\n'
+    out += f'{TAB}types.int64,\n'
+    out += f'{TAB}types.int64[:],\n'
     out += f')\n'
 
     compartment_keys, _ = unpack_spec_fields(SPECS['COMPARTMENTS'])
@@ -489,19 +489,19 @@ def make_compartment_groups() -> str:
     out += f"CG_TOTAL[AGG_OTHER.total] = np.array([\n"
     for compartment_key in compartment_keys:
         out += f"{TAB}COMPARTMENTS{compartment_key},\n"
-    out += "], dtype=np.int8)\n"
+    out += "], dtype=np.int64)\n"
     out += f"CG_TOTAL[AGG_OTHER.unvaccinated] = np.array([\n"
     for compartment_key in compartment_keys:
         out += f"{TAB}COMPARTMENTS{compartment_key},\n"
         if 'VACCINATION_STATUS.unvaccinated' in compartment_key:
             out += f"{TAB}COMPARTMENTS{compartment_key},\n"
-    out += "], dtype=np.int8)\n"
+    out += "], dtype=np.int64)\n"
     out += f"CG_TOTAL[AGG_OTHER.vaccinated] = np.array([\n"
     for compartment_key in compartment_keys:
         out += f"{TAB}COMPARTMENTS{compartment_key},\n"
         if 'VACCINATION_STATUS.vaccinated' in compartment_key:
             out += f"{TAB}COMPARTMENTS{compartment_key},\n"
-    out += "], dtype=np.int8)\n"
+    out += "], dtype=np.int64)\n"
     out += f"CG_TOTAL[AGG_OTHER.vaccine_eligible] = np.array([\n"
     for compartment_key in compartment_keys:
         out += f"{TAB}COMPARTMENTS{compartment_key},\n"
@@ -509,7 +509,7 @@ def make_compartment_groups() -> str:
                 and 'COMPARTMENTS.E' not in compartment_key
                 and 'COMPARTMENTS.I' not in compartment_key):
             out += f"{TAB}COMPARTMENTS{compartment_key},\n"
-    out += "], dtype=np.int8)\n"
+    out += "], dtype=np.int64)\n"
 
     return out
 
