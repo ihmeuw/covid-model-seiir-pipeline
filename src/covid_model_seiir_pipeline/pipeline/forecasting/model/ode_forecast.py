@@ -238,17 +238,17 @@ def run_ode_model(initial_conditions: pd.DataFrame,
 
     parameters = pd.concat(
         [mp_dict[p] for p in ordered_fields]
-        + [model_parameters.unprotected_lr,
-           model_parameters.non_escape_protected_lr,
-           model_parameters.escape_protected_lr,
-           model_parameters.non_escape_immune_lr,
-           model_parameters.escape_immune_lr,
+        + [model_parameters.vaccinations_unprotected_lr,
+           model_parameters.vaccinations_non_escape_protected_lr,
+           model_parameters.vaccinations_escape_protected_lr,
+           model_parameters.vaccinations_non_escape_immune_lr,
+           model_parameters.vaccinations_escape_immune_lr,
            
-           model_parameters.unprotected_hr,
-           model_parameters.non_escape_protected_hr,                                                                                                                                                
-           model_parameters.escape_protected_hr,                                                                                                                                                    
-           model_parameters.non_escape_immune_hr,                                                                                                                                                   
-           model_parameters.escape_immune_hr,],
+           model_parameters.vaccinations_unprotected_hr,
+           model_parameters.vaccinations_non_escape_protected_hr,                                                                                                                                                
+           model_parameters.vaccinations_escape_protected_hr,                                                                                                                                                    
+           model_parameters.vaccinations_non_escape_immune_hr,                                                                                                                                                   
+           model_parameters.vaccinations_escape_immune_hr,],
         axis=1
     )
 
