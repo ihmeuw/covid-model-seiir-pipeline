@@ -81,10 +81,6 @@ _Index2Type = namedtuple('Index2Type', [
 _AggIndexType = namedtuple('AggIndexType', [
     'all',                  
     'total',                
-    'non_immune',           
-    'natural',              
-    'vaccine',              
-    'vaccine_eligible',     
     'ancestral',            
     'alpha',                
     'beta',                 
@@ -102,6 +98,10 @@ _AggIndexType = namedtuple('AggIndexType', [
     'unvaccinated',         
     'vaccinated',           
     'newly_vaccinated',     
+    'non_immune',           
+    'natural',              
+    'vaccine',              
+    'vaccine_eligible',     
 ])
 
 COMPARTMENT_TYPE = _CompartmentType(*list(range(len(_CompartmentType._fields))))

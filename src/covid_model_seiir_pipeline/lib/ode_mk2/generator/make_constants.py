@@ -66,10 +66,6 @@ PRIMITIVE_TYPES = {
     'agg_index_type': [
         'all',
         'total',
-        'non_immune',
-        'natural',
-        'vaccine',
-        'vaccine_eligible',
 
         'ancestral',
         'alpha',
@@ -90,6 +86,11 @@ PRIMITIVE_TYPES = {
         'unvaccinated',
         'vaccinated',
         'newly_vaccinated',
+
+        'non_immune',
+        'natural',
+        'vaccine',
+        'vaccine_eligible',
     ]
 }
 
