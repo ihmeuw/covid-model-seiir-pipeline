@@ -105,12 +105,19 @@ _AggIndexType = namedtuple('AggIndexType', [
 ])
 
 COMPARTMENT_TYPE = _CompartmentType(*list(range(len(_CompartmentType._fields))))
+COMPARTMENT_TYPE_NAMES = _CompartmentType(*_compartment_type._fields)
 TRACKING_COMPARTMENT_TYPE = _TrackingCompartmentType(*list(range(len(_TrackingCompartmentType._fields))))
+TRACKING_COMPARTMENT_TYPE_NAMES = _TrackingCompartmentType(*_tracking_compartment_type._fields)
 PARAMETER_TYPE = _ParameterType(*list(range(len(_ParameterType._fields))))
+PARAMETER_TYPE_NAMES = _ParameterType(*_parameter_type._fields)
 RISK_GROUP = _RiskGroup(*list(range(len(_RiskGroup._fields))))
+RISK_GROUP_NAMES = _RiskGroup(*_risk_group._fields)
 INDEX_1_TYPE = _Index1Type(*list(range(len(_Index1Type._fields))))
+INDEX_1_TYPE_NAMES = _Index1Type(*_index_1_type._fields)
 INDEX_2_TYPE = _Index2Type(*list(range(len(_Index2Type._fields))))
+INDEX_2_TYPE_NAMES = _Index2Type(*_index_2_type._fields)
 AGG_INDEX_TYPE = _AggIndexType(*list(range(len(_AggIndexType._fields))))
+AGG_INDEX_TYPE_NAMES = _AggIndexType(*_agg_index_type._fields)
 
 #####################
 # Derived variables #

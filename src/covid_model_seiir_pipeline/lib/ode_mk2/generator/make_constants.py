@@ -344,6 +344,7 @@ def make_primitive_types() -> str:
 
     for primitive_group_name in PRIMITIVE_TYPES:
         out += utils.make_index_map(primitive_group_name)
+        out += utils.make_name_map(primitive_group_name)
     return out
 
 
