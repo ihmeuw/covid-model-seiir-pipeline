@@ -188,7 +188,9 @@ def run_loc_ode_fit(ode_parameters: ode.FitParameters) -> pd.DataFrame:
     beta1 = beta_wild / (1 + kappa * rho)
     beta2 = beta_variant / (1 + kappa * (phi * (1 - rho_b1617) + rho_b1617 * psi))
     components['beta'] = (i_wild * beta1 + (i_variant * beta2).fillna(0)) / (i_wild + i_variant)
-
+    if np.any(components['beta'] < 0):
+        raise ValueError('Negative betas found in the fit results. Check that cumulative '
+                         'infected does not exceed 100% of the population.')
     return components.reset_index()
 
 
