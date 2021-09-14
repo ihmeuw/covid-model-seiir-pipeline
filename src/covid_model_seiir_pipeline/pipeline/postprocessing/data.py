@@ -223,17 +223,7 @@ class PostprocessingDataInterface:
         return self._get_forecast_data_inteface().load_total_population()
 
     def load_hierarchy(self) -> pd.DataFrame:
-        fdi = self._get_forecast_data_inteface()
-        rdi = fdi._get_regression_data_interface()
-        regression_spec = rdi.load_specification()
-        metadata = fdi.get_model_inputs_metadata()
-        model_inputs_path = Path(metadata['output_path'])
-        if regression_spec.data.run_counties:
-            hierarchy_path = model_inputs_path / 'locations' / 'fh_small_area_hierarchy.csv'
-        else:
-            hierarchy_path = model_inputs_path / 'locations' / 'modeling_hierarchy.csv'
-        hierarchy = pd.read_csv(hierarchy_path)
-        return hierarchy
+        return self._get_forecast_data_inteface().load_hierarchy()
 
     def load_aggregation_heirarchy(self, aggregation_spec: AggregationSpecification):
         if any(aggregation_spec.to_dict().values()):
