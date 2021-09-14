@@ -33,7 +33,7 @@ from covid_model_seiir_pipeline.lib.ode_mk2.constants import (
 
 @numba.njit
 def make_aggregates(y: np.ndarray) -> np.ndarray:
-    aggregates = np.zeros(len(AGGREGATES))
+    aggregates = np.zeros_like(AGGREGATES)
     for group_y in np.split(y, len(RISK_GROUP)):
         for compartment, group in zip(BASE_COMPARTMENT, (CG_SUSCEPTIBLE, CG_EXPOSED, CG_INFECTIOUS, CG_REMOVED)):
             for variant in VARIANT:
