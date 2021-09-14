@@ -1,6 +1,4 @@
-import itertools
 from pathlib import Path
-from typing import List
 
 from covid_model_seiir_pipeline.lib.ode_mk2.generator import (
     utils,
