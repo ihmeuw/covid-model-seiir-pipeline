@@ -127,7 +127,7 @@ class PostprocessingDataInterface:
         eff_types = ['protected', 'immune']
         covid_types = ['escape', 'non_escape']
         risk_groups = ['lr', 'hr']
-        cols = [f'{c}_{e}_{r}' for e, c, r in itertools.product(eff_types, covid_types, risk_groups)]
+        cols = [f'vaccinations_{c}_{e}_{r}' for e, c, r in itertools.product(eff_types, covid_types, risk_groups)]
         draw_df = self.load_ode_params(draw_id=draw_id, scenario=scenario, columns=cols)
         return draw_df.sum(axis=1).rename(draw_id)
 
@@ -223,17 +223,7 @@ class PostprocessingDataInterface:
         return self._get_forecast_data_inteface().load_total_population()
 
     def load_hierarchy(self) -> pd.DataFrame:
-        fdi = self._get_forecast_data_inteface()
-        rdi = fdi._get_regression_data_interface()
-        regression_spec = rdi.load_specification()
-        metadata = fdi.get_model_inputs_metadata()
-        model_inputs_path = Path(metadata['output_path'])
-        if regression_spec.data.run_counties:
-            hierarchy_path = model_inputs_path / 'locations' / 'fh_small_area_hierarchy.csv'
-        else:
-            hierarchy_path = model_inputs_path / 'locations' / 'modeling_hierarchy.csv'
-        hierarchy = pd.read_csv(hierarchy_path)
-        return hierarchy
+        return self._get_forecast_data_inteface().load_hierarchy()
 
     def load_aggregation_heirarchy(self, aggregation_spec: AggregationSpecification):
         if any(aggregation_spec.to_dict().values()):

@@ -66,6 +66,8 @@ def sum_aggregator(measure_data: pd.DataFrame,
                 continue
             child_locs = children.location_id.tolist()
             modeled_child_locs = list(set(child_locs).intersection(data_locs))
+            if not modeled_child_locs:
+                continue
 
             filled_measure_data = fill_cumulative_date_index(measure_data.loc[modeled_child_locs], date_index)
             aggregate = filled_measure_data.groupby(agg_levels).sum()
@@ -108,6 +110,8 @@ def mean_aggregator(measure_data: pd.DataFrame,
                 continue
             child_locs = children.location_id.tolist()
             modeled_child_locs = list(set(child_locs).intersection(data_locs))
+            if not modeled_child_locs:
+                continue
 
             if 'date' in weighted_measure_data.index.names:
                 aggregate = weighted_measure_data.loc[modeled_child_locs].groupby(level='date').sum()

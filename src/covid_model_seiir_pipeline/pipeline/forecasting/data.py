@@ -72,6 +72,9 @@ class ForecastDataInterface:
     def get_model_inputs_metadata(self):
         return self._get_regression_data_interface().get_model_inputs_metadata()
 
+    def load_hierarchy(self) -> pd.DataFrame:
+        return self._get_regression_data_interface().load_hierarchy()
+
     def load_location_ids(self) -> List[int]:
         return self._get_regression_data_interface().load_location_ids()
 

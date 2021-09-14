@@ -271,27 +271,30 @@ def postprocess_miscellaneous(postprocessing_version: str,
     rdi = data_interface._get_forecast_data_inteface()._get_regression_data_interface()
     regression_spec = rdi.load_specification()
     miscellaneous_config = model.MISCELLANEOUS[measure]
-    if regression_spec.data.run_counties and not miscellaneous_config.include_in_counties:
-        logger.info(f'Skipping {measure}')
-        return
     logger.info(f'Loading {measure}.', context='read')
-    miscellaneous_data = miscellaneous_config.loader(data_interface)
+    try:
+        miscellaneous_data = miscellaneous_config.loader(data_interface)
 
-    miscellaneous_data = do_aggregation(
-        miscellaneous_data,
-        miscellaneous_config,
-        postprocessing_spec.aggregation,
-        data_interface,
-    )
+        miscellaneous_data = do_aggregation(
+            miscellaneous_data,
+            miscellaneous_config,
+            postprocessing_spec.aggregation,
+            data_interface,
+        )
 
-    if miscellaneous_config.is_table:
-        miscellaneous_data = miscellaneous_data.reset_index()
+        if miscellaneous_config.is_table:
+            miscellaneous_data = miscellaneous_data.reset_index()
 
-    logger.info(f'Saving {measure} data.', context='write')
-    data_interface.save_output_miscellaneous(miscellaneous_data,
-                                             scenario_name,
-                                             miscellaneous_config.label,
-                                             miscellaneous_config.is_table)
+        logger.info(f'Saving {measure} data.', context='write')
+        data_interface.save_output_miscellaneous(miscellaneous_data,
+                                                 scenario_name,
+                                                 miscellaneous_config.label,
+                                                 miscellaneous_config.is_table)
+    except Exception:
+        if miscellaneous_config.soft_fail:
+            return
+        else:
+            raise
 
 
 def build_spec_and_data_interface(postprocessing_version: str) -> Tuple[PostprocessingSpecification,
