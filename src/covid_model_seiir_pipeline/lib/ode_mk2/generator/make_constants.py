@@ -365,7 +365,8 @@ def make_derived_types() -> str:
         out += f'{inflection.underscore(derived_group_name).upper()} = _{inflection.camelize(derived_group_name)}(\n'
         for variable in variables:
             out += f'{TAB}{variable}={inflection.underscore(primitive_type).upper()}.{variable},\n'
-        out += ')\n\n'
+        out += ')\n'
+        out += utils.make_name_map(derived_group_name)
     return out
 
 def unpack_spec_fields(spec: Spec) -> Tuple[List[str], List[str]]:

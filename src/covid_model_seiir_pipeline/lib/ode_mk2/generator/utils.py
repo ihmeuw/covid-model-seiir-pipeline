@@ -139,7 +139,7 @@ def make_index_map(map_name: str):
 def make_name_map(map_name: str, suffix: str = '_NAMES'):
     map_name_constant = inflection.underscore(map_name).upper() + suffix
     map_name_camel = inflection.camelize(map_name)
-    return f'{map_name_constant} = _{map_name_camel}(*_{map_name}._fields)\n'
+    return f'{map_name_constant} = _{map_name_camel}(*_{map_name_camel}._fields)\n'
 
 
 

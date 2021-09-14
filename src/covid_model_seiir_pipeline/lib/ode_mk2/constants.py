@@ -105,19 +105,19 @@ _AggIndexType = namedtuple('AggIndexType', [
 ])
 
 COMPARTMENT_TYPE = _CompartmentType(*list(range(len(_CompartmentType._fields))))
-COMPARTMENT_TYPE_NAMES = _CompartmentType(*_compartment_type._fields)
+COMPARTMENT_TYPE_NAMES = _CompartmentType(*_CompartmentType._fields)
 TRACKING_COMPARTMENT_TYPE = _TrackingCompartmentType(*list(range(len(_TrackingCompartmentType._fields))))
-TRACKING_COMPARTMENT_TYPE_NAMES = _TrackingCompartmentType(*_tracking_compartment_type._fields)
+TRACKING_COMPARTMENT_TYPE_NAMES = _TrackingCompartmentType(*_TrackingCompartmentType._fields)
 PARAMETER_TYPE = _ParameterType(*list(range(len(_ParameterType._fields))))
-PARAMETER_TYPE_NAMES = _ParameterType(*_parameter_type._fields)
+PARAMETER_TYPE_NAMES = _ParameterType(*_ParameterType._fields)
 RISK_GROUP = _RiskGroup(*list(range(len(_RiskGroup._fields))))
-RISK_GROUP_NAMES = _RiskGroup(*_risk_group._fields)
+RISK_GROUP_NAMES = _RiskGroup(*_RiskGroup._fields)
 INDEX_1_TYPE = _Index1Type(*list(range(len(_Index1Type._fields))))
-INDEX_1_TYPE_NAMES = _Index1Type(*_index_1_type._fields)
+INDEX_1_TYPE_NAMES = _Index1Type(*_Index1Type._fields)
 INDEX_2_TYPE = _Index2Type(*list(range(len(_Index2Type._fields))))
-INDEX_2_TYPE_NAMES = _Index2Type(*_index_2_type._fields)
+INDEX_2_TYPE_NAMES = _Index2Type(*_Index2Type._fields)
 AGG_INDEX_TYPE = _AggIndexType(*list(range(len(_AggIndexType._fields))))
-AGG_INDEX_TYPE_NAMES = _AggIndexType(*_agg_index_type._fields)
+AGG_INDEX_TYPE_NAMES = _AggIndexType(*_AggIndexType._fields)
 
 #####################
 # Derived variables #
@@ -135,7 +135,7 @@ BASE_COMPARTMENT = _BaseCompartment(
     I=COMPARTMENT_TYPE.I,
     R=COMPARTMENT_TYPE.R,
 )
-
+BASE_COMPARTMENT_NAMES = _BaseCompartment(*_BaseCompartment._fields)
 _TrackingCompartment = namedtuple('TrackingCompartment', [
     'NewE',         
     'NewR',         
@@ -148,7 +148,7 @@ TRACKING_COMPARTMENT = _TrackingCompartment(
     NewVaxImmune=TRACKING_COMPARTMENT_TYPE.NewVaxImmune,
     Waned=TRACKING_COMPARTMENT_TYPE.Waned,
 )
-
+TRACKING_COMPARTMENT_NAMES = _TrackingCompartment(*_TrackingCompartment._fields)
 _BaseParameter = namedtuple('BaseParameter', [
     'alpha', 
     'sigma', 
@@ -163,7 +163,7 @@ BASE_PARAMETER = _BaseParameter(
     pi=PARAMETER_TYPE.pi,
     new_e=PARAMETER_TYPE.new_e,
 )
-
+BASE_PARAMETER_NAMES = _BaseParameter(*_BaseParameter._fields)
 _VariantParameter = namedtuple('VariantParameter', [
     'beta',  
     'kappa', 
@@ -174,7 +174,7 @@ VARIANT_PARAMETER = _VariantParameter(
     kappa=PARAMETER_TYPE.kappa,
     rho=PARAMETER_TYPE.rho,
 )
-
+VARIANT_PARAMETER_NAMES = _VariantParameter(*_VariantParameter._fields)
 _VariantGroup = namedtuple('VariantGroup', [
     'all',   
     'total', 
@@ -183,7 +183,7 @@ VARIANT_GROUP = _VariantGroup(
     all=INDEX_1_TYPE.all,
     total=INDEX_1_TYPE.total,
 )
-
+VARIANT_GROUP_NAMES = _VariantGroup(*_VariantGroup._fields)
 _Variant = namedtuple('Variant', [
     'ancestral', 
     'alpha',     
@@ -202,7 +202,7 @@ VARIANT = _Variant(
     other=INDEX_1_TYPE.other,
     omega=INDEX_1_TYPE.omega,
 )
-
+VARIANT_NAMES = _Variant(*_Variant._fields)
 _SusceptibleType = namedtuple('SusceptibleType', [
     'unprotected',          
     'non_escape_protected', 
@@ -221,7 +221,7 @@ SUSCEPTIBLE_TYPE = _SusceptibleType(
     escape_immune=INDEX_1_TYPE.escape_immune,
     omega_immune=INDEX_1_TYPE.omega_immune,
 )
-
+SUSCEPTIBLE_TYPE_NAMES = _SusceptibleType(*_SusceptibleType._fields)
 _ProtectionStatus = namedtuple('ProtectionStatus', [
     'unprotected',          
     'non_escape_protected', 
@@ -234,7 +234,7 @@ PROTECTION_STATUS = _ProtectionStatus(
     escape_protected=INDEX_1_TYPE.escape_protected,
     omega_protected=INDEX_1_TYPE.omega_protected,
 )
-
+PROTECTION_STATUS_NAMES = _ProtectionStatus(*_ProtectionStatus._fields)
 _ImmuneStatus = namedtuple('ImmuneStatus', [
     'non_escape_immune', 
     'escape_immune',     
@@ -245,7 +245,7 @@ IMMUNE_STATUS = _ImmuneStatus(
     escape_immune=INDEX_1_TYPE.escape_immune,
     omega_immune=INDEX_1_TYPE.omega_immune,
 )
-
+IMMUNE_STATUS_NAMES = _ImmuneStatus(*_ImmuneStatus._fields)
 _VaccineType = namedtuple('VaccineType', [
     'unprotected',          
     'non_escape_protected', 
@@ -264,7 +264,7 @@ VACCINE_TYPE = _VaccineType(
     escape_immune=INDEX_1_TYPE.escape_immune,
     omega_immune=INDEX_1_TYPE.omega_immune,
 )
-
+VACCINE_TYPE_NAMES = _VaccineType(*_VaccineType._fields)
 _VaccinationStatus = namedtuple('VaccinationStatus', [
     'unvaccinated', 
     'vaccinated',   
@@ -273,7 +273,7 @@ VACCINATION_STATUS = _VaccinationStatus(
     unvaccinated=INDEX_2_TYPE.unvaccinated,
     vaccinated=INDEX_2_TYPE.vaccinated,
 )
-
+VACCINATION_STATUS_NAMES = _VaccinationStatus(*_VaccinationStatus._fields)
 _RemovedVaccinationStatus = namedtuple('RemovedVaccinationStatus', [
     'unvaccinated',     
     'vaccinated',       
@@ -284,7 +284,7 @@ REMOVED_VACCINATION_STATUS = _RemovedVaccinationStatus(
     vaccinated=INDEX_2_TYPE.vaccinated,
     newly_vaccinated=INDEX_2_TYPE.newly_vaccinated,
 )
-
+REMOVED_VACCINATION_STATUS_NAMES = _RemovedVaccinationStatus(*_RemovedVaccinationStatus._fields)
 _AggVariant = namedtuple('AggVariant', [
     'ancestral', 
     'alpha',     
@@ -303,7 +303,7 @@ AGG_VARIANT = _AggVariant(
     other=AGG_INDEX_TYPE.other,
     omega=AGG_INDEX_TYPE.omega,
 )
-
+AGG_VARIANT_NAMES = _AggVariant(*_AggVariant._fields)
 _AggWaned = namedtuple('AggWaned', [
     'natural', 
     'vaccine', 
@@ -312,7 +312,7 @@ AGG_WANED = _AggWaned(
     natural=AGG_INDEX_TYPE.natural,
     vaccine=AGG_INDEX_TYPE.vaccine,
 )
-
+AGG_WANED_NAMES = _AggWaned(*_AggWaned._fields)
 _AggImmuneStatus = namedtuple('AggImmuneStatus', [
     'non_immune',        
     'non_escape_immune', 
@@ -325,7 +325,7 @@ AGG_IMMUNE_STATUS = _AggImmuneStatus(
     escape_immune=AGG_INDEX_TYPE.escape_immune,
     omega_immune=AGG_INDEX_TYPE.omega_immune,
 )
-
+AGG_IMMUNE_STATUS_NAMES = _AggImmuneStatus(*_AggImmuneStatus._fields)
 _AggVaccinationStatus = namedtuple('AggVaccinationStatus', [
     'unvaccinated', 
     'vaccinated',   
@@ -334,7 +334,7 @@ AGG_VACCINATION_STATUS = _AggVaccinationStatus(
     unvaccinated=AGG_INDEX_TYPE.unvaccinated,
     vaccinated=AGG_INDEX_TYPE.vaccinated,
 )
-
+AGG_VACCINATION_STATUS_NAMES = _AggVaccinationStatus(*_AggVaccinationStatus._fields)
 _AggOther = namedtuple('AggOther', [
     'all',              
     'total',            
@@ -351,7 +351,7 @@ AGG_OTHER = _AggOther(
     vaccinated=AGG_INDEX_TYPE.vaccinated,
     vaccine_eligible=AGG_INDEX_TYPE.vaccine_eligible,
 )
-
+AGG_OTHER_NAMES = _AggOther(*_AggOther._fields)
 PARAMETERS = np.full((len(PARAMETER_TYPE), len(INDEX_1_TYPE)), -1, dtype=np.int8)
 PARAMETERS[BASE_PARAMETER.alpha, INDEX_1_TYPE.all] = np.int8(0)
 PARAMETERS[BASE_PARAMETER.sigma, INDEX_1_TYPE.all] = np.int8(1)
