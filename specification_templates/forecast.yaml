@@ -1,6 +1,6 @@
 data:
-  regression_version: '2021_09_09.02'
-  covariate_version: '2021_09_08.06'
+  regression_version: '2021_09_15.05'
+  covariate_version: '2021_09_14.01'
   output_root: ''
   output_format: 'parquet'
 workflow:
