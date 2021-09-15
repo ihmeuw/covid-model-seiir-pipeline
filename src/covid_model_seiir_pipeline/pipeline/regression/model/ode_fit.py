@@ -25,7 +25,7 @@ def prepare_ode_fit_parameters(past_infections: pd.Series,
                                sampled_params: Dict[str, pd.Series]) -> Parameters:
     past_index = past_infections.index
     rhos = rhos.reindex(past_index, fill_value=0.).to_dict('series')
-    betas = {f'beta_{variant}': pd.Series(np.nan, index=past_index, name=f'beta_{variant}') for variant in VARIANT_NAMES}
+    betas = {f'beta_{variant}': pd.Series(-1, index=past_index, name=f'beta_{variant}') for variant in VARIANT_NAMES}
     vaccinations = vaccinations.reindex(past_index, fill_value=0.).to_dict('series')
 
     return Parameters(

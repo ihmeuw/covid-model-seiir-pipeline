@@ -24,7 +24,7 @@ from covid_model_seiir_pipeline.lib.ode_mk2.constants import (
 def maybe_invade(group_y: np.ndarray, group_dy: np.ndarray,
                  aggregates: np.ndarray, params: np.ndarray) -> np.ndarray:
     alpha = params[PARAMETERS[BASE_PARAMETER.alpha, VARIANT_GROUP.all]]
-    pi = params[PARAMETERS[BASE_PARAMETER.pi, VARIANT_PARAMETER.all]]
+    pi = params[PARAMETERS[BASE_PARAMETER.pi, VARIANT_GROUP.all]]
     from_compartment = COMPARTMENTS[BASE_COMPARTMENT.S, SUSCEPTIBLE_TYPE.unprotected, VACCINATION_STATUS.unvaccinated]
 
     for variant in VARIANT:

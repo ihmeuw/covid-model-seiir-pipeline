@@ -46,7 +46,7 @@ def compute_tracking_compartments(group_dy: np.ndarray, transition_map: np.ndarr
             # New waned #
             #############
             waned = transition_map[COMPARTMENTS[BASE_COMPARTMENT.R, variant, vaccination_status],
-                                   CG_SUSCEPTIBLE[AGG_IMMUNE_STATUS.non_immune]].sum(axis=1)
+                                   CG_SUSCEPTIBLE[AGG_IMMUNE_STATUS.non_immune]].sum()
             group_dy[TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.Waned, variant]] += waned
             group_dy[TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.Waned, AGG_WANED.natural]] += waned
 
@@ -62,7 +62,7 @@ def compute_tracking_compartments(group_dy: np.ndarray, transition_map: np.ndarr
         # New vaccine immunity waned #
         ##############################
         waned = transition_map[COMPARTMENTS[BASE_COMPARTMENT.S, immune_status, VACCINATION_STATUS.vaccinated],
-                               CG_SUSCEPTIBLE[AGG_IMMUNE_STATUS.non_escape_immune]].sum(axis=1)
+                               CG_SUSCEPTIBLE[AGG_IMMUNE_STATUS.non_immune]].sum()
         group_dy[TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.Waned, immune_status]] += waned
         group_dy[TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.Waned, AGG_WANED.vaccine]] += waned
 

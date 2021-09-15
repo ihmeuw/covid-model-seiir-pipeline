@@ -52,11 +52,11 @@ def make_aggregates(y: np.ndarray) -> np.ndarray:
 def normalize_parameters(input_parameters: np.ndarray,
                          aggregates: np.ndarray,
                          forecast: bool) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
-    force_of_infection = np.zeros(len(VARIANT))
+    force_of_infection = np.zeros(max(VARIANT)+1)
 
     n_total = aggregates[AGGREGATES[COMPARTMENT_TYPE.N, AGG_OTHER.total]]
-    params = input_parameters[:len(PARAMETERS)]
-    vaccines = input_parameters[len(PARAMETERS):]
+    params = input_parameters[:PARAMETERS.max()+1]
+    vaccines = input_parameters[PARAMETERS.max()+1:]
 
     alpha = input_parameters[PARAMETERS[BASE_PARAMETER.alpha, VARIANT_GROUP.all]]
 
@@ -68,7 +68,7 @@ def normalize_parameters(input_parameters: np.ndarray,
     else:
         new_e_total = input_parameters[PARAMETERS[BASE_PARAMETER.new_e, VARIANT_GROUP.all]]
         total_weight = 0.
-        new_e = np.zeros(VARIANT)
+        new_e = np.zeros(max(VARIANT)+1)
         for variant in VARIANT:
             kappa = input_parameters[PARAMETERS[VARIANT_PARAMETER.kappa, variant]]
             susceptible = aggregates[AGGREGATES[BASE_COMPARTMENT.S, variant]]

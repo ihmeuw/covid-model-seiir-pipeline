@@ -20,6 +20,7 @@ from covid_model_seiir_pipeline.lib.ode_mk2.constants import (
     AGG_WANED,
     # Indexing arrays
     COMPARTMENTS,
+    TRACKING_COMPARTMENTS,
     PARAMETERS,
     AGGREGATES,
     # Debug flag
@@ -53,11 +54,13 @@ def _system(t: float, y: np.ndarray, waned: np.ndarray, input_parameters: np.nda
     )
 
     dy = np.zeros_like(y)
+    
+    system_size = TRACKING_COMPARTMENTS.max() + 1
     for i in range(len(RISK_GROUP)):
-        group_start = i * len(COMPARTMENTS)
-        group_end = (i + 1) * len(COMPARTMENTS)
-        group_vaccine_start = i * len(SUSCEPTIBLE_TYPE)
-        group_vaccine_end = (i + 1) * len(SUSCEPTIBLE_TYPE)
+        group_start = i * system_size
+        group_end = (i + 1) * system_size
+        group_vaccine_start = i * len(VACCINE_TYPE)
+        group_vaccine_end = (i + 1) * len(VACCINE_TYPE)
 
         group_y = y[group_start:group_end]
         group_vaccines = vaccines[group_vaccine_start:group_vaccine_end]
@@ -122,13 +125,15 @@ def _single_group_system(t: float,
         transition_map = do_natural_immunity_waning(
             variant,
             group_y,
-            waned[AGG_WANED.natural],
+            waned[0],
             aggregates[AGGREGATES[BASE_COMPARTMENT.R, variant]],
             transition_map,
         )
 
     transition_map = do_vaccine_immunity_waning(
-        waned[('vaccine',)],
+        group_y,
+        waned[1],
+        waned[1],
         transition_map,
     )
 
@@ -161,7 +166,7 @@ def do_vaccination(
             transition_map[from_compartment, to_compartment] += vaccines_out[from_compartment, vaccine_type]
         for variant in VARIANT:
             from_compartment = COMPARTMENTS[BASE_COMPARTMENT.R, variant, REMOVED_VACCINATION_STATUS.unvaccinated]
-            if vaccine_type == 'unprotected':
+            if vaccine_type == VACCINE_TYPE.unprotected:
                 to_compartment = COMPARTMENTS[BASE_COMPARTMENT.R, variant, REMOVED_VACCINATION_STATUS.newly_vaccinated]
             else:
                 to_compartment = COMPARTMENTS[BASE_COMPARTMENT, vaccine_type, VACCINATION_STATUS.vaccinated]
