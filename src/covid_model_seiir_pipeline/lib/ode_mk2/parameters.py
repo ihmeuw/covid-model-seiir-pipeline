@@ -37,10 +37,10 @@ def make_aggregates(y: np.ndarray) -> np.ndarray:
     for group_y in np.split(y, len(RISK_GROUP)):
         for compartment, group in zip(BASE_COMPARTMENT, (CG_SUSCEPTIBLE, CG_EXPOSED, CG_INFECTIOUS, CG_REMOVED)):
             for variant in VARIANT:
-                aggregates[AGGREGATES[compartment, variant]] = group_y[group[variant]].sum()
+                aggregates[AGGREGATES[compartment, variant]] += group_y[group[variant]].sum()
         for vaccination_status in AGG_VACCINATION_STATUS:
             n_vax_status = group_y[CG_TOTAL[vaccination_status]].sum()
-            aggregates[AGGREGATES[COMPARTMENT_TYPE.N, vaccination_status]] = n_vax_status
+            aggregates[AGGREGATES[COMPARTMENT_TYPE.N, vaccination_status]] += n_vax_status
             aggregates[AGGREGATES[COMPARTMENT_TYPE.N, AGG_OTHER.total]] += n_vax_status
     if DEBUG:
         assert np.all(np.isfinite(aggregates))
@@ -77,7 +77,7 @@ def normalize_parameters(input_parameters: np.ndarray,
             variant_weight = kappa * susceptible * infectious**alpha
             new_e[variant] = new_e_total * variant_weight
             total_weight += variant_weight
-        new_e /= total_weight
+        new_e /= total_weight        
         for variant in VARIANT:
             susceptible = aggregates[AGGREGATES[BASE_COMPARTMENT.S, variant]]
             force_of_infection[variant] = math.safe_divide(new_e[variant], susceptible)

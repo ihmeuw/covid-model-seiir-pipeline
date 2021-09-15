@@ -182,7 +182,7 @@ def do_transmission(
     gamma: float,
     force_of_infection: float,
     transition_map: np.ndarray,
-) -> np.ndarray:
+) -> np.ndarray:    
     for vaccination_status in VACCINATION_STATUS:
         e_idx = COMPARTMENTS[BASE_COMPARTMENT.E, variant, vaccination_status]
         i_idx = COMPARTMENTS[BASE_COMPARTMENT.I, variant, vaccination_status]
