@@ -99,16 +99,16 @@ def _single_group_system(t: float,
                          params: np.ndarray,
                          group_vaccines: np.ndarray):
     transition_map = np.zeros((group_y.size, group_y.size))
-    vaccines_out = vaccinations.allocate(
-        group_y,
-        group_vaccines,
-        force_of_infection,
-    )
+#     vaccines_out = vaccinations.allocate(
+#         group_y,
+#         group_vaccines,
+#         force_of_infection,
+#     )
 
-    transition_map = do_vaccination(
-        vaccines_out,
-        transition_map,
-    )
+#     transition_map = do_vaccination(
+#         vaccines_out,
+#         transition_map,
+#     )
 
     sigma = params[PARAMETERS[BASE_PARAMETER.sigma, VARIANT_GROUP.all]]
     gamma = params[PARAMETERS[BASE_PARAMETER.gamma, VARIANT_GROUP.all]]
@@ -126,16 +126,16 @@ def _single_group_system(t: float,
             variant,
             group_y,
             waned[0],
-            aggregates[AGGREGATES[BASE_COMPARTMENT.R, variant]],
+            aggregates[AGGREGATES[BASE_COMPARTMENT.R, VARIANT_GROUP.total]],
             transition_map,
         )
 
-    transition_map = do_vaccine_immunity_waning(
-        group_y,
-        waned[1],
-        waned[1],
-        transition_map,
-    )
+#     transition_map = do_vaccine_immunity_waning(
+#         group_y,
+#         waned[1],
+#         waned[1],
+#         transition_map,
+#     )
 
     inflow = transition_map.sum(axis=0)
     outflow = transition_map.sum(axis=1)
@@ -209,6 +209,8 @@ def do_natural_immunity_waning(
     for vaccination_status in REMOVED_VACCINATION_STATUS:
         from_index = COMPARTMENTS[BASE_COMPARTMENT.R, variant, vaccination_status]
         waned = math.safe_divide(group_y[from_index], r_variant) * natural_immunity_waned
+        assert waned <= group_y[from_index]
+            
 
         # TODO: make a parameter
         protection_fraction = 1 / len(PROTECTION_STATUS)
