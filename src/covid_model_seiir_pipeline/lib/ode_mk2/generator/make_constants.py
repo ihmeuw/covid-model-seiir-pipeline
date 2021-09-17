@@ -21,7 +21,7 @@ PRIMITIVE_TYPES = {
     'tracking_compartment_type': [
         'NewE',
         'NewR',
-        'NewVaxImmune',
+        'NewVaccination',
         'Waned',
     ],
     'parameter_type': [
@@ -105,7 +105,7 @@ DERIVED_TYPES = {
     'tracking_compartment': ('tracking_compartment_type', [
         'NewE',
         'NewR',
-        'NewVaxImmune',
+        'NewVaccination',
         'Waned',
     ]),
     'base_parameter': ('parameter_type', [
@@ -184,8 +184,11 @@ DERIVED_TYPES = {
         'natural',
         'vaccine',
     ]),
-    'agg_immune_status': ('agg_index_type', [
-        'non_immune',
+    'agg_vaccine_type': ('agg_index_type', [
+        'unprotected',
+        'non_escape_protected',
+        'escape_protected',
+        'omega_protected',
         'non_escape_immune',
         'escape_immune',
         'omega_immune',
@@ -197,9 +200,11 @@ DERIVED_TYPES = {
     'agg_other': ('agg_index_type', [
         'all',
         'total',
-        'non_immune',
+
         'unvaccinated',
         'vaccinated',
+
+        'non_immune',
         'vaccine_eligible'
     ])
 }
@@ -232,8 +237,8 @@ SPECS = {
             ['NewE', 'agg_vaccination_status'],
             ['NewE', 'agg_variant'],
             ['NewE', 'total'],
-            ['NewVaxImmune', 'agg_immune_status'],
-            ['NewVaxImmune', 'total'],
+            ['NewVaccination', 'agg_vaccine_type'],
+            ['NewVaccination', 'total'],
             ['NewR', 'agg_variant'],
             ['NewR', 'total'],
             ['Waned', 'natural'],

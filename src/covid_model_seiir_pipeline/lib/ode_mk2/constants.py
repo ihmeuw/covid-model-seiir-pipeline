@@ -31,10 +31,10 @@ _CompartmentType = namedtuple('CompartmentType', [
 ])
 
 _TrackingCompartmentType = namedtuple('TrackingCompartmentType', [
-    'NewE',         
-    'NewR',         
-    'NewVaxImmune', 
-    'Waned',        
+    'NewE',           
+    'NewR',           
+    'NewVaccination', 
+    'Waned',          
 ])
 
 _ParameterType = namedtuple('ParameterType', [
@@ -137,15 +137,15 @@ BASE_COMPARTMENT = _BaseCompartment(
 )
 BASE_COMPARTMENT_NAMES = _BaseCompartment(*_BaseCompartment._fields)
 _TrackingCompartment = namedtuple('TrackingCompartment', [
-    'NewE',         
-    'NewR',         
-    'NewVaxImmune', 
-    'Waned',        
+    'NewE',           
+    'NewR',           
+    'NewVaccination', 
+    'Waned',          
 ])
 TRACKING_COMPARTMENT = _TrackingCompartment(
     NewE=TRACKING_COMPARTMENT_TYPE.NewE,
     NewR=TRACKING_COMPARTMENT_TYPE.NewR,
-    NewVaxImmune=TRACKING_COMPARTMENT_TYPE.NewVaxImmune,
+    NewVaccination=TRACKING_COMPARTMENT_TYPE.NewVaccination,
     Waned=TRACKING_COMPARTMENT_TYPE.Waned,
 )
 TRACKING_COMPARTMENT_NAMES = _TrackingCompartment(*_TrackingCompartment._fields)
@@ -313,19 +313,25 @@ AGG_WANED = _AggWaned(
     vaccine=AGG_INDEX_TYPE.vaccine,
 )
 AGG_WANED_NAMES = _AggWaned(*_AggWaned._fields)
-_AggImmuneStatus = namedtuple('AggImmuneStatus', [
-    'non_immune',        
-    'non_escape_immune', 
-    'escape_immune',     
-    'omega_immune',      
+_AggVaccineType = namedtuple('AggVaccineType', [
+    'unprotected',          
+    'non_escape_protected', 
+    'escape_protected',     
+    'omega_protected',      
+    'non_escape_immune',    
+    'escape_immune',        
+    'omega_immune',         
 ])
-AGG_IMMUNE_STATUS = _AggImmuneStatus(
-    non_immune=AGG_INDEX_TYPE.non_immune,
+AGG_VACCINE_TYPE = _AggVaccineType(
+    unprotected=AGG_INDEX_TYPE.unprotected,
+    non_escape_protected=AGG_INDEX_TYPE.non_escape_protected,
+    escape_protected=AGG_INDEX_TYPE.escape_protected,
+    omega_protected=AGG_INDEX_TYPE.omega_protected,
     non_escape_immune=AGG_INDEX_TYPE.non_escape_immune,
     escape_immune=AGG_INDEX_TYPE.escape_immune,
     omega_immune=AGG_INDEX_TYPE.omega_immune,
 )
-AGG_IMMUNE_STATUS_NAMES = _AggImmuneStatus(*_AggImmuneStatus._fields)
+AGG_VACCINE_TYPE_NAMES = _AggVaccineType(*_AggVaccineType._fields)
 _AggVaccinationStatus = namedtuple('AggVaccinationStatus', [
     'unvaccinated', 
     'vaccinated',   
@@ -338,17 +344,17 @@ AGG_VACCINATION_STATUS_NAMES = _AggVaccinationStatus(*_AggVaccinationStatus._fie
 _AggOther = namedtuple('AggOther', [
     'all',              
     'total',            
-    'non_immune',       
     'unvaccinated',     
     'vaccinated',       
+    'non_immune',       
     'vaccine_eligible', 
 ])
 AGG_OTHER = _AggOther(
     all=AGG_INDEX_TYPE.all,
     total=AGG_INDEX_TYPE.total,
-    non_immune=AGG_INDEX_TYPE.non_immune,
     unvaccinated=AGG_INDEX_TYPE.unvaccinated,
     vaccinated=AGG_INDEX_TYPE.vaccinated,
+    non_immune=AGG_INDEX_TYPE.non_immune,
     vaccine_eligible=AGG_INDEX_TYPE.vaccine_eligible,
 )
 AGG_OTHER_NAMES = _AggOther(*_AggOther._fields)
@@ -549,32 +555,32 @@ TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.NewE, AGG_VARIANT.delta] = 69
 TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.NewE, AGG_VARIANT.other] = 70
 TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.NewE, AGG_VARIANT.omega] = 71
 TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.NewE, AGG_INDEX_TYPE.total] = 72
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.NewVaxImmune, AGG_IMMUNE_STATUS.non_immune] = 73
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.NewVaxImmune, AGG_IMMUNE_STATUS.non_escape_immune] = 74
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.NewVaxImmune, AGG_IMMUNE_STATUS.escape_immune] = 75
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.NewVaxImmune, AGG_IMMUNE_STATUS.omega_immune] = 76
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.NewVaxImmune, AGG_INDEX_TYPE.total] = 77
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.NewR, AGG_VARIANT.ancestral] = 78
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.NewR, AGG_VARIANT.alpha] = 79
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.NewR, AGG_VARIANT.beta] = 80
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.NewR, AGG_VARIANT.gamma] = 81
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.NewR, AGG_VARIANT.delta] = 82
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.NewR, AGG_VARIANT.other] = 83
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.NewR, AGG_VARIANT.omega] = 84
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.NewR, AGG_INDEX_TYPE.total] = 85
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.Waned, AGG_INDEX_TYPE.natural] = 86
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.Waned, AGG_INDEX_TYPE.vaccine] = 87
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.Waned, AGG_VARIANT.ancestral] = 88
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.Waned, AGG_VARIANT.alpha] = 89
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.Waned, AGG_VARIANT.beta] = 90
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.Waned, AGG_VARIANT.gamma] = 91
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.Waned, AGG_VARIANT.delta] = 92
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.Waned, AGG_VARIANT.other] = 93
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.Waned, AGG_VARIANT.omega] = 94
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.Waned, AGG_IMMUNE_STATUS.non_immune] = 95
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.Waned, AGG_IMMUNE_STATUS.non_escape_immune] = 96
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.Waned, AGG_IMMUNE_STATUS.escape_immune] = 97
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.Waned, AGG_IMMUNE_STATUS.omega_immune] = 98
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.NewVaccination, AGG_VACCINE_TYPE.unprotected] = 73
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.NewVaccination, AGG_VACCINE_TYPE.non_escape_protected] = 74
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.NewVaccination, AGG_VACCINE_TYPE.escape_protected] = 75
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.NewVaccination, AGG_VACCINE_TYPE.omega_protected] = 76
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.NewVaccination, AGG_VACCINE_TYPE.non_escape_immune] = 77
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.NewVaccination, AGG_VACCINE_TYPE.escape_immune] = 78
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.NewVaccination, AGG_VACCINE_TYPE.omega_immune] = 79
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.NewVaccination, AGG_INDEX_TYPE.total] = 80
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.NewR, AGG_VARIANT.ancestral] = 81
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.NewR, AGG_VARIANT.alpha] = 82
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.NewR, AGG_VARIANT.beta] = 83
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.NewR, AGG_VARIANT.gamma] = 84
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.NewR, AGG_VARIANT.delta] = 85
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.NewR, AGG_VARIANT.other] = 86
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.NewR, AGG_VARIANT.omega] = 87
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.NewR, AGG_INDEX_TYPE.total] = 88
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.Waned, AGG_INDEX_TYPE.natural] = 89
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.Waned, AGG_INDEX_TYPE.vaccine] = 90
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.Waned, AGG_VARIANT.ancestral] = 91
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.Waned, AGG_VARIANT.alpha] = 92
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.Waned, AGG_VARIANT.beta] = 93
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.Waned, AGG_VARIANT.gamma] = 94
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.Waned, AGG_VARIANT.delta] = 95
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.Waned, AGG_VARIANT.other] = 96
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.Waned, AGG_VARIANT.omega] = 97
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.Waned, AGG_INDEX_TYPE.agg_immune_status] = 98
 TRACKING_COMPARTMENTS_NAMES = [
     'NewE_unvaccinated',
     'NewE_vaccinated',
@@ -586,11 +592,14 @@ TRACKING_COMPARTMENTS_NAMES = [
     'NewE_other',
     'NewE_omega',
     'NewE_total',
-    'NewVaxImmune_non_immune',
-    'NewVaxImmune_non_escape_immune',
-    'NewVaxImmune_escape_immune',
-    'NewVaxImmune_omega_immune',
-    'NewVaxImmune_total',
+    'NewVaccination_unprotected',
+    'NewVaccination_non_escape_protected',
+    'NewVaccination_escape_protected',
+    'NewVaccination_omega_protected',
+    'NewVaccination_non_escape_immune',
+    'NewVaccination_escape_immune',
+    'NewVaccination_omega_immune',
+    'NewVaccination_total',
     'NewR_ancestral',
     'NewR_alpha',
     'NewR_beta',
@@ -608,10 +617,7 @@ TRACKING_COMPARTMENTS_NAMES = [
     'Waned_delta',
     'Waned_other',
     'Waned_omega',
-    'Waned_non_immune',
-    'Waned_non_escape_immune',
-    'Waned_escape_immune',
-    'Waned_omega_immune',
+    'Waned_agg_immune_status',
 ]
 
 AGGREGATES = np.full((len(COMPARTMENT_TYPE), len(AGG_INDEX_TYPE)), -1, dtype=np.int64)
