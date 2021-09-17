@@ -12,6 +12,7 @@ from covid_model_seiir_pipeline.lib.ode_mk2.constants import (
     VACCINATION_STATUS,
     REMOVED_VACCINATION_STATUS,
     AGG_IMMUNE_STATUS,
+    AGG_VACCINATION_STATUS,
     AGG_WANED,
     # Indexing arrays
     COMPARTMENTS,
@@ -24,14 +25,16 @@ from covid_model_seiir_pipeline.lib.ode_mk2.constants import (
 
 
 @numba.njit
-def compute_tracking_compartments(group_dy: np.ndarray, transition_map: np.ndarray) -> np.ndarray:
+def compute_tracking_compartments(t: float, group_dy: np.ndarray, transition_map: np.ndarray) -> np.ndarray:
+    if t > 500:
+        import pdb; pdb.set_trace()
     for variant in VARIANT:
-        for vaccination_status in VACCINATION_STATUS:
+        for vaccination_status, agg_vaccination_status in zip(VACCINATION_STATUS, AGG_VACCINATION_STATUS):
             ##################
             # New Infections #
             ##################
             new_e = transition_map[:, COMPARTMENTS[BASE_COMPARTMENT.E, variant, vaccination_status]].sum()
-            group_dy[TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewE, vaccination_status]] += new_e
+            group_dy[TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewE, agg_vaccination_status]] += new_e
             group_dy[TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewE, variant]] += new_e
             group_dy[TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewE, VARIANT_GROUP.total]] += new_e
             #########################
@@ -53,8 +56,8 @@ def compute_tracking_compartments(group_dy: np.ndarray, transition_map: np.ndarr
     ######################
     # New vaccine immune #
     ######################
-    for immune_status in IMMUNE_STATUS:
-        group_dy[TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewVaxImmune, immune_status]] += (
+    for immune_status, agg_immune_status in zip(IMMUNE_STATUS, AGG_IMMUNE_STATUS):
+        group_dy[TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewVaxImmune, agg_immune_status]] += (
             transition_map[:, COMPARTMENTS[BASE_COMPARTMENT.S, immune_status, VACCINATION_STATUS.vaccinated]].sum()
         )
 
@@ -63,7 +66,7 @@ def compute_tracking_compartments(group_dy: np.ndarray, transition_map: np.ndarr
         ##############################
         waned = transition_map[COMPARTMENTS[BASE_COMPARTMENT.S, immune_status, VACCINATION_STATUS.vaccinated],
                                CG_SUSCEPTIBLE[AGG_IMMUNE_STATUS.non_immune]].sum()
-        group_dy[TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.Waned, immune_status]] += waned
+        group_dy[TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.Waned, agg_immune_status]] += waned
         group_dy[TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.Waned, AGG_WANED.vaccine]] += waned
 
     if DEBUG:

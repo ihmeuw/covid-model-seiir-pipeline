@@ -23,21 +23,25 @@ from covid_model_seiir_pipeline.lib.ode_mk2.constants import (
 
 @numba.njit
 def allocate(
+    t: float,
     group_y: np.ndarray,
     group_vaccines: np.ndarray,
     force_of_infection: np.ndarray,
 ) -> np.ndarray:
     # Allocate our output space.
+    if t > 500: 
+        import pdb; pdb.set_trace()
     offset = min(VACCINE_TYPE)
     vaccines_out = np.zeros((group_y.size, max(VACCINE_TYPE) + 1))
-
-    available_vaccines = group_vaccines.sum()
+    
+    available_vaccines = group_vaccines.sum()    
     vaccine_eligible = group_y[CG_TOTAL[AGG_OTHER.total]].sum()
+    
 
     # Don't vaccinate if no vaccines to deliver or there is no-one to vaccinate.
     if available_vaccines == 0 or vaccine_eligible == 0:
         return vaccines_out
-
+    
     for protection_status in PROTECTION_STATUS:
         s_index = COMPARTMENTS[BASE_COMPARTMENT.S, protection_status, VACCINATION_STATUS.unvaccinated]
         s = group_y[s_index]
@@ -47,7 +51,7 @@ def allocate(
         expected_vaccinations_from_s = expected_vaccinations_from_s_by_type.sum()
         # Transmission takes precedence over vaccination
         total_vaccinations_from_s = min(s - new_e_from_s, expected_vaccinations_from_s)
-        assert total_vaccinations_from_s > 0
+        assert total_vaccinations_from_s >= 0
         vaccine_scale = math.safe_divide(total_vaccinations_from_s, expected_vaccinations_from_s)
         total_vaccinations_from_s_by_type = vaccine_scale * expected_vaccinations_from_s_by_type
 
@@ -68,7 +72,7 @@ def allocate(
         expected_vaccinations_from_r = expected_vaccinations_from_r_by_type.sum()
         # Waning takes precedence over vaccination
         total_vaccinations_from_r = min(r - waned_from_r, expected_vaccinations_from_r)
-        assert total_vaccinations_from_r > 0
+        assert total_vaccinations_from_r >= 0
         vaccine_scale = math.safe_divide(total_vaccinations_from_r, expected_vaccinations_from_r)
         total_vaccinations_from_r_by_type = vaccine_scale * expected_vaccinations_from_r_by_type
 
