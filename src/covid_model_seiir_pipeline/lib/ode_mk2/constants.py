@@ -313,6 +313,17 @@ AGG_WANED = _AggWaned(
     vaccine=AGG_INDEX_TYPE.vaccine,
 )
 AGG_WANED_NAMES = _AggWaned(*_AggWaned._fields)
+_AggImmuneStatus = namedtuple('AggImmuneStatus', [
+    'non_escape_immune', 
+    'escape_immune',     
+    'omega_immune',      
+])
+AGG_IMMUNE_STATUS = _AggImmuneStatus(
+    non_escape_immune=AGG_INDEX_TYPE.non_escape_immune,
+    escape_immune=AGG_INDEX_TYPE.escape_immune,
+    omega_immune=AGG_INDEX_TYPE.omega_immune,
+)
+AGG_IMMUNE_STATUS_NAMES = _AggImmuneStatus(*_AggImmuneStatus._fields)
 _AggVaccineType = namedtuple('AggVaccineType', [
     'unprotected',          
     'non_escape_protected', 
@@ -580,7 +591,9 @@ TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.Waned, AGG_VARIANT.gamma] = 94
 TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.Waned, AGG_VARIANT.delta] = 95
 TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.Waned, AGG_VARIANT.other] = 96
 TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.Waned, AGG_VARIANT.omega] = 97
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.Waned, AGG_INDEX_TYPE.agg_immune_status] = 98
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.Waned, AGG_IMMUNE_STATUS.non_escape_immune] = 98
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.Waned, AGG_IMMUNE_STATUS.escape_immune] = 99
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.Waned, AGG_IMMUNE_STATUS.omega_immune] = 100
 TRACKING_COMPARTMENTS_NAMES = [
     'NewE_unvaccinated',
     'NewE_vaccinated',
@@ -617,7 +630,9 @@ TRACKING_COMPARTMENTS_NAMES = [
     'Waned_delta',
     'Waned_other',
     'Waned_omega',
-    'Waned_agg_immune_status',
+    'Waned_non_escape_immune',
+    'Waned_escape_immune',
+    'Waned_omega_immune',
 ]
 
 AGGREGATES = np.full((len(COMPARTMENT_TYPE), len(AGG_INDEX_TYPE)), -1, dtype=np.int64)

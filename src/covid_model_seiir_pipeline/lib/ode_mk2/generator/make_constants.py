@@ -184,6 +184,11 @@ DERIVED_TYPES = {
         'natural',
         'vaccine',
     ]),
+    'agg_immune_status': ('agg_index_type', [
+        'non_escape_immune',
+        'escape_immune',
+        'omega_immune',
+    ]),
     'agg_vaccine_type': ('agg_index_type', [
         'unprotected',
         'non_escape_protected',
