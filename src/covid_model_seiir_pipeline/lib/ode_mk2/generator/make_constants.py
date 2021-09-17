@@ -87,9 +87,10 @@ PRIMITIVE_TYPES = {
         'vaccinated',
         'newly_vaccinated',
 
-        'non_immune',
         'natural',
         'vaccine',
+
+        'non_immune',
         'vaccine_eligible',
     ]
 }
@@ -370,6 +371,7 @@ def make_derived_types() -> str:
         out += utils.make_name_map(derived_group_name)
     return out
 
+
 def unpack_spec_fields(spec: Spec) -> Tuple[List[str], List[str]]:
     field_keys = []
     field_names = []
@@ -491,21 +493,21 @@ def make_compartment_groups() -> str:
     for compartment_key in compartment_keys:
         out += f"{TAB}COMPARTMENTS{compartment_key},\n"
     out += "], dtype=np.int64)\n"
+
     out += f"CG_TOTAL[AGG_OTHER.unvaccinated] = np.array([\n"
     for compartment_key in compartment_keys:
-        out += f"{TAB}COMPARTMENTS{compartment_key},\n"
         if 'VACCINATION_STATUS.unvaccinated' in compartment_key:
             out += f"{TAB}COMPARTMENTS{compartment_key},\n"
     out += "], dtype=np.int64)\n"
+
     out += f"CG_TOTAL[AGG_OTHER.vaccinated] = np.array([\n"
     for compartment_key in compartment_keys:
-        out += f"{TAB}COMPARTMENTS{compartment_key},\n"
         if 'VACCINATION_STATUS.vaccinated' in compartment_key:
             out += f"{TAB}COMPARTMENTS{compartment_key},\n"
     out += "], dtype=np.int64)\n"
+
     out += f"CG_TOTAL[AGG_OTHER.vaccine_eligible] = np.array([\n"
     for compartment_key in compartment_keys:
-        out += f"{TAB}COMPARTMENTS{compartment_key},\n"
         if ('VACCINATION_STATUS.unvaccinated' in compartment_key
                 and 'COMPARTMENTS.E' not in compartment_key
                 and 'COMPARTMENTS.I' not in compartment_key):
