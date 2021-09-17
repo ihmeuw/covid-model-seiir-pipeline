@@ -519,8 +519,8 @@ def make_compartment_groups() -> str:
     out += f"CG_TOTAL[AGG_OTHER.vaccine_eligible] = np.array([\n"
     for compartment_key in compartment_keys:
         if ('VACCINATION_STATUS.unvaccinated' in compartment_key
-                and 'COMPARTMENTS.E' not in compartment_key
-                and 'COMPARTMENTS.I' not in compartment_key):
+                and 'COMPARTMENT_TYPE.E' not in compartment_key
+                and 'COMPARTMENT_TYPE.I' not in compartment_key):
             out += f"{TAB}COMPARTMENTS{compartment_key},\n"
     out += "], dtype=np.int64)\n"
 
