@@ -684,6 +684,10 @@ MISCELLANEOUS = {
         loaders.load_raw_census_data,
         'hospital_census_data',
     ),
+    'hospital_bed_capacity': MiscellaneousConfig(
+        loaders.load_hospital_bed_capacity,
+        'hospital_bed_capacity',
+    ),
     'vaccine_efficacy_table': MiscellaneousConfig(
         loaders.load_vaccine_efficacy_table,
         'vaccine_efficacy_table',

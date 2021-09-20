@@ -235,6 +235,12 @@ class RegressionDataInterface:
             corrections_data[measure] = df.set_index(['location_id', 'date']).value
         return HospitalCensusData(**corrections_data)
 
+    def load_hospital_bed_capacity(self) -> pd.DataFrame:
+        metadata = self.get_model_inputs_metadata()
+        model_inputs_path = Path(metadata['output_path'])
+        path = model_inputs_path / 'hospital_capacity.csv'
+        return pd.read_csv(path)
+
     ##########################
     # Infection data loaders #
     ##########################

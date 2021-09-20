@@ -245,6 +245,9 @@ class PostprocessingDataInterface:
     def load_excess_mortality_scalars(self):
         return self._get_forecast_data_inteface().load_em_scalars()
 
+    def load_hospital_bed_capacity(self):
+        return self._get_forecast_data_inteface().load_hospital_bed_capacity()
+
     def load_hospital_census_data(self):
         return self._get_forecast_data_inteface().load_hospital_census_data().to_df()
 
