@@ -203,6 +203,12 @@ MEASURES = {
         aggregator=aggregators.sum_aggregator,
         splice=False,
     ),
+    'infections_modeled': MeasureConfig(
+        loaders.load_output_data('modeled_infections_total'),
+        'daily_infections_modeled',
+        splice=False,
+        aggregator=aggregators.sum_aggregator,
+    ),
     'cases': MeasureConfig(
         loaders.load_output_data('cases'),
         'daily_cases',
@@ -557,7 +563,7 @@ COMPOSITE_MEASURES = {
         combiner=combiners.make_ifr,
     ),
     'infection_fatality_ratio_modeled': CompositeMeasureConfig(
-        base_measures={'infections': MEASURES['infections'],
+        base_measures={'infections': MEASURES['infections_modeled'],
                        'deaths': MEASURES['deaths_modeled']},
         label='infection_fatality_ratio_modeled',
         combiner=combiners.make_ifr,
@@ -589,7 +595,7 @@ COMPOSITE_MEASURES = {
     ),
     'empirical_escape_variant_prevalence': CompositeMeasureConfig(
         base_measures={'escape_variant_infections': MEASURES['infections_variant'],
-                       'total_infections': MEASURES['infections']},
+                       'total_infections': MEASURES['infections_modeled']},
         label='empirical_escape_variant_prevalence',
         combiner=combiners.make_empirical_escape_variant_prevalence,
     ),
