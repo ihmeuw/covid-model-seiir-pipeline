@@ -671,6 +671,11 @@ MISCELLANEOUS = {
         aggregator=aggregators.sum_aggregator,
         soft_fail=True,
     ),
+    'variant_prevalence': MiscellaneousConfig(
+        loaders.load_variant_prevalence,
+        'variant_prevalence',
+        aggregator=aggregators.mean_aggregator,
+    ),
     'excess_mortality_scalars': MiscellaneousConfig(
         loaders.load_excess_mortality_scalars,
         'excess_mortality_scalars',

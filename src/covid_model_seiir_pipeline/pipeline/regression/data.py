@@ -444,14 +444,30 @@ class RegressionDataInterface:
         mandate_effects = self.load_mobility_info(f'effect', covariate_root)
         return percent_mandates, mandate_effects
 
-    def load_variant_prevalence(self, variant_scenario: str = 'reference',
-                                covariate_root: io.CovariateRoot = None) -> pd.DataFrame:
+    def load_raw_variant_prevalence(self, variant_scenario: str = 'reference',
+                                    covariate_root: io.CovariateRoot = None) -> pd.DataFrame:
         covariate_root = covariate_root if covariate_root is not None else self.covariate_root
         data = io.load(covariate_root.variant_info(info_type=variant_scenario))
-        rho = (data['alpha'] / (data['alpha'] + data['ancestral'])).rename('rho').groupby('location_id').ffill().fillna(0.)
-        rho_variant = data[['beta', 'gamma', 'delta', 'other']].sum(axis=1).rename('rho_variant')
-        rho_total = (data['alpha'] + rho_variant).rename('rho_total')
-        rho_b1617 = (data['delta'] / rho_variant).rename('rho_b1617').groupby('location_id').ffill().fillna(0.)
+        return data
+
+    def load_variant_prevalence(self, variant_scenario: str = 'reference',
+                                covariate_root: io.CovariateRoot = None) -> pd.DataFrame:
+        data = self.load_raw_variant_prevalence(variant_scenario, covariate_root)
+        rho = ((data['alpha'] / (data['alpha'] + data['ancestral']))
+               .rename('rho')
+               .groupby('location_id')
+               .ffill()
+               .fillna(0.))
+        rho_variant = (data[['beta', 'gamma', 'delta', 'other']]
+                       .sum(axis=1)
+                       .rename('rho_variant'))
+        rho_total = ((data['alpha'] + rho_variant)
+                     .rename('rho_total'))
+        rho_b1617 = ((data['delta'] / rho_variant)
+                     .rename('rho_b1617')
+                     .groupby('location_id')
+                     .ffill()
+                     .fillna(0.))
         return pd.concat([rho, rho_variant, rho_b1617, rho_total], axis=1)
 
     #######################

@@ -139,6 +139,9 @@ class PostprocessingDataInterface:
     def load_vaccine_efficacy(self):
         return self._get_forecast_data_inteface().load_vaccine_efficacy()
 
+    def load_raw_variant_prevalence(self) -> pd.DataFrame:
+        return self._get_forecast_data_inteface().load_raw_variant_prevalence('reference')
+
     def load_ode_params(self, draw_id: int, scenario: str, columns=None):
         return io.load(self.forecast_root.ode_params(scenario=scenario, draw_id=draw_id, columns=columns))
 

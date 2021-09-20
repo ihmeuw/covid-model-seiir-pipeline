@@ -55,6 +55,10 @@ def load_vaccine_efficacy_table(data_interface: 'PostprocessingDataInterface'):
     return data_interface.load_vaccine_efficacy()
 
 
+def load_variant_prevalence(data_interface: 'PostprocessingDataInterface'):
+    return data_interface.load_raw_variant_prevalence()
+
+
 def load_ode_params(output_name: str):
     def inner(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
         return _load_ode_params(scenario, output_name, data_interface, num_cores)
