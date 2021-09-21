@@ -430,7 +430,7 @@ class RegressionDataInterface:
             info_df = info_df.loc[:, [measure]]
         if measure == 'vaccine_acceptance_point':
             info_df = info_df.groupby('location_id').max()
-        return self._format_covariate_data(info_df, location_ids)
+        return info_df.dropna()
 
     def load_vaccine_efficacy(self, covariate_root: io.CovariateRoot = None):
         covariate_root = covariate_root if covariate_root is not None else self.covariate_root

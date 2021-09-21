@@ -16,6 +16,7 @@ class MeasureConfig:
                  loader: Callable[[str, 'PostprocessingDataInterface', int], Any],
                  label: str,
                  splice: bool = True,
+                 resample: bool = True,
                  calculate_cumulative: bool = False,
                  cumulative_label: str = None,
                  aggregator: Callable = None,
@@ -23,6 +24,7 @@ class MeasureConfig:
         self.loader = loader
         self.label = label
         self.splice = splice
+        self.resample = resample
         self.calculate_cumulative = calculate_cumulative
         self.cumulative_label = cumulative_label
         self.aggregator = aggregator
@@ -267,43 +269,50 @@ MEASURES = {
         loaders.load_vaccine_summaries('cumulative_all_effective'),
         'cumulative_vaccinations_all_effective',
         aggregator=aggregators.sum_aggregator,
+        resample=False,
         splice=False,
     ),
     'cumulative_all_vaccinated': MeasureConfig(
         loaders.load_vaccine_summaries('cumulative_all_vaccinated'),
         'cumulative_vaccinations_all_vaccinated',
         aggregator=aggregators.sum_aggregator,
+        resample=False,
         splice=False,
     ),
     'cumulative_all_fully_vaccinated': MeasureConfig(
         loaders.load_vaccine_summaries('cumulative_all_fully_vaccinated'),
         'cumulative_vaccinations_all_fully_vaccinated',
         aggregator=aggregators.sum_aggregator,
-        splice=False
+        resample=False,
+        splice=False,
     ),
     'cumulative_lr_vaccinated': MeasureConfig(
         loaders.load_vaccine_summaries('lr_vaccinated'),
         'cumulative_vaccinations_lr',
         aggregator=aggregators.sum_aggregator,
-        splice=False
+        resample=False,
+        splice=False,
     ),
     'cumulative_hr_vaccinated': MeasureConfig(
         loaders.load_vaccine_summaries('hr_vaccinated'),
         'cumulative_vaccinations_hr',
         aggregator=aggregators.sum_aggregator,
-        splice=False
+        resample=False,
+        splice=False,
     ),
     'vaccine_acceptance': MeasureConfig(
         loaders.load_vaccine_summaries('vaccine_acceptance'),
         'vaccine_acceptance',
         aggregator=aggregators.mean_aggregator,
-        splice=False
+        resample=False,
+        splice=False,
     ),
     'vaccine_acceptance_point': MeasureConfig(
         loaders.load_vaccine_summaries('vaccine_acceptance_point'),
         'vaccine_acceptance_point',
         aggregator=aggregators.mean_aggregator,
-        splice=False
+        resample=False,
+        splice=False,
     ),
 
     'vaccines_immune_all': MeasureConfig(
