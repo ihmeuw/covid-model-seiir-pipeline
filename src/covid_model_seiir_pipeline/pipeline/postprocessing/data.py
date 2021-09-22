@@ -236,10 +236,14 @@ class PostprocessingDataInterface:
 
     def get_locations_modeled_and_missing(self):
         hierarchy = self.load_hierarchy()
-        modeled_locations = self._get_forecast_data_inteface().load_location_ids()
+        modeled_locations = set(self._get_forecast_data_inteface().load_location_ids())
+        spec = self.load_specification()
+        spliced_locations = set([location for splicing_spec in spec.splicing for location in splicing_spec.locations])
+        included_locations = list(modeled_locations | spliced_locations)
+
         most_detailed_locs = hierarchy.loc[hierarchy.most_detailed == 1, 'location_id'].unique().tolist()
-        missing_locations = list(set(most_detailed_locs).difference(modeled_locations))
-        locations_modeled_and_missing = {'modeled': modeled_locations, 'missing': missing_locations}
+        missing_locations = list(set(most_detailed_locs).difference(included_locations))
+        locations_modeled_and_missing = {'modeled': included_locations, 'missing': missing_locations}
         return locations_modeled_and_missing
 
     def load_excess_mortality_scalars(self):
