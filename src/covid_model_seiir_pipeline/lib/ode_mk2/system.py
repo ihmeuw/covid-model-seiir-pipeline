@@ -127,14 +127,14 @@ def _single_group_system(t: float,
             force_of_infection[variant],
             transition_map,
         )
-        transition_map = do_natural_immunity_waning(
-            t,
-            variant,
-            group_y,
-            waned[0],
-            r_total,
-            transition_map,
-        )
+#         transition_map = do_natural_immunity_waning(
+#             t,
+#             variant,
+#             group_y,
+#             waned[0],
+#             r_total,
+#             transition_map,
+#         )
 
 #     transition_map = do_vaccine_immunity_waning(
 #         group_y,
@@ -151,12 +151,17 @@ def _single_group_system(t: float,
         assert np.all(np.isfinite(group_dy))
         assert np.all(group_y + group_dy >= -1e-10)
         assert group_dy.sum() < 1e-5
+    
+    if group_dy[-1] > 0:
+        import pdb; pdb.set_trace()
 
     group_dy = accounting.compute_tracking_compartments(
         t, 
         group_dy,
         transition_map,
     )
+    if group_dy[-1] > 0:
+        import pdb; pdb.set_trace()
     
     #assert np.abs(group_dy[TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.Waned, AGG_WANED.natural]] - waned[0]) < 1e-5
 
