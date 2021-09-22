@@ -51,6 +51,7 @@ class RegressionData:
     output_format: str = field(default='csv')
     n_draws: int = field(default=100)
     run_counties: bool = field(init=False)
+    drop_locations: list = field(default_factory=list)
 
     def __post_init__(self):
         self.run_counties = self.location_set_version_id == 841
