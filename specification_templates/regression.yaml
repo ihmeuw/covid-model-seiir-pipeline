@@ -1,12 +1,13 @@
 data:
-  infection_version: '2021_09_08.09'
-  covariate_version: '2021_09_08.06'
+  infection_version: '2021_09_15.01'
+  covariate_version: '2021_09_14.01'
   coefficient_version: ''
   priors_version: '2021_05_31.01'
   location_set_version_id: 771
   output_root: ''
   output_format: 'parquet'
   n_draws: 100
+  drop_locations: []
 workflow:
   project: 'proj_covid_prod'
   queue: 'd.q'

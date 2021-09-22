@@ -94,8 +94,9 @@ def load_and_resample_measure(measure_config: model.MeasureConfig,
         logger.info(f'Concatenating {measure_config.label}.', context='concatenate')
         measure_data = pd.concat(measure_data, axis=1)
 
-    logger.info(f'Resampling {measure_config.label}.', context='resample')
-    measure_data = model.resample_draws(measure_data, data_interface.load_resampling_map())
+    if measure_config.resample:
+        logger.info(f'Resampling {measure_config.label}.', context='resample')
+        measure_data = model.resample_draws(measure_data, data_interface.load_resampling_map())
     return measure_data
 
 

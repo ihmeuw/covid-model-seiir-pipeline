@@ -110,30 +110,42 @@ class RegressionDataInterface:
         """
         regression_spec = self.load_specification()
         death_threshold = 10 if regression_spec.data.run_counties else 5
+
         draw_0_data = self.load_full_past_infection_data(draw_id=0)
         total_deaths = draw_0_data.groupby('location_id').deaths.sum()
-        modeled_locations = total_deaths[total_deaths > death_threshold].index.tolist()
-        modeled_locations = list(set(modeled_locations).difference([189]))
+
+        ies_locations = set(total_deaths.index.tolist())
+        threshold_locations = set(total_deaths[total_deaths > death_threshold].index.tolist())
+        drop_locations = set(regression_spec.data.drop_locations)
 
         if desired_location_hierarchy is None:
-            desired_locations = modeled_locations
+            desired_locations = threshold_locations
         else:
             most_detailed = desired_location_hierarchy.most_detailed == 1
-            desired_locations = desired_location_hierarchy.loc[most_detailed, 'location_id'].tolist()
+            desired_locations = set(desired_location_hierarchy.loc[most_detailed, 'location_id'].tolist())
 
-        ies_missing_locations = list(set(desired_locations).difference(total_deaths.index))
-        not_enough_deaths_locations = list(set(desired_locations)
-                                           .difference(modeled_locations)
-                                           .difference(ies_missing_locations))
+        # Ies locations may be larger than desired locations, but we
+        # do not care about the extras, only what's missing.
+        ies_missing_locations = list(desired_locations - ies_locations)
+        # Threshold locations is a subset of ies_locations
+        not_enough_deaths_locations = list(ies_locations - threshold_locations)
+        if drop_locations > threshold_locations:
+            raise ValueError(f'Attempting to drop locations {list(drop_locations - threshold_locations)} '
+                             f'which are not present in modeled locations that meet the epidemiological '
+                             f'threshold of {death_threshold} deaths.')
+
         if ies_missing_locations:
             logger.warning("Some locations present in location metadata are missing from the "
-                           f"infection models. Missing locations are {sorted(ies_missing_locations)}.")
+                           f"infection models. Missing locations are {sorted(list(ies_missing_locations))}.")
         if not_enough_deaths_locations:
             logger.warning("Some locations present in location metadata do not meet the epidemiological "
                            f"threshold of {death_threshold} total deaths required for modeling. "
-                           f" Locations below the threshold are {sorted(not_enough_deaths_locations)}.")
+                           f"Locations below the threshold are {sorted(list(not_enough_deaths_locations))}.")
+        if drop_locations:
+            logger.warning("Some locations present in the location metadata are being dropped. "
+                           f"Locations being dropped are {sorted(list(drop_locations))}.")
 
-        return list(set(desired_locations).intersection(modeled_locations))
+        return list((desired_locations & threshold_locations) - drop_locations)
 
     ######################
     # Population loaders #
@@ -237,6 +249,12 @@ class RegressionDataInterface:
             df = df.loc[~df.location_id.isin(census_exclude_locs)]
             corrections_data[measure] = df.set_index(['location_id', 'date']).value
         return HospitalCensusData(**corrections_data)
+
+    def load_hospital_bed_capacity(self) -> pd.DataFrame:
+        metadata = self.get_model_inputs_metadata()
+        model_inputs_path = Path(metadata['output_path'])
+        path = model_inputs_path / 'hospital_capacity.csv'
+        return pd.read_csv(path)
 
     ##########################
     # Infection data loaders #
@@ -426,7 +444,7 @@ class RegressionDataInterface:
             info_df = info_df.loc[:, [measure]]
         if measure == 'vaccine_acceptance_point':
             info_df = info_df.groupby('location_id').max()
-        return self._format_covariate_data(info_df, location_ids)
+        return info_df.dropna()
 
     def load_vaccine_efficacy(self, covariate_root: io.CovariateRoot = None):
         covariate_root = covariate_root if covariate_root is not None else self.covariate_root

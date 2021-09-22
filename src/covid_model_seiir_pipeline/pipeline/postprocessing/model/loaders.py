@@ -55,6 +55,10 @@ def load_vaccine_efficacy_table(data_interface: 'PostprocessingDataInterface'):
     return data_interface.load_vaccine_efficacy()
 
 
+def load_variant_prevalence(data_interface: 'PostprocessingDataInterface'):
+    return data_interface.load_raw_variant_prevalence()
+
+
 def load_ode_params(output_name: str):
     def inner(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
         return _load_ode_params(scenario, output_name, data_interface, num_cores)
@@ -130,6 +134,10 @@ def load_hospital_correction_factors(data_interface: 'PostprocessingDataInterfac
     return data_interface.load_hospital_correction_factors()
 
 
+def load_hospital_bed_capacity(data_interface: 'PostprocessingDataInterface'):
+    return data_interface.load_hospital_bed_capacity()
+
+
 def load_scaling_parameters(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
     _runner = functools.partial(
         data_interface.load_scaling_parameters,
@@ -182,7 +190,6 @@ def load_populations(data_interface: 'PostprocessingDataInterface'):
     idx_cols = ['location_id', 'sex_id', 'year_id', 
                 'age_group_id', 'age_group_years_start', 'age_group_years_end']
     return data_interface.load_population().set_index(idx_cols)
-    
 
 
 def load_hierarchy(data_interface: 'PostprocessingDataInterface'):

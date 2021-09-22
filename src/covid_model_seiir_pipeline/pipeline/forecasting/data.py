@@ -133,6 +133,11 @@ class ForecastDataInterface:
             mobility_scenario, self.covariate_root,
         )
 
+    def load_raw_variant_prevalence(self, variant_scenario: str) -> pd.DataFrame:
+        return self._get_regression_data_interface().load_raw_variant_prevalence(
+            variant_scenario, self.covariate_root,
+        )
+
     def load_variant_prevalence(self, variant_scenario: str) -> pd.DataFrame:
         return self._get_regression_data_interface().load_variant_prevalence(
             variant_scenario, self.covariate_root,
@@ -169,6 +174,9 @@ class ForecastDataInterface:
 
     def load_hospital_census_data(self) -> HospitalCensusData:
         return self._get_regression_data_interface().load_hospital_census_data()
+
+    def load_hospital_bed_capacity(self) -> pd.DataFrame:
+        return self._get_regression_data_interface().load_hospital_bed_capacity()
 
     def load_ifr(self, draw_id: int) -> pd.DataFrame:
         return self._get_regression_data_interface().load_ifr(draw_id=draw_id)

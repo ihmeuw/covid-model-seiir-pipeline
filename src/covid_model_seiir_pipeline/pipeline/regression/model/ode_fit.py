@@ -143,15 +143,20 @@ def run_ode_fit(start_dates: pd.Series,
 def run_ode_fit(ode_parameters: Parameters,
                 progress_bar: bool) -> Tuple[pd.DataFrame, pd.DataFrame]:
     fit_results = []
+    bad_locations = []
     ode_parameter_list = tqdm.tqdm(list(ode_parameters), disable=not progress_bar)
     for location_id, location_params in ode_parameter_list:
-        loc_fit_results = run_loc_ode_fit(
-            location_params
-        )
-        loc_fit_results['location_id'] = location_id
-        loc_fit_results = loc_fit_results.set_index(['location_id', 'date'])
+        try:
+            loc_fit_results = run_loc_ode_fit(location_params)
+            loc_fit_results['location_id'] = location_id
+            loc_fit_results = loc_fit_results.set_index(['location_id', 'date'])
+            fit_results.append(loc_fit_results)
+        except ValueError:
+            bad_locations.append(location_id)
+    if bad_locations:
+        raise ValueError(f'Locations {bad_locations} produced negative betas in the ODE fit. These locations likely '
+                         f'have more than 100% cumulative infected individuals and need to be dropped.')
 
-        fit_results.append(loc_fit_results)
     fit_results = pd.concat(fit_results).sort_index()
     return fit_results[['beta', 'beta_wild', 'beta_variant']], fit_results[[c for c in fit_results if 'beta' not in c]]
 
