@@ -36,7 +36,8 @@ def compute_tracking_compartments(t: float, group_dy: np.ndarray, transition_map
             ##################
             # New Infections #
             ##################
-            new_e = transition_map[:, COMPARTMENTS[BASE_COMPARTMENT.E, variant, vaccination_status]].sum()
+            new_e = transition_map[CG_SUSCEPTIBLE[AGG_OTHER.total], 
+                                   COMPARTMENTS[BASE_COMPARTMENT.E, variant, vaccination_status]].sum()
             group_dy[TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewE, agg_vaccination_status]] += new_e
             group_dy[TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewE, variant]] += new_e
             group_dy[TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewE, VARIANT_GROUP.total]] += new_e

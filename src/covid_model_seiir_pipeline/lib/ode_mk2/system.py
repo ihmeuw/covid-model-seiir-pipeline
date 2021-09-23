@@ -19,6 +19,8 @@ from covid_model_seiir_pipeline.lib.ode_mk2.constants import (
     VACCINATION_STATUS,
     REMOVED_VACCINATION_STATUS,
     AGG_WANED,
+    AGG_OTHER,
+    CG_EXPOSED,
     # Indexing arrays
     COMPARTMENTS,
     TRACKING_COMPARTMENTS,
@@ -113,7 +115,6 @@ def _single_group_system(t: float,
         vaccines_out,
         transition_map,
     )
-    
 
     r_total = aggregates[AGGREGATES[BASE_COMPARTMENT.R, VARIANT]].sum()
     sigma = params[PARAMETERS[BASE_PARAMETER.sigma, VARIANT_GROUP.all]]
@@ -143,6 +144,9 @@ def _single_group_system(t: float,
 #         waned[1],
 #         transition_map,
 #     )
+#    if transition_map[:, CG_EXPOSED[AGG_OTHER.total]].sum() > aggregates[AGGREGATES[BASE_COMPARTMENT.S]].sum():
+    if t > 400:
+        import pdb; pdb.set_trace()
 
     inflow = transition_map.sum(axis=0)
     outflow = transition_map.sum(axis=1)
