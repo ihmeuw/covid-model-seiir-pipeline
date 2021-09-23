@@ -38,7 +38,9 @@ def build_model_parameters(indices: Indices,
                            coefficients: pd.DataFrame,
                            rhos: pd.DataFrame,
                            beta_scales: pd.DataFrame,
-                           vaccine_data: pd.DataFrame) -> ode.ForecastParameters:
+                           vaccine_data: pd.DataFrame,
+                           log_beta_shift: Tuple[float, pd.Timestamp],
+                           beta_scale: Tuple[float, pd.Timestamp]) -> ode.ForecastParameters:
     # These are all the same by draw.  Just broadcasting them over a new index.
     ode_params = {
         param: pd.Series(ode_parameters[param].mean(), index=indices.full, name=param)
@@ -55,6 +57,8 @@ def build_model_parameters(indices: Indices,
         ode_parameters['kappa'].mean(),
         ode_parameters['phi'].mean(),
         ode_parameters['psi'].mean(),
+        log_beta_shift, 
+        beta_scale,
     )
 
     vaccine_data = vaccine_data.reindex(indices.full, fill_value=0)
@@ -82,17 +86,22 @@ def get_betas_and_prevalences(indices: Indices,
                               rhos: pd.DataFrame,
                               kappa: float,
                               phi: float,
-                              psi: float) -> Tuple[pd.Series, pd.Series, pd.Series, pd.Series,
-                                                   pd.Series, pd.Series, pd.Series, pd.Series]:
+                              psi: float,
+                              log_beta_shift: Tuple[float, pd.Timestamp],
+                              beta_scale: Tuple[float, pd.Timestamp]) -> Tuple[pd.Series, pd.Series, pd.Series, pd.Series,
+                                                                               pd.Series, pd.Series, pd.Series, pd.Series]:
     rhos = rhos.reindex(indices.full).fillna(method='ffill')
 
     log_beta_hat = math.compute_beta_hat(covariates, coefficients)
+    log_beta_hat.loc[pd.IndexSlice[:, log_beta_shift[1]:]] += log_beta_shift[0]
     beta_hat = np.exp(log_beta_hat).loc[indices.future].rename('beta_hat').reset_index()
+
     beta = (beta_shift(beta_hat, beta_shift_parameters)
             .set_index(['location_id', 'date'])
             .beta_hat
             .rename('beta'))
-    beta = beta_regression.loc[indices.past, 'beta'].append(beta)
+    beta = beta_regression.loc[indices.past, 'beta'].append(beta).sort_index()
+    beta.loc[pd.IndexSlice[:, beta_scale[1]:]] *= beta_scale[0]
     beta_wild = beta * (1 + kappa * rhos.rho)
     beta_variant = beta * (1 + kappa * (phi * (1 - rhos.rho_b1617) + rhos.rho_b1617 * psi))
 

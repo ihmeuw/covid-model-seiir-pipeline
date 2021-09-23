@@ -119,7 +119,7 @@ class RegressionDataInterface:
             desired_locations = threshold_locations
         else:
             most_detailed = desired_location_hierarchy.most_detailed == 1
-            desired_locations = desired_location_hierarchy.loc[most_detailed, 'location_id'].tolist()
+            desired_locations = set(desired_location_hierarchy.loc[most_detailed, 'location_id'].tolist())
 
         # Ies locations may be larger than desired locations, but we
         # do not care about the extras, only what's missing.

@@ -60,6 +60,10 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
     vaccinations = data_interface.load_vaccinations(scenario_spec.vaccine_version)
     # Variant prevalences.
     rhos = data_interface.load_variant_prevalence(scenario_spec.variant_version)
+    log_beta_shift = (scenario_spec.log_beta_shift,
+                      pd.Timestamp(scenario_spec.log_beta_shift_date))
+    beta_scale = (scenario_spec.beta_scale,
+                  pd.Timestamp(scenario_spec.beta_scale_date))
 
     # Collate all the parameters, ensure consistent index, etc.
     logger.info('Processing inputs into model parameters.', context='transform')
@@ -73,6 +77,8 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
         rhos,
         beta_scales,
         vaccinations,
+        log_beta_shift,
+        beta_scale,
     )
 
     # Pull in compartments from the fit and subset out the initial condition.
@@ -171,6 +177,8 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
                 rhos,
                 beta_scales,
                 vaccinations,
+                log_beta_shift,
+                beta_scale,
             )
 
             # The ode is done as a loop over the locations in the initial condition.
