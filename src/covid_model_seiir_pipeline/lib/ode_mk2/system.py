@@ -114,8 +114,6 @@ def _single_group_system(t: float,
         transition_map,
     )
     
-    if transition_map[:, -1].sum() > 0:
-        import pdb; pdb.set_trace()
 
     r_total = aggregates[AGGREGATES[BASE_COMPARTMENT.R, VARIANT]].sum()
     sigma = params[PARAMETERS[BASE_PARAMETER.sigma, VARIANT_GROUP.all]]
@@ -130,9 +128,6 @@ def _single_group_system(t: float,
             force_of_infection[variant],
             transition_map,
         )
-        
-        if transition_map[:, -1].sum() > 0:
-            import pdb; pdb.set_trace()
 #         transition_map = do_natural_immunity_waning(
 #             t,
 #             variant,
@@ -157,17 +152,13 @@ def _single_group_system(t: float,
         assert np.all(np.isfinite(group_dy))
         assert np.all(group_y + group_dy >= -1e-10)
         assert group_dy.sum() < 1e-5
-    
-    if group_dy[-1] > 0:
-        import pdb; pdb.set_trace()
+       
 
     group_dy = accounting.compute_tracking_compartments(
         t, 
         group_dy,
         transition_map,
     )
-    if group_dy[-1] > 0:
-        import pdb; pdb.set_trace()
     
     #assert np.abs(group_dy[TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.Waned, AGG_WANED.natural]] - waned[0]) < 1e-5
 
@@ -184,14 +175,14 @@ def do_vaccination(
         for current_status in PROTECTION_STATUS:
             from_compartment = COMPARTMENTS[BASE_COMPARTMENT.S, current_status, VACCINATION_STATUS.unvaccinated]
             to_compartment = COMPARTMENTS[BASE_COMPARTMENT.S, vaccine_type, VACCINATION_STATUS.vaccinated]
-            transition_map[from_compartment, to_compartment] += vaccines_out[from_compartment, vaccine_type]
+            transition_map[from_compartment, to_compartment] += vaccines_out[from_compartment, vaccine_type]            
         for variant in VARIANT:
             from_compartment = COMPARTMENTS[BASE_COMPARTMENT.R, variant, REMOVED_VACCINATION_STATUS.unvaccinated]
             if vaccine_type == VACCINE_TYPE.unprotected:
                 to_compartment = COMPARTMENTS[BASE_COMPARTMENT.R, variant, REMOVED_VACCINATION_STATUS.newly_vaccinated]
             else:
-                to_compartment = COMPARTMENTS[BASE_COMPARTMENT, vaccine_type, VACCINATION_STATUS.vaccinated]
-            transition_map[from_compartment, to_compartment] += vaccines_out[from_compartment, vaccine_type]
+                to_compartment = COMPARTMENTS[BASE_COMPARTMENT.S, vaccine_type, VACCINATION_STATUS.vaccinated]
+            transition_map[from_compartment, to_compartment] += vaccines_out[from_compartment, vaccine_type]            
     return transition_map
 
 
