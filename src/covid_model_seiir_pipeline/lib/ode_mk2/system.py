@@ -113,6 +113,9 @@ def _single_group_system(t: float,
         vaccines_out,
         transition_map,
     )
+    
+    if transition_map[:, -1].sum() > 0:
+        import pdb; pdb.set_trace()
 
     r_total = aggregates[AGGREGATES[BASE_COMPARTMENT.R, VARIANT]].sum()
     sigma = params[PARAMETERS[BASE_PARAMETER.sigma, VARIANT_GROUP.all]]
@@ -127,6 +130,9 @@ def _single_group_system(t: float,
             force_of_infection[variant],
             transition_map,
         )
+        
+        if transition_map[:, -1].sum() > 0:
+            import pdb; pdb.set_trace()
 #         transition_map = do_natural_immunity_waning(
 #             t,
 #             variant,
