@@ -84,6 +84,12 @@ def normalize_parameters(input_parameters: np.ndarray,
         for variant in VARIANT:
             susceptible = aggregates[AGGREGATES[BASE_COMPARTMENT.S, variant]]
             force_of_infection[variant] = math.safe_divide(new_e[variant], susceptible)
+            
+    new_e_input = input_parameters[PARAMETERS[BASE_PARAMETER.new_e, VARIANT_GROUP.all]]
+    new_e_foi = (aggregates[AGGREGATES[BASE_COMPARTMENT.S, VARIANT]] * force_of_infection[2:]).sum()
+    
+    if abs(new_e_input - new_e_foi) > 1e-5:
+        import pdb; pdb.set_trace()
 
     if DEBUG:
         assert np.all(np.isfinite(params))

@@ -21,6 +21,7 @@ from covid_model_seiir_pipeline.lib.ode_mk2.constants import (
     AGG_WANED,
     AGG_OTHER,
     CG_EXPOSED,
+    CG_SUSCEPTIBLE,
     # Indexing arrays
     COMPARTMENTS,
     TRACKING_COMPARTMENTS,
@@ -129,24 +130,23 @@ def _single_group_system(t: float,
             force_of_infection[variant],
             transition_map,
         )
-#         transition_map = do_natural_immunity_waning(
-#             t,
-#             variant,
-#             group_y,
-#             waned[0],
-#             r_total,
-#             transition_map,
-#         )
+        transition_map = do_natural_immunity_waning(
+            t,
+            variant,
+            group_y,
+            waned[0],
+            r_total,
+            transition_map,
+        )
 
-#     transition_map = do_vaccine_immunity_waning(
-#         group_y,
-#         waned[1],
-#         waned[1],
-#         transition_map,
-#     )
-#    if transition_map[:, CG_EXPOSED[AGG_OTHER.total]].sum() > aggregates[AGGREGATES[BASE_COMPARTMENT.S]].sum():
-    if t > 400:
-        import pdb; pdb.set_trace()
+    immune_total = group_y[CG_SUSCEPTIBLE[AGG_OTHER.total]].sum() - group_y[CG_SUSCEPTIBLE[AGG_OTHER.non_immune]].sum()
+    transition_map = do_vaccine_immunity_waning(
+        t,
+        group_y,
+        waned[1],
+        immune_total,
+        transition_map,
+    )
 
     inflow = transition_map.sum(axis=0)
     outflow = transition_map.sum(axis=1)
@@ -154,7 +154,7 @@ def _single_group_system(t: float,
 
     if DEBUG:
         assert np.all(np.isfinite(group_dy))
-        assert np.all(group_y + group_dy >= -1e-10)
+        #assert np.all(group_y + group_dy >= -1e-7)
         assert group_dy.sum() < 1e-5
        
 
@@ -163,8 +163,7 @@ def _single_group_system(t: float,
         group_dy,
         transition_map,
     )
-    
-    #assert np.abs(group_dy[TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.Waned, AGG_WANED.natural]] - waned[0]) < 1e-5
+
 
     return group_dy
 
@@ -199,7 +198,7 @@ def do_transmission(
     gamma: float,
     force_of_infection: float,
     transition_map: np.ndarray,
-) -> np.ndarray:    
+) -> np.ndarray:        
     for vaccination_status in VACCINATION_STATUS:
         e_idx = COMPARTMENTS[BASE_COMPARTMENT.E, variant, vaccination_status]
         i_idx = COMPARTMENTS[BASE_COMPARTMENT.I, variant, vaccination_status]
@@ -207,7 +206,8 @@ def do_transmission(
 
         for susceptible_type in SUSCEPTIBLE_TYPE:
             s_idx = COMPARTMENTS[BASE_COMPARTMENT.S, susceptible_type, vaccination_status]
-            transition_map[s_idx, e_idx] = group_y[s_idx] * force_of_infection
+            if s_idx in CG_SUSCEPTIBLE[variant]:
+                transition_map[s_idx, e_idx] = group_y[s_idx] * force_of_infection
 
         transition_map[e_idx, i_idx] = sigma * group_y[e_idx]
         transition_map[i_idx, r_idx] = gamma * group_y[i_idx]
@@ -224,11 +224,12 @@ def do_natural_immunity_waning(
     transition_map: np.ndarray,
 ) -> np.ndarray:
 
+    total_waned = 0.
     for vaccination_status in REMOVED_VACCINATION_STATUS:
         from_index = COMPARTMENTS[BASE_COMPARTMENT.R, variant, vaccination_status]
         waned = math.safe_divide(group_y[from_index], r_total) * natural_immunity_waned
         waned = min(waned, group_y[from_index])
-            
+        total_waned += waned
 
         # TODO: make a parameter
         protection_fraction = 1 / len(PROTECTION_STATUS)
@@ -236,7 +237,7 @@ def do_natural_immunity_waning(
         for protection_status in PROTECTION_STATUS:
             s_vaccination_status = min(VACCINATION_STATUS.vaccinated, vaccination_status)
             s_idx = COMPARTMENTS[BASE_COMPARTMENT.S, protection_status, s_vaccination_status]
-            transition_map[from_index, s_idx] = protection_fraction * waned
+            transition_map[from_index, s_idx] = protection_fraction * waned            
 
     return transition_map
 

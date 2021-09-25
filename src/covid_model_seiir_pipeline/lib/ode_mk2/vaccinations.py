@@ -78,7 +78,7 @@ def allocate(
 
         # Non-immunizing vaccines all have the same impact (move to newly vaccinated).
         for v_index in VACCINE_TYPE:
-            to_v_index = VACCINE_TYPE.unprotected if v_index < VACCINE_TYPE.non_escape_immune else v_index
+            to_v_index = VACCINE_TYPE.unprotected if v_index < VACCINE_TYPE.omega_immune else v_index
             vaccines_out[r_index, to_v_index] += total_vaccinations_from_r_by_type[v_index - offset]
 
     if DEBUG:
