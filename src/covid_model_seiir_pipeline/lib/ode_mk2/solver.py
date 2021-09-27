@@ -208,7 +208,7 @@ def _rk45_dde(system,
     system_size = TRACKING_COMPARTMENTS.max() + 1
 
     for time in np.arange(num_time_points):
-        for location in np.arange(num_locs):
+        for location in np.array([230]):
             # If we're not past t0, don't do anything yet.
             if t_solve[time, location] < t0[location]:
                 continue
