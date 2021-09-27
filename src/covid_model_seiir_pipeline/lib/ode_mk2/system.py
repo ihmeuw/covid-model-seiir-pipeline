@@ -175,10 +175,12 @@ def do_vaccination(
     transition_map: np.ndarray,
 ) -> np.ndarray:    
     for vaccine_type in VACCINE_TYPE:
+
         for current_status in PROTECTION_STATUS:
             from_compartment = COMPARTMENTS[BASE_COMPARTMENT.S, current_status, VACCINATION_STATUS.unvaccinated]
             to_compartment = COMPARTMENTS[BASE_COMPARTMENT.S, vaccine_type, VACCINATION_STATUS.vaccinated]
             transition_map[from_compartment, to_compartment] += vaccines_out[from_compartment, vaccine_type]            
+
         for variant in VARIANT:
             from_compartment = COMPARTMENTS[BASE_COMPARTMENT.R, variant, REMOVED_VACCINATION_STATUS.unvaccinated]
             if vaccine_type == VACCINE_TYPE.unprotected:

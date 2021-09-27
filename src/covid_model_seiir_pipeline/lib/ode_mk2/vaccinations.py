@@ -29,14 +29,11 @@ def allocate(
     force_of_infection: np.ndarray,
 ) -> np.ndarray:
     # Allocate our output space.
-#     if t > 500: 
-#         import pdb; pdb.set_trace()
     offset = min(VACCINE_TYPE)
     vaccines_out = np.zeros((group_y.size, max(VACCINE_TYPE) + 1))
     
     available_vaccines = group_vaccines.sum()    
     vaccine_eligible = group_y[CG_TOTAL[AGG_OTHER.vaccine_eligible]].sum()
-    
 
     # Don't vaccinate if no vaccines to deliver or there is no-one to vaccinate.
     if available_vaccines == 0 or vaccine_eligible == 0:
