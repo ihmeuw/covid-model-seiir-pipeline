@@ -79,7 +79,7 @@ def normalize_parameters(input_parameters: np.ndarray,
 
             variant_weight = kappa * susceptible * infectious**alpha
             new_e[variant] = new_e_total * variant_weight
-            total_weight += variant_weight
+            total_weight += variant_weight            
         new_e /= total_weight        
         for variant in VARIANT:
             susceptible = aggregates[AGGREGATES[BASE_COMPARTMENT.S, variant]]

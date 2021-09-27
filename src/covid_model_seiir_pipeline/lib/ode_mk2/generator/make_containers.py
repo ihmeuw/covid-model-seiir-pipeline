@@ -30,9 +30,7 @@ def make_imports() -> str:
 def make_fields(group_spec: Spec, prefix: str = '', suffix: str = '') -> str:
     out = ""
     _, field_names = unpack_spec_fields(group_spec)
-    for field_name in field_names:
-        if field_name[-4:] == '_all':
-            field_name = field_name[:-4]
+    for field_name in field_names:        
         out += f"{TAB}{prefix}{field_name}{suffix}: pd.Series\n"
     return out
 

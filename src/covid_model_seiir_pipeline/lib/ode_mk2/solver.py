@@ -11,6 +11,7 @@ from covid_model_seiir_pipeline.lib.ode_mk2.constants import (
     COMPARTMENTS_NAMES,
     PARAMETERS_NAMES,
     TRACKING_COMPARTMENTS,
+    TRACKING_COMPARTMENTS_NAMES,
     TRACKING_COMPARTMENT,
     VARIANT_GROUP,
 )
@@ -31,7 +32,8 @@ def run_ode_model(initial_condition: pd.DataFrame,
                   forecast: bool,
                   dt: float = SOLVER_DT):
     # Ensure data frame column labeling is consistent with expected index ordering.
-    initial_condition, parameter_df = _sort_columns(initial_condition, ode_parameters.to_df())
+    initial_condition = _sort_columns(initial_condition)
+    parameter_df = ode_parameters.to_df()
     # Convert into numpy arrays with meaningful dimensions that will work under an optimizer.
     # Dimensions are
     #
@@ -75,17 +77,14 @@ def run_ode_model(initial_condition: pd.DataFrame,
     return compartments
 
 
-def _sort_columns(initial_condition: pd.DataFrame,
-                  parameter_df: pd.DataFrame) -> Tuple[pd.DataFrame, pd.DataFrame]:
+def _sort_columns(initial_condition: pd.DataFrame) -> pd.DataFrame:    
     initial_condition_columns = [f'{compartment}_{risk_group}'
-                                 for compartment, risk_group in itertools.product(COMPARTMENTS_NAMES, RISK_GROUP_NAMES)]
+                                 for compartment, risk_group 
+                                 in itertools.product(COMPARTMENTS_NAMES + TRACKING_COMPARTMENTS_NAMES, RISK_GROUP_NAMES)]
     assert set(initial_condition_columns) == set(initial_condition.columns)
-    initial_condition = initial_condition.loc[:, initial_condition_columns]
+    initial_condition = initial_condition.loc[:, initial_condition_columns]    
 
-    assert set(PARAMETERS_NAMES) == set(parameter_df.columns)
-    parameter_df = parameter_df.loc[:, PARAMETERS_NAMES]
-
-    return initial_condition, parameter_df
+    return initial_condition
 
 
 def _to_numpy(initial_condition: pd.DataFrame,
@@ -134,7 +133,7 @@ def _get_invasion_and_ode_start_dates_by_location(initial_condition: pd.DataFram
     invasion_date = dates.groupby('location_id').min()
     ode_start_date = dates.groupby('location_id').max()
 
-    location_ids = initial_condition.reset_index().location_id.unique().values
+    location_ids = initial_condition.reset_index().location_id.unique()
     assert set(location_ids) == set(invasion_date.index)
     assert set(location_ids) == set(ode_start_date.index)
     return invasion_date, ode_start_date
@@ -210,11 +209,11 @@ def _rk45_dde(system,
     for time in np.arange(num_time_points):
         for location in np.array([230]):
             # If we're not past t0, don't do anything yet.
-            if t_solve[time, location] < t0[location]:
+            if t_solve[time, location] <= t0[location]:
                 continue
 
-            if not time % 100:
-                print("Percent complete: ", 100 * time / num_time_points, "%")
+            if not time % 500:
+                print("Percent complete: ", np.round(100 * time / num_time_points, 2), "%")
 
             waned = _compute_waned_this_step(
                 y_solve[:time, location],
@@ -279,6 +278,7 @@ def _uninterpolate(y_solve: np.ndarray,
     num_dates, num_locs = t.shape
     num_compartments = y_solve.shape[2]
     y_final = np.zeros((num_dates, num_locs, num_compartments))
+    import pdb; pdb.set_trace()
     for location in np.arange(num_locs):
         for compartment in np.arange(num_compartments):
             y_final[:, location, compartment] = np.interp(
