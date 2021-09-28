@@ -77,25 +77,19 @@ def sample_params(past_index: pd.Index,
 
 
 def clean_infection_data_measure(infection_data: pd.DataFrame, measure: str) -> pd.Series:
-    """Extracts measure, drops nulls, adds a leading zero.
-
-    Infections and deaths have a non-overlapping past index due to the way
-    the infections ES is built. This function, pulls out a measure, drops
-    nulls from the non-overlaping region, and then pads the front of the
-    series with a 0 so that the resulting series has the property:
-
-        s == s.groupby('location_id').cumsum().groupby('location_id').diff().fillna(0)
-
-    which is to say we can preserve the counts under conversions between daily
-    and cumulative space.
-
-    """
-    data = infection_data[measure].dropna()
-    min_date = data.reset_index().groupby('location_id').date.min()
-    prepend_date = min_date - pd.Timedelta(days=1)
-    prepend_idx = prepend_date.reset_index().set_index(['location_id', 'date']).index
+    data = infection_data[measure]    
+    prepend_date_min = data.reset_index().groupby('location_id').date.min() - pd.Timedelta(days=1)
+    prepend_date_max = data.dropna().reset_index().groupby('location_id').date.min() - pd.Timedelta(days=1)
+    prepend_dates = pd.concat([prepend_date_min.rename('date_min'), prepend_date_max.rename('date_max')], axis=1)
+    prepend_index = []
+    for location_id, dates in prepend_dates.iterrows():
+        prepend_index.append(pd.DataFrame({
+            'location_id': location_id,
+            'date': pd.date_range(dates.date_min, dates.date_max),
+        }))
+    prepend_idx = pd.concat(prepend_index).set_index(['location_id', 'date']).index
     prepend = pd.Series(0., index=prepend_idx, name=measure)
-    return data.append(prepend).sort_index()
+    return data.dropna().append(prepend).sort_index()
 
 
 def run_ode_fit(ode_parameters: ode.FitParameters,
