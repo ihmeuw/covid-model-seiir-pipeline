@@ -221,6 +221,13 @@ def load_ifr_low_risk_es(scenario: str, data_interface: 'PostprocessingDataInter
     return outputs
 
 
+def load_infection_to_death(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
+    draws = range(data_interface.get_n_draws())
+    with multiprocessing.Pool(num_cores) as pool:
+        outputs = pool.map(data_interface.load_infection_to_death, draws)
+    return outputs
+
+
 def load_ihr_es(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
     draws = range(data_interface.get_n_draws())
     with multiprocessing.Pool(num_cores) as pool:
@@ -228,10 +235,24 @@ def load_ihr_es(scenario: str, data_interface: 'PostprocessingDataInterface', nu
     return outputs
 
 
+def load_infection_to_admission(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
+    draws = range(data_interface.get_n_draws())
+    with multiprocessing.Pool(num_cores) as pool:
+        outputs = pool.map(data_interface.load_infection_to_admission, draws)
+    return outputs
+
+
 def load_idr_es(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
     draws = range(data_interface.get_n_draws())
     with multiprocessing.Pool(num_cores) as pool:
         outputs = pool.map(data_interface.load_idr, draws)
+    return outputs
+
+
+def load_infection_to_case(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
+    draws = range(data_interface.get_n_draws())
+    with multiprocessing.Pool(num_cores) as pool:
+        outputs = pool.map(data_interface.load_infection_to_case, draws)
     return outputs
 
 

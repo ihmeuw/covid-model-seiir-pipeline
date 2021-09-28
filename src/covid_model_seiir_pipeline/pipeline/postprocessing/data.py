@@ -111,13 +111,25 @@ class PostprocessingDataInterface:
         ifr = self._get_forecast_data_inteface().load_ifr(draw_id=draw_id)
         return ifr['ifr_lr'].rename(draw_id)
 
+    def load_infection_to_death(self, draw_id: int):
+        ifr = self._get_forecast_data_inteface().load_ifr(draw_id=draw_id)
+        return ifr['duration'].rename(draw_id)
+
     def load_ihr(self, draw_id: int):
         ihr = self._get_forecast_data_inteface().load_ihr(draw_id=draw_id)
         return ihr['ihr'].rename(draw_id)
 
+    def load_infection_to_admission(self, draw_id: int):
+        ihr = self._get_forecast_data_inteface().load_ihr(draw_id=draw_id)
+        return ihr['duration'].rename(draw_id)
+
     def load_idr(self, draw_id: int):
         idr = self._get_forecast_data_inteface().load_idr(draw_id=draw_id)
         return idr['idr'].rename(draw_id)
+
+    def load_infection_to_case(self, draw_id: int):
+        idr = self._get_forecast_data_inteface().load_idr(draw_id=draw_id)
+        return idr['duration'].rename(draw_id)
 
     def load_single_ode_param(self, draw_id: int, scenario: str, measure: str) -> pd.Series:
         draw_df = self.load_ode_params(draw_id=draw_id, scenario=scenario, columns=[measure])
