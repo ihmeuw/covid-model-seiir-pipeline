@@ -578,44 +578,44 @@ MEASURES = {
 
 COMPOSITE_MEASURES = {
     'infection_fatality_ratio': CompositeMeasureConfig(
-        base_measures={'numerator': MEASURES['infections'],
-                       'denominator': MEASURES['deaths'],
+        base_measures={'numerator': MEASURES['deaths'],
+                       'denominator': MEASURES['infections'],
                        'duration': MEASURES['infection_to_death']},
         label='infection_fatality_ratio',
         combiner=combiners.make_ratio,
     ),
     'infection_fatality_ratio_modeled': CompositeMeasureConfig(
-        base_measures={'numerator': MEASURES['infections_modeled'],
-                       'denominator': MEASURES['deaths_modeled'],
+        base_measures={'numerator': MEASURES['deaths_modeled'],
+                       'denominator': MEASURES['infections_modeled'],
                        'duration': MEASURES['infection_to_death']},
         label='infection_fatality_ratio_modeled',
         combiner=combiners.make_ratio,
     ),
     'infection_fatality_ratio_high_risk': CompositeMeasureConfig(
-        base_measures={'numerator': MEASURES['infections_hr'],
-                       'denominator': MEASURES['deaths_hr'],
+        base_measures={'numerator': MEASURES['deaths_hr'],
+                       'denominator': MEASURES['infections_hr'],
                        'duration': MEASURES['infection_to_death']},
         label='infection_fatality_ratio_high_risk',
         combiner=combiners.make_ratio,
     ),
     'infection_fatality_ratio_low_risk': CompositeMeasureConfig(
-        base_measures={'numerator': MEASURES['infections_lr'],
-                       'denominator': MEASURES['deaths_lr'],
+        base_measures={'numerator': MEASURES['deaths_lr'],
+                       'denominator': MEASURES['infections_lr'],
                        'duration': MEASURES['infection_to_death']},
         label='infection_fatality_ratio_low_risk',
         combiner=combiners.make_ratio,
     ),
 
     'infection_hospitalization_ratio': CompositeMeasureConfig(
-        base_measures={'numerator': MEASURES['infections'],
-                       'denominator': MEASURES['hospital_admissions'],
+        base_measures={'numerator': MEASURES['hospital_admissions'],
+                       'denominator': MEASURES['infections'],
                        'duration': MEASURES['infection_to_admission']},
         label='infection_hospitalization_ratio',
         combiner=combiners.make_ratio,
     ),
     'infection_detection_ratio': CompositeMeasureConfig(
-        base_measures={'numerator': MEASURES['infections'],
-                       'denominator': MEASURES['cases'],
+        base_measures={'numerator': MEASURES['cases'],
+                       'denominator': MEASURES['infections'],
                        'duration': MEASURES['infection_to_case']},
         label='infection_detection_ratio',
         combiner=combiners.make_ratio,
@@ -624,7 +624,7 @@ COMPOSITE_MEASURES = {
         base_measures={'numerator': MEASURES['infections_variant'],
                        'denominator': MEASURES['infections_modeled']},
         label='empirical_escape_variant_prevalence',
-        combiner=combiners.make_empirical_escape_variant_prevalence,
+        combiner=combiners.make_ratio,
     ),
 }
 
