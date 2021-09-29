@@ -15,9 +15,6 @@ from covid_model_seiir_pipeline.lib.ode_mk2.constants import (
     TRACKING_COMPARTMENT,
     VARIANT_GROUP,
 )
-from covid_model_seiir_pipeline.lib.ode_mk2.containers import (
-    Parameters,
-)
 from covid_model_seiir_pipeline.lib.ode_mk2.system import (
     fit_system,
     forecast_system,
@@ -28,12 +25,11 @@ SOLVER_DT: float = 0.1
 
 
 def run_ode_model(initial_condition: pd.DataFrame,
-                  ode_parameters: Parameters,
+                  parameter_df: pd.DataFrame,
                   forecast: bool,
                   dt: float = SOLVER_DT):
     # Ensure data frame column labeling is consistent with expected index ordering.
-    initial_condition = _sort_columns(initial_condition)
-    parameter_df = ode_parameters.to_df()
+    initial_condition = _sort_columns(initial_condition)    
     # Convert into numpy arrays with meaningful dimensions that will work under an optimizer.
     # Dimensions are
     #
@@ -79,8 +75,8 @@ def run_ode_model(initial_condition: pd.DataFrame,
 
 def _sort_columns(initial_condition: pd.DataFrame) -> pd.DataFrame:    
     initial_condition_columns = [f'{compartment}_{risk_group}'
-                                 for compartment, risk_group 
-                                 in itertools.product(COMPARTMENTS_NAMES + TRACKING_COMPARTMENTS_NAMES, RISK_GROUP_NAMES)]
+                                 for risk_group, compartment
+                                 in itertools.product(RISK_GROUP_NAMES, COMPARTMENTS_NAMES + TRACKING_COMPARTMENTS_NAMES)]
     assert set(initial_condition_columns) == set(initial_condition.columns)
     initial_condition = initial_condition.loc[:, initial_condition_columns]    
 
@@ -139,7 +135,6 @@ def _get_invasion_and_ode_start_dates_by_location(initial_condition: pd.DataFram
     return invasion_date, ode_start_date
 
 
-@numba.njit
 def _interpolate(t0: np.ndarray,
                  t: np.ndarray,
                  y: np.ndarray,
@@ -264,7 +259,7 @@ def _compute_waned_this_step(y_past: np.ndarray,
     waned = np.zeros(2)
     new_vax_immune_index = TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewVaccination, VARIANT_GROUP.total]
     new_r_index = TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewR, VARIANT_GROUP.total]
-    for i, (index, dist) in enumerate(((new_vax_immune_index, vaccine_dist), (new_r_index, natural_dist))):
+    for i, (index, dist) in enumerate(((new_r_index, natural_dist), (new_vax_immune_index, vaccine_dist))):
         cumulative_total = y_past[:, index] + y_past[:, system_size + index]
         daily_total = cumulative_total[1:] - cumulative_total[:-1]
         waned[i] = (daily_total[::-1] * dist[:-1]).sum()
@@ -277,13 +272,12 @@ def _uninterpolate(y_solve: np.ndarray,
                    t: np.ndarray):
     num_dates, num_locs = t.shape
     num_compartments = y_solve.shape[2]
-    y_final = np.zeros((num_dates, num_locs, num_compartments))
-    import pdb; pdb.set_trace()
+    y_final = np.zeros((num_dates * num_locs, num_compartments))    
     for location in np.arange(num_locs):
-        for compartment in np.arange(num_compartments):
-            y_final[:, location, compartment] = np.interp(
+        for compartment in np.arange(num_compartments):        
+            y_final[location*num_dates:(location + 1)*num_dates, compartment] = np.interp(
                 t[:, location],
                 t_solve[:, location],
                 y_solve[:, location, compartment]
             )
-    return y_final.reshape((num_dates * num_locs, num_compartments))
+    return y_final
