@@ -829,6 +829,7 @@ def CG_SUSCEPTIBLE(group: int) -> np.ndarray:
             COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.omega_immune, VACCINATION_STATUS.unvaccinated],
             COMPARTMENTS[COMPARTMENT_TYPE.S, SUSCEPTIBLE_TYPE.omega_immune, VACCINATION_STATUS.vaccinated],
         ], dtype=np.int64)
+    return np.array([-1], dtype=np.int64)
 
 @numba.njit
 def CG_EXPOSED(group: int) -> np.ndarray:
@@ -884,6 +885,7 @@ def CG_EXPOSED(group: int) -> np.ndarray:
             COMPARTMENTS[COMPARTMENT_TYPE.E, AGG_VARIANT.omega, REMOVED_VACCINATION_STATUS.unvaccinated],
             COMPARTMENTS[COMPARTMENT_TYPE.E, AGG_VARIANT.omega, REMOVED_VACCINATION_STATUS.vaccinated],
         ], dtype=np.int64)
+    return np.array([-1], dtype=np.int64)
 
 @numba.njit
 def CG_INFECTIOUS(group: int) -> np.ndarray:
@@ -939,6 +941,7 @@ def CG_INFECTIOUS(group: int) -> np.ndarray:
             COMPARTMENTS[COMPARTMENT_TYPE.I, AGG_VARIANT.omega, REMOVED_VACCINATION_STATUS.unvaccinated],
             COMPARTMENTS[COMPARTMENT_TYPE.I, AGG_VARIANT.omega, REMOVED_VACCINATION_STATUS.vaccinated],
         ], dtype=np.int64)
+    return np.array([-1], dtype=np.int64)
 
 @numba.njit
 def CG_REMOVED(group: int) -> np.ndarray:
@@ -1008,6 +1011,7 @@ def CG_REMOVED(group: int) -> np.ndarray:
             COMPARTMENTS[COMPARTMENT_TYPE.R, AGG_VARIANT.omega, REMOVED_VACCINATION_STATUS.vaccinated],
             COMPARTMENTS[COMPARTMENT_TYPE.R, AGG_VARIANT.omega, REMOVED_VACCINATION_STATUS.newly_vaccinated],
         ], dtype=np.int64)
+    return np.array([-1], dtype=np.int64)
 
 @numba.njit
 def CG_TOTAL(group: int) -> np.ndarray:
@@ -1156,6 +1160,7 @@ def CG_TOTAL(group: int) -> np.ndarray:
             COMPARTMENTS[COMPARTMENT_TYPE.R, VARIANT.other, REMOVED_VACCINATION_STATUS.unvaccinated],
             COMPARTMENTS[COMPARTMENT_TYPE.R, VARIANT.omega, REMOVED_VACCINATION_STATUS.unvaccinated],
         ], dtype=np.int64)
+    return np.array([-1], dtype=np.int64)
 
 # Turning off the JIT is operationally 1-to-1 with
 # saying something is broken in the ODE code and

@@ -114,7 +114,9 @@ def _single_group_system(t: float,
         transition_map,
     )
 
-    r_total = aggregates[AGGREGATES[BASE_COMPARTMENT.R, VARIANT]].sum()
+    r_total = 0.
+    for variant in VARIANT:
+        r_total += aggregates[AGGREGATES[BASE_COMPARTMENT.R, variant]]
     sigma = params[PARAMETERS[BASE_PARAMETER.sigma, VARIANT_GROUP.all]]
     gamma = params[PARAMETERS[BASE_PARAMETER.gamma, VARIANT_GROUP.all]]
     for variant in VARIANT:

@@ -1,4 +1,5 @@
 import itertools
+import time
 from typing import Tuple
 
 import numba
@@ -57,6 +58,7 @@ def run_ode_model(initial_condition: pd.DataFrame,
     vaccine_dist = _sample_dist(_get_waning_dist(0, 180, 3000), t_solve[:, 0]) / dt
 
     system = forecast_system if forecast else fit_system
+    start = time.time()
     y_solve = _rk45_dde(
         system,
         t0,
@@ -67,6 +69,7 @@ def run_ode_model(initial_condition: pd.DataFrame,
         natural_dist,
         dt,
     )
+    print('ODE done in ', time.time() - start, ' seconds')
 
     compartments = _uninterpolate(y_solve, t_solve, t)
     compartments = pd.DataFrame(compartments, columns=initial_condition.columns, index=initial_condition.index)
@@ -202,13 +205,13 @@ def _rk45_dde(system,
     system_size = TRACKING_COMPARTMENTS.max() + 1
 
     for time in np.arange(num_time_points):
-        for location in np.array([230]):
+        if not time % 100:
+            print("Percent complete: ", np.round(100 * time / num_time_points, 2), "%")
+            
+        for location in np.arange(num_locs):
             # If we're not past t0, don't do anything yet.
             if t_solve[time, location] <= t0[location]:
                 continue
-
-            if not time % 500:
-                print("Percent complete: ", np.round(100 * time / num_time_points, 2), "%")
 
             waned = _compute_waned_this_step(
                 y_solve[:time, location],

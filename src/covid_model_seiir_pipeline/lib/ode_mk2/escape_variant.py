@@ -38,7 +38,9 @@ def maybe_invade(group_y: np.ndarray, group_dy: np.ndarray,
         # Cap the the invasion so we don't take everyone. The handles corner cases
         # where variants invade just as vaccination is starting.
         max_invasion = 1 / (2*len(VARIANT)) * group_y[from_compartment]
-        exposed = group_y[COMPARTMENTS[BASE_COMPARTMENT.E, VARIANT.ancestral, VACCINATION_STATUS]].sum()
+        exposed = 0.
+        for vaccination_status in VACCINATION_STATUS:
+            exposed += group_y[COMPARTMENTS[BASE_COMPARTMENT.E, VARIANT.ancestral, vaccination_status]]
         delta = min(max(pi * exposed, min_invasion), max_invasion)
 
         # Set the boundary condition so that the initial beta for the escape

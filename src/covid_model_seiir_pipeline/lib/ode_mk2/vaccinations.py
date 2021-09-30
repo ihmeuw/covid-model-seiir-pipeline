@@ -48,7 +48,7 @@ def allocate(
         expected_vaccinations_from_s = expected_vaccinations_from_s_by_type.sum()
         # Transmission takes precedence over vaccination
         total_vaccinations_from_s = min(s - new_e_from_s, expected_vaccinations_from_s)
-        assert total_vaccinations_from_s >= 0
+        # assert total_vaccinations_from_s >= 0
         vaccine_scale = math.safe_divide(total_vaccinations_from_s, expected_vaccinations_from_s)
         total_vaccinations_from_s_by_type = vaccine_scale * expected_vaccinations_from_s_by_type
 
@@ -69,7 +69,7 @@ def allocate(
         expected_vaccinations_from_r = expected_vaccinations_from_r_by_type.sum()
         # Waning takes precedence over vaccination
         total_vaccinations_from_r = min(r - waned_from_r, expected_vaccinations_from_r)
-        assert total_vaccinations_from_r >= 0
+        # assert total_vaccinations_from_r >= 0
         vaccine_scale = math.safe_divide(total_vaccinations_from_r, expected_vaccinations_from_r)
         total_vaccinations_from_r_by_type = vaccine_scale * expected_vaccinations_from_r_by_type
 

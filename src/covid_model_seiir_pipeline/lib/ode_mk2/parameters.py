@@ -34,9 +34,18 @@ from covid_model_seiir_pipeline.lib.ode_mk2.constants import (
 @numba.njit
 def make_aggregates(y: np.ndarray) -> np.ndarray:
     aggregates = np.zeros(AGGREGATES.max() + 1)
-    for group_y in np.split(y, len(RISK_GROUP)):
+    for group_y in np.split(y, len(RISK_GROUP)):        
         
-        for compartment, group in zip(BASE_COMPARTMENT, (CG_SUSCEPTIBLE, CG_EXPOSED, CG_INFECTIOUS, CG_REMOVED)):
+        for compartment in BASE_COMPARTMENT:
+            if compartment == BASE_COMPARTMENT.S:
+                group = CG_SUSCEPTIBLE
+            elif compartment == BASE_COMPARTMENT.E:
+                group = CG_EXPOSED
+            elif compartment == BASE_COMPARTMENT.I:
+                group = CG_INFECTIOUS
+            else:
+                group = CG_REMOVED
+            
             for variant in VARIANT:
                 aggregates[AGGREGATES[compartment, variant]] += group_y[group(variant)].sum()
         
@@ -83,13 +92,7 @@ def normalize_parameters(input_parameters: np.ndarray,
         new_e /= total_weight        
         for variant in VARIANT:
             susceptible = aggregates[AGGREGATES[BASE_COMPARTMENT.S, variant]]
-            force_of_infection[variant] = math.safe_divide(new_e[variant], susceptible)
-            
-    new_e_input = input_parameters[PARAMETERS[BASE_PARAMETER.new_e, VARIANT_GROUP.all]]
-    new_e_foi = (aggregates[AGGREGATES[BASE_COMPARTMENT.S, VARIANT]] * force_of_infection[2:]).sum()
-    
-    if abs(new_e_input - new_e_foi) > 1e-5:
-        import pdb; pdb.set_trace()
+            force_of_infection[variant] = math.safe_divide(new_e[variant], susceptible)            
 
     if DEBUG:
         assert np.all(np.isfinite(params))
