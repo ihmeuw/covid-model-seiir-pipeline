@@ -8,7 +8,6 @@ from covid_model_seiir_pipeline.lib.ode_mk2.constants import (
     # Indexing tuples
     RISK_GROUP,
     BASE_COMPARTMENT,
-    TRACKING_COMPARTMENT,
     BASE_PARAMETER,
     VARIANT,
     VARIANT_GROUP,
@@ -18,9 +17,7 @@ from covid_model_seiir_pipeline.lib.ode_mk2.constants import (
     VACCINE_TYPE,
     VACCINATION_STATUS,
     REMOVED_VACCINATION_STATUS,
-    AGG_WANED,
     AGG_OTHER,
-    CG_EXPOSED,
     CG_SUSCEPTIBLE,
     # Indexing arrays
     COMPARTMENTS,
@@ -139,7 +136,7 @@ def _single_group_system(t: float,
             transition_map,
         )
 
-    immune_total = group_y[CG_SUSCEPTIBLE[AGG_OTHER.total]].sum() - group_y[CG_SUSCEPTIBLE[AGG_OTHER.non_immune]].sum()
+    immune_total = group_y[CG_SUSCEPTIBLE(AGG_OTHER.total)].sum() - group_y[CG_SUSCEPTIBLE(AGG_OTHER.non_immune)].sum()
     transition_map = do_vaccine_immunity_waning(
         t,
         group_y,
@@ -157,13 +154,11 @@ def _single_group_system(t: float,
         #assert np.all(group_y + group_dy >= -1e-7)
         assert group_dy.sum() < 1e-5
        
-
     group_dy = accounting.compute_tracking_compartments(
         t, 
         group_dy,
         transition_map,
     )
-
 
     return group_dy
 
@@ -194,7 +189,7 @@ def do_vaccination(
 @numba.njit
 def do_transmission(
     t: float,
-    variant: str,
+    variant: int,
     group_y: np.ndarray,
     sigma: float,
     gamma: float,
@@ -208,7 +203,7 @@ def do_transmission(
 
         for susceptible_type in SUSCEPTIBLE_TYPE:
             s_idx = COMPARTMENTS[BASE_COMPARTMENT.S, susceptible_type, vaccination_status]
-            if s_idx in CG_SUSCEPTIBLE[variant]:
+            if s_idx in CG_SUSCEPTIBLE(variant):
                 transition_map[s_idx, e_idx] = group_y[s_idx] * force_of_infection
 
         transition_map[e_idx, i_idx] = sigma * group_y[e_idx]

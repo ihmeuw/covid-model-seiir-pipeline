@@ -36,7 +36,7 @@ def compute_tracking_compartments(t: float, group_dy: np.ndarray, transition_map
             ##################
             # New Infections #
             ##################
-            new_e = transition_map[CG_SUSCEPTIBLE[AGG_OTHER.total], 
+            new_e = transition_map[CG_SUSCEPTIBLE(AGG_OTHER.total),
                                    COMPARTMENTS[BASE_COMPARTMENT.E, variant, vaccination_status]].sum()
             group_dy[TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewE, agg_vaccination_status]] += new_e
             group_dy[TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewE, variant]] += new_e
@@ -53,7 +53,7 @@ def compute_tracking_compartments(t: float, group_dy: np.ndarray, transition_map
             # New waned #
             #############
             waned = transition_map[COMPARTMENTS[BASE_COMPARTMENT.R, variant, vaccination_status],
-                                   CG_SUSCEPTIBLE[AGG_OTHER.non_immune]].sum()
+                                   CG_SUSCEPTIBLE(AGG_OTHER.non_immune)].sum()
             group_dy[TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.Waned, variant]] += waned
             group_dy[TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.Waned, AGG_WANED.natural]] += waned
 
@@ -61,10 +61,10 @@ def compute_tracking_compartments(t: float, group_dy: np.ndarray, transition_map
     # New vaccine immune #
     ######################
     for vaccine_type, agg_vaccine_type in zip(VACCINE_TYPE, AGG_VACCINE_TYPE):
-        new_vaccines = transition_map[CG_TOTAL[AGG_OTHER.vaccine_eligible], 
+        new_vaccines = transition_map[CG_TOTAL(AGG_OTHER.vaccine_eligible),
                                       COMPARTMENTS[BASE_COMPARTMENT.S, vaccine_type, VACCINATION_STATUS.vaccinated]].sum()
         if vaccine_type == VACCINE_TYPE.unprotected:
-            new_vaccines += transition_map[CG_TOTAL[AGG_OTHER.vaccine_eligible]][:, 
+            new_vaccines += transition_map[CG_TOTAL(AGG_OTHER.vaccine_eligible)][:,
                                            COMPARTMENTS[BASE_COMPARTMENT.R, VARIANT, REMOVED_VACCINATION_STATUS.newly_vaccinated]].sum()
         group_dy[TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewVaccination, agg_vaccine_type]] += new_vaccines
         group_dy[TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewVaccination, AGG_OTHER.total]] += new_vaccines
@@ -74,7 +74,7 @@ def compute_tracking_compartments(t: float, group_dy: np.ndarray, transition_map
         # New vaccine immunity waned #
         ##############################
         waned = transition_map[COMPARTMENTS[BASE_COMPARTMENT.S, immune_status, VACCINATION_STATUS.vaccinated],
-                               CG_SUSCEPTIBLE[AGG_OTHER.non_immune]].sum()        
+                               CG_SUSCEPTIBLE(AGG_OTHER.non_immune)].sum()
         group_dy[TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.Waned, agg_immune_status]] += waned
         group_dy[TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.Waned, AGG_WANED.vaccine]] += waned
 

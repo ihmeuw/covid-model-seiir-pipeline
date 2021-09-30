@@ -33,7 +33,7 @@ def allocate(
     vaccines_out = np.zeros((group_y.size, max(VACCINE_TYPE) + 1))
     
     available_vaccines = group_vaccines.sum()    
-    vaccine_eligible = group_y[CG_TOTAL[AGG_OTHER.vaccine_eligible]].sum()
+    vaccine_eligible = group_y[CG_TOTAL(AGG_OTHER.vaccine_eligible)].sum()
 
     # Don't vaccinate if no vaccines to deliver or there is no-one to vaccinate.
     if available_vaccines == 0 or vaccine_eligible == 0:
