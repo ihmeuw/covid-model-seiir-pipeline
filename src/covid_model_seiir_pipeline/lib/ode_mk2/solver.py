@@ -68,8 +68,12 @@ def _run_loc_ode_model(ic_and_params: Tuple[int, pd.DataFrame, pd.DataFrame],
     t0 = (ode_start_date - invasion_date).days
     if forecast:
         assert t0 > 0
+        ode_end_date = initial_condition.reset_index().date.max()
+
     else:
         assert t0 == 0
+        ode_end_date = parameters.new_e.dropna().reset_index().date.max()
+    tf = (ode_end_date - invasion_date)
 
     dates = initial_condition.reset_index().date
     t = (dates - invasion_date).dt.days.values
@@ -86,7 +90,7 @@ def _run_loc_ode_model(ic_and_params: Tuple[int, pd.DataFrame, pd.DataFrame],
     system = forecast_system if forecast else fit_system
     y_solve = _rk45_dde(
         system,
-        t0,
+        t0, tf,
         t_solve,
         y_solve,
         p_solve,
@@ -110,26 +114,6 @@ def _sort_columns(initial_condition: pd.DataFrame) -> pd.DataFrame:
     initial_condition = initial_condition.loc[:, initial_condition_columns]    
 
     return initial_condition
-
-
-def _to_numpy(loc_initial_condition: pd.DataFrame,
-              loc_parameters: pd.DataFrame,
-              forecast: bool) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
-    dates = loc_initial_condition[loc_initial_condition.filter(like='NewE').sum(axis=1) > 0].index
-    invasion_date = dates.min()
-    ode_start_date = dates.max()
-
-    t0 = (ode_start_date - invasion_date).days
-    if forecast:
-        assert t0 > 0
-    else:
-        assert t0 == 0
-
-    t = (dates - invasion_date).dt.days.values
-    y = loc_initial_condition.to_numpy()
-    params = loc_parameters.to_numpy()
-
-    return t0, t, y, params
 
 
 def _interpolate(t0: float,
@@ -177,7 +161,7 @@ def _sample_dist(dist, t, rate=1):
 
 @numba.njit
 def _rk45_dde(system,
-              t0: np.ndarray,
+              t0: float, tf: float,
               t_solve: np.ndarray,
               y_solve: np.ndarray,
               p_solve: np.ndarray,
@@ -188,7 +172,7 @@ def _rk45_dde(system,
     system_size = TRACKING_COMPARTMENTS.max() + 1
 
     for time in np.arange(num_time_points):
-        if t_solve[time] <= t0:
+        if not (t0 <= t_solve[time] <= tf):
             continue
 
         waned = _compute_waned_this_step(
