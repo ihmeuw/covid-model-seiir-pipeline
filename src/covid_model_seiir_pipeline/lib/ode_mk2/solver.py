@@ -1,5 +1,4 @@
 import itertools
-import time
 from typing import Tuple
 
 import numba
@@ -128,16 +127,15 @@ def _interpolate(t0: float,
     for param in np.arange(params.shape[1]):
         p_solve[:, param] = np.interp(t_params, t[:], params[:, param])
 
+    y_solve = np.empty((num_time_points, num_compartments))
     for compartment in np.arange(num_compartments):
         if forecast:
-            y_solve = np.interp(t_solve, t, y[:, compartment])
+            y_solve[:, compartment] = np.interp(t_solve, t, y[:, compartment])
             y_solve[t_solve > t0, compartment] = 0.
         else:
-            y_solve = np.empty((num_time_points, num_compartments))
             y_solve[t_solve < t0, compartment] = y[0, compartment]
             y_solve[t_solve == t0, compartment] = y[t == t0, compartment]
             y_solve[t_solve > t0, compartment] = 0.
-
     return t_solve, y_solve, p_solve
 
 
@@ -163,56 +161,50 @@ def _rk45_dde(system,
               vaccine_dist: np.ndarray,
               natural_dist: np.ndarray,
               dt: float):
-    num_time_points, num_locs = t_solve.shape
+    num_time_points = t_solve.size
     system_size = TRACKING_COMPARTMENTS.max() + 1
 
     for time in np.arange(num_time_points):
-        if not time % 100:
-            print("Percent complete: ", np.round(100 * time / num_time_points, 2), "%")
-            
-        for location in np.arange(num_locs):
-            # If we're not past t0, don't do anything yet.
-            if t_solve[time, location] <= t0[location]:
-                continue
+        if t_solve[time] <= t0:
+            continue
 
-            waned = _compute_waned_this_step(
-                y_solve[:time, location],
-                vaccine_dist[:time],
-                natural_dist[:time],
-                system_size,
-            )
+        waned = _compute_waned_this_step(
+            y_solve[:time],
+            vaccine_dist[:time],
+            natural_dist[:time],
+            system_size,
+        )
 
-            k1 = system(
-                t_solve[time - 1, location],
-                y_solve[time - 1, location],
-                waned,
-                p_solve[2 * time - 2, location],
-            )
+        k1 = system(
+            t_solve[time - 1],
+            y_solve[time - 1],
+            waned,
+            p_solve[2 * time - 2],
+        )
 
-            k2 = system(
-                t_solve[time - 1, location] + dt / 2,
-                y_solve[time - 1, location] + dt / 2 * k1,
-                waned,
-                p_solve[2 * time - 1, location],
-            )
+        k2 = system(
+            t_solve[time - 1] + dt / 2,
+            y_solve[time - 1] + dt / 2 * k1,
+            waned,
+            p_solve[2 * time - 1],
+        )
 
-            k3 = system(
-                t_solve[time - 1, location] + dt / 2,
-                y_solve[time - 1, location] + dt / 2 * k2,
-                waned,
-                p_solve[2 * time - 1, location],
-            )
+        k3 = system(
+            t_solve[time - 1] + dt / 2,
+            y_solve[time - 1] + dt / 2 * k2,
+            waned,
+            p_solve[2 * time - 1],
+        )
 
-            k4 = system(
-                t_solve[time, location],
-                y_solve[time - 1, location] + dt * k3,
-                waned,
-                p_solve[2 * time, location],
-            )
+        k4 = system(
+            t_solve[time],
+            y_solve[time - 1] + dt * k3,
+            waned,
+            p_solve[2 * time],
+        )
 
-            y_solve[time, location] = y_solve[time - 1, location] + dt / 6 * (k1 + 2 * k2 + 2 * k3 + k4)
+        y_solve[time] = y_solve[time - 1] + dt / 6 * (k1 + 2 * k2 + 2 * k3 + k4)
 
-        # TODO: Spatial spread goes here!
     return y_solve
 
 
