@@ -84,19 +84,16 @@ def _run_loc_ode_model(ic_and_params: Tuple[int, pd.DataFrame, pd.DataFrame],
     vaccine_dist = _sample_dist(_get_waning_dist(0, 180, 3000), t_solve) / dt
 
     system = forecast_system if forecast else fit_system
-    try:
-        y_solve = _rk45_dde(
-            system,
-            t0,
-            t_solve,
-            y_solve,
-            p_solve,
-            vaccine_dist,
-            natural_dist,
-            dt,
-        )
-    except Exception:
-        print('Failure in ', location_id)
+    y_solve = _rk45_dde(
+        system,
+        t0,
+        t_solve,
+        y_solve,
+        p_solve,
+        vaccine_dist,
+        natural_dist,
+        dt,
+    )
 
     loc_compartments = pd.DataFrame(_uninterpolate(y_solve, t_solve, t),
                                     columns=initial_condition.columns,
