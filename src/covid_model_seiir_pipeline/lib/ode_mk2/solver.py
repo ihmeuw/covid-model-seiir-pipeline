@@ -1,5 +1,6 @@
 import itertools
 from typing import Tuple
+import time
 
 import numba
 import numpy as np
@@ -33,13 +34,14 @@ def run_ode_model(initial_condition: pd.DataFrame,
     initial_condition = _sort_columns(initial_condition)
     location_ids = initial_condition.reset_index().location_id.unique().tolist()
     compartments = []
-    for location_id in tqdm.tqdm(location_ids):
+    start = time.time()
+    for location_id in tqdm.tqdm(location_ids[:25]):
         loc_initial_condition = initial_condition.loc[location_id]
         loc_parameters = parameter_df.loc[location_id]
 
-        dates = loc_initial_condition[loc_initial_condition.filter(like='NewE').sum(axis=1) > 0].index
-        invasion_date = dates.min()
-        ode_start_date = dates.max()
+        new_e_dates = loc_initial_condition[loc_initial_condition.filter(like='NewE').sum(axis=1) > 0].reset_index().date
+        invasion_date = new_e_dates.min()
+        ode_start_date = new_e_dates.max()
 
         t0 = (ode_start_date - invasion_date).days
         if forecast:
@@ -47,6 +49,7 @@ def run_ode_model(initial_condition: pd.DataFrame,
         else:
             assert t0 == 0
 
+        dates = loc_initial_condition.reset_index().date
         t = (dates - invasion_date).dt.days.values
         y = loc_initial_condition.to_numpy()
         params = loc_parameters.to_numpy()
@@ -69,13 +72,16 @@ def run_ode_model(initial_condition: pd.DataFrame,
             natural_dist,
             dt,
         )
+        
         loc_compartments = pd.DataFrame(_uninterpolate(y_solve, t_solve, t),
                                         columns=loc_initial_condition.columns,
                                         index=loc_initial_condition.index)
         loc_compartments['location_id'] = location_id
         compartments.append(loc_compartments)
+    
 
     compartments = pd.concat(compartments).reset_index().set_index(['location_id', 'date']).sort_index()
+    print("Duration: ", time.time() - start, " seconds")
     return compartments
 
 
