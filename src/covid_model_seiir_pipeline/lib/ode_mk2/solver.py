@@ -6,6 +6,7 @@ import numba
 import numpy as np
 import pandas as pd
 import scipy.stats
+import tqdm
 
 from covid_model_seiir_pipeline.lib.ode_mk2.constants import (
     RISK_GROUP_NAMES,
@@ -30,49 +31,52 @@ def run_ode_model(initial_condition: pd.DataFrame,
                   forecast: bool,
                   dt: float = SOLVER_DT):
     # Ensure data frame column labeling is consistent with expected index ordering.
-    initial_condition = _sort_columns(initial_condition)    
-    # Convert into numpy arrays with meaningful dimensions that will work under an optimizer.
-    # Dimensions are
-    #
-    # t0
-    #    axis 0: location_id
-    # t
-    #    axis 0: date
-    #    axis 1: location_id
-    # y
-    #    axis 0: date
-    #    axis 1: location_id
-    #    axis 2: compartment
-    # params
-    #    axis 0: date
-    #    axis 1: location_id
-    #    axis 2: parameter
-    t0, t, y, params = _to_numpy(initial_condition, parameter_df, forecast)
+    initial_condition = _sort_columns(initial_condition)
+    location_ids = initial_condition.reset_index().location_id.unique().tolist()
+    compartments = []
+    for location_id in tqdm.tqdm(location_ids):
+        loc_initial_condition = initial_condition.loc[location_id]
+        loc_parameters = parameter_df.loc[location_id]
 
-    # Split the daily "date" axis into chunks of width dt and interpolate
-    # the compartments and parameters over the new time points.
-    t_solve, y_solve, p_solve = _interpolate(t0, t, y, params, forecast, dt)
+        dates = loc_initial_condition[loc_initial_condition.filter(like='NewE').sum(axis=1) > 0].index
+        invasion_date = dates.min()
+        ode_start_date = dates.max()
 
-    # TODO: Replace with real distributions
-    natural_dist = _sample_dist(_get_waning_dist(0, 90, 1500), t_solve[:, 0]) / dt
-    vaccine_dist = _sample_dist(_get_waning_dist(0, 180, 3000), t_solve[:, 0]) / dt
+        t0 = (ode_start_date - invasion_date).days
+        if forecast:
+            assert t0 > 0
+        else:
+            assert t0 == 0
 
-    system = forecast_system if forecast else fit_system
-    start = time.time()
-    y_solve = _rk45_dde(
-        system,
-        t0,
-        t_solve,
-        y_solve,
-        p_solve,
-        vaccine_dist,
-        natural_dist,
-        dt,
-    )
-    print('ODE done in ', time.time() - start, ' seconds')
+        t = (dates - invasion_date).dt.days.values
+        y = loc_initial_condition.to_numpy()
+        params = loc_parameters.to_numpy()
+        # Split the daily "date" axis into chunks of width dt and interpolate
+        # the compartments and parameters over the new time points.
+        t_solve, y_solve, p_solve = _interpolate(t0, t, y, params, forecast, dt)
 
-    compartments = _uninterpolate(y_solve, t_solve, t)
-    compartments = pd.DataFrame(compartments, columns=initial_condition.columns, index=initial_condition.index)
+        # TODO: Replace with real distributions
+        natural_dist = _sample_dist(_get_waning_dist(0, 90, 1500), t_solve) / dt
+        vaccine_dist = _sample_dist(_get_waning_dist(0, 180, 3000), t_solve) / dt
+
+        system = forecast_system if forecast else fit_system
+        y_solve = _rk45_dde(
+            system,
+            t0,
+            t_solve,
+            y_solve,
+            p_solve,
+            vaccine_dist,
+            natural_dist,
+            dt,
+        )
+        loc_compartments = pd.DataFrame(_uninterpolate(y_solve, t_solve, t),
+                                        columns=loc_initial_condition.columns,
+                                        index=loc_initial_condition.index)
+        loc_compartments['location_id'] = location_id
+        compartments.append(loc_compartments)
+
+    compartments = pd.concat(compartments).reset_index().set_index(['location_id', 'date']).sort_index()
     return compartments
 
 
@@ -86,96 +90,54 @@ def _sort_columns(initial_condition: pd.DataFrame) -> pd.DataFrame:
     return initial_condition
 
 
-def _to_numpy(initial_condition: pd.DataFrame,
-              parameter_df: pd.DataFrame,
+def _to_numpy(loc_initial_condition: pd.DataFrame,
+              loc_parameters: pd.DataFrame,
               forecast: bool) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
-    invasion_date, ode_start_date = _get_invasion_and_ode_start_dates_by_location(initial_condition)
-    t0 = (ode_start_date - invasion_date).dt.days.values
+    dates = loc_initial_condition[loc_initial_condition.filter(like='NewE').sum(axis=1) > 0].index
+    invasion_date = dates.min()
+    ode_start_date = dates.max()
+
+    t0 = (ode_start_date - invasion_date).days
     if forecast:
-        assert np.all(t0 > 0)
+        assert t0 > 0
     else:
-        assert np.all(t0 == 0)
+        assert t0 == 0
 
-    dates_by_location = parameter_df.reset_index(level='date').date
-    # parameter df is square by location date
-
-    num_dates = len(dates_by_location.unique())
-    location_ids = dates_by_location.index.unique().to_numpy()
-    num_locs = len(location_ids)
-    num_compartments = len(initial_condition.columns)
-    num_params = len(parameter_df.columns)
-
-    t = ((dates_by_location - invasion_date)
-         .dt.days
-         .values
-         .reshape((num_locs, num_dates))).T
-
-    y = (initial_condition
-         .reorder_levels(['date', 'location_id'])
-         .sort_index()
-         .to_numpy()
-         .reshape((num_dates, num_locs, num_compartments)))
-
-    params = (parameter_df
-              .reorder_levels(['date', 'location_id'])
-              .sort_index()
-              .to_numpy()
-              .reshape((num_dates, num_locs, num_params)))
+    t = (dates - invasion_date).dt.days.values
+    y = loc_initial_condition.to_numpy()
+    params = loc_parameters.to_numpy()
 
     return t0, t, y, params
 
 
-def _get_invasion_and_ode_start_dates_by_location(initial_condition: pd.DataFrame) -> Tuple[pd.Series, pd.Series]:
-    dates = (initial_condition[initial_condition.filter(like='NewE').sum(axis=1) > 0]
-             .reset_index(level='date')
-             .date)
-    invasion_date = dates.groupby('location_id').min()
-    ode_start_date = dates.groupby('location_id').max()
-
-    location_ids = initial_condition.reset_index().location_id.unique()
-    assert set(location_ids) == set(invasion_date.index)
-    assert set(location_ids) == set(ode_start_date.index)
-    return invasion_date, ode_start_date
-
-
-def _interpolate(t0: np.ndarray,
+def _interpolate(t0: float,
                  t: np.ndarray,
                  y: np.ndarray,
                  params: np.ndarray,
                  forecast: bool,
                  dt: float) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+    num_time_points = np.arange(t[0], t[-1] + dt, dt).size
+    num_compartments = y.shape[1]
+    num_params = params.shape[1]
 
-    num_locs = t.shape[1]
-    num_time_points = np.arange(t[0, 0], t[-1, 0] + dt, dt).size
-    num_compartments = y.shape[2]
-    num_params = params.shape[2]
+    t_solve = np.round(np.arange(t[0], t[-1] + dt, dt), 2)
+    t_params = np.round(np.arange(t[0], t[-1] + dt, dt/2), 2)
 
-    t_solve = np.empty((num_time_points, num_locs))
-    y_solve = np.empty((num_time_points, num_locs, num_compartments))
     # We'll need parameters on the half step
-    p_solve = np.empty((2*num_time_points, num_locs, num_params))
+    p_solve = np.empty((2 * num_time_points, num_params))
+    for param in np.arange(params.shape[1]):
+        p_solve[:, param] = np.interp(t_params, t[:], params[:, param])
 
-    for location in np.arange(num_locs):
-        t_solve[:, location] = np.round(np.arange(t[0, location], t[-1, location] + dt, dt), 2)
-        t_params = np.round(np.arange(t[0, location], t[-1, location] + dt, dt/2), 2)
+    for compartment in np.arange(num_compartments):
+        if forecast:
+            y_solve = np.interp(t_solve, t, y[:, compartment])
+            y_solve[t_solve > t0, compartment] = 0.
+        else:
+            y_solve = np.empty((num_time_points, num_compartments))
+            y_solve[t_solve < t0, compartment] = y[0, compartment]
+            y_solve[t_solve == t0, compartment] = y[t == t0, compartment]
+            y_solve[t_solve > t0, compartment] = 0.
 
-        for param in np.arange(num_params):
-            p_solve[:, location, param] = np.interp(t_params, t[:, location], params[:, location, param])
-
-        for compartment in np.arange(num_compartments):
-            if forecast:
-                y_solve = np.interp(t_solve[:, location], t[:, location], y[:, location, compartment])
-                y_solve[t_solve[:, location] > t0[location], location, compartment] = 0.
-            else:
-                y_solve[t_solve[:, location] < t0[location], location, compartment] = (
-                    y[0, location, compartment]
-                )
-                y_solve[t_solve[:, location] == t0[location], location, compartment] = (
-                    y[t[:, location] == t0[location], location, compartment]
-                )
-                y_solve[t_solve[:, location] > t0[location], location, compartment] = (
-                    0.
-                )
     return t_solve, y_solve, p_solve
 
 
@@ -273,14 +235,7 @@ def _compute_waned_this_step(y_past: np.ndarray,
 def _uninterpolate(y_solve: np.ndarray,
                    t_solve: np.ndarray,
                    t: np.ndarray):
-    num_dates, num_locs = t.shape
-    num_compartments = y_solve.shape[2]
-    y_final = np.zeros((num_dates * num_locs, num_compartments))    
-    for location in np.arange(num_locs):
-        for compartment in np.arange(num_compartments):        
-            y_final[location*num_dates:(location + 1)*num_dates, compartment] = np.interp(
-                t[:, location],
-                t_solve[:, location],
-                y_solve[:, location, compartment]
-            )
+    y_final = np.zeros((len(t), y_solve.shape[1]))
+    for compartment in np.arange(y_solve.shape[1]):
+        y_final[:, compartment] = np.interp(t, t_solve, y_solve[:, compartment])
     return y_final
