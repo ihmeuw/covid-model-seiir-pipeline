@@ -41,7 +41,7 @@ def run_beta_regression(regression_version: str, draw_id: int, progress_bar: boo
     np.random.seed(draw_id)
     sampled_params = model.sample_params(
         infections.index, regression_params,
-        params_to_sample=['alpha', 'sigma', 'gamma', 'pi'] + [f'kappa_{v}' for v in VARIANT]
+        params_to_sample=['alpha', 'sigma', 'gamma', 'pi'] + [f'kappa_{v}' for v in VARIANT._asdict()]
     )
 
     ode_parameters = model.prepare_ode_fit_parameters(

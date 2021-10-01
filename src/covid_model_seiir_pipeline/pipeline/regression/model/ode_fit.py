@@ -71,7 +71,7 @@ def clean_infection_data_measure(infection_data: pd.DataFrame, measure: str) -> 
     global_date_range = pd.date_range(data.date.min(), data.date.max())
     square_idx = pd.MultiIndex.from_product((all_locs, global_date_range), names=['location_id', 'date']).sort_values()
     data = data.set_index(['location_id', 'date']).reindex(square_idx).groupby('location_id').bfill()
-    return data.infections
+    return data[measure]
 
 
 def make_initial_condition(parameters: Parameters, population: pd.DataFrame):
@@ -138,7 +138,10 @@ def filter_to_epi_threshold(infections: pd.Series,
 def run_ode_fit(initial_condition: pd.DataFrame, ode_parameters: Parameters):
     system_size = len(initial_condition.columns) // len(RISK_GROUP_NAMES)
     parameter_df = ode_parameters.to_df()
-    full_compartments = solver.run_ode_model(initial_condition, parameter_df, forecast=False)
+#    full_compartments = solver.run_ode_model(initial_condition, parameter_df, forecast=False)
+    full_compartments = pd.read_csv('/ihme/homes/collijk/full_compartments.csv')
+    full_compartments['date'] = pd.to_datetime(full_compartments['date'])
+    full_compartments = full_compartments.set_index(['location_id', 'date'])
     betas = []
     all_compartments = [f"{c}_{rg}" for c, rg in itertools.product(COMPARTMENTS_NAMES, RISK_GROUP_NAMES)]
     population = full_compartments.loc[:, all_compartments].sum(axis=1)
@@ -165,11 +168,12 @@ def run_ode_fit(initial_condition: pd.DataFrame, ode_parameters: Parameters):
 
         disease_density = susceptible_variant * infectious_variant**ode_parameters.alpha / population
         beta_variant = (new_e_variant / disease_density).rename(f'beta_{variant_name}')
+        beta_variant.loc[~disease_density.isnull()] = beta_variant.loc[~disease_density.isnull()].fillna(0.)
         betas.append(beta_variant)
 
         beta_fit += beta_variant / parameter_df[f'kappa_{variant_name}'] * infectious_variant
-
     beta_fit /= total_infectious
     betas = pd.concat([beta_fit.rename('beta')] + betas, axis=1)
+    betas.loc[betas.beta.isnull(), :] = np.nan
 
     return betas, full_compartments
