@@ -1,4 +1,6 @@
+import functools
 import itertools
+import multiprocessing
 from typing import Tuple
 import time
 
@@ -33,56 +35,67 @@ def run_ode_model(initial_condition: pd.DataFrame,
     # Ensure data frame column labeling is consistent with expected index ordering.
     initial_condition = _sort_columns(initial_condition)
     location_ids = initial_condition.reset_index().location_id.unique().tolist()
-    compartments = []
     start = time.time()
-    for location_id in tqdm.tqdm(location_ids[:25]):
-        loc_initial_condition = initial_condition.loc[location_id]
-        loc_parameters = parameter_df.loc[location_id]
+    ics_and_params = [(location_id, initial_condition.loc[location_id], parameter_df.loc[location_id])
+                      for location_id in location_ids[25]]
 
-        new_e_dates = loc_initial_condition[loc_initial_condition.filter(like='NewE').sum(axis=1) > 0].reset_index().date
-        invasion_date = new_e_dates.min()
-        ode_start_date = new_e_dates.max()
-
-        t0 = (ode_start_date - invasion_date).days
-        if forecast:
-            assert t0 > 0
-        else:
-            assert t0 == 0
-
-        dates = loc_initial_condition.reset_index().date
-        t = (dates - invasion_date).dt.days.values
-        y = loc_initial_condition.to_numpy()
-        params = loc_parameters.to_numpy()
-        # Split the daily "date" axis into chunks of width dt and interpolate
-        # the compartments and parameters over the new time points.
-        t_solve, y_solve, p_solve = _interpolate(t0, t, y, params, forecast, dt)
-
-        # TODO: Replace with real distributions
-        natural_dist = _sample_dist(_get_waning_dist(0, 90, 1500), t_solve) / dt
-        vaccine_dist = _sample_dist(_get_waning_dist(0, 180, 3000), t_solve) / dt
-
-        system = forecast_system if forecast else fit_system
-        y_solve = _rk45_dde(
-            system,
-            t0,
-            t_solve,
-            y_solve,
-            p_solve,
-            vaccine_dist,
-            natural_dist,
-            dt,
-        )
-        
-        loc_compartments = pd.DataFrame(_uninterpolate(y_solve, t_solve, t),
-                                        columns=loc_initial_condition.columns,
-                                        index=loc_initial_condition.index)
-        loc_compartments['location_id'] = location_id
-        compartments.append(loc_compartments)
-    
+    _runner = functools.partial(
+        _run_loc_ode_model,
+        dt=dt,
+        forecast=forecast,
+    )
+    with multiprocessing.Pool(7) as pool:
+        compartments = list(tqdm.tqdm(pool.imap(_runner, ics_and_params), total=len(location_ids)))
 
     compartments = pd.concat(compartments).reset_index().set_index(['location_id', 'date']).sort_index()
     print("Duration: ", time.time() - start, " seconds")
     return compartments
+
+
+def _run_loc_ode_model(ic_and_params: Tuple[int, pd.DataFrame, pd.DataFrame],
+                       dt: float,
+                       forecast: bool):
+    location_id, initial_condition, parameters = ic_and_params
+
+    new_e_dates = initial_condition[initial_condition.filter(like='NewE').sum(axis=1) > 0].reset_index().date
+    invasion_date = new_e_dates.min()
+    ode_start_date = new_e_dates.max()
+
+    t0 = (ode_start_date - invasion_date).days
+    if forecast:
+        assert t0 > 0
+    else:
+        assert t0 == 0
+
+    dates = initial_condition.reset_index().date
+    t = (dates - invasion_date).dt.days.values
+    y = initial_condition.to_numpy()
+    params = parameters.to_numpy()
+    # Split the daily "date" axis into chunks of width dt and interpolate
+    # the compartments and parameters over the new time points.
+    t_solve, y_solve, p_solve = _interpolate(t0, t, y, params, forecast, dt)
+
+    # TODO: Replace with real distributions
+    natural_dist = _sample_dist(_get_waning_dist(0, 90, 1500), t_solve) / dt
+    vaccine_dist = _sample_dist(_get_waning_dist(0, 180, 3000), t_solve) / dt
+
+    system = forecast_system if forecast else fit_system
+    y_solve = _rk45_dde(
+        system,
+        t0,
+        t_solve,
+        y_solve,
+        p_solve,
+        vaccine_dist,
+        natural_dist,
+        dt,
+    )
+
+    loc_compartments = pd.DataFrame(_uninterpolate(y_solve, t_solve, t),
+                                    columns=initial_condition.columns,
+                                    index=initial_condition.index)
+    loc_compartments['location_id'] = location_id
+    return loc_compartments
 
 
 def _sort_columns(initial_condition: pd.DataFrame) -> pd.DataFrame:    
