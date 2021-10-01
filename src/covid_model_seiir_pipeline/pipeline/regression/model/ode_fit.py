@@ -1,21 +1,23 @@
 import itertools
-from typing import Dict, List, Tuple
+from typing import Dict, List
 
 import numpy as np
 import pandas as pd
-import tqdm
 
-from covid_model_seiir_pipeline.lib import (
-    math,
-)
 from covid_model_seiir_pipeline.lib.ode_mk2.containers import (
     Parameters,
 )
 from covid_model_seiir_pipeline.lib.ode_mk2.constants import (
+    VARIANT,
     VARIANT_NAMES,
     RISK_GROUP_NAMES,
     COMPARTMENTS_NAMES,
     TRACKING_COMPARTMENTS_NAMES,
+    CG_SUSCEPTIBLE,
+    CG_INFECTIOUS,
+)
+from covid_model_seiir_pipeline.lib.ode_mk2 import (
+    solver,
 )
 
 
@@ -133,99 +135,41 @@ def filter_to_epi_threshold(infections: pd.Series,
     return infections.loc[start_date:]
 
 
-def run_ode_fit(start_dates: pd.Series,
-                initial_condition: pd.DataFrame,
-                ode_parameters: Parameters,):
-    past_index = ode_parameters.new_e.index
+def run_ode_fit(initial_condition: pd.DataFrame, ode_parameters: Parameters):
+    system_size = len(initial_condition.columns) // len(RISK_GROUP_NAMES)
+    parameter_df = ode_parameters.to_df()
+    full_compartments = solver.run_ode_model(initial_condition, parameter_df, forecast=False)
+    betas = []
+    all_compartments = [f"{c}_{rg}" for c, rg in itertools.product(COMPARTMENTS_NAMES, RISK_GROUP_NAMES)]
+    population = full_compartments.loc[:, all_compartments].sum(axis=1)
 
+    total_infectious = 0.
+    beta_fit = 0.
 
+    for variant_name, variant_index in VARIANT._asdict().items():
+        new_e_variant = (full_compartments
+                         .filter(like=f'NewE_{variant_name}')
+                         .sum(axis=1)
+                         .groupby('location_id')
+                         .diff()
+                         .fillna(0))
 
-def run_ode_fit(ode_parameters: Parameters,
-                progress_bar: bool) -> Tuple[pd.DataFrame, pd.DataFrame]:
-    fit_results = []
-    bad_locations = []
-    ode_parameter_list = tqdm.tqdm(list(ode_parameters), disable=not progress_bar)
-    for location_id, location_params in ode_parameter_list:
-        try:
-            loc_fit_results = run_loc_ode_fit(location_params)
-            loc_fit_results['location_id'] = location_id
-            loc_fit_results = loc_fit_results.set_index(['location_id', 'date'])
-            fit_results.append(loc_fit_results)
-        except ValueError:
-            bad_locations.append(location_id)
-    if bad_locations:
-        raise ValueError(f'Locations {bad_locations} produced negative betas in the ODE fit. These locations likely '
-                         f'have more than 100% cumulative infected individuals and need to be dropped.')
+        variant_indices = CG_SUSCEPTIBLE(variant_index)
+        variant_indices = np.hstack([variant_indices, variant_indices + system_size]).tolist()
+        susceptible_variant = full_compartments.iloc[:, variant_indices].sum(axis=1)
 
-    fit_results = pd.concat(fit_results).sort_index()
-    return fit_results[['beta', 'beta_wild', 'beta_variant']], fit_results[[c for c in fit_results if 'beta' not in c]]
+        variant_indices = CG_INFECTIOUS(variant_index)
+        variant_indices = np.hstack([variant_indices, variant_indices + system_size]).tolist()
+        infectious_variant = full_compartments.iloc[:, variant_indices].sum(axis=1)
+        total_infectious += infectious_variant
 
+        disease_density = susceptible_variant * infectious_variant**ode_parameters.alpha / population
+        beta_variant = (new_e_variant / disease_density).rename(f'beta_{variant_name}')
+        betas.append(beta_variant)
 
-def run_loc_ode_fit(ode_parameters: Parameters) -> pd.DataFrame:
-    date = pd.Series(infections.index.values)
-    t = (date - date.min()).dt.days.values
-    obs = infections.values
+        beta_fit += beta_variant / parameter_df[f'kappa_{variant_name}'] * infectious_variant
 
+    beta_fit /= total_infectious
+    betas = pd.concat([beta_fit.rename('beta')] + betas, axis=1)
 
-
-
-
-
-    params = np.hstack(params).T
-
-    result = math.solve_ode(
-        system=ode.fit_system,
-        t=t,
-        init_cond=initial_condition,
-        params=params,
-    )
-    components = pd.DataFrame(
-        data=result.T,
-        columns=[f'{compartment}_{risk_group}'
-                 for risk_group, compartment in itertools.product(pop_groups, all_compartments)],
-    )
-    components['date'] = date
-    components = components.set_index('date')
-
-    new_e_wild = components.filter(like='NewE_wild').sum(axis=1)
-    new_e_variant = components.filter(like='NewE_variant').sum(axis=1)
-
-    s_wild_compartments = [f'{c}_{r}' for c, r in itertools.product(['S', 'S_u', 'S_p', 'S_pa'], pop_groups)]
-    s_wild = components.loc[:, s_wild_compartments].sum(axis=1)
-    s_variant_compartments = [f'{c}_{r}' for c, r
-                              in itertools.product(['S_variant', 'S_variant_u', 'S_variant_pa', 'S_m'], pop_groups)]
-    s_variant_only = components.loc[:, s_variant_compartments].sum(axis=1)
-    s_variant = s_wild + s_variant_only
-    i_wild = components.loc[:, [c for c in components if c[0] == 'I' and 'variant' not in c]].sum(axis=1)
-    i_variant = components.loc[:, [c for c in components if c[0] == 'I' and 'variant' in c]].sum(axis=1)
-
-    disease_density_wild = s_wild * i_wild**ode_parameters.alpha.values / pop
-    beta_wild = (new_e_wild.diff() / disease_density_wild).reindex(full_index)
-    disease_density_variant = s_variant * i_variant**ode_parameters.alpha.values / pop
-    beta_variant = (new_e_variant.diff() / disease_density_variant).reindex(full_index)
-
-    components = components.reindex(full_index, fill_value=0.)
-    for risk_group, group_pop in pop_groups.items():
-        components.loc[components[f'S_{risk_group}'] == 0, f'S_{risk_group}'] = group_pop
-
-    components['beta_wild'] = beta_wild
-    components['beta_variant'] = beta_variant
-
-    rho = ode_parameters.rho
-    rho_b1617 = ode_parameters.rho_b1617
-    kappa = ode_parameters.kappa
-    phi = ode_parameters.phi
-    psi = ode_parameters.psi
-    beta1 = beta_wild / (1 + kappa * rho)
-    beta2 = beta_variant / (1 + kappa * (phi * (1 - rho_b1617) + rho_b1617 * psi))
-    components['beta'] = (i_wild * beta1 + (i_variant * beta2).fillna(0)) / (i_wild + i_variant)
-    if np.any(components['beta'] < 0):
-        raise ValueError('Negative betas found in the fit results. Check that cumulative '
-                         'infected does not exceed 100% of the population.')
-    return components.reset_index()
-
-
-
-
-
-
+    return betas, full_compartments

@@ -51,15 +51,15 @@ def run_beta_regression(regression_version: str, draw_id: int, progress_bar: boo
         sampled_params,
     )
 
-    start_date, initial_condition = model.make_initial_condition(
+    initial_condition = model.make_initial_condition(
         ode_parameters,
         population,
     )
 
     logger.info('Running ODE fit', context='compute_ode')
-    beta_fit, compartments = model.run_ode_fit(
+    betas, compartments = model.run_ode_fit(
+        initial_condition=initial_condition,
         ode_parameters=ode_parameters,
-        progress_bar=progress_bar,
     )
 
     logger.info('Loading regression input data', context='read')
@@ -71,7 +71,7 @@ def run_beta_regression(regression_version: str, draw_id: int, progress_bar: boo
 
     logger.info('Fitting beta regression', context='compute_regression')
     coefficients = model.run_beta_regression(
-        beta_fit['beta'],
+        betas['beta'],
         covariates,
         regression_specification.covariates.values(),
         gaussian_priors,
@@ -83,7 +83,7 @@ def run_beta_regression(regression_version: str, draw_id: int, progress_bar: boo
 
     # Format and save data.
     logger.info('Prepping outputs', context='transform')
-    betas = pd.concat([beta_fit, beta_hat], axis=1).reindex(infections.index)
+    betas = pd.concat([betas, beta_hat], axis=1).reindex(infections.index)
     deaths = model.clean_infection_data_measure(past_infection_data, 'deaths')
     ode_parameters = ode_parameters.to_df()
 
