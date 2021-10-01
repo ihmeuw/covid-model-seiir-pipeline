@@ -31,21 +31,25 @@ SOLVER_DT: float = 0.1
 def run_ode_model(initial_condition: pd.DataFrame,
                   parameter_df: pd.DataFrame,
                   forecast: bool,
-                  dt: float = SOLVER_DT):
+                  dt: float = SOLVER_DT, 
+                  num_cores: int = 7):
     # Ensure data frame column labeling is consistent with expected index ordering.
     initial_condition = _sort_columns(initial_condition)
     location_ids = initial_condition.reset_index().location_id.unique().tolist()
     start = time.time()
     ics_and_params = [(location_id, initial_condition.loc[location_id], parameter_df.loc[location_id])
-                      for location_id in location_ids[25]]
+                      for location_id in location_ids[:200]]
 
     _runner = functools.partial(
         _run_loc_ode_model,
         dt=dt,
         forecast=forecast,
     )
-    with multiprocessing.Pool(7) as pool:
-        compartments = list(tqdm.tqdm(pool.imap(_runner, ics_and_params), total=len(location_ids)))
+    if num_cores == 1:
+        compartments = [_runner(data) for data in tqdm.tqdm(ics_and_params)]
+    else:
+        with multiprocessing.Pool(num_cores) as pool:
+            compartments = list(tqdm.tqdm(pool.imap(_runner, ics_and_params), total=len(ics_and_params)))
 
     compartments = pd.concat(compartments).reset_index().set_index(['location_id', 'date']).sort_index()
     print("Duration: ", time.time() - start, " seconds")
@@ -80,16 +84,19 @@ def _run_loc_ode_model(ic_and_params: Tuple[int, pd.DataFrame, pd.DataFrame],
     vaccine_dist = _sample_dist(_get_waning_dist(0, 180, 3000), t_solve) / dt
 
     system = forecast_system if forecast else fit_system
-    y_solve = _rk45_dde(
-        system,
-        t0,
-        t_solve,
-        y_solve,
-        p_solve,
-        vaccine_dist,
-        natural_dist,
-        dt,
-    )
+    try:
+        y_solve = _rk45_dde(
+            system,
+            t0,
+            t_solve,
+            y_solve,
+            p_solve,
+            vaccine_dist,
+            natural_dist,
+            dt,
+        )
+    except Exception:
+        print('Failure in ', location_id)
 
     loc_compartments = pd.DataFrame(_uninterpolate(y_solve, t_solve, t),
                                     columns=initial_condition.columns,
