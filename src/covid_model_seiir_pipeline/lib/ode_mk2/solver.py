@@ -38,7 +38,7 @@ def run_ode_model(initial_condition: pd.DataFrame,
     location_ids = initial_condition.reset_index().location_id.unique().tolist()
     start = time.time()
     ics_and_params = [(location_id, initial_condition.loc[location_id], parameter_df.loc[location_id])
-                      for location_id in location_ids[:200]]
+                      for location_id in location_ids]
 
     _runner = functools.partial(
         _run_loc_ode_model,
