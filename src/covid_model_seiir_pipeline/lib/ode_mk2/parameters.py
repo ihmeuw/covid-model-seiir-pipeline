@@ -2,31 +2,22 @@ import numba
 import numpy as np
 from typing import Tuple
 
-from covid_model_seiir_pipeline.lib import (
-    math,
-)
 from covid_model_seiir_pipeline.lib.ode_mk2.constants import (
-    # Base indexing tuples
     COMPARTMENT_TYPE,
-    # Indexing tuples
     RISK_GROUP,
-    BASE_COMPARTMENT,
-    BASE_PARAMETER,
-    VARIANT_PARAMETER,
     VARIANT,
     VARIANT_GROUP,
-    AGG_VACCINATION_STATUS,
-    AGG_OTHER,
-    # Indexing arrays
-    PARAMETERS,
+    VACCINE_STATUS,
+    COMPARTMENT,
+    BASE_PARAMETER,
+    VARIANT_PARAMETER,
+
     AGGREGATES,
-    # Compartment groups
-    CG_SUSCEPTIBLE,
-    CG_EXPOSED,
-    CG_INFECTIOUS,
-    CG_REMOVED,
-    CG_TOTAL,
-    # Debug flag
+    PARAMETERS,
+    PHI,
+    NEW_E,
+    COMPARTMENTS,
+
     DEBUG,
 )
 
@@ -34,26 +25,13 @@ from covid_model_seiir_pipeline.lib.ode_mk2.constants import (
 @numba.njit
 def make_aggregates(y: np.ndarray) -> np.ndarray:
     aggregates = np.zeros(AGGREGATES.max() + 1)
-    for group_y in np.split(y, len(RISK_GROUP)):        
-        
-        for compartment in BASE_COMPARTMENT:
-            if compartment == BASE_COMPARTMENT.S:
-                group = CG_SUSCEPTIBLE
-            elif compartment == BASE_COMPARTMENT.E:
-                group = CG_EXPOSED
-            elif compartment == BASE_COMPARTMENT.I:
-                group = CG_INFECTIOUS
-            else:
-                group = CG_REMOVED
-            
-            for variant in VARIANT:
-                aggregates[AGGREGATES[compartment, variant]] += group_y[group(variant)].sum()
-        
-        for vaccination_status in AGG_VACCINATION_STATUS:
-            n_vax_status = group_y[CG_TOTAL(vaccination_status)].sum()
-            aggregates[AGGREGATES[COMPARTMENT_TYPE.N, vaccination_status]] += n_vax_status
-            aggregates[AGGREGATES[COMPARTMENT_TYPE.N, AGG_OTHER.total]] += n_vax_status
-    
+    for group_y in np.split(y, len(RISK_GROUP)):
+        # Total population
+        aggregates[AGGREGATES[COMPARTMENT_TYPE.N, VARIANT_GROUP.total]] += group_y[:COMPARTMENTS.max() + 1].sum()
+        # Infectious by variant
+        for variant in VARIANT:
+            aggregates[AGGREGATES[COMPARTMENT.I, variant]] += group_y[COMPARTMENTS[COMPARTMENT.I, variant]].sum()
+
     if DEBUG:
         assert np.all(np.isfinite(aggregates))
 
@@ -61,42 +39,55 @@ def make_aggregates(y: np.ndarray) -> np.ndarray:
 
 
 @numba.njit
-def normalize_parameters(input_parameters: np.ndarray,
-                         aggregates: np.ndarray,
-                         forecast: bool) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
-    force_of_infection = np.zeros(max(VARIANT)+1)
+def make_new_e(t: float,
+               group_y: np.ndarray,
+               parameters: np.ndarray,
+               aggregates: np.ndarray,
+               phis: np.ndarray,
+               forecast: bool) -> Tuple[np.ndarray, np.ndarray]:
 
-    n_total = aggregates[AGGREGATES[COMPARTMENT_TYPE.N, AGG_OTHER.total]]
-    params = input_parameters[:PARAMETERS.max()+1]
-    vaccines = input_parameters[PARAMETERS.max()+1:]
-
-    alpha = input_parameters[PARAMETERS[BASE_PARAMETER.alpha, VARIANT_GROUP.all]]
+    n_total = aggregates[AGGREGATES[COMPARTMENT_TYPE.N, VARIANT_GROUP.total]]
+    alpha = parameters[PARAMETERS[BASE_PARAMETER.alpha, VARIANT_GROUP.all]]
+    new_e = np.zeros(NEW_E.max() + 1)
+    effective_susceptible = np.zeros(len(VARIANT) + 1)
 
     if forecast:
-        for variant in VARIANT:
-            beta = input_parameters[PARAMETERS[VARIANT_PARAMETER.beta, variant]]
-            infectious = aggregates[AGGREGATES[BASE_COMPARTMENT.I, variant]]
-            force_of_infection[variant] = beta * infectious**alpha / n_total
-    else:
-        new_e_total = input_parameters[PARAMETERS[BASE_PARAMETER.new_e, VARIANT_GROUP.all]]
-        total_weight = 0.
-        new_e = np.zeros(max(VARIANT)+1)
-        for variant in VARIANT:
-            kappa = input_parameters[PARAMETERS[VARIANT_PARAMETER.kappa, variant]]
-            susceptible = aggregates[AGGREGATES[BASE_COMPARTMENT.S, variant]]
-            infectious = aggregates[AGGREGATES[BASE_COMPARTMENT.I, variant]]
+        beta = parameters[PARAMETERS[VARIANT_PARAMETER.beta, VARIANT_GROUP.all]]
+        for variant_x in VARIANT:
+            infectious = aggregates[AGGREGATES[COMPARTMENT.I, variant_x]]**alpha
+            for vaccine_status in VACCINE_STATUS:
+                susceptible = group_y[COMPARTMENTS[COMPARTMENT.S, variant_x, vaccine_status]]
+                for variant_y in VARIANT:
+                    kappa = parameters[PARAMETERS[VARIANT_PARAMETER.kappa, variant_y]]
+                    eta = parameters[PARAMETERS[VARIANT_PARAMETER.eta, variant_y]]
+                    phi = phis[PHI[variant_y, variant_x]]
+                    s_effective = eta * phi * susceptible
+                    effective_susceptible[variant_y] += s_effective
+                    new_e[NEW_E[variant_x, variant_y, vaccine_status]] += (
+                        beta * kappa * s_effective * infectious / n_total
+                    )
 
-            variant_weight = kappa * susceptible * infectious**alpha
-            new_e[variant] = new_e_total * variant_weight
-            total_weight += variant_weight            
-        new_e /= total_weight        
-        for variant in VARIANT:
-            susceptible = aggregates[AGGREGATES[BASE_COMPARTMENT.S, variant]]
-            force_of_infection[variant] = math.safe_divide(new_e[variant], susceptible)            
+    else:
+        new_e_total = parameters[PARAMETERS[BASE_PARAMETER.new_e, VARIANT_GROUP.all]]
+        total_weight = 0.
+        for variant_x in VARIANT:
+            infectious = aggregates[AGGREGATES[COMPARTMENT.I, variant_x]] ** alpha
+            for vaccine_status in VACCINE_STATUS:
+                susceptible = group_y[COMPARTMENTS[COMPARTMENT.S, variant_x, vaccine_status]]
+                for variant_y in VARIANT:
+                    kappa = parameters[PARAMETERS[VARIANT_PARAMETER.kappa, variant_y]]
+                    eta = parameters[PARAMETERS[VARIANT_PARAMETER.eta, variant_y]]
+                    phi = phis[PHI[variant_y, variant_x]]
+                    s_effective = eta * phi * susceptible
+                    effective_susceptible[variant_y] += s_effective
+                    variant_weight = kappa * s_effective * infectious
+                    total_weight += variant_weight
+                    new_e[NEW_E[variant_x, variant_y, vaccine_status]] += (
+                        variant_weight * new_e_total
+                    )
+        new_e /= total_weight
 
     if DEBUG:
-        assert np.all(np.isfinite(params))
-        assert np.all(np.isfinite(vaccines))
-        assert np.all(np.isfinite(force_of_infection))
+        assert np.all(np.isfinite(new_e))
 
-    return params, vaccines, force_of_infection
+    return new_e, effective_susceptible

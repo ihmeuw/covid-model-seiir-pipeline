@@ -42,20 +42,18 @@ def make_ode_parameters() -> str:
     out += make_fields(SPECS['PARAMETERS']) + "\n"
 
     for risk_group in PRIMITIVE_TYPES['risk_group']:
-        out += make_fields(SPECS['VACCINATIONS'], 'vaccinations_', f'_{risk_group}')
+        out += f"{TAB}vaccinations_{risk_group}: pd.Series\n"
+        out += f"{TAB}boosters_{risk_group}: pd.Series\n"
+    out += '\n'
+
+    out += f"{TAB}iota: pd.DataFrame\n"
 
     out += """
     def to_dict(self) -> Dict[str, pd.Series]:
-        return {k: v.rename(k) for k, v in utilities.asdict(self).items()}
+        return {k: v.rename(k) for k, v in utilities.asdict(self).items() if k != 'iota'}
 
     def to_df(self) -> pd.DataFrame:
         return pd.concat(self.to_dict().values(), axis=1)
-
-    def reindex(self, index: pd.Index) -> 'Parameters':
-        # noinspection PyArgumentList
-        return type(self)(
-            **{key: value.reindex(index) for key, value in self.to_dict().items()}
-        )
     """
     return out
 

@@ -7,23 +7,17 @@ from covid_model_seiir_pipeline.lib import (
 from covid_model_seiir_pipeline.lib.ode_mk2.constants import (
     # Indexing tuples
     RISK_GROUP,
-    BASE_COMPARTMENT,
     BASE_PARAMETER,
     VARIANT,
     VARIANT_GROUP,
-    SUSCEPTIBLE_TYPE,
-    PROTECTION_STATUS,
-    IMMUNE_STATUS,
-    VACCINE_TYPE,
-    VACCINATION_STATUS,
-    REMOVED_VACCINATION_STATUS,
-    AGG_OTHER,
-    CG_SUSCEPTIBLE,
+    VACCINE_STATUS,
+    COMPARTMENT,
     # Indexing arrays
+    PARAMETERS,
+    NEW_E,
     COMPARTMENTS,
     TRACKING_COMPARTMENTS,
-    PARAMETERS,
-    AGGREGATES,
+
     # Debug flag
     DEBUG,
 )
@@ -31,7 +25,6 @@ from covid_model_seiir_pipeline.lib.ode_mk2 import (
     accounting,
     escape_variant,
     parameters,
-    vaccinations,
 )
 
 
@@ -46,13 +39,19 @@ def forecast_system(t: float, y: np.ndarray, waned: np.ndarray, input_parameters
 
 
 @numba.njit
-def _system(t: float, y: np.ndarray, waned: np.ndarray, input_parameters: np.ndarray, forecast: bool):    
+def _system(t: float,
+            y: np.ndarray,
+            input_parameters: np.ndarray,
+            phis: np.ndarray,
+            forecast: bool):
     aggregates = parameters.make_aggregates(y)
-    params, vaccines, force_of_infection = parameters.normalize_parameters(
-        input_parameters,
-        aggregates,
-        forecast,
-    )
+    params = input_parameters[:PARAMETERS.max()+1]
+    vaccines = input_parameters[PARAMETERS.max()+1:]
+
+    if DEBUG:
+        assert np.all(np.isfinite(aggregates))
+        assert np.all(np.isfinite(params))
+        assert np.all(np.isfinite(vaccines))
 
     dy = np.zeros_like(y)
     
@@ -60,18 +59,26 @@ def _system(t: float, y: np.ndarray, waned: np.ndarray, input_parameters: np.nda
     for i in range(len(RISK_GROUP)):
         group_start = i * system_size
         group_end = (i + 1) * system_size
-        group_vaccine_start = i * len(VACCINE_TYPE)
-        group_vaccine_end = (i + 1) * len(VACCINE_TYPE)
+        group_vaccine_start = i * 2
+        group_vaccine_end = (i + 1) * 2
 
         group_y = y[group_start:group_end]
         group_vaccines = vaccines[group_vaccine_start:group_vaccine_end]
 
+        new_e, effective_susceptible = parameters.make_new_e(
+            t,
+            group_y,
+            params,
+            aggregates,
+            phis,
+            forecast,
+        )
+
         group_dy = _single_group_system(
             t,
             group_y,
-            force_of_infection,
-            waned,
-            aggregates,
+            new_e,
+            effective_susceptible,
             params,
             group_vaccines,
         )
@@ -94,58 +101,42 @@ def _system(t: float, y: np.ndarray, waned: np.ndarray, input_parameters: np.nda
 @numba.njit
 def _single_group_system(t: float,
                          group_y: np.ndarray,
-                         force_of_infection: np.ndarray,
-                         waned: np.ndarray,
-                         aggregates: np.ndarray,
+                         new_e: np.ndarray,
+                         effective_susceptible: np.ndarray,
                          params: np.ndarray,
                          group_vaccines: np.ndarray):
-    
     transition_map = np.zeros((group_y.size, group_y.size))
-    vaccines_out = vaccinations.allocate(
-        t,
-        group_y,
-        group_vaccines,
-        force_of_infection,
-    )
 
-    transition_map = do_vaccination(
-        t,
-        vaccines_out,
-        transition_map,
-    )
-
-    r_total = 0.
-    for variant in VARIANT:
-        r_total += aggregates[AGGREGATES[BASE_COMPARTMENT.R, variant]]
     sigma = params[PARAMETERS[BASE_PARAMETER.sigma, VARIANT_GROUP.all]]
-    gamma = params[PARAMETERS[BASE_PARAMETER.gamma, VARIANT_GROUP.all]]
-    for variant in VARIANT:
-        transition_map = do_transmission(
-            t,
-            variant,
-            group_y,
-            sigma,
-            gamma,
-            force_of_infection[variant],
-            transition_map,
-        )
-        transition_map = do_natural_immunity_waning(
-            t,
-            variant,
-            group_y,
-            waned[0],
-            r_total,
-            transition_map,
-        )
+    gamma = params[PARAMETERS[BASE_PARAMETER.sigma, VARIANT_GROUP.all]]
 
-    immune_total = group_y[CG_SUSCEPTIBLE(AGG_OTHER.total)].sum() - group_y[CG_SUSCEPTIBLE(AGG_OTHER.non_immune)].sum()
-    transition_map = do_vaccine_immunity_waning(
-        t,
-        group_y,
-        waned[1],
-        immune_total,
-        transition_map,
-    )
+    vaccine_eligible = np.zeros(len(VACCINE_STATUS))
+    # Transmission
+    for vaccine_status in VACCINE_STATUS:
+        for variant_to in VARIANT:
+            e_idx = COMPARTMENTS[COMPARTMENT.E, variant_to, vaccine_status]
+            i_idx = COMPARTMENTS[COMPARTMENT.I, variant_to, vaccine_status]
+            s_to_idx = COMPARTMENTS[COMPARTMENT.S, variant_to, vaccine_status]
+
+            for variant_from in VARIANT:
+                s_from_idx = COMPARTMENTS[COMPARTMENT.S, variant_from, vaccine_status]
+                transition_map[s_from_idx, e_idx] += new_e[NEW_E[variant_from, variant_to, vaccine_status]]
+            transition_map[e_idx, i_idx] += sigma * group_y[e_idx]
+            transition_map[i_idx, s_to_idx] += gamma * group_y[i_idx]
+
+            vaccine_eligible[vaccine_status] += group_y[s_to_idx]
+
+    for vaccine_status in VACCINE_STATUS[:-1]:
+        for variant in VARIANT:
+            new_e_from_s = new_e[NEW_E[variant].flatten()].sum()
+            s_from_idx = COMPARTMENTS[COMPARTMENT.S, variant, vaccine_status]
+            s_to_idx = COMPARTMENTS[COMPARTMENT.S, variant, vaccine_status + 1]
+            expected_vaccines = (
+                math.safe_divide(group_y[s_from_idx], vaccine_eligible[vaccine_status])
+                * group_vaccines[vaccine_status]
+            )
+            to_vaccinate = min(expected_vaccines, group_y[s_from_idx] - new_e_from_s)
+            transition_map[s_from_idx, s_to_idx] += to_vaccinate
 
     inflow = transition_map.sum(axis=0)
     outflow = transition_map.sum(axis=1)
@@ -153,110 +144,15 @@ def _single_group_system(t: float,
 
     if DEBUG:
         assert np.all(np.isfinite(group_dy))
-        #assert np.all(group_y + group_dy >= -1e-7)
+        assert np.all(group_y + group_dy >= -1e-7)
         assert group_dy.sum() < 1e-5
        
     group_dy = accounting.compute_tracking_compartments(
         t, 
         group_dy,
+        new_e,
+        effective_susceptible,
         transition_map,
     )
 
     return group_dy
-
-
-@numba.njit
-def do_vaccination(
-    t: float,
-    vaccines_out: np.ndarray,
-    transition_map: np.ndarray,
-) -> np.ndarray:    
-    for vaccine_type in VACCINE_TYPE:
-
-        for current_status in PROTECTION_STATUS:
-            from_compartment = COMPARTMENTS[BASE_COMPARTMENT.S, current_status, VACCINATION_STATUS.unvaccinated]
-            to_compartment = COMPARTMENTS[BASE_COMPARTMENT.S, vaccine_type, VACCINATION_STATUS.vaccinated]
-            transition_map[from_compartment, to_compartment] += vaccines_out[from_compartment, vaccine_type]            
-
-        for variant in VARIANT:
-            from_compartment = COMPARTMENTS[BASE_COMPARTMENT.R, variant, REMOVED_VACCINATION_STATUS.unvaccinated]
-            if vaccine_type == VACCINE_TYPE.unprotected:
-                to_compartment = COMPARTMENTS[BASE_COMPARTMENT.R, variant, REMOVED_VACCINATION_STATUS.newly_vaccinated]
-            else:
-                to_compartment = COMPARTMENTS[BASE_COMPARTMENT.S, vaccine_type, VACCINATION_STATUS.vaccinated]
-            transition_map[from_compartment, to_compartment] += vaccines_out[from_compartment, vaccine_type]            
-    return transition_map
-
-
-@numba.njit
-def do_transmission(
-    t: float,
-    variant: int,
-    group_y: np.ndarray,
-    sigma: float,
-    gamma: float,
-    force_of_infection: float,
-    transition_map: np.ndarray,
-) -> np.ndarray:        
-    for vaccination_status in VACCINATION_STATUS:
-        e_idx = COMPARTMENTS[BASE_COMPARTMENT.E, variant, vaccination_status]
-        i_idx = COMPARTMENTS[BASE_COMPARTMENT.I, variant, vaccination_status]
-        r_idx = COMPARTMENTS[BASE_COMPARTMENT.R, variant, vaccination_status]
-
-        for susceptible_type in SUSCEPTIBLE_TYPE:
-            s_idx = COMPARTMENTS[BASE_COMPARTMENT.S, susceptible_type, vaccination_status]
-            if s_idx in CG_SUSCEPTIBLE(variant):
-                transition_map[s_idx, e_idx] = group_y[s_idx] * force_of_infection
-
-        transition_map[e_idx, i_idx] = sigma * group_y[e_idx]
-        transition_map[i_idx, r_idx] = gamma * group_y[i_idx]
-    return transition_map
-
-
-@numba.njit
-def do_natural_immunity_waning(
-    t: float,
-    variant: str,
-    group_y: np.ndarray,
-    natural_immunity_waned: float,
-    r_total: float,
-    transition_map: np.ndarray,
-) -> np.ndarray:
-
-    total_waned = 0.
-    for vaccination_status in REMOVED_VACCINATION_STATUS:
-        from_index = COMPARTMENTS[BASE_COMPARTMENT.R, variant, vaccination_status]
-        waned = math.safe_divide(group_y[from_index], r_total) * natural_immunity_waned
-        waned = min(waned, group_y[from_index])
-        total_waned += waned
-
-        # TODO: make a parameter
-        protection_fraction = 1 / len(PROTECTION_STATUS)
-
-        for protection_status in PROTECTION_STATUS:
-            s_vaccination_status = min(VACCINATION_STATUS.vaccinated, vaccination_status)
-            s_idx = COMPARTMENTS[BASE_COMPARTMENT.S, protection_status, s_vaccination_status]
-            transition_map[from_index, s_idx] = protection_fraction * waned            
-
-    return transition_map
-
-
-@numba.njit
-def do_vaccine_immunity_waning(
-    t: float,
-    group_y: np.ndarray,
-    vaccine_immunity_waned: float,
-    vaccine_immune: float,
-    transition_map: np.ndarray,
-) -> np.ndarray:
-    for immunity_status in IMMUNE_STATUS:
-        from_index = COMPARTMENTS[BASE_COMPARTMENT.S, immunity_status, VACCINATION_STATUS.vaccinated]
-        waned = math.safe_divide(group_y[from_index], vaccine_immune) * vaccine_immunity_waned
-
-        # TODO: make a parameter
-        protection_fraction = 1 / len(PROTECTION_STATUS)
-
-        for protection_status in PROTECTION_STATUS:
-            to_index = COMPARTMENTS[BASE_COMPARTMENT.S, protection_status, VACCINATION_STATUS.vaccinated]
-            transition_map[from_index, to_index] = protection_fraction * waned
-    return transition_map
