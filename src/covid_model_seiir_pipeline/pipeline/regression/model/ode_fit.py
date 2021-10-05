@@ -13,8 +13,6 @@ from covid_model_seiir_pipeline.lib.ode_mk2.constants import (
     RISK_GROUP_NAMES,
     COMPARTMENTS_NAMES,
     TRACKING_COMPARTMENTS_NAMES,
-    CG_SUSCEPTIBLE,
-    CG_INFECTIOUS,
 )
 from covid_model_seiir_pipeline.lib.ode_mk2 import (
     solver,
@@ -28,7 +26,6 @@ def prepare_ode_fit_parameters(past_infections: pd.Series,
     past_index = past_infections.index
     rhos = rhos.reindex(past_index, fill_value=0.).to_dict('series')
     betas = {f'beta_{variant}': pd.Series(-1, index=past_index, name=f'beta_{variant}') for variant in VARIANT_NAMES}
-    vaccinations = vaccinations.reindex(past_index, fill_value=0.).to_dict('series')
 
     return Parameters(
         **sampled_params,

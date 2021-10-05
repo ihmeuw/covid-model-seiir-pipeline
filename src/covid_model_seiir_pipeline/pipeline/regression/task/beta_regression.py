@@ -10,7 +10,7 @@ from covid_model_seiir_pipeline.lib import (
     static_vars,
 )
 from covid_model_seiir_pipeline.lib.ode_mk2.constants import (
-    VARIANT,
+    VARIANT_NAMES,
 )
 from covid_model_seiir_pipeline.pipeline.regression.data import RegressionDataInterface
 from covid_model_seiir_pipeline.pipeline.regression.specification import RegressionSpecification
@@ -41,7 +41,10 @@ def run_beta_regression(regression_version: str, draw_id: int, progress_bar: boo
     np.random.seed(draw_id)
     sampled_params = model.sample_params(
         infections.index, regression_params,
-        params_to_sample=['alpha', 'sigma', 'gamma', 'pi'] + [f'kappa_{v}' for v in VARIANT._asdict()]
+        params_to_sample=['alpha', 'sigma', 'gamma', 'pi'] + [f'kappa_{v}' for v in VARIANT_NAMES]
+    )
+    etas, total_vaccinations = model.prepare_etas_and_vaccinations(
+        vaccinations,
     )
 
     ode_parameters = model.prepare_ode_fit_parameters(
