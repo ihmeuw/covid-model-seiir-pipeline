@@ -314,6 +314,8 @@ class RegressionDataInterface:
             infection_to_death=int(ifr.duration.max()),
             infection_to_admission=int(ihr.duration.max()),
             infection_to_case=int(idr.duration.max()),
+            ifr_scalar=ifr.variant_risk_ratio.max(),
+            ihr_scalar=ihr.variant_risk_ratio.max(),
             ifr=ifr.ifr,
             ifr_hr=ifr.ifr_hr,
             ifr_lr=ifr.ifr_lr,
@@ -324,8 +326,10 @@ class RegressionDataInterface:
     def format_ratio_data(self, ratio_data: pd.DataFrame) -> pd.DataFrame:
         location_ids = self.load_location_ids()
         ratio_data = ratio_data.loc[location_ids]
+        additional_cols = [c for c in ['duration', 'variant_risk_ratio'] if c in ratio_data.columns]        
         col_map = {c: c.split('_draw')[0] for c in ratio_data.columns if '_draw' in c}
-        ratio_data = ratio_data.loc[:, ['duration'] + list(col_map)].rename(columns=col_map)
+        
+        ratio_data = ratio_data.loc[:, additional_cols + list(col_map)].rename(columns=col_map)
         return ratio_data
 
     ##########################
