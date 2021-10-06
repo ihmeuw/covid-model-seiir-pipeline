@@ -9,6 +9,5 @@ def make_ratio(numerator: pd.DataFrame, denominator: pd.DataFrame, duration: pd.
         for draw in numerator.columns:      
             draw_duration = duration[draw].max()
             out.append(numerator[draw] / denominator[draw].groupby('location_id').shift(draw_duration))
-        import pdb; pdb.set_trace()
         out = pd.concat(out, axis=1)
         return out
