@@ -293,12 +293,17 @@ class RegressionDataInterface:
             denom = total_pop - immune
             target_denom = total_pop - immune - protected
             ifr[f'ifr_{risk_group}'] *= (denom / target_denom).reindex(ifr.index).fillna(1.0)
+        if 'variant_risk_ratio' not in ifr.columns:
+            ifr['variant_risk_ratio'] = 1.29
 
         return ifr
 
     def load_ihr(self, draw_id: int) -> pd.DataFrame:
         ihr = io.load(self.infection_root.ihr(draw_id=draw_id))
         ihr = self.format_ratio_data(ihr)
+        if 'variant_risk_ratio' not in ihr.columns:
+            ihr['variant_risk_ratio'] = 1.29
+
         return ihr
 
     def load_idr(self, draw_id: int) -> pd.DataFrame:
