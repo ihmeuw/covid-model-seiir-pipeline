@@ -21,6 +21,7 @@ regression_parameters:
   # Proportion of current E to send to variant E on invasion.
   pi: [ 0.01, 0.1 ]
   # proportion increase in transmission intensity
+  kappa_none: 0.0
   kappa_ancestral: 1.0
   kappa_alpha: 1.0
   kappa_beta: 1.0

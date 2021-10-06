@@ -72,6 +72,7 @@ class RegressionParameters:
     gamma: Sampleable = field(default=(0.2, 1/3))
     pi: Sampleable = field(default=(0.01, 0.1))
 
+    kappa_none: Sampleable = field(default=0.0)
     kappa_ancestral: Sampleable = field(default=1.0)
     kappa_alpha: Sampleable = field(default=1.0)
     kappa_beta: Sampleable = field(default=1.0)

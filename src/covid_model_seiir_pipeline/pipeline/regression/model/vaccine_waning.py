@@ -1,6 +1,7 @@
 import numba
 import numpy as np
 import pandas as pd
+import tqdm
 
 from covid_model_seiir_pipeline.lib.ode_mk2.constants import (
     RISK_GROUP_NAMES,
@@ -8,14 +9,29 @@ from covid_model_seiir_pipeline.lib.ode_mk2.constants import (
 )
 
 
-def prepare_etas_and_vaccinations(vaccinations: pd.DataFrame):
+def prepare_etas_and_vaccinations(past_infections: pd.Series,
+                                  vaccinations: pd.DataFrame):    
+    inf_start_date = past_infections.reset_index().groupby('location_id').date.min()
+    vac_start_date = vaccinations.reset_index().groupby('location_id').date.min() - pd.Timedelta(days=1)
+    prepend_index = pd.concat([inf_start_date, vac_start_date]).reset_index().set_index(['location_id', 'date']).index
+    prepend = (pd.DataFrame(0., columns=vaccinations.columns, index=prepend_index)
+               .sort_index()
+               .groupby('location_id')
+               .apply(lambda x: x.reset_index('location_id', drop=True).asfreq('D'))
+               .fillna(0.))
+    vaccinations = pd.concat([prepend, vaccinations]).sort_index()
     total_vaccinations, efficacy = get_total_vaccinations_and_efficacy(vaccinations)
-    waning_dist = build_waning_dist(efficacy)
-    etas = compute_eta(total_vaccinations, efficacy, waning_dist)
+    efficacy = remap_efficacy(efficacy)
+    waning = build_waning_dist(efficacy)
+    etas = compute_eta(total_vaccinations, efficacy, waning)
 
-    # TODO: pivot wide
+    etas, waning, total_vaccinations = map(pivot_risk_group, [etas, waning, total_vaccinations])
+    
+    
+    
+    etas_immune = etas[[c for c in etas.columns if 'immune'
 
-    return etas, vaccinations
+    return etas, waning, total_vaccinations
 
 
 def get_total_vaccinations_and_efficacy(vaccinations: pd.DataFrame):
@@ -30,13 +46,13 @@ def get_total_vaccinations_and_efficacy(vaccinations: pd.DataFrame):
         total_vaccinations = df.sum(axis=1).rename(f'vaccinations')
         eps = []
         for i, eps_type in enumerate(ordered_efficacy_cols):
-            cols = [f'vaccinations_{efficacy}' for efficacy in ordered_efficacy_cols[:i + 1]]
-            eps.append((df[cols].sum(axis=1) / vaccinations).fillna(0).rename(f'{eps_type}'))
+            cols = [f'vaccinations_{efficacy}_{risk_group}' for efficacy in ordered_efficacy_cols[:i + 1]]
+            eps.append((df[cols].sum(axis=1) / total_vaccinations).fillna(0).rename(f'{eps_type}'))
         eps = pd.concat(eps, axis=1)
         v.append(total_vaccinations)
         e.append(eps)
 
-    return pd.concat(v, axis=1), pd.concat(e, axis=1)
+    return pd.concat(v), pd.concat(e)
 
 
 def remap_efficacy(efficacy: pd.DataFrame) -> pd.DataFrame:
@@ -50,7 +66,7 @@ def remap_efficacy(efficacy: pd.DataFrame) -> pd.DataFrame:
         'other': 'escape',
         'omega': 'omega',
     }
-    assert set(variant_mapping).add('none') == set(VARIANT_NAMES)
+    assert set(variant_mapping) | {'none'} == set(VARIANT_NAMES)
 
     final_cols = []
     for variant, variant_group in variant_mapping.items():
@@ -65,6 +81,7 @@ def remap_efficacy(efficacy: pd.DataFrame) -> pd.DataFrame:
 
 
 def build_waning_dist(efficacy: pd.DataFrame):
+    efficacy = convert_date_index_to_time_index(efficacy)
     fast = (0.5, 180, 0.1, 720)
     # moderate = (0.7, 180, 0.5, 720)
     # slow = (1.0, 180, 0.8, 720)
@@ -83,6 +100,28 @@ def build_waning_dist(efficacy: pd.DataFrame):
     return waning
 
 
+def compute_eta(total_vaccinations, efficacy, waning):
+    ve = efficacy.mul(total_vaccinations, axis=0)
+    eta = ve.copy()
+    for location_id in tqdm.tqdm(ve.reset_index().location_id.unique()):
+        for risk_group in ['hr', 'lr']:
+            idx = (location_id, risk_group)
+            eta.loc[idx] = _compute_eta(
+                total_vaccinations.loc[idx].values,
+                ve.loc[idx].values,
+                waning.loc[idx].values,
+            )
+    return eta.groupby(['location_id', 'risk_group']).bfill()
+
+
+@numba.njit
+def _compute_eta(v, ve, w):
+    eta = np.zeros(ve.shape)
+    for t in range(1, v.size + 1):
+        eta[t - 1] = (ve[:t][::-1] * w[:t]).sum(axis=0) / v[:t].sum()
+    return eta
+
+
 def convert_date_index_to_time_index(data):
     data = data.sort_index()
     original_index = data.index
@@ -97,26 +136,13 @@ def convert_date_index_to_time_index(data):
     data = data.set_index(new_idx_cols).drop(columns='date')
     if is_series:
         data = data.iloc[:, 0]
-    return data, original_index
+    return data
 
 
-def compute_eta(total_vaccinations, efficacy, waning):
-    ve = efficacy.mul(total_vaccinations, axis=0)
-    eta = ve.copy()
-    for location_id in ve.reset_index().location_id.unique():
-        for risk_group in ['hr', 'lr']:
-            idx = (location_id, risk_group)
-            eta.loc[idx] = _compute_eta(
-                total_vaccinations.loc[idx].values,
-                ve.loc[idx].values,
-                waning.loc[idx].values,
-            )
-    return eta
-
-
-@numba.njit
-def _compute_eta(v, ve, w):
-    eta = np.zeros(ve.shape)
-    for t in range(1, v.size + 1):
-        eta[t - 1] = (ve[:t][::-1] * w[:t]).sum(axis=0) / v[:t].sum()
-    return eta
+def pivot_risk_group(data):
+    if isinstance(data, pd.Series):
+        data = data.to_frame()
+    new_levels = [n for n in data.index.names if n != 'risk_group'] + ['risk_group']
+    data = data.reorder_levels(new_levels).sort_index().unstack()
+    data.columns = ['_'.join(levels) for levels in data.columns]
+    return data
