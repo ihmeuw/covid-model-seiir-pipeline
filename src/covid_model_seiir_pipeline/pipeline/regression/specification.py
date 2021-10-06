@@ -54,7 +54,7 @@ class RegressionData:
     drop_locations: list = field(default_factory=list)
 
     def __post_init__(self):
-        self.run_counties = self.location_set_version_id == 841
+        self.run_counties = self.location_set_version_id in [841, 920]
 
     def to_dict(self) -> Dict:
         """Converts to a dict, coercing list-like items to lists."""
