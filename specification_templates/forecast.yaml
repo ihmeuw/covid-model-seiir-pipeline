@@ -1,6 +1,6 @@
 data:
-  regression_version: '2021_09_22.06'
-  covariate_version: '2021_09_14.01'
+  regression_version: '2021_10_06.05'
+  covariate_version: '2021_10_06.03'
   output_root: ''
   output_format: 'parquet'
 workflow:
@@ -31,31 +31,7 @@ scenarios:
       lri_mortality: 'reference'
       proportion_under_100m: 'reference'
       proportion_over_2_5k: 'reference'
-  worse:
-    algorithm: 'draw_level_mandate_reimposition'
-    algorithm_params:
-      death_threshold: 15  # per million
-      max_threshold: 38 # per million
-      reimposition_duration: 6 # weeks
-      minimum_delay: 7 # days
-    beta_scaling:
-      window_size: 42
-      average_over_min: 7
-      average_over_max: 42
-    vaccine_version: 'reference'
-    variant_version: 'worse'
-    variant_ifr_scale: 1.29
-    covariates:
-      pneumonia: 'reference'
-      mobility: 'worse'
-      mask_use: 'worse'
-      testing: 'reference'
-      air_pollution_pm_2_5: 'reference'
-      smoking_prevalence: 'reference'
-      lri_mortality: 'reference'
-      proportion_under_100m: 'reference'
-      proportion_over_2_5k: 'reference'
-  no_vaccine:
+  santa_early:
     algorithm: 'draw_level_mandate_reimposition'
     algorithm_params:
       death_threshold: 8  # per million
@@ -66,7 +42,7 @@ scenarios:
       window_size: 42
       average_over_min: 7
       average_over_max: 42
-    vaccine_version: 'none'
+    vaccine_version: 'santa_early'
     variant_version: 'reference'
     variant_ifr_scale: 1.29
     covariates:
@@ -79,7 +55,7 @@ scenarios:
       lri_mortality: 'reference'
       proportion_under_100m: 'reference'
       proportion_over_2_5k: 'reference'
-  best_masks:
+  santa_mid:
     algorithm: 'draw_level_mandate_reimposition'
     algorithm_params:
       death_threshold: 8  # per million
@@ -90,13 +66,109 @@ scenarios:
       window_size: 42
       average_over_min: 7
       average_over_max: 42
-    vaccine_version: 'reference'
+    vaccine_version: 'santa_mid'
     variant_version: 'reference'
     variant_ifr_scale: 1.29
     covariates:
       pneumonia: 'reference'
       mobility: 'reference'
-      mask_use: 'best'
+      mask_use: 'reference'
+      testing: 'reference'
+      air_pollution_pm_2_5: 'reference'
+      smoking_prevalence: 'reference'
+      lri_mortality: 'reference'
+      proportion_under_100m: 'reference'
+      proportion_over_2_5k: 'reference'
+  santa_late:
+    algorithm: 'draw_level_mandate_reimposition'
+    algorithm_params:
+      death_threshold: 8  # per million
+      max_threshold: 15 # per million
+      reimposition_duration: 6 # weeks
+      minimum_delay: 7 # days
+    beta_scaling:
+      window_size: 42
+      average_over_min: 7
+      average_over_max: 42
+    vaccine_version: 'santa_late'
+    variant_version: 'reference'
+    variant_ifr_scale: 1.29
+    covariates:
+      pneumonia: 'reference'
+      mobility: 'reference'
+      mask_use: 'reference'
+      testing: 'reference'
+      air_pollution_pm_2_5: 'reference'
+      smoking_prevalence: 'reference'
+      lri_mortality: 'reference'
+      proportion_under_100m: 'reference'
+      proportion_over_2_5k: 'reference'
+  super_santa_early:
+    algorithm: 'draw_level_mandate_reimposition'
+    algorithm_params:
+      death_threshold: 8  # per million
+      max_threshold: 15 # per million
+      reimposition_duration: 6 # weeks
+      minimum_delay: 7 # days
+    beta_scaling:
+      window_size: 42
+      average_over_min: 7
+      average_over_max: 42
+    vaccine_version: 'super_santa_early'
+    variant_version: 'reference'
+    variant_ifr_scale: 1.29
+    covariates:
+      pneumonia: 'reference'
+      mobility: 'reference'
+      mask_use: 'reference'
+      testing: 'reference'
+      air_pollution_pm_2_5: 'reference'
+      smoking_prevalence: 'reference'
+      lri_mortality: 'reference'
+      proportion_under_100m: 'reference'
+      proportion_over_2_5k: 'reference'
+  super_santa_mid:
+    algorithm: 'draw_level_mandate_reimposition'
+    algorithm_params:
+      death_threshold: 8  # per million
+      max_threshold: 15 # per million
+      reimposition_duration: 6 # weeks
+      minimum_delay: 7 # days
+    beta_scaling:
+      window_size: 42
+      average_over_min: 7
+      average_over_max: 42
+    vaccine_version: 'super_santa_mid'
+    variant_version: 'reference'
+    variant_ifr_scale: 1.29
+    covariates:
+      pneumonia: 'reference'
+      mobility: 'reference'
+      mask_use: 'reference'
+      testing: 'reference'
+      air_pollution_pm_2_5: 'reference'
+      smoking_prevalence: 'reference'
+      lri_mortality: 'reference'
+      proportion_under_100m: 'reference'
+      proportion_over_2_5k: 'reference'
+  super_santa_late:
+    algorithm: 'draw_level_mandate_reimposition'
+    algorithm_params:
+      death_threshold: 8  # per million
+      max_threshold: 15 # per million
+      reimposition_duration: 6 # weeks
+      minimum_delay: 7 # days
+    beta_scaling:
+      window_size: 42
+      average_over_min: 7
+      average_over_max: 42
+    vaccine_version: 'super_santa_late'
+    variant_version: 'reference'
+    variant_ifr_scale: 1.29
+    covariates:
+      pneumonia: 'reference'
+      mobility: 'reference'
+      mask_use: 'reference'
       testing: 'reference'
       air_pollution_pm_2_5: 'reference'
       smoking_prevalence: 'reference'
