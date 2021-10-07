@@ -25,6 +25,8 @@ def make_imports() -> str:
     out += utils.make_import('pandas as pd') + '\n'
 
     out += utils.make_import('covid_model_seiir_pipeline.lib', ['utilities'])
+    out += utils.make_import('covid_model_seiir_pipeline.lib.ode_mk2.constants',
+                             ['PARAMETERS_NAMES', 'ETA_NAMES', 'PHI_NAMES'])
     return out + '\n'
 
 
@@ -57,14 +59,20 @@ def make_ode_parameters() -> str:
         for to_variant in DERIVED_TYPES['variant'][1]:
             out += f"{TAB}phi_{from_variant}_{to_variant}: pd.Series\n"
 
-    out += '\n'
-
     out += """
-    def to_dict(self) -> Dict[str, pd.Series]:
-        return {k: v.rename(k) for k, v in utilities.asdict(self).items()}
+    def get_params(self) -> pd.DataFrame:
+        return pd.concat([v.rename(k) for k, v in utilities.asdict(self) if k in PARAMETERS_NAMES], axis=1)
+        
+    def get_vaccinations(self) -> pd.DataFrame:
+        return pd.concat([v.rename(k) for k, v in utilities.asdict(self) 
+                          if 'vaccinations' in k or 'boosters' in k], axis=1)    
 
-    def to_df(self) -> pd.DataFrame:
-        return pd.concat(self.to_dict().values(), axis=1)
+    def get_etas(self) -> pd.DataFrame:
+        return pd.concat([v.rename(k) for k, v in utilities.asdict(self) if k in ETA_NAMES], axis=1)
+        
+    def get_phis(self) -> pd.DataFrame:
+        return pd.concat([v.rename(k) for k, v in utilities.asdict(self) if k in PHI_NAMES], axis=1)
+        
     """
     return out
 

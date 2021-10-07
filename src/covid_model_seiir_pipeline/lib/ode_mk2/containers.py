@@ -19,6 +19,11 @@ import pandas as pd
 from covid_model_seiir_pipeline.lib import (
     utilities,
 )
+from covid_model_seiir_pipeline.lib.ode_mk2.constants import (
+    PARAMETERS_NAMES,
+    ETA_NAMES,
+    PHI_NAMES,
+)
 
 
 @dataclass(repr=False, eq=False)
@@ -165,10 +170,17 @@ class Parameters:
     phi_omega_other: pd.Series
     phi_omega_omega: pd.Series
 
+    def get_params(self) -> pd.DataFrame:
+        return pd.concat([v.rename(k) for k, v in utilities.asdict(self) if k in PARAMETERS_NAMES], axis=1)
+        
+    def get_vaccinations(self) -> pd.DataFrame:
+        return pd.concat([v.rename(k) for k, v in utilities.asdict(self) 
+                          if 'vaccinations' in k or 'boosters' in k], axis=1)    
 
-    def to_dict(self) -> Dict[str, pd.Series]:
-        return {k: v.rename(k) for k, v in utilities.asdict(self).items()}
-
-    def to_df(self) -> pd.DataFrame:
-        return pd.concat(self.to_dict().values(), axis=1)
+    def get_etas(self) -> pd.DataFrame:
+        return pd.concat([v.rename(k) for k, v in utilities.asdict(self) if k in ETA_NAMES], axis=1)
+        
+    def get_phis(self) -> pd.DataFrame:
+        return pd.concat([v.rename(k) for k, v in utilities.asdict(self) if k in PHI_NAMES], axis=1)
+        
     
