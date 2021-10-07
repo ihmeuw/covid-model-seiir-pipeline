@@ -171,16 +171,19 @@ class Parameters:
     phi_omega_omega: pd.Series
 
     def get_params(self) -> pd.DataFrame:
-        return pd.concat([v.rename(k) for k, v in utilities.asdict(self) if k in PARAMETERS_NAMES], axis=1)
+        return pd.concat([v.rename(k) for k, v in utilities.asdict(self).items() if k in PARAMETERS_NAMES], axis=1)
         
     def get_vaccinations(self) -> pd.DataFrame:
-        return pd.concat([v.rename(k) for k, v in utilities.asdict(self) 
+        return pd.concat([v.rename(k) for k, v in utilities.asdict(self).items() 
                           if 'vaccinations' in k or 'boosters' in k], axis=1)    
 
     def get_etas(self) -> pd.DataFrame:
-        return pd.concat([v.rename(k) for k, v in utilities.asdict(self) if k in ETA_NAMES], axis=1)
+        return pd.concat([v.rename(k) for k, v in utilities.asdict(self).items() if k in ETA_NAMES], axis=1)
         
     def get_phis(self) -> pd.DataFrame:
-        return pd.concat([v.rename(k) for k, v in utilities.asdict(self) if k in PHI_NAMES], axis=1)
+        return pd.concat([v.rename(k) for k, v in utilities.asdict(self).items() if k in PHI_NAMES], axis=1)
+        
+    def to_dfs(self) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+        return self.get_params(), self.get_vaccinations(), self.get_etas(), self.get_phis()
         
     
