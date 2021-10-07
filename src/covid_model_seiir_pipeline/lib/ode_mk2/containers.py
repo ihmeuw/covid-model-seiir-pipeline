@@ -52,57 +52,57 @@ class Parameters:
     rho_omega: pd.Series
 
     vaccinations_lr: pd.Series
-    vaccinations_hr: pd.Series
     boosters_lr: pd.Series
+    vaccinations_hr: pd.Series
     boosters_hr: pd.Series
 
     eta_unvaccinated_none_lr: pd.Series
-    eta_unvaccinated_none_hr: pd.Series
     eta_unvaccinated_ancestral_lr: pd.Series
-    eta_unvaccinated_ancestral_hr: pd.Series
     eta_unvaccinated_alpha_lr: pd.Series
-    eta_unvaccinated_alpha_hr: pd.Series
     eta_unvaccinated_beta_lr: pd.Series
-    eta_unvaccinated_beta_hr: pd.Series
     eta_unvaccinated_gamma_lr: pd.Series
-    eta_unvaccinated_gamma_hr: pd.Series
     eta_unvaccinated_delta_lr: pd.Series
-    eta_unvaccinated_delta_hr: pd.Series
     eta_unvaccinated_other_lr: pd.Series
-    eta_unvaccinated_other_hr: pd.Series
     eta_unvaccinated_omega_lr: pd.Series
-    eta_unvaccinated_omega_hr: pd.Series
     eta_vaccinated_none_lr: pd.Series
-    eta_vaccinated_none_hr: pd.Series
     eta_vaccinated_ancestral_lr: pd.Series
-    eta_vaccinated_ancestral_hr: pd.Series
     eta_vaccinated_alpha_lr: pd.Series
-    eta_vaccinated_alpha_hr: pd.Series
     eta_vaccinated_beta_lr: pd.Series
-    eta_vaccinated_beta_hr: pd.Series
     eta_vaccinated_gamma_lr: pd.Series
-    eta_vaccinated_gamma_hr: pd.Series
     eta_vaccinated_delta_lr: pd.Series
-    eta_vaccinated_delta_hr: pd.Series
     eta_vaccinated_other_lr: pd.Series
-    eta_vaccinated_other_hr: pd.Series
     eta_vaccinated_omega_lr: pd.Series
-    eta_vaccinated_omega_hr: pd.Series
     eta_booster_none_lr: pd.Series
-    eta_booster_none_hr: pd.Series
     eta_booster_ancestral_lr: pd.Series
-    eta_booster_ancestral_hr: pd.Series
     eta_booster_alpha_lr: pd.Series
-    eta_booster_alpha_hr: pd.Series
     eta_booster_beta_lr: pd.Series
-    eta_booster_beta_hr: pd.Series
     eta_booster_gamma_lr: pd.Series
-    eta_booster_gamma_hr: pd.Series
     eta_booster_delta_lr: pd.Series
-    eta_booster_delta_hr: pd.Series
     eta_booster_other_lr: pd.Series
-    eta_booster_other_hr: pd.Series
     eta_booster_omega_lr: pd.Series
+    eta_unvaccinated_none_hr: pd.Series
+    eta_unvaccinated_ancestral_hr: pd.Series
+    eta_unvaccinated_alpha_hr: pd.Series
+    eta_unvaccinated_beta_hr: pd.Series
+    eta_unvaccinated_gamma_hr: pd.Series
+    eta_unvaccinated_delta_hr: pd.Series
+    eta_unvaccinated_other_hr: pd.Series
+    eta_unvaccinated_omega_hr: pd.Series
+    eta_vaccinated_none_hr: pd.Series
+    eta_vaccinated_ancestral_hr: pd.Series
+    eta_vaccinated_alpha_hr: pd.Series
+    eta_vaccinated_beta_hr: pd.Series
+    eta_vaccinated_gamma_hr: pd.Series
+    eta_vaccinated_delta_hr: pd.Series
+    eta_vaccinated_other_hr: pd.Series
+    eta_vaccinated_omega_hr: pd.Series
+    eta_booster_none_hr: pd.Series
+    eta_booster_ancestral_hr: pd.Series
+    eta_booster_alpha_hr: pd.Series
+    eta_booster_beta_hr: pd.Series
+    eta_booster_gamma_hr: pd.Series
+    eta_booster_delta_hr: pd.Series
+    eta_booster_other_hr: pd.Series
     eta_booster_omega_hr: pd.Series
 
     phi_none_none: pd.Series

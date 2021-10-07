@@ -44,14 +44,14 @@ def make_ode_parameters() -> str:
     out += "class Parameters:\n"
     out += make_fields(SPECS['PARAMETERS']) + "\n"
 
-    for vaccination_status in ['vaccinations', 'boosters']:
-        for risk_group in PRIMITIVE_TYPES['risk_group']:
+    for risk_group in PRIMITIVE_TYPES['risk_group']:
+        for vaccination_status in ['vaccinations', 'boosters']:
             out += f"{TAB}{vaccination_status}_{risk_group}: pd.Series\n"
     out += '\n'
 
-    for vaccine_status in DERIVED_TYPES['vaccine_status'][1]:
-        for variant in DERIVED_TYPES['variant'][1]:
-            for risk_group in PRIMITIVE_TYPES['risk_group']:
+    for risk_group in PRIMITIVE_TYPES['risk_group']:
+        for vaccine_status in DERIVED_TYPES['vaccine_status'][1]:
+            for variant in DERIVED_TYPES['variant'][1]:
                 out += f"{TAB}eta_{vaccine_status}_{variant}_{risk_group}: pd.Series\n"
     out += '\n'
 
