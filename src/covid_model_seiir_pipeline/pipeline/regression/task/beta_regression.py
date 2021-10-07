@@ -36,6 +36,7 @@ def run_beta_regression(regression_version: str, draw_id: int, progress_bar: boo
 
     logger.info('Prepping ODE fit parameters.', context='transform')
     infections = model.clean_infection_data_measure(past_infection_data, 'infections')
+    covariates = data_interface.load_covariates(list(regression_specification.covariates))
     regression_params = regression_specification.regression_parameters.to_dict()
 
     np.random.seed(draw_id)
@@ -43,12 +44,18 @@ def run_beta_regression(regression_version: str, draw_id: int, progress_bar: boo
         infections.index, regression_params,
         params_to_sample=['alpha', 'sigma', 'gamma', 'pi'] + [f'kappa_{v}' for v in VARIANT_NAMES]
     )
-    etas, total_vaccinations = model.prepare_etas_and_vaccinations(
+    etas_immune, etas_protected, waning, total_vaccinations = model.prepare_etas_and_vaccinations(
+        infections,
         vaccinations,
     )
 
-    ode_parameters = model.prepare_ode_fit_parameters(
+    phis = model.prepare_phis(
         infections,
+        covariates,
+    )
+
+    ode_parameters = model.prepare_ode_fit_parameters(
+        infections,        
         rhos,
         vaccinations,
         sampled_params,
@@ -66,7 +73,7 @@ def run_beta_regression(regression_version: str, draw_id: int, progress_bar: boo
     )
 
     logger.info('Loading regression input data', context='read')
-    covariates = data_interface.load_covariates(list(regression_specification.covariates))
+    
     gaussian_priors = data_interface.load_priors(regression_specification.covariates.values())
     prior_coefficients = data_interface.load_prior_run_coefficients(draw_id=draw_id)
     if gaussian_priors and prior_coefficients:

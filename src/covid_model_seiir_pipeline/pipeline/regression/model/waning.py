@@ -27,11 +27,47 @@ def prepare_etas_and_vaccinations(past_infections: pd.Series,
 
     etas, waning, total_vaccinations = map(pivot_risk_group, [etas, waning, total_vaccinations])
     
+    etas_immune = etas[[c for c in etas.columns if 'immune' in c]]
+    etas_immune.columns = ['_'.join([x for x in c.split('_') if x != 'immune']) for c in etas_immune.columns]
     
+    etas_protected = etas[[c for c in etas.columns if 'protected' in c]]
+    etas_protected.columns = ['_'.join([x for x in c.split('_') if x != 'protected']) for c in etas_protected.columns]
     
-    etas_immune = etas[[c for c in etas.columns if 'immune'
+    return etas_immune, etas_protected, waning, total_vaccinations
 
-    return etas, waning, total_vaccinations
+
+def prepare_phis(past_infections: pd.Series, covariates: pd.DataFrame):
+    min_date = past_infections.reset_index().date.min()
+    max_date = covariates.reset_index().date.max()
+    
+    dates = pd.Series(pd.date_range(min_date, max_date))
+    times = (dates - min_date).dt.days    
+    max_t = times.max() + 1
+    
+    waning_params = (0.8, 270, 0.1, 720)
+    base_cvi = {
+        'none':      [0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.],
+        'ancestral': [1.0, 1.0, 1.0, 0.5, 0.5, 0.5, 0.5, 0.5],
+        'alpha':     [1.0, 1.0, 1.0, 0.5, 0.5, 0.5, 0.5, 0.5],
+        'beta':      [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.5],
+        'gamma':     [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.5],
+        'delta':     [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.5],
+        'other':     [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.5],
+        'omega':     [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
+    }
+    
+    assert set(base_cvi) == set(VARIANT_NAMES)
+    
+    phi = pd.DataFrame(0., 
+                       index=pd.MultiIndex.from_product([VARIANT_NAMES, times], names=['variant', 't']),
+                       columns=VARIANT_NAMES)
+    
+    w = make_raw_waning_dist(max_t, *waning_params)
+    for v_from in VARIANT_NAMES:
+        for i, v_to in enumerate(VARIANT_NAMES):
+            phi.loc[v_from, v_to] = base_cvi[v_from][i] * w
+    
+    return phi
 
 
 def get_total_vaccinations_and_efficacy(vaccinations: pd.DataFrame):
@@ -90,14 +126,18 @@ def build_waning_dist(efficacy: pd.DataFrame):
     waning = efficacy.copy()
     max_t = waning.reset_index().t.max() + 1
     for parameter_name, params in waning_parameters.items():
-        w = np.zeros(max_t)
-        l1, t1, l2, t2 = params
-        w[:t1] = 1 + (l1 - 1) / (t1 - 0) * np.arange(t1)
-        w[t1:t2] = l1 + (l2 - l1) / (t2 - t1) * np.arange(t2 - t1)
-        w[t2:] = l2
+        w = make_raw_waning_dist(max_t, *params)
         w = pd.Series(w, index=pd.Index(np.arange(max_t), name='t')).reindex(waning.index, level='t')
         waning.loc[:, parameter_name] = w
     return waning
+
+
+def make_raw_waning_dist(max_t, l1, t1, l2, t2):
+    w = np.zeros(max_t)
+    w[:t1] = 1 + (l1 - 1) / (t1 - 0) * np.arange(t1)
+    w[t1:t2] = l1 + (l2 - l1) / (t2 - t1) * np.arange(t2 - t1)
+    w[t2:] = l2
+    return w
 
 
 def compute_eta(total_vaccinations, efficacy, waning):
