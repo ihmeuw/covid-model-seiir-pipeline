@@ -178,7 +178,8 @@ class Parameters:
                           if 'vaccinations' in k or 'boosters' in k], axis=1)    
 
     def get_etas(self) -> pd.DataFrame:
-        return pd.concat([v.rename(k) for k, v in utilities.asdict(self).items() if k in ETA_NAMES], axis=1)
+        return pd.concat([v.rename(k) for k, v in utilities.asdict(self).items() 
+                          if '_'.join(k.split('_')[1:-1] in ETA_NAMES], axis=1)
         
     def get_phis(self) -> pd.DataFrame:
         return pd.concat([v.rename(k) for k, v in utilities.asdict(self).items() if k in PHI_NAMES], axis=1)
