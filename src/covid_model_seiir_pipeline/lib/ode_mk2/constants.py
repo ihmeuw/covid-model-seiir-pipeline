@@ -39,7 +39,6 @@ _ParameterType = namedtuple('ParameterType', [
     'beta',  
     'kappa', 
     'rho',   
-    'eta',   
 ])
 
 _RiskGroup = namedtuple('RiskGroup', [
@@ -145,12 +144,10 @@ BASE_PARAMETER_NAMES = _BaseParameter(*_BaseParameter._fields)
 _VariantParameter = namedtuple('VariantParameter', [
     'kappa', 
     'rho',   
-    'eta',   
 ])
 VARIANT_PARAMETER = _VariantParameter(
     kappa=PARAMETER_TYPE.kappa,
     rho=PARAMETER_TYPE.rho,
-    eta=PARAMETER_TYPE.eta,
 )
 VARIANT_PARAMETER_NAMES = _VariantParameter(*_VariantParameter._fields)
 _Variant = namedtuple('Variant', [
@@ -218,14 +215,6 @@ PARAMETERS[VARIANT_PARAMETER.rho, VARIANT.gamma] = 18
 PARAMETERS[VARIANT_PARAMETER.rho, VARIANT.delta] = 19
 PARAMETERS[VARIANT_PARAMETER.rho, VARIANT.other] = 20
 PARAMETERS[VARIANT_PARAMETER.rho, VARIANT.omega] = 21
-PARAMETERS[VARIANT_PARAMETER.eta, VARIANT.none] = 22
-PARAMETERS[VARIANT_PARAMETER.eta, VARIANT.ancestral] = 23
-PARAMETERS[VARIANT_PARAMETER.eta, VARIANT.alpha] = 24
-PARAMETERS[VARIANT_PARAMETER.eta, VARIANT.beta] = 25
-PARAMETERS[VARIANT_PARAMETER.eta, VARIANT.gamma] = 26
-PARAMETERS[VARIANT_PARAMETER.eta, VARIANT.delta] = 27
-PARAMETERS[VARIANT_PARAMETER.eta, VARIANT.other] = 28
-PARAMETERS[VARIANT_PARAMETER.eta, VARIANT.omega] = 29
 PARAMETERS_NAMES = [
     'alpha_all',
     'sigma_all',
@@ -249,14 +238,58 @@ PARAMETERS_NAMES = [
     'rho_delta',
     'rho_other',
     'rho_omega',
-    'eta_none',
-    'eta_ancestral',
-    'eta_alpha',
-    'eta_beta',
-    'eta_gamma',
-    'eta_delta',
-    'eta_other',
-    'eta_omega',
+]
+
+ETA = np.full((len(VACCINE_INDEX_TYPE), len(VARIANT_INDEX_TYPE)), -1, dtype=np.int64)
+ETA[VACCINE_STATUS.unvaccinated, VARIANT.none] = 0
+ETA[VACCINE_STATUS.unvaccinated, VARIANT.ancestral] = 1
+ETA[VACCINE_STATUS.unvaccinated, VARIANT.alpha] = 2
+ETA[VACCINE_STATUS.unvaccinated, VARIANT.beta] = 3
+ETA[VACCINE_STATUS.unvaccinated, VARIANT.gamma] = 4
+ETA[VACCINE_STATUS.unvaccinated, VARIANT.delta] = 5
+ETA[VACCINE_STATUS.unvaccinated, VARIANT.other] = 6
+ETA[VACCINE_STATUS.unvaccinated, VARIANT.omega] = 7
+ETA[VACCINE_STATUS.vaccinated, VARIANT.none] = 8
+ETA[VACCINE_STATUS.vaccinated, VARIANT.ancestral] = 9
+ETA[VACCINE_STATUS.vaccinated, VARIANT.alpha] = 10
+ETA[VACCINE_STATUS.vaccinated, VARIANT.beta] = 11
+ETA[VACCINE_STATUS.vaccinated, VARIANT.gamma] = 12
+ETA[VACCINE_STATUS.vaccinated, VARIANT.delta] = 13
+ETA[VACCINE_STATUS.vaccinated, VARIANT.other] = 14
+ETA[VACCINE_STATUS.vaccinated, VARIANT.omega] = 15
+ETA[VACCINE_STATUS.booster, VARIANT.none] = 16
+ETA[VACCINE_STATUS.booster, VARIANT.ancestral] = 17
+ETA[VACCINE_STATUS.booster, VARIANT.alpha] = 18
+ETA[VACCINE_STATUS.booster, VARIANT.beta] = 19
+ETA[VACCINE_STATUS.booster, VARIANT.gamma] = 20
+ETA[VACCINE_STATUS.booster, VARIANT.delta] = 21
+ETA[VACCINE_STATUS.booster, VARIANT.other] = 22
+ETA[VACCINE_STATUS.booster, VARIANT.omega] = 23
+ETA_NAMES = [
+    'unvaccinated_none',
+    'unvaccinated_ancestral',
+    'unvaccinated_alpha',
+    'unvaccinated_beta',
+    'unvaccinated_gamma',
+    'unvaccinated_delta',
+    'unvaccinated_other',
+    'unvaccinated_omega',
+    'vaccinated_none',
+    'vaccinated_ancestral',
+    'vaccinated_alpha',
+    'vaccinated_beta',
+    'vaccinated_gamma',
+    'vaccinated_delta',
+    'vaccinated_other',
+    'vaccinated_omega',
+    'booster_none',
+    'booster_ancestral',
+    'booster_alpha',
+    'booster_beta',
+    'booster_gamma',
+    'booster_delta',
+    'booster_other',
+    'booster_omega',
 ]
 
 PHI = np.full((len(VARIANT_INDEX_TYPE), len(VARIANT_INDEX_TYPE)), -1, dtype=np.int64)
@@ -325,6 +358,138 @@ PHI[VARIANT.omega, VARIANT.delta] = 61
 PHI[VARIANT.omega, VARIANT.other] = 62
 PHI[VARIANT.omega, VARIANT.omega] = 63
 PHI_NAMES = [
+    'none_none',
+    'none_ancestral',
+    'none_alpha',
+    'none_beta',
+    'none_gamma',
+    'none_delta',
+    'none_other',
+    'none_omega',
+    'ancestral_none',
+    'ancestral_ancestral',
+    'ancestral_alpha',
+    'ancestral_beta',
+    'ancestral_gamma',
+    'ancestral_delta',
+    'ancestral_other',
+    'ancestral_omega',
+    'alpha_none',
+    'alpha_ancestral',
+    'alpha_alpha',
+    'alpha_beta',
+    'alpha_gamma',
+    'alpha_delta',
+    'alpha_other',
+    'alpha_omega',
+    'beta_none',
+    'beta_ancestral',
+    'beta_alpha',
+    'beta_beta',
+    'beta_gamma',
+    'beta_delta',
+    'beta_other',
+    'beta_omega',
+    'gamma_none',
+    'gamma_ancestral',
+    'gamma_alpha',
+    'gamma_beta',
+    'gamma_gamma',
+    'gamma_delta',
+    'gamma_other',
+    'gamma_omega',
+    'delta_none',
+    'delta_ancestral',
+    'delta_alpha',
+    'delta_beta',
+    'delta_gamma',
+    'delta_delta',
+    'delta_other',
+    'delta_omega',
+    'other_none',
+    'other_ancestral',
+    'other_alpha',
+    'other_beta',
+    'other_gamma',
+    'other_delta',
+    'other_other',
+    'other_omega',
+    'omega_none',
+    'omega_ancestral',
+    'omega_alpha',
+    'omega_beta',
+    'omega_gamma',
+    'omega_delta',
+    'omega_other',
+    'omega_omega',
+]
+
+CHI = np.full((len(VARIANT_INDEX_TYPE), len(VARIANT_INDEX_TYPE)), -1, dtype=np.int64)
+CHI[VARIANT.none, VARIANT.none] = 0
+CHI[VARIANT.none, VARIANT.ancestral] = 1
+CHI[VARIANT.none, VARIANT.alpha] = 2
+CHI[VARIANT.none, VARIANT.beta] = 3
+CHI[VARIANT.none, VARIANT.gamma] = 4
+CHI[VARIANT.none, VARIANT.delta] = 5
+CHI[VARIANT.none, VARIANT.other] = 6
+CHI[VARIANT.none, VARIANT.omega] = 7
+CHI[VARIANT.ancestral, VARIANT.none] = 8
+CHI[VARIANT.ancestral, VARIANT.ancestral] = 9
+CHI[VARIANT.ancestral, VARIANT.alpha] = 10
+CHI[VARIANT.ancestral, VARIANT.beta] = 11
+CHI[VARIANT.ancestral, VARIANT.gamma] = 12
+CHI[VARIANT.ancestral, VARIANT.delta] = 13
+CHI[VARIANT.ancestral, VARIANT.other] = 14
+CHI[VARIANT.ancestral, VARIANT.omega] = 15
+CHI[VARIANT.alpha, VARIANT.none] = 16
+CHI[VARIANT.alpha, VARIANT.ancestral] = 17
+CHI[VARIANT.alpha, VARIANT.alpha] = 18
+CHI[VARIANT.alpha, VARIANT.beta] = 19
+CHI[VARIANT.alpha, VARIANT.gamma] = 20
+CHI[VARIANT.alpha, VARIANT.delta] = 21
+CHI[VARIANT.alpha, VARIANT.other] = 22
+CHI[VARIANT.alpha, VARIANT.omega] = 23
+CHI[VARIANT.beta, VARIANT.none] = 24
+CHI[VARIANT.beta, VARIANT.ancestral] = 25
+CHI[VARIANT.beta, VARIANT.alpha] = 26
+CHI[VARIANT.beta, VARIANT.beta] = 27
+CHI[VARIANT.beta, VARIANT.gamma] = 28
+CHI[VARIANT.beta, VARIANT.delta] = 29
+CHI[VARIANT.beta, VARIANT.other] = 30
+CHI[VARIANT.beta, VARIANT.omega] = 31
+CHI[VARIANT.gamma, VARIANT.none] = 32
+CHI[VARIANT.gamma, VARIANT.ancestral] = 33
+CHI[VARIANT.gamma, VARIANT.alpha] = 34
+CHI[VARIANT.gamma, VARIANT.beta] = 35
+CHI[VARIANT.gamma, VARIANT.gamma] = 36
+CHI[VARIANT.gamma, VARIANT.delta] = 37
+CHI[VARIANT.gamma, VARIANT.other] = 38
+CHI[VARIANT.gamma, VARIANT.omega] = 39
+CHI[VARIANT.delta, VARIANT.none] = 40
+CHI[VARIANT.delta, VARIANT.ancestral] = 41
+CHI[VARIANT.delta, VARIANT.alpha] = 42
+CHI[VARIANT.delta, VARIANT.beta] = 43
+CHI[VARIANT.delta, VARIANT.gamma] = 44
+CHI[VARIANT.delta, VARIANT.delta] = 45
+CHI[VARIANT.delta, VARIANT.other] = 46
+CHI[VARIANT.delta, VARIANT.omega] = 47
+CHI[VARIANT.other, VARIANT.none] = 48
+CHI[VARIANT.other, VARIANT.ancestral] = 49
+CHI[VARIANT.other, VARIANT.alpha] = 50
+CHI[VARIANT.other, VARIANT.beta] = 51
+CHI[VARIANT.other, VARIANT.gamma] = 52
+CHI[VARIANT.other, VARIANT.delta] = 53
+CHI[VARIANT.other, VARIANT.other] = 54
+CHI[VARIANT.other, VARIANT.omega] = 55
+CHI[VARIANT.omega, VARIANT.none] = 56
+CHI[VARIANT.omega, VARIANT.ancestral] = 57
+CHI[VARIANT.omega, VARIANT.alpha] = 58
+CHI[VARIANT.omega, VARIANT.beta] = 59
+CHI[VARIANT.omega, VARIANT.gamma] = 60
+CHI[VARIANT.omega, VARIANT.delta] = 61
+CHI[VARIANT.omega, VARIANT.other] = 62
+CHI[VARIANT.omega, VARIANT.omega] = 63
+CHI_NAMES = [
     'none_none',
     'none_ancestral',
     'none_alpha',

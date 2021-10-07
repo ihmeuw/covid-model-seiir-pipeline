@@ -45,24 +45,129 @@ class Parameters:
     rho_delta: pd.Series
     rho_other: pd.Series
     rho_omega: pd.Series
-    eta_none: pd.Series
-    eta_ancestral: pd.Series
-    eta_alpha: pd.Series
-    eta_beta: pd.Series
-    eta_gamma: pd.Series
-    eta_delta: pd.Series
-    eta_other: pd.Series
-    eta_omega: pd.Series
 
     vaccinations_lr: pd.Series
-    boosters_lr: pd.Series
     vaccinations_hr: pd.Series
+    boosters_lr: pd.Series
     boosters_hr: pd.Series
 
-    iota: pd.DataFrame
+    eta_unvaccinated_none_lr: pd.Series
+    eta_unvaccinated_none_hr: pd.Series
+    eta_unvaccinated_ancestral_lr: pd.Series
+    eta_unvaccinated_ancestral_hr: pd.Series
+    eta_unvaccinated_alpha_lr: pd.Series
+    eta_unvaccinated_alpha_hr: pd.Series
+    eta_unvaccinated_beta_lr: pd.Series
+    eta_unvaccinated_beta_hr: pd.Series
+    eta_unvaccinated_gamma_lr: pd.Series
+    eta_unvaccinated_gamma_hr: pd.Series
+    eta_unvaccinated_delta_lr: pd.Series
+    eta_unvaccinated_delta_hr: pd.Series
+    eta_unvaccinated_other_lr: pd.Series
+    eta_unvaccinated_other_hr: pd.Series
+    eta_unvaccinated_omega_lr: pd.Series
+    eta_unvaccinated_omega_hr: pd.Series
+    eta_vaccinated_none_lr: pd.Series
+    eta_vaccinated_none_hr: pd.Series
+    eta_vaccinated_ancestral_lr: pd.Series
+    eta_vaccinated_ancestral_hr: pd.Series
+    eta_vaccinated_alpha_lr: pd.Series
+    eta_vaccinated_alpha_hr: pd.Series
+    eta_vaccinated_beta_lr: pd.Series
+    eta_vaccinated_beta_hr: pd.Series
+    eta_vaccinated_gamma_lr: pd.Series
+    eta_vaccinated_gamma_hr: pd.Series
+    eta_vaccinated_delta_lr: pd.Series
+    eta_vaccinated_delta_hr: pd.Series
+    eta_vaccinated_other_lr: pd.Series
+    eta_vaccinated_other_hr: pd.Series
+    eta_vaccinated_omega_lr: pd.Series
+    eta_vaccinated_omega_hr: pd.Series
+    eta_booster_none_lr: pd.Series
+    eta_booster_none_hr: pd.Series
+    eta_booster_ancestral_lr: pd.Series
+    eta_booster_ancestral_hr: pd.Series
+    eta_booster_alpha_lr: pd.Series
+    eta_booster_alpha_hr: pd.Series
+    eta_booster_beta_lr: pd.Series
+    eta_booster_beta_hr: pd.Series
+    eta_booster_gamma_lr: pd.Series
+    eta_booster_gamma_hr: pd.Series
+    eta_booster_delta_lr: pd.Series
+    eta_booster_delta_hr: pd.Series
+    eta_booster_other_lr: pd.Series
+    eta_booster_other_hr: pd.Series
+    eta_booster_omega_lr: pd.Series
+    eta_booster_omega_hr: pd.Series
+
+    phi_none_none: pd.Series
+    phi_none_ancestral: pd.Series
+    phi_none_alpha: pd.Series
+    phi_none_beta: pd.Series
+    phi_none_gamma: pd.Series
+    phi_none_delta: pd.Series
+    phi_none_other: pd.Series
+    phi_none_omega: pd.Series
+    phi_ancestral_none: pd.Series
+    phi_ancestral_ancestral: pd.Series
+    phi_ancestral_alpha: pd.Series
+    phi_ancestral_beta: pd.Series
+    phi_ancestral_gamma: pd.Series
+    phi_ancestral_delta: pd.Series
+    phi_ancestral_other: pd.Series
+    phi_ancestral_omega: pd.Series
+    phi_alpha_none: pd.Series
+    phi_alpha_ancestral: pd.Series
+    phi_alpha_alpha: pd.Series
+    phi_alpha_beta: pd.Series
+    phi_alpha_gamma: pd.Series
+    phi_alpha_delta: pd.Series
+    phi_alpha_other: pd.Series
+    phi_alpha_omega: pd.Series
+    phi_beta_none: pd.Series
+    phi_beta_ancestral: pd.Series
+    phi_beta_alpha: pd.Series
+    phi_beta_beta: pd.Series
+    phi_beta_gamma: pd.Series
+    phi_beta_delta: pd.Series
+    phi_beta_other: pd.Series
+    phi_beta_omega: pd.Series
+    phi_gamma_none: pd.Series
+    phi_gamma_ancestral: pd.Series
+    phi_gamma_alpha: pd.Series
+    phi_gamma_beta: pd.Series
+    phi_gamma_gamma: pd.Series
+    phi_gamma_delta: pd.Series
+    phi_gamma_other: pd.Series
+    phi_gamma_omega: pd.Series
+    phi_delta_none: pd.Series
+    phi_delta_ancestral: pd.Series
+    phi_delta_alpha: pd.Series
+    phi_delta_beta: pd.Series
+    phi_delta_gamma: pd.Series
+    phi_delta_delta: pd.Series
+    phi_delta_other: pd.Series
+    phi_delta_omega: pd.Series
+    phi_other_none: pd.Series
+    phi_other_ancestral: pd.Series
+    phi_other_alpha: pd.Series
+    phi_other_beta: pd.Series
+    phi_other_gamma: pd.Series
+    phi_other_delta: pd.Series
+    phi_other_other: pd.Series
+    phi_other_omega: pd.Series
+    phi_omega_none: pd.Series
+    phi_omega_ancestral: pd.Series
+    phi_omega_alpha: pd.Series
+    phi_omega_beta: pd.Series
+    phi_omega_gamma: pd.Series
+    phi_omega_delta: pd.Series
+    phi_omega_other: pd.Series
+    phi_omega_omega: pd.Series
+
 
     def to_dict(self) -> Dict[str, pd.Series]:
-        return {k: v.rename(k) for k, v in utilities.asdict(self).items() if k != 'iota'}
+        return {k: v.rename(k) for k, v in utilities.asdict(self).items()}
 
     def to_df(self) -> pd.DataFrame:
         return pd.concat(self.to_dict().values(), axis=1)

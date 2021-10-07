@@ -6,6 +6,7 @@ from covid_model_seiir_pipeline.lib.ode_mk2.generator import (
 from covid_model_seiir_pipeline.lib.ode_mk2.generator.make_constants import (
     TAB,
     PRIMITIVE_TYPES,
+    DERIVED_TYPES,
     Spec,
     SPECS,
     unpack_spec_fields,
@@ -41,16 +42,26 @@ def make_ode_parameters() -> str:
     out += "class Parameters:\n"
     out += make_fields(SPECS['PARAMETERS']) + "\n"
 
-    for risk_group in PRIMITIVE_TYPES['risk_group']:
-        out += f"{TAB}vaccinations_{risk_group}: pd.Series\n"
-        out += f"{TAB}boosters_{risk_group}: pd.Series\n"
+    for vaccination_status in ['vaccinations', 'boosters']:
+        for risk_group in PRIMITIVE_TYPES['risk_group']:
+            out += f"{TAB}{vaccination_status}_{risk_group}: pd.Series\n"
     out += '\n'
 
-    out += f"{TAB}iota: pd.DataFrame\n"
+    for vaccine_status in DERIVED_TYPES['vaccine_status'][1]:
+        for variant in DERIVED_TYPES['variant'][1]:
+            for risk_group in PRIMITIVE_TYPES['risk_group']:
+                out += f"{TAB}eta_{vaccine_status}_{variant}_{risk_group}: pd.Series\n"
+    out += '\n'
+
+    for from_variant in DERIVED_TYPES['variant'][1]:
+        for to_variant in DERIVED_TYPES['variant'][1]:
+            out += f"{TAB}phi_{from_variant}_{to_variant}: pd.Series\n"
+
+    out += '\n'
 
     out += """
     def to_dict(self) -> Dict[str, pd.Series]:
-        return {k: v.rename(k) for k, v in utilities.asdict(self).items() if k != 'iota'}
+        return {k: v.rename(k) for k, v in utilities.asdict(self).items()}
 
     def to_df(self) -> pd.DataFrame:
         return pd.concat(self.to_dict().values(), axis=1)

@@ -20,6 +20,8 @@ def prepare_etas_and_vaccinations(past_infections: pd.Series,
                .apply(lambda x: x.reset_index('location_id', drop=True).asfreq('D'))
                .fillna(0.))
     vaccinations = pd.concat([prepend, vaccinations]).sort_index()
+    boosters = vaccinations.copy()
+
     total_vaccinations, efficacy = get_total_vaccinations_and_efficacy(vaccinations)
     efficacy = remap_efficacy(efficacy)
     waning = build_waning_dist(efficacy)
