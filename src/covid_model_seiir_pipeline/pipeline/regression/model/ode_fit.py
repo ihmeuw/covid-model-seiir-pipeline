@@ -98,12 +98,12 @@ def clean_infection_data_measure(infection_data: pd.DataFrame, measure: str) -> 
 
 def make_initial_condition(parameters: Parameters, population: pd.DataFrame):
     # Alpha is time-invariant
-    alpha = parameters.alpha.groupby('location_id').first()
+    alpha = parameters.alpha_all.groupby('location_id').first()
 
     group_pop = get_risk_group_pop(population)
     # Filter out early dates with few infections
     # to reduce noise in the past fit from leaking into the beta regression.
-    infections = parameters.new_e.groupby('location_id').apply(filter_to_epi_threshold)
+    infections = parameters.new_e_all.groupby('location_id').apply(filter_to_epi_threshold)
     infections_by_group = group_pop.div(group_pop.sum(axis=1), axis=0).mul(infections, axis=0)
     new_e_start = infections_by_group.reset_index(level='date').groupby('location_id').first()
     start_date, new_e_start = new_e_start['date'], new_e_start[list(RISK_GROUP_NAMES)]
@@ -111,19 +111,18 @@ def make_initial_condition(parameters: Parameters, population: pd.DataFrame):
     compartments = [f'{compartment}_{risk_group}'
                     for risk_group, compartment
                     in itertools.product(RISK_GROUP_NAMES, COMPARTMENTS_NAMES + TRACKING_COMPARTMENTS_NAMES)]
-    initial_condition = pd.DataFrame(0., columns=compartments, index=parameters.new_e.index)
+    initial_condition = pd.DataFrame(0., columns=compartments, index=parameters.new_e_all.index)
     for location_id, loc_start_date in start_date.iteritems():
         for risk_group in RISK_GROUP_NAMES:
             pop = group_pop.loc[location_id, risk_group]
             new_e = new_e_start.loc[location_id, risk_group]
             suffix = f'_unvaccinated_{risk_group}'
             # Backfill everyone susceptible
-            initial_condition.loc[pd.IndexSlice[location_id, :loc_start_date], f'S_unprotected{suffix}'] = pop
+            initial_condition.loc[pd.IndexSlice[location_id, :loc_start_date], f'S_none{suffix}'] = pop
             # Set initial condition on start date
             infectious = (new_e / 5) ** (1 / alpha.loc[location_id])
-            initial_condition.loc[(location_id, loc_start_date), f'S_unprotected{suffix}'] = pop - new_e - infectious
+            initial_condition.loc[(location_id, loc_start_date), f'S_none{suffix}'] = pop - new_e - infectious
             initial_condition.loc[(location_id, loc_start_date), f'E_ancestral{suffix}'] = new_e
-            initial_condition.loc[(location_id, loc_start_date), f'NewE_unvaccinated_{risk_group}'] = new_e
             initial_condition.loc[(location_id, loc_start_date), f'NewE_ancestral_{risk_group}'] = new_e
             initial_condition.loc[(location_id, loc_start_date), f'I_ancestral{suffix}'] = infectious
     return initial_condition

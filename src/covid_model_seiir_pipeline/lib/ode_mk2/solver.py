@@ -116,26 +116,13 @@ def _sort_columns(initial_condition: pd.DataFrame) -> pd.DataFrame:
     return initial_condition
 
 
-def _interpolate(t0: float,
-                 t: np.ndarray,
-                 y: np.ndarray,
-                 params: np.ndarray,
-                 forecast: bool,
-                 dt: float) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
-    num_time_points = np.arange(t[0], t[-1] + dt, dt).size
-    num_compartments = y.shape[1]
-    num_params = params.shape[1]
-
-    t_solve = np.round(np.arange(t[0], t[-1] + dt, dt), 2)
-    t_params = np.round(np.arange(t[0], t[-1] + dt, dt/2), 2)
-
-    # We'll need parameters on the half step
-    p_solve = np.empty((2 * num_time_points, num_params))
-    for param in np.arange(params.shape[1]):
-        p_solve[:, param] = np.interp(t_params, t[:], params[:, param])
-
-    y_solve = np.empty((num_time_points, num_compartments))
-    for compartment in np.arange(num_compartments):
+def _interpolate_y(t0: float,
+                   t: np.ndarray,
+                   t_solve: np.ndarray,
+                   y: np.ndarray,
+                   forecast: bool) -> np.ndarray:
+    y_solve = np.empty((t_solve.size, y.shape[1]))
+    for compartment in np.arange(y.shape[1]):
         if forecast:
             y_solve[:, compartment] = np.interp(t_solve, t, y[:, compartment])
             y_solve[t_solve > t0, compartment] = 0.
@@ -143,20 +130,18 @@ def _interpolate(t0: float,
             y_solve[t_solve < t0, compartment] = y[0, compartment]
             y_solve[t_solve == t0, compartment] = y[t == t0, compartment]
             y_solve[t_solve > t0, compartment] = 0.
-    return t_solve, y_solve, p_solve
+    return y_solve
 
 
-def _get_waning_dist(start, mean, var):
-    return scipy.stats.gamma(loc=start, scale=var/mean, a=mean**2/var)
 
+def _interpolate(t: np.ndarray,                                  
+                 t_solve: np.ndarray,
+                 x: np.ndarray) -> np.ndarray:    
+    x_solve = np.empty((t_solve.size, x.shape[1]))
+    for param in np.arange(x.shape[1]):
+        x_solve[:, param] = np.interp(t_solve, t, x[:, param])
+    return x_solve
 
-def _sample_dist(dist, t, rate=1):
-    dist_cdf = dist.cdf(t[::rate])
-    dist_discrete_pdf = dist_cdf[1:] - dist_cdf[:-1]
-    dist_discrete_pdf = np.hstack([dist_discrete_pdf, dist_discrete_pdf[-1]])
-    sampled_dist = np.zeros_like(t, dtype=dist_cdf.dtype)
-    sampled_dist[::rate] = dist_discrete_pdf
-    return sampled_dist
 
 
 @numba.njit

@@ -28,22 +28,15 @@ from covid_model_seiir_pipeline.lib.ode_mk2 import (
 )
 
 
-@numba.njit
-def fit_system(t: float, y: np.ndarray, waned: np.ndarray, input_parameters: np.ndarray):
-    return _system(t, y, waned, input_parameters, forecast=False)
-
 
 @numba.njit
-def forecast_system(t: float, y: np.ndarray, waned: np.ndarray, input_parameters: np.ndarray):
-    return _system(t, y, waned, input_parameters, forecast=True)
-
-
-@numba.njit
-def _system(t: float,
-            y: np.ndarray,
-            input_parameters: np.ndarray,
-            phis: np.ndarray,
-            forecast: bool):
+def system(t: float,
+           y: np.ndarray,           
+           input_parameters: np.ndarray,
+           vaccines: np.ndarray,
+           etas: np.ndarray,
+           chis: np.ndarray,
+           forecast: bool):
     aggregates = parameters.make_aggregates(y)
     params = input_parameters[:PARAMETERS.max()+1]
     vaccines = input_parameters[PARAMETERS.max()+1:]
