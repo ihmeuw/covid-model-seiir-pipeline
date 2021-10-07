@@ -72,7 +72,8 @@ def make_ode_parameters() -> str:
                           if '_'.join(k.split('_')[1:-1]) in ETA_NAMES], axis=1)
         
     def get_phis(self) -> pd.DataFrame:
-        return pd.concat([v.rename(k) for k, v in utilities.asdict(self).items() if k in PHI_NAMES], axis=1)
+        return pd.concat([v.rename(k) for k, v in utilities.asdict(self).items() 
+                          if '_'.join(k.split('_')[1:]) in PHI_NAMES], axis=1)
         
     def to_dfs(self) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]:
         return self.get_params(), self.get_vaccinations(), self.get_etas(), self.get_phis()
