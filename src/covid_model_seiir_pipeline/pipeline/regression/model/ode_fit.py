@@ -22,17 +22,42 @@ from covid_model_seiir_pipeline.lib.ode_mk2 import (
 def prepare_ode_fit_parameters(past_infections: pd.Series,
                                rhos: pd.DataFrame,
                                vaccinations: pd.DataFrame,
+                               boosters: pd.DataFrame,
+                               etas_vaccination: pd.DataFrame,
+                               etas_booster: pd.DataFrame,
+                               phis: pd.DataFrame,
                                sampled_params: Dict[str, pd.Series]) -> Parameters:
     past_index = past_infections.index
+    sampled_params = {k if 'kappa' in k else f'{k}_all': v for k, v in sampled_params.items()}
+    
+    beta = pd.Series(-1, index=past_index, name='beta_all')
     rhos = rhos.reindex(past_index, fill_value=0.).to_dict('series')
-    betas = {f'beta_{variant}': pd.Series(-1, index=past_index, name=f'beta_{variant}') for variant in VARIANT_NAMES}
+    rhos['rho_none'] = pd.Series(0., index=past_index, name='rho_none')
+    
+    vaccinations = vaccinations.reindex(past_index, fill_value=0.).to_dict('series')
+    boosters = (boosters
+                .reindex(past_index, fill_value=0.)
+                .rename(columns=lambda x: x.replace('vaccinations', 'boosters'))
+                .to_dict('series'))
+    
+    etas_unvaccinated = etas_vaccination.copy()
+    etas_unvaccinated.loc[:, :] = 0.
+    etas = {}
+    for prefix, eta in (('unvaccinated', etas_unvaccinated), ('vaccinated', etas_vaccination), ('booster', etas_booster)):
+        eta = eta.reindex(past_index).groupby('location_id').bfill().fillna(0.).rename(columns=lambda x: f'eta_{prefix}_{x}')
+        etas.update(eta.to_dict('series'))
+    
+    betas = {f'beta_': pd.Series(-1, index=past_index, name=f'beta_{variant}') for variant in VARIANT_NAMES}
 
     return Parameters(
         **sampled_params,
-        new_e=past_infections,
-        **betas,
+        new_e_all=past_infections,
+        beta_all=beta,        
         **rhos,
         **vaccinations,
+        **boosters,
+        **etas,
+        **phis.to_dict('series'),
     )
 
 

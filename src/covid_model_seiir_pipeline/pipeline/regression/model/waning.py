@@ -1,3 +1,6 @@
+import itertools
+from typing import Dict, List, Tuple
+
 import numba
 import numpy as np
 import pandas as pd
@@ -10,7 +13,8 @@ from covid_model_seiir_pipeline.lib.ode_mk2.constants import (
 
 
 def prepare_etas_and_vaccinations(past_infections: pd.Series,
-                                  vaccinations: pd.DataFrame):    
+                                  vaccinations: pd.DataFrame, 
+                                  waning_params: Tuple[int, float, int, float]):    
     inf_start_date = past_infections.reset_index().groupby('location_id').date.min()
     vac_start_date = vaccinations.reset_index().groupby('location_id').date.min() - pd.Timedelta(days=1)
     prepend_index = pd.concat([inf_start_date, vac_start_date]).reset_index().set_index(['location_id', 'date']).index
@@ -20,11 +24,10 @@ def prepare_etas_and_vaccinations(past_infections: pd.Series,
                .apply(lambda x: x.reset_index('location_id', drop=True).asfreq('D'))
                .fillna(0.))
     vaccinations = pd.concat([prepend, vaccinations]).sort_index()
-    boosters = vaccinations.copy()
 
     total_vaccinations, efficacy = get_total_vaccinations_and_efficacy(vaccinations)
     efficacy = remap_efficacy(efficacy)
-    waning = build_waning_dist(efficacy)
+    waning = build_waning_dist(efficacy, waning_params)
     etas = compute_eta(total_vaccinations, efficacy, waning)
 
     etas, waning, total_vaccinations = map(pivot_risk_group, [etas, waning, total_vaccinations])
@@ -35,10 +38,13 @@ def prepare_etas_and_vaccinations(past_infections: pd.Series,
     etas_protected = etas[[c for c in etas.columns if 'protected' in c]]
     etas_protected.columns = ['_'.join([x for x in c.split('_') if x != 'protected']) for c in etas_protected.columns]
     
-    return etas_immune, etas_protected, waning, total_vaccinations
+    return etas_immune, etas_protected, total_vaccinations
 
 
-def prepare_phis(past_infections: pd.Series, covariates: pd.DataFrame):
+def prepare_phis(past_infections: pd.Series, 
+                 covariates: pd.DataFrame,
+                 waning_matrix: pd.DataFrame,
+                 waning_params: Tuple[int, float, int, float]):
     min_date = past_infections.reset_index().date.min()
     max_date = covariates.reset_index().date.max()
     
@@ -46,28 +52,17 @@ def prepare_phis(past_infections: pd.Series, covariates: pd.DataFrame):
     times = (dates - min_date).dt.days    
     max_t = times.max() + 1
     
-    waning_params = (0.8, 270, 0.1, 720)
-    base_cvi = {
-        'none':      [0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.],
-        'ancestral': [1.0, 1.0, 1.0, 0.5, 0.5, 0.5, 0.5, 0.5],
-        'alpha':     [1.0, 1.0, 1.0, 0.5, 0.5, 0.5, 0.5, 0.5],
-        'beta':      [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.5],
-        'gamma':     [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.5],
-        'delta':     [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.5],
-        'other':     [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.5],
-        'omega':     [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
-    }
-    
-    assert set(base_cvi) == set(VARIANT_NAMES)
-    
+    phi_columns = [f'phi_{v_from}_{v_to}' 
+                   for v_from, v_to in itertools.product(waning_matrix, waning_matrix)]
     phi = pd.DataFrame(0., 
-                       index=pd.MultiIndex.from_product([VARIANT_NAMES, times], names=['variant', 't']),
-                       columns=VARIANT_NAMES)
+                       index=times,
+                       columns=phi_columns)
     
     w = make_raw_waning_dist(max_t, *waning_params)
-    for v_from in VARIANT_NAMES:
-        for i, v_to in enumerate(VARIANT_NAMES):
-            phi.loc[v_from, v_to] = base_cvi[v_from][i] * w
+    
+    for v_from in waning_matrix.index:
+        for v_to in waning_matrix.columns:
+            phi.loc[:, f'phi_{v_from}_{v_to}'] = waning_matrix.at[v_from, v_to] * w
     
     return phi
 
@@ -118,19 +113,14 @@ def remap_efficacy(efficacy: pd.DataFrame) -> pd.DataFrame:
     return efficacy
 
 
-def build_waning_dist(efficacy: pd.DataFrame):
+def build_waning_dist(efficacy: pd.DataFrame, waning_params: Tuple[int, float, int, float]):
     efficacy = convert_date_index_to_time_index(efficacy)
-    fast = (0.5, 180, 0.1, 720)
-    # moderate = (0.7, 180, 0.5, 720)
-    # slow = (1.0, 180, 0.8, 720)
-    waning_parameters = {c: fast for c in efficacy.columns}
-
     waning = efficacy.copy()
     max_t = waning.reset_index().t.max() + 1
-    for parameter_name, params in waning_parameters.items():
-        w = make_raw_waning_dist(max_t, *params)
+    for column in waning.columns:
+        w = make_raw_waning_dist(max_t, *waning_params)
         w = pd.Series(w, index=pd.Index(np.arange(max_t), name='t')).reindex(waning.index, level='t')
-        waning.loc[:, parameter_name] = w
+        waning.loc[:, column] = w
     return waning
 
 
@@ -153,7 +143,7 @@ def compute_eta(total_vaccinations, efficacy, waning):
                 ve.loc[idx].values,
                 waning.loc[idx].values,
             )
-    return eta.groupby(['location_id', 'risk_group']).bfill()
+    return eta.groupby(['location_id', 'risk_group']).bfill().fillna(0.)
 
 
 @numba.njit

@@ -416,7 +416,10 @@ class RegressionDataInterface:
             info_df.loc[:, :] = 0.0
         else:
             info_df = io.load(covariate_root.vaccine_info(info_type=f'vaccinations_{vaccine_scenario}'))
-        return self._format_covariate_data(info_df, location_ids)
+        vaccinations = self._format_covariate_data(info_df, location_ids)
+        boosters = vaccinations.copy()
+        boosters.loc[:, :] = 0.
+        return vaccinations, boosters
 
     def load_vaccination_summaries(self,
                                    measure: str,
