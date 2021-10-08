@@ -4,6 +4,8 @@ from typing import List, TYPE_CHECKING
 
 import pandas as pd
 
+from covid_model_seiir_pipeline.pipeline.postprocessing.model.aggregators import summarize
+
 if TYPE_CHECKING:
     # The model subpackage is a library for the pipeline stage and shouldn't
     # explicitly depend on things outside the subpackage.
@@ -23,9 +25,9 @@ def load_deaths(scenario: str, data_interface: 'PostprocessingDataInterface', nu
 
 def load_unscaled_deaths(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
     death_draws = load_deaths(scenario, data_interface, num_cores)
-    em_scalars = load_excess_mortality_scalars(data_interface)
+    em_scalars = data_interface.load_excess_mortality_scalars()
     em_scalars = em_scalars.reindex(death_draws[0].index).groupby('location_id').fillna(method='ffill')
-    unscaled_deaths = [d / em_scalars for d in death_draws]
+    unscaled_deaths = [deaths / em_scalars.loc[:, draw] for draw, deaths in enumerate(death_draws)]
     return unscaled_deaths
 
 
@@ -123,7 +125,7 @@ def load_coefficients(scenario: str, data_interface: 'PostprocessingDataInterfac
 
 
 def load_excess_mortality_scalars(data_interface: 'PostprocessingDataInterface'):
-    return data_interface.load_excess_mortality_scalars()
+    return summarize(data_interface.load_excess_mortality_scalars())
 
 
 def load_raw_census_data(data_interface: 'PostprocessingDataInterface'):
@@ -159,7 +161,7 @@ def load_full_data(data_interface: 'PostprocessingDataInterface') -> pd.DataFram
 def load_unscaled_full_data(data_interface: 'PostprocessingDataInterface') -> pd.DataFrame:
     full_data = load_full_data(data_interface)
     deaths = full_data['cumulative_deaths'].dropna()
-    em_scalars = (load_excess_mortality_scalars(data_interface)
+    em_scalars = (load_excess_mortality_scalars(data_interface)['mean']
                   .reindex(deaths.index)
                   .groupby('location_id')
                   .fillna(method='ffill'))

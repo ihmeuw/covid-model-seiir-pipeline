@@ -269,11 +269,16 @@ class RegressionDataInterface:
         infection_data = self.load_full_past_infection_data(draw_id=draw_id)
         return infection_data.loc[location_ids]
 
-    def load_em_scalars(self) -> pd.Series:
+    def load_em_scalars_draws(self) -> pd.DataFrame:
         location_ids = self.load_location_ids()
         em_scalars = io.load(self.infection_root.em_scalars())
-        em_scalars = em_scalars[~em_scalars.index.duplicated()]
-        return em_scalars.loc[location_ids, 'em_scalar']
+        em_scalars = em_scalars.set_index('draw', append=True).unstack()
+        import pdb; pdb.set_trace()
+        assert em_scalars.index.duplicated.sum() == 0
+        return em_scalars.loc[location_ids]
+
+    def load_em_scalars(self, draw_id: int) -> pd.Series:
+        return self.load_em_scalars_draws().loc[:, draw_id].rename('em_scalar')
 
     def load_ifr(self, draw_id: int) -> pd.DataFrame:
         ifr = io.load(self.infection_root.ifr(draw_id=draw_id))

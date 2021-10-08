@@ -259,7 +259,7 @@ class PostprocessingDataInterface:
         return locations_modeled_and_missing
 
     def load_excess_mortality_scalars(self):
-        return self._get_forecast_data_inteface().load_em_scalars()
+        return self._get_forecast_data_inteface().load_em_scalars_draws()
 
     def load_hospital_bed_capacity(self):
         return self._get_forecast_data_inteface().load_hospital_bed_capacity()
