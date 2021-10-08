@@ -14,7 +14,8 @@ from covid_model_seiir_pipeline.lib.ode_mk2.constants import (
 
     AGGREGATES,
     PARAMETERS,
-    PHI,
+    CHI,
+    ETA,
     NEW_E,
     COMPARTMENTS,
 
@@ -43,7 +44,8 @@ def make_new_e(t: float,
                group_y: np.ndarray,
                parameters: np.ndarray,
                aggregates: np.ndarray,
-               phis: np.ndarray,
+               etas: np.ndarray,
+               chis: np.ndarray,
                forecast: bool) -> Tuple[np.ndarray, np.ndarray]:
 
     n_total = aggregates[AGGREGATES[COMPARTMENT_TYPE.N, VARIANT_GROUP.total]]
@@ -53,39 +55,39 @@ def make_new_e(t: float,
 
     if forecast:
         beta = parameters[PARAMETERS[VARIANT_PARAMETER.beta, VARIANT_GROUP.all]]
-        for variant_x in VARIANT:
-            infectious = aggregates[AGGREGATES[COMPARTMENT.I, variant_x]]**alpha
-            for vaccine_status in VACCINE_STATUS:
-                susceptible = group_y[COMPARTMENTS[COMPARTMENT.S, variant_x, vaccine_status]]
-                for variant_y in VARIANT:
-                    kappa = parameters[PARAMETERS[VARIANT_PARAMETER.kappa, variant_y]]
-                    eta = parameters[PARAMETERS[VARIANT_PARAMETER.eta, variant_y]]
-                    phi = phis[PHI[variant_y, variant_x]]
-                    s_effective = eta * phi * susceptible
-                    effective_susceptible[variant_y] += s_effective
-                    new_e[NEW_E[variant_x, variant_y, vaccine_status]] += (
+        for variant_to in VARIANT:            
+            kappa = parameters[PARAMETERS[VARIANT_PARAMETER.kappa, variant_to]]
+            infectious = aggregates[AGGREGATES[COMPARTMENT.I, variant_to]]**alpha            
+            for variant_from in VARIANT:
+                chi = chis[CHI[variant_from, variant_to]]            
+                for vaccine_status in VACCINE_STATUS:
+                    susceptible = group_y[COMPARTMENTS[COMPARTMENT.S, variant_from, vaccine_status]]                    
+                    eta = etas[ETA[vaccine_status, variant_to]]                    
+                    s_effective = (1 - eta) * (1 - chi) * susceptible
+                    effective_susceptible[variant_to] += s_effective                    
+                    new_e[NEW_E[vaccine_status, variant_from, variant_to]] += (
                         beta * kappa * s_effective * infectious / n_total
                     )
 
     else:
         new_e_total = parameters[PARAMETERS[BASE_PARAMETER.new_e, VARIANT_GROUP.all]]
         total_weight = 0.
-        for variant_x in VARIANT:
-            infectious = aggregates[AGGREGATES[COMPARTMENT.I, variant_x]] ** alpha
-            for vaccine_status in VACCINE_STATUS:
-                susceptible = group_y[COMPARTMENTS[COMPARTMENT.S, variant_x, vaccine_status]]
-                for variant_y in VARIANT:
-                    kappa = parameters[PARAMETERS[VARIANT_PARAMETER.kappa, variant_y]]
-                    eta = parameters[PARAMETERS[VARIANT_PARAMETER.eta, variant_y]]
-                    phi = phis[PHI[variant_y, variant_x]]
-                    s_effective = eta * phi * susceptible
-                    effective_susceptible[variant_y] += s_effective
+        for variant_to in VARIANT:
+            kappa = parameters[PARAMETERS[VARIANT_PARAMETER.kappa, variant_to]]
+            infectious = aggregates[AGGREGATES[COMPARTMENT.I, variant_to]] ** alpha            
+            for variant_from in VARIANT:
+                chi = chis[CHI[variant_from, variant_to]]
+                for vaccine_status in VACCINE_STATUS:
+                    susceptible = group_y[COMPARTMENTS[COMPARTMENT.S, variant_from, vaccine_status]]                    
+                    eta = etas[ETA[vaccine_status, variant_to]]
+                    s_effective = (1 - eta) * (1 - chi) * susceptible
+                    effective_susceptible[variant_to] += s_effective
                     variant_weight = kappa * s_effective * infectious
-                    total_weight += variant_weight
-                    new_e[NEW_E[variant_x, variant_y, vaccine_status]] += (
+                    total_weight += variant_weight                    
+                    new_e[NEW_E[vaccine_status, variant_from, variant_to]] += (
                         variant_weight * new_e_total
                     )
-        new_e /= total_weight
+        new_e_final = new_e / total_weight
 
     if DEBUG:
         assert np.all(np.isfinite(new_e))

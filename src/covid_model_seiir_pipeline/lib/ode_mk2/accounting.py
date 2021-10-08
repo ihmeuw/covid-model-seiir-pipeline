@@ -10,7 +10,7 @@ from covid_model_seiir_pipeline.lib.ode_mk2.constants import (
     # Indexing arrays
     NEW_E,
     COMPARTMENTS,
-    TRACKING_COMPARTMENTS,
+    TRACKING_COMPARTMENTS,    
     # Debug flag
     DEBUG,
 )
@@ -23,7 +23,8 @@ def compute_tracking_compartments(t: float,
                                   effective_susceptible: np.ndarray,
                                   transition_map: np.ndarray) -> np.ndarray:
     for variant in VARIANT:
-        group_dy[TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewE, variant]] += new_e[NEW_E[variant].flatten()].sum()
+        for vaccine_status in VACCINE_STATUS:            
+            group_dy[TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewE, variant]] += new_e[NEW_E[vaccine_status, variant].flatten()].sum()
         group_dy[TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewVaccination, variant]] += (transition_map[
                 COMPARTMENTS[COMPARTMENT.S, variant, VACCINE_STATUS.unvaccinated],
                 COMPARTMENTS[COMPARTMENT.S, variant, VACCINE_STATUS.vaccinated],

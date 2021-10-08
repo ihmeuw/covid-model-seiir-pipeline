@@ -32,38 +32,41 @@ from covid_model_seiir_pipeline.lib.ode_mk2 import (
 @numba.njit
 def system(t: float,
            y: np.ndarray,           
-           input_parameters: np.ndarray,
+           params: np.ndarray,
            vaccines: np.ndarray,
            etas: np.ndarray,
            chis: np.ndarray,
            forecast: bool):
     aggregates = parameters.make_aggregates(y)
-    params = input_parameters[:PARAMETERS.max()+1]
-    vaccines = input_parameters[PARAMETERS.max()+1:]
 
     if DEBUG:
         assert np.all(np.isfinite(aggregates))
         assert np.all(np.isfinite(params))
         assert np.all(np.isfinite(vaccines))
+        assert np.all(np.isfinite(etas))
+        assert np.all(np.isfinite(chis))
+        
 
     dy = np.zeros_like(y)
     
-    system_size = TRACKING_COMPARTMENTS.max() + 1
-    for i in range(len(RISK_GROUP)):
-        group_start = i * system_size
-        group_end = (i + 1) * system_size
-        group_vaccine_start = i * 2
-        group_vaccine_end = (i + 1) * 2
-
-        group_y = y[group_start:group_end]
-        group_vaccines = vaccines[group_vaccine_start:group_vaccine_end]
+    system_size = y.size // len(RISK_GROUP)
+    for risk_group in range(len(RISK_GROUP)):
+        group_start = risk_group * system_size
+        group_end = (risk_group + 1) * system_size
+        
+        group_y = _subset(y, risk_group)        
+        group_vaccines = _subset(vaccines, risk_group)
+        group_etas = _subset(etas, risk_group)
+        group_chis = _subset(chis, risk_group)
+        
 
         new_e, effective_susceptible = parameters.make_new_e(
             t,
             group_y,
             params,
             aggregates,
-            phis,
+            group_etas,
+            group_chis,
             forecast,
         )
 
@@ -92,6 +95,14 @@ def system(t: float,
 
 
 @numba.njit
+def _subset(x: np.ndarray, risk_group: int):
+    x_size = x.size // len(RISK_GROUP)
+    group_start = risk_group * x_size
+    group_end = (risk_group + 1) * x_size
+    return x[group_start:group_end]
+
+
+@numba.njit
 def _single_group_system(t: float,
                          group_y: np.ndarray,
                          new_e: np.ndarray,
@@ -113,7 +124,7 @@ def _single_group_system(t: float,
 
             for variant_from in VARIANT:
                 s_from_idx = COMPARTMENTS[COMPARTMENT.S, variant_from, vaccine_status]
-                transition_map[s_from_idx, e_idx] += new_e[NEW_E[variant_from, variant_to, vaccine_status]]
+                transition_map[s_from_idx, e_idx] += new_e[NEW_E[vaccine_status, variant_from, variant_to]]
             transition_map[e_idx, i_idx] += sigma * group_y[e_idx]
             transition_map[i_idx, s_to_idx] += gamma * group_y[i_idx]
 
@@ -121,7 +132,7 @@ def _single_group_system(t: float,
 
     for vaccine_status in VACCINE_STATUS[:-1]:
         for variant in VARIANT:
-            new_e_from_s = new_e[NEW_E[variant].flatten()].sum()
+            new_e_from_s = new_e[NEW_E[vaccine_status, variant].flatten()].sum()
             s_from_idx = COMPARTMENTS[COMPARTMENT.S, variant, vaccine_status]
             s_to_idx = COMPARTMENTS[COMPARTMENT.S, variant, vaccine_status + 1]
             expected_vaccines = (

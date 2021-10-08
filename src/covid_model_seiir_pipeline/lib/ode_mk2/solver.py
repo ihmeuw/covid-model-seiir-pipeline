@@ -20,8 +20,7 @@ from covid_model_seiir_pipeline.lib.ode_mk2.constants import (
     VARIANT_GROUP,
 )
 from covid_model_seiir_pipeline.lib.ode_mk2.system import (
-    fit_system,
-    forecast_system,
+    system,
 )
 
 
