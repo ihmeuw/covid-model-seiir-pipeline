@@ -164,24 +164,22 @@ def run_ode_fit(initial_condition: pd.DataFrame, ode_parameters: Parameters):
         num_cores=5,
     )
     import pdb; pdb.set_trace()
-    # full_compartments = pd.read_csv('/ihme/homes/collijk/full_compartments.csv')
-    # full_compartments['date'] = pd.to_datetime(full_compartments['date'])
-    # full_compartments = full_compartments.set_index(['location_id', 'date'])
-    # betas = []
-    # all_compartments = [f"{c}_{rg}" for c, rg in itertools.product(COMPARTMENTS_NAMES, RISK_GROUP_NAMES)]
-    # population = full_compartments.loc[:, all_compartments].sum(axis=1)
-    #
-    # total_infectious = 0.
-    # beta_fit = 0.
-    #
-    # for variant_name, variant_index in VARIANT._asdict().items():
-    #     new_e_variant = (full_compartments
-    #                      .filter(like=f'NewE_{variant_name}')
-    #                      .sum(axis=1)
-    #                      .groupby('location_id')
-    #                      .diff()
-    #                      .fillna(0))
-    #
+    betas = []
+    all_compartments = [f"{c}_{rg}" for c, rg in itertools.product(COMPARTMENTS_NAMES, RISK_GROUP_NAMES)]
+    population = full_compartments.loc[:, all_compartments].sum(axis=1)
+
+    total_infectious = 0.
+    beta_fit = 0.
+
+    for risk_group in RISK_GROUP_NAMES:
+        for variant_name, variant_index in VARIANT._asdict().items():
+            new_e = (full_compartments
+                     .filter(like=f'NewE_{variant_name}')
+                     .sum(axis=1)
+                     .groupby('location_id')
+                     .diff()
+                     .fillna(0))
+
     #     variant_indices = CG_SUSCEPTIBLE(variant_index)
     #     variant_indices = np.hstack([variant_indices, variant_indices + system_size]).tolist()
     #     susceptible_variant = full_compartments.iloc[:, variant_indices].sum(axis=1)

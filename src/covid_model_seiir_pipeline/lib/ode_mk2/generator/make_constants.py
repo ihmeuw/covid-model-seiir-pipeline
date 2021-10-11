@@ -158,6 +158,13 @@ SPECS = {
             ['vaccine_status', 'variant', 'variant'],
         ],
     ),
+    'EFFECTIVE_SUSCEPTIBLE': Spec(
+        offset='',
+        axes_primitives=['variant_index_type', 'vaccine_index_type'],
+        field_specs=[
+            ['variant', 'vaccine_status'],
+        ],
+    ),
     'COMPARTMENTS': Spec(
         offset='',
         axes_primitives=['compartment_type', 'variant_index_type', 'vaccine_index_type'],
@@ -167,9 +174,9 @@ SPECS = {
     ),
     'TRACKING_COMPARTMENTS': Spec(
         offset='COMPARTMENTS',
-        axes_primitives=['tracking_compartment_type', 'variant_index_type'],
+        axes_primitives=['tracking_compartment_type', 'variant_index_type', 'vaccine_index_type'],
         field_specs=[
-            ['tracking_compartment', 'variant']
+            ['tracking_compartment', 'variant', 'vaccine_status']
         ],
     ),
     'AGGREGATES': Spec(
