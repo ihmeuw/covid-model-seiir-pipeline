@@ -22,6 +22,7 @@ PRIMITIVE_TYPES = {
         'NewVaccination',
         'NewBooster',
         'EffectiveSusceptible',
+        'beta',
     ],
     'parameter_type': [
         'alpha',
@@ -54,6 +55,7 @@ PRIMITIVE_TYPES = {
         'unvaccinated',
         'vaccinated',
         'booster',
+        'all',
     ],
     'agg_index_type': [
         'none',
@@ -176,7 +178,8 @@ SPECS = {
         offset='COMPARTMENTS',
         axes_primitives=['tracking_compartment_type', 'variant_index_type', 'vaccine_index_type'],
         field_specs=[
-            ['tracking_compartment', 'variant', 'vaccine_status']
+            ['tracking_compartment', 'variant', 'vaccine_status'],
+            ['beta', 'none', 'all'],
         ],
     ),
     'AGGREGATES': Spec(

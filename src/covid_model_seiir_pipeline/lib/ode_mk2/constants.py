@@ -28,6 +28,7 @@ _TrackingCompartmentType = namedtuple('TrackingCompartmentType', [
     'NewVaccination',       
     'NewBooster',           
     'EffectiveSusceptible', 
+    'beta',                 
 ])
 
 _ParameterType = namedtuple('ParameterType', [
@@ -63,6 +64,7 @@ _VaccineIndexType = namedtuple('VaccineIndexType', [
     'unvaccinated', 
     'vaccinated',   
     'booster',      
+    'all',          
 ])
 
 _AggIndexType = namedtuple('AggIndexType', [
@@ -1241,6 +1243,7 @@ TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.EffectiveSusceptible, VARIANT.other, 
 TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.EffectiveSusceptible, VARIANT.omega, VACCINE_STATUS.unvaccinated] = 165
 TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.EffectiveSusceptible, VARIANT.omega, VACCINE_STATUS.vaccinated] = 166
 TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.EffectiveSusceptible, VARIANT.omega, VACCINE_STATUS.booster] = 167
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.beta, VARIANT_INDEX_TYPE.none, VACCINE_INDEX_TYPE.all] = 168
 TRACKING_COMPARTMENTS_NAMES = [
     'NewE_none_unvaccinated',
     'NewE_none_vaccinated',
@@ -1338,6 +1341,7 @@ TRACKING_COMPARTMENTS_NAMES = [
     'EffectiveSusceptible_omega_unvaccinated',
     'EffectiveSusceptible_omega_vaccinated',
     'EffectiveSusceptible_omega_booster',
+    'beta_none_all',
 ]
 
 AGGREGATES = np.full((len(COMPARTMENT_TYPE), len(VARIANT_INDEX_TYPE)), -1, dtype=np.int64)
