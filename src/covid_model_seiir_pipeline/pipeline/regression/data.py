@@ -281,7 +281,7 @@ class RegressionDataInterface:
     def load_ifr(self, draw_id: int) -> pd.DataFrame:
         ifr = io.load(self.infection_root.ifr(draw_id=draw_id))
         ifr = self.format_ratio_data(ifr)
-        vaccinations = self.load_vaccinations().groupby('location_id').cumsum()
+        vaccinations = self.load_vaccinations()[0].groupby('location_id').cumsum()
         population = self.load_risk_group_populations().reindex(vaccinations.index, level='location_id')
         vax_groups = ['non_escape', 'escape']
 

@@ -157,17 +157,13 @@ def filter_to_epi_threshold(infections: pd.Series,
 
 
 def run_ode_fit(initial_condition: pd.DataFrame, ode_parameters: Parameters):
-    full_compartments = solver.run_ode_model(
-        initial_condition,
-        *ode_parameters.to_dfs(),
-        forecast=False,
-        num_cores=5,
-    )
-    import pdb; pdb.set_trace()
-    # full_compartments = pd.read_csv('/ihme/homes/collijk/full_compartments.csv')
-    # full_compartments['date'] = pd.to_datetime(full_compartments['date'])
-    # full_compartments = full_compartments.set_index(['location_id', 'date'])
-    # betas = []
+#    full_compartments = solver.run_ode_model(
+#        initial_condition,
+#        *ode_parameters.to_dfs(),
+#        forecast=False,
+#        num_cores=5,
+#    )
+    full_compartments = pd.read_parquet('/ihme/homes/collijk/full_compartments.parquet', engine='fastparquet')
     # all_compartments = [f"{c}_{rg}" for c, rg in itertools.product(COMPARTMENTS_NAMES, RISK_GROUP_NAMES)]
     # population = full_compartments.loc[:, all_compartments].sum(axis=1)
     #

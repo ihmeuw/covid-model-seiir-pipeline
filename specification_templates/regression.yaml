@@ -23,12 +23,12 @@ regression_parameters:
   # proportion increase in transmission intensity
   kappa_none: 0.0
   kappa_ancestral: 1.0
-  kappa_alpha: 1.0
-  kappa_beta: 1.0
-  kappa_gamma: 1.0
-  kappa_delta: 1.0
-  kappa_other: 1.0
-  kappa_omega: 1.0
+  kappa_alpha: 1.4
+  kappa_beta: 1.2
+  kappa_gamma: 1.2
+  kappa_delta: 1.8
+  kappa_other: 1.2
+  kappa_omega: 1.8
 hospital_parameters:
   compute_correction_factors: True
   hospital_stay_death: 6
