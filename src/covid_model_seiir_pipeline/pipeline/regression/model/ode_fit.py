@@ -123,7 +123,7 @@ def make_initial_condition(parameters: Parameters, population: pd.DataFrame):
             infectious = (new_e / 5) ** (1 / alpha.loc[location_id])
             initial_condition.loc[(location_id, loc_start_date), f'S_none{suffix}'] = pop - new_e - infectious
             initial_condition.loc[(location_id, loc_start_date), f'E_ancestral{suffix}'] = new_e
-            initial_condition.loc[(location_id, loc_start_date), f'NewE_ancestral_{risk_group}'] = new_e
+            initial_condition.loc[(location_id, loc_start_date), f'NewE_ancestral{suffix}'] = new_e
             initial_condition.loc[(location_id, loc_start_date), f'I_ancestral{suffix}'] = infectious
     return initial_condition
 
