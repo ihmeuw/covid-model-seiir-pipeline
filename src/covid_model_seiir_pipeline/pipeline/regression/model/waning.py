@@ -14,7 +14,7 @@ from covid_model_seiir_pipeline.lib.ode_mk2.constants import (
 
 def prepare_etas_and_vaccinations(past_infections: pd.Series,
                                   vaccinations: pd.DataFrame, 
-                                  waning_params: Tuple[int, float, int, float]):    
+                                  waning_params: Tuple[float, int, float, int]):
     inf_start_date = past_infections.reset_index().groupby('location_id').date.min()
     vac_start_date = vaccinations.reset_index().groupby('location_id').date.min() - pd.Timedelta(days=1)
     prepend_index = pd.concat([inf_start_date, vac_start_date]).reset_index().set_index(['location_id', 'date']).index
@@ -44,7 +44,7 @@ def prepare_etas_and_vaccinations(past_infections: pd.Series,
 def prepare_phis(past_infections: pd.Series, 
                  covariates: pd.DataFrame,
                  waning_matrix: pd.DataFrame,
-                 waning_params: Tuple[int, float, int, float]):
+                 waning_params: Tuple[float, int, float, int]):
     min_date = past_infections.reset_index().date.min()
     max_date = covariates.reset_index().date.max()
     
@@ -113,7 +113,7 @@ def remap_efficacy(efficacy: pd.DataFrame) -> pd.DataFrame:
     return efficacy
 
 
-def build_waning_dist(efficacy: pd.DataFrame, waning_params: Tuple[int, float, int, float]):
+def build_waning_dist(efficacy: pd.DataFrame, waning_params: Tuple[float, int, float, int]):
     efficacy = convert_date_index_to_time_index(efficacy)
     waning = efficacy.copy()
     max_t = waning.reset_index().t.max() + 1

@@ -157,44 +157,48 @@ def filter_to_epi_threshold(infections: pd.Series,
 
 
 def run_ode_fit(initial_condition: pd.DataFrame, ode_parameters: Parameters):
-    system_size = len(initial_condition.columns) // len(RISK_GROUP_NAMES)
-    parameter_df = ode_parameters.to_df()
-#    full_compartments = solver.run_ode_model(initial_condition, parameter_df, forecast=False)
-    full_compartments = pd.read_csv('/ihme/homes/collijk/full_compartments.csv')
-    full_compartments['date'] = pd.to_datetime(full_compartments['date'])
-    full_compartments = full_compartments.set_index(['location_id', 'date'])
-    betas = []
-    all_compartments = [f"{c}_{rg}" for c, rg in itertools.product(COMPARTMENTS_NAMES, RISK_GROUP_NAMES)]
-    population = full_compartments.loc[:, all_compartments].sum(axis=1)
-
-    total_infectious = 0.
-    beta_fit = 0.
-
-    for variant_name, variant_index in VARIANT._asdict().items():
-        new_e_variant = (full_compartments
-                         .filter(like=f'NewE_{variant_name}')
-                         .sum(axis=1)
-                         .groupby('location_id')
-                         .diff()
-                         .fillna(0))
-
-        variant_indices = CG_SUSCEPTIBLE(variant_index)
-        variant_indices = np.hstack([variant_indices, variant_indices + system_size]).tolist()
-        susceptible_variant = full_compartments.iloc[:, variant_indices].sum(axis=1)
-
-        variant_indices = CG_INFECTIOUS(variant_index)
-        variant_indices = np.hstack([variant_indices, variant_indices + system_size]).tolist()
-        infectious_variant = full_compartments.iloc[:, variant_indices].sum(axis=1)
-        total_infectious += infectious_variant
-
-        disease_density = susceptible_variant * infectious_variant**ode_parameters.alpha / population
-        beta_variant = (new_e_variant / disease_density).rename(f'beta_{variant_name}')
-        beta_variant.loc[~disease_density.isnull()] = beta_variant.loc[~disease_density.isnull()].fillna(0.)
-        betas.append(beta_variant)
-
-        beta_fit += beta_variant / parameter_df[f'kappa_{variant_name}'] * infectious_variant
-    beta_fit /= total_infectious
-    betas = pd.concat([beta_fit.rename('beta')] + betas, axis=1)
-    betas.loc[betas.beta.isnull(), :] = np.nan
-
-    return betas, full_compartments
+    full_compartments = solver.run_ode_model(
+        initial_condition,
+        *ode_parameters.to_dfs(),
+        forecast=False,
+        num_cores=5,
+    )
+    import pdb; pdb.set_trace()
+    # full_compartments = pd.read_csv('/ihme/homes/collijk/full_compartments.csv')
+    # full_compartments['date'] = pd.to_datetime(full_compartments['date'])
+    # full_compartments = full_compartments.set_index(['location_id', 'date'])
+    # betas = []
+    # all_compartments = [f"{c}_{rg}" for c, rg in itertools.product(COMPARTMENTS_NAMES, RISK_GROUP_NAMES)]
+    # population = full_compartments.loc[:, all_compartments].sum(axis=1)
+    #
+    # total_infectious = 0.
+    # beta_fit = 0.
+    #
+    # for variant_name, variant_index in VARIANT._asdict().items():
+    #     new_e_variant = (full_compartments
+    #                      .filter(like=f'NewE_{variant_name}')
+    #                      .sum(axis=1)
+    #                      .groupby('location_id')
+    #                      .diff()
+    #                      .fillna(0))
+    #
+    #     variant_indices = CG_SUSCEPTIBLE(variant_index)
+    #     variant_indices = np.hstack([variant_indices, variant_indices + system_size]).tolist()
+    #     susceptible_variant = full_compartments.iloc[:, variant_indices].sum(axis=1)
+    #
+    #     variant_indices = CG_INFECTIOUS(variant_index)
+    #     variant_indices = np.hstack([variant_indices, variant_indices + system_size]).tolist()
+    #     infectious_variant = full_compartments.iloc[:, variant_indices].sum(axis=1)
+    #     total_infectious += infectious_variant
+    #
+    #     disease_density = susceptible_variant * infectious_variant**ode_parameters.alpha / population
+    #     beta_variant = (new_e_variant / disease_density).rename(f'beta_{variant_name}')
+    #     beta_variant.loc[~disease_density.isnull()] = beta_variant.loc[~disease_density.isnull()].fillna(0.)
+    #     betas.append(beta_variant)
+    #
+    #     beta_fit += beta_variant / parameter_df[f'kappa_{variant_name}'] * infectious_variant
+    # beta_fit /= total_infectious
+    # betas = pd.concat([beta_fit.rename('beta')] + betas, axis=1)
+    # betas.loc[betas.beta.isnull(), :] = np.nan
+    pass
+#    return betas, full_compartments

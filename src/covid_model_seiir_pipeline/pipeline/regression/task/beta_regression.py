@@ -32,7 +32,7 @@ def run_beta_regression(regression_version: str, draw_id: int, progress_bar: boo
     past_infection_data = data_interface.load_past_infection_data(draw_id=draw_id)
     population = data_interface.load_five_year_population()
     rhos = data_interface.load_variant_prevalence()
-    vaccinations = data_interface.load_vaccinations()
+    vaccinations, boosters = data_interface.load_vaccinations()
 
     logger.info('Prepping ODE fit parameters.', context='transform')
     infections = model.clean_infection_data_measure(past_infection_data, 'infections')
@@ -44,20 +44,53 @@ def run_beta_regression(regression_version: str, draw_id: int, progress_bar: boo
         infections.index, regression_params,
         params_to_sample=['alpha', 'sigma', 'gamma', 'pi'] + [f'kappa_{v}' for v in VARIANT_NAMES]
     )
-    etas_immune, etas_protected, waning, total_vaccinations = model.prepare_etas_and_vaccinations(
-        infections,
-        vaccinations,
+
+    natural_waning_params = (0.8, 270, 0.1, 720)
+    natural_waning_matrix = pd.DataFrame(
+        data=np.array([
+            [0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.],
+            [1.0, 1.0, 1.0, 0.5, 0.5, 0.5, 0.5, 0.5],
+            [1.0, 1.0, 1.0, 0.5, 0.5, 0.5, 0.5, 0.5],
+            [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.5],
+            [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.5],
+            [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.5],
+            [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.5],
+            [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
+        ]),
+        columns=VARIANT_NAMES,
+        index=VARIANT_NAMES,
     )
 
     phis = model.prepare_phis(
         infections,
         covariates,
+        natural_waning_matrix,
+        natural_waning_params,
+    )
+
+    vaccine_waning_params = (0.5, 180, 0.1, 720)
+    booster_waning_params = (0.5, 180, 0.1, 720)
+
+    etas_immune, etas_protected, total_vaccinations = model.prepare_etas_and_vaccinations(
+        infections,
+        vaccinations,
+        vaccine_waning_params,
+    )
+
+    etas_booster_immune, etas_booster_protected, total_boosters = model.prepare_etas_and_vaccinations(
+        infections,
+        boosters,
+        booster_waning_params,
     )
 
     ode_parameters = model.prepare_ode_fit_parameters(
-        infections,        
+        infections,
         rhos,
-        vaccinations,
+        total_vaccinations,
+        total_boosters,
+        etas_immune,
+        etas_booster_immune,
+        phis,
         sampled_params,
     )
 
