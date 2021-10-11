@@ -32,6 +32,7 @@ def maybe_invade(group_y: np.ndarray, group_dy: np.ndarray,
         # Short circuit if we don't have variant invasion this step
         if no_variant_present or already_invaded:
             continue
+            
         # Shift at least 1 person to the escape variants if we can
         min_invasion = 1
         # Cap the the invasion so we don't take everyone. The handles corner cases

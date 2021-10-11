@@ -42,7 +42,7 @@ def make_aggregates(y: np.ndarray) -> np.ndarray:
 @numba.njit
 def make_new_e(t: float,
                group_y: np.ndarray,
-               parameters: np.ndarray,
+               parameters: np.ndarray,               
                aggregates: np.ndarray,
                etas: np.ndarray,
                chis: np.ndarray,
@@ -54,7 +54,7 @@ def make_new_e(t: float,
     effective_susceptible = np.zeros(len(VARIANT) + 1)
 
     if forecast:
-        beta = parameters[PARAMETERS[VARIANT_PARAMETER.beta, VARIANT_GROUP.all]]
+        beta = parameters[PARAMETERS[BASE_PARAMETER.beta, VARIANT_GROUP.all]]
         for variant_to in VARIANT:            
             kappa = parameters[PARAMETERS[VARIANT_PARAMETER.kappa, variant_to]]
             infectious = aggregates[AGGREGATES[COMPARTMENT.I, variant_to]]**alpha            
@@ -70,7 +70,10 @@ def make_new_e(t: float,
                     )
 
     else:
-        new_e_total = parameters[PARAMETERS[BASE_PARAMETER.new_e, VARIANT_GROUP.all]]
+        # TODO: Better than this
+        group_pop = group_y[:COMPARTMENTS.max() + 1].sum()
+        new_e_total = parameters[PARAMETERS[BASE_PARAMETER.new_e, VARIANT_GROUP.all]] * group_pop / n_total
+        
         total_weight = 0.
         for variant_to in VARIANT:
             kappa = parameters[PARAMETERS[VARIANT_PARAMETER.kappa, variant_to]]
@@ -88,8 +91,8 @@ def make_new_e(t: float,
                         variant_weight * new_e_total
                     )
         new_e_final = new_e / total_weight
-
+        
     if DEBUG:
         assert np.all(np.isfinite(new_e))
 
-    return new_e, effective_susceptible
+    return new_e_final, effective_susceptible

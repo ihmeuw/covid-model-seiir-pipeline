@@ -59,16 +59,15 @@ def system(t: float,
         group_etas = _subset(etas, risk_group)
         group_chis = _subset(chis, risk_group)
         
-
         new_e, effective_susceptible = parameters.make_new_e(
             t,
             group_y,
-            params,
+            params,            
             aggregates,
             group_etas,
             group_chis,
             forecast,
-        )
+        )        
 
         group_dy = _single_group_system(
             t,
@@ -90,6 +89,7 @@ def system(t: float,
 
     if DEBUG:
         assert np.all(np.isfinite(dy))
+        assert np.any(dy > 0.)
 
     return dy
 

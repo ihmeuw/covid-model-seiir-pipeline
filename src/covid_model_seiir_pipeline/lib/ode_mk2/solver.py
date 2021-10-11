@@ -29,15 +29,22 @@ SOLVER_DT: float = 0.1
 
 def run_ode_model(initial_condition: pd.DataFrame,
                   parameter_df: pd.DataFrame,
+                  vaccination_df: pd.DataFrame,
+                  eta_df: pd.DataFrame,
+                  phi_df: pd.DataFrame,
                   forecast: bool,
                   dt: float = SOLVER_DT, 
-                  num_cores: int = 7):
+                  num_cores: int = 5):
     # Ensure data frame column labeling is consistent with expected index ordering.
     initial_condition = _sort_columns(initial_condition)
     location_ids = initial_condition.reset_index().location_id.unique().tolist()
     start = time.time()
-    ics_and_params = [(location_id, initial_condition.loc[location_id], parameter_df.loc[location_id])
-                      for location_id in location_ids]
+    ics_and_params = [(location_id,
+                       initial_condition.loc[location_id],
+                       parameter_df.loc[location_id],
+                       vaccination_df.loc[location_id],
+                       eta_df.loc[location_id],
+                       phi_df) for location_id in location_ids]
 
     _runner = functools.partial(
         _run_loc_ode_model,
@@ -55,11 +62,10 @@ def run_ode_model(initial_condition: pd.DataFrame,
     return compartments
 
 
-def _run_loc_ode_model(ic_and_params: Tuple[int, pd.DataFrame, pd.DataFrame],
+def _run_loc_ode_model(ic_and_params: Tuple[int, pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame],
                        dt: float,
                        forecast: bool):
-    location_id, initial_condition, parameters = ic_and_params
-
+    location_id, initial_condition, parameters, vaccines, etas, phis = ic_and_params
     new_e_dates = initial_condition[initial_condition.filter(like='NewE').sum(axis=1) > 0].reset_index().date
     invasion_date = new_e_dates.min()
     ode_start_date = new_e_dates.max()
@@ -71,31 +77,32 @@ def _run_loc_ode_model(ic_and_params: Tuple[int, pd.DataFrame, pd.DataFrame],
 
     else:
         assert t0 == 0
-        ode_end_date = parameters.new_e.dropna().reset_index().date.max()
-    tf = (ode_end_date - invasion_date)
+        ode_end_date = parameters.new_e_all.dropna().reset_index().date.max()
+
+    tf = (ode_end_date - invasion_date).days
 
     dates = initial_condition.reset_index().date
+
     t = (dates - invasion_date).dt.days.values
-    y = initial_condition.to_numpy()
-    params = parameters.to_numpy()
-    # Split the daily "date" axis into chunks of width dt and interpolate
-    # the compartments and parameters over the new time points.
-    t_solve, y_solve, p_solve = _interpolate(t0, t, y, params, forecast, dt)
+    t_solve = np.round(np.arange(t[0], t[-1] + dt, dt), 2)
+    t_params = np.round(np.arange(t[0], t[-1] + dt, dt/2), 2)
 
-    # TODO: Replace with real distributions
-    natural_dist = _sample_dist(_get_waning_dist(0, 90, 1500), t_solve) / dt
-    vaccine_dist = _sample_dist(_get_waning_dist(0, 180, 3000), t_solve) / dt
-
-    system = forecast_system if forecast else fit_system
-    y_solve = _rk45_dde(
-        system,
+    y_solve = _interpolate_y(t0, t, t_solve, initial_condition.to_numpy(), forecast)
+    parameters = _interpolate(t, t_params, parameters.to_numpy())
+    vaccines = _interpolate(t, t_params, vaccines.to_numpy())
+    etas = _interpolate(t, t_params, etas.to_numpy())
+    phis = phis.to_numpy()
+    
+    y_solve = _rk45_dde(        
         t0, tf,
         t_solve,
         y_solve,
-        p_solve,
-        vaccine_dist,
-        natural_dist,
-        dt,
+        parameters,
+        vaccines,
+        etas,
+        phis,
+        forecast,
+        dt,        
     )
 
     loc_compartments = pd.DataFrame(_uninterpolate(y_solve, t_solve, t),
@@ -144,54 +151,64 @@ def _interpolate(t: np.ndarray,
 
 
 @numba.njit
-def _rk45_dde(system,
-              t0: float, tf: float,
+def _rk45_dde(t0: float, tf: float,
               t_solve: np.ndarray,
               y_solve: np.ndarray,
-              p_solve: np.ndarray,
-              vaccine_dist: np.ndarray,
-              natural_dist: np.ndarray,
-              dt: float):
-    num_time_points = t_solve.size
-    system_size = TRACKING_COMPARTMENTS.max() + 1
+              parameters: np.ndarray,
+              vaccines: np.ndarray,
+              etas: np.ndarray,
+              phis: np.ndarray,
+              forecast: bool,
+              dt: float):    
+    chis = np.hstack((phis[0], phis[0]))
+    num_time_points = t_solve.size    
 
     for time in np.arange(num_time_points):
-        if not (t0 <= t_solve[time] <= tf):
+        if not (t0 < t_solve[time] <= tf):
             continue
-
-        waned = _compute_waned_this_step(
-            y_solve[:time],
-            vaccine_dist[:time],
-            natural_dist[:time],
-            system_size,
-        )
+            
+        if not t_solve[time-1] % 1:
+            # TODO: Update cross-variant immunity
+            pass
 
         k1 = system(
             t_solve[time - 1],
             y_solve[time - 1],
-            waned,
-            p_solve[2 * time - 2],
+            parameters[2 * time - 2],
+            vaccines[2 * time - 2],
+            etas[2 * time - 2],
+            chis,
+            forecast,
         )
 
         k2 = system(
             t_solve[time - 1] + dt / 2,
             y_solve[time - 1] + dt / 2 * k1,
-            waned,
-            p_solve[2 * time - 1],
+            parameters[2 * time - 1],
+            vaccines[2 * time - 1],
+            etas[2 * time - 1],
+            chis,
+            forecast,
         )
 
         k3 = system(
             t_solve[time - 1] + dt / 2,
             y_solve[time - 1] + dt / 2 * k2,
-            waned,
-            p_solve[2 * time - 1],
+            parameters[2 * time - 1],
+            vaccines[2 * time - 1],
+            etas[2 * time - 1],
+            chis,
+            forecast,            
         )
 
         k4 = system(
             t_solve[time],
             y_solve[time - 1] + dt * k3,
-            waned,
-            p_solve[2 * time],
+            parameters[2 * time],
+            vaccines[2 * time],
+            etas[2 * time],
+            chis,
+            forecast,            
         )
 
         y_solve[time] = y_solve[time - 1] + dt / 6 * (k1 + 2 * k2 + 2 * k3 + k4)
