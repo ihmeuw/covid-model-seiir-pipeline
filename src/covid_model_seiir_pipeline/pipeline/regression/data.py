@@ -273,8 +273,8 @@ class RegressionDataInterface:
         location_ids = self.load_location_ids()
         em_scalars = io.load(self.infection_root.em_scalars())
         em_scalars = em_scalars.set_index('draw', append=True).unstack()
-        import pdb; pdb.set_trace()
-        assert em_scalars.index.duplicated.sum() == 0
+        em_scalars.columns = em_scalars.columns.droplevel().rename(None)
+        assert em_scalars.index.duplicated().sum() == 0
         return em_scalars.loc[location_ids]
 
     def load_em_scalars(self, draw_id: int) -> pd.Series:

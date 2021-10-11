@@ -8,14 +8,12 @@ grid_plots:
     date_start: '2020-03-01'
     date_end: '2022-08-31'
     comparators:
-      - version: &public '2021_09_15.03'
+      - version: &public '2021_09_29.01'
         scenarios:
           reference*: 'public reference'
-      - version: &new '2021_09_22.04'
+      - version: &new '2021_10_10.02'
         scenarios:
           reference*: 'reference'
-          worse: 'worse'
-          best_masks: 'best masks'
   - name: 'compare_shortrange'
     date_start: '2020-03-01'
     date_end: '2021-12-31'
@@ -26,8 +24,6 @@ grid_plots:
       - version: *new
         scenarios:
           reference*: 'reference'
-          worse: 'worse'
-          best_masks: 'best masks'
 cumulative_deaths_compare_csv:
   dates:
     # Latest data date included automatically.  List other dates to include here
@@ -37,13 +33,9 @@ cumulative_deaths_compare_csv:
     - version: *public
       scenarios:
         reference: 'public_reference'
-        worse: 'public_worse'
-        best_masks: 'public_best_masks'
     - version: *new
       scenarios:
         reference: 'reference'
-        worse: 'worse'
-        best_masks: 'best_masks'
 scatters:
   - name: 'reference_compare_data'
     x_axis:

@@ -1,10 +1,8 @@
 data:
-  forecast_version: '2021_09_22.02'
+  forecast_version: '2021_10_10.02'
   mortality_ratio_version: 'best'
   scenarios:
     - 'reference'
-    - 'worse'
-    - 'best_masks'
   output_root: ''
 workflow:
   project: 'proj_covid_prod'
@@ -14,17 +12,17 @@ resampling:
   reference_date: '2021-12-31'
   lower_quantile: 0.025
   upper_quantile: 0.975
-splicing:
-- locations:
-  - 114
-  - 160
-  - 522
-  - 573
-  - 177
-  output_version: /ihme/covid-19/seir-outputs/2021_09_15.01
-- locations:
-  - 26
-  output_version: /ihme/covid-19/seir-outputs/2021_09_09.02
+#splicing:
+#- locations:
+#  - 114
+#  - 160
+#  - 522
+#  - 573
+#  - 177
+#  output_version: /ihme/covid-19/seir-outputs/2021_09_15.01
+#- locations:
+#  - 26
+#  output_version: /ihme/covid-19/seir-outputs/2021_09_09.02
 aggregation:
   - location_file: '/ihme/covid-19/seir-outputs/agg-hierarchies/modeling.csv'
   - location_file: '/ihme/covid-19/seir-outputs/agg-hierarchies/who_plus_palestine.csv'

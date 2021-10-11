@@ -304,15 +304,18 @@ def make_details_page(plot_versions: List[PlotVersion],
     shared_axes.append(ax_unscaled)
     ax_scalars = fig.add_subplot(gs_deaths[1])
     for plot_version in plot_versions:
+        data = plot_version.load_output_miscellaneous(
+            'excess_mortality_scalars',
+            is_table=True,
+            location_id=location.id
+        )
         try:
-            data = plot_version.load_output_miscellaneous(
-                'excess_mortality_scalars',
-                is_table=True,
-                location_id=location.id
-            )
-        except FileNotFoundError:
-            continue
-        ax_scalars.plot(data['date'], data['em_scalar'], color=plot_version.color)
+            ax_scalars.plot(data['date'], data['mean'], color=plot_version.color)
+            if plotter._uncertainty:
+                ax_scalars.fill_between(data['date'], data['upper'], data['lower'], alpha=FILL_ALPHA, color=plot_version.color)
+        except KeyError:
+            ax_scalars.plot(data['date'], data['em_scalar'], color=plot_version.color)
+
     ax_scalars.set_ylabel('EM Scalar', fontsize=AX_LABEL_FONTSIZE)
     plotter.format_date_axis(ax_scalars)
     col_2_axes.append(ax_scalars)
