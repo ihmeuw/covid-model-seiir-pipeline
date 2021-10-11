@@ -944,6 +944,58 @@ NEW_E_NAMES = [
     'booster_omega_omega',
 ]
 
+EFFECTIVE_SUSCEPTIBLE = np.full((len(VARIANT_INDEX_TYPE), len(VACCINE_INDEX_TYPE)), -1, dtype=np.int64)
+EFFECTIVE_SUSCEPTIBLE[VARIANT.none, VACCINE_STATUS.unvaccinated] = 0
+EFFECTIVE_SUSCEPTIBLE[VARIANT.none, VACCINE_STATUS.vaccinated] = 1
+EFFECTIVE_SUSCEPTIBLE[VARIANT.none, VACCINE_STATUS.booster] = 2
+EFFECTIVE_SUSCEPTIBLE[VARIANT.ancestral, VACCINE_STATUS.unvaccinated] = 3
+EFFECTIVE_SUSCEPTIBLE[VARIANT.ancestral, VACCINE_STATUS.vaccinated] = 4
+EFFECTIVE_SUSCEPTIBLE[VARIANT.ancestral, VACCINE_STATUS.booster] = 5
+EFFECTIVE_SUSCEPTIBLE[VARIANT.alpha, VACCINE_STATUS.unvaccinated] = 6
+EFFECTIVE_SUSCEPTIBLE[VARIANT.alpha, VACCINE_STATUS.vaccinated] = 7
+EFFECTIVE_SUSCEPTIBLE[VARIANT.alpha, VACCINE_STATUS.booster] = 8
+EFFECTIVE_SUSCEPTIBLE[VARIANT.beta, VACCINE_STATUS.unvaccinated] = 9
+EFFECTIVE_SUSCEPTIBLE[VARIANT.beta, VACCINE_STATUS.vaccinated] = 10
+EFFECTIVE_SUSCEPTIBLE[VARIANT.beta, VACCINE_STATUS.booster] = 11
+EFFECTIVE_SUSCEPTIBLE[VARIANT.gamma, VACCINE_STATUS.unvaccinated] = 12
+EFFECTIVE_SUSCEPTIBLE[VARIANT.gamma, VACCINE_STATUS.vaccinated] = 13
+EFFECTIVE_SUSCEPTIBLE[VARIANT.gamma, VACCINE_STATUS.booster] = 14
+EFFECTIVE_SUSCEPTIBLE[VARIANT.delta, VACCINE_STATUS.unvaccinated] = 15
+EFFECTIVE_SUSCEPTIBLE[VARIANT.delta, VACCINE_STATUS.vaccinated] = 16
+EFFECTIVE_SUSCEPTIBLE[VARIANT.delta, VACCINE_STATUS.booster] = 17
+EFFECTIVE_SUSCEPTIBLE[VARIANT.other, VACCINE_STATUS.unvaccinated] = 18
+EFFECTIVE_SUSCEPTIBLE[VARIANT.other, VACCINE_STATUS.vaccinated] = 19
+EFFECTIVE_SUSCEPTIBLE[VARIANT.other, VACCINE_STATUS.booster] = 20
+EFFECTIVE_SUSCEPTIBLE[VARIANT.omega, VACCINE_STATUS.unvaccinated] = 21
+EFFECTIVE_SUSCEPTIBLE[VARIANT.omega, VACCINE_STATUS.vaccinated] = 22
+EFFECTIVE_SUSCEPTIBLE[VARIANT.omega, VACCINE_STATUS.booster] = 23
+EFFECTIVE_SUSCEPTIBLE_NAMES = [
+    'none_unvaccinated',
+    'none_vaccinated',
+    'none_booster',
+    'ancestral_unvaccinated',
+    'ancestral_vaccinated',
+    'ancestral_booster',
+    'alpha_unvaccinated',
+    'alpha_vaccinated',
+    'alpha_booster',
+    'beta_unvaccinated',
+    'beta_vaccinated',
+    'beta_booster',
+    'gamma_unvaccinated',
+    'gamma_vaccinated',
+    'gamma_booster',
+    'delta_unvaccinated',
+    'delta_vaccinated',
+    'delta_booster',
+    'other_unvaccinated',
+    'other_vaccinated',
+    'other_booster',
+    'omega_unvaccinated',
+    'omega_vaccinated',
+    'omega_booster',
+]
+
 COMPARTMENTS = np.full((len(COMPARTMENT_TYPE), len(VARIANT_INDEX_TYPE), len(VACCINE_INDEX_TYPE)), -1, dtype=np.int64)
 COMPARTMENTS[COMPARTMENT.S, VARIANT.none, VACCINE_STATUS.unvaccinated] = 0
 COMPARTMENTS[COMPARTMENT.S, VARIANT.none, VACCINE_STATUS.vaccinated] = 1
@@ -1092,72 +1144,200 @@ COMPARTMENTS_NAMES = [
     'I_omega_booster',
 ]
 
-TRACKING_COMPARTMENTS = np.full((len(TRACKING_COMPARTMENT_TYPE), len(VARIANT_INDEX_TYPE)), -1, dtype=np.int64)
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewE, VARIANT.none] = 72
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewE, VARIANT.ancestral] = 73
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewE, VARIANT.alpha] = 74
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewE, VARIANT.beta] = 75
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewE, VARIANT.gamma] = 76
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewE, VARIANT.delta] = 77
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewE, VARIANT.other] = 78
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewE, VARIANT.omega] = 79
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewVaccination, VARIANT.none] = 80
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewVaccination, VARIANT.ancestral] = 81
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewVaccination, VARIANT.alpha] = 82
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewVaccination, VARIANT.beta] = 83
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewVaccination, VARIANT.gamma] = 84
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewVaccination, VARIANT.delta] = 85
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewVaccination, VARIANT.other] = 86
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewVaccination, VARIANT.omega] = 87
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewBooster, VARIANT.none] = 88
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewBooster, VARIANT.ancestral] = 89
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewBooster, VARIANT.alpha] = 90
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewBooster, VARIANT.beta] = 91
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewBooster, VARIANT.gamma] = 92
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewBooster, VARIANT.delta] = 93
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewBooster, VARIANT.other] = 94
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewBooster, VARIANT.omega] = 95
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.EffectiveSusceptible, VARIANT.none] = 96
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.EffectiveSusceptible, VARIANT.ancestral] = 97
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.EffectiveSusceptible, VARIANT.alpha] = 98
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.EffectiveSusceptible, VARIANT.beta] = 99
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.EffectiveSusceptible, VARIANT.gamma] = 100
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.EffectiveSusceptible, VARIANT.delta] = 101
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.EffectiveSusceptible, VARIANT.other] = 102
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.EffectiveSusceptible, VARIANT.omega] = 103
+TRACKING_COMPARTMENTS = np.full((len(TRACKING_COMPARTMENT_TYPE), len(VARIANT_INDEX_TYPE), len(VACCINE_INDEX_TYPE)), -1, dtype=np.int64)
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewE, VARIANT.none, VACCINE_STATUS.unvaccinated] = 72
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewE, VARIANT.none, VACCINE_STATUS.vaccinated] = 73
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewE, VARIANT.none, VACCINE_STATUS.booster] = 74
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewE, VARIANT.ancestral, VACCINE_STATUS.unvaccinated] = 75
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewE, VARIANT.ancestral, VACCINE_STATUS.vaccinated] = 76
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewE, VARIANT.ancestral, VACCINE_STATUS.booster] = 77
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewE, VARIANT.alpha, VACCINE_STATUS.unvaccinated] = 78
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewE, VARIANT.alpha, VACCINE_STATUS.vaccinated] = 79
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewE, VARIANT.alpha, VACCINE_STATUS.booster] = 80
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewE, VARIANT.beta, VACCINE_STATUS.unvaccinated] = 81
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewE, VARIANT.beta, VACCINE_STATUS.vaccinated] = 82
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewE, VARIANT.beta, VACCINE_STATUS.booster] = 83
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewE, VARIANT.gamma, VACCINE_STATUS.unvaccinated] = 84
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewE, VARIANT.gamma, VACCINE_STATUS.vaccinated] = 85
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewE, VARIANT.gamma, VACCINE_STATUS.booster] = 86
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewE, VARIANT.delta, VACCINE_STATUS.unvaccinated] = 87
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewE, VARIANT.delta, VACCINE_STATUS.vaccinated] = 88
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewE, VARIANT.delta, VACCINE_STATUS.booster] = 89
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewE, VARIANT.other, VACCINE_STATUS.unvaccinated] = 90
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewE, VARIANT.other, VACCINE_STATUS.vaccinated] = 91
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewE, VARIANT.other, VACCINE_STATUS.booster] = 92
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewE, VARIANT.omega, VACCINE_STATUS.unvaccinated] = 93
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewE, VARIANT.omega, VACCINE_STATUS.vaccinated] = 94
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewE, VARIANT.omega, VACCINE_STATUS.booster] = 95
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewVaccination, VARIANT.none, VACCINE_STATUS.unvaccinated] = 96
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewVaccination, VARIANT.none, VACCINE_STATUS.vaccinated] = 97
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewVaccination, VARIANT.none, VACCINE_STATUS.booster] = 98
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewVaccination, VARIANT.ancestral, VACCINE_STATUS.unvaccinated] = 99
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewVaccination, VARIANT.ancestral, VACCINE_STATUS.vaccinated] = 100
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewVaccination, VARIANT.ancestral, VACCINE_STATUS.booster] = 101
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewVaccination, VARIANT.alpha, VACCINE_STATUS.unvaccinated] = 102
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewVaccination, VARIANT.alpha, VACCINE_STATUS.vaccinated] = 103
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewVaccination, VARIANT.alpha, VACCINE_STATUS.booster] = 104
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewVaccination, VARIANT.beta, VACCINE_STATUS.unvaccinated] = 105
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewVaccination, VARIANT.beta, VACCINE_STATUS.vaccinated] = 106
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewVaccination, VARIANT.beta, VACCINE_STATUS.booster] = 107
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewVaccination, VARIANT.gamma, VACCINE_STATUS.unvaccinated] = 108
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewVaccination, VARIANT.gamma, VACCINE_STATUS.vaccinated] = 109
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewVaccination, VARIANT.gamma, VACCINE_STATUS.booster] = 110
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewVaccination, VARIANT.delta, VACCINE_STATUS.unvaccinated] = 111
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewVaccination, VARIANT.delta, VACCINE_STATUS.vaccinated] = 112
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewVaccination, VARIANT.delta, VACCINE_STATUS.booster] = 113
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewVaccination, VARIANT.other, VACCINE_STATUS.unvaccinated] = 114
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewVaccination, VARIANT.other, VACCINE_STATUS.vaccinated] = 115
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewVaccination, VARIANT.other, VACCINE_STATUS.booster] = 116
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewVaccination, VARIANT.omega, VACCINE_STATUS.unvaccinated] = 117
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewVaccination, VARIANT.omega, VACCINE_STATUS.vaccinated] = 118
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewVaccination, VARIANT.omega, VACCINE_STATUS.booster] = 119
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewBooster, VARIANT.none, VACCINE_STATUS.unvaccinated] = 120
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewBooster, VARIANT.none, VACCINE_STATUS.vaccinated] = 121
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewBooster, VARIANT.none, VACCINE_STATUS.booster] = 122
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewBooster, VARIANT.ancestral, VACCINE_STATUS.unvaccinated] = 123
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewBooster, VARIANT.ancestral, VACCINE_STATUS.vaccinated] = 124
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewBooster, VARIANT.ancestral, VACCINE_STATUS.booster] = 125
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewBooster, VARIANT.alpha, VACCINE_STATUS.unvaccinated] = 126
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewBooster, VARIANT.alpha, VACCINE_STATUS.vaccinated] = 127
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewBooster, VARIANT.alpha, VACCINE_STATUS.booster] = 128
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewBooster, VARIANT.beta, VACCINE_STATUS.unvaccinated] = 129
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewBooster, VARIANT.beta, VACCINE_STATUS.vaccinated] = 130
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewBooster, VARIANT.beta, VACCINE_STATUS.booster] = 131
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewBooster, VARIANT.gamma, VACCINE_STATUS.unvaccinated] = 132
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewBooster, VARIANT.gamma, VACCINE_STATUS.vaccinated] = 133
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewBooster, VARIANT.gamma, VACCINE_STATUS.booster] = 134
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewBooster, VARIANT.delta, VACCINE_STATUS.unvaccinated] = 135
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewBooster, VARIANT.delta, VACCINE_STATUS.vaccinated] = 136
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewBooster, VARIANT.delta, VACCINE_STATUS.booster] = 137
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewBooster, VARIANT.other, VACCINE_STATUS.unvaccinated] = 138
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewBooster, VARIANT.other, VACCINE_STATUS.vaccinated] = 139
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewBooster, VARIANT.other, VACCINE_STATUS.booster] = 140
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewBooster, VARIANT.omega, VACCINE_STATUS.unvaccinated] = 141
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewBooster, VARIANT.omega, VACCINE_STATUS.vaccinated] = 142
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewBooster, VARIANT.omega, VACCINE_STATUS.booster] = 143
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.EffectiveSusceptible, VARIANT.none, VACCINE_STATUS.unvaccinated] = 144
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.EffectiveSusceptible, VARIANT.none, VACCINE_STATUS.vaccinated] = 145
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.EffectiveSusceptible, VARIANT.none, VACCINE_STATUS.booster] = 146
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.EffectiveSusceptible, VARIANT.ancestral, VACCINE_STATUS.unvaccinated] = 147
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.EffectiveSusceptible, VARIANT.ancestral, VACCINE_STATUS.vaccinated] = 148
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.EffectiveSusceptible, VARIANT.ancestral, VACCINE_STATUS.booster] = 149
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.EffectiveSusceptible, VARIANT.alpha, VACCINE_STATUS.unvaccinated] = 150
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.EffectiveSusceptible, VARIANT.alpha, VACCINE_STATUS.vaccinated] = 151
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.EffectiveSusceptible, VARIANT.alpha, VACCINE_STATUS.booster] = 152
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.EffectiveSusceptible, VARIANT.beta, VACCINE_STATUS.unvaccinated] = 153
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.EffectiveSusceptible, VARIANT.beta, VACCINE_STATUS.vaccinated] = 154
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.EffectiveSusceptible, VARIANT.beta, VACCINE_STATUS.booster] = 155
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.EffectiveSusceptible, VARIANT.gamma, VACCINE_STATUS.unvaccinated] = 156
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.EffectiveSusceptible, VARIANT.gamma, VACCINE_STATUS.vaccinated] = 157
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.EffectiveSusceptible, VARIANT.gamma, VACCINE_STATUS.booster] = 158
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.EffectiveSusceptible, VARIANT.delta, VACCINE_STATUS.unvaccinated] = 159
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.EffectiveSusceptible, VARIANT.delta, VACCINE_STATUS.vaccinated] = 160
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.EffectiveSusceptible, VARIANT.delta, VACCINE_STATUS.booster] = 161
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.EffectiveSusceptible, VARIANT.other, VACCINE_STATUS.unvaccinated] = 162
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.EffectiveSusceptible, VARIANT.other, VACCINE_STATUS.vaccinated] = 163
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.EffectiveSusceptible, VARIANT.other, VACCINE_STATUS.booster] = 164
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.EffectiveSusceptible, VARIANT.omega, VACCINE_STATUS.unvaccinated] = 165
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.EffectiveSusceptible, VARIANT.omega, VACCINE_STATUS.vaccinated] = 166
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.EffectiveSusceptible, VARIANT.omega, VACCINE_STATUS.booster] = 167
 TRACKING_COMPARTMENTS_NAMES = [
-    'NewE_none',
-    'NewE_ancestral',
-    'NewE_alpha',
-    'NewE_beta',
-    'NewE_gamma',
-    'NewE_delta',
-    'NewE_other',
-    'NewE_omega',
-    'NewVaccination_none',
-    'NewVaccination_ancestral',
-    'NewVaccination_alpha',
-    'NewVaccination_beta',
-    'NewVaccination_gamma',
-    'NewVaccination_delta',
-    'NewVaccination_other',
-    'NewVaccination_omega',
-    'NewBooster_none',
-    'NewBooster_ancestral',
-    'NewBooster_alpha',
-    'NewBooster_beta',
-    'NewBooster_gamma',
-    'NewBooster_delta',
-    'NewBooster_other',
-    'NewBooster_omega',
-    'EffectiveSusceptible_none',
-    'EffectiveSusceptible_ancestral',
-    'EffectiveSusceptible_alpha',
-    'EffectiveSusceptible_beta',
-    'EffectiveSusceptible_gamma',
-    'EffectiveSusceptible_delta',
-    'EffectiveSusceptible_other',
-    'EffectiveSusceptible_omega',
+    'NewE_none_unvaccinated',
+    'NewE_none_vaccinated',
+    'NewE_none_booster',
+    'NewE_ancestral_unvaccinated',
+    'NewE_ancestral_vaccinated',
+    'NewE_ancestral_booster',
+    'NewE_alpha_unvaccinated',
+    'NewE_alpha_vaccinated',
+    'NewE_alpha_booster',
+    'NewE_beta_unvaccinated',
+    'NewE_beta_vaccinated',
+    'NewE_beta_booster',
+    'NewE_gamma_unvaccinated',
+    'NewE_gamma_vaccinated',
+    'NewE_gamma_booster',
+    'NewE_delta_unvaccinated',
+    'NewE_delta_vaccinated',
+    'NewE_delta_booster',
+    'NewE_other_unvaccinated',
+    'NewE_other_vaccinated',
+    'NewE_other_booster',
+    'NewE_omega_unvaccinated',
+    'NewE_omega_vaccinated',
+    'NewE_omega_booster',
+    'NewVaccination_none_unvaccinated',
+    'NewVaccination_none_vaccinated',
+    'NewVaccination_none_booster',
+    'NewVaccination_ancestral_unvaccinated',
+    'NewVaccination_ancestral_vaccinated',
+    'NewVaccination_ancestral_booster',
+    'NewVaccination_alpha_unvaccinated',
+    'NewVaccination_alpha_vaccinated',
+    'NewVaccination_alpha_booster',
+    'NewVaccination_beta_unvaccinated',
+    'NewVaccination_beta_vaccinated',
+    'NewVaccination_beta_booster',
+    'NewVaccination_gamma_unvaccinated',
+    'NewVaccination_gamma_vaccinated',
+    'NewVaccination_gamma_booster',
+    'NewVaccination_delta_unvaccinated',
+    'NewVaccination_delta_vaccinated',
+    'NewVaccination_delta_booster',
+    'NewVaccination_other_unvaccinated',
+    'NewVaccination_other_vaccinated',
+    'NewVaccination_other_booster',
+    'NewVaccination_omega_unvaccinated',
+    'NewVaccination_omega_vaccinated',
+    'NewVaccination_omega_booster',
+    'NewBooster_none_unvaccinated',
+    'NewBooster_none_vaccinated',
+    'NewBooster_none_booster',
+    'NewBooster_ancestral_unvaccinated',
+    'NewBooster_ancestral_vaccinated',
+    'NewBooster_ancestral_booster',
+    'NewBooster_alpha_unvaccinated',
+    'NewBooster_alpha_vaccinated',
+    'NewBooster_alpha_booster',
+    'NewBooster_beta_unvaccinated',
+    'NewBooster_beta_vaccinated',
+    'NewBooster_beta_booster',
+    'NewBooster_gamma_unvaccinated',
+    'NewBooster_gamma_vaccinated',
+    'NewBooster_gamma_booster',
+    'NewBooster_delta_unvaccinated',
+    'NewBooster_delta_vaccinated',
+    'NewBooster_delta_booster',
+    'NewBooster_other_unvaccinated',
+    'NewBooster_other_vaccinated',
+    'NewBooster_other_booster',
+    'NewBooster_omega_unvaccinated',
+    'NewBooster_omega_vaccinated',
+    'NewBooster_omega_booster',
+    'EffectiveSusceptible_none_unvaccinated',
+    'EffectiveSusceptible_none_vaccinated',
+    'EffectiveSusceptible_none_booster',
+    'EffectiveSusceptible_ancestral_unvaccinated',
+    'EffectiveSusceptible_ancestral_vaccinated',
+    'EffectiveSusceptible_ancestral_booster',
+    'EffectiveSusceptible_alpha_unvaccinated',
+    'EffectiveSusceptible_alpha_vaccinated',
+    'EffectiveSusceptible_alpha_booster',
+    'EffectiveSusceptible_beta_unvaccinated',
+    'EffectiveSusceptible_beta_vaccinated',
+    'EffectiveSusceptible_beta_booster',
+    'EffectiveSusceptible_gamma_unvaccinated',
+    'EffectiveSusceptible_gamma_vaccinated',
+    'EffectiveSusceptible_gamma_booster',
+    'EffectiveSusceptible_delta_unvaccinated',
+    'EffectiveSusceptible_delta_vaccinated',
+    'EffectiveSusceptible_delta_booster',
+    'EffectiveSusceptible_other_unvaccinated',
+    'EffectiveSusceptible_other_vaccinated',
+    'EffectiveSusceptible_other_booster',
+    'EffectiveSusceptible_omega_unvaccinated',
+    'EffectiveSusceptible_omega_vaccinated',
+    'EffectiveSusceptible_omega_booster',
 ]
 
 AGGREGATES = np.full((len(COMPARTMENT_TYPE), len(VARIANT_INDEX_TYPE)), -1, dtype=np.int64)
@@ -1186,4 +1366,4 @@ AGGREGATES_NAMES = [
 # Turning off the JIT is operationally 1-to-1 with
 # saying something is broken in the ODE code and
 # I need to figure it out.
-DEBUG = 0# int(os.getenv('NUMBA_DISABLE_JIT', 0))
+DEBUG = int(os.getenv('NUMBA_DISABLE_JIT', 0))

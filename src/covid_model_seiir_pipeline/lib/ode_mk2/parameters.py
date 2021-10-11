@@ -17,6 +17,7 @@ from covid_model_seiir_pipeline.lib.ode_mk2.constants import (
     CHI,
     ETA,
     NEW_E,
+    EFFECTIVE_SUSCEPTIBLE,
     COMPARTMENTS,
 
     DEBUG,
@@ -64,7 +65,7 @@ def make_new_e(t: float,
                     susceptible = group_y[COMPARTMENTS[COMPARTMENT.S, variant_from, vaccine_status]]                    
                     eta = etas[ETA[vaccine_status, variant_to]]                    
                     s_effective = (1 - eta) * (1 - chi) * susceptible
-                    effective_susceptible[variant_to] += s_effective                    
+                    effective_susceptible[EFFECTIVE_SUSCEPTIBLE[variant_to, vaccine_status]] += s_effective
                     new_e[NEW_E[vaccine_status, variant_from, variant_to]] += (
                         beta * kappa * s_effective * infectious / n_total
                     )
@@ -84,15 +85,15 @@ def make_new_e(t: float,
                     susceptible = group_y[COMPARTMENTS[COMPARTMENT.S, variant_from, vaccine_status]]                    
                     eta = etas[ETA[vaccine_status, variant_to]]
                     s_effective = (1 - eta) * (1 - chi) * susceptible
-                    effective_susceptible[variant_to] += s_effective
+                    effective_susceptible[EFFECTIVE_SUSCEPTIBLE[variant_to, vaccine_status]] += s_effective
                     variant_weight = kappa * s_effective * infectious
                     total_weight += variant_weight                    
                     new_e[NEW_E[vaccine_status, variant_from, variant_to]] += (
                         variant_weight * new_e_total
                     )
-        new_e_final = new_e / total_weight
+        new_e = new_e / total_weight
         
     if DEBUG:
         assert np.all(np.isfinite(new_e))
 
-    return new_e_final, effective_susceptible
+    return new_e, effective_susceptible

@@ -157,27 +157,29 @@ def filter_to_epi_threshold(infections: pd.Series,
 
 
 def run_ode_fit(initial_condition: pd.DataFrame, ode_parameters: Parameters):
-#    full_compartments = solver.run_ode_model(
-#        initial_condition,
-#        *ode_parameters.to_dfs(),
-#        forecast=False,
-#        num_cores=5,
-#    )
-    full_compartments = pd.read_parquet('/ihme/homes/collijk/full_compartments.parquet', engine='fastparquet')
-    # all_compartments = [f"{c}_{rg}" for c, rg in itertools.product(COMPARTMENTS_NAMES, RISK_GROUP_NAMES)]
-    # population = full_compartments.loc[:, all_compartments].sum(axis=1)
-    #
-    # total_infectious = 0.
-    # beta_fit = 0.
-    #
-    # for variant_name, variant_index in VARIANT._asdict().items():
-    #     new_e_variant = (full_compartments
-    #                      .filter(like=f'NewE_{variant_name}')
-    #                      .sum(axis=1)
-    #                      .groupby('location_id')
-    #                      .diff()
-    #                      .fillna(0))
-    #
+    full_compartments = solver.run_ode_model(
+        initial_condition,
+        *ode_parameters.to_dfs(),
+        forecast=False,
+        num_cores=5,
+    )
+    import pdb; pdb.set_trace()
+    betas = []
+    all_compartments = [f"{c}_{rg}" for c, rg in itertools.product(COMPARTMENTS_NAMES, RISK_GROUP_NAMES)]
+    population = full_compartments.loc[:, all_compartments].sum(axis=1)
+
+    total_infectious = 0.
+    beta_fit = 0.
+
+    for risk_group in RISK_GROUP_NAMES:
+        for variant_name, variant_index in VARIANT._asdict().items():
+            new_e = (full_compartments
+                     .filter(like=f'NewE_{variant_name}')
+                     .sum(axis=1)
+                     .groupby('location_id')
+                     .diff()
+                     .fillna(0))
+
     #     variant_indices = CG_SUSCEPTIBLE(variant_index)
     #     variant_indices = np.hstack([variant_indices, variant_indices + system_size]).tolist()
     #     susceptible_variant = full_compartments.iloc[:, variant_indices].sum(axis=1)
