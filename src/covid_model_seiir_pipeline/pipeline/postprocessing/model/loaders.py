@@ -151,24 +151,24 @@ def load_scaling_parameters(scenario: str, data_interface: 'PostprocessingDataIn
     return outputs
 
 
-def load_full_data(data_interface: 'PostprocessingDataInterface') -> pd.DataFrame:
-    full_data = data_interface.load_full_data().reset_index()
+def load_full_data_unscaled(data_interface: 'PostprocessingDataInterface') -> pd.DataFrame:
+    full_data = data_interface.load_full_data_unscaled().reset_index()
     location_ids = data_interface.load_location_ids()
     full_data = full_data[full_data.location_id.isin(location_ids)].set_index(['location_id', 'date'])
     return full_data
 
 
-def load_unscaled_full_data(data_interface: 'PostprocessingDataInterface') -> pd.DataFrame:
-    full_data = load_full_data(data_interface)
+def load_total_covid_deaths(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int) -> pd.DataFrame:
+    full_data = load_full_data_unscaled(data_interface)
     deaths = full_data['cumulative_deaths'].dropna()
-    em_scalars = (load_excess_mortality_scalars(data_interface)['mean']
+    em_scalars = (data_interface.load_excess_mortality_scalars()
                   .reindex(deaths.index)
                   .groupby('location_id')
                   .fillna(method='ffill'))
-    init_cond = (deaths / em_scalars).groupby('location_id').first()
-    scaled_deaths = (deaths.groupby('location_id').diff() / em_scalars).groupby('location_id').cumsum().fillna(0.0)
+    init_cond = (deaths * em_scalars).groupby('location_id').first()
+    scaled_deaths = (deaths.groupby('location_id').diff() * em_scalars).groupby('location_id').cumsum().fillna(0.0)
     scaled_deaths = scaled_deaths + init_cond.reindex(scaled_deaths.index, level='location_id')
-    full_data['cumulative_deaths'] = scaled_deaths
+    import pdb; pdb.set_trace()
     return full_data
 
 

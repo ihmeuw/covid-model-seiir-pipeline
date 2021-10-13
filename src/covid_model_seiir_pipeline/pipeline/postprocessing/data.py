@@ -60,8 +60,8 @@ class PostprocessingDataInterface:
     def load_location_ids(self):
         return self._get_forecast_data_inteface().load_location_ids()
 
-    def load_full_data(self) -> pd.DataFrame:
-        return self._get_forecast_data_inteface().load_full_data()
+    def load_full_data_unscaled(self) -> pd.DataFrame:
+        return self._get_forecast_data_inteface().load_full_data_unscaled()
 
     def get_covariate_names(self, scenarios: List[str]) -> List[str]:
         forecast_spec = ForecastSpecification.from_dict(io.load(self.forecast_root.specification()))

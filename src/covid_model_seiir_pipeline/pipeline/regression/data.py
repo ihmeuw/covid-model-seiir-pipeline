@@ -181,14 +181,14 @@ class RegressionDataInterface:
     # Observed epi loaders #
     ########################
 
-    def load_full_data(self) -> pd.DataFrame:
+    def load_full_data_unscaled(self) -> pd.DataFrame:
         regression_spec = self.load_specification()
         metadata = self.get_model_inputs_metadata()
         model_inputs_version = metadata['output_path']
         if regression_spec.data.run_counties:
-            full_data_path = Path(model_inputs_version) / 'full_data_fh_subnationals.csv'
+            full_data_path = Path(model_inputs_version) / 'full_data_fh_subnationals_unscaled.csv'
         else:
-            full_data_path = Path(model_inputs_version) / 'full_data.csv'
+            full_data_path = Path(model_inputs_version) / 'full_data_unscaled.csv'
         full_data = pd.read_csv(full_data_path).rename(columns={
             'Deaths': 'cumulative_deaths',
             'Confirmed': 'cumulative_cases',

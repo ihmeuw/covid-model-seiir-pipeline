@@ -94,6 +94,11 @@ MEASURES = {
         aggregator=aggregators.sum_aggregator,
         write_draws=True,
     ),
+    'total_covid_deaths_data': MeasureConfig(
+        loaders.load_total_covid_deaths,
+        'total_covid_deaths_data',
+        aggregator=aggregators.sum_aggregator,
+    ),
     'deaths_wild': MeasureConfig(
         loaders.load_output_data('modeled_deaths_wild'),
         'daily_deaths_wild',
@@ -682,14 +687,9 @@ COVARIATES = {
 }
 
 MISCELLANEOUS = {
-    'full_data': MiscellaneousConfig(
-        loaders.load_full_data,
-        'full_data',
-        aggregator=aggregators.sum_aggregator,
-    ),
     'unscaled_full_data': MiscellaneousConfig(
-        loaders.load_unscaled_full_data,
-        'unscaled_full_data',
+        loaders.load_full_data_unscaled,
+        'full_data',
         aggregator=aggregators.sum_aggregator,
     ),
     'age_specific_deaths': MiscellaneousConfig(
