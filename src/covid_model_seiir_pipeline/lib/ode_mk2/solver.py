@@ -217,21 +217,6 @@ def _rk45_dde(t0: float, tf: float,
 
 
 @numba.njit
-def _compute_waned_this_step(y_past: np.ndarray,
-                             vaccine_dist: np.ndarray,
-                             natural_dist: np.ndarray,
-                             system_size: int) -> np.ndarray:
-    waned = np.zeros(2)
-    new_vax_immune_index = TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewVaccination, VARIANT_GROUP.total]
-    new_r_index = TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewR, VARIANT_GROUP.total]
-    for i, (index, dist) in enumerate(((new_r_index, natural_dist), (new_vax_immune_index, vaccine_dist))):
-        cumulative_total = y_past[:, index] + y_past[:, system_size + index]
-        daily_total = cumulative_total[1:] - cumulative_total[:-1]
-        waned[i] = (daily_total[::-1] * dist[:-1]).sum()
-    return waned
-
-
-@numba.njit
 def _uninterpolate(y_solve: np.ndarray,
                    t_solve: np.ndarray,
                    t: np.ndarray):

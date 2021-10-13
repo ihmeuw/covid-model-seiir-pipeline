@@ -59,7 +59,7 @@ def system(t: float,
         group_etas = _subset(etas, risk_group)
         group_chis = _subset(chis, risk_group)
         
-        new_e, effective_susceptible = parameters.make_new_e(
+        new_e, effective_susceptible, beta = parameters.make_new_e(
             t,
             group_y,
             params,            
@@ -74,6 +74,7 @@ def system(t: float,
             group_y,
             new_e,
             effective_susceptible,
+            beta,
             params,
             group_vaccines,
         )
@@ -107,6 +108,7 @@ def _single_group_system(t: float,
                          group_y: np.ndarray,
                          new_e: np.ndarray,
                          effective_susceptible: np.ndarray,
+                         beta: float,
                          params: np.ndarray,
                          group_vaccines: np.ndarray):
     transition_map = np.zeros((group_y.size, group_y.size))
@@ -156,6 +158,7 @@ def _single_group_system(t: float,
         group_dy,
         new_e,
         effective_susceptible,
+        beta,
         transition_map,
     )
 

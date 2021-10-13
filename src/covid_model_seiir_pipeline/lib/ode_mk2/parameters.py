@@ -47,12 +47,12 @@ def make_new_e(t: float,
                aggregates: np.ndarray,
                etas: np.ndarray,
                chis: np.ndarray,
-               forecast: bool) -> Tuple[np.ndarray, np.ndarray]:
+               forecast: bool) -> Tuple[np.ndarray, np.ndarray, float]:
 
     n_total = aggregates[AGGREGATES[COMPARTMENT_TYPE.N, VARIANT_GROUP.total]]
     alpha = parameters[PARAMETERS[BASE_PARAMETER.alpha, VARIANT_GROUP.all]]
     new_e = np.zeros(NEW_E.max() + 1)
-    effective_susceptible = np.zeros(len(VARIANT) + 1)
+    effective_susceptible = np.zeros(EFFECTIVE_SUSCEPTIBLE.max() + 1)
 
     if forecast:
         beta = parameters[PARAMETERS[BASE_PARAMETER.beta, VARIANT_GROUP.all]]
@@ -75,7 +75,7 @@ def make_new_e(t: float,
         group_pop = group_y[:COMPARTMENTS.max() + 1].sum()
         new_e_total = parameters[PARAMETERS[BASE_PARAMETER.new_e, VARIANT_GROUP.all]] * group_pop / n_total
         
-        total_weight = 0.
+        total_variant_weight = 0.        
         for variant_to in VARIANT:
             kappa = parameters[PARAMETERS[VARIANT_PARAMETER.kappa, variant_to]]
             infectious = aggregates[AGGREGATES[COMPARTMENT.I, variant_to]] ** alpha            
@@ -85,15 +85,16 @@ def make_new_e(t: float,
                     susceptible = group_y[COMPARTMENTS[COMPARTMENT.S, variant_from, vaccine_status]]                    
                     eta = etas[ETA[vaccine_status, variant_to]]
                     s_effective = (1 - eta) * (1 - chi) * susceptible
-                    effective_susceptible[EFFECTIVE_SUSCEPTIBLE[variant_to, vaccine_status]] += s_effective
+                    if kappa > 0:
+                        effective_susceptible[EFFECTIVE_SUSCEPTIBLE[variant_to, vaccine_status]] += s_effective
                     variant_weight = kappa * s_effective * infectious
-                    total_weight += variant_weight                    
+                    total_variant_weight += variant_weight                    
                     new_e[NEW_E[vaccine_status, variant_from, variant_to]] += (
                         variant_weight * new_e_total
                     )
-        new_e = new_e / total_weight
-        
+        new_e = new_e / total_variant_weight
+        beta = new_e_total * n_total / total_variant_weight
     if DEBUG:
         assert np.all(np.isfinite(new_e))
 
-    return new_e, effective_susceptible
+    return new_e, effective_susceptible, beta
