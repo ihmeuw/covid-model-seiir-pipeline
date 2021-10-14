@@ -1,12 +1,13 @@
 data:
-  infection_version: '2021_08_17.06'
-  covariate_version: '2021_08_18.01'
+  infection_version: '2021_10_13.05'
+  covariate_version: '2021_10_13.02'
   coefficient_version: ''
   priors_version: '2021_05_31.01'
-  location_set_version_id: 771
+  location_set_version_id: '/ihme/covid-19/model-inputs/best/locations/modeling_hierarchy.csv'
   output_root: ''
   output_format: 'parquet'
   n_draws: 100
+  drop_locations: [] 
 workflow:
   project: 'proj_covid_prod'
   queue: 'd.q'

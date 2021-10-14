@@ -63,11 +63,17 @@ class ForecastDataInterface:
     def get_n_draws(self) -> int:
         return self._get_regression_data_interface().get_n_draws()
 
+    def is_counties_run(self) -> bool:
+        return self._get_regression_data_interface().is_counties_run()
+
     def get_infections_metadata(self):
         return self._get_regression_data_interface().get_infections_metadata()
 
     def get_model_inputs_metadata(self):
         return self._get_regression_data_interface().get_model_inputs_metadata()
+
+    def load_hierarchy(self) -> pd.DataFrame:
+        return self._get_regression_data_interface().load_hierarchy()
 
     def load_location_ids(self) -> List[int]:
         return self._get_regression_data_interface().load_location_ids()
@@ -81,8 +87,8 @@ class ForecastDataInterface:
     def load_total_population(self) -> pd.Series:
         return self._get_regression_data_interface().load_total_population()
 
-    def load_full_data(self) -> pd.DataFrame:
-        return self._get_regression_data_interface().load_full_data()
+    def load_full_data_unscaled(self) -> pd.DataFrame:
+        return self._get_regression_data_interface().load_full_data_unscaled()
 
     def load_total_deaths(self) -> pd.Series:
         return self._get_regression_data_interface().load_total_deaths()
@@ -127,6 +133,11 @@ class ForecastDataInterface:
             mobility_scenario, self.covariate_root,
         )
 
+    def load_raw_variant_prevalence(self, variant_scenario: str) -> pd.DataFrame:
+        return self._get_regression_data_interface().load_raw_variant_prevalence(
+            variant_scenario, self.covariate_root,
+        )
+
     def load_variant_prevalence(self, variant_scenario: str) -> pd.DataFrame:
         return self._get_regression_data_interface().load_variant_prevalence(
             variant_scenario, self.covariate_root,
@@ -144,8 +155,11 @@ class ForecastDataInterface:
     def load_past_infections(self, draw_id: int) -> pd.Series:
         return self._get_regression_data_interface().load_infections(draw_id=draw_id)
 
-    def load_em_scalars(self) -> pd.Series:
-        return self._get_regression_data_interface().load_em_scalars()
+    def load_em_scalars_draws(self) -> pd.DataFrame:
+        return self._get_regression_data_interface().load_em_scalars_draws()
+
+    def load_em_scalars(self, draw_id: int = None) -> pd.Series:
+        return self._get_regression_data_interface().load_em_scalars(draw_id)
 
     def load_past_deaths(self, draw_id: int) -> pd.Series:
         return self._get_regression_data_interface().load_deaths(draw_id=draw_id)
@@ -163,6 +177,9 @@ class ForecastDataInterface:
 
     def load_hospital_census_data(self) -> HospitalCensusData:
         return self._get_regression_data_interface().load_hospital_census_data()
+
+    def load_hospital_bed_capacity(self) -> pd.DataFrame:
+        return self._get_regression_data_interface().load_hospital_bed_capacity()
 
     def load_ifr(self, draw_id: int) -> pd.DataFrame:
         return self._get_regression_data_interface().load_ifr(draw_id=draw_id)

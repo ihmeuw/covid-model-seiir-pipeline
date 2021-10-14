@@ -38,7 +38,9 @@ def build_model_parameters(indices: Indices,
                            coefficients: pd.DataFrame,
                            rhos: pd.DataFrame,
                            beta_scales: pd.DataFrame,
-                           vaccine_data: pd.DataFrame) -> ode.ForecastParameters:
+                           vaccine_data: pd.DataFrame,
+                           log_beta_shift: Tuple[float, pd.Timestamp],
+                           beta_scale: Tuple[float, pd.Timestamp]) -> ode.ForecastParameters:
     # These are all the same by draw.  Just broadcasting them over a new index.
     ode_params = {
         param: pd.Series(ode_parameters[param].mean(), index=indices.full, name=param)
@@ -55,10 +57,12 @@ def build_model_parameters(indices: Indices,
         ode_parameters['kappa'].mean(),
         ode_parameters['phi'].mean(),
         ode_parameters['psi'].mean(),
+        log_beta_shift, 
+        beta_scale,
     )
 
     vaccine_data = vaccine_data.reindex(indices.full, fill_value=0)
-    adjusted_vaccinations = math.adjust_vaccinations(vaccine_data)
+    vaccine_data = {k: vaccine_data[k] for k in vaccine_data}
 
     return ode.ForecastParameters(
         **ode_params,
@@ -70,7 +74,7 @@ def build_model_parameters(indices: Indices,
         rho_variant=rho_variant,
         rho_b1617=rho_b1617,
         rho_total=rho_total,
-        **adjusted_vaccinations,
+        **vaccine_data,
     )
 
 
@@ -82,17 +86,22 @@ def get_betas_and_prevalences(indices: Indices,
                               rhos: pd.DataFrame,
                               kappa: float,
                               phi: float,
-                              psi: float) -> Tuple[pd.Series, pd.Series, pd.Series, pd.Series,
-                                                   pd.Series, pd.Series, pd.Series, pd.Series]:
+                              psi: float,
+                              log_beta_shift: Tuple[float, pd.Timestamp],
+                              beta_scale: Tuple[float, pd.Timestamp]) -> Tuple[pd.Series, pd.Series, pd.Series, pd.Series,
+                                                                               pd.Series, pd.Series, pd.Series, pd.Series]:
     rhos = rhos.reindex(indices.full).fillna(method='ffill')
 
     log_beta_hat = math.compute_beta_hat(covariates, coefficients)
+    log_beta_hat.loc[pd.IndexSlice[:, log_beta_shift[1]:]] += log_beta_shift[0]
     beta_hat = np.exp(log_beta_hat).loc[indices.future].rename('beta_hat').reset_index()
+
     beta = (beta_shift(beta_hat, beta_shift_parameters)
             .set_index(['location_id', 'date'])
             .beta_hat
             .rename('beta'))
-    beta = beta_regression.loc[indices.past, 'beta'].append(beta)
+    beta = beta_regression.loc[indices.past, 'beta'].append(beta).sort_index()
+    beta.loc[pd.IndexSlice[:, beta_scale[1]:]] *= beta_scale[0]
     beta_wild = beta * (1 + kappa * rhos.rho)
     beta_variant = beta * (1 + kappa * (phi * (1 - rhos.rho_b1617) + rhos.rho_b1617 * psi))
 
@@ -155,7 +164,7 @@ def build_postprocessing_parameters(indices: Indices,
                                     correction_factors: HospitalCorrectionFactors,
                                     hospital_parameters: 'HospitalParameters',
                                     scenario_spec: 'ScenarioSpecification') -> PostprocessingParameters:
-    ratio_data = correct_ratio_data(indices, ratio_data, model_parameters, scenario_spec.variant_ifr_scale)
+    ratio_data = correct_ratio_data(indices, ratio_data, model_parameters)
 
     correction_factors = forecast_correction_factors(
         indices,
@@ -174,18 +183,21 @@ def build_postprocessing_parameters(indices: Indices,
 
 def correct_ratio_data(indices: Indices,
                        ratio_data: RatioData,
-                       model_params: ode.ForecastParameters,
-                       ifr_scale: float) -> RatioData:
+                       model_params: ode.ForecastParameters) -> RatioData:
     variant_prevalence = model_params.rho_total
     p_start = variant_prevalence.loc[indices.initial_condition].reset_index(level='date', drop=True)
     variant_prevalence -= p_start.reindex(variant_prevalence.index, level='location_id')
     variant_prevalence[variant_prevalence < 0] = 0.0
-    ifr_scalar = ifr_scale * variant_prevalence + (1 - variant_prevalence)
+    
+    ifr_scalar = ratio_data.ifr_scalar * variant_prevalence + (1 - variant_prevalence)
     ifr_scalar = ifr_scalar.groupby('location_id').shift(ratio_data.infection_to_death).fillna(0.)
-
     ratio_data.ifr = ifr_scalar * _expand_rate(ratio_data.ifr, indices.full)
     ratio_data.ifr_lr = ifr_scalar * _expand_rate(ratio_data.ifr_lr, indices.full)
     ratio_data.ifr_hr = ifr_scalar * _expand_rate(ratio_data.ifr_hr, indices.full)
+    
+    ihr_scalar = ratio_data.ihr_scalar * variant_prevalence + (1 - variant_prevalence)
+    ihr_scalar = ihr_scalar.groupby('location_id').shift(ratio_data.infection_to_admission).fillna(0.)
+    ratio_data.ihr = ihr_scalar * _expand_rate(ratio_data.ihr, indices.full)
 
     ratio_data.idr = _expand_rate(ratio_data.idr, indices.full)
     ratio_data.ihr = _expand_rate(ratio_data.ihr, indices.full)
@@ -234,17 +246,17 @@ def run_ode_model(initial_conditions: pd.DataFrame,
 
     parameters = pd.concat(
         [mp_dict[p] for p in ordered_fields]
-        + [model_parameters.unprotected_lr,
-           model_parameters.protected_wild_type_lr,
-           model_parameters.protected_all_types_lr,
-           model_parameters.immune_wild_type_lr,
-           model_parameters.immune_all_types_lr,
-
-           model_parameters.unprotected_hr,
-           model_parameters.protected_wild_type_hr,
-           model_parameters.protected_all_types_hr,
-           model_parameters.immune_wild_type_hr,
-           model_parameters.immune_all_types_hr],
+        + [model_parameters.vaccinations_unprotected_lr,
+           model_parameters.vaccinations_non_escape_protected_lr,
+           model_parameters.vaccinations_escape_protected_lr,
+           model_parameters.vaccinations_non_escape_immune_lr,
+           model_parameters.vaccinations_escape_immune_lr,
+           
+           model_parameters.vaccinations_unprotected_hr,
+           model_parameters.vaccinations_non_escape_protected_hr,                                                                                                                                                
+           model_parameters.vaccinations_escape_protected_hr,                                                                                                                                                    
+           model_parameters.vaccinations_non_escape_immune_hr,                                                                                                                                                   
+           model_parameters.vaccinations_escape_immune_hr,],
         axis=1
     )
 

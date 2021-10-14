@@ -149,6 +149,7 @@ class CovariateRoot(DataRoot):
 
     mobility_info = DatasetType('mobility', LEAF_TEMPLATES.COV_INFO_TEMPLATE)
     vaccine_info = DatasetType('vaccine_coverage', LEAF_TEMPLATES.COV_INFO_TEMPLATE)
+    variant_info = DatasetType('variant_prevalence', LEAF_TEMPLATES.COV_INFO_TEMPLATE)
 
     # Getters provide dynamic keys to support experimentation with custom covariates.
     def __getattr__(self, item: str) -> DatasetType:

@@ -56,6 +56,7 @@ def compute_reimposition_date(deaths, population, reimposition_threshold,
                           .groupby('location_id')
                           .date
                           .max())
+    last_observed_date.loc[:] = last_observed_date.max()
     min_reimposition_date = last_observed_date + min_wait
 
     previously_implemented = last_reimposition_end_date[last_reimposition_end_date.notnull()].index

@@ -54,11 +54,14 @@ class PostprocessingDataInterface:
     def get_n_draws(self) -> int:
         return self._get_forecast_data_inteface().get_n_draws()
 
+    def is_counties_run(self) -> bool:
+        return self._get_forecast_data_inteface().is_counties_run()
+
     def load_location_ids(self):
         return self._get_forecast_data_inteface().load_location_ids()
 
-    def load_full_data(self) -> pd.DataFrame:
-        return self._get_forecast_data_inteface().load_full_data()
+    def load_full_data_unscaled(self) -> pd.DataFrame:
+        return self._get_forecast_data_inteface().load_full_data_unscaled()
 
     def get_covariate_names(self, scenarios: List[str]) -> List[str]:
         forecast_spec = ForecastSpecification.from_dict(io.load(self.forecast_root.specification()))
@@ -108,13 +111,25 @@ class PostprocessingDataInterface:
         ifr = self._get_forecast_data_inteface().load_ifr(draw_id=draw_id)
         return ifr['ifr_lr'].rename(draw_id)
 
+    def load_infection_to_death(self, draw_id: int):
+        ifr = self._get_forecast_data_inteface().load_ifr(draw_id=draw_id)
+        return ifr['duration'].rename(draw_id)
+
     def load_ihr(self, draw_id: int):
         ihr = self._get_forecast_data_inteface().load_ihr(draw_id=draw_id)
         return ihr['ihr'].rename(draw_id)
 
+    def load_infection_to_admission(self, draw_id: int):
+        ihr = self._get_forecast_data_inteface().load_ihr(draw_id=draw_id)
+        return ihr['duration'].rename(draw_id)
+
     def load_idr(self, draw_id: int):
         idr = self._get_forecast_data_inteface().load_idr(draw_id=draw_id)
         return idr['idr'].rename(draw_id)
+
+    def load_infection_to_case(self, draw_id: int):
+        idr = self._get_forecast_data_inteface().load_idr(draw_id=draw_id)
+        return idr['duration'].rename(draw_id)
 
     def load_single_ode_param(self, draw_id: int, scenario: str, measure: str) -> pd.Series:
         draw_df = self.load_ode_params(draw_id=draw_id, scenario=scenario, columns=[measure])
@@ -122,9 +137,9 @@ class PostprocessingDataInterface:
 
     def load_effectively_vaccinated(self, draw_id: int, scenario: str) -> pd.Series:
         eff_types = ['protected', 'immune']
-        covid_types = ['wild_type', 'all_types']
+        covid_types = ['escape', 'non_escape']
         risk_groups = ['lr', 'hr']
-        cols = [f'{e}_{c}_{r}' for e, c, r in itertools.product(eff_types, covid_types, risk_groups)]
+        cols = [f'vaccinations_{c}_{e}_{r}' for e, c, r in itertools.product(eff_types, covid_types, risk_groups)]
         draw_df = self.load_ode_params(draw_id=draw_id, scenario=scenario, columns=cols)
         return draw_df.sum(axis=1).rename(draw_id)
 
@@ -135,6 +150,9 @@ class PostprocessingDataInterface:
 
     def load_vaccine_efficacy(self):
         return self._get_forecast_data_inteface().load_vaccine_efficacy()
+
+    def load_raw_variant_prevalence(self) -> pd.DataFrame:
+        return self._get_forecast_data_inteface().load_raw_variant_prevalence('reference')
 
     def load_ode_params(self, draw_id: int, scenario: str, columns=None):
         return io.load(self.forecast_root.ode_params(scenario=scenario, draw_id=draw_id, columns=columns))
@@ -220,17 +238,7 @@ class PostprocessingDataInterface:
         return self._get_forecast_data_inteface().load_total_population()
 
     def load_hierarchy(self) -> pd.DataFrame:
-        fdi = self._get_forecast_data_inteface()
-        rdi = fdi._get_regression_data_interface()
-        regression_spec = rdi.load_specification()
-        metadata = fdi.get_model_inputs_metadata()
-        model_inputs_path = Path(metadata['output_path'])
-        if regression_spec.data.run_counties:
-            hierarchy_path = model_inputs_path / 'locations' / 'fh_small_area_hierarchy.csv'
-        else:
-            hierarchy_path = model_inputs_path / 'locations' / 'modeling_hierarchy.csv'
-        hierarchy = pd.read_csv(hierarchy_path)
-        return hierarchy
+        return self._get_forecast_data_inteface().load_hierarchy()
 
     def load_aggregation_heirarchy(self, aggregation_spec: AggregationSpecification):
         if any(aggregation_spec.to_dict().values()):
@@ -240,14 +248,21 @@ class PostprocessingDataInterface:
 
     def get_locations_modeled_and_missing(self):
         hierarchy = self.load_hierarchy()
-        modeled_locations = self._get_forecast_data_inteface().load_location_ids()
+        modeled_locations = set(self._get_forecast_data_inteface().load_location_ids())
+        spec = self.load_specification()
+        spliced_locations = set([location for splicing_spec in spec.splicing for location in splicing_spec.locations])
+        included_locations = list(modeled_locations | spliced_locations)
+
         most_detailed_locs = hierarchy.loc[hierarchy.most_detailed == 1, 'location_id'].unique().tolist()
-        missing_locations = list(set(most_detailed_locs).difference(modeled_locations))
-        locations_modeled_and_missing = {'modeled': modeled_locations, 'missing': missing_locations}
+        missing_locations = list(set(most_detailed_locs).difference(included_locations))
+        locations_modeled_and_missing = {'modeled': included_locations, 'missing': missing_locations}
         return locations_modeled_and_missing
 
     def load_excess_mortality_scalars(self):
-        return self._get_forecast_data_inteface().load_em_scalars()
+        return self._get_forecast_data_inteface().load_em_scalars_draws()
+
+    def load_hospital_bed_capacity(self):
+        return self._get_forecast_data_inteface().load_hospital_bed_capacity()
 
     def load_hospital_census_data(self):
         return self._get_forecast_data_inteface().load_hospital_census_data().to_df()

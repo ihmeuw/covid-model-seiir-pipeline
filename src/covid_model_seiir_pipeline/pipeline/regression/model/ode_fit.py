@@ -1,5 +1,6 @@
 import itertools
 from typing import Dict, List, Tuple
+import hashlib
 
 import numpy as np
 import pandas as pd
@@ -18,9 +19,8 @@ def prepare_ode_fit_parameters(past_infections: pd.Series,
                                sampled_params: Dict[str, pd.Series]) -> ode.FitParameters:
     past_index = past_infections.index
     population_low_risk, population_high_risk = split_population(past_index, population)
-
-    vaccinations = math.adjust_vaccinations(vaccinations)
-    vaccinations = {k: v.rename(k).reindex(past_index, fill_value=0.) for k, v in vaccinations.items()}
+    vaccinations = vaccinations.reindex(past_index, fill_value=0.)
+    vaccinations = {k: vaccinations[k] for k in vaccinations}
 
     return ode.FitParameters(
         new_e=past_infections,
@@ -47,16 +47,25 @@ def split_population(past_index: pd.Index, population: pd.DataFrame):
     return population_low_risk, population_high_risk
 
 
+def sample_parameter(parameter: str, draw_id: int, lower: float, upper: float) -> float:
+    key = f'{parameter}_{draw_id}'
+    # 4294967295 == 2**32 - 1 which is the maximum allowable seed for a `numpy.random.RandomState`.
+    seed = int(hashlib.sha1(key.encode('utf8')).hexdigest(), 16) % 4294967295
+    random_state = np.random.RandomState(seed=seed)
+    return random_state.uniform(lower, upper)
+
+
 def sample_params(past_index: pd.Index,
                   param_dict: Dict,
-                  params_to_sample: List[str]) -> Dict[str, pd.Series]:
+                  params_to_sample: List[str],
+                  draw_id: int) -> Dict[str, pd.Series]:
     sampled_params = {}
     for parameter in params_to_sample:
         param_spec = param_dict[parameter]
         if isinstance(param_spec, (int, float)):
             value = param_spec
         else:
-            value = np.random.uniform(*param_spec)
+            value = sample_parameter(parameter, draw_id, *param_spec)
 
         sampled_params[parameter] = pd.Series(
             value,
@@ -68,39 +77,38 @@ def sample_params(past_index: pd.Index,
 
 
 def clean_infection_data_measure(infection_data: pd.DataFrame, measure: str) -> pd.Series:
-    """Extracts measure, drops nulls, adds a leading zero.
-
-    Infections and deaths have a non-overlapping past index due to the way
-    the infections ES is built. This function, pulls out a measure, drops
-    nulls from the non-overlaping region, and then pads the front of the
-    series with a 0 so that the resulting series has the property:
-
-        s == s.groupby('location_id').cumsum().groupby('location_id').diff().fillna(0)
-
-    which is to say we can preserve the counts under conversions between daily
-    and cumulative space.
-
-    """
-    data = infection_data[measure].dropna()
-    min_date = data.reset_index().groupby('location_id').date.min()
-    prepend_date = min_date - pd.Timedelta(days=1)
-    prepend_idx = prepend_date.reset_index().set_index(['location_id', 'date']).index
+    data = infection_data[measure]    
+    prepend_date_min = data.reset_index().groupby('location_id').date.min() - pd.Timedelta(days=1)
+    prepend_date_max = data.dropna().reset_index().groupby('location_id').date.min() - pd.Timedelta(days=1)
+    prepend_dates = pd.concat([prepend_date_min.rename('date_min'), prepend_date_max.rename('date_max')], axis=1)
+    prepend_index = []
+    for location_id, dates in prepend_dates.iterrows():
+        prepend_index.append(pd.DataFrame({
+            'location_id': location_id,
+            'date': pd.date_range(dates.date_min, dates.date_max),
+        }))
+    prepend_idx = pd.concat(prepend_index).set_index(['location_id', 'date']).index
     prepend = pd.Series(0., index=prepend_idx, name=measure)
-    return data.append(prepend).sort_index()
+    return data.dropna().append(prepend).sort_index()
 
 
 def run_ode_fit(ode_parameters: ode.FitParameters,
                 progress_bar: bool) -> Tuple[pd.DataFrame, pd.DataFrame]:
     fit_results = []
+    bad_locations = []
     ode_parameter_list = tqdm.tqdm(list(ode_parameters), disable=not progress_bar)
     for location_id, location_params in ode_parameter_list:
-        loc_fit_results = run_loc_ode_fit(
-            location_params
-        )
-        loc_fit_results['location_id'] = location_id
-        loc_fit_results = loc_fit_results.set_index(['location_id', 'date'])
+        try:
+            loc_fit_results = run_loc_ode_fit(location_params)
+            loc_fit_results['location_id'] = location_id
+            loc_fit_results = loc_fit_results.set_index(['location_id', 'date'])
+            fit_results.append(loc_fit_results)
+        except ValueError:
+            bad_locations.append(location_id)
+    if bad_locations:
+        raise ValueError(f'Locations {bad_locations} produced negative betas in the ODE fit. These locations likely '
+                         f'have more than 100% cumulative infected individuals and need to be dropped.')
 
-        fit_results.append(loc_fit_results)
     fit_results = pd.concat(fit_results).sort_index()
     return fit_results[['beta', 'beta_wild', 'beta_variant']], fit_results[[c for c in fit_results if 'beta' not in c]]
 
@@ -189,7 +197,9 @@ def run_loc_ode_fit(ode_parameters: ode.FitParameters) -> pd.DataFrame:
     beta1 = beta_wild / (1 + kappa * rho)
     beta2 = beta_variant / (1 + kappa * (phi * (1 - rho_b1617) + rho_b1617 * psi))
     components['beta'] = (i_wild * beta1 + (i_variant * beta2).fillna(0)) / (i_wild + i_variant)
-
+    if np.any(components['beta'] < 0):
+        raise ValueError('Negative betas found in the fit results. Check that cumulative '
+                         'infected does not exceed 100% of the population.')
     return components.reset_index()
 
 

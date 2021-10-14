@@ -81,6 +81,10 @@ class RegressionDataInterface:
         regression_spec = self.load_specification()
         return regression_spec.data.n_draws
 
+    def is_counties_run(self) -> bool:
+        regression_spec = self.load_specification()
+        return regression_spec.data.run_counties
+
     #########################
     # Raw location handling #
     #########################
@@ -103,30 +107,42 @@ class RegressionDataInterface:
         """
         regression_spec = self.load_specification()
         death_threshold = 10 if regression_spec.data.run_counties else 5
+
         draw_0_data = self.load_full_past_infection_data(draw_id=0)
         total_deaths = draw_0_data.groupby('location_id').deaths.sum()
-        modeled_locations = total_deaths[total_deaths > death_threshold].index.tolist()
-        modeled_locations = list(set(modeled_locations).difference([189]))
+
+        ies_locations = set(total_deaths.index.tolist())
+        threshold_locations = set(total_deaths[total_deaths > death_threshold].index.tolist())
+        drop_locations = set(regression_spec.data.drop_locations)
 
         if desired_location_hierarchy is None:
-            desired_locations = modeled_locations
+            desired_locations = threshold_locations
         else:
             most_detailed = desired_location_hierarchy.most_detailed == 1
-            desired_locations = desired_location_hierarchy.loc[most_detailed, 'location_id'].tolist()
+            desired_locations = set(desired_location_hierarchy.loc[most_detailed, 'location_id'].tolist())
 
-        ies_missing_locations = list(set(desired_locations).difference(total_deaths.index))
-        not_enough_deaths_locations = list(set(desired_locations)
-                                           .difference(modeled_locations)
-                                           .difference(ies_missing_locations))
+        # Ies locations may be larger than desired locations, but we
+        # do not care about the extras, only what's missing.
+        ies_missing_locations = list(desired_locations - ies_locations)
+        # Threshold locations is a subset of ies_locations
+        not_enough_deaths_locations = list(ies_locations - threshold_locations)
+        if drop_locations > threshold_locations:
+            raise ValueError(f'Attempting to drop locations {list(drop_locations - threshold_locations)} '
+                             f'which are not present in modeled locations that meet the epidemiological '
+                             f'threshold of {death_threshold} deaths.')
+
         if ies_missing_locations:
             logger.warning("Some locations present in location metadata are missing from the "
-                           f"infection models. Missing locations are {sorted(ies_missing_locations)}.")
+                           f"infection models. Missing locations are {sorted(list(ies_missing_locations))}.")
         if not_enough_deaths_locations:
             logger.warning("Some locations present in location metadata do not meet the epidemiological "
                            f"threshold of {death_threshold} total deaths required for modeling. "
-                           f" Locations below the threshold are {sorted(not_enough_deaths_locations)}.")
+                           f"Locations below the threshold are {sorted(list(not_enough_deaths_locations))}.")
+        if drop_locations:
+            logger.warning("Some locations present in the location metadata are being dropped. "
+                           f"Locations being dropped are {sorted(list(drop_locations))}.")
 
-        return list(set(desired_locations).intersection(modeled_locations))
+        return list((desired_locations & threshold_locations) - drop_locations)
 
     ######################
     # Population loaders #
@@ -165,14 +181,14 @@ class RegressionDataInterface:
     # Observed epi loaders #
     ########################
 
-    def load_full_data(self) -> pd.DataFrame:
+    def load_full_data_unscaled(self) -> pd.DataFrame:
         regression_spec = self.load_specification()
         metadata = self.get_model_inputs_metadata()
         model_inputs_version = metadata['output_path']
         if regression_spec.data.run_counties:
-            full_data_path = Path(model_inputs_version) / 'full_data_fh_subnationals.csv'
+            full_data_path = Path(model_inputs_version) / 'full_data_fh_subnationals_unscaled.csv'
         else:
-            full_data_path = Path(model_inputs_version) / 'full_data.csv'
+            full_data_path = Path(model_inputs_version) / 'full_data_unscaled.csv'
         full_data = pd.read_csv(full_data_path).rename(columns={
             'Deaths': 'cumulative_deaths',
             'Confirmed': 'cumulative_cases',
@@ -231,6 +247,12 @@ class RegressionDataInterface:
             corrections_data[measure] = df.set_index(['location_id', 'date']).value
         return HospitalCensusData(**corrections_data)
 
+    def load_hospital_bed_capacity(self) -> pd.DataFrame:
+        metadata = self.get_model_inputs_metadata()
+        model_inputs_path = Path(metadata['output_path'])
+        path = model_inputs_path / 'hospital_capacity.csv'
+        return pd.read_csv(path)
+
     ##########################
     # Infection data loaders #
     ##########################
@@ -247,34 +269,46 @@ class RegressionDataInterface:
         infection_data = self.load_full_past_infection_data(draw_id=draw_id)
         return infection_data.loc[location_ids]
 
-    def load_em_scalars(self) -> pd.Series:
+    def load_em_scalars_draws(self) -> pd.DataFrame:
         location_ids = self.load_location_ids()
         em_scalars = io.load(self.infection_root.em_scalars())
-        em_scalars = em_scalars[~em_scalars.index.duplicated()]
-        return em_scalars.loc[location_ids, 'em_scalar']
+        em_scalars = em_scalars.set_index('draw', append=True).unstack()
+        em_scalars.columns = em_scalars.columns.droplevel().rename(None)
+        assert em_scalars.index.duplicated().sum() == 0
+        return em_scalars.loc[location_ids]
+
+    def load_em_scalars(self, draw_id: int) -> pd.Series:
+        return self.load_em_scalars_draws().loc[:, draw_id].rename('em_scalar')
 
     def load_ifr(self, draw_id: int) -> pd.DataFrame:
         ifr = io.load(self.infection_root.ifr(draw_id=draw_id))
         ifr = self.format_ratio_data(ifr)
         vaccinations = self.load_vaccinations().groupby('location_id').cumsum()
         population = self.load_risk_group_populations().reindex(vaccinations.index, level='location_id')
+        vax_groups = ['non_escape', 'escape']
+
         for risk_group in ['lr', 'hr']:
             total_pop = population[f'population_{risk_group}']
             immune = vaccinations[[
-                f'effective_wildtype_{risk_group}', f'effective_variant_{risk_group}'
+                f'vaccinations_{vax_group}_immune_{risk_group}' for vax_group in vax_groups
             ]].sum(axis=1)
             protected = vaccinations[[
-                f'effective_protected_wildtype_{risk_group}', f'effective_protected_variant_{risk_group}'
+                f'vaccinations_{vax_group}_protected_{risk_group}' for vax_group in vax_groups
             ]].sum(axis=1)
             denom = total_pop - immune
             target_denom = total_pop - immune - protected
             ifr[f'ifr_{risk_group}'] *= (denom / target_denom).reindex(ifr.index).fillna(1.0)
+        if 'variant_risk_ratio' not in ifr.columns:
+            ifr['variant_risk_ratio'] = 1.29
 
         return ifr
 
     def load_ihr(self, draw_id: int) -> pd.DataFrame:
         ihr = io.load(self.infection_root.ihr(draw_id=draw_id))
         ihr = self.format_ratio_data(ihr)
+        if 'variant_risk_ratio' not in ihr.columns:
+            ihr['variant_risk_ratio'] = 1.29
+
         return ihr
 
     def load_idr(self, draw_id: int) -> pd.DataFrame:
@@ -290,6 +324,8 @@ class RegressionDataInterface:
             infection_to_death=int(ifr.duration.max()),
             infection_to_admission=int(ihr.duration.max()),
             infection_to_case=int(idr.duration.max()),
+            ifr_scalar=ifr.variant_risk_ratio.max(),
+            ihr_scalar=ihr.variant_risk_ratio.max(),
             ifr=ifr.ifr,
             ifr_hr=ifr.ifr_hr,
             ifr_lr=ifr.ifr_lr,
@@ -300,8 +336,10 @@ class RegressionDataInterface:
     def format_ratio_data(self, ratio_data: pd.DataFrame) -> pd.DataFrame:
         location_ids = self.load_location_ids()
         ratio_data = ratio_data.loc[location_ids]
+        additional_cols = [c for c in ['duration', 'variant_risk_ratio'] if c in ratio_data.columns]        
         col_map = {c: c.split('_draw')[0] for c in ratio_data.columns if '_draw' in c}
-        ratio_data = ratio_data.loc[:, ['duration'] + list(col_map)].rename(columns=col_map)
+        
+        ratio_data = ratio_data.loc[:, additional_cols + list(col_map)].rename(columns=col_map)
         return ratio_data
 
     ##########################
@@ -389,6 +427,7 @@ class RegressionDataInterface:
             info_df.loc[:, :] = 0.0
         else:
             info_df = io.load(covariate_root.vaccine_info(info_type=f'vaccinations_{vaccine_scenario}'))
+        info_df = info_df[[c for c in info_df if 'omega' not in c]]
         return self._format_covariate_data(info_df, location_ids)
 
     def load_vaccination_summaries(self,
@@ -417,7 +456,7 @@ class RegressionDataInterface:
             info_df = info_df.loc[:, [measure]]
         if measure == 'vaccine_acceptance_point':
             info_df = info_df.groupby('location_id').max()
-        return self._format_covariate_data(info_df, location_ids)
+        return info_df.dropna()
 
     def load_vaccine_efficacy(self, covariate_root: io.CovariateRoot = None):
         covariate_root = covariate_root if covariate_root is not None else self.covariate_root
@@ -437,22 +476,30 @@ class RegressionDataInterface:
         mandate_effects = self.load_mobility_info(f'effect', covariate_root)
         return percent_mandates, mandate_effects
 
+    def load_raw_variant_prevalence(self, variant_scenario: str = 'reference',
+                                    covariate_root: io.CovariateRoot = None) -> pd.DataFrame:
+        covariate_root = covariate_root if covariate_root is not None else self.covariate_root
+        data = io.load(covariate_root.variant_info(info_type=variant_scenario))
+        return data
+
     def load_variant_prevalence(self, variant_scenario: str = 'reference',
                                 covariate_root: io.CovariateRoot = None) -> pd.DataFrame:
-        variants = ['non_escape', 'escape', 'B117', 'B1351', 'B16172', 'P1']
-        cov_map = {
-            variant: self.load_covariate(
-                f'variant_prevalence_{variant}',
-                variant_scenario,
-                with_observed=False,
-                covariate_root=covariate_root,
-            )[f'variant_prevalence_{variant}'] for variant in variants
-        }
-
-        rho = cov_map['non_escape'].rename('rho')
-        rho_variant = sum([cov_map[k] for k in ['B1351', 'P1', 'B16172']]).rename('rho_variant')
-        rho_total = (cov_map['B117'] + rho_variant).rename('rho_total')
-        rho_b1617 = cov_map['escape'].rename('rho_b1617')
+        data = self.load_raw_variant_prevalence(variant_scenario, covariate_root)
+        rho = ((data['alpha'] / (data['alpha'] + data['ancestral']))
+               .rename('rho')
+               .groupby('location_id')
+               .ffill()
+               .fillna(0.))
+        rho_variant = (data[['beta', 'gamma', 'delta', 'other']]
+                       .sum(axis=1)
+                       .rename('rho_variant'))
+        rho_total = ((data['alpha'] + rho_variant)
+                     .rename('rho_total'))
+        rho_b1617 = ((data['delta'] / rho_variant)
+                     .rename('rho_b1617')
+                     .groupby('location_id')
+                     .ffill()
+                     .fillna(0.))
         return pd.concat([rho, rho_variant, rho_b1617, rho_total], axis=1)
 
     #######################

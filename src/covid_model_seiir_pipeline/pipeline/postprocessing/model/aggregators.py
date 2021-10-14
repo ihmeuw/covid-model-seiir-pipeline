@@ -52,8 +52,9 @@ def sum_aggregator(measure_data: pd.DataFrame,
         if lower_missing or upper_missing:
             date_index = pd.Index(pd.date_range(min_date, max_date), name='date')
 
-    if 'age_start' in measure_data.index.names:
-        agg_levels.append('age_start')
+    for col in ['age_start', 'sex_id', 'year_id', 'age_group_id', 'age_group_years_start', 'age_group_years_end']:
+        if col in measure_data.index.names:
+            agg_levels.append(col)
 
     levels = sorted(hierarchy['level'].unique().tolist())
     data_locs = _get_data_locs(measure_data, hierarchy)
@@ -65,6 +66,8 @@ def sum_aggregator(measure_data: pd.DataFrame,
                 continue
             child_locs = children.location_id.tolist()
             modeled_child_locs = list(set(child_locs).intersection(data_locs))
+            if not modeled_child_locs:
+                continue
 
             filled_measure_data = fill_cumulative_date_index(measure_data.loc[modeled_child_locs], date_index)
             aggregate = filled_measure_data.groupby(agg_levels).sum()
@@ -107,6 +110,8 @@ def mean_aggregator(measure_data: pd.DataFrame,
                 continue
             child_locs = children.location_id.tolist()
             modeled_child_locs = list(set(child_locs).intersection(data_locs))
+            if not modeled_child_locs:
+                continue
 
             if 'date' in weighted_measure_data.index.names:
                 aggregate = weighted_measure_data.loc[modeled_child_locs].groupby(level='date').sum()

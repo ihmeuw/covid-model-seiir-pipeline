@@ -12,6 +12,9 @@ from covid_model_seiir_pipeline.pipeline.regression.model.containers import (
     HospitalMetrics,
     HospitalCorrectionFactors,
 )
+from covid_model_seiir_pipeline.pipeline.regression.model.ode_fit import (
+    clean_infection_data_measure,
+)
 
 if TYPE_CHECKING:
     from covid_model_seiir_pipeline.pipeline.regression.specification import (
@@ -40,7 +43,8 @@ def load_admissions_and_hfr(data_interface: 'RegressionDataInterface',
 
 def _load_admissions_and_hfr_draw(draw_id: int,
                                   data_interface: 'RegressionDataInterface') -> Tuple[pd.Series, pd.Series]:
-    infections = data_interface.load_past_infection_data(draw_id).infections
+    past_infections_data = data_interface.load_past_infection_data(draw_id)
+    infections = clean_infection_data_measure(past_infections_data, 'infections')
     ratio_data = data_interface.load_ratio_data(draw_id)
 
     admissions = convert_infections(infections, ratio_data.ihr, ratio_data.infection_to_admission)
@@ -53,10 +57,11 @@ def _load_admissions_and_hfr_draw(draw_id: int,
 
 
 def convert_infections(infections: pd.Series, ratio: pd.Series, duration: int):
+    
     result = (infections
               .groupby('location_id')
               .apply(lambda x: x.reset_index(level='location_id', drop=True).shift(duration, freq='D')))
-    result = (result * ratio).groupby('location_id').bfill(0).dropna()
+    result = (result * ratio).groupby('location_id').bfill().dropna()
     return result
 
 
@@ -242,8 +247,10 @@ def calculate_hospital_correction_factors(usage: 'HospitalMetrics',
     min_date, max_date = date.min(), date.max()
 
     if not hospital_parameters.compute_correction_factors:
-        idx = pd.MultiIndex.from_product([pd.date_range(min_date, max_date),
-                                          aggregation_hierarchy.location_id.unique()])
+        idx = pd.MultiIndex.from_product([
+            aggregation_hierarchy.location_id.unique(),
+            pd.date_range(min_date, max_date),
+        ], names=['location_id', 'date'])
         return HospitalCorrectionFactors(
             hospital_census=pd.Series(1.0, index=idx, name='hospital_census'),
             icu_census=pd.Series(1.0, index=idx, name='icu_census'),
