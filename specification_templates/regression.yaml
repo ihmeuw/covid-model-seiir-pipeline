@@ -7,7 +7,7 @@ data:
   output_root: ''
   output_format: 'parquet'
   n_draws: 100
-  drop_locations: [189] 
+  drop_locations: [] 
 workflow:
   project: 'proj_covid_prod'
   queue: 'd.q'

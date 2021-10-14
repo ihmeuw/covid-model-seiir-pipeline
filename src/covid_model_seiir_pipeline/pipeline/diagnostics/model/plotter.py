@@ -523,7 +523,7 @@ class Plotter:
                  loc_id: int,
                  start: pd.Timestamp,
                  end: pd.Timestamp,
-                 uncertainty: bool = True,
+                 uncertainty: bool = False,
                  transform=lambda x: x,
                  **extra_defaults):
         self._plot_versions = plot_versions
