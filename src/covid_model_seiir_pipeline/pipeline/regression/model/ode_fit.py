@@ -1,5 +1,6 @@
 import itertools
-from typing import Dict, List
+from typing import Dict, List, Tuple
+import hashlib
 
 import numpy as np
 import pandas as pd
@@ -61,16 +62,37 @@ def prepare_ode_fit_parameters(past_infections: pd.Series,
     )
 
 
+def split_population(past_index: pd.Index, population: pd.DataFrame):
+    population_low_risk = (population[population['age_group_years_start'] < 65]
+                           .groupby('location_id')['population']
+                           .sum()
+                           .reindex(past_index, level='location_id'))
+    population_high_risk = (population[population['age_group_years_start'] >= 65]
+                            .groupby('location_id')['population']
+                            .sum()
+                            .reindex(past_index, level='location_id'))
+    return population_low_risk, population_high_risk
+
+
+def sample_parameter(parameter: str, draw_id: int, lower: float, upper: float) -> float:
+    key = f'{parameter}_{draw_id}'
+    # 4294967295 == 2**32 - 1 which is the maximum allowable seed for a `numpy.random.RandomState`.
+    seed = int(hashlib.sha1(key.encode('utf8')).hexdigest(), 16) % 4294967295
+    random_state = np.random.RandomState(seed=seed)
+    return random_state.uniform(lower, upper)
+
+
 def sample_params(past_index: pd.Index,
                   param_dict: Dict,
-                  params_to_sample: List[str]) -> Dict[str, pd.Series]:
+                  params_to_sample: List[str],
+                  draw_id: int) -> Dict[str, pd.Series]:
     sampled_params = {}
     for parameter in params_to_sample:
         param_spec = param_dict[parameter]
         if isinstance(param_spec, (int, float)):
             value = param_spec
         else:
-            value = np.random.uniform(*param_spec)
+            value = sample_parameter(parameter, draw_id, *param_spec)
 
         sampled_params[parameter] = pd.Series(
             value,

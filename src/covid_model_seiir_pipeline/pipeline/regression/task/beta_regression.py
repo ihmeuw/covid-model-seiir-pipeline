@@ -43,6 +43,7 @@ def run_beta_regression(regression_version: str, draw_id: int, progress_bar: boo
     sampled_params = model.sample_params(
         infections.index, regression_params,
         params_to_sample=['alpha', 'sigma', 'gamma', 'pi'] + [f'kappa_{v}' for v in VARIANT_NAMES]
+        draw_id=draw_id,
     )
 
     natural_waning_params = (0.8, 270, 0.1, 720)
