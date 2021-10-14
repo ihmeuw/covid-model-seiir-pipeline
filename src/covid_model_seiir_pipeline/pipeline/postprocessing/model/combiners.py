@@ -1,21 +1,13 @@
 import pandas as pd
 
-INFECTION_TO_DEATH = 24
-INFECTION_TO_ADMISSION = 11
-INFECTION_TO_CASE = 11
 
-
-def make_ifr(infections: pd.DataFrame, deaths: pd.DataFrame) -> pd.DataFrame:
-    return deaths / infections.groupby('location_id').shift(INFECTION_TO_DEATH)
-
-
-def make_ihr(infections: pd.DataFrame, hospital_admissions: pd.DataFrame) -> pd.DataFrame:
-    return hospital_admissions / infections.groupby('location_id').shift(INFECTION_TO_ADMISSION)
-
-
-def make_idr(infections: pd.DataFrame, cases: pd.DataFrame) -> pd.DataFrame:
-    return cases / infections.groupby('location_id').shift(INFECTION_TO_CASE)
-
-
-def make_empirical_escape_variant_prevalence(escape_variant_infections: pd.DataFrame, total_infections: pd.DataFrame) -> pd.DataFrame:
-    return escape_variant_infections / total_infections
+def make_ratio(numerator: pd.DataFrame, denominator: pd.DataFrame, duration: pd.DataFrame = 0) -> pd.DataFrame:
+    if isinstance(duration, int):
+        return numerator / denominator.groupby('location_id').shift(duration)
+    else:
+        out = []
+        for draw in numerator.columns:      
+            draw_duration = duration[draw].max()
+            out.append(numerator[draw] / denominator[draw].groupby('location_id').shift(draw_duration))
+        out = pd.concat(out, axis=1)
+        return out

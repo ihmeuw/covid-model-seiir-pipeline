@@ -85,6 +85,9 @@ class PostprocessingParameters:
     infection_to_admission: int
     infection_to_case: int
 
+    ifr_scalar: float
+    ihr_scalar: float
+
     ifr: pd.Series
     ifr_hr: pd.Series
     ifr_lr: pd.Series
