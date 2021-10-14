@@ -76,7 +76,7 @@ def make_results_page(plot_versions: List[PlotVersion],
     pop = pv.load_output_miscellaneous('populations', is_table=True, location_id=location.id)
     pop = pop.loc[(pop.age_group_id == 22) & (pop.sex_id == 3), 'population'].iloc[0]
 
-    full_data = pv.load_output_miscellaneous('full_data', is_table=True, location_id=location.id)
+    full_data = pv.load_output_miscellaneous('unscaled_full_data', is_table=True, location_id=location.id)
 
     # Configure the plot layout.
     fig = plt.figure(figsize=FIG_SIZE, tight_layout=True)
@@ -201,7 +201,6 @@ def make_details_page(plot_versions: List[PlotVersion],
     pv = plot_versions[-1]
     pop = pv.load_output_miscellaneous('populations', is_table=True, location_id=location.id)
     pop = pop.loc[(pop.age_group_id == 22) & (pop.sex_id == 3), 'population'].iloc[0]
-    full_data = pv.load_output_miscellaneous('full_data', is_table=True, location_id=location.id)
     full_data_unscaled = pv.load_output_miscellaneous('unscaled_full_data', is_table=True, location_id=location.id)
     hospital_census = pv.load_output_miscellaneous('hospital_census_data', is_table=True, location_id=location.id)
 
@@ -239,8 +238,8 @@ def make_details_page(plot_versions: List[PlotVersion],
         if measure == 'hospital':
             plotter.make_observed_time_plot(
                 ax_daily,
-                full_data['date'],
-                full_data['cumulative_hospitalizations'].diff(),
+                full_data_unscaled['date'],
+                full_data_unscaled['cumulative_hospitalizations'].diff(),
             )
         axes[col].append(ax_daily)
 
@@ -316,7 +315,7 @@ def make_details_page(plot_versions: List[PlotVersion],
         except KeyError:
             ax_scalars.plot(data['date'], data['em_scalar'], color=plot_version.color)
 
-    ax_scalars.set_ylabel('EM Scalar', fontsize=AX_LABEL_FONTSIZE)
+    ax_scalars.set_ylabel('Total COVID Scalar', fontsize=AX_LABEL_FONTSIZE)
     plotter.format_date_axis(ax_scalars)
     col_2_axes.append(ax_scalars)
 
@@ -326,11 +325,7 @@ def make_details_page(plot_versions: List[PlotVersion],
         'daily_deaths',
         label='Deaths',
     )
-    plotter.make_observed_time_plot(
-        ax_scaled,
-        full_data['date'],
-        full_data['cumulative_deaths'].diff(),
-    )
+
     ax_unscaled.set_ylim(ax_scaled.get_ylim())
     col_3_axes.append(ax_scaled)
 
