@@ -11,9 +11,11 @@ grid_plots:
       - version: &public '2021_09_29.01'
         scenarios:
           reference*: 'public reference'
-      - version: &new '2021_10_10.02'
+      - version: &new '2021_10_13.04'
         scenarios:
           reference*: 'reference'
+          worse: 'worse'
+          best_masks: 'best masks'
   - name: 'compare_shortrange'
     date_start: '2020-03-01'
     date_end: '2021-12-31'
@@ -24,6 +26,8 @@ grid_plots:
       - version: *new
         scenarios:
           reference*: 'reference'
+          worse: 'worse'
+          best_masks: 'best masks'
 cumulative_deaths_compare_csv:
   dates:
     # Latest data date included automatically.  List other dates to include here

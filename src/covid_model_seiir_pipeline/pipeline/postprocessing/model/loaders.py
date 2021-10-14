@@ -165,11 +165,10 @@ def load_total_covid_deaths(scenario: str, data_interface: 'PostprocessingDataIn
                   .reindex(deaths.index)
                   .groupby('location_id')
                   .fillna(method='ffill'))
-    init_cond = (deaths * em_scalars).groupby('location_id').first()
-    scaled_deaths = (deaths.groupby('location_id').diff() * em_scalars).groupby('location_id').cumsum().fillna(0.0)
+    init_cond = em_scalars.mul(deaths.values, axis=0).groupby('location_id').first()
+    scaled_deaths = em_scalars.mul(deaths.groupby('location_id').diff().values, axis=0).groupby('location_id').cumsum().fillna(0.0)
     scaled_deaths = scaled_deaths + init_cond.reindex(scaled_deaths.index, level='location_id')
-    import pdb; pdb.set_trace()
-    return full_data
+    return scaled_deaths
 
 
 def load_age_specific_deaths(data_interface: 'PostprocessingDataInterface') -> pd.DataFrame:
