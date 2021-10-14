@@ -689,7 +689,7 @@ COVARIATES = {
 MISCELLANEOUS = {
     'unscaled_full_data': MiscellaneousConfig(
         loaders.load_full_data_unscaled,
-        'full_data',
+        'unscaled_full_data',
         aggregator=aggregators.sum_aggregator,
     ),
     'age_specific_deaths': MiscellaneousConfig(
