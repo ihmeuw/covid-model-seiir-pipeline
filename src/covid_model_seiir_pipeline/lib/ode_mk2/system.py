@@ -16,10 +16,10 @@ from covid_model_seiir_pipeline.lib.ode_mk2.constants import (
     PARAMETERS,
     NEW_E,
     COMPARTMENTS,
-    TRACKING_COMPARTMENTS,
-
-    # Debug flag
+)
+from covid_model_seiir_pipeline.lib.ode_mk2.debug import (
     DEBUG,
+    Printer
 )
 from covid_model_seiir_pipeline.lib.ode_mk2 import (
     accounting,

@@ -19,8 +19,10 @@ from covid_model_seiir_pipeline.lib.ode_mk2.constants import (
     NEW_E,
     EFFECTIVE_SUSCEPTIBLE,
     COMPARTMENTS,
-
+)
+from covid_model_seiir_pipeline.lib.ode_mk2.debug import (
     DEBUG,
+    Printer
 )
 
 

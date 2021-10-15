@@ -1365,9 +1365,3 @@ AGGREGATES_NAMES = [
     'I_omega',
     'N_total',
 ]
-
-
-# Turning off the JIT is operationally 1-to-1 with
-# saying something is broken in the ODE code and
-# I need to figure it out.
-DEBUG = int(os.getenv('NUMBA_DISABLE_JIT', 0))
