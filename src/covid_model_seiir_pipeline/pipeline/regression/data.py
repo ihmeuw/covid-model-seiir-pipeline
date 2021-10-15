@@ -181,14 +181,14 @@ class RegressionDataInterface:
     # Observed epi loaders #
     ########################
 
-    def load_full_data(self) -> pd.DataFrame:
+    def load_full_data_unscaled(self) -> pd.DataFrame:
         regression_spec = self.load_specification()
         metadata = self.get_model_inputs_metadata()
         model_inputs_version = metadata['output_path']
         if regression_spec.data.run_counties:
-            full_data_path = Path(model_inputs_version) / 'full_data_fh_subnationals.csv'
+            full_data_path = Path(model_inputs_version) / 'full_data_fh_subnationals_unscaled.csv'
         else:
-            full_data_path = Path(model_inputs_version) / 'full_data.csv'
+            full_data_path = Path(model_inputs_version) / 'full_data_unscaled.csv'
         full_data = pd.read_csv(full_data_path).rename(columns={
             'Deaths': 'cumulative_deaths',
             'Confirmed': 'cumulative_cases',
@@ -269,11 +269,16 @@ class RegressionDataInterface:
         infection_data = self.load_full_past_infection_data(draw_id=draw_id)
         return infection_data.loc[location_ids]
 
-    def load_em_scalars(self) -> pd.Series:
+    def load_em_scalars_draws(self) -> pd.DataFrame:
         location_ids = self.load_location_ids()
         em_scalars = io.load(self.infection_root.em_scalars())
-        em_scalars = em_scalars[~em_scalars.index.duplicated()]
-        return em_scalars.loc[location_ids, 'em_scalar']
+        em_scalars = em_scalars.set_index('draw', append=True).unstack()
+        em_scalars.columns = em_scalars.columns.droplevel().rename(None)
+        assert em_scalars.index.duplicated().sum() == 0
+        return em_scalars.loc[location_ids]
+
+    def load_em_scalars(self, draw_id: int) -> pd.Series:
+        return self.load_em_scalars_draws().loc[:, draw_id].rename('em_scalar')
 
     def load_ifr(self, draw_id: int) -> pd.DataFrame:
         ifr = io.load(self.infection_root.ifr(draw_id=draw_id))
@@ -293,12 +298,17 @@ class RegressionDataInterface:
             denom = total_pop - immune
             target_denom = total_pop - immune - protected
             ifr[f'ifr_{risk_group}'] *= (denom / target_denom).reindex(ifr.index).fillna(1.0)
+        if 'variant_risk_ratio' not in ifr.columns:
+            ifr['variant_risk_ratio'] = 1.29
 
         return ifr
 
     def load_ihr(self, draw_id: int) -> pd.DataFrame:
         ihr = io.load(self.infection_root.ihr(draw_id=draw_id))
         ihr = self.format_ratio_data(ihr)
+        if 'variant_risk_ratio' not in ihr.columns:
+            ihr['variant_risk_ratio'] = 1.29
+
         return ihr
 
     def load_idr(self, draw_id: int) -> pd.DataFrame:
@@ -314,6 +324,8 @@ class RegressionDataInterface:
             infection_to_death=int(ifr.duration.max()),
             infection_to_admission=int(ihr.duration.max()),
             infection_to_case=int(idr.duration.max()),
+            ifr_scalar=ifr.variant_risk_ratio.max(),
+            ihr_scalar=ihr.variant_risk_ratio.max(),
             ifr=ifr.ifr,
             ifr_hr=ifr.ifr_hr,
             ifr_lr=ifr.ifr_lr,
@@ -324,8 +336,10 @@ class RegressionDataInterface:
     def format_ratio_data(self, ratio_data: pd.DataFrame) -> pd.DataFrame:
         location_ids = self.load_location_ids()
         ratio_data = ratio_data.loc[location_ids]
+        additional_cols = [c for c in ['duration', 'variant_risk_ratio'] if c in ratio_data.columns]        
         col_map = {c: c.split('_draw')[0] for c in ratio_data.columns if '_draw' in c}
-        ratio_data = ratio_data.loc[:, ['duration'] + list(col_map)].rename(columns=col_map)
+        
+        ratio_data = ratio_data.loc[:, additional_cols + list(col_map)].rename(columns=col_map)
         return ratio_data
 
     ##########################

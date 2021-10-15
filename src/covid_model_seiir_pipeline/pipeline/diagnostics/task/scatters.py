@@ -78,7 +78,7 @@ def get_deaths(axis_spec: ScattersAxisSpecification):
         Path(axis_spec.version) / static_vars.POSTPROCESSING_SPECIFICATION_FILE
     )
     pp_di = PostprocessingDataInterface.from_specification(pp_spec)
-    data_date = pp_di.load_full_data().reset_index().date.max()
+    data_date = pp_di.load_full_data_unscaled().reset_index().date.max()
     data_date = data_date if not axis_spec.date else pd.Timestamp(axis_spec.date)
 
     deaths = pp_di.load_output_summaries(axis_spec.scenario, 'cumulative_deaths').reset_index()

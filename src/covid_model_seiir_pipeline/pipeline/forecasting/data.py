@@ -87,8 +87,8 @@ class ForecastDataInterface:
     def load_total_population(self) -> pd.Series:
         return self._get_regression_data_interface().load_total_population()
 
-    def load_full_data(self) -> pd.DataFrame:
-        return self._get_regression_data_interface().load_full_data()
+    def load_full_data_unscaled(self) -> pd.DataFrame:
+        return self._get_regression_data_interface().load_full_data_unscaled()
 
     def load_total_deaths(self) -> pd.Series:
         return self._get_regression_data_interface().load_total_deaths()
@@ -155,8 +155,11 @@ class ForecastDataInterface:
     def load_past_infections(self, draw_id: int) -> pd.Series:
         return self._get_regression_data_interface().load_infections(draw_id=draw_id)
 
-    def load_em_scalars(self) -> pd.Series:
-        return self._get_regression_data_interface().load_em_scalars()
+    def load_em_scalars_draws(self) -> pd.DataFrame:
+        return self._get_regression_data_interface().load_em_scalars_draws()
+
+    def load_em_scalars(self, draw_id: int = None) -> pd.Series:
+        return self._get_regression_data_interface().load_em_scalars(draw_id)
 
     def load_past_deaths(self, draw_id: int) -> pd.Series:
         return self._get_regression_data_interface().load_deaths(draw_id=draw_id)

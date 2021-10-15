@@ -1,14 +1,10 @@
 data:
-  forecast_version: '2021_10_06.02'
+  forecast_version: '2021_10_14.03'
   mortality_ratio_version: 'best'
   scenarios:
     - 'reference'
-    - 'santa_early'
-    - 'santa_mid'
-    - 'santa_late'
-    - 'super_santa_early'
-    - 'super_santa_mid'
-    - 'super_santa_late'
+    - 'worse'
+    - 'best_masks'
   output_root: ''
 workflow:
   project: 'proj_covid_prod'

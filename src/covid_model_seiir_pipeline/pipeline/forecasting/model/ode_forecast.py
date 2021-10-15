@@ -164,7 +164,7 @@ def build_postprocessing_parameters(indices: Indices,
                                     correction_factors: HospitalCorrectionFactors,
                                     hospital_parameters: 'HospitalParameters',
                                     scenario_spec: 'ScenarioSpecification') -> PostprocessingParameters:
-    ratio_data = correct_ratio_data(indices, ratio_data, model_parameters, scenario_spec.variant_ifr_scale)
+    ratio_data = correct_ratio_data(indices, ratio_data, model_parameters)
 
     correction_factors = forecast_correction_factors(
         indices,
@@ -183,18 +183,21 @@ def build_postprocessing_parameters(indices: Indices,
 
 def correct_ratio_data(indices: Indices,
                        ratio_data: RatioData,
-                       model_params: ode.ForecastParameters,
-                       ifr_scale: float) -> RatioData:
+                       model_params: ode.ForecastParameters) -> RatioData:
     variant_prevalence = model_params.rho_total
     p_start = variant_prevalence.loc[indices.initial_condition].reset_index(level='date', drop=True)
     variant_prevalence -= p_start.reindex(variant_prevalence.index, level='location_id')
     variant_prevalence[variant_prevalence < 0] = 0.0
-    ifr_scalar = ifr_scale * variant_prevalence + (1 - variant_prevalence)
+    
+    ifr_scalar = ratio_data.ifr_scalar * variant_prevalence + (1 - variant_prevalence)
     ifr_scalar = ifr_scalar.groupby('location_id').shift(ratio_data.infection_to_death).fillna(0.)
-
     ratio_data.ifr = ifr_scalar * _expand_rate(ratio_data.ifr, indices.full)
     ratio_data.ifr_lr = ifr_scalar * _expand_rate(ratio_data.ifr_lr, indices.full)
     ratio_data.ifr_hr = ifr_scalar * _expand_rate(ratio_data.ifr_hr, indices.full)
+    
+    ihr_scalar = ratio_data.ihr_scalar * variant_prevalence + (1 - variant_prevalence)
+    ihr_scalar = ihr_scalar.groupby('location_id').shift(ratio_data.infection_to_admission).fillna(0.)
+    ratio_data.ihr = ihr_scalar * _expand_rate(ratio_data.ihr, indices.full)
 
     ratio_data.idr = _expand_rate(ratio_data.idr, indices.full)
     ratio_data.ihr = _expand_rate(ratio_data.ihr, indices.full)

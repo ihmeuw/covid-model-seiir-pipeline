@@ -67,7 +67,7 @@ def run_cumulative_deaths_compare_csv(diagnostics_version: str) -> None:
             Path(comparator.version) / static_vars.POSTPROCESSING_SPECIFICATION_FILE
         )
         postprocessing_data_interface = PostprocessingDataInterface.from_specification(postprocessing_spec)
-        full_data = postprocessing_data_interface.load_full_data()
+        full_data = postprocessing_data_interface.load_full_data_unscaled()
         max_date = max(max_date, full_data.reset_index().date.max())
 
         for (scenario, label), measure in itertools.product(comparator.scenarios.items(), ['deaths', 'unscaled_deaths']):

@@ -94,6 +94,11 @@ MEASURES = {
         aggregator=aggregators.sum_aggregator,
         write_draws=True,
     ),
+    'total_covid_deaths_data': MeasureConfig(
+        loaders.load_total_covid_deaths,
+        'total_covid_deaths_data',
+        aggregator=aggregators.sum_aggregator,
+    ),
     'deaths_wild': MeasureConfig(
         loaders.load_output_data('modeled_deaths_wild'),
         'daily_deaths_wild',
@@ -553,60 +558,78 @@ MEASURES = {
         loaders.load_ifr_low_risk_es,
         'infection_fatality_ratio_low_risk_es',
     ),
+    'infection_to_death': MeasureConfig(
+        loaders.load_infection_to_death,
+        'infection_to_death',
+    ),
     'infection_detection_ratio_es': MeasureConfig(
         loaders.load_idr_es,
         'infection_detection_ratio_es',
     ),
+    'infection_to_case': MeasureConfig(
+        loaders.load_infection_to_case,
+        'infection_to_case',
+    ),
     'infection_hospitalization_ratio_es': MeasureConfig(
         loaders.load_ihr_es,
         'infection_hospitalization_ratio_es',
+    ),
+    'infection_to_admission': MeasureConfig(
+        loaders.load_infection_to_admission,
+        'infection_to_admission',
     ),
 }
 
 
 COMPOSITE_MEASURES = {
     'infection_fatality_ratio': CompositeMeasureConfig(
-        base_measures={'infections': MEASURES['infections'],
-                       'deaths': MEASURES['deaths']},
+        base_measures={'numerator': MEASURES['deaths'],
+                       'denominator': MEASURES['infections'],
+                       'duration': MEASURES['infection_to_death']},
         label='infection_fatality_ratio',
-        combiner=combiners.make_ifr,
+        combiner=combiners.make_ratio,
     ),
     'infection_fatality_ratio_modeled': CompositeMeasureConfig(
-        base_measures={'infections': MEASURES['infections_modeled'],
-                       'deaths': MEASURES['deaths_modeled']},
+        base_measures={'numerator': MEASURES['deaths_modeled'],
+                       'denominator': MEASURES['infections_modeled'],
+                       'duration': MEASURES['infection_to_death']},
         label='infection_fatality_ratio_modeled',
-        combiner=combiners.make_ifr,
+        combiner=combiners.make_ratio,
     ),
     'infection_fatality_ratio_high_risk': CompositeMeasureConfig(
-        base_measures={'infections': MEASURES['infections_hr'],
-                       'deaths': MEASURES['deaths_hr']},
+        base_measures={'numerator': MEASURES['deaths_hr'],
+                       'denominator': MEASURES['infections_hr'],
+                       'duration': MEASURES['infection_to_death']},
         label='infection_fatality_ratio_high_risk',
-        combiner=combiners.make_ifr,
+        combiner=combiners.make_ratio,
     ),
     'infection_fatality_ratio_low_risk': CompositeMeasureConfig(
-        base_measures={'infections': MEASURES['infections_lr'],
-                       'deaths': MEASURES['deaths_lr']},
+        base_measures={'numerator': MEASURES['deaths_lr'],
+                       'denominator': MEASURES['infections_lr'],
+                       'duration': MEASURES['infection_to_death']},
         label='infection_fatality_ratio_low_risk',
-        combiner=combiners.make_ifr,
+        combiner=combiners.make_ratio,
     ),
 
     'infection_hospitalization_ratio': CompositeMeasureConfig(
-        base_measures={'infections': MEASURES['infections'],
-                       'hospital_admissions': MEASURES['hospital_admissions']},
+        base_measures={'numerator': MEASURES['hospital_admissions'],
+                       'denominator': MEASURES['infections'],
+                       'duration': MEASURES['infection_to_admission']},
         label='infection_hospitalization_ratio',
-        combiner=combiners.make_ihr,
+        combiner=combiners.make_ratio,
     ),
     'infection_detection_ratio': CompositeMeasureConfig(
-        base_measures={'infections': MEASURES['infections'],
-                       'cases': MEASURES['cases']},
+        base_measures={'numerator': MEASURES['cases'],
+                       'denominator': MEASURES['infections'],
+                       'duration': MEASURES['infection_to_case']},
         label='infection_detection_ratio',
-        combiner=combiners.make_idr,
+        combiner=combiners.make_ratio,
     ),
     'empirical_escape_variant_prevalence': CompositeMeasureConfig(
-        base_measures={'escape_variant_infections': MEASURES['infections_variant'],
-                       'total_infections': MEASURES['infections_modeled']},
+        base_measures={'numerator': MEASURES['infections_variant'],
+                       'denominator': MEASURES['infections_modeled']},
         label='empirical_escape_variant_prevalence',
-        combiner=combiners.make_empirical_escape_variant_prevalence,
+        combiner=combiners.make_ratio,
     ),
 }
 
@@ -664,13 +687,8 @@ COVARIATES = {
 }
 
 MISCELLANEOUS = {
-    'full_data': MiscellaneousConfig(
-        loaders.load_full_data,
-        'full_data',
-        aggregator=aggregators.sum_aggregator,
-    ),
     'unscaled_full_data': MiscellaneousConfig(
-        loaders.load_unscaled_full_data,
+        loaders.load_full_data_unscaled,
         'unscaled_full_data',
         aggregator=aggregators.sum_aggregator,
     ),
