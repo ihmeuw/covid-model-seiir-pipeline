@@ -11,7 +11,7 @@ grid_plots:
       - version: &public '2021_09_29.01'
         scenarios:
           reference*: 'public reference'
-      - version: &new '2021_10_13.05'
+      - version: &new '2021_10_14.04'
         scenarios:
           reference*: 'reference'
           worse: 'worse'
@@ -40,6 +40,8 @@ cumulative_deaths_compare_csv:
     - version: *new
       scenarios:
         reference: 'reference'
+        worse: 'worse'
+        best_masks: 'best_masks'
 scatters:
   - name: 'reference_compare_data'
     x_axis:
