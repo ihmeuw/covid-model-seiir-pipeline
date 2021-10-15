@@ -200,7 +200,6 @@ def make_doctring() -> str:
 
 def make_imports() -> str:
     out = utils.make_import('collections', ['namedtuple'])
-    out += utils.make_import('os') + '\n'
 
     out += utils.make_import('numpy as np')
     return out + '\n'
@@ -293,22 +292,12 @@ def make_specs() -> str:
     return out
 
 
-def make_debug_flag() -> str:
-    return textwrap.dedent("""
-    # Turning off the JIT is operationally 1-to-1 with
-    # saying something is broken in the ODE code and
-    # I need to figure it out.
-    DEBUG = int(os.getenv('NUMBA_DISABLE_JIT', 0))
-    """)
-
-
 def make_constants() -> str:
     out = make_doctring()
     out += make_imports()
     out += make_primitive_types()
     out += make_derived_types()
     out += make_specs()
-    out += make_debug_flag()
     return out
 
 
