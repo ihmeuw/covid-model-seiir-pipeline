@@ -36,7 +36,17 @@ def compute_reimposition_threshold(past_deaths, population, reimposition_thresho
     ]
     for location in immediate_lockdown_locations:
         reimposition_threshold.loc[location] = 0.1 / 1_000_000
-
+    no_lockdown_locations = [
+        33, # Armenia
+        45, # Bulgaria
+        52, # Romania        
+        59, # Latvia
+        62, # Russia
+        63, # Ukraine
+        45, # Bulgaria
+    ]
+    for location in no_lockdown_locations:
+        reimposition_threshold.loc[location] = 250 / 1_000_000
     return reimposition_threshold
 
 
