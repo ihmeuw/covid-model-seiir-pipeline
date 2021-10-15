@@ -97,4 +97,5 @@ def make_new_e(t: float,
     if DEBUG:
         assert np.all(np.isfinite(new_e))
 
+    import pdb; pdb.set_trace()
     return new_e, effective_susceptible, beta

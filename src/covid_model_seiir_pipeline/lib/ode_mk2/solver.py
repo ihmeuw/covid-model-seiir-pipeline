@@ -44,7 +44,7 @@ def run_ode_model(initial_condition: pd.DataFrame,
                        parameter_df.loc[location_id],
                        vaccination_df.loc[location_id],
                        eta_df.loc[location_id],
-                       phi_df) for location_id in location_ids]
+                       phi_df) for location_id in [555]]
 
     _runner = functools.partial(
         _run_loc_ode_model,
