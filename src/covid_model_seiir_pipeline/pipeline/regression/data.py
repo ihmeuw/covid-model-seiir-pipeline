@@ -523,12 +523,6 @@ class RegressionDataInterface:
     def load_ode_parameters(self, draw_id: int) -> pd.DataFrame:
         return io.load(self.regression_root.ode_parameters(draw_id=draw_id))
 
-    def save_etas(self, df: pd.DataFrame, draw_id: int) -> None:
-        io.dump(df, self.regression_root.etas(draw_id=draw_id))
-
-    def load_etas(self, draw_id: int) -> pd.DataFrame:
-        return io.load(self.regression_root.etas(draw_id=draw_id))
-
     def save_phis(self, df: pd.DataFrame, draw_id: int) -> None:
         io.dump(df, self.regression_root.phis(draw_id=draw_id))
 
