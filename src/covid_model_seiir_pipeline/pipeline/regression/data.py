@@ -286,32 +286,11 @@ class RegressionDataInterface:
     def load_ifr(self, draw_id: int) -> pd.DataFrame:
         ifr = io.load(self.infection_root.ifr(draw_id=draw_id))
         ifr = self.format_ratio_data(ifr)
-        vaccinations = self.load_vaccinations()[0].groupby('location_id').cumsum()
-        population = self.load_risk_group_populations().reindex(vaccinations.index, level='location_id')
-        vax_groups = ['non_escape', 'escape']
-
-        for risk_group in ['lr', 'hr']:
-            total_pop = population[f'population_{risk_group}']
-            immune = vaccinations[[
-                f'vaccinations_{vax_group}_immune_{risk_group}' for vax_group in vax_groups
-            ]].sum(axis=1)
-            protected = vaccinations[[
-                f'vaccinations_{vax_group}_protected_{risk_group}' for vax_group in vax_groups
-            ]].sum(axis=1)
-            denom = total_pop - immune
-            target_denom = total_pop - immune - protected
-            ifr[f'ifr_{risk_group}'] *= (denom / target_denom).reindex(ifr.index).fillna(1.0)
-        if 'variant_risk_ratio' not in ifr.columns:
-            ifr['variant_risk_ratio'] = 1.29
-
         return ifr
 
     def load_ihr(self, draw_id: int) -> pd.DataFrame:
         ihr = io.load(self.infection_root.ihr(draw_id=draw_id))
         ihr = self.format_ratio_data(ihr)
-        if 'variant_risk_ratio' not in ihr.columns:
-            ihr['variant_risk_ratio'] = 1.29
-
         return ihr
 
     def load_idr(self, draw_id: int) -> pd.DataFrame:
@@ -424,15 +403,10 @@ class RegressionDataInterface:
                           covariate_root: io.CovariateRoot = None):
         covariate_root = covariate_root if covariate_root is not None else self.covariate_root
         location_ids = self.load_location_ids()
-        if vaccine_scenario == 'none':
-            # Grab the reference so we get the right index/schema.
-            info_df = io.load(covariate_root.vaccine_info(info_type='vaccinations_reference'))
-            info_df.loc[:, :] = 0.0
-        else:
-            info_df = io.load(covariate_root.vaccine_info(info_type=f'vaccinations_{vaccine_scenario}'))
-        vaccinations = self._format_covariate_data(info_df, location_ids)
-        boosters = vaccinations.copy()
-        boosters.loc[:, :] = 0.
+        info_df = io.load(covariate_root.vaccine_info(info_type=f'vaccinations_{vaccine_scenario}'))
+        info_df = self._format_covariate_data(info_df, location_ids)
+        info_df = info_df.reset_index().set_index(['course', 'location_id', 'date']).sort_index()
+        vaccinations, boosters = info_df.loc[1], info_df.loc[2]       
         return vaccinations, boosters
 
     def load_vaccination_summaries(self,
