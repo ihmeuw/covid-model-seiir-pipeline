@@ -38,6 +38,15 @@ def system(t: float,
            chis: np.ndarray,
            forecast: bool):
     aggregates = parameters.make_aggregates(y)
+    new_e, effective_susceptible, beta = parameters.make_new_e(
+        t,
+        y,
+        params,            
+        aggregates,
+        etas,
+        chis,
+        forecast,
+    )  
 
     if DEBUG:
         assert np.all(np.isfinite(aggregates))
@@ -54,26 +63,16 @@ def system(t: float,
         group_start = risk_group * system_size
         group_end = (risk_group + 1) * system_size
         
-        group_y = _subset(y, risk_group)        
-        group_vaccines = _subset(vaccines, risk_group)
-        group_etas = _subset(etas, risk_group)
-        group_chis = _subset(chis, risk_group)
-        
-        new_e, effective_susceptible, beta = parameters.make_new_e(
-            t,
-            group_y,
-            params,            
-            aggregates,
-            group_etas,
-            group_chis,
-            forecast,
-        )        
+        group_y = parameters.subset(y, risk_group)        
+        group_vaccines = parameters.subset(vaccines, risk_group)
+        group_new_e = parameters.subset(new_e, risk_group)
+        group_effective_susceptible = parameters.subset(effective_susceptible, risk_group)
 
         group_dy = _single_group_system(
             t,
             group_y,
-            new_e,
-            effective_susceptible,
+            group_new_e,
+            group_effective_susceptible,
             beta,
             params,
             group_vaccines,
@@ -93,14 +92,6 @@ def system(t: float,
         assert np.any(dy > 0.)
 
     return dy
-
-
-@numba.njit
-def _subset(x: np.ndarray, risk_group: int):
-    x_size = x.size // len(RISK_GROUP)
-    group_start = risk_group * x_size
-    group_end = (risk_group + 1) * x_size
-    return x[group_start:group_end]
 
 
 @numba.njit

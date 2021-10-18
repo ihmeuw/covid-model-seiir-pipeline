@@ -19,7 +19,7 @@ class Printer:
     @staticmethod
     def _print(names, values):
         for name, value in zip(names, values):
-            print(f'{name:<30}: {value:>20.3f}')
+            print(f'{name:<40}: {value:>20.3f}')
 
     @classmethod
     def compartments(cls, y):
