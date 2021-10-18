@@ -115,7 +115,7 @@ def run_beta_regression(regression_version: str, draw_id: int, progress_bar: boo
 
     logger.info('Fitting beta regression', context='compute_regression')
     coefficients = model.run_beta_regression(
-        beta['beta'],
+        beta,
         covariates,
         regression_specification.covariates.values(),
         gaussian_priors,

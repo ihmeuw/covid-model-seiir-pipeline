@@ -2,22 +2,16 @@ import functools
 import itertools
 import multiprocessing
 from typing import Tuple
-import time
 
 import numba
 import numpy as np
 import pandas as pd
-import scipy.stats
 import tqdm
 
 from covid_model_seiir_pipeline.lib.ode_mk2.constants import (
     RISK_GROUP_NAMES,
     COMPARTMENTS_NAMES,
-    PARAMETERS_NAMES,
-    TRACKING_COMPARTMENTS,
     TRACKING_COMPARTMENTS_NAMES,
-    TRACKING_COMPARTMENT,
-    VARIANT_GROUP,
 )
 from covid_model_seiir_pipeline.lib.ode_mk2.system import (
     system,
@@ -38,7 +32,6 @@ def run_ode_model(initial_condition: pd.DataFrame,
     # Ensure data frame column labeling is consistent with expected index ordering.
     initial_condition = _sort_columns(initial_condition)
     location_ids = initial_condition.reset_index().location_id.unique().tolist()
-    start = time.time()
     ics_and_params = [(location_id,
                        initial_condition.loc[location_id],
                        parameter_df.loc[location_id],
@@ -58,7 +51,6 @@ def run_ode_model(initial_condition: pd.DataFrame,
             compartments = list(tqdm.tqdm(pool.imap(_runner, ics_and_params), total=len(ics_and_params)))
 
     compartments = pd.concat(compartments).reset_index().set_index(['location_id', 'date']).sort_index()
-    print("Duration: ", time.time() - start, " seconds")
     return compartments
 
 
@@ -139,7 +131,6 @@ def _interpolate_y(t0: float,
     return y_solve
 
 
-
 def _interpolate(t: np.ndarray,                                  
                  t_solve: np.ndarray,
                  x: np.ndarray) -> np.ndarray:    
@@ -147,7 +138,6 @@ def _interpolate(t: np.ndarray,
     for param in np.arange(x.shape[1]):
         x_solve[:, param] = np.interp(t_solve, t, x[:, param])
     return x_solve
-
 
 
 @numba.njit
@@ -159,8 +149,8 @@ def _rk45_dde(t0: float, tf: float,
               etas: np.ndarray,
               phis: np.ndarray,
               forecast: bool,
-              dt: float):    
-    chis = np.hstack((phis[0], phis[0]))
+              dt: float):
+    chi = np.hstack((phis[0], phis[0]))
     num_time_points = t_solve.size    
 
     for time in np.arange(num_time_points):
@@ -177,7 +167,7 @@ def _rk45_dde(t0: float, tf: float,
             parameters[2 * time - 2],
             vaccines[2 * time - 2],
             etas[2 * time - 2],
-            chis,
+            chi,
             forecast,
         )
 
@@ -187,7 +177,7 @@ def _rk45_dde(t0: float, tf: float,
             parameters[2 * time - 1],
             vaccines[2 * time - 1],
             etas[2 * time - 1],
-            chis,
+            chi,
             forecast,
         )
 
@@ -197,7 +187,7 @@ def _rk45_dde(t0: float, tf: float,
             parameters[2 * time - 1],
             vaccines[2 * time - 1],
             etas[2 * time - 1],
-            chis,
+            chi,
             forecast,            
         )
 
@@ -207,7 +197,7 @@ def _rk45_dde(t0: float, tf: float,
             parameters[2 * time],
             vaccines[2 * time],
             etas[2 * time],
-            chis,
+            chi,
             forecast,            
         )
 

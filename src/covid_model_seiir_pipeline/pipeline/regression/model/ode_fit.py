@@ -47,8 +47,6 @@ def prepare_ode_fit_parameters(past_infections: pd.Series,
     for prefix, eta in (('unvaccinated', etas_unvaccinated), ('vaccinated', etas_vaccination), ('booster', etas_booster)):
         eta = eta.reindex(past_index).groupby('location_id').bfill().fillna(0.).rename(columns=lambda x: f'eta_{prefix}_{x}')
         etas.update(eta.to_dict('series'))
-    
-    betas = {f'beta_': pd.Series(-1, index=past_index, name=f'beta_{variant}') for variant in VARIANT_NAMES}
 
     return Parameters(
         **sampled_params,
