@@ -4,9 +4,18 @@ import numpy as np
 import pandas as pd
 import tqdm
 
-from covid_model_seiir_pipeline.lib import (
-    math,
-    ode,
+from covid_model_seiir_pipeline.lib.ode_mk2.containers import (
+    Parameters,
+)
+from covid_model_seiir_pipeline.lib.ode_mk2.constants import (
+    VARIANT,
+    VARIANT_NAMES,
+    RISK_GROUP_NAMES,
+    COMPARTMENTS_NAMES,
+    TRACKING_COMPARTMENTS_NAMES,
+)
+from covid_model_seiir_pipeline.lib.ode_mk2 import (
+    solver,
 )
 from covid_model_seiir_pipeline.pipeline.forecasting.model.containers import (
     Indices,
@@ -40,12 +49,9 @@ def build_model_parameters(indices: Indices,
                            beta_scales: pd.DataFrame,
                            vaccine_data: pd.DataFrame,
                            log_beta_shift: Tuple[float, pd.Timestamp],
-                           beta_scale: Tuple[float, pd.Timestamp]) -> ode.ForecastParameters:
+                           beta_scale: Tuple[float, pd.Timestamp]) -> Parameters:
     # These are all the same by draw.  Just broadcasting them over a new index.
-    ode_params = {
-        param: pd.Series(ode_parameters[param].mean(), index=indices.full, name=param)
-        for param in ['alpha', 'sigma', 'gamma1', 'gamma2', 'pi', 'chi']
-    }
+    ode_params = ode_parameters.reindex(indices.full).groupby('location_id').ffill().to_dict('series')
 
     beta, beta_wild, beta_variant, beta_hat, rho, rho_variant, rho_b1617, rho_total = get_betas_and_prevalences(
         indices,
@@ -83,15 +89,10 @@ def get_betas_and_prevalences(indices: Indices,
                               covariates: pd.DataFrame,
                               coefficients: pd.DataFrame,
                               beta_shift_parameters: pd.DataFrame,
-                              rhos: pd.DataFrame,
-                              kappa: float,
-                              phi: float,
-                              psi: float,
                               log_beta_shift: Tuple[float, pd.Timestamp],
-                              beta_scale: Tuple[float, pd.Timestamp]) -> Tuple[pd.Series, pd.Series, pd.Series, pd.Series,
-                                                                               pd.Series, pd.Series, pd.Series, pd.Series]:
-    rhos = rhos.reindex(indices.full).fillna(method='ffill')
-
+                              beta_scale: Tuple[float, pd.Timestamp]) -> Tuple[pd.Series, pd.Series, pd.Series,
+                                                                               pd.Series, pd.Series, pd.Series,
+                                                                               pd.Series, pd.Series]:
     log_beta_hat = math.compute_beta_hat(covariates, coefficients)
     log_beta_hat.loc[pd.IndexSlice[:, log_beta_shift[1]:]] += log_beta_shift[0]
     beta_hat = np.exp(log_beta_hat).loc[indices.future].rename('beta_hat').reset_index()

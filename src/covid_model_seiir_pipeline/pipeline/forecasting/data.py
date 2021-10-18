@@ -111,6 +111,11 @@ class ForecastDataInterface:
             vaccine_scenario, self.covariate_root,
         )
 
+    def load_etas(self, vaccine_scenario: str) -> pd.DataFrame:
+        return self._get_regression_data_interface().load_etas(
+            vaccine_scenario, self.covariate_root,
+        )
+
     def load_vaccination_summaries(self, measure: str, scenario: str):
         spec = self.load_specification()
         vaccine_scenario = spec.scenarios[scenario].vaccine_version
