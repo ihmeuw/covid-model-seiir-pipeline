@@ -409,6 +409,15 @@ class RegressionDataInterface:
         vaccinations, boosters = info_df.loc[1], info_df.loc[2]       
         return vaccinations, boosters
 
+    def load_etas(self, vaccine_scenario: str = 'reference',
+                  covariate_root: io.CovariateRoot = None):
+        covariate_root = covariate_root if covariate_root is not None else self.covariate_root
+        location_ids = self.load_location_ids()
+        info_df = io.load(covariate_root.vaccine_info(info_type=f'etas_{vaccine_scenario}'))
+        info_df = self._format_covariate_data(info_df, location_ids)
+        etas = info_df.reset_index().set_index(['course', 'efficacy_type', 'location_id', 'date']).sort_index()
+        return etas
+
     def load_vaccination_summaries(self,
                                    measure: str,
                                    vaccine_scenario: str = 'reference',

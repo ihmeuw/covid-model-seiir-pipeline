@@ -24,8 +24,7 @@ def prepare_ode_fit_parameters(past_infections: pd.Series,
                                rhos: pd.DataFrame,
                                vaccinations: pd.DataFrame,
                                boosters: pd.DataFrame,
-                               etas_vaccination: pd.DataFrame,
-                               etas_booster: pd.DataFrame,
+                               all_etas: pd.DataFrame,
                                phis: pd.DataFrame,
                                sampled_params: Dict[str, pd.Series]) -> Parameters:
     past_index = past_infections.index
@@ -40,12 +39,19 @@ def prepare_ode_fit_parameters(past_infections: pd.Series,
                 .reindex(past_index, fill_value=0.)
                 .rename(columns=lambda x: x.replace('vaccinations', 'boosters'))
                 .to_dict('series'))
-    
+
+    etas_vaccination = all_etas.loc[(1, 'immune')]
+    etas_booster = all_etas.loc[(2, 'immune')]
     etas_unvaccinated = etas_vaccination.copy()
     etas_unvaccinated.loc[:, :] = 0.
     etas = {}
     for prefix, eta in (('unvaccinated', etas_unvaccinated), ('vaccinated', etas_vaccination), ('booster', etas_booster)):
-        eta = eta.reindex(past_index).groupby('location_id').bfill().fillna(0.).rename(columns=lambda x: f'eta_{prefix}_{x}')
+        eta = (eta
+               .reindex(past_index)
+               .groupby('location_id')
+               .bfill()
+               .fillna(0.)
+               .rename(columns=lambda x: f'eta_{prefix}_{x}'))
         etas.update(eta.to_dict('series'))
 
     return Parameters(

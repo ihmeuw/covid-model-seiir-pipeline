@@ -33,7 +33,7 @@ def run_beta_regression(regression_version: str, draw_id: int, progress_bar: boo
     population = data_interface.load_five_year_population()
     rhos = data_interface.load_variant_prevalence()
     vaccinations, boosters = data_interface.load_vaccinations()
-    import pdb; pdb.set_trace()
+    etas = data_interface.load_etas()
 
     logger.info('Prepping ODE fit parameters.', context='transform')
     infections = model.clean_infection_data_measure(past_infection_data, 'infections')
@@ -70,32 +70,15 @@ def run_beta_regression(regression_version: str, draw_id: int, progress_bar: boo
         natural_waning_params,
     )
 
-    vaccine_waning_params = (0.5, 180, 0.1, 720)
-    booster_waning_params = (0.5, 180, 0.1, 720)
-
-    etas_immune, etas_protected, total_vaccinations = model.prepare_etas_and_vaccinations(
-        infections,
-        vaccinations,
-        vaccine_waning_params,
-    )
-
-    etas_booster_immune, etas_booster_protected, total_boosters = model.prepare_etas_and_vaccinations(
-        infections,
-        boosters,
-        booster_waning_params,
-    )
-
     ode_parameters = model.prepare_ode_fit_parameters(
         infections,
         rhos,
-        total_vaccinations,
-        total_boosters,
-        etas_immune,
-        etas_booster_immune,
+        vaccinations,
+        boosters,
+        etas,
         phis,
         sampled_params,
     )
-    import pdb; pdb.set_trace()
 
     initial_condition = model.make_initial_condition(
         ode_parameters,
