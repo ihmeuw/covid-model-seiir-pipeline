@@ -101,7 +101,7 @@ def run_beta_regression(regression_version: str, draw_id: int, progress_bar: boo
     )
 
     logger.info('Running ODE fit', context='compute_ode')
-    betas, compartments = model.run_ode_fit(
+    beta, compartments = model.run_ode_fit(
         initial_condition=initial_condition,
         ode_parameters=ode_parameters,
     )
@@ -115,7 +115,7 @@ def run_beta_regression(regression_version: str, draw_id: int, progress_bar: boo
 
     logger.info('Fitting beta regression', context='compute_regression')
     coefficients = model.run_beta_regression(
-        betas['beta'],
+        beta['beta'],
         covariates,
         regression_specification.covariates.values(),
         gaussian_priors,
@@ -127,9 +127,9 @@ def run_beta_regression(regression_version: str, draw_id: int, progress_bar: boo
 
     # Format and save data.
     logger.info('Prepping outputs', context='transform')
-    betas = pd.concat([betas, beta_hat], axis=1).reindex(infections.index)
+    betas = pd.concat([beta, beta_hat], axis=1).reindex(infections.index)
     deaths = model.clean_infection_data_measure(past_infection_data, 'deaths')
-    ode_parameters = ode_parameters.to_df()
+    ode_parameters, _, etas, phis = ode_parameters.to_dfs()
 
     logger.info('Writing outputs', context='write')
     data_interface.save_infections(infections, draw_id=draw_id)
@@ -138,6 +138,8 @@ def run_beta_regression(regression_version: str, draw_id: int, progress_bar: boo
     data_interface.save_compartments(compartments, draw_id=draw_id)
     data_interface.save_coefficients(coefficients, draw_id=draw_id)
     data_interface.save_ode_parameters(ode_parameters, draw_id=draw_id)
+    data_interface.save_etas(etas, draw_id=draw_id)
+    data_interface.save_phis(phis, draw_id=draw_id)
 
     logger.report()
 

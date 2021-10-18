@@ -192,6 +192,8 @@ class RegressionRoot(DataRoot):
     coefficients = DatasetType('coefficients', LEAF_TEMPLATES.DRAW_TEMPLATE)
     compartments = DatasetType('compartments', LEAF_TEMPLATES.DRAW_TEMPLATE)
     ode_parameters = DatasetType('ode_parameters', LEAF_TEMPLATES.DRAW_TEMPLATE)
+    etas = DatasetType('etas', LEAF_TEMPLATES.DRAW_TEMPLATE)
+    phis = DatasetType('phis', LEAF_TEMPLATES.DRAW_TEMPLATE)
 
     infections = DatasetType('infections', LEAF_TEMPLATES.DRAW_TEMPLATE)
     deaths = DatasetType('deaths', LEAF_TEMPLATES.DRAW_TEMPLATE)
