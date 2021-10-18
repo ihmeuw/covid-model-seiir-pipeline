@@ -123,7 +123,6 @@ def run_beta_regression(regression_version: str, draw_id: int, progress_bar: boo
     data_interface.save_compartments(compartments, draw_id=draw_id)
     data_interface.save_coefficients(coefficients, draw_id=draw_id)
     data_interface.save_ode_parameters(ode_parameters, draw_id=draw_id)
-    data_interface.save_etas(etas, draw_id=draw_id)
     data_interface.save_phis(phis, draw_id=draw_id)
 
     logger.report()

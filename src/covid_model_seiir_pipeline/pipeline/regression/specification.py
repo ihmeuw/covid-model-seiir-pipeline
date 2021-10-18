@@ -20,7 +20,7 @@ class RegressionTaskSpecification(workflow.TaskSpecification):
     """Specification of execution parameters for regression tasks."""
     default_max_runtime_seconds = 3000
     default_m_mem_free = '5G'
-    default_num_cores = 1
+    default_num_cores = 5
 
 
 class HospitalCorrectionFactorTaskSpecification(workflow.TaskSpecification):
