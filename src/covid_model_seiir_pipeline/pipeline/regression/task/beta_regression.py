@@ -34,10 +34,10 @@ def run_beta_regression(regression_version: str, draw_id: int, progress_bar: boo
     rhos = data_interface.load_variant_prevalence()
     vaccinations, boosters = data_interface.load_vaccinations()
     etas = data_interface.load_etas()
+    covariates = data_interface.load_covariates(list(regression_specification.covariates))
 
     logger.info('Prepping ODE fit parameters.', context='transform')
     infections = model.clean_infection_data_measure(past_infection_data, 'infections')
-    covariates = data_interface.load_covariates(list(regression_specification.covariates))
     regression_params = regression_specification.regression_parameters.to_dict()
 
     np.random.seed(draw_id)
