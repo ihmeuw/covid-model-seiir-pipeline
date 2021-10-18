@@ -223,7 +223,7 @@ class RegressionDataInterface:
     def load_total_deaths(self):
         """Load cumulative deaths by location."""
         location_ids = self.load_location_ids()
-        full_data = self.load_full_data()
+        full_data = self.load_full_data_unscaled()
         total_deaths = full_data.groupby('location_id')['Deaths'].max().rename('deaths')
         return total_deaths.loc[location_ids]
 
@@ -440,7 +440,6 @@ class RegressionDataInterface:
                                    vaccine_scenario: str = 'reference',
                                    covariate_root: io.CovariateRoot = None):
         covariate_root = covariate_root if covariate_root is not None else self.covariate_root
-        location_ids = self.load_location_ids()
         measures = [
             'cumulative_all_effective',
             'cumulative_all_vaccinated',
