@@ -58,6 +58,7 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
     coefficients = data_interface.load_coefficients(draw_id)
     # Vaccine data, of course.
     vaccinations = data_interface.load_vaccinations(scenario_spec.vaccine_version)
+    etas = data_interface.load_etas(scenario_spec.vaccine_version)
     # Variant prevalences.
     rhos = data_interface.load_variant_prevalence(scenario_spec.variant_version)
     log_beta_shift = (scenario_spec.log_beta_shift,

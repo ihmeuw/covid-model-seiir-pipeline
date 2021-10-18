@@ -20,6 +20,5 @@ from covid_model_seiir_pipeline.pipeline.regression.model.hospital_corrections i
     calculate_hospital_correction_factors,
 )
 from covid_model_seiir_pipeline.pipeline.regression.model.waning import (
-    prepare_etas_and_vaccinations,
     prepare_phis,
 )
