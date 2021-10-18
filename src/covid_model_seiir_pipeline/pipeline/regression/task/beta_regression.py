@@ -94,6 +94,7 @@ def run_beta_regression(regression_version: str, draw_id: int, progress_bar: boo
         phis,
         sampled_params,
     )
+    import pdb; pdb.set_trace()
 
     initial_condition = model.make_initial_condition(
         ode_parameters,
