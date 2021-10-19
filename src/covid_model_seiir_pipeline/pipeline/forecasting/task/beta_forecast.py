@@ -99,7 +99,7 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
     # Construct parameters for postprocessing results #
     ###################################################
     logger.info('Loading results processing input data.', context='read')
-    past_deaths = data_interface.load_past_deaths(draw_id=draw_id)
+    past_deaths = data_interface.load_past_deaths(draw_id=draw_id).dropna()
     ratio_data = data_interface.load_ratio_data(draw_id=draw_id)
     hospital_parameters = data_interface.get_hospital_parameters()
     correction_factors = data_interface.load_hospital_correction_factors()

@@ -374,7 +374,7 @@ def _make_group_infections_and_deaths_metrics(
 
         for covid_type, variants in [('wild', ('ancestral', 'alpha')),
                                      ('variant', ('beta', 'gamma', 'delta', 'other', 'omega'))]:
-            cols = [f'NewE_{variant}_{vaccine_status}'
+            cols = [f'NewE_{variant}_{vaccine_status}_{group}'
                     for variant, vaccine_status in itertools.product(variants, VACCINE_STATUS_NAMES)]
             infections = group_components_diff[cols].sum(axis=1).rename('infections')
             deaths = _compute_deaths(
@@ -433,8 +433,8 @@ def compute_corrected_hospital_usage(admissions: pd.Series,
 
 def compute_effective_r(model_params: Parameters,
                         system_metrics: SystemMetrics) -> Dict[str, pd.Series]:
-    sigma, gamma1, gamma2 = model_params.sigma, model_params.gamma1, model_params.gamma2
-    average_generation_time = int(round((1 / sigma + 1 / gamma1 + 1 / gamma2).mean()))
+    sigma, gamma = model_params.sigma_all, model_params.gamma_all
+    average_generation_time = int(round((1 / sigma + 1 / gamma).mean()))
 
     system_metrics = system_metrics.to_dict()
     pop = system_metrics['total_population']
