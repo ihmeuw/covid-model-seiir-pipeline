@@ -234,7 +234,7 @@ def run_ode_model(initial_conditions: pd.DataFrame,
                   model_parameters: Parameters,
                   progress_bar: bool) -> pd.DataFrame:
     mp_dict = model_parameters.to_dict()
-    ordered_fields = #list(ode.PARAMETERS._fields) + list(ode.FORECAST_PARAMETERS._fields)
+    ordered_fields = []#list(ode.PARAMETERS._fields) + list(ode.FORECAST_PARAMETERS._fields)
 
     parameters = pd.concat(
         [mp_dict[p] for p in ordered_fields]
