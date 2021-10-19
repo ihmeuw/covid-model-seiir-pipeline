@@ -76,8 +76,6 @@ class Indices:
 
 @dataclass
 class PostprocessingParameters:
-    past_compartments: pd.DataFrame
-
     past_infections: pd.Series
     past_deaths: pd.Series
 

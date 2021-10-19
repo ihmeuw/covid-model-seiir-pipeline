@@ -107,26 +107,23 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
     logger.info('Prepping results processing parameters.', context='transform')
     postprocessing_params = model.build_postprocessing_parameters(
         indices,
-        past_compartments,
         past_infections,
         past_deaths,
         ratio_data,
         model_parameters,
         correction_factors,
         hospital_parameters,
-        scenario_spec,
     )
 
     logger.info('Running ODE forecast.', context='compute_ode')
-    future_components = model.run_ode_forecast(
+    compartments = model.run_ode_forecast(
         initial_condition,
         model_parameters,
     )
-    import pdb; pdb.set_trace()
     logger.info('Processing ODE results and computing deaths and infections.', context='compute_results')
-    components, system_metrics, output_metrics = model.compute_output_metrics(
+    system_metrics, output_metrics = model.compute_output_metrics(
         indices,
-        future_components,
+        compartments,
         postprocessing_params,
         model_parameters,
         hospital_parameters,

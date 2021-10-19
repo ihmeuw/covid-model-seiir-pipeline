@@ -149,14 +149,12 @@ def beta_shift(beta_hat: pd.DataFrame,
 #######################################
 
 def build_postprocessing_parameters(indices: Indices,
-                                    past_compartments: pd.DataFrame,
                                     past_infections: pd.Series,
                                     past_deaths: pd.Series,
                                     ratio_data: RatioData,
                                     model_parameters: Parameters,
                                     correction_factors: HospitalCorrectionFactors,
-                                    hospital_parameters: 'HospitalParameters',
-                                    scenario_spec: 'ScenarioSpecification') -> PostprocessingParameters:
+                                    hospital_parameters: 'HospitalParameters') -> PostprocessingParameters:
     ratio_data = correct_ratio_data(indices, ratio_data, model_parameters)
 
     correction_factors = forecast_correction_factors(
@@ -166,7 +164,6 @@ def build_postprocessing_parameters(indices: Indices,
     )
 
     return PostprocessingParameters(
-        past_compartments=past_compartments,
         past_infections=past_infections,
         past_deaths=past_deaths,
         **ratio_data.to_dict(),
