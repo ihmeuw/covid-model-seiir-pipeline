@@ -1,10 +1,8 @@
 data:
-  forecast_version: '2021_10_15.01'
+  forecast_version: '2021_10_19.04'
   mortality_ratio_version: 'best'
   scenarios:
     - 'reference'
-    - 'worse'
-    - 'best_masks'
   output_root: ''
 workflow:
   project: 'proj_covid_prod'

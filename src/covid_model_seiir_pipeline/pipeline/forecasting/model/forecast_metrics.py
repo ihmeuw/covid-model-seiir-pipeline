@@ -356,7 +356,7 @@ def _make_outputs(data, prefix, column_map):
         if cols:
             out[key] = data[cols].sum(axis=1)
         else:
-            out[key] = np.nan
+            out[key] = pd.Series(np.nan, index=data.index)
     return out
 
 
