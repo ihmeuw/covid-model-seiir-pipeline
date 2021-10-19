@@ -152,7 +152,7 @@ def build_postprocessing_parameters(indices: Indices,
                                     past_infections: pd.Series,
                                     past_deaths: pd.Series,
                                     ratio_data: RatioData,
-                                    model_parameters: ode.ForecastParameters,
+                                    model_parameters: Parameters,
                                     correction_factors: HospitalCorrectionFactors,
                                     hospital_parameters: 'HospitalParameters',
                                     scenario_spec: 'ScenarioSpecification') -> PostprocessingParameters:
@@ -175,7 +175,7 @@ def build_postprocessing_parameters(indices: Indices,
 
 def correct_ratio_data(indices: Indices,
                        ratio_data: RatioData,
-                       model_params: ode.ForecastParameters) -> RatioData:
+                       model_params: Parameters) -> RatioData:
     variant_prevalence = model_params.rho_total
     p_start = variant_prevalence.loc[indices.initial_condition].reset_index(level='date', drop=True)
     variant_prevalence -= p_start.reindex(variant_prevalence.index, level='location_id')
@@ -231,10 +231,10 @@ def forecast_correction_factors(indices: Indices,
 ###########
 
 def run_ode_model(initial_conditions: pd.DataFrame,
-                  model_parameters: ode.ForecastParameters,
+                  model_parameters: Parameters,
                   progress_bar: bool) -> pd.DataFrame:
     mp_dict = model_parameters.to_dict()
-    ordered_fields = list(ode.PARAMETERS._fields) + list(ode.FORECAST_PARAMETERS._fields)
+    ordered_fields = #list(ode.PARAMETERS._fields) + list(ode.FORECAST_PARAMETERS._fields)
 
     parameters = pd.concat(
         [mp_dict[p] for p in ordered_fields]
