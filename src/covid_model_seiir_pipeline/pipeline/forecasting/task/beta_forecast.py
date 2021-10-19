@@ -174,17 +174,24 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
 
             covariates['mobility'] = new_mobility
 
-            model_parameters = model.build_model_parameters(
+            beta = model.build_beta_final(
                 indices,
-                ode_params,
                 betas,
                 covariates,
                 coefficients,
-                rhos,
-                beta_scales,
-                vaccinations,
+                beta_shift_parameters,
                 log_beta_shift,
                 beta_scale,
+            )
+            model_parameters = model.build_model_parameters(
+                indices,
+                beta,
+                ode_params,
+                rhos,
+                vaccinations,
+                boosters,
+                etas,
+                phis,
             )
 
             # The ode is done as a loop over the locations in the initial condition.
@@ -192,21 +199,20 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
             # subset here to only the locations that reimpose mandates for speed.
             initial_condition_subset = initial_condition.loc[reimposition_date.index]
             logger.info('Running ODE forecast.', context='compute_ode')
-            future_components_subset = model.run_ode_model(
+            compartments_subset = model.run_ode_forecast(
                 initial_condition_subset,
-                model_parameters.reindex(indices.future),
-                progress_bar,
+                model_parameters,
             )
 
             logger.info('Processing ODE results and computing deaths and infections.', context='compute_results')
-            future_components = (future_components
-                                 .sort_index()
-                                 .drop(future_components_subset.index)
-                                 .append(future_components_subset)
-                                 .sort_index())
-            components, system_metrics, output_metrics = model.compute_output_metrics(
+            compartments = (compartments
+                            .sort_index()
+                            .drop(compartments_subset.index)
+                            .append(compartments_subset)
+                            .sort_index())
+            system_metrics, output_metrics = model.compute_output_metrics(
                 indices,
-                future_components,
+                compartments,
                 postprocessing_params,
                 model_parameters,
                 hospital_parameters,
@@ -225,13 +231,13 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
             )
 
     logger.info('Prepping outputs.', context='transform')
-    ode_params = model_parameters.to_df()
+    ode_params, *_ = model_parameters.to_dfs()
     outputs = pd.concat([system_metrics.to_df(), output_metrics.to_df(),
                          postprocessing_params.correction_factors_df], axis=1)
 
     logger.info('Writing outputs.', context='write')
     data_interface.save_ode_params(ode_params, scenario, draw_id)
-    data_interface.save_components(components, scenario, draw_id)
+    data_interface.save_components(compartments, scenario, draw_id)
     data_interface.save_raw_covariates(covariates, scenario, draw_id)
     data_interface.save_raw_outputs(outputs, scenario, draw_id)
 
