@@ -89,6 +89,7 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
         etas,
         phis,
     )
+    import pdb; pdb.set_trace()
 
     # Pull in compartments from the fit and subset out the initial condition.
     logger.info('Loading past compartment data.', context='read')

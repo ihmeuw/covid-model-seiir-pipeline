@@ -81,6 +81,7 @@ def build_model_parameters(indices: Indices,
                   .to_dict('series'))
     new_e_all = pd.Series(np.nan, index=indices.full, name='new_e_all')
     rhos = rhos.reindex(indices.full, fill_value=0.).to_dict('series')
+    rhos['rho_none'] = pd.Series(0., index=indices.full, name='rho_none')
 
     vaccinations = vaccinations.reindex(indices.full, fill_value=0.).to_dict('series')
     boosters = (boosters
