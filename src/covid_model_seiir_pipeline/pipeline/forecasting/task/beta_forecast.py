@@ -89,12 +89,11 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
         etas,
         phis,
     )
-    import pdb; pdb.set_trace()
 
     # Pull in compartments from the fit and subset out the initial condition.
     logger.info('Loading past compartment data.', context='read')
     past_compartments = data_interface.load_compartments(draw_id=draw_id)
-    initial_condition = past_compartments.loc[indices.initial_condition].reset_index(level='date', drop=True)
+    initial_condition = past_compartments.reindex(indices.full, fill_value=0.)
 
     ###################################################
     # Construct parameters for postprocessing results #
@@ -119,11 +118,11 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
     )
 
     logger.info('Running ODE forecast.', context='compute_ode')
-    future_components = model.run_ode_model(
+    future_components = model.run_ode_forecast(
         initial_condition,
-        model_parameters.reindex(indices.future),
-        progress_bar,
+        model_parameters,
     )
+    import pdb; pdb.set_trace()
     logger.info('Processing ODE results and computing deaths and infections.', context='compute_results')
     components, system_metrics, output_metrics = model.compute_output_metrics(
         indices,

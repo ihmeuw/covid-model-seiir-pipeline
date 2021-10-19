@@ -177,7 +177,11 @@ def build_postprocessing_parameters(indices: Indices,
 def correct_ratio_data(indices: Indices,
                        ratio_data: RatioData,
                        model_params: Parameters) -> RatioData:
-    variant_prevalence = model_params.rho_total
+    variant_prevalence = (model_params
+                          .get_params()
+                          .filter(like='rho')
+                          .drop(columns=['rho_none', 'rho_ancestral'])
+                          .sum(axis=1))
     p_start = variant_prevalence.loc[indices.initial_condition].reset_index(level='date', drop=True)
     variant_prevalence -= p_start.reindex(variant_prevalence.index, level='location_id')
     variant_prevalence[variant_prevalence < 0] = 0.0
@@ -231,53 +235,12 @@ def forecast_correction_factors(indices: Indices,
 # Run ODE #
 ###########
 
-def run_ode_model(initial_conditions: pd.DataFrame,
-                  model_parameters: Parameters,
-                  progress_bar: bool) -> pd.DataFrame:
-    mp_dict = model_parameters.to_dict()
-    ordered_fields = []#list(ode.PARAMETERS._fields) + list(ode.FORECAST_PARAMETERS._fields)
-
-    parameters = pd.concat(
-        [mp_dict[p] for p in ordered_fields]
-        + [model_parameters.vaccinations_unprotected_lr,
-           model_parameters.vaccinations_non_escape_protected_lr,
-           model_parameters.vaccinations_escape_protected_lr,
-           model_parameters.vaccinations_non_escape_immune_lr,
-           model_parameters.vaccinations_escape_immune_lr,
-           
-           model_parameters.vaccinations_unprotected_hr,
-           model_parameters.vaccinations_non_escape_protected_hr,                                                                                                                                                
-           model_parameters.vaccinations_escape_protected_hr,                                                                                                                                                    
-           model_parameters.vaccinations_non_escape_immune_hr,                                                                                                                                                   
-           model_parameters.vaccinations_escape_immune_hr,],
-        axis=1
+def run_ode_forecast(initial_conditions: pd.DataFrame,
+                     ode_parameters: Parameters):
+    full_compartments = solver.run_ode_model(
+        initial_conditions,
+        *ode_parameters.to_dfs(),
+        forecast=True,
+        num_cores=5,
     )
-
-    forecasts = []
-    initial_conditions_iter = tqdm.tqdm(initial_conditions.iterrows(),
-                                        total=len(initial_conditions),
-                                        disable=not progress_bar)
-    for location_id, initial_condition in initial_conditions_iter:
-        loc_parameters = parameters.loc[location_id].sort_index()
-        loc_date = loc_parameters.reset_index().date
-        loc_times = np.array((loc_date - loc_date.min()).dt.days)
-
-        ic = initial_condition.values
-        p = loc_parameters.values.T  # Each row is a param, each column a day
-
-        solution = math.solve_ode(
-            system=ode.forecast_system,
-            t=loc_times,
-            init_cond=ic,
-            params=p
-        )
-
-        result = pd.DataFrame(
-            data=solution.T,
-            columns=initial_conditions.columns.tolist()
-        )
-        result['date'] = loc_date
-        result['location_id'] = location_id
-        forecasts.append(result.set_index(['location_id', 'date']))
-    forecasts = pd.concat(forecasts).sort_index()
-    return forecasts
+    return full_compartments
