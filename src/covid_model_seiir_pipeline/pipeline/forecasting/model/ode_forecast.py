@@ -4,6 +4,7 @@ import numpy as np
 import pandas as pd
 import tqdm
 
+from covid_model_seiir_pipeline.lib import math
 from covid_model_seiir_pipeline.lib.ode_mk2.containers import (
     Parameters,
 )
@@ -52,6 +53,7 @@ def build_model_parameters(indices: Indices,
                            beta_scale: Tuple[float, pd.Timestamp]) -> Parameters:
     # These are all the same by draw.  Just broadcasting them over a new index.
     ode_params = ode_parameters.reindex(indices.full).groupby('location_id').ffill().to_dict('series')
+    import pdb; pdb.set_trace()
 
     beta, beta_wild, beta_variant, beta_hat, rho, rho_variant, rho_b1617, rho_total = get_betas_and_prevalences(
         indices,
@@ -60,26 +62,15 @@ def build_model_parameters(indices: Indices,
         coefficients,
         beta_scales,
         rhos,
-        ode_parameters['kappa'].mean(),
-        ode_parameters['phi'].mean(),
-        ode_parameters['psi'].mean(),
-        log_beta_shift, 
+        log_beta_shift,
         beta_scale,
     )
 
     vaccine_data = vaccine_data.reindex(indices.full, fill_value=0)
     vaccine_data = {k: vaccine_data[k] for k in vaccine_data}
 
-    return ode.ForecastParameters(
+    return Parameters(
         **ode_params,
-        beta=beta,
-        beta_wild=beta_wild,
-        beta_variant=beta_variant,
-        beta_hat=beta_hat,
-        rho=rho,
-        rho_variant=rho_variant,
-        rho_b1617=rho_b1617,
-        rho_total=rho_total,
         **vaccine_data,
     )
 

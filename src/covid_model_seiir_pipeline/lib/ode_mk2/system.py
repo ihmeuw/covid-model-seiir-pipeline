@@ -129,7 +129,7 @@ def _single_group_system(t: float,
             s_from_idx = COMPARTMENTS[COMPARTMENT.S, variant, vaccine_status]
             s_to_idx = COMPARTMENTS[COMPARTMENT.S, variant, vaccine_status + 1]
             expected_vaccines = (
-                math.safe_divide(group_y[s_from_idx], vaccine_eligible[vaccine_status])
+                safe_divide(group_y[s_from_idx], vaccine_eligible[vaccine_status])
                 * group_vaccines[vaccine_status]
             )
             to_vaccinate = min(expected_vaccines, group_y[s_from_idx] - new_e_from_s)
@@ -154,3 +154,12 @@ def _single_group_system(t: float,
     )
 
     return group_dy
+
+
+@numba.njit
+def safe_divide(a: float, b: float):
+    """Divide that returns zero if numerator and denominator are both zero."""
+    if b == 0.0:
+        assert a == 0.0
+        return 0.0
+    return a / b
