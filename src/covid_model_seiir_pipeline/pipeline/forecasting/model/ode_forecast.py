@@ -51,8 +51,7 @@ def build_model_parameters(indices: Indices,
                            vaccine_data: pd.DataFrame,
                            log_beta_shift: Tuple[float, pd.Timestamp],
                            beta_scale: Tuple[float, pd.Timestamp]) -> Parameters:
-    # These are all the same by draw.  Just broadcasting them over a new index.
-    ode_params = ode_parameters.reindex(indices.full).groupby('location_id').ffill().to_dict('series')
+    ode_parameters = ode_parameters.reindex(indices.full).groupby('location_id').ffill()
     import pdb; pdb.set_trace()
 
     beta, beta_wild, beta_variant, beta_hat, rho, rho_variant, rho_b1617, rho_total = get_betas_and_prevalences(
