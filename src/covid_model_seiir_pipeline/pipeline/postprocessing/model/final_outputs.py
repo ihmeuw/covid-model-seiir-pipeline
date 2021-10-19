@@ -262,63 +262,63 @@ MEASURES = {
 
     # Vaccination measures
 
-    'effectively_vaccinated': MeasureConfig(
-        loaders.load_effectively_vaccinated,
-        'daily_vaccinations_effective_input',
-        calculate_cumulative=True,
-        cumulative_label='cumulative_vaccinations_effective_input',
-        aggregator=aggregators.sum_aggregator,
-        splice=False,
-    ),
-    'cumulative_all_effective': MeasureConfig(
-        loaders.load_vaccine_summaries('cumulative_all_effective'),
-        'cumulative_vaccinations_all_effective',
-        aggregator=aggregators.sum_aggregator,
-        resample=False,
-        splice=False,
-    ),
-    'cumulative_all_vaccinated': MeasureConfig(
-        loaders.load_vaccine_summaries('cumulative_all_vaccinated'),
-        'cumulative_vaccinations_all_vaccinated',
-        aggregator=aggregators.sum_aggregator,
-        resample=False,
-        splice=False,
-    ),
-    'cumulative_all_fully_vaccinated': MeasureConfig(
-        loaders.load_vaccine_summaries('cumulative_all_fully_vaccinated'),
-        'cumulative_vaccinations_all_fully_vaccinated',
-        aggregator=aggregators.sum_aggregator,
-        resample=False,
-        splice=False,
-    ),
-    'cumulative_lr_vaccinated': MeasureConfig(
-        loaders.load_vaccine_summaries('lr_vaccinated'),
-        'cumulative_vaccinations_lr',
-        aggregator=aggregators.sum_aggregator,
-        resample=False,
-        splice=False,
-    ),
-    'cumulative_hr_vaccinated': MeasureConfig(
-        loaders.load_vaccine_summaries('hr_vaccinated'),
-        'cumulative_vaccinations_hr',
-        aggregator=aggregators.sum_aggregator,
-        resample=False,
-        splice=False,
-    ),
-    'vaccine_acceptance': MeasureConfig(
-        loaders.load_vaccine_summaries('vaccine_acceptance'),
-        'vaccine_acceptance',
-        aggregator=aggregators.mean_aggregator,
-        resample=False,
-        splice=False,
-    ),
-    'vaccine_acceptance_point': MeasureConfig(
-        loaders.load_vaccine_summaries('vaccine_acceptance_point'),
-        'vaccine_acceptance_point',
-        aggregator=aggregators.mean_aggregator,
-        resample=False,
-        splice=False,
-    ),
+    # 'effectively_vaccinated': MeasureConfig(
+    #     loaders.load_effectively_vaccinated,
+    #     'daily_vaccinations_effective_input',
+    #     calculate_cumulative=True,
+    #     cumulative_label='cumulative_vaccinations_effective_input',
+    #     aggregator=aggregators.sum_aggregator,
+    #     splice=False,
+    # ),
+    # 'cumulative_all_effective': MeasureConfig(
+    #     loaders.load_vaccine_summaries('cumulative_all_effective'),
+    #     'cumulative_vaccinations_all_effective',
+    #     aggregator=aggregators.sum_aggregator,
+    #     resample=False,
+    #     splice=False,
+    # ),
+    # 'cumulative_all_vaccinated': MeasureConfig(
+    #     loaders.load_vaccine_summaries('cumulative_all_vaccinated'),
+    #     'cumulative_vaccinations_all_vaccinated',
+    #     aggregator=aggregators.sum_aggregator,
+    #     resample=False,
+    #     splice=False,
+    # ),
+    # 'cumulative_all_fully_vaccinated': MeasureConfig(
+    #     loaders.load_vaccine_summaries('cumulative_all_fully_vaccinated'),
+    #     'cumulative_vaccinations_all_fully_vaccinated',
+    #     aggregator=aggregators.sum_aggregator,
+    #     resample=False,
+    #     splice=False,
+    # ),
+    # 'cumulative_lr_vaccinated': MeasureConfig(
+    #     loaders.load_vaccine_summaries('lr_vaccinated'),
+    #     'cumulative_vaccinations_lr',
+    #     aggregator=aggregators.sum_aggregator,
+    #     resample=False,
+    #     splice=False,
+    # ),
+    # 'cumulative_hr_vaccinated': MeasureConfig(
+    #     loaders.load_vaccine_summaries('hr_vaccinated'),
+    #     'cumulative_vaccinations_hr',
+    #     aggregator=aggregators.sum_aggregator,
+    #     resample=False,
+    #     splice=False,
+    # ),
+    # 'vaccine_acceptance': MeasureConfig(
+    #     loaders.load_vaccine_summaries('vaccine_acceptance'),
+    #     'vaccine_acceptance',
+    #     aggregator=aggregators.mean_aggregator,
+    #     resample=False,
+    #     splice=False,
+    # ),
+    # 'vaccine_acceptance_point': MeasureConfig(
+    #     loaders.load_vaccine_summaries('vaccine_acceptance_point'),
+    #     'vaccine_acceptance_point',
+    #     aggregator=aggregators.mean_aggregator,
+    #     resample=False,
+    #     splice=False,
+    # ),
 
     'vaccines_immune_all': MeasureConfig(
         loaders.load_output_data('vaccinations_immune_all'),
@@ -488,22 +488,22 @@ MEASURES = {
 
     # Betas
 
-    'beta': MeasureConfig(
-        loaders.load_ode_params('beta'),
-        'betas',
-    ),
-    'beta_hat': MeasureConfig(
-        loaders.load_ode_params('beta_hat'),
-        'beta_hat',
-    ),
-    'beta_wild': MeasureConfig(
-        loaders.load_ode_params('beta_wild'),
-        'beta_wild',
-    ),
-    'beta_variant': MeasureConfig(
-        loaders.load_ode_params('beta_variant'),
-        'beta_variant',
-    ),
+    # 'beta': MeasureConfig(
+    #     loaders.load_ode_params('beta'),
+    #     'betas',
+    # ),
+    # 'beta_hat': MeasureConfig(
+    #     loaders.load_ode_params('beta_hat'),
+    #     'beta_hat',
+    # ),
+    # 'beta_wild': MeasureConfig(
+    #     loaders.load_ode_params('beta_wild'),
+    #     'beta_wild',
+    # ),
+    # 'beta_variant': MeasureConfig(
+    #     loaders.load_ode_params('beta_variant'),
+    #     'beta_variant',
+    # ),
     'empirical_beta': MeasureConfig(
         loaders.load_output_data('beta'),
         'empirical_beta',
@@ -517,14 +517,14 @@ MEASURES = {
         'empirical_beta_variant',
     ),
 
-    'non_escape_variant_prevalence': MeasureConfig(
-        loaders.load_ode_params('rho'),
-        'non_escape_variant_prevalence',
-    ),
-    'escape_variant_prevalence': MeasureConfig(
-        loaders.load_ode_params('rho_variant'),
-        'escape_variant_prevalence',
-    ),
+    # 'non_escape_variant_prevalence': MeasureConfig(
+    #     loaders.load_ode_params('rho'),
+    #     'non_escape_variant_prevalence',
+    # ),
+    # 'escape_variant_prevalence': MeasureConfig(
+    #     loaders.load_ode_params('rho_variant'),
+    #     'escape_variant_prevalence',
+    # ),
 
     # Beta calculation inputs
 
