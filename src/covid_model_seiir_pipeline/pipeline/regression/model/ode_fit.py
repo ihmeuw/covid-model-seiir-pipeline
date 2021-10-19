@@ -39,20 +39,7 @@ def prepare_ode_fit_parameters(past_infections: pd.Series,
                 .reindex(past_index, fill_value=0.)
                 .rename(columns=lambda x: x.replace('vaccinations', 'boosters'))
                 .to_dict('series'))
-
-    etas_vaccination = all_etas.loc[(1, 'immune')]
-    etas_booster = all_etas.loc[(2, 'immune')]
-    etas_unvaccinated = etas_vaccination.copy()
-    etas_unvaccinated.loc[:, :] = 0.
-    etas = {}
-    for prefix, eta in (('unvaccinated', etas_unvaccinated), ('vaccinated', etas_vaccination), ('booster', etas_booster)):
-        eta = (eta
-               .reindex(past_index)
-               .groupby('location_id')
-               .bfill()
-               .fillna(0.)
-               .rename(columns=lambda x: f'eta_{prefix}_{x}'))
-        etas.update(eta.to_dict('series'))
+    etas = process_etas(all_etas, past_index)
 
     return Parameters(
         **sampled_params,
@@ -105,6 +92,23 @@ def sample_params(past_index: pd.Index,
         )
 
     return sampled_params
+
+
+def process_etas(all_etas: pd.DataFrame, index: pd.Index):
+    etas_vaccination = all_etas.loc[(1, 'immune')]
+    etas_booster = all_etas.loc[(2, 'immune')]
+    etas_unvaccinated = etas_vaccination.copy()
+    etas_unvaccinated.loc[:, :] = 0.
+    etas = {}
+    for prefix, eta in (('unvaccinated', etas_unvaccinated), ('vaccinated', etas_vaccination), ('booster', etas_booster)):
+        eta = (eta
+               .reindex(index)
+               .groupby('location_id')
+               .bfill()
+               .fillna(0.)
+               .rename(columns=lambda x: f'eta_{prefix}_{x}'))
+        etas.update(eta.to_dict('series'))
+    return etas
 
 
 def clean_infection_data_measure(infection_data: pd.DataFrame, measure: str) -> pd.Series:
@@ -197,3 +201,4 @@ def run_ode_fit(initial_condition: pd.DataFrame, ode_parameters: Parameters):
     # Don't want to break the log.
     beta[beta == 0] = np.nan
     return beta, full_compartments
+

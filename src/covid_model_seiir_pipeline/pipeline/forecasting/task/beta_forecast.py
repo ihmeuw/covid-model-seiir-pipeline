@@ -53,12 +53,13 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
     # Contains both the fit and regression betas
     betas = data_interface.load_betas(draw_id)
     # Rescaling parameters for the beta forecast.
-    beta_scales = data_interface.load_beta_scales(scenario=scenario, draw_id=draw_id)
+    beta_shift_parameters = data_interface.load_beta_scales(scenario=scenario, draw_id=draw_id)
     # Regression coefficients for forecasting beta.
     coefficients = data_interface.load_coefficients(draw_id)
     # Vaccine data, of course.
-    vaccinations = data_interface.load_vaccinations(scenario_spec.vaccine_version)
+    vaccinations, boosters = data_interface.load_vaccinations(scenario_spec.vaccine_version)
     etas = data_interface.load_etas(scenario_spec.vaccine_version)
+    phis = data_interface.load_phis(draw_id)
     # Variant prevalences.
     rhos = data_interface.load_variant_prevalence(scenario_spec.variant_version)
     log_beta_shift = (scenario_spec.log_beta_shift,
@@ -69,17 +70,24 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
     # Collate all the parameters, ensure consistent index, etc.
     logger.info('Processing inputs into model parameters.', context='transform')
     covariates = covariates.reindex(indices.full)
-    model_parameters = model.build_model_parameters(
+    beta = model.build_beta_final(
         indices,
-        ode_params,
         betas,
         covariates,
         coefficients,
-        rhos,
-        beta_scales,
-        vaccinations,
+        beta_shift_parameters,
         log_beta_shift,
         beta_scale,
+    )
+    model_parameters = model.build_model_parameters(
+        indices,
+        beta,
+        ode_params,
+        rhos,
+        vaccinations,
+        boosters,
+        etas,
+        phis,
     )
 
     # Pull in compartments from the fit and subset out the initial condition.

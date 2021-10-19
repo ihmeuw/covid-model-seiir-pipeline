@@ -116,6 +116,9 @@ class ForecastDataInterface:
             vaccine_scenario, self.covariate_root,
         )
 
+    def load_phis(self, draw_id: int) -> pd.DataFrame:
+        return self._get_regression_data_interface().load_phis(draw_id)
+
     def load_vaccination_summaries(self, measure: str, scenario: str):
         spec = self.load_specification()
         vaccine_scenario = spec.scenarios[scenario].vaccine_version

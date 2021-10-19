@@ -18,6 +18,9 @@ from covid_model_seiir_pipeline.lib.ode_mk2.constants import (
 from covid_model_seiir_pipeline.lib.ode_mk2 import (
     solver,
 )
+from covid_model_seiir_pipeline.pipeline.regression.model.ode_fit import (
+    process_etas,
+)
 from covid_model_seiir_pipeline.pipeline.forecasting.model.containers import (
     Indices,
     PostprocessingParameters,
@@ -41,48 +44,13 @@ if TYPE_CHECKING:
 # ODE parameter construction #
 ##############################
 
-def build_model_parameters(indices: Indices,
-                           ode_parameters: pd.DataFrame,
-                           beta_regression: pd.DataFrame,
-                           covariates: pd.DataFrame,
-                           coefficients: pd.DataFrame,
-                           rhos: pd.DataFrame,
-                           beta_scales: pd.DataFrame,
-                           vaccine_data: pd.DataFrame,
-                           log_beta_shift: Tuple[float, pd.Timestamp],
-                           beta_scale: Tuple[float, pd.Timestamp]) -> Parameters:
-    ode_parameters = ode_parameters.reindex(indices.full).groupby('location_id').ffill()
-    import pdb; pdb.set_trace()
-
-    beta, beta_wild, beta_variant, beta_hat, rho, rho_variant, rho_b1617, rho_total = get_betas_and_prevalences(
-        indices,
-        beta_regression,
-        covariates,
-        coefficients,
-        beta_scales,
-        rhos,
-        log_beta_shift,
-        beta_scale,
-    )
-
-    vaccine_data = vaccine_data.reindex(indices.full, fill_value=0)
-    vaccine_data = {k: vaccine_data[k] for k in vaccine_data}
-
-    return Parameters(
-        **ode_params,
-        **vaccine_data,
-    )
-
-
-def get_betas_and_prevalences(indices: Indices,
-                              beta_regression: pd.DataFrame,
-                              covariates: pd.DataFrame,
-                              coefficients: pd.DataFrame,
-                              beta_shift_parameters: pd.DataFrame,
-                              log_beta_shift: Tuple[float, pd.Timestamp],
-                              beta_scale: Tuple[float, pd.Timestamp]) -> Tuple[pd.Series, pd.Series, pd.Series,
-                                                                               pd.Series, pd.Series, pd.Series,
-                                                                               pd.Series, pd.Series]:
+def build_beta_final(indices: Indices,
+                     beta_regression: pd.DataFrame,
+                     covariates: pd.DataFrame,
+                     coefficients: pd.DataFrame,
+                     beta_shift_parameters: pd.DataFrame,
+                     log_beta_shift: Tuple[float, pd.Timestamp],
+                     beta_scale: Tuple[float, pd.Timestamp]):
     log_beta_hat = math.compute_beta_hat(covariates, coefficients)
     log_beta_hat.loc[pd.IndexSlice[:, log_beta_shift[1]:]] += log_beta_shift[0]
     beta_hat = np.exp(log_beta_hat).loc[indices.future].rename('beta_hat').reset_index()
@@ -93,11 +61,44 @@ def get_betas_and_prevalences(indices: Indices,
             .rename('beta'))
     beta = beta_regression.loc[indices.past, 'beta'].append(beta).sort_index()
     beta.loc[pd.IndexSlice[:, beta_scale[1]:]] *= beta_scale[0]
-    beta_wild = beta * (1 + kappa * rhos.rho)
-    beta_variant = beta * (1 + kappa * (phi * (1 - rhos.rho_b1617) + rhos.rho_b1617 * psi))
+    return beta
 
-    return (beta, beta_wild, beta_variant, np.exp(log_beta_hat),
-            rhos.rho, rhos.rho_variant, rhos.rho_b1617, rhos.rho_total)
+
+def build_model_parameters(indices: Indices,
+                           beta: pd.Series,
+                           ode_parameters: pd.DataFrame,
+                           rhos: pd.DataFrame,
+                           vaccinations: pd.DataFrame,
+                           boosters: pd.DataFrame,
+                           all_etas: pd.DataFrame,
+                           phis: pd.DataFrame) -> Parameters:
+    keep_cols = ['alpha_all', 'sigma_all', 'gamma_all', 'pi_all'] + [f'kappa_{v}' for v in VARIANT_NAMES]
+    ode_params = (ode_parameters
+                  .reindex(indices.full)
+                  .groupby('location_id')
+                  .ffill()
+                  .loc[:, keep_cols]
+                  .to_dict('series'))
+    new_e_all = pd.Series(np.nan, index=indices.full, name='new_e_all')
+    rhos = rhos.reindex(indices.full, fill_value=0.).to_dict('series')
+
+    vaccinations = vaccinations.reindex(indices.full, fill_value=0.).to_dict('series')
+    boosters = (boosters
+                .reindex(indices.full, fill_value=0.)
+                .rename(columns=lambda x: x.replace('vaccinations', 'boosters'))
+                .to_dict('series'))
+    etas = process_etas(all_etas, indices.full)
+
+    return Parameters(
+        **ode_params,
+        new_e_all=new_e_all,
+        beta_all=beta,
+        **rhos,
+        **vaccinations,
+        **boosters,
+        **etas,
+        **phis.to_dict('series')
+    )
 
 
 def beta_shift(beta_hat: pd.DataFrame,

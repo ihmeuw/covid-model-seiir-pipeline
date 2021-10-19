@@ -9,6 +9,7 @@ from covid_model_seiir_pipeline.pipeline.forecasting.model.containers import (
     HospitalCorrectionFactors,
 )
 from covid_model_seiir_pipeline.pipeline.forecasting.model.ode_forecast import (
+    build_beta_final,
     build_model_parameters,
     build_postprocessing_parameters,
     run_ode_model,
