@@ -112,6 +112,7 @@ def process_etas(all_etas: pd.DataFrame, index: pd.Index):
 
 
 def clean_infection_data_measure(infection_data: pd.DataFrame, measure: str) -> pd.Series:
+    # Make sure the first value in the series is 0 so that we can convert between cumulative and daily.
     data = infection_data[measure].dropna()
     min_date = data.reset_index().groupby('location_id').date.min()
     prepend_date = min_date - pd.Timedelta(days=1)
@@ -119,8 +120,9 @@ def clean_infection_data_measure(infection_data: pd.DataFrame, measure: str) -> 
     prepend = pd.Series(0., index=prepend_idx, name=measure)
     data = data.append(prepend).sort_index().reset_index()
 
-    all_locs = data.location_id.unique().tolist()
-    global_date_range = pd.date_range(data.date.min(), data.date.max())
+    infection_data = infection_data.reset_index()
+    all_locs = infection_data.location_id.unique().tolist()
+    global_date_range = pd.date_range(infection_data.date.min() - pd.Timedelta(days=1), infection_data.date.max())
     square_idx = pd.MultiIndex.from_product((all_locs, global_date_range), names=['location_id', 'date']).sort_values()
     data = data.set_index(['location_id', 'date']).reindex(square_idx).groupby('location_id').bfill()
     return data[measure]
