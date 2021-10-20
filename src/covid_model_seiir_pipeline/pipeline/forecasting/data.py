@@ -141,11 +141,6 @@ class ForecastDataInterface:
             mobility_scenario, self.covariate_root,
         )
 
-    def load_raw_variant_prevalence(self, variant_scenario: str) -> pd.DataFrame:
-        return self._get_regression_data_interface().load_raw_variant_prevalence(
-            variant_scenario, self.covariate_root,
-        )
-
     def load_variant_prevalence(self, variant_scenario: str) -> pd.DataFrame:
         return self._get_regression_data_interface().load_variant_prevalence(
             variant_scenario, self.covariate_root,
