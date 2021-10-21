@@ -32,7 +32,7 @@ def compute_reimposition_threshold(past_deaths, population, reimposition_thresho
     # Locations that have shown a propensity to impose mandates at 
     # any sign of covid in their populations.
     immediate_lockdown_locations = [
-        71, # Australia
+#        71, # Australia
     ]
     for location in immediate_lockdown_locations:
         reimposition_threshold.loc[location] = 0.1 / 1_000_000

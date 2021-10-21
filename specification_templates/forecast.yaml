@@ -10,8 +10,8 @@ scenarios:
   reference:
     algorithm: 'draw_level_mandate_reimposition'
     algorithm_params:
-      death_threshold: 8  # per million
-      max_threshold: 15 # per million
+      death_threshold: 1000  # per million
+      max_threshold: 2000 # per million
       reimposition_duration: 6 # weeks
       minimum_delay: 14 # days
     beta_scaling:
