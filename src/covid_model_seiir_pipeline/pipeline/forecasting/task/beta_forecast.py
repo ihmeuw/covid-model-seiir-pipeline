@@ -29,7 +29,7 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
     # unique datasets in this model and they need to be aligned consistently
     # to do computation.
     logger.info('Loading index building data', context='read')
-    past_infections = data_interface.load_past_infections(draw_id)
+    past_infections = data_interface.load_past_infections(draw_id).dropna()
     past_start_dates = past_infections.reset_index().groupby('location_id').date.min()
     forecast_start_dates = past_infections.reset_index().groupby('location_id').date.max()
     # Forecast is run to the end of the covariates

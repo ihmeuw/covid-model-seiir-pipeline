@@ -1,5 +1,5 @@
 data:
-  forecast_version: '2021_10_20.01'
+  forecast_version: '2021_10_20.03'
   mortality_ratio_version: 'best'
   scenarios:
     - 'reference'

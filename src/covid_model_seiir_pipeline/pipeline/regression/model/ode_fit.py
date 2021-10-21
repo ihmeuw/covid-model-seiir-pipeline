@@ -198,9 +198,11 @@ def run_ode_fit(initial_condition: pd.DataFrame, ode_parameters: Parameters):
         forecast=False,
         num_cores=5,
     )
+    # Set all the forecast stuff to nan
+    full_compartments.loc[full_compartments.sum(axis=1) == 0., :] = np.nan
     # All the same so mean just collapses.
     beta = full_compartments.filter(like='beta_none_all').mean(axis=1).groupby('location_id').diff().rename('beta')
     # Don't want to break the log.
-    beta[beta <= 0] = np.nan
+    beta[beta == 0.] = np.nan
     return beta, full_compartments
 
