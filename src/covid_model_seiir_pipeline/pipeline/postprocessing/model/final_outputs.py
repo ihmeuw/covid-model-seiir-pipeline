@@ -351,9 +351,9 @@ for variant in VARIANT_NAMES[1:]:
 for key in list(VARIANT_NAMES[1:]) + ['total']:
     for measure in ['r_effective', 'r_controlled']:
         group_measure = f'{measure}_{key}'
-        MEASURES[measure] = MeasureConfig(
-            loaders.load_output_data(measure),
-            measure,
+        MEASURES[group_measure] = MeasureConfig(
+            loaders.load_output_data(group_measure),
+            group_measure,
         )
 
 
