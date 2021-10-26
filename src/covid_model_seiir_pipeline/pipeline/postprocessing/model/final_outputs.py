@@ -345,7 +345,6 @@ for variant in VARIANT_NAMES[1:]:
     MEASURES[f'variant_{variant}_prevalence'] = MeasureConfig(
         loaders.load_output_data(f'variant_{variant}_prevalence'),
         f'variant_prevalence_{variant}',
-        aggregator=aggregators.sum_aggregator,
     )
 
 
@@ -400,12 +399,6 @@ COMPOSITE_MEASURES = {
                        'denominator': MEASURES['infections'],
                        'duration': MEASURES['infection_to_case']},
         label='infection_detection_ratio',
-        combiner=combiners.make_ratio,
-    ),
-    'empirical_escape_variant_prevalence': CompositeMeasureConfig(
-        base_measures={'numerator': MEASURES['infections_variant'],
-                       'denominator': MEASURES['infections_total']},
-        label='empirical_escape_variant_prevalence',
         combiner=combiners.make_ratio,
     ),
 }
