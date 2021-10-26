@@ -135,14 +135,6 @@ class PostprocessingDataInterface:
         draw_df = self.load_ode_params(draw_id=draw_id, scenario=scenario, columns=[measure])
         return draw_df[measure].rename(draw_id)
 
-    def load_effectively_vaccinated(self, draw_id: int, scenario: str) -> pd.Series:
-        eff_types = ['protected', 'immune']
-        covid_types = ['escape', 'non_escape']
-        risk_groups = ['lr', 'hr']
-        cols = [f'vaccinations_{c}_{e}_{r}' for e, c, r in itertools.product(eff_types, covid_types, risk_groups)]
-        draw_df = self.load_ode_params(draw_id=draw_id, scenario=scenario, columns=cols)
-        return draw_df.sum(axis=1).rename(draw_id)
-
     def load_vaccination_summaries(self, measure: str, scenario: str):
         return self._get_forecast_data_inteface().load_vaccination_summaries(
             measure, scenario,

@@ -170,16 +170,8 @@ MEASURES = {
         'icu_census_correction_factor',
         splice=False,
     ),
-    # Vaccination measures
 
-    'effectively_vaccinated': MeasureConfig(
-        loaders.load_effectively_vaccinated,
-        'daily_vaccinations_effective_input',
-        calculate_cumulative=True,
-        cumulative_label='cumulative_vaccinations_effective_input',
-        aggregator=aggregators.sum_aggregator,
-        splice=False,
-    ),
+    # Vaccination measures
     'cumulative_all_effective': MeasureConfig(
         loaders.load_vaccine_summaries('cumulative_all_effective'),
         'cumulative_vaccinations_all_effective',

@@ -67,17 +67,6 @@ def load_ode_params(output_name: str):
     return inner
 
 
-def load_effectively_vaccinated(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
-    _runner = functools.partial(
-        data_interface.load_effectively_vaccinated,
-        scenario=scenario,
-    )
-    draws = range(data_interface.get_n_draws())
-    with multiprocessing.Pool(num_cores) as pool:
-        outputs = pool.map(_runner, draws)
-    return outputs
-
-
 def load_beta_residuals(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int) -> List[pd.Series]:
     _runner = functools.partial(
         data_interface.load_beta_residuals,
