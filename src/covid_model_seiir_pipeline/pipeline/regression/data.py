@@ -435,11 +435,11 @@ class RegressionDataInterface:
         assert measure in measures
         if vaccine_scenario == 'none':
             # Grab the reference so we get the right index/schema.
-            info_df = io.load(covariate_root.vaccine_info(info_type='vaccinations_reference_summary'))
+            info_df = io.load(covariate_root.vaccine_info(info_type='vaccinations_reference_summaries'))
             info_df = info_df.loc[:, [measure]]
             info_df.loc[:, :] = 0.0
         else:
-            info_df = io.load(covariate_root.vaccine_info(info_type=f'vaccinations_{vaccine_scenario}_summary'))
+            info_df = io.load(covariate_root.vaccine_info(info_type=f'vaccinations_{vaccine_scenario}_summaries'))
             info_df = info_df.loc[:, [measure]]
         if measure == 'vaccine_acceptance_point':
             info_df = info_df.groupby('location_id').max()
