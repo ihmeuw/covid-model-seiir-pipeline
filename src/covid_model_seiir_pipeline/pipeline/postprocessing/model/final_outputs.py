@@ -368,7 +368,7 @@ COMPOSITE_MEASURES = {
     ),
     'infection_fatality_ratio_modeled': CompositeMeasureConfig(
         base_measures={'numerator': MEASURES['deaths_modeled'],
-                       'denominator': MEASURES['infections_modeled'],
+                       'denominator': MEASURES['infections_total'],
                        'duration': MEASURES['infection_to_death']},
         label='infection_fatality_ratio_modeled',
         combiner=combiners.make_ratio,
@@ -404,7 +404,7 @@ COMPOSITE_MEASURES = {
     ),
     'empirical_escape_variant_prevalence': CompositeMeasureConfig(
         base_measures={'numerator': MEASURES['infections_variant'],
-                       'denominator': MEASURES['infections_modeled']},
+                       'denominator': MEASURES['infections_total']},
         label='empirical_escape_variant_prevalence',
         combiner=combiners.make_ratio,
     ),
