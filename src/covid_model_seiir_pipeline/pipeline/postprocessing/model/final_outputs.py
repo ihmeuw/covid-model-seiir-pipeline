@@ -1,8 +1,12 @@
-import functools
 from typing import Any, Callable, Dict, List, Union, TYPE_CHECKING
 
 import pandas as pd
 
+from covid_model_seiir_pipeline.lib.ode_mk2.constants import (
+    RISK_GROUP_NAMES,
+    VARIANT_NAMES,
+    VACCINE_STATUS_NAMES,
+)
 from covid_model_seiir_pipeline.pipeline.postprocessing.model import aggregators, loaders, combiners
 
 if TYPE_CHECKING:
@@ -99,16 +103,6 @@ MEASURES = {
         'total_covid_deaths_data',
         aggregator=aggregators.sum_aggregator,
     ),
-    'deaths_wild': MeasureConfig(
-        loaders.load_output_data('modeled_deaths_wild'),
-        'daily_deaths_wild',
-        aggregator=aggregators.sum_aggregator,
-    ),
-    'deaths_variant': MeasureConfig(
-        loaders.load_output_data('modeled_deaths_variant'),
-        'daily_deaths_variant',
-        aggregator=aggregators.sum_aggregator,
-    ),
     'deaths_lr': MeasureConfig(
         loaders.load_output_data('modeled_deaths_lr'),
         'daily_deaths_low_risk',
@@ -128,8 +122,6 @@ MEASURES = {
         aggregator=aggregators.sum_aggregator,
     ),
 
-    # Infection measures
-
     'infections': MeasureConfig(
         loaders.load_output_data('infections'),
         'daily_infections',
@@ -137,84 +129,6 @@ MEASURES = {
         cumulative_label='cumulative_infections',
         aggregator=aggregators.sum_aggregator,
         write_draws=True,
-    ),
-    'infected': MeasureConfig(
-        loaders.load_output_data('modeled_infected_total'),
-        'daily_infected',
-        calculate_cumulative=True,
-        cumulative_label='cumulative_infected',
-        aggregator=aggregators.sum_aggregator,
-        write_draws=True,
-    ),
-    'infections_wild': MeasureConfig(
-        loaders.load_output_data('modeled_infections_wild'),
-        'daily_infections_wild',
-        aggregator=aggregators.sum_aggregator,
-    ),
-    'infections_variant': MeasureConfig(
-        loaders.load_output_data('modeled_infections_variant'),
-        'daily_infections_variant',
-        aggregator=aggregators.sum_aggregator,
-    ),
-    'infections_natural_breakthrough': MeasureConfig(
-        loaders.load_output_data(
-            'modeled_infections_natural_breakthrough',
-            fallback='natural_immunity_breakthrough',
-        ),
-        'daily_infections_natural_immunity_breakthrough',
-        aggregator=aggregators.sum_aggregator,
-    ),
-    'infections_vaccine_breakthrough': MeasureConfig(
-        loaders.load_output_data(
-            'modeled_infections_vaccine_breakthrough',
-            fallback='vaccine_breakthrough',
-        ),
-        'daily_infections_vaccine_breakthrough',
-        aggregator=aggregators.sum_aggregator,
-    ),
-    'infections_unvaccinated_wild': MeasureConfig(
-        loaders.load_output_data('modeled_infections_unvaccinated_wild'),
-        'daily_infections_unvaccinated_wild',
-        aggregator=aggregators.sum_aggregator,
-        splice=False,
-    ),
-    'infections_unvaccinated_variant': MeasureConfig(
-        loaders.load_output_data('modeled_infections_unvaccinated_variant'),
-        'daily_infections_unvaccinated_variant',
-        aggregator=aggregators.sum_aggregator,
-        splice=False,
-    ),
-    'infections_unvaccinated_total': MeasureConfig(
-        loaders.load_output_data('modeled_infections_unvaccinated_total'),
-        'daily_infections_unvaccinated_total',
-        aggregator=aggregators.sum_aggregator,
-        splice=False,
-    ),
-    'infections_unvaccinated_natural_breakthrough': MeasureConfig(
-        loaders.load_output_data(
-            'modeled_infections_unvaccinated_natural_breakthrough',
-        ),
-        'daily_infections_unvaccinated_natural_immunity_breakthrough',
-        aggregator=aggregators.sum_aggregator,
-        splice=False,
-    ),
-    'infections_lr': MeasureConfig(
-        loaders.load_output_data('modeled_infections_lr'),
-        'daily_infections_low_risk',
-        splice=False,
-        aggregator=aggregators.sum_aggregator,
-    ),
-    'infections_hr': MeasureConfig(
-        loaders.load_output_data('modeled_infections_hr'),
-        'daily_infections_high_risk',
-        aggregator=aggregators.sum_aggregator,
-        splice=False,
-    ),
-    'infections_modeled': MeasureConfig(
-        loaders.load_output_data('modeled_infections_total'),
-        'daily_infections_modeled',
-        splice=False,
-        aggregator=aggregators.sum_aggregator,
     ),
     'cases': MeasureConfig(
         loaders.load_output_data('cases'),
@@ -224,9 +138,6 @@ MEASURES = {
         aggregator=aggregators.sum_aggregator,
         write_draws=True,
     ),
-
-    # Hospital measures
-
     'hospital_admissions': MeasureConfig(
         loaders.load_output_data('hospital_admissions'),
         'hospital_admissions',
@@ -259,272 +170,80 @@ MEASURES = {
         'icu_census_correction_factor',
         splice=False,
     ),
-
     # Vaccination measures
 
-    # 'effectively_vaccinated': MeasureConfig(
-    #     loaders.load_effectively_vaccinated,
-    #     'daily_vaccinations_effective_input',
-    #     calculate_cumulative=True,
-    #     cumulative_label='cumulative_vaccinations_effective_input',
-    #     aggregator=aggregators.sum_aggregator,
-    #     splice=False,
-    # ),
-    # 'cumulative_all_effective': MeasureConfig(
-    #     loaders.load_vaccine_summaries('cumulative_all_effective'),
-    #     'cumulative_vaccinations_all_effective',
-    #     aggregator=aggregators.sum_aggregator,
-    #     resample=False,
-    #     splice=False,
-    # ),
-    # 'cumulative_all_vaccinated': MeasureConfig(
-    #     loaders.load_vaccine_summaries('cumulative_all_vaccinated'),
-    #     'cumulative_vaccinations_all_vaccinated',
-    #     aggregator=aggregators.sum_aggregator,
-    #     resample=False,
-    #     splice=False,
-    # ),
-    # 'cumulative_all_fully_vaccinated': MeasureConfig(
-    #     loaders.load_vaccine_summaries('cumulative_all_fully_vaccinated'),
-    #     'cumulative_vaccinations_all_fully_vaccinated',
-    #     aggregator=aggregators.sum_aggregator,
-    #     resample=False,
-    #     splice=False,
-    # ),
-    # 'cumulative_lr_vaccinated': MeasureConfig(
-    #     loaders.load_vaccine_summaries('lr_vaccinated'),
-    #     'cumulative_vaccinations_lr',
-    #     aggregator=aggregators.sum_aggregator,
-    #     resample=False,
-    #     splice=False,
-    # ),
-    # 'cumulative_hr_vaccinated': MeasureConfig(
-    #     loaders.load_vaccine_summaries('hr_vaccinated'),
-    #     'cumulative_vaccinations_hr',
-    #     aggregator=aggregators.sum_aggregator,
-    #     resample=False,
-    #     splice=False,
-    # ),
-    # 'vaccine_acceptance': MeasureConfig(
-    #     loaders.load_vaccine_summaries('vaccine_acceptance'),
-    #     'vaccine_acceptance',
-    #     aggregator=aggregators.mean_aggregator,
-    #     resample=False,
-    #     splice=False,
-    # ),
-    # 'vaccine_acceptance_point': MeasureConfig(
-    #     loaders.load_vaccine_summaries('vaccine_acceptance_point'),
-    #     'vaccine_acceptance_point',
-    #     aggregator=aggregators.mean_aggregator,
-    #     resample=False,
-    #     splice=False,
-    # ),
-
-    'vaccines_immune_all': MeasureConfig(
-        loaders.load_output_data('vaccinations_immune_all'),
-        'daily_vaccinations_all_immune',
-        aggregator=aggregators.sum_aggregator,
-    ),
-    'vaccines_immune_wild': MeasureConfig(
-        loaders.load_output_data('vaccinations_immune_wild'),
-        'daily_vaccinations_wild_immune',
-        aggregator=aggregators.sum_aggregator,
-    ),
-    'vaccines_protected_all': MeasureConfig(
-        loaders.load_output_data('vaccinations_protected_all'),
-        'daily_vaccinations_all_protected',
-        aggregator=aggregators.sum_aggregator,
-    ),
-    'vaccines_protected_wild': MeasureConfig(
-        loaders.load_output_data('vaccinations_protected_wild'),
-        'daily_vaccinations_wild_protected',
-        aggregator=aggregators.sum_aggregator,
-    ),
-    'vaccines_effective': MeasureConfig(
-        loaders.load_output_data('vaccinations_effective'),
-        'daily_vaccinations_effective',
+    'effectively_vaccinated': MeasureConfig(
+        loaders.load_effectively_vaccinated,
+        'daily_vaccinations_effective_input',
         calculate_cumulative=True,
-        cumulative_label='cumulative_vaccinations_effective',
-        aggregator=aggregators.sum_aggregator,
-    ),
-    'vaccines_ineffective': MeasureConfig(
-        loaders.load_output_data('vaccinations_ineffective'),
-        'daily_vaccinations_ineffective',
-        aggregator=aggregators.sum_aggregator,
-    ),
-    'vaccines_n_unvaccinated': MeasureConfig(
-        loaders.load_output_data('vaccinations_n_unvaccinated'),
-        'total_unvaccinated',
+        cumulative_label='cumulative_vaccinations_effective_input',
         aggregator=aggregators.sum_aggregator,
         splice=False,
     ),
-
-    # Other epi measures
-
-    'total_susceptible_wild': MeasureConfig(
-        loaders.load_output_data('total_susceptible_wild'),
-        'total_susceptible_wild',
+    'cumulative_all_effective': MeasureConfig(
+        loaders.load_vaccine_summaries('cumulative_all_effective'),
+        'cumulative_vaccinations_all_effective',
         aggregator=aggregators.sum_aggregator,
+        resample=False,
+        splice=False,
     ),
-    'total_susceptible_variant': MeasureConfig(
-        loaders.load_output_data('total_susceptible_variant'),
-        'total_susceptible_variant',
+    'cumulative_all_vaccinated': MeasureConfig(
+        loaders.load_vaccine_summaries('cumulative_all_vaccinated'),
+        'cumulative_vaccinations_all_vaccinated',
         aggregator=aggregators.sum_aggregator,
+        resample=False,
+        splice=False,
     ),
-    'total_susceptible_variant_only': MeasureConfig(
-        loaders.load_output_data('total_susceptible_variant_only'),
-        'total_susceptible_variant_only',
+    'cumulative_all_fully_vaccinated': MeasureConfig(
+        loaders.load_vaccine_summaries('cumulative_all_fully_vaccinated'),
+        'cumulative_vaccinations_all_fully_vaccinated',
         aggregator=aggregators.sum_aggregator,
+        resample=False,
+        splice=False,
     ),
-    'total_susceptible_variant_unprotected': MeasureConfig(
-        loaders.load_output_data('total_susceptible_variant_unprotected'),
-        'total_susceptible_variant_unprotected',
+    'cumulative_lr_vaccinated': MeasureConfig(
+        loaders.load_vaccine_summaries('lr_vaccinated'),
+        'cumulative_vaccinations_lr',
         aggregator=aggregators.sum_aggregator,
+        resample=False,
         splice=False,
     ),
-    'total_susceptible_unvaccinated_wild': MeasureConfig(
-        loaders.load_output_data('total_susceptible_unvaccinated_wild'),
-        'total_susceptible_unvaccinated_wild',
+    'cumulative_hr_vaccinated': MeasureConfig(
+        loaders.load_vaccine_summaries('hr_vaccinated'),
+        'cumulative_vaccinations_hr',
         aggregator=aggregators.sum_aggregator,
+        resample=False,
         splice=False,
     ),
-    'total_susceptible_unvaccinated_variant': MeasureConfig(
-        loaders.load_output_data('total_susceptible_unvaccinated_variant'),
-        'total_susceptible_unvaccinated_variant',
-        aggregator=aggregators.sum_aggregator,
+    'vaccine_acceptance': MeasureConfig(
+        loaders.load_vaccine_summaries('vaccine_acceptance'),
+        'vaccine_acceptance',
+        aggregator=aggregators.mean_aggregator,
+        resample=False,
         splice=False,
     ),
-    'total_susceptible_unvaccinated_variant_only': MeasureConfig(
-        loaders.load_output_data('total_susceptible_unvaccinated_variant_only'),
-        'total_susceptible_unvaccinated_variant_only',
-        aggregator=aggregators.sum_aggregator,
-        splice=False,
-    ),
-    'total_immune_wild': MeasureConfig(
-        loaders.load_output_data('total_immune_wild'),
-        'total_immune_wild',
-        aggregator=aggregators.sum_aggregator,
-    ),
-    'total_immune_variant': MeasureConfig(
-        loaders.load_output_data('total_immune_variant'),
-        'total_immune_variant',
-        aggregator=aggregators.sum_aggregator,
-    ),
-    'r_controlled_wild': MeasureConfig(
-        loaders.load_output_data('r_controlled_wild'),
-        'r_controlled_wild',
-    ),
-    'r_effective_wild': MeasureConfig(
-        loaders.load_output_data('r_effective_wild'),
-        'r_effective_wild',
-    ),
-    'r_controlled_variant': MeasureConfig(
-        loaders.load_output_data('r_controlled_variant'),
-        'r_controlled_variant',
-    ),
-    'r_effective_variant': MeasureConfig(
-        loaders.load_output_data('r_effective_variant'),
-        'r_effective_variant',
-    ),
-    'r_controlled': MeasureConfig(
-        loaders.load_output_data('r_controlled'),
-        'r_controlled',
-        splice=False,
-    ),
-    'r_effective': MeasureConfig(
-        loaders.load_output_data('r_effective'),
-        'r_effective',
-    ),
-    'incidence_wild': MeasureConfig(
-        loaders.load_output_data('incidence_wild'),
-        'incidence_wild',
-        splice=False,
-    ),
-    'incidence_variant': MeasureConfig(
-        loaders.load_output_data('incidence_variant'),
-        'incidence_variant',
-        splice=False,
-    ),
-    'incidence_total': MeasureConfig(
-        loaders.load_output_data('incidence_total'),
-        'incidence_total',
-        splice=False,
-    ),
-    'incidence_unvaccinated_wild': MeasureConfig(
-        loaders.load_output_data('incidence_unvaccinated_wild'),
-        'incidence_unvaccinated_wild',
-        splice=False,
-    ),
-    'incidence_unvaccinated_variant': MeasureConfig(
-        loaders.load_output_data('incidence_unvaccinated_variant'),
-        'incidence_unvaccinated_variant',
-        splice=False,
-    ),
-    'incidence_unvaccinated_total': MeasureConfig(
-        loaders.load_output_data('incidence_unvaccinated_total'),
-        'incidence_unvaccinated_total',
-        splice=False,
-    ),
-    'force_of_infection': MeasureConfig(
-        loaders.load_output_data('force_of_infection'),
-        'force_of_infection',
-        splice=False,
-    ),
-    'force_of_infection_unvaccinated': MeasureConfig(
-        loaders.load_output_data('force_of_infection_unvaccinated'),
-        'force_of_infection_unvaccinated',
-        splice=False,
-    ),
-    'force_of_infection_unvaccinated_naive': MeasureConfig(
-        loaders.load_output_data('force_of_infection_unvaccinated_naive'),
-        'force_of_infection_unvaccinated_naive',
-        splice=False,
-    ),
-    'force_of_infection_unvaccinated_natural_breakthrough': MeasureConfig(
-        loaders.load_output_data('force_of_infection_unvaccinated_natural_breakthrough'),
-        'force_of_infection_unvaccinated_natural_breakthrough',
+    'vaccine_acceptance_point': MeasureConfig(
+        loaders.load_vaccine_summaries('vaccine_acceptance_point'),
+        'vaccine_acceptance_point',
+        aggregator=aggregators.mean_aggregator,
+        resample=False,
         splice=False,
     ),
 
     # Betas
 
-    # 'beta': MeasureConfig(
-    #     loaders.load_ode_params('beta'),
-    #     'betas',
-    # ),
-    # 'beta_hat': MeasureConfig(
-    #     loaders.load_ode_params('beta_hat'),
-    #     'beta_hat',
-    # ),
-    # 'beta_wild': MeasureConfig(
-    #     loaders.load_ode_params('beta_wild'),
-    #     'beta_wild',
-    # ),
-    # 'beta_variant': MeasureConfig(
-    #     loaders.load_ode_params('beta_variant'),
-    #     'beta_variant',
-    # ),
+    'beta': MeasureConfig(
+         loaders.load_ode_params('beta'),
+         'betas',
+    ),
+    'beta_hat': MeasureConfig(
+         loaders.load_ode_params('beta_hat'),
+         'beta_hat',
+    ),
     'empirical_beta': MeasureConfig(
         loaders.load_output_data('beta'),
         'empirical_beta',
     ),
-    'empirical_beta_wild': MeasureConfig(
-        loaders.load_output_data('beta_wild'),
-        'empirical_beta_wild',
-    ),
-    'empirical_beta_variant': MeasureConfig(
-        loaders.load_output_data('beta_variant'),
-        'empirical_beta_variant',
-    ),
-
-    # 'non_escape_variant_prevalence': MeasureConfig(
-    #     loaders.load_ode_params('rho'),
-    #     'non_escape_variant_prevalence',
-    # ),
-    # 'escape_variant_prevalence': MeasureConfig(
-    #     loaders.load_ode_params('rho_variant'),
-    #     'escape_variant_prevalence',
-    # ),
 
     # Beta calculation inputs
 
@@ -579,6 +298,64 @@ MEASURES = {
         'infection_to_admission',
     ),
 }
+
+for measure in ['boosters', 'vaccinations']:
+    MEASURES[measure] = MeasureConfig(
+        loaders.load_output_data(measure),
+        f'daily_{measure}',
+        calculate_cumulative=True,
+        cumulative_label=f'cumulative_{measure}',
+        aggregator=aggregators.sum_aggregator,
+    )
+    for risk_group in RISK_GROUP_NAMES:
+        group_measure = f'{measure}_{risk_group}'
+        MEASURES[group_measure] = MeasureConfig(
+            loaders.load_output_data(group_measure),
+            f'daily_{group_measure}',
+            aggregator=aggregators.sum_aggregator,
+        )
+
+
+for key in list(VARIANT_NAMES[1:]) + list(VACCINE_STATUS_NAMES) + list(RISK_GROUP_NAMES) + ['total']:
+    MEASURES[f'infections_{key}'] = MeasureConfig(
+        loaders.load_output_data(f'modeled_infections_{key}'),
+        f'daily_infections_{key}',
+        aggregator=aggregators.sum_aggregator,
+    )
+    MEASURES[f'susceptible_{key}'] = MeasureConfig(
+        loaders.load_output_data(f'susceptible_{key}'),
+        f'effective_susceptible_{key}',
+        aggregator=aggregators.sum_aggregator,
+    )
+
+
+for key in list(VARIANT_NAMES[1:]) + list(VACCINE_STATUS_NAMES) + ['total']:
+    measure = f'force_of_infection_{key}'
+    MEASURES[measure] = MeasureConfig(
+        loaders.load_output_data(measure),
+        measure,
+    )
+
+for variant in VARIANT_NAMES[1:]:
+    MEASURES[f'immune_{variant}'] = MeasureConfig(
+        loaders.load_output_data(f'immune_{variant}'),
+        f'effective_immune_{variant}',
+        aggregator=aggregators.sum_aggregator,
+    )
+    MEASURES[f'variant_{variant}_prevalence'] = MeasureConfig(
+        loaders.load_output_data(f'variant_{variant}_prevalence'),
+        f'variant_prevalence_{variant}',
+        aggregator=aggregators.sum_aggregator,
+    )
+
+
+for key in list(VARIANT_NAMES[1:]) + ['total']:
+    for measure in ['r_effective', 'r_controlled']:
+        group_measure = f'{measure}_{key}'
+        MEASURES[measure] = MeasureConfig(
+            loaders.load_output_data(measure),
+            measure,
+        )
 
 
 COMPOSITE_MEASURES = {

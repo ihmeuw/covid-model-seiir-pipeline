@@ -78,7 +78,6 @@ def compute_output_metrics(indices: Indices,
         infections,
         deaths,
         cases,
-        admissions,
         hospital_usage.to_df(),
         r
     ], axis=1).set_index('observed', append=True)
@@ -201,8 +200,8 @@ def _make_vaccinations(compartments: pd.DataFrame) -> pd.DataFrame:
             for risk_group in RISK_GROUP_NAMES:
                 for measure in ['Vaccination', 'Booster']:
                     key = f'New{measure}_{variant}_{vaccine_status}_{risk_group}'
-                    vaccinations[f'{measure.lower()}_{risk_group}'] += compartments[key]
-                    vaccinations[f'{measure.lower()}'] += compartments[key]
+                    vaccinations[f'{measure.lower()}s_{risk_group}'] += compartments[key]
+                    vaccinations[f'{measure.lower()}s'] += compartments[key]
 
     vaccinations = pd.concat([
         v.rename(k) for k, v in vaccinations.items()
