@@ -70,7 +70,7 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
     # Collate all the parameters, ensure consistent index, etc.
     logger.info('Processing inputs into model parameters.', context='transform')
     covariates = covariates.reindex(indices.full)
-    beta = model.build_beta_final(
+    beta, beta_hat = model.build_beta_final(
         indices,
         betas,
         covariates,
@@ -174,7 +174,7 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
 
             covariates['mobility'] = new_mobility
 
-            beta = model.build_beta_final(
+            beta, beta_hat = model.build_beta_final(
                 indices,
                 betas,
                 covariates,
@@ -232,6 +232,7 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
 
     logger.info('Prepping outputs.', context='transform')
     ode_params, *_ = model_parameters.to_dfs()
+    ode_params = pd.concat([ode_params, beta, beta_hat], axis=1)
     outputs = pd.concat([system_metrics, output_metrics.reset_index(level='observed', drop=True),
                          postprocessing_params.correction_factors_df], axis=1)
 
