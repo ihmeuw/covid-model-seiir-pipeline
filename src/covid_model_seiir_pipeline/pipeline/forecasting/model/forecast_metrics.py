@@ -42,7 +42,7 @@ def compute_output_metrics(indices: Indices,
 
     infections = postprocessing_params.past_infections.loc[indices.past].append(
         system_metrics.modeled_infections_total.loc[indices.future]
-    )
+    ).rename('infections')
     past_deaths = postprocessing_params.past_deaths
     modeled_deaths = system_metrics.modeled_deaths_total
     deaths = (past_deaths
@@ -53,14 +53,16 @@ def compute_output_metrics(indices: Indices,
                            .difference(past_deaths.index)])
               .rename('deaths')
               .to_frame())
+    deaths['observed'] = 0
+    deaths.loc[past_deaths.index, 'observed'] = 1
     cases = (infections
              .groupby('location_id')
              .shift(postprocessing_params.infection_to_case)
-             * postprocessing_params.idr)
+             * postprocessing_params.idr).rename('cases')
     admissions = (infections
                   .groupby('location_id')
                   .shift(postprocessing_params.infection_to_admission)
-                  * postprocessing_params.ihr)
+                  * postprocessing_params.ihr).rename('admissions')
     hospital_usage = compute_corrected_hospital_usage(
         admissions,
         hospital_parameters,
@@ -79,9 +81,9 @@ def compute_output_metrics(indices: Indices,
         admissions,
         hospital_usage.to_df(),
         r
-    ], axis=1)
-
+    ], axis=1).set_index('observed', append=True)
     return system_metrics, output_metrics
+
 
 
 def compute_system_metrics(compartments: pd.DataFrame,
@@ -119,7 +121,7 @@ def compute_system_metrics(compartments: pd.DataFrame,
 def _make_infections(compartments_diff: pd.DataFrame) -> pd.DataFrame:
     # Ignore 'none'
     variant_names = VARIANT_NAMES[1:]
-    infections = defaultdict(lambda x: pd.Series(0., index=compartments_diff.index))
+    infections = defaultdict(lambda: pd.Series(0., index=compartments_diff.index))
 
     for variant in variant_names:
         for vaccine_status in VACCINE_STATUS_NAMES:
@@ -138,13 +140,13 @@ def _make_infections(compartments_diff: pd.DataFrame) -> pd.DataFrame:
 
 
 def _make_susceptible(compartments_diff: pd.DataFrame) -> pd.DataFrame:
-    variant_names = ['naive' if n == 'none' else n for n in VARIANT_NAMES]
-    susceptible = defaultdict(lambda x: pd.Series(0., index=compartments_diff.index))
+    variant_names = VARIANT_NAMES[1:]
+    susceptible = defaultdict(lambda: pd.Series(0., index=compartments_diff.index))
 
     for variant in variant_names:
         for vaccine_status in VACCINE_STATUS_NAMES:
             for risk_group in RISK_GROUP_NAMES:
-                key = f'EffectivelySusceptible_{variant}_{vaccine_status}_{risk_group}'
+                key = f'EffectiveSusceptible_{variant}_{vaccine_status}_{risk_group}'
                 susceptible[variant] += compartments_diff[key]
                 susceptible[vaccine_status] = np.maximum(susceptible[vaccine_status], compartments_diff[key])
                 susceptible[risk_group] = np.maximum(susceptible[vaccine_status], compartments_diff[key])
@@ -161,7 +163,7 @@ def _make_susceptible(compartments_diff: pd.DataFrame) -> pd.DataFrame:
 def _make_infectious(compartments: pd.DataFrame) -> pd.DataFrame:
     # Drop the first entry 'none'
     variant_names = VARIANT_NAMES[1:]
-    infectious = defaultdict(lambda x: pd.Series(0., index=compartments))
+    infectious = defaultdict(lambda: pd.Series(0., index=compartments.index))
 
     for variant in variant_names:
         for vaccine_status in VACCINE_STATUS_NAMES:
@@ -180,10 +182,10 @@ def _make_infectious(compartments: pd.DataFrame) -> pd.DataFrame:
 def _make_immune(susceptible: pd.DataFrame, population: pd.Series) -> pd.DataFrame:
     # Drop the first entry 'none'
     variant_names = VARIANT_NAMES[1:]
-    immune = defaultdict(lambda x: pd.Series(0., index=susceptible.index))
+    immune = defaultdict(lambda: pd.Series(0., index=susceptible.index))
 
     for variant in variant_names:
-        immune[variant] = population - susceptible[f'total_susceptible_{variant}']
+        immune[variant] = population - susceptible[f'susceptible_{variant}']
 
     immune = pd.concat([
         v.rename(f'immune_{k}') for k, v in immune.items()
@@ -192,7 +194,7 @@ def _make_immune(susceptible: pd.DataFrame, population: pd.Series) -> pd.DataFra
 
 
 def _make_vaccinations(compartments: pd.DataFrame) -> pd.DataFrame:
-    vaccinations = defaultdict(lambda x: pd.Series(0., index=compartments.index))
+    vaccinations = defaultdict(lambda: pd.Series(0., index=compartments.index))
 
     for variant in VARIANT_NAMES:
         for vaccine_status in VACCINE_STATUS_NAMES:
@@ -202,8 +204,9 @@ def _make_vaccinations(compartments: pd.DataFrame) -> pd.DataFrame:
                     vaccinations[f'{measure.lower()}_{risk_group}'] += compartments[key]
                     vaccinations[f'{measure.lower()}'] += compartments[key]
 
-    vaccinations = pd.concat(vaccinations.values(), axis=1)
-
+    vaccinations = pd.concat([
+        v.rename(k) for k, v in vaccinations.items()
+    ], axis=1)
     return vaccinations
 
 
@@ -215,7 +218,7 @@ def _make_force_of_infection(infections: pd.DataFrame,
 
     for key in list(variant_names) + list(VACCINE_STATUS_NAMES) + ['total']:
         foi[f'force_of_infection_{key}'] = (
-            infections[f'modeled_infections_{key}'] / susceptible[f'total_susceptible_{key}']
+            infections[f'modeled_infections_{key}'] / susceptible[f'susceptible_{key}']
         )
 
     return foi
@@ -240,7 +243,7 @@ def _make_deaths(infections: pd.DataFrame,
     for risk_group in RISK_GROUP_NAMES:
         group_ifr = getattr(postprocessing_params, f'ifr_{risk_group}').rename('ifr')
         deaths[f'modeled_deaths_{risk_group}'] = _compute_deaths(
-            infections[f'total_infections_{risk_group}'],
+            infections[f'modeled_infections_{risk_group}'],
             postprocessing_params.infection_to_death,
             group_ifr,
         )
@@ -291,7 +294,7 @@ def compute_r(model_params: Parameters,
 
     for label in list(VARIANT_NAMES[1:]) + ['total']:
         infections = system_metrics[f'modeled_infections_{label}']
-        susceptible = system_metrics[f'total_susceptible_{label}']
+        susceptible = system_metrics[f'susceptible_{label}']
         r[f'r_effective_{label}'] = (infections
                                      .groupby('location_id')
                                      .apply(lambda x: x / x.shift(average_generation_time)))
