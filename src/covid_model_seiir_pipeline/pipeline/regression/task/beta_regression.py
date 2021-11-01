@@ -89,6 +89,7 @@ def run_beta_regression(regression_version: str, draw_id: int, progress_bar: boo
     beta, compartments = model.run_ode_fit(
         initial_condition=initial_condition,
         ode_parameters=ode_parameters,
+        progress_bar=progress_bar,
     )
 
     logger.info('Loading regression input data', context='read')
