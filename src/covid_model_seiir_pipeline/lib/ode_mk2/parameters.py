@@ -24,6 +24,9 @@ from covid_model_seiir_pipeline.lib.ode_mk2.debug import (
     DEBUG,
     Printer
 )
+from covid_model_seiir_pipeline.lib.ode_mk2.utils import (
+    subset_risk_group,
+)
 
 
 @numba.njit
@@ -61,11 +64,11 @@ def make_new_e(t: float,
         beta = parameters[PARAMETERS[BASE_PARAMETER.beta, VARIANT_GROUP.all]]        
         
         for risk_group in RISK_GROUP:
-            group_y = subset(y, risk_group)
-            group_etas = subset(etas, risk_group)
-            group_chis = subset(chis, risk_group)
-            group_new_e = subset(new_e, risk_group)
-            group_effective_susceptible = subset(effective_susceptible, risk_group)
+            group_y = subset_risk_group(y, risk_group)
+            group_etas = subset_risk_group(etas, risk_group)
+            group_chis = subset_risk_group(chis, risk_group)
+            group_new_e = subset_risk_group(new_e, risk_group)
+            group_effective_susceptible = subset_risk_group(effective_susceptible, risk_group)
             
             for variant_to in VARIANT:            
                 kappa = parameters[PARAMETERS[VARIANT_PARAMETER.kappa, variant_to]]
@@ -89,11 +92,11 @@ def make_new_e(t: float,
         total_variant_weight = 0.        
         
         for risk_group in RISK_GROUP:
-            group_y = subset(y, risk_group)
-            group_etas = subset(etas, risk_group)
-            group_chis = subset(chis, risk_group)
-            group_new_e = subset(new_e, risk_group)
-            group_effective_susceptible = subset(effective_susceptible, risk_group)
+            group_y = subset_risk_group(y, risk_group)
+            group_etas = subset_risk_group(etas, risk_group)
+            group_chis = subset_risk_group(chis, risk_group)
+            group_new_e = subset_risk_group(new_e, risk_group)
+            group_effective_susceptible = subset_risk_group(effective_susceptible, risk_group)
         
             for variant_to in VARIANT:
                 kappa = parameters[PARAMETERS[VARIANT_PARAMETER.kappa, variant_to]]
@@ -122,9 +125,4 @@ def make_new_e(t: float,
     return new_e, effective_susceptible, beta
 
 
-@numba.njit
-def subset(x: np.ndarray, risk_group: int):
-    x_size = x.size // len(RISK_GROUP)
-    group_start = risk_group * x_size
-    group_end = (risk_group + 1) * x_size
-    return x[group_start:group_end]
+

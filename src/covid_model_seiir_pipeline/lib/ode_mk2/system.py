@@ -1,9 +1,7 @@
 import numba
 import numpy as np
 
-from covid_model_seiir_pipeline.lib import (
-    math,
-)
+
 from covid_model_seiir_pipeline.lib.ode_mk2.constants import (
     # Indexing tuples
     RISK_GROUP,
@@ -25,6 +23,7 @@ from covid_model_seiir_pipeline.lib.ode_mk2 import (
     accounting,
     escape_variant,
     parameters,
+    utils,
 )
 
 
@@ -61,10 +60,10 @@ def system(t: float,
         group_start = risk_group * system_size
         group_end = (risk_group + 1) * system_size
         
-        group_y = parameters.subset(y, risk_group)        
-        group_vaccines = parameters.subset(vaccines, risk_group)
-        group_new_e = parameters.subset(new_e, risk_group)
-        group_effective_susceptible = parameters.subset(effective_susceptible, risk_group)
+        group_y = utils.subset_risk_group(y, risk_group)        
+        group_vaccines = utils.subset_risk_group(vaccines, risk_group)
+        group_new_e = utils.subset_risk_group(new_e, risk_group)
+        group_effective_susceptible = utils.subset_risk_group(effective_susceptible, risk_group)
 
         group_dy = _single_group_system(
             t,
@@ -127,7 +126,7 @@ def _single_group_system(t: float,
             s_from_idx = COMPARTMENTS[COMPARTMENT.S, variant, vaccine_status]
             s_to_idx = COMPARTMENTS[COMPARTMENT.S, variant, vaccine_status + 1]
             expected_vaccines = (
-                safe_divide(group_y[s_from_idx], vaccine_eligible[vaccine_status])
+                utils.safe_divide(group_y[s_from_idx], vaccine_eligible[vaccine_status])
                 * group_vaccines[vaccine_status]
             )
             to_vaccinate = min(expected_vaccines, group_y[s_from_idx] - new_e_from_s)
@@ -154,10 +153,4 @@ def _single_group_system(t: float,
     return group_dy
 
 
-@numba.njit
-def safe_divide(a: float, b: float):
-    """Divide that returns zero if numerator and denominator are both zero."""
-    if b == 0.0:
-        assert a == 0.0
-        return 0.0
-    return a / b
+
