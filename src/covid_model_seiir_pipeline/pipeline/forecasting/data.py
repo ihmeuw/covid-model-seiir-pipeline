@@ -107,14 +107,10 @@ class ForecastDataInterface:
         )
 
     def load_vaccinations(self, vaccine_scenario: str) -> pd.DataFrame:
-        return self._get_regression_data_interface().load_vaccinations(
-            vaccine_scenario, self.covariate_root,
-        )
+        return self._get_regression_data_interface().load_vaccinations(vaccine_scenario)
 
     def load_etas(self, vaccine_scenario: str) -> pd.DataFrame:
-        return self._get_regression_data_interface().load_etas(
-            vaccine_scenario, self.covariate_root,
-        )
+        return self._get_regression_data_interface().load_etas(vaccine_scenario)
 
     def load_phis(self, draw_id: int) -> pd.DataFrame:
         return self._get_regression_data_interface().load_phis(draw_id)
