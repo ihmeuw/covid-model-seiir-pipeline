@@ -32,7 +32,7 @@ def run_beta_regression(regression_version: str, draw_id: int, progress_bar: boo
     past_infection_data = data_interface.load_past_infection_data(draw_id=draw_id)
     population = data_interface.load_five_year_population()
     rhos = data_interface.load_variant_prevalence()
-    vaccinations, boosters = data_interface.load_vaccinations()
+    vaccinations = data_interface.load_vaccinations()
     etas = data_interface.load_etas()
     natural_waning_dist = data_interface.load_natural_waning_distribution()
     natural_waning_matrix = data_interface.load_cross_variant_immunity_matrix()
@@ -59,7 +59,6 @@ def run_beta_regression(regression_version: str, draw_id: int, progress_bar: boo
         infections,
         rhos,
         vaccinations,
-        boosters,
         etas,
         phis,
         sampled_params,

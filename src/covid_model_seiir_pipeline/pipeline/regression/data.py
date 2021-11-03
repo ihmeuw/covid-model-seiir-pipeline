@@ -408,23 +408,30 @@ class RegressionDataInterface:
         uptake = io.load(self.waning_root.uptake(scenario=scenario)).reset_index()
         uptake = uptake.loc[uptake.location_id.isin(location_ids)]
         uptake = (uptake
-                  .set_index(['vaccine_course', 'risk_group', 'location_id', 'date'])
-                  .sum(axis=1))
+                  .set_index(['vaccine_course', 'location_id', 'date', 'risk_group'])
+                  .sum(axis=1)
+                  .unstack())
+        uptake.columns.name = None
         vaccinations, boosters = uptake.loc[1], uptake.loc[2]
-        return vaccinations, boosters
+        vaccinations = vaccinations.rename(columns=lambda x: f'vaccinations_{x}')
+        boosters = boosters.rename(columns=lambda x: f'boosters_{x}')
+        return pd.concat([vaccinations, boosters], axis=1)
 
     def load_etas(self, waning_scenario: str = 'reference'):
         location_ids = self.load_location_ids()
         etas = io.load(self.waning_root.etas(scenario=waning_scenario)).reset_index()
+        etas['none'] = 0.0
         etas = (etas
                 .loc[etas.location_id.isin(location_ids)]
-                .set_index(['endpoint', 'vaccine_course', 'risk_group', 'location_id', 'date'])
+                .set_index(['endpoint', 'vaccine_course', 'location_id', 'date', 'risk_group'])
+                .unstack()
                 .sort_index())
+        etas.columns = [f'{variant}_{risk_group}' for variant, risk_group in etas.columns]
         return etas
 
     def load_natural_waning_distribution(self, waning_scenario: str = 'reference'):
-        waning = io.load(self.waning_root.natural_waning(scenario=waning_scenario)).set_index('endpoint')
-        return waning
+        waning = io.load(self.waning_root.natural_waning(scenario=waning_scenario)).set_index(['endpoint', 'days'])
+        return waning.value
 
     def load_cross_variant_immunity_matrix(self, waning_scenario: str = 'reference'):
         cvi_matrix = io.load(self.waning_root.cross_variant_immunity(scenario=waning_scenario)).set_index('variant')

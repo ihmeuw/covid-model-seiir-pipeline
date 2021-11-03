@@ -1,6 +1,7 @@
 data:
   infection_version: '2021_10_19.09'
   covariate_version: '2021_10_25.01'
+  waning_version: '2021_11_03.07'
   coefficient_version: ''
   priors_version: '2021_05_31.01'
   location_set_version_id: '/ihme/covid-19/model-inputs/best/locations/modeling_hierarchy.csv'

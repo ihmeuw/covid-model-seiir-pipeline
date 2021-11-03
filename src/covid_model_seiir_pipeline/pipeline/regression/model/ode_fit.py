@@ -23,22 +23,15 @@ from covid_model_seiir_pipeline.lib.ode_mk2 import (
 def prepare_ode_fit_parameters(past_infections: pd.Series,
                                rhos: pd.DataFrame,
                                vaccinations: pd.DataFrame,
-                               boosters: pd.DataFrame,
                                all_etas: pd.DataFrame,
                                phis: pd.DataFrame,
                                sampled_params: Dict[str, pd.Series]) -> Parameters:
     past_index = past_infections.index
-    sampled_params = {k if 'kappa' in k else f'{k}_all': v for k, v in sampled_params.items()}
-    
+    sampled_params = {k if 'kappa' in k else f'{k}_all': v for k, v in sampled_params.items()}    
     beta = pd.Series(-1, index=past_index, name='beta_all')
     rhos = rhos.reindex(past_index, fill_value=0.).to_dict('series')
-    rhos['rho_none'] = pd.Series(0., index=past_index, name='rho_none')
-    
+    rhos['rho_none'] = pd.Series(0., index=past_index, name='rho_none')    
     vaccinations = vaccinations.reindex(past_index, fill_value=0.).to_dict('series')
-    boosters = (boosters
-                .reindex(past_index, fill_value=0.)
-                .rename(columns=lambda x: x.replace('vaccinations', 'boosters'))
-                .to_dict('series'))
     etas = process_etas(all_etas, past_index)
 
     return Parameters(
@@ -47,7 +40,6 @@ def prepare_ode_fit_parameters(past_infections: pd.Series,
         beta_all=beta,        
         **rhos,
         **vaccinations,
-        **boosters,
         **etas,
         **phis.to_dict('series'),
     )
@@ -95,8 +87,8 @@ def sample_params(past_index: pd.Index,
 
 
 def process_etas(all_etas: pd.DataFrame, index: pd.Index):
-    etas_vaccination = all_etas.loc[(1, 'immune')]
-    etas_booster = all_etas.loc[(2, 'immune')]
+    etas_vaccination = all_etas.loc[('infection', 1)]
+    etas_booster = all_etas.loc[('infection', 2)]
     etas_unvaccinated = etas_vaccination.copy()
     etas_unvaccinated.loc[:, :] = 0.
     etas = {}
