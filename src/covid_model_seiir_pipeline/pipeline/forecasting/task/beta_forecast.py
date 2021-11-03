@@ -57,7 +57,7 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
     # Regression coefficients for forecasting beta.
     coefficients = data_interface.load_coefficients(draw_id)
     # Vaccine data, of course.
-    vaccinations, boosters = data_interface.load_vaccinations(scenario_spec.vaccine_version)
+    vaccinations = data_interface.load_vaccinations(scenario_spec.vaccine_version)
     etas = data_interface.load_etas(scenario_spec.vaccine_version)
     phis = data_interface.load_phis(draw_id)
     # Variant prevalences.
@@ -85,7 +85,6 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
         ode_params,
         rhos,
         vaccinations,
-        boosters,
         etas,
         phis,
     )
@@ -189,7 +188,6 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
                 ode_params,
                 rhos,
                 vaccinations,
-                boosters,
                 etas,
                 phis,
             )

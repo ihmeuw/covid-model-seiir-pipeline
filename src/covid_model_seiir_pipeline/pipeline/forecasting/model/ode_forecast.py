@@ -69,7 +69,6 @@ def build_model_parameters(indices: Indices,
                            ode_parameters: pd.DataFrame,
                            rhos: pd.DataFrame,
                            vaccinations: pd.DataFrame,
-                           boosters: pd.DataFrame,
                            all_etas: pd.DataFrame,
                            phis: pd.DataFrame) -> Parameters:
     keep_cols = ['alpha_all', 'sigma_all', 'gamma_all', 'pi_all'] + [f'kappa_{v}' for v in VARIANT_NAMES]
@@ -84,10 +83,6 @@ def build_model_parameters(indices: Indices,
     rhos['rho_none'] = pd.Series(0., index=indices.full, name='rho_none')
 
     vaccinations = vaccinations.reindex(indices.full, fill_value=0.).to_dict('series')
-    boosters = (boosters
-                .reindex(indices.full, fill_value=0.)
-                .rename(columns=lambda x: x.replace('vaccinations', 'boosters'))
-                .to_dict('series'))
     etas = process_etas(all_etas, indices.full)
 
     return Parameters(
@@ -96,7 +91,6 @@ def build_model_parameters(indices: Indices,
         beta_all=beta,
         **rhos,
         **vaccinations,
-        **boosters,
         **etas,
         **phis.to_dict('series')
     )

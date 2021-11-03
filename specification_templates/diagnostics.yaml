@@ -11,6 +11,7 @@ grid_plots:
       - version: &public '2021_10_20.02'
         scenarios:
           reference*: 'public reference'
-      - version: &new '2021_10_26.04'
+      - version: &new '2021_11_03.04'
         scenarios:
           reference*: 'reference'
+          booster: 'booster'
