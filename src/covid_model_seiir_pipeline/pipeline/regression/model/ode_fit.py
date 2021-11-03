@@ -24,7 +24,8 @@ def prepare_ode_fit_parameters(past_infections: pd.Series,
                                rhos: pd.DataFrame,
                                vaccinations: pd.DataFrame,
                                all_etas: pd.DataFrame,
-                               phis: pd.DataFrame,
+                               natural_waning_dist: pd.Series,
+                               natural_waning_matrix: pd.DataFrame,
                                sampled_params: Dict[str, pd.Series]) -> Parameters:
     past_index = past_infections.index
     sampled_params = {k if 'kappa' in k else f'{k}_all': v for k, v in sampled_params.items()}    
@@ -41,7 +42,8 @@ def prepare_ode_fit_parameters(past_infections: pd.Series,
         **rhos,
         **vaccinations,
         **etas,
-        **phis.to_dict('series'),
+        natural_waning_distribution=natural_waning_dist,
+        phi=natural_waning_matrix,
     )
 
 

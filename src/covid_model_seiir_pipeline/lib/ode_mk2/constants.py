@@ -7,8 +7,6 @@ Any manual changes will be lost.
 from collections import (
     namedtuple,
 )
-import os
-
 import numpy as np
 
 
@@ -292,138 +290,6 @@ ETA_NAMES = [
     'booster_delta',
     'booster_other',
     'booster_omega',
-]
-
-PHI = np.full((len(VARIANT_INDEX_TYPE), len(VARIANT_INDEX_TYPE)), -1, dtype=np.int64)
-PHI[VARIANT.none, VARIANT.none] = 0
-PHI[VARIANT.none, VARIANT.ancestral] = 1
-PHI[VARIANT.none, VARIANT.alpha] = 2
-PHI[VARIANT.none, VARIANT.beta] = 3
-PHI[VARIANT.none, VARIANT.gamma] = 4
-PHI[VARIANT.none, VARIANT.delta] = 5
-PHI[VARIANT.none, VARIANT.other] = 6
-PHI[VARIANT.none, VARIANT.omega] = 7
-PHI[VARIANT.ancestral, VARIANT.none] = 8
-PHI[VARIANT.ancestral, VARIANT.ancestral] = 9
-PHI[VARIANT.ancestral, VARIANT.alpha] = 10
-PHI[VARIANT.ancestral, VARIANT.beta] = 11
-PHI[VARIANT.ancestral, VARIANT.gamma] = 12
-PHI[VARIANT.ancestral, VARIANT.delta] = 13
-PHI[VARIANT.ancestral, VARIANT.other] = 14
-PHI[VARIANT.ancestral, VARIANT.omega] = 15
-PHI[VARIANT.alpha, VARIANT.none] = 16
-PHI[VARIANT.alpha, VARIANT.ancestral] = 17
-PHI[VARIANT.alpha, VARIANT.alpha] = 18
-PHI[VARIANT.alpha, VARIANT.beta] = 19
-PHI[VARIANT.alpha, VARIANT.gamma] = 20
-PHI[VARIANT.alpha, VARIANT.delta] = 21
-PHI[VARIANT.alpha, VARIANT.other] = 22
-PHI[VARIANT.alpha, VARIANT.omega] = 23
-PHI[VARIANT.beta, VARIANT.none] = 24
-PHI[VARIANT.beta, VARIANT.ancestral] = 25
-PHI[VARIANT.beta, VARIANT.alpha] = 26
-PHI[VARIANT.beta, VARIANT.beta] = 27
-PHI[VARIANT.beta, VARIANT.gamma] = 28
-PHI[VARIANT.beta, VARIANT.delta] = 29
-PHI[VARIANT.beta, VARIANT.other] = 30
-PHI[VARIANT.beta, VARIANT.omega] = 31
-PHI[VARIANT.gamma, VARIANT.none] = 32
-PHI[VARIANT.gamma, VARIANT.ancestral] = 33
-PHI[VARIANT.gamma, VARIANT.alpha] = 34
-PHI[VARIANT.gamma, VARIANT.beta] = 35
-PHI[VARIANT.gamma, VARIANT.gamma] = 36
-PHI[VARIANT.gamma, VARIANT.delta] = 37
-PHI[VARIANT.gamma, VARIANT.other] = 38
-PHI[VARIANT.gamma, VARIANT.omega] = 39
-PHI[VARIANT.delta, VARIANT.none] = 40
-PHI[VARIANT.delta, VARIANT.ancestral] = 41
-PHI[VARIANT.delta, VARIANT.alpha] = 42
-PHI[VARIANT.delta, VARIANT.beta] = 43
-PHI[VARIANT.delta, VARIANT.gamma] = 44
-PHI[VARIANT.delta, VARIANT.delta] = 45
-PHI[VARIANT.delta, VARIANT.other] = 46
-PHI[VARIANT.delta, VARIANT.omega] = 47
-PHI[VARIANT.other, VARIANT.none] = 48
-PHI[VARIANT.other, VARIANT.ancestral] = 49
-PHI[VARIANT.other, VARIANT.alpha] = 50
-PHI[VARIANT.other, VARIANT.beta] = 51
-PHI[VARIANT.other, VARIANT.gamma] = 52
-PHI[VARIANT.other, VARIANT.delta] = 53
-PHI[VARIANT.other, VARIANT.other] = 54
-PHI[VARIANT.other, VARIANT.omega] = 55
-PHI[VARIANT.omega, VARIANT.none] = 56
-PHI[VARIANT.omega, VARIANT.ancestral] = 57
-PHI[VARIANT.omega, VARIANT.alpha] = 58
-PHI[VARIANT.omega, VARIANT.beta] = 59
-PHI[VARIANT.omega, VARIANT.gamma] = 60
-PHI[VARIANT.omega, VARIANT.delta] = 61
-PHI[VARIANT.omega, VARIANT.other] = 62
-PHI[VARIANT.omega, VARIANT.omega] = 63
-PHI_NAMES = [
-    'none_none',
-    'none_ancestral',
-    'none_alpha',
-    'none_beta',
-    'none_gamma',
-    'none_delta',
-    'none_other',
-    'none_omega',
-    'ancestral_none',
-    'ancestral_ancestral',
-    'ancestral_alpha',
-    'ancestral_beta',
-    'ancestral_gamma',
-    'ancestral_delta',
-    'ancestral_other',
-    'ancestral_omega',
-    'alpha_none',
-    'alpha_ancestral',
-    'alpha_alpha',
-    'alpha_beta',
-    'alpha_gamma',
-    'alpha_delta',
-    'alpha_other',
-    'alpha_omega',
-    'beta_none',
-    'beta_ancestral',
-    'beta_alpha',
-    'beta_beta',
-    'beta_gamma',
-    'beta_delta',
-    'beta_other',
-    'beta_omega',
-    'gamma_none',
-    'gamma_ancestral',
-    'gamma_alpha',
-    'gamma_beta',
-    'gamma_gamma',
-    'gamma_delta',
-    'gamma_other',
-    'gamma_omega',
-    'delta_none',
-    'delta_ancestral',
-    'delta_alpha',
-    'delta_beta',
-    'delta_gamma',
-    'delta_delta',
-    'delta_other',
-    'delta_omega',
-    'other_none',
-    'other_ancestral',
-    'other_alpha',
-    'other_beta',
-    'other_gamma',
-    'other_delta',
-    'other_other',
-    'other_omega',
-    'omega_none',
-    'omega_ancestral',
-    'omega_alpha',
-    'omega_beta',
-    'omega_gamma',
-    'omega_delta',
-    'omega_other',
-    'omega_omega',
 ]
 
 CHI = np.full((len(VARIANT_INDEX_TYPE), len(VARIANT_INDEX_TYPE)), -1, dtype=np.int64)
@@ -1365,3 +1231,4 @@ AGGREGATES_NAMES = [
     'I_omega',
     'N_total',
 ]
+

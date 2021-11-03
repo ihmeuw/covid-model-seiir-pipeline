@@ -139,13 +139,6 @@ SPECS = {
             ['vaccine_status', 'variant']
         ],
     ),
-    'PHI': Spec(
-        offset='',
-        axes_primitives=['variant_index_type', 'variant_index_type'],
-        field_specs=[
-            ['variant', 'variant'],
-        ],
-    ),
     'CHI': Spec(
         offset='',
         axes_primitives=['variant_index_type', 'variant_index_type'],

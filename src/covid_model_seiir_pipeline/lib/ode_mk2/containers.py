@@ -22,7 +22,6 @@ from covid_model_seiir_pipeline.lib import (
 from covid_model_seiir_pipeline.lib.ode_mk2.constants import (
     PARAMETERS_NAMES,
     ETA_NAMES,
-    PHI_NAMES,
 )
 
 
@@ -105,70 +104,8 @@ class Parameters:
     eta_booster_other_hr: pd.Series
     eta_booster_omega_hr: pd.Series
 
-    phi_none_none: pd.Series
-    phi_none_ancestral: pd.Series
-    phi_none_alpha: pd.Series
-    phi_none_beta: pd.Series
-    phi_none_gamma: pd.Series
-    phi_none_delta: pd.Series
-    phi_none_other: pd.Series
-    phi_none_omega: pd.Series
-    phi_ancestral_none: pd.Series
-    phi_ancestral_ancestral: pd.Series
-    phi_ancestral_alpha: pd.Series
-    phi_ancestral_beta: pd.Series
-    phi_ancestral_gamma: pd.Series
-    phi_ancestral_delta: pd.Series
-    phi_ancestral_other: pd.Series
-    phi_ancestral_omega: pd.Series
-    phi_alpha_none: pd.Series
-    phi_alpha_ancestral: pd.Series
-    phi_alpha_alpha: pd.Series
-    phi_alpha_beta: pd.Series
-    phi_alpha_gamma: pd.Series
-    phi_alpha_delta: pd.Series
-    phi_alpha_other: pd.Series
-    phi_alpha_omega: pd.Series
-    phi_beta_none: pd.Series
-    phi_beta_ancestral: pd.Series
-    phi_beta_alpha: pd.Series
-    phi_beta_beta: pd.Series
-    phi_beta_gamma: pd.Series
-    phi_beta_delta: pd.Series
-    phi_beta_other: pd.Series
-    phi_beta_omega: pd.Series
-    phi_gamma_none: pd.Series
-    phi_gamma_ancestral: pd.Series
-    phi_gamma_alpha: pd.Series
-    phi_gamma_beta: pd.Series
-    phi_gamma_gamma: pd.Series
-    phi_gamma_delta: pd.Series
-    phi_gamma_other: pd.Series
-    phi_gamma_omega: pd.Series
-    phi_delta_none: pd.Series
-    phi_delta_ancestral: pd.Series
-    phi_delta_alpha: pd.Series
-    phi_delta_beta: pd.Series
-    phi_delta_gamma: pd.Series
-    phi_delta_delta: pd.Series
-    phi_delta_other: pd.Series
-    phi_delta_omega: pd.Series
-    phi_other_none: pd.Series
-    phi_other_ancestral: pd.Series
-    phi_other_alpha: pd.Series
-    phi_other_beta: pd.Series
-    phi_other_gamma: pd.Series
-    phi_other_delta: pd.Series
-    phi_other_other: pd.Series
-    phi_other_omega: pd.Series
-    phi_omega_none: pd.Series
-    phi_omega_ancestral: pd.Series
-    phi_omega_alpha: pd.Series
-    phi_omega_beta: pd.Series
-    phi_omega_gamma: pd.Series
-    phi_omega_delta: pd.Series
-    phi_omega_other: pd.Series
-    phi_omega_omega: pd.Series
+    natural_waning_distribution: pd.Series
+    phi: pd.DataFrame
 
     def get_params(self) -> pd.DataFrame:
         return pd.concat([v.rename(k) for k, v in utilities.asdict(self).items() if k in PARAMETERS_NAMES], axis=1)
@@ -181,11 +118,8 @@ class Parameters:
         return pd.concat([v.rename(k) for k, v in utilities.asdict(self).items() 
                           if '_'.join(k.split('_')[1:-1]) in ETA_NAMES], axis=1)
         
-    def get_phis(self) -> pd.DataFrame:
-        return pd.concat([v.rename(k) for k, v in utilities.asdict(self).items() 
-                          if '_'.join(k.split('_')[1:]) in PHI_NAMES], axis=1)
         
-    def to_dfs(self) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]:
-        return self.get_params(), self.get_vaccinations(), self.get_etas(), self.get_phis()
+    def to_dfs(self) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.Series, pd.DataFrame]:
+        return self.get_params(), self.get_vaccinations(), self.get_etas(), self.natural_waning_distribution, self.phi
         
     

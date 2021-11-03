@@ -48,19 +48,14 @@ def run_beta_regression(regression_version: str, draw_id: int, progress_bar: boo
         params_to_sample=['alpha', 'sigma', 'gamma', 'pi'] + [f'kappa_{v}' for v in VARIANT_NAMES],
         draw_id=draw_id,
     )
-    phis = model.prepare_phis(
-        infections,
-        covariates,
-        natural_waning_matrix,
-        natural_waning_dist,
-    )
 
     ode_parameters = model.prepare_ode_fit_parameters(
         infections,
         rhos,
         vaccinations,
         etas,
-        phis,
+        natural_waning_dist,
+        natural_waning_matrix,
         sampled_params,
     )
 
