@@ -123,13 +123,20 @@ class VariantRoot(DataRoot):
 class WaningRoot(DataRoot):
     metadata = MetadataType('metadata')
 
-    efficacy = DatasetType('base_vaccine_efficacy', PREFIX_TEMPLATES.SCENARIO_TEMPLATE)
-    uptake = DatasetType('vaccine_uptake', PREFIX_TEMPLATES.SCENARIO_TEMPLATE)
-    vaccine_waning = DatasetType('vaccine_waning_distribution', PREFIX_TEMPLATES.SCENARIO_TEMPLATE)
-    efficacy_waning = DatasetType('vaccine_waning_efficacy', PREFIX_TEMPLATES.SCENARIO_TEMPLATE)
-    etas = DatasetType('vaccine_risk_reduction', PREFIX_TEMPLATES.SCENARIO_TEMPLATE)
-    natural_waning = DatasetType('natural_waning_distribution', PREFIX_TEMPLATES.SCENARIO_TEMPLATE)
-    cross_variant_immunity = DatasetType('cross_variant_immunity_matrix', PREFIX_TEMPLATES.SCENARIO_TEMPLATE)
+    efficacy = DatasetType('base_vaccine_efficacy',
+                           prefix_template=PREFIX_TEMPLATES.SCENARIO_TEMPLATE)
+    uptake = DatasetType('vaccine_uptake',
+                         prefix_template=PREFIX_TEMPLATES.SCENARIO_TEMPLATE)
+    vaccine_waning = DatasetType('vaccine_waning_distribution',
+                                 prefix_template=PREFIX_TEMPLATES.SCENARIO_TEMPLATE)
+    efficacy_waning = DatasetType('vaccine_waning_efficacy',
+                                  prefix_template=PREFIX_TEMPLATES.SCENARIO_TEMPLATE)
+    etas = DatasetType('vaccine_risk_reduction',
+                       prefix_template=PREFIX_TEMPLATES.SCENARIO_TEMPLATE)
+    natural_waning = DatasetType('natural_waning_distribution',
+                                 prefix_template=PREFIX_TEMPLATES.SCENARIO_TEMPLATE)
+    cross_variant_immunity = DatasetType('cross_variant_immunity_matrix',
+                                         prefix_template=PREFIX_TEMPLATES.SCENARIO_TEMPLATE)
 
 
 class MortalityRatioRoot(DataRoot):
