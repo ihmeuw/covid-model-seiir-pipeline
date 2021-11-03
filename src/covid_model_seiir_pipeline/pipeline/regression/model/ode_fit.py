@@ -34,7 +34,6 @@ def prepare_ode_fit_parameters(past_infections: pd.Series,
     rhos['rho_none'] = pd.Series(0., index=past_index, name='rho_none')    
     vaccinations = vaccinations.reindex(past_index, fill_value=0.).to_dict('series')
     etas = process_etas(all_etas, past_index)
-
     return Parameters(
         **sampled_params,
         new_e_all=past_infections,
@@ -42,8 +41,8 @@ def prepare_ode_fit_parameters(past_infections: pd.Series,
         **rhos,
         **vaccinations,
         **etas,
-        natural_waning_distribution=natural_waning_dist,
-        phi=natural_waning_matrix,
+        natural_waning_distribution=natural_waning_dist.loc['infection'],
+        phi=natural_waning_matrix.loc[VARIANT_NAMES, VARIANT_NAMES],
     )
 
 
