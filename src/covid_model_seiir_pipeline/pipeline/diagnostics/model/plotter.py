@@ -177,8 +177,9 @@ def make_results_page(plot_versions: List[PlotVersion],
         group_axes.append(ax_measure)
 
         # Sometimes weird stuff at the start of the series.
-        y_max = rate['mean'].iloc[100:].max()
-        ax_measure.set_ylim(0, y_max)
+        if len(rate):
+            y_max = rate['mean'].dropna().iloc[100:].max()
+            ax_measure.set_ylim(0, y_max)
 
     fig.align_ylabels(group_axes)
 
