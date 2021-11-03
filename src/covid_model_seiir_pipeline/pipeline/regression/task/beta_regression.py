@@ -34,6 +34,8 @@ def run_beta_regression(regression_version: str, draw_id: int, progress_bar: boo
     rhos = data_interface.load_variant_prevalence()
     vaccinations, boosters = data_interface.load_vaccinations()
     etas = data_interface.load_etas()
+    natural_waning_dist = data_interface.load_natural_waning_distribution()
+    natural_waning_matrix = data_interface.load_cross_variant_immunity_matrix()
     covariates = data_interface.load_covariates(list(regression_specification.covariates))
 
     logger.info('Prepping ODE fit parameters.', context='transform')
@@ -46,28 +48,11 @@ def run_beta_regression(regression_version: str, draw_id: int, progress_bar: boo
         params_to_sample=['alpha', 'sigma', 'gamma', 'pi'] + [f'kappa_{v}' for v in VARIANT_NAMES],
         draw_id=draw_id,
     )
-
-    natural_waning_params = (0.8, 270, 0.1, 720)
-    natural_waning_matrix = pd.DataFrame(
-        data=np.array([
-            [0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.],
-            [1.0, 1.0, 1.0, 0.5, 0.5, 0.5, 0.5, 0.5],
-            [1.0, 1.0, 1.0, 0.5, 0.5, 0.5, 0.5, 0.5],
-            [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.5],
-            [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.5],
-            [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.5],
-            [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.5],
-            [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
-        ]),
-        columns=VARIANT_NAMES,
-        index=VARIANT_NAMES,
-    )
-
     phis = model.prepare_phis(
         infections,
         covariates,
         natural_waning_matrix,
-        natural_waning_params,
+        natural_waning_dist,
     )
 
     ode_parameters = model.prepare_ode_fit_parameters(
