@@ -191,12 +191,13 @@ def filter_to_epi_threshold(infections: pd.Series,
     return infections.loc[start_date:]
 
 
-def run_ode_fit(initial_condition: pd.DataFrame, ode_parameters: Parameters):
+def run_ode_fit(initial_condition: pd.DataFrame, ode_parameters: Parameters, progress_bar: bool):
     full_compartments = solver.run_ode_model(
         initial_condition,
         *ode_parameters.to_dfs(),
         forecast=False,
         num_cores=5,
+        progress_bar=progress_bar,
     )
     # Set all the forecast stuff to nan
     full_compartments.loc[full_compartments.sum(axis=1) == 0., :] = np.nan

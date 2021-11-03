@@ -28,11 +28,13 @@ class RegressionDataInterface:
     def __init__(self,
                  infection_root: io.InfectionRoot,
                  covariate_root: io.CovariateRoot,
+                 waning_root: io.WaningRoot,
                  priors_root: Optional[io.CovariatePriorsRoot],
                  coefficient_root: Optional[io.RegressionRoot],
                  regression_root: io.RegressionRoot):
         self.infection_root = infection_root
         self.covariate_root = covariate_root
+        self.waning_root = waning_root
         self.priors_root = priors_root
         self.coefficient_root = coefficient_root
         self.regression_root = regression_root
@@ -41,6 +43,7 @@ class RegressionDataInterface:
     def from_specification(cls, specification: RegressionSpecification) -> 'RegressionDataInterface':
         infection_root = io.InfectionRoot(specification.data.infection_version)
         covariate_root = io.CovariateRoot(specification.data.covariate_version)
+        waning_root = io.WaningRoot(specification.data.waning_version)
         if specification.data.priors_version:
             priors_root = io.CovariatePriorsRoot(specification.data.priors_version)
         else:
@@ -61,6 +64,7 @@ class RegressionDataInterface:
         return cls(
             infection_root=infection_root,
             covariate_root=covariate_root,
+            waning_root=waning_root,
             priors_root=priors_root,
             coefficient_root=coefficient_root,
             regression_root=regression_root,
@@ -399,24 +403,34 @@ class RegressionDataInterface:
 
         return out
 
-    def load_vaccinations(self, vaccine_scenario: str = 'reference',
-                          covariate_root: io.CovariateRoot = None):
-        covariate_root = covariate_root if covariate_root is not None else self.covariate_root
+    def load_vaccinations(self, scenario: str = 'reference'):
         location_ids = self.load_location_ids()
-        info_df = io.load(covariate_root.vaccine_info(info_type=f'vaccinations_{vaccine_scenario}'))
-        info_df = self._format_covariate_data(info_df, location_ids)
-        info_df = info_df.reset_index().set_index(['course', 'location_id', 'date']).sort_index()
-        vaccinations, boosters = info_df.loc[1], info_df.loc[2]       
+        uptake = io.load(self.waning_root.uptake(scenario=scenario)).reset_index()
+        uptake = uptake.loc[uptake.location_id.isin(location_ids)]
+        uptake = (uptake
+                  .set_index(['vaccine_course', 'risk_group', 'location_id', 'date'])
+                  .sum(axis=1))
+        vaccinations, boosters = uptake.loc[1], uptake.loc[2]
         return vaccinations, boosters
 
-    def load_etas(self, vaccine_scenario: str = 'reference',
-                  covariate_root: io.CovariateRoot = None):
-        covariate_root = covariate_root if covariate_root is not None else self.covariate_root
+    def load_etas(self, waning_scenario: str = 'reference'):
         location_ids = self.load_location_ids()
-        info_df = io.load(covariate_root.vaccine_info(info_type=f'etas_{vaccine_scenario}'))
-        info_df = self._format_covariate_data(info_df, location_ids)
-        etas = info_df.reset_index().set_index(['course', 'efficacy_type', 'location_id', 'date']).sort_index()
+        etas = io.load(self.waning_root.etas(scenario=waning_scenario)).reset_index()
+        etas = (etas
+                .loc[etas.location_id.isin(location_ids)]
+                .set_index(['endpoint', 'vaccine_course', 'risk_group', 'location_id', 'date'])
+                .sort_index())
         return etas
+
+    def load_natural_waning_distribution(self, waning_scenario: str = 'reference'):
+        waning = io.load(self.waning_root.natural_waning(scenario=waning_scenario)).set_index('endpoint')
+        return waning
+
+    def load_cross_variant_immunity_matrix(self, waning_scenario: str = 'reference'):
+        cvi_matrix = io.load(self.waning_root.cross_variant_immunity(scenario=waning_scenario)).set_index('variant')
+        cvi_matrix.loc[:, 'none'] = 1.0
+        cvi_matrix.loc['none', :] = 0.0
+        return cvi_matrix
 
     def load_vaccination_summaries(self,
                                    measure: str,

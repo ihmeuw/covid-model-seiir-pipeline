@@ -28,7 +28,8 @@ def run_ode_model(initial_condition: pd.DataFrame,
                   phi_df: pd.DataFrame,
                   forecast: bool,
                   dt: float = SOLVER_DT, 
-                  num_cores: int = 5):
+                  num_cores: int = 5,
+                  progress_bar: bool = True):
     # Ensure data frame column labeling is consistent with expected index ordering.
     initial_condition = _sort_columns(initial_condition)
     location_ids = initial_condition.reset_index().location_id.unique().tolist()
@@ -45,16 +46,20 @@ def run_ode_model(initial_condition: pd.DataFrame,
         forecast=forecast,
     )
     if num_cores == 1:
-        compartments = [_runner(data) for data in tqdm.tqdm(ics_and_params)]
+        compartments = [_runner(data) for data in tqdm.tqdm(ics_and_params, disable=not progress_bar)]
     else:
         with multiprocessing.Pool(num_cores) as pool:
-            compartments = list(tqdm.tqdm(pool.imap(_runner, ics_and_params), total=len(ics_and_params)))
+            compartments = list(tqdm.tqdm(
+                pool.imap(_runner, ics_and_params),
+                total=len(ics_and_params),
+                disable=not progress_bar
+            ))
 
     compartments = pd.concat(compartments).reset_index().set_index(['location_id', 'date']).sort_index()
     return compartments
 
 
-def _run_loc_ode_model(ic_and_params: Tuple[int, pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame],
+def _run_loc_ode_model(ic_and_params: Tuple[int, pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame],
                        dt: float,
                        forecast: bool):
     location_id, initial_condition, parameters, vaccines, etas, phis = ic_and_params

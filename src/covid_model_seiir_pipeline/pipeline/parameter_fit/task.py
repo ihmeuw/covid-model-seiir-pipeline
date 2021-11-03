@@ -2,17 +2,16 @@ from pathlib import Path
 
 import click
 import numpy as np
+import pandas as pd
 
 from covid_model_seiir_pipeline.lib import (
     cli_tools,
     static_vars,
 )
-from covid_model_seiir_pipeline.pipeline.regression.model import (
-    clean_infection_data_measure,
-    prepare_ode_fit_parameters,
-    run_ode_fit,
-    sample_params,
+from covid_model_seiir_pipeline.lib.ode_mk2.constants import (
+    VARIANT_NAMES,
 )
+from covid_model_seiir_pipeline.pipeline.regression import model
 from covid_model_seiir_pipeline.pipeline.parameter_fit.data import FitDataInterface
 from covid_model_seiir_pipeline.pipeline.parameter_fit.specification import FitSpecification
 
@@ -31,34 +30,71 @@ def run_parameter_fit(fit_version: str, scenario: str, draw_id: int, progress_ba
     past_infection_data = data_interface.load_past_infection_data(draw_id=draw_id)
     population = data_interface.load_five_year_population()
     rhos = data_interface.load_variant_prevalence()
-    vaccinations = data_interface.load_vaccinations()
+    vaccinations, boosters = data_interface.load_vaccinations()
+    etas = data_interface.load_etas()
+    covariates = data_interface.load_covariates(['mask_use'])
 
     logger.info('Prepping ODE fit parameters.', context='transform')
-    infections = clean_infection_data_measure(past_infection_data, 'infections')
+    infections = model.clean_infection_data_measure(past_infection_data, 'infections')
     fit_params = fit_specification.scenarios[scenario]
 
     np.random.seed(draw_id)
-    sampled_params = sample_params(
+    sampled_params = model.sample_params(
         infections.index, fit_params.to_dict(),
-        params_to_sample=['alpha', 'sigma', 'gamma1', 'gamma2', 'kappa', 'phi', 'psi', 'pi', 'chi']
+        params_to_sample=['alpha', 'sigma', 'gamma', 'pi'] + [f'kappa_{v}' for v in VARIANT_NAMES],
+        draw_id=draw_id,
     )
-    ode_parameters = prepare_ode_fit_parameters(
+
+    natural_waning_params = (0.8, 270, 0.1, 720)
+    natural_waning_matrix = pd.DataFrame(
+        data=np.array([
+            [0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.],
+            [1.0, 1.0, 1.0, 0.5, 0.5, 0.5, 0.5, 0.5],
+            [1.0, 1.0, 1.0, 0.5, 0.5, 0.5, 0.5, 0.5],
+            [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.5],
+            [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.5],
+            [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.5],
+            [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.5],
+            [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
+        ]),
+        columns=VARIANT_NAMES,
+        index=VARIANT_NAMES,
+    )
+
+    phis = model.prepare_phis(
         infections,
-        population,
+        covariates,
+        natural_waning_matrix,
+        natural_waning_params,
+    )
+
+    ode_parameters = model.prepare_ode_fit_parameters(
+        infections,
         rhos,
         vaccinations,
+        boosters,
+        etas,
+        phis,
         sampled_params,
     )
 
+    initial_condition = model.make_initial_condition(
+        ode_parameters,
+        population,
+    )
+
     logger.info('Running ODE fit', context='compute_ode')
-    beta, compartments = run_ode_fit(
+    beta, compartments = model.run_ode_fit(
+        initial_condition=initial_condition,
         ode_parameters=ode_parameters,
         progress_bar=progress_bar,
     )
 
+    ode_parameters, _, etas, phis = ode_parameters.to_dfs()
+
     data_interface.save_betas(beta, scenario=scenario, draw_id=draw_id)
     data_interface.save_compartments(compartments, scenario=scenario, draw_id=draw_id)
-    data_interface.save_ode_parameters(ode_parameters.to_df(), scenario=scenario, draw_id=draw_id)
+    data_interface.save_ode_parameters(ode_parameters, scenario=scenario, draw_id=draw_id)
 
     logger.report()
 
