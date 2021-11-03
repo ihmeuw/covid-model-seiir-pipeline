@@ -71,6 +71,7 @@ def oos_fit(run_metadata,
 @cli_tools.with_regression_specification
 @cli_tools.with_infection_version
 @cli_tools.with_covariates_version
+@cli_tools.with_waning_version
 @cli_tools.with_priors_version
 @cli_tools.with_coefficient_version
 @cli_tools.with_location_specification
@@ -79,7 +80,7 @@ def oos_fit(run_metadata,
 @cli_tools.add_verbose_and_with_debugger
 def regress(run_metadata,
             regression_specification,
-            infection_version, covariates_version,
+            infection_version, covariates_version, waning_version,
             priors_version,
             coefficient_version,
             location_specification,
@@ -94,6 +95,7 @@ def regress(run_metadata,
         regression_specification=regression_specification,
         infection_version=infection_version,
         covariates_version=covariates_version,
+        waning_version=waning_version,
         priors_version=priors_version,
         coefficient_version=coefficient_version,
         location_specification=location_specification,
@@ -400,6 +402,7 @@ def _do_regression(run_metadata: cli_tools.RunMetadata,
                    regression_specification: str,
                    infection_version: Optional[str],
                    covariates_version: Optional[str],
+                   waning_version: Optional[str],
                    priors_version: Optional[str],
                    coefficient_version: Optional[str],
                    location_specification: Optional[str],
@@ -421,6 +424,13 @@ def _do_regression(run_metadata: cli_tools.RunMetadata,
             regression_spec.data.covariate_version,
             paths.SEIR_COVARIATES_OUTPUT_ROOT,
             'covariates_metadata',
+            True,
+        ),
+        'waning_version': cli_tools.VersionInfo(
+            waning_version,
+            regression_spec.data.waning_version,
+            paths.WANING_IMMUNITY_OUTPUT_ROOT,
+            'waning_metadata',
             True,
         ),
         'priors_version': cli_tools.VersionInfo(
