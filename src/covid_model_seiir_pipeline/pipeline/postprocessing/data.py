@@ -135,9 +135,9 @@ class PostprocessingDataInterface:
         draw_df = self.load_ode_params(draw_id=draw_id, scenario=scenario, columns=[measure])
         return draw_df[measure].rename(draw_id)
 
-    def load_vaccination_summaries(self, measure: str, scenario: str):
+    def load_vaccination_summaries(self, measure: str):
         return self._get_forecast_data_inteface().load_vaccination_summaries(
-            measure, scenario,
+            measure,
         )
 
     def load_vaccine_efficacy(self):
