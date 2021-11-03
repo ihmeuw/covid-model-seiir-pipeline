@@ -28,7 +28,6 @@ from covid_model_seiir_pipeline.lib.ode_mk2 import (
 )
 
 
-
 @numba.njit
 def system(t: float,
            y: np.ndarray,           
@@ -54,7 +53,6 @@ def system(t: float,
         assert np.all(np.isfinite(vaccines))
         assert np.all(np.isfinite(etas))
         assert np.all(np.isfinite(chis))
-        
 
     dy = np.zeros_like(y)
     

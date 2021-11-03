@@ -10,6 +10,9 @@ import numpy as np
 import pandas as pd
 import seaborn as sns
 
+from covid_model_seiir_pipeline.lib.ode_mk2.constants import (
+    VARIANT_NAMES,
+)
 from covid_model_seiir_pipeline.pipeline.diagnostics.model.plot_version import (
     Location,
     PlotVersion,
@@ -17,6 +20,7 @@ from covid_model_seiir_pipeline.pipeline.diagnostics.model.plot_version import (
 from covid_model_seiir_pipeline.pipeline.postprocessing.model import (
     COVARIATES,
 )
+
 
 COLOR_MAP = ['#7F3C8D', '#11A579',
              '#3969AC', '#F2B701',
@@ -62,6 +66,13 @@ def make_grid_plot(location: Location,
             location,
             date_start, date_end,
             plot_file=str(output_dir / f'{location.id}_drivers.pdf')
+        )
+
+        make_variant_page(
+            plot_versions,
+            location,
+            date_start, date_end,
+            plot_file=str(output_dir / f'{location.id}_variant.pdf')
         )
 
 
@@ -164,6 +175,11 @@ def make_results_page(plot_versions: List[PlotVersion],
             rate['mean'],
         )
         group_axes.append(ax_measure)
+
+        # Sometimes weird stuff at the start of the series.
+        y_max = rate['mean'].iloc[100:].max()
+        ax_measure.set_ylim(0, y_max)
+
     fig.align_ylabels(group_axes)
 
     group_axes = []
@@ -386,7 +402,7 @@ def make_drivers_page(plot_versions: List[PlotVersion],
     )
 
     ylim_map = {
-        'mobility': (-100, 20),
+        'mobility': (-100, 50),
         'testing': (0, 0.02),
         'pneumonia': (0.2, 1.5),
         'mask_use': (0, 1),
@@ -511,6 +527,107 @@ def make_drivers_page(plot_versions: List[PlotVersion],
     make_axis_legend(ax_rho_escape, {'naive ramp': {'linestyle': 'solid'},
                                      'empirical': {'linestyle': 'dashed'}})
     fig.align_ylabels([ax_resid, ax_rhist, ax_reff, ax_rho_escape])
+
+    make_title_and_legend(fig, location, plot_versions)
+    write_or_show(fig, plot_file)
+
+
+def make_variant_page(plot_versions: List[PlotVersion],
+                      location: Location,
+                      start: pd.Timestamp, end: pd.Timestamp,
+                      plot_file: str = None):
+    sns.set_style('whitegrid')
+
+    # Load some shared data.
+    pv = plot_versions[-1]
+    pop = pv.load_output_miscellaneous('populations', is_table=True, location_id=location.id)
+    pop = pop.loc[(pop.age_group_id == 22) & (pop.sex_id == 3), 'population'].iloc[0]
+
+    variant_prevalence = pv.load_output_miscellaneous('variant_prevalence', is_table=True,
+                                                      location_id=location.id).set_index('date')
+
+    # Configure the plot layout.
+    fig = plt.figure(figsize=(40, 20), tight_layout=True)
+
+    measures = [
+        'daily_infections',
+        'effective_susceptible',
+        # 'effective_immune',
+        'force_of_infection',
+        'r_effective',
+        'r_controlled',
+        'variant_prevalence',
+    ]
+
+    grid_spec = fig.add_gridspec(
+        nrows=len(measures), ncols=len(VARIANT_NAMES) - 2,
+        wspace=0.2,
+    )
+    grid_spec.update(**GRID_SPEC_MARGINS)
+
+    plotter = Plotter(
+        plot_versions=plot_versions,
+        loc_id=location.id,
+        start=start, end=end,
+    )
+
+    axes = defaultdict(list)
+
+    for row, measure in enumerate(measures):
+        for col, variant in enumerate(VARIANT_NAMES[1:-1]):
+            ax = fig.add_subplot(grid_spec[row, col])
+            key = f'{measure}_{variant}'
+
+            if measure in ['effective_susceptible', 'effective_immune']:
+                transform = lambda x: x / pop * 100
+            else:
+                transform = lambda x: x
+
+            plotter.make_time_plot(
+                ax,
+                key,
+                '',
+                transform=transform,
+            )
+            if measure == 'effective_susceptible':
+                if variant in ['ancestral', 'alpha']:
+                    key = 'total_susceptible_wild'
+                else:
+                    key = 'total_susceptible_variant'
+                plotter.make_time_plot(
+                    ax,
+                    key,
+                    label='',
+                    transform=lambda x: x / pop * 100,
+                )
+
+            if measure == 'daily_infections':
+                if variant in ['ancestral', 'alpha']:
+                    key = 'total_susceptible_wild'
+                else:
+                    key = 'total_susceptible_variant'
+
+            if measure == 'variant_prevalence':
+                observed_color = COLOR_MAP(len(plot_versions))
+                variant_prevalence.loc[:, f'rho_{variant}'].plot(ax=ax, linewidth=3, color=observed_color,
+                                                                 linestyle='dashed')
+
+            if measure in ['r_effective', 'r_controlled']:
+                ax.set_ylim(0, 4)
+            elif measure in ['effective_susceptible', 'effective_immune']:
+                ax.set_ylim(0, 100)
+            elif measure == 'variant_prevalence':
+                ax.set_ylim(0, 1)
+
+            if row == 0:
+                ax.set_title(variant.title(), fontsize=18)
+
+            if col == 0:
+                ax.set_ylabel(measure.replace('_', ' ').title(), fontsize=18)
+            axes[col].append(ax)
+
+    for col, ax_group in axes.items():
+        fig.align_ylabels(ax_group)
 
     make_title_and_legend(fig, location, plot_versions)
     write_or_show(fig, plot_file)
