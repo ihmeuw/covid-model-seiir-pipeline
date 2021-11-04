@@ -63,7 +63,7 @@ def run_ode_model(initial_condition: pd.DataFrame,
                 total=len(ics_and_params),
                 disable=not progress_bar
             ))
-    compartment, chis = zip(*results)
+    compartments, chis = zip(*results)
     compartments = pd.concat(compartments).reset_index().set_index(['location_id', 'date']).sort_index()
     chis = pd.concat(chis).reset_index().set_index(['location_id', 'date']).sort_index()
     return compartments, chis
