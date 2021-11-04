@@ -149,6 +149,7 @@ def make_initial_condition(parameters: Parameters, population: pd.DataFrame):
             initial_condition.loc[(location_id, loc_start_date), f'S_none{suffix}'] = pop - new_e - infectious
             initial_condition.loc[(location_id, loc_start_date), f'E_ancestral{suffix}'] = new_e
             initial_condition.loc[(location_id, loc_start_date), f'NewE_ancestral{suffix}'] = new_e
+            initial_condition.loc[(location_id, loc_start_date), f'NewE_ancestral_all_{risk_group}'] = new_e
             initial_condition.loc[(location_id, loc_start_date), f'I_ancestral{suffix}'] = infectious
             for variant in VARIANT_NAMES:
                 initial_condition.loc[pd.IndexSlice[location_id, :loc_start_date], f'EffectiveSusceptible_{variant}{suffix}'] = pop
