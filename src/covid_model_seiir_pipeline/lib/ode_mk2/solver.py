@@ -65,7 +65,7 @@ def run_ode_model(initial_condition: pd.DataFrame,
     return compartments
 
 
-def _run_loc_ode_model(ic_and_params: Tuple[int, pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame],
+def _run_loc_ode_model(ic_and_params: Tuple[int, pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.Series, pd.DataFrame],
                        dt: float,
                        forecast: bool):
     location_id, initial_condition, parameters, vaccines, etas, waning, phis = ic_and_params
