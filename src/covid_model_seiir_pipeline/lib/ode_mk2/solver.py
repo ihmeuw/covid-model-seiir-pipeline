@@ -12,6 +12,12 @@ from covid_model_seiir_pipeline.lib.ode_mk2.constants import (
     RISK_GROUP_NAMES,
     COMPARTMENTS_NAMES,
     TRACKING_COMPARTMENTS_NAMES,
+    CHI,
+    RISK_GROUP,
+    VARIANT,
+    TRACKING_COMPARTMENT,
+    VACCINE_INDEX_TYPE,
+    TRACKING_COMPARTMENTS,
 )
 from covid_model_seiir_pipeline.lib.ode_mk2.system import (
     system,
@@ -62,7 +68,7 @@ def run_ode_model(initial_condition: pd.DataFrame,
 def _run_loc_ode_model(ic_and_params: Tuple[int, pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame],
                        dt: float,
                        forecast: bool):
-    location_id, initial_condition, parameters, vaccines, etas, phis = ic_and_params
+    location_id, initial_condition, parameters, vaccines, etas, waning, phis = ic_and_params
     new_e_dates = initial_condition[initial_condition.filter(like='NewE').sum(axis=1) > 0].reset_index().date
     invasion_date = new_e_dates.min()
     ode_start_date = new_e_dates.max()
@@ -88,6 +94,8 @@ def _run_loc_ode_model(ic_and_params: Tuple[int, pd.DataFrame, pd.DataFrame, pd.
     parameters = _interpolate(t, t_params, parameters.to_numpy())
     vaccines = _interpolate(t, t_params, vaccines.to_numpy())
     etas = _interpolate(t, t_params, etas.to_numpy())
+    waning = waning.to_numpy()
+    waning = waning[waning > 0]
     phis = phis.to_numpy()
     
     y_solve = _rk45_dde(        
@@ -98,6 +106,7 @@ def _run_loc_ode_model(ic_and_params: Tuple[int, pd.DataFrame, pd.DataFrame, pd.
         vaccines,
         etas,
         phis,
+        waning,
         forecast,
         dt,        
     )
@@ -152,27 +161,26 @@ def _rk45_dde(t0: float, tf: float,
               parameters: np.ndarray,
               vaccines: np.ndarray,
               etas: np.ndarray,
+              waning: np.ndarray,
               phis: np.ndarray,
               forecast: bool,
               dt: float):
-    chi = np.hstack((phis[0], phis[0]))
-    num_time_points = t_solve.size    
+    num_time_points = t_solve.size
+    chis = np.zeros((num_time_points, 2 * phis.size))
+    chis[0, :] = np.hstack([phis.flatten(), phis.flatten()])
 
     for time in np.arange(num_time_points):
         if not (t0 < t_solve[time] <= tf):
             continue
-            
-        if not t_solve[time-1] % 1:
-            # TODO: Update cross-variant immunity
-            pass
 
+        chis[time - 1] = compute_chi(time, t_solve, y_solve, phis, waning, chis)
         k1 = system(
             t_solve[time - 1],
             y_solve[time - 1],
             parameters[2 * time - 2],
             vaccines[2 * time - 2],
             etas[2 * time - 2],
-            chi,
+            chis[time - 1],
             forecast,
         )
 
@@ -182,7 +190,7 @@ def _rk45_dde(t0: float, tf: float,
             parameters[2 * time - 1],
             vaccines[2 * time - 1],
             etas[2 * time - 1],
-            chi,
+            chis[time - 1],
             forecast,
         )
 
@@ -192,8 +200,8 @@ def _rk45_dde(t0: float, tf: float,
             parameters[2 * time - 1],
             vaccines[2 * time - 1],
             etas[2 * time - 1],
-            chi,
-            forecast,            
+            chis[time - 1],
+            forecast,
         )
 
         k4 = system(
@@ -202,8 +210,8 @@ def _rk45_dde(t0: float, tf: float,
             parameters[2 * time],
             vaccines[2 * time],
             etas[2 * time],
-            chi,
-            forecast,            
+            chis[time - 1],
+            forecast,
         )
 
         y_solve[time] = y_solve[time - 1] + dt / 6 * (k1 + 2 * k2 + 2 * k3 + k4)
@@ -219,3 +227,40 @@ def _uninterpolate(y_solve: np.ndarray,
     for compartment in np.arange(y_solve.shape[1]):
         y_final[:, compartment] = np.interp(t, t_solve, y_solve[:, compartment])
     return y_final
+
+
+@numba.njit
+def compute_chi(time, t_solve, y_solve, phis, waning, chis):
+    if t_solve[time] % 1:
+        return chis[time - 1]
+
+    num_chis = CHI.max() + 1
+    chi = np.zeros(len(RISK_GROUP) * num_chis)
+    for risk_group in RISK_GROUP:
+        group_size = y_solve.shape[1] // len(RISK_GROUP)
+        group_start = risk_group * group_size
+        group_end = (risk_group + 1) * group_size
+        group_y = y_solve[:time:10, group_start:group_end]
+        group_chi = np.zeros(num_chis)
+        t_end = min(group_y.shape[0], waning.size) - 1
+
+        for from_variant in VARIANT:
+            cumulative_new_e_variant = group_y[:, TRACKING_COMPARTMENTS[
+                                                      TRACKING_COMPARTMENT.NewE, from_variant, VACCINE_INDEX_TYPE.all]]
+            denominator = cumulative_new_e_variant[-1]
+            if denominator:
+                numerator = 0.
+                for tau in range(t_end):
+                    numerator += (cumulative_new_e_variant[t_end - tau] - cumulative_new_e_variant[t_end - tau - 1]) * \
+                                 waning[tau]
+                w = numerator / denominator
+                for to_variant in VARIANT:
+                    group_chi[CHI[from_variant, to_variant]] = phis[from_variant, to_variant] * w
+            else:
+                for to_variant in VARIANT:
+                    group_chi[CHI[from_variant, to_variant]] = 0.
+
+        group_chi_start = risk_group * num_chis
+        group_chi_end = (risk_group + 1) * num_chis
+        chi[group_chi_start:group_chi_end] = group_chi
+    return chi
