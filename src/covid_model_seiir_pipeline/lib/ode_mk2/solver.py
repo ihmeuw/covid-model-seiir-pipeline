@@ -169,15 +169,13 @@ def _rk45_dde(t0: float, tf: float,
               dt: float):
     num_time_points = t_solve.size
     chis = np.zeros((num_time_points, 2 * phis.size))
-    flat_phis = phis.flatten()
-    for i in RISK_GROUP:
-        chis[0, i*flat_phis.size:(i+1)*flat_phis.size] = flat_phis
 
     for time in np.arange(num_time_points):
         if not (t0 < t_solve[time] <= tf):
             continue
 
-        chis[time - 1] = compute_chi(time, t_solve, y_solve, phis, waning, chis)
+        chis[time - 1] = compute_chi(time-1, t_solve, y_solve, phis, waning, chis)
+
         k1 = system(
             t_solve[time - 1],
             y_solve[time - 1],
@@ -248,7 +246,7 @@ def compute_chi(time, t_solve, y_solve, phis, waning, chis):
         group_chi = np.zeros(num_chis)
         t_end = min(group_y.shape[0], waning.size) - 1
 
-        for from_variant in VARIANT:
+        for from_variant in VARIANT[1:]:
             cumulative_new_e_variant = group_y[:, TRACKING_COMPARTMENTS[
                                                       TRACKING_COMPARTMENT.NewE, from_variant, VACCINE_INDEX_TYPE.all]]
             denominator = cumulative_new_e_variant[-1]
@@ -266,5 +264,6 @@ def compute_chi(time, t_solve, y_solve, phis, waning, chis):
 
         group_chi_start = risk_group * num_chis
         group_chi_end = (risk_group + 1) * num_chis
+
         chi[group_chi_start:group_chi_end] = group_chi
     return chi
