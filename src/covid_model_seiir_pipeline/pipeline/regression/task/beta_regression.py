@@ -94,7 +94,7 @@ def run_beta_regression(regression_version: str, draw_id: int, progress_bar: boo
     logger.info('Prepping outputs', context='transform')
     betas = pd.concat([beta, beta_hat], axis=1).reindex(infections.index)
     deaths = model.clean_infection_data_measure(past_infection_data, 'deaths')
-    ode_parameters, _, etas, phis = ode_parameters.to_dfs()
+    ode_parameters, _, etas, _, phis = ode_parameters.to_dfs()
 
     logger.info('Writing outputs', context='write')
     data_interface.save_infections(infections, draw_id=draw_id)

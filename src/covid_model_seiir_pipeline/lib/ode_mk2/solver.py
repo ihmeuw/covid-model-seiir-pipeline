@@ -107,8 +107,8 @@ def _run_loc_ode_model(ic_and_params: Tuple[int, pd.DataFrame, pd.DataFrame, pd.
         parameters,
         vaccines,
         etas,
-        phis,
         waning,
+        phis,
         forecast,
         dt,        
     )
@@ -169,7 +169,9 @@ def _rk45_dde(t0: float, tf: float,
               dt: float):
     num_time_points = t_solve.size
     chis = np.zeros((num_time_points, 2 * phis.size))
-    chis[0, :] = np.hstack([phis.flatten(), phis.flatten()])
+    flat_phis = phis.flatten()
+    for i in RISK_GROUP:
+        chis[0, i*flat_phis.size:(i+1)*flat_phis.size] = flat_phis
 
     for time in np.arange(num_time_points):
         if not (t0 < t_solve[time] <= tf):
