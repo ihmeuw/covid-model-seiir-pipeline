@@ -258,9 +258,8 @@ def compute_chi(time, t_solve, y_solve, phis, waning, chis):
             denominator = cumulative_new_e_variant[-1]
             if denominator:
                 numerator = 0.
-                for tau in range(t_end):
-                    numerator += (cumulative_new_e_variant[t_end - tau] - cumulative_new_e_variant[t_end - tau - 1]) * \
-                                 waning[tau]
+                for tau in range(1, t_end):
+                    numerator += (cumulative_new_e_variant[-tau] - cumulative_new_e_variant[-tau-1]) * waning[tau]
                 w = numerator / denominator
                 for to_variant in VARIANT:
                     group_chi[CHI[from_variant, to_variant]] = phis[from_variant, to_variant] * w
