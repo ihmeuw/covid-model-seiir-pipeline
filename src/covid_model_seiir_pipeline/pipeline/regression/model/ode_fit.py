@@ -42,7 +42,7 @@ def prepare_ode_fit_parameters(past_infections: pd.Series,
         **vaccinations,
         **etas,
         natural_waning_distribution=natural_waning_dist.loc['infection'],
-        phi=natural_waning_matrix.loc[VARIANT_NAMES, VARIANT_NAMES],
+        phi=natural_waning_matrix.loc[list(VARIANT_NAMES), list(VARIANT_NAMES)],
     )
 
 
