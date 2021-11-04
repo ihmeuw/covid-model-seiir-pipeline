@@ -410,7 +410,8 @@ class RegressionDataInterface:
         uptake = (uptake
                   .set_index(['vaccine_course', 'location_id', 'date', 'risk_group'])
                   .sum(axis=1)
-                  .unstack())
+                  .unstack()
+                  .fillna(0.))
         uptake.columns.name = None
         vaccinations, boosters = uptake.loc[1], uptake.loc[2]
         vaccinations = vaccinations.rename(columns=lambda x: f'vaccinations_{x}')

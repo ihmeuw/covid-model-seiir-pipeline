@@ -8,10 +8,9 @@ grid_plots:
     date_start: '2020-03-01'
     date_end: '2022-12-31'
     comparators:
-      - version: &public '2021_10_20.02'
+      - version: &public '2021_11_02.01'
         scenarios:
           reference*: 'public reference'
-      - version: &new '2021_11_03.04'
+      - version: &new '2021_11_04.01'
         scenarios:
-          reference*: 'reference'
-          booster: 'booster'
+          reference*: 'booster'

@@ -1,9 +1,8 @@
 data:
-  forecast_version: '2021_11_03.02'
+  forecast_version: '2021_11_04.06'
   mortality_ratio_version: 'best'
   scenarios:
     - 'reference'
-    - 'booster'
   output_root: ''
 workflow:
   project: 'proj_covid_prod'

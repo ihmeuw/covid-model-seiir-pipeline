@@ -192,7 +192,8 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
                 rhos,
                 vaccinations,
                 etas,
-                phis,
+                natural_waning_dist,
+                natural_waning_matrix,
             )
 
             # The ode is done as a loop over the locations in the initial condition.
