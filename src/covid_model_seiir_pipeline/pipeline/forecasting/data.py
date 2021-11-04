@@ -112,11 +112,16 @@ class ForecastDataInterface:
     def load_etas(self, vaccine_scenario: str) -> pd.DataFrame:
         return self._get_regression_data_interface().load_etas(vaccine_scenario)
 
+    def load_natural_waning_distribution(self, vaccine_scenario: str) -> pd.DataFrame:
+        return self._get_regression_data_interface().load_natural_waning_distribution(vaccine_scenario)
+
+    def load_cross_variant_immunity_matrix(self, vaccine_scenario: str) -> pd.DataFrame:
+        return self._get_regression_data_interface().load_cross_variant_immunity_matrix(vaccine_scenario)
+
     def load_phis(self, draw_id: int) -> pd.DataFrame:
         return self._get_regression_data_interface().load_phis(draw_id)
 
     def load_vaccination_summaries(self, measure: str):
-
         return self._get_regression_data_interface().load_vaccination_summaries(
             measure, self.covariate_root,
         )

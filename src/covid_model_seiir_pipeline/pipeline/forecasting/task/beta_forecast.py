@@ -59,7 +59,9 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
     # Vaccine data, of course.
     vaccinations = data_interface.load_vaccinations(scenario_spec.vaccine_version)
     etas = data_interface.load_etas(scenario_spec.vaccine_version)
-    phis = data_interface.load_phis(draw_id)
+    natural_waning_dist = data_interface.load_natural_waning_distribution(scenario_spec.vaccine_version)
+    natural_waning_matrix = data_interface.load_cross_variant_immunity_matrix(scenario_spec.vaccine_version)
+
     # Variant prevalences.
     rhos = data_interface.load_variant_prevalence(scenario_spec.variant_version)
     log_beta_shift = (scenario_spec.log_beta_shift,
@@ -86,7 +88,8 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
         rhos,
         vaccinations,
         etas,
-        phis,
+        natural_waning_dist,
+        natural_waning_matrix,
     )
 
     # Pull in compartments from the fit and subset out the initial condition.

@@ -70,7 +70,8 @@ def build_model_parameters(indices: Indices,
                            rhos: pd.DataFrame,
                            vaccinations: pd.DataFrame,
                            all_etas: pd.DataFrame,
-                           phis: pd.DataFrame) -> Parameters:
+                           natural_waning_dist: pd.Series,
+                           natural_waning_matrix: pd.DataFrame) -> Parameters:
     keep_cols = ['alpha_all', 'sigma_all', 'gamma_all', 'pi_all'] + [f'kappa_{v}' for v in VARIANT_NAMES]
     ode_params = (ode_parameters
                   .reindex(indices.full)
@@ -92,7 +93,8 @@ def build_model_parameters(indices: Indices,
         **rhos,
         **vaccinations,
         **etas,
-        **phis.to_dict('series')
+        natural_waning_distribution=natural_waning_dist.loc['infection'],
+        phi=natural_waning_matrix.loc[list(VARIANT_NAMES), list(VARIANT_NAMES)],
     )
 
 
