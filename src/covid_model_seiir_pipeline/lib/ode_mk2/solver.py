@@ -31,6 +31,7 @@ def run_ode_model(initial_condition: pd.DataFrame,
                   parameter_df: pd.DataFrame,
                   vaccination_df: pd.DataFrame,
                   eta_df: pd.DataFrame,
+                  natural_waning_distribution: pd.Series,
                   phi_df: pd.DataFrame,
                   forecast: bool,
                   dt: float = SOLVER_DT, 
@@ -44,6 +45,7 @@ def run_ode_model(initial_condition: pd.DataFrame,
                        parameter_df.loc[location_id],
                        vaccination_df.loc[location_id],
                        eta_df.loc[location_id],
+                       natural_waning_distribution,
                        phi_df) for location_id in location_ids]
 
     _runner = functools.partial(
