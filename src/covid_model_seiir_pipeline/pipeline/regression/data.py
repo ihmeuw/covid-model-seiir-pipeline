@@ -538,11 +538,11 @@ class RegressionDataInterface:
     def load_ode_parameters(self, draw_id: int) -> pd.DataFrame:
         return io.load(self.regression_root.ode_parameters(draw_id=draw_id))
 
-    def save_phis(self, df: pd.DataFrame, draw_id: int) -> None:
-        io.dump(df, self.regression_root.phis(draw_id=draw_id))
+    def save_chis(self, df: pd.DataFrame, draw_id: int) -> None:
+        io.dump(df, self.regression_root.chis(draw_id=draw_id))
 
-    def load_phis(self, draw_id: int) -> pd.DataFrame:
-        return io.load(self.regression_root.phis(draw_id=draw_id))
+    def load_chis(self, draw_id: int) -> pd.DataFrame:
+        return io.load(self.regression_root.chis(draw_id=draw_id))
 
     def save_infections(self, infections: pd.Series, draw_id: int) -> None:
         io.dump(infections.to_frame(), self.regression_root.infections(draw_id=draw_id))

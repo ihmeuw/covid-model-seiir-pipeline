@@ -230,10 +230,10 @@ def forecast_correction_factors(indices: Indices,
 
 def run_ode_forecast(initial_conditions: pd.DataFrame,
                      ode_parameters: Parameters):
-    full_compartments = solver.run_ode_model(
+    full_compartments, chis = solver.run_ode_model(
         initial_conditions,
         *ode_parameters.to_dfs(),
         forecast=True,
         num_cores=5,
     )
-    return full_compartments
+    return full_compartments, chis

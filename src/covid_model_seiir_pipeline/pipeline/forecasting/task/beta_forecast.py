@@ -105,6 +105,7 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
     ratio_data = data_interface.load_ratio_data(draw_id=draw_id)
     hospital_parameters = data_interface.get_hospital_parameters()
     correction_factors = data_interface.load_hospital_correction_factors()
+    past_chis = data_interface.load_chis(draw_id)
 
     logger.info('Prepping results processing parameters.', context='transform')
     postprocessing_params = model.build_postprocessing_parameters(
@@ -118,7 +119,7 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
     )
 
     logger.info('Running ODE forecast.', context='compute_ode')
-    compartments = model.run_ode_forecast(
+    compartments, chis = model.run_ode_forecast(
         initial_condition,
         model_parameters,
     )
@@ -201,7 +202,7 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
             # subset here to only the locations that reimpose mandates for speed.
             initial_condition_subset = initial_condition.loc[reimposition_date.index]
             logger.info('Running ODE forecast.', context='compute_ode')
-            compartments_subset = model.run_ode_forecast(
+            compartments_subset, chis = model.run_ode_forecast(
                 initial_condition_subset,
                 model_parameters,
             )
@@ -237,12 +238,14 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
     ode_params = pd.concat([ode_params, beta, beta_hat], axis=1)
     outputs = pd.concat([system_metrics, output_metrics.reset_index(level='observed', drop=True),
                          postprocessing_params.correction_factors_df], axis=1)
+    chis = past_chis.loc[indices.past].append(chis.loc[indices.future]).sort_index()
 
     logger.info('Writing outputs.', context='write')
     data_interface.save_ode_params(ode_params, scenario, draw_id)
     data_interface.save_components(compartments, scenario, draw_id)
     data_interface.save_raw_covariates(covariates, scenario, draw_id)
     data_interface.save_raw_outputs(outputs, scenario, draw_id)
+    data_interface.save_chis(chis, scenario, draw_id)
 
     logger.report()
 

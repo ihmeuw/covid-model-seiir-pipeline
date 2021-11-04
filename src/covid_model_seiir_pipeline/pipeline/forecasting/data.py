@@ -118,8 +118,8 @@ class ForecastDataInterface:
     def load_cross_variant_immunity_matrix(self, vaccine_scenario: str) -> pd.DataFrame:
         return self._get_regression_data_interface().load_cross_variant_immunity_matrix(vaccine_scenario)
 
-    def load_phis(self, draw_id: int) -> pd.DataFrame:
-        return self._get_regression_data_interface().load_phis(draw_id)
+    def load_chis(self, draw_id: int) -> pd.DataFrame:
+        return self._get_regression_data_interface().load_chis(draw_id)
 
     def load_vaccination_summaries(self, measure: str):
         return self._get_regression_data_interface().load_vaccination_summaries(
@@ -258,6 +258,9 @@ class ForecastDataInterface:
 
     def load_components(self, scenario: str, draw_id: int):
         return io.load(self.forecast_root.component_draws(scenario=scenario, draw_id=draw_id))
+
+    def save_chis(self, chis: pd.DataFrame, scenario: str, draw_id: int):
+        io.dump(chis, self.forecast_root.chis(scenario=scenario, draw_id=draw_id))
 
     def save_beta_scales(self, scales: pd.DataFrame, scenario: str, draw_id: int):
         io.dump(scales, self.forecast_root.beta_scaling(scenario=scenario, draw_id=draw_id))

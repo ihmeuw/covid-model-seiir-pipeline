@@ -13,6 +13,7 @@ from covid_model_seiir_pipeline.lib.ode_mk2.constants import (
     COMPARTMENTS_NAMES,
     TRACKING_COMPARTMENTS_NAMES,
     CHI,
+    CHI_NAMES,
     RISK_GROUP,
     VARIANT,
     TRACKING_COMPARTMENT,
@@ -57,14 +58,15 @@ def run_ode_model(initial_condition: pd.DataFrame,
         compartments = [_runner(data) for data in tqdm.tqdm(ics_and_params, disable=not progress_bar)]
     else:
         with multiprocessing.Pool(num_cores) as pool:
-            compartments = list(tqdm.tqdm(
+            results = list(tqdm.tqdm(
                 pool.imap(_runner, ics_and_params),
                 total=len(ics_and_params),
                 disable=not progress_bar
             ))
-
+    compartment, chis = zip(*results)
     compartments = pd.concat(compartments).reset_index().set_index(['location_id', 'date']).sort_index()
-    return compartments
+    chis = pd.concat(chis).reset_index().set_index(['location_id', 'date']).sort_index()
+    return compartments, chis
 
 
 def _run_loc_ode_model(ic_and_params: Tuple[int, pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.Series, pd.DataFrame],
@@ -100,7 +102,7 @@ def _run_loc_ode_model(ic_and_params: Tuple[int, pd.DataFrame, pd.DataFrame, pd.
     waning = waning[waning > 0]
     phis = phis.to_numpy()
     
-    y_solve = _rk45_dde(        
+    y_solve, chis = _rk45_dde(
         t0, tf,
         t_solve,
         y_solve,
@@ -117,7 +119,11 @@ def _run_loc_ode_model(ic_and_params: Tuple[int, pd.DataFrame, pd.DataFrame, pd.
                                     columns=initial_condition.columns,
                                     index=initial_condition.index)
     loc_compartments['location_id'] = location_id
-    return loc_compartments
+    loc_chis = pd.DataFrame(_uninterpolate(chis, t_solve, t),
+                            columns=[f'{n}_{r}' for r, n in itertools.product(RISK_GROUP_NAMES, CHI_NAMES)],
+                            index=initial_condition.index)
+    loc_chis['location_id'] = location_id
+    return loc_compartments, loc_chis
 
 
 def _sort_columns(initial_condition: pd.DataFrame) -> pd.DataFrame:    
@@ -218,7 +224,7 @@ def _rk45_dde(t0: float, tf: float,
 
         y_solve[time] = y_solve[time - 1] + dt / 6 * (k1 + 2 * k2 + 2 * k3 + k4)
 
-    return y_solve
+    return y_solve, chis
 
 
 @numba.njit

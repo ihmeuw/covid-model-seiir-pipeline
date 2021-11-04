@@ -186,7 +186,7 @@ def filter_to_epi_threshold(infections: pd.Series,
 
 
 def run_ode_fit(initial_condition: pd.DataFrame, ode_parameters: Parameters, progress_bar: bool):
-    full_compartments = solver.run_ode_model(
+    full_compartments, chis = solver.run_ode_model(
         initial_condition,
         *ode_parameters.to_dfs(),
         forecast=False,
@@ -199,5 +199,5 @@ def run_ode_fit(initial_condition: pd.DataFrame, ode_parameters: Parameters, pro
     beta = full_compartments.filter(like='beta_none_all').mean(axis=1).groupby('location_id').diff().rename('beta')
     # Don't want to break the log.
     beta[beta == 0.] = np.nan
-    return beta, full_compartments
+    return beta, chis, full_compartments
 

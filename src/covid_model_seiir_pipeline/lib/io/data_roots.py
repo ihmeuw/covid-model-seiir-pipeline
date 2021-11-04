@@ -212,7 +212,7 @@ class RegressionRoot(DataRoot):
     compartments = DatasetType('compartments', LEAF_TEMPLATES.DRAW_TEMPLATE)
     ode_parameters = DatasetType('ode_parameters', LEAF_TEMPLATES.DRAW_TEMPLATE)
     etas = DatasetType('etas', LEAF_TEMPLATES.DRAW_TEMPLATE)
-    phis = DatasetType('phis', LEAF_TEMPLATES.DRAW_TEMPLATE)
+    chis = DatasetType('phis', LEAF_TEMPLATES.DRAW_TEMPLATE)
 
     infections = DatasetType('infections', LEAF_TEMPLATES.DRAW_TEMPLATE)
     deaths = DatasetType('deaths', LEAF_TEMPLATES.DRAW_TEMPLATE)
@@ -230,6 +230,7 @@ class ForecastRoot(DataRoot):
     component_draws = DatasetType('component_draws', LEAF_TEMPLATES.DRAW_TEMPLATE, PREFIX_TEMPLATES.SCENARIO_TEMPLATE)
     raw_covariates = DatasetType('raw_covariates', LEAF_TEMPLATES.DRAW_TEMPLATE, PREFIX_TEMPLATES.SCENARIO_TEMPLATE)
     raw_outputs = DatasetType('raw_outputs', LEAF_TEMPLATES.DRAW_TEMPLATE, PREFIX_TEMPLATES.SCENARIO_TEMPLATE)
+    chis = DatasetType('chis', LEAF_TEMPLATES.DRAW_TEMPLATE, PREFIX_TEMPLATES.SCENARIO_TEMPLATE)
 
 
 class PostprocessingRoot(DataRoot):
