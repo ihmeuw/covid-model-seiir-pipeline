@@ -45,6 +45,9 @@ def compute_reimposition_threshold(past_deaths, population, reimposition_thresho
         63, # Ukraine
         45, # Bulgaria
     ]
+    all_locs = reimposition_threshold.reset_index().location_id.unique().tolist()
+    us = list(range(523, 574)) + [60886, 60887, 3539]
+    no_lockdown_locations = list(set(all_locs).difference(us))
     for location in no_lockdown_locations:
         reimposition_threshold.loc[location] = 250 / 1_000_000
     return reimposition_threshold

@@ -6,15 +6,12 @@ workflow:
 grid_plots:
   - name: 'compare_longrange'
     date_start: '2020-03-01'
-    date_end: '2022-12-31'
+    date_end: '2022-05-01'
     comparators:
-      - version: &public '2021_11_02.01'
+      - version: '2021_11_05.03'
         scenarios:
-          reference*: 'public reference'
-      - version: &new '2021_11_04.02'
-        scenarios:
-          reference*: 'booster'
-      - version: '2021_11_04.03'
-        scenarios:
-          reference*: 'booster + mandate'
-
+          reference*: 'Reference'
+          optimistic: 'Optimistic Boosters'
+          child_vaccine_push: 'Child Vaccine Push'
+          optimistic_child_vaccine_push: 'Child Vaccine Push + Optimistic Boosters'
+         

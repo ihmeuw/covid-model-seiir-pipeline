@@ -1,8 +1,15 @@
 data:
-  forecast_version: '2021_11_04.10'
+  forecast_version: '2021_11_05.03'
   mortality_ratio_version: 'best'
   scenarios:
     - 'reference'
+    - 'optimistic'
+    - 'child_vaccine_push'
+    - 'optimistic_child_vaccine_push'
+#    - 'reference_sm'
+#    - 'optimistic_sm'
+#    - 'child_vaccine_push_sm'
+#    - 'optimistic_child_vaccine_push_sm'
   output_root: ''
 workflow:
   project: 'proj_covid_prod'
