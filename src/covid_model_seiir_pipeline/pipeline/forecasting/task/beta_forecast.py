@@ -238,14 +238,14 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
     ode_params = pd.concat([ode_params, beta, beta_hat], axis=1)
     outputs = pd.concat([system_metrics, output_metrics.reset_index(level='observed', drop=True),
                          postprocessing_params.correction_factors_df], axis=1)
-    chis = past_chis.loc[indices.past].append(chis.loc[indices.future]).sort_index()
+#    chis = past_chis.loc[indices.past].append(chis.loc[indices.future]).sort_index()
 
     logger.info('Writing outputs.', context='write')
     data_interface.save_ode_params(ode_params, scenario, draw_id)
     data_interface.save_components(compartments, scenario, draw_id)
     data_interface.save_raw_covariates(covariates, scenario, draw_id)
     data_interface.save_raw_outputs(outputs, scenario, draw_id)
-    data_interface.save_chis(chis, scenario, draw_id)
+#    data_interface.save_chis(chis, scenario, draw_id)
 
     logger.report()
 
