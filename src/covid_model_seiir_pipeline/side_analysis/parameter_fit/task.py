@@ -12,7 +12,7 @@ from covid_model_seiir_pipeline.lib.ode_mk2.constants import (
     VARIANT_NAMES,
 )
 from covid_model_seiir_pipeline.pipeline.regression import model
-from covid_model_seiir_pipeline.pipeline.parameter_fit.data import FitDataInterface
+from covid_model_seiir_pipeline.side_analysis.parameter_fit.data import FitDataInterface
 from covid_model_seiir_pipeline.pipeline.parameter_fit.specification import FitSpecification
 
 

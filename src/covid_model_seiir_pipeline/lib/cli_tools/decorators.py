@@ -45,9 +45,9 @@ with_covariates_version = click.option(
     help='Which version of covariates to use.',
 )
 with_waning_version = click.option(
-    '--waning-version',
+    '--preprocessing-version',
     type=click.Path(exists=True, file_okay=False),
-    help='Which version of waning to use.',
+    help='Which version of preprocessing to use.',
 )
 with_variant_version = click.option(
     '--variant-version',
