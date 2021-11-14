@@ -1,6 +1,6 @@
 import click
 
-from covid_model_seiir_pipeline.pipeline.parameter_fit import (
+from covid_model_seiir_pipeline.side_analysis.parameter_fit import (
     FIT_JOBS,
     parameter_fit,
 )

@@ -13,7 +13,7 @@ from covid_model_seiir_pipeline.lib.ode_mk2.constants import (
 )
 from covid_model_seiir_pipeline.pipeline.regression import model
 from covid_model_seiir_pipeline.side_analysis.parameter_fit.data import FitDataInterface
-from covid_model_seiir_pipeline.pipeline.parameter_fit.specification import FitSpecification
+from covid_model_seiir_pipeline.side_analysis.parameter_fit.specification import FitSpecification
 
 
 logger = cli_tools.task_performance_logger

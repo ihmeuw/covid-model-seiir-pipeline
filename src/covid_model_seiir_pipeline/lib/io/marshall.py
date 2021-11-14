@@ -11,7 +11,7 @@ from covid_model_seiir_pipeline.lib.io.keys import (
     MetadataKey,
 )
 
-POTENTIAL_INDEX_COLUMNS = ['location_id', 'date', 'age_start']
+POTENTIAL_INDEX_COLUMNS = ['location_id', 'date', 'age_start', 'age_group_years_start', 'age_group_years_end']
 
 
 class CSVMarshall:

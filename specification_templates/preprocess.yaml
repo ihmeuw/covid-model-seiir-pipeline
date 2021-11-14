@@ -1,0 +1,22 @@
+data:
+  location_set_version_id: 771
+  model_inputs_version: 'best'
+  age_specific_rates_version: 'best'
+  mortality_scalars_version: 'best'
+
+  mask_use_version: 'best'
+  mobility_version: 'best'
+  pneumonia_version: 'best'
+  population_density_version: 'best'
+  testing_version: 'best'
+  vaccine_coverage_version: 'best'
+  variant_prevalence_version: 'best'
+
+  output_root: ''
+  output_format: 'parquet'
+  n_draws: 100
+  drop_locations: []
+workflow:
+  project: 'proj_covid_prod'
+  queue: 'd.q'
+

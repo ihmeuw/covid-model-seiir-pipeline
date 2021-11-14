@@ -1,0 +1,2 @@
+from covid_model_seiir_pipeline.side_analysis.parameter_fit import FitSpecification
+from covid_model_seiir_pipeline.side_analysis.parameter_fit.main import do_parameter_fit

@@ -1,7 +1,7 @@
 from covid_shared import cli_tools, ihme_deps
 from loguru import logger
 
-from covid_model_seiir_pipeline.pipeline.parameter_fit.specification import FitSpecification
+from covid_model_seiir_pipeline.side_analysis.parameter_fit.specification import FitSpecification
 from covid_model_seiir_pipeline.side_analysis.parameter_fit.workflow import FitWorkflow
 from covid_model_seiir_pipeline.side_analysis.parameter_fit.data import FitDataInterface
 

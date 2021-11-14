@@ -6,7 +6,6 @@ from typing import List, Union
 from covid_model_seiir_pipeline.lib.io.keys import (
     DatasetType,
     MetadataType,
-    DatasetKey,
     LEAF_TEMPLATES,
     PREFIX_TEMPLATES,
 )
@@ -101,15 +100,50 @@ class DataRoot:
         return paths
 
 
-class InfectionRoot(DataRoot):
-    """Data root representing infectionator outputs."""
+###############
+# Input Roots #
+###############
+
+class ModelInputsRoot(DataRoot):
     metadata = MetadataType('metadata')
 
-    em_scalars = DatasetType('em_data')
-    infections = DatasetType('infections_draws', LEAF_TEMPLATES.DRAW_TEMPLATE)
-    ifr = DatasetType('ifr_draws', LEAF_TEMPLATES.DRAW_TEMPLATE)
-    ihr = DatasetType('ihr_draws', LEAF_TEMPLATES.DRAW_TEMPLATE)
-    idr = DatasetType('idr_draws', LEAF_TEMPLATES.DRAW_TEMPLATE)
+
+class AgeSpecificRatesRoot(DataRoot):
+    metadata = MetadataType('metadata')
+
+    rates_data = DatasetType(LEAF_TEMPLATES.MEASURE_TEMPLATE)
+
+
+class MortalityScalarsRoot(DataRoot):
+    metadata = MetadataType('metadata')
+
+    total_covid_draw = DatasetType('total_covid_draw')
+    total_covid_mean = DatasetType('total_covid_mean')
+
+
+class MaskUseRoot(DataRoot):
+    metadata = MetadataType('metadata')
+
+    mask_use = DatasetType(LEAF_TEMPLATES.MEASURE_TEMPLATE)
+
+
+class MobilityRoot(DataRoot):
+    metadata = MetadataType('metadata')
+
+
+########################
+# Pipeline Stage Roots #
+########################
+
+class PreprocessingRoot(DataRoot):
+    metadata = MetadataType('metadata')
+    specification = MetadataType('preprocessing_specification')
+
+    hierarchy = DatasetType('hierarchy')
+
+    age_patterns = DatasetType('age_patterns')
+    total_covid_scalars: DatasetType('total_covid_scalars')
+    mask_use: DatasetType('mask_use', LEAF_TEMPLATES.COV_SCENARIO_TEMPLATE)
 
 
 class VariantRoot(DataRoot):
@@ -139,11 +173,7 @@ class WaningRoot(DataRoot):
                                          prefix_template=PREFIX_TEMPLATES.SCENARIO_TEMPLATE)
 
 
-class MortalityRatioRoot(DataRoot):
-    """Data root representing age pattern of mortality."""
-    metadata = MetadataType('metadata')
 
-    mortality_ratio = DatasetType('mortality_ratio_5yr')
 
 
 class CovariatePriorsRoot(DataRoot):

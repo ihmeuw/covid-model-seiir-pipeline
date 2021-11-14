@@ -1,3 +1,4 @@
+PREPROCESSING_SPECIFICATION_FILE = 'preprocessing_specification.yaml'
 FIT_SPECIFICATION_FILE = 'fit_specification.yaml'
 REGRESSION_SPECIFICATION_FILE = 'regression_specification.yaml'
 FORECAST_SPECIFICATION_FILE = 'forecast_specification.yaml'

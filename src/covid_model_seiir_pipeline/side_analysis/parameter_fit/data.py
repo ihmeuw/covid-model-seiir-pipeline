@@ -7,7 +7,7 @@ from covid_model_seiir_pipeline.lib import (
     io,
     static_vars,
 )
-from covid_model_seiir_pipeline.pipeline.parameter_fit.specification import (
+from covid_model_seiir_pipeline.side_analysis.parameter_fit.specification import (
     FitSpecification,
 )
 from covid_model_seiir_pipeline.pipeline.regression.data import (
