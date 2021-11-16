@@ -106,6 +106,13 @@ add_preprocess_only = click.option(
 # Task version options #
 ########################
 
+with_task_preprocessing_version = click.option(
+    '--preprocessing-version', '-i',
+    type=click.Path(exists=True, file_okay=False),
+    required=True,
+    help='Full path to an existing directory containing a '
+         '"preprocessing_specification.yaml".',
+)
 with_task_fit_version = click.option(
     '--fit-version', '-i',
     type=click.Path(exists=True, file_okay=False),

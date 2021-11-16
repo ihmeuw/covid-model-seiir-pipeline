@@ -9,53 +9,29 @@ from covid_model_seiir_pipeline.lib import (
 
 
 class __PreprocessingJobs(NamedTuple):
-    smooth_epi_measures: str
-    compute_waning: str
-    covariate_prep: str
-    preprocess_validation: str
-    preprocess_diagnostics: str
+    preprocess_measure: str
+    preprocess_vaccine: str
 
 
 PREPROCESSING_JOBS = __PreprocessingJobs(*__PreprocessingJobs._fields)
 
 
-class SmoothEpiMeasuresTaskSpecification(workflow.TaskSpecification):
+class PreprocessMeasureTaskSpecification(workflow.TaskSpecification):
     default_max_runtime_seconds = 3000
-    default_m_mem_free = '20G'
-    default_num_cores = 5
+    default_m_mem_free = '5G'
+    default_num_cores = 1
 
 
-class ComputeWaningTaskSpecification(workflow.TaskSpecification):
+class PreprocessVaccineSpecification(workflow.TaskSpecification):
     default_max_runtime_seconds = 3000
-    default_m_mem_free = '20G'
-    default_num_cores = 5
-
-
-class CovariatePrepTaskSpecification(workflow.TaskSpecification):
-    default_max_runtime_seconds = 3000
-    default_m_mem_free = '20G'
-    default_num_cores = 5
-
-
-class PreprocessingValidationTaskSpecification(workflow.TaskSpecification):
-    default_max_runtime_seconds = 3000
-    default_m_mem_free = '20G'
-    default_num_cores = 5
-
-
-class PreprocessingDiagnosticsTaskSpecification(workflow.TaskSpecification):
-    default_max_runtime_seconds = 3000
-    default_m_mem_free = '20G'
-    default_num_cores = 5
+    default_m_mem_free = '50G'
+    default_num_cores = 26
 
 
 class PreprocessingWorkflowSpecification(workflow.WorkflowSpecification):
     tasks = {
-        PREPROCESSING_JOBS.smooth_epi_measures: SmoothEpiMeasuresTaskSpecification,
-        PREPROCESSING_JOBS.compute_waning: ComputeWaningTaskSpecification,
-        PREPROCESSING_JOBS.covariate_prep: CovariatePrepTaskSpecification,
-        PREPROCESSING_JOBS.preprocess_validation: PreprocessingValidationTaskSpecification,
-        PREPROCESSING_JOBS.preprocess_diagnostics: PreprocessingDiagnosticsTaskSpecification,
+        PREPROCESSING_JOBS.preprocess_measure: PreprocessMeasureTaskSpecification,
+        PREPROCESSING_JOBS.preprocess_vaccine: PreprocessVaccineSpecification,
     }
 
 
@@ -72,8 +48,10 @@ class PreprocessingData:
     pneumonia_version: str = field(default='best')
     population_density_version: str = field(default='best')
     testing_version: str = field(default='best')
-    vaccine_coverage_version: str = field(default='best')
     variant_prevalence_version: str = field(default='best')
+    vaccine_coverage_version: str = field(default='best')
+    vaccine_efficacy_version: str = field(default='best')
+    vaccine_scenarios: list = field(default_factory=list)
 
     output_root: str = field(default='')
     output_format: str = field(default='parquet')

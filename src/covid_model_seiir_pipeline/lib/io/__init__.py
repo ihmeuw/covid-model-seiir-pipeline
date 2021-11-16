@@ -8,16 +8,17 @@ from covid_model_seiir_pipeline.lib.io.data_roots import (
     MortalityScalarsRoot,
 
     MaskUseRoot,
+    MobilityRoot,
+    PneumoniaRoot,
+    PopulationDensityRoot,
+    TestingRoot,
+    VariantPrevalenceRoot,
+    VaccineCoverageRoot,
+    VaccineEfficacyRoot,
 
     PreprocessingRoot,
 
-
-
-
-    VariantRoot,
-    WaningRoot,
     CovariatePriorsRoot,
-    CovariateRoot,
 
     FitRoot,
     RegressionRoot,

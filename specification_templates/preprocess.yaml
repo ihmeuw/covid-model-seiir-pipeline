@@ -9,9 +9,14 @@ data:
   pneumonia_version: 'best'
   population_density_version: 'best'
   testing_version: 'best'
-  vaccine_coverage_version: 'best'
   variant_prevalence_version: 'best'
-
+  vaccine_coverage_version: 'best'
+  vaccine_efficacy_version: 'best'
+  vaccine_scenarios:
+    - 'reference'
+    - 'child_fast'
+    - 'booster_high'
+    - 'optimistic'
   output_root: ''
   output_format: 'parquet'
   n_draws: 100

@@ -1,0 +1,193 @@
+import itertools
+from typing import Dict, List
+
+import numba
+import numpy as np
+import pandas as pd
+import tqdm
+
+from covid_model_seiir_pipeline.lib import (
+    cli_tools,
+)
+from covid_model_seiir_pipeline.pipeline.preprocessing.data import (
+    PreprocessingDataInterface,
+)
+
+logger = cli_tools.task_performance_logger
+
+
+def make_uptake_square(uptake: pd.DataFrame) -> pd.DataFrame:
+    courses = uptake.vaccine_course.unique()
+    location_ids = uptake.location_id.unique()
+    risk_groups = uptake.risk_group.unique()
+    date = pd.date_range(uptake.date.min(), uptake.date.max())
+    idx_names = ['vaccine_course', 'location_id', 'risk_group', 'date']
+    idx = pd.MultiIndex.from_product([courses, location_ids, risk_groups, date], names=idx_names)
+    uptake = uptake.set_index(idx_names).sort_index()
+    duplicates = uptake.index.duplicated()
+    if not duplicates.empty:
+        logger.warning('Duplicates found in uptake dataset')
+        uptake = uptake.loc[~duplicates]
+    uptake = uptake.reindex(idx).fillna(0.)
+    return uptake
+
+
+def map_variants(efficacy: pd.DataFrame) -> pd.DataFrame:
+    efficacy_map = {
+        'alpha': 'ancestral',
+        'beta': 'delta',
+        'gamma': 'delta',
+        'other': 'delta',
+        'omega': 'delta',
+    }
+    for target_variant, similar_variant in efficacy_map.items():
+        efficacy[target_variant] = efficacy[similar_variant]
+    return efficacy
+
+
+def rescale_to_proportion(waning: pd.DataFrame) -> pd.DataFrame:
+    max_efficacy = (waning
+                    .groupby(['endpoint', 'brand'])
+                    .max()
+                    .reindex(waning.index))
+    waning = (waning / max_efficacy).fillna(0.)
+    return waning
+
+
+def get_infection_endpoint_brand_specific_waning(waning: pd.DataFrame,
+                                                all_brands: List[str]) -> pd.DataFrame:
+    waning_map = {
+        'BNT-162': waning.loc[('infection', 'pfi')],
+        'Moderna': waning.loc[('infection', 'mod')],
+        'AZD1222': waning.loc[('symptomatic_infection', 'ast')],
+    }
+    default_waning = pd.concat(waning_map.values(), axis=1).mean(axis=1).rename('value')
+    brand_specific_waning = _get_brand_specific_waning(waning_map, default_waning, all_brands)
+    brand_specific_waning['endpoint'] = 'infection'
+    brand_specific_waning = (brand_specific_waning
+                             .reset_index()
+                             .set_index(['endpoint', 'brand', 'days'])
+                             .sort_index())
+    return brand_specific_waning
+
+
+def get_severe_endpoint_brand_specific_waning(waning: pd.DataFrame,
+                                              all_brands: List[str]) -> pd.DataFrame:
+    waning_map = {
+        'BNT-162': waning.loc[('severe_disease', 'pfi')],
+        'Moderna': waning.loc[('severe_disease', 'mod')],
+        'AZD1222': waning.loc[('severe_disease', 'ast')],
+    }
+    default_waning = pd.concat(waning_map.values(), axis=1).mean(axis=1).rename('value')
+    brand_specific_waning = _get_brand_specific_waning(waning_map, default_waning, all_brands)
+    brand_specific_waning['endpoint'] = 'severe_disease'
+    brand_specific_waning = (brand_specific_waning
+                             .reset_index()
+                             .set_index(['endpoint', 'brand', 'days'])
+                             .sort_index())
+    return brand_specific_waning
+
+
+def _get_brand_specific_waning(waning_map: Dict[str, pd.Series],
+                               default_waning: pd.Series,
+                               all_brands: List[str]):
+    out = []
+    for brand in all_brands:
+        brand_waning = waning_map.get(brand, default_waning)
+        brand_waning = _coerce_week_index_to_day_index(brand_waning).to_frame()
+        brand_waning['brand'] = brand
+        out.append(brand_waning)
+    waning = pd.concat(out).reset_index().set_index(['brand', 'days']).sort_index()
+    return waning
+
+
+def _coerce_week_index_to_day_index(data: pd.Series) -> pd.Series:
+    t_wks = 7 * data.index
+    t_days = np.arange(0, t_wks.max())
+    data = pd.Series(
+        np.interp(t_days, t_wks, data),
+        index=pd.Index(t_days, name='days'),
+        name='value'
+    )
+    data = data.reindex(np.arange(0, 1500)).fillna(0.)
+    return data
+
+
+def build_waning_efficacy(efficacy: pd.DataFrame, waning: pd.DataFrame) -> pd.DataFrame:
+    waning_efficacy = (efficacy
+                       .reindex(waning.index)
+                       .mul(waning.value, axis=0)
+                       .stack()
+                       .reset_index())
+    waning_efficacy.columns = ['endpoint', 'brand', 'days', 'variant', 'value']
+    waning_efficacy = (waning_efficacy
+                       .set_index(['endpoint', 'variant', 'days', 'brand'])
+                       .value
+                       .sort_index()
+                       .unstack())
+    waning_efficacy.columns.name = None
+    return waning_efficacy
+
+
+def build_eta_calc_arguments(vaccine_uptake: pd.DataFrame,
+                              waning_efficacy: pd.DataFrame) -> List:
+    location_ids = vaccine_uptake.reset_index().location_id.unique()
+    groups = itertools.product(['infection', 'severe_disease'], location_ids, [1, 2], ['hr', 'lr'])
+    eta_args = []
+    for endpoint, location_id, vaccine_course, risk_group in tqdm.tqdm(list(groups)):
+        group_uptake = vaccine_uptake.loc[(vaccine_course, location_id, risk_group)]
+        group_efficacy = waning_efficacy.loc[endpoint]
+        eta_args.append([
+            endpoint,
+            location_id,
+            vaccine_course,
+            risk_group,
+            group_uptake,
+            group_efficacy,
+        ])
+    return eta_args
+
+
+def compute_eta(args: List) -> pd.DataFrame:
+    endpoint, location_id, vaccine_course, risk_group, uptake, efficacy = args
+    variants = efficacy.reset_index().variant.unique()
+    dates = uptake.index
+    u = uptake.values
+
+    eta = np.zeros((len(dates), len(variants)))
+    for j, variant in enumerate(variants):
+        e = efficacy.loc[variant].values[:len(u)]
+        _compute_variant_eta(u, e, j, eta)
+
+    eta = pd.DataFrame(eta, columns=variants, index=dates)
+    eta['endpoint'] = endpoint
+    eta['location_id'] = location_id
+    eta['vaccine_course'] = vaccine_course
+    eta['risk_group'] = risk_group
+
+    eta = eta.reset_index().set_index(['endpoint', 'vaccine_course', 'risk_group', 'location_id', 'date'])
+    eta = eta.bfill().fillna(0.)
+    return eta
+
+
+@numba.njit
+def _compute_variant_eta(u, e, j, eta):
+    for t in range(1, u.shape[0] + 1):
+        total = u[:t].sum()
+        if total:
+            eta[t - 1, j] = (u[:t][::-1] * e[:t]).sum() / total
+        else:
+            eta[t - 1, j] = 0.
+    return eta
+
+
+def compute_natural_waning(waning: pd.DataFrame) -> pd.DataFrame:
+    # Other is an average of all vaccine waning, which is also what we want for natural waning.
+    natural_waning_infection = waning.loc[('infection', 'Other')].reset_index()
+    natural_waning_infection['endpoint'] = 'infection'
+    natural_waning_severe_disease = waning.loc[('severe_disease', 'Other')].reset_index()
+    natural_waning_severe_disease['endpoint'] = 'severe_disease'
+    natural_waning = (pd.concat([natural_waning_infection, natural_waning_severe_disease])
+                      .set_index(['endpoint', 'days'])
+                      .sort_index())
+    return natural_waning

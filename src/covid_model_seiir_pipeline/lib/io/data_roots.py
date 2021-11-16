@@ -107,6 +107,11 @@ class DataRoot:
 class ModelInputsRoot(DataRoot):
     metadata = MetadataType('metadata')
 
+    serology = DatasetType('serology', LEAF_TEMPLATES.MEASURE_TEMPLATE)
+    full_data = DatasetType('full_data_unscaled')
+    full_data_extra_hospital = DatasetType('use_at_your_own_risk/full_data_extra_hospital')
+
+
 
 class AgeSpecificRatesRoot(DataRoot):
     metadata = MetadataType('metadata')
@@ -124,11 +129,51 @@ class MortalityScalarsRoot(DataRoot):
 class MaskUseRoot(DataRoot):
     metadata = MetadataType('metadata')
 
-    mask_use = DatasetType(LEAF_TEMPLATES.MEASURE_TEMPLATE)
+    mask_use_data = DatasetType(LEAF_TEMPLATES.MEASURE_TEMPLATE)
 
 
 class MobilityRoot(DataRoot):
     metadata = MetadataType('metadata')
+
+    mobility_data = DatasetType(LEAF_TEMPLATES.MEASURE_TEMPLATE)
+
+
+class PneumoniaRoot(DataRoot):
+    metadata = MetadataType('metadata')
+
+    pneumonia_data = DatasetType('pneumonia')
+
+
+class PopulationDensityRoot(DataRoot):
+    metadata = MetadataType('metadata')
+
+    population_density_data = DatasetType('all_outputs_2020_full')
+
+
+class TestingRoot(DataRoot):
+    metadata = MetadataType('metadata')
+
+    testing_data = DatasetType('forecast_raked_test_pc_simple')
+
+
+class VariantPrevalenceRoot(DataRoot):
+    metadata = MetadataType('metadata')
+
+    prevalence = DatasetType(LEAF_TEMPLATES.VARIANT_SCENARIO)
+    original_data = DatasetType('original_data', LEAF_TEMPLATES.MEASURE_TEMPLATE)
+
+
+class VaccineCoverageRoot(DataRoot):
+    metadata = MetadataType('metadata')
+
+    brand_specific_coverage = DatasetType(LEAF_TEMPLATES.MEASURE_TEMPLATE)
+
+
+class VaccineEfficacyRoot(DataRoot):
+    metadata = MetadataType('metadata')
+
+    efficacy_table = DatasetType('vaccine_efficacy_table')
+    waning_distribution = DatasetType(LEAF_TEMPLATES.MEASURE_TEMPLATE)
 
 
 ########################
@@ -142,67 +187,24 @@ class PreprocessingRoot(DataRoot):
     hierarchy = DatasetType('hierarchy')
 
     age_patterns = DatasetType('age_patterns')
-    total_covid_scalars: DatasetType('total_covid_scalars')
-    mask_use: DatasetType('mask_use', LEAF_TEMPLATES.COV_SCENARIO_TEMPLATE)
+    total_covid_scalars = DatasetType('total_covid_scalars')
+    global_serology = DatasetType('global_serology')
+    testing_for_idr = DatasetType('testing')
+    variant_prevalence = DatasetType('variant_prevalence', LEAF_TEMPLATES.VARIANT_SCENARIO)
+    waning_parameters = DatasetType(LEAF_TEMPLATES.MEASURE_TEMPLATE)
+    vaccine_uptake = DatasetType('vaccine_uptake', LEAF_TEMPLATES.COV_SCENARIO_TEMPLATE)
+    vaccine_risk_reduction = DatasetType('vaccine_risk_reduction', LEAF_TEMPLATES.COV_SCENARIO_TEMPLATE)
 
-
-class VariantRoot(DataRoot):
-    """Data root representing variant model outputs."""
-    metadata = MetadataType('metadata')
-
-    prevalence = DatasetType(LEAF_TEMPLATES.VARIANT_SCENARIO)
-    original_data = DatasetType('original_data', LEAF_TEMPLATES.MEASURE_TEMPLATE)
-
-
-class WaningRoot(DataRoot):
-    metadata = MetadataType('metadata')
-
-    efficacy = DatasetType('base_vaccine_efficacy',
-                           prefix_template=PREFIX_TEMPLATES.SCENARIO_TEMPLATE)
-    uptake = DatasetType('vaccine_uptake',
-                         prefix_template=PREFIX_TEMPLATES.SCENARIO_TEMPLATE)
-    vaccine_waning = DatasetType('vaccine_waning_distribution',
-                                 prefix_template=PREFIX_TEMPLATES.SCENARIO_TEMPLATE)
-    efficacy_waning = DatasetType('vaccine_waning_efficacy',
-                                  prefix_template=PREFIX_TEMPLATES.SCENARIO_TEMPLATE)
-    etas = DatasetType('vaccine_risk_reduction',
-                       prefix_template=PREFIX_TEMPLATES.SCENARIO_TEMPLATE)
-    natural_waning = DatasetType('natural_waning_distribution',
-                                 prefix_template=PREFIX_TEMPLATES.SCENARIO_TEMPLATE)
-    cross_variant_immunity = DatasetType('cross_variant_immunity_matrix',
-                                         prefix_template=PREFIX_TEMPLATES.SCENARIO_TEMPLATE)
-
-
-
-
-
-class CovariatePriorsRoot(DataRoot):
-    metadata = MetadataType('metadata')
-
-    priors = DatasetType('priors')
-
-
-class CovariateRoot(DataRoot):
-    """Data root representing prepped covariates."""
-    metadata = MetadataType('metadata')
-
-    air_pollution_pm_2_5 = DatasetType('air_pollution_pm_2_5', LEAF_TEMPLATES.COV_SCENARIO_TEMPLATE)
-    lri_mortality = DatasetType('lri_mortality', LEAF_TEMPLATES.COV_SCENARIO_TEMPLATE)
-    mask_use = DatasetType('mask_use', LEAF_TEMPLATES.COV_SCENARIO_TEMPLATE)
-    mobility = DatasetType('mobility', LEAF_TEMPLATES.COV_SCENARIO_TEMPLATE)
-    pneumonia = DatasetType('pneumonia', LEAF_TEMPLATES.COV_SCENARIO_TEMPLATE)
-    proportion_over_2_5k = DatasetType('proportion_over_2_5k', LEAF_TEMPLATES.COV_SCENARIO_TEMPLATE)
-    proportion_under_100m = DatasetType('proportion_under_100m', LEAF_TEMPLATES.COV_SCENARIO_TEMPLATE)
-    smoking_prevalence = DatasetType('smoking_prevalence', LEAF_TEMPLATES.COV_SCENARIO_TEMPLATE)
-    testing = DatasetType('testing', LEAF_TEMPLATES.COV_SCENARIO_TEMPLATE)
-
-    mobility_info = DatasetType('mobility', LEAF_TEMPLATES.COV_INFO_TEMPLATE)
-    vaccine_info = DatasetType('vaccine_coverage', LEAF_TEMPLATES.COV_INFO_TEMPLATE)
-    variant_info = DatasetType('variant_prevalence', LEAF_TEMPLATES.COV_INFO_TEMPLATE)
+    mask_use = DatasetType('mask_use', LEAF_TEMPLATES.COV_SCENARIO_TEMPLATE, PREFIX_TEMPLATES.COVARIATES)
+    mobility = DatasetType('mobility', LEAF_TEMPLATES.COV_SCENARIO_TEMPLATE, PREFIX_TEMPLATES.COVARIATES)
+    mobility_info = DatasetType('mobility', LEAF_TEMPLATES.COV_INFO_TEMPLATE, PREFIX_TEMPLATES.COVARIATES)
+    pneumonia = DatasetType('pneumonia', LEAF_TEMPLATES.COV_SCENARIO_TEMPLATE, PREFIX_TEMPLATES.COVARIATES)
+    proportion_over_2_5k = DatasetType('proportion_over_2_5k', LEAF_TEMPLATES.COV_SCENARIO_TEMPLATE, PREFIX_TEMPLATES.COVARIATES)
+    testing = DatasetType('testing', LEAF_TEMPLATES.COV_SCENARIO_TEMPLATE, PREFIX_TEMPLATES.COVARIATES)
 
     # Getters provide dynamic keys to support experimentation with custom covariates.
     def __getattr__(self, item: str) -> DatasetType:
-        setattr(type(self), item, DatasetType(item, LEAF_TEMPLATES.COV_SCENARIO_TEMPLATE))
+        setattr(type(self), item, DatasetType(item, LEAF_TEMPLATES.COV_SCENARIO_TEMPLATE, 'covariates'))
         return getattr(self, item)
 
     def __getitem__(self, item: str) -> DatasetType:
@@ -213,6 +215,14 @@ class CovariateRoot(DataRoot):
 
     def __setstate__(self, state):
         self.__dict__ = state
+
+
+
+class CovariatePriorsRoot(DataRoot):
+    metadata = MetadataType('metadata')
+
+    priors = DatasetType('priors')
+
 
 
 class FitRoot(DataRoot):
