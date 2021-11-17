@@ -1,4 +1,20 @@
+from pathlib import Path
+from typing import NamedTuple, Union
+
 import click
+import inflection
+
+
+MaybePathLike = Union[str, Path, None]
+
+
+class VersionInfo(NamedTuple):
+    """Tiny struct for processing input versions from cli args and specs."""
+    cli_arg: MaybePathLike
+    spec_arg: MaybePathLike
+    default: MaybePathLike
+    metadata_key: str
+    allow_default: bool
 
 ###########################
 # Specification arguments #
@@ -11,12 +27,13 @@ def with_specification(specification_class):
     return click.argument(
         'specification',
         type=click.Path(exists=True, dir_okay=False),
+        callback=_callback
     )
-
 
 ###########################
 # Main input data options #
 ###########################
+
 
 with_location_specification = click.option(
     '-l', '--location-specification',
@@ -25,111 +42,27 @@ with_location_specification = click.option(
          'locations to run, or a full path to a file describing '
          'the location set.',
 )
-with_model_inputs_version = click.option(
-    '--model-inputs-version',
-    type=click.Path(exists=True, file_okay=False),
-    help='Which version of model-inputs to use.',
-)
-with_age_specific_rates_version = click.option(
-    '--age-specific-rates-version',
-    type=click.Path(exists=True, file_okay=False),
-    help='Which version of age-specific-rates to use.',
-)
-with_mortality_scalars_version = click.option(
-    '--mortality-scalars-version',
-    type=click.Path(exists=True, file_okay=False),
-    help='Which version of mortality-scalars to use.',
-)
-with_mask_use_version = click.option(
-    '--mask-use-version',
-    type=click.Path(exists=True, file_okay=False),
-    help='Which version of mask use to use.',
-)
-with_mobility_version = click.option(
-    '--mobility-version',
-    type=click.Path(exists=True, file_okay=False),
-    help='Which version of mobility to use.',
-)
-with_pneumonia_version = click.option(
-    '--pneumonia-version',
-    type=click.Path(exists=True, file_okay=False),
-    help='Which version of pneumonia to use.',
-)
-with_population_density_version = click.option(
-    '--population-density-version',
-    type=click.Path(exists=True, file_okay=False),
-    help='Which version of population density to use.',
-)
-with_testing_version = click.option(
-    '--testing-version',
-    type=click.Path(exists=True, file_okay=False),
-    help='Which version of testing to use.',
-)
-with_variant_prevalence_version = click.option(
-    '--variant-prevalence-version',
-    type=click.Path(exists=True, file_okay=False),
-    help='Which version of variant prevalence to use.',
-)
-with_vaccine_coverage_version = click.option(
-    '--vaccine-coverage-version',
-    type=click.Path(exists=True, file_okay=False),
-    help='Which version of vaccine coverage to use.',
-)
-with_vaccine_efficacy_version = click.option(
-    '--vaccine-efficacy-version',
-    type=click.Path(exists=True, file_okay=False),
-    help='Which version of vaccine efficacy to use.',
-)
 
-with_infection_version = click.option(
-    '--infection-version',
-    type=click.Path(exists=True, file_okay=False),
-    help='Which version of infection inputs to use.',
-)
-with_covariates_version = click.option(
-    '--covariates-version',
-    type=click.Path(exists=True, file_okay=False),
-    help='Which version of covariates to use.',
-)
-with_waning_version = click.option(
-    '--preprocessing-version',
-    type=click.Path(exists=True, file_okay=False),
-    help='Which version of preprocessing to use.',
-)
-with_variant_version = click.option(
-    '--variant-version',
-    type=click.Path(exists=True, file_okay=False),
-    help='Which version of variants to use.',
-)
-with_mortality_ratio_version = click.option(
-    '--mortality-ratio-version',
-    type=click.Path(exists=True, file_okay=False),
-    help='Which version of the mortality age pattern to use.',
-)
-with_priors_version = click.option(
-    '--priors-version',
-    type=click.Path(exists=True, file_okay=False),
-    help='Data based priors for the regression.',
-)
-with_coefficient_version = click.option(
-    '--coefficient-version',
-    type=click.Path(exists=True, file_okay=False),
-    help='A prior regression version for pinning the regression '
-         'coefficients. If provided, all fixed effects from the '
-         'provided version will be used and only random effects will '
-         'be fit.',
-)
 
-with_regression_version = click.option(
-    '--regression-version',
-    type=click.Path(exists=True, file_okay=False),
-    help='Which version of beta regression to use.',
-)
-with_forecast_version = click.option(
-    '--forecast-version',
-    type=click.Path(exists=True, file_okay=False),
-    help='Which version of forecasts to use.'
-)
+def with_version(default_root: Path, allow_default: bool = True, name: str = None):
+    if name is None:
+        name = inflection.underscore(default_root.name)
+
+    def _callback(ctx, param, value):
+        specification = ctx.params['specification']
+        return VersionInfo(
+            value,
+            getattr(specification.data, f'{name}_version'),
+            default_root,
+            f'{name}_metadata',
+            allow_default,
+        )
+    return click.option(
+        f'{inflection.dasherize(name)}-version',
+        type=click.Path(exists=True, file_okay=False),
+        help=f'Which version of {name} to use.'
+    )
+
 
 ######################
 # Other main options #

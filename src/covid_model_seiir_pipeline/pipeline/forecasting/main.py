@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Dict, Optional
 
 import click
 from covid_shared import ihme_deps, paths
@@ -12,29 +12,12 @@ from covid_model_seiir_pipeline.pipeline.forecasting.workflow import ForecastWor
 
 def do_forecast(run_metadata: cli_tools.RunMetadata,
                 forecast_specification: str,
-                regression_version: Optional[str],
-                covariates_version: Optional[str],
-                preprocess_only: bool,
                 output_root: Optional[str], mark_best: bool, production_tag: str,
-                with_debugger: bool) -> ForecastSpecification:
+                preprocess_only: bool,
+                with_debugger: bool,
+                **input_versions: Dict[str, cli_tools.VersionInfo]) -> ForecastSpecification:
     forecast_spec = ForecastSpecification.from_path(forecast_specification)
 
-    input_versions = {
-        'regression_version': cli_tools.VersionInfo(
-            regression_version,
-            forecast_spec.data.regression_version,
-            paths.SEIR_REGRESSION_OUTPUTS,
-            'regression_metadata',
-            True,
-        ),
-        'covariate_version': cli_tools.VersionInfo(
-            covariates_version,
-            forecast_spec.data.covariate_version,
-            paths.SEIR_COVARIATES_OUTPUT_ROOT,
-            'covariates_metadata',
-            True,
-        ),
-    }
     forecast_spec, run_metadata = cli_tools.resolve_version_info(forecast_spec, run_metadata, input_versions)
 
     output_root = cli_tools.get_output_root(output_root,
@@ -87,17 +70,17 @@ def forecast_main(app_metadata: cli_tools.Metadata,
 @click.command()
 @cli_tools.pass_run_metadata()
 @cli_tools.with_specification(ForecastSpecification)
-@cli_tools.with_regression_version
-@cli_tools.with_covariates_version
-@cli_tools.add_preprocess_only
+@cli_tools.with_version(paths.SEIR_REGRESSION_OUTPUTS)
+@cli_tools.with_version(paths.SEIR_COVARIATES_OUTPUT_ROOT)
 @cli_tools.add_output_options(paths.SEIR_FORECAST_OUTPUTS)
+@cli_tools.add_preprocess_only
 @cli_tools.add_verbose_and_with_debugger
 def forecast(run_metadata,
              forecast_specification,
              regression_version,
              covariates_version,
-             preprocess_only,
              output_root, mark_best, production_tag,
+             preprocess_only,
              verbose, with_debugger):
     """Perform beta forecast for a set of scenarios on a regression."""
     cli_tools.configure_logging_to_terminal(verbose)
@@ -107,10 +90,10 @@ def forecast(run_metadata,
         forecast_specification=forecast_specification,
         regression_version=regression_version,
         covariates_version=covariates_version,
-        preprocess_only=preprocess_only,
         output_root=output_root,
         mark_best=mark_best,
         production_tag=production_tag,
+        preprocess_only=preprocess_only,
         with_debugger=with_debugger,
     )
 

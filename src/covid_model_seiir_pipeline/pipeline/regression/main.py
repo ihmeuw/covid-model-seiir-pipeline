@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Dict, Optional
 
 import click
 from covid_shared import ihme_deps, paths
@@ -13,54 +13,13 @@ from covid_model_seiir_pipeline.pipeline.regression.workflow import RegressionWo
 
 def do_beta_regression(run_metadata: cli_tools.RunMetadata,
                        regression_specification: str,
-                       infection_version: Optional[str],
-                       covariates_version: Optional[str],
-                       waning_version: Optional[str],
-                       priors_version: Optional[str],
-                       coefficient_version: Optional[str],
                        location_specification: Optional[str],
-                       preprocess_only: bool,
                        output_root: Optional[str], mark_best: bool, production_tag: str,
-                       with_debugger: bool) -> RegressionSpecification:
+                       preprocess_only: bool,
+                       with_debugger: bool,
+                       **input_versions: Dict[str, cli_tools.VersionInfo]) -> RegressionSpecification:
     regression_spec = RegressionSpecification.from_path(regression_specification)
 
-    input_versions = {
-        'infection_version': cli_tools.VersionInfo(
-            infection_version,
-            regression_spec.data.infection_version,
-            paths.PAST_INFECTIONS_ROOT,
-            'infections_metadata',
-            True,
-        ),
-        'covariate_version': cli_tools.VersionInfo(
-            covariates_version,
-            regression_spec.data.covariate_version,
-            paths.SEIR_COVARIATES_OUTPUT_ROOT,
-            'covariates_metadata',
-            True,
-        ),
-        'waning_version': cli_tools.VersionInfo(
-            waning_version,
-            regression_spec.data.waning_version,
-            paths.WANING_IMMUNITY_OUTPUT_ROOT,
-            'waning_metadata',
-            True,
-        ),
-        'priors_version': cli_tools.VersionInfo(
-            priors_version,
-            regression_spec.data.priors_version,
-            paths.SEIR_COVARIATE_PRIORS_ROOT,
-            'covariate_priors_metadata',
-            False,
-        ),
-        'coefficient_version': cli_tools.VersionInfo(
-            coefficient_version,
-            regression_spec.data.coefficient_version,
-            paths.SEIR_REGRESSION_OUTPUTS,
-            'coefficient_metadata',
-            False,
-        ),
-    }
     regression_spec, run_metadata = cli_tools.resolve_version_info(regression_spec, run_metadata, input_versions)
 
     locations_set_version_id, location_set_file = cli_tools.get_location_info(
@@ -133,23 +92,22 @@ def beta_regression_main(app_metadata: cli_tools.Metadata,
 @click.command()
 @cli_tools.pass_run_metadata()
 @cli_tools.with_specification(RegressionSpecification)
-@cli_tools.with_infection_version
-@cli_tools.with_covariates_version
-@cli_tools.with_waning_version
-@cli_tools.with_priors_version
-@cli_tools.with_coefficient_version
 @cli_tools.with_location_specification
-@cli_tools.add_preprocess_only
+@cli_tools.with_version(paths.PAST_INFECTIONS_ROOT)
+@cli_tools.with_version(paths.SEIR_COVARIATES_OUTPUT_ROOT)
+@cli_tools.with_version(paths.WANING_IMMUNITY_OUTPUT_ROOT)
+@cli_tools.with_version(paths.SEIR_COVARIATE_PRIORS_ROOT, False)
+@cli_tools.with_version(paths.SEIR_REGRESSION_OUTPUTS, False, 'coefficient')
 @cli_tools.add_output_options(paths.SEIR_REGRESSION_OUTPUTS)
+@cli_tools.add_preprocess_only
 @cli_tools.add_verbose_and_with_debugger
 def regress(run_metadata,
             regression_specification,
-            infection_version, covariates_version, waning_version,
-            priors_version,
-            coefficient_version,
             location_specification,
-            preprocess_only,
+            infection_version, covariates_version, waning_version,
+            priors_version, coefficient_version,
             output_root, mark_best, production_tag,
+            preprocess_only,
             verbose, with_debugger):
     """Perform beta regression for a set of infections and covariates."""
     cli_tools.configure_logging_to_terminal(verbose)
@@ -157,16 +115,16 @@ def regress(run_metadata,
     do_beta_regression(
         run_metadata=run_metadata,
         regression_specification=regression_specification,
+        location_specification=location_specification,
         infection_version=infection_version,
         covariates_version=covariates_version,
         waning_version=waning_version,
         priors_version=priors_version,
         coefficient_version=coefficient_version,
-        location_specification=location_specification,
-        preprocess_only=preprocess_only,
         output_root=output_root,
         mark_best=mark_best,
         production_tag=production_tag,
+        preprocess_only=preprocess_only,
         with_debugger=with_debugger,
     )
 

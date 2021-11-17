@@ -25,19 +25,19 @@ def preprocessing_main(app_metadata: cli_tools.Metadata,
 @cli_tools.pass_run_metadata()
 @cli_tools.with_specification(PreprocessingSpecification)
 @cli_tools.with_location_specification
-@cli_tools.with_model_inputs_version
-@cli_tools.with_age_specific_rates_version
-@cli_tools.with_mortality_scalars_version
-@cli_tools.with_mask_use_version
-@cli_tools.with_mobility_version
-@cli_tools.with_pneumonia_version
-@cli_tools.with_population_density_version
-@cli_tools.with_testing_version
-@cli_tools.with_variant_prevalence_version
-@cli_tools.with_vaccine_coverage_version
-@cli_tools.with_vaccine_efficacy_version
-@cli_tools.add_preprocess_only
+@cli_tools.with_version(paths.MODEL_INPUTS_ROOT)
+@cli_tools.with_version(paths.AGE_SPECIFIC_RATES_ROOT)
+@cli_tools.with_version(paths.MORTALITY_SCALARS_ROOT)
+@cli_tools.with_version(paths.MASK_USE_OUTPUT_ROOT)
+@cli_tools.with_version(paths.MOBILITY_COVARIATES_OUTPUT_ROOT)
+@cli_tools.with_version(paths.PNEUMONIA_OUTPUT_ROOT)
+@cli_tools.with_version(paths.POPULATION_DENSITY_OUTPUT_ROOT)
+@cli_tools.with_version(paths.TESTING_OUTPUT_ROOT)
+@cli_tools.with_version(paths.VARIANT_OUTPUT_ROOT)
+@cli_tools.with_version(paths.VACCINE_COVERAGE_OUTPUT_ROOT)
+@cli_tools.with_version(paths.VACCINE_EFFICACY_ROOT)
 @cli_tools.add_output_options(paths.SEIR_PREPROCESS_ROOT)
+@cli_tools.add_preprocess_only
 @cli_tools.add_verbose_and_with_debugger
 def preprocess(run_metadata: cli_tools.RunMetadata,
                preprocessing_specification: str,
@@ -52,7 +52,8 @@ def preprocess(run_metadata: cli_tools.RunMetadata,
                testing_version: str,
                variant_prevalence_version: str,
                vaccine_coverage_version: str,
-               vaccine_efficacy_version
-
-):
+               vaccine_efficacy_version: str,
+               output_root: str, mark_best: bool, production_tag: str,
+               preprocess_only: bool,
+               verbose: int, with_debugger: bool):
     pass

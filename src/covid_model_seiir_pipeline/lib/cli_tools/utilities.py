@@ -1,21 +1,9 @@
 from bdb import BdbQuit
 import functools
 from pathlib import Path
-from typing import Any, Callable, Dict, NamedTuple, Optional, Tuple, Union
+from typing import Any, Callable, Dict, Optional, Tuple, Union
 
 from covid_shared import cli_tools, paths
-
-
-MaybePathLike = Union[str, Path, None]
-
-
-class VersionInfo(NamedTuple):
-    """Tiny struct for processing input versions from cli args and specs."""
-    cli_arg: MaybePathLike
-    spec_arg: MaybePathLike
-    default: MaybePathLike
-    metadata_key: str
-    allow_default: bool
 
 
 def resolve_version_info(specification, run_metadata: cli_tools.RunMetadata, input_versions: Dict[str, VersionInfo]):

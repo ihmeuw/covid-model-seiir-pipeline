@@ -13,8 +13,8 @@ from covid_model_seiir_pipeline.pipeline.diagnostics.workflow import Diagnostics
 
 def do_diagnostics(run_metadata: cli_tools.RunMetadata,
                    diagnostics_specification: str,
-                   preprocess_only: bool,
                    output_root: Optional[str], mark_best: bool, production_tag: str,
+                   preprocess_only: bool,
                    with_debugger: bool) -> DiagnosticsSpecification:
     diagnostics_spec = DiagnosticsSpecification.from_path(diagnostics_specification)
 
@@ -99,23 +99,23 @@ def diagnostics_main(app_metadata: cli_tools.Metadata,
 @click.command()
 @cli_tools.pass_run_metadata()
 @cli_tools.with_specification(DiagnosticsSpecification)
-@cli_tools.add_preprocess_only
 @cli_tools.add_output_options(paths.SEIR_DIAGNOSTICS_OUTPUTS)
+@cli_tools.add_preprocess_only
 @cli_tools.add_verbose_and_with_debugger
 def diagnostics(run_metadata,
                 diagnostics_specification,
-                preprocess_only,
                 output_root, mark_best, production_tag,
+                preprocess_only,
                 verbose, with_debugger):
     cli_tools.configure_logging_to_terminal(verbose)
 
     do_diagnostics(
         run_metadata=run_metadata,
         diagnostics_specification=diagnostics_specification,
-        preprocess_only=preprocess_only,
         output_root=output_root,
         mark_best=mark_best,
         production_tag=production_tag,
+        preprocess_only=preprocess_only,
         with_debugger=with_debugger,
     )
 

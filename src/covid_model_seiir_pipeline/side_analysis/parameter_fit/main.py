@@ -119,20 +119,20 @@ def parameter_fit_main(app_metadata: cli_tools.Metadata,
 @click.command()
 @cli_tools.pass_run_metadata()
 @cli_tools.with_specification(FitSpecification)
-@cli_tools.with_infection_version
-@cli_tools.with_covariates_version
-@cli_tools.with_coefficient_version
-@cli_tools.with_variant_version
 @cli_tools.with_location_specification
-@cli_tools.add_preprocess_only
+@cli_tools.with_version(paths.PAST_INFECTIONS_ROOT)
+@cli_tools.with_version(paths.SEIR_COVARIATES_OUTPUT_ROOT)
+@cli_tools.with_version(paths.SEIR_REGRESSION_OUTPUTS, name='coefficient')
+@cli_tools.with_version(paths.VARIANT_OUTPUT_ROOT)
 @cli_tools.add_output_options(paths.SEIR_REGRESSION_OUTPUTS)
+@cli_tools.add_preprocess_only
 @cli_tools.add_verbose_and_with_debugger
 def parameter_fit(run_metadata,
                   fit_specification,
-                  infection_version, covariates_version, coefficient_version, variant_version,
                   location_specification,
-                  preprocess_only,
+                  infection_version, covariates_version, coefficient_version, variant_version,
                   output_root, mark_best, production_tag,
+                  preprocess_only,
                   verbose, with_debugger):
     cli_tools.configure_logging_to_terminal(verbose)
 
