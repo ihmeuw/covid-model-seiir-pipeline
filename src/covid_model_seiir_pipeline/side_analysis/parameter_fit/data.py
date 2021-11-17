@@ -24,7 +24,7 @@ class FitDataInterface(RegressionDataInterface):
                  priors_root: Optional[io.CovariatePriorsRoot],
                  coefficient_root: Optional[io.RegressionRoot],
                  regression_root: Optional[io.RegressionRoot],
-                 variant_root: io.VariantRoot,
+                 variant_root: io.VariantPrevalenceRoot,
                  fit_root: io.FitRoot):
         super().__init__(infection_root, covariate_root, priors_root, coefficient_root, regression_root)
         self.variant_root = variant_root
@@ -34,7 +34,7 @@ class FitDataInterface(RegressionDataInterface):
     def from_specification(cls, specification: FitSpecification) -> 'FitDataInterface':
         infection_root = io.InfectionRoot(specification.data.infection_version)
         covariate_root = io.CovariateRoot(specification.data.covariate_version)
-        variant_root = io.VariantRoot(specification.data.variant_version)
+        variant_root = io.VariantPrevalenceRoot(specification.data.variant_version)
         fit_root = io.FitRoot(specification.data.output_root,
                               data_format=specification.data.output_format)
         regression_spec_path = Path(specification.data.coefficient_version) / static_vars.REGRESSION_SPECIFICATION_FILE

@@ -16,5 +16,6 @@ def stask():
 for package in [pipeline, side_analysis]:
     for importer, modname, is_pkg in pkgutil.iter_modules(package.__path__):
         if is_pkg:
-            for task_name, task in __import__(modname).TASKS.items():
+            pipeline_stage = importer.find_module(modname).load_module()
+            for task_name, task in pipeline_stage.TASKS.items():
                 stask.add_command(task, name=task_name)

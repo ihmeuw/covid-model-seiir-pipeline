@@ -367,3 +367,9 @@ class WaningRoot(DataRoot):
                                  prefix_template=PREFIX_TEMPLATES.SCENARIO_TEMPLATE)
     cross_variant_immunity = DatasetType('cross_variant_immunity_matrix',
                                          prefix_template=PREFIX_TEMPLATES.SCENARIO_TEMPLATE)
+
+class MortalityRatioRoot(DataRoot):
+    """Data root representing age pattern of mortality."""
+    metadata = MetadataType('metadata')
+
+    mortality_ratio = DatasetType('mortality_ratio_5yr')
