@@ -69,10 +69,20 @@ def run_preprocess_vaccine(preprocessing_version: str, scenario: str, progress_b
             etas = list(
                 tqdm.tqdm(pool.imap(model.compute_eta, eta_args), total=len(eta_args), disable=not progress_bar))
         etas = pd.concat(etas)
+        risk_reductions = []
+        for endpoint, target in [('infection', 'infection'),
+                                 ('infection', 'case'),
+                                 ('severe_disease', 'admission'),
+                                 ('severe_disease', 'death')]:
+            rr = etas.loc[endpoint].copy()
+            rr['endpoint'] = target
+            rr = rr.reset_index().set_index(['endpoint', 'vaccine_course', 'risk_group', 'location_id', 'date'])
+            risk_reductions.append(rr)
+        risk_reductions = pd.concat(risk_reductions).sort_index()
 
         logger.info(f'Writing uptake and risk reductions for scenario {scenario}.', context='write')
         data_interface.save_vaccine_uptake(uptake, scenario=scenario)
-        data_interface.save_vaccine_risk_reduction(etas, scenario=scenario)
+        data_interface.save_vaccine_risk_reduction(risk_reductions, scenario=scenario)
 
     logger.report()
 

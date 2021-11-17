@@ -185,14 +185,17 @@ def compute_natural_waning(waning: pd.DataFrame) -> pd.DataFrame:
     # Other is an average of all vaccine waning, which is also what we want for natural waning.
     natural_waning_infection = waning.loc[('infection', 'Other')].reset_index()
     natural_waning_infection['endpoint'] = 'infection'
+    natural_waning_case = natural_waning_infection.copy()
+    natural_waning_case['endpoint'] = 'case'
     natural_waning_severe_disease = waning.loc[('severe_disease', 'Other')].reset_index()
     natural_waning_death = natural_waning_severe_disease.copy()
     natural_waning_death['endpoint'] = 'death'
     natural_waning_admission = natural_waning_severe_disease.copy()
     natural_waning_admission['endpoint'] = 'admission'
-    natural_waning_case = natural_waning_severe_disease.copy()
-    import pdb; pdb.set_trace()
-    natural_waning = (pd.concat([natural_waning_infection, natural_waning_severe_disease])
+    natural_waning = (pd.concat([natural_waning_infection, 
+                                 natural_waning_case, 
+                                 natural_waning_death, 
+                                 natural_waning_admission])
                       .set_index(['endpoint', 'days'])
                       .sort_index())
     return natural_waning
