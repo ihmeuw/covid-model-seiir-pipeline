@@ -75,7 +75,8 @@ def preprocessing_main(app_metadata: cli_tools.Metadata,
     if not preprocess_only:
         workflow = PreprocessingWorkflow(preprocessing_specification.data.output_root,
                                          preprocessing_specification.workflow)
-        workflow.attach_tasks(measures=MEASURES.keys(), scenarios=preprocessing_specification.data.vaccine_scenarios)
+        workflow.attach_tasks(measures=MEASURES.keys(),
+                              scenarios=['base_measures'] + preprocessing_specification.data.vaccine_scenarios)
         try:
             workflow.run()
         except ihme_deps.WorkflowAlreadyComplete:

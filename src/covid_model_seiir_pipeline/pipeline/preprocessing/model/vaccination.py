@@ -130,7 +130,7 @@ def build_waning_efficacy(efficacy: pd.DataFrame, waning: pd.DataFrame) -> pd.Da
 
 
 def build_eta_calc_arguments(vaccine_uptake: pd.DataFrame,
-                              waning_efficacy: pd.DataFrame) -> List:
+                             waning_efficacy: pd.DataFrame) -> List:
     location_ids = vaccine_uptake.reset_index().location_id.unique()
     groups = itertools.product(['infection', 'severe_disease'], location_ids, [1, 2], ['hr', 'lr'])
     eta_args = []
@@ -186,7 +186,12 @@ def compute_natural_waning(waning: pd.DataFrame) -> pd.DataFrame:
     natural_waning_infection = waning.loc[('infection', 'Other')].reset_index()
     natural_waning_infection['endpoint'] = 'infection'
     natural_waning_severe_disease = waning.loc[('severe_disease', 'Other')].reset_index()
-    natural_waning_severe_disease['endpoint'] = 'severe_disease'
+    natural_waning_death = natural_waning_severe_disease.copy()
+    natural_waning_death['endpoint'] = 'death'
+    natural_waning_admission = natural_waning_severe_disease.copy()
+    natural_waning_admission['endpoint'] = 'admission'
+    natural_waning_case = natural_waning_severe_disease.copy()
+    import pdb; pdb.set_trace()
     natural_waning = (pd.concat([natural_waning_infection, natural_waning_severe_disease])
                       .set_index(['endpoint', 'days'])
                       .sort_index())
