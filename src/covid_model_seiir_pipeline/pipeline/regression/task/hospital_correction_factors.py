@@ -74,7 +74,7 @@ def run_hospital_correction_factors(regression_version: str, with_progress_bar: 
 
 
 @click.command()
-@cli_tools.with_regression_version
+@cli_tools.with_task_regression_version
 @cli_tools.with_progress_bar
 @cli_tools.add_verbose_and_with_debugger
 def hospital_correction_factors(regression_version: str, progress_bar: bool,

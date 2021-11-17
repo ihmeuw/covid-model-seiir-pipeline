@@ -29,10 +29,10 @@ for package in [pipeline, side_analysis]:
 
 @seiir.command(name='run_all')
 @cli_tools.pass_run_metadata()
-@cli_tools.with_regression_specification
-@cli_tools.with_forecast_specification
-@cli_tools.with_postprocessing_specification
-@cli_tools.with_diagnostics_specification
+@cli_tools.with_specification(pipeline.regression.SPECIFICATION)
+@cli_tools.with_specification(pipeline.forecasting.SPECIFICATION)
+@cli_tools.with_specification(pipeline.postprocessing.SPECIFICATION)
+@cli_tools.with_specification(pipeline.diagnostics.SPECIFICATION)
 @cli_tools.with_mark_best
 @cli_tools.with_production_tag
 @cli_tools.add_verbose_and_with_debugger

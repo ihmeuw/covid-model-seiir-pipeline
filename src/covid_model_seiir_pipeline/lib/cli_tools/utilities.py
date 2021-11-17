@@ -4,6 +4,7 @@ from pathlib import Path
 from typing import Any, Callable, Dict, Optional, Tuple, Union
 
 from covid_shared import cli_tools, paths
+from covid_model_seiir_pipeline.lib.cli_tools.decorators import VersionInfo
 
 
 def resolve_version_info(specification, run_metadata: cli_tools.RunMetadata, input_versions: Dict[str, VersionInfo]):
