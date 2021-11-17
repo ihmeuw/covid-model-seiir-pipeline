@@ -320,16 +320,6 @@ PARAMETERS_NAMES = [
     'rho_omega',
 ]
 
-RATES = np.full((len(RATES_TYPE)), -1, dtype=np.int64)
-RATES[RATES.ifr] = 0
-RATES[RATES.ihr] = 1
-RATES[RATES.idr] = 2
-RATES_NAMES = [
-    'ifr',
-    'ihr',
-    'idr',
-]
-
 ETA = np.full((len(VACCINE_INDEX_TYPE), len(VARIANT_INDEX_TYPE)), -1, dtype=np.int64)
 ETA[VACCINE_STATUS.unvaccinated, VARIANT.none] = 0
 ETA[VACCINE_STATUS.unvaccinated, VARIANT.ancestral] = 1

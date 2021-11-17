@@ -144,13 +144,6 @@ SPECS = {
             ['variant_parameter', 'variant'],
         ],
     ),
-    'RATES': Spec(
-        offset='',
-        axes_primitives=['rates_type'],
-        field_specs=[
-            ['rates'],
-        ],
-    ),
     'ETA': Spec(
         offset='',
         axes_primitives=['vaccine_index_type', 'variant_index_type'],
