@@ -289,3 +289,62 @@ class DiagnosticsRoot(DataRoot):
     """Data root representing postprocessing stage outputs."""
     metadata = MetadataType('metadata')
     specification = MetadataType('diagnostics_specification')
+
+
+# Defunct roots
+class FitRoot(DataRoot):
+    metadata = MetadataType('metadata')
+    specification = MetadataType('fit_specification')
+    locations = MetadataType('locations')
+
+    hierarchy = DatasetType('hierarchy')
+
+    beta = DatasetType('beta', LEAF_TEMPLATES.DRAW_TEMPLATE, PREFIX_TEMPLATES.SCENARIO_TEMPLATE)
+    compartments = DatasetType('compartments', LEAF_TEMPLATES.DRAW_TEMPLATE, PREFIX_TEMPLATES.SCENARIO_TEMPLATE)
+    ode_parameters = DatasetType('ode_parameters', LEAF_TEMPLATES.DRAW_TEMPLATE, PREFIX_TEMPLATES.SCENARIO_TEMPLATE)
+    regression_parameters = DatasetType('regression_parameters', LEAF_TEMPLATES.DRAW_TEMPLATE, PREFIX_TEMPLATES.SCENARIO_TEMPLATE)
+    coefficients = DatasetType('coefficients', LEAF_TEMPLATES.DRAW_TEMPLATE, PREFIX_TEMPLATES.SCENARIO_TEMPLATE)
+
+
+class CovariateRoot(DataRoot):
+    """Data root representing prepped covariates."""
+    metadata = MetadataType('metadata')
+
+    air_pollution_pm_2_5 = DatasetType('air_pollution_pm_2_5', LEAF_TEMPLATES.COV_SCENARIO_TEMPLATE)
+    lri_mortality = DatasetType('lri_mortality', LEAF_TEMPLATES.COV_SCENARIO_TEMPLATE)
+    mask_use = DatasetType('mask_use', LEAF_TEMPLATES.COV_SCENARIO_TEMPLATE)
+    mobility = DatasetType('mobility', LEAF_TEMPLATES.COV_SCENARIO_TEMPLATE)
+    pneumonia = DatasetType('pneumonia', LEAF_TEMPLATES.COV_SCENARIO_TEMPLATE)
+    proportion_over_2_5k = DatasetType('proportion_over_2_5k', LEAF_TEMPLATES.COV_SCENARIO_TEMPLATE)
+    proportion_under_100m = DatasetType('proportion_under_100m', LEAF_TEMPLATES.COV_SCENARIO_TEMPLATE)
+    smoking_prevalence = DatasetType('smoking_prevalence', LEAF_TEMPLATES.COV_SCENARIO_TEMPLATE)
+    testing = DatasetType('testing', LEAF_TEMPLATES.COV_SCENARIO_TEMPLATE)
+
+    mobility_info = DatasetType('mobility', LEAF_TEMPLATES.COV_INFO_TEMPLATE)
+    vaccine_info = DatasetType('vaccine_coverage', LEAF_TEMPLATES.COV_INFO_TEMPLATE)
+    variant_info = DatasetType('variant_prevalence', LEAF_TEMPLATES.COV_INFO_TEMPLATE)
+
+    # Getters provide dynamic keys to support experimentation with custom covariates.
+    def __getattr__(self, item: str) -> DatasetType:
+        setattr(type(self), item, DatasetType(item, LEAF_TEMPLATES.COV_SCENARIO_TEMPLATE))
+        return getattr(self, item)
+
+    def __getitem__(self, item: str) -> DatasetType:
+        return getattr(self, item)
+
+    def __getstate__(self):
+        return self.__dict__
+
+    def __setstate__(self, state):
+        self.__dict__ = state
+
+
+class InfectionRoot(DataRoot):
+    """Data root representing infectionator outputs."""
+    metadata = MetadataType('metadata')
+
+    em_scalars = DatasetType('em_data')
+    infections = DatasetType('infections_draws', LEAF_TEMPLATES.DRAW_TEMPLATE)
+    ifr = DatasetType('ifr_draws', LEAF_TEMPLATES.DRAW_TEMPLATE)
+    ihr = DatasetType('ihr_draws', LEAF_TEMPLATES.DRAW_TEMPLATE)
+    idr = DatasetType('idr_draws', LEAF_TEMPLATES.DRAW_TEMPLATE)
