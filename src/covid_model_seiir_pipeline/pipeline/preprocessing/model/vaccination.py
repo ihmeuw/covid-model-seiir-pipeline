@@ -130,11 +130,12 @@ def build_waning_efficacy(efficacy: pd.DataFrame, waning: pd.DataFrame) -> pd.Da
 
 
 def build_eta_calc_arguments(vaccine_uptake: pd.DataFrame,
-                             waning_efficacy: pd.DataFrame) -> List:
+                             waning_efficacy: pd.DataFrame,
+                             progress_bar: bool) -> List:
     location_ids = vaccine_uptake.reset_index().location_id.unique()
     groups = itertools.product(['infection', 'severe_disease'], location_ids, [1, 2], ['hr', 'lr'])
     eta_args = []
-    for endpoint, location_id, vaccine_course, risk_group in tqdm.tqdm(list(groups)):
+    for endpoint, location_id, vaccine_course, risk_group in tqdm.tqdm(list(groups), disable=not progress_bar):
         group_uptake = vaccine_uptake.loc[(vaccine_course, location_id, risk_group)]
         group_efficacy = waning_efficacy.loc[endpoint]
         eta_args.append([
