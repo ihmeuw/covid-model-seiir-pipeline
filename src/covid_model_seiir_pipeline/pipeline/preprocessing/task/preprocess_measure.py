@@ -27,10 +27,11 @@ def run_preprocess_measure(preprocessing_version: str, measure: str) -> None:
     data_interface = PreprocessingDataInterface.from_specification(specification)
 
     try:
-        MEASURES[measure](data_interface)
+        processor = MEASURES[measure]
     except KeyError:
         raise ValueError(f'Unknown preprocessing measure {measure}.  Available measures: {list(MEASURES)}.')
 
+    processor(data_interface)
     logger.report()
     
 

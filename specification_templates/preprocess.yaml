@@ -3,14 +3,13 @@ data:
   model_inputs_version: 'best'
   age_specific_rates_version: 'best'
   mortality_scalars_version: 'best'
-
-  mask_use_version: 'best'
-  mobility_version: 'best'
+  mask_use_outputs_version: 'best'
+  mobility_covariate_version: 'best'
   pneumonia_version: 'best'
   population_density_version: 'best'
-  testing_version: 'best'
-  variant_prevalence_version: 'best'
-  vaccine_coverage_version: 'best'
+  testing_outputs_version: 'best'
+  variant_scaleup_version: 'best'
+  vaccine_coverage_version: '2021_10_31.01'
   vaccine_efficacy_version: 'best'
   vaccine_scenarios:
     - 'reference'
@@ -18,7 +17,7 @@ data:
     - 'booster_high'
     - 'optimistic'
   output_root: ''
-  output_format: 'parquet'
+  output_format: 'csv'
   n_draws: 100
   drop_locations: []
 workflow:

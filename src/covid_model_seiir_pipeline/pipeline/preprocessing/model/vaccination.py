@@ -25,7 +25,7 @@ def make_uptake_square(uptake: pd.DataFrame) -> pd.DataFrame:
     idx = pd.MultiIndex.from_product([courses, location_ids, risk_groups, date], names=idx_names)
     uptake = uptake.set_index(idx_names).sort_index()
     duplicates = uptake.index.duplicated()
-    if not duplicates.empty:
+    if np.any(duplicates):
         logger.warning('Duplicates found in uptake dataset')
         uptake = uptake.loc[~duplicates]
     uptake = uptake.reindex(idx).fillna(0.)

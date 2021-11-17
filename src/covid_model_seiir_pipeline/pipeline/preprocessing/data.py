@@ -47,12 +47,12 @@ class PreprocessingDataInterface:
             model_inputs_root=io.ModelInputsRoot(specification.data.model_inputs_version),
             age_specific_rates_root=io.AgeSpecificRatesRoot(specification.data.age_specific_rates_version),
             mortality_scalars_root=io.MortalityScalarsRoot(specification.data.mortality_scalars_version),
-            mask_use_root=io.MaskUseRoot(specification.data.mask_use_version),
-            mobility_root=io.MobilityRoot(specification.data.mobility_version),
+            mask_use_root=io.MaskUseRoot(specification.data.mask_use_outputs_version),
+            mobility_root=io.MobilityRoot(specification.data.mobility_covariate_version),
             pneumonia_root=io.PneumoniaRoot(specification.data.pneumonia_version),
             population_density_root=io.PopulationDensityRoot(specification.data.population_density_version),
-            testing_root=io.TestingRoot(specification.data.testing_version),
-            variant_prevalence_root=io.VariantPrevalenceRoot(specification.data.variant_prevalence_version),
+            testing_root=io.TestingRoot(specification.data.testing_outputs_version),
+            variant_prevalence_root=io.VariantPrevalenceRoot(specification.data.variant_scaleup_version),
             vaccine_coverage_root=io.VaccineCoverageRoot(specification.data.vaccine_coverage_version),
             vaccine_efficacy_root=io.VaccineEfficacyRoot(specification.data.vaccine_efficacy_version),
             preprocessing_root=io.PreprocessingRoot(specification.data.output_root,
@@ -89,8 +89,8 @@ class PreprocessingDataInterface:
     ########################
 
     def load_raw_serology_data(self):
-        data = io.load(self.model_inputs_root.serology('global_serology_summary'))
-        return data
+        data = io.load(self.model_inputs_root.serology(measure='global_serology_summary'))
+        return data.reset_index()
 
     def load_epi_measures(self) -> Tuple[pd.Series, pd.Series, pd.Series]:
         full_data_extra_hospital = self._format_full_data(io.load(self.model_inputs_root.full_data_extra_hospital()))
@@ -127,7 +127,7 @@ class PreprocessingDataInterface:
             'seroprevalence': ('seroprev_preds_5yr', 'seroprev'),
         }
         measure_data = []
-        for measure, (file_name, column_name) in measure_map:
+        for measure, (file_name, column_name) in measure_map.items():
             column_map = {
                 'age_group_start': 'age_group_years_start',
                 'age_group_end': 'age_group_years_end',
@@ -136,8 +136,9 @@ class PreprocessingDataInterface:
             data = io.load(self.age_specific_rates_root.rates_data(measure=file_name))
             data = data.rename(columns=column_map).loc[:, column_map.values()]
             data['age_group_years_end'].iloc[-1] = 125
+            data = data.set_index(['age_group_years_start', 'age_group_years_end'])
             measure_data.append(data)
-        measure_data = pd.concat(measure_data, axis=1)
+        measure_data = pd.concat(measure_data, axis=1).reset_index()
         measure_data['key'] = 1
 
         modeling_hierarchy = self.load_modeling_hierarchy().reset_index()
@@ -190,14 +191,14 @@ class PreprocessingDataInterface:
         data = io.load(self.mobility_root.mobility_data(measure=f'mobility_{scenario}')).reset_index()
         data['observed'] = (1 - data['type']).astype(int)
         data['location_id'] = data['location_id'].astype(int)
-        output_columns = ['location_id', 'date', 'observed', 'mobility_forecast']
+        output_columns = ['location_id', 'date', 'observed', f'mobility_{scenario}']
         data = (data.rename(columns={'mobility_forecast': f'mobility_{scenario}'})
                 .loc[:, output_columns]
                 .sort_values(['location_id', 'date']))
         return data
 
     def load_raw_percent_mandates(self, scenario: str) -> pd.DataFrame:
-        metadata = io.load(self.mobility_root.metadata)
+        metadata = io.load(self.mobility_root.metadata())
         path = Path(metadata['sd_lift_path']) / f'percent_mandates_{scenario}.csv'
 
         data = pd.read_csv(path)
@@ -205,7 +206,7 @@ class PreprocessingDataInterface:
         data['location_id'] = data['location_id'].astype(int)
 
         output_columns = ['location_id', 'date', 'percent', 'percent_mandates']
-        data = data.loc[:, output_columns + ['percent_mandates']]
+        data = data.loc[:, output_columns]
 
         return data.loc[:, output_columns]
 
@@ -213,7 +214,7 @@ class PreprocessingDataInterface:
         effect_cols = ['sd1', 'sd2', 'sd3', 'psd1', 'psd3', 'anticipate']
         output_columns = ['location_id'] + effect_cols
 
-        data = io.load(self.mobility_root.mobility_data('mobility_mandate_coefficients')).reset_index()
+        data = io.load(self.mobility_root.mobility_data(measure='mobility_mandate_coefficients')).reset_index()
         data['location_id'] = data['location_id'].astype(int)
         data = (data.rename(columns={f'{effect}_eff': effect for effect in effect_cols})
                 .loc[:, output_columns]
@@ -225,7 +226,7 @@ class PreprocessingDataInterface:
     ##################
 
     def load_raw_pneumonia_data(self) -> pd.DataFrame:
-        data = io.load(self.pneumonia_root.pneumonia_data())
+        data = io.load(self.pneumonia_root.pneumonia_data()).reset_index()
         data['observed'] = float('nan')
         data = (data
                 .loc[:, ['date', 'location_id', 'observed', 'value']]
@@ -278,6 +279,7 @@ class PreprocessingDataInterface:
         except KeyError:
             raise ValueError(f'Unknown vaccine scenario {scenario}.')
         data = io.load(self.vaccine_coverage_root.brand_specific_coverage(measure=scenario_file))
+        data = data.drop(columns='Unnamed: 0').reset_index()
         return data
 
     #########################
@@ -385,10 +387,10 @@ class PreprocessingDataInterface:
         return io.load(self.preprocessing_root[covariate](covariate_scenario=scenario))
 
     def save_covariate_info(self, data: pd.DataFrame, covariate: str, info_type: str) -> None:
-        io.dump(data, self.preprocessing_root[covariate](info_type=info_type))
+        io.dump(data, self.preprocessing_root[f"{covariate}_info"](info_type=info_type))
 
     def load_covariate_info(self, covariate: str, info_type: str) -> pd.DataFrame:
-        return io.load(self.preprocessing_root[covariate](info_type=info_type))
+        return io.load(self.preprocessing_root[f"{covariate}_info"](info_type=info_type))
 
     def save_variant_prevalence(self, data: pd.DataFrame, scenario: str) -> None:
         io.dump(data, self.preprocessing_root.variant_prevalence(scenario=scenario))
@@ -403,13 +405,13 @@ class PreprocessingDataInterface:
         return io.load(self.preprocessing_root.waning_parameters(measure=measure))
 
     def save_vaccine_uptake(self, data: pd.DataFrame, scenario: str) -> None:
-        io.dump(data, self.preprocessing_root.vaccine_uptake(scenario=scenario))
+        io.dump(data, self.preprocessing_root.vaccine_uptake(covariate_scenario=scenario))
 
     def load_vaccine_uptake(self, scenario: str) -> pd.DataFrame:
-        return io.load(self.preprocessing_root.vaccine_uptake(scenario=scenario))
+        return io.load(self.preprocessing_root.vaccine_uptake(covariate_scenario=scenario))
 
     def save_vaccine_risk_reduction(self, data: pd.DataFrame, scenario: str) -> None:
-        io.dump(data, self.preprocessing_root.vaccine_risk_reduction(scenario=scenario))
+        io.dump(data, self.preprocessing_root.vaccine_risk_reduction(covariate_scenario=scenario))
 
     def load_vaccine_risk_reduction(self, scenario: str) -> pd.DataFrame:
-        return io.load(self.preprocessing_root.vaccine_risk_reduction(scenario=scenario))
+        return io.load(self.preprocessing_root.vaccine_risk_reduction(covariate_scenario=scenario))

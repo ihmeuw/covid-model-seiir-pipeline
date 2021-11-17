@@ -60,7 +60,8 @@ def with_version(default_root: Path, allow_default: bool = True, name: str = Non
     return click.option(
         f'--{inflection.dasherize(name)}-version',
         type=click.Path(exists=True, file_okay=False),
-        help=f'Which version of {name} to use.'
+        help=f'Which version of {name} to use.',
+        callback=_callback,
     )
 
 

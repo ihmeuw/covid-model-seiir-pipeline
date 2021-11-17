@@ -18,7 +18,7 @@ PREPROCESSING_JOBS = __PreprocessingJobs(*__PreprocessingJobs._fields)
 
 class PreprocessMeasureTaskSpecification(workflow.TaskSpecification):
     default_max_runtime_seconds = 3000
-    default_m_mem_free = '5G'
+    default_m_mem_free = '10G'
     default_num_cores = 1
 
 
@@ -43,12 +43,12 @@ class PreprocessingData:
     model_inputs_version: str = field(default='best')
     age_specific_rates_version: str = field(default='best')
     mortality_scalars_version: str = field(default='best')
-    mask_use_version: str = field(default='best')
-    mobility_version: str = field(default='best')
+    mask_use_outputs_version: str = field(default='best')
+    mobility_covariate_version: str = field(default='best')
     pneumonia_version: str = field(default='best')
     population_density_version: str = field(default='best')
-    testing_version: str = field(default='best')
-    variant_prevalence_version: str = field(default='best')
+    testing_outputs_version: str = field(default='best')
+    variant_scaleup_version: str = field(default='best')
     vaccine_coverage_version: str = field(default='best')
     vaccine_efficacy_version: str = field(default='best')
     vaccine_scenarios: list = field(default_factory=list)

@@ -13,6 +13,8 @@ def resolve_version_info(specification, run_metadata: cli_tools.RunMetadata, inp
 
     """
     for version_key, version_info in input_versions.items():
+        if version_info is None:
+            import pdb; pdb.set_trace()
         if not hasattr(specification.data, version_key):
             raise TypeError(f'Invalid key {version_key} for specification data {specification.data}.')
         if not (version_info.cli_arg or version_info.spec_arg or version_info.allow_default):
