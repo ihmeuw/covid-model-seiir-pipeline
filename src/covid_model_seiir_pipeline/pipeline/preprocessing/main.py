@@ -40,20 +40,9 @@ def preprocessing_main(app_metadata: cli_tools.Metadata,
 @cli_tools.add_preprocess_only
 @cli_tools.add_verbose_and_with_debugger
 def preprocess(run_metadata: cli_tools.RunMetadata,
-               preprocessing_specification: str,
+               specification: str,
                location_specification: Union[str, int],
-               model_inputs_version: str,
-               age_specific_rates_version: str,
-               mortality_scalars_version: str,
-               mask_use_version: str,
-               mobility_version: str,
-               pneumonia_version: str,
-               population_density_version: str,
-               testing_version: str,
-               variant_prevalence_version: str,
-               vaccine_coverage_version: str,
-               vaccine_efficacy_version: str,
                output_root: str, mark_best: bool, production_tag: str,
                preprocess_only: bool,
-               verbose: int, with_debugger: bool):
+               verbose: int, with_debugger: bool, **input_versions):
     pass
