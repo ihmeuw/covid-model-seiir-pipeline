@@ -14,3 +14,11 @@ from covid_model_seiir_pipeline.pipeline.regression.main import (
     do_beta_regression,
     regress,
 )
+
+SPECIFICATION = RegressionSpecification
+COMMAND = regress
+APPLICATION_MAIN = do_beta_regression
+TASKS = {
+    REGRESSION_JOBS.regression: beta_regression,
+    REGRESSION_JOBS.hospital_correction_factors: hospital_correction_factors,
+}

@@ -23,7 +23,7 @@ from covid_model_seiir_pipeline.pipeline.preprocessing.model import (
 logger = cli_tools.task_performance_logger
 
 
-def run_preprocess_vaccination(preprocessing_version: str, scenario: str, progress_bar: bool) -> None:
+def run_preprocess_vaccine(preprocessing_version: str, scenario: str, progress_bar: bool) -> None:
     logger.info(f'Starting vaccination preprocessing for scenario {scenario}.', context='setup')
 
     spec_file = Path(preprocessing_version) / static_vars.PREPROCESSING_SPECIFICATION_FILE
@@ -82,10 +82,10 @@ def run_preprocess_vaccination(preprocessing_version: str, scenario: str, progre
 @cli_tools.with_scenario
 @cli_tools.add_verbose_and_with_debugger
 @cli_tools.with_progress_bar
-def preprocess_vaccination(preprocessing_version: str, scenario: str,
-                           verbose: int, with_debugger: bool, progress_bar: bool):
+def preprocess_vaccine(preprocessing_version: str, scenario: str,
+                       verbose: int, with_debugger: bool, progress_bar: bool):
     cli_tools.configure_logging_to_terminal(verbose)
-    run = cli_tools.handle_exceptions(run_preprocess_vaccination, logger, with_debugger)
+    run = cli_tools.handle_exceptions(run_preprocess_vaccine, logger, with_debugger)
     run(preprocessing_version=preprocessing_version,
         scenario=scenario,
         progress_bar=progress_bar)

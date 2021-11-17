@@ -28,13 +28,6 @@ def seiir():
     pass
 
 
-@seiir.command(name='oos_fit')
-
-
-
-
-
-@seiir.command()
 
 
 
