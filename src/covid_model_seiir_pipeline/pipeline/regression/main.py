@@ -12,13 +12,13 @@ from covid_model_seiir_pipeline.pipeline.regression.workflow import RegressionWo
 
 
 def do_beta_regression(run_metadata: cli_tools.RunMetadata,
-                       regression_specification: str,
+                       specification: str,
                        location_specification: Optional[str],
                        output_root: Optional[str], mark_best: bool, production_tag: str,
                        preprocess_only: bool,
                        with_debugger: bool,
-                       **input_versions: Dict[str, cli_tools.VersionInfo]) -> RegressionSpecification:
-    regression_spec = RegressionSpecification.from_path(regression_specification)
+                       input_versions: Dict[str, cli_tools.VersionInfo]) -> RegressionSpecification:
+    regression_spec = RegressionSpecification.from_path(specification)
 
     regression_spec, run_metadata = cli_tools.resolve_version_info(regression_spec, run_metadata, input_versions)
 
@@ -93,39 +93,34 @@ def beta_regression_main(app_metadata: cli_tools.Metadata,
 @cli_tools.pass_run_metadata()
 @cli_tools.with_specification(RegressionSpecification)
 @cli_tools.with_location_specification
+@cli_tools.add_output_options(paths.SEIR_REGRESSION_OUTPUTS)
+@cli_tools.add_preprocess_only
+@cli_tools.add_verbose_and_with_debugger
 @cli_tools.with_version(paths.PAST_INFECTIONS_ROOT)
 @cli_tools.with_version(paths.SEIR_COVARIATES_OUTPUT_ROOT)
 @cli_tools.with_version(paths.WANING_IMMUNITY_OUTPUT_ROOT)
 @cli_tools.with_version(paths.SEIR_COVARIATE_PRIORS_ROOT, False)
 @cli_tools.with_version(paths.SEIR_REGRESSION_OUTPUTS, False, 'coefficient')
-@cli_tools.add_output_options(paths.SEIR_REGRESSION_OUTPUTS)
-@cli_tools.add_preprocess_only
-@cli_tools.add_verbose_and_with_debugger
 def regress(run_metadata,
-            regression_specification,
+            specification,
             location_specification,
-            infection_version, covariates_version, waning_version,
-            priors_version, coefficient_version,
             output_root, mark_best, production_tag,
             preprocess_only,
-            verbose, with_debugger):
+            verbose, with_debugger,
+            **input_versions):
     """Perform beta regression for a set of infections and covariates."""
     cli_tools.configure_logging_to_terminal(verbose)
 
     do_beta_regression(
         run_metadata=run_metadata,
-        regression_specification=regression_specification,
+        specification=specification,
         location_specification=location_specification,
-        infection_version=infection_version,
-        covariates_version=covariates_version,
-        waning_version=waning_version,
-        priors_version=priors_version,
-        coefficient_version=coefficient_version,
         output_root=output_root,
         mark_best=mark_best,
         production_tag=production_tag,
         preprocess_only=preprocess_only,
         with_debugger=with_debugger,
+        input_versions=input_versions,
     )
 
     logger.info('**Done**')
