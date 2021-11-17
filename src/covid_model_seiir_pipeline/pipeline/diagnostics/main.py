@@ -96,7 +96,7 @@ def diagnostics_main(app_metadata: cli_tools.Metadata,
             logger.info('Workflow already complete')
 
 
-@click.command
+@click.command()
 @cli_tools.pass_run_metadata()
 @cli_tools.with_diagnostics_specification
 @cli_tools.add_preprocess_only

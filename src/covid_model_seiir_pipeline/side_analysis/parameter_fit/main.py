@@ -128,12 +128,12 @@ def parameter_fit_main(app_metadata: cli_tools.Metadata,
 @cli_tools.add_output_options(paths.SEIR_REGRESSION_OUTPUTS)
 @cli_tools.add_verbose_and_with_debugger
 def parameter_fit(run_metadata,
-            fit_specification,
-            infection_version, covariates_version, coefficient_version, variant_version,
-            location_specification,
-            preprocess_only,
-            output_root, mark_best, production_tag,
-            verbose, with_debugger):
+                  fit_specification,
+                  infection_version, covariates_version, coefficient_version, variant_version,
+                  location_specification,
+                  preprocess_only,
+                  output_root, mark_best, production_tag,
+                  verbose, with_debugger):
     cli_tools.configure_logging_to_terminal(verbose)
 
     do_parameter_fit(
