@@ -11,6 +11,7 @@ from covid_shared.cli_tools import (
     configure_logging_to_files,
     monitor_application,
     finish_application,
+    Metadata,
     RunMetadata,
 )
 from covid_model_seiir_pipeline.lib.cli_tools.decorators import (

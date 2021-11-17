@@ -70,7 +70,7 @@ if __name__ == "__main__":
 
         entry_points={'console_scripts': [
             'seiir=covid_model_seiir_pipeline.cli:seiir',
-            'stask=covid_model_seiir_pipeline.pipeline.seiir_task:stask',
+            'stask=covid_model_seiir_pipeline.seiir_task:stask',
             'sparse=covid_model_seiir_pipeline.lib.cli_tools.performance_logger.log_parser:parse_logs'
         ]},
         zip_safe=False,
