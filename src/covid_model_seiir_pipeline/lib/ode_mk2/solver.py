@@ -31,6 +31,7 @@ SOLVER_DT: float = 0.1
 def run_ode_model(initial_condition: pd.DataFrame,
                   parameter_df: pd.DataFrame,
                   vaccination_df: pd.DataFrame,
+                  ratios_df: pd.DataFrame,
                   eta_df: pd.DataFrame,
                   natural_waning_distribution: pd.Series,
                   phi_df: pd.DataFrame,
@@ -45,6 +46,7 @@ def run_ode_model(initial_condition: pd.DataFrame,
                        initial_condition.loc[location_id],
                        parameter_df.loc[location_id],
                        vaccination_df.loc[location_id],
+                       ratios_df.loc[location_id],
                        eta_df.loc[location_id],
                        natural_waning_distribution,
                        phi_df) for location_id in location_ids]
@@ -55,7 +57,7 @@ def run_ode_model(initial_condition: pd.DataFrame,
         forecast=forecast,
     )
     if num_cores == 1:
-        compartments = [_runner(data) for data in tqdm.tqdm(ics_and_params, disable=not progress_bar)]
+        results = [_runner(data) for data in tqdm.tqdm(ics_and_params, disable=not progress_bar)]
     else:
         with multiprocessing.Pool(num_cores) as pool:
             results = list(tqdm.tqdm(
@@ -69,10 +71,11 @@ def run_ode_model(initial_condition: pd.DataFrame,
     return compartments, chis
 
 
-def _run_loc_ode_model(ic_and_params: Tuple[int, pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.Series, pd.DataFrame],
+def _run_loc_ode_model(ic_and_params: Tuple[int, pd.DataFrame, pd.DataFrame, pd.DataFrame,
+                                            pd.DataFrame, pd.DataFrame, pd.Series, pd.DataFrame],
                        dt: float,
                        forecast: bool):
-    location_id, initial_condition, parameters, vaccines, etas, waning, phis = ic_and_params
+    location_id, initial_condition, parameters, vaccines, ratios, etas, waning, phis = ic_and_params
     new_e_dates = initial_condition[initial_condition.filter(like='NewE').sum(axis=1) > 0].reset_index().date
     invasion_date = new_e_dates.min()
     ode_start_date = new_e_dates.max()

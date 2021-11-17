@@ -29,10 +29,20 @@ PRIMITIVE_TYPES = {
         'sigma',
         'gamma',
         'pi',
-        'new_e',
         'beta',
         'kappa',
         'rho',
+        'deaths',
+        'admissions',
+        'cases',
+        'zeta_death',
+        'zeta_case',
+        'zeta_admission',
+    ],
+    'rates_type': [
+        'ifr',
+        'ihr',
+        'idr'
     ],
     'risk_group': [
         'lr',
@@ -58,21 +68,13 @@ PRIMITIVE_TYPES = {
         'all',
     ],
     'agg_index_type': [
-        'none',
-        'ancestral',
-        'alpha',
-        'beta',
-        'gamma',
-        'delta',
-        'other',
-        'omega',
-
-        'all',
-        'total',
-
         'unvaccinated',
         'vaccinated',
         'booster',
+        'all',
+        'death',
+        'admission',
+        'case',
     ]
 }
 
@@ -93,12 +95,22 @@ DERIVED_TYPES = {
         'sigma',
         'gamma',
         'pi',
-        'new_e',
         'beta',
+        'deaths',
+        'admissions',
+        'cases',
     ]),
     'variant_parameter': ('parameter_type', [
         'kappa',
+        'zeta_death',
+        'zeta_case',
+        'zeta_admission',
         'rho',
+    ]),
+    'rates': ('rates_type', [
+        'ifr',
+        'ihr',
+        'idr',
     ]),
     'variant': ('variant_index_type', [
         'none',
@@ -130,6 +142,13 @@ SPECS = {
         field_specs=[
             ['base_parameter', 'all'],
             ['variant_parameter', 'variant'],
+        ],
+    ),
+    'RATES': Spec(
+        offset='',
+        axes_primitives=['rates_type'],
+        field_specs=[
+            ['rates'],
         ],
     ),
     'ETA': Spec(
@@ -169,11 +188,14 @@ SPECS = {
     ),
     'TRACKING_COMPARTMENTS': Spec(
         offset='COMPARTMENTS',
-        axes_primitives=['tracking_compartment_type', 'variant_index_type', 'vaccine_index_type'],
+        axes_primitives=['tracking_compartment_type', 'variant_index_type', 'agg_index_type'],
         field_specs=[
             ['tracking_compartment', 'variant', 'vaccine_status'],
             ['NewE', 'variant', 'all'],
             ['beta', 'none', 'all'],
+            ['beta', 'none', 'case'],
+            ['beta', 'none', 'death'],
+            ['beta', 'none', 'admission'],
         ],
     ),
     'AGGREGATES': Spec(

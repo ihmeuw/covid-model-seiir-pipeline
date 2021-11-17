@@ -29,7 +29,6 @@ def run_beta_regression(regression_version: str, draw_id: int, progress_bar: boo
 
     logger.info('Loading ODE fit input data', context='read')
     hierarchy = data_interface.load_hierarchy()
-    past_infection_data = data_interface.load_past_infection_data(draw_id=draw_id)
     population = data_interface.load_five_year_population()
     rhos = data_interface.load_variant_prevalence()
     vaccinations = data_interface.load_vaccinations()
@@ -39,7 +38,6 @@ def run_beta_regression(regression_version: str, draw_id: int, progress_bar: boo
     covariates = data_interface.load_covariates(list(regression_specification.covariates))
 
     logger.info('Prepping ODE fit parameters.', context='transform')
-    infections = model.clean_infection_data_measure(past_infection_data, 'infections')
     regression_params = regression_specification.regression_parameters.to_dict()
 
     np.random.seed(draw_id)
