@@ -1,5 +1,5 @@
 PREPROCESSING_SPECIFICATION_FILE = 'preprocessing_specification.yaml'
-FIT_SPECIFICATION_FILE = 'fit_specification.yaml'
+ODE_FIT_SPECIFICATION_FILE = 'ode_fit_specification.yaml'
 REGRESSION_SPECIFICATION_FILE = 'regression_specification.yaml'
 FORECAST_SPECIFICATION_FILE = 'forecast_specification.yaml'
 POSTPROCESSING_SPECIFICATION_FILE = 'postprocessing_specification.yaml'
