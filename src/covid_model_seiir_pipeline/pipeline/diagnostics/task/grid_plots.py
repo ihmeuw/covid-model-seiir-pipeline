@@ -92,7 +92,6 @@ def run_grid_plots(diagnostics_version: str, name: str, progress_bar: bool) -> N
 @cli_tools.add_verbose_and_with_debugger
 def grid_plots(diagnostics_version: str, name: str,
                progress_bar: bool, verbose: int, with_debugger: bool):
-    """Produce grid plots corresponding to the configuration associated with NAME"""
     cli_tools.configure_logging_to_terminal(verbose)
     run = cli_tools.handle_exceptions(run_grid_plots, logger, with_debugger)
     run(diagnostics_version=diagnostics_version,

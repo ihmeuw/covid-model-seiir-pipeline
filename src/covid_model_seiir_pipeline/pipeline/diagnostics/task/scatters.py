@@ -187,7 +187,6 @@ def make_scatter_pages(plotting_data, hierarchy, xlabel, ylabel, progress_bar: b
 @cli_tools.add_verbose_and_with_debugger
 def scatters(diagnostics_version: str, name: str,
              progress_bar: bool, verbose: int, with_debugger: bool):
-    """Produce scatters corresponding to the configuration associated with NAME"""
     cli_tools.configure_logging_to_terminal(verbose)
     run = cli_tools.handle_exceptions(run_scatters, logger, with_debugger)
     run(diagnostics_version=diagnostics_version,

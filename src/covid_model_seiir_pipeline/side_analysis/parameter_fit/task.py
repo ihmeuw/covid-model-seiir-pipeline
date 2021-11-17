@@ -105,7 +105,7 @@ def run_parameter_fit(fit_version: str, scenario: str, draw_id: int, progress_ba
 @cli_tools.with_draw_id
 @cli_tools.with_progress_bar
 @cli_tools.add_verbose_and_with_debugger
-def parameter_fit(fit_version: str, scenario: str, draw_id: int,
+def ode_parameter_fit(fit_version: str, scenario: str, draw_id: int,
                   progress_bar: bool, verbose: int, with_debugger: bool):
     cli_tools.configure_logging_to_terminal(verbose)
     run = cli_tools.handle_exceptions(run_parameter_fit, logger, with_debugger)

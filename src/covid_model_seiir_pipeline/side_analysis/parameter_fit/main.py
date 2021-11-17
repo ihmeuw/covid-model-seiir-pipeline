@@ -127,7 +127,7 @@ def parameter_fit_main(app_metadata: cli_tools.Metadata,
 @cli_tools.add_preprocess_only
 @cli_tools.add_output_options(paths.SEIR_REGRESSION_OUTPUTS)
 @cli_tools.add_verbose_and_with_debugger
-def oos_fit(run_metadata,
+def parameter_fit(run_metadata,
             fit_specification,
             infection_version, covariates_version, coefficient_version, variant_version,
             location_specification,
