@@ -19,7 +19,7 @@ def preprocess_epi_data(data_interface: PreprocessingDataInterface) -> None:
     age_pattern_data = data_interface.load_age_pattern_data()
     total_covid_scalars = data_interface.load_raw_total_covid_scalars()
     global_serology = data_interface.load_raw_serology_data()
-    cases, hospitalizations, deaths = data_interface.load_epi_measures()
+    #cases, hospitalizations, deaths = data_interface.load_epi_measures()
 
     logger.info('Processing epi data.', context='transform')
     global_serology = _process_serology_data(global_serology)

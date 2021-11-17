@@ -132,7 +132,7 @@ def beta_regression_main(app_metadata: cli_tools.Metadata,
 
 @click.command()
 @cli_tools.pass_run_metadata()
-@cli_tools.with_regression_specification
+@cli_tools.with_specification(RegressionSpecification)
 @cli_tools.with_infection_version
 @cli_tools.with_covariates_version
 @cli_tools.with_waning_version

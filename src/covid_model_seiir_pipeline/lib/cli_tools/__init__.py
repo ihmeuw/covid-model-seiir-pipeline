@@ -15,13 +15,21 @@ from covid_shared.cli_tools import (
     RunMetadata,
 )
 from covid_model_seiir_pipeline.lib.cli_tools.decorators import (
-    with_fit_specification,
-    with_regression_specification,
-    with_forecast_specification,
-    with_postprocessing_specification,
-    with_diagnostics_specification,
-    with_predictive_validity_specification,
+    with_specification,
 
+
+    with_location_specification,
+    with_model_inputs_version,
+    with_age_specific_rates_version,
+    with_mortality_scalars_version,
+    with_mask_use_version,
+    with_mobility_version,
+    with_pneumonia_version,
+    with_population_density_version,
+    with_testing_version,
+    with_variant_prevalence_version,
+    with_vaccine_coverage_version,
+    with_vaccine_efficacy_version,
     with_infection_version,
     with_covariates_version,
     with_waning_version,
@@ -29,7 +37,7 @@ from covid_model_seiir_pipeline.lib.cli_tools.decorators import (
     with_mortality_ratio_version,
     with_priors_version,
     with_coefficient_version,
-    with_location_specification,
+
     with_regression_version,
     with_forecast_version,
 

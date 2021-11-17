@@ -96,7 +96,7 @@ def postprocessing_main(app_metadata: cli_tools.Metadata,
 
 @click.command()
 @cli_tools.pass_run_metadata()
-@cli_tools.with_postprocessing_specification
+@cli_tools.with_specification(PostprocessingSpecification)
 @cli_tools.with_forecast_version
 @cli_tools.with_mortality_ratio_version
 @cli_tools.add_preprocess_only

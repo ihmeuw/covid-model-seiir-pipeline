@@ -98,7 +98,7 @@ def diagnostics_main(app_metadata: cli_tools.Metadata,
 
 @click.command()
 @cli_tools.pass_run_metadata()
-@cli_tools.with_diagnostics_specification
+@cli_tools.with_specification(DiagnosticsSpecification)
 @cli_tools.add_preprocess_only
 @cli_tools.add_output_options(paths.SEIR_DIAGNOSTICS_OUTPUTS)
 @cli_tools.add_verbose_and_with_debugger

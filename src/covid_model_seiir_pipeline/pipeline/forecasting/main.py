@@ -86,7 +86,7 @@ def forecast_main(app_metadata: cli_tools.Metadata,
 
 @click.command()
 @cli_tools.pass_run_metadata()
-@cli_tools.with_forecast_specification
+@cli_tools.with_specification(ForecastSpecification)
 @cli_tools.with_regression_version
 @cli_tools.with_covariates_version
 @cli_tools.add_preprocess_only
