@@ -32,7 +32,7 @@ def run_rates_model(hierarchy: pd.DataFrame, *args, **kwargs):
 
     all_locs = rates.reset_index().location_id.unique().tolist()
     dates = rates.reset_index().date
-    global_date_range = pd.date_range(dates.min(), dates.max())
+    global_date_range = pd.date_range(dates.min() - pd.Timedelta(days=1), dates.max())
     square_idx = pd.MultiIndex.from_product((all_locs, global_date_range), names=['location_id', 'date']).sort_values()
 
     rates = rates.reindex(square_idx).sort_index()
