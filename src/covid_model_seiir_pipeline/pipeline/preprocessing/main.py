@@ -71,6 +71,10 @@ def preprocessing_main(app_metadata: cli_tools.Metadata,
     # save location info
     data_interface.save_modeling_hierarchy(hierarchy)
 
+    for population_measure in ['all_population', 'five_year', 'risk_group', 'total']:
+        pop = data_interface.load_raw_population(population_measure)
+        data_interface.save_population(pop, population_measure)
+
     # build workflow and launch
     if not preprocess_only:
         workflow = PreprocessingWorkflow(specification.data.output_root,

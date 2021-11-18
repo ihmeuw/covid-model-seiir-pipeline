@@ -107,6 +107,7 @@ class DataRoot:
 class ModelInputsRoot(DataRoot):
     metadata = MetadataType('metadata')
 
+    population = DatasetType('output_measures/population/all_populations')
     serology = DatasetType('serology', LEAF_TEMPLATES.MEASURE_TEMPLATE)
     full_data = DatasetType('full_data_unscaled')
     full_data_extra_hospital = DatasetType('use_at_your_own_risk/full_data_extra_hospital')
@@ -190,7 +191,7 @@ class PreprocessingRoot(DataRoot):
     specification = MetadataType('preprocessing_specification')
 
     hierarchy = DatasetType('hierarchy')
-
+    population = DatasetType('population', LEAF_TEMPLATES.MEASURE_TEMPLATE)
     age_patterns = DatasetType('age_patterns')
     total_covid_scalars = DatasetType('total_covid_scalars')
     global_serology = DatasetType('global_serology')

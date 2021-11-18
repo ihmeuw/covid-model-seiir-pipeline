@@ -88,6 +88,30 @@ class PreprocessingDataInterface:
     # Model inputs loaders #
     ########################
 
+    def load_raw_population(self, measure: str) -> pd.DataFrame:
+        pop = io.load(self.model_inputs_root.population())
+        is_2019 = pop['year_id'] == 2019
+        is_both_sexes = pop['sex_id'] == 3
+        five_year_bins = [1, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 30, 31, 32, 235]
+        is_five_year_bins = pop['age_group_id'].isin(five_year_bins)
+        keep_cols = ['location_id', 'age_group_years_start', 'age_group_years_end', 'population']
+        five_year = pop.loc[is_2019 & is_both_sexes & is_five_year_bins, keep_cols]
+
+        if measure == 'all_population':
+            data = pop
+        elif measure == 'five_year':
+            data = five_year
+        elif measure == 'risk_group':
+            pop_lr = five_year[five_year['age_group_years_start'] < 65].groupby('location_id')['population'].sum()
+            pop_hr = five_year[five_year['age_group_years_start'] >= 65].groupby('location_id')['population'].sum()
+            data = pd.concat([pop_lr.rename('population_lr'), pop_hr.rename('population_hr')], axis=1)
+        elif measure == 'total':
+            data = five_year.groupby('location_id')['population'].sum()
+        else:
+            raise ValueError(f'Unknown population measure {measure}.')
+
+        return data
+
     def load_raw_serology_data(self):
         data = io.load(self.model_inputs_root.serology(measure='global_serology_summary'))
         return data.reset_index()
@@ -354,6 +378,12 @@ class PreprocessingDataInterface:
 
     def load_modeling_hierarchy(self) -> pd.DataFrame:
         return io.load(self.preprocessing_root.hierarchy())
+
+    def save_population(self, data: pd.DataFrame, measure: str) -> None:
+        io.dump(data, self.preprocessing_root.population(measure=measure))
+
+    def load_population(self, measure: str) -> pd.DataFrame:
+        return io.load(self.preprocessing_root.population(measure=measure))
 
     def save_age_patterns(self, age_patterns: pd.DataFrame) -> None:
         io.dump(age_patterns, self.preprocessing_root.age_patterns())
