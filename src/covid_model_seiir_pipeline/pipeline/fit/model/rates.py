@@ -28,8 +28,16 @@ def run_rates_model(hierarchy: pd.DataFrame, *args, **kwargs):
         lags.append(lag)
 
     col_order = [f'{r}_{g}' for g, r in itertools.product(['lr', 'hr'], ['ifr', 'ihr', 'idr'])]
-    rates = pd.concat(rates, axis=1).loc[:, col_order].sort_index()
-    measures = pd.concat(measures, axis=1).sort_index()
+    rates = pd.concat(rates, axis=1).loc[:, col_order]
+
+    all_locs = rates.reset_index().location_id.unique().tolist()
+    dates = rates.reset_index().date
+    global_date_range = pd.date_range(dates.min(), dates.max())
+    square_idx = pd.MultiIndex.from_product((all_locs, global_date_range), names=['location_id', 'date']).sort_values()
+
+    rates = rates.reindex(square_idx).sort_index()
+    measures = pd.concat(measures, axis=1).reindex(square_idx).sort_index()
+
     return rates, measures, lags
 
 
