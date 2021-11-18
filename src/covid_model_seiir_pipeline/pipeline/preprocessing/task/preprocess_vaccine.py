@@ -1,5 +1,4 @@
 import multiprocessing
-from pathlib import Path
 
 import click
 import pandas as pd
@@ -7,7 +6,6 @@ import tqdm
 
 from covid_model_seiir_pipeline.lib import (
     cli_tools,
-    static_vars,
 )
 from covid_model_seiir_pipeline.pipeline.preprocessing.specification import (
     PreprocessingSpecification,
@@ -26,8 +24,7 @@ logger = cli_tools.task_performance_logger
 def run_preprocess_vaccine(preprocessing_version: str, scenario: str, progress_bar: bool) -> None:
     logger.info(f'Starting vaccination preprocessing for scenario {scenario}.', context='setup')
 
-    spec_file = Path(preprocessing_version) / static_vars.PREPROCESSING_SPECIFICATION_FILE
-    specification = PreprocessingSpecification.from_path(spec_file)
+    specification = PreprocessingSpecification.from_version_root(preprocessing_version)
     data_interface = PreprocessingDataInterface.from_specification(specification)
 
     logger.info(f'Loading efficacy and waning data.', context='read')

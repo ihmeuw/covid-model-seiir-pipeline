@@ -1,11 +1,8 @@
-from pathlib import Path
-
 import click
 import pandas as pd
 
 from covid_model_seiir_pipeline.lib import (
     cli_tools,
-    static_vars,
 )
 from covid_model_seiir_pipeline.pipeline.forecasting import model
 from covid_model_seiir_pipeline.pipeline.forecasting.specification import ForecastSpecification
@@ -17,9 +14,7 @@ logger = cli_tools.task_performance_logger
 
 def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progress_bar: bool):
     logger.info(f"Initiating SEIIR beta forecasting for scenario {scenario}, draw {draw_id}.", context='setup')
-    forecast_spec: ForecastSpecification = ForecastSpecification.from_path(
-        Path(forecast_version) / static_vars.FORECAST_SPECIFICATION_FILE
-    )
+    forecast_spec: ForecastSpecification = ForecastSpecification.from_version_root(forecast_version)
     scenario_spec = forecast_spec.scenarios[scenario]
     data_interface = ForecastDataInterface.from_specification(forecast_spec)
     #################

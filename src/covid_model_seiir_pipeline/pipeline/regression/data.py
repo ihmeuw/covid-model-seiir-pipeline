@@ -8,10 +8,6 @@ import pandas as pd
 from covid_model_seiir_pipeline.lib import (
     io,
     utilities,
-    static_vars,
-)
-from covid_model_seiir_pipeline.lib.ode_mk2.constants import (
-    VARIANT,
 )
 from covid_model_seiir_pipeline.pipeline.regression.specification import (
     RegressionSpecification,
@@ -50,9 +46,7 @@ class RegressionDataInterface:
             priors_root = None
 
         if specification.data.coefficient_version:
-            coefficient_root = Path(specification.data.coefficient_version)
-            coefficient_spec_path = coefficient_root / static_vars.REGRESSION_SPECIFICATION_FILE
-            coefficient_spec = RegressionSpecification.from_path(coefficient_spec_path)
+            coefficient_spec = RegressionSpecification.from_version_root(specification.data.coefficient_version)
             coefficient_root = io.RegressionRoot(coefficient_spec.data.output_root,
                                                  data_format=coefficient_spec.data.output_format)
         else:

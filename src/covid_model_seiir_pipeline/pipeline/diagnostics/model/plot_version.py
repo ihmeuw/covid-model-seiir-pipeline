@@ -4,7 +4,6 @@ from typing import List, NamedTuple, Optional, Tuple
 from loguru import logger
 import pandas as pd
 
-from covid_model_seiir_pipeline.lib import static_vars
 from covid_model_seiir_pipeline.pipeline.postprocessing import (
     PostprocessingSpecification,
     PostprocessingDataInterface,
@@ -38,9 +37,7 @@ class PlotVersion:
         self.scenario = scenario
         self.label = label
         self.color = color
-        spec = PostprocessingSpecification.from_path(
-            self.version / static_vars.POSTPROCESSING_SPECIFICATION_FILE
-        )
+        spec = PostprocessingSpecification.from_version_root(self.version)
         self.pdi = PostprocessingDataInterface.from_specification(spec)
         self._cache = None
 

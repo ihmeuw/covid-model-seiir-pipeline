@@ -1,10 +1,7 @@
-from pathlib import Path
-
 import click
 
 from covid_model_seiir_pipeline.lib import (
     cli_tools,
-    static_vars,
 )
 from covid_model_seiir_pipeline.pipeline.preprocessing.specification import (
     PreprocessingSpecification,
@@ -21,17 +18,15 @@ logger = cli_tools.task_performance_logger
 
 def run_preprocess_measure(preprocessing_version: str, measure: str) -> None:
     logger.info(f'Starting preprocessing for measure {measure}.', context='setup')
-
-    spec_file = Path(preprocessing_version) / static_vars.PREPROCESSING_SPECIFICATION_FILE
-    specification = PreprocessingSpecification.from_path(spec_file)
+    specification = PreprocessingSpecification.from_version_root(preprocessing_version)
     data_interface = PreprocessingDataInterface.from_specification(specification)
 
     try:
         processor = MEASURES[measure]
     except KeyError:
         raise ValueError(f'Unknown preprocessing measure {measure}.  Available measures: {list(MEASURES)}.')
-
     processor(data_interface)
+
     logger.report()
     
 

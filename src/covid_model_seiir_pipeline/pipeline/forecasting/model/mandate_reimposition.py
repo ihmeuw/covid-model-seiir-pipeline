@@ -1,9 +1,7 @@
-from typing import Dict, List, NamedTuple
+from typing import Dict, NamedTuple
 
 import numpy as np
 import pandas as pd
-
-from covid_model_seiir_pipeline.lib import static_vars
 
 
 def compute_reimposition_threshold(past_deaths, population, reimposition_threshold, max_threshold):
@@ -149,7 +147,8 @@ class MandateReimpositionParams(NamedTuple):
 def unpack_parameters(algorithm_parameters: Dict,
                       em_scalars: pd.Series) -> MandateReimpositionParams:
     min_wait = pd.Timedelta(days=algorithm_parameters['minimum_delay'])
-    days_on = pd.Timedelta(days=static_vars.DAYS_PER_WEEK * algorithm_parameters['reimposition_duration'])
+    days_per_week = 7
+    days_on = pd.Timedelta(days=days_per_week * algorithm_parameters['reimposition_duration'])
     reimposition_threshold = (algorithm_parameters['death_threshold'] / 1e6 * em_scalars).rename('threshold')
     max_threshold = (algorithm_parameters['max_threshold'] / 1e6 * em_scalars).rename('threshold')
     return MandateReimpositionParams(min_wait, days_on, reimposition_threshold, max_threshold)

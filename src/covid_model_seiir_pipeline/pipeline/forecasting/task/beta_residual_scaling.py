@@ -1,7 +1,6 @@
 import functools
 import multiprocessing
 from typing import Dict, List, Tuple
-from pathlib import Path
 
 import click
 import pandas as pd
@@ -10,7 +9,6 @@ import tqdm
 
 from covid_model_seiir_pipeline.lib import (
     cli_tools,
-    static_vars,
 )
 from covid_model_seiir_pipeline.pipeline.forecasting.specification import (
     ForecastSpecification,
@@ -68,9 +66,7 @@ def run_compute_beta_scaling_parameters(forecast_version: str, scenario: str, pr
     logger.info(f"Computing beta scaling parameters for forecast "
                 f"version {forecast_version} and scenario {scenario}.", context='setup')
 
-    forecast_spec: ForecastSpecification = ForecastSpecification.from_path(
-        Path(forecast_version) / static_vars.FORECAST_SPECIFICATION_FILE
-    )
+    forecast_spec: ForecastSpecification = ForecastSpecification.from_version_root(forecast_version)
     num_cores = forecast_spec.workflow.task_specifications[FORECAST_JOBS.scaling].num_cores
     data_interface = ForecastDataInterface.from_specification(forecast_spec)
 

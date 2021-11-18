@@ -1,5 +1,3 @@
-from pathlib import Path
-
 import click
 import matplotlib.lines as mlines
 from matplotlib.backends.backend_pdf import PdfPages
@@ -9,7 +7,6 @@ import tqdm
 
 from covid_model_seiir_pipeline.lib import (
     cli_tools,
-    static_vars,
 )
 from covid_model_seiir_pipeline.pipeline.diagnostics.specification import (
     DiagnosticsSpecification,
@@ -38,16 +35,11 @@ logger = cli_tools.task_performance_logger
 
 def run_scatters(diagnostics_version: str, name: str, progress_bar: bool) -> None:
     logger.info(f'Starting scatters for version {diagnostics_version}, name {name}.', context='setup')
-
-    diagnostics_spec = DiagnosticsSpecification.from_path(
-        Path(diagnostics_version) / static_vars.DIAGNOSTICS_SPECIFICATION_FILE
-    )
+    diagnostics_spec = DiagnosticsSpecification.from_version_root(diagnostics_version)
     scatters_spec = [spec for spec in diagnostics_spec.scatters if spec.name == name].pop()
 
     logger.info('Loading plotting data.', context='read')
-    pp_spec = PostprocessingSpecification.from_path(
-        Path(scatters_spec.x_axis.version) / static_vars.POSTPROCESSING_SPECIFICATION_FILE
-    )
+    pp_spec = PostprocessingSpecification.from_path(scatters_spec.x_axis.version)
     pp_di = PostprocessingDataInterface.from_specification(pp_spec)
     
     if pp_di.is_counties_run():
@@ -74,9 +66,7 @@ def run_scatters(diagnostics_version: str, name: str, progress_bar: bool) -> Non
 
 
 def get_deaths(axis_spec: ScattersAxisSpecification):
-    pp_spec = PostprocessingSpecification.from_path(
-        Path(axis_spec.version) / static_vars.POSTPROCESSING_SPECIFICATION_FILE
-    )
+    pp_spec = PostprocessingSpecification.from_path(axis_spec.version)
     pp_di = PostprocessingDataInterface.from_specification(pp_spec)
     data_date = pp_di.load_full_data_unscaled().reset_index().date.max()
     data_date = data_date if not axis_spec.date else pd.Timestamp(axis_spec.date)

@@ -10,7 +10,6 @@ import tqdm
 
 from covid_model_seiir_pipeline.lib import (
     cli_tools,
-    static_vars,
 )
 from covid_model_seiir_pipeline.pipeline.diagnostics.specification import (
     DiagnosticsSpecification,
@@ -24,9 +23,7 @@ logger = cli_tools.task_performance_logger
 def run_grid_plots(diagnostics_version: str, name: str, progress_bar: bool) -> None:
     """Make the grid plots!"""
     logger.info(f'Starting grid plots for version {diagnostics_version}, name {name}.', context='setup')
-    diagnostics_spec = DiagnosticsSpecification.from_path(
-        Path(diagnostics_version) / static_vars.DIAGNOSTICS_SPECIFICATION_FILE
-    )
+    diagnostics_spec = DiagnosticsSpecification.from_version_root(diagnostics_version)
     grid_plot_spec = [spec for spec in diagnostics_spec.grid_plots if spec.name == name].pop()
 
     # Plot version objects are specific to a version and scenario and

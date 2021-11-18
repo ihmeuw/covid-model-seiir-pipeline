@@ -1,5 +1,3 @@
-from pathlib import Path
-
 import click
 import numpy as np
 import pandas as pd
@@ -7,7 +5,6 @@ import pandas as pd
 from covid_model_seiir_pipeline.lib import (
     cli_tools,
     math,
-    static_vars,
 )
 from covid_model_seiir_pipeline.lib.ode_mk2.constants import (
     VARIANT_NAMES,
@@ -23,8 +20,7 @@ logger = cli_tools.task_performance_logger
 def run_beta_regression(regression_version: str, draw_id: int, progress_bar: bool) -> None:
     logger.info('Starting beta regression.', context='setup')
     # Build helper abstractions
-    regression_spec_file = Path(regression_version) / static_vars.REGRESSION_SPECIFICATION_FILE
-    regression_specification = RegressionSpecification.from_path(regression_spec_file)
+    regression_specification = RegressionSpecification.from_version_root(regression_version)
     data_interface = RegressionDataInterface.from_specification(regression_specification)
 
     logger.info('Loading ODE fit input data', context='read')

@@ -1,4 +1,3 @@
-import itertools
 from pathlib import Path
 from typing import Dict, List
 
@@ -6,7 +5,6 @@ import pandas as pd
 
 from covid_model_seiir_pipeline.lib import (
     io,
-    static_vars,
     utilities,
 )
 from covid_model_seiir_pipeline.pipeline.forecasting import (
@@ -31,8 +29,7 @@ class PostprocessingDataInterface:
 
     @classmethod
     def from_specification(cls, specification: PostprocessingSpecification):
-        forecast_spec_path = Path(specification.data.forecast_version) / static_vars.FORECAST_SPECIFICATION_FILE
-        forecast_spec = ForecastSpecification.from_path(forecast_spec_path)
+        forecast_spec = ForecastSpecification.from_version_root(specification.data.forecast_version)
         forecast_root = io.ForecastRoot(specification.data.forecast_version,
                                         data_format=forecast_spec.data.output_format)
         mortality_ratio_root = io.MortalityRatioRoot(specification.data.mortality_ratio_version)
@@ -314,8 +311,7 @@ class PostprocessingDataInterface:
         return forecast_di
 
     def _get_previous_version_data_interface(self, version: str) -> 'PostprocessingDataInterface':
-        previous_spec_path = Path(version) / static_vars.POSTPROCESSING_SPECIFICATION_FILE
-        previous_spec = PostprocessingSpecification.from_path(previous_spec_path)
+        previous_spec = PostprocessingSpecification.from_version_root(version)
         previous_di = PostprocessingDataInterface.from_specification(previous_spec)
         return previous_di
 

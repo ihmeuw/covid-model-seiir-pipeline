@@ -1,12 +1,10 @@
 from typing import List, Tuple, Union
-from pathlib import Path
 
 import click
 import pandas as pd
 
 from covid_model_seiir_pipeline.lib import (
     cli_tools,
-    static_vars,
 )
 from covid_model_seiir_pipeline.pipeline.postprocessing.specification import (
     SplicingSpecification,
@@ -300,9 +298,7 @@ def postprocess_miscellaneous(postprocessing_version: str,
 
 def build_spec_and_data_interface(postprocessing_version: str) -> Tuple[PostprocessingSpecification,
                                                                         PostprocessingDataInterface]:
-    postprocessing_spec = PostprocessingSpecification.from_path(
-        Path(postprocessing_version) / static_vars.POSTPROCESSING_SPECIFICATION_FILE
-    )
+    postprocessing_spec = PostprocessingSpecification.from_version_root(postprocessing_version)
     data_interface = PostprocessingDataInterface.from_specification(postprocessing_spec)
     return postprocessing_spec, data_interface
 

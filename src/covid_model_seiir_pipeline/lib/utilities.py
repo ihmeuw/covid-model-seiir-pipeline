@@ -7,6 +7,7 @@ from typing import Dict, Union, Tuple
 from pprint import pformat
 
 from covid_shared import ihme_deps
+import inflection
 import numpy as np
 import pandas as pd
 import yaml
@@ -40,6 +41,15 @@ class YamlIOMixin:
 
 class Specification(YamlIOMixin):
     """Generic class for pipeline stage specifications."""
+
+    @classmethod
+    def spec_file_name(cls) -> str:
+        return f'{inflection.underscore(cls.__name__)}.yaml'
+
+    @classmethod
+    def from_version_root(cls, version_root: Union[str, Path]) -> Specification:
+        path = Path(version_root) / cls.spec_file_name()
+        return cls.from_path(path)
 
     @classmethod
     def from_path(cls, specification_path: Union[str, Path]) -> Specification:

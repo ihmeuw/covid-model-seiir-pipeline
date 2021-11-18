@@ -1,12 +1,10 @@
 from dataclasses import asdict
-from pathlib import Path
 
 import click
 import pandas as pd
 
 from covid_model_seiir_pipeline.lib import (
     cli_tools,
-    static_vars,
 )
 from covid_model_seiir_pipeline.pipeline.regression.specification import (
     RegressionSpecification,
@@ -26,8 +24,7 @@ logger = cli_tools.task_performance_logger
 def run_hospital_correction_factors(regression_version: str, with_progress_bar: bool) -> None:
     logger.info('Starting hospital correction factors.', context='setup')
     # Build helper abstractions
-    regression_spec_file = Path(regression_version) / static_vars.REGRESSION_SPECIFICATION_FILE
-    regression_specification = RegressionSpecification.from_path(regression_spec_file)
+    regression_specification = RegressionSpecification.from_version_root(regression_version)
     hospital_parameters = regression_specification.hospital_parameters
     data_interface = RegressionDataInterface.from_specification(regression_specification)
 

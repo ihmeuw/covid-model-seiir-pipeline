@@ -1,12 +1,9 @@
-from pathlib import Path
-
 import click
 import numpy as np
 import pandas as pd
 
 from covid_model_seiir_pipeline.lib import (
     cli_tools,
-    static_vars,
 )
 from covid_model_seiir_pipeline.lib.ode_mk2.constants import (
     VARIANT_NAMES,
@@ -22,8 +19,7 @@ logger = cli_tools.task_performance_logger
 def run_parameter_fit(fit_version: str, scenario: str, draw_id: int, progress_bar: bool) -> None:
     logger.info('Starting beta fit.', context='setup')
     # Build helper abstractions
-    fit_spec_file = Path(fit_version) / static_vars.FIT_SPECIFICATION_FILE
-    fit_specification = FitSpecification.from_path(fit_spec_file)
+    fit_specification = FitSpecification.from_version_root(fit_version)
     data_interface = FitDataInterface.from_specification(fit_specification)
 
     logger.info('Loading ODE fit input data', context='read')

@@ -180,6 +180,7 @@ class CovariatePriorsRoot(DataRoot):
 
     priors = DatasetType('priors')
 
+
 ########################
 # Pipeline Stage Roots #
 ########################
