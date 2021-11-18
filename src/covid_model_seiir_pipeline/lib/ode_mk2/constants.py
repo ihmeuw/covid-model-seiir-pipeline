@@ -157,17 +157,17 @@ EPI_MEASURE = _EpiMeasure(
 )
 EPI_MEASURE_NAMES = _EpiMeasure(*_EpiMeasure._fields)
 _BaseParameter = namedtuple('BaseParameter', [
-    'alpha',            
-    'sigma',            
-    'gamma',            
-    'pi',               
-    'beta',             
-    'deaths',           
-    'admissions',       
-    'cases',            
-    'death_weight',     
-    'admission_weight', 
-    'case_weight',      
+    'alpha',             
+    'sigma',             
+    'gamma',             
+    'pi',                
+    'beta',              
+    'deaths',            
+    'admissions',        
+    'cases',             
+    'deaths_weight',     
+    'admissions_weight', 
+    'cases_weight',      
 ])
 BASE_PARAMETER = _BaseParameter(
     alpha=PARAMETER_TYPE.alpha,
@@ -178,9 +178,9 @@ BASE_PARAMETER = _BaseParameter(
     deaths=PARAMETER_TYPE.deaths,
     admissions=PARAMETER_TYPE.admissions,
     cases=PARAMETER_TYPE.cases,
-    death_weight=PARAMETER_TYPE.death_weight,
-    admission_weight=PARAMETER_TYPE.admission_weight,
-    case_weight=PARAMETER_TYPE.case_weight,
+    deaths_weight=PARAMETER_TYPE.deaths_weight,
+    admissions_weight=PARAMETER_TYPE.admissions_weight,
+    cases_weight=PARAMETER_TYPE.cases_weight,
 )
 BASE_PARAMETER_NAMES = _BaseParameter(*_BaseParameter._fields)
 _VariantParameter = namedtuple('VariantParameter', [
@@ -260,9 +260,9 @@ PARAMETERS[BASE_PARAMETER.beta, VARIANT_INDEX_TYPE.all] = 4
 PARAMETERS[BASE_PARAMETER.deaths, VARIANT_INDEX_TYPE.all] = 5
 PARAMETERS[BASE_PARAMETER.admissions, VARIANT_INDEX_TYPE.all] = 6
 PARAMETERS[BASE_PARAMETER.cases, VARIANT_INDEX_TYPE.all] = 7
-PARAMETERS[BASE_PARAMETER.death_weight, VARIANT_INDEX_TYPE.all] = 8
-PARAMETERS[BASE_PARAMETER.admission_weight, VARIANT_INDEX_TYPE.all] = 9
-PARAMETERS[BASE_PARAMETER.case_weight, VARIANT_INDEX_TYPE.all] = 10
+PARAMETERS[BASE_PARAMETER.deaths_weight, VARIANT_INDEX_TYPE.all] = 8
+PARAMETERS[BASE_PARAMETER.admissions_weight, VARIANT_INDEX_TYPE.all] = 9
+PARAMETERS[BASE_PARAMETER.cases_weight, VARIANT_INDEX_TYPE.all] = 10
 PARAMETERS[VARIANT_PARAMETER.kappa, VARIANT.none] = 11
 PARAMETERS[VARIANT_PARAMETER.kappa, VARIANT.ancestral] = 12
 PARAMETERS[VARIANT_PARAMETER.kappa, VARIANT.alpha] = 13
@@ -312,9 +312,9 @@ PARAMETERS_NAMES = [
     'deaths_all',
     'admissions_all',
     'cases_all',
-    'death_weight_all',
-    'admission_weight_all',
-    'case_weight_all',
+    'deaths_weight_all',
+    'admissions_weight_all',
+    'cases_weight_all',
     'kappa_none',
     'kappa_ancestral',
     'kappa_alpha',

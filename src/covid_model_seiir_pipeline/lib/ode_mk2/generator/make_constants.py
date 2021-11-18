@@ -114,9 +114,9 @@ DERIVED_TYPES = {
         'deaths',
         'admissions',
         'cases',
-        'death_weight',
-        'admission_weight',
-        'case_weight',
+        'deaths_weight',
+        'admissions_weight',
+        'cases_weight',
     ]),
     'variant_parameter': ('parameter_type', [
         'kappa',
