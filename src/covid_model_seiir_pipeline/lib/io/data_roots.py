@@ -222,7 +222,7 @@ class PreprocessingRoot(DataRoot):
         self.__dict__ = state
 
 
-class ODEFitRoot(DataRoot):
+class FitRoot(DataRoot):
     metadata = MetadataType('metadata')
     specification = MetadataType('ode_fit_specification')
     beta = DatasetType('beta', LEAF_TEMPLATES.DRAW_TEMPLATE)
@@ -293,18 +293,7 @@ class DiagnosticsRoot(DataRoot):
 
 
 # Defunct roots
-class FitRoot(DataRoot):
-    metadata = MetadataType('metadata')
-    specification = MetadataType('fit_specification')
-    locations = MetadataType('locations')
 
-    hierarchy = DatasetType('hierarchy')
-
-    beta = DatasetType('beta', LEAF_TEMPLATES.DRAW_TEMPLATE, PREFIX_TEMPLATES.SCENARIO_TEMPLATE)
-    compartments = DatasetType('compartments', LEAF_TEMPLATES.DRAW_TEMPLATE, PREFIX_TEMPLATES.SCENARIO_TEMPLATE)
-    ode_parameters = DatasetType('ode_parameters', LEAF_TEMPLATES.DRAW_TEMPLATE, PREFIX_TEMPLATES.SCENARIO_TEMPLATE)
-    regression_parameters = DatasetType('regression_parameters', LEAF_TEMPLATES.DRAW_TEMPLATE, PREFIX_TEMPLATES.SCENARIO_TEMPLATE)
-    coefficients = DatasetType('coefficients', LEAF_TEMPLATES.DRAW_TEMPLATE, PREFIX_TEMPLATES.SCENARIO_TEMPLATE)
 
 
 class CovariateRoot(DataRoot):

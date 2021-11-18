@@ -377,7 +377,7 @@ class PreprocessingDataInterface:
     def save_testing_data(self, data: pd.DataFrame):
         io.dump(data, self.preprocessing_root.testing_for_idr())
 
-    def load_testing_data(self, data: pd.DataFrame):
+    def load_testing_data(self):
         return io.load(self.preprocessing_root.testing_for_idr())
 
     def save_covariate(self, data: pd.DataFrame, covariate: str, scenario: str) -> None:

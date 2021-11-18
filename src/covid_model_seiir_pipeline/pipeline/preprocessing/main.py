@@ -52,31 +52,31 @@ def do_preprocessing(run_metadata: cli_tools.RunMetadata,
 
 
 def preprocessing_main(app_metadata: cli_tools.Metadata,
-                       preprocessing_specification: PreprocessingSpecification,
+                       specification: PreprocessingSpecification,
                        preprocess_only: bool):
-    logger.info(f'Starting preprocessing for version {preprocessing_specification.data.output_root}.')
+    logger.info(f'Starting preprocessing for version {specification.data.output_root}.')
 
     # init high level objects
-    data_interface = PreprocessingDataInterface.from_specification(preprocessing_specification)
+    data_interface = PreprocessingDataInterface.from_specification(specification)
 
     # build directory structure and save metadata
     data_interface.make_dirs()
-    data_interface.save_specification(preprocessing_specification)
+    data_interface.save_specification(specification)
 
     # Grab canonical location list from arguments
     hierarchy = data_interface.load_hierarchy_from_primary_source(
-        location_set_version_id=preprocessing_specification.data.location_set_version_id,
-        location_file=preprocessing_specification.data.location_set_file
+        location_set_version_id=specification.data.location_set_version_id,
+        location_file=specification.data.location_set_file
     )
     # save location info
     data_interface.save_modeling_hierarchy(hierarchy)
 
     # build workflow and launch
     if not preprocess_only:
-        workflow = PreprocessingWorkflow(preprocessing_specification.data.output_root,
-                                         preprocessing_specification.workflow)
+        workflow = PreprocessingWorkflow(specification.data.output_root,
+                                         specification.workflow)
         workflow.attach_tasks(measures=MEASURES.keys(),
-                              scenarios=['base_measures'] + preprocessing_specification.data.vaccine_scenarios)
+                              scenarios=['base_measures'] + specification.data.vaccine_scenarios)
         try:
             workflow.run()
         except ihme_deps.WorkflowAlreadyComplete:

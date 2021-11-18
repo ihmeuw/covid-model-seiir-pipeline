@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import Dict, List, NamedTuple, Tuple, Union
+from typing import Dict, NamedTuple, Tuple, Union
 
 from covid_shared import workflow
 
@@ -32,12 +32,22 @@ class FitData:
     preprocessing_version: str = field(default='best')
     output_root: str = field(default='')
     output_format: str = field(default='csv')
+    n_draws: int = field(default=100)
 
     def to_dict(self) -> Dict:
         return utilities.asdict(self)
 
 
 Sampleable = Union[Tuple[float, float], float]
+
+
+@dataclass
+class RatesParameters:
+
+    dummy: Sampleable = field(default=(0.0, 1.0))
+
+    def to_dict(self) -> Dict:
+        return utilities.asdict(self)
 
 
 @dataclass
@@ -92,17 +102,20 @@ class FitSpecification(utilities.Specification):
     def __init__(self,
                  data: FitData,
                  workflow: FitWorkflowSpecification,
-                 parameters: FitParameters):
+                 rates_parameters: RatesParameters,
+                 fit_parameters: FitParameters):
         self._data = data
         self._workflow = workflow
-        self._parameters = parameters
+        self._rates_parameters = rates_parameters
+        self._fit_parameters = fit_parameters
 
     @classmethod
     def parse_spec_dict(cls, spec_dict: Dict) -> Tuple:
         sub_specs = {
             'data': FitData,
             'workflow': FitWorkflowSpecification,
-            'parameters': FitParameters,
+            'rates_parameters': RatesParameters,
+            'fit_parameters': FitParameters,
         }
         for key, spec_class in list(sub_specs.items()):  # We're dynamically altering. Copy with list
             spec_dict = utilities.filter_to_spec_fields(
@@ -122,13 +135,18 @@ class FitSpecification(utilities.Specification):
         return self._workflow
 
     @property
-    def parameters(self) -> FitParameters:
-        return self._parameters
+    def rates_parameters(self) -> RatesParameters:
+        return self._rates_parameters
+
+    @property
+    def fit_parameters(self) -> FitParameters:
+        return self._fit_parameters
 
     def to_dict(self) -> Dict:
         spec = {
             'data': self.data.to_dict(),
             'workflow': self.workflow.to_dict(),
-            'parameters': self.parameters.to_dict(),
+            'rates_parameters': self.rates_parameters.to_dict(),
+            'fit_parameters': self.fit_parameters.to_dict(),
         }
         return spec

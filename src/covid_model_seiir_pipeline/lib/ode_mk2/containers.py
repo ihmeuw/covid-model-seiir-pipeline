@@ -27,7 +27,7 @@ class Parameters:
                  eta_deaths: pd.DataFrame,
                  eta_admissions: pd.DataFrame,
                  eta_cases: pd.DataFrame,
-                 natural_waning_distribution: pd.Series,
+                 natural_waning_distribution: pd.DataFrame,
                  phi_infections: pd.DataFrame,
                  phi_deaths: pd.DataFrame,
                  phi_admissions: pd.DataFrame,

@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import Dict, Union, Tuple
 from pprint import pformat
 
-from covid_shared import ihme_deps
+from covid_shared import ihme_deps, workflow
 import inflection
 import numpy as np
 import pandas as pd
