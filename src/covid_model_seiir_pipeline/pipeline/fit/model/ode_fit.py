@@ -21,26 +21,40 @@ from covid_model_seiir_pipeline.lib.ode_mk2 import (
 
 
 def prepare_ode_fit_parameters(rates: pd.DataFrame,
+                               epi_measures: pd.DataFrame,
                                rhos: pd.DataFrame,
                                vaccinations: pd.DataFrame,
-                               all_etas: pd.DataFrame,
+                               etas: pd.DataFrame,
                                natural_waning_dist: pd.Series,
                                natural_waning_matrix: pd.DataFrame,
                                sampled_params: Dict[str, pd.Series]) -> Parameters:
     past_index = rates.index
-    sampled_params = {k if 'kappa' in k else f'{k}_all': v for k, v in sampled_params.items()}
-    beta = pd.Series(-1, index=past_index, name='beta_all')
-    rhos = rhos.reindex(past_index, fill_value=0.).to_dict('series')
+
+    sampled_params = pd.DataFrame(
+        {k if 'kappa' in k or 'zeta' in k else f'{k}_all': v for k, v in sampled_params.items()})
+    rhos = rhos.reindex(past_index, fill_value=0.)
+    rhos.columns = [f'rho_{c}' for c in rhos.columns]
     rhos['rho_none'] = pd.Series(0., index=past_index, name='rho_none')
-    vaccinations = vaccinations.reindex(past_index, fill_value=0.).to_dict('series')
-    etas = process_etas(all_etas, past_index)
+
+    base_parameters = pd.concat([
+        sampled_params,
+        epi_measures,
+        pd.Series(-1, index=past_index, name='beta_all'),
+        rhos,
+    ], axis=1)
+
+    vaccinations = vaccinations.reindex(past_index, fill_value=0.)
+    etas = etas.set_index('endpoint', append=True).reorder_levels(['endpoint', 'location_id', 'date']).sort_index()
+    etas = {f'eta_{endpoint}': etas.loc[endpoint] for endpoint in ['infection', 'death', 'admission', 'case']}
+    natural_waning_dist = {f'natural_waning_{endpoint}': natural_waning_dist.loc[endpoint] for endpoint in
+                           ['infection', 'death', 'admission', 'case']}
+
     return Parameters(
-        **sampled_params,
-        **rhos,
-        **vaccinations,
+        base_parameters=base_parameters,
+        vaccinations=vaccinations,
         **etas,
-        natural_waning_distribution=natural_waning_dist.loc['infection'],
-        phi=natural_waning_matrix.loc[list(VARIANT_NAMES), list(VARIANT_NAMES)],
+        **natural_waning_dist,
+        phi=natural_waning_matrix,
     )
 
 

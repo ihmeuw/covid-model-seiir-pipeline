@@ -14,7 +14,6 @@ from covid_model_seiir_pipeline.lib.io.keys import (
 POTENTIAL_INDEX_COLUMNS = [
     'location_id', 'date',
     'age_start', 'age_group_years_start', 'age_group_years_end',
-    'endpoint',
 ]
 
 
@@ -29,7 +28,7 @@ class CSVMarshall:
             msg = f"Cannot dump data for key {key} - would overwrite"
             raise LookupError(msg)
 
-        write_index = bool(set(data.index.names).intersection(POTENTIAL_INDEX_COLUMNS))
+        write_index = bool(data.index.names)
         data.to_csv(path, index=write_index)
 
     @classmethod

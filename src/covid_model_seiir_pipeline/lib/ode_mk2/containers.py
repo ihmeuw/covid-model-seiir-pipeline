@@ -13,7 +13,7 @@ from covid_model_seiir_pipeline.lib.ode_mk2.constants import (
     PARAMETERS_NAMES,
     RATES_NAMES,
     ETA_NAMES,
-    CHI_NAMES,
+    VARIANT_NAMES,
 )
 
 
@@ -47,14 +47,12 @@ class Parameters:
         self.eta_admission = eta_admission.loc[:, field_names]
         self.eta_case = eta_case.loc[:, field_names]
 
-        self.natural_waning_infection = natural_waning_infection.loc[:, ]
+        self.natural_waning_infection = natural_waning_infection
         self.natural_waning_death = natural_waning_death
         self.natural_waning_admission = natural_waning_admission
         self.natural_waning_case = natural_waning_case
 
-
-        self.phi = phi.loc[:, CHI_NAMES]
-
+        self.phi = phi.loc[VARIANT_NAMES, VARIANT_NAMES]
 
     @staticmethod
     def _make_risk_group_fields(measures) -> List[str]:
