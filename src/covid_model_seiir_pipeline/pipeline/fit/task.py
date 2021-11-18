@@ -23,7 +23,7 @@ def run_beta_fit(fit_version: str, draw_id: int, progress_bar: bool) -> None:
     data_interface = FitDataInterface.from_specification(specification)
 
     logger.info('Loading rates data', context='read')
-    hierarchy = data_interface.load_modeling_hierarchy()
+    hierarchy = data_interface.load_modeling_hierarchy().reset_index()
 
     logger.info('Running first-pass rates model', context='rates_model')
     rates, epi_measures, lags = model.run_rates_model(hierarchy)

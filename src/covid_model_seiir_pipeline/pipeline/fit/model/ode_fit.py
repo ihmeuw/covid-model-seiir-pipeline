@@ -52,22 +52,11 @@ def prepare_ode_fit_parameters(rates: pd.DataFrame,
     return Parameters(
         base_parameters=base_parameters,
         vaccinations=vaccinations,
+        rates=rates,
         **etas,
         **natural_waning_dist,
         phi=natural_waning_matrix,
     )
-
-
-def split_population(past_index: pd.Index, population: pd.DataFrame):
-    population_low_risk = (population[population['age_group_years_start'] < 65]
-                           .groupby('location_id')['population']
-                           .sum()
-                           .reindex(past_index, level='location_id'))
-    population_high_risk = (population[population['age_group_years_start'] >= 65]
-                            .groupby('location_id')['population']
-                            .sum()
-                            .reindex(past_index, level='location_id'))
-    return population_low_risk, population_high_risk
 
 
 def sample_parameter(parameter: str, draw_id: int, lower: float, upper: float) -> float:
@@ -96,42 +85,6 @@ def sample_params(past_index: pd.Index,
         )
 
     return sampled_params
-
-
-def process_etas(all_etas: pd.DataFrame, index: pd.Index):
-    etas_vaccination = all_etas.loc[('infection', 1)]
-    etas_booster = all_etas.loc[('infection', 2)]
-    etas_unvaccinated = etas_vaccination.copy()
-    etas_unvaccinated.loc[:, :] = 0.
-    etas = {}
-    for prefix, eta in (
-    ('unvaccinated', etas_unvaccinated), ('vaccinated', etas_vaccination), ('booster', etas_booster)):
-        eta = (eta
-               .reindex(index)
-               .groupby('location_id')
-               .bfill()
-               .fillna(0.)
-               .rename(columns=lambda x: f'eta_{prefix}_{x}'))
-        etas.update(eta.to_dict('series'))
-    return etas
-
-
-def clean_infection_data_measure(infection_data: pd.DataFrame, measure: str) -> pd.Series:
-    # Make sure the first value in the series is 0 so that we can convert between cumulative and daily.
-    data = infection_data[measure].dropna()
-    min_date = data.reset_index().groupby('location_id').date.min()
-    prepend_date = min_date - pd.Timedelta(days=1)
-    prepend_idx = prepend_date.reset_index().set_index(['location_id', 'date']).index
-    prepend = pd.Series(0., index=prepend_idx, name=measure)
-    data = data.append(prepend).sort_index().reset_index()
-
-    infection_data = infection_data.reset_index()
-    all_locs = infection_data.location_id.unique().tolist()
-    global_date_range = pd.date_range(infection_data.date.min() - pd.Timedelta(days=1), infection_data.date.max())
-    square_idx = pd.MultiIndex.from_product((all_locs, global_date_range), names=['location_id', 'date']).sort_values()
-    data = data.set_index(['location_id', 'date']).reindex(square_idx).groupby('location_id').bfill()
-    return data[measure]
-
 
 def make_initial_condition(parameters: Parameters, population: pd.DataFrame):
     # Alpha is time-invariant
@@ -169,33 +122,6 @@ def make_initial_condition(parameters: Parameters, population: pd.DataFrame):
 
     return initial_condition
 
-
-def get_risk_group_pop(population: pd.DataFrame):
-    population_low_risk = (population[population['age_group_years_start'] < 65]
-                           .groupby('location_id')['population']
-                           .sum()
-                           .rename('lr'))
-    population_high_risk = (population[population['age_group_years_start'] >= 65]
-                            .groupby('location_id')['population']
-                            .sum()
-                            .rename('hr'))
-    pop = pd.concat([population_low_risk, population_high_risk], axis=1)
-    return pop
-
-
-def filter_to_epi_threshold(infections: pd.Series,
-                            threshold: float = 50.) -> pd.Series:
-    infections = infections.reset_index(level='location_id', drop=True)
-    # noinspection PyTypeChecker
-    start_date = infections.loc[threshold <= infections].index.min()
-    while infections.loc[start_date:].dropna().count() <= 2:
-        threshold *= 0.5
-        # noinspection PyTypeChecker
-        start_date = infections.loc[threshold <= infections].index.min()
-        if threshold < 1e-6:
-            start_date = infections.index.min()
-            break
-    return infections.loc[start_date:]
 
 
 def run_ode_fit(initial_condition: pd.DataFrame, ode_parameters: Parameters, progress_bar: bool):
