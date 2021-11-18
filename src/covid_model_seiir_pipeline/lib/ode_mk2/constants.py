@@ -37,19 +37,22 @@ _EpiMeasureType = namedtuple('EpiMeasureType', [
 ])
 
 _ParameterType = namedtuple('ParameterType', [
-    'alpha',          
-    'sigma',          
-    'gamma',          
-    'pi',             
-    'beta',           
-    'kappa',          
-    'rho',            
-    'deaths',         
-    'admissions',     
-    'cases',          
-    'zeta_death',     
-    'zeta_case',      
-    'zeta_admission', 
+    'alpha',             
+    'sigma',             
+    'gamma',             
+    'pi',                
+    'beta',              
+    'kappa',             
+    'rho',               
+    'deaths',            
+    'admissions',        
+    'cases',             
+    'deaths_weight',     
+    'admissions_weight', 
+    'cases_weight',      
+    'zeta_death',        
+    'zeta_case',         
+    'zeta_admission',    
 ])
 
 _RatesType = namedtuple('RatesType', [
@@ -154,14 +157,17 @@ EPI_MEASURE = _EpiMeasure(
 )
 EPI_MEASURE_NAMES = _EpiMeasure(*_EpiMeasure._fields)
 _BaseParameter = namedtuple('BaseParameter', [
-    'alpha',      
-    'sigma',      
-    'gamma',      
-    'pi',         
-    'beta',       
-    'deaths',     
-    'admissions', 
-    'cases',      
+    'alpha',            
+    'sigma',            
+    'gamma',            
+    'pi',               
+    'beta',             
+    'deaths',           
+    'admissions',       
+    'cases',            
+    'death_weight',     
+    'admission_weight', 
+    'case_weight',      
 ])
 BASE_PARAMETER = _BaseParameter(
     alpha=PARAMETER_TYPE.alpha,
@@ -172,6 +178,9 @@ BASE_PARAMETER = _BaseParameter(
     deaths=PARAMETER_TYPE.deaths,
     admissions=PARAMETER_TYPE.admissions,
     cases=PARAMETER_TYPE.cases,
+    death_weight=PARAMETER_TYPE.death_weight,
+    admission_weight=PARAMETER_TYPE.admission_weight,
+    case_weight=PARAMETER_TYPE.case_weight,
 )
 BASE_PARAMETER_NAMES = _BaseParameter(*_BaseParameter._fields)
 _VariantParameter = namedtuple('VariantParameter', [
@@ -251,46 +260,49 @@ PARAMETERS[BASE_PARAMETER.beta, VARIANT_INDEX_TYPE.all] = 4
 PARAMETERS[BASE_PARAMETER.deaths, VARIANT_INDEX_TYPE.all] = 5
 PARAMETERS[BASE_PARAMETER.admissions, VARIANT_INDEX_TYPE.all] = 6
 PARAMETERS[BASE_PARAMETER.cases, VARIANT_INDEX_TYPE.all] = 7
-PARAMETERS[VARIANT_PARAMETER.kappa, VARIANT.none] = 8
-PARAMETERS[VARIANT_PARAMETER.kappa, VARIANT.ancestral] = 9
-PARAMETERS[VARIANT_PARAMETER.kappa, VARIANT.alpha] = 10
-PARAMETERS[VARIANT_PARAMETER.kappa, VARIANT.beta] = 11
-PARAMETERS[VARIANT_PARAMETER.kappa, VARIANT.gamma] = 12
-PARAMETERS[VARIANT_PARAMETER.kappa, VARIANT.delta] = 13
-PARAMETERS[VARIANT_PARAMETER.kappa, VARIANT.other] = 14
-PARAMETERS[VARIANT_PARAMETER.kappa, VARIANT.omega] = 15
-PARAMETERS[VARIANT_PARAMETER.zeta_death, VARIANT.none] = 16
-PARAMETERS[VARIANT_PARAMETER.zeta_death, VARIANT.ancestral] = 17
-PARAMETERS[VARIANT_PARAMETER.zeta_death, VARIANT.alpha] = 18
-PARAMETERS[VARIANT_PARAMETER.zeta_death, VARIANT.beta] = 19
-PARAMETERS[VARIANT_PARAMETER.zeta_death, VARIANT.gamma] = 20
-PARAMETERS[VARIANT_PARAMETER.zeta_death, VARIANT.delta] = 21
-PARAMETERS[VARIANT_PARAMETER.zeta_death, VARIANT.other] = 22
-PARAMETERS[VARIANT_PARAMETER.zeta_death, VARIANT.omega] = 23
-PARAMETERS[VARIANT_PARAMETER.zeta_case, VARIANT.none] = 24
-PARAMETERS[VARIANT_PARAMETER.zeta_case, VARIANT.ancestral] = 25
-PARAMETERS[VARIANT_PARAMETER.zeta_case, VARIANT.alpha] = 26
-PARAMETERS[VARIANT_PARAMETER.zeta_case, VARIANT.beta] = 27
-PARAMETERS[VARIANT_PARAMETER.zeta_case, VARIANT.gamma] = 28
-PARAMETERS[VARIANT_PARAMETER.zeta_case, VARIANT.delta] = 29
-PARAMETERS[VARIANT_PARAMETER.zeta_case, VARIANT.other] = 30
-PARAMETERS[VARIANT_PARAMETER.zeta_case, VARIANT.omega] = 31
-PARAMETERS[VARIANT_PARAMETER.zeta_admission, VARIANT.none] = 32
-PARAMETERS[VARIANT_PARAMETER.zeta_admission, VARIANT.ancestral] = 33
-PARAMETERS[VARIANT_PARAMETER.zeta_admission, VARIANT.alpha] = 34
-PARAMETERS[VARIANT_PARAMETER.zeta_admission, VARIANT.beta] = 35
-PARAMETERS[VARIANT_PARAMETER.zeta_admission, VARIANT.gamma] = 36
-PARAMETERS[VARIANT_PARAMETER.zeta_admission, VARIANT.delta] = 37
-PARAMETERS[VARIANT_PARAMETER.zeta_admission, VARIANT.other] = 38
-PARAMETERS[VARIANT_PARAMETER.zeta_admission, VARIANT.omega] = 39
-PARAMETERS[VARIANT_PARAMETER.rho, VARIANT.none] = 40
-PARAMETERS[VARIANT_PARAMETER.rho, VARIANT.ancestral] = 41
-PARAMETERS[VARIANT_PARAMETER.rho, VARIANT.alpha] = 42
-PARAMETERS[VARIANT_PARAMETER.rho, VARIANT.beta] = 43
-PARAMETERS[VARIANT_PARAMETER.rho, VARIANT.gamma] = 44
-PARAMETERS[VARIANT_PARAMETER.rho, VARIANT.delta] = 45
-PARAMETERS[VARIANT_PARAMETER.rho, VARIANT.other] = 46
-PARAMETERS[VARIANT_PARAMETER.rho, VARIANT.omega] = 47
+PARAMETERS[BASE_PARAMETER.death_weight, VARIANT_INDEX_TYPE.all] = 8
+PARAMETERS[BASE_PARAMETER.admission_weight, VARIANT_INDEX_TYPE.all] = 9
+PARAMETERS[BASE_PARAMETER.case_weight, VARIANT_INDEX_TYPE.all] = 10
+PARAMETERS[VARIANT_PARAMETER.kappa, VARIANT.none] = 11
+PARAMETERS[VARIANT_PARAMETER.kappa, VARIANT.ancestral] = 12
+PARAMETERS[VARIANT_PARAMETER.kappa, VARIANT.alpha] = 13
+PARAMETERS[VARIANT_PARAMETER.kappa, VARIANT.beta] = 14
+PARAMETERS[VARIANT_PARAMETER.kappa, VARIANT.gamma] = 15
+PARAMETERS[VARIANT_PARAMETER.kappa, VARIANT.delta] = 16
+PARAMETERS[VARIANT_PARAMETER.kappa, VARIANT.other] = 17
+PARAMETERS[VARIANT_PARAMETER.kappa, VARIANT.omega] = 18
+PARAMETERS[VARIANT_PARAMETER.zeta_death, VARIANT.none] = 19
+PARAMETERS[VARIANT_PARAMETER.zeta_death, VARIANT.ancestral] = 20
+PARAMETERS[VARIANT_PARAMETER.zeta_death, VARIANT.alpha] = 21
+PARAMETERS[VARIANT_PARAMETER.zeta_death, VARIANT.beta] = 22
+PARAMETERS[VARIANT_PARAMETER.zeta_death, VARIANT.gamma] = 23
+PARAMETERS[VARIANT_PARAMETER.zeta_death, VARIANT.delta] = 24
+PARAMETERS[VARIANT_PARAMETER.zeta_death, VARIANT.other] = 25
+PARAMETERS[VARIANT_PARAMETER.zeta_death, VARIANT.omega] = 26
+PARAMETERS[VARIANT_PARAMETER.zeta_case, VARIANT.none] = 27
+PARAMETERS[VARIANT_PARAMETER.zeta_case, VARIANT.ancestral] = 28
+PARAMETERS[VARIANT_PARAMETER.zeta_case, VARIANT.alpha] = 29
+PARAMETERS[VARIANT_PARAMETER.zeta_case, VARIANT.beta] = 30
+PARAMETERS[VARIANT_PARAMETER.zeta_case, VARIANT.gamma] = 31
+PARAMETERS[VARIANT_PARAMETER.zeta_case, VARIANT.delta] = 32
+PARAMETERS[VARIANT_PARAMETER.zeta_case, VARIANT.other] = 33
+PARAMETERS[VARIANT_PARAMETER.zeta_case, VARIANT.omega] = 34
+PARAMETERS[VARIANT_PARAMETER.zeta_admission, VARIANT.none] = 35
+PARAMETERS[VARIANT_PARAMETER.zeta_admission, VARIANT.ancestral] = 36
+PARAMETERS[VARIANT_PARAMETER.zeta_admission, VARIANT.alpha] = 37
+PARAMETERS[VARIANT_PARAMETER.zeta_admission, VARIANT.beta] = 38
+PARAMETERS[VARIANT_PARAMETER.zeta_admission, VARIANT.gamma] = 39
+PARAMETERS[VARIANT_PARAMETER.zeta_admission, VARIANT.delta] = 40
+PARAMETERS[VARIANT_PARAMETER.zeta_admission, VARIANT.other] = 41
+PARAMETERS[VARIANT_PARAMETER.zeta_admission, VARIANT.omega] = 42
+PARAMETERS[VARIANT_PARAMETER.rho, VARIANT.none] = 43
+PARAMETERS[VARIANT_PARAMETER.rho, VARIANT.ancestral] = 44
+PARAMETERS[VARIANT_PARAMETER.rho, VARIANT.alpha] = 45
+PARAMETERS[VARIANT_PARAMETER.rho, VARIANT.beta] = 46
+PARAMETERS[VARIANT_PARAMETER.rho, VARIANT.gamma] = 47
+PARAMETERS[VARIANT_PARAMETER.rho, VARIANT.delta] = 48
+PARAMETERS[VARIANT_PARAMETER.rho, VARIANT.other] = 49
+PARAMETERS[VARIANT_PARAMETER.rho, VARIANT.omega] = 50
 PARAMETERS_NAMES = [
     'alpha_all',
     'sigma_all',
@@ -300,6 +312,9 @@ PARAMETERS_NAMES = [
     'deaths_all',
     'admissions_all',
     'cases_all',
+    'death_weight_all',
+    'admission_weight_all',
+    'case_weight_all',
     'kappa_none',
     'kappa_ancestral',
     'kappa_alpha',
