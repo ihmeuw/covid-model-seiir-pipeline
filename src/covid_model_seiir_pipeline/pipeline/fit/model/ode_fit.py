@@ -38,7 +38,7 @@ def prepare_ode_fit_parameters(rates: pd.DataFrame,
 
     base_parameters = pd.concat([
         sampled_params,
-        epi_measures.rename(lambda x: f'{x}_all'),
+        epi_measures.rename(columns=lambda x: f'{x}_all'),
         pd.Series(-1, index=past_index, name='beta_all'),
         rhos,
     ], axis=1)
