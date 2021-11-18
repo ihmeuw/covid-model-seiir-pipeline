@@ -29,6 +29,13 @@ _TrackingCompartmentType = namedtuple('TrackingCompartmentType', [
     'beta',                 
 ])
 
+_EpiMeasureType = namedtuple('EpiMeasureType', [
+    'infection', 
+    'death',     
+    'admission', 
+    'case',      
+])
+
 _ParameterType = namedtuple('ParameterType', [
     'alpha',          
     'sigma',          
@@ -90,6 +97,8 @@ COMPARTMENT_TYPE = _CompartmentType(*list(range(len(_CompartmentType._fields))))
 COMPARTMENT_TYPE_NAMES = _CompartmentType(*_CompartmentType._fields)
 TRACKING_COMPARTMENT_TYPE = _TrackingCompartmentType(*list(range(len(_TrackingCompartmentType._fields))))
 TRACKING_COMPARTMENT_TYPE_NAMES = _TrackingCompartmentType(*_TrackingCompartmentType._fields)
+EPI_MEASURE_TYPE = _EpiMeasureType(*list(range(len(_EpiMeasureType._fields))))
+EPI_MEASURE_TYPE_NAMES = _EpiMeasureType(*_EpiMeasureType._fields)
 PARAMETER_TYPE = _ParameterType(*list(range(len(_ParameterType._fields))))
 PARAMETER_TYPE_NAMES = _ParameterType(*_ParameterType._fields)
 RATES_TYPE = _RatesType(*list(range(len(_RatesType._fields))))
@@ -131,6 +140,19 @@ TRACKING_COMPARTMENT = _TrackingCompartment(
     EffectiveSusceptible=TRACKING_COMPARTMENT_TYPE.EffectiveSusceptible,
 )
 TRACKING_COMPARTMENT_NAMES = _TrackingCompartment(*_TrackingCompartment._fields)
+_EpiMeasure = namedtuple('EpiMeasure', [
+    'infection', 
+    'death',     
+    'admission', 
+    'case',      
+])
+EPI_MEASURE = _EpiMeasure(
+    infection=EPI_MEASURE_TYPE.infection,
+    death=EPI_MEASURE_TYPE.death,
+    admission=EPI_MEASURE_TYPE.admission,
+    case=EPI_MEASURE_TYPE.case,
+)
+EPI_MEASURE_NAMES = _EpiMeasure(*_EpiMeasure._fields)
 _BaseParameter = namedtuple('BaseParameter', [
     'alpha',      
     'sigma',      
