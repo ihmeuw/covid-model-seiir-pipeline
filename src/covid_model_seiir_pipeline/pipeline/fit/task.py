@@ -54,11 +54,7 @@ def run_beta_fit(fit_version: str, draw_id: int, progress_bar: bool) -> None:
     logger.info('Prepping ODE fit parameters.', context='transform')
     regression_params = specification.fit_parameters.to_dict()
 
-    np.random.seed(draw_id)
-    sampled_params = model.sample_params(
-        rates.index, regression_params,
-        draw_id=draw_id,
-    )
+
 
     ode_parameters = model.prepare_ode_fit_parameters(
         rates,
@@ -68,7 +64,8 @@ def run_beta_fit(fit_version: str, draw_id: int, progress_bar: bool) -> None:
         etas,
         natural_waning_dist,
         phi,
-        sampled_params
+        regression_params,
+        draw_id,
     )
 
     initial_condition = model.make_initial_condition(
