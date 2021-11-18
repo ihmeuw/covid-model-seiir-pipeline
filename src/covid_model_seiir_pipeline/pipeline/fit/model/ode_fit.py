@@ -97,25 +97,23 @@ def sample_params(past_index: pd.Index,
     return sampled_params
 
 
-def make_initial_condition(parameters: Parameters, population: pd.DataFrame):
-    # Alpha is time-invariant
-    alpha = parameters.alpha_all.groupby('location_id').first()
+def make_initial_condition(parameters: Parameters, full_rates: pd.DataFrame, population: pd.DataFrame):
+    base_params = parameters.base_parameters
 
-    group_pop = get_risk_group_pop(population)
-    # Filter out early dates with few infections
-    # to reduce noise in the past fit from leaking into the beta regression.
-    infections = parameters.new_e_all.groupby('location_id').apply(filter_to_epi_threshold)
-    infections_by_group = group_pop.div(group_pop.sum(axis=1), axis=0).mul(infections, axis=0)
-    new_e_start = infections_by_group.reset_index(level='date').groupby('location_id').first()
+    crude_infections = get_crude_infections(base_params, full_rates, population)
+    new_e_start = crude_infections.reset_index(level='date').groupby('location_id').first()
     start_date, new_e_start = new_e_start['date'], new_e_start[list(RISK_GROUP_NAMES)]
 
+    # Alpha is time-invariant
+    alpha = base_params.alpha_all.groupby('location_id').first()
     compartments = [f'{compartment}_{risk_group}'
                     for risk_group, compartment
                     in itertools.product(RISK_GROUP_NAMES, COMPARTMENTS_NAMES + TRACKING_COMPARTMENTS_NAMES)]
-    initial_condition = pd.DataFrame(0., columns=compartments, index=parameters.new_e_all.index)
+    initial_condition = pd.DataFrame(0., columns=compartments, index=full_rates.index)
+
     for location_id, loc_start_date in start_date.iteritems():
         for risk_group in RISK_GROUP_NAMES:
-            pop = group_pop.loc[location_id, risk_group]
+            pop = population.loc[location_id, risk_group]
             new_e = new_e_start.loc[location_id, risk_group]
             suffix = f'_unvaccinated_{risk_group}'
             # Backfill everyone susceptible
@@ -133,6 +131,19 @@ def make_initial_condition(parameters: Parameters, population: pd.DataFrame):
 
     return initial_condition
 
+
+def get_crude_infections(base_params, rates, population):
+    crude_infections = []
+    for risk_group in RISK_GROUP_NAMES:
+        risk_infections = []
+        for measure, rate in [('deaths', 'ifr'), ('admissions', 'ihr'), ('cases', 'idr')]:
+            infections = (base_params[f'{measure}_weight_all']
+                          * base_params[f'{measure}_all'] / rates[rate]
+                          * population[risk_group] / population.sum(axis=1))
+
+            risk_infections.append(infections)
+        crude_infections.append(sum(risk_infections).rename(risk_group))
+    return pd.concat(crude_infections, axis=1)
 
 
 def run_ode_fit(initial_condition: pd.DataFrame, ode_parameters: Parameters, progress_bar: bool):

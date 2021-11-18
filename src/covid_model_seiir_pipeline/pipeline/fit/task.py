@@ -54,8 +54,6 @@ def run_beta_fit(fit_version: str, draw_id: int, progress_bar: bool) -> None:
     logger.info('Prepping ODE fit parameters.', context='transform')
     regression_params = specification.fit_parameters.to_dict()
 
-
-
     ode_parameters = model.prepare_ode_fit_parameters(
         rates,
         epi_measures,
@@ -70,7 +68,8 @@ def run_beta_fit(fit_version: str, draw_id: int, progress_bar: bool) -> None:
 
     initial_condition = model.make_initial_condition(
         ode_parameters,
-        population,
+        rates,
+        risk_group_pops,
     )
 
     logger.info('Running ODE fit', context='compute_ode')
