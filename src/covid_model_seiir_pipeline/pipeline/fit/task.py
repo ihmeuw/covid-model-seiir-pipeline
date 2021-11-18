@@ -29,20 +29,30 @@ def run_beta_fit(fit_version: str, draw_id: int, progress_bar: bool) -> None:
     rates, measures, lags = model.run_rates_model(hierarchy)
 
     logger.info('Loading ODE fit input data', context='read')
-    population = data_interface.load_five_year_population()
     rhos = data_interface.load_variant_prevalence(scenario='reference')
     vaccinations = data_interface.load_vaccine_uptake(scenario='reference')
     etas = data_interface.load_vaccine_risk_reduction(scenario='reference')
     natural_waning_dist = data_interface.load_waning_parameters(measure='natural_waning_distribution')
-    natural_waning_matrix = data_interface.load_cross_variant_immunity_matrix()
+    natural_waning_matrix = pd.DataFrame(
+        data=np.array([
+            [1.0, 1.0, 0.5, 0.5, 0.5, 0.5, 0.5],
+            [1.0, 1.0, 0.5, 0.5, 0.5, 0.5, 0.5],
+            [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.5],
+            [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.5],
+            [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.5],
+            [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.5],
+            [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
+        ]),
+        columns=VARIANT_NAMES,
+        index=pd.Index(VARIANT_NAMES, name='variant'),
+    )
 
     logger.info('Prepping ODE fit parameters.', context='transform')
-    regression_params = specification.regression_parameters.to_dict()
+    regression_params = specification.fit_parameters.to_dict()
 
     np.random.seed(draw_id)
     sampled_params = model.sample_params(
         rates.index, regression_params,
-        params_to_sample=['alpha', 'sigma', 'gamma', 'pi'] + [f'kappa_{v}' for v in VARIANT_NAMES],
         draw_id=draw_id,
     )
 

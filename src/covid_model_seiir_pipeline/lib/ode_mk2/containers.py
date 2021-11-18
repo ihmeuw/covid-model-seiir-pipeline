@@ -23,15 +23,16 @@ class Parameters:
                  base_parameters: pd.DataFrame,
                  vaccinations: pd.DataFrame,
                  rates: pd.DataFrame,
-                 eta_infections: pd.DataFrame,
-                 eta_deaths: pd.DataFrame,
-                 eta_admissions: pd.DataFrame,
-                 eta_cases: pd.DataFrame,
-                 natural_waning_distribution: pd.DataFrame,
-                 phi_infections: pd.DataFrame,
-                 phi_deaths: pd.DataFrame,
-                 phi_admissions: pd.DataFrame,
-                 phi_cases: pd.DataFrame):
+                 eta_infection: pd.DataFrame,
+                 eta_death: pd.DataFrame,
+                 eta_admission: pd.DataFrame,
+                 eta_case: pd.DataFrame,
+                 natural_waning_infection: pd.DataFrame,
+                 natural_waning_death: pd.DataFrame,
+                 natural_waning_admission: pd.DataFrame,
+                 natural_waning_case: pd.DataFrame,
+                 phi: pd.DataFrame,
+                 ):
         self.base_parameters = base_parameters.loc[:, PARAMETERS_NAMES]
 
         field_names = self._make_risk_group_fields(['vaccinations', 'boosters'])
@@ -41,12 +42,16 @@ class Parameters:
         self.rates = rates.loc[:, field_names]
 
         field_names = self._make_risk_group_fields(ETA_NAMES)
-        self.eta_infections = eta_infections.loc[:, field_names]
-        self.eta_deaths = eta_deaths.loc[:, field_names]
-        self.eta_admissions = eta_admissions.loc[:, field_names]
-        self.eta_cases = eta_cases.loc[:, field_names]
+        self.eta_infection = eta_infection.loc[:, field_names]
+        self.eta_death = eta_death.loc[:, field_names]
+        self.eta_admission = eta_admission.loc[:, field_names]
+        self.eta_case = eta_case.loc[:, field_names]
 
-        self.natural_waning_distribution = natural_waning_distribution
+        self.natural_waning_infection = natural_waning_infection.loc[:, ]
+        self.natural_waning_death = natural_waning_death
+        self.natural_waning_admission = natural_waning_admission
+        self.natural_waning_case = natural_waning_case
+
 
         self.phi = phi.loc[:, CHI_NAMES]
 

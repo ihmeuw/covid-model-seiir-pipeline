@@ -66,10 +66,9 @@ def sample_parameter(parameter: str, draw_id: int, lower: float, upper: float) -
 
 def sample_params(past_index: pd.Index,
                   param_dict: Dict,
-                  params_to_sample: List[str],
                   draw_id: int) -> Dict[str, pd.Series]:
     sampled_params = {}
-    for parameter in params_to_sample:
+    for parameter in param_dict:
         param_spec = param_dict[parameter]
         if isinstance(param_spec, (int, float)):
             value = param_spec
