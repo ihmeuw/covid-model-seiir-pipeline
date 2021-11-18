@@ -70,9 +70,9 @@ def run_preprocess_vaccine(preprocessing_version: str, scenario: str, progress_b
                 .sort_index()
                 .unstack()
                 .unstack())
-        etas.columns = [f'eta_{vaccine_course}_{variant}_{risk_group}'
-                        for vaccine_course, risk_group, variant in etas.columns]
-
+        vax_map = {1: 'vaccinations', 2: 'boosters'}
+        etas.columns = [f'eta_{vax_map[vaccine_course]}_{variant}_{risk_group}'
+                        for variant, risk_group, vaccine_course in etas.columns]
 
         risk_reductions = []
         for endpoint, target in [('infection', 'infection'),
@@ -88,6 +88,7 @@ def run_preprocess_vaccine(preprocessing_version: str, scenario: str, progress_b
         uptake = (uptake
                   .reorder_levels(['location_id', 'date', 'vaccine_course', 'risk_group'])
                   .sort_index()
+                  .sum()
                   .unstack()
                   .unstack())
         uptake.columns = ['vaccinations_hr', 'boosters_hr', 'vaccinations_lr', 'boosters_lr']
