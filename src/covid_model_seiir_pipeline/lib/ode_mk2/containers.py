@@ -48,10 +48,8 @@ class Parameters:
 
         self.natural_waning_distribution = natural_waning_distribution
 
-        self.phi_infections = phi_infections.loc[:, CHI_NAMES]
-        self.phi_deaths = phi_deaths.loc[:, CHI_NAMES]
-        self.phi_admissions = phi_admissions.loc[:, CHI_NAMES]
-        self.phi_cases = phi_cases.loc[:, CHI_NAMES]
+        self.phi = phi.loc[:, CHI_NAMES]
+
 
     @staticmethod
     def _make_risk_group_fields(measures) -> List[str]:

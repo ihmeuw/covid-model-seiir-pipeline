@@ -24,6 +24,12 @@ PRIMITIVE_TYPES = {
         'EffectiveSusceptible',
         'beta',
     ],
+    'epi_measure_type': [
+        'infection',
+        'death',
+        'admission',
+        'case',
+    ],
     'parameter_type': [
         'alpha',
         'sigma',
@@ -89,6 +95,12 @@ DERIVED_TYPES = {
         'NewVaccination',
         'NewBooster',
         'EffectiveSusceptible',
+    ]),
+    'epi_measure': ('epi_measure_type', [
+        'infection',
+        'death',
+        'admission',
+        'case',
     ]),
     'base_parameter': ('parameter_type', [
         'alpha',

@@ -30,10 +30,10 @@ def run_beta_fit(fit_version: str, draw_id: int, progress_bar: bool) -> None:
 
     logger.info('Loading ODE fit input data', context='read')
     population = data_interface.load_five_year_population()
-    rhos = data_interface.load_variant_prevalence()
-    vaccinations = data_interface.load_vaccinations()
-    etas = data_interface.load_etas()
-    natural_waning_dist = data_interface.load_natural_waning_distribution()
+    rhos = data_interface.load_variant_prevalence(scenario='reference')
+    vaccinations = data_interface.load_vaccine_uptake(scenario='reference')
+    etas = data_interface.load_vaccine_risk_reduction(scenario='reference')
+    natural_waning_dist = data_interface.load_waning_parameters(measure='natural_waning_distribution')
     natural_waning_matrix = data_interface.load_cross_variant_immunity_matrix()
 
     logger.info('Prepping ODE fit parameters.', context='transform')
