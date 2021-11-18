@@ -26,7 +26,7 @@ def run_beta_fit(fit_version: str, draw_id: int, progress_bar: bool) -> None:
     hierarchy = data_interface.load_modeling_hierarchy()
 
     logger.info('Running first-pass rates model', context='rates_model')
-    rates = model.run_rates_model(hierarchy)
+    rates, measures, lags = model.run_rates_model(hierarchy)
 
     logger.info('Loading ODE fit input data', context='read')
     population = data_interface.load_five_year_population()
