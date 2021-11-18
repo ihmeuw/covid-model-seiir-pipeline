@@ -44,7 +44,6 @@ def run_preprocess_vaccine(preprocessing_version: str, scenario: str, progress_b
     waning_efficacy = model.build_waning_efficacy(efficacy, waning)
     logger.info('Computing natural waning distribution.', context='model')
     natural_waning = model.compute_natural_waning(waning)
-
     if scenario == 'base_measures':
         logger.info('Writing base measure results.', context='write')
         data_interface.save_waning_parameters(efficacy, 'base_vaccine_efficacy')
@@ -88,7 +87,7 @@ def run_preprocess_vaccine(preprocessing_version: str, scenario: str, progress_b
         uptake = (uptake
                   .reorder_levels(['location_id', 'date', 'vaccine_course', 'risk_group'])
                   .sort_index()
-                  .sum()
+                  .sum(axis=1)
                   .unstack()
                   .unstack())
         uptake.columns = ['vaccinations_hr', 'boosters_hr', 'vaccinations_lr', 'boosters_lr']
