@@ -65,7 +65,15 @@ def run_preprocess_vaccine(preprocessing_version: str, scenario: str, progress_b
         with multiprocessing.Pool(num_processes) as pool:
             etas = list(
                 tqdm.tqdm(pool.imap(model.compute_eta, eta_args), total=len(eta_args), disable=not progress_bar))
-        etas = pd.concat(etas)
+        etas = (pd.concat(etas)
+                .reorder_levels(['endpoint', 'location_id', 'date', 'vaccine_course', 'risk_group'])
+                .sort_index()
+                .unstack()
+                .unstack())
+        etas.columns = [f'eta_{vaccine_course}_{variant}_{risk_group}'
+                        for vaccine_course, risk_group, variant in etas.columns]
+
+
         risk_reductions = []
         for endpoint, target in [('infection', 'infection'),
                                  ('infection', 'case'),
@@ -73,9 +81,16 @@ def run_preprocess_vaccine(preprocessing_version: str, scenario: str, progress_b
                                  ('severe_disease', 'death')]:
             rr = etas.loc[endpoint].copy()
             rr['endpoint'] = target
-            rr = rr.reset_index().set_index(['endpoint', 'vaccine_course', 'risk_group', 'location_id', 'date'])
+            rr = rr.reset_index().set_index(['endpoint', 'location_id', 'date'])
             risk_reductions.append(rr)
         risk_reductions = pd.concat(risk_reductions).sort_index()
+
+        uptake = (uptake
+                  .reorder_levels(['location_id', 'date', 'vaccine_course', 'risk_group'])
+                  .sort_index()
+                  .unstack()
+                  .unstack())
+        uptake.columns = ['vaccinations_hr', 'boosters_hr', 'vaccinations_lr', 'boosters_lr']
 
         logger.info(f'Writing uptake and risk reductions for scenario {scenario}.', context='write')
         data_interface.save_vaccine_uptake(uptake, scenario=scenario)

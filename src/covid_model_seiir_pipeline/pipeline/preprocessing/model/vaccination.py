@@ -166,7 +166,7 @@ def compute_eta(args: List) -> pd.DataFrame:
     eta['vaccine_course'] = vaccine_course
     eta['risk_group'] = risk_group
 
-    eta = eta.reset_index().set_index(['endpoint', 'vaccine_course', 'risk_group', 'location_id', 'date'])
+    eta = eta.reset_index().set_index(['endpoint', 'location_id', 'date', 'vaccine_course', 'risk_group'])
     eta = eta.bfill().fillna(0.)
     return eta
 
