@@ -26,22 +26,26 @@ def run_beta_fit(fit_version: str, draw_id: int, progress_bar: bool) -> None:
     hierarchy = data_interface.load_modeling_hierarchy()
 
     logger.info('Running first-pass rates model', context='rates_model')
-    rates, measures, lags = model.run_rates_model(hierarchy)
+    rates, epi_measures, lags = model.run_rates_model(hierarchy)
 
     logger.info('Loading ODE fit input data', context='read')
+
+    risk_group_pops = data_interface.load_population(measure='risk_group')
     rhos = data_interface.load_variant_prevalence(scenario='reference')
     vaccinations = data_interface.load_vaccine_uptake(scenario='reference')
     etas = data_interface.load_vaccine_risk_reduction(scenario='reference')
-    natural_waning_dist = data_interface.load_waning_parameters(measure='natural_waning_distribution')
-    natural_waning_matrix = pd.DataFrame(
+    natural_waning_dist = data_interface.load_waning_parameters(measure='natural_waning_distribution').set_index(
+        ['endpoint', 'days'])
+    phi = pd.DataFrame(
         data=np.array([
-            [1.0, 1.0, 0.5, 0.5, 0.5, 0.5, 0.5],
-            [1.0, 1.0, 0.5, 0.5, 0.5, 0.5, 0.5],
-            [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.5],
-            [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.5],
-            [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.5],
-            [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.5],
-            [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
+            [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+            [1.0, 1.0, 1.0, 0.5, 0.5, 0.5, 0.5, 0.5],
+            [1.0, 1.0, 1.0, 0.5, 0.5, 0.5, 0.5, 0.5],
+            [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.5],
+            [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.5],
+            [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.5],
+            [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.5],
+            [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
         ]),
         columns=VARIANT_NAMES,
         index=pd.Index(VARIANT_NAMES, name='variant'),
@@ -58,12 +62,13 @@ def run_beta_fit(fit_version: str, draw_id: int, progress_bar: bool) -> None:
 
     ode_parameters = model.prepare_ode_fit_parameters(
         rates,
+        epi_measures,
         rhos,
         vaccinations,
         etas,
         natural_waning_dist,
-        natural_waning_matrix,
-        sampled_params,
+        phi,
+        sampled_params
     )
 
     initial_condition = model.make_initial_condition(
