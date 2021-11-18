@@ -224,7 +224,7 @@ class PreprocessingRoot(DataRoot):
 
 class FitRoot(DataRoot):
     metadata = MetadataType('metadata')
-    specification = MetadataType('ode_fit_specification')
+    specification = MetadataType('fit_specification')
     beta = DatasetType('beta', LEAF_TEMPLATES.DRAW_TEMPLATE)
 
     compartments = DatasetType('compartments', LEAF_TEMPLATES.DRAW_TEMPLATE)
