@@ -60,6 +60,9 @@ class FitDataInterface:
     def load_modeling_hierarchy(self) -> pd.DataFrame:
         return io.load(self.preprocessing_root.hierarchy())
 
+    def load_population(self, measure: str) -> pd.DataFrame:
+        return io.load(self.preprocessing_root.population(measure=measure))
+
     def load_age_patterns(self) -> pd.DataFrame:
         return io.load(self.preprocessing_root.age_patterns())
 
