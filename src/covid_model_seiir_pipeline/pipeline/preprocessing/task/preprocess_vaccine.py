@@ -1,3 +1,4 @@
+import itertools
 import multiprocessing
 
 import click
@@ -80,6 +81,8 @@ def run_preprocess_vaccine(preprocessing_version: str, scenario: str, progress_b
         vax_map = {0: 'unvaccinated', 1: 'vaccinated', 2: 'booster'}
         etas.columns = [f'{vax_map[vaccine_course]}_{variant}_{risk_group}'
                         for variant, risk_group, vaccine_course in etas.columns]
+        extras_cols = [f'{c}_none_{g}' for c, g in itertools.product(vax_map.values(), ['lr', 'hr'])]
+        etas.loc[:, extras_cols] = 0.
 
         risk_reductions = []
         for endpoint, target in [('infection', 'infection'),
