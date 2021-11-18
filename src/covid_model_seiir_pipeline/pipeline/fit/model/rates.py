@@ -23,11 +23,11 @@ def run_rates_model(hierarchy: pd.DataFrame, *args, **kwargs):
                 .groupby('location_id')
                 .apply(lambda x: x.reset_index(level='location_id', drop=True)
                                   .shift(periods=-lag, freq='D')))
-        rates.append(data.loc[:, [f'{r}_lr', f'{r}_hr']])
+        rates.append(data.loc[:, [f'{r}_lr', f'{r}_hr', r]])
         measures.append(data.loc[:, m])
         lags.append(lag)
 
-    col_order = [f'{r}_{g}' for g, r in itertools.product(['lr', 'hr'], ['ifr', 'ihr', 'idr'])]
+    col_order = [f'{r}_{g}' for g, r in itertools.product(['lr', 'hr'], ['ifr', 'ihr', 'idr'])] + ['ifr', 'ihr', 'idr']
     rates = pd.concat(rates, axis=1).loc[:, col_order]
 
     all_locs = rates.reset_index().location_id.unique().tolist()
@@ -50,7 +50,7 @@ def load_idr_and_cases(version):
     cases = pd.read_parquet(version / 'cases.parquet').rename(columns={'daily_cases': 'cases'})
     data = pd.concat([idr, cases], axis=1)
     data = data.loc[~data.isnull().any(axis=1)].sort_index()
-    data['lag'] = 12
+    data['lag'] = 13
     return data
 
 
@@ -60,7 +60,7 @@ def load_ifr_and_deaths(version):
     deaths = pd.read_parquet(version / 'deaths.parquet').rename(columns={'daily_deaths': 'deaths'})
     data = pd.concat([ifr, deaths], axis=1)
     data = data.loc[~data.isnull().any(axis=1)].sort_index()
-    data['lag'] = 26
+    data['lag'] = 27
     return data
 
 
@@ -71,5 +71,5 @@ def load_ihr_and_admissions(version):
         columns={'daily_hospitalizations': 'admissions'})
     data = pd.concat([ifr, deaths], axis=1)
     data = data.loc[~data.isnull().any(axis=1)].sort_index()
-    data['lag'] = 12
+    data['lag'] = 13
     return data
