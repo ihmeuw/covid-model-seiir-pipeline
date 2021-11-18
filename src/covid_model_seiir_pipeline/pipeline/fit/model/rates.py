@@ -45,6 +45,7 @@ def load_idr_and_cases(version):
     idr = pd.read_parquet(version / 'pred_idr.parquet')
     idr['idr_hr'] = idr['pred_idr']
     idr['idr_lr'] = idr['pred_idr']
+    idr['idr'] = idr['pred_idr']
     idr = idr.drop(columns='pred_idr')
     cases = pd.read_parquet(version / 'cases.parquet').rename(columns={'daily_cases': 'cases'})
     data = pd.concat([idr, cases], axis=1)
@@ -55,7 +56,7 @@ def load_idr_and_cases(version):
 
 def load_ifr_and_deaths(version):
     ifr = pd.read_parquet(version / 'pred_ifr.parquet')
-    ifr = ifr.rename(columns={'pred_ifr_lr': 'ifr_lr', 'pred_ifr_hr': 'ifr_hr'}).drop(columns='pred_ifr')
+    ifr = ifr.rename(columns={'pred_ifr_lr': 'ifr_lr', 'pred_ifr_hr': 'ifr_hr', 'pred_ifr': 'ifr'})
     deaths = pd.read_parquet(version / 'deaths.parquet').rename(columns={'daily_deaths': 'deaths'})
     data = pd.concat([ifr, deaths], axis=1)
     data = data.loc[~data.isnull().any(axis=1)].sort_index()
@@ -65,7 +66,7 @@ def load_ifr_and_deaths(version):
 
 def load_ihr_and_admissions(version):
     ifr = pd.read_parquet(version / 'pred_ihr.parquet')
-    ifr = ifr.rename(columns={'pred_ihr_lr': 'ihr_lr', 'pred_ihr_hr': 'ihr_hr'}).drop(columns='pred_ihr')
+    ifr = ifr.rename(columns={'pred_ihr_lr': 'ihr_lr', 'pred_ihr_hr': 'ihr_hr', 'pred_ihr': 'ihr'})
     deaths = pd.read_parquet(version / 'hospitalizations.parquet').rename(
         columns={'daily_hospitalizations': 'admissions'})
     data = pd.concat([ifr, deaths], axis=1)
