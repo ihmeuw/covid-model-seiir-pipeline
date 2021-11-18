@@ -68,13 +68,12 @@ def fit_main(app_metadata: cli_tools.Metadata,
 @cli_tools.add_output_options(paths.SEIR_FIT_ROOT)
 @cli_tools.add_preprocess_only
 @cli_tools.add_verbose_and_with_debugger
-def preprocess(run_metadata: cli_tools.RunMetadata,
-               specification: FitSpecification,
-               location_specification: Optional[str],
-               output_root: str, mark_best: bool, production_tag: str,
-               preprocess_only: bool,
-               verbose: int, with_debugger: bool,
-               **input_versions: cli_tools.VersionInfo):
+def fit(run_metadata: cli_tools.RunMetadata,
+        specification: FitSpecification,
+        output_root: str, mark_best: bool, production_tag: str,
+        preprocess_only: bool,
+        verbose: int, with_debugger: bool,
+        **input_versions: cli_tools.VersionInfo):
     cli_tools.configure_logging_to_terminal(verbose)
     do_fit(
         run_metadata=run_metadata,
