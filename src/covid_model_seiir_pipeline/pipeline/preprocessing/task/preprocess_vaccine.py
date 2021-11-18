@@ -66,10 +66,15 @@ def run_preprocess_vaccine(preprocessing_version: str, scenario: str, progress_b
                 tqdm.tqdm(pool.imap(model.compute_eta, eta_args), total=len(eta_args), disable=not progress_bar))
         etas = (pd.concat(etas)
                 .reorder_levels(['endpoint', 'location_id', 'date', 'vaccine_course', 'risk_group'])
-                .sort_index()
-                .unstack()
-                .unstack())
-        vax_map = {1: 'vaccinations', 2: 'boosters'}
+                .sort_index())
+        etas_unvax = etas.loc[1].copy()
+        etas_unvax.loc[:, :] = 0.
+        etas_unvax['endpoint'] = 0
+        etas_unvax = (etas_unvax
+                      .set_index('endpoint', append=True)
+                      .reorder_levels(['endpoint', 'location_id', 'date', 'vaccine_course', 'risk_group']))
+        etas = pd.concat([etas, etas_unvax]).unstack().unstack()
+        vax_map = {0: 'unvaccinated', 1: 'vaccinated', 2: 'booster'}
         etas.columns = [f'eta_{vax_map[vaccine_course]}_{variant}_{risk_group}'
                         for variant, risk_group, vaccine_course in etas.columns]
 
