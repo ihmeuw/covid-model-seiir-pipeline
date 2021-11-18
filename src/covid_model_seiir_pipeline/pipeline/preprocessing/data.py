@@ -104,7 +104,7 @@ class PreprocessingDataInterface:
         elif measure == 'risk_group':
             pop_lr = five_year[five_year['age_group_years_start'] < 65].groupby('location_id')['population'].sum()
             pop_hr = five_year[five_year['age_group_years_start'] >= 65].groupby('location_id')['population'].sum()
-            data = pd.concat([pop_lr.rename('population_lr'), pop_hr.rename('population_hr')], axis=1)
+            data = pd.concat([pop_lr.rename('lr'), pop_hr.rename('hr')], axis=1)
         elif measure == 'total':
             data = five_year.groupby('location_id')['population'].sum()
         else:
