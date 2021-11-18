@@ -52,7 +52,8 @@ class Parameters:
         self.natural_waning_admission = natural_waning_admission
         self.natural_waning_case = natural_waning_case
 
-        self.phi = phi.loc[VARIANT_NAMES, VARIANT_NAMES]
+        variant_names = list(VARIANT_NAMES)
+        self.phi = phi.loc[variant_names, variant_names]
 
     @staticmethod
     def _make_risk_group_fields(measures) -> List[str]:
