@@ -89,7 +89,7 @@ class PreprocessingDataInterface:
     ########################
 
     def load_raw_population(self, measure: str) -> pd.DataFrame:
-        pop = io.load(self.model_inputs_root.population())
+        pop = io.load(self.model_inputs_root.population()).reset_index()
         is_2019 = pop['year_id'] == 2019
         is_both_sexes = pop['sex_id'] == 3
         five_year_bins = [1, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 30, 31, 32, 235]

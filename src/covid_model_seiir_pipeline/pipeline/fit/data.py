@@ -32,7 +32,7 @@ class FitDataInterface:
 
     @classmethod
     def from_specification(cls, specification: FitSpecification) -> 'FitDataInterface':
-        preprocessing_spec = PreprocessingSpecification.from_version_root(specification.data.preprocessing_version)
+        preprocessing_spec = PreprocessingSpecification.from_version_root(specification.data.seir_preprocess_version)
         preprocessing_root = io.PreprocessingRoot(preprocessing_spec.data.output_root,
                                                   data_format=preprocessing_spec.data.output_format)
         return cls(
