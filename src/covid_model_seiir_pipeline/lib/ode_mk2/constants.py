@@ -357,188 +357,716 @@ PARAMETERS_NAMES = [
     'rho_omega',
 ]
 
-ETA = np.full((len(VACCINE_INDEX_TYPE), len(VARIANT_INDEX_TYPE)), -1, dtype=np.int64)
-ETA[VACCINE_STATUS.unvaccinated, VARIANT.none] = 0
-ETA[VACCINE_STATUS.unvaccinated, VARIANT.ancestral] = 1
-ETA[VACCINE_STATUS.unvaccinated, VARIANT.alpha] = 2
-ETA[VACCINE_STATUS.unvaccinated, VARIANT.beta] = 3
-ETA[VACCINE_STATUS.unvaccinated, VARIANT.gamma] = 4
-ETA[VACCINE_STATUS.unvaccinated, VARIANT.delta] = 5
-ETA[VACCINE_STATUS.unvaccinated, VARIANT.other] = 6
-ETA[VACCINE_STATUS.unvaccinated, VARIANT.omega] = 7
-ETA[VACCINE_STATUS.vaccinated, VARIANT.none] = 8
-ETA[VACCINE_STATUS.vaccinated, VARIANT.ancestral] = 9
-ETA[VACCINE_STATUS.vaccinated, VARIANT.alpha] = 10
-ETA[VACCINE_STATUS.vaccinated, VARIANT.beta] = 11
-ETA[VACCINE_STATUS.vaccinated, VARIANT.gamma] = 12
-ETA[VACCINE_STATUS.vaccinated, VARIANT.delta] = 13
-ETA[VACCINE_STATUS.vaccinated, VARIANT.other] = 14
-ETA[VACCINE_STATUS.vaccinated, VARIANT.omega] = 15
-ETA[VACCINE_STATUS.booster, VARIANT.none] = 16
-ETA[VACCINE_STATUS.booster, VARIANT.ancestral] = 17
-ETA[VACCINE_STATUS.booster, VARIANT.alpha] = 18
-ETA[VACCINE_STATUS.booster, VARIANT.beta] = 19
-ETA[VACCINE_STATUS.booster, VARIANT.gamma] = 20
-ETA[VACCINE_STATUS.booster, VARIANT.delta] = 21
-ETA[VACCINE_STATUS.booster, VARIANT.other] = 22
-ETA[VACCINE_STATUS.booster, VARIANT.omega] = 23
+ETA = np.full((len(VACCINE_INDEX_TYPE), len(VARIANT_INDEX_TYPE), len(EPI_MEASURE_TYPE)), -1, dtype=np.int64)
+ETA[VACCINE_STATUS.unvaccinated, VARIANT.none, EPI_MEASURE.infection] = 0
+ETA[VACCINE_STATUS.unvaccinated, VARIANT.none, EPI_MEASURE.death] = 1
+ETA[VACCINE_STATUS.unvaccinated, VARIANT.none, EPI_MEASURE.admission] = 2
+ETA[VACCINE_STATUS.unvaccinated, VARIANT.none, EPI_MEASURE.case] = 3
+ETA[VACCINE_STATUS.unvaccinated, VARIANT.ancestral, EPI_MEASURE.infection] = 4
+ETA[VACCINE_STATUS.unvaccinated, VARIANT.ancestral, EPI_MEASURE.death] = 5
+ETA[VACCINE_STATUS.unvaccinated, VARIANT.ancestral, EPI_MEASURE.admission] = 6
+ETA[VACCINE_STATUS.unvaccinated, VARIANT.ancestral, EPI_MEASURE.case] = 7
+ETA[VACCINE_STATUS.unvaccinated, VARIANT.alpha, EPI_MEASURE.infection] = 8
+ETA[VACCINE_STATUS.unvaccinated, VARIANT.alpha, EPI_MEASURE.death] = 9
+ETA[VACCINE_STATUS.unvaccinated, VARIANT.alpha, EPI_MEASURE.admission] = 10
+ETA[VACCINE_STATUS.unvaccinated, VARIANT.alpha, EPI_MEASURE.case] = 11
+ETA[VACCINE_STATUS.unvaccinated, VARIANT.beta, EPI_MEASURE.infection] = 12
+ETA[VACCINE_STATUS.unvaccinated, VARIANT.beta, EPI_MEASURE.death] = 13
+ETA[VACCINE_STATUS.unvaccinated, VARIANT.beta, EPI_MEASURE.admission] = 14
+ETA[VACCINE_STATUS.unvaccinated, VARIANT.beta, EPI_MEASURE.case] = 15
+ETA[VACCINE_STATUS.unvaccinated, VARIANT.gamma, EPI_MEASURE.infection] = 16
+ETA[VACCINE_STATUS.unvaccinated, VARIANT.gamma, EPI_MEASURE.death] = 17
+ETA[VACCINE_STATUS.unvaccinated, VARIANT.gamma, EPI_MEASURE.admission] = 18
+ETA[VACCINE_STATUS.unvaccinated, VARIANT.gamma, EPI_MEASURE.case] = 19
+ETA[VACCINE_STATUS.unvaccinated, VARIANT.delta, EPI_MEASURE.infection] = 20
+ETA[VACCINE_STATUS.unvaccinated, VARIANT.delta, EPI_MEASURE.death] = 21
+ETA[VACCINE_STATUS.unvaccinated, VARIANT.delta, EPI_MEASURE.admission] = 22
+ETA[VACCINE_STATUS.unvaccinated, VARIANT.delta, EPI_MEASURE.case] = 23
+ETA[VACCINE_STATUS.unvaccinated, VARIANT.other, EPI_MEASURE.infection] = 24
+ETA[VACCINE_STATUS.unvaccinated, VARIANT.other, EPI_MEASURE.death] = 25
+ETA[VACCINE_STATUS.unvaccinated, VARIANT.other, EPI_MEASURE.admission] = 26
+ETA[VACCINE_STATUS.unvaccinated, VARIANT.other, EPI_MEASURE.case] = 27
+ETA[VACCINE_STATUS.unvaccinated, VARIANT.omega, EPI_MEASURE.infection] = 28
+ETA[VACCINE_STATUS.unvaccinated, VARIANT.omega, EPI_MEASURE.death] = 29
+ETA[VACCINE_STATUS.unvaccinated, VARIANT.omega, EPI_MEASURE.admission] = 30
+ETA[VACCINE_STATUS.unvaccinated, VARIANT.omega, EPI_MEASURE.case] = 31
+ETA[VACCINE_STATUS.vaccinated, VARIANT.none, EPI_MEASURE.infection] = 32
+ETA[VACCINE_STATUS.vaccinated, VARIANT.none, EPI_MEASURE.death] = 33
+ETA[VACCINE_STATUS.vaccinated, VARIANT.none, EPI_MEASURE.admission] = 34
+ETA[VACCINE_STATUS.vaccinated, VARIANT.none, EPI_MEASURE.case] = 35
+ETA[VACCINE_STATUS.vaccinated, VARIANT.ancestral, EPI_MEASURE.infection] = 36
+ETA[VACCINE_STATUS.vaccinated, VARIANT.ancestral, EPI_MEASURE.death] = 37
+ETA[VACCINE_STATUS.vaccinated, VARIANT.ancestral, EPI_MEASURE.admission] = 38
+ETA[VACCINE_STATUS.vaccinated, VARIANT.ancestral, EPI_MEASURE.case] = 39
+ETA[VACCINE_STATUS.vaccinated, VARIANT.alpha, EPI_MEASURE.infection] = 40
+ETA[VACCINE_STATUS.vaccinated, VARIANT.alpha, EPI_MEASURE.death] = 41
+ETA[VACCINE_STATUS.vaccinated, VARIANT.alpha, EPI_MEASURE.admission] = 42
+ETA[VACCINE_STATUS.vaccinated, VARIANT.alpha, EPI_MEASURE.case] = 43
+ETA[VACCINE_STATUS.vaccinated, VARIANT.beta, EPI_MEASURE.infection] = 44
+ETA[VACCINE_STATUS.vaccinated, VARIANT.beta, EPI_MEASURE.death] = 45
+ETA[VACCINE_STATUS.vaccinated, VARIANT.beta, EPI_MEASURE.admission] = 46
+ETA[VACCINE_STATUS.vaccinated, VARIANT.beta, EPI_MEASURE.case] = 47
+ETA[VACCINE_STATUS.vaccinated, VARIANT.gamma, EPI_MEASURE.infection] = 48
+ETA[VACCINE_STATUS.vaccinated, VARIANT.gamma, EPI_MEASURE.death] = 49
+ETA[VACCINE_STATUS.vaccinated, VARIANT.gamma, EPI_MEASURE.admission] = 50
+ETA[VACCINE_STATUS.vaccinated, VARIANT.gamma, EPI_MEASURE.case] = 51
+ETA[VACCINE_STATUS.vaccinated, VARIANT.delta, EPI_MEASURE.infection] = 52
+ETA[VACCINE_STATUS.vaccinated, VARIANT.delta, EPI_MEASURE.death] = 53
+ETA[VACCINE_STATUS.vaccinated, VARIANT.delta, EPI_MEASURE.admission] = 54
+ETA[VACCINE_STATUS.vaccinated, VARIANT.delta, EPI_MEASURE.case] = 55
+ETA[VACCINE_STATUS.vaccinated, VARIANT.other, EPI_MEASURE.infection] = 56
+ETA[VACCINE_STATUS.vaccinated, VARIANT.other, EPI_MEASURE.death] = 57
+ETA[VACCINE_STATUS.vaccinated, VARIANT.other, EPI_MEASURE.admission] = 58
+ETA[VACCINE_STATUS.vaccinated, VARIANT.other, EPI_MEASURE.case] = 59
+ETA[VACCINE_STATUS.vaccinated, VARIANT.omega, EPI_MEASURE.infection] = 60
+ETA[VACCINE_STATUS.vaccinated, VARIANT.omega, EPI_MEASURE.death] = 61
+ETA[VACCINE_STATUS.vaccinated, VARIANT.omega, EPI_MEASURE.admission] = 62
+ETA[VACCINE_STATUS.vaccinated, VARIANT.omega, EPI_MEASURE.case] = 63
+ETA[VACCINE_STATUS.booster, VARIANT.none, EPI_MEASURE.infection] = 64
+ETA[VACCINE_STATUS.booster, VARIANT.none, EPI_MEASURE.death] = 65
+ETA[VACCINE_STATUS.booster, VARIANT.none, EPI_MEASURE.admission] = 66
+ETA[VACCINE_STATUS.booster, VARIANT.none, EPI_MEASURE.case] = 67
+ETA[VACCINE_STATUS.booster, VARIANT.ancestral, EPI_MEASURE.infection] = 68
+ETA[VACCINE_STATUS.booster, VARIANT.ancestral, EPI_MEASURE.death] = 69
+ETA[VACCINE_STATUS.booster, VARIANT.ancestral, EPI_MEASURE.admission] = 70
+ETA[VACCINE_STATUS.booster, VARIANT.ancestral, EPI_MEASURE.case] = 71
+ETA[VACCINE_STATUS.booster, VARIANT.alpha, EPI_MEASURE.infection] = 72
+ETA[VACCINE_STATUS.booster, VARIANT.alpha, EPI_MEASURE.death] = 73
+ETA[VACCINE_STATUS.booster, VARIANT.alpha, EPI_MEASURE.admission] = 74
+ETA[VACCINE_STATUS.booster, VARIANT.alpha, EPI_MEASURE.case] = 75
+ETA[VACCINE_STATUS.booster, VARIANT.beta, EPI_MEASURE.infection] = 76
+ETA[VACCINE_STATUS.booster, VARIANT.beta, EPI_MEASURE.death] = 77
+ETA[VACCINE_STATUS.booster, VARIANT.beta, EPI_MEASURE.admission] = 78
+ETA[VACCINE_STATUS.booster, VARIANT.beta, EPI_MEASURE.case] = 79
+ETA[VACCINE_STATUS.booster, VARIANT.gamma, EPI_MEASURE.infection] = 80
+ETA[VACCINE_STATUS.booster, VARIANT.gamma, EPI_MEASURE.death] = 81
+ETA[VACCINE_STATUS.booster, VARIANT.gamma, EPI_MEASURE.admission] = 82
+ETA[VACCINE_STATUS.booster, VARIANT.gamma, EPI_MEASURE.case] = 83
+ETA[VACCINE_STATUS.booster, VARIANT.delta, EPI_MEASURE.infection] = 84
+ETA[VACCINE_STATUS.booster, VARIANT.delta, EPI_MEASURE.death] = 85
+ETA[VACCINE_STATUS.booster, VARIANT.delta, EPI_MEASURE.admission] = 86
+ETA[VACCINE_STATUS.booster, VARIANT.delta, EPI_MEASURE.case] = 87
+ETA[VACCINE_STATUS.booster, VARIANT.other, EPI_MEASURE.infection] = 88
+ETA[VACCINE_STATUS.booster, VARIANT.other, EPI_MEASURE.death] = 89
+ETA[VACCINE_STATUS.booster, VARIANT.other, EPI_MEASURE.admission] = 90
+ETA[VACCINE_STATUS.booster, VARIANT.other, EPI_MEASURE.case] = 91
+ETA[VACCINE_STATUS.booster, VARIANT.omega, EPI_MEASURE.infection] = 92
+ETA[VACCINE_STATUS.booster, VARIANT.omega, EPI_MEASURE.death] = 93
+ETA[VACCINE_STATUS.booster, VARIANT.omega, EPI_MEASURE.admission] = 94
+ETA[VACCINE_STATUS.booster, VARIANT.omega, EPI_MEASURE.case] = 95
 ETA_NAMES = [
-    'unvaccinated_none',
-    'unvaccinated_ancestral',
-    'unvaccinated_alpha',
-    'unvaccinated_beta',
-    'unvaccinated_gamma',
-    'unvaccinated_delta',
-    'unvaccinated_other',
-    'unvaccinated_omega',
-    'vaccinated_none',
-    'vaccinated_ancestral',
-    'vaccinated_alpha',
-    'vaccinated_beta',
-    'vaccinated_gamma',
-    'vaccinated_delta',
-    'vaccinated_other',
-    'vaccinated_omega',
-    'booster_none',
-    'booster_ancestral',
-    'booster_alpha',
-    'booster_beta',
-    'booster_gamma',
-    'booster_delta',
-    'booster_other',
-    'booster_omega',
+    'unvaccinated_none_infection',
+    'unvaccinated_none_death',
+    'unvaccinated_none_admission',
+    'unvaccinated_none_case',
+    'unvaccinated_ancestral_infection',
+    'unvaccinated_ancestral_death',
+    'unvaccinated_ancestral_admission',
+    'unvaccinated_ancestral_case',
+    'unvaccinated_alpha_infection',
+    'unvaccinated_alpha_death',
+    'unvaccinated_alpha_admission',
+    'unvaccinated_alpha_case',
+    'unvaccinated_beta_infection',
+    'unvaccinated_beta_death',
+    'unvaccinated_beta_admission',
+    'unvaccinated_beta_case',
+    'unvaccinated_gamma_infection',
+    'unvaccinated_gamma_death',
+    'unvaccinated_gamma_admission',
+    'unvaccinated_gamma_case',
+    'unvaccinated_delta_infection',
+    'unvaccinated_delta_death',
+    'unvaccinated_delta_admission',
+    'unvaccinated_delta_case',
+    'unvaccinated_other_infection',
+    'unvaccinated_other_death',
+    'unvaccinated_other_admission',
+    'unvaccinated_other_case',
+    'unvaccinated_omega_infection',
+    'unvaccinated_omega_death',
+    'unvaccinated_omega_admission',
+    'unvaccinated_omega_case',
+    'vaccinated_none_infection',
+    'vaccinated_none_death',
+    'vaccinated_none_admission',
+    'vaccinated_none_case',
+    'vaccinated_ancestral_infection',
+    'vaccinated_ancestral_death',
+    'vaccinated_ancestral_admission',
+    'vaccinated_ancestral_case',
+    'vaccinated_alpha_infection',
+    'vaccinated_alpha_death',
+    'vaccinated_alpha_admission',
+    'vaccinated_alpha_case',
+    'vaccinated_beta_infection',
+    'vaccinated_beta_death',
+    'vaccinated_beta_admission',
+    'vaccinated_beta_case',
+    'vaccinated_gamma_infection',
+    'vaccinated_gamma_death',
+    'vaccinated_gamma_admission',
+    'vaccinated_gamma_case',
+    'vaccinated_delta_infection',
+    'vaccinated_delta_death',
+    'vaccinated_delta_admission',
+    'vaccinated_delta_case',
+    'vaccinated_other_infection',
+    'vaccinated_other_death',
+    'vaccinated_other_admission',
+    'vaccinated_other_case',
+    'vaccinated_omega_infection',
+    'vaccinated_omega_death',
+    'vaccinated_omega_admission',
+    'vaccinated_omega_case',
+    'booster_none_infection',
+    'booster_none_death',
+    'booster_none_admission',
+    'booster_none_case',
+    'booster_ancestral_infection',
+    'booster_ancestral_death',
+    'booster_ancestral_admission',
+    'booster_ancestral_case',
+    'booster_alpha_infection',
+    'booster_alpha_death',
+    'booster_alpha_admission',
+    'booster_alpha_case',
+    'booster_beta_infection',
+    'booster_beta_death',
+    'booster_beta_admission',
+    'booster_beta_case',
+    'booster_gamma_infection',
+    'booster_gamma_death',
+    'booster_gamma_admission',
+    'booster_gamma_case',
+    'booster_delta_infection',
+    'booster_delta_death',
+    'booster_delta_admission',
+    'booster_delta_case',
+    'booster_other_infection',
+    'booster_other_death',
+    'booster_other_admission',
+    'booster_other_case',
+    'booster_omega_infection',
+    'booster_omega_death',
+    'booster_omega_admission',
+    'booster_omega_case',
 ]
 
-CHI = np.full((len(VARIANT_INDEX_TYPE), len(VARIANT_INDEX_TYPE)), -1, dtype=np.int64)
-CHI[VARIANT.none, VARIANT.none] = 0
-CHI[VARIANT.none, VARIANT.ancestral] = 1
-CHI[VARIANT.none, VARIANT.alpha] = 2
-CHI[VARIANT.none, VARIANT.beta] = 3
-CHI[VARIANT.none, VARIANT.gamma] = 4
-CHI[VARIANT.none, VARIANT.delta] = 5
-CHI[VARIANT.none, VARIANT.other] = 6
-CHI[VARIANT.none, VARIANT.omega] = 7
-CHI[VARIANT.ancestral, VARIANT.none] = 8
-CHI[VARIANT.ancestral, VARIANT.ancestral] = 9
-CHI[VARIANT.ancestral, VARIANT.alpha] = 10
-CHI[VARIANT.ancestral, VARIANT.beta] = 11
-CHI[VARIANT.ancestral, VARIANT.gamma] = 12
-CHI[VARIANT.ancestral, VARIANT.delta] = 13
-CHI[VARIANT.ancestral, VARIANT.other] = 14
-CHI[VARIANT.ancestral, VARIANT.omega] = 15
-CHI[VARIANT.alpha, VARIANT.none] = 16
-CHI[VARIANT.alpha, VARIANT.ancestral] = 17
-CHI[VARIANT.alpha, VARIANT.alpha] = 18
-CHI[VARIANT.alpha, VARIANT.beta] = 19
-CHI[VARIANT.alpha, VARIANT.gamma] = 20
-CHI[VARIANT.alpha, VARIANT.delta] = 21
-CHI[VARIANT.alpha, VARIANT.other] = 22
-CHI[VARIANT.alpha, VARIANT.omega] = 23
-CHI[VARIANT.beta, VARIANT.none] = 24
-CHI[VARIANT.beta, VARIANT.ancestral] = 25
-CHI[VARIANT.beta, VARIANT.alpha] = 26
-CHI[VARIANT.beta, VARIANT.beta] = 27
-CHI[VARIANT.beta, VARIANT.gamma] = 28
-CHI[VARIANT.beta, VARIANT.delta] = 29
-CHI[VARIANT.beta, VARIANT.other] = 30
-CHI[VARIANT.beta, VARIANT.omega] = 31
-CHI[VARIANT.gamma, VARIANT.none] = 32
-CHI[VARIANT.gamma, VARIANT.ancestral] = 33
-CHI[VARIANT.gamma, VARIANT.alpha] = 34
-CHI[VARIANT.gamma, VARIANT.beta] = 35
-CHI[VARIANT.gamma, VARIANT.gamma] = 36
-CHI[VARIANT.gamma, VARIANT.delta] = 37
-CHI[VARIANT.gamma, VARIANT.other] = 38
-CHI[VARIANT.gamma, VARIANT.omega] = 39
-CHI[VARIANT.delta, VARIANT.none] = 40
-CHI[VARIANT.delta, VARIANT.ancestral] = 41
-CHI[VARIANT.delta, VARIANT.alpha] = 42
-CHI[VARIANT.delta, VARIANT.beta] = 43
-CHI[VARIANT.delta, VARIANT.gamma] = 44
-CHI[VARIANT.delta, VARIANT.delta] = 45
-CHI[VARIANT.delta, VARIANT.other] = 46
-CHI[VARIANT.delta, VARIANT.omega] = 47
-CHI[VARIANT.other, VARIANT.none] = 48
-CHI[VARIANT.other, VARIANT.ancestral] = 49
-CHI[VARIANT.other, VARIANT.alpha] = 50
-CHI[VARIANT.other, VARIANT.beta] = 51
-CHI[VARIANT.other, VARIANT.gamma] = 52
-CHI[VARIANT.other, VARIANT.delta] = 53
-CHI[VARIANT.other, VARIANT.other] = 54
-CHI[VARIANT.other, VARIANT.omega] = 55
-CHI[VARIANT.omega, VARIANT.none] = 56
-CHI[VARIANT.omega, VARIANT.ancestral] = 57
-CHI[VARIANT.omega, VARIANT.alpha] = 58
-CHI[VARIANT.omega, VARIANT.beta] = 59
-CHI[VARIANT.omega, VARIANT.gamma] = 60
-CHI[VARIANT.omega, VARIANT.delta] = 61
-CHI[VARIANT.omega, VARIANT.other] = 62
-CHI[VARIANT.omega, VARIANT.omega] = 63
+CHI = np.full((len(VARIANT_INDEX_TYPE), len(VARIANT_INDEX_TYPE), len(EPI_MEASURE_TYPE)), -1, dtype=np.int64)
+CHI[VARIANT.none, VARIANT.none, EPI_MEASURE.infection] = 0
+CHI[VARIANT.none, VARIANT.none, EPI_MEASURE.death] = 1
+CHI[VARIANT.none, VARIANT.none, EPI_MEASURE.admission] = 2
+CHI[VARIANT.none, VARIANT.none, EPI_MEASURE.case] = 3
+CHI[VARIANT.none, VARIANT.ancestral, EPI_MEASURE.infection] = 4
+CHI[VARIANT.none, VARIANT.ancestral, EPI_MEASURE.death] = 5
+CHI[VARIANT.none, VARIANT.ancestral, EPI_MEASURE.admission] = 6
+CHI[VARIANT.none, VARIANT.ancestral, EPI_MEASURE.case] = 7
+CHI[VARIANT.none, VARIANT.alpha, EPI_MEASURE.infection] = 8
+CHI[VARIANT.none, VARIANT.alpha, EPI_MEASURE.death] = 9
+CHI[VARIANT.none, VARIANT.alpha, EPI_MEASURE.admission] = 10
+CHI[VARIANT.none, VARIANT.alpha, EPI_MEASURE.case] = 11
+CHI[VARIANT.none, VARIANT.beta, EPI_MEASURE.infection] = 12
+CHI[VARIANT.none, VARIANT.beta, EPI_MEASURE.death] = 13
+CHI[VARIANT.none, VARIANT.beta, EPI_MEASURE.admission] = 14
+CHI[VARIANT.none, VARIANT.beta, EPI_MEASURE.case] = 15
+CHI[VARIANT.none, VARIANT.gamma, EPI_MEASURE.infection] = 16
+CHI[VARIANT.none, VARIANT.gamma, EPI_MEASURE.death] = 17
+CHI[VARIANT.none, VARIANT.gamma, EPI_MEASURE.admission] = 18
+CHI[VARIANT.none, VARIANT.gamma, EPI_MEASURE.case] = 19
+CHI[VARIANT.none, VARIANT.delta, EPI_MEASURE.infection] = 20
+CHI[VARIANT.none, VARIANT.delta, EPI_MEASURE.death] = 21
+CHI[VARIANT.none, VARIANT.delta, EPI_MEASURE.admission] = 22
+CHI[VARIANT.none, VARIANT.delta, EPI_MEASURE.case] = 23
+CHI[VARIANT.none, VARIANT.other, EPI_MEASURE.infection] = 24
+CHI[VARIANT.none, VARIANT.other, EPI_MEASURE.death] = 25
+CHI[VARIANT.none, VARIANT.other, EPI_MEASURE.admission] = 26
+CHI[VARIANT.none, VARIANT.other, EPI_MEASURE.case] = 27
+CHI[VARIANT.none, VARIANT.omega, EPI_MEASURE.infection] = 28
+CHI[VARIANT.none, VARIANT.omega, EPI_MEASURE.death] = 29
+CHI[VARIANT.none, VARIANT.omega, EPI_MEASURE.admission] = 30
+CHI[VARIANT.none, VARIANT.omega, EPI_MEASURE.case] = 31
+CHI[VARIANT.ancestral, VARIANT.none, EPI_MEASURE.infection] = 32
+CHI[VARIANT.ancestral, VARIANT.none, EPI_MEASURE.death] = 33
+CHI[VARIANT.ancestral, VARIANT.none, EPI_MEASURE.admission] = 34
+CHI[VARIANT.ancestral, VARIANT.none, EPI_MEASURE.case] = 35
+CHI[VARIANT.ancestral, VARIANT.ancestral, EPI_MEASURE.infection] = 36
+CHI[VARIANT.ancestral, VARIANT.ancestral, EPI_MEASURE.death] = 37
+CHI[VARIANT.ancestral, VARIANT.ancestral, EPI_MEASURE.admission] = 38
+CHI[VARIANT.ancestral, VARIANT.ancestral, EPI_MEASURE.case] = 39
+CHI[VARIANT.ancestral, VARIANT.alpha, EPI_MEASURE.infection] = 40
+CHI[VARIANT.ancestral, VARIANT.alpha, EPI_MEASURE.death] = 41
+CHI[VARIANT.ancestral, VARIANT.alpha, EPI_MEASURE.admission] = 42
+CHI[VARIANT.ancestral, VARIANT.alpha, EPI_MEASURE.case] = 43
+CHI[VARIANT.ancestral, VARIANT.beta, EPI_MEASURE.infection] = 44
+CHI[VARIANT.ancestral, VARIANT.beta, EPI_MEASURE.death] = 45
+CHI[VARIANT.ancestral, VARIANT.beta, EPI_MEASURE.admission] = 46
+CHI[VARIANT.ancestral, VARIANT.beta, EPI_MEASURE.case] = 47
+CHI[VARIANT.ancestral, VARIANT.gamma, EPI_MEASURE.infection] = 48
+CHI[VARIANT.ancestral, VARIANT.gamma, EPI_MEASURE.death] = 49
+CHI[VARIANT.ancestral, VARIANT.gamma, EPI_MEASURE.admission] = 50
+CHI[VARIANT.ancestral, VARIANT.gamma, EPI_MEASURE.case] = 51
+CHI[VARIANT.ancestral, VARIANT.delta, EPI_MEASURE.infection] = 52
+CHI[VARIANT.ancestral, VARIANT.delta, EPI_MEASURE.death] = 53
+CHI[VARIANT.ancestral, VARIANT.delta, EPI_MEASURE.admission] = 54
+CHI[VARIANT.ancestral, VARIANT.delta, EPI_MEASURE.case] = 55
+CHI[VARIANT.ancestral, VARIANT.other, EPI_MEASURE.infection] = 56
+CHI[VARIANT.ancestral, VARIANT.other, EPI_MEASURE.death] = 57
+CHI[VARIANT.ancestral, VARIANT.other, EPI_MEASURE.admission] = 58
+CHI[VARIANT.ancestral, VARIANT.other, EPI_MEASURE.case] = 59
+CHI[VARIANT.ancestral, VARIANT.omega, EPI_MEASURE.infection] = 60
+CHI[VARIANT.ancestral, VARIANT.omega, EPI_MEASURE.death] = 61
+CHI[VARIANT.ancestral, VARIANT.omega, EPI_MEASURE.admission] = 62
+CHI[VARIANT.ancestral, VARIANT.omega, EPI_MEASURE.case] = 63
+CHI[VARIANT.alpha, VARIANT.none, EPI_MEASURE.infection] = 64
+CHI[VARIANT.alpha, VARIANT.none, EPI_MEASURE.death] = 65
+CHI[VARIANT.alpha, VARIANT.none, EPI_MEASURE.admission] = 66
+CHI[VARIANT.alpha, VARIANT.none, EPI_MEASURE.case] = 67
+CHI[VARIANT.alpha, VARIANT.ancestral, EPI_MEASURE.infection] = 68
+CHI[VARIANT.alpha, VARIANT.ancestral, EPI_MEASURE.death] = 69
+CHI[VARIANT.alpha, VARIANT.ancestral, EPI_MEASURE.admission] = 70
+CHI[VARIANT.alpha, VARIANT.ancestral, EPI_MEASURE.case] = 71
+CHI[VARIANT.alpha, VARIANT.alpha, EPI_MEASURE.infection] = 72
+CHI[VARIANT.alpha, VARIANT.alpha, EPI_MEASURE.death] = 73
+CHI[VARIANT.alpha, VARIANT.alpha, EPI_MEASURE.admission] = 74
+CHI[VARIANT.alpha, VARIANT.alpha, EPI_MEASURE.case] = 75
+CHI[VARIANT.alpha, VARIANT.beta, EPI_MEASURE.infection] = 76
+CHI[VARIANT.alpha, VARIANT.beta, EPI_MEASURE.death] = 77
+CHI[VARIANT.alpha, VARIANT.beta, EPI_MEASURE.admission] = 78
+CHI[VARIANT.alpha, VARIANT.beta, EPI_MEASURE.case] = 79
+CHI[VARIANT.alpha, VARIANT.gamma, EPI_MEASURE.infection] = 80
+CHI[VARIANT.alpha, VARIANT.gamma, EPI_MEASURE.death] = 81
+CHI[VARIANT.alpha, VARIANT.gamma, EPI_MEASURE.admission] = 82
+CHI[VARIANT.alpha, VARIANT.gamma, EPI_MEASURE.case] = 83
+CHI[VARIANT.alpha, VARIANT.delta, EPI_MEASURE.infection] = 84
+CHI[VARIANT.alpha, VARIANT.delta, EPI_MEASURE.death] = 85
+CHI[VARIANT.alpha, VARIANT.delta, EPI_MEASURE.admission] = 86
+CHI[VARIANT.alpha, VARIANT.delta, EPI_MEASURE.case] = 87
+CHI[VARIANT.alpha, VARIANT.other, EPI_MEASURE.infection] = 88
+CHI[VARIANT.alpha, VARIANT.other, EPI_MEASURE.death] = 89
+CHI[VARIANT.alpha, VARIANT.other, EPI_MEASURE.admission] = 90
+CHI[VARIANT.alpha, VARIANT.other, EPI_MEASURE.case] = 91
+CHI[VARIANT.alpha, VARIANT.omega, EPI_MEASURE.infection] = 92
+CHI[VARIANT.alpha, VARIANT.omega, EPI_MEASURE.death] = 93
+CHI[VARIANT.alpha, VARIANT.omega, EPI_MEASURE.admission] = 94
+CHI[VARIANT.alpha, VARIANT.omega, EPI_MEASURE.case] = 95
+CHI[VARIANT.beta, VARIANT.none, EPI_MEASURE.infection] = 96
+CHI[VARIANT.beta, VARIANT.none, EPI_MEASURE.death] = 97
+CHI[VARIANT.beta, VARIANT.none, EPI_MEASURE.admission] = 98
+CHI[VARIANT.beta, VARIANT.none, EPI_MEASURE.case] = 99
+CHI[VARIANT.beta, VARIANT.ancestral, EPI_MEASURE.infection] = 100
+CHI[VARIANT.beta, VARIANT.ancestral, EPI_MEASURE.death] = 101
+CHI[VARIANT.beta, VARIANT.ancestral, EPI_MEASURE.admission] = 102
+CHI[VARIANT.beta, VARIANT.ancestral, EPI_MEASURE.case] = 103
+CHI[VARIANT.beta, VARIANT.alpha, EPI_MEASURE.infection] = 104
+CHI[VARIANT.beta, VARIANT.alpha, EPI_MEASURE.death] = 105
+CHI[VARIANT.beta, VARIANT.alpha, EPI_MEASURE.admission] = 106
+CHI[VARIANT.beta, VARIANT.alpha, EPI_MEASURE.case] = 107
+CHI[VARIANT.beta, VARIANT.beta, EPI_MEASURE.infection] = 108
+CHI[VARIANT.beta, VARIANT.beta, EPI_MEASURE.death] = 109
+CHI[VARIANT.beta, VARIANT.beta, EPI_MEASURE.admission] = 110
+CHI[VARIANT.beta, VARIANT.beta, EPI_MEASURE.case] = 111
+CHI[VARIANT.beta, VARIANT.gamma, EPI_MEASURE.infection] = 112
+CHI[VARIANT.beta, VARIANT.gamma, EPI_MEASURE.death] = 113
+CHI[VARIANT.beta, VARIANT.gamma, EPI_MEASURE.admission] = 114
+CHI[VARIANT.beta, VARIANT.gamma, EPI_MEASURE.case] = 115
+CHI[VARIANT.beta, VARIANT.delta, EPI_MEASURE.infection] = 116
+CHI[VARIANT.beta, VARIANT.delta, EPI_MEASURE.death] = 117
+CHI[VARIANT.beta, VARIANT.delta, EPI_MEASURE.admission] = 118
+CHI[VARIANT.beta, VARIANT.delta, EPI_MEASURE.case] = 119
+CHI[VARIANT.beta, VARIANT.other, EPI_MEASURE.infection] = 120
+CHI[VARIANT.beta, VARIANT.other, EPI_MEASURE.death] = 121
+CHI[VARIANT.beta, VARIANT.other, EPI_MEASURE.admission] = 122
+CHI[VARIANT.beta, VARIANT.other, EPI_MEASURE.case] = 123
+CHI[VARIANT.beta, VARIANT.omega, EPI_MEASURE.infection] = 124
+CHI[VARIANT.beta, VARIANT.omega, EPI_MEASURE.death] = 125
+CHI[VARIANT.beta, VARIANT.omega, EPI_MEASURE.admission] = 126
+CHI[VARIANT.beta, VARIANT.omega, EPI_MEASURE.case] = 127
+CHI[VARIANT.gamma, VARIANT.none, EPI_MEASURE.infection] = 128
+CHI[VARIANT.gamma, VARIANT.none, EPI_MEASURE.death] = 129
+CHI[VARIANT.gamma, VARIANT.none, EPI_MEASURE.admission] = 130
+CHI[VARIANT.gamma, VARIANT.none, EPI_MEASURE.case] = 131
+CHI[VARIANT.gamma, VARIANT.ancestral, EPI_MEASURE.infection] = 132
+CHI[VARIANT.gamma, VARIANT.ancestral, EPI_MEASURE.death] = 133
+CHI[VARIANT.gamma, VARIANT.ancestral, EPI_MEASURE.admission] = 134
+CHI[VARIANT.gamma, VARIANT.ancestral, EPI_MEASURE.case] = 135
+CHI[VARIANT.gamma, VARIANT.alpha, EPI_MEASURE.infection] = 136
+CHI[VARIANT.gamma, VARIANT.alpha, EPI_MEASURE.death] = 137
+CHI[VARIANT.gamma, VARIANT.alpha, EPI_MEASURE.admission] = 138
+CHI[VARIANT.gamma, VARIANT.alpha, EPI_MEASURE.case] = 139
+CHI[VARIANT.gamma, VARIANT.beta, EPI_MEASURE.infection] = 140
+CHI[VARIANT.gamma, VARIANT.beta, EPI_MEASURE.death] = 141
+CHI[VARIANT.gamma, VARIANT.beta, EPI_MEASURE.admission] = 142
+CHI[VARIANT.gamma, VARIANT.beta, EPI_MEASURE.case] = 143
+CHI[VARIANT.gamma, VARIANT.gamma, EPI_MEASURE.infection] = 144
+CHI[VARIANT.gamma, VARIANT.gamma, EPI_MEASURE.death] = 145
+CHI[VARIANT.gamma, VARIANT.gamma, EPI_MEASURE.admission] = 146
+CHI[VARIANT.gamma, VARIANT.gamma, EPI_MEASURE.case] = 147
+CHI[VARIANT.gamma, VARIANT.delta, EPI_MEASURE.infection] = 148
+CHI[VARIANT.gamma, VARIANT.delta, EPI_MEASURE.death] = 149
+CHI[VARIANT.gamma, VARIANT.delta, EPI_MEASURE.admission] = 150
+CHI[VARIANT.gamma, VARIANT.delta, EPI_MEASURE.case] = 151
+CHI[VARIANT.gamma, VARIANT.other, EPI_MEASURE.infection] = 152
+CHI[VARIANT.gamma, VARIANT.other, EPI_MEASURE.death] = 153
+CHI[VARIANT.gamma, VARIANT.other, EPI_MEASURE.admission] = 154
+CHI[VARIANT.gamma, VARIANT.other, EPI_MEASURE.case] = 155
+CHI[VARIANT.gamma, VARIANT.omega, EPI_MEASURE.infection] = 156
+CHI[VARIANT.gamma, VARIANT.omega, EPI_MEASURE.death] = 157
+CHI[VARIANT.gamma, VARIANT.omega, EPI_MEASURE.admission] = 158
+CHI[VARIANT.gamma, VARIANT.omega, EPI_MEASURE.case] = 159
+CHI[VARIANT.delta, VARIANT.none, EPI_MEASURE.infection] = 160
+CHI[VARIANT.delta, VARIANT.none, EPI_MEASURE.death] = 161
+CHI[VARIANT.delta, VARIANT.none, EPI_MEASURE.admission] = 162
+CHI[VARIANT.delta, VARIANT.none, EPI_MEASURE.case] = 163
+CHI[VARIANT.delta, VARIANT.ancestral, EPI_MEASURE.infection] = 164
+CHI[VARIANT.delta, VARIANT.ancestral, EPI_MEASURE.death] = 165
+CHI[VARIANT.delta, VARIANT.ancestral, EPI_MEASURE.admission] = 166
+CHI[VARIANT.delta, VARIANT.ancestral, EPI_MEASURE.case] = 167
+CHI[VARIANT.delta, VARIANT.alpha, EPI_MEASURE.infection] = 168
+CHI[VARIANT.delta, VARIANT.alpha, EPI_MEASURE.death] = 169
+CHI[VARIANT.delta, VARIANT.alpha, EPI_MEASURE.admission] = 170
+CHI[VARIANT.delta, VARIANT.alpha, EPI_MEASURE.case] = 171
+CHI[VARIANT.delta, VARIANT.beta, EPI_MEASURE.infection] = 172
+CHI[VARIANT.delta, VARIANT.beta, EPI_MEASURE.death] = 173
+CHI[VARIANT.delta, VARIANT.beta, EPI_MEASURE.admission] = 174
+CHI[VARIANT.delta, VARIANT.beta, EPI_MEASURE.case] = 175
+CHI[VARIANT.delta, VARIANT.gamma, EPI_MEASURE.infection] = 176
+CHI[VARIANT.delta, VARIANT.gamma, EPI_MEASURE.death] = 177
+CHI[VARIANT.delta, VARIANT.gamma, EPI_MEASURE.admission] = 178
+CHI[VARIANT.delta, VARIANT.gamma, EPI_MEASURE.case] = 179
+CHI[VARIANT.delta, VARIANT.delta, EPI_MEASURE.infection] = 180
+CHI[VARIANT.delta, VARIANT.delta, EPI_MEASURE.death] = 181
+CHI[VARIANT.delta, VARIANT.delta, EPI_MEASURE.admission] = 182
+CHI[VARIANT.delta, VARIANT.delta, EPI_MEASURE.case] = 183
+CHI[VARIANT.delta, VARIANT.other, EPI_MEASURE.infection] = 184
+CHI[VARIANT.delta, VARIANT.other, EPI_MEASURE.death] = 185
+CHI[VARIANT.delta, VARIANT.other, EPI_MEASURE.admission] = 186
+CHI[VARIANT.delta, VARIANT.other, EPI_MEASURE.case] = 187
+CHI[VARIANT.delta, VARIANT.omega, EPI_MEASURE.infection] = 188
+CHI[VARIANT.delta, VARIANT.omega, EPI_MEASURE.death] = 189
+CHI[VARIANT.delta, VARIANT.omega, EPI_MEASURE.admission] = 190
+CHI[VARIANT.delta, VARIANT.omega, EPI_MEASURE.case] = 191
+CHI[VARIANT.other, VARIANT.none, EPI_MEASURE.infection] = 192
+CHI[VARIANT.other, VARIANT.none, EPI_MEASURE.death] = 193
+CHI[VARIANT.other, VARIANT.none, EPI_MEASURE.admission] = 194
+CHI[VARIANT.other, VARIANT.none, EPI_MEASURE.case] = 195
+CHI[VARIANT.other, VARIANT.ancestral, EPI_MEASURE.infection] = 196
+CHI[VARIANT.other, VARIANT.ancestral, EPI_MEASURE.death] = 197
+CHI[VARIANT.other, VARIANT.ancestral, EPI_MEASURE.admission] = 198
+CHI[VARIANT.other, VARIANT.ancestral, EPI_MEASURE.case] = 199
+CHI[VARIANT.other, VARIANT.alpha, EPI_MEASURE.infection] = 200
+CHI[VARIANT.other, VARIANT.alpha, EPI_MEASURE.death] = 201
+CHI[VARIANT.other, VARIANT.alpha, EPI_MEASURE.admission] = 202
+CHI[VARIANT.other, VARIANT.alpha, EPI_MEASURE.case] = 203
+CHI[VARIANT.other, VARIANT.beta, EPI_MEASURE.infection] = 204
+CHI[VARIANT.other, VARIANT.beta, EPI_MEASURE.death] = 205
+CHI[VARIANT.other, VARIANT.beta, EPI_MEASURE.admission] = 206
+CHI[VARIANT.other, VARIANT.beta, EPI_MEASURE.case] = 207
+CHI[VARIANT.other, VARIANT.gamma, EPI_MEASURE.infection] = 208
+CHI[VARIANT.other, VARIANT.gamma, EPI_MEASURE.death] = 209
+CHI[VARIANT.other, VARIANT.gamma, EPI_MEASURE.admission] = 210
+CHI[VARIANT.other, VARIANT.gamma, EPI_MEASURE.case] = 211
+CHI[VARIANT.other, VARIANT.delta, EPI_MEASURE.infection] = 212
+CHI[VARIANT.other, VARIANT.delta, EPI_MEASURE.death] = 213
+CHI[VARIANT.other, VARIANT.delta, EPI_MEASURE.admission] = 214
+CHI[VARIANT.other, VARIANT.delta, EPI_MEASURE.case] = 215
+CHI[VARIANT.other, VARIANT.other, EPI_MEASURE.infection] = 216
+CHI[VARIANT.other, VARIANT.other, EPI_MEASURE.death] = 217
+CHI[VARIANT.other, VARIANT.other, EPI_MEASURE.admission] = 218
+CHI[VARIANT.other, VARIANT.other, EPI_MEASURE.case] = 219
+CHI[VARIANT.other, VARIANT.omega, EPI_MEASURE.infection] = 220
+CHI[VARIANT.other, VARIANT.omega, EPI_MEASURE.death] = 221
+CHI[VARIANT.other, VARIANT.omega, EPI_MEASURE.admission] = 222
+CHI[VARIANT.other, VARIANT.omega, EPI_MEASURE.case] = 223
+CHI[VARIANT.omega, VARIANT.none, EPI_MEASURE.infection] = 224
+CHI[VARIANT.omega, VARIANT.none, EPI_MEASURE.death] = 225
+CHI[VARIANT.omega, VARIANT.none, EPI_MEASURE.admission] = 226
+CHI[VARIANT.omega, VARIANT.none, EPI_MEASURE.case] = 227
+CHI[VARIANT.omega, VARIANT.ancestral, EPI_MEASURE.infection] = 228
+CHI[VARIANT.omega, VARIANT.ancestral, EPI_MEASURE.death] = 229
+CHI[VARIANT.omega, VARIANT.ancestral, EPI_MEASURE.admission] = 230
+CHI[VARIANT.omega, VARIANT.ancestral, EPI_MEASURE.case] = 231
+CHI[VARIANT.omega, VARIANT.alpha, EPI_MEASURE.infection] = 232
+CHI[VARIANT.omega, VARIANT.alpha, EPI_MEASURE.death] = 233
+CHI[VARIANT.omega, VARIANT.alpha, EPI_MEASURE.admission] = 234
+CHI[VARIANT.omega, VARIANT.alpha, EPI_MEASURE.case] = 235
+CHI[VARIANT.omega, VARIANT.beta, EPI_MEASURE.infection] = 236
+CHI[VARIANT.omega, VARIANT.beta, EPI_MEASURE.death] = 237
+CHI[VARIANT.omega, VARIANT.beta, EPI_MEASURE.admission] = 238
+CHI[VARIANT.omega, VARIANT.beta, EPI_MEASURE.case] = 239
+CHI[VARIANT.omega, VARIANT.gamma, EPI_MEASURE.infection] = 240
+CHI[VARIANT.omega, VARIANT.gamma, EPI_MEASURE.death] = 241
+CHI[VARIANT.omega, VARIANT.gamma, EPI_MEASURE.admission] = 242
+CHI[VARIANT.omega, VARIANT.gamma, EPI_MEASURE.case] = 243
+CHI[VARIANT.omega, VARIANT.delta, EPI_MEASURE.infection] = 244
+CHI[VARIANT.omega, VARIANT.delta, EPI_MEASURE.death] = 245
+CHI[VARIANT.omega, VARIANT.delta, EPI_MEASURE.admission] = 246
+CHI[VARIANT.omega, VARIANT.delta, EPI_MEASURE.case] = 247
+CHI[VARIANT.omega, VARIANT.other, EPI_MEASURE.infection] = 248
+CHI[VARIANT.omega, VARIANT.other, EPI_MEASURE.death] = 249
+CHI[VARIANT.omega, VARIANT.other, EPI_MEASURE.admission] = 250
+CHI[VARIANT.omega, VARIANT.other, EPI_MEASURE.case] = 251
+CHI[VARIANT.omega, VARIANT.omega, EPI_MEASURE.infection] = 252
+CHI[VARIANT.omega, VARIANT.omega, EPI_MEASURE.death] = 253
+CHI[VARIANT.omega, VARIANT.omega, EPI_MEASURE.admission] = 254
+CHI[VARIANT.omega, VARIANT.omega, EPI_MEASURE.case] = 255
 CHI_NAMES = [
-    'none_none',
-    'none_ancestral',
-    'none_alpha',
-    'none_beta',
-    'none_gamma',
-    'none_delta',
-    'none_other',
-    'none_omega',
-    'ancestral_none',
-    'ancestral_ancestral',
-    'ancestral_alpha',
-    'ancestral_beta',
-    'ancestral_gamma',
-    'ancestral_delta',
-    'ancestral_other',
-    'ancestral_omega',
-    'alpha_none',
-    'alpha_ancestral',
-    'alpha_alpha',
-    'alpha_beta',
-    'alpha_gamma',
-    'alpha_delta',
-    'alpha_other',
-    'alpha_omega',
-    'beta_none',
-    'beta_ancestral',
-    'beta_alpha',
-    'beta_beta',
-    'beta_gamma',
-    'beta_delta',
-    'beta_other',
-    'beta_omega',
-    'gamma_none',
-    'gamma_ancestral',
-    'gamma_alpha',
-    'gamma_beta',
-    'gamma_gamma',
-    'gamma_delta',
-    'gamma_other',
-    'gamma_omega',
-    'delta_none',
-    'delta_ancestral',
-    'delta_alpha',
-    'delta_beta',
-    'delta_gamma',
-    'delta_delta',
-    'delta_other',
-    'delta_omega',
-    'other_none',
-    'other_ancestral',
-    'other_alpha',
-    'other_beta',
-    'other_gamma',
-    'other_delta',
-    'other_other',
-    'other_omega',
-    'omega_none',
-    'omega_ancestral',
-    'omega_alpha',
-    'omega_beta',
-    'omega_gamma',
-    'omega_delta',
-    'omega_other',
-    'omega_omega',
+    'none_none_infection',
+    'none_none_death',
+    'none_none_admission',
+    'none_none_case',
+    'none_ancestral_infection',
+    'none_ancestral_death',
+    'none_ancestral_admission',
+    'none_ancestral_case',
+    'none_alpha_infection',
+    'none_alpha_death',
+    'none_alpha_admission',
+    'none_alpha_case',
+    'none_beta_infection',
+    'none_beta_death',
+    'none_beta_admission',
+    'none_beta_case',
+    'none_gamma_infection',
+    'none_gamma_death',
+    'none_gamma_admission',
+    'none_gamma_case',
+    'none_delta_infection',
+    'none_delta_death',
+    'none_delta_admission',
+    'none_delta_case',
+    'none_other_infection',
+    'none_other_death',
+    'none_other_admission',
+    'none_other_case',
+    'none_omega_infection',
+    'none_omega_death',
+    'none_omega_admission',
+    'none_omega_case',
+    'ancestral_none_infection',
+    'ancestral_none_death',
+    'ancestral_none_admission',
+    'ancestral_none_case',
+    'ancestral_ancestral_infection',
+    'ancestral_ancestral_death',
+    'ancestral_ancestral_admission',
+    'ancestral_ancestral_case',
+    'ancestral_alpha_infection',
+    'ancestral_alpha_death',
+    'ancestral_alpha_admission',
+    'ancestral_alpha_case',
+    'ancestral_beta_infection',
+    'ancestral_beta_death',
+    'ancestral_beta_admission',
+    'ancestral_beta_case',
+    'ancestral_gamma_infection',
+    'ancestral_gamma_death',
+    'ancestral_gamma_admission',
+    'ancestral_gamma_case',
+    'ancestral_delta_infection',
+    'ancestral_delta_death',
+    'ancestral_delta_admission',
+    'ancestral_delta_case',
+    'ancestral_other_infection',
+    'ancestral_other_death',
+    'ancestral_other_admission',
+    'ancestral_other_case',
+    'ancestral_omega_infection',
+    'ancestral_omega_death',
+    'ancestral_omega_admission',
+    'ancestral_omega_case',
+    'alpha_none_infection',
+    'alpha_none_death',
+    'alpha_none_admission',
+    'alpha_none_case',
+    'alpha_ancestral_infection',
+    'alpha_ancestral_death',
+    'alpha_ancestral_admission',
+    'alpha_ancestral_case',
+    'alpha_alpha_infection',
+    'alpha_alpha_death',
+    'alpha_alpha_admission',
+    'alpha_alpha_case',
+    'alpha_beta_infection',
+    'alpha_beta_death',
+    'alpha_beta_admission',
+    'alpha_beta_case',
+    'alpha_gamma_infection',
+    'alpha_gamma_death',
+    'alpha_gamma_admission',
+    'alpha_gamma_case',
+    'alpha_delta_infection',
+    'alpha_delta_death',
+    'alpha_delta_admission',
+    'alpha_delta_case',
+    'alpha_other_infection',
+    'alpha_other_death',
+    'alpha_other_admission',
+    'alpha_other_case',
+    'alpha_omega_infection',
+    'alpha_omega_death',
+    'alpha_omega_admission',
+    'alpha_omega_case',
+    'beta_none_infection',
+    'beta_none_death',
+    'beta_none_admission',
+    'beta_none_case',
+    'beta_ancestral_infection',
+    'beta_ancestral_death',
+    'beta_ancestral_admission',
+    'beta_ancestral_case',
+    'beta_alpha_infection',
+    'beta_alpha_death',
+    'beta_alpha_admission',
+    'beta_alpha_case',
+    'beta_beta_infection',
+    'beta_beta_death',
+    'beta_beta_admission',
+    'beta_beta_case',
+    'beta_gamma_infection',
+    'beta_gamma_death',
+    'beta_gamma_admission',
+    'beta_gamma_case',
+    'beta_delta_infection',
+    'beta_delta_death',
+    'beta_delta_admission',
+    'beta_delta_case',
+    'beta_other_infection',
+    'beta_other_death',
+    'beta_other_admission',
+    'beta_other_case',
+    'beta_omega_infection',
+    'beta_omega_death',
+    'beta_omega_admission',
+    'beta_omega_case',
+    'gamma_none_infection',
+    'gamma_none_death',
+    'gamma_none_admission',
+    'gamma_none_case',
+    'gamma_ancestral_infection',
+    'gamma_ancestral_death',
+    'gamma_ancestral_admission',
+    'gamma_ancestral_case',
+    'gamma_alpha_infection',
+    'gamma_alpha_death',
+    'gamma_alpha_admission',
+    'gamma_alpha_case',
+    'gamma_beta_infection',
+    'gamma_beta_death',
+    'gamma_beta_admission',
+    'gamma_beta_case',
+    'gamma_gamma_infection',
+    'gamma_gamma_death',
+    'gamma_gamma_admission',
+    'gamma_gamma_case',
+    'gamma_delta_infection',
+    'gamma_delta_death',
+    'gamma_delta_admission',
+    'gamma_delta_case',
+    'gamma_other_infection',
+    'gamma_other_death',
+    'gamma_other_admission',
+    'gamma_other_case',
+    'gamma_omega_infection',
+    'gamma_omega_death',
+    'gamma_omega_admission',
+    'gamma_omega_case',
+    'delta_none_infection',
+    'delta_none_death',
+    'delta_none_admission',
+    'delta_none_case',
+    'delta_ancestral_infection',
+    'delta_ancestral_death',
+    'delta_ancestral_admission',
+    'delta_ancestral_case',
+    'delta_alpha_infection',
+    'delta_alpha_death',
+    'delta_alpha_admission',
+    'delta_alpha_case',
+    'delta_beta_infection',
+    'delta_beta_death',
+    'delta_beta_admission',
+    'delta_beta_case',
+    'delta_gamma_infection',
+    'delta_gamma_death',
+    'delta_gamma_admission',
+    'delta_gamma_case',
+    'delta_delta_infection',
+    'delta_delta_death',
+    'delta_delta_admission',
+    'delta_delta_case',
+    'delta_other_infection',
+    'delta_other_death',
+    'delta_other_admission',
+    'delta_other_case',
+    'delta_omega_infection',
+    'delta_omega_death',
+    'delta_omega_admission',
+    'delta_omega_case',
+    'other_none_infection',
+    'other_none_death',
+    'other_none_admission',
+    'other_none_case',
+    'other_ancestral_infection',
+    'other_ancestral_death',
+    'other_ancestral_admission',
+    'other_ancestral_case',
+    'other_alpha_infection',
+    'other_alpha_death',
+    'other_alpha_admission',
+    'other_alpha_case',
+    'other_beta_infection',
+    'other_beta_death',
+    'other_beta_admission',
+    'other_beta_case',
+    'other_gamma_infection',
+    'other_gamma_death',
+    'other_gamma_admission',
+    'other_gamma_case',
+    'other_delta_infection',
+    'other_delta_death',
+    'other_delta_admission',
+    'other_delta_case',
+    'other_other_infection',
+    'other_other_death',
+    'other_other_admission',
+    'other_other_case',
+    'other_omega_infection',
+    'other_omega_death',
+    'other_omega_admission',
+    'other_omega_case',
+    'omega_none_infection',
+    'omega_none_death',
+    'omega_none_admission',
+    'omega_none_case',
+    'omega_ancestral_infection',
+    'omega_ancestral_death',
+    'omega_ancestral_admission',
+    'omega_ancestral_case',
+    'omega_alpha_infection',
+    'omega_alpha_death',
+    'omega_alpha_admission',
+    'omega_alpha_case',
+    'omega_beta_infection',
+    'omega_beta_death',
+    'omega_beta_admission',
+    'omega_beta_case',
+    'omega_gamma_infection',
+    'omega_gamma_death',
+    'omega_gamma_admission',
+    'omega_gamma_case',
+    'omega_delta_infection',
+    'omega_delta_death',
+    'omega_delta_admission',
+    'omega_delta_case',
+    'omega_other_infection',
+    'omega_other_death',
+    'omega_other_admission',
+    'omega_other_case',
+    'omega_omega_infection',
+    'omega_omega_death',
+    'omega_omega_admission',
+    'omega_omega_case',
 ]
 
 NEW_E = np.full((len(VACCINE_INDEX_TYPE), len(VARIANT_INDEX_TYPE), len(VARIANT_INDEX_TYPE)), -1, dtype=np.int64)

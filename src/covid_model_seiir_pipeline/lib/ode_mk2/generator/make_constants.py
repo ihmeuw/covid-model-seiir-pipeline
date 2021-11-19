@@ -164,16 +164,16 @@ SPECS = {
     ),
     'ETA': Spec(
         offset='',
-        axes_primitives=['vaccine_index_type', 'variant_index_type'],
+        axes_primitives=['vaccine_index_type', 'variant_index_type', 'epi_measure_type'],
         field_specs=[
-            ['vaccine_status', 'variant']
+            ['vaccine_status', 'variant', 'epi_measure']
         ],
     ),
     'CHI': Spec(
         offset='',
-        axes_primitives=['variant_index_type', 'variant_index_type'],
+        axes_primitives=['variant_index_type', 'variant_index_type', 'epi_measure_type'],
         field_specs=[
-            ['variant', 'variant'],
+            ['variant', 'variant', 'epi_measure'],
         ],
     ),
     'NEW_E': Spec(

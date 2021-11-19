@@ -213,6 +213,8 @@ def compute_natural_waning(waning: pd.DataFrame) -> pd.DataFrame:
                                  natural_waning_case, 
                                  natural_waning_death, 
                                  natural_waning_admission])
-                      .set_index(['endpoint', 'days'])
-                      .sort_index())
+                      .set_index(['days', 'endpoint'])
+                      .sort_index()
+                      .unstack())
+    natural_waning.columns = natural_waning.columns.droplevel().rename(None)
     return natural_waning
