@@ -119,7 +119,7 @@ def make_initial_condition(parameters: Parameters, full_rates: pd.DataFrame, pop
     end_date = crude_infections.reset_index(level='date').groupby('location_id').date.last() + pd.Timedelta(days=1)    
 
     # Alpha is time-invariant
-    alpha = base_params.alpha_all.groupby('location_id').first()
+    alpha = base_params.alpha_all_infection.groupby('location_id').first()
     compartments = [f'{compartment}_{risk_group}'
                     for risk_group, compartment
                     in itertools.product(RISK_GROUP_NAMES, COMPARTMENTS_NAMES + TRACKING_COMPARTMENTS_NAMES)]
@@ -155,9 +155,9 @@ def get_crude_infections(base_params, rates, population, threshold = 50):
     crude_infections = pd.DataFrame(index=rates.index)
     for risk_group in RISK_GROUP_NAMES:
         risk_infections = pd.DataFrame(index=rates.index)
-        for measure, rate in [('deaths', 'ifr'), ('admissions', 'ihr'), ('cases', 'idr')]:
-            infections = (base_params[f'{measure}_weight_all']
-                          * base_params[f'{measure}_all'] / rates[rate]
+        for measure, rate in [('death', 'ifr'), ('admission', 'ihr'), ('case', 'idr')]:
+            infections = (base_params[f'weight_all_{measure}']
+                          * base_params[f'count_all_{measure}'] / rates[rate]
                           * population[risk_group] / population.sum(axis=1))
                
             risk_infections[measure] = infections
