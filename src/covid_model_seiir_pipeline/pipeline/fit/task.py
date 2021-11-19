@@ -66,6 +66,7 @@ def run_beta_fit(fit_version: str, draw_id: int, progress_bar: bool) -> None:
         draw_id,
     )
 
+    logger.info('Building initial condition.', context='transform')
     initial_condition = model.make_initial_condition(
         ode_parameters,
         rates,
