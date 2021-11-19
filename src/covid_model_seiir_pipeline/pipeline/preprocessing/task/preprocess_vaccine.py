@@ -94,7 +94,7 @@ def run_preprocess_vaccine(preprocessing_version: str, scenario: str, progress_b
             rr = rr.reset_index().set_index(['location_id', 'date', 'endpoint'])
             risk_reductions.append(rr)
         risk_reductions = pd.concat(risk_reductions).sort_index().unstack()
-        risk_reductions.columns = [f'{c[:-3]}_{e}_{c[:-2]}' for c, e in risk_reductions.columns]
+        risk_reductions.columns = [f'{c[:-3]}_{e}_{c[-2:]}' for c, e in risk_reductions.columns]
 
         uptake = (uptake
                   .reorder_levels(['location_id', 'date', 'vaccine_course', 'risk_group'])
