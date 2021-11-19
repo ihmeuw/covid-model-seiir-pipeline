@@ -133,32 +133,48 @@ def build_eta_calc_arguments(vaccine_uptake: pd.DataFrame,
                              waning_efficacy: pd.DataFrame,
                              progress_bar: bool) -> List:
     location_ids = vaccine_uptake.reset_index().location_id.unique()
-    groups = itertools.product(['infection', 'severe_disease'], location_ids, [1, 2], ['hr', 'lr'])
+    groups = itertools.product(location_ids, [1, 2], ['hr', 'lr'])
     eta_args = []
-    for endpoint, location_id, vaccine_course, risk_group in tqdm.tqdm(list(groups), disable=not progress_bar):
+
+    infection_efficacy = waning_efficacy.loc['infection']
+    severe_disease_efficacy = waning_efficacy.loc['severe_disease']
+
+    for location_id, vaccine_course, risk_group in tqdm.tqdm(list(groups), disable=not progress_bar):
         group_uptake = vaccine_uptake.loc[(vaccine_course, location_id, risk_group)]
-        group_efficacy = waning_efficacy.loc[endpoint]
+
         eta_args.append([
-            endpoint,
+            'infection',
             location_id,
             vaccine_course,
             risk_group,
             group_uptake,
-            group_efficacy,
+            infection_efficacy,
+            pd.Series(0., index=infection_efficacy.index),
         ])
+        eta_args.append([
+            'severe_disease',
+            location_id,
+            vaccine_course,
+            risk_group,
+            group_uptake,
+            severe_disease_efficacy,
+            infection_efficacy,
+        ])
+
     return eta_args
 
 
 def compute_eta(args: List) -> pd.DataFrame:
-    endpoint, location_id, vaccine_course, risk_group, uptake, efficacy = args
-    variants = efficacy.reset_index().variant.unique()
+    endpoint, location_id, vaccine_course, risk_group, uptake, efficacy_target, efficacy_base = args
+    variants = efficacy_target.reset_index().variant.unique()
     dates = uptake.index
     u = uptake.values
 
     eta = np.zeros((len(dates), len(variants)))
     for j, variant in enumerate(variants):
-        e = efficacy.loc[variant].values[:len(u)]
-        _compute_variant_eta(u, e, j, eta)
+        e_t = efficacy_target.loc[variant].values[:len(u)]
+        e_b = efficacy_base.loc[variant].values[:len(u)]
+        _compute_variant_eta(u, e_t, e_b, j, eta)
 
     eta = pd.DataFrame(eta, columns=variants, index=dates)
     eta['endpoint'] = endpoint
@@ -172,11 +188,11 @@ def compute_eta(args: List) -> pd.DataFrame:
 
 
 @numba.njit
-def _compute_variant_eta(u, e, j, eta):
+def _compute_variant_eta(u, e_t, e_b, j, eta):
     for t in range(1, u.shape[0] + 1):
         total = u[:t].sum()
         if total:
-            eta[t - 1, j] = (u[:t][::-1] * e[:t]).sum() / total
+            eta[t - 1, j] = (u[:t][::-1] * (1 - (1 - e_t[:t]) / (1 - e_b[:t]))).sum() / total
         else:
             eta[t - 1, j] = 0.
     return eta
