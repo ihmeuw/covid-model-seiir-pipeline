@@ -9,7 +9,6 @@ from covid_model_seiir_pipeline.lib.ode_mk2.containers import (
     Parameters,
 )
 from covid_model_seiir_pipeline.lib.ode_mk2.constants import (
-    VARIANT,
     VARIANT_NAMES,
     RISK_GROUP_NAMES,
     COMPARTMENTS_NAMES,
@@ -55,19 +54,28 @@ def prepare_ode_fit_parameters(rates: pd.DataFrame,
     ], axis=1)
 
     vaccinations = vaccinations.reindex(past_index, fill_value=0.)
-    etas = etas.set_index('endpoint', append=True).reorder_levels(['endpoint', 'location_id', 'date']).sort_index()
-    etas = {f'eta_{endpoint}': etas.loc[endpoint].reindex(past_index, fill_value=0.) 
-            for endpoint in ['infection', 'death', 'admission', 'case']}
-    natural_waning_dist = {f'natural_waning_{endpoint}': natural_waning_dist.loc[endpoint] for endpoint in
-                           ['infection', 'death', 'admission', 'case']}
+    etas = etas.sort_index().reindex(past_index, fill_value=0.)
+
+    phis = []
+    for endpoint in ['infection', 'death', 'admission', 'case']:
+        if endpoint == 'infection':
+            w_base = pd.Series(0., index=natural_waning_dist.index)
+        else:
+            w_base = natural_waning_dist['infection']
+        w_target = natural_waning_dist[endpoint]
+
+        for from_variant, to_variant in itertools.product(VARIANT_NAMES, VARIANT_NAMES):
+            cvi = natural_waning_matrix[from_variant, to_variant]
+            phi = 1 - (1 - cvi * w_target) / (1 - cvi * w_base)
+            phis.append(phi.rename(f'{from_variant}_{to_variant}_{endpoint}'))
+    phis = pd.concat(phis, axis=1)
 
     return Parameters(
         base_parameters=base_parameters,
         vaccinations=vaccinations,
         rates=rates,
-        **etas,
-        **natural_waning_dist,
-        phi=natural_waning_matrix,
+        etas=etas,
+        phis=phis,
     )
 
 

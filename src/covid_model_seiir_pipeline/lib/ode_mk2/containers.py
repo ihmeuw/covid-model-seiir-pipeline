@@ -13,7 +13,7 @@ from covid_model_seiir_pipeline.lib.ode_mk2.constants import (
     PARAMETERS_NAMES,
     RATES_NAMES,
     ETA_NAMES,
-    VARIANT_NAMES,
+    CHI_NAMES,
 )
 
 
@@ -23,16 +23,8 @@ class Parameters:
                  base_parameters: pd.DataFrame,
                  vaccinations: pd.DataFrame,
                  rates: pd.DataFrame,
-                 eta_infection: pd.DataFrame,
-                 eta_death: pd.DataFrame,
-                 eta_admission: pd.DataFrame,
-                 eta_case: pd.DataFrame,
-                 natural_waning_infection: pd.DataFrame,
-                 natural_waning_death: pd.DataFrame,
-                 natural_waning_admission: pd.DataFrame,
-                 natural_waning_case: pd.DataFrame,
-                 phi: pd.DataFrame,
-                 ):
+                 etas: pd.DataFrame,
+                 phis: pd.DataFrame):
         self.base_parameters = base_parameters.loc[:, PARAMETERS_NAMES]
 
         field_names = self._make_risk_group_fields(['vaccinations', 'boosters'])
@@ -42,18 +34,10 @@ class Parameters:
         self.rates = rates.loc[:, field_names]
 
         field_names = self._make_risk_group_fields(ETA_NAMES)
-        self.eta_infection = eta_infection.loc[:, field_names]
-        self.eta_death = eta_death.loc[:, field_names]
-        self.eta_admission = eta_admission.loc[:, field_names]
-        self.eta_case = eta_case.loc[:, field_names]
+        self.etas = etas.loc[:, field_names]
 
-        self.natural_waning_infection = natural_waning_infection
-        self.natural_waning_death = natural_waning_death
-        self.natural_waning_admission = natural_waning_admission
-        self.natural_waning_case = natural_waning_case
-
-        variant_names = list(VARIANT_NAMES)
-        self.phi = phi.loc[variant_names, variant_names]
+        field_names = self._make_risk_group_fields(CHI_NAMES)
+        self.phis = phis.loc[:, field_names]
 
     @staticmethod
     def _make_risk_group_fields(measures) -> List[str]:
