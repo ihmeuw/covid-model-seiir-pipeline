@@ -37,10 +37,11 @@ def prepare_ode_fit_parameters(rates: pd.DataFrame,
     sampled_params = pd.DataFrame(
         {k if 'kappa' in k or 'zeta' in k else f'{k}_all': v for k, v in sampled_params.items()})
     weights = []
-    for parameter in ['death_weight_all', 'admission_weight_all', 'case_weight_all']:
+    for parameter in ['deaths_weight_all', 'admissions_weight_all', 'cases_weight_all']:
         weights.append(
             pd.Series(sample_parameter(parameter, draw_id, 0., 1.), name=parameter, index=past_index)
         )
+    weights = [w / sum(weights).rename(w.name) for w in weights]
     rhos = rhos.reindex(past_index, fill_value=0.)
     rhos.columns = [f'rho_{c}' for c in rhos.columns]
     rhos['rho_none'] = pd.Series(0., index=past_index, name='rho_none')
@@ -55,7 +56,8 @@ def prepare_ode_fit_parameters(rates: pd.DataFrame,
 
     vaccinations = vaccinations.reindex(past_index, fill_value=0.)
     etas = etas.set_index('endpoint', append=True).reorder_levels(['endpoint', 'location_id', 'date']).sort_index()
-    etas = {f'eta_{endpoint}': etas.loc[endpoint] for endpoint in ['infection', 'death', 'admission', 'case']}
+    etas = {f'eta_{endpoint}': etas.loc[endpoint].reindex(past_index, fill_value=0.) 
+            for endpoint in ['infection', 'death', 'admission', 'case']}
     natural_waning_dist = {f'natural_waning_{endpoint}': natural_waning_dist.loc[endpoint] for endpoint in
                            ['infection', 'death', 'admission', 'case']}
 
@@ -99,51 +101,61 @@ def sample_params(past_index: pd.Index,
 
 def make_initial_condition(parameters: Parameters, full_rates: pd.DataFrame, population: pd.DataFrame):
     base_params = parameters.base_parameters
-
-    crude_infections = get_crude_infections(base_params, full_rates, population)
+    
+    crude_infections = get_crude_infections(base_params, full_rates, population)    
     new_e_start = crude_infections.reset_index(level='date').groupby('location_id').first()
     start_date, new_e_start = new_e_start['date'], new_e_start[list(RISK_GROUP_NAMES)]
+    end_date = crude_infections.reset_index(level='date').groupby('location_id').date.last() + pd.Timedelta(days=1)    
 
     # Alpha is time-invariant
     alpha = base_params.alpha_all.groupby('location_id').first()
     compartments = [f'{compartment}_{risk_group}'
                     for risk_group, compartment
                     in itertools.product(RISK_GROUP_NAMES, COMPARTMENTS_NAMES + TRACKING_COMPARTMENTS_NAMES)]
-    initial_condition = pd.DataFrame(0., columns=compartments, index=full_rates.index)
-
+    initial_condition = []
     for location_id, loc_start_date in start_date.iteritems():
+        loc_end_date = end_date.loc[location_id]
+        loc_initial_condition = pd.DataFrame(0., columns=compartments, index=full_rates.loc[location_id].index)
         for risk_group in RISK_GROUP_NAMES:
             pop = population.loc[location_id, risk_group]
             new_e = new_e_start.loc[location_id, risk_group]
             suffix = f'_unvaccinated_{risk_group}'
             # Backfill everyone susceptible
-            initial_condition.loc[pd.IndexSlice[location_id, :loc_start_date], f'S_none{suffix}'] = pop
+            loc_initial_condition.loc[:loc_start_date, f'S_none{suffix}'] = pop
             # Set initial condition on start date
             infectious = (new_e / 5) ** (1 / alpha.loc[location_id])
-            initial_condition.loc[(location_id, loc_start_date), f'S_none{suffix}'] = pop - new_e - infectious
-            initial_condition.loc[(location_id, loc_start_date), f'E_ancestral{suffix}'] = new_e
-            initial_condition.loc[(location_id, loc_start_date), f'NewE_ancestral{suffix}'] = new_e
-            initial_condition.loc[(location_id, loc_start_date), f'NewE_ancestral_all_{risk_group}'] = new_e
-            initial_condition.loc[(location_id, loc_start_date), f'I_ancestral{suffix}'] = infectious
+            loc_initial_condition.loc[loc_start_date, f'S_none{suffix}'] = pop - new_e - infectious
+            loc_initial_condition.loc[loc_start_date, f'E_ancestral{suffix}'] = new_e
+            loc_initial_condition.loc[loc_start_date, f'NewE_ancestral{suffix}'] = new_e
+            loc_initial_condition.loc[loc_start_date, f'NewE_ancestral_all_{risk_group}'] = new_e
+            loc_initial_condition.loc[loc_start_date, f'I_ancestral{suffix}'] = infectious
             for variant in VARIANT_NAMES:
-                initial_condition.loc[
-                    pd.IndexSlice[location_id, :loc_start_date], f'EffectiveSusceptible_{variant}{suffix}'] = pop
+                loc_initial_condition.loc[:loc_start_date, f'EffectiveSusceptible_{variant}{suffix}'] = pop
+        loc_initial_condition.loc[loc_end_date:, :] = np.nan
+        loc_initial_condition['location_id'] = location_id
+        loc_initial_condition = loc_initial_condition.set_index('location_id', append=True).reorder_levels(['location_id', 'date'])
+        initial_condition.append(loc_initial_condition)
+    initial_condition = pd.concat(initial_condition)
 
     return initial_condition
 
 
-def get_crude_infections(base_params, rates, population):
-    crude_infections = []
+def get_crude_infections(base_params, rates, population, threshold = 50):
+    crude_infections = pd.DataFrame(index=rates.index)
     for risk_group in RISK_GROUP_NAMES:
-        risk_infections = []
+        risk_infections = pd.DataFrame(index=rates.index)
         for measure, rate in [('deaths', 'ifr'), ('admissions', 'ihr'), ('cases', 'idr')]:
             infections = (base_params[f'{measure}_weight_all']
                           * base_params[f'{measure}_all'] / rates[rate]
                           * population[risk_group] / population.sum(axis=1))
-
-            risk_infections.append(infections)
-        crude_infections.append(sum(risk_infections).rename(risk_group))
-    return pd.concat(crude_infections, axis=1)
+               
+            risk_infections[measure] = infections
+        not_null = risk_infections.notnull().any(axis=1)
+        risk_infections = risk_infections.sum(axis=1).loc[not_null].rename(risk_group)
+        crude_infections[risk_group] = risk_infections
+    
+    crude_infections = crude_infections.loc[crude_infections.sum(axis=1) > threshold]    
+    return crude_infections
 
 
 def run_ode_fit(initial_condition: pd.DataFrame, ode_parameters: Parameters, progress_bar: bool):
