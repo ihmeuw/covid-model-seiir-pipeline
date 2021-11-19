@@ -27,6 +27,9 @@ _TrackingCompartmentType = namedtuple('TrackingCompartmentType', [
     'NewBooster',           
     'EffectiveSusceptible', 
     'beta',                 
+    'death',                
+    'admission',            
+    'case',                 
 ])
 
 _EpiMeasureType = namedtuple('EpiMeasureType', [
@@ -148,18 +151,23 @@ EPI_MEASURE = _EpiMeasure(
     case=EPI_MEASURE_TYPE.case,
 )
 EPI_MEASURE_NAMES = _EpiMeasure(*_EpiMeasure._fields)
+_ReportedEpiMeasure = namedtuple('ReportedEpiMeasure', [
+    'death',     
+    'admission', 
+    'case',      
+])
+REPORTED_EPI_MEASURE = _ReportedEpiMeasure(
+    death=EPI_MEASURE_TYPE.death,
+    admission=EPI_MEASURE_TYPE.admission,
+    case=EPI_MEASURE_TYPE.case,
+)
+REPORTED_EPI_MEASURE_NAMES = _ReportedEpiMeasure(*_ReportedEpiMeasure._fields)
 _BaseParameter = namedtuple('BaseParameter', [
-    'alpha',             
-    'sigma',             
-    'gamma',             
-    'pi',                
-    'beta',              
-    'deaths',            
-    'admissions',        
-    'cases',             
-    'deaths_weight',     
-    'admissions_weight', 
-    'cases_weight',      
+    'alpha', 
+    'sigma', 
+    'gamma', 
+    'pi',    
+    'beta',  
 ])
 BASE_PARAMETER = _BaseParameter(
     alpha=PARAMETER_TYPE.alpha,
@@ -167,29 +175,31 @@ BASE_PARAMETER = _BaseParameter(
     gamma=PARAMETER_TYPE.gamma,
     pi=PARAMETER_TYPE.pi,
     beta=PARAMETER_TYPE.beta,
-    deaths=PARAMETER_TYPE.deaths,
-    admissions=PARAMETER_TYPE.admissions,
-    cases=PARAMETER_TYPE.cases,
-    deaths_weight=PARAMETER_TYPE.deaths_weight,
-    admissions_weight=PARAMETER_TYPE.admissions_weight,
-    cases_weight=PARAMETER_TYPE.cases_weight,
 )
 BASE_PARAMETER_NAMES = _BaseParameter(*_BaseParameter._fields)
+_EpiParameter = namedtuple('EpiParameter', [
+    'count',  
+    'weight', 
+])
+EPI_PARAMETER = _EpiParameter(
+    count=PARAMETER_TYPE.count,
+    weight=PARAMETER_TYPE.weight,
+)
+EPI_PARAMETER_NAMES = _EpiParameter(*_EpiParameter._fields)
 _VariantParameter = namedtuple('VariantParameter', [
-    'kappa',          
-    'zeta_death',     
-    'zeta_case',      
-    'zeta_admission', 
-    'rho',            
+    'rho', 
 ])
 VARIANT_PARAMETER = _VariantParameter(
-    kappa=PARAMETER_TYPE.kappa,
-    zeta_death=PARAMETER_TYPE.zeta_death,
-    zeta_case=PARAMETER_TYPE.zeta_case,
-    zeta_admission=PARAMETER_TYPE.zeta_admission,
     rho=PARAMETER_TYPE.rho,
 )
 VARIANT_PARAMETER_NAMES = _VariantParameter(*_VariantParameter._fields)
+_EpiVariantParameter = namedtuple('EpiVariantParameter', [
+    'kappa', 
+])
+EPI_VARIANT_PARAMETER = _EpiVariantParameter(
+    kappa=PARAMETER_TYPE.kappa,
+)
+EPI_VARIANT_PARAMETER_NAMES = _EpiVariantParameter(*_EpiVariantParameter._fields)
 _Variant = namedtuple('Variant', [
     'none',      
     'ancestral', 
@@ -232,116 +242,116 @@ VACCINE_STATUS = _VaccineStatus(
 )
 VACCINE_STATUS_NAMES = _VaccineStatus(*_VaccineStatus._fields)
 
-PARAMETERS = np.full((len(PARAMETER_TYPE), len(VARIANT_INDEX_TYPE)), -1, dtype=np.int64)
-PARAMETERS[BASE_PARAMETER.alpha, VARIANT_INDEX_TYPE.all] = 0
-PARAMETERS[BASE_PARAMETER.sigma, VARIANT_INDEX_TYPE.all] = 1
-PARAMETERS[BASE_PARAMETER.gamma, VARIANT_INDEX_TYPE.all] = 2
-PARAMETERS[BASE_PARAMETER.pi, VARIANT_INDEX_TYPE.all] = 3
-PARAMETERS[BASE_PARAMETER.beta, VARIANT_INDEX_TYPE.all] = 4
-PARAMETERS[BASE_PARAMETER.deaths, VARIANT_INDEX_TYPE.all] = 5
-PARAMETERS[BASE_PARAMETER.admissions, VARIANT_INDEX_TYPE.all] = 6
-PARAMETERS[BASE_PARAMETER.cases, VARIANT_INDEX_TYPE.all] = 7
-PARAMETERS[BASE_PARAMETER.deaths_weight, VARIANT_INDEX_TYPE.all] = 8
-PARAMETERS[BASE_PARAMETER.admissions_weight, VARIANT_INDEX_TYPE.all] = 9
-PARAMETERS[BASE_PARAMETER.cases_weight, VARIANT_INDEX_TYPE.all] = 10
-PARAMETERS[VARIANT_PARAMETER.kappa, VARIANT.none] = 11
-PARAMETERS[VARIANT_PARAMETER.kappa, VARIANT.ancestral] = 12
-PARAMETERS[VARIANT_PARAMETER.kappa, VARIANT.alpha] = 13
-PARAMETERS[VARIANT_PARAMETER.kappa, VARIANT.beta] = 14
-PARAMETERS[VARIANT_PARAMETER.kappa, VARIANT.gamma] = 15
-PARAMETERS[VARIANT_PARAMETER.kappa, VARIANT.delta] = 16
-PARAMETERS[VARIANT_PARAMETER.kappa, VARIANT.other] = 17
-PARAMETERS[VARIANT_PARAMETER.kappa, VARIANT.omega] = 18
-PARAMETERS[VARIANT_PARAMETER.zeta_death, VARIANT.none] = 19
-PARAMETERS[VARIANT_PARAMETER.zeta_death, VARIANT.ancestral] = 20
-PARAMETERS[VARIANT_PARAMETER.zeta_death, VARIANT.alpha] = 21
-PARAMETERS[VARIANT_PARAMETER.zeta_death, VARIANT.beta] = 22
-PARAMETERS[VARIANT_PARAMETER.zeta_death, VARIANT.gamma] = 23
-PARAMETERS[VARIANT_PARAMETER.zeta_death, VARIANT.delta] = 24
-PARAMETERS[VARIANT_PARAMETER.zeta_death, VARIANT.other] = 25
-PARAMETERS[VARIANT_PARAMETER.zeta_death, VARIANT.omega] = 26
-PARAMETERS[VARIANT_PARAMETER.zeta_case, VARIANT.none] = 27
-PARAMETERS[VARIANT_PARAMETER.zeta_case, VARIANT.ancestral] = 28
-PARAMETERS[VARIANT_PARAMETER.zeta_case, VARIANT.alpha] = 29
-PARAMETERS[VARIANT_PARAMETER.zeta_case, VARIANT.beta] = 30
-PARAMETERS[VARIANT_PARAMETER.zeta_case, VARIANT.gamma] = 31
-PARAMETERS[VARIANT_PARAMETER.zeta_case, VARIANT.delta] = 32
-PARAMETERS[VARIANT_PARAMETER.zeta_case, VARIANT.other] = 33
-PARAMETERS[VARIANT_PARAMETER.zeta_case, VARIANT.omega] = 34
-PARAMETERS[VARIANT_PARAMETER.zeta_admission, VARIANT.none] = 35
-PARAMETERS[VARIANT_PARAMETER.zeta_admission, VARIANT.ancestral] = 36
-PARAMETERS[VARIANT_PARAMETER.zeta_admission, VARIANT.alpha] = 37
-PARAMETERS[VARIANT_PARAMETER.zeta_admission, VARIANT.beta] = 38
-PARAMETERS[VARIANT_PARAMETER.zeta_admission, VARIANT.gamma] = 39
-PARAMETERS[VARIANT_PARAMETER.zeta_admission, VARIANT.delta] = 40
-PARAMETERS[VARIANT_PARAMETER.zeta_admission, VARIANT.other] = 41
-PARAMETERS[VARIANT_PARAMETER.zeta_admission, VARIANT.omega] = 42
-PARAMETERS[VARIANT_PARAMETER.rho, VARIANT.none] = 43
-PARAMETERS[VARIANT_PARAMETER.rho, VARIANT.ancestral] = 44
-PARAMETERS[VARIANT_PARAMETER.rho, VARIANT.alpha] = 45
-PARAMETERS[VARIANT_PARAMETER.rho, VARIANT.beta] = 46
-PARAMETERS[VARIANT_PARAMETER.rho, VARIANT.gamma] = 47
-PARAMETERS[VARIANT_PARAMETER.rho, VARIANT.delta] = 48
-PARAMETERS[VARIANT_PARAMETER.rho, VARIANT.other] = 49
-PARAMETERS[VARIANT_PARAMETER.rho, VARIANT.omega] = 50
+PARAMETERS = np.full((len(PARAMETER_TYPE), len(VARIANT_INDEX_TYPE), len(EPI_MEASURE_TYPE)), -1, dtype=np.int64)
+PARAMETERS[BASE_PARAMETER.alpha, VARIANT_INDEX_TYPE.all, EPI_MEASURE_TYPE.infection] = 0
+PARAMETERS[BASE_PARAMETER.sigma, VARIANT_INDEX_TYPE.all, EPI_MEASURE_TYPE.infection] = 1
+PARAMETERS[BASE_PARAMETER.gamma, VARIANT_INDEX_TYPE.all, EPI_MEASURE_TYPE.infection] = 2
+PARAMETERS[BASE_PARAMETER.pi, VARIANT_INDEX_TYPE.all, EPI_MEASURE_TYPE.infection] = 3
+PARAMETERS[BASE_PARAMETER.beta, VARIANT_INDEX_TYPE.all, EPI_MEASURE_TYPE.infection] = 4
+PARAMETERS[EPI_PARAMETER.count, VARIANT_INDEX_TYPE.all, REPORTED_EPI_MEASURE.death] = 5
+PARAMETERS[EPI_PARAMETER.count, VARIANT_INDEX_TYPE.all, REPORTED_EPI_MEASURE.admission] = 6
+PARAMETERS[EPI_PARAMETER.count, VARIANT_INDEX_TYPE.all, REPORTED_EPI_MEASURE.case] = 7
+PARAMETERS[EPI_PARAMETER.weight, VARIANT_INDEX_TYPE.all, REPORTED_EPI_MEASURE.death] = 8
+PARAMETERS[EPI_PARAMETER.weight, VARIANT_INDEX_TYPE.all, REPORTED_EPI_MEASURE.admission] = 9
+PARAMETERS[EPI_PARAMETER.weight, VARIANT_INDEX_TYPE.all, REPORTED_EPI_MEASURE.case] = 10
+PARAMETERS[VARIANT_PARAMETER.rho, VARIANT.none, EPI_MEASURE_TYPE.infection] = 11
+PARAMETERS[VARIANT_PARAMETER.rho, VARIANT.ancestral, EPI_MEASURE_TYPE.infection] = 12
+PARAMETERS[VARIANT_PARAMETER.rho, VARIANT.alpha, EPI_MEASURE_TYPE.infection] = 13
+PARAMETERS[VARIANT_PARAMETER.rho, VARIANT.beta, EPI_MEASURE_TYPE.infection] = 14
+PARAMETERS[VARIANT_PARAMETER.rho, VARIANT.gamma, EPI_MEASURE_TYPE.infection] = 15
+PARAMETERS[VARIANT_PARAMETER.rho, VARIANT.delta, EPI_MEASURE_TYPE.infection] = 16
+PARAMETERS[VARIANT_PARAMETER.rho, VARIANT.other, EPI_MEASURE_TYPE.infection] = 17
+PARAMETERS[VARIANT_PARAMETER.rho, VARIANT.omega, EPI_MEASURE_TYPE.infection] = 18
+PARAMETERS[EPI_VARIANT_PARAMETER.kappa, VARIANT.none, EPI_MEASURE.infection] = 19
+PARAMETERS[EPI_VARIANT_PARAMETER.kappa, VARIANT.none, EPI_MEASURE.death] = 20
+PARAMETERS[EPI_VARIANT_PARAMETER.kappa, VARIANT.none, EPI_MEASURE.admission] = 21
+PARAMETERS[EPI_VARIANT_PARAMETER.kappa, VARIANT.none, EPI_MEASURE.case] = 22
+PARAMETERS[EPI_VARIANT_PARAMETER.kappa, VARIANT.ancestral, EPI_MEASURE.infection] = 23
+PARAMETERS[EPI_VARIANT_PARAMETER.kappa, VARIANT.ancestral, EPI_MEASURE.death] = 24
+PARAMETERS[EPI_VARIANT_PARAMETER.kappa, VARIANT.ancestral, EPI_MEASURE.admission] = 25
+PARAMETERS[EPI_VARIANT_PARAMETER.kappa, VARIANT.ancestral, EPI_MEASURE.case] = 26
+PARAMETERS[EPI_VARIANT_PARAMETER.kappa, VARIANT.alpha, EPI_MEASURE.infection] = 27
+PARAMETERS[EPI_VARIANT_PARAMETER.kappa, VARIANT.alpha, EPI_MEASURE.death] = 28
+PARAMETERS[EPI_VARIANT_PARAMETER.kappa, VARIANT.alpha, EPI_MEASURE.admission] = 29
+PARAMETERS[EPI_VARIANT_PARAMETER.kappa, VARIANT.alpha, EPI_MEASURE.case] = 30
+PARAMETERS[EPI_VARIANT_PARAMETER.kappa, VARIANT.beta, EPI_MEASURE.infection] = 31
+PARAMETERS[EPI_VARIANT_PARAMETER.kappa, VARIANT.beta, EPI_MEASURE.death] = 32
+PARAMETERS[EPI_VARIANT_PARAMETER.kappa, VARIANT.beta, EPI_MEASURE.admission] = 33
+PARAMETERS[EPI_VARIANT_PARAMETER.kappa, VARIANT.beta, EPI_MEASURE.case] = 34
+PARAMETERS[EPI_VARIANT_PARAMETER.kappa, VARIANT.gamma, EPI_MEASURE.infection] = 35
+PARAMETERS[EPI_VARIANT_PARAMETER.kappa, VARIANT.gamma, EPI_MEASURE.death] = 36
+PARAMETERS[EPI_VARIANT_PARAMETER.kappa, VARIANT.gamma, EPI_MEASURE.admission] = 37
+PARAMETERS[EPI_VARIANT_PARAMETER.kappa, VARIANT.gamma, EPI_MEASURE.case] = 38
+PARAMETERS[EPI_VARIANT_PARAMETER.kappa, VARIANT.delta, EPI_MEASURE.infection] = 39
+PARAMETERS[EPI_VARIANT_PARAMETER.kappa, VARIANT.delta, EPI_MEASURE.death] = 40
+PARAMETERS[EPI_VARIANT_PARAMETER.kappa, VARIANT.delta, EPI_MEASURE.admission] = 41
+PARAMETERS[EPI_VARIANT_PARAMETER.kappa, VARIANT.delta, EPI_MEASURE.case] = 42
+PARAMETERS[EPI_VARIANT_PARAMETER.kappa, VARIANT.other, EPI_MEASURE.infection] = 43
+PARAMETERS[EPI_VARIANT_PARAMETER.kappa, VARIANT.other, EPI_MEASURE.death] = 44
+PARAMETERS[EPI_VARIANT_PARAMETER.kappa, VARIANT.other, EPI_MEASURE.admission] = 45
+PARAMETERS[EPI_VARIANT_PARAMETER.kappa, VARIANT.other, EPI_MEASURE.case] = 46
+PARAMETERS[EPI_VARIANT_PARAMETER.kappa, VARIANT.omega, EPI_MEASURE.infection] = 47
+PARAMETERS[EPI_VARIANT_PARAMETER.kappa, VARIANT.omega, EPI_MEASURE.death] = 48
+PARAMETERS[EPI_VARIANT_PARAMETER.kappa, VARIANT.omega, EPI_MEASURE.admission] = 49
+PARAMETERS[EPI_VARIANT_PARAMETER.kappa, VARIANT.omega, EPI_MEASURE.case] = 50
 PARAMETERS_NAMES = [
-    'alpha_all',
-    'sigma_all',
-    'gamma_all',
-    'pi_all',
-    'beta_all',
-    'deaths_all',
-    'admissions_all',
-    'cases_all',
-    'deaths_weight_all',
-    'admissions_weight_all',
-    'cases_weight_all',
-    'kappa_none',
-    'kappa_ancestral',
-    'kappa_alpha',
-    'kappa_beta',
-    'kappa_gamma',
-    'kappa_delta',
-    'kappa_other',
-    'kappa_omega',
-    'zeta_death_none',
-    'zeta_death_ancestral',
-    'zeta_death_alpha',
-    'zeta_death_beta',
-    'zeta_death_gamma',
-    'zeta_death_delta',
-    'zeta_death_other',
-    'zeta_death_omega',
-    'zeta_case_none',
-    'zeta_case_ancestral',
-    'zeta_case_alpha',
-    'zeta_case_beta',
-    'zeta_case_gamma',
-    'zeta_case_delta',
-    'zeta_case_other',
-    'zeta_case_omega',
-    'zeta_admission_none',
-    'zeta_admission_ancestral',
-    'zeta_admission_alpha',
-    'zeta_admission_beta',
-    'zeta_admission_gamma',
-    'zeta_admission_delta',
-    'zeta_admission_other',
-    'zeta_admission_omega',
-    'rho_none',
-    'rho_ancestral',
-    'rho_alpha',
-    'rho_beta',
-    'rho_gamma',
-    'rho_delta',
-    'rho_other',
-    'rho_omega',
+    'alpha_all_infection',
+    'sigma_all_infection',
+    'gamma_all_infection',
+    'pi_all_infection',
+    'beta_all_infection',
+    'count_all_death',
+    'count_all_admission',
+    'count_all_case',
+    'weight_all_death',
+    'weight_all_admission',
+    'weight_all_case',
+    'rho_none_infection',
+    'rho_ancestral_infection',
+    'rho_alpha_infection',
+    'rho_beta_infection',
+    'rho_gamma_infection',
+    'rho_delta_infection',
+    'rho_other_infection',
+    'rho_omega_infection',
+    'kappa_none_infection',
+    'kappa_none_death',
+    'kappa_none_admission',
+    'kappa_none_case',
+    'kappa_ancestral_infection',
+    'kappa_ancestral_death',
+    'kappa_ancestral_admission',
+    'kappa_ancestral_case',
+    'kappa_alpha_infection',
+    'kappa_alpha_death',
+    'kappa_alpha_admission',
+    'kappa_alpha_case',
+    'kappa_beta_infection',
+    'kappa_beta_death',
+    'kappa_beta_admission',
+    'kappa_beta_case',
+    'kappa_gamma_infection',
+    'kappa_gamma_death',
+    'kappa_gamma_admission',
+    'kappa_gamma_case',
+    'kappa_delta_infection',
+    'kappa_delta_death',
+    'kappa_delta_admission',
+    'kappa_delta_case',
+    'kappa_other_infection',
+    'kappa_other_death',
+    'kappa_other_admission',
+    'kappa_other_case',
+    'kappa_omega_infection',
+    'kappa_omega_death',
+    'kappa_omega_admission',
+    'kappa_omega_case',
 ]
 
 RATES = np.full((len(EPI_MEASURE_TYPE)), -1, dtype=np.int64)
-RATES[EPI_MEASURE_TYPE.death] = 0
-RATES[EPI_MEASURE_TYPE.admission] = 1
-RATES[EPI_MEASURE_TYPE.case] = 2
+RATES[REPORTED_EPI_MEASURE.death] = 0
+RATES[REPORTED_EPI_MEASURE.admission] = 1
+RATES[REPORTED_EPI_MEASURE.case] = 2
 RATES_NAMES = [
     'death',
     'admission',
@@ -2090,9 +2100,12 @@ TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.NewE, VARIANT.delta, AGG_INDEX_T
 TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.NewE, VARIANT.other, AGG_INDEX_TYPE.all] = 174
 TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.NewE, VARIANT.omega, AGG_INDEX_TYPE.all] = 175
 TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.beta, VARIANT_INDEX_TYPE.none, AGG_INDEX_TYPE.all] = 176
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.beta, VARIANT_INDEX_TYPE.none, AGG_INDEX_TYPE.case] = 177
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.beta, VARIANT_INDEX_TYPE.none, AGG_INDEX_TYPE.death] = 178
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.beta, VARIANT_INDEX_TYPE.none, AGG_INDEX_TYPE.admission] = 179
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.beta, VARIANT_INDEX_TYPE.none, AGG_INDEX_TYPE.death] = 177
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.beta, VARIANT_INDEX_TYPE.none, AGG_INDEX_TYPE.admission] = 178
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.beta, VARIANT_INDEX_TYPE.none, AGG_INDEX_TYPE.case] = 179
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.death, VARIANT_INDEX_TYPE.ancestral, AGG_INDEX_TYPE.all] = 180
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.admission, VARIANT_INDEX_TYPE.ancestral, AGG_INDEX_TYPE.all] = 181
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.case, VARIANT_INDEX_TYPE.ancestral, AGG_INDEX_TYPE.all] = 182
 TRACKING_COMPARTMENTS_NAMES = [
     'NewE_none_unvaccinated',
     'NewE_none_vaccinated',
@@ -2199,9 +2212,12 @@ TRACKING_COMPARTMENTS_NAMES = [
     'NewE_other_all',
     'NewE_omega_all',
     'beta_none_all',
-    'beta_none_case',
     'beta_none_death',
     'beta_none_admission',
+    'beta_none_case',
+    'death_ancestral_all',
+    'admission_ancestral_all',
+    'case_ancestral_all',
 ]
 
 AGGREGATES = np.full((len(COMPARTMENT_TYPE), len(VARIANT_INDEX_TYPE)), -1, dtype=np.int64)

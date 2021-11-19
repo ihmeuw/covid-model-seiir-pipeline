@@ -23,6 +23,9 @@ PRIMITIVE_TYPES = {
         'NewBooster',
         'EffectiveSusceptible',
         'beta',
+        'death',
+        'admission',
+        'case',
     ],
     'epi_measure_type': [
         'infection',
@@ -100,25 +103,27 @@ DERIVED_TYPES = {
         'admission',
         'case',
     ]),
+    'reported_epi_measure': ('epi_measure_type', [
+        'death',
+        'admission',
+        'case',
+    ]),
     'base_parameter': ('parameter_type', [
         'alpha',
         'sigma',
         'gamma',
         'pi',
         'beta',
-        'deaths',
-        'admissions',
-        'cases',
-        'deaths_weight',
-        'admissions_weight',
-        'cases_weight',
+    ]),
+    'epi_parameter': ('parameter_type', [
+        'count',
+        'weight'
     ]),
     'variant_parameter': ('parameter_type', [
-        'kappa',
-        'zeta_death',
-        'zeta_case',
-        'zeta_admission',
         'rho',
+    ]),
+    'epi_variant_parameter': ('parameter_type', [
+        'kappa',
     ]),
     'variant': ('variant_index_type', [
         'none',
@@ -146,19 +151,19 @@ Spec = namedtuple('Spec', ['offset', 'axes_primitives', 'field_specs'])
 SPECS = {
     'PARAMETERS': Spec(
         offset='',
-        axes_primitives=['parameter_type', 'variant_index_type'],
+        axes_primitives=['parameter_type', 'variant_index_type', 'epi_measure_type'],
         field_specs=[
-            ['base_parameter', 'all'],
-            ['variant_parameter', 'variant'],
+            ['base_parameter', 'all', 'infection'],
+            ['epi_parameter', 'all', 'reported_epi_measure'],
+            ['variant_parameter', 'variant', 'infection'],
+            ['epi_variant_parameter', 'variant', 'epi_measure']
         ],
     ),
     'RATES': Spec(
         offset='',
         axes_primitives=['epi_measure_type'],
         field_specs=[
-            ['death'],
-            ['admission'],
-            ['case'],
+            ['reported_epi_measure'],
         ],
     ),
     'ETA': Spec(
@@ -203,9 +208,12 @@ SPECS = {
             ['tracking_compartment', 'variant', 'vaccine_status'],
             ['NewE', 'variant', 'all'],
             ['beta', 'none', 'all'],
-            ['beta', 'none', 'case'],
             ['beta', 'none', 'death'],
             ['beta', 'none', 'admission'],
+            ['beta', 'none', 'case'],
+            ['death', 'ancestral', 'all'],
+            ['admission', 'ancestral', 'all'],
+            ['case', 'ancestral', 'all'],
         ],
     ),
     'AGGREGATES': Spec(
