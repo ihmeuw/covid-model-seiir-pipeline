@@ -152,12 +152,19 @@ SPECS = {
             ['epi_variant_parameter', 'variant', 'epi_measure']
         ],
     ),
-    'RATES': Spec(
+    'BASE_RATES': Spec(
         offset='',
         axes_primitives=['epi_measure_type'],
         field_specs=[
             ['reported_epi_measure'],
         ],
+    ),
+    'RATES': Spec(
+        offset='',
+        axes_primitives=['epi_measure_type', 'variant_index_type', 'variant_index_type', 'vaccine_index_type'],
+        field_specs=[
+            ['reported_epi_measure', 'variant', 'variant', 'vaccine_status']
+        ]
     ),
     'ETA': Spec(
         offset='',
