@@ -40,22 +40,15 @@ _EpiMeasureType = namedtuple('EpiMeasureType', [
 ])
 
 _ParameterType = namedtuple('ParameterType', [
-    'alpha',             
-    'sigma',             
-    'gamma',             
-    'pi',                
-    'beta',              
-    'kappa',             
-    'rho',               
-    'deaths',            
-    'admissions',        
-    'cases',             
-    'deaths_weight',     
-    'admissions_weight', 
-    'cases_weight',      
-    'zeta_death',        
-    'zeta_case',         
-    'zeta_admission',    
+    'alpha',  
+    'sigma',  
+    'gamma',  
+    'pi',     
+    'beta',   
+    'kappa',  
+    'rho',    
+    'count',  
+    'weight', 
 ])
 
 _RiskGroup = namedtuple('RiskGroup', [
