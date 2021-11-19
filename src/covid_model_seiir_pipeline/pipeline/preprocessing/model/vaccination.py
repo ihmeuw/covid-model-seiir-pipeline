@@ -149,7 +149,7 @@ def build_eta_calc_arguments(vaccine_uptake: pd.DataFrame,
             risk_group,
             group_uptake,
             infection_efficacy,
-            pd.Series(0., index=infection_efficacy.index),
+            pd.DataFrame(0., columns=infection_efficacy.columns, index=infection_efficacy.index),
         ])
         eta_args.append([
             'severe_disease',
