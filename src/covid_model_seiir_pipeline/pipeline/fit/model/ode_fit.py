@@ -34,20 +34,21 @@ def prepare_ode_fit_parameters(rates: pd.DataFrame,
         draw_id=draw_id,
     )
     sampled_params = pd.DataFrame(
-        {k if 'kappa' in k or 'zeta' in k else f'{k}_all': v for k, v in sampled_params.items()})
+        {k if 'kappa' in k else f'{k}_all_infection': v for k, v in sampled_params.items()})
     weights = []
-    for parameter in ['deaths_weight_all', 'admissions_weight_all', 'cases_weight_all']:
+    for measure in ['death', 'admission', 'case']:
+        parameter = f'weight_all_{measure}'
         weights.append(
             pd.Series(sample_parameter(parameter, draw_id, 0., 1.), name=parameter, index=past_index)
         )
     weights = [w / sum(weights).rename(w.name) for w in weights]
     rhos = rhos.reindex(past_index, fill_value=0.)
-    rhos.columns = [f'rho_{c}' for c in rhos.columns]
-    rhos['rho_none'] = pd.Series(0., index=past_index, name='rho_none')
+    rhos.columns = [f'rho_{c}_infection' for c in rhos.columns]
+    rhos['rho_none_infection'] = pd.Series(0., index=past_index, name='rho_none_infection')
 
     base_parameters = pd.concat([
         sampled_params,
-        epi_measures.rename(columns=lambda x: f'{x}_all'),
+        epi_measures.rename(columns=lambda x: f'count_all_{x[:-1]}'),
         pd.Series(-1, index=past_index, name='beta_all'),
         rhos,
         *weights,
