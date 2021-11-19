@@ -48,11 +48,6 @@ PRIMITIVE_TYPES = {
         'zeta_case',
         'zeta_admission',
     ],
-    'rates_type': [
-        'ifr',
-        'ihr',
-        'idr'
-    ],
     'risk_group': [
         'lr',
         'hr',
@@ -125,11 +120,6 @@ DERIVED_TYPES = {
         'zeta_admission',
         'rho',
     ]),
-    'rates': ('rates_type', [
-        'ifr',
-        'ihr',
-        'idr',
-    ]),
     'variant': ('variant_index_type', [
         'none',
         'ancestral',
@@ -160,6 +150,15 @@ SPECS = {
         field_specs=[
             ['base_parameter', 'all'],
             ['variant_parameter', 'variant'],
+        ],
+    ),
+    'RATES': Spec(
+        offset='',
+        axes_primitives=['epi_measure_type'],
+        field_specs=[
+            ['death'],
+            ['admission'],
+            ['case'],
         ],
     ),
     'ETA': Spec(

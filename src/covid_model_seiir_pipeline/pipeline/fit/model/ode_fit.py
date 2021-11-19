@@ -70,6 +70,8 @@ def prepare_ode_fit_parameters(rates: pd.DataFrame,
             phis.append(phi.rename(f'{from_variant}_{to_variant}_{endpoint}'))
     phis = pd.concat(phis, axis=1)
 
+    rates_map = {'ifr': 'death', 'ihr': 'admission', 'idr': 'case'}
+    rates = rates.rename(columns=lambda x: f"{rates_map[x.split('_')[0]]}_{x.split('_')[1]}")
     return Parameters(
         base_parameters=base_parameters,
         vaccinations=vaccinations,

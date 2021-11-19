@@ -55,12 +55,6 @@ _ParameterType = namedtuple('ParameterType', [
     'zeta_admission',    
 ])
 
-_RatesType = namedtuple('RatesType', [
-    'ifr', 
-    'ihr', 
-    'idr', 
-])
-
 _RiskGroup = namedtuple('RiskGroup', [
     'lr', 
     'hr', 
@@ -104,8 +98,6 @@ EPI_MEASURE_TYPE = _EpiMeasureType(*list(range(len(_EpiMeasureType._fields))))
 EPI_MEASURE_TYPE_NAMES = _EpiMeasureType(*_EpiMeasureType._fields)
 PARAMETER_TYPE = _ParameterType(*list(range(len(_ParameterType._fields))))
 PARAMETER_TYPE_NAMES = _ParameterType(*_ParameterType._fields)
-RATES_TYPE = _RatesType(*list(range(len(_RatesType._fields))))
-RATES_TYPE_NAMES = _RatesType(*_RatesType._fields)
 RISK_GROUP = _RiskGroup(*list(range(len(_RiskGroup._fields))))
 RISK_GROUP_NAMES = _RiskGroup(*_RiskGroup._fields)
 VARIANT_INDEX_TYPE = _VariantIndexType(*list(range(len(_VariantIndexType._fields))))
@@ -198,17 +190,6 @@ VARIANT_PARAMETER = _VariantParameter(
     rho=PARAMETER_TYPE.rho,
 )
 VARIANT_PARAMETER_NAMES = _VariantParameter(*_VariantParameter._fields)
-_Rates = namedtuple('Rates', [
-    'ifr', 
-    'ihr', 
-    'idr', 
-])
-RATES = _Rates(
-    ifr=RATES_TYPE.ifr,
-    ihr=RATES_TYPE.ihr,
-    idr=RATES_TYPE.idr,
-)
-RATES_NAMES = _Rates(*_Rates._fields)
 _Variant = namedtuple('Variant', [
     'none',      
     'ancestral', 
@@ -355,6 +336,16 @@ PARAMETERS_NAMES = [
     'rho_delta',
     'rho_other',
     'rho_omega',
+]
+
+RATES = np.full((len(EPI_MEASURE_TYPE)), -1, dtype=np.int64)
+RATES[EPI_MEASURE_TYPE.death] = 0
+RATES[EPI_MEASURE_TYPE.admission] = 1
+RATES[EPI_MEASURE_TYPE.case] = 2
+RATES_NAMES = [
+    'death',
+    'admission',
+    'case',
 ]
 
 ETA = np.full((len(VACCINE_INDEX_TYPE), len(VARIANT_INDEX_TYPE), len(EPI_MEASURE_TYPE)), -1, dtype=np.int64)
