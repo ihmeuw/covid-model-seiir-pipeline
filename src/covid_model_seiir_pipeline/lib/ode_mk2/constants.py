@@ -1448,56 +1448,392 @@ NEW_E_NAMES = [
     'booster_omega_omega',
 ]
 
-EFFECTIVE_SUSCEPTIBLE = np.full((len(VARIANT_INDEX_TYPE), len(VACCINE_INDEX_TYPE)), -1, dtype=np.int64)
-EFFECTIVE_SUSCEPTIBLE[VARIANT.none, VACCINE_STATUS.unvaccinated] = 0
-EFFECTIVE_SUSCEPTIBLE[VARIANT.none, VACCINE_STATUS.vaccinated] = 1
-EFFECTIVE_SUSCEPTIBLE[VARIANT.none, VACCINE_STATUS.booster] = 2
-EFFECTIVE_SUSCEPTIBLE[VARIANT.ancestral, VACCINE_STATUS.unvaccinated] = 3
-EFFECTIVE_SUSCEPTIBLE[VARIANT.ancestral, VACCINE_STATUS.vaccinated] = 4
-EFFECTIVE_SUSCEPTIBLE[VARIANT.ancestral, VACCINE_STATUS.booster] = 5
-EFFECTIVE_SUSCEPTIBLE[VARIANT.alpha, VACCINE_STATUS.unvaccinated] = 6
-EFFECTIVE_SUSCEPTIBLE[VARIANT.alpha, VACCINE_STATUS.vaccinated] = 7
-EFFECTIVE_SUSCEPTIBLE[VARIANT.alpha, VACCINE_STATUS.booster] = 8
-EFFECTIVE_SUSCEPTIBLE[VARIANT.beta, VACCINE_STATUS.unvaccinated] = 9
-EFFECTIVE_SUSCEPTIBLE[VARIANT.beta, VACCINE_STATUS.vaccinated] = 10
-EFFECTIVE_SUSCEPTIBLE[VARIANT.beta, VACCINE_STATUS.booster] = 11
-EFFECTIVE_SUSCEPTIBLE[VARIANT.gamma, VACCINE_STATUS.unvaccinated] = 12
-EFFECTIVE_SUSCEPTIBLE[VARIANT.gamma, VACCINE_STATUS.vaccinated] = 13
-EFFECTIVE_SUSCEPTIBLE[VARIANT.gamma, VACCINE_STATUS.booster] = 14
-EFFECTIVE_SUSCEPTIBLE[VARIANT.delta, VACCINE_STATUS.unvaccinated] = 15
-EFFECTIVE_SUSCEPTIBLE[VARIANT.delta, VACCINE_STATUS.vaccinated] = 16
-EFFECTIVE_SUSCEPTIBLE[VARIANT.delta, VACCINE_STATUS.booster] = 17
-EFFECTIVE_SUSCEPTIBLE[VARIANT.other, VACCINE_STATUS.unvaccinated] = 18
-EFFECTIVE_SUSCEPTIBLE[VARIANT.other, VACCINE_STATUS.vaccinated] = 19
-EFFECTIVE_SUSCEPTIBLE[VARIANT.other, VACCINE_STATUS.booster] = 20
-EFFECTIVE_SUSCEPTIBLE[VARIANT.omega, VACCINE_STATUS.unvaccinated] = 21
-EFFECTIVE_SUSCEPTIBLE[VARIANT.omega, VACCINE_STATUS.vaccinated] = 22
-EFFECTIVE_SUSCEPTIBLE[VARIANT.omega, VACCINE_STATUS.booster] = 23
+EFFECTIVE_SUSCEPTIBLE = np.full((len(VARIANT_INDEX_TYPE), len(VARIANT_INDEX_TYPE), len(VACCINE_INDEX_TYPE)), -1, dtype=np.int64)
+EFFECTIVE_SUSCEPTIBLE[VARIANT.none, VARIANT.none, VACCINE_STATUS.unvaccinated] = 0
+EFFECTIVE_SUSCEPTIBLE[VARIANT.none, VARIANT.none, VACCINE_STATUS.vaccinated] = 1
+EFFECTIVE_SUSCEPTIBLE[VARIANT.none, VARIANT.none, VACCINE_STATUS.booster] = 2
+EFFECTIVE_SUSCEPTIBLE[VARIANT.none, VARIANT.ancestral, VACCINE_STATUS.unvaccinated] = 3
+EFFECTIVE_SUSCEPTIBLE[VARIANT.none, VARIANT.ancestral, VACCINE_STATUS.vaccinated] = 4
+EFFECTIVE_SUSCEPTIBLE[VARIANT.none, VARIANT.ancestral, VACCINE_STATUS.booster] = 5
+EFFECTIVE_SUSCEPTIBLE[VARIANT.none, VARIANT.alpha, VACCINE_STATUS.unvaccinated] = 6
+EFFECTIVE_SUSCEPTIBLE[VARIANT.none, VARIANT.alpha, VACCINE_STATUS.vaccinated] = 7
+EFFECTIVE_SUSCEPTIBLE[VARIANT.none, VARIANT.alpha, VACCINE_STATUS.booster] = 8
+EFFECTIVE_SUSCEPTIBLE[VARIANT.none, VARIANT.beta, VACCINE_STATUS.unvaccinated] = 9
+EFFECTIVE_SUSCEPTIBLE[VARIANT.none, VARIANT.beta, VACCINE_STATUS.vaccinated] = 10
+EFFECTIVE_SUSCEPTIBLE[VARIANT.none, VARIANT.beta, VACCINE_STATUS.booster] = 11
+EFFECTIVE_SUSCEPTIBLE[VARIANT.none, VARIANT.gamma, VACCINE_STATUS.unvaccinated] = 12
+EFFECTIVE_SUSCEPTIBLE[VARIANT.none, VARIANT.gamma, VACCINE_STATUS.vaccinated] = 13
+EFFECTIVE_SUSCEPTIBLE[VARIANT.none, VARIANT.gamma, VACCINE_STATUS.booster] = 14
+EFFECTIVE_SUSCEPTIBLE[VARIANT.none, VARIANT.delta, VACCINE_STATUS.unvaccinated] = 15
+EFFECTIVE_SUSCEPTIBLE[VARIANT.none, VARIANT.delta, VACCINE_STATUS.vaccinated] = 16
+EFFECTIVE_SUSCEPTIBLE[VARIANT.none, VARIANT.delta, VACCINE_STATUS.booster] = 17
+EFFECTIVE_SUSCEPTIBLE[VARIANT.none, VARIANT.other, VACCINE_STATUS.unvaccinated] = 18
+EFFECTIVE_SUSCEPTIBLE[VARIANT.none, VARIANT.other, VACCINE_STATUS.vaccinated] = 19
+EFFECTIVE_SUSCEPTIBLE[VARIANT.none, VARIANT.other, VACCINE_STATUS.booster] = 20
+EFFECTIVE_SUSCEPTIBLE[VARIANT.none, VARIANT.omega, VACCINE_STATUS.unvaccinated] = 21
+EFFECTIVE_SUSCEPTIBLE[VARIANT.none, VARIANT.omega, VACCINE_STATUS.vaccinated] = 22
+EFFECTIVE_SUSCEPTIBLE[VARIANT.none, VARIANT.omega, VACCINE_STATUS.booster] = 23
+EFFECTIVE_SUSCEPTIBLE[VARIANT.ancestral, VARIANT.none, VACCINE_STATUS.unvaccinated] = 24
+EFFECTIVE_SUSCEPTIBLE[VARIANT.ancestral, VARIANT.none, VACCINE_STATUS.vaccinated] = 25
+EFFECTIVE_SUSCEPTIBLE[VARIANT.ancestral, VARIANT.none, VACCINE_STATUS.booster] = 26
+EFFECTIVE_SUSCEPTIBLE[VARIANT.ancestral, VARIANT.ancestral, VACCINE_STATUS.unvaccinated] = 27
+EFFECTIVE_SUSCEPTIBLE[VARIANT.ancestral, VARIANT.ancestral, VACCINE_STATUS.vaccinated] = 28
+EFFECTIVE_SUSCEPTIBLE[VARIANT.ancestral, VARIANT.ancestral, VACCINE_STATUS.booster] = 29
+EFFECTIVE_SUSCEPTIBLE[VARIANT.ancestral, VARIANT.alpha, VACCINE_STATUS.unvaccinated] = 30
+EFFECTIVE_SUSCEPTIBLE[VARIANT.ancestral, VARIANT.alpha, VACCINE_STATUS.vaccinated] = 31
+EFFECTIVE_SUSCEPTIBLE[VARIANT.ancestral, VARIANT.alpha, VACCINE_STATUS.booster] = 32
+EFFECTIVE_SUSCEPTIBLE[VARIANT.ancestral, VARIANT.beta, VACCINE_STATUS.unvaccinated] = 33
+EFFECTIVE_SUSCEPTIBLE[VARIANT.ancestral, VARIANT.beta, VACCINE_STATUS.vaccinated] = 34
+EFFECTIVE_SUSCEPTIBLE[VARIANT.ancestral, VARIANT.beta, VACCINE_STATUS.booster] = 35
+EFFECTIVE_SUSCEPTIBLE[VARIANT.ancestral, VARIANT.gamma, VACCINE_STATUS.unvaccinated] = 36
+EFFECTIVE_SUSCEPTIBLE[VARIANT.ancestral, VARIANT.gamma, VACCINE_STATUS.vaccinated] = 37
+EFFECTIVE_SUSCEPTIBLE[VARIANT.ancestral, VARIANT.gamma, VACCINE_STATUS.booster] = 38
+EFFECTIVE_SUSCEPTIBLE[VARIANT.ancestral, VARIANT.delta, VACCINE_STATUS.unvaccinated] = 39
+EFFECTIVE_SUSCEPTIBLE[VARIANT.ancestral, VARIANT.delta, VACCINE_STATUS.vaccinated] = 40
+EFFECTIVE_SUSCEPTIBLE[VARIANT.ancestral, VARIANT.delta, VACCINE_STATUS.booster] = 41
+EFFECTIVE_SUSCEPTIBLE[VARIANT.ancestral, VARIANT.other, VACCINE_STATUS.unvaccinated] = 42
+EFFECTIVE_SUSCEPTIBLE[VARIANT.ancestral, VARIANT.other, VACCINE_STATUS.vaccinated] = 43
+EFFECTIVE_SUSCEPTIBLE[VARIANT.ancestral, VARIANT.other, VACCINE_STATUS.booster] = 44
+EFFECTIVE_SUSCEPTIBLE[VARIANT.ancestral, VARIANT.omega, VACCINE_STATUS.unvaccinated] = 45
+EFFECTIVE_SUSCEPTIBLE[VARIANT.ancestral, VARIANT.omega, VACCINE_STATUS.vaccinated] = 46
+EFFECTIVE_SUSCEPTIBLE[VARIANT.ancestral, VARIANT.omega, VACCINE_STATUS.booster] = 47
+EFFECTIVE_SUSCEPTIBLE[VARIANT.alpha, VARIANT.none, VACCINE_STATUS.unvaccinated] = 48
+EFFECTIVE_SUSCEPTIBLE[VARIANT.alpha, VARIANT.none, VACCINE_STATUS.vaccinated] = 49
+EFFECTIVE_SUSCEPTIBLE[VARIANT.alpha, VARIANT.none, VACCINE_STATUS.booster] = 50
+EFFECTIVE_SUSCEPTIBLE[VARIANT.alpha, VARIANT.ancestral, VACCINE_STATUS.unvaccinated] = 51
+EFFECTIVE_SUSCEPTIBLE[VARIANT.alpha, VARIANT.ancestral, VACCINE_STATUS.vaccinated] = 52
+EFFECTIVE_SUSCEPTIBLE[VARIANT.alpha, VARIANT.ancestral, VACCINE_STATUS.booster] = 53
+EFFECTIVE_SUSCEPTIBLE[VARIANT.alpha, VARIANT.alpha, VACCINE_STATUS.unvaccinated] = 54
+EFFECTIVE_SUSCEPTIBLE[VARIANT.alpha, VARIANT.alpha, VACCINE_STATUS.vaccinated] = 55
+EFFECTIVE_SUSCEPTIBLE[VARIANT.alpha, VARIANT.alpha, VACCINE_STATUS.booster] = 56
+EFFECTIVE_SUSCEPTIBLE[VARIANT.alpha, VARIANT.beta, VACCINE_STATUS.unvaccinated] = 57
+EFFECTIVE_SUSCEPTIBLE[VARIANT.alpha, VARIANT.beta, VACCINE_STATUS.vaccinated] = 58
+EFFECTIVE_SUSCEPTIBLE[VARIANT.alpha, VARIANT.beta, VACCINE_STATUS.booster] = 59
+EFFECTIVE_SUSCEPTIBLE[VARIANT.alpha, VARIANT.gamma, VACCINE_STATUS.unvaccinated] = 60
+EFFECTIVE_SUSCEPTIBLE[VARIANT.alpha, VARIANT.gamma, VACCINE_STATUS.vaccinated] = 61
+EFFECTIVE_SUSCEPTIBLE[VARIANT.alpha, VARIANT.gamma, VACCINE_STATUS.booster] = 62
+EFFECTIVE_SUSCEPTIBLE[VARIANT.alpha, VARIANT.delta, VACCINE_STATUS.unvaccinated] = 63
+EFFECTIVE_SUSCEPTIBLE[VARIANT.alpha, VARIANT.delta, VACCINE_STATUS.vaccinated] = 64
+EFFECTIVE_SUSCEPTIBLE[VARIANT.alpha, VARIANT.delta, VACCINE_STATUS.booster] = 65
+EFFECTIVE_SUSCEPTIBLE[VARIANT.alpha, VARIANT.other, VACCINE_STATUS.unvaccinated] = 66
+EFFECTIVE_SUSCEPTIBLE[VARIANT.alpha, VARIANT.other, VACCINE_STATUS.vaccinated] = 67
+EFFECTIVE_SUSCEPTIBLE[VARIANT.alpha, VARIANT.other, VACCINE_STATUS.booster] = 68
+EFFECTIVE_SUSCEPTIBLE[VARIANT.alpha, VARIANT.omega, VACCINE_STATUS.unvaccinated] = 69
+EFFECTIVE_SUSCEPTIBLE[VARIANT.alpha, VARIANT.omega, VACCINE_STATUS.vaccinated] = 70
+EFFECTIVE_SUSCEPTIBLE[VARIANT.alpha, VARIANT.omega, VACCINE_STATUS.booster] = 71
+EFFECTIVE_SUSCEPTIBLE[VARIANT.beta, VARIANT.none, VACCINE_STATUS.unvaccinated] = 72
+EFFECTIVE_SUSCEPTIBLE[VARIANT.beta, VARIANT.none, VACCINE_STATUS.vaccinated] = 73
+EFFECTIVE_SUSCEPTIBLE[VARIANT.beta, VARIANT.none, VACCINE_STATUS.booster] = 74
+EFFECTIVE_SUSCEPTIBLE[VARIANT.beta, VARIANT.ancestral, VACCINE_STATUS.unvaccinated] = 75
+EFFECTIVE_SUSCEPTIBLE[VARIANT.beta, VARIANT.ancestral, VACCINE_STATUS.vaccinated] = 76
+EFFECTIVE_SUSCEPTIBLE[VARIANT.beta, VARIANT.ancestral, VACCINE_STATUS.booster] = 77
+EFFECTIVE_SUSCEPTIBLE[VARIANT.beta, VARIANT.alpha, VACCINE_STATUS.unvaccinated] = 78
+EFFECTIVE_SUSCEPTIBLE[VARIANT.beta, VARIANT.alpha, VACCINE_STATUS.vaccinated] = 79
+EFFECTIVE_SUSCEPTIBLE[VARIANT.beta, VARIANT.alpha, VACCINE_STATUS.booster] = 80
+EFFECTIVE_SUSCEPTIBLE[VARIANT.beta, VARIANT.beta, VACCINE_STATUS.unvaccinated] = 81
+EFFECTIVE_SUSCEPTIBLE[VARIANT.beta, VARIANT.beta, VACCINE_STATUS.vaccinated] = 82
+EFFECTIVE_SUSCEPTIBLE[VARIANT.beta, VARIANT.beta, VACCINE_STATUS.booster] = 83
+EFFECTIVE_SUSCEPTIBLE[VARIANT.beta, VARIANT.gamma, VACCINE_STATUS.unvaccinated] = 84
+EFFECTIVE_SUSCEPTIBLE[VARIANT.beta, VARIANT.gamma, VACCINE_STATUS.vaccinated] = 85
+EFFECTIVE_SUSCEPTIBLE[VARIANT.beta, VARIANT.gamma, VACCINE_STATUS.booster] = 86
+EFFECTIVE_SUSCEPTIBLE[VARIANT.beta, VARIANT.delta, VACCINE_STATUS.unvaccinated] = 87
+EFFECTIVE_SUSCEPTIBLE[VARIANT.beta, VARIANT.delta, VACCINE_STATUS.vaccinated] = 88
+EFFECTIVE_SUSCEPTIBLE[VARIANT.beta, VARIANT.delta, VACCINE_STATUS.booster] = 89
+EFFECTIVE_SUSCEPTIBLE[VARIANT.beta, VARIANT.other, VACCINE_STATUS.unvaccinated] = 90
+EFFECTIVE_SUSCEPTIBLE[VARIANT.beta, VARIANT.other, VACCINE_STATUS.vaccinated] = 91
+EFFECTIVE_SUSCEPTIBLE[VARIANT.beta, VARIANT.other, VACCINE_STATUS.booster] = 92
+EFFECTIVE_SUSCEPTIBLE[VARIANT.beta, VARIANT.omega, VACCINE_STATUS.unvaccinated] = 93
+EFFECTIVE_SUSCEPTIBLE[VARIANT.beta, VARIANT.omega, VACCINE_STATUS.vaccinated] = 94
+EFFECTIVE_SUSCEPTIBLE[VARIANT.beta, VARIANT.omega, VACCINE_STATUS.booster] = 95
+EFFECTIVE_SUSCEPTIBLE[VARIANT.gamma, VARIANT.none, VACCINE_STATUS.unvaccinated] = 96
+EFFECTIVE_SUSCEPTIBLE[VARIANT.gamma, VARIANT.none, VACCINE_STATUS.vaccinated] = 97
+EFFECTIVE_SUSCEPTIBLE[VARIANT.gamma, VARIANT.none, VACCINE_STATUS.booster] = 98
+EFFECTIVE_SUSCEPTIBLE[VARIANT.gamma, VARIANT.ancestral, VACCINE_STATUS.unvaccinated] = 99
+EFFECTIVE_SUSCEPTIBLE[VARIANT.gamma, VARIANT.ancestral, VACCINE_STATUS.vaccinated] = 100
+EFFECTIVE_SUSCEPTIBLE[VARIANT.gamma, VARIANT.ancestral, VACCINE_STATUS.booster] = 101
+EFFECTIVE_SUSCEPTIBLE[VARIANT.gamma, VARIANT.alpha, VACCINE_STATUS.unvaccinated] = 102
+EFFECTIVE_SUSCEPTIBLE[VARIANT.gamma, VARIANT.alpha, VACCINE_STATUS.vaccinated] = 103
+EFFECTIVE_SUSCEPTIBLE[VARIANT.gamma, VARIANT.alpha, VACCINE_STATUS.booster] = 104
+EFFECTIVE_SUSCEPTIBLE[VARIANT.gamma, VARIANT.beta, VACCINE_STATUS.unvaccinated] = 105
+EFFECTIVE_SUSCEPTIBLE[VARIANT.gamma, VARIANT.beta, VACCINE_STATUS.vaccinated] = 106
+EFFECTIVE_SUSCEPTIBLE[VARIANT.gamma, VARIANT.beta, VACCINE_STATUS.booster] = 107
+EFFECTIVE_SUSCEPTIBLE[VARIANT.gamma, VARIANT.gamma, VACCINE_STATUS.unvaccinated] = 108
+EFFECTIVE_SUSCEPTIBLE[VARIANT.gamma, VARIANT.gamma, VACCINE_STATUS.vaccinated] = 109
+EFFECTIVE_SUSCEPTIBLE[VARIANT.gamma, VARIANT.gamma, VACCINE_STATUS.booster] = 110
+EFFECTIVE_SUSCEPTIBLE[VARIANT.gamma, VARIANT.delta, VACCINE_STATUS.unvaccinated] = 111
+EFFECTIVE_SUSCEPTIBLE[VARIANT.gamma, VARIANT.delta, VACCINE_STATUS.vaccinated] = 112
+EFFECTIVE_SUSCEPTIBLE[VARIANT.gamma, VARIANT.delta, VACCINE_STATUS.booster] = 113
+EFFECTIVE_SUSCEPTIBLE[VARIANT.gamma, VARIANT.other, VACCINE_STATUS.unvaccinated] = 114
+EFFECTIVE_SUSCEPTIBLE[VARIANT.gamma, VARIANT.other, VACCINE_STATUS.vaccinated] = 115
+EFFECTIVE_SUSCEPTIBLE[VARIANT.gamma, VARIANT.other, VACCINE_STATUS.booster] = 116
+EFFECTIVE_SUSCEPTIBLE[VARIANT.gamma, VARIANT.omega, VACCINE_STATUS.unvaccinated] = 117
+EFFECTIVE_SUSCEPTIBLE[VARIANT.gamma, VARIANT.omega, VACCINE_STATUS.vaccinated] = 118
+EFFECTIVE_SUSCEPTIBLE[VARIANT.gamma, VARIANT.omega, VACCINE_STATUS.booster] = 119
+EFFECTIVE_SUSCEPTIBLE[VARIANT.delta, VARIANT.none, VACCINE_STATUS.unvaccinated] = 120
+EFFECTIVE_SUSCEPTIBLE[VARIANT.delta, VARIANT.none, VACCINE_STATUS.vaccinated] = 121
+EFFECTIVE_SUSCEPTIBLE[VARIANT.delta, VARIANT.none, VACCINE_STATUS.booster] = 122
+EFFECTIVE_SUSCEPTIBLE[VARIANT.delta, VARIANT.ancestral, VACCINE_STATUS.unvaccinated] = 123
+EFFECTIVE_SUSCEPTIBLE[VARIANT.delta, VARIANT.ancestral, VACCINE_STATUS.vaccinated] = 124
+EFFECTIVE_SUSCEPTIBLE[VARIANT.delta, VARIANT.ancestral, VACCINE_STATUS.booster] = 125
+EFFECTIVE_SUSCEPTIBLE[VARIANT.delta, VARIANT.alpha, VACCINE_STATUS.unvaccinated] = 126
+EFFECTIVE_SUSCEPTIBLE[VARIANT.delta, VARIANT.alpha, VACCINE_STATUS.vaccinated] = 127
+EFFECTIVE_SUSCEPTIBLE[VARIANT.delta, VARIANT.alpha, VACCINE_STATUS.booster] = 128
+EFFECTIVE_SUSCEPTIBLE[VARIANT.delta, VARIANT.beta, VACCINE_STATUS.unvaccinated] = 129
+EFFECTIVE_SUSCEPTIBLE[VARIANT.delta, VARIANT.beta, VACCINE_STATUS.vaccinated] = 130
+EFFECTIVE_SUSCEPTIBLE[VARIANT.delta, VARIANT.beta, VACCINE_STATUS.booster] = 131
+EFFECTIVE_SUSCEPTIBLE[VARIANT.delta, VARIANT.gamma, VACCINE_STATUS.unvaccinated] = 132
+EFFECTIVE_SUSCEPTIBLE[VARIANT.delta, VARIANT.gamma, VACCINE_STATUS.vaccinated] = 133
+EFFECTIVE_SUSCEPTIBLE[VARIANT.delta, VARIANT.gamma, VACCINE_STATUS.booster] = 134
+EFFECTIVE_SUSCEPTIBLE[VARIANT.delta, VARIANT.delta, VACCINE_STATUS.unvaccinated] = 135
+EFFECTIVE_SUSCEPTIBLE[VARIANT.delta, VARIANT.delta, VACCINE_STATUS.vaccinated] = 136
+EFFECTIVE_SUSCEPTIBLE[VARIANT.delta, VARIANT.delta, VACCINE_STATUS.booster] = 137
+EFFECTIVE_SUSCEPTIBLE[VARIANT.delta, VARIANT.other, VACCINE_STATUS.unvaccinated] = 138
+EFFECTIVE_SUSCEPTIBLE[VARIANT.delta, VARIANT.other, VACCINE_STATUS.vaccinated] = 139
+EFFECTIVE_SUSCEPTIBLE[VARIANT.delta, VARIANT.other, VACCINE_STATUS.booster] = 140
+EFFECTIVE_SUSCEPTIBLE[VARIANT.delta, VARIANT.omega, VACCINE_STATUS.unvaccinated] = 141
+EFFECTIVE_SUSCEPTIBLE[VARIANT.delta, VARIANT.omega, VACCINE_STATUS.vaccinated] = 142
+EFFECTIVE_SUSCEPTIBLE[VARIANT.delta, VARIANT.omega, VACCINE_STATUS.booster] = 143
+EFFECTIVE_SUSCEPTIBLE[VARIANT.other, VARIANT.none, VACCINE_STATUS.unvaccinated] = 144
+EFFECTIVE_SUSCEPTIBLE[VARIANT.other, VARIANT.none, VACCINE_STATUS.vaccinated] = 145
+EFFECTIVE_SUSCEPTIBLE[VARIANT.other, VARIANT.none, VACCINE_STATUS.booster] = 146
+EFFECTIVE_SUSCEPTIBLE[VARIANT.other, VARIANT.ancestral, VACCINE_STATUS.unvaccinated] = 147
+EFFECTIVE_SUSCEPTIBLE[VARIANT.other, VARIANT.ancestral, VACCINE_STATUS.vaccinated] = 148
+EFFECTIVE_SUSCEPTIBLE[VARIANT.other, VARIANT.ancestral, VACCINE_STATUS.booster] = 149
+EFFECTIVE_SUSCEPTIBLE[VARIANT.other, VARIANT.alpha, VACCINE_STATUS.unvaccinated] = 150
+EFFECTIVE_SUSCEPTIBLE[VARIANT.other, VARIANT.alpha, VACCINE_STATUS.vaccinated] = 151
+EFFECTIVE_SUSCEPTIBLE[VARIANT.other, VARIANT.alpha, VACCINE_STATUS.booster] = 152
+EFFECTIVE_SUSCEPTIBLE[VARIANT.other, VARIANT.beta, VACCINE_STATUS.unvaccinated] = 153
+EFFECTIVE_SUSCEPTIBLE[VARIANT.other, VARIANT.beta, VACCINE_STATUS.vaccinated] = 154
+EFFECTIVE_SUSCEPTIBLE[VARIANT.other, VARIANT.beta, VACCINE_STATUS.booster] = 155
+EFFECTIVE_SUSCEPTIBLE[VARIANT.other, VARIANT.gamma, VACCINE_STATUS.unvaccinated] = 156
+EFFECTIVE_SUSCEPTIBLE[VARIANT.other, VARIANT.gamma, VACCINE_STATUS.vaccinated] = 157
+EFFECTIVE_SUSCEPTIBLE[VARIANT.other, VARIANT.gamma, VACCINE_STATUS.booster] = 158
+EFFECTIVE_SUSCEPTIBLE[VARIANT.other, VARIANT.delta, VACCINE_STATUS.unvaccinated] = 159
+EFFECTIVE_SUSCEPTIBLE[VARIANT.other, VARIANT.delta, VACCINE_STATUS.vaccinated] = 160
+EFFECTIVE_SUSCEPTIBLE[VARIANT.other, VARIANT.delta, VACCINE_STATUS.booster] = 161
+EFFECTIVE_SUSCEPTIBLE[VARIANT.other, VARIANT.other, VACCINE_STATUS.unvaccinated] = 162
+EFFECTIVE_SUSCEPTIBLE[VARIANT.other, VARIANT.other, VACCINE_STATUS.vaccinated] = 163
+EFFECTIVE_SUSCEPTIBLE[VARIANT.other, VARIANT.other, VACCINE_STATUS.booster] = 164
+EFFECTIVE_SUSCEPTIBLE[VARIANT.other, VARIANT.omega, VACCINE_STATUS.unvaccinated] = 165
+EFFECTIVE_SUSCEPTIBLE[VARIANT.other, VARIANT.omega, VACCINE_STATUS.vaccinated] = 166
+EFFECTIVE_SUSCEPTIBLE[VARIANT.other, VARIANT.omega, VACCINE_STATUS.booster] = 167
+EFFECTIVE_SUSCEPTIBLE[VARIANT.omega, VARIANT.none, VACCINE_STATUS.unvaccinated] = 168
+EFFECTIVE_SUSCEPTIBLE[VARIANT.omega, VARIANT.none, VACCINE_STATUS.vaccinated] = 169
+EFFECTIVE_SUSCEPTIBLE[VARIANT.omega, VARIANT.none, VACCINE_STATUS.booster] = 170
+EFFECTIVE_SUSCEPTIBLE[VARIANT.omega, VARIANT.ancestral, VACCINE_STATUS.unvaccinated] = 171
+EFFECTIVE_SUSCEPTIBLE[VARIANT.omega, VARIANT.ancestral, VACCINE_STATUS.vaccinated] = 172
+EFFECTIVE_SUSCEPTIBLE[VARIANT.omega, VARIANT.ancestral, VACCINE_STATUS.booster] = 173
+EFFECTIVE_SUSCEPTIBLE[VARIANT.omega, VARIANT.alpha, VACCINE_STATUS.unvaccinated] = 174
+EFFECTIVE_SUSCEPTIBLE[VARIANT.omega, VARIANT.alpha, VACCINE_STATUS.vaccinated] = 175
+EFFECTIVE_SUSCEPTIBLE[VARIANT.omega, VARIANT.alpha, VACCINE_STATUS.booster] = 176
+EFFECTIVE_SUSCEPTIBLE[VARIANT.omega, VARIANT.beta, VACCINE_STATUS.unvaccinated] = 177
+EFFECTIVE_SUSCEPTIBLE[VARIANT.omega, VARIANT.beta, VACCINE_STATUS.vaccinated] = 178
+EFFECTIVE_SUSCEPTIBLE[VARIANT.omega, VARIANT.beta, VACCINE_STATUS.booster] = 179
+EFFECTIVE_SUSCEPTIBLE[VARIANT.omega, VARIANT.gamma, VACCINE_STATUS.unvaccinated] = 180
+EFFECTIVE_SUSCEPTIBLE[VARIANT.omega, VARIANT.gamma, VACCINE_STATUS.vaccinated] = 181
+EFFECTIVE_SUSCEPTIBLE[VARIANT.omega, VARIANT.gamma, VACCINE_STATUS.booster] = 182
+EFFECTIVE_SUSCEPTIBLE[VARIANT.omega, VARIANT.delta, VACCINE_STATUS.unvaccinated] = 183
+EFFECTIVE_SUSCEPTIBLE[VARIANT.omega, VARIANT.delta, VACCINE_STATUS.vaccinated] = 184
+EFFECTIVE_SUSCEPTIBLE[VARIANT.omega, VARIANT.delta, VACCINE_STATUS.booster] = 185
+EFFECTIVE_SUSCEPTIBLE[VARIANT.omega, VARIANT.other, VACCINE_STATUS.unvaccinated] = 186
+EFFECTIVE_SUSCEPTIBLE[VARIANT.omega, VARIANT.other, VACCINE_STATUS.vaccinated] = 187
+EFFECTIVE_SUSCEPTIBLE[VARIANT.omega, VARIANT.other, VACCINE_STATUS.booster] = 188
+EFFECTIVE_SUSCEPTIBLE[VARIANT.omega, VARIANT.omega, VACCINE_STATUS.unvaccinated] = 189
+EFFECTIVE_SUSCEPTIBLE[VARIANT.omega, VARIANT.omega, VACCINE_STATUS.vaccinated] = 190
+EFFECTIVE_SUSCEPTIBLE[VARIANT.omega, VARIANT.omega, VACCINE_STATUS.booster] = 191
 EFFECTIVE_SUSCEPTIBLE_NAMES = [
-    'none_unvaccinated',
-    'none_vaccinated',
-    'none_booster',
-    'ancestral_unvaccinated',
-    'ancestral_vaccinated',
-    'ancestral_booster',
-    'alpha_unvaccinated',
-    'alpha_vaccinated',
-    'alpha_booster',
-    'beta_unvaccinated',
-    'beta_vaccinated',
-    'beta_booster',
-    'gamma_unvaccinated',
-    'gamma_vaccinated',
-    'gamma_booster',
-    'delta_unvaccinated',
-    'delta_vaccinated',
-    'delta_booster',
-    'other_unvaccinated',
-    'other_vaccinated',
-    'other_booster',
-    'omega_unvaccinated',
-    'omega_vaccinated',
-    'omega_booster',
+    'none_none_unvaccinated',
+    'none_none_vaccinated',
+    'none_none_booster',
+    'none_ancestral_unvaccinated',
+    'none_ancestral_vaccinated',
+    'none_ancestral_booster',
+    'none_alpha_unvaccinated',
+    'none_alpha_vaccinated',
+    'none_alpha_booster',
+    'none_beta_unvaccinated',
+    'none_beta_vaccinated',
+    'none_beta_booster',
+    'none_gamma_unvaccinated',
+    'none_gamma_vaccinated',
+    'none_gamma_booster',
+    'none_delta_unvaccinated',
+    'none_delta_vaccinated',
+    'none_delta_booster',
+    'none_other_unvaccinated',
+    'none_other_vaccinated',
+    'none_other_booster',
+    'none_omega_unvaccinated',
+    'none_omega_vaccinated',
+    'none_omega_booster',
+    'ancestral_none_unvaccinated',
+    'ancestral_none_vaccinated',
+    'ancestral_none_booster',
+    'ancestral_ancestral_unvaccinated',
+    'ancestral_ancestral_vaccinated',
+    'ancestral_ancestral_booster',
+    'ancestral_alpha_unvaccinated',
+    'ancestral_alpha_vaccinated',
+    'ancestral_alpha_booster',
+    'ancestral_beta_unvaccinated',
+    'ancestral_beta_vaccinated',
+    'ancestral_beta_booster',
+    'ancestral_gamma_unvaccinated',
+    'ancestral_gamma_vaccinated',
+    'ancestral_gamma_booster',
+    'ancestral_delta_unvaccinated',
+    'ancestral_delta_vaccinated',
+    'ancestral_delta_booster',
+    'ancestral_other_unvaccinated',
+    'ancestral_other_vaccinated',
+    'ancestral_other_booster',
+    'ancestral_omega_unvaccinated',
+    'ancestral_omega_vaccinated',
+    'ancestral_omega_booster',
+    'alpha_none_unvaccinated',
+    'alpha_none_vaccinated',
+    'alpha_none_booster',
+    'alpha_ancestral_unvaccinated',
+    'alpha_ancestral_vaccinated',
+    'alpha_ancestral_booster',
+    'alpha_alpha_unvaccinated',
+    'alpha_alpha_vaccinated',
+    'alpha_alpha_booster',
+    'alpha_beta_unvaccinated',
+    'alpha_beta_vaccinated',
+    'alpha_beta_booster',
+    'alpha_gamma_unvaccinated',
+    'alpha_gamma_vaccinated',
+    'alpha_gamma_booster',
+    'alpha_delta_unvaccinated',
+    'alpha_delta_vaccinated',
+    'alpha_delta_booster',
+    'alpha_other_unvaccinated',
+    'alpha_other_vaccinated',
+    'alpha_other_booster',
+    'alpha_omega_unvaccinated',
+    'alpha_omega_vaccinated',
+    'alpha_omega_booster',
+    'beta_none_unvaccinated',
+    'beta_none_vaccinated',
+    'beta_none_booster',
+    'beta_ancestral_unvaccinated',
+    'beta_ancestral_vaccinated',
+    'beta_ancestral_booster',
+    'beta_alpha_unvaccinated',
+    'beta_alpha_vaccinated',
+    'beta_alpha_booster',
+    'beta_beta_unvaccinated',
+    'beta_beta_vaccinated',
+    'beta_beta_booster',
+    'beta_gamma_unvaccinated',
+    'beta_gamma_vaccinated',
+    'beta_gamma_booster',
+    'beta_delta_unvaccinated',
+    'beta_delta_vaccinated',
+    'beta_delta_booster',
+    'beta_other_unvaccinated',
+    'beta_other_vaccinated',
+    'beta_other_booster',
+    'beta_omega_unvaccinated',
+    'beta_omega_vaccinated',
+    'beta_omega_booster',
+    'gamma_none_unvaccinated',
+    'gamma_none_vaccinated',
+    'gamma_none_booster',
+    'gamma_ancestral_unvaccinated',
+    'gamma_ancestral_vaccinated',
+    'gamma_ancestral_booster',
+    'gamma_alpha_unvaccinated',
+    'gamma_alpha_vaccinated',
+    'gamma_alpha_booster',
+    'gamma_beta_unvaccinated',
+    'gamma_beta_vaccinated',
+    'gamma_beta_booster',
+    'gamma_gamma_unvaccinated',
+    'gamma_gamma_vaccinated',
+    'gamma_gamma_booster',
+    'gamma_delta_unvaccinated',
+    'gamma_delta_vaccinated',
+    'gamma_delta_booster',
+    'gamma_other_unvaccinated',
+    'gamma_other_vaccinated',
+    'gamma_other_booster',
+    'gamma_omega_unvaccinated',
+    'gamma_omega_vaccinated',
+    'gamma_omega_booster',
+    'delta_none_unvaccinated',
+    'delta_none_vaccinated',
+    'delta_none_booster',
+    'delta_ancestral_unvaccinated',
+    'delta_ancestral_vaccinated',
+    'delta_ancestral_booster',
+    'delta_alpha_unvaccinated',
+    'delta_alpha_vaccinated',
+    'delta_alpha_booster',
+    'delta_beta_unvaccinated',
+    'delta_beta_vaccinated',
+    'delta_beta_booster',
+    'delta_gamma_unvaccinated',
+    'delta_gamma_vaccinated',
+    'delta_gamma_booster',
+    'delta_delta_unvaccinated',
+    'delta_delta_vaccinated',
+    'delta_delta_booster',
+    'delta_other_unvaccinated',
+    'delta_other_vaccinated',
+    'delta_other_booster',
+    'delta_omega_unvaccinated',
+    'delta_omega_vaccinated',
+    'delta_omega_booster',
+    'other_none_unvaccinated',
+    'other_none_vaccinated',
+    'other_none_booster',
+    'other_ancestral_unvaccinated',
+    'other_ancestral_vaccinated',
+    'other_ancestral_booster',
+    'other_alpha_unvaccinated',
+    'other_alpha_vaccinated',
+    'other_alpha_booster',
+    'other_beta_unvaccinated',
+    'other_beta_vaccinated',
+    'other_beta_booster',
+    'other_gamma_unvaccinated',
+    'other_gamma_vaccinated',
+    'other_gamma_booster',
+    'other_delta_unvaccinated',
+    'other_delta_vaccinated',
+    'other_delta_booster',
+    'other_other_unvaccinated',
+    'other_other_vaccinated',
+    'other_other_booster',
+    'other_omega_unvaccinated',
+    'other_omega_vaccinated',
+    'other_omega_booster',
+    'omega_none_unvaccinated',
+    'omega_none_vaccinated',
+    'omega_none_booster',
+    'omega_ancestral_unvaccinated',
+    'omega_ancestral_vaccinated',
+    'omega_ancestral_booster',
+    'omega_alpha_unvaccinated',
+    'omega_alpha_vaccinated',
+    'omega_alpha_booster',
+    'omega_beta_unvaccinated',
+    'omega_beta_vaccinated',
+    'omega_beta_booster',
+    'omega_gamma_unvaccinated',
+    'omega_gamma_vaccinated',
+    'omega_gamma_booster',
+    'omega_delta_unvaccinated',
+    'omega_delta_vaccinated',
+    'omega_delta_booster',
+    'omega_other_unvaccinated',
+    'omega_other_vaccinated',
+    'omega_other_booster',
+    'omega_omega_unvaccinated',
+    'omega_omega_vaccinated',
+    'omega_omega_booster',
 ]
 
 COMPARTMENTS = np.full((len(COMPARTMENT_TYPE), len(VARIANT_INDEX_TYPE), len(VACCINE_INDEX_TYPE)), -1, dtype=np.int64)

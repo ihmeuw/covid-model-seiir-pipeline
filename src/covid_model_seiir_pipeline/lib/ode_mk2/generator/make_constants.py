@@ -184,9 +184,9 @@ SPECS = {
     ),
     'EFFECTIVE_SUSCEPTIBLE': Spec(
         offset='',
-        axes_primitives=['variant_index_type', 'vaccine_index_type'],
+        axes_primitives=['variant_index_type', 'variant_index_type', 'vaccine_index_type'],
         field_specs=[
-            ['variant', 'vaccine_status'],
+            ['variant', 'variant', 'vaccine_status'],
         ],
     ),
     'COMPARTMENTS': Spec(
