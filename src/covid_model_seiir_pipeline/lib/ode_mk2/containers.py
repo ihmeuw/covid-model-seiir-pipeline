@@ -36,8 +36,7 @@ class Parameters:
         field_names = self._make_risk_group_fields(ETA_NAMES)
         self.etas = etas.loc[:, field_names]
 
-        field_names = self._make_risk_group_fields(CHI_NAMES)
-        self.phis = phis.loc[:, field_names]
+        self.phis = phis.loc[:, CHI_NAMES]
 
     @staticmethod
     def _make_risk_group_fields(measures) -> List[str]:

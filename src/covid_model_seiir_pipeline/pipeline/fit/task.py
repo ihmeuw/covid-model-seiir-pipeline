@@ -36,7 +36,7 @@ def run_beta_fit(fit_version: str, draw_id: int, progress_bar: bool) -> None:
     etas = data_interface.load_vaccine_risk_reduction(scenario='reference')
     natural_waning_dist = data_interface.load_waning_parameters(measure='natural_waning_distribution').set_index(
         ['endpoint', 'days'])
-    phi = pd.DataFrame(
+    natural_immunity_matrix = pd.DataFrame(
         data=np.array([
             [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
             [1.0, 1.0, 1.0, 0.5, 0.5, 0.5, 0.5, 0.5],
@@ -61,7 +61,7 @@ def run_beta_fit(fit_version: str, draw_id: int, progress_bar: bool) -> None:
         vaccinations,
         etas,
         natural_waning_dist,
-        phi,
+        natural_immunity_matrix,
         regression_params,
         draw_id,
     )
