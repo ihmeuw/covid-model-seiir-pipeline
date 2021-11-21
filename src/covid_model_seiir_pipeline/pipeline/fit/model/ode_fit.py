@@ -49,7 +49,7 @@ def prepare_ode_fit_parameters(rates: pd.DataFrame,
     base_parameters = pd.concat([
         sampled_params,
         epi_measures.rename(columns=lambda x: f'count_all_{x[:-1]}'),
-        pd.Series(-1, index=past_index, name='beta_all'),
+        pd.Series(-1, index=past_index, name='beta_all_infection'),
         rhos,
         *weights,
     ], axis=1)
@@ -72,7 +72,8 @@ def prepare_ode_fit_parameters(rates: pd.DataFrame,
     phis = pd.concat(phis, axis=1)
 
     rates_map = {'ifr': 'death', 'ihr': 'admission', 'idr': 'case'}
-    rates = rates.rename(columns=lambda x: f"{rates_map[x.split('_')[0]]}_{x.split('_')[1]}")
+    keep_cols = [f'{r}_{g}' for r, g in itertools.product(rates_map, RISK_GROUP_NAMES)]
+    rates = rates.loc[:, keep_cols].rename(columns=lambda x: f"{rates_map[x.split('_')[0]]}_{x.split('_')[1]}")
     return Parameters(
         base_parameters=base_parameters,
         vaccinations=vaccinations,

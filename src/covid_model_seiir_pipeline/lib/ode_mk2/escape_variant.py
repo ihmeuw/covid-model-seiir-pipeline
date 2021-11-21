@@ -10,6 +10,7 @@ from covid_model_seiir_pipeline.lib.ode_mk2.constants import (
     BASE_PARAMETER,
     VARIANT_PARAMETER,
     VACCINE_STATUS,
+    EPI_MEASURE,
     # Indexing arrays
     COMPARTMENTS,
     PARAMETERS,
@@ -24,12 +25,12 @@ from covid_model_seiir_pipeline.lib.ode_mk2.debug import (
 @numba.njit
 def maybe_invade(group_y: np.ndarray, group_dy: np.ndarray,
                  aggregates: np.ndarray, params: np.ndarray) -> np.ndarray:
-    alpha = params[PARAMETERS[BASE_PARAMETER.alpha, VARIANT_GROUP.all]]
-    pi = params[PARAMETERS[BASE_PARAMETER.pi, VARIANT_GROUP.all]]
+    alpha = params[PARAMETERS[BASE_PARAMETER.alpha, VARIANT_GROUP.all, EPI_MEASURE.infection]]
+    pi = params[PARAMETERS[BASE_PARAMETER.pi, VARIANT_GROUP.all, EPI_MEASURE.infection]]
     from_compartment = COMPARTMENTS[COMPARTMENT.S, VARIANT.none, VACCINE_STATUS.unvaccinated]
 
     for variant in VARIANT:
-        no_variant_present = params[PARAMETERS[VARIANT_PARAMETER.rho, variant]] < 0.01
+        no_variant_present = params[PARAMETERS[VARIANT_PARAMETER.rho, variant, EPI_MEASURE.infection]] < 0.01
         already_invaded = aggregates[AGGREGATES[COMPARTMENT.I, variant]] > 0.0
         # Short circuit if we don't have variant invasion this step
         if no_variant_present or already_invaded:
@@ -51,7 +52,7 @@ def maybe_invade(group_y: np.ndarray, group_dy: np.ndarray,
         group_dy[COMPARTMENTS[COMPARTMENT.E, variant, VACCINE_STATUS.unvaccinated]] += delta
         group_dy[COMPARTMENTS[COMPARTMENT.I, variant, VACCINE_STATUS.unvaccinated]] += (delta / 5) ** (1 / alpha)
 
-    if DEBUG:
-        assert np.all(np.isfinite(group_dy))
+#     if DEBUG:
+#         assert np.all(np.isfinite(group_dy))
 
     return group_dy

@@ -10,6 +10,7 @@ from covid_model_seiir_pipeline.lib.ode_mk2.constants import (
     VARIANT_GROUP,
     VACCINE_STATUS,
     COMPARTMENT,
+    EPI_MEASURE,
     # Indexing arrays
     PARAMETERS,
     NEW_E,
@@ -31,15 +32,17 @@ from covid_model_seiir_pipeline.lib.ode_mk2 import (
 def system(t: float,
            y: np.ndarray,           
            params: np.ndarray,
+           rates: np.ndarray,
            vaccines: np.ndarray,
            etas: np.ndarray,
            chis: np.ndarray,
            forecast: bool):
     aggregates = parameters.make_aggregates(y)
-    new_e, effective_susceptible, beta = parameters.make_new_e(
+    new_e, effective_susceptible, beta, outcomes = parameters.make_new_e(
         t,
         y,
-        params,            
+        params,
+        rates,
         aggregates,
         etas,
         chis,
@@ -48,7 +51,7 @@ def system(t: float,
 
     if DEBUG:
         assert np.all(np.isfinite(aggregates))
-        assert np.all(np.isfinite(params))
+        # assert np.all(np.isfinite(params))
         assert np.all(np.isfinite(vaccines))
         assert np.all(np.isfinite(etas))
         assert np.all(np.isfinite(chis))
@@ -64,6 +67,7 @@ def system(t: float,
         group_vaccines = utils.subset_risk_group(vaccines, risk_group)
         group_new_e = utils.subset_risk_group(new_e, risk_group)
         group_effective_susceptible = utils.subset_risk_group(effective_susceptible, risk_group)
+        group_outcomes = utils.subset_risk_group(outcomes, risk_group)
 
         group_dy = _single_group_system(
             t,
@@ -73,6 +77,7 @@ def system(t: float,
             beta,
             params,
             group_vaccines,
+            group_outcomes,
         )
 
         group_dy = escape_variant.maybe_invade(
@@ -98,11 +103,12 @@ def _single_group_system(t: float,
                          effective_susceptible: np.ndarray,
                          beta: float,
                          params: np.ndarray,
-                         group_vaccines: np.ndarray):
+                         group_vaccines: np.ndarray,
+                         group_outcomes: np.ndarray,):
     transition_map = np.zeros((group_y.size, group_y.size))
 
-    sigma = params[PARAMETERS[BASE_PARAMETER.sigma, VARIANT_GROUP.all]]
-    gamma = params[PARAMETERS[BASE_PARAMETER.sigma, VARIANT_GROUP.all]]
+    sigma = params[PARAMETERS[BASE_PARAMETER.sigma, VARIANT_GROUP.all, EPI_MEASURE.infection]]
+    gamma = params[PARAMETERS[BASE_PARAMETER.sigma, VARIANT_GROUP.all, EPI_MEASURE.infection]]
 
     vaccine_eligible = np.zeros(len(VACCINE_STATUS))
     # Transmission
@@ -147,6 +153,7 @@ def _single_group_system(t: float,
         new_e,
         effective_susceptible,
         beta,
+        group_outcomes,
         transition_map,
     )
 
