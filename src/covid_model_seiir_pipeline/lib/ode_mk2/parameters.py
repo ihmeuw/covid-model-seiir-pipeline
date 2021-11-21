@@ -60,7 +60,7 @@ def make_new_e(t: float,
                aggregates: np.ndarray,
                etas: np.ndarray,
                chis: np.ndarray,
-               forecast: bool) -> Tuple[np.ndarray, np.ndarray, float]:
+               forecast: bool) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
 
     n_total = aggregates[AGGREGATES[COMPARTMENT_TYPE.N, VARIANT_GROUP.total]]
     alpha = parameters[PARAMETERS[BASE_PARAMETER.alpha, VARIANT_GROUP.all, EPI_MEASURE.infection]]
@@ -128,7 +128,7 @@ def make_new_e(t: float,
                         variant_weight = kappa_infection * s_effective * infectious
                         
                         for epi_measure in REPORTED_EPI_MEASURE:                            
-                            base_rate = base_rates[BASE_RATES[epi_measure]]
+                            base_rate = group_base_rates[BASE_RATES[epi_measure]]
                             kappa = parameters[PARAMETERS[EPI_VARIANT_PARAMETER.kappa, variant_to, epi_measure]]
                             chi = group_chis[CHI[variant_from, variant_to, epi_measure]]
                             eta = group_etas[ETA[vaccine_status, variant_to, epi_measure]]
