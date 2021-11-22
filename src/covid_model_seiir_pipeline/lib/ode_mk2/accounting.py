@@ -60,9 +60,9 @@ def compute_tracking_compartments(t: float,
                              (AGG_INDEX_TYPE.case, EPI_MEASURE.case)):
         beta_idx = TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.beta, VARIANT_INDEX_TYPE.none, agg_idx]        
         group_dy[beta_idx] = beta[epi_idx]
-        
 
-    for compartment, epi_idx in ((TRACKING_COMPARTMENT_TYPE.death, EPI_MEASURE.death),
+    for compartment, epi_idx in ((TRACKING_COMPARTMENT_TYPE.infection, EPI_MEASURE.infection),
+                                 (TRACKING_COMPARTMENT_TYPE.death, EPI_MEASURE.death),
                                  (TRACKING_COMPARTMENT_TYPE.admission, EPI_MEASURE.admission),
                                  (TRACKING_COMPARTMENT_TYPE.case, EPI_MEASURE.case)):
         idx = TRACKING_COMPARTMENTS[compartment, VARIANT.ancestral, VACCINE_INDEX_TYPE.all]

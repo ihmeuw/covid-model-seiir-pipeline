@@ -27,6 +27,7 @@ _TrackingCompartmentType = namedtuple('TrackingCompartmentType', [
     'NewBooster',           
     'EffectiveSusceptible', 
     'beta',                 
+    'infection',            
     'death',                
     'admission',            
     'case',                 
@@ -81,6 +82,7 @@ _AggIndexType = namedtuple('AggIndexType', [
     'vaccinated',   
     'booster',      
     'all',          
+    'infection',    
     'death',        
     'admission',    
     'case',         
@@ -3252,9 +3254,10 @@ TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.beta, VARIANT_INDEX_TYPE.none, A
 TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.beta, VARIANT_INDEX_TYPE.none, AGG_INDEX_TYPE.death] = 177
 TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.beta, VARIANT_INDEX_TYPE.none, AGG_INDEX_TYPE.admission] = 178
 TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.beta, VARIANT_INDEX_TYPE.none, AGG_INDEX_TYPE.case] = 179
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.death, VARIANT_INDEX_TYPE.ancestral, AGG_INDEX_TYPE.all] = 180
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.admission, VARIANT_INDEX_TYPE.ancestral, AGG_INDEX_TYPE.all] = 181
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.case, VARIANT_INDEX_TYPE.ancestral, AGG_INDEX_TYPE.all] = 182
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.infection, VARIANT_INDEX_TYPE.ancestral, AGG_INDEX_TYPE.all] = 180
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.death, VARIANT_INDEX_TYPE.ancestral, AGG_INDEX_TYPE.all] = 181
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.admission, VARIANT_INDEX_TYPE.ancestral, AGG_INDEX_TYPE.all] = 182
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.case, VARIANT_INDEX_TYPE.ancestral, AGG_INDEX_TYPE.all] = 183
 TRACKING_COMPARTMENTS_NAMES = [
     'NewE_none_unvaccinated',
     'NewE_none_vaccinated',
@@ -3364,6 +3367,7 @@ TRACKING_COMPARTMENTS_NAMES = [
     'beta_none_death',
     'beta_none_admission',
     'beta_none_case',
+    'infection_ancestral_all',
     'death_ancestral_all',
     'admission_ancestral_all',
     'case_ancestral_all',
