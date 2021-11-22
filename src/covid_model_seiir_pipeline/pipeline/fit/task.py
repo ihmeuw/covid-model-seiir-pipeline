@@ -95,6 +95,8 @@ def run_beta_fit(fit_version: str, draw_id: int, progress_bar: bool) -> None:
                                         .groupby('location_id')
                                         .apply(lambda x: x.reset_index(level='location_id', drop=True)
                                                           .shift(periods=lag, freq='D')))
+    cols = [f'infection_ancestral_all_{risk_group}' for risk_group in RISK_GROUP_NAMES]
+    epi_measures.loc[:, 'infection'] = compartments.loc[:, cols].sum(axis=1)
 
     logger.info('Writing outputs', context='write')
     data_interface.save_epi_measures(epi_measures, draw_id=draw_id)
