@@ -97,7 +97,7 @@ def make_new_e(t: float,
 
     else:        
         total_variant_weight = np.zeros(max(EPI_MEASURE) + 1)
-        beta = np.zeros(max(EPI_MEASURE) + 1)
+        betas = np.zeros(max(EPI_MEASURE) + 1)
         outcomes = np.zeros(2*(max(EPI_MEASURE) + 1))        
         
         for risk_group in RISK_GROUP:
@@ -148,11 +148,11 @@ def make_new_e(t: float,
             count = parameters[PARAMETERS[EPI_PARAMETER.count, VARIANT_GROUP.all, epi_measure]]
             weight = parameters[PARAMETERS[EPI_PARAMETER.weight, VARIANT_GROUP.all, epi_measure]]            
             if not np.isnan(count):                
-                beta[epi_measure] = count / total_variant_weight[epi_measure]
-                beta[EPI_MEASURE.infection] += beta[epi_measure] * weight
+                betas[epi_measure] = count / total_variant_weight[epi_measure]
+                betas[EPI_MEASURE.infection] += betas[epi_measure] * weight
                 beta_weight += weight
-        beta[EPI_MEASURE.infection] /= beta_weight            
-        new_e = beta[EPI_MEASURE.infection] * new_e        
+        betas[EPI_MEASURE.infection] /= beta_weight
+        new_e = betas[EPI_MEASURE.infection] * new_e
         
         for risk_group in RISK_GROUP:
             group_new_e = subset_risk_group(new_e, risk_group)
@@ -162,18 +162,18 @@ def make_new_e(t: float,
             naive_infections = group_new_e[NEW_E[VACCINE_STATUS.unvaccinated, VARIANT.none, VARIANT.ancestral]]
             group_outcomes[EPI_MEASURE.infection] = naive_infections
             for epi_measure in REPORTED_EPI_MEASURE:
-                if beta[epi_measure] > 0.:
+                if betas[epi_measure] > 0.:
                     r = group_rates[RATES[epi_measure, VARIANT.none, VARIANT.ancestral, VACCINE_STATUS.unvaccinated]]
-                    group_outcomes[epi_measure] += r * naive_infections * beta[epi_measure] / beta[EPI_MEASURE.infection]
+                    group_outcomes[epi_measure] += r * naive_infections * betas[epi_measure] / betas[EPI_MEASURE.infection]
                     
         
     if DEBUG:
         assert np.all(np.isfinite(new_e))
         assert np.all(np.isfinite(effective_susceptible))
-        assert np.all(np.isfinite(beta))
+        assert np.all(np.isfinite(betas))
         assert np.all(np.isfinite(outcomes))
     
-    return new_e, effective_susceptible, beta, outcomes
+    return new_e, effective_susceptible, betas, outcomes
 
 
 
