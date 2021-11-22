@@ -1,13 +1,16 @@
+import itertools
+
 import click
 import numpy as np
 import pandas as pd
 
 from covid_model_seiir_pipeline.lib import (
     cli_tools,
-    math,
 )
 from covid_model_seiir_pipeline.lib.ode_mk2.constants import (
     VARIANT_NAMES,
+    RISK_GROUP_NAMES,
+    REPORTED_EPI_MEASURE_NAMES
 )
 from covid_model_seiir_pipeline.pipeline.fit.data import FitDataInterface
 from covid_model_seiir_pipeline.pipeline.fit.specification import FitSpecification
@@ -73,7 +76,7 @@ def run_beta_fit(fit_version: str, draw_id: int, progress_bar: bool) -> None:
     )
 
     logger.info('Running ODE fit', context='compute_ode')
-    beta, chis, compartments = model.run_ode_fit(
+    compartments, chis = model.run_ode_fit(
         initial_condition=initial_condition,
         ode_parameters=ode_parameters,
         num_cores=specification.workflow.task_specifications['beta_fit'].num_cores,
@@ -82,9 +85,19 @@ def run_beta_fit(fit_version: str, draw_id: int, progress_bar: bool) -> None:
 
     # Format and save data.
     logger.info('Prepping outputs', context='transform')
+    epi_measures = pd.DataFrame(columns=REPORTED_EPI_MEASURE_NAMES, index=compartments.index)
+    for measure in REPORTED_EPI_MEASURE_NAMES:
+        cols = [f'{measure}_ancestral_all_{risk_group}' for risk_group in RISK_GROUP_NAMES]
+        lag = lags[f'{measure}s']
+        epi_measures.loc[:, measure] = (compartments
+                                        .loc[:, cols]
+                                        .sum(axis=1)
+                                        .groupby('location_id')
+                                        .apply(lambda x: x.reset_index(level='location_id', drop=True)
+                                                          .shift(periods=lag, freq='D')))
 
     logger.info('Writing outputs', context='write')
-
+    data_interface.save_epi_measures(epi_measures, draw_id=draw_id)
 
     logger.report()
 

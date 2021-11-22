@@ -104,3 +104,9 @@ class FitDataInterface:
     def load_specification(self) -> FitSpecification:
         spec_dict = io.load(self.fit_root.specification())
         return FitSpecification.from_dict(spec_dict)
+
+    def save_epi_measures(self, data: pd.DataFrame, draw_id: int):
+        io.dump(data, self.fit_root.epi_measures(draw_id=draw_id))
+
+    def load_epi_measures(self, draw_id: int):
+        return io.load(self.fit_root.epi_measures(draw_id=draw_id))

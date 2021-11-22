@@ -14,7 +14,7 @@ def run_rates_model(hierarchy: pd.DataFrame, *args, **kwargs):
         ('idr', 'cases'): load_idr_and_cases,
     }
 
-    rates, measures, smoothed_measures, lags = [], [], [], []
+    rates, measures, smoothed_measures, lags = [], [], [], {}
     for (r, m), loader in measure_map.items():
         data = loader(version).reset_index()
         lag = data.lag.iloc[0]
@@ -31,7 +31,7 @@ def run_rates_model(hierarchy: pd.DataFrame, *args, **kwargs):
                                  .apply(lambda x: x.clip(0, np.inf)
                                                    .rolling(window=7, min_periods=7, center=True)
                                                    .mean()))
-        lags.append(lag)
+        lags[m] = lag
 
     col_order = [f'{r}_{g}' for g, r in itertools.product(['lr', 'hr'], ['ifr', 'ihr', 'idr'])] + ['ifr', 'ihr', 'idr']
     rates = pd.concat(rates, axis=1).loc[:, col_order]
