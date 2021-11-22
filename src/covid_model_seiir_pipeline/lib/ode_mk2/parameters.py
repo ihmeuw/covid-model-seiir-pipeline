@@ -69,7 +69,7 @@ def make_new_e(t: float,
     rates = np.zeros(2*(RATES.max() + 1))
 
     if forecast:
-        beta = parameters[PARAMETERS[BASE_PARAMETER.beta, VARIANT_GROUP.all]]        
+        beta = parameters[PARAMETERS[BASE_PARAMETER.beta, VARIANT_GROUP.all, EPI_MEASURE.infection]]        
         
         for risk_group in RISK_GROUP:
             group_y = subset_risk_group(y, risk_group)
@@ -79,11 +79,11 @@ def make_new_e(t: float,
             group_effective_susceptible = subset_risk_group(effective_susceptible, risk_group)
             
             for variant_to in VARIANT:            
-                kappa = parameters[PARAMETERS[VARIANT_PARAMETER.kappa, variant_to]]
+                kappa = parameters[PARAMETERS[EPI_VARIANT_PARAMETER.kappa, variant_to, EPI_MEASURE.infection]]
                 infectious = aggregates[AGGREGATES[COMPARTMENT.I, variant_to]]**alpha
                 
                 for variant_from in VARIANT:
-                    chi = group_chis[CHI[variant_from, variant_to]]
+                    chi = group_chis[CHI[variant_from, variant_to, EPI_MEASURE.infection]]
                     
                     for vaccine_status in VACCINE_STATUS:
                         susceptible = group_y[COMPARTMENTS[COMPARTMENT.S, variant_from, vaccine_status]]                    
