@@ -160,7 +160,7 @@ def make_new_e(t: float,
             group_outcomes = subset_risk_group(outcomes, risk_group)
             
             naive_infections = group_new_e[NEW_E[VACCINE_STATUS.unvaccinated, VARIANT.none, VARIANT.ancestral]]
-            group_outcomes[EPI_MEASURE.infection] = naive_infections
+            group_outcomes[EPI_MEASURE.infection] += naive_infections
             for epi_measure in REPORTED_EPI_MEASURE:
                 if betas[epi_measure] > 0.:
                     r = group_rates[RATES[epi_measure, VARIANT.none, VARIANT.ancestral, VACCINE_STATUS.unvaccinated]]
