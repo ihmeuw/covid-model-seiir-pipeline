@@ -17,7 +17,7 @@ class BetaFitTaskTemplate(workflow.TaskTemplate):
             "-vv"
     )
     node_args = ['draw_id']
-    task_args = ['regression_version']
+    task_args = ['fit_version']
 
 
 class FitWorkflow(workflow.WorkflowTemplate):
