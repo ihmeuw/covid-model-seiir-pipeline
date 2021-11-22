@@ -55,7 +55,9 @@ def run_ode_model(initial_condition: pd.DataFrame,
         forecast=forecast,
     )
     if num_cores == 1:
-        results = [_runner(data) for data in tqdm.tqdm(ics_and_params, disable=not progress_bar)]
+        results = []
+        for input_data in tqdm.tqdm(ics_and_params, disable=not progress_bar):
+            results.append(_runner(input_data))
     else:
         with multiprocessing.Pool(num_cores) as pool:
             results = list(tqdm.tqdm(
