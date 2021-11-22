@@ -170,12 +170,12 @@ def get_crude_infections(base_params, rates, population, threshold = 50):
     return crude_infections
 
 
-def run_ode_fit(initial_condition: pd.DataFrame, ode_parameters: Parameters, progress_bar: bool):
+def run_ode_fit(initial_condition: pd.DataFrame, ode_parameters: Parameters, num_cores: int, progress_bar: bool):
     full_compartments, chis = solver.run_ode_model(
         initial_condition,
-        *ode_parameters.to_dict(),
+        **ode_parameters.to_dict(),
         forecast=False,
-        num_cores=5,
+        num_cores=num_cores,
         progress_bar=progress_bar,
     )
     # Set all the forecast stuff to nan

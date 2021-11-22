@@ -176,7 +176,7 @@ def _rk45_dde(t0: float, tf: float,
               forecast: bool,
               dt: float):
     num_time_points = t_solve.size
-    chis = np.zeros((num_time_points, 2 * phis.size))
+    chis = np.zeros((num_time_points, 2 * phis.shape[1]))
 
     for time in np.arange(num_time_points):
         if not (t0 < t_solve[time] <= tf):

@@ -76,6 +76,7 @@ def run_beta_fit(fit_version: str, draw_id: int, progress_bar: bool) -> None:
     beta, chis, compartments = model.run_ode_fit(
         initial_condition=initial_condition,
         ode_parameters=ode_parameters,
+        num_cores=specification.workflow.task_specifications['beta_fit'].num_cores,
         progress_bar=progress_bar,
     )
 
