@@ -45,7 +45,7 @@ def prepare_ode_fit_parameters(rates: pd.DataFrame,
     rhos = rhos.reindex(past_index, fill_value=0.)
     rhos.columns = [f'rho_{c}_infection' for c in rhos.columns]
     rhos['rho_none_infection'] = pd.Series(0., index=past_index, name='rho_none_infection')
-
+    
     base_parameters = pd.concat([
         sampled_params,
         epi_measures.rename(columns=lambda x: f'count_all_{x[:-1]}'),

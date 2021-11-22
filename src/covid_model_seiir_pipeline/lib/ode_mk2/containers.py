@@ -11,7 +11,7 @@ import pandas as pd
 from covid_model_seiir_pipeline.lib.ode_mk2.constants import (
     RISK_GROUP_NAMES,
     PARAMETERS_NAMES,
-    RATES_NAMES,
+    BASE_RATES_NAMES,
     ETA_NAMES,
     CHI_NAMES,
 )
@@ -30,7 +30,7 @@ class Parameters:
         field_names = self._make_risk_group_fields(['vaccinations', 'boosters'])
         self.vaccinations = vaccinations.loc[:, field_names]
 
-        field_names = self._make_risk_group_fields(RATES_NAMES)
+        field_names = self._make_risk_group_fields(BASE_RATES_NAMES)
         self.rates = rates.loc[:, field_names]
 
         field_names = self._make_risk_group_fields(ETA_NAMES)

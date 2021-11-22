@@ -1,6 +1,7 @@
 import itertools
 from pathlib import Path
 
+import numpy as np
 import pandas as pd
 
 
@@ -13,7 +14,7 @@ def run_rates_model(hierarchy: pd.DataFrame, *args, **kwargs):
         ('idr', 'cases'): load_idr_and_cases,
     }
 
-    rates, measures, lags = [], [], []
+    rates, measures, smoothed_measures, lags = [], [], [], []
     for (r, m), loader in measure_map.items():
         data = loader(version).reset_index()
         lag = data.lag.iloc[0]
@@ -25,6 +26,11 @@ def run_rates_model(hierarchy: pd.DataFrame, *args, **kwargs):
                                   .shift(periods=-lag, freq='D')))
         rates.append(data.loc[:, [f'{r}_lr', f'{r}_hr', r]])
         measures.append(data.loc[:, m])
+        smoothed_measures.append(data.loc[:, m]
+                                 .groupby('location_id')
+                                 .apply(lambda x: x.clip(0, np.inf)
+                                                   .rolling(window=7, min_periods=7, center=True)
+                                                   .mean()))
         lags.append(lag)
 
     col_order = [f'{r}_{g}' for g, r in itertools.product(['lr', 'hr'], ['ifr', 'ihr', 'idr'])] + ['ifr', 'ihr', 'idr']
@@ -37,8 +43,9 @@ def run_rates_model(hierarchy: pd.DataFrame, *args, **kwargs):
 
     rates = rates.reindex(square_idx).sort_index()
     measures = pd.concat(measures, axis=1).reindex(square_idx).sort_index()
+    smoothed_measures = pd.concat(smoothed_measures, axis=1).reindex(square_idx).sort_index()
 
-    return rates, measures, lags
+    return rates, measures, smoothed_measures, lags
 
 
 def load_idr_and_cases(version):
