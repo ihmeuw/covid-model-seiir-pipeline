@@ -1,7 +1,6 @@
 import functools
 import itertools
 import multiprocessing
-from typing import Tuple
 
 import numba
 import numpy as np
@@ -14,6 +13,7 @@ from covid_model_seiir_pipeline.lib.ode_mk2.constants import (
     TRACKING_COMPARTMENTS_NAMES,
     CHI,
     CHI_NAMES,
+    EPI_MEASURE,
     RISK_GROUP,
     VARIANT,
     TRACKING_COMPARTMENT,
@@ -31,15 +31,9 @@ SOLVER_DT: float = 0.1
 def run_ode_model(initial_condition: pd.DataFrame,
                   base_parameters: pd.DataFrame,
                   rates: pd.DataFrame,
-                  eta_infection: pd.DataFrame,
-                  eta_death: pd.DataFrame,
-                  eta_admission: pd.DataFrame,
-                  eta_case: pd.DataFrame,
-                  natural_waning_infection: pd.DataFrame,
-                  natural_waning_death: pd.DataFrame,
-                  natural_waning_admission: pd.DataFrame,
-                  natural_waning_case: pd.DataFrame,
-                  phi: pd.DataFrame,
+                  vaccinations: pd.DataFrame,
+                  etas: pd.DataFrame,
+                  phis: pd.DataFrame,
                   forecast: bool,
                   dt: float = SOLVER_DT, 
                   num_cores: int = 5,
@@ -51,15 +45,9 @@ def run_ode_model(initial_condition: pd.DataFrame,
                        initial_condition.loc[location_id],
                        base_parameters.loc[location_id],
                        rates.loc[location_id],
-                       eta_infection.loc[location_id],
-                       eta_death.loc[location_id],
-                       eta_admission.loc[location_id],
-                       eta_case.loc[location_id],
-                       natural_waning_infection,
-                       natural_waning_death,
-                       natural_waning_admission,
-                       natural_waning_case,
-                       phi) for location_id in location_ids]
+                       vaccinations.loc[location_id],
+                       etas.loc[location_id],
+                       phis) for location_id in location_ids]
 
     _runner = functools.partial(
         _run_loc_ode_model,
@@ -81,11 +69,11 @@ def run_ode_model(initial_condition: pd.DataFrame,
     return compartments, chis
 
 
-def _run_loc_ode_model(ic_and_params: Tuple[int, pd.DataFrame, pd.DataFrame, pd.DataFrame,
-                                            pd.DataFrame, pd.DataFrame, pd.Series, pd.DataFrame],
+def _run_loc_ode_model(ic_and_params,
                        dt: float,
                        forecast: bool):
-    location_id, initial_condition, parameters, vaccines, ratios, etas, waning, phis = ic_and_params
+    location_id, initial_condition, parameters, rates, vaccines, etas, phis = ic_and_params
+
     new_e_dates = initial_condition[initial_condition.filter(like='NewE').sum(axis=1) > 0].reset_index().date
     invasion_date = new_e_dates.min()
     ode_start_date = new_e_dates.max()
@@ -93,11 +81,10 @@ def _run_loc_ode_model(ic_and_params: Tuple[int, pd.DataFrame, pd.DataFrame, pd.
     t0 = (ode_start_date - invasion_date).days
     if forecast:
         assert t0 > 0
-        ode_end_date = initial_condition.reset_index().date.max()
-
     else:
         assert t0 == 0
-        ode_end_date = parameters.new_e_all.dropna().reset_index().date.max()
+
+    ode_end_date = initial_condition.loc[initial_condition.iloc[:, 0].notnull()].reset_index().date.max()
 
     tf = (ode_end_date - invasion_date).days
 
@@ -105,14 +92,14 @@ def _run_loc_ode_model(ic_and_params: Tuple[int, pd.DataFrame, pd.DataFrame, pd.
 
     t = (dates - invasion_date).dt.days.values
     t_solve = np.round(np.arange(t[0], t[-1] + dt, dt), 2)
-    t_params = np.round(np.arange(t[0], t[-1] + dt, dt/2), 2)
+    t_params = np.round(np.arange(t[0], t[-1] + dt, dt / 2), 2)
 
     y_solve = _interpolate_y(t0, t, t_solve, initial_condition.to_numpy(), forecast)
+
     parameters = _interpolate(t, t_params, parameters.to_numpy())
+    rates = _interpolate(t, t_params, rates.to_numpy())
     vaccines = _interpolate(t, t_params, vaccines.to_numpy())
     etas = _interpolate(t, t_params, etas.to_numpy())
-    waning = waning.to_numpy()
-    waning = waning[waning > 0]
     phis = phis.to_numpy()
     
     y_solve, chis = _rk45_dde(
@@ -120,9 +107,9 @@ def _run_loc_ode_model(ic_and_params: Tuple[int, pd.DataFrame, pd.DataFrame, pd.
         t_solve,
         y_solve,
         parameters,
+        rates,
         vaccines,
         etas,
-        waning,
         phis,
         forecast,
         dt,        
@@ -179,18 +166,11 @@ def _interpolate(t: np.ndarray,
 def _rk45_dde(t0: float, tf: float,
               t_solve: np.ndarray,
               y_solve: np.ndarray,
-              rates: np.ndarray,
               parameters: np.ndarray,
+              rates: np.ndarray,
               vaccines: np.ndarray,
-              eta_infection: np.ndarray,
-              eta_death: np.ndarray,
-              eta_admission: np.ndarray,
-              eta_case: np.ndarray,
-              nw_infection: np.ndarray,
-              nw_death: np.ndarray,
-              nw_admission: np.ndarray,
-              nw_case: np.ndarray,
-              phi: np.ndarray,
+              etas: np.ndarray,
+              phis: np.ndarray,
               forecast: bool,
               dt: float):
     num_time_points = t_solve.size
@@ -200,12 +180,13 @@ def _rk45_dde(t0: float, tf: float,
         if not (t0 < t_solve[time] <= tf):
             continue
 
-        chis[time - 1] = compute_chi(time-1, t_solve, y_solve, phis, waning, chis)
+        chis[time - 1] = compute_chis(time-1, t_solve, y_solve, phis, chis)
 
         k1 = system(
             t_solve[time - 1],
             y_solve[time - 1],
             parameters[2 * time - 2],
+            rates[2 * time - 2],
             vaccines[2 * time - 2],
             etas[2 * time - 2],
             chis[time - 1],
@@ -216,6 +197,7 @@ def _rk45_dde(t0: float, tf: float,
             t_solve[time - 1] + dt / 2,
             y_solve[time - 1] + dt / 2 * k1,
             parameters[2 * time - 1],
+            rates[2 * time - 2],
             vaccines[2 * time - 1],
             etas[2 * time - 1],
             chis[time - 1],
@@ -226,6 +208,7 @@ def _rk45_dde(t0: float, tf: float,
             t_solve[time - 1] + dt / 2,
             y_solve[time - 1] + dt / 2 * k2,
             parameters[2 * time - 1],
+            rates[2 * time - 1],
             vaccines[2 * time - 1],
             etas[2 * time - 1],
             chis[time - 1],
@@ -236,6 +219,7 @@ def _rk45_dde(t0: float, tf: float,
             t_solve[time],
             y_solve[time - 1] + dt * k3,
             parameters[2 * time],
+            rates[2 * time],
             vaccines[2 * time],
             etas[2 * time],
             chis[time - 1],
@@ -258,7 +242,7 @@ def _uninterpolate(y_solve: np.ndarray,
 
 
 @numba.njit
-def compute_chi(time, t_solve, y_solve, phis, waning, chis):
+def compute_chis(time, t_solve, y_solve, phis, chis):
     if t_solve[time] % 1:
         return chis[time - 1]
 
@@ -270,22 +254,24 @@ def compute_chi(time, t_solve, y_solve, phis, waning, chis):
         group_end = (risk_group + 1) * group_size
         group_y = y_solve[:time:10, group_start:group_end]
         group_chi = np.zeros(num_chis)
-        t_end = min(group_y.shape[0], waning.size) - 1
+        t_end = min(group_y.shape[0], phis.shape[0]) - 1
 
         for from_variant in VARIANT[1:]:
             cumulative_new_e_variant = group_y[:, TRACKING_COMPARTMENTS[
                                                       TRACKING_COMPARTMENT.NewE, from_variant, VACCINE_INDEX_TYPE.all]]
             denominator = cumulative_new_e_variant[-1]
+
             if denominator:
-                numerator = 0.
-                for tau in range(1, t_end):
-                    numerator += (cumulative_new_e_variant[-tau] - cumulative_new_e_variant[-tau-1]) * waning[tau]
-                w = numerator / denominator
-                for to_variant in VARIANT:
-                    group_chi[CHI[from_variant, to_variant]] = phis[from_variant, to_variant] * w
-            else:
-                for to_variant in VARIANT:
-                    group_chi[CHI[from_variant, to_variant]] = 0.
+                for epi_measure in EPI_MEASURE:
+                    for to_variant in VARIANT[1:]:
+                        numerator = 0.
+                        idx = CHI[from_variant, to_variant, epi_measure]
+
+                        for tau in range(1, t_end):
+                            numerator += (cumulative_new_e_variant[-tau] - cumulative_new_e_variant[-tau - 1]) * phis[
+                                tau, idx]
+
+                        group_chi[idx] = numerator / denominator
 
         group_chi_start = risk_group * num_chis
         group_chi_end = (risk_group + 1) * num_chis

@@ -26,7 +26,7 @@ def run_beta_fit(fit_version: str, draw_id: int, progress_bar: bool) -> None:
     hierarchy = data_interface.load_modeling_hierarchy().reset_index()
 
     logger.info('Running first-pass rates model', context='rates_model')
-    rates, epi_measures, lags = model.run_rates_model(hierarchy)
+    base_rates, epi_measures, smoothed_epi_measures, lags = model.run_rates_model(hierarchy)
 
     logger.info('Loading ODE fit input data', context='read')
 
@@ -34,8 +34,7 @@ def run_beta_fit(fit_version: str, draw_id: int, progress_bar: bool) -> None:
     rhos = data_interface.load_variant_prevalence(scenario='reference')
     vaccinations = data_interface.load_vaccine_uptake(scenario='reference')
     etas = data_interface.load_vaccine_risk_reduction(scenario='reference')
-    natural_waning_dist = data_interface.load_waning_parameters(measure='natural_waning_distribution').set_index(
-        ['endpoint', 'days'])
+    natural_waning_dist = data_interface.load_waning_parameters(measure='natural_waning_distribution').set_index('days')
     natural_immunity_matrix = pd.DataFrame(
         data=np.array([
             [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
@@ -55,7 +54,7 @@ def run_beta_fit(fit_version: str, draw_id: int, progress_bar: bool) -> None:
     regression_params = specification.fit_parameters.to_dict()
 
     ode_parameters = model.prepare_ode_fit_parameters(
-        rates,
+        base_rates,
         epi_measures,
         rhos,
         vaccinations,
@@ -69,7 +68,7 @@ def run_beta_fit(fit_version: str, draw_id: int, progress_bar: bool) -> None:
     logger.info('Building initial condition.', context='transform')
     initial_condition = model.make_initial_condition(
         ode_parameters,
-        rates,
+        base_rates,
         risk_group_pops,
     )
 
@@ -80,39 +79,11 @@ def run_beta_fit(fit_version: str, draw_id: int, progress_bar: bool) -> None:
         progress_bar=progress_bar,
     )
 
-    logger.info('Loading regression input data', context='read')
-
-    gaussian_priors = data_interface.load_priors(regression_specification.covariates.values())
-    prior_coefficients = data_interface.load_prior_run_coefficients(draw_id=draw_id)
-    if gaussian_priors and prior_coefficients:
-        raise NotImplementedError
-
-    logger.info('Fitting beta regression', context='compute_regression')
-    coefficients = model.run_beta_regression(
-        beta,
-        covariates,
-        regression_specification.covariates.values(),
-        gaussian_priors,
-        prior_coefficients,
-        hierarchy,
-    )
-    log_beta_hat = math.compute_beta_hat(covariates, coefficients)
-    beta_hat = np.exp(log_beta_hat).rename('beta_hat')
-
     # Format and save data.
     logger.info('Prepping outputs', context='transform')
-    betas = pd.concat([beta, beta_hat], axis=1).reindex(infections.index)
-    deaths = model.clean_infection_data_measure(past_infection_data, 'deaths')
-    ode_parameters, _, etas, _, phis = ode_parameters.to_dfs()
 
     logger.info('Writing outputs', context='write')
-    data_interface.save_infections(infections, draw_id=draw_id)
-    data_interface.save_deaths(deaths, draw_id=draw_id)
-    data_interface.save_betas(betas, draw_id=draw_id)
-    data_interface.save_compartments(compartments, draw_id=draw_id)
-    data_interface.save_coefficients(coefficients, draw_id=draw_id)
-    data_interface.save_ode_parameters(ode_parameters, draw_id=draw_id)
-    data_interface.save_chis(chis, draw_id=draw_id)
+
 
     logger.report()
 
@@ -123,7 +94,7 @@ def run_beta_fit(fit_version: str, draw_id: int, progress_bar: bool) -> None:
 @cli_tools.add_verbose_and_with_debugger
 @cli_tools.with_progress_bar
 def beta_fit(fit_version: str, draw_id: int,
-          progress_bar: bool, verbose: int, with_debugger: bool):
+             progress_bar: bool, verbose: int, with_debugger: bool):
     cli_tools.configure_logging_to_terminal(verbose)
     run = cli_tools.handle_exceptions(run_beta_fit, logger, with_debugger)
     run(fit_version=fit_version,

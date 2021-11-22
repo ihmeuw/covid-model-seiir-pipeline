@@ -173,7 +173,7 @@ def get_crude_infections(base_params, rates, population, threshold = 50):
 def run_ode_fit(initial_condition: pd.DataFrame, ode_parameters: Parameters, progress_bar: bool):
     full_compartments, chis = solver.run_ode_model(
         initial_condition,
-        *ode_parameters.to_dfs(),
+        *ode_parameters.to_dict(),
         forecast=False,
         num_cores=5,
         progress_bar=progress_bar,
