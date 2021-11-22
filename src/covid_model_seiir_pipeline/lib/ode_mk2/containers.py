@@ -44,4 +44,4 @@ class Parameters:
                 in itertools.product(RISK_GROUP_NAMES, measures)]
 
     def to_dict(self) -> Dict[str, Union[pd.Series, pd.DataFrame]]:
-        return {k: v for k, v in self.__dict__ if isinstance(v, (pd.DataFrame, pd.Series))}
+        return {k: v for k, v in self.__dict__.items() if isinstance(v, (pd.DataFrame, pd.Series))}
