@@ -22,15 +22,16 @@ _CompartmentType = namedtuple('CompartmentType', [
 ])
 
 _TrackingCompartmentType = namedtuple('TrackingCompartmentType', [
-    'NewE',                    
-    'NewENaiveNewVaccination', 
-    'NewBooster',              
-    'EffectiveSusceptible',    
-    'beta',                    
-    'infection',               
-    'death',                   
-    'admission',               
-    'case',                    
+    'NewE',                 
+    'NewENaive',            
+    'NewVaccination',       
+    'NewBooster',           
+    'EffectiveSusceptible', 
+    'beta',                 
+    'infection',            
+    'death',                
+    'admission',            
+    'case',                 
 ])
 
 _EpiMeasureType = namedtuple('EpiMeasureType', [
