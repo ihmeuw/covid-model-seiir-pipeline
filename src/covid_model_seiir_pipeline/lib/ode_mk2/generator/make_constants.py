@@ -19,7 +19,7 @@ PRIMITIVE_TYPES = {
     ],
     'tracking_compartment_type': [
         'NewE',
-        'NewENaive'
+        'NewENaive',
         'NewVaccination',
         'NewBooster',
         'EffectiveSusceptible',
