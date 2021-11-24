@@ -139,7 +139,8 @@ def make_initial_condition(parameters: Parameters, full_rates: pd.DataFrame, pop
             loc_initial_condition.loc[loc_start_date, f'S_none{suffix}'] = pop - new_e - infectious
             loc_initial_condition.loc[loc_start_date, f'E_ancestral{suffix}'] = new_e
             loc_initial_condition.loc[loc_start_date, f'NewE_ancestral{suffix}'] = new_e
-            loc_initial_condition.loc[loc_start_date, f'NewE_ancestral_all_{risk_group}'] = new_e
+            loc_initial_condition.loc[loc_start_date, f'NewENaive_ancestral{suffix}'] = new_e
+            loc_initial_condition.loc[loc_start_date, f'infection_ancestral{suffix}'] = new_e
             loc_initial_condition.loc[loc_start_date, f'I_ancestral{suffix}'] = infectious
             for variant in VARIANT_NAMES:
                 loc_initial_condition.loc[:loc_start_date, f'EffectiveSusceptible_{variant}{suffix}'] = pop
