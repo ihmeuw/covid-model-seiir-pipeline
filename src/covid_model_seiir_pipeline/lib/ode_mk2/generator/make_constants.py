@@ -19,6 +19,7 @@ PRIMITIVE_TYPES = {
     ],
     'tracking_compartment_type': [
         'NewE',
+        'NewENaive'
         'NewVaccination',
         'NewBooster',
         'EffectiveSusceptible',
@@ -88,6 +89,7 @@ DERIVED_TYPES = {
     ]),
     'tracking_compartment': ('tracking_compartment_type', [
         'NewE',
+        'NewEnaive',
         'NewVaccination',
         'NewBooster',
         'EffectiveSusceptible',
@@ -208,7 +210,6 @@ SPECS = {
         axes_primitives=['tracking_compartment_type', 'variant_index_type', 'agg_index_type'],
         field_specs=[
             ['tracking_compartment', 'variant', 'vaccine_status'],
-            ['NewE', 'variant', 'all'],
             ['beta', 'none', 'all'],
             ['beta', 'none', 'death'],
             ['beta', 'none', 'admission'],

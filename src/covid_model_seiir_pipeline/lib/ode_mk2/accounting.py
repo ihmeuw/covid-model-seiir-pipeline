@@ -39,12 +39,13 @@ def compute_tracking_compartments(t: float,
                 group_dy[TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewE, variant, vaccine_status]] += (
                     new_e[NEW_E[vaccine_status, variant_from, variant]]
                 )
-                group_dy[TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewE, variant, VACCINE_INDEX_TYPE.all]] += (
-                    new_e[NEW_E[vaccine_status, variant_from, variant]]
-                )
                 group_dy[TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.EffectiveSusceptible, variant, vaccine_status]] += (
                     effective_susceptible[EFFECTIVE_SUSCEPTIBLE[variant_from, variant, vaccine_status]]
                 )
+                if variant_from == VARIANT.none:
+                    group_dy[TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewEnaive, variant, vaccine_status]] += (
+                        new_e[NEW_E[vaccine_status, variant_from, variant]]
+                    )
 
         group_dy[TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewVaccination, variant, VACCINE_STATUS.unvaccinated]] += (
             transition_map[COMPARTMENTS[COMPARTMENT.S, variant, VACCINE_STATUS.unvaccinated],
