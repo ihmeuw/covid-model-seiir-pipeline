@@ -85,18 +85,24 @@ def run_beta_fit(fit_version: str, draw_id: int, progress_bar: bool) -> None:
 
     # Format and save data.
     logger.info('Prepping outputs', context='transform')
-    epi_measures = pd.DataFrame(columns=REPORTED_EPI_MEASURE_NAMES, index=compartments.index)
+    epi_measures = pd.DataFrame(index=compartments.index)
     for measure in REPORTED_EPI_MEASURE_NAMES:
         cols = [f'{measure}_ancestral_all_{risk_group}' for risk_group in RISK_GROUP_NAMES]
         lag = lags[f'{measure}s']
-        epi_measures.loc[:, measure] = (compartments
-                                        .loc[:, cols]
-                                        .sum(axis=1)
-                                        .groupby('location_id')
-                                        .apply(lambda x: x.reset_index(level='location_id', drop=True)
-                                                          .shift(periods=lag, freq='D')))
+        epi_measures.loc[:, f'{measure}_naive_unvaccinated'] = (
+            compartments
+            .loc[:, cols]
+            .sum(axis=1)
+            .groupby('location_id')
+            .apply(lambda x: x.reset_index(level='location_id', drop=True)
+                              .shift(periods=lag, freq='D'))
+        )
     cols = [f'infection_ancestral_all_{risk_group}' for risk_group in RISK_GROUP_NAMES]
-    epi_measures.loc[:, 'infection'] = compartments.loc[:, cols].sum(axis=1)
+    epi_measures.loc[:, 'infection_naive'] = compartments.loc[:, cols].sum(axis=1)
+    cols = [f'NewE_{variant}_all_{risk_group}' for variant, risk_group
+            in itertools.product(VARIANT_NAMES, RISK_GROUP_NAMES)]
+    epi_measures.loc[:, 'infection_total'] = compartments.loc[:, cols].sum(axis=1)
+
 
     logger.info('Writing outputs', context='write')
     data_interface.save_epi_measures(epi_measures, draw_id=draw_id)

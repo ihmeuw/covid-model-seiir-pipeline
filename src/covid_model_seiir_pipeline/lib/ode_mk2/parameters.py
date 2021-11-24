@@ -158,14 +158,18 @@ def make_new_e(t: float,
             group_new_e = subset_risk_group(new_e, risk_group)
             group_rates = subset_risk_group(rates, risk_group)            
             group_outcomes = subset_risk_group(outcomes, risk_group)
-            
-            naive_infections = group_new_e[NEW_E[VACCINE_STATUS.unvaccinated, VARIANT.none, VARIANT.ancestral]]
-            group_outcomes[EPI_MEASURE.infection] += naive_infections
-            for epi_measure in REPORTED_EPI_MEASURE:
-                if betas[epi_measure] > 0.:
-                    r = group_rates[RATES[epi_measure, VARIANT.none, VARIANT.ancestral, VACCINE_STATUS.unvaccinated]]
-                    group_outcomes[epi_measure] += r * naive_infections * betas[epi_measure] / betas[EPI_MEASURE.infection]
-                    
+
+            for variant in VARIANT:
+                for vaccine_status in VACCINE_STATUS:
+                    naive_infections = group_new_e[NEW_E[vaccine_status, VARIANT.none, variant]]
+                    group_outcomes[EPI_MEASURE.infection] += naive_infections
+                    for epi_measure in REPORTED_EPI_MEASURE:
+                        if betas[epi_measure] > 0. and vaccine_status == VACCINE_STATUS.unvaccinated:
+                            idx = RATES[epi_measure, VARIANT.none, variant, VACCINE_STATUS.unvaccinated]
+                            r = group_rates[idx]
+                            group_outcomes[epi_measure] += (
+                                r * naive_infections * betas[epi_measure] / betas[EPI_MEASURE.infection]
+                            )
         
     if DEBUG:
         assert np.all(np.isfinite(new_e))
