@@ -43,7 +43,7 @@ def compute_tracking_compartments(t: float,
                     effective_susceptible[EFFECTIVE_SUSCEPTIBLE[variant_from, variant, vaccine_status]]
                 )
                 if variant_from == VARIANT.none:
-                    group_dy[TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewEnaive, variant, vaccine_status]] += (
+                    group_dy[TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewENaive, variant, vaccine_status]] += (
                         new_e[NEW_E[vaccine_status, variant_from, variant]]
                     )
 

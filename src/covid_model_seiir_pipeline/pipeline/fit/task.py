@@ -1,5 +1,3 @@
-import itertools
-
 import click
 import numpy as np
 import pandas as pd
@@ -9,7 +7,6 @@ from covid_model_seiir_pipeline.lib import (
 )
 from covid_model_seiir_pipeline.lib.ode_mk2.constants import (
     VARIANT_NAMES,
-    VACCINE_STATUS_NAMES,
     RISK_GROUP_NAMES,
     EPI_MEASURE_NAMES,
 )
@@ -98,7 +95,7 @@ def run_beta_fit(fit_version: str, draw_id: int, progress_bar: bool) -> None:
             .apply(lambda x: x.reset_index(level='location_id', drop=True)
                               .shift(periods=lag, freq='D'))
         )
-    epi_measures.loc[:, 'infection_naive'] = compartments.filter(like='NewEnaive').sum(axis=1)
+    epi_measures.loc[:, 'infection_naive'] = compartments.filter(like='NewENaive').sum(axis=1)
     epi_measures.loc[:, 'infection_total'] = compartments.filter(like='NewE').sum(axis=1)
 
     logger.info('Writing outputs', context='write')

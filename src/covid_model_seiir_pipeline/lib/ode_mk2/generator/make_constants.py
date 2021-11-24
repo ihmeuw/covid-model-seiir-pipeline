@@ -89,7 +89,7 @@ DERIVED_TYPES = {
     ]),
     'tracking_compartment': ('tracking_compartment_type', [
         'NewE',
-        'NewEnaive',
+        'NewENaive',
         'NewVaccination',
         'NewBooster',
         'EffectiveSusceptible',
