@@ -1,3 +1,5 @@
+from typing import Callable
+
 import pandas as pd
 
 from covid_model_seiir_pipeline.lib import (
@@ -13,7 +15,7 @@ from covid_model_seiir_pipeline.pipeline.preprocessing.model import (
 logger = cli_tools.task_performance_logger
 
 
-def preprocess_mask_use(data_interface: PreprocessingDataInterface, **kwargs) -> None:
+def preprocess_mask_use(data_interface: PreprocessingDataInterface) -> None:
     for scenario in ['reference', 'best', 'worse']:
         logger.info(f'Loading mask use data for scenario {scenario}.', context='read')
         mask_use = data_interface.load_raw_mask_use_data(scenario)
@@ -22,7 +24,7 @@ def preprocess_mask_use(data_interface: PreprocessingDataInterface, **kwargs) ->
         data_interface.save_covariate(mask_use, 'mask_use', scenario)
 
 
-def preprocess_mobility(data_interface: PreprocessingDataInterface, **kwargs) -> None:
+def preprocess_mobility(data_interface: PreprocessingDataInterface) -> None:
     for scenario in ['reference', 'vaccine_adjusted']:
         logger.info(f'Loading raw mobility data for scenario {scenario}.', context='read')
         mobility = data_interface.load_raw_mobility(scenario)
@@ -42,7 +44,7 @@ def preprocess_mobility(data_interface: PreprocessingDataInterface, **kwargs) ->
     data_interface.save_covariate_info(effect_sizes, 'mobility', 'effect')
 
 
-def _adjust_southern_hemisphere(data: pd.DataFrame, **kwargs) -> pd.DataFrame:
+def _adjust_southern_hemisphere(data: pd.DataFrame) -> pd.DataFrame:
     # adjust the mandate lift so s hemisphere locs don't have duplicated rows
     # Hack from Haley:
     # percent_mandates has a value when observed, so use that to subset out duplicated
@@ -65,7 +67,7 @@ def _adjust_southern_hemisphere(data: pd.DataFrame, **kwargs) -> pd.DataFrame:
     return data
 
 
-def preprocess_pneumonia(data_interface: PreprocessingDataInterface, **kwargs) -> None:
+def preprocess_pneumonia(data_interface: PreprocessingDataInterface) -> None:
     logger.info(f'Loading raw pneumonia data', context='read')
     data = data_interface.load_raw_pneumonia_data()
 
@@ -81,7 +83,7 @@ def preprocess_pneumonia(data_interface: PreprocessingDataInterface, **kwargs) -
     data_interface.save_covariate(data, 'pneumonia', 'reference')
 
 
-def preprocess_population_density(data_interface: PreprocessingDataInterface, **kwargs) -> None:
+def preprocess_population_density(data_interface: PreprocessingDataInterface) -> None:
     logger.info(f'Loading raw population density data', context='read')
     data = data_interface.load_raw_population_density_data()
 
@@ -104,7 +106,7 @@ def preprocess_population_density(data_interface: PreprocessingDataInterface, **
     data_interface.save_covariate(data, 'proportion_over_2_5k', 'reference')
 
 
-def preprocess_testing_data(data_interface: PreprocessingDataInterface, **kwargs) -> None:
+def preprocess_testing_data(data_interface: PreprocessingDataInterface) -> None:
     logger.info('Loading raw testing data', context='read')
     data = data_interface.load_raw_testing_data()
 
@@ -145,7 +147,7 @@ def _process_testing_for_idr(data: pd.DataFrame) -> pd.DataFrame:
     return data
 
 
-def preprocess_variant_prevalence(data_interface: PreprocessingDataInterface, **kwargs) -> None:
+def preprocess_variant_prevalence(data_interface: PreprocessingDataInterface) -> None:
     for scenario in ['reference', 'worse']:
         logger.info(f'Loading raw variant prevalence data for scenario {scenario}.', context='read')
         data = data_interface.load_raw_variant_prevalence(scenario)
@@ -187,3 +189,15 @@ def _process_variants_of_concern(data: pd.DataFrame) -> pd.DataFrame:
         raise ValueError("Variant prevalence sums to more than 1 for some location-dates.")
 
     return data.reset_index()
+
+
+def preprocess_gbd_covariate(covariate: str) -> Callable[[PreprocessingDataInterface], None]:
+
+    def _preprocess_gbd_covariate(data_interface: PreprocessingDataInterface) -> None:
+        logger.info(f'Loading {covariate} data for.', context='read')
+        data = data_interface.load_gbd_covariate(covariate)
+
+        logger.info(f'Writing {covariate} data.', context='write')
+        data_interface.save_covariate(data, covariate, 'reference')
+
+    return _preprocess_gbd_covariate

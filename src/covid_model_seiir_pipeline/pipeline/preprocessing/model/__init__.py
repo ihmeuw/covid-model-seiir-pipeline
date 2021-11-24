@@ -8,7 +8,24 @@ from covid_model_seiir_pipeline.pipeline.preprocessing.model.covariate_data impo
     preprocess_population_density,
     preprocess_testing_data,
     preprocess_variant_prevalence,
+    preprocess_gbd_covariate,
 )
+
+COVARIATES = [
+    'air_pollution_pm_2_5',
+    'ckd',
+    'cvd',
+    'haqi',
+    'mean_age_standardized_sbp_mmhg_above_age_25',
+    'obesity',
+    'smoking_prevalence',
+    'cancer',
+    'copd',
+    'diabetes',
+    'lri_mortality',
+    'mean_bmi_above_age_20',
+    'proportion_under_100m',
+]
 
 MEASURES = {
     'epi_data': preprocess_epi_data,
@@ -18,4 +35,5 @@ MEASURES = {
     'population_density': preprocess_population_density,
     'testing': preprocess_testing_data,
     'variant_prevalence': preprocess_variant_prevalence,
+    **{covariate: preprocess_gbd_covariate(covariate) for covariate in COVARIATES}
 }

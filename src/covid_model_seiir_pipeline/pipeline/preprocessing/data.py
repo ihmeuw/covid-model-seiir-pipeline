@@ -140,6 +140,14 @@ class PreprocessingDataInterface:
                 .reset_index())
         return data
 
+    def load_gbd_covariate(self, covariate: str, with_observed: bool = False) -> pd.DataFrame:
+        data = io.load(self.model_inputs_root.gbd_covariate(measure=covariate))
+        if not with_observed and 'observed' in data.columns:
+            data = data.drop(columns='observed')
+
+        data = data.rename(columns={covariate: f'{covariate}_reference'})
+        return data
+
     ##############################
     # Age-specific Rates loaders #
     ##############################
