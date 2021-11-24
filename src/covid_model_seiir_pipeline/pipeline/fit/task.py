@@ -86,7 +86,7 @@ def run_beta_fit(fit_version: str, draw_id: int, progress_bar: bool) -> None:
     epi_measures = pd.DataFrame(index=compartments.index)
     for measure in EPI_MEASURE_NAMES:
         cols = [f'{measure}_ancestral_all_{risk_group}' for risk_group in RISK_GROUP_NAMES]
-        lag = lags[f'{measure}s']
+        lag = lags.get(f'{measure}s', 0)
         epi_measures.loc[:, f'{measure}_naive_unvaccinated'] = (
             compartments
             .loc[:, cols]
