@@ -7,7 +7,7 @@ import pandas as pd
 
 def run_rates_model(hierarchy: pd.DataFrame, *args, **kwargs):
     most_detailed = hierarchy[hierarchy.most_detailed == 1].location_id.unique().tolist()
-    version = Path('/ihme/covid-19/historical-model/2021_11_15.02')
+    version = Path('/ihme/covid-19/historical-model/2021_11_24.02')
     measure_map = {
         ('ifr', 'deaths'): load_ifr_and_deaths,
         ('ihr', 'admissions'): load_ihr_and_admissions,
@@ -16,7 +16,7 @@ def run_rates_model(hierarchy: pd.DataFrame, *args, **kwargs):
 
     rates, measures, smoothed_measures, lags = [], [], [], {}
     for (r, m), loader in measure_map.items():
-        data = loader(version).reset_index()
+        data = loader(version, suffix='_stage_2').reset_index()
         lag = data.lag.iloc[0]
         data = (data
                 .loc[data.location_id.isin(most_detailed)]
@@ -48,8 +48,8 @@ def run_rates_model(hierarchy: pd.DataFrame, *args, **kwargs):
     return rates, measures, smoothed_measures, lags
 
 
-def load_idr_and_cases(version):
-    idr = pd.read_parquet(version / 'pred_idr.parquet')
+def load_idr_and_cases(version, suffix):
+    idr = pd.read_parquet(version / f'pred_idr{suffix}.parquet')
     idr['idr_hr'] = idr['pred_idr']
     idr['idr_lr'] = idr['pred_idr']
     idr['idr'] = idr['pred_idr']
@@ -61,8 +61,8 @@ def load_idr_and_cases(version):
     return data
 
 
-def load_ifr_and_deaths(version):
-    ifr = pd.read_parquet(version / 'pred_ifr.parquet')
+def load_ifr_and_deaths(version, suffix):
+    ifr = pd.read_parquet(version / f'pred_ifr{suffix}.parquet')
     ifr = ifr.rename(columns={'pred_ifr_lr': 'ifr_lr', 'pred_ifr_hr': 'ifr_hr', 'pred_ifr': 'ifr'})
     deaths = pd.read_parquet(version / 'deaths.parquet').rename(columns={'daily_deaths': 'deaths'})
     data = pd.concat([ifr, deaths], axis=1)
@@ -71,8 +71,8 @@ def load_ifr_and_deaths(version):
     return data
 
 
-def load_ihr_and_admissions(version):
-    ifr = pd.read_parquet(version / 'pred_ihr.parquet')
+def load_ihr_and_admissions(version, suffix):
+    ifr = pd.read_parquet(version / f'pred_ihr{suffix}.parquet')
     ifr = ifr.rename(columns={'pred_ihr_lr': 'ihr_lr', 'pred_ihr_hr': 'ihr_hr', 'pred_ihr': 'ihr'})
     deaths = pd.read_parquet(version / 'hospitalizations.parquet').rename(
         columns={'daily_hospitalizations': 'admissions'})
