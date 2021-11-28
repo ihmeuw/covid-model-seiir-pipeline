@@ -10,6 +10,9 @@ from covid_model_seiir_pipeline.pipeline.preprocessing.model.covariate_data impo
     preprocess_variant_prevalence,
     preprocess_gbd_covariate,
 )
+from covid_model_seiir_pipeline.pipeline.preprocessing.model.sensitivity import (
+    preprocess_sensitivity,
+)
 
 COVARIATES = [
     'air_pollution_pm_2_5',
@@ -35,5 +38,6 @@ MEASURES = {
     'population_density': preprocess_population_density,
     'testing': preprocess_testing_data,
     'variant_prevalence': preprocess_variant_prevalence,
+    'sensitivity': preprocess_sensitivity,
     **{covariate: preprocess_gbd_covariate(covariate) for covariate in COVARIATES}
 }

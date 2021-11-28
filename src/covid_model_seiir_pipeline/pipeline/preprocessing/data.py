@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Optional, Tuple, Union
+from typing import Dict, Optional, Tuple, Union
 
 import pandas as pd
 
@@ -160,6 +160,18 @@ class PreprocessingDataInterface:
         data_path = self.model_inputs_root._root / 'serology' / 'waning_immunity' / 'assay_map.xlsx'
         data = pd.read_excel(data_path)
         return data
+
+    def load_sensitivity_data(self) -> Dict[str, pd.DataFrame]:
+        # FIXME: hack, different format
+        root = self.model_inputs_root._root / 'serology' / 'waning_immunity'
+        path_map = {
+            'peluso': ['peluso_assay_sensitivity'],
+            'perez_saez': ['perez-saez_n-roche', 'perez-saez_rbd-euroimmun', 'perez-saez_rbd-roche'],
+            'bond': ['bond'],
+            'muecksch': ['muecksch'],
+            'lumley': ['lumley_n-abbott', 'lumley_s-oxford']
+        }
+        return {k: pd.concat([pd.read_excel(root / f'{name}.xlsx') for name in paths]) for k, paths in path_map}
 
     ##############################
     # Age-specific Rates loaders #
@@ -450,6 +462,20 @@ class PreprocessingDataInterface:
             key = self.preprocessing_root.seroprevalence()
         else:
             key = self.preprocessing_root.seroprevalence_samples(draw_id=draw_id)
+        return io.load(key)
+
+    def save_sensitivity(self, data: pd.DataFrame, draw_id: int = None) -> None:
+        if draw_id is None:
+            key = self.preprocessing_root.sensitivity()
+        else:
+            key = self.preprocessing_root.sensitivity_samples(draw_id=draw_id)
+        io.dump(data, key)
+
+    def load_sensitivity(self, draw_id: int = None) -> pd.DataFrame:
+        if draw_id is None:
+            key = self.preprocessing_root.sensitivity()
+        else:
+            key = self.preprocessing_root.sensitivity_samples(draw_id=draw_id)
         return io.load(key)
 
     def save_testing_data(self, data: pd.DataFrame):
