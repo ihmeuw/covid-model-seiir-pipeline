@@ -63,6 +63,10 @@ class PreprocessingDataInterface:
         )
 
     def make_dirs(self, **prefix_args) -> None:
+        # Yuck hack to make directories work
+        from covid_model_seiir_pipeline.pipeline.preprocessing.model import COVARIATES
+        # Need to add these to the data root, which happens dynamically on access.
+        _ = [self.preprocessing_root[c] for c in COVARIATES]
         io.touch(self.preprocessing_root, **prefix_args)
 
     ####################

@@ -25,12 +25,10 @@ def preprocess_epi_data(data_interface: PreprocessingDataInterface) -> None:
     logger.info('Processing epi data.', context='transform')
     age_pattern_data = _process_age_pattern_data(age_pattern_data, pred_hierarchy)
     total_covid_scalars = _process_scalars(total_covid_scalars, pred_hierarchy)
-    global_serology = _process_serology_data(global_serology)
 
     logger.info('Writing epi data.', context='write')
     data_interface.save_age_patterns(age_pattern_data)
     data_interface.save_total_covid_scalars(total_covid_scalars)
-    data_interface.save_global_serology(global_serology)
 
 
 def _process_age_pattern_data(data: pd.DataFrame, hierarchy: pd.DataFrame):
