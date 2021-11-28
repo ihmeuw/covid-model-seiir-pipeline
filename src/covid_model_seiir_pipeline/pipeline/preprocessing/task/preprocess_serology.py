@@ -29,9 +29,11 @@ def run_preprocess_serology(preprocessing_version: str, progress_bar: bool) -> N
     raw_seroprevalence = data_interface.load_raw_serology_data()
     vaccine_data = data_interface.load_serology_vaccine_coverage()
     population = data_interface.load_population(measure='five_year')
+    assay_map = data_interface.load_assay_map()
 
     logger.info('Cleaning serology input data', context='transform')
     seroprevalence = serology.process_raw_serology_data(raw_seroprevalence)
+    seroprevalence = serology.assign_assay(seroprevalence, assay_map)
     vaccinated = serology.get_pop_vaccinated(population, vaccine_data)
     vaccinated['vaccinated'] *= specification.seroprevalence_parameters.vax_sero_prob
 

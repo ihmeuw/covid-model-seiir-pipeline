@@ -244,6 +244,26 @@ def process_raw_serology_data(data: pd.DataFrame) -> pd.DataFrame:
     return data
 
 
+def assign_assay(seroprevalence: pd.DataFrame, assay_map: pd.DataFrame) -> pd.DataFrame:
+    seroprevalence = seroprevalence.merge(assay_map, how='left')
+    missing_match = seroprevalence['assay_map'].isnull()
+    is_N = seroprevalence['test_target'] == 'nucleocapsid'
+    is_S = seroprevalence['test_target'] == 'spike'
+    is_other = ~(is_N | is_S)
+    seroprevalence.loc[missing_match & is_N, 'assay_map'] = 'N-Roche, N-Abbott'
+    seroprevalence.loc[missing_match & is_S, 'assay_map'] = (
+        'S-Roche, S-Ortho Ig, S-Ortho IgG, S-DiaSorin, S-EuroImmun, S-Oxford'
+    )
+    seroprevalence.loc[missing_match & is_other, 'assay_map'] = (
+        'N-Roche, N-Abbott, S-Roche, S-Ortho Ig, S-Ortho IgG, S-DiaSorin, S-EuroImmun, S-Oxford'
+    )
+
+    inlier_no_assay = (seroprevalence['is_outlier'] == 0) & seroprevalence['assay_map'].isnull()
+    if inlier_no_assay.any():
+        raise ValueError(f"Unmapped seroprevalence data: {seroprevalence.loc[inlier_no_assay]}")
+    return seroprevalence
+
+
 def sample_seroprevalence(seroprevalence: pd.DataFrame,
                           n_samples: int,
                           correlate_samples: bool,

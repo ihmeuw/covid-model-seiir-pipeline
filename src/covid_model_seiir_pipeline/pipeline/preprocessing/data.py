@@ -155,6 +155,12 @@ class PreprocessingDataInterface:
         data = data.rename(columns={covariate: f'{covariate}_reference'})
         return data
 
+    def load_assay_map(self) -> pd.DataFrame:
+        # FIXME: hack, different format.
+        data_path = self.model_inputs_root._root / 'serology' / 'waning_immunity' / 'assay_map.xlsx'
+        data = pd.read_excel(data_path)
+        return data
+
     ##############################
     # Age-specific Rates loaders #
     ##############################

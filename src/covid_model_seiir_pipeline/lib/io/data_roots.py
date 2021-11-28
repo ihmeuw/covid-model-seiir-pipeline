@@ -197,7 +197,7 @@ class PreprocessingRoot(DataRoot):
     age_patterns = DatasetType('age_patterns')
     total_covid_scalars = DatasetType('total_covid_scalars')
     seroprevalence = DatasetType('seroprevalence')
-    seroprevalence_samples = DatasetType('seroprevalence', LEAF_TEMPLATES.DRAW_TEMPLATE)
+    seroprevalence_samples = DatasetType('seroprevalence_samples', LEAF_TEMPLATES.DRAW_TEMPLATE)
     testing_for_idr = DatasetType('testing')
     variant_prevalence = DatasetType('variant_prevalence', LEAF_TEMPLATES.VARIANT_SCENARIO)
     waning_parameters = DatasetType(LEAF_TEMPLATES.MEASURE_TEMPLATE)
