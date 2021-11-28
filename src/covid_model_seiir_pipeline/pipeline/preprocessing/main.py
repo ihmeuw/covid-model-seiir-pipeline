@@ -109,6 +109,7 @@ def preprocessing_main(app_metadata: cli_tools.Metadata,
 @cli_tools.with_version(paths.TESTING_OUTPUT_ROOT)
 @cli_tools.with_version(paths.VARIANT_OUTPUT_ROOT)
 @cli_tools.with_version(paths.VACCINE_COVERAGE_OUTPUT_ROOT)
+@cli_tools.with_version(paths.VACCINE_COVERAGE_OUTPUT_ROOT, name='serology_vaccine_coverage')
 @cli_tools.with_version(paths.VACCINE_EFFICACY_ROOT)
 @cli_tools.add_output_options(paths.SEIR_PREPROCESS_ROOT)
 @cli_tools.add_preprocess_only

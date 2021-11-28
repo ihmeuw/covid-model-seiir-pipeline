@@ -99,8 +99,8 @@ def beta_regression_main(app_metadata: cli_tools.Metadata,
 @cli_tools.with_version(paths.PAST_INFECTIONS_ROOT)
 @cli_tools.with_version(paths.SEIR_COVARIATES_OUTPUT_ROOT)
 @cli_tools.with_version(paths.WANING_IMMUNITY_OUTPUT_ROOT)
-@cli_tools.with_version(paths.SEIR_COVARIATE_PRIORS_ROOT, False)
-@cli_tools.with_version(paths.SEIR_REGRESSION_OUTPUTS, False, 'coefficient')
+@cli_tools.with_version(paths.SEIR_COVARIATE_PRIORS_ROOT, allow_default=False)
+@cli_tools.with_version(paths.SEIR_REGRESSION_OUTPUTS, allow_default=False, name='coefficient')
 def regress(run_metadata,
             specification,
             location_specification,
