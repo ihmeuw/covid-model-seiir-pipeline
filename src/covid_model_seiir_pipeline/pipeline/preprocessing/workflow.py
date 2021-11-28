@@ -56,6 +56,9 @@ class PreprocessingWorkflow(workflow.WorkflowTemplate):
         PREPROCESSING_JOBS.preprocess_vaccine: PreprocessVaccineTaskTemplate,
         PREPROCESSING_JOBS.preprocess_serology: PreprocessSerologyTaskTemplate,
     }
+    # Jobs here are not homogeneous so it's useful to get all failures if
+    # things do fail.
+    fail_fast = False
 
     def attach_tasks(self, measures: List[str], scenarios: List[str]) -> None:
         measure_template = self.task_templates[PREPROCESSING_JOBS.preprocess_measure]
