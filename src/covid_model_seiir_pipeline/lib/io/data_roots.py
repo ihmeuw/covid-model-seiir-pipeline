@@ -168,6 +168,7 @@ class VaccineCoverageRoot(DataRoot):
     metadata = MetadataType('metadata')
 
     brand_specific_coverage = DatasetType(LEAF_TEMPLATES.MEASURE_TEMPLATE)
+    old_vaccine_coverage = DatasetType('slow_scenario_vaccine_coverage')
 
 
 class VaccineEfficacyRoot(DataRoot):
@@ -191,7 +192,7 @@ class PreprocessingRoot(DataRoot):
     metadata = MetadataType('metadata')
     specification = MetadataType('preprocessing_specification')
 
-    hierarchy = DatasetType('hierarchy')
+    hierarchy = DatasetType('hierarchy', LEAF_TEMPLATES.MEASURE_TEMPLATE)
     population = DatasetType('population', LEAF_TEMPLATES.MEASURE_TEMPLATE)
     age_patterns = DatasetType('age_patterns')
     total_covid_scalars = DatasetType('total_covid_scalars')

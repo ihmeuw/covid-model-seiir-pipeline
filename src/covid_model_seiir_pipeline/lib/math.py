@@ -1,9 +1,5 @@
-import numba
+import numpy as np
 import pandas as pd
-
-
-
-SOLVER_DT = 0.1
 
 
 def compute_beta_hat(covariates: pd.DataFrame, coefficients: pd.DataFrame) -> pd.Series:
@@ -33,5 +29,9 @@ def compute_beta_hat(covariates: pd.DataFrame, coefficients: pd.DataFrame) -> pd
     return (covariates * coefficients).sum(axis=1)
 
 
+def logit(p):
+    return np.log(p / (1 - p))
 
 
+def expit(x):
+    return 1 / (1 + np.exp(-x))

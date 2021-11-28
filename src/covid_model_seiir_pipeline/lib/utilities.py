@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import abc
 from dataclasses import asdict as asdict_, fields, is_dataclass
+import hashlib
 from pathlib import Path
 from typing import Dict, Union, Tuple
 from pprint import pformat
@@ -118,3 +119,15 @@ def load_location_hierarchy(location_set_version_id: int = None,
         )
     else:
         return pd.read_csv(location_file)
+
+
+def get_random_seed(key: str):
+    # 4294967295 == 2**32 - 1 which is the maximum allowable seed for a `numpy.random.RandomState`.
+    seed = int(hashlib.sha1(key.encode('utf8')).hexdigest(), 16) % 4294967295
+    return seed
+
+
+def get_random_state(key: str):
+    seed = get_random_seed(key)
+    random_state = np.random.RandomState(seed=seed)
+    return random_state

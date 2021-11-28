@@ -4,7 +4,17 @@ data:
   output_root: ''
   n_draws: 100
 rates_parameters:
-  dummy: 0.5
+  exposure_to_admission: [10, 14]
+  exposure_to_seroconversion: [14, 18]
+  admission_to_death: [12, 16]
+  # One of  'BMJ', 'LSHTM', 'Imperial', 'Exeter', 'PHE', 'Combined',
+  # Or a 3-tuple of [mean, upper, lower]
+  ifr_risk_ratio: 'BMJ'
+  # One of  'BMJ', 'LSHTM', 'Imperial', 'Exeter', 'PHE', 'Combined',
+  # Or a 3-tuple of [mean, upper, lower]
+  ihr_risk_ratio: 'BMJ'
+  idr_risk_ratio: [1.0, 1.0, 1.0]
+
 fit_parameters:
   # Mixing parameter.  dS/dt = -beta * S * I ** alpha
   alpha: [0.9, 1.0]

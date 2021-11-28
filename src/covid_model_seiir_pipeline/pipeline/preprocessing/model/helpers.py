@@ -1,5 +1,6 @@
 from typing import List
 
+from loguru import logger
 import pandas as pd
 
 
@@ -31,3 +32,29 @@ def str_fmt(str_col: pd.Series) -> pd.Series:
     fmt_str_col = fmt_str_col.str.strip()
 
     return fmt_str_col
+
+
+def validate_hierarchies(mr_hierarchy: pd.DataFrame, pred_hierarchy: pd.DataFrame) -> pd.DataFrame:
+    mr = mr_hierarchy.loc[:, ['location_id', 'path_to_top_parent']]
+    mr = mr.rename(columns={'path_to_top_parent': 'mr_path'})
+    pred = pred_hierarchy.loc[:, ['location_id', 'path_to_top_parent']]
+    pred = pred.rename(columns={'path_to_top_parent': 'pred_path'})
+
+    data = mr.merge(pred, how='left')
+    is_missing = data['pred_path'].isnull()
+    is_different = (data['mr_path'] != data['pred_path']) & (~is_missing)
+
+    if is_different.sum() > 0:
+        raise ValueError(f'Some locations have a conflicting path to top parent in the mr and pred hierarchies:\n'
+                         f'{data.loc[is_different]}.')
+
+    if is_missing.sum() > 0:
+        logger.warning(f'Some mr locations are missing in pred hierarchy and will be added:\n{data.loc[is_missing]}.')
+        missing_locations = data.loc[is_missing, 'location_id'].to_list()
+        missing_locations = mr_hierarchy.loc[mr_hierarchy['location_id'].isin(missing_locations)]
+        pred_hierarchy = pred_hierarchy.append(missing_locations)
+        most_detailed = ~pred_hierarchy.location_id.isin(pred_hierarchy.parent_id)
+        pred_hierarchy.loc[:, 'most_detailed'] = 0
+        pred_hierarchy.loc[most_detailed, 'most_detailed'] = 1
+
+    return pred_hierarchy

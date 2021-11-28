@@ -26,6 +26,7 @@ class PreprocessingDataInterface:
                  testing_root: io.TestingRoot,
                  variant_prevalence_root: io.VariantPrevalenceRoot,
                  vaccine_coverage_root: io.VaccineCoverageRoot,
+                 serology_vaccine_coverage_root: io.VaccineCoverageRoot,
                  vaccine_efficacy_root: io.VaccineEfficacyRoot,
                  preprocessing_root: io.PreprocessingRoot):
         self.model_inputs_root = model_inputs_root
@@ -38,6 +39,7 @@ class PreprocessingDataInterface:
         self.testing_root = testing_root
         self.variant_prevalence_root = variant_prevalence_root
         self.vaccine_coverage_root = vaccine_coverage_root
+        self.serology_vaccine_coverage_root = serology_vaccine_coverage_root
         self.vaccine_efficacy_root = vaccine_efficacy_root
         self.preprocessing_root = preprocessing_root
 
@@ -54,6 +56,7 @@ class PreprocessingDataInterface:
             testing_root=io.TestingRoot(specification.data.testing_outputs_version),
             variant_prevalence_root=io.VariantPrevalenceRoot(specification.data.variant_scaleup_version),
             vaccine_coverage_root=io.VaccineCoverageRoot(specification.data.vaccine_coverage_version),
+            serology_vaccine_coverage_root=io.VaccineCoverageRoot(specification.data.serology_vaccine_coverage_version),
             vaccine_efficacy_root=io.VaccineEfficacyRoot(specification.data.vaccine_efficacy_version),
             preprocessing_root=io.PreprocessingRoot(specification.data.output_root,
                                                     data_format=specification.data.output_format),
@@ -171,19 +174,6 @@ class PreprocessingDataInterface:
             data = data.set_index(['age_group_years_start', 'age_group_years_end'])
             measure_data.append(data)
         measure_data = pd.concat(measure_data, axis=1).reset_index()
-        measure_data['key'] = 1
-
-        modeling_hierarchy = self.load_modeling_hierarchy().reset_index()
-        modeling_hierarchy['key'] = 1
-
-        # Broadcast over location id.
-        measure_data = (modeling_hierarchy
-                        .loc[:, ['location_id', 'key']]
-                        .merge(measure_data)
-                        .set_index(['location_id', 'age_group_years_start', 'age_group_years_end'])
-                        .sort_index()
-                        .drop(columns='key'))
-
         return measure_data
 
     #########################
@@ -314,6 +304,38 @@ class PreprocessingDataInterface:
         data = data.drop(columns='Unnamed: 0').reset_index()
         return data
 
+    def load_serology_vaccine_coverage(self) -> pd.DataFrame:
+        # FIXME: This goes away.
+        data = io.load(self.serology_vaccine_coverage_root.old_vaccine_coverage())
+
+        keep_columns = [
+            # total vaccinated (all and by three groups)
+            'cumulative_all_vaccinated',
+            'cumulative_essential_vaccinated',
+            'cumulative_adults_vaccinated',
+            'cumulative_elderly_vaccinated',
+
+            # total seroconverted (all and by three groups)
+            'cumulative_all_effective',
+            'cumulative_essential_effective',
+            'cumulative_adults_effective',
+            'cumulative_elderly_effective',
+
+            # elderly (mutually exclusive)
+            'cumulative_hr_effective_wildtype',
+            'cumulative_hr_effective_protected_wildtype',
+            'cumulative_hr_effective_variant',
+            'cumulative_hr_effective_protected_variant',
+
+            # other adults (mutually exclusive)
+            'cumulative_lr_effective_wildtype',
+            'cumulative_lr_effective_protected_wildtype',
+            'cumulative_lr_effective_variant',
+            'cumulative_lr_effective_protected_variant',
+        ]
+
+        return data.sort_index().loc[:, keep_columns]
+
     #########################
     # Vaccine efficacy data #
     #########################
@@ -381,11 +403,11 @@ class PreprocessingDataInterface:
         spec_dict = io.load(self.preprocessing_root.specification())
         return PreprocessingSpecification.from_dict(spec_dict)
 
-    def save_modeling_hierarchy(self, hierarchy: pd.DataFrame) -> None:
-        io.dump(hierarchy, self.preprocessing_root.hierarchy())
+    def save_hierarchy(self, hierarchy: pd.DataFrame, name: str) -> None:
+        io.dump(hierarchy, self.preprocessing_root.hierarchy(measure=name))
 
-    def load_modeling_hierarchy(self) -> pd.DataFrame:
-        return io.load(self.preprocessing_root.hierarchy())
+    def load_hierarchy(self, name: str) -> pd.DataFrame:
+        return io.load(self.preprocessing_root.hierarchy(measure=name))
 
     def save_population(self, data: pd.DataFrame, measure: str) -> None:
         io.dump(data, self.preprocessing_root.population(measure=measure))

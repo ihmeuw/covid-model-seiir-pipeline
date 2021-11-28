@@ -8,6 +8,7 @@ from covid_model_seiir_pipeline.pipeline.preprocessing.data import (
 from covid_model_seiir_pipeline.pipeline.preprocessing.task import (
     preprocess_measure,
     preprocess_vaccine,
+    preprocess_serology,
 )
 from covid_model_seiir_pipeline.pipeline.preprocessing.main import (
     do_preprocessing,
@@ -20,4 +21,5 @@ APPLICATION_MAIN = do_preprocessing
 TASKS = {
     PREPROCESSING_JOBS.preprocess_measure: preprocess_measure,
     PREPROCESSING_JOBS.preprocess_vaccine: preprocess_vaccine,
+    PREPROCESSING_JOBS.preprocess_serology: preprocess_serology,
 }

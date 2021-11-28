@@ -35,13 +35,17 @@ def with_specification(specification_class):
 ###########################
 
 
-with_location_specification = click.option(
-    '-l', '--location-specification',
-    type=click.STRING,
-    help='Either a location set version id used to pull a list of '
-         'locations to run, or a full path to a file describing '
-         'the location set.',
-)
+def with_location_specification(short_name: str = '-l', prefix: str = ''):
+    long_name = f'--{prefix}-location-specification' if prefix else '--location-specification'
+    names = [short_name, long_name] if short_name else [long_name]
+
+    return click.option(
+        *names,
+        type=click.STRING,
+        help='Either a location set version id used to pull a list of '
+             'locations to run, or a full path to a file describing '
+             'the location set.',
+    )
 
 
 def with_version(default_root: Path, allow_default: bool = True, name: str = None):

@@ -8,6 +8,14 @@ from covid_model_seiir_pipeline.lib import (
 )
 
 
+# Specification type for uniform distributions
+UniformSampleable = Union[Tuple[float, float], float]
+# Specification type for choosing an int in a range
+DiscreteUniformSampleable = Union[Tuple[int, int], int]
+# Specification type for variant RRs
+RRSampleable = Union[Tuple[float, float, float], float, str]
+
+
 class __FitJobs(NamedTuple):
     beta_fit: str
 
@@ -38,13 +46,28 @@ class FitData:
         return utilities.asdict(self)
 
 
-Sampleable = Union[Tuple[float, float], float]
-
-
 @dataclass
 class RatesParameters:
 
-    dummy: Sampleable = field(default=(0.0, 1.0))
+    exposure_to_admission: DiscreteUniformSampleable = field(default=(10, 14))
+    exposure_to_seroconversion: DiscreteUniformSampleable = field(default=(14, 18))
+    admission_to_death: DiscreteUniformSampleable = field(default=(12, 16))
+
+    ifr_risk_ratio: RRSampleable = field(default='BMJ')
+    ihr_risk_ratio: RRSampleable = field(default='BMJ')
+    idr_risk_ratio: RRSampleable = field(default=1.0)
+
+    def __post_init__(self):
+        RISK_RATIOS = {
+            'BMJ': {'mean': 1.64, 'lower': 1.32, 'upper': 2.04},  # https://www.bmj.com/content/372/bmj.n579
+            'LSHTM': {'mean': 1.35, 'lower': 1.08, 'upper': 1.65},
+            'Imperial': {'mean': 1.29, 'lower': 1.07, 'upper': 1.54},
+            'Exeter': {'mean': 1.91, 'lower': 1.35, 'upper': 2.71},
+            'PHE': {'mean': 1.65, 'lower': 1.21, 'upper': 2.25},
+        }
+
+        for ratio in ['ifr', 'ihr']:
+            rr = getattr(self, f'{ratio}_risk_ratio')
 
     def to_dict(self) -> Dict:
         return utilities.asdict(self)
@@ -52,46 +75,46 @@ class RatesParameters:
 
 @dataclass
 class FitParameters:
-    alpha: Sampleable = field(default=(0.9, 1.0))
-    sigma: Sampleable = field(default=(0.2, 1/3))
-    gamma: Sampleable = field(default=(0.2, 1/3))
-    pi: Sampleable = field(default=(0.01, 0.1))
+    alpha: UniformSampleable = field(default=(0.9, 1.0))
+    sigma: UniformSampleable = field(default=(0.2, 1 / 3))
+    gamma: UniformSampleable = field(default=(0.2, 1 / 3))
+    pi: UniformSampleable = field(default=(0.01, 0.1))
 
-    kappa_none_infection: Sampleable = field(default=0.0)
-    kappa_ancestral_infection: Sampleable = field(default=1.0)
-    kappa_alpha_infection: Sampleable = field(default=1.0)
-    kappa_beta_infection: Sampleable = field(default=1.0)
-    kappa_gamma_infection: Sampleable = field(default=1.0)
-    kappa_delta_infection: Sampleable = field(default=1.0)
-    kappa_other_infection: Sampleable = field(default=1.0)
-    kappa_omega_infection: Sampleable = field(default=1.0)
+    kappa_none_infection: UniformSampleable = field(default=0.0)
+    kappa_ancestral_infection: UniformSampleable = field(default=1.0)
+    kappa_alpha_infection: UniformSampleable = field(default=1.0)
+    kappa_beta_infection: UniformSampleable = field(default=1.0)
+    kappa_gamma_infection: UniformSampleable = field(default=1.0)
+    kappa_delta_infection: UniformSampleable = field(default=1.0)
+    kappa_other_infection: UniformSampleable = field(default=1.0)
+    kappa_omega_infection: UniformSampleable = field(default=1.0)
 
-    kappa_none_death: Sampleable = field(default=0.0)
-    kappa_ancestral_death: Sampleable = field(default=1.0)
-    kappa_alpha_death: Sampleable = field(default=1.0)
-    kappa_beta_death: Sampleable = field(default=1.0)
-    kappa_gamma_death: Sampleable = field(default=1.0)
-    kappa_delta_death: Sampleable = field(default=1.0)
-    kappa_other_death: Sampleable = field(default=1.0)
-    kappa_omega_death: Sampleable = field(default=1.0)
+    kappa_none_death: UniformSampleable = field(default=0.0)
+    kappa_ancestral_death: UniformSampleable = field(default=1.0)
+    kappa_alpha_death: UniformSampleable = field(default=1.0)
+    kappa_beta_death: UniformSampleable = field(default=1.0)
+    kappa_gamma_death: UniformSampleable = field(default=1.0)
+    kappa_delta_death: UniformSampleable = field(default=1.0)
+    kappa_other_death: UniformSampleable = field(default=1.0)
+    kappa_omega_death: UniformSampleable = field(default=1.0)
 
-    kappa_none_admission: Sampleable = field(default=0.0)
-    kappa_ancestral_admission: Sampleable = field(default=1.0)
-    kappa_alpha_admission: Sampleable = field(default=1.0)
-    kappa_beta_admission: Sampleable = field(default=1.0)
-    kappa_gamma_admission: Sampleable = field(default=1.0)
-    kappa_delta_admission: Sampleable = field(default=1.0)
-    kappa_other_admission: Sampleable = field(default=1.0)
-    kappa_omega_admission: Sampleable = field(default=1.0)
+    kappa_none_admission: UniformSampleable = field(default=0.0)
+    kappa_ancestral_admission: UniformSampleable = field(default=1.0)
+    kappa_alpha_admission: UniformSampleable = field(default=1.0)
+    kappa_beta_admission: UniformSampleable = field(default=1.0)
+    kappa_gamma_admission: UniformSampleable = field(default=1.0)
+    kappa_delta_admission: UniformSampleable = field(default=1.0)
+    kappa_other_admission: UniformSampleable = field(default=1.0)
+    kappa_omega_admission: UniformSampleable = field(default=1.0)
 
-    kappa_none_case: Sampleable = field(default=0.0)
-    kappa_ancestral_case: Sampleable = field(default=1.0)
-    kappa_alpha_case: Sampleable = field(default=1.0)
-    kappa_beta_case: Sampleable = field(default=1.0)
-    kappa_gamma_case: Sampleable = field(default=1.0)
-    kappa_delta_case: Sampleable = field(default=1.0)
-    kappa_other_case: Sampleable = field(default=1.0)
-    kappa_omega_case: Sampleable = field(default=1.0)
+    kappa_none_case: UniformSampleable = field(default=0.0)
+    kappa_ancestral_case: UniformSampleable = field(default=1.0)
+    kappa_alpha_case: UniformSampleable = field(default=1.0)
+    kappa_beta_case: UniformSampleable = field(default=1.0)
+    kappa_gamma_case: UniformSampleable = field(default=1.0)
+    kappa_delta_case: UniformSampleable = field(default=1.0)
+    kappa_other_case: UniformSampleable = field(default=1.0)
+    kappa_omega_case: UniformSampleable = field(default=1.0)
 
     def to_dict(self) -> Dict:
         return utilities.asdict(self)

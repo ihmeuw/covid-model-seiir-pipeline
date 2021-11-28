@@ -1,10 +1,10 @@
 import itertools
 from typing import Dict, List, Union
-import hashlib
 
 import numpy as np
 import pandas as pd
 
+from covid_model_seiir_pipeline.lib import utilities
 from covid_model_seiir_pipeline.lib.ode_mk2.containers import (
     Parameters,
 )
@@ -84,10 +84,7 @@ def prepare_ode_fit_parameters(rates: pd.DataFrame,
 
 
 def sample_parameter(parameter: str, draw_id: int, lower: float, upper: float) -> float:
-    key = f'{parameter}_{draw_id}'
-    # 4294967295 == 2**32 - 1 which is the maximum allowable seed for a `numpy.random.RandomState`.
-    seed = int(hashlib.sha1(key.encode('utf8')).hexdigest(), 16) % 4294967295
-    random_state = np.random.RandomState(seed=seed)
+    random_state = utilities.get_random_state(f'{parameter}_{draw_id}')
     return random_state.uniform(lower, upper)
 
 
