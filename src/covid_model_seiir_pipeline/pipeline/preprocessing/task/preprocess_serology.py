@@ -1,3 +1,6 @@
+import functools
+import multiprocessing
+
 import click
 import tqdm
 
@@ -20,6 +23,7 @@ def run_preprocess_serology(preprocessing_version: str, progress_bar: bool) -> N
     logger.info(f'Starting preprocessing for serology_data.', context='setup')
     specification = PreprocessingSpecification.from_version_root(preprocessing_version)
     data_interface = PreprocessingDataInterface.from_specification(specification)
+    num_cores = specification.workflow.task_specifications[PREPROCESSING_JOBS.preprocess_serology].num_cores
 
     logger.info('Loading raw serology input data', context='read')
     raw_seroprevalence = data_interface.load_raw_serology_data()
@@ -37,14 +41,22 @@ def run_preprocess_serology(preprocessing_version: str, progress_bar: bool) -> N
         n_samples=data_interface.get_n_draws(),
         bootstrap_samples=specification.seroprevalence_parameters.bootstrap_samples,
         correlate_samples=specification.seroprevalence_parameters.correlate_samples,
-        num_threads=specification.workflow.task_specifications[PREPROCESSING_JOBS.preprocess_serology].num_cores,
+        num_threads=num_cores,
         progress_bar=progress_bar,
     )
 
     logger.info('Removing vaccinated from seroprevalence.', context='model')
     seroprevalence = serology.remove_vaccinated(seroprevalence, vaccinated)
-    seroprevalence_samples = [serology.remove_vaccinated(sample, vaccinated)
-                              for sample in tqdm.tqdm(seroprevalence_samples, disable=not progress_bar)]
+    _runner = functools.partial(
+        serology.remove_vaccinated,
+        vaccinated=vaccinated,
+    )
+    with multiprocessing.Pool(num_cores) as pool:
+        seroprevalence_samples = list(tqdm.tqdm(
+            pool.imap(_runner, seroprevalence_samples),
+            total=len(seroprevalence_samples),
+            disable=not progress_bar
+        ))
 
     logger.info('Writing seroprevalence data.', context='write')
 
