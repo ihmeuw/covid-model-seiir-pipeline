@@ -35,7 +35,8 @@ def run_preprocess_serology(preprocessing_version: str, progress_bar: bool) -> N
     seroprevalence_samples = serology.sample_seroprevalence(
         seroprevalence,
         n_samples=data_interface.get_n_draws(),
-        **specification.seroprevalence_parameters.to_dict(),
+        bootstrap_samples=specification.seroprevalence_parameters.bootstrap_samples,
+        correlate_samples=specification.seroprevalence_parameters.correlate_samples,
         num_threads=specification.workflow.task_specifications[PREPROCESSING_JOBS.preprocess_serology].num_cores,
         progress_bar=progress_bar,
     )
