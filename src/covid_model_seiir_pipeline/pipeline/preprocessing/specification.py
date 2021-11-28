@@ -81,7 +81,6 @@ class PreprocessingData:
 
 @dataclass
 class SeroprevalenceParameters:
-    n_samples: int = field(default=100)
     correlate_samples: bool = field(default=True)
     bootstrap_samples: bool = field(default=True)
     vax_sero_prob: float = field(default=0.9)

@@ -1,5 +1,6 @@
 data:
-  location_set_version_id: 771
+  mr_location_set_version_id: 771
+  pred_location_set_version_id: '/ihme/covid-19/seir-preprocess/custom-hierarchies/modeling_plus_zaf.csv'
   model_inputs_version: 'best'
   age_specific_rates_version: 'best'
   mortality_scalars_version: 'best'
@@ -10,6 +11,7 @@ data:
   testing_outputs_version: 'best'
   variant_scaleup_version: 'best'
   vaccine_coverage_version: '2021_10_31.01'
+  serology_vaccine_coverage_version: 'best'
   vaccine_efficacy_version: 'best'
   vaccine_scenarios:
     - 'reference'
@@ -20,6 +22,10 @@ data:
   output_format: 'csv'
   n_draws: 100
   drop_locations: []
+seroprevalence_parameters:
+  correlate_samples: True
+  bootstrap_samples: True
+  vax_sero_prob: 0.9
 workflow:
   project: 'proj_covid_prod'
   queue: 'd.q'
