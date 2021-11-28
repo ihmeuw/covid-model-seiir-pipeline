@@ -432,11 +432,19 @@ class PreprocessingDataInterface:
         columns = [f'draw_{draw_id}'] if draw_id is not None else None
         return io.load(self.preprocessing_root.total_covid_scalars(columns=columns))
 
-    def save_global_serology(self, data: pd.DataFrame) -> None:
-        io.dump(data, self.preprocessing_root.global_serology())
+    def save_seroprevalence(self, data: pd.DataFrame, draw_id: int = None) -> None:
+        if draw_id is None:
+            key = self.preprocessing_root.seroprevalence()
+        else:
+            key = self.preprocessing_root.seroprevalence_samples(draw_id=draw_id)
+        io.dump(data, key)
 
-    def load_global_serology(self) -> pd.DataFrame:
-        return io.load(self.preprocessing_root.global_serology())
+    def load_seroprevalence(self, draw_id: int = None) -> pd.DataFrame:
+        if draw_id is None:
+            key = self.preprocessing_root.seroprevalence()
+        else:
+            key = self.preprocessing_root.seroprevalence_samples(draw_id=draw_id)
+        return io.load(key)
 
     def save_testing_data(self, data: pd.DataFrame):
         io.dump(data, self.preprocessing_root.testing_for_idr())

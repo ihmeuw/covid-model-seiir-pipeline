@@ -59,8 +59,9 @@ def run_preprocess_serology(preprocessing_version: str, progress_bar: bool) -> N
         ))
 
     logger.info('Writing seroprevalence data.', context='write')
-
-    import pdb; pdb.set_trace()
+    data_interface.save_seroprevalence(seroprevalence)
+    for draw, sample in enumerate(seroprevalence_samples):
+        data_interface.save_seroprevalence(sample, draw_id=draw)
 
     logger.report()
 
