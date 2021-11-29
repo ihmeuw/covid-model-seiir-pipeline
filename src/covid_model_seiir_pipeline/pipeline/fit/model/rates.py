@@ -1,82 +1,100 @@
-import itertools
-from pathlib import Path
+from typing import Dict, List
 
-import numpy as np
 import pandas as pd
+from loguru import logger
+
+from covid_model_seiir_pipeline.pipeline.fit.specification import RatesParameters
+from covid_model_seiir_pipeline.pipeline.fit.model import (
+    idr,
+    ifr,
+    ihr,
+)
+from covid_model_seiir_pipeline.pipeline.fit.model.sampled_params import (
+    Durations,
+    VariantRR,
+)
 
 
-def run_rates_model(hierarchy: pd.DataFrame, *args, **kwargs):
-    most_detailed = hierarchy[hierarchy.most_detailed == 1].location_id.unique().tolist()
-    version = Path('/ihme/covid-19/historical-model/2021_11_24.02')
-    measure_map = {
-        ('ifr', 'deaths'): load_ifr_and_deaths,
-        ('ihr', 'admissions'): load_ihr_and_admissions,
-        ('idr', 'cases'): load_idr_and_cases,
-    }
+def run_rates_pipeline(epi_data: pd.DataFrame,
+                       age_patterns: pd.DataFrame,
+                       seroprevalence: pd.DataFrame,
+                       covariates: List[pd.Series],
+                       covariate_pool: Dict[str, List[str]],
+                       mr_hierarchy: pd.DataFrame,
+                       pred_hierarchy: pd.DataFrame,
+                       total_population: pd.Series,
+                       age_specific_population: pd.Series,
+                       testing_capacity: pd.Series,
+                       variant_prevalence: pd.Series,
+                       daily_infections: pd.Series,
+                       durations: Durations,
+                       variant_rrs: VariantRR,
+                       params: RatesParameters,
+                       day_inflection: pd.Timestamp,
+                       num_threads: int,
+                       progress_bar: bool):
+    logger.debug('IDR ESTIMATION')
+    idr_results = idr.runner(
+        cumulative_cases=epi_data['cumulative_cases'].dropna(),
+        daily_cases=epi_data['daily_cases'].dropna(),
+        seroprevalence=seroprevalence,
+        covariates=covariates,
+        covariate_list=covariate_pool['idr'],
+        mr_hierarchy=mr_hierarchy,
+        pred_hierarchy=pred_hierarchy,
+        population=total_population,
+        testing_capacity=testing_capacity,
+        daily_infections=daily_infections,
+        durations=durations._asdict(),
+        pred_start_date=params.pred_start_date,
+        pred_end_date=params.pred_end_date,
+        num_threads=num_threads,
+        progress_bar=progress_bar,
+    )
 
-    rates, measures, smoothed_measures, lags = [], [], [], {}
-    for (r, m), loader in measure_map.items():
-        data = loader(version, suffix='_stage_2').reset_index()
-        lag = data.lag.iloc[0]
-        data = (data
-                .loc[data.location_id.isin(most_detailed)]
-                .set_index(['location_id', 'date'])
-                .groupby('location_id')
-                .apply(lambda x: x.reset_index(level='location_id', drop=True)
-                                  .shift(periods=-lag, freq='D')))
-        rates.append(data.loc[:, [f'{r}_lr', f'{r}_hr', r]])
-        measures.append(data.loc[:, m])
-        smoothed_measures.append(data.loc[:, m]
-                                 .groupby('location_id')
-                                 .apply(lambda x: x.clip(0, np.inf)
-                                                   .rolling(window=7, min_periods=7, center=True)
-                                                   .mean()))
-        lags[m] = lag
+    logger.debug('IHR ESTIMATION')
+    ihr_results = ihr.runner(
+        cumulative_hospitalizations=epi_data['cumulative_hospitalizations'].dropna(),
+        daily_hospitalizations=epi_data['daily_hospitalizations'].dropna(),
+        seroprevalence=seroprevalence,
+        covariates=covariates,
+        covariate_list=covariate_pool['ihr'],
+        daily_infections=daily_infections,
+        variant_prevalence=variant_prevalence,
+        mr_hierarchy=mr_hierarchy,
+        pred_hierarchy=pred_hierarchy,
+        ihr_age_pattern=age_patterns['ihr'],
+        sero_age_pattern=age_patterns['seroprevalence'],
+        population=total_population,
+        age_spec_population=age_specific_population,
+        variant_risk_ratio=variant_rrs.ihr,
+        durations=durations._asdict(),
+        day_0=params.day_0,
+        pred_start_date=params.pred_start_date,
+        pred_end_date=params.pred_end_date,
+    )
 
-    col_order = [f'{r}_{g}' for g, r in itertools.product(['lr', 'hr'], ['ifr', 'ihr', 'idr'])] + ['ifr', 'ihr', 'idr']
-    rates = pd.concat(rates, axis=1).loc[:, col_order]
+    logger.debug("IFR ESTIMATION")
+    ifr_results = ifr.runner(
+        cumulative_deaths=epi_data['cumulative_deaths'].dropna(),
+        daily_deaths=epi_data['daily_deaths'].dropna(),
+        seroprevalence=seroprevalence,
+        covariates=covariates,
+        covariate_list=covariate_pool['ifr'],
+        daily_infections=daily_infections,
+        variant_prevalence=variant_prevalence,
+        mr_hierarchy=mr_hierarchy,
+        pred_hierarchy=pred_hierarchy,
+        ifr_age_pattern=age_patterns['ifr'],
+        sero_age_pattern=age_patterns['seroprevalence'],
+        population=total_population,
+        age_spec_population=age_specific_population,
+        variant_risk_ratio=variant_rrs.ifr,
+        durations=durations._asdict(),
+        day_inflection=day_inflection,
+        day_0=params.day_0,
+        pred_start_date=params.pred_start_date,
+        pred_end_date=params.pred_end_date,
+    )
 
-    all_locs = rates.reset_index().location_id.unique().tolist()
-    dates = rates.reset_index().date
-    global_date_range = pd.date_range(dates.min() - pd.Timedelta(days=1), dates.max())
-    square_idx = pd.MultiIndex.from_product((all_locs, global_date_range), names=['location_id', 'date']).sort_values()
-
-    rates = rates.reindex(square_idx).sort_index()
-    measures = pd.concat(measures, axis=1).reindex(square_idx).sort_index()
-    smoothed_measures = pd.concat(smoothed_measures, axis=1).reindex(square_idx).sort_index()
-
-    return rates, measures, smoothed_measures, lags
-
-
-def load_idr_and_cases(version, suffix):
-    idr = pd.read_parquet(version / f'pred_idr{suffix}.parquet')
-    idr['idr_hr'] = idr['pred_idr']
-    idr['idr_lr'] = idr['pred_idr']
-    idr['idr'] = idr['pred_idr']
-    idr = idr.drop(columns='pred_idr')
-    cases = pd.read_parquet(version / 'cases.parquet').rename(columns={'daily_cases': 'cases'})
-    data = pd.concat([idr, cases], axis=1)
-    data = data.loc[~data.isnull().any(axis=1)].sort_index()
-    data['lag'] = 13
-    return data
-
-
-def load_ifr_and_deaths(version, suffix):
-    ifr = pd.read_parquet(version / f'pred_ifr{suffix}.parquet')
-    ifr = ifr.rename(columns={'pred_ifr_lr': 'ifr_lr', 'pred_ifr_hr': 'ifr_hr', 'pred_ifr': 'ifr'})
-    deaths = pd.read_parquet(version / 'deaths.parquet').rename(columns={'daily_deaths': 'deaths'})
-    data = pd.concat([ifr, deaths], axis=1)
-    data = data.loc[~data.isnull().any(axis=1)].sort_index()
-    data['lag'] = 27
-    return data
-
-
-def load_ihr_and_admissions(version, suffix):
-    ifr = pd.read_parquet(version / f'pred_ihr{suffix}.parquet')
-    ifr = ifr.rename(columns={'pred_ihr_lr': 'ihr_lr', 'pred_ihr_hr': 'ihr_hr', 'pred_ihr': 'ihr'})
-    deaths = pd.read_parquet(version / 'hospitalizations.parquet').rename(
-        columns={'daily_hospitalizations': 'admissions'})
-    data = pd.concat([ifr, deaths], axis=1)
-    data = data.loc[~data.isnull().any(axis=1)].sort_index()
-    data['lag'] = 13
-    return data
+    return ifr_results, ihr_results, idr_results

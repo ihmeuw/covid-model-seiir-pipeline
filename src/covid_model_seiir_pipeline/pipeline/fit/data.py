@@ -58,42 +58,47 @@ class FitDataInterface:
     # Preprocessed Data #
     #####################
 
-    def load_modeling_hierarchy(self) -> pd.DataFrame:
-        return io.load(self.preprocessing_root.hierarchy())
+    def load_hierarchy(self, name: str) -> pd.DataFrame:
+        return self.preprocessing_data_interface.load_hierarchy(name=name)
 
     def load_population(self, measure: str) -> pd.DataFrame:
-        return io.load(self.preprocessing_root.population(measure=measure))
+        return self.preprocessing_data_interface.load_population(measure=measure)
 
     def load_age_patterns(self) -> pd.DataFrame:
-        return io.load(self.preprocessing_root.age_patterns())
+        return self.preprocessing_data_interface.load_age_patterns()
+
+    def load_reported_epi_data(self) -> pd.DataFrame:
+        return self.preprocessing_data_interface.load_reported_epi_data()
 
     def load_total_covid_scalars(self, draw_id: int = None) -> pd.DataFrame:
-        columns = [f'draw_{draw_id}'] if draw_id is not None else None
-        return io.load(self.preprocessing_root.total_covid_scalars(columns=columns))
+        return self.preprocessing_data_interface.load_total_covid_scalars(draw_id=draw_id)
 
-    def load_global_serology(self) -> pd.DataFrame:
-        return io.load(self.preprocessing_root.global_serology())
+    def load_seroprevalence(self, draw_id: int = None) -> pd.DataFrame:
+        return self.preprocessing_data_interface.load_seroprevalence(draw_id=draw_id)
+
+    def load_sensitivity(self, draw_id: int = None) -> pd.DataFrame:
+        return self.preprocessing_data_interface.load_sensitivity(draw_id)
 
     def load_testing_data(self) -> pd.DataFrame:
-        return io.load(self.preprocessing_root.testing_for_idr())
+        return self.preprocessing_data_interface.load_testing_data()
 
     def load_covariate(self, covariate: str, scenario: str) -> pd.DataFrame:
-        return io.load(self.preprocessing_root[covariate](covariate_scenario=scenario))
+        return self.preprocessing_data_interface.load_covariate(covariate, scenario)
 
     def load_covariate_info(self, covariate: str, info_type: str) -> pd.DataFrame:
-        return io.load(self.preprocessing_root[f"{covariate}_info"](info_type=info_type))
+        return self.preprocessing_data_interface.load_covariate_info(covariate, info_type)
 
     def load_variant_prevalence(self, scenario: str) -> pd.DataFrame:
-        return io.load(self.preprocessing_root.variant_prevalence(scenario=scenario))
+        return self.preprocessing_data_interface.load_variant_prevalence(scenario)
 
     def load_waning_parameters(self, measure: str) -> pd.DataFrame:
-        return io.load(self.preprocessing_root.waning_parameters(measure=measure))
+        return self.preprocessing_data_interface.load_waning_parameters(measure)
 
     def load_vaccine_uptake(self, scenario: str) -> pd.DataFrame:
-        return io.load(self.preprocessing_root.vaccine_uptake(covariate_scenario=scenario))
+        return self.preprocessing_data_interface.load_vaccine_uptake(scenario)
 
     def load_vaccine_risk_reduction(self, scenario: str) -> pd.DataFrame:
-        return io.load(self.preprocessing_root.vaccine_risk_reduction(covariate_scenario=scenario))
+        return self.preprocessing_data_interface.load_vaccine_risk_reduction(scenario)
 
     ################
     # Fit data I/O #

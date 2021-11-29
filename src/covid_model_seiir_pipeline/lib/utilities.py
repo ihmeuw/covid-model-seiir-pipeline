@@ -1,9 +1,12 @@
 from __future__ import annotations
 
 import abc
+from contextlib import contextmanager
 from dataclasses import asdict as asdict_, fields, is_dataclass
 import hashlib
+import os
 from pathlib import Path
+import sys
 from typing import Dict, Union, Tuple
 from pprint import pformat
 
@@ -131,3 +134,14 @@ def get_random_state(key: str):
     seed = get_random_seed(key)
     random_state = np.random.RandomState(seed=seed)
     return random_state
+
+
+@contextmanager
+def suppress_stdout():
+    with open(os.devnull, 'w') as devnull:
+        old_stdout = sys.stdout
+        sys.stdout = devnull
+        try:
+            yield
+        finally:
+            sys.stdout = old_stdout
