@@ -1,5 +1,6 @@
 from typing import Dict, Tuple
 
+import numpy as np
 import pandas as pd
 
 from covid_model_seiir_pipeline.lib import (
@@ -83,6 +84,12 @@ def _process_epi_data(data: pd.Series, measure: str,
                                 .diff()
                                 .fillna(data[f'cumulative_{measure}']))
     data = data.dropna().set_index(['location_id', 'date']).sort_index()
+
+    data[f'smoothed_daily_{measure}'] = (data[f'daily_{measure}']
+                                         .groupby('location_id')
+                                         .apply(lambda x: x.clip(0, np.inf)
+                                                .rolling(window=7, min_periods=7, center=True)
+                                                .mean()))
 
     return data
 
