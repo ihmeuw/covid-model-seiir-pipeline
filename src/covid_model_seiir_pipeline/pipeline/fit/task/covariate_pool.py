@@ -1,13 +1,11 @@
-import itertools
-
 import click
 
 from covid_model_seiir_pipeline.lib import (
     cli_tools,
-    utilities,
 )
 from covid_model_seiir_pipeline.pipeline.fit.data import FitDataInterface
 from covid_model_seiir_pipeline.pipeline.fit.specification import FitSpecification
+from covid_model_seiir_pipeline.pipeline.fit import model
 
 logger = cli_tools.task_performance_logger
 
@@ -19,41 +17,13 @@ def run_covariate_pool(fit_version: str) -> None:
     n_samples = data_interface.get_n_draws()
 
     logger.info('Loading covariate data', context='read')
-    # Get from config?
-    covariate_options = [
-        'obesity',
-        'smoking',
-        'diabetes',
-        'ckd',
-        'cancer',
-        'copd',
-        'cvd',
-        'uhc',
-        'haq',
-        'prop_65plus'
-    ]
+    # ... load covariates and first pass ifr data if needed here ...
 
     logger.info('Identifying best covariate combinations and inflection points.', context='model')
-    test_combinations = []
-    for i in range(len(covariate_options)):
-        test_combinations += [list(set(cc)) for cc in itertools.combinations(covariate_options, i + 1)]
-    test_combinations = [cc for cc in test_combinations if
-                         len([c for c in cc if c in ['uhc', 'haq']]) <= 1]
-    logger.warning('Not actually testing covariate combinations.')
-    selected_combinations = [tc for tc in test_combinations if 'smoking' in tc and len(tc) >= 5][:n_samples]
-
-    idr_covariate_options = [['haq'], ['uhc'], ['prop_65plus'], [], ]
-    random_state = utilities.get_random_state('idr_covariate_pool')
-    idr_covariate_pool = random_state.choice(idr_covariate_options, n_samples)
-
-    covariate_selections = {'ifr': {}, 'ihr': {}, 'idr': {}}
-    for draw in range(n_samples):
-        covariate_selections['ifr'][draw] = selected_combinations[draw]
-        covariate_selections['ihr'][draw] = selected_combinations[draw]
-        covariate_selections['idr'][draw] = idr_covariate_pool[draw]
+    covariate_options = model.make_covariate_pool(n_samples)
 
     logger.info('Writing covariate options', context='write')
-    data_interface.save_covariate_options(covariate_selections)
+    data_interface.save_covariate_options(covariate_options)
 
     logger.report()
 

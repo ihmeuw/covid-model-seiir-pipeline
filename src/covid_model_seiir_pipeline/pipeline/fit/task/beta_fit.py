@@ -37,6 +37,7 @@ def run_beta_fit(fit_version: str, draw_id: int, progress_bar: bool) -> None:
     covariate_pool = data_interface.load_covariate_options()
     rhos = data_interface.load_variant_prevalence(scenario='reference')
     variant_prevalence = rhos.sum(axis=1)
+    mr_covariates = [data_interface.load_covariate(covariate, 'reference') for covariate in model.COVARIATE_POOL]
 
     logger.info('Sampling rates parameters', context='transform')
     durations = model.sample_durations(specification.rates_parameters, draw_id)
@@ -64,7 +65,7 @@ def run_beta_fit(fit_version: str, draw_id: int, progress_bar: bool) -> None:
         epi_data=epi_measures,
         age_patterns=age_patterns,
         seroprevalence=first_pass_seroprevalence,
-        covariates=...,
+        covariates=mr_covariates,
         covariate_pool=covariate_pool,
         mr_hierarchy=mr_hierarchy,
         pred_hierarchy=pred_hierarchy,

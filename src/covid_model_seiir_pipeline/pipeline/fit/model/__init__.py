@@ -9,6 +9,10 @@ from covid_model_seiir_pipeline.pipeline.fit.model.seroprevalence import (
 from covid_model_seiir_pipeline.pipeline.fit.model.rates import (
     run_rates_pipeline,
 )
+from covid_model_seiir_pipeline.pipeline.fit.model.covariate_pool import (
+    COVARIATE_POOL,
+    make_covariate_pool,
+)
 from covid_model_seiir_pipeline.pipeline.fit.model.ode_fit import (
     prepare_ode_fit_parameters,
     sample_params,
