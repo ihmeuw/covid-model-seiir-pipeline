@@ -142,8 +142,9 @@ def sample_sensitivity(sensitivity_data: pd.DataFrame,
                        n_samples: int,
                        floor: float = 1e-4,
                        logit_se_cap: float = 1.) -> List[pd.DataFrame]:
-    logit_mean = math.logit(sensitivity_data['sensitivity_mean'].clip(floor, 1 - floor))
-    logit_sd = (sensitivity_data['sensitivity_std'] / (logit_mean * (1 - logit_mean))).clip(0, logit_se_cap)
+    mean = sensitivity_data['sensitivity_mean'].clip(floor, 1 - floor)
+    logit_mean = math.logit(mean)
+    logit_sd = (sensitivity_data['sensitivity_std'] / (mean * (1 - mean))).clip(0, logit_se_cap)
 
     random_state = utilities.get_random_state('sample_seroreversion_error')
     logit_samples = random_state.normal(loc=logit_mean.to_frame().values,
