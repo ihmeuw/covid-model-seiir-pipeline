@@ -27,8 +27,8 @@ def run_beta_fit(fit_version: str, draw_id: int, progress_bar: bool) -> None:
     logger.info('Loading rates data', context='read')
     mr_hierarchy = data_interface.load_hierarchy(name='mr')
     pred_hierarchy = data_interface.load_hierarchy(name='pred')
-    five_year_population = data_interface.load_population(measure='five_year')
-    total_population = data_interface.load_population(measure='total')
+    five_year_population = data_interface.load_population(measure='five_year').population
+    total_population = data_interface.load_population(measure='total').population
     epi_measures = data_interface.load_reported_epi_data()
     age_patterns = data_interface.load_age_patterns()
     seroprevalence = data_interface.load_seroprevalence(draw_id=draw_id).reset_index()
@@ -37,9 +37,14 @@ def run_beta_fit(fit_version: str, draw_id: int, progress_bar: bool) -> None:
     covariate_pool = data_interface.load_covariate_options(draw_id=draw_id)
     rhos = data_interface.load_variant_prevalence(scenario='reference')
     variant_prevalence = rhos.sum(axis=1)
-    mr_covariates = [data_interface.load_covariate(covariate, 'reference') for covariate in model.COVARIATE_POOL]
+    mr_covariates = []
+    for covariate in model.COVARIATE_POOL:
+        cov = (data_interface
+               .load_covariate(covariate, 'reference')
+               .groupby('location_id')[f'{covariate}_reference']
+               .mean().rename(covariate))
+        mr_covariates.append(cov)
 
-    import pdb; pdb.set_trace()
     logger.info('Sampling rates parameters', context='transform')
     durations = model.sample_durations(specification.rates_parameters, draw_id)
     variant_severity = model.sample_variant_severity(specification.rates_parameters, draw_id)
@@ -49,7 +54,7 @@ def run_beta_fit(fit_version: str, draw_id: int, progress_bar: bool) -> None:
         seroprevalence=seroprevalence,
         epi_data=epi_measures,
         variant_prevalence=variant_prevalence,
-        population=total_population.population,
+        population=total_population,
         params=specification.rates_parameters,
     )
 
@@ -59,7 +64,6 @@ def run_beta_fit(fit_version: str, draw_id: int, progress_bar: bool) -> None:
     daily_infections = (daily_deaths / naive_ifr).rename('daily_infections').reset_index()
     daily_infections['date'] -= pd.Timedelta(days=durations.exposure_to_death)
     daily_infections = daily_infections.set_index(['location_id', 'date']).loc[:, 'daily_infections']
-
     logger.info('Running first-pass rates model', context='rates_model_1')
     rates = model.run_rates_pipeline(
         epi_data=epi_measures,

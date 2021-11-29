@@ -17,7 +17,7 @@ def create_model_data(cumulative_cases: pd.Series,
                       durations: Dict,
                       population: pd.Series):
     idr_data = seroprevalence.loc[seroprevalence['is_outlier'] == 0].copy()
-    idr_data['date'] -= pd.Timedelta(days=durations['pcr_to_sero'])
+    idr_data['date'] -= pd.Timedelta(days=durations['pcr_to_seropositive'])
     idr_data = (idr_data
                 .set_index(['data_id', 'location_id', 'date'])
                 .loc[:, 'seroprevalence'])

@@ -31,7 +31,7 @@ def preprocess_prop_65plus(data_interface: PreprocessingDataInterface) -> None:
     logger.info('Generating prop 65+', context='transform')
     over_65 = pop[pop.age_group_years_start >= 65].groupby('location_id').population.sum()
     total = pop.groupby('location_id').population.sum()
-    prop_65plus = (over_65 / total).rename('prop_65plus')
+    prop_65plus = (over_65 / total).rename('prop_65plus_reference')
 
     logger.info('Writing covariate', context='write')
     data_interface.save_covariate(prop_65plus, 'prop_65plus', 'reference')

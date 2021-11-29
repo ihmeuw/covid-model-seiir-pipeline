@@ -26,6 +26,7 @@ def runner(cumulative_cases: pd.Series,
            pred_end_date: pd.Timestamp,
            num_threads: int,
            progress_bar: bool) -> namedtuple:
+    import pdb; pdb.set_trace()
     model_data = data.create_model_data(
         cumulative_cases=cumulative_cases.copy(),
         daily_cases=daily_cases.copy(),
