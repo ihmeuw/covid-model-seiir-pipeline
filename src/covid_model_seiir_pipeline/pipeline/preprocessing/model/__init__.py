@@ -19,6 +19,7 @@ _GBD_COVARIATES = [
     'air_pollution_pm_2_5',
     'ckd',
     'cvd',
+    'uhc',
     'haqi',
     'mean_age_standardized_sbp_mmhg_above_age_25',
     'obesity',

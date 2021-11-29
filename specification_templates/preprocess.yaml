@@ -1,7 +1,7 @@
 data:
   mr_location_set_version_id: 771
   pred_location_set_version_id: '/ihme/covid-19/seir-preprocess/custom-hierarchies/modeling_plus_zaf.csv'
-  model_inputs_version: 'best'
+  model_inputs_version: '2021_11_29.06'
   age_specific_rates_version: 'best'
   mortality_scalars_version: 'best'
   mask_use_outputs_version: 'best'

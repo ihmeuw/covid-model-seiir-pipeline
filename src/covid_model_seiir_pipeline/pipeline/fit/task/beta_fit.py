@@ -39,6 +39,7 @@ def run_beta_fit(fit_version: str, draw_id: int, progress_bar: bool) -> None:
     variant_prevalence = rhos.sum(axis=1)
     mr_covariates = [data_interface.load_covariate(covariate, 'reference') for covariate in model.COVARIATE_POOL]
 
+    import pdb; pdb.set_trace()
     logger.info('Sampling rates parameters', context='transform')
     durations = model.sample_durations(specification.rates_parameters, draw_id)
     variant_severity = model.sample_variant_severity(specification.rates_parameters, draw_id)
