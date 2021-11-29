@@ -33,7 +33,7 @@ def run_beta_fit(fit_version: str, draw_id: int, progress_bar: bool) -> None:
     age_patterns = data_interface.load_age_patterns()
     seroprevalence = data_interface.load_seroprevalence(draw_id=draw_id).reset_index()
     sensitivity = data_interface.load_sensitivity(draw_id=draw_id)
-    testing_capacity = data_interface.load_testing_data()
+    testing_capacity = data_interface.load_testing_data()['testing_capacity']
     covariate_pool = data_interface.load_covariate_options(draw_id=draw_id)
     rhos = data_interface.load_variant_prevalence(scenario='reference')
     variant_prevalence = rhos.sum(axis=1)

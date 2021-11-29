@@ -429,7 +429,7 @@ class PreprocessingDataInterface:
         io.dump(hierarchy, self.preprocessing_root.hierarchy(measure=name))
 
     def load_hierarchy(self, name: str) -> pd.DataFrame:
-        return io.load(self.preprocessing_root.hierarchy(measure=name))
+        return io.load(self.preprocessing_root.hierarchy(measure=name)).reset_index()
 
     def save_population(self, data: pd.DataFrame, measure: str) -> None:
         io.dump(data, self.preprocessing_root.population(measure=measure))
