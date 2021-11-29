@@ -23,6 +23,7 @@ if __name__ == "__main__":
         'matplotlib',
         'numba>=0.54',
         'numpy',
+        'openpyxl',
         'pandas',
         'pypdf2',
         'pyyaml',

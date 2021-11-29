@@ -171,7 +171,7 @@ class PreprocessingDataInterface:
             'muecksch': ['muecksch'],
             'lumley': ['lumley_n-abbott', 'lumley_s-oxford']
         }
-        return {k: pd.concat([pd.read_excel(root / f'{name}.xlsx') for name in paths]) for k, paths in path_map}
+        return {k: pd.concat([pd.read_excel(root / f'{name}.xlsx') for name in paths]) for k, paths in path_map.items()}
 
     ##############################
     # Age-specific Rates loaders #
