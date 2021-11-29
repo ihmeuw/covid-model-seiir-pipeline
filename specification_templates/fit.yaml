@@ -1,5 +1,5 @@
 data:
-  seir_preprocess_version: '2021_11_19.04'
+  seir_preprocess_version: '2021_11_28.12'
   output_format: 'parquet'
   output_root: ''
   n_draws: 100
@@ -8,13 +8,12 @@ rates_parameters:
   exposure_to_seroconversion: [14, 18]
   admission_to_death: [12, 16]
   # One of  'BMJ', 'LSHTM', 'Imperial', 'Exeter', 'PHE', 'Combined',
-  # Or a 3-tuple of [mean, upper, lower]
+  # Or a 3-tuple of [mean, lower, upper]
   ifr_risk_ratio: 'BMJ'
   # One of  'BMJ', 'LSHTM', 'Imperial', 'Exeter', 'PHE', 'Combined',
-  # Or a 3-tuple of [mean, upper, lower]
+  # Or a 3-tuple of [mean, lower, upper]
   ihr_risk_ratio: 'BMJ'
   idr_risk_ratio: [1.0, 1.0, 1.0]
-
 fit_parameters:
   # Mixing parameter.  dS/dt = -beta * S * I ** alpha
   alpha: [0.9, 1.0]
