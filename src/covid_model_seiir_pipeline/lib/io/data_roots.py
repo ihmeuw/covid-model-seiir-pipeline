@@ -207,6 +207,13 @@ class PreprocessingRoot(DataRoot):
     vaccine_uptake = DatasetType('vaccine_uptake', LEAF_TEMPLATES.COV_SCENARIO_TEMPLATE)
     vaccine_risk_reduction = DatasetType('vaccine_risk_reduction', LEAF_TEMPLATES.COV_SCENARIO_TEMPLATE)
 
+    mask_use = DatasetType('mask_use', LEAF_TEMPLATES.COV_SCENARIO_TEMPLATE, PREFIX_TEMPLATES.COVARIATES)
+    mobility = DatasetType('mobility', LEAF_TEMPLATES.COV_SCENARIO_TEMPLATE, PREFIX_TEMPLATES.COVARIATES)
+    mobility_info = DatasetType('mobility', LEAF_TEMPLATES.COV_INFO_TEMPLATE, PREFIX_TEMPLATES.COVARIATES)
+    pneumonia = DatasetType('pneumonia', LEAF_TEMPLATES.COV_SCENARIO_TEMPLATE, PREFIX_TEMPLATES.COVARIATES)
+    proportion_over_2_5k = DatasetType('proportion_over_2_5k', LEAF_TEMPLATES.COV_SCENARIO_TEMPLATE, PREFIX_TEMPLATES.COVARIATES)
+    testing = DatasetType('testing', LEAF_TEMPLATES.COV_SCENARIO_TEMPLATE, PREFIX_TEMPLATES.COVARIATES)
+
     # Getters provide dynamic keys to support experimentation with custom covariates.
     def __getattr__(self, item: str) -> DatasetType:
         setattr(type(self), item, DatasetType(item, LEAF_TEMPLATES.COV_SCENARIO_TEMPLATE, PREFIX_TEMPLATES.COVARIATES))
