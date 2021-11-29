@@ -61,10 +61,8 @@ def run_covariate_pool(fit_version: str) -> None:
 @click.command()
 @cli_tools.with_task_fit_version
 @cli_tools.add_verbose_and_with_debugger
-@cli_tools.with_progress_bar
 def covariate_pool(fit_version: str,
-                   progress_bar: bool, verbose: int, with_debugger: bool):
+                   verbose: int, with_debugger: bool):
     cli_tools.configure_logging_to_terminal(verbose)
     run = cli_tools.handle_exceptions(run_covariate_pool, logger, with_debugger)
-    run(fit_version=fit_version,
-        progress_bar=progress_bar)
+    run(fit_version=fit_version)
