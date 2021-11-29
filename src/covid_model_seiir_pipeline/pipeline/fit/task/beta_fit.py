@@ -30,6 +30,7 @@ def run_beta_fit(fit_version: str, draw_id: int, progress_bar: bool) -> None:
     five_year_population = data_interface.load_population(measure='five_year').population
     total_population = data_interface.load_population(measure='total').population
     epi_measures = data_interface.load_reported_epi_data()
+    mortality_scalar = data_interface.load_total_covid_scalars(draw_id)
     age_patterns = data_interface.load_age_patterns()
     seroprevalence = data_interface.load_seroprevalence(draw_id=draw_id).reset_index()
     sensitivity = data_interface.load_sensitivity(draw_id=draw_id)
@@ -58,7 +59,16 @@ def run_beta_fit(fit_version: str, draw_id: int, progress_bar: bool) -> None:
         params=specification.rates_parameters,
     )
 
+    logger.info('Rescaling deaths', context='transform')
+    import pdb; pdb.set_trace()
+
+    logger.info('Generating naive infections for first pass rates model', context='transform')
     # dumb version of naive infections
+    if specification.rates_parameters.mortality_scalar == 'unscaled':
+        mortality_scalar.loc[:] = 0
+    else:
+        assert specification.rates_parameters.mortality_scalar == 'total'
+
     daily_deaths = epi_measures['daily_deaths'].dropna()
     naive_ifr = specification.rates_parameters.naive_ifr
     daily_infections = (daily_deaths / naive_ifr).rename('daily_infections').reset_index()

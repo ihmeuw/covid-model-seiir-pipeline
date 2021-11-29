@@ -71,7 +71,15 @@ class FitDataInterface:
         return self.preprocessing_data_interface.load_reported_epi_data()
 
     def load_total_covid_scalars(self, draw_id: int = None) -> pd.DataFrame:
-        return self.preprocessing_data_interface.load_total_covid_scalars(draw_id=draw_id)
+        specification = self.load_specification()
+        data = self.preprocessing_data_interface.load_total_covid_scalars(draw_id=draw_id)
+        if specification.rates_parameters.mortality_scalar == 'total':
+            return data
+        elif specification.rates_parameters.mortality_scalar == 'unscaled':
+            data.loc[:] = 1.0
+            return data
+        else:
+            raise ValueError(f'Unknown scaling option {specification.rates_parameters.mortality_scalar}')
 
     def load_seroprevalence(self, draw_id: int = None) -> pd.DataFrame:
         return self.preprocessing_data_interface.load_seroprevalence(draw_id=draw_id)

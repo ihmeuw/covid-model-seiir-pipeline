@@ -55,8 +55,8 @@ def _process_age_pattern_data(data: pd.DataFrame, hierarchy: pd.DataFrame):
 def _process_scalars(data: pd.DataFrame, hierarchy: pd.DataFrame):
     missing_locations = list(set(hierarchy.location_id).difference(data.index))
     if missing_locations:
-        logger.warning(f"Missing scalars for the following locations: {missing_locations}.  Filling with 1.")
-    data = data.reindex(hierarchy.index, fill_value=1.)
+        logger.warning(f"Missing scalars for the following locations: {missing_locations}.  Filling with nan.")
+    data = data.reindex(hierarchy.index)
     return data
 
 

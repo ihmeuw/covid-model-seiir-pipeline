@@ -60,6 +60,7 @@ class RatesParameters:
     day_0: Union[str, pd.Timestamp] = field(default='2020-03-15')
     pred_start_date: Union[str, pd.Timestamp] = field(default='2019-11-01')
     pred_end_date: Union[str, pd.Timestamp] = field(default='2022-03-15')
+    mortality_scalar: str = field(default='total')
 
     death_rate_threshold: float = field(default=0.1)
     variant_prevalence_threshold: float = field(default=0.1)
