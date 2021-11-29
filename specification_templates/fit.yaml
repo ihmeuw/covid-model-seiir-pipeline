@@ -4,6 +4,15 @@ data:
   output_root: ''
   n_draws: 100
 rates_parameters:
+  day_0: '2020-03-15'
+  pred_start_date: '2019-11-01'
+  pred_end_date: '2022-03-15'
+  # Criteria for first pass rates models.
+  death_rate_threshold: 0.1  # per million
+  variant_prevalence_threshold: 0.1  # proportion
+  inclusion_days: 180
+  naive_ifr: 0.005  # proportion
+  # Duration sampling parameters
   exposure_to_admission: [10, 14]
   exposure_to_seroconversion: [14, 18]
   admission_to_death: [12, 16]

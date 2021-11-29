@@ -11,7 +11,7 @@ from covid_model_seiir_pipeline.lib.ode_mk2.constants import (
     EPI_MEASURE_NAMES,
 )
 from covid_model_seiir_pipeline.pipeline.fit.data import FitDataInterface
-from covid_model_seiir_pipeline.pipeline.fit.specification import FitSpecification
+from covid_model_seiir_pipeline.pipeline.fit.specification import FitSpecification, FIT_JOBS
 from covid_model_seiir_pipeline.pipeline.fit import model
 
 logger = cli_tools.task_performance_logger
@@ -22,11 +22,64 @@ def run_beta_fit(fit_version: str, draw_id: int, progress_bar: bool) -> None:
     # Build helper abstractions
     specification = FitSpecification.from_version_root(fit_version)
     data_interface = FitDataInterface.from_specification(specification)
+    num_threads = specification.workflow.task_specifications[FIT_JOBS.beta_fit].num_cores
 
     logger.info('Loading rates data', context='read')
-    hierarchy = data_interface.load_modeling_hierarchy().reset_index()
+    mr_hierarchy = data_interface.load_hierarchy(name='mr')
+    pred_hierarchy = data_interface.load_hierarchy(name='pred')
+    five_year_population = data_interface.load_population(measure='five_year')
+    total_population = data_interface.load_population(measure='total')
+    epi_measures = data_interface.load_reported_epi_data()
+    age_patterns = data_interface.load_age_patterns()
+    seroprevalence = data_interface.load_seroprevalence(draw_id=draw_id)
+    sensitivity = data_interface.load_sensitivity(draw_id=draw_id)
+    testing_capacity = data_interface.load_testing_data()
+    covariate_pool = data_interface.load_covariate_options()
+    rhos = data_interface.load_variant_prevalence(scenario='reference')
+    variant_prevalence = rhos.sum(axis=1)
 
-    logger.info('Running first-pass rates model', context='rates_model')
+    logger.info('Sampling rates parameters', context='transform')
+    durations = model.sample_durations(specification.rates_parameters, draw_id)
+    variant_severity = model.sample_variant_severity(specification.rates_parameters, draw_id)
+    day_inflection = model.sample_day_inflection(specification.rates_parameters, draw_id)
+
+    logger.info('Subsetting seroprevalence for first pass rates model', context='transform')
+    first_pass_seroprevalence = model.subset_seroprevalence(
+        seroprevalence=seroprevalence,
+        epi_data=epi_measures,
+        variant_prevalence=variant_prevalence,
+        population=total_population.population,
+        params=specification.rates_parameters,
+    )
+
+    # dumb version of naive infections
+    daily_deaths = epi_measures['daily_deaths'].dropna()
+    naive_ifr = specification.rates_parameters.naive_ifr
+    daily_infections = (daily_deaths / naive_ifr).rename('daily_infections').reset_index()
+    daily_infections['date'] -= pd.Timedelta(days=durations.exposure_to_death)
+    daily_infections = daily_infections.set_index(['location_id', 'date']).loc[:, 'daily_infections']
+
+    logger.info('Running first-pass rates model', context='rates_model_1')
+    model.run_rates_pipeline(
+        epi_data=epi_measures,
+        age_patterns=age_patterns,
+        seroprevalence=first_pass_seroprevalence,
+        covariates=...,
+        covariate_pool=covariate_pool,
+        mr_hierarchy=mr_hierarchy,
+        pred_hierarchy=pred_hierarchy,
+        total_population=total_population,
+        age_specific_population=five_year_population,
+        testing_capacity=testing_capacity,
+        variant_prevalence=variant_prevalence,
+        daily_infections=daily_infections,
+        durations=durations,
+        variant_rrs=variant_severity,
+        params=specification.rates_parameters,
+        day_inflection=day_inflection,
+        num_threads=num_threads,
+        progress_bar=progress_bar,
+    )
     base_rates, epi_measures, smoothed_epi_measures, lags = model.run_rates_model(hierarchy)
 
     logger.info('Loading ODE fit input data', context='read')

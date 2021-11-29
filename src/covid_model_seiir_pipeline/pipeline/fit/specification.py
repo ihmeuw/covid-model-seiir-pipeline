@@ -2,6 +2,7 @@ from dataclasses import dataclass, field
 from typing import Dict, List, NamedTuple, Tuple, Union
 
 from covid_shared import workflow
+import pandas as pd
 
 from covid_model_seiir_pipeline.lib import (
     utilities,
@@ -56,6 +57,14 @@ class FitData:
 
 @dataclass
 class RatesParameters:
+    day_0: Union[str, pd.Timestamp] = field(default='2020-03-15')
+    pred_start_date: Union[str, pd.Timestamp] = field(default='2019-11-01')
+    pred_end_date: Union[str, pd.Timestamp] = field(default='2022-03-15')
+
+    death_rate_threshold: float = field(default=0.1)
+    variant_prevalence_threshold: float = field(default=0.1)
+    inclusion_days: int = field(default=180)
+    naive_ifr: float = field(default=0.005)
 
     exposure_to_admission: DiscreteUniformSampleable = field(default=(10, 14))
     exposure_to_seroconversion: DiscreteUniformSampleable = field(default=(14, 18))
@@ -88,6 +97,10 @@ class RatesParameters:
                 '2020-10-01', '2020-11-01', '2020-12-01',
                 '2021-01-01', '2021-02-01', '2021-03-01',
             ]
+
+        self.day_0: pd.Timestamp = pd.Timestamp(self.day_0)
+        self.pred_start_date: pd.Timestamp = pd.Timestamp(self.pred_start_date)
+        self.pred_end_date: pd.Timestamp = pd.Timestamp(self.pred_end_date)
 
     def to_dict(self) -> Dict:
         return utilities.asdict(self)
