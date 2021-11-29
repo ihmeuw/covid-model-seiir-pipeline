@@ -10,7 +10,9 @@ def subset_seroprevalence(seroprevalence: pd.DataFrame,
                           params: RatesParameters) -> pd.DataFrame:
     daily_deaths = epi_data['daily_deaths'].dropna()
 
-    death_dates = (daily_deaths.loc[(daily_deaths / population) < params.death_rate_threshold]
+    death_threshold = params.death_rate_threshold / 1e6
+    import pdb; pdb.set_trace()
+    death_dates = (daily_deaths.loc[(daily_deaths / population) < death_threshold]
                    .reset_index()
                    .groupby('location_id')['date'].max()
                    .rename('death_date'))

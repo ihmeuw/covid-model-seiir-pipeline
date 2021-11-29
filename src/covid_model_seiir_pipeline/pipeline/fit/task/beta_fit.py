@@ -31,10 +31,10 @@ def run_beta_fit(fit_version: str, draw_id: int, progress_bar: bool) -> None:
     total_population = data_interface.load_population(measure='total')
     epi_measures = data_interface.load_reported_epi_data()
     age_patterns = data_interface.load_age_patterns()
-    seroprevalence = data_interface.load_seroprevalence(draw_id=draw_id)
+    seroprevalence = data_interface.load_seroprevalence(draw_id=draw_id).reset_index()
     sensitivity = data_interface.load_sensitivity(draw_id=draw_id)
     testing_capacity = data_interface.load_testing_data()
-    covariate_pool = data_interface.load_covariate_options()
+    covariate_pool = data_interface.load_covariate_options(draw_id=draw_id)
     rhos = data_interface.load_variant_prevalence(scenario='reference')
     variant_prevalence = rhos.sum(axis=1)
 
@@ -42,7 +42,6 @@ def run_beta_fit(fit_version: str, draw_id: int, progress_bar: bool) -> None:
     durations = model.sample_durations(specification.rates_parameters, draw_id)
     variant_severity = model.sample_variant_severity(specification.rates_parameters, draw_id)
     day_inflection = model.sample_day_inflection(specification.rates_parameters, draw_id)
-
     logger.info('Subsetting seroprevalence for first pass rates model', context='transform')
     first_pass_seroprevalence = model.subset_seroprevalence(
         seroprevalence=seroprevalence,
@@ -60,7 +59,7 @@ def run_beta_fit(fit_version: str, draw_id: int, progress_bar: bool) -> None:
     daily_infections = daily_infections.set_index(['location_id', 'date']).loc[:, 'daily_infections']
 
     logger.info('Running first-pass rates model', context='rates_model_1')
-    model.run_rates_pipeline(
+    rates = model.run_rates_pipeline(
         epi_data=epi_measures,
         age_patterns=age_patterns,
         seroprevalence=first_pass_seroprevalence,
@@ -80,6 +79,7 @@ def run_beta_fit(fit_version: str, draw_id: int, progress_bar: bool) -> None:
         num_threads=num_threads,
         progress_bar=progress_bar,
     )
+    import pdb; pdb.set_trace()
     base_rates, epi_measures, smoothed_epi_measures, lags = model.run_rates_model(hierarchy)
 
     logger.info('Loading ODE fit input data', context='read')
