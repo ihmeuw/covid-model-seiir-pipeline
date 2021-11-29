@@ -24,6 +24,20 @@ def preprocess_mask_use(data_interface: PreprocessingDataInterface) -> None:
         data_interface.save_covariate(mask_use, 'mask_use', scenario)
 
 
+def preprocess_prop_65plus(data_interface: PreprocessingDataInterface) -> None:
+    logger.info('Loading population data', context='read')
+    pop = data_interface.load_population('five_year').reset_index()
+
+    logger.info('Generating prop 65+', context='transform')
+    over_65 = pop[pop.age_group_years_start >= 65].groupby('location_id').population.sum()
+    total = pop.groupby('location_id').population.sum()
+    prop_65plus = (over_65 / pop).rename('prop_65plus')
+
+    logger.info('Writing covariate', context='write')
+    data_interface.save_covariate(prop_65plus, 'prop_65plus', 'reference')
+
+
+
 def preprocess_mobility(data_interface: PreprocessingDataInterface) -> None:
     for scenario in ['reference', 'vaccine_adjusted']:
         logger.info(f'Loading raw mobility data for scenario {scenario}.', context='read')

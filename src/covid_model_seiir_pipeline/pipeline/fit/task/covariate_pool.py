@@ -23,6 +23,23 @@ def run_covariate_pool(fit_version: str, progress_bar: bool) -> None:
     data_interface = FitDataInterface.from_specification(specification)
 
     logger.info('Identifying best covariate combinations and inflection points.', context='model')
+    covariate_options = ['obesity', 'smoking', 'diabetes', 'ckd',
+                         'cancer', 'copd', 'cvd', 'uhc', 'haq',]
+    covariates = [db.obesity(adj_gbd_hierarchy),
+                  db.smoking(adj_gbd_hierarchy),
+                  db.diabetes(adj_gbd_hierarchy),
+                  db.ckd(adj_gbd_hierarchy),
+                  db.cancer(adj_gbd_hierarchy),
+                  db.copd(adj_gbd_hierarchy),
+                  db.cvd(adj_gbd_hierarchy),
+                  db.uhc(adj_gbd_hierarchy) / 100,
+                  db.haq(adj_gbd_hierarchy) / 100,]
+    prop_65plus = age_spec_population.copy().reset_index()
+    prop_65plus = prop_65plus.loc[prop_65plus['age_group_years_start'] >= 65].groupby('location_id')['population'].sum() /\
+                  prop_65plus.groupby('location_id')['population'].sum()
+    prop_65plus = prop_65plus.rename('prop_65plus')
+    covariates += [prop_65plus.copy()]
+    del prop_65plus
     test_combinations = []
     for i in range(len(covariate_options)):
         test_combinations += [list(set(cc)) for cc in itertools.combinations(covariate_options, i + 1)]

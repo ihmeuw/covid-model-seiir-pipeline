@@ -3,6 +3,7 @@ from covid_model_seiir_pipeline.pipeline.preprocessing.model.epi_data import (
 )
 from covid_model_seiir_pipeline.pipeline.preprocessing.model.covariate_data import (
     preprocess_mask_use,
+    preprocess_prop_65plus,
     preprocess_mobility,
     preprocess_pneumonia,
     preprocess_population_density,
@@ -31,6 +32,7 @@ _GBD_COVARIATES = [
 ]
 COVARIATES = {
     'mask_use': preprocess_mask_use,
+    'prop_65plus': preprocess_prop_65plus,
     'mobility': preprocess_mobility,
     'pneumonia': preprocess_pneumonia,
     'proportion_over_2_5k': preprocess_population_density,
