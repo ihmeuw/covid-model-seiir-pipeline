@@ -17,8 +17,9 @@ logger = cli_tools.task_performance_logger
 
 def preprocess_epi_data(data_interface: PreprocessingDataInterface) -> None:
     logger.info('Loading epi data.', context='read')
-    mr_hierarchy = data_interface.load_hierarchy('mr')
-    pred_hierarchy = data_interface.load_hierarchy('pred')
+    mr_hierarchy = data_interface.load_hierarchy('mr').reset_index()
+    pred_hierarchy = data_interface.load_hierarchy('pred').reset_index()
+
     age_pattern_data = data_interface.load_age_pattern_data()
     total_covid_scalars = data_interface.load_raw_total_covid_scalars()
     epi_data = data_interface.load_epi_measures()
@@ -51,7 +52,7 @@ def _process_age_pattern_data(data: pd.DataFrame, hierarchy: pd.DataFrame):
 
 
 def _process_scalars(data: pd.DataFrame, hierarchy: pd.DataFrame):
-    missing_locations = hierarchy.index.difference(data.index).tolist()
+    missing_locations = list(set(hierarchy.location_id).difference(data.index))
     if missing_locations:
         logger.warning(f"Missing scalars for the following locations: {missing_locations}.  Filling with 1.")
     data = data.reindex(hierarchy.index, fill_value=1.)
@@ -74,11 +75,11 @@ def _process_epi_data(data: pd.Series, measure: str,
     data = helpers.aggregate_data_from_md(data, mr_hierarchy, f'cumulative_{measure}')
     data = (data
             .append(extra_data.loc[:, data.columns])
-            .sort_values(['draw', 'location_id', 'date'])
+            .sort_values(['location_id', 'date'])
             .reset_index(drop=True))
 
     data[f'daily_{measure}'] = (data
-                                .groupby(['draw', 'location_id'])[f'cumulative_{measure}']
+                                .groupby(['location_id'])[f'cumulative_{measure}']
                                 .diff()
                                 .fillna(data[f'cumulative_{measure}']))
     data = data.dropna().set_index(['location_id', 'date']).sort_index()

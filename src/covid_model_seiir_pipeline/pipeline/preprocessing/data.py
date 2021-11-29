@@ -137,14 +137,13 @@ class PreprocessingDataInterface:
             'Hospitalizations': 'cumulative_hospitalizations',
             'Deaths': 'cumulative_deaths',
         }
-        data = data.rename(columns=col_map)
+        data = data.reset_index().rename(columns=col_map)
         data['date'] = pd.to_datetime(data['Date'])
         data['location_id'] = data['location_id'].astype(int)
         data = (data
                 .set_index(['location_id', 'date'])
                 .sort_index()
-                .loc[:, col_map.values()]
-                .reset_index())
+                .loc[:, col_map.values()])
         return data
 
     def load_gbd_covariate(self, covariate: str, with_observed: bool = False) -> pd.DataFrame:
@@ -192,7 +191,8 @@ class PreprocessingDataInterface:
             }
             data = io.load(self.age_specific_rates_root.rates_data(measure=file_name))
             data = data.rename(columns=column_map).loc[:, column_map.values()]
-            data['age_group_years_end'].iloc[-1] = 125
+            # Change age group end of the terminal group from 99 to 125
+            data.iloc[-1, 1] = 125
             data = data.set_index(['age_group_years_start', 'age_group_years_end'])
             measure_data.append(data)
         measure_data = pd.concat(measure_data, axis=1).reset_index()
