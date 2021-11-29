@@ -123,13 +123,13 @@ class PreprocessingDataInterface:
         data = io.load(self.model_inputs_root.serology(measure='global_serology_summary'))
         return data.reset_index()
 
-    def load_epi_measures(self) -> Tuple[pd.Series, pd.Series, pd.Series]:
+    def load_epi_measures(self) -> Dict[str, pd.Series]:
         full_data_extra_hospital = self._format_full_data(io.load(self.model_inputs_root.full_data_extra_hospital()))
         cases = full_data_extra_hospital.loc[:, 'cumulative_cases'].dropna()
         hospitalizations = full_data_extra_hospital.loc[:, 'cumulative_hospitalizations'].dropna()
         full_data = self._format_full_data(io.load(self.model_inputs_root.full_data()))
         deaths = full_data.loc[:, 'cumulative_deaths'].dropna()
-        return cases, hospitalizations, deaths
+        return {'cases': cases, 'hospitalizations': hospitalizations, 'deaths': deaths}
 
     def _format_full_data(self, data: pd.DataFrame) -> pd.DataFrame:
         col_map = {
@@ -442,6 +442,12 @@ class PreprocessingDataInterface:
 
     def load_age_patterns(self) -> pd.DataFrame:
         return io.load(self.preprocessing_root.age_patterns())
+
+    def save_reported_epi_data(self, data: pd.DataFrame) -> None:
+        io.dump(data, self.preprocessing_root.reported_epi_data())
+
+    def load_reported_epi_data(self) -> pd.DataFrame:
+        return io.load(self.preprocessing_root.reported_epi_data())
 
     def save_total_covid_scalars(self, data: pd.DataFrame):
         io.dump(data, self.preprocessing_root.total_covid_scalars())

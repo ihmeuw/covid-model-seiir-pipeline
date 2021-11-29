@@ -194,6 +194,7 @@ class PreprocessingRoot(DataRoot):
 
     hierarchy = DatasetType('hierarchy', LEAF_TEMPLATES.MEASURE_TEMPLATE)
     population = DatasetType('population', LEAF_TEMPLATES.MEASURE_TEMPLATE)
+    reported_epi_data = DatasetType('reported_epi_data')
     age_patterns = DatasetType('age_patterns')
     total_covid_scalars = DatasetType('total_covid_scalars')
     seroprevalence = DatasetType('seroprevalence')

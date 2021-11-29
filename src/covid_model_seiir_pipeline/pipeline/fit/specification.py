@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import Dict, NamedTuple, Tuple, Union
+from typing import Dict, List, NamedTuple, Tuple, Union
 
 from covid_shared import workflow
 
@@ -57,6 +57,8 @@ class RatesParameters:
     ihr_risk_ratio: RRSampleable = field(default='BMJ')
     idr_risk_ratio: RRSampleable = field(default=1.0)
 
+    day_inflection_options: List[str] = field(default_factory=list)
+
     def __post_init__(self):
         RISK_RATIOS = {
             'BMJ': {'mean': 1.64, 'lower': 1.32, 'upper': 2.04},  # https://www.bmj.com/content/372/bmj.n579
@@ -68,6 +70,16 @@ class RatesParameters:
 
         for ratio in ['ifr', 'ihr']:
             rr = getattr(self, f'{ratio}_risk_ratio')
+            if isinstance(rr, str):
+                rr = tuple(RISK_RATIOS[rr].values())
+            setattr(self, f'{ratio}_risk_ratio', rr)
+
+        if not self.day_inflection_options:
+            self.day_inflection_options = [
+                '2020-07-01', '2020-08-01', '2020-09-01',
+                '2020-10-01', '2020-11-01', '2020-12-01',
+                '2021-01-01', '2021-02-01', '2021-03-01',
+            ]
 
     def to_dict(self) -> Dict:
         return utilities.asdict(self)
@@ -88,33 +100,6 @@ class FitParameters:
     kappa_delta_infection: UniformSampleable = field(default=1.0)
     kappa_other_infection: UniformSampleable = field(default=1.0)
     kappa_omega_infection: UniformSampleable = field(default=1.0)
-
-    kappa_none_death: UniformSampleable = field(default=0.0)
-    kappa_ancestral_death: UniformSampleable = field(default=1.0)
-    kappa_alpha_death: UniformSampleable = field(default=1.0)
-    kappa_beta_death: UniformSampleable = field(default=1.0)
-    kappa_gamma_death: UniformSampleable = field(default=1.0)
-    kappa_delta_death: UniformSampleable = field(default=1.0)
-    kappa_other_death: UniformSampleable = field(default=1.0)
-    kappa_omega_death: UniformSampleable = field(default=1.0)
-
-    kappa_none_admission: UniformSampleable = field(default=0.0)
-    kappa_ancestral_admission: UniformSampleable = field(default=1.0)
-    kappa_alpha_admission: UniformSampleable = field(default=1.0)
-    kappa_beta_admission: UniformSampleable = field(default=1.0)
-    kappa_gamma_admission: UniformSampleable = field(default=1.0)
-    kappa_delta_admission: UniformSampleable = field(default=1.0)
-    kappa_other_admission: UniformSampleable = field(default=1.0)
-    kappa_omega_admission: UniformSampleable = field(default=1.0)
-
-    kappa_none_case: UniformSampleable = field(default=0.0)
-    kappa_ancestral_case: UniformSampleable = field(default=1.0)
-    kappa_alpha_case: UniformSampleable = field(default=1.0)
-    kappa_beta_case: UniformSampleable = field(default=1.0)
-    kappa_gamma_case: UniformSampleable = field(default=1.0)
-    kappa_delta_case: UniformSampleable = field(default=1.0)
-    kappa_other_case: UniformSampleable = field(default=1.0)
-    kappa_omega_case: UniformSampleable = field(default=1.0)
 
     def to_dict(self) -> Dict:
         return utilities.asdict(self)
