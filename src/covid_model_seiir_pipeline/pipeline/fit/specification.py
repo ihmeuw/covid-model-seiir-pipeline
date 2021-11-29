@@ -17,10 +17,17 @@ RRSampleable = Union[Tuple[float, float, float], float, str]
 
 
 class __FitJobs(NamedTuple):
+    covariate_pool: str
     beta_fit: str
 
 
 FIT_JOBS = __FitJobs(*__FitJobs._fields)
+
+
+class CovariatePoolTaskSpecification(workflow.TaskSpecification):
+    default_max_runtime_seconds = 5000
+    default_m_mem_free = '30G'
+    default_num_cores = 5
 
 
 class BetaFitTaskSpecification(workflow.TaskSpecification):
@@ -31,6 +38,7 @@ class BetaFitTaskSpecification(workflow.TaskSpecification):
 
 class FitWorkflowSpecification(workflow.WorkflowSpecification):
     tasks = {
+        FIT_JOBS.covariate_pool: CovariatePoolTaskSpecification,
         FIT_JOBS.beta_fit: BetaFitTaskSpecification,
     }
 
