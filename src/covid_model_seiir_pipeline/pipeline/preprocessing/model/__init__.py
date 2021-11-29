@@ -33,7 +33,7 @@ COVARIATES = {
     'mask_use': preprocess_mask_use,
     'mobility': preprocess_mobility,
     'pneumonia': preprocess_pneumonia,
-    'population_density': preprocess_population_density,
+    'proportion_over_2_5k': preprocess_population_density,
     'testing': preprocess_testing_data,
     **{covariate: preprocess_gbd_covariate(covariate) for covariate in _GBD_COVARIATES},
 }
