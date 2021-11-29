@@ -14,7 +14,7 @@ from covid_model_seiir_pipeline.pipeline.preprocessing.model.sensitivity import 
     preprocess_sensitivity,
 )
 
-COVARIATES = [
+_GBD_COVARIATES = [
     'air_pollution_pm_2_5',
     'ckd',
     'cvd',
@@ -29,15 +29,18 @@ COVARIATES = [
     'mean_bmi_above_age_20',
     'proportion_under_100m',
 ]
-
-MEASURES = {
-    'epi_data': preprocess_epi_data,
+COVARIATES = {
     'mask_use': preprocess_mask_use,
     'mobility': preprocess_mobility,
     'pneumonia': preprocess_pneumonia,
     'population_density': preprocess_population_density,
     'testing': preprocess_testing_data,
+    **{covariate: preprocess_gbd_covariate(covariate) for covariate in _GBD_COVARIATES},
+}
+
+MEASURES = {
+    'epi_data': preprocess_epi_data,
     'variant_prevalence': preprocess_variant_prevalence,
     'sensitivity': preprocess_sensitivity,
-    **{covariate: preprocess_gbd_covariate(covariate) for covariate in COVARIATES}
+    **COVARIATES,
 }
