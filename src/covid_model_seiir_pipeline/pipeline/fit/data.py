@@ -114,8 +114,11 @@ class FitDataInterface:
     def save_covariate_options(self, covariate_options: Dict) -> None:
         io.dump(covariate_options, self.fit_root.covariate_options())
 
-    def load_covariate_options(self) -> Dict:
-        return io.load(self.fit_root.covariate_options())
+    def load_covariate_options(self, draw_id: int = None) -> Dict:
+        covariate_pool = io.load(self.fit_root.covariate_options())
+        if draw_id is not None:
+            covariate_pool = {rate: draws[draw_id] for rate, draws in covariate_pool.items()}
+        return covariate_pool
 
     def save_epi_measures(self, data: pd.DataFrame, draw_id: int):
         io.dump(data, self.fit_root.epi_measures(draw_id=draw_id))
