@@ -5,7 +5,7 @@ from typing import Tuple, List
 from loguru import logger
 import numpy as np
 import pandas as pd
-from tqdm import tqdm
+import tqdm
 
 from covid_model_seiir_pipeline.lib import math
 
@@ -27,8 +27,12 @@ def find_idr_floor(pred: pd.Series,
         hierarchy=hierarchy.copy(),
     )
     floors = (np.array(test_range) / 100).tolist()
-    with multiprocessing.Pool(num_threads) as p:
-        rmse = list(tqdm(p.imap(_tfv, floors), total=len(floors), disable=not progress_bar))
+    rmse = []
+    for floor in tqdm.tqdm(floors, disable=not progress_bar):
+        rmse.append(_tfv(floor))
+
+    # with multiprocessing.Pool(num_threads) as p:
+    #     rmse = list(tqdm(p.imap(_tfv, floors), total=len(floors), disable=not progress_bar))
     rmse = pd.concat(rmse).reset_index()
 
     best_floor = (rmse
