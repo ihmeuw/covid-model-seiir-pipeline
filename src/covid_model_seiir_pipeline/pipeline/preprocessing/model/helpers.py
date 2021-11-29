@@ -112,3 +112,36 @@ def validate_hierarchies(mr_hierarchy: pd.DataFrame, pred_hierarchy: pd.DataFram
         pred_hierarchy.loc[most_detailed, 'most_detailed'] = 1
 
     return pred_hierarchy
+
+
+def parent_inheritance(data: pd.DataFrame, hierarchy: pd.DataFrame) -> pd.DataFrame:
+    if 'location_id' in data.index.names:
+        index_names = data.index.names
+        data = data.reset_index()
+    else:
+        assert 'location_id' in data.columns
+        index_names = None
+
+    location_ids = hierarchy['location_id'].to_list()
+    path_to_top_parents = [list(reversed(p.split(',')[:-1]))
+                           for p in hierarchy['path_to_top_parent'].to_list()]
+
+    for location_id, path_to_top_parent in zip(location_ids, path_to_top_parents):
+        if location_id not in data.reset_index()['location_id'].to_list():
+            for parent_id in path_to_top_parent:
+                try:
+                    parent_data = data.set_index('location_id').loc[parent_id]
+                    parent_data['location_id'] = location_id
+                    data = data.append(parent_data)
+                    break
+                except KeyError:
+                    pass
+            else:
+                location_name = hierarchy.set_index('location_id').location_name.loc[location_id]
+                logger.warning(f'No data available for {location_name} or any of its parents.')
+
+    if index_names is not None:
+        data = data.set_index(index_names).sort_index()
+    else:
+        data = data.sort_values('location_id')
+    return data

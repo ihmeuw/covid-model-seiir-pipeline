@@ -27,18 +27,20 @@ def preprocess_mask_use(data_interface: PreprocessingDataInterface) -> None:
 def preprocess_prop_65plus(data_interface: PreprocessingDataInterface) -> None:
     logger.info('Loading population data', context='read')
     pop = data_interface.load_population('five_year').reset_index()
+    hierarchy = data_interface.load_hierarchy('pred')
 
     logger.info('Generating prop 65+', context='transform')
     over_65 = pop[pop.age_group_years_start >= 65].groupby('location_id').population.sum()
     total = pop.groupby('location_id').population.sum()
     prop_65plus = (over_65 / total).rename('prop_65plus_reference')
+    prop_65plus = helpers.parent_inheritance(prop_65plus, hierarchy)
 
     logger.info('Writing covariate', context='write')
     data_interface.save_covariate(prop_65plus, 'prop_65plus', 'reference')
 
 
-
 def preprocess_mobility(data_interface: PreprocessingDataInterface) -> None:
+    hierarchy = data_interface.load_hierarchy('pred')
     for scenario in ['reference', 'vaccine_adjusted']:
         logger.info(f'Loading raw mobility data for scenario {scenario}.', context='read')
         mobility = data_interface.load_raw_mobility(scenario)
@@ -46,6 +48,8 @@ def preprocess_mobility(data_interface: PreprocessingDataInterface) -> None:
 
         logger.info(f'Fixing southern hemisphere locations.', context='transform')
         percent_mandates = _adjust_southern_hemisphere(percent_mandates)
+        mobility = helpers.parent_inheritance(mobility, hierarchy)
+        percent_mandates = helpers.parent_inheritance(percent_mandates, hierarchy)
 
         logger.info(f'Writing mobility data for scenario {scenario}.', context='write')
         data_interface.save_covariate(mobility, 'mobility', scenario)
@@ -84,6 +88,7 @@ def _adjust_southern_hemisphere(data: pd.DataFrame) -> pd.DataFrame:
 def preprocess_pneumonia(data_interface: PreprocessingDataInterface) -> None:
     logger.info(f'Loading raw pneumonia data', context='read')
     data = data_interface.load_raw_pneumonia_data()
+    hierarchy = data_interface.load_hierarchy('pred')
 
     logger.info('Extending pneumonia pattern into the future.', context='transform')
     next_year = data.copy()
@@ -92,6 +97,7 @@ def preprocess_pneumonia(data_interface: PreprocessingDataInterface) -> None:
     year_after_next = next_year.copy()
     year_after_next['date'] += pd.Timedelta(days=365)
     data = pd.concat([data, next_year, year_after_next]).sort_values(["location_id", "date"]).reset_index(drop=True)
+    data = helpers.parent_inheritance(data, hierarchy)
 
     logger.info(f'Writing pneumonia data.', context='write')
     data_interface.save_covariate(data, 'pneumonia', 'reference')
@@ -100,6 +106,7 @@ def preprocess_pneumonia(data_interface: PreprocessingDataInterface) -> None:
 def preprocess_population_density(data_interface: PreprocessingDataInterface) -> None:
     logger.info(f'Loading raw population density data', context='read')
     data = data_interface.load_raw_population_density_data()
+    hierarchy = data_interface.load_hierarchy('pred')
 
     logger.info('Computing population density aggregate.', context='transform')
     exclude_columns = [
@@ -115,6 +122,7 @@ def preprocess_population_density(data_interface: PreprocessingDataInterface) ->
             .reset_index()
             .rename(columns={0: 'proportion_over_2_5k_reference'}))
     data['observed'] = float('nan')
+    data = helpers.parent_inheritance(data, hierarchy)
 
     logger.info(f'Writing population density covariate.', context='write')
     data_interface.save_covariate(data, 'proportion_over_2_5k', 'reference')
@@ -123,12 +131,14 @@ def preprocess_population_density(data_interface: PreprocessingDataInterface) ->
 def preprocess_testing_data(data_interface: PreprocessingDataInterface) -> None:
     logger.info('Loading raw testing data', context='read')
     data = data_interface.load_raw_testing_data()
+    hierarchy = data_interface.load_hierarchy('pred')
 
     logger.info('Processing testing for IDR calc and beta covariate', context='transform')
     testing_for_idr = _process_testing_for_idr(data.copy())
     testing_for_beta = (data
                         .rename(columns={'test_pc': 'testing_reference'})
                         .loc[:, ['location_id', 'date', 'observed', 'testing_reference']])
+    testing_for_beta = helpers.parent_inheritance(testing_for_beta, hierarchy)
 
     logger.info('Writing testing data', context='write')
     data_interface.save_testing_data(testing_for_idr)
@@ -162,12 +172,14 @@ def _process_testing_for_idr(data: pd.DataFrame) -> pd.DataFrame:
 
 
 def preprocess_variant_prevalence(data_interface: PreprocessingDataInterface) -> None:
+    hierarchy = data_interface.load_hierarchy('pred')
     for scenario in ['reference', 'worse']:
         logger.info(f'Loading raw variant prevalence data for scenario {scenario}.', context='read')
         data = data_interface.load_raw_variant_prevalence(scenario)
 
         logger.info('Parsing into WHO variant of concern.', context='transform')
         data = _process_variants_of_concern(data)
+        data = helpers.parent_inheritance(data, hierarchy)
 
         logger.info(f'Writing {scenario} scenario data.', context='write')
         data_interface.save_variant_prevalence(data, scenario)
@@ -209,10 +221,13 @@ def preprocess_gbd_covariate(covariate: str) -> Callable[[PreprocessingDataInter
 
     def _preprocess_gbd_covariate(data_interface: PreprocessingDataInterface) -> None:
         logger.info(f'Loading {covariate} data for.', context='read')
+        hierarchy = data_interface.load_hierarchy('pred')
         data = data_interface.load_gbd_covariate(covariate)
 
         if covariate in ['uhc', 'haq']:
             data[f'{covariate}_reference'] /= 100
+
+        data = helpers.parent_inheritance(data, hierarchy)
 
         logger.info(f'Writing {covariate} data.', context='write')
         data_interface.save_covariate(data, covariate, 'reference')
