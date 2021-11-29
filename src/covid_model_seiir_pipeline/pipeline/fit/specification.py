@@ -103,7 +103,11 @@ class RatesParameters:
         self.pred_end_date: pd.Timestamp = pd.Timestamp(self.pred_end_date)
 
     def to_dict(self) -> Dict:
-        return utilities.asdict(self)
+        d = utilities.asdict(self)
+        for element in ['day_0', 'pred_start_date', 'pred_end_date']:
+            d[element] = d[element].strftime('%Y-%m-%d')
+        return d
+
 
 
 @dataclass
