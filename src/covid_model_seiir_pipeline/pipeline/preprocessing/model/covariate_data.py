@@ -211,6 +211,9 @@ def preprocess_gbd_covariate(covariate: str) -> Callable[[PreprocessingDataInter
         logger.info(f'Loading {covariate} data for.', context='read')
         data = data_interface.load_gbd_covariate(covariate)
 
+        if covariate in ['uhc', 'haq']:
+            data[f'{covariate}_reference'] /= 100
+
         logger.info(f'Writing {covariate} data.', context='write')
         data_interface.save_covariate(data, covariate, 'reference')
 

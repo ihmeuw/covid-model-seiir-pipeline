@@ -1,9 +1,10 @@
+from typing import Dict
+
 import pandas as pd
 
 from covid_model_seiir_pipeline.lib import (
     io,
 )
-
 from covid_model_seiir_pipeline.pipeline.preprocessing import (
     PreprocessingSpecification,
     PreprocessingDataInterface,
@@ -104,6 +105,12 @@ class FitDataInterface:
     def load_specification(self) -> FitSpecification:
         spec_dict = io.load(self.fit_root.specification())
         return FitSpecification.from_dict(spec_dict)
+
+    def save_covariate_options(self, covariate_options: Dict) -> None:
+        io.dump(covariate_options, self.fit_root.covariate_options())
+
+    def load_covariate_options(self) -> Dict:
+        return io.load(self.fit_root.covariate_options())
 
     def save_epi_measures(self, data: pd.DataFrame, draw_id: int):
         io.dump(data, self.fit_root.epi_measures(draw_id=draw_id))

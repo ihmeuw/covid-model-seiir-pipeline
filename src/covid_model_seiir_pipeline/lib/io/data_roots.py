@@ -232,14 +232,15 @@ class PreprocessingRoot(DataRoot):
 class FitRoot(DataRoot):
     metadata = MetadataType('metadata')
     specification = MetadataType('fit_specification')
-    beta = DatasetType('beta', LEAF_TEMPLATES.DRAW_TEMPLATE)
+    covariate_options = MetadataType('covariate_options')
 
+    beta = DatasetType('beta', LEAF_TEMPLATES.DRAW_TEMPLATE)
+    epi_measures = DatasetType('epi_measures', LEAF_TEMPLATES.DRAW_TEMPLATE)
     compartments = DatasetType('compartments', LEAF_TEMPLATES.DRAW_TEMPLATE)
     ode_parameters = DatasetType('ode_parameters', LEAF_TEMPLATES.DRAW_TEMPLATE)
     etas = DatasetType('etas', LEAF_TEMPLATES.DRAW_TEMPLATE)
     chis = DatasetType('chis', LEAF_TEMPLATES.DRAW_TEMPLATE)
 
-    epi_measures = DatasetType('epi_measures', LEAF_TEMPLATES.DRAW_TEMPLATE)
 
 
 class RegressionRoot(DataRoot):
