@@ -60,15 +60,11 @@ def run_beta_fit(fit_version: str, draw_id: int, progress_bar: bool) -> None:
     )
 
     logger.info('Rescaling deaths', context='transform')
-    import pdb; pdb.set_trace()
+    for column in epi_measures:
+        if 'deaths' in column:
+            epi_measures.loc[:, column] *= mortality_scalar
 
     logger.info('Generating naive infections for first pass rates model', context='transform')
-    # dumb version of naive infections
-    if specification.rates_parameters.mortality_scalar == 'unscaled':
-        mortality_scalar.loc[:] = 0
-    else:
-        assert specification.rates_parameters.mortality_scalar == 'total'
-
     daily_deaths = epi_measures['daily_deaths'].dropna()
     naive_ifr = specification.rates_parameters.naive_ifr
     daily_infections = (daily_deaths / naive_ifr).rename('daily_infections').reset_index()

@@ -28,6 +28,8 @@ def subset_seroprevalence(seroprevalence: pd.DataFrame,
                       .rename('inclusion_date')
                       .reset_index())
     seroprevalence = seroprevalence.merge(inclusion_date)
+
+    import pdb; pdb.set_trace()
     seroprevalence = seroprevalence.loc[seroprevalence['date'] <= seroprevalence['inclusion_date']]
     del seroprevalence['inclusion_date']
 

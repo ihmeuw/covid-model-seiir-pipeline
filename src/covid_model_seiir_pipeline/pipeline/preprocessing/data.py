@@ -453,8 +453,12 @@ class PreprocessingDataInterface:
         io.dump(data, self.preprocessing_root.total_covid_scalars())
 
     def load_total_covid_scalars(self, draw_id: int = None) -> pd.DataFrame:
-        columns = [f'draw_{draw_id}'] if draw_id is not None else None
-        return io.load(self.preprocessing_root.total_covid_scalars(columns=columns))
+        if draw_id is not None:
+           data = io.load(self.preprocessing_root.total_covid_scalars(columns=[f'draw_{draw_id}']))
+           data = data[f'draw_{draw_id}'].rename('scalar')
+        else:
+           data = io.load(self.preprocessing_root.total_covid_scalars())
+        return data
 
     def save_seroprevalence(self, data: pd.DataFrame, draw_id: int = None) -> None:
         if draw_id is None:

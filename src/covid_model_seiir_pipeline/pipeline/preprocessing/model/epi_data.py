@@ -56,7 +56,7 @@ def _process_scalars(data: pd.DataFrame, hierarchy: pd.DataFrame):
     missing_locations = list(set(hierarchy.location_id).difference(data.index))
     if missing_locations:
         logger.warning(f"Missing scalars for the following locations: {missing_locations}.  Filling with nan.")
-    data = data.reindex(hierarchy.index)
+    data = data.reindex(hierarchy.location_id)
     return data
 
 
