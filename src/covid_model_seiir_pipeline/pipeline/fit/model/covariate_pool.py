@@ -8,7 +8,7 @@ from covid_model_seiir_pipeline.lib import utilities
 # Get from config?
 COVARIATE_POOL = (
     'obesity',
-    'smoking',
+    'smoking_prevalence',
     'diabetes',
     'ckd',
     'cancer',
@@ -27,7 +27,7 @@ def make_covariate_pool(n_samples: int) -> Dict[str, Dict[int, List[str]]]:
     test_combinations = [cc for cc in test_combinations if
                          len([c for c in cc if c in ['uhc', 'haq']]) <= 1]
     logger.warning('Not actually testing covariate combinations.')
-    selected_combinations = [tc for tc in test_combinations if 'smoking' in tc and len(tc) >= 5][:n_samples]
+    selected_combinations = [tc for tc in test_combinations if 'smoking_prevalence' in tc and len(tc) >= 5][:n_samples]
 
     idr_covariate_options = [['haq'], ['uhc'], ['prop_65plus'], [], ]
     random_state = utilities.get_random_state('idr_covariate_pool')
