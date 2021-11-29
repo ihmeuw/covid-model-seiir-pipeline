@@ -60,7 +60,6 @@ def run_covariate_pool(fit_version: str) -> None:
 
 @click.command()
 @cli_tools.with_task_fit_version
-@cli_tools.with_draw_id
 @cli_tools.add_verbose_and_with_debugger
 @cli_tools.with_progress_bar
 def covariate_pool(fit_version: str,
