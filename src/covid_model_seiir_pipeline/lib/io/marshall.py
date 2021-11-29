@@ -27,8 +27,8 @@ class CSVMarshall:
         if strict and path.exists():
             msg = f"Cannot dump data for key {key} - would overwrite"
             raise LookupError(msg)
-
-        write_index = bool(data.index.names)
+        
+        write_index = any([n is not None for n in data.index.names])
         data.to_csv(path, index=write_index)
 
     @classmethod
