@@ -15,60 +15,6 @@ def fill_dates(data: pd.DataFrame, interp_vars: List[str]) -> pd.DataFrame:
     return data[['location_id', 'date'] + interp_vars]
 
 
-def aggregate_data_from_md(data: pd.DataFrame, hierarchy: pd.DataFrame, agg_var: str) -> pd.Series:
-    if data[agg_var].max() <= 1:
-        raise ValueError(f'Data in {agg_var} looks like rates - need counts for aggregation.')
-
-    data = data.copy()
-
-    is_md = hierarchy['most_detailed'] == 1
-    md_location_ids = hierarchy.loc[is_md, 'location_id'].to_list()
-    parent_location_ids = hierarchy.loc[~is_md, 'location_id'].to_list()
-
-    md_data = data.loc[data['location_id'].isin(md_location_ids)]
-
-    md_child_ids_lists = [(hierarchy
-                           .loc[is_md & (
-        hierarchy['path_to_top_parent'].apply(lambda x: str(parent_location_id) in x.split(','))),
-                                'location_id']
-                           .to_list()) for parent_location_id in parent_location_ids]
-    parent_children_pairs = list(zip(parent_location_ids, md_child_ids_lists))
-
-    parent_data = [aggregate(md_data.loc[md_data['location_id'].isin(md_child_ids)],
-                             parent_id, md_child_ids, agg_var)
-                   for parent_id, md_child_ids in parent_children_pairs]
-    data = pd.concat([md_data] + parent_data)
-
-    return data.reset_index(drop=True)
-
-
-def aggregate(data: pd.DataFrame, parent_id: int, md_child_ids: List[int], agg_var: str) -> pd.Series:
-    # not most efficient to go from md each time, but safest since dataset is not square (and not a ton of data)
-    draw_level = 'draw' in data.columns
-    if data.empty:
-        if draw_level:
-            return data.loc[:, ['draw', 'location_id', 'date', agg_var]]
-        else:
-            return data.loc[:, ['location_id', 'date', agg_var]]
-    else:
-        # REQUIRE ALL CHILD LOCATIONS
-        if draw_level:
-            data = data.groupby(['draw', 'date'])[agg_var].agg(['sum', 'count'])
-            data['count'] = data.groupby('date')['count'].transform(min)
-        else:
-            data = data.groupby('date')[agg_var].agg(['sum', 'count'])
-        is_complete = data['count'] == len(md_child_ids)
-        data = data.loc[is_complete, 'sum'].rename(agg_var).reset_index()
-        data['location_id'] = parent_id
-
-        if draw_level:
-            data = data.loc[:, ['draw', 'location_id', 'date', agg_var]]
-        else:
-            data = data.loc[:, ['location_id', 'date', agg_var]]
-
-        return data
-
-
 def check_for_duplicate_dates(data: pd.DataFrame, name: str, groupby_cols: List[str] = ('location_id',)):
     groupby_cols = list(groupby_cols)
     data = data.reset_index()

@@ -76,7 +76,7 @@ class FitDataInterface:
         if specification.rates_parameters.mortality_scalar == 'total':
             return data
         elif specification.rates_parameters.mortality_scalar == 'unscaled':
-            data.loc[:] = 1.0
+            data.loc[:, :] = 1.0
             return data
         else:
             raise ValueError(f'Unknown scaling option {specification.rates_parameters.mortality_scalar}')

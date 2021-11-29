@@ -28,7 +28,7 @@ def preprocess_epi_data(data_interface: PreprocessingDataInterface) -> None:
     logger.info('Processing epi data.', context='transform')
     age_pattern_data = _process_age_pattern_data(age_pattern_data, pred_hierarchy)
     total_covid_scalars = _process_scalars(total_covid_scalars, pred_hierarchy)
-    epi_data = pd.concat([_process_epi_data(data, measure, mr_hierarchy, pred_hierarchy)
+    epi_data = pd.concat([_process_epi_data(data, measure, mr_hierarchy)
                           for measure, data in epi_data.items()], axis=1)
 
     logger.info('Writing epi data.', context='write')
@@ -68,28 +68,6 @@ def _process_epi_data(data: pd.Series, measure: str,
             .apply(lambda x: helpers.fill_dates(x, [f'cumulative_{measure}']))
             .reset_index(drop=True))
     data, manipulation_metadata = evil_doings(data, mr_hierarchy, measure)
-
-    extra_locations = set(pred_hierarchy.loc[pred_hierarchy['most_detailed'] == 1, 'location_id'])
-    extra_locations = list(extra_locations.difference(mr_hierarchy['location_id']))
-    extra_data = data.loc[data['location_id'].isin(extra_locations)].reset_index(drop=True)
-
-    data = helpers.aggregate_data_from_md(data, mr_hierarchy, f'cumulative_{measure}')
-    data = (data
-            .append(extra_data.loc[:, data.columns])
-            .sort_values(['location_id', 'date'])
-            .reset_index(drop=True))
-
-    data[f'daily_{measure}'] = (data
-                                .groupby(['location_id'])[f'cumulative_{measure}']
-                                .diff()
-                                .fillna(data[f'cumulative_{measure}']))
-    data = data.dropna().set_index(['location_id', 'date']).sort_index()
-
-    data[f'smoothed_daily_{measure}'] = (data[f'daily_{measure}']
-                                         .groupby('location_id')
-                                         .apply(lambda x: x.clip(0, np.inf)
-                                                .rolling(window=7, min_periods=7, center=True)
-                                                .mean()))
 
     return data
 
