@@ -34,7 +34,10 @@ class CSVMarshall:
     @classmethod
     def load(cls, key: DatasetKey) -> pd.DataFrame:
         path, columns = cls._resolve_key(key)
-        data = pd.read_csv(path, usecols=lambda x: x in columns + POTENTIAL_INDEX_COLUMNS)
+        if columns is None:
+            data = pd.read_csv(path)
+        else:
+            data = pd.read_csv(path, usecols=lambda x: x in columns + POTENTIAL_INDEX_COLUMNS)
         # Use list comp to keep ordering consistent.
         index_cols = [c for c in POTENTIAL_INDEX_COLUMNS if c in data.columns]
         if 'date' in index_cols:
