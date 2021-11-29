@@ -61,7 +61,7 @@ def _process_scalars(data: pd.DataFrame, hierarchy: pd.DataFrame):
 
 
 def _process_epi_data(data: pd.Series, measure: str,
-                      mr_hierarchy: pd.DataFrame, pred_hierarchy: pd.DataFrame) -> pd.DataFrame:
+                      mr_hierarchy: pd.DataFrame) -> pd.DataFrame:
     data = (data
             .reset_index()
             .groupby('location_id', as_index=False)
