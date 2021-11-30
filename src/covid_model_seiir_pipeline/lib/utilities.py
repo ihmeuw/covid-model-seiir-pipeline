@@ -149,16 +149,22 @@ def suppress_stdout(filter_list):
 class StreamFilter(object):
     def __init__(self, strings_to_filter, stream):
         self.stream = stream
+        self.triggered = False
         self.strings_to_filter = strings_to_filter
 
     def __getattr__(self, attr_name):
         return getattr(self.stream, attr_name)
 
     def write(self, data):
-        if data in self.strings_to_filter:
-            return
-        self.stream.write(data)
-        self.stream.flush()
+        if data == '\n' and self.triggered:
+            self.triggered = False
+        else:
+            if data not in self.strings_to_filter:
+                self.stream.write(data)
+                self.stream.flush()
+            else:
+                # caught bad pattern
+                self.triggered = True
 
     def flush(self):
         self.stream.flush()
