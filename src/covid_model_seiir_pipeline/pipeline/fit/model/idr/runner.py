@@ -1,4 +1,3 @@
-from collections import namedtuple
 from typing import Dict, List
 
 import pandas as pd
@@ -25,7 +24,7 @@ def runner(cumulative_cases: pd.Series,
            pred_start_date: pd.Timestamp,
            pred_end_date: pd.Timestamp,
            num_threads: int,
-           progress_bar: bool) -> namedtuple:
+           progress_bar: bool) -> pd.DataFrame:
     model_data = data.create_model_data(
         cumulative_cases=cumulative_cases.copy(),
         daily_cases=daily_cases.copy(),
@@ -77,6 +76,7 @@ def runner(cumulative_cases: pd.Series,
             .apply(lambda x: math.scale_to_bounds(x.set_index('date').loc[:, 'pred_idr'],
                                                   x['idr_floor'].unique().item(),
                                                   ceiling=1.,))
-            .rename('pred_idr'))
+            .rename('pred_idr')
+            .to_frame())
     
     return pred

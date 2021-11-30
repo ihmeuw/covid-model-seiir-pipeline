@@ -1,3 +1,4 @@
+from collections import defaultdict
 from copy import deepcopy
 from typing import Dict, List
 
@@ -161,6 +162,7 @@ def predict_cascade(pred_data: pd.DataFrame,
     pred_fe = []
     location_ids = hierarchy['location_id'].to_list()
     location_ids = [location_id for location_id in location_ids if location_id in pred_data['location_id'].to_list()]
+    pred_location_map = defaultdict(list)
     for location_id in location_ids:
         location_pred_fe, _ = mrbrt.predict(
             pred_data=pred_data.loc[pred_data['location_id'] == location_id].reset_index(drop=True).copy(),
@@ -175,8 +177,8 @@ def predict_cascade(pred_data: pd.DataFrame,
         
         model_location_id = model_location_map[location_id]
         if location_id != model_location_id:
-            if verbose:
-                logger.info(f'Using model for {model_location_id} in prediction for {location_id}.')
+            pred_location_map[model_location_id].append(location_id)
+
         location_pred, _ = mrbrt.predict(
             pred_data=pred_data.loc[pred_data['location_id'] == location_id].reset_index(drop=True).copy(),
             hierarchy=hierarchy,
@@ -189,5 +191,9 @@ def predict_cascade(pred_data: pd.DataFrame,
         pred += [location_pred.set_index(['location_id', 'date']).loc[:, var_args['dep_var']].rename(f"pred_{var_args['dep_var']}")]
     pred = pd.concat(pred)
     pred_fe = pd.concat(pred_fe)
+
+    logger.debug('\nSubstituted Location Map\n'
+                 '========================='
+                 '\n'.join([f'{model_loc:<4}: {sub_locs}' for model_loc, sub_locs in pred_location_map.items()]))
     
     return pred, pred_fe, model_location_map
