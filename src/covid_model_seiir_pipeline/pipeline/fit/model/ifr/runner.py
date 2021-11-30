@@ -8,6 +8,7 @@ from covid_model_seiir_pipeline.pipeline.fit.model.ifr import (
     model,
 )
 
+
 def runner(cumulative_deaths: pd.Series,
            daily_deaths: pd.Series,
            seroprevalence: pd.DataFrame,
@@ -26,7 +27,7 @@ def runner(cumulative_deaths: pd.Series,
            day_inflection: pd.Timestamp,
            day_0: pd.Timestamp,
            pred_start_date: pd.Timestamp,
-           pred_end_date: pd.Timestamp) -> pd.Series:
+           pred_end_date: pd.Timestamp) -> pd.DataFrame:
     model_data = data.create_model_data(
         cumulative_deaths=cumulative_deaths,
         daily_deaths=daily_deaths,

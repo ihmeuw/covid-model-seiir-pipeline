@@ -26,8 +26,7 @@ def runner(cumulative_hospitalizations: pd.Series,
            durations: Dict,
            day_0: pd.Timestamp,
            pred_start_date: pd.Timestamp,
-           pred_end_date: pd.Timestamp,
-           verbose: bool = True,) -> pd.Series:
+           pred_end_date: pd.Timestamp) -> pd.DataFrame:
     model_data = data.create_model_data(
         cumulative_hospitalizations=cumulative_hospitalizations.copy(),
         daily_hospitalizations=daily_hospitalizations.copy(),

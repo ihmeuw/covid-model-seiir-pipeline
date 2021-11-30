@@ -1,4 +1,4 @@
-from typing import Dict, List
+from typing import Dict, List, NamedTuple
 
 import pandas as pd
 from loguru import logger
@@ -13,6 +13,12 @@ from covid_model_seiir_pipeline.pipeline.fit.model.sampled_params import (
     Durations,
     VariantRR,
 )
+
+
+class Rates(NamedTuple):
+    ifr: pd.DataFrame
+    ihr: pd.DataFrame
+    idr: pd.DataFrame
 
 
 def run_rates_pipeline(epi_data: pd.DataFrame,
@@ -32,7 +38,7 @@ def run_rates_pipeline(epi_data: pd.DataFrame,
                        params: RatesParameters,
                        day_inflection: pd.Timestamp,
                        num_threads: int,
-                       progress_bar: bool):
+                       progress_bar: bool) -> Rates:
     logger.debug('IDR ESTIMATION')
     idr_results = idr.runner(
         cumulative_cases=epi_data['cumulative_cases'].dropna(),
@@ -51,6 +57,10 @@ def run_rates_pipeline(epi_data: pd.DataFrame,
         num_threads=num_threads,
         progress_bar=progress_bar,
     )
+    for col in ['idr', 'idr_lr', 'idr_hr']:
+        idr_results.loc[:, col] = idr_results['pred_idr']
+    idr_results = idr_results.drop(columns='pred_idr')
+    idr_results['lag'] = durations.exposure_to_case
 
     logger.debug('IHR ESTIMATION')
     ihr_results = ihr.runner(
@@ -73,6 +83,8 @@ def run_rates_pipeline(epi_data: pd.DataFrame,
         pred_start_date=params.pred_start_date,
         pred_end_date=params.pred_end_date,
     )
+    ihr_results = ihr_results.rename(columns={'pred_ihr_lr': 'ihr_lr', 'pred_ihr_hr': 'ihr_hr', 'pred_ihr': 'ihr'})
+    ihr_results.loc[:, 'lag'] = durations.exposure_to_admission
 
     logger.debug("IFR ESTIMATION")
     ifr_results = ifr.runner(
@@ -96,5 +108,6 @@ def run_rates_pipeline(epi_data: pd.DataFrame,
         pred_start_date=params.pred_start_date,
         pred_end_date=params.pred_end_date,
     )
+    ifr_results = ifr_results.rename(columns={'pred_ifr_lr': 'ifr_lr', 'pred_ifr_hr': 'ifr_hr', 'pred_ifr': 'ifr'})
 
-    return ifr_results, ihr_results, idr_results
+    return Rates(ifr_results, ihr_results, idr_results)

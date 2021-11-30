@@ -24,11 +24,12 @@ def run_beta_fit(fit_version: str, draw_id: int, progress_bar: bool) -> None:
     data_interface = FitDataInterface.from_specification(specification)
     num_threads = specification.workflow.task_specifications[FIT_JOBS.beta_fit].num_cores
 
-    logger.info('Loading rates data', context='read')
+    logger.info('Loading beta fit data', context='read')
     mr_hierarchy = data_interface.load_hierarchy(name='mr')
     pred_hierarchy = data_interface.load_hierarchy(name='pred')
-    five_year_population = data_interface.load_population(measure='five_year').population
     total_population = data_interface.load_population(measure='total').population
+    five_year_population = data_interface.load_population(measure='five_year').population
+    risk_group_population = data_interface.load_population(measure='risk_group')
     epi_measures = data_interface.load_reported_epi_data()
     mortality_scalar = data_interface.load_total_covid_scalars(draw_id)['scalar']
     age_patterns = data_interface.load_age_patterns()
@@ -38,6 +39,23 @@ def run_beta_fit(fit_version: str, draw_id: int, progress_bar: bool) -> None:
     covariate_pool = data_interface.load_covariate_options(draw_id=draw_id)
     rhos = data_interface.load_variant_prevalence(scenario='reference')
     variant_prevalence = rhos.drop(columns='ancestral').sum(axis=1)
+    vaccinations = data_interface.load_vaccine_uptake(scenario='reference')
+    etas = data_interface.load_vaccine_risk_reduction(scenario='reference')
+    natural_waning_dist = data_interface.load_waning_parameters(measure='natural_waning_distribution').set_index('days')
+    natural_immunity_matrix = pd.DataFrame(
+        data=np.array([
+            [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+            [1.0, 1.0, 1.0, 0.5, 0.5, 0.5, 0.5, 0.5],
+            [1.0, 1.0, 1.0, 0.5, 0.5, 0.5, 0.5, 0.5],
+            [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.5],
+            [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.5],
+            [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.5],
+            [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.5],
+            [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
+        ]),
+        columns=VARIANT_NAMES,
+        index=pd.Index(VARIANT_NAMES, name='variant'),
+    )
     mr_covariates = []
     for covariate in model.COVARIATE_POOL:
         cov = (data_interface
@@ -68,8 +86,9 @@ def run_beta_fit(fit_version: str, draw_id: int, progress_bar: bool) -> None:
     daily_infections = (daily_deaths / naive_ifr).rename('daily_infections').reset_index()
     daily_infections['date'] -= pd.Timedelta(days=durations.exposure_to_death)
     daily_infections = daily_infections.set_index(['location_id', 'date']).loc[:, 'daily_infections']
+
     logger.info('Running first-pass rates model', context='rates_model_1')
-    rates = model.run_rates_pipeline(
+    first_pass_rates = model.run_rates_pipeline(
         epi_data=epi_measures,
         age_patterns=age_patterns,
         seroprevalence=first_pass_seroprevalence,
@@ -89,36 +108,12 @@ def run_beta_fit(fit_version: str, draw_id: int, progress_bar: bool) -> None:
         num_threads=num_threads,
         progress_bar=progress_bar,
     )
-    import pdb; pdb.set_trace()
-    base_rates, epi_measures, smoothed_epi_measures, lags = model.run_rates_model(hierarchy)
-
-    logger.info('Loading ODE fit input data', context='read')
-
-    risk_group_pops = data_interface.load_population(measure='risk_group')
-    rhos = data_interface.load_variant_prevalence(scenario='reference')
-    vaccinations = data_interface.load_vaccine_uptake(scenario='reference')
-    etas = data_interface.load_vaccine_risk_reduction(scenario='reference')
-    natural_waning_dist = data_interface.load_waning_parameters(measure='natural_waning_distribution').set_index('days')
-    natural_immunity_matrix = pd.DataFrame(
-        data=np.array([
-            [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-            [1.0, 1.0, 1.0, 0.5, 0.5, 0.5, 0.5, 0.5],
-            [1.0, 1.0, 1.0, 0.5, 0.5, 0.5, 0.5, 0.5],
-            [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.5],
-            [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.5],
-            [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.5],
-            [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.5],
-            [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
-        ]),
-        columns=VARIANT_NAMES,
-        index=pd.Index(VARIANT_NAMES, name='variant'),
-    )
 
     logger.info('Prepping ODE fit parameters.', context='transform')
     regression_params = specification.fit_parameters.to_dict()
 
     ode_parameters = model.prepare_ode_fit_parameters(
-        base_rates,
+        first_pass_rates,
         epi_measures,
         rhos,
         vaccinations,
@@ -133,7 +128,7 @@ def run_beta_fit(fit_version: str, draw_id: int, progress_bar: bool) -> None:
     initial_condition = model.make_initial_condition(
         ode_parameters,
         base_rates,
-        risk_group_pops,
+        risk_group_population,
     )
 
     logger.info('Running ODE fit', context='compute_ode')

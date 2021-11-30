@@ -17,9 +17,12 @@ from covid_model_seiir_pipeline.lib.ode_mk2.constants import (
 from covid_model_seiir_pipeline.lib.ode_mk2 import (
     solver,
 )
+from covid_model_seiir_pipeline.pipeline.fit.model.rates import (
+    Rates,
+)
 
 
-def prepare_ode_fit_parameters(rates: pd.DataFrame,
+def prepare_ode_fit_parameters(rates: Rates,
                                epi_measures: pd.DataFrame,
                                rhos: pd.DataFrame,
                                vaccinations: pd.DataFrame,
@@ -27,6 +30,7 @@ def prepare_ode_fit_parameters(rates: pd.DataFrame,
                                natural_waning_dist: pd.Series,
                                natural_waning_matrix: pd.DataFrame,
                                regression_params: Dict[str, Union[int, List[int]]],
+                               hierarchy: pd.DataFrame,
                                draw_id: int) -> Parameters:
     past_index = rates.index
     sampled_params = sample_params(
@@ -81,6 +85,23 @@ def prepare_ode_fit_parameters(rates: pd.DataFrame,
         etas=etas,
         phis=phis,
     )
+
+
+def prepare_epi_parameters_and_rates(rates: Rates, epi_measures: pd.DataFrame, hierarchy: pd.DataFrame):
+    most_detailed = hierarchy[hierarchy.most_detailed == 1].location_id.unique().tolist()
+    measures = (
+        ('deaths', 'count_all_death', 'ifr'),
+        ('cases', 'count_all_case', 'idr'),
+        ('hospitalizations', 'count_all_admission', 'ihr')
+    )
+    for in_measure, out_measure, rate in measures:
+        epi_data = epi_measures[f'smoothed_daily_{in_measure}']
+        epi_rates = rates._todict()[rate]
+        import pdb; pdb.set_trace()
+
+
+
+
 
 
 def sample_parameter(parameter: str, draw_id: int, lower: float, upper: float) -> float:
@@ -150,7 +171,7 @@ def make_initial_condition(parameters: Parameters, full_rates: pd.DataFrame, pop
     return initial_condition
 
 
-def get_crude_infections(base_params, rates, population, threshold = 50):
+def get_crude_infections(base_params, rates, population, threshold=50):
     crude_infections = pd.DataFrame(index=rates.index)
     for risk_group in RISK_GROUP_NAMES:
         risk_infections = pd.DataFrame(index=rates.index)

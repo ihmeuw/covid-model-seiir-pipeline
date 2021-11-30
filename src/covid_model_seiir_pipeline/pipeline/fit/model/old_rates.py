@@ -7,7 +7,6 @@ import pandas as pd
 from covid_model_seiir_pipeline.pipeline.fit.specification import RatesParameters
 
 
-
 def run_rates_model(hierarchy: pd.DataFrame, *args, **kwargs):
     most_detailed = hierarchy[hierarchy.most_detailed == 1].location_id.unique().tolist()
     version = Path('/ihme/covid-19/historical-model/2021_11_24.02')
