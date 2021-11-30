@@ -4,7 +4,7 @@ from mrtool import MRData, LinearCovModel, MRBRT
 import numpy as np
 import pandas as pd
 
-from covid_model_seiir_pipeline.lib.utilities import suppress_stdout
+from covid_model_seiir_pipeline.lib.utilities import suppress_output
 
 
 # TODO: pass in trans function for prediction (rather than inferring from name)
@@ -47,7 +47,7 @@ def run_mr_model(model_data: pd.DataFrame,
         prior_dict = {fe_var: {} for fe_var in fe_vars}
     cov_models = [LinearCovModel(fe_var, use_re=fe_var in re_vars, **prior_dict[fe_var]) for fe_var in fe_vars]
 
-    std_out_filter_list = [
+    filter_list = [
         'Warning: information insufficient!',
         '\n******************************************************************************\n'
         'This program contains Ipopt, a library for large-scale nonlinear optimization.\n'
@@ -55,7 +55,7 @@ def run_mr_model(model_data: pd.DataFrame,
         'For more information visit https://github.com/coin-or/Ipopt\n'
         '******************************************************************************\n',
     ]
-    with suppress_stdout(std_out_filter_list):
+    with suppress_output(filter_list):
         mr_model = MRBRT(mr_data, cov_models, inlier_pct=inlier_pct)
         mr_model.attach_data(global_mr_data)
         mr_model.fit_model(outer_max_iter=outer_max_iter)

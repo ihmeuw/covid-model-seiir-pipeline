@@ -137,13 +137,16 @@ def get_random_state(key: str):
 
 
 @contextmanager
-def suppress_stdout(filter_list):
+def suppress_output(filter_list):
     old_stdout = sys.stdout
+    old_stderr = sys.stderr
     sys.stdout = StreamFilter(filter_list, sys.stdout)
+    sys.stderr = StreamFilter(filter_list, sys.stderr)
     try:
         yield
     finally:
         sys.stdout = old_stdout
+        sys.stderr = old_stderr
 
 
 class StreamFilter(object):
