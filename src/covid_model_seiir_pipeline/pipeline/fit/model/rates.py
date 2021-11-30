@@ -109,5 +109,6 @@ def run_rates_pipeline(epi_data: pd.DataFrame,
         pred_end_date=params.pred_end_date,
     )
     ifr_results = ifr_results.rename(columns={'pred_ifr_lr': 'ifr_lr', 'pred_ifr_hr': 'ifr_hr', 'pred_ifr': 'ifr'})
+    ifr_results.loc[:, 'lag'] = durations.exposure_to_death
 
     return Rates(ifr_results, ihr_results, idr_results)

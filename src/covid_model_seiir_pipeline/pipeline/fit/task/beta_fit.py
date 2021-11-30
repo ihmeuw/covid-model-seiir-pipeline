@@ -124,7 +124,6 @@ def run_beta_fit(fit_version: str, draw_id: int, progress_bar: bool) -> None:
         draw_id=draw_id,
     )
 
-    import pdb; pdb.set_trace()
     logger.info('Building initial condition.', context='transform')
     initial_condition = model.make_initial_condition(
         ode_parameters,
@@ -139,7 +138,7 @@ def run_beta_fit(fit_version: str, draw_id: int, progress_bar: bool) -> None:
         num_cores=specification.workflow.task_specifications['beta_fit'].num_cores,
         progress_bar=progress_bar,
     )
-
+    import pdb; pdb.set_trace()
     # Format and save data.
     logger.info('Prepping outputs', context='transform')
     epi_measures = pd.DataFrame(index=compartments.index)

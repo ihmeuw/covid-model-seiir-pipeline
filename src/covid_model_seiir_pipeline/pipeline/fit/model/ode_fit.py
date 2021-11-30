@@ -1,5 +1,5 @@
 import itertools
-from typing import Dict, List, Union
+from typing import Dict, List, Tuple, Union
 
 import numpy as np
 import pandas as pd
@@ -61,7 +61,7 @@ def prepare_ode_fit_parameters(rates: Rates,
     
     base_parameters = pd.concat([
         sampled_params,
-        epi_measures.rename(columns=lambda x: f'count_all_{x[:-1]}'),
+        epi_measures.rename(columns=lambda x: f'count_all_{x}'),
         pd.Series(-1, index=past_index, name='beta_all_infection'),
         rhos,
         *weights,
@@ -109,8 +109,8 @@ def prepare_epi_measures_and_rates(rates: Rates, epi_measures: pd.DataFrame, hie
     out_rates = []
     for in_measure, out_measure, rate in measures:
         epi_data = epi_measures[f'smoothed_daily_{in_measure}'].rename(out_measure).to_frame()
-        epi_rates = rates._todict()[rate]
-        lag = epi_rates['lag'].item()
+        epi_rates = rates._asdict()[rate]
+        lag = epi_rates['lag'].iloc[0]
 
         epi_data = reindex_to_infection_day(epi_data, lag, most_detailed)
         epi_rates = reindex_to_infection_day(epi_rates.drop(columns='lag'), lag, most_detailed)
@@ -119,7 +119,7 @@ def prepare_epi_measures_and_rates(rates: Rates, epi_measures: pd.DataFrame, hie
         out_rates.append(epi_rates)
 
     out_measures = pd.concat(out_measures, axis=1)
-    out_measures = out_measures.loc[out_measures.notnull().all(axis=1)]
+    out_measures = out_measures.loc[out_measures.notnull().any(axis=1)]
 
     dates = out_measures.reset_index().date
     global_date_range = pd.date_range(dates.min() - pd.Timedelta(days=1), dates.max())
@@ -133,6 +133,7 @@ def prepare_epi_measures_and_rates(rates: Rates, epi_measures: pd.DataFrame, hie
 
 
 def reindex_to_infection_day(data: pd.DataFrame, lag: int, most_detailed: List[int]) -> pd.DataFrame:
+    data = data.reset_index()
     data = (data
             .loc[data.location_id.isin(most_detailed)]
             .set_index(['location_id', 'date'])
@@ -140,9 +141,6 @@ def reindex_to_infection_day(data: pd.DataFrame, lag: int, most_detailed: List[i
             .apply(lambda x: x.reset_index(level='location_id', drop=True)
                    .shift(periods=-lag, freq='D')))
     return data
-
-
-
 
 
 def make_initial_condition(parameters: Parameters, full_rates: pd.DataFrame, population: pd.DataFrame):

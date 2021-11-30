@@ -86,10 +86,10 @@ def sample_ode_params(variant_rr: VariantRR, beta_fit_params: FitParameters, dra
     for measure, rate in (('death', 'ifr'), ('admission', 'ihr'), ('case', 'idr')):
         rr = variant_rr._asdict()[rate]
         for variant in VARIANT_NAMES:
-            if variant == VARIANT_NAMES.ancestral:
-                sampled_params[f'kappa_all_{measure}'] = 1.0
+            if variant == VARIANT_NAMES.none:
+                sampled_params[f'kappa_none_{measure}'] = 1.0
             else:
-                sampled_params[f'kappa_all_{measure}'] = rr
+                sampled_params[f'kappa_{variant}_{measure}'] = rr
     return sampled_params
 
 

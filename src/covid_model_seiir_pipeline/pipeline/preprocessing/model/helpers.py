@@ -70,7 +70,6 @@ def parent_inheritance(data: pd.DataFrame, hierarchy: pd.DataFrame) -> pd.DataFr
     location_ids = hierarchy['location_id'].to_list()
     path_to_top_parents = [list(reversed(p.split(',')[:-1]))
                            for p in hierarchy['path_to_top_parent'].to_list()]
-
     for location_id, path_to_top_parent in zip(location_ids, path_to_top_parents):
         if location_id not in data.location_id.to_list():
             for parent_id in path_to_top_parent:
@@ -85,6 +84,9 @@ def parent_inheritance(data: pd.DataFrame, hierarchy: pd.DataFrame) -> pd.DataFr
                 location_name = hierarchy.set_index('location_id').location_name.loc[location_id]
                 logger.warning(f'No data available for {location_name} or any of its parents.')
 
+    # Get's coerced to the type of the value column whenever there is only a single
+    # value per location, so coerce back to int.
+    data['location_id'] = data['location_id'].astype(int)
     if index_names is not None:
         data = data.set_index(index_names).sort_index()
     else:
