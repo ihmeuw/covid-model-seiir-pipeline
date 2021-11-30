@@ -43,8 +43,7 @@ def run_cascade(model_data: pd.DataFrame,
                                           var_args['dep_var'], var_args['dep_var_se'],
                                           var_args['fe_vars'], var_args['group_var'])
     for level, location_ids in cascade_hierarchy:
-        if verbose:
-            logger.info(f'Modeling hierarchy level {level} ({len(location_ids)} location-models).')
+        logger.debug(f'Modeling hierarchy level {level} ({len(location_ids)} location-models).')
         level_mr_model_dict, level_prior_dict = run_level(
             level_lambda=level_lambdas[level],
             level=level,
