@@ -82,7 +82,6 @@ def run_model(model_data: pd.DataFrame,
         var_args=var_args.copy(),
         global_prior_dict=global_prior_dict.copy(),
         level_lambdas=level_lambdas.copy(),
-        verbose=False,
     )
     pred_data = pred_data.dropna()
     pred, pred_fe, pred_location_map = cascade.predict_cascade(

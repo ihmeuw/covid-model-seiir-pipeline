@@ -137,11 +137,28 @@ def get_random_state(key: str):
 
 
 @contextmanager
-def suppress_stdout():
-    with open(os.devnull, 'w') as devnull:
-        old_stdout = sys.stdout
-        sys.stdout = devnull
-        try:
-            yield
-        finally:
-            sys.stdout = old_stdout
+def suppress_stdout(filter_list):
+    old_stdout = sys.stdout
+    sys.stdout = StreamFilter(filter_list, sys.stdout)
+    try:
+        yield
+    finally:
+        sys.stdout = old_stdout
+
+
+class StreamFilter(object):
+    def __init__(self, strings_to_filter, stream):
+        self.stream = stream
+        self.strings_to_filter = strings_to_filter
+
+    def __getattr__(self, attr_name):
+        return getattr(self.stream, attr_name)
+
+    def write(self, data):
+        if data in self.strings_to_filter:
+            return
+        self.stream.write(data)
+        self.stream.flush()
+
+    def flush(self):
+        self.stream.flush()

@@ -38,7 +38,6 @@ def run_mr_model(model_data: pd.DataFrame,
                  outer_max_iter: int = 500,
                  prior_dict: Dict = None,
                  global_mr_data: MRData = None,
-                 verbose: bool = True,
                  **kwargs) -> MRBRT:
     mr_data = create_mr_data(model_data, dep_var, dep_var_se, fe_vars, group_var)
     
@@ -48,15 +47,11 @@ def run_mr_model(model_data: pd.DataFrame,
         prior_dict = {fe_var: {} for fe_var in fe_vars}
     cov_models = [LinearCovModel(fe_var, use_re=fe_var in re_vars, **prior_dict[fe_var]) for fe_var in fe_vars]
 
-    if verbose:
+    std_out_filter_list = ['Warning: information insufficient!']
+    with suppress_stdout(std_out_filter_list):
         mr_model = MRBRT(mr_data, cov_models, inlier_pct=inlier_pct)
         mr_model.attach_data(global_mr_data)
         mr_model.fit_model(outer_max_iter=outer_max_iter)
-    else:
-        with suppress_stdout():
-            mr_model = MRBRT(mr_data, cov_models, inlier_pct=inlier_pct)
-            mr_model.attach_data(global_mr_data)
-            mr_model.fit_model(outer_max_iter=outer_max_iter)
     
     return mr_model
 

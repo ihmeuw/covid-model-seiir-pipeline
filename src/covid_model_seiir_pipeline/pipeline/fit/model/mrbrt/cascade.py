@@ -16,8 +16,7 @@ def run_cascade(model_data: pd.DataFrame,
                 var_args: Dict,
                 global_prior_dict: Dict,
                 level_lambdas: Dict,
-                child_cutoff_level: int = 3,
-                verbose: bool = True,):
+                child_cutoff_level: int = 3):
     '''
     NOTE: `level_lambdas` apply to the stdev of the level to which they are keyed, and thus
         as priors for the next level. If no new data is added, it is multiplicatively applied.
@@ -56,7 +55,6 @@ def run_cascade(model_data: pd.DataFrame,
             var_args=var_args,
             child_cutoff_level=child_cutoff_level,
             global_mr_data=global_mr_data,
-            verbose=verbose,
         )
         if level == 0:
             prior_dicts = {}
@@ -74,8 +72,7 @@ def run_level(level_lambda: Dict,
               prior_dicts: Dict,
               var_args: Dict,
               child_cutoff_level: int,
-              global_mr_data: MRData,
-              verbose: bool,):
+              global_mr_data: MRData):
     level_mr_model_dict = {}
     level_prior_dicts = {}
     for location_id in location_ids:
@@ -95,7 +92,6 @@ def run_level(level_lambda: Dict,
             level_lambda=level_lambda,
             global_mr_data=global_mr_data,
             var_args=var_args,
-            verbose=verbose,
         )
         level_mr_model_dict.update({location_id:location_mr_model})
         level_prior_dicts.update({location_id:location_prior_dict})
@@ -103,12 +99,13 @@ def run_level(level_lambda: Dict,
     return level_mr_model_dict, level_prior_dicts
 
 
-def run_location(location_id: int, model_data: pd.DataFrame, prior_dict: Dict,
+def run_location(location_id: int,
+                 model_data: pd.DataFrame,
+                 prior_dict: Dict,
                  level_lambda: Dict,
-                 global_mr_data: MRData, var_args: Dict,
-                 verbose: bool,):
+                 global_mr_data: MRData,
+                 var_args: Dict,):
     np.random.seed(location_id)
-    
     location_var_args = deepcopy(var_args)
     combined_prior_dict = {}
     for data_var in list(set(location_var_args['fe_vars'] + location_var_args['re_vars'])):
@@ -118,7 +115,6 @@ def run_location(location_id: int, model_data: pd.DataFrame, prior_dict: Dict,
     location_var_args['prior_dict'] = combined_prior_dict
     mr_model = mrbrt.run_mr_model(
         model_data=model_data,
-        verbose=verbose,
         global_mr_data=global_mr_data,
         **location_var_args
     )
