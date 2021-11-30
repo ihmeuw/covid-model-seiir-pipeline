@@ -62,7 +62,8 @@ def run_preprocess_serology(preprocessing_version: str, progress_bar: bool) -> N
 
     logger.info('Writing seroprevalence data.', context='write')
     data_interface.save_seroprevalence(seroprevalence)
-    for draw, sample in enumerate(seroprevalence_samples):
+    for draw, sample in tqdm.tqdm(enumerate(seroprevalence_samples),
+                                  total=len(seroprevalence_samples), disable=not progress_bar):
         data_interface.save_seroprevalence(sample, draw_id=draw)
 
     logger.report()
