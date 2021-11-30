@@ -8,9 +8,9 @@ def subset_seroprevalence(seroprevalence: pd.DataFrame,
                           variant_prevalence: pd.Series,
                           population: pd.Series,
                           params: RatesParameters) -> pd.DataFrame:
-    daily_deaths = epi_data['daily_deaths'].dropna()
+    cumulative_deaths = epi_data['cumulative_deaths'].dropna()
     death_threshold = params.death_rate_threshold / 1e6
-    death_dates = (daily_deaths.loc[(daily_deaths / population) < death_threshold]
+    death_dates = (cumulative_deaths.loc[(cumulative_deaths / population) < death_threshold]
                    .reset_index()
                    .groupby('location_id')['date'].max()
                    .rename('death_date'))

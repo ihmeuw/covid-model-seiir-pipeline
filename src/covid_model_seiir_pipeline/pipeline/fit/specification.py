@@ -62,7 +62,7 @@ class RatesParameters:
     pred_end_date: Union[str, pd.Timestamp] = field(default='2022-03-15')
     mortality_scalar: str = field(default='total')
 
-    death_rate_threshold: float = field(default=0.1)
+    death_rate_threshold: float = field(default=1)
     variant_prevalence_threshold: float = field(default=0.1)
     inclusion_days: int = field(default=180)
     naive_ifr: float = field(default=0.005)
@@ -108,7 +108,6 @@ class RatesParameters:
         for element in ['day_0', 'pred_start_date', 'pred_end_date']:
             d[element] = d[element].strftime('%Y-%m-%d')
         return d
-
 
 
 @dataclass

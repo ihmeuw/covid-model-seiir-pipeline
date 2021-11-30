@@ -10,7 +10,7 @@ rates_parameters:
   # Either 'unscaled' or 'total'
   mortality_scalar: 'total'
   # Criteria for first pass rates models.
-  death_rate_threshold: 0.1  # per million
+  death_rate_threshold: 1  # per million
   variant_prevalence_threshold: 0.1  # proportion
   inclusion_days: 180
   naive_ifr: 0.005  # proportion
