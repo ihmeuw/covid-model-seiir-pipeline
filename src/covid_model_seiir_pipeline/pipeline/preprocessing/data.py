@@ -193,6 +193,7 @@ class PreprocessingDataInterface:
             }
             data = io.load(self.age_specific_rates_root.rates_data(measure=file_name))
             data = data.rename(columns=column_map).loc[:, column_map.values()]
+            data.iloc[:, 1] += 1
             # Change age group end of the terminal group from 99 to 125
             data.iloc[-1, 1] = 125
             data = data.set_index(['age_group_years_start', 'age_group_years_end'])
