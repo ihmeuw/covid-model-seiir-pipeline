@@ -123,7 +123,7 @@ class PreprocessingDataInterface:
         # FIXME: Something super weird going on where the data is not the same.  Maybe set & sort index?
         path = self.model_inputs_root._root / 'serology' / 'global_serology_summary.csv'
         data = pd.read_csv(path)
-        return data.reset_index()
+        return data
 
     def load_epi_measures(self) -> Dict[str, pd.Series]:
         full_data_extra_hospital = self._format_full_data(io.load(self.model_inputs_root.full_data_extra_hospital()))
