@@ -192,8 +192,13 @@ def predict_cascade(pred_data: pd.DataFrame,
     pred = pd.concat(pred)
     pred_fe = pd.concat(pred_fe)
 
-    logger.debug('\nSubstituted Location Map\n'
-                 '========================='
-                 '\n'.join([f'{model_loc:<4}: {sub_locs}' for model_loc, sub_locs in pred_location_map.items()]))
+    if pred_location_map:
+        location_map_msg = (
+            '\n'
+            'Substituted Location Map\n'
+            '========================='
+        )
+        for model_loc, sub_locs in pred_location_map.items():
+            location_map_msg += f'\n{model_loc:<4}: {sub_locs}'
     
     return pred, pred_fe, model_location_map
