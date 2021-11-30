@@ -37,7 +37,7 @@ class PreprocessVaccineTaskTemplate(workflow.TaskTemplate):
 
 class PreprocessSerologyTaskTemplate(workflow.TaskTemplate):
     tool = workflow.get_jobmon_tool(covid_model_seiir_pipeline)
-    task_name_template = f"{PREPROCESSING_JOBS.preprocess_vaccine}"
+    task_name_template = f"{PREPROCESSING_JOBS.preprocess_serology}"
     command_template = (
             f"{shutil.which('stask')} "
             f"{PREPROCESSING_JOBS.preprocess_serology} "
