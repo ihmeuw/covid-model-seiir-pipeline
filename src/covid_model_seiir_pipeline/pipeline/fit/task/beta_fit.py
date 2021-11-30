@@ -121,6 +121,7 @@ def run_beta_fit(fit_version: str, draw_id: int, progress_bar: bool) -> None:
         natural_waning_dist,
         natural_immunity_matrix,
         regression_params,
+        pred_hierarchy,
         draw_id,
     )
 
