@@ -110,21 +110,21 @@ def run_beta_fit(fit_version: str, draw_id: int, progress_bar: bool) -> None:
     )
 
     logger.info('Prepping ODE fit parameters.', context='transform')
-    regression_params = specification.fit_parameters.to_dict()
-
-    ode_parameters = model.prepare_ode_fit_parameters(
-        first_pass_rates,
-        epi_measures,
-        rhos,
-        vaccinations,
-        etas,
-        natural_waning_dist,
-        natural_immunity_matrix,
-        regression_params,
-        pred_hierarchy,
-        draw_id,
+    ode_parameters, base_rates = model.prepare_ode_fit_parameters(
+        rates=first_pass_rates,
+        epi_measures=epi_measures,
+        rhos=rhos,
+        vaccinations=vaccinations,
+        etas=etas,
+        natural_waning_dist=natural_waning_dist,
+        natural_waning_matrix=natural_immunity_matrix,
+        variant_severity=variant_severity,
+        fit_params=specification.fit_parameters,
+        hierarchy=pred_hierarchy,
+        draw_id=draw_id,
     )
 
+    import pdb; pdb.set_trace()
     logger.info('Building initial condition.', context='transform')
     initial_condition = model.make_initial_condition(
         ode_parameters,

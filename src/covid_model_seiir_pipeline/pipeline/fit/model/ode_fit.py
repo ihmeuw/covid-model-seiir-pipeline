@@ -17,8 +17,16 @@ from covid_model_seiir_pipeline.lib.ode_mk2.constants import (
 from covid_model_seiir_pipeline.lib.ode_mk2 import (
     solver,
 )
+from covid_model_seiir_pipeline.pipeline.fit.specification import (
+    FitParameters,
+)
 from covid_model_seiir_pipeline.pipeline.fit.model.rates import (
     Rates,
+)
+from covid_model_seiir_pipeline.pipeline.fit.model.sampled_params import (
+    VariantRR,
+    sample_ode_params,
+    sample_parameter,
 )
 
 
@@ -29,16 +37,16 @@ def prepare_ode_fit_parameters(rates: Rates,
                                etas: pd.DataFrame,
                                natural_waning_dist: pd.Series,
                                natural_waning_matrix: pd.DataFrame,
-                               regression_params: Dict[str, Union[int, List[int]]],
+                               variant_severity: VariantRR,
+                               fit_params: FitParameters,
                                hierarchy: pd.DataFrame,
-                               draw_id: int) -> Parameters:
-    past_index = rates.index
-    sampled_params = sample_params(
-        rates.index, regression_params,
-        draw_id=draw_id,
-    )
-    sampled_params = pd.DataFrame(
-        {k if 'kappa' in k else f'{k}_all_infection': v for k, v in sampled_params.items()})
+                               draw_id: int) -> Tuple[Parameters, pd.DataFrame]:
+    epi_measures, rates = prepare_epi_measures_and_rates(rates, epi_measures, hierarchy)
+    past_index = epi_measures.index
+
+    sampled_params = sample_ode_params(variant_severity, fit_params, draw_id)
+    sampled_params = pd.DataFrame(sampled_params, index=past_index)
+
     weights = []
     for measure in ['death', 'admission', 'case']:
         parameter = f'weight_all_{measure}'
@@ -46,6 +54,7 @@ def prepare_ode_fit_parameters(rates: Rates,
             pd.Series(sample_parameter(parameter, draw_id, 0., 1.), name=parameter, index=past_index)
         )
     weights = [w / sum(weights).rename(w.name) for w in weights]
+
     rhos = rhos.reindex(past_index, fill_value=0.)
     rhos.columns = [f'rho_{c}_infection' for c in rhos.columns]
     rhos['rho_none_infection'] = pd.Series(0., index=past_index, name='rho_none_infection')
@@ -77,56 +86,63 @@ def prepare_ode_fit_parameters(rates: Rates,
 
     rates_map = {'ifr': 'death', 'ihr': 'admission', 'idr': 'case'}
     keep_cols = [f'{r}_{g}' for r, g in itertools.product(rates_map, RISK_GROUP_NAMES)]
-    rates = rates.loc[:, keep_cols].rename(columns=lambda x: f"{rates_map[x.split('_')[0]]}_{x.split('_')[1]}")
-    return Parameters(
+    ode_rates = rates.loc[:, keep_cols].rename(columns=lambda x: f"{rates_map[x.split('_')[0]]}_{x.split('_')[1]}")
+    ode_params = Parameters(
         base_parameters=base_parameters,
         vaccinations=vaccinations,
-        rates=rates,
+        rates=ode_rates,
         etas=etas,
         phis=phis,
     )
+    return ode_params, rates
 
 
-def prepare_epi_parameters_and_rates(rates: Rates, epi_measures: pd.DataFrame, hierarchy: pd.DataFrame):
+def prepare_epi_measures_and_rates(rates: Rates, epi_measures: pd.DataFrame, hierarchy: pd.DataFrame):
     most_detailed = hierarchy[hierarchy.most_detailed == 1].location_id.unique().tolist()
     measures = (
-        ('deaths', 'count_all_death', 'ifr'),
-        ('cases', 'count_all_case', 'idr'),
-        ('hospitalizations', 'count_all_admission', 'ihr')
+        ('deaths', 'death', 'ifr'),
+        ('cases', 'case', 'idr'),
+        ('hospitalizations', 'admission', 'ihr')
     )
+
+    out_measures = []
+    out_rates = []
     for in_measure, out_measure, rate in measures:
-        epi_data = epi_measures[f'smoothed_daily_{in_measure}']
+        epi_data = epi_measures[f'smoothed_daily_{in_measure}'].rename(out_measure).to_frame()
         epi_rates = rates._todict()[rate]
-        import pdb; pdb.set_trace()
+        lag = epi_rates['lag'].item()
+
+        epi_data = reindex_to_infection_day(epi_data, lag, most_detailed)
+        epi_rates = reindex_to_infection_day(epi_rates.drop(columns='lag'), lag, most_detailed)
+
+        out_measures.append(epi_data)
+        out_rates.append(epi_rates)
+
+    out_measures = pd.concat(out_measures, axis=1)
+    out_measures = out_measures.loc[out_measures.notnull().all(axis=1)]
+
+    dates = out_measures.reset_index().date
+    global_date_range = pd.date_range(dates.min() - pd.Timedelta(days=1), dates.max())
+    square_idx = pd.MultiIndex.from_product((most_detailed, global_date_range),
+                                            names=['location_id', 'date']).sort_values()
+
+    out_measures = out_measures.reindex(square_idx).sort_index()
+    out_rates = pd.concat(out_rates, axis=1).reindex(square_idx).sort_index()
+
+    return out_measures, out_rates
+
+
+def reindex_to_infection_day(data: pd.DataFrame, lag: int, most_detailed: List[int]) -> pd.DataFrame:
+    data = (data
+            .loc[data.location_id.isin(most_detailed)]
+            .set_index(['location_id', 'date'])
+            .groupby('location_id')
+            .apply(lambda x: x.reset_index(level='location_id', drop=True)
+                   .shift(periods=-lag, freq='D')))
+    return data
 
 
 
-
-
-
-def sample_parameter(parameter: str, draw_id: int, lower: float, upper: float) -> float:
-    random_state = utilities.get_random_state(f'{parameter}_{draw_id}')
-    return random_state.uniform(lower, upper)
-
-
-def sample_params(past_index: pd.Index,
-                  param_dict: Dict,
-                  draw_id: int) -> Dict[str, pd.Series]:
-    sampled_params = {}
-    for parameter in param_dict:
-        param_spec = param_dict[parameter]
-        if isinstance(param_spec, (int, float)):
-            value = param_spec
-        else:
-            value = sample_parameter(parameter, draw_id, *param_spec)
-
-        sampled_params[parameter] = pd.Series(
-            value,
-            index=past_index,
-            name=parameter,
-        )
-
-    return sampled_params
 
 
 def make_initial_condition(parameters: Parameters, full_rates: pd.DataFrame, population: pd.DataFrame):

@@ -2,6 +2,8 @@ from covid_model_seiir_pipeline.pipeline.fit.model.sampled_params import (
     sample_durations,
     sample_variant_severity,
     sample_day_inflection,
+    sample_ode_params,
+    sample_parameter,
 )
 from covid_model_seiir_pipeline.pipeline.fit.model.seroprevalence import (
     subset_seroprevalence,
@@ -15,7 +17,6 @@ from covid_model_seiir_pipeline.pipeline.fit.model.covariate_pool import (
 )
 from covid_model_seiir_pipeline.pipeline.fit.model.ode_fit import (
     prepare_ode_fit_parameters,
-    sample_params,
     make_initial_condition,
     run_ode_fit,
 )

@@ -1,10 +1,16 @@
-from typing import NamedTuple
+from typing import NamedTuple, Dict
 
 import numpy as np
 import pandas as pd
 
 from covid_model_seiir_pipeline.lib import utilities
-from covid_model_seiir_pipeline.pipeline.fit.specification import RatesParameters
+from covid_model_seiir_pipeline.lib.ode_mk2.constants import (
+    VARIANT_NAMES,
+)
+from covid_model_seiir_pipeline.pipeline.fit.specification import (
+    RatesParameters,
+    FitParameters,
+)
 
 
 class Durations(NamedTuple):
@@ -61,3 +67,32 @@ def sample_variant_severity(params: RatesParameters, draw_id: int) -> VariantRR:
 def sample_day_inflection(params: RatesParameters, draw_id: int) -> pd.Timestamp:
     random_state = utilities.get_random_state(f'day_inflection_draw_{draw_id}')
     return pd.Timestamp(str(random_state.choice(params.day_inflection_options)))
+
+
+def sample_ode_params(variant_rr: VariantRR, beta_fit_params: FitParameters, draw_id: int) -> Dict[str, float]:
+    beta_fit_params = beta_fit_params.to_dict()
+
+    sampled_params = {}
+    for parameter in beta_fit_params:
+        param_spec = beta_fit_params[parameter]
+        if isinstance(param_spec, (int, float)):
+            value = param_spec
+        else:
+            value = sample_parameter(parameter, draw_id, *param_spec)
+
+        key = parameter if 'kappa' in parameter else f'{parameter}_all_infection'
+        sampled_params[key] = value
+
+    for measure, rate in (('death', 'ifr'), ('admission', 'ihr'), ('case', 'idr')):
+        rr = variant_rr._asdict()[rate]
+        for variant in VARIANT_NAMES:
+            if variant == VARIANT_NAMES.ancestral:
+                sampled_params[f'kappa_all_{measure}'] = 1.0
+            else:
+                sampled_params[f'kappa_all_{measure}'] = rr
+    return sampled_params
+
+
+def sample_parameter(parameter: str, draw_id: int, lower: float, upper: float) -> float:
+    random_state = utilities.get_random_state(f'{parameter}_{draw_id}')
+    return random_state.uniform(lower, upper)
