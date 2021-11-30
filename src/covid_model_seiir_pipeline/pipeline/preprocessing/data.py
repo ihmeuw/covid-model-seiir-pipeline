@@ -120,7 +120,9 @@ class PreprocessingDataInterface:
         return data
 
     def load_raw_serology_data(self):
-        data = io.load(self.model_inputs_root.serology(measure='global_serology_summary'))
+        # FIXME: Something super weird going on where the data is not the same.  Maybe set & sort index?
+        path = self.model_inputs_root._root / 'serology' / 'global_serology_summary.csv'
+        data = pd.read_csv(path)
         return data.reset_index()
 
     def load_epi_measures(self) -> Dict[str, pd.Series]:

@@ -273,13 +273,9 @@ def sample_seroprevalence(seroprevalence: pd.DataFrame,
                           logit_se_cap: float = 1.,
                           num_threads: int = 1,
                           progress_bar: bool = False):
-    def logit_se_from_ci(x):
-        return (math.logit(x['seroprevalence_upper']) - math.logit(x['seroprevalence_lower'])) / 3.92
-
-    def logit_se_from_ss(x):
-        numerator = np.sqrt((x['seroprevalence'] * (1 - x['seroprevalence'])) / x['sample_size'])
-        denominator = (x['seroprevalence'] * (1.0 - x['seroprevalence']))
-        return numerator / denominator
+    logit_se_from_ci = lambda x: (math.logit(x['seroprevalence_upper']) - math.logit(x['seroprevalence_lower'])) / 3.92
+    logit_se_from_ss = lambda x: np.sqrt((x['seroprevalence'] * (1 - x['seroprevalence'])) / x['sample_size']) / \
+                                 (x['seroprevalence'] * (1.0 - x['seroprevalence']))
 
     series_vars = ['location_id', 'is_outlier', 'survey_series', 'date']
     seroprevalence = seroprevalence.sort_values(series_vars).reset_index(drop=True)
