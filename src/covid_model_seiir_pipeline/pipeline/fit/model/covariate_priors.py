@@ -11,7 +11,7 @@ def get_covariate_priors(lambda_scalar: float, measure: str):
                 # 1.44 (1.16 - 1.79)
                 {'prior_beta_gaussian': np.array([np.log(1.44),
                                                   ((np.log(1.79) - np.log(1.16)) / 3.92) * lambda_scalar])},
-            'smoking':
+            'smoking_prevalence':
                 # 1.11 (0.93 - 1.33)
                 {'prior_beta_gaussian': np.array([np.log(1.11),
                                                   ((np.log(1.33) - np.log(0.93)) / 3.92) * lambda_scalar])},
@@ -61,7 +61,7 @@ def get_covariate_constraints(measure: str, variant_risk_ratio: float):
         covariate_constraints = {
             'obesity':
                 {'prior_beta_uniform': np.array([0, np.inf])},
-            'smoking':
+            'smoking_prevalence':
                 {'prior_beta_uniform': np.array([0, np.inf])},
             'diabetes':
                 {'prior_beta_uniform': np.array([0, np.inf])},
@@ -85,7 +85,7 @@ def get_covariate_constraints(measure: str, variant_risk_ratio: float):
         covariate_constraints = {
             'obesity':
                 {'prior_beta_uniform': np.array([0, np.inf])},
-            'smoking':
+            'smoking_prevalence':
                 {'prior_beta_uniform': np.array([0, np.inf])},
             'diabetes':
                 {'prior_beta_uniform': np.array([0, np.inf])},

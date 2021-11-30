@@ -67,16 +67,15 @@ def parent_inheritance(data: pd.DataFrame, hierarchy: pd.DataFrame) -> pd.DataFr
     else:
         assert 'location_id' in data.columns
         index_names = None
-
     location_ids = hierarchy['location_id'].to_list()
     path_to_top_parents = [list(reversed(p.split(',')[:-1]))
                            for p in hierarchy['path_to_top_parent'].to_list()]
 
     for location_id, path_to_top_parent in zip(location_ids, path_to_top_parents):
-        if location_id not in data.reset_index()['location_id'].to_list():
+        if location_id not in data.location_id.to_list():
             for parent_id in path_to_top_parent:
                 try:
-                    parent_data = data.set_index('location_id').loc[parent_id]
+                    parent_data = data.set_index('location_id').loc[int(parent_id)]
                     parent_data['location_id'] = location_id
                     data = data.append(parent_data)
                     break

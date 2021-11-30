@@ -17,7 +17,7 @@ def create_model_data(cumulative_deaths: pd.Series,
                       day_0: pd.Timestamp,
                       durations: Dict,) -> pd.DataFrame:
     ifr_data = seroprevalence.loc[seroprevalence['is_outlier'] == 0].copy()
-    ifr_data['date'] += pd.Timedelta(days=durations['sero_to_death'])
+    ifr_data['date'] += pd.Timedelta(days=durations['seropositive_to_death'])
     ifr_data = (ifr_data
                 .set_index(['data_id', 'location_id', 'date'])
                 .loc[:, 'seroprevalence'])

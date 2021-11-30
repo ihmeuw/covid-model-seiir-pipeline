@@ -68,6 +68,7 @@ def _process_epi_data(data: pd.Series, measure: str,
             .apply(lambda x: helpers.fill_dates(x, [f'cumulative_{measure}']))
             .reset_index(drop=True))
     data, manipulation_metadata = evil_doings(data, mr_hierarchy, measure)
+    data = data.set_index(['location_id', 'date']).sort_index()
 
     return data
 

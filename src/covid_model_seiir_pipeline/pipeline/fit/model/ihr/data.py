@@ -17,7 +17,7 @@ def create_model_data(cumulative_hospitalizations: pd.Series,
                       day_0: pd.Timestamp,
                       durations: Dict,) -> pd.DataFrame:
     ihr_data = seroprevalence.loc[seroprevalence['is_outlier'] == 0].copy()
-    ihr_data['date'] -= pd.Timedelta(days=durations['admission_to_sero'])
+    ihr_data['date'] -= pd.Timedelta(days=durations['admission_to_seropositive'])
     ihr_data = (ihr_data
                 .set_index(['data_id', 'location_id', 'date'])
                 .loc[:, 'seroprevalence'])

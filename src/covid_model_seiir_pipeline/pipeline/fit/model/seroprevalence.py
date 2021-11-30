@@ -9,7 +9,6 @@ def subset_seroprevalence(seroprevalence: pd.DataFrame,
                           population: pd.Series,
                           params: RatesParameters) -> pd.DataFrame:
     daily_deaths = epi_data['daily_deaths'].dropna()
-
     death_threshold = params.death_rate_threshold / 1e6
     death_dates = (daily_deaths.loc[(daily_deaths / population) < death_threshold]
                    .reset_index()
@@ -29,7 +28,7 @@ def subset_seroprevalence(seroprevalence: pd.DataFrame,
                       .reset_index())
     seroprevalence = seroprevalence.merge(inclusion_date)
 
-    import pdb; pdb.set_trace()
+
     seroprevalence = seroprevalence.loc[seroprevalence['date'] <= seroprevalence['inclusion_date']]
     del seroprevalence['inclusion_date']
 

@@ -28,7 +28,6 @@ def runner(cumulative_hospitalizations: pd.Series,
            pred_start_date: pd.Timestamp,
            pred_end_date: pd.Timestamp,
            verbose: bool = True,) -> pd.Series:
-    import pdb; pdb.set_trace()
     model_data = data.create_model_data(
         cumulative_hospitalizations=cumulative_hospitalizations.copy(),
         daily_hospitalizations=daily_hospitalizations.copy(),
@@ -50,7 +49,6 @@ def runner(cumulative_hospitalizations: pd.Series,
         pred_end_date=pred_end_date,
         day_0=day_0,
     )
-    
     # check what NAs in data might be about, get rid of them in safer way
     (mr_model_dict,
      prior_dicts,
@@ -69,7 +67,6 @@ def runner(cumulative_hospitalizations: pd.Series,
         covariate_list=covariate_list.copy(),
         variant_risk_ratio=variant_risk_ratio,
     )
-
     lr_rr, hr_rr = age_standardization.get_risk_group_rr(
         ihr_age_pattern.copy(), sero_age_pattern.copy(), age_spec_population.copy(),
     )

@@ -27,7 +27,6 @@ def runner(cumulative_deaths: pd.Series,
            day_0: pd.Timestamp,
            pred_start_date: pd.Timestamp,
            pred_end_date: pd.Timestamp) -> pd.Series:
-    import pdb; pdb.set_trace()
     model_data = data.create_model_data(
         cumulative_deaths=cumulative_deaths,
         daily_deaths=daily_deaths,

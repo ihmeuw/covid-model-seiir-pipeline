@@ -37,7 +37,7 @@ def run_beta_fit(fit_version: str, draw_id: int, progress_bar: bool) -> None:
     testing_capacity = data_interface.load_testing_data()['testing_capacity']
     covariate_pool = data_interface.load_covariate_options(draw_id=draw_id)
     rhos = data_interface.load_variant_prevalence(scenario='reference')
-    variant_prevalence = rhos.sum(axis=1)
+    variant_prevalence = rhos.drop(columns='ancestral').sum(axis=1)
     mr_covariates = []
     for covariate in model.COVARIATE_POOL:
         cov = (data_interface
@@ -45,6 +45,9 @@ def run_beta_fit(fit_version: str, draw_id: int, progress_bar: bool) -> None:
                .groupby('location_id')[f'{covariate}_reference']
                .mean().rename(covariate))
         mr_covariates.append(cov)
+
+    logger.info('Rescaling deaths and formatting epi measures', context='transform')
+    epi_measures = model.format_epi_measures(epi_measures, mr_hierarchy, pred_hierarchy, mortality_scalar)
 
     logger.info('Sampling rates parameters', context='transform')
     durations = model.sample_durations(specification.rates_parameters, draw_id)
@@ -58,9 +61,6 @@ def run_beta_fit(fit_version: str, draw_id: int, progress_bar: bool) -> None:
         population=total_population,
         params=specification.rates_parameters,
     )
-
-    logger.info('Rescaling deaths and formatting epi measures', context='transform')
-    epi_measures = model.format_epi_measures(epi_measures, mr_hierarchy, pred_hierarchy, mortality_scalar)
 
     logger.info('Generating naive infections for first pass rates model', context='transform')
     daily_deaths = epi_measures['daily_deaths'].dropna()

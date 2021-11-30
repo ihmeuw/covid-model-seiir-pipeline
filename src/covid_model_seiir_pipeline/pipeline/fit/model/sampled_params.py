@@ -60,4 +60,4 @@ def sample_variant_severity(params: RatesParameters, draw_id: int) -> VariantRR:
 
 def sample_day_inflection(params: RatesParameters, draw_id: int) -> pd.Timestamp:
     random_state = utilities.get_random_state(f'day_inflection_draw_{draw_id}')
-    return random_state.choice(params.day_inflection_options)
+    return pd.Timestamp(str(random_state.choice(params.day_inflection_options)))

@@ -28,11 +28,9 @@ def find_idr_floor(pred: pd.Series,
     )
     floors = (np.array(test_range) / 100).tolist()
     rmse = []
-    for floor in tqdm.tqdm(floors, disable=not progress_bar):
-        rmse.append(_tfv(floor))
 
-    # with multiprocessing.Pool(num_threads) as p:
-    #     rmse = list(tqdm(p.imap(_tfv, floors), total=len(floors), disable=not progress_bar))
+    with multiprocessing.Pool(num_threads) as p:
+        rmse = list(tqdm.tqdm(p.imap(_tfv, floors), total=len(floors), disable=not progress_bar))
     rmse = pd.concat(rmse).reset_index()
 
     best_floor = (rmse
@@ -55,8 +53,6 @@ def _test_floor_value(floor: float,
                       population: pd.Series,
                       hierarchy: pd.DataFrame,
                       min_children: int = 3) -> pd.DataFrame:
-    logger.debug(f'Testing IDR floor of {round(floor*100, 2)}%.')
-
     pred = (pred
             .groupby(level=0)
             .apply(lambda x: math.scale_to_bounds(x, floor, 1.))
