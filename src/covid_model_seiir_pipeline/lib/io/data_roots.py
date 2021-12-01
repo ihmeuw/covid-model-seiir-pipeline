@@ -235,9 +235,12 @@ class FitRoot(DataRoot):
     covariate_options = MetadataType('covariate_options')
 
     beta = DatasetType('beta', LEAF_TEMPLATES.DRAW_TEMPLATE)
-    epi_measures = DatasetType('epi_measures', LEAF_TEMPLATES.DRAW_TEMPLATE)
+    input_epi_measures = DatasetType('input_epi_measures', LEAF_TEMPLATES.DRAW_TEMPLATE)
+    posterior_epi_measures = DatasetType('posterior_epi_measures', LEAF_TEMPLATES.DRAW_TEMPLATE)
+    rates = DatasetType('rates', LEAF_TEMPLATES.DRAW_TEMPLATE)
     compartments = DatasetType('compartments', LEAF_TEMPLATES.DRAW_TEMPLATE)
     ode_parameters = DatasetType('ode_parameters', LEAF_TEMPLATES.DRAW_TEMPLATE)
+    seroprevalence = DatasetType('seroprevalence', LEAF_TEMPLATES.DRAW_TEMPLATE)
     etas = DatasetType('etas', LEAF_TEMPLATES.DRAW_TEMPLATE)
     chis = DatasetType('chis', LEAF_TEMPLATES.DRAW_TEMPLATE)
 
