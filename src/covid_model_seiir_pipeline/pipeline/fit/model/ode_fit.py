@@ -243,7 +243,7 @@ def prepare_ode_compartments_for_second_pass_rates(compartments: pd.DataFrame,
         .dropna()
         .reset_index()
     )
-    pct_unvaccinated['date'] = pd.Timedelta(days=durations.exposure_to_seroconversion)
+    pct_unvaccinated['date'] += pd.Timedelta(days=durations.exposure_to_seroconversion)
     return epi_measures, pct_unvaccinated
 
 

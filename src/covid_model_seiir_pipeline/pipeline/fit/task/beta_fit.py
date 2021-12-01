@@ -159,10 +159,10 @@ def run_beta_fit(fit_version: str, draw_id: int, progress_bar: bool) -> None:
         progress_bar=progress_bar,
     )
     adjusted_seroprevalence = adjusted_seroprevalence.merge(pct_unvaccinated, how='left')
-    if seroprevalence['pct_unvaccinated'].isnull().any():
+    if adjusted_seroprevalence['pct_unvaccinated'].isnull().any():
         raise ValueError('Unmatched sero-survey dates')
-    seroprevalence['seroprevalence'] *= seroprevalence['pct_unvaccinated']
-    del seroprevalence['pct_unvaccinated']
+    adjusted_seroprevalence['seroprevalence'] *= adjusted_seroprevalence['pct_unvaccinated']
+    del adjusted_seroprevalence['pct_unvaccinated']
 
     logger.info('Running second-pass rates model', context='rates_model_1')
     second_pass_rates = model.run_rates_pipeline(
