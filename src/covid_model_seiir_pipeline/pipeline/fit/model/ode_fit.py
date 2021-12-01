@@ -139,8 +139,7 @@ def reindex_to_infection_day(data: pd.DataFrame, lag: int, most_detailed: List[i
             .loc[data.location_id.isin(most_detailed)]
             .set_index(['location_id', 'date'])
             .groupby('location_id')
-            .apply(lambda x: x.reset_index(level='location_id', drop=True)
-                   .shift(periods=-lag, freq='D')))
+            .apply(_shift(-lag)))
     return data
 
 
@@ -265,7 +264,7 @@ def _shift(lag: int):
     def _inner(x: pd.Series):
         return (x
                 .reset_index(level='location_id', drop=True)
-                .shift(period=lag, freq='D'))
+                .shift(periods=lag, freq='D'))
     return _inner
 
 

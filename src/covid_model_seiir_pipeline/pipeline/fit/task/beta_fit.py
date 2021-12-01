@@ -245,7 +245,7 @@ def run_beta_fit(fit_version: str, draw_id: int, progress_bar: bool) -> None:
 
     out_seroprevalence = (seroprevalence
                           .set_index(['location_id', 'date', 'is_outlier'])
-                          .loc[:, 'reported_seroprevalence', 'seroprevalence'])
+                          .loc[:, ['reported_seroprevalence', 'seroprevalence']])
     adjusted_seroprevalence = (adjusted_seroprevalence
                                .set_index(['location_id', 'date', 'is_outlier'])
                                .loc[:, ['seroprevalence']]
