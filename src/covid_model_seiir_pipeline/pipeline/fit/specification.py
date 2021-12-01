@@ -33,8 +33,8 @@ class CovariatePoolTaskSpecification(workflow.TaskSpecification):
 
 class BetaFitTaskSpecification(workflow.TaskSpecification):
     default_max_runtime_seconds = 5000
-    default_m_mem_free = '30G'
-    default_num_cores = 5
+    default_m_mem_free = '50G'
+    default_num_cores = 11
 
 
 class FitWorkflowSpecification(workflow.WorkflowSpecification):

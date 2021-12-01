@@ -67,6 +67,10 @@ def run_ode_model(initial_condition: pd.DataFrame,
             ))
     compartments, chis = zip(*results)
     compartments = pd.concat(compartments).reset_index().set_index(['location_id', 'date']).sort_index()
+    ran = compartments.reset_index().location_id.unique()
+    missing = set(initial_condition.reset_index().location_id.unique()).difference(ran)
+    if missing:
+        raise ValueError(f"Couldn't run locations {missing}")
     chis = pd.concat(chis).reset_index().set_index(['location_id', 'date']).sort_index()
     return compartments, chis
 
