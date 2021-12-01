@@ -38,14 +38,14 @@ def get_covariate_priors(lambda_scalar: float, measure: str):
                                                   ((np.log(1.01) - np.log(0.77)) / 3.92) * lambda_scalar])},
             'uhc':
                 {},
-            'haq':
+            'haqi':
                 {},
         }
     elif measure == 'idr':
         covariate_priors = {
             'uhc':
                 {},
-            'haq':
+            'haqi':
                 {},
             'prop_65plus':
                 {},
@@ -75,7 +75,7 @@ def get_covariate_constraints(measure: str, variant_risk_ratio: float):
                 {'prior_beta_uniform': np.array([0, np.inf])},
             'uhc':
                 {'prior_beta_uniform': np.array([-np.inf, 0])},
-            'haq':
+            'haqi':
                 {'prior_beta_uniform': np.array([-np.inf, 0])},
             'variant_prevalence':
                 {'prior_beta_uniform': np.array([np.log(variant_risk_ratio),
@@ -99,7 +99,7 @@ def get_covariate_constraints(measure: str, variant_risk_ratio: float):
                 {'prior_beta_uniform': np.array([0, np.inf])},
             'uhc':
                 {'prior_beta_uniform': np.array([0, np.inf])},
-            'haq':
+            'haqi':
                 {'prior_beta_uniform': np.array([0, np.inf])},
             'variant_prevalence':
                 {'prior_beta_uniform': np.array([np.log(variant_risk_ratio),
@@ -110,7 +110,7 @@ def get_covariate_constraints(measure: str, variant_risk_ratio: float):
         covariate_constraints = {
             'uhc':
                 {'prior_beta_uniform': np.array([0, np.inf])},
-            'haq':
+            'haqi':
                 {'prior_beta_uniform': np.array([0, np.inf])},
             'prop_65plus':
                 {'prior_beta_uniform': np.array([-np.inf, 0])},

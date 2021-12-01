@@ -23,7 +23,7 @@ COVARIATE_POOL = (
 def make_covariate_pool(n_samples: int) -> Dict[str, Dict[int, List[str]]]:
     test_combinations = []
     for i in range(len(COVARIATE_POOL)):
-        test_combinations += [list(set(cc)) for cc in itertools.combinations(COVARIATE_POOL, i + 1)]
+        test_combinations += [list(set(cc)) for cc in itertools.combinations(COVARIATE_POOL[:-1], i + 1)]
     test_combinations = [cc for cc in test_combinations if
                          len([c for c in cc if c in ['uhc', 'haqi']]) <= 1]
     logger.warning('Not actually testing covariate combinations.')

@@ -244,15 +244,14 @@ def run_beta_fit(fit_version: str, draw_id: int, progress_bar: bool) -> None:
     betas = betas.rename(columns=lambda x: f'beta_{x.split("_")[2]}').rename(columns={'beta_all': 'beta'})
 
     out_seroprevalence = (seroprevalence
-                          .set_index(['location_id', 'date', 'is_outlier'])
+                          .set_index(['data_id', 'location_id', 'date', 'is_outlier'])
                           .loc[:, ['reported_seroprevalence', 'seroprevalence']])
     adjusted_seroprevalence = (adjusted_seroprevalence
-                               .set_index(['location_id', 'date', 'is_outlier'])
+                               .set_index(['data_id', 'location_id', 'date', 'is_outlier'])
                                .loc[:, ['seroprevalence']]
                                .rename(columns={'seroprevalence': 'adjusted_seroprevalence'}))
     out_seroprevalence = pd.concat([out_seroprevalence, adjusted_seroprevalence], axis=1)
 
-    import pdb; pdb.set_trace()
     logger.info('Writing outputs', context='write')
     data_interface.save_ode_params(out_params, draw_id=draw_id)
     data_interface.save_input_epi_measures(epi_measures, draw_id=draw_id)
