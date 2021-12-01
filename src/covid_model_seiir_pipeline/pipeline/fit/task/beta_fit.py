@@ -34,7 +34,7 @@ def run_beta_fit(fit_version: str, draw_id: int, progress_bar: bool) -> None:
     mortality_scalar = data_interface.load_total_covid_scalars(draw_id)['scalar']
     age_patterns = data_interface.load_age_patterns()
     seroprevalence = data_interface.load_seroprevalence(draw_id=draw_id).reset_index()
-    sensitivity = data_interface.load_sensitivity(draw_id=draw_id)
+    sensitivity_data = data_interface.load_sensitivity(draw_id=draw_id)
     testing_capacity = data_interface.load_testing_data()['testing_capacity']
     covariate_pool = data_interface.load_covariate_options(draw_id=draw_id)
     rhos = data_interface.load_variant_prevalence(scenario='reference')
@@ -138,24 +138,85 @@ def run_beta_fit(fit_version: str, draw_id: int, progress_bar: bool) -> None:
         num_cores=specification.workflow.task_specifications['beta_fit'].num_cores,
         progress_bar=progress_bar,
     )
-    import pdb; pdb.set_trace()
-    # Format and save data.
-    logger.info('Prepping outputs', context='transform')
-    epi_measures = pd.DataFrame(index=compartments.index)
-    for measure in EPI_MEASURE_NAMES:
-        cols = [f'{measure}_ancestral_all_{risk_group}' for risk_group in RISK_GROUP_NAMES]
-        lag = lags.get(f'{measure}s', 0)
-        epi_measures.loc[:, f'{measure}_naive_unvaccinated'] = (
-            compartments
-            .loc[:, cols]
-            .sum(axis=1)
-            .groupby('location_id')
-            .apply(lambda x: x.reset_index(level='location_id', drop=True)
-                              .shift(periods=lag, freq='D'))
-        )
-    epi_measures.loc[:, 'infection_naive'] = compartments.filter(like='NewENaive').sum(axis=1)
-    epi_measures.loc[:, 'infection_total'] = compartments.filter(like='NewE').sum(axis=1)
 
+    logger.info('Prepping first pass ODE outputs for second pass rates model', context='transform')
+    naive_epi_measures, pct_unvaccinated = model.prepare_ode_compartments_for_second_pass_rates(
+        compartments=compartments,
+        durations=durations
+    )
+    hospitalized_weights = model.get_all_age_rate(
+        rate_age_pattern=age_patterns['ihr'],
+        weight_age_pattern=age_patterns['seroprevalence'],
+        age_spec_population=five_year_population,
+    )
+    sensitivity, adjusted_seroprevalence = model.apply_sensitivity_adjustment(
+        sensitivity_data=sensitivity_data,
+        hospitalized_weights=hospitalized_weights,
+        seroprevalence=seroprevalence,
+        daily_infections=naive_epi_measures['daily_total_infections'],
+        durations=durations,
+        n_threads=num_threads,
+        progress_bar=progress_bar,
+    )
+    adjusted_seroprevalence = adjusted_seroprevalence.merge(pct_unvaccinated, how='left')
+    if seroprevalence['pct_unvaccinated'].isnull().any():
+        raise ValueError('Unmatched sero-survey dates')
+    seroprevalence['seroprevalence'] *= seroprevalence['pct_unvaccinated']
+    del seroprevalence['pct_unvaccinated']
+
+    logger.info('Running second-pass rates model', context='rates_model_1')
+    second_pass_rates = model.run_rates_pipeline(
+        epi_data=naive_epi_measures,
+        age_patterns=age_patterns,
+        seroprevalence=adjusted_seroprevalence,
+        covariates=mr_covariates,
+        covariate_pool=covariate_pool,
+        mr_hierarchy=mr_hierarchy,
+        pred_hierarchy=pred_hierarchy,
+        total_population=total_population,
+        age_specific_population=five_year_population,
+        testing_capacity=testing_capacity,
+        variant_prevalence=variant_prevalence,
+        daily_infections=daily_infections,
+        durations=durations,
+        variant_rrs=variant_severity,
+        params=specification.rates_parameters,
+        day_inflection=day_inflection,
+        num_threads=num_threads,
+        progress_bar=progress_bar,
+    )
+
+    logger.info('Prepping ODE fit parameters for second pass model.', context='transform')
+    ode_parameters, base_rates = model.prepare_ode_fit_parameters(
+        rates=second_pass_rates,
+        epi_measures=epi_measures,
+        rhos=rhos,
+        vaccinations=vaccinations,
+        etas=etas,
+        natural_waning_dist=natural_waning_dist,
+        natural_waning_matrix=natural_immunity_matrix,
+        variant_severity=variant_severity,
+        fit_params=specification.fit_parameters,
+        hierarchy=pred_hierarchy,
+        draw_id=draw_id,
+    )
+
+    logger.info('Rebuilding initial condition.', context='transform')
+    initial_condition = model.make_initial_condition(
+        ode_parameters,
+        base_rates,
+        risk_group_population,
+    )
+
+    logger.info('Running second pass ODE fit', context='compute_ode')
+    compartments, chis = model.run_ode_fit(
+        initial_condition=initial_condition,
+        ode_parameters=ode_parameters,
+        num_cores=specification.workflow.task_specifications['beta_fit'].num_cores,
+        progress_bar=progress_bar,
+    )
+
+    import pdb; pdb.set_trace()
     logger.info('Writing outputs', context='write')
     data_interface.save_epi_measures(epi_measures, draw_id=draw_id)
 

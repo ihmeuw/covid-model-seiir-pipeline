@@ -1,10 +1,9 @@
 import itertools
-from typing import Dict, List, Tuple, Union
+from typing import List, Tuple
 
 import numpy as np
 import pandas as pd
 
-from covid_model_seiir_pipeline.lib import utilities
 from covid_model_seiir_pipeline.lib.ode_mk2.containers import (
     Parameters,
 )
@@ -13,6 +12,7 @@ from covid_model_seiir_pipeline.lib.ode_mk2.constants import (
     RISK_GROUP_NAMES,
     COMPARTMENTS_NAMES,
     TRACKING_COMPARTMENTS_NAMES,
+    EPI_MEASURE_NAMES,
 )
 from covid_model_seiir_pipeline.lib.ode_mk2 import (
     solver,
@@ -24,6 +24,7 @@ from covid_model_seiir_pipeline.pipeline.fit.model.rates import (
     Rates,
 )
 from covid_model_seiir_pipeline.pipeline.fit.model.sampled_params import (
+    Durations,
     VariantRR,
     sample_ode_params,
     sample_parameter,
@@ -203,6 +204,51 @@ def get_crude_infections(base_params, rates, population, threshold=50):
     return crude_infections
 
 
+def prepare_ode_compartments_for_second_pass_rates(compartments: pd.DataFrame,
+                                                   durations: Durations) -> Tuple[pd.DataFrame, pd.Series]:
+    epi_measures = pd.DataFrame(index=compartments.index)
+    for ode_measure, rates_measure in (('death', 'deaths'), ('admission', 'hospitalizations'),
+                                       ('case', 'cases'), ('infection', 'infections')):
+        cols = [f'{ode_measure}_ancestral_all_{risk_group}' for risk_group in RISK_GROUP_NAMES]
+        lag = durations._asdict().get(f'exposure_to_{ode_measure}', 0)
+        epi_measures.loc[:, f'cumulative_{rates_measure}'] = (
+            compartments
+            .loc[:, cols]
+            .sum(axis=1)
+            .groupby('location_id')
+            .apply(lambda x: x.reset_index(level='location_id', drop=True)
+                   .shift(periods=lag, freq='D'))
+        )
+        epi_measures.loc[:, f'daily_{rates_measure}'] = (
+            epi_measures
+            .loc[:, f'cumulative_{rates_measure}']
+            .groupby('location_id')
+            .diff()
+            .fillna(epi_measures.loc[:, f'cumulative_{rates_measure}'])
+        )
+    naive_infections = compartments.filter(like='NewENaive').sum(axis=1)
+    total_infections = compartments.filter(like='NewE').sum(axis=1)
+
+    epi_measures.loc[:, 'daily_total_infections'] = (
+        total_infections
+        .groupby('location_id')
+        .diff()
+        .fillna(total_infections)
+    )
+
+    pct_unvaccinated = (
+        (naive_infections / epi_measures['cumulative_infections'])
+        .clip(0, 1)
+        .rename('pct_unvaccinated')
+        .dropna()
+        .reset_index()
+    )
+    pct_unvaccinated['date'] = pd.Timedelta(days=durations.exposure_to_seroconversion)
+    return epi_measures, pct_unvaccinated
+
+
+
+
 def run_ode_fit(initial_condition: pd.DataFrame, ode_parameters: Parameters, num_cores: int, progress_bar: bool):
     full_compartments, chis = solver.run_ode_model(
         initial_condition,
@@ -215,4 +261,6 @@ def run_ode_fit(initial_condition: pd.DataFrame, ode_parameters: Parameters, num
     full_compartments.loc[full_compartments.sum(axis=1) == 0., :] = np.nan
 
     return full_compartments, chis
+
+
 
