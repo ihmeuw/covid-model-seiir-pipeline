@@ -224,6 +224,8 @@ def run_beta_fit(fit_version: str, draw_id: int, progress_bar: bool) -> None:
     out_params = pd.concat(out_params)
     for name, duration in durations._asdict().items():
         out_params.loc[name] = duration
+    out_params = out_params.reset_index()
+    out_params.columns = ['parameter', 'value']
 
     first_pass_rates = pd.concat([r.drop(columns='lag') for r in first_pass_rates])
     first_pass_rates.loc[:, 'round'] = 1

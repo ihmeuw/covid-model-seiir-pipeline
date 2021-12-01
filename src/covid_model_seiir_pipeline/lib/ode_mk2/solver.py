@@ -2,6 +2,7 @@ import functools
 import itertools
 import multiprocessing
 
+from loguru import logger
 import numba
 import numpy as np
 import pandas as pd
@@ -70,7 +71,7 @@ def run_ode_model(initial_condition: pd.DataFrame,
     ran = compartments.reset_index().location_id.unique()
     missing = set(initial_condition.reset_index().location_id.unique()).difference(ran)
     if missing:
-        raise ValueError(f"Couldn't run locations {missing}")
+        logger.warning(f"Couldn't run locations {missing}")
     chis = pd.concat(chis).reset_index().set_index(['location_id', 'date']).sort_index()
     return compartments, chis
 
