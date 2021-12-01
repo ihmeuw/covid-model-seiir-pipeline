@@ -155,8 +155,6 @@ def run_beta_fit(fit_version: str, draw_id: int, progress_bar: bool) -> None:
         seroprevalence=seroprevalence,
         daily_infections=first_pass_posterior_epi_measures['daily_total_infections'].rename('daily_infections'),
         durations=durations,
-        n_threads=num_threads,
-        progress_bar=progress_bar,
     )
     adjusted_seroprevalence = adjusted_seroprevalence.merge(pct_unvaccinated, how='left')
     if adjusted_seroprevalence['pct_unvaccinated'].isnull().any():
@@ -254,6 +252,7 @@ def run_beta_fit(fit_version: str, draw_id: int, progress_bar: bool) -> None:
                                .rename(columns={'seroprevalence': 'adjusted_seroprevalence'}))
     out_seroprevalence = pd.concat([out_seroprevalence, adjusted_seroprevalence], axis=1)
 
+    import pdb; pdb.set_trace()
     logger.info('Writing outputs', context='write')
     data_interface.save_ode_params(out_params, draw_id=draw_id)
     data_interface.save_input_epi_measures(epi_measures, draw_id=draw_id)

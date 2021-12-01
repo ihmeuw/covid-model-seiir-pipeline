@@ -64,9 +64,7 @@ def apply_sensitivity_adjustment(sensitivity_data: pd.DataFrame,
                                  hospitalized_weights: pd.Series,
                                  seroprevalence: pd.DataFrame,
                                  daily_infections: pd.Series,
-                                 durations: Durations,
-                                 n_threads: int,
-                                 progress_bar: bool) -> Tuple[pd.DataFrame, pd.DataFrame]:
+                                 durations: Durations) -> Tuple[pd.DataFrame, pd.DataFrame]:
     data_assays = sensitivity_data['assay'].unique().tolist()
     excluded_data_assays = [da for da in data_assays if da not in ASSAYS]
     if excluded_data_assays:
@@ -78,7 +76,7 @@ def apply_sensitivity_adjustment(sensitivity_data: pd.DataFrame,
     source_assays = sensitivity_data[['source', 'assay']].drop_duplicates().values.tolist()
 
     sensitivity = []
-    for source_assay in tqdm.tqdm(source_assays, total=len(source_assays), disable=not progress_bar):
+    for source_assay in source_assays:
         sensitivity.append(
             fit_hospital_weighted_sensitivity_decay(
                 source_assay,
@@ -109,8 +107,6 @@ def apply_sensitivity_adjustment(sensitivity_data: pd.DataFrame,
             daily_infections.copy(),
             ac_sensitivity.copy(),
             ac_seroprevalence.copy(),
-            n_threads,
-            progress_bar,
         )
 
         ac_sensitivity = (ac_sensitivity
@@ -249,31 +245,27 @@ def fit_sensitivity_decay_mrbrt(sensitivity_data: pd.DataFrame, increasing: bool
 
 def sensitivity_adjustment(daily_infections: pd.Series,
                            sensitivity: pd.DataFrame,
-                           seroprevalence: pd.DataFrame,
-                           n_threads: int,
-                           progress_bar: bool) -> pd.DataFrame:
+                           seroprevalence: pd.DataFrame) -> pd.DataFrame:
     location_ids = seroprevalence['location_id'].unique().tolist()
     location_ids = [location_id for location_id in location_ids if
                     location_id in daily_infections.reset_index()['location_id'].to_list()]
 
-    _lwa = functools.partial(
-        location_sensitivity_adjustment,
-        daily_infections=daily_infections, sensitivity=sensitivity,
-        seroprevalence=seroprevalence,
-    )
-    with multiprocessing.Pool(int(n_threads)) as p:
-        seroprevalence = list(tqdm.tqdm(
-            p.imap(_lwa, location_ids),
-            total=len(location_ids),
-            disable=not progress_bar
-        ))
-    seroprevalence = pd.concat(seroprevalence).reset_index(drop=True)
+    out = []
+    for location_id in location_ids:
+        loc_seroprevalence = location_sensitivity_adjustment(
+            location_id=location_id,
+            daily_infections=daily_infections,
+            sensitivity=sensitivity,
+            seroprevalence=seroprevalence,
+        )
+        out.append(loc_seroprevalence)
+    seroprevalence = pd.concat(out).reset_index(drop=True)
 
     return seroprevalence
 
 
 def location_sensitivity_adjustment(location_id: int,
-                                    daily_infections: pd.DataFrame,
+                                    daily_infections: pd.Series,
                                     sensitivity: pd.DataFrame,
                                     seroprevalence: pd.DataFrame) -> pd.DataFrame:
     daily_infections = daily_infections.loc[location_id].reset_index()
