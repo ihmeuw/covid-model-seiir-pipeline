@@ -243,14 +243,12 @@ def run_beta_fit(fit_version: str, draw_id: int, progress_bar: bool) -> None:
     betas = compartments.filter(like='beta_none').filter(like='lr').groupby('location_id').diff()
     betas = betas.rename(columns=lambda x: f'beta_{x.split("_")[2]}').rename(columns={'beta_all': 'beta'})
 
-    out_seroprevalence = (seroprevalence
-                          .set_index(['data_id', 'location_id', 'date', 'is_outlier'])
-                          .loc[:, ['reported_seroprevalence', 'seroprevalence']])
+    idx_cols = ['data_id', 'location_id', 'date', 'is_outlier']
+    out_seroprevalence = seroprevalence.loc[:, idx_cols + ['reported_seroprevalence', 'seroprevalence']]
     adjusted_seroprevalence = (adjusted_seroprevalence
-                               .set_index(['data_id', 'location_id', 'date', 'is_outlier'])
-                               .loc[:, ['seroprevalence']]
+                               .loc[:, idx_cols + ['seroprevalence']]
                                .rename(columns={'seroprevalence': 'adjusted_seroprevalence'}))
-    out_seroprevalence = pd.concat([out_seroprevalence, adjusted_seroprevalence], axis=1)
+    out_seroprevalence = seroprevalence.merge(adjusted_seroprevalence)
 
     logger.info('Writing outputs', context='write')
     data_interface.save_ode_params(out_params, draw_id=draw_id)
