@@ -103,28 +103,33 @@ def _run_loc_ode_model(ic_and_params,
     vaccines = _interpolate(t, t_params, vaccines.to_numpy())
     etas = _interpolate(t, t_params, etas.to_numpy())
     phis = phis.to_numpy()
-    
-    y_solve, chis = _rk45_dde(
-        t0, tf,
-        t_solve,
-        y_solve,
-        parameters,
-        rates,
-        vaccines,
-        etas,
-        phis,
-        forecast,
-        dt,        
-    )
 
-    loc_compartments = pd.DataFrame(_uninterpolate(y_solve, t_solve, t),
-                                    columns=initial_condition.columns,
-                                    index=initial_condition.index)
-    loc_compartments['location_id'] = location_id
-    loc_chis = pd.DataFrame(_uninterpolate(chis, t_solve, t),
-                            columns=[f'{n}_{r}' for r, n in itertools.product(RISK_GROUP_NAMES, CHI_NAMES)],
-                            index=initial_condition.index)
-    loc_chis['location_id'] = location_id
+    try:
+        y_solve, chis = _rk45_dde(
+            t0, tf,
+            t_solve,
+            y_solve,
+            parameters,
+            rates,
+            vaccines,
+            etas,
+            phis,
+            forecast,
+            dt,
+        )
+        loc_compartments = pd.DataFrame(_uninterpolate(y_solve, t_solve, t),
+                                        columns=initial_condition.columns,
+                                        index=initial_condition.index)
+        loc_compartments['location_id'] = location_id
+        loc_chis = pd.DataFrame(_uninterpolate(chis, t_solve, t),
+                                columns=[f'{n}_{r}' for r, n in itertools.product(RISK_GROUP_NAMES, CHI_NAMES)],
+                                index=initial_condition.index)
+        loc_chis['location_id'] = location_id
+    except:
+        loc_compartments = pd.DataFrame(columns=initial_condition.columns)
+        loc_chis = pd.DataFrame(columns=[f'{n}_{r}' for r, n in itertools.product(RISK_GROUP_NAMES, CHI_NAMES)]
+                                        + ['location_id'])
+
     return loc_compartments, loc_chis
 
 
