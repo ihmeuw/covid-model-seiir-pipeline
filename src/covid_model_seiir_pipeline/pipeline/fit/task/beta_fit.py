@@ -110,7 +110,7 @@ def run_beta_fit(fit_version: str, draw_id: int, progress_bar: bool) -> None:
     )
 
     logger.info('Prepping ODE fit parameters.', context='transform')
-    ode_parameters, base_rates = model.prepare_ode_fit_parameters(
+    ode_parameters, first_pass_base_rates = model.prepare_ode_fit_parameters(
         rates=first_pass_rates,
         epi_measures=epi_measures,
         rhos=rhos,
@@ -127,7 +127,7 @@ def run_beta_fit(fit_version: str, draw_id: int, progress_bar: bool) -> None:
     logger.info('Building initial condition.', context='transform')
     initial_condition = model.make_initial_condition(
         ode_parameters,
-        base_rates,
+        first_pass_base_rates,
         risk_group_population,
     )
 
@@ -140,7 +140,7 @@ def run_beta_fit(fit_version: str, draw_id: int, progress_bar: bool) -> None:
     )
 
     logger.info('Prepping first pass ODE outputs for second pass rates model', context='transform')
-    naive_epi_measures, pct_unvaccinated = model.prepare_ode_compartments_for_second_pass_rates(
+    first_pass_posterior_epi_measures, pct_unvaccinated = model.compute_posterior_epi_measures(
         compartments=compartments,
         durations=durations
     )
@@ -153,7 +153,7 @@ def run_beta_fit(fit_version: str, draw_id: int, progress_bar: bool) -> None:
         sensitivity_data=sensitivity_data,
         hospitalized_weights=hospitalized_weights,
         seroprevalence=seroprevalence,
-        daily_infections=naive_epi_measures['daily_total_infections'].rename('daily_infections'),
+        daily_infections=first_pass_posterior_epi_measures['daily_total_infections'].rename('daily_infections'),
         durations=durations,
         n_threads=num_threads,
         progress_bar=progress_bar,
@@ -166,7 +166,7 @@ def run_beta_fit(fit_version: str, draw_id: int, progress_bar: bool) -> None:
 
     logger.info('Running second-pass rates model', context='rates_model_1')
     second_pass_rates = model.run_rates_pipeline(
-        epi_data=naive_epi_measures,
+        epi_data=first_pass_posterior_epi_measures,
         age_patterns=age_patterns,
         seroprevalence=adjusted_seroprevalence,
         covariates=mr_covariates,
@@ -187,7 +187,7 @@ def run_beta_fit(fit_version: str, draw_id: int, progress_bar: bool) -> None:
     )
 
     logger.info('Prepping ODE fit parameters for second pass model.', context='transform')
-    ode_parameters, base_rates = model.prepare_ode_fit_parameters(
+    ode_parameters, second_pass_base_rates = model.prepare_ode_fit_parameters(
         rates=second_pass_rates,
         epi_measures=epi_measures,
         rhos=rhos,
@@ -204,7 +204,7 @@ def run_beta_fit(fit_version: str, draw_id: int, progress_bar: bool) -> None:
     logger.info('Rebuilding initial condition.', context='transform')
     initial_condition = model.make_initial_condition(
         ode_parameters,
-        base_rates,
+        second_pass_base_rates,
         risk_group_population,
     )
 
@@ -216,9 +216,52 @@ def run_beta_fit(fit_version: str, draw_id: int, progress_bar: bool) -> None:
         progress_bar=progress_bar,
     )
 
-    import pdb; pdb.set_trace()
+    logger.info('Prepping outputs.', context='transform')
+
+    base_parameters = ode_parameters.to_dict()['base_parameters']
+    out_params = []
+    keep = ['alpha', 'sigma', 'gamma', 'pi', 'kappa', 'weight']
+    for param in keep:
+        out_params.append(base_parameters.filter(like=param).iloc[0])
+    out_params = pd.concat(out_params)
+    for name, duration in durations._asdict().items():
+        out_params.loc[name] = duration
+
+    first_pass_rates = pd.concat([r.drop(columns='lag') for r in first_pass_rates])
+    first_pass_rates.loc[:, 'round'] = 1
+    second_pass_rates = pd.concat([r.drop(columns='lag') for r in second_pass_rates])
+    second_pass_rates.loc[:, 'round'] = 2
+    prior_rates = pd.concat([first_pass_rates, second_pass_rates])
+
+    second_pass_posterior_epi_measures, _ = model.compute_posterior_epi_measures(
+        compartments=compartments,
+        durations=durations
+    )
+    first_pass_posterior_epi_measures.loc[:, 'round'] = 1
+    second_pass_posterior_epi_measures.loc[:, 'round'] = 2
+    posterior_epi_measures = pd.concat([first_pass_posterior_epi_measures, second_pass_posterior_epi_measures])
+
+    # Beta fit is the same for both risk groups
+    betas = compartments.filter(like='beta_none').filter(like='lr').groupby('location_id').diff()
+    betas = betas.rename(columns=lambda x: f'beta_{x.split("_")[2]}').rename(columns={'beta_all': 'beta'})
+
+    out_seroprevalence = (seroprevalence
+                          .set_index(['location_id', 'date', 'is_outlier'])
+                          .loc[:, 'reported_seroprevalence', 'seroprevalence'])
+    adjusted_seroprevalence = (adjusted_seroprevalence
+                               .set_index(['location_id', 'date', 'is_outlier'])
+                               .loc[:, ['seroprevalence']]
+                               .rename(columns={'seroprevalence': 'adjusted_seroprevalence'}))
+    out_seroprevalence = pd.concat([out_seroprevalence, adjusted_seroprevalence], axis=1)
+
     logger.info('Writing outputs', context='write')
-    data_interface.save_epi_measures(epi_measures, draw_id=draw_id)
+    data_interface.save_ode_params(out_params, draw_id=draw_id)
+    data_interface.save_input_epi_measures(epi_measures, draw_id=draw_id)
+    data_interface.save_rates(prior_rates, draw_id=draw_id)
+    data_interface.save_posterior_epi_measures(posterior_epi_measures, draw_id=draw_id)
+    data_interface.save_compartments(compartments, draw_id=draw_id)
+    data_interface.save_beta(betas, draw_id=draw_id)
+    data_interface.save_final_seroprevalence(out_seroprevalence, draw_id=draw_id)
 
     logger.report()
 
