@@ -126,9 +126,9 @@ def _run_loc_ode_model(ic_and_params,
                                 index=initial_condition.index)
         loc_chis['location_id'] = location_id
     except:
-        loc_compartments = pd.DataFrame(columns=initial_condition.columns)
+        loc_compartments = pd.DataFrame(columns=initial_condition.columns.tolist() + ['location_id', 'date']).set_index('date')
         loc_chis = pd.DataFrame(columns=[f'{n}_{r}' for r, n in itertools.product(RISK_GROUP_NAMES, CHI_NAMES)]
-                                        + ['location_id'])
+                                        + ['location_id', 'date']).set_index('date')
 
     return loc_compartments, loc_chis
 
