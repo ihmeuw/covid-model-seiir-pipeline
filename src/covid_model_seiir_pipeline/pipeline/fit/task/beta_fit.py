@@ -153,7 +153,7 @@ def run_beta_fit(fit_version: str, draw_id: int, progress_bar: bool) -> None:
         sensitivity_data=sensitivity_data,
         hospitalized_weights=hospitalized_weights,
         seroprevalence=seroprevalence,
-        daily_infections=naive_epi_measures['daily_total_infections'],
+        daily_infections=naive_epi_measures['daily_total_infections'].rename('daily_infections'),
         durations=durations,
         n_threads=num_threads,
         progress_bar=progress_bar,
