@@ -225,9 +225,9 @@ def run_beta_fit(fit_version: str, draw_id: int, progress_bar: bool) -> None:
     for name, duration in durations._asdict().items():
         out_params.loc[name] = duration
 
-    first_pass_rates = pd.concat([r.drop(columns='lag') for r in first_pass_rates])
+    first_pass_rates = pd.concat([r.drop(columns='lag') for r in first_pass_rates], axis=1)
     first_pass_rates.loc[:, 'round'] = 1
-    second_pass_rates = pd.concat([r.drop(columns='lag') for r in second_pass_rates])
+    second_pass_rates = pd.concat([r.drop(columns='lag') for r in second_pass_rates], axis=1)
     second_pass_rates.loc[:, 'round'] = 2
     prior_rates = pd.concat([first_pass_rates, second_pass_rates])
 
