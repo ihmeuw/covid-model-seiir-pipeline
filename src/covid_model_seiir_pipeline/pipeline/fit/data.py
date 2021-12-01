@@ -1,4 +1,4 @@
-from typing import Dict
+from typing import Dict, List
 
 import pandas as pd
 
@@ -137,37 +137,37 @@ class FitDataInterface:
     def save_input_epi_measures(self, data: pd.DataFrame, draw_id: int):
         io.dump(data, self.fit_root.input_epi_measures(draw_id=draw_id))
 
-    def load_input_epi_measures(self, draw_id: int) -> pd.DataFrame:
-        return io.load(self.fit_root.input_epi_measures(draw_id=draw_id))
+    def load_input_epi_measures(self, draw_id: int, columns: List[str] = None) -> pd.DataFrame:
+        return io.load(self.fit_root.input_epi_measures(draw_id=draw_id, columns=columns))
 
     def save_rates(self, data: pd.DataFrame, draw_id: int) -> None:
         io.dump(data, self.fit_root.rates(draw_id=draw_id))
 
-    def load_rates(self, draw_id: int) -> pd.DataFrame:
-        return io.load(self.fit_root.rates(draw_id=draw_id))
+    def load_rates(self, draw_id: int, columns: List[str] = None) -> pd.DataFrame:
+        return io.load(self.fit_root.rates(draw_id=draw_id, columns=columns))
 
     def save_posterior_epi_measures(self, data: pd.DataFrame, draw_id: int):
         io.dump(data, self.fit_root.posterior_epi_measures(draw_id=draw_id))
 
-    def load_posterior_epi_measures(self, draw_id: int) -> pd.DataFrame:
-        return io.load(self.fit_root.posterior_epi_measures(draw_id=draw_id))
+    def load_posterior_epi_measures(self, draw_id: int, columns: List[str] = None) -> pd.DataFrame:
+        return io.load(self.fit_root.posterior_epi_measures(draw_id=draw_id, columns=columns))
 
     def save_compartments(self, data: pd.DataFrame, draw_id: int) -> None:
         io.dump(data, self.fit_root.compartments(draw_id=draw_id))
 
-    def load_compartments(self, draw_id: int) -> pd.DataFrame:
-        return io.load(self.fit_root.compartments(draw_id=draw_id))
+    def load_compartments(self, draw_id: int, columns: List[str] = None) -> pd.DataFrame:
+        return io.load(self.fit_root.compartments(draw_id=draw_id, columns=columns))
 
     def save_beta(self, data: pd.DataFrame, draw_id: int) -> None:
         io.dump(data, self.fit_root.beta(draw_id=draw_id))
 
-    def load_beta(self, draw_id: int) -> pd.DataFrame:
-        return io.load(self.fit_root.beta(draw_id=draw_id))
+    def load_beta(self, draw_id: int, columns: List[str] = None) -> pd.DataFrame:
+        return io.load(self.fit_root.beta(draw_id=draw_id, columns=columns))
 
     def save_final_seroprevalence(self, data: pd.DataFrame, draw_id: int) -> None:
         io.dump(data, self.fit_root.seroprevalence(draw_id=draw_id))
 
-    def load_final_seroprevalence(self, draw_id: int) -> pd.DataFrame:
-        return io.load(self.fit_root.seroprevalence(draw_id=draw_id))
+    def load_final_seroprevalence(self, draw_id: int, columns: List[str] = None) -> pd.DataFrame:
+        return io.load(self.fit_root.seroprevalence(draw_id=draw_id, columns=columns))
 
 
