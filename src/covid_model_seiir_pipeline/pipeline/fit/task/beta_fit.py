@@ -227,9 +227,9 @@ def run_beta_fit(fit_version: str, draw_id: int, progress_bar: bool) -> None:
     out_params = out_params.reset_index()
     out_params.columns = ['parameter', 'value']
 
-    first_pass_rates = pd.concat([r.drop(columns='lag') for r in first_pass_rates])
+    first_pass_rates = pd.concat([r.drop(columns='lag') for r in first_pass_rates], axis=1)
     first_pass_rates.loc[:, 'round'] = 1
-    second_pass_rates = pd.concat([r.drop(columns='lag') for r in second_pass_rates])
+    second_pass_rates = pd.concat([r.drop(columns='lag') for r in second_pass_rates], axis=1)
     second_pass_rates.loc[:, 'round'] = 2
     prior_rates = pd.concat([first_pass_rates, second_pass_rates])
 
