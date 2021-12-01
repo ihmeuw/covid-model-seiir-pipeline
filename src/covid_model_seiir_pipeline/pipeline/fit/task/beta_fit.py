@@ -158,7 +158,7 @@ def run_beta_fit(fit_version: str, draw_id: int, progress_bar: bool) -> None:
     )
     adjusted_seroprevalence = adjusted_seroprevalence.merge(pct_unvaccinated, how='left')
     if adjusted_seroprevalence['pct_unvaccinated'].isnull().any():
-        raise ValueError('Unmatched sero-survey dates')
+        logger.warning('Unmatched sero-survey dates')
     adjusted_seroprevalence['seroprevalence'] *= adjusted_seroprevalence['pct_unvaccinated']
     del adjusted_seroprevalence['pct_unvaccinated']
 
