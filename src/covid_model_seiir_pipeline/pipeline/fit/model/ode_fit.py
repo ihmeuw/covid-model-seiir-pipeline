@@ -216,7 +216,7 @@ def compute_posterior_epi_measures(compartments: pd.DataFrame,
                         .clip(0, 1)
                         .rename('pct_unvaccinated')
                         .groupby('location_id')
-                        .shift(days=durations.exposure_to_seroconversion)
+                        .shift(durations.exposure_to_seroconversion)
                         .dropna()
                         .reset_index())
 
@@ -238,7 +238,6 @@ def compute_posterior_epi_measures(compartments: pd.DataFrame,
         daily_measure = _to_daily(cumulative_measure)
         measures.extend([cumulative_measure, daily_measure])
 
-    import pdb; pdb.set_trace()
     epi_measures = pd.concat([
         naive_unvaccinated,
         naive_unvaccinated_infections, _to_daily(naive_unvaccinated_infections),
