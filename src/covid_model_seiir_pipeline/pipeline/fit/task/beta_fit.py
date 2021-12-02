@@ -250,7 +250,7 @@ def run_beta_fit(fit_version: str, draw_id: int, progress_bar: bool) -> None:
     adjusted_seroprevalence = (adjusted_seroprevalence
                                .loc[:, idx_cols + ['seroprevalence']]
                                .rename(columns={'seroprevalence': 'adjusted_seroprevalence'}))
-    out_seroprevalence = seroprevalence.merge(adjusted_seroprevalence)
+    out_seroprevalence = out_seroprevalence.merge(adjusted_seroprevalence)
 
     logger.info('Writing outputs', context='write')
     data_interface.save_ode_params(out_params, draw_id=draw_id)
