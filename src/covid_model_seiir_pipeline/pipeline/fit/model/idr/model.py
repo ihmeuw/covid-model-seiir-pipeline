@@ -48,12 +48,12 @@ def run_model(model_data: pd.DataFrame,
     }
     pred_exclude_vars = []
     level_lambdas = {
-        0: {'intercept':   2., 'log_infwavg_testing_rate_capacity':   2., **covariate_lambdas},  # G->SR
-        1: {'intercept':   2., 'log_infwavg_testing_rate_capacity':   2., **covariate_lambdas},  # SR->R
-        2: {'intercept': 100., 'log_infwavg_testing_rate_capacity': 100., **covariate_lambdas},  # R->A0
-        3: {'intercept': 100., 'log_infwavg_testing_rate_capacity': 100., **covariate_lambdas},  # A0->A1
-        4: {'intercept': 100., 'log_infwavg_testing_rate_capacity': 100., **covariate_lambdas},  # A1->A2
-        5: {'intercept': 100., 'log_infwavg_testing_rate_capacity': 100., **covariate_lambdas},  # A2->A3
+        0: {'intercept':  2., 'log_infwavg_testing_rate_capacity':  2., **covariate_lambdas},  # G->SR
+        1: {'intercept':  2., 'log_infwavg_testing_rate_capacity':  2., **covariate_lambdas},  # SR->R
+        2: {'intercept': 20., 'log_infwavg_testing_rate_capacity': 20., **covariate_lambdas},  # R->A0
+        3: {'intercept': 20., 'log_infwavg_testing_rate_capacity': 20., **covariate_lambdas},  # A0->A1
+        4: {'intercept': 20., 'log_infwavg_testing_rate_capacity': 20., **covariate_lambdas},  # A1->A2
+        5: {'intercept': 20., 'log_infwavg_testing_rate_capacity': 20., **covariate_lambdas},  # A2->A3
     }
     
     if var_args['group_var'] != 'location_id':
