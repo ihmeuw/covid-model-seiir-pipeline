@@ -8,7 +8,6 @@ from covid_model_seiir_pipeline.lib.ode_mk2.containers import (
     Parameters,
 )
 from covid_model_seiir_pipeline.lib.ode_mk2.constants import (
-    TOMBSTONE,
     VARIANT_NAMES,
     RISK_GROUP_NAMES,
     COMPARTMENTS_NAMES,
@@ -62,8 +61,8 @@ def prepare_ode_fit_parameters(rates: Rates,
     
     base_parameters = pd.concat([
         sampled_params,
-        epi_measures.rename(columns=lambda x: f'count_all_{x}').fillna(TOMBSTONE),
-        pd.Series(TOMBSTONE, index=past_index, name='beta_all_infection'),
+        epi_measures.rename(columns=lambda x: f'count_all_{x}'),
+        pd.Series(-1, index=past_index, name='beta_all_infection'),
         rhos,
         *weights,
     ], axis=1)

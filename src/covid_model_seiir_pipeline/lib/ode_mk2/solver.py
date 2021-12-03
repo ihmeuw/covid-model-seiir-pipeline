@@ -10,6 +10,7 @@ import pandas as pd
 import tqdm
 
 from covid_model_seiir_pipeline.lib.ode_mk2.constants import (
+    TOMBSTONE,
     RISK_GROUP_NAMES,
     COMPARTMENTS_NAMES,
     TRACKING_COMPARTMENTS_NAMES,
@@ -110,6 +111,7 @@ def _run_loc_ode_model(ic_and_params,
     y_solve = _interpolate_y(t0, t, t_solve, initial_condition.to_numpy(), forecast)
 
     parameters = _interpolate(t, t_params, parameters.to_numpy())
+    parameters[np.isnan(parameters)] = TOMBSTONE
     rates = _interpolate(t, t_params, rates.to_numpy())
     vaccines = _interpolate(t, t_params, vaccines.to_numpy())
     etas = _interpolate(t, t_params, etas.to_numpy())
