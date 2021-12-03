@@ -4,6 +4,8 @@ from typing import Dict, List
 import numpy as np
 import pandas as pd
 
+from covid_model_seiir_pipeline.pipeline.fit.model import determine_mean_date_of_infection
+
 
 def create_model_data(cumulative_hospitalizations: pd.Series,
                       daily_hospitalizations: pd.Series,
@@ -25,48 +27,33 @@ def create_model_data(cumulative_hospitalizations: pd.Series,
                 .dropna()
                 .rename('ihr'))
     
+    # add cumulative variant prevalence
     variant_infections = (variant_prevalence * daily_infections).fillna(0)
     cumulative_variant_prevalence = (
             variant_infections.groupby(level=0).cumsum() /
-            daily_infections.groupby(level=0).cumsum().rename('cumulative_variant_prevalence')
-    )
+            daily_infections.groupby(level=0).cumsum()
+    ).rename('variant_prevalence')
     cumulative_variant_prevalence = (cumulative_variant_prevalence
                                      .loc[daily_infections.index]
                                      .fillna(0)
                                      .reset_index())
     cumulative_variant_prevalence['date'] += pd.Timedelta(days=durations['exposure_to_admission'])
     cumulative_variant_prevalence = cumulative_variant_prevalence.set_index(['location_id', 'date'])
+    model_data = ihr_data.to_frame().join(cumulative_variant_prevalence, how='left')
+    if model_data['variant_prevalence'].isnull().any():
+        raise ValueError('Missing cumulative variant prevalence.')
 
-    # get mean day of admission int
-    loc_dates = (ihr_data
-                 .reset_index()
-                 .loc[:, ['location_id', 'date']]
-                 .drop_duplicates()
-                 .values
-                 .tolist())
-    time = []
-    for location_id, survey_end_date in loc_dates:
-        loc_hosps = daily_hospitalizations.loc[location_id]
-        loc_hosps = loc_hosps.clip(0, np.inf)
-        loc_hosps = loc_hosps.reset_index()
-        loc_hosps = loc_hosps.loc[loc_hosps['date'] <= survey_end_date]
-        loc_hosps['t'] = (loc_hosps['date'] - day_0).dt.days
-        t = np.average(loc_hosps['t'], weights=loc_hosps['daily_hospitalizations'] + 1e-6)
-        t = int(np.round(t))
-        mean_hospitalization_date = loc_hosps.loc[loc_hosps['t'] == t, 'date'].item()
-        
-        lt_vp = cumulative_variant_prevalence.loc[(location_id, survey_end_date)].item()
-        
-        time.append(
-            pd.DataFrame(
-                {'t':t, 'mean_hospitalization_date':mean_hospitalization_date, 'variant_prevalence': lt_vp,},
-                index=pd.MultiIndex.from_arrays([[location_id], [survey_end_date]],
-                                                names=('location_id', 'date')),)
-        )
-    time = pd.concat(time)
-
-    # add time
-    model_data = time.join(ihr_data, how='outer')
+    # add average date of infection
+    loc_dates = model_data.reset_index()[['location_id', 'date']].drop_duplicates().values.tolist()
+    dates_data = determine_mean_date_of_infection(
+        location_dates=loc_dates,
+        daily_infections=daily_infections.copy(),
+        lag=durations['exposure_to_admission'],
+    )
+    model_data = model_data.join(dates_data.set_index(['location_id', 'date']), how='left')
+    if model_data['mean_infection_date'].isnull().any():
+        raise ValueError('Missing mean infection date.')
+    model_data['t'] = (model_data['mean_infection_date'] - day_0).dt.days
     
     # add covariates
     model_data = model_data.join(pd.concat(covariates, axis=1).loc[:, covariate_list])

@@ -115,8 +115,8 @@ def prepare_model(model_data: pd.DataFrame,
                 'spline_knots_type': 'domain',
                 'spline_knots': np.array([0., inflection_point, 1.]),
                 'spline_degree': 1,
-                'prior_spline_maxder_uniform': np.array([[-np.inf, -0.],
-                                                         [  -1e-6,  0.]])
+                'prior_spline_maxder_uniform': np.array([[-0.02, -0.],
+                                                         [-1e-6,  0.]])
             },
             **covariate_constraints
         },
@@ -134,12 +134,12 @@ def prepare_model(model_data: pd.DataFrame,
     pred_exclude_vars = []
     level_lambdas = {
         # fit covariates at global level, tight lambdas after
-        0: {'intercept':   2., 't': 0.5, 'variant_prevalence': 1., **covariate_lambdas},  # G->SR
-        1: {'intercept':   2., 't': 1.0, 'variant_prevalence': 1., **covariate_lambdas},  # SR->R
-        2: {'intercept': 100., 't': 10., 'variant_prevalence': 1., **covariate_lambdas},  # R->A0
-        3: {'intercept': 100., 't': 10., 'variant_prevalence': 1., **covariate_lambdas},  # A0->A1
-        4: {'intercept': 100., 't': 10., 'variant_prevalence': 1., **covariate_lambdas},  # A1->A2
-        5: {'intercept': 100., 't': 10., 'variant_prevalence': 1., **covariate_lambdas},  # A2->A3
+        0: {'intercept':  2., 't':  2., 'variant_prevalence': 1., **covariate_lambdas},  # G->SR
+        1: {'intercept':  2., 't':  2., 'variant_prevalence': 1., **covariate_lambdas},  # SR->R
+        2: {'intercept': 20., 't': 20., 'variant_prevalence': 1., **covariate_lambdas},  # R->A0
+        3: {'intercept': 20., 't': 20., 'variant_prevalence': 1., **covariate_lambdas},  # A0->A1
+        4: {'intercept': 20., 't': 20., 'variant_prevalence': 1., **covariate_lambdas},  # A1->A2
+        5: {'intercept': 20., 't': 20., 'variant_prevalence': 1., **covariate_lambdas},  # A2->A3
     }
 
     if var_args['group_var'] != 'location_id':

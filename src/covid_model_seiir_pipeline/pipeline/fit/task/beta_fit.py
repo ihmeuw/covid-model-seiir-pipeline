@@ -88,7 +88,7 @@ def run_beta_fit(fit_version: str, draw_id: int, progress_bar: bool) -> None:
     daily_infections = daily_infections.set_index(['location_id', 'date']).loc[:, 'daily_infections']
 
     logger.info('Running first-pass rates model', context='rates_model_1')
-    first_pass_rates = model.run_rates_pipeline(
+    first_pass_rates, first_pass_rates_data = model.run_rates_pipeline(
         epi_data=epi_measures,
         age_patterns=age_patterns,
         seroprevalence=first_pass_seroprevalence,
@@ -162,8 +162,8 @@ def run_beta_fit(fit_version: str, draw_id: int, progress_bar: bool) -> None:
     adjusted_seroprevalence['seroprevalence'] *= adjusted_seroprevalence['pct_unvaccinated']
     del adjusted_seroprevalence['pct_unvaccinated']
 
-    logger.info('Running second-pass rates model', context='rates_model_1')
-    second_pass_rates = model.run_rates_pipeline(
+    logger.info('Running second-pass rates model', context='rates_model_2')
+    second_pass_rates, second_pass_rates_data = model.run_rates_pipeline(
         epi_data=first_pass_posterior_epi_measures,
         age_patterns=age_patterns,
         seroprevalence=adjusted_seroprevalence,
