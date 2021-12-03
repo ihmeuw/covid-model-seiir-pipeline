@@ -1,5 +1,7 @@
 import os
 
+import pandas as pd
+
 from covid_model_seiir_pipeline.lib.ode_mk2.constants import (
     PARAMETERS_NAMES,
     NEW_E_NAMES,
@@ -17,30 +19,29 @@ DEBUG = int(os.getenv('NUMBA_DISABLE_JIT', 0))
 class Printer:
 
     @staticmethod
-    def _print(names, values):
-        for name, value in zip(names, values):
-            print(f'{name:<40}: {value:>20.3f}')
+    def _coerce(names, values) -> pd.Series:
+        return pd.Series(values, index=names)
 
     @classmethod
     def compartments(cls, y):
-        cls._print(COMPARTMENTS_NAMES, y)
+        return cls._coerce(COMPARTMENTS_NAMES, y)
 
     @classmethod
     def tracking_compartments(cls, y):
-        cls._print(TRACKING_COMPARTMENTS_NAMES, y[len(COMPARTMENTS_NAMES):])
+        return cls._coerce(TRACKING_COMPARTMENTS_NAMES, y[len(COMPARTMENTS_NAMES):])
 
     @classmethod
     def parameters(cls, p):
-        cls._print(PARAMETERS_NAMES, p)
+        return cls._coerce(PARAMETERS_NAMES, p)
 
     @classmethod
     def new_e(cls, new_e):
-        cls._print(NEW_E_NAMES, new_e)
+        return cls._coerce(NEW_E_NAMES, new_e)
 
     @classmethod
     def effective_susceptible(cls, eff_s):
-        cls._print(EFFECTIVE_SUSCEPTIBLE_NAMES, eff_s)
+        return cls._coerce(EFFECTIVE_SUSCEPTIBLE_NAMES, eff_s)
 
     @classmethod
     def aggregates(cls, a):
-        cls._print(AGGREGATES_NAMES, a)
+        return cls._coerce(AGGREGATES_NAMES, a)
