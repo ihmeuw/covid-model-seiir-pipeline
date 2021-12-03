@@ -7,8 +7,6 @@ from covid_model_seiir_pipeline.lib import (
 )
 from covid_model_seiir_pipeline.lib.ode_mk2.constants import (
     VARIANT_NAMES,
-    RISK_GROUP_NAMES,
-    EPI_MEASURE_NAMES,
 )
 from covid_model_seiir_pipeline.pipeline.fit.data import FitDataInterface
 from covid_model_seiir_pipeline.pipeline.fit.specification import FitSpecification, FIT_JOBS
@@ -227,6 +225,18 @@ def run_beta_fit(fit_version: str, draw_id: int, progress_bar: bool) -> None:
     out_params = out_params.reset_index()
     out_params.columns = ['parameter', 'value']
 
+    rates_data = []
+    for round_id, dataset in enumerate([first_pass_rates_data, second_pass_rates_data]):
+        for measure in ['ifr', 'ihr', 'idr']:
+            df = dataset._asdict()[measure]
+            df = (df
+                  .loc[:, ['location_id', 'mean_infection_date', 'data_id', measure]]
+                  .rename(columns={measure: 'value', 'mean_infection_date': 'date'}))
+            df['measure'] = measure
+            df['round'] = round_id
+            rates_data.append(df)
+    rates_data = pd.concat(rates_data)
+
     first_pass_rates = pd.concat([r.drop(columns='lag') for r in first_pass_rates], axis=1)
     first_pass_rates.loc[:, 'round'] = 1
     second_pass_rates = pd.concat([r.drop(columns='lag') for r in second_pass_rates], axis=1)
@@ -256,6 +266,7 @@ def run_beta_fit(fit_version: str, draw_id: int, progress_bar: bool) -> None:
     data_interface.save_ode_params(out_params, draw_id=draw_id)
     data_interface.save_input_epi_measures(epi_measures, draw_id=draw_id)
     data_interface.save_rates(prior_rates, draw_id=draw_id)
+    data_interface.save_rates_data(rates_data, draw_id=draw_id)
     data_interface.save_posterior_epi_measures(posterior_epi_measures, draw_id=draw_id)
     data_interface.save_compartments(compartments, draw_id=draw_id)
     data_interface.save_beta(betas, draw_id=draw_id)
