@@ -8,11 +8,11 @@ from covid_model_seiir_pipeline.lib.ode_mk2.containers import (
     Parameters,
 )
 from covid_model_seiir_pipeline.lib.ode_mk2.constants import (
+    TOMBSTONE,
     VARIANT_NAMES,
     RISK_GROUP_NAMES,
     COMPARTMENTS_NAMES,
     TRACKING_COMPARTMENTS_NAMES,
-    EPI_MEASURE_NAMES,
 )
 from covid_model_seiir_pipeline.lib.ode_mk2 import (
     solver,
@@ -62,8 +62,8 @@ def prepare_ode_fit_parameters(rates: Rates,
     
     base_parameters = pd.concat([
         sampled_params,
-        epi_measures.rename(columns=lambda x: f'count_all_{x}'),
-        pd.Series(-1, index=past_index, name='beta_all_infection'),
+        epi_measures.rename(columns=lambda x: f'count_all_{x}').fillna(TOMBSTONE),
+        pd.Series(TOMBSTONE, index=past_index, name='beta_all_infection'),
         rhos,
         *weights,
     ], axis=1)
@@ -266,10 +266,17 @@ def _to_daily(data: pd.Series):
             .rename(f'{str(data.name).replace("cumulative", "daily")}'))
 
 
-def run_ode_fit(initial_condition: pd.DataFrame, ode_parameters: Parameters, num_cores: int, progress_bar: bool):
+def run_ode_fit(initial_condition: pd.DataFrame,
+                ode_parameters: Parameters,
+                num_cores: int,
+                progress_bar: bool,
+                location_ids: List[int] = None):
+    if location_ids is None:
+        location_ids = initial_condition.reset_index().location_id.unique().tolist()
     full_compartments, chis = solver.run_ode_model(
         initial_condition,
         **ode_parameters.to_dict(),
+        location_ids=location_ids,
         forecast=False,
         num_cores=num_cores,
         progress_bar=progress_bar,

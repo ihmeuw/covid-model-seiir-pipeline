@@ -3,6 +3,7 @@ import numpy as np
 
 
 from covid_model_seiir_pipeline.lib.ode_mk2.constants import (
+    TOMBSTONE,
     # Indexing tuples
     RISK_GROUP,
     BASE_PARAMETER,
@@ -18,7 +19,7 @@ from covid_model_seiir_pipeline.lib.ode_mk2.constants import (
 )
 from covid_model_seiir_pipeline.lib.ode_mk2.debug import (
     DEBUG,
-    Printer
+    Printer,
 )
 from covid_model_seiir_pipeline.lib.ode_mk2 import (
     accounting,
@@ -37,6 +38,18 @@ def system(t: float,
            etas: np.ndarray,
            chis: np.ndarray,
            forecast: bool):
+
+    if DEBUG:
+        assert np.all(np.isfinite(params))
+        assert np.all(np.isfinite(vaccines))
+        assert np.all(vaccines >= 0.)
+        assert np.all(np.isfinite(etas))
+        assert np.all(etas >= 0.)
+        assert np.all(etas <= 1.)
+        assert np.all(np.isfinite(chis))
+        assert np.all(chis >= 0.)
+        assert np.all(chis <= 1.)
+
     aggregates = parameters.make_aggregates(y)
     new_e, effective_susceptible, beta, outcomes = parameters.make_new_e(
         t,
@@ -48,13 +61,6 @@ def system(t: float,
         chis,
         forecast,
     )  
-
-    if DEBUG:
-        assert np.all(np.isfinite(aggregates))
-        # assert np.all(np.isfinite(params))
-        assert np.all(np.isfinite(vaccines))
-        assert np.all(np.isfinite(etas))
-        assert np.all(np.isfinite(chis))
 
     dy = np.zeros_like(y)
     
@@ -90,7 +96,6 @@ def system(t: float,
         dy[group_start:group_end] = group_dy
 
     if DEBUG:
-        assert np.all(np.isfinite(dy))
         assert np.any(dy > 0.)
 
     return dy
@@ -101,7 +106,7 @@ def _single_group_system(t: float,
                          group_y: np.ndarray,
                          new_e: np.ndarray,
                          effective_susceptible: np.ndarray,
-                         beta: float,
+                         beta: np.ndarray,
                          params: np.ndarray,
                          group_vaccines: np.ndarray,
                          group_outcomes: np.ndarray,):

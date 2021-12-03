@@ -1,6 +1,7 @@
 import functools
 import itertools
 import multiprocessing
+from typing import List
 
 from loguru import logger
 import numba
@@ -24,6 +25,9 @@ from covid_model_seiir_pipeline.lib.ode_mk2.constants import (
 from covid_model_seiir_pipeline.lib.ode_mk2.system import (
     system,
 )
+from covid_model_seiir_pipeline.lib.ode_mk2.debug import (
+    DEBUG,
+)
 
 
 SOLVER_DT: float = 0.1
@@ -35,13 +39,13 @@ def run_ode_model(initial_condition: pd.DataFrame,
                   vaccinations: pd.DataFrame,
                   etas: pd.DataFrame,
                   phis: pd.DataFrame,
+                  location_ids: List[int],
                   forecast: bool,
                   dt: float = SOLVER_DT, 
                   num_cores: int = 5,
                   progress_bar: bool = True):
     # Ensure data frame column labeling is consistent with expected index ordering.
     initial_condition = _sort_columns(initial_condition)
-    location_ids = initial_condition.reset_index().location_id.unique().tolist()
     ics_and_params = [(location_id,
                        initial_condition.loc[location_id],
                        base_parameters.loc[location_id],
@@ -68,11 +72,13 @@ def run_ode_model(initial_condition: pd.DataFrame,
             ))
     compartments, chis = zip(*results)
     compartments = pd.concat(compartments).reset_index().set_index(['location_id', 'date']).sort_index()
+    chis = pd.concat(chis).reset_index().set_index(['location_id', 'date']).sort_index()
+
     ran = compartments.reset_index().location_id.unique()
-    missing = set(initial_condition.reset_index().location_id.unique()).difference(ran)
+    missing = set(location_ids).difference(ran)
     if missing:
         logger.warning(f"Couldn't run locations {missing}")
-    chis = pd.concat(chis).reset_index().set_index(['location_id', 'date']).sort_index()
+
     return compartments, chis
 
 
@@ -131,9 +137,14 @@ def _run_loc_ode_model(ic_and_params,
                                 index=initial_condition.index)
         loc_chis['location_id'] = location_id
     except:
-        loc_compartments = pd.DataFrame(columns=initial_condition.columns.tolist() + ['location_id', 'date']).set_index('date')
-        loc_chis = pd.DataFrame(columns=[f'{n}_{r}' for r, n in itertools.product(RISK_GROUP_NAMES, CHI_NAMES)]
-                                        + ['location_id', 'date']).set_index('date')
+        if DEBUG:
+            raise
+        loc_compartments = pd.DataFrame(
+            columns=initial_condition.columns.tolist() + ['location_id', 'date']
+        ).set_index('date')
+        loc_chis = pd.DataFrame(
+            columns=[f'{n}_{r}' for r, n in itertools.product(RISK_GROUP_NAMES, CHI_NAMES)] + ['location_id', 'date']
+        ).set_index('date')
 
     return loc_compartments, loc_chis
 
@@ -280,8 +291,9 @@ def compute_chis(time, t_solve, y_solve, phis, chis):
                         idx = CHI[from_variant, to_variant, epi_measure]
 
                         for tau in range(1, t_end):
-                            numerator += (cumulative_new_e_variant[-tau] - cumulative_new_e_variant[-tau - 1]) * phis[
-                                tau, idx]
+                            numerator += (
+                                (cumulative_new_e_variant[-tau] - cumulative_new_e_variant[-tau - 1]) * phis[tau, idx]
+                            )
 
                         group_chi[idx] = numerator / denominator
 
@@ -289,4 +301,10 @@ def compute_chis(time, t_solve, y_solve, phis, chis):
         group_chi_end = (risk_group + 1) * num_chis
 
         chi[group_chi_start:group_chi_end] = group_chi
+
+    if DEBUG:
+        assert np.all(np.isfinite(chi))
+        assert np.all(chi >= 0.)
+        assert np.all(chi <= 1.)
+
     return chi

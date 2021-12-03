@@ -9,6 +9,8 @@ from collections import (
 )
 import numpy as np
 
+TOMBSTONE = -12345
+
 
 #######################
 # Primitive variables #
