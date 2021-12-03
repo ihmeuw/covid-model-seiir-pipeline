@@ -140,6 +140,12 @@ class FitDataInterface:
     def load_input_epi_measures(self, draw_id: int, columns: List[str] = None) -> pd.DataFrame:
         return io.load(self.fit_root.input_epi_measures(draw_id=draw_id, columns=columns))
 
+    def save_rates_data(self, data: pd.DataFrame, draw_id: int) -> None:
+        io.dump(data, self.fit_root.rates_data(draw_id=draw_id))
+
+    def load_rates_data(self, draw_id: int, columns: List[str] = None) -> pd.DataFrame:
+        return io.load(self.fit_root.rates_data(draw_id=draw_id, columns=columns))
+
     def save_rates(self, data: pd.DataFrame, draw_id: int) -> None:
         io.dump(data, self.fit_root.rates(draw_id=draw_id))
 
