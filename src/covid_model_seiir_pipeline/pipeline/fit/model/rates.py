@@ -21,6 +21,12 @@ class Rates(NamedTuple):
     idr: pd.DataFrame
 
 
+class RatesData(NamedTuple):
+    ifr: pd.DataFrame
+    ihr: pd.DataFrame
+    idr: pd.DataFrame
+
+
 def run_rates_pipeline(epi_data: pd.DataFrame,
                        age_patterns: pd.DataFrame,
                        seroprevalence: pd.DataFrame,
@@ -40,7 +46,7 @@ def run_rates_pipeline(epi_data: pd.DataFrame,
                        num_threads: int,
                        progress_bar: bool) -> Rates:
     logger.debug('IDR ESTIMATION')
-    idr_results = idr.runner(
+    idr_results, idr_data = idr.runner(
         cumulative_cases=epi_data['cumulative_cases'].dropna(),
         daily_cases=epi_data['daily_cases'].dropna(),
         seroprevalence=seroprevalence,
@@ -63,7 +69,7 @@ def run_rates_pipeline(epi_data: pd.DataFrame,
     idr_results['lag'] = durations.exposure_to_case
 
     logger.debug('IHR ESTIMATION')
-    ihr_results = ihr.runner(
+    ihr_results, ihr_data = ihr.runner(
         cumulative_hospitalizations=epi_data['cumulative_hospitalizations'].dropna(),
         daily_hospitalizations=epi_data['daily_hospitalizations'].dropna(),
         seroprevalence=seroprevalence,
@@ -87,7 +93,7 @@ def run_rates_pipeline(epi_data: pd.DataFrame,
     ihr_results.loc[:, 'lag'] = durations.exposure_to_admission
 
     logger.debug("IFR ESTIMATION")
-    ifr_results = ifr.runner(
+    ifr_results, ifr_data = ifr.runner(
         cumulative_deaths=epi_data['cumulative_deaths'].dropna(),
         daily_deaths=epi_data['daily_deaths'].dropna(),
         seroprevalence=seroprevalence,
@@ -111,4 +117,5 @@ def run_rates_pipeline(epi_data: pd.DataFrame,
     ifr_results = ifr_results.rename(columns={'pred_ifr_lr': 'ifr_lr', 'pred_ifr_hr': 'ifr_hr', 'pred_ifr': 'ifr'})
     ifr_results.loc[:, 'lag'] = durations.exposure_to_death
 
-    return Rates(ifr_results, ihr_results, idr_results)
+    return (Rates(ifr_results, ihr_results, idr_results),
+            RatesData(ifr_data, ihr_data, idr_data),)
