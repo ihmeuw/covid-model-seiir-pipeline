@@ -79,4 +79,4 @@ def runner(cumulative_cases: pd.Series,
             .rename('pred_idr')
             .to_frame())
     
-    return pred
+    return pred, model_data

@@ -67,9 +67,13 @@ def runner(cumulative_deaths: pd.Series,
     )
     
     lr_rr, hr_rr = age_standardization.get_risk_group_rr(
-        ifr_age_pattern.copy(), sero_age_pattern.copy(), age_spec_population.copy(),
+        ifr_age_pattern.copy(),
+        sero_age_pattern.copy() ** 0,  # just use flat
+        age_spec_population.copy(),
     )
     pred_lr = (pred * lr_rr).rename('pred_ifr_lr')
     pred_hr = (pred * hr_rr).rename('pred_ifr_hr')
     
-    return pd.concat([pred, pred_lr, pred_hr], axis=1)
+    pred = pd.concat([pred, pred_lr, pred_hr], axis=1)
+    
+    return pred, model_data

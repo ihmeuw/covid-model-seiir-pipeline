@@ -8,6 +8,9 @@ from covid_model_seiir_pipeline.pipeline.fit.model.sampled_params import (
     sample_ode_params,
     sample_parameter,
 )
+from covid_model_seiir_pipeline.pipeline.fit.model.date_of_infection import (
+    determine_mean_date_of_infection,
+)
 from covid_model_seiir_pipeline.pipeline.fit.model.seroprevalence import (
     subset_seroprevalence,
     apply_sensitivity_adjustment,
