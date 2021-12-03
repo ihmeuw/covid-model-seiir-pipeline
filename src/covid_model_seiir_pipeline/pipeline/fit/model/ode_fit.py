@@ -205,9 +205,10 @@ def get_crude_infections(base_params, rates, population, threshold=50):
 
 def compute_posterior_epi_measures(compartments: pd.DataFrame,
                                    durations: Durations) -> Tuple[pd.DataFrame, pd.Series]:
+    naive = compartments.filter(like='S_none').sum(axis=1).rename('naive')
     naive_unvaccinated = compartments.filter(like='S_none_unvaccinated').sum(axis=1).rename('naive_unvaccinated')
     naive_infections = compartments.filter(like='NewENaive').sum(axis=1).rename('cumulative_naive_infections')
-    total_infections = compartments.filter(like='NewE').sum(axis=1).rename('cumulative_total_infections')
+    total_infections = compartments.filter(like='NewE_').sum(axis=1).rename('cumulative_total_infections')
     inf_cols = [f'infection_ancestral_all_{risk_group}' for risk_group in RISK_GROUP_NAMES]
     naive_unvaccinated_infections = (compartments.loc[:, inf_cols].sum(axis=1)
                                      .rename('cumulative_naive_unvaccinated_infections'))
@@ -239,7 +240,7 @@ def compute_posterior_epi_measures(compartments: pd.DataFrame,
         measures.extend([cumulative_measure, daily_measure])
 
     epi_measures = pd.concat([
-        naive_unvaccinated,
+        naive, naive_unvaccinated,
         naive_unvaccinated_infections, _to_daily(naive_unvaccinated_infections),
         naive_infections, _to_daily(naive_infections),
         total_infections, _to_daily(total_infections),
