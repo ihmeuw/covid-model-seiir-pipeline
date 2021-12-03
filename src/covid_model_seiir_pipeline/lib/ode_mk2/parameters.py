@@ -3,6 +3,8 @@ import numpy as np
 from typing import Tuple
 
 from covid_model_seiir_pipeline.lib.ode_mk2.constants import (
+    TOMBSTONE,
+
     COMPARTMENT_TYPE,
     RISK_GROUP,
     VARIANT,
@@ -11,7 +13,6 @@ from covid_model_seiir_pipeline.lib.ode_mk2.constants import (
     COMPARTMENT,
     BASE_PARAMETER,
     EPI_PARAMETER,
-    VARIANT_PARAMETER,
     EPI_VARIANT_PARAMETER,
     EPI_MEASURE,
     REPORTED_EPI_MEASURE,
@@ -40,14 +41,19 @@ def make_aggregates(y: np.ndarray) -> np.ndarray:
     aggregates = np.zeros(AGGREGATES.max() + 1)
     for group_y in np.split(y, len(RISK_GROUP)):
         # Total population
-        aggregates[AGGREGATES[COMPARTMENT_TYPE.N, VARIANT_GROUP.total]] += group_y[:COMPARTMENTS.max() + 1].sum()
+        aggregates[AGGREGATES[COMPARTMENT_TYPE.N, VARIANT_GROUP.total]] += (
+            group_y[:COMPARTMENTS.max() + 1].sum()
+        )
         # Infectious by variant
         for variant in VARIANT:
             for vaccine_status in VACCINE_STATUS:
-                aggregates[AGGREGATES[COMPARTMENT.I, variant]] += group_y[COMPARTMENTS[COMPARTMENT.I, variant, vaccine_status]]
+                aggregates[AGGREGATES[COMPARTMENT.I, variant]] += (
+                    group_y[COMPARTMENTS[COMPARTMENT.I, variant, vaccine_status]]
+                )
 
     if DEBUG:
         assert np.all(np.isfinite(aggregates))
+        assert np.all(aggregates >= 0.)
     
     return aggregates
 
@@ -115,7 +121,7 @@ def make_new_e(t: float,
                 infectious = aggregates[AGGREGATES[COMPARTMENT.I, variant_to]] ** alpha
                 
                 for variant_from in VARIANT:
-                    
+
                     chi_infection = group_chis[CHI[variant_from, variant_to, EPI_MEASURE.infection]]
                     
                     for vaccine_status in VACCINE_STATUS:
@@ -147,7 +153,7 @@ def make_new_e(t: float,
         for epi_measure in REPORTED_EPI_MEASURE:
             count = parameters[PARAMETERS[EPI_PARAMETER.count, VARIANT_GROUP.all, epi_measure]]
             weight = parameters[PARAMETERS[EPI_PARAMETER.weight, VARIANT_GROUP.all, epi_measure]]            
-            if not np.isnan(count):                
+            if np.abs(count - TOMBSTONE) > 1e-8:
                 betas[epi_measure] = count / total_variant_weight[epi_measure]
                 betas[EPI_MEASURE.infection] += betas[epi_measure] * weight
                 beta_weight += weight
@@ -172,9 +178,13 @@ def make_new_e(t: float,
         
     if DEBUG:
         assert np.all(np.isfinite(new_e))
+        assert np.all(new_e >= 0.)
         assert np.all(np.isfinite(effective_susceptible))
+        assert np.all(effective_susceptible >= 0.)
         assert np.all(np.isfinite(betas))
+        assert np.all(betas >= 0.)
         assert np.all(np.isfinite(outcomes))
+        assert np.all(outcomes >= 0.)
     
     return new_e, effective_susceptible, betas, outcomes
 

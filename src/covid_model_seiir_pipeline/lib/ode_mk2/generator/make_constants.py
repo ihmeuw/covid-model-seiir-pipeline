@@ -333,6 +333,7 @@ def make_specs() -> str:
 def make_constants() -> str:
     out = make_doctring()
     out += make_imports()
+    out += 'TOMBSTONE = -12345\n\n'
     out += make_primitive_types()
     out += make_derived_types()
     out += make_specs()
