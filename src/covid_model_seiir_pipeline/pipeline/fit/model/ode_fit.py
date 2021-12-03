@@ -244,7 +244,7 @@ def compute_posterior_epi_measures(compartments: pd.DataFrame,
         naive_infections, _to_daily(naive_infections),
         total_infections, _to_daily(total_infections),
         *measures
-    ])
+    ], axis=1)
 
     return epi_measures, pct_unvaccinated
 

@@ -6,6 +6,8 @@ from loguru import logger
 import pandas as pd
 import numpy as np
 
+from covid_model_seiir_pipeline.pipeline.fit.model import determine_mean_date_of_infection
+
 
 def create_model_data(cumulative_cases: pd.Series,
                       daily_cases: pd.Series,
@@ -27,22 +29,22 @@ def create_model_data(cumulative_cases: pd.Series,
     
     daily_infections = daily_infections.reset_index()
     
+    # add testing capacity
     testing_capacity = testing_capacity.reset_index()
     testing_capacity['date'] -= pd.Timedelta(days=durations['exposure_to_case'])
-    sero_location_dates = seroprevalence[['location_id', 'date']].drop_duplicates()
-    sero_location_dates = list(zip(sero_location_dates['location_id'], sero_location_dates['date']))
+    sero_location_dates = idr_data.reset_index()[['location_id', 'date']].drop_duplicates().values.tolist()
     infwavg_testing_capacity = []
     for location_id, date in sero_location_dates:
         infwavg_testing_capacity.append(
-            _get_infection_weighted_avg_testing(
+            get_infection_weighted_avg_testing(
                 (daily_infections
                  .loc[(daily_infections['location_id'] == location_id) &
-                      (daily_infections['date'] <= (date - pd.Timedelta(days=durations['exposure_to_seroconversion'])))]
+                      (daily_infections['date'] <= (date - pd.Timedelta(days=durations['exposure_to_case'])))]
                  .set_index(['location_id', 'date'])
                  .loc[:, 'daily_infections']),
                 (testing_capacity
                  .loc[(testing_capacity['location_id'] == location_id) &
-                      (testing_capacity['date'] <= (date - pd.Timedelta(days=durations['exposure_to_seroconversion'])))]
+                      (testing_capacity['date'] <= (date - pd.Timedelta(days=durations['exposure_to_case'])))]
                  .set_index(['location_id', 'date'])
                  .loc[:, 'testing_capacity']),
             )
@@ -53,14 +55,22 @@ def create_model_data(cumulative_cases: pd.Series,
     infwavg_testing_capacity = (infwavg_testing_capacity
                                 .set_index(['location_id', 'date'])
                                 .loc[:, 'infwavg_testing_capacity'])
-    daily_infections = daily_infections.set_index(['location_id', 'date'])
+    daily_infections = daily_infections.set_index(['location_id', 'date']).loc[:, 'daily_infections']
     
     log_infwavg_testing_rate_capacity = (np.log(infwavg_testing_capacity / population)
                                          .rename('log_infwavg_testing_rate_capacity'))
     del infwavg_testing_capacity
-
-    # add testing capacity
-    model_data = log_infwavg_testing_rate_capacity.to_frame().join(idr_data)
+    model_data = idr_data.to_frame().join(log_infwavg_testing_rate_capacity)
+    
+    # add average date of infection
+    dates_data = determine_mean_date_of_infection(
+        location_dates=sero_location_dates,
+        daily_infections=daily_infections.copy(),
+        lag=durations['exposure_to_case'],
+    )
+    model_data = model_data.join(dates_data.set_index(['location_id', 'date']), how='left')
+    if model_data['mean_infection_date'].isnull().any():
+        raise ValueError('Missing mean infection date.')
     
     # add covariates
     model_data = model_data.join(pd.concat(covariates, axis=1).loc[:, covariate_list], how='outer')
@@ -88,7 +98,7 @@ def create_pred_data(hierarchy: pd.DataFrame,
     return pred_data.dropna().reset_index()
 
 
-def _get_infection_weighted_avg_testing(daily_infections: pd.Series,
+def get_infection_weighted_avg_testing(daily_infections: pd.Series,
                                         testing_capacity: pd.Series) -> pd.Series:
     infwavg_data = pd.concat([testing_capacity.rename('testing_capacity'),
                               daily_infections.rename('daily_infections')], axis=1)
