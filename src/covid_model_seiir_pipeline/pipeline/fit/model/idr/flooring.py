@@ -85,7 +85,11 @@ def _test_floor_value(floor: float,
         parent_id = hierarchy.loc[is_location, 'parent_id'].item()
         # check if location_id is present
         if location_id in serosurveys.reset_index()['location_id'].to_list():
-            rmse = np.sqrt((residuals[location_id]**2).mean())
+            try:
+                rmse = np.sqrt((residuals[location_id]**2).mean())
+            except KeyError:
+                logger.warning(f"Can't find data for location id {location_id}")
+                continue
         # check if at least `min_children` children are present
         elif serosurveys.reset_index()['location_id'].drop_duplicates().isin(child_ids).sum() >= min_children:
             child_residuals = residuals.reset_index()
