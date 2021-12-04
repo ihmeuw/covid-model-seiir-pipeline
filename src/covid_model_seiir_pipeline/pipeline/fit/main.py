@@ -51,6 +51,8 @@ def fit_main(app_metadata: cli_tools.Metadata,
     data_interface.make_dirs()
     data_interface.save_specification(specification)
 
+    data_interface.save_summary(postprocess.get_data_dictionary(), 'data_dictionary')
+
     # build workflow and launch
     if not preprocess_only:
         workflow = FitWorkflow(specification.data.output_root, specification.workflow)
