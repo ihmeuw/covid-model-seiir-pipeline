@@ -1,6 +1,5 @@
 from typing import Dict, Tuple
 
-import numpy as np
 import pandas as pd
 
 from covid_model_seiir_pipeline.lib import (

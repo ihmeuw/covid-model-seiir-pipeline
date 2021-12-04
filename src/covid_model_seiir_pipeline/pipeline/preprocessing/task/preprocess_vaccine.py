@@ -7,6 +7,7 @@ import tqdm
 
 from covid_model_seiir_pipeline.lib import (
     cli_tools,
+    parallel,
 )
 from covid_model_seiir_pipeline.pipeline.preprocessing.specification import (
     PreprocessingSpecification,
@@ -61,11 +62,13 @@ def run_preprocess_vaccine(preprocessing_version: str, scenario: str, progress_b
         logger.info('Building vaccine risk reduction argument list.', context='model')
         eta_args = model.build_eta_calc_arguments(uptake, waning_efficacy, progress_bar)
         logger.info('Computing vaccine risk reductions.', context='model')
-        # FIXME: This needs a cleanup
-        num_processes = specification.workflow.task_specifications[PREPROCESSING_JOBS.preprocess_vaccine].num_cores
-        with multiprocessing.Pool(num_processes) as pool:
-            etas = list(
-                tqdm.tqdm(pool.imap(model.compute_eta, eta_args), total=len(eta_args), disable=not progress_bar))
+        num_cores = specification.workflow.task_specifications[PREPROCESSING_JOBS.preprocess_vaccine].num_cores
+        etas = parallel.run_parallel(
+            model.compute_eta,
+            arg_list=eta_args,
+            num_cores=num_cores,
+            progress_bar=progress_bar,
+        )
         etas = (pd.concat(etas)
                 .reorder_levels(['vaccine_course', 'endpoint', 'risk_group', 'location_id', 'date'])
                 .sort_index())

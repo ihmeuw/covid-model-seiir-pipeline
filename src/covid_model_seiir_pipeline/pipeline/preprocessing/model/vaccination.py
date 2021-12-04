@@ -9,9 +9,6 @@ import tqdm
 from covid_model_seiir_pipeline.lib import (
     cli_tools,
 )
-from covid_model_seiir_pipeline.pipeline.preprocessing.data import (
-    PreprocessingDataInterface,
-)
 
 logger = cli_tools.task_performance_logger
 

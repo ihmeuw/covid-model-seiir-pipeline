@@ -6,6 +6,7 @@ import tqdm
 
 from covid_model_seiir_pipeline.lib import (
     cli_tools,
+    parallel,
 )
 from covid_model_seiir_pipeline.pipeline.preprocessing.specification import (
     PREPROCESSING_JOBS,
@@ -53,12 +54,12 @@ def run_preprocess_serology(preprocessing_version: str, progress_bar: bool) -> N
         serology.remove_vaccinated,
         vaccinated=vaccinated,
     )
-    with multiprocessing.Pool(num_cores) as pool:
-        seroprevalence_samples = list(tqdm.tqdm(
-            pool.imap(_runner, seroprevalence_samples),
-            total=len(seroprevalence_samples),
-            disable=not progress_bar
-        ))
+    seroprevalence_samples = parallel.run_parallel(
+        _runner,
+        arg_list=seroprevalence_samples,
+        num_cores=num_cores,
+        progress_bar=progress_bar
+    )
 
     logger.info('Writing seroprevalence data.', context='write')
     data_interface.save_seroprevalence(seroprevalence)
