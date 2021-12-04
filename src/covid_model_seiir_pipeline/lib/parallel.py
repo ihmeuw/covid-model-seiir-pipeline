@@ -90,7 +90,6 @@ def make_loader(loader: Callable[[int, Optional[str]], pd.DataFrame], measure: s
         _runner = functools.partial(
             draw_runner,
             loader=getattr(data_interface, loader.__name__),
-            self=data_interface,
             index=index,
             column=measure,
         )

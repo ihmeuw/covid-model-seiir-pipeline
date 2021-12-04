@@ -38,7 +38,7 @@ class JoinSentinelTaskTemplate(workflow.TaskTemplate):
     tool = workflow.get_jobmon_tool(covid_model_seiir_pipeline)
     task_name_template = f"{FIT_JOBS.beta_fit_join_sentinel}_{{sentinel_id}}"
     command_template = (
-        "echo 'join sentinel {fit_version} {sentinel_id}'; sleep 1"
+        "echo join sentinel {fit_version} {sentinel_id}"
     )
     node_args = ['sentinel_id']
     task_args = ['fit_version']
@@ -93,3 +93,4 @@ class FitWorkflow(workflow.WorkflowTemplate):
                 measure=measure,
             )
             task.add_upstream(join_task)
+            self.workflow.add_task(task)

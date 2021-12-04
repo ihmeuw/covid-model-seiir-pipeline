@@ -40,7 +40,7 @@ class BetaFitTaskSpecification(workflow.TaskSpecification):
 
 
 class JoinSentinelTaskSpecification(workflow.TaskSpecification):
-    default_max_runtime_seconds = 60
+    default_max_runtime_seconds = 100
     default_m_mem_free = '1G'
     default_num_cores = 1
 
