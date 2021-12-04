@@ -1,14 +1,15 @@
 import functools
 import itertools
-import multiprocessing
 from typing import List
 
 from loguru import logger
 import numba
 import numpy as np
 import pandas as pd
-import tqdm
 
+from covid_model_seiir_pipeline.lib import (
+    parallel,
+)
 from covid_model_seiir_pipeline.lib.ode_mk2.constants import (
     TOMBSTONE,
     RISK_GROUP_NAMES,
@@ -60,17 +61,13 @@ def run_ode_model(initial_condition: pd.DataFrame,
         dt=dt,
         forecast=forecast,
     )
-    if num_cores == 1:
-        results = []
-        for input_data in tqdm.tqdm(ics_and_params, disable=not progress_bar):
-            results.append(_runner(input_data))
-    else:
-        with multiprocessing.Pool(num_cores) as pool:
-            results = list(tqdm.tqdm(
-                pool.imap(_runner, ics_and_params),
-                total=len(ics_and_params),
-                disable=not progress_bar
-            ))
+    results = parallel.run_parallel(
+        _runner,
+        arg_list=ics_and_params,
+        num_cores=num_cores,
+        progress_bar=progress_bar,
+    )
+
     compartments, chis = zip(*results)
     compartments = pd.concat(compartments).reset_index().set_index(['location_id', 'date']).sort_index()
     chis = pd.concat(chis).reset_index().set_index(['location_id', 'date']).sort_index()

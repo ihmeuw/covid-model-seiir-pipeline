@@ -244,7 +244,7 @@ class FitRoot(DataRoot):
     seroprevalence = DatasetType('seroprevalence', LEAF_TEMPLATES.DRAW_TEMPLATE)
     etas = DatasetType('etas', LEAF_TEMPLATES.DRAW_TEMPLATE)
     chis = DatasetType('chis', LEAF_TEMPLATES.DRAW_TEMPLATE)
-
+    summary = DatasetType('summary', LEAF_TEMPLATES.MEASURE_TEMPLATE)
 
 
 class RegressionRoot(DataRoot):
