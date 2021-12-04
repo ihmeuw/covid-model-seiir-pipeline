@@ -6,11 +6,27 @@ import numpy as np
 import pandas as pd
 
 
-def summarize(data: pd.DataFrame) -> pd.DataFrame:
-    mean = data.mean(axis=1).rename('mean')
-    upper = data.quantile(.975, axis=1).rename('upper')
-    lower = data.quantile(.025, axis=1).rename('lower')
-    return pd.concat([mean, upper, lower], axis=1)
+def summarize(data: pd.DataFrame, metric: str = 'mean', ci: float = 0.95, ci2: float = None) -> pd.DataFrame:
+    assert metric in ['mean', 'median']
+    assert 0. < ci <= 1.
+    if ci2 is not None:
+        assert 0. < ci2 <= 1.
+
+    upper = 1 - (1 - ci) / 2
+    summary_metrics = [
+        data.mean(axis=1).rename(metric),
+        data.quantile(upper, axis=1).rename('upper'),
+        data.quantile(1-upper, axis=1).rename('lower'),
+    ]
+
+    if ci2 is not None:
+        upper = 1 - (1 - ci2) / 2
+        summary_metrics.extend([
+            data.quantile(upper, axis=1).rename('upper2'),
+            data.quantile(1-upper, axis=1).rename('lower2'),
+        ])
+
+    return pd.concat(summary_metrics, axis=1)
 
 
 def fill_cumulative_date_index(data: pd.DataFrame, date_index: Optional[pd.Index]) -> pd.DataFrame:
@@ -52,7 +68,8 @@ def sum_aggregator(measure_data: pd.DataFrame,
         if lower_missing or upper_missing:
             date_index = pd.Index(pd.date_range(min_date, max_date), name='date')
 
-    for col in ['age_start', 'sex_id', 'year_id', 'age_group_id', 'age_group_years_start', 'age_group_years_end']:
+    for col in ['sex_id', 'year_id', 'round' 
+                'age_group_id', 'age_start', 'age_group_years_start', 'age_group_years_end']:
         if col in measure_data.index.names:
             agg_levels.append(col)
 

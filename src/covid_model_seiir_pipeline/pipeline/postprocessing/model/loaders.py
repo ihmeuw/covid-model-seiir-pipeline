@@ -4,7 +4,7 @@ from typing import List, TYPE_CHECKING
 
 import pandas as pd
 
-from covid_model_seiir_pipeline.pipeline.postprocessing.model.aggregators import summarize
+from covid_model_seiir_pipeline.lib.aggregate import summarize
 
 if TYPE_CHECKING:
     # The model subpackage is a library for the pipeline stage and shouldn't

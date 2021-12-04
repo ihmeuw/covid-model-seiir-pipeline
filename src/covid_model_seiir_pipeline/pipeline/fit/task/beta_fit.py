@@ -287,7 +287,3 @@ def beta_fit(fit_version: str, draw_id: int,
     run(fit_version=fit_version,
         draw_id=draw_id,
         progress_bar=progress_bar)
-
-
-if __name__ == '__main__':
-    beta_fit()

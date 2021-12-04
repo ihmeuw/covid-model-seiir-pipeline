@@ -7,7 +7,8 @@ from covid_model_seiir_pipeline.lib.ode_mk2.constants import (
     VARIANT_NAMES,
     VACCINE_STATUS_NAMES,
 )
-from covid_model_seiir_pipeline.pipeline.postprocessing.model import aggregators, loaders, combiners
+from covid_model_seiir_pipeline.pipeline.postprocessing.model import loaders, combiners
+from covid_model_seiir_pipeline.lib import aggregate
 
 if TYPE_CHECKING:
     # The model subpackage is a library for the pipeline stage and shouldn't
