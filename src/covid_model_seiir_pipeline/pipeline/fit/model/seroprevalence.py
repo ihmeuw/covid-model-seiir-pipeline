@@ -77,7 +77,7 @@ def apply_sensitivity_adjustment(sensitivity_data: pd.DataFrame,
         sensitivity.append(
             fit_hospital_weighted_sensitivity_decay(
                 source_assay,
-                sensitivity=sensitivity_data.copy(),
+                sensitivity=sensitivity_data.set_index(['source', 'assay']).loc[tuple(source_assay)],
                 hospitalized_weights=hospitalized_weights.copy(),
             )
         )
