@@ -50,6 +50,7 @@ for prefix in ['', 'smoothed_']:
                 FitDataInterface.load_input_epi_measures, f'{prefix}daily_{measure}'
             ),
             label=f'{prefix}daily_{measure}',
+            round_specific=False,
             cumulative_label=f'{prefix}cumulative_{measure}',
             aggregator=aggregate.sum_aggregator,
             description=description.format(metric='daily'),
