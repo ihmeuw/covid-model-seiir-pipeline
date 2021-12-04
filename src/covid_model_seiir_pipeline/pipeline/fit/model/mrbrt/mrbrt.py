@@ -93,7 +93,6 @@ def predict(pred_data: pd.DataFrame,
             fe_vars: List[str],
             re_vars: List[str],
             group_var: str,
-            verbose: bool = True,
             **kwargs) -> Tuple[pd.DataFrame, pd.DataFrame]:
     keep_vars = list(pred_replace_dict.keys()) + fe_vars
     if len(set(keep_vars)) != len(keep_vars):

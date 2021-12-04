@@ -99,7 +99,7 @@ def create_pred_data(hierarchy: pd.DataFrame,
 
 
 def get_infection_weighted_avg_testing(daily_infections: pd.Series,
-                                        testing_capacity: pd.Series) -> pd.Series:
+                                       testing_capacity: pd.Series) -> pd.Series:
     infwavg_data = pd.concat([testing_capacity.rename('testing_capacity'),
                               daily_infections.rename('daily_infections')], axis=1)
     infwavg_data = infwavg_data.loc[infwavg_data['testing_capacity'].notnull()]

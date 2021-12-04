@@ -176,4 +176,8 @@ class FitDataInterface:
     def load_final_seroprevalence(self, draw_id: int, columns: List[str] = None) -> pd.DataFrame:
         return io.load(self.fit_root.seroprevalence(draw_id=draw_id, columns=columns))
 
+    def save_summary(self, data: pd.DataFrame, measure: str) -> None:
+        io.dump(data, self.fit_root.summary(measure=measure))
 
+    def load_summary(self, measure: str) -> pd.DataFrame:
+        return io.load(self.fit_root.summary(measure=measure))

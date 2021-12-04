@@ -1,4 +1,4 @@
-from typing import Dict, List, NamedTuple
+from typing import Dict, List, NamedTuple, Tuple
 
 import pandas as pd
 from loguru import logger
@@ -44,7 +44,7 @@ def run_rates_pipeline(epi_data: pd.DataFrame,
                        params: RatesParameters,
                        day_inflection: pd.Timestamp,
                        num_threads: int,
-                       progress_bar: bool) -> Rates:
+                       progress_bar: bool) -> Tuple[Rates, RatesData]:
     logger.debug('IDR ESTIMATION')
     idr_results, idr_data = idr.runner(
         cumulative_cases=epi_data['cumulative_cases'].dropna(),

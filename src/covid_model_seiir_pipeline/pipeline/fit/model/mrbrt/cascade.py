@@ -165,7 +165,6 @@ def predict_cascade(pred_data: pd.DataFrame,
             mr_model=mr_model_dict[global_model_location_id],
             pred_replace_dict=pred_replace_dict,
             pred_exclude_vars=pred_exclude_vars,
-            verbose=verbose,
             **var_args
         )
         pred_fe += [location_pred_fe.set_index(['location_id', 'date']).loc[:, var_args['dep_var']].rename(f"pred_fe_{var_args['dep_var']}")]
@@ -180,7 +179,6 @@ def predict_cascade(pred_data: pd.DataFrame,
             mr_model=mr_model_dict[model_location_id],
             pred_replace_dict=pred_replace_dict,
             pred_exclude_vars=pred_exclude_vars,
-            verbose=verbose,
             **var_args
         )
         pred += [location_pred.set_index(['location_id', 'date']).loc[:, var_args['dep_var']].rename(f"pred_{var_args['dep_var']}")]

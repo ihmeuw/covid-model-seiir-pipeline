@@ -1,12 +1,9 @@
-import functools
-import multiprocessing
 from typing import Tuple
 
 from loguru import logger
 import numpy as np
 import pandas as pd
 from scipy.optimize import curve_fit
-import tqdm
 
 from covid_model_seiir_pipeline.lib import math
 from covid_model_seiir_pipeline.pipeline.fit.specification import RatesParameters

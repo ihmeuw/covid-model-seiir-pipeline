@@ -7,7 +7,10 @@ import numpy as np
 import pandas as pd
 import tqdm
 
-from covid_model_seiir_pipeline.lib import math
+from covid_model_seiir_pipeline.lib import (
+    math,
+    parallel,
+)
 
 
 def find_idr_floor(pred: pd.Series,
@@ -27,10 +30,12 @@ def find_idr_floor(pred: pd.Series,
         hierarchy=hierarchy.copy(),
     )
     floors = (np.array(test_range) / 100).tolist()
-    rmse = []
-
-    with multiprocessing.Pool(num_threads) as p:
-        rmse = list(tqdm.tqdm(p.imap(_tfv, floors), total=len(floors), disable=not progress_bar))
+    rmse = parallel.run_parallel(
+        _tfv,
+        arg_list=floors,
+        num_cores=num_threads,
+        progress_bar=progress_bar,
+    )
     rmse = pd.concat(rmse).reset_index()
 
     best_floor = (rmse
@@ -80,10 +85,7 @@ def _test_floor_value(floor: float,
         parent_id = hierarchy.loc[is_location, 'parent_id'].item()
         # check if location_id is present
         if location_id in serosurveys.reset_index()['location_id'].to_list():
-            try:
-                rmse = np.sqrt((residuals[location_id]**2).mean())
-            except KeyError:
-                logger.warning(f"Can't find data for location id {location_id}")
+            rmse = np.sqrt((residuals[location_id]**2).mean())
         # check if at least `min_children` children are present
         elif serosurveys.reset_index()['location_id'].drop_duplicates().isin(child_ids).sum() >= min_children:
             child_residuals = residuals.reset_index()
