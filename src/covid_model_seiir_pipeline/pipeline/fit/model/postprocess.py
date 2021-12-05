@@ -280,7 +280,7 @@ for measure in ['deaths', 'hospitalizations', 'cases']:
     MEASURES[f'posterior_{measure}_based_infections'] = CompositeMeasureConfig(
         base_measures={'beta': MEASURES['beta'],
                        'beta_measure': MEASURES[f'beta_{measure}'],
-                       'infections': MEASURES['naive_unvaccinated_infections']},
+                       'infections': MEASURES['posterior_naive_unvaccinated_infections']},
         label=f'posterior_{measure}_based_daily_naive_unvaccinated_infections',
         cumulative_label=f'posterior_{measure}_based_cumulative_naive_unvaccinated_infections',
         combiner=make_measure_infections,
@@ -293,7 +293,7 @@ def get_data_dictionary() -> pd.DataFrame:
     data_dictionary = {}
     for measure_config in MEASURES.values():
         data_dictionary[measure_config.label] = measure_config.description
-        if isinstance(measure_config, MeasureConfig) and measure_config.cumulative_label:
+        if measure_config.cumulative_label:
             data_dictionary[measure_config.cumulative_label] = measure_config.cumulative_description
     data_dictionary = pd.Series(data_dictionary).reset_index()
     data_dictionary.columns = ['output', 'description']
