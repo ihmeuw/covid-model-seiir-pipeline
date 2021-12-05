@@ -43,11 +43,17 @@ class CompositeMeasureConfig:
                  label: str,
                  duration_label: str,
                  combiner: Callable,
-                 description: str):
+                 summary_metric: Optional[str] = 'mean',
+                 ci: float = .95,
+                 ci2: float = None,
+                 description: str = None):
         self.base_measures = base_measures
         self.label = label
         self.duration_label = duration_label
         self.combiner = combiner
+        self.summary_metric = summary_metric
+        self.ci = ci
+        self.ci2 = ci2
         self.description = description
 
 
@@ -195,6 +201,7 @@ def load_ode_params(data_interface: FitDataInterface,
         df = data_interface.load_ode_params(draw).set_index('parameter').value
         parameter_data.append(df)
     parameter_data = pd.concat(parameter_data, axis=1)
+    parameter_data.columns = [f'draw_{i}' for i in range(100)]
     return parameter_data
 
 

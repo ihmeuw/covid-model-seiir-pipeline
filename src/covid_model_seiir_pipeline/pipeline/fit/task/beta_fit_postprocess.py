@@ -90,7 +90,7 @@ def postprocess_composite_measure(fit_version: str,
         specification,
         data_interface,
         progress_bar,
-    ).set_index('parameter').loc[measure_config.duration_label]
+    ).loc[measure_config.duration_label]
 
     measure_data = measure_config.combiner(**measure_data, duration=duration)
 
@@ -153,13 +153,14 @@ def summarize_and_write(measure_data: pd.DataFrame,
                         data_interface: FitDataInterface,
                         measure: str):
     logger.info(f'Summarizing results for {measure}.', context='summarize')
-    summarized = aggregate.summarize(measure_data,
-                                     metric=measure_config.summary_metric,
-                                     ci=measure_config.ci,
-                                     ci2=measure_config.ci2)
+    if measure_config.summary_metric:
+        measure_data = aggregate.summarize(measure_data,
+                                           metric=measure_config.summary_metric,
+                                           ci=measure_config.ci,
+                                           ci2=measure_config.ci2)
 
-    logger.info(f'Saving summaries for {measure}.', context='write_summary')
-    data_interface.save_summary(summarized.reset_index(), measure_config.label)
+    logger.info(f'Saving data for {measure}.', context='write')
+    data_interface.save_summary(measure_data, measure)
 
 
 @click.command()
