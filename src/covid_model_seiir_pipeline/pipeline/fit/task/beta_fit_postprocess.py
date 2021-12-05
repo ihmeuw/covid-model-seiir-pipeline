@@ -46,23 +46,7 @@ def postprocess_measure(fit_version: str, measure_config: postprocess.MeasureCon
         measure_data,
         measure_config,
         data_interface,
-        measure_config.label,
     )
-
-    if measure_config.cumulative_label:
-        agg_levels = [c for c in list(measure_data.columns) + list(measure_data.index.names)
-                      if c in ['location_id', 'round']]
-        cumulative_measure_data = (measure_data
-                                   .reset_index()
-                                   .set_index(agg_levels + ['date'])
-                                   .groupby(agg_levels)
-                                   .cumsum())
-        summarize_and_write(
-            cumulative_measure_data,
-            measure_config,
-            data_interface,
-            measure_config.cumulative_label
-        )
 
 
 def postprocess_composite_measure(fit_version: str,
@@ -85,20 +69,20 @@ def postprocess_composite_measure(fit_version: str,
         )
         measure_data[base_measure] = base_measure_data
 
-    duration = load_measure(
-        postprocess.MEASURES['ode_parameters'],
-        specification,
-        data_interface,
-        progress_bar,
-    ).loc[measure_config.duration_label]
+    if measure_config.duration_label:
+        measure_data['duration'] = load_measure(
+            postprocess.MEASURES['ode_parameters'],
+            specification,
+            data_interface,
+            progress_bar,
+        ).loc[measure_config.duration_label]
 
-    measure_data = measure_config.combiner(**measure_data, duration=duration)
+    measure_data = measure_config.combiner(**measure_data)
 
     summarize_and_write(
         measure_data,
         measure_config,
         data_interface,
-        measure_config.label,
     )
 
 
@@ -150,17 +134,30 @@ def do_aggregation(measure_data: pd.DataFrame,
 
 def summarize_and_write(measure_data: pd.DataFrame,
                         measure_config: Union[postprocess.MeasureConfig, postprocess.CompositeMeasureConfig],
-                        data_interface: FitDataInterface,
-                        measure: str):
-    logger.info(f'Summarizing results for {measure}.', context='summarize')
-    if measure_config.summary_metric:
-        measure_data = aggregate.summarize(measure_data,
-                                           metric=measure_config.summary_metric,
-                                           ci=measure_config.ci,
-                                           ci2=measure_config.ci2)
+                        data_interface: FitDataInterface):
+    to_write = {measure_config.label: measure_data}
 
-    logger.info(f'Saving data for {measure}.', context='write')
-    data_interface.save_summary(measure_data, measure)
+    if measure_config.cumulative_label:
+        logger.info(f'Generating cumulative results for {measure_config.label}.', context='cumsum')
+        agg_levels = [c for c in list(measure_data.columns) + list(measure_data.index.names)
+                      if c in ['location_id', 'round']]
+        cumulative_measure_data = (measure_data
+                                   .reset_index()
+                                   .set_index(agg_levels + ['date'])
+                                   .groupby(agg_levels)
+                                   .cumsum())
+        to_write[measure_config.cumulative_label] = cumulative_measure_data
+
+    for label, data in to_write.items():
+        if measure_config.summary_metric:
+            logger.info(f'Summarizing results for {label}.', context='summarize')
+            data = aggregate.summarize(data,
+                                       metric=measure_config.summary_metric,
+                                       ci=measure_config.ci,
+                                       ci2=measure_config.ci2)
+
+        logger.info(f'Saving data for {label}.', context='write')
+        data_interface.save_summary(data, label)
 
 
 @click.command()

@@ -40,21 +40,25 @@ class MeasureConfig:
 class CompositeMeasureConfig:
     def __init__(self,
                  base_measures: Dict[str, MeasureConfig],
-                 label: str,
-                 duration_label: str,
                  combiner: Callable,
+                 label: str,
+                 cumulative_label: str = None,
                  summary_metric: Optional[str] = 'mean',
                  ci: float = .95,
                  ci2: float = None,
-                 description: str = None):
+                 duration_label: str = None,
+                 description: str = None,
+                 cumulative_description: str = None):
         self.base_measures = base_measures
-        self.label = label
-        self.duration_label = duration_label
         self.combiner = combiner
+        self.label = label
+        self.cumulative_label = cumulative_label
         self.summary_metric = summary_metric
         self.ci = ci
         self.ci2 = ci2
+        self.duration_label = duration_label
         self.description = description
+        self.cumulative_description = cumulative_description
 
 
 MEASURES: Dict[str, Union[MeasureConfig, CompositeMeasureConfig]] = {}
@@ -226,7 +230,7 @@ def load_rates_data(data_interface: FitDataInterface,
     rates_data = (pd.concat([rates_data['date'].median(), rates_data['value'].mean()], axis=1)
                   .reset_index()
                   .drop(columns='data_id'))
-    return rates_data
+    return rates_data.set_index(['measure', 'round', 'location_id', 'date'])
 
 
 MEASURES['rates_data'] = MeasureConfig(
@@ -260,6 +264,28 @@ for ratio, measure, duration_measure in zip(['ifr', 'ihr', 'idr'],
             f'Posterior {ratio.upper()} among the unvaccinated and COVID-naive (those without a '
             f'prior covid infection). This data is a composite of results from the past infections model.'
         )
+    )
+
+
+def make_measure_infections(beta: pd.DataFrame, beta_measure: pd.DataFrame, infections: pd.DataFrame):
+    return beta_measure / beta * infections
+
+
+for measure in ['deaths', 'hospitalizations', 'cases']:
+    description = (
+        f'Posterior {{metric}}infections according to reported {measure} '
+        f'among the unvaccinated and COVID-naive (those without a prior covid infection). '
+        f'This data is a composite of results from the past infections model.'
+    )
+    MEASURES[f'posterior_{measure}_based_infections'] = CompositeMeasureConfig(
+        base_measures={'beta': MEASURES['beta'],
+                       'beta_measure': MEASURES[f'beta_{measure}'],
+                       'infections': MEASURES['naive_unvaccinated_infections']},
+        label=f'posterior_{measure}_based_daily_naive_unvaccinated_infections',
+        cumulative_label=f'posterior_{measure}_based_cumulative_naive_unvaccinated_infections',
+        combiner=make_measure_infections,
+        description=description.format(metric='daily'),
+        cumulative_description=description.format(measure='cumulative'),
     )
 
 
