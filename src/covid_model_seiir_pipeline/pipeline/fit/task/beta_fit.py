@@ -245,7 +245,7 @@ def run_beta_fit(fit_version: str, draw_id: int, progress_bar: bool) -> None:
     prior_rates = pd.concat([first_pass_rates, second_pass_rates])
 
     first_pass_betas.loc[:, 'round'] = 1
-    second_pass_betas.loc[:, 'round'] = 1
+    second_pass_betas.loc[:, 'round'] = 2
     betas = pd.concat([first_pass_betas, second_pass_betas])
 
     second_pass_posterior_epi_measures, _ = model.compute_posterior_epi_measures(
