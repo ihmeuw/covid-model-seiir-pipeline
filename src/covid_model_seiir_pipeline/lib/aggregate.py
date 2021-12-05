@@ -68,7 +68,7 @@ def sum_aggregator(measure_data: pd.DataFrame,
         if lower_missing or upper_missing:
             date_index = pd.Index(pd.date_range(min_date, max_date), name='date')
 
-    for col in ['sex_id', 'year_id', 'round' 
+    for col in ['sex_id', 'year_id', 'round',
                 'age_group_id', 'age_start', 'age_group_years_start', 'age_group_years_end']:
         if col in measure_data.index.names:
             agg_levels.append(col)

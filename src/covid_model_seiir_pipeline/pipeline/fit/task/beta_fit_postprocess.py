@@ -29,7 +29,7 @@ def run_beta_fit_postprocess(fit_version: str, measure: str, progress_bar: bool)
     dates = pd.date_range(dates.min() - pd.Timedelta(days=30), dates.max())
 
     if measure_config.round_specific:
-        idx = pd.MultiIndex.from_product([[1, 2], locs, dates], names=['round', 'location_id', 'date'])
+        idx = pd.MultiIndex.from_product([locs, dates, [1, 2]], names=['location_id', 'date', 'round'])
     else:
         idx = pd.MultiIndex.from_product([locs, dates], names=['location_id', 'date'])
 
