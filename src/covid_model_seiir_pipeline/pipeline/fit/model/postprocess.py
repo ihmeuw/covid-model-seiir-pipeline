@@ -293,7 +293,7 @@ def get_data_dictionary() -> pd.DataFrame:
     data_dictionary = {}
     for measure_config in MEASURES.values():
         data_dictionary[measure_config.label] = measure_config.description
-        if isinstance(measure_config, MeasureConfig) and measure_config.cumulative_label:
+        if measure_config.cumulative_label:
             data_dictionary[measure_config.cumulative_label] = measure_config.cumulative_description
     data_dictionary = pd.Series(data_dictionary).reset_index()
     data_dictionary.columns = ['output', 'description']
