@@ -246,7 +246,7 @@ for ratio, measure, duration_measure in zip(['ifr', 'ihr', 'idr'],
     MEASURES[f'posterior_{ratio}'] = CompositeMeasureConfig(
         base_measures={'numerator': MEASURES[f'posterior_{measure}'],
                        'denominator': MEASURES['posterior_naive_unvaccinated_infections']},
-        label='posterior_ifr',
+        label=f'posterior_{ratio}',
         duration_label=f'exposure_to_{duration_measure}',
         combiner=make_ratio,
         description=(
