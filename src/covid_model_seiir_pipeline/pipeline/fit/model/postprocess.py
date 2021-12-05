@@ -1,5 +1,5 @@
 import itertools
-from typing import Callable, Dict, Optional
+from typing import Callable, Dict, Optional, Union
 
 import pandas as pd
 import tqdm
@@ -37,7 +37,21 @@ class MeasureConfig:
         self.cumulative_description = cumulative_description
 
 
-MEASURES: Dict[str, MeasureConfig] = {}
+class CompositeMeasureConfig:
+    def __init__(self,
+                 base_measures: Dict[str, MeasureConfig],
+                 label: str,
+                 duration_label: str,
+                 combiner: Callable,
+                 description: str):
+        self.base_measures = base_measures
+        self.label = label
+        self.duration_label = duration_label
+        self.combiner = combiner
+        self.description = description
+
+
+MEASURES: Dict[str, Union[MeasureConfig, CompositeMeasureConfig]] = {}
 
 for prefix in ['', 'smoothed_']:
     for measure in ['deaths', 'hospitalizations', 'cases']:
@@ -79,6 +93,8 @@ for measure in ['naive_unvaccinated_infections', 'naive_infections', 'total_infe
         label=f'posterior_daily_{measure}',
         cumulative_label=f'posterior_cumulative_{measure}',
         aggregator=aggregate.sum_aggregator,
+        ci=1.,
+        ci2=.95,
         description=description.format(metric='daily'),
         cumulative_description=description.format(metric='cumulative')
     )
@@ -213,6 +229,31 @@ MEASURES['rates_data'] = MeasureConfig(
     description=('Sampled seroprevalence data points shifted into the space of the rates analysis. '
                  'This data is an output of the rates model, an intermediate step of the past infections model.')
 )
+
+
+def make_ratio(numerator: pd.DataFrame, denominator: pd.DataFrame, duration: pd.Series):
+    out = []
+    for draw in numerator.columns:
+        draw_duration = duration.loc[draw]
+        out.append(numerator[draw] / denominator[draw].groupby('location_id').shift(draw_duration))
+    out = pd.concat(out, axis=1)
+    return out
+
+
+for ratio, measure, duration_measure in zip(['ifr', 'ihr', 'idr'],
+                                            ['deaths', 'hospitalizations', 'cases'],
+                                            ['death', 'admission', 'case']):
+    MEASURES[f'posterior_{ratio}'] = CompositeMeasureConfig(
+        base_measures={'numerator': MEASURES[f'posterior_{measure}'],
+                       'denominator': MEASURES['posterior_naive_unvaccinated_infections']},
+        label='posterior_ifr',
+        duration_label=f'exposure_to_{duration_measure}',
+        combiner=make_ratio,
+        description=(
+            f'Posterior {ratio.upper()} among the unvaccinated and COVID-naive (those without a '
+            f'prior covid infection). This data is a composite of results from the past infections model.'
+        )
+    )
 
 
 def get_data_dictionary() -> pd.DataFrame:
