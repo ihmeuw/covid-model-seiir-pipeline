@@ -1,3 +1,5 @@
+from typing import Tuple, Union
+
 import click
 import pandas as pd
 
@@ -13,13 +15,103 @@ logger = cli_tools.task_performance_logger
 
 
 def run_beta_fit_postprocess(fit_version: str, measure: str, progress_bar: bool) -> None:
-    logger.info(f'Starting beta fit postprocessing for measure {measure}.', context='setup')
-    # Build helper abstractions
+    logger.info(f'Starting postprocessing for version {fit_version}.', context='setup')
+
+    config = postprocess.MEASURES[measure]
+    if isinstance(config, postprocess.MeasureConfig):
+        postprocess_measure(fit_version, config, progress_bar)
+    elif isinstance(config, postprocess.CompositeMeasureConfig):
+        postprocess_composite_measure(fit_version, config, progress_bar)
+    else:
+        raise NotImplementedError(f'Unknown measure {measure}.')
+
+    logger.report()
+
+
+def postprocess_measure(fit_version: str, measure_config: postprocess.MeasureConfig, progress_bar: bool) -> None:
+    specification, data_interface = build_spec_and_data_interface(fit_version)
+
+    measure_data = load_measure(
+        measure_config,
+        specification,
+        data_interface,
+        progress_bar,
+    )
+    measure_data = do_aggregation(
+        measure_data,
+        measure_config,
+        data_interface,
+    )
+    summarize_and_write(
+        measure_data,
+        measure_config,
+        data_interface,
+        measure_config.label,
+    )
+
+    if measure_config.cumulative_label:
+        agg_levels = [c for c in list(measure_data.columns) + list(measure_data.index.names)
+                      if c in ['location_id', 'round']]
+        cumulative_measure_data = (measure_data
+                                   .reset_index()
+                                   .set_index(agg_levels + ['date'])
+                                   .groupby(agg_levels)
+                                   .cumsum())
+        summarize_and_write(
+            cumulative_measure_data,
+            measure_config,
+            data_interface,
+            measure_config.cumulative_label
+        )
+
+
+def postprocess_composite_measure(fit_version: str,
+                                  measure_config: postprocess.CompositeMeasureConfig,
+                                  progress_bar: bool) -> None:
+    specification, data_interface = build_spec_and_data_interface(fit_version)
+
+    measure_data = {}
+    for base_measure, base_measure_config in measure_config.base_measures.items():
+        base_measure_data = load_measure(
+            base_measure_config,
+            specification,
+            data_interface,
+            progress_bar,
+        )
+        base_measure_data = do_aggregation(
+            base_measure_data,
+            base_measure_config,
+            data_interface,
+        )
+        measure_data[base_measure] = base_measure_data
+
+    duration = load_measure(
+        postprocess.MEASURES['ode_parameters'],
+        specification,
+        data_interface,
+        progress_bar,
+    ).set_index('parameter').loc[measure_config.duration_label]
+
+    measure_data = measure_config.combiner(**measure_data, duration=duration)
+
+    summarize_and_write(
+        measure_data,
+        measure_config,
+        data_interface,
+        measure_config.label,
+    )
+
+
+def build_spec_and_data_interface(fit_version: str) -> Tuple[FitSpecification, FitDataInterface]:
     specification = FitSpecification.from_version_root(fit_version)
     data_interface = FitDataInterface.from_specification(specification)
+    return specification, data_interface
 
-    measure_config = postprocess.MEASURES[measure]
 
+def load_measure(measure_config: postprocess.MeasureConfig,
+                 specification: FitSpecification,
+                 data_interface: FitDataInterface,
+                 progress_bar: bool) -> pd.DataFrame:
     logger.info(f'Loading indexing data', context='read')
     input_epi_data = data_interface.load_input_epi_measures(draw_id=0)
 
@@ -42,35 +134,32 @@ def run_beta_fit_postprocess(fit_version: str, measure: str, progress_bar: bool)
         num_cores=num_cores,
         progress_bar=progress_bar,
     )
+    return measure_data
 
+
+def do_aggregation(measure_data: pd.DataFrame,
+                   measure_config: postprocess.MeasureConfig,
+                   data_interface: FitDataInterface) -> pd.DataFrame:
     if measure_config.aggregator is not None:
         logger.info(f'Aggregating to hierarchy', context='aggregate')
         hierarchy = data_interface.load_hierarchy('pred')
         population = data_interface.load_population('five_year')
         measure_data = measure_config.aggregator(measure_data, hierarchy, population)
+    return measure_data
 
-    if measure_config.summary_metric:
-        logger.info(f'Summarizing results for {measure}.', context='summarize')
-        summarized = aggregate.summarize(measure_data,
-                                         metric=measure_config.summary_metric,
-                                         ci=measure_config.ci,
-                                         ci2=measure_config.ci2)
 
-        logger.info(f'Saving summaries for {measure}.', context='write_summary')
-        data_interface.save_summary(summarized.reset_index(), measure_config.label)
+def summarize_and_write(measure_data: pd.DataFrame,
+                        measure_config: Union[postprocess.MeasureConfig, postprocess.CompositeMeasureConfig],
+                        data_interface: FitDataInterface,
+                        measure: str):
+    logger.info(f'Summarizing results for {measure}.', context='summarize')
+    summarized = aggregate.summarize(measure_data,
+                                     metric=measure_config.summary_metric,
+                                     ci=measure_config.ci,
+                                     ci2=measure_config.ci2)
 
-    if measure_config.cumulative_label:
-        cumulative_measure_data = measure_data.groupby(level='location_id').cumsum()
-        logger.info(f'Summarizing results for cumulative {measure}.', context='summarize')
-        summarized = aggregate.summarize(cumulative_measure_data,
-                                         metric=measure_config.summary_metric,
-                                         ci=measure_config.ci,
-                                         ci2=measure_config.ci2)
-
-        logger.info(f'Saving summaries for cumulative {measure}.', context='write_summary')
-        data_interface.save_summary(summarized.reset_index(), measure_config.cumulative_label)
-
-    logger.report()
+    logger.info(f'Saving summaries for {measure}.', context='write_summary')
+    data_interface.save_summary(summarized.reset_index(), measure_config.label)
 
 
 @click.command()
