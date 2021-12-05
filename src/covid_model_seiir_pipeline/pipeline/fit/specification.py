@@ -20,6 +20,8 @@ RRSampleable = Union[Tuple[float, float, float], float, str]
 class __FitJobs(NamedTuple):
     covariate_pool: str
     beta_fit: str
+    beta_fit_join_sentinel: str
+    beta_fit_postprocess: str
 
 
 FIT_JOBS = __FitJobs(*__FitJobs._fields)
@@ -37,10 +39,24 @@ class BetaFitTaskSpecification(workflow.TaskSpecification):
     default_num_cores = 11
 
 
+class JoinSentinelTaskSpecification(workflow.TaskSpecification):
+    default_max_runtime_seconds = 100
+    default_m_mem_free = '1G'
+    default_num_cores = 1
+
+
+class BetaFitPostprocessingTaskSpecification(workflow.TaskSpecification):
+    default_max_runtime_seconds = 5000
+    default_m_mem_free = '50G'
+    default_num_cores = 11
+
+
 class FitWorkflowSpecification(workflow.WorkflowSpecification):
     tasks = {
         FIT_JOBS.covariate_pool: CovariatePoolTaskSpecification,
         FIT_JOBS.beta_fit: BetaFitTaskSpecification,
+        FIT_JOBS.beta_fit_join_sentinel: JoinSentinelTaskSpecification,
+        FIT_JOBS.beta_fit_postprocess: BetaFitPostprocessingTaskSpecification,
     }
 
 

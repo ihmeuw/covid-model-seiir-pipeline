@@ -283,7 +283,15 @@ def run_ode_fit(initial_condition: pd.DataFrame,
     # Set all the forecast stuff to nan
     full_compartments.loc[full_compartments.sum(axis=1) == 0., :] = np.nan
 
-    return full_compartments, chis
+    betas = (full_compartments
+             .filter(like='beta_none')
+             .filter(like='lr')
+             .groupby('location_id')
+             .diff()
+             .rename(columns=lambda x: f'beta_{x.split("_")[2]}')
+             .rename(columns={'beta_all': 'beta'}))
+
+    return full_compartments, betas, chis
 
 
 

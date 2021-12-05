@@ -7,7 +7,8 @@ from covid_model_seiir_pipeline.lib.ode_mk2.constants import (
     VARIANT_NAMES,
     VACCINE_STATUS_NAMES,
 )
-from covid_model_seiir_pipeline.pipeline.postprocessing.model import aggregators, loaders, combiners
+from covid_model_seiir_pipeline.pipeline.postprocessing.model import loaders, combiners
+from covid_model_seiir_pipeline.lib import aggregate
 
 if TYPE_CHECKING:
     # The model subpackage is a library for the pipeline stage and shouldn't
@@ -87,7 +88,7 @@ MEASURES = {
         'daily_deaths',
         calculate_cumulative=True,
         cumulative_label='cumulative_deaths',
-        aggregator=aggregators.sum_aggregator,
+        aggregator=aggregate.sum_aggregator,
         write_draws=True,
     ),
     'unscaled_deaths': MeasureConfig(
@@ -95,31 +96,31 @@ MEASURES = {
         'unscaled_daily_deaths',
         calculate_cumulative=True,
         cumulative_label='cumulative_unscaled_deaths',
-        aggregator=aggregators.sum_aggregator,
+        aggregator=aggregate.sum_aggregator,
         write_draws=True,
     ),
     'total_covid_deaths_data': MeasureConfig(
         loaders.load_total_covid_deaths,
         'total_covid_deaths_data',
-        aggregator=aggregators.sum_aggregator,
+        aggregator=aggregate.sum_aggregator,
     ),
     'deaths_lr': MeasureConfig(
         loaders.load_output_data('modeled_deaths_lr'),
         'daily_deaths_low_risk',
         splice=False,
-        aggregator=aggregators.sum_aggregator,
+        aggregator=aggregate.sum_aggregator,
     ),
     'deaths_hr': MeasureConfig(
         loaders.load_output_data('modeled_deaths_hr'),
         'daily_deaths_high_risk',
         splice=False,
-        aggregator=aggregators.sum_aggregator,
+        aggregator=aggregate.sum_aggregator,
     ),
     'deaths_modeled': MeasureConfig(
         loaders.load_output_data('modeled_deaths_total'),
         'daily_deaths_modeled',
         splice=False,
-        aggregator=aggregators.sum_aggregator,
+        aggregator=aggregate.sum_aggregator,
     ),
 
     'infections': MeasureConfig(
@@ -127,7 +128,7 @@ MEASURES = {
         'daily_infections',
         calculate_cumulative=True,
         cumulative_label='cumulative_infections',
-        aggregator=aggregators.sum_aggregator,
+        aggregator=aggregate.sum_aggregator,
         write_draws=True,
     ),
     'cases': MeasureConfig(
@@ -135,30 +136,30 @@ MEASURES = {
         'daily_cases',
         calculate_cumulative=True,
         cumulative_label='cumulative_cases',
-        aggregator=aggregators.sum_aggregator,
+        aggregator=aggregate.sum_aggregator,
         write_draws=True,
     ),
     'hospital_admissions': MeasureConfig(
         loaders.load_output_data('hospital_admissions'),
         'hospital_admissions',
-        aggregator=aggregators.sum_aggregator,
+        aggregator=aggregate.sum_aggregator,
         write_draws=True,
     ),
     'icu_admissions': MeasureConfig(
         loaders.load_output_data('icu_admissions'),
         'icu_admissions',
-        aggregator=aggregators.sum_aggregator,
+        aggregator=aggregate.sum_aggregator,
         write_draws=True,
     ),
     'hospital_census': MeasureConfig(
         loaders.load_output_data('hospital_census'),
         'hospital_census',
-        aggregator=aggregators.sum_aggregator,
+        aggregator=aggregate.sum_aggregator,
     ),
     'icu_census': MeasureConfig(
         loaders.load_output_data('icu_census'),
         'icu_census',
-        aggregator=aggregators.sum_aggregator,
+        aggregator=aggregate.sum_aggregator,
     ),
     'hospital_census_correction_factor': MeasureConfig(
         loaders.load_output_data('hospital_census_correction_factor'),
@@ -175,49 +176,49 @@ MEASURES = {
     'cumulative_all_effective': MeasureConfig(
         loaders.load_vaccine_summaries('cumulative_all_effective'),
         'cumulative_vaccinations_all_effective',
-        aggregator=aggregators.sum_aggregator,
+        aggregator=aggregate.sum_aggregator,
         resample=False,
         splice=False,
     ),
     'cumulative_all_vaccinated': MeasureConfig(
         loaders.load_vaccine_summaries('cumulative_all_vaccinated'),
         'cumulative_vaccinations_all_vaccinated',
-        aggregator=aggregators.sum_aggregator,
+        aggregator=aggregate.sum_aggregator,
         resample=False,
         splice=False,
     ),
     'cumulative_all_fully_vaccinated': MeasureConfig(
         loaders.load_vaccine_summaries('cumulative_all_fully_vaccinated'),
         'cumulative_vaccinations_all_fully_vaccinated',
-        aggregator=aggregators.sum_aggregator,
+        aggregator=aggregate.sum_aggregator,
         resample=False,
         splice=False,
     ),
     'cumulative_lr_vaccinated': MeasureConfig(
         loaders.load_vaccine_summaries('lr_vaccinated'),
         'cumulative_vaccinations_lr',
-        aggregator=aggregators.sum_aggregator,
+        aggregator=aggregate.sum_aggregator,
         resample=False,
         splice=False,
     ),
     'cumulative_hr_vaccinated': MeasureConfig(
         loaders.load_vaccine_summaries('hr_vaccinated'),
         'cumulative_vaccinations_hr',
-        aggregator=aggregators.sum_aggregator,
+        aggregator=aggregate.sum_aggregator,
         resample=False,
         splice=False,
     ),
     'vaccine_acceptance': MeasureConfig(
         loaders.load_vaccine_summaries('vaccine_acceptance'),
         'vaccine_acceptance',
-        aggregator=aggregators.mean_aggregator,
+        aggregator=aggregate.mean_aggregator,
         resample=False,
         splice=False,
     ),
     'vaccine_acceptance_point': MeasureConfig(
         loaders.load_vaccine_summaries('vaccine_acceptance_point'),
         'vaccine_acceptance_point',
-        aggregator=aggregators.mean_aggregator,
+        aggregator=aggregate.mean_aggregator,
         resample=False,
         splice=False,
     ),
@@ -297,14 +298,14 @@ for measure in ['boosters', 'vaccinations']:
         f'daily_{measure}',
         calculate_cumulative=True,
         cumulative_label=f'cumulative_{measure}',
-        aggregator=aggregators.sum_aggregator,
+        aggregator=aggregate.sum_aggregator,
     )
     for risk_group in RISK_GROUP_NAMES:
         group_measure = f'{measure}_{risk_group}'
         MEASURES[group_measure] = MeasureConfig(
             loaders.load_output_data(group_measure),
             f'daily_{group_measure}',
-            aggregator=aggregators.sum_aggregator,
+            aggregator=aggregate.sum_aggregator,
         )
 
 
@@ -312,12 +313,12 @@ for key in list(VARIANT_NAMES[1:]) + list(VACCINE_STATUS_NAMES) + list(RISK_GROU
     MEASURES[f'infections_{key}'] = MeasureConfig(
         loaders.load_output_data(f'modeled_infections_{key}'),
         f'daily_infections_{key}',
-        aggregator=aggregators.sum_aggregator,
+        aggregator=aggregate.sum_aggregator,
     )
     MEASURES[f'susceptible_{key}'] = MeasureConfig(
         loaders.load_output_data(f'susceptible_{key}'),
         f'effective_susceptible_{key}',
-        aggregator=aggregators.sum_aggregator,
+        aggregator=aggregate.sum_aggregator,
     )
 
 
@@ -332,7 +333,7 @@ for variant in VARIANT_NAMES[1:]:
     MEASURES[f'immune_{variant}'] = MeasureConfig(
         loaders.load_output_data(f'immune_{variant}'),
         f'effective_immune_{variant}',
-        aggregator=aggregators.sum_aggregator,
+        aggregator=aggregate.sum_aggregator,
     )
     MEASURES[f'variant_{variant}_prevalence'] = MeasureConfig(
         loaders.load_output_data(f'variant_{variant}_prevalence'),
@@ -401,50 +402,50 @@ COVARIATES = {
         loaders.load_covariate,
         'mobility',
         time_varying=True,
-        aggregator=aggregators.mean_aggregator,
+        aggregator=aggregate.mean_aggregator,
     ),
     'testing': CovariateConfig(
         loaders.load_covariate,
         'testing',
         time_varying=True,
-        aggregator=aggregators.mean_aggregator,
+        aggregator=aggregate.mean_aggregator,
     ),
     'pneumonia': CovariateConfig(
         loaders.load_covariate,
         'pneumonia',
         time_varying=True,
-        aggregator=aggregators.mean_aggregator,
+        aggregator=aggregate.mean_aggregator,
     ),
     'mask_use': CovariateConfig(
         loaders.load_covariate,
         'mask_use',
         time_varying=True,
-        aggregator=aggregators.mean_aggregator,
+        aggregator=aggregate.mean_aggregator,
     ),
     'air_pollution_pm_2_5': CovariateConfig(
         loaders.load_covariate,
         'air_pollution_pm_2_5',
-        aggregator=aggregators.mean_aggregator,
+        aggregator=aggregate.mean_aggregator,
     ),
     'lri_mortality': CovariateConfig(
         loaders.load_covariate,
         'lri_mortality',
-        aggregator=aggregators.mean_aggregator,
+        aggregator=aggregate.mean_aggregator,
     ),
     'proportion_over_2_5k': CovariateConfig(
         loaders.load_covariate,
         'proportion_over_2_5k',
-        aggregator=aggregators.mean_aggregator,
+        aggregator=aggregate.mean_aggregator,
     ),
     'proportion_under_100m': CovariateConfig(
         loaders.load_covariate,
         'proportion_under_100m',
-        aggregator=aggregators.mean_aggregator,
+        aggregator=aggregate.mean_aggregator,
     ),
     'smoking_prevalence': CovariateConfig(
         loaders.load_covariate,
         'smoking_prevalence',
-        aggregator=aggregators.mean_aggregator,
+        aggregator=aggregate.mean_aggregator,
     ),
 }
 
@@ -452,18 +453,18 @@ MISCELLANEOUS = {
     'unscaled_full_data': MiscellaneousConfig(
         loaders.load_full_data_unscaled,
         'unscaled_full_data',
-        aggregator=aggregators.sum_aggregator,
+        aggregator=aggregate.sum_aggregator,
     ),
     'age_specific_deaths': MiscellaneousConfig(
         loaders.load_age_specific_deaths,
         'age_specific_deaths',
-        aggregator=aggregators.sum_aggregator,
+        aggregator=aggregate.sum_aggregator,
         soft_fail=True,
     ),
     'variant_prevalence': MiscellaneousConfig(
         loaders.load_variant_prevalence,
         'variant_prevalence',
-        aggregator=aggregators.mean_aggregator,
+        aggregator=aggregate.mean_aggregator,
     ),
     'excess_mortality_scalars': MiscellaneousConfig(
         loaders.load_excess_mortality_scalars,
@@ -488,7 +489,7 @@ MISCELLANEOUS = {
     'populations': MiscellaneousConfig(
         loaders.load_populations,
         'populations',
-        aggregator=aggregators.sum_aggregator,
+        aggregator=aggregate.sum_aggregator,
     ),
     'hierarchy': MiscellaneousConfig(
         loaders.load_hierarchy,

@@ -9,6 +9,7 @@ from covid_model_seiir_pipeline.lib import cli_tools
 from covid_model_seiir_pipeline.pipeline.fit.specification import FitSpecification
 from covid_model_seiir_pipeline.pipeline.fit.data import FitDataInterface
 from covid_model_seiir_pipeline.pipeline.fit.workflow import FitWorkflow
+from covid_model_seiir_pipeline.pipeline.fit.model import postprocess
 
 
 def do_fit(run_metadata: cli_tools.RunMetadata,
@@ -50,10 +51,12 @@ def fit_main(app_metadata: cli_tools.Metadata,
     data_interface.make_dirs()
     data_interface.save_specification(specification)
 
+    data_interface.save_summary(postprocess.get_data_dictionary(), 'data_dictionary')
+
     # build workflow and launch
     if not preprocess_only:
         workflow = FitWorkflow(specification.data.output_root, specification.workflow)
-        workflow.attach_tasks(n_draws=data_interface.get_n_draws())
+        workflow.attach_tasks(n_draws=data_interface.get_n_draws(), measures=list(postprocess.MEASURES))
         try:
             workflow.run()
         except ihme_deps.WorkflowAlreadyComplete:

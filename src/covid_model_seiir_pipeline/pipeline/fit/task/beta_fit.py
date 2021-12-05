@@ -130,7 +130,7 @@ def run_beta_fit(fit_version: str, draw_id: int, progress_bar: bool) -> None:
     )
 
     logger.info('Running ODE fit', context='compute_ode')
-    compartments, chis = model.run_ode_fit(
+    compartments, first_pass_betas, chis = model.run_ode_fit(
         initial_condition=initial_condition,
         ode_parameters=ode_parameters,
         num_cores=specification.workflow.task_specifications['beta_fit'].num_cores,
@@ -142,6 +142,7 @@ def run_beta_fit(fit_version: str, draw_id: int, progress_bar: bool) -> None:
         compartments=compartments,
         durations=durations
     )
+
     hospitalized_weights = model.get_all_age_rate(
         rate_age_pattern=age_patterns['ihr'],
         weight_age_pattern=age_patterns['seroprevalence'],
@@ -205,7 +206,7 @@ def run_beta_fit(fit_version: str, draw_id: int, progress_bar: bool) -> None:
     )
 
     logger.info('Running second pass ODE fit', context='compute_ode')
-    compartments, chis = model.run_ode_fit(
+    compartments, second_pass_betas, chis = model.run_ode_fit(
         initial_condition=initial_condition,
         ode_parameters=ode_parameters,
         num_cores=specification.workflow.task_specifications['beta_fit'].num_cores,
@@ -233,7 +234,7 @@ def run_beta_fit(fit_version: str, draw_id: int, progress_bar: bool) -> None:
                   .loc[:, ['location_id', 'mean_infection_date', 'data_id', measure]]
                   .rename(columns={measure: 'value', 'mean_infection_date': 'date'}))
             df['measure'] = measure
-            df['round'] = round_id
+            df['round'] = round_id + 1
             rates_data.append(df)
     rates_data = pd.concat(rates_data)
 
@@ -243,6 +244,10 @@ def run_beta_fit(fit_version: str, draw_id: int, progress_bar: bool) -> None:
     second_pass_rates.loc[:, 'round'] = 2
     prior_rates = pd.concat([first_pass_rates, second_pass_rates])
 
+    first_pass_betas.loc[:, 'round'] = 1
+    second_pass_betas.loc[:, 'round'] = 2
+    betas = pd.concat([first_pass_betas, second_pass_betas])
+
     second_pass_posterior_epi_measures, _ = model.compute_posterior_epi_measures(
         compartments=compartments,
         durations=durations
@@ -250,10 +255,6 @@ def run_beta_fit(fit_version: str, draw_id: int, progress_bar: bool) -> None:
     first_pass_posterior_epi_measures.loc[:, 'round'] = 1
     second_pass_posterior_epi_measures.loc[:, 'round'] = 2
     posterior_epi_measures = pd.concat([first_pass_posterior_epi_measures, second_pass_posterior_epi_measures])
-
-    # Beta fit is the same for both risk groups
-    betas = compartments.filter(like='beta_none').filter(like='lr').groupby('location_id').diff()
-    betas = betas.rename(columns=lambda x: f'beta_{x.split("_")[2]}').rename(columns={'beta_all': 'beta'})
 
     idx_cols = ['data_id', 'location_id', 'date', 'is_outlier']
     out_seroprevalence = seroprevalence.loc[:, idx_cols + ['reported_seroprevalence', 'seroprevalence']]
@@ -287,7 +288,3 @@ def beta_fit(fit_version: str, draw_id: int,
     run(fit_version=fit_version,
         draw_id=draw_id,
         progress_bar=progress_bar)
-
-
-if __name__ == '__main__':
-    beta_fit()
