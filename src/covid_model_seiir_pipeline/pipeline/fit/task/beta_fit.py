@@ -234,7 +234,7 @@ def run_beta_fit(fit_version: str, draw_id: int, progress_bar: bool) -> None:
                   .loc[:, ['location_id', 'mean_infection_date', 'data_id', measure]]
                   .rename(columns={measure: 'value', 'mean_infection_date': 'date'}))
             df['measure'] = measure
-            df['round'] = round_id
+            df['round'] = round_id + 1
             rates_data.append(df)
     rates_data = pd.concat(rates_data)
 
