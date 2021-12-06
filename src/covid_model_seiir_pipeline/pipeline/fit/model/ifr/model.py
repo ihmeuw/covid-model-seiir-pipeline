@@ -97,6 +97,7 @@ def prepare_model(model_data: pd.DataFrame,
 
     inflection_point = (day_inflection - day_0).days
     inflection_point = (inflection_point - model_data['t'].min()) / model_data['t'].values.ptp()
+    inflection_point = max(0.01, inflection_point)
     inflection_point = min(0.99, inflection_point)
     
     covariate_priors = get_covariate_priors(1, 'ifr',)
@@ -116,7 +117,7 @@ def prepare_model(model_data: pd.DataFrame,
                 'spline_knots_type': 'domain',
                 'spline_knots': np.array([0., inflection_point, 1.]),
                 'spline_degree': 1,
-                'prior_spline_maxder_uniform': np.array([[-0.02, -0.],
+                'prior_spline_maxder_uniform': np.array([[-0.01, -0.],
                                                          [-1e-6,  0.]])
             },
             **covariate_constraints
