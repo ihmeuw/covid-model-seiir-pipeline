@@ -108,7 +108,7 @@ def prepare_epi_measures_and_rates(rates: Rates, epi_measures: pd.DataFrame, hie
     out_measures = []
     out_rates = []
     for in_measure, out_measure, rate in measures:
-        epi_data = epi_measures[f'smoothed_daily_{in_measure}'].rename(out_measure).to_frame()
+        epi_data = (epi_measures[f'smoothed_daily_{in_measure}'].rename(out_measure) + 3e-2).to_frame()
         epi_rates = rates._asdict()[rate]
         lag = epi_rates['lag'].iloc[0]
 
@@ -145,11 +145,15 @@ def reindex_to_infection_day(data: pd.DataFrame, lag: int, most_detailed: List[i
 def make_initial_condition(parameters: Parameters, full_rates: pd.DataFrame, population: pd.DataFrame):
     base_params = parameters.base_parameters
     
-    crude_infections = get_crude_infections(base_params, full_rates, population)    
+    crude_infections = get_crude_infections(base_params, full_rates, population, threshold=50)    
     new_e_start = crude_infections.reset_index(level='date').groupby('location_id').first()
-    start_date, new_e_start = new_e_start['date'], new_e_start[list(RISK_GROUP_NAMES)]
-    end_date = crude_infections.reset_index(level='date').groupby('location_id').date.last() + pd.Timedelta(days=1)    
-
+    start_date, new_e_start = new_e_start['date'], new_e_start['infections']
+    end_date = base_params.filter(like='count')
+    end_date = (end_date.loc[end_date.notnull().any(axis=1)]
+                .reset_index(level='date')
+                .groupby('location_id')                
+                .last()
+                .date + pd.Timedelta(days=1))
     # Alpha is time-invariant
     alpha = base_params.alpha_all_infection.groupby('location_id').first()
     compartments = [f'{compartment}_{risk_group}'
@@ -161,7 +165,7 @@ def make_initial_condition(parameters: Parameters, full_rates: pd.DataFrame, pop
         loc_initial_condition = pd.DataFrame(0., columns=compartments, index=full_rates.loc[location_id].index)
         for risk_group in RISK_GROUP_NAMES:
             pop = population.loc[location_id, risk_group]
-            new_e = new_e_start.loc[location_id, risk_group]
+            new_e = new_e_start.loc[location_id] * pop / population.loc[location_id].sum()
             suffix = f'_unvaccinated_{risk_group}'
             # Backfill everyone susceptible
             loc_initial_condition.loc[:loc_start_date, f'S_none{suffix}'] = pop
@@ -186,19 +190,11 @@ def make_initial_condition(parameters: Parameters, full_rates: pd.DataFrame, pop
 
 def get_crude_infections(base_params, rates, population, threshold=50):
     crude_infections = pd.DataFrame(index=rates.index)
-    for risk_group in RISK_GROUP_NAMES:
-        risk_infections = pd.DataFrame(index=rates.index)
-        for measure, rate in [('death', 'ifr'), ('admission', 'ihr'), ('case', 'idr')]:
-            infections = (base_params[f'weight_all_{measure}']
-                          * base_params[f'count_all_{measure}'] / rates[rate]
-                          * population[risk_group] / population.sum(axis=1))
-               
-            risk_infections[measure] = infections
-        not_null = risk_infections.notnull().any(axis=1)
-        risk_infections = risk_infections.sum(axis=1).loc[not_null].rename(risk_group)
-        crude_infections[risk_group] = risk_infections
-    
-    crude_infections = crude_infections.loc[crude_infections.sum(axis=1) > threshold]    
+    for measure, rate in [('death', 'ifr'), ('admission', 'ihr'), ('case', 'idr')]:
+        infections = base_params[f'count_all_{measure}'] / rates[rate]
+        crude_infections[measure] = infections
+    crude_infections = crude_infections.max(axis=1).rename('infections')
+    crude_infections = crude_infections.loc[crude_infections > threshold]
     return crude_infections
 
 
