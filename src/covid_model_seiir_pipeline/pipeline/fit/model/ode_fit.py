@@ -137,7 +137,7 @@ def reindex_to_infection_day(data: pd.DataFrame, lag: int, most_detailed: List[i
 def make_initial_condition(parameters: Parameters, full_rates: pd.DataFrame, population: pd.DataFrame):
     base_params = parameters.base_parameters
     
-    crude_infections = get_crude_infections(base_params, full_rates, population, threshold=50)    
+    crude_infections = get_crude_infections(base_params, full_rates, threshold=50)
     new_e_start = crude_infections.reset_index(level='date').groupby('location_id').first()
     start_date, new_e_start = new_e_start['date'], new_e_start['infections']
     end_date = base_params.filter(like='count')
@@ -180,7 +180,7 @@ def make_initial_condition(parameters: Parameters, full_rates: pd.DataFrame, pop
     return initial_condition
 
 
-def get_crude_infections(base_params, rates, population, threshold=50):
+def get_crude_infections(base_params, rates, threshold=50):
     crude_infections = pd.DataFrame(index=rates.index)
     for measure, rate in [('death', 'ifr'), ('admission', 'ihr'), ('case', 'idr')]:
         infections = base_params[f'count_all_{measure}'] / rates[rate]
