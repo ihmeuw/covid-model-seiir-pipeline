@@ -1,3 +1,4 @@
+import functools
 from pathlib import Path
 from typing import Dict, NamedTuple, Optional, Union
 
@@ -10,6 +11,7 @@ import seaborn as sns
 
 from covid_model_seiir_pipeline.lib import (
     cli_tools,
+    parallel,
 )
 
 from covid_model_seiir_pipeline.pipeline.fit.data import FitDataInterface
@@ -32,8 +34,40 @@ class Location(NamedTuple):
     name: str
 
 
+def load_and_select_round(measure: str, round_id: int, data_interface: FitDataInterface) -> pd.DataFrame:
+    data = data_interface.load_summary(measure)
+    index_names = set(data.index.names)
+    final_index_names = [n for n in ['measure', 'location_id', 'date'] if n in index_names]
+    if 'round' in index_names:
+        data = data.reset_index().set_index(['round'] + final_index_names).sort_index().loc[round_id]
+    return data
+
+
+def build_data_dict(data_interface: FitDataInterface,
+                    round_id: int,
+                    num_cores: int,
+                    progress_bar: bool) -> Dict[str, pd.DataFrame]:
+    data_dict = data_interface.load_summary('data_dictionary')
+
+    _runner = functools.partial(
+        load_and_select_round,
+        round_id=round_id,
+        data_interface=data_interface,
+    )
+    measures = data_dict.output.tolist()
+
+    data = parallel.run_parallel(
+        runner=_runner,
+        arg_list=measures,
+        num_cores=num_cores,
+        progress_bar=progress_bar
+    )
+
+    data = dict(zip(measures, data))
+    return data
+
+
 def ies_plot(location: Location,
-             data_dictionary: Dict[str, pd.DataFrame],
              data_interface: FitDataInterface,
              start: pd.Timestamp = pd.Timestamp('2020-02-01'),
              end: pd.Timestamp = pd.Timestamp.today(),
@@ -41,6 +75,12 @@ def ies_plot(location: Location,
              review: bool = False,
              plot_root: str = None):
     pop = data_interface.load_population('total').population.loc[location.id]
+    data_dictionary = build_data_dict(
+        data_interface=data_interface,
+        round_id=2,
+        num_cores=1,
+        progress_bar=False,
+    )
     plotter = Plotter(
         data_dictionary=data_dictionary,
         location=location,
