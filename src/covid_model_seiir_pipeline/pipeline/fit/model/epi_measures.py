@@ -3,16 +3,31 @@ from typing import List
 import numpy as np
 import pandas as pd
 
+from covid_model_seiir_pipeline.pipeline.fit.model.sampled_params import (
+    Durations,
+)
+
 
 def format_epi_measures(epi_measures: pd.DataFrame,
                         mr_hierarchy: pd.DataFrame,
                         pred_hierarchy: pd.DataFrame,
-                        mortality_scalars: pd.Series) -> pd.DataFrame:
+                        mortality_scalars: pd.Series,
+                        durations: Durations) -> pd.DataFrame:
     deaths = (epi_measures['cumulative_deaths'] * mortality_scalars).rename('cumulative_deaths').dropna()
     deaths = _format_measure(deaths, mr_hierarchy, pred_hierarchy)
     cases = _format_measure(epi_measures['cumulative_cases'], mr_hierarchy, pred_hierarchy)
     admissions = _format_measure(epi_measures['cumulative_hospitalizations'], mr_hierarchy, pred_hierarchy)
-    return pd.concat([deaths, cases, admissions], axis=1)
+    epi_measures = pd.concat([deaths, cases, admissions], axis=1).reset_index()
+    max_duration = durations.exposure_to_death
+
+    locations = epi_measures.location_id.unique()
+    dates = epi_measures.date
+    global_date_range = pd.date_range(dates.min() - pd.Timedelta(days=max_duration), dates.max())
+    square_idx = pd.MultiIndex.from_product((locations, global_date_range),
+                                            names=['location_id', 'date']).sort_values()
+    epi_measures = epi_measures.reindex(square_idx).sort_index()
+
+    return epi_measures
 
 
 def _format_measure(data: pd.Series,

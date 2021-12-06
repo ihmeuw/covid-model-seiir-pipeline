@@ -118,17 +118,9 @@ def prepare_epi_measures_and_rates(rates: Rates, epi_measures: pd.DataFrame, hie
         out_measures.append(epi_data)
         out_rates.append(epi_rates)
 
-    out_measures = pd.concat(out_measures, axis=1)
-    out_measures = out_measures.loc[out_measures.notnull().any(axis=1)]
-
-    dates = out_measures.reset_index().date
-    global_date_range = pd.date_range(dates.min() - pd.Timedelta(days=1), dates.max())
-    square_idx = pd.MultiIndex.from_product((most_detailed, global_date_range),
-                                            names=['location_id', 'date']).sort_values()
-
-    out_measures = out_measures.reindex(square_idx).sort_index()
-    out_rates = pd.concat(out_rates, axis=1).reindex(square_idx).sort_index()
-
+    out_measures = pd.concat(out_measures, axis=1).reset_index()
+    out_measures = out_measures.loc[out_measures.location_id.isin(most_detailed)].set_index(['location_id', 'date'])
+    out_rates = pd.concat(out_rates, axis=1).reindex(out_measures.index).sort_index()
     return out_measures, out_rates
 
 

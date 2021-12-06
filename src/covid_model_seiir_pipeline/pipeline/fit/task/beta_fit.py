@@ -62,13 +62,14 @@ def run_beta_fit(fit_version: str, draw_id: int, progress_bar: bool) -> None:
                .mean().rename(covariate))
         mr_covariates.append(cov)
 
-    logger.info('Rescaling deaths and formatting epi measures', context='transform')
-    epi_measures = model.format_epi_measures(epi_measures, mr_hierarchy, pred_hierarchy, mortality_scalar)
-
     logger.info('Sampling rates parameters', context='transform')
     durations = model.sample_durations(specification.rates_parameters, draw_id)
     variant_severity = model.sample_variant_severity(specification.rates_parameters, draw_id)
     day_inflection = model.sample_day_inflection(specification.rates_parameters, draw_id)
+
+    logger.info('Rescaling deaths and formatting epi measures', context='transform')
+    epi_measures = model.format_epi_measures(epi_measures, mr_hierarchy, pred_hierarchy, mortality_scalar, durations)
+
     logger.info('Subsetting seroprevalence for first pass rates model', context='transform')
     first_pass_seroprevalence = model.subset_seroprevalence(
         seroprevalence=seroprevalence,
