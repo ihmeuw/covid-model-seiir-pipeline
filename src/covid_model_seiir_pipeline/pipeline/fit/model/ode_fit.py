@@ -269,8 +269,6 @@ def _to_cumulative(data: pd.Series):
     daily[(daily < 0) & (data == 0)] = np.nan
     return daily
     
-    
-
 
 def run_ode_fit(initial_condition: pd.DataFrame,
                 ode_parameters: Parameters,
@@ -297,6 +295,10 @@ def run_ode_fit(initial_condition: pd.DataFrame,
              .diff()
              .rename(columns=lambda x: f'beta_{x.split("_")[2]}')
              .rename(columns={'beta_all': 'beta'}))
+    counts = ode_parameters.base_parameters.filter(like='count')
+    assert betas.index.equals(counts.index)
+    for measure in ['death', 'admission', 'case']:
+        betas.loc[counts[f'count_all_{measure}'].isnull(), f'beta_{measure}'] = np.nan
 
     return full_compartments, betas, chis
 
