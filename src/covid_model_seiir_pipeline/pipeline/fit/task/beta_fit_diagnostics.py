@@ -40,6 +40,8 @@ def run_beta_fit_diagnostics(fit_version: str, progress_bar) -> None:
     # These have a standard index, so we're not clipping to any location.
     start, end = deaths.date.min(), deaths.date.max()
     locations = [plotter.Location(loc_id, name_map.loc[loc_id]) for loc_id in locs]
+
+    logger.info('Partitioning data dictionary by location', context='partition')
     data_dicts = []
     for location_id in locs:
         loc_data_dict = {}
@@ -59,7 +61,6 @@ def run_beta_fit_diagnostics(fit_version: str, progress_bar) -> None:
 
         _runner = functools.partial(
             plotter.ies_plot,
-            data_dictionary=data_dict,
             data_interface=data_interface,
             start=start,
             end=end,
@@ -71,7 +72,7 @@ def run_beta_fit_diagnostics(fit_version: str, progress_bar) -> None:
             warnings.simplefilter('ignore')
             parallel.run_parallel(
                 runner=_runner,
-                arg_list=locations,
+                arg_list=data_dicts,
                 num_cores=num_cores,
                 progress_bar=progress_bar,
             )
