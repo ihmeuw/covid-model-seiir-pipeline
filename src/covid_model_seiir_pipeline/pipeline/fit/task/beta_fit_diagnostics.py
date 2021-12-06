@@ -26,20 +26,40 @@ def run_beta_fit_diagnostics(fit_version: str, progress_bar) -> None:
     num_cores = specification.workflow.task_specifications[FIT_JOBS.beta_fit_diagnostics].num_cores
 
     logger.info('Loading beta fit summary data', context='read')
+    data_dict = build_data_dict(
+        data_interface=data_interface,
+        round_id=2,
+        num_cores=num_cores,
+        progress_bar=progress_bar,
+    )
 
     hierarchy = data_interface.load_hierarchy('pred')
     name_map = hierarchy.set_index('location_id').location_name
-    deaths = data_interface.load_summary('daily_deaths')
+    deaths = data_dict['daily_deaths'].reset_index()
     locs = deaths.location_id.unique()
     # These have a standard index, so we're not clipping to any location.
     start, end = deaths.date.min(), deaths.date.max()
     locations = [plotter.Location(loc_id, name_map.loc[loc_id]) for loc_id in locs]
+    data_dicts = []
+    for location_id in locs:
+        loc_data_dict = {}
+        for measure, data in data_dict.items():
+            try:
+                loc_data_dict[measure] = data.loc[location_id]
+            except KeyError:
+                loc_data_dict[measure] = data
+        data_dicts.append((
+            plotter.Location(location_id, name_map.loc[location_id]),
+            loc_data_dict,
+        ))
+
     logger.info('Building location specific plots', context='make_plots')
     with tempfile.TemporaryDirectory() as temp_dir_name:
         plot_cache = Path(temp_dir_name)
 
         _runner = functools.partial(
             plotter.ies_plot,
+            data_dictionary=data_dict,
             data_interface=data_interface,
             start=start,
             end=end,
@@ -66,6 +86,39 @@ def run_beta_fit_diagnostics(fit_version: str, progress_bar) -> None:
         )
 
     logger.report()
+
+
+def load_and_select_round(measure: str, round_id: int, data_interface: FitDataInterface) -> pd.DataFrame:
+    data = data_interface.load_summary(measure)
+    index_names = set(data.index.names)
+    final_index_names = [n for n in ['measure', 'location_id', 'date'] if n in index_names]
+    if 'round' in index_names:
+        data = data.reset_index().set_index(['round'] + final_index_names).sort_index().loc[round_id]
+    return data
+
+
+def build_data_dict(data_interface: FitDataInterface,
+                    round_id: int,
+                    num_cores: int,
+                    progress_bar: bool) -> Dict[str, pd.DataFrame]:
+    data_dict = data_interface.load_summary('data_dictionary')
+
+    _runner = functools.partial(
+        load_and_select_round,
+        round_id=round_id,
+        data_interface=data_interface,
+    )
+    measures = data_dict.output.tolist()
+
+    data = parallel.run_parallel(
+        runner=_runner,
+        arg_list=measures,
+        num_cores=num_cores,
+        progress_bar=progress_bar
+    )
+
+    data = dict(zip(measures, data))
+    return data
 
 
 @click.command()
