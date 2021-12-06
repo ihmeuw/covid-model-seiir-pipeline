@@ -92,7 +92,7 @@ def run_beta_fit_diagnostics(fit_version: str, progress_bar) -> None:
 def load_and_select_round(measure: str, round_id: int, data_interface: FitDataInterface) -> pd.DataFrame:
     data = data_interface.load_summary(measure)
     index_names = set(data.index.names)
-    final_index_names = [n for n in ['measure', 'location_id', 'date'] if n in index_names]
+    final_index_names = [n for n in ['location_id', 'measure', 'date'] if n in index_names]
     if 'round' in index_names:
         data = data.reset_index().set_index(['round'] + final_index_names).sort_index().loc[round_id]
     return data

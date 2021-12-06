@@ -150,8 +150,9 @@ def ies_plot(data: Tuple[Location, Dict[str, pd.DataFrame]],
         )
         ax_measure.set_ylim(ylim)
 
-        try:
-            rates_data = data_dictionary['rates_data'].loc[(measure, location.id)]
+        rates_data = data_dictionary['rates_data']
+        if rates_data is not None:            
+            rates_data = rates_data.loc[measure]
             ax_measure.scatter(
                 rates_data.index,
                 rates_data.values * 100,
@@ -159,8 +160,6 @@ def ies_plot(data: Tuple[Location, Dict[str, pd.DataFrame]],
                 marker='o',
                 facecolors='none'
             )
-        except KeyError:
-            pass
 
         group_axes.append(ax_measure)
 
@@ -189,10 +188,7 @@ def ies_plot(data: Tuple[Location, Dict[str, pd.DataFrame]],
             transform=transform,
         )
 
-    try:
-        sero_data = data_dictionary['seroprevalence'].loc[location.id]
-    except KeyError:
-        sero_data = None
+    sero_data = data_dictionary['seroprevalence']
     if sero_data is not None:
         ax_cumul.scatter(sero_data.loc[sero_data['is_outlier'] == 1].index,
                          sero_data.loc[sero_data['is_outlier'] == 1, 'reported_seroprevalence'] * 100,
@@ -211,9 +207,9 @@ def ies_plot(data: Tuple[Location, Dict[str, pd.DataFrame]],
 
     if review:
         ax_stackplot = fig.add_subplot(gs_infecs[2])
-        naive_unvax = data_dictionary['posterior_cumulative_naive_unvaccinated_infections'].loc[location.id, 'mean'] * 100 / pop
-        naive = data_dictionary['posterior_cumulative_naive_infections'].loc[location.id, 'mean'] * 100 / pop
-        total = data_dictionary['posterior_cumulative_total_infections'].loc[location.id, 'mean'] * 100 / pop
+        naive_unvax = data_dictionary['posterior_cumulative_naive_unvaccinated_infections'].loc[:, 'mean'] * 100 / pop
+        naive = data_dictionary['posterior_cumulative_naive_infections'].loc[:, 'mean'] * 100 / pop
+        total = data_dictionary['posterior_cumulative_total_infections'].loc[:, 'mean'] * 100 / pop
         ax_stackplot.stackplot(
             naive_unvax.index,
             naive_unvax,
@@ -242,7 +238,7 @@ def ies_plot(data: Tuple[Location, Dict[str, pd.DataFrame]],
             transform=np.log,
             uncertainty=True,
         )
-        ax_beta.set_ylim(-2, 3)
+        ax_beta.set_ylim(-3, 2)
 
         group_axes.append(ax_beta)
 
