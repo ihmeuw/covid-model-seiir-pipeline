@@ -193,8 +193,8 @@ def get_crude_infections(base_params, rates, population, threshold=50):
     for measure, rate in [('death', 'ifr'), ('admission', 'ihr'), ('case', 'idr')]:
         infections = base_params[f'count_all_{measure}'] / rates[rate]
         crude_infections[measure] = infections
-    crude_infections = crude_infections.max(axis=1).rename('infections')
-    crude_infections = crude_infections.loc[crude_infections > threshold]
+    mask = crude_infections.max(axis=1).rename('infections') > threshold
+    crude_infections = crude_infections.loc[mask].min(axis=1)
     return crude_infections
 
 
@@ -287,18 +287,26 @@ def run_ode_fit(initial_condition: pd.DataFrame,
     )
     # Set all the forecast stuff to nan
     full_compartments.loc[full_compartments.sum(axis=1) == 0., :] = np.nan
-
+    
     betas = (full_compartments
              .filter(like='beta_none')
-             .filter(like='lr')
+             .filter(like='lr'))
+    betas = (betas
              .groupby('location_id')
              .diff()
+             .fillna(betas)
              .rename(columns=lambda x: f'beta_{x.split("_")[2]}')
              .rename(columns={'beta_all': 'beta'}))
-    counts = ode_parameters.base_parameters.filter(like='count')
-    assert betas.index.equals(counts.index)
+        
+    # Clean up beta
+    # counts and beta should be identically indexed in production, 
+    # but subset to beta in case we only ran a subset of locations for debugging
+    counts = ode_parameters.base_parameters.filter(like='count').loc[betas.index]    
     for measure in ['death', 'admission', 'case']:
         betas.loc[counts[f'count_all_{measure}'].isnull(), f'beta_{measure}'] = np.nan
+    # Can have a composite beta if we don't have measure betas
+    no_beta = betas[[f'beta_{measure}' for measure in ['death', 'admission', 'case']]].isnull().all(axis=1)
+    betas.loc[no_beta, 'beta'] = np.nan
 
     return full_compartments, betas, chis
 
