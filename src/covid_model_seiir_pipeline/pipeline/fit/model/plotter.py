@@ -304,7 +304,10 @@ class Plotter:
 
         plot_options = {**self._default_options, **extra_options}
 
-        data = self._data_dictionary[measure].reset_index()
+        data = self._data_dictionary[measure]
+        if data is None or np.all(data['mean'] == 0):
+            return
+        data = data.reset_index()
         data = data[(start <= data['date']) & (data['date'] <= end)]
 
         transform_cols = [c for c in data if c in ['mean', 'upper', 'lower', 'upper2', 'lower2']]

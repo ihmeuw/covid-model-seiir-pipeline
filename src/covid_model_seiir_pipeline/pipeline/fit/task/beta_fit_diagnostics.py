@@ -49,7 +49,7 @@ def run_beta_fit_diagnostics(fit_version: str, progress_bar) -> None:
             try:
                 loc_data_dict[measure] = data.loc[location_id]
             except KeyError:
-                loc_data_dict[measure] = data
+                loc_data_dict[measure] = None
         data_dicts.append((
             plotter.Location(location_id, name_map.loc[location_id]),
             loc_data_dict,
