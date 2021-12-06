@@ -185,8 +185,8 @@ def get_crude_infections(base_params, rates, population, threshold=50):
     for measure, rate in [('death', 'ifr'), ('admission', 'ihr'), ('case', 'idr')]:
         infections = base_params[f'count_all_{measure}'] / rates[rate]
         crude_infections[measure] = infections
-    mask = crude_infections.max(axis=1).rename('infections') > threshold
-    crude_infections = crude_infections.loc[mask].min(axis=1)
+    mask = crude_infections.max(axis=1) > threshold
+    crude_infections = crude_infections.loc[mask].min(axis=1).rename('infections')
     return crude_infections
 
 
