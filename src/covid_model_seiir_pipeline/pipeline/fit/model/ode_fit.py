@@ -108,7 +108,7 @@ def prepare_epi_measures_and_rates(rates: Rates, epi_measures: pd.DataFrame, hie
     out_measures = []
     out_rates = []
     for in_measure, out_measure, rate in measures:
-        epi_data = epi_measures[f'smoothed_daily_{in_measure}'].rename(out_measure).to_frame()
+        epi_data = (epi_measures[f'smoothed_daily_{in_measure}'].rename(out_measure) + 3e-2).to_frame()
         epi_rates = rates._asdict()[rate]
         lag = epi_rates['lag'].iloc[0]
 
@@ -145,11 +145,15 @@ def reindex_to_infection_day(data: pd.DataFrame, lag: int, most_detailed: List[i
 def make_initial_condition(parameters: Parameters, full_rates: pd.DataFrame, population: pd.DataFrame):
     base_params = parameters.base_parameters
     
-    crude_infections = get_crude_infections(base_params, full_rates, population)    
+    crude_infections = get_crude_infections(base_params, full_rates, population, threshold=50)    
     new_e_start = crude_infections.reset_index(level='date').groupby('location_id').first()
-    start_date, new_e_start = new_e_start['date'], new_e_start[list(RISK_GROUP_NAMES)]
-    end_date = crude_infections.reset_index(level='date').groupby('location_id').date.last() + pd.Timedelta(days=1)    
-
+    start_date, new_e_start = new_e_start['date'], new_e_start['infections']
+    end_date = base_params.filter(like='count')
+    end_date = (end_date.loc[end_date.notnull().any(axis=1)]
+                .reset_index(level='date')
+                .groupby('location_id')                
+                .last()
+                .date + pd.Timedelta(days=1))
     # Alpha is time-invariant
     alpha = base_params.alpha_all_infection.groupby('location_id').first()
     compartments = [f'{compartment}_{risk_group}'
@@ -161,7 +165,7 @@ def make_initial_condition(parameters: Parameters, full_rates: pd.DataFrame, pop
         loc_initial_condition = pd.DataFrame(0., columns=compartments, index=full_rates.loc[location_id].index)
         for risk_group in RISK_GROUP_NAMES:
             pop = population.loc[location_id, risk_group]
-            new_e = new_e_start.loc[location_id, risk_group]
+            new_e = new_e_start.loc[location_id] * pop / population.loc[location_id].sum()
             suffix = f'_unvaccinated_{risk_group}'
             # Backfill everyone susceptible
             loc_initial_condition.loc[:loc_start_date, f'S_none{suffix}'] = pop
@@ -186,33 +190,31 @@ def make_initial_condition(parameters: Parameters, full_rates: pd.DataFrame, pop
 
 def get_crude_infections(base_params, rates, population, threshold=50):
     crude_infections = pd.DataFrame(index=rates.index)
-    for risk_group in RISK_GROUP_NAMES:
-        risk_infections = pd.DataFrame(index=rates.index)
-        for measure, rate in [('death', 'ifr'), ('admission', 'ihr'), ('case', 'idr')]:
-            infections = (base_params[f'weight_all_{measure}']
-                          * base_params[f'count_all_{measure}'] / rates[rate]
-                          * population[risk_group] / population.sum(axis=1))
-               
-            risk_infections[measure] = infections
-        not_null = risk_infections.notnull().any(axis=1)
-        risk_infections = risk_infections.sum(axis=1).loc[not_null].rename(risk_group)
-        crude_infections[risk_group] = risk_infections
-    
-    crude_infections = crude_infections.loc[crude_infections.sum(axis=1) > threshold]    
+    for measure, rate in [('death', 'ifr'), ('admission', 'ihr'), ('case', 'idr')]:
+        infections = base_params[f'count_all_{measure}'] / rates[rate]
+        crude_infections[measure] = infections
+    crude_infections = crude_infections.max(axis=1).rename('infections')
+    crude_infections = crude_infections.loc[crude_infections > threshold]
     return crude_infections
 
 
 def compute_posterior_epi_measures(compartments: pd.DataFrame,
                                    durations: Durations) -> Tuple[pd.DataFrame, pd.Series]:
+    compartments_diff = compartments.groupby('location_id').diff().fillna(compartments)
+    
     naive = compartments.filter(like='S_none').sum(axis=1).rename('naive')
     naive_unvaccinated = compartments.filter(like='S_none_unvaccinated').sum(axis=1).rename('naive_unvaccinated')
-    naive_infections = compartments.filter(like='NewENaive').sum(axis=1).rename('cumulative_naive_infections')
-    total_infections = compartments.filter(like='NewE_').sum(axis=1).rename('cumulative_total_infections')
+    
+    naive_infections = compartments_diff.filter(like='NewENaive').sum(axis=1).rename('daily_naive_infections')
+    total_infections = compartments_diff.filter(like='NewE_').sum(axis=1).rename('daily_total_infections')
+    
     inf_cols = [f'infection_ancestral_all_{risk_group}' for risk_group in RISK_GROUP_NAMES]
-    naive_unvaccinated_infections = (compartments.loc[:, inf_cols].sum(axis=1)
-                                     .rename('cumulative_naive_unvaccinated_infections'))
+    naive_unvaccinated_infections = (compartments_diff
+                                     .loc[:, inf_cols]
+                                     .sum(axis=1)
+                                     .rename('daily_naive_unvaccinated_infections'))
 
-    pct_unvaccinated = ((naive_unvaccinated_infections / naive_unvaccinated_infections)
+    pct_unvaccinated = ((_to_cumulative(naive_unvaccinated_infections) / _to_cumulative(naive_unvaccinated_infections))
                         .clip(0, 1)
                         .rename('pct_unvaccinated')
                         .groupby('location_id')
@@ -230,19 +232,20 @@ def compute_posterior_epi_measures(compartments: pd.DataFrame,
     for ode_measure, (rates_measure, rate_name) in measure_map.items():
         cols = [f'{ode_measure}_ancestral_all_{risk_group}' for risk_group in RISK_GROUP_NAMES]
         lag = durations._asdict()[f'exposure_to_{ode_measure}']
-        cumulative_measure = (compartments.loc[:, cols]
-                              .sum(axis=1)
-                              .groupby('location_id')
-                              .shift(lag)
-                              .rename(f'cumulative_{rates_measure}'))
-        daily_measure = _to_daily(cumulative_measure)
+        daily_measure = (compartments_diff
+                         .loc[:, cols]
+                         .sum(axis=1)
+                         .groupby('location_id')
+                         .shift(lag)
+                         .rename(f'daily_{rates_measure}'))
+        cumulative_measure = _to_cumulative(daily_measure)
         measures.extend([cumulative_measure, daily_measure])
 
     epi_measures = pd.concat([
         naive, naive_unvaccinated,
-        naive_unvaccinated_infections, _to_daily(naive_unvaccinated_infections),
-        naive_infections, _to_daily(naive_infections),
-        total_infections, _to_daily(total_infections),
+        naive_unvaccinated_infections, _to_cumulative(naive_unvaccinated_infections),
+        naive_infections, _to_cumulative(naive_infections),
+        total_infections, _to_cumulative(total_infections),
         *measures
     ], axis=1)
 
@@ -257,13 +260,15 @@ def _shift(lag: int):
     return _inner
 
 
-def _to_daily(data: pd.Series):
-    return (data
-            .groupby('location_id')
-            .diff()
-            .fillna(data)
-            .rename(f'{str(data.name).replace("cumulative", "daily")}'))
-
+def _to_cumulative(data: pd.Series):
+    daily = (data
+             .groupby('location_id')
+             .cumsum()
+             .rename(f'{str(data.name).replace("daily", "cumulative")}'))
+    
+    daily[(daily < 0) & (data == 0)] = np.nan
+    return daily
+    
 
 def run_ode_fit(initial_condition: pd.DataFrame,
                 ode_parameters: Parameters,
@@ -290,6 +295,10 @@ def run_ode_fit(initial_condition: pd.DataFrame,
              .diff()
              .rename(columns=lambda x: f'beta_{x.split("_")[2]}')
              .rename(columns={'beta_all': 'beta'}))
+    counts = ode_parameters.base_parameters.filter(like='count')
+    assert betas.index.equals(counts.index)
+    for measure in ['death', 'admission', 'case']:
+        betas.loc[counts[f'count_all_{measure}'].isnull(), f'beta_{measure}'] = np.nan
 
     return full_compartments, betas, chis
 
