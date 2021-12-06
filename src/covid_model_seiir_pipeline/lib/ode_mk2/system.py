@@ -133,7 +133,9 @@ def _single_group_system(t: float,
 
     for vaccine_status in VACCINE_STATUS[:-1]:
         for variant in VARIANT:
-            new_e_from_s = new_e[NEW_E[vaccine_status, variant].flatten()].sum()
+            new_e_from_s = 0.
+            for variant_to in VARIANT:
+                new_e_from_s += new_e[NEW_E[vaccine_status, variant, variant_to]]
             s_from_idx = COMPARTMENTS[COMPARTMENT.S, variant, vaccine_status]
             s_to_idx = COMPARTMENTS[COMPARTMENT.S, variant, vaccine_status + 1]
             expected_vaccines = (

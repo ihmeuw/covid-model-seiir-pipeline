@@ -200,15 +200,21 @@ def get_crude_infections(base_params, rates, population, threshold=50):
 
 def compute_posterior_epi_measures(compartments: pd.DataFrame,
                                    durations: Durations) -> Tuple[pd.DataFrame, pd.Series]:
+    compartments_diff = compartments.groupby('location_id').diff().fillna(compartments)
+    
     naive = compartments.filter(like='S_none').sum(axis=1).rename('naive')
     naive_unvaccinated = compartments.filter(like='S_none_unvaccinated').sum(axis=1).rename('naive_unvaccinated')
-    naive_infections = compartments.filter(like='NewENaive').sum(axis=1).rename('cumulative_naive_infections')
-    total_infections = compartments.filter(like='NewE_').sum(axis=1).rename('cumulative_total_infections')
+    
+    naive_infections = compartments_diff.filter(like='NewENaive').sum(axis=1).rename('daily_naive_infections')
+    total_infections = compartments_diff.filter(like='NewE_').sum(axis=1).rename('daily_total_infections')
+    
     inf_cols = [f'infection_ancestral_all_{risk_group}' for risk_group in RISK_GROUP_NAMES]
-    naive_unvaccinated_infections = (compartments.loc[:, inf_cols].sum(axis=1)
-                                     .rename('cumulative_naive_unvaccinated_infections'))
+    naive_unvaccinated_infections = (compartments_diff
+                                     .loc[:, inf_cols]
+                                     .sum(axis=1)
+                                     .rename('daily_naive_unvaccinated_infections'))
 
-    pct_unvaccinated = ((naive_unvaccinated_infections / naive_unvaccinated_infections)
+    pct_unvaccinated = ((_to_cumulative(naive_unvaccinated_infections) / _to_cumulative(naive_unvaccinated_infections))
                         .clip(0, 1)
                         .rename('pct_unvaccinated')
                         .groupby('location_id')
@@ -226,19 +232,20 @@ def compute_posterior_epi_measures(compartments: pd.DataFrame,
     for ode_measure, (rates_measure, rate_name) in measure_map.items():
         cols = [f'{ode_measure}_ancestral_all_{risk_group}' for risk_group in RISK_GROUP_NAMES]
         lag = durations._asdict()[f'exposure_to_{ode_measure}']
-        cumulative_measure = (compartments.loc[:, cols]
-                              .sum(axis=1)
-                              .groupby('location_id')
-                              .shift(lag)
-                              .rename(f'cumulative_{rates_measure}'))
-        daily_measure = _to_daily(cumulative_measure)
+        daily_measure = (compartments_diff
+                         .loc[:, cols]
+                         .sum(axis=1)
+                         .groupby('location_id')
+                         .shift(lag)
+                         .rename(f'daily_{rates_measure}'))
+        cumulative_measure = _to_cumulative(daily_measure)
         measures.extend([cumulative_measure, daily_measure])
 
     epi_measures = pd.concat([
         naive, naive_unvaccinated,
-        naive_unvaccinated_infections, _to_daily(naive_unvaccinated_infections),
-        naive_infections, _to_daily(naive_infections),
-        total_infections, _to_daily(total_infections),
+        naive_unvaccinated_infections, _to_cumulative(naive_unvaccinated_infections),
+        naive_infections, _to_cumulative(naive_infections),
+        total_infections, _to_cumulative(total_infections),
         *measures
     ], axis=1)
 
@@ -253,12 +260,16 @@ def _shift(lag: int):
     return _inner
 
 
-def _to_daily(data: pd.Series):
-    return (data
-            .groupby('location_id')
-            .diff()
-            .fillna(data)
-            .rename(f'{str(data.name).replace("cumulative", "daily")}'))
+def _to_cumulative(data: pd.Series):
+    daily = (data
+             .groupby('location_id')
+             .cumsum()
+             .rename(f'{str(data.name).replace("daily", "cumulative")}'))
+    
+    daily[(daily < 0) & (data == 0)] = np.nan
+    return daily
+    
+    
 
 
 def run_ode_fit(initial_condition: pd.DataFrame,

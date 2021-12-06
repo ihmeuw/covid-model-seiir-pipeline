@@ -179,6 +179,7 @@ def make_new_e(t: float,
     if DEBUG:
         assert np.all(np.isfinite(new_e))
         assert np.all(new_e >= 0.)
+        assert np.all(new_e < 1e7)
         assert np.all(np.isfinite(effective_susceptible))
         assert np.all(effective_susceptible >= 0.)
         assert np.all(np.isfinite(betas))
