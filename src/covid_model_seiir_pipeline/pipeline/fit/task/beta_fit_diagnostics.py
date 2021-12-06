@@ -2,6 +2,7 @@ import functools
 from pathlib import Path
 import tempfile
 from typing import Dict
+import warnings
 
 import click
 import pandas as pd
@@ -52,13 +53,15 @@ def run_beta_fit_diagnostics(fit_version: str, progress_bar) -> None:
             review=False,
             plot_root=plot_cache,
         )
-
-        parallel.run_parallel(
-            runner=_runner,
-            arg_list=locations,
-            num_cores=num_cores,
-            progress_bar=progress_bar,
-        )
+	
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore')
+            parallel.run_parallel(
+                runner=_runner,
+                arg_list=locations,
+                num_cores=num_cores,
+                progress_bar=progress_bar,
+            )
 
         logger.info('Collating plots', context='merge_plots')
         output_path = Path(specification.data.output_root) / f'past_infections.pdf'

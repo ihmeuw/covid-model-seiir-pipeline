@@ -52,7 +52,7 @@ def ies_plot(location: Location,
     # Configure the plot layout.
     sns.set_style('whitegrid')
     fig = plt.figure(figsize=plotter.fig_size, tight_layout=True)
-    grid_spec = fig.adata_dictionary_gridspec(
+    grid_spec = fig.add_gridspec(
         nrows=1, ncols=3,
         width_ratios=[5, 3, 5],
         wspace=0.2,
@@ -71,7 +71,7 @@ def ies_plot(location: Location,
         ('deaths', 'Daily Deaths'),
     ]
     for i, (measure, label) in enumerate(daily_measures):
-        ax_measure = fig.adata_dictionary_subplot(gs_daily[i])
+        ax_measure = fig.add_subplot(gs_daily[i])
 
         plotter.make_time_plot(
             ax=ax_measure,
@@ -103,7 +103,7 @@ def ies_plot(location: Location,
         ('deaths', 'Cumulative Deaths'),
     ]
     for i, (measure, label) in enumerate(cumulative_measures):
-        ax_measure = fig.adata_dictionary_subplot(gs_rates[ 2 *i])
+        ax_measure = fig.add_subplot(gs_rates[ 2 *i])
 
         plotter.make_time_plot(
             ax=ax_measure,
@@ -132,7 +132,7 @@ def ies_plot(location: Location,
         ('ifr', (0, 5)),
     ]
     for i, (measure, ylim) in enumerate(rates_measures):
-        ax_measure = fig.adata_dictionary_subplot(gs_rates[ 2 *i + 1])
+        ax_measure = fig.add_subplot(gs_rates[ 2 *i + 1])
 
         plotter.make_time_plot(
             ax=ax_measure,
@@ -166,8 +166,8 @@ def ies_plot(location: Location,
 
     plotter.clean_and_align_axes(fig, group_axes)
 
-    ax_daily = fig.adata_dictionary_subplot(gs_infecs[0])
-    ax_cumul = fig.adata_dictionary_subplot(gs_infecs[1])
+    ax_daily = fig.add_subplot(gs_infecs[0])
+    ax_cumul = fig.add_subplot(gs_infecs[1])
 
     for metric, ax, transform in [('daily', ax_daily, identity), ('cumulative', ax_cumul, pop_scale(pop))]:
         for measure in ['cases', 'deaths', 'hospitalizations']:
@@ -210,7 +210,7 @@ def ies_plot(location: Location,
     group_axes = [ax_daily, ax_cumul]
 
     if review:
-        ax_stackplot = fig.adata_dictionary_subplot(gs_infecs[2])
+        ax_stackplot = fig.add_subplot(gs_infecs[2])
         naive_unvax = data_dictionary['posterior_cumulative_naive_unvaccinated_infections'].loc[location.id, 'mean'] * 100 / pop
         naive = data_dictionary['posterior_cumulative_naive_infections'].loc[location.id, 'mean'] * 100 / pop
         total = data_dictionary['posterior_cumulative_total_infections'].loc[location.id, 'mean'] * 100 / pop
@@ -225,7 +225,7 @@ def ies_plot(location: Location,
 
         group_axes.append(ax_stackplot)
     else:
-        ax_beta = fig.adata_dictionary_subplot(gs_infecs[2])
+        ax_beta = fig.add_subplot(gs_infecs[2])
         for measure in ['deaths', 'hospitalizations', 'cases']:
             plotter.make_time_plot(
                 ax=ax_beta,
