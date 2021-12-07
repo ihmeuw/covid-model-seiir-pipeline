@@ -17,27 +17,17 @@ from covid_model_seiir_pipeline.pipeline.fit.specification import (
 class FitDataInterface:
 
     def __init__(self,
-                 preprocessing_root: io.PreprocessingRoot,
+                 preprocessing_data_interface: PreprocessingDataInterface,
                  fit_root: io.FitRoot):
-        self.preprocessing_root = preprocessing_root
+        self.preprocessing_data_interface = preprocessing_data_interface
         self.fit_root = fit_root
-
-        self._preprocessing_data_interface = None
-
-    @property
-    def preprocessing_data_interface(self) -> PreprocessingDataInterface:
-        if self._preprocessing_data_interface is None:
-            specification = PreprocessingSpecification.from_dict(io.load(self.preprocessing_root.specification()))
-            self._preprocessing_data_interface = PreprocessingDataInterface.from_specification(specification)
-        return self._preprocessing_data_interface
 
     @classmethod
     def from_specification(cls, specification: FitSpecification) -> 'FitDataInterface':
         preprocessing_spec = PreprocessingSpecification.from_version_root(specification.data.seir_preprocess_version)
-        preprocessing_root = io.PreprocessingRoot(preprocessing_spec.data.output_root,
-                                                  data_format=preprocessing_spec.data.output_format)
+        preprocessing_data_interface = PreprocessingDataInterface.from_specification(preprocessing_spec)
         return cls(
-            preprocessing_root=preprocessing_root,
+            preprocessing_data_interface=preprocessing_data_interface,
             fit_root=io.FitRoot(specification.data.output_root,
                                 data_format=specification.data.output_format),
         )
@@ -69,6 +59,12 @@ class FitDataInterface:
 
     def load_reported_epi_data(self) -> pd.DataFrame:
         return self.preprocessing_data_interface.load_reported_epi_data()
+
+    def load_hospital_census_data(self) -> pd.DataFrame:
+        return self.preprocessing_data_interface.load_hospital_census_data()
+
+    def load_hospital_bed_capacity(self) -> pd.DataFrame:
+        return self.preprocessing_data_interface.load_hospital_bed_capacity()
 
     def load_total_covid_scalars(self, draw_id: int = None) -> pd.DataFrame:
         specification = self.load_specification()
@@ -164,10 +160,10 @@ class FitDataInterface:
     def load_compartments(self, draw_id: int, columns: List[str] = None) -> pd.DataFrame:
         return io.load(self.fit_root.compartments(draw_id=draw_id, columns=columns))
 
-    def save_beta(self, data: pd.DataFrame, draw_id: int) -> None:
+    def save_fit_beta(self, data: pd.DataFrame, draw_id: int) -> None:
         io.dump(data, self.fit_root.beta(draw_id=draw_id))
 
-    def load_beta(self, draw_id: int, columns: List[str] = None) -> pd.DataFrame:
+    def load_fit_beta(self, draw_id: int, columns: List[str] = None) -> pd.DataFrame:
         return io.load(self.fit_root.beta(draw_id=draw_id, columns=columns))
 
     def save_final_seroprevalence(self, data: pd.DataFrame, draw_id: int) -> None:

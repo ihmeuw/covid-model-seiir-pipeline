@@ -1,35 +1,12 @@
 data:
-  infection_version: '2021_11_02.05'
-  covariate_version: '2021_11_04.03'
-  waning_version: '2021_11_05.01'
+  fit_version: '2021_11_02.05'
   coefficient_version: ''
   priors_version: '2021_05_31.01'
-  location_set_version_id: '/ihme/covid-19/model-inputs/best/locations/modeling_hierarchy.csv'
   output_root: ''
   output_format: 'parquet'
-  n_draws: 100
-  drop_locations: [] 
 workflow:
   project: 'proj_covid_prod'
   queue: 'd.q'
-regression_parameters:
-  # Mixing parameter.  dS/dt = -beta * S * I ** alpha
-  alpha: [0.9, 1.0]
-  # 1 / incubation period.  dE/dt = -dS/dt - sigma * E
-  sigma: [0.2, 0.3333]
-  # 1 / duration infectious.  dI1/dt = sigma * E - gamma * I
-  gamma1: [0.2, 0.3333]
-  # Proportion of current E to send to variant E on invasion.
-  pi: [ 0.01, 0.1 ]
-  # proportion increase in transmission intensity
-  kappa_none: 0.0
-  kappa_ancestral: 1.0
-  kappa_alpha: 1.4
-  kappa_beta: 1.2
-  kappa_gamma: 1.2
-  kappa_delta: 1.8
-  kappa_other: 1.2
-  kappa_omega: 1.8
 hospital_parameters:
   compute_correction_factors: True
   hospital_stay_death: 6
