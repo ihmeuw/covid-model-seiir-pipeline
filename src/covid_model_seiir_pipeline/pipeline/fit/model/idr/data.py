@@ -91,9 +91,10 @@ def create_pred_data(hierarchy: pd.DataFrame,
     pred_data['intercept'] = 1
     pred_data = pred_data.set_index(['location_id', 'date'])
     log_testing_rate_capacity = np.log(testing_capacity / population).rename('log_testing_rate_capacity')
-    pred_data = pred_data.join(log_testing_rate_capacity, how='outer')
+    pred_data = pred_data.join(log_testing_rate_capacity, how='left')
+    pred_data['log_testing_rate_capacity'] = pred_data.groupby(level=0)['log_testing_rate_capacity'].fillna(method='bfill')
 
-    pred_data = pred_data.join(pd.concat(covariates, axis=1).loc[:, covariate_list], how='outer')
+    pred_data = pred_data.join(pd.concat(covariates, axis=1).loc[:, covariate_list], how='left')
 
     return pred_data.dropna().reset_index()
 
