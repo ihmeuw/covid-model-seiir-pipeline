@@ -50,7 +50,7 @@ def prepare_ode_fit_parameters(rates: Rates,
     weights = []
     for measure in ['death', 'admission', 'case']:
         parameter = f'weight_all_{measure}'
-        _weights = pd.Series(sample_parameter(parameter, draw_id, 0., 1.), name=parameter, index=past_index),
+        _weights = pd.Series(sample_parameter(parameter, draw_id, 0., 1.), name=parameter, index=past_index)
         _weights = add_transition_period(
             weights=_weights,
             data_period=epi_measures.loc[epi_measures[measure].notnull()].index,
