@@ -75,6 +75,6 @@ def create_pred_data(hierarchy: pd.DataFrame,
     pred_data['variant_prevalence'] = 0
     pred_data = pred_data.set_index(['location_id', 'date'])
     
-    pred_data = pred_data.join(pd.concat(covariates, axis=1).loc[:, covariate_list], how='outer')
+    pred_data = pred_data.join(pd.concat(covariates, axis=1).loc[:, covariate_list], how='left')
     
     return pred_data.dropna().reset_index()

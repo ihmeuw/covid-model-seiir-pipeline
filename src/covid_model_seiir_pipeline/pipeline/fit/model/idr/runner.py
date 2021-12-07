@@ -71,12 +71,12 @@ def runner(cumulative_cases: pd.Series,
     
     pred = (pred.reset_index().set_index('location_id').join(floor_data, how='left'))
     pred = (pred
-            .reset_index()
-            .groupby('location_id')
-            .apply(lambda x: math.scale_to_bounds(x.set_index('date').loc[:, 'pred_idr'],
+            .groupby(level=0)
+            .apply(lambda x: math.scale_to_bounds(x.set_index('date', append=True).loc[:, 'pred_idr'],
                                                   x['idr_floor'].unique().item(),
                                                   ceiling=1.,))
             .rename('pred_idr')
+            .reset_index(level=0, drop=True)
             .to_frame())
     
     return pred, model_data
