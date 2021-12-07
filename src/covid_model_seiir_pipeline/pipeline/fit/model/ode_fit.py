@@ -50,9 +50,12 @@ def prepare_ode_fit_parameters(rates: Rates,
     weights = []
     for measure in ['death', 'admission', 'case']:
         parameter = f'weight_all_{measure}'
-        weights.append(
-            pd.Series(sample_parameter(parameter, draw_id, 0., 1.), name=parameter, index=past_index)
+        _weights = pd.Series(sample_parameter(parameter, draw_id, 0., 1.), name=parameter, index=past_index),
+        _weights = add_transition_period(
+            weights=_weights,
+            data_period=epi_measures.loc[epi_measures[measure].notnull()].index,
         )
+        weights.append(_weights)
     weights = [w / sum(weights).rename(w.name) for w in weights]
 
     rhos = rhos.reindex(past_index, fill_value=0.)
@@ -130,6 +133,28 @@ def prepare_epi_measures_and_rates(rates: Rates, epi_measures: pd.DataFrame, hie
     out_rates = pd.concat(out_rates, axis=1).reindex(square_idx).sort_index()
 
     return out_measures, out_rates
+
+
+def add_transition_period(weights: pd.Series, data_period: pd.Index, window_len: int = 30) -> pd.Series:
+    w = pd.Series(np.nan, name=weights.name, index=data_period)
+    a = w.reset_index().groupby('location_id')[['date']].min()
+    b = a + pd.Timedelta(days = window_len)
+    d = w.reset_index().groupby('location_id')[['date']].max()
+    c = d - pd.Timedelta(days = window_len)
+    
+    req = c > b
+    a = a[req].set_index('date', append=True).index
+    b = b[req].set_index('date', append=True).index
+    c = c[req].set_index('date', append=True).index
+    d = d[req].set_index('date', append=True).index
+    
+    w[a] = 1 / window_len
+    w[b] = 1
+    w[c] = 1
+    w[d] = 1 / window_len
+    w = w.groupby(level=0).apply(lambda x: x.interpolate())
+
+    return (weights * w).fillna(0)
 
 
 def reindex_to_infection_day(data: pd.DataFrame, lag: int, most_detailed: List[int]) -> pd.DataFrame:
