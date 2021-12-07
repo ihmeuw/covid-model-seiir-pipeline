@@ -136,25 +136,25 @@ def prepare_epi_measures_and_rates(rates: Rates, epi_measures: pd.DataFrame, hie
 
 
 def add_transition_period(weights: pd.Series, data_period: pd.Index, window_len: int = 30) -> pd.Series:
-    w = pd.Series(np.nan, name=weights.name, index=data_period)
-    a = w.reset_index().groupby('location_id')[['date']].min()
-    b = a + pd.Timedelta(days=window_len)
-    d = w.reset_index().groupby('location_id')[['date']].max()
-    c = d - pd.Timedelta(days=window_len)
+    w_ = pd.Series(np.nan, name=weights.name, index=data_period)
+    w0 = w_.reset_index().groupby('location_id')[['date']].min()
+    w1 = w0 + pd.Timedelta(days=window_len)
+    w3 = w_.reset_index().groupby('location_id')[['date']].max()
+    w2 = w3 - pd.Timedelta(days=window_len)
     
-    req = c > b
-    a = a[req].set_index('date', append=True).index
-    b = b[req].set_index('date', append=True).index
-    c = c[req].set_index('date', append=True).index
-    d = d[req].set_index('date', append=True).index
+    req = w2[w2 > w1].dropna().index
+    w0 = w0.loc[req].set_index('date', append=True).index
+    w1 = w1.loc[req].set_index('date', append=True).index
+    w2 = w2.loc[req].set_index('date', append=True).index
+    w3 = w3.loc[req].set_index('date', append=True).index
     
-    w.loc[a] = 1 / window_len
-    w.loc[b] = 1
-    w.loc[c] = 1
-    w.loc[d] = 1 / window_len
-    w = w.groupby(level=0).apply(lambda x: x.interpolate())
+    w_.loc[w0] = 1 / window_len
+    w_.loc[w1] = 1
+    w_.loc[w2] = 1
+    w_.loc[w3] = 1 / window_len
+    w_ = w_.groupby(level=0).apply(lambda x: x.interpolate())
     
-    return (weights * w).fillna(0)
+    return (weights * w_).fillna(0)
 
 
 def reindex_to_infection_day(data: pd.DataFrame, lag: int, most_detailed: List[int]) -> pd.DataFrame:
