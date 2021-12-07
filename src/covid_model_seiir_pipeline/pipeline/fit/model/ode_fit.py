@@ -138,9 +138,9 @@ def prepare_epi_measures_and_rates(rates: Rates, epi_measures: pd.DataFrame, hie
 def add_transition_period(weights: pd.Series, data_period: pd.Index, window_len: int = 30) -> pd.Series:
     w = pd.Series(np.nan, name=weights.name, index=data_period)
     a = w.reset_index().groupby('location_id')[['date']].min()
-    b = a + pd.Timedelta(days = window_len)
+    b = a + pd.Timedelta(days=window_len)
     d = w.reset_index().groupby('location_id')[['date']].max()
-    c = d - pd.Timedelta(days = window_len)
+    c = d - pd.Timedelta(days=window_len)
     
     req = c > b
     a = a[req].set_index('date', append=True).index
@@ -148,12 +148,12 @@ def add_transition_period(weights: pd.Series, data_period: pd.Index, window_len:
     c = c[req].set_index('date', append=True).index
     d = d[req].set_index('date', append=True).index
     
-    w[a] = 1 / window_len
-    w[b] = 1
-    w[c] = 1
-    w[d] = 1 / window_len
+    w.loc[a] = 1 / window_len
+    w.loc[b] = 1
+    w.loc[c] = 1
+    w.loc[d] = 1 / window_len
     w = w.groupby(level=0).apply(lambda x: x.interpolate())
-
+    
     return (weights * w).fillna(0)
 
 
