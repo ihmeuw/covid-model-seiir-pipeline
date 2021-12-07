@@ -118,14 +118,16 @@ def _manual_floor_setting(rmse: pd.DataFrame,
                           best_floor: pd.Series,
                           hierarchy: pd.DataFrame,
                           data_locations: List[int]) -> Tuple[pd.DataFrame, pd.Series]:
-    logger.warning('Manually setting IDR floor of 0.1% for SSA locations.')
-
     is_ssa_location = hierarchy['path_to_top_parent'].apply(lambda x: '166' in x.split(','))
     ssa_location_ids = hierarchy.loc[is_ssa_location, 'location_id'].to_list()
     ssa_location_ids = [l for l in ssa_location_ids if l not in data_locations]
 
+    flagged = False
     for ssa_location_id in ssa_location_ids:
         if best_floor[ssa_location_id] > 0.001:
+            if not flagged:
+                logger.warning('Manually setting IDR floor of 0.1% for SSA locations.')
+                flagged = True
             best_floor[ssa_location_id] = 0.001
             is_ssa_rmse = rmse['location_id'] == ssa_location_id
             rmse.loc[is_ssa_rmse, 'rmse'] = np.nan

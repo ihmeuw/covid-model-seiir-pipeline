@@ -50,9 +50,12 @@ def prepare_ode_fit_parameters(rates: Rates,
     weights = []
     for measure in ['death', 'admission', 'case']:
         parameter = f'weight_all_{measure}'
-        weights.append(
-            pd.Series(sample_parameter(parameter, draw_id, 0., 1.), name=parameter, index=past_index)
+        _weights = pd.Series(sample_parameter(parameter, draw_id, 0., 1.), name=parameter, index=past_index)
+        _weights = add_transition_period(
+            weights=_weights,
+            data_period=epi_measures.loc[epi_measures[measure].notnull()].index,
         )
+        weights.append(_weights)
     weights = [w / sum(weights).rename(w.name) for w in weights]
 
     rhos = rhos.reindex(past_index, fill_value=0.)
@@ -122,6 +125,28 @@ def prepare_epi_measures_and_rates(rates: Rates, epi_measures: pd.DataFrame, hie
     out_measures = out_measures.loc[out_measures.location_id.isin(most_detailed)].set_index(['location_id', 'date'])
     out_rates = pd.concat(out_rates, axis=1).reindex(out_measures.index).sort_index()
     return out_measures, out_rates
+
+
+def add_transition_period(weights: pd.Series, data_period: pd.Index, window_len: int = 30) -> pd.Series:
+    w_ = pd.Series(np.nan, name=weights.name, index=data_period)
+    w0 = w_.reset_index().groupby('location_id')[['date']].min()
+    w1 = w0 + pd.Timedelta(days=window_len)
+    w3 = w_.reset_index().groupby('location_id')[['date']].max()
+    w2 = w3 - pd.Timedelta(days=window_len)
+    
+    req = w2[w2 > w1].dropna().index
+    w0 = w0.loc[req].set_index('date', append=True).index
+    w1 = w1.loc[req].set_index('date', append=True).index
+    w2 = w2.loc[req].set_index('date', append=True).index
+    w3 = w3.loc[req].set_index('date', append=True).index
+    
+    w_.loc[w0] = 1 / window_len
+    w_.loc[w1] = 1
+    w_.loc[w2] = 1
+    w_.loc[w3] = 1 / window_len
+    w_ = w_.groupby(level=0).apply(lambda x: x.interpolate())
+    
+    return (weights * w_).fillna(0)
 
 
 def reindex_to_infection_day(data: pd.DataFrame, lag: int, most_detailed: List[int]) -> pd.DataFrame:
