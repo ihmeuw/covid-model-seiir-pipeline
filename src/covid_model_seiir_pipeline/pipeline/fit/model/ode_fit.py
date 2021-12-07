@@ -121,17 +121,9 @@ def prepare_epi_measures_and_rates(rates: Rates, epi_measures: pd.DataFrame, hie
         out_measures.append(epi_data)
         out_rates.append(epi_rates)
 
-    out_measures = pd.concat(out_measures, axis=1)
-    out_measures = out_measures.loc[out_measures.notnull().any(axis=1)]
-
-    dates = out_measures.reset_index().date
-    global_date_range = pd.date_range(dates.min() - pd.Timedelta(days=1), dates.max())
-    square_idx = pd.MultiIndex.from_product((most_detailed, global_date_range),
-                                            names=['location_id', 'date']).sort_values()
-
-    out_measures = out_measures.reindex(square_idx).sort_index()
-    out_rates = pd.concat(out_rates, axis=1).reindex(square_idx).sort_index()
-
+    out_measures = pd.concat(out_measures, axis=1).reset_index()
+    out_measures = out_measures.loc[out_measures.location_id.isin(most_detailed)].set_index(['location_id', 'date'])
+    out_rates = pd.concat(out_rates, axis=1).reindex(out_measures.index).sort_index()
     return out_measures, out_rates
 
 
@@ -170,7 +162,7 @@ def reindex_to_infection_day(data: pd.DataFrame, lag: int, most_detailed: List[i
 def make_initial_condition(parameters: Parameters, full_rates: pd.DataFrame, population: pd.DataFrame):
     base_params = parameters.base_parameters
     
-    crude_infections = get_crude_infections(base_params, full_rates, population, threshold=50)    
+    crude_infections = get_crude_infections(base_params, full_rates, threshold=50)
     new_e_start = crude_infections.reset_index(level='date').groupby('location_id').first()
     start_date, new_e_start = new_e_start['date'], new_e_start['infections']
     end_date = base_params.filter(like='count')
@@ -213,7 +205,7 @@ def make_initial_condition(parameters: Parameters, full_rates: pd.DataFrame, pop
     return initial_condition
 
 
-def get_crude_infections(base_params, rates, population, threshold=50):
+def get_crude_infections(base_params, rates, threshold=50):
     crude_infections = pd.DataFrame(index=rates.index)
     for measure, rate in [('death', 'ifr'), ('admission', 'ihr'), ('case', 'idr')]:
         infections = base_params[f'count_all_{measure}'] / rates[rate]

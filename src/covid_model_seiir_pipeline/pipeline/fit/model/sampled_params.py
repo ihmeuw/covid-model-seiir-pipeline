@@ -21,14 +21,16 @@ class Durations(NamedTuple):
     pcr_to_seropositive: int
     admission_to_seropositive: int
     seropositive_to_death: int
+    max_lag: int
 
 
 def sample_durations(params: RatesParameters, draw_id: int) -> Durations:
     random_state = utilities.get_random_state(f'epi_durations_draw_{draw_id}')
 
-    exposure_to_admission = random_state.choice(params.exposure_to_admission)
-    exposure_to_seroconversion = random_state.choice(params.exposure_to_seroconversion)
-    admission_to_death = random_state.choice(params.admission_to_death)
+    exposure_to_admission = random_state.choice(list(params.exposure_to_admission))
+    exposure_to_seroconversion = random_state.choice(list(params.exposure_to_seroconversion))
+    admission_to_death = random_state.choice(list(params.admission_to_death))
+    max_lag = max(list(params.exposure_to_admission)) + max(list(params.admission_to_death))
 
     return Durations(
         exposure_to_case=exposure_to_admission,
@@ -38,6 +40,7 @@ def sample_durations(params: RatesParameters, draw_id: int) -> Durations:
         pcr_to_seropositive=exposure_to_seroconversion - exposure_to_admission,
         admission_to_seropositive=exposure_to_seroconversion - exposure_to_admission,
         seropositive_to_death=(exposure_to_admission + admission_to_death) - exposure_to_seroconversion,
+        max_lag=max_lag,
     )
 
 
