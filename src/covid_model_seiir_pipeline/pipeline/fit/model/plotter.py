@@ -200,16 +200,16 @@ def ies_plot(data: Tuple[Location, Dict[str, pd.DataFrame]],
     if sero_data is not None:
         ax_cumul.scatter(sero_data.loc[sero_data['is_outlier'] == 1].index,
                          sero_data.loc[sero_data['is_outlier'] == 1, 'reported_seroprevalence'] * 100,
-                         s=80, c='maroon', alpha=0.45, marker='x')
+                         s=80, c='maroon', alpha=0.45, marker='x', zorder=2)
         ax_cumul.scatter(sero_data.loc[sero_data['is_outlier'] == 0].index,
                          sero_data.loc[sero_data['is_outlier'] == 0, 'reported_seroprevalence'] * 100,
-                         s=80, c='darkturquoise', edgecolors='darkcyan', alpha=0.3, marker='s')
+                         s=80, c='darkturquoise', edgecolors='darkcyan', alpha=0.3, marker='s', zorder=2)
         ax_cumul.scatter(sero_data.loc[sero_data['is_outlier'] == 0].index,
                          sero_data.loc[sero_data['is_outlier'] == 0, 'seroprevalence'] * 100,
-                         s=80, c='orange', edgecolors='darkorange', alpha=0.3, marker='^')
+                         s=80, c='orange', edgecolors='darkorange', alpha=0.3, marker='^', zorder=2)
         ax_cumul.scatter(sero_data.loc[sero_data['is_outlier'] == 0].index,
                          sero_data.loc[sero_data['is_outlier'] == 0, 'adjusted_seroprevalence'] * 100,
-                         s=100, c='mediumorchid', edgecolors='darkmagenta', alpha=0.6, marker='o')
+                         s=100, c='mediumorchid', edgecolors='darkmagenta', alpha=0.6, marker='o', zorder=2)
 
     group_axes = [ax_daily, ax_cumul]
 
