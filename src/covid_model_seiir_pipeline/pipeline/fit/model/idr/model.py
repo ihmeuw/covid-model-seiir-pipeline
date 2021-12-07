@@ -29,8 +29,8 @@ def run_model(model_data: pd.DataFrame,
     covariate_priors = {covariate: covariate_priors[covariate] for covariate in covariate_list}
     covariate_constraints = get_covariate_constraints('idr', None)
     covariate_constraints = {covariate: covariate_constraints[covariate] for covariate in covariate_list}
-
-    covariate_lambdas = {covariate: 1. for covariate in covariate_list}
+    covariate_lambdas_tight = {covariate: 1. for covariate in covariate_list}
+    covariate_lambdas_loose = {covariate: 10. for covariate in covariate_list}
 
     var_args = {
         'dep_var': 'logit_idr',
@@ -48,12 +48,12 @@ def run_model(model_data: pd.DataFrame,
     }
     pred_exclude_vars = []
     level_lambdas = {
-        0: {'intercept':  2., 'log_infwavg_testing_rate_capacity':  2., **covariate_lambdas},  # G->SR
-        1: {'intercept':  2., 'log_infwavg_testing_rate_capacity':  2., **covariate_lambdas},  # SR->R
-        2: {'intercept': 20., 'log_infwavg_testing_rate_capacity': 20., **covariate_lambdas},  # R->A0
-        3: {'intercept': 20., 'log_infwavg_testing_rate_capacity': 20., **covariate_lambdas},  # A0->A1
-        4: {'intercept': 20., 'log_infwavg_testing_rate_capacity': 20., **covariate_lambdas},  # A1->A2
-        5: {'intercept': 20., 'log_infwavg_testing_rate_capacity': 20., **covariate_lambdas},  # A2->A3
+        0: {'intercept':  2., 'log_infwavg_testing_rate_capacity':  2., **covariate_lambdas_tight},  # G->SR
+        1: {'intercept':  2., 'log_infwavg_testing_rate_capacity':  2., **covariate_lambdas_tight},  # SR->R
+        2: {'intercept': 20., 'log_infwavg_testing_rate_capacity': 20., **covariate_lambdas_loose},  # R->A0
+        3: {'intercept': 20., 'log_infwavg_testing_rate_capacity': 20., **covariate_lambdas_loose},  # A0->A1
+        4: {'intercept': 20., 'log_infwavg_testing_rate_capacity': 20., **covariate_lambdas_loose},  # A1->A2
+        5: {'intercept': 20., 'log_infwavg_testing_rate_capacity': 20., **covariate_lambdas_loose},  # A2->A3
     }
     
     if var_args['group_var'] != 'location_id':
