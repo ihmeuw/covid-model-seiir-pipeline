@@ -267,20 +267,19 @@ for ratio, measure, duration_measure in zip(['ifr', 'ihr', 'idr'],
     )
 
 
-def make_measure_infections(beta: pd.DataFrame, beta_measure: pd.DataFrame, infections: pd.DataFrame):
-    return beta_measure / beta * infections
+def make_measure_infections(posterior_measure: pd.DataFrame, prior_ratio: pd.DataFrame):
+    return posterior_measure / prior_ratio
 
 
-for measure in ['deaths', 'hospitalizations', 'cases']:
+for measure, ratio in [('deaths', 'ifr'), ('hospitalizations', 'ihr'), ('cases', 'idr')]:
     description = (
         f'Posterior {{metric}} infections according to reported {measure} '
         f'among the unvaccinated and COVID-naive (those without a prior covid infection). '
         f'This data is a composite of results from the past infections model.'
     )
     MEASURES[f'posterior_{measure}_based_infections'] = CompositeMeasureConfig(
-        base_measures={'beta': MEASURES['beta'],
-                       'beta_measure': MEASURES[f'beta_{measure}'],
-                       'infections': MEASURES['posterior_naive_unvaccinated_infections']},
+        base_measures={'posterior_measure': MEASURES[f'posterior_{measure}'],
+                       'prior_ratio': MEASURES[f'prior_{ratio}']},
         label=f'posterior_{measure}_based_daily_naive_unvaccinated_infections',
         cumulative_label=f'posterior_{measure}_based_cumulative_naive_unvaccinated_infections',
         combiner=make_measure_infections,
