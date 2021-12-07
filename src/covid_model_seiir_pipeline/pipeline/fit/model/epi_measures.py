@@ -25,7 +25,7 @@ def format_epi_measures(epi_measures: pd.DataFrame,
     global_date_range = pd.date_range(dates.min() - pd.Timedelta(days=max_duration), dates.max())
     square_idx = pd.MultiIndex.from_product((locations, global_date_range),
                                             names=['location_id', 'date']).sort_values()
-    epi_measures = epi_measures.reindex(square_idx).sort_index()
+    epi_measures = epi_measures.set_index(['location_id', 'date']).reindex(square_idx).sort_index()
 
     return epi_measures
 
