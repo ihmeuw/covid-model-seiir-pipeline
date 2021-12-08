@@ -18,14 +18,9 @@ from covid_model_seiir_pipeline.lib.ode_mk2.constants import (
 from covid_model_seiir_pipeline.lib.ode_mk2 import (
     solver,
 )
-from covid_model_seiir_pipeline.pipeline.regression.model.ode_fit import (
-    process_etas,
-)
 from covid_model_seiir_pipeline.pipeline.forecasting.model.containers import (
     Indices,
     PostprocessingParameters,
-    RatioData,
-    HospitalCorrectionFactors,
 )
 
 if TYPE_CHECKING:
@@ -147,10 +142,10 @@ def beta_shift(beta_hat: pd.DataFrame,
 def build_postprocessing_parameters(indices: Indices,
                                     past_infections: pd.Series,
                                     past_deaths: pd.Series,
-                                    ratio_data: RatioData,
+                                    ratio_data,
                                     model_parameters: Parameters,
-                                    correction_factors: HospitalCorrectionFactors,
-                                    hospital_parameters: 'HospitalParameters') -> PostprocessingParameters:
+                                    correction_factors,
+                                    hospital_parameters) -> PostprocessingParameters:
     ratio_data = correct_ratio_data(indices, ratio_data, model_parameters)
 
     correction_factors = forecast_correction_factors(
@@ -168,8 +163,8 @@ def build_postprocessing_parameters(indices: Indices,
 
 
 def correct_ratio_data(indices: Indices,
-                       ratio_data: RatioData,
-                       model_params: Parameters) -> RatioData:
+                       ratio_data,
+                       model_params: Parameters):
     variant_prevalence = (model_params
                           .get_params()
                           .filter(like='rho')
@@ -203,8 +198,8 @@ def _expand_rate(rate: pd.Series, index: pd.MultiIndex):
 
 
 def forecast_correction_factors(indices: Indices,
-                                correction_factors: HospitalCorrectionFactors,
-                                hospital_parameters: 'HospitalParameters') -> HospitalCorrectionFactors:
+                                correction_factors,
+                                hospital_parameters):
     averaging_window = pd.Timedelta(days=hospital_parameters.correction_factor_average_window)
     application_window = pd.Timedelta(days=hospital_parameters.correction_factor_application_window)
 

@@ -1,35 +1,13 @@
 data:
-  infection_version: '2021_11_02.05'
-  covariate_version: '2021_11_04.03'
-  waning_version: '2021_11_05.01'
+  seir_fit_version: '2021_12_08.01'
   coefficient_version: ''
-  priors_version: '2021_05_31.01'
-  location_set_version_id: '/ihme/covid-19/model-inputs/best/locations/modeling_hierarchy.csv'
+  seir_covariate_priors_version: ''
   output_root: ''
   output_format: 'parquet'
-  n_draws: 100
-  drop_locations: [] 
+  drop_locations: []
 workflow:
   project: 'proj_covid_prod'
   queue: 'd.q'
-regression_parameters:
-  # Mixing parameter.  dS/dt = -beta * S * I ** alpha
-  alpha: [0.9, 1.0]
-  # 1 / incubation period.  dE/dt = -dS/dt - sigma * E
-  sigma: [0.2, 0.3333]
-  # 1 / duration infectious.  dI1/dt = sigma * E - gamma * I
-  gamma1: [0.2, 0.3333]
-  # Proportion of current E to send to variant E on invasion.
-  pi: [ 0.01, 0.1 ]
-  # proportion increase in transmission intensity
-  kappa_none: 0.0
-  kappa_ancestral: 1.0
-  kappa_alpha: 1.4
-  kappa_beta: 1.2
-  kappa_gamma: 1.2
-  kappa_delta: 1.8
-  kappa_other: 1.2
-  kappa_omega: 1.8
 hospital_parameters:
   compute_correction_factors: True
   hospital_stay_death: 6
@@ -51,24 +29,23 @@ covariates:
     gprior: [0.0, 1000.0]
     bounds: [-1000.0, 1000.0]
   pneumonia:
-    group_level: 'super_region_id'
-    gprior: 'data'
-    bounds: [0.8, 1.3]
+    gprior: [0.0, 1000.0]
+    bounds: [0.0, 1000.0]
   mobility:
     gprior: [0.0, 1000.0]
     bounds: [0.0, 1000.0]
   mask_use:
     gprior: [0.0, 1000.0]
-    bounds: [-1000.0, -0.5]
+    bounds: [-1000.0, 0.0]
   testing:
     gprior: [0.0, 1000.0]
-    bounds: [-80.0, 0.0]
+    bounds: [-1000.0, 0.0]
   air_pollution_pm_2_5:
     gprior: [0.0, 1000.0]
     bounds: [0.0, 1000.0]
   smoking_prevalence:
     gprior: [0.0, 1000]
-    bounds: [0.0, 1.0]
+    bounds: [0.0, 1000.0]
   lri_mortality:
     gprior: [0.0, 1000.0]
     bounds: [0.0, 1000.0]

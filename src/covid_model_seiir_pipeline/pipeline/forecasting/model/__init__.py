@@ -1,10 +1,6 @@
 from covid_model_seiir_pipeline.pipeline.forecasting.model.containers import (
     Indices,
     PostprocessingParameters,
-    RatioData,
-    HospitalCensusData,
-    HospitalMetrics,
-    HospitalCorrectionFactors,
 )
 from covid_model_seiir_pipeline.pipeline.forecasting.model.ode_forecast import (
     build_beta_final,

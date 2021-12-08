@@ -1,38 +1,77 @@
 from collections import defaultdict
+from dataclasses import dataclass
 import functools
-import multiprocessing
-from typing import Tuple, TYPE_CHECKING
+from typing import Dict, Tuple
 
 import numpy as np
 import pandas as pd
 import tqdm
 
-from covid_model_seiir_pipeline.pipeline.regression.model.containers import (
-    HospitalCensusData,
-    HospitalMetrics,
-    HospitalCorrectionFactors,
+
+from covid_model_seiir_pipeline.lib import (
+    utilities,
+    parallel,
 )
-from covid_model_seiir_pipeline.pipeline.regression.model.ode_fit import (
-    clean_infection_data_measure,
+from covid_model_seiir_pipeline.pipeline.regression.specification import (
+    HospitalParameters,
+)
+from covid_model_seiir_pipeline.pipeline.regression.data import (
+    RegressionDataInterface,
 )
 
-if TYPE_CHECKING:
-    from covid_model_seiir_pipeline.pipeline.regression.specification import (
-        HospitalParameters,
-    )
-    from covid_model_seiir_pipeline.pipeline.regression.data import (
-        RegressionDataInterface,
-    )
+
+@dataclass
+class HospitalCensusData:
+    hospital_census: pd.Series
+    icu_census: pd.Series
+
+    def to_dict(self) -> Dict[str, pd.Series]:
+        return utilities.asdict(self)
+
+    def to_df(self):
+        return pd.concat([v.rename(k) for k, v in self.to_dict().items()], axis=1)
+
+
+@dataclass
+class HospitalMetrics:
+    hospital_admissions: pd.Series
+    hospital_census: pd.Series
+    icu_admissions: pd.Series
+    icu_census: pd.Series
+
+    def to_dict(self) -> Dict[str, pd.Series]:
+        return utilities.asdict(self)
+
+    def to_df(self):
+        return pd.concat([v.rename(k) for k, v in self.to_dict().items()], axis=1)
+
+
+@dataclass
+class HospitalCorrectionFactors:
+    hospital_census: pd.Series
+    icu_census: pd.Series
+
+    def to_dict(self) -> Dict[str, pd.Series]:
+        return utilities.asdict(self)
+
+    def to_df(self):
+        return pd.concat([v.rename(k) for k, v in self.to_dict().items()], axis=1)
 
 
 def load_admissions_and_hfr(data_interface: 'RegressionDataInterface',
-                            n_draws: int, n_cores: int, show_pb: bool) -> Tuple[pd.Series, pd.Series]:
+                            num_draws: int,
+                            num_cores: int,
+                            progress_bar: bool) -> Tuple[pd.Series, pd.Series]:
     _runner = functools.partial(
         _load_admissions_and_hfr_draw,
         data_interface=data_interface,
     )
-    with multiprocessing.Pool(n_cores) as pool:
-        draw_data = list(tqdm.tqdm(pool.imap(_runner, range(n_draws)), total=n_draws, disable=not show_pb))
+    draw_data = parallel.run_parallel(
+        runner=_runner,
+        arg_list=list(range(num_draws)),
+        num_cores=num_cores,
+        progress_bar=progress_bar
+    )
 
     admissions, hfr = zip(*draw_data)
     admissions_mean = pd.concat(admissions, axis=1).mean(axis=1).rename('admissions')
@@ -43,8 +82,7 @@ def load_admissions_and_hfr(data_interface: 'RegressionDataInterface',
 
 def _load_admissions_and_hfr_draw(draw_id: int,
                                   data_interface: 'RegressionDataInterface') -> Tuple[pd.Series, pd.Series]:
-    past_infections_data = data_interface.load_past_infection_data(draw_id)
-    infections = clean_infection_data_measure(past_infections_data, 'infections')
+    infections = data_interface.load_posterior_epi_measures(draw_id, columns=['total_infections'])
     ratio_data = data_interface.load_ratio_data(draw_id)
 
     admissions = convert_infections(infections, ratio_data.ihr, ratio_data.infection_to_admission)
@@ -57,7 +95,6 @@ def _load_admissions_and_hfr_draw(draw_id: int,
 
 
 def convert_infections(infections: pd.Series, ratio: pd.Series, duration: int):
-    
     result = (infections
               .groupby('location_id')
               .apply(lambda x: x.reset_index(level='location_id', drop=True).shift(duration, freq='D')))
@@ -240,7 +277,7 @@ def _safe_log_divide(numerator: pd.Series, denominator: pd.Series) -> pd.Series:
 
 
 def calculate_hospital_correction_factors(usage: 'HospitalMetrics',
-                                          census_data: 'HospitalCensusData',
+                                          census_data: pd.DataFrame,
                                           aggregation_hierarchy: pd.DataFrame,
                                           hospital_parameters: 'HospitalParameters') -> HospitalCorrectionFactors:
     date = usage.hospital_census.reset_index().date

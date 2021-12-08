@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Dict, Optional, Tuple, Union
+from typing import Dict, Optional, Union
 
 import pandas as pd
 
@@ -147,6 +147,36 @@ class PreprocessingDataInterface:
                 .sort_index()
                 .loc[:, col_map.values()])
         return data
+
+    def load_hospital_census_data(self) -> pd.DataFrame:
+        # Locations to exclude from the census input data. Requested by Steve on 9/30/2020
+        # TODO: Revisit this list, it's very old.
+        census_exclude_locs = [
+            26,   # Papua New Guinea
+            58,   # Estonia
+            67,   # Japan
+            69,   # Singapore
+            74,   # Andorra
+            144,  # Jordan
+            170,  # Congo
+            172,  # Equatorial Guinea
+            179,  # Ethiopia
+            200,  # Benin
+        ]
+        corrections_data = {
+            'hospital_census': io.load(self.model_inputs_root.hospital_census()),
+            'icu_census': io.load(self.model_inputs_root.icu_census()),
+        }
+        for measure, data in corrections_data.items():
+            all_age_sex = (data.age_group_id == 22) & (data.sex_id == 3)
+            drop_locs = data.location_id.isin(census_exclude_locs)
+            keep_cols = ["location_id", "date", "value"]
+            data = data.loc[all_age_sex & ~drop_locs, keep_cols]
+            corrections_data[measure] = data.set_index(['location_id', 'date']).value.rename(measure)
+        return pd.concat(corrections_data.values(), axis=1)
+
+    def load_hospital_bed_capacity(self) -> pd.DataFrame:
+        return io.load(self.model_inputs_root.hospital_capacity())
 
     def load_gbd_covariate(self, covariate: str, with_observed: bool = False) -> pd.DataFrame:
         data = io.load(self.model_inputs_root.gbd_covariate(measure=covariate))

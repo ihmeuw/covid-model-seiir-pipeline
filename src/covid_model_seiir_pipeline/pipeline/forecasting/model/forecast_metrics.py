@@ -16,25 +16,17 @@ from covid_model_seiir_pipeline.lib.ode_mk2.constants import (
 from covid_model_seiir_pipeline.pipeline.forecasting.model.containers import (
     Indices,
     PostprocessingParameters,
-    HospitalMetrics,
 )
 from covid_model_seiir_pipeline.pipeline.regression.model import (
     compute_hospital_usage,
 )
-
-if TYPE_CHECKING:
-    # Support type checking but keep the pipeline stages as isolated as possible.
-    from covid_model_seiir_pipeline.pipeline.regression.specification import (
-        HospitalParameters,
-    )
 
 
 def compute_output_metrics(indices: Indices,
                            compartments: pd.DataFrame,
                            postprocessing_params: PostprocessingParameters,
                            model_parameters: Parameters,
-                           hospital_parameters: 'HospitalParameters') -> Tuple[pd.DataFrame,
-                                                                               pd.DataFrame]:
+                           hospital_parameters) -> Tuple[pd.DataFrame, pd.DataFrame]:
     system_metrics = compute_system_metrics(
         compartments,
         postprocessing_params,
@@ -263,8 +255,8 @@ def _compute_deaths(modeled_infections: pd.Series,
 
 
 def compute_corrected_hospital_usage(admissions: pd.Series,
-                                     hospital_parameters: 'HospitalParameters',
-                                     postprocessing_parameters: PostprocessingParameters) -> HospitalMetrics:
+                                     hospital_parameters,
+                                     postprocessing_parameters: PostprocessingParameters):
     hfr = postprocessing_parameters.ihr / postprocessing_parameters.ifr
     hfr[hfr < 1] = 1.0
     hospital_usage = compute_hospital_usage(

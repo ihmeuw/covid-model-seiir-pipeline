@@ -271,7 +271,7 @@ def run_beta_fit(fit_version: str, draw_id: int, progress_bar: bool) -> None:
     data_interface.save_rates_data(rates_data, draw_id=draw_id)
     data_interface.save_posterior_epi_measures(posterior_epi_measures, draw_id=draw_id)
     data_interface.save_compartments(compartments, draw_id=draw_id)
-    data_interface.save_beta(betas, draw_id=draw_id)
+    data_interface.save_fit_beta(betas, draw_id=draw_id)
     data_interface.save_final_seroprevalence(out_seroprevalence, draw_id=draw_id)
 
     logger.report()

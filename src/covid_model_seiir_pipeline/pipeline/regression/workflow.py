@@ -52,7 +52,7 @@ class RegressionWorkflow(workflow.WorkflowTemplate):
             )
             self.workflow.add_task(task)
 
-        hospital_correction_task = hospital_correction_factor_template.get_task(
-            regression_version=self.version,
-        )
-        self.workflow.add_task(hospital_correction_task)
+        # hospital_correction_task = hospital_correction_factor_template.get_task(
+        #     regression_version=self.version,
+        # )
+        # self.workflow.add_task(hospital_correction_task)

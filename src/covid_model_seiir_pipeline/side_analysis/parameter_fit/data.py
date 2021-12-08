@@ -17,12 +17,12 @@ from covid_model_seiir_pipeline.pipeline.regression.data import (
 class FitDataInterface(RegressionDataInterface):
 
     def __init__(self,
-                 infection_root: io.InfectionRoot,
+                 infection_root,
                  covariate_root: io.CovariateRoot,
                  priors_root: Optional[io.CovariatePriorsRoot],
                  coefficient_root: Optional[io.RegressionRoot],
                  regression_root: Optional[io.RegressionRoot],
-                 variant_root: io.VariantPrevalenceRoot,
+                 variant_root,
                  fit_root: io.FitRoot):
         super().__init__(infection_root, covariate_root, priors_root, coefficient_root, regression_root)
         self.variant_root = variant_root

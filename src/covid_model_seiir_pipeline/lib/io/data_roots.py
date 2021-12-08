@@ -108,6 +108,9 @@ class ModelInputsRoot(DataRoot):
     metadata = MetadataType('metadata')
 
     population = DatasetType('output_measures/population/all_populations')
+    hospital_census = DatasetType('output_measures/hospitalizations/population')
+    hospital_capacity = DatasetType('hospital_capacity')
+    icu_census = DatasetType('output_measures/icu/population')
     serology = DatasetType('serology', LEAF_TEMPLATES.MEASURE_TEMPLATE)
     full_data = DatasetType('full_data_unscaled')
     full_data_extra_hospital = DatasetType('use_at_your_own_risk/full_data_extra_hospital')
@@ -340,35 +343,6 @@ class CovariateRoot(DataRoot):
     def __setstate__(self, state):
         self.__dict__ = state
 
-
-class InfectionRoot(DataRoot):
-    """Data root representing infectionator outputs."""
-    metadata = MetadataType('metadata')
-
-    em_scalars = DatasetType('em_data')
-    infections = DatasetType('infections_draws', LEAF_TEMPLATES.DRAW_TEMPLATE)
-    ifr = DatasetType('ifr_draws', LEAF_TEMPLATES.DRAW_TEMPLATE)
-    ihr = DatasetType('ihr_draws', LEAF_TEMPLATES.DRAW_TEMPLATE)
-    idr = DatasetType('idr_draws', LEAF_TEMPLATES.DRAW_TEMPLATE)
-
-
-class WaningRoot(DataRoot):
-    metadata = MetadataType('metadata')
-
-    efficacy = DatasetType('base_vaccine_efficacy',
-                           prefix_template=PREFIX_TEMPLATES.SCENARIO_TEMPLATE)
-    uptake = DatasetType('vaccine_uptake',
-                         prefix_template=PREFIX_TEMPLATES.SCENARIO_TEMPLATE)
-    vaccine_waning = DatasetType('vaccine_waning_distribution',
-                                 prefix_template=PREFIX_TEMPLATES.SCENARIO_TEMPLATE)
-    efficacy_waning = DatasetType('vaccine_waning_efficacy',
-                                  prefix_template=PREFIX_TEMPLATES.SCENARIO_TEMPLATE)
-    etas = DatasetType('vaccine_risk_reduction',
-                       prefix_template=PREFIX_TEMPLATES.SCENARIO_TEMPLATE)
-    natural_waning = DatasetType('natural_waning_distribution',
-                                 prefix_template=PREFIX_TEMPLATES.SCENARIO_TEMPLATE)
-    cross_variant_immunity = DatasetType('cross_variant_immunity_matrix',
-                                         prefix_template=PREFIX_TEMPLATES.SCENARIO_TEMPLATE)
 
 class MortalityRatioRoot(DataRoot):
     """Data root representing age pattern of mortality."""
