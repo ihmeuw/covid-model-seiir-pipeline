@@ -97,13 +97,15 @@ def prepare_model(model_data: pd.DataFrame,
 
     inflection_point = (day_inflection - day_0).days
     inflection_point = (inflection_point - model_data['t'].min()) / model_data['t'].values.ptp()
+    inflection_point = max(0.01, inflection_point)
     inflection_point = min(0.99, inflection_point)
     
     covariate_priors = get_covariate_priors(1, 'ifr',)
     covariate_priors = {covariate: covariate_priors[covariate] for covariate in covariate_list}
     covariate_constraints = get_covariate_constraints('ifr', variant_risk_ratio,)
     covariate_constraints = {covariate: covariate_constraints[covariate] for covariate in covariate_list}
-    covariate_lambdas = {covariate: 1. for covariate in covariate_list}
+    covariate_lambdas_tight = {covariate: 1. for covariate in covariate_list}
+    covariate_lambdas_loose = {covariate: 10. for covariate in covariate_list}
 
     var_args = {
         'dep_var': 'logit_ifr',
@@ -115,7 +117,7 @@ def prepare_model(model_data: pd.DataFrame,
                 'spline_knots_type': 'domain',
                 'spline_knots': np.array([0., inflection_point, 1.]),
                 'spline_degree': 1,
-                'prior_spline_maxder_uniform': np.array([[-0.02, -0.],
+                'prior_spline_maxder_uniform': np.array([[-0.01, -0.],
                                                          [-1e-6,  0.]])
             },
             **covariate_constraints
@@ -134,12 +136,12 @@ def prepare_model(model_data: pd.DataFrame,
     pred_exclude_vars = []
     level_lambdas = {
         # fit covariates at global level, tight lambdas after
-        0: {'intercept':  2., 't':  2., 'variant_prevalence': 1., **covariate_lambdas},  # G->SR
-        1: {'intercept':  2., 't':  2., 'variant_prevalence': 1., **covariate_lambdas},  # SR->R
-        2: {'intercept': 20., 't': 20., 'variant_prevalence': 1., **covariate_lambdas},  # R->A0
-        3: {'intercept': 20., 't': 20., 'variant_prevalence': 1., **covariate_lambdas},  # A0->A1
-        4: {'intercept': 20., 't': 20., 'variant_prevalence': 1., **covariate_lambdas},  # A1->A2
-        5: {'intercept': 20., 't': 20., 'variant_prevalence': 1., **covariate_lambdas},  # A2->A3
+        0: {'intercept':  2., 't':  2., 'variant_prevalence': 1., **covariate_lambdas_tight},  # G->SR
+        1: {'intercept':  2., 't':  2., 'variant_prevalence': 1., **covariate_lambdas_tight},  # SR->R
+        2: {'intercept': 20., 't': 20., 'variant_prevalence': 1., **covariate_lambdas_loose},  # R->A0
+        3: {'intercept': 20., 't': 20., 'variant_prevalence': 1., **covariate_lambdas_loose},  # A0->A1
+        4: {'intercept': 20., 't': 20., 'variant_prevalence': 1., **covariate_lambdas_loose},  # A1->A2
+        5: {'intercept': 20., 't': 20., 'variant_prevalence': 1., **covariate_lambdas_loose},  # A2->A3
     }
 
     if var_args['group_var'] != 'location_id':

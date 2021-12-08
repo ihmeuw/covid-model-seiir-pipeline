@@ -175,11 +175,11 @@ class FitSpecification(utilities.Specification):
             'fit_parameters': FitParameters,
         }
         for key, spec_class in list(sub_specs.items()):  # We're dynamically altering. Copy with list
-            spec_dict = utilities.filter_to_spec_fields(
+            key_spec_dict = utilities.filter_to_spec_fields(
                 spec_dict.get(key, {}),
                 spec_class(),
             )
-            sub_specs[key] = spec_class(**spec_dict)
+            sub_specs[key] = spec_class(**key_spec_dict)
 
         return tuple(sub_specs.values())
 
