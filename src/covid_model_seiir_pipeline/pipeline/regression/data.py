@@ -1,6 +1,7 @@
 from functools import reduce
 from typing import Dict, List, Iterable, Optional, Union
 
+from loguru import logger
 import pandas as pd
 
 from covid_model_seiir_pipeline.lib import (
@@ -61,41 +62,44 @@ class RegressionDataInterface:
     def get_n_draws(self) -> int:
         return self.fit_data_interface.get_n_draws()
 
-    def filter_location_ids(self, desired_location_hierarchy: pd.DataFrame = None) -> List[int]:
+    def filter_location_ids(self, hierarchy: pd.DataFrame = None) -> List[int]:
         """Get the list of location ids to model.
+
         This list is the intersection of a location metadata's
         locations, if provided, and the available locations in the infections
         directory.
         """
         regression_spec = self.load_specification()
         death_threshold = 10
-        draw_0_data = self.load_reported_epi_data()
-        import pdb; pdb.set_trace()
-        total_deaths = draw_0_data.groupby('location_id').deaths.sum()
+        total_deaths = (self.load_reported_epi_data()
+                        .loc[:, 'cumulative_deaths']
+                        .groupby('location_id')
+                        .max())
 
-        ies_locations = set(total_deaths.index.tolist())
-        threshold_locations = set(total_deaths[total_deaths > death_threshold].index.tolist())
+        past_infections_locations = set(self.load_summary('beta').reset_index().location_id)
+        above_threshold_locations = set(total_deaths[total_deaths > death_threshold].index)
         drop_locations = set(regression_spec.data.drop_locations)
 
-        if desired_location_hierarchy is None:
-            desired_locations = threshold_locations
+        if hierarchy is None:
+            desired_locations = above_threshold_locations
         else:
-            most_detailed = desired_location_hierarchy.most_detailed == 1
-            desired_locations = set(desired_location_hierarchy.loc[most_detailed, 'location_id'].tolist())
+            most_detailed = hierarchy.most_detailed == 1
+            desired_locations = set(hierarchy.loc[most_detailed, 'location_id'].tolist())
 
-        # Ies locations may be larger than desired locations, but we
+        # past infections locations may be larger than desired locations, but we
         # do not care about the extras, only what's missing.
-        ies_missing_locations = list(desired_locations - ies_locations)
+        past_infections_missing_locations = list(desired_locations - past_infections_locations)
         # Threshold locations is a subset of ies_locations
-        not_enough_deaths_locations = list(ies_locations - threshold_locations)
-        if drop_locations > threshold_locations:
-            raise ValueError(f'Attempting to drop locations {list(drop_locations - threshold_locations)} '
+        not_enough_deaths_locations = list(past_infections_locations - above_threshold_locations)
+        if drop_locations > above_threshold_locations:
+            raise ValueError(f'Attempting to drop locations {list(drop_locations - above_threshold_locations)} '
                              f'which are not present in modeled locations that meet the epidemiological '
                              f'threshold of {death_threshold} deaths.')
 
-        if ies_missing_locations:
+        if past_infections_missing_locations:
             logger.warning("Some locations present in location metadata are missing from the "
-                           f"infection models. Missing locations are {sorted(list(ies_missing_locations))}.")
+                           f"infection models. Missing locations are "
+                           f"{sorted(list(past_infections_missing_locations))}.")
         if not_enough_deaths_locations:
             logger.warning("Some locations present in location metadata do not meet the epidemiological "
                            f"threshold of {death_threshold} total deaths required for modeling. "
@@ -104,7 +108,7 @@ class RegressionDataInterface:
             logger.warning("Some locations present in the location metadata are being dropped. "
                            f"Locations being dropped are {sorted(list(drop_locations))}.")
 
-        return list((desired_locations & threshold_locations) - drop_locations)
+        return list((desired_locations & above_threshold_locations) - drop_locations)
 
     ####################
     # Prior Stage Data #

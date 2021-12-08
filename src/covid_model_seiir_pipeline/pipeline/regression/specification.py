@@ -46,6 +46,7 @@ class RegressionData:
     seir_covariate_priors_version: str = field(default='')
     output_root: str = field(default='')
     output_format: str = field(default='csv')
+    drop_locations: List[int] = field(default_factory=list)
 
     def to_dict(self) -> Dict:
         """Converts to a dict, coercing list-like items to lists."""
