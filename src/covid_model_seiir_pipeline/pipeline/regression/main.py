@@ -12,29 +12,27 @@ from covid_model_seiir_pipeline.pipeline.regression.workflow import RegressionWo
 
 
 def do_beta_regression(run_metadata: cli_tools.RunMetadata,
-                       specification: str,
-                       location_specification: Optional[str],
+                       specification: RegressionSpecification,
                        output_root: Optional[str], mark_best: bool, production_tag: str,
                        preprocess_only: bool,
                        with_debugger: bool,
                        input_versions: Dict[str, cli_tools.VersionInfo]) -> RegressionSpecification:
-    regression_spec = RegressionSpecification.from_path(specification)
-    regression_spec, run_metadata = cli_tools.resolve_version_info(regression_spec, run_metadata, input_versions)
+    specification, run_metadata = cli_tools.resolve_version_info(specification, run_metadata, input_versions)
 
-    output_root = cli_tools.get_output_root(output_root, regression_spec.data.output_root)
+    output_root = cli_tools.get_output_root(output_root, specification.data.output_root)
     cli_tools.setup_directory_structure(output_root, with_production=True)
     run_directory = cli_tools.make_run_directory(output_root)
 
-    regression_spec.data.output_root = str(run_directory)
+    specification.data.output_root = str(run_directory)
 
     run_metadata['output_path'] = str(run_directory)
-    run_metadata['regression_specification'] = regression_spec.to_dict()
+    run_metadata['regression_specification'] = specification.to_dict()
 
     cli_tools.configure_logging_to_files(run_directory)
     # noinspection PyTypeChecker
     main = cli_tools.monitor_application(beta_regression_main,
                                          logger, with_debugger)
-    app_metadata, _ = main(regression_spec, preprocess_only)
+    app_metadata, _ = main(specification, preprocess_only)
 
     cli_tools.finish_application(run_metadata, app_metadata,
                                  run_directory, mark_best, production_tag)
@@ -79,7 +77,6 @@ def beta_regression_main(app_metadata: cli_tools.Metadata,
 @cli_tools.with_version(paths.SEIR_REGRESSION_OUTPUTS, allow_default=False, name='coefficient')
 def regress(run_metadata,
             specification,
-            location_specification,
             output_root, mark_best, production_tag,
             preprocess_only,
             verbose, with_debugger,
@@ -90,7 +87,6 @@ def regress(run_metadata,
     do_beta_regression(
         run_metadata=run_metadata,
         specification=specification,
-        location_specification=location_specification,
         output_root=output_root,
         mark_best=mark_best,
         production_tag=production_tag,

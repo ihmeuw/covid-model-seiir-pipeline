@@ -9,17 +9,10 @@ from covid_model_seiir_pipeline.lib import (
 from covid_model_seiir_pipeline.pipeline.regression import (
     RegressionDataInterface,
     RegressionSpecification,
-    HospitalParameters,
 )
 from covid_model_seiir_pipeline.pipeline.forecasting.specification import (
     ForecastSpecification,
     ScenarioSpecification,
-)
-from covid_model_seiir_pipeline.pipeline.forecasting.model import (
-    RatioData,
-    HospitalMetrics,
-    HospitalCorrectionFactors,
-    HospitalCensusData,
 )
 
 
@@ -163,18 +156,18 @@ class ForecastDataInterface:
     def load_past_deaths(self, draw_id: int) -> pd.Series:
         return self._get_regression_data_interface().load_deaths(draw_id=draw_id)
 
-    def get_hospital_parameters(self) -> HospitalParameters:
+    def get_hospital_parameters(self):
         return self._get_regression_data_interface().load_specification().hospital_parameters
 
-    def load_hospital_usage(self) -> HospitalMetrics:
+    def load_hospital_usage(self):
         df = self._get_regression_data_interface().load_hospitalizations(measure='usage')
         return HospitalMetrics(**{metric: df[metric] for metric in df.columns})
 
-    def load_hospital_correction_factors(self) -> HospitalCorrectionFactors:
+    def load_hospital_correction_factors(self):
         df = self._get_regression_data_interface().load_hospitalizations(measure='correction_factors')
         return HospitalCorrectionFactors(**{metric: df[metric] for metric in df.columns})
 
-    def load_hospital_census_data(self) -> HospitalCensusData:
+    def load_hospital_census_data(self):
         return self._get_regression_data_interface().load_hospital_census_data()
 
     def load_hospital_bed_capacity(self) -> pd.DataFrame:
@@ -189,7 +182,7 @@ class ForecastDataInterface:
     def load_idr(self, draw_id: int) -> pd.DataFrame:
         return self._get_regression_data_interface().load_idr(draw_id=draw_id)
 
-    def load_ratio_data(self, draw_id: int) -> RatioData:
+    def load_ratio_data(self, draw_id: int):
         return self._get_regression_data_interface().load_ratio_data(draw_id=draw_id)
 
     ##########################

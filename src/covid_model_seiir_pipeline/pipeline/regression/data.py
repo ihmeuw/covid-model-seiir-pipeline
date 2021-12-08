@@ -30,11 +30,11 @@ class RegressionDataInterface:
 
     @classmethod
     def from_specification(cls, specification: RegressionSpecification) -> 'RegressionDataInterface':
-        fit_spec = FitSpecification.from_version_root(specification.data.fit_version)
+        fit_spec = FitSpecification.from_version_root(specification.data.seir_fit_version)
         fit_data_interface = FitDataInterface.from_specification(fit_spec)
 
-        if specification.data.priors_version:
-            priors_root = io.CovariatePriorsRoot(specification.data.priors_version)
+        if specification.data.seir_covariate_priors_version:
+            priors_root = io.CovariatePriorsRoot(specification.data.seir_covariate_priors_version)
         else:
             priors_root = None
 

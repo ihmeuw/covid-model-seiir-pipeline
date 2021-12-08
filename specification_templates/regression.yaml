@@ -1,7 +1,7 @@
 data:
-  fit_version: '2021_11_02.05'
+  seir_fit_version: '2021_12_08.01'
   coefficient_version: ''
-  priors_version: ''
+  seir_covariate_priors_version: ''
   output_root: ''
   output_format: 'parquet'
 workflow:

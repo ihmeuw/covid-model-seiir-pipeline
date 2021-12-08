@@ -41,9 +41,9 @@ class RegressionWorkflowSpecification(workflow.WorkflowSpecification):
 @dataclass
 class RegressionData:
     """Specifies the inputs and outputs for a regression"""
-    fit_version: str = field(default='best')
+    seir_fit_version: str = field(default='best')
     coefficient_version: str = field(default='')
-    priors_version: str = field(default='')
+    seir_covariate_priors_version: str = field(default='')
     output_root: str = field(default='')
     output_format: str = field(default='csv')
 
@@ -121,9 +121,6 @@ class RegressionSpecification(utilities.Specification):
                 spec_class(),
             )
             sub_specs[key] = spec_class(**spec_dict)
-
-        if sub_specs['data'].run_counties:
-            sub_specs['hospital_parameters'].compute_correction_factors = False
 
         # covariates
         cov_dicts = regression_spec_dict.get('covariates', {})

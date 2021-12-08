@@ -26,9 +26,7 @@ from covid_model_seiir_pipeline.lib.io.data_roots import (
     PostprocessingRoot,
     DiagnosticsRoot,
 
-    InfectionRoot,
     CovariateRoot,
-    WaningRoot,
     MortalityRatioRoot,
 )
 from covid_model_seiir_pipeline.lib.io.api import (
