@@ -37,7 +37,7 @@ def do_beta_regression(run_metadata: cli_tools.RunMetadata,
     cli_tools.finish_application(run_metadata, app_metadata,
                                  run_directory, mark_best, production_tag)
 
-    return regression_spec
+    return specification
 
 
 def beta_regression_main(app_metadata: cli_tools.Metadata,
@@ -51,6 +51,13 @@ def beta_regression_main(app_metadata: cli_tools.Metadata,
     # build directory structure and save metadata
     data_interface.make_dirs()
     data_interface.save_specification(regression_specification)
+
+    # Grab canonical location list from arguments
+    hierarchy = data_interface.load_hierarchy('pred')
+    # Filter to the intersection of what's available from the infection data.
+    location_ids = data_interface.filter_location_ids(hierarchy)
+    # save location info
+    data_interface.save_location_ids(location_ids)
 
     # build workflow and launch
     if not preprocess_only:
