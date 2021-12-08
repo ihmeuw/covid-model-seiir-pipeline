@@ -30,22 +30,22 @@ covariates:
     bounds: [-1000.0, 1000.0]
   pneumonia:
     gprior: [0.0, 1000.0]
-    bounds: [0.8, 1.3]
+    bounds: [0.0, 1000.0]
   mobility:
     gprior: [0.0, 1000.0]
     bounds: [0.0, 1000.0]
   mask_use:
     gprior: [0.0, 1000.0]
-    bounds: [-1000.0, -0.5]
+    bounds: [-1000.0, 0.0]
   testing:
     gprior: [0.0, 1000.0]
-    bounds: [-80.0, 0.0]
+    bounds: [-1000.0, 0.0]
   air_pollution_pm_2_5:
     gprior: [0.0, 1000.0]
     bounds: [0.0, 1000.0]
   smoking_prevalence:
     gprior: [0.0, 1000]
-    bounds: [0.0, 1.0]
+    bounds: [0.0, 1000.0]
   lri_mortality:
     gprior: [0.0, 1000.0]
     bounds: [0.0, 1000.0]
