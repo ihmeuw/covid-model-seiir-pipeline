@@ -82,8 +82,7 @@ def load_admissions_and_hfr(data_interface: 'RegressionDataInterface',
 
 def _load_admissions_and_hfr_draw(draw_id: int,
                                   data_interface: 'RegressionDataInterface') -> Tuple[pd.Series, pd.Series]:
-    past_infections_data = data_interface.load_past_infection_data(draw_id)
-    infections = clean_infection_data_measure(past_infections_data, 'infections')
+    infections = data_interface.load_posterior_epi_measures(draw_id, columns=['total_infections'])
     ratio_data = data_interface.load_ratio_data(draw_id)
 
     admissions = convert_infections(infections, ratio_data.ihr, ratio_data.infection_to_admission)
