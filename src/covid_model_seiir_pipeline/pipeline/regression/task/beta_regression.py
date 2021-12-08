@@ -22,7 +22,7 @@ def run_beta_regression(regression_version: str, draw_id: int) -> None:
 
     logger.info('Loading regression input data', context='read')
     hierarchy = data_interface.load_hierarchy('pred')
-    beta_fit = data_interface.load_beta_fit(draw_id, columns=['beta']).beta
+    beta_fit = data_interface.load_fit_beta(draw_id, columns=['beta']).beta
     covariates = data_interface.load_covariates(list(regression_specification.covariates))
     gaussian_priors = data_interface.load_priors(regression_specification.covariates.values())
     prior_coefficients = data_interface.load_prior_run_coefficients(draw_id=draw_id)

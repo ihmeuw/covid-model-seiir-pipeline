@@ -95,8 +95,35 @@ class RegressionDataInterface:
     def load_testing_data(self) -> pd.DataFrame:
         return self.fit_data_interface.load_testing_data()
 
-    def load_covariate(self, covariate: str, scenario: str) -> pd.DataFrame:
-        return self.fit_data_interface.load_covariate(covariate, scenario)
+    def load_covariate(self,
+                       covariate: str,
+                       covariate_version: str = 'reference',
+                       with_observed: bool = False) -> pd.DataFrame:
+        covariate_df = self.fit_data_interface.load_covariate(covariate, covariate_version)
+        location_ids = self.load_location_ids()
+        covariate_df = self._format_covariate_data(covariate_df, location_ids, with_observed)
+        covariate_df = (covariate_df
+                        .rename(columns={f'{covariate}_{covariate_version}': covariate})
+                        .loc[:, [covariate]])
+        return covariate_df
+
+    @staticmethod
+    def _format_covariate_data(dataset: pd.DataFrame, location_ids: List[int], with_observed: bool = False):
+        shared_locs = list(set(dataset.index.get_level_values('location_id')).intersection(location_ids))
+        dataset = dataset.loc[shared_locs]
+        if with_observed:
+            dataset = dataset.set_index('observed', append=True)
+        return dataset
+
+    def load_covariates(self, covariates: Iterable[str]) -> pd.DataFrame:
+        if not isinstance(covariates, dict):
+            covariates = {c: 'reference' for c in covariates}
+        covariate_data = []
+        for covariate, covariate_version in covariates.items():
+            if covariate != 'intercept':
+                covariate_data.append(self.load_covariate(covariate, covariate_version, with_observed=False))
+        covariate_data = reduce(lambda x, y: x.merge(y, left_index=True, right_index=True), covariate_data)
+        return covariate_data
 
     def load_covariate_info(self, covariate: str, info_type: str) -> pd.DataFrame:
         return self.fit_data_interface.load_covariate_info(covariate, info_type)
@@ -134,8 +161,8 @@ class RegressionDataInterface:
     def load_compartments(self, draw_id: int, columns: List[str] = None) -> pd.DataFrame:
         return self.fit_data_interface.load_compartments(draw_id, columns)
 
-    def load_beta_fit(self, draw_id: int, columns: List[str] = None) -> pd.DataFrame:
-        return self.fit_data_interface.load_beta_fit(draw_id, columns)
+    def load_fit_beta(self, draw_id: int, columns: List[str] = None) -> pd.DataFrame:
+        return self.fit_data_interface.load_fit_beta(draw_id, columns)
 
     def load_final_seroprevalence(self, draw_id: int, columns: List[str] = None) -> pd.DataFrame:
         return self.fit_data_interface.load_final_seroprevalence(draw_id, columns)
@@ -146,33 +173,6 @@ class RegressionDataInterface:
     ##########################
     # Covariate data loaders #
     ##########################
-
-    def load_covariate(self, covariate: str,
-                       covariate_version: str = 'reference',
-                       with_observed: bool = False,
-                       covariate_root: io.CovariateRoot = None) -> pd.DataFrame:
-        covariate_root = covariate_root if covariate_root is not None else self.covariate_root
-        location_ids = self.load_location_ids()
-        covariate_df = io.load(covariate_root[covariate](covariate_scenario=covariate_version))
-        covariate_df = self._format_covariate_data(covariate_df, location_ids, with_observed)
-        covariate_df = (covariate_df
-                        .rename(columns={f'{covariate}_{covariate_version}': covariate})
-                        .loc[:, [covariate]])
-        return covariate_df
-
-    def load_covariates(self, covariates: Iterable[str],
-                        covariate_root: io.CovariateRoot = None) -> pd.DataFrame:
-        if not isinstance(covariates, dict):
-            covariates = {c: 'reference' for c in covariates}
-        covariate_data = []
-        for covariate, covariate_version in covariates.items():
-            if covariate != 'intercept':
-                covariate_data.append(
-                    self.load_covariate(covariate, covariate_version,
-                                        with_observed=False, covariate_root=covariate_root)
-                )
-        covariate_data = reduce(lambda x, y: x.merge(y, left_index=True, right_index=True), covariate_data)
-        return covariate_data
 
     def load_priors(self, covariates: Iterable[CovariateSpecification]) -> Dict[str, pd.DataFrame]:
         cov_names = [cov.name for cov in covariates if cov.gprior == 'data']
@@ -234,15 +234,3 @@ class RegressionDataInterface:
         if self.coefficient_root:
             return io.load(self.coefficient_root.coefficients(draw_id=draw_id))
         return None
-
-    #########################
-    # Non-interface helpers #
-    #########################
-
-    @staticmethod
-    def _format_covariate_data(dataset: pd.DataFrame, location_ids: List[int], with_observed: bool = False):
-        shared_locs = list(set(dataset.index.get_level_values('location_id')).intersection(location_ids))
-        dataset = dataset.loc[shared_locs]
-        if with_observed:
-            dataset = dataset.set_index('observed', append=True)
-        return dataset

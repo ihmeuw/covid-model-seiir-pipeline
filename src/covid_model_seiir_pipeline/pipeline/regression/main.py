@@ -52,9 +52,6 @@ def beta_regression_main(app_metadata: cli_tools.Metadata,
     data_interface.make_dirs()
     data_interface.save_specification(regression_specification)
 
-    # Check to make sure we have all the covariates we need
-    data_interface.check_covariates(regression_specification.covariates)
-
     # build workflow and launch
     if not preprocess_only:
         regression_wf = RegressionWorkflow(regression_specification.data.output_root,
