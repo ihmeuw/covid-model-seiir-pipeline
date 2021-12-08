@@ -1,7 +1,7 @@
 data:
   fit_version: '2021_11_02.05'
   coefficient_version: ''
-  priors_version: '2021_05_31.01'
+  priors_version: ''
   output_root: ''
   output_format: 'parquet'
 workflow:
@@ -28,8 +28,7 @@ covariates:
     gprior: [0.0, 1000.0]
     bounds: [-1000.0, 1000.0]
   pneumonia:
-    group_level: 'super_region_id'
-    gprior: 'data'
+    gprior: [0.0, 1000.0]
     bounds: [0.8, 1.3]
   mobility:
     gprior: [0.0, 1000.0]
