@@ -90,7 +90,7 @@ class RegressionDataInterface:
         # do not care about the extras, only what's missing.
         past_infections_missing_locations = list(desired_locations - past_infections_locations)
         # Threshold locations is a subset of ies_locations
-        not_enough_deaths_locations = list(past_infections_locations - above_threshold_locations)
+        not_enough_deaths_locations = list((past_infections_locations - above_threshold_locations) & desired_locations)
         if drop_locations > above_threshold_locations:
             raise ValueError(f'Attempting to drop locations {list(drop_locations - above_threshold_locations)} '
                              f'which are not present in modeled locations that meet the epidemiological '
