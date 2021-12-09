@@ -117,7 +117,7 @@ def _single_group_system(t: float,
 
     vaccine_eligible = np.zeros(len(VACCINE_STATUS))
     # Transmission
-    for variant_to, vaccine_status in utils.cartesian_product((VARIANT, VACCINE_STATUS)):
+    for variant_to, vaccine_status in utils.cartesian_product((np.array(VARIANT), np.array(VACCINE_STATUS))):
         e_idx = COMPARTMENTS[COMPARTMENT.E, variant_to, vaccine_status]
         i_idx = COMPARTMENTS[COMPARTMENT.I, variant_to, vaccine_status]
         s_to_idx = COMPARTMENTS[COMPARTMENT.S, variant_to, vaccine_status]
@@ -130,7 +130,7 @@ def _single_group_system(t: float,
         transition_map[i_idx, s_to_idx] += gamma * group_y[i_idx]
         vaccine_eligible[vaccine_status] += group_y[s_to_idx]
 
-    for variant_from, vaccine_status in utils.cartesian_product((VARIANT, VACCINE_STATUS[:-1])):
+    for variant_from, vaccine_status in utils.cartesian_product((np.array(VARIANT), np.array(VACCINE_STATUS[:-1]))):
         new_e_from_s = 0.
         for variant_to in VARIANT:
             new_e_from_s += new_e[NEW_E[vaccine_status, variant_from, variant_to]]

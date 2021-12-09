@@ -139,6 +139,7 @@ def _run_loc_ode_model(ic_and_params,
                                 index=initial_condition.index)
         loc_chis['location_id'] = location_id
     except:
+        raise
         if DEBUG:
             raise
         loc_compartments = pd.DataFrame(
@@ -286,8 +287,8 @@ def compute_chis(time, t_solve, y_solve, phis, chis):
                                                       TRACKING_COMPARTMENT.NewE, from_variant, VACCINE_INDEX_TYPE.all]]
             denominator = cumulative_new_e_variant[-1]
 
-            if denominator:
-                for epi_measure, to_variant in cartesian_product((EPI_MEASURE, VARIANT[1:])):
+            if denominator:                
+                for epi_measure, to_variant in cartesian_product((np.array(EPI_MEASURE), np.array(VARIANT[1:]))):
                     numerator = 0.
                     idx = CHI[from_variant, to_variant, epi_measure]
 

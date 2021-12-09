@@ -23,23 +23,23 @@ def subset_risk_group(x: np.ndarray, risk_group: int):
     return x[group_start:group_end]
 
 
-@numba.njit(cache=True)
+@numba.njit
 def cartesian_product(arrays):
     """Generate a cartesian product of input arrays."""
     n = 1
     for x in arrays:
-        n *= x.size
-    out = np.zeros((n, len(arrays)))
+        n *= len(x)
+    out = np.zeros((n, len(arrays)), dtype=np.int64)
 
     for i in range(len(arrays)):
-        m = int(n / arrays[i].size)
+        m = int(n / len(arrays[i]))
         out[:n, i] = np.repeat(arrays[i], m)
-        n //= arrays[i].size
+        n //= len(arrays[i])
 
-    n = arrays[-1].size
+    n = len(arrays[-1])
     for k in range(len(arrays)-2, -1, -1):
-        n *= arrays[k].size
-        m = int(n / arrays[k].size)
-        for j in range(1, arrays[k].size):
+        n *= len(arrays[k])
+        m = int(n / len(arrays[k]))
+        for j in range(1, len(arrays[k])):
             out[j*m:(j+1)*m,k+1:] = out[0:m,k+1:]
     return out

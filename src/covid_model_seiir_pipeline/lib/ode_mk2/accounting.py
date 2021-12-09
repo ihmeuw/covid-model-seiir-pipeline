@@ -37,7 +37,7 @@ def compute_tracking_compartments(t: float,
                                   group_outcomes: np.ndarray,
                                   transition_map: np.ndarray) -> np.ndarray:
     for variant in VARIANT:
-        for variant_from, vaccine_status in cartesian_product((VARIANT, VACCINE_STATUS)):
+        for variant_from, vaccine_status in cartesian_product((np.array(VARIANT), np.array(VACCINE_STATUS))):
             group_dy[TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewE, variant, vaccine_status]] += (
                 new_e[NEW_E[vaccine_status, variant_from, variant]]
             )

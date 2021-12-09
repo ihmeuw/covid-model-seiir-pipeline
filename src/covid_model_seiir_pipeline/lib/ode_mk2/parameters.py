@@ -47,7 +47,7 @@ def make_aggregates(y: np.ndarray) -> np.ndarray:
         )
         # Infectious by variant
 
-        for variant, vaccine_status in cartesian_product((VARIANT, VACCINE_STATUS)):
+        for variant, vaccine_status in cartesian_product((np.array(VARIANT), np.array(VACCINE_STATUS))):
             aggregates[AGGREGATES[COMPARTMENT.I, variant]] += (
                 group_y[COMPARTMENTS[COMPARTMENT.I, variant, vaccine_status]]
             )
@@ -85,7 +85,9 @@ def make_new_e(t: float,
             group_new_e = subset_risk_group(new_e, risk_group)
             group_effective_susceptible = subset_risk_group(effective_susceptible, risk_group)
             
-            for variant_to, variant_from, vaccine_status in cartesian_product((VARIANT, VARIANT, VACCINE_STATUS)):
+            for variant_to, variant_from, vaccine_status in cartesian_product((np.array(VARIANT), 
+                                                                               np.array(VARIANT), 
+                                                                               np.array(VACCINE_STATUS))):
                 kappa = parameters[PARAMETERS[EPI_VARIANT_PARAMETER.kappa, variant_to, EPI_MEASURE.infection]]
                 infectious = aggregates[AGGREGATES[COMPARTMENT.I, variant_to]]**alpha
                 chi_infection = group_chis[CHI[variant_from, variant_to, EPI_MEASURE.infection]]
@@ -114,7 +116,9 @@ def make_new_e(t: float,
             group_rates = subset_risk_group(rates, risk_group)
             group_effective_susceptible = subset_risk_group(effective_susceptible, risk_group)
         
-            for variant_to, variant_from, vaccine_status in cartesian_product((VARIANT, VARIANT, VACCINE_STATUS)):
+            for variant_to, variant_from, vaccine_status in cartesian_product((np.array(VARIANT), 
+                                                                               np.array(VARIANT), 
+                                                                               np.array(VACCINE_STATUS))):
                 kappa_infection = parameters[PARAMETERS[EPI_VARIANT_PARAMETER.kappa, variant_to, EPI_MEASURE.infection]]
                 infectious = aggregates[AGGREGATES[COMPARTMENT.I, variant_to]] ** alpha
                 chi_infection = group_chis[CHI[variant_from, variant_to, EPI_MEASURE.infection]]
@@ -158,7 +162,7 @@ def make_new_e(t: float,
             group_rates = subset_risk_group(rates, risk_group)            
             group_outcomes = subset_risk_group(outcomes, risk_group)
 
-            for variant, epi_measure in cartesian_product((VARIANT, REPORTED_EPI_MEASURE)):
+            for variant, epi_measure in cartesian_product((np.array(VARIANT), np.array(REPORTED_EPI_MEASURE))):
                 naive_infections = group_new_e[NEW_E[VACCINE_STATUS.unvaccinated, VARIANT.none, variant]]
                 group_outcomes[EPI_MEASURE.infection] += naive_infections
                 if betas[epi_measure] > 0.:
