@@ -30,6 +30,9 @@ from covid_model_seiir_pipeline.lib.ode_mk2.system import (
 from covid_model_seiir_pipeline.lib.ode_mk2.debug import (
     DEBUG,
 )
+from covid_model_seiir_pipeline.lib.ode_mk2.utils import (
+    cartesian_product,
+)
 
 
 SOLVER_DT: float = 0.1
@@ -284,17 +287,16 @@ def compute_chis(time, t_solve, y_solve, phis, chis):
             denominator = cumulative_new_e_variant[-1]
 
             if denominator:
-                for epi_measure in EPI_MEASURE:
-                    for to_variant in VARIANT[1:]:
-                        numerator = 0.
-                        idx = CHI[from_variant, to_variant, epi_measure]
+                for epi_measure, to_variant in cartesian_product((EPI_MEASURE, VARIANT[1:])):
+                    numerator = 0.
+                    idx = CHI[from_variant, to_variant, epi_measure]
 
-                        for tau in range(1, t_end):
-                            numerator += (
-                                (cumulative_new_e_variant[-tau] - cumulative_new_e_variant[-tau - 1]) * phis[tau, idx]
-                            )
+                    for tau in range(1, t_end):
+                        numerator += (
+                            (cumulative_new_e_variant[-tau] - cumulative_new_e_variant[-tau - 1]) * phis[tau, idx]
+                        )
 
-                        group_chi[idx] = numerator / denominator
+                    group_chi[idx] = numerator / denominator
 
         group_chi_start = risk_group * num_chis
         group_chi_end = (risk_group + 1) * num_chis

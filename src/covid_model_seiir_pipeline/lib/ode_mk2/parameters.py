@@ -33,6 +33,7 @@ from covid_model_seiir_pipeline.lib.ode_mk2.debug import (
 )
 from covid_model_seiir_pipeline.lib.ode_mk2.utils import (
     subset_risk_group,
+    cartesian_product,
 )
 
 
@@ -45,11 +46,11 @@ def make_aggregates(y: np.ndarray) -> np.ndarray:
             group_y[:COMPARTMENTS.max() + 1].sum()
         )
         # Infectious by variant
-        for variant in VARIANT:
-            for vaccine_status in VACCINE_STATUS:
-                aggregates[AGGREGATES[COMPARTMENT.I, variant]] += (
-                    group_y[COMPARTMENTS[COMPARTMENT.I, variant, vaccine_status]]
-                )
+
+        for variant, vaccine_status in cartesian_product((VARIANT, VACCINE_STATUS)):
+            aggregates[AGGREGATES[COMPARTMENT.I, variant]] += (
+                group_y[COMPARTMENTS[COMPARTMENT.I, variant, vaccine_status]]
+            )
 
     if DEBUG:
         assert np.all(np.isfinite(aggregates))
@@ -84,22 +85,19 @@ def make_new_e(t: float,
             group_new_e = subset_risk_group(new_e, risk_group)
             group_effective_susceptible = subset_risk_group(effective_susceptible, risk_group)
             
-            for variant_to in VARIANT:            
+            for variant_to, variant_from, vaccine_status in cartesian_product((VARIANT, VARIANT, VACCINE_STATUS)):
                 kappa = parameters[PARAMETERS[EPI_VARIANT_PARAMETER.kappa, variant_to, EPI_MEASURE.infection]]
                 infectious = aggregates[AGGREGATES[COMPARTMENT.I, variant_to]]**alpha
-                
-                for variant_from in VARIANT:
-                    chi_infection = group_chis[CHI[variant_from, variant_to, EPI_MEASURE.infection]]
-                    
-                    for vaccine_status in VACCINE_STATUS:
-                        susceptible = group_y[COMPARTMENTS[COMPARTMENT.S, variant_from, vaccine_status]]
-                        eta_infection = group_etas[ETA[vaccine_status, variant_to, EPI_MEASURE.infection]]
-                        s_effective = (1 - eta_infection) * (1 - chi_infection) * susceptible
-                        if kappa > 0:
-                            group_effective_susceptible[EFFECTIVE_SUSCEPTIBLE[variant_to, vaccine_status]] += s_effective
-                        group_new_e[NEW_E[vaccine_status, variant_from, variant_to]] += (
-                            beta * kappa * s_effective * infectious / n_total
-                        )
+                chi_infection = group_chis[CHI[variant_from, variant_to, EPI_MEASURE.infection]]
+
+                susceptible = group_y[COMPARTMENTS[COMPARTMENT.S, variant_from, vaccine_status]]
+                eta_infection = group_etas[ETA[vaccine_status, variant_to, EPI_MEASURE.infection]]
+                s_effective = (1 - eta_infection) * (1 - chi_infection) * susceptible
+                if kappa > 0:
+                    group_effective_susceptible[EFFECTIVE_SUSCEPTIBLE[variant_to, vaccine_status]] += s_effective
+                group_new_e[NEW_E[vaccine_status, variant_from, variant_to]] += (
+                    beta * kappa * s_effective * infectious / n_total
+                )
 
     else:        
         total_variant_weight = np.zeros(max(EPI_MEASURE) + 1)
@@ -116,39 +114,34 @@ def make_new_e(t: float,
             group_rates = subset_risk_group(rates, risk_group)
             group_effective_susceptible = subset_risk_group(effective_susceptible, risk_group)
         
-            for variant_to in VARIANT:
+            for variant_to, variant_from, vaccine_status in cartesian_product((VARIANT, VARIANT, VACCINE_STATUS)):
                 kappa_infection = parameters[PARAMETERS[EPI_VARIANT_PARAMETER.kappa, variant_to, EPI_MEASURE.infection]]
                 infectious = aggregates[AGGREGATES[COMPARTMENT.I, variant_to]] ** alpha
-                
-                for variant_from in VARIANT:
+                chi_infection = group_chis[CHI[variant_from, variant_to, EPI_MEASURE.infection]]
 
-                    chi_infection = group_chis[CHI[variant_from, variant_to, EPI_MEASURE.infection]]
-                    
-                    for vaccine_status in VACCINE_STATUS:
-                        
-                        susceptible = group_y[COMPARTMENTS[COMPARTMENT.S, variant_from, vaccine_status]]
-                        eta_infection = group_etas[ETA[vaccine_status, variant_to, EPI_MEASURE.infection]]
-                        
-                        s_effective = (1 - eta_infection) * (1 - chi_infection) * susceptible                                                
-                        if kappa_infection > 0:
-                            group_effective_susceptible[EFFECTIVE_SUSCEPTIBLE[variant_from, variant_to, vaccine_status]] += s_effective
-                        
-                        variant_weight = kappa_infection * s_effective * infectious / n_total
-                        
-                        for epi_measure in REPORTED_EPI_MEASURE:                            
-                            base_rate = group_base_rates[BASE_RATES[epi_measure]]                            
-                            kappa = parameters[PARAMETERS[EPI_VARIANT_PARAMETER.kappa, variant_to, epi_measure]]
-                            
-                            chi = group_chis[CHI[variant_from, variant_to, epi_measure]]
-                            eta = group_etas[ETA[vaccine_status, variant_to, epi_measure]]
-                            
-                            rate = kappa * (1 - eta) * (1 - chi) * base_rate
-                            total_variant_weight[epi_measure] += rate * variant_weight 
-                            group_rates[RATES[epi_measure, variant_from, variant_to, vaccine_status]] = rate                            
-                        
-                        total_variant_weight[EPI_MEASURE.infection] += variant_weight
-                        group_new_e[NEW_E[vaccine_status, variant_from, variant_to]] += variant_weight
-                        
+                susceptible = group_y[COMPARTMENTS[COMPARTMENT.S, variant_from, vaccine_status]]
+                eta_infection = group_etas[ETA[vaccine_status, variant_to, EPI_MEASURE.infection]]
+
+                s_effective = (1 - eta_infection) * (1 - chi_infection) * susceptible
+                if kappa_infection > 0:
+                    group_effective_susceptible[EFFECTIVE_SUSCEPTIBLE[variant_from, variant_to, vaccine_status]] += s_effective
+
+                variant_weight = kappa_infection * s_effective * infectious / n_total
+
+                for epi_measure in REPORTED_EPI_MEASURE:
+                    base_rate = group_base_rates[BASE_RATES[epi_measure]]
+                    kappa = parameters[PARAMETERS[EPI_VARIANT_PARAMETER.kappa, variant_to, epi_measure]]
+
+                    chi = group_chis[CHI[variant_from, variant_to, epi_measure]]
+                    eta = group_etas[ETA[vaccine_status, variant_to, epi_measure]]
+
+                    rate = kappa * (1 - eta) * (1 - chi) * base_rate
+                    total_variant_weight[epi_measure] += rate * variant_weight
+                    group_rates[RATES[epi_measure, variant_from, variant_to, vaccine_status]] = rate
+
+                total_variant_weight[EPI_MEASURE.infection] += variant_weight
+                group_new_e[NEW_E[vaccine_status, variant_from, variant_to]] += variant_weight
+
         beta_weight = 0.        
         for epi_measure in REPORTED_EPI_MEASURE:
             count = parameters[PARAMETERS[EPI_PARAMETER.count, VARIANT_GROUP.all, epi_measure]]
@@ -165,16 +158,15 @@ def make_new_e(t: float,
             group_rates = subset_risk_group(rates, risk_group)            
             group_outcomes = subset_risk_group(outcomes, risk_group)
 
-            for variant in VARIANT:
+            for variant, epi_measure in cartesian_product((VARIANT, REPORTED_EPI_MEASURE)):
                 naive_infections = group_new_e[NEW_E[VACCINE_STATUS.unvaccinated, VARIANT.none, variant]]
                 group_outcomes[EPI_MEASURE.infection] += naive_infections
-                for epi_measure in REPORTED_EPI_MEASURE:
-                    if betas[epi_measure] > 0.:
-                        idx = RATES[epi_measure, VARIANT.none, variant, VACCINE_STATUS.unvaccinated]
-                        r = group_rates[idx]
-                        group_outcomes[epi_measure] += (
-                            r * naive_infections * betas[epi_measure] / betas[EPI_MEASURE.infection]
-                        )
+                if betas[epi_measure] > 0.:
+                    idx = RATES[epi_measure, VARIANT.none, variant, VACCINE_STATUS.unvaccinated]
+                    r = group_rates[idx]
+                    group_outcomes[epi_measure] += (
+                        r * naive_infections * betas[epi_measure] / betas[EPI_MEASURE.infection]
+                    )
         
     if DEBUG:
         assert np.all(np.isfinite(new_e))

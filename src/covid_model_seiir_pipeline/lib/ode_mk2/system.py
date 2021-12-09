@@ -117,33 +117,31 @@ def _single_group_system(t: float,
 
     vaccine_eligible = np.zeros(len(VACCINE_STATUS))
     # Transmission
-    for vaccine_status in VACCINE_STATUS:
+    for variant_to, vaccine_status in utils.cartesian_product((VARIANT, VACCINE_STATUS)):
+        e_idx = COMPARTMENTS[COMPARTMENT.E, variant_to, vaccine_status]
+        i_idx = COMPARTMENTS[COMPARTMENT.I, variant_to, vaccine_status]
+        s_to_idx = COMPARTMENTS[COMPARTMENT.S, variant_to, vaccine_status]
+
+        for variant_from in VARIANT:
+            s_from_idx = COMPARTMENTS[COMPARTMENT.S, variant_from, vaccine_status]
+            transition_map[s_from_idx, e_idx] += new_e[NEW_E[vaccine_status, variant_from, variant_to]]
+
+        transition_map[e_idx, i_idx] += sigma * group_y[e_idx]
+        transition_map[i_idx, s_to_idx] += gamma * group_y[i_idx]
+        vaccine_eligible[vaccine_status] += group_y[s_to_idx]
+
+    for variant_from, vaccine_status in utils.cartesian_product((VARIANT, VACCINE_STATUS[:-1])):
+        new_e_from_s = 0.
         for variant_to in VARIANT:
-            e_idx = COMPARTMENTS[COMPARTMENT.E, variant_to, vaccine_status]
-            i_idx = COMPARTMENTS[COMPARTMENT.I, variant_to, vaccine_status]
-            s_to_idx = COMPARTMENTS[COMPARTMENT.S, variant_to, vaccine_status]
-
-            for variant_from in VARIANT:
-                s_from_idx = COMPARTMENTS[COMPARTMENT.S, variant_from, vaccine_status]
-                transition_map[s_from_idx, e_idx] += new_e[NEW_E[vaccine_status, variant_from, variant_to]]
-            transition_map[e_idx, i_idx] += sigma * group_y[e_idx]
-            transition_map[i_idx, s_to_idx] += gamma * group_y[i_idx]
-
-            vaccine_eligible[vaccine_status] += group_y[s_to_idx]
-
-    for vaccine_status in VACCINE_STATUS[:-1]:
-        for variant in VARIANT:
-            new_e_from_s = 0.
-            for variant_to in VARIANT:
-                new_e_from_s += new_e[NEW_E[vaccine_status, variant, variant_to]]
-            s_from_idx = COMPARTMENTS[COMPARTMENT.S, variant, vaccine_status]
-            s_to_idx = COMPARTMENTS[COMPARTMENT.S, variant, vaccine_status + 1]
-            expected_vaccines = (
-                utils.safe_divide(group_y[s_from_idx], vaccine_eligible[vaccine_status])
-                * group_vaccines[vaccine_status]
-            )
-            to_vaccinate = min(expected_vaccines, group_y[s_from_idx] - new_e_from_s)
-            transition_map[s_from_idx, s_to_idx] += to_vaccinate
+            new_e_from_s += new_e[NEW_E[vaccine_status, variant_from, variant_to]]
+        s_from_idx = COMPARTMENTS[COMPARTMENT.S, variant_from, vaccine_status]
+        s_to_idx = COMPARTMENTS[COMPARTMENT.S, variant_from, vaccine_status + 1]
+        expected_vaccines = (
+            utils.safe_divide(group_y[s_from_idx], vaccine_eligible[vaccine_status])
+            * group_vaccines[vaccine_status]
+        )
+        to_vaccinate = min(expected_vaccines, group_y[s_from_idx] - new_e_from_s)
+        transition_map[s_from_idx, s_to_idx] += to_vaccinate
 
     inflow = transition_map.sum(axis=0)
     outflow = transition_map.sum(axis=1)
@@ -165,6 +163,3 @@ def _single_group_system(t: float,
     )
 
     return group_dy
-
-
-

@@ -23,6 +23,9 @@ from covid_model_seiir_pipeline.lib.ode_mk2.debug import (
     DEBUG,
     Printer
 )
+from covid_model_seiir_pipeline.lib.ode_mk2.utils import (
+    cartesian_product,
+)
 
 
 @numba.njit
@@ -34,18 +37,17 @@ def compute_tracking_compartments(t: float,
                                   group_outcomes: np.ndarray,
                                   transition_map: np.ndarray) -> np.ndarray:
     for variant in VARIANT:
-        for vaccine_status in VACCINE_STATUS:
-            for variant_from in VARIANT:
-                group_dy[TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewE, variant, vaccine_status]] += (
+        for variant_from, vaccine_status in cartesian_product((VARIANT, VACCINE_STATUS)):
+            group_dy[TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewE, variant, vaccine_status]] += (
+                new_e[NEW_E[vaccine_status, variant_from, variant]]
+            )
+            group_dy[TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.EffectiveSusceptible, variant, vaccine_status]] += (
+                effective_susceptible[EFFECTIVE_SUSCEPTIBLE[variant_from, variant, vaccine_status]]
+            )
+            if variant_from == VARIANT.none:
+                group_dy[TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewENaive, variant, vaccine_status]] += (
                     new_e[NEW_E[vaccine_status, variant_from, variant]]
                 )
-                group_dy[TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.EffectiveSusceptible, variant, vaccine_status]] += (
-                    effective_susceptible[EFFECTIVE_SUSCEPTIBLE[variant_from, variant, vaccine_status]]
-                )
-                if variant_from == VARIANT.none:
-                    group_dy[TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewENaive, variant, vaccine_status]] += (
-                        new_e[NEW_E[vaccine_status, variant_from, variant]]
-                    )
 
         group_dy[TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewVaccination, variant, VACCINE_STATUS.unvaccinated]] += (
             transition_map[COMPARTMENTS[COMPARTMENT.S, variant, VACCINE_STATUS.unvaccinated],
