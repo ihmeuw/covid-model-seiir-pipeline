@@ -75,15 +75,22 @@ def system(t: float,
         group_effective_susceptible = utils.subset_risk_group(effective_susceptible, risk_group)
         group_outcomes = utils.subset_risk_group(outcomes, risk_group)
 
-        group_dy = _single_group_system(
+        group_dy, transition_map = single_group_system(
             t,
             group_y,
             group_new_e,
-            group_effective_susceptible,
-            beta,
             params,
             group_vaccines,
+        )
+
+        group_dy = accounting.compute_tracking_compartments(
+            t,
+            group_dy,
+            group_new_e,
+            group_effective_susceptible,
+            beta,
             group_outcomes,
+            transition_map,
         )
 
         group_dy = escape_variant.maybe_invade(
@@ -102,14 +109,11 @@ def system(t: float,
 
 
 @numba.njit
-def _single_group_system(t: float,
-                         group_y: np.ndarray,
-                         new_e: np.ndarray,
-                         effective_susceptible: np.ndarray,
-                         beta: np.ndarray,
-                         params: np.ndarray,
-                         group_vaccines: np.ndarray,
-                         group_outcomes: np.ndarray,):
+def single_group_system(t: float,
+                        group_y: np.ndarray,
+                        new_e: np.ndarray,
+                        params: np.ndarray,
+                        group_vaccines: np.ndarray):
     transition_map = np.zeros((group_y.size, group_y.size))
 
     sigma = params[PARAMETERS[BASE_PARAMETER.sigma, VARIANT_GROUP.all, EPI_MEASURE.infection]]
@@ -151,15 +155,5 @@ def _single_group_system(t: float,
         assert np.all(np.isfinite(group_dy))
         assert np.all(group_y + group_dy >= -1e-7)
         assert group_dy.sum() < 1e-5
-       
-    group_dy = accounting.compute_tracking_compartments(
-        t, 
-        group_dy,
-        new_e,
-        effective_susceptible,
-        beta,
-        group_outcomes,
-        transition_map,
-    )
 
-    return group_dy
+    return group_dy, transition_map
