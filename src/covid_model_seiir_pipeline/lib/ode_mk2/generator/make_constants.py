@@ -313,7 +313,7 @@ def make_specs() -> str:
         out += f'{spec_name} = np.full(('
         out += ', '.join([f'len({inflection.underscore(axis_primitive).upper()})'
                           for axis_primitive in spec.axes_primitives])
-        out += '), -1, dtype=np.int64)\n'
+        out += '), TOMBSTONE, dtype=np.int64)\n'
 
         count = counts[spec.offset]
         field_keys, field_names = unpack_spec_fields(spec)
