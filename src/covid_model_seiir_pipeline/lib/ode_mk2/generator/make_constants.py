@@ -210,6 +210,7 @@ SPECS = {
         axes_primitives=['tracking_compartment_type', 'variant_index_type', 'agg_index_type'],
         field_specs=[
             ['tracking_compartment', 'variant', 'vaccine_status'],
+            ['NewE', 'variant', 'all'],
             ['beta', 'none', 'all'],
             ['beta', 'none', 'death'],
             ['beta', 'none', 'admission'],
@@ -313,7 +314,7 @@ def make_specs() -> str:
         out += f'{spec_name} = np.full(('
         out += ', '.join([f'len({inflection.underscore(axis_primitive).upper()})'
                           for axis_primitive in spec.axes_primitives])
-        out += '), -1, dtype=np.int64)\n'
+        out += '), TOMBSTONE, dtype=np.int64)\n'
 
         count = counts[spec.offset]
         field_keys, field_names = unpack_spec_fields(spec)
