@@ -4,6 +4,7 @@ from typing import Tuple
 
 from covid_model_seiir_pipeline.lib.ode_mk2.constants import (
     TOMBSTONE,
+    SYSTEM_TYPE,
 
     COMPARTMENT_TYPE,
     RISK_GROUP,
@@ -61,63 +62,22 @@ def make_aggregates(y: np.ndarray) -> np.ndarray:
 
 
 @numba.njit
-def make_new_e(t: float,
-               y: np.ndarray,
-               parameters: np.ndarray,
-               base_rates: np.ndarray,
-               aggregates: np.ndarray,
-               etas: np.ndarray,
-               chis: np.ndarray,
-               forecast: bool) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
-
-    if forecast:
-        raise
-    else:
-        total_variant_weight, variant_weight, effective_susceptible, rates = compute_intermediate_epi_parameters(
-            t,
-            y,
-            parameters,
-            base_rates,
-            aggregates,
-            etas,
-            chis,
-        )
-        betas = compute_betas(parameters, total_variant_weight)
-        new_e = betas[EPI_MEASURE.infection] * variant_weight
-
-        for risk_group in RISK_GROUP:
-            group_rates = subset_risk_group(rates, risk_group)
-            for epi_measure in REPORTED_EPI_MEASURE:
-                adjustment = safe_divide(betas[epi_measure], betas[EPI_MEASURE.infection])
-                iteritems = cartesian_product((np.array(VARIANT), np.array(VARIANT), np.array(VACCINE_STATUS)))
-                for variant_to, variant_from, vaccine_status in iteritems:
-                    group_rates[RATES[vaccine_status, variant_from, variant_to, epi_measure]] *= adjustment
-        
-    if DEBUG:
-        assert np.all(np.isfinite(new_e))
-        assert np.all(new_e >= 0.)
-        assert np.all(new_e < 1e7)
-        assert np.all(np.isfinite(effective_susceptible))
-        assert np.all(effective_susceptible >= 0.)
-        assert np.all(np.isfinite(betas))
-        assert np.all(betas >= 0.)
-    
-    return new_e, effective_susceptible, betas, rates
-
-
-@numba.njit
 def compute_intermediate_epi_parameters(t: float,
                                         y: np.ndarray,
                                         parameters: np.ndarray,
                                         base_rates: np.ndarray,
                                         aggregates: np.ndarray,
                                         etas: np.ndarray,
-                                        chis: np.ndarray) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+                                        chis: np.ndarray,
+                                        system_type: int) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+    if system_type != SYSTEM_TYPE.rates_and_measures:
+        raise
+
     n_total = aggregates[AGGREGATES[COMPARTMENT_TYPE.N, VARIANT_GROUP.total]]
     alpha = parameters[PARAMETERS[BASE_PARAMETER.alpha, VARIANT_GROUP.all, EPI_MEASURE.infection]]
 
     total_variant_weight = np.zeros(VARIANT_WEIGHTS.max() + 1)
-    variant_weight = np.zeros(2 * (NEW_E.max() + 1))
+    new_e = np.zeros(2 * (NEW_E.max() + 1))
     effective_susceptible = np.zeros(2 * (EFFECTIVE_SUSCEPTIBLE.max() + 1))
     rates = np.zeros(2 * (RATES.max() + 1))
 
@@ -128,7 +88,7 @@ def compute_intermediate_epi_parameters(t: float,
         group_chis = subset_risk_group(chis, risk_group)
 
         group_rates = subset_risk_group(rates, risk_group)
-        group_variant_weight = subset_risk_group(variant_weight, risk_group)
+        group_new_e = subset_risk_group(new_e, risk_group)
         group_effective_susceptible = subset_risk_group(effective_susceptible, risk_group)
 
         iteritems = cartesian_product((np.array(VARIANT), np.array(VARIANT), np.array(VACCINE_STATUS)))
@@ -154,12 +114,25 @@ def compute_intermediate_epi_parameters(t: float,
                 group_rates[RATES[vaccine_status, variant_from, variant_to, epi_measure]] = rate
 
             total_variant_weight[EPI_MEASURE.infection] += weight
-            group_variant_weight[NEW_E[vaccine_status, variant_from, variant_to]] += weight
+            group_new_e[NEW_E[vaccine_status, variant_from, variant_to]] += weight
             if kappa_infection > 0:
                 eff_s_idx = EFFECTIVE_SUSCEPTIBLE[vaccine_status, variant_from, variant_to]
                 group_effective_susceptible[eff_s_idx] += s_effective
 
-    return total_variant_weight, variant_weight, effective_susceptible, rates
+    betas = compute_betas(parameters, total_variant_weight)
+    rates = do_rates_adjustment(rates, betas)
+    new_e = betas[EPI_MEASURE.infection] * new_e
+
+    if DEBUG:
+        assert np.all(np.isfinite(new_e))
+        assert np.all(new_e >= 0.)
+        assert np.all(new_e < 1e7)
+        assert np.all(np.isfinite(effective_susceptible))
+        assert np.all(effective_susceptible >= 0.)
+        assert np.all(np.isfinite(betas))
+        assert np.all(betas >= 0.)
+
+    return new_e, effective_susceptible, betas, rates
 
 
 @numba.njit
@@ -176,3 +149,16 @@ def compute_betas(parameters: np.ndarray,
             beta_weight += weight
     betas[EPI_MEASURE.infection] /= beta_weight
     return betas
+
+
+@numba.njit
+def do_rates_adjustment(rates: np.ndarray, betas: np.ndarray) -> np.ndarray:
+    for risk_group in RISK_GROUP:
+        group_rates = subset_risk_group(rates, risk_group)
+        for epi_measure in REPORTED_EPI_MEASURE:
+            adjustment = safe_divide(betas[epi_measure], betas[EPI_MEASURE.infection])
+            iteritems = cartesian_product((np.array(VARIANT), np.array(VARIANT), np.array(VACCINE_STATUS)))
+            for variant_to, variant_from, vaccine_status in iteritems:
+                group_rates[RATES[vaccine_status, variant_from, variant_to, epi_measure]] *= adjustment
+
+    return rates
