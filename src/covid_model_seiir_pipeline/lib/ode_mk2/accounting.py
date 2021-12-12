@@ -45,7 +45,7 @@ def compute_tracking_compartments(t: float,
                 new_e[NEW_E[vaccine_status, variant_from, variant]]
             )
             group_dy[TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.EffectiveSusceptible, variant, vaccine_status]] += (
-                effective_susceptible[EFFECTIVE_SUSCEPTIBLE[variant_from, variant, vaccine_status]]
+                effective_susceptible[EFFECTIVE_SUSCEPTIBLE[vaccine_status, variant_from, variant]]
             )
             if variant_from == VARIANT.none:
                 group_dy[TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewENaive, variant, vaccine_status]] += (
@@ -53,12 +53,12 @@ def compute_tracking_compartments(t: float,
                 )
 
         group_dy[TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewVaccination, variant, VACCINE_STATUS.unvaccinated]] += (
-            transition_map[COMPARTMENTS[COMPARTMENT.S, variant, VACCINE_STATUS.unvaccinated],
-                           COMPARTMENTS[COMPARTMENT.S, variant, VACCINE_STATUS.vaccinated]]
+            transition_map[COMPARTMENTS[COMPARTMENT.S, VACCINE_STATUS.unvaccinated, variant],
+                           COMPARTMENTS[COMPARTMENT.S, VACCINE_STATUS.vaccinated, variant]]
         )
         group_dy[TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewBooster, variant, VACCINE_STATUS.vaccinated]] += (
-            transition_map[COMPARTMENTS[COMPARTMENT.S, variant, VACCINE_STATUS.vaccinated],
-                           COMPARTMENTS[COMPARTMENT.S, variant, VACCINE_STATUS.booster]]
+            transition_map[COMPARTMENTS[COMPARTMENT.S, VACCINE_STATUS.vaccinated, variant],
+                           COMPARTMENTS[COMPARTMENT.S, VACCINE_STATUS.booster, variant]]
         )    
     for agg_idx, epi_idx in ((AGG_INDEX_TYPE.all, EPI_MEASURE.infection),
                              (AGG_INDEX_TYPE.death, EPI_MEASURE.death),

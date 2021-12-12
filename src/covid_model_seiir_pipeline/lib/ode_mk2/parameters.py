@@ -49,7 +49,7 @@ def make_aggregates(y: np.ndarray) -> np.ndarray:
 
         for variant, vaccine_status in cartesian_product((np.array(VARIANT), np.array(VACCINE_STATUS))):
             aggregates[AGGREGATES[COMPARTMENT.I, variant]] += (
-                group_y[COMPARTMENTS[COMPARTMENT.I, variant, vaccine_status]]
+                group_y[COMPARTMENTS[COMPARTMENT.I, vaccine_status, variant]]
             )
 
     if DEBUG:
@@ -92,11 +92,13 @@ def make_new_e(t: float,
                 infectious = aggregates[AGGREGATES[COMPARTMENT.I, variant_to]]**alpha
                 chi_infection = group_chis[CHI[variant_from, variant_to, EPI_MEASURE.infection]]
 
-                susceptible = group_y[COMPARTMENTS[COMPARTMENT.S, variant_from, vaccine_status]]
+                susceptible = group_y[COMPARTMENTS[COMPARTMENT.S, vaccine_status, variant_from]]
                 eta_infection = group_etas[ETA[vaccine_status, variant_to, EPI_MEASURE.infection]]
                 s_effective = (1 - eta_infection) * (1 - chi_infection) * susceptible
                 if kappa > 0:
-                    group_effective_susceptible[EFFECTIVE_SUSCEPTIBLE[variant_to, vaccine_status]] += s_effective
+                    group_effective_susceptible[EFFECTIVE_SUSCEPTIBLE[vaccine_status, variant_from, variant_to]] += (
+                        s_effective
+                    )
                 group_new_e[NEW_E[vaccine_status, variant_from, variant_to]] += (
                     beta * kappa * s_effective * infectious / n_total
                 )
@@ -123,12 +125,14 @@ def make_new_e(t: float,
                 infectious = aggregates[AGGREGATES[COMPARTMENT.I, variant_to]] ** alpha
                 chi_infection = group_chis[CHI[variant_from, variant_to, EPI_MEASURE.infection]]
 
-                susceptible = group_y[COMPARTMENTS[COMPARTMENT.S, variant_from, vaccine_status]]
+                susceptible = group_y[COMPARTMENTS[COMPARTMENT.S, vaccine_status, variant_from]]
                 eta_infection = group_etas[ETA[vaccine_status, variant_to, EPI_MEASURE.infection]]
 
                 s_effective = (1 - eta_infection) * (1 - chi_infection) * susceptible
                 if kappa_infection > 0:
-                    group_effective_susceptible[EFFECTIVE_SUSCEPTIBLE[variant_from, variant_to, vaccine_status]] += s_effective
+                    group_effective_susceptible[EFFECTIVE_SUSCEPTIBLE[vaccine_status, variant_from, variant_to]] += (
+                        s_effective
+                    )
 
                 variant_weight = kappa_infection * s_effective * infectious / n_total
 
@@ -141,7 +145,7 @@ def make_new_e(t: float,
 
                     rate = kappa * (1 - eta) * (1 - chi) * base_rate
                     total_variant_weight[epi_measure] += rate * variant_weight
-                    group_rates[RATES[epi_measure, variant_from, variant_to, vaccine_status]] = rate
+                    group_rates[RATES[vaccine_status, variant_from, variant_to, epi_measure]] = rate
 
                 total_variant_weight[EPI_MEASURE.infection] += variant_weight
                 group_new_e[NEW_E[vaccine_status, variant_from, variant_to]] += variant_weight
@@ -167,7 +171,7 @@ def make_new_e(t: float,
                 group_outcomes[EPI_MEASURE.infection] += naive_infections
                 for epi_measure in REPORTED_EPI_MEASURE:
                     if betas[epi_measure] > 0.:
-                        idx = RATES[epi_measure, VARIANT.none, variant, VACCINE_STATUS.unvaccinated]
+                        idx = RATES[VACCINE_STATUS.unvaccinated, VARIANT.none, variant, epi_measure]
                         r = group_rates[idx]
                         group_outcomes[epi_measure] += (
                             r * naive_infections * betas[epi_measure] / betas[EPI_MEASURE.infection]
