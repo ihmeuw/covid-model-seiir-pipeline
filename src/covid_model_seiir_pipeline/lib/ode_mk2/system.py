@@ -146,7 +146,7 @@ def single_group_system(t: float,
             utils.safe_divide(group_y[s_from_idx], vaccine_eligible[vaccine_status])
             * group_vaccines[vaccine_status]
         )
-        to_vaccinate = min(expected_vaccines, group_y[s_from_idx] - new_e_from_s)
+        to_vaccinate = max(min(expected_vaccines, group_y[s_from_idx] - new_e_from_s), 0.)
         transition_map[s_from_idx, s_to_idx] += to_vaccinate
 
     return transition_map
