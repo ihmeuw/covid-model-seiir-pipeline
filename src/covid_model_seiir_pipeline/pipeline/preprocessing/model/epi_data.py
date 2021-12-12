@@ -78,10 +78,10 @@ def evil_doings(data: pd.DataFrame, hierarchy: pd.DataFrame, input_measure: str)
         pass
 
     elif input_measure == 'hospitalizations':
-        # ## hosp/IHR == admissions too low
-        # is_argentina = data['location_id'] == 97
-        # data = data.loc[~is_argentina].reset_index(drop=True)
-        # manipulation_metadata['argentina'] = 'dropped all hospitalizations'
+        ## hosp/IHR == admissions too low
+        is_argentina = data['location_id'] == 97
+        data = data.loc[~is_argentina].reset_index(drop=True)
+        manipulation_metadata['argentina'] = 'dropped all hospitalizations'
 
         ## late, not cumulative on first day
         is_ndl = data['location_id'] == 89
@@ -97,6 +97,11 @@ def evil_doings(data: pd.DataFrame, hierarchy: pd.DataFrame, input_measure: str)
         is_murcia = data['location_id'] == 60366
         data = data.loc[~is_murcia].reset_index(drop=True)
         manipulation_metadata['murcia'] = 'dropped all hospitalizations'
+        
+        ## is just july 2020-april 2021
+        is_la_rioja = data['location_id'] == 60376
+        data = data.loc[~is_la_rioja].reset_index(drop=True)
+        manipulation_metadata['la_rioja'] = 'dropped all hospitalizations'
 
         ## partial time series
         pakistan_location_ids = hierarchy.loc[hierarchy['path_to_top_parent'].apply(lambda x: '165' in x.split(',')),
@@ -130,6 +135,21 @@ def evil_doings(data: pd.DataFrame, hierarchy: pd.DataFrame, input_measure: str)
         is_andorra = data['location_id'] == 74
         data = data.loc[~is_andorra].reset_index(drop=True)
         manipulation_metadata['andorra'] = 'dropped all hospitalizations'
+        
+        ## late, starts in Feb 2021 (also probably too low)
+        is_guinea_bissau = data['location_id'] == 209
+        data = data.loc[~is_guinea_bissau].reset_index(drop=True)
+        manipulation_metadata['guinea_bissau'] = 'dropped all hospitalizations'
+        
+        ## late, starts in June 2021 (also too low)
+        is_zimbabwe = data['location_id'] == 198
+        data = data.loc[~is_zimbabwe].reset_index(drop=True)
+        manipulation_metadata['zimbabwe'] = 'dropped all hospitalizations'
+        
+        ## too low
+        is_malawi = data['location_id'] == 182
+        data = data.loc[~is_malawi].reset_index(drop=True)
+        manipulation_metadata['malawi'] = 'dropped all hospitalizations'
 
     elif input_measure == 'deaths':
         pass
