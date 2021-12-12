@@ -200,16 +200,6 @@ def make_initial_condition(parameters: Parameters, full_rates: pd.DataFrame, pop
                 label = f'EffectiveSusceptible_all_{variant}_all_{risk_group}'
                 loc_initial_condition.loc[:loc_start_date, label] = susceptible
 
-#            for measure, rate in [('death', 'ifr'), ('admission', 'ihr'), ('case', 'idr')]:
-#                measure_data = base_params.loc[(location_id, loc_start_date), f'count_all_{measure}']
-#                if np.isnan(measure_data):
-#                    measure_data = new_e * full_rates.loc[(location_id, loc_start_date), rate]
-#                label = measure.capitalize()
-#                loc_initial_condition.loc[loc_start_date, f'{label}_none_all_unvaccinated_{risk_group}'] = measure_data
-#                loc_initial_condition.loc[loc_start_date, f'{label}_none_all_all_{risk_group}'] = measure_data
-#                loc_initial_condition.loc[loc_start_date, f'{label}_all_all_all_{risk_group}'] = measure_data
-#                loc_initial_condition.loc[loc_start_date, f'{label}_all_ancestral_all_{risk_group}'] = measure_data
-
         loc_initial_condition.loc[loc_end_date:, :] = np.nan
         loc_initial_condition['location_id'] = location_id
         loc_initial_condition = loc_initial_condition.set_index('location_id', append=True).reorder_levels(['location_id', 'date'])
