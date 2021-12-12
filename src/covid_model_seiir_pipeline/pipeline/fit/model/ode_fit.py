@@ -264,7 +264,7 @@ def compute_posterior_epi_measures(compartments: pd.DataFrame,
     measures = []
     for ode_measure, (rates_measure, rate_name) in measure_map.items():
         cols = [f'{ode_measure}_none_all_unvaccinated_{risk_group}' for risk_group in RISK_GROUP_NAMES]
-        lag = durations._asdict()[f'exposure_to_{ode_measure}']
+        lag = durations._asdict()[f'exposure_to_{ode_measure.lower()}']
         daily_measure = (compartments_diff
                          .loc[:, cols]
                          .sum(axis=1)
