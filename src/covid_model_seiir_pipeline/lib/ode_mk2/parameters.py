@@ -70,11 +70,13 @@ def compute_intermediate_epi_parameters(t: float,
                                         etas: np.ndarray,
                                         chis: np.ndarray,
                                         system_type: int) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
-    if system_type != SYSTEM_TYPE.rates_and_measures:
-        raise
 
     n_total = aggregates[AGGREGATES[COMPARTMENT_TYPE.N, VARIANT_GROUP.total]]
     alpha = parameters[PARAMETERS[BASE_PARAMETER.alpha, VARIANT_GROUP.all, EPI_MEASURE.infection]]
+    if system_type == SYSTEM_TYPE.rates_and_measures:
+        beta = 1.0
+    else:
+        beta = parameters[PARAMETERS[BASE_PARAMETER.beta, VARIANT_GROUP.all, EPI_MEASURE.infection]]
 
     total_variant_weight = np.zeros(VARIANT_WEIGHTS.max() + 1)
     new_e = np.zeros(2 * (NEW_E.max() + 1))
@@ -100,28 +102,36 @@ def compute_intermediate_epi_parameters(t: float,
             eta_infection = group_etas[ETA[vaccine_status, variant_to, EPI_MEASURE.infection]]
 
             s_effective = (1 - eta_infection) * (1 - chi_infection) * susceptible
-            weight = kappa_infection * s_effective * infectious / n_total
+            new_e = beta * kappa_infection * s_effective * infectious / n_total
 
             for epi_measure in REPORTED_EPI_MEASURE:
-                base_rate = group_base_rates[BASE_RATES[epi_measure]]
-                kappa = parameters[PARAMETERS[EPI_VARIANT_PARAMETER.kappa, variant_to, epi_measure]]
+                if system_type == SYSTEM_TYPE.beta_and_measures:
+                    base_rate = 1.0
+                else:
+                    base_rate = group_base_rates[BASE_RATES[epi_measure]]
 
+                kappa = parameters[PARAMETERS[EPI_VARIANT_PARAMETER.kappa, variant_to, epi_measure]]
                 chi = group_chis[CHI[variant_from, variant_to, epi_measure]]
                 eta = group_etas[ETA[vaccine_status, variant_to, epi_measure]]
 
                 rate = kappa * (1 - eta) * (1 - chi) * base_rate
-                total_variant_weight[epi_measure] += rate * weight
+                total_variant_weight[epi_measure] += rate * new_e
                 group_rates[RATES[vaccine_status, variant_from, variant_to, epi_measure]] = rate
 
-            total_variant_weight[EPI_MEASURE.infection] += weight
-            group_new_e[NEW_E[vaccine_status, variant_from, variant_to]] += weight
-            if kappa_infection > 0:
-                eff_s_idx = EFFECTIVE_SUSCEPTIBLE[vaccine_status, variant_from, variant_to]
-                group_effective_susceptible[eff_s_idx] += s_effective
+            total_variant_weight[EPI_MEASURE.infection] += new_e
+            group_new_e[NEW_E[vaccine_status, variant_from, variant_to]] += new_e
+            group_effective_susceptible[EFFECTIVE_SUSCEPTIBLE[vaccine_status, variant_from, variant_to]] += s_effective
 
-    betas = compute_betas(parameters, total_variant_weight)
-    rates = do_rates_adjustment(rates, betas)
-    new_e = betas[EPI_MEASURE.infection] * new_e
+    if system_type == SYSTEM_TYPE.rates_and_measures:
+        betas = compute_betas(parameters, total_variant_weight)
+        rates = do_rates_adjustment(rates, betas)
+        new_e = betas[EPI_MEASURE.infection] * new_e
+    elif system_type == SYSTEM_TYPE.beta_and_rates:
+        betas = np.array([beta, 0., 0., 0.])
+    elif system_type == SYSTEM_TYPE.beta_and_measures:
+        betas = np.array([beta, 0., 0., 0.])
+    else:
+        raise
 
     if DEBUG:
         assert np.all(np.isfinite(new_e))
