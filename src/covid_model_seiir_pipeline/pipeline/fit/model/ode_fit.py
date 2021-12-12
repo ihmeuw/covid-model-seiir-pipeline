@@ -191,13 +191,15 @@ def make_initial_condition(parameters: Parameters, full_rates: pd.DataFrame, pop
 
             loc_initial_condition.loc[loc_start_date, f'S_unvaccinated_none_{risk_group}'] = susceptible
             loc_initial_condition.loc[loc_start_date, f'E_unvaccinated_ancestral_{risk_group}'] = new_e
-            loc_initial_condition.loc[loc_start_date, f'NewE_ancestral_unvaccinated_{risk_group}'] = new_e
-            loc_initial_condition.loc[loc_start_date, f'NewE_ancestral_all_{risk_group}'] = new_e
-            loc_initial_condition.loc[loc_start_date, f'NewENaive_ancestral_unvaccinated_{risk_group}'] = new_e
-            loc_initial_condition.loc[loc_start_date, f'infection_ancestral_all_{risk_group}'] = new_e
+            loc_initial_condition.loc[loc_start_date, f'Infection_none_all_unvaccinated_{risk_group}'] = new_e
+            loc_initial_condition.loc[loc_start_date, f'Infection_none_all_all_{risk_group}'] = new_e
+            loc_initial_condition.loc[loc_start_date, f'Infection_all_all_all_{risk_group}'] = new_e
+            loc_initial_condition.loc[loc_start_date, f'Infection_all_ancestral_all_{risk_group}'] = new_e
             loc_initial_condition.loc[loc_start_date, f'I_unvaccinated_ancestral_{risk_group}'] = infectious
             for variant in VARIANT_NAMES:
-                loc_initial_condition.loc[:loc_start_date, f'EffectiveSusceptible_{variant}_unvaccinated_{risk_group}'] = pop
+                label = f'EffectiveSusceptible_all_{variant}_all_{risk_group}'
+                loc_initial_condition.loc[:loc_start_date, label] = susceptible
+
         loc_initial_condition.loc[loc_end_date:, :] = np.nan
         loc_initial_condition['location_id'] = location_id
         loc_initial_condition = loc_initial_condition.set_index('location_id', append=True).reorder_levels(['location_id', 'date'])
@@ -221,19 +223,21 @@ def compute_posterior_epi_measures(compartments: pd.DataFrame,
                                    durations: Durations) -> Tuple[pd.DataFrame, pd.Series]:
     compartments_diff = compartments.groupby('location_id').diff().fillna(compartments)
     
-    naive = compartments.filter(like='S_none').sum(axis=1).rename('naive')
-    naive_unvaccinated = compartments.filter(like='S_none_unvaccinated').sum(axis=1).rename('naive_unvaccinated')
+    naive = compartments.filter(like='S_').filter(like='none').sum(axis=1).rename('naive')
+    naive_unvaccinated = compartments.filter(like='S_unvaccinated_none').sum(axis=1).rename('naive_unvaccinated')
     
-    naive_infections = compartments_diff.filter(like='NewENaive').sum(axis=1).rename('daily_naive_infections')
-    total_infections = compartments_diff.filter(like='NewE_').filter(like='all').sum(axis=1).rename('daily_total_infections')
-    
-    inf_cols = [f'infection_ancestral_all_{risk_group}' for risk_group in RISK_GROUP_NAMES]
-    naive_unvaccinated_infections = (compartments_diff
-                                     .loc[:, inf_cols]
-                                     .sum(axis=1)
-                                     .rename('daily_naive_unvaccinated_infections'))
+    inf_map = {'Infection_none_all_unvaccinated': 'daily_naive_unvaccinated_infections',
+               'Infection_none_all_all': 'daily_naive_infections',
+               'Infection_all_all_all': 'daily_total_infections'}
+    infections = []
+    for col, name in inf_map.items():
+        daily = compartments_diff.filter(like=col).sum(axis=1).rename(name)
+        infections.extend([daily, _to_cumulative(daily)])
+    infections = pd.concat(infections, axis=1)
 
-    pct_unvaccinated = ((_to_cumulative(naive_unvaccinated_infections) / _to_cumulative(naive_unvaccinated_infections))
+    # FIXME: Ratio is wrong.
+    nui = _to_cumulative(infections['daily_naive_unvaccinated_infections'])
+    pct_unvaccinated = ((nui / nui)
                         .clip(0, 1)
                         .rename('pct_unvaccinated')
                         .groupby('location_id')
@@ -242,15 +246,15 @@ def compute_posterior_epi_measures(compartments: pd.DataFrame,
                         .reset_index())
 
     measure_map = {
-        'death': ('deaths', 'ifr'),
-        'admission': ('hospitalizations', 'ihr'),
-        'case': ('cases', 'idr'),
+        'Death': ('deaths', 'ifr'),
+        'Admission': ('hospitalizations', 'ihr'),
+        'Case': ('cases', 'idr'),
     }
 
     measures = []
     for ode_measure, (rates_measure, rate_name) in measure_map.items():
-        cols = [f'{ode_measure}_ancestral_all_{risk_group}' for risk_group in RISK_GROUP_NAMES]
-        lag = durations._asdict()[f'exposure_to_{ode_measure}']
+        cols = [f'{ode_measure}_none_all_unvaccinated_{risk_group}' for risk_group in RISK_GROUP_NAMES]
+        lag = durations._asdict()[f'exposure_to_{ode_measure.lower()}']
         daily_measure = (compartments_diff
                          .loc[:, cols]
                          .sum(axis=1)
@@ -262,9 +266,7 @@ def compute_posterior_epi_measures(compartments: pd.DataFrame,
 
     epi_measures = pd.concat([
         naive, naive_unvaccinated,
-        naive_unvaccinated_infections, _to_cumulative(naive_unvaccinated_infections),
-        naive_infections, _to_cumulative(naive_infections),
-        total_infections, _to_cumulative(total_infections),
+        infections,
         *measures
     ], axis=1)
 
@@ -308,13 +310,13 @@ def run_ode_fit(initial_condition: pd.DataFrame,
     full_compartments.loc[full_compartments.sum(axis=1) == 0., :] = np.nan
     
     betas = (full_compartments
-             .filter(like='beta_none')
+             .filter(like='Beta_none_none')
              .filter(like='lr'))
     betas = (betas
              .groupby('location_id')
              .diff()
              .fillna(betas)
-             .rename(columns=lambda x: f'beta_{x.split("_")[2]}')
+             .rename(columns=lambda x: f'beta_{x.split("_")[3]}')
              .rename(columns={'beta_all': 'beta'}))
         
     # Clean up beta

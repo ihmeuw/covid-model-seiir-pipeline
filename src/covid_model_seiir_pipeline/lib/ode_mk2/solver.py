@@ -23,6 +23,7 @@ from covid_model_seiir_pipeline.lib.ode_mk2.constants import (
     EPI_MEASURE,
     RISK_GROUP,
     VARIANT,
+    VARIANT_GROUP,
     TRACKING_COMPARTMENT,
     AGG_INDEX_TYPE,
     TRACKING_COMPARTMENTS,
@@ -91,7 +92,7 @@ def _run_loc_ode_model(ic_and_params,
                        forecast: bool):
     location_id, initial_condition, parameters, rates, vaccines, etas, phis = ic_and_params
 
-    new_e_dates = initial_condition[initial_condition.filter(like='NewE').sum(axis=1) > 0].reset_index().date
+    new_e_dates = initial_condition[initial_condition.filter(like='Infection').sum(axis=1) > 0].reset_index().date
     invasion_date = new_e_dates.min()
     ode_start_date = new_e_dates.max()
 
@@ -290,8 +291,9 @@ def compute_chis(time, t_solve, y_solve, phis, chis):
         t_end = min(group_y.shape[0], phis.shape[0]) - 1
 
         for from_variant in VARIANT[1:]:
-            cumulative_new_e_variant = group_y[:, TRACKING_COMPARTMENTS[
-                                                      TRACKING_COMPARTMENT.NewE, from_variant, AGG_INDEX_TYPE.all]]
+            idx = TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.Infection, VARIANT_GROUP.all,
+                                        from_variant, AGG_INDEX_TYPE.all]
+            cumulative_new_e_variant = group_y[:, idx]
             denominator = cumulative_new_e_variant[-1]
 
             if denominator:                
