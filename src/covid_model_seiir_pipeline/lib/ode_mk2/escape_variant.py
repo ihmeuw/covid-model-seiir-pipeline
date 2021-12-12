@@ -16,13 +16,14 @@ from covid_model_seiir_pipeline.lib.ode_mk2.constants import (
     COMPARTMENTS,
     PARAMETERS,
 )
+from covid_model_seiir_pipeline.lib.ode_mk2 import (
+    utils,
+)
 from covid_model_seiir_pipeline.lib.ode_mk2.debug import (
     DEBUG,
     Printer
 )
-from covid_model_seiir_pipeline.lib.ode_mk2 import (
-    utils,
-)
+
 
 
 @numba.njit

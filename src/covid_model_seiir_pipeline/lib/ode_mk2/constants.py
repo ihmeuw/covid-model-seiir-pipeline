@@ -1514,6 +1514,30 @@ RATES_NAMES = [
     'booster_omega_omega_case',
 ]
 
+VARIANT_WEIGHTS = np.full((len(EPI_MEASURE_TYPE)), TOMBSTONE, dtype=np.int64)
+VARIANT_WEIGHTS[EPI_MEASURE.infection] = 0
+VARIANT_WEIGHTS[EPI_MEASURE.death] = 1
+VARIANT_WEIGHTS[EPI_MEASURE.admission] = 2
+VARIANT_WEIGHTS[EPI_MEASURE.case] = 3
+VARIANT_WEIGHTS_NAMES = [
+    'infection',
+    'death',
+    'admission',
+    'case',
+]
+
+BETAS = np.full((len(EPI_MEASURE_TYPE)), TOMBSTONE, dtype=np.int64)
+BETAS[EPI_MEASURE.infection] = 0
+BETAS[EPI_MEASURE.death] = 1
+BETAS[EPI_MEASURE.admission] = 2
+BETAS[EPI_MEASURE.case] = 3
+BETAS_NAMES = [
+    'infection',
+    'death',
+    'admission',
+    'case',
+]
+
 ETA = np.full((len(VACCINE_INDEX_TYPE), len(VARIANT_INDEX_TYPE), len(EPI_MEASURE_TYPE)), TOMBSTONE, dtype=np.int64)
 ETA[VACCINE_STATUS.unvaccinated, VARIANT.none, EPI_MEASURE.infection] = 0
 ETA[VACCINE_STATUS.unvaccinated, VARIANT.none, EPI_MEASURE.death] = 1

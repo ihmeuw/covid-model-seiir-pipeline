@@ -170,6 +170,20 @@ SPECS = {
             ['vaccine_status', 'variant', 'variant', 'reported_epi_measure']
         ]
     ),
+    'VARIANT_WEIGHTS': Spec(
+        offset='',
+        axes_primitives=['epi_measure_type'],
+        field_specs=[
+            ['epi_measure'],
+        ],
+    ),
+    'BETAS': Spec(
+        offset='',
+        axes_primitives=['epi_measure_type'],
+        field_specs=[
+            ['epi_measure'],
+        ],
+    ),
     'ETA': Spec(
         offset='',
         axes_primitives=['vaccine_index_type', 'variant_index_type', 'epi_measure_type'],
@@ -249,7 +263,7 @@ def make_primitive_types() -> str:
     #######################
     # Primitive variables #
     #######################
-           
+
     """)
     for primitive_group_name, variables in PRIMITIVE_TYPES.items():
         content = utils.make_content_array(rows=variables, columns=[''])

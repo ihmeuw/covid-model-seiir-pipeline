@@ -21,6 +21,8 @@ from covid_model_seiir_pipeline.lib.ode_mk2.constants import (
     PARAMETERS,
     BASE_RATES,
     RATES,
+    VARIANT_WEIGHTS,
+    BETAS,
     CHI,
     ETA,
     NEW_E,
@@ -43,8 +45,8 @@ def make_aggregates(y: np.ndarray) -> np.ndarray:
     for group_y in np.split(y, len(RISK_GROUP)):
         # Total population
         aggregates[AGGREGATES[COMPARTMENT_TYPE.N, VARIANT_GROUP.total]] += group_y[:COMPARTMENTS.max() + 1].sum()
-        # Infectious by variant
 
+        # Infectious by variant
         for variant, vaccine_status in cartesian_product((np.array(VARIANT), np.array(VACCINE_STATUS))):
             aggregates[AGGREGATES[COMPARTMENT.I, variant]] += (
                 group_y[COMPARTMENTS[COMPARTMENT.I, vaccine_status, variant]]
@@ -124,7 +126,7 @@ def compute_intermediate_epi_parameters(t: float,
     n_total = aggregates[AGGREGATES[COMPARTMENT_TYPE.N, VARIANT_GROUP.total]]
     alpha = parameters[PARAMETERS[BASE_PARAMETER.alpha, VARIANT_GROUP.all, EPI_MEASURE.infection]]
 
-    total_variant_weight = np.zeros(max(EPI_MEASURE) + 1)
+    total_variant_weight = np.zeros(VARIANT_WEIGHTS.max() + 1)
     variant_weight = np.zeros(2 * (NEW_E.max() + 1))
     effective_susceptible = np.zeros(2 * (EFFECTIVE_SUSCEPTIBLE.max() + 1))
     rates = np.zeros(2 * (RATES.max() + 1))
@@ -161,12 +163,11 @@ def compute_intermediate_epi_parameters(t: float,
                 total_variant_weight[epi_measure] += rate * weight
                 group_rates[RATES[vaccine_status, variant_from, variant_to, epi_measure]] = rate
 
+            total_variant_weight[EPI_MEASURE.infection] += weight
+            group_variant_weight[NEW_E[vaccine_status, variant_from, variant_to]] += weight
             if kappa_infection > 0:
                 eff_s_idx = EFFECTIVE_SUSCEPTIBLE[vaccine_status, variant_from, variant_to]
                 group_effective_susceptible[eff_s_idx] += s_effective
-
-            total_variant_weight[EPI_MEASURE.infection] += weight
-            group_variant_weight[NEW_E[vaccine_status, variant_from, variant_to]] += weight
 
     return total_variant_weight, variant_weight, effective_susceptible, rates
 
@@ -174,7 +175,7 @@ def compute_intermediate_epi_parameters(t: float,
 @numba.njit
 def compute_betas(parameters: np.ndarray,
                   total_variant_weight: np.ndarray):
-    betas = np.zeros(max(EPI_MEASURE) + 1)
+    betas = np.zeros(max(BETAS) + 1)
     beta_weight = 0.
     for epi_measure in REPORTED_EPI_MEASURE:
         count = parameters[PARAMETERS[EPI_PARAMETER.count, VARIANT_GROUP.all, epi_measure]]

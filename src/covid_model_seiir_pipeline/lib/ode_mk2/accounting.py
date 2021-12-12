@@ -7,7 +7,7 @@ from covid_model_seiir_pipeline.lib.ode_mk2.constants import (
     TRACKING_COMPARTMENT,
     TRACKING_COMPARTMENT_TYPE,
     VARIANT,
-    VARIANT_INDEX_TYPE,
+    VARIANT_GROUP,
     VACCINE_STATUS,
     VACCINE_INDEX_TYPE,
     EPI_MEASURE,
@@ -64,7 +64,7 @@ def compute_tracking_compartments(t: float,
                              (AGG_INDEX_TYPE.death, EPI_MEASURE.death),
                              (AGG_INDEX_TYPE.admission, EPI_MEASURE.admission),
                              (AGG_INDEX_TYPE.case, EPI_MEASURE.case)):
-        beta_idx = TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.beta, VARIANT_INDEX_TYPE.none, agg_idx]        
+        beta_idx = TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.beta, VARIANT.none, agg_idx]
         group_dy[beta_idx] = beta[epi_idx]
 
     for compartment, epi_idx in ((TRACKING_COMPARTMENT_TYPE.infection, EPI_MEASURE.infection),

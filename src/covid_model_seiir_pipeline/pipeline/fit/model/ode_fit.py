@@ -187,7 +187,9 @@ def make_initial_condition(parameters: Parameters, full_rates: pd.DataFrame, pop
             loc_initial_condition.loc[:loc_start_date, f'S_unvaccinated_none_{risk_group}'] = pop
             # Set initial condition on start date
             infectious = (new_e / 5) ** (1 / alpha.loc[location_id])
-            loc_initial_condition.loc[loc_start_date, f'S_unvaccinated_none_{risk_group}'] = pop - new_e - infectious
+            susceptible = pop - new_e - infectious
+
+            loc_initial_condition.loc[loc_start_date, f'S_unvaccinated_none_{risk_group}'] = susceptible
             loc_initial_condition.loc[loc_start_date, f'E_unvaccinated_ancestral_{risk_group}'] = new_e
             loc_initial_condition.loc[loc_start_date, f'NewE_ancestral_unvaccinated_{risk_group}'] = new_e
             loc_initial_condition.loc[loc_start_date, f'NewE_ancestral_all_{risk_group}'] = new_e

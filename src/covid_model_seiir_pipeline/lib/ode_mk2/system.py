@@ -33,7 +33,7 @@ from covid_model_seiir_pipeline.lib.ode_mk2 import (
 def system(t: float,
            y: np.ndarray,           
            params: np.ndarray,
-           rates: np.ndarray,
+           base_rates: np.ndarray,
            vaccines: np.ndarray,
            etas: np.ndarray,
            chis: np.ndarray,
@@ -55,7 +55,7 @@ def system(t: float,
         t,
         y,
         params,
-        rates,
+        base_rates,
         aggregates,
         etas,
         chis,
@@ -75,13 +75,22 @@ def system(t: float,
         group_effective_susceptible = utils.subset_risk_group(effective_susceptible, risk_group)
         group_outcomes = utils.subset_risk_group(outcomes, risk_group)
 
-        group_dy, transition_map = single_group_system(
+        transition_map = single_group_system(
             t,
             group_y,
             group_new_e,
             params,
             group_vaccines,
         )
+
+        inflow = transition_map.sum(axis=0)
+        outflow = transition_map.sum(axis=1)
+        group_dy = inflow - outflow
+
+        if DEBUG:
+            assert np.all(np.isfinite(group_dy))
+            assert np.all(group_y + group_dy >= -1e-7)
+            assert group_dy.sum() < 1e-5
 
         group_dy = accounting.compute_tracking_compartments(
             t,
@@ -140,13 +149,4 @@ def single_group_system(t: float,
         to_vaccinate = min(expected_vaccines, group_y[s_from_idx] - new_e_from_s)
         transition_map[s_from_idx, s_to_idx] += to_vaccinate
 
-    inflow = transition_map.sum(axis=0)
-    outflow = transition_map.sum(axis=1)
-    group_dy = inflow - outflow
-
-    if DEBUG:
-        assert np.all(np.isfinite(group_dy))
-        assert np.all(group_y + group_dy >= -1e-7)
-        assert group_dy.sum() < 1e-5
-
-    return group_dy, transition_map
+    return transition_map
