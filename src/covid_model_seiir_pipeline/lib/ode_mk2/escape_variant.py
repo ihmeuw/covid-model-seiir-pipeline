@@ -38,10 +38,10 @@ def maybe_invade(t: float,
     for risk_group in RISK_GROUP:
         group_y = utils.subset_risk_group(y, risk_group)
         for variant, vaccine_status in utils.cartesian_product((np.array(VARIANT), np.array(VACCINE_STATUS))):
-            total_susceptible += group_y[COMPARTMENTS[COMPARTMENT.S, variant, vaccine_status]]
+            total_susceptible += group_y[COMPARTMENTS[COMPARTMENT.S, vaccine_status, variant]]
             total_exposed += (
-                group_y[COMPARTMENTS[COMPARTMENT.E, variant, vaccine_status]]
-                + group_y[COMPARTMENTS[COMPARTMENT.I, variant, vaccine_status]]
+                group_y[COMPARTMENTS[COMPARTMENT.E, vaccine_status, variant]]
+                + group_y[COMPARTMENTS[COMPARTMENT.I, vaccine_status, variant]]
             )
 
     # At least 1 person if more than 1 person available
@@ -54,7 +54,7 @@ def maybe_invade(t: float,
         no_variant_present = params[PARAMETERS[VARIANT_PARAMETER.rho, variant_to, EPI_MEASURE.infection]] < 0.01
         already_invaded = False
         for vaccine_status in VACCINE_STATUS:
-            if y[COMPARTMENTS[COMPARTMENT.I, variant_to, vaccine_status]] > 0.0:
+            if y[COMPARTMENTS[COMPARTMENT.I, vaccine_status, variant_to]] > 0.0:
                 already_invaded = True
 
         # Short circuit if we don't have variant invasion this step
@@ -64,10 +64,10 @@ def maybe_invade(t: float,
         for risk_group in RISK_GROUP:
             group_y = utils.subset_risk_group(y, risk_group)
             for vaccine_status in VACCINE_STATUS:
-                e_idx = COMPARTMENTS[COMPARTMENT.E, variant_to, vaccine_status]
-                i_idx = COMPARTMENTS[COMPARTMENT.I, variant_to, vaccine_status]
+                e_idx = COMPARTMENTS[COMPARTMENT.E, vaccine_status, variant_to]
+                i_idx = COMPARTMENTS[COMPARTMENT.I, vaccine_status, variant_to]
                 for variant_from in VARIANT:
-                    from_compartment = COMPARTMENTS[COMPARTMENT.S, variant_from, vaccine_status]
+                    from_compartment = COMPARTMENTS[COMPARTMENT.S, vaccine_status, variant_from]
                     compartment_delta = group_y[from_compartment] / total_susceptible * delta
                     group_y[from_compartment] -= compartment_delta + (compartment_delta / 5) ** (1 / alpha)
                     group_y[e_idx] += compartment_delta

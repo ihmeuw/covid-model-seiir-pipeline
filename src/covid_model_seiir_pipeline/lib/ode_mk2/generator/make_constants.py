@@ -165,9 +165,9 @@ SPECS = {
     ),
     'RATES': Spec(
         offset='',
-        axes_primitives=['epi_measure_type', 'variant_index_type', 'variant_index_type', 'vaccine_index_type'],
+        axes_primitives=['vaccine_index_type', 'variant_index_type', 'variant_index_type', 'epi_measure_type'],
         field_specs=[
-            ['reported_epi_measure', 'variant', 'variant', 'vaccine_status']
+            ['vaccine_status', 'variant', 'variant', 'reported_epi_measure']
         ]
     ),
     'ETA': Spec(
@@ -193,14 +193,14 @@ SPECS = {
     ),
     'EFFECTIVE_SUSCEPTIBLE': Spec(
         offset='',
-        axes_primitives=['variant_index_type', 'variant_index_type', 'vaccine_index_type'],
+        axes_primitives=['vaccine_index_type', 'variant_index_type', 'variant_index_type'],
         field_specs=[
-            ['variant', 'variant', 'vaccine_status'],
+            ['vaccine_status', 'variant', 'variant'],
         ],
     ),
     'COMPARTMENTS': Spec(
         offset='',
-        axes_primitives=['compartment_type', 'variant_index_type', 'vaccine_index_type'],
+        axes_primitives=['compartment_type', 'vaccine_index_type', 'variant_index_type'],
         field_specs=[
             ['compartment', 'variant', 'vaccine_status'],
         ]
