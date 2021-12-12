@@ -187,14 +187,14 @@ def ies_plot(data: Tuple[Location, Dict[str, pd.DataFrame]],
             uncertainty=True,
             transform=transform,
         )
-        plotter.make_time_plot(
-            ax=ax,
-            measure=f'posterior_{metric}_total_infections',
-            color='black',
-            transform=transform,
-            linestyle=':',
-        )
-            
+        if metric == 'daily':
+            plotter.make_time_plot(
+                ax=ax,
+                measure=f'posterior_{metric}_total_infections',
+                color='black',
+                transform=transform,
+                linestyle=':',
+            )
 
     sero_data = data_dictionary['seroprevalence']
     if sero_data is not None:
