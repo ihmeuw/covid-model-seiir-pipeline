@@ -51,7 +51,7 @@ def system(t: float,
         assert np.all(chis <= 1.)
 
     aggregates = parameters.make_aggregates(y)
-    new_e, effective_susceptible, beta, outcomes = parameters.make_new_e(
+    new_e, effective_susceptible, beta, rates = parameters.make_new_e(
         t,
         y,
         params,
@@ -73,7 +73,7 @@ def system(t: float,
         group_vaccines = utils.subset_risk_group(vaccines, risk_group)
         group_new_e = utils.subset_risk_group(new_e, risk_group)
         group_effective_susceptible = utils.subset_risk_group(effective_susceptible, risk_group)
-        group_outcomes = utils.subset_risk_group(outcomes, risk_group)
+        group_rates = utils.subset_risk_group(rates, risk_group)
 
         transition_map = single_group_system(
             t,
@@ -98,7 +98,7 @@ def system(t: float,
             group_new_e,
             group_effective_susceptible,
             beta,
-            group_outcomes,
+            group_rates,
             transition_map,
         )
 

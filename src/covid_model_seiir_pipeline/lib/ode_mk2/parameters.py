@@ -36,6 +36,7 @@ from covid_model_seiir_pipeline.lib.ode_mk2.debug import (
 from covid_model_seiir_pipeline.lib.ode_mk2.utils import (
     subset_risk_group,
     cartesian_product,
+    safe_divide
 )
 
 
@@ -84,22 +85,13 @@ def make_new_e(t: float,
         betas = compute_betas(parameters, total_variant_weight)
         new_e = betas[EPI_MEASURE.infection] * variant_weight
 
-        outcomes = np.zeros(2 * (max(EPI_MEASURE) + 1))
         for risk_group in RISK_GROUP:
-            group_new_e = subset_risk_group(new_e, risk_group)
-            group_rates = subset_risk_group(rates, risk_group)            
-            group_outcomes = subset_risk_group(outcomes, risk_group)
-
-            for variant in VARIANT:
-                naive_infections = group_new_e[NEW_E[VACCINE_STATUS.unvaccinated, VARIANT.none, variant]]
-                group_outcomes[EPI_MEASURE.infection] += naive_infections
-                for epi_measure in REPORTED_EPI_MEASURE:
-                    if betas[epi_measure] > 0.:
-                        idx = RATES[VACCINE_STATUS.unvaccinated, VARIANT.none, variant, epi_measure]
-                        r = group_rates[idx]
-                        group_outcomes[epi_measure] += (
-                            r * naive_infections * betas[epi_measure] / betas[EPI_MEASURE.infection]
-                        )
+            group_rates = subset_risk_group(rates, risk_group)
+            for epi_measure in REPORTED_EPI_MEASURE:
+                adjustment = safe_divide(betas[epi_measure], betas[EPI_MEASURE.infection])
+                iteritems = cartesian_product((np.array(VARIANT), np.array(VARIANT), np.array(VACCINE_STATUS)))
+                for variant_to, variant_from, vaccine_status in iteritems:
+                    group_rates[RATES[vaccine_status, variant_from, variant_to, epi_measure]] *= adjustment
         
     if DEBUG:
         assert np.all(np.isfinite(new_e))
@@ -109,10 +101,8 @@ def make_new_e(t: float,
         assert np.all(effective_susceptible >= 0.)
         assert np.all(np.isfinite(betas))
         assert np.all(betas >= 0.)
-        assert np.all(np.isfinite(outcomes))
-        assert np.all(outcomes >= 0.)
     
-    return new_e, effective_susceptible, betas, outcomes
+    return new_e, effective_susceptible, betas, rates
 
 
 @numba.njit
