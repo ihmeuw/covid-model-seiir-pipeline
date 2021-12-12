@@ -23,6 +23,7 @@ from covid_model_seiir_pipeline.lib.ode_mk2.constants import (
     EPI_MEASURE,
     RISK_GROUP,
     VARIANT,
+    VARIANT_GROUP,
     TRACKING_COMPARTMENT,
     AGG_INDEX_TYPE,
     TRACKING_COMPARTMENTS,
@@ -290,7 +291,8 @@ def compute_chis(time, t_solve, y_solve, phis, chis):
         t_end = min(group_y.shape[0], phis.shape[0]) - 1
 
         for from_variant in VARIANT[1:]:
-            idx = TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.Infection, VARIANT.all, from_variant, AGG_INDEX_TYPE.all]
+            idx = TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.Infection, VARIANT_GROUP.all,
+                                        from_variant, AGG_INDEX_TYPE.all]
             cumulative_new_e_variant = group_y[:, idx]
             denominator = cumulative_new_e_variant[-1]
 
