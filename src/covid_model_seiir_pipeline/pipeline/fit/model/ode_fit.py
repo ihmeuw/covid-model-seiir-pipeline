@@ -195,7 +195,7 @@ def make_initial_condition(parameters: Parameters, full_rates: pd.DataFrame, pop
             loc_initial_condition.loc[loc_start_date, f'infection_ancestral_all_{risk_group}'] = new_e
             loc_initial_condition.loc[loc_start_date, f'I_unvaccinated_ancestral_{risk_group}'] = infectious
             for variant in VARIANT_NAMES:
-                loc_initial_condition.loc[:loc_start_date, f'EffectiveSusceptible_unvaccinated_{variant}_{risk_group}'] = pop
+                loc_initial_condition.loc[:loc_start_date, f'EffectiveSusceptible_{variant}_unvaccinated_{risk_group}'] = pop
         loc_initial_condition.loc[loc_end_date:, :] = np.nan
         loc_initial_condition['location_id'] = location_id
         loc_initial_condition = loc_initial_condition.set_index('location_id', append=True).reorder_levels(['location_id', 'date'])
