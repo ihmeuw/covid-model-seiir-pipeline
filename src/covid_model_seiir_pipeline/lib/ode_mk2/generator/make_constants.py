@@ -202,7 +202,7 @@ SPECS = {
         offset='',
         axes_primitives=['compartment_type', 'vaccine_index_type', 'variant_index_type'],
         field_specs=[
-            ['compartment', 'variant', 'vaccine_status'],
+            ['compartment', 'vaccine_status', 'variant'],
         ]
     ),
     'TRACKING_COMPARTMENTS': Spec(
