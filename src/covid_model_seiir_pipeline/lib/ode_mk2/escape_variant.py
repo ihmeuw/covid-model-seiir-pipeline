@@ -15,7 +15,6 @@ from covid_model_seiir_pipeline.lib.ode_mk2.constants import (
     # Indexing arrays
     COMPARTMENTS,
     PARAMETERS,
-    AGGREGATES,
 )
 from covid_model_seiir_pipeline.lib.ode_mk2.debug import (
     DEBUG,
