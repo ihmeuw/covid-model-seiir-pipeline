@@ -210,6 +210,7 @@ SPECS = {
         axes_primitives=['tracking_compartment_type', 'variant_index_type', 'agg_index_type'],
         field_specs=[
             ['tracking_compartment', 'variant', 'vaccine_status'],
+            ['NewE', 'variant', 'all'],
             ['beta', 'none', 'all'],
             ['beta', 'none', 'death'],
             ['beta', 'none', 'admission'],
