@@ -25,7 +25,6 @@ from covid_model_seiir_pipeline.lib.ode_mk2.debug import (
 )
 
 
-
 @numba.njit
 def maybe_invade(t: float,
                  y: np.ndarray,
