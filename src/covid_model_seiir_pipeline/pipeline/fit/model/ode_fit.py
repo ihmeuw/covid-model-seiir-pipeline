@@ -224,7 +224,7 @@ def compute_posterior_epi_measures(compartments: pd.DataFrame,
     naive_unvaccinated = compartments.filter(like='S_none_unvaccinated').sum(axis=1).rename('naive_unvaccinated')
     
     naive_infections = compartments_diff.filter(like='NewENaive').sum(axis=1).rename('daily_naive_infections')
-    total_infections = compartments_diff.filter(like='NewE_').sum(axis=1).rename('daily_total_infections')
+    total_infections = compartments_diff.filter(like='NewE_').filter(like='all').sum(axis=1).rename('daily_total_infections')
     
     inf_cols = [f'infection_ancestral_all_{risk_group}' for risk_group in RISK_GROUP_NAMES]
     naive_unvaccinated_infections = (compartments_diff
