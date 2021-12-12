@@ -52,7 +52,7 @@ def compute_tracking_compartments(t: float,
         beta_idx = TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.Beta, VARIANT.none, VARIANT.none, agg_idx]
         group_dy[beta_idx] = beta[epi_idx]
 
-    for tc, epi_measure in EPI_MEASURE_MAP:
+    for tc, epi_measure in EPI_MEASURE_MAP[:1]:
         for variant_from, variant_to in cartesian_product((np.array(VARIANT), np.array(VARIANT))):
             for agg_vaccine_status, vaccine_status in VACCINE_STATUS_MAP:
                 if epi_measure == EPI_MEASURE.infection:
@@ -72,11 +72,10 @@ def compute_tracking_compartments(t: float,
                     group_dy[TRACKING_COMPARTMENTS[tc, VARIANT_GROUP.all, VARIANT_GROUP.all, AGG_INDEX_TYPE.all]] += (
                         new_e[NEW_E[vaccine_status, variant_from, variant_to]]
                     )
-                else:
-                    if variant_from == VARIANT.none and vaccine_status == VACCINE_STATUS.unvaccinated:
-                        group_dy[TRACKING_COMPARTMENTS[tc, variant_from, VARIANT_GROUP.all, vaccine_status]] += (
-                            group_outcomes[epi_measure]
-                        )
+    for tc, epi_measure in EPI_MEASURE_MAP[1:]:
+        group_dy[TRACKING_COMPARTMENTS[tc, VARIANT.none, VARIANT_GROUP.all, AGG_INDEX_TYPE.unvaccinated]] += (
+            group_outcomes[epi_measure]
+        )
     tc_vax = TRACKING_COMPARTMENT.Vaccination
     tc_boost = TRACKING_COMPARTMENT.Booster
     tc_effs = TRACKING_COMPARTMENT.EffectiveSusceptible
