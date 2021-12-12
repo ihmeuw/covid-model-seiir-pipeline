@@ -37,7 +37,7 @@ def system(t: float,
            vaccines: np.ndarray,
            etas: np.ndarray,
            chis: np.ndarray,
-           forecast: bool):
+           system_type: int):
 
     if DEBUG:
         assert np.all(np.isfinite(params))
@@ -51,7 +51,7 @@ def system(t: float,
         assert np.all(chis <= 1.)
 
     aggregates = parameters.make_aggregates(y)
-    new_e, effective_susceptible, beta, rates = parameters.make_new_e(
+    new_e, effective_susceptible, beta, rates = parameters.compute_intermediate_epi_parameters(
         t,
         y,
         params,
@@ -59,7 +59,7 @@ def system(t: float,
         aggregates,
         etas,
         chis,
-        forecast,
+        system_type,
     )  
 
     dy = np.zeros_like(y)

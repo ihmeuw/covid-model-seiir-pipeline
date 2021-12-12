@@ -76,6 +76,11 @@ PRIMITIVE_TYPES = {
         'death',
         'admission',
         'case',
+    ],
+    'system_type': [
+        'rates_and_measures',
+        'beta_and_measures',
+        'beta_and_rates',
     ]
 }
 

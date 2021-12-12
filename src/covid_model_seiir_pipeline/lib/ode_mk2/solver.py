@@ -15,6 +15,7 @@ from covid_model_seiir_pipeline.lib.ode_mk2 import (
 )
 from covid_model_seiir_pipeline.lib.ode_mk2.constants import (
     TOMBSTONE,
+    SYSTEM_TYPE,
     RISK_GROUP_NAMES,
     COMPARTMENTS_NAMES,
     TRACKING_COMPARTMENTS_NAMES,
@@ -49,7 +50,7 @@ def run_ode_model(initial_condition: pd.DataFrame,
                   etas: pd.DataFrame,
                   phis: pd.DataFrame,
                   location_ids: List[int],
-                  forecast: bool,
+                  system_type: int,
                   dt: float = SOLVER_DT, 
                   num_cores: int = 5,
                   progress_bar: bool = True):
@@ -66,7 +67,7 @@ def run_ode_model(initial_condition: pd.DataFrame,
     _runner = functools.partial(
         _run_loc_ode_model,
         dt=dt,
-        forecast=forecast,
+        system_type=system_type,
     )
     results = parallel.run_parallel(
         _runner,
@@ -89,7 +90,7 @@ def run_ode_model(initial_condition: pd.DataFrame,
 
 def _run_loc_ode_model(ic_and_params,
                        dt: float,
-                       forecast: bool):
+                       system_type: int):
     location_id, initial_condition, parameters, rates, vaccines, etas, phis = ic_and_params
 
     new_e_dates = initial_condition[initial_condition.filter(like='Infection').sum(axis=1) > 0].reset_index().date
@@ -97,7 +98,7 @@ def _run_loc_ode_model(ic_and_params,
     ode_start_date = new_e_dates.max()
 
     t0 = (ode_start_date - invasion_date).days
-    if forecast:
+    if system_type == SYSTEM_TYPE.beta_and_rates:  # This is the forecast
         assert t0 > 0
     else:
         assert t0 == 0
@@ -112,7 +113,7 @@ def _run_loc_ode_model(ic_and_params,
     t_solve = np.round(np.arange(t[0], t[-1] + dt, dt), 2)
     t_params = np.round(np.arange(t[0], t[-1] + dt, dt / 2), 2)
 
-    y_solve = _interpolate_y(t0, t, t_solve, initial_condition.to_numpy(), forecast)
+    y_solve = _interpolate_y(t0, t, t_solve, initial_condition.to_numpy(), system_type)
 
     parameters = _interpolate(t, t_params, parameters.to_numpy())
     parameters[np.isnan(parameters)] = TOMBSTONE
@@ -130,7 +131,7 @@ def _run_loc_ode_model(ic_and_params,
         vaccines,
         etas,
         phis,
-        forecast,
+        system_type,
         dt,
     )
     loc_compartments = pd.DataFrame(_uninterpolate(y_solve, t_solve, t),
@@ -159,10 +160,10 @@ def _interpolate_y(t0: float,
                    t: np.ndarray,
                    t_solve: np.ndarray,
                    y: np.ndarray,
-                   forecast: bool) -> np.ndarray:
+                   system_type: bool) -> np.ndarray:
     y_solve = np.empty((t_solve.size, y.shape[1]))
     for compartment in np.arange(y.shape[1]):
-        if forecast:
+        if system_type == SYSTEM_TYPE.beta_and_rates:
             y_solve[:, compartment] = np.interp(t_solve, t, y[:, compartment])
             y_solve[t_solve > t0, compartment] = 0.
         else:
@@ -190,7 +191,7 @@ def _rk45_dde(t0: float, tf: float,
               vaccines: np.ndarray,
               etas: np.ndarray,
               phis: np.ndarray,
-              forecast: bool,
+              system_type: int,
               dt: float):
     num_time_points = t_solve.size
     chis = np.zeros((num_time_points, 2 * phis.shape[1]))
@@ -209,7 +210,7 @@ def _rk45_dde(t0: float, tf: float,
             vaccines[2 * time - 2],
             etas[2 * time - 2],
             chis[time - 1],
-            forecast,
+            system_type,
         )
 
         k2 = system(
@@ -220,7 +221,7 @@ def _rk45_dde(t0: float, tf: float,
             vaccines[2 * time - 1],
             etas[2 * time - 1],
             chis[time - 1],
-            forecast,
+            system_type,
         )
 
         k3 = system(
@@ -231,7 +232,7 @@ def _rk45_dde(t0: float, tf: float,
             vaccines[2 * time - 1],
             etas[2 * time - 1],
             chis[time - 1],
-            forecast,
+            system_type,
         )
 
         k4 = system(
@@ -242,7 +243,7 @@ def _rk45_dde(t0: float, tf: float,
             vaccines[2 * time],
             etas[2 * time],
             chis[time - 1],
-            forecast,
+            system_type,
         )
 
         y_solve[time] = escape_variant.maybe_invade(

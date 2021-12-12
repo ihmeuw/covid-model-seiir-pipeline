@@ -88,6 +88,12 @@ _AggIndexType = namedtuple('AggIndexType', [
     'case',         
 ])
 
+_SystemType = namedtuple('SystemType', [
+    'rates_and_measures', 
+    'beta_and_measures',  
+    'beta_and_rates',     
+])
+
 COMPARTMENT_TYPE = _CompartmentType(*list(range(len(_CompartmentType._fields))))
 COMPARTMENT_TYPE_NAMES = _CompartmentType(*_CompartmentType._fields)
 TRACKING_COMPARTMENT_TYPE = _TrackingCompartmentType(*list(range(len(_TrackingCompartmentType._fields))))
@@ -104,6 +110,8 @@ VACCINE_INDEX_TYPE = _VaccineIndexType(*list(range(len(_VaccineIndexType._fields
 VACCINE_INDEX_TYPE_NAMES = _VaccineIndexType(*_VaccineIndexType._fields)
 AGG_INDEX_TYPE = _AggIndexType(*list(range(len(_AggIndexType._fields))))
 AGG_INDEX_TYPE_NAMES = _AggIndexType(*_AggIndexType._fields)
+SYSTEM_TYPE = _SystemType(*list(range(len(_SystemType._fields))))
+SYSTEM_TYPE_NAMES = _SystemType(*_SystemType._fields)
 
 #####################
 # Derived variables #

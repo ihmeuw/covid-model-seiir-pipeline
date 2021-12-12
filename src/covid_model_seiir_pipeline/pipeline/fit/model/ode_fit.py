@@ -8,6 +8,7 @@ from covid_model_seiir_pipeline.lib.ode_mk2.containers import (
     Parameters,
 )
 from covid_model_seiir_pipeline.lib.ode_mk2.constants import (
+    SYSTEM_TYPE,
     VARIANT_NAMES,
     RISK_GROUP_NAMES,
     COMPARTMENTS_NAMES,
@@ -301,7 +302,7 @@ def run_ode_fit(initial_condition: pd.DataFrame,
         initial_condition,
         **ode_parameters.to_dict(),
         location_ids=location_ids,
-        forecast=False,
+        system_type=SYSTEM_TYPE.rates_and_measures,
         num_cores=num_cores,
         progress_bar=progress_bar,
     )
