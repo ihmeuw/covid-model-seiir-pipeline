@@ -93,13 +93,6 @@ def system(t: float,
             transition_map,
         )
 
-        group_dy = escape_variant.maybe_invade(
-            group_y,
-            group_dy,
-            aggregates,
-            params,
-        )
-
         dy[group_start:group_end] = group_dy
 
     if DEBUG:

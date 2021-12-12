@@ -4,6 +4,7 @@ import numpy as np
 
 from covid_model_seiir_pipeline.lib.ode_mk2.constants import (
     # Indexing tuples
+    RISK_GROUP,
     COMPARTMENT,
     VARIANT,
     VARIANT_GROUP,
@@ -20,39 +21,55 @@ from covid_model_seiir_pipeline.lib.ode_mk2.debug import (
     DEBUG,
     Printer
 )
+from covid_model_seiir_pipeline.lib.ode_mk2 import (
+    utils,
+)
 
 
 @numba.njit
-def maybe_invade(group_y: np.ndarray, group_dy: np.ndarray,
-                 aggregates: np.ndarray, params: np.ndarray) -> np.ndarray:
+def maybe_invade(t: float,
+                 y: np.ndarray,
+                 params: np.ndarray) -> np.ndarray:
     alpha = params[PARAMETERS[BASE_PARAMETER.alpha, VARIANT_GROUP.all, EPI_MEASURE.infection]]
     pi = params[PARAMETERS[BASE_PARAMETER.pi, VARIANT_GROUP.all, EPI_MEASURE.infection]]
-    from_compartment = COMPARTMENTS[COMPARTMENT.S, VARIANT.none, VACCINE_STATUS.unvaccinated]
 
-    for variant in VARIANT:
-        no_variant_present = params[PARAMETERS[VARIANT_PARAMETER.rho, variant, EPI_MEASURE.infection]] < 0.01
-        already_invaded = aggregates[AGGREGATES[COMPARTMENT.I, variant]] > 0.0
+    total_susceptible = 0.
+    total_exposed = 0.
+    for risk_group in RISK_GROUP:
+        group_y = utils.subset_risk_group(y, risk_group)
+        for variant, vaccine_status in utils.cartesian_product((np.array(VARIANT), np.array(VACCINE_STATUS))):
+            total_susceptible += group_y[COMPARTMENTS[COMPARTMENT.S, variant, vaccine_status]]
+            total_exposed += (
+                group_y[COMPARTMENTS[COMPARTMENT.E, variant, vaccine_status]]
+                + group_y[COMPARTMENTS[COMPARTMENT.I, variant, vaccine_status]]
+            )
+
+    # At least 1 person if more than 1 person available
+    min_invasion = 1.0
+    # At most .5% of the total susceptible population
+    max_invasion = 0.005 * total_susceptible
+    delta = max(min(pi * total_exposed, max_invasion), min_invasion)
+
+    for variant_to in VARIANT:
+        no_variant_present = params[PARAMETERS[VARIANT_PARAMETER.rho, variant_to, EPI_MEASURE.infection]] < 0.01
+        already_invaded = False
+        for vaccine_status in VACCINE_STATUS:
+            if y[COMPARTMENTS[COMPARTMENT.I, variant_to, vaccine_status]] > 0.0:
+                already_invaded = True
+
         # Short circuit if we don't have variant invasion this step
         if no_variant_present or already_invaded:
             continue
-            
-        # Shift at least 1 person to the escape variants if we can
-        min_invasion = 1
-        # Cap the the invasion so we don't take everyone. The handles corner cases
-        # where variants invade just as vaccination is starting.
-        max_invasion = 1 / (2*len(VARIANT)) * group_y[from_compartment]
-        exposed = 0.
-        for vaccination_status in VACCINE_STATUS:
-            exposed += group_y[COMPARTMENTS[COMPARTMENT.E, VARIANT.ancestral, vaccination_status]]
-        delta = min(max(pi * exposed, min_invasion), max_invasion)
 
-        # Set the boundary condition so that the initial beta for the escape
-        # variant starts at 5 (for consistency with ancestral type invasion).
-        group_dy[from_compartment] -= delta + (delta / 5) ** (1 / alpha)
-        group_dy[COMPARTMENTS[COMPARTMENT.E, variant, VACCINE_STATUS.unvaccinated]] += delta
-        group_dy[COMPARTMENTS[COMPARTMENT.I, variant, VACCINE_STATUS.unvaccinated]] += (delta / 5) ** (1 / alpha)
-
-#     if DEBUG:
-#         assert np.all(np.isfinite(group_dy))
-
-    return group_dy
+        for risk_group in RISK_GROUP:
+            group_y = utils.subset_risk_group(y, risk_group)
+            for vaccine_status in VACCINE_STATUS:
+                e_idx = COMPARTMENTS[COMPARTMENT.E, variant_to, vaccine_status]
+                i_idx = COMPARTMENTS[COMPARTMENT.I, variant_to, vaccine_status]
+                for variant_from in VARIANT:
+                    from_compartment = COMPARTMENTS[COMPARTMENT.S, variant_from, vaccine_status]
+                    compartment_delta = group_y[from_compartment] / total_susceptible * delta
+                    group_y[from_compartment] -= compartment_delta + (compartment_delta / 5) ** (1 / alpha)
+                    group_y[e_idx] += compartment_delta
+                    group_y[i_idx] += (compartment_delta / 5) ** (1 / alpha)
+    return y
