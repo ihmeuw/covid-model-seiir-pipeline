@@ -10,6 +10,9 @@ import pandas as pd
 from covid_model_seiir_pipeline.lib import (
     parallel,
 )
+from covid_model_seiir_pipeline.lib.ode_mk2 import (
+    escape_variant,
+)
 from covid_model_seiir_pipeline.lib.ode_mk2.constants import (
     TOMBSTONE,
     RISK_GROUP_NAMES,
@@ -21,7 +24,7 @@ from covid_model_seiir_pipeline.lib.ode_mk2.constants import (
     RISK_GROUP,
     VARIANT,
     TRACKING_COMPARTMENT,
-    VACCINE_INDEX_TYPE,
+    AGG_INDEX_TYPE,
     TRACKING_COMPARTMENTS,
 )
 from covid_model_seiir_pipeline.lib.ode_mk2.system import (
@@ -252,7 +255,11 @@ def _rk45_dde(t0: float, tf: float,
             forecast,
         )
 
-        y_solve[time] = y_solve[time - 1] + dt / 6 * (k1 + 2 * k2 + 2 * k3 + k4)
+        y_solve[time] = escape_variant.maybe_invade(
+            t_solve[time],
+            y_solve[time - 1] + dt / 6 * (k1 + 2 * k2 + 2 * k3 + k4),
+            parameters[2 * time],
+        )
 
     return y_solve, chis
 
@@ -284,7 +291,7 @@ def compute_chis(time, t_solve, y_solve, phis, chis):
 
         for from_variant in VARIANT[1:]:
             cumulative_new_e_variant = group_y[:, TRACKING_COMPARTMENTS[
-                                                      TRACKING_COMPARTMENT.NewE, from_variant, VACCINE_INDEX_TYPE.all]]
+                                                      TRACKING_COMPARTMENT.NewE, from_variant, AGG_INDEX_TYPE.all]]
             denominator = cumulative_new_e_variant[-1]
 
             if denominator:                
