@@ -235,28 +235,27 @@ def compute_posterior_epi_measures(compartments: pd.DataFrame,
         infections.extend([daily, _to_cumulative(daily)])
     infections = pd.concat(infections, axis=1)
 
-    # FIXME: Ratio is wrong.
-    nui = _to_cumulative(infections['daily_naive_unvaccinated_infections'])
-    pct_unvaccinated = ((nui / nui)
-                        .clip(0, 1)
-                        .rename('pct_unvaccinated')
-                        .groupby('location_id')
-                        .shift(durations.exposure_to_seroconversion)
-                        .dropna()
-                        .reset_index())
+    pct_unvaccinated = (
+        (infections['cumulative_naive_unvaccinated_infections'] / infections['cumulative_naive_infections'])
+        .clip(0, 1)
+        .rename('pct_unvaccinated')
+        .groupby('location_id')
+        .shift(durations.exposure_to_seroconversion)
+        .dropna()
+        .reset_index()
+    )
 
     measure_map = {
-        'Death': ('deaths', 'ifr'),
-        'Admission': ('hospitalizations', 'ihr'),
-        'Case': ('cases', 'idr'),
+        'Death': 'deaths',
+        'Admission': 'hospitalizations',
+        'Case': 'cases',
     }
 
     measures = []
-    for ode_measure, (rates_measure, rate_name) in measure_map.items():
-        cols = [f'{ode_measure}_none_all_unvaccinated_{risk_group}' for risk_group in RISK_GROUP_NAMES]
+    for ode_measure, rates_measure in measure_map.items():
         lag = durations._asdict()[f'exposure_to_{ode_measure.lower()}']
         daily_measure = (compartments_diff
-                         .loc[:, cols]
+                         .filter(like=f'{ode_measure}_none_all_unvaccinated')
                          .sum(axis=1)
                          .groupby('location_id')
                          .shift(lag)
@@ -312,6 +311,7 @@ def run_ode_fit(initial_condition: pd.DataFrame,
     betas = (full_compartments
              .filter(like='Beta_none_none')
              .filter(like='lr'))
+
     betas = (betas
              .groupby('location_id')
              .diff()
