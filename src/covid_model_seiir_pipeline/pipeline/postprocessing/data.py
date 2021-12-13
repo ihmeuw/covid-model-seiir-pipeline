@@ -40,7 +40,7 @@ class PostprocessingDataInterface:
         io.touch(self.postprocessing_root, **prefix_args)
 
     def get_n_draws(self) -> int:
-        return self._get_forecast_data_inteface().get_n_draws()
+        return self.forecast_data_interface.get_n_draws()
 
     ####################
     # Prior Stage Data #
@@ -160,8 +160,8 @@ class PostprocessingDataInterface:
     def load_raw_covariates(self, scenario: str, draw_id: int) -> pd.DataFrame:
         return self.forecast_data_interface.load_raw_covariates(scenario, draw_id)
 
-    def load_ode_params(self, scenario: str, draw_id: int) -> pd.DataFrame:
-        return self.forecast_data_interface.load_ode_params(scenario, draw_id)
+    def load_ode_params(self, scenario: str, draw_id: int, columns: List[str] = None) -> pd.DataFrame:
+        return self.forecast_data_interface.load_ode_params(scenario, draw_id, columns=columns)
 
     def load_single_ode_param(self, draw_id: int, scenario: str, measure: str) -> pd.Series:
         draw_df = self.load_ode_params(draw_id=draw_id, scenario=scenario, columns=[measure])
