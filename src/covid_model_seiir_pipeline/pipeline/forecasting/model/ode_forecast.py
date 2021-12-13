@@ -62,6 +62,7 @@ def build_beta_final(indices: Indices,
 def build_model_parameters(indices: Indices,
                            beta: pd.Series,
                            posterior_epi_measures: pd.DataFrame,
+                           prior_ratios: pd.DataFrame,
                            ode_parameters: pd.Series,
                            rhos: pd.DataFrame,
                            vaccinations: pd.DataFrame,
@@ -73,21 +74,31 @@ def build_model_parameters(indices: Indices,
         index=indices.full
     )
     ode_params.loc[:, 'beta_all_infection'] = beta
+    measure_map = {
+        'death': ('deaths', 'ifr'),
+        'admission': ('hospitalizations', 'ihr'),
+        'case': ('cases', 'idr')
+    }
+
+    posterior_epi_measures = posterior_epi_measures.loc[posterior_epi_measures['round'] == 2]
     for epi_measure in REPORTED_EPI_MEASURE_NAMES:
         ode_params.loc[:, f'count_all_{epi_measure}'] = -1
         ode_params.loc[:, f'weight_all_{epi_measure}'] = -1
         lag = ode_parameters.loc[f'exposure_to_{epi_measure}']
-        import pdb; pdb.set_trace()
-        infections = posterior_epi_measures.loc[:, 'daily_naive_unvaccinated_infections'].groupby('location_id').shift(lag)
-        rate = posterior_epi_measures.loc[:, f'daily_{epi_measure}'] / infections
+        infections = (posterior_epi_measures
+                      .loc[:, 'daily_naive_unvaccinated_infections']
+                      .reindex(indices.full)
+                      .groupby('location_id')
+                      .shift(lag))
+        ratio_measure, ratio_name = measure_map[epi_measure]
+        numerator = posterior_epi_measures.loc[:, f'daily_{ratio_measure}'].reindex(indices.full)
+        prior_ratio = prior_ratios.loc[:, ratio_name].groupby('location_id').last()
+        ode_params.loc[:, f'rate_all_{epi_measure}'] = build_ratio(infections, numerator, prior_ratio)
 
 
     rhos = rhos.reindex(indices.full, fill_value=0.)
     rhos.columns = [f'rho_{c}_infection' for c in rhos.columns]
     rhos.loc[:, 'rho_none_infection'] = 0
-
-
-
 
     keep_cols = ['alpha_all', 'sigma_all', 'gamma_all', 'pi_all'] + [f'kappa_{v}' for v in VARIANT_NAMES]
     ode_params = (ode_parameters
@@ -113,6 +124,42 @@ def build_model_parameters(indices: Indices,
         natural_waning_distribution=natural_waning_dist.loc['infection'],
         phi=natural_waning_matrix.loc[list(VARIANT_NAMES), list(VARIANT_NAMES)],
     )
+
+
+def build_ratio(shifted_infections: pd.Series, numerator: pd.Series, prior_ratio: pd.Series):
+    posterior_ratio = (numerator / shifted_infections).rename('value')
+    posterior_ratio.loc[(posterior_ratio == 0) | ~np.isfinite(posterior_ratio)] = np.nan    
+    locs = posterior_ratio.reset_index().location_id.unique()    
+    for location_id in locs:
+        count = posterior_ratio.loc[location_id].notnull().sum()
+        if not count:
+            posterior_ratio.loc[location_id] = prior_ratio.loc[location_id]
+    
+    pr_gb = posterior_ratio.dropna().reset_index().groupby('location_id')
+    date = pr_gb.date.last()
+    final_posterior_ratio = pr_gb.value.last()
+    lr_ratio = posterior_ratio.dropna().groupby('location_id').apply(lambda x: x.iloc[-60:].mean())
+
+    window = 60
+    scale = (lr_ratio - final_posterior_ratio) / window
+    t = pd.Series(np.tile(np.arange(window + 1), len(scale)), 
+                  index=pd.MultiIndex.from_product((locs, np.arange(window+1)), 
+                                                   names=('location_id', 't')))
+    rate_scaleup = (final_posterior_ratio + scale * t).rename('value').reset_index(level='t')
+    rate_scaleup['date'] = pd.to_timedelta(rate_scaleup['t'], unit='D') + date
+    rate_scaleup = rate_scaleup.set_index('date', append=True).value
+    ratio = (posterior_ratio
+             .drop(posterior_ratio.index.intersection(rate_scaleup.index))
+             .append(rate_scaleup)
+             .sort_index()
+             .reindex(shifted_infections.index)
+             .groupby('location_id')
+             .ffill()
+             .groupby('location_id')
+             .bfill())
+
+    return ratio
+
 
 
 def beta_shift(beta_hat: pd.DataFrame,

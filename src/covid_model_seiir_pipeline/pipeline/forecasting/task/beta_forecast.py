@@ -50,6 +50,7 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
     ode_params = data_interface.load_regression_ode_params(draw_id=draw_id).set_index('parameter').value
     # Use to get ratios
     posterior_epi_measures = data_interface.load_posterior_epi_measures(draw_id=draw_id)
+    prior_ratios = data_interface.load_rates(draw_id).loc[location_ids]
     # Contains both the fit and regression betas
     betas = data_interface.load_regression_beta(draw_id)
     # Rescaling parameters for the beta forecast.
@@ -80,11 +81,11 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
         log_beta_shift,
         beta_scale,
     )
-    import pdb; pdb.set_trace()
     model_parameters = model.build_model_parameters(
         indices,
         beta,
         posterior_epi_measures,
+        prior_ratios,
         ode_params,
         rhos,
         vaccinations,
