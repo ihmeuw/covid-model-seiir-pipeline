@@ -25,7 +25,7 @@ class ForecastDataInterface:
 
     @classmethod
     def from_specification(cls, specification: ForecastSpecification) -> 'ForecastDataInterface':
-        regression_spec = RegressionSpecification.from_version_root(specification.data.regression_version)
+        regression_spec = RegressionSpecification.from_version_root(specification.data.seir_regression_version)
         regression_data_interface = RegressionDataInterface.from_specification(regression_spec)
 
         forecast_root = io.ForecastRoot(specification.data.output_root,
