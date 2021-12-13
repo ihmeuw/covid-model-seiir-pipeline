@@ -66,7 +66,7 @@ def build_model_parameters(indices: Indices,
                            ode_parameters: pd.Series,
                            rhos: pd.DataFrame,
                            vaccinations: pd.DataFrame,
-                           all_etas: pd.DataFrame,
+                           etas: pd.DataFrame,
                            phis: pd.DataFrame) -> Parameters:
     keep = ['alpha', 'sigma', 'gamma', 'pi', 'kappa']
     ode_params = pd.DataFrame(
@@ -81,6 +81,7 @@ def build_model_parameters(indices: Indices,
     }
 
     posterior_epi_measures = posterior_epi_measures.loc[posterior_epi_measures['round'] == 2]
+    scalars = []
     for epi_measure in REPORTED_EPI_MEASURE_NAMES:
         ode_params.loc[:, f'count_all_{epi_measure}'] = -1
         ode_params.loc[:, f'weight_all_{epi_measure}'] = -1
@@ -95,34 +96,32 @@ def build_model_parameters(indices: Indices,
         prior_ratio = prior_ratios.loc[:, ratio_name].groupby('location_id').last()
         ode_params.loc[:, f'rate_all_{epi_measure}'] = build_ratio(infections, numerator, prior_ratio)
 
+        for risk_group in RISK_GROUP_NAMES:
+            scalars.append(
+                (prior_ratio[f'{ratio_name}_{risk_group}'] / prior_ratio[ratio_name])
+                .rename(f'{epi_measure}_{risk_group}')
+                .reindex(indices.full)
+                .groupby('location_id')
+                .ffill()
+                .groupby('location_id')
+                .bfill()
+            )
+    scalars = pd.concat(scalars, axis=1)
 
     rhos = rhos.reindex(indices.full, fill_value=0.)
     rhos.columns = [f'rho_{c}_infection' for c in rhos.columns]
     rhos.loc[:, 'rho_none_infection'] = 0
+    base_parameters = pd.concat([ode_params, rhos], axis=1)
 
-    keep_cols = ['alpha_all', 'sigma_all', 'gamma_all', 'pi_all'] + [f'kappa_{v}' for v in VARIANT_NAMES]
-    ode_params = (ode_parameters
-                  .reindex(indices.full)
-                  .groupby('location_id')
-                  .ffill()
-                  .loc[:, keep_cols]
-                  .to_dict('series'))
-    new_e_all = pd.Series(np.nan, index=indices.full, name='new_e_all')
-    rhos = rhos.reindex(indices.full, fill_value=0.).to_dict('series')
-    rhos['rho_none'] = pd.Series(0., index=indices.full, name='rho_none')
-
-    vaccinations = vaccinations.reindex(indices.full, fill_value=0.).to_dict('series')
-    etas = process_etas(all_etas, indices.full)
+    vaccinations = vaccinations.reindex(indices.full, fill_value=0.)
+    etas = etas.sort_index().reindex(indices.full, fill_value=0.)
 
     return Parameters(
-        **ode_params,
-        new_e_all=new_e_all,
-        beta_all=beta,
-        **rhos,
-        **vaccinations,
-        **etas,
-        natural_waning_distribution=natural_waning_dist.loc['infection'],
-        phi=natural_waning_matrix.loc[list(VARIANT_NAMES), list(VARIANT_NAMES)],
+        base_parameters=base_parameters,
+        vaccinations=vaccinations,
+        age_scalars=scalars,
+        etas=etas,
+        phis=phis,
     )
 
 
@@ -208,84 +207,50 @@ def beta_shift(beta_hat: pd.DataFrame,
 # Construct postprocessing parameters #
 #######################################
 
-def build_postprocessing_parameters(indices: Indices,
-                                    past_infections: pd.Series,
-                                    past_deaths: pd.Series,
-                                    ratio_data,
-                                    model_parameters: Parameters,
-                                    correction_factors,
-                                    hospital_parameters) -> PostprocessingParameters:
-    ratio_data = correct_ratio_data(indices, ratio_data, model_parameters)
-
-    correction_factors = forecast_correction_factors(
-        indices,
-        correction_factors,
-        hospital_parameters,
-    )
-
-    return PostprocessingParameters(
-        past_infections=past_infections,
-        past_deaths=past_deaths,
-        **ratio_data.to_dict(),
-        **correction_factors.to_dict()
-    )
-
-
-def correct_ratio_data(indices: Indices,
-                       ratio_data,
-                       model_params: Parameters):
-    variant_prevalence = (model_params
-                          .get_params()
-                          .filter(like='rho')
-                          .drop(columns=['rho_none', 'rho_ancestral'])
-                          .sum(axis=1))
-    p_start = variant_prevalence.loc[indices.initial_condition].reset_index(level='date', drop=True)
-    variant_prevalence -= p_start.reindex(variant_prevalence.index, level='location_id')
-    variant_prevalence[variant_prevalence < 0] = 0.0
-    
-    ifr_scalar = ratio_data.ifr_scalar * variant_prevalence + (1 - variant_prevalence)
-    ifr_scalar = ifr_scalar.groupby('location_id').shift(ratio_data.infection_to_death).fillna(0.)
-    ratio_data.ifr = ifr_scalar * _expand_rate(ratio_data.ifr, indices.full)
-    ratio_data.ifr_lr = ifr_scalar * _expand_rate(ratio_data.ifr_lr, indices.full)
-    ratio_data.ifr_hr = ifr_scalar * _expand_rate(ratio_data.ifr_hr, indices.full)
-    
-    ihr_scalar = ratio_data.ihr_scalar * variant_prevalence + (1 - variant_prevalence)
-    ihr_scalar = ihr_scalar.groupby('location_id').shift(ratio_data.infection_to_admission).fillna(0.)
-    ratio_data.ihr = ihr_scalar * _expand_rate(ratio_data.ihr, indices.full)
-
-    ratio_data.idr = _expand_rate(ratio_data.idr, indices.full)
-    ratio_data.ihr = _expand_rate(ratio_data.ihr, indices.full)
-    return ratio_data
+# def build_postprocessing_parameters(indices: Indices,
+#                                     past_infections: pd.Series,
+#                                     past_deaths: pd.Series,
+#                                     ratio_data,
+#                                     model_parameters: Parameters,
+#                                     correction_factors,
+#                                     hospital_parameters) -> PostprocessingParameters:
+#     ratio_data = correct_ratio_data(indices, ratio_data, model_parameters)
+#
+#     correction_factors = forecast_correction_factors(
+#         indices,
+#         correction_factors,
+#         hospital_parameters,
+#     )
+#
+#     return PostprocessingParameters(
+#         past_infections=past_infections,
+#         past_deaths=past_deaths,
+#         **ratio_data.to_dict(),
+#         **correction_factors.to_dict()
+#     )
 
 
-def _expand_rate(rate: pd.Series, index: pd.MultiIndex):
-    return (rate
-            .reindex(index)
-            .groupby('location_id')
-            .fillna(method='ffill')
-            .fillna(method='bfill'))
-
-
-def forecast_correction_factors(indices: Indices,
-                                correction_factors,
-                                hospital_parameters):
-    averaging_window = pd.Timedelta(days=hospital_parameters.correction_factor_average_window)
-    application_window = pd.Timedelta(days=hospital_parameters.correction_factor_application_window)
-
-    new_cfs = {}
-    for cf_name, cf in correction_factors.to_dict().items():
-        cf = cf.reindex(indices.full)
-        loc_cfs = []
-        for loc_id, loc_today in indices.initial_condition.tolist():
-            loc_cf = cf.loc[loc_id]
-            mean_cf = loc_cf.loc[loc_today - averaging_window: loc_today].mean()
-            loc_cf.loc[loc_today:] = np.nan
-            loc_cf.loc[loc_today + application_window:] = mean_cf
-            loc_cf = loc_cf.interpolate().reset_index()
-            loc_cf['location_id'] = loc_id
-            loc_cfs.append(loc_cf.set_index(['location_id', 'date'])[cf_name])
-        new_cfs[cf_name] = pd.concat(loc_cfs).sort_index()
-    return HospitalCorrectionFactors(**new_cfs)
+#
+# def forecast_correction_factors(indices: Indices,
+#                                 correction_factors,
+#                                 hospital_parameters):
+#     averaging_window = pd.Timedelta(days=hospital_parameters.correction_factor_average_window)
+#     application_window = pd.Timedelta(days=hospital_parameters.correction_factor_application_window)
+#
+#     new_cfs = {}
+#     for cf_name, cf in correction_factors.to_dict().items():
+#         cf = cf.reindex(indices.full)
+#         loc_cfs = []
+#         for loc_id, loc_today in indices.initial_condition.tolist():
+#             loc_cf = cf.loc[loc_id]
+#             mean_cf = loc_cf.loc[loc_today - averaging_window: loc_today].mean()
+#             loc_cf.loc[loc_today:] = np.nan
+#             loc_cf.loc[loc_today + application_window:] = mean_cf
+#             loc_cf = loc_cf.interpolate().reset_index()
+#             loc_cf['location_id'] = loc_id
+#             loc_cfs.append(loc_cf.set_index(['location_id', 'date'])[cf_name])
+#         new_cfs[cf_name] = pd.concat(loc_cfs).sort_index()
+#     return HospitalCorrectionFactors(**new_cfs)
 
 
 ###########

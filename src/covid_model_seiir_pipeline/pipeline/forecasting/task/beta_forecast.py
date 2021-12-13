@@ -95,34 +95,34 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
 
     # Pull in compartments from the fit and subset out the initial condition.
     logger.info('Loading past compartment data.', context='read')
-    past_compartments = data_interface.load_compartments(draw_id=draw_id)
     initial_condition = past_compartments.reindex(indices.full, fill_value=0.)
-
-    ###################################################
-    # Construct parameters for postprocessing results #
-    ###################################################
-    logger.info('Loading results processing input data.', context='read')
-    past_deaths = data_interface.load_past_deaths(draw_id=draw_id).dropna()
-    ratio_data = data_interface.load_ratio_data(draw_id=draw_id)
-    hospital_parameters = data_interface.get_hospital_parameters()
-    correction_factors = data_interface.load_hospital_correction_factors()
-
-    logger.info('Prepping results processing parameters.', context='transform')
-    postprocessing_params = model.build_postprocessing_parameters(
-        indices,
-        past_infections,
-        past_deaths,
-        ratio_data,
-        model_parameters,
-        correction_factors,
-        hospital_parameters,
-    )
+    #
+    # ###################################################
+    # # Construct parameters for postprocessing results #
+    # ###################################################
+    # logger.info('Loading results processing input data.', context='read')
+    # past_deaths = data_interface.load_past_deaths(draw_id=draw_id).dropna()
+    # ratio_data = data_interface.load_ratio_data(draw_id=draw_id)
+    # hospital_parameters = data_interface.get_hospital_parameters()
+    # correction_factors = data_interface.load_hospital_correction_factors()
+    #
+    # logger.info('Prepping results processing parameters.', context='transform')
+    # postprocessing_params = model.build_postprocessing_parameters(
+    #     indices,
+    #     past_infections,
+    #     past_deaths,
+    #     ratio_data,
+    #     model_parameters,
+    #     correction_factors,
+    #     hospital_parameters,
+    # )
 
     logger.info('Running ODE forecast.', context='compute_ode')
     compartments, chis = model.run_ode_forecast(
         initial_condition,
         model_parameters,
     )
+    import pdb; pdb.set_trace()
     logger.info('Processing ODE results and computing deaths and infections.', context='compute_results')
     system_metrics, output_metrics = model.compute_output_metrics(
         indices,
