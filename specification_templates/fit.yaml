@@ -41,32 +41,7 @@ fit_parameters:
   kappa_beta_infection: 1.2
   kappa_gamma_infection: 1.2
   kappa_delta_infection: 1.8
+  kappa_omicron_infection: 1.8
   kappa_other_infection: 1.2
   kappa_omega_infection: 1.8
-
-  kappa_none_death: 0.0
-  kappa_ancestral_death: 1.0
-  kappa_alpha_death: 1.0
-  kappa_beta_death: 1.53
-  kappa_gamma_death: 1.53
-  kappa_delta_death: 1.53
-  kappa_other_death: 1.53
-  kappa_omega_death: 1.53
-
-  kappa_none_admission: 1.53
-  kappa_ancestral_admission: 1.53
-  kappa_alpha_admission: 1.53
-  kappa_beta_admission: 1.53
-  kappa_gamma_admission: 1.53
-  kappa_delta_admission: 1.53
-  kappa_other_admission: 1.53
-  kappa_omega_admission: 1.53
-
-  kappa_none_case: 1.0
-  kappa_ancestral_case: 1.0
-  kappa_alpha_case: 1.0
-  kappa_beta_case: 1.0
-  kappa_gamma_case: 1.0
-  kappa_delta_case: 1.0
-  kappa_other_case: 1.0
-  kappa_omega_case: 1.0
+  

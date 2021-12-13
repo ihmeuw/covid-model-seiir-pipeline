@@ -399,43 +399,51 @@ class PreprocessingDataInterface:
         data = io.load(self.vaccine_efficacy_root.efficacy_table())
         data = (data
                 .rename(columns={'merge_name': 'brand'})
-                .set_index('brand')
-                .loc[:, ['efficacy', 'prop_protected_not_infectious', 'variant_efficacy', 'variant_infection']])
+                .set_index(['brand', 'vaccine_course'])
+                .loc[:, ['efficacy', 'prop_protected_not_infectious',
+                         'variant_efficacy', 'variant_infection',
+                         'omicron_efficacy', 'omicron_infection']])
         # Use more sensible column names that care about variants and efficacy endpoints.
         data.columns = pd.MultiIndex.from_tuples(
             [('ancestral', 'severe_disease'),
              ('ancestral', 'infection'),
              ('delta', 'severe_disease'),
-             ('delta', 'infection')],
+             ('delta', 'infection'),
+             ('omicron', 'severe_disease'),
+             ('omicron', 'infection')],
             names=[None, 'endpoint']
         )
         # Pivot endpoint from the columns to the index.
         data = (data
                 .stack()
-                .reorder_levels(['endpoint', 'brand'])
+                .reorder_levels(['endpoint', 'brand', 'vaccine_course'])
                 .sort_index())
         return data
 
     def load_waning_data(self) -> pd.DataFrame:
         data = io.load(self.vaccine_efficacy_root.waning_distribution(measure='vetsvacc'))
-        pfizer = io.load(self.vaccine_efficacy_root.waning_distribution(measure='averageloglin'))
-        data.loc[:, 'pfi_sev'] = pfizer['aver_pfi_sev']
         expected_cols = {
             'mid_point',
-            'logpfi_inf', 'pfi_inf', 'logpfi_symp', 'pfi_symp', 'logpfi_sev', 'pfi_sev',
-            'logmod_inf', 'mod_inf', 'logmod_symp', 'mod_symp', 'logmod_sev', 'mod_sev',
-            'logast_symp', 'ast_symp', 'logast_sev', 'ast_sev',
+            'logit_pfi_inf', 'pfi_inf',
+            'logit_mod_inf', 'mod_inf',
+            'logit_ast_inf', 'ast_inf',
+            'logit_jan_inf', 'jan_inf',
+            'logit_pfi_sev', 'pfi_sev',
+            'logit_mod_sev', 'mod_sev',
+            'logit_ast_sev', 'ast_sev',
+            'jan_sev',
         }
+        
         assert set(data.columns) == expected_cols
         data = (data
                 .rename(columns={'mid_point': 'weeks_since_delivery'})
                 .set_index('weeks_since_delivery'))
 
-        endpoint_map = {'inf': 'infection', 'sev': 'severe_disease', 'symp': 'symptomatic_infection', }
+        endpoint_map = {'inf': 'infection', 'sev': 'severe_disease',}
 
         out = []
         for col in data.columns:
-            brand, endpoint = col.split('_')
+            brand, endpoint = col.split('_')[-2:]
             if brand[:3] == 'log':
                 continue
             s = data[col].rename('value').to_frame()

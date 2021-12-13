@@ -35,7 +35,8 @@ def map_variants(efficacy: pd.DataFrame) -> pd.DataFrame:
         'beta': 'delta',
         'gamma': 'delta',
         'other': 'delta',
-        'omega': 'delta',
+        'omicron': 'omicron',
+        'omega': 'omicron',
     }
     for target_variant, similar_variant in efficacy_map.items():
         efficacy[target_variant] = efficacy[similar_variant]
@@ -56,7 +57,8 @@ def get_infection_endpoint_brand_specific_waning(waning: pd.DataFrame,
     waning_map = {
         'BNT-162': waning.loc[('infection', 'pfi')],
         'Moderna': waning.loc[('infection', 'mod')],
-        'AZD1222': waning.loc[('symptomatic_infection', 'ast')],
+        'AZD1222': waning.loc[('infection', 'ast')],
+        'Janssen': waning.loc[('infection', 'jan')],
     }
     default_waning = pd.concat(waning_map.values(), axis=1).mean(axis=1).rename('value')
     brand_specific_waning = _get_brand_specific_waning(waning_map, default_waning, all_brands)
@@ -74,6 +76,7 @@ def get_severe_endpoint_brand_specific_waning(waning: pd.DataFrame,
         'BNT-162': waning.loc[('severe_disease', 'pfi')],
         'Moderna': waning.loc[('severe_disease', 'mod')],
         'AZD1222': waning.loc[('severe_disease', 'ast')],
+        'Janssen': waning.loc[('severe_disease', 'jan')],
     }
     default_waning = pd.concat(waning_map.values(), axis=1).mean(axis=1).rename('value')
     brand_specific_waning = _get_brand_specific_waning(waning_map, default_waning, all_brands)
@@ -111,14 +114,16 @@ def _coerce_week_index_to_day_index(data: pd.Series) -> pd.Series:
 
 
 def build_waning_efficacy(efficacy: pd.DataFrame, waning: pd.DataFrame) -> pd.DataFrame:
-    waning_efficacy = (efficacy
-                       .reindex(waning.index)
-                       .mul(waning.value, axis=0)
+    waning_efficacy = efficacy.join(waning)
+    col_names = waning_efficacy.index.names
+    waning_efficacy = (waning_efficacy
+                       .loc[:, efficacy.columns]
+                       .mul(waning_efficacy.value, axis=0)
                        .stack()
                        .reset_index())
-    waning_efficacy.columns = ['endpoint', 'brand', 'days', 'variant', 'value']
+    waning_efficacy.columns = col_names + ['variant', 'value']
     waning_efficacy = (waning_efficacy
-                       .set_index(['endpoint', 'variant', 'days', 'brand'])
+                       .set_index(['endpoint', 'vaccine_course', 'variant', 'days', 'brand'])
                        .value
                        .sort_index()
                        .unstack())
@@ -138,6 +143,8 @@ def build_eta_calc_arguments(vaccine_uptake: pd.DataFrame,
 
     for location_id, vaccine_course, risk_group in tqdm.tqdm(list(groups), disable=not progress_bar):
         group_uptake = vaccine_uptake.loc[(vaccine_course, location_id, risk_group)]
+        group_infection_efficacy = infection_efficacy.loc[vaccine_course]
+        group_severe_disease_efficacy = severe_disease_efficacy.loc[vaccine_course]
 
         eta_args.append([
             'infection',
@@ -145,8 +152,8 @@ def build_eta_calc_arguments(vaccine_uptake: pd.DataFrame,
             vaccine_course,
             risk_group,
             group_uptake,
-            infection_efficacy,
-            pd.DataFrame(0., columns=infection_efficacy.columns, index=infection_efficacy.index),
+            group_infection_efficacy,
+            pd.DataFrame(0., columns=group_infection_efficacy.columns, index=group_infection_efficacy.index),
         ])
         eta_args.append([
             'severe_disease',
@@ -154,8 +161,8 @@ def build_eta_calc_arguments(vaccine_uptake: pd.DataFrame,
             vaccine_course,
             risk_group,
             group_uptake,
-            severe_disease_efficacy,
-            infection_efficacy,
+            group_severe_disease_efficacy,
+            group_infection_efficacy,
         ])
 
     return eta_args
