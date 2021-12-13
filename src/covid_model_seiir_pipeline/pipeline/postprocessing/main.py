@@ -12,54 +12,49 @@ from covid_model_seiir_pipeline.pipeline.postprocessing import model
 
 
 def do_postprocessing(run_metadata: cli_tools.RunMetadata,
-                      postprocessing_specification: str,
+                      specification: PostprocessingSpecification,
                       output_root: Optional[str], mark_best: bool, production_tag: str,
                       preprocess_only: bool,
                       with_debugger: bool,
-                      **input_versions: Dict[str, cli_tools.VersionInfo]) -> PostprocessingSpecification:
-    postprocessing_spec = PostprocessingSpecification.from_path(postprocessing_specification)
+                      input_versions: Dict[str, cli_tools.VersionInfo]) -> PostprocessingSpecification:
+    specification, run_metadata = cli_tools.resolve_version_info(specification, run_metadata, input_versions)
 
-    postprocessing_spec, run_metadata = cli_tools.resolve_version_info(
-        postprocessing_spec,
-        run_metadata,
-        input_versions,
-    )
-
-    output_root = cli_tools.get_output_root(output_root,
-                                            postprocessing_spec.data.output_root)
+    output_root = cli_tools.get_output_root(output_root, specification.data.output_root)
     cli_tools.setup_directory_structure(output_root, with_production=True)
     run_directory = cli_tools.make_run_directory(output_root)
-    postprocessing_spec.data.output_root = str(run_directory)
+
+    specification.data.output_root = str(run_directory)
 
     run_metadata['output_path'] = str(run_directory)
-    run_metadata['postprocessing_specification'] = postprocessing_spec.to_dict()
+    run_metadata['postprocessing_specification'] = specification.to_dict()
 
     cli_tools.configure_logging_to_files(run_directory)
     # noinspection PyTypeChecker
     main = cli_tools.monitor_application(postprocessing_main,
                                          logger, with_debugger)
-    app_metadata, _ = main(postprocessing_spec, preprocess_only)
+    app_metadata, _ = main(specification, preprocess_only)
 
     cli_tools.finish_application(run_metadata, app_metadata,
                                  run_directory, mark_best, production_tag)
-    return postprocessing_spec
+
+    return specification
 
 
 def postprocessing_main(app_metadata: cli_tools.Metadata,
-                        postprocessing_specification: PostprocessingSpecification,
+                        specification: PostprocessingSpecification,
                         preprocess_only: bool):
-    logger.info(f'Starting postprocessing for version {postprocessing_specification.data.output_root}.')
+    logger.info(f'Starting postprocessing for version {specification.data.output_root}.')
 
-    data_interface = PostprocessingDataInterface.from_specification(postprocessing_specification)
+    data_interface = PostprocessingDataInterface.from_specification(specification)
 
-    data_interface.make_dirs(scenario=postprocessing_specification.data.scenarios)
-    data_interface.save_specification(postprocessing_specification)
+    data_interface.make_dirs(scenario=specification.data.scenarios)
+    data_interface.save_specification(specification)
 
     if not preprocess_only:
-        workflow = PostprocessingWorkflow(postprocessing_specification.data.output_root,
-                                          postprocessing_specification.workflow)
+        workflow = PostprocessingWorkflow(specification.data.output_root,
+                                          specification.workflow)
         known_covariates = list(model.COVARIATES)
-        modeled_covariates = set(data_interface.get_covariate_names(postprocessing_specification.data.scenarios))
+        modeled_covariates = set(data_interface.get_covariate_names(specification.data.scenarios))
         unknown_covariates = modeled_covariates.difference(known_covariates + ['intercept'])
         if unknown_covariates:
             logger.warning("Some covariates that were modeled have no postprocessing configuration. "
@@ -68,7 +63,7 @@ def postprocessing_main(app_metadata: cli_tools.Metadata,
 
         measures = [*model.MEASURES, *model.COMPOSITE_MEASURES,
                     *model.MISCELLANEOUS, *modeled_covariates.intersection(known_covariates)]
-        workflow.attach_tasks(measures, postprocessing_specification.data.scenarios)
+        workflow.attach_tasks(measures, specification.data.scenarios)
 
         try:
             workflow.run()
@@ -79,30 +74,27 @@ def postprocessing_main(app_metadata: cli_tools.Metadata,
 @click.command()
 @cli_tools.pass_run_metadata()
 @cli_tools.with_specification(PostprocessingSpecification)
-@cli_tools.with_version(paths.SEIR_FORECAST_OUTPUTS)
-@cli_tools.with_version(paths.MORTALITY_AGE_PATTERN_ROOT)
 @cli_tools.add_output_options(paths.SEIR_FINAL_OUTPUTS)
 @cli_tools.add_preprocess_only
 @cli_tools.add_verbose_and_with_debugger
+@cli_tools.with_version(paths.SEIR_FORECAST_OUTPUTS)
 def postprocess(run_metadata,
-                postprocessing_specification,
-                forecast_version,
-                mortality_age_pattern_version,
+                specification,
                 output_root, mark_best, production_tag,
                 preprocess_only,
-                verbose, with_debugger):
+                verbose, with_debugger,
+                **input_versions):
     cli_tools.configure_logging_to_terminal(verbose)
 
     do_postprocessing(
         run_metadata=run_metadata,
-        postprocessing_specification=postprocessing_specification,
-        forecast_version=forecast_version,
-        mortality_age_pattern=mortality_age_pattern_version,
+        specification=specification,
         output_root=output_root,
         mark_best=mark_best,
         production_tag=production_tag,
         preprocess_only=preprocess_only,
         with_debugger=with_debugger,
+        input_versions=input_versions,
     )
 
     logger.info('**Done**')

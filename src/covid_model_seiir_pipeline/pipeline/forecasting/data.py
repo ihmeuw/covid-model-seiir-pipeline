@@ -225,5 +225,5 @@ class ForecastDataInterface:
     def save_raw_outputs(self, raw_outputs: pd.DataFrame, scenario: str, draw_id: int):
         io.dump(raw_outputs, self.forecast_root.raw_outputs(scenario=scenario, draw_id=draw_id))
 
-    def load_raw_outputs(self, scenario: str, draw_id: int):
-        return io.load(self.forecast_root.raw_outputs(scenario=scenario, draw_id=draw_id))
+    def load_raw_outputs(self, scenario: str, draw_id: int, columns: List[str] = None):
+        return io.load(self.forecast_root.raw_outputs(scenario=scenario, draw_id=draw_id, columns=columns))

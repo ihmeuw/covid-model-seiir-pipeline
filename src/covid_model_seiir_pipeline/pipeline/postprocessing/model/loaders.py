@@ -109,12 +109,12 @@ def load_covariate(covariate: str, time_varying: bool, scenario: str,
 def load_coefficients(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
     draws = range(data_interface.get_n_draws())
     with multiprocessing.Pool(num_cores) as pool:
-        outputs = pool.map(data_interface.load_regression_coefficients, draws)
+        outputs = pool.map(data_interface.load_coefficients, draws)
     return outputs
 
 
 def load_excess_mortality_scalars(data_interface: 'PostprocessingDataInterface'):
-    return summarize(data_interface.load_excess_mortality_scalars())
+    return summarize(data_interface.load_total_covid_scalars(0))
 
 
 def load_raw_census_data(data_interface: 'PostprocessingDataInterface'):
@@ -131,7 +131,7 @@ def load_hospital_bed_capacity(data_interface: 'PostprocessingDataInterface'):
 
 def load_scaling_parameters(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
     _runner = functools.partial(
-        data_interface.load_scaling_parameters,
+        data_interface.load_beta_scales,
         scenario=scenario,
     )
     draws = range(data_interface.get_n_draws())
