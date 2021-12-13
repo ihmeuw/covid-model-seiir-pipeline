@@ -109,7 +109,7 @@ def compute_initial_beta_scaling_parameters_by_draw(draw_id: int,
     # to this list as we construct the parameters.
     draw_data = []
 
-    betas = data_interface.load_betas(draw_id)
+    betas = data_interface.load_regression_beta(draw_id)
     # Select out the transition day to compute the initial scaling parameter.
     beta_transition = betas.groupby('location_id').last()
 

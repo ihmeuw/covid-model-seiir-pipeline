@@ -12,18 +12,18 @@ def compute_reimposition_threshold(past_deaths, population, reimposition_thresho
                   .apply(lambda x: x.iloc[-14:])
                   .reset_index(level=0, drop=True))
     days_over_death_rate = (
-        (death_rate > reimposition_threshold.loc[death_rate.index])
-         .groupby('location_id')
-         .sum()
+        (death_rate > reimposition_threshold.reindex(death_rate.index, level='location_id'))
+        .groupby('location_id')
+        .sum()
     )
     bad_locs = days_over_death_rate[days_over_death_rate >= 7].index
     reimposition_threshold.loc[bad_locs] = max_threshold.loc[bad_locs]
 
     # Do it a second time to some crazy stuff happening in central europe.
     days_over_death_rate = (
-        (death_rate > reimposition_threshold.loc[death_rate.index])
-         .groupby('location_id')
-         .sum()
+        (death_rate > reimposition_threshold.reindex(death_rate.index, level='location_id'))
+        .groupby('location_id')
+        .sum()
     )
     bad_locs = days_over_death_rate[days_over_death_rate >= 7].index
     reimposition_threshold.loc[bad_locs] = 2*max_threshold.loc[bad_locs]
@@ -35,13 +35,13 @@ def compute_reimposition_threshold(past_deaths, population, reimposition_thresho
     for location in immediate_lockdown_locations:
         reimposition_threshold.loc[location] = 0.1 / 1_000_000
     no_lockdown_locations = [
-        33, # Armenia
-        45, # Bulgaria
-        52, # Romania        
-        59, # Latvia
-        62, # Russia
-        63, # Ukraine
-        45, # Bulgaria
+        33,  # Armenia
+        45,  # Bulgaria
+        52,  # Romania
+        59,  # Latvia
+        62,  # Russia
+        63,  # Ukraine
+        45,  # Bulgaria
     ]
     all_locs = reimposition_threshold.reset_index().location_id.unique().tolist()
     us = list(range(523, 574)) + [60886, 60887, 3539]
@@ -54,9 +54,9 @@ def compute_reimposition_threshold(past_deaths, population, reimposition_thresho
 def compute_reimposition_date(deaths, population, reimposition_threshold,
                               min_wait, last_reimposition_end_date) -> pd.Series:
     location_dates = deaths.index.to_frame().reset_index(drop=True)
-    deaths = deaths.reset_index(level='observed', drop=True)
     death_rate = ((deaths / population.reindex(deaths.index, level='location_id'))
                   .rename('death_rate'))
+    deaths = deaths.reset_index(level='observed', drop=True)
     reimposition_threshold = (reimposition_threshold
                               .reindex(death_rate.index)
                               .groupby('location_id')
