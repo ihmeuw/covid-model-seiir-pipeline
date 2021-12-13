@@ -60,9 +60,10 @@ def compute_tracking_compartments(t: float,
                 else:
                     rate = rates[RATES[vaccine_status, variant_from, variant_to, epi_measure]]
                 measure = infections * rate
-                if vaccine_status == VACCINE_STATUS.unvaccinated and variant_from == VARIANT.none:
-                    dy[TRACKING_COMPARTMENTS[tc, variant_from, VARIANT_GROUP.all, agg_vaccine_status]] += measure
-                dy[TRACKING_COMPARTMENTS[tc, VARIANT.none, VARIANT_GROUP.all, AGG_INDEX_TYPE.all]] += measure
+                if variant_from == VARIANT.none:
+                    dy[TRACKING_COMPARTMENTS[tc, VARIANT.none, VARIANT_GROUP.all, AGG_INDEX_TYPE.all]] += measure
+                    if vaccine_status == VACCINE_STATUS.unvaccinated:
+                        dy[TRACKING_COMPARTMENTS[tc, variant_from, VARIANT_GROUP.all, agg_vaccine_status]] += measure
                 dy[TRACKING_COMPARTMENTS[tc, VARIANT_GROUP.all, VARIANT_GROUP.all, AGG_INDEX_TYPE.all]] += measure
                 dy[TRACKING_COMPARTMENTS[tc, VARIANT_GROUP.all, variant_to, AGG_INDEX_TYPE.all]] += measure
 
