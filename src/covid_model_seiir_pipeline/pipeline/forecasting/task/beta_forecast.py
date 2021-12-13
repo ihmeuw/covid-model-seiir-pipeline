@@ -24,14 +24,18 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
     # unique datasets in this model, and they need to be aligned consistently
     # to do computation.
     logger.info('Loading index building data', context='read')
-    past_infections = data_interface.load_posterior_epi_measures(draw_id, columns=['daily_total_infections'])
-    past_start_dates = past_infections.reset_index().groupby('location_id').date.min()
-    forecast_start_dates = past_infections.reset_index().groupby('location_id').date.max()
+    location_ids = data_interface.load_location_ids()
+    past_compartments = data_interface.load_past_compartments(draw_id).loc[location_ids]
+    past_compartments = past_compartments.loc[past_compartments.notnull().all(axis=1)]
+    dates = past_compartments.reset_index(level='date').date
+    past_start_dates = dates.groupby('location_id').min()
+    forecast_start_dates = dates.groupby('location_id').max()
     # Forecast is run to the end of the covariates
     covariates = data_interface.load_covariates(scenario_spec.covariates)
     forecast_end_dates = covariates.reset_index().groupby('location_id').date.max()
     population = data_interface.load_population('total').population
 
+    import pdb; pdb.set_trace()
     logger.info('Building indices', context='transform')
     indices = model.Indices(
         past_start_dates,

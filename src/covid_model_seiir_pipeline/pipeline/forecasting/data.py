@@ -118,7 +118,7 @@ class ForecastDataInterface:
     def load_posterior_epi_measures(self, draw_id: int, columns: List[str] = None) -> pd.DataFrame:
         return self.regression_data_interface.load_posterior_epi_measures(draw_id, columns)
 
-    def load_compartments(self, draw_id: int, columns: List[str] = None) -> pd.DataFrame:
+    def load_past_compartments(self, draw_id: int, columns: List[str] = None) -> pd.DataFrame:
         return self.regression_data_interface.load_compartments(draw_id, columns)
 
     def load_fit_beta(self, draw_id: int, columns: List[str] = None) -> pd.DataFrame:
