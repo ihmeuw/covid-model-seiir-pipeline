@@ -1,5 +1,5 @@
 data:
-  seir_regression_version: '2021_12_12.01'
+  seir_regression_version: '2021_12_12.02'
   output_root: ''
   output_format: 'parquet'
 workflow:
@@ -22,76 +22,7 @@ scenarios:
     covariates:
       pneumonia: 'reference'
       mobility: 'reference'
-      mask_use: 'seasonal'
-      testing: 'reference'
-      air_pollution_pm_2_5: 'reference'
-      smoking_prevalence: 'reference'
-      lri_mortality: 'reference'
-      proportion_under_100m: 'reference'
-      proportion_over_2_5k: 'reference'
-  optimistic:
-    algorithm: 'draw_level_mandate_reimposition'
-    algorithm_params:
-      death_threshold: 8  # per million
-      max_threshold: 15 # per million
-      reimposition_duration: 6 # weeks
-      minimum_delay: 14 # days
-    beta_scaling:
-      window_size: 42
-      average_over_min: 7
-      average_over_max: 42
-    vaccine_version: 'booster_optimal_kid_low'
-    variant_version: 'reference'
-    covariates:
-      pneumonia: 'reference'
-      mobility: 'reference'
-      mask_use: 'seasonal'
-      testing: 'reference'
-      air_pollution_pm_2_5: 'reference'
-      smoking_prevalence: 'reference'
-      lri_mortality: 'reference'
-      proportion_under_100m: 'reference'
-      proportion_over_2_5k: 'reference'
-  child_vaccine_push:
-    algorithm: 'draw_level_mandate_reimposition'
-    algorithm_params:
-      death_threshold: 8  # per million
-      max_threshold: 15 # per million
-      reimposition_duration: 6 # weeks
-      minimum_delay: 14 # days
-    beta_scaling:
-      window_size: 42
-      average_over_min: 7
-      average_over_max: 42
-    vaccine_version: 'booster_reference_kid_high'
-    variant_version: 'reference'
-    covariates:
-      pneumonia: 'reference'
-      mobility: 'reference'
-      mask_use: 'seasonal'
-      testing: 'reference'
-      air_pollution_pm_2_5: 'reference'
-      smoking_prevalence: 'reference'
-      lri_mortality: 'reference'
-      proportion_under_100m: 'reference'
-      proportion_over_2_5k: 'reference'
-  optimistic_child_vaccine_push:
-    algorithm: 'draw_level_mandate_reimposition'
-    algorithm_params:
-      death_threshold: 8  # per million
-      max_threshold: 15 # per million
-      reimposition_duration: 6 # weeks
-      minimum_delay: 14 # days
-    beta_scaling:
-      window_size: 42
-      average_over_min: 7
-      average_over_max: 42
-    vaccine_version: 'booster_optimal_kid_high'
-    variant_version: 'reference'
-    covariates:
-      pneumonia: 'reference'
-      mobility: 'reference'
-      mask_use: 'seasonal'
+      mask_use: 'reference'
       testing: 'reference'
       air_pollution_pm_2_5: 'reference'
       smoking_prevalence: 'reference'
