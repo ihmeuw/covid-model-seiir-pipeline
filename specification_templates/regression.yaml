@@ -45,7 +45,7 @@ covariates:
     bounds: [0.0, 1000.0]
   smoking_prevalence:
     gprior: [0.0, 1000]
-    bounds: [0.0, 1.0]
+    bounds: [0.0, 1000.0]
   lri_mortality:
     gprior: [0.0, 1000.0]
     bounds: [0.0, 1000.0]
