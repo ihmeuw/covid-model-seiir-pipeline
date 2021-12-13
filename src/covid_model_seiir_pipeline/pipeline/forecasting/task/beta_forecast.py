@@ -251,6 +251,7 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
         indices,
         compartments,
         model_parameters,
+        ode_params,
     )
 
     logger.info('Prepping outputs.', context='transform')
