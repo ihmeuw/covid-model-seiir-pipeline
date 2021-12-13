@@ -78,7 +78,8 @@ def run_beta_fit_diagnostics(fit_version: str, progress_bar) -> None:
             )
 
         logger.info('Collating plots', context='merge_plots')
-        output_path = Path(specification.data.output_root) / f'past_infections.pdf'
+        output_root = Path(specification.data.output_root)
+        output_path = output_root / f'past_infections_{output_root.name}.pdf'
         pdf_merger.merge_pdfs(
             plot_cache=plot_cache,
             output_path=output_path,

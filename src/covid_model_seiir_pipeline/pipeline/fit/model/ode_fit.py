@@ -8,6 +8,7 @@ from covid_model_seiir_pipeline.lib.ode_mk2.containers import (
     Parameters,
 )
 from covid_model_seiir_pipeline.lib.ode_mk2.constants import (
+    SYSTEM_TYPE,
     VARIANT_NAMES,
     RISK_GROUP_NAMES,
     COMPARTMENTS_NAMES,
@@ -41,7 +42,7 @@ def prepare_ode_fit_parameters(rates: Rates,
                                fit_params: FitParameters,
                                hierarchy: pd.DataFrame,
                                draw_id: int) -> Tuple[Parameters, pd.DataFrame]:
-    epi_measures, rates = prepare_epi_measures_and_rates(rates, epi_measures, hierarchy)
+    epi_measures, rates, age_scalars = prepare_epi_measures_and_rates(rates, epi_measures, hierarchy)
     past_index = epi_measures.index
 
     sampled_params = sample_ode_params(variant_severity, fit_params, draw_id)
@@ -61,11 +62,15 @@ def prepare_ode_fit_parameters(rates: Rates,
     rhos = rhos.reindex(past_index, fill_value=0.)
     rhos.columns = [f'rho_{c}_infection' for c in rhos.columns]
     rhos['rho_none_infection'] = pd.Series(0., index=past_index, name='rho_none_infection')
-    
+
+    rates_map = {'ifr': 'rate_all_death', 'ihr': 'rate_all_admission', 'idr': 'rate_all_case'}
+    ode_rates = rates.loc[:, list(rates_map.keys())].rename(columns=rates_map)
+
     base_parameters = pd.concat([
         sampled_params,
         epi_measures.rename(columns=lambda x: f'count_all_{x}'),
         pd.Series(-1, index=past_index, name='beta_all_infection'),
+        ode_rates,
         rhos,
         *weights,
     ], axis=1)
@@ -87,13 +92,10 @@ def prepare_ode_fit_parameters(rates: Rates,
             phis.append(phi.rename(f'{from_variant}_{to_variant}_{endpoint}'))
     phis = pd.concat(phis, axis=1)
 
-    rates_map = {'ifr': 'death', 'ihr': 'admission', 'idr': 'case'}
-    keep_cols = [f'{r}_{g}' for r, g in itertools.product(rates_map, RISK_GROUP_NAMES)]
-    ode_rates = rates.loc[:, keep_cols].rename(columns=lambda x: f"{rates_map[x.split('_')[0]]}_{x.split('_')[1]}")
     ode_params = Parameters(
         base_parameters=base_parameters,
         vaccinations=vaccinations,
-        rates=ode_rates,
+        age_scalars=age_scalars,
         etas=etas,
         phis=phis,
     )
@@ -110,6 +112,7 @@ def prepare_epi_measures_and_rates(rates: Rates, epi_measures: pd.DataFrame, hie
 
     out_measures = []
     out_rates = []
+    out_scalars = []
     for in_measure, out_measure, rate in measures:
         epi_data = (epi_measures[f'smoothed_daily_{in_measure}'].rename(out_measure) + 3e-2).to_frame()
         epi_rates = rates._asdict()[rate]
@@ -117,14 +120,21 @@ def prepare_epi_measures_and_rates(rates: Rates, epi_measures: pd.DataFrame, hie
 
         epi_data = reindex_to_infection_day(epi_data, lag, most_detailed)
         epi_rates = reindex_to_infection_day(epi_rates.drop(columns='lag'), lag, most_detailed)
+        epi_scalars = epi_rates.copy()
+        drop_cols = epi_scalars.columns
+        for risk_group in RISK_GROUP_NAMES:
+            epi_scalars.loc[:, f'{out_measure}_{risk_group}'] = epi_scalars[f'{rate}_{risk_group}'] / epi_scalars[rate]
+        epi_scalars = epi_scalars.drop(columns=drop_cols)
 
         out_measures.append(epi_data)
         out_rates.append(epi_rates)
+        out_scalars.append(epi_scalars)
 
     out_measures = pd.concat(out_measures, axis=1).reset_index()
     out_measures = out_measures.loc[out_measures.location_id.isin(most_detailed)].set_index(['location_id', 'date'])
     out_rates = pd.concat(out_rates, axis=1).reindex(out_measures.index).sort_index()
-    return out_measures, out_rates
+    out_scalars = pd.concat(out_scalars, axis=1).reindex(out_measures.index).sort_index()
+    return out_measures, out_rates, out_scalars
 
 
 def add_transition_period(weights: pd.Series, data_period: pd.Index, window_len: int = 30) -> pd.Series:
@@ -191,13 +201,15 @@ def make_initial_condition(parameters: Parameters, full_rates: pd.DataFrame, pop
 
             loc_initial_condition.loc[loc_start_date, f'S_unvaccinated_none_{risk_group}'] = susceptible
             loc_initial_condition.loc[loc_start_date, f'E_unvaccinated_ancestral_{risk_group}'] = new_e
-            loc_initial_condition.loc[loc_start_date, f'NewE_ancestral_unvaccinated_{risk_group}'] = new_e
-            loc_initial_condition.loc[loc_start_date, f'NewE_ancestral_all_{risk_group}'] = new_e
-            loc_initial_condition.loc[loc_start_date, f'NewENaive_ancestral_unvaccinated_{risk_group}'] = new_e
-            loc_initial_condition.loc[loc_start_date, f'infection_ancestral_all_{risk_group}'] = new_e
+            loc_initial_condition.loc[loc_start_date, f'Infection_none_all_unvaccinated_{risk_group}'] = new_e
+            loc_initial_condition.loc[loc_start_date, f'Infection_none_all_all_{risk_group}'] = new_e
+            loc_initial_condition.loc[loc_start_date, f'Infection_all_all_all_{risk_group}'] = new_e
+            loc_initial_condition.loc[loc_start_date, f'Infection_all_ancestral_all_{risk_group}'] = new_e
             loc_initial_condition.loc[loc_start_date, f'I_unvaccinated_ancestral_{risk_group}'] = infectious
             for variant in VARIANT_NAMES:
-                loc_initial_condition.loc[:loc_start_date, f'EffectiveSusceptible_{variant}_unvaccinated_{risk_group}'] = pop
+                label = f'EffectiveSusceptible_all_{variant}_all_{risk_group}'
+                loc_initial_condition.loc[:loc_start_date, label] = susceptible
+
         loc_initial_condition.loc[loc_end_date:, :] = np.nan
         loc_initial_condition['location_id'] = location_id
         loc_initial_condition = loc_initial_condition.set_index('location_id', append=True).reorder_levels(['location_id', 'date'])
@@ -221,38 +233,39 @@ def compute_posterior_epi_measures(compartments: pd.DataFrame,
                                    durations: Durations) -> Tuple[pd.DataFrame, pd.Series]:
     compartments_diff = compartments.groupby('location_id').diff().fillna(compartments)
     
-    naive = compartments.filter(like='S_none').sum(axis=1).rename('naive')
-    naive_unvaccinated = compartments.filter(like='S_none_unvaccinated').sum(axis=1).rename('naive_unvaccinated')
+    naive = compartments.filter(like='S_').filter(like='none').sum(axis=1).rename('naive')
+    naive_unvaccinated = compartments.filter(like='S_unvaccinated_none').sum(axis=1).rename('naive_unvaccinated')
     
-    naive_infections = compartments_diff.filter(like='NewENaive').sum(axis=1).rename('daily_naive_infections')
-    total_infections = compartments_diff.filter(like='NewE_').filter(like='all').sum(axis=1).rename('daily_total_infections')
-    
-    inf_cols = [f'infection_ancestral_all_{risk_group}' for risk_group in RISK_GROUP_NAMES]
-    naive_unvaccinated_infections = (compartments_diff
-                                     .loc[:, inf_cols]
-                                     .sum(axis=1)
-                                     .rename('daily_naive_unvaccinated_infections'))
+    inf_map = {'Infection_none_all_unvaccinated': 'daily_naive_unvaccinated_infections',
+               'Infection_none_all_all': 'daily_naive_infections',
+               'Infection_all_all_all': 'daily_total_infections'}
+    infections = []
+    for col, name in inf_map.items():
+        daily = compartments_diff.filter(like=col).sum(axis=1).rename(name)
+        infections.extend([daily, _to_cumulative(daily)])
+    infections = pd.concat(infections, axis=1)
 
-    pct_unvaccinated = ((_to_cumulative(naive_unvaccinated_infections) / _to_cumulative(naive_unvaccinated_infections))
-                        .clip(0, 1)
-                        .rename('pct_unvaccinated')
-                        .groupby('location_id')
-                        .shift(durations.exposure_to_seroconversion)
-                        .dropna()
-                        .reset_index())
+    pct_unvaccinated = (
+        (infections['cumulative_naive_unvaccinated_infections'] / infections['cumulative_naive_infections'])
+        .clip(0, 1)
+        .rename('pct_unvaccinated')
+        .groupby('location_id')
+        .shift(durations.exposure_to_seroconversion)
+        .dropna()
+        .reset_index()
+    )
 
     measure_map = {
-        'death': ('deaths', 'ifr'),
-        'admission': ('hospitalizations', 'ihr'),
-        'case': ('cases', 'idr'),
+        'Death': 'deaths',
+        'Admission': 'hospitalizations',
+        'Case': 'cases',
     }
 
     measures = []
-    for ode_measure, (rates_measure, rate_name) in measure_map.items():
-        cols = [f'{ode_measure}_ancestral_all_{risk_group}' for risk_group in RISK_GROUP_NAMES]
-        lag = durations._asdict()[f'exposure_to_{ode_measure}']
+    for ode_measure, rates_measure in measure_map.items():
+        lag = durations._asdict()[f'exposure_to_{ode_measure.lower()}']
         daily_measure = (compartments_diff
-                         .loc[:, cols]
+                         .filter(like=f'{ode_measure}_none_all_unvaccinated')
                          .sum(axis=1)
                          .groupby('location_id')
                          .shift(lag)
@@ -262,9 +275,7 @@ def compute_posterior_epi_measures(compartments: pd.DataFrame,
 
     epi_measures = pd.concat([
         naive, naive_unvaccinated,
-        naive_unvaccinated_infections, _to_cumulative(naive_unvaccinated_infections),
-        naive_infections, _to_cumulative(naive_infections),
-        total_infections, _to_cumulative(total_infections),
+        infections,
         *measures
     ], axis=1)
 
@@ -300,7 +311,7 @@ def run_ode_fit(initial_condition: pd.DataFrame,
         initial_condition,
         **ode_parameters.to_dict(),
         location_ids=location_ids,
-        forecast=False,
+        system_type=SYSTEM_TYPE.rates_and_measures,
         num_cores=num_cores,
         progress_bar=progress_bar,
     )
@@ -308,13 +319,14 @@ def run_ode_fit(initial_condition: pd.DataFrame,
     full_compartments.loc[full_compartments.sum(axis=1) == 0., :] = np.nan
     
     betas = (full_compartments
-             .filter(like='beta_none')
+             .filter(like='Beta_none_none')
              .filter(like='lr'))
+
     betas = (betas
              .groupby('location_id')
              .diff()
              .fillna(betas)
-             .rename(columns=lambda x: f'beta_{x.split("_")[2]}')
+             .rename(columns=lambda x: f'beta_{x.split("_")[3]}')
              .rename(columns={'beta_all': 'beta'}))
         
     # Clean up beta

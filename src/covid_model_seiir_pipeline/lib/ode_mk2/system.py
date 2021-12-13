@@ -23,7 +23,6 @@ from covid_model_seiir_pipeline.lib.ode_mk2.debug import (
 )
 from covid_model_seiir_pipeline.lib.ode_mk2 import (
     accounting,
-    escape_variant,
     parameters,
     utils,
 )
@@ -33,11 +32,11 @@ from covid_model_seiir_pipeline.lib.ode_mk2 import (
 def system(t: float,
            y: np.ndarray,           
            params: np.ndarray,
-           base_rates: np.ndarray,
+           age_scalars: np.ndarray,
            vaccines: np.ndarray,
            etas: np.ndarray,
            chis: np.ndarray,
-           forecast: bool):
+           system_type: int):
 
     if DEBUG:
         assert np.all(np.isfinite(params))
@@ -51,15 +50,15 @@ def system(t: float,
         assert np.all(chis <= 1.)
 
     aggregates = parameters.make_aggregates(y)
-    new_e, effective_susceptible, beta, outcomes = parameters.make_new_e(
+    new_e, effective_susceptible, beta, rates = parameters.compute_intermediate_epi_parameters(
         t,
         y,
         params,
-        base_rates,
+        age_scalars,
         aggregates,
         etas,
         chis,
-        forecast,
+        system_type,
     )  
 
     dy = np.zeros_like(y)
@@ -73,7 +72,7 @@ def system(t: float,
         group_vaccines = utils.subset_risk_group(vaccines, risk_group)
         group_new_e = utils.subset_risk_group(new_e, risk_group)
         group_effective_susceptible = utils.subset_risk_group(effective_susceptible, risk_group)
-        group_outcomes = utils.subset_risk_group(outcomes, risk_group)
+        group_rates = utils.subset_risk_group(rates, risk_group)
 
         transition_map = single_group_system(
             t,
@@ -98,7 +97,7 @@ def system(t: float,
             group_new_e,
             group_effective_susceptible,
             beta,
-            group_outcomes,
+            group_rates,
             transition_map,
         )
 
@@ -146,7 +145,7 @@ def single_group_system(t: float,
             utils.safe_divide(group_y[s_from_idx], vaccine_eligible[vaccine_status])
             * group_vaccines[vaccine_status]
         )
-        to_vaccinate = min(expected_vaccines, group_y[s_from_idx] - new_e_from_s)
+        to_vaccinate = max(min(expected_vaccines, group_y[s_from_idx] - new_e_from_s), 0.)
         transition_map[s_from_idx, s_to_idx] += to_vaccinate
 
     return transition_map

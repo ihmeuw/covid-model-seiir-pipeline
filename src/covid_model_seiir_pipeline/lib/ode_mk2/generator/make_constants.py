@@ -18,16 +18,14 @@ PRIMITIVE_TYPES = {
         'N',
     ],
     'tracking_compartment_type': [
-        'NewE',
-        'NewENaive',
-        'NewVaccination',
-        'NewBooster',
+        'Beta',
+        'Infection',
+        'Death',
+        'Admission',
+        'Case',
+        'Vaccination',
+        'Booster',
         'EffectiveSusceptible',
-        'beta',
-        'infection',
-        'death',
-        'admission',
-        'case',
     ],
     'epi_measure_type': [
         'infection',
@@ -45,6 +43,7 @@ PRIMITIVE_TYPES = {
         'rho',
         'count',
         'weight',
+        'rate',
     ],
     'risk_group': [
         'lr',
@@ -78,6 +77,11 @@ PRIMITIVE_TYPES = {
         'death',
         'admission',
         'case',
+    ],
+    'system_type': [
+        'rates_and_measures',
+        'beta_and_measures',
+        'beta_and_rates',
     ]
 }
 
@@ -88,10 +92,13 @@ DERIVED_TYPES = {
         'I',
     ]),
     'tracking_compartment': ('tracking_compartment_type', [
-        'NewE',
-        'NewENaive',
-        'NewVaccination',
-        'NewBooster',
+        'Beta',
+        'Infection',
+        'Death',
+        'Admission',
+        'Case',
+        'Vaccination',
+        'Booster',
         'EffectiveSusceptible',
     ]),
     'epi_measure': ('epi_measure_type', [
@@ -114,7 +121,8 @@ DERIVED_TYPES = {
     ]),
     'epi_parameter': ('parameter_type', [
         'count',
-        'weight'
+        'weight',
+        'rate',
     ]),
     'variant_parameter': ('parameter_type', [
         'rho',
@@ -154,6 +162,13 @@ SPECS = {
             ['epi_parameter', 'all', 'reported_epi_measure'],
             ['variant_parameter', 'variant', 'infection'],
             ['epi_variant_parameter', 'variant', 'epi_measure']
+        ],
+    ),
+    'AGE_SCALARS': Spec(
+        offset='',
+        axes_primitives=['epi_measure_type'],
+        field_specs=[
+            ['reported_epi_measure'],
         ],
     ),
     'BASE_RATES': Spec(
@@ -221,18 +236,37 @@ SPECS = {
     ),
     'TRACKING_COMPARTMENTS': Spec(
         offset='COMPARTMENTS',
-        axes_primitives=['tracking_compartment_type', 'variant_index_type', 'agg_index_type'],
+        axes_primitives=['tracking_compartment_type', 'variant_index_type', 'variant_index_type', 'agg_index_type'],
         field_specs=[
-            ['tracking_compartment', 'variant', 'vaccine_status'],
-            ['NewE', 'variant', 'all'],
-            ['beta', 'none', 'all'],
-            ['beta', 'none', 'death'],
-            ['beta', 'none', 'admission'],
-            ['beta', 'none', 'case'],
-            ['infection', 'ancestral', 'all'],
-            ['death', 'ancestral', 'all'],
-            ['admission', 'ancestral', 'all'],
-            ['case', 'ancestral', 'all'],
+            ['Beta', 'none', 'none', 'all'],
+            ['Beta', 'none', 'none', 'death'],
+            ['Beta', 'none', 'none', 'admission'],
+            ['Beta', 'none', 'none', 'case'],
+
+            ['Infection', 'none', 'all', 'unvaccinated'],
+            ['Infection', 'none', 'all', 'all'],
+            ['Infection', 'all', 'all', 'all'],
+            ['Infection', 'all', 'variant', 'all'],
+
+            ['Death', 'none', 'all', 'unvaccinated'],
+            ['Death', 'none', 'all', 'all'],
+            ['Death', 'all', 'all', 'all'],
+            ['Death', 'all', 'variant', 'all'],
+
+            ['Admission', 'none', 'all', 'unvaccinated'],
+            ['Admission', 'none', 'all', 'all'],
+            ['Admission', 'all', 'all', 'all'],
+            ['Admission', 'all', 'variant', 'all'],
+
+            ['Case', 'none', 'all', 'unvaccinated'],
+            ['Case', 'none', 'all', 'all'],
+            ['Case', 'all', 'all', 'all'],
+            ['Case', 'all', 'variant', 'all'],
+
+            ['Vaccination', 'all', 'all', 'unvaccinated'],
+            ['Booster', 'all', 'all', 'vaccinated'],
+
+            ['EffectiveSusceptible', 'all', 'variant', 'all']
         ],
     ),
     'AGGREGATES': Spec(
@@ -263,7 +297,6 @@ def make_primitive_types() -> str:
     #######################
     # Primitive variables #
     #######################
-
     """)
     for primitive_group_name, variables in PRIMITIVE_TYPES.items():
         content = utils.make_content_array(rows=variables, columns=[''])
@@ -283,7 +316,6 @@ def make_derived_types() -> str:
     #####################
     # Derived variables #
     #####################
-
     """)
     for derived_group_name, (primitive_type, variables) in DERIVED_TYPES.items():
         content = utils.make_content_array(rows=variables, columns=[''])

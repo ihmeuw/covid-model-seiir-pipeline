@@ -15,7 +15,6 @@ TOMBSTONE = -12345
 #######################
 # Primitive variables #
 #######################
-
 _CompartmentType = namedtuple('CompartmentType', [
     'S', 
     'E', 
@@ -24,16 +23,14 @@ _CompartmentType = namedtuple('CompartmentType', [
 ])
 
 _TrackingCompartmentType = namedtuple('TrackingCompartmentType', [
-    'NewE',                 
-    'NewENaive',            
-    'NewVaccination',       
-    'NewBooster',           
+    'Beta',                 
+    'Infection',            
+    'Death',                
+    'Admission',            
+    'Case',                 
+    'Vaccination',          
+    'Booster',              
     'EffectiveSusceptible', 
-    'beta',                 
-    'infection',            
-    'death',                
-    'admission',            
-    'case',                 
 ])
 
 _EpiMeasureType = namedtuple('EpiMeasureType', [
@@ -53,6 +50,7 @@ _ParameterType = namedtuple('ParameterType', [
     'rho',    
     'count',  
     'weight', 
+    'rate',   
 ])
 
 _RiskGroup = namedtuple('RiskGroup', [
@@ -91,6 +89,12 @@ _AggIndexType = namedtuple('AggIndexType', [
     'case',         
 ])
 
+_SystemType = namedtuple('SystemType', [
+    'rates_and_measures', 
+    'beta_and_measures',  
+    'beta_and_rates',     
+])
+
 COMPARTMENT_TYPE = _CompartmentType(*list(range(len(_CompartmentType._fields))))
 COMPARTMENT_TYPE_NAMES = _CompartmentType(*_CompartmentType._fields)
 TRACKING_COMPARTMENT_TYPE = _TrackingCompartmentType(*list(range(len(_TrackingCompartmentType._fields))))
@@ -107,11 +111,12 @@ VACCINE_INDEX_TYPE = _VaccineIndexType(*list(range(len(_VaccineIndexType._fields
 VACCINE_INDEX_TYPE_NAMES = _VaccineIndexType(*_VaccineIndexType._fields)
 AGG_INDEX_TYPE = _AggIndexType(*list(range(len(_AggIndexType._fields))))
 AGG_INDEX_TYPE_NAMES = _AggIndexType(*_AggIndexType._fields)
+SYSTEM_TYPE = _SystemType(*list(range(len(_SystemType._fields))))
+SYSTEM_TYPE_NAMES = _SystemType(*_SystemType._fields)
 
 #####################
 # Derived variables #
 #####################
-
 _Compartment = namedtuple('Compartment', [
     'S', 
     'E', 
@@ -124,17 +129,23 @@ COMPARTMENT = _Compartment(
 )
 COMPARTMENT_NAMES = _Compartment(*_Compartment._fields)
 _TrackingCompartment = namedtuple('TrackingCompartment', [
-    'NewE',                 
-    'NewENaive',            
-    'NewVaccination',       
-    'NewBooster',           
+    'Beta',                 
+    'Infection',            
+    'Death',                
+    'Admission',            
+    'Case',                 
+    'Vaccination',          
+    'Booster',              
     'EffectiveSusceptible', 
 ])
 TRACKING_COMPARTMENT = _TrackingCompartment(
-    NewE=TRACKING_COMPARTMENT_TYPE.NewE,
-    NewENaive=TRACKING_COMPARTMENT_TYPE.NewENaive,
-    NewVaccination=TRACKING_COMPARTMENT_TYPE.NewVaccination,
-    NewBooster=TRACKING_COMPARTMENT_TYPE.NewBooster,
+    Beta=TRACKING_COMPARTMENT_TYPE.Beta,
+    Infection=TRACKING_COMPARTMENT_TYPE.Infection,
+    Death=TRACKING_COMPARTMENT_TYPE.Death,
+    Admission=TRACKING_COMPARTMENT_TYPE.Admission,
+    Case=TRACKING_COMPARTMENT_TYPE.Case,
+    Vaccination=TRACKING_COMPARTMENT_TYPE.Vaccination,
+    Booster=TRACKING_COMPARTMENT_TYPE.Booster,
     EffectiveSusceptible=TRACKING_COMPARTMENT_TYPE.EffectiveSusceptible,
 )
 TRACKING_COMPARTMENT_NAMES = _TrackingCompartment(*_TrackingCompartment._fields)
@@ -180,10 +191,12 @@ BASE_PARAMETER_NAMES = _BaseParameter(*_BaseParameter._fields)
 _EpiParameter = namedtuple('EpiParameter', [
     'count',  
     'weight', 
+    'rate',   
 ])
 EPI_PARAMETER = _EpiParameter(
     count=PARAMETER_TYPE.count,
     weight=PARAMETER_TYPE.weight,
+    rate=PARAMETER_TYPE.rate,
 )
 EPI_PARAMETER_NAMES = _EpiParameter(*_EpiParameter._fields)
 _VariantParameter = namedtuple('VariantParameter', [
@@ -254,46 +267,49 @@ PARAMETERS[EPI_PARAMETER.count, VARIANT_INDEX_TYPE.all, REPORTED_EPI_MEASURE.cas
 PARAMETERS[EPI_PARAMETER.weight, VARIANT_INDEX_TYPE.all, REPORTED_EPI_MEASURE.death] = 8
 PARAMETERS[EPI_PARAMETER.weight, VARIANT_INDEX_TYPE.all, REPORTED_EPI_MEASURE.admission] = 9
 PARAMETERS[EPI_PARAMETER.weight, VARIANT_INDEX_TYPE.all, REPORTED_EPI_MEASURE.case] = 10
-PARAMETERS[VARIANT_PARAMETER.rho, VARIANT.none, EPI_MEASURE_TYPE.infection] = 11
-PARAMETERS[VARIANT_PARAMETER.rho, VARIANT.ancestral, EPI_MEASURE_TYPE.infection] = 12
-PARAMETERS[VARIANT_PARAMETER.rho, VARIANT.alpha, EPI_MEASURE_TYPE.infection] = 13
-PARAMETERS[VARIANT_PARAMETER.rho, VARIANT.beta, EPI_MEASURE_TYPE.infection] = 14
-PARAMETERS[VARIANT_PARAMETER.rho, VARIANT.gamma, EPI_MEASURE_TYPE.infection] = 15
-PARAMETERS[VARIANT_PARAMETER.rho, VARIANT.delta, EPI_MEASURE_TYPE.infection] = 16
-PARAMETERS[VARIANT_PARAMETER.rho, VARIANT.other, EPI_MEASURE_TYPE.infection] = 17
-PARAMETERS[VARIANT_PARAMETER.rho, VARIANT.omega, EPI_MEASURE_TYPE.infection] = 18
-PARAMETERS[EPI_VARIANT_PARAMETER.kappa, VARIANT.none, EPI_MEASURE.infection] = 19
-PARAMETERS[EPI_VARIANT_PARAMETER.kappa, VARIANT.none, EPI_MEASURE.death] = 20
-PARAMETERS[EPI_VARIANT_PARAMETER.kappa, VARIANT.none, EPI_MEASURE.admission] = 21
-PARAMETERS[EPI_VARIANT_PARAMETER.kappa, VARIANT.none, EPI_MEASURE.case] = 22
-PARAMETERS[EPI_VARIANT_PARAMETER.kappa, VARIANT.ancestral, EPI_MEASURE.infection] = 23
-PARAMETERS[EPI_VARIANT_PARAMETER.kappa, VARIANT.ancestral, EPI_MEASURE.death] = 24
-PARAMETERS[EPI_VARIANT_PARAMETER.kappa, VARIANT.ancestral, EPI_MEASURE.admission] = 25
-PARAMETERS[EPI_VARIANT_PARAMETER.kappa, VARIANT.ancestral, EPI_MEASURE.case] = 26
-PARAMETERS[EPI_VARIANT_PARAMETER.kappa, VARIANT.alpha, EPI_MEASURE.infection] = 27
-PARAMETERS[EPI_VARIANT_PARAMETER.kappa, VARIANT.alpha, EPI_MEASURE.death] = 28
-PARAMETERS[EPI_VARIANT_PARAMETER.kappa, VARIANT.alpha, EPI_MEASURE.admission] = 29
-PARAMETERS[EPI_VARIANT_PARAMETER.kappa, VARIANT.alpha, EPI_MEASURE.case] = 30
-PARAMETERS[EPI_VARIANT_PARAMETER.kappa, VARIANT.beta, EPI_MEASURE.infection] = 31
-PARAMETERS[EPI_VARIANT_PARAMETER.kappa, VARIANT.beta, EPI_MEASURE.death] = 32
-PARAMETERS[EPI_VARIANT_PARAMETER.kappa, VARIANT.beta, EPI_MEASURE.admission] = 33
-PARAMETERS[EPI_VARIANT_PARAMETER.kappa, VARIANT.beta, EPI_MEASURE.case] = 34
-PARAMETERS[EPI_VARIANT_PARAMETER.kappa, VARIANT.gamma, EPI_MEASURE.infection] = 35
-PARAMETERS[EPI_VARIANT_PARAMETER.kappa, VARIANT.gamma, EPI_MEASURE.death] = 36
-PARAMETERS[EPI_VARIANT_PARAMETER.kappa, VARIANT.gamma, EPI_MEASURE.admission] = 37
-PARAMETERS[EPI_VARIANT_PARAMETER.kappa, VARIANT.gamma, EPI_MEASURE.case] = 38
-PARAMETERS[EPI_VARIANT_PARAMETER.kappa, VARIANT.delta, EPI_MEASURE.infection] = 39
-PARAMETERS[EPI_VARIANT_PARAMETER.kappa, VARIANT.delta, EPI_MEASURE.death] = 40
-PARAMETERS[EPI_VARIANT_PARAMETER.kappa, VARIANT.delta, EPI_MEASURE.admission] = 41
-PARAMETERS[EPI_VARIANT_PARAMETER.kappa, VARIANT.delta, EPI_MEASURE.case] = 42
-PARAMETERS[EPI_VARIANT_PARAMETER.kappa, VARIANT.other, EPI_MEASURE.infection] = 43
-PARAMETERS[EPI_VARIANT_PARAMETER.kappa, VARIANT.other, EPI_MEASURE.death] = 44
-PARAMETERS[EPI_VARIANT_PARAMETER.kappa, VARIANT.other, EPI_MEASURE.admission] = 45
-PARAMETERS[EPI_VARIANT_PARAMETER.kappa, VARIANT.other, EPI_MEASURE.case] = 46
-PARAMETERS[EPI_VARIANT_PARAMETER.kappa, VARIANT.omega, EPI_MEASURE.infection] = 47
-PARAMETERS[EPI_VARIANT_PARAMETER.kappa, VARIANT.omega, EPI_MEASURE.death] = 48
-PARAMETERS[EPI_VARIANT_PARAMETER.kappa, VARIANT.omega, EPI_MEASURE.admission] = 49
-PARAMETERS[EPI_VARIANT_PARAMETER.kappa, VARIANT.omega, EPI_MEASURE.case] = 50
+PARAMETERS[EPI_PARAMETER.rate, VARIANT_INDEX_TYPE.all, REPORTED_EPI_MEASURE.death] = 11
+PARAMETERS[EPI_PARAMETER.rate, VARIANT_INDEX_TYPE.all, REPORTED_EPI_MEASURE.admission] = 12
+PARAMETERS[EPI_PARAMETER.rate, VARIANT_INDEX_TYPE.all, REPORTED_EPI_MEASURE.case] = 13
+PARAMETERS[VARIANT_PARAMETER.rho, VARIANT.none, EPI_MEASURE_TYPE.infection] = 14
+PARAMETERS[VARIANT_PARAMETER.rho, VARIANT.ancestral, EPI_MEASURE_TYPE.infection] = 15
+PARAMETERS[VARIANT_PARAMETER.rho, VARIANT.alpha, EPI_MEASURE_TYPE.infection] = 16
+PARAMETERS[VARIANT_PARAMETER.rho, VARIANT.beta, EPI_MEASURE_TYPE.infection] = 17
+PARAMETERS[VARIANT_PARAMETER.rho, VARIANT.gamma, EPI_MEASURE_TYPE.infection] = 18
+PARAMETERS[VARIANT_PARAMETER.rho, VARIANT.delta, EPI_MEASURE_TYPE.infection] = 19
+PARAMETERS[VARIANT_PARAMETER.rho, VARIANT.other, EPI_MEASURE_TYPE.infection] = 20
+PARAMETERS[VARIANT_PARAMETER.rho, VARIANT.omega, EPI_MEASURE_TYPE.infection] = 21
+PARAMETERS[EPI_VARIANT_PARAMETER.kappa, VARIANT.none, EPI_MEASURE.infection] = 22
+PARAMETERS[EPI_VARIANT_PARAMETER.kappa, VARIANT.none, EPI_MEASURE.death] = 23
+PARAMETERS[EPI_VARIANT_PARAMETER.kappa, VARIANT.none, EPI_MEASURE.admission] = 24
+PARAMETERS[EPI_VARIANT_PARAMETER.kappa, VARIANT.none, EPI_MEASURE.case] = 25
+PARAMETERS[EPI_VARIANT_PARAMETER.kappa, VARIANT.ancestral, EPI_MEASURE.infection] = 26
+PARAMETERS[EPI_VARIANT_PARAMETER.kappa, VARIANT.ancestral, EPI_MEASURE.death] = 27
+PARAMETERS[EPI_VARIANT_PARAMETER.kappa, VARIANT.ancestral, EPI_MEASURE.admission] = 28
+PARAMETERS[EPI_VARIANT_PARAMETER.kappa, VARIANT.ancestral, EPI_MEASURE.case] = 29
+PARAMETERS[EPI_VARIANT_PARAMETER.kappa, VARIANT.alpha, EPI_MEASURE.infection] = 30
+PARAMETERS[EPI_VARIANT_PARAMETER.kappa, VARIANT.alpha, EPI_MEASURE.death] = 31
+PARAMETERS[EPI_VARIANT_PARAMETER.kappa, VARIANT.alpha, EPI_MEASURE.admission] = 32
+PARAMETERS[EPI_VARIANT_PARAMETER.kappa, VARIANT.alpha, EPI_MEASURE.case] = 33
+PARAMETERS[EPI_VARIANT_PARAMETER.kappa, VARIANT.beta, EPI_MEASURE.infection] = 34
+PARAMETERS[EPI_VARIANT_PARAMETER.kappa, VARIANT.beta, EPI_MEASURE.death] = 35
+PARAMETERS[EPI_VARIANT_PARAMETER.kappa, VARIANT.beta, EPI_MEASURE.admission] = 36
+PARAMETERS[EPI_VARIANT_PARAMETER.kappa, VARIANT.beta, EPI_MEASURE.case] = 37
+PARAMETERS[EPI_VARIANT_PARAMETER.kappa, VARIANT.gamma, EPI_MEASURE.infection] = 38
+PARAMETERS[EPI_VARIANT_PARAMETER.kappa, VARIANT.gamma, EPI_MEASURE.death] = 39
+PARAMETERS[EPI_VARIANT_PARAMETER.kappa, VARIANT.gamma, EPI_MEASURE.admission] = 40
+PARAMETERS[EPI_VARIANT_PARAMETER.kappa, VARIANT.gamma, EPI_MEASURE.case] = 41
+PARAMETERS[EPI_VARIANT_PARAMETER.kappa, VARIANT.delta, EPI_MEASURE.infection] = 42
+PARAMETERS[EPI_VARIANT_PARAMETER.kappa, VARIANT.delta, EPI_MEASURE.death] = 43
+PARAMETERS[EPI_VARIANT_PARAMETER.kappa, VARIANT.delta, EPI_MEASURE.admission] = 44
+PARAMETERS[EPI_VARIANT_PARAMETER.kappa, VARIANT.delta, EPI_MEASURE.case] = 45
+PARAMETERS[EPI_VARIANT_PARAMETER.kappa, VARIANT.other, EPI_MEASURE.infection] = 46
+PARAMETERS[EPI_VARIANT_PARAMETER.kappa, VARIANT.other, EPI_MEASURE.death] = 47
+PARAMETERS[EPI_VARIANT_PARAMETER.kappa, VARIANT.other, EPI_MEASURE.admission] = 48
+PARAMETERS[EPI_VARIANT_PARAMETER.kappa, VARIANT.other, EPI_MEASURE.case] = 49
+PARAMETERS[EPI_VARIANT_PARAMETER.kappa, VARIANT.omega, EPI_MEASURE.infection] = 50
+PARAMETERS[EPI_VARIANT_PARAMETER.kappa, VARIANT.omega, EPI_MEASURE.death] = 51
+PARAMETERS[EPI_VARIANT_PARAMETER.kappa, VARIANT.omega, EPI_MEASURE.admission] = 52
+PARAMETERS[EPI_VARIANT_PARAMETER.kappa, VARIANT.omega, EPI_MEASURE.case] = 53
 PARAMETERS_NAMES = [
     'alpha_all_infection',
     'sigma_all_infection',
@@ -306,6 +322,9 @@ PARAMETERS_NAMES = [
     'weight_all_death',
     'weight_all_admission',
     'weight_all_case',
+    'rate_all_death',
+    'rate_all_admission',
+    'rate_all_case',
     'rho_none_infection',
     'rho_ancestral_infection',
     'rho_alpha_infection',
@@ -346,6 +365,16 @@ PARAMETERS_NAMES = [
     'kappa_omega_death',
     'kappa_omega_admission',
     'kappa_omega_case',
+]
+
+AGE_SCALARS = np.full((len(EPI_MEASURE_TYPE)), TOMBSTONE, dtype=np.int64)
+AGE_SCALARS[REPORTED_EPI_MEASURE.death] = 0
+AGE_SCALARS[REPORTED_EPI_MEASURE.admission] = 1
+AGE_SCALARS[REPORTED_EPI_MEASURE.case] = 2
+AGE_SCALARS_NAMES = [
+    'death',
+    'admission',
+    'case',
 ]
 
 BASE_RATES = np.full((len(EPI_MEASURE_TYPE)), TOMBSTONE, dtype=np.int64)
@@ -3174,280 +3203,124 @@ COMPARTMENTS_NAMES = [
     'I_booster_omega',
 ]
 
-TRACKING_COMPARTMENTS = np.full((len(TRACKING_COMPARTMENT_TYPE), len(VARIANT_INDEX_TYPE), len(AGG_INDEX_TYPE)), TOMBSTONE, dtype=np.int64)
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewE, VARIANT.none, VACCINE_STATUS.unvaccinated] = 72
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewE, VARIANT.none, VACCINE_STATUS.vaccinated] = 73
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewE, VARIANT.none, VACCINE_STATUS.booster] = 74
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewE, VARIANT.ancestral, VACCINE_STATUS.unvaccinated] = 75
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewE, VARIANT.ancestral, VACCINE_STATUS.vaccinated] = 76
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewE, VARIANT.ancestral, VACCINE_STATUS.booster] = 77
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewE, VARIANT.alpha, VACCINE_STATUS.unvaccinated] = 78
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewE, VARIANT.alpha, VACCINE_STATUS.vaccinated] = 79
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewE, VARIANT.alpha, VACCINE_STATUS.booster] = 80
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewE, VARIANT.beta, VACCINE_STATUS.unvaccinated] = 81
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewE, VARIANT.beta, VACCINE_STATUS.vaccinated] = 82
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewE, VARIANT.beta, VACCINE_STATUS.booster] = 83
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewE, VARIANT.gamma, VACCINE_STATUS.unvaccinated] = 84
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewE, VARIANT.gamma, VACCINE_STATUS.vaccinated] = 85
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewE, VARIANT.gamma, VACCINE_STATUS.booster] = 86
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewE, VARIANT.delta, VACCINE_STATUS.unvaccinated] = 87
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewE, VARIANT.delta, VACCINE_STATUS.vaccinated] = 88
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewE, VARIANT.delta, VACCINE_STATUS.booster] = 89
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewE, VARIANT.other, VACCINE_STATUS.unvaccinated] = 90
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewE, VARIANT.other, VACCINE_STATUS.vaccinated] = 91
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewE, VARIANT.other, VACCINE_STATUS.booster] = 92
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewE, VARIANT.omega, VACCINE_STATUS.unvaccinated] = 93
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewE, VARIANT.omega, VACCINE_STATUS.vaccinated] = 94
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewE, VARIANT.omega, VACCINE_STATUS.booster] = 95
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewENaive, VARIANT.none, VACCINE_STATUS.unvaccinated] = 96
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewENaive, VARIANT.none, VACCINE_STATUS.vaccinated] = 97
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewENaive, VARIANT.none, VACCINE_STATUS.booster] = 98
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewENaive, VARIANT.ancestral, VACCINE_STATUS.unvaccinated] = 99
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewENaive, VARIANT.ancestral, VACCINE_STATUS.vaccinated] = 100
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewENaive, VARIANT.ancestral, VACCINE_STATUS.booster] = 101
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewENaive, VARIANT.alpha, VACCINE_STATUS.unvaccinated] = 102
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewENaive, VARIANT.alpha, VACCINE_STATUS.vaccinated] = 103
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewENaive, VARIANT.alpha, VACCINE_STATUS.booster] = 104
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewENaive, VARIANT.beta, VACCINE_STATUS.unvaccinated] = 105
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewENaive, VARIANT.beta, VACCINE_STATUS.vaccinated] = 106
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewENaive, VARIANT.beta, VACCINE_STATUS.booster] = 107
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewENaive, VARIANT.gamma, VACCINE_STATUS.unvaccinated] = 108
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewENaive, VARIANT.gamma, VACCINE_STATUS.vaccinated] = 109
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewENaive, VARIANT.gamma, VACCINE_STATUS.booster] = 110
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewENaive, VARIANT.delta, VACCINE_STATUS.unvaccinated] = 111
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewENaive, VARIANT.delta, VACCINE_STATUS.vaccinated] = 112
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewENaive, VARIANT.delta, VACCINE_STATUS.booster] = 113
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewENaive, VARIANT.other, VACCINE_STATUS.unvaccinated] = 114
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewENaive, VARIANT.other, VACCINE_STATUS.vaccinated] = 115
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewENaive, VARIANT.other, VACCINE_STATUS.booster] = 116
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewENaive, VARIANT.omega, VACCINE_STATUS.unvaccinated] = 117
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewENaive, VARIANT.omega, VACCINE_STATUS.vaccinated] = 118
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewENaive, VARIANT.omega, VACCINE_STATUS.booster] = 119
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewVaccination, VARIANT.none, VACCINE_STATUS.unvaccinated] = 120
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewVaccination, VARIANT.none, VACCINE_STATUS.vaccinated] = 121
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewVaccination, VARIANT.none, VACCINE_STATUS.booster] = 122
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewVaccination, VARIANT.ancestral, VACCINE_STATUS.unvaccinated] = 123
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewVaccination, VARIANT.ancestral, VACCINE_STATUS.vaccinated] = 124
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewVaccination, VARIANT.ancestral, VACCINE_STATUS.booster] = 125
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewVaccination, VARIANT.alpha, VACCINE_STATUS.unvaccinated] = 126
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewVaccination, VARIANT.alpha, VACCINE_STATUS.vaccinated] = 127
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewVaccination, VARIANT.alpha, VACCINE_STATUS.booster] = 128
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewVaccination, VARIANT.beta, VACCINE_STATUS.unvaccinated] = 129
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewVaccination, VARIANT.beta, VACCINE_STATUS.vaccinated] = 130
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewVaccination, VARIANT.beta, VACCINE_STATUS.booster] = 131
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewVaccination, VARIANT.gamma, VACCINE_STATUS.unvaccinated] = 132
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewVaccination, VARIANT.gamma, VACCINE_STATUS.vaccinated] = 133
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewVaccination, VARIANT.gamma, VACCINE_STATUS.booster] = 134
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewVaccination, VARIANT.delta, VACCINE_STATUS.unvaccinated] = 135
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewVaccination, VARIANT.delta, VACCINE_STATUS.vaccinated] = 136
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewVaccination, VARIANT.delta, VACCINE_STATUS.booster] = 137
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewVaccination, VARIANT.other, VACCINE_STATUS.unvaccinated] = 138
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewVaccination, VARIANT.other, VACCINE_STATUS.vaccinated] = 139
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewVaccination, VARIANT.other, VACCINE_STATUS.booster] = 140
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewVaccination, VARIANT.omega, VACCINE_STATUS.unvaccinated] = 141
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewVaccination, VARIANT.omega, VACCINE_STATUS.vaccinated] = 142
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewVaccination, VARIANT.omega, VACCINE_STATUS.booster] = 143
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewBooster, VARIANT.none, VACCINE_STATUS.unvaccinated] = 144
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewBooster, VARIANT.none, VACCINE_STATUS.vaccinated] = 145
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewBooster, VARIANT.none, VACCINE_STATUS.booster] = 146
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewBooster, VARIANT.ancestral, VACCINE_STATUS.unvaccinated] = 147
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewBooster, VARIANT.ancestral, VACCINE_STATUS.vaccinated] = 148
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewBooster, VARIANT.ancestral, VACCINE_STATUS.booster] = 149
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewBooster, VARIANT.alpha, VACCINE_STATUS.unvaccinated] = 150
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewBooster, VARIANT.alpha, VACCINE_STATUS.vaccinated] = 151
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewBooster, VARIANT.alpha, VACCINE_STATUS.booster] = 152
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewBooster, VARIANT.beta, VACCINE_STATUS.unvaccinated] = 153
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewBooster, VARIANT.beta, VACCINE_STATUS.vaccinated] = 154
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewBooster, VARIANT.beta, VACCINE_STATUS.booster] = 155
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewBooster, VARIANT.gamma, VACCINE_STATUS.unvaccinated] = 156
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewBooster, VARIANT.gamma, VACCINE_STATUS.vaccinated] = 157
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewBooster, VARIANT.gamma, VACCINE_STATUS.booster] = 158
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewBooster, VARIANT.delta, VACCINE_STATUS.unvaccinated] = 159
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewBooster, VARIANT.delta, VACCINE_STATUS.vaccinated] = 160
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewBooster, VARIANT.delta, VACCINE_STATUS.booster] = 161
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewBooster, VARIANT.other, VACCINE_STATUS.unvaccinated] = 162
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewBooster, VARIANT.other, VACCINE_STATUS.vaccinated] = 163
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewBooster, VARIANT.other, VACCINE_STATUS.booster] = 164
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewBooster, VARIANT.omega, VACCINE_STATUS.unvaccinated] = 165
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewBooster, VARIANT.omega, VACCINE_STATUS.vaccinated] = 166
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.NewBooster, VARIANT.omega, VACCINE_STATUS.booster] = 167
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.EffectiveSusceptible, VARIANT.none, VACCINE_STATUS.unvaccinated] = 168
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.EffectiveSusceptible, VARIANT.none, VACCINE_STATUS.vaccinated] = 169
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.EffectiveSusceptible, VARIANT.none, VACCINE_STATUS.booster] = 170
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.EffectiveSusceptible, VARIANT.ancestral, VACCINE_STATUS.unvaccinated] = 171
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.EffectiveSusceptible, VARIANT.ancestral, VACCINE_STATUS.vaccinated] = 172
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.EffectiveSusceptible, VARIANT.ancestral, VACCINE_STATUS.booster] = 173
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.EffectiveSusceptible, VARIANT.alpha, VACCINE_STATUS.unvaccinated] = 174
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.EffectiveSusceptible, VARIANT.alpha, VACCINE_STATUS.vaccinated] = 175
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.EffectiveSusceptible, VARIANT.alpha, VACCINE_STATUS.booster] = 176
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.EffectiveSusceptible, VARIANT.beta, VACCINE_STATUS.unvaccinated] = 177
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.EffectiveSusceptible, VARIANT.beta, VACCINE_STATUS.vaccinated] = 178
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.EffectiveSusceptible, VARIANT.beta, VACCINE_STATUS.booster] = 179
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.EffectiveSusceptible, VARIANT.gamma, VACCINE_STATUS.unvaccinated] = 180
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.EffectiveSusceptible, VARIANT.gamma, VACCINE_STATUS.vaccinated] = 181
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.EffectiveSusceptible, VARIANT.gamma, VACCINE_STATUS.booster] = 182
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.EffectiveSusceptible, VARIANT.delta, VACCINE_STATUS.unvaccinated] = 183
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.EffectiveSusceptible, VARIANT.delta, VACCINE_STATUS.vaccinated] = 184
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.EffectiveSusceptible, VARIANT.delta, VACCINE_STATUS.booster] = 185
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.EffectiveSusceptible, VARIANT.other, VACCINE_STATUS.unvaccinated] = 186
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.EffectiveSusceptible, VARIANT.other, VACCINE_STATUS.vaccinated] = 187
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.EffectiveSusceptible, VARIANT.other, VACCINE_STATUS.booster] = 188
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.EffectiveSusceptible, VARIANT.omega, VACCINE_STATUS.unvaccinated] = 189
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.EffectiveSusceptible, VARIANT.omega, VACCINE_STATUS.vaccinated] = 190
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.EffectiveSusceptible, VARIANT.omega, VACCINE_STATUS.booster] = 191
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.NewE, VARIANT.none, AGG_INDEX_TYPE.all] = 192
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.NewE, VARIANT.ancestral, AGG_INDEX_TYPE.all] = 193
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.NewE, VARIANT.alpha, AGG_INDEX_TYPE.all] = 194
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.NewE, VARIANT.beta, AGG_INDEX_TYPE.all] = 195
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.NewE, VARIANT.gamma, AGG_INDEX_TYPE.all] = 196
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.NewE, VARIANT.delta, AGG_INDEX_TYPE.all] = 197
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.NewE, VARIANT.other, AGG_INDEX_TYPE.all] = 198
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.NewE, VARIANT.omega, AGG_INDEX_TYPE.all] = 199
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.beta, VARIANT_INDEX_TYPE.none, AGG_INDEX_TYPE.all] = 200
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.beta, VARIANT_INDEX_TYPE.none, AGG_INDEX_TYPE.death] = 201
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.beta, VARIANT_INDEX_TYPE.none, AGG_INDEX_TYPE.admission] = 202
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.beta, VARIANT_INDEX_TYPE.none, AGG_INDEX_TYPE.case] = 203
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.infection, VARIANT_INDEX_TYPE.ancestral, AGG_INDEX_TYPE.all] = 204
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.death, VARIANT_INDEX_TYPE.ancestral, AGG_INDEX_TYPE.all] = 205
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.admission, VARIANT_INDEX_TYPE.ancestral, AGG_INDEX_TYPE.all] = 206
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.case, VARIANT_INDEX_TYPE.ancestral, AGG_INDEX_TYPE.all] = 207
+TRACKING_COMPARTMENTS = np.full((len(TRACKING_COMPARTMENT_TYPE), len(VARIANT_INDEX_TYPE), len(VARIANT_INDEX_TYPE), len(AGG_INDEX_TYPE)), TOMBSTONE, dtype=np.int64)
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.Beta, VARIANT_INDEX_TYPE.none, VARIANT_INDEX_TYPE.none, AGG_INDEX_TYPE.all] = 72
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.Beta, VARIANT_INDEX_TYPE.none, VARIANT_INDEX_TYPE.none, AGG_INDEX_TYPE.death] = 73
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.Beta, VARIANT_INDEX_TYPE.none, VARIANT_INDEX_TYPE.none, AGG_INDEX_TYPE.admission] = 74
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.Beta, VARIANT_INDEX_TYPE.none, VARIANT_INDEX_TYPE.none, AGG_INDEX_TYPE.case] = 75
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.Infection, VARIANT_INDEX_TYPE.none, VARIANT_INDEX_TYPE.all, AGG_INDEX_TYPE.unvaccinated] = 76
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.Infection, VARIANT_INDEX_TYPE.none, VARIANT_INDEX_TYPE.all, AGG_INDEX_TYPE.all] = 77
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.Infection, VARIANT_INDEX_TYPE.all, VARIANT_INDEX_TYPE.all, AGG_INDEX_TYPE.all] = 78
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.Infection, VARIANT_INDEX_TYPE.all, VARIANT.none, AGG_INDEX_TYPE.all] = 79
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.Infection, VARIANT_INDEX_TYPE.all, VARIANT.ancestral, AGG_INDEX_TYPE.all] = 80
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.Infection, VARIANT_INDEX_TYPE.all, VARIANT.alpha, AGG_INDEX_TYPE.all] = 81
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.Infection, VARIANT_INDEX_TYPE.all, VARIANT.beta, AGG_INDEX_TYPE.all] = 82
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.Infection, VARIANT_INDEX_TYPE.all, VARIANT.gamma, AGG_INDEX_TYPE.all] = 83
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.Infection, VARIANT_INDEX_TYPE.all, VARIANT.delta, AGG_INDEX_TYPE.all] = 84
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.Infection, VARIANT_INDEX_TYPE.all, VARIANT.other, AGG_INDEX_TYPE.all] = 85
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.Infection, VARIANT_INDEX_TYPE.all, VARIANT.omega, AGG_INDEX_TYPE.all] = 86
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.Death, VARIANT_INDEX_TYPE.none, VARIANT_INDEX_TYPE.all, AGG_INDEX_TYPE.unvaccinated] = 87
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.Death, VARIANT_INDEX_TYPE.none, VARIANT_INDEX_TYPE.all, AGG_INDEX_TYPE.all] = 88
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.Death, VARIANT_INDEX_TYPE.all, VARIANT_INDEX_TYPE.all, AGG_INDEX_TYPE.all] = 89
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.Death, VARIANT_INDEX_TYPE.all, VARIANT.none, AGG_INDEX_TYPE.all] = 90
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.Death, VARIANT_INDEX_TYPE.all, VARIANT.ancestral, AGG_INDEX_TYPE.all] = 91
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.Death, VARIANT_INDEX_TYPE.all, VARIANT.alpha, AGG_INDEX_TYPE.all] = 92
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.Death, VARIANT_INDEX_TYPE.all, VARIANT.beta, AGG_INDEX_TYPE.all] = 93
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.Death, VARIANT_INDEX_TYPE.all, VARIANT.gamma, AGG_INDEX_TYPE.all] = 94
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.Death, VARIANT_INDEX_TYPE.all, VARIANT.delta, AGG_INDEX_TYPE.all] = 95
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.Death, VARIANT_INDEX_TYPE.all, VARIANT.other, AGG_INDEX_TYPE.all] = 96
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.Death, VARIANT_INDEX_TYPE.all, VARIANT.omega, AGG_INDEX_TYPE.all] = 97
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.Admission, VARIANT_INDEX_TYPE.none, VARIANT_INDEX_TYPE.all, AGG_INDEX_TYPE.unvaccinated] = 98
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.Admission, VARIANT_INDEX_TYPE.none, VARIANT_INDEX_TYPE.all, AGG_INDEX_TYPE.all] = 99
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.Admission, VARIANT_INDEX_TYPE.all, VARIANT_INDEX_TYPE.all, AGG_INDEX_TYPE.all] = 100
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.Admission, VARIANT_INDEX_TYPE.all, VARIANT.none, AGG_INDEX_TYPE.all] = 101
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.Admission, VARIANT_INDEX_TYPE.all, VARIANT.ancestral, AGG_INDEX_TYPE.all] = 102
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.Admission, VARIANT_INDEX_TYPE.all, VARIANT.alpha, AGG_INDEX_TYPE.all] = 103
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.Admission, VARIANT_INDEX_TYPE.all, VARIANT.beta, AGG_INDEX_TYPE.all] = 104
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.Admission, VARIANT_INDEX_TYPE.all, VARIANT.gamma, AGG_INDEX_TYPE.all] = 105
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.Admission, VARIANT_INDEX_TYPE.all, VARIANT.delta, AGG_INDEX_TYPE.all] = 106
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.Admission, VARIANT_INDEX_TYPE.all, VARIANT.other, AGG_INDEX_TYPE.all] = 107
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.Admission, VARIANT_INDEX_TYPE.all, VARIANT.omega, AGG_INDEX_TYPE.all] = 108
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.Case, VARIANT_INDEX_TYPE.none, VARIANT_INDEX_TYPE.all, AGG_INDEX_TYPE.unvaccinated] = 109
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.Case, VARIANT_INDEX_TYPE.none, VARIANT_INDEX_TYPE.all, AGG_INDEX_TYPE.all] = 110
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.Case, VARIANT_INDEX_TYPE.all, VARIANT_INDEX_TYPE.all, AGG_INDEX_TYPE.all] = 111
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.Case, VARIANT_INDEX_TYPE.all, VARIANT.none, AGG_INDEX_TYPE.all] = 112
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.Case, VARIANT_INDEX_TYPE.all, VARIANT.ancestral, AGG_INDEX_TYPE.all] = 113
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.Case, VARIANT_INDEX_TYPE.all, VARIANT.alpha, AGG_INDEX_TYPE.all] = 114
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.Case, VARIANT_INDEX_TYPE.all, VARIANT.beta, AGG_INDEX_TYPE.all] = 115
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.Case, VARIANT_INDEX_TYPE.all, VARIANT.gamma, AGG_INDEX_TYPE.all] = 116
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.Case, VARIANT_INDEX_TYPE.all, VARIANT.delta, AGG_INDEX_TYPE.all] = 117
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.Case, VARIANT_INDEX_TYPE.all, VARIANT.other, AGG_INDEX_TYPE.all] = 118
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.Case, VARIANT_INDEX_TYPE.all, VARIANT.omega, AGG_INDEX_TYPE.all] = 119
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.Vaccination, VARIANT_INDEX_TYPE.all, VARIANT_INDEX_TYPE.all, AGG_INDEX_TYPE.unvaccinated] = 120
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.Booster, VARIANT_INDEX_TYPE.all, VARIANT_INDEX_TYPE.all, AGG_INDEX_TYPE.vaccinated] = 121
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.EffectiveSusceptible, VARIANT_INDEX_TYPE.all, VARIANT.none, AGG_INDEX_TYPE.all] = 122
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.EffectiveSusceptible, VARIANT_INDEX_TYPE.all, VARIANT.ancestral, AGG_INDEX_TYPE.all] = 123
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.EffectiveSusceptible, VARIANT_INDEX_TYPE.all, VARIANT.alpha, AGG_INDEX_TYPE.all] = 124
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.EffectiveSusceptible, VARIANT_INDEX_TYPE.all, VARIANT.beta, AGG_INDEX_TYPE.all] = 125
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.EffectiveSusceptible, VARIANT_INDEX_TYPE.all, VARIANT.gamma, AGG_INDEX_TYPE.all] = 126
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.EffectiveSusceptible, VARIANT_INDEX_TYPE.all, VARIANT.delta, AGG_INDEX_TYPE.all] = 127
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.EffectiveSusceptible, VARIANT_INDEX_TYPE.all, VARIANT.other, AGG_INDEX_TYPE.all] = 128
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.EffectiveSusceptible, VARIANT_INDEX_TYPE.all, VARIANT.omega, AGG_INDEX_TYPE.all] = 129
 TRACKING_COMPARTMENTS_NAMES = [
-    'NewE_none_unvaccinated',
-    'NewE_none_vaccinated',
-    'NewE_none_booster',
-    'NewE_ancestral_unvaccinated',
-    'NewE_ancestral_vaccinated',
-    'NewE_ancestral_booster',
-    'NewE_alpha_unvaccinated',
-    'NewE_alpha_vaccinated',
-    'NewE_alpha_booster',
-    'NewE_beta_unvaccinated',
-    'NewE_beta_vaccinated',
-    'NewE_beta_booster',
-    'NewE_gamma_unvaccinated',
-    'NewE_gamma_vaccinated',
-    'NewE_gamma_booster',
-    'NewE_delta_unvaccinated',
-    'NewE_delta_vaccinated',
-    'NewE_delta_booster',
-    'NewE_other_unvaccinated',
-    'NewE_other_vaccinated',
-    'NewE_other_booster',
-    'NewE_omega_unvaccinated',
-    'NewE_omega_vaccinated',
-    'NewE_omega_booster',
-    'NewENaive_none_unvaccinated',
-    'NewENaive_none_vaccinated',
-    'NewENaive_none_booster',
-    'NewENaive_ancestral_unvaccinated',
-    'NewENaive_ancestral_vaccinated',
-    'NewENaive_ancestral_booster',
-    'NewENaive_alpha_unvaccinated',
-    'NewENaive_alpha_vaccinated',
-    'NewENaive_alpha_booster',
-    'NewENaive_beta_unvaccinated',
-    'NewENaive_beta_vaccinated',
-    'NewENaive_beta_booster',
-    'NewENaive_gamma_unvaccinated',
-    'NewENaive_gamma_vaccinated',
-    'NewENaive_gamma_booster',
-    'NewENaive_delta_unvaccinated',
-    'NewENaive_delta_vaccinated',
-    'NewENaive_delta_booster',
-    'NewENaive_other_unvaccinated',
-    'NewENaive_other_vaccinated',
-    'NewENaive_other_booster',
-    'NewENaive_omega_unvaccinated',
-    'NewENaive_omega_vaccinated',
-    'NewENaive_omega_booster',
-    'NewVaccination_none_unvaccinated',
-    'NewVaccination_none_vaccinated',
-    'NewVaccination_none_booster',
-    'NewVaccination_ancestral_unvaccinated',
-    'NewVaccination_ancestral_vaccinated',
-    'NewVaccination_ancestral_booster',
-    'NewVaccination_alpha_unvaccinated',
-    'NewVaccination_alpha_vaccinated',
-    'NewVaccination_alpha_booster',
-    'NewVaccination_beta_unvaccinated',
-    'NewVaccination_beta_vaccinated',
-    'NewVaccination_beta_booster',
-    'NewVaccination_gamma_unvaccinated',
-    'NewVaccination_gamma_vaccinated',
-    'NewVaccination_gamma_booster',
-    'NewVaccination_delta_unvaccinated',
-    'NewVaccination_delta_vaccinated',
-    'NewVaccination_delta_booster',
-    'NewVaccination_other_unvaccinated',
-    'NewVaccination_other_vaccinated',
-    'NewVaccination_other_booster',
-    'NewVaccination_omega_unvaccinated',
-    'NewVaccination_omega_vaccinated',
-    'NewVaccination_omega_booster',
-    'NewBooster_none_unvaccinated',
-    'NewBooster_none_vaccinated',
-    'NewBooster_none_booster',
-    'NewBooster_ancestral_unvaccinated',
-    'NewBooster_ancestral_vaccinated',
-    'NewBooster_ancestral_booster',
-    'NewBooster_alpha_unvaccinated',
-    'NewBooster_alpha_vaccinated',
-    'NewBooster_alpha_booster',
-    'NewBooster_beta_unvaccinated',
-    'NewBooster_beta_vaccinated',
-    'NewBooster_beta_booster',
-    'NewBooster_gamma_unvaccinated',
-    'NewBooster_gamma_vaccinated',
-    'NewBooster_gamma_booster',
-    'NewBooster_delta_unvaccinated',
-    'NewBooster_delta_vaccinated',
-    'NewBooster_delta_booster',
-    'NewBooster_other_unvaccinated',
-    'NewBooster_other_vaccinated',
-    'NewBooster_other_booster',
-    'NewBooster_omega_unvaccinated',
-    'NewBooster_omega_vaccinated',
-    'NewBooster_omega_booster',
-    'EffectiveSusceptible_none_unvaccinated',
-    'EffectiveSusceptible_none_vaccinated',
-    'EffectiveSusceptible_none_booster',
-    'EffectiveSusceptible_ancestral_unvaccinated',
-    'EffectiveSusceptible_ancestral_vaccinated',
-    'EffectiveSusceptible_ancestral_booster',
-    'EffectiveSusceptible_alpha_unvaccinated',
-    'EffectiveSusceptible_alpha_vaccinated',
-    'EffectiveSusceptible_alpha_booster',
-    'EffectiveSusceptible_beta_unvaccinated',
-    'EffectiveSusceptible_beta_vaccinated',
-    'EffectiveSusceptible_beta_booster',
-    'EffectiveSusceptible_gamma_unvaccinated',
-    'EffectiveSusceptible_gamma_vaccinated',
-    'EffectiveSusceptible_gamma_booster',
-    'EffectiveSusceptible_delta_unvaccinated',
-    'EffectiveSusceptible_delta_vaccinated',
-    'EffectiveSusceptible_delta_booster',
-    'EffectiveSusceptible_other_unvaccinated',
-    'EffectiveSusceptible_other_vaccinated',
-    'EffectiveSusceptible_other_booster',
-    'EffectiveSusceptible_omega_unvaccinated',
-    'EffectiveSusceptible_omega_vaccinated',
-    'EffectiveSusceptible_omega_booster',
-    'NewE_none_all',
-    'NewE_ancestral_all',
-    'NewE_alpha_all',
-    'NewE_beta_all',
-    'NewE_gamma_all',
-    'NewE_delta_all',
-    'NewE_other_all',
-    'NewE_omega_all',
-    'beta_none_all',
-    'beta_none_death',
-    'beta_none_admission',
-    'beta_none_case',
-    'infection_ancestral_all',
-    'death_ancestral_all',
-    'admission_ancestral_all',
-    'case_ancestral_all',
+    'Beta_none_none_all',
+    'Beta_none_none_death',
+    'Beta_none_none_admission',
+    'Beta_none_none_case',
+    'Infection_none_all_unvaccinated',
+    'Infection_none_all_all',
+    'Infection_all_all_all',
+    'Infection_all_none_all',
+    'Infection_all_ancestral_all',
+    'Infection_all_alpha_all',
+    'Infection_all_beta_all',
+    'Infection_all_gamma_all',
+    'Infection_all_delta_all',
+    'Infection_all_other_all',
+    'Infection_all_omega_all',
+    'Death_none_all_unvaccinated',
+    'Death_none_all_all',
+    'Death_all_all_all',
+    'Death_all_none_all',
+    'Death_all_ancestral_all',
+    'Death_all_alpha_all',
+    'Death_all_beta_all',
+    'Death_all_gamma_all',
+    'Death_all_delta_all',
+    'Death_all_other_all',
+    'Death_all_omega_all',
+    'Admission_none_all_unvaccinated',
+    'Admission_none_all_all',
+    'Admission_all_all_all',
+    'Admission_all_none_all',
+    'Admission_all_ancestral_all',
+    'Admission_all_alpha_all',
+    'Admission_all_beta_all',
+    'Admission_all_gamma_all',
+    'Admission_all_delta_all',
+    'Admission_all_other_all',
+    'Admission_all_omega_all',
+    'Case_none_all_unvaccinated',
+    'Case_none_all_all',
+    'Case_all_all_all',
+    'Case_all_none_all',
+    'Case_all_ancestral_all',
+    'Case_all_alpha_all',
+    'Case_all_beta_all',
+    'Case_all_gamma_all',
+    'Case_all_delta_all',
+    'Case_all_other_all',
+    'Case_all_omega_all',
+    'Vaccination_all_all_unvaccinated',
+    'Booster_all_all_vaccinated',
+    'EffectiveSusceptible_all_none_all',
+    'EffectiveSusceptible_all_ancestral_all',
+    'EffectiveSusceptible_all_alpha_all',
+    'EffectiveSusceptible_all_beta_all',
+    'EffectiveSusceptible_all_gamma_all',
+    'EffectiveSusceptible_all_delta_all',
+    'EffectiveSusceptible_all_other_all',
+    'EffectiveSusceptible_all_omega_all',
 ]
 
 AGGREGATES = np.full((len(COMPARTMENT_TYPE), len(VARIANT_INDEX_TYPE)), TOMBSTONE, dtype=np.int64)

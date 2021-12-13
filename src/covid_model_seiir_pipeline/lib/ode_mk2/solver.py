@@ -15,6 +15,7 @@ from covid_model_seiir_pipeline.lib.ode_mk2 import (
 )
 from covid_model_seiir_pipeline.lib.ode_mk2.constants import (
     TOMBSTONE,
+    SYSTEM_TYPE,
     RISK_GROUP_NAMES,
     COMPARTMENTS_NAMES,
     TRACKING_COMPARTMENTS_NAMES,
@@ -23,6 +24,7 @@ from covid_model_seiir_pipeline.lib.ode_mk2.constants import (
     EPI_MEASURE,
     RISK_GROUP,
     VARIANT,
+    VARIANT_GROUP,
     TRACKING_COMPARTMENT,
     AGG_INDEX_TYPE,
     TRACKING_COMPARTMENTS,
@@ -43,12 +45,12 @@ SOLVER_DT: float = 0.1
 
 def run_ode_model(initial_condition: pd.DataFrame,
                   base_parameters: pd.DataFrame,
-                  rates: pd.DataFrame,
+                  age_scalars: pd.DataFrame,
                   vaccinations: pd.DataFrame,
                   etas: pd.DataFrame,
                   phis: pd.DataFrame,
                   location_ids: List[int],
-                  forecast: bool,
+                  system_type: int,
                   dt: float = SOLVER_DT, 
                   num_cores: int = 5,
                   progress_bar: bool = True):
@@ -57,7 +59,7 @@ def run_ode_model(initial_condition: pd.DataFrame,
     ics_and_params = [(location_id,
                        initial_condition.loc[location_id],
                        base_parameters.loc[location_id],
-                       rates.loc[location_id],
+                       age_scalars.loc[location_id],
                        vaccinations.loc[location_id],
                        etas.loc[location_id],
                        phis) for location_id in location_ids]
@@ -65,7 +67,7 @@ def run_ode_model(initial_condition: pd.DataFrame,
     _runner = functools.partial(
         _run_loc_ode_model,
         dt=dt,
-        forecast=forecast,
+        system_type=system_type,
     )
     results = parallel.run_parallel(
         _runner,
@@ -88,15 +90,15 @@ def run_ode_model(initial_condition: pd.DataFrame,
 
 def _run_loc_ode_model(ic_and_params,
                        dt: float,
-                       forecast: bool):
-    location_id, initial_condition, parameters, rates, vaccines, etas, phis = ic_and_params
+                       system_type: int):
+    location_id, initial_condition, parameters, age_scalars, vaccines, etas, phis = ic_and_params
 
-    new_e_dates = initial_condition[initial_condition.filter(like='NewE').sum(axis=1) > 0].reset_index().date
+    new_e_dates = initial_condition[initial_condition.filter(like='Infection').sum(axis=1) > 0].reset_index().date
     invasion_date = new_e_dates.min()
     ode_start_date = new_e_dates.max()
 
     t0 = (ode_start_date - invasion_date).days
-    if forecast:
+    if system_type == SYSTEM_TYPE.beta_and_rates:  # This is the forecast
         assert t0 > 0
     else:
         assert t0 == 0
@@ -111,46 +113,35 @@ def _run_loc_ode_model(ic_and_params,
     t_solve = np.round(np.arange(t[0], t[-1] + dt, dt), 2)
     t_params = np.round(np.arange(t[0], t[-1] + dt, dt / 2), 2)
 
-    y_solve = _interpolate_y(t0, t, t_solve, initial_condition.to_numpy(), forecast)
+    y_solve = _interpolate_y(t0, t, t_solve, initial_condition.to_numpy(), system_type)
 
     parameters = _interpolate(t, t_params, parameters.to_numpy())
     parameters[np.isnan(parameters)] = TOMBSTONE
-    rates = _interpolate(t, t_params, rates.to_numpy())
+    age_scalars = _interpolate(t, t_params, age_scalars.to_numpy())
     vaccines = _interpolate(t, t_params, vaccines.to_numpy())
     etas = _interpolate(t, t_params, etas.to_numpy())
     phis = phis.to_numpy()
 
-    try:
-        y_solve, chis = _rk45_dde(
-            t0, tf,
-            t_solve,
-            y_solve,
-            parameters,
-            rates,
-            vaccines,
-            etas,
-            phis,
-            forecast,
-            dt,
-        )
-        loc_compartments = pd.DataFrame(_uninterpolate(y_solve, t_solve, t),
-                                        columns=initial_condition.columns,
-                                        index=initial_condition.index)
-        loc_compartments['location_id'] = location_id
-        loc_chis = pd.DataFrame(_uninterpolate(chis, t_solve, t),
-                                columns=[f'{n}_{r}' for r, n in itertools.product(RISK_GROUP_NAMES, CHI_NAMES)],
-                                index=initial_condition.index)
-        loc_chis['location_id'] = location_id
-    except:
-        raise
-        if DEBUG:
-            raise
-        loc_compartments = pd.DataFrame(
-            columns=initial_condition.columns.tolist() + ['location_id', 'date']
-        ).set_index('date')
-        loc_chis = pd.DataFrame(
-            columns=[f'{n}_{r}' for r, n in itertools.product(RISK_GROUP_NAMES, CHI_NAMES)] + ['location_id', 'date']
-        ).set_index('date')
+    y_solve, chis = _rk45_dde(
+        t0, tf,
+        t_solve,
+        y_solve,
+        parameters,
+        age_scalars,
+        vaccines,
+        etas,
+        phis,
+        system_type,
+        dt,
+    )
+    loc_compartments = pd.DataFrame(_uninterpolate(y_solve, t_solve, t),
+                                    columns=initial_condition.columns,
+                                    index=initial_condition.index)
+    loc_compartments['location_id'] = location_id
+    loc_chis = pd.DataFrame(_uninterpolate(chis, t_solve, t),
+                            columns=[f'{n}_{r}' for r, n in itertools.product(RISK_GROUP_NAMES, CHI_NAMES)],
+                            index=initial_condition.index)
+    loc_chis['location_id'] = location_id
 
     return loc_compartments, loc_chis
 
@@ -169,10 +160,10 @@ def _interpolate_y(t0: float,
                    t: np.ndarray,
                    t_solve: np.ndarray,
                    y: np.ndarray,
-                   forecast: bool) -> np.ndarray:
+                   system_type: bool) -> np.ndarray:
     y_solve = np.empty((t_solve.size, y.shape[1]))
     for compartment in np.arange(y.shape[1]):
-        if forecast:
+        if system_type == SYSTEM_TYPE.beta_and_rates:
             y_solve[:, compartment] = np.interp(t_solve, t, y[:, compartment])
             y_solve[t_solve > t0, compartment] = 0.
         else:
@@ -196,11 +187,11 @@ def _rk45_dde(t0: float, tf: float,
               t_solve: np.ndarray,
               y_solve: np.ndarray,
               parameters: np.ndarray,
-              rates: np.ndarray,
+              age_scalars: np.ndarray,
               vaccines: np.ndarray,
               etas: np.ndarray,
               phis: np.ndarray,
-              forecast: bool,
+              system_type: int,
               dt: float):
     num_time_points = t_solve.size
     chis = np.zeros((num_time_points, 2 * phis.shape[1]))
@@ -215,44 +206,44 @@ def _rk45_dde(t0: float, tf: float,
             t_solve[time - 1],
             y_solve[time - 1],
             parameters[2 * time - 2],
-            rates[2 * time - 2],
+            age_scalars[2 * time - 2],
             vaccines[2 * time - 2],
             etas[2 * time - 2],
             chis[time - 1],
-            forecast,
+            system_type,
         )
 
         k2 = system(
             t_solve[time - 1] + dt / 2,
             y_solve[time - 1] + dt / 2 * k1,
             parameters[2 * time - 1],
-            rates[2 * time - 2],
+            age_scalars[2 * time - 2],
             vaccines[2 * time - 1],
             etas[2 * time - 1],
             chis[time - 1],
-            forecast,
+            system_type,
         )
 
         k3 = system(
             t_solve[time - 1] + dt / 2,
             y_solve[time - 1] + dt / 2 * k2,
             parameters[2 * time - 1],
-            rates[2 * time - 1],
+            age_scalars[2 * time - 1],
             vaccines[2 * time - 1],
             etas[2 * time - 1],
             chis[time - 1],
-            forecast,
+            system_type,
         )
 
         k4 = system(
             t_solve[time],
             y_solve[time - 1] + dt * k3,
             parameters[2 * time],
-            rates[2 * time],
+            age_scalars[2 * time],
             vaccines[2 * time],
             etas[2 * time],
             chis[time - 1],
-            forecast,
+            system_type,
         )
 
         y_solve[time] = escape_variant.maybe_invade(
@@ -290,8 +281,9 @@ def compute_chis(time, t_solve, y_solve, phis, chis):
         t_end = min(group_y.shape[0], phis.shape[0]) - 1
 
         for from_variant in VARIANT[1:]:
-            cumulative_new_e_variant = group_y[:, TRACKING_COMPARTMENTS[
-                                                      TRACKING_COMPARTMENT.NewE, from_variant, AGG_INDEX_TYPE.all]]
+            idx = TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.Infection, VARIANT_GROUP.all,
+                                        from_variant, AGG_INDEX_TYPE.all]
+            cumulative_new_e_variant = group_y[:, idx]
             denominator = cumulative_new_e_variant[-1]
 
             if denominator:                

@@ -151,15 +151,18 @@ def ies_plot(data: Tuple[Location, Dict[str, pd.DataFrame]],
         ax_measure.set_ylim(ylim)
 
         rates_data = data_dictionary['rates_data']
-        if rates_data is not None:            
-            rates_data = rates_data.loc[measure]
-            ax_measure.scatter(
-                rates_data.index,
-                rates_data.values * 100,
-                color=MEASURE_COLORS[measure]['dark'],
-                marker='o',
-                facecolors='none'
-            )
+        if rates_data is not None:
+            try:             
+                rates_data = rates_data.loc[measure]
+                ax_measure.scatter(
+                    rates_data.index,
+                    rates_data.values * 100,
+                    color=MEASURE_COLORS[measure]['dark'],
+                    marker='o',
+                    facecolors='none'
+                )
+            except KeyError:
+                pass
 
         group_axes.append(ax_measure)
 
