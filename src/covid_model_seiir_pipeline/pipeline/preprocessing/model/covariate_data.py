@@ -192,7 +192,7 @@ def _process_variants_of_concern(data: pd.DataFrame) -> pd.DataFrame:
         'gamma': ['P1'],
         'delta': ['B16172'],
         'omicron': ['Omicron'],
-        'other': ['B1621', 'C37'],  # , 'C12'
+        'other': ['B1621', 'C37'],
         'ancestral': ['wild_type'],
     }
     drop = []

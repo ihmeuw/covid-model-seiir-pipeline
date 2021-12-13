@@ -433,7 +433,6 @@ class PreprocessingDataInterface:
             'logit_ast_sev', 'ast_sev',
             'jan_sev',
         }
-        
         assert set(data.columns) == expected_cols
         data = (data
                 .rename(columns={'mid_point': 'weeks_since_delivery'})
