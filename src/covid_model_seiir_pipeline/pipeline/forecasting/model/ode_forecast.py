@@ -62,6 +62,7 @@ def build_beta_final(indices: Indices,
 def build_model_parameters(indices: Indices,
                            beta: pd.Series,
                            posterior_epi_measures: pd.DataFrame,
+                           prior_ratios: pd.DataFrame,
                            ode_parameters: pd.Series,
                            rhos: pd.DataFrame,
                            vaccinations: pd.DataFrame,
@@ -73,21 +74,31 @@ def build_model_parameters(indices: Indices,
         index=indices.full
     )
     ode_params.loc[:, 'beta_all_infection'] = beta
+    measure_map = {
+        'death': ('deaths', 'ifr'),
+        'admission': ('hospitalizations', 'ihr'),
+        'case': ('cases', 'idr')
+    }
+
     for epi_measure in REPORTED_EPI_MEASURE_NAMES:
         ode_params.loc[:, f'count_all_{epi_measure}'] = -1
         ode_params.loc[:, f'weight_all_{epi_measure}'] = -1
         lag = ode_params.loc[f'exposure_to_{epi_measure}']
-        import pdb; pdb.set_trace()
-        infections = ode_params.loc[:, 'daily_naive_unvaccinated_infections'].groupby('location_id').shift(lag)
-        rate = ode_params.loc[:, f'daily_{epi_measure}'] / infections
+        infections = (posterior_epi_measures
+                      .loc[:, 'daily_naive_unvaccinated_infections']
+                      .reindex(indices.full)
+                      .groupby('location_id')
+                      .shift(lag))
+        ratio_measure, ratio_name = measure_map[epi_measure]
+        numerator = posterior_epi_measures.loc[:, f'daily_{ratio_measure}'].reindex(indices.full)
+        prior_ratio = prior_ratios.loc[:, ratio_name].groupby('location_id').last()
+        ode_params.loc[:, f'rate_all_{epi_measure}'] = build_ratio(infections, numerator, prior_ratio)
+
 
 
     rhos = rhos.reindex(indices.full, fill_value=0.)
     rhos.columns = [f'rho_{c}_infection' for c in rhos.columns]
     rhos.loc[:, 'rho_none_infection'] = 0
-
-
-
 
     keep_cols = ['alpha_all', 'sigma_all', 'gamma_all', 'pi_all'] + [f'kappa_{v}' for v in VARIANT_NAMES]
     ode_params = (ode_parameters
@@ -113,6 +124,11 @@ def build_model_parameters(indices: Indices,
         natural_waning_distribution=natural_waning_dist.loc['infection'],
         phi=natural_waning_matrix.loc[list(VARIANT_NAMES), list(VARIANT_NAMES)],
     )
+
+
+def build_ratio(shifted_infections: pd.Series, numerator: pd.Series, prior_ratio: pd.Series):
+    import pdb; pdb.set_trace()
+
 
 
 def beta_shift(beta_hat: pd.DataFrame,
