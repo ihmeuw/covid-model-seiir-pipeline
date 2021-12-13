@@ -103,7 +103,7 @@ def compute_intermediate_epi_parameters(t: float,
             eta_infection = group_etas[ETA[vaccine_status, variant_to, EPI_MEASURE.infection]]
 
             s_effective = (1 - eta_infection) * (1 - chi_infection) * susceptible
-            new_e = beta * kappa_infection * s_effective * infectious / n_total
+            infections = beta * kappa_infection * s_effective * infectious / n_total
 
             for epi_measure in REPORTED_EPI_MEASURE:
                 age_scalar = group_age_scalars[AGE_SCALARS[epi_measure]]
@@ -117,11 +117,11 @@ def compute_intermediate_epi_parameters(t: float,
                 eta = group_etas[ETA[vaccine_status, variant_to, epi_measure]]
 
                 rate = kappa * (1 - eta) * (1 - chi) * base_rate
-                total_variant_weight[VARIANT_WEIGHTS[epi_measure]] += rate * new_e
+                total_variant_weight[VARIANT_WEIGHTS[epi_measure]] += rate * infections
                 group_rates[RATES[vaccine_status, variant_from, variant_to, epi_measure]] = rate
 
-            total_variant_weight[VARIANT_WEIGHTS[EPI_MEASURE.infection]] += new_e
-            group_new_e[NEW_E[vaccine_status, variant_from, variant_to]] += new_e
+            total_variant_weight[VARIANT_WEIGHTS[EPI_MEASURE.infection]] += infections
+            group_new_e[NEW_E[vaccine_status, variant_from, variant_to]] += infections
             group_effective_susceptible[EFFECTIVE_SUSCEPTIBLE[vaccine_status, variant_from, variant_to]] += s_effective
 
     if system_type == SYSTEM_TYPE.rates_and_measures:
