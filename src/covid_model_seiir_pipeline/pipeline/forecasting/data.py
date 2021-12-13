@@ -198,8 +198,8 @@ class ForecastDataInterface:
     def save_ode_params(self, ode_params: pd.DataFrame, scenario: str, draw_id: int) -> None:
         io.dump(ode_params, self.forecast_root.ode_params(scenario=scenario, draw_id=draw_id))
 
-    def load_ode_params(self, scenario: str, draw_id: int) -> pd.DataFrame:
-        return io.load(self.forecast_root.ode_params(scenario=scenario, draw_id=draw_id))
+    def load_ode_params(self, scenario: str, draw_id: int, columns: List[str] = None) -> pd.DataFrame:
+        return io.load(self.forecast_root.ode_params(scenario=scenario, draw_id=draw_id, columns=columns))
 
     def save_components(self, forecasts: pd.DataFrame, scenario: str, draw_id: int):
         io.dump(forecasts, self.forecast_root.component_draws(scenario=scenario, draw_id=draw_id))
