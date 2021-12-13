@@ -135,7 +135,7 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
         logger.info('Entering mandate reimposition.', context='compute_mandates')
         # Info data specific to mandate reimposition
         percent_mandates, mandate_effects = data_interface.load_mandate_data(scenario_spec.covariates['mobility'])
-        em_scalars = data_interface.load_total_covid_scalars(draw_id)['scalar']
+        em_scalars = data_interface.load_total_covid_scalars(draw_id).loc[location_ids, 'scalar']
         min_wait, days_on, reimposition_threshold, max_threshold = model.unpack_parameters(
             scenario_spec.algorithm_params,
             em_scalars,

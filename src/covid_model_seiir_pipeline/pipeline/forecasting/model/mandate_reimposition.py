@@ -12,7 +12,7 @@ def compute_reimposition_threshold(past_deaths, population, reimposition_thresho
                   .apply(lambda x: x.iloc[-14:])
                   .reset_index(level=0, drop=True))
     days_over_death_rate = (
-        (death_rate > reimposition_threshold.loc[death_rate.index])
+        (death_rate > reimposition_threshold.reindex(death_rate.index, level='location_id'))
         .groupby('location_id')
         .sum()
     )
@@ -21,7 +21,7 @@ def compute_reimposition_threshold(past_deaths, population, reimposition_thresho
 
     # Do it a second time to some crazy stuff happening in central europe.
     days_over_death_rate = (
-        (death_rate > reimposition_threshold.loc[death_rate.index])
+        (death_rate > reimposition_threshold.reindex(death_rate.index, level='location_id'))
         .groupby('location_id')
         .sum()
     )
@@ -54,9 +54,9 @@ def compute_reimposition_threshold(past_deaths, population, reimposition_thresho
 def compute_reimposition_date(deaths, population, reimposition_threshold,
                               min_wait, last_reimposition_end_date) -> pd.Series:
     location_dates = deaths.index.to_frame().reset_index(drop=True)
-    deaths = deaths.reset_index(level='observed', drop=True)
     death_rate = ((deaths / population.reindex(deaths.index, level='location_id'))
                   .rename('death_rate'))
+    deaths = deaths.reset_index(level='observed', drop=True)
     reimposition_threshold = (reimposition_threshold
                               .reindex(death_rate.index)
                               .groupby('location_id')

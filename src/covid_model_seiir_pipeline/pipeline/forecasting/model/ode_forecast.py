@@ -1,4 +1,4 @@
-from typing import Tuple, TYPE_CHECKING
+from typing import List, Tuple, TYPE_CHECKING
 
 import numpy as np
 import pandas as pd
@@ -256,13 +256,15 @@ def beta_shift(beta_hat: pd.DataFrame,
 # Run ODE #
 ###########
 
-def run_ode_forecast(initial_conditions: pd.DataFrame,
+def run_ode_forecast(initial_condition: pd.DataFrame,
                      ode_parameters: Parameters,
                      num_cores: int,
                      progress_bar: bool,
                      location_ids: List[int] = None):
+    if location_ids is None:
+        location_ids = initial_condition.reset_index().location_id.unique().tolist()
     full_compartments, chis = solver.run_ode_model(
-        initial_conditions,
+        initial_condition,
         **ode_parameters.to_dict(),
         location_ids=location_ids,
         system_type=SYSTEM_TYPE.beta_and_rates,

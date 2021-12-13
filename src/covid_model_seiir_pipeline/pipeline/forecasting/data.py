@@ -86,7 +86,7 @@ class ForecastDataInterface:
         return self.regression_data_interface.load_covariate_info(covariate, info_type)
 
     def load_mandate_data(self, mobility_scenario: str) -> Tuple[pd.DataFrame, pd.DataFrame]:
-        percent_mandates = self.load_covariate_info('mobility', f'{mobility_scenario}_mandate_lift')
+        percent_mandates = self.load_covariate_info('mobility', f'percent_mandates_{mobility_scenario}')
         mandate_effects = self.load_covariate_info('mobility', 'effect')
         return percent_mandates, mandate_effects
 
