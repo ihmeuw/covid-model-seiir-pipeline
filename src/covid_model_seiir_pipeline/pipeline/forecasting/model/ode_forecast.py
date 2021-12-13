@@ -9,11 +9,9 @@ from covid_model_seiir_pipeline.lib.ode_mk2.containers import (
     Parameters,
 )
 from covid_model_seiir_pipeline.lib.ode_mk2.constants import (
+    SYSTEM_TYPE,
     REPORTED_EPI_MEASURE_NAMES,
-    VARIANT_NAMES,
     RISK_GROUP_NAMES,
-    COMPARTMENTS_NAMES,
-    TRACKING_COMPARTMENTS_NAMES,
 )
 from covid_model_seiir_pipeline.lib.ode_mk2 import (
     solver,
@@ -258,11 +256,16 @@ def beta_shift(beta_hat: pd.DataFrame,
 ###########
 
 def run_ode_forecast(initial_conditions: pd.DataFrame,
-                     ode_parameters: Parameters):
+                     ode_parameters: Parameters,
+                     num_cores: int,
+                     progress_bar: bool,
+                     location_ids: List[int] = None):
     full_compartments, chis = solver.run_ode_model(
         initial_conditions,
-        *ode_parameters.to_dfs(),
-        forecast=True,
-        num_cores=5,
+        **ode_parameters.to_dict(),
+        location_ids=location_ids,
+        system_type=SYSTEM_TYPE.beta_and_rates,
+        num_cores=num_cores,
+        progress_bar=progress_bar,
     )
     return full_compartments, chis

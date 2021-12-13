@@ -5,7 +5,10 @@ from covid_model_seiir_pipeline.lib import (
     cli_tools,
 )
 from covid_model_seiir_pipeline.pipeline.forecasting import model
-from covid_model_seiir_pipeline.pipeline.forecasting.specification import ForecastSpecification
+from covid_model_seiir_pipeline.pipeline.forecasting.specification import (
+    ForecastSpecification,
+    FORECAST_JOBS,
+)
 from covid_model_seiir_pipeline.pipeline.forecasting.data import ForecastDataInterface
 
 
@@ -14,9 +17,11 @@ logger = cli_tools.task_performance_logger
 
 def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progress_bar: bool):
     logger.info(f"Initiating SEIIR beta forecasting for scenario {scenario}, draw {draw_id}.", context='setup')
-    forecast_spec: ForecastSpecification = ForecastSpecification.from_version_root(forecast_version)
-    scenario_spec = forecast_spec.scenarios[scenario]
-    data_interface = ForecastDataInterface.from_specification(forecast_spec)
+    specification = ForecastSpecification.from_version_root(forecast_version)
+    num_cores = specification.workflow.task_specifications[FORECAST_JOBS.forecast].num_cores
+    scenario_spec = specification.scenarios[scenario]
+    data_interface = ForecastDataInterface.from_specification(specification)
+
     #################
     # Build indices #
     #################
@@ -121,15 +126,15 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
     compartments, chis = model.run_ode_forecast(
         initial_condition,
         model_parameters,
+        num_cores=num_cores,
+        progress_bar=progress_bar,
     )
     import pdb; pdb.set_trace()
     logger.info('Processing ODE results and computing deaths and infections.', context='compute_results')
     system_metrics, output_metrics = model.compute_output_metrics(
         indices,
         compartments,
-        postprocessing_params,
-        model_parameters,
-        hospital_parameters,
+        posterior_epi_measures,
     )
 
     if scenario_spec.algorithm == 'draw_level_mandate_reimposition':
