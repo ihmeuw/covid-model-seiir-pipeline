@@ -129,25 +129,19 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
         num_cores=num_cores,
         progress_bar=progress_bar,
     )
-    import pdb; pdb.set_trace()
-    logger.info('Processing ODE results and computing deaths and infections.', context='compute_results')
-    system_metrics, output_metrics = model.compute_output_metrics(
-        indices,
-        compartments,
-        posterior_epi_measures,
-    )
+    total_deaths = compartments.filter(like='Death_all_all_all').sum(axis=1)
 
     if scenario_spec.algorithm == 'draw_level_mandate_reimposition':
         logger.info('Entering mandate reimposition.', context='compute_mandates')
         # Info data specific to mandate reimposition
         percent_mandates, mandate_effects = data_interface.load_mandate_data(scenario_spec.covariates['mobility'])
-        em_scalars = data_interface.load_em_scalars(draw_id)
+        em_scalars = data_interface.load_total_covid_scalars(draw_id)['scalar']
         min_wait, days_on, reimposition_threshold, max_threshold = model.unpack_parameters(
             scenario_spec.algorithm_params,
             em_scalars,
         )
         reimposition_threshold = model.compute_reimposition_threshold(
-            postprocessing_params.past_deaths,
+            total_deaths.loc[indices.past],
             population,
             reimposition_threshold,
             max_threshold,
@@ -156,7 +150,7 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
         reimposition_dates = {}
         last_reimposition_end_date = pd.Series(pd.NaT, index=population.index)
         reimposition_date = model.compute_reimposition_date(
-            output_metrics.deaths,
+            total_deaths,
             population,
             reimposition_threshold,
             min_wait,
@@ -194,12 +188,13 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
             model_parameters = model.build_model_parameters(
                 indices,
                 beta,
+                posterior_epi_measures,
+                prior_ratios,
                 ode_params,
                 rhos,
                 vaccinations,
                 etas,
-                natural_waning_dist,
-                natural_waning_matrix,
+                phis,
             )
 
             # The ode is done as a loop over the locations in the initial condition.
@@ -210,6 +205,8 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
             compartments_subset, chis = model.run_ode_forecast(
                 initial_condition_subset,
                 model_parameters,
+                num_cores=num_cores,
+                progress_bar=progress_bar,
             )
 
             logger.info('Processing ODE results and computing deaths and infections.', context='compute_results')
@@ -218,25 +215,26 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
                             .drop(compartments_subset.index)
                             .append(compartments_subset)
                             .sort_index())
-            system_metrics, output_metrics = model.compute_output_metrics(
-                indices,
-                compartments,
-                postprocessing_params,
-                model_parameters,
-                hospital_parameters,
-            )
+            total_deaths = compartments.filter(like='Death_all_all_all').sum(axis=1)
 
             logger.info('Recomputing reimposition dates', context='compute_mandates')
             reimposition_count += 1
             reimposition_dates[reimposition_count] = reimposition_date
             last_reimposition_end_date.loc[reimposition_date.index] = reimposition_date + days_on
             reimposition_date = model.compute_reimposition_date(
-                output_metrics.deaths,
+                total_deaths,
                 population,
                 reimposition_threshold,
                 min_wait,
                 last_reimposition_end_date,
             )
+
+    import pdb; pdb.set_trace()
+    system_metrics, output_metrics = model.compute_output_metrics(
+        indices,
+        compartments,
+        model_parameters,
+    )
 
     logger.info('Prepping outputs.', context='transform')
     ode_params, *_ = model_parameters.to_dfs()

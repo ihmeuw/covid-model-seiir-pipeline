@@ -13,8 +13,8 @@ def compute_reimposition_threshold(past_deaths, population, reimposition_thresho
                   .reset_index(level=0, drop=True))
     days_over_death_rate = (
         (death_rate > reimposition_threshold.loc[death_rate.index])
-         .groupby('location_id')
-         .sum()
+        .groupby('location_id')
+        .sum()
     )
     bad_locs = days_over_death_rate[days_over_death_rate >= 7].index
     reimposition_threshold.loc[bad_locs] = max_threshold.loc[bad_locs]
@@ -22,8 +22,8 @@ def compute_reimposition_threshold(past_deaths, population, reimposition_thresho
     # Do it a second time to some crazy stuff happening in central europe.
     days_over_death_rate = (
         (death_rate > reimposition_threshold.loc[death_rate.index])
-         .groupby('location_id')
-         .sum()
+        .groupby('location_id')
+        .sum()
     )
     bad_locs = days_over_death_rate[days_over_death_rate >= 7].index
     reimposition_threshold.loc[bad_locs] = 2*max_threshold.loc[bad_locs]
@@ -35,13 +35,13 @@ def compute_reimposition_threshold(past_deaths, population, reimposition_thresho
     for location in immediate_lockdown_locations:
         reimposition_threshold.loc[location] = 0.1 / 1_000_000
     no_lockdown_locations = [
-        33, # Armenia
-        45, # Bulgaria
-        52, # Romania        
-        59, # Latvia
-        62, # Russia
-        63, # Ukraine
-        45, # Bulgaria
+        33,  # Armenia
+        45,  # Bulgaria
+        52,  # Romania
+        59,  # Latvia
+        62,  # Russia
+        63,  # Ukraine
+        45,  # Bulgaria
     ]
     all_locs = reimposition_threshold.reset_index().location_id.unique().tolist()
     us = list(range(523, 574)) + [60886, 60887, 3539]

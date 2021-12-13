@@ -172,7 +172,10 @@ class RegressionDataInterface:
         return covariate_data
 
     def load_covariate_info(self, covariate: str, info_type: str) -> pd.DataFrame:
-        return self.fit_data_interface.load_covariate_info(covariate, info_type)
+        location_ids = self.load_location_ids()
+        info_df = self.fit_data_interface.load_covariate_info(covariate, info_type)
+        info_df = self._format_covariate_data(info_df, location_ids)
+        return info_df
 
     def load_variant_prevalence(self, scenario: str) -> pd.DataFrame:
         return self.fit_data_interface.load_variant_prevalence(scenario)

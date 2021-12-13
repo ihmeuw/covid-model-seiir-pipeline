@@ -1,4 +1,4 @@
-from typing import Dict, List, Iterable
+from typing import Dict, List, Iterable, Tuple
 
 import pandas as pd
 
@@ -84,6 +84,11 @@ class ForecastDataInterface:
 
     def load_covariate_info(self, covariate: str, info_type: str) -> pd.DataFrame:
         return self.regression_data_interface.load_covariate_info(covariate, info_type)
+
+    def load_mandate_data(self, mobility_scenario: str) -> Tuple[pd.DataFrame, pd.DataFrame]:
+        percent_mandates = self.load_covariate_info('mobility', f'{mobility_scenario}_mandate_lift')
+        mandate_effects = self.load_covariate_info('mobility', 'effect')
+        return percent_mandates, mandate_effects
 
     def load_variant_prevalence(self, scenario: str) -> pd.DataFrame:
         return self.regression_data_interface.load_variant_prevalence(scenario)
