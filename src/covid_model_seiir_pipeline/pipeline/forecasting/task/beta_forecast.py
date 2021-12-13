@@ -24,14 +24,13 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
     # unique datasets in this model, and they need to be aligned consistently
     # to do computation.
     logger.info('Loading index building data', context='read')
-    past_infections = data_interface.load_summary('daily_total_infections')
-    import pdb; pdb.set_trace()
+    past_infections = data_interface.load_posterior_epi_measures(draw_id, columns=['daily_total_infections'])
     past_start_dates = past_infections.reset_index().groupby('location_id').date.min()
     forecast_start_dates = past_infections.reset_index().groupby('location_id').date.max()
     # Forecast is run to the end of the covariates
     covariates = data_interface.load_covariates(scenario_spec.covariates)
     forecast_end_dates = covariates.reset_index().groupby('location_id').date.max()
-    population = data_interface.load_five_year_population().groupby('location_id').population.sum()
+    population = data_interface.load_population('total').population
 
     logger.info('Building indices', context='transform')
     indices = model.Indices(
@@ -45,17 +44,17 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
     ########################################
     logger.info('Loading SEIIR parameter input data.', context='read')
     # We'll use the same params in the ODE forecast as we did in the fit.
-    ode_params = data_interface.load_ode_parameters(draw_id=draw_id)
+    ode_params = data_interface.load_regression_ode_params(draw_id=draw_id)
     # Contains both the fit and regression betas
-    betas = data_interface.load_betas(draw_id)
+    betas = data_interface.load_regression_beta(draw_id)
     # Rescaling parameters for the beta forecast.
     beta_shift_parameters = data_interface.load_beta_scales(scenario=scenario, draw_id=draw_id)
     # Regression coefficients for forecasting beta.
     coefficients = data_interface.load_coefficients(draw_id)
     # Vaccine data, of course.
-    vaccinations = data_interface.load_vaccinations(scenario_spec.vaccine_version)
-    etas = data_interface.load_etas(scenario_spec.vaccine_version)
-    natural_waning_dist = data_interface.load_natural_waning_distribution(scenario_spec.vaccine_version)
+    vaccinations = data_interface.load_vaccine_uptake(scenario_spec.vaccine_version)
+    etas = data_interface.load_vaccine_risk_reduction(scenario_spec.vaccine_version)
+    natural_waning_dist = data_interface.load_waning_parameters(scenario_spec.vaccine_version)
     natural_waning_matrix = data_interface.load_cross_variant_immunity_matrix(scenario_spec.vaccine_version)
 
     # Variant prevalences.
@@ -101,7 +100,6 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
     ratio_data = data_interface.load_ratio_data(draw_id=draw_id)
     hospital_parameters = data_interface.get_hospital_parameters()
     correction_factors = data_interface.load_hospital_correction_factors()
-    past_chis = data_interface.load_chis(draw_id)
 
     logger.info('Prepping results processing parameters.', context='transform')
     postprocessing_params = model.build_postprocessing_parameters(
