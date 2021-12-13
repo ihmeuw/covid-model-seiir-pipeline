@@ -43,6 +43,7 @@ PRIMITIVE_TYPES = {
         'rho',
         'count',
         'weight',
+        'rate',
     ],
     'risk_group': [
         'lr',
@@ -120,7 +121,8 @@ DERIVED_TYPES = {
     ]),
     'epi_parameter': ('parameter_type', [
         'count',
-        'weight'
+        'weight',
+        'rate',
     ]),
     'variant_parameter': ('parameter_type', [
         'rho',
@@ -160,6 +162,13 @@ SPECS = {
             ['epi_parameter', 'all', 'reported_epi_measure'],
             ['variant_parameter', 'variant', 'infection'],
             ['epi_variant_parameter', 'variant', 'epi_measure']
+        ],
+    ),
+    'AGE_SCALARS': Spec(
+        offset='',
+        axes_primitives=['epi_measure_type'],
+        field_specs=[
+            ['reported_epi_measure'],
         ],
     ),
     'BASE_RATES': Spec(

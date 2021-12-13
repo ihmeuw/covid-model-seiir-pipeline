@@ -42,7 +42,7 @@ def prepare_ode_fit_parameters(rates: Rates,
                                fit_params: FitParameters,
                                hierarchy: pd.DataFrame,
                                draw_id: int) -> Tuple[Parameters, pd.DataFrame]:
-    epi_measures, rates = prepare_epi_measures_and_rates(rates, epi_measures, hierarchy)
+    epi_measures, rates, age_scalars = prepare_epi_measures_and_rates(rates, epi_measures, hierarchy)
     past_index = epi_measures.index
 
     sampled_params = sample_ode_params(variant_severity, fit_params, draw_id)
@@ -62,11 +62,15 @@ def prepare_ode_fit_parameters(rates: Rates,
     rhos = rhos.reindex(past_index, fill_value=0.)
     rhos.columns = [f'rho_{c}_infection' for c in rhos.columns]
     rhos['rho_none_infection'] = pd.Series(0., index=past_index, name='rho_none_infection')
-    
+
+    rates_map = {'ifr': 'rate_all_death', 'ihr': 'rate_all_admission', 'idr': 'rate_all_case'}
+    ode_rates = rates.loc[:, list(rates_map.keys())].rename(columns=rates_map)
+
     base_parameters = pd.concat([
         sampled_params,
         epi_measures.rename(columns=lambda x: f'count_all_{x}'),
         pd.Series(-1, index=past_index, name='beta_all_infection'),
+        ode_rates,
         rhos,
         *weights,
     ], axis=1)
@@ -88,13 +92,10 @@ def prepare_ode_fit_parameters(rates: Rates,
             phis.append(phi.rename(f'{from_variant}_{to_variant}_{endpoint}'))
     phis = pd.concat(phis, axis=1)
 
-    rates_map = {'ifr': 'death', 'ihr': 'admission', 'idr': 'case'}
-    keep_cols = [f'{r}_{g}' for r, g in itertools.product(rates_map, RISK_GROUP_NAMES)]
-    ode_rates = rates.loc[:, keep_cols].rename(columns=lambda x: f"{rates_map[x.split('_')[0]]}_{x.split('_')[1]}")
     ode_params = Parameters(
         base_parameters=base_parameters,
         vaccinations=vaccinations,
-        rates=ode_rates,
+        age_scalars=age_scalars,
         etas=etas,
         phis=phis,
     )
@@ -111,6 +112,7 @@ def prepare_epi_measures_and_rates(rates: Rates, epi_measures: pd.DataFrame, hie
 
     out_measures = []
     out_rates = []
+    out_scalars = []
     for in_measure, out_measure, rate in measures:
         epi_data = (epi_measures[f'smoothed_daily_{in_measure}'].rename(out_measure) + 3e-2).to_frame()
         epi_rates = rates._asdict()[rate]
@@ -118,14 +120,21 @@ def prepare_epi_measures_and_rates(rates: Rates, epi_measures: pd.DataFrame, hie
 
         epi_data = reindex_to_infection_day(epi_data, lag, most_detailed)
         epi_rates = reindex_to_infection_day(epi_rates.drop(columns='lag'), lag, most_detailed)
+        epi_scalars = epi_rates.copy()
+        drop_cols = epi_scalars.columns
+        for risk_group in RISK_GROUP_NAMES:
+            epi_scalars.loc[:, f'{out_measure}_{risk_group}'] = epi_scalars[f'{rate}_{risk_group}'] / epi_scalars[rate]
+        epi_scalars = epi_scalars.drop(columns=drop_cols)
 
         out_measures.append(epi_data)
         out_rates.append(epi_rates)
+        out_scalars.append(epi_scalars)
 
     out_measures = pd.concat(out_measures, axis=1).reset_index()
     out_measures = out_measures.loc[out_measures.location_id.isin(most_detailed)].set_index(['location_id', 'date'])
     out_rates = pd.concat(out_rates, axis=1).reindex(out_measures.index).sort_index()
-    return out_measures, out_rates
+    out_scalars = pd.concat(out_scalars, axis=1).reindex(out_measures.index).sort_index()
+    return out_measures, out_rates, out_scalars
 
 
 def add_transition_period(weights: pd.Series, data_period: pd.Index, window_len: int = 30) -> pd.Series:

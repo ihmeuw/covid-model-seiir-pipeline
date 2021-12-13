@@ -23,7 +23,6 @@ from covid_model_seiir_pipeline.lib.ode_mk2.debug import (
 )
 from covid_model_seiir_pipeline.lib.ode_mk2 import (
     accounting,
-    escape_variant,
     parameters,
     utils,
 )
@@ -33,7 +32,7 @@ from covid_model_seiir_pipeline.lib.ode_mk2 import (
 def system(t: float,
            y: np.ndarray,           
            params: np.ndarray,
-           base_rates: np.ndarray,
+           age_scalars: np.ndarray,
            vaccines: np.ndarray,
            etas: np.ndarray,
            chis: np.ndarray,
@@ -55,7 +54,7 @@ def system(t: float,
         t,
         y,
         params,
-        base_rates,
+        age_scalars,
         aggregates,
         etas,
         chis,
