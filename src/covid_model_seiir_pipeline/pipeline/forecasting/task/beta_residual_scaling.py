@@ -110,9 +110,9 @@ def compute_initial_beta_scaling_parameters_by_draw(draw_id: int,
     draw_data = []
 
     betas = data_interface.load_regression_beta(draw_id)
+    betas = betas.loc[betas.beta.notnull()]
     # Select out the transition day to compute the initial scaling parameter.
     beta_transition = betas.groupby('location_id').last()
-
     draw_data.append(beta_transition['beta'].rename('fit_final'))
     draw_data.append(beta_transition['beta_hat'].rename('pred_start'))
     draw_data.append((beta_transition['beta'] / beta_transition['beta_hat']).rename('scale_init'))
@@ -130,6 +130,7 @@ def compute_initial_beta_scaling_parameters_by_draw(draw_id: int,
 
     residual_rescale_upper = beta_scaling.get('residual_rescale_upper', 1)
     residual_rescale_lower = beta_scaling.get('residual_rescale_lower', 4)
+
     log_beta_residual = np.log(betas['beta']/betas['beta_hat']).rename('log_beta_residual')
     scaled_log_beta_residual = log_scale(log_beta_residual,
                                          residual_rescale_upper,

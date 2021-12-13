@@ -1,5 +1,5 @@
 data:
-  seir_forecast_version: '2021_12_13.03'
+  seir_forecast_version: '2021_12_13.04'
   scenarios:
     - 'reference'
 #    - 'optimistic'

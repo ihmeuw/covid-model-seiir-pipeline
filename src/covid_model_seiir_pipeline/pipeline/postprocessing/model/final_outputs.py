@@ -99,11 +99,11 @@ MEASURES = {
         aggregator=aggregate.sum_aggregator,
         write_draws=True,
     ),
-    'total_covid_deaths_data': MeasureConfig(
-        loaders.load_total_covid_deaths,
-        'total_covid_deaths_data',
-        aggregator=aggregate.sum_aggregator,
-    ),
+#    'total_covid_deaths_data': MeasureConfig(
+#        loaders.load_total_covid_deaths,
+#        'total_covid_deaths_data',
+#        aggregator=aggregate.sum_aggregator,
+#    ),
     'deaths_lr': MeasureConfig(
         loaders.load_output_data('modeled_deaths_lr'),
         'daily_deaths_low_risk',
@@ -124,7 +124,7 @@ MEASURES = {
     ),
 
     'infections': MeasureConfig(
-        loaders.load_output_data('infections'),
+        loaders.load_output_data('modeled_infections_total'),
         'daily_infections',
         calculate_cumulative=True,
         cumulative_label='cumulative_infections',
@@ -132,7 +132,7 @@ MEASURES = {
         write_draws=True,
     ),
     'cases': MeasureConfig(
-        loaders.load_output_data('cases'),
+        loaders.load_output_data('modeled_cases_total'),
         'daily_cases',
         calculate_cumulative=True,
         cumulative_label='cumulative_cases',
@@ -140,88 +140,88 @@ MEASURES = {
         write_draws=True,
     ),
     'hospital_admissions': MeasureConfig(
-        loaders.load_output_data('hospital_admissions'),
+        loaders.load_output_data('modeled_admissions_total'),
         'hospital_admissions',
         aggregator=aggregate.sum_aggregator,
         write_draws=True,
     ),
-    'icu_admissions': MeasureConfig(
-        loaders.load_output_data('icu_admissions'),
-        'icu_admissions',
-        aggregator=aggregate.sum_aggregator,
-        write_draws=True,
-    ),
-    'hospital_census': MeasureConfig(
-        loaders.load_output_data('hospital_census'),
-        'hospital_census',
-        aggregator=aggregate.sum_aggregator,
-    ),
-    'icu_census': MeasureConfig(
-        loaders.load_output_data('icu_census'),
-        'icu_census',
-        aggregator=aggregate.sum_aggregator,
-    ),
-    'hospital_census_correction_factor': MeasureConfig(
-        loaders.load_output_data('hospital_census_correction_factor'),
-        'hospital_census_correction_factor',
-        splice=False,
-    ),
-    'icu_census_correction_factor': MeasureConfig(
-        loaders.load_output_data('icu_census_correction_factor'),
-        'icu_census_correction_factor',
-        splice=False,
-    ),
+#    'icu_admissions': MeasureConfig(
+#        loaders.load_output_data('icu_admissions'),
+#        'icu_admissions',
+#        aggregator=aggregate.sum_aggregator,
+#        write_draws=True,
+#    ),
+#    'hospital_census': MeasureConfig(
+#        loaders.load_output_data('hospital_census'),
+#        'hospital_census',
+#        aggregator=aggregate.sum_aggregator,
+#    ),
+#    'icu_census': MeasureConfig(
+#        loaders.load_output_data('icu_census'),
+#        'icu_census',
+#        aggregator=aggregate.sum_aggregator,
+#    ),
+#    'hospital_census_correction_factor': MeasureConfig(
+#        loaders.load_output_data('hospital_census_correction_factor'),
+#        'hospital_census_correction_factor',
+#        splice=False,
+#    ),
+#    'icu_census_correction_factor': MeasureConfig(
+#        loaders.load_output_data('icu_census_correction_factor'),
+#        'icu_census_correction_factor',
+#        splice=False,
+#    ),
 
     # Vaccination measures
-    'cumulative_all_effective': MeasureConfig(
-        loaders.load_vaccine_summaries('cumulative_all_effective'),
-        'cumulative_vaccinations_all_effective',
-        aggregator=aggregate.sum_aggregator,
-        resample=False,
-        splice=False,
-    ),
-    'cumulative_all_vaccinated': MeasureConfig(
-        loaders.load_vaccine_summaries('cumulative_all_vaccinated'),
-        'cumulative_vaccinations_all_vaccinated',
-        aggregator=aggregate.sum_aggregator,
-        resample=False,
-        splice=False,
-    ),
-    'cumulative_all_fully_vaccinated': MeasureConfig(
-        loaders.load_vaccine_summaries('cumulative_all_fully_vaccinated'),
-        'cumulative_vaccinations_all_fully_vaccinated',
-        aggregator=aggregate.sum_aggregator,
-        resample=False,
-        splice=False,
-    ),
-    'cumulative_lr_vaccinated': MeasureConfig(
-        loaders.load_vaccine_summaries('lr_vaccinated'),
-        'cumulative_vaccinations_lr',
-        aggregator=aggregate.sum_aggregator,
-        resample=False,
-        splice=False,
-    ),
-    'cumulative_hr_vaccinated': MeasureConfig(
-        loaders.load_vaccine_summaries('hr_vaccinated'),
-        'cumulative_vaccinations_hr',
-        aggregator=aggregate.sum_aggregator,
-        resample=False,
-        splice=False,
-    ),
-    'vaccine_acceptance': MeasureConfig(
-        loaders.load_vaccine_summaries('vaccine_acceptance'),
-        'vaccine_acceptance',
-        aggregator=aggregate.mean_aggregator,
-        resample=False,
-        splice=False,
-    ),
-    'vaccine_acceptance_point': MeasureConfig(
-        loaders.load_vaccine_summaries('vaccine_acceptance_point'),
-        'vaccine_acceptance_point',
-        aggregator=aggregate.mean_aggregator,
-        resample=False,
-        splice=False,
-    ),
+#    'cumulative_all_effective': MeasureConfig(
+#        loaders.load_vaccine_summaries('cumulative_all_effective'),
+#        'cumulative_vaccinations_all_effective',
+#        aggregator=aggregate.sum_aggregator,
+#        resample=False,
+#        splice=False,
+#    ),
+#    'cumulative_all_vaccinated': MeasureConfig(
+#        loaders.load_vaccine_summaries('cumulative_all_vaccinated'),
+#        'cumulative_vaccinations_all_vaccinated',
+#        aggregator=aggregate.sum_aggregator,
+#        resample=False,
+#        splice=False,
+#    ),
+#    'cumulative_all_fully_vaccinated': MeasureConfig(
+#        loaders.load_vaccine_summaries('cumulative_all_fully_vaccinated'),
+#        'cumulative_vaccinations_all_fully_vaccinated',
+#        aggregator=aggregate.sum_aggregator,
+#        resample=False,
+#        splice=False,
+#    ),
+#    'cumulative_lr_vaccinated': MeasureConfig(
+#        loaders.load_vaccine_summaries('lr_vaccinated'),
+#        'cumulative_vaccinations_lr',
+#        aggregator=aggregate.sum_aggregator,
+#        resample=False,
+#        splice=False,
+#    ),
+#    'cumulative_hr_vaccinated': MeasureConfig(
+#        loaders.load_vaccine_summaries('hr_vaccinated'),
+#        'cumulative_vaccinations_hr',
+#        aggregator=aggregate.sum_aggregator,
+#        resample=False,
+#        splice=False,
+#    ),
+#    'vaccine_acceptance': MeasureConfig(
+#        loaders.load_vaccine_summaries('vaccine_acceptance'),
+#        'vaccine_acceptance',
+#        aggregator=aggregate.mean_aggregator,
+#        resample=False,
+#        splice=False,
+#    ),
+#    'vaccine_acceptance_point': MeasureConfig(
+#        loaders.load_vaccine_summaries('vaccine_acceptance_point'),
+#        'vaccine_acceptance_point',
+#        aggregator=aggregate.mean_aggregator,
+#        resample=False,
+#        splice=False,
+#    ),
 
     # Betas
 
@@ -258,38 +258,38 @@ MEASURES = {
         'beta_scaling_parameters',
         write_draws=True,
     ),
-    'infection_fatality_ratio_es': MeasureConfig(
-        loaders.load_ifr_es,
-        'infection_fatality_ratio_es',
-    ),
-    'infection_fatality_ratio_high_risk_es': MeasureConfig(
-        loaders.load_ifr_high_risk_es,
-        'infection_fatality_ratio_high_risk_es',
-    ),
-    'infection_fatality_ratio_low_risk_es': MeasureConfig(
-        loaders.load_ifr_low_risk_es,
-        'infection_fatality_ratio_low_risk_es',
-    ),
-    'infection_to_death': MeasureConfig(
-        loaders.load_infection_to_death,
-        'infection_to_death',
-    ),
-    'infection_detection_ratio_es': MeasureConfig(
-        loaders.load_idr_es,
-        'infection_detection_ratio_es',
-    ),
-    'infection_to_case': MeasureConfig(
-        loaders.load_infection_to_case,
-        'infection_to_case',
-    ),
-    'infection_hospitalization_ratio_es': MeasureConfig(
-        loaders.load_ihr_es,
-        'infection_hospitalization_ratio_es',
-    ),
-    'infection_to_admission': MeasureConfig(
-        loaders.load_infection_to_admission,
-        'infection_to_admission',
-    ),
+#    'infection_fatality_ratio_es': MeasureConfig(
+#        loaders.load_ifr_es,
+#        'infection_fatality_ratio_es',
+#    ),
+#    'infection_fatality_ratio_high_risk_es': MeasureConfig(
+#        loaders.load_ifr_high_risk_es,
+#        'infection_fatality_ratio_high_risk_es',
+#    ),
+#    'infection_fatality_ratio_low_risk_es': MeasureConfig(
+#        loaders.load_ifr_low_risk_es,
+#        'infection_fatality_ratio_low_risk_es',
+#    ),
+#    'infection_to_death': MeasureConfig(
+#        loaders.load_infection_to_death,
+#        'infection_to_death',
+#    ),
+#    'infection_detection_ratio_es': MeasureConfig(
+#        loaders.load_idr_es,
+#        'infection_detection_ratio_es',
+#    ),
+#    'infection_to_case': MeasureConfig(
+#        loaders.load_infection_to_case,
+#        'infection_to_case',
+#    ),
+#   'infection_hospitalization_ratio_es': MeasureConfig(
+#        loaders.load_ihr_es,
+#        'infection_hospitalization_ratio_es',
+#    ),
+#    'infection_to_admission': MeasureConfig(
+#        loaders.load_infection_to_admission,
+#        'infection_to_admission',
+#    ),
 }
 
 for measure in ['boosters', 'vaccinations']:
@@ -351,49 +351,49 @@ for key in list(VARIANT_NAMES[1:]) + ['total']:
 
 
 COMPOSITE_MEASURES = {
-    'infection_fatality_ratio': CompositeMeasureConfig(
-        base_measures={'numerator': MEASURES['deaths'],
-                       'denominator': MEASURES['infections'],
-                       'duration': MEASURES['infection_to_death']},
-        label='infection_fatality_ratio',
-        combiner=combiners.make_ratio,
-    ),
-    'infection_fatality_ratio_modeled': CompositeMeasureConfig(
-        base_measures={'numerator': MEASURES['deaths_modeled'],
-                       'denominator': MEASURES['infections_total'],
-                       'duration': MEASURES['infection_to_death']},
-        label='infection_fatality_ratio_modeled',
-        combiner=combiners.make_ratio,
-    ),
-    'infection_fatality_ratio_high_risk': CompositeMeasureConfig(
-        base_measures={'numerator': MEASURES['deaths_hr'],
-                       'denominator': MEASURES['infections_hr'],
-                       'duration': MEASURES['infection_to_death']},
-        label='infection_fatality_ratio_high_risk',
-        combiner=combiners.make_ratio,
-    ),
-    'infection_fatality_ratio_low_risk': CompositeMeasureConfig(
-        base_measures={'numerator': MEASURES['deaths_lr'],
-                       'denominator': MEASURES['infections_lr'],
-                       'duration': MEASURES['infection_to_death']},
-        label='infection_fatality_ratio_low_risk',
-        combiner=combiners.make_ratio,
-    ),
+#    'infection_fatality_ratio': CompositeMeasureConfig(
+#        base_measures={'numerator': MEASURES['deaths'],
+#                       'denominator': MEASURES['infections'],
+#                       'duration': MEASURES['infection_to_death']},
+#        label='infection_fatality_ratio',
+#        combiner=combiners.make_ratio,
+#    ),
+#    'infection_fatality_ratio_modeled': CompositeMeasureConfig(
+#        base_measures={'numerator': MEASURES['deaths_modeled'],
+#                       'denominator': MEASURES['infections_total'],
+#                       'duration': MEASURES['infection_to_death']},
+#        label='infection_fatality_ratio_modeled',
+#        combiner=combiners.make_ratio,
+#    ),
+#    'infection_fatality_ratio_high_risk': CompositeMeasureConfig(
+#        base_measures={'numerator': MEASURES['deaths_hr'],
+#                       'denominator': MEASURES['infections_hr'],
+#                       'duration': MEASURES['infection_to_death']},
+#        label='infection_fatality_ratio_high_risk',
+#        combiner=combiners.make_ratio,
+#    ),
+#    'infection_fatality_ratio_low_risk': CompositeMeasureConfig(
+#        base_measures={'numerator': MEASURES['deaths_lr'],
+#                       'denominator': MEASURES['infections_lr'],
+#                       'duration': MEASURES['infection_to_death']},
+#        label='infection_fatality_ratio_low_risk',
+#        combiner=combiners.make_ratio,
+#    ),
 
-    'infection_hospitalization_ratio': CompositeMeasureConfig(
-        base_measures={'numerator': MEASURES['hospital_admissions'],
-                       'denominator': MEASURES['infections'],
-                       'duration': MEASURES['infection_to_admission']},
-        label='infection_hospitalization_ratio',
-        combiner=combiners.make_ratio,
-    ),
-    'infection_detection_ratio': CompositeMeasureConfig(
-        base_measures={'numerator': MEASURES['cases'],
-                       'denominator': MEASURES['infections'],
-                       'duration': MEASURES['infection_to_case']},
-        label='infection_detection_ratio',
-        combiner=combiners.make_ratio,
-    ),
+#    'infection_hospitalization_ratio': CompositeMeasureConfig(
+#        base_measures={'numerator': MEASURES['hospital_admissions'],
+#                       'denominator': MEASURES['infections'],
+#                       'duration': MEASURES['infection_to_admission']},
+#        label='infection_hospitalization_ratio',
+#        combiner=combiners.make_ratio,
+#    ),
+#    'infection_detection_ratio': CompositeMeasureConfig(
+#        base_measures={'numerator': MEASURES['cases'],
+#                       'denominator': MEASURES['infections'],
+#                       'duration': MEASURES['infection_to_case']},
+#        label='infection_detection_ratio',
+#        combiner=combiners.make_ratio,
+#    ),
 }
 
 

@@ -54,15 +54,15 @@ def postprocessing_main(app_metadata: cli_tools.Metadata,
         workflow = PostprocessingWorkflow(specification.data.output_root,
                                           specification.workflow)
         known_covariates = list(model.COVARIATES)
-        modeled_covariates = set(data_interface.get_covariate_names(specification.data.scenarios))
-        unknown_covariates = modeled_covariates.difference(known_covariates + ['intercept'])
-        if unknown_covariates:
-            logger.warning("Some covariates that were modeled have no postprocessing configuration. "
-                           "Postprocessing will produce no outputs for these covariates. "
-                           f"Unknown covariates: {list(unknown_covariates)}")
+#        modeled_covariates = set(data_interface.get_covariate_names(specification.data.scenarios))
+#        unknown_covariates = modeled_covariates.difference(known_covariates + ['intercept'])
+#        if unknown_covariates:
+#            logger.warning("Some covariates that were modeled have no postprocessing configuration. "
+#                           "Postprocessing will produce no outputs for these covariates. "
+#                           f"Unknown covariates: {list(unknown_covariates)}")
 
         measures = [*model.MEASURES, *model.COMPOSITE_MEASURES,
-                    *model.MISCELLANEOUS, *modeled_covariates.intersection(known_covariates)]
+                    *model.MISCELLANEOUS, *known_covariates]
         workflow.attach_tasks(measures, specification.data.scenarios)
 
         try:

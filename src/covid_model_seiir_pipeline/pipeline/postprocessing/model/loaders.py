@@ -26,8 +26,9 @@ def load_deaths(scenario: str, data_interface: 'PostprocessingDataInterface', nu
 def load_unscaled_deaths(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
     death_draws = load_deaths(scenario, data_interface, num_cores)
     em_scalars = data_interface.load_total_covid_scalars()
-    em_scalars = em_scalars.reindex(death_draws[0].index).groupby('location_id').fillna(method='ffill')
-    unscaled_deaths = [deaths / em_scalars.loc[:, draw] for draw, deaths in enumerate(death_draws)]
+    em_scalars = em_scalars.reindex(death_draws[0].index, level='location_id')
+    unscaled_deaths = [deaths / em_scalars.loc[:, f'draw_{draw}']
+                       for draw, deaths in enumerate(death_draws)]
     return unscaled_deaths
 
 
