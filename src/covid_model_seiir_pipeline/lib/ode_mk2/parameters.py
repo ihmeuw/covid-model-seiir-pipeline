@@ -20,7 +20,7 @@ from covid_model_seiir_pipeline.lib.ode_mk2.constants import (
 
     AGGREGATES,
     PARAMETERS,
-    BASE_RATES,
+    AGE_SCALARS,
     RATES,
     VARIANT_WEIGHTS,
     BETAS,
@@ -65,7 +65,7 @@ def make_aggregates(y: np.ndarray) -> np.ndarray:
 def compute_intermediate_epi_parameters(t: float,
                                         y: np.ndarray,
                                         parameters: np.ndarray,
-                                        base_rates: np.ndarray,
+                                        age_scalars: np.ndarray,
                                         aggregates: np.ndarray,
                                         etas: np.ndarray,
                                         chis: np.ndarray,
@@ -85,7 +85,7 @@ def compute_intermediate_epi_parameters(t: float,
 
     for risk_group in RISK_GROUP:
         group_y = subset_risk_group(y, risk_group)
-        group_base_rates = subset_risk_group(base_rates, risk_group)
+        group_age_scalars = subset_risk_group(age_scalars, risk_group)
         group_etas = subset_risk_group(etas, risk_group)
         group_chis = subset_risk_group(chis, risk_group)
 
@@ -105,10 +105,11 @@ def compute_intermediate_epi_parameters(t: float,
             new_e = beta * kappa_infection * s_effective * infectious / n_total
 
             for epi_measure in REPORTED_EPI_MEASURE:
+                age_scalar = group_age_scalars[AGE_SCALARS[epi_measure]]
                 if system_type == SYSTEM_TYPE.beta_and_measures:
-                    base_rate = 1.0
+                    base_rate = age_scalar
                 else:
-                    base_rate = group_base_rates[BASE_RATES[epi_measure]]
+                    base_rate = age_scalar * parameters[PARAMETERS[EPI_PARAMETER.rate, VARIANT_GROUP.all, epi_measure]]
 
                 kappa = parameters[PARAMETERS[EPI_VARIANT_PARAMETER.kappa, variant_to, epi_measure]]
                 chi = group_chis[CHI[variant_from, variant_to, epi_measure]]
