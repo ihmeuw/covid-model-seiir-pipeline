@@ -455,12 +455,6 @@ MISCELLANEOUS = {
         'unscaled_full_data',
         aggregator=aggregate.sum_aggregator,
     ),
-    'age_specific_deaths': MiscellaneousConfig(
-        loaders.load_age_specific_deaths,
-        'age_specific_deaths',
-        aggregator=aggregate.sum_aggregator,
-        soft_fail=True,
-    ),
     'variant_prevalence': MiscellaneousConfig(
         loaders.load_variant_prevalence,
         'variant_prevalence',

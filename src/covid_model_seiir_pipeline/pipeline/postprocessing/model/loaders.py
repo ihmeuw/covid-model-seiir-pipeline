@@ -25,7 +25,7 @@ def load_deaths(scenario: str, data_interface: 'PostprocessingDataInterface', nu
 
 def load_unscaled_deaths(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
     death_draws = load_deaths(scenario, data_interface, num_cores)
-    em_scalars = data_interface.load_excess_mortality_scalars()
+    em_scalars = data_interface.load_total_covid_scalars()
     em_scalars = em_scalars.reindex(death_draws[0].index).groupby('location_id').fillna(method='ffill')
     unscaled_deaths = [deaths / em_scalars.loc[:, draw] for draw, deaths in enumerate(death_draws)]
     return unscaled_deaths
@@ -150,7 +150,7 @@ def load_full_data_unscaled(data_interface: 'PostprocessingDataInterface') -> pd
 def load_total_covid_deaths(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int) -> pd.DataFrame:
     full_data = load_full_data_unscaled(data_interface)
     deaths = full_data['cumulative_deaths'].dropna()
-    em_scalars = (data_interface.load_excess_mortality_scalars()
+    em_scalars = (data_interface.load_total_covid_scalars()
                   .reindex(deaths.index)
                   .groupby('location_id')
                   .fillna(method='ffill'))
@@ -160,18 +160,6 @@ def load_total_covid_deaths(scenario: str, data_interface: 'PostprocessingDataIn
     return scaled_deaths
 
 
-def load_age_specific_deaths(data_interface: 'PostprocessingDataInterface') -> pd.DataFrame:
-    full_data = data_interface.load_full_data()
-    total_deaths = (full_data
-                    .groupby('location_id')
-                    .cumulative_deaths
-                    .max()
-                    .dropna())
-    mortality_ratio = data_interface.load_mortality_ratio()
-    age_specific_deaths = (mortality_ratio * total_deaths).rename('age_specific_deaths').to_frame()
-    return age_specific_deaths
-
-
 def build_version_map(data_interface: 'PostprocessingDataInterface') -> pd.Series:
     return data_interface.build_version_map()
 
@@ -179,11 +167,11 @@ def build_version_map(data_interface: 'PostprocessingDataInterface') -> pd.Serie
 def load_populations(data_interface: 'PostprocessingDataInterface'):
     idx_cols = ['location_id', 'sex_id', 'year_id', 
                 'age_group_id', 'age_group_years_start', 'age_group_years_end']
-    return data_interface.load_population().set_index(idx_cols)
+    return data_interface.load_population('all_population').set_index(idx_cols)
 
 
 def load_hierarchy(data_interface: 'PostprocessingDataInterface'):
-    return data_interface.load_hierarchy()
+    return data_interface.load_hierarchy('pred')
 
 
 def get_locations_modeled_and_missing(data_interface: 'PostprocessingDataInterface'):
