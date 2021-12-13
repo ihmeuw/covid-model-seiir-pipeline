@@ -110,7 +110,6 @@ def mean_aggregator(measure_data: pd.DataFrame,
     if 'observed' in measure_data.index.names:
         measure_data = measure_data.reset_index(level='observed')
     # Get all age/sex population and append to the data.
-    population = _collapse_population(population)
     measure_columns = measure_data.columns
     measure_data = measure_data.join(population)
 
@@ -149,16 +148,6 @@ def mean_aggregator(measure_data: pd.DataFrame,
         measure_data.loc[measure_data['observed'] > 0, 'observed'] = 1
         measure_data = measure_data.set_index('observed', append=True)
     return measure_data.sort_index()
-
-
-def _collapse_population(population_data: pd.DataFrame) -> pd.DataFrame:
-    """Collapse the larger population table to all age and sex population."""
-    all_sexes = population_data.sex_id == 3
-    all_ages = population_data.age_group_id == 22
-    population_data = population_data.loc[all_ages & all_sexes, ['location_id', 'population']]
-    population_data = population_data.set_index('location_id')['population']
-    return population_data
-
 
 def _get_data_locs(measure_data: pd.DataFrame, hierarchy: pd.DataFrame) -> List[int]:
     modeled_locs = set(measure_data.reset_index().location_id.unique().tolist())
