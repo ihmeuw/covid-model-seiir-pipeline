@@ -171,6 +171,13 @@ SPECS = {
             ['reported_epi_measure'],
         ],
     ),
+    'BASE_RATES': Spec(
+        offset='',
+        axes_primitives=['epi_measure_type'],
+        field_specs=[
+            ['reported_epi_measure'],
+        ],
+    ),
     'RATES': Spec(
         offset='',
         axes_primitives=['vaccine_index_type', 'variant_index_type', 'variant_index_type', 'epi_measure_type'],

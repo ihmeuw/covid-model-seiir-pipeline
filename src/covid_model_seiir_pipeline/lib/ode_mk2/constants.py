@@ -377,6 +377,16 @@ AGE_SCALARS_NAMES = [
     'case',
 ]
 
+BASE_RATES = np.full((len(EPI_MEASURE_TYPE)), TOMBSTONE, dtype=np.int64)
+BASE_RATES[REPORTED_EPI_MEASURE.death] = 0
+BASE_RATES[REPORTED_EPI_MEASURE.admission] = 1
+BASE_RATES[REPORTED_EPI_MEASURE.case] = 2
+BASE_RATES_NAMES = [
+    'death',
+    'admission',
+    'case',
+]
+
 RATES = np.full((len(VACCINE_INDEX_TYPE), len(VARIANT_INDEX_TYPE), len(VARIANT_INDEX_TYPE), len(EPI_MEASURE_TYPE)), TOMBSTONE, dtype=np.int64)
 RATES[VACCINE_STATUS.unvaccinated, VARIANT.none, VARIANT.none, REPORTED_EPI_MEASURE.death] = 0
 RATES[VACCINE_STATUS.unvaccinated, VARIANT.none, VARIANT.none, REPORTED_EPI_MEASURE.admission] = 1
