@@ -67,19 +67,19 @@ def build_model_parameters(indices: Indices,
                            vaccinations: pd.DataFrame,
                            all_etas: pd.DataFrame,
                            phis: pd.DataFrame) -> Parameters:
-    drop = ['rho', 'count', 'weight', 'rate']
+    keep = ['alpha', 'sigma', 'gamma', 'pi', 'kappa']
     ode_params = pd.DataFrame(
-        {key: value for key, value in ode_parameters.to_dict().items() if key.split('_')[0] not in drop},
+        {key: value for key, value in ode_parameters.to_dict().items() if key.split('_')[0] in keep},
         index=indices.full
     )
     ode_params.loc[:, 'beta_all_infection'] = beta
     for epi_measure in REPORTED_EPI_MEASURE_NAMES:
         ode_params.loc[:, f'count_all_{epi_measure}'] = -1
         ode_params.loc[:, f'weight_all_{epi_measure}'] = -1
-        lag = ode_params.loc[f'exposure_to_{epi_measure}']
+        lag = ode_parameters.loc[f'exposure_to_{epi_measure}']
         import pdb; pdb.set_trace()
-        infections = ode_params.loc[:, 'daily_naive_unvaccinated_infections'].groupby('location_id').shift(lag)
-        rate = ode_params.loc[:, f'daily_{epi_measure}'] / infections
+        infections = posterior_epi_measures.loc[:, 'daily_naive_unvaccinated_infections'].groupby('location_id').shift(lag)
+        rate = posterior_epi_measures.loc[:, f'daily_{epi_measure}'] / infections
 
 
     rhos = rhos.reindex(indices.full, fill_value=0.)
