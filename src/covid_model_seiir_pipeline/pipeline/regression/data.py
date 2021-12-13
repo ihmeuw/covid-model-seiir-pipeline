@@ -157,7 +157,7 @@ class RegressionDataInterface:
     def _format_covariate_data(dataset: pd.DataFrame, location_ids: List[int], with_observed: bool = False):
         shared_locs = list(set(dataset.index.get_level_values('location_id')).intersection(location_ids))
         dataset = dataset.loc[shared_locs]
-        if with_observed:
+        if with_observed and 'observed' in dataset:
             dataset = dataset.set_index('observed', append=True)
         return dataset
 
