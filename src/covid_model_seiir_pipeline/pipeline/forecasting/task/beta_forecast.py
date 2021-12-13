@@ -129,7 +129,21 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
         num_cores=num_cores,
         progress_bar=progress_bar,
     )
-    total_deaths = compartments.filter(like='Death_all_all_all').sum(axis=1)
+    past_deaths = (compartments
+                   .filter(like='Death_all_all_all')
+                   .sum(axis=1)
+                   .loc[indices.past]
+                   .groupby('location_id')
+                   .apply(lambda x: x.reset_index(level=0, drop=True)
+                                     .shift(ode_params.loc['exposure_to_death'], freq='D')))
+    total_deaths = (compartments
+                    .filter(like='Death_all_all_all')
+                    .sum(axis=1)
+                    .groupby('location_id')
+                    .apply(lambda x: x.reset_index(level=0, drop=True)
+                                      .shift(ode_params.loc['exposure_to_death'], freq='D')))
+    total_deaths['observed'] = 0
+    total_deaths.loc[past_deaths.index, 'observed'] = 1
 
     if scenario_spec.algorithm == 'draw_level_mandate_reimposition':
         logger.info('Entering mandate reimposition.', context='compute_mandates')
@@ -141,7 +155,7 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
             em_scalars,
         )
         reimposition_threshold = model.compute_reimposition_threshold(
-            total_deaths.loc[indices.past],
+            past_deaths,
             population,
             reimposition_threshold,
             max_threshold,
