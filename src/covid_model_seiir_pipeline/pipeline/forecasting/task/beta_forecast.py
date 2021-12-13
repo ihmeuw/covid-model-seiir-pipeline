@@ -135,15 +135,19 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
                    .loc[indices.past]
                    .groupby('location_id')
                    .apply(lambda x: x.reset_index(level=0, drop=True)
-                                     .shift(ode_params.loc['exposure_to_death'], freq='D')))
+                                     .shift(ode_params.loc['exposure_to_death'], freq='D'))
+                   .rename('value'))
     total_deaths = (compartments
                     .filter(like='Death_all_all_all')
                     .sum(axis=1)
                     .groupby('location_id')
                     .apply(lambda x: x.reset_index(level=0, drop=True)
-                                      .shift(ode_params.loc['exposure_to_death'], freq='D')))
+                                      .shift(ode_params.loc['exposure_to_death'], freq='D'))
+                    .rename('value')
+                    .to_frame())
     total_deaths['observed'] = 0
     total_deaths.loc[past_deaths.index, 'observed'] = 1
+    total_deaths = total_deaths.set_index('observed', append=True).value
 
     if scenario_spec.algorithm == 'draw_level_mandate_reimposition':
         logger.info('Entering mandate reimposition.', context='compute_mandates')
