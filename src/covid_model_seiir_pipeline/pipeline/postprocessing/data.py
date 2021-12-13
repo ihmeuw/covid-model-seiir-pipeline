@@ -27,7 +27,7 @@ class PostprocessingDataInterface:
 
     @classmethod
     def from_specification(cls, specification: PostprocessingSpecification):
-        forecast_spec = ForecastSpecification.from_version_root(specification.data.forecast_version)
+        forecast_spec = ForecastSpecification.from_version_root(specification.data.seir_forecast_version)
         forecast_data_interface = ForecastDataInterface.from_specification(forecast_spec)
         postprocessing_root = io.PostprocessingRoot(specification.data.output_root)
 
@@ -188,9 +188,9 @@ class PostprocessingDataInterface:
         return draw_df[measure].rename(draw_id)
 
     def load_raw_output_deaths(self, draw_id: int, scenario: str) -> pd.Series:
-        draw_df = self.load_raw_outputs(scenario=scenario, draw_id=draw_id, columns=['deaths'])
+        draw_df = self.load_raw_outputs(scenario=scenario, draw_id=draw_id, columns=['modeled_deaths_total'])
         draw_df = draw_df.groupby('location_id').bfill().groupby('location_id').ffill()
-        draw_df = draw_df.deaths.rename(draw_id)
+        draw_df = draw_df.modeled_deaths_total.rename(draw_id)
         return draw_df
 
     def load_beta_residuals(self, draw_id: int, scenario: str) -> pd.Series:
