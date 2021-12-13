@@ -79,6 +79,7 @@ def build_model_parameters(indices: Indices,
     }
 
     posterior_epi_measures = posterior_epi_measures.loc[posterior_epi_measures['round'] == 2]
+    prior_ratios = prior_ratios.loc[prior_ratios['round'] == 2]
     scalars = []
     for epi_measure in REPORTED_EPI_MEASURE_NAMES:
         ode_params.loc[:, f'count_all_{epi_measure}'] = -1
@@ -96,7 +97,7 @@ def build_model_parameters(indices: Indices,
 
         for risk_group in RISK_GROUP_NAMES:
             scalars.append(
-                (prior_ratio[f'{ratio_name}_{risk_group}'] / prior_ratio[ratio_name])
+                (prior_ratios[f'{ratio_name}_{risk_group}'] / prior_ratios[ratio_name])
                 .rename(f'{epi_measure}_{risk_group}')
                 .reindex(indices.full)
                 .groupby('location_id')
