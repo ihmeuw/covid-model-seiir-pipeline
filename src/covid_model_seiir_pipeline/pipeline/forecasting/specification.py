@@ -43,8 +43,7 @@ class ForecastWorkflowSpecification(workflow.WorkflowSpecification):
 @dataclass
 class ForecastData:
     """Specifies the inputs and outputs for a forecast."""
-    regression_version: str = field(default='best')
-    covariate_version: str = field(default='best')
+    seir_regression_version: str = field(default='best')
     output_root: str = field(default='')
     output_format: str = field(default='csv')
 

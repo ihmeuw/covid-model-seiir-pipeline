@@ -73,7 +73,6 @@ def forecast_main(app_metadata: cli_tools.Metadata,
 @cli_tools.add_preprocess_only
 @cli_tools.add_verbose_and_with_debugger
 @cli_tools.with_version(paths.SEIR_REGRESSION_OUTPUTS)
-@cli_tools.with_version(paths.SEIR_COVARIATES_OUTPUT_ROOT)
 def forecast(run_metadata,
              forecast_specification,
              output_root, mark_best, production_tag,
