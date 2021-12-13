@@ -184,8 +184,10 @@ class PostprocessingDataInterface:
         return self.forecast_data_interface.load_raw_outputs(scenario, draw_id, columns=columns)
 
     def load_single_raw_output(self, draw_id: int, scenario: str, measure: str) -> pd.Series:
+        # FIXME: HACK HACK HACK.  Data alignment problems I can't chase right now.
+        idx = self.load_raw_outputs(scenario=scenario, draw_id=0, columns=[measure]).index
         draw_df = self.load_raw_outputs(scenario=scenario, draw_id=draw_id, columns=[measure])
-        return draw_df[measure].rename(draw_id)
+        return draw_df[measure].reindex(idx).rename(draw_id)
 
     def load_raw_output_deaths(self, draw_id: int, scenario: str) -> pd.Series:
         draw_df = self.load_raw_outputs(scenario=scenario, draw_id=draw_id, columns=['deaths'])
