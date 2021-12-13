@@ -103,6 +103,9 @@ class ForecastDataInterface:
     def load_regression_ode_params(self, draw_id: int) -> pd.DataFrame:
         return self.regression_data_interface.load_ode_params(draw_id)
 
+    def load_phis(self, draw_id: int) -> pd.DataFrame:
+        return self.regression_data_interface.load_phis(draw_id)
+
     def load_input_epi_measures(self, draw_id: int, columns: List[str] = None) -> pd.DataFrame:
         return self.regression_data_interface.load_input_epi_measures(draw_id, columns)
 
