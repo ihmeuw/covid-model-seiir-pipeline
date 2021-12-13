@@ -54,7 +54,7 @@ def build_beta_final(indices: Indices,
             .set_index(['location_id', 'date'])
             .beta_hat
             .rename('beta'))
-    beta = beta_regression.loc[indices.past, 'beta'].append(beta).sort_index()
+    beta = beta_regression.reindex(indices.past).loc[:, 'beta'].append(beta).sort_index()
     beta.loc[pd.IndexSlice[:, beta_scale[1]:]] *= beta_scale[0]
     return beta, beta_hat.set_index(['location_id', 'date']).reindex(beta.index)
 

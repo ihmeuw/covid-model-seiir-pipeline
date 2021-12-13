@@ -35,7 +35,6 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
     forecast_end_dates = covariates.reset_index().groupby('location_id').date.max()
     population = data_interface.load_population('total').population
 
-    import pdb; pdb.set_trace()
     logger.info('Building indices', context='transform')
     indices = model.Indices(
         past_start_dates,
@@ -58,7 +57,7 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
     # Vaccine data, of course.
     vaccinations = data_interface.load_vaccine_uptake(scenario_spec.vaccine_version)
     etas = data_interface.load_vaccine_risk_reduction(scenario_spec.vaccine_version)
-    phis = data_interface.phis(draw_id=draw_id)
+    phis = data_interface.load_phis(draw_id=draw_id)
     # Variant prevalences.
     rhos = data_interface.load_variant_prevalence(scenario_spec.variant_version)
 
@@ -79,6 +78,7 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
         log_beta_shift,
         beta_scale,
     )
+    import pdb; pdb.set_trace()
     model_parameters = model.build_model_parameters(
         indices,
         beta,
