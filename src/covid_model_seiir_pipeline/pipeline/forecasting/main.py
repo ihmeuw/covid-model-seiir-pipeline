@@ -75,7 +75,7 @@ def forecast_main(app_metadata: cli_tools.Metadata,
 @cli_tools.with_version(paths.SEIR_REGRESSION_OUTPUTS)
 @cli_tools.with_version(paths.SEIR_COVARIATES_OUTPUT_ROOT)
 def forecast(run_metadata,
-             forecast_specification,
+             specification,
              output_root, mark_best, production_tag,
              preprocess_only,
              verbose, with_debugger,
@@ -85,7 +85,7 @@ def forecast(run_metadata,
 
     do_forecast(
         run_metadata=run_metadata,
-        forecast_specification=forecast_specification,
+        specification=specification,
         output_root=output_root,
         mark_best=mark_best,
         production_tag=production_tag,
