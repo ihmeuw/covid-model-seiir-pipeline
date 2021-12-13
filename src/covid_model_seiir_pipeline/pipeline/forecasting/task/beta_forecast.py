@@ -243,7 +243,6 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
                 last_reimposition_end_date,
             )
 
-    import pdb; pdb.set_trace()
     system_metrics, output_metrics = model.compute_output_metrics(
         indices,
         compartments,
