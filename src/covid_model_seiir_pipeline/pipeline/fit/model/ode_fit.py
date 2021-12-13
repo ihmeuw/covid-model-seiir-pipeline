@@ -63,7 +63,7 @@ def prepare_ode_fit_parameters(rates: Rates,
     rhos.columns = [f'rho_{c}_infection' for c in rhos.columns]
     rhos['rho_none_infection'] = pd.Series(0., index=past_index, name='rho_none_infection')
 
-    rates_map = {'ifr': 'death', 'ihr': 'admission', 'idr': 'case'}
+    rates_map = {'ifr': 'rate_all_death', 'ihr': 'rate_all_admission', 'idr': 'rate_all_case'}
     ode_rates = rates.loc[:, list(rates_map.keys())].rename(columns=rates_map)
 
     base_parameters = pd.concat([
