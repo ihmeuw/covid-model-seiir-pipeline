@@ -191,7 +191,8 @@ def _process_variants_of_concern(data: pd.DataFrame) -> pd.DataFrame:
         'beta': ['B1351'],
         'gamma': ['P1'],
         'delta': ['B16172'],
-        'other': ['B1621', 'C37', 'C12'],
+        'omicron': ['Omicron'],
+        'other': ['B1621', 'C37'],
         'ancestral': ['wild_type'],
     }
     drop = []
@@ -209,6 +210,7 @@ def _process_variants_of_concern(data: pd.DataFrame) -> pd.DataFrame:
         data[var_name] = data[lineages].sum(axis=1)
     data = data[list(variant_map)]
     data['omega'] = 0.
+    data.loc[data.sum(axis=1) == 0, 'ancestral'] = 1
     if (data.sum(axis=1) < 1 - 1e-5).any():
         raise ValueError("Variant prevalence sums to less than 1 for some location-dates.")
     if (data.sum(axis=1) > 1 + 1e-5).any():

@@ -147,6 +147,7 @@ class FitParameters:
     kappa_beta_infection: UniformSampleable = field(default=1.0)
     kappa_gamma_infection: UniformSampleable = field(default=1.0)
     kappa_delta_infection: UniformSampleable = field(default=1.0)
+    kappa_omicron_infection: UniformSampleable = field(default=1.0)
     kappa_other_infection: UniformSampleable = field(default=1.0)
     kappa_omega_infection: UniformSampleable = field(default=1.0)
 

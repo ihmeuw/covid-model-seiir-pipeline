@@ -136,12 +136,12 @@ def prepare_model(model_data: pd.DataFrame,
     pred_exclude_vars = []
     level_lambdas = {
         # fit covariates at global level, tight lambdas after
-        0: {'intercept':  2., 't':  2., 'variant_prevalence': 1., **covariate_lambdas_tight},  # G->SR
-        1: {'intercept':  2., 't':  2., 'variant_prevalence': 1., **covariate_lambdas_tight},  # SR->R
-        2: {'intercept': 20., 't': 20., 'variant_prevalence': 1., **covariate_lambdas_loose},  # R->A0
-        3: {'intercept': 20., 't': 20., 'variant_prevalence': 1., **covariate_lambdas_loose},  # A0->A1
-        4: {'intercept': 20., 't': 20., 'variant_prevalence': 1., **covariate_lambdas_loose},  # A1->A2
-        5: {'intercept': 20., 't': 20., 'variant_prevalence': 1., **covariate_lambdas_loose},  # A2->A3
+        0: {'intercept':   2., 't':  1., 'variant_prevalence': 1., **covariate_lambdas_tight},  # G->SR
+        1: {'intercept':   2., 't':  1., 'variant_prevalence': 1., **covariate_lambdas_tight},  # SR->R
+        2: {'intercept': 100., 't': 10., 'variant_prevalence': 1., **covariate_lambdas_loose},  # R->A0
+        3: {'intercept': 100., 't': 10., 'variant_prevalence': 1., **covariate_lambdas_loose},  # A0->A1
+        4: {'intercept': 100., 't': 10., 'variant_prevalence': 1., **covariate_lambdas_loose},  # A1->A2
+        5: {'intercept': 100., 't': 10., 'variant_prevalence': 1., **covariate_lambdas_loose},  # A2->A3
     }
 
     if var_args['group_var'] != 'location_id':

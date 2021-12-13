@@ -91,6 +91,8 @@ def sample_ode_params(variant_rr: VariantRR, beta_fit_params: FitParameters, dra
         for variant in VARIANT_NAMES:
             if variant in [VARIANT_NAMES.none, VARIANT_NAMES.ancestral]:
                 sampled_params[f'kappa_{variant}_{measure}'] = 1.0
+            elif variant in VARIANT_NAMES.omicron:
+                sampled_params[f'kappa_{variant}_{measure}'] = rr * 0.2
             else:
                 sampled_params[f'kappa_{variant}_{measure}'] = rr
     return sampled_params

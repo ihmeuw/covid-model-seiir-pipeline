@@ -282,7 +282,7 @@ class Plotter:
     ax_label_fontsize = 16
     tick_label_fontsize = 11
     title_fontsize = 24
-    fig_size = (30, 15)
+    fig_size = (30, 18)
     grid_spec_margins = {'top': 0.92, 'bottom': 0.08}
 
     def __init__(self,
