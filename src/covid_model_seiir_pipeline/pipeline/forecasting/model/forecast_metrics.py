@@ -24,33 +24,7 @@ from covid_model_seiir_pipeline.pipeline.regression.model import (
 
 def compute_output_metrics(indices: Indices,
                            compartments: pd.DataFrame,
-                           postprocessing_params: PostprocessingParameters,
-                           model_parameters: Parameters,
-                           hospital_parameters) -> Tuple[pd.DataFrame, pd.DataFrame]:
-    system_metrics = compute_system_metrics(
-        compartments,
-    )
-
-    # hospital_usage = compute_corrected_hospital_usage(
-    #     admissions,
-    #     hospital_parameters,
-    #     postprocessing_params,
-    # )
-
-    r = compute_r(model_parameters,
-                  system_metrics)
-
-    output_metrics = pd.concat([
-        infections,
-        deaths,
-        cases,
-        hospital_usage.to_df(),
-        r
-    ], axis=1).set_index('observed', append=True)
-    return system_metrics, output_metrics
-
-
-def compute_system_metrics(compartments: pd.DataFrame) -> pd.DataFrame:
+                           model_parameters: Parameters) -> pd.DataFrame:
     total_pop = (compartments
                  .loc[:, [f'{c}_{g}' for g, c in itertools.product(['lr', 'hr'], COMPARTMENTS_NAMES)]]
                  .sum(axis=1)
@@ -69,7 +43,7 @@ def compute_system_metrics(compartments: pd.DataFrame) -> pd.DataFrame:
     force_of_infection = _make_force_of_infection(infections, susceptible)
     variant_prevalence = _make_variant_prevalence(infections)
 
-    return pd.concat([
+    system_metrics = pd.concat([
         infections,
         deaths,
         admissions,
@@ -83,6 +57,17 @@ def compute_system_metrics(compartments: pd.DataFrame) -> pd.DataFrame:
         variant_prevalence,
         total_pop,
     ], axis=1)
+
+    r = compute_r(model_parameters, system_metrics)
+    system_metrics = pd.concat([system_metrics, r], axis=1)
+
+    # hospital_usage = compute_corrected_hospital_usage(
+    #     admissions,
+    #     hospital_parameters,
+    #     postprocessing_params,
+    # )
+
+    return system_metrics
 
 
 def _make_measure(compartments_diff: pd.DataFrame, measure: str) -> pd.DataFrame:

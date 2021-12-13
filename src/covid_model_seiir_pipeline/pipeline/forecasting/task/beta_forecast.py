@@ -243,25 +243,20 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
                 last_reimposition_end_date,
             )
 
-    system_metrics, output_metrics = model.compute_output_metrics(
+    system_metrics = model.compute_output_metrics(
         indices,
         compartments,
         model_parameters,
     )
 
     logger.info('Prepping outputs.', context='transform')
-    ode_params, *_ = model_parameters.to_dfs()
-    ode_params = pd.concat([ode_params, beta, beta_hat], axis=1)
-    outputs = pd.concat([system_metrics, output_metrics.reset_index(level='observed', drop=True),
-                         postprocessing_params.correction_factors_df], axis=1)
-#    chis = past_chis.loc[indices.past].append(chis.loc[indices.future]).sort_index()
+    ode_params = pd.concat([model_parameters.base_parameters, beta, beta_hat], axis=1)
 
     logger.info('Writing outputs.', context='write')
     data_interface.save_ode_params(ode_params, scenario, draw_id)
     data_interface.save_components(compartments, scenario, draw_id)
     data_interface.save_raw_covariates(covariates, scenario, draw_id)
-    data_interface.save_raw_outputs(outputs, scenario, draw_id)
-#    data_interface.save_chis(chis, scenario, draw_id)
+    data_interface.save_raw_outputs(system_metrics, scenario, draw_id)
 
     logger.report()
 
