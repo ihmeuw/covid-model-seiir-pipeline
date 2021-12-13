@@ -24,17 +24,18 @@ from covid_model_seiir_pipeline.pipeline.regression.model import (
 
 def compute_output_metrics(indices: Indices,
                            compartments: pd.DataFrame,
-                           model_parameters: Parameters) -> pd.DataFrame:
+                           model_parameters: Parameters,
+                           ode_params: pd.Series) -> pd.DataFrame:
     total_pop = (compartments
                  .loc[:, [f'{c}_{g}' for g, c in itertools.product(['lr', 'hr'], COMPARTMENTS_NAMES)]]
                  .sum(axis=1)
                  .rename('total_population'))
     compartments_diff = compartments.groupby('location_id').diff()
 
-    infections = _make_measure(compartments_diff, 'Infection')
-    deaths = _make_measure(compartments_diff, 'Death')
-    admissions = _make_measure(compartments_diff, 'Admission')
-    cases = _make_measure(compartments_diff, 'Case')
+    infections = _make_measure(compartments_diff, 'Infection', lag=0)
+    deaths = _make_measure(compartments_diff, 'Death', lag=ode_params.loc['exposure_to_death'])
+    admissions = _make_measure(compartments_diff, 'Admission', lag=ode_params.loc['exposure_to_admission'])
+    cases = _make_measure(compartments_diff, 'Case', lag=ode_params.loc['exposure_to_case'])
     susceptible = _make_susceptible(compartments_diff)
     immune = _make_immune(susceptible, total_pop)
     infectious = _make_infectious(compartments)
@@ -70,9 +71,10 @@ def compute_output_metrics(indices: Indices,
     return system_metrics
 
 
-def _make_measure(compartments_diff: pd.DataFrame, measure: str) -> pd.DataFrame:
+def _make_measure(compartments_diff: pd.DataFrame, measure: str, lag: int) -> pd.DataFrame:
     # Ignore 'none'
     variant_names = VARIANT_NAMES[1:]
+    compartments_diff = compartments_diff.groupby('location_id').shift(lag)
     data = defaultdict(lambda: pd.Series(0., index=compartments_diff.index))
 
     data['naive_unvaccinated'] = compartments_diff.filter(like=f'{measure}_none_all_unvaccinated').sum(axis=1)
