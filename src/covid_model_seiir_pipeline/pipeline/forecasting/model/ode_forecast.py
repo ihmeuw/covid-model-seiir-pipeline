@@ -1,15 +1,15 @@
-from typing import Dict, Tuple, TYPE_CHECKING
+from typing import Tuple, TYPE_CHECKING
 
 import numpy as np
 import pandas as pd
-import tqdm
+
 
 from covid_model_seiir_pipeline.lib import math
 from covid_model_seiir_pipeline.lib.ode_mk2.containers import (
     Parameters,
 )
 from covid_model_seiir_pipeline.lib.ode_mk2.constants import (
-    VARIANT,
+    REPORTED_EPI_MEASURE_NAMES,
     VARIANT_NAMES,
     RISK_GROUP_NAMES,
     COMPARTMENTS_NAMES,
@@ -61,12 +61,34 @@ def build_beta_final(indices: Indices,
 
 def build_model_parameters(indices: Indices,
                            beta: pd.Series,
-                           ode_parameters: pd.DataFrame,
+                           posterior_epi_measures: pd.DataFrame,
+                           ode_parameters: pd.Series,
                            rhos: pd.DataFrame,
                            vaccinations: pd.DataFrame,
                            all_etas: pd.DataFrame,
                            phis: pd.DataFrame) -> Parameters:
-    import pdb; pdb.set_trace()
+    drop = ['rho', 'count', 'weight', 'rate']
+    ode_params = pd.DataFrame(
+        {key: value for key, value in ode_parameters.to_dict().items() if key.split('_')[0] not in drop},
+        index=indices.full
+    )
+    ode_params.loc[:, 'beta_all_infection'] = beta
+    for epi_measure in REPORTED_EPI_MEASURE_NAMES:
+        ode_params.loc[:, f'count_all_{epi_measure}'] = -1
+        ode_params.loc[:, f'weight_all_{epi_measure}'] = -1
+        lag = ode_params.loc[f'exposure_to_{epi_measure}']
+        import pdb; pdb.set_trace()
+        infections = ode_params.loc[:, 'daily_naive_unvaccinated_infections'].groupby('location_id').shift(lag)
+        rate = ode_params.loc[:, f'daily_{epi_measure}'] / infections
+
+
+    rhos = rhos.reindex(indices.full, fill_value=0.)
+    rhos.columns = [f'rho_{c}_infection' for c in rhos.columns]
+    rhos.loc[:, 'rho_none_infection'] = 0
+
+
+
+
     keep_cols = ['alpha_all', 'sigma_all', 'gamma_all', 'pi_all'] + [f'kappa_{v}' for v in VARIANT_NAMES]
     ode_params = (ode_parameters
                   .reindex(indices.full)

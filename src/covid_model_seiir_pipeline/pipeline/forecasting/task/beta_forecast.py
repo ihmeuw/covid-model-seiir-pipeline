@@ -48,6 +48,8 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
     logger.info('Loading SEIIR parameter input data.', context='read')
     # We'll use the same params in the ODE forecast as we did in the fit.
     ode_params = data_interface.load_regression_ode_params(draw_id=draw_id)
+    # Use to get ratios
+    posterior_epi_measures = data_interface.load_posterior_epi_measures(draw_id=draw_id)
     # Contains both the fit and regression betas
     betas = data_interface.load_regression_beta(draw_id)
     # Rescaling parameters for the beta forecast.
@@ -82,6 +84,7 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
     model_parameters = model.build_model_parameters(
         indices,
         beta,
+        posterior_epi_measures,
         ode_params,
         rhos,
         vaccinations,
