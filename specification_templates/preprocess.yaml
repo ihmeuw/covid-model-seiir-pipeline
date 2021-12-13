@@ -1,23 +1,25 @@
 data:
   mr_location_set_version_id: 771
-  pred_location_set_version_id: '/ihme/covid-19/seir-preprocess/custom-hierarchies/modeling_plus_zaf.csv'
-  model_inputs_version: '2021_11_29.06'
-  age_specific_rates_version: 'best'
-  mortality_scalars_version: 'best'
-  mask_use_outputs_version: '2021_11_15.03'
-  mobility_covariate_version: '2021_11_16.01'
-  pneumonia_version: 'best'
-  population_density_version: 'best'
-  testing_outputs_version: '2021_11_12.02'
-  variant_scaleup_version: '2021_11_12.01'
-  vaccine_coverage_version: '2021_10_31.01'
-  serology_vaccine_coverage_version: '2021_11_15.18'
-  vaccine_efficacy_version: 'best'
+  mr_location_set_file: ''
+  pred_location_set_version_id: 0
+  pred_location_set_file: /ihme/covid-19/seir-preprocess/custom-hierarchies/modeling_plus_zaf.csv
+  model_inputs_version: /ihme/covid-19-2/model-inputs/2021_11_29.06
+  age_specific_rates_version: /ihme/covid-19-2/age-specific-rates/2021_10_15.01
+  mortality_scalars_version: /ihme/covid-19-2/mortality-scalars/2021_11_14.01
+  mask_use_outputs_version: /ihme/covid-19-2/mask-use-outputs/2021_11_15.03
+  mobility_covariate_version: /ihme/covid-19-2/mobility-covariate/2021_11_16.01
+  pneumonia_version: /ihme/covid-19-2/pneumonia/2020_06_12.03
+  population_density_version: /ihme/covid-19-2/population-density/2020_05_20.07
+  testing_outputs_version: /ihme/covid-19-2/testing-outputs/2021_11_12.02
+  variant_scaleup_version: /ihme/covid-19-2/variant-scaleup/2021_11_12.01
+  vaccine_coverage_version: /ihme/covid-19-2/vaccine-coverage/2021_10_31.01
+  serology_vaccine_coverage_version: /ihme/covid-19-2/vaccine-coverage/2021_11_15.18
+  vaccine_efficacy_version: /ihme/covid-19-2/vaccine-efficacy/2021_11_15.01
   vaccine_scenarios:
-    - 'reference'
-    - 'child_fast'
-    - 'booster_high'
-    - 'optimistic'
+  - reference
+  - child_fast
+  - booster_high
+  - optimistic
   output_root: ''
   output_format: 'csv'
   n_draws: 100
@@ -29,4 +31,3 @@ seroprevalence_parameters:
 workflow:
   project: 'proj_covid_prod'
   queue: 'd.q'
-
