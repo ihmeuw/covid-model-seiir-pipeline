@@ -55,4 +55,3 @@ covariates:
   proportion_over_2_5k:
     gprior: [0.0, 0.001]
     bounds: [0.0, 1000.0]
-

@@ -172,7 +172,10 @@ class RegressionDataInterface:
         return covariate_data
 
     def load_covariate_info(self, covariate: str, info_type: str) -> pd.DataFrame:
-        return self.fit_data_interface.load_covariate_info(covariate, info_type)
+        location_ids = self.load_location_ids()
+        info_df = self.fit_data_interface.load_covariate_info(covariate, info_type)
+        info_df = self._format_covariate_data(info_df, location_ids)
+        return info_df
 
     def load_variant_prevalence(self, scenario: str) -> pd.DataFrame:
         return self.fit_data_interface.load_variant_prevalence(scenario)
@@ -191,6 +194,9 @@ class RegressionDataInterface:
 
     def load_ode_params(self, draw_id: int) -> pd.DataFrame:
         return self.fit_data_interface.load_ode_params(draw_id)
+
+    def load_phis(self, draw_id: int) -> pd.DataFrame:
+        return self.fit_data_interface.load_phis(draw_id)
 
     def load_input_epi_measures(self, draw_id: int, columns: List[str] = None) -> pd.DataFrame:
         return self.fit_data_interface.load_input_epi_measures(draw_id, columns)

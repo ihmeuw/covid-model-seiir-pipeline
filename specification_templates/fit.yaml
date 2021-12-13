@@ -44,4 +44,3 @@ fit_parameters:
   kappa_omicron_infection: 3.0
   kappa_other_infection: 1.2
   kappa_omega_infection: 1.8
-

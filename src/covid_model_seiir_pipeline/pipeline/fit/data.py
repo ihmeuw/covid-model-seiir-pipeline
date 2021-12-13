@@ -130,6 +130,12 @@ class FitDataInterface:
     def load_ode_params(self, draw_id: int) -> pd.DataFrame:
         return io.load(self.fit_root.ode_parameters(draw_id=draw_id))
 
+    def save_phis(self, data: pd.Series, draw_id: int) -> None:
+        io.dump(data, self.fit_root.phis(draw_id=draw_id))
+
+    def load_phis(self, draw_id: int) -> pd.DataFrame:
+        return io.load(self.fit_root.phis(draw_id=draw_id))
+
     def save_input_epi_measures(self, data: pd.DataFrame, draw_id: int):
         io.dump(data, self.fit_root.input_epi_measures(draw_id=draw_id))
 
