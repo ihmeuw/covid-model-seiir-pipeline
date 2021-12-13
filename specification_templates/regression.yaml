@@ -1,5 +1,5 @@
 data:
-  seir_fit_version: '2021_12_08.01'
+  seir_fit_version: '2021_12_13.01'
   coefficient_version: ''
   seir_covariate_priors_version: ''
   output_root: ''
@@ -30,22 +30,22 @@ covariates:
     bounds: [-1000.0, 1000.0]
   pneumonia:
     gprior: [0.0, 1000.0]
-    bounds: [0.0, 1000.0]
+    bounds: [0.8, 1.3]
   mobility:
     gprior: [0.0, 1000.0]
     bounds: [0.0, 1000.0]
   mask_use:
     gprior: [0.0, 1000.0]
-    bounds: [-1000.0, 0.0]
+    bounds: [-1000.0, -0.5]
   testing:
     gprior: [0.0, 1000.0]
-    bounds: [-1000.0, 0.0]
+    bounds: [-80.0, 0.0]
   air_pollution_pm_2_5:
     gprior: [0.0, 1000.0]
     bounds: [0.0, 1000.0]
   smoking_prevalence:
     gprior: [0.0, 1000]
-    bounds: [0.0, 1000.0]
+    bounds: [0.0, 1.0]
   lri_mortality:
     gprior: [0.0, 1000.0]
     bounds: [0.0, 1000.0]
@@ -55,3 +55,4 @@ covariates:
   proportion_over_2_5k:
     gprior: [0.0, 0.001]
     bounds: [0.0, 1000.0]
+
