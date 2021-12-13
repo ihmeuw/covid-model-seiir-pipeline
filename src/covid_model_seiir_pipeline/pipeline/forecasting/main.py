@@ -11,33 +11,32 @@ from covid_model_seiir_pipeline.pipeline.forecasting.workflow import ForecastWor
 
 
 def do_forecast(run_metadata: cli_tools.RunMetadata,
-                forecast_specification: str,
+                specification: ForecastSpecification,
                 output_root: Optional[str], mark_best: bool, production_tag: str,
                 preprocess_only: bool,
                 with_debugger: bool,
-                **input_versions: Dict[str, cli_tools.VersionInfo]) -> ForecastSpecification:
-    forecast_spec = ForecastSpecification.from_path(forecast_specification)
+                input_versions: Dict[str, cli_tools.VersionInfo]) -> ForecastSpecification:
+    specification, run_metadata = cli_tools.resolve_version_info(specification, run_metadata, input_versions)
 
-    forecast_spec, run_metadata = cli_tools.resolve_version_info(forecast_spec, run_metadata, input_versions)
-
-    output_root = cli_tools.get_output_root(output_root,
-                                            forecast_spec.data.output_root)
+    output_root = cli_tools.get_output_root(output_root, specification.data.output_root)
     cli_tools.setup_directory_structure(output_root, with_production=True)
     run_directory = cli_tools.make_run_directory(output_root)
-    forecast_spec.data.output_root = str(run_directory)
+
+    specification.data.output_root = str(run_directory)
 
     run_metadata['output_path'] = str(run_directory)
-    run_metadata['forecast_specification'] = forecast_spec.to_dict()
+    run_metadata['forecast_specification'] = specification.to_dict()
 
     cli_tools.configure_logging_to_files(run_directory)
     # noinspection PyTypeChecker
     main = cli_tools.monitor_application(forecast_main,
                                          logger, with_debugger)
-    app_metadata, _ = main(forecast_spec, preprocess_only)
+    app_metadata, _ = main(specification, preprocess_only)
 
     cli_tools.finish_application(run_metadata, app_metadata,
                                  run_directory, mark_best, production_tag)
-    return forecast_spec
+
+    return specification
 
 
 def forecast_main(app_metadata: cli_tools.Metadata,
@@ -49,7 +48,7 @@ def forecast_main(app_metadata: cli_tools.Metadata,
 
     # Check scenario covariates the same as regression covariates and that
     # covariate data versions match.
-    data_interface.check_covariates(forecast_specification.scenarios)
+    # data_interface.check_covariates(forecast_specification.scenarios)
 
     data_interface.make_dirs(scenario=list(forecast_specification.scenarios))
     data_interface.save_specification(forecast_specification)
@@ -70,31 +69,29 @@ def forecast_main(app_metadata: cli_tools.Metadata,
 @click.command()
 @cli_tools.pass_run_metadata()
 @cli_tools.with_specification(ForecastSpecification)
-@cli_tools.with_version(paths.SEIR_REGRESSION_OUTPUTS)
-@cli_tools.with_version(paths.SEIR_COVARIATES_OUTPUT_ROOT)
 @cli_tools.add_output_options(paths.SEIR_FORECAST_OUTPUTS)
 @cli_tools.add_preprocess_only
 @cli_tools.add_verbose_and_with_debugger
+@cli_tools.with_version(paths.SEIR_REGRESSION_OUTPUTS)
+@cli_tools.with_version(paths.SEIR_COVARIATES_OUTPUT_ROOT)
 def forecast(run_metadata,
              forecast_specification,
-             regression_version,
-             covariates_version,
              output_root, mark_best, production_tag,
              preprocess_only,
-             verbose, with_debugger):
+             verbose, with_debugger,
+             **input_versions):
     """Perform beta forecast for a set of scenarios on a regression."""
     cli_tools.configure_logging_to_terminal(verbose)
 
     do_forecast(
         run_metadata=run_metadata,
         forecast_specification=forecast_specification,
-        regression_version=regression_version,
-        covariates_version=covariates_version,
         output_root=output_root,
         mark_best=mark_best,
         production_tag=production_tag,
         preprocess_only=preprocess_only,
         with_debugger=with_debugger,
+        input_versions=input_versions,
     )
 
     logger.info('**Done**')

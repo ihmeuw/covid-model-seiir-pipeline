@@ -1,6 +1,5 @@
-from typing import Dict, List, Tuple
+from typing import Dict, List, Iterable
 
-from loguru import logger
 import pandas as pd
 
 from covid_model_seiir_pipeline.lib import (
@@ -19,205 +18,157 @@ from covid_model_seiir_pipeline.pipeline.forecasting.specification import (
 class ForecastDataInterface:
 
     def __init__(self,
-                 regression_root: io.RegressionRoot,
-                 covariate_root: io.CovariateRoot,
+                 regression_data_interface: RegressionDataInterface,
                  forecast_root: io.ForecastRoot):
-        self.regression_root = regression_root
-        self.covariate_root = covariate_root
+        self.regression_data_interface = regression_data_interface
         self.forecast_root = forecast_root
 
     @classmethod
     def from_specification(cls, specification: ForecastSpecification) -> 'ForecastDataInterface':
         regression_spec = RegressionSpecification.from_version_root(specification.data.regression_version)
-        regression_root = io.RegressionRoot(specification.data.regression_version,
-                                            data_format=regression_spec.data.output_format)
-        covariate_root = io.CovariateRoot(specification.data.covariate_version)
-        # TODO: specify output format from config.
+        regression_data_interface = RegressionDataInterface.from_specification(regression_spec)
+
         forecast_root = io.ForecastRoot(specification.data.output_root,
                                         data_format=specification.data.output_format)
 
         return cls(
-            regression_root=regression_root,
-            covariate_root=covariate_root,
+            regression_data_interface=regression_data_interface,
             forecast_root=forecast_root,
         )
 
     def make_dirs(self, **prefix_args):
         io.touch(self.forecast_root, **prefix_args)
 
-    ############################
-    # Regression paths loaders #
-    ############################
-
     def get_n_draws(self) -> int:
-        return self._get_regression_data_interface().get_n_draws()
+        return self.regression_data_interface.get_n_draws()
 
-    def is_counties_run(self) -> bool:
-        return self._get_regression_data_interface().is_counties_run()
+    ####################
+    # Prior Stage Data #
+    ####################
 
-    def get_infections_metadata(self):
-        return self._get_regression_data_interface().get_infections_metadata()
+    def load_hierarchy(self, name: str) -> pd.DataFrame:
+        return self.regression_data_interface.load_hierarchy(name=name)
 
-    def get_model_inputs_metadata(self):
-        return self._get_regression_data_interface().get_model_inputs_metadata()
+    def load_population(self, measure: str) -> pd.DataFrame:
+        return self.regression_data_interface.load_population(measure=measure)
 
-    def load_hierarchy(self) -> pd.DataFrame:
-        return self._get_regression_data_interface().load_hierarchy()
+    def load_reported_epi_data(self) -> pd.DataFrame:
+        return self.regression_data_interface.load_reported_epi_data()
 
-    def load_location_ids(self) -> List[int]:
-        return self._get_regression_data_interface().load_location_ids()
-
-    def load_population(self) -> pd.DataFrame:
-        return self._get_regression_data_interface().load_population()
-
-    def load_five_year_population(self) -> pd.DataFrame:
-        return self._get_regression_data_interface().load_five_year_population()
-
-    def load_total_population(self) -> pd.Series:
-        return self._get_regression_data_interface().load_total_population()
-
-    def load_full_data_unscaled(self) -> pd.DataFrame:
-        return self._get_regression_data_interface().load_full_data_unscaled()
-
-    def load_total_deaths(self) -> pd.Series:
-        return self._get_regression_data_interface().load_total_deaths()
-
-    def load_betas(self, draw_id: int):
-        return self._get_regression_data_interface().load_betas(draw_id=draw_id)
-
-    def load_covariate(self, covariate: str, covariate_version: str, with_observed: bool = False) -> pd.DataFrame:
-        return self._get_regression_data_interface().load_covariate(
-            covariate, covariate_version, with_observed, self.covariate_root,
-        )
-
-    def load_covariates(self, covariates: Dict[str, str]) -> pd.DataFrame:
-        return self._get_regression_data_interface().load_covariates(
-            covariates, self.covariate_root,
-        )
-
-    def load_vaccinations(self, vaccine_scenario: str) -> pd.DataFrame:
-        return self._get_regression_data_interface().load_vaccinations(vaccine_scenario)
-
-    def load_etas(self, vaccine_scenario: str) -> pd.DataFrame:
-        return self._get_regression_data_interface().load_etas(vaccine_scenario)
-
-    def load_natural_waning_distribution(self, vaccine_scenario: str) -> pd.DataFrame:
-        return self._get_regression_data_interface().load_natural_waning_distribution(vaccine_scenario)
-
-    def load_cross_variant_immunity_matrix(self, vaccine_scenario: str) -> pd.DataFrame:
-        return self._get_regression_data_interface().load_cross_variant_immunity_matrix(vaccine_scenario)
-
-    def load_chis(self, draw_id: int) -> pd.DataFrame:
-        return self._get_regression_data_interface().load_chis(draw_id)
-
-    def load_vaccination_summaries(self, measure: str):
-        return self._get_regression_data_interface().load_vaccination_summaries(
-            measure, self.covariate_root,
-        )
-
-    def load_vaccine_efficacy(self):
-        return self._get_regression_data_interface().load_vaccine_efficacy(
-            self.covariate_root,
-        )
-
-    def load_mobility_info(self, info_type: str) -> pd.DataFrame:
-        return self._get_regression_data_interface().load_mobility_info(
-            info_type, self.covariate_root,
-        )
-
-    def load_mandate_data(self, mobility_scenario: str) -> Tuple[pd.DataFrame, pd.DataFrame]:
-        return self._get_regression_data_interface().load_mandate_data(
-            mobility_scenario, self.covariate_root,
-        )
-
-    def load_variant_prevalence(self, variant_scenario: str) -> pd.DataFrame:
-        return self._get_regression_data_interface().load_variant_prevalence(
-            variant_scenario, self.covariate_root,
-        )
-
-    def load_coefficients(self, draw_id: int) -> pd.DataFrame:
-        return self._get_regression_data_interface().load_coefficients(draw_id=draw_id)
-
-    def load_compartments(self, draw_id: int) -> pd.DataFrame:
-        return self._get_regression_data_interface().load_compartments(draw_id=draw_id)
-
-    def load_ode_parameters(self, draw_id: int) -> pd.DataFrame:
-        return self._get_regression_data_interface().load_ode_parameters(draw_id=draw_id)
-
-    def load_past_infections(self, draw_id: int) -> pd.Series:
-        return self._get_regression_data_interface().load_infections(draw_id=draw_id)
-
-    def load_em_scalars_draws(self) -> pd.DataFrame:
-        return self._get_regression_data_interface().load_em_scalars_draws()
-
-    def load_em_scalars(self, draw_id: int = None) -> pd.Series:
-        return self._get_regression_data_interface().load_em_scalars(draw_id)
-
-    def load_past_deaths(self, draw_id: int) -> pd.Series:
-        return self._get_regression_data_interface().load_deaths(draw_id=draw_id)
-
-    def get_hospital_parameters(self):
-        return self._get_regression_data_interface().load_specification().hospital_parameters
-
-    def load_hospital_usage(self):
-        df = self._get_regression_data_interface().load_hospitalizations(measure='usage')
-        return HospitalMetrics(**{metric: df[metric] for metric in df.columns})
-
-    def load_hospital_correction_factors(self):
-        df = self._get_regression_data_interface().load_hospitalizations(measure='correction_factors')
-        return HospitalCorrectionFactors(**{metric: df[metric] for metric in df.columns})
-
-    def load_hospital_census_data(self):
-        return self._get_regression_data_interface().load_hospital_census_data()
+    def load_hospital_census_data(self) -> pd.DataFrame:
+        return self.regression_data_interface.load_hospital_census_data()
 
     def load_hospital_bed_capacity(self) -> pd.DataFrame:
-        return self._get_regression_data_interface().load_hospital_bed_capacity()
+        return self.regression_data_interface.load_hospital_bed_capacity()
 
-    def load_ifr(self, draw_id: int) -> pd.DataFrame:
-        return self._get_regression_data_interface().load_ifr(draw_id=draw_id)
+    def load_total_covid_scalars(self, draw_id: int = None) -> pd.DataFrame:
+        return self.regression_data_interface.load_total_covid_scalars(draw_id=draw_id)
 
-    def load_ihr(self, draw_id: int) -> pd.DataFrame:
-        return self._get_regression_data_interface().load_ihr(draw_id=draw_id)
+    def load_seroprevalence(self, draw_id: int = None) -> pd.DataFrame:
+        return self.regression_data_interface.load_seroprevalence(draw_id=draw_id)
 
-    def load_idr(self, draw_id: int) -> pd.DataFrame:
-        return self._get_regression_data_interface().load_idr(draw_id=draw_id)
+    def load_sensitivity(self, draw_id: int = None) -> pd.DataFrame:
+        return self.regression_data_interface.load_sensitivity(draw_id)
 
-    def load_ratio_data(self, draw_id: int):
-        return self._get_regression_data_interface().load_ratio_data(draw_id=draw_id)
+    def load_testing_data(self) -> pd.DataFrame:
+        return self.regression_data_interface.load_testing_data()
 
-    ##########################
-    # Covariate data loaders #
-    ##########################
+    def load_covariate(self,
+                       covariate: str,
+                       covariate_version: str = 'reference',
+                       with_observed: bool = False) -> pd.DataFrame:
+        return self.regression_data_interface.load_covariate(covariate, covariate_version, with_observed)
 
-    def check_covariates(self, scenarios: Dict[str, ScenarioSpecification]) -> List[str]:
-        regression_spec = self._get_regression_data_interface().load_specification().to_dict()
-        # Bit of a hack.
-        forecast_version = str(self.covariate_root._root)
-        regression_version = regression_spec['data']['covariate_version']
-        if not forecast_version == regression_version:
-            logger.warning(f'Forecast covariate version {forecast_version} does not match '
-                           f'regression covariate version {regression_version}. If the two covariate '
-                           f'versions have different data in the past, the regression coefficients '
-                           f'used for prediction may not be valid.')
+    def load_covariates(self, covariates: Iterable[str]) -> pd.DataFrame:
+        return self.regression_data_interface.load_covariates(covariates)
 
-        regression_covariates = set(regression_spec['covariates'])
+    def load_covariate_info(self, covariate: str, info_type: str) -> pd.DataFrame:
+        return self.regression_data_interface.load_covariate_info(covariate, info_type)
 
-        for name, scenario in scenarios.items():
-            if set(scenario.covariates).symmetric_difference(regression_covariates) > {'intercept'}:
-                raise ValueError('Forecast covariates must match the covariates used in regression.\n'
-                                 f'Forecast covariates:   {sorted(list(scenario.covariates))}.\n'
-                                 f'Regression covariates: {sorted(list(regression_covariates))}.')
+    def load_variant_prevalence(self, scenario: str) -> pd.DataFrame:
+        return self.regression_data_interface.load_variant_prevalence(scenario)
 
-            if 'intercept' in scenario.covariates:
-                # Shouldn't really be specified, but might be copied over from
-                # regression.  No harm really in just deleting it.
-                del scenario.covariates['intercept']
+    def load_waning_parameters(self, measure: str) -> pd.DataFrame:
+        return self.regression_data_interface.load_waning_parameters(measure)
 
-            for covariate, covariate_version in scenario.covariates.items():
-                if not io.exists(self.covariate_root[covariate](covariate_scenario=covariate_version)):
-                    raise FileNotFoundError(f'No {covariate_version} file found for covariate {covariate}.')
+    def load_vaccine_uptake(self, scenario: str) -> pd.DataFrame:
+        return self.regression_data_interface.load_vaccine_uptake(scenario)
 
-        return list(regression_covariates)
+    def load_vaccine_risk_reduction(self, scenario: str) -> pd.DataFrame:
+        return self.regression_data_interface.load_vaccine_risk_reduction(scenario)
+
+    def load_covariate_options(self, draw_id: int = None) -> Dict:
+        return self.regression_data_interface.load_covariate_options(draw_id)
+
+    def load_regression_ode_params(self, draw_id: int) -> pd.DataFrame:
+        return self.regression_data_interface.load_ode_params(draw_id)
+
+    def load_input_epi_measures(self, draw_id: int, columns: List[str] = None) -> pd.DataFrame:
+        return self.regression_data_interface.load_input_epi_measures(draw_id, columns)
+
+    def load_rates_data(self, draw_id: int, columns: List[str] = None) -> pd.DataFrame:
+        return self.regression_data_interface.load_rates_data(draw_id, columns)
+
+    def load_rates(self, draw_id: int, columns: List[str] = None) -> pd.DataFrame:
+        return self.regression_data_interface.load_rates(draw_id, columns)
+
+    def load_posterior_epi_measures(self, draw_id: int, columns: List[str] = None) -> pd.DataFrame:
+        return self.regression_data_interface.load_posterior_epi_measures(draw_id, columns)
+
+    def load_compartments(self, draw_id: int, columns: List[str] = None) -> pd.DataFrame:
+        return self.regression_data_interface.load_compartments(draw_id, columns)
+
+    def load_fit_beta(self, draw_id: int, columns: List[str] = None) -> pd.DataFrame:
+        return self.regression_data_interface.load_fit_beta(draw_id, columns)
+
+    def load_final_seroprevalence(self, draw_id: int, columns: List[str] = None) -> pd.DataFrame:
+        return self.regression_data_interface.load_final_seroprevalence(draw_id, columns)
+
+    def load_summary(self, measure: str) -> pd.DataFrame:
+        return self.regression_data_interface.load_summary(measure)
+
+    def load_location_ids(self) -> List[int]:
+        return self.regression_data_interface.load_location_ids()
+
+    def load_regression_beta(self, draw_id: int) -> pd.DataFrame:
+        return self.regression_data_interface.load_regression_beta(draw_id=draw_id)
+
+    def load_coefficients(self, draw_id: int) -> pd.DataFrame:
+        return self.regression_data_interface.load_coefficients(draw_id=draw_id)
+
+    # ##########################
+    # # Covariate data loaders #
+    # ##########################
+    #
+    # def check_covariates(self, scenarios: Dict[str, ScenarioSpecification]) -> List[str]:
+    #     regression_spec = self._get_regression_data_interface().load_specification().to_dict()
+    #     # Bit of a hack.
+    #     forecast_version = str(self.covariate_root._root)
+    #     regression_version = regression_spec['data']['covariate_version']
+    #     if not forecast_version == regression_version:
+    #         logger.warning(f'Forecast covariate version {forecast_version} does not match '
+    #                        f'regression covariate version {regression_version}. If the two covariate '
+    #                        f'versions have different data in the past, the regression coefficients '
+    #                        f'used for prediction may not be valid.')
+    #
+    #     regression_covariates = set(regression_spec['covariates'])
+    #
+    #     for name, scenario in scenarios.items():
+    #         if set(scenario.covariates).symmetric_difference(regression_covariates) > {'intercept'}:
+    #             raise ValueError('Forecast covariates must match the covariates used in regression.\n'
+    #                              f'Forecast covariates:   {sorted(list(scenario.covariates))}.\n'
+    #                              f'Regression covariates: {sorted(list(regression_covariates))}.')
+    #
+    #         if 'intercept' in scenario.covariates:
+    #             # Shouldn't really be specified, but might be copied over from
+    #             # regression.  No harm really in just deleting it.
+    #             del scenario.covariates['intercept']
+    #
+    #         for covariate, covariate_version in scenario.covariates.items():
+    #             if not io.exists(self.covariate_root[covariate](covariate_scenario=covariate_version)):
+    #                 raise FileNotFoundError(f'No {covariate_version} file found for covariate {covariate}.')
+    #
+    #     return list(regression_covariates)
 
     #####################
     # Forecast data I/O #
@@ -268,12 +219,3 @@ class ForecastDataInterface:
 
     def load_raw_outputs(self, scenario: str, draw_id: int):
         return io.load(self.forecast_root.raw_outputs(scenario=scenario, draw_id=draw_id))
-
-    #########################
-    # Non-interface helpers #
-    #########################
-
-    def _get_regression_data_interface(self) -> RegressionDataInterface:
-        regression_spec = RegressionSpecification.from_dict(io.load(self.regression_root.specification()))
-        regression_di = RegressionDataInterface.from_specification(regression_spec)
-        return regression_di
