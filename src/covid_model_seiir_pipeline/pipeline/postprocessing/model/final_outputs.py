@@ -309,7 +309,7 @@ for measure in ['boosters', 'vaccinations']:
         )
 
 
-for key in list(VARIANT_NAMES[1:]) + list(VACCINE_STATUS_NAMES) + list(RISK_GROUP_NAMES) + ['total']:
+for key in list(VARIANT_NAMES[1:]) + list(RISK_GROUP_NAMES) + ['total', 'naive', 'naive_unvaccinated']:
     MEASURES[f'infections_{key}'] = MeasureConfig(
         loaders.load_output_data(f'modeled_infections_{key}'),
         f'daily_infections_{key}',
@@ -322,7 +322,7 @@ for key in list(VARIANT_NAMES[1:]) + list(VACCINE_STATUS_NAMES) + list(RISK_GROU
     )
 
 
-for key in list(VARIANT_NAMES[1:]) + list(VACCINE_STATUS_NAMES) + ['total']:
+for key in list(VARIANT_NAMES[1:]) + ['total']:
     measure = f'force_of_infection_{key}'
     MEASURES[measure] = MeasureConfig(
         loaders.load_output_data(measure),

@@ -170,7 +170,7 @@ class PostprocessingDataInterface:
     def load_components(self, scenario: str, draw_id: int):
         return self.forecast_data_interface.load_components(scenario, draw_id)
 
-    def load_beta_scales(self, scenario: str, draw_id: int):
+    def load_beta_scales(self, draw_id: int, scenario: str):
         scaling_parameters = self.forecast_data_interface.load_beta_scales(scenario, draw_id)
         scaling_parameters = scaling_parameters.stack().reset_index()
         scaling_parameters.columns = ['location_id', 'scaling_parameter', draw_id]
