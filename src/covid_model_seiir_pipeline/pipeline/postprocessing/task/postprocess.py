@@ -5,6 +5,7 @@ import pandas as pd
 
 from covid_model_seiir_pipeline.lib import (
     cli_tools,
+    aggregate,
 )
 from covid_model_seiir_pipeline.pipeline.postprocessing.specification import (
     SplicingSpecification,
@@ -62,8 +63,8 @@ def do_aggregation(measure_data: pd.DataFrame,
     if measure_config.aggregator is not None and aggregation_configs:
         for aggregation_config in aggregation_configs:
             logger.info(f'Aggregating to hierarchy {aggregation_config.to_dict()}', context='aggregate')
-            hierarchy = data_interface.load_aggregation_heirarchy(aggregation_config)
-            population = data_interface.load_population()
+            hierarchy = data_interface.load_aggregation_hierarchy(aggregation_config)
+            population = data_interface.load_population('total')
             measure_data = measure_config.aggregator(measure_data, hierarchy, population)
     return measure_data
 
@@ -73,7 +74,7 @@ def summarize_and_write(measure_data: pd.DataFrame,
                         data_interface: PostprocessingDataInterface,
                         measure: str, scenario_name: str):
     logger.info(f'Summarizing results for {measure}.', context='summarize')
-    summarized = model.summarize(measure_data)
+    summarized = aggregate.summarize(measure_data)
     if measure_config.write_draws:
         logger.info(f'Saving draws for {measure}.', context='write_draws')
         data_interface.save_output_draws(measure_data.reset_index(), scenario_name, measure)
@@ -267,8 +268,6 @@ def postprocess_covariate(postprocessing_version: str,
 def postprocess_miscellaneous(postprocessing_version: str,
                               scenario_name: str, measure: str):
     postprocessing_spec, data_interface = build_spec_and_data_interface(postprocessing_version)
-    rdi = data_interface._get_forecast_data_inteface()._get_regression_data_interface()
-    regression_spec = rdi.load_specification()
     miscellaneous_config = model.MISCELLANEOUS[measure]
     logger.info(f'Loading {measure}.', context='read')
     try:
