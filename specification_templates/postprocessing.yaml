@@ -1,11 +1,10 @@
 data:
-  forecast_version: '2021_11_05.03'
-  mortality_ratio_version: 'best'
+  seir_forecast_version: '2021_12_13.03'
   scenarios:
     - 'reference'
-    - 'optimistic'
-    - 'child_vaccine_push'
-    - 'optimistic_child_vaccine_push'
+#    - 'optimistic'
+#    - 'child_vaccine_push'
+#    - 'optimistic_child_vaccine_push'
 #    - 'reference_sm'
 #    - 'optimistic_sm'
 #    - 'child_vaccine_push_sm'
