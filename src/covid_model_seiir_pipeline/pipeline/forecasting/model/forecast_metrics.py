@@ -150,8 +150,8 @@ def _make_vaccinations(compartments: pd.DataFrame) -> pd.DataFrame:
     vaccinations = defaultdict(lambda: pd.Series(0., index=compartments.index))
 
     for risk_group in RISK_GROUP_NAMES:
-        for measure in ['Vaccination', 'Booster']:
-            key = f'{measure}_all_all_{risk_group}'
+        for measure, group in [('Vaccination', 'unvaccinated'), ('Booster', 'vaccinated')]:
+            key = f'{measure}_all_all_{group}_{risk_group}'
             vaccinations[f'{measure.lower()}s_{risk_group}'] += compartments[key]
             vaccinations[f'{measure.lower()}s'] += compartments[key]
 
