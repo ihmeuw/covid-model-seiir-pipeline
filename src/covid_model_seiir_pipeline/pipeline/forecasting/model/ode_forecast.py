@@ -136,12 +136,17 @@ def build_ratio(shifted_infections: pd.Series, numerator: pd.Series, prior_ratio
     pr_gb = posterior_ratio.dropna().reset_index().groupby('location_id')
     date = pr_gb.date.last()
     final_posterior_ratio = pr_gb.value.last()
-    lr_ratio = posterior_ratio.dropna().groupby('location_id').apply(lambda x: x.iloc[-60:].mean())
 
-    window = 60
-    scale = (lr_ratio - final_posterior_ratio) / window
-    t = pd.Series(np.tile(np.arange(window + 1), len(scale)), 
-                  index=pd.MultiIndex.from_product((locs, np.arange(window+1)), 
+    past_window = 180
+    lr_ratio = (pd.concat([numerator.rename('num'), shifted_infections.rename('denom')], axis=1)
+                .dropna()
+                .groupby('location_id')
+                .apply(lambda x: x.iloc[-past_window:].num.sum() / x.iloc[-past_window:].denom.sum()))
+
+    trans_window = 60
+    scale = (lr_ratio - final_posterior_ratio) / trans_window
+    t = pd.Series(np.tile(np.arange(trans_window + 1), len(scale)),
+                  index=pd.MultiIndex.from_product((locs, np.arange(trans_window + 1)),
                                                    names=('location_id', 't')))
     rate_scaleup = (final_posterior_ratio + scale * t).rename('value').reset_index(level='t')
     rate_scaleup['date'] = pd.to_timedelta(rate_scaleup['t'], unit='D') + date
