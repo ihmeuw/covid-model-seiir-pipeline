@@ -87,7 +87,7 @@ def make_results_page(plot_versions: List[PlotVersion],
     pop = pv.load_output_miscellaneous('populations', is_table=True, location_id=location.id)
     pop = pop.loc[(pop.age_group_id == 22) & (pop.sex_id == 3), 'population'].iloc[0]
 
-    full_data = pv.load_output_miscellaneous('unscaled_full_data', is_table=True, location_id=location.id)
+    # full_data = pv.load_output_miscellaneous('unscaled_full_data', is_table=True, location_id=location.id)
 
     # Configure the plot layout.
     fig = plt.figure(figsize=FIG_SIZE, tight_layout=True)
@@ -122,11 +122,11 @@ def make_results_page(plot_versions: List[PlotVersion],
             measure,
             label=label,
         )
-        plotter.make_observed_time_plot(
-            ax_measure,
-            full_data['date'],
-            full_data[full_data_measure].diff(),
-        )
+        # plotter.make_observed_time_plot(
+        #     ax_measure,
+        #     full_data['date'],
+        #     full_data[full_data_measure].diff(),
+        # )
 
         if measure == 'daily_deaths':
             # Mandate reimposition level.
@@ -149,11 +149,11 @@ def make_results_page(plot_versions: List[PlotVersion],
             label=label,
             transform=lambda x: x.cumsum(),
         )
-        plotter.make_observed_time_plot(
-            ax_measure,
-            full_data['date'],
-            full_data[full_data_measure],
-        )
+        # plotter.make_observed_time_plot(
+        #     ax_measure,
+        #     full_data['date'],
+        #     full_data[full_data_measure],
+        # )
         group_axes.append(ax_measure)
 
     rates_measures = [
@@ -218,8 +218,8 @@ def make_details_page(plot_versions: List[PlotVersion],
     pv = plot_versions[-1]
     pop = pv.load_output_miscellaneous('populations', is_table=True, location_id=location.id)
     pop = pop.loc[(pop.age_group_id == 22) & (pop.sex_id == 3), 'population'].iloc[0]
-    full_data_unscaled = pv.load_output_miscellaneous('unscaled_full_data', is_table=True, location_id=location.id)
-    hospital_census = pv.load_output_miscellaneous('hospital_census_data', is_table=True, location_id=location.id)
+    # full_data_unscaled = pv.load_output_miscellaneous('unscaled_full_data', is_table=True, location_id=location.id)
+    # hospital_census = pv.load_output_miscellaneous('hospital_census_data', is_table=True, location_id=location.id)
 
     # Configure the plot layout.
     fig = plt.figure(figsize=FIG_SIZE, tight_layout=True)
@@ -274,11 +274,11 @@ def make_details_page(plot_versions: List[PlotVersion],
             f'{measure}_census',
             label=f'{label} Census',
         )
-        plotter.make_observed_time_plot(
-            ax_census,
-            hospital_census['date'],
-            hospital_census[f'{measure}_census'],
-        )
+        # plotter.make_observed_time_plot(
+        #     ax_census,
+        #     hospital_census['date'],
+        #     hospital_census[f'{measure}_census'],
+        # )
         axes[col].append(ax_census)
     for ax_set in axes.values():
         fig.align_ylabels(ax_set)
@@ -312,11 +312,11 @@ def make_details_page(plot_versions: List[PlotVersion],
         'unscaled_daily_deaths',
         label='Unscaled Deaths',
     )
-    plotter.make_observed_time_plot(
-        ax_unscaled,
-        full_data_unscaled['date'],
-        full_data_unscaled['cumulative_deaths'].diff(),
-    )
+    # plotter.make_observed_time_plot(
+    #     ax_unscaled,
+    #     full_data_unscaled['date'],
+    #     full_data_unscaled['cumulative_deaths'].diff(),
+    # )
     shared_axes.append(ax_unscaled)
     ax_scalars = fig.add_subplot(gs_deaths[1])
     for plot_version in plot_versions:
