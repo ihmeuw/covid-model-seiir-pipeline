@@ -25,9 +25,9 @@ def load_deaths(scenario: str, data_interface: 'PostprocessingDataInterface', nu
 
 def load_unscaled_deaths(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
     death_draws = load_deaths(scenario, data_interface, num_cores)
-    em_scalars = data_interface.load_total_covid_scalars()
-    em_scalars = em_scalars.reindex(death_draws[0].index, level='location_id')
-    unscaled_deaths = [deaths / em_scalars.loc[:, f'draw_{draw}']
+    mortality_scalars = data_interface.load_total_covid_scalars()
+    mortality_scalars = mortality_scalars.loc[death_draws[0].index]
+    unscaled_deaths = [deaths / mortality_scalars.loc[:, f'draw_{draw}']
                        for draw, deaths in enumerate(death_draws)]
     return unscaled_deaths
 
@@ -151,13 +151,9 @@ def load_full_data_unscaled(data_interface: 'PostprocessingDataInterface') -> pd
 def load_total_covid_deaths(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int) -> pd.DataFrame:
     full_data = load_full_data_unscaled(data_interface)
     deaths = full_data['cumulative_deaths'].dropna()
-    em_scalars = (data_interface.load_total_covid_scalars()
-                  .reindex(deaths.index, level='location_id')
-                  .groupby('location_id')
-                  .fillna(method='ffill'))
-    init_cond = em_scalars.mul(deaths.values, axis=0).groupby('location_id').first()
-    scaled_deaths = em_scalars.mul(deaths.groupby('location_id').diff().values, axis=0).groupby('location_id').cumsum().fillna(0.0)
-    scaled_deaths = scaled_deaths + init_cond.reindex(scaled_deaths.index, level='location_id')
+    deaths = deaths.groupby('location_id').diff().fillna(deaths)
+    mortality_scalars = data_interface.load_total_covid_scalars().loc[deaths.index]
+    scaled_deaths = mortality_scalars.mul(deaths, axis=0).groupby('location_id').cumsum().fillna(0.0)
     return scaled_deaths
 
 

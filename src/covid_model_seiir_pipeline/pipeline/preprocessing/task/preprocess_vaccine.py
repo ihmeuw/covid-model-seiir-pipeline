@@ -1,9 +1,7 @@
 import itertools
-import multiprocessing
 
 import click
 import pandas as pd
-import tqdm
 
 from covid_model_seiir_pipeline.lib import (
     cli_tools,
