@@ -2,23 +2,23 @@ data:
   mr_location_set_version_id: 771
   mr_location_set_file: ''
   pred_location_set_version_id: 771
-  model_inputs_version: /ihme/covid-19-2/model-inputs/2021_12_07.03
-  age_specific_rates_version: /ihme/covid-19-2/age-specific-rates/2021_10_15.01
-  mortality_scalars_version: /ihme/covid-19-2/mortality-scalars/2021_12_12.01
-  mask_use_outputs_version: /ihme/covid-19-2/mask-use-outputs/2021_12_06.01
-  mobility_covariate_version: /ihme/covid-19-2/mobility-covariate/2021_12_07.02
-  pneumonia_version: /ihme/covid-19-2/pneumonia/2020_06_12.03
-  population_density_version: /ihme/covid-19-2/population-density/2020_05_20.07
-  testing_outputs_version: /ihme/covid-19-2/testing-outputs/2021_12_06.05
-  variant_scaleup_version: /ihme/covid-19-2/variant-scaleup/2021_11_27.01
-  vaccine_coverage_version: /ihme/covid-19-2/vaccine-coverage/2021_12_07.02
-  serology_vaccine_coverage_version: /ihme/covid-19-2/vaccine-coverage/2021_12_06.23
-  vaccine_efficacy_version: /ihme/covid-19-2/vaccine-efficacy/2021_12_12.01
+  model_inputs_version: '2021_12_07.03'
+  age_specific_rates_version: '2021_10_15.01'
+  mortality_scalars_version: '2021_12_12.01'
+  mask_use_outputs_version: '2021_12_06.01'
+  mobility_covariate_version: '2021_12_07.02'
+  pneumonia_version: '2020_06_12.03'
+  population_density_version: '2020_05_20.07'
+  testing_outputs_version: '2021_12_06.05'
+  variant_scaleup_version: '2021_11_27.01'
+  vaccine_coverage_version: '2021_12_14.01'
+  serology_vaccine_coverage_version: '2021_12_06.23'
+  vaccine_efficacy_version: '2021_12_12.01'
   vaccine_scenarios:
     - 'reference'
-    - 'child_fast'
-    - 'booster_high'
-    - 'optimistic'
+#    - 'child_fast'
+#    - 'booster_high'
+#    - 'optimistic'
   output_root: ''
   output_format: 'csv'
   n_draws: 100
