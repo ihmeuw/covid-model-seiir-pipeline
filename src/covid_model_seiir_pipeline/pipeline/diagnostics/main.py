@@ -12,14 +12,14 @@ from covid_model_seiir_pipeline.pipeline.diagnostics.workflow import Diagnostics
 
 
 def do_diagnostics(run_metadata: cli_tools.RunMetadata,
-                   diagnostics_specification: str,
+                   specification: str,
                    output_root: Optional[str], mark_best: bool, production_tag: str,
                    preprocess_only: bool,
                    with_debugger: bool) -> DiagnosticsSpecification:
-    diagnostics_spec = DiagnosticsSpecification.from_path(diagnostics_specification)
+    specification = DiagnosticsSpecification.from_path(specification)
 
     outputs_versions = set()
-    for grid_plot_spec in diagnostics_spec.grid_plots:
+    for grid_plot_spec in specification.grid_plots:
         for comparator in grid_plot_spec.comparators:
             comparator_version_path = cli_tools.get_input_root(None,
                                                                comparator.version,
@@ -27,14 +27,14 @@ def do_diagnostics(run_metadata: cli_tools.RunMetadata,
             outputs_versions.add(comparator_version_path)
             comparator.version = str(comparator_version_path)
 
-    if diagnostics_spec.cumulative_deaths_compare_csv:
-        for comparator in diagnostics_spec.cumulative_deaths_compare_csv.comparators:
+    if specification.cumulative_deaths_compare_csv:
+        for comparator in specification.cumulative_deaths_compare_csv.comparators:
             comparator_version_path = cli_tools.get_input_root(None,
                                                                comparator.version,
                                                                paths.SEIR_FINAL_OUTPUTS)
             outputs_versions.add(comparator_version_path)
             comparator.version = str(comparator_version_path)
-    for scatters_spec in diagnostics_spec.scatters:
+    for scatters_spec in specification.scatters:
         x_axis_version_path = cli_tools.get_input_root(None,
                                                        scatters_spec.x_axis.version,
                                                        paths.SEIR_FINAL_OUTPUTS)
@@ -47,11 +47,11 @@ def do_diagnostics(run_metadata: cli_tools.RunMetadata,
         outputs_versions.add(y_axis_version_path)
 
     output_root = cli_tools.get_output_root(output_root,
-                                            diagnostics_spec.data.output_root)
+                                            specification.data.output_root)
     cli_tools.setup_directory_structure(output_root, with_production=True)
     run_directory = cli_tools.make_run_directory(output_root)
 
-    diagnostics_spec.data.output_root = str(run_directory)
+    specification.data.output_root = str(run_directory)
 
     outputs_metadata = []
     for output_version in outputs_versions:
@@ -60,17 +60,17 @@ def do_diagnostics(run_metadata: cli_tools.RunMetadata,
 
     run_metadata['seir_outputs_metadata'] = outputs_metadata
     run_metadata['output_path'] = str(run_directory)
-    run_metadata['diagnostics_specification'] = diagnostics_spec.to_dict()
+    run_metadata['diagnostics_specification'] = specification.to_dict()
 
     cli_tools.configure_logging_to_files(run_directory)
     # noinspection PyTypeChecker
     main = cli_tools.monitor_application(diagnostics_main,
                                          logger, with_debugger)
-    app_metadata, _ = main(diagnostics_spec, preprocess_only)
+    app_metadata, _ = main(specification, preprocess_only)
 
     cli_tools.finish_application(run_metadata, app_metadata,
                                  run_directory, mark_best, production_tag)
-    return diagnostics_spec
+    return specification
 
 
 def diagnostics_main(app_metadata: cli_tools.Metadata,
@@ -103,7 +103,7 @@ def diagnostics_main(app_metadata: cli_tools.Metadata,
 @cli_tools.add_preprocess_only
 @cli_tools.add_verbose_and_with_debugger
 def diagnostics(run_metadata,
-                diagnostics_specification,
+                specification,
                 output_root, mark_best, production_tag,
                 preprocess_only,
                 verbose, with_debugger):
@@ -111,7 +111,7 @@ def diagnostics(run_metadata,
 
     do_diagnostics(
         run_metadata=run_metadata,
-        diagnostics_specification=diagnostics_specification,
+        specification=specification,
         output_root=output_root,
         mark_best=mark_best,
         production_tag=production_tag,
