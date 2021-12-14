@@ -72,6 +72,10 @@ def run_preprocess_vaccine(preprocessing_version: str, scenario: str, progress_b
         etas = (pd.concat(etas)
                 .reorder_levels(['vaccine_course', 'endpoint', 'risk_group', 'location_id', 'date'])
                 .sort_index())
+        if etas.values.min() < 0.:
+            raise ValueError('etas less than 0.')
+        if etas.values.max() > 1.:
+            raise ValueError('etas over 1.')
         etas_unvax = etas.loc[1].copy()
         etas_unvax.loc[:, :] = 0.
         etas_unvax['vaccine_course'] = 0
