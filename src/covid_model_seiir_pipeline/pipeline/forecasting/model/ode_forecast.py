@@ -143,7 +143,7 @@ def build_ratio(shifted_infections: pd.Series, numerator: pd.Series, prior_ratio
                 .groupby('location_id')
                 .apply(lambda x: x.iloc[-past_window:].num.sum() / x.iloc[-past_window:].denom.sum()))
 
-    trans_window = 60
+    trans_window = 30
     scale = (lr_ratio - final_posterior_ratio) / trans_window
     t = pd.Series(np.tile(np.arange(trans_window + 1), len(scale)),
                   index=pd.MultiIndex.from_product((locs, np.arange(trans_window + 1)),
