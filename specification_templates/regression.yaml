@@ -1,5 +1,5 @@
 data:
-  seir_fit_version: '2021_12_13.05'
+  seir_fit_version: '2021_12_13.08'
   coefficient_version: ''
   seir_covariate_priors_version: ''
   output_root: ''
