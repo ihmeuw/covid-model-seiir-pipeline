@@ -215,7 +215,11 @@ def postprocess_covariate(postprocessing_version: str,
     n_draws = data_interface.get_n_draws()
 
     input_covariate_data = data_interface.load_input_covariate(covariate, covariate_version)
-    covariate_observed = input_covariate_data.reset_index(level='observed')
+    if 'observed' in input_covariate_data.index.names:
+        covariate_observed = input_covariate_data.reset_index(level='observed')
+    else:
+        covariate_observed = input_covariate_data.copy()
+        covariate_observed['observed'] = 0.
     covariate_observed['observed'] = covariate_observed['observed'].fillna(0.)
 
     covariate_data = load_and_resample_covariate(
