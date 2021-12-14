@@ -442,9 +442,10 @@ class PreprocessingDataInterface:
 
         out = []
         for col in data.columns:
-            brand, endpoint = col.split('_')[-2:]
-            if brand[:3] == 'log':
+            brand_endpoint = col.split('_')
+            if len(brand_endpoint) == 3:
                 continue
+            brand, endpoint = brand_endpoint
             s = data[col].rename('value').to_frame()
             s['brand'] = brand
             s['endpoint'] = endpoint_map[endpoint]
