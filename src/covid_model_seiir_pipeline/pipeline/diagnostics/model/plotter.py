@@ -162,24 +162,24 @@ def make_results_page(plot_versions: List[PlotVersion],
         ('infection_fatality_ratio_es', 'infection_fatality_ratio', 'IFR'),
     ]
     for i, (ies_measure, measure, label) in enumerate(rates_measures):
-        rate = pv.load_output_summaries(ies_measure, location.id)
+        #rate = pv.load_output_summaries(ies_measure, location.id)
         ax_measure = fig.add_subplot(gs_rates[2*i + 1])
         plotter.make_time_plot(
             ax_measure,
             measure,
             label=label
         )
-        plotter.make_observed_time_plot(
-            ax_measure,
-            rate['date'],
-            rate['mean'],
-        )
+        # plotter.make_observed_time_plot(
+        #     ax_measure,
+        #     rate['date'],
+        #     rate['mean'],
+        # )
         group_axes.append(ax_measure)
 
-        # Sometimes weird stuff at the start of the series.
-        if len(rate):
-            y_max = rate['mean'].dropna().iloc[100:].max()
-            ax_measure.set_ylim(0, y_max)
+        # # Sometimes weird stuff at the start of the series.
+        # if len(rate):
+        #     y_max = rate['mean'].dropna().iloc[100:].max()
+        #     ax_measure.set_ylim(0, y_max)
 
     fig.align_ylabels(group_axes)
 
@@ -252,12 +252,12 @@ def make_details_page(plot_versions: List[PlotVersion],
             label=f'{label} Admissions'
         )
 
-        if measure == 'hospital':
-            plotter.make_observed_time_plot(
-                ax_daily,
-                full_data_unscaled['date'],
-                full_data_unscaled['cumulative_hospitalizations'].diff(),
-            )
+        # if measure == 'hospital':
+        #     plotter.make_observed_time_plot(
+        #         ax_daily,
+        #         full_data_unscaled['date'],
+        #         full_data_unscaled['cumulative_hospitalizations'].diff(),
+        #     )
         axes[col].append(ax_daily)
 
         ax_correction = fig.add_subplot(gs_hospital[1, col])
