@@ -13,7 +13,7 @@ data:
   variant_scaleup_version: '2021_11_27.01'
   vaccine_coverage_version: '2021_12_14.01'
   serology_vaccine_coverage_version: '2021_12_06.23'
-  vaccine_efficacy_version: '2021_12_12.01'
+  vaccine_efficacy_version: '2021_12_14.01'
   vaccine_scenarios:
     - 'reference'
 #    - 'child_fast'

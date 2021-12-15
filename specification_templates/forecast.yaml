@@ -7,7 +7,7 @@ workflow:
   queue: 'd.q'
 scenarios:
   reference:
-    algorithm: 'normal' #'draw_level_mandate_reimposition'
+    algorithm: 'normal' # 'draw_level_mandate_reimposition'
     algorithm_params:
       death_threshold: 8  # per million
       max_threshold: 15 # per million

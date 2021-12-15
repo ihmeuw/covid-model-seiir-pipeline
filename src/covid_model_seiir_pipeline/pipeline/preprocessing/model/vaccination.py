@@ -109,7 +109,7 @@ def _coerce_week_index_to_day_index(data: pd.Series) -> pd.Series:
         index=pd.Index(t_days, name='days'),
         name='value'
     )
-    data = data.reindex(np.arange(0, 1500)).fillna(0.)
+    data = data.reindex(np.arange(0, 1500)).ffill()
     return data
 
 
