@@ -123,6 +123,7 @@ for measure in ['naive', 'naive_unvaccinated']:
         ),
         label=f'posterior_{measure}',
         aggregator=aggregate.sum_aggregator,
+        description=description,
     )
 
 for rate, suffix in itertools.product(['ifr', 'ihr', 'idr'], ['', '_lr', '_hr']):
