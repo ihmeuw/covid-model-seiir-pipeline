@@ -331,7 +331,7 @@ def make_details_page(plot_versions: List[PlotVersion],
             if plotter._uncertainty:
                 ax_scalars.fill_between(data['date'], data['upper'], data['lower'], alpha=FILL_ALPHA, color=plot_version.color)
         except (KeyError, FileNotFoundError):
-            ax_scalars.plot(data['date'], data['em_scalar'], color=plot_version.color)
+            pass
 
     ax_scalars.set_ylabel('Total COVID Scalar', fontsize=AX_LABEL_FONTSIZE)
     plotter.format_date_axis(ax_scalars)
@@ -611,8 +611,8 @@ def make_variant_page(plot_versions: List[PlotVersion],
 
             if measure == 'variant_prevalence':
                 observed_color = COLOR_MAP(len(plot_versions))
-                variant_prevalence.loc[:, f'rho_{variant}'].plot(ax=ax, linewidth=3, color=observed_color,
-                                                                 linestyle='dashed')
+                variant_prevalence.loc[:, f'{variant}'].plot(ax=ax, linewidth=3, color=observed_color,
+                                                             linestyle='dashed')
 
             if measure in ['r_effective', 'r_controlled']:
                 ax.set_ylim(0, 4)
