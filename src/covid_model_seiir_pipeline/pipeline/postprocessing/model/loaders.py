@@ -154,6 +154,7 @@ def load_total_covid_deaths(scenario: str, data_interface: 'PostprocessingDataIn
     deaths = deaths.groupby('location_id').diff().fillna(deaths)
     mortality_scalars = data_interface.load_total_covid_scalars().loc[deaths.index]
     scaled_deaths = mortality_scalars.mul(deaths, axis=0).groupby('location_id').cumsum().fillna(0.0)
+    scaled_deaths.columns = [int(c.split('_')[1]) for c in scaled_deaths]
     return scaled_deaths
 
 

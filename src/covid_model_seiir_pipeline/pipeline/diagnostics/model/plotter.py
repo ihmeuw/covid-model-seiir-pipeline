@@ -87,7 +87,7 @@ def make_results_page(plot_versions: List[PlotVersion],
     pop = pv.load_output_miscellaneous('populations', is_table=True, location_id=location.id)
     pop = pop.loc[(pop.age_group_id == 22) & (pop.sex_id == 3), 'population'].iloc[0]
 
-    # full_data = pv.load_output_miscellaneous('unscaled_full_data', is_table=True, location_id=location.id)
+    full_data = pv.load_output_miscellaneous('unscaled_full_data', is_table=True, location_id=location.id)
 
     # Configure the plot layout.
     fig = plt.figure(figsize=FIG_SIZE, tight_layout=True)
@@ -122,11 +122,11 @@ def make_results_page(plot_versions: List[PlotVersion],
             measure,
             label=label,
         )
-        # plotter.make_observed_time_plot(
-        #     ax_measure,
-        #     full_data['date'],
-        #     full_data[full_data_measure].diff(),
-        # )
+        plotter.make_observed_time_plot(
+             ax_measure,
+             full_data['date'],
+             full_data[full_data_measure].diff(),
+        )
 
         if measure == 'daily_deaths':
             # Mandate reimposition level.
@@ -149,11 +149,11 @@ def make_results_page(plot_versions: List[PlotVersion],
             label=label,
             transform=lambda x: x.cumsum(),
         )
-        # plotter.make_observed_time_plot(
-        #     ax_measure,
-        #     full_data['date'],
-        #     full_data[full_data_measure],
-        # )
+        plotter.make_observed_time_plot(
+            ax_measure,
+            full_data['date'],
+            full_data[full_data_measure],
+        )
         group_axes.append(ax_measure)
 
     rates_measures = [
@@ -218,7 +218,7 @@ def make_details_page(plot_versions: List[PlotVersion],
     pv = plot_versions[-1]
     pop = pv.load_output_miscellaneous('populations', is_table=True, location_id=location.id)
     pop = pop.loc[(pop.age_group_id == 22) & (pop.sex_id == 3), 'population'].iloc[0]
-    # full_data_unscaled = pv.load_output_miscellaneous('unscaled_full_data', is_table=True, location_id=location.id)
+    full_data_unscaled = pv.load_output_miscellaneous('unscaled_full_data', is_table=True, location_id=location.id)
     # hospital_census = pv.load_output_miscellaneous('hospital_census_data', is_table=True, location_id=location.id)
 
     # Configure the plot layout.
@@ -252,12 +252,12 @@ def make_details_page(plot_versions: List[PlotVersion],
             label=f'{label} Admissions'
         )
 
-        # if measure == 'hospital':
-        #     plotter.make_observed_time_plot(
-        #         ax_daily,
-        #         full_data_unscaled['date'],
-        #         full_data_unscaled['cumulative_hospitalizations'].diff(),
-        #     )
+        if measure == 'hospital':
+            plotter.make_observed_time_plot(
+                ax_daily,
+                full_data_unscaled['date'],
+                full_data_unscaled['cumulative_hospitalizations'].diff(),
+            )
         axes[col].append(ax_daily)
 
         ax_correction = fig.add_subplot(gs_hospital[1, col])
@@ -312,25 +312,26 @@ def make_details_page(plot_versions: List[PlotVersion],
         'unscaled_daily_deaths',
         label='Unscaled Deaths',
     )
-    # plotter.make_observed_time_plot(
-    #     ax_unscaled,
-    #     full_data_unscaled['date'],
-    #     full_data_unscaled['cumulative_deaths'].diff(),
-    # )
+    plotter.make_observed_time_plot(
+        ax_unscaled,
+        full_data_unscaled['date'],
+        full_data_unscaled['cumulative_deaths'].diff(),
+    )
     shared_axes.append(ax_unscaled)
     ax_scalars = fig.add_subplot(gs_deaths[1])
-#    for plot_version in plot_versions:
-#        data = plot_version.load_output_miscellaneous(
-#            'excess_mortality_scalars',
-#            is_table=True,
-#            location_id=location.id
-#        )
-#        try:
-#            ax_scalars.plot(data['date'], data['mean'], color=plot_version.color)
-#            if plotter._uncertainty:
-#                ax_scalars.fill_between(data['date'], data['upper'], data['lower'], alpha=FILL_ALPHA, color=plot_version.color)
-#        except KeyError:
-#            ax_scalars.plot(data['date'], data['em_scalar'], color=plot_version.color)
+    for plot_version in plot_versions:
+        try:
+            data = plot_version.load_output_miscellaneous(
+                'excess_mortality_scalars',
+                is_table=True,
+                location_id=location.id
+            )
+        
+            ax_scalars.plot(data['date'], data['mean'], color=plot_version.color)
+            if plotter._uncertainty:
+                ax_scalars.fill_between(data['date'], data['upper'], data['lower'], alpha=FILL_ALPHA, color=plot_version.color)
+        except (KeyError, FileNotFoundError):
+            ax_scalars.plot(data['date'], data['em_scalar'], color=plot_version.color)
 
     ax_scalars.set_ylabel('Total COVID Scalar', fontsize=AX_LABEL_FONTSIZE)
     plotter.format_date_axis(ax_scalars)
@@ -544,8 +545,8 @@ def make_variant_page(plot_versions: List[PlotVersion],
     pop = pv.load_output_miscellaneous('populations', is_table=True, location_id=location.id)
     pop = pop.loc[(pop.age_group_id == 22) & (pop.sex_id == 3), 'population'].iloc[0]
 
-#    variant_prevalence = pv.load_output_miscellaneous('variant_prevalence', is_table=True,
-#                                                      location_id=location.id).set_index('date')
+    variant_prevalence = pv.load_output_miscellaneous('variant_prevalence', is_table=True,
+                                                      location_id=location.id).set_index('date')
 
     # Configure the plot layout.
     fig = plt.figure(figsize=(40, 20), tight_layout=True)
@@ -608,10 +609,10 @@ def make_variant_page(plot_versions: List[PlotVersion],
                 else:
                     key = 'total_susceptible_variant'
 
- #           if measure == 'variant_prevalence':
- #               observed_color = COLOR_MAP(len(plot_versions))
- #               variant_prevalence.loc[:, f'rho_{variant}'].plot(ax=ax, linewidth=3, color=observed_color,
- #                                                                linestyle='dashed')
+            if measure == 'variant_prevalence':
+                observed_color = COLOR_MAP(len(plot_versions))
+                variant_prevalence.loc[:, f'rho_{variant}'].plot(ax=ax, linewidth=3, color=observed_color,
+                                                                 linestyle='dashed')
 
             if measure in ['r_effective', 'r_controlled']:
                 ax.set_ylim(0, 4)
