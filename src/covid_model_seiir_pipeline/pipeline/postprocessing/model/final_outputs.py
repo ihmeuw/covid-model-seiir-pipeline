@@ -98,11 +98,11 @@ MEASURES = {
         aggregator=aggregate.sum_aggregator,
         write_draws=True,
     ),
-    # 'total_covid_deaths_data': MeasureConfig(
-    #    loaders.load_total_covid_deaths,
-    #    'total_covid_deaths_data',
-    #    aggregator=aggregate.sum_aggregator,
-    # ),
+    'total_covid_deaths_data': MeasureConfig(
+       loaders.load_total_covid_deaths,
+       'total_covid_deaths_data',
+       aggregator=aggregate.sum_aggregator,
+    ),
     'deaths_lr': MeasureConfig(
         loaders.load_output_data('modeled_deaths_lr'),
         'daily_deaths_low_risk',
@@ -257,38 +257,6 @@ MEASURES = {
         'beta_scaling_parameters',
         write_draws=True,
     ),
-    # 'infection_fatality_ratio_es': MeasureConfig(
-    #    loaders.load_ifr_es,
-    #    'infection_fatality_ratio_es',
-    # ),
-    # 'infection_fatality_ratio_high_risk_es': MeasureConfig(
-    #    loaders.load_ifr_high_risk_es,
-    #    'infection_fatality_ratio_high_risk_es',
-    # ),
-    # 'infection_fatality_ratio_low_risk_es': MeasureConfig(
-    #    loaders.load_ifr_low_risk_es,
-    #    'infection_fatality_ratio_low_risk_es',
-    # ),
-    # 'infection_to_death': MeasureConfig(
-    #    loaders.load_infection_to_death,
-    #    'infection_to_death',
-    # ),
-    # 'infection_detection_ratio_es': MeasureConfig(
-    #    loaders.load_idr_es,
-    #    'infection_detection_ratio_es',
-    # ),
-    # 'infection_to_case': MeasureConfig(
-    #    loaders.load_infection_to_case,
-    #    'infection_to_case',
-    # ),
-    # 'infection_hospitalization_ratio_es': MeasureConfig(
-    #    loaders.load_ihr_es,
-    #    'infection_hospitalization_ratio_es',
-    # ),
-    # 'infection_to_admission': MeasureConfig(
-    #    loaders.load_infection_to_admission,
-    #    'infection_to_admission',
-    # ),
 }
 
 for measure in ['boosters', 'vaccinations']:
@@ -451,16 +419,16 @@ COVARIATES = {
 }
 
 MISCELLANEOUS = {
-    # 'unscaled_full_data': MiscellaneousConfig(
-    #     loaders.load_full_data_unscaled,
-    #     'unscaled_full_data',
-    #     aggregator=aggregate.sum_aggregator,
-    # ),
-    # 'variant_prevalence': MiscellaneousConfig(
-    #     loaders.load_variant_prevalence,
-    #     'variant_prevalence',
-    #     aggregator=aggregate.mean_aggregator,
-    # ),
+    'unscaled_full_data': MiscellaneousConfig(
+        loaders.load_full_data_unscaled,
+        'unscaled_full_data',
+        aggregator=aggregate.sum_aggregator,
+    ),
+    'variant_prevalence': MiscellaneousConfig(
+        loaders.load_variant_prevalence,
+        'variant_prevalence',
+        aggregator=aggregate.mean_aggregator,
+    ),
     'excess_mortality_scalars': MiscellaneousConfig(
         loaders.load_excess_mortality_scalars,
         'excess_mortality_scalars',
@@ -473,10 +441,10 @@ MISCELLANEOUS = {
         loaders.load_hospital_bed_capacity,
         'hospital_bed_capacity',
     ),
-    # 'vaccine_efficacy_table': MiscellaneousConfig(
-    #     loaders.load_vaccine_efficacy_table,
-    #     'vaccine_efficacy_table',
-    # ),
+    'vaccine_efficacy_table': MiscellaneousConfig(
+        loaders.load_vaccine_efficacy_table,
+        'vaccine_efficacy_table',
+    ),
     # 'version_map': MiscellaneousConfig(
     #     loaders.build_version_map,
     #     'version_map',

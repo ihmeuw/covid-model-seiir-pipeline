@@ -56,6 +56,9 @@ def _process_scalars(data: pd.DataFrame, hierarchy: pd.DataFrame):
     if missing_locations:
         logger.warning(f"Missing scalars for the following locations: {missing_locations}.  Filling with nan.")
     data = data.reindex(hierarchy.location_id)
+    dates = pd.date_range(pd.Timestamp('2019-11-01'), pd.Timestamp('2024-01-01'))
+    full_idx = pd.MultiIndex.from_product((hierarchy.location_id, dates), names=('location_id', 'date'))
+    data = data.reindex(full_idx, level='location_id')
     return data
 
 

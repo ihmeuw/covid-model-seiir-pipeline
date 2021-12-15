@@ -25,9 +25,9 @@ def load_deaths(scenario: str, data_interface: 'PostprocessingDataInterface', nu
 
 def load_unscaled_deaths(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
     death_draws = load_deaths(scenario, data_interface, num_cores)
-    em_scalars = data_interface.load_total_covid_scalars()
-    em_scalars = em_scalars.reindex(death_draws[0].index, level='location_id')
-    unscaled_deaths = [deaths / em_scalars.loc[:, f'draw_{draw}']
+    mortality_scalars = data_interface.load_total_covid_scalars()
+    mortality_scalars = mortality_scalars.loc[death_draws[0].index]
+    unscaled_deaths = [deaths / mortality_scalars.loc[:, f'draw_{draw}']
                        for draw, deaths in enumerate(death_draws)]
     return unscaled_deaths
 
@@ -55,11 +55,11 @@ def load_vaccine_summaries(output_name: str):
 
 
 def load_vaccine_efficacy_table(data_interface: 'PostprocessingDataInterface'):
-    return data_interface.load_vaccine_efficacy()
+    return data_interface.load_waning_parameters('base_vaccine_efficacy')
 
 
 def load_variant_prevalence(data_interface: 'PostprocessingDataInterface'):
-    return data_interface.load_raw_variant_prevalence()
+    return data_interface.load_variant_prevalence('reference')
 
 
 def load_ode_params(output_name: str):
@@ -115,7 +115,7 @@ def load_coefficients(scenario: str, data_interface: 'PostprocessingDataInterfac
 
 
 def load_excess_mortality_scalars(data_interface: 'PostprocessingDataInterface'):
-    return summarize(data_interface.load_total_covid_scalars(0))
+    return summarize(data_interface.load_total_covid_scalars())
 
 
 def load_raw_census_data(data_interface: 'PostprocessingDataInterface'):
@@ -142,7 +142,7 @@ def load_scaling_parameters(scenario: str, data_interface: 'PostprocessingDataIn
 
 
 def load_full_data_unscaled(data_interface: 'PostprocessingDataInterface') -> pd.DataFrame:
-    full_data = data_interface.load_full_data_unscaled().reset_index()
+    full_data = data_interface.load_reported_epi_data().reset_index()
     location_ids = data_interface.load_location_ids()
     full_data = full_data[full_data.location_id.isin(location_ids)].set_index(['location_id', 'date'])
     return full_data
@@ -151,13 +151,10 @@ def load_full_data_unscaled(data_interface: 'PostprocessingDataInterface') -> pd
 def load_total_covid_deaths(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int) -> pd.DataFrame:
     full_data = load_full_data_unscaled(data_interface)
     deaths = full_data['cumulative_deaths'].dropna()
-    em_scalars = (data_interface.load_total_covid_scalars()
-                  .reindex(deaths.index)
-                  .groupby('location_id')
-                  .fillna(method='ffill'))
-    init_cond = em_scalars.mul(deaths.values, axis=0).groupby('location_id').first()
-    scaled_deaths = em_scalars.mul(deaths.groupby('location_id').diff().values, axis=0).groupby('location_id').cumsum().fillna(0.0)
-    scaled_deaths = scaled_deaths + init_cond.reindex(scaled_deaths.index, level='location_id')
+    deaths = deaths.groupby('location_id').diff().fillna(deaths)
+    mortality_scalars = data_interface.load_total_covid_scalars().loc[deaths.index]
+    scaled_deaths = mortality_scalars.mul(deaths, axis=0).groupby('location_id').cumsum().fillna(0.0)
+    scaled_deaths.columns = [int(c.split('_')[1]) for c in scaled_deaths]
     return scaled_deaths
 
 
@@ -177,62 +174,6 @@ def load_hierarchy(data_interface: 'PostprocessingDataInterface'):
 
 def get_locations_modeled_and_missing(data_interface: 'PostprocessingDataInterface'):
     return data_interface.get_locations_modeled_and_missing()
-
-
-def load_ifr_es(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
-    draws = range(data_interface.get_n_draws())
-    with multiprocessing.Pool(num_cores) as pool:
-        outputs = pool.map(data_interface.load_ifr, draws)
-    return outputs
-
-
-def load_ifr_high_risk_es(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
-    draws = range(data_interface.get_n_draws())
-    with multiprocessing.Pool(num_cores) as pool:
-        outputs = pool.map(data_interface.load_ifr_hr, draws)
-    return outputs
-
-
-def load_ifr_low_risk_es(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
-    draws = range(data_interface.get_n_draws())
-    with multiprocessing.Pool(num_cores) as pool:
-        outputs = pool.map(data_interface.load_ifr_lr, draws)
-    return outputs
-
-
-def load_infection_to_death(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
-    draws = range(data_interface.get_n_draws())
-    with multiprocessing.Pool(num_cores) as pool:
-        outputs = pool.map(data_interface.load_infection_to_death, draws)
-    return outputs
-
-
-def load_ihr_es(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
-    draws = range(data_interface.get_n_draws())
-    with multiprocessing.Pool(num_cores) as pool:
-        outputs = pool.map(data_interface.load_ihr, draws)
-    return outputs
-
-
-def load_infection_to_admission(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
-    draws = range(data_interface.get_n_draws())
-    with multiprocessing.Pool(num_cores) as pool:
-        outputs = pool.map(data_interface.load_infection_to_admission, draws)
-    return outputs
-
-
-def load_idr_es(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
-    draws = range(data_interface.get_n_draws())
-    with multiprocessing.Pool(num_cores) as pool:
-        outputs = pool.map(data_interface.load_idr, draws)
-    return outputs
-
-
-def load_infection_to_case(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
-    draws = range(data_interface.get_n_draws())
-    with multiprocessing.Pool(num_cores) as pool:
-        outputs = pool.map(data_interface.load_infection_to_case, draws)
-    return outputs
 
 
 #########################

@@ -1,5 +1,5 @@
 data:
-  seir_preprocess_version: '2021_12_13.05'
+  seir_preprocess_version: '2021_12_15.01'
   output_format: 'parquet'
   output_root: ''
   n_draws: 100

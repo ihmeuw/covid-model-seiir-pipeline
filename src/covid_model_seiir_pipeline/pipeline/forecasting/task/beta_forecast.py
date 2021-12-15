@@ -153,10 +153,16 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
         logger.info('Entering mandate reimposition.', context='compute_mandates')
         # Info data specific to mandate reimposition
         percent_mandates, mandate_effects = data_interface.load_mandate_data(scenario_spec.covariates['mobility'])
-        em_scalars = data_interface.load_total_covid_scalars(draw_id).loc[location_ids, 'scalar']
+        mortality_scalars = data_interface.load_total_covid_scalars(draw_id).loc[location_ids, 'scalar']
+        mortality_scalars = (mortality_scalars
+                             .reindex(indices.full)
+                             .groupby('location_id')
+                             .ffill()
+                             .groupby('location_id')
+                             .bfill())
         min_wait, days_on, reimposition_threshold, max_threshold = model.unpack_parameters(
             scenario_spec.algorithm_params,
-            em_scalars,
+            mortality_scalars,
         )
         reimposition_threshold = model.compute_reimposition_threshold(
             past_deaths,
@@ -233,7 +239,17 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
                             .drop(compartments_subset.index)
                             .append(compartments_subset)
                             .sort_index())
-            total_deaths = compartments.filter(like='Death_all_all_all').sum(axis=1)
+            total_deaths = (compartments
+                            .filter(like='Death_all_all_all')
+                            .sum(axis=1)
+                            .groupby('location_id')
+                            .apply(lambda x: x.reset_index(level=0, drop=True)
+                                              .shift(ode_params.loc['exposure_to_death'], freq='D'))
+                            .rename('value')
+                            .to_frame())
+            total_deaths['observed'] = 0
+            total_deaths.loc[past_deaths.index, 'observed'] = 1
+            total_deaths = total_deaths.set_index('observed', append=True).value
 
             logger.info('Recomputing reimposition dates', context='compute_mandates')
             reimposition_count += 1

@@ -369,24 +369,6 @@ class PreprocessingDataInterface:
             'cumulative_essential_vaccinated',
             'cumulative_adults_vaccinated',
             'cumulative_elderly_vaccinated',
-
-            # total seroconverted (all and by three groups)
-            'cumulative_all_effective',
-            'cumulative_essential_effective',
-            'cumulative_adults_effective',
-            'cumulative_elderly_effective',
-
-            # elderly (mutually exclusive)
-            'cumulative_hr_effective_wildtype',
-            'cumulative_hr_effective_protected_wildtype',
-            'cumulative_hr_effective_variant',
-            'cumulative_hr_effective_protected_variant',
-
-            # other adults (mutually exclusive)
-            'cumulative_lr_effective_wildtype',
-            'cumulative_lr_effective_protected_wildtype',
-            'cumulative_lr_effective_variant',
-            'cumulative_lr_effective_protected_variant',
         ]
 
         return data.sort_index().loc[:, keep_columns]
