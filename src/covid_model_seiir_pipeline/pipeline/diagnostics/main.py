@@ -12,12 +12,10 @@ from covid_model_seiir_pipeline.pipeline.diagnostics.workflow import Diagnostics
 
 
 def do_diagnostics(run_metadata: cli_tools.RunMetadata,
-                   specification: str,
+                   specification: DiagnosticsSpecification,
                    output_root: Optional[str], mark_best: bool, production_tag: str,
                    preprocess_only: bool,
                    with_debugger: bool) -> DiagnosticsSpecification:
-    specification = DiagnosticsSpecification.from_path(specification)
-
     outputs_versions = set()
     for grid_plot_spec in specification.grid_plots:
         for comparator in grid_plot_spec.comparators:

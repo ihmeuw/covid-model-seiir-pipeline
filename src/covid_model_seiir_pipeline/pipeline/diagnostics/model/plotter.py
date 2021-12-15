@@ -319,18 +319,18 @@ def make_details_page(plot_versions: List[PlotVersion],
     # )
     shared_axes.append(ax_unscaled)
     ax_scalars = fig.add_subplot(gs_deaths[1])
-    for plot_version in plot_versions:
-        data = plot_version.load_output_miscellaneous(
-            'excess_mortality_scalars',
-            is_table=True,
-            location_id=location.id
-        )
-        try:
-            ax_scalars.plot(data['date'], data['mean'], color=plot_version.color)
-            if plotter._uncertainty:
-                ax_scalars.fill_between(data['date'], data['upper'], data['lower'], alpha=FILL_ALPHA, color=plot_version.color)
-        except KeyError:
-            ax_scalars.plot(data['date'], data['em_scalar'], color=plot_version.color)
+#    for plot_version in plot_versions:
+#        data = plot_version.load_output_miscellaneous(
+#            'excess_mortality_scalars',
+#            is_table=True,
+#            location_id=location.id
+#        )
+#        try:
+#            ax_scalars.plot(data['date'], data['mean'], color=plot_version.color)
+#            if plotter._uncertainty:
+#                ax_scalars.fill_between(data['date'], data['upper'], data['lower'], alpha=FILL_ALPHA, color=plot_version.color)
+#        except KeyError:
+#            ax_scalars.plot(data['date'], data['em_scalar'], color=plot_version.color)
 
     ax_scalars.set_ylabel('Total COVID Scalar', fontsize=AX_LABEL_FONTSIZE)
     plotter.format_date_axis(ax_scalars)
@@ -544,8 +544,8 @@ def make_variant_page(plot_versions: List[PlotVersion],
     pop = pv.load_output_miscellaneous('populations', is_table=True, location_id=location.id)
     pop = pop.loc[(pop.age_group_id == 22) & (pop.sex_id == 3), 'population'].iloc[0]
 
-    variant_prevalence = pv.load_output_miscellaneous('variant_prevalence', is_table=True,
-                                                      location_id=location.id).set_index('date')
+#    variant_prevalence = pv.load_output_miscellaneous('variant_prevalence', is_table=True,
+#                                                      location_id=location.id).set_index('date')
 
     # Configure the plot layout.
     fig = plt.figure(figsize=(40, 20), tight_layout=True)
@@ -608,10 +608,10 @@ def make_variant_page(plot_versions: List[PlotVersion],
                 else:
                     key = 'total_susceptible_variant'
 
-            if measure == 'variant_prevalence':
-                observed_color = COLOR_MAP(len(plot_versions))
-                variant_prevalence.loc[:, f'rho_{variant}'].plot(ax=ax, linewidth=3, color=observed_color,
-                                                                 linestyle='dashed')
+ #           if measure == 'variant_prevalence':
+ #               observed_color = COLOR_MAP(len(plot_versions))
+ #               variant_prevalence.loc[:, f'rho_{variant}'].plot(ax=ax, linewidth=3, color=observed_color,
+ #                                                                linestyle='dashed')
 
             if measure in ['r_effective', 'r_controlled']:
                 ax.set_ylim(0, 4)
