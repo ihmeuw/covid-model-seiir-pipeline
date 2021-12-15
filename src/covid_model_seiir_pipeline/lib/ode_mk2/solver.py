@@ -150,9 +150,10 @@ def _run_loc_ode_model(ic_and_params,
 
 
 def _sort_columns(initial_condition: pd.DataFrame) -> pd.DataFrame:    
-    initial_condition_columns = [f'{compartment}_{risk_group}'
-                                 for risk_group, compartment
-                                 in itertools.product(RISK_GROUP_NAMES, COMPARTMENTS_NAMES + TRACKING_COMPARTMENTS_NAMES)]
+    initial_condition_columns = [
+        f'{compartment}_{risk_group}' for risk_group, compartment
+        in itertools.product(RISK_GROUP_NAMES, COMPARTMENTS_NAMES + TRACKING_COMPARTMENTS_NAMES)
+    ]
     assert set(initial_condition_columns) == set(initial_condition.columns)
     initial_condition = initial_condition.loc[:, initial_condition_columns]    
 
@@ -163,7 +164,7 @@ def _interpolate_y(t0: float,
                    t: np.ndarray,
                    t_solve: np.ndarray,
                    y: np.ndarray,
-                   system_type: bool) -> np.ndarray:
+                   system_type: int) -> np.ndarray:
     y_solve = np.empty((t_solve.size, y.shape[1]))
     for compartment in np.arange(y.shape[1]):
         if system_type == SYSTEM_TYPE.beta_and_rates:
