@@ -81,7 +81,7 @@ def run_beta_fit(fit_version: str, draw_id: int, progress_bar: bool) -> None:
     )
 
     logger.info('Generating naive infections for first pass rates model', context='transform')
-    daily_deaths = epi_measures['daily_deaths'].dropna()
+    daily_deaths = epi_measures['smoothed_daily_deaths'].dropna()
     naive_ifr = specification.rates_parameters.naive_ifr
     daily_infections = (daily_deaths / naive_ifr).rename('daily_infections').reset_index()
     daily_infections['date'] -= pd.Timedelta(days=durations.exposure_to_death)
