@@ -24,9 +24,12 @@ from covid_model_seiir_pipeline.lib.ode_mk2.constants import (
     EPI_MEASURE,
     RISK_GROUP,
     VARIANT,
+    VACCINE_STATUS,
     VARIANT_GROUP,
+    COMPARTMENT,
     TRACKING_COMPARTMENT,
     AGG_INDEX_TYPE,
+    COMPARTMENTS,
     TRACKING_COMPARTMENTS,
 )
 from covid_model_seiir_pipeline.lib.ode_mk2.system import (
@@ -283,18 +286,26 @@ def compute_chis(time, t_solve, y_solve, phis, chis):
         for from_variant in VARIANT[1:]:
             idx = TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT.Infection, VARIANT_GROUP.all,
                                         from_variant, AGG_INDEX_TYPE.all]
-            cumulative_new_e_variant = group_y[:, idx]
-            denominator = cumulative_new_e_variant[-1]
+            cumulative_infections_variant = group_y[:, idx]
+            total_infections_variant = cumulative_infections_variant[-1]
 
-            if denominator:                
+            total_s = 0.
+            for vaccine_status in VACCINE_STATUS:
+                total_s += COMPARTMENTS[COMPARTMENT.S, vaccine_status, from_variant]
+
+            if total_infections_variant:
                 for epi_measure, to_variant in cartesian_product((np.array(EPI_MEASURE), np.array(VARIANT[1:]))):
+                    denominator = 0.
                     numerator = 0.
+
                     idx = CHI[from_variant, to_variant, epi_measure]
 
                     for tau in range(1, t_end):
-                        numerator += (
-                            (cumulative_new_e_variant[-tau] - cumulative_new_e_variant[-tau - 1]) * phis[tau, idx]
-                        )
+                        infections = cumulative_infections_variant[-tau] - cumulative_infections_variant[-tau - 1]
+                        denominator += infections
+                        numerator += infections * phis[tau, idx]
+                        if denominator > total_s:
+                            break
 
                     group_chi[idx] = numerator / denominator
 
