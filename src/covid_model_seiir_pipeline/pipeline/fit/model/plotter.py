@@ -202,7 +202,7 @@ def ies_plot(data: Tuple[Location, Dict[str, pd.DataFrame]],
             ax=ax,
             measure=f'posterior_{metric}_naive_infections',
             color='black',
-            label=f'{metric.capitalize()} Infections{suffix}',
+            label=f'{metric.capitalize()} Infected{suffix}',
             uncertainty=True,
             transform=transform,
         )
