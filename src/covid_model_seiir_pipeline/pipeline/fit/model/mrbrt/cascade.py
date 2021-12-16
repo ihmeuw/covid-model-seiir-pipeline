@@ -15,6 +15,7 @@ def run_cascade(model_data: pd.DataFrame,
                 hierarchy: pd.DataFrame,
                 var_args: Dict,
                 global_prior_dict: Dict,
+                location_prior_dict: Dict,
                 level_lambdas: Dict,
                 child_cutoff_level: int = 3):
     '''
@@ -52,6 +53,7 @@ def run_cascade(model_data: pd.DataFrame,
             hierarchy=hierarchy,
             prior_dicts=prior_dicts,
             var_args=var_args,
+            location_prior_dict=location_prior_dict,
             child_cutoff_level=child_cutoff_level,
             global_mr_data=global_mr_data,
         )
@@ -70,6 +72,7 @@ def run_level(level_lambda: Dict,
               hierarchy: pd.DataFrame,
               prior_dicts: Dict,
               var_args: Dict,
+              location_prior_dict: Dict,
               child_cutoff_level: int,
               global_mr_data: MRData):
     level_mr_model_dict = {}
@@ -84,16 +87,17 @@ def run_level(level_lambda: Dict,
             child_locations = hierarchy.loc[location_in_path_hierarchy, 'location_id'].to_list()
         location_in_path_model = model_data['location_id'].isin(child_locations)
         location_model_data = model_data.loc[location_in_path_model].copy()
-        location_mr_model, location_prior_dict = run_location(
+        location_mr_model, _location_prior_dict = run_location(
             location_id=location_id,
             model_data=location_model_data,
             prior_dict=parent_prior_dict,
+            location_prior_dict=location_prior_dict.get(location_id, {}),
             level_lambda=level_lambda,
             global_mr_data=global_mr_data,
             var_args=var_args,
         )
         level_mr_model_dict.update({location_id:location_mr_model})
-        level_prior_dicts.update({location_id:location_prior_dict})
+        level_prior_dicts.update({location_id:_location_prior_dict})
     
     return level_mr_model_dict, level_prior_dicts
 
@@ -101,6 +105,7 @@ def run_level(level_lambda: Dict,
 def run_location(location_id: int,
                  model_data: pd.DataFrame,
                  prior_dict: Dict,
+                 location_prior_dict: Dict,
                  level_lambda: Dict,
                  global_mr_data: MRData,
                  var_args: Dict,):
@@ -108,9 +113,10 @@ def run_location(location_id: int,
     location_var_args = deepcopy(var_args)
     combined_prior_dict = {}
     for data_var in list(set(location_var_args['fe_vars'] + location_var_args['re_vars'])):
-        location_prior_dict = prior_dict.get(data_var)
-        global_prior_dict = location_var_args['prior_dict'].get(data_var, {})
-        combined_prior_dict.update({data_var: {**location_prior_dict, **global_prior_dict}})
+        data_var_dict = prior_dict.get(data_var)
+        data_var_dict.update(location_var_args['prior_dict'].get(data_var, {}))
+        data_var_dict.update(location_prior_dict.get(data_var, {}))
+        combined_prior_dict.update({data_var: {**data_var_dict}})
     location_var_args['prior_dict'] = combined_prior_dict
     mr_model = mrbrt.run_mr_model(
         model_data=model_data,

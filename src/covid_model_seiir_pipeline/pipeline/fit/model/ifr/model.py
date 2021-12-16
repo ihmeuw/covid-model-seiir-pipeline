@@ -28,6 +28,7 @@ def run_model(model_data: pd.DataFrame,
      level_lambdas,
      var_args,
      global_prior_dict,
+     location_prior_dict,
      pred_replace_dict,
      pred_exclude_vars) = prepare_model(
         model_data=model_data,
@@ -45,6 +46,7 @@ def run_model(model_data: pd.DataFrame,
         hierarchy=mr_hierarchy.copy(),
         var_args=var_args.copy(),
         global_prior_dict=global_prior_dict.copy(),
+        location_prior_dict=location_prior_dict.copy(),
         level_lambdas=level_lambdas.copy(),
     )
     pred_data = pred_data.dropna()
@@ -132,6 +134,14 @@ def prepare_model(model_data: pd.DataFrame,
         },
         **covariate_priors,
     }
+    location_prior_dict = {
+        62: {
+            't': {
+                'prior_spline_maxder_uniform': np.array([[-0., -0.],
+                                                         [ 0.,  0.]])
+            },
+        }
+    }
     pred_replace_dict = {}
     pred_exclude_vars = []
     level_lambdas = {
@@ -158,5 +168,6 @@ def prepare_model(model_data: pd.DataFrame,
             level_lambdas,
             var_args,
             global_prior_dict,
+            location_prior_dict,
             pred_replace_dict,
             pred_exclude_vars)

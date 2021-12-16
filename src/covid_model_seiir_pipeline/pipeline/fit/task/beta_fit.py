@@ -264,6 +264,8 @@ def run_beta_fit(fit_version: str, draw_id: int, progress_bar: bool) -> None:
                                .loc[:, idx_cols + ['seroprevalence']]
                                .rename(columns={'seroprevalence': 'adjusted_seroprevalence'}))
     out_seroprevalence = out_seroprevalence.merge(adjusted_seroprevalence)
+    out_seroprevalence['sero_date'] = out_seroprevalence['date']
+    out_seroprevalence['date'] -= pd.Timedelta(days=durations.exposure_to_seroconversion)
 
     logger.info('Writing outputs', context='write')
     data_interface.save_ode_params(out_params, draw_id=draw_id)
