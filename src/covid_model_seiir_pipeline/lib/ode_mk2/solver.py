@@ -292,7 +292,7 @@ def compute_chis(time, t_solve, y_solve, phis, chis):
 
             total_s = 0.
             for vaccine_status in VACCINE_STATUS:
-                total_s += COMPARTMENTS[COMPARTMENT.S, vaccine_status, from_variant]
+                total_s += group_y[-1, COMPARTMENTS[COMPARTMENT.S, vaccine_status, from_variant]]
 
             if total_infections_variant:
                 for epi_measure, to_variant in cartesian_product((np.array(EPI_MEASURE), np.array(VARIANT[1:]))):
