@@ -148,12 +148,16 @@ def ies_plot(data: Tuple[Location, Dict[str, pd.DataFrame]],
             color=MEASURE_COLORS[measure]['light'],
             linestyle='--',
         )
-        ax_measure.set_ylim(ylim)
+        ratio_plot_range = data_dictionary[f'prior_{measure}']
+        if ratio_plot_range is not None:
+            ratio_plot_range = ratio_plot_range.loc[:, 'mean'] * 100
 
         rates_data = data_dictionary['rates_data']
         if rates_data is not None:
             try:             
                 rates_data = rates_data.loc[measure]
+                ratio_plot_range = pd.concat([ratio_plot_range,
+                                              rates_data.loc[:, 'value'].rename('mean') * 100])
                 ax_measure.scatter(
                     rates_data.index,
                     rates_data.values * 100,
@@ -163,6 +167,17 @@ def ies_plot(data: Tuple[Location, Dict[str, pd.DataFrame]],
                 )
             except KeyError:
                 pass
+
+        if ratio_plot_range is not None:
+            ratio_plot_range = (ratio_plot_range
+                                .replace((-np.inf, np.inf), np.nan)
+                                .dropna())
+            ratio_plot_min, ratio_plot_max = ratio_plot_range.quantile((0, 1))
+            ratio_plot_lim = (max(0, ratio_plot_min - ratio_plot_max * 0.2),
+                              min(100, ratio_plot_max + ratio_plot_max * 0.2))
+            ax_measure.set_ylim(ratio_plot_lim)
+        else:
+            ax_measure.set_ylim(ylim)
 
         group_axes.append(ax_measure)
 
