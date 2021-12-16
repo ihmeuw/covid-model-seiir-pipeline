@@ -150,8 +150,8 @@ def run_beta_fit(fit_version: str, draw_id: int, progress_bar: bool) -> None:
     )
 
     pct_unvaccinated = (
-        (agg_first_pass_posterior_epi_measures['cumulative_naive_unvaccinated_infections'] /
-         agg_first_pass_posterior_epi_measures['cumulative_naive_infections'])
+        (agg_first_pass_posterior_epi_measures['cumulative_naive_unvaccinated_infections']
+         / agg_first_pass_posterior_epi_measures['cumulative_naive_infections'])
         .clip(0, 1)
         .fillna(1)
         .rename('pct_unvaccinated')
@@ -170,6 +170,7 @@ def run_beta_fit(fit_version: str, draw_id: int, progress_bar: bool) -> None:
         seroprevalence=seroprevalence,
         daily_infections=(agg_first_pass_posterior_epi_measures['daily_total_infections']
                           .rename('daily_infections')),
+        population=total_population,
         durations=durations,
     )
     adjusted_seroprevalence = adjusted_seroprevalence.merge(pct_unvaccinated, how='left')
