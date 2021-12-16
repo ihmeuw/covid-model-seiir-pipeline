@@ -172,6 +172,8 @@ def do_beta_rates_adjustment(rates: np.ndarray, betas: np.ndarray) -> np.ndarray
     for risk_group in RISK_GROUP:
         group_rates = subset_risk_group(rates, risk_group)
         for epi_measure in REPORTED_EPI_MEASURE:
+            if betas[BETAS[epi_measure]] == 0.:
+                continue
             adjustment = safe_divide(betas[BETAS[epi_measure]],
                                      betas[BETAS[EPI_MEASURE.infection]])
             iteritems = cartesian_product((np.array(VARIANT), np.array(VARIANT), np.array(VACCINE_STATUS)))
