@@ -169,26 +169,22 @@ def load_seroprevalence(data_interface: FitDataInterface,
                        .set_index(['data_id', 'location_id', 'sero_date', 'is_outlier'])
                        .loc[:, ['reported_seroprevalence']])
 
+    idx_cols = ['data_id', 'location_id', 'sero_date', 'is_outlier']
     adjusted_sero_data = []
     for draw in tqdm.trange(num_draws, disable=not progress_bar):
         df = (data_interface
               .load_final_seroprevalence(draw)
-              .reset_index()
-              .set_index(['data_id', 'location_id', 'sero_date', 'is_outlier'])
-              .loc[:, ['date', 'seroprevalence', 'adjusted_seroprevalence']])
+              .loc[:, idx_cols + ['date', 'seroprevalence', 'adjusted_seroprevalence']])
         adjusted_sero_data.append(df)
-    adjusted_data = (pd.concat(adjusted_sero_data)
-                     .reset_index()
-                     .groupby(['data_id', 'location_id', 'sero_date', 'is_outlier']))
+    adjusted_data = pd.concat(adjusted_sero_data).groupby(idx_cols)
     adjusted_data = (pd.concat([adjusted_data['date'].median(),
                                 adjusted_data[['seroprevalence', 'adjusted_seroprevalence']].mean()],
                                axis=1)
                      .reset_index()
                      .set_index(['data_id', 'location_id', 'date', 'sero_date', 'is_outlier']))
-    seroprevalence = pd.concat([input_sero_data, adjusted_data], axis=1)
-    seroprevalence = (seroprevalence
-                      .reset_index()
-                      .drop(columns='data_id'))
+    seroprevalence = input_sero_data.join(adjusted_data, how='outer').reset_index()
+    seroprevalence['date'] = seroprevalence['date'].fillna(seroprevalence['sero_date'])
+    seroprevalence = seroprevalence.drop(columns='data_id')
     return seroprevalence
 
 
