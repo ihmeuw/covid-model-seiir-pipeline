@@ -89,6 +89,7 @@ def prepare_ode_fit_parameters(rates: Rates,
         for from_variant, to_variant in itertools.product(VARIANT_NAMES, VARIANT_NAMES):
             cvi = natural_waning_matrix.loc[from_variant, to_variant]
             phi = 1 - (1 - cvi * w_target) / (1 - cvi * w_base)
+            phi[phi.cummax() < phi.max()] = phi.max()
             phis.append(phi.rename(f'{from_variant}_{to_variant}_{endpoint}'))
     phis = pd.concat(phis, axis=1)
 
