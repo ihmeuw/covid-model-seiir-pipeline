@@ -228,7 +228,7 @@ def ies_plot(data: Tuple[Location, Dict[str, pd.DataFrame]],
                          s=100, c='orange', edgecolors='darkorange', alpha=0.3, marker='^', zorder=2)
         ax_cumul.scatter(sero_data.loc[sero_data['is_outlier'] == 0].index,
                          sero_data.loc[sero_data['is_outlier'] == 0, 'adjusted_seroprevalence'] * 100,
-                         s=120, c='mediumorchid', edgecolors='darkmagenta', alpha=0.6, marker='o', zorder=2)
+                         s=150, c='mediumorchid', edgecolors='darkmagenta', alpha=0.6, marker='o', zorder=2)
 
     group_axes = [ax_daily, ax_cumul]
 
