@@ -191,7 +191,7 @@ def ies_plot(data: Tuple[Location, Dict[str, pd.DataFrame]],
         for measure in ['cases', 'deaths', 'hospitalizations']:
             plotter.make_time_plot(
                 ax=ax,
-                measure=f'posterior_{measure}_based_{metric}_naive_unvaccinated_infections',
+                measure=f'posterior_{measure}_based_{metric}_naive_infections',
                 color=MEASURE_COLORS[measure]['light'],
                 linestyle='--',
                 transform=transform,
@@ -200,7 +200,7 @@ def ies_plot(data: Tuple[Location, Dict[str, pd.DataFrame]],
         suffix = ' (%)' if metric == 'cumulative' else ''
         plotter.make_time_plot(
             ax=ax,
-            measure=f'posterior_{metric}_naive_unvaccinated_infections',
+            measure=f'posterior_{metric}_naive_infections',
             color='black',
             label=f'{metric.capitalize()} Infections{suffix}',
             uncertainty=True,
