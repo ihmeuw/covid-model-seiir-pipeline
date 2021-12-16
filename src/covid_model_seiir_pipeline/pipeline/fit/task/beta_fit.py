@@ -275,7 +275,7 @@ def run_beta_fit(fit_version: str, draw_id: int, progress_bar: bool) -> None:
 
     idx_cols = ['data_id', 'location_id', 'date', 'is_outlier']
     out_seroprevalence = seroprevalence.loc[:, idx_cols + ['reported_seroprevalence', 'seroprevalence']]
-    adjusted_seroprevalence['seroprevalence'] /= adjusted_seroprevalence['pct_unvaccinated']
+    # adjusted_seroprevalence['seroprevalence'] /= adjusted_seroprevalence['pct_unvaccinated']
     adjusted_seroprevalence = (adjusted_seroprevalence
                                .loc[:, idx_cols + ['seroprevalence']]
                                .rename(columns={'seroprevalence': 'adjusted_seroprevalence'}))

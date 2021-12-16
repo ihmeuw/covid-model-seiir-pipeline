@@ -184,7 +184,9 @@ def load_seroprevalence(data_interface: FitDataInterface,
                      .set_index(['data_id', 'location_id', 'date', 'sero_date', 'is_outlier']))
     seroprevalence = input_sero_data.join(adjusted_data, how='outer').reset_index()
     seroprevalence['date'] = seroprevalence['date'].fillna(seroprevalence['sero_date'])
-    seroprevalence = seroprevalence.drop(columns='data_id')
+    seroprevalence = (seroprevalence
+                      .drop(columns='data_id')
+                      .set_index(['location_id', 'date']))
     return seroprevalence
 
 
