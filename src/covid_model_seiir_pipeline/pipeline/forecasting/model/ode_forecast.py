@@ -87,11 +87,9 @@ def build_model_parameters(indices: Indices,
         lag = ode_parameters.loc[f'exposure_to_{epi_measure}']
         infections = (posterior_epi_measures
                       .loc[:, 'daily_naive_unvaccinated_infections']
-                      .reindex(indices.full)
-                      .groupby('location_id')
-                      .shift(lag))
+                      .reindex(indices.full))
         ratio_measure, ratio_name = measure_map[epi_measure]
-        numerator = posterior_epi_measures.loc[:, f'daily_{ratio_measure}'].reindex(indices.full)
+        numerator = posterior_epi_measures.loc[:, f'daily_{ratio_measure}'].reindex(indices.full).groupby('location_id').shift(-lag)
         prior_ratio = prior_ratios.loc[:, ratio_name].groupby('location_id').last()
         ode_params.loc[:, f'rate_all_{epi_measure}'] = build_ratio(infections, numerator, prior_ratio)
 
