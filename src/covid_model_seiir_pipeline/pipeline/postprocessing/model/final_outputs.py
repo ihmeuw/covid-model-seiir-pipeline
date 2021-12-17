@@ -83,7 +83,7 @@ DataConfig = Union[MeasureConfig, CovariateConfig, CompositeMeasureConfig, Misce
 MEASURES = {}
 
 
-for measure in ['deaths', 'cases', 'admissions']:
+for measure in ['infections', 'deaths', 'cases', 'admissions']:
     for suffix in list(VARIANT_NAMES[1:]) + list(RISK_GROUP_NAMES) + ['total', 'naive', 'naive_unvaccinated']:
         measure_suffix = f'_{suffix}'
         label_suffix = f'_{suffix}' if suffix != 'total' else ''
