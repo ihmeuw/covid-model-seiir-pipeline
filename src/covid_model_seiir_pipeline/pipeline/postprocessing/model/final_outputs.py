@@ -257,6 +257,18 @@ MEASURES = {
         'beta_scaling_parameters',
         write_draws=True,
     ),
+    'infection_to_death': MeasureConfig(
+        loaders.load_ode_params('exposure_to_death'),
+        'infection_to_death',
+    ),
+    'infection_to_case': MeasureConfig(
+        loaders.load_ode_params('exposure_to_case'),
+        'infection_to_case',
+    ),
+    'infection_to_admission': MeasureConfig(
+        loaders.load_ode_params('exposure_to_admission'),
+        'infection_to_admission',
+    ),
 }
 
 for measure in ['boosters', 'vaccinations']:
@@ -319,52 +331,23 @@ for key in list(VARIANT_NAMES[1:]) + ['total']:
         )
 
 
-COMPOSITE_MEASURES = {
-    # 'infection_fatality_ratio': CompositeMeasureConfig(
-    #    base_measures={'numerator': MEASURES['deaths'],
-    #                   'denominator': MEASURES['infections'],
-    #                   'duration': MEASURES['infection_to_death']},
-    #    label='infection_fatality_ratio',
-    #    combiner=combiners.make_ratio,
-    # ),
-    # 'infection_fatality_ratio_modeled': CompositeMeasureConfig(
-    #    base_measures={'numerator': MEASURES['deaths_modeled'],
-    #                   'denominator': MEASURES['infections_total'],
-    #                   'duration': MEASURES['infection_to_death']},
-    #    label='infection_fatality_ratio_modeled',
-    #    combiner=combiners.make_ratio,
-    # ),
-    # 'infection_fatality_ratio_high_risk': CompositeMeasureConfig(
-    #    base_measures={'numerator': MEASURES['deaths_hr'],
-    #                   'denominator': MEASURES['infections_hr'],
-    #                   'duration': MEASURES['infection_to_death']},
-    #    label='infection_fatality_ratio_high_risk',
-    #    combiner=combiners.make_ratio,
-    # ),
-    # 'infection_fatality_ratio_low_risk': CompositeMeasureConfig(
-    #    base_measures={'numerator': MEASURES['deaths_lr'],
-    #                   'denominator': MEASURES['infections_lr'],
-    #                   'duration': MEASURES['infection_to_death']},
-    #    label='infection_fatality_ratio_low_risk',
-    #    combiner=combiners.make_ratio,
-    # ),
-    #
-    # 'infection_hospitalization_ratio': CompositeMeasureConfig(
-    #    base_measures={'numerator': MEASURES['hospital_admissions'],
-    #                   'denominator': MEASURES['infections'],
-    #                   'duration': MEASURES['infection_to_admission']},
-    #    label='infection_hospitalization_ratio',
-    #    combiner=combiners.make_ratio,
-    # ),
-    # 'infection_detection_ratio': CompositeMeasureConfig(
-    #    base_measures={'numerator': MEASURES['cases'],
-    #                   'denominator': MEASURES['infections'],
-    #                   'duration': MEASURES['infection_to_case']},
-    #    label='infection_detection_ratio',
-    #    combiner=combiners.make_ratio,
-    # ),
-}
+COMPOSITE_MEASURES = {}
+ratio_map = [('infection_fatality_ratio', 'deaths', 'infection_to_death'),
+             ('infection_hospitalization_ratio', 'hospital_admissions', 'infection_to_admission'),
+             ('infection_detection_ratio', 'cases', 'infection_to_case')]
+for ratio, measure, lag in ratio_map:
+    for risk_group in ['', '_high_risk', '_low_risk']:
+        risk_group_short = ''.join([s[0] for s in risk_group[1:].split('_')]) if risk_group else ''
 
+        COMPOSITE_MEASURES[f'{ratio}{risk_group}'] = CompositeMeasureConfig(
+            base_measures={'numerator': MEASURES[f'{measure}{risk_group_short}'],
+                           'denominator': MEASURES[f'infections{risk_group_short}'],
+                           'duration': MEASURES[lag]},
+            label=ratio,
+            duration_label=lag,
+            combiner=combiners.make_ratio,
+        )
+f
 
 COVARIATES = {
     'mobility': CovariateConfig(
