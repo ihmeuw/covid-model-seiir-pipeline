@@ -344,10 +344,8 @@ for ratio, measure, lag in ratio_map:
                            'denominator': MEASURES[f'infections{risk_group_short}'],
                            'duration': MEASURES[lag]},
             label=ratio,
-            duration_label=lag,
             combiner=combiners.make_ratio,
         )
-f
 
 COVARIATES = {
     'mobility': CovariateConfig(

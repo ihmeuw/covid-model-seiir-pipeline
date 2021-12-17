@@ -196,11 +196,6 @@ def postprocess_composite_measure(postprocessing_version: str,
         )
         measure_data[base_measure] = base_measure_data
 
-    if measure_config.duration_label:
-        measure_data['duration'] = load_and_resample_measure(
-
-        )
-
     measure_data = measure_config.combiner(**measure_data)
 
     summarize_and_write(
