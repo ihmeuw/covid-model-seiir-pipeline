@@ -4,7 +4,7 @@ data:
   output_format: 'parquet'
 workflow:
   project: 'proj_covid_prod'
-  queue: 'long.q'
+  queue: 'd.q'
 scenarios:
   reference:
     algorithm: 'normal' # 'draw_level_mandate_reimposition'
