@@ -268,7 +268,7 @@ def process_raw_serology_data(data: pd.DataFrame) -> pd.DataFrame:
 
     # Punjab, PAK
     is_pp = data['location_id'] == 53620
-    is_pakistan_july = data['survey_series'] == 'is_pakistan_july'
+    is_pakistan_july = data['survey_series'] == 'pakistan_july'
 
     pp_outlier = is_pp & is_pakistan_july
     outliers.append(pp_outlier)
