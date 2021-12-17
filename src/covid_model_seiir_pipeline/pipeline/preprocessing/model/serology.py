@@ -321,6 +321,16 @@ def process_raw_serology_data(data: pd.DataFrame) -> pd.DataFrame:
     logger.debug(f'{pp_outlier.sum()} rows from sero data dropped due to implausibility '
                  '(or at least incompatibility) of Punjab (PAK) July survey.')
 
+    # Mozambique INS
+    is_moz = data['location_id'] == 184
+    is_moz_ins_incovid2020 = data['survey_series'] == 'moz_ins_incovid2020'
+    is_pre_aug_2020 = data['date'] < pd.Timestamp('2020-08-01')
+
+    moz_outlier = is_moz & is_moz_ins_incovid2020 & is_pre_aug_2020
+    outliers.append(moz_outlier)
+    logger.debug(f'{moz_outlier.sum()} rows from sero data dropped due to implausibility '
+                 '(or at least incompatibility) of first Mozabique INS survey.')
+
     # 4) Level threshold - location max > 3%, value max > 1%
     # exemtions -> Brazil
     na_list = [135]
