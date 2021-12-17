@@ -225,7 +225,7 @@ def process_raw_serology_data(data: pd.DataFrame) -> pd.DataFrame:
                   .apply(lambda x: x.max() < 0.03)
                   .rename('is_maxsub3')
                   .reset_index())
-    is_maxsub3 = data.merge(is_maxsub3)['is_maxsub3']
+    is_maxsub3 = data.merge(is_maxsub3, how='left').loc[data.index, 'is_maxsub3']
     del data['tmp_outlier']
     is_sub1 = data['seroprevalence'] < 0.01
     is_maxsub3_sub1 = is_maxsub3 | is_sub1
