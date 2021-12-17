@@ -161,7 +161,8 @@ class PostprocessingDataInterface:
         return self.forecast_data_interface.load_raw_covariates(scenario, draw_id)
 
     def load_ode_params(self, scenario: str, draw_id: int, columns: List[str] = None) -> pd.DataFrame:
-        return self.forecast_data_interface.load_ode_params(scenario, draw_id, columns=columns)
+        idx = self.forecast_data_interface.load_ode_params(scenario, 0, columns=columns).index
+        return self.forecast_data_interface.load_ode_params(scenario, draw_id, columns=columns).reindex(idx)
 
     def load_single_ode_param(self, draw_id: int, scenario: str, measure: str) -> pd.Series:
         draw_df = self.load_ode_params(draw_id=draw_id, scenario=scenario, columns=[measure])
