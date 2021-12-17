@@ -337,7 +337,7 @@ ratio_map = [('infection_fatality_ratio', 'deaths', 'infection_to_death'),
              ('infection_detection_ratio', 'cases', 'infection_to_case')]
 for ratio, measure, lag in ratio_map:
     for risk_group in ['', '_high_risk', '_low_risk']:
-        risk_group_short = ''.join([s[0] for s in risk_group[1:].split('_')]) if risk_group else ''
+        risk_group_short = '_' + ''.join([s[0] for s in risk_group[1:].split('_')]) if risk_group else ''
 
         COMPOSITE_MEASURES[f'{ratio}{risk_group}'] = CompositeMeasureConfig(
             base_measures={'numerator': MEASURES[f'{measure}{risk_group_short}'],
