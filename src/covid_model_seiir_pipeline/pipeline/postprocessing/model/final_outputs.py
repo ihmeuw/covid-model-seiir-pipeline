@@ -311,7 +311,7 @@ for ratio, measure, lag in ratio_map:
             base_measures={'numerator': MEASURES[f'{measure}{risk_group_short}'],
                            'denominator': MEASURES[f'infections{risk_group_short}'],
                            'duration': MEASURES[lag]},
-            label=ratio,
+            label=f'{ratio}{risk_group}',
             combiner=combiners.make_ratio,
         )
 
