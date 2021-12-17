@@ -120,7 +120,7 @@ def prepare_model(model_data: pd.DataFrame,
                 'spline_knots': np.array([0., inflection_point, 1.]),
                 'spline_degree': 1,
                 'prior_spline_maxder_uniform': np.array([[-0.01, -0.],
-                                                         [-1e-6,  0.]])
+                                                         [  -0.,  0.]])
             },
             **covariate_constraints
         },
@@ -138,36 +138,49 @@ def prepare_model(model_data: pd.DataFrame,
         location_id: {
             't': {
                 'prior_spline_maxder_gaussian': np.array([[  0.,   0.],
-                                                          [1e-3, 1e-3]])
+                                                          [1e-6, 1e-6]])
             }
         } for location_id in [
                               4,  # Southeast Asia, East Asia, and Oceania
+                              31,  # Central Europe, Eastern Europe, and Central Asia
+                              103,  # Latin America and Caribbean
+                              137,  # North Africa and Middle East (super region)
+                              158,  # South Asia (super region)
+                              166,  # Sub-Saharan Africa
+                             ]
+    }
+    location_prior_dict.update({
+        location_id: {
+            't': {
+                'prior_spline_maxder_gaussian': np.array([[  0.,   0.],
+                                                          [1e-3, 1e-3]])
+            }
+        } for location_id in [
                               5,  # East Asia
                               9,  # Southeast Asia
                               21,  # Oceania
-                              31,  # Central Europe, Eastern Europe, and Central Asia
+
                               32,  # Central Asia
                               42,  # Central Europe
                               56,  # Eastern Europe
-                              100,  # High-income North America
-                              103,  # Latin America and Caribbean
+
                               104,  # Caribbean
                               120,  # Andean Latin America
                               124,  # Central Latin America
                               134,  # Tropical Latin America
-                              137,  # North Africa and Middle East (super region)
+
                               138,  # North Africa and Middle East (region)
-                              158,  # South Asia (super region)
+
                               159,  # South Asia (region)
-                              166,  # Sub-Saharan Africa
+
                               167,  # Central Sub-Saharan Africa
                               174,  # Eastern Sub-Saharan Africa
                               192,  # Southern Sub-Saharan Africa
                               199,  # Western Sub-Saharan Africa
                              ]
-    }
+    })
     location_prior_dict.update({
-        location_id: {  # High-income
+        location_id: {
             't': {
                 'prior_spline_maxder_gaussian': np.array([[-2e-3,   0.],
                                                           [ 1e-3, 1e-3]])
@@ -178,6 +191,7 @@ def prepare_model(model_data: pd.DataFrame,
                               # 70,  # Australasia
                               # 73,  # Western Europe
                               # 96,  # Southern Latin America
+                              # 100,  # High-income North America
                              ]
     })
     pred_replace_dict = {}
