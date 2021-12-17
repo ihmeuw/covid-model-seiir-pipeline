@@ -271,10 +271,12 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
     )
 
     logger.info('Prepping outputs.', context='transform')
-    ode_params = pd.concat([model_parameters.base_parameters, beta, beta_hat], axis=1)
+    forecast_ode_params = pd.concat([model_parameters.base_parameters, beta, beta_hat], axis=1)
+    for measure in ['death', 'case', 'admission']:
+        forecast_ode_params[f'exposure_to_{measure}'] = ode_params.loc[f'exposure_to_{measure}']
 
     logger.info('Writing outputs.', context='write')
-    data_interface.save_ode_params(ode_params, scenario, draw_id)
+    data_interface.save_ode_params(forecast_ode_params, scenario, draw_id)
     data_interface.save_components(compartments, scenario, draw_id)
     data_interface.save_raw_covariates(covariates, scenario, draw_id)
     data_interface.save_raw_outputs(system_metrics, scenario, draw_id)
