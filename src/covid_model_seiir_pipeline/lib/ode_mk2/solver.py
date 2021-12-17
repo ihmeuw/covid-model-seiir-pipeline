@@ -124,19 +124,22 @@ def _run_loc_ode_model(ic_and_params,
     vaccines = _interpolate(t, t_params, vaccines.to_numpy())
     etas = _interpolate(t, t_params, etas.to_numpy())
     phis = phis.to_numpy()
-
-    y_solve, chis = _rk45_dde(
-        t0, tf,
-        t_solve,
-        y_solve,
-        parameters,
-        age_scalars,
-        vaccines,
-        etas,
-        phis,
-        system_type,
-        dt,
-    )
+    
+    try:
+        y_solve, chis = _rk45_dde(
+            t0, tf,
+            t_solve,
+            y_solve,
+            parameters,
+            age_scalars,
+            vaccines,
+            etas,
+            phis,
+            system_type,
+            dt,
+         )
+    except:
+        raise Exception(f'Location {location_id} failed in the ODE')
     loc_compartments = pd.DataFrame(_uninterpolate(y_solve, t_solve, t),
                                     columns=initial_condition.columns,
                                     index=initial_condition.index)

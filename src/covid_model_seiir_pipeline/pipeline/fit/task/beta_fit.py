@@ -55,7 +55,6 @@ def run_beta_fit(fit_version: str, draw_id: int, progress_bar: bool) -> None:
     sampled_ode_params, natural_waning_matrix = model.sample_ode_params(
         variant_severity, specification.fit_parameters, draw_id
     )
-
     logger.info('Rescaling deaths and formatting epi measures', context='transform')
     epi_measures = model.format_epi_measures(epi_measures, mr_hierarchy, pred_hierarchy, mortality_scalar, durations)
 

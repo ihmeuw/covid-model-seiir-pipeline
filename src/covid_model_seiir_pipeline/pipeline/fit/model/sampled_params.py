@@ -76,7 +76,7 @@ def sample_ode_params(variant_rr: VariantRR, beta_fit_params: FitParameters, dra
     beta_fit_params = beta_fit_params.to_dict()
     sampled_params = {}
     phis = {}
-    for parameter, param_spec in beta_fit_params:
+    for parameter, param_spec in beta_fit_params.items():
         if 'phi' in parameter:
             continue
 
@@ -93,7 +93,7 @@ def sample_ode_params(variant_rr: VariantRR, beta_fit_params: FitParameters, dra
                 phis[variant] = phi_spec
             elif isinstance(param_spec, (tuple, list)):
                 x1, x2 = param_spec
-                y2, y1 = phi_spec  # Note reverse as kappa and phi are inversely related.
+                y1, y2 = phi_spec
                 m = (y2 - y1) / (x2 - x1)
                 b = y1 - m * x1
                 phis[variant] = m * value + b
@@ -120,7 +120,7 @@ def sample_ode_params(variant_rr: VariantRR, beta_fit_params: FitParameters, dra
         index=pd.Index(VARIANT_NAMES, name='variant'),
     )
     for variant, phi in phis.items():
-        phi_matrix[phi_matrix['variant'] == s] = phi
+        phi_matrix.loc[phi_matrix[variant] == s, variant] = phi
 
     for measure, rate in (('death', 'ifr'), ('admission', 'ihr'), ('case', 'idr')):
         rr = variant_rr._asdict()[rate]
