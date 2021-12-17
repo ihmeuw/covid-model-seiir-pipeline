@@ -345,13 +345,17 @@ def run_ode_fit(initial_condition: pd.DataFrame,
              .fillna(betas)
              .rename(columns=lambda x: f'beta_{x.split("_")[3]}')
              .rename(columns={'beta_all': 'beta'}))
-        
-    # Clean up beta
-    # counts and beta should be identically indexed in production, 
+
+    # Clean up results
+    # counts and beta should be identically indexed in production,
     # but subset to beta in case we only ran a subset of locations for debugging
-    counts = ode_parameters.base_parameters.filter(like='count').loc[betas.index]    
+    counts = ode_parameters.base_parameters.filter(like='count').loc[betas.index]
+    no_counts = counts.sum(axis=1, min_count=1).isnull()
     for measure in ['death', 'admission', 'case']:
-        betas.loc[counts[f'count_all_{measure}'].isnull(), f'beta_{measure}'] = np.nan
+        no_counts_measure = counts[f'count_all_{measure}'].isnull()
+        betas.loc[no_counts_measure, f'beta_{measure}'] = np.nan
+        cols = [c for c in full_compartments if measure.capitalize() in c]
+        full_compartments.loc[no_counts, cols] = np.nan
     # Can have a composite beta if we don't have measure betas
     no_beta = betas[[f'beta_{measure}' for measure in ['death', 'admission', 'case']]].isnull().all(axis=1)
     betas.loc[no_beta, 'beta'] = np.nan
