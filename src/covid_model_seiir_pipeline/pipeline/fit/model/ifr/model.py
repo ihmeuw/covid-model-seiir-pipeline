@@ -135,12 +135,12 @@ def prepare_model(model_data: pd.DataFrame,
         **covariate_priors,
     }
     location_prior_dict = {
-        62: {
+        location_id: {
             't': {
-                'prior_spline_maxder_uniform': np.array([[-0., -0.],
-                                                         [ 0.,  0.]])
-            },
-        }
+                'prior_spline_maxder_gaussian': np.array([[  0.,   0.],
+                                                          [1e-6, 1e-6]])
+            }
+        } for location_id in [31, 32, 62,]
     }
     pred_replace_dict = {}
     pred_exclude_vars = []

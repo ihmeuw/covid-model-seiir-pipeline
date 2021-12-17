@@ -305,7 +305,7 @@ def calculate_seroreversion_factor(daily_infections: pd.DataFrame,
     daily_infections = daily_infections.merge(sensitivity.reset_index(), how='left')
     if daily_infections['sensitivity'].isnull().any():
         raise ValueError(f"Unmatched sero/sens points: {daily_infections.loc[daily_infections['sensitivity'].isnull()]}")
-    daily_infections *= min(1, 1 / daily_infections['daily_infections'].sum())
+    daily_infections['daily_infections'] *= min(1, 1 / daily_infections['daily_infections'].sum())
     seroreversion_factor = (
         (1 - daily_infections['daily_infections'].sum())
         / (1 - (daily_infections['daily_infections'] * daily_infections['sensitivity']).sum())
