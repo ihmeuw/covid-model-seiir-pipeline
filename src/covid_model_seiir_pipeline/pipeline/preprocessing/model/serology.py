@@ -220,16 +220,18 @@ def process_raw_serology_data(data: pd.DataFrame) -> pd.DataFrame:
     
     # 4) Level threshold - 3%
     data['tmp_outlier'] = pd.concat(outliers, axis=1).max(axis=1).astype(int)
-    is_sub3 = (data
-               .groupby(['location_id', 'tmp_outlier'])['seroprevalence']
-               .apply(lambda x: x.max() < 0.03)
-               .rename('is_sub3')
-               .reset_index())
-    is_sub3 = data.merge(is_sub3)['is_sub3']
+    is_maxsub3 = (data
+                  .groupby(['location_id', 'tmp_outlier'])['seroprevalence']
+                  .apply(lambda x: x.max() < 0.03)
+                  .rename('is_maxsub3')
+                  .reset_index())
+    is_maxsub3 = data.merge(is_maxsub3)['is_maxsub3']
     del data['tmp_outlier']
-    # is_sub3 = data['seroprevalence'] < 0.03
-    outliers.append(is_sub3)
-    logger.debug(f'{is_sub3.sum()} rows from sero data dropped due to having values below 3%.')
+    is_sub1 = data['seroprevalence'] < 0.01
+    is_maxsub3_sub1 = is_maxsub3 | is_sub1
+    outliers.append(is_maxsub3_sub1)
+    logger.debug(f'{is_maxsub3_sub1.sum()} rows from sero data dropped due to having values'
+                 'below 1% or a location max below 3%.')
     ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
 
     keep_columns = ['data_id', 'nid', 'survey_series', 'location_id', 'start_date', 'date',
