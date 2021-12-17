@@ -219,15 +219,15 @@ def process_raw_serology_data(data: pd.DataFrame) -> pd.DataFrame:
     logger.debug(f'{is_k_s.sum()} rows from sero data dropped from to early King/Snohomish data.')
     
     # 4) Level threshold - 3%
-    # data['tmp_outlier'] = pd.concat(outliers, axis=1).max(axis=1).astype(int)
-    # is_sub3 = (data
-    #            .groupby(['location_id', 'tmp_outlier'])['seroprevalence']
-    #            .apply(lambda x: x.max() < 0.03)
-    #            .rename('is_sub3')
-    #            .reset_index())
-    # is_sub3 = data.merge(is_sub3)['is_sub3']
-    # del data['tmp_outlier']
-    is_sub3 = data['seroprevalence'] < 0.03
+    data['tmp_outlier'] = pd.concat(outliers, axis=1).max(axis=1).astype(int)
+    is_sub3 = (data
+               .groupby(['location_id', 'tmp_outlier'])['seroprevalence']
+               .apply(lambda x: x.max() < 0.03)
+               .rename('is_sub3')
+               .reset_index())
+    is_sub3 = data.merge(is_sub3)['is_sub3']
+    del data['tmp_outlier']
+    # is_sub3 = data['seroprevalence'] < 0.03
     outliers.append(is_sub3)
     logger.debug(f'{is_sub3.sum()} rows from sero data dropped due to having values below 3%.')
     ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##

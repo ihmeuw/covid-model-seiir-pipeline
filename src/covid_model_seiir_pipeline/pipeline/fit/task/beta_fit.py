@@ -145,6 +145,7 @@ def run_beta_fit(fit_version: str, draw_id: int, progress_bar: bool) -> None:
         durations=durations
     )
     agg_first_pass_posterior_epi_measures = model.aggregate_posterior_epi_measures(
+        epi_measures=epi_measures,
         posterior_epi_measures=first_pass_posterior_epi_measures,
         hierarchy=mr_hierarchy
     )

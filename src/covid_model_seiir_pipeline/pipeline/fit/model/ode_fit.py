@@ -276,19 +276,31 @@ def compute_posterior_epi_measures(compartments: pd.DataFrame,
     return epi_measures
 
 
-def aggregate_posterior_epi_measures(posterior_epi_measures: pd.DataFrame,
+def aggregate_posterior_epi_measures(epi_measures: pd.DataFrame,
+                                     posterior_epi_measures: pd.DataFrame,
                                      hierarchy: pd.DataFrame) -> pd.DataFrame:
-    agg_posterior_epi_measures = pd.concat([
-        aggregate_data_from_md(posterior_epi_measures.loc[:, [measure]].dropna().reset_index(),
-                                     hierarchy,
-                                     measure).set_index(['location_id', 'date'])
-        for measure in ['cumulative_naive_unvaccinated_infections',
-                        'cumulative_naive_infections',
-                        'cumulative_total_infections',
-                        'cumulative_deaths',
-                        'cumulative_cases',
-                        'cumulative_hospitalizations']
-    ], axis=1)
+    posterior_locs = posterior_epi_measures.reset_index()['location_id'].unique().tolist()
+    epi_measures = epi_measures.loc[posterior_locs]
+    agg_posterior_epi_measures = []
+    for measure in ['cumulative_naive_unvaccinated_infections',
+                    'cumulative_naive_infections',
+                    'cumulative_total_infections',
+                    'cumulative_deaths',
+                    'cumulative_cases',
+                    'cumulative_hospitalizations']:
+        if 'infections' in measure:
+            pem = (posterior_epi_measures.loc[:, [measure]]
+                   .dropna()
+                   .reset_index())
+        else:
+            pem = (posterior_epi_measures.loc[epi_measures.loc[epi_measures[measure].notnull()].index,
+                                                       [measure]]
+                   .dropna()
+                   .reset_index())
+        agg_posterior_epi_measures.append(
+            aggregate_data_from_md(pem, hierarchy, measure).set_index(['location_id', 'date'])
+        )
+    agg_posterior_epi_measures = pd.concat(agg_posterior_epi_measures, axis=1)
     agg_posterior_epi_measures = pd.concat([
         agg_posterior_epi_measures,
         (agg_posterior_epi_measures
