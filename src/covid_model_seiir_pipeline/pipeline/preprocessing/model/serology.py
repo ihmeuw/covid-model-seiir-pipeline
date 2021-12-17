@@ -214,11 +214,21 @@ def process_raw_serology_data(data: pd.DataFrame) -> pd.DataFrame:
 
     # King/Snohomish data is too early
     is_k_s = data['location_id'] == 60886
-    is_may_2020 = data['date'] <= pd.Timestamp('2020-05-01')
+    is_pre_may_2020 = data['date'] < pd.Timestamp('2020-05-01')
 
-    k_s_outlier = is_k_s & is_may_2020
+    k_s_outlier = is_k_s & is_pre_may_2020
     outliers.append(k_s_outlier)
     logger.debug(f'{k_s_outlier.sum()} rows from sero data dropped due to noisy (early) King/Snohomish data.')
+
+    # Ceuta first round
+    is_ceu = data['location_id'] == 60369
+    is_ene_covid = data['survey_series'] == 'ene_covid'
+    is_pre_june_2020 = data['date'] < pd.Timestamp('2020-06-01')
+
+    ceu_outlier = is_ceu & is_ene_covid & is_pre_june_2020
+    outliers.append(ceu_outlier)
+    logger.debug(f'{ceu_outlier.sum()} rows from sero data dropped due to implausibility '
+                 '(or at least incompatibility) of first survey round in Ceuta.')
 
     # Kazakhstan collab data
     is_kaz = data['location_id'] == 36
@@ -238,6 +248,33 @@ def process_raw_serology_data(data: pd.DataFrame) -> pd.DataFrame:
     outliers.append(alb_outlier)
     logger.debug(f'{alb_outlier.sum()} rows from sero data dropped due to implausibility '
                  '(or at least incompatibility) of first round of Albania survey.')
+
+    # Chhattisgarh ICMR round 2
+    is_chhatt = data['location_id'] == 4846
+    is_icmr_round2 = data['survey_series'] == 'icmr_round2'
+
+    chhatt_outlier = is_chhatt & is_icmr_round2
+    outliers.append(chhatt_outlier)
+    logger.debug(f'{chhatt_outlier.sum()} rows from sero data dropped due to implausibility '
+                 '(or at least incompatibility) of Chhattisgarh survey data (ICMR round 2).')
+
+    # Gujarat ICMR round 2
+    is_guj = data['location_id'] == 4851
+    is_icmr_round2 = data['survey_series'] == 'icmr_round2'
+
+    guj_outlier = is_guj & is_icmr_round2
+    outliers.append(guj_outlier)
+    logger.debug(f'{guj_outlier.sum()} rows from sero data dropped due to implausibility '
+                 '(or at least incompatibility) of Gujarat survey data (ICMR round 2).')
+
+    # Himachal Pradesh non-ICMR survey
+    is_hp = data['location_id'] == 4853
+    is_phenome_india = data['survey_series'] == 'phenome_india'
+
+    hp_outlier = is_hp & is_phenome_india
+    outliers.append(hp_outlier)
+    logger.debug(f'{hp_outlier.sum()} rows from sero data dropped due to implausibility '
+                 '(or at least incompatibility) of Himachal Pradesh survey data (non-ICMR).')
 
     # Jharkhand non-ICMR survey
     is_jhark = data['location_id'] == 4855
@@ -266,6 +303,15 @@ def process_raw_serology_data(data: pd.DataFrame) -> pd.DataFrame:
     logger.debug(f'{odisha_outlier.sum()} rows from sero data dropped due to implausibility '
                  '(or at least incompatibility) of Odisha survey data (ICMR round 2).')
 
+    # Rajasthan ICMR round 2
+    is_raj = data['location_id'] == 4868
+    is_icmr_round2 = data['survey_series'] == 'icmr_round2'
+
+    raj_outlier = is_raj & is_icmr_round2
+    outliers.append(raj_outlier)
+    logger.debug(f'{raj_outlier.sum()} rows from sero data dropped due to implausibility '
+                 '(or at least incompatibility) of Rajasthan survey data (ICMR round 2).')
+
     # Punjab, PAK
     is_pp = data['location_id'] == 53620
     is_pakistan_july = data['survey_series'] == 'pakistan_july'
@@ -275,7 +321,7 @@ def process_raw_serology_data(data: pd.DataFrame) -> pd.DataFrame:
     logger.debug(f'{pp_outlier.sum()} rows from sero data dropped due to implausibility '
                  '(or at least incompatibility) of Punjab (PAK) July survey.')
 
-    # 4) Level threshold - location max > 3%, value max > 1.5%
+    # 4) Level threshold - location max > 3%, value max > 1%
     # exemtions -> Brazil
     na_list = [135]
     data['tmp_outlier'] = pd.concat(outliers, axis=1).max(axis=1).astype(int)
@@ -287,11 +333,11 @@ def process_raw_serology_data(data: pd.DataFrame) -> pd.DataFrame:
                   .reset_index())
     is_maxsub3 = data.merge(is_maxsub3, how='left').loc[data.index, 'is_maxsub3']
     del data['tmp_outlier']
-    is_sub15 = data['seroprevalence'] < 0.015
-    is_maxsub3_sub15 = is_maxsub3 | is_sub15
-    outliers.append(is_maxsub3_sub15)
-    logger.debug(f'{is_maxsub3_sub15.sum()} rows from sero data dropped due to having values'
-                 'below 1.5% or a location max below 3%.')
+    is_sub1 = data['seroprevalence'] < 0.01
+    is_maxsub3_sub1 = is_maxsub3 | is_sub1
+    outliers.append(is_maxsub3_sub1)
+    logger.debug(f'{is_maxsub3_sub1.sum()} rows from sero data dropped due to having values'
+                 'below 1% or a location max below 3%.')
     ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
 
     keep_columns = ['data_id', 'nid', 'survey_series', 'location_id', 'start_date', 'date',
