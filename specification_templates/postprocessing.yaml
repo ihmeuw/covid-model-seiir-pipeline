@@ -1,14 +1,11 @@
 data:
-  seir_forecast_version: '2021_12_16.04'
+  seir_forecast_version: '2021_12_17.04'
   scenarios:
     - 'reference'
-#    - 'optimistic'
-#    - 'child_vaccine_push'
-#    - 'optimistic_child_vaccine_push'
-#    - 'reference_sm'
-#    - 'optimistic_sm'
-#    - 'child_vaccine_push_sm'
-#    - 'optimistic_child_vaccine_push_sm'
+    - 'high_severity'
+    - 'best_masks'
+    - 'booster'
+    - 'reduced_hesitancy'
   output_root: ''
 workflow:
   project: 'proj_covid_prod'
