@@ -74,17 +74,53 @@ def sample_day_inflection(params: RatesParameters, draw_id: int) -> pd.Timestamp
 
 def sample_ode_params(variant_rr: VariantRR, beta_fit_params: FitParameters, draw_id: int) -> Dict[str, float]:
     beta_fit_params = beta_fit_params.to_dict()
-
     sampled_params = {}
-    for parameter in beta_fit_params:
-        param_spec = beta_fit_params[parameter]
+    phis = {}
+    for parameter, param_spec in beta_fit_params:
+        if 'phi' in parameter:
+            continue
+
         if isinstance(param_spec, (int, float)):
             value = param_spec
         else:
             value = sample_parameter(parameter, draw_id, *param_spec)
 
+        if 'kappa' in parameter:
+            sampled_params[parameter] = value
+            variant = parameter.split('_')[1]
+            phi_spec = beta_fit_params[parameter.replace('kappa', 'phi')]
+            if isinstance(phi_spec, (int, float)):
+                phis[variant] = phi_spec
+            elif isinstance(param_spec, (tuple, list)):
+                x1, x2 = param_spec
+                y2, y1 = phi_spec  # Note reverse as kappa and phi are inversely related.
+                m = (y2 - y1) / (x2 - x1)
+                b = y1 - m * x1
+                phis[variant] = m * value + b
+
         key = parameter if 'kappa' in parameter else f'{parameter}_all_infection'
         sampled_params[key] = value
+
+    s = -12345.0
+    phi_matrix = pd.DataFrame(
+        data=np.array([
+            # TO
+            # none ancestral alpha beta gamma delta omicron other omega    # FROM
+            [0.0,       0.0,  0.0, 0.0,  0.0,  0.0,    0.0,  0.0,   0.0],  # none
+            [1.0,       1.0,    s,   s,    s,    s,      s,    s,     s],  # ancestral
+            [1.0,         s,  1.0,   s,    s,    s,      s,    s,     s],  # alpha
+            [1.0,       1.0,  1.0, 1.0,  1.0,  1.0,      s,  1.0,     s],  # beta
+            [1.0,       1.0,  1.0, 1.0,  1.0,  1.0,      s,  1.0,     s],  # gamma
+            [1.0,       1.0,  1.0, 1.0,  1.0,  1.0,      s,  1.0,     s],  # delta
+            [1.0,       1.0,  1.0, 1.0,  1.0,  1.0,    1.0,  1.0,     s],  # omicron
+            [1.0,       1.0,  1.0, 1.0,  1.0,  1.0,      s,  1.0,     s],  # other
+            [1.0,       1.0,  1.0, 1.0,  1.0,  1.0,    1.0,  1.0,     s],  # omega
+        ]),
+        columns=VARIANT_NAMES,
+        index=pd.Index(VARIANT_NAMES, name='variant'),
+    )
+    for variant, phi in phis.items():
+        phi_matrix[phi_matrix['variant'] == s] = phi
 
     for measure, rate in (('death', 'ifr'), ('admission', 'ihr'), ('case', 'idr')):
         rr = variant_rr._asdict()[rate]
@@ -93,10 +129,10 @@ def sample_ode_params(variant_rr: VariantRR, beta_fit_params: FitParameters, dra
                 sampled_params[f'kappa_{variant}_{measure}'] = 1.0
             elif variant in VARIANT_NAMES.omicron:
                 scalar = {'ifr': 0.04, 'ihr': 0.19, 'idr': 0.25}[rate]
-                sampled_params[f'kappa_{variant}_{measure}'] = rr * 0.2
+                sampled_params[f'kappa_{variant}_{measure}'] = rr * scalar
             else:
                 sampled_params[f'kappa_{variant}_{measure}'] = rr
-    return sampled_params
+    return sampled_params, phi_matrix
 
 
 def sample_parameter(parameter: str, draw_id: int, lower: float, upper: float) -> float:

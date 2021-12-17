@@ -1,5 +1,5 @@
 import itertools
-from typing import List, Tuple
+from typing import Dict, List, Tuple
 
 import numpy as np
 import pandas as pd
@@ -17,16 +17,11 @@ from covid_model_seiir_pipeline.lib.ode_mk2.constants import (
 from covid_model_seiir_pipeline.lib.ode_mk2 import (
     solver,
 )
-from covid_model_seiir_pipeline.pipeline.fit.specification import (
-    FitParameters,
-)
 from covid_model_seiir_pipeline.pipeline.fit.model.rates import (
     Rates,
 )
 from covid_model_seiir_pipeline.pipeline.fit.model.sampled_params import (
     Durations,
-    VariantRR,
-    sample_ode_params,
     sample_parameter,
 )
 
@@ -38,15 +33,12 @@ def prepare_ode_fit_parameters(rates: Rates,
                                etas: pd.DataFrame,
                                natural_waning_dist: pd.Series,
                                natural_waning_matrix: pd.DataFrame,
-                               variant_severity: VariantRR,
-                               fit_params: FitParameters,
+                               sampled_ode_params: Dict[str, float],
                                hierarchy: pd.DataFrame,
                                draw_id: int) -> Tuple[Parameters, pd.DataFrame]:
     epi_measures, rates, age_scalars = prepare_epi_measures_and_rates(rates, epi_measures, hierarchy)
     past_index = epi_measures.index
-
-    sampled_params = sample_ode_params(variant_severity, fit_params, draw_id)
-    sampled_params = pd.DataFrame(sampled_params, index=past_index)
+    sampled_params = pd.DataFrame(sampled_ode_params, index=past_index)
 
     weights = []
     for measure in ['death', 'admission', 'case']:
