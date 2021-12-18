@@ -102,7 +102,6 @@ def prepare_model(model_data: pd.DataFrame,
         62,    # Russia
         141,   # Egypt
         151,   # Qatar
-        160,   # Afghanistan
         53619, # Khyber Pakhtunkhwa
         214,   # Nigeria
     ]
@@ -121,8 +120,8 @@ def prepare_model(model_data: pd.DataFrame,
     covariate_priors = {covariate: covariate_priors[covariate] for covariate in covariate_list}
     covariate_constraints = get_covariate_constraints('ifr', variant_risk_ratio,)
     covariate_constraints = {covariate: covariate_constraints[covariate] for covariate in covariate_list}
-    covariate_lambdas_tight = {covariate: 2. for covariate in covariate_list}
-    covariate_lambdas_loose = {covariate: 100. for covariate in covariate_list}
+    covariate_lambdas_tight = {covariate: 1. for covariate in covariate_list}
+    covariate_lambdas_loose = {covariate: 10. for covariate in covariate_list}
 
     var_args = {
         'dep_var': 'logit_ifr',

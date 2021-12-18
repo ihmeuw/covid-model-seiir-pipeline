@@ -549,20 +549,14 @@ def bootstrap(sample: pd.DataFrame,):
     outliers = sample.loc[sample['is_outlier'] == 1].reset_index(drop=True)
     sample = sample.loc[sample['is_outlier'] == 0].reset_index(drop=True)
 
-    # include data in all samples from locations that would fail otherwise
-    req_locs = [4651, 196]
-    req_data = sample.loc[sample['location_id'].isin(req_locs)].reset_index(drop=True)
-    sample = sample.loc[~sample['location_id'].isin(req_locs)].reset_index(drop=True)
-
     # stitch together
     random_state = utilities.get_random_state(f'bootstrap_{n}')
     rows = random_state.choice(sample.index, size=len(sample), replace=True)
     bootstrapped_rows = []
     for row in rows:
         bootstrapped_rows.append(sample.loc[[row]])
-    bootstrapped_rows.append(req_data)
     bootstrapped_rows.append(outliers)
-    bootstrapped_sample = pd.concat(bootstraped_rows).reset_index(drop=True)
+    bootstrapped_sample = pd.concat(bootstrapped_rows).reset_index(drop=True)
 
     return bootstrapped_sample
 
