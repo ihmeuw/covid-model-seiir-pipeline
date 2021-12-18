@@ -51,20 +51,24 @@ def prepare_ode_fit_parameters(rates: Rates,
     sampled_params = sample_ode_params(variant_severity, fit_params, draw_id)
     sampled_params = pd.DataFrame(sampled_params, index=past_index)
 
-    downweight = 0.01
-    downweight_locs = {
+    downweight_dict = {
         'death': [
-            4651,  # Mexico City
-            160,  # Afghanistan
-            193, 194, 195, 196, 197, 198,  # southern SSA
-            53617,  # Gilgit-Baltistan
+            ( 4651, 0.01),  # Mexico City
+            (  160, 0.01),  # Afghanistan
+            (  193, 0.01),  # Botswana
+            (  194, 0.01),  # Lesotho
+            (  195, 0.01),  # Namibia
+            (  196, 0.01),  # South Africa
+            (  197, 0.01),  # Eswatini
+            (  198, 0.01),  # Zimbabwe
+            (53617, 0.01),  # Gilgit-Baltistan
         ],
         'admission': [
-            4651,  # Mexico City
-            193, 194, 195, 196, 197, 198,  # southern SSA
+            ( 4651, 0.01),  # Mexico City
+            (  196, 0.01),  # South Africa
         ],
         'case': [
-            176,  # Comoros
+            (  176, 0.01),  # Comoros
         ],
     }
     weights = []
@@ -75,7 +79,8 @@ def prepare_ode_fit_parameters(rates: Rates,
             weights=_weights,
             data_period=epi_measures.loc[epi_measures[measure].notnull()].index,
         )
-        _weights.loc[downweight_locs[measure]] *= downweight
+        for downweight_loc, downweight in downweight_dict[measure]:
+            _weights.loc[downweight_loc] *= downweight
         weights.append(_weights)
     weights = [w / sum(weights).rename(w.name) for w in weights]
 
