@@ -1,5 +1,5 @@
 import itertools
-from typing import List, Tuple
+from typing import Dict, List, Tuple
 
 import numpy as np
 import pandas as pd
@@ -43,6 +43,7 @@ def prepare_ode_fit_parameters(rates: Rates,
                                natural_waning_matrix: pd.DataFrame,
                                variant_severity: VariantRR,
                                fit_params: FitParameters,
+                               measure_downweights: Dict[str, List[Tuple[int, float]]],
                                hierarchy: pd.DataFrame,
                                draw_id: int) -> Tuple[Parameters, pd.DataFrame]:
     epi_measures, rates, age_scalars = prepare_epi_measures_and_rates(rates, epi_measures, hierarchy)
@@ -51,35 +52,16 @@ def prepare_ode_fit_parameters(rates: Rates,
     sampled_params = sample_ode_params(variant_severity, fit_params, draw_id)
     sampled_params = pd.DataFrame(sampled_params, index=past_index)
 
-    downweight_dict = {
-        'death': [
-            ( 4651, 0.01),  # Mexico City
-            (  160, 0.01),  # Afghanistan
-            (  193, 0.01),  # Botswana
-            (  194, 0.01),  # Lesotho
-            (  195, 0.01),  # Namibia
-            (  196, 0.01),  # South Africa
-            (  197, 0.01),  # Eswatini
-            (  198, 0.01),  # Zimbabwe
-            (53617, 0.01),  # Gilgit-Baltistan
-        ],
-        'admission': [
-            ( 4651, 0.01),  # Mexico City
-            (  196, 0.01),  # South Africa
-        ],
-        'case': [
-            (  176, 0.01),  # Comoros
-        ],
-    }
     weights = []
     for measure in ['death', 'admission', 'case']:
         parameter = f'weight_all_{measure}'
-        _weights = pd.Series(sample_parameter(parameter, draw_id, 0., 1.), name=parameter, index=past_index)
+        _weights = pd.Series(sample_parameter(parameter, draw_id, 1e-4, 1.-1e-4),
+                             name=parameter, index=past_index)
         _weights = add_transition_period(
             weights=_weights,
             data_period=epi_measures.loc[epi_measures[measure].notnull()].index,
         )
-        for downweight_loc, downweight in downweight_dict[measure]:
+        for downweight_loc, downweight in measure_downweights[measure]:
             _weights.loc[downweight_loc] *= downweight
         weights.append(_weights)
     weights = [w / sum(weights).rename(w.name) for w in weights]

@@ -47,3 +47,26 @@ fit_parameters:
   kappa_omicron_infection: 1.8
   kappa_other_infection: 1.2
   kappa_omega_infection: 1.8
+measure_downweights:
+    death:
+      [
+        [ 4651,    0.1],  # Mexico City
+        [  160,   0.01],  # Afghanistan
+        [  193,   0.01],  # Botswana
+        [  194,   0.01],  # Lesotho
+        [  195,   0.01],  # Namibia
+        [  196,    0.1],  # South Africa
+        [  197, 0.0001],  # Eswatini
+        [  198,    0.1],  # Zimbabwe
+        [53617,    0.1],  # Gilgit-Baltistan
+      ]
+    admission:
+      [
+        [ 4651,    0.1],  # Mexico City
+        [  196,    0.1],  # South Africa
+      ]
+    case:
+      [
+        [  176,    0.1],  # Comoros
+        [  215,   0.01],  # Sao Tome and Principe
+      ]

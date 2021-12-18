@@ -120,6 +120,7 @@ def run_beta_fit(fit_version: str, draw_id: int, progress_bar: bool) -> None:
         natural_waning_matrix=natural_immunity_matrix,
         variant_severity=variant_severity,
         fit_params=specification.fit_parameters,
+        measure_downweights=specification.measure_downweights.to_dict(),
         hierarchy=pred_hierarchy,
         draw_id=draw_id,
     )
@@ -213,6 +214,7 @@ def run_beta_fit(fit_version: str, draw_id: int, progress_bar: bool) -> None:
         natural_waning_matrix=natural_immunity_matrix,
         variant_severity=variant_severity,
         fit_params=specification.fit_parameters,
+        measure_downweights=specification.measure_downweights.to_dict(),
         hierarchy=pred_hierarchy,
         draw_id=draw_id,
     )
