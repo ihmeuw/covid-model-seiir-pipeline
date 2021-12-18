@@ -93,7 +93,22 @@ def prepare_model(model_data: pd.DataFrame,
     model_data['ifr_se'] = 1
     model_data['logit_ifr_se'] = 1
     model_data['intercept'] = 1
-    
+
+    ## ## ## ## ## ## ## ##
+    ## MANUAL OUTLIERING ##
+    outlier_locs = [
+        35,    # Georgia
+        43,    # Albania
+        62,    # Russia
+        141,   # Egypt
+        151,   # Qatar
+        160,   # Afghanistan
+        53619, # Khyber Pakhtunkhwa
+        214,   # Nigeria
+    ]
+    model_data = model_data.loc[~model_data['location_id'].isin(outlier_locs)].reset_index()
+    ## ## ## ## ## ## ## ##
+
     # lose 0s and 1s
     model_data = model_data.loc[model_data['logit_ifr'].notnull()]
 
@@ -106,8 +121,8 @@ def prepare_model(model_data: pd.DataFrame,
     covariate_priors = {covariate: covariate_priors[covariate] for covariate in covariate_list}
     covariate_constraints = get_covariate_constraints('ifr', variant_risk_ratio,)
     covariate_constraints = {covariate: covariate_constraints[covariate] for covariate in covariate_list}
-    covariate_lambdas_tight = {covariate: 1. for covariate in covariate_list}
-    covariate_lambdas_loose = {covariate: 10. for covariate in covariate_list}
+    covariate_lambdas_tight = {covariate: 2. for covariate in covariate_list}
+    covariate_lambdas_loose = {covariate: 100. for covariate in covariate_list}
 
     var_args = {
         'dep_var': 'logit_ifr',

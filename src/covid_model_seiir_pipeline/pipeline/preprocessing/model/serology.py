@@ -239,15 +239,42 @@ def process_raw_serology_data(data: pd.DataFrame) -> pd.DataFrame:
     logger.debug(f'{kaz_outlier.sum()} rows from sero data dropped due to implausibility '
                  '(or at least incompatibility) of Kazakhstan colloborator data.')
 
-    # Albania first round data
-    is_alb = data['location_id'] == 43
-    ## this is actually first round (see dates), survey_series is mislabeled in extraction ##
-    is_tirana_first_round_data = data['survey_series'] == 'tirana_second_round'
+    # # Albania first round data
+    # is_alb = data['location_id'] == 43
+    # ## this is actually first round (see dates), survey_series is mislabeled in extraction ##
+    # is_tirana_first_round_data = data['survey_series'] == 'tirana_second_round'
 
-    alb_outlier = is_alb & is_tirana_first_round_data
-    outliers.append(alb_outlier)
-    logger.debug(f'{alb_outlier.sum()} rows from sero data dropped due to implausibility '
-                 '(or at least incompatibility) of first round of Albania survey.')
+    # alb_outlier = is_alb & is_tirana_first_round_data
+    # outliers.append(alb_outlier)
+    # logger.debug(f'{alb_outlier.sum()} rows from sero data dropped due to implausibility '
+    #              '(or at least incompatibility) of first round of Albania survey.')
+
+    # # Egypt
+    # is_egy = data['location_id'] == 141
+    # is_egypt_gomaa = data['survey_series'] == 'egypt_gomaa'
+
+    # egy_outlier = is_egy & is_egypt_gomaa
+    # outliers.append(egy_outlier)
+    # logger.debug(f'{egy_outlier.sum()} rows from sero data dropped due to implausibility '
+    #              '(or at least incompatibility) of Egypt GOMAA(?) survey.')
+
+    # # Qatar
+    # is_qat = data['location_id'] == 151
+    # is_qatar_raddad = data['survey_series'] == 'qatar_raddad'
+
+    # qat_outlier = is_qat & is_qatar_raddad
+    # outliers.append(qat_outlier)
+    # logger.debug(f'{qat_outlier.sum()} rows from sero data dropped due to implausibility '
+    #              '(or at least incompatibility) of Qatar RADDAD(?) survey.')
+
+    # # Afghanistan
+    # is_afg = data['location_id'] == 160
+    # is_afghanistan_sero_survey = data['survey_series'] == 'afghanistan_sero_survey'
+
+    # afg_outlier = is_afg & is_afghanistan_sero_survey
+    # outliers.append(afg_outlier)
+    # logger.debug(f'{afg_outlier.sum()} rows from sero data dropped due to implausibility '
+    #              '(or at afg_outlier incompatibility) of Afghanistan survey.')
 
     # Chhattisgarh ICMR round 2
     is_chhatt = data['location_id'] == 4846
@@ -257,6 +284,16 @@ def process_raw_serology_data(data: pd.DataFrame) -> pd.DataFrame:
     outliers.append(chhatt_outlier)
     logger.debug(f'{chhatt_outlier.sum()} rows from sero data dropped due to implausibility '
                  '(or at least incompatibility) of Chhattisgarh survey data (ICMR round 2).')
+
+    # Delhi
+    is_delhi = data['location_id'] == 4849
+    is_dey_sharma = data['survey_series'].isin(['dey_delhi_sero', 'sharma_delhi_sero'])
+    is_pre_sept_2020 = data['date'] < pd.Timestamp('2020-09-01')
+
+    delhi_outlier = is_delhi & is_dey_sharma & is_pre_sept_2020
+    outliers.append(delhi_outlier)
+    logger.debug(f'{delhi_outlier.sum()} rows from sero data dropped due to implausibility '
+                 '(or at least incompatibility) of Delhi survey data (non-ICMR).')
 
     # Gujarat ICMR round 2
     is_guj = data['location_id'] == 4851
@@ -312,7 +349,16 @@ def process_raw_serology_data(data: pd.DataFrame) -> pd.DataFrame:
     logger.debug(f'{raj_outlier.sum()} rows from sero data dropped due to implausibility '
                  '(or at least incompatibility) of Rajasthan survey data (ICMR round 2).')
 
-    # Punjab, PAK
+    # # Khyber Pakhtunkhwa
+    # is_kp = data['location_id'] == 53619
+    # is_pakistan_july = data['survey_series'] == 'pakistan_july'
+
+    # kp_outlier = is_kp & is_pakistan_july
+    # outliers.append(kp_outlier)
+    # logger.debug(f'{kp_outlier.sum()} rows from sero data dropped due to implausibility '
+    #              '(or at least incompatibility) of Khyber Pakhtunkhwa July survey.')
+
+    # Punjab (PAK)
     is_pp = data['location_id'] == 53620
     is_pakistan_july = data['survey_series'] == 'pakistan_july'
 
@@ -321,12 +367,22 @@ def process_raw_serology_data(data: pd.DataFrame) -> pd.DataFrame:
     logger.debug(f'{pp_outlier.sum()} rows from sero data dropped due to implausibility '
                  '(or at least incompatibility) of Punjab (PAK) July survey.')
 
-    # Mozambique INS
+    # Kenya blood transfusion pre-July
+    is_ken = data['location_id'] == 180
+    is_kenya_blood = data['survey_series'] == 'kenya_blood'
+    is_pre_july_2020 = data['date'] < pd.Timestamp('2020-07-15')
+
+    ken_outlier = is_ken & is_kenya_blood & is_pre_july_2020
+    outliers.append(ken_outlier)
+    logger.debug(f'{ken_outlier.sum()} rows from sero data dropped due to implausibility '
+                 '(or at least incompatibility) of first two months of Kenya blood transfusion surveillance.')
+
+    # Mozambique INS pre-Sept
     is_moz = data['location_id'] == 184
     is_moz_ins_incovid2020 = data['survey_series'] == 'moz_ins_incovid2020'
-    is_pre_aug_2020 = data['date'] < pd.Timestamp('2020-08-01')
+    is_pre_sept_2020 = data['date'] < pd.Timestamp('2020-09-01')
 
-    moz_outlier = is_moz & is_moz_ins_incovid2020 & is_pre_aug_2020
+    moz_outlier = is_moz & is_moz_ins_incovid2020 & is_pre_sept_2020
     outliers.append(moz_outlier)
     logger.debug(f'{moz_outlier.sum()} rows from sero data dropped due to implausibility '
                  '(or at least incompatibility) of first Mozabique INS survey.')
@@ -484,16 +540,31 @@ def sample_seroprevalence(seroprevalence: pd.DataFrame,
     return bootstrap_list
 
 
-def bootstrap(sample: pd.DataFrame, ):
+def bootstrap(sample: pd.DataFrame,):
+    # bootstrap sample number (for random state)
     n = sample['n'].unique().item()
+    sample = sample.drop('n', axis=1)
+
+    # just sample data we will use
+    outliers = sample.loc[sample['is_outlier'] == 1].reset_index(drop=True)
+    sample = sample.loc[sample['is_outlier'] == 0].reset_index(drop=True)
+
+    # include data in all samples from locations that would fail otherwise
+    req_locs = [4651, 196]
+    req_data = sample.loc[sample['location_id'].isin(req_locs)].reset_index(drop=True)
+    sample = sample.loc[~sample['location_id'].isin(req_locs)].reset_index(drop=True)
+
+    # stitch together
     random_state = utilities.get_random_state(f'bootstrap_{n}')
     rows = random_state.choice(sample.index, size=len(sample), replace=True)
-    # rows = np.random.choice(sample.index, size=len(sample), replace=True)
-    bootstraped_samples = []
+    bootstrapped_rows = []
     for row in rows:
-        bootstraped_samples.append(sample.loc[[row]])
+        bootstrapped_rows.append(sample.loc[[row]])
+    bootstrapped_rows.append(req_data)
+    bootstrapped_rows.append(outliers)
+    bootstrapped_sample = pd.concat(bootstraped_rows).reset_index(drop=True)
 
-    return pd.concat(bootstraped_samples).reset_index(drop=True).drop('n', axis=1)
+    return bootstrapped_sample
 
 
 def get_pop_vaccinated(age_spec_population: pd.Series, vaccinated: pd.Series):

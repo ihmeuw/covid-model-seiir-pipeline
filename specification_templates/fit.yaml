@@ -1,5 +1,5 @@
 data:
-  seir_preprocess_version: '2021_12_17.04'
+  seir_preprocess_version: '2021_12_17.11'
   output_format: 'parquet'
   output_root: ''
   n_draws: 100
@@ -13,9 +13,9 @@ rates_parameters:
   # Either 'unscaled' or 'total'
   mortality_scalar: 'total'
   # Criteria for first pass rates models.
-  death_rate_threshold: 1  # per million
+  death_rate_threshold: 20  # per million
   variant_prevalence_threshold: 0.1  # proportion
-  inclusion_days: 180
+  inclusion_days: 360
   naive_ifr: 0.005  # proportion
   # Duration sampling parameters
   exposure_to_admission: [10, 14]
@@ -36,7 +36,7 @@ fit_parameters:
   # 1 / duration infectious.  dI1/dt = sigma * E - gamma * I
   gamma1: [0.2, 0.3333]
   # Proportion of current E to send to variant E on invasion.
-  pi: [ 0.01, 0.1 ]
+  pi: [0.01, 0.1]
   # proportion increase in transmission intensity
   kappa_none_infection: 0.0
   kappa_ancestral_infection: 1.0
