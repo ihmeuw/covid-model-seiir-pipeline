@@ -151,6 +151,16 @@ class FitParameters:
     kappa_other_infection: UniformSampleable = field(default=1.0)
     kappa_omega_infection: UniformSampleable = field(default=1.0)
 
+    phi_none_infection: UniformSampleable = field(default=0.0)
+    phi_ancestral_infection: UniformSampleable = field(default=1.0)
+    phi_alpha_infection: UniformSampleable = field(default=1.0)
+    phi_beta_infection: UniformSampleable = field(default=1.0)
+    phi_gamma_infection: UniformSampleable = field(default=1.0)
+    phi_delta_infection: UniformSampleable = field(default=1.0)
+    phi_omicron_infection: UniformSampleable = field(default=1.0)
+    phi_other_infection: UniformSampleable = field(default=1.0)
+    phi_omega_infection: UniformSampleable = field(default=1.0)
+
     def to_dict(self) -> Dict:
         return utilities.asdict(self)
 

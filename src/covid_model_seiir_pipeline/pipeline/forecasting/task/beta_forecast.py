@@ -31,7 +31,7 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
     logger.info('Loading index building data', context='read')
     location_ids = data_interface.load_location_ids()
     past_compartments = data_interface.load_past_compartments(draw_id).loc[location_ids]
-    past_compartments = past_compartments.loc[past_compartments.notnull().all(axis=1)]
+    past_compartments = past_compartments.loc[past_compartments.notnull().any(axis=1)]
     dates = past_compartments.reset_index(level='date').date
     past_start_dates = dates.groupby('location_id').min()
     forecast_start_dates = dates.groupby('location_id').max()
