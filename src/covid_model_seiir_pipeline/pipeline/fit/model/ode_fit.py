@@ -234,7 +234,7 @@ def compute_posterior_epi_measures(compartments: pd.DataFrame,
                'Infection_all_all_all': 'daily_total_infections'}
     infections = []
     for col, name in inf_map.items():
-        daily = compartments_diff.filter(like=col).sum(axis=1).rename(name)
+        daily = compartments_diff.filter(like=col).sum(axis=1, min_count=1).rename(name)
         infections.extend([daily, _to_cumulative(daily)])
     infections = pd.concat(infections, axis=1)
 
@@ -259,7 +259,7 @@ def compute_posterior_epi_measures(compartments: pd.DataFrame,
         lag = durations._asdict()[f'exposure_to_{ode_measure.lower()}']
         daily_measure = (compartments_diff
                          .filter(like=f'{ode_measure}_none_all_unvaccinated')
-                         .sum(axis=1)
+                         .sum(axis=1, min_count=1)
                          .groupby('location_id')
                          .shift(lag)
                          .rename(f'daily_{rates_measure}'))
@@ -321,17 +321,31 @@ def run_ode_fit(initial_condition: pd.DataFrame,
              .fillna(betas)
              .rename(columns=lambda x: f'beta_{x.split("_")[3]}')
              .rename(columns={'beta_all': 'beta'}))
-
+    
     # Clean up results
     # counts and beta should be identically indexed in production,
     # but subset to beta in case we only ran a subset of locations for debugging
+    full_compartments_diff = full_compartments.groupby('location_id').diff().fillna(full_compartments)
     counts = ode_parameters.base_parameters.filter(like='count').loc[betas.index]
     no_counts = counts.sum(axis=1, min_count=1).isnull()
     for measure in ['death', 'admission', 'case']:
         no_counts_measure = counts[f'count_all_{measure}'].isnull()
         betas.loc[no_counts_measure, f'beta_{measure}'] = np.nan
         cols = [c for c in full_compartments if measure.capitalize() in c]
-        full_compartments.loc[no_counts, cols] = np.nan
+        full_compartments_diff.loc[no_counts, cols] = np.nan
+        
+        # In the system, we have no beta adjustment factor for the rates when we run
+        # out of counts for a measure but other measures are still present.
+        # Here we carry the last adjustment factor forward in time so we don't end up with
+        # discontinuities in the results.
+        terminal_beta = betas.loc[~no_counts_measure].groupby('location_id').last()
+        measure_ratio = (terminal_beta.loc[:, f'beta_{measure}'] / terminal_beta.loc[:, f'beta']).dropna()        
+        adjustment_idx = full_compartments.loc[no_counts_measure & ~no_counts].index        
+        measure_ratio = measure_ratio.reindex(adjustment_idx, level='location_id')        
+        full_compartments_diff.loc[adjustment_idx, cols] = full_compartments_diff.loc[adjustment_idx, cols].mul(measure_ratio, axis=0)
+    full_compartments = full_compartments_diff.groupby('location_id').cumsum()
+                    
+        
     # Can have a composite beta if we don't have measure betas
     no_beta = betas[[f'beta_{measure}' for measure in ['death', 'admission', 'case']]].isnull().all(axis=1)
     betas.loc[no_beta, 'beta'] = np.nan
