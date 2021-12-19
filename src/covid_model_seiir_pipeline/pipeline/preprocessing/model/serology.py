@@ -220,6 +220,14 @@ def process_raw_serology_data(data: pd.DataFrame) -> pd.DataFrame:
     outliers.append(k_s_outlier)
     logger.debug(f'{k_s_outlier.sum()} rows from sero data dropped due to noisy (early) King/Snohomish data.')
 
+    # Saskatchewan
+    is_sas = data['location_id'] == 43869
+    is_canadian_blood_services = data['survey_series'] == 'canadian_blood_services'
+
+    sas_outlier = is_sas & is_canadian_blood_services
+    outliers.append(sas_outlier)
+    logger.debug(f'{sas_outlier.sum()} rows from sero data dropped from Saskatchewan.')
+
     # Ceuta first round
     is_ceu = data['location_id'] == 60369
     is_ene_covid = data['survey_series'] == 'ene_covid'
