@@ -162,25 +162,29 @@ def load_seroprevalence(data_interface: FitDataInterface,
                         num_draws: int = 1,
                         progress_bar: bool = False,
                         **_) -> pd.DataFrame:
-    idx_cols = ['data_id', 'location_id', 'date', 'is_outlier']
-
     input_sero_data = (data_interface
                        .load_seroprevalence()
                        .reset_index()
-                       .set_index(idx_cols)
+                       .rename(columns={'date': 'sero_date'})
+                       .set_index(['data_id', 'location_id', 'sero_date', 'is_outlier'])
                        .loc[:, ['reported_seroprevalence']])
 
+    idx_cols = ['data_id', 'location_id', 'sero_date', 'is_outlier']
     adjusted_sero_data = []
     for draw in tqdm.trange(num_draws, disable=not progress_bar):
         df = (data_interface
               .load_final_seroprevalence(draw)
-              .reset_index()
-              .set_index(idx_cols)
-              .loc[:, ['seroprevalence', 'adjusted_seroprevalence']])
+              .loc[:, idx_cols + ['date', 'seroprevalence', 'adjusted_seroprevalence']])
         adjusted_sero_data.append(df)
-    adjusted_data = pd.concat(adjusted_sero_data).groupby(idx_cols).mean()
-    seroprevalence = (pd.concat([input_sero_data, adjusted_data], axis=1)
-                      .reset_index()
+    adjusted_data = pd.concat(adjusted_sero_data).groupby(idx_cols)
+    adjusted_data = (pd.concat([adjusted_data['date'].median(),
+                                adjusted_data[['seroprevalence', 'adjusted_seroprevalence']].mean()],
+                               axis=1)
+                     .reset_index()
+                     .set_index(['data_id', 'location_id', 'date', 'sero_date', 'is_outlier']))
+    seroprevalence = input_sero_data.join(adjusted_data, how='outer').reset_index()
+    seroprevalence['date'] = seroprevalence['date'].fillna(seroprevalence['sero_date'])
+    seroprevalence = (seroprevalence
                       .drop(columns='data_id')
                       .set_index(['location_id', 'date']))
     return seroprevalence

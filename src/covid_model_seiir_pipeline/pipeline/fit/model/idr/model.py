@@ -43,6 +43,7 @@ def run_model(model_data: pd.DataFrame,
         'group_var': 'location_id',
     }
     global_prior_dict = covariate_priors
+    location_prior_dict = {}
     pred_replace_dict = {
         'log_testing_rate_capacity': 'log_infwavg_testing_rate_capacity',
     }
@@ -69,6 +70,7 @@ def run_model(model_data: pd.DataFrame,
         hierarchy=mr_hierarchy.copy(),
         var_args=var_args.copy(),
         global_prior_dict=global_prior_dict.copy(),
+        location_prior_dict=location_prior_dict.copy(),
         level_lambdas=level_lambdas.copy(),
     )
     pred_data = pred_data.dropna()

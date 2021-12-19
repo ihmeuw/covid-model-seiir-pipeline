@@ -61,6 +61,7 @@ def apply_sensitivity_adjustment(sensitivity_data: pd.DataFrame,
                                  hospitalized_weights: pd.Series,
                                  seroprevalence: pd.DataFrame,
                                  daily_infections: pd.Series,
+                                 population: pd.Series,
                                  durations: Durations) -> Tuple[pd.DataFrame, pd.DataFrame]:
     data_assays = sensitivity_data['assay'].unique().tolist()
     excluded_data_assays = [da for da in data_assays if da not in ASSAYS]
@@ -89,6 +90,7 @@ def apply_sensitivity_adjustment(sensitivity_data: pd.DataFrame,
     daily_infections = daily_infections.reset_index()
     daily_infections['date'] += pd.Timedelta(days=durations.exposure_to_seroconversion)
     daily_infections = daily_infections.set_index(['location_id', 'date']).loc[:, 'daily_infections']
+    daily_infections /= population
 
     sensitivity_list = []
     seroprevalence_list = []
@@ -281,7 +283,7 @@ def location_sensitivity_adjustment(location_id: int,
         adj_seroprevalence.append(pd.DataFrame({
             'data_id': sero_data_id,
             'date': sero_date,
-            'seroprevalence': sero_value * seroreversion_factor
+            'seroprevalence': 1 - (1 - sero_value) * seroreversion_factor
         }, index=[i]))
     adj_seroprevalence = pd.concat(adj_seroprevalence)
     adj_seroprevalence['location_id'] = location_id
@@ -303,10 +305,11 @@ def calculate_seroreversion_factor(daily_infections: pd.DataFrame,
     daily_infections = daily_infections.merge(sensitivity.reset_index(), how='left')
     if daily_infections['sensitivity'].isnull().any():
         raise ValueError(f"Unmatched sero/sens points: {daily_infections.loc[daily_infections['sensitivity'].isnull()]}")
+    daily_infections['daily_infections'] *= min(1, 1 / daily_infections['daily_infections'].sum())
     seroreversion_factor = (
-            daily_infections['daily_infections'].sum()
-            / (daily_infections['daily_infections'] * daily_infections['sensitivity']).sum()
+        (1 - daily_infections['daily_infections'].sum())
+        / (1 - (daily_infections['daily_infections'] * daily_infections['sensitivity']).sum())
     )
-    seroreversion_factor = max(1, seroreversion_factor)
+    seroreversion_factor = min(1, seroreversion_factor)
 
     return seroreversion_factor

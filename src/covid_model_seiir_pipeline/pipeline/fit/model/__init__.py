@@ -26,6 +26,7 @@ from covid_model_seiir_pipeline.pipeline.fit.model.ode_fit import (
     prepare_ode_fit_parameters,
     make_initial_condition,
     compute_posterior_epi_measures,
+    aggregate_posterior_epi_measures,
     run_ode_fit,
 )
 from covid_model_seiir_pipeline.pipeline.fit.model.epi_measures import (
