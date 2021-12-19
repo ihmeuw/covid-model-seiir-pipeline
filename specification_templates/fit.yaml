@@ -1,11 +1,11 @@
 data:
-  seir_preprocess_version: '2021_12_18.03'
+  seir_preprocess_version: '2021_12_18.04'
   output_format: 'parquet'
   output_root: ''
   n_draws: 100
 workflow:
   project: 'proj_covid_prod'
-  queue: 'long.q'
+  queue: 'd.q'
 rates_parameters:
   day_0: '2020-03-15'
   pred_start_date: '2019-11-01'
@@ -59,20 +59,20 @@ fit_parameters:
 measure_downweights:
     death:
       [
-        [ 4651, 0.01],  # Mexico City
+        [ 4651,  0.1],  # Mexico City
         [  160, 0.01],  # Afghanistan
         [  193, 0.01],  # Botswana
         [  194, 0.01],  # Lesotho
         [  195, 0.01],  # Namibia
-        [  196, 0.01],  # South Africa
+        [  196,  0.1],  # South Africa
         [  197, 0.01],  # Eswatini
         [  198, 0.01],  # Zimbabwe
         [53617, 0.01],  # Gilgit-Baltistan
       ]
     admission:
       [
-        [ 4651, 0.01],  # Mexico City
-        [  196, 0.01],  # South Africa
+        [ 4651,  0.1],  # Mexico City
+        [  196,  0.1],  # South Africa
       ]
     case:
       [

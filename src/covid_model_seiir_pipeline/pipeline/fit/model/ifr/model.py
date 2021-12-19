@@ -98,6 +98,7 @@ def prepare_model(model_data: pd.DataFrame,
     ## MANUAL OUTLIERING ##
     outlier_locs = [
         35,    # Georgia
+        41,    # Uzbekistan
         43,    # Albania
         62,    # Russia
         141,   # Egypt
