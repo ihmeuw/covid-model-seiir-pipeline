@@ -1,5 +1,5 @@
 data:
-  seir_forecast_version: '2021_12_18.02'
+  seir_forecast_version: '2021_12_19.01'
   scenarios:
     - 'reference'
 #    - 'high_severity'

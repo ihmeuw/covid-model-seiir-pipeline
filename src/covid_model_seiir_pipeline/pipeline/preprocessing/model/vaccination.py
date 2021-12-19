@@ -142,7 +142,11 @@ def build_eta_calc_arguments(vaccine_uptake: pd.DataFrame,
     severe_disease_efficacy = waning_efficacy.loc['severe_disease']
 
     for location_id, vaccine_course, risk_group in tqdm.tqdm(list(groups), disable=not progress_bar):
-        group_uptake = vaccine_uptake.loc[(vaccine_course, location_id, risk_group)]
+        try:
+            group_uptake = vaccine_uptake.loc[(vaccine_course, location_id, risk_group)]
+        except KeyError:
+            logger.warning(f'Missing uptake for location: {location_id}, vaccine course: {vaccine_course}, risk group: {risk_group}')
+            continue
         group_infection_efficacy = infection_efficacy.loc[vaccine_course]
         group_severe_disease_efficacy = severe_disease_efficacy.loc[vaccine_course]
 
