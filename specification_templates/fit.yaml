@@ -59,23 +59,23 @@ fit_parameters:
 measure_downweights:
     death:
       [
-        [ 4651,  0.1],  # Mexico City
-        [  160, 0.01],  # Afghanistan
-        [  193, 0.01],  # Botswana
-        [  194, 0.01],  # Lesotho
-        [  195, 0.01],  # Namibia
-        [  196,  0.1],  # South Africa
-        [  197, 0.01],  # Eswatini
-        [  198, 0.01],  # Zimbabwe
-        [53617, 0.01],  # Gilgit-Baltistan
+        [ 4651, 0.1],  # Mexico City
+        [  160, 0.1],  # Afghanistan
+        [  193, 0.1],  # Botswana
+        [  194, 0.1],  # Lesotho
+        [  195, 0.1],  # Namibia
+        [  196, 0.1],  # South Africa
+        [  197, 0.1],  # Eswatini
+        [  198, 0.1],  # Zimbabwe
+        [53617, 0.1],  # Gilgit-Baltistan
       ]
     admission:
       [
-        [ 4651,  0.1],  # Mexico City
-        [  196,  0.1],  # South Africa
+        [ 4651, 0.1],  # Mexico City
+        [  196, 0.1],  # South Africa
       ]
     case:
       [
-        [  176, 0.01],  # Comoros
-        [  215, 0.01],  # Sao Tome and Principe
+        [  176, 0.1],  # Comoros
+        [  215, 0.1],  # Sao Tome and Principe
       ]
