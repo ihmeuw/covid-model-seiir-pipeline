@@ -1,3 +1,4 @@
+import itertools
 from collections import defaultdict
 from dataclasses import dataclass
 import functools
@@ -5,12 +6,14 @@ from typing import Dict, Tuple
 
 import numpy as np
 import pandas as pd
-import tqdm
 
 
 from covid_model_seiir_pipeline.lib import (
     utilities,
     parallel,
+)
+from covid_model_seiir_pipeline.lib.ode_mk2.constants import (
+    RISK_GROUP_NAMES,
 )
 from covid_model_seiir_pipeline.pipeline.regression.specification import (
     HospitalParameters,
@@ -82,24 +85,24 @@ def load_admissions_and_hfr(data_interface: 'RegressionDataInterface',
 
 def _load_admissions_and_hfr_draw(draw_id: int,
                                   data_interface: 'RegressionDataInterface') -> Tuple[pd.Series, pd.Series]:
-    infections = data_interface.load_posterior_epi_measures(draw_id, columns=['total_infections'])
-    ratio_data = data_interface.load_ratio_data(draw_id)
+    ode_params = data_interface.load_ode_params(draw_id)
+    admission_lag = ode_params.loc['exposure_to_admission']
+    death_lag = ode_params.loc['exposure_to_death']
 
-    admissions = convert_infections(infections, ratio_data.ihr, ratio_data.infection_to_admission)
+    cols = [f'{measure}_all_all_all_{group}' for measure, group
+            in itertools.product(['Infection', 'Death', 'Admission'], RISK_GROUP_NAMES)]
+    compartments = data_interface.load_compartments(
+        draw_id, columns=cols
+    )
+    infections = compartments.filter(like="Infection").sum(axis=1)
+    deaths = compartments.filter(like='Death').sum(axis=1).groupby('location_id').shift(death_lag)
+    admissions = compartments.filter(like='Admission').sum(axis=1).groupby('location_id').shift(admission_lag)
+
     admissions = admissions.rename(f'draw_{draw_id}')
-
-    hfr = (ratio_data.ihr / ratio_data.ifr).rename(f'draw_{draw_id}')
+    hfr = (deaths / admissions.groupby('location_id').shift(death_lag - admission_lag)).rename(f'draw_{draw_id}')
     hfr[hfr < 1] = 1
 
     return admissions, hfr
-
-
-def convert_infections(infections: pd.Series, ratio: pd.Series, duration: int):
-    result = (infections
-              .groupby('location_id')
-              .apply(lambda x: x.reset_index(level='location_id', drop=True).shift(duration, freq='D')))
-    result = (result * ratio).groupby('location_id').bfill().dropna()
-    return result
 
 
 def _bound(low, high, value):
