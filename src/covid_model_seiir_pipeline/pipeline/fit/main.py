@@ -67,27 +67,24 @@ def fit_main(app_metadata: cli_tools.Metadata,
         except ihme_deps.WorkflowAlreadyComplete:
             logger.info('Workflow already complete.')
 
-    # Check for bad locations
-    total_population = data_interface.load_population(measure='total').population
-    pred_hierarchy = data_interface.load_hierarchy('pred')
+        # Check for bad locations
+        total_population = data_interface.load_population(measure='total').population
+        pred_hierarchy = data_interface.load_hierarchy('pred')
 
-    _runner = functools.partial(
-        get_broken_locations,
-        data_interface=data_interface,
-        total_population=total_population,
-    )
-    results = parallel.run_parallel(
-        _runner,
-        arg_list=list(range(data_interface.get_n_draws())),
-        num_cores=26,
-        progress_bar=True
-    )
-    below_0, over_total_pop = zip(*results)
-    below_0 = pd.concat(below_0, axis=1)
-    over_total_pop = pd.concat(over_total_pop, axis=1)
-    # report = make_broken_location_report(results)
-    # if report:
-    #     logger.warning(report)
+        _runner = functools.partial(
+            get_broken_locations,
+            data_interface=data_interface,
+            total_population=total_population,
+        )
+        results = parallel.run_parallel(
+            _runner,
+            arg_list=list(range(data_interface.get_n_draws())),
+            num_cores=26,
+            progress_bar=True
+        )
+        report = make_broken_location_report(results)
+        if report:
+            logger.warning(report)
 
 
 def get_broken_locations(draw_id: int,
@@ -107,17 +104,43 @@ def get_broken_locations(draw_id: int,
 
 
 def make_broken_location_report(broken_locations):
+    below_0, over_total_pop = zip(*broken_locations)
+    below_0 = pd.concat(below_0, axis=1)
+    draws = below_0.columns
+    below_0 = below_0.reset_index()
+    over_total_pop = pd.concat(over_total_pop, axis=1).reset_index()
+    
     report = ''
-    for draw_id, (below_0, over_total_pop) in enumerate(broken_locations):
+    overall_missing = set()
+    overall_below_0 = set()
+    overall_over_total_pop = set()
+    for draw in draws:
         draw_report = ''
-        if below_0:
-            draw_report += f'    below_0: {below_0}\n'
-        if over_total_pop:
-            draw_report += f'    over_total_pop: {below_0}\n'
+        
+        missing = below_0.loc[below_0[draw].isnull(), 'location_id'].tolist()
+        draw_below_0 = below_0.loc[below_0[draw].fillna(False), 'location_id'].tolist()
+        draw_over_total_pop = over_total_pop.loc[over_total_pop[draw].fillna(False), 'location_id'].tolist()
+        if missing:
+            draw_report += f'    missing: {missing}\n'
+            overall_missing |= set(missing)
+        if draw_below_0:
+            draw_report += f'    below_0: {draw_below_0}\n'
+            overall_below_0 |= set(draw_below_0)
+        if draw_over_total_pop:
+            draw_report += f'    over_total_pop: {draw_over_total_pop}\n'
+            overall_over_total_pop |= set(draw_over_total_pop)
         if draw_report:
-            report += f'{draw_id}:\n' + draw_report
+            report += f'{draw}:\n' + draw_report
     if report:
         report = 'Failing locations found for some draws\n' + report
+        report += 'Overall:\n'
+        if overall_missing:
+            report += f'    missing: {list(overall_missing)}\n'
+        if overall_below_0:
+            report += f'    below_0: {list(overall_below_0)}\n'
+        if overall_over_total_pop:
+            report += f'    over_total_pop: {list(overall_over_total_pop)}\n'
+        report += f'    all_problem_locs: {list(overall_missing | overall_below_0 | overall_over_total_pop)}\n'
     return report
 
 
