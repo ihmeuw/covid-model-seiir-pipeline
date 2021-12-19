@@ -42,6 +42,7 @@ def run_model(model_data: pd.DataFrame,
     )
 
     mr_model_dict, prior_dicts = cascade.run_cascade(
+        model_name='ifr',
         model_data=model_data.copy(),
         hierarchy=mr_hierarchy.copy(),
         var_args=var_args.copy(),

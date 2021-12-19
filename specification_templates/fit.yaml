@@ -1,11 +1,11 @@
 data:
-  seir_preprocess_version: '2021_12_18.04'
+  seir_preprocess_version: '2021_12_19.07'
   output_format: 'parquet'
   output_root: ''
   n_draws: 100
 workflow:
   project: 'proj_covid_prod'
-  queue: 'd.q'
+  queue: 'all.q'
 rates_parameters:
   day_0: '2020-03-15'
   pred_start_date: '2019-11-01'
@@ -59,21 +59,28 @@ fit_parameters:
 measure_downweights:
     death:
       [
+        # IFR outliers
+        [   35, 0.95],  # Georgia
+        [   41, 0.95],  # Uzbekistan
+        [   43, 0.95],  # Albania
+        [   62, 0.95],  # Russia
+        [  141, 0.95],  # Egypt
+        [  151, 0.95],  # Qatar
+        [53619, 0.95],  # Khyber Pakhtunkhwa
+        [  214, 0.95],  # Nigeria
+
+        # bad fits
         [  121, 0.75],  # Bolivia
-        [ 4651, 0.75],  # Mexico City
-        [  160, 0.50],  # Afghanistan
-        [  193, 0.50],  # Botswana
+        [  160, 0.95],  # Afghanistan
+        [  193, 0.75],  # Botswana
         [  194, 0.50],  # Lesotho
-        [  195, 0.50],  # Namibia
-        [  196, 0.75],  # South Africa
+        [  195, 0.75],  # Namibia
         [  197, 0.50],  # Eswatini
-        [  198, 0.50],  # Zimbabwe
-        [53617, 0.50],  # Gilgit-Baltistan
+        [  198, 0.75],  # Zimbabwe
+        [53617, 0.75],  # Gilgit-Baltistan
       ]
     admission:
       [
-        [ 4651, 0.75],  # Mexico City
-        [  196, 0.75],  # South Africa
       ]
     case:
       [

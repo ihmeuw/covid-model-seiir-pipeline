@@ -9,9 +9,11 @@ import numpy as np
 import pandas as pd
 
 from covid_model_seiir_pipeline.pipeline.fit.model.mrbrt import mrbrt
+from covid_model_seiir_pipeline.lib import utilities
 
 
-def run_cascade(model_data: pd.DataFrame,
+def run_cascade(model_name: str,
+                model_data: pd.DataFrame,
                 hierarchy: pd.DataFrame,
                 var_args: Dict,
                 global_prior_dict: Dict,
@@ -46,6 +48,7 @@ def run_cascade(model_data: pd.DataFrame,
     for level, location_ids in cascade_hierarchy:
         logger.debug(f'Modeling hierarchy level {level} ({len(location_ids)} location-models).')
         level_mr_model_dict, level_prior_dict = run_level(
+            model_name=model_name,
             level_lambda=level_lambdas[level],
             level=level,
             location_ids=location_ids,
@@ -65,7 +68,8 @@ def run_cascade(model_data: pd.DataFrame,
     return mr_model_dict, prior_dicts
 
 
-def run_level(level_lambda: Dict,
+def run_level(model_name: str,
+              level_lambda: Dict,
               level: int,
               location_ids: List[int],
               model_data: pd.DataFrame,
@@ -88,6 +92,7 @@ def run_level(level_lambda: Dict,
         location_in_path_model = model_data['location_id'].isin(child_locations)
         location_model_data = model_data.loc[location_in_path_model].copy()
         location_mr_model, _location_prior_dict = run_location(
+            model_name=model_name,
             location_id=location_id,
             model_data=location_model_data,
             prior_dict=parent_prior_dict,
@@ -102,14 +107,14 @@ def run_level(level_lambda: Dict,
     return level_mr_model_dict, level_prior_dicts
 
 
-def run_location(location_id: int,
+def run_location(model_name: str,
+                 location_id: int,
                  model_data: pd.DataFrame,
                  prior_dict: Dict,
                  location_prior_dict: Dict,
                  level_lambda: Dict,
                  global_mr_data: MRData,
                  var_args: Dict,):
-    np.random.seed(location_id)
     location_var_args = deepcopy(var_args)
     combined_prior_dict = {}
     for data_var in list(set(location_var_args['fe_vars'] + location_var_args['re_vars'])):
@@ -118,6 +123,8 @@ def run_location(location_id: int,
         data_var_dict.update(location_prior_dict.get(data_var, {}))
         combined_prior_dict.update({data_var: {**data_var_dict}})
     location_var_args['prior_dict'] = combined_prior_dict
+    key = utilities.get_random_seed(f'{model_name}_{location_id}')
+    np.random.seed(key)
     mr_model = mrbrt.run_mr_model(
         model_data=model_data,
         global_mr_data=global_mr_data,

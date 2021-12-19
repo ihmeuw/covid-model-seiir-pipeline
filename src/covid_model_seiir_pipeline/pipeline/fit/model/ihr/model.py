@@ -79,6 +79,7 @@ def run_model(model_data: pd.DataFrame,
     model_data = model_data.loc[:, model_data_cols]
     model_data = model_data.dropna()
     mr_model_dict, prior_dicts = cascade.run_cascade(
+        model_name='ihr',
         model_data=model_data.copy(),
         hierarchy=mr_hierarchy.copy(),
         var_args=var_args.copy(),

@@ -194,12 +194,12 @@ def process_raw_serology_data(data: pd.DataFrame) -> pd.DataFrame:
     outliers.append(den_vax_outlier)
     logger.debug(f'{den_vax_outlier.sum()} rows from sero data dropped due to Denmark vax issues.')
 
-    # vaccine debacle, lose all the Estonia and Netherlands data from Junue 2021 onward
+    # vaccine debacle, lose all the Estonia and Netherlands data from June 2021 onward
     is_est_ndl = data['location_id'].isin([58, 89])
     is_spike = data['test_target'] == 'spike'
-    is_2021 = data['date'] >= pd.Timestamp('2021-06-01')
+    is_post_june_2021 = data['date'] >= pd.Timestamp('2021-06-01')
 
-    est_ndl_vax_outlier = is_est_ndl & is_spike & is_2021
+    est_ndl_vax_outlier = is_est_ndl & is_spike & is_post_june_2021
     outliers.append(est_ndl_vax_outlier)
     logger.debug(f'{est_ndl_vax_outlier.sum()} rows from sero data dropped due to Netherlands and Estonia vax issues.')
 
@@ -219,6 +219,14 @@ def process_raw_serology_data(data: pd.DataFrame) -> pd.DataFrame:
     k_s_outlier = is_k_s & is_pre_may_2020
     outliers.append(k_s_outlier)
     logger.debug(f'{k_s_outlier.sum()} rows from sero data dropped due to noisy (early) King/Snohomish data.')
+
+    # New York dialysis
+    is_ny = data['location_id'] == 555
+    is_usa_dialysis = data['survey_series'] == 'usa_dialysis'
+
+    ny_outlier = is_ny & is_usa_dialysis
+    outliers.append(ny_outlier)
+    logger.debug(f'{ny_outlier.sum()} rows from sero data dropped due to bogus dialysis data in New York.')
 
     # Saskatchewan
     is_sas = data['location_id'] == 43869
