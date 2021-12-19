@@ -47,7 +47,7 @@ def load_output_data(output_name: str, fallback: str = None):
 def load_vaccine_summaries(output_name: str):
     def inner(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
         n_draws = data_interface.get_n_draws()
-        summary = data_interface.load_vaccination_summaries(output_name)
+        summary = data_interface.load_vaccine_summary(columns=[output_name])[output_name]
         summary = pd.concat([summary]*n_draws, axis=1)    
         summary.columns = list(range(n_draws))
         return summary

@@ -98,6 +98,9 @@ class FitDataInterface:
     def load_waning_parameters(self, measure: str) -> pd.DataFrame:
         return self.preprocessing_data_interface.load_waning_parameters(measure)
 
+    def load_vaccine_summary(self, columns: List[str] = None) -> pd.DataFrame:
+        return self.preprocessing_data_interface.load_vaccine_summary(columns=columns)
+
     def load_vaccine_uptake(self, scenario: str) -> pd.DataFrame:
         return self.preprocessing_data_interface.load_vaccine_uptake(scenario)
 

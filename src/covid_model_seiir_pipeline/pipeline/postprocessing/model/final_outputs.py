@@ -97,101 +97,71 @@ for measure in ['infections', 'deaths', 'cases', 'admissions']:
             aggregator=aggregate.sum_aggregator,
             write_draws=write_draws,
         )
-MEASURES['unscaled_deaths'] = MeasureConfig(
-    loaders.load_unscaled_deaths,
-    'unscaled_daily_deaths',
-    calculate_cumulative=True,
-    cumulative_label='cumulative_unscaled_deaths',
-    aggregator=aggregate.sum_aggregator,
-    write_draws=True,
-)
-MEASURES['total_covid_deaths_data'] = MeasureConfig(
-   loaders.load_total_covid_deaths,
-   'total_covid_deaths_data',
-   aggregator=aggregate.sum_aggregator,
-)
-
-# 'icu_admissions': MeasureConfig(
-#    loaders.load_output_data('icu_admissions'),
-#    'icu_admissions',
-#    aggregator=aggregate.sum_aggregator,
-#    write_draws=True,
-# ),
-# 'hospital_census': MeasureConfig(
-#    loaders.load_output_data('hospital_census'),
-#    'hospital_census',
-#    aggregator=aggregate.sum_aggregator,
-# ),
-# 'icu_census': MeasureConfig(
-#    loaders.load_output_data('icu_census'),
-#    'icu_census',
-#    aggregator=aggregate.sum_aggregator,
-# ),
-# 'hospital_census_correction_factor': MeasureConfig(
-#    loaders.load_output_data('hospital_census_correction_factor'),
-#    'hospital_census_correction_factor',
-#    splice=False,
-# ),
-# 'icu_census_correction_factor': MeasureConfig(
-#    loaders.load_output_data('icu_census_correction_factor'),
-#    'icu_census_correction_factor',
-#    splice=False,
-# ),
-
-# Vaccination measures
-# 'cumulative_all_effective': MeasureConfig(
-#    loaders.load_vaccine_summaries('cumulative_all_effective'),
-#    'cumulative_vaccinations_all_effective',
-#    aggregator=aggregate.sum_aggregator,
-#    resample=False,
-#    splice=False,
-# ),
-# 'cumulative_all_vaccinated': MeasureConfig(
-#    loaders.load_vaccine_summaries('cumulative_all_vaccinated'),
-#    'cumulative_vaccinations_all_vaccinated',
-#    aggregator=aggregate.sum_aggregator,
-#    resample=False,
-#    splice=False,
-# ),
-# 'cumulative_all_fully_vaccinated': MeasureConfig(
-#    loaders.load_vaccine_summaries('cumulative_all_fully_vaccinated'),
-#    'cumulative_vaccinations_all_fully_vaccinated',
-#    aggregator=aggregate.sum_aggregator,
-#    resample=False,
-#    splice=False,
-# ),
-# 'cumulative_lr_vaccinated': MeasureConfig(
-#    loaders.load_vaccine_summaries('lr_vaccinated'),
-#    'cumulative_vaccinations_lr',
-#    aggregator=aggregate.sum_aggregator,
-#    resample=False,
-#    splice=False,
-# ),
-# 'cumulative_hr_vaccinated': MeasureConfig(
-#    loaders.load_vaccine_summaries('hr_vaccinated'),
-#    'cumulative_vaccinations_hr',
-#    aggregator=aggregate.sum_aggregator,
-#    resample=False,
-#    splice=False,
-# ),
-# 'vaccine_acceptance': MeasureConfig(
-#    loaders.load_vaccine_summaries('vaccine_acceptance'),
-#    'vaccine_acceptance',
-#    aggregator=aggregate.mean_aggregator,
-#    resample=False,
-#    splice=False,
-# ),
-# 'vaccine_acceptance_point': MeasureConfig(
-#    loaders.load_vaccine_summaries('vaccine_acceptance_point'),
-#    'vaccine_acceptance_point',
-#    aggregator=aggregate.mean_aggregator,
-#    resample=False,
-#    splice=False,
-# ),
-
-
 MEASURES.update(**{
-    # Betas
+    'unscaled_deaths': MeasureConfig(
+        loaders.load_unscaled_deaths,
+        'unscaled_daily_deaths',
+        calculate_cumulative=True,
+        cumulative_label='cumulative_unscaled_deaths',
+        aggregator=aggregate.sum_aggregator,
+        write_draws=True,
+    ),
+    'total_covid_deaths_data': MeasureConfig(
+        loaders.load_total_covid_deaths,
+        'total_covid_deaths_data',
+        aggregator=aggregate.sum_aggregator,
+    ),
+    # Vaccination measures
+    'cumulative_all_effective': MeasureConfig(
+       loaders.load_vaccine_summaries('cumulative_all_effective'),
+       'cumulative_vaccinations_all_effective',
+       aggregator=aggregate.sum_aggregator,
+       resample=False,
+       splice=False,
+    ),
+    'cumulative_all_vaccinated': MeasureConfig(
+       loaders.load_vaccine_summaries('cumulative_all_vaccinated'),
+       'cumulative_vaccinations_all_vaccinated',
+       aggregator=aggregate.sum_aggregator,
+       resample=False,
+       splice=False,
+    ),
+    'cumulative_all_fully_vaccinated': MeasureConfig(
+       loaders.load_vaccine_summaries('cumulative_all_fully_vaccinated'),
+       'cumulative_vaccinations_all_fully_vaccinated',
+       aggregator=aggregate.sum_aggregator,
+       resample=False,
+       splice=False,
+    ),
+    'cumulative_lr_vaccinated': MeasureConfig(
+       loaders.load_vaccine_summaries('lr_vaccinated'),
+       'cumulative_vaccinations_lr',
+       aggregator=aggregate.sum_aggregator,
+       resample=False,
+       splice=False,
+    ),
+    'cumulative_hr_vaccinated': MeasureConfig(
+       loaders.load_vaccine_summaries('hr_vaccinated'),
+       'cumulative_vaccinations_hr',
+       aggregator=aggregate.sum_aggregator,
+       resample=False,
+       splice=False,
+    ),
+    'vaccine_acceptance': MeasureConfig(
+       loaders.load_vaccine_summaries('vaccine_acceptance'),
+       'vaccine_acceptance',
+       aggregator=aggregate.mean_aggregator,
+       resample=False,
+       splice=False,
+    ),
+    'vaccine_acceptance_point': MeasureConfig(
+       loaders.load_vaccine_summaries('vaccine_acceptance_point'),
+       'vaccine_acceptance_point',
+       aggregator=aggregate.mean_aggregator,
+       resample=False,
+       splice=False,
+    ),
+# Betas
     'beta': MeasureConfig(
          loaders.load_ode_params('beta'),
          'betas',
@@ -238,6 +208,33 @@ MEASURES.update(**{
         'infection_to_admission',
     ),
 })
+# 'icu_admissions': MeasureConfig(
+#    loaders.load_output_data('icu_admissions'),
+#    'icu_admissions',
+#    aggregator=aggregate.sum_aggregator,
+#    write_draws=True,
+# ),
+# 'hospital_census': MeasureConfig(
+#    loaders.load_output_data('hospital_census'),
+#    'hospital_census',
+#    aggregator=aggregate.sum_aggregator,
+# ),
+# 'icu_census': MeasureConfig(
+#    loaders.load_output_data('icu_census'),
+#    'icu_census',
+#    aggregator=aggregate.sum_aggregator,
+# ),
+# 'hospital_census_correction_factor': MeasureConfig(
+#    loaders.load_output_data('hospital_census_correction_factor'),
+#    'hospital_census_correction_factor',
+#    splice=False,
+# ),
+# 'icu_census_correction_factor': MeasureConfig(
+#    loaders.load_output_data('icu_census_correction_factor'),
+#    'icu_census_correction_factor',
+#    splice=False,
+# ),
+
 
 for measure in ['boosters', 'vaccinations']:
     MEASURES[measure] = MeasureConfig(

@@ -172,6 +172,8 @@ class VaccineCoverageRoot(DataRoot):
 
     brand_specific_coverage = DatasetType(LEAF_TEMPLATES.MEASURE_TEMPLATE)
     old_vaccine_coverage = DatasetType('slow_scenario_vaccine_coverage')
+    series_hesitancy = DatasetType('time_series_vaccine_hesitancy')
+    point_hesitancy = DatasetType('time_point_vaccine_hesitancy')
 
 
 class VaccineEfficacyRoot(DataRoot):
@@ -207,6 +209,7 @@ class PreprocessingRoot(DataRoot):
     testing_for_idr = DatasetType('testing')
     variant_prevalence = DatasetType('variant_prevalence', LEAF_TEMPLATES.VARIANT_SCENARIO)
     waning_parameters = DatasetType(LEAF_TEMPLATES.MEASURE_TEMPLATE)
+    vaccine_summary = DatasetType('vaccine_summary')
     vaccine_uptake = DatasetType('vaccine_uptake', LEAF_TEMPLATES.COV_SCENARIO_TEMPLATE)
     vaccine_risk_reduction = DatasetType('vaccine_risk_reduction', LEAF_TEMPLATES.COV_SCENARIO_TEMPLATE)
 

@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Dict, Optional, Union
+from typing import Dict, List, Optional, Union
 
 import pandas as pd
 
@@ -358,18 +358,34 @@ class PreprocessingDataInterface:
         return data
 
     def load_serology_vaccine_coverage(self) -> pd.DataFrame:
-        # FIXME: This goes away.
-        data = io.load(self.serology_vaccine_coverage_root.old_vaccine_coverage())
+        summary_data = io.load(self.serology_vaccine_coverage_root.old_vaccine_coverage())
 
         keep_columns = [
             # total vaccinated (all and by three groups)
+            'cumulative_all_effective',
             'cumulative_all_vaccinated',
+            'cumulative_all_fully_vaccinated',
             'cumulative_essential_vaccinated',
             'cumulative_adults_vaccinated',
             'cumulative_elderly_vaccinated',
+            'hr_vaccinated',
+            'lr_vaccinated',
         ]
+        summary_data = summary_data.sort_index().loc[:, keep_columns]
 
-        return data.sort_index().loc[:, keep_columns]
+        series_hesitancy = io.load(self.serology_vaccine_coverage_root.series_hesitancy())
+        series_hesitancy = (series_hesitancy
+                            .sort_index()
+                            .smooth_combined_yes
+                            .rename('vaccine_acceptance'))
+        point_hesitancy = io.load(self.serology_vaccine_coverage_root.point_hesitancy())
+        point_hesitancy = (point_hesitancy
+                           .sort_index()
+                           .smooth_combined_yes
+                           .rename('vaccine_acceptance_point')
+                           .reindex(series_hesitancy.index, level='location_id'))
+        data = pd.concat([summary_data, series_hesitancy, point_hesitancy], axis=1)
+        return data
 
     #########################
     # Vaccine efficacy data #
@@ -538,6 +554,12 @@ class PreprocessingDataInterface:
 
     def load_waning_parameters(self, measure: str) -> pd.DataFrame:
         return io.load(self.preprocessing_root.waning_parameters(measure=measure))
+
+    def save_vaccine_summary(self, data: pd.DataFrame) -> None:
+        io.dump(data, self.preprocessing_root.vaccine_summary())
+
+    def load_vaccine_summary(self, columns: List[str] = None) -> pd.DataFrame:
+        return io.load(self.preprocessing_root.vaccine_summary(columns=columns))
 
     def save_vaccine_uptake(self, data: pd.DataFrame, scenario: str) -> None:
         io.dump(data, self.preprocessing_root.vaccine_uptake(covariate_scenario=scenario))
