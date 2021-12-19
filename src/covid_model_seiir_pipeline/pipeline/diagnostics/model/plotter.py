@@ -112,7 +112,7 @@ def make_results_page(plot_versions: List[PlotVersion],
     group_axes = []
     daily_measures = [
         ('daily_cases', 'Daily Cases', 'cumulative_cases'),
-        ('hospital_admissions', 'Daily Admissions', 'cumulative_hospitalizations'),
+        ('daily_admissions', 'Daily Admissions', 'cumulative_hospitalizations'),
         ('daily_deaths', 'Daily Deaths', 'cumulative_deaths'),
     ]
     for i, (measure, label, full_data_measure) in enumerate(daily_measures):
@@ -138,7 +138,7 @@ def make_results_page(plot_versions: List[PlotVersion],
     group_axes = []
     cumulative_measures = [
         ('daily_cases', 'Cumulative Cases', 'cumulative_cases'),
-        ('hospital_admissions', 'Cumulative Admissions', 'cumulative_hospitalizations'),
+        ('daily_admissions', 'Cumulative Admissions', 'cumulative_hospitalizations'),
         ('daily_deaths', 'Cumulative Deaths', 'cumulative_deaths'),
     ]
     for i, (measure, label, full_data_measure) in enumerate(cumulative_measures):
