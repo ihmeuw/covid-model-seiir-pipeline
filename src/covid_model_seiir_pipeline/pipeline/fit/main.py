@@ -1,10 +1,15 @@
+import functools
 from typing import Dict, Optional
 
 import click
 from covid_shared import ihme_deps, paths
 from loguru import logger
+import pandas as pd
 
-from covid_model_seiir_pipeline.lib import cli_tools
+from covid_model_seiir_pipeline.lib import (
+    cli_tools,
+    parallel,
+)
 
 from covid_model_seiir_pipeline.pipeline.fit.specification import FitSpecification
 from covid_model_seiir_pipeline.pipeline.fit.data import FitDataInterface
@@ -61,7 +66,54 @@ def fit_main(app_metadata: cli_tools.Metadata,
             workflow.run()
         except ihme_deps.WorkflowAlreadyComplete:
             logger.info('Workflow already complete.')
-    pass
+
+    # Check for bad locations
+    total_population = data_interface.load_population(measure='total').population
+    _runner = functools.partial(
+        get_broken_locations,
+        data_interface=data_interface,
+        total_population=total_population,
+    )
+    results = parallel.run_parallel(
+        _runner,
+        arg_list=list(range(data_interface.get_n_draws())),
+        num_cores=26,
+        progress_bar=True
+    )
+    report = make_broken_location_report(results)
+    if report:
+        logger.warning(report)
+
+
+def get_broken_locations(draw_id: int,
+                         data_interface: FitDataInterface,
+                         total_population: pd.Series):
+    infections = data_interface.load_posterior_epi_measures(
+        draw_id, columns=['daily_naive_unvaccinated_infections']
+    )
+    infections = infections.loc[infections['round'] == 2]
+    below_0 = infections.groupby('location_id').min() < 0
+    below_0 = below_0[below_0].reset_index().location_id.unique().tolist()
+
+    over_total_pop = infections.groupby('location_id').sum() > total_population
+    over_total_pop = over_total_pop[over_total_pop].reset_index().location_id.unique().tolist()
+
+    return below_0, over_total_pop
+
+
+def make_broken_location_report(broken_locations):
+    report = ''
+    for draw_id, (below_0, over_total_pop) in enumerate(broken_locations):
+        draw_report = ''
+        if below_0:
+            draw_report += f'    below_0: {below_0}\n'
+        if over_total_pop:
+            draw_report += f'    over_total_pop: {below_0}\n'
+        if draw_report:
+            report += f'{draw_id}:\n' + draw_report
+    if report:
+        report = 'Failing locations found for some draws\n' + report
+    return report
 
 
 @click.command()
