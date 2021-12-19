@@ -348,10 +348,8 @@ class PreprocessingDataInterface:
     def load_raw_vaccine_uptake(self, scenario: str) -> pd.DataFrame:
         try:
             scenario_file = {
-                'reference': 'last_shots_in_arm_by_brand_w_booster_reference_kid_low',
-                'child_fast': 'last_shots_in_arm_by_brand_w_booster_reference_kid_high',
-                'booster_high': 'last_shots_in_arm_by_brand_w_booster_optimal_kid_low',
-                'optimistic': 'last_shots_in_arm_by_brand_w_booster_optimal_kid_high',
+                'reference': 'last_shots_in_arm_by_brand_w_booster_reference',
+                'booster': 'last_shots_in_arm_by_brand_w_booster_optimal',
             }[scenario]
         except KeyError:
             raise ValueError(f'Unknown vaccine scenario {scenario}.')
