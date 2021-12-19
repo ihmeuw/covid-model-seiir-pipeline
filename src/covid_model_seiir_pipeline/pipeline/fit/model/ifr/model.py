@@ -28,6 +28,7 @@ def run_model(model_data: pd.DataFrame,
      level_lambdas,
      var_args,
      global_prior_dict,
+     location_prior_dict,
      pred_replace_dict,
      pred_exclude_vars) = prepare_model(
         model_data=model_data,
@@ -45,6 +46,7 @@ def run_model(model_data: pd.DataFrame,
         hierarchy=mr_hierarchy.copy(),
         var_args=var_args.copy(),
         global_prior_dict=global_prior_dict.copy(),
+        location_prior_dict=location_prior_dict.copy(),
         level_lambdas=level_lambdas.copy(),
     )
     pred_data = pred_data.dropna()
@@ -91,7 +93,22 @@ def prepare_model(model_data: pd.DataFrame,
     model_data['ifr_se'] = 1
     model_data['logit_ifr_se'] = 1
     model_data['intercept'] = 1
-    
+
+    ## ## ## ## ## ## ## ##
+    ## MANUAL OUTLIERING ##
+    outlier_locs = [
+        35,    # Georgia
+        41,    # Uzbekistan
+        43,    # Albania
+        62,    # Russia
+        141,   # Egypt
+        151,   # Qatar
+        53619, # Khyber Pakhtunkhwa
+        214,   # Nigeria
+    ]
+    model_data = model_data.loc[~model_data['location_id'].isin(outlier_locs)].reset_index()
+    ## ## ## ## ## ## ## ##
+
     # lose 0s and 1s
     model_data = model_data.loc[model_data['logit_ifr'].notnull()]
 
@@ -118,7 +135,7 @@ def prepare_model(model_data: pd.DataFrame,
                 'spline_knots': np.array([0., inflection_point, 1.]),
                 'spline_degree': 1,
                 'prior_spline_maxder_uniform': np.array([[-0.01, -0.],
-                                                         [-1e-6,  0.]])
+                                                         [  -0.,  0.]])
             },
             **covariate_constraints
         },
@@ -126,12 +143,72 @@ def prepare_model(model_data: pd.DataFrame,
         'group_var': 'location_id',
     }
     global_prior_dict = {
-        't': {
-            'prior_spline_maxder_gaussian': np.array([[-2e-3,     0.],
-                                                      [ 1e-3, np.inf]])
-        },
+        # 't': {
+        #     'prior_spline_maxder_gaussian': np.array([[-2e-3,     0.],
+        #                                               [ 1e-3, np.inf]])
+        # },
         **covariate_priors,
     }
+    location_prior_dict = {
+        location_id: {
+            't': {
+                'prior_spline_maxder_gaussian': np.array([[  0.,   0.],
+                                                          [1e-6, 1e-6]])
+            }
+        } for location_id in [
+                              4,  # Southeast Asia, East Asia, and Oceania
+                              31,  # Central Europe, Eastern Europe, and Central Asia
+                              103,  # Latin America and Caribbean
+                              137,  # North Africa and Middle East (super region)
+                              158,  # South Asia (super region)
+                              166,  # Sub-Saharan Africa
+                             ]
+    }
+    location_prior_dict.update({
+        location_id: {
+            't': {
+                'prior_spline_maxder_gaussian': np.array([[  0.,   0.],
+                                                          [1e-3, 1e-3]])
+            }
+        } for location_id in [
+                              5,  # East Asia
+                              9,  # Southeast Asia
+                              21,  # Oceania
+
+                              32,  # Central Asia
+                              42,  # Central Europe
+                              56,  # Eastern Europe
+
+                              104,  # Caribbean
+                              120,  # Andean Latin America
+                              124,  # Central Latin America
+                              134,  # Tropical Latin America
+
+                              138,  # North Africa and Middle East (region)
+
+                              159,  # South Asia (region)
+
+                              167,  # Central Sub-Saharan Africa
+                              174,  # Eastern Sub-Saharan Africa
+                              192,  # Southern Sub-Saharan Africa
+                              199,  # Western Sub-Saharan Africa
+                             ]
+    })
+    location_prior_dict.update({
+        location_id: {
+            't': {
+                'prior_spline_maxder_gaussian': np.array([[-2e-3,   0.],
+                                                          [ 1e-3, 1e-3]])
+            }
+        } for location_id in [
+                              64,  # High-income
+                              # 65,  # High-income Asia Pacific
+                              # 70,  # Australasia
+                              # 73,  # Western Europe
+                              # 96,  # Southern Latin America
+                              # 100,  # High-income North America
+                             ]
+    })
     pred_replace_dict = {}
     pred_exclude_vars = []
     level_lambdas = {
@@ -158,5 +235,6 @@ def prepare_model(model_data: pd.DataFrame,
             level_lambdas,
             var_args,
             global_prior_dict,
+            location_prior_dict,
             pred_replace_dict,
             pred_exclude_vars)

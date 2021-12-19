@@ -24,6 +24,9 @@ from covid_model_seiir_pipeline.pipeline.fit.model.sampled_params import (
     Durations,
     sample_parameter,
 )
+from covid_model_seiir_pipeline.pipeline.fit.model.epi_measures import (
+    aggregate_data_from_md,
+)
 
 
 def prepare_ode_fit_parameters(rates: Rates,
@@ -34,6 +37,7 @@ def prepare_ode_fit_parameters(rates: Rates,
                                natural_waning_dist: pd.Series,
                                natural_waning_matrix: pd.DataFrame,
                                sampled_ode_params: Dict[str, float],
+                               measure_downweights: Dict[str, List[Tuple[int, float]]],
                                hierarchy: pd.DataFrame,
                                draw_id: int) -> Tuple[Parameters, pd.DataFrame]:
     epi_measures, rates, age_scalars = prepare_epi_measures_and_rates(rates, epi_measures, hierarchy)
@@ -44,6 +48,8 @@ def prepare_ode_fit_parameters(rates: Rates,
     for measure in ['death', 'admission', 'case']:
         parameter = f'weight_all_{measure}'
         _weights = pd.Series(sample_parameter(parameter, draw_id, 0., 1.), name=parameter, index=past_index)
+        for downweight_loc, downweight in measure_downweights[measure]:
+            _weights.loc[downweight_loc] *= downweight
         _weights = add_transition_period(
             weights=_weights,
             data_period=epi_measures.loc[epi_measures[measure].notnull()].index,
@@ -223,7 +229,7 @@ def get_crude_infections(base_params, rates, threshold=50):
 
 
 def compute_posterior_epi_measures(compartments: pd.DataFrame,
-                                   durations: Durations) -> Tuple[pd.DataFrame, pd.Series]:
+                                   durations: Durations) -> pd.DataFrame:
     compartments_diff = compartments.groupby('location_id').diff().fillna(compartments)
     
     naive = compartments.filter(like='S_').filter(like='none').sum(axis=1).rename('naive')
@@ -237,16 +243,6 @@ def compute_posterior_epi_measures(compartments: pd.DataFrame,
         daily = compartments_diff.filter(like=col).sum(axis=1, min_count=1).rename(name)
         infections.extend([daily, _to_cumulative(daily)])
     infections = pd.concat(infections, axis=1)
-
-    pct_unvaccinated = (
-        (infections['cumulative_naive_unvaccinated_infections'] / infections['cumulative_naive_infections'])
-        .clip(0, 1)
-        .rename('pct_unvaccinated')
-        .groupby('location_id')
-        .shift(durations.exposure_to_seroconversion)
-        .dropna()
-        .reset_index()
-    )
 
     measure_map = {
         'Death': 'deaths',
@@ -272,7 +268,42 @@ def compute_posterior_epi_measures(compartments: pd.DataFrame,
         *measures
     ], axis=1)
 
-    return epi_measures, pct_unvaccinated
+    return epi_measures
+
+
+def aggregate_posterior_epi_measures(epi_measures: pd.DataFrame,
+                                     posterior_epi_measures: pd.DataFrame,
+                                     hierarchy: pd.DataFrame) -> pd.DataFrame:
+    posterior_locs = posterior_epi_measures.reset_index()['location_id'].unique().tolist()
+    epi_measures = epi_measures.loc[posterior_locs]
+    agg_posterior_epi_measures = []
+    for measure in ['cumulative_naive_unvaccinated_infections',
+                    'cumulative_naive_infections',
+                    'cumulative_total_infections',
+                    'cumulative_deaths',
+                    'cumulative_cases',
+                    'cumulative_hospitalizations']:
+        if 'infections' in measure:
+            pem = (posterior_epi_measures.loc[:, [measure]]
+                   .dropna()
+                   .reset_index())
+        else:
+            pem = (posterior_epi_measures.loc[epi_measures.loc[epi_measures[measure].notnull()].index,
+                                              [measure]]
+                   .dropna()
+                   .reset_index())
+        agg_posterior_epi_measures.append(
+            aggregate_data_from_md(pem, hierarchy, measure).set_index(['location_id', 'date'])
+        )
+    agg_posterior_epi_measures = pd.concat(agg_posterior_epi_measures, axis=1)
+    agg_posterior_epi_measures = pd.concat([
+        agg_posterior_epi_measures,
+        (agg_posterior_epi_measures
+         .groupby(level=0).diff().fillna(agg_posterior_epi_measures)
+         .rename(columns=lambda x: x.replace('cumulative', 'daily')))
+    ], axis=1)
+
+    return agg_posterior_epi_measures
 
 
 def _shift(lag: int):

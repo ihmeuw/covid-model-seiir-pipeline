@@ -70,9 +70,9 @@ def run_beta_fit(fit_version: str, draw_id: int, progress_bar: bool) -> None:
     logger.info('Generating naive infections for first pass rates model', context='transform')
     daily_deaths = epi_measures['smoothed_daily_deaths'].dropna()
     naive_ifr = specification.rates_parameters.naive_ifr
-    daily_infections = (daily_deaths / naive_ifr).rename('daily_infections').reset_index()
-    daily_infections['date'] -= pd.Timedelta(days=durations.exposure_to_death)
-    daily_infections = daily_infections.set_index(['location_id', 'date']).loc[:, 'daily_infections']
+    init_daily_infections = (daily_deaths / naive_ifr).rename('daily_infections').reset_index()
+    init_daily_infections['date'] -= pd.Timedelta(days=durations.exposure_to_death)
+    init_daily_infections = init_daily_infections.set_index(['location_id', 'date']).loc[:, 'daily_infections']
 
     logger.info('Running first-pass rates model', context='rates_model_1')
     first_pass_rates, first_pass_rates_data = model.run_rates_pipeline(
@@ -87,7 +87,7 @@ def run_beta_fit(fit_version: str, draw_id: int, progress_bar: bool) -> None:
         age_specific_population=five_year_population,
         testing_capacity=testing_capacity,
         variant_prevalence=variant_prevalence,
-        daily_infections=daily_infections,
+        daily_infections=init_daily_infections,
         durations=durations,
         variant_rrs=variant_severity,
         params=specification.rates_parameters,
@@ -106,6 +106,7 @@ def run_beta_fit(fit_version: str, draw_id: int, progress_bar: bool) -> None:
         natural_waning_dist=natural_waning_dist,
         natural_waning_matrix=natural_waning_matrix,
         sampled_ode_params=sampled_ode_params,
+        measure_downweights=specification.measure_downweights.to_dict(),
         hierarchy=pred_hierarchy,
         draw_id=draw_id,
     )
@@ -126,10 +127,25 @@ def run_beta_fit(fit_version: str, draw_id: int, progress_bar: bool) -> None:
     )
 
     logger.info('Prepping first pass ODE outputs for second pass rates model', context='transform')
-    first_pass_posterior_epi_measures, pct_unvaccinated = model.compute_posterior_epi_measures(
+    first_pass_posterior_epi_measures = model.compute_posterior_epi_measures(
         compartments=compartments,
         durations=durations
     )
+    agg_first_pass_posterior_epi_measures = model.aggregate_posterior_epi_measures(
+        epi_measures=epi_measures,
+        posterior_epi_measures=first_pass_posterior_epi_measures,
+        hierarchy=mr_hierarchy
+    )
+
+    pct_unvaccinated = (
+        (agg_first_pass_posterior_epi_measures['cumulative_naive_unvaccinated_infections']
+         / agg_first_pass_posterior_epi_measures['cumulative_naive_infections'])
+        .clip(0, 1)
+        .fillna(1)
+        .rename('pct_unvaccinated')
+        .reset_index()
+    )
+    pct_unvaccinated['date'] += pd.Timedelta(days=durations.exposure_to_seroconversion)
 
     hospitalized_weights = model.get_all_age_rate(
         rate_age_pattern=age_patterns['ihr'],
@@ -140,18 +156,19 @@ def run_beta_fit(fit_version: str, draw_id: int, progress_bar: bool) -> None:
         sensitivity_data=sensitivity_data,
         hospitalized_weights=hospitalized_weights,
         seroprevalence=seroprevalence,
-        daily_infections=first_pass_posterior_epi_measures['daily_total_infections'].rename('daily_infections'),
+        daily_infections=(agg_first_pass_posterior_epi_measures['daily_total_infections']
+                          .rename('daily_infections')),
+        population=total_population,
         durations=durations,
     )
     adjusted_seroprevalence = adjusted_seroprevalence.merge(pct_unvaccinated, how='left')
     if adjusted_seroprevalence['pct_unvaccinated'].isnull().any():
         logger.warning('Unmatched sero-survey dates')
     adjusted_seroprevalence['seroprevalence'] *= adjusted_seroprevalence['pct_unvaccinated']
-    del adjusted_seroprevalence['pct_unvaccinated']
 
     logger.info('Running second-pass rates model', context='rates_model_2')
     second_pass_rates, second_pass_rates_data = model.run_rates_pipeline(
-        epi_data=first_pass_posterior_epi_measures,
+        epi_data=agg_first_pass_posterior_epi_measures,
         age_patterns=age_patterns,
         seroprevalence=adjusted_seroprevalence,
         covariates=mr_covariates,
@@ -162,7 +179,8 @@ def run_beta_fit(fit_version: str, draw_id: int, progress_bar: bool) -> None:
         age_specific_population=five_year_population,
         testing_capacity=testing_capacity,
         variant_prevalence=variant_prevalence,
-        daily_infections=daily_infections,
+        daily_infections=(agg_first_pass_posterior_epi_measures['daily_naive_unvaccinated_infections']
+                          .rename('daily_infections')),
         durations=durations,
         variant_rrs=variant_severity,
         params=specification.rates_parameters,
@@ -181,6 +199,7 @@ def run_beta_fit(fit_version: str, draw_id: int, progress_bar: bool) -> None:
         natural_waning_dist=natural_waning_dist,
         natural_waning_matrix=natural_waning_matrix,
         sampled_ode_params=sampled_ode_params,
+        measure_downweights=specification.measure_downweights.to_dict(),
         hierarchy=pred_hierarchy,
         draw_id=draw_id,
     )
@@ -235,7 +254,7 @@ def run_beta_fit(fit_version: str, draw_id: int, progress_bar: bool) -> None:
     second_pass_betas.loc[:, 'round'] = 2
     betas = pd.concat([first_pass_betas, second_pass_betas])
 
-    second_pass_posterior_epi_measures, _ = model.compute_posterior_epi_measures(
+    second_pass_posterior_epi_measures = model.compute_posterior_epi_measures(
         compartments=compartments,
         durations=durations
     )
@@ -245,10 +264,13 @@ def run_beta_fit(fit_version: str, draw_id: int, progress_bar: bool) -> None:
 
     idx_cols = ['data_id', 'location_id', 'date', 'is_outlier']
     out_seroprevalence = seroprevalence.loc[:, idx_cols + ['reported_seroprevalence', 'seroprevalence']]
+    # adjusted_seroprevalence['seroprevalence'] /= adjusted_seroprevalence['pct_unvaccinated']
     adjusted_seroprevalence = (adjusted_seroprevalence
                                .loc[:, idx_cols + ['seroprevalence']]
                                .rename(columns={'seroprevalence': 'adjusted_seroprevalence'}))
     out_seroprevalence = out_seroprevalence.merge(adjusted_seroprevalence)
+    out_seroprevalence['sero_date'] = out_seroprevalence['date']
+    out_seroprevalence['date'] -= pd.Timedelta(days=durations.exposure_to_seroconversion)
 
     logger.info('Writing outputs', context='write')
     data_interface.save_ode_params(out_params, draw_id=draw_id)

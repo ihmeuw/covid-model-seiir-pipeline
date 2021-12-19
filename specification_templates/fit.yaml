@@ -1,11 +1,11 @@
 data:
-  seir_preprocess_version: '2021_12_16.01'
+  seir_preprocess_version: '2021_12_18.04'
   output_format: 'parquet'
   output_root: ''
   n_draws: 100
 workflow:
   project: 'proj_covid_prod'
-  queue: 'long.q'
+  queue: 'd.q'
 rates_parameters:
   day_0: '2020-03-15'
   pred_start_date: '2019-11-01'
@@ -13,9 +13,9 @@ rates_parameters:
   # Either 'unscaled' or 'total'
   mortality_scalar: 'total'
   # Criteria for first pass rates models.
-  death_rate_threshold: 1  # per million
+  death_rate_threshold: 10  # per million
   variant_prevalence_threshold: 0.1  # proportion
-  inclusion_days: 180
+  inclusion_days: 360
   naive_ifr: 0.005  # proportion
   # Duration sampling parameters
   exposure_to_admission: [10, 14]
@@ -36,7 +36,7 @@ fit_parameters:
   # 1 / duration infectious.  dI1/dt = sigma * E - gamma * I
   gamma1: [0.2, 0.3333]
   # Proportion of current E to send to variant E on invasion.
-  pi: [ 0.01, 0.1 ]
+  pi: [0.01, 0.1]
   # proportion increase in transmission intensity
   kappa_ancestral_infection: 1.0
   kappa_alpha_infection: [1.2, 1.6]
@@ -56,3 +56,27 @@ fit_parameters:
   phi_omicron_infection: [0.4, 0.6]
   phi_other_infection: [0.7, 0.9]
   phi_omega_infection: [0.0, 0.2]
+measure_downweights:
+    death:
+      [
+        [  121, 0.75],  # Bolivia
+        [ 4651, 0.75],  # Mexico City
+        [  160, 0.50],  # Afghanistan
+        [  193, 0.50],  # Botswana
+        [  194, 0.50],  # Lesotho
+        [  195, 0.50],  # Namibia
+        [  196, 0.75],  # South Africa
+        [  197, 0.50],  # Eswatini
+        [  198, 0.50],  # Zimbabwe
+        [53617, 0.50],  # Gilgit-Baltistan
+      ]
+    admission:
+      [
+        [ 4651, 0.75],  # Mexico City
+        [  196, 0.75],  # South Africa
+      ]
+    case:
+      [
+        [  176, 0.50],  # Comoros
+        [  215, 0.50],  # Sao Tome and Principe
+      ]
