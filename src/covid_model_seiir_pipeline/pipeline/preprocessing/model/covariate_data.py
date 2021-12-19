@@ -173,7 +173,7 @@ def _process_testing_for_idr(data: pd.DataFrame) -> pd.DataFrame:
 
 def preprocess_variant_prevalence(data_interface: PreprocessingDataInterface) -> None:
     hierarchy = data_interface.load_hierarchy('pred')
-    for scenario in ['reference', 'worse']:
+    for scenario in ['reference']:
         logger.info(f'Loading raw variant prevalence data for scenario {scenario}.', context='read')
         data = data_interface.load_raw_variant_prevalence(scenario)
 
@@ -209,7 +209,7 @@ def _process_variants_of_concern(data: pd.DataFrame) -> pd.DataFrame:
     for var_name, lineages in variant_map.items():
         data[var_name] = data[lineages].sum(axis=1)
     data = data[list(variant_map)]
-    data['omega'] = 0.
+    data.loc[:, 'omega'] = 0.
     data.loc[data.sum(axis=1) == 0, 'ancestral'] = 1
     if (data.sum(axis=1) < 1 - 1e-5).any():
         raise ValueError("Variant prevalence sums to less than 1 for some location-dates.")

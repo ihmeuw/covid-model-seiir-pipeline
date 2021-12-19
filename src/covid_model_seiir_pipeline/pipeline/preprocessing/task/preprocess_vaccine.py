@@ -30,6 +30,7 @@ def run_preprocess_vaccine(preprocessing_version: str, scenario: str, progress_b
     logger.info(f'Loading efficacy and waning data.', context='read')
     efficacy = data_interface.load_efficacy_table()
     waning = data_interface.load_waning_data()
+    summary = data_interface.load_serology_vaccine_coverage()
 
     logger.info('Prepping data for waning efficacy calculations', context='transform')
     efficacy = model.map_variants(efficacy)
@@ -50,6 +51,7 @@ def run_preprocess_vaccine(preprocessing_version: str, scenario: str, progress_b
         data_interface.save_waning_parameters(waning, 'vaccine_waning_distribution')
         data_interface.save_waning_parameters(waning_efficacy, 'vaccine_waning_efficacy')
         data_interface.save_waning_parameters(natural_waning, 'natural_waning_distribution')
+        data_interface.save_vaccine_summary(summary)
     else:
         logger.info(f'Loading uptake data for scenario {scenario}.', context='read')
         uptake = data_interface.load_raw_vaccine_uptake(scenario)
