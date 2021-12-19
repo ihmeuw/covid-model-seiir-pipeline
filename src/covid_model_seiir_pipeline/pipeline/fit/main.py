@@ -69,6 +69,8 @@ def fit_main(app_metadata: cli_tools.Metadata,
 
     # Check for bad locations
     total_population = data_interface.load_population(measure='total').population
+    pred_hierarchy = data_interface.load_hierarchy('pred')
+
     _runner = functools.partial(
         get_broken_locations,
         data_interface=data_interface,
@@ -80,23 +82,26 @@ def fit_main(app_metadata: cli_tools.Metadata,
         num_cores=26,
         progress_bar=True
     )
-    report = make_broken_location_report(results)
-    if report:
-        logger.warning(report)
+    below_0, over_total_pop = zip(*results)
+    below_0 = pd.concat(below_0, axis=1)
+    over_total_pop = pd.concat(over_total_pop, axis=1)
+    # report = make_broken_location_report(results)
+    # if report:
+    #     logger.warning(report)
 
 
 def get_broken_locations(draw_id: int,
                          data_interface: FitDataInterface,
                          total_population: pd.Series):
     infections = data_interface.load_posterior_epi_measures(
-        draw_id, columns=['daily_naive_unvaccinated_infections']
+        draw_id, columns=['daily_naive_unvaccinated_infections', 'round']
     )
-    infections = infections.loc[infections['round'] == 2]
-    below_0 = infections.groupby('location_id').min() < 0
-    below_0 = below_0[below_0].reset_index().location_id.unique().tolist()
+    infections = infections.loc[infections['round'] == 2, 'daily_naive_unvaccinated_infections']
 
-    over_total_pop = infections.groupby('location_id').sum() > total_population
-    over_total_pop = over_total_pop[over_total_pop].reset_index().location_id.unique().tolist()
+    below_0 = (infections.groupby('location_id').min() < 0).rename(f'draw_{draw_id}')
+
+    over_total_pop = infections.groupby('location_id').sum()
+    over_total_pop = ((over_total_pop / total_population.reindex(over_total_pop.index)) > 1).rename(f'draw_{draw_id}')
 
     return below_0, over_total_pop
 
