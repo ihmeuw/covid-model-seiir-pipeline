@@ -1,5 +1,5 @@
 data:
-  seir_fit_version: '2021_12_16.07'
+  seir_fit_version: '2021_12_18.04'
   coefficient_version: ''
   seir_covariate_priors_version: ''
   output_root: ''
@@ -7,7 +7,7 @@ data:
   drop_locations: []
 workflow:
   project: 'proj_covid_prod'
-  queue: 'd.q'
+  queue: 'long.q'
 hospital_parameters:
   compute_correction_factors: True
   hospital_stay_death: 6

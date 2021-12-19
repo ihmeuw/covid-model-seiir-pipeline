@@ -5,7 +5,7 @@ data:
   n_draws: 100
 workflow:
   project: 'proj_covid_prod'
-  queue: 'd.q'
+  queue: 'long.q'
 rates_parameters:
   day_0: '2020-03-15'
   pred_start_date: '2019-11-01'
@@ -38,15 +38,24 @@ fit_parameters:
   # Proportion of current E to send to variant E on invasion.
   pi: [0.01, 0.1]
   # proportion increase in transmission intensity
-  kappa_none_infection: 0.0
   kappa_ancestral_infection: 1.0
-  kappa_alpha_infection: 1.4
-  kappa_beta_infection: 1.2
-  kappa_gamma_infection: 1.2
-  kappa_delta_infection: 1.8
-  kappa_omicron_infection: 1.8
-  kappa_other_infection: 1.2
-  kappa_omega_infection: 1.8
+  kappa_alpha_infection: [1.2, 1.6]
+  kappa_beta_infection: [1.0, 1.4]
+  kappa_gamma_infection: [1.0, 1.4]
+  kappa_delta_infection: [1.6, 2.0]
+  kappa_omicron_infection: [1.6, 2.0]
+  kappa_other_infection: [1.0, 1.4]
+  kappa_omega_infection: [2.0, 3.0]
+
+  # (1 - breakthrough probability) for a variant.
+  phi_ancestral_infection: 1.0
+  phi_alpha_infection: 1.0
+  phi_beta_infection: [0.7, 0.9]
+  phi_gamma_infection: [0.7, 0.9]
+  phi_delta_infection: [0.7, 0.9]
+  phi_omicron_infection: [0.4, 0.6]
+  phi_other_infection: [0.7, 0.9]
+  phi_omega_infection: [0.0, 0.2]
 measure_downweights:
     death:
       [

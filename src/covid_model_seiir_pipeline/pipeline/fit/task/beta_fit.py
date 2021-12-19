@@ -40,21 +40,6 @@ def run_beta_fit(fit_version: str, draw_id: int, progress_bar: bool) -> None:
     vaccinations = data_interface.load_vaccine_uptake(scenario='reference')
     etas = data_interface.load_vaccine_risk_reduction(scenario='reference')
     natural_waning_dist = data_interface.load_waning_parameters(measure='natural_waning_distribution').set_index('days')
-    natural_immunity_matrix = pd.DataFrame(
-        data=np.array([
-            [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],  # none
-            [1.0, 1.0, 1.0, 0.9, 0.9, 0.9, 0.5, 0.9, 0.5],  # ancestral
-            [1.0, 1.0, 1.0, 0.9, 0.9, 0.9, 0.5, 0.9, 0.5],  # alpha
-            [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.5, 1.0, 0.5],  # beta
-            [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.5, 1.0, 0.5],  # gamma
-            [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.5, 1.0, 0.5],  # delta
-            [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.5],  # omicron
-            [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.5, 1.0, 0.5],  # other
-            [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0],  # omega
-        ]),
-        columns=VARIANT_NAMES,
-        index=pd.Index(VARIANT_NAMES, name='variant'),
-    )
     mr_covariates = []
     for covariate in model.COVARIATE_POOL:
         cov = (data_interface
@@ -67,7 +52,9 @@ def run_beta_fit(fit_version: str, draw_id: int, progress_bar: bool) -> None:
     durations = model.sample_durations(specification.rates_parameters, draw_id)
     variant_severity = model.sample_variant_severity(specification.rates_parameters, draw_id)
     day_inflection = model.sample_day_inflection(specification.rates_parameters, draw_id)
-
+    sampled_ode_params, natural_waning_matrix = model.sample_ode_params(
+        variant_severity, specification.fit_parameters, draw_id
+    )
     logger.info('Rescaling deaths and formatting epi measures', context='transform')
     epi_measures = model.format_epi_measures(epi_measures, mr_hierarchy, pred_hierarchy, mortality_scalar, durations)
 
@@ -117,9 +104,8 @@ def run_beta_fit(fit_version: str, draw_id: int, progress_bar: bool) -> None:
         vaccinations=vaccinations,
         etas=etas,
         natural_waning_dist=natural_waning_dist,
-        natural_waning_matrix=natural_immunity_matrix,
-        variant_severity=variant_severity,
-        fit_params=specification.fit_parameters,
+        natural_waning_matrix=natural_waning_matrix,
+        sampled_ode_params=sampled_ode_params,
         measure_downweights=specification.measure_downweights.to_dict(),
         hierarchy=pred_hierarchy,
         draw_id=draw_id,
@@ -211,9 +197,8 @@ def run_beta_fit(fit_version: str, draw_id: int, progress_bar: bool) -> None:
         vaccinations=vaccinations,
         etas=etas,
         natural_waning_dist=natural_waning_dist,
-        natural_waning_matrix=natural_immunity_matrix,
-        variant_severity=variant_severity,
-        fit_params=specification.fit_parameters,
+        natural_waning_matrix=natural_waning_matrix,
+        sampled_ode_params=sampled_ode_params,
         measure_downweights=specification.measure_downweights.to_dict(),
         hierarchy=pred_hierarchy,
         draw_id=draw_id,
