@@ -161,7 +161,7 @@ MEASURES.update(**{
        resample=False,
        splice=False,
     ),
-# Betas
+    # Betas
     'beta': MeasureConfig(
          loaders.load_ode_params('beta'),
          'betas',
@@ -207,34 +207,33 @@ MEASURES.update(**{
         loaders.load_ode_params('exposure_to_admission'),
         'infection_to_admission',
     ),
+    'icu_admissions': MeasureConfig(
+       loaders.load_output_data('icu_admissions'),
+       'icu_admissions',
+       aggregator=aggregate.sum_aggregator,
+       write_draws=True,
+    ),
+    'hospital_census': MeasureConfig(
+       loaders.load_output_data('hospital_census'),
+       'hospital_census',
+       aggregator=aggregate.sum_aggregator,
+    ),
+    'icu_census': MeasureConfig(
+       loaders.load_output_data('icu_census'),
+       'icu_census',
+       aggregator=aggregate.sum_aggregator,
+    ),
+    'hospital_census_correction_factor': MeasureConfig(
+       loaders.load_output_data('hospital_census_correction_factor'),
+       'hospital_census_correction_factor',
+       splice=False,
+    ),
+    'icu_census_correction_factor': MeasureConfig(
+       loaders.load_output_data('icu_census_correction_factor'),
+       'icu_census_correction_factor',
+       splice=False,
+    ),
 })
-# 'icu_admissions': MeasureConfig(
-#    loaders.load_output_data('icu_admissions'),
-#    'icu_admissions',
-#    aggregator=aggregate.sum_aggregator,
-#    write_draws=True,
-# ),
-# 'hospital_census': MeasureConfig(
-#    loaders.load_output_data('hospital_census'),
-#    'hospital_census',
-#    aggregator=aggregate.sum_aggregator,
-# ),
-# 'icu_census': MeasureConfig(
-#    loaders.load_output_data('icu_census'),
-#    'icu_census',
-#    aggregator=aggregate.sum_aggregator,
-# ),
-# 'hospital_census_correction_factor': MeasureConfig(
-#    loaders.load_output_data('hospital_census_correction_factor'),
-#    'hospital_census_correction_factor',
-#    splice=False,
-# ),
-# 'icu_census_correction_factor': MeasureConfig(
-#    loaders.load_output_data('icu_census_correction_factor'),
-#    'icu_census_correction_factor',
-#    splice=False,
-# ),
-
 
 for measure in ['boosters', 'vaccinations']:
     MEASURES[measure] = MeasureConfig(
@@ -372,10 +371,10 @@ MISCELLANEOUS = {
         loaders.load_excess_mortality_scalars,
         'excess_mortality_scalars',
     ),
-    # 'hospital_census_data': MiscellaneousConfig(
-    #     loaders.load_raw_census_data,
-    #     'hospital_census_data',
-    # ),
+    'hospital_census_data': MiscellaneousConfig(
+        loaders.load_raw_census_data,
+        'hospital_census_data',
+    ),
     'hospital_bed_capacity': MiscellaneousConfig(
         loaders.load_hospital_bed_capacity,
         'hospital_bed_capacity',
