@@ -111,7 +111,7 @@ def run_level(model_name: str,
         if progress_bar:
             results = list(tqdm(p.imap(_rl, location_ids), total=len(location_ids), file=sys.stdout))
         else:
-            results = p.imap(_rl, location_ids)
+            results = list(p.imap(_rl, location_ids))
     level_mr_model_dict = {location_id: result[0] for location_id, result in zip(location_ids, results)}
     level_prior_dicts = {location_id: result[1] for location_id, result in zip(location_ids, results)}
 
