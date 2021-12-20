@@ -137,16 +137,13 @@ def run_beta_fit(fit_version: str, draw_id: int, progress_bar: bool) -> None:
         hierarchy=mr_hierarchy
     )
 
-    total_infections = (first_pass_posterior_epi_measures['cumulative_total_infections']
-                        .groupby('location_id')
-                        .shift(durations.exposure_to_case))
-    total_cases = compartments.filter(like='Case_all_all_all').sum(axis=1)
-    cumulative_idr = (total_cases / total_infections).groupby('location_id').last()
-    idr_symptomatic = min(cumulative_idr, 0.45) / 0.5
-    idr_asymptomatic = (cumulative_idr - min(cumulative_idr, 0.45)) / 0.5
+    total_infections = compartments.filter(like='Infection_all_all_all').sum(axis=1).groupby('location_id').max()
+    total_cases = compartments.filter(like='Case_all_all_all').sum(axis=1).groupby('location_id').max()
+    cumulative_idr = np.minimum(total_cases / total_infections, 0.9)
+    idr_symptomatic = np.minimum(cumulative_idr, 0.45) / 0.5
+    idr_asymptomatic = (cumulative_idr - np.minimum(cumulative_idr, 0.45)) / 0.5
     new_idr = 0.1 * idr_symptomatic + 0.9 * idr_asymptomatic
     sampled_ode_params['kappa_omicron_case'] = new_idr / cumulative_idr
-
     pct_unvaccinated = (
         (agg_first_pass_posterior_epi_measures['cumulative_naive_unvaccinated_infections']
          / agg_first_pass_posterior_epi_measures['cumulative_naive_infections'])

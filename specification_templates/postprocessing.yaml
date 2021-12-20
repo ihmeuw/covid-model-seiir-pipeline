@@ -1,15 +1,15 @@
 data:
-  seir_forecast_version: '2021_12_19.03'
+  seir_forecast_version: '2021_12_20.05'
   scenarios:
     - 'reference'
 #    - 'high_severity'
-#    - 'best_masks'
-#    - 'booster'
+    - 'best_masks'
+    - 'booster'
 #    - 'reduced_hesitancy'
   output_root: ''
 workflow:
   project: 'proj_covid_prod'
-  queue: 'd.q'
+  queue: 'long.q'
 resampling:
   reference_scenario: 'reference'
   reference_date: '2021-12-31'

@@ -43,13 +43,13 @@ def prepare_ode_fit_parameters(rates: Rates,
     epi_measures, rates, age_scalars = prepare_epi_measures_and_rates(rates, epi_measures, hierarchy)
     past_index = epi_measures.index
 
-    scalar_params = {k: p for k, p in sampled_ode_params if isinstance(p, (int, float))}
+    scalar_params = {k: p for k, p in sampled_ode_params.items() if isinstance(p, (int, float))}
     series_params = [p.reindex(past_index, level='location_id').rename(k)
-                     for k, p in sampled_ode_params if isinstance(p, pd.Series)]
+                     for k, p in sampled_ode_params.items() if isinstance(p, pd.Series)]
     sampled_params = pd.concat([
         pd.DataFrame(scalar_params, index=past_index),
         *series_params,
-    ])
+    ], axis=1)
 
     weights = []
     for measure in ['death', 'admission', 'case']:
