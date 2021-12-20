@@ -1,6 +1,10 @@
+import sys
 from collections import defaultdict
 from copy import deepcopy
 from typing import Dict, List
+import functools
+from pathos import multiprocessing
+from tqdm import tqdm
 
 from loguru import logger
 from mrtool import MRData
@@ -9,7 +13,9 @@ import numpy as np
 import pandas as pd
 
 from covid_model_seiir_pipeline.pipeline.fit.model.mrbrt import mrbrt
-from covid_model_seiir_pipeline.lib import utilities
+from covid_model_seiir_pipeline.lib import (
+    utilities
+)
 
 
 def run_cascade(model_name: str,
@@ -19,6 +25,8 @@ def run_cascade(model_name: str,
                 global_prior_dict: Dict,
                 location_prior_dict: Dict,
                 level_lambdas: Dict,
+                num_threads: int,
+                progress_bar: bool,
                 child_cutoff_level: int = 3):
     '''
     NOTE: `level_lambdas` apply to the stdev of the level to which they are keyed, and thus
@@ -59,6 +67,8 @@ def run_cascade(model_name: str,
             location_prior_dict=location_prior_dict,
             child_cutoff_level=child_cutoff_level,
             global_mr_data=global_mr_data,
+            num_threads=num_threads,
+            progress_bar=progress_bar,
         )
         if level == 0:
             prior_dicts = {}
@@ -78,43 +88,78 @@ def run_level(model_name: str,
               var_args: Dict,
               location_prior_dict: Dict,
               child_cutoff_level: int,
-              global_mr_data: MRData):
+              global_mr_data: MRData,
+              num_threads: int,
+              progress_bar: bool):
     level_mr_model_dict = {}
     level_prior_dicts = {}
-    for location_id in location_ids:
-        parent_id = hierarchy.loc[hierarchy['location_id'] == location_id, 'parent_id'].item()
-        parent_prior_dict = prior_dicts[parent_id]
-        location_in_path_hierarchy = hierarchy['path_to_top_parent'].apply(lambda x: str(location_id) in x.split(','))
-        if level <= child_cutoff_level and location_id in model_data['location_id'].to_list():
-            child_locations = [location_id]
-        else:
-            child_locations = hierarchy.loc[location_in_path_hierarchy, 'location_id'].to_list()
-        location_in_path_model = model_data['location_id'].isin(child_locations)
-        location_model_data = model_data.loc[location_in_path_model].copy()
-        location_mr_model, _location_prior_dict = run_location(
-            model_name=model_name,
-            location_id=location_id,
-            model_data=location_model_data,
-            prior_dict=parent_prior_dict,
-            location_prior_dict=location_prior_dict.get(location_id, {}),
-            level_lambda=level_lambda,
-            global_mr_data=global_mr_data,
-            var_args=var_args,
-        )
-        level_mr_model_dict.update({location_id:location_mr_model})
-        level_prior_dicts.update({location_id:_location_prior_dict})
     
+    _rl = functools.partial(
+        run_location,
+        model_name=model_name,
+        level_lambda=level_lambda,
+        level=level,
+        model_data=model_data,
+        hierarchy=hierarchy,
+        prior_dicts=prior_dicts,
+        var_args=var_args,
+        location_prior_dict=location_prior_dict,
+        child_cutoff_level=child_cutoff_level,
+        global_mr_data=global_mr_data,
+    )
+    with multiprocessing.ProcessPool(int(num_threads)) as p:
+        if progress_bar:
+            results = list(tqdm(p.imap(_rl, location_ids), total=len(location_ids), file=sys.stdout))
+        else:
+            results = p.imap(_rl, location_ids)
+    level_mr_model_dict = {location_id: result[0] for location_id, result in zip(location_ids, results)}
+    level_prior_dicts = {location_id: result[1] for location_id, result in zip(location_ids, results)}
+
     return level_mr_model_dict, level_prior_dicts
 
 
-def run_location(model_name: str,
-                 location_id: int,
-                 model_data: pd.DataFrame,
-                 prior_dict: Dict,
-                 location_prior_dict: Dict,
+def run_location(location_id: int,
+                 model_name: str,
                  level_lambda: Dict,
-                 global_mr_data: MRData,
-                 var_args: Dict,):
+                 level: int,
+                 model_data: pd.DataFrame,
+                 hierarchy: pd.DataFrame,
+                 prior_dicts: Dict,
+                 var_args: Dict,
+                 location_prior_dict: Dict,
+                 child_cutoff_level: int,
+                 global_mr_data: MRData):
+    parent_id = hierarchy.loc[hierarchy['location_id'] == location_id, 'parent_id'].item()
+    parent_prior_dict = prior_dicts[parent_id]
+    location_in_path_hierarchy = hierarchy['path_to_top_parent'].apply(lambda x: str(location_id) in x.split(','))
+    if level <= child_cutoff_level and location_id in model_data['location_id'].to_list():
+        child_locations = [location_id]
+    else:
+        child_locations = hierarchy.loc[location_in_path_hierarchy, 'location_id'].to_list()
+    location_in_path_model = model_data['location_id'].isin(child_locations)
+    location_model_data = model_data.loc[location_in_path_model].copy()
+    location_mr_model, _location_prior_dict = model_location(
+        model_name=model_name,
+        location_id=location_id,
+        model_data=location_model_data,
+        prior_dict=parent_prior_dict,
+        location_prior_dict=location_prior_dict.get(location_id, {}),
+        level_lambda=level_lambda,
+        global_mr_data=global_mr_data,
+        var_args=var_args,
+    )
+
+    return location_mr_model, _location_prior_dict
+
+
+def model_location(model_name: str,
+                   location_id: int,
+                   model_data: pd.DataFrame,
+                   prior_dict: Dict,
+                   location_prior_dict: Dict,
+                   level_lambda: Dict,
+                   global_mr_data: MRData,
+                   var_args: Dict,):
     location_var_args = deepcopy(var_args)
     combined_prior_dict = {}
     for data_var in list(set(location_var_args['fe_vars'] + location_var_args['re_vars'])):

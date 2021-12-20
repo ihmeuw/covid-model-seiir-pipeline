@@ -26,7 +26,9 @@ def runner(cumulative_hospitalizations: pd.Series,
            durations: Dict,
            day_0: pd.Timestamp,
            pred_start_date: pd.Timestamp,
-           pred_end_date: pd.Timestamp) -> pd.DataFrame:
+           pred_end_date: pd.Timestamp,
+           num_threads: int,
+           progress_bar: bool) -> pd.DataFrame:
     model_data = data.create_model_data(
         cumulative_hospitalizations=cumulative_hospitalizations.copy(),
         daily_hospitalizations=daily_hospitalizations.copy(),
@@ -65,6 +67,8 @@ def runner(cumulative_hospitalizations: pd.Series,
         pred_hierarchy=pred_hierarchy.copy(),
         covariate_list=covariate_list.copy(),
         variant_risk_ratio=variant_risk_ratio,
+        num_threads=num_threads,
+        progress_bar=progress_bar,
     )
     lr_rr, hr_rr = age_standardization.get_risk_group_rr(
         ihr_age_pattern.copy(),

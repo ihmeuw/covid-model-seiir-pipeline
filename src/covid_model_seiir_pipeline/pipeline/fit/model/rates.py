@@ -88,6 +88,8 @@ def run_rates_pipeline(epi_data: pd.DataFrame,
         day_0=params.day_0,
         pred_start_date=params.pred_start_date,
         pred_end_date=params.pred_end_date,
+        num_threads=num_threads,
+        progress_bar=progress_bar,
     )
     ihr_results = ihr_results.rename(columns={'pred_ihr_lr': 'ihr_lr', 'pred_ihr_hr': 'ihr_hr', 'pred_ihr': 'ihr'})
     ihr_results.loc[:, 'lag'] = durations.exposure_to_admission
@@ -113,6 +115,8 @@ def run_rates_pipeline(epi_data: pd.DataFrame,
         day_0=params.day_0,
         pred_start_date=params.pred_start_date,
         pred_end_date=params.pred_end_date,
+        num_threads=num_threads,
+        progress_bar=progress_bar,
     )
     ifr_results = ifr_results.rename(columns={'pred_ifr_lr': 'ifr_lr', 'pred_ifr_hr': 'ifr_hr', 'pred_ifr': 'ifr'})
     ifr_results.loc[:, 'lag'] = durations.exposure_to_death

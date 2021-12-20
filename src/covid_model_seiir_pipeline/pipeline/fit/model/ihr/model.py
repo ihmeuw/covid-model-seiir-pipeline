@@ -20,7 +20,9 @@ def run_model(model_data: pd.DataFrame,
               mr_hierarchy: pd.DataFrame,
               pred_hierarchy: pd.DataFrame,
               covariate_list: List[str],
-              variant_risk_ratio: float) -> Tuple[Dict, Dict, pd.Series, pd.Series, pd.Series, pd.Series, Dict]:
+              variant_risk_ratio: float,
+              num_threads: int,
+              progress_bar: bool) -> Tuple[Dict, Dict, pd.Series, pd.Series, pd.Series, pd.Series, Dict]:
     age_stand_scaling_factor = age_standardization.get_scaling_factor(
         ihr_age_pattern,
         sero_age_pattern,
@@ -86,6 +88,8 @@ def run_model(model_data: pd.DataFrame,
         global_prior_dict=global_prior_dict.copy(),
         location_prior_dict=location_prior_dict.copy(),
         level_lambdas=level_lambdas.copy(),
+        num_threads=num_threads,
+        progress_bar=progress_bar,
     )
     pred_data = pred_data.dropna()
     pred, pred_fe, pred_location_map = cascade.predict_cascade(
