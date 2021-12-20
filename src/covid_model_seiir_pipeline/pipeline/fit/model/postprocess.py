@@ -199,27 +199,32 @@ MEASURES['seroprevalence'] = MeasureConfig(
 )
 
 
-def load_ode_params(data_interface: FitDataInterface,
-                    *,  # Disallow other positional args
-                    num_draws: int = 1,
-                    progress_bar: bool = False,
-                    **_) -> pd.DataFrame:
+def load_ode_param(param_name: str):
 
-    parameter_data = []
-    for draw in tqdm.trange(num_draws, disable=not progress_bar):
-        df = data_interface.load_ode_params(draw).set_index('parameter').value
-        parameter_data.append(df)
-    parameter_data = pd.concat(parameter_data, axis=1)
-    parameter_data.columns = [f'draw_{i}' for i in range(100)]
-    return parameter_data
+    def _load_ode_params(data_interface: FitDataInterface,
+                         *,  # Disallow other positional args
+                         num_draws: int = 1,
+                         progress_bar: bool = False,
+                         **_) -> pd.DataFrame:
+
+        parameter_data = []
+        for draw in tqdm.trange(num_draws, disable=not progress_bar):
+            df = data_interface.load_ode_params(draw, columns=[param_name])[param_name]
+            parameter_data.append(df)
+        parameter_data = pd.concat(parameter_data, axis=1)
+        parameter_data.columns = [f'draw_{i}' for i in range(100)]
+        return parameter_data
+
+    return _load_ode_params
 
 
-MEASURES['ode_parameters'] = MeasureConfig(
-    loader=load_ode_params,
-    label='ode_parameters',
-    description=('ODE system and rates parameters. '
-                 'These parameters are sampled from distributions based on literature and assumptions')
-)
+for measure in ['death', 'admission', 'case']:
+    key = f'exposure_to_{measure}'
+    MEASURES[key] = MeasureConfig(
+        loader=load_ode_param(key),
+        label=key,
+        description=f'Duration from exposure to {measure}.',
+    )
 
 
 def load_rates_data(data_interface: FitDataInterface,
