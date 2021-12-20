@@ -68,13 +68,12 @@ def sample_variant_severity(params: RatesParameters, draw_id: int) -> VariantRR:
             sigma = (np.log(upper) - np.log(lower)) / 3.92
             rrs[ratio] = np.exp(random_state.normal(mu, sigma))
 
-        if ratio in ['ifr', 'ihr']:
-            omicron_spec = params[f'omicron_{ratio}_scalar']
-            if isinstance(omicron_spec, (int, float)):
-                value = omicron_spec
-            else:
-                value = sample_parameter(f'omicron_{ratio}_scalar', draw_id, *omicron_spec)
-            rrs[f'omicron_{ratio}'] = rrs[ratio] * value
+        omicron_spec = params[f'omicron_{ratio}_scalar']
+        if isinstance(omicron_spec, (int, float)):
+            value = omicron_spec
+        else:
+            value = sample_parameter(f'omicron_{ratio}_scalar', draw_id, *omicron_spec)
+        rrs[f'omicron_{ratio}'] = rrs[ratio] * value
 
     return VariantRR(**rrs)
 
