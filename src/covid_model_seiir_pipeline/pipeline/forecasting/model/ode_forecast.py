@@ -83,7 +83,7 @@ def build_model_parameters(indices: Indices,
         ode_params.loc[:, f'count_all_{epi_measure}'] = -1
         ode_params.loc[:, f'weight_all_{epi_measure}'] = -1
         # Same for all location-dates
-        lag = ode_parameters.loc[f'exposure_to_{epi_measure}'].iloc[0]
+        lag = ode_parameters[f'exposure_to_{epi_measure}'].iloc[0]
         infections = (posterior_epi_measures
                       .loc[:, 'daily_naive_unvaccinated_infections']
                       .reindex(indices.full))
