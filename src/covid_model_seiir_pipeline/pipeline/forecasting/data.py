@@ -111,7 +111,7 @@ class ForecastDataInterface:
     def load_covariate_options(self, draw_id: int = None) -> Dict:
         return self.regression_data_interface.load_covariate_options(draw_id)
 
-    def load_regression_ode_params(self, draw_id: int) -> pd.DataFrame:
+    def load_fit_ode_params(self, draw_id: int) -> pd.DataFrame:
         return self.regression_data_interface.load_ode_params(draw_id)
 
     def load_phis(self, draw_id: int) -> pd.DataFrame:

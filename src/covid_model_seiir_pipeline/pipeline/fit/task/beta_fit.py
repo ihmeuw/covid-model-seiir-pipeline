@@ -232,12 +232,10 @@ def run_beta_fit(fit_version: str, draw_id: int, progress_bar: bool) -> None:
     out_params = []
     keep = ['alpha', 'sigma', 'gamma', 'pi', 'kappa', 'weight']
     for param in keep:
-        out_params.append(base_parameters.filter(like=param).iloc[0])
-    out_params = pd.concat(out_params)
+        out_params.append(base_parameters.filter(like=param))
+    out_params = pd.concat(out_params, axis=1)
     for name, duration in durations._asdict().items():
-        out_params.loc[name] = duration
-    out_params = out_params.reset_index()
-    out_params.columns = ['parameter', 'value']
+        out_params.loc[:, name] = duration
 
     rates_data = []
     for round_id, dataset in enumerate([first_pass_rates_data, second_pass_rates_data]):

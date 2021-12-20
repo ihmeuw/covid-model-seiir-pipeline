@@ -63,16 +63,12 @@ def build_model_parameters(indices: Indices,
                            beta: pd.Series,
                            posterior_epi_measures: pd.DataFrame,
                            prior_ratios: pd.DataFrame,
-                           ode_parameters: pd.Series,
+                           ode_parameters: pd.DataFrame,
                            rhos: pd.DataFrame,
                            vaccinations: pd.DataFrame,
                            etas: pd.DataFrame,
                            phis: pd.DataFrame) -> Parameters:
-    keep = ['alpha', 'sigma', 'gamma', 'pi', 'kappa']
-    ode_params = pd.DataFrame(
-        {key: value for key, value in ode_parameters.to_dict().items() if key.split('_')[0] in keep},
-        index=indices.full
-    )
+    ode_params = ode_parameters.reindex(indices.full).groupby('location_id').ffill().groupby('location_id').bfill()
     ode_params.loc[:, 'beta_all_infection'] = beta
     measure_map = {
         'death': ('deaths', 'ifr'),
@@ -86,7 +82,8 @@ def build_model_parameters(indices: Indices,
     for epi_measure in REPORTED_EPI_MEASURE_NAMES:
         ode_params.loc[:, f'count_all_{epi_measure}'] = -1
         ode_params.loc[:, f'weight_all_{epi_measure}'] = -1
-        lag = ode_parameters.loc[f'exposure_to_{epi_measure}']
+        # Same for all location-dates
+        lag = ode_parameters.loc[f'exposure_to_{epi_measure}'].iloc[0]
         infections = (posterior_epi_measures
                       .loc[:, 'daily_naive_unvaccinated_infections']
                       .reindex(indices.full))

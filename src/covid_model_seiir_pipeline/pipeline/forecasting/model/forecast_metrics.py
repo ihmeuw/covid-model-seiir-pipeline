@@ -25,7 +25,7 @@ from covid_model_seiir_pipeline.pipeline.regression.model import (
 def compute_output_metrics(indices: Indices,
                            compartments: pd.DataFrame,
                            model_parameters: Parameters,
-                           ode_params: pd.Series,
+                           ode_params: pd.DataFrame,
                            hospital_parameters,
                            hospital_cf) -> pd.DataFrame:
     total_pop = (compartments
@@ -35,9 +35,9 @@ def compute_output_metrics(indices: Indices,
     compartments_diff = compartments.groupby('location_id').diff()
 
     infections = _make_measure(compartments_diff, 'Infection', lag=0)
-    deaths = _make_measure(compartments_diff, 'Death', lag=ode_params.loc['exposure_to_death'])
-    admissions = _make_measure(compartments_diff, 'Admission', lag=ode_params.loc['exposure_to_admission'])
-    cases = _make_measure(compartments_diff, 'Case', lag=ode_params.loc['exposure_to_case'])
+    deaths = _make_measure(compartments_diff, 'Death', lag=ode_params['exposure_to_death'].iloc[0])
+    admissions = _make_measure(compartments_diff, 'Admission', lag=ode_params['exposure_to_admission'].iloc[0])
+    cases = _make_measure(compartments_diff, 'Case', lag=ode_params['exposure_to_case'].iloc[0])
     susceptible = _make_susceptible(compartments_diff)
     immune = _make_immune(susceptible, total_pop)
     infectious = _make_infectious(compartments)
@@ -196,10 +196,10 @@ def _make_variant_prevalence(infections: pd.DataFrame) -> pd.DataFrame:
 
 def compute_corrected_hospital_usage(admissions: pd.DataFrame,
                                      deaths: pd.DataFrame,
-                                     ode_params: pd.Series,
+                                     ode_params: pd.DataFrame,
                                      hospital_parameters,
                                      correction_factors):
-    lag = ode_params.loc['exposure_to_death'] - ode_params.loc['exposure_to_admission']
+    lag = ode_params['exposure_to_death'].iloc[0] - ode_params['exposure_to_admission'].iloc[0]
     admissions = admissions['modeled_admissions_total'].groupby('location_id').shift(lag)
     deaths = deaths['modeled_deaths_total']
     hfr = deaths / admissions
