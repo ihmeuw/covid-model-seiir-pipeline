@@ -1,5 +1,5 @@
 data:
-  seir_preprocess_version: '2021_12_19.07'
+  seir_preprocess_version: '2021_12_19.08'
   output_format: 'parquet'
   output_root: ''
   n_draws: 100
@@ -60,30 +60,30 @@ measure_downweights:
     death:
       [
         # IFR outliers
-        [   35, 0.95],  # Georgia
-        [   41, 0.95],  # Uzbekistan
-        [   43, 0.95],  # Albania
-        [   62, 0.95],  # Russia
-        [  141, 0.95],  # Egypt
-        [  151, 0.95],  # Qatar
-        [53619, 0.95],  # Khyber Pakhtunkhwa
-        [  214, 0.95],  # Nigeria
+        [   35, 0.50],  # Georgia
+        [   41, 0.50],  # Uzbekistan
+        [   43, 0.50],  # Albania
+        [   62, 0.10],  # Russia
+        [  141, 0.50],  # Egypt
+        [  151, 0.10],  # Qatar
+        [53619, 0.50],  # Khyber Pakhtunkhwa
+        [  214, 0.10],  # Nigeria
 
         # bad fits
-        [  121, 0.75],  # Bolivia
-        [  160, 0.95],  # Afghanistan
-        [  193, 0.75],  # Botswana
-        [  194, 0.50],  # Lesotho
-        [  195, 0.75],  # Namibia
-        [  197, 0.50],  # Eswatini
-        [  198, 0.75],  # Zimbabwe
-        [53617, 0.75],  # Gilgit-Baltistan
+        [  121, 0.10],  # Bolivia
+        [  160, 0.01],  # Afghanistan
+        [  193, 0.01],  # Botswana
+        [  194, 0.01],  # Lesotho
+        [  195, 0.01],  # Namibia
+        [  197,   0.],  # Eswatini
+        [  198, 0.10],  # Zimbabwe
+        [53617, 0.10],  # Gilgit-Baltistan
       ]
     admission:
       [
       ]
     case:
       [
-        [  176, 0.50],  # Comoros
-        [  215, 0.50],  # Sao Tome and Principe
+        [  176, 0.01],  # Comoros
+        [  215, 0.01],  # Sao Tome and Principe
       ]

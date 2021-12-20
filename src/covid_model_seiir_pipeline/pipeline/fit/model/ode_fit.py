@@ -49,7 +49,7 @@ def prepare_ode_fit_parameters(rates: Rates,
         parameter = f'weight_all_{measure}'
         _weights = pd.Series(sample_parameter(parameter, draw_id, 0., 1.), name=parameter, index=past_index)
         for downweight_loc, downweight in measure_downweights[measure]:
-            _weights.loc[downweight_loc] *= downweight
+            _weights.loc[downweight_loc, :] *= downweight
         _weights = add_transition_period(
             weights=_weights,
             data_period=epi_measures.loc[epi_measures[measure].notnull()].index,

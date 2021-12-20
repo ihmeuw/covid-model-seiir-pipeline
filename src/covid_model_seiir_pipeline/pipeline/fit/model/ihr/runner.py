@@ -77,4 +77,3 @@ def runner(cumulative_hospitalizations: pd.Series,
     pred = pd.concat([pred, pred_lr, pred_hr,], axis=1)
     
     return pred, model_data
-
