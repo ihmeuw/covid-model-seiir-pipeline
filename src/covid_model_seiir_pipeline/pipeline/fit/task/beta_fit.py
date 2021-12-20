@@ -228,12 +228,7 @@ def run_beta_fit(fit_version: str, draw_id: int, progress_bar: bool) -> None:
 
     logger.info('Prepping outputs.', context='transform')
 
-    base_parameters = ode_parameters.to_dict()['base_parameters']
-    out_params = []
-    keep = ['alpha', 'sigma', 'gamma', 'pi', 'kappa', 'weight']
-    for param in keep:
-        out_params.append(base_parameters.filter(like=param))
-    out_params = pd.concat(out_params, axis=1)
+    out_params = ode_parameters.to_dict()['base_parameters']
     for name, duration in durations._asdict().items():
         out_params.loc[:, name] = duration
 
