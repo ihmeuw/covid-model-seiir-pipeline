@@ -71,7 +71,7 @@ def postprocess_composite_measure(fit_version: str,
 
     if measure_config.duration_label:
         measure_data['duration'] = load_measure(
-            postprocess.MEASURES['ode_parameters'],
+            postprocess.MEASURES[measure_config.duration_label],
             specification,
             data_interface,
             progress_bar,
