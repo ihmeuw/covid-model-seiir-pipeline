@@ -1,4 +1,4 @@
-from typing import NamedTuple, Dict
+from typing import Dict, NamedTuple, Tuple
 
 import numpy as np
 import pandas as pd
@@ -48,6 +48,9 @@ class VariantRR(NamedTuple):
     ifr: float
     ihr: float
     idr: float
+    omicron_ifr: float
+    omicron_ihr: float
+    omicron_idr: float
 
 
 def sample_variant_severity(params: RatesParameters, draw_id: int) -> VariantRR:
@@ -64,6 +67,15 @@ def sample_variant_severity(params: RatesParameters, draw_id: int) -> VariantRR:
             mu = np.log(mean)
             sigma = (np.log(upper) - np.log(lower)) / 3.92
             rrs[ratio] = np.exp(random_state.normal(mu, sigma))
+
+        if ratio in ['ifr', 'ihr']:
+            omicron_spec = params[f'omicron_{ratio}_scalar']
+            if isinstance(omicron_spec, (int, float)):
+                value = omicron_spec
+            else:
+                value = sample_parameter(f'omicron_{ratio}_scalar', draw_id, *omicron_spec)
+            rrs[f'omicron_{ratio}'] = rrs[ratio] * value
+
     return VariantRR(**rrs)
 
 
@@ -72,7 +84,9 @@ def sample_day_inflection(params: RatesParameters, draw_id: int) -> pd.Timestamp
     return pd.Timestamp(str(random_state.choice(params.day_inflection_options)))
 
 
-def sample_ode_params(variant_rr: VariantRR, beta_fit_params: FitParameters, draw_id: int) -> Dict[str, float]:
+def sample_ode_params(variant_rr: VariantRR,
+                      beta_fit_params: FitParameters,
+                      draw_id: int) -> Tuple[Dict[str, float], pd.DataFrame]:
     beta_fit_params = beta_fit_params.to_dict()
     sampled_params = {}
     phis = {}
@@ -122,16 +136,15 @@ def sample_ode_params(variant_rr: VariantRR, beta_fit_params: FitParameters, dra
     for variant, phi in phis.items():
         phi_matrix.loc[phi_matrix[variant] == s, variant] = phi
 
+    variant_rr = variant_rr._asdict()
     for measure, rate in (('death', 'ifr'), ('admission', 'ihr'), ('case', 'idr')):
-        rr = variant_rr._asdict()[rate]
         for variant in VARIANT_NAMES:
             if variant in [VARIANT_NAMES.none, VARIANT_NAMES.ancestral]:
                 sampled_params[f'kappa_{variant}_{measure}'] = 1.0
             elif variant in VARIANT_NAMES.omicron:
-                scalar = {'ifr': 0.04, 'ihr': 0.19, 'idr': 0.25}[rate]
-                sampled_params[f'kappa_{variant}_{measure}'] = rr * scalar
+                sampled_params[f'kappa_{variant}_{measure}'] = variant_rr[f'omicron_{rate}']
             else:
-                sampled_params[f'kappa_{variant}_{measure}'] = rr
+                sampled_params[f'kappa_{variant}_{measure}'] = variant_rr[rate]
     return sampled_params, phi_matrix
 
 

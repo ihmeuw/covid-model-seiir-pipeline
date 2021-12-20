@@ -28,6 +28,10 @@ rates_parameters:
   # Or a 3-tuple of [mean, lower, upper]
   ihr_risk_ratio: 'BMJ'
   idr_risk_ratio: [1.0, 1.0, 1.0]
+  omicron_ifr_scalar: [0.03, 0.07]
+  omicron_ihr_scalar: [0.10, 0.20]
+  # IDR is altered in second pass rates based on assumptions about the probability a disease is symptomatic.
+  omicron_idr_scalar: 1.0
 fit_parameters:
   # Mixing parameter.  dS/dt = -beta * S * I ** alpha
   alpha: [0.9, 1.0]

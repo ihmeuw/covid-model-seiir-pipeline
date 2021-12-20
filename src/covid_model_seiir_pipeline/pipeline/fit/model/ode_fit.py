@@ -306,14 +306,6 @@ def aggregate_posterior_epi_measures(epi_measures: pd.DataFrame,
     return agg_posterior_epi_measures
 
 
-def _shift(lag: int):
-    def _inner(x: pd.Series):
-        return (x
-                .reset_index(level='location_id', drop=True)
-                .shift(periods=lag, freq='D'))
-    return _inner
-
-
 def _to_cumulative(data: pd.Series):
     daily = (data
              .groupby('location_id')
@@ -375,7 +367,6 @@ def run_ode_fit(initial_condition: pd.DataFrame,
         measure_ratio = measure_ratio.reindex(adjustment_idx, level='location_id')        
         full_compartments_diff.loc[adjustment_idx, cols] = full_compartments_diff.loc[adjustment_idx, cols].mul(measure_ratio, axis=0)
     full_compartments = full_compartments_diff.groupby('location_id').cumsum()
-                    
         
     # Can have a composite beta if we don't have measure betas
     no_beta = betas[[f'beta_{measure}' for measure in ['death', 'admission', 'case']]].isnull().all(axis=1)
