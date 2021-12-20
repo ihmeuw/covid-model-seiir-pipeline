@@ -6,6 +6,7 @@ from covid_model_seiir_pipeline.pipeline.forecasting.model.ode_forecast import (
     build_beta_final,
     build_model_parameters,
     run_ode_forecast,
+    forecast_correction_factors,
 )
 from covid_model_seiir_pipeline.pipeline.forecasting.model.forecast_metrics import (
     compute_output_metrics,

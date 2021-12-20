@@ -25,7 +25,9 @@ from covid_model_seiir_pipeline.pipeline.regression.model import (
 def compute_output_metrics(indices: Indices,
                            compartments: pd.DataFrame,
                            model_parameters: Parameters,
-                           ode_params: pd.Series) -> pd.DataFrame:
+                           ode_params: pd.Series,
+                           hospital_parameters,
+                           hospital_cf) -> pd.DataFrame:
     total_pop = (compartments
                  .loc[:, [f'{c}_{g}' for g, c in itertools.product(['lr', 'hr'], COMPARTMENTS_NAMES)]]
                  .sum(axis=1)
@@ -62,11 +64,13 @@ def compute_output_metrics(indices: Indices,
     r = compute_r(model_parameters, system_metrics)
     system_metrics = pd.concat([system_metrics, r], axis=1)
 
-    # hospital_usage = compute_corrected_hospital_usage(
-    #     admissions,
-    #     hospital_parameters,
-    #     postprocessing_params,
-    # )
+    hospital_usage = compute_corrected_hospital_usage(
+        admissions,
+        deaths,
+        ode_params,
+        hospital_parameters,
+        hospital_cf,
+    )
 
     return system_metrics
 
@@ -188,9 +192,13 @@ def _make_variant_prevalence(infections: pd.DataFrame) -> pd.DataFrame:
     return prevalence
 
 
-def compute_corrected_hospital_usage(admissions: pd.Series,
+def compute_corrected_hospital_usage(admissions: pd.DataFrame,
+                                     deaths: pd.DataFrame,
+                                     ode_params: pd.Series,
                                      hospital_parameters,
-                                     postprocessing_parameters: PostprocessingParameters):
+                                     correction_factors):
+    import pdb; pdb.set_trace()
+    admissions = admissions['modeled_admissions_total']
     hfr = postprocessing_parameters.ihr / postprocessing_parameters.ifr
     hfr[hfr < 1] = 1.0
     hospital_usage = compute_hospital_usage(
