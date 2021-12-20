@@ -89,14 +89,13 @@ def load_admissions_and_hfr(data_interface: 'RegressionDataInterface',
 def _load_admissions_and_hfr_draw(draw_id: int,
                                   data_interface: RegressionDataInterface,
                                   index: pd.Index) -> Tuple[pd.Series, pd.Series]:
-    ode_params = data_interface.load_ode_params(draw_id).set_index('parameter').value
-    admission_lag = ode_params.loc['exposure_to_admission']
-    death_lag = ode_params.loc['exposure_to_death']
+    ode_params = data_interface.load_ode_params(draw_id)
+    admission_lag = ode_params['exposure_to_admission'].iloc[0]
+    death_lag = ode_params['exposure_to_death'].iloc[0]
 
     cols = [f'{measure}_all_all_all_{group}' for measure, group
             in itertools.product(['Infection', 'Death', 'Admission'], RISK_GROUP_NAMES)]
     compartments = data_interface.load_compartments(draw_id, columns=cols).reindex(index)
-    infections = compartments.filter(like="Infection").sum(axis=1)
     deaths = compartments.filter(like='Death').sum(axis=1).groupby('location_id').shift(death_lag)
     admissions = compartments.filter(like='Admission').sum(axis=1).groupby('location_id').shift(admission_lag)
 
