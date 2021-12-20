@@ -14,4 +14,7 @@ grid_plots:
       - version: '2021_12_19.02'
         scenarios:
           reference*: 'new'
+      - version: '2021_12_19.04'
+        scenarios:
+          reference*: 'new w/ hospital'
 

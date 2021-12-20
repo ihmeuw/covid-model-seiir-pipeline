@@ -42,6 +42,9 @@ class ForecastDataInterface:
     def get_n_draws(self) -> int:
         return self.regression_data_interface.get_n_draws()
 
+    def get_hospital_params(self):
+        return self.regression_data_interface.load_specification().hospital_parameters
+
     ####################
     # Prior Stage Data #
     ####################
@@ -146,6 +149,9 @@ class ForecastDataInterface:
 
     def load_coefficients(self, draw_id: int) -> pd.DataFrame:
         return self.regression_data_interface.load_coefficients(draw_id=draw_id)
+
+    def load_hospitalizations(self, measure: str) -> pd.DataFrame:
+        return self.regression_data_interface.load_hospitalizations(measure)
 
     # ##########################
     # # Covariate data loaders #
