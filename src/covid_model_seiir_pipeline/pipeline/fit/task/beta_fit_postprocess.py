@@ -75,7 +75,7 @@ def postprocess_composite_measure(fit_version: str,
             specification,
             data_interface,
             progress_bar,
-        ).loc[measure_config.duration_label]
+        )
 
     measure_data = measure_config.combiner(**measure_data)
 
