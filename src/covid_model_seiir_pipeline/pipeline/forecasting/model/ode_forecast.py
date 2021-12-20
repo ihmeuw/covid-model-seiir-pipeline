@@ -23,17 +23,6 @@ from covid_model_seiir_pipeline.pipeline.forecasting.model.containers import (
     Indices,
 )
 
-if TYPE_CHECKING:
-    # The model subpackage is a library for the pipeline stage and shouldn't
-    # explicitly depend on things outside the subpackage.
-    from covid_model_seiir_pipeline.pipeline.forecasting.specification import (
-        ScenarioSpecification,
-    )
-    # Support type checking but keep the pipeline stages as isolated as possible.
-    from covid_model_seiir_pipeline.pipeline.regression.specification import (
-        HospitalParameters,
-    )
-
 
 ##############################
 # ODE parameter construction #
@@ -69,6 +58,7 @@ def build_model_parameters(indices: Indices,
                            etas: pd.DataFrame,
                            phis: pd.DataFrame) -> Parameters:
     ode_params = ode_parameters.reindex(indices.full).groupby('location_id').ffill().groupby('location_id').bfill()
+    ode_params = ode_params.drop(columns=[c for c in ode_params if 'rho' in c])
     ode_params.loc[:, 'beta_all_infection'] = beta
     measure_map = {
         'death': ('deaths', 'ifr'),
