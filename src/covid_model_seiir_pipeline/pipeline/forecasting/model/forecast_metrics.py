@@ -46,6 +46,14 @@ def compute_output_metrics(indices: Indices,
     force_of_infection = _make_force_of_infection(infections, susceptible)
     variant_prevalence = _make_variant_prevalence(infections)
 
+    hospital_usage = compute_corrected_hospital_usage(
+        admissions,
+        deaths,
+        ode_params,
+        hospital_parameters,
+        hospital_cf,
+    )
+
     system_metrics = pd.concat([
         infections,
         deaths,
@@ -59,18 +67,11 @@ def compute_output_metrics(indices: Indices,
         force_of_infection,
         variant_prevalence,
         total_pop,
+        hospital_usage,
     ], axis=1)
 
     r = compute_r(model_parameters, system_metrics)
     system_metrics = pd.concat([system_metrics, r], axis=1)
-
-    hospital_usage = compute_corrected_hospital_usage(
-        admissions,
-        deaths,
-        ode_params,
-        hospital_parameters,
-        hospital_cf,
-    )
 
     return system_metrics
 
@@ -197,22 +198,26 @@ def compute_corrected_hospital_usage(admissions: pd.DataFrame,
                                      ode_params: pd.Series,
                                      hospital_parameters,
                                      correction_factors):
-    import pdb; pdb.set_trace()
-    admissions = admissions['modeled_admissions_total']
-    hfr = postprocessing_parameters.ihr / postprocessing_parameters.ifr
-    hfr[hfr < 1] = 1.0
+    lag = ode_params.loc['exposure_to_death'] - ode_params.loc['exposure_to_admission']
+    admissions = admissions['modeled_admissions_total'].groupby('location_id').shift(lag)
+    deaths = deaths['modeled_deaths_total']
+    hfr = deaths / admissions
+    hfr[(hfr < 1) | ~np.isfinite(hfr)] = 1
     hospital_usage = compute_hospital_usage(
         admissions,
         hfr,
         hospital_parameters,
     )
     corrected_hospital_census = (hospital_usage.hospital_census
-                                 * postprocessing_parameters.hospital_census).fillna(method='ffill')
+                                 * correction_factors.hospital_census).fillna(method='ffill')
     corrected_icu_census = (corrected_hospital_census
-                            * postprocessing_parameters.icu_census).fillna(method='ffill')
+                            * correction_factors.icu_census).fillna(method='ffill')
 
-    hospital_usage.hospital_census = corrected_hospital_census
-    hospital_usage.icu_census = corrected_icu_census
+    hospital_usage = pd.concat([
+        corrected_hospital_census.rename('hospital_census'),
+        hospital_usage.icu_admissions.rename('icu_admissions'),
+        corrected_icu_census.rename('icu_census'),
+    ])
 
     return hospital_usage
 
