@@ -14,9 +14,7 @@ grid_plots:
       - version: '2021_12_20.02'
         scenarios:
           reference*: 'IDR algo'
-          best_masks: 'best_masks'
-          booster: 'booster'
-      - version: '2021_12_20.01'
+      - version: '2021_12_20.03'
         scenarios:
-          reference*: 'high transmission/cvi'
+          reference*: 'IDR algo but fixed'
 
