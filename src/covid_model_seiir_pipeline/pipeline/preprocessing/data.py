@@ -349,7 +349,7 @@ class PreprocessingDataInterface:
     def load_raw_vaccine_uptake(self, scenario: str) -> pd.DataFrame:
         try:
             scenario_file = {
-                'reference': 'last_shots_in_arm_by_brand_w_booster_reference_kid_low',
+                'reference': 'last_shots_in_arm_by_brand_w_booster_reference',
                 'booster': 'last_shots_in_arm_by_brand_w_booster_optimal',
             }[scenario]
         except KeyError:

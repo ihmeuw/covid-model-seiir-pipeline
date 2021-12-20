@@ -68,6 +68,7 @@ def compute_output_metrics(indices: Indices,
         variant_prevalence,
         total_pop,
         hospital_usage,
+        pd.concat(hospital_cf.to_dict().values(), axis=1).rename(columns=lambda x: f'{x}_correction_factor'),
     ], axis=1)
 
     r = compute_r(model_parameters, system_metrics)
@@ -217,7 +218,7 @@ def compute_corrected_hospital_usage(admissions: pd.DataFrame,
         corrected_hospital_census.rename('hospital_census'),
         hospital_usage.icu_admissions.rename('icu_admissions'),
         corrected_icu_census.rename('icu_census'),
-    ])
+    ], axis=1)
 
     return hospital_usage
 

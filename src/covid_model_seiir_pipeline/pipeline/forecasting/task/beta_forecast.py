@@ -258,7 +258,6 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
         hospital_parameters,
         hospital_cf,
     )
-    system_metrics = pd.concat([system_metrics, hospital_cf], axis=1)
 
     logger.info('Prepping outputs.', context='transform')
     forecast_ode_params = pd.concat([model_parameters.base_parameters, beta, beta_hat], axis=1)
