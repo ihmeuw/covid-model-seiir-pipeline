@@ -65,9 +65,13 @@ def load_admissions_and_hfr(data_interface: 'RegressionDataInterface',
                             num_draws: int,
                             num_cores: int,
                             progress_bar: bool) -> Tuple[pd.Series, pd.Series]:
+    comp = data_interface.load_compartments(0, columns=['Infection_all_all_all_lr'])
+    location_ids = data_interface.load_location_ids()
+    idx = comp.loc[location_ids].index
     _runner = functools.partial(
         _load_admissions_and_hfr_draw,
         data_interface=data_interface,
+        index=idx,
     )
     draw_data = parallel.run_parallel(
         runner=_runner,
@@ -79,28 +83,26 @@ def load_admissions_and_hfr(data_interface: 'RegressionDataInterface',
     admissions, hfr = zip(*draw_data)
     admissions_mean = pd.concat(admissions, axis=1).mean(axis=1).rename('admissions')
     hfr_mean = pd.concat(hfr, axis=1).mean(axis=1).rename('hfr').loc[admissions_mean.index]
-
     return admissions_mean, hfr_mean
 
 
 def _load_admissions_and_hfr_draw(draw_id: int,
-                                  data_interface: 'RegressionDataInterface') -> Tuple[pd.Series, pd.Series]:
-    ode_params = data_interface.load_ode_params(draw_id)
+                                  data_interface: RegressionDataInterface,
+                                  index: pd.Index) -> Tuple[pd.Series, pd.Series]:
+    ode_params = data_interface.load_ode_params(draw_id).set_index('parameter').value
     admission_lag = ode_params.loc['exposure_to_admission']
     death_lag = ode_params.loc['exposure_to_death']
 
     cols = [f'{measure}_all_all_all_{group}' for measure, group
             in itertools.product(['Infection', 'Death', 'Admission'], RISK_GROUP_NAMES)]
-    compartments = data_interface.load_compartments(
-        draw_id, columns=cols
-    )
+    compartments = data_interface.load_compartments(draw_id, columns=cols).reindex(index)
     infections = compartments.filter(like="Infection").sum(axis=1)
     deaths = compartments.filter(like='Death').sum(axis=1).groupby('location_id').shift(death_lag)
     admissions = compartments.filter(like='Admission').sum(axis=1).groupby('location_id').shift(admission_lag)
 
     admissions = admissions.rename(f'draw_{draw_id}')
-    hfr = (deaths / admissions.groupby('location_id').shift(death_lag - admission_lag)).rename(f'draw_{draw_id}')
-    hfr[hfr < 1] = 1
+    hfr = (admissions.groupby('location_id').shift(death_lag - admission_lag) / deaths).rename(f'draw_{draw_id}')
+    hfr[(hfr < 1) | ~np.isfinite(hfr)] = 1
 
     return admissions, hfr
 
