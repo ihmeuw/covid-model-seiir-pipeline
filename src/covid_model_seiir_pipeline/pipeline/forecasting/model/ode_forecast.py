@@ -16,9 +16,11 @@ from covid_model_seiir_pipeline.lib.ode_mk2.constants import (
 from covid_model_seiir_pipeline.lib.ode_mk2 import (
     solver,
 )
+from covid_model_seiir_pipeline.pipeline.regression.model.hospital_corrections import (
+    HospitalCorrectionFactors,
+)
 from covid_model_seiir_pipeline.pipeline.forecasting.model.containers import (
     Indices,
-    PostprocessingParameters,
 )
 
 if TYPE_CHECKING:
@@ -162,7 +164,6 @@ def build_ratio(shifted_infections: pd.Series, numerator: pd.Series, prior_ratio
     return ratio
 
 
-
 def beta_shift(beta_hat: pd.DataFrame,
                beta_scales: pd.DataFrame) -> pd.DataFrame:
     """Shift the raw predicted beta to line up with beta in the past.
@@ -205,54 +206,26 @@ def beta_shift(beta_hat: pd.DataFrame,
     return beta_final
 
 
-#######################################
-# Construct postprocessing parameters #
-#######################################
+def forecast_correction_factors(indices: Indices,
+                                correction_factors,
+                                hospital_parameters):
+    averaging_window = pd.Timedelta(days=hospital_parameters.correction_factor_average_window)
+    application_window = pd.Timedelta(days=hospital_parameters.correction_factor_application_window)
 
-# def build_postprocessing_parameters(indices: Indices,
-#                                     past_infections: pd.Series,
-#                                     past_deaths: pd.Series,
-#                                     ratio_data,
-#                                     model_parameters: Parameters,
-#                                     correction_factors,
-#                                     hospital_parameters) -> PostprocessingParameters:
-#     ratio_data = correct_ratio_data(indices, ratio_data, model_parameters)
-#
-#     correction_factors = forecast_correction_factors(
-#         indices,
-#         correction_factors,
-#         hospital_parameters,
-#     )
-#
-#     return PostprocessingParameters(
-#         past_infections=past_infections,
-#         past_deaths=past_deaths,
-#         **ratio_data.to_dict(),
-#         **correction_factors.to_dict()
-#     )
-
-
-#
-# def forecast_correction_factors(indices: Indices,
-#                                 correction_factors,
-#                                 hospital_parameters):
-#     averaging_window = pd.Timedelta(days=hospital_parameters.correction_factor_average_window)
-#     application_window = pd.Timedelta(days=hospital_parameters.correction_factor_application_window)
-#
-#     new_cfs = {}
-#     for cf_name, cf in correction_factors.to_dict().items():
-#         cf = cf.reindex(indices.full)
-#         loc_cfs = []
-#         for loc_id, loc_today in indices.initial_condition.tolist():
-#             loc_cf = cf.loc[loc_id]
-#             mean_cf = loc_cf.loc[loc_today - averaging_window: loc_today].mean()
-#             loc_cf.loc[loc_today:] = np.nan
-#             loc_cf.loc[loc_today + application_window:] = mean_cf
-#             loc_cf = loc_cf.interpolate().reset_index()
-#             loc_cf['location_id'] = loc_id
-#             loc_cfs.append(loc_cf.set_index(['location_id', 'date'])[cf_name])
-#         new_cfs[cf_name] = pd.concat(loc_cfs).sort_index()
-#     return HospitalCorrectionFactors(**new_cfs)
+    new_cfs = {}
+    for cf_name, cf in correction_factors.to_dict('series').items():
+        cf = cf.reindex(indices.full)
+        loc_cfs = []
+        for loc_id, loc_today in indices.initial_condition.tolist():
+            loc_cf = cf.loc[loc_id]
+            mean_cf = loc_cf.loc[loc_today - averaging_window: loc_today].mean()
+            loc_cf.loc[loc_today:] = np.nan
+            loc_cf.loc[loc_today + application_window:] = mean_cf
+            loc_cf = loc_cf.interpolate().reset_index()
+            loc_cf['location_id'] = loc_id
+            loc_cfs.append(loc_cf.set_index(['location_id', 'date'])[cf_name])
+        new_cfs[cf_name] = pd.concat(loc_cfs).sort_index()
+    return HospitalCorrectionFactors(**new_cfs)
 
 
 ###########

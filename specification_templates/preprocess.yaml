@@ -11,12 +11,12 @@ data:
   population_density_version: '2020_05_20.07'
   testing_outputs_version: '2021_12_13.03'
   variant_scaleup_version: '2021_12_15.01'
-  vaccine_coverage_version: '2021_12_14.01'
+  vaccine_coverage_version: '2021_12_18.04'
   serology_vaccine_coverage_version: '2021_12_13.04'
   vaccine_efficacy_version: '2021_12_19.01'
   vaccine_scenarios:
     - 'reference'
-#    - 'booster'
+    - 'booster'
   output_root: ''
   output_format: 'csv'
   n_draws: 100

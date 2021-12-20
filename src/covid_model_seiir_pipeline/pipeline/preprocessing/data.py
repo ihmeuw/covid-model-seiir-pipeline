@@ -168,11 +168,12 @@ class PreprocessingDataInterface:
             'icu_census': io.load(self.model_inputs_root.icu_census()),
         }
         for measure, data in corrections_data.items():
+            data = data.reset_index()
             all_age_sex = (data.age_group_id == 22) & (data.sex_id == 3)
             drop_locs = data.location_id.isin(census_exclude_locs)
             keep_cols = ["location_id", "date", "value"]
             data = data.loc[all_age_sex & ~drop_locs, keep_cols]
-            corrections_data[measure] = data.set_index(['location_id', 'date']).value.rename(measure)
+            corrections_data[measure] = data.set_index(['location_id', 'date']).sort_index().value.rename(measure)
         return pd.concat(corrections_data.values(), axis=1)
 
     def load_hospital_bed_capacity(self) -> pd.DataFrame:
@@ -348,7 +349,7 @@ class PreprocessingDataInterface:
     def load_raw_vaccine_uptake(self, scenario: str) -> pd.DataFrame:
         try:
             scenario_file = {
-                'reference': 'last_shots_in_arm_by_brand_w_booster_reference_kid_low',
+                'reference': 'last_shots_in_arm_by_brand_w_booster_reference',
                 'booster': 'last_shots_in_arm_by_brand_w_booster_optimal',
             }[scenario]
         except KeyError:
