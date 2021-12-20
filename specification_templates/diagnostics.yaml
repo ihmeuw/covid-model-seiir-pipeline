@@ -8,13 +8,13 @@ grid_plots:
     date_start: '2020-03-01'
     date_end: '2022-12-01'
     comparators:
-      - version: '2021_12_18.01'
-        scenarios:
-          reference*: 'reference'
-      - version: '2021_12_19.02'
-        scenarios:
-          reference*: 'new'
       - version: '2021_12_19.04'
         scenarios:
-          reference*: 'new w/ hospital'
+          reference*: 'reference'
+      - version: '2021_12_20.02'
+        scenarios:
+          reference*: 'IDR algo'
+      - version: '2021_12_20.03'
+        scenarios:
+          reference*: 'IDR algo but fixed'
 

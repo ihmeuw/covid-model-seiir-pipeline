@@ -99,6 +99,10 @@ class RatesParameters:
     ihr_risk_ratio: RRSampleable = field(default='BMJ')
     idr_risk_ratio: RRSampleable = field(default=1.0)
 
+    omicron_ifr_scalar: UniformSampleable = field(default=1.0)
+    omicron_ihr_scalar: UniformSampleable = field(default=1.0)
+    omicron_idr_scalar: UniformSampleable = field(default=1.0)
+
     day_inflection_options: List[str] = field(default_factory=list)
 
     def __post_init__(self):

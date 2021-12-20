@@ -1,5 +1,5 @@
 data:
-  seir_regression_version: '2021_12_19.04'
+  seir_regression_version: '2021_12_20.04'
   output_root: ''
   output_format: 'parquet'
 workflow:
@@ -7,7 +7,7 @@ workflow:
   queue: 'd.q'
 scenarios:
   reference:
-    algorithm: 'normal' # 'draw_level_mandate_reimposition'
+    algorithm: normal #'draw_level_mandate_reimposition'
     algorithm_params:
       death_threshold: 8  # per million
       max_threshold: 15 # per million

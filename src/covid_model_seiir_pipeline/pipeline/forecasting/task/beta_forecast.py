@@ -52,7 +52,7 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
     ########################################
     logger.info('Loading SEIIR parameter input data.', context='read')
     # We'll use the same params in the ODE forecast as we did in the fit.
-    ode_params = data_interface.load_regression_ode_params(draw_id=draw_id).set_index('parameter').value
+    ode_params = data_interface.load_fit_ode_params(draw_id=draw_id)
     # Use to get ratios
     posterior_epi_measures = data_interface.load_posterior_epi_measures(draw_id=draw_id)
     prior_ratios = data_interface.load_rates(draw_id).loc[location_ids]
@@ -116,20 +116,21 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
         num_cores=num_cores,
         progress_bar=progress_bar,
     )
+    exposure_to_death = ode_params['exposure_to_death'].iloc[0]
     past_deaths = (compartments
                    .filter(like='Death_all_all_all')
                    .sum(axis=1)
                    .loc[indices.past]
                    .groupby('location_id')
                    .apply(lambda x: x.reset_index(level=0, drop=True)
-                                     .shift(ode_params.loc['exposure_to_death'], freq='D'))
+                                     .shift(exposure_to_death, freq='D'))
                    .rename('value'))
     total_deaths = (compartments
                     .filter(like='Death_all_all_all')
                     .sum(axis=1)
                     .groupby('location_id')
                     .apply(lambda x: x.reset_index(level=0, drop=True)
-                                      .shift(ode_params.loc['exposure_to_death'], freq='D'))
+                                      .shift(exposure_to_death, freq='D'))
                     .rename('value')
                     .to_frame())
     total_deaths['observed'] = 0
@@ -231,7 +232,7 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
                             .sum(axis=1)
                             .groupby('location_id')
                             .apply(lambda x: x.reset_index(level=0, drop=True)
-                                              .shift(ode_params.loc['exposure_to_death'], freq='D'))
+                                              .shift(exposure_to_death, freq='D'))
                             .rename('value')
                             .to_frame())
             total_deaths['observed'] = 0
@@ -262,7 +263,7 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
     logger.info('Prepping outputs.', context='transform')
     forecast_ode_params = pd.concat([model_parameters.base_parameters, beta, beta_hat], axis=1)
     for measure in ['death', 'case', 'admission']:
-        forecast_ode_params[f'exposure_to_{measure}'] = ode_params.loc[f'exposure_to_{measure}']
+        forecast_ode_params[f'exposure_to_{measure}'] = ode_params[f'exposure_to_{measure}'].iloc[0]
 
     logger.info('Writing outputs.', context='write')
     data_interface.save_ode_params(forecast_ode_params, scenario, draw_id)

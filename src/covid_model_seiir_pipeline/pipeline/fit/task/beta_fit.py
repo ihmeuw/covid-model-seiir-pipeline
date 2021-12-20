@@ -137,6 +137,13 @@ def run_beta_fit(fit_version: str, draw_id: int, progress_bar: bool) -> None:
         hierarchy=mr_hierarchy
     )
 
+    total_infections = compartments.filter(like='Infection_all_all_all').sum(axis=1).groupby('location_id').max()
+    total_cases = compartments.filter(like='Case_all_all_all').sum(axis=1).groupby('location_id').max()
+    cumulative_idr = np.minimum(total_cases / total_infections, 0.9)
+    idr_symptomatic = np.minimum(cumulative_idr, 0.45) / 0.5
+    idr_asymptomatic = (cumulative_idr - np.minimum(cumulative_idr, 0.45)) / 0.5
+    new_idr = 0.1 * idr_symptomatic + 0.9 * idr_asymptomatic
+    sampled_ode_params['kappa_omicron_case'] = new_idr / cumulative_idr
     pct_unvaccinated = (
         (agg_first_pass_posterior_epi_measures['cumulative_naive_unvaccinated_infections']
          / agg_first_pass_posterior_epi_measures['cumulative_naive_infections'])
@@ -221,16 +228,9 @@ def run_beta_fit(fit_version: str, draw_id: int, progress_bar: bool) -> None:
 
     logger.info('Prepping outputs.', context='transform')
 
-    base_parameters = ode_parameters.to_dict()['base_parameters']
-    out_params = []
-    keep = ['alpha', 'sigma', 'gamma', 'pi', 'kappa', 'weight']
-    for param in keep:
-        out_params.append(base_parameters.filter(like=param).iloc[0])
-    out_params = pd.concat(out_params)
+    out_params = ode_parameters.to_dict()['base_parameters']
     for name, duration in durations._asdict().items():
-        out_params.loc[name] = duration
-    out_params = out_params.reset_index()
-    out_params.columns = ['parameter', 'value']
+        out_params.loc[:, name] = duration
 
     rates_data = []
     for round_id, dataset in enumerate([first_pass_rates_data, second_pass_rates_data]):

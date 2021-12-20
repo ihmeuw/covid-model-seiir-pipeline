@@ -199,26 +199,25 @@ MEASURES['seroprevalence'] = MeasureConfig(
 )
 
 
-def load_ode_params(data_interface: FitDataInterface,
-                    *,  # Disallow other positional args
-                    num_draws: int = 1,
-                    progress_bar: bool = False,
-                    **_) -> pd.DataFrame:
-
+def load_durations(data_interface: FitDataInterface,
+                   *,  # Disallow other positional args
+                   num_draws: int = 1,
+                   progress_bar: bool = False,
+                   **_) -> pd.Series:
+    durations = [f'exposure_to_{m}' for m in ['death', 'admission', 'case']]
     parameter_data = []
     for draw in tqdm.trange(num_draws, disable=not progress_bar):
-        df = data_interface.load_ode_params(draw).set_index('parameter').value
-        parameter_data.append(df)
+        d = data_interface.load_ode_params(draw, columns=durations).iloc[0]
+        parameter_data.append(d)
     parameter_data = pd.concat(parameter_data, axis=1)
-    parameter_data.columns = [f'draw_{i}' for i in range(100)]
+    parameter_data.columns = [f'draw_{i}' for i in range(num_draws)]
     return parameter_data
 
 
-MEASURES['ode_parameters'] = MeasureConfig(
-    loader=load_ode_params,
-    label='ode_parameters',
-    description=('ODE system and rates parameters. '
-                 'These parameters are sampled from distributions based on literature and assumptions')
+MEASURES['durations'] = MeasureConfig(
+    loader=load_durations,
+    label='durations',
+    description=f'Durations from exposure to death, admission, and case.',
 )
 
 

@@ -1,11 +1,11 @@
 data:
-  seir_preprocess_version: '2021_12_19.08'
+  seir_preprocess_version: '2021_12_19.12'
   output_format: 'parquet'
   output_root: ''
   n_draws: 100
 workflow:
   project: 'proj_covid_prod'
-  queue: 'all.q'
+  queue: 'd.q'
 rates_parameters:
   day_0: '2020-03-15'
   pred_start_date: '2019-11-01'
@@ -28,6 +28,10 @@ rates_parameters:
   # Or a 3-tuple of [mean, lower, upper]
   ihr_risk_ratio: 'BMJ'
   idr_risk_ratio: [1.0, 1.0, 1.0]
+  omicron_ifr_scalar: [0.03, 0.07]
+  omicron_ihr_scalar: [0.10, 0.20]
+  # IDR is altered in second pass rates based on assumptions about the probability a disease is symptomatic.
+  omicron_idr_scalar: 1.0
 fit_parameters:
   # Mixing parameter.  dS/dt = -beta * S * I ** alpha
   alpha: [0.9, 1.0]
@@ -43,7 +47,7 @@ fit_parameters:
   kappa_beta_infection: [1.0, 1.4]
   kappa_gamma_infection: [1.0, 1.4]
   kappa_delta_infection: [1.6, 2.0]
-  kappa_omicron_infection: [1.6, 2.0]
+  kappa_omicron_infection: [1.5, 2.5]
   kappa_other_infection: [1.0, 1.4]
   kappa_omega_infection: [2.0, 3.0]
 

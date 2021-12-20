@@ -1,10 +1,10 @@
 data:
-  seir_fit_version: '2021_12_19.02'
+  seir_fit_version: '2021_12_20.06'
   coefficient_version: ''
   seir_covariate_priors_version: ''
   output_root: ''
   output_format: 'parquet'
-  drop_locations: [33, 34, 518, 298, 23, 24, 25, 27, 29]
+  drop_locations: [518, 298, 23, 24, 25, 27, 29, 511]
 workflow:
   project: 'proj_covid_prod'
   queue: 'long.q'
