@@ -53,6 +53,8 @@ def runner(cumulative_cases: pd.Series,
         mr_hierarchy=mr_hierarchy.copy(),
         pred_hierarchy=pred_hierarchy.copy(),
         covariate_list=covariate_list.copy(),
+        num_threads=num_threads,
+        progress_bar=progress_bar,
     )
     
     rmse_data, floor_data = flooring.find_idr_floor(
