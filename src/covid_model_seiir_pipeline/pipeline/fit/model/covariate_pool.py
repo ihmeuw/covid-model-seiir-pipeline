@@ -1,5 +1,6 @@
 import itertools
 from typing import Dict, List
+import yaml
 
 from loguru import logger
 
@@ -21,13 +22,13 @@ COVARIATE_POOL = (
 
 
 def make_covariate_pool(n_samples: int) -> Dict[str, Dict[int, List[str]]]:
-    test_combinations = []
-    for i in range(len(COVARIATE_POOL)):
-        test_combinations += [list(set(cc)) for cc in itertools.combinations(COVARIATE_POOL[:-1], i + 1)]
-    test_combinations = [cc for cc in test_combinations if
-                         len([c for c in cc if c in ['uhc', 'haqi']]) <= 1]
-    logger.warning('Not actually testing covariate combinations.')
-    selected_combinations = [tc for tc in test_combinations if 'smoking_prevalence' in tc and len(tc) >= 5][:n_samples]
+    with open('/ihme/covid-19-2/rates-covariates/2021_12_19.01/covariate_combinations.yaml', 'r') as file:
+        selected_combinations = yaml.full_load(file)
+    if not all([c in COVARIATE_POOL for sc in selected_combinations for c in sc]):
+        raise ValueError('Invalid covariate selected.')
+    if n_samples > len(selected_combinations):
+        raise ValueError('Too many covariates.')
+    selected_combinations = selected_combinations[:n_samples]
 
     idr_covariate_options = [['haqi'], ['uhc'], ['prop_65plus'], [], ]
     random_state = utilities.get_random_state('idr_covariate_pool')

@@ -35,7 +35,8 @@ def run_mr_model(model_data: pd.DataFrame,
                  re_vars: List[str],
                  group_var: str,
                  inlier_pct: float = 1.,
-                 outer_max_iter: int = 500,
+                 inner_max_iter: int = 1000,
+                 outer_max_iter: int = 1000,
                  prior_dict: Dict = None,
                  global_mr_data: MRData = None,
                  **kwargs) -> MRBRT:
@@ -53,7 +54,7 @@ def run_mr_model(model_data: pd.DataFrame,
     with suppress_output(filter_list):
         mr_model = MRBRT(mr_data, cov_models, inlier_pct=inlier_pct)
         mr_model.attach_data(global_mr_data)
-        mr_model.fit_model(outer_max_iter=outer_max_iter)
+        mr_model.fit_model(inner_max_iter=inner_max_iter, outer_max_iter=outer_max_iter)
     
     return mr_model
 

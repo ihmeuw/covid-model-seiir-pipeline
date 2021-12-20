@@ -27,7 +27,9 @@ def runner(cumulative_deaths: pd.Series,
            day_inflection: pd.Timestamp,
            day_0: pd.Timestamp,
            pred_start_date: pd.Timestamp,
-           pred_end_date: pd.Timestamp) -> pd.DataFrame:
+           pred_end_date: pd.Timestamp,
+           num_threads: int,
+           progress_bar: bool) -> pd.DataFrame:
     model_data = data.create_model_data(
         cumulative_deaths=cumulative_deaths,
         daily_deaths=daily_deaths,
@@ -64,6 +66,8 @@ def runner(cumulative_deaths: pd.Series,
         day_0=day_0,
         day_inflection=day_inflection,
         covariate_list=covariate_list.copy(),
+        num_threads=num_threads,
+        progress_bar=progress_bar,
     )
     
     lr_rr, hr_rr = age_standardization.get_risk_group_rr(

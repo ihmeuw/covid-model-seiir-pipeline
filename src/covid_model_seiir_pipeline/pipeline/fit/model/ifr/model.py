@@ -22,7 +22,9 @@ def run_model(model_data: pd.DataFrame,
               variant_risk_ratio: float,
               day_0: pd.Timestamp,
               day_inflection: pd.Timestamp,
-              covariate_list: List[str]) -> Tuple[Dict, Dict, pd.Series, pd.Series, pd.Series, pd.Series, Dict]:
+              covariate_list: List[str],
+              num_threads: int,
+              progress_bar: bool) -> Tuple[Dict, Dict, pd.Series, pd.Series, pd.Series, pd.Series, Dict]:
     (model_data,
      age_stand_scaling_factor,
      level_lambdas,
@@ -42,12 +44,15 @@ def run_model(model_data: pd.DataFrame,
     )
 
     mr_model_dict, prior_dicts = cascade.run_cascade(
+        model_name='ifr',
         model_data=model_data.copy(),
         hierarchy=mr_hierarchy.copy(),
         var_args=var_args.copy(),
         global_prior_dict=global_prior_dict.copy(),
         location_prior_dict=location_prior_dict.copy(),
         level_lambdas=level_lambdas.copy(),
+        num_threads=num_threads,
+        progress_bar=progress_bar,
     )
     pred_data = pred_data.dropna()
     pred, pred_fe, pred_location_map = cascade.predict_cascade(

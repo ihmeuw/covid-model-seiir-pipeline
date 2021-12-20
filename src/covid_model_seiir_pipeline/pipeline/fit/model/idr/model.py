@@ -15,7 +15,9 @@ def run_model(model_data: pd.DataFrame,
               pred_data: pd.DataFrame,
               mr_hierarchy: pd.DataFrame,
               pred_hierarchy: pd.DataFrame,
-              covariate_list: List[str]) -> Tuple[Dict, Dict, pd.Series, pd.Series, pd.Series, Dict]:
+              covariate_list: List[str],
+              num_threads: int,
+              progress_bar: bool) -> Tuple[Dict, Dict, pd.Series, pd.Series, pd.Series, Dict]:
     model_data['logit_idr'] = math.logit(model_data['idr'])
     model_data['logit_idr'] = model_data['logit_idr'].replace((-np.inf, np.inf), np.nan)
     model_data['idr_se'] = 1
@@ -66,12 +68,15 @@ def run_model(model_data: pd.DataFrame,
     model_data = model_data.loc[:, model_data_cols]
     model_data = model_data.dropna()
     mr_model_dict, prior_dicts = cascade.run_cascade(
+        model_name='idr',
         model_data=model_data.copy(),
         hierarchy=mr_hierarchy.copy(),
         var_args=var_args.copy(),
         global_prior_dict=global_prior_dict.copy(),
         location_prior_dict=location_prior_dict.copy(),
         level_lambdas=level_lambdas.copy(),
+        num_threads=num_threads,
+        progress_bar=progress_bar,
     )
     pred_data = pred_data.dropna()
     pred, pred_fe, pred_location_map = cascade.predict_cascade(
