@@ -71,11 +71,11 @@ def postprocess_composite_measure(fit_version: str,
 
     if measure_config.duration_label:
         measure_data['duration'] = load_measure(
-            postprocess.MEASURES[measure_config.duration_label],
+            postprocess.MEASURES['durations'],
             specification,
             data_interface,
             progress_bar,
-        )
+        ).loc[measure_config.duration_label]
 
     measure_data = measure_config.combiner(**measure_data)
 
