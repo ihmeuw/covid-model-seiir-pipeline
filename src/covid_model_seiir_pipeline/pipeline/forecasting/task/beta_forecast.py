@@ -68,6 +68,8 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
     phis = data_interface.load_phis(draw_id=draw_id)
     # Variant prevalences.
     rhos = data_interface.load_variant_prevalence(scenario_spec.variant_version)
+    hospital_cf = data_interface.load_hospitalizations(measure='correction_factors')
+    hospital_parameters = data_interface.get_hospital_params()
 
     log_beta_shift = (scenario_spec.log_beta_shift,
                       pd.Timestamp(scenario_spec.log_beta_shift_date))
@@ -97,30 +99,15 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
         etas,
         phis,
     )
+    hospital_cf = model.forecast_correction_factors(
+        indices,
+        correction_factors=hospital_cf,
+        hospital_parameters=hospital_parameters,
+    )
 
     # Pull in compartments from the fit and subset out the initial condition.
     logger.info('Loading past compartment data.', context='read')
     initial_condition = past_compartments.reindex(indices.full, fill_value=0.)
-    #
-    # ###################################################
-    # # Construct parameters for postprocessing results #
-    # ###################################################
-    # logger.info('Loading results processing input data.', context='read')
-    # past_deaths = data_interface.load_past_deaths(draw_id=draw_id).dropna()
-    # ratio_data = data_interface.load_ratio_data(draw_id=draw_id)
-    # hospital_parameters = data_interface.get_hospital_parameters()
-    # correction_factors = data_interface.load_hospital_correction_factors()
-    #
-    # logger.info('Prepping results processing parameters.', context='transform')
-    # postprocessing_params = model.build_postprocessing_parameters(
-    #     indices,
-    #     past_infections,
-    #     past_deaths,
-    #     ratio_data,
-    #     model_parameters,
-    #     correction_factors,
-    #     hospital_parameters,
-    # )
 
     logger.info('Running ODE forecast.', context='compute_ode')
     compartments, chis = model.run_ode_forecast(
@@ -268,6 +255,8 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
         compartments,
         model_parameters,
         ode_params,
+        hospital_parameters,
+        hospital_cf,
     )
 
     logger.info('Prepping outputs.', context='transform')

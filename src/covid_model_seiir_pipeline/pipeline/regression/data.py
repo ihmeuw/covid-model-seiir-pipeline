@@ -289,3 +289,9 @@ class RegressionDataInterface:
         if self.coefficient_root:
             return io.load(self.coefficient_root.coefficients(draw_id=draw_id))
         return None
+
+    def save_hospitalizations(self, data: pd.DataFrame, measure: str) -> None:
+        io.dump(data, self.regression_root.hospitalizations(measure=measure))
+
+    def load_hospitalizations(self, measure: str) -> pd.DataFrame:
+        return io.load(self.regression_root.hospitalizations(measure=measure))
