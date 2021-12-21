@@ -69,8 +69,8 @@ def build_model_parameters(indices: Indices,
     prior_ratios = prior_ratios.loc[prior_ratios['round'] == 2]
     scalars = []
     empirical_rhos = pd.concat([
-        (past_compartments.filter(like=f'Infection_all_{v}_all').diff().sum(axis=1, min_count=1)
-         / past_compartments.filter(like='Infection_all_all_all').diff().sum(axis=1, min_count=1)).rename(v)
+        (past_compartments.filter(like=f'Infection_all_{v}_all').groupby('location_id').diff().sum(axis=1, min_count=1)
+         / past_compartments.filter(like='Infection_all_all_all').groupby('location_id').diff().sum(axis=1, min_count=1)).rename(v)
         for v in VARIANT_NAMES
     ], axis=1)
     for epi_measure, ratio_name in ratio_map.items():
@@ -79,10 +79,12 @@ def build_model_parameters(indices: Indices,
         # Same for all location-dates
         infections = (past_compartments
                       .filter(like='Infection_none_all_unvaccinated')
+                      .groupby('location_id').diff()
                       .sum(axis=1, min_count=1)
                       .reindex(indices.full))
         numerator = (past_compartments
                      .filter(like=f'{epi_measure.capitalize()}_none_all_unvaccinated')
+                     .groupby('location_id').diff()
                      .sum(axis=1, min_count=1)
                      .reindex(indices.full))
         prior_ratio = prior_ratios.loc[:, ratio_name].groupby('location_id').last()
@@ -140,8 +142,6 @@ def build_ratio(epi_measure: str,
                 posterior_ratio.loc[location_id, :] = prior_ratio.loc[location_id]
             except KeyError:
                 pass
-    # ancestral_ratio = sum([posterior_ratio / kappas[f'kappa_{v}_{epi_measure}'] * rhos[v]
-    #                        for v in VARIANT_NAMES if v != 'none'])
     ancestral_ratio = posterior_ratio / sum([kappas[f'kappa_{v}_{epi_measure}'] * rhos[v]
                                              for v in VARIANT_NAMES if v != 'none'])
     ancestral_ratio = ancestral_ratio.rename('value')
