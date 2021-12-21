@@ -9,9 +9,6 @@ from covid_model_seiir_pipeline.pipeline.forecasting.specification import (
     ForecastSpecification,
     FORECAST_JOBS,
 )
-from covid_model_seiir_pipeline.lib.ode_mk2.constants import (
-    VARIANT_NAMES,
-)
 from covid_model_seiir_pipeline.pipeline.forecasting.data import ForecastDataInterface
 
 
@@ -71,9 +68,6 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
     phis = data_interface.load_phis(draw_id=draw_id)
     # Variant prevalences.
     rhos = data_interface.load_variant_prevalence(scenario_spec.variant_version)
-    empirical_rhos = [(past_compartments.filter(like=f'Infection_all_{v}_all').diff().sum(axis=1)
-                       / past_compartments.filter(like='Infection_all_all_all').diff().sum(axis=1)).rename(v) for v in VARIANT_NAMES]
-    empirical_rhos = pd.concat(empirical_rhos, axis=1)
 
     hospital_cf = data_interface.load_hospitalizations(measure='correction_factors')
     hospital_parameters = data_interface.get_hospital_params()
@@ -98,11 +92,10 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
     model_parameters = model.build_model_parameters(
         indices,
         beta,
-        posterior_epi_measures,
+        past_compartments,
         prior_ratios,
         ode_params,
         rhos,
-        empirical_rhos,
         vaccinations,
         etas,
         phis,
@@ -208,7 +201,7 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
             model_parameters = model.build_model_parameters(
                 indices,
                 beta,
-                posterior_epi_measures,
+                past_compartments,
                 prior_ratios,
                 ode_params,
                 rhos,

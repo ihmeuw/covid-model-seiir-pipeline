@@ -1,4 +1,4 @@
-from typing import List, Tuple, TYPE_CHECKING
+from typing import List, Tuple
 
 import numpy as np
 import pandas as pd
@@ -10,7 +10,6 @@ from covid_model_seiir_pipeline.lib.ode_mk2.containers import (
 )
 from covid_model_seiir_pipeline.lib.ode_mk2.constants import (
     SYSTEM_TYPE,
-    REPORTED_EPI_MEASURE_NAMES,
     RISK_GROUP_NAMES,
     VARIANT_NAMES,
 )
@@ -51,39 +50,50 @@ def build_beta_final(indices: Indices,
 
 def build_model_parameters(indices: Indices,
                            beta: pd.Series,
-                           posterior_epi_measures: pd.DataFrame,
+                           past_compartments: pd.DataFrame,
                            prior_ratios: pd.DataFrame,
                            ode_parameters: pd.DataFrame,
                            rhos: pd.DataFrame,
-                           empirical_rhos: pd.DataFrame,
                            vaccinations: pd.DataFrame,
                            etas: pd.DataFrame,
                            phis: pd.DataFrame) -> Parameters:
     ode_params = ode_parameters.reindex(indices.full).groupby('location_id').ffill().groupby('location_id').bfill()
     ode_params = ode_params.drop(columns=[c for c in ode_params if 'rho' in c])
     ode_params.loc[:, 'beta_all_infection'] = beta
-    measure_map = {
-        'death': ('deaths', 'ifr'),
-        'admission': ('hospitalizations', 'ihr'),
-        'case': ('cases', 'idr')
+    ratio_map = {
+        'death': 'ifr',
+        'admission': 'ihr',
+        'case': 'idr',
     }
 
-    posterior_epi_measures = posterior_epi_measures.loc[posterior_epi_measures['round'] == 2]
     prior_ratios = prior_ratios.loc[prior_ratios['round'] == 2]
     scalars = []
-    for epi_measure in REPORTED_EPI_MEASURE_NAMES:
+    empirical_rhos = pd.concat([
+        (past_compartments.filter(like=f'Infection_all_{v}_all').diff().sum(axis=1, min_count=1)
+         / past_compartments.filter(like='Infection_all_all_all').diff().sum(axis=1, min_count=1)).rename(v)
+        for v in VARIANT_NAMES
+    ], axis=1)
+    for epi_measure, ratio_name in ratio_map.items():
         ode_params.loc[:, f'count_all_{epi_measure}'] = -1
         ode_params.loc[:, f'weight_all_{epi_measure}'] = -1
         # Same for all location-dates
-        lag = ode_parameters[f'exposure_to_{epi_measure}'].iloc[0]
-        infections = (posterior_epi_measures
-                      .loc[:, 'daily_naive_unvaccinated_infections']
+        infections = (past_compartments
+                      .filter(like='Infection_none_all_unvaccinated')
+                      .sum(axis=1, min_count=1)
                       .reindex(indices.full))
-        ratio_measure, ratio_name = measure_map[epi_measure]
-        numerator = posterior_epi_measures.loc[:, f'daily_{ratio_measure}'].reindex(indices.full).groupby('location_id').shift(-lag)
+        numerator = (past_compartments
+                     .filter(like=f'{epi_measure.capitalize()}_none_all_unvaccinated')
+                     .sum(axis=1, min_count=1)
+                     .reindex(indices.full))
         prior_ratio = prior_ratios.loc[:, ratio_name].groupby('location_id').last()
-        ode_params.loc[:, f'rate_all_{epi_measure}'] = build_ratio(epi_measure, infections, numerator, prior_ratio,
-                                                                   empirical_rhos, ode_params.filter(like='kappa'))
+        ode_params.loc[:, f'rate_all_{epi_measure}'] = build_ratio(
+            epi_measure,
+            infections,
+            numerator,
+            prior_ratio,
+            empirical_rhos,
+            ode_params.filter(like='kappa')
+        )
 
         for risk_group in RISK_GROUP_NAMES:
             scalars.append(
@@ -114,8 +124,12 @@ def build_model_parameters(indices: Indices,
     )
 
 
-def build_ratio(epi_measure: str, infections: pd.Series, shifted_numerator: pd.Series, prior_ratio: pd.Series,
-                rhos: pd.DataFrame, kappas: pd.DataFrame):
+def build_ratio(epi_measure: str,
+                infections: pd.Series,
+                shifted_numerator: pd.Series,
+                prior_ratio: pd.Series,
+                rhos: pd.DataFrame,
+                kappas: pd.DataFrame):
     posterior_ratio = (shifted_numerator / infections).rename('value')
     posterior_ratio.loc[(posterior_ratio == 0) | ~np.isfinite(posterior_ratio)] = np.nan
     locs = posterior_ratio.reset_index().location_id.unique()    
