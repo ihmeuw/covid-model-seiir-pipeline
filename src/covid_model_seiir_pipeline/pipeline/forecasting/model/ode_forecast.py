@@ -61,14 +61,13 @@ def build_model_parameters(indices: Indices,
     ode_params.loc[:, 'beta_all_infection'] = beta
 
     ode_params = ode_params.drop(columns=[c for c in ode_params if 'rho' in c])
-    rhos = og_rhos.reindex(indices.full, fill_value=0.)
     rhos.columns = [f'rho_{c}_infection' for c in rhos.columns]
     rhos.loc[:, 'rho_none_infection'] = 0
     base_parameters = pd.concat([ode_params, rhos], axis=1)
     
     empirical_rhos = pd.concat([
-        (past_compartments.filter(like=f'Infection_all_{v}_all').diff().sum(axis=1, min_count=1)
-         / past_compartments.filter(like='Infection_all_all_all').diff().sum(axis=1, min_count=1)).rename(v)
+        (past_compartments.filter(like=f'Infection_all_{v}_all').groupby('location_id').diff().sum(axis=1, min_count=1)
+         / past_compartments.filter(like='Infection_all_all_all').groupby('location_id').diff().sum(axis=1, min_count=1)).rename(v)
         for v in VARIANT_NAMES[1:]
     ], axis=1)
     
@@ -96,12 +95,10 @@ def build_model_parameters(indices: Indices,
                      .reindex(indices.full))
         numerator = numerator.groupby('location_id').diff().fillna(numerator)
         prior_ratio = prior_ratios.loc[:, ratio_name].groupby('location_id').last()
-        prior_ratio = prior_ratios.loc[:, ratio_name].groupby('location_id').last()
         kappas = (ode_params
                   .loc[empirical_rhos.index, [f'kappa_{variant}_{epi_measure}' for variant in VARIANT_NAMES[1:]]]
                   .rename(columns=lambda x: x.split('_')[1]))
         ode_params.loc[:, f'rate_all_{epi_measure}'] = build_ratio(
-            epi_measure,
             infections,
             numerator,
             prior_ratio,
@@ -135,8 +132,7 @@ def build_model_parameters(indices: Indices,
     )
 
 
-def build_ratio(epi_measure: str,
-                infections: pd.Series,
+def build_ratio(infections: pd.Series,
                 shifted_numerator: pd.Series,
                 prior_ratio: pd.Series,
                 rhos: pd.DataFrame,
@@ -152,7 +148,7 @@ def build_ratio(epi_measure: str,
             except KeyError:
                 pass
     
-    correction = 1 / (empirical_rhos * kappas).sum(axis=1, min_count=1)
+    correction = 1 / (rhos * kappas).sum(axis=1, min_count=1)
     ancestral_ratio = (posterior_ratio * correction).rename('value')    
 
     pr_gb = ancestral_ratio.dropna().reset_index().groupby('location_id')
