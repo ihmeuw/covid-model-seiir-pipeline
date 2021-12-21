@@ -140,9 +140,10 @@ def build_ratio(epi_measure: str,
                 posterior_ratio.loc[location_id, :] = prior_ratio.loc[location_id]
             except KeyError:
                 pass
-
-    # ancestral_ratio = sum([posterior_ratio / kappas[f'kappa_{v}_{epi_measure}'] * rhos[v] for v in VARIANT_NAMES if v != 'none'])
-    ancestral_ratio = posterior_ratio / sum([kappas[f'kappa_{v}_{epi_measure}'] * rhos[v] for v in VARIANT_NAMES if v != 'none'])
+    # ancestral_ratio = sum([posterior_ratio / kappas[f'kappa_{v}_{epi_measure}'] * rhos[v]
+    #                        for v in VARIANT_NAMES if v != 'none'])
+    ancestral_ratio = posterior_ratio / sum([kappas[f'kappa_{v}_{epi_measure}'] * rhos[v]
+                                             for v in VARIANT_NAMES if v != 'none'])
     ancestral_ratio = ancestral_ratio.rename('value')
 
     pr_gb = ancestral_ratio.dropna().reset_index().groupby('location_id')

@@ -5,9 +5,6 @@ import pandas as pd
 from covid_model_seiir_pipeline.lib import (
     cli_tools,
 )
-from covid_model_seiir_pipeline.lib.ode_mk2.constants import (
-    VARIANT_NAMES,
-)
 from covid_model_seiir_pipeline.pipeline.fit.data import FitDataInterface
 from covid_model_seiir_pipeline.pipeline.fit.specification import FitSpecification, FIT_JOBS
 from covid_model_seiir_pipeline.pipeline.fit import model
