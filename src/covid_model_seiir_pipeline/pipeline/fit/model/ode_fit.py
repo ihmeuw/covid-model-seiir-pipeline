@@ -370,9 +370,9 @@ def run_ode_fit(initial_condition: pd.DataFrame,
         # Here we carry the last adjustment factor forward in time so we don't end up with
         # discontinuities in the results.
         terminal_beta = betas.loc[~no_counts_measure].groupby('location_id').last()
-        measure_ratio = (terminal_beta.loc[:, f'beta_{measure}'] / terminal_beta.loc[:, f'beta']).dropna()
+        measure_ratio = (terminal_beta.loc[:, f'beta_{measure}'] / terminal_beta.loc[:, f'beta']).dropna()        
         if not measure_ratio.empty:  # We have at least some data to adjust on.
-            adjustment_idx = full_compartments.loc[no_counts_measure & ~no_counts].index
+            adjustment_idx = full_compartments.loc[no_counts_measure & ~no_counts].loc[measure_ratio.index].index            
             full_compartments_diff.loc[adjustment_idx, cols] = np.nan
     full_compartments = full_compartments_diff.groupby('location_id').cumsum()
         
