@@ -63,11 +63,13 @@ def build_model_parameters(indices: Indices,
     ode_params = ode_params.drop(columns=[c for c in ode_params if 'rho' in c])
     rhos.columns = [f'rho_{c}_infection' for c in rhos.columns]
     rhos.loc[:, 'rho_none_infection'] = 0
-    ode_params = pd.concat([ode_params, rhos], axis=1)
+    ode_params = pd.concat([ode_params, rhos.reindex(indices.full)], axis=1)
     
+    
+    past_compartments_diff = past_compartments.groupby('location_id').diff().fillna(past_compartments)
     empirical_rhos = pd.concat([
-        (past_compartments.filter(like=f'Infection_all_{v}_all').groupby('location_id').diff().sum(axis=1, min_count=1)
-         / past_compartments.filter(like='Infection_all_all_all').groupby('location_id').diff().sum(axis=1, min_count=1)).rename(v)
+        (past_compartments_diff.filter(like=f'Infection_all_{v}_all').sum(axis=1, min_count=1)
+         / past_compartments_diff.filter(like='Infection_all_all_all').sum(axis=1, min_count=1)).rename(v)
         for v in VARIANT_NAMES[1:]
     ], axis=1)
     
@@ -79,21 +81,19 @@ def build_model_parameters(indices: Indices,
 
     prior_ratios = prior_ratios.loc[prior_ratios['round'] == 2]
     scalars = []
-    infections = (past_compartments
+    infections = (past_compartments_diff
                   .filter(like='Infection_none_all_unvaccinated')
                   .sum(axis=1, min_count=1)
                   .reindex(indices.full))
-    infections = infections.groupby('location_id').diff().fillna(infections)
 
     for epi_measure, ratio_name in ratio_map.items():
         ode_params.loc[:, f'count_all_{epi_measure}'] = -1
         ode_params.loc[:, f'weight_all_{epi_measure}'] = -1
         # Same for all location-dates
-        numerator = (past_compartments
+        numerator = (past_compartments_diff
                      .filter(like=f'{epi_measure.capitalize()}_none_all_unvaccinated')
                      .sum(axis=1, min_count=1)
                      .reindex(indices.full))
-        numerator = numerator.groupby('location_id').diff().fillna(numerator)
         prior_ratio = prior_ratios.loc[:, ratio_name].groupby('location_id').last()
         kappas = (ode_params
                   .loc[empirical_rhos.index, [f'kappa_{variant}_{epi_measure}' for variant in VARIANT_NAMES[1:]]]
