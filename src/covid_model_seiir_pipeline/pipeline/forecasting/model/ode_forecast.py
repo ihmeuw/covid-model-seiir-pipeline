@@ -58,8 +58,20 @@ def build_model_parameters(indices: Indices,
                            etas: pd.DataFrame,
                            phis: pd.DataFrame) -> Parameters:
     ode_params = ode_parameters.reindex(indices.full).groupby('location_id').ffill().groupby('location_id').bfill()
-    ode_params = ode_params.drop(columns=[c for c in ode_params if 'rho' in c])
     ode_params.loc[:, 'beta_all_infection'] = beta
+
+    ode_params = ode_params.drop(columns=[c for c in ode_params if 'rho' in c])
+    rhos = og_rhos.reindex(indices.full, fill_value=0.)
+    rhos.columns = [f'rho_{c}_infection' for c in rhos.columns]
+    rhos.loc[:, 'rho_none_infection'] = 0
+    base_parameters = pd.concat([ode_params, rhos], axis=1)
+    
+    empirical_rhos = pd.concat([
+        (past_compartments.filter(like=f'Infection_all_{v}_all').diff().sum(axis=1, min_count=1)
+         / past_compartments.filter(like='Infection_all_all_all').diff().sum(axis=1, min_count=1)).rename(v)
+        for v in VARIANT_NAMES[1:]
+    ], axis=1)
+    
     ratio_map = {
         'death': 'ifr',
         'admission': 'ihr',
@@ -68,31 +80,33 @@ def build_model_parameters(indices: Indices,
 
     prior_ratios = prior_ratios.loc[prior_ratios['round'] == 2]
     scalars = []
-    empirical_rhos = pd.concat([
-        (past_compartments.filter(like=f'Infection_all_{v}_all').diff().sum(axis=1, min_count=1)
-         / past_compartments.filter(like='Infection_all_all_all').diff().sum(axis=1, min_count=1)).rename(v)
-        for v in VARIANT_NAMES
-    ], axis=1)
+    infections = (past_compartments
+                  .filter(like='Infection_none_all_unvaccinated')
+                  .sum(axis=1, min_count=1)
+                  .reindex(indices.full))
+    infections = infections.groupby('location_id').diff().fillna(infections)
+
     for epi_measure, ratio_name in ratio_map.items():
         ode_params.loc[:, f'count_all_{epi_measure}'] = -1
         ode_params.loc[:, f'weight_all_{epi_measure}'] = -1
         # Same for all location-dates
-        infections = (past_compartments
-                      .filter(like='Infection_none_all_unvaccinated')
-                      .sum(axis=1, min_count=1)
-                      .reindex(indices.full))
         numerator = (past_compartments
                      .filter(like=f'{epi_measure.capitalize()}_none_all_unvaccinated')
                      .sum(axis=1, min_count=1)
                      .reindex(indices.full))
+        numerator = numerator.groupby('location_id').diff().fillna(numerator)
         prior_ratio = prior_ratios.loc[:, ratio_name].groupby('location_id').last()
+        prior_ratio = prior_ratios.loc[:, ratio_name].groupby('location_id').last()
+        kappas = (ode_params
+                  .loc[empirical_rhos.index, [f'kappa_{variant}_{epi_measure}' for variant in VARIANT_NAMES[1:]]]
+                  .rename(columns=lambda x: x.split('_')[1]))
         ode_params.loc[:, f'rate_all_{epi_measure}'] = build_ratio(
             epi_measure,
             infections,
             numerator,
             prior_ratio,
             empirical_rhos,
-            ode_params.filter(like='kappa')
+            kappas,
         )
 
         for risk_group in RISK_GROUP_NAMES:
@@ -107,10 +121,7 @@ def build_model_parameters(indices: Indices,
             )
     scalars = pd.concat(scalars, axis=1)
 
-    rhos = rhos.reindex(indices.full, fill_value=0.)
-    rhos.columns = [f'rho_{c}_infection' for c in rhos.columns]
-    rhos.loc[:, 'rho_none_infection'] = 0
-    base_parameters = pd.concat([ode_params, rhos], axis=1)
+
 
     vaccinations = vaccinations.reindex(indices.full, fill_value=0.)
     etas = etas.sort_index().reindex(indices.full, fill_value=0.)
@@ -140,11 +151,9 @@ def build_ratio(epi_measure: str,
                 posterior_ratio.loc[location_id, :] = prior_ratio.loc[location_id]
             except KeyError:
                 pass
-    # ancestral_ratio = sum([posterior_ratio / kappas[f'kappa_{v}_{epi_measure}'] * rhos[v]
-    #                        for v in VARIANT_NAMES if v != 'none'])
-    ancestral_ratio = posterior_ratio / sum([kappas[f'kappa_{v}_{epi_measure}'] * rhos[v]
-                                             for v in VARIANT_NAMES if v != 'none'])
-    ancestral_ratio = ancestral_ratio.rename('value')
+    
+    correction = 1 / (empirical_rhos * kappas).sum(axis=1, min_count=1)
+    ancestral_ratio = (posterior_ratio * correction).rename('value')    
 
     pr_gb = ancestral_ratio.dropna().reset_index().groupby('location_id')
     date = pr_gb.date.last()
