@@ -63,7 +63,7 @@ def build_model_parameters(indices: Indices,
     ode_params = ode_params.drop(columns=[c for c in ode_params if 'rho' in c])
     rhos.columns = [f'rho_{c}_infection' for c in rhos.columns]
     rhos.loc[:, 'rho_none_infection'] = 0
-    base_parameters = pd.concat([ode_params, rhos], axis=1)
+    ode_params = pd.concat([ode_params, rhos], axis=1)
     
     empirical_rhos = pd.concat([
         (past_compartments.filter(like=f'Infection_all_{v}_all').groupby('location_id').diff().sum(axis=1, min_count=1)
@@ -118,13 +118,11 @@ def build_model_parameters(indices: Indices,
             )
     scalars = pd.concat(scalars, axis=1)
 
-
-
     vaccinations = vaccinations.reindex(indices.full, fill_value=0.)
     etas = etas.sort_index().reindex(indices.full, fill_value=0.)
 
     return Parameters(
-        base_parameters=base_parameters,
+        base_parameters=ode_params,
         vaccinations=vaccinations,
         age_scalars=scalars,
         etas=etas,
