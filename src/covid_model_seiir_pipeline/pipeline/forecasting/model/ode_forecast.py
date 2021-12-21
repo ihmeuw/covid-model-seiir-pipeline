@@ -56,7 +56,8 @@ def build_model_parameters(indices: Indices,
                            rhos: pd.DataFrame,
                            vaccinations: pd.DataFrame,
                            etas: pd.DataFrame,
-                           phis: pd.DataFrame) -> Parameters:
+                           phis: pd.DataFrame,
+                           risk_group_population: pd.DataFrame) -> Parameters:
     ode_params = ode_parameters.reindex(indices.full).groupby('location_id').ffill().groupby('location_id').bfill()
     ode_params.loc[:, 'beta_all_infection'] = beta
 
@@ -64,7 +65,6 @@ def build_model_parameters(indices: Indices,
     rhos.columns = [f'rho_{c}_infection' for c in rhos.columns]
     rhos.loc[:, 'rho_none_infection'] = 0
     ode_params = pd.concat([ode_params, rhos.reindex(indices.full)], axis=1)
-    
     
     past_compartments_diff = past_compartments.groupby('location_id').diff().fillna(past_compartments)
     empirical_rhos = pd.concat([
@@ -89,11 +89,18 @@ def build_model_parameters(indices: Indices,
     for epi_measure, ratio_name in ratio_map.items():
         ode_params.loc[:, f'count_all_{epi_measure}'] = -1
         ode_params.loc[:, f'weight_all_{epi_measure}'] = -1
-        # Same for all location-dates
-        numerator = (past_compartments_diff
-                     .filter(like=f'{epi_measure.capitalize()}_none_all_unvaccinated')
-                     .sum(axis=1, min_count=1)
-                     .reindex(indices.full))
+        # Get ratio based on fixed risk-group composition
+        ratio = []
+        for risk_group in RISK_GROUP_NAMES:
+            infections = (past_compartments_diff
+                          .loc[:, f'Infection_none_all_unvaccinated_{risk_group}']
+                          .reindex(indices.full))
+            numerator = (past_compartments_diff
+                         .loc[:, f'{epi_measure.capitalize()}_none_all_unvaccinated_{risk_group}']
+                         .reindex(indices.full))
+            ratio.append((numerator / infections) * risk_group_population[risk_group])
+        ratio = sum(ratio)
+        numerator = (ratio * infections).rename(epi_measure)
         prior_ratio = prior_ratios.loc[:, ratio_name].groupby('location_id').last()
         kappas = (ode_params
                   .loc[empirical_rhos.index, [f'kappa_{variant}_{epi_measure}' for variant in VARIANT_NAMES[1:]]]
@@ -145,7 +152,7 @@ def build_ratio(infections: pd.Series,
                 posterior_ratio.loc[location_id, :] = prior_ratio.loc[location_id]
             except KeyError:
                 pass
-    
+
     correction = 1 / (rhos * kappas).sum(axis=1, min_count=1)
     ancestral_ratio = (posterior_ratio * correction).rename('value')    
 

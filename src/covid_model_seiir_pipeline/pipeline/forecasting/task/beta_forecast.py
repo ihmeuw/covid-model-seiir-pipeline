@@ -82,6 +82,9 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
     beta_scale = (scenario_spec.beta_scale,
                   pd.Timestamp(scenario_spec.beta_scale_date))
 
+    risk_group_population = data_interface.load_population('risk_group')
+    risk_group_population = risk_group_population.divide(risk_group_population.sum(axis=1), axis=0)
+
     # Collate all the parameters, ensure consistent index, etc.
     logger.info('Processing inputs into model parameters.', context='transform')
     covariates = covariates.reindex(indices.full)
@@ -104,6 +107,7 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
         vaccinations,
         etas,
         phis,
+        risk_group_population,
     )
     hospital_cf = model.forecast_correction_factors(
         indices,
