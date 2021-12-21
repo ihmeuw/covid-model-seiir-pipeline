@@ -32,9 +32,14 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
     location_ids = data_interface.load_location_ids()
     past_compartments = data_interface.load_past_compartments(draw_id).loc[location_ids]
     past_compartments = past_compartments.loc[past_compartments.notnull().any(axis=1)]
-    dates = past_compartments.reset_index(level='date').date
-    past_start_dates = dates.groupby('location_id').min()
-    forecast_start_dates = dates.groupby('location_id').max()
+
+    all_measures_present = past_compartments[
+        [c for c in past_compartments if c.split('_')[0] in ['Death', 'Admission', 'Case']]
+    ].notnull().all(axis=1)
+    initial_condition = past_compartments.loc[all_measures_present]
+    past_start_dates = past_compartments.reset_index(level='date').date.groupby('location_id').min()
+    forecast_start_dates = initial_condition.reset_index(level='date').date.groupby('location_id').max()
+
     # Forecast is run to the end of the covariates
     covariates = data_interface.load_covariates(scenario_spec.covariates)
     forecast_end_dates = covariates.reset_index().groupby('location_id').date.max()
@@ -108,7 +113,7 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
 
     # Pull in compartments from the fit and subset out the initial condition.
     logger.info('Loading past compartment data.', context='read')
-    initial_condition = past_compartments.reindex(indices.full, fill_value=0.)
+    initial_condition = initial_condition.reindex(indices.full, fill_value=0.)
 
     logger.info('Running ODE forecast.', context='compute_ode')
     compartments, chis = model.run_ode_forecast(
