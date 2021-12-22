@@ -1,4 +1,4 @@
-from typing import List, Tuple, TYPE_CHECKING
+from typing import List, Tuple
 
 import numpy as np
 import pandas as pd
@@ -10,8 +10,8 @@ from covid_model_seiir_pipeline.lib.ode_mk2.containers import (
 )
 from covid_model_seiir_pipeline.lib.ode_mk2.constants import (
     SYSTEM_TYPE,
-    REPORTED_EPI_MEASURE_NAMES,
     RISK_GROUP_NAMES,
+    VARIANT_NAMES,
 )
 from covid_model_seiir_pipeline.lib.ode_mk2 import (
     solver,
@@ -50,37 +50,68 @@ def build_beta_final(indices: Indices,
 
 def build_model_parameters(indices: Indices,
                            beta: pd.Series,
-                           posterior_epi_measures: pd.DataFrame,
+                           past_compartments: pd.DataFrame,
                            prior_ratios: pd.DataFrame,
                            ode_parameters: pd.DataFrame,
                            rhos: pd.DataFrame,
                            vaccinations: pd.DataFrame,
                            etas: pd.DataFrame,
-                           phis: pd.DataFrame) -> Parameters:
+                           phis: pd.DataFrame,
+                           risk_group_population: pd.DataFrame) -> Parameters:
     ode_params = ode_parameters.reindex(indices.full).groupby('location_id').ffill().groupby('location_id').bfill()
-    ode_params = ode_params.drop(columns=[c for c in ode_params if 'rho' in c])
     ode_params.loc[:, 'beta_all_infection'] = beta
-    measure_map = {
-        'death': ('deaths', 'ifr'),
-        'admission': ('hospitalizations', 'ihr'),
-        'case': ('cases', 'idr')
+
+    ode_params = ode_params.drop(columns=[c for c in ode_params if 'rho' in c])
+    rhos.columns = [f'rho_{c}_infection' for c in rhos.columns]
+    rhos.loc[:, 'rho_none_infection'] = 0
+    ode_params = pd.concat([ode_params, rhos.reindex(indices.full)], axis=1)
+    
+    past_compartments_diff = past_compartments.groupby('location_id').diff().fillna(past_compartments)
+    empirical_rhos = pd.concat([
+        (past_compartments_diff.filter(like=f'Infection_all_{v}_all').sum(axis=1, min_count=1)
+         / past_compartments_diff.filter(like='Infection_all_all_all').sum(axis=1, min_count=1)).rename(v)
+        for v in VARIANT_NAMES[1:]
+    ], axis=1)
+    
+    ratio_map = {
+        'death': 'ifr',
+        'admission': 'ihr',
+        'case': 'idr',
     }
 
-    posterior_epi_measures = posterior_epi_measures.loc[posterior_epi_measures['round'] == 2]
     prior_ratios = prior_ratios.loc[prior_ratios['round'] == 2]
     scalars = []
-    for epi_measure in REPORTED_EPI_MEASURE_NAMES:
+    infections = (past_compartments_diff
+                  .filter(like='Infection_none_all_unvaccinated')
+                  .sum(axis=1, min_count=1)
+                  .reindex(indices.full))
+
+    for epi_measure, ratio_name in ratio_map.items():
         ode_params.loc[:, f'count_all_{epi_measure}'] = -1
         ode_params.loc[:, f'weight_all_{epi_measure}'] = -1
-        # Same for all location-dates
-        lag = ode_parameters[f'exposure_to_{epi_measure}'].iloc[0]
-        infections = (posterior_epi_measures
-                      .loc[:, 'daily_naive_unvaccinated_infections']
-                      .reindex(indices.full))
-        ratio_measure, ratio_name = measure_map[epi_measure]
-        numerator = posterior_epi_measures.loc[:, f'daily_{ratio_measure}'].reindex(indices.full).groupby('location_id').shift(-lag)
+        # Get ratio based on fixed risk-group composition
+        ratio = []
+        for risk_group in RISK_GROUP_NAMES:
+            infections = (past_compartments_diff
+                          .loc[:, f'Infection_none_all_unvaccinated_{risk_group}']
+                          .reindex(indices.full))
+            numerator = (past_compartments_diff
+                         .loc[:, f'{epi_measure.capitalize()}_none_all_unvaccinated_{risk_group}']
+                         .reindex(indices.full))
+            ratio.append((numerator / infections) * risk_group_population[risk_group])
+        ratio = sum(ratio)
+        numerator = (ratio * infections).rename(epi_measure)
         prior_ratio = prior_ratios.loc[:, ratio_name].groupby('location_id').last()
-        ode_params.loc[:, f'rate_all_{epi_measure}'] = build_ratio(infections, numerator, prior_ratio)
+        kappas = (ode_params
+                  .loc[empirical_rhos.index, [f'kappa_{variant}_{epi_measure}' for variant in VARIANT_NAMES[1:]]]
+                  .rename(columns=lambda x: x.split('_')[1]))
+        ode_params.loc[:, f'rate_all_{epi_measure}'] = build_ratio(
+            infections,
+            numerator,
+            prior_ratio,
+            empirical_rhos,
+            kappas,
+        )
 
         for risk_group in RISK_GROUP_NAMES:
             scalars.append(
@@ -94,16 +125,11 @@ def build_model_parameters(indices: Indices,
             )
     scalars = pd.concat(scalars, axis=1)
 
-    rhos = rhos.reindex(indices.full, fill_value=0.)
-    rhos.columns = [f'rho_{c}_infection' for c in rhos.columns]
-    rhos.loc[:, 'rho_none_infection'] = 0
-    base_parameters = pd.concat([ode_params, rhos], axis=1)
-
     vaccinations = vaccinations.reindex(indices.full, fill_value=0.)
     etas = etas.sort_index().reindex(indices.full, fill_value=0.)
 
     return Parameters(
-        base_parameters=base_parameters,
+        base_parameters=ode_params,
         vaccinations=vaccinations,
         age_scalars=scalars,
         etas=etas,
@@ -111,38 +137,54 @@ def build_model_parameters(indices: Indices,
     )
 
 
-def build_ratio(shifted_infections: pd.Series, numerator: pd.Series, prior_ratio: pd.Series):
-    posterior_ratio = (numerator / shifted_infections).rename('value')
-    posterior_ratio.loc[(posterior_ratio == 0) | ~np.isfinite(posterior_ratio)] = np.nan    
+def build_ratio(infections: pd.Series,
+                shifted_numerator: pd.Series,
+                prior_ratio: pd.Series,
+                rhos: pd.DataFrame,
+                kappas: pd.DataFrame):
+    posterior_ratio = (shifted_numerator / infections).rename('value')
+    posterior_ratio.loc[(posterior_ratio == 0) | ~np.isfinite(posterior_ratio)] = np.nan
     locs = posterior_ratio.reset_index().location_id.unique()    
     for location_id in locs:
         count = posterior_ratio.loc[location_id].notnull().sum()
         if not count:
-            posterior_ratio.loc[location_id] = prior_ratio.loc[location_id]
-    
-    pr_gb = posterior_ratio.dropna().reset_index().groupby('location_id')
+            try:
+                posterior_ratio.loc[location_id, :] = prior_ratio.loc[location_id]
+            except KeyError:
+                pass
+
+    correction = 1 / (rhos * kappas).sum(axis=1, min_count=1)
+    ancestral_ratio = (posterior_ratio * correction).rename('value')    
+
+    pr_gb = ancestral_ratio.dropna().reset_index().groupby('location_id')
     date = pr_gb.date.last()
-    final_posterior_ratio = pr_gb.value.last()
+    final_ancestral_ratio = pr_gb.value.last()
 
     past_window = 180
-    lr_ratio = (pd.concat([numerator.rename('num'), shifted_infections.rename('denom')], axis=1)
+    ancestral_infections = ((infections * rhos['ancestral'])
+                            .replace(0, np.nan)
+                            .rename('denom'))
+    ancestral_numerator = ((ancestral_ratio * ancestral_infections)
+                           .rename('num'))
+    lr_ratio = pd.concat([ancestral_numerator, ancestral_infections], axis=1)
+    lr_ratio = (lr_ratio
                 .dropna()
                 .groupby('location_id')
                 .apply(lambda x: x.iloc[-past_window:].num.sum() / x.iloc[-past_window:].denom.sum()))
 
     trans_window = 30
-    scale = (lr_ratio - final_posterior_ratio) / trans_window
+    scale = (lr_ratio - final_ancestral_ratio) / trans_window
     t = pd.Series(np.tile(np.arange(trans_window + 1), len(scale)),
                   index=pd.MultiIndex.from_product((locs, np.arange(trans_window + 1)),
                                                    names=('location_id', 't')))
-    rate_scaleup = (final_posterior_ratio + scale * t).rename('value').reset_index(level='t')
+    rate_scaleup = (final_ancestral_ratio + scale * t).rename('value').reset_index(level='t')
     rate_scaleup['date'] = pd.to_timedelta(rate_scaleup['t'], unit='D') + date
     rate_scaleup = rate_scaleup.set_index('date', append=True).value
-    ratio = (posterior_ratio
-             .drop(posterior_ratio.index.intersection(rate_scaleup.index))
+    ratio = (ancestral_ratio
+             .drop(ancestral_ratio.index.intersection(rate_scaleup.index))
              .append(rate_scaleup)
              .sort_index()
-             .reindex(shifted_infections.index)
+             .reindex(ancestral_infections.index)
              .groupby('location_id')
              .ffill()
              .groupby('location_id')

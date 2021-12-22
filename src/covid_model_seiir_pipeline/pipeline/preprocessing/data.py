@@ -351,6 +351,7 @@ class PreprocessingDataInterface:
             scenario_file = {
                 'reference': 'last_shots_in_arm_by_brand_w_booster_reference',
                 'booster': 'last_shots_in_arm_by_brand_w_booster_optimal',
+                'probably_no': 'last_shots_in_arm_by_brand_w_booster_no_prob',
             }[scenario]
         except KeyError:
             raise ValueError(f'Unknown vaccine scenario {scenario}.')

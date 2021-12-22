@@ -1,11 +1,11 @@
 data:
-  seir_preprocess_version: '2021_12_19.12'
+  seir_preprocess_version: '2021_12_21.01'
   output_format: 'parquet'
   output_root: ''
   n_draws: 100
 workflow:
   project: 'proj_covid_prod'
-  queue: 'd.q'
+  queue: 'all.q'
 rates_parameters:
   day_0: '2020-03-15'
   pred_start_date: '2019-11-01'
@@ -28,8 +28,8 @@ rates_parameters:
   # Or a 3-tuple of [mean, lower, upper]
   ihr_risk_ratio: 'BMJ'
   idr_risk_ratio: [1.0, 1.0, 1.0]
-  omicron_ifr_scalar: [0.03, 0.07]
-  omicron_ihr_scalar: [0.10, 0.20]
+  omicron_ifr_scalar: [0.05, 0.15]
+  omicron_ihr_scalar: [0.15, 0.25]
   # IDR is altered in second pass rates based on assumptions about the probability a disease is symptomatic.
   omicron_idr_scalar: 1.0
 fit_parameters:
