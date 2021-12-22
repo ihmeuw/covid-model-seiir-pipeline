@@ -1,14 +1,15 @@
 data:
-  forecast_version: '2021_10_15.01'
-  mortality_ratio_version: 'best'
+  seir_forecast_version: '2021_12_20.09'
   scenarios:
     - 'reference'
-    - 'worse'
-    - 'best_masks'
+#    - 'high_severity'
+#    - 'best_masks'
+#    - 'booster'
+#    - 'reduced_hesitancy'
   output_root: ''
 workflow:
   project: 'proj_covid_prod'
-  queue: 'd.q'
+  queue: 'long.q'
 resampling:
   reference_scenario: 'reference'
   reference_date: '2021-12-31'

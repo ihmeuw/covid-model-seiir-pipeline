@@ -1,9 +1,7 @@
-from typing import Dict, List, NamedTuple
+from typing import Dict, NamedTuple
 
 import numpy as np
 import pandas as pd
-
-from covid_model_seiir_pipeline.lib import static_vars
 
 
 def compute_reimposition_threshold(past_deaths, population, reimposition_threshold, max_threshold):
@@ -15,8 +13,8 @@ def compute_reimposition_threshold(past_deaths, population, reimposition_thresho
                   .reset_index(level=0, drop=True))
     days_over_death_rate = (
         (death_rate > reimposition_threshold.loc[death_rate.index])
-         .groupby('location_id')
-         .sum()
+        .groupby('location_id')
+        .sum()
     )
     bad_locs = days_over_death_rate[days_over_death_rate >= 7].index
     reimposition_threshold.loc[bad_locs] = max_threshold.loc[bad_locs]
@@ -24,26 +22,30 @@ def compute_reimposition_threshold(past_deaths, population, reimposition_thresho
     # Do it a second time to some crazy stuff happening in central europe.
     days_over_death_rate = (
         (death_rate > reimposition_threshold.loc[death_rate.index])
-         .groupby('location_id')
-         .sum()
+        .groupby('location_id')
+        .sum()
     )
     bad_locs = days_over_death_rate[days_over_death_rate >= 7].index
     reimposition_threshold.loc[bad_locs] = 2*max_threshold.loc[bad_locs]
     # Locations that have shown a propensity to impose mandates at 
     # any sign of covid in their populations.
     immediate_lockdown_locations = [
+#        71, # Australia
     ]
     for location in immediate_lockdown_locations:
         reimposition_threshold.loc[location] = 0.1 / 1_000_000
     no_lockdown_locations = [
-        33, # Armenia
-        45, # Bulgaria
-        52, # Romania        
-        59, # Latvia
-        62, # Russia
-        63, # Ukraine
-        45, # Bulgaria
+        33,  # Armenia
+        45,  # Bulgaria
+        52,  # Romania
+        59,  # Latvia
+        62,  # Russia
+        63,  # Ukraine
+        45,  # Bulgaria
     ]
+    all_locs = reimposition_threshold.reset_index().location_id.unique().tolist()
+    us = list(range(523, 574)) + [60886, 60887, 3539]
+    no_lockdown_locations = list(set(all_locs).difference(us))
     for location in no_lockdown_locations:
         reimposition_threshold.loc[location] = 250 / 1_000_000
     return reimposition_threshold
@@ -143,9 +145,10 @@ class MandateReimpositionParams(NamedTuple):
 
 
 def unpack_parameters(algorithm_parameters: Dict,
-                      em_scalars: pd.Series) -> MandateReimpositionParams:
+                      mortality_scalars: pd.Series) -> MandateReimpositionParams:
     min_wait = pd.Timedelta(days=algorithm_parameters['minimum_delay'])
-    days_on = pd.Timedelta(days=static_vars.DAYS_PER_WEEK * algorithm_parameters['reimposition_duration'])
-    reimposition_threshold = (algorithm_parameters['death_threshold'] / 1e6 * em_scalars).rename('threshold')
-    max_threshold = (algorithm_parameters['max_threshold'] / 1e6 * em_scalars).rename('threshold')
+    days_per_week = 7
+    days_on = pd.Timedelta(days=days_per_week * algorithm_parameters['reimposition_duration'])
+    reimposition_threshold = (algorithm_parameters['death_threshold'] / 1e6 * mortality_scalars).rename('threshold')
+    max_threshold = (algorithm_parameters['max_threshold'] / 1e6 * mortality_scalars).rename('threshold')
     return MandateReimpositionParams(min_wait, days_on, reimposition_threshold, max_threshold)

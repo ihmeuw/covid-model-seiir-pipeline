@@ -1,21 +1,10 @@
 from bdb import BdbQuit
 import functools
 from pathlib import Path
-from typing import Any, Callable, Dict, NamedTuple, Optional, Tuple, Union
+from typing import Any, Callable, Dict, Optional, Tuple, Union
 
 from covid_shared import cli_tools, paths
-
-
-MaybePathLike = Union[str, Path, None]
-
-
-class VersionInfo(NamedTuple):
-    """Tiny struct for processing input versions from cli args and specs."""
-    cli_arg: MaybePathLike
-    spec_arg: MaybePathLike
-    default: MaybePathLike
-    metadata_key: str
-    allow_default: bool
+from covid_model_seiir_pipeline.lib.cli_tools.decorators import VersionInfo
 
 
 def resolve_version_info(specification, run_metadata: cli_tools.RunMetadata, input_versions: Dict[str, VersionInfo]):
@@ -24,6 +13,8 @@ def resolve_version_info(specification, run_metadata: cli_tools.RunMetadata, inp
 
     """
     for version_key, version_info in input_versions.items():
+        if version_info is None:
+            import pdb; pdb.set_trace()
         if not hasattr(specification.data, version_key):
             raise TypeError(f'Invalid key {version_key} for specification data {specification.data}.')
         if not (version_info.cli_arg or version_info.spec_arg or version_info.allow_default):

@@ -1,14 +1,14 @@
-from pathlib import Path
-
 import click
 import pandas as pd
 
 from covid_model_seiir_pipeline.lib import (
     cli_tools,
-    static_vars,
 )
 from covid_model_seiir_pipeline.pipeline.forecasting import model
-from covid_model_seiir_pipeline.pipeline.forecasting.specification import ForecastSpecification
+from covid_model_seiir_pipeline.pipeline.forecasting.specification import (
+    ForecastSpecification,
+    FORECAST_JOBS,
+)
 from covid_model_seiir_pipeline.pipeline.forecasting.data import ForecastDataInterface
 
 
@@ -17,25 +17,34 @@ logger = cli_tools.task_performance_logger
 
 def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progress_bar: bool):
     logger.info(f"Initiating SEIIR beta forecasting for scenario {scenario}, draw {draw_id}.", context='setup')
-    forecast_spec: ForecastSpecification = ForecastSpecification.from_path(
-        Path(forecast_version) / static_vars.FORECAST_SPECIFICATION_FILE
-    )
-    scenario_spec = forecast_spec.scenarios[scenario]
-    data_interface = ForecastDataInterface.from_specification(forecast_spec)
+    specification = ForecastSpecification.from_version_root(forecast_version)
+    num_cores = specification.workflow.task_specifications[FORECAST_JOBS.forecast].num_cores
+    scenario_spec = specification.scenarios[scenario]
+    data_interface = ForecastDataInterface.from_specification(specification)
+
     #################
     # Build indices #
     #################
     # The hardest thing to keep consistent is data alignment. We have about 100
-    # unique datasets in this model and they need to be aligned consistently
+    # unique datasets in this model, and they need to be aligned consistently
     # to do computation.
     logger.info('Loading index building data', context='read')
-    past_infections = data_interface.load_past_infections(draw_id)
-    past_start_dates = past_infections.reset_index().groupby('location_id').date.min()
-    forecast_start_dates = past_infections.reset_index().groupby('location_id').date.max()
+    location_ids = data_interface.load_location_ids()
+    past_compartments = data_interface.load_past_compartments(draw_id).loc[location_ids]
+    past_compartments = past_compartments.loc[past_compartments.notnull().any(axis=1)]
+    past_start_dates = past_compartments.reset_index(level='date').date.groupby('location_id').min()
+
+    # We want the forecast to start at the last date for which all reported measures
+    # with at least one report in the location are present.
+    all_measures_present = past_compartments[
+        [c for c in past_compartments if c.split('_')[0] in ['Death', 'Admission', 'Case']]
+    ].notnull().all(axis=1)
+    forecast_start_dates = past_compartments.loc[all_measures_present].reset_index(level='date').date.groupby('location_id').max()
+
     # Forecast is run to the end of the covariates
     covariates = data_interface.load_covariates(scenario_spec.covariates)
     forecast_end_dates = covariates.reset_index().groupby('location_id').date.max()
-    population = data_interface.load_five_year_population().groupby('location_id').population.sum()
+    population = data_interface.load_population('total').population
 
     logger.info('Building indices', context='transform')
     indices = model.Indices(
@@ -49,91 +58,113 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
     ########################################
     logger.info('Loading SEIIR parameter input data.', context='read')
     # We'll use the same params in the ODE forecast as we did in the fit.
-    ode_params = data_interface.load_ode_parameters(draw_id=draw_id)
+    ode_params = data_interface.load_fit_ode_params(draw_id=draw_id)
+    # Use to get ratios
+    posterior_epi_measures = data_interface.load_posterior_epi_measures(draw_id=draw_id)
+    prior_ratios = data_interface.load_rates(draw_id).loc[location_ids]
     # Contains both the fit and regression betas
-    betas = data_interface.load_betas(draw_id)
+    betas = data_interface.load_regression_beta(draw_id)
     # Rescaling parameters for the beta forecast.
-    beta_scales = data_interface.load_beta_scales(scenario=scenario, draw_id=draw_id)
+    beta_shift_parameters = data_interface.load_beta_scales(scenario=scenario, draw_id=draw_id)
     # Regression coefficients for forecasting beta.
     coefficients = data_interface.load_coefficients(draw_id)
     # Vaccine data, of course.
-    vaccinations = data_interface.load_vaccinations(scenario_spec.vaccine_version)
+    vaccinations = data_interface.load_vaccine_uptake(scenario_spec.vaccine_version)
+    etas = data_interface.load_vaccine_risk_reduction(scenario_spec.vaccine_version)
+    phis = data_interface.load_phis(draw_id=draw_id)
     # Variant prevalences.
     rhos = data_interface.load_variant_prevalence(scenario_spec.variant_version)
+
+    hospital_cf = data_interface.load_hospitalizations(measure='correction_factors')
+    hospital_parameters = data_interface.get_hospital_params()
+
     log_beta_shift = (scenario_spec.log_beta_shift,
                       pd.Timestamp(scenario_spec.log_beta_shift_date))
     beta_scale = (scenario_spec.beta_scale,
                   pd.Timestamp(scenario_spec.beta_scale_date))
 
+    risk_group_population = data_interface.load_population('risk_group')
+    risk_group_population = risk_group_population.divide(risk_group_population.sum(axis=1), axis=0)
+
     # Collate all the parameters, ensure consistent index, etc.
     logger.info('Processing inputs into model parameters.', context='transform')
     covariates = covariates.reindex(indices.full)
-    model_parameters = model.build_model_parameters(
+    beta, beta_hat = model.build_beta_final(
         indices,
-        ode_params,
         betas,
         covariates,
         coefficients,
-        rhos,
-        beta_scales,
-        vaccinations,
+        beta_shift_parameters,
         log_beta_shift,
         beta_scale,
+    )
+    model_parameters = model.build_model_parameters(
+        indices,
+        beta,
+        past_compartments,
+        prior_ratios,
+        ode_params,
+        rhos,
+        vaccinations,
+        etas,
+        phis,
+        risk_group_population,
+    )
+    hospital_cf = model.forecast_correction_factors(
+        indices,
+        correction_factors=hospital_cf,
+        hospital_parameters=hospital_parameters,
     )
 
     # Pull in compartments from the fit and subset out the initial condition.
     logger.info('Loading past compartment data.', context='read')
-    past_compartments = data_interface.load_compartments(draw_id=draw_id)
-    initial_condition = past_compartments.loc[indices.initial_condition].reset_index(level='date', drop=True)
-
-    ###################################################
-    # Construct parameters for postprocessing results #
-    ###################################################
-    logger.info('Loading results processing input data.', context='read')
-    past_deaths = data_interface.load_past_deaths(draw_id=draw_id)
-    ratio_data = data_interface.load_ratio_data(draw_id=draw_id)
-    hospital_parameters = data_interface.get_hospital_parameters()
-    correction_factors = data_interface.load_hospital_correction_factors()
-
-    logger.info('Prepping results processing parameters.', context='transform')
-    postprocessing_params = model.build_postprocessing_parameters(
-        indices,
-        past_compartments,
-        past_infections,
-        past_deaths,
-        ratio_data,
-        model_parameters,
-        correction_factors,
-        hospital_parameters,
-        scenario_spec,
-    )
+    initial_condition = past_compartments.loc[indices.past].reindex(indices.full, fill_value=0.)
 
     logger.info('Running ODE forecast.', context='compute_ode')
-    future_components = model.run_ode_model(
+    compartments, chis = model.run_ode_forecast(
         initial_condition,
-        model_parameters.reindex(indices.future),
-        progress_bar,
-    )
-    logger.info('Processing ODE results and computing deaths and infections.', context='compute_results')
-    components, system_metrics, output_metrics = model.compute_output_metrics(
-        indices,
-        future_components,
-        postprocessing_params,
         model_parameters,
-        hospital_parameters,
+        num_cores=num_cores,
+        progress_bar=progress_bar,
     )
+    exposure_to_death = ode_params['exposure_to_death'].iloc[0]
+    past_deaths = (compartments
+                   .filter(like='Death_all_all_all')
+                   .sum(axis=1)
+                   .loc[indices.past]
+                   .groupby('location_id')
+                   .apply(lambda x: x.reset_index(level=0, drop=True)
+                                     .shift(exposure_to_death, freq='D'))
+                   .rename('value'))
+    total_deaths = (compartments
+                    .filter(like='Death_all_all_all')
+                    .sum(axis=1)
+                    .groupby('location_id')
+                    .apply(lambda x: x.reset_index(level=0, drop=True)
+                                      .shift(exposure_to_death, freq='D'))
+                    .rename('value')
+                    .to_frame())
+    total_deaths['observed'] = 0
+    total_deaths.loc[past_deaths.index, 'observed'] = 1
+    total_deaths = total_deaths.set_index('observed', append=True).value
 
     if scenario_spec.algorithm == 'draw_level_mandate_reimposition':
         logger.info('Entering mandate reimposition.', context='compute_mandates')
         # Info data specific to mandate reimposition
         percent_mandates, mandate_effects = data_interface.load_mandate_data(scenario_spec.covariates['mobility'])
-        em_scalars = data_interface.load_em_scalars(draw_id)
+        mortality_scalars = data_interface.load_total_covid_scalars(draw_id).loc[location_ids, 'scalar']
+        mortality_scalars = (mortality_scalars
+                             .reindex(indices.full)
+                             .groupby('location_id')
+                             .ffill()
+                             .groupby('location_id')
+                             .bfill())
         min_wait, days_on, reimposition_threshold, max_threshold = model.unpack_parameters(
             scenario_spec.algorithm_params,
-            em_scalars,
+            mortality_scalars,
         )
         reimposition_threshold = model.compute_reimposition_threshold(
-            postprocessing_params.past_deaths,
+            past_deaths,
             population,
             reimposition_threshold,
             max_threshold,
@@ -142,7 +173,7 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
         reimposition_dates = {}
         last_reimposition_end_date = pd.Series(pd.NaT, index=population.index)
         reimposition_date = model.compute_reimposition_date(
-            output_metrics.deaths,
+            total_deaths,
             population,
             reimposition_threshold,
             min_wait,
@@ -168,17 +199,25 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
 
             covariates['mobility'] = new_mobility
 
-            model_parameters = model.build_model_parameters(
+            beta, beta_hat = model.build_beta_final(
                 indices,
-                ode_params,
                 betas,
                 covariates,
                 coefficients,
-                rhos,
-                beta_scales,
-                vaccinations,
+                beta_shift_parameters,
                 log_beta_shift,
                 beta_scale,
+            )
+            model_parameters = model.build_model_parameters(
+                indices,
+                beta,
+                past_compartments,
+                prior_ratios,
+                ode_params,
+                rhos,
+                vaccinations,
+                etas,
+                phis,
             )
 
             # The ode is done as a loop over the locations in the initial condition.
@@ -186,48 +225,62 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
             # subset here to only the locations that reimpose mandates for speed.
             initial_condition_subset = initial_condition.loc[reimposition_date.index]
             logger.info('Running ODE forecast.', context='compute_ode')
-            future_components_subset = model.run_ode_model(
+            compartments_subset, chis = model.run_ode_forecast(
                 initial_condition_subset,
-                model_parameters.reindex(indices.future),
-                progress_bar,
+                model_parameters,
+                num_cores=num_cores,
+                progress_bar=progress_bar,
             )
 
             logger.info('Processing ODE results and computing deaths and infections.', context='compute_results')
-            future_components = (future_components
-                                 .sort_index()
-                                 .drop(future_components_subset.index)
-                                 .append(future_components_subset)
-                                 .sort_index())
-            components, system_metrics, output_metrics = model.compute_output_metrics(
-                indices,
-                future_components,
-                postprocessing_params,
-                model_parameters,
-                hospital_parameters,
-            )
+            compartments = (compartments
+                            .sort_index()
+                            .drop(compartments_subset.index)
+                            .append(compartments_subset)
+                            .sort_index())
+            total_deaths = (compartments
+                            .filter(like='Death_all_all_all')
+                            .sum(axis=1)
+                            .groupby('location_id')
+                            .apply(lambda x: x.reset_index(level=0, drop=True)
+                                              .shift(exposure_to_death, freq='D'))
+                            .rename('value')
+                            .to_frame())
+            total_deaths['observed'] = 0
+            total_deaths.loc[past_deaths.index, 'observed'] = 1
+            total_deaths = total_deaths.set_index('observed', append=True).value
 
             logger.info('Recomputing reimposition dates', context='compute_mandates')
             reimposition_count += 1
             reimposition_dates[reimposition_count] = reimposition_date
             last_reimposition_end_date.loc[reimposition_date.index] = reimposition_date + days_on
             reimposition_date = model.compute_reimposition_date(
-                output_metrics.deaths,
+                total_deaths,
                 population,
                 reimposition_threshold,
                 min_wait,
                 last_reimposition_end_date,
             )
 
+    system_metrics = model.compute_output_metrics(
+        indices,
+        compartments,
+        model_parameters,
+        ode_params,
+        hospital_parameters,
+        hospital_cf,
+    )
+
     logger.info('Prepping outputs.', context='transform')
-    ode_params = model_parameters.to_df()
-    outputs = pd.concat([system_metrics.to_df(), output_metrics.to_df(),
-                         postprocessing_params.correction_factors_df], axis=1)
+    forecast_ode_params = pd.concat([model_parameters.base_parameters, beta, beta_hat], axis=1)
+    for measure in ['death', 'case', 'admission']:
+        forecast_ode_params[f'exposure_to_{measure}'] = ode_params[f'exposure_to_{measure}'].iloc[0]
 
     logger.info('Writing outputs.', context='write')
-    data_interface.save_ode_params(ode_params, scenario, draw_id)
-    data_interface.save_components(components, scenario, draw_id)
+    data_interface.save_ode_params(forecast_ode_params, scenario, draw_id)
+    data_interface.save_components(compartments, scenario, draw_id)
     data_interface.save_raw_covariates(covariates, scenario, draw_id)
-    data_interface.save_raw_outputs(outputs, scenario, draw_id)
+    data_interface.save_raw_outputs(system_metrics, scenario, draw_id)
 
     logger.report()
 

@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import Dict, List, NamedTuple, Tuple
+from typing import Dict, List, NamedTuple, Tuple, Union
 
 from covid_shared import workflow
 
@@ -19,8 +19,8 @@ REGRESSION_JOBS = __RegressionJobs()
 class RegressionTaskSpecification(workflow.TaskSpecification):
     """Specification of execution parameters for regression tasks."""
     default_max_runtime_seconds = 3000
-    default_m_mem_free = '18G'
-    default_num_cores = 1
+    default_m_mem_free = '20G'
+    default_num_cores = 5
 
 
 class HospitalCorrectionFactorTaskSpecification(workflow.TaskSpecification):
@@ -41,44 +41,16 @@ class RegressionWorkflowSpecification(workflow.WorkflowSpecification):
 @dataclass
 class RegressionData:
     """Specifies the inputs and outputs for a regression"""
-    covariate_version: str = field(default='best')
-    infection_version: str = field(default='best')
+    seir_fit_version: str = field(default='best')
     coefficient_version: str = field(default='')
-    priors_version: str = field(default='')
-    location_set_version_id: int = field(default=0)
-    location_set_file: str = field(default='')
+    seir_covariate_priors_version: str = field(default='')
     output_root: str = field(default='')
     output_format: str = field(default='csv')
-    n_draws: int = field(default=100)
-    run_counties: bool = field(init=False)
-    drop_locations: list = field(default_factory=list)
-
-    def __post_init__(self):
-        self.run_counties = self.location_set_version_id in [841, 920]
+    drop_locations: List[int] = field(default_factory=list)
 
     def to_dict(self) -> Dict:
         """Converts to a dict, coercing list-like items to lists."""
         return {k: v for k, v in utilities.asdict(self).items() if k != 'run_counties'}
-
-
-@dataclass
-class RegressionParameters:
-    """Specifies the parameters of the beta fit and regression."""
-    alpha: Tuple[float, float] = field(default=(0.9, 1.0))
-    sigma: Tuple[float, float] = field(default=(0.2, 1/3))
-    gamma1: Tuple[float, float] = field(default=(0.5, 0.5))
-    gamma2: Tuple[float, float] = field(default=(1/3, 1.0))
-    kappa: Tuple[float, float] = field(default=(0.3, 0.5))
-    chi: Tuple[float, float] = field(default=(0.0, 0.6))
-    phi_mean_shift: float = field(default=0.5)
-    phi_sd: float = field(default=0.3)
-    psi_mean_shift: float = field(default=0.9)
-    psi_sd: float = field(default=0.3)
-    pi: float = field(default=0.1)
-
-    def to_dict(self) -> Dict:
-        """Converts to a dict, coercing list-like items to lists."""
-        return utilities.asdict(self)
 
 
 @dataclass
@@ -129,12 +101,10 @@ class RegressionSpecification(utilities.Specification):
     def __init__(self,
                  data: RegressionData,
                  workflow: RegressionWorkflowSpecification,
-                 regression_parameters: RegressionParameters,
                  hospital_parameters: HospitalParameters,
                  covariates: List[CovariateSpecification]):
         self._data = data
         self._workflow = workflow
-        self._regression_parameters = regression_parameters
         self._hospital_parameters = hospital_parameters
         self._covariates = {c.name: c for c in covariates}
 
@@ -144,7 +114,6 @@ class RegressionSpecification(utilities.Specification):
         sub_specs = {
             'data': RegressionData,
             'workflow': RegressionWorkflowSpecification,
-            'regression_parameters': RegressionParameters,
             'hospital_parameters': HospitalParameters,
         }
         for key, spec_class in list(sub_specs.items()):  # We're dynamically altering. Copy with list
@@ -153,9 +122,6 @@ class RegressionSpecification(utilities.Specification):
                 spec_class(),
             )
             sub_specs[key] = spec_class(**spec_dict)
-
-        if sub_specs['data'].run_counties:
-            sub_specs['hospital_parameters'].compute_correction_factors = False
 
         # covariates
         cov_dicts = regression_spec_dict.get('covariates', {})
@@ -180,11 +146,6 @@ class RegressionSpecification(utilities.Specification):
         return self._workflow
 
     @property
-    def regression_parameters(self) -> RegressionParameters:
-        """The parametrization of the regression."""
-        return self._regression_parameters
-
-    @property
     def hospital_parameters(self) -> HospitalParameters:
         """The parameterization of the hospital algorithm"""
         return self._hospital_parameters
@@ -199,7 +160,6 @@ class RegressionSpecification(utilities.Specification):
         spec = {
             'data': self.data.to_dict(),
             'workflow': self.workflow.to_dict(),
-            'regression_parameters': self.regression_parameters.to_dict(),
             'hospital_parameters': self.hospital_parameters.to_dict(),
             'covariates': {k: v.to_dict() for k, v in self._covariates.items()},
         }

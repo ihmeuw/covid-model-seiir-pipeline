@@ -1,97 +1,40 @@
-from typing import Dict, Tuple, TYPE_CHECKING
+from typing import List, Tuple
 
 import numpy as np
 import pandas as pd
-import tqdm
 
-from covid_model_seiir_pipeline.lib import (
-    math,
-    ode,
+
+from covid_model_seiir_pipeline.lib import math
+from covid_model_seiir_pipeline.lib.ode_mk2.containers import (
+    Parameters,
+)
+from covid_model_seiir_pipeline.lib.ode_mk2.constants import (
+    SYSTEM_TYPE,
+    RISK_GROUP_NAMES,
+    VARIANT_NAMES,
+)
+from covid_model_seiir_pipeline.lib.ode_mk2 import (
+    solver,
+)
+from covid_model_seiir_pipeline.pipeline.regression.model.hospital_corrections import (
+    HospitalCorrectionFactors,
 )
 from covid_model_seiir_pipeline.pipeline.forecasting.model.containers import (
     Indices,
-    PostprocessingParameters,
-    RatioData,
-    HospitalCorrectionFactors,
 )
-
-if TYPE_CHECKING:
-    # The model subpackage is a library for the pipeline stage and shouldn't
-    # explicitly depend on things outside the subpackage.
-    from covid_model_seiir_pipeline.pipeline.forecasting.specification import (
-        ScenarioSpecification,
-    )
-    # Support type checking but keep the pipeline stages as isolated as possible.
-    from covid_model_seiir_pipeline.pipeline.regression.specification import (
-        HospitalParameters,
-    )
 
 
 ##############################
 # ODE parameter construction #
 ##############################
 
-def build_model_parameters(indices: Indices,
-                           ode_parameters: pd.DataFrame,
-                           beta_regression: pd.DataFrame,
-                           covariates: pd.DataFrame,
-                           coefficients: pd.DataFrame,
-                           rhos: pd.DataFrame,
-                           beta_scales: pd.DataFrame,
-                           vaccine_data: pd.DataFrame,
-                           log_beta_shift: Tuple[float, pd.Timestamp],
-                           beta_scale: Tuple[float, pd.Timestamp]) -> ode.ForecastParameters:
-    # These are all the same by draw.  Just broadcasting them over a new index.
-    ode_params = {
-        param: pd.Series(ode_parameters[param].mean(), index=indices.full, name=param)
-        for param in ['alpha', 'sigma', 'gamma1', 'gamma2', 'pi', 'chi']
-    }
-
-    beta, beta_wild, beta_variant, beta_hat, rho, rho_variant, rho_b1617, rho_total = get_betas_and_prevalences(
-        indices,
-        beta_regression,
-        covariates,
-        coefficients,
-        beta_scales,
-        rhos,
-        ode_parameters['kappa'].mean(),
-        ode_parameters['phi'].mean(),
-        ode_parameters['psi'].mean(),
-        log_beta_shift, 
-        beta_scale,
-    )
-
-    vaccine_data = vaccine_data.reindex(indices.full, fill_value=0)
-    vaccine_data = {k: vaccine_data[k] for k in vaccine_data}
-
-    return ode.ForecastParameters(
-        **ode_params,
-        beta=beta,
-        beta_wild=beta_wild,
-        beta_variant=beta_variant,
-        beta_hat=beta_hat,
-        rho=rho,
-        rho_variant=rho_variant,
-        rho_b1617=rho_b1617,
-        rho_total=rho_total,
-        **vaccine_data,
-    )
-
-
-def get_betas_and_prevalences(indices: Indices,
-                              beta_regression: pd.DataFrame,
-                              covariates: pd.DataFrame,
-                              coefficients: pd.DataFrame,
-                              beta_shift_parameters: pd.DataFrame,
-                              rhos: pd.DataFrame,
-                              kappa: float,
-                              phi: float,
-                              psi: float,
-                              log_beta_shift: Tuple[float, pd.Timestamp],
-                              beta_scale: Tuple[float, pd.Timestamp]) -> Tuple[pd.Series, pd.Series, pd.Series, pd.Series,
-                                                                               pd.Series, pd.Series, pd.Series, pd.Series]:
-    rhos = rhos.reindex(indices.full).fillna(method='ffill')
-
+def build_beta_final(indices: Indices,
+                     beta_regression: pd.DataFrame,
+                     covariates: pd.DataFrame,
+                     coefficients: pd.DataFrame,
+                     beta_shift_parameters: pd.DataFrame,
+                     log_beta_shift: Tuple[float, pd.Timestamp],
+                     beta_scale: Tuple[float, pd.Timestamp]):
     log_beta_hat = math.compute_beta_hat(covariates, coefficients)
     log_beta_hat.loc[pd.IndexSlice[:, log_beta_shift[1]:]] += log_beta_shift[0]
     beta_hat = np.exp(log_beta_hat).loc[indices.future].rename('beta_hat').reset_index()
@@ -100,13 +43,154 @@ def get_betas_and_prevalences(indices: Indices,
             .set_index(['location_id', 'date'])
             .beta_hat
             .rename('beta'))
-    beta = beta_regression.loc[indices.past, 'beta'].append(beta).sort_index()
+    beta = beta_regression.reindex(indices.past).loc[:, 'beta'].append(beta).sort_index()
     beta.loc[pd.IndexSlice[:, beta_scale[1]:]] *= beta_scale[0]
-    beta_wild = beta * (1 + kappa * rhos.rho)
-    beta_variant = beta * (1 + kappa * (phi * (1 - rhos.rho_b1617) + rhos.rho_b1617 * psi))
+    return beta, beta_hat.set_index(['location_id', 'date']).reindex(beta.index)
 
-    return (beta, beta_wild, beta_variant, np.exp(log_beta_hat),
-            rhos.rho, rhos.rho_variant, rhos.rho_b1617, rhos.rho_total)
+
+def build_model_parameters(indices: Indices,
+                           beta: pd.Series,
+                           past_compartments: pd.DataFrame,
+                           prior_ratios: pd.DataFrame,
+                           ode_parameters: pd.DataFrame,
+                           rhos: pd.DataFrame,
+                           vaccinations: pd.DataFrame,
+                           etas: pd.DataFrame,
+                           phis: pd.DataFrame,
+                           risk_group_population: pd.DataFrame) -> Parameters:
+    ode_params = ode_parameters.reindex(indices.full).groupby('location_id').ffill().groupby('location_id').bfill()
+    ode_params.loc[:, 'beta_all_infection'] = beta
+
+    ode_params = ode_params.drop(columns=[c for c in ode_params if 'rho' in c])
+    rhos.columns = [f'rho_{c}_infection' for c in rhos.columns]
+    rhos.loc[:, 'rho_none_infection'] = 0
+    ode_params = pd.concat([ode_params, rhos.reindex(indices.full)], axis=1)
+    
+    past_compartments_diff = past_compartments.groupby('location_id').diff().fillna(past_compartments)
+    empirical_rhos = pd.concat([
+        (past_compartments_diff.filter(like=f'Infection_all_{v}_all').sum(axis=1, min_count=1)
+         / past_compartments_diff.filter(like='Infection_all_all_all').sum(axis=1, min_count=1)).rename(v)
+        for v in VARIANT_NAMES[1:]
+    ], axis=1)
+    
+    ratio_map = {
+        'death': 'ifr',
+        'admission': 'ihr',
+        'case': 'idr',
+    }
+
+    prior_ratios = prior_ratios.loc[prior_ratios['round'] == 2]
+    scalars = []
+    infections = (past_compartments_diff
+                  .filter(like='Infection_none_all_unvaccinated')
+                  .sum(axis=1, min_count=1)
+                  .reindex(indices.full))
+
+    for epi_measure, ratio_name in ratio_map.items():
+        ode_params.loc[:, f'count_all_{epi_measure}'] = -1
+        ode_params.loc[:, f'weight_all_{epi_measure}'] = -1
+        # Get ratio based on fixed risk-group composition
+        ratio = []
+        for risk_group in RISK_GROUP_NAMES:
+            infections = (past_compartments_diff
+                          .loc[:, f'Infection_none_all_unvaccinated_{risk_group}']
+                          .reindex(indices.full))
+            numerator = (past_compartments_diff
+                         .loc[:, f'{epi_measure.capitalize()}_none_all_unvaccinated_{risk_group}']
+                         .reindex(indices.full))
+            ratio.append((numerator / infections) * risk_group_population[risk_group])
+        ratio = sum(ratio)
+        numerator = (ratio * infections).rename(epi_measure)
+        prior_ratio = prior_ratios.loc[:, ratio_name].groupby('location_id').last()
+        kappas = (ode_params
+                  .loc[empirical_rhos.index, [f'kappa_{variant}_{epi_measure}' for variant in VARIANT_NAMES[1:]]]
+                  .rename(columns=lambda x: x.split('_')[1]))
+        ode_params.loc[:, f'rate_all_{epi_measure}'] = build_ratio(
+            infections,
+            numerator,
+            prior_ratio,
+            empirical_rhos,
+            kappas,
+        )
+
+        for risk_group in RISK_GROUP_NAMES:
+            scalars.append(
+                (prior_ratios[f'{ratio_name}_{risk_group}'] / prior_ratios[ratio_name])
+                .rename(f'{epi_measure}_{risk_group}')
+                .reindex(indices.full)
+                .groupby('location_id')
+                .ffill()
+                .groupby('location_id')
+                .bfill()
+            )
+    scalars = pd.concat(scalars, axis=1)
+
+    vaccinations = vaccinations.reindex(indices.full, fill_value=0.)
+    etas = etas.sort_index().reindex(indices.full, fill_value=0.)
+
+    return Parameters(
+        base_parameters=ode_params,
+        vaccinations=vaccinations,
+        age_scalars=scalars,
+        etas=etas,
+        phis=phis,
+    )
+
+
+def build_ratio(infections: pd.Series,
+                shifted_numerator: pd.Series,
+                prior_ratio: pd.Series,
+                rhos: pd.DataFrame,
+                kappas: pd.DataFrame):
+    posterior_ratio = (shifted_numerator / infections).rename('value')
+    posterior_ratio.loc[(posterior_ratio == 0) | ~np.isfinite(posterior_ratio)] = np.nan
+    locs = posterior_ratio.reset_index().location_id.unique()    
+    for location_id in locs:
+        count = posterior_ratio.loc[location_id].notnull().sum()
+        if not count:
+            try:
+                posterior_ratio.loc[location_id, :] = prior_ratio.loc[location_id]
+            except KeyError:
+                pass
+
+    correction = 1 / (rhos * kappas).sum(axis=1, min_count=1)
+    ancestral_ratio = (posterior_ratio * correction).rename('value')    
+
+    pr_gb = ancestral_ratio.dropna().reset_index().groupby('location_id')
+    date = pr_gb.date.last()
+    final_ancestral_ratio = pr_gb.value.last()
+
+    past_window = 180
+    ancestral_infections = ((infections * rhos['ancestral'])
+                            .replace(0, np.nan)
+                            .rename('denom'))
+    ancestral_numerator = ((ancestral_ratio * ancestral_infections)
+                           .rename('num'))
+    lr_ratio = pd.concat([ancestral_numerator, ancestral_infections], axis=1)
+    lr_ratio = (lr_ratio
+                .dropna()
+                .groupby('location_id')
+                .apply(lambda x: x.iloc[-past_window:].num.sum() / x.iloc[-past_window:].denom.sum()))
+
+    trans_window = 30
+    scale = (lr_ratio - final_ancestral_ratio) / trans_window
+    t = pd.Series(np.tile(np.arange(trans_window + 1), len(scale)),
+                  index=pd.MultiIndex.from_product((locs, np.arange(trans_window + 1)),
+                                                   names=('location_id', 't')))
+    rate_scaleup = (final_ancestral_ratio + scale * t).rename('value').reset_index(level='t')
+    rate_scaleup['date'] = pd.to_timedelta(rate_scaleup['t'], unit='D') + date
+    rate_scaleup = rate_scaleup.set_index('date', append=True).value
+    ratio = (ancestral_ratio
+             .drop(ancestral_ratio.index.intersection(rate_scaleup.index))
+             .append(rate_scaleup)
+             .sort_index()
+             .reindex(ancestral_infections.index)
+             .groupby('location_id')
+             .ffill()
+             .groupby('location_id')
+             .bfill())
+
+    return ratio
 
 
 def beta_shift(beta_hat: pd.DataFrame,
@@ -151,75 +235,14 @@ def beta_shift(beta_hat: pd.DataFrame,
     return beta_final
 
 
-#######################################
-# Construct postprocessing parameters #
-#######################################
-
-def build_postprocessing_parameters(indices: Indices,
-                                    past_compartments: pd.DataFrame,
-                                    past_infections: pd.Series,
-                                    past_deaths: pd.Series,
-                                    ratio_data: RatioData,
-                                    model_parameters: ode.ForecastParameters,
-                                    correction_factors: HospitalCorrectionFactors,
-                                    hospital_parameters: 'HospitalParameters',
-                                    scenario_spec: 'ScenarioSpecification') -> PostprocessingParameters:
-    ratio_data = correct_ratio_data(indices, ratio_data, model_parameters)
-
-    correction_factors = forecast_correction_factors(
-        indices,
-        correction_factors,
-        hospital_parameters,
-    )
-
-    return PostprocessingParameters(
-        past_compartments=past_compartments,
-        past_infections=past_infections,
-        past_deaths=past_deaths,
-        **ratio_data.to_dict(),
-        **correction_factors.to_dict()
-    )
-
-
-def correct_ratio_data(indices: Indices,
-                       ratio_data: RatioData,
-                       model_params: ode.ForecastParameters) -> RatioData:
-    variant_prevalence = model_params.rho_total
-    p_start = variant_prevalence.loc[indices.initial_condition].reset_index(level='date', drop=True)
-    variant_prevalence -= p_start.reindex(variant_prevalence.index, level='location_id')
-    variant_prevalence[variant_prevalence < 0] = 0.0
-    
-    ifr_scalar = ratio_data.ifr_scalar * variant_prevalence + (1 - variant_prevalence)
-    ifr_scalar = ifr_scalar.groupby('location_id').shift(ratio_data.infection_to_death).fillna(0.)
-    ratio_data.ifr = ifr_scalar * _expand_rate(ratio_data.ifr, indices.full)
-    ratio_data.ifr_lr = ifr_scalar * _expand_rate(ratio_data.ifr_lr, indices.full)
-    ratio_data.ifr_hr = ifr_scalar * _expand_rate(ratio_data.ifr_hr, indices.full)
-    
-    ihr_scalar = ratio_data.ihr_scalar * variant_prevalence + (1 - variant_prevalence)
-    ihr_scalar = ihr_scalar.groupby('location_id').shift(ratio_data.infection_to_admission).fillna(0.)
-    ratio_data.ihr = ihr_scalar * _expand_rate(ratio_data.ihr, indices.full)
-
-    ratio_data.idr = _expand_rate(ratio_data.idr, indices.full)
-    ratio_data.ihr = _expand_rate(ratio_data.ihr, indices.full)
-    return ratio_data
-
-
-def _expand_rate(rate: pd.Series, index: pd.MultiIndex):
-    return (rate
-            .reindex(index)
-            .groupby('location_id')
-            .fillna(method='ffill')
-            .fillna(method='bfill'))
-
-
 def forecast_correction_factors(indices: Indices,
-                                correction_factors: HospitalCorrectionFactors,
-                                hospital_parameters: 'HospitalParameters') -> HospitalCorrectionFactors:
+                                correction_factors,
+                                hospital_parameters):
     averaging_window = pd.Timedelta(days=hospital_parameters.correction_factor_average_window)
     application_window = pd.Timedelta(days=hospital_parameters.correction_factor_application_window)
 
     new_cfs = {}
-    for cf_name, cf in correction_factors.to_dict().items():
+    for cf_name, cf in correction_factors.to_dict('series').items():
         cf = cf.reindex(indices.full)
         loc_cfs = []
         for loc_id, loc_today in indices.initial_condition.tolist():
@@ -238,53 +261,19 @@ def forecast_correction_factors(indices: Indices,
 # Run ODE #
 ###########
 
-def run_ode_model(initial_conditions: pd.DataFrame,
-                  model_parameters: ode.ForecastParameters,
-                  progress_bar: bool) -> pd.DataFrame:
-    mp_dict = model_parameters.to_dict()
-    ordered_fields = list(ode.PARAMETERS._fields) + list(ode.FORECAST_PARAMETERS._fields)
-
-    parameters = pd.concat(
-        [mp_dict[p] for p in ordered_fields]
-        + [model_parameters.vaccinations_unprotected_lr,
-           model_parameters.vaccinations_non_escape_protected_lr,
-           model_parameters.vaccinations_escape_protected_lr,
-           model_parameters.vaccinations_non_escape_immune_lr,
-           model_parameters.vaccinations_escape_immune_lr,
-           
-           model_parameters.vaccinations_unprotected_hr,
-           model_parameters.vaccinations_non_escape_protected_hr,                                                                                                                                                
-           model_parameters.vaccinations_escape_protected_hr,                                                                                                                                                    
-           model_parameters.vaccinations_non_escape_immune_hr,                                                                                                                                                   
-           model_parameters.vaccinations_escape_immune_hr,],
-        axis=1
+def run_ode_forecast(initial_condition: pd.DataFrame,
+                     ode_parameters: Parameters,
+                     num_cores: int,
+                     progress_bar: bool,
+                     location_ids: List[int] = None):
+    if location_ids is None:
+        location_ids = initial_condition.reset_index().location_id.unique().tolist()
+    full_compartments, chis = solver.run_ode_model(
+        initial_condition,
+        **ode_parameters.to_dict(),
+        location_ids=location_ids,
+        system_type=SYSTEM_TYPE.beta_and_rates,
+        num_cores=num_cores,
+        progress_bar=progress_bar,
     )
-
-    forecasts = []
-    initial_conditions_iter = tqdm.tqdm(initial_conditions.iterrows(),
-                                        total=len(initial_conditions),
-                                        disable=not progress_bar)
-    for location_id, initial_condition in initial_conditions_iter:
-        loc_parameters = parameters.loc[location_id].sort_index()
-        loc_date = loc_parameters.reset_index().date
-        loc_times = np.array((loc_date - loc_date.min()).dt.days)
-
-        ic = initial_condition.values
-        p = loc_parameters.values.T  # Each row is a param, each column a day
-
-        solution = math.solve_ode(
-            system=ode.forecast_system,
-            t=loc_times,
-            init_cond=ic,
-            params=p
-        )
-
-        result = pd.DataFrame(
-            data=solution.T,
-            columns=initial_conditions.columns.tolist()
-        )
-        result['date'] = loc_date
-        result['location_id'] = location_id
-        forecasts.append(result.set_index(['location_id', 'date']))
-    forecasts = pd.concat(forecasts).sort_index()
-    return forecasts
+    return full_compartments, chis

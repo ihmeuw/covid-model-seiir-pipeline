@@ -3,16 +3,31 @@ from covid_model_seiir_pipeline.lib.io.keys import (
     MetadataKey,
 )
 from covid_model_seiir_pipeline.lib.io.data_roots import (
-    InfectionRoot,
-    VariantRoot,
+    ModelInputsRoot,
+    AgeSpecificRatesRoot,
+    MortalityScalarsRoot,
+
+    MaskUseRoot,
+    MobilityRoot,
+    PneumoniaRoot,
+    PopulationDensityRoot,
+    TestingRoot,
+    VariantPrevalenceRoot,
+    VaccineCoverageRoot,
+    VaccineEfficacyRoot,
+
+    PreprocessingRoot,
+
     CovariatePriorsRoot,
-    CovariateRoot,
-    MortalityRatioRoot,
+
     FitRoot,
     RegressionRoot,
     ForecastRoot,
     PostprocessingRoot,
     DiagnosticsRoot,
+
+    CovariateRoot,
+    MortalityRatioRoot,
 )
 from covid_model_seiir_pipeline.lib.io.api import (
     dump,

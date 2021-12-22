@@ -11,29 +11,24 @@ from covid_shared.cli_tools import (
     configure_logging_to_files,
     monitor_application,
     finish_application,
+    Metadata,
     RunMetadata,
 )
 from covid_model_seiir_pipeline.lib.cli_tools.decorators import (
-    with_fit_specification,
-    with_regression_specification,
-    with_forecast_specification,
-    with_postprocessing_specification,
-    with_diagnostics_specification,
-    with_predictive_validity_specification,
-    with_infection_version,
-    with_covariates_version,
-    with_variant_version,
-    with_mortality_ratio_version,
-    with_priors_version,
-    with_coefficient_version,
+    VersionInfo,
+
+    with_specification,
+
     with_location_specification,
-    with_regression_version,
-    with_forecast_version,
+    with_version,
+
+    with_task_preprocessing_version,
     with_task_fit_version,
     with_task_regression_version,
     with_task_forecast_version,
     with_task_postprocessing_version,
     with_task_diagnostics_version,
+
     with_scenario,
     with_measure,
     with_draw_id,
@@ -42,7 +37,6 @@ from covid_model_seiir_pipeline.lib.cli_tools.decorators import (
     add_preprocess_only,
 )
 from covid_model_seiir_pipeline.lib.cli_tools.utilities import (
-    VersionInfo,
     resolve_version_info,
     handle_exceptions,
     get_input_root,
