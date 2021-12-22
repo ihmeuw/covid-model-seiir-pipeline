@@ -1,12 +1,11 @@
 from typing import List, Tuple, Union
-from pathlib import Path
 
 import click
 import pandas as pd
 
 from covid_model_seiir_pipeline.lib import (
     cli_tools,
-    static_vars,
+    aggregate,
 )
 from covid_model_seiir_pipeline.pipeline.postprocessing.specification import (
     SplicingSpecification,
@@ -64,8 +63,8 @@ def do_aggregation(measure_data: pd.DataFrame,
     if measure_config.aggregator is not None and aggregation_configs:
         for aggregation_config in aggregation_configs:
             logger.info(f'Aggregating to hierarchy {aggregation_config.to_dict()}', context='aggregate')
-            hierarchy = data_interface.load_aggregation_heirarchy(aggregation_config)
-            population = data_interface.load_population()
+            hierarchy = data_interface.load_aggregation_hierarchy(aggregation_config)
+            population = data_interface.load_population('total').population
             measure_data = measure_config.aggregator(measure_data, hierarchy, population)
     return measure_data
 
@@ -75,7 +74,7 @@ def summarize_and_write(measure_data: pd.DataFrame,
                         data_interface: PostprocessingDataInterface,
                         measure: str, scenario_name: str):
     logger.info(f'Summarizing results for {measure}.', context='summarize')
-    summarized = model.summarize(measure_data)
+    summarized = aggregate.summarize(measure_data)
     if measure_config.write_draws:
         logger.info(f'Saving draws for {measure}.', context='write_draws')
         data_interface.save_output_draws(measure_data.reset_index(), scenario_name, measure)
@@ -216,7 +215,11 @@ def postprocess_covariate(postprocessing_version: str,
     n_draws = data_interface.get_n_draws()
 
     input_covariate_data = data_interface.load_input_covariate(covariate, covariate_version)
-    covariate_observed = input_covariate_data.reset_index(level='observed')
+    if 'observed' in input_covariate_data.index.names:
+        covariate_observed = input_covariate_data.reset_index(level='observed')
+    else:
+        covariate_observed = input_covariate_data.copy()
+        covariate_observed['observed'] = 0.
     covariate_observed['observed'] = covariate_observed['observed'].fillna(0.)
 
     covariate_data = load_and_resample_covariate(
@@ -269,8 +272,6 @@ def postprocess_covariate(postprocessing_version: str,
 def postprocess_miscellaneous(postprocessing_version: str,
                               scenario_name: str, measure: str):
     postprocessing_spec, data_interface = build_spec_and_data_interface(postprocessing_version)
-    rdi = data_interface._get_forecast_data_inteface()._get_regression_data_interface()
-    regression_spec = rdi.load_specification()
     miscellaneous_config = model.MISCELLANEOUS[measure]
     logger.info(f'Loading {measure}.', context='read')
     try:
@@ -300,9 +301,7 @@ def postprocess_miscellaneous(postprocessing_version: str,
 
 def build_spec_and_data_interface(postprocessing_version: str) -> Tuple[PostprocessingSpecification,
                                                                         PostprocessingDataInterface]:
-    postprocessing_spec = PostprocessingSpecification.from_path(
-        Path(postprocessing_version) / static_vars.POSTPROCESSING_SPECIFICATION_FILE
-    )
+    postprocessing_spec = PostprocessingSpecification.from_version_root(postprocessing_version)
     data_interface = PostprocessingDataInterface.from_specification(postprocessing_spec)
     return postprocessing_spec, data_interface
 

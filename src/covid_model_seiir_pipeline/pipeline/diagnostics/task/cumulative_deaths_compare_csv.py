@@ -1,12 +1,10 @@
 import itertools
-from pathlib import Path
 
 import click
 import pandas as pd
 
 from covid_model_seiir_pipeline.lib import (
     cli_tools,
-    static_vars,
 )
 from covid_model_seiir_pipeline.pipeline.postprocessing import (
     PostprocessingSpecification,
@@ -24,9 +22,7 @@ logger = cli_tools.task_performance_logger
 
 def run_cumulative_deaths_compare_csv(diagnostics_version: str) -> None:
     logger.info(f'Starting cumulative death compare csv for version {diagnostics_version}', context='setup')
-    diagnostics_spec = DiagnosticsSpecification.from_path(
-        Path(diagnostics_version) / static_vars.DIAGNOSTICS_SPECIFICATION_FILE
-    )
+    diagnostics_spec = DiagnosticsSpecification.from_version_root(diagnostics_version)
     cumulative_death_spec = diagnostics_spec.cumulative_deaths_compare_csv
 
     labels = [label for c in cumulative_death_spec.comparators for label in c.scenarios.values()]
@@ -34,9 +30,7 @@ def run_cumulative_deaths_compare_csv(diagnostics_version: str) -> None:
         raise ValueError('Must have at least a "reference" and "public_reference" result label.')
 
     logger.info('Reading utility data', context='read')
-    postprocessing_spec = PostprocessingSpecification.from_path(
-        Path(cumulative_death_spec.comparators[-1].version) / static_vars.POSTPROCESSING_SPECIFICATION_FILE
-    )
+    postprocessing_spec = PostprocessingSpecification.from_version_root(cumulative_death_spec.comparators[-1].version)
     postprocessing_data_interface = PostprocessingDataInterface.from_specification(postprocessing_spec)
     hierarchy = postprocessing_data_interface.load_hierarchy()
     countries = hierarchy[hierarchy.level == 3].location_id.tolist()
@@ -63,9 +57,7 @@ def run_cumulative_deaths_compare_csv(diagnostics_version: str) -> None:
     max_date = pd.Timestamp('2000-01-01')
 
     for comparator in cumulative_death_spec.comparators:
-        postprocessing_spec = PostprocessingSpecification.from_path(
-            Path(comparator.version) / static_vars.POSTPROCESSING_SPECIFICATION_FILE
-        )
+        postprocessing_spec = PostprocessingSpecification.from_path(comparator.version)
         postprocessing_data_interface = PostprocessingDataInterface.from_specification(postprocessing_spec)
         full_data = postprocessing_data_interface.load_full_data_unscaled()
         max_date = max(max_date, full_data.reset_index().date.max())

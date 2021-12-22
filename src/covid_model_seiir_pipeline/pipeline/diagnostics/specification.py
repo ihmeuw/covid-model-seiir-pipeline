@@ -42,7 +42,7 @@ class DiagnosticsWorkflowSpecification(workflow.WorkflowSpecification):
     tasks = {
         DIAGNOSTICS_JOBS.grid_plots: GridPlotsTaskSpecification,
         DIAGNOSTICS_JOBS.compare_csv: CumulativeDeathsCompareCSVTaskSpecification,
-        DIAGNOSTICS_JOBS.scatters:ScattersTaskSpecification,
+        DIAGNOSTICS_JOBS.scatters: ScattersTaskSpecification,
     }
 
 

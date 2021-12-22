@@ -10,6 +10,9 @@ import numpy as np
 import pandas as pd
 import seaborn as sns
 
+from covid_model_seiir_pipeline.lib.ode_mk2.constants import (
+    VARIANT_NAMES,
+)
 from covid_model_seiir_pipeline.pipeline.diagnostics.model.plot_version import (
     Location,
     PlotVersion,
@@ -17,6 +20,7 @@ from covid_model_seiir_pipeline.pipeline.diagnostics.model.plot_version import (
 from covid_model_seiir_pipeline.pipeline.postprocessing.model import (
     COVARIATES,
 )
+
 
 COLOR_MAP = ['#7F3C8D', '#11A579',
              '#3969AC', '#F2B701',
@@ -64,6 +68,13 @@ def make_grid_plot(location: Location,
             plot_file=str(output_dir / f'{location.id}_drivers.pdf')
         )
 
+        make_variant_page(
+            plot_versions,
+            location,
+            date_start, date_end,
+            plot_file=str(output_dir / f'{location.id}_variant.pdf')
+        )
+
 
 def make_results_page(plot_versions: List[PlotVersion],
                       location: Location,
@@ -101,7 +112,7 @@ def make_results_page(plot_versions: List[PlotVersion],
     group_axes = []
     daily_measures = [
         ('daily_cases', 'Daily Cases', 'cumulative_cases'),
-        ('hospital_admissions', 'Daily Admissions', 'cumulative_hospitalizations'),
+        ('daily_admissions', 'Daily Admissions', 'cumulative_hospitalizations'),
         ('daily_deaths', 'Daily Deaths', 'cumulative_deaths'),
     ]
     for i, (measure, label, full_data_measure) in enumerate(daily_measures):
@@ -112,9 +123,9 @@ def make_results_page(plot_versions: List[PlotVersion],
             label=label,
         )
         plotter.make_observed_time_plot(
-            ax_measure,
-            full_data['date'],
-            full_data[full_data_measure].diff(),
+             ax_measure,
+             full_data['date'],
+             full_data[full_data_measure].diff(),
         )
 
         if measure == 'daily_deaths':
@@ -127,7 +138,7 @@ def make_results_page(plot_versions: List[PlotVersion],
     group_axes = []
     cumulative_measures = [
         ('daily_cases', 'Cumulative Cases', 'cumulative_cases'),
-        ('hospital_admissions', 'Cumulative Admissions', 'cumulative_hospitalizations'),
+        ('daily_admissions', 'Cumulative Admissions', 'cumulative_hospitalizations'),
         ('daily_deaths', 'Cumulative Deaths', 'cumulative_deaths'),
     ]
     for i, (measure, label, full_data_measure) in enumerate(cumulative_measures):
@@ -151,19 +162,25 @@ def make_results_page(plot_versions: List[PlotVersion],
         ('infection_fatality_ratio_es', 'infection_fatality_ratio', 'IFR'),
     ]
     for i, (ies_measure, measure, label) in enumerate(rates_measures):
-        rate = pv.load_output_summaries(ies_measure, location.id)
+        #rate = pv.load_output_summaries(ies_measure, location.id)
         ax_measure = fig.add_subplot(gs_rates[2*i + 1])
         plotter.make_time_plot(
             ax_measure,
             measure,
             label=label
         )
-        plotter.make_observed_time_plot(
-            ax_measure,
-            rate['date'],
-            rate['mean'],
-        )
+        # plotter.make_observed_time_plot(
+        #     ax_measure,
+        #     rate['date'],
+        #     rate['mean'],
+        # )
         group_axes.append(ax_measure)
+
+        # # Sometimes weird stuff at the start of the series.
+        # if len(rate):
+        #     y_max = rate['mean'].dropna().iloc[100:].max()
+        #     ax_measure.set_ylim(0, y_max)
+
     fig.align_ylabels(group_axes)
 
     group_axes = []
@@ -202,7 +219,7 @@ def make_details_page(plot_versions: List[PlotVersion],
     pop = pv.load_output_miscellaneous('populations', is_table=True, location_id=location.id)
     pop = pop.loc[(pop.age_group_id == 22) & (pop.sex_id == 3), 'population'].iloc[0]
     full_data_unscaled = pv.load_output_miscellaneous('unscaled_full_data', is_table=True, location_id=location.id)
-    hospital_census = pv.load_output_miscellaneous('hospital_census_data', is_table=True, location_id=location.id)
+    # hospital_census = pv.load_output_miscellaneous('hospital_census_data', is_table=True, location_id=location.id)
 
     # Configure the plot layout.
     fig = plt.figure(figsize=FIG_SIZE, tight_layout=True)
@@ -257,11 +274,11 @@ def make_details_page(plot_versions: List[PlotVersion],
             f'{measure}_census',
             label=f'{label} Census',
         )
-        plotter.make_observed_time_plot(
-            ax_census,
-            hospital_census['date'],
-            hospital_census[f'{measure}_census'],
-        )
+        # plotter.make_observed_time_plot(
+        #     ax_census,
+        #     hospital_census['date'],
+        #     hospital_census[f'{measure}_census'],
+        # )
         axes[col].append(ax_census)
     for ax_set in axes.values():
         fig.align_ylabels(ax_set)
@@ -303,17 +320,18 @@ def make_details_page(plot_versions: List[PlotVersion],
     shared_axes.append(ax_unscaled)
     ax_scalars = fig.add_subplot(gs_deaths[1])
     for plot_version in plot_versions:
-        data = plot_version.load_output_miscellaneous(
-            'excess_mortality_scalars',
-            is_table=True,
-            location_id=location.id
-        )
         try:
+            data = plot_version.load_output_miscellaneous(
+                'excess_mortality_scalars',
+                is_table=True,
+                location_id=location.id
+            )
+        
             ax_scalars.plot(data['date'], data['mean'], color=plot_version.color)
             if plotter._uncertainty:
                 ax_scalars.fill_between(data['date'], data['upper'], data['lower'], alpha=FILL_ALPHA, color=plot_version.color)
-        except KeyError:
-            ax_scalars.plot(data['date'], data['em_scalar'], color=plot_version.color)
+        except (KeyError, FileNotFoundError):
+            pass
 
     ax_scalars.set_ylabel('Total COVID Scalar', fontsize=AX_LABEL_FONTSIZE)
     plotter.format_date_axis(ax_scalars)
@@ -386,7 +404,7 @@ def make_drivers_page(plot_versions: List[PlotVersion],
     )
 
     ylim_map = {
-        'mobility': (-100, 20),
+        'mobility': (-100, 50),
         'testing': (0, 0.02),
         'pneumonia': (0.2, 1.5),
         'mask_use': (0, 1),
@@ -511,6 +529,107 @@ def make_drivers_page(plot_versions: List[PlotVersion],
     make_axis_legend(ax_rho_escape, {'naive ramp': {'linestyle': 'solid'},
                                      'empirical': {'linestyle': 'dashed'}})
     fig.align_ylabels([ax_resid, ax_rhist, ax_reff, ax_rho_escape])
+
+    make_title_and_legend(fig, location, plot_versions)
+    write_or_show(fig, plot_file)
+
+
+def make_variant_page(plot_versions: List[PlotVersion],
+                      location: Location,
+                      start: pd.Timestamp, end: pd.Timestamp,
+                      plot_file: str = None):
+    sns.set_style('whitegrid')
+
+    # Load some shared data.
+    pv = plot_versions[-1]
+    pop = pv.load_output_miscellaneous('populations', is_table=True, location_id=location.id)
+    pop = pop.loc[(pop.age_group_id == 22) & (pop.sex_id == 3), 'population'].iloc[0]
+
+    variant_prevalence = pv.load_output_miscellaneous('variant_prevalence', is_table=True,
+                                                      location_id=location.id).set_index('date')
+
+    # Configure the plot layout.
+    fig = plt.figure(figsize=(40, 20), tight_layout=True)
+
+    measures = [
+        'daily_infections',
+        'effective_susceptible',
+        # 'effective_immune',
+        'force_of_infection',
+        'r_effective',
+        'r_controlled',
+        'variant_prevalence',
+    ]
+
+    grid_spec = fig.add_gridspec(
+        nrows=len(measures), ncols=len(VARIANT_NAMES) - 2,
+        wspace=0.2,
+    )
+    grid_spec.update(**GRID_SPEC_MARGINS)
+
+    plotter = Plotter(
+        plot_versions=plot_versions,
+        loc_id=location.id,
+        start=start, end=end,
+    )
+
+    axes = defaultdict(list)
+
+    for row, measure in enumerate(measures):
+        for col, variant in enumerate(VARIANT_NAMES[1:-1]):
+            ax = fig.add_subplot(grid_spec[row, col])
+            key = f'{measure}_{variant}'
+
+            if measure in ['effective_susceptible', 'effective_immune']:
+                transform = lambda x: x / pop * 100
+            else:
+                transform = lambda x: x
+
+            plotter.make_time_plot(
+                ax,
+                key,
+                '',
+                transform=transform,
+            )
+            if measure == 'effective_susceptible':
+                if variant in ['ancestral', 'alpha']:
+                    key = 'total_susceptible_wild'
+                else:
+                    key = 'total_susceptible_variant'
+                plotter.make_time_plot(
+                    ax,
+                    key,
+                    label='',
+                    transform=lambda x: x / pop * 100,
+                )
+
+            if measure == 'daily_infections':
+                if variant in ['ancestral', 'alpha']:
+                    key = 'total_susceptible_wild'
+                else:
+                    key = 'total_susceptible_variant'
+
+            if measure == 'variant_prevalence':
+                observed_color = COLOR_MAP(len(plot_versions))
+                variant_prevalence.loc[:, f'{variant}'].plot(ax=ax, linewidth=3, color=observed_color,
+                                                             linestyle='dashed')
+
+            if measure in ['r_effective', 'r_controlled']:
+                ax.set_ylim(0, 4)
+            elif measure in ['effective_susceptible', 'effective_immune']:
+                ax.set_ylim(0, 100)
+            elif measure == 'variant_prevalence':
+                ax.set_ylim(0, 1)
+
+            if row == 0:
+                ax.set_title(variant.title(), fontsize=18)
+
+            if col == 0:
+                ax.set_ylabel(measure.replace('_', ' ').title(), fontsize=18)
+            axes[col].append(ax)
+
+    for col, ax_group in axes.items():
+        fig.align_ylabels(ax_group)
 
     make_title_and_legend(fig, location, plot_versions)
     write_or_show(fig, plot_file)

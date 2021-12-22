@@ -42,8 +42,7 @@ class PostprocessingWorkflowSpecification(workflow.WorkflowSpecification):
 @dataclass
 class PostprocessingData:
     """Specifies the inputs and outputs for postprocessing."""
-    forecast_version: str = field(default='best')
-    mortality_ratio_version: str = field(default='best')
+    seir_forecast_version: str = field(default='best')
     scenarios: list = field(default_factory=lambda: ['worse', 'reference', 'best_masks'])
     output_root: str = field(default='')
 

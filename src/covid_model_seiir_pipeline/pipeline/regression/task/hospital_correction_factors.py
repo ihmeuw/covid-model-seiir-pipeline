@@ -1,12 +1,10 @@
 from dataclasses import asdict
-from pathlib import Path
 
 import click
 import pandas as pd
 
 from covid_model_seiir_pipeline.lib import (
     cli_tools,
-    static_vars,
 )
 from covid_model_seiir_pipeline.pipeline.regression.specification import (
     RegressionSpecification,
@@ -26,13 +24,12 @@ logger = cli_tools.task_performance_logger
 def run_hospital_correction_factors(regression_version: str, with_progress_bar: bool) -> None:
     logger.info('Starting hospital correction factors.', context='setup')
     # Build helper abstractions
-    regression_spec_file = Path(regression_version) / static_vars.REGRESSION_SPECIFICATION_FILE
-    regression_specification = RegressionSpecification.from_path(regression_spec_file)
+    regression_specification = RegressionSpecification.from_version_root(regression_version)
     hospital_parameters = regression_specification.hospital_parameters
     data_interface = RegressionDataInterface.from_specification(regression_specification)
 
     logger.info('Loading input data', context='read')
-    hierarchy = data_interface.load_hierarchy().reset_index()
+    hierarchy = data_interface.load_hierarchy('pred').reset_index()
     n_draws = data_interface.get_n_draws()
     n_cores = (regression_specification
                .workflow
@@ -67,6 +64,7 @@ def run_hospital_correction_factors(regression_version: str, with_progress_bar: 
     corrections_df = pd.concat(corrections, axis=1)
 
     logger.info('Writing outputs', context='write')
+
     data_interface.save_hospitalizations(usage_df, 'usage')
     data_interface.save_hospitalizations(corrections_df, 'correction_factors')
 
@@ -74,7 +72,7 @@ def run_hospital_correction_factors(regression_version: str, with_progress_bar: 
 
 
 @click.command()
-@cli_tools.with_regression_version
+@cli_tools.with_task_regression_version
 @cli_tools.with_progress_bar
 @cli_tools.add_verbose_and_with_debugger
 def hospital_correction_factors(regression_version: str, progress_bar: bool,
