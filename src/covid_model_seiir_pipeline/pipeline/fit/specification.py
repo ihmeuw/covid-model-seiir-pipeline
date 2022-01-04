@@ -74,6 +74,7 @@ class FitData:
     output_root: str = field(default='')
     output_format: str = field(default='csv')
     n_draws: int = field(default=100)
+    compare_version: str = field(default='')
 
     def to_dict(self) -> Dict:
         return utilities.asdict(self)

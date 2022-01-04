@@ -21,6 +21,9 @@ class Location(NamedTuple):
     name: str
 
 
+DataDict = Dict[str, Dict[str, pd.DataFrame]]
+
+
 def identity(x):
     return x
 
@@ -43,7 +46,7 @@ class Plotter:
     grid_spec_margins = {'top': 0.92, 'bottom': 0.08}
 
     def __init__(self,
-                 data_dictionary: Dict[str, Dict[str, pd.DataFrame]],
+                 data_dictionary: DataDict,
                  version_style_map: Dict[str, Dict[str, str]],
                  location: Location,
                  start: pd.Timestamp,

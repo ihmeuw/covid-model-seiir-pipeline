@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Dict, Tuple
+from typing import Dict, NamedTuple, Tuple
 
 import numpy as np
 import pandas as pd
@@ -10,6 +10,7 @@ from covid_model_seiir_pipeline.lib import (
 )
 from covid_model_seiir_pipeline.lib.plotting import (
     Location,
+    DataDict,
     Plotter,
     identity,
     pop_scale,
@@ -18,6 +19,14 @@ from covid_model_seiir_pipeline.lib.plotting import (
 from covid_model_seiir_pipeline.pipeline.fit.data import FitDataInterface
 
 logger = cli_tools.task_performance_logger
+
+
+class __PlotType(NamedTuple):
+    model_fit: str
+    model_compare: str
+
+
+PLOT_TYPE = __PlotType(*__PlotType._fields)
 
 
 _COLOR_MEASURES = (
@@ -30,11 +39,11 @@ MEASURE_COLORS = {
 }
 
 
-class ModelFitPlotter(Plotter):
+class PastPlotter(Plotter):
     fig_size = (30, 18)
 
 
-def model_fit_plot(data: Tuple[Location, Dict[str, Dict[str, pd.DataFrame]]],
+def model_fit_plot(data: Tuple[Location, DataDict],
                    data_interface: FitDataInterface,
                    start: pd.Timestamp = pd.Timestamp(year=2020, month=2, day=1),
                    end: pd.Timestamp = pd.Timestamp.today(),
@@ -48,7 +57,7 @@ def model_fit_plot(data: Tuple[Location, Dict[str, Dict[str, pd.DataFrame]]],
 
     # No versions so no specific style things here.
     style_map = {k: {} for k in data_dictionary}
-    plotter = ModelFitPlotter(
+    plotter = PastPlotter(
         data_dictionary=data_dictionary,
         version_style_map=style_map,
         location=location,
@@ -288,3 +297,180 @@ def model_fit_plot(data: Tuple[Location, Dict[str, Dict[str, pd.DataFrame]]],
     else:
         plot_path = None
     plotter.write_or_show(fig, plot_path)
+
+
+def model_compare_plot(data: Tuple[Location, DataDict],
+                       data_interface: FitDataInterface,
+                       start: pd.Timestamp = pd.Timestamp(year=2020, month=2, day=1),
+                       end: pd.Timestamp = pd.Timestamp.today(),
+                       uncertainty: bool = False,
+                       plot_root: str = None):
+    location, data_dictionary = data
+    assert len(data_dictionary) == 4, "Incorrect number of versions supplied for model comparison plot."
+
+    pop = data_interface.load_population('total').population.loc[location.id]
+
+    plotter = PastPlotter(
+        data_dictionary=data_dictionary,
+        location=location,
+        start=start,
+        end=end,
+        uncertainty=uncertainty,
+    )
+
+    # Configure the plot layout.
+    sns.set_style('whitegrid')
+    fig = plt.figure(figsize=plotter.fig_size, tight_layout=True)
+    grid_spec = fig.add_gridspec(
+        nrows=1, ncols=5,
+        wspace=0.2,
+    )
+    grid_spec.update(**plotter.grid_spec_margins)
+
+    gs_daily = grid_spec[0, 0].subgridspec(3, 1)
+    gs_rates_prior = grid_spec[0, 1].subgridspec(3, 1)
+    gs_rates = grid_spec[0, 2].subgridspec(3, 1)
+    gs_beta = grid_spec[0, 3].subgridspec(3, 1)
+    gs_infecs = grid_spec[0, 4].subgridspec(3, 1)
+
+    # Column 1, Daily
+    group_axes = []
+    daily_measures = [
+        ('cases', 'Daily Cases'),
+        ('hospitalizations', 'Daily Admissions'),
+        ('deaths', 'Daily Deaths'),
+    ]
+    for i, (measure, label) in enumerate(daily_measures):
+        ax_measure = fig.add_subplot(gs_daily[i])
+        plotter.make_time_plot(
+            ax=ax_measure,
+            round_id=2,
+            measure=f'posterior_daily_{measure}',
+            label=label,
+        )
+        plotter.make_time_plot(
+            ax=ax_measure,
+            round_id=1,
+            measure=f'posterior_daily_{measure}',
+            linestyle='--',
+        )
+        group_axes.append(ax_measure)
+
+    plotter.clean_and_align_axes(fig, group_axes)
+
+    # Column 2, Cumulative & rates
+    group_axes = []
+    rates_measures = [
+        ('idr', (0, 100)),
+        ('ihr', (0, 10)),
+        ('ifr', (0, 5)),
+    ]
+    for i, (measure, ylim) in enumerate(rates_measures):
+        ax_measure = fig.add_subplot(gs_rates_prior[i])
+        plotter.make_time_plot(
+            ax=ax_measure,
+            measure=f'prior_{measure}',
+            round_id=2,
+            transform=lambda x: x * 100,
+            label=f'Prior {measure.upper()} (%)',
+        )
+        plotter.make_time_plot(
+            ax=ax_measure,
+            measure=f'prior_{measure}',
+            round_id=1,
+            transform=lambda x: x * 100,
+            linestyle='--'
+        )
+        ax_measure.set_ylim(ylim)
+
+        ax_measure = fig.add_subplot(gs_rates[i])
+        plotter.make_time_plot(
+            ax=ax_measure,
+            measure=f'posterior_{measure}',
+            round_id=2,
+            transform=lambda x: x * 100,
+            label=f'Posterior {measure.upper()} (%)',
+        )
+        plotter.make_time_plot(
+            ax=ax_measure,
+            measure=f'posterior_{measure}',
+            round_id=1,
+            transform=lambda x: x * 100,
+            linestyle='--'
+        )
+        ax_measure.set_ylim(ylim)
+
+        group_axes.append(ax_measure)
+
+    plotter.clean_and_align_axes(fig, group_axes)
+
+    group_axes = []
+    for i, measure in enumerate(['cases', 'hospitalizations', 'deaths']):
+        ax_beta = fig.add_subplot(gs_beta[i])
+        plotter.make_time_plot(
+            ax=ax_beta,
+            measure=f'beta_{measure}',
+            round_id=2,
+            label=f'Log Beta {measure.capitalize()}',
+            transform=np.log,
+        )
+        plotter.make_time_plot(
+            ax=ax_beta,
+            measure=f'beta_{measure}',
+            round_id=1,
+            linestyle='--',
+            transform=np.log,
+        )
+        ax_beta.set_ylim(-3, 2)
+
+        group_axes.append(ax_beta)
+
+    plotter.clean_and_align_axes(fig, group_axes)
+
+    group_axes = []
+
+    for i, group in enumerate(['naive_unvaccinated', 'total']):
+        ax = fig.add_subplot(gs_infecs[i])
+        plotter.make_time_plot(
+            ax=ax,
+            measure=f'posterior_daily_{group}_infections',
+            round_id=2,
+            label=f'Daily {(" ".join(group.split("_"))).capitalize()} Infections',
+        )
+        plotter.make_time_plot(
+            ax=ax,
+            measure=f'posterior_daily_{group}_infections',
+            round_id=1,
+            linestyle='--'
+        )
+        group_axes.append(ax)
+
+    ax_beta = fig.add_subplot(gs_infecs[2])
+    plotter.make_time_plot(
+        ax=ax_beta,
+        measure=f'beta',
+        round_id=2,
+        label=f'Log Beta',
+        transform=np.log,
+    )
+    plotter.make_time_plot(
+        ax=ax_beta,
+        measure=f'beta',
+        round_id=1,
+        linestyle='--',
+        transform=np.log,
+    )
+    ax_beta.set_ylim(-3, 2)
+    group_axes.append(ax_beta)
+
+    plotter.clean_and_align_axes(fig, group_axes)
+
+    sns.despine(fig=fig, left=True, bottom=True)
+    fig.suptitle(f'{location.name} ({location.id})', x=0.5, fontsize=plotter.title_fontsize, ha='center')
+    plotter.make_legend(fig)
+
+    if plot_root:
+        plot_path = Path(plot_root) / f'compare_{location.id}.pdf'
+    else:
+        plot_path = None
+    write_or_show(fig, plot_path)
