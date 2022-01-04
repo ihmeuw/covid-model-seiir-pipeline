@@ -39,7 +39,6 @@ def run_beta_fit_diagnostics(fit_version: str, progress_bar) -> None:
     locs = deaths.location_id.unique()
     # These have a standard index, so we're not clipping to any location.
     start, end = deaths.date.min(), deaths.date.max()
-    locations = [plotter.Location(loc_id, name_map.loc[loc_id]) for loc_id in locs]
 
     logger.info('Partitioning data dictionary by location', context='partition')
     data_dicts = []
@@ -52,7 +51,7 @@ def run_beta_fit_diagnostics(fit_version: str, progress_bar) -> None:
                 loc_data_dict[measure] = None
         data_dicts.append((
             plotter.Location(location_id, name_map.loc[location_id]),
-            loc_data_dict,
+            {'reference': loc_data_dict},
         ))
 
     logger.info('Building location specific plots', context='make_plots')
@@ -60,7 +59,7 @@ def run_beta_fit_diagnostics(fit_version: str, progress_bar) -> None:
         plot_cache = Path(temp_dir_name)
 
         _runner = functools.partial(
-            plotter.ies_plot,
+            plotter.model_fit_plot,
             data_interface=data_interface,
             start=start,
             end=end,

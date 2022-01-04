@@ -1,15 +1,18 @@
 from pathlib import Path
-from typing import Dict, NamedTuple, Optional, Tuple, Union
+from typing import Dict, Tuple
 
-
-import matplotlib.pyplot as plt
-import matplotlib.dates as mdates
 import numpy as np
 import pandas as pd
 import seaborn as sns
 
 from covid_model_seiir_pipeline.lib import (
     cli_tools,
+)
+from covid_model_seiir_pipeline.lib.plotting import (
+    Location,
+    Plotter,
+    identity,
+    pop_scale,
 )
 
 from covid_model_seiir_pipeline.pipeline.fit.data import FitDataInterface
@@ -27,22 +30,27 @@ MEASURE_COLORS = {
 }
 
 
-class Location(NamedTuple):
-    id: int
-    name: str
+class ModelFitPlotter(Plotter):
+    fig_size = (30, 18)
 
 
-def ies_plot(data: Tuple[Location, Dict[str, pd.DataFrame]],
-             data_interface: FitDataInterface,
-             start: pd.Timestamp = pd.Timestamp('2020-02-01'),
-             end: pd.Timestamp = pd.Timestamp.today(),
-             uncertainty: bool = False,
-             review: bool = False,
-             plot_root: str = None):
+def model_fit_plot(data: Tuple[Location, Dict[str, Dict[str, pd.DataFrame]]],
+                   data_interface: FitDataInterface,
+                   start: pd.Timestamp = pd.Timestamp(year=2020, month=2, day=1),
+                   end: pd.Timestamp = pd.Timestamp.today(),
+                   uncertainty: bool = False,
+                   review: bool = False,
+                   plot_root: str = None):
     location, data_dictionary = data
+    assert len(data_dictionary) == 1, "Multiple versions supplied for model fit plot."
+    version = list(data_dictionary)[0]  # This version name is arbitrary and not used anywhere
     pop = data_interface.load_population('total').population.loc[location.id]
-    plotter = Plotter(
+
+    # No versions so no specific style things here.
+    style_map = {k: {} for k in data_dictionary}
+    plotter = ModelFitPlotter(
         data_dictionary=data_dictionary,
+        version_style_map=style_map,
         location=location,
         start=start,
         end=end,
@@ -50,15 +58,11 @@ def ies_plot(data: Tuple[Location, Dict[str, pd.DataFrame]],
     )
 
     # Configure the plot layout.
-    sns.set_style('whitegrid')
-    fig = plt.figure(figsize=plotter.fig_size, tight_layout=True)
-    grid_spec = fig.add_gridspec(
+    fig, grid_spec = plotter.build_grid_spec(
         nrows=1, ncols=3,
         width_ratios=[5, 3, 5],
         wspace=0.2,
     )
-    grid_spec.update(**plotter.grid_spec_margins)
-
     gs_daily = grid_spec[0, 0].subgridspec(3, 1)
     gs_rates = grid_spec[0, 1].subgridspec(6, 1)
     gs_infecs = grid_spec[0, 2].subgridspec(3, 1)
@@ -87,8 +91,10 @@ def ies_plot(data: Tuple[Location, Dict[str, pd.DataFrame]],
         )
         plotter.make_observed_time_plot(
             ax=ax_measure,
+            version=version,
             measure=f'daily_{measure}',
-            color_dict=MEASURE_COLORS[measure],
+            light_color=MEASURE_COLORS[measure]['light'],
+            dark_color=MEASURE_COLORS[measure]['dark'],
         )
 
         group_axes.append(ax_measure)
@@ -103,7 +109,7 @@ def ies_plot(data: Tuple[Location, Dict[str, pd.DataFrame]],
         ('deaths', 'Cumulative Deaths'),
     ]
     for i, (measure, label) in enumerate(cumulative_measures):
-        ax_measure = fig.add_subplot(gs_rates[ 2 *i])
+        ax_measure = fig.add_subplot(gs_rates[2 * i])
 
         plotter.make_time_plot(
             ax=ax_measure,
@@ -121,7 +127,9 @@ def ies_plot(data: Tuple[Location, Dict[str, pd.DataFrame]],
         plotter.make_observed_time_plot(
             ax=ax_measure,
             measure=f'cumulative_{measure}',
-            color_dict=MEASURE_COLORS[measure],
+            version=version,
+            light_color=MEASURE_COLORS[measure]['light'],
+            dark_color=MEASURE_COLORS[measure]['dark'],
         )
 
         group_axes.append(ax_measure)
@@ -132,7 +140,7 @@ def ies_plot(data: Tuple[Location, Dict[str, pd.DataFrame]],
         ('ifr', (0, 5)),
     ]
     for i, (measure, ylim) in enumerate(rates_measures):
-        ax_measure = fig.add_subplot(gs_rates[ 2 *i + 1])
+        ax_measure = fig.add_subplot(gs_rates[2 * i + 1])
 
         plotter.make_time_plot(
             ax=ax_measure,
@@ -148,11 +156,11 @@ def ies_plot(data: Tuple[Location, Dict[str, pd.DataFrame]],
             color=MEASURE_COLORS[measure]['light'],
             linestyle='--',
         )
-        ratio_plot_range = data_dictionary[f'prior_{measure}']
+        ratio_plot_range = data_dictionary[version][f'prior_{measure}']
         if ratio_plot_range is not None:
             ratio_plot_range = ratio_plot_range.loc[:, 'mean'] * 100
 
-        rates_data = data_dictionary['rates_data']
+        rates_data = data_dictionary[version]['rates_data']
         if rates_data is not None:
             try:             
                 rates_data = rates_data.loc[measure]
@@ -215,7 +223,7 @@ def ies_plot(data: Tuple[Location, Dict[str, pd.DataFrame]],
                 linestyle=':',
             )
 
-    sero_data = data_dictionary['seroprevalence']
+    sero_data = data_dictionary[version]['seroprevalence']
     if sero_data is not None:
         ax_cumul.scatter(sero_data.loc[sero_data['is_outlier'] == 1].index,
                          sero_data.loc[sero_data['is_outlier'] == 1, 'reported_seroprevalence'] * 100,
@@ -233,16 +241,17 @@ def ies_plot(data: Tuple[Location, Dict[str, pd.DataFrame]],
     group_axes = [ax_daily, ax_cumul]
 
     if review:
+        dd = data_dictionary[version]
         ax_stackplot = fig.add_subplot(gs_infecs[2])
-        naive_unvax = data_dictionary['posterior_cumulative_naive_unvaccinated_infections'].loc[:, 'mean'] * 100 / pop
-        naive = data_dictionary['posterior_cumulative_naive_infections'].loc[:, 'mean'] * 100 / pop
-        total = data_dictionary['posterior_cumulative_total_infections'].loc[:, 'mean'] * 100 / pop
+        naive_unvax = dd['posterior_cumulative_naive_unvaccinated_infections'].loc[:, 'mean'] * 100 / pop
+        naive = dd['posterior_cumulative_naive_infections'].loc[:, 'mean'] * 100 / pop
+        total = dd['posterior_cumulative_total_infections'].loc[:, 'mean'] * 100 / pop
         ax_stackplot.stackplot(
             naive_unvax.index,
             naive_unvax,
             naive - naive_unvax,
             total - naive,
-            )
+        )
         ax_stackplot.set_ylabel('Cumulative Infections (%)', fontsize=plotter.ax_label_fontsize)
         plotter.format_date_axis(ax_stackplot)
 
@@ -278,110 +287,4 @@ def ies_plot(data: Tuple[Location, Dict[str, pd.DataFrame]],
         plot_path = Path(plot_root) / f'ies_{location.id}.pdf'
     else:
         plot_path = None
-    write_or_show(fig, plot_path)
-
-
-def identity(x):
-    return x
-
-
-def pop_scale(pop):
-    def _scale(x):
-        return 100 * x / pop
-
-    return _scale
-
-
-class Plotter:
-    fill_alpha = 0.15
-    observed_alpha = 0.3
-    ax_label_fontsize = 16
-    tick_label_fontsize = 11
-    title_fontsize = 24
-    fig_size = (30, 18)
-    grid_spec_margins = {'top': 0.92, 'bottom': 0.08}
-
-    def __init__(self,
-                 data_dictionary: Dict[str, pd.DataFrame],
-                 location: Location,
-                 start: pd.Timestamp,
-                 end: pd.Timestamp,
-                 uncertainty: bool,
-                 transform=identity,
-                 **extra_defaults):
-        self._data_dictionary = data_dictionary
-
-        self._location = location
-        self._start = start
-        self._end = end
-
-        self._uncertainty = uncertainty
-        self._transform = transform
-        self._default_options = {'linewidth': 2.5, **extra_defaults}
-
-    def make_time_plot(self, ax, measure: str, color: str, label: str = None, **extra_options):
-        uncertainty = extra_options.pop('uncertainty', self._uncertainty)
-        transform = extra_options.pop('transform', self._transform)
-        start = extra_options.pop('start', self._start)
-        end = extra_options.pop('end', self._end)
-
-        plot_options = {**self._default_options, **extra_options}
-
-        data = self._data_dictionary[measure]
-        if data is None or np.all(data['mean'] == 0):
-            return
-        data = data.reset_index()
-        data = data[(start <= data['date']) & (data['date'] <= end)]
-
-        transform_cols = [c for c in data if c in ['mean', 'upper', 'lower', 'upper2', 'lower2']]
-        data[transform_cols] = transform(data[transform_cols])
-
-        ax.plot(data['date'], data['mean'], color=color, **plot_options)
-        if uncertainty:
-            ax.fill_between(data['date'], data['upper'], data['lower'], alpha=self.fill_alpha, color=color)
-            if 'upper2' in data:
-                ax.fill_between(data['date'], data['upper2'], data['lower2'], alpha=1.5 * self.fill_alpha, color=color)
-
-        self.format_date_axis(ax, start, end)
-
-        if label is not None:
-            ax.set_ylabel(label, fontsize=self.ax_label_fontsize)
-            ax.tick_params(axis='y', labelsize=self.tick_label_fontsize)
-
-    def make_observed_time_plot(self, ax, measure: str, color_dict: Dict[str, str], **extra_options):
-        data = self._data_dictionary[measure].reset_index()
-
-        ax.scatter(
-            data['date'], data['mean'],
-            color=color_dict['light'], edgecolor=color_dict['dark'],
-            alpha=self.observed_alpha
-        )
-
-        ax.plot(
-            data['date'], data['mean'],
-            color=color_dict['light'],
-            alpha=self.observed_alpha / 2,
-        )
-
-    def format_date_axis(self, ax, start=None, end=None):
-        start = start if start is not None else self._start
-        end = end if end is not None else self._end
-        date_locator = mdates.AutoDateLocator(maxticks=15)
-        date_formatter = mdates.ConciseDateFormatter(date_locator, show_offset=False)
-        ax.set_xlim(start, end)
-        ax.xaxis.set_major_locator(date_locator)
-        ax.xaxis.set_major_formatter(date_formatter)
-        ax.tick_params(axis='x', labelsize=self.tick_label_fontsize)
-
-    def clean_and_align_axes(self, fig, axes):
-        fig.align_ylabels(axes)
-        # for ax in axes[:-1]:
-        #     ax.xaxis.set_ticklabels([])
-        
-        
-def write_or_show(fig, plot_file: Optional[Union[str, Path]]):
-    if plot_file:
-        fig.savefig(plot_file)
-        plt.close(fig)
-    else:
-        plt.show()
+    plotter.write_or_show(fig, plot_path)
