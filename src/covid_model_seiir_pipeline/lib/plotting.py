@@ -80,6 +80,7 @@ class Plotter:
         for version, version_options in self._version_style_map.items():
             # This configuration is hierarchical. extra overrides version overrides default.
             plot_options = {**self._default_options, **version_options, **extra_options}
+            assert 'color' in plot_options
             data = self._data_dictionary[version][measure]
             if data is None or np.all(data['mean'] == 0):
                 return
@@ -91,9 +92,11 @@ class Plotter:
 
             ax.plot(data['date'], data['mean'], **plot_options)
             if uncertainty:
-                ax.fill_between(data['date'], data['upper'], data['lower'], alpha=self.fill_alpha)
+                ax.fill_between(data['date'], data['upper'], data['lower'],
+                                alpha=self.fill_alpha, color=plot_options['color'])
                 if 'upper2' in data:
-                    ax.fill_between(data['date'], data['upper2'], data['lower2'], alpha=1.5 * self.fill_alpha)
+                    ax.fill_between(data['date'], data['upper2'], data['lower2'],
+                                    alpha=1.5 * self.fill_alpha, color=plot_options['color'])
 
         self.format_date_axis(ax, start, end)
 
