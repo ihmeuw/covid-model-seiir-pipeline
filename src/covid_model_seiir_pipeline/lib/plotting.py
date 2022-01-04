@@ -142,19 +142,26 @@ class Plotter:
     def clean_and_align_axes(self, fig, axes):
         fig.align_ylabels(axes)
 
-    def make_legend(self, fig, label_map: Dict[str, Dict[str, Any]]):
+    def despine_and_make_title(self, fig):
+        sns.despine(fig=fig, left=True, bottom=True)
+        fig.suptitle(f'{self._location.name} ({self._location.id})',
+                     x=0.5,
+                     fontsize=self.title_fontsize,
+                     ha='center')
+
+    def make_legend(self, fig):
         fig.legend(
-            handles=self.make_legend_handles(label_map),
+            handles=self.make_legend_handles(),
             loc='lower center',
             bbox_to_anchor=(0.5, 0),
             fontsize=self.ax_label_fontsize,
             frameon=False,
-            ncol=2 * len(label_map)
+            ncol=len(self._version_style_map)
         )
 
-    def make_legend_handles(self, label_map: Dict[str, Dict[str, Any]]):
+    def make_legend_handles(self):
         handles = []
-        for label, line_properties in label_map.items():
+        for label, line_properties in self._version_style_map.items():
             handles.append(mlines.Line2D(
                 [], [],
                 label.title(),

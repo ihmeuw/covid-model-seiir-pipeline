@@ -1,3 +1,4 @@
+import itertools
 from pathlib import Path
 from typing import Dict, NamedTuple, Tuple
 
@@ -307,11 +308,12 @@ def model_compare_plot(data: Tuple[Location, DataDict],
                        plot_root: str = None):
     location, data_dictionary = data
     assert len(data_dictionary) == 4, "Incorrect number of versions supplied for model comparison plot."
-
-    pop = data_interface.load_population('total').population.loc[location.id]
-
+    # Assume v1 round 1, v1 round 2, v2 round1, v2 round2 ordering
+    style_map = {version: {'color': color, 'linestyle': line_style} for version, (color, line_style)
+                 in zip(data_dictionary, itertools.product(['#7F3C8D', '#11A579'], ['solid', 'dashed']))}
     plotter = PastPlotter(
         data_dictionary=data_dictionary,
+        version_style_map=style_map,
         location=location,
         start=start,
         end=end,
@@ -319,14 +321,10 @@ def model_compare_plot(data: Tuple[Location, DataDict],
     )
 
     # Configure the plot layout.
-    sns.set_style('whitegrid')
-    fig = plt.figure(figsize=plotter.fig_size, tight_layout=True)
-    grid_spec = fig.add_gridspec(
+    fig, grid_spec = plotter.build_grid_spec(
         nrows=1, ncols=5,
         wspace=0.2,
     )
-    grid_spec.update(**plotter.grid_spec_margins)
-
     gs_daily = grid_spec[0, 0].subgridspec(3, 1)
     gs_rates_prior = grid_spec[0, 1].subgridspec(3, 1)
     gs_rates = grid_spec[0, 2].subgridspec(3, 1)
@@ -344,15 +342,8 @@ def model_compare_plot(data: Tuple[Location, DataDict],
         ax_measure = fig.add_subplot(gs_daily[i])
         plotter.make_time_plot(
             ax=ax_measure,
-            round_id=2,
             measure=f'posterior_daily_{measure}',
             label=label,
-        )
-        plotter.make_time_plot(
-            ax=ax_measure,
-            round_id=1,
-            measure=f'posterior_daily_{measure}',
-            linestyle='--',
         )
         group_axes.append(ax_measure)
 
@@ -370,16 +361,8 @@ def model_compare_plot(data: Tuple[Location, DataDict],
         plotter.make_time_plot(
             ax=ax_measure,
             measure=f'prior_{measure}',
-            round_id=2,
             transform=lambda x: x * 100,
             label=f'Prior {measure.upper()} (%)',
-        )
-        plotter.make_time_plot(
-            ax=ax_measure,
-            measure=f'prior_{measure}',
-            round_id=1,
-            transform=lambda x: x * 100,
-            linestyle='--'
         )
         ax_measure.set_ylim(ylim)
 
@@ -387,16 +370,8 @@ def model_compare_plot(data: Tuple[Location, DataDict],
         plotter.make_time_plot(
             ax=ax_measure,
             measure=f'posterior_{measure}',
-            round_id=2,
             transform=lambda x: x * 100,
             label=f'Posterior {measure.upper()} (%)',
-        )
-        plotter.make_time_plot(
-            ax=ax_measure,
-            measure=f'posterior_{measure}',
-            round_id=1,
-            transform=lambda x: x * 100,
-            linestyle='--'
         )
         ax_measure.set_ylim(ylim)
 
@@ -410,15 +385,7 @@ def model_compare_plot(data: Tuple[Location, DataDict],
         plotter.make_time_plot(
             ax=ax_beta,
             measure=f'beta_{measure}',
-            round_id=2,
             label=f'Log Beta {measure.capitalize()}',
-            transform=np.log,
-        )
-        plotter.make_time_plot(
-            ax=ax_beta,
-            measure=f'beta_{measure}',
-            round_id=1,
-            linestyle='--',
             transform=np.log,
         )
         ax_beta.set_ylim(-3, 2)
@@ -434,14 +401,7 @@ def model_compare_plot(data: Tuple[Location, DataDict],
         plotter.make_time_plot(
             ax=ax,
             measure=f'posterior_daily_{group}_infections',
-            round_id=2,
             label=f'Daily {(" ".join(group.split("_"))).capitalize()} Infections',
-        )
-        plotter.make_time_plot(
-            ax=ax,
-            measure=f'posterior_daily_{group}_infections',
-            round_id=1,
-            linestyle='--'
         )
         group_axes.append(ax)
 
@@ -449,28 +409,18 @@ def model_compare_plot(data: Tuple[Location, DataDict],
     plotter.make_time_plot(
         ax=ax_beta,
         measure=f'beta',
-        round_id=2,
         label=f'Log Beta',
-        transform=np.log,
-    )
-    plotter.make_time_plot(
-        ax=ax_beta,
-        measure=f'beta',
-        round_id=1,
-        linestyle='--',
         transform=np.log,
     )
     ax_beta.set_ylim(-3, 2)
     group_axes.append(ax_beta)
-
     plotter.clean_and_align_axes(fig, group_axes)
 
-    sns.despine(fig=fig, left=True, bottom=True)
-    fig.suptitle(f'{location.name} ({location.id})', x=0.5, fontsize=plotter.title_fontsize, ha='center')
+    plotter.despine_and_make_title(fig)
     plotter.make_legend(fig)
 
     if plot_root:
         plot_path = Path(plot_root) / f'compare_{location.id}.pdf'
     else:
         plot_path = None
-    write_or_show(fig, plot_path)
+    plotter.write_or_show(fig, plot_path)
