@@ -138,7 +138,8 @@ def run_beta_fit(fit_version: str, draw_id: int, progress_bar: bool) -> None:
     total_cases = compartments.filter(like='Case_all_all_all').sum(axis=1).groupby('location_id').max()
     max_idr = 0.9
     p_symptomatic_pre_omicron = 0.5
-    p_symptomatic_post_omicron = 0.175
+    p_symptomatic_post_omicron = 1 - model.sample_parameter('p_asymptomatic_omicron', draw_id=draw_id,
+                                                            lower=0.8, upper=0.9)
     minimum_asymptomatic_idr_fraction = 0.1
 
     # IDR = p_s * IDR_s + p_a * IDR_a
