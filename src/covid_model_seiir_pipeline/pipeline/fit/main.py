@@ -90,6 +90,8 @@ def fit_main(app_metadata: cli_tools.Metadata,
         if report:
             logger.warning(report)
 
+    logger.info(f'Fit version {specification.data.output_root} complete.')
+
 
 def get_broken_locations(draw_id: int,
                          data_interface: FitDataInterface,

@@ -1,8 +1,8 @@
 import functools
-import multiprocessing
 from typing import Any, Callable, List, Optional
 
 import pandas as pd
+from pathos import multiprocessing
 import tqdm
 
 
@@ -25,7 +25,7 @@ def run_parallel(runner: Callable,
         for arg in tqdm.tqdm(arg_list, disable=not progress_bar):
             result.append(runner(arg))
     else:
-        with multiprocessing.Pool(num_cores) as pool:
+        with multiprocessing.ProcessPool(num_cores) as pool:
             result = list(tqdm.tqdm(
                 pool.imap(runner, arg_list),
                 total=len(arg_list),

@@ -1,10 +1,7 @@
-import sys
 from collections import defaultdict
 from copy import deepcopy
 from typing import Dict, List
 import functools
-from pathos import multiprocessing
-from tqdm import tqdm
 
 from loguru import logger
 from mrtool import MRData
@@ -14,7 +11,8 @@ import pandas as pd
 
 from covid_model_seiir_pipeline.pipeline.fit.model.mrbrt import mrbrt
 from covid_model_seiir_pipeline.lib import (
-    utilities
+    utilities,
+    parallel,
 )
 
 
@@ -107,11 +105,12 @@ def run_level(model_name: str,
         child_cutoff_level=child_cutoff_level,
         global_mr_data=global_mr_data,
     )
-    with multiprocessing.ProcessPool(int(num_threads)) as p:
-        if progress_bar:
-            results = list(tqdm(p.imap(_rl, location_ids), total=len(location_ids), file=sys.stdout))
-        else:
-            results = list(p.imap(_rl, location_ids))
+    results = parallel.run_parallel(
+        _rl,
+        arg_list=location_ids,
+        num_cores=num_threads,
+        progress_bar=progress_bar,
+    )
     level_mr_model_dict = {location_id: result[0] for location_id, result in zip(location_ids, results)}
     level_prior_dicts = {location_id: result[1] for location_id, result in zip(location_ids, results)}
 
