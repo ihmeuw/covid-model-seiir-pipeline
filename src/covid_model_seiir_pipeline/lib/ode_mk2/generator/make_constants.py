@@ -245,21 +245,25 @@ SPECS = {
             ['Beta', 'none', 'none', 'admission'],
             ['Beta', 'none', 'none', 'case'],
 
+            ['Infection', 'none', 'ancestral', 'unvaccinated'],
             ['Infection', 'none', 'all', 'unvaccinated'],
             ['Infection', 'none', 'all', 'all'],
             ['Infection', 'all', 'all', 'all'],
             ['Infection', 'all', 'variant', 'all'],
 
+            ['Death', 'none', 'ancestral', 'unvaccinated'],
             ['Death', 'none', 'all', 'unvaccinated'],
             ['Death', 'none', 'all', 'all'],
             ['Death', 'all', 'all', 'all'],
             ['Death', 'all', 'variant', 'all'],
 
+            ['Admission', 'none', 'ancestral', 'unvaccinated'],
             ['Admission', 'none', 'all', 'unvaccinated'],
             ['Admission', 'none', 'all', 'all'],
             ['Admission', 'all', 'all', 'all'],
             ['Admission', 'all', 'variant', 'all'],
 
+            ['Case', 'none', 'ancestral', 'unvaccinated'],
             ['Case', 'none', 'all', 'unvaccinated'],
             ['Case', 'none', 'all', 'all'],
             ['Case', 'all', 'all', 'all'],
