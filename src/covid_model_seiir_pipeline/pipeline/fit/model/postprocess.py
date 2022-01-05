@@ -250,7 +250,7 @@ def make_ratio(numerator: pd.DataFrame, denominator: pd.DataFrame, duration: pd.
     out = []
     for draw in numerator.columns:
         draw_duration = duration.loc[draw]
-        out.append(numerator[draw] / denominator[draw].groupby('location_id').shift(draw_duration))
+        out.append(numerator[draw] / denominator[draw].groupby(['location_id', 'round']).shift(draw_duration))
     out = pd.concat(out, axis=1)
     return out
 
@@ -275,7 +275,7 @@ def make_measure_infections(posterior_measure: pd.DataFrame, prior_ratio: pd.Dat
     out = []
     for draw in posterior_measure.columns:
         draw_duration = duration.loc[draw]
-        out.append((posterior_measure[draw] / prior_ratio[draw]).groupby('location_id').shift(-draw_duration))
+        out.append((posterior_measure[draw] / prior_ratio[draw]).groupby(['location_id', 'round']).shift(-draw_duration))
     out = pd.concat(out, axis=1)
     return out
 
