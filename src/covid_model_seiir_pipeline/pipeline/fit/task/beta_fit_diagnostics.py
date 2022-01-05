@@ -163,12 +163,15 @@ def partition_data_dict(data_dicts: plotter.DataDict,
 
 @click.command()
 @cli_tools.with_task_fit_version
+@cli_tools.with_plot_type
 @cli_tools.with_progress_bar
 @cli_tools.add_verbose_and_with_debugger
 def beta_fit_diagnostics(fit_version: str,
+                         plot_type: str,
                          progress_bar: bool,
                          verbose: int, with_debugger: bool):
     cli_tools.configure_logging_to_terminal(verbose)
     run = cli_tools.handle_exceptions(run_beta_fit_diagnostics, logger, with_debugger)
     run(fit_version=fit_version,
+        plot_type=plot_type,
         progress_bar=progress_bar)

@@ -64,10 +64,11 @@ class BetaFitDiagnosticsTaskTemplate(workflow.TaskTemplate):
     command_template = (
         f"{shutil.which('stask')} "
         f"{FIT_JOBS.beta_fit_diagnostics} "
-        "--fit-version {fit_version} "        
+        "--fit-version {fit_version} "   
+        "--plot-type {plot_type} "
         "-vv"
     )
-    node_args = []
+    node_args = ['plot_type']
     task_args = ['fit_version']
 
 

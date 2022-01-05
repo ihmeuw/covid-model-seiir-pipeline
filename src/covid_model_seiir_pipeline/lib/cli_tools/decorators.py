@@ -138,6 +138,12 @@ with_scenario = click.option(
     required=True,
     help='The scenario to be run.',
 )
+with_plot_type = click.option(
+    '--plot-type', '-t',
+    type=click.STRING,
+    required=True,
+    help='Which type of plot to produce.',
+)
 with_measure = click.option(
     '--measure', '-m',
     type=click.STRING,
