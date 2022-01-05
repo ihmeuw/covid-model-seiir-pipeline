@@ -64,10 +64,11 @@ class BetaFitDiagnosticsTaskTemplate(workflow.TaskTemplate):
     command_template = (
         f"{shutil.which('stask')} "
         f"{FIT_JOBS.beta_fit_diagnostics} "
-        "--fit-version {fit_version} "        
+        "--fit-version {fit_version} "   
+        "--plot-type {plot_type} "
         "-vv"
     )
-    node_args = []
+    node_args = ['plot_type']
     task_args = ['fit_version']
 
 
@@ -82,7 +83,7 @@ class FitWorkflow(workflow.WorkflowTemplate):
         FIT_JOBS.beta_fit_diagnostics: BetaFitDiagnosticsTaskTemplate,
     }
 
-    def attach_tasks(self, n_draws: int, measures: List[str]):
+    def attach_tasks(self, n_draws: int, measures: List[str], plot_types: List[str]):
         covariate_template = self.task_templates[FIT_JOBS.covariate_pool]
         fit_template = self.task_templates[FIT_JOBS.beta_fit]
         join_template = self.task_templates[FIT_JOBS.beta_fit_join_sentinel]
@@ -93,8 +94,14 @@ class FitWorkflow(workflow.WorkflowTemplate):
         self.workflow.add_task(covariate_pool_task)
         join_task = join_template.get_task(fit_version=self.version, sentinel_id='postprocess')
         self.workflow.add_task(join_task)
-        diagnostics_task = diagnostics_template.get_task(fit_version=self.version)
-        self.workflow.add_task(diagnostics_task)
+        diagnostics_tasks = []
+        for plot_type in plot_types:
+            diagnostics_task = diagnostics_template.get_task(
+                fit_version=self.version,
+                plot_type=plot_type,
+            )
+            self.workflow.add_task(diagnostics_task)
+            diagnostics_tasks.append(diagnostics_task)
 
         for draw_id in range(n_draws):
             task = fit_template.get_task(
@@ -111,5 +118,6 @@ class FitWorkflow(workflow.WorkflowTemplate):
                 measure=measure,
             )
             task.add_upstream(join_task)
-            task.add_downstream(diagnostics_task)
+            for dt in diagnostics_tasks:
+                task.add_downstream(dt)
             self.workflow.add_task(task)

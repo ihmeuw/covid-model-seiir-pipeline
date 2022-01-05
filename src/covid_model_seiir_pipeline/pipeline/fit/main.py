@@ -14,7 +14,7 @@ from covid_model_seiir_pipeline.lib import (
 from covid_model_seiir_pipeline.pipeline.fit.specification import FitSpecification
 from covid_model_seiir_pipeline.pipeline.fit.data import FitDataInterface
 from covid_model_seiir_pipeline.pipeline.fit.workflow import FitWorkflow
-from covid_model_seiir_pipeline.pipeline.fit.model import postprocess
+from covid_model_seiir_pipeline.pipeline.fit.model import postprocess, plotter
 
 
 def do_fit(run_metadata: cli_tools.RunMetadata,
@@ -61,7 +61,12 @@ def fit_main(app_metadata: cli_tools.Metadata,
     # build workflow and launch
     if not preprocess_only:
         workflow = FitWorkflow(specification.data.output_root, specification.workflow)
-        workflow.attach_tasks(n_draws=data_interface.get_n_draws(), measures=list(postprocess.MEASURES))
+        plot_types = [plotter.PLOT_TYPE.model_fit]
+        if specification.data.compare_version:
+            plot_types.append(plotter.PLOT_TYPE.model_compare)
+        workflow.attach_tasks(n_draws=data_interface.get_n_draws(),
+                              measures=list(postprocess.MEASURES),
+                              plot_types=plot_types)
         try:
             workflow.run()
         except ihme_deps.WorkflowAlreadyComplete:
@@ -69,7 +74,6 @@ def fit_main(app_metadata: cli_tools.Metadata,
 
         # Check for bad locations
         total_population = data_interface.load_population(measure='total').population
-        pred_hierarchy = data_interface.load_hierarchy('pred')
 
         _runner = functools.partial(
             get_broken_locations,
@@ -147,10 +151,11 @@ def make_broken_location_report(broken_locations):
 @click.command()
 @cli_tools.pass_run_metadata()
 @cli_tools.with_specification(FitSpecification)
-@cli_tools.with_version(paths.SEIR_PREPROCESS_ROOT)
 @cli_tools.add_output_options(paths.SEIR_FIT_ROOT)
 @cli_tools.add_preprocess_only
 @cli_tools.add_verbose_and_with_debugger
+@cli_tools.with_version(paths.SEIR_PREPROCESS_ROOT)
+@cli_tools.with_version(paths.SEIR_FIT_ROOT, allow_default=False, name='compare')
 def fit(run_metadata: cli_tools.RunMetadata,
         specification: FitSpecification,
         output_root: str, mark_best: bool, production_tag: str,
