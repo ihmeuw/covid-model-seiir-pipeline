@@ -85,7 +85,6 @@ def run_beta_fit_diagnostics(fit_version: str, plot_type: str, progress_bar: boo
             data_interface=data_interface,
             start=start,
             end=end,
-            review=False,
             plot_root=plot_cache,
         )
 

@@ -49,7 +49,6 @@ def model_fit_plot(data: Tuple[Location, DataDict],
                    start: pd.Timestamp = pd.Timestamp(year=2020, month=2, day=1),
                    end: pd.Timestamp = pd.Timestamp.today(),
                    uncertainty: bool = False,
-                   review: bool = False,
                    plot_root: str = None):
     location, data_dictionary = data
     assert len(data_dictionary) == 1, "Multiple versions supplied for model fit plot."
@@ -249,44 +248,26 @@ def model_fit_plot(data: Tuple[Location, DataDict],
                          s=150, c='mediumorchid', edgecolors='darkmagenta', alpha=0.6, marker='o', zorder=2)
 
     group_axes = [ax_daily, ax_cumul]
-
-    if review:
-        dd = data_dictionary[version]
-        ax_stackplot = fig.add_subplot(gs_infecs[2])
-        naive_unvax = dd['posterior_cumulative_naive_unvaccinated_infections'].loc[:, 'mean'] * 100 / pop
-        naive = dd['posterior_cumulative_naive_infections'].loc[:, 'mean'] * 100 / pop
-        total = dd['posterior_cumulative_total_infections'].loc[:, 'mean'] * 100 / pop
-        ax_stackplot.stackplot(
-            naive_unvax.index,
-            naive_unvax,
-            naive - naive_unvax,
-            total - naive,
-        )
-        ax_stackplot.set_ylabel('Cumulative Infections (%)', fontsize=plotter.ax_label_fontsize)
-        plotter.format_date_axis(ax_stackplot)
-
-        group_axes.append(ax_stackplot)
-    else:
-        ax_beta = fig.add_subplot(gs_infecs[2])
-        for measure in ['deaths', 'hospitalizations', 'cases']:
-            plotter.make_time_plot(
-                ax=ax_beta,
-                measure=f'beta_{measure}',
-                color=MEASURE_COLORS[measure]['light'],
-                linestyle='--',
-                transform=np.log,
-            )
+    ax_beta = fig.add_subplot(gs_infecs[2])
+    for measure in ['deaths', 'hospitalizations', 'cases']:
         plotter.make_time_plot(
             ax=ax_beta,
-            measure='beta',
-            color='black',
-            label='Log Beta',
+            measure=f'beta_{measure}',
+            color=MEASURE_COLORS[measure]['light'],
+            linestyle='--',
             transform=np.log,
-            uncertainty=True,
         )
-        ax_beta.set_ylim(-3, 2)
+    plotter.make_time_plot(
+        ax=ax_beta,
+        measure='beta',
+        color='black',
+        label='Log Beta',
+        transform=np.log,
+        uncertainty=True,
+    )
+    ax_beta.set_ylim(-3, 2)
 
-        group_axes.append(ax_beta)
+    group_axes.append(ax_beta)
 
     plotter.clean_and_align_axes(fig, group_axes)
 
