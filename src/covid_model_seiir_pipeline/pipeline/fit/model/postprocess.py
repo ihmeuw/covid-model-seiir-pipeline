@@ -271,11 +271,18 @@ for ratio, measure, duration_measure in zip(['ifr', 'ihr', 'idr'],
     )
 
 
-def make_measure_infections(posterior_measure: pd.DataFrame, prior_ratio: pd.DataFrame):
-    return posterior_measure / prior_ratio
+def make_measure_infections(posterior_measure: pd.DataFrame, prior_ratio: pd.DataFrame, duration: pd.Series):
+    out = []
+    for draw in posterior_measure.columns:
+        draw_duration = duration.loc[draw]
+        out.append((posterior_measure[draw] / prior_ratio[draw]).groupby('location_id').shift(-draw_duration))
+    out = pd.concat(out, axis=1)
+    return out
 
 
-for measure, ratio in [('deaths', 'ifr'), ('hospitalizations', 'ihr'), ('cases', 'idr')]:
+for measure, ratio, duration_measure in [('deaths', 'ifr', 'death'),
+                                         ('hospitalizations', 'ihr', 'admission'),
+                                         ('cases', 'idr', 'case')]:
     description = (
         f'Posterior {{metric}} infections according to reported {measure} '
         f'among the unvaccinated and COVID-naive (those without a prior covid infection). '
@@ -286,6 +293,7 @@ for measure, ratio in [('deaths', 'ifr'), ('hospitalizations', 'ihr'), ('cases',
                        'prior_ratio': MEASURES[f'prior_{ratio}']},
         label=f'posterior_{measure}_based_daily_naive_unvaccinated_infections',
         cumulative_label=f'posterior_{measure}_based_cumulative_naive_unvaccinated_infections',
+        duration_label=f'exposure_to_{duration_measure}',
         combiner=make_measure_infections,
         description=description.format(metric='daily'),
         cumulative_description=description.format(metric='cumulative'),
