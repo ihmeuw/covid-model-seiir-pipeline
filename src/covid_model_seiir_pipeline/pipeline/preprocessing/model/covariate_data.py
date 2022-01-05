@@ -130,8 +130,11 @@ def preprocess_population_density(data_interface: PreprocessingDataInterface) ->
 
 def preprocess_testing_data(data_interface: PreprocessingDataInterface) -> None:
     logger.info('Loading raw testing data', context='read')
-    data = data_interface.load_raw_testing_data()
+    data = data_interface.load_raw_testing_data().set_index(['location_id', 'date'])
     hierarchy = data_interface.load_hierarchy('pred')
+    population = data_interface.load_population('total')
+    data.loc[:, 'population'] = population.reindex(data.index, level='location_id')
+    data = data.reset_index()
 
     logger.info('Processing testing for IDR calc and beta covariate', context='transform')
     testing_for_idr = _process_testing_for_idr(data.copy())
@@ -146,7 +149,6 @@ def preprocess_testing_data(data_interface: PreprocessingDataInterface) -> None:
 
 
 def _process_testing_for_idr(data: pd.DataFrame) -> pd.DataFrame:
-    data['population'] = data['population'].fillna(data['pop'])
     data['daily_tests'] = data['test_pc'] * data['population']
     data['cumulative_tests'] = data.groupby('location_id')['daily_tests'].cumsum()
     data = (data
