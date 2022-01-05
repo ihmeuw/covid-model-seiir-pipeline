@@ -40,30 +40,32 @@ def do_forecast(run_metadata: cli_tools.RunMetadata,
 
 
 def forecast_main(app_metadata: cli_tools.Metadata,
-                  forecast_specification: ForecastSpecification,
+                  specification: ForecastSpecification,
                   preprocess_only: bool):
-    logger.info(f'Starting beta forecast for version {forecast_specification.data.output_root}.')
+    logger.info(f'Starting beta forecast for version {specification.data.output_root}.')
 
-    data_interface = ForecastDataInterface.from_specification(forecast_specification)
+    data_interface = ForecastDataInterface.from_specification(specification)
 
     # Check scenario covariates the same as regression covariates and that
     # covariate data versions match.
-    # data_interface.check_covariates(forecast_specification.scenarios)
+    # data_interface.check_covariates(specification.scenarios)
 
-    data_interface.make_dirs(scenario=list(forecast_specification.scenarios))
-    data_interface.save_specification(forecast_specification)
+    data_interface.make_dirs(scenario=list(specification.scenarios))
+    data_interface.save_specification(specification)
 
     if not preprocess_only:
-        forecast_wf = ForecastWorkflow(forecast_specification.data.output_root,
-                                       forecast_specification.workflow)
+        forecast_wf = ForecastWorkflow(specification.data.output_root,
+                                       specification.workflow)
         n_draws = data_interface.get_n_draws()
 
         forecast_wf.attach_tasks(n_draws=n_draws,
-                                 scenarios=forecast_specification.scenarios)
+                                 scenarios=specification.scenarios)
         try:
             forecast_wf.run()
         except ihme_deps.WorkflowAlreadyComplete:
             logger.info('Workflow already complete')
+
+    logger.info(f'Forecast version {specification.data.output_root} complete.')
 
 
 @click.command()

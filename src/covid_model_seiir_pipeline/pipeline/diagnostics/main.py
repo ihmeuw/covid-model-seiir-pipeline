@@ -93,6 +93,8 @@ def diagnostics_main(app_metadata: cli_tools.Metadata,
         except ihme_deps.WorkflowAlreadyComplete:
             logger.info('Workflow already complete')
 
+    logger.info(f'Diagnostics version {diagnostics_specification.data.output_root} complete.')
+
 
 @click.command()
 @cli_tools.pass_run_metadata()
