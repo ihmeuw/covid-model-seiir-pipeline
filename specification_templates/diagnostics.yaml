@@ -8,13 +8,16 @@ grid_plots:
     date_start: '2020-03-01'
     date_end: '2022-12-01'
     comparators:
-      - version: '2021_12_19.04'
+      - version: '2021_12_21.08'
         scenarios:
-          reference*: 'reference'
-      - version: '2021_12_20.02'
+          reference*: 'public reference'
+      - version: '2022_01_05.01'
         scenarios:
-          reference*: 'IDR algo'
-      - version: '2021_12_20.03'
+          reference: 'kappa = 2'
+      - version: '2022_01_05.02'
         scenarios:
-          reference*: 'IDR algo but fixed'
+          reference: 'kappa = 2.5'
+      - version: '2022_01_05.03'
+        scenarios:
+          reference: 'kappa = 2.75'
 
