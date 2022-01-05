@@ -564,6 +564,10 @@ def bootstrap(sample: pd.DataFrame,):
     # just sample data we will use
     outliers = sample.loc[sample['is_outlier'] == 1].reset_index(drop=True)
     sample = sample.loc[sample['is_outlier'] == 0].reset_index(drop=True)
+    
+    # need ZAF in every sample
+    zaf = sample.loc[sample['location_id'] == 196].reset_index(drop=True)
+    sample = sample.loc[sample['location_id'] != 196].reset_index(drop=True)
 
     # stitch together
     random_state = utilities.get_random_state(f'bootstrap_{n}')
@@ -571,6 +575,7 @@ def bootstrap(sample: pd.DataFrame,):
     bootstrapped_rows = []
     for row in rows:
         bootstrapped_rows.append(sample.loc[[row]])
+    bootstrapped_rows.append(zaf)
     bootstrapped_rows.append(outliers)
     bootstrapped_sample = pd.concat(bootstrapped_rows).reset_index(drop=True)
 
