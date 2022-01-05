@@ -61,7 +61,7 @@ def fit_main(app_metadata: cli_tools.Metadata,
     # build workflow and launch
     if not preprocess_only:
         workflow = FitWorkflow(specification.data.output_root, specification.workflow)
-        plot_types = [plotter.PLOT_TYPE.model_fit]
+        plot_types = [plotter.PLOT_TYPE.model_fit, plotter.PLOT_TYPE.model_fit_tail]
         if specification.data.compare_version:
             plot_types.append(plotter.PLOT_TYPE.model_compare)
         workflow.attach_tasks(n_draws=data_interface.get_n_draws(),
