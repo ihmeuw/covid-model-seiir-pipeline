@@ -68,8 +68,8 @@ def build_model_parameters(indices: Indices,
     
     past_compartments_diff = past_compartments.groupby('location_id').diff().fillna(past_compartments)
     empirical_rhos = pd.concat([
-        (past_compartments_diff.filter(like=f'Infection_all_{v}_all').sum(axis=1, min_count=1)
-         / past_compartments_diff.filter(like='Infection_all_all_all').sum(axis=1, min_count=1)).rename(v)
+        (past_compartments_diff.filter(like=f'Infection_none_{v}_unvaccinated').sum(axis=1, min_count=1)
+         / past_compartments_diff.filter(like='Infection_none_all_unvaccinated').sum(axis=1, min_count=1)).rename(v)
         for v in VARIANT_NAMES[1:]
     ], axis=1)
     
