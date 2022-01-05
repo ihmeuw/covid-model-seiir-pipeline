@@ -140,7 +140,7 @@ def run_beta_fit(fit_version: str, draw_id: int, progress_bar: bool) -> None:
     idr_symptomatic = np.minimum(cumulative_idr, 0.45) / 0.5
     idr_asymptomatic = (cumulative_idr - np.minimum(cumulative_idr, 0.45)) / 0.5
     idr_asymptomatic = np.maximum(idr_asymptomatic, cumulative_idr * 0.1)
-    new_idr = 0.1 * idr_symptomatic + 0.9 * idr_asymptomatic
+    new_idr = 0.15 * idr_symptomatic + 0.85 * idr_asymptomatic
     sampled_ode_params['kappa_omicron_case'] = new_idr / cumulative_idr
     pct_unvaccinated = (
         (agg_first_pass_posterior_epi_measures['cumulative_naive_unvaccinated_infections']
