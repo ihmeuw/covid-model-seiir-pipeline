@@ -24,6 +24,7 @@ logger = cli_tools.task_performance_logger
 
 class __PlotType(NamedTuple):
     model_fit: str
+    model_fit_tail: str
     model_compare: str
 
 
