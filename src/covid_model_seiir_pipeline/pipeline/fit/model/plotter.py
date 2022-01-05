@@ -181,7 +181,7 @@ def model_fit_plot(data: Tuple[Location, DataDict],
                     color=MEASURE_COLORS[measure]['dark'],
                     marker='o',
                     facecolors='none',
-                    s=100
+                    s=100,
                 )
             except KeyError:
                 pass
@@ -396,7 +396,6 @@ def model_compare_plot(data: Tuple[Location, DataDict],
     ax_beta.set_ylim(-3, 2)
     group_axes.append(ax_beta)
     plotter.clean_and_align_axes(fig, group_axes)
-
     plotter.despine_and_make_title(fig)
     plotter.make_legend(fig)
 

@@ -164,7 +164,7 @@ class Plotter:
         for label, line_properties in self._version_style_map.items():
             handles.append(mlines.Line2D(
                 [], [],
-                label.title(),
+                label=label.title(),
                 linewidth=self.line_width,
                 **line_properties,
             ))

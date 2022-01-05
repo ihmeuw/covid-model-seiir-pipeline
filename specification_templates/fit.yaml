@@ -3,6 +3,7 @@ data:
   output_format: 'parquet'
   output_root: ''
   n_draws: 100
+  compare_version: '2021_12_21.11'
 workflow:
   project: 'proj_covid_prod'
   queue: 'all.q'

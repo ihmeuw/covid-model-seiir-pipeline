@@ -65,7 +65,7 @@ def run_beta_fit_diagnostics(fit_version: str, plot_type: str, progress_bar: boo
             round_id=version_round_id,
             num_cores=num_cores,
             progress_bar=progress_bar,
-        ) for version_name, (version_data_interface, version_round_id) in version_map
+        ) for version_name, (version_data_interface, version_round_id) in version_map.items()
     }
 
     logger.info('Partitioning data dictionary by location', context='partition')
