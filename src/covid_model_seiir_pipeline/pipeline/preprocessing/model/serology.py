@@ -564,7 +564,7 @@ def bootstrap(sample: pd.DataFrame,):
     # just sample data we will use
     outliers = sample.loc[sample['is_outlier'] == 1].reset_index(drop=True)
     sample = sample.loc[sample['is_outlier'] == 0].reset_index(drop=True)
-    
+
     # need ZAF in every sample
     zaf = sample.loc[sample['location_id'] == 196].reset_index(drop=True)
     sample = sample.loc[sample['location_id'] != 196].reset_index(drop=True)
