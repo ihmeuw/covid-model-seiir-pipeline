@@ -1,5 +1,5 @@
 data:
-  seir_preprocess_version: '2022_01_05.09'
+  seir_preprocess_version: '2022_01_05.10'
   output_format: 'parquet'
   output_root: ''
   n_draws: 100
@@ -48,7 +48,7 @@ fit_parameters:
   kappa_beta_infection: [1.0, 1.4]
   kappa_gamma_infection: [1.0, 1.4]
   kappa_delta_infection: [1.6, 2.0]
-  kappa_omicron_infection: [1.5, 2.5]
+  kappa_omicron_infection: [2.25, 3.25]
   kappa_other_infection: [1.0, 1.4]
   kappa_omega_infection: [2.25, 3.25]
 
