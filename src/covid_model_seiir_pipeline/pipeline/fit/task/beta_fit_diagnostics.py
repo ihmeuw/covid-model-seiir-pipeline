@@ -26,12 +26,15 @@ def run_beta_fit_diagnostics(fit_version: str, plot_type: str, progress_bar: boo
     data_interface = FitDataInterface.from_specification(specification)
     num_cores = specification.workflow.task_specifications[FIT_JOBS.beta_fit_diagnostics].num_cores
 
-    if plot_type == plotter.PLOT_TYPE.model_fit:
+    if plot_type in [plotter.PLOT_TYPE.model_fit, plotter.PLOT_TYPE.model_fit_tail]:
         output_root = Path(fit_version)
 
         version_map = {'reference': (data_interface, 2)}
         plot_function = plotter.model_fit_plot
-        output_path = output_root / f'past_infections_{output_root.name}.pdf'
+        if plot_type == plotter.PLOT_TYPE.model_fit:
+            output_path = output_root / f'past_infections_{output_root.name}.pdf'
+        else:
+            output_path = output_root / f'past_infections_{output_root.name}_tail.pdf'
         patterns = ['ies_{location_id}']
     elif plot_type == plotter.PLOT_TYPE.model_compare:
         output_root = Path(fit_version)
@@ -57,6 +60,8 @@ def run_beta_fit_diagnostics(fit_version: str, plot_type: str, progress_bar: boo
     deaths = data_interface.load_summary('daily_deaths').reset_index()
     # These have a standard index, so we're not clipping to any location.
     start, end = deaths.date.min(), deaths.date.max()
+    if plot_type == plotter.PLOT_TYPE.model_fit_tail:
+        start = end - pd.Timedelta(days=90)
 
     logger.info('Loading beta fit summary data', context='read')
     data_dicts = {

@@ -138,14 +138,14 @@ def run_beta_fit(fit_version: str, draw_id: int, progress_bar: bool) -> None:
     total_cases = compartments.filter(like='Case_all_all_all').sum(axis=1).groupby('location_id').max()
     max_idr = 0.9
     p_symptomatic_pre_omicron = 0.5
-    p_symptomatic_post_omicron = 0.175
+    p_symptomatic_post_omicron = 1 - model.sample_parameter('p_asymptomatic_omicron', draw_id=draw_id,
+                                                            lower=0.8, upper=0.9)
     minimum_asymptomatic_idr_fraction = 0.1
 
     # IDR = p_s * IDR_s + p_a * IDR_a
-    # IDR_s = (IDR - IDR_a * p_a) / p_s
-    # IDR_a >= .1 * IDR
-    cumulative_idr = np.minimum(total_cases / total_infections, max_idr)  # 0.2
-    # Asymptomatic IDR must be positive
+    # IDR_a = (IDR - IDR_s * p_s) / p_a
+    # IDR_a >= min_frac_a * IDR
+    cumulative_idr = np.minimum(total_cases / total_infections, max_idr)
     idr_asymptomatic = (cumulative_idr - max_idr * p_symptomatic_pre_omicron) / (1 - p_symptomatic_pre_omicron)
     idr_asymptomatic = np.maximum(idr_asymptomatic, cumulative_idr * minimum_asymptomatic_idr_fraction)
     idr_symptomatic = (cumulative_idr - idr_asymptomatic * (1 - p_symptomatic_pre_omicron)) / p_symptomatic_pre_omicron

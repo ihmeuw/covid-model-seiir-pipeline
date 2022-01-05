@@ -1,5 +1,5 @@
 data:
-  seir_preprocess_version: '2022_01_05.09'
+  seir_preprocess_version: '2022_01_05.10'
   output_format: 'parquet'
   output_root: ''
   n_draws: 100
@@ -29,8 +29,8 @@ rates_parameters:
   # Or a 3-tuple of [mean, lower, upper]
   ihr_risk_ratio: 'BMJ'
   idr_risk_ratio: [1.0, 1.0, 1.0]
-  omicron_ifr_scalar: [0.01, 0.03]
-  omicron_ihr_scalar: [0.04, 0.10]
+  omicron_ifr_scalar: [0.009375, 0.028125]  # 0.01875 +/- 50%
+  omicron_ihr_scalar: [0.0625, 0.1875]  # 0.125 +/- 50%
   # IDR is altered in second pass rates based on assumptions about the probability a disease is symptomatic.
   omicron_idr_scalar: 1.0
 fit_parameters:
@@ -48,7 +48,7 @@ fit_parameters:
   kappa_beta_infection: [1.0, 1.4]
   kappa_gamma_infection: [1.0, 1.4]
   kappa_delta_infection: [1.6, 2.0]
-  kappa_omicron_infection: [1.5, 2.5]
+  kappa_omicron_infection: [2.25, 3.25]
   kappa_other_infection: [1.0, 1.4]
   kappa_omega_infection: [2.25, 3.25]
 
