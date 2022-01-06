@@ -88,9 +88,12 @@ def make_results_page(plot_versions: List[PlotVersion],
     pop = pop.loc[(pop.age_group_id == 22) & (pop.sex_id == 3), 'population'].iloc[0]
 
     full_data = pv.load_output_miscellaneous('unscaled_full_data', is_table=True, location_id=location.id)
+    full_data = full_data.set_index('date')
     em_scalars = pv.load_output_miscellaneous('excess_mortality_scalars', is_table=True, location_id=location.id)
+    em_scalars = em_scalars.set_index('date').reindex(full_data.index).ffill().bfill()
     daily_deaths = full_data['cumulative_deaths'].diff().fillna(full_data['cumulative_deaths'])
     full_data['cumulative_deaths'] = (em_scalars['mean'] * daily_deaths).cumsum()
+    full_data = full_data.reset_index()
 
     # Configure the plot layout.
     fig = plt.figure(figsize=FIG_SIZE, tight_layout=True)
