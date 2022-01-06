@@ -33,6 +33,7 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
     past_compartments = data_interface.load_past_compartments(draw_id).loc[location_ids]
     past_compartments = past_compartments.loc[past_compartments.notnull().any(axis=1)]
     past_start_dates = past_compartments.reset_index(level='date').date.groupby('location_id').min()
+    beta_fit_end_dates = past_compartments.reset_index(level='date').date.groupby('location_id').max()
 
     # We want the forecast to start at the last date for which all reported measures
     # with at least one report in the location are present.
@@ -49,6 +50,7 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
     logger.info('Building indices', context='transform')
     indices = model.Indices(
         past_start_dates,
+        beta_fit_end_dates,
         forecast_start_dates,
         forecast_end_dates,
     )

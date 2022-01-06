@@ -37,13 +37,14 @@ def build_beta_final(indices: Indices,
                      beta_scale: Tuple[float, pd.Timestamp]):
     log_beta_hat = math.compute_beta_hat(covariates, coefficients)
     log_beta_hat.loc[pd.IndexSlice[:, log_beta_shift[1]:]] += log_beta_shift[0]
-    beta_hat = np.exp(log_beta_hat).loc[indices.future].rename('beta_hat').reset_index()
+    beta_future = indices.full.difference(indices.beta_fit)
+    beta_hat = np.exp(log_beta_hat).loc[beta_future].rename('beta_hat').reset_index()
 
     beta = (beta_shift(beta_hat, beta_shift_parameters)
             .set_index(['location_id', 'date'])
             .beta_hat
             .rename('beta'))
-    beta = beta_regression.reindex(indices.past).loc[:, 'beta'].append(beta).sort_index()
+    beta = beta_regression.reindex(indices.beta_fit).loc[:, 'beta'].append(beta).sort_index()
     beta.loc[pd.IndexSlice[:, beta_scale[1]:]] *= beta_scale[0]
     return beta, beta_hat.set_index(['location_id', 'date']).reindex(beta.index)
 
