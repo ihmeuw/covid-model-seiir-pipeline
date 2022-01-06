@@ -219,7 +219,7 @@ def make_details_page(plot_versions: List[PlotVersion],
     pop = pv.load_output_miscellaneous('populations', is_table=True, location_id=location.id)
     pop = pop.loc[(pop.age_group_id == 22) & (pop.sex_id == 3), 'population'].iloc[0]
     full_data_unscaled = pv.load_output_miscellaneous('unscaled_full_data', is_table=True, location_id=location.id)
-    # hospital_census = pv.load_output_miscellaneous('hospital_census_data', is_table=True, location_id=location.id)
+    hospital_census = pv.load_output_miscellaneous('hospital_census_data', is_table=True, location_id=location.id)
 
     # Configure the plot layout.
     fig = plt.figure(figsize=FIG_SIZE, tight_layout=True)
@@ -243,7 +243,7 @@ def make_details_page(plot_versions: List[PlotVersion],
 
     # Hospital model section
     axes = defaultdict(list)
-    for col, measure in enumerate(['hospital', 'icu']):
+    for col, (measure, observed_measure) in enumerate([('daily', 'hospital'), ('icu', 'icu')]):
         ax_daily = fig.add_subplot(gs_hospital[0, col])
         label = measure.upper() if measure == 'icu' else measure.title()
         plotter.make_time_plot(
@@ -252,7 +252,7 @@ def make_details_page(plot_versions: List[PlotVersion],
             label=f'{label} Admissions'
         )
 
-        if measure == 'hospital':
+        if observed_measure == 'hospital':
             plotter.make_observed_time_plot(
                 ax_daily,
                 full_data_unscaled['date'],
@@ -263,7 +263,7 @@ def make_details_page(plot_versions: List[PlotVersion],
         ax_correction = fig.add_subplot(gs_hospital[1, col])
         plotter.make_time_plot(
             ax_correction,
-            f'{measure}_census_correction_factor',
+            f'{observed_measure}_census_correction_factor',
             label=f'{label} Census Correction Factor'
         )
         axes[col].append(ax_correction)
@@ -271,14 +271,14 @@ def make_details_page(plot_versions: List[PlotVersion],
         ax_census = fig.add_subplot(gs_hospital[2, col])
         plotter.make_time_plot(
             ax_census,
-            f'{measure}_census',
+            f'{observed_measure}_census',
             label=f'{label} Census',
         )
-        # plotter.make_observed_time_plot(
-        #     ax_census,
-        #     hospital_census['date'],
-        #     hospital_census[f'{measure}_census'],
-        # )
+        plotter.make_observed_time_plot(
+            ax_census,
+            hospital_census['date'],
+            hospital_census[f'{observed_measure}_census'],
+        )
         axes[col].append(ax_census)
     for ax_set in axes.values():
         fig.align_ylabels(ax_set)
