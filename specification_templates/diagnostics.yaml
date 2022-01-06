@@ -11,13 +11,6 @@ grid_plots:
       - version: '2021_12_21.08'
         scenarios:
           reference*: 'public reference'
-      - version: '2022_01_05.04'
+      - version: '2022_01_05.07'
         scenarios:
-          reference: 'kappa = 2'
-      - version: '2022_01_05.05'
-        scenarios:
-          reference: 'kappa = 2.5'
-      - version: '2022_01_05.06'
-        scenarios:
-          reference*: 'kappa = 2.75'
-
+          reference: 'new reference'
