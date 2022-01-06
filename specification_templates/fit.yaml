@@ -6,7 +6,7 @@ data:
   compare_version: '2021_12_21.11'
 workflow:
   project: 'proj_covid_prod'
-  queue: 'all.q'
+  queue: 'd.q'
 rates_parameters:
   day_0: '2020-03-15'
   pred_start_date: '2019-11-01'
