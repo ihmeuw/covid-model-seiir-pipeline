@@ -89,7 +89,7 @@ measure_downweights:
       ]
     admission:
       [
-        [   90, 0.50],  # Netherlands
+        [   90, 0.50],  # Norway
         [  191, 0.01],  # Zambia
         [  196, 0.01],  # South Africa
       ]
