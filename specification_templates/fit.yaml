@@ -1,5 +1,5 @@
 data:
-  seir_preprocess_version: '2022_01_05.10'
+  seir_preprocess_version: '2022_01_05.11'
   output_format: 'parquet'
   output_root: ''
   n_draws: 100
@@ -77,6 +77,7 @@ measure_downweights:
         # bad fits
         [  121, 0.10],  # Bolivia
         [  160, 0.01],  # Afghanistan
+        [  182, 0.10],  # Malawi
         [  191, 0.01],  # Zambia
         [  193, 0.01],  # Botswana
         [  194, 0.01],  # Lesotho
@@ -88,7 +89,9 @@ measure_downweights:
       ]
     admission:
       [
-        [  196, 0.00],  # South Africa
+        [   90, 0.50],  # Netherlands
+        [  191, 0.01],  # Zambia
+        [  196, 0.01],  # South Africa
       ]
     case:
       [
