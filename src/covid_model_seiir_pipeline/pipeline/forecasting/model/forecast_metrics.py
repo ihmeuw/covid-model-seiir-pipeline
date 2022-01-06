@@ -202,7 +202,7 @@ def compute_corrected_hospital_usage(admissions: pd.DataFrame,
     lag = ode_params['exposure_to_death'].iloc[0] - ode_params['exposure_to_admission'].iloc[0]
     admissions = admissions['modeled_admissions_total'].groupby('location_id').shift(lag)
     deaths = deaths['modeled_deaths_total']
-    hfr = deaths / admissions
+    hfr = admissions / deaths
     hfr[(hfr < 1) | ~np.isfinite(hfr)] = 1
     hospital_usage = compute_hospital_usage(
         admissions,
