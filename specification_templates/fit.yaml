@@ -81,12 +81,14 @@ measure_downweights:
         [  193, 0.01],  # Botswana
         [  194, 0.01],  # Lesotho
         [  195, 0.01],  # Namibia
-        [  197,   0.],  # Eswatini
+        [  196, 0.01],  # South Africa
+        [  197, 0.00],  # Eswatini
         [  198, 0.10],  # Zimbabwe
         [53617, 0.10],  # Gilgit-Baltistan
       ]
     admission:
       [
+        [  196, 0.01],  # South Africa
       ]
     case:
       [
