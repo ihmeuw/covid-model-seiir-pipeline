@@ -96,6 +96,7 @@ def _load_admissions_and_hfr_draw(draw_id: int,
     cols = [f'{measure}_all_all_all_{group}' for measure, group
             in itertools.product(['Infection', 'Death', 'Admission'], RISK_GROUP_NAMES)]
     compartments = data_interface.load_compartments(draw_id, columns=cols).reindex(index)
+    compartments = compartments.groupby('location_id').diff().fillna(compartments)
     deaths = compartments.filter(like='Death').sum(axis=1).groupby('location_id').shift(death_lag)
     admissions = compartments.filter(like='Admission').sum(axis=1).groupby('location_id').shift(admission_lag)
 
