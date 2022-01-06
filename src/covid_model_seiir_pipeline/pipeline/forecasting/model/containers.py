@@ -17,7 +17,7 @@ class Indices:
                  forecast_start_dates: pd.Series,
                  forecast_end_dates: pd.Series):
         self._past_index = self._build_index(past_start_dates, forecast_start_dates, pd.Timedelta(days=1))
-        self._beta_fit_index = self._build_index(past_start_dates, forecast_start_dates)
+        self._beta_fit_index = self._build_index(past_start_dates, beta_fit_end_dates)
         self._future_index = self._build_index(forecast_start_dates, forecast_end_dates)
         self._initial_condition_index = (
             forecast_start_dates
