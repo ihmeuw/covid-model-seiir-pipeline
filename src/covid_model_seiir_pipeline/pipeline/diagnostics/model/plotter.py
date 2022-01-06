@@ -88,6 +88,12 @@ def make_results_page(plot_versions: List[PlotVersion],
     pop = pop.loc[(pop.age_group_id == 22) & (pop.sex_id == 3), 'population'].iloc[0]
 
     full_data = pv.load_output_miscellaneous('unscaled_full_data', is_table=True, location_id=location.id)
+    full_data = full_data.set_index('date')
+    em_scalars = pv.load_output_miscellaneous('excess_mortality_scalars', is_table=True, location_id=location.id)
+    em_scalars = em_scalars.set_index('date').reindex(full_data.index).ffill().bfill()
+    daily_deaths = full_data['cumulative_deaths'].diff().fillna(full_data['cumulative_deaths'])
+    full_data['cumulative_deaths'] = (em_scalars['mean'] * daily_deaths).cumsum()
+    full_data = full_data.reset_index()
 
     # Configure the plot layout.
     fig = plt.figure(figsize=FIG_SIZE, tight_layout=True)
@@ -125,12 +131,12 @@ def make_results_page(plot_versions: List[PlotVersion],
         plotter.make_observed_time_plot(
              ax_measure,
              full_data['date'],
-             full_data[full_data_measure].diff(),
+             full_data[full_data_measure].diff().fillna(full_data[full_data_measure]),
         )
 
-        if measure == 'daily_deaths':
-            # Mandate reimposition level.
-            ax_measure.hlines([8 * pop / 1e6], start, end)
+        # if measure == 'daily_deaths':
+        #     # Mandate reimposition level.
+        #     ax_measure.hlines([8 * pop / 1e6], start, end)
         group_axes.append(ax_measure)
     fig.align_ylabels(group_axes)
 
@@ -162,18 +168,12 @@ def make_results_page(plot_versions: List[PlotVersion],
         ('infection_fatality_ratio_es', 'infection_fatality_ratio', 'IFR'),
     ]
     for i, (ies_measure, measure, label) in enumerate(rates_measures):
-        #rate = pv.load_output_summaries(ies_measure, location.id)
         ax_measure = fig.add_subplot(gs_rates[2*i + 1])
         plotter.make_time_plot(
             ax_measure,
             measure,
             label=label
         )
-        # plotter.make_observed_time_plot(
-        #     ax_measure,
-        #     rate['date'],
-        #     rate['mean'],
-        # )
         group_axes.append(ax_measure)
 
         # # Sometimes weird stuff at the start of the series.

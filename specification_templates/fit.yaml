@@ -1,5 +1,5 @@
 data:
-  seir_preprocess_version: '2022_01_05.11'
+  seir_preprocess_version: '2022_01_05.10'
   output_format: 'parquet'
   output_root: ''
   n_draws: 100
@@ -82,16 +82,14 @@ measure_downweights:
         [  193, 0.01],  # Botswana
         [  194, 0.01],  # Lesotho
         [  195, 0.01],  # Namibia
-        [  196, 0.01],  # South Africa
         [  197, 0.00],  # Eswatini
         [  198, 0.10],  # Zimbabwe
         [53617, 0.10],  # Gilgit-Baltistan
       ]
     admission:
       [
-        [   90, 0.50],  # Norway
         [  191, 0.01],  # Zambia
-        [  196, 0.01],  # South Africa
+        [  196, 0.00],  # South Africa
       ]
     case:
       [
