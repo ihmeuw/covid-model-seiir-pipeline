@@ -1,5 +1,5 @@
 data:
-  seir_preprocess_version: '2022_01_05.10'
+  seir_preprocess_version: '2022_01_05.11'
   output_format: 'parquet'
   output_root: ''
   n_draws: 100
@@ -48,9 +48,9 @@ fit_parameters:
   kappa_beta_infection: [1.0, 1.4]
   kappa_gamma_infection: [1.0, 1.4]
   kappa_delta_infection: [1.6, 2.0]
-  kappa_omicron_infection: [2.25, 3.25]
+  kappa_omicron_infection: [2.0, 3.0]
   kappa_other_infection: [1.0, 1.4]
-  kappa_omega_infection: [2.25, 3.25]
+  kappa_omega_infection: [2.0, 3.0]
 
   # (1 - breakthrough probability) for a variant.
   phi_ancestral_infection: 1.0
@@ -77,15 +77,21 @@ measure_downweights:
         # bad fits
         [  121, 0.10],  # Bolivia
         [  160, 0.01],  # Afghanistan
+        [  182, 0.10],  # Malawi
+        [  191, 0.01],  # Zambia
         [  193, 0.01],  # Botswana
         [  194, 0.01],  # Lesotho
         [  195, 0.01],  # Namibia
-        [  197,   0.],  # Eswatini
+        [  196, 0.01],  # South Africa
+        [  197, 0.00],  # Eswatini
         [  198, 0.10],  # Zimbabwe
         [53617, 0.10],  # Gilgit-Baltistan
       ]
     admission:
       [
+        [   90, 0.50],  # Norway
+        [  191, 0.01],  # Zambia
+        [  196, 0.01],  # South Africa
       ]
     case:
       [
