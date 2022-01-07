@@ -6,24 +6,14 @@ workflow:
 grid_plots:
   - name: 'compare_longrange'
     date_start: '2020-03-01'
-    date_end: '2022-12-01'
+    date_end: '2022-12-31'
     comparators:
       - version: '2021_12_21.08'
         scenarios:
-          reference: 'public reference'
-      - version: '2022_01_06.03'
+          reference*: 'public reference'
+      - version: '2022_01_07.05'
         scenarios:
-          reference*: 'new reference'
-  - name: 'compare_shortrange'
-    date_start: '2021-01-01'
-    date_end: '2022-05-01'
-    comparators:
-      - version: '2022_01_06.06'
+          reference*: 'reference'
+      - version: '2022_01_06.12'
         scenarios:
-          reference*: 'ZAF altered'
-      - version: '2022_01_06.03'
-        scenarios:
-          reference: 'AM version'
-      - version: '2021_12_21.08'
-        scenarios:
-          reference: 'public reference'
+          reference*: 'before update'
