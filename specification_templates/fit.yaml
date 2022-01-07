@@ -3,10 +3,10 @@ data:
   output_format: 'parquet'
   output_root: ''
   n_draws: 100
-  compare_version: '2021_12_21.11'
+  compare_version: '2022_01_06.12'
 workflow:
   project: 'proj_covid_prod'
-  queue: 'long.q'
+  queue: 'all.q'
 rates_parameters:
   day_0: '2020-03-15'
   pred_start_date: '2019-11-01'

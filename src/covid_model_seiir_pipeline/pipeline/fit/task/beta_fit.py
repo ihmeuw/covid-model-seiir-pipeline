@@ -134,27 +134,32 @@ def run_beta_fit(fit_version: str, draw_id: int, progress_bar: bool) -> None:
         hierarchy=mr_hierarchy
     )
 
-    total_infections = compartments.filter(like='Infection_all_all_all').sum(axis=1).groupby('location_id').max()
-    total_cases = compartments.filter(like='Case_all_all_all').sum(axis=1).groupby('location_id').max()
+    delta_infections = compartments.filter(like='Infection_all_delta_all').sum(axis=1).groupby('location_id').max()
+    delta_cases = compartments.filter(like='Case_all_delta_all').sum(axis=1).groupby('location_id').max()
+    all_infections = compartments.filter(like='Infection_all_all_all').sum(axis=1).groupby('location_id').max()
+    all_cases = compartments.filter(like='Case_all_all_all').sum(axis=1).groupby('location_id').max()
     max_idr = 0.9
     p_symptomatic_pre_omicron = 0.5
     p_symptomatic_post_omicron = 1 - model.sample_parameter('p_asymptomatic_omicron', draw_id=draw_id,
                                                             lower=0.8, upper=0.9)
     minimum_asymptomatic_idr_fraction = 0.1
+    maximum_asymptomatic_idr = 0.33
 
     # IDR = p_s * IDR_s + p_a * IDR_a
     # IDR_a = (IDR - IDR_s * p_s) / p_a
     # IDR_a >= min_frac_a * IDR
-    cumulative_idr = np.minimum(total_cases / total_infections, max_idr)
-    idr_asymptomatic = (cumulative_idr - max_idr * p_symptomatic_pre_omicron) / (1 - p_symptomatic_pre_omicron)
-    # HACK: ZAF is too low.
-    _cumulative_idr = cumulative_idr.copy()
-    _cumulative_idr.loc[196] = 0
-    idr_asymptomatic = np.maximum(idr_asymptomatic, _cumulative_idr * minimum_asymptomatic_idr_fraction)
-    idr_symptomatic = (cumulative_idr - idr_asymptomatic * (1 - p_symptomatic_pre_omicron)) / p_symptomatic_pre_omicron
-    new_idr = p_symptomatic_post_omicron * idr_symptomatic + (1 - p_symptomatic_post_omicron) * idr_asymptomatic
+    # IDR_a <= 0.33 [post]
+    delta_idr = delta_cases / delta_infections
+    delta_idr = delta_idr.fillna(all_cases / all_infections)
+    capped_delta_idr = np.minimum(delta_idr, max_idr)
+    capped_delta_idr.loc[196] *= 0.5
+    idr_asymptomatic = (capped_delta_idr - max_idr * p_symptomatic_pre_omicron) / (1 - p_symptomatic_pre_omicron)
+    idr_asymptomatic = np.maximum(idr_asymptomatic, capped_delta_idr * minimum_asymptomatic_idr_fraction)
+    idr_symptomatic = (capped_delta_idr - idr_asymptomatic * (1 - p_symptomatic_pre_omicron)) / p_symptomatic_pre_omicron
+    idr_asymptomatic = np.minimum(idr_asymptomatic, maximum_asymptomatic_idr)
+    omicron_idr = p_symptomatic_post_omicron * idr_symptomatic + (1 - p_symptomatic_post_omicron) * idr_asymptomatic
 
-    sampled_ode_params['kappa_omicron_case'] = new_idr / cumulative_idr
+    sampled_ode_params['kappa_omicron_case'] = omicron_idr / delta_idr
     pct_unvaccinated = (
         (agg_first_pass_posterior_epi_measures['cumulative_naive_unvaccinated_infections']
          / agg_first_pass_posterior_epi_measures['cumulative_naive_infections'])
