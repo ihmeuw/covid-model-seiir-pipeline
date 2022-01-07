@@ -9,7 +9,7 @@ data:
   output_root: ''
 workflow:
   project: 'proj_covid_prod'
-  queue: 'd.q'
+  queue: 'long.q'
 resampling:
   reference_scenario: 'reference'
   reference_date: '2021-12-31'
