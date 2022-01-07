@@ -179,6 +179,9 @@ def preprocess_variant_prevalence(data_interface: PreprocessingDataInterface) ->
 
         logger.info('Parsing into WHO variant of concern.', context='transform')
         data = _process_variants_of_concern(data)
+
+        shifts = pd.read_csv('invasion_date_hardcodes.csv').set_index('location_id')['invasion_dates_a']
+        import pdb; pdb.set_trace()
         data = helpers.parent_inheritance(data, hierarchy)
 
         logger.info(f'Writing {scenario} scenario data.', context='write')
