@@ -147,7 +147,10 @@ def run_beta_fit(fit_version: str, draw_id: int, progress_bar: bool) -> None:
     # IDR_a >= min_frac_a * IDR
     cumulative_idr = np.minimum(total_cases / total_infections, max_idr)
     idr_asymptomatic = (cumulative_idr - max_idr * p_symptomatic_pre_omicron) / (1 - p_symptomatic_pre_omicron)
-    idr_asymptomatic = np.maximum(idr_asymptomatic, cumulative_idr * minimum_asymptomatic_idr_fraction)
+    # HACK: ZAF is too low.
+    _cumulative_idr = cumulative_idr.copy()
+    _cumulative_idr.loc[196] = 0
+    idr_asymptomatic = np.maximum(idr_asymptomatic, _cumulative_idr * minimum_asymptomatic_idr_fraction)
     idr_symptomatic = (cumulative_idr - idr_asymptomatic * (1 - p_symptomatic_pre_omicron)) / p_symptomatic_pre_omicron
     new_idr = p_symptomatic_post_omicron * idr_symptomatic + (1 - p_symptomatic_post_omicron) * idr_asymptomatic
 
