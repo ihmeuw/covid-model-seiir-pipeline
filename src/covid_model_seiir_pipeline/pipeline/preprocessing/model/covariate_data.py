@@ -184,7 +184,7 @@ def preprocess_variant_prevalence(data_interface: PreprocessingDataInterface) ->
         data = data.set_index(['location_id', 'date'])
 
         p = Path(__file__).parent / 'invasion_date_hardcodes.csv'
-        target_dates = pd.read_csv(p).set_index('location_id')['invasion_date_a']
+        target_dates = pd.read_csv(p).set_index('location_id')['invasion_date_c']
         target_dates = pd.to_datetime(target_dates)
         shifts = (target_dates - invasion_dates.loc[target_dates.index])
         shifts = shifts[shifts != pd.Timedelta(days=0)].dt.days.to_dict()
