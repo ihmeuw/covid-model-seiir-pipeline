@@ -43,12 +43,6 @@ def maybe_invade(t: float,
                 + group_y[COMPARTMENTS[COMPARTMENT.I, vaccine_status, variant]]
             )
 
-    # At least 1 person if more than 1 person available
-    min_invasion = 1.0
-    # At most .5% of the total susceptible population
-    max_invasion = 0.005 * total_susceptible
-    delta = max(min(pi * total_exposed, max_invasion), min_invasion)
-
     for variant_to in VARIANT:
         no_variant_present = params[PARAMETERS[VARIANT_PARAMETER.rho, variant_to, EPI_MEASURE.infection]] < 0.01
         already_invaded = False
@@ -59,6 +53,18 @@ def maybe_invade(t: float,
         # Short circuit if we don't have variant invasion this step
         if no_variant_present or already_invaded:
             continue
+
+        # At least 1 person if more than 1 person available
+        min_invasion = 1.0
+        if variant_to == VARIANT.omicron:
+            # At most 5% of the total susceptible population
+            max_invasion = 0.05 * total_susceptible
+            pi = 0.1
+        else:
+            # At most .5% of the total susceptible population
+            max_invasion = 0.005 * total_susceptible
+
+        delta = max(min(pi * total_exposed, max_invasion), min_invasion)
 
         for risk_group in RISK_GROUP:
             group_y = utils.subset_risk_group(y, risk_group)
