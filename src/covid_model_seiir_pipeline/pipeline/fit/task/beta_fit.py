@@ -152,7 +152,7 @@ def run_beta_fit(fit_version: str, draw_id: int, progress_bar: bool) -> None:
     delta_idr = delta_cases / delta_infections
     delta_idr = delta_idr.fillna(all_cases / all_infections)
     capped_delta_idr = np.minimum(delta_idr, max_idr)
-    capped_delta_idr.loc[196] *= 0.5
+    # capped_delta_idr.loc[196] *= 0.5
     idr_asymptomatic = (capped_delta_idr - max_idr * p_symptomatic_pre_omicron) / (1 - p_symptomatic_pre_omicron)
     idr_asymptomatic = np.maximum(idr_asymptomatic, capped_delta_idr * minimum_asymptomatic_idr_fraction)
     idr_symptomatic = (capped_delta_idr - idr_asymptomatic * (1 - p_symptomatic_pre_omicron)) / p_symptomatic_pre_omicron

@@ -1,5 +1,5 @@
 data:
-  seir_preprocess_version: '2022_01_07.02'
+  seir_preprocess_version: '2022_01_11.02'
   output_format: 'parquet'
   output_root: ''
   n_draws: 100
@@ -37,9 +37,23 @@ fit_parameters:
   # Mixing parameter.  dS/dt = -beta * S * I ** alpha
   alpha: [0.9, 1.0]
   # 1 / incubation period.  dE/dt = -dS/dt - sigma * E
-  sigma: [0.2, 0.3333]
+  sigma_ancestral: [0.2, 0.3333]
+  sigma_alpha: [0.2, 0.3333]
+  sigma_beta: [0.2, 0.3333]
+  sigma_gamma: [0.2, 0.3333]
+  sigma_delta: [0.2, 0.3333]
+  sigma_omicron: [0.25, 1.0]
+  sigma_other: [0.2, 0.3333]
+  sigma_omega: [0.25, 1.0]
   # 1 / duration infectious.  dI1/dt = sigma * E - gamma * I
-  gamma1: [0.2, 0.3333]
+  gamma1_ancestral: [0.2, 0.3333]
+  gamma1_alpha: [0.2, 0.3333]
+  gamma1_beta: [0.2, 0.3333]
+  gamma1_gamma: [0.2, 0.3333]
+  gamma1_delta: [0.2, 0.3333]
+  gamma1_omicron: [0.2, 0.3333]
+  gamma1_other: [0.2, 0.3333]
+  gamma1_omega: [0.2, 0.3333]
   # Proportion of current E to send to variant E on invasion.
   pi: [0.01, 0.1]
   # proportion increase in transmission intensity
@@ -48,10 +62,9 @@ fit_parameters:
   kappa_beta_infection: [1.0, 1.4]
   kappa_gamma_infection: [1.0, 1.4]
   kappa_delta_infection: [1.6, 2.0]
-  kappa_omicron_infection: [2.0, 3.0]
+  kappa_omicron_infection: [2.5, 3.5]
   kappa_other_infection: [1.0, 1.4]
-  kappa_omega_infection: [2.0, 3.0]
-
+  kappa_omega_infection: [2.5, 3.5]
   # (1 - breakthrough probability) for a variant.
   phi_ancestral_infection: 1.0
   phi_alpha_infection: 1.0
@@ -62,38 +75,37 @@ fit_parameters:
   phi_other_infection: [0.7, 0.9]
   phi_omega_infection: [0.0, 0.2]
 measure_downweights:
-    death:
-      [
-        # IFR outliers
-        [   35, 0.50],  # Georgia
-        [   41, 0.50],  # Uzbekistan
-        [   43, 0.50],  # Albania
-        [   62, 0.10],  # Russia
-        [  141, 0.50],  # Egypt
-        [  151, 0.10],  # Qatar
-        [53619, 0.50],  # Khyber Pakhtunkhwa
-        [  214, 0.10],  # Nigeria
-
-        # bad fits
-        [  121, 0.10],  # Bolivia
-        [  160, 0.01],  # Afghanistan
-        [  182, 0.10],  # Malawi
-        [  191, 0.01],  # Zambia
-        [  193, 0.01],  # Botswana
-        [  194, 0.01],  # Lesotho
-        [  195, 0.01],  # Namibia
-        [  196, 0.00],  # South Africa
-        [  197, 0.00],  # Eswatini
-        [  198, 0.10],  # Zimbabwe
-        [53617, 0.10],  # Gilgit-Baltistan
-      ]
-    admission:
-      [
-        [  191, 0.01],  # Zambia
-        [  196, 0.00],  # South Africa
-      ]
-    case:
-      [
-        [  176, 0.01],  # Comoros
-        [  215, 0.01],  # Sao Tome and Principe
-      ]
+  death:
+    [
+      # IFR outliers
+      [   35, 0.50],  # Georgia
+      [   41, 0.50],  # Uzbekistan
+      [   43, 0.50],  # Albania
+      [   62, 0.10],  # Russia
+      [  141, 0.50],  # Egypt
+      [  151, 0.10],  # Qatar
+      [53619, 0.50],  # Khyber Pakhtunkhwa
+      [  214, 0.10],  # Nigeria
+      # bad fits
+      [  121, 0.10],  # Bolivia
+      [  160, 0.01],  # Afghanistan
+      [  182, 0.10],  # Malawi
+      [  191, 0.01],  # Zambia
+      [  193, 0.01],  # Botswana
+      [  194, 0.01],  # Lesotho
+      [  195, 0.01],  # Namibia
+      [  196, 0.00],  # South Africa
+      [  197, 0.00],  # Eswatini
+      [  198, 0.10],  # Zimbabwe
+      [53617, 0.10],  # Gilgit-Baltistan
+    ]
+  admission:
+    [
+      [  191, 0.01],  # Zambia
+      [  196, 0.00],  # South Africa
+    ]
+  case:
+    [
+      [  176, 0.01],  # Comoros
+      [  215, 0.01],  # Sao Tome and Principe
+    ]

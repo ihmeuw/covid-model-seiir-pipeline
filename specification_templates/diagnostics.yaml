@@ -8,12 +8,15 @@ grid_plots:
     date_start: '2020-03-01'
     date_end: '2022-12-31'
     comparators:
-      - version: '2021_12_21.08'
+      - version: '2022_01_10.03'
         scenarios:
-          reference*: 'public reference'
-      - version: '2022_01_07.05'
+          reference*: 'prod specs (sigma: 1/4)'
+      - version: '2022_01_11.01'
         scenarios:
-          reference*: 'reference'
-      - version: '2022_01_06.12'
+          reference*: 'kappa: 2.50'
+      - version: '2022_01_11.02'
         scenarios:
-          reference*: 'before update'
+          reference*: 'kappa: 2.75'
+      - version: '2022_01_11.03'
+        scenarios:
+          reference*: 'kappa: 3.00'
