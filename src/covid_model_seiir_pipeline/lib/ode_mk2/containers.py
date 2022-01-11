@@ -25,7 +25,8 @@ class Parameters:
                  age_scalars: pd.DataFrame,
                  etas: pd.DataFrame,
                  phis: pd.DataFrame):
-        self.base_parameters = base_parameters.loc[:, PARAMETERS_NAMES]
+        field_names = [name for name in PARAMETERS_NAMES if not (name.startswith(('sigma', 'gamma')) and not name.endswith('infection'))]
+        self.base_parameters = base_parameters.loc[:, field_names]
 
         field_names = self._make_risk_group_fields(['vaccinations', 'boosters'])
         self.vaccinations = vaccinations.loc[:, field_names]
