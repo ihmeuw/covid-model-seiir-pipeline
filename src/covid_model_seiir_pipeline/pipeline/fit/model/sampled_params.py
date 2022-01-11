@@ -118,7 +118,7 @@ def sample_ode_params(variant_rr: VariantRR,
                 b = y1 - m * x1
                 phis[variant] = m * value + b
 
-        key = parameter if 'kappa' in parameter else f'{parameter}_all_infection'
+        key = parameter if any([p in parameter for p in ['sigma', 'gamma', 'kappa']]) else f'{parameter}_all_infection'
         sampled_params[key] = value
 
     s = -12345.0
