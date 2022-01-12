@@ -238,16 +238,16 @@ def compute_r(model_params: Parameters,
 
     for label in list(VARIANT_NAMES[1:]) + ['total']:
         sigma, gamma = base_params.loc[:, f'sigma_{label}_infection'], base_params.loc[:, f'gamma_{label}_infection']
-        average_generation_time = ((1 / sigma + 1 / gamma)
-                                   .round()
-                                   .groupby('location_id').bfill()
-                                   .astype(int)
-                                   .rename('average_generation_time'))
+        generation_time = ((1 / sigma + 1 / gamma)
+                           .round()
+                           .groupby('location_id').bfill()
+                           .astype(int)
+                           .rename('generation_time'))
         infections = system_metrics.loc[:, f'modeled_infections_{label}']
-        for agt in average_generation_time.unique():
-            r.loc[average_generation_time == agt, f'r_effective_{label}'] = (infections
-                                                                             .groupby('location_id')
-                                                                             .apply(lambda x: x / x.shift(agt)))
+        for gt in generation_time.unique():
+            r.loc[generation_time == gt, f'r_effective_{label}'] = (infections
+                                                                    .groupby('location_id')
+                                                                    .apply(lambda x: x / x.shift(gt)))
         susceptible = system_metrics.loc[:, f'susceptible_{label}']
         r[f'r_controlled_{label}'] = r[f'r_effective_{label}'] * population / susceptible
 
