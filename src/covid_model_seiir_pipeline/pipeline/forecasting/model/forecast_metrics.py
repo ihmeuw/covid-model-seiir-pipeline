@@ -229,15 +229,26 @@ def compute_r(model_params: Parameters,
 
     base_params = model_params.base_parameters
     population = system_metrics.total_population
-    sigma, gamma = base_params.sigma_all_infection, base_params.gamma_all_infection
-    average_generation_time = int(round((1 / sigma + 1 / gamma).mean()))
+
+    base_params['sigma_total_infection'] = 0
+    base_params['gamma_total_infection'] = 0
+    for v in VARIANT_NAMES[1:]:
+        base_params['sigma_total_infection'] += base_params[f'rho_{v}_infection'] * base_params[f'sigma_{v}_infection']
+        base_params['gamma_total_infection'] += base_params[f'rho_{v}_infection'] * base_params[f'gamma_{v}_infection']
 
     for label in list(VARIANT_NAMES[1:]) + ['total']:
-        infections = system_metrics[f'modeled_infections_{label}']
-        susceptible = system_metrics[f'susceptible_{label}']
-        r[f'r_effective_{label}'] = (infections
-                                     .groupby('location_id')
-                                     .apply(lambda x: x / x.shift(average_generation_time)))
+        sigma, gamma = base_params.loc[:, f'sigma_{label}_infection'], base_params.loc[:, f'gamma_{label}_infection']
+        average_generation_time = ((1 / sigma + 1 / gamma)
+                                   .round()
+                                   .groupby('location_id').bfill()
+                                   .astype(int)
+                                   .rename('average_generation_time'))
+        infections = system_metrics.loc[:, f'modeled_infections_{label}']
+        for agt in average_generation_time.unique():
+            r.loc[average_generation_time == agt, f'r_effective_{label}'] = (infections
+                                                                             .groupby('location_id')
+                                                                             .apply(lambda x: x / x.shift(agt)))
+        susceptible = system_metrics.loc[:, f'susceptible_{label}']
         r[f'r_controlled_{label}'] = r[f'r_effective_{label}'] * population / susceptible
 
     return r

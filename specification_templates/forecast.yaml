@@ -1,5 +1,5 @@
 data:
-  seir_regression_version: '2022_01_11.04'
+  seir_regression_version: '2022_01_11.05'
   output_root: ''
   output_format: 'parquet'
 workflow:
