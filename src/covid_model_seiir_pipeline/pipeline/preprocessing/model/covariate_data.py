@@ -183,14 +183,12 @@ def preprocess_variant_prevalence(data_interface: PreprocessingDataInterface) ->
         invasion_dates = data[data.omicron > 0.01].groupby('location_id').date.min()
         data = data.set_index(['location_id', 'date'])
 
-        lag = 7
-        logger.info(f'Overwriting invasion dates based on case inflection point '
-                    f'minus {lag} days.', context='replace')
+        logger.info(f'Overwriting invasion dates based on case inflection point.', context='replace')
         p = Path(__file__).parent / 'invasion_date_hardcodes.csv'
         target_dates = pd.read_csv(p).set_index('location_id')
-        target_dates = (pd.to_datetime(target_dates['case_inflection_date'])
-                        .fillna(pd.to_datetime(target_dates['data_date']) + pd.Timedelta(days=7)))
-        target_dates -= pd.Timedelta(days=lag)
+        target_dates['target_date'] = (pd.to_datetime(target_dates['case_inflection_date'])
+                                        .fillna(pd.to_datetime(target_dates['data_date']) + pd.Timedelta(days=7)))
+        target_dates = target_dates.apply(lambda x: x['target_date'] - pd.Timedelta(days=x['lag']), axis=1)
         target_dates = target_dates.loc[invasion_dates.reset_index()['location_id'].unique()]
         shifts = (target_dates - invasion_dates.loc[target_dates.index])
         shifts = shifts[shifts != pd.Timedelta(days=0)].dt.days.to_dict()

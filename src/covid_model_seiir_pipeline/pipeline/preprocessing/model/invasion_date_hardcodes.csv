@@ -1,447 +1,447 @@
-﻿location_name,location_id,case_inflection_date,data_date
-Armenia,33,1/4/22,1/10/22
-Azerbaijan,34,1/5/22,1/10/22
-Georgia,35,1/1/22,1/10/22
-Kazakhstan,36,1/4/22,1/10/22
-Kyrgyzstan,37,1/2/22,1/10/22
-Mongolia,38,12/31/21,1/10/22
-Tajikistan,39,,1/10/22
-Turkmenistan,40,,1/10/22
-Uzbekistan,41,1/3/22,1/10/22
-Albania,43,1/1/22,1/10/22
-Bosnia and Herzegovina,44,12/24/21,1/10/22
-Bulgaria,45,12/24/21,1/10/22
-Croatia,46,12/23/21,1/10/22
-Czechia,47,12/31/21,1/10/22
-Hungary,48,1/1/22,1/10/22
-Montenegro,50,12/20/21,1/10/22
-North Macedonia,49,12/29/21,1/10/22
-Poland,51,,1/10/22
-Romania,52,12/28/21,1/10/22
-Serbia,53,12/25/21,1/10/22
-Slovakia,54,,1/10/22
-Slovenia,55,12/24/21,1/10/22
-Belarus,57,,1/10/22
-Estonia,58,12/22/21,1/10/22
-Latvia,59,12/28/21,1/10/22
-Lithuania,60,12/25/21,1/10/22
-Republic of Moldova,61,12/31/21,1/10/22
-Russian Federation,62,,1/10/22
-Ukraine,63,,1/10/22
-Australia,71,12/10/21,1/10/22
-New Zealand ,72,,1/10/22
-Brunei Darussalam ,66,1/3/22,1/10/22
-Japan,67,,1/10/22
-Republic of Korea,68,,1/10/22
-Singapore,69,12/30/21,1/10/22
-Alberta,43858,12/10/21,1/10/22
-British Columbia,43859,12/10/21,1/10/22
-Manitoba,43860,12/15/21,1/10/22
-New Brunswick,43861,12/18/21,1/10/22
-Newfoundland and Labrador,43862,12/10/21,1/10/22
-Northwest Territories ,43863,12/30/21,1/10/22
-Nova Scotia,43864,12/10/21,1/10/22
-Nunavut,43865,12/20/21,1/10/22
-Ontario,43866,12/10/21,1/10/22
-Prince Edward Island,43867,12/14/21,1/10/22
-Quebec,43868,12/14/21,1/10/22
-Saskatchewan,43869,12/20/21,1/10/22
-Yukon,43870,12/28/21,1/10/22
-Greenland,349,12/26/21,1/10/22
-Alabama,523,12/18/21,1/10/22
-Alaska,524,12/28/21,1/10/22
-Arizona,525,12/25/21,1/10/22
-Arkansas,526,12/24/21,1/10/22
-California,527,12/18/21,1/10/22
-Colorado,528,12/17/21,1/10/22
-Connecticut,529,12/17/21,1/10/22
-Delaware,530,12/23/21,1/10/22
-District of Columbia,531,12/13/21,1/10/22
-Florida,532,12/18/21,1/10/22
-Georgia,533,12/15/21,1/10/22
-Hawaii,534,12/13/21,1/10/22
-Idaho,535,12/24/21,1/10/22
-Illinois,536,12/20/21,1/10/22
-Indiana,537,12/25/21,1/10/22
-Iowa,538,12/23/21,1/10/22
-Kansas,539,12/22/21,1/10/22
-Kentucky,540,12/23/21,1/10/22
-Louisiana,541,12/15/21,1/10/22
-Maine,542,12/24/21,1/10/22
-Maryland,543,12/17/21,1/10/22
-Massachusetts,544,12/24/21,1/10/22
-Michigan,545,12/23/21,1/10/22
-Minnesota,546,12/28/21,1/10/22
-Mississippi,547,12/24/21,1/10/22
-Missouri,548,12/23/21,1/10/22
-Montana,549,12/24/21,1/10/22
-Nebraska,550,12/23/21,1/10/22
-Nevada,551,12/24/21,1/10/22
-New Hampshire,552,12/26/21,1/10/22
-New Jersey,553,12/15/21,1/10/22
-New Mexico,554,12/24/21,1/10/22
-New York,555,12/15/21,1/10/22
-North Carolina,556,12/25/21,1/10/22
-North Dakota,557,12/31/21,1/10/22
-Ohio,558,12/22/21,1/10/22
-Oklahoma,559,12/24/21,1/10/22
-Oregon,560,12/22/21,1/10/22
-Pennsylvania,561,12/22/21,1/10/22
-Rhode Island ,562,12/24/21,1/10/22
-South Carolina,563,12/18/21,1/10/22
-South Dakota ,564,12/30/21,1/10/22
-Tennessee,565,12/20/21,1/10/22
-Texas,566,12/20/21,1/10/22
-Utah,567,12/24/21,1/10/22
-Vermont,568,12/27/21,1/10/22
-Virginia,569,12/22/21,1/10/22
-Washington,570,12/15/21,1/10/22
-King and Snohomish Counties,60886,12/14/21,1/10/22
-Spokane County,3539,12/22/21,1/10/22
-"Washington except for King, Snohomish, and Spokane Counties ",60887,12/18/21,1/10/22
-West Virginia,571,12/24/21,1/10/22
-Wisconsin,572,12/24/21,1/10/22
-Wyoming,573,12/23/21,1/10/22
-Argentina,97,12/22/21,1/10/22
-Chile,98,1/1/22,1/10/22
-Uruguay,99,12/24/21,1/10/22
-Andorra,74,12/28/21,1/10/22
-Austria,75,12/25/21,1/10/22
-Belgium,76,12/24/21,1/10/22
-Cyprus,77,12/22/21,1/10/22
-Denmark,78,12/24/21,1/10/22
-Finland,79,12/24/21,1/10/22
-France,80,12/22/21,1/10/22
-Baden-Württemberg,60377,12/27/21,1/10/22
-Bavaria,60378,12/28/21,1/10/22
-Berlin,60379,12/30/21,1/10/22
-Brandenburg,60380,12/31/21,1/10/22
-Bremen,60381,12/26/21,1/10/22
-Hamburg,60382,12/27/21,1/10/22
-Hesse,60383,12/28/21,1/10/22
-Lower Saxony,60384,12/27/21,1/10/22
-Mecklenburg-Vorpommern ,60385,12/27/21,1/10/22
-North Rhine-Westphalia,60386,12/28/21,1/10/22
-Rhineland-Palatinate,60387,12/27/21,1/10/22
-Saarland,60388,12/27/21,1/10/22
-Saxony,60390,,1/10/22
-Saxony-Anhalt ,60389,,1/10/22
-Schleswig-Holstein,60391,12/27/21,1/10/22
-Thuringia,60392,,1/10/22
-Greece,82,12/22/21,1/10/22
-Iceland,83,12/14/21,1/10/22
-Ireland,84,12/18/21,1/10/22
-Israel,85,12/8/21,1/10/22
-Abruzzo,35507,12/25/21,1/10/22
-Basilicata,35511,12/24/21,1/10/22
-Calabria,35512,12/24/21,1/10/22
-Campania,35509,12/24/21,1/10/22
-Emilia-Romagna,35502,12/25/21,1/10/22
-Friuli-Venezia Giulia,35501,12/25/21,1/10/22
-Lazio,35506,12/22/21,1/10/22
-Liguria,35496,1/5/22,1/10/22
-Lombardia,35497,12/20/21,1/10/22
-Marche,35505,12/24/21,1/10/22
-Molise,35508,12/24/21,1/10/22
-Piemonte,35494,12/20/21,1/10/22
-Provincia autonoma di Bolzano ,35498,12/24/21,1/10/22
-Provincia autonoma di Trento,35499,12/24/21,1/10/22
-Puglia,35510,12/25/21,1/10/22
-Sardegna,35514,12/24/21,1/10/22
-Sicilia,35513,12/24/21,1/10/22
-Toscana,35503,12/24/21,1/10/22
-Umbria,35504,12/22/21,1/10/22
-Valle d'Aosta,35495,12/24/21,1/10/22
-Veneto,35500,12/24/21,1/10/22
-Luxembourg,87,12/24/21,1/10/22
-Malta,88,12/15/21,1/10/22
-Monaco,367,12/22/21,1/10/22
-Netherlands,89,12/22/21,1/10/22
-Norway,90,12/25/21,1/10/22
-Portugal,91,12/23/21,1/10/22
-San Marino,396,12/24/21,1/10/22
-Andalucia,60357,12/8/21,1/10/22
-Aragon,60358,12/18/21,1/10/22
-Asturias,60365,12/18/21,1/10/22
-Balearic Islands,60363,12/22/21,1/10/22
-Basque Country,60374,12/15/21,1/10/22
-Canary Islands,60364,12/10/21,1/10/22
-Cantabria,60359,12/17/21,1/10/22
-Castile and León ,60367,12/18/21,1/10/22
-Castilla-La Mancha ,60360,12/18/21,1/10/22
-Catalonia,60368,12/15/21,1/10/22
-Ceuta,60369,12/22/21,1/10/22
-Community of Madrid,60361,12/10/21,1/10/22
-Extremadura,60362,12/18/21,1/10/22
-Galicia,60372,12/18/21,1/10/22
-La Rioja,60376,12/10/21,1/10/22
-Melilla,60373,12/22/21,1/10/22
-Murcia,60366,12/18/21,1/10/22
-Navarre,60370,12/16/21,1/10/22
-Valencian Community,60371,12/15/21,1/10/22
-Sweden,93,12/22/21,1/10/22
-Switzerland,94,12/22/21,1/10/22
-England,4749,12/10/21,1/10/22
-Northern Ireland,433,12/15/21,1/10/22
-Scotland,434,12/15/21,1/10/22
-Wales,4636,12/15/21,1/10/22
-Bolivia (Plurinational State of) ,121,12/25/21,1/10/22
-Ecuador,122,12/22/21,1/10/22
-Peru,123,12/30/21,1/10/22
-Antigua and Barbuda ,105,12/30/21,1/10/22
-Bahamas,106,12/17/21,1/10/22
-Barbados,107,12/18/21,1/10/22
-Belize,108,12/24/21,1/10/22
-Bermuda,305,12/10/21,1/10/22
-Cuba,109,12/22/21,1/10/22
-Dominica,110,12/28/21,1/10/22
-Dominican Republic,111,12/18/21,1/10/22
-Grenada,112,12/24/21,1/10/22
-Guyana,113,12/24/21,1/10/22
-Haiti,114,12/31/21,1/10/22
-Jamaica,115,12/20/21,1/10/22
-Puerto Rico,385,12/15/21,1/10/22
-Saint Kitts and Nevis ,393,12/22/21,1/10/22
-Saint Lucia ,116,12/20/21,1/10/22
-Saint Vincent and the Grenadines,117,12/28/21,1/10/22
-Suriname,118,12/24/21,1/10/22
-Trinidad and Tobago,119,12/29/21,1/10/22
-United States Virgin Islands,422,12/17/21,1/10/22
-Colombia,125,12/22/21,1/10/22
-Costa Rica,126,12/22/21,1/10/22
-El Salvador ,127,1/4/22,1/10/22
-Guatemala,128,12/28/21,1/10/22
-Honduras,129,1/4/21,1/10/22
-Aguascalientes,4643,12/18/21,1/10/22
-Baja California,4644,12/20/21,1/10/22
-Baja California Sur ,4645,12/10/21,1/10/22
-Campeche,4646,,1/10/22
-Coahuila,4647,12/22/21,1/10/22
-Colima,4648,12/22/21,1/10/22
-Chiapas,4649,12/23/21,1/10/22
-Chihuahua,4650,12/22/21,1/10/22
-Mexico City,4651,12/15/21,1/10/22
-Durango,4652,12/22/21,1/10/22
-Guanajuato,4653,12/20/21,1/10/22
-Guerrero,4654,12/20/21,1/10/22
-Hidalgo,4655,12/18/21,1/10/22
-Jalisco,4656,12/20/21,1/10/22
-México,4657,12/19/21,1/10/22
-Michoacán de Ocampo ,4658,12/20/21,1/10/22
-Morelos,4659,12/22/21,1/10/22
-Nayarit,4660,12/23/21,1/10/22
-Nuevo Leon,4661,12/20/21,1/10/22
-Oaxaca,4662,12/22/21,1/10/22
-Puebla,4663,12/20/21,1/10/22
-Querétaro,4664,12/20/21,1/10/22
-Quintana Roo,4665,12/15/21,1/10/22
-San Luis Potosí ,4666,12/17/21,1/10/22
-Sinaloa,4667,12/20/21,1/10/22
-Sonora,4668,12/22/21,1/10/22
-Tabasco,4669,12/18/21,1/10/22
-Tamaulipas,4670,12/17/21,1/10/22
-Tlaxcala,4671,12/22/21,1/10/22
-Veracruz de Ignacio de la Llave,4672,12/22/21,1/10/22
-Yucatán,4673,12/15/21,1/10/22
-Zacatecas,4674,12/17/21,1/10/22
-Nicaragua,131,,1/10/22
-Panama,132,12/17/21,1/10/22
-Venezuela (Bolivarian Republic of) ,133,1/7/22,1/10/22
-Acre,4750,,1/10/22
-Alagoas,4751,1/3/22,1/10/22
-Amazonas,4752,1/3/22,1/10/22
-Amapa,4753,,1/10/22
-Bahia,4754,1/4/22,1/10/22
-Ceara,4755,1/4/22,1/10/22
-Distrito Federal ,4756,12/28/21,1/10/22
-Espírito Santo,4757,1/4/22,1/10/22
-Goias,4758,,1/10/22
-Maranhao,4759,,1/10/22
-Minas Gerais,4760,12/28/21,1/10/22
-Mato Grosso do Sul,4761,1/4/22,1/10/22
-Mato Grosso,4762,1/3/22,1/10/22
-Pará,4763,,1/10/22
-Paraíba,4764,,1/10/22
-Paraná,4765,1/4/22,1/10/22
-Pernambuco,4766,1/6/22,1/10/22
-Piaui,4767,,1/10/22
-Rio de Janeiro,4768,12/30/21,1/10/22
-Rio Grande do Norte ,4769,1/6/22,1/10/22
-Rondônia ,4770,,1/10/22
-Roraima,4771,1/6/22,1/10/22
-Rio Grande do Sul ,4772,12/31/21,1/10/22
-Santa Catarina,4773,12/30/21,1/10/22
-Sergipe ,4774,1/6/22,1/10/22
-Sao Paulo,4775,12/28/21,1/10/22
-Tocantins,4776,12/31/21,1/10/22
-Paraguay,136,12/27/21,1/10/22
-Afghanistan,160,,1/10/22
-Algeria,139,,1/10/22
-Bahrain,140,12/15/21,1/10/22
-Egypt,141,,1/10/22
-Iran (Islamic Republic of) ,142,,1/10/22
-Iraq,143,1/6/22,1/10/22
-Jordan,144,,1/10/22
-Kuwait,145,12/15/21,1/10/22
-Lebanon,146,12/24/21,1/10/22
-Libya,147,,1/10/22
-Morocco,148,12/15/21,1/10/22
-Oman,150,12/22/21,1/10/22
-Palestine,149,1/1/22,1/10/22
-Qatar,151,12/17/21,1/10/22
-Saudi Arabia,152,12/15/21,1/10/22
-Sudan,522,,1/10/22
-Syrian Arab Republic,153,,1/10/22
-Tunisia,154,12/25/21,1/10/22
-Turkey,155,12/18/21,1/10/22
-United Arab Emirates,156,12/10/21,1/10/22
-Yemen,157,1/7/22,1/10/22
-Bangladesh,161,12/30/21,1/10/22
-Bhutan,162,1/3/22,1/10/22
-Andhra Pradesh,4841,1/3/22,1/10/22
-Arunachal Pradesh,4842,1/1/22,1/10/22
-Assam,4843,12/30/21,1/10/22
-Bihar,4844,12/30/21,1/10/22
-Chhattisgarh,4846,12/30/21,1/10/22
-Dadra and Nagar Haveli and Daman and Diu,60896,12/31/21,1/10/22
-Delhi,4849,12/28/21,1/10/22
-Goa,4850,12/28/21,1/10/22
-Gujarat,4851,12/28/21,1/10/22
-Haryana,4852,12/27/21,1/10/22
-Himachal Pradesh,4853,12/31/21,1/10/22
-Jammu & Kashmir and Ladakh,4854,12/30/21,1/10/22
-Jharkhand,4855,12/25/21,1/10/22
-Karnataka,4856,12/30/21,1/10/22
-Kerala,4857,1/3/22,1/10/22
-Madhya Pradesh,4859,1/1/22,1/10/22
-Maharashtra,4860,12/24/21,1/10/22
-Manipur,4861,1/1/22,1/10/22
-Meghalaya,4862,1/1/22,1/10/22
-Mizoram,4863,1/2/22,1/10/22
-Nagaland,4864,1/4/22,1/10/22
-Odisha,4865,12/30/21,1/10/22
-Punjab,4867,12/29/21,1/10/22
-Rajasthan,4868,12/30/21,1/10/22
-Sikkim,4869,1/4/22,1/10/22
-Tamil Nadu,4870,12/28/21,1/10/22
-Telangana,4871,12/28/21,1/10/22
-Tripura,4872,12/31/21,1/10/22
-Uttar Pradesh,4873,12/31/21,1/10/22
-Uttarakhand,4874,12/30/21,1/10/22
-West Bengal,4875,12/27/21,1/10/22
-Nepal,164,,1/10/22
-Azad Jammu & Kashmir,53615,,1/10/22
-Balochistan,53616,,1/10/22
-Gilgit-Baltistan,53617,1/8/22,1/10/22
-Islamabad Capital Territory,53618,12/30/21,1/10/22
-Khyber Pakhtunkhwa,53619,,1/10/22
-Punjab,53620,12/27/21,1/10/22
-Sindh,53621,12/27/21,1/10/22
-Hong Kong Special Administrative Region of China,354,,1/10/22
-Macao Special Administrative Region of China,361,,1/10/22
-Anhui,491,,1/10/22
-Beijing,492,,1/10/22
-Chongqing,493,,1/10/22
-Fujian,494,,1/10/22
-Gansu,495,,1/10/22
-Guangdong,496,,1/10/22
-Guangxi,497,,1/10/22
-Guizhou,498,,1/10/22
-Hainan,499,,1/10/22
-Hebei,500,,1/10/22
-Heilongjiang,501,,1/10/22
-Henan,502,,1/10/22
-Hubei,503,,1/10/22
-Hunan,504,,1/10/22
-Inner Mongolia,505,,1/10/22
-Jiangsu,506,,1/10/22
-Jiangxi,507,,1/10/22
-Jilin,508,,1/10/22
-Liaoning,509,,1/10/22
-Ningxia,510,,1/10/22
-Qinghai,511,,1/10/22
-Shaanxi,512,,1/10/22
-Shandong,513,,1/10/22
-Shanghai,514,,1/10/22
-Shanxi,515,,1/10/22
-Sichuan,516,,1/10/22
-Tianjin,517,,1/10/22
-Tibet,518,,1/10/22
-Xinjiang,519,,1/10/22
-Yunnan,520,,1/10/22
-Zhejiang,521,,1/10/22
-Democratic People's Republic of Korea,7,,1/10/22
-Taiwan (Province of China) ,8,,1/10/22
-American Samoa,298,,1/10/22
-Cook Islands,320,,1/10/22
-Fiji,22,12/17/21,1/10/22
-Guam,351,12/28/21,1/10/22
-Kiribati,23,,1/10/22
-Marshall Islands,24,,1/10/22
-Micronesia (Federated States of),25,,1/10/22
-Northern Mariana Islands,376,,1/10/22
-Palau,380,,1/10/22
-Papua New Guinea,26,,1/10/22
-Samoa,27,,1/10/22
-Solomon Islands ,28,12/22/21,1/10/22
-Tonga,29,,1/10/22
-Vanuatu,30,,1/10/22
-Cambodia,10,,1/10/22
-Indonesia,11,1/2/22,1/10/22
-Lao People's Democratic Republic ,12,,1/10/22
-Malaysia,13,,1/10/22
-Maldives,14,1/1/22,1/10/22
-Mauritius,183,,1/10/22
-Myanmar,15,,1/10/22
-Philippines,16,12/24/21,1/10/22
-Seychelles,186,12/24/21,1/10/22
-Sri Lanka,17,,1/10/22
-Thailand,18,12/29/21,1/10/22
-Timor-Leste,19,,1/10/22
-Vietnam,20,1/2/22,1/10/22
-Angola,168,12/10/21,1/10/22
-Central African Republic,169,12/22/21,1/10/22
-Congo,170,12/13/21,1/10/22
-Democratic Republic of the Congo,171,11/27/21,1/10/22
-Equatorial Guinea,172,12/24/21,1/10/22
-Gabon,173,12/17/21,1/10/22
-Burundi,175,12/5/21,1/10/22
-Comoros,176,12/10/21,1/10/22
-Djibouti,177,12/15/21,1/10/22
-Eritrea,178,1/1/22,1/10/22
-Ethiopia,179,12/10/21,1/10/22
-Kenya,180,12/10/21,1/10/22
-Madagascar,181,,1/10/22
-Malawi,182,12/8/21,1/10/22
-Mozambique,184,12/3/21,1/10/22
-Rwanda,185,12/8/21,1/10/22
-Somalia,187,,1/10/22
-South Sudan,435,12/13/21,1/10/22
-Uganda,190,12/14/21,1/10/22
-United Republic of Tanzania,189,12/12/21,1/10/22
-Zambia,191,12/8/21,1/10/22
-Botswana,193,12/4/21,1/10/22
-Eswatini,197,11/27/21,1/10/22
-Lesotho,194,11/29/21,1/10/22
-Namibia,195,11/28/21,1/10/22
-South Africa,196,11/15/21,1/10/22
-Zimbabwe,198,11/25/21,1/10/22
-Benin,200,12/18/21,1/10/22
-Burkina Faso,201,12/18/21,1/10/22
-Cabo Verde,203,12/18/21,1/10/22
-Cameroon,202,,1/10/22
-Chad,204,1/1/22,1/10/22
-Côte d'Ivoire ,205,12/17/21,1/10/22
-Gambia,206,12/26/21,1/10/22
-Ghana,207,12/18/21,1/10/22
-Guinea,208,12/17/21,1/10/22
-Guinea-Bissau ,209,12/30/21,1/10/22
-Liberia,210,12/22/21,1/10/22
-Mali,211,12/24/21,1/10/22
-Mauritania,212,12/23/21,1/10/22
-Niger,213,12/24/21,1/10/22
-Nigeria,214,12/6/21,1/10/22
-Sao Tome and Principe,215,12/24/21,1/10/22
-Senegal,216,12/22/21,1/10/22
-Sierra Leone,217,12/14/21,1/10/22
-Togo,218,12/13/21,1/10/22
+location_name,location_id,case_inflection_date,data_date,lag
+Armenia,33,1/4/22,1/10/22,21
+Azerbaijan,34,1/5/22,1/10/22,21
+Georgia,35,1/1/22,1/10/22,21
+Kazakhstan,36,1/4/22,1/10/22,21
+Kyrgyzstan,37,1/2/22,1/10/22,21
+Mongolia,38,12/31/21,1/10/22,28
+Tajikistan,39,,1/10/22,28
+Turkmenistan,40,,1/10/22,28
+Uzbekistan,41,1/3/22,1/10/22,28
+Albania,43,1/1/22,1/10/22,28
+Bosnia and Herzegovina,44,12/24/21,1/10/22,28
+Bulgaria,45,12/24/21,1/10/22,28
+Croatia,46,12/23/21,1/10/22,21
+Czechia,47,12/31/21,1/10/22,21
+Hungary,48,1/1/22,1/10/22,28
+Montenegro,50,12/20/21,1/10/22,28
+North Macedonia,49,12/29/21,1/10/22,21
+Poland,51,,1/10/22,28
+Romania,52,12/28/21,1/10/22,28
+Serbia,53,12/25/21,1/10/22,28
+Slovakia,54,,1/10/22,28
+Slovenia,55,12/24/21,1/10/22,28
+Belarus,57,,1/10/22,28
+Estonia,58,12/22/21,1/10/22,28
+Latvia,59,12/28/21,1/10/22,28
+Lithuania,60,12/25/21,1/10/22,28
+Republic of Moldova,61,12/31/21,1/10/22,28
+Russian Federation,62,,1/10/22,28
+Ukraine,63,,1/10/22,28
+Australia,71,12/10/21,1/10/22,28
+New Zealand ,72,2/1/22,1/10/22,28
+Brunei Darussalam ,66,1/3/22,1/10/22,28
+Japan,67,,1/10/22,28
+Republic of Korea,68,,1/10/22,28
+Singapore,69,12/30/21,1/10/22,28
+Alberta,43858,12/10/21,1/10/22,28
+British Columbia,43859,12/10/21,1/10/22,28
+Manitoba,43860,12/15/21,1/10/22,28
+New Brunswick,43861,12/18/21,1/10/22,28
+Newfoundland and Labrador,43862,12/10/21,1/10/22,28
+Northwest Territories ,43863,12/30/21,1/10/22,28
+Nova Scotia,43864,12/10/21,1/10/22,28
+Nunavut,43865,12/20/21,1/10/22,28
+Ontario,43866,12/10/21,1/10/22,28
+Prince Edward Island,43867,12/14/21,1/10/22,28
+Quebec,43868,12/14/21,1/10/22,28
+Saskatchewan,43869,12/20/21,1/10/22,28
+Yukon,43870,12/28/21,1/10/22,28
+Greenland,349,12/26/21,1/10/22,28
+Alabama,523,12/18/21,1/10/22,28
+Alaska,524,12/28/21,1/10/22,28
+Arizona,525,12/25/21,1/10/22,28
+Arkansas,526,12/24/21,1/10/22,28
+California,527,12/18/21,1/10/22,28
+Colorado,528,12/17/21,1/10/22,28
+Connecticut,529,12/17/21,1/10/22,28
+Delaware,530,12/23/21,1/10/22,28
+District of Columbia,531,12/13/21,1/10/22,28
+Florida,532,12/18/21,1/10/22,28
+Georgia,533,12/15/21,1/10/22,28
+Hawaii,534,12/13/21,1/10/22,28
+Idaho,535,12/24/21,1/10/22,28
+Illinois,536,12/20/21,1/10/22,28
+Indiana,537,12/25/21,1/10/22,28
+Iowa,538,12/23/21,1/10/22,28
+Kansas,539,12/22/21,1/10/22,28
+Kentucky,540,12/23/21,1/10/22,28
+Louisiana,541,12/15/21,1/10/22,28
+Maine,542,12/24/21,1/10/22,28
+Maryland,543,12/17/21,1/10/22,28
+Massachusetts,544,12/24/21,1/10/22,28
+Michigan,545,12/23/21,1/10/22,28
+Minnesota,546,12/28/21,1/10/22,28
+Mississippi,547,12/24/21,1/10/22,28
+Missouri,548,12/23/21,1/10/22,28
+Montana,549,12/24/21,1/10/22,28
+Nebraska,550,12/23/21,1/10/22,21
+Nevada,551,12/24/21,1/10/22,28
+New Hampshire,552,12/26/21,1/10/22,28
+New Jersey,553,12/15/21,1/10/22,28
+New Mexico,554,12/24/21,1/10/22,28
+New York,555,12/15/21,1/10/22,28
+North Carolina,556,12/25/21,1/10/22,28
+North Dakota,557,12/31/21,1/10/22,28
+Ohio,558,12/22/21,1/10/22,28
+Oklahoma,559,12/24/21,1/10/22,21
+Oregon,560,12/22/21,1/10/22,28
+Pennsylvania,561,12/22/21,1/10/22,28
+Rhode Island ,562,12/24/21,1/10/22,21
+South Carolina,563,12/18/21,1/10/22,28
+South Dakota ,564,12/30/21,1/10/22,21
+Tennessee,565,12/20/21,1/10/22,28
+Texas,566,12/20/21,1/10/22,28
+Utah,567,12/24/21,1/10/22,28
+Vermont,568,12/27/21,1/10/22,28
+Virginia,569,12/22/21,1/10/22,28
+Washington,570,12/15/21,1/10/22,28
+King and Snohomish Counties,60886,12/14/21,1/10/22,28
+Spokane County,3539,12/22/21,1/10/22,28
+"Washington except for King, Snohomish, and Spokane Counties ",60887,12/18/21,1/10/22,28
+West Virginia,571,12/24/21,1/10/22,28
+Wisconsin,572,12/24/21,1/10/22,28
+Wyoming,573,12/23/21,1/10/22,28
+Argentina,97,12/22/21,1/10/22,35
+Chile,98,1/1/22,1/10/22,28
+Uruguay,99,12/24/21,1/10/22,35
+Andorra,74,12/28/21,1/10/22,35
+Austria,75,12/25/21,1/10/22,28
+Belgium,76,12/24/21,1/10/22,28
+Cyprus,77,12/22/21,1/10/22,28
+Denmark,78,12/24/21,1/10/22,35
+Finland,79,12/24/21,1/10/22,28
+France,80,12/22/21,1/10/22,28
+Baden-Württemberg,60377,12/27/21,1/10/22,28
+Bavaria,60378,12/28/21,1/10/22,28
+Berlin,60379,12/30/21,1/10/22,28
+Brandenburg,60380,12/31/21,1/10/22,28
+Bremen,60381,12/26/21,1/10/22,28
+Hamburg,60382,12/27/21,1/10/22,28
+Hesse,60383,12/28/21,1/10/22,28
+Lower Saxony,60384,12/27/21,1/10/22,28
+Mecklenburg-Vorpommern ,60385,12/27/21,1/10/22,28
+North Rhine-Westphalia,60386,12/28/21,1/10/22,28
+Rhineland-Palatinate,60387,12/27/21,1/10/22,28
+Saarland,60388,12/27/21,1/10/22,28
+Saxony,60390,,1/10/22,28
+Saxony-Anhalt ,60389,,1/10/22,28
+Schleswig-Holstein,60391,12/27/21,1/10/22,28
+Thuringia,60392,,1/10/22,28
+Greece,82,12/22/21,1/10/22,28
+Iceland,83,12/14/21,1/10/22,28
+Ireland,84,12/18/21,1/10/22,28
+Israel,85,12/8/21,1/10/22,42
+Abruzzo,35507,12/25/21,1/10/22,28
+Basilicata,35511,12/24/21,1/10/22,28
+Calabria,35512,12/24/21,1/10/22,28
+Campania,35509,12/24/21,1/10/22,28
+Emilia-Romagna,35502,12/25/21,1/10/22,28
+Friuli-Venezia Giulia,35501,12/25/21,1/10/22,28
+Lazio,35506,12/22/21,1/10/22,28
+Liguria,35496,1/5/22,1/10/22,28
+Lombardia,35497,12/20/21,1/10/22,28
+Marche,35505,12/24/21,1/10/22,28
+Molise,35508,12/24/21,1/10/22,28
+Piemonte,35494,12/20/21,1/10/22,28
+Provincia autonoma di Bolzano ,35498,12/24/21,1/10/22,28
+Provincia autonoma di Trento,35499,12/24/21,1/10/22,28
+Puglia,35510,12/25/21,1/10/22,28
+Sardegna,35514,12/24/21,1/10/22,28
+Sicilia,35513,12/24/21,1/10/22,28
+Toscana,35503,12/24/21,1/10/22,28
+Umbria,35504,12/22/21,1/10/22,28
+Valle d'Aosta,35495,12/24/21,1/10/22,28
+Veneto,35500,12/24/21,1/10/22,28
+Luxembourg,87,12/24/21,1/10/22,28
+Malta,88,12/15/21,1/10/22,28
+Monaco,367,12/22/21,1/10/22,28
+Netherlands,89,12/22/21,1/10/22,28
+Norway,90,12/25/21,1/10/22,28
+Portugal,91,12/23/21,1/10/22,28
+San Marino,396,12/24/21,1/10/22,28
+Andalucia,60357,12/8/21,1/10/22,28
+Aragon,60358,12/18/21,1/10/22,28
+Asturias,60365,12/18/21,1/10/22,28
+Balearic Islands,60363,12/22/21,1/10/22,28
+Basque Country,60374,12/15/21,1/10/22,28
+Canary Islands,60364,12/10/21,1/10/22,28
+Cantabria,60359,12/17/21,1/10/22,28
+Castile and León ,60367,12/18/21,1/10/22,28
+Castilla-La Mancha ,60360,12/18/21,1/10/22,28
+Catalonia,60368,12/15/21,1/10/22,28
+Ceuta,60369,12/22/21,1/10/22,28
+Community of Madrid,60361,12/10/21,1/10/22,28
+Extremadura,60362,12/18/21,1/10/22,28
+Galicia,60372,12/18/21,1/10/22,28
+La Rioja,60376,12/10/21,1/10/22,28
+Melilla,60373,12/22/21,1/10/22,28
+Murcia,60366,12/18/21,1/10/22,28
+Navarre,60370,12/16/21,1/10/22,28
+Valencian Community,60371,12/15/21,1/10/22,28
+Sweden,93,12/22/21,1/10/22,28
+Switzerland,94,12/22/21,1/10/22,28
+England,4749,12/10/21,1/10/22,35
+Northern Ireland,433,12/15/21,1/10/22,35
+Scotland,434,12/15/21,1/10/22,28
+Wales,4636,12/15/21,1/10/22,28
+Bolivia (Plurinational State of) ,121,12/25/21,1/10/22,28
+Ecuador,122,12/22/21,1/10/22,28
+Peru,123,12/30/21,1/10/22,28
+Antigua and Barbuda ,105,12/30/21,1/10/22,28
+Bahamas,106,12/17/21,1/10/22,28
+Barbados,107,12/18/21,1/10/22,28
+Belize,108,12/24/21,1/10/22,28
+Bermuda,305,12/10/21,1/10/22,28
+Cuba,109,12/22/21,1/10/22,28
+Dominica,110,12/28/21,1/10/22,28
+Dominican Republic,111,12/18/21,1/10/22,28
+Grenada,112,12/24/21,1/10/22,28
+Guyana,113,12/24/21,1/10/22,28
+Haiti,114,12/31/21,1/10/22,28
+Jamaica,115,12/20/21,1/10/22,28
+Puerto Rico,385,12/15/21,1/10/22,35
+Saint Kitts and Nevis ,393,12/22/21,1/10/22,28
+Saint Lucia ,116,12/20/21,1/10/22,28
+Saint Vincent and the Grenadines,117,12/28/21,1/10/22,28
+Suriname,118,12/24/21,1/10/22,28
+Trinidad and Tobago,119,12/29/21,1/10/22,28
+United States Virgin Islands,422,12/17/21,1/10/22,28
+Colombia,125,12/22/21,1/10/22,28
+Costa Rica,126,12/22/21,1/10/22,28
+El Salvador ,127,1/4/22,1/10/22,28
+Guatemala,128,12/28/21,1/10/22,28
+Honduras,129,1/4/22,1/10/22,28
+Aguascalientes,4643,12/18/21,1/10/22,28
+Baja California,4644,12/20/21,1/10/22,28
+Baja California Sur ,4645,12/10/21,1/10/22,28
+Campeche,4646,,1/10/22,28
+Coahuila,4647,12/22/21,1/10/22,28
+Colima,4648,12/22/21,1/10/22,28
+Chiapas,4649,12/23/21,1/10/22,28
+Chihuahua,4650,12/22/21,1/10/22,28
+Mexico City,4651,12/15/21,1/10/22,28
+Durango,4652,12/22/21,1/10/22,28
+Guanajuato,4653,12/20/21,1/10/22,28
+Guerrero,4654,12/20/21,1/10/22,28
+Hidalgo,4655,12/18/21,1/10/22,28
+Jalisco,4656,12/20/21,1/10/22,28
+México,4657,12/19/21,1/10/22,28
+Michoacán de Ocampo ,4658,12/20/21,1/10/22,28
+Morelos,4659,12/22/21,1/10/22,28
+Nayarit,4660,12/23/21,1/10/22,28
+Nuevo Leon,4661,12/20/21,1/10/22,28
+Oaxaca,4662,12/22/21,1/10/22,28
+Puebla,4663,12/20/21,1/10/22,28
+Querétaro,4664,12/20/21,1/10/22,28
+Quintana Roo,4665,12/15/21,1/10/22,28
+San Luis Potosí ,4666,12/17/21,1/10/22,28
+Sinaloa,4667,12/20/21,1/10/22,28
+Sonora,4668,12/22/21,1/10/22,28
+Tabasco,4669,12/18/21,1/10/22,28
+Tamaulipas,4670,12/17/21,1/10/22,28
+Tlaxcala,4671,12/22/21,1/10/22,28
+Veracruz de Ignacio de la Llave,4672,12/22/21,1/10/22,28
+Yucatán,4673,12/15/21,1/10/22,28
+Zacatecas,4674,12/17/21,1/10/22,28
+Nicaragua,131,,1/10/22,28
+Panama,132,12/17/21,1/10/22,28
+Venezuela (Bolivarian Republic of) ,133,1/7/22,1/10/22,28
+Acre,4750,,1/10/22,28
+Alagoas,4751,1/3/22,1/10/22,28
+Amazonas,4752,1/3/22,1/10/22,28
+Amapa,4753,,1/10/22,28
+Bahia,4754,1/4/22,1/10/22,28
+Ceara,4755,1/4/22,1/10/22,28
+Distrito Federal ,4756,12/28/21,1/10/22,28
+Espírito Santo,4757,1/4/22,1/10/22,28
+Goias,4758,,1/10/22,28
+Maranhao,4759,,1/10/22,28
+Minas Gerais,4760,12/28/21,1/10/22,28
+Mato Grosso do Sul,4761,1/4/22,1/10/22,28
+Mato Grosso,4762,1/3/22,1/10/22,28
+Pará,4763,,1/10/22,28
+Paraíba,4764,,1/10/22,28
+Paraná,4765,1/4/22,1/10/22,28
+Pernambuco,4766,1/6/22,1/10/22,28
+Piaui,4767,,1/10/22,28
+Rio de Janeiro,4768,12/30/21,1/10/22,28
+Rio Grande do Norte ,4769,1/6/22,1/10/22,28
+Rondônia ,4770,,1/10/22,28
+Roraima,4771,1/6/22,1/10/22,28
+Rio Grande do Sul ,4772,12/31/21,1/10/22,28
+Santa Catarina,4773,12/30/21,1/10/22,28
+Sergipe ,4774,1/6/22,1/10/22,28
+Sao Paulo,4775,12/28/21,1/10/22,28
+Tocantins,4776,12/31/21,1/10/22,28
+Paraguay,136,12/27/21,1/10/22,28
+Afghanistan,160,,1/10/22,28
+Algeria,139,,1/10/22,28
+Bahrain,140,12/15/21,1/10/22,28
+Egypt,141,,1/10/22,28
+Iran (Islamic Republic of) ,142,,1/10/22,28
+Iraq,143,1/6/22,1/10/22,28
+Jordan,144,,1/10/22,28
+Kuwait,145,12/15/21,1/10/22,28
+Lebanon,146,12/24/21,1/10/22,28
+Libya,147,,1/10/22,28
+Morocco,148,12/15/21,1/10/22,28
+Oman,150,12/22/21,1/10/22,28
+Palestine,149,1/1/22,1/10/22,28
+Qatar,151,12/17/21,1/10/22,28
+Saudi Arabia,152,12/15/21,1/10/22,28
+Sudan,522,,1/10/22,28
+Syrian Arab Republic,153,,1/10/22,28
+Tunisia,154,12/25/21,1/10/22,28
+Turkey,155,12/18/21,1/10/22,28
+United Arab Emirates,156,12/10/21,1/10/22,28
+Yemen,157,1/7/22,1/10/22,28
+Bangladesh,161,12/30/21,1/10/22,28
+Bhutan,162,1/3/22,1/10/22,28
+Andhra Pradesh,4841,1/3/22,1/10/22,28
+Arunachal Pradesh,4842,1/1/22,1/10/22,28
+Assam,4843,12/30/21,1/10/22,28
+Bihar,4844,12/30/21,1/10/22,28
+Chhattisgarh,4846,12/30/21,1/10/22,28
+Dadra and Nagar Haveli and Daman and Diu,60896,12/31/21,1/10/22,28
+Delhi,4849,12/28/21,1/10/22,28
+Goa,4850,12/28/21,1/10/22,28
+Gujarat,4851,12/28/21,1/10/22,28
+Haryana,4852,12/27/21,1/10/22,28
+Himachal Pradesh,4853,12/31/21,1/10/22,28
+Jammu & Kashmir and Ladakh,4854,12/30/21,1/10/22,28
+Jharkhand,4855,12/25/21,1/10/22,28
+Karnataka,4856,12/30/21,1/10/22,28
+Kerala,4857,1/3/22,1/10/22,28
+Madhya Pradesh,4859,1/1/22,1/10/22,35
+Maharashtra,4860,12/24/21,1/10/22,28
+Manipur,4861,1/1/22,1/10/22,28
+Meghalaya,4862,1/1/22,1/10/22,28
+Mizoram,4863,1/2/22,1/10/22,28
+Nagaland,4864,1/4/22,1/10/22,28
+Odisha,4865,12/30/21,1/10/22,28
+Punjab,4867,12/29/21,1/10/22,35
+Rajasthan,4868,12/30/21,1/10/22,28
+Sikkim,4869,1/4/22,1/10/22,28
+Tamil Nadu,4870,12/28/21,1/10/22,28
+Telangana,4871,12/28/21,1/10/22,28
+Tripura,4872,12/31/21,1/10/22,28
+Uttar Pradesh,4873,12/31/21,1/10/22,28
+Uttarakhand,4874,12/30/21,1/10/22,28
+West Bengal,4875,12/27/21,1/10/22,35
+Nepal,164,,1/10/22,28
+Azad Jammu & Kashmir,53615,,1/10/22,28
+Balochistan,53616,,1/10/22,28
+Gilgit-Baltistan,53617,1/8/22,1/10/22,28
+Islamabad Capital Territory,53618,12/30/21,1/10/22,28
+Khyber Pakhtunkhwa,53619,,1/10/22,28
+Punjab,53620,12/27/21,1/10/22,28
+Sindh,53621,12/27/21,1/10/22,28
+Hong Kong Special Administrative Region of China,354,,1/10/22,28
+Macao Special Administrative Region of China,361,,1/10/22,28
+Anhui,491,,1/10/22,28
+Beijing,492,,1/10/22,28
+Chongqing,493,,1/10/22,28
+Fujian,494,,1/10/22,28
+Gansu,495,,1/10/22,28
+Guangdong,496,,1/10/22,28
+Guangxi,497,,1/10/22,28
+Guizhou,498,,1/10/22,28
+Hainan,499,,1/10/22,28
+Hebei,500,,1/10/22,28
+Heilongjiang,501,,1/10/22,28
+Henan,502,,1/10/22,28
+Hubei,503,,1/10/22,28
+Hunan,504,,1/10/22,28
+Inner Mongolia,505,,1/10/22,28
+Jiangsu,506,,1/10/22,28
+Jiangxi,507,,1/10/22,28
+Jilin,508,,1/10/22,28
+Liaoning,509,,1/10/22,28
+Ningxia,510,,1/10/22,28
+Qinghai,511,,1/10/22,28
+Shaanxi,512,,1/10/22,28
+Shandong,513,,1/10/22,28
+Shanghai,514,,1/10/22,28
+Shanxi,515,,1/10/22,28
+Sichuan,516,,1/10/22,28
+Tianjin,517,,1/10/22,28
+Tibet,518,,1/10/22,28
+Xinjiang,519,,1/10/22,28
+Yunnan,520,,1/10/22,28
+Zhejiang,521,,1/10/22,28
+Democratic People's Republic of Korea,7,,1/10/22,28
+Taiwan (Province of China) ,8,,1/10/22,35
+American Samoa,298,,1/10/22,28
+Cook Islands,320,,1/10/22,28
+Fiji,22,12/17/21,1/10/22,28
+Guam,351,12/28/21,1/10/22,28
+Kiribati,23,,1/10/22,28
+Marshall Islands,24,,1/10/22,28
+Micronesia (Federated States of),25,,1/10/22,28
+Northern Mariana Islands,376,,1/10/22,28
+Palau,380,,1/10/22,28
+Papua New Guinea,26,,1/10/22,28
+Samoa,27,,1/10/22,28
+Solomon Islands ,28,12/22/21,1/10/22,28
+Tonga,29,,1/10/22,28
+Vanuatu,30,,1/10/22,28
+Cambodia,10,,1/10/22,28
+Indonesia,11,1/2/22,1/10/22,28
+Lao People's Democratic Republic ,12,,1/10/22,28
+Malaysia,13,,1/10/22,28
+Maldives,14,1/1/22,1/10/22,28
+Mauritius,183,,1/10/22,28
+Myanmar,15,,1/10/22,28
+Philippines,16,12/24/21,1/10/22,49
+Seychelles,186,12/24/21,1/10/22,28
+Sri Lanka,17,,1/10/22,28
+Thailand,18,12/29/21,1/10/22,35
+Timor-Leste,19,,1/10/22,28
+Vietnam,20,1/2/22,1/10/22,28
+Angola,168,12/10/21,1/10/22,28
+Central African Republic,169,12/22/21,1/10/22,28
+Congo,170,12/13/21,1/10/22,28
+Democratic Republic of the Congo,171,11/27/21,1/10/22,28
+Equatorial Guinea,172,12/24/21,1/10/22,28
+Gabon,173,12/17/21,1/10/22,28
+Burundi,175,12/5/21,1/10/22,28
+Comoros,176,12/10/21,1/10/22,28
+Djibouti,177,12/15/21,1/10/22,28
+Eritrea,178,1/1/22,1/10/22,28
+Ethiopia,179,12/10/21,1/10/22,28
+Kenya,180,12/10/21,1/10/22,28
+Madagascar,181,,1/10/22,28
+Malawi,182,12/8/21,1/10/22,28
+Mozambique,184,12/3/21,1/10/22,28
+Rwanda,185,12/8/21,1/10/22,28
+Somalia,187,,1/10/22,28
+South Sudan,435,12/13/21,1/10/22,28
+Uganda,190,12/14/21,1/10/22,28
+United Republic of Tanzania,189,12/12/21,1/10/22,28
+Zambia,191,12/8/21,1/10/22,28
+Botswana,193,12/4/21,1/10/22,28
+Eswatini,197,11/27/21,1/10/22,28
+Lesotho,194,11/29/21,1/10/22,28
+Namibia,195,11/28/21,1/10/22,28
+South Africa,196,11/15/21,1/10/22,28
+Zimbabwe,198,11/25/21,1/10/22,28
+Benin,200,12/18/21,1/10/22,28
+Burkina Faso,201,12/18/21,1/10/22,28
+Cabo Verde,203,12/18/21,1/10/22,28
+Cameroon,202,,1/10/22,28
+Chad,204,1/1/22,1/10/22,28
+Côte d'Ivoire ,205,12/17/21,1/10/22,28
+Gambia,206,12/26/21,1/10/22,28
+Ghana,207,12/18/21,1/10/22,28
+Guinea,208,12/17/21,1/10/22,28
+Guinea-Bissau ,209,12/30/21,1/10/22,28
+Liberia,210,12/22/21,1/10/22,28
+Mali,211,12/24/21,1/10/22,28
+Mauritania,212,12/23/21,1/10/22,28
+Niger,213,12/24/21,1/10/22,28
+Nigeria,214,12/6/21,1/10/22,28
+Sao Tome and Principe,215,12/24/21,1/10/22,28
+Senegal,216,12/22/21,1/10/22,28
+Sierra Leone,217,12/14/21,1/10/22,28
+Togo,218,12/13/21,1/10/22,28

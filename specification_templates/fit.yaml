@@ -1,5 +1,5 @@
 data:
-  seir_preprocess_version: '2022_01_11.02'
+  seir_preprocess_version: '2022_01_12.01'
   output_format: 'parquet'
   output_root: ''
   n_draws: 100
@@ -89,23 +89,29 @@ measure_downweights:
       # bad fits
       [  121, 0.10],  # Bolivia
       [  160, 0.01],  # Afghanistan
-      [  182, 0.10],  # Malawi
-      [  191, 0.01],  # Zambia
-      [  193, 0.01],  # Botswana
-      [  194, 0.01],  # Lesotho
-      [  195, 0.01],  # Namibia
+      [  182, 0.10],  # Kenya
+      [  182, 0.00],  # Malawi
+      [  184, 0.00],  # Mozambique
+      [  191, 0.00],  # Zambia
+      [  193, 0.00],  # Botswana
+      [  194, 0.00],  # Lesotho
+      [  195, 0.00],  # Namibia
       [  196, 0.00],  # South Africa
       [  197, 0.00],  # Eswatini
-      [  198, 0.10],  # Zimbabwe
+      [  198, 0.00],  # Zimbabwe
       [53617, 0.10],  # Gilgit-Baltistan
     ]
   admission:
     [
-      [  191, 0.01],  # Zambia
+      [60365, 0.10],  # Asturias
+      [  184, 0.00],  # Mozambique
+      [  191, 0.00],  # Zambia
       [  196, 0.00],  # South Africa
     ]
   case:
     [
-      [  176, 0.01],  # Comoros
-      [  215, 0.01],  # Sao Tome and Principe
+      [   50, 0.10],  # Montenegro
+      [  176, 0.00],  # Comoros
+      [  186, 0.10],  # Seychelles
+      [  215, 0.00],  # Sao Tome and Principe
     ]

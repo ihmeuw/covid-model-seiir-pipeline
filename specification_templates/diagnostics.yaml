@@ -8,18 +8,15 @@ grid_plots:
     date_start: '2021-01-01'
     date_end: '2022-05-31'
     comparators:
-      # - version: '2022_01_10.03'
-      #   scenarios:
-      #     reference*: 'prod specs (sigma: 1/4)'
-      # - version: '2022_01_11.01'
-      #   scenarios:
-      #     reference*: 'kappa: 2.50'
-      # - version: '2022_01_11.02'
-      #   scenarios:
-      #     reference*: 'kappa: 2.75'
-      - version: '2022_01_11.03'
+      - version: '2022_01_12.01'
         scenarios:
-          reference*: 'all variants 1-4 days'
-      - version: '2022_01_11.04'
+          reference*: '21 days'
+      - version: '2022_01_12.02'
         scenarios:
-          reference*: 'omicron 1-4 days'
+          reference*: '28 days'
+      - version: '2022_01_12.03'
+        scenarios:
+          reference*: '35 days'
+      - version: '2022_01_12.04'
+        scenarios:
+          reference*: '42 days'
