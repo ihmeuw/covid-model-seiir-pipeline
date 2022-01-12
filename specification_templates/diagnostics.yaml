@@ -4,19 +4,22 @@ workflow:
   project: 'proj_covid_prod'
   queue: 'd.q'
 grid_plots:
-  - name: 'compare_longrange'
-    date_start: '2020-03-01'
-    date_end: '2022-12-31'
+  - name: 'compare_shortrange'
+    date_start: '2021-01-01'
+    date_end: '2022-05-31'
     comparators:
-      - version: '2022_01_10.03'
-        scenarios:
-          reference*: 'prod specs (sigma: 1/4)'
-      - version: '2022_01_11.01'
-        scenarios:
-          reference*: 'kappa: 2.50'
-      - version: '2022_01_11.02'
-        scenarios:
-          reference*: 'kappa: 2.75'
+      # - version: '2022_01_10.03'
+      #   scenarios:
+      #     reference*: 'prod specs (sigma: 1/4)'
+      # - version: '2022_01_11.01'
+      #   scenarios:
+      #     reference*: 'kappa: 2.50'
+      # - version: '2022_01_11.02'
+      #   scenarios:
+      #     reference*: 'kappa: 2.75'
       - version: '2022_01_11.03'
         scenarios:
-          reference*: 'kappa: 3.00'
+          reference*: 'all variants 1-4 days'
+      - version: '2022_01_11.04'
+        scenarios:
+          reference*: 'omicron 1-4 days'
