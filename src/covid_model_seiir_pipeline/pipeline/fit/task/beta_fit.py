@@ -141,18 +141,37 @@ def run_beta_fit(fit_version: str, draw_id: int, progress_bar: bool) -> None:
     max_idr = 0.9
     p_symptomatic_pre_omicron = 0.5
     p_symptomatic_post_omicron = 1 - model.sample_parameter('p_asymptomatic_omicron', draw_id=draw_id,
-                                                            lower=0.8, upper=0.9)
+                                                            lower=0.85, upper=0.95)
     minimum_asymptomatic_idr_fraction = 0.1
-    maximum_asymptomatic_idr = 0.33
+    maximum_asymptomatic_idr = 0.2
+
+    l_dampen_idr_locations = [
+        171,  # Democratic Republic of the Congo
+        435,  # South Sudan
+    ]
+    u_dampen_idr_locations = [
+        173,  # Gabon
+        175,  # Burundi
+        179,  # Ethiopia
+        185,  # Rwanda
+        207,  # Ghana
+        214,  # Nigeria
+        217,  # Sierra Leone
+    ]
+    inflate_idr_locations = [
+        50,  # Montenegro
+    ]
 
     # IDR = p_s * IDR_s + p_a * IDR_a
     # IDR_a = (IDR - IDR_s * p_s) / p_a
     # IDR_a >= min_frac_a * IDR
-    # IDR_a <= 0.33 [post]
+    # IDR_a <= 0.25 [post]
     delta_idr = delta_cases / delta_infections
     delta_idr = delta_idr.fillna(all_cases / all_infections)
     capped_delta_idr = np.minimum(delta_idr, max_idr)
-    capped_delta_idr.loc[196] *= 0.5
+    capped_delta_idr.loc[l_dampen_idr_locations] *= 0.75
+    capped_delta_idr.loc[u_dampen_idr_locations] *= 0.5
+    capped_delta_idr.loc[inflate_idr_locations] *= 1.5
     idr_asymptomatic = (capped_delta_idr - max_idr * p_symptomatic_pre_omicron) / (1 - p_symptomatic_pre_omicron)
     idr_asymptomatic = np.maximum(idr_asymptomatic, capped_delta_idr * minimum_asymptomatic_idr_fraction)
     idr_symptomatic = (capped_delta_idr - idr_asymptomatic * (1 - p_symptomatic_pre_omicron)) / p_symptomatic_pre_omicron

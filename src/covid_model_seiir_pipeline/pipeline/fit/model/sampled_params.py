@@ -118,8 +118,13 @@ def sample_ode_params(variant_rr: VariantRR,
                 b = y1 - m * x1
                 phis[variant] = m * value + b
 
-        key = parameter if 'kappa' in parameter else f'{parameter}_all_infection'
+        key = parameter if any([p in parameter for p in ['sigma', 'gamma', 'kappa']]) else f'{parameter}_all_infection'
         sampled_params[key] = value
+
+    for measure in ['death', 'admission', 'case']:
+        for variant in VARIANT_NAMES:
+            sampled_params[f'sigma_{variant}_{measure}'] = np.nan
+            sampled_params[f'gamma_{variant}_{measure}'] = np.nan
 
     s = -12345.0
     phi_matrix = pd.DataFrame(

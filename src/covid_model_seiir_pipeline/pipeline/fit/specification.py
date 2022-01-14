@@ -142,9 +142,27 @@ class RatesParameters:
 @dataclass
 class FitParameters:
     alpha: UniformSampleable = field(default=(0.9, 1.0))
-    sigma: UniformSampleable = field(default=(0.2, 1 / 3))
-    gamma: UniformSampleable = field(default=(0.2, 1 / 3))
     pi: UniformSampleable = field(default=(0.01, 0.1))
+
+    sigma_none_infection: UniformSampleable = field(default=(0.2, 1 / 3))
+    sigma_ancestral_infection: UniformSampleable = field(default=(0.2, 1 / 3))
+    sigma_alpha_infection: UniformSampleable = field(default=(0.2, 1 / 3))
+    sigma_beta_infection: UniformSampleable = field(default=(0.2, 1 / 3))
+    sigma_gamma_infection: UniformSampleable = field(default=(0.2, 1 / 3))
+    sigma_delta_infection: UniformSampleable = field(default=(0.2, 1 / 3))
+    sigma_omicron_infection: UniformSampleable = field(default=(0.2, 1 / 3))
+    sigma_other_infection: UniformSampleable = field(default=(0.2, 1 / 3))
+    sigma_omega_infection: UniformSampleable = field(default=(0.2, 1 / 3))
+
+    gamma_none_infection: UniformSampleable = field(default=(0.2, 1 / 3))
+    gamma_ancestral_infection: UniformSampleable = field(default=(0.2, 1 / 3))
+    gamma_alpha_infection: UniformSampleable = field(default=(0.2, 1 / 3))
+    gamma_beta_infection: UniformSampleable = field(default=(0.2, 1 / 3))
+    gamma_gamma_infection: UniformSampleable = field(default=(0.2, 1 / 3))
+    gamma_delta_infection: UniformSampleable = field(default=(0.2, 1 / 3))
+    gamma_omicron_infection: UniformSampleable = field(default=(0.2, 1 / 3))
+    gamma_other_infection: UniformSampleable = field(default=(0.2, 1 / 3))
+    gamma_omega_infection: UniformSampleable = field(default=(0.2, 1 / 3))
 
     kappa_none_infection: UniformSampleable = field(default=0.0)
     kappa_ancestral_infection: UniformSampleable = field(default=1.0)
