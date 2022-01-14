@@ -81,6 +81,12 @@ def evil_doings(data: pd.DataFrame, hierarchy: pd.DataFrame, input_measure: str)
         pass
 
     elif input_measure == 'hospitalizations':
+        ## extra day of admissions, drop to keep synced with cases
+        is_israel = data['location_id'] == 85
+        is_israel_last_day = data['date'] == data.loc[is_israel, 'date'].max()
+        data = data.loc[~(is_israel & is_israel_last_day)].reset_index(drop=True)
+        manipulation_metadata['israel'] = 'dropped leading hospital data (1 day).'
+        
         ## hosp/IHR == admissions too low
         is_argentina = data['location_id'] == 97
         data = data.loc[~is_argentina].reset_index(drop=True)
