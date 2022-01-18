@@ -1,10 +1,10 @@
 data:
-  seir_forecast_version: '2022_01_13.01'
+  seir_forecast_version: '2022_01_18.02'
   scenarios:
    - 'reference'
-   - 'best_masks'
-   - 'booster'
-   - 'reduced_hesitancy'
+   # - 'best_masks'
+   # - 'booster'
+   # - 'reduced_hesitancy'
   output_root: ''
 workflow:
   project: 'proj_covid_prod'
