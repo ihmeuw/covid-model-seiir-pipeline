@@ -11,12 +11,18 @@ grid_plots:
     - version: '2022_01_13.01'
       scenarios:
         reference*: 'public reference'
-    - version: '2022_01_18.01'
-      scenarios:
-        reference*: 'new reference'
         # best_masks: 'best masks'
         # reduced_hesitancy: 'reduced hesitancy'
         # booster: 'booster'
+    - version: '2022_01_19.04'
+      scenarios:
+        reference*: 'symtomatic waning = infection'
+    - version: '2022_01_19.02'
+      scenarios:
+        reference*: 'symtomatic waning = 50% infection/50% severe'
+    - version: '2022_01_19.01'
+      scenarios:
+        reference*: 'symtomatic waning = severe'
   - name: 'compare_shortrange'
     date_start: '2021-01-01'
     date_end: '2022-05-01'
@@ -24,9 +30,15 @@ grid_plots:
     - version: '2022_01_13.01'
       scenarios:
         reference*: 'public reference'
-    - version: '2022_01_18.01'
-      scenarios:
-        reference*: 'new reference'
         # best_masks: 'best masks'
         # reduced_hesitancy: 'reduced hesitancy'
         # booster: 'booster'
+    - version: '2022_01_19.04'
+      scenarios:
+        reference*: 'symtomatic waning = infection'
+    - version: '2022_01_19.02'
+      scenarios:
+        reference*: 'symtomatic waning = 50% infection/50% severe'
+    - version: '2022_01_19.01'
+      scenarios:
+        reference*: 'symtomatic waning = severe'
