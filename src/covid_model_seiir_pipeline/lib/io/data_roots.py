@@ -249,7 +249,6 @@ class FitRoot(DataRoot):
     ode_parameters = DatasetType('ode_parameters', LEAF_TEMPLATES.DRAW_TEMPLATE)
     phis = DatasetType('phis', LEAF_TEMPLATES.DRAW_TEMPLATE)
     seroprevalence = DatasetType('seroprevalence', LEAF_TEMPLATES.DRAW_TEMPLATE)
-    etas = DatasetType('etas', LEAF_TEMPLATES.DRAW_TEMPLATE)
     chis = DatasetType('chis', LEAF_TEMPLATES.DRAW_TEMPLATE)
     summary = DatasetType('summary', LEAF_TEMPLATES.MEASURE_TEMPLATE)
 
@@ -264,13 +263,6 @@ class RegressionRoot(DataRoot):
 
     beta = DatasetType('beta', LEAF_TEMPLATES.DRAW_TEMPLATE)
     coefficients = DatasetType('coefficients', LEAF_TEMPLATES.DRAW_TEMPLATE)
-    compartments = DatasetType('compartments', LEAF_TEMPLATES.DRAW_TEMPLATE)
-    ode_parameters = DatasetType('ode_parameters', LEAF_TEMPLATES.DRAW_TEMPLATE)
-    etas = DatasetType('etas', LEAF_TEMPLATES.DRAW_TEMPLATE)
-    chis = DatasetType('phis', LEAF_TEMPLATES.DRAW_TEMPLATE)
-
-    infections = DatasetType('infections', LEAF_TEMPLATES.DRAW_TEMPLATE)
-    deaths = DatasetType('deaths', LEAF_TEMPLATES.DRAW_TEMPLATE)
     hospitalizations = DatasetType('hospitalizations', LEAF_TEMPLATES.MEASURE_TEMPLATE)
 
 
