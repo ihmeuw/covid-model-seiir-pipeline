@@ -18,44 +18,35 @@ class OOSHoldoutDataInterface:
 
     def __init__(self,
                  forecast_data_interface: ForecastDataInterface,
-                 fit_root: io.FitRoot):
+                 oos_root: io.OOSHoldoutRoot):
         self.forecast_data_interface = forecast_data_interface
-        self.fit_root = fit_root
+        self.oos_root = oos_root
 
     @classmethod
-    def from_specification(cls, specification: FitSpecification) -> 'FitDataInterface':
-        preprocessing_spec = PreprocessingSpecification.from_version_root(specification.data.seir_preprocess_version)
-        preprocessing_data_interface = PreprocessingDataInterface.from_specification(preprocessing_spec)
+    def from_specification(cls, specification: OOSHoldoutSpecification) -> 'OOSHoldoutDataInterface':
+        forecast_spec = ForecastSpecification.from_version_root(specification.data.seir_forecast_version)
+        forecast_data_interface = ForecastDataInterface.from_specification(forecast_spec)
         return cls(
-            preprocessing_data_interface=preprocessing_data_interface,
-            fit_root=io.FitRoot(specification.data.output_root,
-                                data_format=specification.data.output_format),
+            forecast_data_interface=forecast_data_interface,
+            oos_root=io.OOSHoldoutRoot(specification.data.output_root,
+                                       data_format=specification.data.output_format),
         )
 
     def make_dirs(self, **prefix_args) -> None:
-        io.touch(self.fit_root, **prefix_args)
+        io.touch(self.oos_root, **prefix_args)
 
     def get_n_draws(self):
-        specification = self.load_specification()
-        fit_draws = specification.data.n_draws
-        preprocess_draws = self.preprocessing_data_interface.get_n_draws()
-        if not fit_draws <= preprocess_draws:
-            raise ValueError(f"Can't run fit with more draws than preprocessing.\n"
-                             f"Fit draws requested: {fit_draws}. Preprocessing draws: {preprocess_draws}.")
-        return fit_draws
+        return self.forecast_data_interface.get_n_draws()
 
     #####################
     # Preprocessed Data #
     #####################
 
     def load_hierarchy(self, name: str) -> pd.DataFrame:
-        return self.preprocessing_data_interface.load_hierarchy(name=name)
+        return self.forecast_data_interface.load_hierarchy(name=name)
 
     def load_population(self, measure: str) -> pd.DataFrame:
-        return self.preprocessing_data_interface.load_population(measure=measure)
-
-    def load_age_patterns(self) -> pd.DataFrame:
-        return self.preprocessing_data_interface.load_age_patterns()
+        return self.forecast_data_interface.load_population(measure=measure)
 
     def load_reported_epi_data(self) -> pd.DataFrame:
         return self.preprocessing_data_interface.load_reported_epi_data()

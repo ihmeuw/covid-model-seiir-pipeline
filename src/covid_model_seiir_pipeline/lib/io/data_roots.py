@@ -309,3 +309,5 @@ class OOSHoldoutRoot(DataRoot):
     metadata = MetadataType('metadata')
     specification = MetadataType('oos_holdout_specification')
 
+    beta = DatasetType('beta', LEAF_TEMPLATES.DRAW_TEMPLATE)
+    coefficients = DatasetType('coefficients', LEAF_TEMPLATES.DRAW_TEMPLATE)

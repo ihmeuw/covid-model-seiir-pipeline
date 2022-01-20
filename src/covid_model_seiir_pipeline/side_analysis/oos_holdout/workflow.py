@@ -86,7 +86,7 @@ class OOSDiagnosticsTaskTemplate(workflow.TaskTemplate):
     task_args = ['oos_version']
 
 
-class FitWorkflow(workflow.WorkflowTemplate):
+class OOSHoldoutWorkflow(workflow.WorkflowTemplate):
     tool = workflow.get_jobmon_tool(covid_model_seiir_pipeline)
     workflow_name_template = 'seiir-oos-{version}'
     task_template_classes = {
@@ -106,41 +106,41 @@ class FitWorkflow(workflow.WorkflowTemplate):
         postprocess_template = self.task_templates[OOS_HOLDOUT_JOBS.oos_postprocess]
         diagnostics_template = self.task_templates[OOS_HOLDOUT_JOBS.oos_diagnostics]
 
-        scaling_task = scaling_template.get_task(oos_version=self.version)
-        forecast_join_task = join_template.get_task(oos_version=self.version, sentinel_id='forecast')
-        postprocess_join_task = join_template.get_task(oos_version=self.version, sentinel_id='postprocess')
-        for task in [scaling_task, forecast_join_task, postprocess_join_task]:
-            self.workflow.add_task(task)
+        # scaling_task = scaling_template.get_task(oos_version=self.version)
+        # forecast_join_task = join_template.get_task(oos_version=self.version, sentinel_id='forecast')
+        # postprocess_join_task = join_template.get_task(oos_version=self.version, sentinel_id='postprocess')
+        # for task in [scaling_task, forecast_join_task, postprocess_join_task]:
+        #     self.workflow.add_task(task)
 
         for draw_id in range(n_draws):
             regression_task = regression_template.get_task(
                 oos_version=self.version,
                 draw_id=draw_id,
             )
-            regression_task.add_downstream(scaling_task)
+            # regression_task.add_downstream(scaling_task)
             self.workflow.add_task(regression_task)
 
-            forecast_task = forecast_template.get_task(
-                oos_version=self.version,
-                draw_id=draw_id,
-            )
-            forecast_task.add_upstream(scaling_task)
-            forecast_task.add_downstream(forecast_join_task)
-            self.workflow.add_task(forecast_task)
-
-        for measure in measures:
-            task = postprocess_template.get_task(
-                oos_version=self.version,
-                measure=measure,
-            )
-            task.add_upstream(forecast_join_task)
-            task.add_downstream(postprocess_join_task)
-            self.workflow.add_task(task)
-
-        for plot_type in plot_types:
-            task = diagnostics_template.get_task(
-                oos_version=self.version,
-                plot_type=plot_type,
-            )
-            task.add_upstream(postprocess_join_task)
-            self.workflow.add_task(task)
+        #     forecast_task = forecast_template.get_task(
+        #         oos_version=self.version,
+        #         draw_id=draw_id,
+        #     )
+        #     forecast_task.add_upstream(scaling_task)
+        #     forecast_task.add_downstream(forecast_join_task)
+        #     self.workflow.add_task(forecast_task)
+        #
+        # for measure in measures:
+        #     task = postprocess_template.get_task(
+        #         oos_version=self.version,
+        #         measure=measure,
+        #     )
+        #     task.add_upstream(forecast_join_task)
+        #     task.add_downstream(postprocess_join_task)
+        #     self.workflow.add_task(task)
+        #
+        # for plot_type in plot_types:
+        #     task = diagnostics_template.get_task(
+        #         oos_version=self.version,
+        #         plot_type=plot_type,
+        #     )
+        #     task.add_upstream(postprocess_join_task)
+        #     self.workflow.add_task(task)

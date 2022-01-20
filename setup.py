@@ -16,7 +16,7 @@ if __name__ == "__main__":
 
     install_requirements = [
         'click',
-        'covid_shared>=1.15.4',
+        'covid_shared>=1.15.5',
         'fastparquet',
         'inflection',
         'loguru',
