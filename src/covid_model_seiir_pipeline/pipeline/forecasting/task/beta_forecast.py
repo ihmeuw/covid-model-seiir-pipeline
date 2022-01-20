@@ -302,7 +302,3 @@ def beta_forecast(forecast_version: str, scenario: str, draw_id: int,
         scenario=scenario,
         draw_id=draw_id,
         progress_bar=progress_bar)
-
-
-if __name__ == '__main__':
-    beta_forecast()

@@ -192,7 +192,3 @@ def beta_residual_scaling(forecast_version: str, scenario: str, progress_bar: bo
     run(forecast_version=forecast_version,
         scenario=scenario,
         progress_bar=progress_bar)
-
-
-if __name__ == '__main__':
-    beta_residual_scaling()

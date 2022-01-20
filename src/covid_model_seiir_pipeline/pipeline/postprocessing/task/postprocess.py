@@ -335,7 +335,3 @@ def postprocess(postprocessing_version: str, scenario: str, measure: str,
     run(postprocessing_version=postprocessing_version,
         scenario=scenario,
         measure=measure)
-
-
-if __name__ == '__main__':
-    postprocess()
