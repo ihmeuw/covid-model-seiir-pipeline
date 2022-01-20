@@ -13,7 +13,7 @@ def stask():
 
 
 # Loops over every pipeline stage and adds all tasks to the `stask` cli group.
-for package in [pipeline]:  # [pipeline, side_analysis]:
+for package in [pipeline, side_analysis]:
     for importer, modname, is_pkg in pkgutil.iter_modules(package.__path__):
         if is_pkg:
             pipeline_stage = importer.find_module(modname).load_module()
