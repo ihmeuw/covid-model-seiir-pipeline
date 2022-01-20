@@ -32,7 +32,7 @@ def run_oos_holdout_regression(oos_holdout_version: str, draw_id: int) -> None:
 
     logger.info('Fitting beta regression', context='compute_regression')
     holdout_days = specification.parameters.holdout_weeks * 7
-    beta_fit = beta_fit.groupby('location_id').apply(lambda x: x.iloc[:-holdout_days])
+    beta_fit = beta_fit.drop(beta_fit.groupby('location_id').tail(holdout_days).index)
     if specification.parameters.run_regression:
         regression_spec = data_interface.forecast_data_interface.regression_data_interface.load_specification()
         coefficients = model.run_beta_regression(
