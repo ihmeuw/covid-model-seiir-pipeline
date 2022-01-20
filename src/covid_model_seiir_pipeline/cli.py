@@ -24,7 +24,8 @@ for package in [pipeline, side_analysis]:
     for importer, modname, is_pkg in pkgutil.iter_modules(package.__path__):
         if is_pkg:
             pipeline_stage = importer.find_module(modname).load_module()
-            seiir.add_command(pipeline_stage.COMMAND)
+            cmd = pipeline_stage.COMMAND
+            seiir.add_command(cmd, name=cmd.name.replace('-', '_'))
 
 
 @seiir.command(name='run_all')
