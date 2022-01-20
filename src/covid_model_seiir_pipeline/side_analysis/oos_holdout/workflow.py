@@ -13,12 +13,12 @@ class OOSRegressionTaskTemplate(workflow.TaskTemplate):
     command_template = (
         f"{shutil.which('stask')} "
         f"{OOS_HOLDOUT_JOBS.oos_regression} "
-        "--oos-holdout-version {oos_version} "
+        "--oos-holdout-version {oos_holdout_version} "
         "--draw-id {draw_id} "
         "-vv"
     )
     node_args = ['draw_id']
-    task_args = ['oos_version']
+    task_args = ['oos_holdout_version']
 
 
 class OOSBetaScalingTaskTemplate(workflow.TaskTemplate):
@@ -27,11 +27,11 @@ class OOSBetaScalingTaskTemplate(workflow.TaskTemplate):
     command_template = (
         f"{shutil.which('stask')} "
         f"{OOS_HOLDOUT_JOBS.oos_beta_scaling} "
-        "--oos-holdout-version {oos_version} "        
+        "--oos-holdout-version {oos_holdout_version} "        
         "-vv"
     )
     node_args = []
-    task_args = ['oos_version']
+    task_args = ['oos_holdout_version']
 
 
 class OOSForecastTaskTemplate(workflow.TaskTemplate):
@@ -40,22 +40,22 @@ class OOSForecastTaskTemplate(workflow.TaskTemplate):
     command_template = (
         f"{shutil.which('stask')} "
         f"{OOS_HOLDOUT_JOBS.oos_forecast} "
-        "--oos-holdout-version {oos_version} "
+        "--oos-holdout-version {oos_holdout_version} "
         "--draw-id {draw_id} "
         "-vv"
     )
     node_args = ['draw_id']
-    task_args = ['oos_version']
+    task_args = ['oos_holdout_version']
 
 
 class OOSJoinSentinelTaskTemplate(workflow.TaskTemplate):
     tool = workflow.get_jobmon_tool(covid_model_seiir_pipeline)
     task_name_template = f"{OOS_HOLDOUT_JOBS.oos_join_sentinel}_{{sentinel_id}}"
     command_template = (
-        "echo join sentinel {oos_version} {sentinel_id}"
+        "echo join sentinel {oos_holdout_version} {sentinel_id}"
     )
     node_args = ['sentinel_id']
-    task_args = ['oos_version']
+    task_args = ['oos_holdout_version']
 
 
 class OOSPostprocessTaskTemplate(workflow.TaskTemplate):
@@ -64,12 +64,12 @@ class OOSPostprocessTaskTemplate(workflow.TaskTemplate):
     command_template = (
         f"{shutil.which('stask')} "
         f"{OOS_HOLDOUT_JOBS.oos_postprocess} "
-        "--oos-holdout-version {oos_version} "
+        "--oos-holdout-version {oos_holdout_version} "
         "--measure {measure} "
         "-vv"
     )
     node_args = ['measure']
-    task_args = ['oos_version']
+    task_args = ['oos_holdout_version']
 
 
 class OOSDiagnosticsTaskTemplate(workflow.TaskTemplate):
