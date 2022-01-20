@@ -53,7 +53,7 @@ class OOSHoldoutDataInterface:
 
     def load_covariates(self):
         regression_spec = self.forecast_data_interface.regression_data_interface.load_specification()
-        return self.forecast_data_interface.load_covariates(regression_spec.covariates)
+        return self.forecast_data_interface.load_covariates(list(regression_spec.covariates))
 
     def load_priors(self):
         regression_spec = self.forecast_data_interface.regression_data_interface.load_specification()
