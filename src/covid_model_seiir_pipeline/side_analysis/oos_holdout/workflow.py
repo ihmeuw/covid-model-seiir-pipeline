@@ -107,7 +107,7 @@ class OOSHoldoutWorkflow(workflow.WorkflowTemplate):
         diagnostics_template = self.task_templates[OOS_HOLDOUT_JOBS.oos_diagnostics]
 
         scaling_task = scaling_template.get_task(oos_holdout_version=self.version)
-        # forecast_join_task = join_template.get_task(oos_holdout_version=self.version, sentinel_id='forecast')
+        forecast_join_task = join_template.get_task(oos_holdout_version=self.version, sentinel_id='forecast')
         # postprocess_join_task = join_template.get_task(oos_holdout_version=self.version, sentinel_id='postprocess')
         for task in [scaling_task]:  # , forecast_join_task, postprocess_join_task]:
             self.workflow.add_task(task)
@@ -120,14 +120,14 @@ class OOSHoldoutWorkflow(workflow.WorkflowTemplate):
             regression_task.add_downstream(scaling_task)
             self.workflow.add_task(regression_task)
 
-        #     forecast_task = forecast_template.get_task(
-        #         oos_holdout_version=self.version,
-        #         draw_id=draw_id,
-        #     )
-        #     forecast_task.add_upstream(scaling_task)
-        #     forecast_task.add_downstream(forecast_join_task)
-        #     self.workflow.add_task(forecast_task)
-        #
+            forecast_task = forecast_template.get_task(
+                oos_holdout_version=self.version,
+                draw_id=draw_id,
+            )
+            forecast_task.add_upstream(scaling_task)
+            forecast_task.add_downstream(forecast_join_task)
+            self.workflow.add_task(forecast_task)
+
         # for measure in measures:
         #     task = postprocess_template.get_task(
         #         oos_holdout_version=self.version,
