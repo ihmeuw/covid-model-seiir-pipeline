@@ -87,3 +87,14 @@ class OOSHoldoutDataInterface:
     def load_regression_beta(self, draw_id: int) -> pd.DataFrame:
         return io.load(self.oos_root.beta(draw_id=draw_id))
 
+    def save_beta_scales(self, scales: pd.DataFrame, scenario: str, draw_id: int):
+        io.dump(scales, self.oos_root.beta_scaling(draw_id=draw_id))
+
+    def load_beta_scales(self, scenario: str, draw_id: int):
+        return io.load(self.oos_root.beta_scaling(draw_id=draw_id))
+
+    def save_beta_residual(self, residual: pd.DataFrame, scenario: str, draw_id: int):
+        io.dump(residual, self.oos_root.beta_residual(draw_id=draw_id))
+
+    def load_beta_residual(self, scenario: str, draw_id: int):
+        return io.load(self.oos_root.beta_residual(draw_id=draw_id))
