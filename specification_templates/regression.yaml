@@ -10,11 +10,11 @@ workflow:
   queue: 'd.q'
 hospital_parameters:
   compute_correction_factors: True
-  hospital_stay_death: 6
-  hospital_stay_recover: 14
-  hospital_stay_recover_icu: 20
+  hospital_stay_death: 13
+  hospital_stay_recover: 6
+  hospital_stay_recover_icu: 21
   hospital_to_icu: 3
-  icu_stay_recover: 13
+  icu_stay_recover: 18
   icu_ratio: 0.25
   correction_factor_smooth_window: 14
   hospital_correction_factor_min: 0.5

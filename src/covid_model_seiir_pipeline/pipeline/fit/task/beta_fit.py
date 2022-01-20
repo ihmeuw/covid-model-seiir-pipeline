@@ -198,7 +198,6 @@ def run_beta_fit(fit_version: str, draw_id: int, progress_bar: bool) -> None:
         (  396, 1.6),  # San Marino
         (60358, 1.6),  # Aragon
         (60374, 1.6),  # Basque Country
-        (60364, 1.6),  # Canary Islands
         (60359, 1.6),  # Cantabria
         (60360, 1.6),  # Castilla-La Mancha
         (60361, 1.6),  # Community of Madrid
@@ -213,18 +212,19 @@ def run_beta_fit(fit_version: str, draw_id: int, progress_bar: bool) -> None:
         (  197, 2.0),  # Eswatini
         # 3.0
         (   83, 3.0),  # Iceland
+        (60364, 3.0),  # Canary Islands
         (60370, 3.0),  # Navarre
         (60373, 3.0),  # Melilla
-        (60376, 3.0),  # La Rioja
         ( 4849, 3.0),  # Delhi
         ( 4863, 3.0),  # Mizoram
         (  196, 3.0),  # South Africa
         (  203, 3.0),  # Cabo Verde
-        # 5.0
-        (   50, 5.0),  # Montenegro
-        (  176, 5.0),  # Comoros
-        (  186, 5.0),  # Seychelles
-        (  215, 5.0),  # Sao Tome and Principe
+        # 10.0
+        (   50, 10.0),  # Montenegro
+        (60376, 10.0),  # La Rioja
+        (  176, 10.0),  # Comoros
+        (  186, 10.0),  # Seychelles
+        (  215, 10.0),  # Sao Tome and Principe
     ]
     # IDR = p_s * IDR_s + p_a * IDR_a
     # IDR_a = (IDR - IDR_s * p_s) / p_a
@@ -256,7 +256,6 @@ def run_beta_fit(fit_version: str, draw_id: int, progress_bar: bool) -> None:
         # 1.6
         (60358, 1.6),  # Aragon
         (60374, 1.6),  # Basque Country
-        (60364, 1.6),  # Canary Islands
         (60359, 1.6),  # Cantabria
         (60360, 1.6),  # Castilla-La Mancha
         (60361, 1.6),  # Community of Madrid
@@ -266,6 +265,7 @@ def run_beta_fit(fit_version: str, draw_id: int, progress_bar: bool) -> None:
         # 2.0
         (43860, 2.0),  # Manitoba
         # 3.0
+        (60364, 3.0),  # Canary Islands
         (60370, 3.0),  # Navarre
         (60373, 3.0),  # Melilla
         (  196, 3.0),  # South Africa
@@ -283,7 +283,6 @@ def run_beta_fit(fit_version: str, draw_id: int, progress_bar: bool) -> None:
         # 1.6
         (60358, 1.6),  # Aragon
         (60374, 1.6),  # Basque Country
-        (60364, 1.6),  # Canary Islands
         (60359, 1.6),  # Cantabria
         (60360, 1.6),  # Castilla-La Mancha
         (60361, 1.6),  # Community of Madrid
@@ -291,18 +290,19 @@ def run_beta_fit(fit_version: str, draw_id: int, progress_bar: bool) -> None:
         (60367, 1.6),  # Castile and León
         (60366, 1.6),  # Murcia
         # 3.0
+        (60364, 3.0),  # Canary Islands
         (60370, 3.0),  # Navarre
         (60373, 3.0),  # Melilla
-        (60376, 3.0),  # La Rioja
         ( 4849, 3.0),  # Delhi
         ( 4863, 3.0),  # Mizoram
         (  196, 3.0),  # South Africa
         (  203, 3.0),  # Cabo Verde
-        # 5.0
-        (   50, 5.0),  # Montenegro
-        (  176, 5.0),  # Comoros
-        (  186, 5.0),  # Seychelles
-        (  215, 5.0),  # Sao Tome and Principe
+        # 10.0
+        (   50, 10.0),  # Montenegro
+        (60376, 10.0),  # La Rioja
+        (  176, 10.0),  # Comoros
+        (  186, 10.0),  # Seychelles
+        (  215, 10.0),  # Sao Tome and Principe
     ]
     kappa_omicron_death = pd.Series(
         sampled_ode_params['kappa_omicron_death'],
