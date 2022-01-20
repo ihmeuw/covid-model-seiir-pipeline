@@ -70,6 +70,7 @@ class OOSWorkflowSpecification(workflow.WorkflowSpecification):
 @dataclass
 class OOSHoldoutData:
     seir_forecast_version: str = field(default='best')
+    seir_forecast_scenario: str = field(default='reference')
     output_root: str = field(default='')
     output_format: str = field(default='parquet')
 

@@ -153,40 +153,6 @@ class ForecastDataInterface:
     def load_hospitalizations(self, measure: str) -> pd.DataFrame:
         return self.regression_data_interface.load_hospitalizations(measure)
 
-    # ##########################
-    # # Covariate data loaders #
-    # ##########################
-    #
-    # def check_covariates(self, scenarios: Dict[str, ScenarioSpecification]) -> List[str]:
-    #     regression_spec = self._get_regression_data_interface().load_specification().to_dict()
-    #     # Bit of a hack.
-    #     forecast_version = str(self.covariate_root._root)
-    #     regression_version = regression_spec['data']['covariate_version']
-    #     if not forecast_version == regression_version:
-    #         logger.warning(f'Forecast covariate version {forecast_version} does not match '
-    #                        f'regression covariate version {regression_version}. If the two covariate '
-    #                        f'versions have different data in the past, the regression coefficients '
-    #                        f'used for prediction may not be valid.')
-    #
-    #     regression_covariates = set(regression_spec['covariates'])
-    #
-    #     for name, scenario in scenarios.items():
-    #         if set(scenario.covariates).symmetric_difference(regression_covariates) > {'intercept'}:
-    #             raise ValueError('Forecast covariates must match the covariates used in regression.\n'
-    #                              f'Forecast covariates:   {sorted(list(scenario.covariates))}.\n'
-    #                              f'Regression covariates: {sorted(list(regression_covariates))}.')
-    #
-    #         if 'intercept' in scenario.covariates:
-    #             # Shouldn't really be specified, but might be copied over from
-    #             # regression.  No harm really in just deleting it.
-    #             del scenario.covariates['intercept']
-    #
-    #         for covariate, covariate_version in scenario.covariates.items():
-    #             if not io.exists(self.covariate_root[covariate](covariate_scenario=covariate_version)):
-    #                 raise FileNotFoundError(f'No {covariate_version} file found for covariate {covariate}.')
-    #
-    #     return list(regression_covariates)
-
     #####################
     # Forecast data I/O #
     #####################

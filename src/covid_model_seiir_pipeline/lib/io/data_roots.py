@@ -313,3 +313,4 @@ class OOSHoldoutRoot(DataRoot):
     coefficients = DatasetType('coefficients', LEAF_TEMPLATES.DRAW_TEMPLATE)
     beta_scaling = DatasetType('beta_scaling', LEAF_TEMPLATES.DRAW_TEMPLATE)
     beta_residual = DatasetType('beta_residual', LEAF_TEMPLATES.DRAW_TEMPLATE)
+    raw_oos_outputs = DatasetType('raw_oos_outputs', LEAF_TEMPLATES.DRAW_TEMPLATE)

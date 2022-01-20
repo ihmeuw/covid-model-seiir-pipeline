@@ -38,9 +38,12 @@ class OOSHoldoutDataInterface:
     def get_n_draws(self):
         return self.forecast_data_interface.get_n_draws()
 
-    #####################
-    # Preprocessed Data #
-    #####################
+    ##########################
+    # Data from other stages #
+    ##########################
+
+    def load_location_ids(self) -> List[int]:
+        return self.forecast_data_interface.load_location_ids()
 
     def load_hierarchy(self, name: str) -> pd.DataFrame:
         return self.forecast_data_interface.load_hierarchy(name=name)
@@ -63,6 +66,36 @@ class OOSHoldoutDataInterface:
 
     def load_prior_run_coefficients(self, draw_id: int):
         return self.forecast_data_interface.load_coefficients(draw_id=draw_id)
+
+    def load_past_compartments(self, draw_id: int, columns: List[str] = None) -> pd.DataFrame:
+        return self.forecast_data_interface.load_past_compartments(draw_id, columns)
+
+    def load_fit_ode_params(self, draw_id: int) -> pd.DataFrame:
+        return self.forecast_data_interface.load_fit_ode_params(draw_id=draw_id)
+
+    def load_posterior_epi_measures(self, draw_id: int, columns: List[str] = None) -> pd.DataFrame:
+        return self.forecast_data_interface.load_posterior_epi_measures(draw_id, columns)
+
+    def load_rates(self, draw_id: int, columns: List[str] = None) -> pd.DataFrame:
+        return self.forecast_data_interface.load_rates(draw_id, columns)
+
+    def load_vaccine_uptake(self, scenario: str) -> pd.DataFrame:
+        return self.forecast_data_interface.load_vaccine_uptake(scenario)
+
+    def load_vaccine_risk_reduction(self, scenario: str) -> pd.DataFrame:
+        return self.forecast_data_interface.load_vaccine_risk_reduction(scenario)
+
+    def load_phis(self, draw_id: int) -> pd.DataFrame:
+        return self.forecast_data_interface.load_phis(draw_id)
+
+    def load_variant_prevalence(self, scenario: str) -> pd.DataFrame:
+        return self.forecast_data_interface.load_variant_prevalence(scenario)
+
+    def load_hospitalizations(self, measure: str) -> pd.DataFrame:
+        return self.forecast_data_interface.load_hospitalizations(measure)
+
+    def get_hospital_params(self):
+        return self.forecast_data_interface.get_hospital_params()
 
     ################
     # OOS data I/O #
@@ -98,3 +131,9 @@ class OOSHoldoutDataInterface:
 
     def load_beta_residual(self, scenario: str, draw_id: int):
         return io.load(self.oos_root.beta_residual(draw_id=draw_id))
+
+    def save_raw_oos_outputs(self, data: pd.DataFrame, draw_id: int):
+        io.dump(data, self.oos_root.raw_oos_outputs(draw_id=draw_id))
+
+    def load_oos_outputs(self, draw_id: int, columns: List[str] = None):
+        return io.load(self.oos_root.raw_oos_outputs(draw_id=draw_id, columns=columns))

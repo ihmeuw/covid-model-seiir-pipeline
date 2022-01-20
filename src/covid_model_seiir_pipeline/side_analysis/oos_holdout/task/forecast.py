@@ -5,22 +5,27 @@ from covid_model_seiir_pipeline.lib import (
     cli_tools,
 )
 from covid_model_seiir_pipeline.pipeline.forecasting import model
-from covid_model_seiir_pipeline.pipeline.forecasting.specification import (
-    ForecastSpecification,
-    FORECAST_JOBS,
+from covid_model_seiir_pipeline.side_analysis.oos_holdout.specification import (
+    OOSHoldoutSpecification,
+    OOS_HOLDOUT_JOBS,
 )
-from covid_model_seiir_pipeline.pipeline.forecasting.data import ForecastDataInterface
+from covid_model_seiir_pipeline.side_analysis.oos_holdout.data import (
+    OOSHoldoutDataInterface,
+)
 
 
 logger = cli_tools.task_performance_logger
 
 
-def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progress_bar: bool):
-    logger.info(f"Initiating SEIIR beta forecasting for scenario {scenario}, draw {draw_id}.", context='setup')
-    specification = ForecastSpecification.from_version_root(forecast_version)
-    num_cores = specification.workflow.task_specifications[FORECAST_JOBS.forecast].num_cores
-    scenario_spec = specification.scenarios[scenario]
-    data_interface = ForecastDataInterface.from_specification(specification)
+def run_oos_forecast(oos_holdout_version: str, draw_id: int, progress_bar: bool):
+    logger.info(f"Initiating OOS holdout forecast for draw {draw_id}.", context='setup')
+    specification = OOSHoldoutSpecification.from_version_root(oos_holdout_version)
+    num_cores = specification.workflow.task_specifications[OOS_HOLDOUT_JOBS.oos_forecast].num_cores
+    data_interface = OOSHoldoutDataInterface.from_specification(specification)
+
+    scenario = specification.data.seir_forecast_scenario
+    forecast_specification = data_interface.forecast_data_interface.load_specification()
+    scenario_spec = forecast_specification.scenarios[scenario]
 
     #################
     # Build indices #
@@ -30,20 +35,25 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
     # to do computation.
     logger.info('Loading index building data', context='read')
     location_ids = data_interface.load_location_ids()
+    holdout_days = pd.Timedelta(days=specification.parameters.holdout_weeks * 7)
     past_compartments = data_interface.load_past_compartments(draw_id).loc[location_ids]
     past_compartments = past_compartments.loc[past_compartments.notnull().any(axis=1)]
     past_start_dates = past_compartments.reset_index(level='date').date.groupby('location_id').min()
-    beta_fit_end_dates = past_compartments.reset_index(level='date').date.groupby('location_id').max()
+    beta_fit_end_dates = past_compartments.reset_index(level='date').date.groupby('location_id').max() - holdout_days
 
     # We want the forecast to start at the last date for which all reported measures
     # with at least one report in the location are present.
     all_measures_present = past_compartments[
         [c for c in past_compartments if c.split('_')[0] in ['Death', 'Admission', 'Case']]
     ].notnull().all(axis=1)
-    forecast_start_dates = past_compartments.loc[all_measures_present].reset_index(level='date').date.groupby('location_id').max()
+    forecast_start_dates = (past_compartments
+                            .loc[all_measures_present]
+                            .reset_index(level='date')
+                            .date.groupby('location_id')
+                            .max())
 
     # Forecast is run to the end of the covariates
-    covariates = data_interface.load_covariates(scenario_spec.covariates)
+    covariates = data_interface.load_covariates()
     forecast_end_dates = covariates.reset_index().groupby('location_id').date.max()
     population = data_interface.load_population('total').population
 
@@ -278,10 +288,7 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
         forecast_ode_params[f'exposure_to_{measure}'] = ode_params[f'exposure_to_{measure}'].iloc[0]
 
     logger.info('Writing outputs.', context='write')
-    data_interface.save_ode_params(forecast_ode_params, scenario, draw_id)
-    data_interface.save_components(compartments, scenario, draw_id)
-    data_interface.save_raw_covariates(covariates, scenario, draw_id)
-    data_interface.save_raw_outputs(system_metrics, scenario, draw_id)
+    data_interface.save_raw_oos_outputs(system_metrics, draw_id)
 
     logger.report()
 

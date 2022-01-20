@@ -25,10 +25,12 @@ def run_oos_beta_scaling(oos_holdout_version: str, progress_bar: bool):
 
     specification = OOSHoldoutSpecification.from_version_root(oos_holdout_version)
     num_cores = specification.workflow.task_specifications[OOS_HOLDOUT_JOBS.oos_beta_scaling].num_cores
+    scenario = specification.data.seir_forecast_scenario
     data_interface = OOSHoldoutDataInterface.from_specification(specification)
 
     forecast_specification = data_interface.forecast_data_interface.load_specification()
-    beta_scaling_parameters = forecast_specification.scenarios['reference'].beta_scaling
+
+    beta_scaling_parameters = forecast_specification.scenarios[scenario].beta_scaling
 
     logger.info('Computing scaling parameters.', context='compute')
     scaling_data = compute_initial_beta_scaling_parameters(
@@ -39,7 +41,7 @@ def run_oos_beta_scaling(oos_holdout_version: str, progress_bar: bool):
     )
 
     logger.info('Writing scaling parameters to disk.', context='write')
-    write_out_beta_scale(scaling_data, 'reference', data_interface, num_cores)
+    write_out_beta_scale(scaling_data, scenario, data_interface, num_cores)
 
     logger.report()
 
