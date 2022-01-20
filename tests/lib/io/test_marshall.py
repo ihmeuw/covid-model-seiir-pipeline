@@ -12,11 +12,6 @@ class MarshallInterfaceTests:
     """
     Mixin class for testing the marshall interface.
     """
-
-    def test_parameters_marshall(self, instance, regression_root, parameters):
-        self.assert_load_dump_workflow_correct(instance, regression_root,
-                                               parameters, key=regression_root.ode_parameters(draw_id=4))
-
     def test_coefficients_marshall(self, instance, regression_root, coefficients):
         self.assert_load_dump_workflow_correct(instance, regression_root,
                                                coefficients, key=regression_root.coefficients(draw_id=4))
@@ -25,9 +20,9 @@ class MarshallInterfaceTests:
         self.assert_load_dump_workflow_correct(instance, regression_root,
                                                regression_beta, key=regression_root.beta(draw_id=4))
 
-    def test_no_overwriting(self, instance, regression_root, parameters):
+    def test_no_overwriting(self, instance, regression_root, regression_beta):
         self.assert_load_dump_workflow_correct(instance, regression_root,
-                                               parameters, key=regression_root.ode_parameters(draw_id=4))
+                                               regression_beta, key=regression_root.beta(draw_id=4))
 
     def test_interface_methods(self, instance):
         "Test mandatory interface methods exist."
