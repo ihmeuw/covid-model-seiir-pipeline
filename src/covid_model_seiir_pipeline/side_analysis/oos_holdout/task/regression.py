@@ -61,12 +61,12 @@ def run_oos_holdout_regression(oos_holdout_version: str, draw_id: int) -> None:
 
 
 @click.command()
-@cli_tools.with_task_regression_version
+@cli_tools.with_task_oos_holdout_version
 @cli_tools.with_draw_id
 @cli_tools.add_verbose_and_with_debugger
-def beta_regression(regression_version: str, draw_id: int,
-                    verbose: int, with_debugger: bool):
+def oos_holdout_regression(oos_holdout_version: str, draw_id: int,
+                           verbose: int, with_debugger: bool):
     cli_tools.configure_logging_to_terminal(verbose)
-    run = cli_tools.handle_exceptions(run_beta_regression, logger, with_debugger)
-    run(regression_version=regression_version,
+    run = cli_tools.handle_exceptions(run_oos_holdout_regression, logger, with_debugger)
+    run(oos_holdout_version=oos_holdout_version,
         draw_id=draw_id)
