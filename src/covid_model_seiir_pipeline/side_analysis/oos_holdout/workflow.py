@@ -109,7 +109,7 @@ class OOSHoldoutWorkflow(workflow.WorkflowTemplate):
         scaling_task = scaling_template.get_task(oos_holdout_version=self.version)
         forecast_join_task = join_template.get_task(oos_holdout_version=self.version, sentinel_id='forecast')
         # postprocess_join_task = join_template.get_task(oos_holdout_version=self.version, sentinel_id='postprocess')
-        for task in [scaling_task]:  # , forecast_join_task, postprocess_join_task]:
+        for task in [scaling_task, forecast_join_task]:  # postprocess_join_task]:
             self.workflow.add_task(task)
 
         for draw_id in range(n_draws):
