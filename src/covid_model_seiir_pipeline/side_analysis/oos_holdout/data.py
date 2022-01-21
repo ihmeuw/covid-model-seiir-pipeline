@@ -140,3 +140,9 @@ class OOSHoldoutDataInterface:
 
     def load_oos_outputs(self, draw_id: int, columns: List[str] = None):
         return io.load(self.oos_root.raw_oos_outputs(draw_id=draw_id, columns=columns))
+
+    def save_deltas(self, data: pd.DataFrame, draw_id: int):
+        io.dump(data, self.oos_root.deltas(draw_id=draw_id))
+
+    def load_deltas(self, draw_id: int, columns: List[str] = None):
+        return io.load(self.oos_root.deltas(draw_id=draw_id, columns=columns))
