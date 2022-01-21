@@ -97,6 +97,9 @@ class OOSHoldoutDataInterface:
     def get_hospital_params(self):
         return self.forecast_data_interface.get_hospital_params()
 
+    def load_raw_outputs(self, scenario: str, draw_id: int, columns: List[str] = None):
+        return self.forecast_data_interface.load_raw_outputs(scenario, draw_id, columns)
+
     ################
     # OOS data I/O #
     ################

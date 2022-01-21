@@ -287,6 +287,10 @@ def run_oos_forecast(oos_holdout_version: str, draw_id: int, progress_bar: bool)
     for measure in ['death', 'case', 'admission']:
         forecast_ode_params[f'exposure_to_{measure}'] = ode_params[f'exposure_to_{measure}'].iloc[0]
 
+    full_outputs = data_interface.load_raw_outputs(scenario, draw_id)
+    import pdb; pdb.set_trace()
+    delta = system_metrics - full_outputs
+
     logger.info('Writing outputs.', context='write')
     data_interface.save_raw_oos_outputs(system_metrics, draw_id)
 
