@@ -1,10 +1,10 @@
 data:
-  seir_forecast_version: '2022_01_20.04'
+  seir_forecast_version: '2022_01_20.05'
   scenarios:
    - 'reference'
    - 'best_masks'
    - 'booster'
-   - 'reduced_hesitancy'
+   # - 'reduced_hesitancy'
   output_root: ''
 workflow:
   project: 'proj_covid_prod'
@@ -16,9 +16,13 @@ resampling:
   upper_quantile: 0.975
 splicing:
 - locations:
+  - 22
   - 50
+  - 83
   - 60376
+  - 180
   - 186
+  - 218
   output_version: '/ihme/covid-19/seir-outputs/2022_01_13.01'
 aggregation:
   - location_file: '/ihme/covid-19/seir-outputs/agg-hierarchies/modeling.csv'
