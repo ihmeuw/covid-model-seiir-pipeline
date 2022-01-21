@@ -62,7 +62,7 @@ def oos_holdout_main(app_metadata: cli_tools.Metadata,
         except ihme_deps.WorkflowAlreadyComplete:
             logger.info('Workflow already complete.')
 
-    logger.info(f'Regression version {specification.data.output_root} complete.')
+    logger.info(f'OOS Holdout version {specification.data.output_root} complete.')
 
 
 @click.command()
