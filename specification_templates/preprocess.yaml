@@ -1,23 +1,23 @@
 data:
-  mr_location_set_version_id: 771
+  mr_location_set_version_id: 1009
   mr_location_set_file: ''
-  pred_location_set_version_id: 771
-  model_inputs_version: '2022_01_03.01'
+  pred_location_set_version_id: 1009
+  model_inputs_version: '2022_01_20.02'
   age_specific_rates_version: '2021_10_15.01'
   mortality_scalars_version: '2021_12_17.01'
-  mask_use_outputs_version: '2021_12_20.01'
-  mobility_covariate_version: '2021_12_16.02'
+  mask_use_outputs_version: '2022_01_10.01'
+  mobility_covariate_version: '2022_01_03.01'
   pneumonia_version: '2020_06_12.03'
   population_density_version: '2020_05_20.07'
-  testing_outputs_version: '2021_12_13.03'
-  variant_scaleup_version: '2021_12_15.01'
-  vaccine_coverage_version: '2021_12_20.11'
-  serology_vaccine_coverage_version: '2021_12_20.05'
+  testing_outputs_version: '2022_01_05.01'
+  variant_scaleup_version: '2022_01_03.01'
+  vaccine_coverage_version: '2022_01_20.01'
+  serology_vaccine_coverage_version: '2022_01_18.01'
   vaccine_efficacy_version: '2021_12_19.01'
   vaccine_scenarios:
     - 'reference'
     - 'booster'
-    - 'probably_no'
+    # - 'probably_no'
   output_root: ''
   output_format: 'csv'
   n_draws: 100

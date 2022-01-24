@@ -1,3 +1,4 @@
+from pathlib import Path
 from typing import Callable
 
 import pandas as pd
@@ -179,6 +180,30 @@ def preprocess_variant_prevalence(data_interface: PreprocessingDataInterface) ->
 
         logger.info('Parsing into WHO variant of concern.', context='transform')
         data = _process_variants_of_concern(data)
+        invasion_dates = data[data.omicron > 0.01].groupby('location_id').date.min()
+        data = data.set_index(['location_id', 'date'])
+
+        logger.info(f'Overwriting invasion dates based on case inflection point.', context='replace')
+        p = Path(__file__).parent / 'invasion_date_hardcodes.csv'
+        target_dates = pd.read_csv(p).set_index('location_id')
+        target_dates['target_date'] = (pd.to_datetime(target_dates['case_inflection_date'])
+                                        .fillna(pd.to_datetime(target_dates['data_date']) + pd.Timedelta(days=7)))
+        target_dates = target_dates.apply(lambda x: x['target_date'] - pd.Timedelta(days=x['lag']), axis=1)
+        target_dates = target_dates.loc[invasion_dates.reset_index()['location_id'].unique()]
+        shifts = (target_dates - invasion_dates.loc[target_dates.index])
+        shifts = shifts[shifts != pd.Timedelta(days=0)].dt.days.to_dict()
+
+        updates = []
+        for location_id, invasion_date in shifts.items():
+            old_omicron = data.loc[location_id, 'omicron']
+            new_omicron = old_omicron.shift(invasion_date).ffill().bfill()
+            new_data = data.loc[location_id].drop(columns='omicron')
+            new_data['omicron'] = new_omicron
+            new_data = new_data.div(new_data.sum(axis=1), axis=0)
+            new_data['location_id'] = location_id
+            updates.append(new_data.reset_index().set_index(['location_id', 'date']))
+        updates = pd.concat(updates)
+        data = data.drop(updates.index).append(updates).sort_index()
         data = helpers.parent_inheritance(data, hierarchy)
 
         logger.info(f'Writing {scenario} scenario data.', context='write')

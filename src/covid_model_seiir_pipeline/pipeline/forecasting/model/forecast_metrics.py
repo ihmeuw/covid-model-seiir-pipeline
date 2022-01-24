@@ -200,9 +200,9 @@ def compute_corrected_hospital_usage(admissions: pd.DataFrame,
                                      hospital_parameters,
                                      correction_factors):
     lag = ode_params['exposure_to_death'].iloc[0] - ode_params['exposure_to_admission'].iloc[0]
-    admissions = admissions['modeled_admissions_total'].groupby('location_id').shift(lag)
+    admissions = admissions['modeled_admissions_total']
     deaths = deaths['modeled_deaths_total']
-    hfr = deaths / admissions
+    hfr = admissions.groupby('location_id').shift(lag) / deaths
     hfr[(hfr < 1) | ~np.isfinite(hfr)] = 1
     hospital_usage = compute_hospital_usage(
         admissions,
@@ -229,15 +229,26 @@ def compute_r(model_params: Parameters,
 
     base_params = model_params.base_parameters
     population = system_metrics.total_population
-    sigma, gamma = base_params.sigma_all_infection, base_params.gamma_all_infection
-    average_generation_time = int(round((1 / sigma + 1 / gamma).mean()))
+
+    base_params['sigma_total_infection'] = 0
+    base_params['gamma_total_infection'] = 0
+    for v in VARIANT_NAMES[1:]:
+        base_params['sigma_total_infection'] += base_params[f'rho_{v}_infection'] * base_params[f'sigma_{v}_infection']
+        base_params['gamma_total_infection'] += base_params[f'rho_{v}_infection'] * base_params[f'gamma_{v}_infection']
 
     for label in list(VARIANT_NAMES[1:]) + ['total']:
-        infections = system_metrics[f'modeled_infections_{label}']
-        susceptible = system_metrics[f'susceptible_{label}']
-        r[f'r_effective_{label}'] = (infections
-                                     .groupby('location_id')
-                                     .apply(lambda x: x / x.shift(average_generation_time)))
+        sigma, gamma = base_params.loc[:, f'sigma_{label}_infection'], base_params.loc[:, f'gamma_{label}_infection']
+        generation_time = ((1 / sigma + 1 / gamma)
+                           .round()
+                           .groupby('location_id').bfill()
+                           .astype(int)
+                           .rename('generation_time'))
+        infections = system_metrics.loc[:, f'modeled_infections_{label}']
+        for gt in generation_time.unique():
+            r.loc[generation_time == gt, f'r_effective_{label}'] = (infections
+                                                                    .groupby('location_id')
+                                                                    .apply(lambda x: x / x.shift(gt)))
+        susceptible = system_metrics.loc[:, f'susceptible_{label}']
         r[f'r_controlled_{label}'] = r[f'r_effective_{label}'] * population / susceptible
 
     return r

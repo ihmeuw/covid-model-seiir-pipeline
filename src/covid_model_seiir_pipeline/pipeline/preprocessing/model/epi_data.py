@@ -81,6 +81,19 @@ def evil_doings(data: pd.DataFrame, hierarchy: pd.DataFrame, input_measure: str)
         pass
 
     elif input_measure == 'hospitalizations':
+        ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
+        ## extra day(s) of admissions, drop to keep synced with cases
+        leading_hospital_trimming = [
+            ('france', 80, 2),
+            ('valencian_community', 60371, 2),
+        ]
+        for location, location_id, t in leading_hospital_trimming:
+            is_h_loc = data['location_id'] == location_id
+            is_h_loc_leading = data['date'] >= data.loc[is_h_loc, 'date'].max() - pd.Timedelta(days=t-1)
+            data = data.loc[~(is_h_loc & is_h_loc_leading)].reset_index(drop=True)
+            manipulation_metadata[location] = f'dropped leading hospital data - {t} day(s).'
+        ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
+        
         ## hosp/IHR == admissions too low
         is_argentina = data['location_id'] == 97
         data = data.loc[~is_argentina].reset_index(drop=True)

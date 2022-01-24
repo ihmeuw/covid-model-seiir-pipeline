@@ -140,6 +140,12 @@ def build_eta_calc_arguments(vaccine_uptake: pd.DataFrame,
 
     infection_efficacy = waning_efficacy.loc['infection']
     severe_disease_efficacy = waning_efficacy.loc['severe_disease']
+    symptomatic_disease_efficacy = infection_efficacy.copy()
+    # ## MID-POINT
+    # symptomatic_disease_efficacy.loc[:, 'omicron', :] += severe_disease_efficacy.loc[:, 'omicron', :]
+    # symptomatic_disease_efficacy.loc[:, 'omicron', :] /= 2
+    ## SYMPTOMATIC == SEVERE
+    symptomatic_disease_efficacy.loc[:, 'omicron', :] = severe_disease_efficacy.loc[:, 'omicron', :]
 
     for location_id, vaccine_course, risk_group in tqdm.tqdm(list(groups), disable=not progress_bar):
         try:
@@ -148,6 +154,7 @@ def build_eta_calc_arguments(vaccine_uptake: pd.DataFrame,
             logger.warning(f'Missing uptake for location: {location_id}, vaccine course: {vaccine_course}, risk group: {risk_group}')
             continue
         group_infection_efficacy = infection_efficacy.loc[vaccine_course]
+        group_symptomatic_disease_efficacy = symptomatic_disease_efficacy.loc[vaccine_course]
         group_severe_disease_efficacy = severe_disease_efficacy.loc[vaccine_course]
 
         eta_args.append([
@@ -158,6 +165,15 @@ def build_eta_calc_arguments(vaccine_uptake: pd.DataFrame,
             group_uptake,
             group_infection_efficacy,
             pd.DataFrame(0., columns=group_infection_efficacy.columns, index=group_infection_efficacy.index),
+        ])
+        eta_args.append([
+            'symptomatic_disease',
+            location_id,
+            vaccine_course,
+            risk_group,
+            group_uptake,
+            group_symptomatic_disease_efficacy,
+            group_infection_efficacy,
         ])
         eta_args.append([
             'severe_disease',

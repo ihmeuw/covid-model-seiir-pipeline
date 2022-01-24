@@ -92,6 +92,11 @@ def prepare_ode_fit_parameters(rates: Rates,
         w_target = natural_waning_dist[endpoint]
 
         for from_variant, to_variant in itertools.product(VARIANT_NAMES, VARIANT_NAMES):
+            if endpoint == 'case' and to_variant == 'omicron':
+                # ## MID-POINT
+                # w_target = natural_waning_dist[['infection', 'admission']].mean(axis=1).rename('case')
+                ## SYMPTOMATIC == SEVERE
+                w_target = natural_waning_dist['admission'].rename('case')
             cvi = natural_waning_matrix.loc[from_variant, to_variant]
             phi = 1 - (1 - cvi * w_target) / (1 - cvi * w_base)
             phi[phi.cummax() < phi.max()] = phi.max()
@@ -207,6 +212,7 @@ def make_initial_condition(parameters: Parameters, full_rates: pd.DataFrame, pop
 
             loc_initial_condition.loc[loc_start_date, f'S_unvaccinated_none_{risk_group}'] = susceptible
             loc_initial_condition.loc[loc_start_date, f'E_unvaccinated_ancestral_{risk_group}'] = new_e
+            loc_initial_condition.loc[loc_start_date, f'Infection_none_ancestral_unvaccinated_{risk_group}'] = new_e
             loc_initial_condition.loc[loc_start_date, f'Infection_none_all_unvaccinated_{risk_group}'] = new_e
             loc_initial_condition.loc[loc_start_date, f'Infection_none_all_all_{risk_group}'] = new_e
             loc_initial_condition.loc[loc_start_date, f'Infection_all_all_all_{risk_group}'] = new_e

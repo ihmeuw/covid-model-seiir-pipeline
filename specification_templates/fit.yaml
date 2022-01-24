@@ -1,11 +1,12 @@
 data:
-  seir_preprocess_version: '2022_01_04.01'
+  seir_preprocess_version: '2022_01_20.11'
   output_format: 'parquet'
   output_root: ''
   n_draws: 100
+  compare_version: '2022_01_13.06'
 workflow:
   project: 'proj_covid_prod'
-  queue: 'all.q'
+  queue: 'd.q'
 rates_parameters:
   day_0: '2020-03-15'
   pred_start_date: '2019-11-01'
@@ -28,29 +29,42 @@ rates_parameters:
   # Or a 3-tuple of [mean, lower, upper]
   ihr_risk_ratio: 'BMJ'
   idr_risk_ratio: [1.0, 1.0, 1.0]
-  omicron_ifr_scalar: [0.05, 0.15]
-  omicron_ihr_scalar: [0.15, 0.25]
+  omicron_ifr_scalar: [0.009375, 0.028125]  # 0.01875 +/- 50%
+  omicron_ihr_scalar: [0.0625, 0.1875]  # 0.125 +/- 50%
   # IDR is altered in second pass rates based on assumptions about the probability a disease is symptomatic.
   omicron_idr_scalar: 1.0
 fit_parameters:
   # Mixing parameter.  dS/dt = -beta * S * I ** alpha
   alpha: [0.9, 1.0]
-  # 1 / incubation period.  dE/dt = -dS/dt - sigma * E
-  sigma: [0.2, 0.3333]
-  # 1 / duration infectious.  dI1/dt = sigma * E - gamma * I
-  gamma1: [0.2, 0.3333]
   # Proportion of current E to send to variant E on invasion.
   pi: [0.01, 0.1]
+  # 1 / incubation period.  dE/dt = -dS/dt - sigma * E
+  sigma_ancestral_infection: [0.2, 0.3333]
+  sigma_alpha_infection: [0.2, 0.3333]
+  sigma_beta_infection: [0.2, 0.3333]
+  sigma_gamma_infection: [0.2, 0.3333]
+  sigma_delta_infection: [0.2, 0.3333]
+  sigma_omicron_infection: [0.25, 1.0]
+  sigma_other_infection: [0.2, 0.3333]
+  sigma_omega_infection: [0.25, 1.0]
+  # 1 / duration infectious.  dI1/dt = sigma * E - gamma * I
+  gamma_ancestral_infection: [0.2, 0.3333]
+  gamma_alpha_infection: [0.2, 0.3333]
+  gamma_beta_infection: [0.2, 0.3333]
+  gamma_gamma_infection: [0.2, 0.3333]
+  gamma_delta_infection: [0.2, 0.3333]
+  gamma_omicron_infection: [0.2, 0.3333]
+  gamma_other_infection: [0.2, 0.3333]
+  gamma_omega_infection: [0.2, 0.3333]
   # proportion increase in transmission intensity
   kappa_ancestral_infection: 1.0
   kappa_alpha_infection: [1.2, 1.6]
   kappa_beta_infection: [1.0, 1.4]
   kappa_gamma_infection: [1.0, 1.4]
   kappa_delta_infection: [1.6, 2.0]
-  kappa_omicron_infection: [1.5, 2.5]
+  kappa_omicron_infection: [2.5, 3.5]
   kappa_other_infection: [1.0, 1.4]
-  kappa_omega_infection: [2.0, 3.0]
-
+  kappa_omega_infection: [2.5, 3.5]
   # (1 - breakthrough probability) for a variant.
   phi_ancestral_infection: 1.0
   phi_alpha_infection: 1.0
@@ -61,33 +75,61 @@ fit_parameters:
   phi_other_infection: [0.7, 0.9]
   phi_omega_infection: [0.0, 0.2]
 measure_downweights:
-    death:
-      [
-        # IFR outliers
-        [   35, 0.50],  # Georgia
-        [   41, 0.50],  # Uzbekistan
-        [   43, 0.50],  # Albania
-        [   62, 0.10],  # Russia
-        [  141, 0.50],  # Egypt
-        [  151, 0.10],  # Qatar
-        [53619, 0.50],  # Khyber Pakhtunkhwa
-        [  214, 0.10],  # Nigeria
-
-        # bad fits
-        [  121, 0.10],  # Bolivia
-        [  160, 0.01],  # Afghanistan
-        [  193, 0.01],  # Botswana
-        [  194, 0.01],  # Lesotho
-        [  195, 0.01],  # Namibia
-        [  197,   0.],  # Eswatini
-        [  198, 0.10],  # Zimbabwe
-        [53617, 0.10],  # Gilgit-Baltistan
-      ]
-    admission:
-      [
-      ]
-    case:
-      [
-        [  176, 0.01],  # Comoros
-        [  215, 0.01],  # Sao Tome and Principe
-      ]
+  death:
+    [
+      # IFR outliers
+      [   35, 0.50],  # Georgia
+      [   41, 0.50],  # Uzbekistan
+      [   43, 0.50],  # Albania
+      [   62, 0.10],  # Russia
+      [  141, 0.50],  # Egypt
+      [  151, 0.10],  # Qatar
+      [53619, 0.50],  # Khyber Pakhtunkhwa
+      [  214, 0.10],  # Nigeria
+      # bad fits
+      [43860, 0.10],  # Manitoba
+      [43861, 0.10],  # New Brunswick
+      [  121, 0.01],  # Bolivia
+      [  160, 0.00],  # Afghanistan
+      [53617, 0.10],  # Gilgit-Baltistan
+      [   12, 0.10],  # Laos
+      [  168, 0.01],  # Angola
+      [  180, 0.00],  # Kenya
+      [  182, 0.00],  # Malawi
+      [  184, 0.00],  # Mozambique
+      [  185, 0.10],  # Rwanda
+      [  190, 0.10],  # Uganda
+      [  191, 0.00],  # Zambia
+      [  193, 0.00],  # Botswana
+      [  194, 0.00],  # Lesotho
+      [  195, 0.00],  # Namibia
+      [  197, 0.00],  # Eswatini
+      [  198, 0.00],  # Zimbabwe
+    ]
+  admission:
+    [
+      [43860, 0.10],  # Manitoba
+      [60365, 0.10],  # Asturias
+      [60360, 0.10],  # Castilla-La Mancha
+      [60361, 0.10],  # Community of Madrid
+      [  184, 0.00],  # Mozambique
+      [  191, 0.00],  # Zambia
+    ]
+  case:
+    [
+      [   37, 0.01],  # Kyrgyzstan
+      [   50, 0.00],  # Montenegro
+      [   83, 0.10],  # Iceland
+      [60370, 0.01],  # Navarre
+      [60376, 0.01],  # La Rioja
+      [ 4751, 0.10],  # Alagoas
+      [ 4753, 0.10],  # Amapá
+      [ 4762, 0.10],  # Mato Grosso
+      [ 4761, 0.10],  # Mato Grosso do Sul
+      [ 4763, 0.10],  # Pará
+      [  176, 0.00],  # Comoros
+      [  186, 0.00],  # Seychelles
+      [  201, 0.10],  # Burkina Faso
+      [  203, 0.10],  # Cabo Verde
+      [  215, 0.00],  # Sao Tome and Principe
+    ]

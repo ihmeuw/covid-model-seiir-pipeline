@@ -25,13 +25,13 @@ if __name__ == "__main__":
         'numpy',
         'openpyxl',
         'pandas',
+        'pathos',
         'pypdf2',
         'pyyaml',
         'parse',
         'scipy',
         'seaborn',
         'tqdm',
-        'pathos',
     ]
 
     test_requirements = [

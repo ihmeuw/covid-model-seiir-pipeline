@@ -115,8 +115,6 @@ DERIVED_TYPES = {
     ]),
     'base_parameter': ('parameter_type', [
         'alpha',
-        'sigma',
-        'gamma',
         'pi',
         'beta',
     ]),
@@ -129,6 +127,8 @@ DERIVED_TYPES = {
         'rho',
     ]),
     'epi_variant_parameter': ('parameter_type', [
+        'sigma',
+        'gamma',
         'kappa',
     ]),
     'variant': ('variant_index_type', [
@@ -245,21 +245,25 @@ SPECS = {
             ['Beta', 'none', 'none', 'admission'],
             ['Beta', 'none', 'none', 'case'],
 
+            ['Infection', 'none', 'variant', 'unvaccinated'],
             ['Infection', 'none', 'all', 'unvaccinated'],
             ['Infection', 'none', 'all', 'all'],
             ['Infection', 'all', 'all', 'all'],
             ['Infection', 'all', 'variant', 'all'],
 
+            ['Death', 'none', 'variant', 'unvaccinated'],
             ['Death', 'none', 'all', 'unvaccinated'],
             ['Death', 'none', 'all', 'all'],
             ['Death', 'all', 'all', 'all'],
             ['Death', 'all', 'variant', 'all'],
 
+            ['Admission', 'none', 'variant', 'unvaccinated'],
             ['Admission', 'none', 'all', 'unvaccinated'],
             ['Admission', 'none', 'all', 'all'],
             ['Admission', 'all', 'all', 'all'],
             ['Admission', 'all', 'variant', 'all'],
 
+            ['Case', 'none', 'variant', 'unvaccinated'],
             ['Case', 'none', 'all', 'unvaccinated'],
             ['Case', 'none', 'all', 'all'],
             ['Case', 'all', 'all', 'all'],

@@ -6,7 +6,7 @@ from covid_model_seiir_pipeline.lib.ode_mk2.constants import (
     TOMBSTONE,
     # Indexing tuples
     RISK_GROUP,
-    BASE_PARAMETER,
+    EPI_VARIANT_PARAMETER,
     VARIANT,
     VARIANT_GROUP,
     VACCINE_STATUS,
@@ -117,15 +117,15 @@ def single_group_system(t: float,
                         group_vaccines: np.ndarray):
     transition_map = np.zeros((group_y.size, group_y.size))
 
-    sigma = params[PARAMETERS[BASE_PARAMETER.sigma, VARIANT_GROUP.all, EPI_MEASURE.infection]]
-    gamma = params[PARAMETERS[BASE_PARAMETER.sigma, VARIANT_GROUP.all, EPI_MEASURE.infection]]
-
     vaccine_eligible = np.zeros(len(VACCINE_STATUS))
     # Transmission
     for variant_to, vaccine_status in utils.cartesian_product((np.array(VARIANT), np.array(VACCINE_STATUS))):
         e_idx = COMPARTMENTS[COMPARTMENT.E, vaccine_status, variant_to]
         i_idx = COMPARTMENTS[COMPARTMENT.I, vaccine_status, variant_to]
         s_to_idx = COMPARTMENTS[COMPARTMENT.S, vaccine_status, variant_to]
+        
+        sigma = params[PARAMETERS[EPI_VARIANT_PARAMETER.sigma, variant_to, EPI_MEASURE.infection]]
+        gamma = params[PARAMETERS[EPI_VARIANT_PARAMETER.gamma, variant_to, EPI_MEASURE.infection]]
 
         for variant_from in VARIANT:
             s_from_idx = COMPARTMENTS[COMPARTMENT.S, vaccine_status, variant_from]

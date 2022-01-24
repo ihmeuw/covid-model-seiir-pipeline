@@ -18,13 +18,13 @@ class FitDataInterface(RegressionDataInterface):
 
     def __init__(self,
                  infection_root,
-                 covariate_root: io.CovariateRoot,
+#                 covariate_root: io.CovariateRoot,
                  priors_root: Optional[io.CovariatePriorsRoot],
                  coefficient_root: Optional[io.RegressionRoot],
                  regression_root: Optional[io.RegressionRoot],
                  variant_root,
                  fit_root: io.FitRoot):
-        super().__init__(infection_root, covariate_root, priors_root, coefficient_root, regression_root)
+#        super().__init__(infection_root, covariate_root, priors_root, coefficient_root, regression_root)
         self.variant_root = variant_root
         self.fit_root = fit_root
 

@@ -41,16 +41,16 @@ def do_beta_regression(run_metadata: cli_tools.RunMetadata,
 
 
 def beta_regression_main(app_metadata: cli_tools.Metadata,
-                         regression_specification: RegressionSpecification,
+                         specification: RegressionSpecification,
                          preprocess_only: bool):
-    logger.info(f'Starting beta regression for version {regression_specification.data.output_root}.')
+    logger.info(f'Starting beta regression for version {specification.data.output_root}.')
 
     # init high level objects
-    data_interface = RegressionDataInterface.from_specification(regression_specification)
+    data_interface = RegressionDataInterface.from_specification(specification)
 
     # build directory structure and save metadata
     data_interface.make_dirs()
-    data_interface.save_specification(regression_specification)
+    data_interface.save_specification(specification)
 
     # Grab canonical location list from arguments
     hierarchy = data_interface.load_hierarchy('pred')
@@ -61,14 +61,15 @@ def beta_regression_main(app_metadata: cli_tools.Metadata,
 
     # build workflow and launch
     if not preprocess_only:
-        regression_wf = RegressionWorkflow(regression_specification.data.output_root,
-                                           regression_specification.workflow)
+        regression_wf = RegressionWorkflow(specification.data.output_root,
+                                           specification.workflow)
         regression_wf.attach_tasks(n_draws=data_interface.get_n_draws())
         try:
             regression_wf.run()
         except ihme_deps.WorkflowAlreadyComplete:
             logger.info('Workflow already complete.')
 
+    logger.info(f'Regression version {specification.data.output_root} complete.')
 
 @click.command()
 @cli_tools.pass_run_metadata()

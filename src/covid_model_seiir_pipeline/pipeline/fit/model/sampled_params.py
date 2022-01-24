@@ -1,4 +1,4 @@
-from typing import Dict, NamedTuple, Tuple
+from typing import Dict, List, NamedTuple, Tuple
 
 import numpy as np
 import pandas as pd
@@ -10,6 +10,7 @@ from covid_model_seiir_pipeline.lib.ode_mk2.constants import (
 from covid_model_seiir_pipeline.pipeline.fit.specification import (
     RatesParameters,
     FitParameters,
+    DiscreteUniformSampleable,
 )
 
 
@@ -27,10 +28,10 @@ class Durations(NamedTuple):
 def sample_durations(params: RatesParameters, draw_id: int) -> Durations:
     random_state = utilities.get_random_state(f'epi_durations_draw_{draw_id}')
 
-    exposure_to_admission = random_state.choice(list(params.exposure_to_admission))
-    exposure_to_seroconversion = random_state.choice(list(params.exposure_to_seroconversion))
-    admission_to_death = random_state.choice(list(params.admission_to_death))
-    max_lag = max(list(params.exposure_to_admission)) + max(list(params.admission_to_death))
+    exposure_to_admission = random_state.choice(_to_range(params.exposure_to_admission))
+    exposure_to_seroconversion = random_state.choice(_to_range(params.exposure_to_seroconversion))
+    admission_to_death = random_state.choice(_to_range(params.admission_to_death))
+    max_lag = max(_to_range(params.exposure_to_admission)) + max(_to_range(params.admission_to_death))
 
     return Durations(
         exposure_to_case=exposure_to_admission,
@@ -43,6 +44,12 @@ def sample_durations(params: RatesParameters, draw_id: int) -> Durations:
         max_lag=max_lag,
     )
 
+
+def _to_range(val: DiscreteUniformSampleable):
+    if isinstance(val, int):
+        return [val]
+    else:
+        return list(range(val[0], val[1] + 1))
 
 class VariantRR(NamedTuple):
     ifr: float
@@ -111,8 +118,13 @@ def sample_ode_params(variant_rr: VariantRR,
                 b = y1 - m * x1
                 phis[variant] = m * value + b
 
-        key = parameter if 'kappa' in parameter else f'{parameter}_all_infection'
+        key = parameter if any([p in parameter for p in ['sigma', 'gamma', 'kappa']]) else f'{parameter}_all_infection'
         sampled_params[key] = value
+
+    for measure in ['death', 'admission', 'case']:
+        for variant in VARIANT_NAMES:
+            sampled_params[f'sigma_{variant}_{measure}'] = np.nan
+            sampled_params[f'gamma_{variant}_{measure}'] = np.nan
 
     s = -12345.0
     phi_matrix = pd.DataFrame(
