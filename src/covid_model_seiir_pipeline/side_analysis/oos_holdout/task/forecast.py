@@ -1,4 +1,5 @@
 import click
+import numpy as np
 import pandas as pd
 
 from covid_model_seiir_pipeline.lib import (
@@ -51,7 +52,7 @@ def run_oos_forecast(oos_holdout_version: str, draw_id: int, progress_bar: bool)
                             .reset_index(level='date')
                             .date.groupby('location_id')
                             .max())
-
+    forecast_start_dates = np.minimum(forecast_start_dates, beta_fit_end_dates)
     # Forecast is run to the end of the covariates
     covariates = data_interface.load_covariates()
     forecast_end_dates = covariates.reset_index().groupby('location_id').date.max()
