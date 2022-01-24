@@ -313,6 +313,10 @@ def run_beta_fit(fit_version: str, draw_id: int, progress_bar: bool) -> None:
         kappa_omicron_death.loc[location_id] *= ifr_scaling_factor
     sampled_ode_params['kappa_omicron_death'] = kappa_omicron_death
 
+    if specification.rates_parameters.omega_like_omicron:
+        for measure in ['case', 'admission', 'death']:
+            sampled_ode_params[f'kappa_omega_{measure}'] = sampled_ode_params[f'kappa_omicron_{measure}']
+
     pct_unvaccinated = (
         (agg_first_pass_posterior_epi_measures['cumulative_naive_unvaccinated_infections']
          / agg_first_pass_posterior_epi_measures['cumulative_naive_infections'])

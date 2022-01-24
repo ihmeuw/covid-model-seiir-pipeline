@@ -104,6 +104,8 @@ class RatesParameters:
     omicron_ihr_scalar: UniformSampleable = field(default=1.0)
     omicron_idr_scalar: UniformSampleable = field(default=1.0)
 
+    omega_like_omicron: bool = field(default=False)
+
     day_inflection_options: List[str] = field(default_factory=list)
 
     def __post_init__(self):
@@ -141,6 +143,8 @@ class RatesParameters:
 
 @dataclass
 class FitParameters:
+    omega_invasion_date: str = field(default='')
+
     alpha: UniformSampleable = field(default=(0.9, 1.0))
     pi: UniformSampleable = field(default=(0.01, 0.1))
 

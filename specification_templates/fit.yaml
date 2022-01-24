@@ -33,7 +33,9 @@ rates_parameters:
   omicron_ihr_scalar: [0.0625, 0.1875]  # 0.125 +/- 50%
   # IDR is altered in second pass rates based on assumptions about the probability a disease is symptomatic.
   omicron_idr_scalar: 1.0
+  omega_like_omicron: True
 fit_parameters:
+  omega_invasion_date: '2022-04-01'
   # Mixing parameter.  dS/dt = -beta * S * I ** alpha
   alpha: [0.9, 1.0]
   # Proportion of current E to send to variant E on invasion.
