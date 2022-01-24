@@ -124,13 +124,23 @@ def _manual_floor_setting(rmse: pd.DataFrame,
 
     flagged = False
     for ssa_location_id in ssa_location_ids:
-        if best_floor[ssa_location_id] > 0.001:
+        if best_floor.loc[ssa_location_id] > 0.001:
             if not flagged:
                 logger.warning('Manually setting IDR floor of 0.1% for SSA locations.')
                 flagged = True
-            best_floor[ssa_location_id] = 0.001
+            best_floor.loc[ssa_location_id] = 0.001
             is_ssa_rmse = rmse['location_id'] == ssa_location_id
             rmse.loc[is_ssa_rmse, 'rmse'] = np.nan
             rmse.loc[is_ssa_rmse, 'floor'] = 0.001
+
+    # South Africa - 1%
+    best_floor.loc[196] = 0.02
+    rmse.loc[196, 'rmse'] = np.nan
+    rmse.loc[196, 'floor'] = 0.02
+
+    # Afghanistan - 0.2%
+    best_floor.loc[160] = 0.002
+    rmse.loc[160, 'rmse'] = np.nan
+    rmse.loc[160, 'floor'] = 0.002
 
     return rmse, best_floor
