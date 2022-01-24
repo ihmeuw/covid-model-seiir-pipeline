@@ -94,14 +94,12 @@ def run_preprocess_vaccine(preprocessing_version: str, scenario: str, progress_b
 
         risk_reductions = []
         for endpoint, target in [('infection', 'infection'),
-                                 ('infection', 'case'),
+                                 ('symptomatic_disease', 'case'),
                                  ('severe_disease', 'admission'),
                                  ('severe_disease', 'death')]:
             rr = etas.loc[endpoint].copy()
             rr['endpoint'] = target
             rr = rr.reset_index().set_index(['location_id', 'date', 'endpoint'])
-            if target == 'case':
-                rr.loc[:, :] = 0.
             risk_reductions.append(rr)
         risk_reductions = pd.concat(risk_reductions).sort_index().unstack()
         risk_reductions.columns = [f'{c[:-3]}_{e}_{c[-2:]}' for c, e in risk_reductions.columns]

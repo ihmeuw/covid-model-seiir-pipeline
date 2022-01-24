@@ -1,9 +1,9 @@
 data:
-  seir_preprocess_version: '2022_01_13.01'
+  seir_preprocess_version: '2022_01_20.11'
   output_format: 'parquet'
   output_root: ''
   n_draws: 100
-  compare_version: '2022_01_07.12'
+  compare_version: '2022_01_13.06'
 workflow:
   project: 'proj_covid_prod'
   queue: 'd.q'
@@ -87,31 +87,49 @@ measure_downweights:
       [53619, 0.50],  # Khyber Pakhtunkhwa
       [  214, 0.10],  # Nigeria
       # bad fits
-      [  121, 0.10],  # Bolivia
-      [  160, 0.01],  # Afghanistan
+      [43860, 0.10],  # Manitoba
+      [43861, 0.10],  # New Brunswick
+      [  121, 0.01],  # Bolivia
+      [  160, 0.00],  # Afghanistan
       [53617, 0.10],  # Gilgit-Baltistan
-      [  180, 0.01],  # Kenya
+      [   12, 0.10],  # Laos
+      [  168, 0.01],  # Angola
+      [  180, 0.00],  # Kenya
       [  182, 0.00],  # Malawi
       [  184, 0.00],  # Mozambique
+      [  185, 0.10],  # Rwanda
+      [  190, 0.10],  # Uganda
       [  191, 0.00],  # Zambia
       [  193, 0.00],  # Botswana
       [  194, 0.00],  # Lesotho
       [  195, 0.00],  # Namibia
-      [  196, 0.00],  # South Africa
       [  197, 0.00],  # Eswatini
       [  198, 0.00],  # Zimbabwe
     ]
   admission:
     [
+      [43860, 0.10],  # Manitoba
       [60365, 0.10],  # Asturias
+      [60360, 0.10],  # Castilla-La Mancha
       [60361, 0.10],  # Community of Madrid
       [  184, 0.00],  # Mozambique
       [  191, 0.00],  # Zambia
-      [  196, 0.00],  # South Africa
     ]
   case:
     [
+      [   37, 0.01],  # Kyrgyzstan
+      [   50, 0.00],  # Montenegro
+      [   83, 0.10],  # Iceland
+      [60370, 0.01],  # Navarre
+      [60376, 0.01],  # La Rioja
+      [ 4751, 0.10],  # Alagoas
+      [ 4753, 0.10],  # Amapá
+      [ 4762, 0.10],  # Mato Grosso
+      [ 4761, 0.10],  # Mato Grosso do Sul
+      [ 4763, 0.10],  # Pará
       [  176, 0.00],  # Comoros
-      [  186, 0.01],  # Seychelles
+      [  186, 0.00],  # Seychelles
+      [  201, 0.10],  # Burkina Faso
+      [  203, 0.10],  # Cabo Verde
       [  215, 0.00],  # Sao Tome and Principe
     ]
