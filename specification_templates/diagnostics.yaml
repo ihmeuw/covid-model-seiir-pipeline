@@ -8,25 +8,13 @@ grid_plots:
     date_start: '2020-03-01'
     date_end: '2022-12-31'
     comparators:
-    - version: '2022_01_13.01'
-      scenarios:
-        reference*: 'public reference'
     - version: '2022_01_20.03'
       scenarios:
-        reference*: 'reference'
-        best_masks: 'best masks'
-        booster: 'booster'
-        # reduced_hesitancy: 'reduced hesitancy'
-  - name: 'compare_shortrange'
-    date_start: '2021-01-01'
-    date_end: '2022-05-01'
-    comparators:
-    - version: '2022_01_13.01'
-      scenarios:
         reference*: 'public reference'
-    - version: '2022_01_20.03'
+    - version: '2022_01_24.03'
       scenarios:
-        reference*: 'reference'
-        best_masks: 'best masks'
-        booster: 'booster'
-        # reduced_hesitancy: 'reduced hesitancy'
+        reference*: 'Omicron II'
+    - version: '2022_01_24.04'
+      scenarios:
+        reference*: 'Delta II'
+

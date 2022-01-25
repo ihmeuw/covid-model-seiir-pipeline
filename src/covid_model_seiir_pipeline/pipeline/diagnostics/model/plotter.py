@@ -576,7 +576,7 @@ def make_variant_page(plot_versions: List[PlotVersion],
     axes = defaultdict(list)
 
     for row, measure in enumerate(measures):
-        for col, variant in enumerate(VARIANT_NAMES[1:-1]):
+        for col, variant in enumerate(['ancestral', 'alpha', 'beta', 'gamma', 'delta', 'omicron', 'omega']):
             ax = fig.add_subplot(grid_spec[row, col])
             key = f'{measure}_{variant}'
 

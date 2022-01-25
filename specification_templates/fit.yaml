@@ -3,7 +3,7 @@ data:
   output_format: 'parquet'
   output_root: ''
   n_draws: 100
-  compare_version: '2022_01_13.06'
+  compare_version: '2022_01_20.13'
 workflow:
   project: 'proj_covid_prod'
   queue: 'd.q'
@@ -33,7 +33,7 @@ rates_parameters:
   omicron_ihr_scalar: [0.0625, 0.1875]  # 0.125 +/- 50%
   # IDR is altered in second pass rates based on assumptions about the probability a disease is symptomatic.
   omicron_idr_scalar: 1.0
-  omega_like_omicron: True
+  omega_like_omicron: False
 fit_parameters:
   omega_invasion_date: '2022-04-01'
   # Mixing parameter.  dS/dt = -beta * S * I ** alpha
@@ -48,7 +48,7 @@ fit_parameters:
   sigma_delta_infection: [0.2, 0.3333]
   sigma_omicron_infection: [0.25, 1.0]
   sigma_other_infection: [0.2, 0.3333]
-  sigma_omega_infection: [0.25, 1.0]
+  sigma_omega_infection: [0.2, 0.3333]
   # 1 / duration infectious.  dI1/dt = sigma * E - gamma * I
   gamma_ancestral_infection: [0.2, 0.3333]
   gamma_alpha_infection: [0.2, 0.3333]
@@ -66,7 +66,7 @@ fit_parameters:
   kappa_delta_infection: [1.6, 2.0]
   kappa_omicron_infection: [2.5, 3.5]
   kappa_other_infection: [1.0, 1.4]
-  kappa_omega_infection: [2.5, 3.5]
+  kappa_omega_infection: [1.6, 2.0]
   # (1 - breakthrough probability) for a variant.
   phi_ancestral_infection: 1.0
   phi_alpha_infection: 1.0
@@ -75,7 +75,7 @@ fit_parameters:
   phi_delta_infection: [0.7, 0.9]
   phi_omicron_infection: [0.4, 0.6]
   phi_other_infection: [0.7, 0.9]
-  phi_omega_infection: [0.0, 0.2]
+  phi_omega_infection: [0.7, 0.9]
 measure_downweights:
   death:
     [
