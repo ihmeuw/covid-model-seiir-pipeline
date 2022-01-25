@@ -185,7 +185,7 @@ def _make_force_of_infection(infections: pd.DataFrame,
 
 
 def _make_covid_status(compartments: pd.DataFrame) -> pd.DataFrame:
-    covid_status = pd.DataFrame(index=compartments.index)
+    covid_status = defaultdict(lambda: pd.Series(0., index=compartments.index))
 
     groups = itertools.product(COMPARTMENT_NAMES, VACCINE_STATUS_NAMES, VARIANT_NAMES, RISK_GROUP_NAMES)
     for compartment, vaccine_status, variant, risk_group in groups:
@@ -201,6 +201,10 @@ def _make_covid_status(compartments: pd.DataFrame) -> pd.DataFrame:
                     covid_status['covid_status_naive_vaccinated'] += compartments[compartment_key]
                 else:
                     covid_status['covid_status_exposed_vaccinated'] += compartments[compartment_key]
+
+    covid_status = pd.concat([
+        v.rename(k) for k, v in covid_status.items()
+    ], axis=1)
     return covid_status
 
 
