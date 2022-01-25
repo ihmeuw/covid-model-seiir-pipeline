@@ -1,3 +1,4 @@
+import itertools
 from typing import Any, Callable, Dict, List, Union, TYPE_CHECKING
 
 import pandas as pd
@@ -260,6 +261,14 @@ for key in list(VARIANT_NAMES[1:]) + list(RISK_GROUP_NAMES) + ['total']:
     )
 
 
+for covid_exposure, vaccine_status in itertools.product(['naive', 'exposed'], ['unvaccinated', 'vaccinated']):
+    MEASURES[f'covid_status_{covid_exposure}_{vaccine_status}'] = MeasureConfig(
+        loaders.load_output_data(f'covid_status_{covid_exposure}_{vaccine_status}'),
+        f'covid_status_{covid_exposure}_{vaccine_status}',
+        aggregator=aggregate.sum_aggregator,
+    )
+
+
 for key in list(VARIANT_NAMES[1:]) + ['total']:
     measure = f'force_of_infection_{key}'
     MEASURES[measure] = MeasureConfig(
@@ -383,10 +392,6 @@ MISCELLANEOUS = {
         loaders.load_vaccine_efficacy_table,
         'vaccine_efficacy_table',
     ),
-    # 'version_map': MiscellaneousConfig(
-    #     loaders.build_version_map,
-    #     'version_map',
-    # ),
     'populations': MiscellaneousConfig(
         loaders.load_populations,
         'populations',
