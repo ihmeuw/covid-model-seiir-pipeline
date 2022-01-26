@@ -41,5 +41,5 @@ def cartesian_product(arrays):
         n *= len(arrays[k])
         m = int(n / len(arrays[k]))
         for j in range(1, len(arrays[k])):
-            out[j*m:(j+1)*m,k+1:] = out[0:m,k+1:]
+            out[j*m:(j+1)*m, k+1:] = out[0:m, k+1:]
     return out

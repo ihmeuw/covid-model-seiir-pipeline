@@ -48,7 +48,7 @@ def maybe_invade(t: float,
     max_invasion = 0.005 * total_susceptible
 
     for variant_to in VARIANT:
-        pi = params[PARAMETERS[BASE_PARAMETER.pi, variant_to, EPI_MEASURE.infection]]
+        pi = params[PARAMETERS[VARIANT_PARAMETER.pi, variant_to, EPI_MEASURE.infection]]
         delta = max(min(pi * total_exposed, max_invasion), min_invasion)
 
         no_variant_present = params[PARAMETERS[VARIANT_PARAMETER.rho, variant_to, EPI_MEASURE.infection]] < 0.01
