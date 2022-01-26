@@ -115,7 +115,6 @@ DERIVED_TYPES = {
     ]),
     'base_parameter': ('parameter_type', [
         'alpha',
-        'pi',
         'beta',
     ]),
     'epi_parameter': ('parameter_type', [
@@ -124,11 +123,12 @@ DERIVED_TYPES = {
         'rate',
     ]),
     'variant_parameter': ('parameter_type', [
-        'rho',
-    ]),
-    'epi_variant_parameter': ('parameter_type', [
         'sigma',
         'gamma',
+        'rho',
+        'pi',
+    ]),
+    'epi_variant_parameter': ('parameter_type', [
         'kappa',
     ]),
     'variant': ('variant_index_type', [
