@@ -1,6 +1,5 @@
 from collections import defaultdict
 import itertools
-from typing import Tuple, TYPE_CHECKING
 
 import numpy as np
 import pandas as pd
@@ -16,7 +15,6 @@ from covid_model_seiir_pipeline.lib.ode_mk2.constants import (
 )
 from covid_model_seiir_pipeline.pipeline.forecasting.model.containers import (
     Indices,
-    PostprocessingParameters,
 )
 from covid_model_seiir_pipeline.pipeline.regression.model import (
     compute_hospital_usage,
