@@ -11,7 +11,8 @@ from covid_model_seiir_pipeline.lib.ode_mk2.constants import (
     VARIANT_NAMES,
     VACCINE_STATUS_NAMES,
     RISK_GROUP_NAMES,
-    COMPARTMENTS_NAMES
+    COMPARTMENT_NAMES,
+    COMPARTMENTS_NAMES,
 )
 from covid_model_seiir_pipeline.pipeline.forecasting.model.containers import (
     Indices,
@@ -44,6 +45,7 @@ def compute_output_metrics(indices: Indices,
     vaccinations = _make_vaccinations(compartments)
     betas = compartments_diff.filter(like='Beta_none_none_all').mean(axis=1).rename('beta')
     force_of_infection = _make_force_of_infection(infections, susceptible)
+    covid_status = _make_covid_status(compartments)
     variant_prevalence = _make_variant_prevalence(infections)
 
     hospital_usage = compute_corrected_hospital_usage(
@@ -65,6 +67,7 @@ def compute_output_metrics(indices: Indices,
         vaccinations,
         betas,
         force_of_infection,
+        covid_status,
         variant_prevalence,
         total_pop,
         hospital_usage,
@@ -179,6 +182,30 @@ def _make_force_of_infection(infections: pd.DataFrame,
         )
 
     return foi
+
+
+def _make_covid_status(compartments: pd.DataFrame) -> pd.DataFrame:
+    covid_status = defaultdict(lambda: pd.Series(0., index=compartments.index))
+
+    groups = itertools.product(COMPARTMENT_NAMES, VACCINE_STATUS_NAMES, VARIANT_NAMES, RISK_GROUP_NAMES)
+    for compartment, vaccine_status, variant, risk_group in groups:
+        compartment_key = f'{compartment}_{vaccine_status}_{variant}_{risk_group}'
+        if compartment == COMPARTMENT_NAMES.S:
+            if vaccine_status == VACCINE_STATUS_NAMES.unvaccinated:
+                if variant == VARIANT_NAMES.none:
+                    covid_status['covid_status_naive_unvaccinated'] += compartments[compartment_key]
+                else:
+                    covid_status['covid_status_exposed_unvaccinated'] += compartments[compartment_key]
+            else:
+                if variant == VARIANT_NAMES.none:
+                    covid_status['covid_status_naive_vaccinated'] += compartments[compartment_key]
+                else:
+                    covid_status['covid_status_exposed_vaccinated'] += compartments[compartment_key]
+
+    covid_status = pd.concat([
+        v.rename(k) for k, v in covid_status.items()
+    ], axis=1)
+    return covid_status
 
 
 def _make_variant_prevalence(infections: pd.DataFrame) -> pd.DataFrame:
