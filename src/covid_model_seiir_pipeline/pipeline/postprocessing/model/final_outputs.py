@@ -266,6 +266,7 @@ for covid_exposure, vaccine_status in itertools.product(['naive', 'exposed'], ['
         loaders.load_output_data(f'covid_status_{covid_exposure}_{vaccine_status}'),
         f'covid_status_{covid_exposure}_{vaccine_status}',
         aggregator=aggregate.sum_aggregator,
+        splice=False,
     )
 
 
