@@ -85,6 +85,9 @@ def _make_measure(compartments_diff: pd.DataFrame, measure: str, lag: int) -> pd
     data = defaultdict(lambda: pd.Series(0., index=compartments_diff.index))
 
     data['naive_unvaccinated'] = compartments_diff.filter(like=f'{measure}_none_all_unvaccinated').sum(axis=1)
+    data['unvaccinated'] = compartments_diff.filter(like=f'{measure}_all_all_unvaccinated').sum(axis=1)
+    data['vaccinated'] = compartments_diff.filter(like=f'{measure}_none_all_vaccinated').sum(axis=1)
+    data['booster'] = compartments_diff.filter(like=f'{measure}_none_all_booster').sum(axis=1)
     data['naive'] = compartments_diff.filter(like=f'{measure}_none_all_all').sum(axis=1)
     data['total'] = compartments_diff.filter(like=f'{measure}_all_all_all').sum(axis=1)
 

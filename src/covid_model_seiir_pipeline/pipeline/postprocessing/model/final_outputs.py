@@ -6,6 +6,7 @@ import pandas as pd
 from covid_model_seiir_pipeline.lib.ode_mk2.constants import (
     RISK_GROUP_NAMES,
     VARIANT_NAMES,
+    VACCINE_STATUS_NAMES,
 )
 from covid_model_seiir_pipeline.pipeline.postprocessing.model import loaders, combiners
 from covid_model_seiir_pipeline.lib import aggregate
@@ -85,7 +86,7 @@ MEASURES = {}
 
 
 for measure in ['infections', 'deaths', 'cases', 'admissions']:
-    for suffix in list(VARIANT_NAMES[1:]) + list(RISK_GROUP_NAMES) + ['total', 'naive', 'naive_unvaccinated']:
+    for suffix in list(VARIANT_NAMES[1:]) + list(RISK_GROUP_NAMES) + list(VACCINE_STATUS_NAMES) + ['total', 'naive', 'naive_unvaccinated']:
         measure_suffix = f'_{suffix}'
         label_suffix = f'_{suffix}' if suffix != 'total' else ''
         write_draws = suffix == 'total'
