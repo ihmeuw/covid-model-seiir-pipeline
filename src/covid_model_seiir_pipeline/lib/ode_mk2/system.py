@@ -6,9 +6,8 @@ from covid_model_seiir_pipeline.lib.ode_mk2.constants import (
     TOMBSTONE,
     # Indexing tuples
     RISK_GROUP,
-    EPI_VARIANT_PARAMETER,
+    VARIANT_PARAMETER,
     VARIANT,
-    VARIANT_GROUP,
     VACCINE_STATUS,
     COMPARTMENT,
     EPI_MEASURE,
@@ -124,8 +123,8 @@ def single_group_system(t: float,
         i_idx = COMPARTMENTS[COMPARTMENT.I, vaccine_status, variant_to]
         s_to_idx = COMPARTMENTS[COMPARTMENT.S, vaccine_status, variant_to]
         
-        sigma = params[PARAMETERS[EPI_VARIANT_PARAMETER.sigma, variant_to, EPI_MEASURE.infection]]
-        gamma = params[PARAMETERS[EPI_VARIANT_PARAMETER.gamma, variant_to, EPI_MEASURE.infection]]
+        sigma = params[PARAMETERS[VARIANT_PARAMETER.sigma, variant_to, EPI_MEASURE.infection]]
+        gamma = params[PARAMETERS[VARIANT_PARAMETER.gamma, variant_to, EPI_MEASURE.infection]]
 
         for variant_from in VARIANT:
             s_from_idx = COMPARTMENTS[COMPARTMENT.S, vaccine_status, variant_from]
