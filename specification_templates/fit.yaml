@@ -1,9 +1,9 @@
 data:
-  seir_preprocess_version: '2022_01_24.03'
+  seir_preprocess_version: '2022_01_26.01'
   output_format: 'parquet'
   output_root: ''
   n_draws: 100
-  compare_version: '2022_01_20.13'
+  compare_version: '2022_01_26.10'
 workflow:
   project: 'proj_covid_prod'
   queue: 'd.q'
@@ -33,9 +33,9 @@ rates_parameters:
   omicron_ihr_scalar: [0.0625, 0.1875]  # 0.125 +/- 50%
   # IDR is altered in second pass rates based on assumptions about the probability a disease is symptomatic.
   omicron_idr_scalar: 1.0
-  omega_like_omicron: False
+  omega_like_omicron: True
 fit_parameters:
-  omega_invasion_date: '2022-04-01'
+  omega_invasion_date: '2024-04-01'
   # Mixing parameter.  dS/dt = -beta * S * I ** alpha
   alpha_all: [0.9, 1.0]
   # Proportion of current E to send to variant E on invasion.
@@ -83,7 +83,7 @@ fit_parameters:
   phi_delta: [0.7, 0.9]
   phi_omicron: [0.4, 0.6]
   phi_other: [0.7, 0.9]
-  phi_omega: [0.0, 0.2]
+  phi_omega: [0.4, 0.6]
 measure_downweights:
   death:
     [
