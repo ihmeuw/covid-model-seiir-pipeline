@@ -66,6 +66,7 @@ def compute_tracking_compartments(t: float,
                         dy[TRACKING_COMPARTMENTS[tc, variant_from, VARIANT_GROUP.all, agg_vaccine_status]] += measure
                         dy[TRACKING_COMPARTMENTS[tc, variant_from, variant_to, agg_vaccine_status]] += measure
                 dy[TRACKING_COMPARTMENTS[tc, VARIANT_GROUP.all, VARIANT_GROUP.all, AGG_INDEX_TYPE.all]] += measure
+                dy[TRACKING_COMPARTMENTS[tc, VARIANT_GROUP.all, VARIANT_GROUP.all, agg_vaccine_status]] += measure
                 dy[TRACKING_COMPARTMENTS[tc, VARIANT_GROUP.all, variant_to, AGG_INDEX_TYPE.all]] += measure
 
     tc_vax = TRACKING_COMPARTMENT.Vaccination

@@ -215,6 +215,7 @@ def make_initial_condition(parameters: Parameters, full_rates: pd.DataFrame, pop
             loc_initial_condition.loc[loc_start_date, f'Infection_none_ancestral_unvaccinated_{risk_group}'] = new_e
             loc_initial_condition.loc[loc_start_date, f'Infection_none_all_unvaccinated_{risk_group}'] = new_e
             loc_initial_condition.loc[loc_start_date, f'Infection_none_all_all_{risk_group}'] = new_e
+            loc_initial_condition.loc[loc_start_date, f'Infection_all_all_unvaccinated_{risk_group}'] = new_e
             loc_initial_condition.loc[loc_start_date, f'Infection_all_all_all_{risk_group}'] = new_e
             loc_initial_condition.loc[loc_start_date, f'Infection_all_ancestral_all_{risk_group}'] = new_e
             loc_initial_condition.loc[loc_start_date, f'I_unvaccinated_ancestral_{risk_group}'] = infectious
