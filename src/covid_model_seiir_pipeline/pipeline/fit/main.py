@@ -1,5 +1,5 @@
 import functools
-from typing import Dict, Optional
+from typing import Dict, List, Optional
 
 import click
 from covid_shared import ihme_deps, paths
@@ -50,6 +50,7 @@ def fit_main(app_metadata: cli_tools.Metadata,
     logger.info(f'Starting fit for version {specification.data.output_root}.')
 
     # init high level objects
+    specification.data.output_root = '/ihme/covid-19/seir-fit/2022_01_27.09'
     data_interface = FitDataInterface.from_specification(specification)
 
     # build directory structure and save metadata
@@ -74,6 +75,7 @@ def fit_main(app_metadata: cli_tools.Metadata,
 
         # Check for bad locations
         total_population = data_interface.load_population(measure='total').population
+        hierarchy = data_interface.load_hierarchy('pred')
 
         _runner = functools.partial(
             get_broken_locations,
@@ -86,7 +88,7 @@ def fit_main(app_metadata: cli_tools.Metadata,
             num_cores=26,
             progress_bar=True
         )
-        report = make_broken_location_report(results)
+        report = make_broken_location_report(results, hierarchy)
         if report:
             logger.warning(report)
 
@@ -108,45 +110,58 @@ def get_broken_locations(draw_id: int,
 
     return below_0, over_total_pop
 
+def make_loc_issue_report(key: str, problem_draws: List[str]):
+    if not problem_draws:
+        return ''
+    loc_issue_report = f'    {key}: {len(problem_draws)} ['
+    for i, problem_draw in enumerate(problem_draws):
+        if i < 3:
+            loc_issue_report += f'{problem_draw.split("_")[1]}, '
+        else:
+            loc_issue_report += f'..., '
+            break
+    loc_issue_report = loc_issue_report[:-2] + ']\n'
+    return loc_issue_report
 
-def make_broken_location_report(broken_locations):
+
+def make_broken_location_report(broken_locations, hierarchy):
     below_0, over_total_pop = zip(*broken_locations)
     below_0 = pd.concat(below_0, axis=1)
-    draws = below_0.columns
-    below_0 = below_0.reset_index()
-    over_total_pop = pd.concat(over_total_pop, axis=1).reset_index()
+    over_total_pop = pd.concat(over_total_pop, axis=1)
+    name_map = hierarchy.set_index('location_id').location_name
     
+    must_drop = []
+    should_drop = []
+    should_drop_threshold = 5
     report = ''
-    overall_missing = set()
-    overall_below_0 = set()
-    overall_over_total_pop = set()
-    for draw in draws:
-        draw_report = ''
-        
-        missing = below_0.loc[below_0[draw].isnull(), 'location_id'].tolist()
-        draw_below_0 = below_0.loc[below_0[draw].fillna(False), 'location_id'].tolist()
-        draw_over_total_pop = over_total_pop.loc[over_total_pop[draw].fillna(False), 'location_id'].tolist()
-        if missing:
-            draw_report += f'    missing: {missing}\n'
-            overall_missing |= set(missing)
-        if draw_below_0:
-            draw_report += f'    below_0: {draw_below_0}\n'
-            overall_below_0 |= set(draw_below_0)
-        if draw_over_total_pop:
-            draw_report += f'    over_total_pop: {draw_over_total_pop}\n'
-            overall_over_total_pop |= set(draw_over_total_pop)
-        if draw_report:
-            report += f'{draw}:\n' + draw_report
+    for location_id in below_0.index.tolist():
+        loc_below_0, loc_over_total_pop = below_0.loc[location_id], over_total_pop.loc[location_id]
+
+        loc_missing = loc_below_0[loc_below_0.isnull()].index.tolist()
+        loc_below_0 = loc_below_0[loc_below_0.fillna(False)].index.tolist()
+        loc_over_total_pop = loc_over_total_pop[loc_over_total_pop.fillna(False)].index.tolist()
+        loc_any_error = sorted(list(set(loc_missing).union(loc_below_0, loc_over_total_pop)))
+
+        if not loc_any_error:
+            continue
+        if loc_missing:
+           must_drop.append(location_id)
+        elif len(loc_any_error) > should_drop_threshold:
+           should_drop.append(location_id)
+
+
+        loc_report = f'{name_map.loc[location_id]} ({location_id}):\n'
+        for key, bad_draws in [('any_error', loc_any_error), ('missing', loc_missing), 
+                               ('below_0', loc_below_0), ('over_total_pop', loc_over_total_pop)]:
+            loc_report += make_loc_issue_report(key, bad_draws)
+        report += loc_report
     if report:
-        report = 'Failing locations found for some draws\n' + report
-        report += 'Overall:\n'
-        if overall_missing:
-            report += f'    missing: {list(overall_missing)}\n'
-        if overall_below_0:
-            report += f'    below_0: {list(overall_below_0)}\n'
-        if overall_over_total_pop:
-            report += f'    over_total_pop: {list(overall_over_total_pop)}\n'
-        report += f'    all_problem_locs: {list(overall_missing | overall_below_0 | overall_over_total_pop)}\n'
+        report  = '\n' + report
+    if must_drop:
+        report += f'must_drop_locations (draws are missing): {must_drop}\n'
+    if should_drop:
+        report += f'should_drop_locations (more than {should_drop_threshold} draws broken): {should_drop}\n'
+
     return report
 
 
