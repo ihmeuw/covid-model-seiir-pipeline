@@ -50,7 +50,6 @@ def fit_main(app_metadata: cli_tools.Metadata,
     logger.info(f'Starting fit for version {specification.data.output_root}.')
 
     # init high level objects
-    specification.data.output_root = '/ihme/covid-19/seir-fit/2022_01_27.09'
     data_interface = FitDataInterface.from_specification(specification)
 
     # build directory structure and save metadata
