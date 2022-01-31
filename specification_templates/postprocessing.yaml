@@ -1,38 +1,41 @@
 data:
-  seir_forecast_version: '2022_01_24.06'
+  seir_forecast_version: '2022_01_30.01'
   scenarios:
    - 'reference'
+   - 'booster'
+   - 'best_masks'
+   - 'optimistic'
   output_root: ''
 workflow:
   project: 'proj_covid_prod'
-  queue: 'd.q'
+  queue: 'all.q'
 resampling:
   reference_scenario: 'reference'
-  reference_date: '2021-12-31'
+  reference_date: '2022-07-01'
   lower_quantile: 0.025
   upper_quantile: 0.975
-splicing:
-- locations:
-  - 50     # Montenegro
-  - 66     # Brunei
-  - 83     # Iceland
-  - 85     # Israel
-  - 60376  # La Rioja
-  - 60370  # Navarre
-  - 133    # Venezuela
-  - 4871   # Telangana
-  - 22     # Fiji
-  - 18     # Thailand
-  - 19     # Timor-Leste
-  - 168    # Angola
-  - 175    # Burundi
-  - 179    # Ethiopia
-  - 180    # Kenya
-  - 435    # South Sudan
-  - 186    # Seychelles
-  - 203    # Cabo Verde
-  - 218    # Togo
-  output_version: '/ihme/covid-19/seir-outputs/2022_01_13.01'
+#splicing:
+#- locations:
+#  - 50     # Montenegro
+#  - 66     # Brunei
+#  - 83     # Iceland
+#  - 85     # Israel
+#  - 60376  # La Rioja
+#  - 60370  # Navarre
+#  - 133    # Venezuela
+#  - 4871   # Telangana
+#  - 22     # Fiji
+#  - 18     # Thailand
+#  - 19     # Timor-Leste
+#  - 168    # Angola
+#  - 175    # Burundi
+#  - 179    # Ethiopia
+#  - 180    # Kenya
+#  - 435    # South Sudan
+#  - 186    # Seychelles
+#  - 203    # Cabo Verde
+#  - 218    # Togo
+#  output_version: '/ihme/covid-19/seir-outputs/2022_01_13.01'
 aggregation:
   - location_file: '/ihme/covid-19/seir-outputs/agg-hierarchies/modeling.csv'
   - location_file: '/ihme/covid-19/seir-outputs/agg-hierarchies/who_plus_palestine.csv'

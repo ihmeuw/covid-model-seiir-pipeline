@@ -6,15 +6,17 @@ workflow:
 grid_plots:
   - name: 'compare_longrange'
     date_start: '2020-03-01'
-    date_end: '2022-12-31'
+    date_end: '2022-07-31'
     comparators:
-    - version: '2022_01_20.03'
+    - version: '2022_01_29.01'
       scenarios:
-        reference*: 'public reference'
-    - version: '2022_01_24.03'
+        reference*: 'no new variant'
+    - version: '2022_01_30.01'
       scenarios:
-        reference*: 'Omicron II'
-    - version: '2022_01_24.04'
+        reference*: 'delta 2'
+    - version: '2022_01_29.03'
       scenarios:
-        reference*: 'Delta II'
+        reference*: 'omicron 2'
+
+
 
