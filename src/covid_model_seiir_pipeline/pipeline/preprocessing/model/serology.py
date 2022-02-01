@@ -90,14 +90,6 @@ def process_raw_serology_data(data: pd.DataFrame) -> pd.DataFrame:
     data.loc[is_ny & is_cdc & is_nov_or_later, 'test_target'] = 'nucleocapsid'  # & is_N
     data.loc[is_ny & is_cdc & is_nov_or_later, 'test_name'] = 'Abbott Architect IgG; Roche Elecsys N pan-Ig'  # & is_N
 
-    # Louisiana mixed portion looks the same as the nucleocapsid; recode (will actually use average)
-    is_la = data['location_id'] == 541
-    is_cdc = data['survey_series'] == 'cdc_series'
-    is_nov_or_later = data['date'] >= pd.Timestamp('2020-11-01')
-    data.loc[is_la & is_cdc & is_nov_or_later, 'isotype'] = 'pan-Ig'
-    data.loc[is_la & is_cdc & is_nov_or_later, 'test_target'] = 'nucleocapsid'
-    data.loc[is_la & is_cdc & is_nov_or_later, 'test_name'] = 'Abbott Architect IgG; Roche Elecsys N pan-Ig'
-
     # BIG CDC CHANGE
     # many states are coded as Abbott, seem be Roche after the changes in Nov; recode
     for location_id in [523,  # Alabama
@@ -130,7 +122,7 @@ def process_raw_serology_data(data: pd.DataFrame) -> pd.DataFrame:
         data.loc[is_state & is_cdc & is_nov_or_later & is_N, 'isotype'] = 'pan-Ig'
         data.loc[is_state & is_cdc & is_nov_or_later & is_N, 'test_target'] = 'nucleocapsid'
         data.loc[
-            is_state & is_cdc & is_nov_or_later & is_N, 'test_name'] = 'Roche Elecsys N pan-Ig'  # 'Abbott Architect IgG; Roche Elecsys N pan-Ig'
+            is_state & is_cdc & is_nov_or_later & is_N, 'test_name'] = 'Roche Elecsys N pan-Ig'
     ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
 
     ## un-outlier Nigeria point before looking at that variable
