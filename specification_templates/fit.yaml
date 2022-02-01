@@ -6,7 +6,7 @@ data:
   compare_version: '2022_01_26.10'
 workflow:
   project: 'proj_covid_prod'
-  queue: 'all.q'
+  queue: 'long.q'
 rates_parameters:
   day_0: '2020-03-15'
   pred_start_date: '2019-11-01'
@@ -35,7 +35,7 @@ rates_parameters:
   omicron_idr_scalar: 1.0
   omega_like_omicron: True
 fit_parameters:
-  omega_invasion_date: '2022-04-01'
+  omega_invasion_date: '2021-11-13'
   # Mixing parameter.  dS/dt = -beta * S * I ** alpha
   alpha_all: [0.9, 1.0]
   # Proportion of current E to send to variant E on invasion.
@@ -74,7 +74,7 @@ fit_parameters:
   kappa_delta: [1.6, 2.0]
   kappa_omicron: [2.5, 3.5]
   kappa_other: [1.0, 1.4]
-  kappa_omega: [2.5, 3.5]
+  kappa_omega: [4.0, 5.0]
   # (1 - breakthrough probability) for a variant.
   phi_ancestral: 1.0
   phi_alpha: 1.0
@@ -83,7 +83,7 @@ fit_parameters:
   phi_delta: [0.7, 0.9]
   phi_omicron: [0.4, 0.6]
   phi_other: [0.7, 0.9]
-  phi_omega: [0.4, 0.6]
+  phi_omega: [0.2, 0.4]
 measure_downweights:
   death:
     [
