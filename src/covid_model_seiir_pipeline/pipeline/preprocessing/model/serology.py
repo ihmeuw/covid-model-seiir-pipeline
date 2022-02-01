@@ -90,14 +90,6 @@ def process_raw_serology_data(data: pd.DataFrame) -> pd.DataFrame:
     data.loc[is_ny & is_cdc & is_nov_or_later, 'test_target'] = 'nucleocapsid'  # & is_N
     data.loc[is_ny & is_cdc & is_nov_or_later, 'test_name'] = 'Abbott Architect IgG; Roche Elecsys N pan-Ig'  # & is_N
 
-    # Louisiana mixed portion looks the same as the nucleocapsid; recode (will actually use average)
-    is_la = data['location_id'] == 541
-    is_cdc = data['survey_series'] == 'cdc_series'
-    is_nov_or_later = data['date'] >= pd.Timestamp('2020-11-01')
-    data.loc[is_la & is_cdc & is_nov_or_later, 'isotype'] = 'pan-Ig'
-    data.loc[is_la & is_cdc & is_nov_or_later, 'test_target'] = 'nucleocapsid'
-    data.loc[is_la & is_cdc & is_nov_or_later, 'test_name'] = 'Abbott Architect IgG; Roche Elecsys N pan-Ig'
-
     # BIG CDC CHANGE
     # many states are coded as Abbott, seem be Roche after the changes in Nov; recode
     for location_id in [523,  # Alabama
@@ -130,7 +122,7 @@ def process_raw_serology_data(data: pd.DataFrame) -> pd.DataFrame:
         data.loc[is_state & is_cdc & is_nov_or_later & is_N, 'isotype'] = 'pan-Ig'
         data.loc[is_state & is_cdc & is_nov_or_later & is_N, 'test_target'] = 'nucleocapsid'
         data.loc[
-            is_state & is_cdc & is_nov_or_later & is_N, 'test_name'] = 'Roche Elecsys N pan-Ig'  # 'Abbott Architect IgG; Roche Elecsys N pan-Ig'
+            is_state & is_cdc & is_nov_or_later & is_N, 'test_name'] = 'Roche Elecsys N pan-Ig'
     ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
 
     ## un-outlier Nigeria point before looking at that variable
@@ -212,6 +204,14 @@ def process_raw_serology_data(data: pd.DataFrame) -> pd.DataFrame:
     outliers.append(pr_vax_outlier)
     logger.debug(f'{pr_vax_outlier.sum()} rows from sero data dropped due to Puerto Rico vax issues.')
 
+    # Saskatchewan
+    is_sas = data['location_id'] == 43869
+    is_canadian_blood_services = data['survey_series'] == 'canadian_blood_services'
+
+    sas_outlier = is_sas & is_canadian_blood_services
+    outliers.append(sas_outlier)
+    logger.debug(f'{sas_outlier.sum()} rows from sero data dropped from Saskatchewan.')
+
     # King/Snohomish data is too early
     is_k_s = data['location_id'] == 60886
     is_pre_may_2020 = data['date'] < pd.Timestamp('2020-05-01')
@@ -220,21 +220,41 @@ def process_raw_serology_data(data: pd.DataFrame) -> pd.DataFrame:
     outliers.append(k_s_outlier)
     logger.debug(f'{k_s_outlier.sum()} rows from sero data dropped due to noisy (early) King/Snohomish data.')
 
-    # New York dialysis
-    is_ny = data['location_id'] == 555
+    # dialysis study
+    is_bad_dial_locs = data['location_id'].isin([
+        540,  # Kentucky
+        543,  # Maryland
+        545,  # Michigan
+        554,  # New Mexico
+        555,  # New York
+        560,  # Oregon
+        570,  # Washington
+        572,  # Wisconsin
+    ])
     is_usa_dialysis = data['survey_series'] == 'usa_dialysis'
 
-    ny_outlier = is_ny & is_usa_dialysis
-    outliers.append(ny_outlier)
-    logger.debug(f'{ny_outlier.sum()} rows from sero data dropped due to bogus dialysis data in New York.')
+    dialysis_outlier = is_bad_dial_locs & is_usa_dialysis
+    outliers.append(dialysis_outlier)
+    logger.debug(f'{dialysis_outlier.sum()} rows from sero data dropped due to inconsistent results from dialysis study.')
 
-    # Saskatchewan
-    is_sas = data['location_id'] == 43869
-    is_canadian_blood_services = data['survey_series'] == 'canadian_blood_services'
+    # North Dakota first round
+    is_nd = data['location_id'] == 557
+    is_cdc_series = data['survey_series'] == 'cdc_series'
+    is_first_date = data['date'] == pd.Timestamp('2020-08-12')
 
-    sas_outlier = is_sas & is_canadian_blood_services
-    outliers.append(sas_outlier)
-    logger.debug(f'{sas_outlier.sum()} rows from sero data dropped from Saskatchewan.')
+    nd_outlier = is_nd & is_cdc_series & is_first_date
+    outliers.append(nd_outlier)
+    logger.debug(f'{nd_outlier.sum()} rows from sero data dropped due to implausibility '
+                 '(or at least incompatibility) of first commercial lab point in North Dakota.')
+
+    # early Vermont
+    is_vermont = data['location_id'] == 568
+    is_pre_nov = data['date'] < pd.Timestamp('2020-11-01')
+
+    vermont_outlier = is_vermont & is_pre_nov
+    outliers.append(vermont_outlier)
+    logger.debug(f'{vermont_outlier.sum()} rows from sero data dropped due to implausibility '
+                 '(or at least incompatibility) of early commercial lab points in Vermont.')
 
     # Ceuta first round
     is_ceu = data['location_id'] == 60369
