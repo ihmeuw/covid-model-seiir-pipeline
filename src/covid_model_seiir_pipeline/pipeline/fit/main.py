@@ -48,7 +48,6 @@ def fit_main(app_metadata: cli_tools.Metadata,
              specification: FitSpecification,
              preprocess_only: bool):
     logger.info(f'Starting fit for version {specification.data.output_root}.')
-
     # init high level objects
     data_interface = FitDataInterface.from_specification(specification)
 
@@ -72,31 +71,57 @@ def fit_main(app_metadata: cli_tools.Metadata,
         except ihme_deps.WorkflowAlreadyComplete:
             logger.info('Workflow already complete.')
 
-        # Check for bad locations
-        total_population = data_interface.load_population(measure='total').population
-        hierarchy = data_interface.load_hierarchy('pred')
+        broken_locations = get_broken_locations(data_interface)
+        data_interface.save_broken_locations_report(broken_locations)
 
-        _runner = functools.partial(
-            get_broken_locations,
-            data_interface=data_interface,
-            total_population=total_population,
-        )
-        results = parallel.run_parallel(
-            _runner,
-            arg_list=list(range(data_interface.get_n_draws())),
-            num_cores=26,
-            progress_bar=True
-        )
-        report = make_broken_location_report(results, hierarchy)
+        report = make_broken_location_report(broken_locations)
         if report:
             logger.warning(report)
 
     logger.info(f'Fit version {specification.data.output_root} complete.')
 
 
-def get_broken_locations(draw_id: int,
-                         data_interface: FitDataInterface,
-                         total_population: pd.Series):
+def get_broken_locations(data_interface: FitDataInterface):
+    _runner = functools.partial(
+        _get_broken_locations,
+        data_interface=data_interface,
+    )
+    results = parallel.run_parallel(
+        _runner,
+        arg_list=list(range(data_interface.get_n_draws())),
+        num_cores=26,
+        progress_bar=True
+    )
+
+    hierarchy = data_interface.load_hierarchy('pred')
+    name_map = hierarchy.set_index('location_id')['location_name']
+
+    below_0, over_total_pop = zip(*results)
+    below_0 = pd.concat(below_0, axis=1)
+    over_total_pop = pd.concat(over_total_pop, axis=1)
+
+    reports = []
+    for location_id in below_0.index.tolist():
+        loc_below_0, loc_over_total_pop = below_0.loc[location_id], over_total_pop.loc[location_id]
+
+        loc_report = {
+            'missing': _extract_draws(loc_below_0, loc_below_0.isnull()),
+            'below_0': _extract_draws(loc_below_0, loc_below_0.fillna(False)),
+            'over_total_pop': _extract_draws(loc_over_total_pop, loc_over_total_pop.fillna(False)),
+        }
+        loc_report['any_error'] = sorted(list(set().union(*loc_report.values())))
+        if not loc_report['any_error']:
+            continue
+
+        loc_report['location_id'] = location_id
+        loc_report['location_name'] = name_map.loc[location_id]
+        reports.append(loc_report)
+    return reports
+
+
+def _get_broken_locations(draw_id: int,
+                          data_interface: FitDataInterface):
+    total_population = data_interface.load_population(measure='total').population
     infections = data_interface.load_posterior_epi_measures(
         draw_id, columns=['daily_naive_unvaccinated_infections', 'round']
     )
@@ -109,13 +134,18 @@ def get_broken_locations(draw_id: int,
 
     return below_0, over_total_pop
 
-def make_loc_issue_report(key: str, problem_draws: List[str]):
+
+def _extract_draws(data: pd.Series, mask: pd.Series):
+    return sorted([int(draw.split('_')[1]) for draw in data[mask].index.tolist()])
+
+
+def _make_loc_issue_report(key: str, problem_draws: List[str]):
     if not problem_draws:
         return ''
     loc_issue_report = f'    {key}: {len(problem_draws)} ['
     for i, problem_draw in enumerate(problem_draws):
         if i < 3:
-            loc_issue_report += f'{problem_draw.split("_")[1]}, '
+            loc_issue_report += f'{problem_draw}, '
         else:
             loc_issue_report += f'..., '
             break
@@ -123,39 +153,23 @@ def make_loc_issue_report(key: str, problem_draws: List[str]):
     return loc_issue_report
 
 
-def make_broken_location_report(broken_locations, hierarchy):
-    below_0, over_total_pop = zip(*broken_locations)
-    below_0 = pd.concat(below_0, axis=1)
-    over_total_pop = pd.concat(over_total_pop, axis=1)
-    name_map = hierarchy.set_index('location_id').location_name
-    
+def make_broken_location_report(broken_locations: List[Dict]):
     must_drop = []
     should_drop = []
     should_drop_threshold = 5
     report = ''
-    for location_id in below_0.index.tolist():
-        loc_below_0, loc_over_total_pop = below_0.loc[location_id], over_total_pop.loc[location_id]
+    for location_data in broken_locations:
+        report += f'{location_data["location_name"]} ({location_data["location_id"]}):\n'
+        for key in ['any_error', 'missing', 'below_0', 'over_total_pop']:
+            report += _make_loc_issue_report(key, location_data[key])
 
-        loc_missing = loc_below_0[loc_below_0.isnull()].index.tolist()
-        loc_below_0 = loc_below_0[loc_below_0.fillna(False)].index.tolist()
-        loc_over_total_pop = loc_over_total_pop[loc_over_total_pop.fillna(False)].index.tolist()
-        loc_any_error = sorted(list(set(loc_missing).union(loc_below_0, loc_over_total_pop)))
+        if location_data['missing']:
+            must_drop.append(location_data['location_id'])
+        elif len(location_data['any_error']) > should_drop_threshold:
+            should_drop.append(location_data['location_id'])
 
-        if not loc_any_error:
-            continue
-        if loc_missing:
-           must_drop.append(location_id)
-        elif len(loc_any_error) > should_drop_threshold:
-           should_drop.append(location_id)
-
-
-        loc_report = f'{name_map.loc[location_id]} ({location_id}):\n'
-        for key, bad_draws in [('any_error', loc_any_error), ('missing', loc_missing), 
-                               ('below_0', loc_below_0), ('over_total_pop', loc_over_total_pop)]:
-            loc_report += make_loc_issue_report(key, bad_draws)
-        report += loc_report
     if report:
-        report  = '\n' + report
+        report = '\n' + report
     if must_drop:
         report += f'must_drop_locations (draws are missing): {must_drop}\n'
     if should_drop:
