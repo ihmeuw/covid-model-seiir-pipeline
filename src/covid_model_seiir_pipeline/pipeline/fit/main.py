@@ -48,7 +48,6 @@ def fit_main(app_metadata: cli_tools.Metadata,
              specification: FitSpecification,
              preprocess_only: bool):
     logger.info(f'Starting fit for version {specification.data.output_root}.')
-
     # init high level objects
     data_interface = FitDataInterface.from_specification(specification)
 
@@ -84,7 +83,7 @@ def fit_main(app_metadata: cli_tools.Metadata,
 
 def get_broken_locations(data_interface: FitDataInterface):
     _runner = functools.partial(
-        get_broken_locations,
+        _get_broken_locations,
         data_interface=data_interface,
     )
     results = parallel.run_parallel(
@@ -137,7 +136,7 @@ def _get_broken_locations(draw_id: int,
 
 
 def _extract_draws(data: pd.Series, mask: pd.Series):
-    return sorted([int(draw.split('_')) for draw in data[mask].index.tolist()])
+    return sorted([int(draw.split('_')[1]) for draw in data[mask].index.tolist()])
 
 
 def _make_loc_issue_report(key: str, problem_draws: List[str]):
@@ -146,7 +145,7 @@ def _make_loc_issue_report(key: str, problem_draws: List[str]):
     loc_issue_report = f'    {key}: {len(problem_draws)} ['
     for i, problem_draw in enumerate(problem_draws):
         if i < 3:
-            loc_issue_report += f'{problem_draw.split("_")[1]}, '
+            loc_issue_report += f'{problem_draw}, '
         else:
             loc_issue_report += f'..., '
             break
@@ -160,7 +159,7 @@ def make_broken_location_report(broken_locations: List[Dict]):
     should_drop_threshold = 5
     report = ''
     for location_data in broken_locations:
-        report = f'{location_data["location_name"]} ({location_data["location_id"]}):\n'
+        report += f'{location_data["location_name"]} ({location_data["location_id"]}):\n'
         for key in ['any_error', 'missing', 'below_0', 'over_total_pop']:
             report += _make_loc_issue_report(key, location_data[key])
 
