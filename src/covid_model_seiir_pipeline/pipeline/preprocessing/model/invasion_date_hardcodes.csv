@@ -29,8 +29,8 @@ Republic of Moldova,61,1/17/22,12/31/21,28
 Russian Federation,62,1/17/22,1/10/22,28
 Ukraine,63,1/17/22,1/8/22,28
 Australia,71,1/17/22,12/10/21,28
-New Zealand ,72,1/17/22,2/13/22,28
-Brunei Darussalam ,66,1/17/22,1/3/22,28
+New Zealand ,72,1/17/22,1/22/22,28
+Brunei Darussalam ,66,1/17/22,,28
 Japan,67,1/17/22,1/3/22,28
 Republic of Korea,68,1/17/22,1/10/22,28
 Singapore,69,1/17/22,12/30/21,28
@@ -67,7 +67,7 @@ Iowa,538,1/17/22,12/23/21,28
 Kansas,539,1/17/22,12/22/21,28
 Kentucky,540,1/17/22,12/23/21,28
 Louisiana,541,1/17/22,12/15/21,28
-Maine,542,1/17/22,,28
+Maine,542,1/17/22,12/31/21,28
 Maryland,543,1/17/22,12/17/21,28
 Massachusetts,544,1/17/22,12/18/21,28
 Michigan,545,1/17/22,12/23/21,28
@@ -124,10 +124,10 @@ Mecklenburg-Vorpommern ,60385,1/17/22,12/27/21,28
 North Rhine-Westphalia,60386,1/17/22,12/28/21,28
 Rhineland-Palatinate,60387,1/17/22,12/27/21,28
 Saarland,60388,1/17/22,12/27/21,28
-Saxony,60390,1/17/22,,28
-Saxony-Anhalt ,60389,1/17/22,,28
+Saxony,60390,1/17/22,1/15/22,28
+Saxony-Anhalt ,60389,1/17/22,1/15/22,28
 Schleswig-Holstein,60391,1/17/22,12/27/21,28
-Thuringia,60392,1/17/22,,28
+Thuringia,60392,1/17/22,1/15/22,28
 Greece,82,1/17/22,12/22/21,42
 Iceland,83,1/17/22,12/14/21,28
 Ireland,84,1/17/22,12/18/21,28
@@ -260,13 +260,13 @@ Maranhao,4759,1/17/22,1/4/22,28
 Minas Gerais,4760,1/17/22,12/28/21,28
 Mato Grosso do Sul,4761,1/17/22,1/4/22,28
 Mato Grosso,4762,1/17/22,1/3/22,28
-Pará,4763,1/17/22,,28
+Pará,4763,1/17/22,1/22/22,28
 Paraíba,4764,1/17/22,1/9/22,28
 Paraná,4765,1/17/22,1/4/22,28
 Pernambuco,4766,1/17/22,1/6/22,28
-Piaui,4767,1/17/22,,28
+Piaui,4767,1/17/22,1/22/22,28
 Rio de Janeiro,4768,1/17/22,12/30/21,28
-Rio Grande do Norte ,4769,1/17/22,,28
+Rio Grande do Norte ,4769,1/17/22,1/15/22,28
 Rondônia ,4770,1/17/22,1/3/22,28
 Roraima,4771,1/17/22,1/6/22,28
 Rio Grande do Sul ,4772,1/17/22,12/31/21,28
@@ -329,7 +329,7 @@ Tripura,4872,1/17/22,12/31/21,28
 Uttar Pradesh,4873,1/17/22,12/31/21,28
 Uttarakhand,4874,1/17/22,12/30/21,28
 West Bengal,4875,1/17/22,12/27/21,35
-Nepal,164,1/17/22,,28
+Nepal,164,1/17/22,1/5/22,28
 Azad Jammu & Kashmir,53615,1/17/22,1/15/22,28
 Balochistan,53616,1/17/22,1/15/22,28
 Gilgit-Baltistan,53617,1/17/22,1/8/22,28
@@ -377,13 +377,13 @@ American Samoa,298,1/17/22,,28
 Cook Islands,320,1/17/22,,28
 Fiji,22,1/17/22,12/17/21,28
 Guam,351,1/17/22,12/28/21,28
-Kiribati,23,1/17/22,,28
+Kiribati,23,1/17/22,1/15/22,28
 Marshall Islands,24,1/17/22,,28
 Micronesia (Federated States of),25,1/17/22,,28
-Northern Mariana Islands,376,1/17/22,,28
+Northern Mariana Islands,376,1/17/22,1/22/22,28
 Palau,380,1/17/22,1/5/22,28
-Papua New Guinea,26,1/17/22,,28
-Samoa,27,1/17/22,,28
+Papua New Guinea,26,1/17/22,1/22/22,28
+Samoa,27,1/17/22,1/15/22,28
 Solomon Islands ,28,1/17/22,12/22/21,28
 Tonga,29,1/17/22,,28
 Vanuatu,30,1/17/22,,28
