@@ -33,6 +33,10 @@ rates_parameters:
   omicron_ihr_scalar: [0.0625, 0.1875]  # 0.125 +/- 50%
   # IDR is altered in second pass rates based on assumptions about the probability a disease is symptomatic.
   omicron_idr_scalar: 1.0
+  p_asymptomatic_pre_omicron: 0.5
+  p_asymptomatic_post_omicron: 0.9
+  minimum_asymptomatic_idr_fraction: 0.1
+  maximum_asymptomatic_idr: 0.2
 fit_parameters:
   # Mixing parameter.  dS/dt = -beta * S * I ** alpha
   alpha_all: [0.9, 1.0]

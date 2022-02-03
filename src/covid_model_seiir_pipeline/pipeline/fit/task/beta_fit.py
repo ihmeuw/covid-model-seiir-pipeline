@@ -136,7 +136,12 @@ def run_beta_fit(fit_version: str, draw_id: int, progress_bar: bool) -> None:
     )
 
     # Apply location specific adjustments for locations where the model breaks.
-    sampled_ode_params = model.rescale_kappas(sampled_ode_params, compartments, draw_id)
+    sampled_ode_params = model.rescale_kappas(
+        sampled_ode_params,
+        compartments,
+        specification.rates_parameters,
+        draw_id
+    )
 
     pct_unvaccinated = (
         (agg_first_pass_posterior_epi_measures['cumulative_naive_unvaccinated_infections']

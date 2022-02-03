@@ -3,20 +3,25 @@ from typing import Dict
 import numpy as np
 import pandas as pd
 
-from covid_model_seiir_pipeline.pipeline.fit.model.sampled_params import sample_parameter
+from covid_model_seiir_pipeline.pipeline.fit.model.sampled_params import sample_idr_parameters
+from covid_model_seiir_pipeline.pipeline.fit.specification import RatesParameters
 
 
-def rescale_kappas(sampled_ode_params: Dict, compartments: pd.DataFrame, draw_id: int):
+def rescale_kappas(sampled_ode_params: Dict,
+                   compartments: pd.DataFrame,
+                   rates_parameters: RatesParameters,
+                   draw_id: int):
     delta_infections = compartments.filter(like='Infection_all_delta_all').sum(axis=1).groupby('location_id').max()
     delta_cases = compartments.filter(like='Case_all_delta_all').sum(axis=1).groupby('location_id').max()
     all_infections = compartments.filter(like='Infection_all_all_all').sum(axis=1).groupby('location_id').max()
     all_cases = compartments.filter(like='Case_all_all_all').sum(axis=1).groupby('location_id').max()
     max_idr = 0.9
-    p_symptomatic_pre_omicron = 0.5
-    p_symptomatic_post_omicron = 1 - sample_parameter('p_asymptomatic_omicron', draw_id=draw_id,
-                                                      lower=0.85, upper=0.95)
-    minimum_asymptomatic_idr_fraction = 0.1
-    maximum_asymptomatic_idr = 0.2
+
+    idr_parameters = sample_idr_parameters(rates_parameters, draw_id)
+    p_symptomatic_pre_omicron = 1 - idr_parameters['p_asymptomatic_pre_omicron']
+    p_symptomatic_post_omicron = 1 - idr_parameters['p_asymptomatic_post_omicron']
+    minimum_asymptomatic_idr_fraction = idr_parameters['minimum_asymptomatic_idr_fraction']
+    maximum_asymptomatic_idr = idr_parameters['maximum_asymptomatic_idr']
 
     idr_scaling_factors = [
         # # 0.2
