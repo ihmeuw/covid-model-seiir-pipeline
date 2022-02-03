@@ -76,7 +76,7 @@ def _process_epi_data(data: pd.Series, measure: str,
     return data
 
 
-def terminal_date_alignment(data: pd.DataFrame, cutoff: int = 7):
+def terminal_date_alignment(data: pd.DataFrame, cutoff: int = 5):
     terminal_dates = (data
                       .reset_index()
                       .groupby('location_id')['date'].max()
