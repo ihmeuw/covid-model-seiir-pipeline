@@ -1,9 +1,9 @@
 data:
-  seir_forecast_version: '2022_02_04.02'
+  seir_forecast_version: '2022_02_04.03'
   scenarios:
    - 'reference'
-   # - 'best_masks'
-   # - 'booster'
+   - 'best_masks'
+   - 'booster'
    # - 'reduced_hesitancy'
   output_root: ''
 workflow:

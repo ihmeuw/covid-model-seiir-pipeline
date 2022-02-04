@@ -1,9 +1,9 @@
 data:
-  seir_preprocess_version: '2022_02_04.04'
+  seir_preprocess_version: '2022_02_04.05'
   output_format: 'parquet'
   output_root: ''
   n_draws: 100
-  compare_version: '2022_01_13.06'
+  compare_version: '2022_01_20.13'
 workflow:
   project: 'proj_covid_prod'
   queue: 'd.q'
