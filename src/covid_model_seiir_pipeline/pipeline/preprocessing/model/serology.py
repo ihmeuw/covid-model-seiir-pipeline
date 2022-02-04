@@ -204,6 +204,15 @@ def process_raw_serology_data(data: pd.DataFrame) -> pd.DataFrame:
     outliers.append(pr_vax_outlier)
     logger.debug(f'{pr_vax_outlier.sum()} rows from sero data dropped due to Puerto Rico vax issues.')
 
+    # Kazakhstan collab data
+    is_kaz = data['location_id'] == 36
+    is_kaz_collab_data = data['survey_series'] == 'kazakhstan_who'
+
+    kaz_outlier = is_kaz & is_kaz_collab_data
+    outliers.append(kaz_outlier)
+    logger.debug(f'{kaz_outlier.sum()} rows from sero data dropped due to implausibility '
+                 '(or at least incompatibility) of Kazakhstan colloborator data.')
+
     # Saskatchewan
     is_sas = data['location_id'] == 43869
     is_canadian_blood_services = data['survey_series'] == 'canadian_blood_services'
@@ -256,24 +265,24 @@ def process_raw_serology_data(data: pd.DataFrame) -> pd.DataFrame:
     logger.debug(f'{vermont_outlier.sum()} rows from sero data dropped due to implausibility '
                  '(or at least incompatibility) of early commercial lab points in Vermont.')
 
-    # Ceuta first round
-    is_ceu = data['location_id'] == 60369
+    # Spain 2020 first round (of three)
     is_ene_covid = data['survey_series'] == 'ene_covid'
-    is_pre_june_2020 = data['date'] < pd.Timestamp('2020-06-01')
+    is_pre_may_2020 = data['start_date'] < pd.Timestamp('2020-05-01')
 
-    ceu_outlier = is_ceu & is_ene_covid & is_pre_june_2020
-    outliers.append(ceu_outlier)
-    logger.debug(f'{ceu_outlier.sum()} rows from sero data dropped due to implausibility '
-                 '(or at least incompatibility) of first survey round in Ceuta.')
+    esp_outlier = is_ene_covid & is_pre_may_2020
+    outliers.append(esp_outlier)
+    logger.debug(f'{esp_outlier.sum()} rows from sero data dropped due to implausibility '
+                 '(or at least incompatibility) of first survey round in Spain (April 2020).')
 
-    # Kazakhstan collab data
-    is_kaz = data['location_id'] == 36
-    is_kaz_collab_data = data['survey_series'] == 'kazakhstan_who'
+    # high Norway point
+    is_nor = data['location_id'] == 90
+    is_norway_serobank = data['survey_series'] == 'norway_serobank'
+    is_bad_date = data['date'] == pd.Timestamp('2020-08-30')
 
-    kaz_outlier = is_kaz & is_kaz_collab_data
-    outliers.append(kaz_outlier)
-    logger.debug(f'{kaz_outlier.sum()} rows from sero data dropped due to implausibility '
-                 '(or at least incompatibility) of Kazakhstan colloborator data.')
+    nor_outlier = is_nor & is_norway_serobank & is_bad_date
+    outliers.append(nor_outlier)
+    logger.debug(f'{nor_outlier.sum()} rows from sero data dropped due to implausibility '
+                 '(or at least incompatibility) of high Norway serobank point.')
 
     # # Albania first round data
     # is_alb = data['location_id'] == 43
@@ -303,14 +312,14 @@ def process_raw_serology_data(data: pd.DataFrame) -> pd.DataFrame:
     # logger.debug(f'{qat_outlier.sum()} rows from sero data dropped due to implausibility '
     #              '(or at least incompatibility) of Qatar RADDAD(?) survey.')
 
-    # # Afghanistan
-    # is_afg = data['location_id'] == 160
-    # is_afghanistan_sero_survey = data['survey_series'] == 'afghanistan_sero_survey'
+    # Afghanistan
+    is_afg = data['location_id'] == 160
+    is_afghanistan_sero_survey = data['survey_series'] == 'afghanistan_sero_survey'
 
-    # afg_outlier = is_afg & is_afghanistan_sero_survey
-    # outliers.append(afg_outlier)
-    # logger.debug(f'{afg_outlier.sum()} rows from sero data dropped due to implausibility '
-    #              '(or at afg_outlier incompatibility) of Afghanistan survey.')
+    afg_outlier = is_afg & is_afghanistan_sero_survey
+    outliers.append(afg_outlier)
+    logger.debug(f'{afg_outlier.sum()} rows from sero data dropped due to implausibility '
+                 '(or at afg_outlier incompatibility) of Afghanistan survey.')
 
     # Chhattisgarh ICMR round 2
     is_chhatt = data['location_id'] == 4846
