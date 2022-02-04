@@ -1,6 +1,7 @@
 from typing import Dict, Tuple
 
 import pandas as pd
+import numpy as np
 
 from covid_model_seiir_pipeline.lib import (
     cli_tools,
@@ -76,25 +77,35 @@ def _process_epi_data(data: pd.Series, measure: str,
     return data
 
 
-def terminal_date_alignment(data: pd.DataFrame, cutoff: int = 5):
-    terminal_dates = (data
+def terminal_date_alignment(data: pd.DataFrame, cutoff: int = 3):
+    measures = ['cumulative_cases', 'cumulative_hospitalizations']
+    _data = data.loc[:, measures]
+    _data = _data.loc[_data.notnull().any(axis=1)]
+    terminal_dates = (_data
                       .reset_index()
                       .groupby('location_id')['date'].max()
                       .rename('terminal_date'))
+    del _data
     tail_missingness = pd.concat([
         (terminal_dates - data.loc[:, measure].dropna().reset_index().groupby('location_id')['date'].max()).dt.days
-        for measure in ['cumulative_cases', 'cumulative_hospitalizations']
+        for measure in measures
     ], axis=1)
     tail_missingness = tail_missingness.replace(0, np.nan).min(axis=1).rename('tail_missingness')
-    tail_missingness = tail_missingness.loc[tail_missingness <= cutoff]
+    # ?: 433, 4645, 4669
+    longer_window_locs = [90, 4643, 4657, 60371]
+    trim_idx = tail_missingness <= cutoff
+    trim_idx.loc[longer_window_locs] = True
+    tail_missingness = tail_missingness.loc[trim_idx]
     terminal_dates = pd.concat([terminal_dates, tail_missingness], axis=1)
     terminal_dates['tail_missingness'] = terminal_dates['tail_missingness'].fillna(0).astype(int)
 
     accounting = terminal_dates.loc[terminal_dates['tail_missingness'] > 0]
     n_loc_days = accounting['tail_missingness'].sum()
-    n_locs = len(accounting)
+    locs = [str(loc) for loc in accounting.index]
+    n_locs = len(locs)
     logger.warning(f'Dropping {n_loc_days} days of data across {n_locs} locations to align terminal '
-                   f'dates for case and admissions data when difference is {cutoff} days or less.')
+                   f'dates for case and admissions data when difference is {cutoff} days or less. '
+                   f"Affected locations:\n{accounting['tail_missingness'].sort_values(ascending=False)}")
 
     terminal_dates = terminal_dates.apply(
         lambda x: x['terminal_date'] - pd.Timedelta(days=x['tail_missingness']),
