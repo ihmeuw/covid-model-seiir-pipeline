@@ -11,12 +11,12 @@ grid_plots:
     - version: '2022_01_21.01'
       scenarios:
         reference*: 'public reference'
-    - version: '2022_02_03.02'
+    - version: '2022_02_04.01'
       scenarios:
-        reference*: '7-28 days'
-    - version: '2022_02_03.03'
+        reference*: 'v1'
+    - version: '2022_02_04.02'
       scenarios:
-        reference*: '2-28 days + fixes'
+        reference*: 'v2'
         # best_masks: 'best masks'
         # booster: 'booster'
         # reduced_hesitancy: 'reduced hesitancy'
@@ -27,12 +27,12 @@ grid_plots:
     - version: '2022_01_21.01'
       scenarios:
         reference*: 'public reference'
-    - version: '2022_02_03.02'
+    - version: '2022_02_04.01'
       scenarios:
-        reference*: '7-28 days'
-    - version: '2022_02_03.03'
+        reference*: 'v1'
+    - version: '2022_02_04.02'
       scenarios:
-        reference*: '2-28 days + fixes'
+        reference*: 'v2'
         # best_masks: 'best masks'
         # booster: 'booster'
         # reduced_hesitancy: 'reduced hesitancy'

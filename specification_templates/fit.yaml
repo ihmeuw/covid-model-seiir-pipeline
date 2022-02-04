@@ -1,5 +1,5 @@
 data:
-  seir_preprocess_version: '2022_02_03.05'
+  seir_preprocess_version: '2022_02_04.04'
   output_format: 'parquet'
   output_root: ''
   n_draws: 100
@@ -103,6 +103,7 @@ measure_downweights:
       [43860, 0.10],  # Manitoba
       [43861, 0.10],  # New Brunswick
       [  121, 0.01],  # Bolivia
+      [ 4757, 0.10],  # Espirito Santo
       [  113, 0.01],  # Guyana
       [ 4849, 0.01],  # Delhi
       [ 4863, 0.01],  # Mizoram
@@ -127,9 +128,9 @@ measure_downweights:
   admission:
     [
       [43860, 0.10],  # Manitoba
-      [60365, 0.10],  # Asturias
-      [60360, 0.10],  # Castilla-La Mancha
-      [60361, 0.10],  # Community of Madrid
+      [60365, 0.01],  # Asturias
+      [60360, 0.01],  # Castilla-La Mancha
+      [60361, 0.01],  # Community of Madrid
       [  184, 0.00],  # Mozambique
       [  191, 0.00],  # Zambia
       [  196, 0.01],  # South Africa

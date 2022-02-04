@@ -33,15 +33,39 @@ def rescale_kappas(sampled_ode_params: Dict,
     maximum_asymptomatic_idr = idr_parameters['maximum_asymptomatic_idr']
 
     idr_scaling_factors = [
+        (   37,  0.4),  # Kyrgyzstan
+        (   41,  0.6),  # Uzbekistan
         (   55,  3.0),  # Slovenia
         (   60,  3.0),  # Lithuania
         (43860,  3.0),  # Manitoba
         (  531,  3.0),  # District of Columbia
         (   74,  3.0),  # Andorra
         (   83,  5.0),  # Iceland
+        (60358,  3.0),  # Aragon
+        (60365,  3.0),  # Asturias
+        (60363,  3.0),  # Balearic Islands
+        (60364,  3.0),  # Canary Islands
+        (60373,  3.0),  # Melilla
+        (  109,  0.2),  # Cuba
+        (  114,  0.2),  # Hati
+        (  139,  0.2),  # Algeria
+        (  152,  0.4),  # Saudi Arabia
+        (  522,  0.4),  # Sudan
+        (  157,  0.2),  # Yemen
+        ( 4849,  3.0),  # Delhi
         [  186,  5.0],  # Seychelles
-        (  169,  5.0),  # Central African Republic
+        (  169,  3.0),  # Central African Republic
+        (  172,  0.4),  # Equatorial Guinea
+        (  175,  0.2),  # Burundi
+        (  177,  0.4),  # Djibouti
+        (  178,  0.4),  # Eritrea
         (  181,  5.0),  # Madagascar
+        (  200,  0.2),  # Benin
+        (  202,  0.2),  # Cameroon
+        (  204,  0.2),  # Chad
+        (  206,  0.4),  # Gambia
+        (  209,  0.4),  # Guinea-Bissau
+        (  213,  0.4),  # Niger
     ]
     # IDR = p_s * IDR_s + p_a * IDR_a
     # IDR_a = (IDR - IDR_s * p_s) / p_a
@@ -61,6 +85,10 @@ def rescale_kappas(sampled_ode_params: Dict,
     ihr_scaling_factors = [
         (43860,  3.0),  # Manitoba
         (  531,  3.0),  # District of Columbia
+        (60358,  3.0),  # Aragon
+        (60365,  3.0),  # Asturias
+        (60364,  3.0),  # Canary Islands
+        (60373,  3.0),  # Melilla
     ]
     kappa_omicron_admission = pd.Series(
         sampled_ode_params['kappa_omicron_admission'],
@@ -85,12 +113,16 @@ def rescale_kappas(sampled_ode_params: Dict,
         (   85,  2.0),  # Israel
         (  118,  3.0),  # Suriname
         (  119,  3.0),  # Trinidad and Tobago
-        (  169,  5.0),  # Central African Republic
-        (  181, 10.0),  # Madagascar
+        (   22,  5.0),  # Fiji
+        (  169,  3.0),  # Central African Republic
+        (  175,  0.2),  # Burundi
+        (  177,  0.4),  # Djibouti
+        (  178,  0.4),  # Eritrea
+        (  181,  5.0),  # Madagascar
     ]
     ifr_scaling_factors += [(loc_id, 2.0) for loc_id in us_locations]  # United States of America
     ifr_scaling_factors += [(loc_id, 2.0) for loc_id in spain_locations]  # Spain
-    ifr_scaling_factors += [(loc_id, 2.0) for loc_id in india_locations]  # India
+    ifr_scaling_factors += [(loc_id, 1.5) for loc_id in india_locations]  # India
     kappa_omicron_death = pd.Series(
         sampled_ode_params['kappa_omicron_death'],
         index=omicron_idr.index,
