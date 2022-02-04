@@ -140,6 +140,7 @@ def run_beta_fit(fit_version: str, draw_id: int, progress_bar: bool) -> None:
         sampled_ode_params,
         compartments,
         specification.rates_parameters,
+        pred_hierarchy,
         draw_id
     )
 

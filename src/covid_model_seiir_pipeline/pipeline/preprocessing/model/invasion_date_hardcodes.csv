@@ -1,6 +1,6 @@
 location_name,location_id,data_date,case_inflection_date,lag
 Armenia,33,1/31/22,1/4/22,21
-Azerbaijan,34,1/31/22,1/5/22,21
+Azerbaijan,34,1/31/22,1/8/22,21
 Georgia,35,1/31/22,1/1/22,21
 Kazakhstan,36,1/31/22,1/4/22,21
 Kyrgyzstan,37,1/31/22,1/2/22,21
@@ -24,7 +24,7 @@ Slovenia,55,1/31/22,12/24/21,28
 Belarus,57,1/31/22,1/11/22,28
 Estonia,58,1/31/22,12/22/21,28
 Latvia,59,1/31/22,12/28/21,28
-Lithuania,60,1/31/22,12/25/21,28
+Lithuania,60,1/31/22,12/29/21,28
 Republic of Moldova,61,1/31/22,12/31/21,28
 Russian Federation,62,1/31/22,1/10/22,28
 Ukraine,63,1/31/22,1/8/22,28

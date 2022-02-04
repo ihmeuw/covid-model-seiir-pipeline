@@ -1,5 +1,5 @@
 data:
-  seir_preprocess_version: '2022_02_02.01'
+  seir_preprocess_version: '2022_02_03.05'
   output_format: 'parquet'
   output_root: ''
   n_draws: 100
@@ -95,14 +95,18 @@ measure_downweights:
       [   43, 0.50],  # Albania
       [   62, 0.10],  # Russia
       [  141, 0.50],  # Egypt
-      [  151, 0.10],  # Qatar
+      [  151, 0.50],  # Qatar
       [53619, 0.50],  # Khyber Pakhtunkhwa
       [  214, 0.10],  # Nigeria
       # bad fits
+      [   49, 0.10],  # North Macedonia
       [43860, 0.10],  # Manitoba
       [43861, 0.10],  # New Brunswick
       [  121, 0.01],  # Bolivia
-      [  160, 0.00],  # Afghanistan
+      [  113, 0.01],  # Guyana
+      [ 4849, 0.01],  # Delhi
+      [ 4863, 0.01],  # Mizoram
+      [  160, 0.01],  # Afghanistan
       [53617, 0.10],  # Gilgit-Baltistan
       [   12, 0.10],  # Laos
       [  168, 0.01],  # Angola
@@ -115,8 +119,10 @@ measure_downweights:
       [  193, 0.00],  # Botswana
       [  194, 0.00],  # Lesotho
       [  195, 0.00],  # Namibia
+      [  196, 0.01],  # South Africa
       [  197, 0.00],  # Eswatini
       [  198, 0.00],  # Zimbabwe
+      [  206, 0.10],  # Gambia
     ]
   admission:
     [
@@ -126,22 +132,26 @@ measure_downweights:
       [60361, 0.10],  # Community of Madrid
       [  184, 0.00],  # Mozambique
       [  191, 0.00],  # Zambia
+      [  196, 0.01],  # South Africa
     ]
   case:
     [
       [   37, 0.01],  # Kyrgyzstan
       [   50, 0.00],  # Montenegro
-      [   83, 0.10],  # Iceland
+      [   61, 0.10],  # Republic of Moldova
+      [   83, 0.01],  # Iceland
+      [  396, 0.10],  # San Marino
       [60370, 0.01],  # Navarre
       [60376, 0.01],  # La Rioja
       [ 4751, 0.10],  # Alagoas
       [ 4753, 0.10],  # Amapá
+      [ 4757, 0.01],  # Espirito Santo
       [ 4762, 0.10],  # Mato Grosso
       [ 4761, 0.10],  # Mato Grosso do Sul
       [ 4763, 0.10],  # Pará
       [  176, 0.00],  # Comoros
       [  186, 0.00],  # Seychelles
       [  201, 0.10],  # Burkina Faso
-      [  203, 0.10],  # Cabo Verde
+      [  203, 0.01],  # Cabo Verde
       [  215, 0.00],  # Sao Tome and Principe
     ]

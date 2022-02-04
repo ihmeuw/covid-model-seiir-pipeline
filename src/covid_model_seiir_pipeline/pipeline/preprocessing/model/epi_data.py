@@ -91,8 +91,7 @@ def terminal_date_alignment(data: pd.DataFrame, cutoff: int = 3):
         for measure in measures
     ], axis=1)
     tail_missingness = tail_missingness.replace(0, np.nan).min(axis=1).rename('tail_missingness')
-    # ?: 433, 4645, 4669
-    longer_window_locs = [90, 4643, 4657, 60371]
+    longer_window_locs = [90, 4643, 4657, 4669, 60371]
     trim_idx = tail_missingness <= cutoff
     trim_idx.loc[longer_window_locs] = True
     tail_missingness = tail_missingness.loc[trim_idx]
@@ -129,6 +128,15 @@ def evil_doings(data: pd.DataFrame, hierarchy: pd.DataFrame, input_measure: str)
         pass
 
     elif input_measure == 'hospitalizations':
+        ## ## ## ## ## ## ## ## ## ## ## ## ## ##
+        ## N Ireland - compositional bias problem; lose last few days of hosp
+        is_n_ireland = data['location_id'] == 433
+        n_ireland_last_day = data.loc[is_n_ireland, 'date'].max()
+        is_n_ireland_sub5 = data['date'] <= n_ireland_last_day - pd.Timedelta(days=5)
+        data = data.loc[~is_n_ireland | is_n_ireland_sub5].reset_index(drop=True)
+        manipulation_metadata['n_ireland'] = 'dropped all hospitalizations'
+        ## ## ## ## ## ## ## ## ## ## ## ## ## ##
+
         ## hosp/IHR == admissions too low
         is_argentina = data['location_id'] == 97
         data = data.loc[~is_argentina].reset_index(drop=True)
