@@ -52,7 +52,6 @@ def rescale_kappas(sampled_ode_params: Dict,
         (  152,  0.4),  # Saudi Arabia
         (  522,  0.4),  # Sudan
         (  157,  0.2),  # Yemen
-        ( 4849,  3.0),  # Delhi
         [  186,  5.0],  # Seychelles
         (  169,  3.0),  # Central African Republic
         (  172,  0.4),  # Equatorial Guinea
@@ -67,6 +66,7 @@ def rescale_kappas(sampled_ode_params: Dict,
         (  209,  0.4),  # Guinea-Bissau
         (  213,  0.4),  # Niger
     ]
+    idr_scaling_factors += [(loc_id, 0.4) for loc_id in india_locations]  # India
     # IDR = p_s * IDR_s + p_a * IDR_a
     # IDR_a = (IDR - IDR_s * p_s) / p_a
     # min_a_frac * IDR <= IDR_a <= max_a
@@ -122,7 +122,6 @@ def rescale_kappas(sampled_ode_params: Dict,
     ]
     ifr_scaling_factors += [(loc_id, 2.0) for loc_id in us_locations]  # United States of America
     ifr_scaling_factors += [(loc_id, 2.0) for loc_id in spain_locations]  # Spain
-    ifr_scaling_factors += [(loc_id, 1.5) for loc_id in india_locations]  # India
     kappa_omicron_death = pd.Series(
         sampled_ode_params['kappa_omicron_death'],
         index=omicron_idr.index,
