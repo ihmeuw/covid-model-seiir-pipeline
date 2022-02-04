@@ -66,7 +66,7 @@ def rescale_kappas(sampled_ode_params: Dict,
         (  209,  0.4),  # Guinea-Bissau
         (  213,  0.4),  # Niger
     ]
-    idr_scaling_factors += [(loc_id, 0.4) for loc_id in india_locations]  # India
+    idr_scaling_factors += [(loc_id, 0.2) for loc_id in india_locations]  # India
     # IDR = p_s * IDR_s + p_a * IDR_a
     # IDR_a = (IDR - IDR_s * p_s) / p_a
     # min_a_frac * IDR <= IDR_a <= max_a
