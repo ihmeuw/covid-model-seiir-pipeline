@@ -1,6 +1,7 @@
 from typing import Dict, Tuple
 
 import pandas as pd
+import numpy as np
 
 from covid_model_seiir_pipeline.lib import (
     cli_tools,
@@ -29,6 +30,7 @@ def preprocess_epi_data(data_interface: PreprocessingDataInterface) -> None:
     total_covid_scalars = _process_scalars(total_covid_scalars, pred_hierarchy)
     epi_data = pd.concat([_process_epi_data(data, measure, mr_hierarchy)
                           for measure, data in epi_data.items()], axis=1)
+    epi_data = terminal_date_alignment(epi_data)
 
     logger.info('Writing epi data.', context='write')
     data_interface.save_age_patterns(age_pattern_data)
@@ -75,25 +77,66 @@ def _process_epi_data(data: pd.Series, measure: str,
     return data
 
 
+def terminal_date_alignment(data: pd.DataFrame, cutoff: int = 3):
+    measures = ['cumulative_cases', 'cumulative_hospitalizations']
+    _data = data.loc[:, measures]
+    _data = _data.loc[_data.notnull().any(axis=1)]
+    terminal_dates = (_data
+                      .reset_index()
+                      .groupby('location_id')['date'].max()
+                      .rename('terminal_date'))
+    del _data
+    tail_missingness = pd.concat([
+        (terminal_dates - data.loc[:, measure].dropna().reset_index().groupby('location_id')['date'].max()).dt.days
+        for measure in measures
+    ], axis=1)
+    tail_missingness = tail_missingness.replace(0, np.nan).min(axis=1).rename('tail_missingness')
+    longer_window_locs = [90, 4643, 4657, 4669, 60371]
+    trim_idx = tail_missingness <= cutoff
+    trim_idx.loc[longer_window_locs] = True
+    tail_missingness = tail_missingness.loc[trim_idx]
+    terminal_dates = pd.concat([terminal_dates, tail_missingness], axis=1)
+    terminal_dates['tail_missingness'] = terminal_dates['tail_missingness'].fillna(0).astype(int)
+
+    accounting = terminal_dates.loc[terminal_dates['tail_missingness'] > 0]
+    n_loc_days = accounting['tail_missingness'].sum()
+    locs = [str(loc) for loc in accounting.index]
+    n_locs = len(locs)
+    logger.warning(f'Dropping {n_loc_days} days of data across {n_locs} locations to align terminal '
+                   f'dates for case and admissions data when difference is {cutoff} days or less. '
+                   f"Affected locations:\n{accounting['tail_missingness'].sort_values(ascending=False)}")
+
+    terminal_dates = terminal_dates.apply(
+        lambda x: x['terminal_date'] - pd.Timedelta(days=x['tail_missingness']),
+        axis=1
+    ).rename('terminal_date')
+    data = data.join(terminal_dates, how='left')
+    if data['terminal_date'].isnull().any():
+        raise ValueError('Mismatch in terminal date aligment.')
+
+    data = data.reset_index('date')
+    data = data.loc[data['date'] <= data['terminal_date']]
+    del data['terminal_date']
+    data = data.set_index('date', append=True)
+
+    return data
+
+
 def evil_doings(data: pd.DataFrame, hierarchy: pd.DataFrame, input_measure: str) -> Tuple[pd.DataFrame, Dict]:
     manipulation_metadata = {}
     if input_measure == 'cases':
         pass
 
     elif input_measure == 'hospitalizations':
-        ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
-        ## extra day(s) of admissions, drop to keep synced with cases
-        leading_hospital_trimming = [
-            ('france', 80, 2),
-            ('valencian_community', 60371, 2),
-        ]
-        for location, location_id, t in leading_hospital_trimming:
-            is_h_loc = data['location_id'] == location_id
-            is_h_loc_leading = data['date'] >= data.loc[is_h_loc, 'date'].max() - pd.Timedelta(days=t-1)
-            data = data.loc[~(is_h_loc & is_h_loc_leading)].reset_index(drop=True)
-            manipulation_metadata[location] = f'dropped leading hospital data - {t} day(s).'
-        ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
-        
+        ## ## ## ## ## ## ## ## ## ## ## ## ## ##
+        ## N Ireland - compositional bias problem; lose last few days of hosp
+        is_n_ireland = data['location_id'] == 433
+        n_ireland_last_day = data.loc[is_n_ireland, 'date'].max()
+        is_n_ireland_sub5 = data['date'] <= n_ireland_last_day - pd.Timedelta(days=5)
+        data = data.loc[~is_n_ireland | is_n_ireland_sub5].reset_index(drop=True)
+        manipulation_metadata['n_ireland'] = 'dropped all hospitalizations'
+        ## ## ## ## ## ## ## ## ## ## ## ## ## ##
+
         ## hosp/IHR == admissions too low
         is_argentina = data['location_id'] == 97
         data = data.loc[~is_argentina].reset_index(drop=True)

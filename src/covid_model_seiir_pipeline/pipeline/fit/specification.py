@@ -106,6 +106,11 @@ class RatesParameters:
 
     omega_like_omicron: bool = field(default=False)
 
+    p_asymptomatic_pre_omicron: UniformSampleable = field(default=0.5)
+    p_asymptomatic_post_omicron: UniformSampleable = field(default=0.9)
+    minimum_asymptomatic_idr_fraction: UniformSampleable = field(default=0.1)
+    maximum_asymptomatic_idr: UniformSampleable = field(default=0.2)
+
     day_inflection_options: List[str] = field(default_factory=list)
 
     def __post_init__(self):

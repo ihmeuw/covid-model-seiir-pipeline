@@ -20,4 +20,3 @@ grid_plots:
     - version: '2022_01_31.04'
       scenarios:
         reference*: 'BA.2'
-

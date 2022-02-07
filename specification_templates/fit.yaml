@@ -1,5 +1,5 @@
 data:
-  seir_preprocess_version: '2022_01_26.01'
+  seir_preprocess_version: '2022_02_07.01'
   output_format: 'parquet'
   output_root: ''
   n_draws: 100
@@ -10,7 +10,7 @@ workflow:
 rates_parameters:
   day_0: '2020-03-15'
   pred_start_date: '2019-11-01'
-  pred_end_date: '2022-03-15'
+  pred_end_date: '2022-09-15'
   # Either 'unscaled' or 'total'
   mortality_scalar: 'total'
   # Criteria for first pass rates models.
@@ -29,11 +29,15 @@ rates_parameters:
   # Or a 3-tuple of [mean, lower, upper]
   ihr_risk_ratio: 'BMJ'
   idr_risk_ratio: [1.0, 1.0, 1.0]
-  omicron_ifr_scalar: [0.009375, 0.028125]  # 0.01875 +/- 50%
-  omicron_ihr_scalar: [0.0625, 0.1875]  # 0.125 +/- 50%
+  omicron_ifr_scalar: [0.028125, 0.046875]  # 0.0375 +/- 25%
+  omicron_ihr_scalar: [0.140625, 0.234375]  # 0.1875 +/- 25%
   # IDR is altered in second pass rates based on assumptions about the probability a disease is symptomatic.
   omicron_idr_scalar: 1.0
   omega_like_omicron: True
+  p_asymptomatic_pre_omicron: 0.5
+  p_asymptomatic_post_omicron: [0.75, 0.85]
+  minimum_asymptomatic_idr_fraction: 0.2
+  maximum_asymptomatic_idr: 0.6
 fit_parameters:
   omega_invasion_date: '2021-11-13'
   # Mixing parameter.  dS/dt = -beta * S * I ** alpha
@@ -93,14 +97,19 @@ measure_downweights:
       [   43, 0.50],  # Albania
       [   62, 0.10],  # Russia
       [  141, 0.50],  # Egypt
-      [  151, 0.10],  # Qatar
+      [  151, 0.50],  # Qatar
       [53619, 0.50],  # Khyber Pakhtunkhwa
       [  214, 0.10],  # Nigeria
       # bad fits
+      [   49, 0.10],  # North Macedonia
       [43860, 0.10],  # Manitoba
       [43861, 0.10],  # New Brunswick
       [  121, 0.01],  # Bolivia
-      [  160, 0.00],  # Afghanistan
+      [ 4757, 0.10],  # Espirito Santo
+      [  113, 0.01],  # Guyana
+      [ 4849, 0.01],  # Delhi
+      [ 4863, 0.01],  # Mizoram
+      [  160, 0.01],  # Afghanistan
       [53617, 0.10],  # Gilgit-Baltistan
       [   12, 0.10],  # Laos
       [  168, 0.01],  # Angola
@@ -113,33 +122,39 @@ measure_downweights:
       [  193, 0.00],  # Botswana
       [  194, 0.00],  # Lesotho
       [  195, 0.00],  # Namibia
+      [  196, 0.01],  # South Africa
       [  197, 0.00],  # Eswatini
       [  198, 0.00],  # Zimbabwe
+      [  206, 0.10],  # Gambia
     ]
   admission:
     [
       [43860, 0.10],  # Manitoba
-      [60365, 0.10],  # Asturias
-      [60360, 0.10],  # Castilla-La Mancha
-      [60361, 0.10],  # Community of Madrid
+      [60365, 0.01],  # Asturias
+      [60360, 0.01],  # Castilla-La Mancha
+      [60361, 0.01],  # Community of Madrid
       [  184, 0.00],  # Mozambique
       [  191, 0.00],  # Zambia
+      [  196, 0.01],  # South Africa
     ]
   case:
     [
       [   37, 0.01],  # Kyrgyzstan
       [   50, 0.00],  # Montenegro
-      [   83, 0.10],  # Iceland
+      [   61, 0.10],  # Republic of Moldova
+      [   83, 0.01],  # Iceland
+      [  396, 0.10],  # San Marino
       [60370, 0.01],  # Navarre
       [60376, 0.01],  # La Rioja
       [ 4751, 0.10],  # Alagoas
       [ 4753, 0.10],  # Amapá
+      [ 4757, 0.01],  # Espirito Santo
       [ 4762, 0.10],  # Mato Grosso
       [ 4761, 0.10],  # Mato Grosso do Sul
       [ 4763, 0.10],  # Pará
       [  176, 0.00],  # Comoros
       [  186, 0.00],  # Seychelles
       [  201, 0.10],  # Burkina Faso
-      [  203, 0.10],  # Cabo Verde
+      [  203, 0.01],  # Cabo Verde
       [  215, 0.00],  # Sao Tome and Principe
     ]
