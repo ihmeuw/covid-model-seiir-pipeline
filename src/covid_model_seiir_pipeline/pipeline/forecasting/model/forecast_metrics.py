@@ -86,8 +86,8 @@ def _make_measure(compartments_diff: pd.DataFrame, measure: str, lag: int) -> pd
 
     data['naive_unvaccinated'] = compartments_diff.filter(like=f'{measure}_none_all_unvaccinated').sum(axis=1)
     data['unvaccinated'] = compartments_diff.filter(like=f'{measure}_all_all_unvaccinated').sum(axis=1)
-    data['vaccinated'] = compartments_diff.filter(like=f'{measure}_none_all_vaccinated').sum(axis=1)
-    data['booster'] = compartments_diff.filter(like=f'{measure}_none_all_booster').sum(axis=1)
+    data['vaccinated'] = compartments_diff.filter(like=f'{measure}_all_all_vaccinated').sum(axis=1)
+    data['booster'] = compartments_diff.filter(like=f'{measure}_all_all_booster').sum(axis=1)
     data['naive'] = compartments_diff.filter(like=f'{measure}_none_all_all').sum(axis=1)
     data['total'] = compartments_diff.filter(like=f'{measure}_all_all_all').sum(axis=1)
 
@@ -191,17 +191,16 @@ def _make_covid_status(compartments: pd.DataFrame) -> pd.DataFrame:
     groups = itertools.product(COMPARTMENT_NAMES, VACCINE_STATUS_NAMES, VARIANT_NAMES, RISK_GROUP_NAMES)
     for compartment, vaccine_status, variant, risk_group in groups:
         compartment_key = f'{compartment}_{vaccine_status}_{variant}_{risk_group}'
-        if compartment == COMPARTMENT_NAMES.S:
+        if compartment == COMPARTMENT_NAMES.S and variant == VARIANT_NAMES.none:
             if vaccine_status == VACCINE_STATUS_NAMES.unvaccinated:
-                if variant == VARIANT_NAMES.none:
-                    covid_status['covid_status_naive_unvaccinated'] += compartments[compartment_key]
-                else:
-                    covid_status['covid_status_exposed_unvaccinated'] += compartments[compartment_key]
+                covid_status['covid_status_naive_unvaccinated'] += compartments[compartment_key]
             else:
-                if variant == VARIANT_NAMES.none:
-                    covid_status['covid_status_naive_vaccinated'] += compartments[compartment_key]
-                else:
-                    covid_status['covid_status_exposed_vaccinated'] += compartments[compartment_key]
+                covid_status['covid_status_naive_vaccinated'] += compartments[compartment_key]
+        else:
+            if vaccine_status == VACCINE_STATUS_NAMES.unvaccinated:
+                covid_status['covid_status_exposed_unvaccinated'] += compartments[compartment_key]
+            else:
+                covid_status['covid_status_exposed_vaccinated'] += compartments[compartment_key]
 
     covid_status = pd.concat([
         v.rename(k) for k, v in covid_status.items()

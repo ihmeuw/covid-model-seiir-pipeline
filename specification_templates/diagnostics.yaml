@@ -17,4 +17,3 @@ grid_plots:
     - version: '2022_01_24.04'
       scenarios:
         reference*: 'Delta II'
-

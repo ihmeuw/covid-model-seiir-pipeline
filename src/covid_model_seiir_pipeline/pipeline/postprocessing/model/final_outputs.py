@@ -98,6 +98,7 @@ for measure in ['infections', 'deaths', 'cases', 'admissions']:
             cumulative_label=f'cumulative_{label}',
             aggregator=aggregate.sum_aggregator,
             write_draws=write_draws,
+            splice=suffix not in VACCINE_STATUS_NAMES,
         )
 MEASURES.update(**{
     'unscaled_deaths': MeasureConfig(

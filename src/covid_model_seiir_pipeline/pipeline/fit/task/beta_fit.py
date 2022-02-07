@@ -136,7 +136,13 @@ def run_beta_fit(fit_version: str, draw_id: int, progress_bar: bool) -> None:
     )
 
     # Apply location specific adjustments for locations where the model breaks.
-    sampled_ode_params = model.rescale_kappas(sampled_ode_params, compartments, draw_id)
+    sampled_ode_params = model.rescale_kappas(
+        sampled_ode_params,
+        compartments,
+        specification.rates_parameters,
+        pred_hierarchy,
+        draw_id
+    )
 
     if specification.rates_parameters.omega_like_omicron:
         for measure in ['case', 'admission', 'death']:
