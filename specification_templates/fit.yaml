@@ -1,5 +1,5 @@
 data:
-  seir_preprocess_version: '2022_02_04.06'
+  seir_preprocess_version: '2022_02_07.01'
   output_format: 'parquet'
   output_root: ''
   n_draws: 100
@@ -10,7 +10,7 @@ workflow:
 rates_parameters:
   day_0: '2020-03-15'
   pred_start_date: '2019-11-01'
-  pred_end_date: '2022-03-15'
+  pred_end_date: '2022-09-15'
   # Either 'unscaled' or 'total'
   mortality_scalar: 'total'
   # Criteria for first pass rates models.
