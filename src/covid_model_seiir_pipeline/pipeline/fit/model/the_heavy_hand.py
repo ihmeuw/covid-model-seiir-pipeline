@@ -17,8 +17,6 @@ def rescale_kappas(sampled_ode_params: Dict,
                                  'location_id'].to_list()
     spain_locations = hierarchy.loc[hierarchy['path_to_top_parent'].apply(lambda x: '92' in x.split(',')),
                                     'location_id'].to_list()
-    india_locations = hierarchy.loc[hierarchy['path_to_top_parent'].apply(lambda x: '163' in x.split(',')),
-                                    'location_id'].to_list()
 
     delta_infections = compartments.filter(like='Infection_all_delta_all').sum(axis=1).groupby('location_id').max()
     delta_cases = compartments.filter(like='Case_all_delta_all').sum(axis=1).groupby('location_id').max()
@@ -65,8 +63,40 @@ def rescale_kappas(sampled_ode_params: Dict,
         (  206,  0.4),  # Gambia
         (  209,  0.4),  # Guinea-Bissau
         (  213,  0.4),  # Niger
+
+        ## ## ## ## ## ## INDIA ## ## ## ## ## ##
+        ( 4841,  0.2),  # Andhra Pradesh
+        ( 4842,  0.2),  # Arunachal Pradesh
+        ( 4843,  0.6),  # Assam
+        ( 4844,  0.4),  # Bihar
+        ( 4846,  0.4),  # Chhattisgarh
+        # Delhi - no change
+        ( 4850,  0.4),  # Goa
+        ( 4851,  0.4),  # Gujarat
+        ( 4852,  0.8),  # Haryana
+        ( 4853,  0.6),  # Himachal Pradesh
+        ( 4854,  0.4),  # Jammu & Kashmir and Ladakh
+        ( 4855,  0.6),  # Jharkhand
+        ( 4856,  0.6),  # Karnataka
+        # Kerala - no change
+        ( 4859,  0.4),  # Madhya Pradesh
+        ( 4860,  0.6),  # Maharashtra
+        ( 4861,  0.2),  # Manipur
+        ( 4862,  0.2),  # Meghalaya
+        # Mizoram - no change
+        ( 4864,  0.2),  # Nagaland
+        ( 4865,  0.4),  # Odisha
+        ( 4867,  0.6),  # Punjab
+        ( 4868,  0.6),  # Rajasthan
+        ( 4869,  0.4),  # Sikkim
+        ( 4870,  0.6),  # Tamil Nadu
+        ( 4871,  0.2),  # Telangana
+        ( 4872,  0.4),  # Tripura
+        ( 4873,  0.4),  # Uttar Pradesh
+        ( 4874,  0.8),  # Uttarakhand
+        ( 4875,  0.8),  # West Bengal
+        ## ## ## ## ## ## ## ## ## ## ## ## ## ##
     ]
-    idr_scaling_factors += [(loc_id, 0.2) for loc_id in india_locations]  # India
     # IDR = p_s * IDR_s + p_a * IDR_a
     # IDR_a = (IDR - IDR_s * p_s) / p_a
     # min_a_frac * IDR <= IDR_a <= max_a
