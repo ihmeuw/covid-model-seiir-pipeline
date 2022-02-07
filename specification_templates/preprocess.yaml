@@ -2,7 +2,7 @@ data:
   mr_location_set_version_id: 1009
   mr_location_set_file: ''
   pred_location_set_version_id: 1009
-  model_inputs_version: '2022_02_03.02'
+  model_inputs_version: '2022_02_06.01'
   age_specific_rates_version: '2021_10_15.01'
   mortality_scalars_version: '2021_12_17.01'
   mask_use_outputs_version: '2022_01_31.08'
@@ -16,7 +16,7 @@ data:
   vaccine_efficacy_version: '2021_12_19.01'
   vaccine_scenarios:
     - 'reference'
-    - 'booster'
+    # - 'booster'
     # - 'probably_no'
   output_root: ''
   output_format: 'csv'
