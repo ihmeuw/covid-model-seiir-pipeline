@@ -1,10 +1,10 @@
 data:
-  seir_forecast_version: '2022_02_04.06'
+  seir_forecast_version: '2022_02_10.02'
   scenarios:
    - 'reference'
-#   - 'booster'
-#   - 'best_masks'
-#   - 'optimistic'
+   - 'booster'
+   - 'best_masks'
+   - 'optimistic'
   output_root: ''
 workflow:
   project: 'proj_covid_prod'
@@ -14,15 +14,15 @@ resampling:
   reference_date: '2022-07-01'
   lower_quantile: 0.025
   upper_quantile: 0.975
-splicing:
-  - locations:
-      - 57  # Belarus
-      - 72  # New Zealand
-      - 8   # Taiwan
-    output_version: '/ihme/covid-19/seir-outputs/2022_01_21.01'
-  - locations:
-      - 83  # Iceland
-    output_version: '/ihme/covid-19/seir-outputs/2022_01_13.01'
+#splicing:
+#  - locations:
+#      - 57  # Belarus
+#      - 72  # New Zealand
+#      - 8   # Taiwan
+#    output_version: '/ihme/covid-19/seir-outputs/2022_01_21.01'
+#  - locations:
+#      - 83  # Iceland
+#    output_version: '/ihme/covid-19/seir-outputs/2022_01_13.01'
 aggregation:
   - location_file: '/ihme/covid-19/seir-outputs/agg-hierarchies/modeling.csv'
   - location_file: '/ihme/covid-19/seir-outputs/agg-hierarchies/who_plus_palestine.csv'

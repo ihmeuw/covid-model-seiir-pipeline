@@ -108,7 +108,6 @@ def _run_loc_ode_model(ic_and_params,
 
     ode_end_date = initial_condition.loc[initial_condition.iloc[:, 0].notnull()].reset_index().date.max()
 
-    import pdb; pdb.set_trace()
     tf = (ode_end_date - invasion_date).days
 
     dates = initial_condition.reset_index().date
@@ -207,61 +206,60 @@ def _rk45_dde(t0: float, tf: float,
         if not (t0 < t_solve[time] <= tf):
             continue
 
-        #try:
-        chis[time - 1] = compute_chis(time-1, t_solve, y_solve, phis, chis)
-        import pdb; pdb.set_trace()
+        try:
+            chis[time - 1] = compute_chis(time-1, t_solve, y_solve, phis, chis)
 
-        k1 = system(
-            t_solve[time - 1],
-            y_solve[time - 1],
-            parameters[2 * time - 2],
-            age_scalars[2 * time - 2],
-            vaccines[2 * time - 2],
-            etas[2 * time - 2],
-            chis[time - 1],
-            system_type,
-        )
+            k1 = system(
+                t_solve[time - 1],
+                y_solve[time - 1],
+                parameters[2 * time - 2],
+                age_scalars[2 * time - 2],
+                vaccines[2 * time - 2],
+                etas[2 * time - 2],
+                chis[time - 1],
+                system_type,
+            )
 
-        k2 = system(
-            t_solve[time - 1] + dt / 2,
-            y_solve[time - 1] + dt / 2 * k1,
-            parameters[2 * time - 1],
-            age_scalars[2 * time - 2],
-            vaccines[2 * time - 1],
-            etas[2 * time - 1],
-            chis[time - 1],
-            system_type,
-        )
+            k2 = system(
+                t_solve[time - 1] + dt / 2,
+                y_solve[time - 1] + dt / 2 * k1,
+                parameters[2 * time - 1],
+                age_scalars[2 * time - 2],
+                vaccines[2 * time - 1],
+                etas[2 * time - 1],
+                chis[time - 1],
+                system_type,
+            )
 
-        k3 = system(
-            t_solve[time - 1] + dt / 2,
-            y_solve[time - 1] + dt / 2 * k2,
-            parameters[2 * time - 1],
-            age_scalars[2 * time - 1],
-            vaccines[2 * time - 1],
-            etas[2 * time - 1],
-            chis[time - 1],
-            system_type,
-        )
+            k3 = system(
+                t_solve[time - 1] + dt / 2,
+                y_solve[time - 1] + dt / 2 * k2,
+                parameters[2 * time - 1],
+                age_scalars[2 * time - 1],
+                vaccines[2 * time - 1],
+                etas[2 * time - 1],
+                chis[time - 1],
+                system_type,
+            )
 
-        k4 = system(
-            t_solve[time],
-            y_solve[time - 1] + dt * k3,
-            parameters[2 * time],
-            age_scalars[2 * time],
-            vaccines[2 * time],
-            etas[2 * time],
-            chis[time - 1],
-            system_type,
-        )
+            k4 = system(
+                t_solve[time],
+                y_solve[time - 1] + dt * k3,
+                parameters[2 * time],
+                age_scalars[2 * time],
+                vaccines[2 * time],
+                etas[2 * time],
+                chis[time - 1],
+                system_type,
+            )
 
-        y_solve[time] = escape_variant.maybe_invade(
-            t_solve[time],
-            y_solve[time - 1] + dt / 6 * (k1 + 2 * k2 + 2 * k3 + k4),
-            parameters[2 * time],
-        )
-        #except:
-        #    return y_solve, chis, True
+            y_solve[time] = escape_variant.maybe_invade(
+                t_solve[time],
+                y_solve[time - 1] + dt / 6 * (k1 + 2 * k2 + 2 * k3 + k4),
+                parameters[2 * time],
+            )
+        except:
+            return y_solve, chis, True
 
     return y_solve, chis, False
 

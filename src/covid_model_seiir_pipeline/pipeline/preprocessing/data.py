@@ -250,7 +250,7 @@ class PreprocessingDataInterface:
     def load_raw_mask_use_data(self, scenario: str):
         try:
             scenario_file = {
-                'reference': 'mask_use',
+                'reference': 'mask_use_relaxed',
                 'best': 'mask_use_best',
                 'worse': 'mask_use_worse',
             }[scenario]
