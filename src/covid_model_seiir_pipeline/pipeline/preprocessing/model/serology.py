@@ -49,6 +49,7 @@ def process_raw_serology_data(data: pd.DataFrame, hierarchy: pd.DataFrame) -> pd
     data['seroprevalence_lower'] = data['lower'] / 100
     data['seroprevalence_upper'] = data['upper'] / 100
     data['sample_size'] = (helpers.str_fmt(data['sample_size'])
+                           .str.replace(',', '')
                            .replace(('unchecked', 'not specified'), np.nan).astype(float))
 
     data['bias'] = (helpers.str_fmt(data['bias'])

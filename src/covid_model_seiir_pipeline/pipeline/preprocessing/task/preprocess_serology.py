@@ -28,7 +28,7 @@ def run_preprocess_serology(preprocessing_version: str, progress_bar: bool) -> N
 
     logger.info('Loading raw serology input data', context='read')
     raw_seroprevalence = data_interface.load_raw_serology_data()
-    hierarchy = data_interface.load_hierarchy('mr')
+    hierarchy = data_interface.load_hierarchy('mr').reset_index()
     vaccine_data = data_interface.load_serology_vaccine_coverage()
     population = data_interface.load_population(measure='five_year')
     assay_map = data_interface.load_assay_map()
