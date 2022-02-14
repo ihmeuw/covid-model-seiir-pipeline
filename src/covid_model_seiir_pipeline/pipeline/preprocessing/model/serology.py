@@ -76,10 +76,15 @@ def process_raw_serology_data(data: pd.DataFrame, hierarchy: pd.DataFrame) -> pd
     is_mixed = data['test_target'] == 'mixed'
     data.loc[is_oxford & is_mixed, 'test_target'] = 'spike'
 
-    # No vax in India survey
+    # code India 2020 nat'l point (ICMR 3?) as mixed
     is_ind = data['location_id'] == 163
     is_icmr_serosurvey = data['survey_series'] == 'icmr_serosurvey'
     data.loc[is_ind & is_icmr_serosurvey, 'test_target'] = 'mixed'
+
+    # code all ICMR round 4 data as spike
+    is_icmr_round4 = data['survey_series'] == 'icmr_round4'
+    data.loc[is_icmr_round4, 'test_target'] = 'spike'
+    data.loc[is_icmr_round4, 'isotype'] = 'IgG'
 
     # Peru N-Roche has the wrong isotype
     is_peru = data['location_id'] == 123
