@@ -245,10 +245,10 @@ def process_raw_serology_data(data: pd.DataFrame, hierarchy: pd.DataFrame) -> pd
     outliers.append(est_ndl_vax_outlier)
     logger.debug(f'{est_ndl_vax_outlier.sum()} rows from sero data dropped due to Netherlands and Estonia vax issues.')
 
-    # vaccine debacle, lose all the Puerto Rico data from April 2021 onward
+    # vaccine debacle, lose all the Puerto Rico data from Feb 2021 onward
     is_pr = data['location_id'].isin([385])
     is_spike = data['test_target'] == 'spike'
-    is_2021 = data['date'] >= pd.Timestamp('2021-04-01')
+    is_2021 = data['date'] >= pd.Timestamp('2021-02-01')
 
     pr_vax_outlier = is_pr & is_spike & is_2021
     outliers.append(pr_vax_outlier)
