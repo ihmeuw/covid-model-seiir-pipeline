@@ -84,6 +84,8 @@ def prepare_ode_fit_parameters(rates: Rates,
     etas = etas.sort_index().reindex(past_index, fill_value=0.)
 
     phis = []
+    phi_scalar = sample_parameter('phi_scalar', draw_id, 0.85, 0.95)
+    phi_scalars = {'death': phi_scalar, 'admission': phi_scalar, 'case': 1.0}
     for endpoint in ['infection', 'death', 'admission', 'case']:
         if endpoint == 'infection':
             w_base = pd.Series(0., index=natural_waning_dist.index)
@@ -98,7 +100,8 @@ def prepare_ode_fit_parameters(rates: Rates,
                 ## SYMPTOMATIC == SEVERE
                 w_target = natural_waning_dist['admission'].rename('case')
             cvi = natural_waning_matrix.loc[from_variant, to_variant]
-            phi = 1 - (1 - cvi * w_target) / (1 - cvi * w_base)
+            numerator_scalar = phi_scalars.get(endpoint, cvi)
+            phi = 1 - (1 - numerator_scalar * w_target) / (1 - cvi * w_base)
             phi[phi.cummax() < phi.max()] = phi.max()
             phis.append(phi.rename(f'{from_variant}_{to_variant}_{endpoint}'))
     phis = pd.concat(phis, axis=1)
