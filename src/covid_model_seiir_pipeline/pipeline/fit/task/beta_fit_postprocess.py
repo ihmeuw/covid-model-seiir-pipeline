@@ -142,6 +142,7 @@ def summarize_and_write(measure_data: pd.DataFrame,
         agg_levels = [c for c in list(measure_data.columns) + list(measure_data.index.names)
                       if c in ['location_id', 'round']]
         cumulative_measure_data = (measure_data
+                                   .dropna()
                                    .reset_index()
                                    .set_index(agg_levels + ['date'])
                                    .groupby(agg_levels)

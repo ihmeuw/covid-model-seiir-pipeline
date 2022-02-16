@@ -130,12 +130,15 @@ def model_fit_plot(data: Tuple[Location, DataDict],
             color=MEASURE_COLORS[measure]['dark'],
             label=label,
         )
-        plotter.make_time_plot(
-            ax=ax_measure,
-            measure=f'posterior_cumulative_{measure}',
-            color=MEASURE_COLORS[measure]['light'],
-            linestyle='--',
-        )
+        ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
+        ## need naive (not naive-unvaccinated)
+        # plotter.make_time_plot(
+        #     ax=ax_measure,
+        #     measure=f'posterior_cumulative_{measure}',
+        #     color=MEASURE_COLORS[measure]['light'],
+        #     linestyle='--',
+        # )
+        ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
 
         plotter.make_observed_time_plot(
             ax=ax_measure,
@@ -209,17 +212,15 @@ def model_fit_plot(data: Tuple[Location, DataDict],
     ax_cumul = fig.add_subplot(gs_infecs[1])
 
     for metric, ax, transform in [('daily', ax_daily, identity), ('cumulative', ax_cumul, pop_scale(pop))]:
-        ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
-        ## need naive (not naive-unvaccinated)
-        # for measure in ['cases', 'deaths', 'hospitalizations']:
-        #     plotter.make_time_plot(
-        #         ax=ax,
-        #         measure=f'posterior_{measure}_based_{metric}_naive_infections',
-        #         color=MEASURE_COLORS[measure]['light'],
-        #         linestyle='--',
-        #         transform=transform,
-        #     )
-        ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
+        measure_type = 'naive' if metric == 'cumulative' else 'total'
+        for measure in ['cases', 'deaths', 'hospitalizations']:
+            plotter.make_time_plot(
+                ax=ax,
+                measure=f'posterior_{measure}_based_{metric}_{measure_type}_infections',
+                color=MEASURE_COLORS[measure]['light'],
+                linestyle='--',
+                transform=transform,
+            )
 
         if metric == 'daily':
             plotter.make_time_plot(
