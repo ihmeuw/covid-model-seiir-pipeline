@@ -29,10 +29,8 @@ rates_parameters:
   # Or a 3-tuple of [mean, lower, upper]
   ihr_risk_ratio: 'BMJ'
   idr_risk_ratio: [1.0, 1.0, 1.0]
-  # omicron_ifr_scalar: [0.028125, 0.046875]  # 0.0375 +/- 25%
-  # omicron_ihr_scalar: [0.140625, 0.234375]  # 0.1875 +/- 25%
-  omicron_ifr_scalar: [0.0750, 0.1250]  # 0.10 +/- 25%
-  omicron_ihr_scalar: [0.1875, 0.3125]  # 0.25 +/- 25%
+  omicron_ifr_scalar: [0.075, 0.125]  # 0.10 +/- 25%
+  omicron_ihr_scalar: [0.160, 0.240]  # 0.20 +/- 25%
   # IDR is altered in second pass rates based on assumptions about the probability a disease is symptomatic.
   omicron_idr_scalar: 1.0
   p_asymptomatic_pre_omicron: 0.5
