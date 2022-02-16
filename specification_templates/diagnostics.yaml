@@ -8,25 +8,31 @@ grid_plots:
     date_start: '2020-03-01'
     date_end: '2022-12-31'
     comparators:
-    - version: '2022_01_21.01'
+    - version: '2022_02_04.06'
       scenarios:
         reference*: 'public reference'
-    - version: '2022_02_04.03'
+    - version: '2022_02_15.03'
       scenarios:
-        reference*: 'reference'
-        best_masks: 'best masks'
-        booster: 'booster'
-        # reduced_hesitancy: 'reduced hesitancy'
+        reference*: 'updated data'
+    - version: '2022_02_15.01'
+      scenarios:
+        reference*: 'updated data + new phis'
+    - version: '2022_02_15.02'
+      scenarios:
+        reference*: 'updated data + new phis + higher kappas'
   - name: 'compare_shortrange'
     date_start: '2021-01-01'
     date_end: '2022-06-01'
     comparators:
-    - version: '2022_01_21.01'
+    - version: '2022_02_04.06'
       scenarios:
         reference*: 'public reference'
-    - version: '2022_02_04.03'
+    - version: '2022_02_15.03'
       scenarios:
-        reference*: 'reference'
-        best_masks: 'best masks'
-        booster: 'booster'
-        # reduced_hesitancy: 'reduced hesitancy'
+        reference*: 'updated data'
+    - version: '2022_02_15.01'
+      scenarios:
+        reference*: 'updated data + new phis'
+    - version: '2022_02_15.02'
+      scenarios:
+        reference*: 'updated data + new phis + higher kappas'

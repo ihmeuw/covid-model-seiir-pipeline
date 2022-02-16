@@ -259,14 +259,13 @@ for ratio, measure, duration_measure in zip(['ifr', 'ihr', 'idr'],
                                             ['deaths', 'hospitalizations', 'cases'],
                                             ['death', 'admission', 'case']):
     MEASURES[f'posterior_{ratio}'] = CompositeMeasureConfig(
-        base_measures={'numerator': MEASURES[f'posterior_{measure}'],
-                       'denominator': MEASURES['posterior_naive_unvaccinated_infections']},
+        base_measures={'numerator': MEASURES[f'smoothed_{measure}'],
+                       'denominator': MEASURES['posterior_total_infections']},
         label=f'posterior_{ratio}',
         duration_label=f'exposure_to_{duration_measure}',
         combiner=make_ratio,
         description=(
-            f'Posterior {ratio.upper()} among the unvaccinated and COVID-naive (those without a '
-            f'prior covid infection). This data is a composite of results from the past infections model.'
+            f'Posterior {ratio.upper()}. This data is a composite of results from the past infections model.'
         )
     )
 

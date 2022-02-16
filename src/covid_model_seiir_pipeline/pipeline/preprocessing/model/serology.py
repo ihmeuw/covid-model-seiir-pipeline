@@ -165,8 +165,9 @@ def process_raw_serology_data(data: pd.DataFrame, hierarchy: pd.DataFrame) -> pd
     ## South Africa Angincourt must have missed first wave
     data.loc[(data['location_id'] == 196) &
              (data['survey_series'] == 'PHIRST_C2021') & 
-             (data['source_population'] == 'Angincourt, Mpumalanga province') &
-             (data['date'] <= pd.Timestamp('2020-10-10')),
+             (data['source_population'] == 'Angincourt, Mpumalanga province')
+             # & (data['date'] <= pd.Timestamp('2020-10-10'))
+             ,
              'manual_outlier'] = 1
 
     ## Cote d'Ivoire mining camp not rep
