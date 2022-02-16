@@ -85,7 +85,7 @@ def prepare_ode_fit_parameters(rates: Rates,
 
     phis = []
     phi_scalar = sample_parameter('phi_scalar', draw_id, 0.85, 0.95)
-    phi_scalars = {'death': phi_scalar, 'admission': phi_scalar, 'case': 1.0}
+    phi_scalars = {'death': phi_scalar, 'admission': phi_scalar}
     for endpoint in ['infection', 'death', 'admission', 'case']:
         if endpoint == 'infection':
             w_base = pd.Series(0., index=natural_waning_dist.index)
