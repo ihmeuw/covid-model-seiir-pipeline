@@ -45,7 +45,9 @@ def rescale_kappas(sampled_ode_params: Dict,
         (43860,  3.0),  # Manitoba
         (  349,  5.0),  # Greenland
         (  531,  2.0),  # District of Columbia
+        ( 3539,  2.0),  # Spokane County
         (   74,  2.0),  # Andorra
+        (   78,  2.0),  # Denmark
         (   90,  2.0),  # Norway
         (   91,  2.0),  # Portugal
         (  396,  3.0),  # San Marino
@@ -79,7 +81,7 @@ def rescale_kappas(sampled_ode_params: Dict,
         (  139,  0.5),  # Algeria
         (  141,  0.5),  # Egypt
         (  142,  0.2),  # Iran
-        (  143,  0.5),  # Iraq
+        (  143,  0.2),  # Iraq
         (  144,  2.0),  # Jordan
         (  151,  2.0),  # Qatar
         (  155,  2.0),  # Turkey
@@ -134,6 +136,8 @@ def rescale_kappas(sampled_ode_params: Dict,
     ihr_scaling_factors = [
         (   47,  2.0),  # Czechia
         (  567,  2.0),  # Utah
+        ( 3539,  2.0),  # Spokane County
+        (   78,  2.0),  # Denmark
         ( 4644,  2.0),  # Baja California
         ( 4645,  2.0),  # Baja California Sur
         ( 4649,  0.2),  # Chiapas
@@ -172,7 +176,6 @@ def rescale_kappas(sampled_ode_params: Dict,
         (   34,  5.0),  # Azerbaijan
         (   43,  3.0),  # Albania
         (   44,  3.0),  # Bosnia and Herzegovina
-        (   45,  3.0),  # Bulgaria
         (   45, 10.0),  # Croatia
         (   47,  2.0),  # Czechia
         (   50,  5.0),  # Montenegro
@@ -185,7 +188,9 @@ def rescale_kappas(sampled_ode_params: Dict,
         (   62,  3.0),  # Russian Federation
         (  349,  5.0),  # Greenland
         (  535,  2.0),  # Idaho
+        ( 3539,  2.0),  # Spokane County
         (  573,  2.0),  # Wyoming
+        (   78,  2.0),  # Denmark
         (35498,  2.0),  # Provincia autonoma di Bolzano
         (   90,  2.0),  # Norway
         (  122,  2.0),  # Ecuador
