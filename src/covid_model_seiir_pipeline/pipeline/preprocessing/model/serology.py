@@ -76,7 +76,7 @@ def process_raw_serology_data(data: pd.DataFrame, hierarchy: pd.DataFrame) -> pd
     is_mixed = data['test_target'] == 'mixed'
     data.loc[is_oxford & is_mixed, 'test_target'] = 'spike'
 
-    # code India 2020 nat'l point (ICMR 3?) as mixed
+    # code India 2020 nat'l point as mixed
     is_ind = data['location_id'] == 163
     is_icmr_serosurvey = data['survey_series'] == 'icmr_serosurvey'
     data.loc[is_ind & is_icmr_serosurvey, 'test_target'] = 'mixed'
@@ -325,14 +325,14 @@ def process_raw_serology_data(data: pd.DataFrame, hierarchy: pd.DataFrame) -> pd
     logger.debug(f'{vermont_outlier.sum()} rows from sero data dropped due to implausibility '
                  '(or at least incompatibility) of early commercial lab points in Vermont.')
 
-    # Spain 2020 first two rounds (of four)
+    # Spain 2020 first three rounds (of four)
     is_ene_covid = data['survey_series'] == 'ene_covid'
-    is_pre_june_2020 = data['start_date'] < pd.Timestamp('2020-06-01')
+    is_pre_july_2020 = data['start_date'] < pd.Timestamp('2020-07-01')
 
-    esp_outlier = is_ene_covid & is_pre_june_2020
+    esp_outlier = is_ene_covid & is_pre_july_2020
     outliers.append(esp_outlier)
     logger.debug(f'{esp_outlier.sum()} rows from sero data dropped due to implausibility '
-                 '(or at least incompatibility) of first two survey rounds in Spain (April/May 2020).')
+                 '(or at least incompatibility) of first three survey rounds in Spain (April-June 2020).')
 
     # high Norway point
     is_nor = data['location_id'] == 90
@@ -372,14 +372,14 @@ def process_raw_serology_data(data: pd.DataFrame, hierarchy: pd.DataFrame) -> pd
     # logger.debug(f'{qat_outlier.sum()} rows from sero data dropped due to implausibility '
     #              '(or at least incompatibility) of Qatar RADDAD(?) survey.')
 
-    # Afghanistan
-    is_afg = data['location_id'] == 160
-    is_afghanistan_sero_survey = data['survey_series'] == 'afghanistan_sero_survey'
+    # # Afghanistan
+    # is_afg = data['location_id'] == 160
+    # is_afghanistan_sero_survey = data['survey_series'] == 'afghanistan_sero_survey'
 
-    afg_outlier = is_afg & is_afghanistan_sero_survey
-    outliers.append(afg_outlier)
-    logger.debug(f'{afg_outlier.sum()} rows from sero data dropped due to implausibility '
-                 '(or at afg_outlier incompatibility) of Afghanistan survey.')
+    # afg_outlier = is_afg & is_afghanistan_sero_survey
+    # outliers.append(afg_outlier)
+    # logger.debug(f'{afg_outlier.sum()} rows from sero data dropped due to implausibility '
+    #              '(or at afg_outlier incompatibility) of Afghanistan survey.')
 
     # Chhattisgarh ICMR round 2
     is_chhatt = data['location_id'] == 4846
@@ -452,7 +452,7 @@ def process_raw_serology_data(data: pd.DataFrame, hierarchy: pd.DataFrame) -> pd
     kerala_outlier = is_kerala & is_icmr_round3
     outliers.append(kerala_outlier)
     logger.debug(f'{kerala_outlier.sum()} rows from sero data dropped due to implausibility '
-                 '(or at least incompatibility) of Kerala survey data (ICMR round 2).')
+                 '(or at least incompatibility) of Kerala survey data (ICMR round 3).')
 
     # Odisha ICMR rounds 2 and 3
     is_odisha = data['location_id'] == 4865

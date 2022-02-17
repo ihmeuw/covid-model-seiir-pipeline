@@ -1,5 +1,5 @@
 data:
-  seir_preprocess_version: '2022_02_16.02'
+  seir_preprocess_version: '2022_02_16.05'
   output_format: 'parquet'
   output_root: ''
   n_draws: 100
@@ -98,23 +98,19 @@ measure_downweights:
       [  151, 0.50],  # Qatar
       [53619, 0.01],  # Khyber Pakhtunkhwa
       # bad fits
-      [   49, 0.01],  # North Macedonia
-      [43860, 0.10],  # Manitoba
+      [   49, 0.00],  # North Macedonia
       [43861, 0.10],  # New Brunswick
       [  121, 0.00],  # Bolivia
       [ 4757, 0.10],  # Espirito Santo
       [  113, 0.10],  # Guyana
       [  160, 0.00],  # Afghanistan
       [ 4843, 0.01],  # Assam
-      [ 4849, 0.01],  # Delhi
       [ 4861, 0.10],  # Manipur
       [53617, 0.10],  # Gilgit-Baltistan
-      [  169, 0.01],  # Central African Republic
-      [  172, 0.01],  # Equatorial Guinea
-      [  173, 0.01],  # Gabon
+      [  173, 0.00],  # Gabon
       [  178, 0.01],  # Eritrea
       [  180, 0.01],  # Kenya
-      [  181, 0.01],  # Madagascar
+      [  181, 0.00],  # Madagascar
       [  187, 0.01],  # Somalia
       [  191, 0.00],  # Zambia
       [  193, 0.01],  # Botswana
@@ -129,22 +125,21 @@ measure_downweights:
     ]
   admission:
     [
-      [43860, 0.10],  # Manitoba
+      [43860, 0.00],  # Manitoba
+      [  566, 0.10],  # Texas -- TEMPORARY
       [60365, 0.01],  # Asturias
       [60360, 0.01],  # Castilla-La Mancha
       [60361, 0.01],  # Community of Madrid
       [  184, 0.00],  # Mozambique
-      # [  191, 0.00],  # Zambia
+      [  191, 0.00],  # Zambia
     ]
   case:
     [
       [   37, 0.00],  # Kyrgyzstan
-      [   38, 0.50],  # Mongolia
+      [   38, 0.10],  # Mongolia
       [   50, 0.00],  # Montenegro
       [   61, 0.50],  # Republic of Moldova
       [   74, 0.10],  # Andorra
-      # [   83, 0.01],  # Iceland
-      # [  396, 0.10],  # San Marino
       [60370, 0.01],  # Navarre
       [60376, 0.01],  # La Rioja
       [ 4751, 0.10],  # Alagoas
@@ -153,10 +148,14 @@ measure_downweights:
       [ 4762, 0.10],  # Mato Grosso
       [ 4761, 0.10],  # Mato Grosso do Sul
       [ 4763, 0.10],  # Pará
-      [ 4850, 0.10],  # Goa
-      [ 4863, 0.10],  # Mizoram
-      [  176, 0.00],  # Comoros
+      [ 4849, 0.00],  # Delhi
+      [ 4850, 0.00],  # Goa
+      [ 4857, 0.00],  # Kerala
+      [ 4863, 0.00],  # Mizoram
       [  186, 0.00],  # Seychelles
+      [  168, 0.00],  # Angola
+      [  169, 0.00],  # Central African Republic
+      [  176, 0.00],  # Comoros
       [  201, 0.50],  # Burkina Faso
       [  203, 0.50],  # Cabo Verde
       [  215, 0.00],  # Sao Tome and Principe

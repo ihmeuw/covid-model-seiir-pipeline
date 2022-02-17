@@ -1,5 +1,5 @@
 data:
-  seir_forecast_version: '2022_02_15.05'
+  seir_forecast_version: '2022_02_16.02'
   scenarios:
    - 'reference'
    # - 'best_masks'

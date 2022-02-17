@@ -1,13 +1,13 @@
 data:
-  seir_fit_version: '2022_02_15.01'
+  seir_fit_version: '2022_02_16.08'
   coefficient_version: ''
   seir_covariate_priors_version: ''
   output_root: ''
   output_format: 'parquet'
-  drop_locations: [24, 25, 27, 29, 50, 349, 351, 215]
+  drop_locations: [24, 25]
 workflow:
   project: 'proj_covid_prod'
-  queue: 'long.q'
+  queue: 'd.q'
 hospital_parameters:
   compute_correction_factors: True
   hospital_stay_death: 13
