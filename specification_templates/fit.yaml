@@ -117,7 +117,6 @@ measure_downweights:
       [  194, 0.01],  # Lesotho
       [  195, 0.01],  # Namibia
       [  197, 0.01],  # Eswatini
-      [  198, 0.00],  # Zimbabwe
       [  206, 0.10],  # Gambia
       [  208, 0.10],  # Guinea
       [  209, 0.10],  # Guinea-Bissau
@@ -147,14 +146,15 @@ measure_downweights:
       [ 4757, 0.00],  # Espirito Santo
       [ 4762, 0.10],  # Mato Grosso
       [ 4761, 0.10],  # Mato Grosso do Sul
-      [ 4763, 0.10],  # Pará
+      [ 4763, 0.10],  # Para
+      [  139, 0.00],  # Algeria
       [ 4849, 0.00],  # Delhi
       [ 4850, 0.00],  # Goa
       [ 4857, 0.00],  # Kerala
       [ 4863, 0.00],  # Mizoram
       [  186, 0.00],  # Seychelles
       [  168, 0.00],  # Angola
-      [  169, 0.00],  # Central African Republic
+      [  175, 0.00],  # Burundi
       [  176, 0.00],  # Comoros
       [  201, 0.50],  # Burkina Faso
       [  203, 0.50],  # Cabo Verde

@@ -38,55 +38,74 @@ def rescale_kappas(sampled_ode_params: Dict,
         (   47,  2.0),  # Czechia
         (   50, 10.0),  # Montenegro
         (   51,  2.0),  # Poland
-        (   53,  2.0),  # Serbia
         (   55,  2.0),  # Slovenia
         (   59,  2.0),  # Latvia
         (   60,  2.0),  # Lithuania
         (   62,  3.0),  # Russian Federation
-        (   63,  2.0),  # Ukraine
         (43860,  3.0),  # Manitoba
         (  349,  5.0),  # Greenland
         (  531,  2.0),  # District of Columbia
         (   74,  2.0),  # Andorra
-        (   90,  5.0),  # Norway
+        (   90,  4.0),  # Norway
         (   91,  2.0),  # Portugal
         (  396,  3.0),  # San Marino
         ( 4636,  2.0),  # Wales
-        (  121,  3.0),  # Bolivia
+        (  121,  2.0),  # Bolivia
         (  118,  3.0),  # Suriname
-        ( 4648,  2.0),  # Colima
-        ( 4655,  2.0),  # Hidalgo
-        ( 4660,  2.0),  # Nayarit
+        ( 4654,  0.5),  # Guerrero
+        ( 4658,  0.5),  # Michoacan de Ocampo
+        ( 4659,  0.5),  # Morelos
+        ( 4664,  0.5),  # Queretaro
         ( 4665,  2.0),  # Quintana Roo
         ( 4673,  2.0),  # Yucatan
-        ( 4757,  2.0),  # Espirito Santo
-        ( 4759,  2.0),  # Maranhao
-        ( 4762,  2.0),  # Mato Grosso
-        ( 4761,  2.0),  # Mato Grosso do Sul
-        (  140,  3.0),  # Bahrain
+        ( 4750,  0.5),  # Acre
+        ( 4752,  0.5),  # Amazonas
+        ( 4754,  0.5),  # Bahia
+        ( 4755,  0.2),  # Ceara
+        ( 4757,  3.0),  # Espirito Santo
+        ( 4758,  0.5),  # Goias
+        ( 4763,  0.5),  # Para
+        ( 4764,  0.5),  # Paraiba
+        ( 4766,  0.5),  # Pernambuco
+        ( 4767,  0.5),  # Piaui
+        ( 4769,  0.5),  # Rio Grande do Norte
+        ( 4770,  0.5),  # Rondonia
+        ( 4773,  0.5),  # Santa Catarina
+        ( 4774,  0.5),  # Sergipe
+        ( 4776,  0.5),  # Tocantins
+        (  160,  0.5),  # Afghanistan
+        (  139,  0.5),  # Algeria
+        (  140,  2.0),  # Bahrain
+        (  142,  0.5),  # Iran
+        (  143,  0.5),  # Iraq
         (  144,  2.0),  # Jordan
-        (  147,  2.0),  # Libya
-        (  151,  3.0),  # Qatar
+        (  151,  2.0),  # Qatar
         (  155,  2.0),  # Turkey
+        ( 4849, 10.0),  # Delhi
         ( 4851,  2.0),  # Gujarat
         ( 4852,  2.0),  # Haryana
-        ( 4863,  3.0),  # Mizoram
+        ( 4863, 10.0),  # Mizoram
         ( 4865,  2.0),  # Odisha
         ( 4869,  2.0),  # Sikkim
         ( 4874,  2.0),  # Uttarakhand
         ( 4875,  2.0),  # West Bengal
+        (53616,  0.2),  # Balochistan
+        (53619,  0.5),  # Khyber Pakhtunkhwa
+        (53620,  0.5),  # Punjab
         (  351,  5.0),  # Guam
         (   23, 10.0),  # Kiribati
         (  376,  3.0),  # Northern Mariana Islands
         (   28,  5.0),  # Solomon Islands
-        (   14,  2.0),  # Maldives
         (  186,  5.0),  # Seychelles
+        (  168,  5.0),  # Angola
         (  171,  2.0),  # Democratic Republic of the Congo
+        (  173,  0.5),  # Gabon
+        (  175,  0.2),  # Burundi
         (  182,  3.0),  # Malawi
-        (  198,  3.0),  # Zimbabwe
         (  211,  3.0),  # Mali
         (  212,  2.0),  # Mauritania
         (  216,  2.0),  # Senegal
+        (  217,  0.5),  # Sierra Leone
     ]
     idr_scaling_factors += [(loc_id, 3.0) for loc_id in ita_locations]  # Italy
     # IDR = p_s * IDR_s + p_a * IDR_a
@@ -109,17 +128,30 @@ def rescale_kappas(sampled_ode_params: Dict,
         (  567,  2.0),  # Utah
         ( 4644,  2.0),  # Baja California
         ( 4645,  2.0),  # Baja California Sur
+        ( 4649,  0.5),  # Chiapas
         ( 4647,  5.0),  # Coahuila
         ( 4652,  5.0),  # Durango
         ( 4653,  5.0),  # Guanajuato
         ( 4655,  2.0),  # Hidalgo
         ( 4660,  2.0),  # Nayarit
+        ( 4662,  0.5),  # Oaxaca
         ( 4661,  2.0),  # Nuevo Leon
         ( 4665,  2.0),  # Quintana Roo
         ( 4669,  5.0),  # Tabasco
         ( 4673,  2.0),  # Yucatan
-        ( 4759,  2.0),  # Maranhao
-        (  151,  3.0),  # Qatar
+        ( 4751,  0.5),  # Alagoas
+        ( 4753,  0.5),  # Amapa
+        ( 4758,  0.5),  # Goias
+        ( 4763,  0.5),  # Para
+        ( 4764,  0.5),  # Paraiba
+        ( 4766,  0.5),  # Pernambuco
+        ( 4767,  0.5),  # Piaui
+        ( 4769,  0.5),  # Rio Grande do Norte
+        ( 4770,  0.5),  # Rondonia
+        ( 4773,  0.5),  # Santa Catarina
+        ( 4774,  0.5),  # Sergipe
+        ( 4776,  0.5),  # Tocantins
+        (  151,  2.0),  # Qatar
     ]
     kappa_omicron_admission = pd.Series(
         sampled_ode_params['kappa_omicron_admission'],
@@ -131,10 +163,10 @@ def rescale_kappas(sampled_ode_params: Dict,
     sampled_ode_params['kappa_omicron_admission'] = kappa_omicron_admission
 
     ifr_scaling_factors = [
-        (   33,  3.0),  # Armenia
+        (   33,  2.0),  # Armenia
         (   34,  5.0),  # Azerbaijan
         (   37,  2.0),  # Kyrgyzstan
-        (   41,  3.0),  # Uzbekistan
+        (   41,  2.0),  # Uzbekistan
         (   43,  3.0),  # Albania
         (   44,  3.0),  # Bosnia and Herzegovina
         (   45,  3.0),  # Bulgaria
@@ -142,9 +174,9 @@ def rescale_kappas(sampled_ode_params: Dict,
         (   47,  2.0),  # Czechia
         (   50,  5.0),  # Montenegro
         (   49,  3.0),  # North Macedonia
-        (   51,  5.0),  # Poland
+        (   51,  4.0),  # Poland
         (   53,  2.0),  # Serbia
-        (   57,  5.0),  # Belarus
+        (   57,  3.0),  # Belarus
         (   59,  2.0),  # Latvia
         (   60,  2.0),  # Lithuania
         (   62,  3.0),  # Russian Federation
@@ -152,14 +184,15 @@ def rescale_kappas(sampled_ode_params: Dict,
         (  535,  2.0),  # Idaho
         (  573,  2.0),  # Wyoming
         (35498,  2.0),  # Provincia autonoma di Bolzano
-        (   90,  3.0),  # Norway
+        (   90,  2.0),  # Norway
         (  122,  2.0),  # Ecuador
         (  113,  3.0),  # Guyana
         (  118,  3.0),  # Suriname
         (  129,  3.0),  # Honduras
         ( 4644,  2.0),  # Baja California
         ( 4645,  2.0),  # Baja California Sur
-        ( 4650,  3.0),  # Chihuahua
+        ( 4649,  0.5),  # Chiapas
+        ( 4650,  2.0),  # Chihuahua
         ( 4647,  3.0),  # Coahuila
         ( 4652,  3.0),  # Durango
         ( 4653,  3.0),  # Guanajuato
@@ -170,13 +203,24 @@ def rescale_kappas(sampled_ode_params: Dict,
         ( 4665,  2.0),  # Quintana Roo
         ( 4666,  2.0),  # San Luis Potosi
         ( 4670,  2.0),  # Tamaulipas
+        ( 4672,  0.5),  # Veracruz de Ignacio de la Llave
         ( 4673,  2.0),  # Yucatan
         ( 4674,  2.0),  # Zacatecas
-        ( 4757,  2.0),  # Espirito Santo
-        ( 4759,  2.0),  # Maranhao
-        ( 4762,  2.0),  # Mato Grosso
-        ( 4761,  2.0),  # Mato Grosso do Sul
-        ( 4775,  3.0),  # Sao Paulo
+        (  133,  0.2),  # Venezuela
+        ( 4751,  0.5),  # Alagoas
+        ( 4756,  0.5),  # Distrito Federal
+        ( 4758,  0.5),  # Goias
+        ( 4763,  0.5),  # Para
+        ( 4764,  0.5),  # Paraiba
+        ( 4766,  0.5),  # Pernambuco
+        ( 4767,  0.5),  # Piaui
+        ( 4769,  0.5),  # Rio Grande do Norte
+        ( 4768,  0.5),  # Rio de Janeiro
+        ( 4770,  0.5),  # Rondonia
+        ( 4773,  0.5),  # Santa Catarina
+        ( 4775,  2.0),  # Sao Paulo
+        ( 4774,  0.5),  # Sergipe
+        ( 4776,  0.5),  # Tocantins
         (  136,  3.0),  # Paraguay
         (  143,  3.0),  # Iraq
         (  144,  2.0),  # Jordan
@@ -186,36 +230,39 @@ def rescale_kappas(sampled_ode_params: Dict,
         (  522,  3.0),  # Sudan
         (  154,  3.0),  # Tunisia
         (  155,  2.0),  # Turkey
+        ( 4849, 10.0),  # Delhi
         ( 4852,  2.0),  # Haryana
         ( 4861,  5.0),  # Manipur
         ( 4862,  3.0),  # Meghalaya
-        ( 4863,  3.0),  # Mizoram
+        ( 4863, 10.0),  # Mizoram
         ( 4865,  2.0),  # Odisha
         ( 4869,  2.0),  # Sikkim
         ( 4872,  3.0),  # Tripura
         ( 4874,  2.0),  # Uttarakhand
         ( 4875,  2.0),  # West Bengal
         (53621,  2.0),  # Sindh
-        (  168,  3.0),  # Angola
+        (  168,  5.0),  # Angola
         (  170,  2.0),  # Congo
         (  171,  2.0),  # Democratic Republic of the Congo
         (  172,  3.0),  # Equatorial Guinea
+        (  176,  0.5),  # Comoros
         (  179,  3.0),  # Ethiopia
         (  180,  3.0),  # Kenya
         (  181,  3.0),  # Madagascar
         (  182,  5.0),  # Malawi
         (  184,  3.0),  # Mozambique
-        (  190,  3.0),  # Uganda
-        (  193,  3.0),  # Botswana
-        (  197,  3.0),  # Eswatini
+        (  187,  0.5),  # Somalia
+        (  190,  2.0),  # Uganda
+        (  193,  2.0),  # Botswana
+        (  197,  2.0),  # Eswatini
         (  194,  3.0),  # Lesotho
         (  195,  3.0),  # Namibia
         (  201,  3.0),  # Burkina Faso
-        (  202,  3.0),  # Cameroon
+        (  202,  2.0),  # Cameroon
         (  205,  3.0),  # Cote d'Ivoire
         (  206,  3.0),  # Gambia
         (  208,  3.0),  # Guinea
-        (  209,  3.0),  # Guinea-Bissau
+        (  209,  2.0),  # Guinea-Bissau
         (  211,  3.0),  # Mali
         (  212,  2.0),  # Mauritania
         (  215,  5.0),  # Sao Tome and Principe

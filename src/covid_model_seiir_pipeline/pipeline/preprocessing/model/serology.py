@@ -139,7 +139,12 @@ def process_raw_serology_data(data: pd.DataFrame, hierarchy: pd.DataFrame) -> pd
              (data['survey_series'] == 'Sebastiao_Sep2020'),
              'manual_outlier'] = 1
 
-    ## outlier Madagascar blood donor IgG after they started pan-Ig
+    ## Central African Republic
+    data.loc[(data['location_id'] == 169) &
+             (data['survey_series'] == 'Alexandre_Aug2021'),
+             'manual_outlier'] = 1
+
+    ## Madagascar blood donor IgG duplicate after they started pan-Ig
     data.loc[(data['location_id'] == 181) &
              (data['survey_series'] == 'madagascar_blood') & 
              (data['test_name'] == 'ID Vet ELISA IgG') & 
@@ -168,6 +173,12 @@ def process_raw_serology_data(data: pd.DataFrame, hierarchy: pd.DataFrame) -> pd
              (data['source_population'] == 'Angincourt, Mpumalanga province')
              # & (data['date'] <= pd.Timestamp('2020-10-10'))
              ,
+             'manual_outlier'] = 1
+
+    ## Zimbabwe first point from household survey
+    data.loc[(data['location_id'] == 198) &
+             (data['survey_series'] == 'Fryatt_Harare_2021') & 
+             (data['date'] < pd.Timestamp('2021-01-01')),
              'manual_outlier'] = 1
 
     ## Cote d'Ivoire mining camp not rep
