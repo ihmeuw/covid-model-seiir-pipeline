@@ -11,16 +11,20 @@ grid_plots:
     - version: '2022_02_04.06'
       scenarios:
         reference*: 'public reference'
-    - version: '2022_02_15.03'
+    - version: '2022_02_16.01'
       scenarios:
-        reference*: 'updated data'
-    - version: '2022_02_15.01'
-      scenarios:
-        reference*: 'updated data + new phis'
-    - version: '2022_02_15.02'
-      scenarios:
-        reference*: 'updated data + new phis + higher kappas'
+        reference*: 'reference'
   - name: 'compare_shortrange'
+    date_start: '2021-01-01'
+    date_end: '2022-06-01'
+    comparators:
+    - version: '2022_02_04.06'
+      scenarios:
+        reference*: 'public reference'
+    - version: '2022_02_16.01'
+      scenarios:
+        reference*: 'reference'
+  - name: 'compare_shortrange_w_intermediate'
     date_start: '2021-01-01'
     date_end: '2022-06-01'
     comparators:
@@ -30,9 +34,6 @@ grid_plots:
     - version: '2022_02_15.03'
       scenarios:
         reference*: 'updated data'
-    - version: '2022_02_15.01'
+    - version: '2022_02_16.01'
       scenarios:
-        reference*: 'updated data + new phis'
-    - version: '2022_02_15.02'
-      scenarios:
-        reference*: 'updated data + new phis + higher kappas'
+        reference*: 'updated data + new specifications'
