@@ -1,9 +1,9 @@
 data:
-  seir_preprocess_version: '2022_02_16.05'
+  seir_preprocess_version: '2022_02_17.03'
   output_format: 'parquet'
   output_root: ''
   n_draws: 100
-  compare_version: '2022_01_20.13'
+  compare_version: '2022_02_04.02'
 workflow:
   project: 'proj_covid_prod'
   queue: 'd.q'
@@ -107,7 +107,9 @@ measure_downweights:
       [ 4843, 0.01],  # Assam
       [ 4861, 0.10],  # Manipur
       [53617, 0.10],  # Gilgit-Baltistan
+      [  169, 0.00],  # Central African Republic
       [  173, 0.00],  # Gabon
+      [  175, 0.00],  # Burundi
       [  178, 0.01],  # Eritrea
       [  180, 0.01],  # Kenya
       [  181, 0.00],  # Madagascar
@@ -117,6 +119,7 @@ measure_downweights:
       [  194, 0.01],  # Lesotho
       [  195, 0.01],  # Namibia
       [  197, 0.01],  # Eswatini
+      [  198, 0.10],  # Zimbabwe
       [  206, 0.10],  # Gambia
       [  208, 0.10],  # Guinea
       [  209, 0.10],  # Guinea-Bissau
@@ -154,7 +157,6 @@ measure_downweights:
       [ 4863, 0.00],  # Mizoram
       [  186, 0.00],  # Seychelles
       [  168, 0.00],  # Angola
-      [  175, 0.00],  # Burundi
       [  176, 0.00],  # Comoros
       [  201, 0.50],  # Burkina Faso
       [  203, 0.50],  # Cabo Verde
