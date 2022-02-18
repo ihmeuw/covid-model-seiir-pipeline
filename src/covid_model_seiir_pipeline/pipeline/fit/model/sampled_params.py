@@ -51,6 +51,7 @@ def _to_range(val: DiscreteUniformSampleable):
     else:
         return list(range(val[0], val[1] + 1))
 
+
 class VariantRR(NamedTuple):
     ifr: float
     ihr: float
@@ -118,13 +119,8 @@ def sample_ode_params(variant_rr: VariantRR,
                 b = y1 - m * x1
                 phis[variant] = m * value + b
 
-        key = parameter if any([p in parameter for p in ['sigma', 'gamma', 'kappa']]) else f'{parameter}_all_infection'
+        key = f'{parameter}_infection'
         sampled_params[key] = value
-
-    for measure in ['death', 'admission', 'case']:
-        for variant in VARIANT_NAMES:
-            sampled_params[f'sigma_{variant}_{measure}'] = np.nan
-            sampled_params[f'gamma_{variant}_{measure}'] = np.nan
 
     s = -12345.0
     phi_matrix = pd.DataFrame(
@@ -157,6 +153,26 @@ def sample_ode_params(variant_rr: VariantRR,
             else:
                 sampled_params[f'kappa_{variant}_{measure}'] = variant_rr[rate]
     return sampled_params, phi_matrix
+
+
+def sample_idr_parameters(rates_parameters: RatesParameters, draw_id: int) -> Dict[str, float]:
+    rates_parameters = rates_parameters.to_dict()
+    params = {}
+    param_names = [
+        'p_asymptomatic_pre_omicron',
+        'p_asymptomatic_post_omicron',
+        'minimum_asymptomatic_idr_fraction',
+        'maximum_asymptomatic_idr',
+    ]
+    for parameter in param_names:
+        param_spec = rates_parameters[parameter]
+        if isinstance(param_spec, (int, float)):
+            value = param_spec
+        else:
+            value = sample_parameter(parameter, draw_id, *param_spec)
+        params[parameter] = value
+
+    return params
 
 
 def sample_parameter(parameter: str, draw_id: int, lower: float, upper: float) -> float:

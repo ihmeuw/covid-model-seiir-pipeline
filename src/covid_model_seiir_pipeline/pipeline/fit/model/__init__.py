@@ -32,3 +32,6 @@ from covid_model_seiir_pipeline.pipeline.fit.model.ode_fit import (
 from covid_model_seiir_pipeline.pipeline.fit.model.epi_measures import (
     format_epi_measures,
 )
+from covid_model_seiir_pipeline.pipeline.fit.model.the_heavy_hand import (
+    rescale_kappas,
+)

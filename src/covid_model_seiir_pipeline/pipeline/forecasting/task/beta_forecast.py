@@ -121,6 +121,7 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
     # Pull in compartments from the fit and subset out the initial condition.
     logger.info('Loading past compartment data.', context='read')
     initial_condition = past_compartments.loc[indices.past].reindex(indices.full, fill_value=0.)
+    initial_condition[initial_condition < 0.] = 0.
 
     logger.info('Running ODE forecast.', context='compute_ode')
     compartments, chis = model.run_ode_forecast(

@@ -1,5 +1,5 @@
 data:
-  seir_regression_version: '2022_01_20.05'
+  seir_regression_version: '2022_02_17.03'
   output_root: ''
   output_format: 'parquet'
 workflow:
@@ -15,8 +15,10 @@ scenarios:
       minimum_delay: 14
     beta_scaling:
       window_size: 42
-      average_over_min: 7
-      average_over_max: 42
+      min_avg_window: 21
+      average_over_min: 2
+      average_over_max: 28
+      residual_rescale_lower: 1
     vaccine_version: 'reference'
     variant_version: 'reference'
     log_beta_shift: 0.0
@@ -42,8 +44,10 @@ scenarios:
       minimum_delay: 14
     beta_scaling:
       window_size: 42
-      average_over_min: 7
-      average_over_max: 42
+      min_avg_window: 21
+      average_over_min: 2
+      average_over_max: 28
+      residual_rescale_lower: 1
     vaccine_version: 'reference'
     variant_version: 'reference'
     log_beta_shift: 0.0
@@ -69,8 +73,10 @@ scenarios:
       minimum_delay: 14
     beta_scaling:
       window_size: 42
-      average_over_min: 7
-      average_over_max: 42
+      min_avg_window: 21
+      average_over_min: 2
+      average_over_max: 28
+      residual_rescale_lower: 1
     vaccine_version: 'booster'
     variant_version: 'reference'
     log_beta_shift: 0.0
@@ -96,8 +102,10 @@ scenarios:
   #     minimum_delay: 14
   #   beta_scaling:
   #     window_size: 42
-  #     average_over_min: 7
-  #     average_over_max: 42
+  #     min_avg_window: 21
+  #     average_over_min: 2
+  #     average_over_max: 28
+  #     residual_rescale_lower: 1
   #   vaccine_version: 'probably_no'
   #   variant_version: 'reference'
   #   log_beta_shift: 0.0

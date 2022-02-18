@@ -93,12 +93,15 @@ def model_fit_plot(data: Tuple[Location, DataDict],
             color=MEASURE_COLORS[measure]['dark'],
             label=label
         )
-        plotter.make_time_plot(
-            ax=ax_measure,
-            measure=f'posterior_daily_{measure}',
-            color=MEASURE_COLORS[measure]['light'],
-            linestyle='--',
-        )
+        ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
+        ## need naive (not naive-unvaccinated)
+        # plotter.make_time_plot(
+        #     ax=ax_measure,
+        #     measure=f'posterior_daily_{measure}',
+        #     color=MEASURE_COLORS[measure]['light'],
+        #     linestyle=':',
+        # )
+        ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
         plotter.make_observed_time_plot(
             ax=ax_measure,
             version=version,
@@ -127,12 +130,15 @@ def model_fit_plot(data: Tuple[Location, DataDict],
             color=MEASURE_COLORS[measure]['dark'],
             label=label,
         )
-        plotter.make_time_plot(
-            ax=ax_measure,
-            measure=f'posterior_cumulative_{measure}',
-            color=MEASURE_COLORS[measure]['light'],
-            linestyle='--',
-        )
+        ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
+        ## need naive (not naive-unvaccinated)
+        # plotter.make_time_plot(
+        #     ax=ax_measure,
+        #     measure=f'posterior_cumulative_{measure}',
+        #     color=MEASURE_COLORS[measure]['light'],
+        #     linestyle='--',
+        # )
+        ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
 
         plotter.make_observed_time_plot(
             ax=ax_measure,
@@ -206,31 +212,40 @@ def model_fit_plot(data: Tuple[Location, DataDict],
     ax_cumul = fig.add_subplot(gs_infecs[1])
 
     for metric, ax, transform in [('daily', ax_daily, identity), ('cumulative', ax_cumul, pop_scale(pop))]:
+        measure_type = 'naive' if metric == 'cumulative' else 'total'
         for measure in ['cases', 'deaths', 'hospitalizations']:
             plotter.make_time_plot(
                 ax=ax,
-                measure=f'posterior_{measure}_based_{metric}_naive_unvaccinated_infections',
+                measure=f'posterior_{measure}_based_{metric}_{measure_type}_infections',
                 color=MEASURE_COLORS[measure]['light'],
                 linestyle='--',
                 transform=transform,
             )
 
-        suffix = ' (%)' if metric == 'cumulative' else ''
-        plotter.make_time_plot(
-            ax=ax,
-            measure=f'posterior_{metric}_naive_unvaccinated_infections',
-            color='black',
-            label=f'{metric.capitalize()} Infected{suffix}',
-            uncertainty=True,
-            transform=transform,
-        )
         if metric == 'daily':
             plotter.make_time_plot(
                 ax=ax,
                 measure=f'posterior_{metric}_total_infections',
                 color='black',
+                label=f'{metric.capitalize()} Infections',
+                uncertainty=True,
+                transform=transform,
+            )
+            plotter.make_time_plot(
+                ax=ax,
+                measure=f'posterior_{metric}_naive_infections',
+                color='black',
                 transform=transform,
                 linestyle=':',
+            )
+        elif metric == 'cumulative':
+            plotter.make_time_plot(
+                ax=ax,
+                measure=f'posterior_{metric}_naive_infections',
+                color='black',
+                label=f'{metric.capitalize()} Infected (%)',
+                uncertainty=True,
+                transform=transform,
             )
 
     sero_data = data_dictionary[version]['seroprevalence']
@@ -378,7 +393,7 @@ def model_compare_plot(data: Tuple[Location, DataDict],
 
     group_axes = []
 
-    for i, group in enumerate(['naive_unvaccinated', 'total']):
+    for i, group in enumerate(['naive', 'total']):
         ax = fig.add_subplot(gs_infecs[i])
         plotter.make_time_plot(
             ax=ax,

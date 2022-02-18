@@ -9,7 +9,7 @@ from covid_model_seiir_pipeline.lib import math, utilities
 from covid_model_seiir_pipeline.pipeline.preprocessing.model import helpers
 
 
-def process_raw_serology_data(data: pd.DataFrame) -> pd.DataFrame:
+def process_raw_serology_data(data: pd.DataFrame, hierarchy: pd.DataFrame) -> pd.DataFrame:
     logger.debug(f'Initial observation count: {len(data)}')
 
     # date formatting
@@ -49,6 +49,7 @@ def process_raw_serology_data(data: pd.DataFrame) -> pd.DataFrame:
     data['seroprevalence_lower'] = data['lower'] / 100
     data['seroprevalence_upper'] = data['upper'] / 100
     data['sample_size'] = (helpers.str_fmt(data['sample_size'])
+                           .str.replace(',', '')
                            .replace(('unchecked', 'not specified'), np.nan).astype(float))
 
     data['bias'] = (helpers.str_fmt(data['bias'])
@@ -75,28 +76,29 @@ def process_raw_serology_data(data: pd.DataFrame) -> pd.DataFrame:
     is_mixed = data['test_target'] == 'mixed'
     data.loc[is_oxford & is_mixed, 'test_target'] = 'spike'
 
+    # code India 2020 nat'l point as mixed
+    is_ind = data['location_id'] == 163
+    is_icmr_serosurvey = data['survey_series'] == 'icmr_serosurvey'
+    data.loc[is_ind & is_icmr_serosurvey, 'test_target'] = 'mixed'
+
+    # code all ICMR round 4 data as spike
+    is_icmr_round4 = data['survey_series'] == 'icmr_round4'
+    data.loc[is_icmr_round4, 'test_target'] = 'spike'
+    data.loc[is_icmr_round4, 'isotype'] = 'IgG'
+
     # Peru N-Roche has the wrong isotype
     is_peru = data['location_id'] == 123
     is_roche = data['test_name'] == 'Roche Elecsys N pan-Ig'
     data.loc[is_peru & is_roche, 'isotype'] = 'pan-Ig'
 
-    # New York (after Nov 2020 onwards, nucleocapsid test is Abbott, not Roche)
-    # ADDENDUM (2021-08-31): mixed portion looks the same as the Abbott; recode that as well
+    # New York (from Nov 2020 to Aug 2021, test is Abbott)
     is_ny = data['location_id'] == 555
     is_cdc = data['survey_series'] == 'cdc_series'
-    # is_N = data['test_target'] == 'nucleocapsid'
-    is_nov_or_later = data['date'] >= pd.Timestamp('2020-11-01')
-    data.loc[is_ny & is_cdc & is_nov_or_later, 'isotype'] = 'pan-Ig'
-    data.loc[is_ny & is_cdc & is_nov_or_later, 'test_target'] = 'nucleocapsid'  # & is_N
-    data.loc[is_ny & is_cdc & is_nov_or_later, 'test_name'] = 'Abbott Architect IgG; Roche Elecsys N pan-Ig'  # & is_N
-
-    # Louisiana mixed portion looks the same as the nucleocapsid; recode (will actually use average)
-    is_la = data['location_id'] == 541
-    is_cdc = data['survey_series'] == 'cdc_series'
-    is_nov_or_later = data['date'] >= pd.Timestamp('2020-11-01')
-    data.loc[is_la & is_cdc & is_nov_or_later, 'isotype'] = 'pan-Ig'
-    data.loc[is_la & is_cdc & is_nov_or_later, 'test_target'] = 'nucleocapsid'
-    data.loc[is_la & is_cdc & is_nov_or_later, 'test_name'] = 'Abbott Architect IgG; Roche Elecsys N pan-Ig'
+    is_post_oct_2020 = pd.Timestamp('2020-10-31') < data['date']
+    is_pre_sept_2021 = data['date'] < pd.Timestamp('2021-09-01')
+    data.loc[is_ny & is_cdc & is_post_oct_2020 & is_pre_sept_2021, 'isotype'] = 'IgG'
+    data.loc[is_ny & is_cdc & is_post_oct_2020 & is_pre_sept_2021, 'test_target'] = 'nucleocapsid'
+    data.loc[is_ny & is_cdc & is_post_oct_2020 & is_pre_sept_2021, 'test_name'] = 'Abbott ARCHITECT SARS-CoV-2 IgG immunoassay'
 
     # BIG CDC CHANGE
     # many states are coded as Abbott, seem be Roche after the changes in Nov; recode
@@ -130,14 +132,64 @@ def process_raw_serology_data(data: pd.DataFrame) -> pd.DataFrame:
         data.loc[is_state & is_cdc & is_nov_or_later & is_N, 'isotype'] = 'pan-Ig'
         data.loc[is_state & is_cdc & is_nov_or_later & is_N, 'test_target'] = 'nucleocapsid'
         data.loc[
-            is_state & is_cdc & is_nov_or_later & is_N, 'test_name'] = 'Roche Elecsys N pan-Ig'  # 'Abbott Architect IgG; Roche Elecsys N pan-Ig'
+            is_state & is_cdc & is_nov_or_later & is_N, 'test_name'] = 'Roche Elecsys N pan-Ig'
     ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
+    ## Angola odd point
+    data.loc[(data['location_id'] == 168) &
+             (data['survey_series'] == 'Sebastiao_Sep2020'),
+             'manual_outlier'] = 1
 
-    ## un-outlier Nigeria point before looking at that variable
-    data.loc[(data['location_id'] == 214) &
-             (data['manual_outlier'] == 1) &
-             (data['notes'].str.startswith('Average of ncdc_nimr study')),
-             'manual_outlier'] = 0
+    ## Central African Republic
+    data.loc[(data['location_id'] == 169) &
+             (data['survey_series'] == 'Alexandre_Aug2021'),
+             'manual_outlier'] = 1
+
+    ## Madagascar blood donor IgG duplicate after they started pan-Ig
+    data.loc[(data['location_id'] == 181) &
+             (data['survey_series'] == 'madagascar_blood') & 
+             (data['test_name'] == 'ID Vet ELISA IgG') & 
+             (data['date'] >= pd.Timestamp('2021-01-01')),
+             'manual_outlier'] = 1
+
+    ## Zambia same study reports 7.6% PCR prev, 2.1% antibody
+    data.loc[(data['location_id'] == 191) &
+             (data['survey_series'] == 'Hines_July2020'),
+             'manual_outlier'] = 1
+
+    ## Zambia study is young children and healthcare workers
+    data.loc[(data['location_id'] == 191) &
+             (data['survey_series'] == 'Laban_Dec2020'),
+             'manual_outlier'] = 1
+
+    ## South Africa use most-detailed locs
+    data.loc[(data['location_id'] == 196) &
+             (data['survey_series'] == 'sanbs_southafrica') & 
+             (data['source_population'] == 'South Africa'),
+             'manual_outlier'] = 1
+
+    ## South Africa Angincourt must have missed first wave
+    data.loc[(data['location_id'] == 196) &
+             (data['survey_series'] == 'PHIRST_C2021') & 
+             (data['source_population'] == 'Angincourt, Mpumalanga province')
+             # & (data['date'] <= pd.Timestamp('2020-10-10'))
+             ,
+             'manual_outlier'] = 1
+
+    ## Zimbabwe first point from household survey
+    data.loc[(data['location_id'] == 198) &
+             (data['survey_series'] == 'Fryatt_Harare_2021') & 
+             (data['date'] < pd.Timestamp('2021-01-01')),
+             'manual_outlier'] = 1
+
+    ## Cote d'Ivoire mining camp not rep
+    data.loc[(data['location_id'] == 205) &
+             (data['survey_series'] == 'Milleliri_Oct2020'),
+             'manual_outlier'] = 1
+
+    ## Sierra Leone - must be using awful test
+    data.loc[(data['location_id'] == 217) &
+             (data['survey_series'] == 'sierra_leone_household'),
+             'manual_outlier'] = 1
 
     outliers = []
     data['manual_outlier'] = data['manual_outlier'].astype(float)
@@ -169,6 +221,8 @@ def process_raw_serology_data(data: pd.DataFrame) -> pd.DataFrame:
     #    Current approach: Drop non-represeentative (geo_accordance == 0).
     #    Final solution: ...
     data['geo_accordance'] = helpers.str_fmt(data['geo_accordance']).replace(('unchecked', np.nan), '0').astype(int)
+    ssa_location_ids = hierarchy.loc[hierarchy['path_to_top_parent'].apply(lambda x: '166' in x.split(',')), 'location_id'].to_list()
+    data.loc[data['location_id'].isin(ssa_location_ids), 'geo_accordance'] = 1
     geo_outlier = data['geo_accordance'] == 0
     outliers.append(geo_outlier)
     logger.debug(f'{geo_outlier.sum()} rows from sero data do not have `geo_accordance`.')
@@ -194,6 +248,15 @@ def process_raw_serology_data(data: pd.DataFrame) -> pd.DataFrame:
     outliers.append(den_vax_outlier)
     logger.debug(f'{den_vax_outlier.sum()} rows from sero data dropped due to Denmark vax issues.')
 
+    # vaccine debacle, lose all the Belgian data from Jan 2021 onward
+    is_bel = data['location_id'].isin([76])
+    is_spike = data['test_target'] == 'spike'
+    is_post_april_2021 = data['date'] >= pd.Timestamp('2021-04-01')
+
+    bel_vax_outlier = is_bel & is_spike & is_post_april_2021
+    outliers.append(bel_vax_outlier)
+    logger.debug(f'{bel_vax_outlier.sum()} rows from sero data dropped due to Belgium vax issues.')
+
     # vaccine debacle, lose all the Estonia and Netherlands data from June 2021 onward
     is_est_ndl = data['location_id'].isin([58, 89])
     is_spike = data['test_target'] == 'spike'
@@ -203,48 +266,14 @@ def process_raw_serology_data(data: pd.DataFrame) -> pd.DataFrame:
     outliers.append(est_ndl_vax_outlier)
     logger.debug(f'{est_ndl_vax_outlier.sum()} rows from sero data dropped due to Netherlands and Estonia vax issues.')
 
-    # vaccine debacle, lose all the Puerto Rico data from April 2021 onward
+    # vaccine debacle, lose all the Puerto Rico data from Feb 2021 onward
     is_pr = data['location_id'].isin([385])
     is_spike = data['test_target'] == 'spike'
-    is_2021 = data['date'] >= pd.Timestamp('2021-04-01')
+    is_2021 = data['date'] >= pd.Timestamp('2021-02-01')
 
     pr_vax_outlier = is_pr & is_spike & is_2021
     outliers.append(pr_vax_outlier)
     logger.debug(f'{pr_vax_outlier.sum()} rows from sero data dropped due to Puerto Rico vax issues.')
-
-    # King/Snohomish data is too early
-    is_k_s = data['location_id'] == 60886
-    is_pre_may_2020 = data['date'] < pd.Timestamp('2020-05-01')
-
-    k_s_outlier = is_k_s & is_pre_may_2020
-    outliers.append(k_s_outlier)
-    logger.debug(f'{k_s_outlier.sum()} rows from sero data dropped due to noisy (early) King/Snohomish data.')
-
-    # New York dialysis
-    is_ny = data['location_id'] == 555
-    is_usa_dialysis = data['survey_series'] == 'usa_dialysis'
-
-    ny_outlier = is_ny & is_usa_dialysis
-    outliers.append(ny_outlier)
-    logger.debug(f'{ny_outlier.sum()} rows from sero data dropped due to bogus dialysis data in New York.')
-
-    # Saskatchewan
-    is_sas = data['location_id'] == 43869
-    is_canadian_blood_services = data['survey_series'] == 'canadian_blood_services'
-
-    sas_outlier = is_sas & is_canadian_blood_services
-    outliers.append(sas_outlier)
-    logger.debug(f'{sas_outlier.sum()} rows from sero data dropped from Saskatchewan.')
-
-    # Ceuta first round
-    is_ceu = data['location_id'] == 60369
-    is_ene_covid = data['survey_series'] == 'ene_covid'
-    is_pre_june_2020 = data['date'] < pd.Timestamp('2020-06-01')
-
-    ceu_outlier = is_ceu & is_ene_covid & is_pre_june_2020
-    outliers.append(ceu_outlier)
-    logger.debug(f'{ceu_outlier.sum()} rows from sero data dropped due to implausibility '
-                 '(or at least incompatibility) of first survey round in Ceuta.')
 
     # Kazakhstan collab data
     is_kaz = data['location_id'] == 36
@@ -254,6 +283,77 @@ def process_raw_serology_data(data: pd.DataFrame) -> pd.DataFrame:
     outliers.append(kaz_outlier)
     logger.debug(f'{kaz_outlier.sum()} rows from sero data dropped due to implausibility '
                  '(or at least incompatibility) of Kazakhstan colloborator data.')
+
+    # Saskatchewan
+    is_sas = data['location_id'] == 43869
+    is_canadian_blood_services = data['survey_series'] == 'canadian_blood_services'
+
+    sas_outlier = is_sas & is_canadian_blood_services
+    outliers.append(sas_outlier)
+    logger.debug(f'{sas_outlier.sum()} rows from sero data dropped from Saskatchewan.')
+
+    # King/Snohomish data is too early
+    is_k_s = data['location_id'] == 60886
+    is_pre_may_2020 = data['date'] < pd.Timestamp('2020-05-01')
+
+    k_s_outlier = is_k_s & is_pre_may_2020
+    outliers.append(k_s_outlier)
+    logger.debug(f'{k_s_outlier.sum()} rows from sero data dropped due to noisy (early) King/Snohomish data.')
+
+    # dialysis study
+    is_bad_dial_locs = data['location_id'].isin([
+        540,  # Kentucky
+        543,  # Maryland
+        545,  # Michigan
+        554,  # New Mexico
+        555,  # New York
+        560,  # Oregon
+        570,  # Washington
+        572,  # Wisconsin
+    ])
+    is_usa_dialysis = data['survey_series'] == 'usa_dialysis'
+
+    dialysis_outlier = is_bad_dial_locs & is_usa_dialysis
+    outliers.append(dialysis_outlier)
+    logger.debug(f'{dialysis_outlier.sum()} rows from sero data dropped due to inconsistent results from dialysis study.')
+
+    # North Dakota first round
+    is_nd = data['location_id'] == 557
+    is_cdc_series = data['survey_series'] == 'cdc_series'
+    is_first_date = data['date'] == pd.Timestamp('2020-08-12')
+
+    nd_outlier = is_nd & is_cdc_series & is_first_date
+    outliers.append(nd_outlier)
+    logger.debug(f'{nd_outlier.sum()} rows from sero data dropped due to implausibility '
+                 '(or at least incompatibility) of first commercial lab point in North Dakota.')
+
+    # early Vermont
+    is_vermont = data['location_id'] == 568
+    is_pre_nov = data['date'] < pd.Timestamp('2020-11-01')
+
+    vermont_outlier = is_vermont & is_pre_nov
+    outliers.append(vermont_outlier)
+    logger.debug(f'{vermont_outlier.sum()} rows from sero data dropped due to implausibility '
+                 '(or at least incompatibility) of early commercial lab points in Vermont.')
+
+    # Spain 2020 first three rounds (of four)
+    is_ene_covid = data['survey_series'] == 'ene_covid'
+    is_pre_july_2020 = data['start_date'] < pd.Timestamp('2020-07-01')
+
+    esp_outlier = is_ene_covid & is_pre_july_2020
+    outliers.append(esp_outlier)
+    logger.debug(f'{esp_outlier.sum()} rows from sero data dropped due to implausibility '
+                 '(or at least incompatibility) of first three survey rounds in Spain (April-June 2020).')
+
+    # high Norway point
+    is_nor = data['location_id'] == 90
+    is_norway_serobank = data['survey_series'] == 'norway_serobank'
+    is_bad_date = data['date'] == pd.Timestamp('2020-08-30')
+
+    nor_outlier = is_nor & is_norway_serobank & is_bad_date
+    outliers.append(nor_outlier)
+    logger.debug(f'{nor_outlier.sum()} rows from sero data dropped due to implausibility '
+                 '(or at least incompatibility) of high Norway serobank point.')
 
     # # Albania first round data
     # is_alb = data['location_id'] == 43
@@ -301,15 +401,24 @@ def process_raw_serology_data(data: pd.DataFrame) -> pd.DataFrame:
     logger.debug(f'{chhatt_outlier.sum()} rows from sero data dropped due to implausibility '
                  '(or at least incompatibility) of Chhattisgarh survey data (ICMR round 2).')
 
-    # Delhi
+    # Delhi first Sharma
     is_delhi = data['location_id'] == 4849
-    is_dey_sharma = data['survey_series'].isin(['dey_delhi_sero', 'sharma_delhi_sero'])
+    is_sharma = data['survey_series'] == 'sharma_delhi_sero'
     is_pre_sept_2020 = data['date'] < pd.Timestamp('2020-09-01')
 
-    delhi_outlier = is_delhi & is_dey_sharma & is_pre_sept_2020
-    outliers.append(delhi_outlier)
-    logger.debug(f'{delhi_outlier.sum()} rows from sero data dropped due to implausibility '
-                 '(or at least incompatibility) of Delhi survey data (non-ICMR).')
+    delhi_sharma_outlier = is_delhi & is_sharma & is_pre_sept_2020
+    outliers.append(delhi_sharma_outlier)
+    logger.debug(f'{delhi_sharma_outlier.sum()} rows from sero data dropped due to implausibility '
+                 '(or at least incompatibility) of Delhi Sharma survey.')
+
+    # Delhi first government survey
+    is_delhi_government_sero = data['survey_series'] == 'delhi_government_sero'
+    is_jan_2021 = data['date'] < pd.Timestamp('2021-02-01')
+
+    delhi_government_outlier = is_delhi_government_sero & is_jan_2021
+    outliers.append(delhi_government_outlier)
+    logger.debug(f'{delhi_government_outlier.sum()} rows from sero data dropped due to implausibility '
+                 '(or at least incompatibility) of first Delhi government survey.')
 
     # Gujarat ICMR round 2
     is_guj = data['location_id'] == 4851
@@ -347,14 +456,23 @@ def process_raw_serology_data(data: pd.DataFrame) -> pd.DataFrame:
     logger.debug(f'{karn_outlier.sum()} rows from sero data dropped due to implausibility '
                  '(or at least incompatibility) of Karnataka survey data (non-ICMR).')
 
-    # Odisha ICMR round 2
-    is_odisha = data['location_id'] == 4865
-    is_icmr_round2 = data['survey_series'] == 'icmr_round2'
+    # Kerala ICMR round 3
+    is_kerala = data['location_id'] == 4857
+    is_icmr_round3 = data['survey_series'] == 'icmr_round3'
 
-    odisha_outlier = is_odisha & is_icmr_round2
+    kerala_outlier = is_kerala & is_icmr_round3
+    outliers.append(kerala_outlier)
+    logger.debug(f'{kerala_outlier.sum()} rows from sero data dropped due to implausibility '
+                 '(or at least incompatibility) of Kerala survey data (ICMR round 3).')
+
+    # Odisha ICMR rounds 2 and 3
+    is_odisha = data['location_id'] == 4865
+    is_icmr_round2_3 = data['survey_series'].isin(['icmr_round2', 'icmr_round3'])
+
+    odisha_outlier = is_odisha & is_icmr_round2_3
     outliers.append(odisha_outlier)
     logger.debug(f'{odisha_outlier.sum()} rows from sero data dropped due to implausibility '
-                 '(or at least incompatibility) of Odisha survey data (ICMR round 2).')
+                 '(or at least incompatibility) of Odisha survey data (ICMR rounds 2 and 3).')
 
     # Rajasthan ICMR round 2
     is_raj = data['location_id'] == 4868

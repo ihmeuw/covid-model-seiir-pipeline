@@ -109,7 +109,6 @@ def prepare_model(model_data: pd.DataFrame,
         141,   # Egypt
         151,   # Qatar
         53619, # Khyber Pakhtunkhwa
-        214,   # Nigeria
     ]
     model_data = model_data.loc[~model_data['location_id'].isin(outlier_locs)].reset_index()
     ## ## ## ## ## ## ## ##

@@ -127,6 +127,12 @@ class FitDataInterface:
             covariate_pool = {rate: draws[draw_id] for rate, draws in covariate_pool.items()}
         return covariate_pool
 
+    def save_broken_locations_report(self, report: List[Dict]) -> None:
+        io.dump(report, self.fit_root.broken_locations_report())
+
+    def load_broken_locations_report(self) -> List[Dict]:
+        return io.load(self.fit_root.broken_locations_report())
+
     def save_ode_params(self, data: pd.Series, draw_id: int) -> None:
         io.dump(data, self.fit_root.ode_parameters(draw_id=draw_id))
 

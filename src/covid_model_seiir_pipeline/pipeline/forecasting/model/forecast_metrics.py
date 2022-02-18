@@ -1,6 +1,5 @@
 from collections import defaultdict
 import itertools
-from typing import Tuple, TYPE_CHECKING
 
 import numpy as np
 import pandas as pd
@@ -11,11 +10,11 @@ from covid_model_seiir_pipeline.lib.ode_mk2.constants import (
     VARIANT_NAMES,
     VACCINE_STATUS_NAMES,
     RISK_GROUP_NAMES,
-    COMPARTMENTS_NAMES
+    COMPARTMENT_NAMES,
+    COMPARTMENTS_NAMES,
 )
 from covid_model_seiir_pipeline.pipeline.forecasting.model.containers import (
     Indices,
-    PostprocessingParameters,
 )
 from covid_model_seiir_pipeline.pipeline.regression.model import (
     compute_hospital_usage,
@@ -44,6 +43,7 @@ def compute_output_metrics(indices: Indices,
     vaccinations = _make_vaccinations(compartments)
     betas = compartments_diff.filter(like='Beta_none_none_all').mean(axis=1).rename('beta')
     force_of_infection = _make_force_of_infection(infections, susceptible)
+    covid_status = _make_covid_status(compartments)
     variant_prevalence = _make_variant_prevalence(infections)
 
     hospital_usage = compute_corrected_hospital_usage(
@@ -65,6 +65,7 @@ def compute_output_metrics(indices: Indices,
         vaccinations,
         betas,
         force_of_infection,
+        covid_status,
         variant_prevalence,
         total_pop,
         hospital_usage,
@@ -84,6 +85,9 @@ def _make_measure(compartments_diff: pd.DataFrame, measure: str, lag: int) -> pd
     data = defaultdict(lambda: pd.Series(0., index=compartments_diff.index))
 
     data['naive_unvaccinated'] = compartments_diff.filter(like=f'{measure}_none_all_unvaccinated').sum(axis=1)
+    data['unvaccinated'] = compartments_diff.filter(like=f'{measure}_all_all_unvaccinated').sum(axis=1)
+    data['vaccinated'] = compartments_diff.filter(like=f'{measure}_all_all_vaccinated').sum(axis=1)
+    data['booster'] = compartments_diff.filter(like=f'{measure}_all_all_booster').sum(axis=1)
     data['naive'] = compartments_diff.filter(like=f'{measure}_none_all_all').sum(axis=1)
     data['total'] = compartments_diff.filter(like=f'{measure}_all_all_all').sum(axis=1)
 
@@ -179,6 +183,29 @@ def _make_force_of_infection(infections: pd.DataFrame,
         )
 
     return foi
+
+
+def _make_covid_status(compartments: pd.DataFrame) -> pd.DataFrame:
+    covid_status = defaultdict(lambda: pd.Series(0., index=compartments.index))
+
+    groups = itertools.product(COMPARTMENT_NAMES, VACCINE_STATUS_NAMES, VARIANT_NAMES, RISK_GROUP_NAMES)
+    for compartment, vaccine_status, variant, risk_group in groups:
+        compartment_key = f'{compartment}_{vaccine_status}_{variant}_{risk_group}'
+        if compartment == COMPARTMENT_NAMES.S and variant == VARIANT_NAMES.none:
+            if vaccine_status == VACCINE_STATUS_NAMES.unvaccinated:
+                covid_status['covid_status_naive_unvaccinated'] += compartments[compartment_key]
+            else:
+                covid_status['covid_status_naive_vaccinated'] += compartments[compartment_key]
+        else:
+            if vaccine_status == VACCINE_STATUS_NAMES.unvaccinated:
+                covid_status['covid_status_exposed_unvaccinated'] += compartments[compartment_key]
+            else:
+                covid_status['covid_status_exposed_vaccinated'] += compartments[compartment_key]
+
+    covid_status = pd.concat([
+        v.rename(k) for k, v in covid_status.items()
+    ], axis=1)
+    return covid_status
 
 
 def _make_variant_prevalence(infections: pd.DataFrame) -> pd.DataFrame:

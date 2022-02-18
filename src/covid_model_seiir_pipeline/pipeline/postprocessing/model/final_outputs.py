@@ -1,3 +1,4 @@
+import itertools
 from typing import Any, Callable, Dict, List, Union, TYPE_CHECKING
 
 import pandas as pd
@@ -5,6 +6,7 @@ import pandas as pd
 from covid_model_seiir_pipeline.lib.ode_mk2.constants import (
     RISK_GROUP_NAMES,
     VARIANT_NAMES,
+    VACCINE_STATUS_NAMES,
 )
 from covid_model_seiir_pipeline.pipeline.postprocessing.model import loaders, combiners
 from covid_model_seiir_pipeline.lib import aggregate
@@ -84,7 +86,7 @@ MEASURES = {}
 
 
 for measure in ['infections', 'deaths', 'cases', 'admissions']:
-    for suffix in list(VARIANT_NAMES[1:]) + list(RISK_GROUP_NAMES) + ['total', 'naive', 'naive_unvaccinated']:
+    for suffix in list(VARIANT_NAMES[1:]) + list(RISK_GROUP_NAMES) + list(VACCINE_STATUS_NAMES) + ['total', 'naive', 'naive_unvaccinated']:
         measure_suffix = f'_{suffix}'
         label_suffix = f'_{suffix}' if suffix != 'total' else ''
         write_draws = suffix == 'total'
@@ -96,6 +98,7 @@ for measure in ['infections', 'deaths', 'cases', 'admissions']:
             cumulative_label=f'cumulative_{label}',
             aggregator=aggregate.sum_aggregator,
             write_draws=write_draws,
+            splice=suffix not in VACCINE_STATUS_NAMES,
         )
 MEASURES.update(**{
     'unscaled_deaths': MeasureConfig(
@@ -260,6 +263,15 @@ for key in list(VARIANT_NAMES[1:]) + list(RISK_GROUP_NAMES) + ['total']:
     )
 
 
+for covid_exposure, vaccine_status in itertools.product(['naive', 'exposed'], ['unvaccinated', 'vaccinated']):
+    MEASURES[f'covid_status_{covid_exposure}_{vaccine_status}'] = MeasureConfig(
+        loaders.load_output_data(f'covid_status_{covid_exposure}_{vaccine_status}'),
+        f'covid_status_{covid_exposure}_{vaccine_status}',
+        aggregator=aggregate.sum_aggregator,
+        splice=False,
+    )
+
+
 for key in list(VARIANT_NAMES[1:]) + ['total']:
     measure = f'force_of_infection_{key}'
     MEASURES[measure] = MeasureConfig(
@@ -383,10 +395,6 @@ MISCELLANEOUS = {
         loaders.load_vaccine_efficacy_table,
         'vaccine_efficacy_table',
     ),
-    # 'version_map': MiscellaneousConfig(
-    #     loaders.build_version_map,
-    #     'version_map',
-    # ),
     'populations': MiscellaneousConfig(
         loaders.load_populations,
         'populations',
