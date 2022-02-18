@@ -211,7 +211,12 @@ def evil_doings(data: pd.DataFrame, hierarchy: pd.DataFrame, input_measure: str)
         manipulation_metadata['malawi'] = 'dropped all hospitalizations'
 
     elif input_measure == 'deaths':
-        pass
+        ## Virginia deaths spike
+        is_virginia = data['location_id'] == 569
+        is_feb = data['date'] >= pd.Timestamp('2022-02-01')
+        data = data.loc[~(is_virginia & is_feb)].reset_index(drop=True)
+        manipulation_metadata['virginia'] = 'dropped deaths Feb onward (TEMPORARY)'
+        # pass
 
     else:
         raise ValueError(f'Input measure {input_measure} does not have a protocol for exclusions.')
