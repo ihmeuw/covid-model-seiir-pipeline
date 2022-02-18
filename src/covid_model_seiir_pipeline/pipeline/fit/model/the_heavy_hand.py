@@ -87,7 +87,7 @@ def rescale_kappas(sampled_ode_params: Dict,
         (  151,  2.0),  # Qatar
         (  155,  2.0),  # Turkey
         (  157,  0.2),  # Yemen
-        ( 4849,  5.0),  # Delhi
+        ( 4849,  3.0),  # Delhi
         ( 4851,  2.0),  # Gujarat
         ( 4852,  2.0),  # Haryana
         ( 4863,  5.0),  # Mizoram
@@ -238,7 +238,7 @@ def rescale_kappas(sampled_ode_params: Dict,
         (  522,  2.0),  # Sudan
         (  154,  3.0),  # Tunisia
         (  155,  2.0),  # Turkey
-        ( 4849,  5.0),  # Delhi
+        ( 4849,  3.0),  # Delhi
         ( 4852,  2.0),  # Haryana
         ( 4861,  2.0),  # Manipur
         ( 4862,  2.0),  # Meghalaya
