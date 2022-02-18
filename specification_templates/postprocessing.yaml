@@ -1,5 +1,5 @@
 data:
-  seir_forecast_version: '2022_02_04.06'
+  seir_forecast_version: '2022_02_17.02'
   scenarios:
    - 'reference'
    - 'best_masks'
@@ -8,7 +8,7 @@ data:
   output_root: ''
 workflow:
   project: 'proj_covid_prod'
-  queue: 'long.q'
+  queue: 'all.q'
 resampling:
   reference_scenario: 'reference'
   reference_date: '2021-12-31'
@@ -16,13 +16,25 @@ resampling:
   upper_quantile: 0.975
 splicing:
   - locations:
-      - 57  # Belarus
-      - 72  # New Zealand
-      - 8   # Taiwan
+      - 569  # Virginia
+      - 3539 # Spokane County
+      - 4665 # Quintana Roo
+      - 140  # Bahrain
+      - 13   # Malaysia
+      - 15   # Myanmar
+      - 19   # Timor-Leste
+      - 20   # Viet Nam
+      - 193  # Botswana
+    output_version: '/ihme/covid-19/seir-outputs/2022_02_04.06'
+  - locations:
+      - 72   # New Zealand
     output_version: '/ihme/covid-19/seir-outputs/2022_01_21.01'
   - locations:
-      - 83  # Iceland
-    output_version: '/ihme/covid-19/seir-outputs/2022_01_13.01'
+      - 143  # Iraq
+    output_version: '/ihme/covid-19/seir-outputs/2022_02_17.01'
+  - locations:
+      - 4849 # Delhi
+    output_version: '/ihme/covid-19/seir-outputs/2022_02_17.03'
 aggregation:
   - location_file: '/ihme/covid-19/seir-outputs/agg-hierarchies/modeling.csv'
   - location_file: '/ihme/covid-19/seir-outputs/agg-hierarchies/who_plus_palestine.csv'
