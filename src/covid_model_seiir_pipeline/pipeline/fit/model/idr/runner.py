@@ -1,4 +1,4 @@
-from typing import Dict, List
+from typing import Dict, List, Tuple
 
 import pandas as pd
 
@@ -10,11 +10,10 @@ from covid_model_seiir_pipeline.pipeline.fit.model.idr import (
 )
 
 
-def runner(cumulative_cases: pd.Series,
-           daily_cases: pd.Series,
+def runner(epi_data,
            seroprevalence: pd.DataFrame,
            covariates: List[pd.Series],
-           covariate_list: List[str],
+           covariate_pool: Dict[str, List[str]],
            mr_hierarchy: pd.DataFrame,
            pred_hierarchy: pd.DataFrame,
            population: pd.Series,
@@ -24,7 +23,12 @@ def runner(cumulative_cases: pd.Series,
            pred_start_date: pd.Timestamp,
            pred_end_date: pd.Timestamp,
            num_threads: int,
-           progress_bar: bool) -> pd.DataFrame:
+           progress_bar: bool,
+           **kwargs) -> Tuple[pd.DataFrame, pd.DataFrame]:
+    cumulative_cases = epi_data['cumulative_cases'].dropna()
+    daily_cases = epi_data['daily_cases'].dropna()
+    covariate_list = covariate_pool['idr']
+
     model_data = data.create_model_data(
         cumulative_cases=cumulative_cases.copy(),
         daily_cases=daily_cases.copy(),
@@ -80,5 +84,10 @@ def runner(cumulative_cases: pd.Series,
             .rename('pred_idr')
             .reset_index(level=0, drop=True)
             .to_frame())
+
+    for col in ['idr', 'idr_lr', 'idr_hr']:
+        pred.loc[:, col] = pred['pred_idr']
+    pred = pred.drop(columns='pred_idr')
+    pred['lag'] = durations["exposure_to_case"]
     
     return pred, model_data

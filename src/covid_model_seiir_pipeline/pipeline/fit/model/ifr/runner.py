@@ -1,4 +1,4 @@
-from typing import Dict, List
+from typing import Dict, List, Tuple
 
 import pandas as pd
 
@@ -9,27 +9,33 @@ from covid_model_seiir_pipeline.pipeline.fit.model.ifr import (
 )
 
 
-def runner(cumulative_deaths: pd.Series,
-           daily_deaths: pd.Series,
+def runner(epi_data: pd.DataFrame,
            seroprevalence: pd.DataFrame,
            covariates: List[pd.Series],
-           covariate_list: List[str],
+           covariate_pool: Dict[str, List[str]],
            daily_infections: pd.Series,
            variant_prevalence: pd.Series,
            mr_hierarchy: pd.DataFrame,
            pred_hierarchy: pd.DataFrame,
-           ifr_age_pattern: pd.Series,
-           sero_age_pattern: pd.Series,
+           age_patterns: pd.DataFrame,
            population: pd.Series,
            age_spec_population: pd.Series,
-           variant_risk_ratio: float,
+           variant_risk_ratio: Dict[str, float],
            durations: Dict,
            day_inflection: pd.Timestamp,
            day_0: pd.Timestamp,
            pred_start_date: pd.Timestamp,
            pred_end_date: pd.Timestamp,
            num_threads: int,
-           progress_bar: bool) -> pd.DataFrame:
+           progress_bar: bool,
+           **kwargs) -> Tuple[pd.DataFrame, pd.DataFrame]:
+    cumulative_deaths = epi_data['cumulative_deaths'].dropna()
+    daily_deaths = epi_data['daily_deaths'].dropna()
+    covariate_list = covariate_pool['ifr']
+    ifr_age_pattern = age_patterns['ifr']
+    sero_age_pattern = age_patterns['seroprevalence']
+    variant_risk_ratio = variant_risk_ratio['ifr']
+
     model_data = data.create_model_data(
         cumulative_deaths=cumulative_deaths,
         daily_deaths=daily_deaths,
@@ -79,5 +85,10 @@ def runner(cumulative_deaths: pd.Series,
     pred_hr = (pred * hr_rr).rename('pred_ifr_hr')
     
     pred = pd.concat([pred, pred_lr, pred_hr], axis=1)
+
+    pred = pred.rename(columns={
+        'pred_ifr_lr': 'ifr_lr', 'pred_ifr_hr': 'ifr_hr', 'pred_ifr': 'ifr'
+    })
+    pred.loc[:, 'lag'] = durations["exposure_to_death"]
     
     return pred, model_data

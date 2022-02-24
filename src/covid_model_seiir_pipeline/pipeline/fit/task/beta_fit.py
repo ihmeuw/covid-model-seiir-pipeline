@@ -1,5 +1,4 @@
 import click
-import numpy as np
 import pandas as pd
 
 from covid_model_seiir_pipeline.lib import (
@@ -12,7 +11,7 @@ from covid_model_seiir_pipeline.pipeline.fit import model
 logger = cli_tools.task_performance_logger
 
 
-def run_beta_fit(fit_version: str, draw_id: int, progress_bar: bool) -> None:
+def run_beta_fit(fit_version: str, measure: str, draw_id: int, progress_bar: bool) -> None:
     logger.info('Starting beta fit.', context='setup')
     # Build helper abstractions
     specification = FitSpecification.from_version_root(fit_version)
@@ -74,6 +73,7 @@ def run_beta_fit(fit_version: str, draw_id: int, progress_bar: bool) -> None:
 
     logger.info('Running first-pass rates model', context='rates_model_1')
     first_pass_rates, first_pass_rates_data = model.run_rates_pipeline(
+        measure=measure,
         epi_data=epi_measures,
         age_patterns=age_patterns,
         seroprevalence=first_pass_seroprevalence,
@@ -96,6 +96,7 @@ def run_beta_fit(fit_version: str, draw_id: int, progress_bar: bool) -> None:
 
     logger.info('Prepping ODE fit parameters.', context='transform')
     ode_parameters, first_pass_base_rates = model.prepare_ode_fit_parameters(
+        measure=measure,
         rates=first_pass_rates,
         epi_measures=epi_measures,
         rhos=rhos,
@@ -104,13 +105,13 @@ def run_beta_fit(fit_version: str, draw_id: int, progress_bar: bool) -> None:
         natural_waning_dist=natural_waning_dist,
         natural_waning_matrix=natural_waning_matrix,
         sampled_ode_params=sampled_ode_params,
-        measure_downweights=specification.measure_downweights.to_dict(),
         hierarchy=pred_hierarchy,
         draw_id=draw_id,
     )
 
     logger.info('Building initial condition.', context='transform')
     initial_condition = model.make_initial_condition(
+        measure,
         ode_parameters,
         first_pass_base_rates,
         risk_group_population,

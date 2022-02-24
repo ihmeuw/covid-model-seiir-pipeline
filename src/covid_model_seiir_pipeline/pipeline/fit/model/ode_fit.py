@@ -17,9 +17,6 @@ from covid_model_seiir_pipeline.lib.ode_mk2.constants import (
 from covid_model_seiir_pipeline.lib.ode_mk2 import (
     solver,
 )
-from covid_model_seiir_pipeline.pipeline.fit.model.rates import (
-    Rates,
-)
 from covid_model_seiir_pipeline.pipeline.fit.model.sampled_params import (
     Durations,
     sample_parameter,
@@ -29,7 +26,8 @@ from covid_model_seiir_pipeline.pipeline.fit.model.epi_measures import (
 )
 
 
-def prepare_ode_fit_parameters(rates: Rates,
+def prepare_ode_fit_parameters(measure: str,
+                               rates: pd.DataFrame,
                                epi_measures: pd.DataFrame,
                                rhos: pd.DataFrame,
                                vaccinations: pd.DataFrame,
@@ -37,12 +35,12 @@ def prepare_ode_fit_parameters(rates: Rates,
                                natural_waning_dist: pd.Series,
                                natural_waning_matrix: pd.DataFrame,
                                sampled_ode_params: Dict[str, float],
-                               measure_downweights: Dict[str, List[Tuple[int, float]]],
                                hierarchy: pd.DataFrame,
                                draw_id: int) -> Tuple[Parameters, pd.DataFrame]:
-    epi_measures, rates, age_scalars = prepare_epi_measures_and_rates(rates, epi_measures, hierarchy)
-    past_index = epi_measures.index
-
+    measures_and_rates, age_scalars = prepare_epi_measures_and_rates(
+        measure, rates, epi_measures, hierarchy,
+    )
+    past_index = measures_and_rates.index
     scalar_params = {k: p for k, p in sampled_ode_params.items() if isinstance(p, (int, float))}
     series_params = [p.reindex(past_index, level='location_id').rename(k)
                      for k, p in sampled_ode_params.items() if isinstance(p, pd.Series)]
@@ -51,33 +49,15 @@ def prepare_ode_fit_parameters(rates: Rates,
         *series_params,
     ], axis=1)
 
-    weights = []
-    for measure in ['death', 'admission', 'case']:
-        parameter = f'weight_all_{measure}'
-        _weights = pd.Series(sample_parameter(parameter, draw_id, 0., 1.), name=parameter, index=past_index)
-        for downweight_loc, downweight in measure_downweights[measure]:
-            _weights.loc[downweight_loc, :] *= downweight
-        _weights = add_transition_period(
-            weights=_weights,
-            data_period=epi_measures.loc[epi_measures[measure].notnull()].index,
-        )
-        weights.append(_weights)
-    weights = [w / sum(weights).rename(w.name) for w in weights]
-
     rhos = rhos.reindex(past_index, fill_value=0.)
     rhos.columns = [f'rho_{c}_infection' for c in rhos.columns]
     rhos['rho_none_infection'] = pd.Series(0., index=past_index, name='rho_none_infection')
 
-    rates_map = {'ifr': 'rate_all_death', 'ihr': 'rate_all_admission', 'idr': 'rate_all_case'}
-    ode_rates = rates.loc[:, list(rates_map.keys())].rename(columns=rates_map)
-
     base_parameters = pd.concat([
         sampled_params,
-        epi_measures.rename(columns=lambda x: f'count_all_{x}'),
+        epi_measures,
         pd.Series(-1, index=past_index, name='beta_all_infection'),
-        ode_rates,
         rhos,
-        *weights,
     ], axis=1)
 
     vaccinations = vaccinations.reindex(past_index, fill_value=0.)
@@ -116,61 +96,46 @@ def prepare_ode_fit_parameters(rates: Rates,
     return ode_params, rates
 
 
-def prepare_epi_measures_and_rates(rates: Rates, epi_measures: pd.DataFrame, hierarchy: pd.DataFrame):
+def prepare_epi_measures_and_rates(measure: str,
+                                   rates: pd.DataFrame,
+                                   epi_measures: pd.DataFrame,
+                                   hierarchy: pd.DataFrame):
     most_detailed = hierarchy[hierarchy.most_detailed == 1].location_id.unique().tolist()
-    measures = (
-        ('deaths', 'death', 'ifr'),
-        ('cases', 'case', 'idr'),
-        ('hospitalizations', 'admission', 'ihr')
+    metrics = ['count', 'rate', 'weight']
+    measures = {
+        'death': ('deaths', 'ifr'),
+        'case': ('cases', 'idr'),
+        'admission': ('hospitalizations', 'ihr'),
+    }
+    in_measure, rate = measures[measure]
+
+    out_data = pd.DataFrame(
+        np.nan,
+        columns=[f'{metric}_all_{m}' for metric, m in itertools.product(metrics, measures)],
+        index=epi_measures.index
+    )
+    out_data.loc[:, [c for c in out_data if 'weight' in c]] = 0.
+    out_data.loc[:, f'weight_all_{measure}'] = 1.0
+    out_scalars = pd.DataFrame(
+        np.nan,
+        columns=[f'{m}_{rg}' for m, rg in itertools.product(measures, RISK_GROUP_NAMES)],
+        index=epi_measures.index
     )
 
-    out_measures = []
-    out_rates = []
-    out_scalars = []
-    for in_measure, out_measure, rate in measures:
-        epi_data = (epi_measures[f'smoothed_daily_{in_measure}'].rename(out_measure) + 3e-2).to_frame()
-        epi_rates = rates._asdict()[rate]
-        lag = epi_rates['lag'].iloc[0]
+    lag = rates['lag'].iloc[0]
+    out_data.loc[f'count_all_{measure}'] = reindex_to_infection_day(
+        epi_measures[f'smoothed_daily_{in_measure}'] + 3e-2,
+        lag,
+        most_detailed
+    )
+    rates = reindex_to_infection_day(rates.drop(columns='lag'), lag, most_detailed)
+    for risk_group in RISK_GROUP_NAMES:
+        out_scalars.loc[:, f'{measure}_{risk_group}'] = (
+            rates[f'{measure}_{risk_group}'] / rates[rate]
+        )
+    out_data.loc[:, f'rate_all_{measure}'] = rates[rate]
 
-        epi_data = reindex_to_infection_day(epi_data, lag, most_detailed)
-        epi_rates = reindex_to_infection_day(epi_rates.drop(columns='lag'), lag, most_detailed)
-        epi_scalars = epi_rates.copy()
-        drop_cols = epi_scalars.columns
-        for risk_group in RISK_GROUP_NAMES:
-            epi_scalars.loc[:, f'{out_measure}_{risk_group}'] = epi_scalars[f'{rate}_{risk_group}'] / epi_scalars[rate]
-        epi_scalars = epi_scalars.drop(columns=drop_cols)
-
-        out_measures.append(epi_data)
-        out_rates.append(epi_rates)
-        out_scalars.append(epi_scalars)
-
-    out_measures = pd.concat(out_measures, axis=1).reset_index()
-    out_measures = out_measures.loc[out_measures.location_id.isin(most_detailed)].set_index(['location_id', 'date'])
-    out_rates = pd.concat(out_rates, axis=1).reindex(out_measures.index).sort_index()
-    out_scalars = pd.concat(out_scalars, axis=1).reindex(out_measures.index).sort_index()
-    return out_measures, out_rates, out_scalars
-
-
-def add_transition_period(weights: pd.Series, data_period: pd.Index, window_len: int = 30) -> pd.Series:
-    w_ = pd.Series(np.nan, name=weights.name, index=data_period)
-    w0 = w_.reset_index().groupby('location_id')[['date']].min()
-    w1 = w0 + pd.Timedelta(days=window_len)
-    w3 = w_.reset_index().groupby('location_id')[['date']].max()
-    w2 = w3 - pd.Timedelta(days=window_len)
-    
-    req = w2[w2 > w1].dropna().index
-    w0 = w0.loc[req].set_index('date', append=True).index
-    w1 = w1.loc[req].set_index('date', append=True).index
-    w2 = w2.loc[req].set_index('date', append=True).index
-    w3 = w3.loc[req].set_index('date', append=True).index
-    
-    w_.loc[w0] = 1 / window_len
-    w_.loc[w1] = 1
-    w_.loc[w2] = 1
-    w_.loc[w3] = 1 / window_len
-    w_ = w_.groupby(level=0).apply(lambda x: x.interpolate())
-    
-    return (weights * w_).fillna(0)
+    return out_data, out_scalars
 
 
 def reindex_to_infection_day(data: pd.DataFrame, lag: int, most_detailed: List[int]) -> pd.DataFrame:
@@ -183,10 +148,13 @@ def reindex_to_infection_day(data: pd.DataFrame, lag: int, most_detailed: List[i
     return data
 
 
-def make_initial_condition(parameters: Parameters, full_rates: pd.DataFrame, population: pd.DataFrame):
+def make_initial_condition(measure: str,
+                           parameters: Parameters,
+                           full_rates: pd.DataFrame,
+                           population: pd.DataFrame):
     base_params = parameters.base_parameters
     
-    crude_infections = get_crude_infections(base_params, full_rates, threshold=50)
+    crude_infections = get_crude_infections(measure, base_params, full_rates, threshold=50)
     new_e_start = crude_infections.reset_index(level='date').groupby('location_id').first()
     start_date, new_e_start = new_e_start['date'], new_e_start['infections']
     end_date = base_params.filter(like='count')
@@ -235,13 +203,10 @@ def make_initial_condition(parameters: Parameters, full_rates: pd.DataFrame, pop
     return initial_condition
 
 
-def get_crude_infections(base_params, rates, threshold=50):
-    crude_infections = pd.DataFrame(index=rates.index)
-    for measure, rate in [('death', 'ifr'), ('admission', 'ihr'), ('case', 'idr')]:
-        infections = base_params[f'count_all_{measure}'] / rates[rate]
-        crude_infections[measure] = infections
-    mask = crude_infections.max(axis=1) > threshold
-    crude_infections = crude_infections.loc[mask].min(axis=1).rename('infections')
+def get_crude_infections(measure: str, base_params, rates, threshold=50):
+    rate = {'death': 'ifr', 'admission': 'ihr', 'case': 'idr'}
+    crude_infections = base_params[f'count_all_{measure}'] / rates[rate]
+    crude_infections = crude_infections.loc[crude_infections > threshold].rename('infections')
     return crude_infections
 
 
