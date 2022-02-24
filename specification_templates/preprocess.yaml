@@ -2,7 +2,7 @@ data:
   mr_location_set_version_id: 1009
   mr_location_set_file: ''
   pred_location_set_version_id: 1009
-  model_inputs_version: '2022_02_15.03'
+  model_inputs_version: '2022_02_21.01'
   age_specific_rates_version: '2022_02_11.03'
   mortality_scalars_version: '2022_02_14.01'
   mask_use_outputs_version: '2022_02_14.01'
@@ -28,4 +28,4 @@ seroprevalence_parameters:
   vax_sero_prob: 0.9
 workflow:
   project: 'proj_covid_prod'
-  queue: 'd.q'
+  queue: 'all.q'
