@@ -12,7 +12,7 @@ logger = cli_tools.task_performance_logger
 
 
 def run_beta_fit(fit_version: str, measure: str, draw_id: int, progress_bar: bool) -> None:
-    logger.info('Starting beta fit.', context='setup')
+    logger.info(f'Starting beta fit for measure {measure} draw {draw_id}.', context='setup')
     # Build helper abstractions
     specification = FitSpecification.from_version_root(fit_version)
     data_interface = FitDataInterface.from_specification(specification)
@@ -245,7 +245,7 @@ def run_beta_fit(fit_version: str, measure: str, draw_id: int, progress_bar: boo
     rates_data = []
     for round_id, dataset in enumerate([first_pass_rates_data, second_pass_rates_data]):
         df = (dataset
-              .loc[:, ['location_id', 'mean_infection_date', 'data_id', measure]]
+              .loc[:, ['location_id', 'mean_infection_date', 'data_id', rate]]
               .rename(columns={measure: 'value', 'mean_infection_date': 'date'}))
         df['measure'] = measure
         df['round'] = round_id + 1
