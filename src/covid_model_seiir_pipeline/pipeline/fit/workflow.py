@@ -97,13 +97,13 @@ class FitWorkflow(workflow.WorkflowTemplate):
         #join_task = join_template.get_task(fit_version=self.version, sentinel_id='postprocess')
         #self.workflow.add_task(join_task)
         #diagnostics_tasks = []
-        for plot_type in plot_types:
-            diagnostics_task = diagnostics_template.get_task(
-                fit_version=self.version,
-                plot_type=plot_type,
-            )
-            self.workflow.add_task(diagnostics_task)
-            diagnostics_tasks.append(diagnostics_task)
+#        for plot_type in plot_types:
+#            diagnostics_task = diagnostics_template.get_task(
+#                fit_version=self.version,
+#                plot_type=plot_type,
+#            )
+#            self.workflow.add_task(diagnostics_task)
+#            diagnostics_tasks.append(diagnostics_task)
 
         for measure, draw_id in itertools.product(['case', 'death', 'admission'], range(n_draws)):
             task = fit_template.get_task(
