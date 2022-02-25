@@ -275,6 +275,7 @@ def run_beta_fit(fit_version: str, measure: str, draw_id: int, progress_bar: boo
     out_seroprevalence['date'] -= pd.Timedelta(days=durations.exposure_to_seroconversion)
 
     logger.info('Writing outputs', context='write')
+
     data_interface.save_ode_params(out_params, draw_id=draw_id)
     data_interface.save_phis(ode_parameters.phis, draw_id=draw_id)
     data_interface.save_input_epi_measures(epi_measures, draw_id=draw_id)

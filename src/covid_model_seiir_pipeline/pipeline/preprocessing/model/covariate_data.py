@@ -97,7 +97,11 @@ def preprocess_pneumonia(data_interface: PreprocessingDataInterface) -> None:
     next_year = next_year.groupby("location_id", as_index=False).apply(lambda x: x.iloc[1:-1]).reset_index(drop=True)
     year_after_next = next_year.copy()
     year_after_next['date'] += pd.Timedelta(days=365)
-    data = pd.concat([data, next_year, year_after_next]).sort_values(["location_id", "date"]).reset_index(drop=True)
+    year_after_that = year_after_next.copy()
+    year_after_that['date'] += pd.Timedelta(days=365)
+    data = (pd.concat([data, next_year, year_after_next, year_after_that])
+            .sort_values(["location_id", "date"])
+            .reset_index(drop=True))
     data = helpers.parent_inheritance(data, hierarchy)
 
     logger.info(f'Writing pneumonia data.', context='write')

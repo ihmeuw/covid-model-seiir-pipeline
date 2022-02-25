@@ -264,7 +264,8 @@ def compute_r(model_params: Parameters,
         base_params['gamma_total_infection'] += base_params[f'rho_{v}_infection'] * base_params[f'gamma_{v}_infection']
 
     for label in list(VARIANT_NAMES[1:]) + ['total']:
-        sigma, gamma = base_params.loc[:, f'sigma_{label}_infection'], base_params.loc[:, f'gamma_{label}_infection']
+        sigma = base_params.loc[:, f'sigma_{label}_infection'].groupby('location_id').ffill().bfill()
+        gamma = base_params.loc[:, f'gamma_{label}_infection'].groupby('location_id').ffill().bfill()
         generation_time = ((1 / sigma + 1 / gamma)
                            .round()
                            .groupby('location_id').bfill()
