@@ -55,11 +55,11 @@ def prepare_ode_fit_parameters(measure: str,
 
     base_parameters = pd.concat([
         sampled_params,
-        epi_measures,
+        measures_and_rates,
         pd.Series(-1, index=past_index, name='beta_all_infection'),
         rhos,
     ], axis=1)
-
+    
     vaccinations = vaccinations.reindex(past_index, fill_value=0.)
     etas = etas.sort_index().reindex(past_index, fill_value=0.)
 
@@ -99,8 +99,7 @@ def prepare_ode_fit_parameters(measure: str,
 def prepare_epi_measures_and_rates(measure: str,
                                    rates: pd.DataFrame,
                                    epi_measures: pd.DataFrame,
-                                   hierarchy: pd.DataFrame):
-    most_detailed = hierarchy[hierarchy.most_detailed == 1].location_id.unique().tolist()
+                                   hierarchy: pd.DataFrame):    
     metrics = ['count', 'rate', 'weight']
     measures = {
         'death': ('deaths', 'ifr'),
@@ -108,30 +107,37 @@ def prepare_epi_measures_and_rates(measure: str,
         'admission': ('hospitalizations', 'ihr'),
     }
     in_measure, rate = measures[measure]
+    most_detailed = hierarchy[hierarchy.most_detailed == 1].location_id.unique().tolist()
+    total_measure = epi_measures[f'smoothed_daily_{in_measure}'].dropna().groupby('location_id').sum()
+    to_model = total_measure[total_measure > 0].index.intersection(most_detailed).tolist()
+    model_idx = epi_measures.loc[to_model].index
+    
+    lag = rates['lag'].iloc[0]    
+    measure_data = reindex_to_infection_day(
+        epi_measures[f'smoothed_daily_{in_measure}'] + 3e-2,
+        lag,
+        to_model
+    ).reindex(model_idx)
 
     out_data = pd.DataFrame(
         np.nan,
         columns=[f'{metric}_all_{m}' for metric, m in itertools.product(metrics, measures)],
-        index=epi_measures.index
+        index=model_idx,
     )
+    out_data.loc[:, f'count_all_{measure}'] = measure_data[f'smoothed_daily_{in_measure}']
+    
     out_data.loc[:, [c for c in out_data if 'weight' in c]] = 0.
     out_data.loc[:, f'weight_all_{measure}'] = 1.0
     out_scalars = pd.DataFrame(
         np.nan,
         columns=[f'{m}_{rg}' for m, rg in itertools.product(measures, RISK_GROUP_NAMES)],
-        index=epi_measures.index
+        index=model_idx,
     )
-
-    lag = rates['lag'].iloc[0]
-    out_data.loc[f'count_all_{measure}'] = reindex_to_infection_day(
-        epi_measures[f'smoothed_daily_{in_measure}'] + 3e-2,
-        lag,
-        most_detailed
-    )
+    
     rates = reindex_to_infection_day(rates.drop(columns='lag'), lag, most_detailed)
     for risk_group in RISK_GROUP_NAMES:
         out_scalars.loc[:, f'{measure}_{risk_group}'] = (
-            rates[f'{measure}_{risk_group}'] / rates[rate]
+            rates[f'{rate}_{risk_group}'] / rates[rate]
         )
     out_data.loc[:, f'rate_all_{measure}'] = rates[rate]
 
@@ -153,6 +159,7 @@ def make_initial_condition(measure: str,
                            full_rates: pd.DataFrame,
                            population: pd.DataFrame):
     base_params = parameters.base_parameters
+    full_rates = full_rates.loc[base_params.index]
     
     crude_infections = get_crude_infections(measure, base_params, full_rates, threshold=50)
     new_e_start = crude_infections.reset_index(level='date').groupby('location_id').first()
@@ -204,7 +211,7 @@ def make_initial_condition(measure: str,
 
 
 def get_crude_infections(measure: str, base_params, rates, threshold=50):
-    rate = {'death': 'ifr', 'admission': 'ihr', 'case': 'idr'}
+    rate = {'death': 'ifr', 'admission': 'ihr', 'case': 'idr'}[measure]
     crude_infections = base_params[f'count_all_{measure}'] / rates[rate]
     crude_infections = crude_infections.loc[crude_infections > threshold].rename('infections')
     return crude_infections
@@ -253,18 +260,18 @@ def compute_posterior_epi_measures(compartments: pd.DataFrame,
     return epi_measures
 
 
-def aggregate_posterior_epi_measures(epi_measures: pd.DataFrame,
+def aggregate_posterior_epi_measures(measure: str,
+                                     epi_measures: pd.DataFrame,
                                      posterior_epi_measures: pd.DataFrame,
                                      hierarchy: pd.DataFrame) -> pd.DataFrame:
+    output_measure = {'death': 'deaths', 'case': 'cases', 'admission': 'hospitalizations'}[measure]
     posterior_locs = posterior_epi_measures.reset_index()['location_id'].unique().tolist()
     epi_measures = epi_measures.loc[posterior_locs]
     agg_posterior_epi_measures = []
     for measure in ['cumulative_naive_unvaccinated_infections',
                     'cumulative_naive_infections',
                     'cumulative_total_infections',
-                    'cumulative_deaths',
-                    'cumulative_cases',
-                    'cumulative_hospitalizations']:
+                    f'cumulative_{output_measure}']:
         if 'infections' in measure:
             pem = (posterior_epi_measures.loc[:, [measure]]
                    .dropna()
@@ -326,30 +333,6 @@ def run_ode_fit(initial_condition: pd.DataFrame,
              .fillna(betas)
              .rename(columns=lambda x: f'beta_{x.split("_")[3]}')
              .rename(columns={'beta_all': 'beta'}))
-    
-    # Clean up results
-    # counts and beta should be identically indexed in production,
-    # but subset to beta in case we only ran a subset of locations for debugging
-    full_compartments_diff = full_compartments.groupby('location_id').diff().fillna(full_compartments)
-    counts = ode_parameters.base_parameters.filter(like='count').loc[betas.index]
-    no_counts = counts.sum(axis=1, min_count=1).isnull()
-    for measure in ['death', 'admission', 'case']:
-        no_counts_measure = counts[f'count_all_{measure}'].isnull()
-        betas.loc[no_counts_measure, f'beta_{measure}'] = np.nan
-        cols = [c for c in full_compartments if measure.capitalize() in c]
-        full_compartments_diff.loc[no_counts, cols] = np.nan
-
-        # FIXME: Clean this up, we just want to set nan to measures that run out of data.
-        # In the system, we have no beta adjustment factor for the rates when we run
-        # out of counts for a measure but other measures are still present.
-        # Here we carry the last adjustment factor forward in time so we don't end up with
-        # discontinuities in the results.
-        terminal_beta = betas.loc[~no_counts_measure].groupby('location_id').last()
-        measure_ratio = (terminal_beta.loc[:, f'beta_{measure}'] / terminal_beta.loc[:, f'beta']).dropna()        
-        if not measure_ratio.empty:  # We have at least some data to adjust on.
-            adjustment_idx = full_compartments.loc[no_counts_measure & ~no_counts].loc[measure_ratio.index].index            
-            full_compartments_diff.loc[adjustment_idx, cols] = np.nan
-    full_compartments = full_compartments_diff.groupby('location_id').cumsum()
         
     # Can have a composite beta if we don't have measure betas
     no_beta = betas[[f'beta_{measure}' for measure in ['death', 'admission', 'case']]].isnull().all(axis=1)
