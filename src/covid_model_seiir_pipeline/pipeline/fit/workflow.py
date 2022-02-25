@@ -23,7 +23,7 @@ class CovariatePoolTaskTemplate(workflow.TaskTemplate):
 
 class BetaFitTaskTemplate(workflow.TaskTemplate):
     tool = workflow.get_jobmon_tool(covid_model_seiir_pipeline)
-    task_name_template = f"{FIT_JOBS.beta_fit}_draw_{{draw_id}}"
+    task_name_template = f"{FIT_JOBS.beta_fit}_measure_{{measure}}_draw_{{draw_id}}"
     command_template = (
         f"{shutil.which('stask')} "
         f"{FIT_JOBS.beta_fit} "
