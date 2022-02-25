@@ -1,3 +1,4 @@
+import itertools
 import shutil
 from typing import List
 
@@ -27,10 +28,11 @@ class BetaFitTaskTemplate(workflow.TaskTemplate):
         f"{shutil.which('stask')} "
         f"{FIT_JOBS.beta_fit} "
         "--fit-version {fit_version} "
+        "--measure {measure} "
         "--draw-id {draw_id} "
         "-vv"
     )
-    node_args = ['draw_id']
+    node_args = ['measure', 'draw_id']
     task_args = ['fit_version']
 
 
@@ -103,9 +105,10 @@ class FitWorkflow(workflow.WorkflowTemplate):
             self.workflow.add_task(diagnostics_task)
             diagnostics_tasks.append(diagnostics_task)
 
-        for draw_id in range(n_draws):
+        for measure, draw_id in itertools.product(['case', 'death', 'admission'], range(n_draws)):
             task = fit_template.get_task(
                 fit_version=self.version,
+                measure=measure,
                 draw_id=draw_id,
             )
             task.add_upstream(covariate_pool_task)
