@@ -19,7 +19,7 @@ def runner(epi_data: pd.DataFrame,
            pred_hierarchy: pd.DataFrame,
            age_patterns: pd.DataFrame,
            population: pd.Series,
-           age_spec_population: pd.Series,
+           age_specific_population: pd.Series,
            variant_risk_ratio: Dict[str, float],
            durations: Dict,
            day_inflection: pd.Timestamp,
@@ -65,7 +65,7 @@ def runner(epi_data: pd.DataFrame,
         pred_data=pred_data.copy(),
         ifr_age_pattern=ifr_age_pattern.copy(),
         sero_age_pattern=sero_age_pattern.copy(),
-        age_spec_population=age_spec_population.copy(),
+        age_spec_population=age_specific_population.copy(),
         variant_risk_ratio=variant_risk_ratio,
         mr_hierarchy=mr_hierarchy.copy(),
         pred_hierarchy=pred_hierarchy.copy(),
@@ -79,7 +79,7 @@ def runner(epi_data: pd.DataFrame,
     lr_rr, hr_rr = age_standardization.get_risk_group_rr(
         ifr_age_pattern.copy(),
         sero_age_pattern.copy() ** 0,  # just use flat
-        age_spec_population.copy(),
+        age_specific_population.copy(),
     )
     pred_lr = (pred * lr_rr).rename('pred_ifr_lr')
     pred_hr = (pred * hr_rr).rename('pred_ifr_hr')
