@@ -249,7 +249,7 @@ class FitRoot(DataRoot):
     compartments = DatasetType('compartments', LEAF_TEMPLATES.DRAW_TEMPLATE)
     ode_parameters = DatasetType('ode_parameters', LEAF_TEMPLATES.MEASURE_DRAW_TEMPLATE)
     phis = DatasetType('phis', LEAF_TEMPLATES.DRAW_TEMPLATE)
-    seroprevalence = DatasetType('seroprevalence', LEAF_TEMPLATES.DRAW_TEMPLATE)
+    seroprevalence = DatasetType('seroprevalence', LEAF_TEMPLATES.MEASURE_DRAW_TEMPLATE)
     chis = DatasetType('chis', LEAF_TEMPLATES.DRAW_TEMPLATE)
     summary = DatasetType('summary', LEAF_TEMPLATES.MEASURE_TEMPLATE)
 
