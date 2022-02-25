@@ -295,13 +295,15 @@ def run_beta_fit(fit_version: str, measure: str, draw_id: int, progress_bar: boo
 
 @click.command()
 @cli_tools.with_task_fit_version
+@cli_tools.with_measure
 @cli_tools.with_draw_id
 @cli_tools.add_verbose_and_with_debugger
 @cli_tools.with_progress_bar
-def beta_fit(fit_version: str, draw_id: int,
+def beta_fit(fit_version: str, measure: str, draw_id: int,
              progress_bar: bool, verbose: int, with_debugger: bool):
     cli_tools.configure_logging_to_terminal(verbose)
     run = cli_tools.handle_exceptions(run_beta_fit, logger, with_debugger)
     run(fit_version=fit_version,
+        measure=measure,
         draw_id=draw_id,
         progress_bar=progress_bar)
