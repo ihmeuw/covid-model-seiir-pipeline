@@ -22,7 +22,7 @@ COVARIATE_POOL = (
 
 
 def make_covariate_pool(n_samples: int) -> Dict[str, Dict[int, List[str]]]:
-    with open('/ihme/covid-19-2/rates-covariates/2021_12_19.01/covariate_combinations.yaml', 'r') as file:
+    with open('/ihme/covid-19/rates-covariates/2021_12_19.01/covariate_combinations.yaml', 'r') as file:
         selected_combinations = yaml.full_load(file)
     if not all([c in COVARIATE_POOL for sc in selected_combinations for c in sc]):
         raise ValueError('Invalid covariate selected.')
