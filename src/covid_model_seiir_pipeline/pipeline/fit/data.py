@@ -145,29 +145,29 @@ class FitDataInterface:
     def load_phis(self, draw_id: int) -> pd.DataFrame:
         return io.load(self.fit_root.phis(draw_id=draw_id))
 
-    def save_input_epi_measures(self, data: pd.DataFrame, draw_id: int):
-        io.dump(data, self.fit_root.input_epi_measures(draw_id=draw_id))
+    def save_input_epi_measures(self, data: pd.DataFrame, measure: str, draw_id: int):
+        io.dump(data, self.fit_root.input_epi_measures(measure=measure, draw_id=draw_id))
 
-    def load_input_epi_measures(self, draw_id: int, columns: List[str] = None) -> pd.DataFrame:
-        return io.load(self.fit_root.input_epi_measures(draw_id=draw_id, columns=columns))
+    def load_input_epi_measures(self, measure: str, draw_id: int, columns: List[str] = None) -> pd.DataFrame:
+        return io.load(self.fit_root.input_epi_measures(measure=measure, draw_id=draw_id, columns=columns))
 
-    def save_rates_data(self, data: pd.DataFrame, draw_id: int) -> None:
-        io.dump(data, self.fit_root.rates_data(draw_id=draw_id))
+    def save_rates_data(self, data: pd.DataFrame, measure: str, draw_id: int) -> None:
+        io.dump(data, self.fit_root.rates_data(measure=measure, draw_id=draw_id))
 
-    def load_rates_data(self, draw_id: int, columns: List[str] = None) -> pd.DataFrame:
-        return io.load(self.fit_root.rates_data(draw_id=draw_id, columns=columns))
+    def load_rates_data(self, measure: str, draw_id: int, columns: List[str] = None) -> pd.DataFrame:
+        return io.load(self.fit_root.rates_data(measure=measure, draw_id=draw_id, columns=columns))
 
-    def save_rates(self, data: pd.DataFrame, draw_id: int) -> None:
-        io.dump(data, self.fit_root.rates(draw_id=draw_id))
+    def save_rates(self, data: pd.DataFrame, measure: str, draw_id: int) -> None:
+        io.dump(data, self.fit_root.rates(measure=measure, draw_id=draw_id))
 
-    def load_rates(self, draw_id: int, columns: List[str] = None) -> pd.DataFrame:
-        return io.load(self.fit_root.rates(draw_id=draw_id, columns=columns))
+    def load_rates(self, measure: str, draw_id: int, columns: List[str] = None) -> pd.DataFrame:
+        return io.load(self.fit_root.rates(measure=measure, draw_id=draw_id, columns=columns))
 
-    def save_posterior_epi_measures(self, data: pd.DataFrame, draw_id: int):
-        io.dump(data, self.fit_root.posterior_epi_measures(draw_id=draw_id))
+    def save_posterior_epi_measures(self, data: pd.DataFrame, measure: str, draw_id: int):
+        io.dump(data, self.fit_root.posterior_epi_measures(measure=measure, draw_id=draw_id))
 
-    def load_posterior_epi_measures(self, draw_id: int, columns: List[str] = None) -> pd.DataFrame:
-        return io.load(self.fit_root.posterior_epi_measures(draw_id=draw_id, columns=columns))
+    def load_posterior_epi_measures(self, measure: str, draw_id: int, columns: List[str] = None) -> pd.DataFrame:
+        return io.load(self.fit_root.posterior_epi_measures(measure=measure, draw_id=draw_id, columns=columns))
 
     def save_compartments(self, data: pd.DataFrame, draw_id: int) -> None:
         io.dump(data, self.fit_root.compartments(draw_id=draw_id))
@@ -175,17 +175,17 @@ class FitDataInterface:
     def load_compartments(self, draw_id: int, columns: List[str] = None) -> pd.DataFrame:
         return io.load(self.fit_root.compartments(draw_id=draw_id, columns=columns))
 
-    def save_fit_beta(self, data: pd.DataFrame, draw_id: int) -> None:
-        io.dump(data, self.fit_root.beta(draw_id=draw_id))
+    def save_fit_beta(self, data: pd.DataFrame, measure: str, draw_id: int) -> None:
+        io.dump(data, self.fit_root.beta(measure=measure, draw_id=draw_id))
 
-    def load_fit_beta(self, draw_id: int, columns: List[str] = None) -> pd.DataFrame:
-        return io.load(self.fit_root.beta(draw_id=draw_id, columns=columns))
+    def load_fit_beta(self, measure: str, draw_id: int, columns: List[str] = None) -> pd.DataFrame:
+        return io.load(self.fit_root.beta(measure=measure, draw_id=draw_id, columns=columns))
 
-    def save_final_seroprevalence(self, data: pd.DataFrame, draw_id: int) -> None:
-        io.dump(data, self.fit_root.seroprevalence(draw_id=draw_id))
+    def save_final_seroprevalence(self, data: pd.DataFrame, measure: str, draw_id: int) -> None:
+        io.dump(data, self.fit_root.seroprevalence(measure=measure, draw_id=draw_id))
 
-    def load_final_seroprevalence(self, draw_id: int, columns: List[str] = None) -> pd.DataFrame:
-        return io.load(self.fit_root.seroprevalence(draw_id=draw_id, columns=columns))
+    def load_final_seroprevalence(self, draw_id: int, measure: str, columns: List[str] = None) -> pd.DataFrame:
+        return io.load(self.fit_root.seroprevalence(measure=measure, draw_id=draw_id, columns=columns))
 
     def save_summary(self, data: pd.DataFrame, measure: str) -> None:
         io.dump(data, self.fit_root.summary(measure=measure))

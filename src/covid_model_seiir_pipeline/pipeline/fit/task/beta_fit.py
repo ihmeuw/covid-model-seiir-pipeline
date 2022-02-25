@@ -67,9 +67,11 @@ def run_beta_fit(fit_version: str, measure: str, draw_id: int, progress_bar: boo
     logger.info('Generating naive infections for first pass rates model', context='transform')
     daily_deaths = epi_measures['smoothed_daily_deaths'].dropna()
     naive_ifr = specification.rates_parameters.naive_ifr
-    init_daily_infections = (daily_deaths / naive_ifr).rename('daily_infections').reset_index()
+    init_daily_infections = (daily_deaths / naive_ifr).rename(
+        'daily_infections').reset_index()
     init_daily_infections['date'] -= pd.Timedelta(days=durations.exposure_to_death)
-    init_daily_infections = init_daily_infections.set_index(['location_id', 'date']).loc[:, 'daily_infections']
+    init_daily_infections = init_daily_infections.set_index(['location_id', 'date']).loc[:,
+                            'daily_infections']
 
     logger.info('Running first-pass rates model', context='rates_model_1')
     first_pass_rates, first_pass_rates_data = model.run_rates_pipeline(
@@ -125,12 +127,14 @@ def run_beta_fit(fit_version: str, measure: str, draw_id: int, progress_bar: boo
         progress_bar=progress_bar,
     )
 
-    logger.info('Prepping first pass ODE outputs for second pass rates model', context='transform')
+    logger.info('Prepping first pass ODE outputs for second pass rates model',
+                context='transform')
     first_pass_posterior_epi_measures = model.compute_posterior_epi_measures(
         compartments=compartments,
         durations=durations
     )
     agg_first_pass_posterior_epi_measures = model.aggregate_posterior_epi_measures(
+        measure=measure,
         epi_measures=epi_measures,
         posterior_epi_measures=first_pass_posterior_epi_measures,
         hierarchy=mr_hierarchy
@@ -148,10 +152,10 @@ def run_beta_fit(fit_version: str, measure: str, draw_id: int, progress_bar: boo
     pct_unvaccinated = (
         (agg_first_pass_posterior_epi_measures['cumulative_naive_unvaccinated_infections']
          / agg_first_pass_posterior_epi_measures['cumulative_naive_infections'])
-        .clip(0, 1)
-        .fillna(1)
-        .rename('pct_unvaccinated')
-        .reset_index()
+            .clip(0, 1)
+            .fillna(1)
+            .rename('pct_unvaccinated')
+            .reset_index()
     )
     pct_unvaccinated['date'] += pd.Timedelta(days=durations.exposure_to_seroconversion)
 
@@ -176,6 +180,7 @@ def run_beta_fit(fit_version: str, measure: str, draw_id: int, progress_bar: boo
 
     logger.info('Running second-pass rates model', context='rates_model_2')
     second_pass_rates, second_pass_rates_data = model.run_rates_pipeline(
+        measure=measure,
         epi_data=agg_first_pass_posterior_epi_measures,
         age_patterns=age_patterns,
         seroprevalence=adjusted_seroprevalence,
@@ -187,8 +192,9 @@ def run_beta_fit(fit_version: str, measure: str, draw_id: int, progress_bar: boo
         age_specific_population=five_year_population,
         testing_capacity=testing_capacity,
         variant_prevalence=variant_prevalence,
-        daily_infections=(agg_first_pass_posterior_epi_measures['daily_naive_unvaccinated_infections']
-                          .rename('daily_infections')),
+        daily_infections=(
+            agg_first_pass_posterior_epi_measures['daily_naive_unvaccinated_infections']
+            .rename('daily_infections')),
         durations=durations,
         variant_rrs=variant_severity,
         params=specification.rates_parameters,
@@ -199,6 +205,7 @@ def run_beta_fit(fit_version: str, measure: str, draw_id: int, progress_bar: boo
 
     logger.info('Prepping ODE fit parameters for second pass model.', context='transform')
     ode_parameters, second_pass_base_rates = model.prepare_ode_fit_parameters(
+        measure=measure,
         rates=second_pass_rates,
         epi_measures=epi_measures,
         rhos=rhos,
@@ -207,13 +214,13 @@ def run_beta_fit(fit_version: str, measure: str, draw_id: int, progress_bar: boo
         natural_waning_dist=natural_waning_dist,
         natural_waning_matrix=natural_waning_matrix,
         sampled_ode_params=sampled_ode_params,
-        measure_downweights=specification.measure_downweights.to_dict(),
         hierarchy=pred_hierarchy,
         draw_id=draw_id,
     )
 
     logger.info('Rebuilding initial condition.', context='transform')
     initial_condition = model.make_initial_condition(
+        measure,
         ode_parameters,
         second_pass_base_rates,
         risk_group_population,
@@ -276,15 +283,12 @@ def run_beta_fit(fit_version: str, measure: str, draw_id: int, progress_bar: boo
 
     logger.info('Writing outputs', context='write')
 
-    data_interface.save_ode_params(out_params, draw_id=draw_id)
-    data_interface.save_phis(ode_parameters.phis, draw_id=draw_id)
-    data_interface.save_input_epi_measures(epi_measures, draw_id=draw_id)
-    data_interface.save_rates(prior_rates, draw_id=draw_id)
-    data_interface.save_rates_data(rates_data, draw_id=draw_id)
-    data_interface.save_posterior_epi_measures(posterior_epi_measures, draw_id=draw_id)
-    data_interface.save_compartments(compartments, draw_id=draw_id)
-    data_interface.save_fit_beta(betas, draw_id=draw_id)
-    data_interface.save_final_seroprevalence(out_seroprevalence, draw_id=draw_id)
+    data_interface.save_input_epi_measures(epi_measures, measure=measure, draw_id=draw_id)
+    data_interface.save_rates(prior_rates, measure=measure, draw_id=draw_id)
+    data_interface.save_rates_data(rates_data, measure=measure, draw_id=draw_id)
+    data_interface.save_posterior_epi_measures(posterior_epi_measures, measure=measure, draw_id=draw_id)
+    data_interface.save_fit_beta(betas, measure=measure, draw_id=draw_id)
+    data_interface.save_final_seroprevalence(out_seroprevalence, measure=measure, draw_id=draw_id)
 
     logger.report()
 
