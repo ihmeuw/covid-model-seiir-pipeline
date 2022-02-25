@@ -167,7 +167,7 @@ def rescale_kappas(measure: str,
         ]
         kappa_omicron_admission = pd.Series(
             sampled_ode_params['kappa_omicron_admission'],
-            index=compartments.index,
+            index=compartments.reset_index().location_id.unique(),
             name='kappa_omicron_admission'
         )
         for location_id, ihr_scaling_factor in ihr_scaling_factors:
@@ -275,7 +275,7 @@ def rescale_kappas(measure: str,
         ]
         kappa_omicron_death = pd.Series(
             sampled_ode_params['kappa_omicron_death'],
-            index=compartments.index,
+            index=compartments.reset_index().location_id.unique(),
             name='kappa_omicron_death'
         )
         for location_id, ifr_scaling_factor in ifr_scaling_factors:
