@@ -78,24 +78,25 @@ def rescale_kappas(sampled_ode_params: Dict,
         ( 4774,  0.2),  # Sergipe
         ( 4776,  0.5),  # Tocantins
         (  160,  0.2),  # Afghanistan
+        (  140,  2.0),  # Bahrain
         (  139,  0.5),  # Algeria
         (  141,  0.5),  # Egypt
         (  142,  0.2),  # Iran
-        (  143,  0.2),  # Iraq
+        (  143,  0.5),  # Iraq
         (  144,  2.0),  # Jordan
         (  151,  2.0),  # Qatar
         (  155,  2.0),  # Turkey
         (  157,  0.2),  # Yemen
-        ( 4849,  5.0),  # Delhi
+        ( 4849,  3.0),  # Delhi
         ( 4851,  2.0),  # Gujarat
         ( 4852,  2.0),  # Haryana
-        ( 4863,  8.0),  # Mizoram
+        ( 4863,  5.0),  # Mizoram
         ( 4869,  2.0),  # Sikkim
         ( 4874,  2.0),  # Uttarakhand
         (53616,  0.2),  # Balochistan
         (53617,  0.5),  # Gilgit-Baltistan
         (53618,  0.5),  # Islamabad Capital Territory
-        (53619,  0.2),  # Khyber Pakhtunkhwa
+        (53619,  0.5),  # Khyber Pakhtunkhwa
         (53620,  0.2),  # Punjab
         (  351,  5.0),  # Guam
         (   23, 10.0),  # Kiribati
@@ -196,7 +197,6 @@ def rescale_kappas(sampled_ode_params: Dict,
         (  122,  2.0),  # Ecuador
         (  113,  3.0),  # Guyana
         (  118,  3.0),  # Suriname
-        (  129,  2.0),  # Honduras
         ( 4644,  2.0),  # Baja California
         ( 4645,  2.0),  # Baja California Sur
         ( 4649,  0.2),  # Chiapas
@@ -206,6 +206,7 @@ def rescale_kappas(sampled_ode_params: Dict,
         ( 4654,  0.5),  # Guerrero
         ( 4651,  2.0),  # Mexico City
         ( 4661,  2.0),  # Nuevo Leon
+        ( 4665,  2.0),  # Quintana Roo
         ( 4670,  2.0),  # Tamaulipas
         ( 4672,  0.5),  # Veracruz de Ignacio de la Llave
         ( 4674,  2.0),  # Zacatecas
@@ -237,11 +238,11 @@ def rescale_kappas(sampled_ode_params: Dict,
         (  522,  2.0),  # Sudan
         (  154,  3.0),  # Tunisia
         (  155,  2.0),  # Turkey
-        ( 4849,  8.0),  # Delhi
+        ( 4849,  3.0),  # Delhi
         ( 4852,  2.0),  # Haryana
         ( 4861,  2.0),  # Manipur
         ( 4862,  2.0),  # Meghalaya
-        ( 4863,  8.0),  # Mizoram
+        ( 4863,  5.0),  # Mizoram
         ( 4865,  2.0),  # Odisha
         ( 4871,  0.5),  # Telangana
         ( 4872,  3.0),  # Tripura
