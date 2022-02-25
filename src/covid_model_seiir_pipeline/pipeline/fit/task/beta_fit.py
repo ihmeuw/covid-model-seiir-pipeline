@@ -241,16 +241,15 @@ def run_beta_fit(fit_version: str, measure: str, draw_id: int, progress_bar: boo
     for name, duration in durations._asdict().items():
         out_params.loc[:, name] = duration
 
+    rate = {'case': 'idr', 'death': 'ifr', 'admission': 'ihr'}[measure]
     rates_data = []
     for round_id, dataset in enumerate([first_pass_rates_data, second_pass_rates_data]):
-        for measure in ['ifr', 'ihr', 'idr']:
-            df = dataset._asdict()[measure]
-            df = (df
-                  .loc[:, ['location_id', 'mean_infection_date', 'data_id', measure]]
-                  .rename(columns={measure: 'value', 'mean_infection_date': 'date'}))
-            df['measure'] = measure
-            df['round'] = round_id + 1
-            rates_data.append(df)
+        df = (dataset
+              .loc[:, ['location_id', 'mean_infection_date', 'data_id', measure]]
+              .rename(columns={measure: 'value', 'mean_infection_date': 'date'}))
+        df['measure'] = measure
+        df['round'] = round_id + 1
+        rates_data.append(df)
     rates_data = pd.concat(rates_data)
 
     first_pass_rates = pd.concat([r.drop(columns='lag') for r in first_pass_rates], axis=1)
