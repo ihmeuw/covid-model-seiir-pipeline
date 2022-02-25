@@ -242,7 +242,7 @@ class FitRoot(DataRoot):
     broken_locations_report = MetadataType('broken_locations_report')
 
     beta = DatasetType('beta', LEAF_TEMPLATES.MEASURE_DRAW_TEMPLATE)
-    input_epi_measures = DatasetType('input_epi_measures', LEAF_TEMPLATES.DRAW_TEMPLATE)
+    input_epi_measures = DatasetType('input_epi_measures', LEAF_TEMPLATES.MEASURE_DRAW_TEMPLATE)
     posterior_epi_measures = DatasetType('posterior_epi_measures', LEAF_TEMPLATES.MEASURE_DRAW_TEMPLATE)
     rates = DatasetType('rates', LEAF_TEMPLATES.MEASURE_DRAW_TEMPLATE)
     rates_data = DatasetType('rates_data', LEAF_TEMPLATES.MEASURE_DRAW_TEMPLATE)
