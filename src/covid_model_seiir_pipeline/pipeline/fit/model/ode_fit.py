@@ -62,29 +62,9 @@ def prepare_ode_fit_parameters(measure: str,
     
     vaccinations = vaccinations.reindex(past_index, fill_value=0.)
     etas = etas.sort_index().reindex(past_index, fill_value=0.)
-
-    phis = []
-    phi_scalar = sample_parameter('phi_scalar', draw_id, 0.85, 0.95)
-    phi_scalars = {'death': phi_scalar, 'admission': phi_scalar}
-    for endpoint in ['infection', 'death', 'admission', 'case']:
-        if endpoint == 'infection':
-            w_base = pd.Series(0., index=natural_waning_dist.index)
-        else:
-            w_base = natural_waning_dist['infection']
-        w_target = natural_waning_dist[endpoint]
-
-        for from_variant, to_variant in itertools.product(VARIANT_NAMES, VARIANT_NAMES):
-            if endpoint == 'case' and to_variant == 'omicron':
-                # ## MID-POINT
-                # w_target = natural_waning_dist[['infection', 'admission']].mean(axis=1).rename('case')
-                ## SYMPTOMATIC == SEVERE
-                w_target = natural_waning_dist['admission'].rename('case')
-            cvi = natural_waning_matrix.loc[from_variant, to_variant]
-            numerator_scalar = phi_scalars.get(endpoint, cvi)
-            phi = 1 - (1 - numerator_scalar * w_target) / (1 - cvi * w_base)
-            phi[phi.cummax() < phi.max()] = phi.max()
-            phis.append(phi.rename(f'{from_variant}_{to_variant}_{endpoint}'))
-    phis = pd.concat(phis, axis=1)
+    phis = compute_phis(
+        natural_waning_dist, natural_waning_matrix, draw_id
+    )
 
     ode_params = Parameters(
         base_parameters=base_parameters,
@@ -96,8 +76,51 @@ def prepare_ode_fit_parameters(measure: str,
     return ode_params, rates
 
 
-def prepare_past_infections_parameters(epi_measures: pd.DataFrame):
+def prepare_past_infections_parameters(betas: pd.DataFrame,
+                                       rates: pd.DataFrame,
+                                       durations: Durations,
+                                       epi_measures: pd.DataFrame,
+                                       rhos: pd.DataFrame,
+                                       vaccinations: pd.DataFrame,
+                                       etas: pd.DataFrame,
+                                       natural_waning_dist: pd.Series,
+                                       natural_waning_matrix: pd.DataFrame,
+                                       sampled_ode_params: Dict[str, float],
+                                       hierarchy: pd.DataFrame,
+                                       draw_id: int):
+    measures_and_rates, age_scalars = prepare_epi_measures_for_past_infections(
+        epi_measures=epi_measures,
+        epi_rates=rates,
+        durations=durations,
+        hierarchy=hierarchy,
+    )
+    past_index = measures_and_rates.index
+    scalar_params = {k: p for k, p in sampled_ode_params.items() if isinstance(p, (int, float))}
+    series_params = [p.reindex(past_index, level='location_id').rename(k)
+                     for k, p in sampled_ode_params.items() if isinstance(p, pd.Series)]
+    sampled_params = pd.concat([
+        pd.DataFrame(scalar_params, index=past_index),
+        *series_params,
+    ], axis=1)
 
+    rhos = rhos.reindex(past_index, fill_value=0.)
+    rhos.columns = [f'rho_{c}_infection' for c in rhos.columns]
+    rhos['rho_none_infection'] = pd.Series(0., index=past_index, name='rho_none_infection')
+
+    beta = betas.mean(axis=1).rename('beta_all_infection').reindex(past_index)
+
+    base_parameters = pd.concat([
+        sampled_params,
+        measures_and_rates,
+        beta,
+        rhos,
+    ], axis=1)
+
+    vaccinations = vaccinations.reindex(past_index, fill_value=0.)
+    etas = etas.sort_index().reindex(past_index, fill_value=0.)
+    phis = compute_phis(
+        natural_waning_dist, natural_waning_matrix, draw_id
+    )
 
     return Parameters(
         base_parameters=base_parameters,
@@ -157,6 +180,7 @@ def prepare_epi_measures_and_rates(measure: str,
 
 
 def prepare_epi_measures_for_past_infections(epi_measures: pd.DataFrame,
+                                             epi_rates: pd.DataFrame,
                                              durations: Durations,
                                              hierarchy: pd.DataFrame):
     most_detailed = hierarchy[hierarchy.most_detailed == 1].location_id.unique().tolist()
@@ -167,11 +191,10 @@ def prepare_epi_measures_for_past_infections(epi_measures: pd.DataFrame,
     )
 
     out_measures = []
-    out_rates = []
     out_scalars = []
     for in_measure, out_measure, rate in measures:
-        epi_data = (epi_measures[f'smoothed_daily_{in_measure}'].rename(out_measure) + 3e-2).to_frame()
-        lag = durations._asdict()[f'exposure_to_{measure}']
+        epi_data = (epi_measures[f'smoothed_daily_{in_measure}'].rename(f'count_all{out_measure}') + 3e-2).to_frame()
+        lag = durations._asdict()[f'exposure_to_{out_measure}']
 
         epi_data = reindex_to_infection_day(epi_data, lag, most_detailed)
         epi_scalars = epi_rates.copy()
@@ -181,14 +204,20 @@ def prepare_epi_measures_for_past_infections(epi_measures: pd.DataFrame,
         epi_scalars = epi_scalars.drop(columns=drop_cols)
 
         out_measures.append(epi_data)
-        out_rates.append(epi_rates)
         out_scalars.append(epi_scalars)
 
     out_measures = pd.concat(out_measures, axis=1).reset_index()
-    out_measures = out_measures.loc[out_measures.location_id.isin(most_detailed)].set_index(['location_id', 'date'])
-    out_rates = pd.concat(out_rates, axis=1).reindex(out_measures.index).sort_index()
+    out_measures = (out_measures
+                    .loc[out_measures.location_id.isin(most_detailed)]
+                    .set_index(['location_id', 'date'])
+                    .sort_index())
+    out_rates = out_measures.copy().rename(lambda x: x.replace('count', 'rate'))
+    out_rates.loc[:, :] = np.nan
+    out_weights = out_measures.copy().rename(lambda x: x.replace('count', 'weight'))
+    out_weights.loc[:, :] = np.nan
+    out_data = pd.concat([out_measures, out_rates, out_weights], axis=1)
     out_scalars = pd.concat(out_scalars, axis=1).reindex(out_measures.index).sort_index()
-    return out_measures, out_rates, out_scalars
+    return out_data, out_scalars
 
 
 def reindex_to_infection_day(data: pd.DataFrame, lag: int, most_detailed: List[int]) -> pd.DataFrame:
@@ -201,14 +230,42 @@ def reindex_to_infection_day(data: pd.DataFrame, lag: int, most_detailed: List[i
     return data
 
 
+def compute_phis(natural_waning_dist: pd.Series,
+                 natural_waning_matrix: pd.DataFrame,
+                 draw_id: int):
+    phis = []
+    phi_scalar = sample_parameter('phi_scalar', draw_id, 0.85, 0.95)
+    phi_scalars = {'death': phi_scalar, 'admission': phi_scalar}
+    for endpoint in ['infection', 'death', 'admission', 'case']:
+        if endpoint == 'infection':
+            w_base = pd.Series(0., index=natural_waning_dist.index)
+        else:
+            w_base = natural_waning_dist['infection']
+        w_target = natural_waning_dist[endpoint]
+
+        for from_variant, to_variant in itertools.product(VARIANT_NAMES, VARIANT_NAMES):
+            if endpoint == 'case' and to_variant == 'omicron':
+                # ## MID-POINT
+                # w_target = natural_waning_dist[['infection', 'admission']].mean(axis=1).rename('case')
+                ## SYMPTOMATIC == SEVERE
+                w_target = natural_waning_dist['admission'].rename('case')
+            cvi = natural_waning_matrix.loc[from_variant, to_variant]
+            numerator_scalar = phi_scalars.get(endpoint, cvi)
+            phi = 1 - (1 - numerator_scalar * w_target) / (1 - cvi * w_base)
+            phi[phi.cummax() < phi.max()] = phi.max()
+            phis.append(phi.rename(f'{from_variant}_{to_variant}_{endpoint}'))
+    phis = pd.concat(phis, axis=1)
+    return phis
+
+
 def make_initial_condition(measure: str,
                            parameters: Parameters,
-                           full_rates: pd.DataFrame,
+                           rates: pd.DataFrame,
                            population: pd.DataFrame):
     base_params = parameters.base_parameters
-    full_rates = full_rates.loc[base_params.index]
+    rates = rates.loc[base_params.index]
     
-    crude_infections = get_crude_infections(measure, base_params, full_rates, threshold=50)
+    crude_infections = get_crude_infections(measure, base_params, rates, threshold=50)
     new_e_start = crude_infections.reset_index(level='date').groupby('location_id').first()
     start_date, new_e_start = new_e_start['date'], new_e_start['infections']
     end_date = base_params.filter(like='count')
@@ -225,7 +282,7 @@ def make_initial_condition(measure: str,
     initial_condition = []
     for location_id, loc_start_date in start_date.iteritems():
         loc_end_date = end_date.loc[location_id]
-        loc_initial_condition = pd.DataFrame(0., columns=compartments, index=full_rates.loc[location_id].index)
+        loc_initial_condition = pd.DataFrame(0., columns=compartments, index=rates.loc[location_id].index)
         for risk_group in RISK_GROUP_NAMES:
             pop = population.loc[location_id, risk_group]
             new_e = new_e_start.loc[location_id] * pop / population.loc[location_id].sum()
@@ -258,9 +315,17 @@ def make_initial_condition(measure: str,
 
 
 def get_crude_infections(measure: str, base_params, rates, threshold=50):
-    rate = {'death': 'ifr', 'admission': 'ihr', 'case': 'idr'}[measure]
-    crude_infections = base_params[f'count_all_{measure}'] / rates[rate]
-    crude_infections = crude_infections.loc[crude_infections > threshold].rename('infections')
+    rate_map = {'death': 'ifr', 'admission': 'ihr', 'case': 'idr'}
+    crude_infections = pd.DataFrame(index=rates.index)
+    for measure, rate in rate_map.items():
+        infections = base_params[f'count_all_{measure}'] / rates[rate]
+        crude_infections[measure] = infections
+    if measure in rate_map:
+        crude_infections = crude_infections[measure]
+        crude_infections = crude_infections.loc[crude_infections > threshold].rename('infections')
+    else:
+        mask = crude_infections.max(axis=1) > threshold
+        crude_infections = crude_infections.loc[mask].min(axis=1).rename('infections')
     return crude_infections
 
 
@@ -387,5 +452,25 @@ def run_ode_fit(initial_condition: pd.DataFrame,
 
     return full_compartments, betas, chis
 
+
+def run_posterior_fit(initial_condition: pd.DataFrame,
+                      ode_parameters: Parameters,
+                      num_cores: int,
+                      progress_bar: bool,
+                      location_ids: List[int] = None):
+    if location_ids is None:
+        location_ids = initial_condition.reset_index().location_id.unique().tolist()
+
+    full_compartments, chis = solver.run_ode_model(
+        initial_condition,
+        **ode_parameters.to_dict(),
+        location_ids=location_ids,
+        system_type=SYSTEM_TYPE.beta_and_measures,
+        num_cores=num_cores,
+        progress_bar=progress_bar,
+    )
+    # Set all the forecast stuff to nan
+    full_compartments.loc[full_compartments.sum(axis=1) == 0., :] = np.nan
+    return full_compartments, chis
 
 

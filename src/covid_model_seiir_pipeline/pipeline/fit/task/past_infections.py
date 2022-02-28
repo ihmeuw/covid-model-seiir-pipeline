@@ -42,7 +42,6 @@ def run_past_infections(fit_version: str, draw_id: int, progress_bar: bool) -> N
         rates.append(measure_rates.sort_index())
     betas = pd.concat(betas, axis=1)
     rates = pd.concat(rates, axis=1)
-    import pdb; pdb.set_trace()
 
     logger.info('Sampling ODE parameters', context='transform')
     durations = model.sample_durations(specification.rates_parameters, draw_id)
@@ -55,8 +54,10 @@ def run_past_infections(fit_version: str, draw_id: int, progress_bar: bool) -> N
     epi_measures = model.format_epi_measures(epi_measures, mr_hierarchy, pred_hierarchy, mortality_scalar, durations)
 
     logger.info('Prepping ODE fit parameters for second pass model.', context='transform')
-    ode_parameters, second_pass_base_rates = model.prepare_past_infections_parameters(
+    ode_parameters = model.prepare_past_infections_parameters(
+        betas=betas,
         rates=rates,
+        durations=durations,
         epi_measures=epi_measures,
         rhos=rhos,
         vaccinations=vaccinations,
@@ -70,14 +71,14 @@ def run_past_infections(fit_version: str, draw_id: int, progress_bar: bool) -> N
 
     logger.info('Rebuilding initial condition.', context='transform')
     initial_condition = model.make_initial_condition(
-        measure,
-        ode_parameters,
-        second_pass_base_rates,
-        risk_group_population,
+        measure='final',
+        parameters=ode_parameters,
+        rates=rates,
+        population=risk_group_population,
     )
 
     logger.info('Running second pass ODE fit', context='compute_ode')
-    compartments, second_pass_betas, chis = model.run_ode_fit(
+    compartments, chis = model.run_posterior_fit(
         initial_condition=initial_condition,
         ode_parameters=ode_parameters,
         num_cores=num_threads,
@@ -89,15 +90,9 @@ def run_past_infections(fit_version: str, draw_id: int, progress_bar: bool) -> N
     out_params = ode_parameters.to_dict()['base_parameters']
     for name, duration in durations._asdict().items():
         out_params.loc[:, name] = duration
-
-    second_pass_posterior_epi_measures = model.compute_posterior_epi_measures(
-        compartments=compartments,
-        durations=durations
-    )
-
+    import pdb; pdb.set_trace()
 
     logger.info('Writing outputs', context='write')
-
     data_interface.save_input_epi_measures(epi_measures, measure=measure, draw_id=draw_id)
     data_interface.save_rates(prior_rates, measure=measure, draw_id=draw_id)
     data_interface.save_rates_data(rates_data, measure=measure, draw_id=draw_id)
