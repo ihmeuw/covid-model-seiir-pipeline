@@ -99,7 +99,7 @@ class FitWorkflow(workflow.WorkflowTemplate):
         FIT_JOBS.beta_fit_postprocess: BetaFitPostprocessTaskTemplate,
         FIT_JOBS.beta_fit_diagnostics: BetaFitDiagnosticsTaskTemplate,
     }
-    fail_fast = False
+    fail_fast = True
 
     def attach_tasks(self, n_draws: int, measures: List[str], plot_types: List[str]):
         covariate_template = self.task_templates[FIT_JOBS.covariate_pool]
@@ -109,20 +109,15 @@ class FitWorkflow(workflow.WorkflowTemplate):
         postprocess_template = self.task_templates[FIT_JOBS.beta_fit_postprocess]
         diagnostics_template = self.task_templates[FIT_JOBS.beta_fit_diagnostics]
 
-        covariate_pool_task = covariate_template.get_task(fit_version=self.version)
+        covariate_pool_task = covariate_template.get_task(
+            fit_version=self.version,
+        )
         self.workflow.add_task(covariate_pool_task)
-        # fit_join_task = join_template.get_task(fit_version=self.version, sentinel_id='fit')
-        # self.workflow.add_task(fit_join_task)
-        # self.workflow.add_task(join_task)
-        # diagnostics_tasks = []
-        # for plot_type in plot_types:
-        #    diagnostics_task = diagnostics_template.get_task(
-        #        fit_version=self.version,
-        #        plot_type=plot_type,
-        #    )
-        #    self.workflow.add_task(diagnostics_task)
-        #    diagnostics_tasks.append(diagnostics_task)
-
+        fit_join_task = join_template.get_task(
+            fit_version=self.version,
+            sentinel_id='fit',
+        )
+        self.workflow.add_task(fit_join_task)
         for measure, draw_id in itertools.product(['case', 'death', 'admission'], range(n_draws)):
             task = fit_template.get_task(
                 fit_version=self.version,
@@ -130,15 +125,40 @@ class FitWorkflow(workflow.WorkflowTemplate):
                 draw_id=draw_id,
             )
             task.add_upstream(covariate_pool_task)
-        #     task.add_downstream(join_task)
+            task.add_downstream(fit_join_task)
             self.workflow.add_task(task)
 
-        # for measure in measures:
-        #     task = postprocess_template.get_task(
-        #         fit_version=self.version,
-        #         measure=measure,
-        #     )
-        #     task.add_upstream(join_task)
-        #     for dt in diagnostics_tasks:
-        #         task.add_downstream(dt)
-        #     self.workflow.add_task(task)
+        past_infections_join_task = join_template.get_task(
+            fit_version=self.version,
+            sentinel_id='past_infections',
+        )
+        self.workflow.add_task(fit_join_task)
+        for draw_id in range(n_draws):
+            task = past_infections_template.get_task(
+                fit_version=self.version,
+                draw_id=draw_id
+            )
+            task.add_upstream(fit_join_task)
+            task.add_downstream(past_infections_join_task)
+
+        postprocess_join_task = join_template.get_task(
+            fit_version=self.version,
+            sentinel_id='postprocess',
+        )
+        self.workflow.add_task(postprocess_join_task)
+        for measure in measures:
+            task = postprocess_template.get_task(
+                fit_version=self.version,
+                measure=measure,
+            )
+            task.add_upstream(past_infections_join_task)
+            task.add_downstream(postprocess_join_task)
+            self.workflow.add_task(task)
+
+        for plot_type in plot_types:
+           diagnostics_task = diagnostics_template.get_task(
+               fit_version=self.version,
+               plot_type=plot_type,
+           )
+           diagnostics_task.add_upstream(postprocess_join_task)
+           self.workflow.add_task(diagnostics_task)

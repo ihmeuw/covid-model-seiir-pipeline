@@ -84,21 +84,28 @@ def run_past_infections(fit_version: str, draw_id: int, progress_bar: bool) -> N
         num_cores=num_threads,
         progress_bar=progress_bar,
     )
+    posterior_epi_measures = model.compute_posterior_epi_measures(
+        compartments=compartments,
+        durations=durations
+    )
 
     logger.info('Prepping outputs.', context='transform')
 
     out_params = ode_parameters.to_dict()['base_parameters']
     for name, duration in durations._asdict().items():
         out_params.loc[:, name] = duration
-    import pdb; pdb.set_trace()
+
+    betas = betas.reindex(out_params.index)
+    betas['beta'] = out_params['beta_all_infection']
 
     logger.info('Writing outputs', context='write')
-    data_interface.save_input_epi_measures(epi_measures, measure=measure, draw_id=draw_id)
-    data_interface.save_rates(prior_rates, measure=measure, draw_id=draw_id)
-    data_interface.save_rates_data(rates_data, measure=measure, draw_id=draw_id)
-    data_interface.save_posterior_epi_measures(posterior_epi_measures, measure=measure, draw_id=draw_id)
-    data_interface.save_fit_beta(betas, measure=measure, draw_id=draw_id)
-    data_interface.save_final_seroprevalence(out_seroprevalence, measure=measure, draw_id=draw_id)
+    data_interface.save_ode_params(out_params, draw_id=draw_id)
+    data_interface.save_input_epi_measures(epi_measures, measure='final', draw_id=draw_id)
+    data_interface.save_phis(ode_parameters.phis, draw_id=draw_id)
+    data_interface.save_rates(rates, measure='final', draw_id=draw_id)
+    data_interface.save_compartments(compartments, draw_id=draw_id)
+    data_interface.save_posterior_epi_measures(posterior_epi_measures, measure='final', draw_id=draw_id)
+    data_interface.save_fit_beta(betas, measure='final', draw_id=draw_id)
 
     logger.report()
 
