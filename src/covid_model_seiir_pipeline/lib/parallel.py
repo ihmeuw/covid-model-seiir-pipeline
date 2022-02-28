@@ -136,7 +136,7 @@ def draw_runner(draw_id: int,
     else:
         columns = None
 
-    data = loader(draw_id, columns)
+    data = loader(draw_id, columns=columns)
     if index is not None:
         data = data.reset_index().set_index(index.names).reindex(index)
     return data.squeeze()
