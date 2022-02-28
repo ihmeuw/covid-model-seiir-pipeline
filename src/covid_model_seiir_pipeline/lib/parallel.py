@@ -34,7 +34,9 @@ def run_parallel(runner: Callable,
     return result
 
 
-def make_loader(loader: Callable[[int, Optional[str]], pd.DataFrame], measure: str):
+def make_loader(loader: Callable[[int, Optional[str]], pd.DataFrame],
+                measure: str,
+                measure_version: str = None):
     """Makes a loader from a draw-specific data_interface method that returns all draws as a dataframe.
 
     Parameters
@@ -45,6 +47,8 @@ def make_loader(loader: Callable[[int, Optional[str]], pd.DataFrame], measure: s
         to find the appropriate instance method when available.
     measure
         An individual column in the dataset produced by the provided loader
+    measure_version
+        Which version of the past (case, death, admission, final) to load.
 
     Returns
     -------
@@ -91,6 +95,7 @@ def make_loader(loader: Callable[[int, Optional[str]], pd.DataFrame], measure: s
             draw_runner,
             loader=getattr(data_interface, loader.__name__),
             index=index,
+            measure_version=measure_version,
             column=measure,
         )
         result = run_parallel(
@@ -108,6 +113,7 @@ def make_loader(loader: Callable[[int, Optional[str]], pd.DataFrame], measure: s
 
 def draw_runner(draw_id: int,
                 loader: Callable[[int, Optional[List[str]]], pd.DataFrame],
+                measure_version: Optional[str],
                 column: Optional[str],
                 index: Optional[pd.Index]) -> pd.Series:
     """Loads a column from a draw level dataset and re-indexes the dataset if appropriate.
@@ -119,6 +125,8 @@ def draw_runner(draw_id: int,
     loader
         Function that takes as an argument a draw id and an optional list of columns
         and loads those columns out of a draw specific dataset.
+    measure_version
+        Which version of the past (case, death, admission, final) to load.
     column
         An optional column to load from the dataset produced by the loader. The returned
         dataset must be a single column, so this argument can be used to load from a
@@ -136,7 +144,10 @@ def draw_runner(draw_id: int,
     else:
         columns = None
 
-    data = loader(draw_id, columns=columns)
+    if measure_version is not None:
+        data = loader(draw_id, measure_version=measure_version, columns=columns)
+    else:
+        data = loader(draw_id, columns=columns)
     if index is not None:
         data = data.reset_index().set_index(index.names).reindex(index)
     return data.squeeze()

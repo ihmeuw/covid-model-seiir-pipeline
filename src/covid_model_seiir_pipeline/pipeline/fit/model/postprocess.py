@@ -72,7 +72,8 @@ for prefix in ['', 'smoothed_']:
 
         MEASURES[f'{prefix}{measure}'] = MeasureConfig(
             loader=parallel.make_loader(
-                FitDataInterface.load_input_epi_measures, f'{prefix}daily_{measure}'
+                FitDataInterface.load_input_epi_measures,
+                measure=f'{prefix}daily_{measure}',
             ),
             label=f'{prefix}daily_{measure}',
             round_specific=False,

@@ -202,25 +202,25 @@ class RegressionDataInterface:
         return self.fit_data_interface.load_phis(draw_id)
 
     def load_input_epi_measures(self, draw_id: int, columns: List[str] = None) -> pd.DataFrame:
-        return self.fit_data_interface.load_input_epi_measures(draw_id, columns)
+        return self.fit_data_interface.load_input_epi_measures(draw_id, columns=columns)
 
     def load_rates_data(self, draw_id: int, columns: List[str] = None) -> pd.DataFrame:
-        return self.fit_data_interface.load_rates_data(draw_id, columns)
+        return self.fit_data_interface.load_rates_data(draw_id, columns=columns)
 
     def load_rates(self, draw_id: int, columns: List[str] = None) -> pd.DataFrame:
-        return self.fit_data_interface.load_rates(draw_id, columns)
+        return self.fit_data_interface.load_rates(draw_id, columns=columns)
 
     def load_posterior_epi_measures(self, draw_id: int, columns: List[str] = None) -> pd.DataFrame:
-        return self.fit_data_interface.load_posterior_epi_measures(draw_id, columns)
+        return self.fit_data_interface.load_posterior_epi_measures(draw_id, columns=columns)
 
     def load_compartments(self, draw_id: int, columns: List[str] = None) -> pd.DataFrame:
         return self.fit_data_interface.load_compartments(draw_id, columns)
 
     def load_fit_beta(self, draw_id: int, columns: List[str] = None) -> pd.DataFrame:
-        return self.fit_data_interface.load_fit_beta(draw_id, columns)
+        return self.fit_data_interface.load_fit_beta(draw_id, columns=columns)
 
     def load_final_seroprevalence(self, draw_id: int, columns: List[str] = None) -> pd.DataFrame:
-        return self.fit_data_interface.load_final_seroprevalence(draw_id, columns)
+        return self.fit_data_interface.load_final_seroprevalence(draw_id, columns=columns)
 
     def load_summary(self, measure: str) -> pd.DataFrame:
         return self.fit_data_interface.load_summary(measure)
