@@ -316,14 +316,14 @@ def make_initial_condition(measure: str,
 
 def get_crude_infections(measure: str, base_params, rates, threshold=50):
     rate_map = {'death': 'ifr', 'admission': 'ihr', 'case': 'idr'}
-    crude_infections = pd.DataFrame(index=rates.index)
-    for measure, rate in rate_map.items():
-        infections = base_params[f'count_all_{measure}'] / rates[rate]
-        crude_infections[measure] = infections
     if measure in rate_map:
-        crude_infections = crude_infections[measure]
+        crude_infections = base_params[f'count_all_{measure}'] / rates[rate_map[measure]]
         crude_infections = crude_infections.loc[crude_infections > threshold].rename('infections')
     else:
+        crude_infections = pd.DataFrame(index=rates.index)
+        for measure, rate in rate_map.items():
+            infections = base_params[f'count_all_{measure}'] / rates[rate]
+            crude_infections[measure] = infections
         mask = crude_infections.max(axis=1) > threshold
         crude_infections = crude_infections.loc[mask].min(axis=1).rename('infections')
     return crude_infections
