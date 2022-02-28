@@ -132,7 +132,7 @@ class FitWorkflow(workflow.WorkflowTemplate):
             fit_version=self.version,
             sentinel_id='past_infections',
         )
-        self.workflow.add_task(fit_join_task)
+        self.workflow.add_task(past_infections_join_task)
         for draw_id in range(n_draws):
             task = past_infections_template.get_task(
                 fit_version=self.version,
