@@ -107,7 +107,20 @@ def prepare_past_infections_parameters(betas: pd.DataFrame,
     rhos.columns = [f'rho_{c}_infection' for c in rhos.columns]
     rhos['rho_none_infection'] = pd.Series(0., index=past_index, name='rho_none_infection')
 
-    beta = betas.mean(axis=1).rename('beta_all_infection').reindex(past_index)
+    final_betas = []
+    for location_id in betas.reset_index().location_id.unique():
+        loc_beta = betas.loc[location_id]
+        loc_beta_mean = loc_beta.mean(axis=1)
+        x = loc_beta_mean.dropna().reset_index()
+        # get a date in the middle of the series to use in the intercept shift
+        # so we avoid all the nonsense at the beginning.
+        index_date, level = x.iloc[len(x) // 2]
+        loc_beta_diff_mean = loc_beta.diff().mean(axis=1).cumsum().rename('beta_all_infection')
+        loc_beta_diff_mean += level - loc_beta_diff_mean.loc[index_date]
+        loc_beta_diff_mean['location_id'] = location_id
+        loc_beta_diff_mean = loc_beta_diff_mean.reset_index().set_index(['location_id', 'date'])['beta_all_infection']
+        final_betas.append(loc_beta_diff_mean)
+    beta = pd.concat(final_betas)
 
     base_parameters = pd.concat([
         sampled_params,
