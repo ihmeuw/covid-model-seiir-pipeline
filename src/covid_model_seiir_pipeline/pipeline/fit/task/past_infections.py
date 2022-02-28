@@ -1,4 +1,6 @@
 import click
+import numpy as np
+import pandas as pd
 
 from covid_model_seiir_pipeline.lib import (
     cli_tools,
@@ -31,10 +33,16 @@ def run_past_infections(fit_version: str, draw_id: int, progress_bar: bool) -> N
     betas = []
     rates = []
     for measure in ['case', 'death', 'admission']:
-        measure_beta = data_interface.load_fit_beta(measure=measure, draw_id=draw_id).loc[:, f'beta_{measure}']
-        betas.append(measure_beta)
+        measure_beta = data_interface.load_fit_beta(measure=measure, draw_id=draw_id)
+        measure_beta = measure_beta.loc[measure_beta['round'] == 2, f'beta_{measure}']
+        measure_beta.loc[measure_beta == 0] = np.nan
+        betas.append(measure_beta.sort_index())
         measure_rates = data_interface.load_rates(measure=measure, draw_id=draw_id)
-        rates.append(measure_rates)
+        measure_rates = measure_rates.loc[measure_rates['round'] == 2].drop(columns='round')
+        rates.append(measure_rates.sort_index())
+    betas = pd.concat(betas, axis=1)
+    rates = pd.concat(rates, axis=1)
+    import pdb; pdb.set_trace()
 
     logger.info('Sampling ODE parameters', context='transform')
     durations = model.sample_durations(specification.rates_parameters, draw_id)
