@@ -8,6 +8,7 @@ from covid_model_seiir_pipeline.pipeline.fit.data import (
 from covid_model_seiir_pipeline.pipeline.fit.task import (
     covariate_pool,
     beta_fit,
+    past_infections,
     beta_fit_postprocess,
     beta_fit_diagnostics,
 )
@@ -22,6 +23,7 @@ APPLICATION_MAIN = do_fit
 TASKS = {
     FIT_JOBS.covariate_pool: covariate_pool,
     FIT_JOBS.beta_fit: beta_fit,
+    FIT_JOBS.past_infections: past_infections,
     FIT_JOBS.beta_fit_postprocess: beta_fit_postprocess,
     FIT_JOBS.beta_fit_diagnostics: beta_fit_diagnostics,
 }

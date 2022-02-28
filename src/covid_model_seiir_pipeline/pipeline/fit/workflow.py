@@ -36,6 +36,20 @@ class BetaFitTaskTemplate(workflow.TaskTemplate):
     task_args = ['fit_version']
 
 
+class PastInfectionsTaskTemplate(workflow.TaskTemplate):
+    tool = workflow.get_jobmon_tool(covid_model_seiir_pipeline)
+    task_name_template = f"{FIT_JOBS.past_infections}_draw_{{draw_id}}"
+    command_template = (
+        f"{shutil.which('stask')} "
+        f"{FIT_JOBS.past_infections} "
+        "--fit-version {fit_version} "        
+        "--draw-id {draw_id} "
+        "-vv"
+    )
+    node_args = ['draw_id']
+    task_args = ['fit_version']
+
+
 class JoinSentinelTaskTemplate(workflow.TaskTemplate):
     tool = workflow.get_jobmon_tool(covid_model_seiir_pipeline)
     task_name_template = f"{FIT_JOBS.beta_fit_join_sentinel}_{{sentinel_id}}"
@@ -80,6 +94,7 @@ class FitWorkflow(workflow.WorkflowTemplate):
     task_template_classes = {
         FIT_JOBS.covariate_pool: CovariatePoolTaskTemplate,
         FIT_JOBS.beta_fit: BetaFitTaskTemplate,
+        FIT_JOBS.past_infections: PastInfectionsTaskTemplate,
         FIT_JOBS.beta_fit_join_sentinel: JoinSentinelTaskTemplate,
         FIT_JOBS.beta_fit_postprocess: BetaFitPostprocessTaskTemplate,
         FIT_JOBS.beta_fit_diagnostics: BetaFitDiagnosticsTaskTemplate,
@@ -89,22 +104,24 @@ class FitWorkflow(workflow.WorkflowTemplate):
     def attach_tasks(self, n_draws: int, measures: List[str], plot_types: List[str]):
         covariate_template = self.task_templates[FIT_JOBS.covariate_pool]
         fit_template = self.task_templates[FIT_JOBS.beta_fit]
+        past_infections_template = self.task_templates[FIT_JOBS.past_infections]
         join_template = self.task_templates[FIT_JOBS.beta_fit_join_sentinel]
         postprocess_template = self.task_templates[FIT_JOBS.beta_fit_postprocess]
         diagnostics_template = self.task_templates[FIT_JOBS.beta_fit_diagnostics]
 
         covariate_pool_task = covariate_template.get_task(fit_version=self.version)
         self.workflow.add_task(covariate_pool_task)
-        #join_task = join_template.get_task(fit_version=self.version, sentinel_id='postprocess')
-        #self.workflow.add_task(join_task)
-        #diagnostics_tasks = []
-#        for plot_type in plot_types:
-#            diagnostics_task = diagnostics_template.get_task(
-#                fit_version=self.version,
-#                plot_type=plot_type,
-#            )
-#            self.workflow.add_task(diagnostics_task)
-#            diagnostics_tasks.append(diagnostics_task)
+        # fit_join_task = join_template.get_task(fit_version=self.version, sentinel_id='fit')
+        # self.workflow.add_task(fit_join_task)
+        # self.workflow.add_task(join_task)
+        # diagnostics_tasks = []
+        # for plot_type in plot_types:
+        #    diagnostics_task = diagnostics_template.get_task(
+        #        fit_version=self.version,
+        #        plot_type=plot_type,
+        #    )
+        #    self.workflow.add_task(diagnostics_task)
+        #    diagnostics_tasks.append(diagnostics_task)
 
         for measure, draw_id in itertools.product(['case', 'death', 'admission'], range(n_draws)):
             task = fit_template.get_task(
@@ -113,7 +130,7 @@ class FitWorkflow(workflow.WorkflowTemplate):
                 draw_id=draw_id,
             )
             task.add_upstream(covariate_pool_task)
-#            task.add_downstream(join_task)
+        #     task.add_downstream(join_task)
             self.workflow.add_task(task)
 
         # for measure in measures:

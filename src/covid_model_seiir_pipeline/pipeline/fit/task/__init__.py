@@ -10,3 +10,6 @@ from covid_model_seiir_pipeline.pipeline.fit.task.beta_fit_postprocess import (
 from covid_model_seiir_pipeline.pipeline.fit.task.beta_fit_diagnostics import (
     beta_fit_diagnostics,
 )
+from covid_model_seiir_pipeline.pipeline.fit.task.past_infections import (
+    past_infections,
+)

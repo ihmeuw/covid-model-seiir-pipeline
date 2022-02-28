@@ -24,6 +24,7 @@ from covid_model_seiir_pipeline.pipeline.fit.model.covariate_pool import (
 )
 from covid_model_seiir_pipeline.pipeline.fit.model.ode_fit import (
     prepare_ode_fit_parameters,
+    prepare_past_infections_parameters,
     make_initial_condition,
     compute_posterior_epi_measures,
     aggregate_posterior_epi_measures,

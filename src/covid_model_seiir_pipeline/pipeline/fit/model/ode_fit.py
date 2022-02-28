@@ -96,6 +96,18 @@ def prepare_ode_fit_parameters(measure: str,
     return ode_params, rates
 
 
+def prepare_past_infections_parameters(epi_measures: pd.DataFrame):
+
+
+    return Parameters(
+        base_parameters=base_parameters,
+        vaccinations=vaccinations,
+        age_scalars=age_scalars,
+        etas=etas,
+        phis=phis,
+    )
+
+
 def prepare_epi_measures_and_rates(measure: str,
                                    rates: pd.DataFrame,
                                    epi_measures: pd.DataFrame,
@@ -142,6 +154,41 @@ def prepare_epi_measures_and_rates(measure: str,
     out_data.loc[:, f'rate_all_{measure}'] = rates[rate]
 
     return out_data, out_scalars
+
+
+def prepare_epi_measures_for_past_infections(epi_measures: pd.DataFrame,
+                                             durations: Durations,
+                                             hierarchy: pd.DataFrame):
+    most_detailed = hierarchy[hierarchy.most_detailed == 1].location_id.unique().tolist()
+    measures = (
+        ('deaths', 'death', 'ifr'),
+        ('cases', 'case', 'idr'),
+        ('hospitalizations', 'admission', 'ihr')
+    )
+
+    out_measures = []
+    out_rates = []
+    out_scalars = []
+    for in_measure, out_measure, rate in measures:
+        epi_data = (epi_measures[f'smoothed_daily_{in_measure}'].rename(out_measure) + 3e-2).to_frame()
+        lag = durations._asdict()[f'exposure_to_{measure}']
+
+        epi_data = reindex_to_infection_day(epi_data, lag, most_detailed)
+        epi_scalars = epi_rates.copy()
+        drop_cols = epi_scalars.columns
+        for risk_group in RISK_GROUP_NAMES:
+            epi_scalars.loc[:, f'{out_measure}_{risk_group}'] = epi_scalars[f'{rate}_{risk_group}'] / epi_scalars[rate]
+        epi_scalars = epi_scalars.drop(columns=drop_cols)
+
+        out_measures.append(epi_data)
+        out_rates.append(epi_rates)
+        out_scalars.append(epi_scalars)
+
+    out_measures = pd.concat(out_measures, axis=1).reset_index()
+    out_measures = out_measures.loc[out_measures.location_id.isin(most_detailed)].set_index(['location_id', 'date'])
+    out_rates = pd.concat(out_rates, axis=1).reindex(out_measures.index).sort_index()
+    out_scalars = pd.concat(out_scalars, axis=1).reindex(out_measures.index).sort_index()
+    return out_measures, out_rates, out_scalars
 
 
 def reindex_to_infection_day(data: pd.DataFrame, lag: int, most_detailed: List[int]) -> pd.DataFrame:
