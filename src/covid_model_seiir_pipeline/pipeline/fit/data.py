@@ -154,7 +154,7 @@ class FitDataInterface:
     def save_rates_data(self, data: pd.DataFrame, draw_id: int, measure_version: str) -> None:
         io.dump(data, self.fit_root.rates_data(measure=measure_version, draw_id=draw_id))
 
-    def load_rates_data(self, draw_id: int, measure_version: str = 'final', columns: List[str] = None) -> pd.DataFrame:
+    def load_rates_data(self, draw_id: int, measure_version: str, columns: List[str] = None) -> pd.DataFrame:
         return io.load(self.fit_root.rates_data(measure=measure_version, draw_id=draw_id, columns=columns))
 
     def save_rates(self, data: pd.DataFrame, draw_id: int, measure_version: str) -> None:

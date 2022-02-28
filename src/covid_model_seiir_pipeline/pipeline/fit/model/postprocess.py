@@ -107,8 +107,28 @@ for measure in ['naive_unvaccinated_infections', 'naive_infections', 'total_infe
         aggregator=aggregate.sum_aggregator,
         ci=1.,
         ci2=.95,
+        round_specific=False,
         description=description.format(metric='daily'),
         cumulative_description=description.format(metric='cumulative')
+    )
+
+
+for reported_measure, infection_type in itertools.product(['death', 'admission', 'case'], ['naive', 'total']):
+    description = (
+        f'Posterior {{metric}} {infection_type} infections according to '
+        f'reported {reported_measure}.'
+    )
+    MEASURES[f'posterior_{reported_measure}_based_{infection_type}_infections'] = MeasureConfig(
+        loader=parallel.make_loader(
+            FitDataInterface.load_posterior_epi_measures,
+            f'daily_{infection_type}_infections',
+            measure_version=reported_measure,
+        ),
+        label=f'posterior_{reported_measure}_based_daily_{infection_type}_infections',
+        aggregator=aggregate.sum_aggregator,
+        cumulative_label=f'posterior_{reported_measure}_based_cumulative_{infection_type}_infections',
+        description=description.format(metric='daily'),
+        cumulative_description=description.format(metric='cumulative'),
     )
 
 
@@ -126,6 +146,7 @@ for measure in ['naive', 'naive_unvaccinated']:
         label=f'posterior_{measure}',
         aggregator=aggregate.sum_aggregator,
         description=description,
+        round_specific=False,
     )
 
 for rate, suffix in itertools.product(['ifr', 'ihr', 'idr'], ['', '_lr', '_hr']):
@@ -141,22 +162,36 @@ for rate, suffix in itertools.product(['ifr', 'ihr', 'idr'], ['', '_lr', '_hr'])
         ),
         label=f'prior_{measure}',
         description=description,
+        round_specific=False,
     )
 
-for suffix, label_suffix in zip(['', '_death', '_admission', '_case'],
-                                ['', '_deaths', '_hospitalizations', '_cases']):
-    measure_used = label_suffix[1:] if label_suffix else 'all reported epi data'
+for suffix, label_suffix in zip(['_death', '_admission', '_case'],
+                                ['_deaths', '_hospitalizations', '_cases']):
+    measure_used = label_suffix[1:]
     description = (
-        f'Estimate of beta using {measure_used}. '
+        f'Estimate of beta using {label_suffix[1:]}. '
         f'This data is an output of the past infections model.'
     )
     MEASURES[f'beta{label_suffix}'] = MeasureConfig(
         loader=parallel.make_loader(
-            FitDataInterface.load_fit_beta, f'beta{suffix}',
+            FitDataInterface.load_fit_beta,
+            f'beta{suffix}',
+            measure_version=suffix[1:],
         ),
         label=f'beta{label_suffix}',
         description=description,
     )
+
+MEASURES['beta'] = MeasureConfig(
+    loader=parallel.make_loader(
+        FitDataInterface.load_fit_beta, 'beta',
+    ),
+    label='beta',
+    description=(
+        f'Estimate of beta using all epi measures. '
+        f'This data is an output of the past infections model.'
+    ),
+)
 
 
 def load_seroprevalence(data_interface: FitDataInterface,
@@ -173,9 +208,10 @@ def load_seroprevalence(data_interface: FitDataInterface,
 
     idx_cols = ['data_id', 'location_id', 'sero_date', 'is_outlier']
     adjusted_sero_data = []
-    for draw in tqdm.trange(num_draws, disable=not progress_bar):
+    measures_and_draws = list(itertools.product(['case', 'death', 'admission'], range(num_draws)))
+    for measure_version, draw in tqdm.tqdm(measures_and_draws, disable=not progress_bar):
         df = (data_interface
-              .load_final_seroprevalence(draw)
+              .load_final_seroprevalence(draw, measure_version=measure_version)
               .loc[:, idx_cols + ['date', 'seroprevalence', 'adjusted_seroprevalence']])
         adjusted_sero_data.append(df)
     adjusted_data = pd.concat(adjusted_sero_data).groupby(idx_cols)
@@ -229,8 +265,9 @@ def load_rates_data(data_interface: FitDataInterface,
                     progress_bar: bool = False,
                     **_) -> pd.DataFrame:
     rates_data = []
-    for draw in tqdm.trange(num_draws, disable=not progress_bar):
-        df = data_interface.load_rates_data(draw)
+    measures_and_draws = list(itertools.product(['case', 'death', 'admission'], range(num_draws)))
+    for measure_version, draw in tqdm.tqdm(measures_and_draws, disable=not progress_bar):
+        df = data_interface.load_rates_data(draw, measure_version=measure_version)
         rates_data.append(df)
     rates_data = pd.concat(rates_data).groupby(['measure', 'round', 'data_id', 'location_id'])
     rates_data = (pd.concat([rates_data['date'].median(), rates_data['value'].mean()], axis=1)
@@ -243,8 +280,11 @@ MEASURES['rates_data'] = MeasureConfig(
     loader=load_rates_data,
     label='rates_data',
     summary_metric=None,
-    description=('Sampled seroprevalence data points shifted into the space of the rates analysis. '
-                 'This data is an output of the rates model, an intermediate step of the past infections model.')
+    description=(
+        'Sampled seroprevalence data points shifted into the '
+        'space of the rates analysis. This data is an output of the rates model, '
+        'an intermediate step of the past infections model.'
+    )
 )
 
 
@@ -267,30 +307,11 @@ for ratio, measure, duration_measure in zip(['ifr', 'ihr', 'idr'],
         duration_label=f'exposure_to_{duration_measure}',
         combiner=make_ratio,
         description=(
-            f'Posterior {ratio.upper()}. This data is a composite of results from the past infections model.'
+            f'Posterior {ratio.upper()}. This data is a composite of '
+            f'results from the past infections model.'
         )
     )
 
-
-def make_measure_infections(beta: pd.DataFrame, beta_measure: pd.DataFrame, infections: pd.DataFrame):
-    return beta_measure / beta * infections
-
-
-for measure, measure_type in itertools.product(['deaths', 'hospitalizations', 'cases'], ['naive', 'total']):
-    description = (
-        f'Posterior {{metric}} {measure_type} infections according to reported {measure}. '
-        f'This data is a composite of results from the past infections model.'
-    )
-    MEASURES[f'posterior_{measure}_based_{measure_type}_infections'] = CompositeMeasureConfig(
-        base_measures={'beta': MEASURES['beta'],
-                       'beta_measure': MEASURES[f'beta_{measure}'],
-                       'infections': MEASURES[f'posterior_{measure_type}_infections']},
-        label=f'posterior_{measure}_based_daily_{measure_type}_infections',
-        cumulative_label=f'posterior_{measure}_based_cumulative_{measure_type}_infections',
-        combiner=make_measure_infections,
-        description=description.format(metric='daily'),
-        cumulative_description=description.format(metric='cumulative'),
-    )
 
 
 def get_data_dictionary() -> pd.DataFrame:
