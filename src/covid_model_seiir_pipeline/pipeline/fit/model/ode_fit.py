@@ -134,7 +134,7 @@ def prepare_past_infections_parameters(betas: pd.DataFrame,
 def prepare_epi_measures_and_rates(measure: str,
                                    rates: pd.DataFrame,
                                    epi_measures: pd.DataFrame,
-                                   hierarchy: pd.DataFrame):    
+                                   hierarchy: pd.DataFrame):
     metrics = ['count', 'rate', 'weight']
     measures = {
         'death': ('deaths', 'ifr'),
@@ -146,8 +146,8 @@ def prepare_epi_measures_and_rates(measure: str,
     total_measure = epi_measures[f'smoothed_daily_{in_measure}'].dropna().groupby('location_id').sum()
     to_model = total_measure[total_measure > 0].index.intersection(most_detailed).tolist()
     model_idx = epi_measures.loc[to_model].index
-    
-    lag = rates['lag'].iloc[0]    
+
+    lag = rates['lag'].iloc[0]
     measure_data = reindex_to_infection_day(
         epi_measures[f'smoothed_daily_{in_measure}'] + 3e-2,
         lag,
@@ -160,7 +160,7 @@ def prepare_epi_measures_and_rates(measure: str,
         index=model_idx,
     )
     out_data.loc[:, f'count_all_{measure}'] = measure_data[f'smoothed_daily_{in_measure}']
-    
+
     out_data.loc[:, [c for c in out_data if 'weight' in c]] = 0.
     out_data.loc[:, f'weight_all_{measure}'] = 1.0
     out_scalars = pd.DataFrame(
@@ -193,7 +193,7 @@ def prepare_epi_measures_for_past_infections(epi_measures: pd.DataFrame,
     out_measures = []
     out_scalars = []
     for in_measure, out_measure, rate in measures:
-        epi_data = (epi_measures[f'smoothed_daily_{in_measure}'].rename(f'count_all{out_measure}') + 3e-2).to_frame()
+        epi_data = (epi_measures[f'smoothed_daily_{in_measure}'].rename(f'count_all_{out_measure}') + 3e-2).to_frame()
         lag = durations._asdict()[f'exposure_to_{out_measure}']
 
         epi_data = reindex_to_infection_day(epi_data, lag, most_detailed)
@@ -211,9 +211,9 @@ def prepare_epi_measures_for_past_infections(epi_measures: pd.DataFrame,
                     .loc[out_measures.location_id.isin(most_detailed)]
                     .set_index(['location_id', 'date'])
                     .sort_index())
-    out_rates = out_measures.copy().rename(lambda x: x.replace('count', 'rate'))
+    out_rates = out_measures.copy().rename(columns=lambda x: x.replace('count', 'rate'))
     out_rates.loc[:, :] = np.nan
-    out_weights = out_measures.copy().rename(lambda x: x.replace('count', 'weight'))
+    out_weights = out_measures.copy().rename(columns=lambda x: x.replace('count', 'weight'))
     out_weights.loc[:, :] = np.nan
     out_data = pd.concat([out_measures, out_rates, out_weights], axis=1)
     out_scalars = pd.concat(out_scalars, axis=1).reindex(out_measures.index).sort_index()
