@@ -156,9 +156,9 @@ class FitWorkflow(workflow.WorkflowTemplate):
             self.workflow.add_task(task)
 
         for plot_type in plot_types:
-           diagnostics_task = diagnostics_template.get_task(
+            diagnostics_task = diagnostics_template.get_task(
                fit_version=self.version,
                plot_type=plot_type,
-           )
-           diagnostics_task.add_upstream(postprocess_join_task)
-           self.workflow.add_task(diagnostics_task)
+            )
+            diagnostics_task.add_upstream(postprocess_join_task)
+            self.workflow.add_task(diagnostics_task)
