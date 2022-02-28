@@ -1,3 +1,4 @@
+import functools
 import itertools
 from typing import Callable, Dict, Optional, Union
 
