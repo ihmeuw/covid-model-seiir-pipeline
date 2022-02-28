@@ -140,6 +140,7 @@ class FitWorkflow(workflow.WorkflowTemplate):
             )
             task.add_upstream(fit_join_task)
             task.add_downstream(past_infections_join_task)
+            self.workflow.add_task(task)
 
         postprocess_join_task = join_template.get_task(
             fit_version=self.version,
