@@ -59,7 +59,7 @@ def prepare_ode_fit_parameters(measure: str,
         pd.Series(-1, index=past_index, name='beta_all_infection'),
         rhos,
     ], axis=1)
-    
+
     vaccinations = vaccinations.reindex(past_index, fill_value=0.)
     etas = etas.sort_index().reindex(past_index, fill_value=0.)
     phis = compute_phis(
@@ -110,15 +110,17 @@ def prepare_past_infections_parameters(betas: pd.DataFrame,
     final_betas = []
     for location_id in betas.reset_index().location_id.unique():
         loc_beta = betas.loc[location_id]
-        loc_beta_mean = loc_beta.mean(axis=1)
+        loc_beta_mean = loc_beta.mean(axis=1).rename('beta_all_infection')
         x = loc_beta_mean.dropna().reset_index()
         # get a date in the middle of the series to use in the intercept shift
         # so we avoid all the nonsense at the beginning.
         index_date, level = x.iloc[len(x) // 2]
         loc_beta_diff_mean = loc_beta.diff().mean(axis=1).cumsum().rename('beta_all_infection')
         loc_beta_diff_mean += level - loc_beta_diff_mean.loc[index_date]
+        loc_beta_diff_mean = pd.concat([loc_beta_mean.loc[:index_date], loc_beta_diff_mean.loc[index_date + pd.Timedelta(days=1):]])
+        loc_beta_diff_mean = loc_beta_diff_mean.reset_index()
         loc_beta_diff_mean['location_id'] = location_id
-        loc_beta_diff_mean = loc_beta_diff_mean.reset_index().set_index(['location_id', 'date'])['beta_all_infection']
+        loc_beta_diff_mean = loc_beta_diff_mean.set_index(['location_id', 'date'])['beta_all_infection']
         final_betas.append(loc_beta_diff_mean)
     beta = pd.concat(final_betas)
 
@@ -332,12 +334,12 @@ def get_crude_infections(measure: str, base_params, rates, threshold=50):
     if measure in rate_map:
         crude_infections = base_params[f'count_all_{measure}'] / rates[rate_map[measure]]
         crude_infections = crude_infections.loc[crude_infections > threshold].rename('infections')
-    else:
+    else:        
         crude_infections = pd.DataFrame(index=rates.index)
         for measure, rate in rate_map.items():
             infections = base_params[f'count_all_{measure}'] / rates[rate]
-            crude_infections[measure] = infections
-        mask = crude_infections.max(axis=1) > threshold
+            crude_infections[measure] = infections        
+        mask = (crude_infections.max(axis=1) > threshold) & (base_params['beta_all_infection'] > 0)        
         crude_infections = crude_infections.loc[mask].min(axis=1).rename('infections')
     return crude_infections
 

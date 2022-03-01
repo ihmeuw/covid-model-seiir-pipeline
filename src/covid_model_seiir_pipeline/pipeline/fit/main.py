@@ -71,12 +71,12 @@ def fit_main(app_metadata: cli_tools.Metadata,
         except ihme_deps.WorkflowAlreadyComplete:
             logger.info('Workflow already complete.')
 
-        broken_locations = get_broken_locations(data_interface)
-        data_interface.save_broken_locations_report(broken_locations)
+#        broken_locations = get_broken_locations(data_interface)
+#        data_interface.save_broken_locations_report(broken_locations)
 
-        report = make_broken_location_report(broken_locations)
-        if report:
-            logger.warning(report)
+#        report = make_broken_location_report(broken_locations)
+#        if report:
+#            logger.warning(report)
 
     logger.info(f'Fit version {specification.data.output_root} complete.')
 
