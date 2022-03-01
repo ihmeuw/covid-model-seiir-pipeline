@@ -99,7 +99,7 @@ class FitWorkflow(workflow.WorkflowTemplate):
         FIT_JOBS.beta_fit_postprocess: BetaFitPostprocessTaskTemplate,
         FIT_JOBS.beta_fit_diagnostics: BetaFitDiagnosticsTaskTemplate,
     }
-    fail_fast = True
+    fail_fast = False
 
     def attach_tasks(self, n_draws: int, measures: List[str], plot_types: List[str]):
         covariate_template = self.task_templates[FIT_JOBS.covariate_pool]

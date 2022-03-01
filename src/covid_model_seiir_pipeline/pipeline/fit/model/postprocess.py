@@ -191,6 +191,7 @@ MEASURES['beta'] = MeasureConfig(
         f'Estimate of beta using all epi measures. '
         f'This data is an output of the past infections model.'
     ),
+    round_specific=False,
 )
 
 
@@ -266,8 +267,10 @@ def load_rates_data(data_interface: FitDataInterface,
                     **_) -> pd.DataFrame:
     rates_data = []
     measures_and_draws = list(itertools.product(['case', 'death', 'admission'], range(num_draws)))
+    rate_map = {'case': 'idr', 'death': 'ifr', 'admission': 'ihr'}
     for measure_version, draw in tqdm.tqdm(measures_and_draws, disable=not progress_bar):
         df = data_interface.load_rates_data(draw, measure_version=measure_version)
+        df = df.rename(columns={rate_map[measure_version]: 'value'})
         rates_data.append(df)
     rates_data = pd.concat(rates_data).groupby(['measure', 'round', 'data_id', 'location_id'])
     rates_data = (pd.concat([rates_data['date'].median(), rates_data['value'].mean()], axis=1)
@@ -292,7 +295,7 @@ def make_ratio(numerator: pd.DataFrame, denominator: pd.DataFrame, duration: pd.
     out = []
     for draw in numerator.columns:
         draw_duration = duration.loc[draw]
-        out.append(numerator[draw] / denominator[draw].groupby(['location_id', 'round']).shift(draw_duration))
+        out.append(numerator[draw] / denominator[draw].groupby(['location_id']).shift(draw_duration))
     out = pd.concat(out, axis=1)
     return out
 
@@ -309,9 +312,8 @@ for ratio, measure, duration_measure in zip(['ifr', 'ihr', 'idr'],
         description=(
             f'Posterior {ratio.upper()}. This data is a composite of '
             f'results from the past infections model.'
-        )
+        ),
     )
-
 
 
 def get_data_dictionary() -> pd.DataFrame:
