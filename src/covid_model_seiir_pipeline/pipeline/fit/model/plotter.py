@@ -213,7 +213,7 @@ def model_fit_plot(data: Tuple[Location, DataDict],
 
     for metric, ax, transform in [('daily', ax_daily, identity), ('cumulative', ax_cumul, pop_scale(pop))]:
         measure_type = 'naive' if metric == 'cumulative' else 'total'
-        for measure in ['cases', 'deaths', 'hospitalizations']:
+        for measure in ['case', 'death', 'admission']:
             plotter.make_time_plot(
                 ax=ax,
                 measure=f'posterior_{measure}_based_{metric}_{measure_type}_infections',
