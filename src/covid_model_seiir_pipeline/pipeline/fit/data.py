@@ -133,11 +133,11 @@ class FitDataInterface:
     def load_broken_locations_report(self) -> List[Dict]:
         return io.load(self.fit_root.broken_locations_report())
 
-    def save_ode_params(self, data: pd.Series, draw_id: int) -> None:
-        io.dump(data, self.fit_root.ode_parameters(draw_id=draw_id))
+    def save_ode_params(self, data: pd.Series, draw_id: int, measure_version: str) -> None:
+        io.dump(data, self.fit_root.ode_parameters(measure=measure_version, draw_id=draw_id))
 
-    def load_ode_params(self, draw_id: int, columns: List[str] = None) -> pd.DataFrame:
-        return io.load(self.fit_root.ode_parameters(draw_id=draw_id, columns=columns))
+    def load_ode_params(self, draw_id: int, measure_version: str = 'final', columns: List[str] = None) -> pd.DataFrame:
+        return io.load(self.fit_root.ode_parameters(measure=measure_version, draw_id=draw_id, columns=columns))
 
     def save_phis(self, data: pd.Series, draw_id: int) -> None:
         io.dump(data, self.fit_root.phis(draw_id=draw_id))

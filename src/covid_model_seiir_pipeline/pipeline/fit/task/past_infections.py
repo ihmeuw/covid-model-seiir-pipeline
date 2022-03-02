@@ -32,6 +32,7 @@ def run_past_infections(fit_version: str, draw_id: int, progress_bar: bool) -> N
 
     betas = []
     rates = []
+    measure_kappas = []
     for measure in ['case', 'death', 'admission']:
         measure_beta = data_interface.load_fit_beta(measure_version=measure, draw_id=draw_id)
         measure_beta = measure_beta.loc[measure_beta['round'] == 2, f'beta_{measure}']
@@ -40,8 +41,11 @@ def run_past_infections(fit_version: str, draw_id: int, progress_bar: bool) -> N
         measure_rates = data_interface.load_rates(measure_version=measure, draw_id=draw_id)
         measure_rates = measure_rates.loc[measure_rates['round'] == 2].drop(columns='round')
         rates.append(measure_rates.sort_index())
+        measure_kappa = data_interface.load_ode_params(measure_version=measure, draw_id=draw_id).filter(like='kappa').filter(like='measure')
+        measure_kappas.append(measure_kappa)
     betas = pd.concat(betas, axis=1)
     rates = pd.concat(rates, axis=1)
+    measure_kappas = pd.concat(measure_kappas, axis=1)
 
     logger.info('Sampling ODE parameters', context='transform')
     durations = model.sample_durations(specification.rates_parameters, draw_id)
@@ -57,6 +61,7 @@ def run_past_infections(fit_version: str, draw_id: int, progress_bar: bool) -> N
     ode_parameters = model.prepare_past_infections_parameters(
         betas=betas,
         rates=rates,
+        measure_kappas=measure_kappas,
         durations=durations,
         epi_measures=epi_measures,
         rhos=rhos,
@@ -99,7 +104,7 @@ def run_past_infections(fit_version: str, draw_id: int, progress_bar: bool) -> N
     betas['beta'] = out_params['beta_all_infection']
 
     logger.info('Writing outputs', context='write')
-    data_interface.save_ode_params(out_params, draw_id=draw_id)
+    data_interface.save_ode_params(out_params, measure_version='final', draw_id=draw_id)
     data_interface.save_input_epi_measures(epi_measures, measure_version='final', draw_id=draw_id)
     data_interface.save_phis(ode_parameters.phis, draw_id=draw_id)
     data_interface.save_rates(rates, measure_version='final', draw_id=draw_id)

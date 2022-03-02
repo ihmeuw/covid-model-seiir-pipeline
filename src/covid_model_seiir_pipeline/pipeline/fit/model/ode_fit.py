@@ -78,6 +78,7 @@ def prepare_ode_fit_parameters(measure: str,
 
 def prepare_past_infections_parameters(betas: pd.DataFrame,
                                        rates: pd.DataFrame,
+                                       measure_kappas: pd.DataFrame,
                                        durations: Durations,
                                        epi_measures: pd.DataFrame,
                                        rhos: pd.DataFrame,
@@ -95,12 +96,15 @@ def prepare_past_infections_parameters(betas: pd.DataFrame,
         hierarchy=hierarchy,
     )
     past_index = measures_and_rates.index
-    scalar_params = {k: p for k, p in sampled_ode_params.items() if isinstance(p, (int, float))}
+    scalar_params = {k: p for k, p in sampled_ode_params.items()
+                     if isinstance(p, (int, float)) and k not in measure_kappas}
     series_params = [p.reindex(past_index, level='location_id').rename(k)
-                     for k, p in sampled_ode_params.items() if isinstance(p, pd.Series)]
+                     for k, p in sampled_ode_params.items()
+                     if isinstance(p, pd.Series) and k not in measure_kappas]
     sampled_params = pd.concat([
         pd.DataFrame(scalar_params, index=past_index),
         *series_params,
+        measure_kappas.reindex(past_index).groupby('location_id').ffill().groupby('location_id').bfill(),
     ], axis=1)
 
     rhos = rhos.reindex(past_index, fill_value=0.)
