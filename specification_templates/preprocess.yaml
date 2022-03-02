@@ -24,7 +24,7 @@ data:
   drop_locations: []
 seroprevalence_parameters:
   correlate_samples: True
-  bootstrap_samples: True
+  bootstrap_samples: False
   vax_sero_prob: 0.9
 workflow:
   project: 'proj_covid_prod'
