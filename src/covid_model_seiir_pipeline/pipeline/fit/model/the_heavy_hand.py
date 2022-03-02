@@ -130,8 +130,9 @@ def rescale_kappas(measure: str,
         idr_symptomatic = (capped_delta_idr - idr_asymptomatic * (1 - p_symptomatic_pre_omicron)) / p_symptomatic_pre_omicron
         idr_asymptomatic = np.minimum(idr_asymptomatic, maximum_asymptomatic_idr)
         omicron_idr = p_symptomatic_post_omicron * idr_symptomatic + (1 - p_symptomatic_post_omicron) * idr_asymptomatic
-        for location_id, idr_scaling_factor in idr_scaling_factors:
-            omicron_idr.loc[location_id] *= idr_scaling_factor
+        if rates_parameters.heavy_hand_fixes:
+            for location_id, idr_scaling_factor in idr_scaling_factors:
+                omicron_idr.loc[location_id] *= idr_scaling_factor
         sampled_ode_params['kappa_omicron_case'] = (omicron_idr / delta_idr).rename('kappa_omicron_case')
 
     if measure == 'admission':
@@ -170,8 +171,9 @@ def rescale_kappas(measure: str,
             index=compartments.reset_index().location_id.unique(),
             name='kappa_omicron_admission'
         )
-        for location_id, ihr_scaling_factor in ihr_scaling_factors:
-            kappa_omicron_admission.loc[location_id] *= ihr_scaling_factor
+        if rates_parameters.heavy_hand_fixes:
+            for location_id, ihr_scaling_factor in ihr_scaling_factors:
+                kappa_omicron_admission.loc[location_id] *= ihr_scaling_factor
         sampled_ode_params['kappa_omicron_admission'] = kappa_omicron_admission
 
     if measure == 'death':
@@ -278,8 +280,9 @@ def rescale_kappas(measure: str,
             index=compartments.reset_index().location_id.unique(),
             name='kappa_omicron_death'
         )
-        for location_id, ifr_scaling_factor in ifr_scaling_factors:
-            kappa_omicron_death.loc[location_id] *= ifr_scaling_factor
+        if rates_parameters.heavy_hand_fixes:
+            for location_id, ifr_scaling_factor in ifr_scaling_factors:
+                kappa_omicron_death.loc[location_id] *= ifr_scaling_factor
         sampled_ode_params['kappa_omicron_death'] = kappa_omicron_death
 
     return sampled_ode_params
