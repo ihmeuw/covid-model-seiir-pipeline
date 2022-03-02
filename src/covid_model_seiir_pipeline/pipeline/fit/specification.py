@@ -104,6 +104,8 @@ class RatesParameters:
     exposure_to_seroconversion: DiscreteUniformSampleable = field(default=(14, 18))
     admission_to_death: DiscreteUniformSampleable = field(default=(12, 16))
 
+    heavy_hand_fixes: bool = field(default=True)
+
     ifr_risk_ratio: RRSampleable = field(default='BMJ')
     ihr_risk_ratio: RRSampleable = field(default='BMJ')
     idr_risk_ratio: RRSampleable = field(default=1.0)
