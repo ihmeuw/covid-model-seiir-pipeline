@@ -169,11 +169,11 @@ class FitDataInterface:
     def load_posterior_epi_measures(self, draw_id: int, measure_version: str = 'final', columns: List[str] = None) -> pd.DataFrame:
         return io.load(self.fit_root.posterior_epi_measures(measure=measure_version, draw_id=draw_id, columns=columns))
 
-    def save_compartments(self, data: pd.DataFrame, draw_id: int) -> None:
+    def save_compartments(self, data: pd.DataFrame, draw_id: int, measure_version: str) -> None:
         io.dump(data, self.fit_root.compartments(draw_id=draw_id))
 
-    def load_compartments(self, draw_id: int, columns: List[str] = None) -> pd.DataFrame:
-        return io.load(self.fit_root.compartments(draw_id=draw_id, columns=columns))
+    def load_compartments(self, draw_id: int, measure_version: str = 'final', columns: List[str] = None) -> pd.DataFrame:
+        return io.load(self.fit_root.compartments(measure=measure_version, draw_id=draw_id, columns=columns))
 
     def save_fit_beta(self, data: pd.DataFrame, draw_id: int, measure_version: str) -> None:
         io.dump(data, self.fit_root.beta(measure=measure_version, draw_id=draw_id))

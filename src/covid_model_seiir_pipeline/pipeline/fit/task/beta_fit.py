@@ -120,7 +120,7 @@ def run_beta_fit(fit_version: str, measure: str, draw_id: int, progress_bar: boo
     )
 
     logger.info('Running ODE fit', context='compute_ode')
-    compartments, first_pass_betas, chis = model.run_ode_fit(
+    first_pass_compartments, first_pass_betas, chis = model.run_ode_fit(
         initial_condition=initial_condition,
         ode_parameters=ode_parameters,
         num_cores=specification.workflow.task_specifications['beta_fit'].num_cores,
@@ -130,7 +130,7 @@ def run_beta_fit(fit_version: str, measure: str, draw_id: int, progress_bar: boo
     logger.info('Prepping first pass ODE outputs for second pass rates model',
                 context='transform')
     first_pass_posterior_epi_measures = model.compute_posterior_epi_measures(
-        compartments=compartments,
+        compartments=first_pass_compartments,
         durations=durations
     )
     agg_first_pass_posterior_epi_measures = model.aggregate_posterior_epi_measures(
@@ -144,7 +144,7 @@ def run_beta_fit(fit_version: str, measure: str, draw_id: int, progress_bar: boo
     sampled_ode_params = model.rescale_kappas(
         measure,
         sampled_ode_params,
-        compartments,
+        first_pass_compartments,
         specification.rates_parameters,
         pred_hierarchy,
         draw_id
@@ -228,7 +228,7 @@ def run_beta_fit(fit_version: str, measure: str, draw_id: int, progress_bar: boo
     )
 
     logger.info('Running second pass ODE fit', context='compute_ode')
-    compartments, second_pass_betas, chis = model.run_ode_fit(
+    second_pass_compartments, second_pass_betas, chis = model.run_ode_fit(
         initial_condition=initial_condition,
         ode_parameters=ode_parameters,
         num_cores=specification.workflow.task_specifications['beta_fit'].num_cores,
@@ -263,7 +263,7 @@ def run_beta_fit(fit_version: str, measure: str, draw_id: int, progress_bar: boo
     betas = pd.concat([first_pass_betas, second_pass_betas])
 
     second_pass_posterior_epi_measures = model.compute_posterior_epi_measures(
-        compartments=compartments,
+        compartments=second_pass_compartments,
         durations=durations
     )
     first_pass_posterior_epi_measures.loc[:, 'round'] = 1
@@ -280,6 +280,33 @@ def run_beta_fit(fit_version: str, measure: str, draw_id: int, progress_bar: boo
     out_seroprevalence = out_seroprevalence.merge(adjusted_seroprevalence)
     out_seroprevalence['sero_date'] = out_seroprevalence['date']
     out_seroprevalence['date'] -= pd.Timedelta(days=durations.exposure_to_seroconversion)
+
+    idr_parameters = model.sample_idr_parameters(specification.rates_parameters)
+    keep_compartments = [
+        'EffectiveSusceptible_all_omicron_all_lr',
+        'EffectiveSusceptible_all_omicron_all_hr',
+        'Infection_all_delta_all_lr',
+        'Infection_all_delta_all_hr',
+        'Case_all_delta_all_lr',
+        'Case_all_delta_all_hr',
+        'Infection_all_all_all_lr',
+        'Infection_all_all_all_hr',
+        'Case_all_all_all_lr',
+        'Case_all_all_all_hr',
+    ]
+    first_pass_compartments = first_pass_compartments.loc[:, keep_compartments]
+    first_pass_compartments['round'] = 1
+    second_pass_compartments = second_pass_compartments.loc[:, keep_compartments]
+    second_pass_compartments['round'] = 2
+    compartments = pd.concat([
+        first_pass_compartments,
+        second_pass_compartments,
+    ])
+    for k, v in idr_parameters:
+        compartments[k] = v
+
+
+
 
     logger.info('Writing outputs', context='write')
     data_interface.save_ode_params(
@@ -303,6 +330,7 @@ def run_beta_fit(fit_version: str, measure: str, draw_id: int, progress_bar: boo
     data_interface.save_final_seroprevalence(
         out_seroprevalence, measure_version=measure, draw_id=draw_id
     )
+    data_interface.save_compartments(compartments, measure_version=measure, draw_id=draw_id)
 
     logger.report()
 
