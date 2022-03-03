@@ -41,7 +41,7 @@ def run_past_infections(fit_version: str, draw_id: int, progress_bar: bool) -> N
         measure_rates = data_interface.load_rates(measure_version=measure, draw_id=draw_id)
         measure_rates = measure_rates.loc[measure_rates['round'] == 2].drop(columns='round')
         rates.append(measure_rates.sort_index())
-        measure_kappa = data_interface.load_ode_params(measure_version=measure, draw_id=draw_id).filter(like='kappa').filter(like='measure')
+        measure_kappa = data_interface.load_ode_params(measure_version=measure, draw_id=draw_id).filter(like='kappa').filter(like=measure)
         measure_kappas.append(measure_kappa)
     betas = pd.concat(betas, axis=1)
     rates = pd.concat(rates, axis=1)
