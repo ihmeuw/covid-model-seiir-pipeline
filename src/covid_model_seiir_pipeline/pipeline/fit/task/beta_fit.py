@@ -281,7 +281,7 @@ def run_beta_fit(fit_version: str, measure: str, draw_id: int, progress_bar: boo
     out_seroprevalence['sero_date'] = out_seroprevalence['date']
     out_seroprevalence['date'] -= pd.Timedelta(days=durations.exposure_to_seroconversion)
 
-    idr_parameters = model.sample_idr_parameters(specification.rates_parameters)
+    idr_parameters = model.sample_idr_parameters(specification.rates_parameters, draw_id)
     keep_compartments = [
         'EffectiveSusceptible_all_omicron_all_lr',
         'EffectiveSusceptible_all_omicron_all_hr',
@@ -302,7 +302,7 @@ def run_beta_fit(fit_version: str, measure: str, draw_id: int, progress_bar: boo
         first_pass_compartments,
         second_pass_compartments,
     ])
-    for k, v in idr_parameters:
+    for k, v in idr_parameters.items():
         compartments[k] = v
 
 

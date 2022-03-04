@@ -108,7 +108,7 @@ def run_past_infections(fit_version: str, draw_id: int, progress_bar: bool) -> N
     data_interface.save_input_epi_measures(epi_measures, measure_version='final', draw_id=draw_id)
     data_interface.save_phis(ode_parameters.phis, draw_id=draw_id)
     data_interface.save_rates(rates, measure_version='final', draw_id=draw_id)
-    data_interface.save_compartments(compartments, draw_id=draw_id)
+    data_interface.save_compartments(compartments, measure_version='final', draw_id=draw_id)
     data_interface.save_posterior_epi_measures(posterior_epi_measures, measure_version='final', draw_id=draw_id)
     data_interface.save_fit_beta(betas, measure_version='final', draw_id=draw_id)
 
