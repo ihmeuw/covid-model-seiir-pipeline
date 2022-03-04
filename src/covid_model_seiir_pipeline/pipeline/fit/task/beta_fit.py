@@ -305,9 +305,6 @@ def run_beta_fit(fit_version: str, measure: str, draw_id: int, progress_bar: boo
     for k, v in idr_parameters.items():
         compartments[k] = v
 
-
-
-
     logger.info('Writing outputs', context='write')
     data_interface.save_ode_params(
         out_params, measure_version=measure, draw_id=draw_id

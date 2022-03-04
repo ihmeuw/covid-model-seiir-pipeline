@@ -26,9 +26,8 @@ def make_covariate_pool(n_samples: int) -> Dict[str, Dict[int, List[str]]]:
         selected_combinations = yaml.full_load(file)
     if not all([c in COVARIATE_POOL for sc in selected_combinations for c in sc]):
         raise ValueError('Invalid covariate selected.')
-    if n_samples > len(selected_combinations):
-        raise ValueError('Too many covariates.')
-    selected_combinations = selected_combinations[:n_samples]
+    random_state = utilities.get_random_state('ihr_and_ifr_covariate_pool')
+    selected_combinations = random_state.choice(selected_combinations, n_samples)
 
     idr_covariate_options = [['haqi'], ['uhc'], ['prop_65plus'], [], ]
     random_state = utilities.get_random_state('idr_covariate_pool')
