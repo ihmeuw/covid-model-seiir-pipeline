@@ -130,6 +130,6 @@ class PreprocessingSpecification(utilities.Specification):
         spec = {
             'data': self.data.to_dict(),
             'workflow': self.workflow.to_dict(),
-            'seroprevalence_paramters': self.seroprevalence_parameters.to_dict()
+            'seroprevalence_parameters': self.seroprevalence_parameters.to_dict()
         }
         return spec
