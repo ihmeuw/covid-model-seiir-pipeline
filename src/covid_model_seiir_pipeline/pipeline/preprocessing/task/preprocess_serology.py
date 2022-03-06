@@ -42,7 +42,7 @@ def run_preprocess_serology(preprocessing_version: str, progress_bar: bool) -> N
     logger.info('Sampling seroprevalence', context='model')
     seroprevalence_samples = serology.sample_seroprevalence(
         seroprevalence,
-        n_samples=data_interface.get_n_draws(),
+        n_samples=data_interface.get_n_total_draws(),
         bootstrap_samples=specification.seroprevalence_parameters.bootstrap_samples,
         correlate_samples=specification.seroprevalence_parameters.correlate_samples,
         num_threads=num_cores,

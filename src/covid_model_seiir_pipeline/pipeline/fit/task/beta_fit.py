@@ -18,8 +18,6 @@ def run_beta_fit(fit_version: str, measure: str, draw_id: int, progress_bar: boo
     data_interface = FitDataInterface.from_specification(specification)
     num_threads = specification.workflow.task_specifications[FIT_JOBS.beta_fit].num_cores
 
-    total_draws = data_interface.get_n_draws()
-    oversample_draws = data_interface.get_n_oversample_draws()
 
     logger.info('Loading beta fit data', context='read')
     mr_hierarchy = data_interface.load_hierarchy(name='mr')

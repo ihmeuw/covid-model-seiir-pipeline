@@ -20,6 +20,7 @@ def run_beta_resampling(fit_version: str, progress_bar: bool) -> None:
     num_threads = specification.workflow.task_specifications[FIT_JOBS.beta_fit].num_cores
 
     for measure in ['case', 'admission', 'death']:
+        pass
 
 
 
