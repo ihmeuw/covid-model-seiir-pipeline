@@ -124,6 +124,20 @@ def terminal_date_alignment(data: pd.DataFrame, cutoff: int = 3):
 
 def evil_doings(data: pd.DataFrame, hierarchy: pd.DataFrame, input_measure: str) -> Tuple[pd.DataFrame, Dict]:
     manipulation_metadata = {}
+
+    if input_measure in ['cases', 'hospitalizations', 'deaths']:
+        drop_all = {
+            176: 'comoros',
+            172: 'equatorial guinea',
+            183: 'mauritius',
+            349: 'greenland',
+            23: 'kiribati',
+        }
+        is_in_droplist = data['location_id'].isin(drop_all)
+        data = data.loc[~is_in_droplist].reset_index(drop=True)
+        for location in drop_all.values():
+            manipulation_metadata[location] = 'dropped all data'
+
     if input_measure == 'cases':
         pass
 
