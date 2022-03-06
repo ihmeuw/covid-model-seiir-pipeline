@@ -2,7 +2,6 @@ data:
   seir_preprocess_version: '2022_03_01.02'
   output_format: 'parquet'
   output_root: ''
-  n_draws: 100
   compare_version: '2022_02_04.02'
 workflow:
   project: 'proj_covid_prod'

@@ -75,7 +75,7 @@ class PreprocessingDataInterface:
 
     def get_n_draws(self) -> int:
         specification = self.load_specification()
-        return specification.data.n_draws
+        return specification.data.n_draws + specification.data.n_oversample_draws
 
     #########################
     # Raw location handling #

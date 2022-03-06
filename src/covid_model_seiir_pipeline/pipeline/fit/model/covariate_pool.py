@@ -1,8 +1,5 @@
-import itertools
 from typing import Dict, List
 import yaml
-
-from loguru import logger
 
 from covid_model_seiir_pipeline.lib import utilities
 

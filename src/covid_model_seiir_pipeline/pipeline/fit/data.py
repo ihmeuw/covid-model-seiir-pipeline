@@ -36,13 +36,11 @@ class FitDataInterface:
         io.touch(self.fit_root, **prefix_args)
 
     def get_n_draws(self):
-        specification = self.load_specification()
-        fit_draws = specification.data.n_draws
-        preprocess_draws = self.preprocessing_data_interface.get_n_draws()
-        if not fit_draws <= preprocess_draws:
-            raise ValueError(f"Can't run fit with more draws than preprocessing.\n"
-                             f"Fit draws requested: {fit_draws}. Preprocessing draws: {preprocess_draws}.")
-        return fit_draws
+        return self.preprocessing_data_interface.get_n_draws()
+
+    def get_n_oversample_draws(self):
+        spec = self.preprocessing_data_interface.load_specification()
+        return spec.data.n_oversample_draws
 
     #####################
     # Preprocessed Data #

@@ -306,27 +306,13 @@ def run_beta_fit(fit_version: str, measure: str, draw_id: int, progress_bar: boo
         compartments[k] = v
 
     logger.info('Writing outputs', context='write')
-    data_interface.save_ode_params(
-        out_params, measure_version=measure, draw_id=draw_id
-    )
-    data_interface.save_input_epi_measures(
-        epi_measures, measure_version=measure, draw_id=draw_id
-    )
-    data_interface.save_rates(
-        prior_rates, measure_version=measure, draw_id=draw_id
-    )
-    data_interface.save_rates_data(
-        rates_data, measure_version=measure, draw_id=draw_id
-    )
-    data_interface.save_posterior_epi_measures(
-        posterior_epi_measures, measure_version=measure, draw_id=draw_id
-    )
-    data_interface.save_fit_beta(
-        betas, measure_version=measure, draw_id=draw_id
-    )
-    data_interface.save_final_seroprevalence(
-        out_seroprevalence, measure_version=measure, draw_id=draw_id
-    )
+    data_interface.save_ode_params(out_params, measure_version=measure, draw_id=draw_id)
+    data_interface.save_input_epi_measures(epi_measures, measure_version=measure, draw_id=draw_id)
+    data_interface.save_rates(prior_rates, measure_version=measure, draw_id=draw_id)
+    data_interface.save_rates_data(rates_data, measure_version=measure, draw_id=draw_id)
+    data_interface.save_posterior_epi_measures(posterior_epi_measures, measure_version=measure, draw_id=draw_id)
+    data_interface.save_fit_beta(betas, measure_version=measure, draw_id=draw_id)
+    data_interface.save_final_seroprevalence(out_seroprevalence, measure_version=measure, draw_id=draw_id)
     data_interface.save_compartments(compartments, measure_version=measure, draw_id=draw_id)
 
     logger.report()

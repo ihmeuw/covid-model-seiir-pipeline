@@ -20,6 +20,7 @@ RRSampleable = Union[Tuple[float, float, float], float, str]
 class __FitJobs(NamedTuple):
     covariate_pool: str
     beta_fit: str
+    beta_resampling: str
     past_infections: str
     beta_fit_join_sentinel: str
     beta_fit_postprocess: str
@@ -39,6 +40,12 @@ class BetaFitTaskSpecification(workflow.TaskSpecification):
     default_max_runtime_seconds = 5000
     default_m_mem_free = '50G'
     default_num_cores = 11
+
+
+class BetaResamplingTaskSpecification(workflow.TaskSpecification):
+    default_max_runtime_seconds = 5000
+    default_m_mem_free = '100G'
+    default_num_cores = 26
 
 
 class PastInfectionsTaskSpecification(workflow.TaskSpecification):
@@ -69,6 +76,7 @@ class FitWorkflowSpecification(workflow.WorkflowSpecification):
     tasks = {
         FIT_JOBS.covariate_pool: CovariatePoolTaskSpecification,
         FIT_JOBS.beta_fit: BetaFitTaskSpecification,
+        FIT_JOBS.beta_resampling: BetaResamplingTaskSpecification,
         FIT_JOBS.past_infections: PastInfectionsTaskSpecification,
         FIT_JOBS.beta_fit_join_sentinel: JoinSentinelTaskSpecification,
         FIT_JOBS.beta_fit_postprocess: BetaFitPostprocessingTaskSpecification,
@@ -81,7 +89,6 @@ class FitData:
     seir_preprocess_version: str = field(default='best')
     output_root: str = field(default='')
     output_format: str = field(default='csv')
-    n_draws: int = field(default=100)
     compare_version: str = field(default='')
 
     def to_dict(self) -> Dict:
