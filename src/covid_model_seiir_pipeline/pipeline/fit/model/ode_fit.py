@@ -468,7 +468,7 @@ def run_ode_fit(initial_condition: pd.DataFrame,
     # Can have a composite beta if we don't have measure betas
     no_beta = betas[[f'beta_{measure}' for measure in ['death', 'admission', 'case']]].isnull().all(axis=1)
     betas.loc[no_beta, 'beta'] = np.nan
-    betas.loc[np.abs(betas) <= 1e-5] = np.nan
+    betas[np.abs(betas) <= 1e-5] = np.nan
 
     return full_compartments, betas, chis
 
