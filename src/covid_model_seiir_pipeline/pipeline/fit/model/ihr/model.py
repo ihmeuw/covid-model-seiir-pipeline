@@ -64,8 +64,8 @@ def run_model(model_data: pd.DataFrame,
     pred_replace_dict = {}
     pred_exclude_vars = []
     level_lambdas = {
-        0: {'intercept':   2., 'variant_prevalence': 1., **covariate_lambdas_tight},  # G->SR
-        1: {'intercept':   2., 'variant_prevalence': 1., **covariate_lambdas_tight},  # SR->R
+        0: {'intercept':   3., 'variant_prevalence': 1., **covariate_lambdas_tight},  # G->SR
+        1: {'intercept':   3., 'variant_prevalence': 1., **covariate_lambdas_tight},  # SR->R
         2: {'intercept': 100., 'variant_prevalence': 1., **covariate_lambdas_loose},  # R->A0
         3: {'intercept': 100., 'variant_prevalence': 1., **covariate_lambdas_loose},  # A0->A1
         4: {'intercept': 100., 'variant_prevalence': 1., **covariate_lambdas_loose},  # A1->A2

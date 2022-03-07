@@ -51,8 +51,8 @@ def run_model(model_data: pd.DataFrame,
     }
     pred_exclude_vars = []
     level_lambdas = {
-        0: {'intercept':   2., 'log_infwavg_testing_rate_capacity':   2., **covariate_lambdas_tight},  # G->SR
-        1: {'intercept':   2., 'log_infwavg_testing_rate_capacity':   2., **covariate_lambdas_tight},  # SR->R
+        0: {'intercept':   3., 'log_infwavg_testing_rate_capacity':   3., **covariate_lambdas_tight},  # G->SR
+        1: {'intercept':   3., 'log_infwavg_testing_rate_capacity':   3., **covariate_lambdas_tight},  # SR->R
         2: {'intercept': 100., 'log_infwavg_testing_rate_capacity': 100., **covariate_lambdas_loose},  # R->A0
         3: {'intercept': 100., 'log_infwavg_testing_rate_capacity': 100., **covariate_lambdas_loose},  # A0->A1
         4: {'intercept': 100., 'log_infwavg_testing_rate_capacity': 100., **covariate_lambdas_loose},  # A1->A2

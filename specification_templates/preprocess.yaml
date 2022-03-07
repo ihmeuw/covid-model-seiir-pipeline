@@ -2,9 +2,9 @@ data:
   mr_location_set_version_id: 1009
   mr_location_set_file: ''
   pred_location_set_version_id: 1009
-  model_inputs_version: '2022_02_21.01'
+  model_inputs_version: '2022_03_06.01'
   age_specific_rates_version: '2022_02_11.03'
-  mortality_scalars_version: '2022_02_14.01'
+  mortality_scalars_version: '2022_03_02.01'
   mask_use_outputs_version: '2022_02_14.01'
   mobility_covariate_version: '2022_02_14.03'
   pneumonia_version: '2020_06_12.03'
