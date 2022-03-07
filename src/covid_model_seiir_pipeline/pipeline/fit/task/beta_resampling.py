@@ -56,9 +56,12 @@ def run_beta_resampling(fit_version: str, progress_bar: bool):
         substitute_draw = [d for d in potential_substitutes if d not in cant_use][0]
         replace[location_id].append((draw, substitute_draw))
 
+    failures.reorder_levels(['draw_id', 'location_id']).sort_index()
+
     build_and_write_beta_finals(
         replacements=replace,
         unrecoverable=unrecoverable,
+        failures=failures,
         data_interface=data_interface,
         n_draws=n_draws,
         num_cores=num_cores,
@@ -179,6 +182,7 @@ def load_beta_subset(draw_id: int, draw_replace: Dict[int, List[int]], data_inte
 def build_and_write_beta_final(draw_id: int,
                                replacements: Dict[int, List[Tuple[int, int]]],
                                unrecoverable: List[int],
+                               failures: pd.DataFrame,
                                data_interface: FitDataInterface) -> None:
     draw_replace = defaultdict(list)
     for location_id, replace_list in replacements.items():
@@ -190,11 +194,17 @@ def build_and_write_beta_final(draw_id: int,
         [draw_id] + list(draw_replace)
     ]).sort_index()
 
+    draw_failures = failures.loc[draw_id]
     final_betas = []
     for location_id in betas.reset_index().location_id.unique():
         if location_id in unrecoverable:
             continue
         loc_beta = betas.loc[location_id]
+        loc_failures = draw_failures.loc[location_id]
+        for measure, measure_failed in loc_failures.iteritems():
+            if measure_failed:
+                loc_beta[measure] = np.nan
+
         loc_beta_mean = loc_beta.mean(axis=1).rename('beta_all_infection')
         x = loc_beta_mean.dropna().reset_index()
         # get a date in the middle of the series to use in the intercept shift
@@ -218,6 +228,7 @@ def build_and_write_beta_final(draw_id: int,
 
 def build_and_write_beta_finals(replacements: Dict[int, List[Tuple[int, int]]],
                                 unrecoverable: List[int],
+                                failures: pd.DataFrame,
                                 data_interface: FitDataInterface,
                                 n_draws: int,
                                 num_cores: int,
@@ -226,6 +237,7 @@ def build_and_write_beta_finals(replacements: Dict[int, List[Tuple[int, int]]],
         build_and_write_beta_final,
         replacements=replacements,
         unrecoverable=unrecoverable,
+        failures=failures,
         data_interface=data_interface,
     )
     arg_list = list(range(n_draws))
