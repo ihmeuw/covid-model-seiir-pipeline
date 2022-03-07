@@ -56,6 +56,15 @@ def run_beta_resampling(fit_version: str, progress_bar: bool):
         substitute_draw = [d for d in potential_substitutes if d not in cant_use][0]
         replace[location_id].append((draw, substitute_draw))
 
+    build_and_write_beta_finals(
+        replacements=replace,
+        unrecoverable=unrecoverable,
+        data_interface=data_interface,
+        n_draws=n_draws,
+        num_cores=num_cores,
+        progress_bar=progress_bar,
+    )
+
 
 def build_window_dates(rhos: pd.DataFrame) -> pd.DataFrame:
     def _get_dates(variant, threshold):
@@ -167,7 +176,10 @@ def load_beta_subset(draw_id: int, draw_replace: Dict[int, List[int]], data_inte
     return betas.loc[keep_idx]
 
 
-def build_and_write_beta_final(draw_id: int, replacements: Dict[int, List[Tuple[int, int]]], data_interface: FitDataInterface) -> None:
+def build_and_write_beta_final(draw_id: int,
+                               replacements: Dict[int, List[Tuple[int, int]]],
+                               unrecoverable: List[int],
+                               data_interface: FitDataInterface) -> None:
     draw_replace = defaultdict(list)
     for location_id, replace_list in replacements.items():
         for d, s in replace_list:
@@ -180,6 +192,8 @@ def build_and_write_beta_final(draw_id: int, replacements: Dict[int, List[Tuple[
 
     final_betas = []
     for location_id in betas.reset_index().location_id.unique():
+        if location_id in unrecoverable:
+            continue
         loc_beta = betas.loc[location_id]
         loc_beta_mean = loc_beta.mean(axis=1).rename('beta_all_infection')
         x = loc_beta_mean.dropna().reset_index()
@@ -202,10 +216,16 @@ def build_and_write_beta_final(draw_id: int, replacements: Dict[int, List[Tuple[
     data_interface.save_fit_beta(final_betas, draw_id, measure_version='final')
 
 
-def build_and_write_beta_finals(replacements, data_interface, n_draws, num_cores, progress_bar):
+def build_and_write_beta_finals(replacements: Dict[int, List[Tuple[int, int]]],
+                                unrecoverable: List[int],
+                                data_interface: FitDataInterface,
+                                n_draws: int,
+                                num_cores: int,
+                                progress_bar: bool):
     _runner = functools.partial(
         build_and_write_beta_final,
         replacements=replacements,
+        unrecoverable=unrecoverable,
         data_interface=data_interface,
     )
     arg_list = list(range(n_draws))
