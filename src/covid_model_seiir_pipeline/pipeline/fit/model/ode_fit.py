@@ -114,7 +114,7 @@ def prepare_past_infections_parameters(betas: pd.Series,
     base_parameters = pd.concat([
         sampled_params,
         measures_and_rates,
-        betas,
+        betas.reindex(past_index),
         rhos,
     ], axis=1)
 

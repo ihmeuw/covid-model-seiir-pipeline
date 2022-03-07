@@ -184,7 +184,7 @@ for suffix, label_suffix in zip(['_death', '_admission', '_case'],
 
 MEASURES['beta'] = MeasureConfig(
     loader=parallel.make_loader(
-        FitDataInterface.load_fit_beta, 'beta',
+        FitDataInterface.load_fit_beta, 'beta_all_infection',
     ),
     label='beta',
     description=(
