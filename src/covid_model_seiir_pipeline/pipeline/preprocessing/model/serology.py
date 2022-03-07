@@ -618,12 +618,14 @@ def sample_seroprevalence(seroprevalence: pd.DataFrame,
         logit_samples = random_state.normal(loc=logit_mean.to_frame().values,
                                             scale=logit_se.to_frame().values,
                                             size=(len(seroprevalence), n_samples), )
-        samples = math.expit(logit_samples)
+        #samples = math.expit(logit_samples)
+        samples = [seroprevalence['seroprevalence'].copy()] * n_samples
 
         ## CANNOT DO THIS, MOVES SOME ABOVE 1
         # # re-center around original mean
         # samples *= seroprevalence[['seroprevalence']].values / samples.mean(axis=1, keepdims=True)
         if correlate_samples:
+            raise ValueError('Not using sero samples.')
             logger.info('Correlating seroprevalence samples within location.')
             series_data = (seroprevalence[[sv for sv in series_vars if sv not in ['survey_series', 'date']]]
                            .drop_duplicates()
@@ -646,7 +648,13 @@ def sample_seroprevalence(seroprevalence: pd.DataFrame,
             ['seroprevalence', 'seroprevalence_lower', 'seroprevalence_upper', 'sample_size'],
             axis=1)
         sample_list = []
-        for n, sample in enumerate(samples.T):
+        if isinstance(samples, list):
+            # hack
+            _n_sample = enumerate(samples)
+        elif isinstance(samples, np.array):
+            # actual samples
+            _n_sample = enumerate(samples.T)
+        for n, sample in _n_sample:
             _sample = seroprevalence.copy()
             _sample['seroprevalence'] = sample
             _sample['n'] = n
@@ -664,6 +672,7 @@ def sample_seroprevalence(seroprevalence: pd.DataFrame,
         sample_list = [seroprevalence.reset_index(drop=True)]
 
     if bootstrap_samples:
+        raise ValueError('Not using sero samples.')
         if n_samples < min_samples:
             raise ValueError('Not set up to bootstrap means only.')
         with multiprocessing.Pool(num_threads) as p:

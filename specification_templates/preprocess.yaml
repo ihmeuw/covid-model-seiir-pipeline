@@ -16,14 +16,14 @@ data:
   vaccine_efficacy_version: '2021_12_19.01'
   vaccine_scenarios:
     - 'reference'
-    - 'booster'
+    # - 'booster'
     # - 'probably_no'
   output_root: ''
   output_format: 'csv'
   n_draws: 100
   drop_locations: []
 seroprevalence_parameters:
-  correlate_samples: True
+  correlate_samples: False
   bootstrap_samples: False
   vax_sero_prob: 0.9
 workflow:

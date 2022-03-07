@@ -124,19 +124,24 @@ def terminal_date_alignment(data: pd.DataFrame, cutoff: int = 3):
 
 def evil_doings(data: pd.DataFrame, hierarchy: pd.DataFrame, input_measure: str) -> Tuple[pd.DataFrame, Dict]:
     manipulation_metadata = {}
+    
+    if input_measure in ['cases', 'hospitalizations', 'deaths']:
+        drop_all = {
+            176: 'comoros',
+            172: 'equatorial guinea',
+            183: 'mauritius',
+            349: 'greenland',
+            23: 'kiribati',
+        }
+        is_in_droplist = data['location_id'].isin(drop_all)
+        data = data.loc[~is_in_droplist].reset_index(drop=True)
+        for location in drop_all.values():
+            manipulation_metadata[location] = 'dropped all data'
+    
     if input_measure == 'cases':
         pass
 
     elif input_measure == 'hospitalizations':
-        ## ## ## ## ## ## ## ## ## ## ## ## ## ##
-        ## N Ireland - compositional bias problem; lose last few days of hosp
-        is_n_ireland = data['location_id'] == 433
-        n_ireland_last_day = data.loc[is_n_ireland, 'date'].max()
-        is_n_ireland_sub5 = data['date'] <= n_ireland_last_day - pd.Timedelta(days=5)
-        data = data.loc[~is_n_ireland | is_n_ireland_sub5].reset_index(drop=True)
-        manipulation_metadata['n_ireland'] = 'dropped all hospitalizations'
-        ## ## ## ## ## ## ## ## ## ## ## ## ## ##
-
         ## hosp/IHR == admissions too low
         is_argentina = data['location_id'] == 97
         data = data.loc[~is_argentina].reset_index(drop=True)
@@ -211,12 +216,7 @@ def evil_doings(data: pd.DataFrame, hierarchy: pd.DataFrame, input_measure: str)
         manipulation_metadata['malawi'] = 'dropped all hospitalizations'
 
     elif input_measure == 'deaths':
-        ## Virginia deaths spike
-        is_virginia = data['location_id'] == 569
-        is_feb = data['date'] >= pd.Timestamp('2022-02-01')
-        data = data.loc[~(is_virginia & is_feb)].reset_index(drop=True)
-        manipulation_metadata['virginia'] = 'dropped deaths Feb onward (TEMPORARY)'
-        # pass
+        pass
 
     else:
         raise ValueError(f'Input measure {input_measure} does not have a protocol for exclusions.')
