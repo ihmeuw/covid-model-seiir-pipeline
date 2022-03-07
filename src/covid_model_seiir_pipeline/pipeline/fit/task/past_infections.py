@@ -29,7 +29,7 @@ def run_past_infections(fit_version: str, draw_id: int, progress_bar: bool) -> N
     vaccinations = data_interface.load_vaccine_uptake(scenario='reference')
     etas = data_interface.load_vaccine_risk_reduction(scenario='reference')
     natural_waning_dist = data_interface.load_waning_parameters(measure='natural_waning_distribution').set_index('days')
-    betas = data_interface.load_fit_beta(draw_id=draw_id)
+    betas = data_interface.load_fit_beta(draw_id=draw_id)['beta_all_infection']
 
     rates = []
     measure_kappas = []
