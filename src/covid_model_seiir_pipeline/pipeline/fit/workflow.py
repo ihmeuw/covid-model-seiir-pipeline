@@ -36,6 +36,19 @@ class BetaFitTaskTemplate(workflow.TaskTemplate):
     task_args = ['fit_version']
 
 
+class BetaResamplingTaskTemplate(workflow.TaskTemplate):
+    tool = workflow.get_jobmon_tool(covid_model_seiir_pipeline)
+    task_name_template = f"{FIT_JOBS.beta_resampling}"
+    command_template = (
+        f"{shutil.which('stask')} "
+        f"{FIT_JOBS.beta_resampling} "
+        "--fit-version {fit_version} "        
+        "-vv"
+    )
+    node_args = []
+    task_args = ['fit_version']
+
+
 class PastInfectionsTaskTemplate(workflow.TaskTemplate):
     tool = workflow.get_jobmon_tool(covid_model_seiir_pipeline)
     task_name_template = f"{FIT_JOBS.past_infections}_draw_{{draw_id}}"
@@ -94,6 +107,7 @@ class FitWorkflow(workflow.WorkflowTemplate):
     task_template_classes = {
         FIT_JOBS.covariate_pool: CovariatePoolTaskTemplate,
         FIT_JOBS.beta_fit: BetaFitTaskTemplate,
+        FIT_JOBS.beta_resampling: BetaResamplingTaskTemplate,
         FIT_JOBS.past_infections: PastInfectionsTaskTemplate,
         FIT_JOBS.beta_fit_join_sentinel: JoinSentinelTaskTemplate,
         FIT_JOBS.beta_fit_postprocess: BetaFitPostprocessTaskTemplate,
@@ -104,6 +118,7 @@ class FitWorkflow(workflow.WorkflowTemplate):
     def attach_tasks(self, n_draws: int, measures: List[str], plot_types: List[str]):
         covariate_template = self.task_templates[FIT_JOBS.covariate_pool]
         fit_template = self.task_templates[FIT_JOBS.beta_fit]
+        resampling_template = self.task_templates[FIT_JOBS.beta_resampling]
         past_infections_template = self.task_templates[FIT_JOBS.past_infections]
         join_template = self.task_templates[FIT_JOBS.beta_fit_join_sentinel]
         postprocess_template = self.task_templates[FIT_JOBS.beta_fit_postprocess]
@@ -113,11 +128,10 @@ class FitWorkflow(workflow.WorkflowTemplate):
             fit_version=self.version,
         )
         self.workflow.add_task(covariate_pool_task)
-        fit_join_task = join_template.get_task(
+        resampling_task = resampling_template.get_task(
             fit_version=self.version,
-            sentinel_id='fit',
         )
-        self.workflow.add_task(fit_join_task)
+        self.workflow.add_task(resampling_task)
         for measure, draw_id in itertools.product(['case', 'death', 'admission'], range(n_draws)):
             task = fit_template.get_task(
                 fit_version=self.version,
@@ -125,7 +139,7 @@ class FitWorkflow(workflow.WorkflowTemplate):
                 draw_id=draw_id,
             )
             task.add_upstream(covariate_pool_task)
-            task.add_downstream(fit_join_task)
+            task.add_downstream(resampling_task)
             self.workflow.add_task(task)
 
         past_infections_join_task = join_template.get_task(
@@ -138,7 +152,7 @@ class FitWorkflow(workflow.WorkflowTemplate):
                 fit_version=self.version,
                 draw_id=draw_id
             )
-            task.add_upstream(fit_join_task)
+            task.add_upstream(resampling_task)
             task.add_downstream(past_infections_join_task)
             self.workflow.add_task(task)
 
