@@ -64,6 +64,7 @@ def fit_main(app_metadata: cli_tools.Metadata,
         if specification.data.compare_version:
             plot_types.append(plotter.PLOT_TYPE.model_compare)
         workflow.attach_tasks(n_draws=data_interface.get_n_draws(),
+                              n_oversample_draws=data_interface.get_n_oversample_draws(),
                               measures=list(postprocess.MEASURES),
                               plot_types=plot_types)
         try:

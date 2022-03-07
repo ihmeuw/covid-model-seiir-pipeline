@@ -115,7 +115,11 @@ class FitWorkflow(workflow.WorkflowTemplate):
     }
     fail_fast = False
 
-    def attach_tasks(self, n_draws: int, measures: List[str], plot_types: List[str]):
+    def attach_tasks(self,
+                     n_draws: int,
+                     n_oversample_draws: int,
+                     measures: List[str],
+                     plot_types: List[str]) -> None:
         covariate_template = self.task_templates[FIT_JOBS.covariate_pool]
         fit_template = self.task_templates[FIT_JOBS.beta_fit]
         resampling_template = self.task_templates[FIT_JOBS.beta_resampling]
@@ -132,7 +136,7 @@ class FitWorkflow(workflow.WorkflowTemplate):
             fit_version=self.version,
         )
         self.workflow.add_task(resampling_task)
-        for measure, draw_id in itertools.product(['case', 'death', 'admission'], range(n_draws)):
+        for measure, draw_id in itertools.product(['case', 'death', 'admission'], range(n_draws + n_oversample_draws)):
             task = fit_template.get_task(
                 fit_version=self.version,
                 measure=measure,

@@ -39,8 +39,10 @@ class FitDataInterface:
         return self.preprocessing_data_interface.get_n_draws()
 
     def get_n_oversample_draws(self):
-        spec = self.preprocessing_data_interface.load_specification()
-        return spec.data.n_oversample_draws
+        return self.preprocessing_data_interface.get_n_oversample_draws()
+
+    def get_n_total_draws(self):
+        return self.preprocessing_data_interface.get_n_total_draws()
 
     #####################
     # Preprocessed Data #
