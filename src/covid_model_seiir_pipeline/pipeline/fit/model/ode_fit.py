@@ -17,12 +17,18 @@ from covid_model_seiir_pipeline.lib.ode_mk2.constants import (
 from covid_model_seiir_pipeline.lib.ode_mk2 import (
     solver,
 )
+from covid_model_seiir_pipeline.lib import (
+    parallel,
+)
 from covid_model_seiir_pipeline.pipeline.fit.model.sampled_params import (
     Durations,
     sample_parameter,
 )
 from covid_model_seiir_pipeline.pipeline.fit.model.epi_measures import (
     aggregate_data_from_md,
+)
+from covid_model_seiir_pipeline.pipeline.fit.model.mrbrt import (
+    mrbrt,
 )
 
 
@@ -88,7 +94,9 @@ def prepare_past_infections_parameters(betas: pd.DataFrame,
                                        natural_waning_matrix: pd.DataFrame,
                                        sampled_ode_params: Dict[str, float],
                                        hierarchy: pd.DataFrame,
-                                       draw_id: int):
+                                       draw_id: int,
+                                       num_threads: int,
+                                       progress_bar: bool):
     measures_and_rates, age_scalars = prepare_epi_measures_for_past_infections(
         epi_measures=epi_measures,
         epi_rates=rates,
@@ -111,22 +119,13 @@ def prepare_past_infections_parameters(betas: pd.DataFrame,
     rhos.columns = [f'rho_{c}_infection' for c in rhos.columns]
     rhos['rho_none_infection'] = pd.Series(0., index=past_index, name='rho_none_infection')
 
-    final_betas = []
-    for location_id in betas.reset_index().location_id.unique():
-        loc_beta = betas.loc[location_id]
-        loc_beta_mean = loc_beta.mean(axis=1).rename('beta_all_infection')
-        x = loc_beta_mean.dropna().reset_index()
-        # get a date in the middle of the series to use in the intercept shift
-        # so we avoid all the nonsense at the beginning.
-        index_date, level = x.iloc[len(x) // 2]
-        loc_beta_diff_mean = loc_beta.diff().mean(axis=1).cumsum().rename('beta_all_infection')
-        loc_beta_diff_mean += level - loc_beta_diff_mean.loc[index_date]
-        loc_beta_diff_mean = pd.concat([loc_beta_mean.loc[:index_date], loc_beta_diff_mean.loc[index_date + pd.Timedelta(days=1):]])
-        loc_beta_diff_mean = loc_beta_diff_mean.reset_index()
-        loc_beta_diff_mean['location_id'] = location_id
-        loc_beta_diff_mean = loc_beta_diff_mean.set_index(['location_id', 'date'])['beta_all_infection']
-        final_betas.append(loc_beta_diff_mean)
-    beta = pd.concat(final_betas)
+    beta = parallel.run_parallel(
+        make_composite_beta,
+        arg_list=[beta for location_id, beta in betas.groupby('location_id')],
+        num_cores=num_threads,
+        progress_bar=progress_bar,
+    )
+    beta = pd.concat(beta)
 
     base_parameters = pd.concat([
         sampled_params,
@@ -148,6 +147,98 @@ def prepare_past_infections_parameters(betas: pd.DataFrame,
         etas=etas,
         phis=phis,
     )
+
+
+def make_composite_beta(loc_beta: pd.DataFrame,
+                        n_tail_weeks: int = 3, internal_weeks_width: int = 4,):
+    # start_dates = []
+    # end_dates = []
+    # for measure in loc_beta:
+    #     loc_beta_dates = loc_beta.loc[:, measure].dropna().reset_index()['date']
+    #     start_dates.append(loc_beta_dates.iloc[0])
+    #     end_dates.append(loc_beta_dates.iloc[-1])
+    # start_shifts = [(start_date - min(start_dates)).days for start_date in start_dates]
+    # start_shift = max([start_shift for start_shift in start_shifts if start_shift < 14])
+    # start_shift = max(7, start_shift)
+
+    # k_start = np.hstack([[0], np.linspace(start_shift, start_shift + 21, 4)])
+
+    # end_shifts = [(max(end_dates) - end_date).days for end_date in end_dates]
+    # end_shift = max([end_shift for end_shift in end_shifts if end_shift < 7])
+
+    loc_beta_dates = loc_beta.loc[loc_beta.notnull().any(axis=1)].reset_index()['date'][1:].reset_index(drop=True)
+
+    n_days = (loc_beta_dates.max() - loc_beta_dates.min()).days
+
+    if n_days > n_tail_weeks * 7 * 2:
+        k_start = np.linspace(0, n_tail_weeks * 7, n_tail_weeks + 1)
+
+        k_end = np.linspace(n_days - n_tail_weeks * 7, n_days, n_tail_weeks + 1)
+
+        k_middle = np.linspace(k_start.max(), k_end.min(),
+                               int((k_end.min() - k_start.max()) / (internal_weeks_width * 7)) + 1)[1:-1]
+
+        spline_knots = np.hstack([k_start, k_middle, k_end]) / n_days
+    else:
+        spline_knots = np.linspace(0, n_days, int(n_days / 7)) / n_days
+
+    loc_delta_log_beta = np.log(loc_beta).diff()
+
+    prior_spline_maxder_gaussian = np.array([[0, np.inf]] * (spline_knots.size - 1))
+    prior_spline_maxder_gaussian[0] = [0, 0.01]
+    prior_spline_maxder_gaussian = prior_spline_maxder_gaussian.T
+
+    loc_delta_log_beta = loc_delta_log_beta.stack().reset_index()
+    loc_delta_log_beta.columns = ['location_id', 'date', 'measure', 'delta_log_beta']
+    loc_delta_log_beta['intercept'] = 1
+    loc_delta_log_beta['t'] = (loc_delta_log_beta['date'] - loc_delta_log_beta['date'].min()).dt.days
+    loc_delta_log_beta['delta_log_beta_se'] = 1
+
+    loc_delta_log_beta_model = mrbrt.run_mr_model(
+        model_data=loc_delta_log_beta,
+        dep_var='delta_log_beta',
+        dep_var_se='delta_log_beta_se',
+        fe_vars=['intercept', 't'],
+        re_vars=[],
+        group_var='location_id',
+        prior_dict={
+            'intercept': {},
+            't': {
+                'use_spline': True,
+                'spline_knots_type': 'domain',
+                'spline_knots': spline_knots,
+                'spline_degree': 3,
+                'spline_l_linear': True,
+                'spline_r_linear': True,
+                'prior_spline_maxder_gaussian': prior_spline_maxder_gaussian,
+            }
+        },
+    )
+
+    pred_loc_delta_log_beta = loc_beta.loc[loc_beta.notnull().any(axis=1)].reset_index().loc[:, ['location_id', 'date']].drop_duplicates()
+    pred_loc_delta_log_beta['intercept'] = 1
+    pred_loc_delta_log_beta['t'] = (pred_loc_delta_log_beta['date'] - pred_loc_delta_log_beta['date'].min()).dt.days
+    pred_mr_data = mrbrt.create_mr_data(
+        pred_loc_delta_log_beta,
+        dep_var='delta_log_beta',
+        dep_var_se='delta_log_beta_se',
+        fe_vars=['intercept', 't'],
+        re_vars=[],
+        group_var='location_id',
+        pred=True
+    )
+    pred_loc_delta_log_beta['delta_log_beta'] = loc_delta_log_beta_model.predict(pred_mr_data)
+
+    pred_loc_delta_log_beta = (pred_loc_delta_log_beta
+                               .set_index(['location_id', 'date'])
+                               .loc[:, 'delta_log_beta'])
+    pred_loc_log_beta = pred_loc_delta_log_beta.cumsum().rename('log_beta')
+    pred_loc_log_beta += np.log(loc_beta).subtract(pred_loc_log_beta, axis=0).mean().mean()
+    pred_loc_beta = np.exp(pred_loc_log_beta).rename('beta_all_infection')
+
+    spline_knots = [loc_beta_dates[0] + pd.Timedelta(days=int(np.round(spline_knot))) for spline_knot in spline_knots * n_days]
+
+    return pred_loc_beta, spline_knots
 
 
 def prepare_epi_measures_and_rates(measure: str,

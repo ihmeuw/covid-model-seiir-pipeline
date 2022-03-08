@@ -1,3 +1,4 @@
+import os
 import click
 import numpy as np
 import pandas as pd
@@ -18,6 +19,9 @@ def run_past_infections(fit_version: str, draw_id: int, progress_bar: bool) -> N
     specification = FitSpecification.from_version_root(fit_version)
     data_interface = FitDataInterface.from_specification(specification)
     num_threads = specification.workflow.task_specifications[FIT_JOBS.beta_fit].num_cores
+
+    os.environ['OMP_NUM_THREADS'] = str(num_threads)
+    os.environ['MKL_NUM_THREADS'] = str(num_threads)
 
     logger.info('Loading past infections data', context='read')
     mr_hierarchy = data_interface.load_hierarchy(name='mr')
@@ -72,6 +76,8 @@ def run_past_infections(fit_version: str, draw_id: int, progress_bar: bool) -> N
         sampled_ode_params=sampled_ode_params,
         hierarchy=pred_hierarchy,
         draw_id=draw_id,
+        num_threads=num_threads,
+        progress_bar=progress_bar,
     )
 
     logger.info('Rebuilding initial condition.', context='transform')
