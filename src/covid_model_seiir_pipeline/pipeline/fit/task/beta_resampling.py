@@ -200,15 +200,19 @@ def build_and_write_beta_final(draw_id: int,
         draw_failures = draw_failures.drop(replace_failures.index).append(replace_failures).sort_index()
     final_betas = []
     for location_id in betas.reset_index().location_id.unique():
-        if location_id in unrecoverable or location_id not in draw_failures.index:
+        if location_id in unrecoverable:
+            # We can't do anything, this totally failed.
             continue
-        loc_beta = betas.loc[location_id]
-        loc_failures = draw_failures.loc[location_id]
-        for measure, measure_failed in loc_failures.iteritems():
-            if measure_failed:
-                loc_beta[f'beta_{measure}'] = np.nan
 
-        loc_beta_mean = loc_beta.mean(axis=1).rename('beta_all_infection')
+        loc_beta = betas.loc[location_id]
+        # Some locations like China, never had delta, so there's no error.
+        if location_id in draw_failures.index:
+            loc_failures = draw_failures.loc[location_id]
+            for measure, measure_failed in loc_failures.iteritems():
+                if measure_failed:
+                    loc_beta[f'beta_{measure}'] = np.nan
+
+        loc_beta_mean = loc_beta.mean(axis=1).rename('beta')
         x = loc_beta_mean.dropna().reset_index()
         # get a date in the middle of the series to use in the intercept shift
         # so we avoid all the nonsense at the beginning.
@@ -221,11 +225,9 @@ def build_and_write_beta_final(draw_id: int,
                                         index_date + pd.Timedelta(days=1):]])
         loc_beta_diff_mean = loc_beta_diff_mean.reset_index()
         loc_beta_diff_mean['location_id'] = location_id
-        loc_beta_diff_mean = loc_beta_diff_mean.set_index(['location_id', 'date'])[
-            'beta_all_infection']
-        final_betas.append(loc_beta_diff_mean)
+        loc_beta_diff_mean = loc_beta_diff_mean.set_index(['location_id', 'date'])['beta']
+        final_betas.append(pd.concat([loc_beta, loc_beta_diff_mean], axis=1))
     final_betas = pd.concat(final_betas)
-    final_betas = pd.concat([betas, final_betas], axis=1)
     data_interface.save_fit_beta(final_betas, draw_id, measure_version='final')
 
 
@@ -247,7 +249,7 @@ def build_and_write_beta_finals(replacements: Dict[int, List[Tuple[int, int]]],
     parallel.run_parallel(
         runner=_runner,
         arg_list=arg_list,
-        num_cores=1, # num_cores,
+        num_cores=num_cores,
         progress_bar=progress_bar,
     )
 
