@@ -56,7 +56,7 @@ def run_beta_resampling(fit_version: str, progress_bar: bool):
         substitute_draw = [d for d in potential_substitutes if d not in cant_use][0]
         replace[location_id].append((draw, substitute_draw))
 
-    failures.reorder_levels(['draw_id', 'location_id']).sort_index()
+    failures = failures.reorder_levels(['draw_id', 'location_id']).sort_index()
 
     build_and_write_beta_finals(
         replacements=replace,
@@ -195,15 +195,18 @@ def build_and_write_beta_final(draw_id: int,
     ]).sort_index()
 
     draw_failures = failures.loc[draw_id]
+    for draw, locs in draw_replace.items():
+        replace_failures = failures.loc[draw].loc[locs]
+        draw_failures = draw_failures.drop(replace_failures.index).append(replace_failures).sort_index()
     final_betas = []
     for location_id in betas.reset_index().location_id.unique():
-        if location_id in unrecoverable:
+        if location_id in unrecoverable or location_id not in draw_failures.index:
             continue
         loc_beta = betas.loc[location_id]
         loc_failures = draw_failures.loc[location_id]
         for measure, measure_failed in loc_failures.iteritems():
             if measure_failed:
-                loc_beta[measure] = np.nan
+                loc_beta[f'beta_{measure}'] = np.nan
 
         loc_beta_mean = loc_beta.mean(axis=1).rename('beta_all_infection')
         x = loc_beta_mean.dropna().reset_index()
@@ -244,7 +247,7 @@ def build_and_write_beta_finals(replacements: Dict[int, List[Tuple[int, int]]],
     parallel.run_parallel(
         runner=_runner,
         arg_list=arg_list,
-        num_cores=num_cores,
+        num_cores=1, # num_cores,
         progress_bar=progress_bar,
     )
 
