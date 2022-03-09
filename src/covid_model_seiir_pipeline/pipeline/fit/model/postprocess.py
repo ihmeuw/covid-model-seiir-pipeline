@@ -121,8 +121,8 @@ for reported_measure, infection_type in itertools.product(['death', 'admission',
     MEASURES[f'posterior_{reported_measure}_based_{infection_type}_infections'] = MeasureConfig(
         loader=parallel.make_loader(
             FitDataInterface.load_posterior_epi_measures,
-            f'daily_{infection_type}_infections',
-            measure_version=reported_measure,
+            f'daily_{infection_type}_infections_{reported_measure}',
+            measure_version='resampled',
         ),
         label=f'posterior_{reported_measure}_based_daily_{infection_type}_infections',
         aggregator=aggregate.sum_aggregator,
@@ -179,6 +179,7 @@ for suffix, label_suffix in zip(['_death', '_admission', '_case'],
         ),
         label=f'beta{label_suffix}',
         description=description,
+        round_specific=False,
     )
 
 MEASURES['beta'] = MeasureConfig(

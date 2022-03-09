@@ -1,7 +1,7 @@
 from collections import defaultdict
 import functools
 import itertools
-from typing import Dict, List, Tuple
+from typing import Callable, Dict, List, Tuple
 
 import click
 import matplotlib.pyplot as plt
@@ -162,21 +162,23 @@ def make_error_histogram(df: pd.DataFrame) -> None:
     plt.show()
 
 
-def load_beta_subset(draw_id: int, draw_replace: Dict[int, List[int]], data_interface: FitDataInterface) -> pd.DataFrame:
-    betas = []
+def load_data_subset(draw_id: int,
+                     loader: Callable[[int, str, List[str]], pd.DataFrame],
+                     columns: List[str],
+                     draw_replace: Dict[int, List[int]]) -> pd.DataFrame:
+    data = []
     for measure in ['case', 'death', 'admission']:
-        beta = data_interface.load_fit_beta(draw_id, measure, [f'beta_{measure}', 'round'])
-        beta = beta.loc[beta['round'] == 2].drop(columns='round')[f'beta_{measure}']
-        beta[np.abs(beta) < 1e-5] = np.nan
-        betas.append(beta)
-    betas = pd.concat(betas, axis=1)
+        df = loader(draw_id, measure, [c.format(measure=measure) for c in columns])
+        df = df.loc[df['round'] == 2].drop(columns='round')
+        df.rename(columns=lambda x: x if measure in x else f'{x}_{measure}')
+        data.append(df)
+    data = pd.concat(data, axis=1)
     if draw_id in draw_replace:
         keep_idx = draw_replace[draw_id]
     else:
         drop = [loc_id for loc_list in draw_replace.values() for loc_id in loc_list]
-        keep_idx = [loc_id for loc_id in betas.reset_index().location_id.unique() if
-                    loc_id not in drop]
-    return betas.loc[keep_idx]
+        keep_idx = [loc_id for loc_id in data.reset_index().location_id.unique() if loc_id not in drop]
+    return data.loc[keep_idx]
 
 
 def build_and_write_beta_final(draw_id: int,
@@ -189,28 +191,50 @@ def build_and_write_beta_final(draw_id: int,
         for d, s in replace_list:
             if d == draw_id:
                 draw_replace[s].append(location_id)
-    betas = pd.concat([
-        load_beta_subset(d, draw_replace, data_interface) for d in
-        [draw_id] + list(draw_replace)
-    ]).sort_index()
+    draws_to_load = [draw_id] + list(draw_replace)
+    betas = []
+    infections = []
+    for d in draws_to_load:
+        betas.append(load_data_subset(
+            draw_id=d,
+            loader=data_interface.load_fit_beta,
+            columns=['beta_{measure}'],
+            draw_replace=draw_replace,
+        ))
+        infections.append(load_data_subset(
+            draw_id=d,
+            loader=data_interface.load_posterior_epi_measures,
+            columns=['daily_total_infections', 'daily_naive_infections'],
+            draw_replace=draw_replace,
+        ))
+    betas = pd.concat(betas).sort_index()
+    infections = pd.concat(infections).sort_index()
 
     draw_failures = failures.loc[draw_id]
     for draw, locs in draw_replace.items():
         replace_failures = failures.loc[draw].loc[locs]
         draw_failures = draw_failures.drop(replace_failures.index).append(replace_failures).sort_index()
+
     final_betas = []
+    final_infections = []
     for location_id in betas.reset_index().location_id.unique():
+        loc_beta = betas.loc[location_id]
+        loc_infections = infections.loc[location_id]
         if location_id in unrecoverable:
             # We can't do anything, this totally failed.
+            loc_beta = pd.concat([loc_beta, pd.Series(np.nan, name='beta', index=loc_beta.index)], axis=1)
+            final_betas.append(loc_beta)
+            final_infections.append(loc_infections)
             continue
 
-        loc_beta = betas.loc[location_id]
         # Some locations like China, never had delta, so there's no error.
         if location_id in draw_failures.index:
             loc_failures = draw_failures.loc[location_id]
             for measure, measure_failed in loc_failures.iteritems():
                 if measure_failed:
                     loc_beta[f'beta_{measure}'] = np.nan
+                    loc_infections[f'daily_total_infections_{measure}'] = np.nan
+                    loc_infections[f'daily_naive_infections_{measure}'] = np.nan
 
         loc_beta_mean = loc_beta.mean(axis=1).rename('beta')
         x = loc_beta_mean.dropna().reset_index()
@@ -227,8 +251,11 @@ def build_and_write_beta_final(draw_id: int,
         loc_beta_diff_mean['location_id'] = location_id
         loc_beta_diff_mean = loc_beta_diff_mean.set_index(['location_id', 'date'])['beta']
         final_betas.append(pd.concat([loc_beta, loc_beta_diff_mean], axis=1))
-    final_betas = pd.concat(final_betas)
+        final_infections.append(loc_infections)
+    final_betas = pd.concat(final_betas).sort_index()
+    final_infections = pd.concat(final_infections).sort_index()
     data_interface.save_fit_beta(final_betas, draw_id, measure_version='final')
+    data_interface.save_posterior_epi_measures(final_infections, draw_id, measure_version='resampled')
 
 
 def build_and_write_beta_finals(replacements: Dict[int, List[Tuple[int, int]]],
