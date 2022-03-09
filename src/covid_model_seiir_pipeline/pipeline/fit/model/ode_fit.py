@@ -153,7 +153,7 @@ def prepare_past_infections_parameters(betas: pd.DataFrame,
 
 
 def make_composite_beta(loc_beta: pd.DataFrame,
-                        n_tail_weeks: int = 3, internal_weeks_width: int = 4,
+                        n_tail_weeks: int = 3, internal_weeks_width: int = 3,
                         return_knots: bool = False):
     # get date information
     loc_beta_dates = loc_beta.loc[loc_beta.notnull().any(axis=1)].reset_index()['date'][1:].reset_index(drop=True)
@@ -197,22 +197,22 @@ def make_composite_beta(loc_beta: pd.DataFrame,
                  degree=3,)
         )
 
-        # determine spline priors
-        if knots.size > 4:
-            first_deriv_prior = np.array([[0, np.inf]] * (knots.size - 1))
-            first_deriv_prior[0] = [0, 0.01]
-            first_deriv_prior = first_deriv_prior.T
-            spline_priors = [SplineGaussianPrior(size=knots.size-1,
-                                                 order=1,
-                                                 mean=first_deriv_prior[0],
-                                                 sd=first_deriv_prior[1],)]
-        else:
-            spline_priors = []
+        # # determine spline priors
+        # if knots.size > 4:
+        #     first_deriv_prior = np.array([[0, np.inf]] * (knots.size - 1))
+        #     first_deriv_prior[0] = [0, 0.01]
+        #     first_deriv_prior = first_deriv_prior.T
+        #     spline_priors = [SplineGaussianPrior(size=knots.size-1,
+        #                                          order=1,
+        #                                          mean=first_deriv_prior[0],
+        #                                          sd=first_deriv_prior[1],)]
+        # else:
+        #     spline_priors = []
+        spline_priors = []
 
         # prepare model data
-        loc_delta_log_beta = np.log(loc_beta).diff()
-        loc_delta_log_beta = loc_delta_log_beta.stack().reset_index()
-        loc_delta_log_beta.columns = ['location_id', 'date', 'measure', 'delta_log_beta']
+        loc_delta_log_beta = np.log(loc_beta).mean(axis=1).diff().dropna().reset_index()
+        loc_delta_log_beta.columns = ['location_id', 'date', 'delta_log_beta']
         loc_delta_log_beta['intercept'] = 1
         t0 = loc_delta_log_beta['date'].min()
         loc_delta_log_beta['t'] = (loc_delta_log_beta['date'] - t0).dt.days

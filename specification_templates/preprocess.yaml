@@ -2,7 +2,7 @@ data:
   mr_location_set_version_id: 1020
   mr_location_set_file: ''
   pred_location_set_version_id: 1020
-  model_inputs_version: '2022_03_08.01'
+  model_inputs_version: '2022_03_08.03'
   age_specific_rates_version: '2022_02_11.03'
   mortality_scalars_version: '2022_03_02.01'
   mask_use_outputs_version: '2022_03_04.21'
