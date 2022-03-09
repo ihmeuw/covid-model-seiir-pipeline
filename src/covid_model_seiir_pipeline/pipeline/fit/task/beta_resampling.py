@@ -133,13 +133,14 @@ def build_residuals(window_dates: pd.DataFrame, data_interface: FitDataInterface
     )
     arg_list = [f'{measure}_{draw}' for measure, draw
                 in itertools.product(['case', 'admission', 'death'], range(total_draws))]
+    old_err_settings = np.seterr(all='ignore')
     results = parallel.run_parallel(
         runner=_runner,
         arg_list=arg_list,
         num_cores=num_cores,
         progress_bar=progress_bar,
     )
-
+    np.seterr(**old_err_settings)
     df = pd.concat(results, axis=1).sort_index().stack().reset_index()
     df.columns = ['location_id', 'measure_draw', 'value']
     df['measure'], df['draw_id'] = df.measure_draw.str.split('_').str
@@ -241,8 +242,7 @@ def build_and_write_beta_final(draw_id: int,
         # get a date in the middle of the series to use in the intercept shift
         # so we avoid all the nonsense at the beginning.
         index_date, level = x.iloc[len(x) // 2]
-        loc_beta_diff_mean = loc_beta.diff().mean(axis=1).cumsum().rename(
-            'beta_all_infection')
+        loc_beta_diff_mean = loc_beta.diff().mean(axis=1).cumsum().rename('beta')
         loc_beta_diff_mean += level - loc_beta_diff_mean.loc[index_date]
         loc_beta_diff_mean = pd.concat([loc_beta_mean.loc[:index_date],
                                         loc_beta_diff_mean.loc[
@@ -250,6 +250,7 @@ def build_and_write_beta_final(draw_id: int,
         loc_beta_diff_mean = loc_beta_diff_mean.reset_index()
         loc_beta_diff_mean['location_id'] = location_id
         loc_beta_diff_mean = loc_beta_diff_mean.set_index(['location_id', 'date'])['beta']
+        loc_beta = loc_beta.reindex(loc_beta_diff_mean.index, level='date')
         final_betas.append(pd.concat([loc_beta, loc_beta_diff_mean], axis=1))
         final_infections.append(loc_infections)
     final_betas = pd.concat(final_betas).sort_index()
