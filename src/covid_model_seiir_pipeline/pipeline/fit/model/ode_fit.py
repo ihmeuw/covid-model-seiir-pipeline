@@ -124,9 +124,9 @@ def prepare_past_infections_parameters(betas: pd.DataFrame,
     rhos['rho_none_infection'] = pd.Series(0., index=past_index, name='rho_none_infection')
 
     arg_list = [(infections.loc[[location_id]],
-                betas.loc[[location_id]],
-                sampled_params.loc[[location_id], 'alpha_all_infection'],)
-                for location_id in betas['location_id'].unique()]
+                 betas.loc[[location_id]],
+                 sampled_params.loc[[location_id], 'alpha_all_infection'],)
+                for location_id in betas.reset_index()['location_id'].unique()]
 
     beta = parallel.run_parallel(
         make_composite_beta,
@@ -165,15 +165,15 @@ def combination_spline(data: pd.DataFrame):
 
     # determine spline specs
     if n_days > 90:
-        # start anchor (using mean up to last 30 days)
+        # start anchor (using mean up to last 28 days)
         k_start = np.array([0])
 
-        # tighter over last 30 days
-        k_end = np.linspace(n_days - 30, n_days, 6)
+        # tighter over last 28 days
+        k_end = np.linspace(n_days - 28, n_days, 5)
 
-        # every 30 days during middle interval
+        # every 56 days during middle interval
         k_middle = np.linspace(k_start.max(), k_end.min(),
-                               int((k_end.min() - k_start.max()) / 30) + 1)[1:-1]
+                               int((k_end.min() - k_start.max()) / 56) + 1)[1:-1]
 
         # stitch together
         knots = np.hstack([k_start, k_middle, k_end]) / n_days
@@ -215,10 +215,10 @@ def combination_spline(data: pd.DataFrame):
 
     # splice predictions
     pred_data = pd.concat([
-        pred_data[:-30],
-        np.exp(np.log(pred_data.iloc[-30] + 1) + pred_delta_log_data.loc[data_idx][-30:].cumsum())
+        pred_data[:-28],
+        np.exp(np.log(pred_data.iloc[-28] + 1) + pred_delta_log_data.loc[data_idx][-28:].cumsum())
     ])
-    pred_data = pred_data.rename('pred').clip(0, np.inf)
+    pred_data = pred_data.rename('pred').clip(1e-4, np.inf)
 
     return pred_data
 
@@ -471,7 +471,7 @@ def get_crude_infections(measure: str, base_params, rates, threshold=50):
         for measure, rate in rate_map.items():
             infections = base_params[f'count_all_{measure}'] / rates[rate]
             infections[infections < threshold] = np.nan
-            crude_infections[measure] = infections
+            crude_infections[measure] = infections.groupby('location_id').ffill()
         mask = base_params['beta_all_infection'] > 0
         crude_infections = crude_infections.loc[mask].fillna(0).mean(axis=1).rename('infections').dropna()
 
