@@ -126,7 +126,7 @@ def prepare_past_infections_parameters(betas: pd.DataFrame,
     arg_list = [(infections.loc[[location_id]],
                 betas.loc[[location_id]],
                 sampled_params.loc[[location_id], 'alpha_all_infection'],)
-                for location_id, beta in betas.groupby('location_id')]
+                for location_id in betas['location_id'].unique()]
 
     beta = parallel.run_parallel(
         make_composite_beta,
