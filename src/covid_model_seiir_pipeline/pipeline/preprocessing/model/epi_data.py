@@ -31,7 +31,6 @@ def preprocess_epi_data(data_interface: PreprocessingDataInterface) -> None:
     total_covid_scalars = _process_scalars(total_covid_scalars, pred_hierarchy, total_draws)
     epi_data = pd.concat([_process_epi_data(data, measure, mr_hierarchy)
                           for measure, data in epi_data.items()], axis=1)
-    epi_data = terminal_date_alignment(epi_data)
 
     logger.info('Writing epi data.', context='write')
     data_interface.save_age_patterns(age_pattern_data)
@@ -84,51 +83,6 @@ def _process_epi_data(data: pd.Series, measure: str,
     return data
 
 
-def terminal_date_alignment(data: pd.DataFrame, cutoff: int = 3):
-    measures = ['cumulative_cases', 'cumulative_hospitalizations']
-    _data = data.loc[:, measures]
-    _data = _data.loc[_data.notnull().any(axis=1)]
-    terminal_dates = (_data
-                      .reset_index()
-                      .groupby('location_id')['date'].max()
-                      .rename('terminal_date'))
-    del _data
-    tail_missingness = pd.concat([
-        (terminal_dates - data.loc[:, measure].dropna().reset_index().groupby('location_id')['date'].max()).dt.days
-        for measure in measures
-    ], axis=1)
-    tail_missingness = tail_missingness.replace(0, np.nan).min(axis=1).rename('tail_missingness')
-    longer_window_locs = [90, 4643, 4657, 4669, 60371]
-    trim_idx = tail_missingness <= cutoff
-    trim_idx.loc[longer_window_locs] = True
-    tail_missingness = tail_missingness.loc[trim_idx]
-    terminal_dates = pd.concat([terminal_dates, tail_missingness], axis=1)
-    terminal_dates['tail_missingness'] = terminal_dates['tail_missingness'].fillna(0).astype(int)
-
-    accounting = terminal_dates.loc[terminal_dates['tail_missingness'] > 0]
-    n_loc_days = accounting['tail_missingness'].sum()
-    locs = [str(loc) for loc in accounting.index]
-    n_locs = len(locs)
-    logger.warning(f'Dropping {n_loc_days} days of data across {n_locs} locations to align terminal '
-                   f'dates for case and admissions data when difference is {cutoff} days or less. '
-                   f"Affected locations:\n{accounting['tail_missingness'].sort_values(ascending=False)}")
-
-    terminal_dates = terminal_dates.apply(
-        lambda x: x['terminal_date'] - pd.Timedelta(days=x['tail_missingness']),
-        axis=1
-    ).rename('terminal_date')
-    data = data.join(terminal_dates, how='left')
-    if data['terminal_date'].isnull().any():
-        raise ValueError('Mismatch in terminal date aligment.')
-
-    data = data.reset_index('date')
-    data = data.loc[data['date'] <= data['terminal_date']]
-    del data['terminal_date']
-    data = data.set_index('date', append=True)
-
-    return data
-
-
 def evil_doings(data: pd.DataFrame, hierarchy: pd.DataFrame, input_measure: str) -> Tuple[pd.DataFrame, Dict]:
     manipulation_metadata = {}
 
@@ -151,20 +105,6 @@ def evil_doings(data: pd.DataFrame, hierarchy: pd.DataFrame, input_measure: str)
         pass
 
     elif input_measure == 'hospitalizations':
-        ## ## ## ## ## ## ## ## ## ## ## ## ## ##
-        ## N Ireland - compositional bias problem; lose last few days of hosp
-        is_n_ireland = data['location_id'] == 433
-        n_ireland_last_day = data.loc[is_n_ireland, 'date'].max()
-        is_n_ireland_sub5 = data['date'] <= n_ireland_last_day - pd.Timedelta(days=5)
-        data = data.loc[~is_n_ireland | is_n_ireland_sub5].reset_index(drop=True)
-        manipulation_metadata['n_ireland'] = 'dropped all hospitalizations'
-        ## ## ## ## ## ## ## ## ## ## ## ## ## ##
-
-        ## hosp/IHR == admissions too low
-        is_argentina = data['location_id'] == 97
-        data = data.loc[~is_argentina].reset_index(drop=True)
-        manipulation_metadata['argentina'] = 'dropped all hospitalizations'
-
         ## late, not cumulative on first day
         is_ndl = data['location_id'] == 89
         data = data.loc[~is_ndl].reset_index(drop=True)
@@ -179,11 +119,6 @@ def evil_doings(data: pd.DataFrame, hierarchy: pd.DataFrame, input_measure: str)
         is_murcia = data['location_id'] == 60366
         data = data.loc[~is_murcia].reset_index(drop=True)
         manipulation_metadata['murcia'] = 'dropped all hospitalizations'
-        
-        ## is just july 2020-april 2021
-        is_la_rioja = data['location_id'] == 60376
-        data = data.loc[~is_la_rioja].reset_index(drop=True)
-        manipulation_metadata['la_rioja'] = 'dropped all hospitalizations'
 
         ## partial time series
         pakistan_location_ids = hierarchy.loc[hierarchy['path_to_top_parent'].apply(lambda x: '165' in x.split(',')),
@@ -198,7 +133,7 @@ def evil_doings(data: pd.DataFrame, hierarchy: pd.DataFrame, input_measure: str)
         data = data.loc[~is_ecdc].reset_index(drop=True)
         manipulation_metadata['ecdc_countries'] = 'dropped all hospitalizations'
 
-        ## CLOSE, but seems a little low... check w/ new data
+        ## check w/ new data
         is_goa = data['location_id'] == 4850
         data = data.loc[~is_goa].reset_index(drop=True)
         manipulation_metadata['goa'] = 'dropped all hospitalizations'
@@ -234,12 +169,7 @@ def evil_doings(data: pd.DataFrame, hierarchy: pd.DataFrame, input_measure: str)
         manipulation_metadata['malawi'] = 'dropped all hospitalizations'
 
     elif input_measure == 'deaths':
-        ## Virginia deaths spike
-        is_virginia = data['location_id'] == 569
-        is_feb = data['date'] >= pd.Timestamp('2022-02-01')
-        data = data.loc[~(is_virginia & is_feb)].reset_index(drop=True)
-        manipulation_metadata['virginia'] = 'dropped deaths Feb onward (TEMPORARY)'
-        # pass
+        pass
 
     else:
         raise ValueError(f'Input measure {input_measure} does not have a protocol for exclusions.')

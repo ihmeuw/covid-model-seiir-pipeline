@@ -1,11 +1,11 @@
 data:
-  seir_preprocess_version: '2022_03_06.01'
+  seir_preprocess_version: '2022_03_10.02'
   output_format: 'parquet'
   output_root: ''
   compare_version: '2022_02_04.02'
 workflow:
   project: 'proj_covid_prod'
-  queue: 'all.q'
+  queue: 'long.q'
 rates_parameters:
   day_0: '2020-03-15'
   pred_start_date: '2019-11-01'
@@ -89,76 +89,76 @@ fit_parameters:
 measure_downweights:
   death:
     [
-      # IFR outliers
-      [   35, 0.50],  # Georgia
-      [   41, 0.50],  # Uzbekistan
-      [   43, 0.50],  # Albania
-      [   62, 0.10],  # Russia
-      [  141, 0.50],  # Egypt
-      [  151, 0.50],  # Qatar
-      [53619, 0.01],  # Khyber Pakhtunkhwa
-      # bad fits
-      [   49, 0.00],  # North Macedonia
-      [43861, 0.10],  # New Brunswick
-      [  121, 0.00],  # Bolivia
-      [ 4757, 0.10],  # Espirito Santo
-      [  113, 0.10],  # Guyana
-      [  160, 0.00],  # Afghanistan
-      [ 4843, 0.01],  # Assam
-      [ 4861, 0.10],  # Manipur
-      [53617, 0.10],  # Gilgit-Baltistan
-      [  169, 0.00],  # Central African Republic
-      [  173, 0.00],  # Gabon
-      [  175, 0.00],  # Burundi
-      [  178, 0.01],  # Eritrea
-      [  180, 0.01],  # Kenya
-      [  181, 0.00],  # Madagascar
-      [  187, 0.01],  # Somalia
-      [  191, 0.00],  # Zambia
-      [  193, 0.01],  # Botswana
-      [  194, 0.01],  # Lesotho
-      [  195, 0.01],  # Namibia
-      [  197, 0.01],  # Eswatini
-      [  198, 0.10],  # Zimbabwe
-      [  206, 0.10],  # Gambia
-      [  208, 0.10],  # Guinea
-      [  209, 0.10],  # Guinea-Bissau
-      [  216, 0.10],  # Senegal
+      # # IFR outliers
+      # [   35, 0.50],  # Georgia
+      # [   41, 0.50],  # Uzbekistan
+      # [   43, 0.50],  # Albania
+      # [   62, 0.10],  # Russia
+      # [  141, 0.50],  # Egypt
+      # [  151, 0.50],  # Qatar
+      # [53619, 0.01],  # Khyber Pakhtunkhwa
+      # # bad fits
+      # [   49, 0.00],  # North Macedonia
+      # [43861, 0.10],  # New Brunswick
+      # [  121, 0.00],  # Bolivia
+      # [ 4757, 0.10],  # Espirito Santo
+      # [  113, 0.10],  # Guyana
+      # [  160, 0.00],  # Afghanistan
+      # [ 4843, 0.01],  # Assam
+      # [ 4861, 0.10],  # Manipur
+      # [53617, 0.10],  # Gilgit-Baltistan
+      # [  169, 0.00],  # Central African Republic
+      # [  173, 0.00],  # Gabon
+      # [  175, 0.00],  # Burundi
+      # [  178, 0.01],  # Eritrea
+      # [  180, 0.01],  # Kenya
+      # [  181, 0.00],  # Madagascar
+      # [  187, 0.01],  # Somalia
+      # [  191, 0.00],  # Zambia
+      # [  193, 0.01],  # Botswana
+      # [  194, 0.01],  # Lesotho
+      # [  195, 0.01],  # Namibia
+      # [  197, 0.01],  # Eswatini
+      # [  198, 0.10],  # Zimbabwe
+      # [  206, 0.10],  # Gambia
+      # [  208, 0.10],  # Guinea
+      # [  209, 0.10],  # Guinea-Bissau
+      # [  216, 0.10],  # Senegal
     ]
   admission:
     [
-      [43860, 0.00],  # Manitoba
-      [  566, 0.10],  # Texas -- TEMPORARY
-      [60365, 0.01],  # Asturias
-      [60360, 0.01],  # Castilla-La Mancha
-      [60361, 0.01],  # Community of Madrid
-      [  184, 0.00],  # Mozambique
-      [  191, 0.00],  # Zambia
+      # [43860, 0.00],  # Manitoba
+      # [  566, 0.10],  # Texas -- TEMPORARY
+      # [60365, 0.01],  # Asturias
+      # [60360, 0.01],  # Castilla-La Mancha
+      # [60361, 0.01],  # Community of Madrid
+      # [  184, 0.00],  # Mozambique
+      # [  191, 0.00],  # Zambia
     ]
   case:
     [
-      [   37, 0.00],  # Kyrgyzstan
-      [   38, 0.10],  # Mongolia
-      [   50, 0.00],  # Montenegro
-      [   61, 0.50],  # Republic of Moldova
-      [   74, 0.10],  # Andorra
-      [60370, 0.01],  # Navarre
-      [60376, 0.01],  # La Rioja
-      [ 4751, 0.10],  # Alagoas
-      [ 4753, 0.10],  # Amapá
-      [ 4757, 0.00],  # Espirito Santo
-      [ 4762, 0.10],  # Mato Grosso
-      [ 4761, 0.10],  # Mato Grosso do Sul
-      [ 4763, 0.10],  # Para
-      [  139, 0.00],  # Algeria
-      [ 4849, 0.00],  # Delhi
-      [ 4850, 0.00],  # Goa
-      [ 4857, 0.00],  # Kerala
-      [ 4863, 0.00],  # Mizoram
-      [  186, 0.00],  # Seychelles
-      [  168, 0.00],  # Angola
-      [  176, 0.00],  # Comoros
-      [  201, 0.50],  # Burkina Faso
-      [  203, 0.50],  # Cabo Verde
-      [  215, 0.00],  # Sao Tome and Principe
+      # [   37, 0.00],  # Kyrgyzstan
+      # [   38, 0.10],  # Mongolia
+      # [   50, 0.00],  # Montenegro
+      # [   61, 0.50],  # Republic of Moldova
+      # [   74, 0.10],  # Andorra
+      # [60370, 0.01],  # Navarre
+      # [60376, 0.01],  # La Rioja
+      # [ 4751, 0.10],  # Alagoas
+      # [ 4753, 0.10],  # Amapá
+      # [ 4757, 0.00],  # Espirito Santo
+      # [ 4762, 0.10],  # Mato Grosso
+      # [ 4761, 0.10],  # Mato Grosso do Sul
+      # [ 4763, 0.10],  # Para
+      # [  139, 0.00],  # Algeria
+      # [ 4849, 0.00],  # Delhi
+      # [ 4850, 0.00],  # Goa
+      # [ 4857, 0.00],  # Kerala
+      # [ 4863, 0.00],  # Mizoram
+      # [  186, 0.00],  # Seychelles
+      # [  168, 0.00],  # Angola
+      # [  176, 0.00],  # Comoros
+      # [  201, 0.50],  # Burkina Faso
+      # [  203, 0.50],  # Cabo Verde
+      # [  215, 0.00],  # Sao Tome and Principe
     ]
