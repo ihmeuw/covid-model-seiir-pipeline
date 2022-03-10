@@ -32,7 +32,7 @@ from regmod.data import Data
 from regmod.variable import Variable, SplineVariable
 from regmod.utils import SplineSpecs
 from regmod.models import GaussianModel
-from regmod.prior import SplineGaussianPrior
+from regmod.prior import SplineGaussianPrior, GaussianPrior
 
 
 def prepare_ode_fit_parameters(measure: str,
@@ -87,6 +87,7 @@ def prepare_ode_fit_parameters(measure: str,
 
 def prepare_past_infections_parameters(betas: pd.DataFrame,
                                        rates: pd.DataFrame,
+                                       infections: pd.DataFrame,
                                        measure_kappas: pd.DataFrame,
                                        durations: Durations,
                                        epi_measures: pd.DataFrame,
@@ -152,109 +153,115 @@ def prepare_past_infections_parameters(betas: pd.DataFrame,
     )
 
 
-def make_composite_beta(loc_beta: pd.DataFrame, return_knots: bool = False):
-    # get date information
-    loc_beta_dates = loc_beta.loc[loc_beta.notnull().any(axis=1)].reset_index()['date'][1:].reset_index(drop=True)
-    if loc_beta_dates.empty:
-        n_days = 0
-        knots = []
-        pred_loc_beta = pd.Series([], name='beta_all_infection')
+def combination_spline(data: pd.DataFrame):
+    data_idx = data.notnull().any(axis=1)
+    dates = data.loc[data_idx].reset_index()['date'][1:].reset_index(drop=True)
+    n_days = (dates.max() - dates.min()).days
+
+    # determine spline specs
+    if n_days > 90:
+        # start anchor (using mean up to last 30 days)
+        k_start = np.array([0])
+
+        # tighter over last 30 days
+        k_end = np.linspace(n_days - 30, n_days, 6)
+
+        # every 30 days during middle interval
+        k_middle = np.linspace(k_start.max(), k_end.min(),
+                               int((k_end.min() - k_start.max()) / 30) + 1)[1:-1]
+
+        # stitch together
+        knots = np.hstack([k_start, k_middle, k_end]) / n_days
+        spline_specs = dict(
+            knots=knots,
+            l_linear=True,
+            r_linear=True,
+        )
     else:
-        n_days = (loc_beta_dates.max() - loc_beta_dates.min()).days
-
-        # determine spline specs
-        if n_days > 35:
-            # weekly knots over first and last 21 days
-            k_start = np.linspace(0, 21, 4)
-            k_end = np.linspace(n_days - 21, n_days, 4)
-
-            # fit the rest over interval
-            k_middle = np.linspace(k_start.max(), k_end.min(),
-                                   int((k_end.min() - k_start.max()) / 14) + 1)[1:-1]
-
-            # stitch together
-            knots = np.hstack([k_start, k_middle, k_end]) / n_days
+        # weekly for short time series
+        knots = np.linspace(0, n_days, int(n_days / 10)) / n_days
+        if knots.size > 4:
             spline_specs = dict(
                 knots=knots,
                 l_linear=True,
                 r_linear=True,
             )
         else:
-            # weekly for short time series
-            knots = np.linspace(0, n_days, int(n_days / 7)) / n_days
-            if knots.size > 4:
-                spline_specs = dict(
-                    knots=knots,
-                    l_linear=True,
-                    r_linear=True,
-                )
-            else:
-                spline_specs = dict(
-                    knots=knots,
-                )
-        spline_specs.update(
-            dict(knots_type='rel_domain',
-                 include_first_basis=False,
-                 degree=3,)
+            spline_specs = dict(
+                knots=knots,
+            )
+    spline_specs.update(
+        dict(knots_type='rel_domain',
+             include_first_basis=False,
+             degree=3,)
+    )
+
+    # prepare model inputs
+    delta_log_data = np.log(data.loc[data_idx].clip(1, np.inf)).diff()
+    leading_null = data.loc[data_idx].ffill().isnull()
+    data = data.loc[data_idx].where(~leading_null, other=0)
+
+    # prepare prediction dataframe
+    pred_data_template = data.loc[data_idx].reset_index().loc[:, ['location_id', 'date']].drop_duplicates()
+
+    # run standard and delta models
+    pred_data = data.mean(axis=1) # fit_spline(data, pred_data_template.copy(), spline_specs,)
+    pred_delta_log_data = fit_spline(delta_log_data, pred_data_template.copy(), spline_specs,)
+
+    # splice predictions
+    pred_data = pd.concat([
+        pred_data[:-30],
+        np.exp(np.log(pred_data.iloc[-30] + 1) + pred_delta_log_data.loc[data_idx][-30:].cumsum())
+    ])
+    pred_data = pred_data.rename('pred').clip(0, np.inf)
+
+    return pred_data
+
+
+def fit_spline(data: pd.DataFrame, pred_data: pd.DataFrame,
+               spline_specs: Dict,):
+    # format data
+    data = data.stack().reset_index().dropna()
+    data.columns = ['location_id', 'date', 'measure', 'data']
+    data['intercept'] = 1
+    t0 = data['date'].min()
+    data['t'] = (data['date'] - t0).dt.days
+
+    # create model data structures, fit model, and predict out
+    model_data = Data(col_obs='data', col_covs=['intercept', 't'], df=data)
+    model_variables = [Variable(name='intercept',),
+                       SplineVariable(name='t',
+                                      spline_specs=SplineSpecs(**spline_specs),)]
+    model = GaussianModel(data=model_data, param_specs={'mu': {'variables': model_variables}})
+    model.fit()
+    pred_data['intercept'] = 1
+    pred_data['t'] = (pred_data['date'] - t0).dt.days
+    pred_data = (model.predict(pred_data)
+                 .rename(columns={'mu': 'pred_data'}))
+
+    # make cumulative again, add back residual, and exponentiate
+    pred_data = (pred_data
+                 .set_index(['location_id', 'date'])
+                 .loc[:, 'pred_data'])
+
+    return pred_data
+
+
+def make_composite_beta(infections: pd.DataFrame, betas: pd.DataFrame, alpha: pd.Series):
+    I = []
+    for measure in ['case', 'death', 'admission']:
+        I.append(
+            ((infections.loc[:, f'infection_{measure}'] / betas.loc[:, f'beta_{measure}']) ** (1 / alpha))
+            .rename(f'I_{measure}')
         )
+    I = pd.concat(I, axis=1)
+    composite_I = combination_spline(I)
 
-        # # determine spline priors
-        # if knots.size > 4:
-        #     first_deriv_prior = np.array([[0, np.inf]] * (knots.size - 1))
-        #     first_deriv_prior[0] = [0, 0.01]
-        #     first_deriv_prior = first_deriv_prior.T
-        #     spline_priors = [SplineGaussianPrior(size=knots.size-1,
-        #                                          order=1,
-        #                                          mean=first_deriv_prior[0],
-        #                                          sd=first_deriv_prior[1],)]
-        # else:
-        #     spline_priors = []
-        spline_priors = []
+    composite_infections = combination_spline(infections.loc[composite_I.index])
 
-        # prepare model data
-        loc_delta_log_beta = np.log(loc_beta).mean(axis=1).diff().dropna().reset_index()
-        loc_delta_log_beta.columns = ['location_id', 'date', 'delta_log_beta']
-        # loc_beta = loc_beta.reset_index().set_index(['location_id', 'date'])
-        # loc_delta_log_beta = np.log(loc_beta).diff()
-        # loc_delta_log_beta = loc_delta_log_beta.stack().reset_index()
-        # loc_delta_log_beta.columns = ['location_id', 'date', 'measure', 'delta_log_beta']
-        loc_delta_log_beta['intercept'] = 1
-        t0 = loc_delta_log_beta['date'].min()
-        loc_delta_log_beta['t'] = (loc_delta_log_beta['date'] - t0).dt.days
+    composite_beta = (composite_infections / (composite_I ** alpha)).rename('beta_all_infection')
 
-        # prepare prediction dataframe
-        pred_loc_delta_log_beta = loc_beta.loc[loc_beta.notnull().any(axis=1)].reset_index().loc[:, ['location_id', 'date']].drop_duplicates()
-        pred_loc_delta_log_beta['intercept'] = 1
-        pred_loc_delta_log_beta['t'] = (pred_loc_delta_log_beta['date'] - t0).dt.days
-
-        # create model data structures, fit model, and predict out
-        model_data = Data(col_obs='delta_log_beta', col_covs=['intercept', 't'], df=loc_delta_log_beta)
-        model_variables = [Variable(name='intercept'),
-                           SplineVariable(name='t',
-                                          spline_specs=SplineSpecs(**spline_specs),
-                                          priors=spline_priors)]
-        model = GaussianModel(data=model_data, param_specs={'mu': {'variables': model_variables}})
-        model.fit()
-        pred_loc_delta_log_beta = (model.predict(pred_loc_delta_log_beta)
-                                   .rename(columns={'mu': 'delta_log_beta'}))
-
-        # make cumulative again, add back residual, and exponentiate
-        pred_loc_delta_log_beta = (pred_loc_delta_log_beta
-                                   .set_index(['location_id', 'date'])
-                                   .loc[:, 'delta_log_beta'])
-        pred_loc_log_beta = pred_loc_delta_log_beta.cumsum().rename('log_beta')
-        pred_loc_log_beta += (np.log(loc_beta).subtract(pred_loc_log_beta, axis=0)
-                              .mean()
-                              .mean())
-        pred_loc_beta = np.exp(pred_loc_log_beta).rename('beta_all_infection')
-
-    if return_knots:
-        knots = [loc_beta_dates[0] + pd.Timedelta(days=int(np.round(knot))) for knot in knots * n_days]
-        out = (pred_loc_beta, knots)
-    else:
-        out = pred_loc_beta
-
-    return out
+    return composite_beta
 
 
 def prepare_epi_measures_and_rates(measure: str,

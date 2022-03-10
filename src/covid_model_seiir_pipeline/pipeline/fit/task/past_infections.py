@@ -32,6 +32,7 @@ def run_past_infections(fit_version: str, draw_id: int, progress_bar: bool) -> N
 
     betas = []
     rates = []
+    infections = []
     measure_kappas = []
     for measure in ['case', 'death', 'admission']:
         measure_beta = data_interface.load_fit_beta(measure_version=measure, draw_id=draw_id)
@@ -43,8 +44,18 @@ def run_past_infections(fit_version: str, draw_id: int, progress_bar: bool) -> N
         rates.append(measure_rates.sort_index())
         measure_kappa = data_interface.load_ode_params(measure_version=measure, draw_id=draw_id).filter(like='kappa').filter(like=measure)
         measure_kappas.append(measure_kappa)
+        measure_infections = data_interface.load_compartments(measure_version=measure, draw_id=draw_id,
+                                                              columns=['Infection_all_all_all_lr', 'Infection_all_all_all_hr', 'round'])
+        measure_infections = measure_infections.loc[measure_infections['round'] == 2].drop(columns='round')
+        measure_infections = (measure_infections
+                              .replace(0, np.nan)
+                              .groupby('location_id').diff()
+                              .sum(axis=1, min_count=1)
+                              .rename(f'infection_{measure}'))
+        infections.append(measure_infections)
     betas = pd.concat(betas, axis=1)
     rates = pd.concat(rates, axis=1)
+    infections = pd.concat(infections, axis=1)
     measure_kappas = pd.concat(measure_kappas, axis=1)
 
     logger.info('Sampling ODE parameters', context='transform')
@@ -61,6 +72,7 @@ def run_past_infections(fit_version: str, draw_id: int, progress_bar: bool) -> N
     ode_parameters = model.prepare_past_infections_parameters(
         betas=betas,
         rates=rates,
+        infections=infections,
         measure_kappas=measure_kappas,
         durations=durations,
         epi_measures=epi_measures,
