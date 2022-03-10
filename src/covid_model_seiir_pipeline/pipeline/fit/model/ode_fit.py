@@ -203,7 +203,7 @@ def combination_spline(data: pd.DataFrame):
 
     # prepare model inputs
     delta_log_data = np.log(data.loc[data_idx].clip(1, np.inf)).diff()
-    leading_null = data.loc[data_idx].ffill().isnull()
+    leading_null = data.loc[data_idx].ffill().isnull() & data.loc[data_idx].bfill().notnull()
     data = data.loc[data_idx].where(~leading_null, other=0)
 
     # prepare prediction dataframe
