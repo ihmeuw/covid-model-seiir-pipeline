@@ -31,6 +31,7 @@ from covid_model_seiir_pipeline.pipeline.fit.model.ode_fit import (
     aggregate_posterior_epi_measures,
     run_ode_fit,
     run_posterior_fit,
+    fill_from_hierarchy,
 )
 from covid_model_seiir_pipeline.pipeline.fit.model.epi_measures import (
     format_epi_measures,

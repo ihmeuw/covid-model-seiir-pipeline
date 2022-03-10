@@ -1,5 +1,4 @@
 import click
-import numpy as np
 import pandas as pd
 
 from covid_model_seiir_pipeline.lib import (
@@ -41,6 +40,9 @@ def run_past_infections(fit_version: str, draw_id: int, progress_bar: bool) -> N
         measure_kappas.append(measure_kappa)
     rates = pd.concat(rates, axis=1)
     measure_kappas = pd.concat(measure_kappas, axis=1)
+    for level in ['parent_id', 'region_id', 'super_region_id', 'global']:
+        rates = model.fill_from_hierarchy(rates, pred_hierarchy, level)
+        measure_kappas = model.fill_from_hierarchy(measure_kappas, pred_hierarchy, level)
 
     logger.info('Sampling ODE parameters', context='transform')
     durations = model.sample_durations(specification.rates_parameters, draw_id)

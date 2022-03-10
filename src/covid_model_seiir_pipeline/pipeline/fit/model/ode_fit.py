@@ -486,3 +486,12 @@ def run_posterior_fit(initial_condition: pd.DataFrame,
     return full_compartments, chis
 
 
+def fill_from_hierarchy(df: pd.DataFrame, hierarchy: pd.DataFrame, level: str) -> pd.DataFrame:
+    assert level in ['parent_id', 'region_id', 'super_region_id', 'global']
+    if level == 'global':
+        df[level] = 1
+    else:
+        df[level] = hierarchy.set_index('location_id').reindex(df.index, level='location_id')[level]
+    fill = df.groupby([level, 'date']).transform('mean')
+    df = df.drop(columns=level).fillna(fill)
+    return df
