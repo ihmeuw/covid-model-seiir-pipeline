@@ -123,9 +123,14 @@ def prepare_past_infections_parameters(betas: pd.DataFrame,
     rhos.columns = [f'rho_{c}_infection' for c in rhos.columns]
     rhos['rho_none_infection'] = pd.Series(0., index=past_index, name='rho_none_infection')
 
+    arg_list = [(infections.loc[[location_id]],
+                betas.loc[[location_id]],
+                sampled_params.loc[[location_id], 'alpha_all_infection'],)
+                for location_id, beta in betas.groupby('location_id')]
+
     beta = parallel.run_parallel(
         make_composite_beta,
-        arg_list=[beta for location_id, beta in betas.groupby('location_id')],
+        arg_list=arg_list,
         num_cores=num_threads,
         progress_bar=progress_bar,
     )
@@ -247,7 +252,8 @@ def fit_spline(data: pd.DataFrame, pred_data: pd.DataFrame,
     return pred_data
 
 
-def make_composite_beta(infections: pd.DataFrame, betas: pd.DataFrame, alpha: pd.Series):
+def make_composite_beta(args: Tuple):
+    infections, betas, alpha = args
     I = []
     for measure in ['case', 'death', 'admission']:
         I.append(
