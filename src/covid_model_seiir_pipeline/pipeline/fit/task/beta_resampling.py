@@ -169,9 +169,9 @@ def load_data_subset(draw_id: int,
                      draw_replace: Dict[int, List[int]]) -> pd.DataFrame:
     data = []
     for measure in ['case', 'death', 'admission']:
-        df = loader(draw_id, measure, [c.format(measure=measure) for c in columns])
+        df = loader(draw_id, measure, [c.format(measure=measure) for c in columns] + ['round'])
         df = df.loc[df['round'] == 2].drop(columns='round')
-        df.rename(columns=lambda x: x if measure in x else f'{x}_{measure}')
+        df = df.rename(columns=lambda x: x if measure in x else f'{x}_{measure}')
         data.append(df)
     data = pd.concat(data, axis=1)
     if draw_id in draw_replace:
@@ -180,6 +180,12 @@ def load_data_subset(draw_id: int,
         drop = [loc_id for loc_list in draw_replace.values() for loc_id in loc_list]
         keep_idx = [loc_id for loc_id in data.reset_index().location_id.unique() if loc_id not in drop]
     return data.loc[keep_idx]
+
+def add_location_id(df, location_id):
+    df = df.reset_index()
+    df['location_id'] = location_id
+    df = df.set_index(['location_id', 'date']).sort_index()
+    return df
 
 
 def build_and_write_beta_final(draw_id: int,
@@ -224,8 +230,8 @@ def build_and_write_beta_final(draw_id: int,
         if location_id in unrecoverable:
             # We can't do anything, this totally failed.
             loc_beta = pd.concat([loc_beta, pd.Series(np.nan, name='beta', index=loc_beta.index)], axis=1)
-            final_betas.append(loc_beta)
-            final_infections.append(loc_infections)
+            final_betas.append(add_location_id(loc_beta, location_id))
+            final_infections.append(add_location_id(loc_infections, location_id))
             continue
 
         # Some locations like China, never had delta, so there's no error.
@@ -247,12 +253,10 @@ def build_and_write_beta_final(draw_id: int,
         loc_beta_diff_mean = pd.concat([loc_beta_mean.loc[:index_date],
                                         loc_beta_diff_mean.loc[
                                         index_date + pd.Timedelta(days=1):]])
-        loc_beta_diff_mean = loc_beta_diff_mean.reset_index()
-        loc_beta_diff_mean['location_id'] = location_id
-        loc_beta_diff_mean = loc_beta_diff_mean.set_index(['location_id', 'date'])['beta']
+        loc_beta_diff_mean = add_location_id(loc_beta_diff_mean, location_id)['beta']
         loc_beta = loc_beta.reindex(loc_beta_diff_mean.index, level='date')
         final_betas.append(pd.concat([loc_beta, loc_beta_diff_mean], axis=1))
-        final_infections.append(loc_infections)
+        final_infections.append(add_location_id(loc_infections, location_id))
     final_betas = pd.concat(final_betas).sort_index()
     final_infections = pd.concat(final_infections).sort_index()
     data_interface.save_fit_beta(final_betas, draw_id, measure_version='final')

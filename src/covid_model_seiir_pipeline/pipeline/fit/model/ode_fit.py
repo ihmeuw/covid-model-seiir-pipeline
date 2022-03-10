@@ -170,7 +170,7 @@ def prepare_epi_measures_and_rates(measure: str,
         columns=[f'{m}_{rg}' for m, rg in itertools.product(measures, RISK_GROUP_NAMES)],
         index=model_idx,
     )
-    
+
     rates = reindex_to_infection_day(rates.drop(columns='lag'), lag, most_detailed)
     for risk_group in RISK_GROUP_NAMES:
         out_scalars.loc[:, f'{measure}_{risk_group}'] = (
@@ -273,7 +273,7 @@ def make_initial_condition(measure: str,
     end_date = base_params.filter(like='count')
     end_date = (end_date.loc[end_date.notnull().any(axis=1)]
                 .reset_index(level='date')
-                .groupby('location_id')                
+                .groupby('location_id')
                 .last()
                 .date + pd.Timedelta(days=1))
     # Alpha is time-invariant
@@ -291,7 +291,11 @@ def make_initial_condition(measure: str,
             # Backfill everyone susceptible
             loc_initial_condition.loc[:loc_start_date, f'S_unvaccinated_none_{risk_group}'] = pop
             # Set initial condition on start date
-            infectious = (new_e / 5) ** (1 / alpha.loc[location_id])
+            if measure == 'final':
+                beta_init = base_params.at[(location_id, loc_start_date), 'beta_all_infection']
+            else:
+                beta_init = 2.0
+            infectious = (new_e / beta_init) ** (1 / alpha.loc[location_id])
             susceptible = pop - new_e - infectious
 
             loc_initial_condition.loc[loc_start_date, f'S_unvaccinated_none_{risk_group}'] = susceptible
@@ -303,6 +307,10 @@ def make_initial_condition(measure: str,
             loc_initial_condition.loc[loc_start_date, f'Infection_all_all_all_{risk_group}'] = new_e
             loc_initial_condition.loc[loc_start_date, f'Infection_all_ancestral_all_{risk_group}'] = new_e
             loc_initial_condition.loc[loc_start_date, f'I_unvaccinated_ancestral_{risk_group}'] = infectious
+            beta_measure = 'all' if measure == 'final' else measure
+            loc_initial_condition.loc[loc_start_date, f'Beta_none_none_{beta_measure}_{risk_group}'] = beta_init
+            loc_initial_condition.loc[loc_start_date, f'Beta_none_none_all_{risk_group}'] = beta_init
+            
             for variant in VARIANT_NAMES:
                 label = f'EffectiveSusceptible_all_{variant}_all_{risk_group}'
                 loc_initial_condition.loc[:loc_start_date, label] = susceptible
@@ -325,9 +333,10 @@ def get_crude_infections(measure: str, base_params, rates, threshold=50):
         crude_infections = pd.DataFrame(index=rates.index)
         for measure, rate in rate_map.items():
             infections = base_params[f'count_all_{measure}'] / rates[rate]
-            crude_infections[measure] = infections        
-        mask = (crude_infections.max(axis=1) > threshold) & (base_params['beta_all_infection'] > 0)        
-        crude_infections = crude_infections.loc[mask].min(axis=1).rename('infections')
+            infections[infections < threshold] = np.nan
+            crude_infections[measure] = infections      
+        mask = base_params['beta_all_infection'] > 0
+        crude_infections = crude_infections.loc[mask].mean(axis=1).rename('infections').dropna()
     return crude_infections
 
 
