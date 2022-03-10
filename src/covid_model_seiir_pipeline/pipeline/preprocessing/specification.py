@@ -67,6 +67,7 @@ class PreprocessingData:
     output_root: str = field(default='')
     output_format: str = field(default='parquet')
     n_draws: int = field(default=100)
+    n_oversample_draws: int = field(default=25)
 
     run_counties: bool = field(init=False)
     drop_locations: list = field(default_factory=list)

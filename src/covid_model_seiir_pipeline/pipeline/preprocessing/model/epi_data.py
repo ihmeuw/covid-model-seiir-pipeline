@@ -20,6 +20,7 @@ def preprocess_epi_data(data_interface: PreprocessingDataInterface) -> None:
     logger.info('Loading epi data.', context='read')
     mr_hierarchy = data_interface.load_hierarchy('mr').reset_index()
     pred_hierarchy = data_interface.load_hierarchy('pred').reset_index()
+    total_draws = data_interface.get_n_total_draws()
 
     age_pattern_data = data_interface.load_age_pattern_data()
     total_covid_scalars = data_interface.load_raw_total_covid_scalars()
@@ -27,7 +28,7 @@ def preprocess_epi_data(data_interface: PreprocessingDataInterface) -> None:
 
     logger.info('Processing epi data.', context='transform')
     age_pattern_data = _process_age_pattern_data(age_pattern_data, pred_hierarchy)
-    total_covid_scalars = _process_scalars(total_covid_scalars, pred_hierarchy)
+    total_covid_scalars = _process_scalars(total_covid_scalars, pred_hierarchy, total_draws)
     epi_data = pd.concat([_process_epi_data(data, measure, mr_hierarchy)
                           for measure, data in epi_data.items()], axis=1)
 
@@ -52,14 +53,20 @@ def _process_age_pattern_data(data: pd.DataFrame, hierarchy: pd.DataFrame):
     return data
 
 
-def _process_scalars(data: pd.DataFrame, hierarchy: pd.DataFrame):
+def _process_scalars(data: pd.DataFrame, hierarchy: pd.DataFrame, total_draws: int):
     missing_locations = list(set(hierarchy.location_id).difference(data.index))
     if missing_locations:
-        logger.warning(f"Missing scalars for the following locations: {missing_locations}.  Filling with nan.")
+        logger.warning(f"Missing scalars for the following locations: {missing_locations}. Filling with nan.")
     data = data.reindex(hierarchy.location_id)
     dates = pd.date_range(pd.Timestamp('2019-11-01'), pd.Timestamp('2024-01-01'))
     full_idx = pd.MultiIndex.from_product((hierarchy.location_id, dates), names=('location_id', 'date'))
     data = data.reindex(full_idx, level='location_id')
+
+    num_original_draws = len(data.columns)
+    for oversample_draw in range(num_original_draws, total_draws):
+        # Draw names are 0-indexed, so this just works out okay.
+        data[f'draw_{oversample_draw}'] = data[f'draw_{oversample_draw % num_original_draws}']
+
     return data
 
 
@@ -86,6 +93,8 @@ def evil_doings(data: pd.DataFrame, hierarchy: pd.DataFrame, input_measure: str)
             183: 'mauritius',
             349: 'greenland',
             23: 'kiribati',
+            28: 'solomon_islands',
+            43867: 'prince_edward_island',
         }
         is_in_droplist = data['location_id'].isin(drop_all)
         data = data.loc[~is_in_droplist].reset_index(drop=True)

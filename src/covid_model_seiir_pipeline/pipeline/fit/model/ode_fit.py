@@ -85,7 +85,7 @@ def prepare_ode_fit_parameters(measure: str,
     return ode_params, rates
 
 
-def prepare_past_infections_parameters(betas: pd.DataFrame,
+def prepare_past_infections_parameters(betas: pd.Series,
                                        rates: pd.DataFrame,
                                        infections: pd.DataFrame,
                                        measure_kappas: pd.DataFrame,
@@ -139,7 +139,7 @@ def prepare_past_infections_parameters(betas: pd.DataFrame,
     base_parameters = pd.concat([
         sampled_params,
         measures_and_rates,
-        beta,
+        beta.reindex(past_index),
         rhos,
     ], axis=1)
 
@@ -307,7 +307,7 @@ def prepare_epi_measures_and_rates(measure: str,
         columns=[f'{m}_{rg}' for m, rg in itertools.product(measures, RISK_GROUP_NAMES)],
         index=model_idx,
     )
-    
+
     rates = reindex_to_infection_day(rates.drop(columns='lag'), lag, most_detailed)
     for risk_group in RISK_GROUP_NAMES:
         out_scalars.loc[:, f'{measure}_{risk_group}'] = (
@@ -410,7 +410,7 @@ def make_initial_condition(measure: str,
     end_date = base_params.filter(like='count')
     end_date = (end_date.loc[end_date.notnull().any(axis=1)]
                 .reset_index(level='date')
-                .groupby('location_id')                
+                .groupby('location_id')
                 .last()
                 .date + pd.Timedelta(days=1))
     # Alpha is time-invariant
@@ -447,7 +447,6 @@ def make_initial_condition(measure: str,
             beta_measure = 'all' if measure == 'final' else measure
             loc_initial_condition.loc[loc_start_date, f'Beta_none_none_{beta_measure}_{risk_group}'] = beta_init
             loc_initial_condition.loc[loc_start_date, f'Beta_none_none_all_{risk_group}'] = beta_init
-
             for variant in VARIANT_NAMES:
                 label = f'EffectiveSusceptible_all_{variant}_all_{risk_group}'
                 loc_initial_condition.loc[:loc_start_date, label] = susceptible
@@ -471,10 +470,9 @@ def get_crude_infections(measure: str, base_params, rates, threshold=50):
         for measure, rate in rate_map.items():
             infections = base_params[f'count_all_{measure}'] / rates[rate]
             infections[infections < threshold] = np.nan
-            crude_infections[measure] = infections.groupby('location_id').ffill()
+            crude_infections[measure] = infections
         mask = base_params['beta_all_infection'] > 0
-        crude_infections = crude_infections.loc[mask].fillna(0).mean(axis=1).rename('infections').dropna()
-
+        crude_infections = crude_infections.loc[mask].mean(axis=1).rename('infections').dropna()
     return crude_infections
 
 
@@ -598,6 +596,7 @@ def run_ode_fit(initial_condition: pd.DataFrame,
     # Can have a composite beta if we don't have measure betas
     no_beta = betas[[f'beta_{measure}' for measure in ['death', 'admission', 'case']]].isnull().all(axis=1)
     betas.loc[no_beta, 'beta'] = np.nan
+    betas[np.abs(betas) <= 1e-5] = np.nan
 
     return full_compartments, betas, chis
 
@@ -621,3 +620,14 @@ def run_posterior_fit(initial_condition: pd.DataFrame,
     # Set all the forecast stuff to nan
     full_compartments.loc[full_compartments.sum(axis=1) == 0., :] = np.nan
     return full_compartments, chis
+
+
+def fill_from_hierarchy(df: pd.DataFrame, hierarchy: pd.DataFrame, level: str) -> pd.DataFrame:
+    assert level in ['parent_id', 'region_id', 'super_region_id', 'global']
+    if level == 'global':
+        df[level] = 1
+    else:
+        df[level] = hierarchy.set_index('location_id').reindex(df.index, level='location_id')[level]
+    fill = df.groupby([level, 'date']).transform('mean')
+    df = df.drop(columns=level).fillna(fill)
+    return df

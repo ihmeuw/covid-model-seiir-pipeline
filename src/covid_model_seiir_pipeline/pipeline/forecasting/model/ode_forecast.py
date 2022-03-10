@@ -80,7 +80,6 @@ def build_model_parameters(indices: Indices,
         'case': 'idr',
     }
 
-    prior_ratios = prior_ratios.loc[prior_ratios['round'] == 2]
     scalars = []
     infections = (past_compartments_diff
                   .filter(like='Infection_none_all_unvaccinated')

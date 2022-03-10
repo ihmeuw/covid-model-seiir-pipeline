@@ -29,16 +29,12 @@ def run_past_infections(fit_version: str, draw_id: int, progress_bar: bool) -> N
     vaccinations = data_interface.load_vaccine_uptake(scenario='reference')
     etas = data_interface.load_vaccine_risk_reduction(scenario='reference')
     natural_waning_dist = data_interface.load_waning_parameters(measure='natural_waning_distribution').set_index('days')
+    betas = data_interface.load_fit_beta(draw_id=draw_id)['beta'].rename('beta_all_infection')
 
-    betas = []
     rates = []
     infections = []
     measure_kappas = []
     for measure in ['case', 'death', 'admission']:
-        measure_beta = data_interface.load_fit_beta(measure_version=measure, draw_id=draw_id)
-        measure_beta = measure_beta.loc[measure_beta['round'] == 2, f'beta_{measure}']
-        measure_beta.loc[measure_beta == 0] = np.nan
-        betas.append(measure_beta.sort_index())
         measure_rates = data_interface.load_rates(measure_version=measure, draw_id=draw_id)
         measure_rates = measure_rates.loc[measure_rates['round'] == 2].drop(columns='round')
         rates.append(measure_rates.sort_index())
@@ -53,10 +49,12 @@ def run_past_infections(fit_version: str, draw_id: int, progress_bar: bool) -> N
                               .sum(axis=1, min_count=1)
                               .rename(f'infection_{measure}'))
         infections.append(measure_infections)
-    betas = pd.concat(betas, axis=1)
     rates = pd.concat(rates, axis=1)
     infections = pd.concat(infections, axis=1)
     measure_kappas = pd.concat(measure_kappas, axis=1)
+    for level in ['parent_id', 'region_id', 'super_region_id', 'global']:
+        rates = model.fill_from_hierarchy(rates, pred_hierarchy, level)
+        measure_kappas = model.fill_from_hierarchy(measure_kappas, pred_hierarchy, level)
 
     logger.info('Sampling ODE parameters', context='transform')
     durations = model.sample_durations(specification.rates_parameters, draw_id)
@@ -114,9 +112,6 @@ def run_past_infections(fit_version: str, draw_id: int, progress_bar: bool) -> N
     for name, duration in durations._asdict().items():
         out_params.loc[:, name] = duration
 
-    betas = betas.reindex(out_params.index)
-    betas['beta'] = out_params['beta_all_infection']
-
     logger.info('Writing outputs', context='write')
     data_interface.save_ode_params(out_params, measure_version='final', draw_id=draw_id)
     data_interface.save_input_epi_measures(epi_measures, measure_version='final', draw_id=draw_id)
@@ -124,7 +119,6 @@ def run_past_infections(fit_version: str, draw_id: int, progress_bar: bool) -> N
     data_interface.save_rates(rates, measure_version='final', draw_id=draw_id)
     data_interface.save_compartments(compartments, measure_version='final', draw_id=draw_id)
     data_interface.save_posterior_epi_measures(posterior_epi_measures, measure_version='final', draw_id=draw_id)
-    data_interface.save_fit_beta(betas, measure_version='final', draw_id=draw_id)
 
     logger.report()
 
