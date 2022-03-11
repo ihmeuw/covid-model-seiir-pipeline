@@ -239,7 +239,9 @@ class FitRoot(DataRoot):
     metadata = MetadataType('metadata')
     specification = MetadataType('fit_specification')
     covariate_options = MetadataType('covariate_options')
-    broken_locations_report = MetadataType('broken_locations_report')
+    draw_resampling = MetadataType('draw_resampling')
+
+    fit_failures = DatasetType('fit_failures')
 
     beta = DatasetType('beta', LEAF_TEMPLATES.MEASURE_DRAW_TEMPLATE)
     input_epi_measures = DatasetType('input_epi_measures', LEAF_TEMPLATES.MEASURE_DRAW_TEMPLATE)

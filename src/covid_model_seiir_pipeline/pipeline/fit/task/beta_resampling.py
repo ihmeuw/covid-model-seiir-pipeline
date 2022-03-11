@@ -42,6 +42,7 @@ def run_beta_resampling(fit_version: str, progress_bar: bool):
         failures.append(~(np.abs(residuals[measure]) < 2 * std))
     failures = pd.concat(failures, axis=1)
     total_failures = failures[failures.all(axis=1)].reset_index(level='draw_id')['draw_id']
+    failures = failures.reorder_levels(['draw_id', 'location_id']).sort_index()
 
     failure_count = total_failures.groupby('location_id').count()
     unrecoverable = failure_count[failure_count > n_oversample_draws].index.tolist()
@@ -56,17 +57,23 @@ def run_beta_resampling(fit_version: str, progress_bar: bool):
         substitute_draw = [d for d in potential_substitutes if d not in cant_use][0]
         replace[draw].append((location_id, substitute_draw))
 
-    failures = failures.reorder_levels(['draw_id', 'location_id']).sort_index()
+    draw_resampling_map = {
+        'unrecoverable': unrecoverable,
+        'replacements_by_draw': replace,
+    }
+    data_interface.save_draw_resampling_map(draw_resampling_map)
+    data_interface.save_fit_failures(failures)
 
-    build_and_write_beta_finals(
-        replacements=replace,
-        unrecoverable=unrecoverable,
-        failures=failures,
-        data_interface=data_interface,
-        n_draws=n_draws,
-        num_cores=num_cores,
-        progress_bar=progress_bar,
-    )
+
+    # build_and_write_beta_finals(
+    #     replacements=replace,
+    #     unrecoverable=unrecoverable,
+    #     failures=failures,
+    #     data_interface=data_interface,
+    #     n_draws=n_draws,
+    #     num_cores=num_cores,
+    #     progress_bar=progress_bar,
+    # )
 
 
 def build_window_dates(rhos: pd.DataFrame) -> pd.DataFrame:
