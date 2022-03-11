@@ -17,7 +17,7 @@ def build_composite_betas(betas: pd.DataFrame,
                           infections: pd.DataFrame,
                           alpha: float,
                           num_cores: int,
-                          progress_bar: bool) -> pd.Series:
+                          progress_bar: bool) -> Tuple[pd.Series, pd.Series, pd.Series]:
     arg_list = []
     for location_id in betas.reset_index()['location_id'].unique():
         arg_list.append((
@@ -26,13 +26,33 @@ def build_composite_betas(betas: pd.DataFrame,
             alpha,
         ))
 
-    beta = parallel.run_parallel(
+    results = parallel.run_parallel(
         make_composite_beta,
         arg_list=arg_list,
         num_cores=num_cores,
         progress_bar=progress_bar,
     )
-    return pd.concat(beta)
+    beta, infections, infectious = [pd.concat(dfs) for dfs in zip(*results)]
+    import pdb; pdb.set_trace()
+    return beta, infections, infectious
+
+
+def make_composite_beta(args: Tuple):
+    infections, betas, alpha = args
+    infectious = []
+    for measure in ['case', 'death', 'admission']:
+        infectious.append(
+            ((infections.loc[:, f'infection_{measure}'] / betas.loc[:, f'beta_{measure}']) ** (1 / alpha))
+            .rename(f'I_{measure}')
+        )
+    infectious = pd.concat(infectious, axis=1)
+
+    composite_infectious = combination_spline(infectious)
+    composite_infections = combination_spline(infections.loc[composite_infectious.index])
+
+    composite_beta = (composite_infections / (composite_infectious ** alpha)).rename('beta_all_infection')
+
+    return composite_beta, composite_infections, composite_infectious
 
 
 def combination_spline(data: pd.DataFrame):
@@ -130,19 +150,4 @@ def fit_spline(data: pd.DataFrame,
     return pred_data
 
 
-def make_composite_beta(args: Tuple):
-    infections, betas, alpha = args
-    infectious = []
-    for measure in ['case', 'death', 'admission']:
-        infectious.append(
-            ((infections.loc[:, f'infection_{measure}'] / betas.loc[:, f'beta_{measure}']) ** (1 / alpha))
-            .rename(f'I_{measure}')
-        )
-    infectious = pd.concat(infectious, axis=1)
 
-    composite_infectious = combination_spline(infectious)
-    composite_infections = combination_spline(infections.loc[composite_infectious.index])
-
-    composite_beta = (composite_infections / (composite_infectious ** alpha)).rename('beta_all_infection')
-
-    return composite_beta
