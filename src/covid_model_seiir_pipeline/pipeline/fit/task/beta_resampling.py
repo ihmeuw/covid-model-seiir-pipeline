@@ -1,6 +1,7 @@
 from collections import defaultdict
 import functools
 import itertools
+from pathlib import Path
 from typing import Callable, Dict, List, Tuple
 
 import click
@@ -63,17 +64,8 @@ def run_beta_resampling(fit_version: str, progress_bar: bool):
     }
     data_interface.save_draw_resampling_map(draw_resampling_map)
     data_interface.save_fit_failures(failures)
-
-
-    # build_and_write_beta_finals(
-    #     replacements=replace,
-    #     unrecoverable=unrecoverable,
-    #     failures=failures,
-    #     data_interface=data_interface,
-    #     n_draws=n_draws,
-    #     num_cores=num_cores,
-    #     progress_bar=progress_bar,
-    # )
+    data_interface.save_fit_residuals(residuals)
+    make_error_histogram(residuals, Path(specification.data.output_root) / 'residuals.pdf')
 
 
 def build_window_dates(rhos: pd.DataFrame) -> pd.DataFrame:
@@ -157,7 +149,7 @@ def build_residuals(window_dates: pd.DataFrame, data_interface: FitDataInterface
     return df
 
 
-def make_error_histogram(df: pd.DataFrame) -> None:
+def make_error_histogram(df: pd.DataFrame, plot_file: Path = None) -> None:
     fig, ax = plt.subplots(ncols=3, figsize=(20, 5))
     for i, measure in enumerate(df.columns):
         s = df[measure]
@@ -167,7 +159,13 @@ def make_error_histogram(df: pd.DataFrame) -> None:
         s.plot.hist(bins=100, ax=ax[i])
         ax[i].axvline(0, linewidth=3, color='red')
         ax[i].set_title(measure.capitalize(), fontsize=18)
-    plt.show()
+    if plot_file:
+        fig.savefig(plot_file)
+        plt.close(fig)
+    else:
+        plt.show()
+
+
 
 
 def load_data_subset(draw_id: int,

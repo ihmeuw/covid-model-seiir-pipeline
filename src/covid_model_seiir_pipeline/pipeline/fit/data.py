@@ -139,6 +139,12 @@ class FitDataInterface:
     def load_fit_failures(self) -> pd.DataFrame:
         return io.load(self.fit_root.fit_failures())
 
+    def save_fit_residuals(self, fit_residuals: pd.DataFrame) -> None:
+        io.dump(fit_residuals, self.fit_root.fit_residuals())
+
+    def load_fit_residuals(self) -> pd.DataFrame:
+        return io.load(self.fit_root.fit_residuals())
+
     def save_ode_params(self, data: pd.Series, draw_id: int, measure_version: str) -> None:
         io.dump(data, self.fit_root.ode_parameters(measure=measure_version, draw_id=draw_id))
 
