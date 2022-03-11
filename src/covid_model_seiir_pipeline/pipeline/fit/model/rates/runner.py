@@ -4,7 +4,7 @@ import pandas as pd
 from loguru import logger
 
 from covid_model_seiir_pipeline.pipeline.fit.specification import RatesParameters
-from covid_model_seiir_pipeline.pipeline.fit.model import (
+from covid_model_seiir_pipeline.pipeline.fit.model.rates import (
     idr,
     ifr,
     ihr,

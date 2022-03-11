@@ -17,7 +17,7 @@ def run_past_infections(fit_version: str, draw_id: int, progress_bar: bool) -> N
     # Build helper abstractions
     specification = FitSpecification.from_version_root(fit_version)
     data_interface = FitDataInterface.from_specification(specification)
-    num_threads = specification.workflow.task_specifications[FIT_JOBS.beta_fit].num_cores
+    num_cores = specification.workflow.task_specifications[FIT_JOBS.beta_fit].num_cores
 
     logger.info('Loading past infections data', context='read')
     mr_hierarchy = data_interface.load_hierarchy(name='mr')
@@ -29,32 +29,21 @@ def run_past_infections(fit_version: str, draw_id: int, progress_bar: bool) -> N
     vaccinations = data_interface.load_vaccine_uptake(scenario='reference')
     etas = data_interface.load_vaccine_risk_reduction(scenario='reference')
     natural_waning_dist = data_interface.load_waning_parameters(measure='natural_waning_distribution').set_index('days')
-    betas = data_interface.load_fit_beta(draw_id=draw_id)['beta'].rename('beta_all_infection')
 
-    rates = []
-    infections = []
-    measure_kappas = []
+    rates, kappas = [], []
     for measure in ['case', 'death', 'admission']:
-        measure_rates = data_interface.load_rates(measure_version=measure, draw_id=draw_id)
-        measure_rates = measure_rates.loc[measure_rates['round'] == 2].drop(columns='round')
-        rates.append(measure_rates.sort_index())
-        measure_kappa = data_interface.load_ode_params(measure_version=measure, draw_id=draw_id).filter(like='kappa').filter(like=measure)
-        measure_kappas.append(measure_kappa)
-        measure_infections = data_interface.load_compartments(measure_version=measure, draw_id=draw_id,
-                                                              columns=['Infection_all_all_all_lr', 'Infection_all_all_all_hr', 'round'])
-        measure_infections = measure_infections.loc[measure_infections['round'] == 2].drop(columns='round')
-        measure_infections = (measure_infections
-                              .replace(0, np.nan)
-                              .groupby('location_id').diff()
-                              .sum(axis=1, min_count=1)
-                              .rename(f'infection_{measure}'))
-        infections.append(measure_infections)
-    rates = pd.concat(rates, axis=1)
-    infections = pd.concat(infections, axis=1)
-    measure_kappas = pd.concat(measure_kappas, axis=1)
+        rates.append(get_round_data(data_interface.load_rates(
+            measure_version=measure,
+            draw_id=draw_id,
+        )))
+        kappas.append(data_interface.load_ode_params(
+            measure_version=measure,
+            draw_id=draw_id,
+        ).filter(like='kappa').filter(like=measure))
+    rates, kappas = [pd.concat(dfs, axis=1) for dfs in [rates, kappas]]
     for level in ['parent_id', 'region_id', 'super_region_id', 'global']:
         rates = model.fill_from_hierarchy(rates, pred_hierarchy, level)
-        measure_kappas = model.fill_from_hierarchy(measure_kappas, pred_hierarchy, level)
+        kappas = model.fill_from_hierarchy(kappas, pred_hierarchy, level)
 
     logger.info('Sampling ODE parameters', context='transform')
     durations = model.sample_durations(specification.rates_parameters, draw_id)
@@ -63,15 +52,37 @@ def run_past_infections(fit_version: str, draw_id: int, progress_bar: bool) -> N
         variant_severity, specification.fit_parameters, draw_id
     )
 
+    logger.info('Loading and resampling betas and infections.', context='transform')
+    betas, infections = model.load_and_resample_beta_and_infections(
+        draw_id=draw_id,
+        # This is sloppy, but we need to pull in data across a bunch of draws,
+        # so this seems easiest.
+        data_interface=data_interface,
+    )
+
+    logger.info('Computing composite beta', context='composite_spline')
+    beta_fit_final = model.build_composite_betas(
+        betas=betas,
+        infections=infections,
+        alpha=sampled_ode_params['alpha_all_infection'],
+        num_cores=num_cores,
+        progress_bar=progress_bar,
+    )
+
     logger.info('Rescaling deaths and formatting epi measures', context='transform')
-    epi_measures = model.format_epi_measures(epi_measures, mr_hierarchy, pred_hierarchy, mortality_scalar, durations)
+    epi_measures = model.format_epi_measures(
+        epi_measures=epi_measures,
+        mr_hierarchy=mr_hierarchy,
+        pred_hierarchy=pred_hierarchy,
+        mortality_scalars=mortality_scalar,
+        durations=durations,
+    )
 
     logger.info('Prepping ODE fit parameters for second pass model.', context='transform')
     ode_parameters = model.prepare_past_infections_parameters(
-        betas=betas,
+        beta=beta_fit_final,
         rates=rates,
-        infections=infections,
-        measure_kappas=measure_kappas,
+        measure_kappas=kappas,
         durations=durations,
         epi_measures=epi_measures,
         rhos=rhos,
@@ -82,8 +93,6 @@ def run_past_infections(fit_version: str, draw_id: int, progress_bar: bool) -> N
         sampled_ode_params=sampled_ode_params,
         hierarchy=pred_hierarchy,
         draw_id=draw_id,
-        num_threads=num_threads,
-        progress_bar=progress_bar,
     )
 
     logger.info('Rebuilding initial condition.', context='transform')
@@ -98,21 +107,22 @@ def run_past_infections(fit_version: str, draw_id: int, progress_bar: bool) -> N
     compartments, chis = model.run_posterior_fit(
         initial_condition=initial_condition,
         ode_parameters=ode_parameters,
-        num_cores=num_threads,
+        num_cores=num_cores,
         progress_bar=progress_bar,
     )
+
+    logger.info('Prepping outputs.', context='transform')
     posterior_epi_measures = model.compute_posterior_epi_measures(
         compartments=compartments,
         durations=durations
     )
-
-    logger.info('Prepping outputs.', context='transform')
-
+    betas = pd.concat([betas, beta_fit_final], axis=1)
     out_params = ode_parameters.to_dict()['base_parameters']
     for name, duration in durations._asdict().items():
         out_params.loc[:, name] = duration
 
     logger.info('Writing outputs', context='write')
+    data_interface.save_fit_beta(betas, measure_version='final', draw_id=draw_id)
     data_interface.save_ode_params(out_params, measure_version='final', draw_id=draw_id)
     data_interface.save_input_epi_measures(epi_measures, measure_version='final', draw_id=draw_id)
     data_interface.save_phis(ode_parameters.phis, draw_id=draw_id)
@@ -121,6 +131,10 @@ def run_past_infections(fit_version: str, draw_id: int, progress_bar: bool) -> N
     data_interface.save_posterior_epi_measures(posterior_epi_measures, measure_version='final', draw_id=draw_id)
 
     logger.report()
+
+
+def get_round_data(df: pd.DataFrame, round_id: int = 2) -> pd.DataFrame:
+    return df[df['round'] == round_id].drop(columns='round')
 
 
 @click.command()

@@ -1,45 +1,46 @@
 import itertools
 from typing import Dict, List
 
-import numpy as np
 import pandas as pd
 
-from covid_model_seiir_pipeline.pipeline.fit.model import determine_mean_date_of_infection
+from covid_model_seiir_pipeline.pipeline.fit.model.rates.date_of_infection import (
+    determine_mean_date_of_infection,
+)
 
 
-def create_model_data(cumulative_deaths: pd.Series,
-                      daily_deaths: pd.Series,
+def create_model_data(cumulative_hospitalizations: pd.Series,
+                      daily_hospitalizations: pd.Series,
                       seroprevalence: pd.DataFrame,
-                      covariates: List[pd.Series],
-                      covariate_list: List[str],
                       daily_infections: pd.Series,
                       variant_prevalence: pd.Series,
+                      covariates: List[pd.Series],
+                      covariate_list: List[str],
                       hierarchy: pd.DataFrame,
                       population: pd.Series,
                       day_0: pd.Timestamp,
                       durations: Dict,) -> pd.DataFrame:
-    ifr_data = seroprevalence.loc[seroprevalence['is_outlier'] == 0].copy()
-    ifr_data['date'] += pd.Timedelta(days=durations['seropositive_to_death'])
-    ifr_data = (ifr_data
+    ihr_data = seroprevalence.loc[seroprevalence['is_outlier'] == 0].copy()
+    ihr_data['date'] -= pd.Timedelta(days=durations['admission_to_seropositive'])
+    ihr_data = (ihr_data
                 .set_index(['data_id', 'location_id', 'date'])
                 .loc[:, 'seroprevalence'])
-    ifr_data = ((cumulative_deaths / (ifr_data * population))
+    ihr_data = ((cumulative_hospitalizations / (ihr_data * population))
                 .dropna()
-                .rename('ifr'))
+                .rename('ihr'))
     
     # add cumulative variant prevalence
     variant_infections = (variant_prevalence * daily_infections).fillna(0)
     cumulative_variant_prevalence = (
-            variant_infections.groupby(level=0).cumsum()
-            / daily_infections.groupby(level=0).cumsum()
+            variant_infections.groupby(level=0).cumsum() /
+            daily_infections.groupby(level=0).cumsum()
     ).rename('variant_prevalence')
     cumulative_variant_prevalence = (cumulative_variant_prevalence
                                      .loc[daily_infections.index]
                                      .fillna(0)
                                      .reset_index())
-    cumulative_variant_prevalence['date'] += pd.Timedelta(days=durations['exposure_to_death'])
+    cumulative_variant_prevalence['date'] += pd.Timedelta(days=durations['exposure_to_admission'])
     cumulative_variant_prevalence = cumulative_variant_prevalence.set_index(['location_id', 'date'])
-    model_data = ifr_data.to_frame().join(cumulative_variant_prevalence, how='left')
+    model_data = ihr_data.to_frame().join(cumulative_variant_prevalence, how='left')
     if model_data['variant_prevalence'].isnull().any():
         raise ValueError('Missing cumulative variant prevalence.')
 
@@ -48,7 +49,7 @@ def create_model_data(cumulative_deaths: pd.Series,
     dates_data = determine_mean_date_of_infection(
         location_dates=loc_dates,
         daily_infections=daily_infections.copy(),
-        lag=durations['exposure_to_death'],
+        lag=durations['exposure_to_admission'],
     )
     model_data = model_data.join(dates_data.set_index(['location_id', 'date']), how='left')
     if model_data['mean_infection_date'].isnull().any():
@@ -57,7 +58,7 @@ def create_model_data(cumulative_deaths: pd.Series,
     
     # add covariates
     model_data = model_data.join(pd.concat(covariates, axis=1).loc[:, covariate_list])
-    
+            
     return model_data.reset_index()
 
 

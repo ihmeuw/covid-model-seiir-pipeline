@@ -4,9 +4,9 @@ import pandas as pd
 import numpy as np
 
 from covid_model_seiir_pipeline.lib import math
-from covid_model_seiir_pipeline.pipeline.fit.model.mrbrt import cascade
-from covid_model_seiir_pipeline.pipeline.fit.model import age_standardization
-from covid_model_seiir_pipeline.pipeline.fit.model.covariate_priors import (
+from covid_model_seiir_pipeline.pipeline.fit.model.rates import age_standardization
+from covid_model_seiir_pipeline.pipeline.fit.model.rates.mrbrt import cascade
+from covid_model_seiir_pipeline.pipeline.fit.model.rates.covariate_priors import (
     get_covariate_priors,
     get_covariate_constraints,
 )
