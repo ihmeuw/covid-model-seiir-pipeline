@@ -48,13 +48,13 @@ def run_beta_resampling(fit_version: str, progress_bar: bool):
 
     replace = defaultdict(list)
     potential_substitutes = list(range(n_draws, n_total_draws))
+    used_substitutes = defaultdict(list)
     for location_id, draw in total_failures.iteritems():
         if location_id in unrecoverable or draw >= n_draws:
             continue
-        cant_use = [r[1] for r in replace[location_id]] + total_failures[
-            [location_id]].tolist()
+        cant_use = used_substitutes[location_id] + total_failures[[location_id]].tolist()
         substitute_draw = [d for d in potential_substitutes if d not in cant_use][0]
-        replace[location_id].append((draw, substitute_draw))
+        replace[draw].append((location_id, substitute_draw))
 
     failures = failures.reorder_levels(['draw_id', 'location_id']).sort_index()
 
