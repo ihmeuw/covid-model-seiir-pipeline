@@ -3,7 +3,7 @@ from typing import Dict, List, Tuple
 import pandas as pd
 
 from covid_model_seiir_pipeline.lib import math
-from covid_model_seiir_pipeline.pipeline.fit.model.idr import (
+from covid_model_seiir_pipeline.pipeline.fit.model.rates.idr import (
     data,
     model,
     flooring,

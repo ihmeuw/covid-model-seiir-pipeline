@@ -6,7 +6,9 @@ from loguru import logger
 import pandas as pd
 import numpy as np
 
-from covid_model_seiir_pipeline.pipeline.fit.model import determine_mean_date_of_infection
+from covid_model_seiir_pipeline.pipeline.fit.model.rates.date_of_infection import (
+    determine_mean_date_of_infection,
+)
 
 
 def create_model_data(cumulative_cases: pd.Series,

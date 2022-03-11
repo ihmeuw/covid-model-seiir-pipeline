@@ -1,5 +1,11 @@
-from covid_model_seiir_pipeline.pipeline.fit.model.age_standardization import (
+from covid_model_seiir_pipeline.pipeline.fit.model.rates.age_standardization import (
     get_all_age_rate,
+)
+from covid_model_seiir_pipeline.pipeline.fit.model.beta_composite import (
+    build_composite_betas,
+)
+from covid_model_seiir_pipeline.pipeline.fit.model.resampling import (
+    load_and_resample_beta_and_infections,
 )
 from covid_model_seiir_pipeline.pipeline.fit.model.sampled_params import (
     sample_durations,
@@ -8,9 +14,6 @@ from covid_model_seiir_pipeline.pipeline.fit.model.sampled_params import (
     sample_idr_parameters,
     sample_ode_params,
     sample_parameter,
-)
-from covid_model_seiir_pipeline.pipeline.fit.model.date_of_infection import (
-    determine_mean_date_of_infection,
 )
 from covid_model_seiir_pipeline.pipeline.fit.model.seroprevalence import (
     subset_seroprevalence,

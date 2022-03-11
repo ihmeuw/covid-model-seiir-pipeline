@@ -2,8 +2,8 @@ from typing import Dict, List, Tuple
 
 import pandas as pd
 
-from covid_model_seiir_pipeline.pipeline.fit.model import age_standardization
-from covid_model_seiir_pipeline.pipeline.fit.model.ifr import (
+from covid_model_seiir_pipeline.pipeline.fit.model.rates import age_standardization
+from covid_model_seiir_pipeline.pipeline.fit.model.rates.ifr import (
     data,
     model,
 )

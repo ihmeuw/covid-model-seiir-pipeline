@@ -28,12 +28,6 @@ from covid_model_seiir_pipeline.pipeline.fit.model.epi_measures import (
     aggregate_data_from_md,
 )
 
-from regmod.data import Data
-from regmod.variable import Variable, SplineVariable
-from regmod.utils import SplineSpecs
-from regmod.models import GaussianModel
-from regmod.prior import SplineGaussianPrior, GaussianPrior
-
 
 def prepare_ode_fit_parameters(measure: str,
                                rates: pd.DataFrame,
@@ -85,9 +79,8 @@ def prepare_ode_fit_parameters(measure: str,
     return ode_params, rates
 
 
-def prepare_past_infections_parameters(betas: pd.Series,
+def prepare_past_infections_parameters(beta: pd.Series,
                                        rates: pd.DataFrame,
-                                       infections: pd.DataFrame,
                                        measure_kappas: pd.DataFrame,
                                        durations: Durations,
                                        epi_measures: pd.DataFrame,
@@ -98,9 +91,7 @@ def prepare_past_infections_parameters(betas: pd.Series,
                                        natural_waning_matrix: pd.DataFrame,
                                        sampled_ode_params: Dict[str, float],
                                        hierarchy: pd.DataFrame,
-                                       draw_id: int,
-                                       num_threads: int,
-                                       progress_bar: bool):
+                                       draw_id: int):
     measures_and_rates, age_scalars = prepare_epi_measures_for_past_infections(
         epi_measures=epi_measures,
         epi_rates=rates,
@@ -123,19 +114,6 @@ def prepare_past_infections_parameters(betas: pd.Series,
     rhos.columns = [f'rho_{c}_infection' for c in rhos.columns]
     rhos['rho_none_infection'] = pd.Series(0., index=past_index, name='rho_none_infection')
 
-    arg_list = [(infections.loc[[location_id]],
-                 betas.loc[[location_id]],
-                 sampled_params.loc[[location_id], 'alpha_all_infection'],)
-                for location_id in betas.reset_index()['location_id'].unique()]
-
-    beta = parallel.run_parallel(
-        make_composite_beta,
-        arg_list=arg_list,
-        num_cores=num_threads,
-        progress_bar=progress_bar,
-    )
-    beta = pd.concat(beta)
-
     base_parameters = pd.concat([
         sampled_params,
         measures_and_rates,
@@ -156,118 +134,6 @@ def prepare_past_infections_parameters(betas: pd.Series,
         etas=etas,
         phis=phis,
     )
-
-
-def combination_spline(data: pd.DataFrame):
-    data_idx = data.notnull().any(axis=1)
-    dates = data.loc[data_idx].reset_index()['date'][1:].reset_index(drop=True)
-    n_days = (dates.max() - dates.min()).days
-
-    # determine spline specs
-    if n_days > 90:
-        # start anchor (using mean up to last 28 days)
-        k_start = np.array([0])
-
-        # tighter over last 28 days
-        k_end = np.linspace(n_days - 28, n_days, 5)
-
-        # every 56 days during middle interval
-        k_middle = np.linspace(k_start.max(), k_end.min(),
-                               int((k_end.min() - k_start.max()) / 56) + 1)[1:-1]
-
-        # stitch together
-        knots = np.hstack([k_start, k_middle, k_end]) / n_days
-        spline_specs = dict(
-            knots=knots,
-            l_linear=True,
-            r_linear=True,
-        )
-    else:
-        # weekly for short time series
-        knots = np.linspace(0, n_days, int(n_days / 10)) / n_days
-        if knots.size > 4:
-            spline_specs = dict(
-                knots=knots,
-                l_linear=True,
-                r_linear=True,
-            )
-        else:
-            spline_specs = dict(
-                knots=knots,
-            )
-    spline_specs.update(
-        dict(knots_type='rel_domain',
-             include_first_basis=False,
-             degree=3,)
-    )
-
-    # prepare model inputs
-    delta_log_data = np.log(data.loc[data_idx].clip(1, np.inf)).diff()
-    leading_null = data.loc[data_idx].ffill().isnull() & data.loc[data_idx].bfill().notnull()
-    data = data.loc[data_idx].where(~leading_null, other=0)
-
-    # prepare prediction dataframe
-    pred_data_template = data.loc[data_idx].reset_index().loc[:, ['location_id', 'date']].drop_duplicates()
-
-    # run standard and delta models
-    pred_data = data.mean(axis=1) # fit_spline(data, pred_data_template.copy(), spline_specs,)
-    pred_delta_log_data = fit_spline(delta_log_data, pred_data_template.copy(), spline_specs,)
-
-    # splice predictions
-    pred_data = pd.concat([
-        pred_data[:-28],
-        np.exp(np.log(pred_data.iloc[-28] + 1) + pred_delta_log_data.loc[data_idx][-28:].cumsum())
-    ])
-    pred_data = pred_data.rename('pred').clip(1e-4, np.inf)
-
-    return pred_data
-
-
-def fit_spline(data: pd.DataFrame, pred_data: pd.DataFrame,
-               spline_specs: Dict,):
-    # format data
-    data = data.stack().reset_index().dropna()
-    data.columns = ['location_id', 'date', 'measure', 'data']
-    data['intercept'] = 1
-    t0 = data['date'].min()
-    data['t'] = (data['date'] - t0).dt.days
-
-    # create model data structures, fit model, and predict out
-    model_data = Data(col_obs='data', col_covs=['intercept', 't'], df=data)
-    model_variables = [Variable(name='intercept',),
-                       SplineVariable(name='t',
-                                      spline_specs=SplineSpecs(**spline_specs),)]
-    model = GaussianModel(data=model_data, param_specs={'mu': {'variables': model_variables}})
-    model.fit()
-    pred_data['intercept'] = 1
-    pred_data['t'] = (pred_data['date'] - t0).dt.days
-    pred_data = (model.predict(pred_data)
-                 .rename(columns={'mu': 'pred_data'}))
-
-    # make cumulative again, add back residual, and exponentiate
-    pred_data = (pred_data
-                 .set_index(['location_id', 'date'])
-                 .loc[:, 'pred_data'])
-
-    return pred_data
-
-
-def make_composite_beta(args: Tuple):
-    infections, betas, alpha = args
-    I = []
-    for measure in ['case', 'death', 'admission']:
-        I.append(
-            ((infections.loc[:, f'infection_{measure}'] / betas.loc[:, f'beta_{measure}']) ** (1 / alpha))
-            .rename(f'I_{measure}')
-        )
-    I = pd.concat(I, axis=1)
-    composite_I = combination_spline(I)
-
-    composite_infections = combination_spline(infections.loc[composite_I.index])
-
-    composite_beta = (composite_infections / (composite_I ** alpha)).rename('beta_all_infection')
-
-    return composite_beta
 
 
 def prepare_epi_measures_and_rates(measure: str,
@@ -631,3 +497,4 @@ def fill_from_hierarchy(df: pd.DataFrame, hierarchy: pd.DataFrame, level: str) -
     fill = df.groupby([level, 'date']).transform('mean')
     df = df.drop(columns=level).fillna(fill)
     return df
+
