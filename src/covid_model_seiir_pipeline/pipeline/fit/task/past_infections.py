@@ -62,7 +62,7 @@ def run_past_infections(fit_version: str, draw_id: int, progress_bar: bool) -> N
     logger.info('Computing composite beta', context='composite_spline')
     beta_fit_final = model.build_composite_betas(
         betas=betas,
-        infections=infections,
+        infections=infections.filter(like='total').rename(columns=lambda x: f'infection_{x.split("_")[-1]}'),
         alpha=sampled_ode_params['alpha_all_infection'],
         num_cores=num_cores,
         progress_bar=progress_bar,

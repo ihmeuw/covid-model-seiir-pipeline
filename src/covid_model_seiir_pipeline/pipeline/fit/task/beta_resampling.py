@@ -60,7 +60,7 @@ def run_beta_resampling(fit_version: str, progress_bar: bool):
 
     draw_resampling_map = {
         'unrecoverable': unrecoverable,
-        'replacements_by_draw': replace,
+        'replacements_by_draw': dict(replace),  # coerce to normal dict so we can deserialize.
     }
     data_interface.save_draw_resampling_map(draw_resampling_map)
     data_interface.save_fit_failures(failures)

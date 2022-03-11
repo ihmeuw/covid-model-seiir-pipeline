@@ -17,7 +17,7 @@ def load_and_resample_beta_and_infections(draw_id: int,
     # List of totally failed locations
     unrecoverable = resampling_map['unrecoverable']
     # List of (location_id, substitute_draw)
-    replace_list = resampling_map['replacements_by_draw'][draw_id]
+    replace_list = resampling_map['replacements_by_draw'].get(draw_id, [])
     replace_map = defaultdict(list)
     for location_id, substitute_draw in replace_list:
         replace_map[substitute_draw].append(location_id)
