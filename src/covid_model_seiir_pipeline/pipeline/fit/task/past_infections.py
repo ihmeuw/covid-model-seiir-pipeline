@@ -52,7 +52,7 @@ def run_past_infections(fit_version: str, draw_id: int, progress_bar: bool) -> N
     )
 
     logger.info('Loading and resampling betas and infections.', context='transform')
-    betas, infections = model.load_and_resample_beta_and_infections(
+    betas, infections, unrecoverable = model.load_and_resample_beta_and_infections(
         draw_id=draw_id,
         # This is sloppy, but we need to pull in data across a bunch of draws,
         # so this seems easiest.
@@ -61,7 +61,7 @@ def run_past_infections(fit_version: str, draw_id: int, progress_bar: bool) -> N
 
     logger.info('Computing composite beta', context='composite_spline')
     beta_fit_final = model.build_composite_betas(
-        betas=betas,
+        betas=betas.drop(unrecoverable, axis=0),
         infections=infections.filter(like='total').rename(columns=lambda x: f'infection_{x.split("_")[-1]}'),
         alpha=sampled_ode_params['alpha_all_infection'],
         num_cores=num_cores,

@@ -98,7 +98,7 @@ def prepare_past_infections_parameters(beta: pd.Series,
         durations=durations,
         hierarchy=hierarchy,
     )
-    past_index = measures_and_rates.index
+    past_index = beta.index
     scalar_params = {k: p for k, p in sampled_ode_params.items()
                      if isinstance(p, (int, float)) and k not in measure_kappas}
     series_params = [p.reindex(past_index, level='location_id').rename(k)
@@ -116,8 +116,8 @@ def prepare_past_infections_parameters(beta: pd.Series,
 
     base_parameters = pd.concat([
         sampled_params,
-        measures_and_rates,
-        beta.reindex(past_index),
+        measures_and_rates.reindex(past_index),
+        beta,
         rhos,
     ], axis=1)
 
@@ -130,7 +130,7 @@ def prepare_past_infections_parameters(beta: pd.Series,
     return Parameters(
         base_parameters=base_parameters,
         vaccinations=vaccinations,
-        age_scalars=age_scalars,
+        age_scalars=age_scalars.reindex(past_index),
         etas=etas,
         phis=phis,
     )

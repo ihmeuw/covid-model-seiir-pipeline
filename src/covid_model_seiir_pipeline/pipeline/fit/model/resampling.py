@@ -85,7 +85,7 @@ def load_and_resample_beta_and_infections(draw_id: int,
         final_infections.append(add_location_id(loc_infections, location_id))
     final_betas = pd.concat(final_betas).sort_index()
     final_infections = pd.concat(final_infections).sort_index()
-    return final_betas, final_infections
+    return final_betas, final_infections, unrecoverable
 
 
 def load_data_subset(draw_id: int,
