@@ -15,12 +15,10 @@ from covid_model_seiir_pipeline.pipeline.fit.model.sampled_params import (
     sample_ode_params,
     sample_parameter,
 )
-from covid_model_seiir_pipeline.pipeline.fit.model.seroprevalence import (
-    subset_seroprevalence,
-    apply_sensitivity_adjustment,
-)
 from covid_model_seiir_pipeline.pipeline.fit.model.rates import (
     run_rates_pipeline,
+    subset_seroprevalence,
+    apply_sensitivity_adjustment,
 )
 from covid_model_seiir_pipeline.pipeline.fit.model.covariate_pool import (
     COVARIATE_POOL,
