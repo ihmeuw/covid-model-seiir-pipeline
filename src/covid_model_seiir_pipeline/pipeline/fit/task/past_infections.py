@@ -50,6 +50,15 @@ def run_past_infections(fit_version: str, draw_id: int, progress_bar: bool) -> N
     sampled_ode_params, natural_waning_matrix = model.sample_ode_params(
         variant_severity, specification.fit_parameters, draw_id
     )
+    
+    logger.info('Rescaling deaths and formatting epi measures', context='transform')
+    epi_measures = model.format_epi_measures(
+        epi_measures=epi_measures,
+        mr_hierarchy=mr_hierarchy,
+        pred_hierarchy=pred_hierarchy,
+        mortality_scalars=mortality_scalar,
+        durations=durations,
+    )
 
     logger.info('Loading and resampling betas and infections.', context='transform')
     betas, infections, unrecoverable = model.load_and_resample_beta_and_infections(
@@ -60,24 +69,15 @@ def run_past_infections(fit_version: str, draw_id: int, progress_bar: bool) -> N
     )
 
     logger.info('Computing composite beta', context='composite_spline')
-    beta_fit_final = model.build_composite_betas(
+    beta_fit_final, spline_infections, spline_infectious = model.build_composite_betas(
         betas=betas.drop(unrecoverable, axis=0),
         infections=infections.filter(like='total').rename(columns=lambda x: f'infection_{x.split("_")[-1]}'),
         alpha=sampled_ode_params['alpha_all_infection'],
         num_cores=num_cores,
-        progress_bar=progress_bar,
+        progress_bar=progress_bar,    
     )
-
-    logger.info('Rescaling deaths and formatting epi measures', context='transform')
-    epi_measures = model.format_epi_measures(
-        epi_measures=epi_measures,
-        mr_hierarchy=mr_hierarchy,
-        pred_hierarchy=pred_hierarchy,
-        mortality_scalars=mortality_scalar,
-        durations=durations,
-    )
-
-    logger.info('Prepping ODE fit parameters for second pass model.', context='transform')
+    
+    logger.info('Prepping ODE fit parameters for past infections model.', context='transform')
     ode_parameters = model.prepare_past_infections_parameters(
         beta=beta_fit_final,
         rates=rates,
@@ -93,16 +93,17 @@ def run_past_infections(fit_version: str, draw_id: int, progress_bar: bool) -> N
         hierarchy=pred_hierarchy,
         draw_id=draw_id,
     )
-
-    logger.info('Rebuilding initial condition.', context='transform')
+    
+    logger.info('Building initial condition.', context='transform')
     initial_condition = model.make_initial_condition(
         measure='final',
         parameters=ode_parameters,
         rates=rates,
         population=risk_group_population,
+        infections=spline_infections,    
     )
-
-    logger.info('Running second pass ODE fit', context='compute_ode')
+    
+    logger.info('Running ODE fit', context='compute_ode')
     compartments, chis = model.run_posterior_fit(
         initial_condition=initial_condition,
         ode_parameters=ode_parameters,
@@ -115,6 +116,7 @@ def run_past_infections(fit_version: str, draw_id: int, progress_bar: bool) -> N
         compartments=compartments,
         durations=durations
     )
+    
     betas = pd.concat([betas, beta_fit_final], axis=1)
     out_params = ode_parameters.to_dict()['base_parameters']
     for name, duration in durations._asdict().items():

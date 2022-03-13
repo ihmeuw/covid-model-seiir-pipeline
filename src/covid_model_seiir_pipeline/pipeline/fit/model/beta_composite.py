@@ -1,4 +1,4 @@
-from typing import Dict, Tuple
+from typing import Dict, List, Tuple
 
 import numpy as np
 import pandas as pd
@@ -17,9 +17,13 @@ def build_composite_betas(betas: pd.DataFrame,
                           infections: pd.DataFrame,
                           alpha: float,
                           num_cores: int,
-                          progress_bar: bool) -> Tuple[pd.Series, pd.Series, pd.Series]:
+                          progress_bar: bool,
+                          location_ids: List[int] = None) -> Tuple[pd.Series, pd.Series, pd.Series]:
+    if location_ids is None:
+        location_ids = betas.reset_index()['location_id'].unique()
+    
     arg_list = []
-    for location_id in betas.reset_index()['location_id'].unique():
+    for location_id in location_ids:
         arg_list.append((
             infections.loc[[location_id]],
             betas.loc[[location_id]],
@@ -32,8 +36,7 @@ def build_composite_betas(betas: pd.DataFrame,
         num_cores=num_cores,
         progress_bar=progress_bar,
     )
-    beta, infections, infectious = [pd.concat(dfs) for dfs in zip(*results)]
-    import pdb; pdb.set_trace()
+    beta, infections, infectious = [pd.concat(dfs) for dfs in zip(*results)]    
     return beta, infections, infectious
 
 
@@ -52,7 +55,7 @@ def make_composite_beta(args: Tuple):
 
     composite_beta = (composite_infections / (composite_infectious ** alpha)).rename('beta_all_infection')
 
-    return composite_beta, composite_infections, composite_infectious
+    return composite_beta, composite_infections.rename('infections'), composite_infectious.rename('infectious')
 
 
 def combination_spline(data: pd.DataFrame):

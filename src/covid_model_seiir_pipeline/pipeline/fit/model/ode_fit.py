@@ -98,7 +98,8 @@ def prepare_past_infections_parameters(beta: pd.Series,
         durations=durations,
         hierarchy=hierarchy,
     )
-    past_index = beta.index
+    loc_ids = beta.reset_index().location_id.unique().tolist()
+    past_index = measures_and_rates.loc[loc_ids].sort_index().index
     scalar_params = {k: p for k, p in sampled_ode_params.items()
                      if isinstance(p, (int, float)) and k not in measure_kappas}
     series_params = [p.reindex(past_index, level='location_id').rename(k)
@@ -116,8 +117,8 @@ def prepare_past_infections_parameters(beta: pd.Series,
 
     base_parameters = pd.concat([
         sampled_params,
-        measures_and_rates.reindex(past_index),
-        beta,
+        measures_and_rates,
+        beta.reindex(past_index),
         rhos,
     ], axis=1)
 
@@ -130,7 +131,7 @@ def prepare_past_infections_parameters(beta: pd.Series,
     return Parameters(
         base_parameters=base_parameters,
         vaccinations=vaccinations,
-        age_scalars=age_scalars.reindex(past_index),
+        age_scalars=age_scalars,
         etas=etas,
         phis=phis,
     )
@@ -197,12 +198,14 @@ def prepare_epi_measures_for_past_infections(epi_measures: pd.DataFrame,
 
     out_measures = []
     out_scalars = []
+    out_rates = []
     for in_measure, out_measure, rate in measures:
         epi_data = (epi_measures[f'smoothed_daily_{in_measure}'].rename(f'count_all_{out_measure}') + 3e-2).to_frame()
         lag = durations._asdict()[f'exposure_to_{out_measure}']
 
-        epi_data = reindex_to_infection_day(epi_data, lag, most_detailed)
-        epi_scalars = epi_rates.copy()
+        epi_data = reindex_to_infection_day(epi_data, lag, most_detailed)        
+        rates = reindex_to_infection_day(epi_rates.filter(like=rate), lag, most_detailed)
+        epi_scalars = rates.copy()
         drop_cols = epi_scalars.columns
         for risk_group in RISK_GROUP_NAMES:
             epi_scalars.loc[:, f'{out_measure}_{risk_group}'] = epi_scalars[f'{rate}_{risk_group}'] / epi_scalars[rate]
@@ -210,14 +213,14 @@ def prepare_epi_measures_for_past_infections(epi_measures: pd.DataFrame,
 
         out_measures.append(epi_data)
         out_scalars.append(epi_scalars)
+        out_rates.append(rates[rate].rename(f'rate_all_{out_measure}'))
 
     out_measures = pd.concat(out_measures, axis=1).reset_index()
     out_measures = (out_measures
                     .loc[out_measures.location_id.isin(most_detailed)]
                     .set_index(['location_id', 'date'])
                     .sort_index())
-    out_rates = out_measures.copy().rename(columns=lambda x: x.replace('count', 'rate'))
-    out_rates.loc[:, :] = np.nan
+    out_rates = pd.concat(out_rates, axis=1).reindex(out_measures.index).groupby('location_id').ffill().bfill()    
     out_weights = out_measures.copy().rename(columns=lambda x: x.replace('count', 'weight'))
     out_weights.loc[:, :] = np.nan
     out_data = pd.concat([out_measures, out_rates, out_weights], axis=1)
@@ -266,11 +269,12 @@ def compute_phis(natural_waning_dist: pd.Series,
 def make_initial_condition(measure: str,
                            parameters: Parameters,
                            rates: pd.DataFrame,
-                           population: pd.DataFrame):
+                           population: pd.DataFrame, 
+                           infections: pd.Series = None):
     base_params = parameters.base_parameters
     rates = rates.loc[base_params.index]
     
-    crude_infections = get_crude_infections(measure, base_params, rates, threshold=50)
+    crude_infections = get_crude_infections(measure, base_params, rates, infections, threshold=50)
     new_e_start = crude_infections.reset_index(level='date').groupby('location_id').first()
     start_date, new_e_start = new_e_start['date'], new_e_start['infections']
     end_date = base_params.filter(like='count')
@@ -290,17 +294,16 @@ def make_initial_condition(measure: str,
         loc_initial_condition = pd.DataFrame(0., columns=compartments, index=rates.loc[location_id].index)
         for risk_group in RISK_GROUP_NAMES:
             pop = population.loc[location_id, risk_group]
-            new_e = new_e_start.loc[location_id] * pop / population.loc[location_id].sum()
-            # Backfill everyone susceptible
-            loc_initial_condition.loc[:loc_start_date, f'S_unvaccinated_none_{risk_group}'] = pop
-            # Set initial condition on start date
             if measure == 'final':
                 beta_init = base_params.at[(location_id, loc_start_date), 'beta_all_infection']
             else:
-                beta_init = 2.0
-            infectious = (new_e / beta_init) ** (1 / alpha.loc[location_id])
+                beta_init = 2.0                
+            new_e = new_e_start.loc[location_id] * pop / population.loc[location_id].sum()
+            infectious = (new_e / beta_init) ** (1 / alpha.loc[location_id])            
             susceptible = pop - new_e - infectious
-
+            
+            # Backfill everyone susceptible
+            loc_initial_condition.loc[:loc_start_date, f'S_unvaccinated_none_{risk_group}'] = pop
             loc_initial_condition.loc[loc_start_date, f'S_unvaccinated_none_{risk_group}'] = susceptible
             loc_initial_condition.loc[loc_start_date, f'E_unvaccinated_ancestral_{risk_group}'] = new_e
             loc_initial_condition.loc[loc_start_date, f'Infection_none_ancestral_unvaccinated_{risk_group}'] = new_e
@@ -326,12 +329,14 @@ def make_initial_condition(measure: str,
     return initial_condition
 
 
-def get_crude_infections(measure: str, base_params, rates, threshold=50):
+def get_crude_infections(measure: str, base_params, rates, infections, threshold=50):
     rate_map = {'death': 'ifr', 'admission': 'ihr', 'case': 'idr'}
     if measure in rate_map:
         crude_infections = base_params[f'count_all_{measure}'] / rates[rate_map[measure]]
         crude_infections = crude_infections.loc[crude_infections > threshold].rename('infections')
-    else:        
+    elif infections is not None:
+        crude_infections = infections
+    else:
         crude_infections = pd.DataFrame(index=rates.index)
         for measure, rate in rate_map.items():
             infections = base_params[f'count_all_{measure}'] / rates[rate]
