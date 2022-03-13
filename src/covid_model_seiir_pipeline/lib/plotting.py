@@ -136,7 +136,7 @@ class Plotter:
             trans = ax.get_xaxis_transform()
             for i, (date, color, linestyle) in enumerate(invasion_level_spec):
                 if date is not None:
-                    ax.axvline(date, linestyle=linestyle, color=color, linewidth=3)
+                    ax.axvline(date, linestyle=linestyle, color=color, alpha=0.8)
                     if i == 0:
                         ax.text(date, 0.7, variant,
                                 transform=trans, rotation=90, fontsize=14, color=color)

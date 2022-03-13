@@ -69,7 +69,7 @@ def model_fit_plot(data: Tuple[Location, DataDict],
     try:
         loc_rhos = rhos.loc[location.id].reset_index()
         variants = [v for v in loc_rhos if
-                    v not in ['ancestral', 'omega', 'date'] and loc_rhos[v].max() > 0.25]
+                    v not in ['ancestral', 'omega', 'date'] and loc_rhos[v].max() > 0.5]
         variant_invasion = defaultdict(list)
         for v in variants:
             for threshold, linestyle in zip([0.01, 0.5], ['-', ':']):
