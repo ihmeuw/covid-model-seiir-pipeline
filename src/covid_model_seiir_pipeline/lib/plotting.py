@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Any, Dict, NamedTuple, Optional, Union
+from typing import Dict, List, NamedTuple, Optional, Tuple, Union
 
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
@@ -128,6 +128,18 @@ class Plotter:
             alpha=self.observed_alpha / 2,
             **extra_options,
         )
+
+    def add_variant_vlines(self,
+                           ax: Axes,
+                           variant_spec: Dict[str, List[Tuple[Optional[pd.Timestamp], str, str]]]):
+        for variant, invasion_level_spec in variant_spec.items():
+            trans = ax.get_xaxis_transform()
+            for i, (date, color, linestyle) in enumerate(invasion_level_spec):
+                if date is not None:
+                    ax.axvline(date, linestyle=linestyle, color=color)
+                    if i == 0:
+                        ax.text(date, 0.7, variant,
+                                transform=trans, rotation=90, fontsize=14, color=color)
 
     def format_date_axis(self, ax, start=None, end=None):
         start = start if start is not None else self._start

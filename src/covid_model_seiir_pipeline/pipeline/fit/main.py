@@ -1,14 +1,11 @@
-import functools
-from typing import Dict, List, Optional
+from typing import Dict, Optional
 
 import click
 from covid_shared import ihme_deps, paths
 from loguru import logger
-import pandas as pd
 
 from covid_model_seiir_pipeline.lib import (
     cli_tools,
-    parallel,
 )
 
 from covid_model_seiir_pipeline.pipeline.fit.specification import FitSpecification

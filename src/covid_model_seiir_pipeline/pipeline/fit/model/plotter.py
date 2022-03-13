@@ -1,6 +1,7 @@
 import itertools
+from collections import defaultdict
 from pathlib import Path
-from typing import Dict, NamedTuple, Tuple
+from typing import NamedTuple, Tuple
 
 import numpy as np
 import pandas as pd
@@ -39,6 +40,14 @@ _COLOR_MEASURES = (
 MEASURE_COLORS = {
     measure: cmap for cmap, measures in _COLOR_MEASURES for measure in measures
 }
+VARIANT_COLORS = {
+    'alpha': 'darkcyan',
+    'beta': 'orangered',
+    'gamma': 'saddlebrown',
+    'delta': 'indigo',
+    'omicron': 'crimson',
+    'other': 'darkslategrey',
+}
 
 
 class PastPlotter(Plotter):
@@ -55,6 +64,21 @@ def model_fit_plot(data: Tuple[Location, DataDict],
     assert len(data_dictionary) == 1, "Multiple versions supplied for model fit plot."
     version = list(data_dictionary)[0]  # This version name is arbitrary and not used anywhere
     pop = data_interface.load_population('total').population.loc[location.id]
+    rhos = data_interface.load_variant_prevalence('reference')
+
+    loc_rhos = rhos.loc[location.id].reset_index()
+    variants = [v for v in loc_rhos if
+                v not in ['ancestral', 'omega', 'date'] and loc_rhos[v].max() > 0.25]
+    variant_invasion = defaultdict(list)
+    for v in variants:
+        for threshold, linestyle in zip([0.01, 0.5], ['-', ':']):
+            try:
+                variant_invasion[v].append(
+                    (loc_rhos[loc_rhos[v] > threshold].date.iloc[0],
+                     VARIANT_COLORS[v], linestyle)
+                )
+            except IndexError:
+                variant_invasion[v].append((None, VARIANT_COLORS[v], linestyle))
 
     # No versions so no specific style things here.
     style_map = {k: {} for k in data_dictionary}
@@ -110,6 +134,7 @@ def model_fit_plot(data: Tuple[Location, DataDict],
             dark_color=MEASURE_COLORS[measure]['dark'],
         )
 
+        plotter.add_variant_vlines(ax_measure, variant_invasion)
         group_axes.append(ax_measure)
 
     plotter.clean_and_align_axes(fig, group_axes)
@@ -130,15 +155,6 @@ def model_fit_plot(data: Tuple[Location, DataDict],
             color=MEASURE_COLORS[measure]['dark'],
             label=label,
         )
-        ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
-        ## need naive (not naive-unvaccinated)
-        # plotter.make_time_plot(
-        #     ax=ax_measure,
-        #     measure=f'posterior_cumulative_{measure}',
-        #     color=MEASURE_COLORS[measure]['light'],
-        #     linestyle='--',
-        # )
-        ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
 
         plotter.make_observed_time_plot(
             ax=ax_measure,
@@ -238,6 +254,7 @@ def model_fit_plot(data: Tuple[Location, DataDict],
                 transform=transform,
                 linestyle=':',
             )
+            plotter.add_variant_vlines(ax, variant_invasion)
         elif metric == 'cumulative':
             plotter.make_time_plot(
                 ax=ax,
@@ -282,6 +299,7 @@ def model_fit_plot(data: Tuple[Location, DataDict],
         uncertainty=True,
     )
     ax_beta.set_ylim(-3, 2)
+    plotter.add_variant_vlines(ax_beta, variant_invasion)
 
     group_axes.append(ax_beta)
 
