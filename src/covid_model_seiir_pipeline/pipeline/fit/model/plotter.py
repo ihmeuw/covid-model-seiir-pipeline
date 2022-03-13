@@ -66,19 +66,22 @@ def model_fit_plot(data: Tuple[Location, DataDict],
     pop = data_interface.load_population('total').population.loc[location.id]
     rhos = data_interface.load_variant_prevalence('reference')
 
-    loc_rhos = rhos.loc[location.id].reset_index()
-    variants = [v for v in loc_rhos if
-                v not in ['ancestral', 'omega', 'date'] and loc_rhos[v].max() > 0.25]
-    variant_invasion = defaultdict(list)
-    for v in variants:
-        for threshold, linestyle in zip([0.01, 0.5], ['-', ':']):
-            try:
-                variant_invasion[v].append(
-                    (loc_rhos[loc_rhos[v] > threshold].date.iloc[0],
-                     VARIANT_COLORS[v], linestyle)
-                )
-            except IndexError:
-                variant_invasion[v].append((None, VARIANT_COLORS[v], linestyle))
+    try:
+        loc_rhos = rhos.loc[location.id].reset_index()
+        variants = [v for v in loc_rhos if
+                    v not in ['ancestral', 'omega', 'date'] and loc_rhos[v].max() > 0.25]
+        variant_invasion = defaultdict(list)
+        for v in variants:
+            for threshold, linestyle in zip([0.01, 0.5], ['-', ':']):
+                try:
+                    variant_invasion[v].append(
+                        (loc_rhos[loc_rhos[v] > threshold].date.iloc[0],
+                        VARIANT_COLORS[v], linestyle)
+                    )
+                except IndexError:
+                    variant_invasion[v].append((None, VARIANT_COLORS[v], linestyle))
+    except KeyError:
+        variant_invasion = {}
 
     # No versions so no specific style things here.
     style_map = {k: {} for k in data_dictionary}
