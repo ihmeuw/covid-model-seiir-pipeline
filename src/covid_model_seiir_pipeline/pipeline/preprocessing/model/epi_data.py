@@ -95,6 +95,7 @@ def evil_doings(data: pd.DataFrame, hierarchy: pd.DataFrame, input_measure: str)
             23: 'kiribati',
             28: 'solomon_islands',
             43867: 'prince_edward_island',
+            66: 'brunei_darussalam'
         }
         is_in_droplist = data['location_id'].isin(drop_all)
         data = data.loc[~is_in_droplist].reset_index(drop=True)
