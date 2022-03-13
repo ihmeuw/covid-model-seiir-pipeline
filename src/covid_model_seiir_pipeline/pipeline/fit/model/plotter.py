@@ -61,7 +61,7 @@ def model_fit_plot(data: Tuple[Location, DataDict],
     try:
         loc_rhos = rhos.loc[location.id].reset_index()
         variants = [v for v in loc_rhos if
-                    v not in ['ancestral', 'omega', 'date'] and loc_rhos[v].max() > 0.25]
+                    v not in ['ancestral', 'omega', 'date'] and loc_rhos[v].max() > 0.50]
         variant_invasion = {v: loc_rhos[loc_rhos[v] > 0.01].date.iloc[0] for v in variants}
     except KeyError:
         variant_invasion = {}
