@@ -40,14 +40,6 @@ _COLOR_MEASURES = (
 MEASURE_COLORS = {
     measure: cmap for cmap, measures in _COLOR_MEASURES for measure in measures
 }
-VARIANT_COLORS = {
-    'alpha': 'darkcyan',
-    'beta': 'orangered',
-    'gamma': 'saddlebrown',
-    'delta': 'indigo',
-    'omicron': 'crimson',
-    'other': 'darkslategrey',
-}
 
 
 class PastPlotter(Plotter):
@@ -69,17 +61,8 @@ def model_fit_plot(data: Tuple[Location, DataDict],
     try:
         loc_rhos = rhos.loc[location.id].reset_index()
         variants = [v for v in loc_rhos if
-                    v not in ['ancestral', 'omega', 'date'] and loc_rhos[v].max() > 0.5]
-        variant_invasion = defaultdict(list)
-        for v in variants:
-            for threshold, linestyle in zip([0.01], ['-']):
-                try:
-                    variant_invasion[v].append(
-                        (loc_rhos[loc_rhos[v] > threshold].date.iloc[0],
-                        VARIANT_COLORS[v], linestyle)
-                    )
-                except IndexError:
-                    variant_invasion[v].append((None, VARIANT_COLORS[v], linestyle))
+                    v not in ['ancestral', 'omega', 'date'] and loc_rhos[v].max() > 0.25]
+        variant_invasion = {loc_rhos[loc_rhos[v] > 0.01].date.iloc[0] for v in variants}
     except KeyError:
         variant_invasion = {}
 
