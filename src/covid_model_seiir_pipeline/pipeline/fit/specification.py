@@ -111,6 +111,7 @@ class RatesParameters:
     exposure_to_seroconversion: DiscreteUniformSampleable = field(default=(14, 18))
     admission_to_death: DiscreteUniformSampleable = field(default=(12, 16))
 
+    test_scalar: float = field(default=1.0)
     heavy_hand_fixes: bool = field(default=True)
 
     ifr_risk_ratio: RRSampleable = field(default='BMJ')

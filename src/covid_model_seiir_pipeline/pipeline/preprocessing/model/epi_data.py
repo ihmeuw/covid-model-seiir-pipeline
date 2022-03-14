@@ -88,15 +88,18 @@ def evil_doings(data: pd.DataFrame, hierarchy: pd.DataFrame, input_measure: str)
 
     if input_measure in ['cases', 'hospitalizations', 'deaths']:
         drop_all = {
-            176: 'comoros',
-            172: 'equatorial guinea',
-            183: 'mauritius',
-            349: 'greenland',
+            # Non-public locs with bad performance
             23: 'kiribati',
+            27: 'samoa',
             28: 'solomon_islands',
-            43867: 'prince_edward_island',
             29: 'tonga',
-            66: 'brunei_darussalam'
+            30: 'vanuatu',
+            66: 'brunei_darussalam',
+            176: 'comoros',
+            349: 'greenland',
+            376: 'northern_mariana_islands',
+            380: 'palua',
+            43867: 'prince_edward_island',
         }
         is_in_droplist = data['location_id'].isin(drop_all)
         data = data.loc[~is_in_droplist].reset_index(drop=True)
@@ -169,6 +172,36 @@ def evil_doings(data: pd.DataFrame, hierarchy: pd.DataFrame, input_measure: str)
         is_malawi = data['location_id'] == 182
         data = data.loc[~is_malawi].reset_index(drop=True)
         manipulation_metadata['malawi'] = 'dropped all hospitalizations'
+
+        ## incomplete, wrecks model
+        is_ethiopia = data['location_id'] == 179
+        data = data.loc[~is_ethiopia].reset_index(drop=True)
+        manipulation_metadata['ethiopia'] = 'dropped all hospitalizations'
+
+        ## incomplete, wrecks model
+        is_zambia = data['location_id'] == 191
+        data = data.loc[~is_zambia].reset_index(drop=True)
+        manipulation_metadata['zambia'] = 'dropped all hospitalizations'
+
+        ## incomplete, wrecks model
+        is_castilla_la_mancha = data['location_id'] == 60360
+        data = data.loc[~is_castilla_la_mancha].reset_index(drop=True)
+        manipulation_metadata['castilla_la_mancha'] = 'dropped all hospitalizations'
+
+        ## incomplete, wrecks model
+        is_community_of_madrid = data['location_id'] == 60361
+        data = data.loc[~is_community_of_madrid].reset_index(drop=True)
+        manipulation_metadata['community_of_madrid'] = 'dropped all hospitalizations'
+
+        ## incomplete, doesn't wreck model, but doesn't do well
+        is_france = data['location_id'] == 80
+        data = data.loc[~is_france].reset_index(drop=True)
+        manipulation_metadata['france'] = 'dropped all hospitalizations'
+
+        ## incomplete, doesn't wreck model, but doesn't do well
+        is_wales = data['location_id'] == 4636
+        data = data.loc[~is_wales].reset_index(drop=True)
+        manipulation_metadata['wales'] = 'dropped all hospitalizations'
 
     elif input_measure == 'deaths':
         pass
