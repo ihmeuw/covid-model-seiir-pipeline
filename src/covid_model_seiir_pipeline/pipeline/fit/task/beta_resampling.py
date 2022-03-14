@@ -110,17 +110,29 @@ def build_residual(measure_draw: str, window_dates: pd.DataFrame,
     beta = beta.loc[beta['round'] == 2].drop(columns='round')[f'beta_{measure}'].rename(
         'beta')
     beta[np.abs(beta) < 1e-5] = np.nan
-    infections = data_interface.load_posterior_epi_measures(draw_id, measure,
-                                                            ['daily_total_infections',
-                                                             'round'])
-    infections = infections.loc[infections['round'] == 2].drop(columns='round')[
-        'daily_total_infections'].rename('infections')
+    infections = data_interface.load_posterior_epi_measures(
+        draw_id, measure, ['naive', 'daily_total_infections', 'round']
+    )
+    hard_failures = (infections
+                     .loc[infections['naive'] < 0]
+                     .groupby('location_id')['naive']
+                     .first()
+                     .index
+                     .tolist())
+
+    infections = (infections
+                  .loc[infections['round'] == 2]
+                  .drop(columns='round')['daily_total_infections']
+                  .rename('infections'))
     window_dates = window_dates.reindex(beta.index, level='location_id')
-    return (pd.concat([beta, infections, window_dates], axis=1)
-            .dropna()
-            .groupby('location_id')
-            .apply(compute_group_residual)
-            .rename(measure_draw))
+
+    residuals = (pd.concat([beta, infections, window_dates], axis=1)
+                 .dropna()
+                 .groupby('location_id')
+                 .apply(compute_group_residual)
+                 .rename(measure_draw))
+    residuals.loc[hard_failures] = np.nan
+    return residuals
 
 
 def build_residuals(window_dates: pd.DataFrame, data_interface: FitDataInterface,
