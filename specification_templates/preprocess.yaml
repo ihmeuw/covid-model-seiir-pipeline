@@ -21,7 +21,7 @@ data:
   output_root: ''
   output_format: 'csv'
   n_draws: 100
-  n_oversample_draws: 50
+  n_oversample_draws: 25
   drop_locations: []
 seroprevalence_parameters:
   correlate_samples: False
