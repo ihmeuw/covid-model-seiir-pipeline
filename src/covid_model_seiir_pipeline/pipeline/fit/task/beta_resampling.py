@@ -60,6 +60,7 @@ def run_beta_resampling(fit_version: str, progress_bar: bool):
 
     draw_resampling_map = {
         'unrecoverable': unrecoverable,
+        'unrecoverable_pct': {k: f'{100 * failure_count.loc[k] / n_total_draws:.1f}%' for k in unrecoverable},
         'replacements_by_draw': dict(replace),  # coerce to normal dict so we can deserialize.
     }
     data_interface.save_draw_resampling_map(draw_resampling_map)
@@ -131,7 +132,7 @@ def build_residual(measure_draw: str, window_dates: pd.DataFrame,
                  .groupby('location_id')
                  .apply(compute_group_residual)
                  .rename(measure_draw))
-    residuals.loc[hard_failures] = np.nan
+    residuals.loc[residuals.index.intersection(hard_failures)] = np.nan
     return residuals
 
 
@@ -152,7 +153,7 @@ def build_residuals(window_dates: pd.DataFrame, data_interface: FitDataInterface
         progress_bar=progress_bar,
     )
     np.seterr(**old_err_settings)
-    df = pd.concat(results, axis=1).sort_index().stack().reset_index()
+    df = pd.concat(results, axis=1).sort_index().stack(dropna=False).reset_index()
     df.columns = ['location_id', 'measure_draw', 'value']
     df['measure'], df['draw_id'] = df.measure_draw.str.split('_').str
     df['draw_id'] = df['draw_id'].astype(int)

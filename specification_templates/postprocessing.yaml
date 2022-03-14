@@ -1,5 +1,5 @@
 data:
-  seir_forecast_version: '2022_03_10.03'
+  seir_forecast_version: '2022_03_13.01'
   scenarios:
    - 'reference'
    # - 'best_masks'
@@ -11,7 +11,7 @@ workflow:
   queue: 'all.q'
 resampling:
   reference_scenario: 'reference'
-  reference_date: '2021-12-31'
+  reference_date: '2022-07-01'
   lower_quantile: 0.025
   upper_quantile: 0.975
 # splicing:
@@ -36,7 +36,7 @@ resampling:
 #       - 4849 # Delhi
 #     output_version: '/ihme/covid-19/seir-outputs/2022_02_17.03'
 aggregation:
-  - location_file: '/ihme/covid-19/seir-outputs/agg-hierarchies/modeling.csv'
+  - location_file: '/ihme/covid-19/model-inputs/2022_03_09.04/locations/modeling_hierarchy.csv'
   - location_file: '/ihme/covid-19/seir-outputs/agg-hierarchies/who_plus_palestine.csv'
   - location_file: '/ihme/covid-19/seir-outputs/agg-hierarchies/who_euro.csv'
   - location_file: '/ihme/covid-19/seir-outputs/agg-hierarchies/world_bank.csv'

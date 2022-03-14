@@ -70,11 +70,15 @@ def fit_main(app_metadata: cli_tools.Metadata,
             logger.info('Workflow already complete.')
 
         name_map = data_interface.load_hierarchy('pred').set_index('location_id').location_name
-        total_failures = data_interface.load_draw_resampling_map()['unrecoverable']
-        total_failures = [(location_id, name_map.loc[location_id]) for location_id in total_failures]
+        total_failures = data_interface.load_draw_resampling_map()['unrecoverable_pct']
+        total_failures_formatted = '\n'.join([
+            f'{name_map.loc[location_id]} ({location_id}): {failure_pct}' 
+            for location_id, failure_pct in total_failures.items()
+        ])
         if total_failures:
             logger.warning("The following locations failed in all measures in too "
-                           f"many draws to resample:\n {total_failures}.")
+                           f"many draws to resample:\n {total_failures_formatted}.")
+            logger.warning(f"Flat list of failures: {list(total_failures)}")
 
     logger.info(f'Fit version {specification.data.output_root} complete.')
 
