@@ -133,6 +133,26 @@ for reported_measure, infection_type in itertools.product(['death', 'admission',
     )
 
 
+for reported_measure, infection_type in itertools.product(['death', 'admission', 'case'], ['naive', 'total']):
+    description = (
+        f'Posterior {{metric}} {infection_type} infections according to '
+        f'reported {reported_measure} without resampling.'
+    )
+    MEASURES[f'raw_posterior_{reported_measure}_based_{infection_type}_infections'] = MeasureConfig(
+        loader=parallel.make_loader(
+            FitDataInterface.load_posterior_epi_measures,
+            f'daily_{infection_type}_infections_{reported_measure}',
+            measure_version=measure,
+        ),
+        round_specific=True,
+        label=f'raw_posterior_{reported_measure}_based_daily_{infection_type}_infections',
+        aggregator=aggregate.sum_aggregator,
+        cumulative_label=f'raw_posterior_{reported_measure}_based_cumulative_{infection_type}_infections',
+        description=description.format(metric='daily'),
+        cumulative_description=description.format(metric='cumulative'),
+    )
+
+
 for measure in ['naive', 'naive_unvaccinated']:
     vax = ' unvaccinated ' if 'unvaccinated' in measure else ''
 
@@ -182,6 +202,26 @@ for suffix, label_suffix in zip(['_death', '_admission', '_case'],
         description=description,
         round_specific=False,
     )
+
+
+for suffix, label_suffix in zip(['_death', '_admission', '_case'],
+                                ['_deaths', '_hospitalizations', '_cases']):
+    measure_used = label_suffix[1:]
+    description = (
+        f'Estimate of beta using {label_suffix[1:]} without resampling. '
+        f'This data is an output of the past infections model.'
+    )
+    MEASURES[f'beta{label_suffix}'] = MeasureConfig(
+        loader=parallel.make_loader(
+            FitDataInterface.load_fit_beta,
+            f'beta{suffix}',
+            measure_version=suffix[1:],
+        ),
+        label=f'raw_beta{label_suffix}',
+        description=description,
+        round_specific=True,
+    )
+
 
 MEASURES['beta'] = MeasureConfig(
     loader=parallel.make_loader(

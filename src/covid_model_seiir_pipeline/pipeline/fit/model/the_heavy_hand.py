@@ -30,7 +30,7 @@ def rescale_kappas(measure: str,
 
         idr_scaling_factors = {
             'alpha': [
-                (   33, test_scalar),  # Armenia
+                (   33, 3.0),  # Armenia
                 (   61, test_scalar),  # Moldova
                 (  168, test_scalar),  # Angola
             ],
@@ -198,7 +198,7 @@ def rescale_kappas(measure: str,
                 ( 4771, test_scalar),  # Roraima
             ],
             'delta': [
-                (   33, test_scalar),  # Armenia
+                (   33, 3.0),  # Armenia
                 (   34, test_scalar),  # Azerbaijan
                 (   35, test_scalar),  # Georgia
                 (   36, test_scalar),  # Kazakhstan
@@ -247,7 +247,7 @@ def rescale_kappas(measure: str,
                 (  218, test_scalar),  # Togo
             ],
             'omicron': [
-                (   33, test_scalar),  # Armenia
+                (   33, 10.0),  # Armenia
                 (   34, test_scalar),  # Azerbaijan
                 (   35, test_scalar),  # Georgia
                 (   36, test_scalar),  # Kazakhstan

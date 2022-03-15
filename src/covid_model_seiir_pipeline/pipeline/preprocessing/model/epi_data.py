@@ -90,6 +90,7 @@ def evil_doings(data: pd.DataFrame, hierarchy: pd.DataFrame, input_measure: str)
         drop_all = {
             # Non-public locs with bad performance
             23: 'kiribati',
+            25: 'micronesia',
             27: 'samoa',
             28: 'solomon_islands',
             29: 'tonga',

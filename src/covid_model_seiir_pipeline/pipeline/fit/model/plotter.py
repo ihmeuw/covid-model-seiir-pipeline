@@ -220,6 +220,14 @@ def model_fit_plot(data: Tuple[Location, DataDict],
                 ax=ax,
                 measure=f'posterior_{measure}_based_{metric}_{measure_type}_infections',
                 color=MEASURE_COLORS[measure]['light'],
+                linestyle='-',
+                transform=transform,
+            )
+
+            plotter.make_time_plot(
+                ax=ax,
+                measure=f'raw_posterior_{measure}_based_{metric}_{measure_type}_infections',
+                color=MEASURE_COLORS[measure]['light'],
                 linestyle='--',
                 transform=transform,
             )
@@ -273,9 +281,18 @@ def model_fit_plot(data: Tuple[Location, DataDict],
             ax=ax_beta,
             measure=f'beta_{measure}',
             color=MEASURE_COLORS[measure]['light'],
+            linestyle='-',
+            transform=np.log,
+        )
+
+        plotter.make_time_plot(
+            ax=ax_beta,
+            measure=f'raw_beta_{measure}',
+            color=MEASURE_COLORS[measure]['light'],
             linestyle='--',
             transform=np.log,
         )
+
     plotter.make_time_plot(
         ax=ax_beta,
         measure='beta',
