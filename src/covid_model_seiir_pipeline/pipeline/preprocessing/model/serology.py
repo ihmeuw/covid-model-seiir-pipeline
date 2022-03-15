@@ -169,10 +169,13 @@ def process_raw_serology_data(data: pd.DataFrame, hierarchy: pd.DataFrame) -> pd
     #    Question: Use of geo_accordance?
     #    Current approach: Drop non-represeentative (geo_accordance == 0).
     data['geo_accordance'] = helpers.str_fmt(data['geo_accordance']).replace(('unchecked', np.nan), '0').astype(int)
+    ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
+    ## AD-HOC REPRESENTATIVENESS RECODES
+    ## N/A
 
     ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
     ## SSA REPRESENTATIVENESS RECODE
-    ## code all SSA data as rep and then modify from there
+    ## code all SSA data as rep and then undo exceptions that should still be outliered
     ssa_location_ids = (hierarchy
                         .loc[hierarchy['path_to_top_parent'].apply(lambda x: '166' in x.split(',')), 'location_id']
                         .to_list())
@@ -300,6 +303,15 @@ def process_raw_serology_data(data: pd.DataFrame, hierarchy: pd.DataFrame) -> pd
     outliers.append(kaz_outlier)
     logger.debug(f'{kaz_outlier.sum()} rows from sero data dropped due to implausibility '
                  '(or at least incompatibility) of Kazakhstan colloborator data.')
+
+    # Kyrgyzstan (37)
+    is_kyrg = data['location_id'] == 37
+    is_popova_2021 = data['survey_series'] == 'popova_2021'
+
+    kyrg_outlier = is_kyrg & is_popova_2021
+    outliers.append(kyrg_outlier)
+    logger.debug(f'{kyrg_outlier.sum()} rows from sero data dropped due to implausibility '
+                 '(or at least incompatibility) of Kyrgyzstan data in models.')
 
     # Saskatchewan
     is_sas = data['location_id'] == 43869
