@@ -236,7 +236,6 @@ def run_beta_fit(fit_version: str, measure: str, draw_id: int, progress_bar: boo
     )
 
     logger.info('Prepping outputs.', context='transform')
-
     out_params = ode_parameters.to_dict()['base_parameters']
     for name, duration in durations._asdict().items():
         out_params.loc[:, name] = duration
