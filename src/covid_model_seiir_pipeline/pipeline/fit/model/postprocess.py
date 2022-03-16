@@ -142,7 +142,7 @@ for reported_measure, infection_type in itertools.product(['death', 'admission',
         loader=parallel.make_loader(
             FitDataInterface.load_posterior_epi_measures,
             f'daily_{infection_type}_infections_{reported_measure}',
-            measure_version=measure,
+            measure_version=reported_measure,
         ),
         round_specific=True,
         label=f'raw_posterior_{reported_measure}_based_daily_{infection_type}_infections',
