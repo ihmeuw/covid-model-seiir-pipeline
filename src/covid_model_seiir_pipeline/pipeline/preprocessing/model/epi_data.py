@@ -111,24 +111,37 @@ def evil_doings(data: pd.DataFrame, hierarchy: pd.DataFrame, input_measure: str)
         pass
 
     elif input_measure == 'hospitalizations':
-        ## late, not cumulative on first day
-        is_ndl = data['location_id'] == 89
-        data = data.loc[~is_ndl].reset_index(drop=True)
-        manipulation_metadata['netherlands'] = 'dropped all hospitalizations'
+        drop_list = {
+            89: 'netherlands',  # late, not cumulative on first day
+            20: 'vietnam',  # is just march-june 2020
+            60366: 'murcia',  # is just march-june 2020
+            114: 'haiti',  # too late, starts March 2021
+            74: 'andorra',  # too low then too high? odd series
+            209: 'guinea_bissau',  # late, starts in Feb 2021 (also probably too low)
+            198: 'zimbabwe',  # late, starts in June 2021 (also too low)
+            182: 'malawi',  # too low
+            # Incomplete
+            179: 'ethiopia',
+            184: 'mozambique',
+            191: 'zambia',
+            60360: 'castilla_la_mancha',
+            60361: 'community_of_madrid',
+            80: 'france',
+            4636: 'wales',
+            # Check with new data
+            144: 'jordan',  # late, starts Jan/Feb 2021
+            4850: 'goa',
+        }
 
-        ## is just march-june 2020
-        is_vietnam = data['location_id'] == 20
-        data = data.loc[~is_vietnam].reset_index(drop=True)
-        manipulation_metadata['vietnam'] = 'dropped all hospitalizations'
-
-        ## is just march-june 2020
-        is_murcia = data['location_id'] == 60366
-        data = data.loc[~is_murcia].reset_index(drop=True)
-        manipulation_metadata['murcia'] = 'dropped all hospitalizations'
+        for location_id, location_name in drop_list.items():
+            is_location = data['location_id'] == location_id
+            data = data.loc[~is_location].reset_index(drop=True)
+            manipulation_metadata[location_name] = 'dropped all hospitalizations'
 
         ## partial time series
-        pakistan_location_ids = hierarchy.loc[hierarchy['path_to_top_parent'].apply(lambda x: '165' in x.split(',')),
-                                              'location_id'].to_list()
+        pakistan_location_ids = hierarchy.loc[
+            hierarchy['path_to_top_parent'].apply(lambda x: '165' in x.split(',')),
+            'location_id'].to_list()
         is_pakistan = data['location_id'].isin(pakistan_location_ids)
         data = data.loc[~is_pakistan].reset_index(drop=True)
         manipulation_metadata['pakistan'] = 'dropped all hospitalizations'
@@ -139,71 +152,6 @@ def evil_doings(data: pd.DataFrame, hierarchy: pd.DataFrame, input_measure: str)
         data = data.loc[~is_ecdc].reset_index(drop=True)
         manipulation_metadata['ecdc_countries'] = 'dropped all hospitalizations'
 
-        ## check w/ new data
-        is_goa = data['location_id'] == 4850
-        data = data.loc[~is_goa].reset_index(drop=True)
-        manipulation_metadata['goa'] = 'dropped all hospitalizations'
-
-        ## too late, starts March 2021
-        is_haiti = data['location_id'] == 114
-        data = data.loc[~is_haiti].reset_index(drop=True)
-        manipulation_metadata['haiti'] = 'dropped all hospitalizations'
-
-        ## late, starts Jan/Feb 2021 (and is a little low, should check w/ new data)
-        is_jordan = data['location_id'] == 144
-        data = data.loc[~is_jordan].reset_index(drop=True)
-        manipulation_metadata['jordan'] = 'dropped all hospitalizations'
-
-        ## too low then too high? odd series
-        is_andorra = data['location_id'] == 74
-        data = data.loc[~is_andorra].reset_index(drop=True)
-        manipulation_metadata['andorra'] = 'dropped all hospitalizations'
-        
-        ## late, starts in Feb 2021 (also probably too low)
-        is_guinea_bissau = data['location_id'] == 209
-        data = data.loc[~is_guinea_bissau].reset_index(drop=True)
-        manipulation_metadata['guinea_bissau'] = 'dropped all hospitalizations'
-        
-        ## late, starts in June 2021 (also too low)
-        is_zimbabwe = data['location_id'] == 198
-        data = data.loc[~is_zimbabwe].reset_index(drop=True)
-        manipulation_metadata['zimbabwe'] = 'dropped all hospitalizations'
-        
-        ## too low
-        is_malawi = data['location_id'] == 182
-        data = data.loc[~is_malawi].reset_index(drop=True)
-        manipulation_metadata['malawi'] = 'dropped all hospitalizations'
-
-        ## incomplete, wrecks model
-        is_ethiopia = data['location_id'] == 179
-        data = data.loc[~is_ethiopia].reset_index(drop=True)
-        manipulation_metadata['ethiopia'] = 'dropped all hospitalizations'
-
-        ## incomplete, wrecks model
-        is_zambia = data['location_id'] == 191
-        data = data.loc[~is_zambia].reset_index(drop=True)
-        manipulation_metadata['zambia'] = 'dropped all hospitalizations'
-
-        ## incomplete, wrecks model
-        is_castilla_la_mancha = data['location_id'] == 60360
-        data = data.loc[~is_castilla_la_mancha].reset_index(drop=True)
-        manipulation_metadata['castilla_la_mancha'] = 'dropped all hospitalizations'
-
-        ## incomplete, wrecks model
-        is_community_of_madrid = data['location_id'] == 60361
-        data = data.loc[~is_community_of_madrid].reset_index(drop=True)
-        manipulation_metadata['community_of_madrid'] = 'dropped all hospitalizations'
-
-        ## incomplete, doesn't wreck model, but doesn't do well
-        is_france = data['location_id'] == 80
-        data = data.loc[~is_france].reset_index(drop=True)
-        manipulation_metadata['france'] = 'dropped all hospitalizations'
-
-        ## incomplete, doesn't wreck model, but doesn't do well
-        is_wales = data['location_id'] == 4636
-        data = data.loc[~is_wales].reset_index(drop=True)
-        manipulation_metadata['wales'] = 'dropped all hospitalizations'
-
     elif input_measure == 'deaths':
         pass
 
@@ -211,3 +159,4 @@ def evil_doings(data: pd.DataFrame, hierarchy: pd.DataFrame, input_measure: str)
         raise ValueError(f'Input measure {input_measure} does not have a protocol for exclusions.')
 
     return data, manipulation_metadata
+
