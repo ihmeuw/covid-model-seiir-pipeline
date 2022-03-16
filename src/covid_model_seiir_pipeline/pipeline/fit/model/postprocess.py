@@ -211,7 +211,7 @@ for suffix, label_suffix in zip(['_death', '_admission', '_case'],
         f'Estimate of beta using {label_suffix[1:]} without resampling. '
         f'This data is an output of the past infections model.'
     )
-    MEASURES[f'beta{label_suffix}'] = MeasureConfig(
+    MEASURES[f'raw_beta{label_suffix}'] = MeasureConfig(
         loader=parallel.make_loader(
             FitDataInterface.load_fit_beta,
             f'beta{suffix}',
