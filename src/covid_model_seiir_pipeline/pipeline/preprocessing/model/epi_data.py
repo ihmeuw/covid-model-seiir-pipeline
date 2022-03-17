@@ -90,6 +90,7 @@ def evil_doings(data: pd.DataFrame, hierarchy: pd.DataFrame, input_measure: str)
         drop_all = {
             # Non-public locs with bad performance
             23: 'kiribati',
+            24: 'marshall_islands',
             25: 'micronesia',
             27: 'samoa',
             28: 'solomon_islands',
@@ -97,10 +98,14 @@ def evil_doings(data: pd.DataFrame, hierarchy: pd.DataFrame, input_measure: str)
             30: 'vanuatu',
             66: 'brunei_darussalam',
             176: 'comoros',
+            298: 'american_samoa',
             349: 'greenland',
             376: 'northern_mariana_islands',
             380: 'palua',
             43867: 'prince_edward_island',
+            # Just terrible data
+            39: 'tajikistan',
+            183: 'mauritias',
         }
         is_in_droplist = data['location_id'].isin(drop_all)
         data = data.loc[~is_in_droplist].reset_index(drop=True)
@@ -153,7 +158,14 @@ def evil_doings(data: pd.DataFrame, hierarchy: pd.DataFrame, input_measure: str)
         manipulation_metadata['ecdc_countries'] = 'dropped all hospitalizations'
 
     elif input_measure == 'deaths':
-        pass
+        drop_list = {
+            44533: 'mainland_china'
+        }
+
+        for location_id, location_name in drop_list.items():
+            is_location = data['location_id'] == location_id
+            data = data.loc[~is_location].reset_index(drop=True)
+            manipulation_metadata[location_name] = 'dropped all deaths'
 
     else:
         raise ValueError(f'Input measure {input_measure} does not have a protocol for exclusions.')

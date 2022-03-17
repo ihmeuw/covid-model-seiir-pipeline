@@ -171,7 +171,9 @@ def process_raw_serology_data(data: pd.DataFrame, hierarchy: pd.DataFrame) -> pd
     data['geo_accordance'] = helpers.str_fmt(data['geo_accordance']).replace(('unchecked', np.nan), '0').astype(int)
     ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
     ## AD-HOC REPRESENTATIVENESS RECODES
-    ## N/A
+    ##
+    # Armenia
+    data.loc[(data['location_id'] == 33), 'geo_accordance'] = 1
 
     ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
     ## SSA REPRESENTATIVENESS RECODE
@@ -187,8 +189,7 @@ def process_raw_serology_data(data: pd.DataFrame, hierarchy: pd.DataFrame) -> pd
              'geo_accordance'] = 0
 
     ## Central African Republic
-    data.loc[(data['location_id'] == 169) &
-             (data['survey_series'] == 'Alexandre_Aug2021'),
+    data.loc[(data['location_id'] == 169),
              'geo_accordance'] = 0
 
     ## Madagascar blood donor IgG duplicate after they started pan-Ig
@@ -304,14 +305,14 @@ def process_raw_serology_data(data: pd.DataFrame, hierarchy: pd.DataFrame) -> pd
     logger.debug(f'{kaz_outlier.sum()} rows from sero data dropped due to implausibility '
                  '(or at least incompatibility) of Kazakhstan colloborator data.')
 
-    # Kyrgyzstan (37)
-    is_kyrg = data['location_id'] == 37
-    is_popova_2021 = data['survey_series'] == 'popova_2021'
-
-    kyrg_outlier = is_kyrg & is_popova_2021
-    outliers.append(kyrg_outlier)
-    logger.debug(f'{kyrg_outlier.sum()} rows from sero data dropped due to implausibility '
-                 '(or at least incompatibility) of Kyrgyzstan data in models.')
+    # # Kyrgyzstan (37)
+    # is_kyrg = data['location_id'] == 37
+    # is_popova_2021 = data['survey_series'] == 'popova_2021'
+    #
+    # kyrg_outlier = is_kyrg & is_popova_2021
+    # outliers.append(kyrg_outlier)
+    # logger.debug(f'{kyrg_outlier.sum()} rows from sero data dropped due to implausibility '
+    #              '(or at least incompatibility) of Kyrgyzstan data in models.')
 
     # Saskatchewan
     is_sas = data['location_id'] == 43869

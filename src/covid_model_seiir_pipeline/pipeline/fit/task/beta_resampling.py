@@ -40,7 +40,7 @@ def run_beta_resampling(fit_version: str, progress_bar: bool):
     for measure in residuals:
         measure_success = np.abs(residuals[measure]) < 1
         std = residuals.loc[measure_success, measure].std()
-        failures.append(~(np.abs(residuals[measure]) < 2 * std))
+        failures.append(~(np.abs(residuals[measure]) < 3 * std))
     failures = pd.concat(failures, axis=1)
     total_failures = failures[failures.all(axis=1)].reset_index(level='draw_id')['draw_id']
     failures = failures.reorder_levels(['draw_id', 'location_id']).sort_index()
