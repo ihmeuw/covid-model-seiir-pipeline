@@ -305,7 +305,7 @@ def process_raw_serology_data(data: pd.DataFrame, hierarchy: pd.DataFrame) -> pd
     logger.debug(f'{kaz_outlier.sum()} rows from sero data dropped due to implausibility '
                  '(or at least incompatibility) of Kazakhstan colloborator data.')
 
-    # # Kyrgyzstan (37)
+    # Kyrgyzstan (37)
     # is_kyrg = data['location_id'] == 37
     # is_popova_2021 = data['survey_series'] == 'popova_2021'
     #
