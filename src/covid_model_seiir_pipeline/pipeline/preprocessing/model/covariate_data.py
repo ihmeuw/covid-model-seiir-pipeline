@@ -138,7 +138,7 @@ def preprocess_testing_data(data_interface: PreprocessingDataInterface) -> None:
     data = data_interface.load_raw_testing_data()
     hierarchy = data_interface.load_hierarchy('pred')
     hk = data[data.location_id == 354]
-    hk['location_id'] == 44533
+    hk['location_id'] = 44533
     data = pd.concat([data[~(data.location_id == 354)], hk]).sort_values(['location_id', 'date'])
 
     logger.info('Processing testing for IDR calc and beta covariate', context='transform')
