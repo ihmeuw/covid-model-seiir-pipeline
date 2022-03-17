@@ -100,6 +100,9 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
         log_beta_shift,
         beta_scale,
     )
+    ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
+    logger.warning('Using Hong Kong IFR projection for mainland China IFR projection in `ode_forecast.build_ratio`.')
+    ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
     model_parameters = model.build_model_parameters(
         indices,
         beta,
