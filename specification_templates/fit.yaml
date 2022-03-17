@@ -1,11 +1,11 @@
 data:
-  seir_preprocess_version: '2022_03_13.03'
+  seir_preprocess_version: '2022_03_17.02'
   output_format: 'parquet'
   output_root: ''
-  compare_version: '2022_02_04.02'
+  compare_version: ''
 workflow:
   project: 'proj_covid_prod'
-  queue: 'all.q'
+  queue: 'long.q'
 rates_parameters:
   day_0: '2020-03-15'
   pred_start_date: '2019-11-01'
@@ -21,7 +21,7 @@ rates_parameters:
   exposure_to_admission: [10, 14]
   exposure_to_seroconversion: [14, 18]
   admission_to_death: [12, 16]
-  test_scalar: 2.0
+  test_scalar: 5.0
   heavy_hand_fixes: True
   # One of  'BMJ', 'LSHTM', 'Imperial', 'Exeter', 'PHE', 'Combined',
   # Or a 3-tuple of [mean, lower, upper]

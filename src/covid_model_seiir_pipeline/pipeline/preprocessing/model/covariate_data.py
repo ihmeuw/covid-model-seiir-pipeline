@@ -137,6 +137,9 @@ def preprocess_testing_data(data_interface: PreprocessingDataInterface) -> None:
     logger.info('Loading raw testing data', context='read')
     data = data_interface.load_raw_testing_data()
     hierarchy = data_interface.load_hierarchy('pred')
+    hk = data[data.location_id == 354]
+    hk['location_id'] == 44533
+    data = pd.concat([data[~(data.location_id == 354)], hk]).sort_values(['location_id', 'date'])
 
     logger.info('Processing testing for IDR calc and beta covariate', context='transform')
     testing_for_idr = _process_testing_for_idr(data.copy())
@@ -209,7 +212,14 @@ def preprocess_variant_prevalence(data_interface: PreprocessingDataInterface) ->
         updates = pd.concat(updates)
         data = data.drop(updates.index).append(updates).sort_index()
         data = helpers.parent_inheritance(data, hierarchy)
-
+        delhi_variant_level = data.loc[4849]
+        dfs = []
+        for location_id in [4840, 4845, 60896, 4858, 4866]:
+            df = delhi_variant_level.copy()
+            df['location_id'] = location_id
+            df = df.reset_index().set_index(['location_id', 'date'])
+            dfs.append(df)
+        data = pd.concat([data] + dfs).sort_index()
         logger.info(f'Writing {scenario} scenario data.', context='write')
         data_interface.save_variant_prevalence(data, scenario)
 
