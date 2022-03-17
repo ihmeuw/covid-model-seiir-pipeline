@@ -363,7 +363,6 @@ def rescale_kappas(measure: str,
                 (  209,  5.0),  # Guinea Bissau
                 (  210,  3.0),  # Liberia
                 (  212,  2.0),  # Mauritania
-                # (  215,  test_scalar),  # Sao Tome and Principe
                 (  216,  2.0),  # Senegal
             ],
             'omicron': [
@@ -563,7 +562,6 @@ def rescale_kappas(measure: str,
                 (  211,  2.0),  # Mali
                 (  212,  3.0),  # Mauritania
                 (  213,  2.0),  # Niger
-                (  215,  5.0),  # Sao Tome and Principe
                 (  216,  3.0),  # Senegal
             ],
         }
