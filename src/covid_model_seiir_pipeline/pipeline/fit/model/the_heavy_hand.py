@@ -44,7 +44,7 @@ def rescale_kappas(measure: str,
                 (   34,  3.0),  # Azerbaijan
                 (   38,  3.0),  # Mongolia
                 (   43,  3.0),  # Albania
-                (   50,  1.5),  # Montenegro
+                (   50,  3.0),  # Montenegro
                 (   61,  3.0),  # Moldova
                 (   62,  2.0),  # Russia
                 ( 4644,  2.0),  # Baja California
@@ -65,7 +65,7 @@ def rescale_kappas(measure: str,
                 ( 4863,  8.0),  # Mizoram
                 ( 4845,  3.0),  # Chandigarh
                 ( 4858,  4.0),  # Lakshadweep
-                ( 4866,  3.0),  # Puducherry
+                ( 4866,  5.0),  # Puducherry
                 ( 4869,  2.0),  # Sikkim
                 (53619,  2.0),  # Khyber Pakhtunkhwa
                 (  186,  3.0),  # Seychelles
@@ -81,7 +81,7 @@ def rescale_kappas(measure: str,
                 (   38,  3.0),  # Mongolia
                 (   43,  3.0),  # Albania
                 (   44,  0.8),  # Bosnia and Herzegovina
-                (   50,  1.5),  # Montenegro
+                (   50,  5.0),  # Montenegro
                 (   49,  0.8),  # North Macedonia
                 (   51,  2.0),  # Poland
                 (   58,  2.0),  # Estonia
@@ -137,16 +137,16 @@ def rescale_kappas(measure: str,
                 ( 4861,  3.0),  # Manipur
                 ( 4862,  2.0),  # Meghalaya
                 ( 4863, 40.0),  # Mizoram
-                ( 4845,  3.0),  # Chandigarh
+                ( 4845,  5.0),  # Chandigarh
                 ( 4858,  4.0),  # Lakshadweep
-                ( 4866,  5.0),  # Puducherry
+                ( 4866,  8.0),  # Puducherry
                 ( 4869,  3.0),  # Sikkim
                 (53617,  0.8),  # Gilgit-Baltistan
                 (53619,  2.0),  # Khyber Pakhtunkhwa
                 (  351,  5.0),  # Guam
                 (   14,  1.5),  # Maldives
                 (  186,  3.0),  # Seychelles
-                (  168,100.0),  # Angola
+                (  168, 30.0),  # Angola
                 (  169,  1.5),  # Central African Republic
                 (  171,  5.0),  # DRC
                 (  181,  2.0),  # Madagascar
@@ -306,7 +306,7 @@ def rescale_kappas(measure: str,
                 (   41,  2.0),  # Uzbekistan
                 (   43,  5.0),  # Albania
                 (   45,  3.0),  # Bulgaria
-                (   50,  3.0),  # Montenegro
+                (   50,  5.0),  # Montenegro
                 (   49,  3.0),  # North Macedonia
                 (   57,  5.0),  # Belarus
                 (   59,  2.0),  # Latvia
@@ -340,6 +340,7 @@ def rescale_kappas(measure: str,
                 ( 4862,  2.0),  # Meghalaya
                 ( 4863,  2.0),  # Mizoram
                 ( 4864,  2.0),  # Nagaland
+                ( 4845,  3.0),  # Chandigarh
                 ( 4866,  3.0),  # Puducherry
                 ( 4874,  2.0),  # Uttarakhand
                 (53617,  2.0),  # Gilgit-Baltistan
@@ -383,7 +384,7 @@ def rescale_kappas(measure: str,
                 (   46,  5.0),  # Croatia
                 (   47,  4.0),  # Czechia
                 (   48,  3.0),  # Hungary
-                (   50, 10.0),  # Montenegro
+                (   50, 15.0),  # Montenegro
                 (   49, 15.0),  # North Macedonia
                 (   51,  2.0),  # Poland
                 (   52,  3.0),  # Romania
@@ -517,8 +518,8 @@ def rescale_kappas(measure: str,
                 ( 4863,  4.0),  # Mizoram
                 ( 4864,  2.0),  # Nagaland
                 ( 4865,  3.0),  # Odisha
-                ( 4845,  2.0),  # Chandigarh
-                ( 4866,  5.0),  # Puducherry
+                ( 4845,  5.0),  # Chandigarh
+                ( 4866,  4.0),  # Puducherry
                 ( 4867,  2.0),  # Punjab
                 ( 4868,  2.0),  # Rajasthan
                 ( 4872,  2.0),  # Tripura
@@ -584,17 +585,3 @@ def rescale_kappas(measure: str,
                 sampled_ode_params[f'kappa_{variant}_death'] = kappa
 
     return sampled_ode_params
-
-#  Kyrgyzstan (37): 89.3%
-# Montenegro (50): 54.7%
-# Bolivia (Plurinational State of) (121): 78.7%
-# Angola (168): 88.7%
-# Chandigarh (4845): 63.3%
-# Puducherry (4866): 87.3%.
-
-#  Kyrgyzstan (37): 91.3%
-# Montenegro (50): 40.7%
-# Bolivia (Plurinational State of) (121): 73.3%
-# Angola (168): 88.7%
-# Chandigarh (4845): 60.0%
-# Puducherry (4866): 46.0%.
