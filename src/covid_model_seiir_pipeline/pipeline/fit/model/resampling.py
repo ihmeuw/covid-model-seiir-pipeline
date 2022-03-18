@@ -122,12 +122,13 @@ def load_param_subset(draw_id: int,
     kappas = []
     for measure in ['case', 'death', 'admission']:
         df = data_interface.load_ode_params(draw_id=draw_id, measure_version=measure)
-        kappas.append(df.filter(like='kappa').filter(like=measure))
+        kappas.append(df.filter(like='kappa').filter(like=measure))        
         base_param_cols = [c for c in df if c.split('_')[0]
-                           in ['alpha', 'sigma', 'gamma', 'pi']]
+                           in ['alpha', 'sigma', 'gamma', 'pi', 'kappa']]        
         base_params.append(df[base_param_cols])
-    base_params = pd.concat(base_params).groupby(['location_id', 'date']).mean()
-    parameters = pd.concat([base_params, *kappas], axis=1)
+    kappas = pd.concat(kappas, axis=1)
+    base_params = pd.concat(base_params).groupby(['location_id', 'date']).mean()    
+    parameters = kappas.combine_first(base_params)        
     if draw_id in replace_map:
         keep_idx = replace_map[draw_id]
     else:
