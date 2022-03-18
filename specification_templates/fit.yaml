@@ -1,11 +1,11 @@
 data:
-  seir_preprocess_version: '2022_03_17.05'
+  seir_preprocess_version: '2022_03_18.02'
   output_format: 'parquet'
   output_root: ''
   compare_version: ''
 workflow:
   project: 'proj_covid_prod'
-  queue: 'long.q'
+  queue: 'all.q'
 rates_parameters:
   day_0: '2020-03-15'
   pred_start_date: '2019-11-01'
