@@ -306,13 +306,13 @@ def process_raw_serology_data(data: pd.DataFrame, hierarchy: pd.DataFrame) -> pd
                  '(or at least incompatibility) of Kazakhstan colloborator data.')
 
     # Kyrgyzstan (37)
-    # is_kyrg = data['location_id'] == 37
-    # is_popova_2021 = data['survey_series'] == 'popova_2021'
-    #
-    # kyrg_outlier = is_kyrg & is_popova_2021
-    # outliers.append(kyrg_outlier)
-    # logger.debug(f'{kyrg_outlier.sum()} rows from sero data dropped due to implausibility '
-    #              '(or at least incompatibility) of Kyrgyzstan data in models.')
+    is_kyrg = data['location_id'] == 37
+    is_popova_2021 = data['survey_series'] == 'popova_2021'
+
+    kyrg_outlier = is_kyrg & is_popova_2021
+    outliers.append(kyrg_outlier)
+    logger.debug(f'{kyrg_outlier.sum()} rows from sero data dropped due to implausibility '
+                 '(or at least incompatibility) of Kyrgyzstan data in models.')
 
     # Saskatchewan
     is_sas = data['location_id'] == 43869
