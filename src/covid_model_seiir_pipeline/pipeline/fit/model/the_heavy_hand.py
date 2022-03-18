@@ -585,9 +585,16 @@ def rescale_kappas(measure: str,
 
     return sampled_ode_params
 
-# Yucatán (4673): 27.4%
-# Chandigarh (4845): 82.2%
-# Delhi (4849): 50.4%
-# Lakshadweep (4858): 35.6%
-# Mizoram (4863): 27.4%
-# Puducherry (4866): 100.0%.
+#  Kyrgyzstan (37): 89.3%
+# Montenegro (50): 54.7%
+# Bolivia (Plurinational State of) (121): 78.7%
+# Angola (168): 88.7%
+# Chandigarh (4845): 63.3%
+# Puducherry (4866): 87.3%.
+
+#  Kyrgyzstan (37): 91.3%
+# Montenegro (50): 40.7%
+# Bolivia (Plurinational State of) (121): 73.3%
+# Angola (168): 88.7%
+# Chandigarh (4845): 60.0%
+# Puducherry (4866): 46.0%.

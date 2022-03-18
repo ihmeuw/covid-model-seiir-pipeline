@@ -29,25 +29,20 @@ def run_past_infections(fit_version: str, draw_id: int, progress_bar: bool) -> N
     etas = data_interface.load_vaccine_risk_reduction(scenario='reference')
     natural_waning_dist = data_interface.load_waning_parameters(measure='natural_waning_distribution').set_index('days')
 
-    rates, kappas = [], []
+    rates = []
     for measure in ['case', 'death', 'admission']:
         rates.append(get_round_data(data_interface.load_rates(
             measure_version=measure,
             draw_id=draw_id,
         )))
-        kappas.append(data_interface.load_ode_params(
-            measure_version=measure,
-            draw_id=draw_id,
-        ).filter(like='kappa').filter(like=measure))
-    rates, kappas = [pd.concat(dfs, axis=1) for dfs in [rates, kappas]]
+    rates = pd.concat(rates, axis=1)
     for level in ['parent_id', 'region_id', 'super_region_id', 'global']:
         rates = model.fill_from_hierarchy(rates, pred_hierarchy, level)
-        kappas = model.fill_from_hierarchy(kappas, pred_hierarchy, level)
 
     logger.info('Sampling ODE parameters', context='transform')
     durations = model.sample_durations(specification.rates_parameters, draw_id)
     variant_severity = model.sample_variant_severity(specification.rates_parameters, draw_id)
-    sampled_ode_params, natural_waning_matrix = model.sample_ode_params(
+    _, natural_waning_matrix = model.sample_ode_params(
         variant_severity, specification.fit_parameters, draw_id
     )
     
@@ -61,7 +56,7 @@ def run_past_infections(fit_version: str, draw_id: int, progress_bar: bool) -> N
     )
 
     logger.info('Loading and resampling betas and infections.', context='transform')
-    betas, infections, unrecoverable = model.load_and_resample_beta_and_infections(
+    betas, infections, resampled_params, unrecoverable = model.load_and_resample_beta_and_infections(
         draw_id=draw_id,
         # This is sloppy, but we need to pull in data across a bunch of draws,
         # so this seems easiest.
@@ -72,7 +67,7 @@ def run_past_infections(fit_version: str, draw_id: int, progress_bar: bool) -> N
     beta_fit_final, spline_infections, spline_infectious = model.build_composite_betas(
         betas=betas.drop(unrecoverable, axis=0),
         infections=infections.filter(like='total').rename(columns=lambda x: f'infection_{x.split("_")[-1]}'),
-        alpha=sampled_ode_params['alpha_all_infection'],
+        alpha=resampled_params['alpha_all_infection'].groupby('location_id').mean(),
         num_cores=num_cores,
         progress_bar=progress_bar,    
     )
@@ -81,7 +76,6 @@ def run_past_infections(fit_version: str, draw_id: int, progress_bar: bool) -> N
     ode_parameters = model.prepare_past_infections_parameters(
         beta=beta_fit_final,
         rates=rates,
-        measure_kappas=kappas,
         durations=durations,
         epi_measures=epi_measures,
         rhos=rhos,
@@ -89,7 +83,7 @@ def run_past_infections(fit_version: str, draw_id: int, progress_bar: bool) -> N
         etas=etas,
         natural_waning_dist=natural_waning_dist,
         natural_waning_matrix=natural_waning_matrix,
-        sampled_ode_params=sampled_ode_params,
+        resampled_params=resampled_params,
         hierarchy=pred_hierarchy,
         draw_id=draw_id,
     )

@@ -24,6 +24,7 @@ def load_and_resample_beta_and_infections(draw_id: int,
 
     betas = []
     infections = []
+    params = []
     for d in [draw_id] + list(replace_map):
         betas.append(load_data_subset(
             draw_id=d,
@@ -37,8 +38,14 @@ def load_and_resample_beta_and_infections(draw_id: int,
             columns=['daily_total_infections', 'daily_naive_infections'],
             replace_map=replace_map,
         ))
+        params.append(load_param_subset(
+            draw_id=d,
+            data_interface=data_interface,
+            replace_map=replace_map,
+        ))
     betas = pd.concat(betas).sort_index()
     infections = pd.concat(infections).sort_index()
+    params = pd.concat(params).sort_index()
 
     draw_failures = failures.loc[draw_id]
     for draw, locs in replace_map.items():
@@ -83,9 +90,10 @@ def load_and_resample_beta_and_infections(draw_id: int,
         loc_beta = loc_beta.reindex(loc_beta_diff_mean.index, level='date')
         final_betas.append(pd.concat([loc_beta, loc_beta_diff_mean], axis=1))
         final_infections.append(add_location_id(loc_infections, location_id))
+
     final_betas = pd.concat(final_betas).sort_index()
     final_infections = pd.concat(final_infections).sort_index()
-    return final_betas, final_infections, unrecoverable
+    return final_betas, final_infections, params, unrecoverable
 
 
 def load_data_subset(draw_id: int,
@@ -105,6 +113,28 @@ def load_data_subset(draw_id: int,
         drop = [loc_id for loc_list in replace_map.values() for loc_id in loc_list]
         keep_idx = [loc_id for loc_id in data.reset_index().location_id.unique() if loc_id not in drop]
     return data.loc[keep_idx]
+
+
+def load_param_subset(draw_id: int,
+                      data_interface: FitDataInterface,
+                      replace_map: Dict[int, List[int]]) -> pd.DataFrame:
+    base_params = []
+    kappas = []
+    for measure in ['case', 'death', 'admission']:
+        df = data_interface.load_ode_params(draw_id=draw_id, measure_version=measure)
+        kappas.append(df.filter(like='kappa').filter(like=measure))
+        base_param_cols = [c for c in df if c.split('_')[0]
+                           in ['alpha', 'sigma', 'gamma', 'pi']]
+        base_params.append(df[base_param_cols])
+    base_params = pd.concat(base_params).groupby(['location_id', 'date']).mean()
+    parameters = pd.concat([base_params, *kappas], axis=1)
+    if draw_id in replace_map:
+        keep_idx = replace_map[draw_id]
+    else:
+        drop = [loc_id for loc_list in replace_map.values() for loc_id in loc_list]
+        keep_idx = [loc_id for loc_id in parameters.reset_index().location_id.unique()
+                    if loc_id not in drop]
+    return parameters.loc[keep_idx]
 
 
 def add_location_id(df, location_id):

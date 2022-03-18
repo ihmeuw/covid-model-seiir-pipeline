@@ -81,7 +81,6 @@ def prepare_ode_fit_parameters(measure: str,
 
 def prepare_past_infections_parameters(beta: pd.Series,
                                        rates: pd.DataFrame,
-                                       measure_kappas: pd.DataFrame,
                                        durations: Durations,
                                        epi_measures: pd.DataFrame,
                                        rhos: pd.DataFrame,
@@ -89,7 +88,7 @@ def prepare_past_infections_parameters(beta: pd.Series,
                                        etas: pd.DataFrame,
                                        natural_waning_dist: pd.Series,
                                        natural_waning_matrix: pd.DataFrame,
-                                       sampled_ode_params: Dict[str, float],
+                                       resampled_params: pd.DataFrame,
                                        hierarchy: pd.DataFrame,
                                        draw_id: int):
     measures_and_rates, age_scalars = prepare_epi_measures_for_past_infections(
@@ -100,23 +99,19 @@ def prepare_past_infections_parameters(beta: pd.Series,
     )
     loc_ids = beta.reset_index().location_id.unique().tolist()
     past_index = measures_and_rates.loc[loc_ids].sort_index().index
-    scalar_params = {k: p for k, p in sampled_ode_params.items()
-                     if isinstance(p, (int, float)) and k not in measure_kappas}
-    series_params = [p.reindex(past_index, level='location_id').rename(k)
-                     for k, p in sampled_ode_params.items()
-                     if isinstance(p, pd.Series) and k not in measure_kappas]
-    sampled_params = pd.concat([
-        pd.DataFrame(scalar_params, index=past_index),
-        *series_params,
-        measure_kappas.reindex(past_index).groupby('location_id').ffill().groupby('location_id').bfill(),
-    ], axis=1)
+    resampled_params = (resampled_params
+                        .reindex(past_index)
+                        .groupby('location_id')
+                        .ffill()
+                        .groupby('location_id')
+                        .bfill())
 
     rhos = rhos.reindex(past_index, fill_value=0.)
     rhos.columns = [f'rho_{c}_infection' for c in rhos.columns]
     rhos['rho_none_infection'] = pd.Series(0., index=past_index, name='rho_none_infection')
 
     base_parameters = pd.concat([
-        sampled_params,
+        resampled_params,
         measures_and_rates,
         beta.reindex(past_index),
         rhos,

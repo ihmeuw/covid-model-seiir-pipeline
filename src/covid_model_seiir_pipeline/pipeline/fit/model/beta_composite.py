@@ -15,7 +15,7 @@ from covid_model_seiir_pipeline.lib import (
 
 def build_composite_betas(betas: pd.DataFrame,
                           infections: pd.DataFrame,
-                          alpha: float,
+                          alpha: pd.Series,
                           num_cores: int,
                           progress_bar: bool,
                           location_ids: List[int] = None) -> Tuple[pd.Series, pd.Series, pd.Series]:
@@ -27,7 +27,7 @@ def build_composite_betas(betas: pd.DataFrame,
         arg_list.append((
             infections.loc[[location_id]],
             betas.loc[[location_id]],
-            alpha,
+            alpha.loc[location_id],
         ))
 
     results = parallel.run_parallel(
