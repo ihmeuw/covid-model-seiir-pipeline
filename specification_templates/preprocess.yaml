@@ -2,10 +2,10 @@ data:
   mr_location_set_version_id: 1020
   mr_location_set_file: ''
   pred_location_set_version_id: 1020
-  model_inputs_version: '2022_03_16.01'
+  model_inputs_version: '2022_03_17.01'
   age_specific_rates_version: '2022_02_11.03'
   mortality_scalars_version: '2022_03_16.01'
-  mask_use_outputs_version: '2022_03_14.01'
+  mask_use_outputs_version: '2022_03_17.01'
   mobility_covariate_version: '2022_03_07.03'
   pneumonia_version: '2020_06_12.03'
   population_density_version: '2020_05_20.07'
@@ -17,11 +17,11 @@ data:
   vaccine_scenarios:
     - 'reference'
     - 'booster'
-    # - 'probably_no'
+    - 'probably_no'
   output_root: ''
   output_format: 'csv'
   n_draws: 100
-  n_oversample_draws: 35
+  n_oversample_draws: 50
   drop_locations: []
 seroprevalence_parameters:
   correlate_samples: False
