@@ -17,7 +17,7 @@ logger = cli_tools.task_performance_logger
 
 
 def preprocess_mask_use(data_interface: PreprocessingDataInterface) -> None:
-    for scenario in ['reference', 'best', 'worse']:
+    for scenario in ['reference', 'best', 'worse', 'relaxed']:
         logger.info(f'Loading mask use data for scenario {scenario}.', context='read')
         mask_use = data_interface.load_raw_mask_use_data(scenario)
 
