@@ -519,7 +519,7 @@ def rescale_kappas(measure: str,
                 ( 4864,  2.0),  # Nagaland
                 ( 4865,  3.0),  # Odisha
                 ( 4845,  5.0),  # Chandigarh
-                ( 4866,  4.0),  # Puducherry
+                ( 4866,  8.0),  # Puducherry
                 ( 4867,  2.0),  # Punjab
                 ( 4868,  2.0),  # Rajasthan
                 ( 4872,  2.0),  # Tripura
