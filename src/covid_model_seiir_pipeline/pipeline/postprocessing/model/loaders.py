@@ -157,10 +157,6 @@ def load_total_covid_deaths(scenario: str, data_interface: 'PostprocessingDataIn
     return scaled_deaths
 
 
-def build_version_map(data_interface: 'PostprocessingDataInterface') -> pd.Series:
-    return data_interface.build_version_map()
-
-
 def load_populations(data_interface: 'PostprocessingDataInterface'):
     idx_cols = ['location_id', 'sex_id', 'year_id', 
                 'age_group_id', 'age_group_years_start', 'age_group_years_end']
