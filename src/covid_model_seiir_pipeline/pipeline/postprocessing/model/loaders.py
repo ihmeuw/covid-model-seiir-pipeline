@@ -143,8 +143,7 @@ def load_scaling_parameters(scenario: str, data_interface: 'PostprocessingDataIn
 
 def load_full_data_unscaled(data_interface: 'PostprocessingDataInterface') -> pd.DataFrame:
     full_data = data_interface.load_reported_epi_data().reset_index()
-    location_ids = data_interface.load_location_ids()
-    full_data = full_data[full_data.location_id.isin(location_ids)].set_index(['location_id', 'date'])
+    full_data = full_data.set_index(['location_id', 'date'])
     return full_data
 
 
