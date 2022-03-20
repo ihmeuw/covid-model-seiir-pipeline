@@ -139,7 +139,7 @@ def preprocess_testing_data(data_interface: PreprocessingDataInterface) -> None:
     hierarchy = data_interface.load_hierarchy('pred')
     hk = data[data.location_id == 354]
     hk['location_id'] = 44533
-    hk['population'] = data.loc[44533, 'population'].max()
+    hk['population'] = data.set_index('location_id').loc[44533, 'population'].max()
     data = pd.concat([data[~(data.location_id == 44533)], hk]).sort_values(['location_id', 'date'])
 
     logger.info('Processing testing for IDR calc and beta covariate', context='transform')
