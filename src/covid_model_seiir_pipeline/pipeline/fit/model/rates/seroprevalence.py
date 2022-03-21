@@ -10,7 +10,7 @@ from covid_model_seiir_pipeline.pipeline.fit.specification import RatesParameter
 from covid_model_seiir_pipeline.pipeline.fit.model.sampled_params import (
     Durations,
 )
-from covid_model_seiir_pipeline.pipeline.fit.model.mrbrt import (
+from covid_model_seiir_pipeline.pipeline.fit.model.rates.mrbrt import (
     mrbrt,
 )
 

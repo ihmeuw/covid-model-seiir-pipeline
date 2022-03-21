@@ -1,11 +1,9 @@
 import functools
-import multiprocessing
 from typing import Tuple, List
 
 from loguru import logger
 import numpy as np
 import pandas as pd
-import tqdm
 
 from covid_model_seiir_pipeline.lib import (
     math,

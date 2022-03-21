@@ -17,7 +17,7 @@ logger = cli_tools.task_performance_logger
 
 
 def preprocess_mask_use(data_interface: PreprocessingDataInterface) -> None:
-    for scenario in ['reference', 'best', 'worse']:
+    for scenario in ['reference', 'best', 'worse', 'relaxed']:
         logger.info(f'Loading mask use data for scenario {scenario}.', context='read')
         mask_use = data_interface.load_raw_mask_use_data(scenario)
 
@@ -97,7 +97,11 @@ def preprocess_pneumonia(data_interface: PreprocessingDataInterface) -> None:
     next_year = next_year.groupby("location_id", as_index=False).apply(lambda x: x.iloc[1:-1]).reset_index(drop=True)
     year_after_next = next_year.copy()
     year_after_next['date'] += pd.Timedelta(days=365)
-    data = pd.concat([data, next_year, year_after_next]).sort_values(["location_id", "date"]).reset_index(drop=True)
+    year_after_that = year_after_next.copy()
+    year_after_that['date'] += pd.Timedelta(days=365)
+    data = (pd.concat([data, next_year, year_after_next, year_after_that])
+            .sort_values(["location_id", "date"])
+            .reset_index(drop=True))
     data = helpers.parent_inheritance(data, hierarchy)
 
     logger.info(f'Writing pneumonia data.', context='write')
@@ -133,6 +137,10 @@ def preprocess_testing_data(data_interface: PreprocessingDataInterface) -> None:
     logger.info('Loading raw testing data', context='read')
     data = data_interface.load_raw_testing_data()
     hierarchy = data_interface.load_hierarchy('pred')
+    hk = data[data.location_id == 354]
+    hk['location_id'] = 44533
+    hk['population'] = data.set_index('location_id').loc[44533, 'population'].max()
+    data = pd.concat([data[~(data.location_id == 44533)], hk]).sort_values(['location_id', 'date'])
 
     logger.info('Processing testing for IDR calc and beta covariate', context='transform')
     testing_for_idr = _process_testing_for_idr(data.copy())
@@ -187,7 +195,7 @@ def preprocess_variant_prevalence(data_interface: PreprocessingDataInterface) ->
         p = Path(__file__).parent / 'invasion_date_hardcodes.csv'
         target_dates = pd.read_csv(p).set_index('location_id')
         target_dates['target_date'] = (pd.to_datetime(target_dates['case_inflection_date'])
-                                        .fillna(pd.to_datetime(target_dates['data_date']) + pd.Timedelta(days=7)))
+                                       .fillna(pd.to_datetime(target_dates['data_date']) + pd.Timedelta(days=7)))
         target_dates = target_dates.apply(lambda x: x['target_date'] - pd.Timedelta(days=x['lag']), axis=1)
         target_dates = target_dates.loc[invasion_dates.reset_index()['location_id'].unique()]
         shifts = (target_dates - invasion_dates.loc[target_dates.index])
@@ -205,7 +213,14 @@ def preprocess_variant_prevalence(data_interface: PreprocessingDataInterface) ->
         updates = pd.concat(updates)
         data = data.drop(updates.index).append(updates).sort_index()
         data = helpers.parent_inheritance(data, hierarchy)
-
+        delhi_variant_level = data.loc[4849]
+        dfs = []
+        for location_id in [4840, 4845, 60896, 4858, 4866]:
+            df = delhi_variant_level.copy()
+            df['location_id'] = location_id
+            df = df.reset_index().set_index(['location_id', 'date'])
+            dfs.append(df)
+        data = pd.concat([data] + dfs).sort_index()
         logger.info(f'Writing {scenario} scenario data.', context='write')
         data_interface.save_variant_prevalence(data, scenario)
 

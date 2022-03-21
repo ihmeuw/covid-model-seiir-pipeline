@@ -76,7 +76,7 @@ def process_raw_serology_data(data: pd.DataFrame, hierarchy: pd.DataFrame) -> pd
     is_mixed = data['test_target'] == 'mixed'
     data.loc[is_oxford & is_mixed, 'test_target'] = 'spike'
 
-    # code India 2020 nat'l point as mixed
+    # code India 2020 nat'l point (ICMR 3?) as mixed
     is_ind = data['location_id'] == 163
     is_icmr_serosurvey = data['survey_series'] == 'icmr_serosurvey'
     data.loc[is_ind & is_icmr_serosurvey, 'test_target'] = 'mixed'
@@ -133,64 +133,12 @@ def process_raw_serology_data(data: pd.DataFrame, hierarchy: pd.DataFrame) -> pd
         data.loc[is_state & is_cdc & is_nov_or_later & is_N, 'test_target'] = 'nucleocapsid'
         data.loc[
             is_state & is_cdc & is_nov_or_later & is_N, 'test_name'] = 'Roche Elecsys N pan-Ig'
+        
+    # some of the new extractions have the wrong isotype
+    data.loc[data['test_name'] == 'Roche Elecsys N pan-Ig', 'isotype'] = 'pan-Ig'
+
     ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
-    ## Angola odd point
-    data.loc[(data['location_id'] == 168) &
-             (data['survey_series'] == 'Sebastiao_Sep2020'),
-             'manual_outlier'] = 1
-
-    ## Central African Republic
-    data.loc[(data['location_id'] == 169) &
-             (data['survey_series'] == 'Alexandre_Aug2021'),
-             'manual_outlier'] = 1
-
-    ## Madagascar blood donor IgG duplicate after they started pan-Ig
-    data.loc[(data['location_id'] == 181) &
-             (data['survey_series'] == 'madagascar_blood') & 
-             (data['test_name'] == 'ID Vet ELISA IgG') & 
-             (data['date'] >= pd.Timestamp('2021-01-01')),
-             'manual_outlier'] = 1
-
-    ## Zambia same study reports 7.6% PCR prev, 2.1% antibody
-    data.loc[(data['location_id'] == 191) &
-             (data['survey_series'] == 'Hines_July2020'),
-             'manual_outlier'] = 1
-
-    ## Zambia study is young children and healthcare workers
-    data.loc[(data['location_id'] == 191) &
-             (data['survey_series'] == 'Laban_Dec2020'),
-             'manual_outlier'] = 1
-
-    ## South Africa use most-detailed locs
-    data.loc[(data['location_id'] == 196) &
-             (data['survey_series'] == 'sanbs_southafrica') & 
-             (data['source_population'] == 'South Africa'),
-             'manual_outlier'] = 1
-
-    ## South Africa Angincourt must have missed first wave
-    data.loc[(data['location_id'] == 196) &
-             (data['survey_series'] == 'PHIRST_C2021') & 
-             (data['source_population'] == 'Angincourt, Mpumalanga province')
-             # & (data['date'] <= pd.Timestamp('2020-10-10'))
-             ,
-             'manual_outlier'] = 1
-
-    ## Zimbabwe first point from household survey
-    data.loc[(data['location_id'] == 198) &
-             (data['survey_series'] == 'Fryatt_Harare_2021') & 
-             (data['date'] < pd.Timestamp('2021-01-01')),
-             'manual_outlier'] = 1
-
-    ## Cote d'Ivoire mining camp not rep
-    data.loc[(data['location_id'] == 205) &
-             (data['survey_series'] == 'Milleliri_Oct2020'),
-             'manual_outlier'] = 1
-
-    ## Sierra Leone - must be using awful test
-    data.loc[(data['location_id'] == 217) &
-             (data['survey_series'] == 'sierra_leone_household'),
-             'manual_outlier'] = 1
-
+    # outliers flagged by data intake
     outliers = []
     data['manual_outlier'] = data['manual_outlier'].astype(float)
     data['manual_outlier'] = data['manual_outlier'].fillna(0)
@@ -198,6 +146,7 @@ def process_raw_serology_data(data: pd.DataFrame, hierarchy: pd.DataFrame) -> pd
     manual_outlier = data['manual_outlier']
     outliers.append(manual_outlier)
     logger.debug(f'{manual_outlier.sum()} rows from sero data flagged as outliers in ETL.')
+
     ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
     ## SOME THINGS
     # # 1)
@@ -219,10 +168,78 @@ def process_raw_serology_data(data: pd.DataFrame, hierarchy: pd.DataFrame) -> pd
     # 2)
     #    Question: Use of geo_accordance?
     #    Current approach: Drop non-represeentative (geo_accordance == 0).
-    #    Final solution: ...
     data['geo_accordance'] = helpers.str_fmt(data['geo_accordance']).replace(('unchecked', np.nan), '0').astype(int)
-    ssa_location_ids = hierarchy.loc[hierarchy['path_to_top_parent'].apply(lambda x: '166' in x.split(',')), 'location_id'].to_list()
+    ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
+    ## AD-HOC REPRESENTATIVENESS RECODES
+    ##
+    # Armenia
+    data.loc[(data['location_id'] == 33), 'geo_accordance'] = 1
+
+    ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
+    ## SSA REPRESENTATIVENESS RECODE
+    ## code all SSA data as rep and then undo exceptions that should still be outliered
+    ssa_location_ids = (hierarchy
+                        .loc[hierarchy['path_to_top_parent'].apply(lambda x: '166' in x.split(',')), 'location_id']
+                        .to_list())
     data.loc[data['location_id'].isin(ssa_location_ids), 'geo_accordance'] = 1
+
+    ## Angola odd point
+    data.loc[(data['location_id'] == 168) &
+             (data['survey_series'] == 'Sebastiao_Sep2020'),
+             'geo_accordance'] = 0
+
+    ## Central African Republic
+    data.loc[(data['location_id'] == 169),
+             'geo_accordance'] = 0
+
+    ## Madagascar blood donor IgG duplicate after they started pan-Ig
+    data.loc[(data['location_id'] == 181) &
+             (data['survey_series'] == 'madagascar_blood') & 
+             (data['test_name'] == 'ID Vet ELISA IgG') & 
+             (data['date'] >= pd.Timestamp('2021-01-01')),
+             'geo_accordance'] = 0
+
+    ## Zambia same study reports 7.6% PCR prev, 2.1% antibody
+    data.loc[(data['location_id'] == 191) &
+             (data['survey_series'] == 'Hines_July2020'),
+             'geo_accordance'] = 0
+
+    ## Zambia study is young children and healthcare workers
+    data.loc[(data['location_id'] == 191) &
+             (data['survey_series'] == 'Laban_Dec2020'),
+             'geo_accordance'] = 0
+
+    ## South Africa use most-detailed locs
+    data.loc[(data['location_id'] == 196) &
+             (data['survey_series'] == 'sanbs_southafrica') & 
+             (data['source_population'] == 'South Africa'),
+             'geo_accordance'] = 0
+
+    ## South Africa Angincourt must have missed first wave
+    data.loc[(data['location_id'] == 196) &
+             (data['survey_series'] == 'PHIRST_C2021') & 
+             (data['source_population'] == 'Angincourt, Mpumalanga province')
+             # & (data['date'] <= pd.Timestamp('2020-10-10'))
+             ,
+             'geo_accordance'] = 0
+
+    ## Zimbabwe first point from household survey
+    data.loc[(data['location_id'] == 198) &
+             (data['survey_series'] == 'Fryatt_Harare_2021') & 
+             (data['date'] < pd.Timestamp('2021-01-01')),
+             'geo_accordance'] = 0
+
+    ## Cote d'Ivoire mining camp not rep
+    data.loc[(data['location_id'] == 205) &
+             (data['survey_series'] == 'Milleliri_Oct2020'),
+             'geo_accordance'] = 0
+
+    ## Sierra Leone - must be using awful test
+    data.loc[(data['location_id'] == 217) &
+             (data['survey_series'] == 'sierra_leone_household'),
+             'geo_accordance'] = 0
+    ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
+
     geo_outlier = data['geo_accordance'] == 0
     outliers.append(geo_outlier)
     logger.debug(f'{geo_outlier.sum()} rows from sero data do not have `geo_accordance`.')
@@ -230,6 +247,8 @@ def process_raw_serology_data(data: pd.DataFrame, hierarchy: pd.DataFrame) -> pd
         ('unchecked', 'not specified', np.nan), '0').astype(int)
 
     # 3) Extra drops
+    ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
+    ## VACCINE-RELATED
     # vaccine debacle, lose all the UK spike data in 2021
     is_uk = data['location_id'].isin([4749, 433, 434, 4636])
     is_spike = data['test_target'] == 'spike'
@@ -257,14 +276,14 @@ def process_raw_serology_data(data: pd.DataFrame, hierarchy: pd.DataFrame) -> pd
     outliers.append(bel_vax_outlier)
     logger.debug(f'{bel_vax_outlier.sum()} rows from sero data dropped due to Belgium vax issues.')
 
-    # vaccine debacle, lose all the Estonia and Netherlands data from June 2021 onward
-    is_est_ndl = data['location_id'].isin([58, 89])
+    # vaccine debacle, lose all the Estonia, Belgium, and Netherlands data from June 2021 onward
+    is_est_bgm_ndl = data['location_id'].isin([58, 76, 89])
     is_spike = data['test_target'] == 'spike'
     is_post_june_2021 = data['date'] >= pd.Timestamp('2021-06-01')
 
-    est_ndl_vax_outlier = is_est_ndl & is_spike & is_post_june_2021
-    outliers.append(est_ndl_vax_outlier)
-    logger.debug(f'{est_ndl_vax_outlier.sum()} rows from sero data dropped due to Netherlands and Estonia vax issues.')
+    est_bgm_ndl_vax_outlier = is_est_bgm_ndl & is_spike & is_post_june_2021
+    outliers.append(est_bgm_ndl_vax_outlier)
+    logger.debug(f'{est_bgm_ndl_vax_outlier.sum()} rows from sero data dropped due to vax issues in Estonia, Belgium, and Netherlands.')
 
     # vaccine debacle, lose all the Puerto Rico data from Feb 2021 onward
     is_pr = data['location_id'].isin([385])
@@ -275,6 +294,8 @@ def process_raw_serology_data(data: pd.DataFrame, hierarchy: pd.DataFrame) -> pd
     outliers.append(pr_vax_outlier)
     logger.debug(f'{pr_vax_outlier.sum()} rows from sero data dropped due to Puerto Rico vax issues.')
 
+    ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
+    ## OTHER FIT-RELATED
     # Kazakhstan collab data
     is_kaz = data['location_id'] == 36
     is_kaz_collab_data = data['survey_series'] == 'kazakhstan_who'
@@ -283,6 +304,15 @@ def process_raw_serology_data(data: pd.DataFrame, hierarchy: pd.DataFrame) -> pd
     outliers.append(kaz_outlier)
     logger.debug(f'{kaz_outlier.sum()} rows from sero data dropped due to implausibility '
                  '(or at least incompatibility) of Kazakhstan colloborator data.')
+
+    # Kyrgyzstan (37)
+    is_kyrg = data['location_id'] == 37
+    is_popova_2021 = data['survey_series'] == 'popova_2021'
+
+    kyrg_outlier = is_kyrg & is_popova_2021
+    outliers.append(kyrg_outlier)
+    logger.debug(f'{kyrg_outlier.sum()} rows from sero data dropped due to implausibility '
+                 '(or at least incompatibility) of Kyrgyzstan data in models.')
 
     # Saskatchewan
     is_sas = data['location_id'] == 43869
@@ -522,22 +552,21 @@ def process_raw_serology_data(data: pd.DataFrame, hierarchy: pd.DataFrame) -> pd
                  '(or at least incompatibility) of first Mozabique INS survey.')
 
     # 4) Level threshold - location max > 3%, value max > 1%
-    # exemtions -> Brazil
-    na_list = [135]
+    # exemtions -> Norway and Vermont (noisy serial measurements, need low values)
+    na_list = [90, 568]
     data['tmp_outlier'] = pd.concat(outliers, axis=1).max(axis=1).astype(int)
     is_maxsub3 = (data
                   .groupby(['location_id', 'tmp_outlier'])
-                  .apply(lambda x: x['seroprevalence'].max() < 0.03 and
-                                   x.reset_index()['location_id'].unique().item() not in na_list)
+                  .apply(lambda x: x['seroprevalence'].max() <= 0.03)
                   .rename('is_maxsub3')
                   .reset_index())
     is_maxsub3 = data.merge(is_maxsub3, how='left').loc[data.index, 'is_maxsub3']
     del data['tmp_outlier']
-    is_sub1 = data['seroprevalence'] < 0.01
-    is_maxsub3_sub1 = is_maxsub3 | is_sub1
+    is_sub1 = data['seroprevalence'] <= 0.01
+    is_maxsub3_sub1 = (is_maxsub3 | is_sub1) & ~data['location_id'].isin(na_list)
     outliers.append(is_maxsub3_sub1)
-    logger.debug(f'{is_maxsub3_sub1.sum()} rows from sero data dropped due to having values'
-                 'below 1% or a location max below 3%.')
+    logger.debug(f'{is_maxsub3_sub1.sum()} rows from sero data dropped due to having values of '
+                 '1% or below, or a location max of 3% or below.')
     ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
 
     keep_columns = ['data_id', 'nid', 'survey_series', 'location_id', 'start_date', 'date',
@@ -618,12 +647,14 @@ def sample_seroprevalence(seroprevalence: pd.DataFrame,
         logit_samples = random_state.normal(loc=logit_mean.to_frame().values,
                                             scale=logit_se.to_frame().values,
                                             size=(len(seroprevalence), n_samples), )
-        samples = math.expit(logit_samples)
+        #samples = math.expit(logit_samples)
+        samples = [seroprevalence['seroprevalence'].copy()] * n_samples
 
         ## CANNOT DO THIS, MOVES SOME ABOVE 1
         # # re-center around original mean
         # samples *= seroprevalence[['seroprevalence']].values / samples.mean(axis=1, keepdims=True)
         if correlate_samples:
+            raise ValueError('Not using sero samples.')
             logger.info('Correlating seroprevalence samples within location.')
             series_data = (seroprevalence[[sv for sv in series_vars if sv not in ['survey_series', 'date']]]
                            .drop_duplicates()
@@ -646,7 +677,13 @@ def sample_seroprevalence(seroprevalence: pd.DataFrame,
             ['seroprevalence', 'seroprevalence_lower', 'seroprevalence_upper', 'sample_size'],
             axis=1)
         sample_list = []
-        for n, sample in enumerate(samples.T):
+        if isinstance(samples, list):
+            # hack
+            _n_sample = enumerate(samples)
+        elif isinstance(samples, np.array):
+            # actual samples
+            _n_sample = enumerate(samples.T)
+        for n, sample in _n_sample:
             _sample = seroprevalence.copy()
             _sample['seroprevalence'] = sample
             _sample['n'] = n
@@ -664,6 +701,7 @@ def sample_seroprevalence(seroprevalence: pd.DataFrame,
         sample_list = [seroprevalence.reset_index(drop=True)]
 
     if bootstrap_samples:
+        raise ValueError('Not using sero samples.')
         if n_samples < min_samples:
             raise ValueError('Not set up to bootstrap means only.')
         with multiprocessing.Pool(num_threads) as p:

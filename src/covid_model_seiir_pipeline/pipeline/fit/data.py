@@ -36,13 +36,13 @@ class FitDataInterface:
         io.touch(self.fit_root, **prefix_args)
 
     def get_n_draws(self):
-        specification = self.load_specification()
-        fit_draws = specification.data.n_draws
-        preprocess_draws = self.preprocessing_data_interface.get_n_draws()
-        if not fit_draws <= preprocess_draws:
-            raise ValueError(f"Can't run fit with more draws than preprocessing.\n"
-                             f"Fit draws requested: {fit_draws}. Preprocessing draws: {preprocess_draws}.")
-        return fit_draws
+        return self.preprocessing_data_interface.get_n_draws()
+
+    def get_n_oversample_draws(self):
+        return self.preprocessing_data_interface.get_n_oversample_draws()
+
+    def get_n_total_draws(self):
+        return self.preprocessing_data_interface.get_n_total_draws()
 
     #####################
     # Preprocessed Data #
@@ -127,17 +127,29 @@ class FitDataInterface:
             covariate_pool = {rate: draws[draw_id] for rate, draws in covariate_pool.items()}
         return covariate_pool
 
-    def save_broken_locations_report(self, report: List[Dict]) -> None:
-        io.dump(report, self.fit_root.broken_locations_report())
+    def save_draw_resampling_map(self, draw_resampling: Dict) -> None:
+        io.dump(draw_resampling, self.fit_root.draw_resampling())
 
-    def load_broken_locations_report(self) -> List[Dict]:
-        return io.load(self.fit_root.broken_locations_report())
+    def load_draw_resampling_map(self) -> Dict:
+        return io.load(self.fit_root.draw_resampling())
 
-    def save_ode_params(self, data: pd.Series, draw_id: int) -> None:
-        io.dump(data, self.fit_root.ode_parameters(draw_id=draw_id))
+    def save_fit_failures(self, fit_failures: pd.DataFrame) -> None:
+        io.dump(fit_failures, self.fit_root.fit_failures())
 
-    def load_ode_params(self, draw_id: int, columns: List[str] = None) -> pd.DataFrame:
-        return io.load(self.fit_root.ode_parameters(draw_id=draw_id, columns=columns))
+    def load_fit_failures(self) -> pd.DataFrame:
+        return io.load(self.fit_root.fit_failures())
+
+    def save_fit_residuals(self, fit_residuals: pd.DataFrame) -> None:
+        io.dump(fit_residuals, self.fit_root.fit_residuals())
+
+    def load_fit_residuals(self) -> pd.DataFrame:
+        return io.load(self.fit_root.fit_residuals())
+
+    def save_ode_params(self, data: pd.Series, draw_id: int, measure_version: str) -> None:
+        io.dump(data, self.fit_root.ode_parameters(measure=measure_version, draw_id=draw_id))
+
+    def load_ode_params(self, draw_id: int, measure_version: str = 'final', columns: List[str] = None) -> pd.DataFrame:
+        return io.load(self.fit_root.ode_parameters(measure=measure_version, draw_id=draw_id, columns=columns))
 
     def save_phis(self, data: pd.Series, draw_id: int) -> None:
         io.dump(data, self.fit_root.phis(draw_id=draw_id))
@@ -145,47 +157,47 @@ class FitDataInterface:
     def load_phis(self, draw_id: int) -> pd.DataFrame:
         return io.load(self.fit_root.phis(draw_id=draw_id))
 
-    def save_input_epi_measures(self, data: pd.DataFrame, draw_id: int):
-        io.dump(data, self.fit_root.input_epi_measures(draw_id=draw_id))
+    def save_input_epi_measures(self, data: pd.DataFrame, draw_id: int, measure_version: str):
+        io.dump(data, self.fit_root.input_epi_measures(measure=measure_version, draw_id=draw_id))
 
-    def load_input_epi_measures(self, draw_id: int, columns: List[str] = None) -> pd.DataFrame:
-        return io.load(self.fit_root.input_epi_measures(draw_id=draw_id, columns=columns))
+    def load_input_epi_measures(self, draw_id: int, measure_version: str = 'final', columns: List[str] = None) -> pd.DataFrame:
+        return io.load(self.fit_root.input_epi_measures(measure=measure_version, draw_id=draw_id, columns=columns))
 
-    def save_rates_data(self, data: pd.DataFrame, draw_id: int) -> None:
-        io.dump(data, self.fit_root.rates_data(draw_id=draw_id))
+    def save_rates_data(self, data: pd.DataFrame, draw_id: int, measure_version: str) -> None:
+        io.dump(data, self.fit_root.rates_data(measure=measure_version, draw_id=draw_id))
 
-    def load_rates_data(self, draw_id: int, columns: List[str] = None) -> pd.DataFrame:
-        return io.load(self.fit_root.rates_data(draw_id=draw_id, columns=columns))
+    def load_rates_data(self, draw_id: int, measure_version: str, columns: List[str] = None) -> pd.DataFrame:
+        return io.load(self.fit_root.rates_data(measure=measure_version, draw_id=draw_id, columns=columns))
 
-    def save_rates(self, data: pd.DataFrame, draw_id: int) -> None:
-        io.dump(data, self.fit_root.rates(draw_id=draw_id))
+    def save_rates(self, data: pd.DataFrame, draw_id: int, measure_version: str) -> None:
+        io.dump(data, self.fit_root.rates(measure=measure_version, draw_id=draw_id))
 
-    def load_rates(self, draw_id: int, columns: List[str] = None) -> pd.DataFrame:
-        return io.load(self.fit_root.rates(draw_id=draw_id, columns=columns))
+    def load_rates(self, draw_id: int, measure_version: str = 'final', columns: List[str] = None) -> pd.DataFrame:
+        return io.load(self.fit_root.rates(measure=measure_version, draw_id=draw_id, columns=columns))
 
-    def save_posterior_epi_measures(self, data: pd.DataFrame, draw_id: int):
-        io.dump(data, self.fit_root.posterior_epi_measures(draw_id=draw_id))
+    def save_posterior_epi_measures(self, data: pd.DataFrame, draw_id: int, measure_version: str):
+        io.dump(data, self.fit_root.posterior_epi_measures(measure=measure_version, draw_id=draw_id))
 
-    def load_posterior_epi_measures(self, draw_id: int, columns: List[str] = None) -> pd.DataFrame:
-        return io.load(self.fit_root.posterior_epi_measures(draw_id=draw_id, columns=columns))
+    def load_posterior_epi_measures(self, draw_id: int, measure_version: str = 'final', columns: List[str] = None) -> pd.DataFrame:
+        return io.load(self.fit_root.posterior_epi_measures(measure=measure_version, draw_id=draw_id, columns=columns))
 
-    def save_compartments(self, data: pd.DataFrame, draw_id: int) -> None:
-        io.dump(data, self.fit_root.compartments(draw_id=draw_id))
+    def save_compartments(self, data: pd.DataFrame, draw_id: int, measure_version: str) -> None:
+        io.dump(data, self.fit_root.compartments(measure=measure_version, draw_id=draw_id))
 
-    def load_compartments(self, draw_id: int, columns: List[str] = None) -> pd.DataFrame:
-        return io.load(self.fit_root.compartments(draw_id=draw_id, columns=columns))
+    def load_compartments(self, draw_id: int, measure_version: str = 'final', columns: List[str] = None) -> pd.DataFrame:
+        return io.load(self.fit_root.compartments(measure=measure_version, draw_id=draw_id, columns=columns))
 
-    def save_fit_beta(self, data: pd.DataFrame, draw_id: int) -> None:
-        io.dump(data, self.fit_root.beta(draw_id=draw_id))
+    def save_fit_beta(self, data: pd.DataFrame, draw_id: int, measure_version: str) -> None:
+        io.dump(data, self.fit_root.beta(measure=measure_version, draw_id=draw_id))
 
-    def load_fit_beta(self, draw_id: int, columns: List[str] = None) -> pd.DataFrame:
-        return io.load(self.fit_root.beta(draw_id=draw_id, columns=columns))
+    def load_fit_beta(self, draw_id: int, measure_version: str = 'final', columns: List[str] = None) -> pd.DataFrame:
+        return io.load(self.fit_root.beta(measure=measure_version, draw_id=draw_id, columns=columns))
 
-    def save_final_seroprevalence(self, data: pd.DataFrame, draw_id: int) -> None:
-        io.dump(data, self.fit_root.seroprevalence(draw_id=draw_id))
+    def save_final_seroprevalence(self, data: pd.DataFrame, measure_version: str, draw_id: int) -> None:
+        io.dump(data, self.fit_root.seroprevalence(measure=measure_version, draw_id=draw_id))
 
-    def load_final_seroprevalence(self, draw_id: int, columns: List[str] = None) -> pd.DataFrame:
-        return io.load(self.fit_root.seroprevalence(draw_id=draw_id, columns=columns))
+    def load_final_seroprevalence(self, draw_id: int, measure_version: str, columns: List[str] = None) -> pd.DataFrame:
+        return io.load(self.fit_root.seroprevalence(measure=measure_version, draw_id=draw_id, columns=columns))
 
     def save_summary(self, data: pd.DataFrame, measure: str) -> None:
         io.dump(data, self.fit_root.summary(measure=measure))

@@ -23,7 +23,7 @@ def preprocess_sensitivity(data_interface: PreprocessingDataInterface) -> None:
     sensitivity_data = format_assay_sensitivity(raw_sensitivity_data)
     sensitivity_samples = sample_sensitivity(
         sensitivity_data,
-        n_samples=data_interface.get_n_draws(),
+        n_samples=data_interface.get_n_total_draws(),
     )
     logger.info('Writing sensitivity data.', context='write')
     data_interface.save_sensitivity(sensitivity_data)
