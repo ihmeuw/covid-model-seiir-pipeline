@@ -16,12 +16,12 @@ install_env:
 		git clone https://github.com/zhengp0/limetr.git && \
 		git clone https://github.com/ihmeuw-msca/MRTool.git && \
 		source $(CONDA_PREFIX)/etc/profile.d/conda.sh && \
-		conda create -n $(ENV_NAME) -y -c conda-forge python=3.7 cyipopt gmp gfortran cython numpy=1.20.3 scipy=1.7.3 pandas=1.3.4 && \
+		conda create -n $(ENV_NAME) -y -c conda-forge python=3.7 cyipopt gmp gfortran cython numpy=1.20.3 scipy=1.7.3 pandas=1.3.4 fastparquet=0.7.2 && \
 		conda activate $(ENV_NAME) && \
 		pip install --global-option=build_ext --global-option '-I$(CONDA_PREFIX)/envs/$(ENV_NAME)/include/' pycddlib && \
 		cd limetr && git checkout master && make install && cd .. && \
 		cd MRTool && python setup.py install && cd .. && \
-		pip install -e .[dev] ; \
+		pip install -e .[internal] ; \
 	)
 
 .PHONY: test
