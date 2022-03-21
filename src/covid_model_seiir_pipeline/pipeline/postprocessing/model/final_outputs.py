@@ -53,7 +53,7 @@ class CovariateConfig:
     def __init__(self,
                  loader: Callable[[str, bool, str, 'PostprocessingDataInterface', int], List[pd.Series]],
                  label: str,
-                 splice: bool = False,
+                 splice: bool = True,
                  time_varying: bool = False,
                  aggregator: Callable = None,
                  write_draws: bool = False):
