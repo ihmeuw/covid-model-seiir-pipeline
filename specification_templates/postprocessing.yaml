@@ -4,7 +4,6 @@ data:
    - 'reference'
    - 'best_masks'
    - 'booster'
-   - 'reduced_hesitancy'
   output_root: ''
 workflow:
   project: 'proj_covid_prod'

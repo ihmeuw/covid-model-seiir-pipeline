@@ -152,7 +152,15 @@ def load_total_covid_deaths(scenario: str, data_interface: 'PostprocessingDataIn
     deaths = full_data['cumulative_deaths'].dropna()
     deaths = deaths.groupby('location_id').diff().fillna(deaths)
     n_draws = data_interface.get_n_draws()
-    mortality_scalars = data_interface.load_total_covid_scalars().loc[deaths.index].iloc[:, :n_draws]
+    mortality_scalars = data_interface.load_total_covid_scalars()
+    mortality_scalars = (mortality_scalars
+                         .iloc[:, :n_draws]
+                         .reindex(deaths.index)
+                         .groupby('location_id')
+                         .ffill()
+                         .groupby('location_id')
+                         .bfill()
+                         .fillna(1.0))
     scaled_deaths = mortality_scalars.mul(deaths, axis=0).groupby('location_id').cumsum().fillna(0.0)
     scaled_deaths.columns = [int(c.split('_')[1]) for c in scaled_deaths]
     return scaled_deaths
