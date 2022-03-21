@@ -9,7 +9,7 @@ from mrtool.core.other_sampling import extract_simple_lme_specs, extract_simple_
 import numpy as np
 import pandas as pd
 
-from covid_model_seiir_pipeline.pipeline.fit.model.mrbrt import mrbrt
+from covid_model_seiir_pipeline.pipeline.fit.model.rates.mrbrt import mrbrt
 from covid_model_seiir_pipeline.lib import (
     utilities,
     parallel,

@@ -1,10 +1,12 @@
 import itertools
 from typing import Dict, List
 
-import numpy as np
 import pandas as pd
+from loguru import logger
 
-from covid_model_seiir_pipeline.pipeline.fit.model import determine_mean_date_of_infection
+from covid_model_seiir_pipeline.pipeline.fit.model.rates.date_of_infection import (
+    determine_mean_date_of_infection,
+)
 
 
 def create_model_data(cumulative_deaths: pd.Series,
@@ -52,7 +54,8 @@ def create_model_data(cumulative_deaths: pd.Series,
     )
     model_data = model_data.join(dates_data.set_index(['location_id', 'date']), how='left')
     if model_data['mean_infection_date'].isnull().any():
-        raise ValueError('Missing mean infection date.')
+        logger.warning('Missing mean infection date. Dropping data where date is missing')
+        model_data = model_data.loc[model_data['mean_infection_date'].notnull()]
     model_data['t'] = (model_data['mean_infection_date'] - day_0).dt.days
     
     # add covariates

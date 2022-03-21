@@ -59,6 +59,7 @@ class CSVMarshall:
     @classmethod
     def _resolve_key(cls, key: DatasetKey) -> Tuple[Path, Union[List[str], None]]:
         path = key.root
+        path = Path(str(path).replace('/ihme/covid-19-2', '/ihme/covid-19'))
         if key.prefix:
             path /= key.prefix
         path /= key.data_type
@@ -102,6 +103,7 @@ class ParquetMarshall:
     @classmethod
     def _resolve_key(cls, key: DatasetKey) -> Tuple[Path, Union[List[str], None]]:
         path = key.root
+        path = Path(str(path).replace('/ihme/covid-19-2', '/ihme/covid-19'))
         if key.prefix:
             path /= key.prefix
         path /= key.data_type
@@ -138,6 +140,7 @@ class YamlMarshall:
     @classmethod
     def _resolve_key(cls, key: MetadataKey) -> Path:
         path = (key.root / key.data_type).with_suffix(".yaml")
+        path = Path(str(path).replace('/ihme/covid-19-2', '/ihme/covid-19'))
         return path
 
 

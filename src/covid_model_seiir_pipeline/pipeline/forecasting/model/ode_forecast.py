@@ -80,7 +80,6 @@ def build_model_parameters(indices: Indices,
         'case': 'idr',
     }
 
-    prior_ratios = prior_ratios.loc[prior_ratios['round'] == 2]
     scalars = []
     infections = (past_compartments_diff
                   .filter(like='Infection_none_all_unvaccinated')
@@ -172,6 +171,13 @@ def build_ratio(infections: pd.Series,
                 .dropna()
                 .groupby('location_id')
                 .apply(lambda x: x.iloc[-past_window:].num.sum() / x.iloc[-past_window:].denom.sum()))
+    if shifted_numerator.name == 'death':
+        if shifted_numerator.loc[44533].dropna()[-past_window:].max() < 50:
+            lr_ratio.loc[[44533]] = lr_ratio.loc[354]
+    elif shifted_numerator.name in ['case', 'admission']:
+        pass
+    else:
+        raise ValueError('Bad logic for China IFR forecast hack.')
 
     trans_window = 30
     scale = (lr_ratio - final_ancestral_ratio) / trans_window

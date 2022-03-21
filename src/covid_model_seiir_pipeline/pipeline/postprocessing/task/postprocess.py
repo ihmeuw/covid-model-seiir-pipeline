@@ -229,11 +229,6 @@ def postprocess_covariate(postprocessing_version: str,
         scenario_name,
     )
 
-    observed_col = covariate_observed.reindex(covariate_data.index).observed
-    covariate_data = pd.concat([covariate_data, observed_col], axis=1)
-    covariate_data['observed'] = covariate_observed['observed'].fillna(0)
-    covariate_data = covariate_data.set_index('observed', append=True)
-
     covariate_data = do_splicing(
         covariate_data,
         covariate_config,
@@ -242,6 +237,12 @@ def postprocess_covariate(postprocessing_version: str,
         scenario_name,
         load_and_resample_covariate
     )
+
+    observed_col = covariate_observed.reindex(covariate_data.index).observed
+    covariate_data = pd.concat([covariate_data, observed_col], axis=1)
+    covariate_data['observed'] = covariate_observed['observed'].fillna(0)
+    covariate_data = covariate_data.set_index('observed', append=True)
+
     covariate_data = do_aggregation(
         covariate_data,
         covariate_config,

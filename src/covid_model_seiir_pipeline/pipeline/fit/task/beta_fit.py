@@ -1,5 +1,4 @@
 import click
-import numpy as np
 import pandas as pd
 
 from covid_model_seiir_pipeline.lib import (
@@ -12,8 +11,8 @@ from covid_model_seiir_pipeline.pipeline.fit import model
 logger = cli_tools.task_performance_logger
 
 
-def run_beta_fit(fit_version: str, draw_id: int, progress_bar: bool) -> None:
-    logger.info('Starting beta fit.', context='setup')
+def run_beta_fit(fit_version: str, measure: str, draw_id: int, progress_bar: bool) -> None:
+    logger.info(f'Starting beta fit for measure {measure} draw {draw_id}.', context='setup')
     # Build helper abstractions
     specification = FitSpecification.from_version_root(fit_version)
     data_interface = FitDataInterface.from_specification(specification)
@@ -68,12 +67,15 @@ def run_beta_fit(fit_version: str, draw_id: int, progress_bar: bool) -> None:
     logger.info('Generating naive infections for first pass rates model', context='transform')
     daily_deaths = epi_measures['smoothed_daily_deaths'].dropna()
     naive_ifr = specification.rates_parameters.naive_ifr
-    init_daily_infections = (daily_deaths / naive_ifr).rename('daily_infections').reset_index()
+    init_daily_infections = (daily_deaths / naive_ifr).rename(
+        'daily_infections').reset_index()
     init_daily_infections['date'] -= pd.Timedelta(days=durations.exposure_to_death)
-    init_daily_infections = init_daily_infections.set_index(['location_id', 'date']).loc[:, 'daily_infections']
+    init_daily_infections = init_daily_infections.set_index(['location_id', 'date']).loc[:,
+                            'daily_infections']
 
     logger.info('Running first-pass rates model', context='rates_model_1')
     first_pass_rates, first_pass_rates_data = model.run_rates_pipeline(
+        measure=measure,
         epi_data=epi_measures,
         age_patterns=age_patterns,
         seroprevalence=first_pass_seroprevalence,
@@ -96,6 +98,7 @@ def run_beta_fit(fit_version: str, draw_id: int, progress_bar: bool) -> None:
 
     logger.info('Prepping ODE fit parameters.', context='transform')
     ode_parameters, first_pass_base_rates = model.prepare_ode_fit_parameters(
+        measure=measure,
         rates=first_pass_rates,
         epi_measures=epi_measures,
         rhos=rhos,
@@ -104,32 +107,34 @@ def run_beta_fit(fit_version: str, draw_id: int, progress_bar: bool) -> None:
         natural_waning_dist=natural_waning_dist,
         natural_waning_matrix=natural_waning_matrix,
         sampled_ode_params=sampled_ode_params,
-        measure_downweights=specification.measure_downweights.to_dict(),
         hierarchy=pred_hierarchy,
         draw_id=draw_id,
     )
 
     logger.info('Building initial condition.', context='transform')
     initial_condition = model.make_initial_condition(
+        measure,
         ode_parameters,
         first_pass_base_rates,
         risk_group_population,
     )
 
     logger.info('Running ODE fit', context='compute_ode')
-    compartments, first_pass_betas, chis = model.run_ode_fit(
+    first_pass_compartments, first_pass_betas, chis = model.run_ode_fit(
         initial_condition=initial_condition,
         ode_parameters=ode_parameters,
         num_cores=specification.workflow.task_specifications['beta_fit'].num_cores,
         progress_bar=progress_bar,
     )
 
-    logger.info('Prepping first pass ODE outputs for second pass rates model', context='transform')
+    logger.info('Prepping first pass ODE outputs for second pass rates model',
+                context='transform')
     first_pass_posterior_epi_measures = model.compute_posterior_epi_measures(
-        compartments=compartments,
+        compartments=first_pass_compartments,
         durations=durations
     )
     agg_first_pass_posterior_epi_measures = model.aggregate_posterior_epi_measures(
+        measure=measure,
         epi_measures=epi_measures,
         posterior_epi_measures=first_pass_posterior_epi_measures,
         hierarchy=mr_hierarchy
@@ -137,8 +142,9 @@ def run_beta_fit(fit_version: str, draw_id: int, progress_bar: bool) -> None:
 
     # Apply location specific adjustments for locations where the model breaks.
     sampled_ode_params = model.rescale_kappas(
+        measure,
         sampled_ode_params,
-        compartments,
+        first_pass_compartments,
         specification.rates_parameters,
         pred_hierarchy,
         draw_id
@@ -147,10 +153,10 @@ def run_beta_fit(fit_version: str, draw_id: int, progress_bar: bool) -> None:
     pct_unvaccinated = (
         (agg_first_pass_posterior_epi_measures['cumulative_naive_unvaccinated_infections']
          / agg_first_pass_posterior_epi_measures['cumulative_naive_infections'])
-        .clip(0, 1)
-        .fillna(1)
-        .rename('pct_unvaccinated')
-        .reset_index()
+            .clip(0, 1)
+            .fillna(1)
+            .rename('pct_unvaccinated')
+            .reset_index()
     )
     pct_unvaccinated['date'] += pd.Timedelta(days=durations.exposure_to_seroconversion)
 
@@ -175,6 +181,7 @@ def run_beta_fit(fit_version: str, draw_id: int, progress_bar: bool) -> None:
 
     logger.info('Running second-pass rates model', context='rates_model_2')
     second_pass_rates, second_pass_rates_data = model.run_rates_pipeline(
+        measure=measure,
         epi_data=agg_first_pass_posterior_epi_measures,
         age_patterns=age_patterns,
         seroprevalence=adjusted_seroprevalence,
@@ -186,8 +193,9 @@ def run_beta_fit(fit_version: str, draw_id: int, progress_bar: bool) -> None:
         age_specific_population=five_year_population,
         testing_capacity=testing_capacity,
         variant_prevalence=variant_prevalence,
-        daily_infections=(agg_first_pass_posterior_epi_measures['daily_naive_unvaccinated_infections']
-                          .rename('daily_infections')),
+        daily_infections=(
+            agg_first_pass_posterior_epi_measures['daily_naive_unvaccinated_infections']
+            .rename('daily_infections')),
         durations=durations,
         variant_rrs=variant_severity,
         params=specification.rates_parameters,
@@ -198,6 +206,7 @@ def run_beta_fit(fit_version: str, draw_id: int, progress_bar: bool) -> None:
 
     logger.info('Prepping ODE fit parameters for second pass model.', context='transform')
     ode_parameters, second_pass_base_rates = model.prepare_ode_fit_parameters(
+        measure=measure,
         rates=second_pass_rates,
         epi_measures=epi_measures,
         rhos=rhos,
@@ -206,20 +215,20 @@ def run_beta_fit(fit_version: str, draw_id: int, progress_bar: bool) -> None:
         natural_waning_dist=natural_waning_dist,
         natural_waning_matrix=natural_waning_matrix,
         sampled_ode_params=sampled_ode_params,
-        measure_downweights=specification.measure_downweights.to_dict(),
         hierarchy=pred_hierarchy,
         draw_id=draw_id,
     )
 
     logger.info('Rebuilding initial condition.', context='transform')
     initial_condition = model.make_initial_condition(
+        measure,
         ode_parameters,
         second_pass_base_rates,
         risk_group_population,
     )
 
     logger.info('Running second pass ODE fit', context='compute_ode')
-    compartments, second_pass_betas, chis = model.run_ode_fit(
+    second_pass_compartments, second_pass_betas, chis = model.run_ode_fit(
         initial_condition=initial_condition,
         ode_parameters=ode_parameters,
         num_cores=specification.workflow.task_specifications['beta_fit'].num_cores,
@@ -227,26 +236,24 @@ def run_beta_fit(fit_version: str, draw_id: int, progress_bar: bool) -> None:
     )
 
     logger.info('Prepping outputs.', context='transform')
-
     out_params = ode_parameters.to_dict()['base_parameters']
     for name, duration in durations._asdict().items():
         out_params.loc[:, name] = duration
 
+    rate = {'case': 'idr', 'death': 'ifr', 'admission': 'ihr'}[measure]
     rates_data = []
     for round_id, dataset in enumerate([first_pass_rates_data, second_pass_rates_data]):
-        for measure in ['ifr', 'ihr', 'idr']:
-            df = dataset._asdict()[measure]
-            df = (df
-                  .loc[:, ['location_id', 'mean_infection_date', 'data_id', measure]]
-                  .rename(columns={measure: 'value', 'mean_infection_date': 'date'}))
-            df['measure'] = measure
-            df['round'] = round_id + 1
-            rates_data.append(df)
+        df = (dataset
+              .loc[:, ['location_id', 'mean_infection_date', 'data_id', rate]]
+              .rename(columns={measure: 'value', 'mean_infection_date': 'date'}))
+        df['measure'] = measure
+        df['round'] = round_id + 1
+        rates_data.append(df)
     rates_data = pd.concat(rates_data)
 
-    first_pass_rates = pd.concat([r.drop(columns='lag') for r in first_pass_rates], axis=1)
+    first_pass_rates = first_pass_rates.drop(columns='lag')
     first_pass_rates.loc[:, 'round'] = 1
-    second_pass_rates = pd.concat([r.drop(columns='lag') for r in second_pass_rates], axis=1)
+    second_pass_rates = second_pass_rates.drop(columns='lag')
     second_pass_rates.loc[:, 'round'] = 2
     prior_rates = pd.concat([first_pass_rates, second_pass_rates])
 
@@ -255,7 +262,7 @@ def run_beta_fit(fit_version: str, draw_id: int, progress_bar: bool) -> None:
     betas = pd.concat([first_pass_betas, second_pass_betas])
 
     second_pass_posterior_epi_measures = model.compute_posterior_epi_measures(
-        compartments=compartments,
+        compartments=second_pass_compartments,
         durations=durations
     )
     first_pass_posterior_epi_measures.loc[:, 'round'] = 1
@@ -273,29 +280,54 @@ def run_beta_fit(fit_version: str, draw_id: int, progress_bar: bool) -> None:
     out_seroprevalence['sero_date'] = out_seroprevalence['date']
     out_seroprevalence['date'] -= pd.Timedelta(days=durations.exposure_to_seroconversion)
 
+    idr_parameters = model.sample_idr_parameters(specification.rates_parameters, draw_id)
+    keep_compartments = [
+        'EffectiveSusceptible_all_omicron_all_lr',
+        'EffectiveSusceptible_all_omicron_all_hr',
+        'Infection_all_delta_all_lr',
+        'Infection_all_delta_all_hr',
+        'Case_all_delta_all_lr',
+        'Case_all_delta_all_hr',
+        'Infection_all_all_all_lr',
+        'Infection_all_all_all_hr',
+        'Case_all_all_all_lr',
+        'Case_all_all_all_hr',
+    ]
+    first_pass_compartments = first_pass_compartments.loc[:, keep_compartments]
+    first_pass_compartments['round'] = 1
+    second_pass_compartments = second_pass_compartments.loc[:, keep_compartments]
+    second_pass_compartments['round'] = 2
+    compartments = pd.concat([
+        first_pass_compartments,
+        second_pass_compartments,
+    ])
+    for k, v in idr_parameters.items():
+        compartments[k] = v
+
     logger.info('Writing outputs', context='write')
-    data_interface.save_ode_params(out_params, draw_id=draw_id)
-    data_interface.save_phis(ode_parameters.phis, draw_id=draw_id)
-    data_interface.save_input_epi_measures(epi_measures, draw_id=draw_id)
-    data_interface.save_rates(prior_rates, draw_id=draw_id)
-    data_interface.save_rates_data(rates_data, draw_id=draw_id)
-    data_interface.save_posterior_epi_measures(posterior_epi_measures, draw_id=draw_id)
-    data_interface.save_compartments(compartments, draw_id=draw_id)
-    data_interface.save_fit_beta(betas, draw_id=draw_id)
-    data_interface.save_final_seroprevalence(out_seroprevalence, draw_id=draw_id)
+    data_interface.save_ode_params(out_params, measure_version=measure, draw_id=draw_id)
+    data_interface.save_input_epi_measures(epi_measures, measure_version=measure, draw_id=draw_id)
+    data_interface.save_rates(prior_rates, measure_version=measure, draw_id=draw_id)
+    data_interface.save_rates_data(rates_data, measure_version=measure, draw_id=draw_id)
+    data_interface.save_posterior_epi_measures(posterior_epi_measures, measure_version=measure, draw_id=draw_id)
+    data_interface.save_fit_beta(betas, measure_version=measure, draw_id=draw_id)
+    data_interface.save_final_seroprevalence(out_seroprevalence, measure_version=measure, draw_id=draw_id)
+    data_interface.save_compartments(compartments, measure_version=measure, draw_id=draw_id)
 
     logger.report()
 
 
 @click.command()
 @cli_tools.with_task_fit_version
+@cli_tools.with_measure
 @cli_tools.with_draw_id
 @cli_tools.add_verbose_and_with_debugger
 @cli_tools.with_progress_bar
-def beta_fit(fit_version: str, draw_id: int,
+def beta_fit(fit_version: str, measure: str, draw_id: int,
              progress_bar: bool, verbose: int, with_debugger: bool):
     cli_tools.configure_logging_to_terminal(verbose)
     run = cli_tools.handle_exceptions(run_beta_fit, logger, with_debugger)
     run(fit_version=fit_version,
+        measure=measure,
         draw_id=draw_id,
         progress_bar=progress_bar)

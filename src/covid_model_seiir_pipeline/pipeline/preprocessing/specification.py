@@ -67,6 +67,7 @@ class PreprocessingData:
     output_root: str = field(default='')
     output_format: str = field(default='parquet')
     n_draws: int = field(default=100)
+    n_oversample_draws: int = field(default=25)
 
     run_counties: bool = field(init=False)
     drop_locations: list = field(default_factory=list)
@@ -130,6 +131,6 @@ class PreprocessingSpecification(utilities.Specification):
         spec = {
             'data': self.data.to_dict(),
             'workflow': self.workflow.to_dict(),
-            'seroprevalence_paramters': self.seroprevalence_parameters.to_dict()
+            'seroprevalence_parameters': self.seroprevalence_parameters.to_dict()
         }
         return spec
