@@ -143,6 +143,9 @@ def load_scaling_parameters(scenario: str, data_interface: 'PostprocessingDataIn
 
 def load_full_data_unscaled(data_interface: 'PostprocessingDataInterface') -> pd.DataFrame:
     full_data = data_interface.load_reported_epi_data().reset_index()
+    hierarchy = data_interface.load_hierarchy('pred')
+    most_detailed = hierarchy[hierarchy.most_detailed == 1].location_id.tolist()
+    full_data = full_data[full_data.location_id.isin(most_detailed)]
     full_data = full_data.set_index(['location_id', 'date'])
     return full_data
 
