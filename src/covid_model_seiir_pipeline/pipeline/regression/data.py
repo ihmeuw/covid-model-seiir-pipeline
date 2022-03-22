@@ -75,7 +75,7 @@ class RegressionDataInterface:
 
     def get_model_inputs_metadata(self):
         infection_metadata = self.get_infections_metadata()
-        return infection_metadata['model_inputs_metadata']
+        return infection_metadata['rates_metadata']['model_inputs_metadata']
 
     def get_n_draws(self) -> int:
         regression_spec = self.load_specification()
