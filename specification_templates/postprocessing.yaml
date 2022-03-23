@@ -1,5 +1,5 @@
 data:
-  seir_forecast_version: '2022_02_10.02'
+  seir_forecast_version: '2022_03_19.04'
   scenarios:
    - 'reference'
    - 'booster'
@@ -14,17 +14,21 @@ resampling:
   reference_date: '2022-07-01'
   lower_quantile: 0.025
   upper_quantile: 0.975
-#splicing:
-#  - locations:
-#      - 57  # Belarus
-#      - 72  # New Zealand
-#      - 8   # Taiwan
-#    output_version: '/ihme/covid-19/seir-outputs/2022_01_21.01'
-#  - locations:
-#      - 83  # Iceland
-#    output_version: '/ihme/covid-19/seir-outputs/2022_01_13.01'
+splicing:
+  - locations: 
+      - 37    # Kyrgyzstan
+      - 50    # Montenegro
+      - 121   # Bolivia
+      - 168   # Angola
+      - 4647  # Coahuila
+      - 175   # Burundi
+      - 214   # Nigeria
+      - 204   # Chad
+      - 201   # Burkina Faso
+      - 4868  # Rajasthan 
+    output_version: '/ihme/covid-19/seir-outputs/2022_02_17.02'
 aggregation:
-  - location_file: '/ihme/covid-19/seir-outputs/agg-hierarchies/modeling.csv'
+  - location_file: '/ihme/covid-19/model-inputs/2022_03_09.04/locations/modeling_hierarchy.csv'
   - location_file: '/ihme/covid-19/seir-outputs/agg-hierarchies/who_plus_palestine.csv'
   - location_file: '/ihme/covid-19/seir-outputs/agg-hierarchies/who_euro.csv'
   - location_file: '/ihme/covid-19/seir-outputs/agg-hierarchies/world_bank.csv'

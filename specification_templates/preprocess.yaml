@@ -1,31 +1,32 @@
 data:
-  mr_location_set_version_id: 1009
+  mr_location_set_version_id: 1020
   mr_location_set_file: ''
-  pred_location_set_version_id: 1009
-  model_inputs_version: '2022_02_03.02'
-  age_specific_rates_version: '2021_10_15.01'
-  mortality_scalars_version: '2021_12_17.01'
-  mask_use_outputs_version: '2022_01_26.15'
-  mobility_covariate_version: '2022_02_01.03'
+  pred_location_set_version_id: 1020
+  model_inputs_version: '2022_03_17.01'
+  age_specific_rates_version: '2022_02_11.03'
+  mortality_scalars_version: '2022_03_16.01'
+  mask_use_outputs_version: '2022_03_17.01'
+  mobility_covariate_version: '2022_03_07.03'
   pneumonia_version: '2020_06_12.03'
   population_density_version: '2020_05_20.07'
-  testing_outputs_version: '2022_01_31.01'
+  testing_outputs_version: '2022_03_07.01'
   variant_scaleup_version: '2022_01_03.01'
-  vaccine_coverage_version: '2022_02_03.06'
-  serology_vaccine_coverage_version: '2022_01_31.03'
+  vaccine_coverage_version: '2022_03_11.06'
+  serology_vaccine_coverage_version: '2022_03_07.02'
   vaccine_efficacy_version: '2021_12_19.01'
   vaccine_scenarios:
     - 'reference'
     - 'booster'
-    # - 'probably_no'
+    - 'probably_no'
   output_root: ''
   output_format: 'csv'
   n_draws: 100
+  n_oversample_draws: 50
   drop_locations: []
 seroprevalence_parameters:
-  correlate_samples: True
-  bootstrap_samples: True
+  correlate_samples: False
+  bootstrap_samples: False
   vax_sero_prob: 0.9
 workflow:
   project: 'proj_covid_prod'
-  queue: 'd.q'
+  queue: 'all.q'

@@ -4,9 +4,9 @@ import pandas as pd
 import numpy as np
 
 from covid_model_seiir_pipeline.lib import math
-from covid_model_seiir_pipeline.pipeline.fit.model.mrbrt import cascade
-from covid_model_seiir_pipeline.pipeline.fit.model import age_standardization
-from covid_model_seiir_pipeline.pipeline.fit.model.covariate_priors import (
+from covid_model_seiir_pipeline.pipeline.fit.model.rates import age_standardization
+from covid_model_seiir_pipeline.pipeline.fit.model.rates.mrbrt import cascade
+from covid_model_seiir_pipeline.pipeline.fit.model.rates.covariate_priors import (
     get_covariate_priors,
     get_covariate_constraints,
 )
@@ -64,8 +64,8 @@ def run_model(model_data: pd.DataFrame,
     pred_replace_dict = {}
     pred_exclude_vars = []
     level_lambdas = {
-        0: {'intercept':   2., 'variant_prevalence': 1., **covariate_lambdas_tight},  # G->SR
-        1: {'intercept':   2., 'variant_prevalence': 1., **covariate_lambdas_tight},  # SR->R
+        0: {'intercept':   3., 'variant_prevalence': 1., **covariate_lambdas_tight},  # G->SR
+        1: {'intercept':   3., 'variant_prevalence': 1., **covariate_lambdas_tight},  # SR->R
         2: {'intercept': 100., 'variant_prevalence': 1., **covariate_lambdas_loose},  # R->A0
         3: {'intercept': 100., 'variant_prevalence': 1., **covariate_lambdas_loose},  # A0->A1
         4: {'intercept': 100., 'variant_prevalence': 1., **covariate_lambdas_loose},  # A1->A2

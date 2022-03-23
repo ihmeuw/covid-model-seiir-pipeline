@@ -2,22 +2,29 @@ data:
   output_root: ''
 workflow:
   project: 'proj_covid_prod'
-  queue: 'd.q'
+  queue: 'all.q'
 grid_plots:
   - name: 'compare_longrange'
     date_start: '2020-03-01'
-    date_end: '2022-12-31'
+    date_end: '2023-12-31'
     comparators:
-    - version: '2022_02_08.03'
+    - version: '2022_02_22.01'
+      scenarios:
+        reference*: 'public reference'
+    - version: '2022_03_19.03'
       scenarios:
         reference*: 'reference'
-    - version: '2022_02_08.02'
+        best_masks: 'best_masks'
+        booster: 'booster'
+  - name: 'compare_shortrange'
+    date_start: '2020-03-01'
+    date_end: '2022-07-31'
+    comparators:
+    - version: '2022_02_22.01'
       scenarios:
-        reference*: 'no new variant'
-    - version: '2022_02_08.04'
+        reference*: 'public reference'
+    - version: '2022_03_19.03'
       scenarios:
-        reference*: 'delta 2'
-    - version: '2022_02_10.01'
-      scenarios:
-        reference*: 'deltacron'
-
+        reference*: 'reference'
+        best_masks: 'best_masks'
+        booster: 'booster'

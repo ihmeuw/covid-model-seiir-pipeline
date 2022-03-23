@@ -77,6 +77,13 @@ class PreprocessingDataInterface:
         specification = self.load_specification()
         return specification.data.n_draws
 
+    def get_n_oversample_draws(self) -> int:
+        specification = self.load_specification()
+        return specification.data.n_oversample_draws
+
+    def get_n_total_draws(self):
+        return self.get_n_draws() + self.get_n_oversample_draws()
+
     #########################
     # Raw location handling #
     #########################
@@ -253,6 +260,7 @@ class PreprocessingDataInterface:
                 'reference': 'mask_use_relaxed',
                 'best': 'mask_use_best',
                 'worse': 'mask_use_worse',
+                'relaxed': 'mask_use_relaxed',
             }[scenario]
         except KeyError:
             raise ValueError(f'Unknown mask use scenario {scenario}.')

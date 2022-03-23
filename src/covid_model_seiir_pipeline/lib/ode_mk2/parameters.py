@@ -191,6 +191,8 @@ def compute_base_rates(parameters: np.ndarray,
         count = parameters[PARAMETERS[EPI_PARAMETER.count, VARIANT_GROUP.all, epi_measure]]
         if np.abs(count - TOMBSTONE) > 1e-8:
             base_rates[BASE_RATES[epi_measure]] = count / total_variant_weight[VARIANT_WEIGHTS[epi_measure]]
+        else:
+            base_rates[BASE_RATES[epi_measure]] = parameters[PARAMETERS[EPI_PARAMETER.rate, VARIANT_GROUP.all, epi_measure]]
     return base_rates
 
 

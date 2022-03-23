@@ -28,12 +28,13 @@ def run_preprocess_serology(preprocessing_version: str, progress_bar: bool) -> N
 
     logger.info('Loading raw serology input data', context='read')
     raw_seroprevalence = data_interface.load_raw_serology_data()
+    hierarchy = data_interface.load_hierarchy('mr').reset_index()
     vaccine_data = data_interface.load_serology_vaccine_coverage()
     population = data_interface.load_population(measure='five_year')
     assay_map = data_interface.load_assay_map()
 
     logger.info('Cleaning serology input data', context='transform')
-    seroprevalence = serology.process_raw_serology_data(raw_seroprevalence)
+    seroprevalence = serology.process_raw_serology_data(raw_seroprevalence, hierarchy)
     seroprevalence = serology.assign_assay(seroprevalence, assay_map)
     vaccinated = serology.get_pop_vaccinated(population, vaccine_data)
     vaccinated['vaccinated'] *= specification.seroprevalence_parameters.vax_sero_prob
@@ -41,7 +42,7 @@ def run_preprocess_serology(preprocessing_version: str, progress_bar: bool) -> N
     logger.info('Sampling seroprevalence', context='model')
     seroprevalence_samples = serology.sample_seroprevalence(
         seroprevalence,
-        n_samples=data_interface.get_n_draws(),
+        n_samples=data_interface.get_n_total_draws(),
         bootstrap_samples=specification.seroprevalence_parameters.bootstrap_samples,
         correlate_samples=specification.seroprevalence_parameters.correlate_samples,
         num_threads=num_cores,

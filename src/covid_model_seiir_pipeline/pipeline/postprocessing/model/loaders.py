@@ -143,8 +143,10 @@ def load_scaling_parameters(scenario: str, data_interface: 'PostprocessingDataIn
 
 def load_full_data_unscaled(data_interface: 'PostprocessingDataInterface') -> pd.DataFrame:
     full_data = data_interface.load_reported_epi_data().reset_index()
-    location_ids = data_interface.load_location_ids()
-    full_data = full_data[full_data.location_id.isin(location_ids)].set_index(['location_id', 'date'])
+    hierarchy = data_interface.load_hierarchy('pred')
+    most_detailed = hierarchy[hierarchy.most_detailed == 1].location_id.tolist()
+    full_data = full_data[full_data.location_id.isin(most_detailed)]
+    full_data = full_data.set_index(['location_id', 'date'])
     return full_data
 
 
@@ -152,14 +154,19 @@ def load_total_covid_deaths(scenario: str, data_interface: 'PostprocessingDataIn
     full_data = load_full_data_unscaled(data_interface)
     deaths = full_data['cumulative_deaths'].dropna()
     deaths = deaths.groupby('location_id').diff().fillna(deaths)
-    mortality_scalars = data_interface.load_total_covid_scalars().loc[deaths.index]
+    n_draws = data_interface.get_n_draws()
+    mortality_scalars = data_interface.load_total_covid_scalars()
+    mortality_scalars = (mortality_scalars
+                         .iloc[:, :n_draws]
+                         .reindex(deaths.index)
+                         .groupby('location_id')
+                         .ffill()
+                         .groupby('location_id')
+                         .bfill()
+                         .fillna(1.0))
     scaled_deaths = mortality_scalars.mul(deaths, axis=0).groupby('location_id').cumsum().fillna(0.0)
     scaled_deaths.columns = [int(c.split('_')[1]) for c in scaled_deaths]
     return scaled_deaths
-
-
-def build_version_map(data_interface: 'PostprocessingDataInterface') -> pd.Series:
-    return data_interface.build_version_map()
 
 
 def load_populations(data_interface: 'PostprocessingDataInterface'):

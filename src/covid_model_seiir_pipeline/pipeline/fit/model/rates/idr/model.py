@@ -4,11 +4,11 @@ import pandas as pd
 import numpy as np
 
 from covid_model_seiir_pipeline.lib import math
-from covid_model_seiir_pipeline.pipeline.fit.model.covariate_priors import (
+from covid_model_seiir_pipeline.pipeline.fit.model.rates.covariate_priors import (
     get_covariate_priors,
     get_covariate_constraints,
 )
-from covid_model_seiir_pipeline.pipeline.fit.model.mrbrt import cascade
+from covid_model_seiir_pipeline.pipeline.fit.model.rates.mrbrt import cascade
 
 
 def run_model(model_data: pd.DataFrame,
@@ -51,12 +51,12 @@ def run_model(model_data: pd.DataFrame,
     }
     pred_exclude_vars = []
     level_lambdas = {
-        0: {'intercept':  1., 'log_infwavg_testing_rate_capacity':   2., **covariate_lambdas_tight},  # G->SR
-        1: {'intercept':  1., 'log_infwavg_testing_rate_capacity':   2., **covariate_lambdas_tight},  # SR->R
-        2: {'intercept': 10., 'log_infwavg_testing_rate_capacity': 100., **covariate_lambdas_loose},  # R->A0
-        3: {'intercept': 10., 'log_infwavg_testing_rate_capacity': 100., **covariate_lambdas_loose},  # A0->A1
-        4: {'intercept': 10., 'log_infwavg_testing_rate_capacity': 100., **covariate_lambdas_loose},  # A1->A2
-        5: {'intercept': 10., 'log_infwavg_testing_rate_capacity': 100., **covariate_lambdas_loose},  # A2->A3
+        0: {'intercept':   3., 'log_infwavg_testing_rate_capacity':   3., **covariate_lambdas_tight},  # G->SR
+        1: {'intercept':   3., 'log_infwavg_testing_rate_capacity':   3., **covariate_lambdas_tight},  # SR->R
+        2: {'intercept': 100., 'log_infwavg_testing_rate_capacity': 100., **covariate_lambdas_loose},  # R->A0
+        3: {'intercept': 100., 'log_infwavg_testing_rate_capacity': 100., **covariate_lambdas_loose},  # A0->A1
+        4: {'intercept': 100., 'log_infwavg_testing_rate_capacity': 100., **covariate_lambdas_loose},  # A1->A2
+        5: {'intercept': 100., 'log_infwavg_testing_rate_capacity': 100., **covariate_lambdas_loose},  # A2->A3
     }
     
     if var_args['group_var'] != 'location_id':

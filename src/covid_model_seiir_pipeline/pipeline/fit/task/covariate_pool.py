@@ -14,7 +14,7 @@ def run_covariate_pool(fit_version: str) -> None:
     logger.info('Starting beta fit.', context='setup')
     specification = FitSpecification.from_version_root(fit_version)
     data_interface = FitDataInterface.from_specification(specification)
-    n_samples = data_interface.get_n_draws()
+    n_samples = data_interface.get_n_total_draws()
 
     logger.info('Loading covariate data', context='read')
     # ... load covariates and first pass ifr data if needed here ...
