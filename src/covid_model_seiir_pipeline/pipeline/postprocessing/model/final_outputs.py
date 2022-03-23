@@ -719,10 +719,10 @@ MISCELLANEOUS = {
         loaders.load_vaccine_efficacy_table,
         'vaccine_efficacy_table',
     ),
-    'version_map': MiscellaneousConfig(
-        loaders.build_version_map,
-        'version_map',
-    ),
+#    'version_map': MiscellaneousConfig(
+#        loaders.build_version_map,
+#        'version_map',
+#    ),
     'populations': MiscellaneousConfig(
         loaders.load_populations,
         'populations',

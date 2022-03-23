@@ -17,7 +17,7 @@ class YamlIOMixin:
 
     @staticmethod
     def _coerce_path(path: Union[str, Path]) -> Path:
-        path = Path(path)
+        path = Path(str(path).replace('/mnt/share', '/ihme').replace('covid-19-2', 'covid-19'))
         if path.suffix not in ['.yaml', '.yml']:
             raise ValueError('Path must point to a yaml file. '
                              f'You provided {str(path)}')

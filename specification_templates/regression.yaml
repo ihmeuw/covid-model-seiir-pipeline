@@ -1,16 +1,16 @@
 data:
-  infection_version: '2021_10_13.05'
-  covariate_version: '2021_10_13.02'
+  infection_version: '2022_03_02.02'
+  covariate_version: '2022_03_21.05'
   coefficient_version: ''
   priors_version: '2021_05_31.01'
-  location_set_version_id: '/ihme/covid-19/model-inputs/best/locations/modeling_hierarchy.csv'
+  location_set_version_id: '/ihme/covid-19/model-inputs/2022_03_02.03/locations/gbd_analysis_hierarchy.csv'
   output_root: ''
   output_format: 'parquet'
   n_draws: 100
-  drop_locations: [] 
+  drop_locations: [191, 44906, 44911, 44914, 44917, 44922, 44923, 44925, 44927, 44937, 44938, 44946, 44947, 44949, 44952, 44953, 44956, 44958, 44970] 
 workflow:
   project: 'proj_covid_prod'
-  queue: 'd.q'
+  queue: 'all.q'
 regression_parameters:
   # Mixing parameter.  dS/dt = -beta * S * I ** alpha
   alpha: [0.9, 1.0]

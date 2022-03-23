@@ -34,7 +34,7 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
     forecast_start_dates = past_infections.reset_index().groupby('location_id').date.max()
     # Forecast is run to the end of the covariates
     covariates = data_interface.load_covariates(scenario_spec.covariates)
-    forecast_end_dates = covariates.reset_index().groupby('location_id').date.max()
+    forecast_end_dates = covariates.reset_index().groupby('location_id').date.max().reindex(forecast_start_dates.index, fill_value=pd.Timestamp('2023-01-01'))
     population = data_interface.load_five_year_population().groupby('location_id').population.sum()
 
     logger.info('Building indices', context='transform')

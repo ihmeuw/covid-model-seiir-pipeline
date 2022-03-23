@@ -65,7 +65,7 @@ def get_input_root(cli_argument: Optional[str], specification_value: Optional[st
     """
     version = _get_argument_hierarchically(cli_argument, specification_value, paths.BEST_LINK)
     root = cli_tools.get_last_stage_directory(version, last_stage_root=last_stage_root)
-    return root.resolve()
+    return root
 
 
 def get_output_root(cli_argument: Optional[str], specification_value: Optional[str]) -> Path:

@@ -274,6 +274,17 @@ class RegressionDataInterface:
         em_scalars = io.load(self.infection_root.em_scalars())
         em_scalars = em_scalars.set_index('draw', append=True).unstack()
         em_scalars.columns = em_scalars.columns.droplevel().rename(None)
+        try:
+            india = em_scalars.loc[161].reset_index()
+        except KeyError:
+            india = em_scalars.loc[4849].reset_index()  # Use delhi
+        dfs = []
+        for location_id in [44539, 44540]:
+            loc_df = india.copy()
+            loc_df['location_id'] = location_id
+            loc_df = loc_df.set_index(['location_id', 'date'])
+            dfs.append(loc_df)
+        em_scalars = pd.concat([em_scalars, *dfs]).sort_index()
         assert em_scalars.index.duplicated().sum() == 0
         return em_scalars.loc[location_ids]
 
