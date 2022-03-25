@@ -8,9 +8,18 @@ grid_plots:
     date_start: '2020-03-01'
     date_end: '2022-01-01'
     comparators:
-      - version: &public '2022_03_23.06'
+      - version: &public '2022_03_24.09'
         scenarios:
           reference*: 'data informed'
-      - version: &new '2022_03_23.07'
+      - version: &new '2022_03_24.08'
         scenarios:
           reference*: 'parent inheritance'
+      - version: '2022_03_02.06'
+        scenarios:
+          reference: 'IES submission'
+      - version: '2022_03_24.04'
+        scenarios:
+          reference: 'Raking version'
+      - version: '2022_03_24.12'
+        scenarios:
+          reference*: 'GBD final'

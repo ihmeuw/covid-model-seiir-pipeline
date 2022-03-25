@@ -150,7 +150,7 @@ class RegressionDataInterface:
 
     def load_population(self) -> pd.DataFrame:
         metadata = self.get_model_inputs_metadata()
-        model_inputs_version = metadata['output_path']
+        model_inputs_version = metadata['output_path'].replace('covid-19-2', 'covid-19')
         population_path = Path(model_inputs_version) / 'output_measures' / 'population' / 'all_populations.csv'
         population_data = pd.read_csv(population_path)
         return population_data
@@ -184,7 +184,7 @@ class RegressionDataInterface:
     def load_full_data_unscaled(self) -> pd.DataFrame:
         regression_spec = self.load_specification()
         metadata = self.get_model_inputs_metadata()
-        model_inputs_version = metadata['output_path']
+        model_inputs_version = metadata['output_path'].replace('covid-19-2', 'covid-19')
         if regression_spec.data.run_counties:
             full_data_path = Path(model_inputs_version) / 'full_data_fh_subnationals_unscaled.csv'
         else:
@@ -227,7 +227,7 @@ class RegressionDataInterface:
     def load_hospital_census_data(self) -> 'HospitalCensusData':
         metadata = self.get_model_inputs_metadata()
 
-        model_inputs_path = Path(metadata['output_path'])
+        model_inputs_path = Path(metadata['output_path'].replace('covid-19-2', 'covid-19'))
         corrections_data = {}
         file_map = (
             ('hospitalizations', 'hospital_census'),
@@ -249,7 +249,7 @@ class RegressionDataInterface:
 
     def load_hospital_bed_capacity(self) -> pd.DataFrame:
         metadata = self.get_model_inputs_metadata()
-        model_inputs_path = Path(metadata['output_path'])
+        model_inputs_path = Path(metadata['output_path'].replace('covid-19-2', 'covid-19'))
         path = model_inputs_path / 'hospital_capacity.csv'
         return pd.read_csv(path)
 
@@ -280,6 +280,8 @@ class RegressionDataInterface:
             india = em_scalars.loc[4849].reset_index()  # Use delhi
         dfs = []
         for location_id in [44539, 44540]:
+            if location_id in em_scalars.reset_index().location_id.unique():
+                continue
             loc_df = india.copy()
             loc_df['location_id'] = location_id
             loc_df = loc_df.set_index(['location_id', 'date'])
