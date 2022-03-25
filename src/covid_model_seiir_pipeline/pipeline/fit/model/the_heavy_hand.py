@@ -32,9 +32,11 @@ def rescale_kappas(measure: str,
             'alpha': [
                 (   33,  3.0),  # Armenia
                 (   61,  3.0),  # Moldova
+                (  121,  3.0),  # Bolivia
                 (  168, 30.0),  # Angola
             ],
             'gamma': [
+                (  121,  3.0),  # Bolivia
                 ( 4757,  3.0),  # Espirito Santo
                 ( 4764,  3.0),  # Paraiba
                 ( 4771,  2.0),  # Roraima
@@ -47,6 +49,7 @@ def rescale_kappas(measure: str,
                 (   50,  3.0),  # Montenegro
                 (   61,  3.0),  # Moldova
                 (   62,  2.0),  # Russia
+                (  121,  3.0),  # Bolivia
                 ( 4644,  2.0),  # Baja California
                 ( 4647,  2.0),  # Coahuila
                 ( 4653,  2.0),  # Guanajuato
@@ -111,10 +114,9 @@ def rescale_kappas(measure: str,
                 (60363,  2.0),  # Balearic Islands
                 (60367,  2.0),  # Canary Islands
                 (60370,  2.0),  # Navarre
-                (  121,  1.2),  # Bolivia
                 (  122,  0.8),  # Ecuador
                 ( 4644,  2.0),  # Baja California
-                ( 4647,  4.0),  # Coahuila
+                ( 4647,  2.0),  # Coahuila
                 ( 4653,  2.0),  # Guanajuato
                 ( 4665,  2.0),  # Quintana Roo
                 ( 4667,  2.0),  # Sinaloa
@@ -141,16 +143,17 @@ def rescale_kappas(measure: str,
                 ( 4863, 40.0),  # Mizoram
                 ( 4845,  5.0),  # Chandigarh
                 ( 4858,  4.0),  # Lakshadweep
-                ( 4866, 12.0),  # Puducherry
+                ( 4866, 10.0),  # Puducherry
                 ( 4869,  3.0),  # Sikkim
                 (53617,  0.8),  # Gilgit-Baltistan
                 (53619,  2.0),  # Khyber Pakhtunkhwa
                 (  351,  5.0),  # Guam
                 (   14,  1.5),  # Maldives
                 (  186,  3.0),  # Seychelles
-                (  168, 10.0),  # Angola
+                (  168, 20.0),  # Angola
                 (  169,  1.5),  # Central African Republic
                 (  171,  5.0),  # DRC
+                (  175,  0.5),  # Burundi
                 (  181,  2.0),  # Madagascar
                 (  187,  0.8),  # Somalia
                 (  198,  1.2),  # Zimbabwe
@@ -158,7 +161,7 @@ def rescale_kappas(measure: str,
                 (  204,  0.5),  # Chad
                 (  202,  0.8),  # Cameroon
                 (  211,  2.0),  # Mali
-                (  214,  0.8),  # Nigeria
+                (  214,  0.5),  # Nigeria
             ]
         }
         # IDR = p_s * IDR_s + p_a * IDR_a
@@ -236,7 +239,7 @@ def rescale_kappas(measure: str,
                 (60373,  2.0),  # Melilla
                 (  126,  2.0),  # Costa Rica
                 ( 4644,  2.0),  # Baja California
-                ( 4647,  4.0),  # Coahuila
+                ( 4647,  6.0),  # Coahuila
                 ( 4652,  2.0),  # Durango
                 ( 4653,  3.0),  # Guanajuato
                 ( 4655,  2.0),  # Hidalgo
@@ -273,6 +276,7 @@ def rescale_kappas(measure: str,
         ifr_scaling_factors = {
             'alpha': [
                 (   34,  5.0),  # Azerbaijan
+                (   37,  5.0),  # Kyrgyzstan
                 (   43,  5.0),  # Albania
                 (   45,  3.0),  # Bulgaria
                 (   49,  3.0),  # North Macedonia
@@ -305,7 +309,7 @@ def rescale_kappas(measure: str,
                 (   34,  5.0),  # Azerbaijan
                 (   35,  3.0),  # Georgia
                 (   36, 10.0),  # Kazakhstan
-                (   37,  3.0),  # Kyrgyzstan
+                (   37,  5.0),  # Kyrgyzstan
                 (   38,  2.0),  # Mongolia
                 (   41,  2.0),  # Uzbekistan
                 (   43,  5.0),  # Albania
@@ -345,7 +349,7 @@ def rescale_kappas(measure: str,
                 ( 4863,  2.0),  # Mizoram
                 ( 4864,  2.0),  # Nagaland
                 ( 4845,  3.0),  # Chandigarh
-                ( 4866,  3.0),  # Puducherry
+                ( 4866,  2.0),  # Puducherry
                 ( 4874,  2.0),  # Uttarakhand
                 (53617,  2.0),  # Gilgit-Baltistan
                 (53619,  5.0),  # Khyber Pakhtunkhwa
@@ -379,7 +383,7 @@ def rescale_kappas(measure: str,
                 (   34, 20.0),  # Azerbaijan
                 (   35, 25.0),  # Georgia
                 (   36, 10.0),  # Kazakhstan
-                (   37,  8.0),  # Kyrgyzstan
+                (   37, 10.0),  # Kyrgyzstan
                 (   38,  2.0),  # Mongolia
                 (   41,  3.0),  # Uzbekistan
                 (   43, 10.0),  # Albania
@@ -457,7 +461,7 @@ def rescale_kappas(measure: str,
                 ( 4643,  2.0),  # Aguascalientes
                 ( 4644,  5.0),  # Baja California
                 ( 4645,  2.0),  # Baja California do Sur
-                ( 4647,  4.0),  # Coahuila
+                ( 4647,  6.0),  # Coahuila
                 ( 4653,  2.0),  # Guanajuato
                 ( 4656,  2.0),  # Jalisco
                 ( 4657,  2.0),  # Mexico state
@@ -523,7 +527,7 @@ def rescale_kappas(measure: str,
                 ( 4864,  2.0),  # Nagaland
                 ( 4865,  3.0),  # Odisha
                 ( 4845,  5.0),  # Chandigarh
-                ( 4866,  4.0),  # Puducherry
+                ( 4866,  2.0),  # Puducherry
                 ( 4867,  2.0),  # Punjab
                 ( 4868,  1.5),  # Rajasthan
                 ( 4872,  2.0),  # Tripura
@@ -540,7 +544,7 @@ def rescale_kappas(measure: str,
                 (  351,  3.0),  # Guam
                 (   11,  1.5),  # Indonesia
                 (   13,  1.5),  # Malaysia
-                (  168,  3.0),  # Angola
+                (  168,  5.0),  # Angola
                 (  169,  3.0),  # Central African Republic
                 (  170,  3.0),  # Congo
                 (  171,  5.0),  # DRC
