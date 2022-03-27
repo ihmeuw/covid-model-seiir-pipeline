@@ -106,7 +106,7 @@ class RegressionDataInterface:
         directory.
         """
         regression_spec = self.load_specification()
-        death_threshold = 10 if regression_spec.data.run_counties else 5
+        death_threshold = 0 #10 if regression_spec.data.run_counties else 5
 
         draw_0_data = self.load_full_past_infection_data(draw_id=0)
         total_deaths = draw_0_data.groupby('location_id').deaths.sum()

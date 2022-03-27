@@ -1,5 +1,5 @@
 data:
-  infection_version: '2022_03_23.03'
+  infection_version: '2022_03_23.02'
   covariate_version: '2022_03_23.04'
   coefficient_version: ''
   priors_version: '2021_05_31.01'
@@ -8,8 +8,7 @@ data:
   output_root: ''
   output_format: 'parquet'
   n_draws: 100
-#  drop_locations: [191, 43894, 43930, 44906, 44907, 44911, 44914, 44922, 44927, 44938, 44946, 44947, 44949, 44950, 44956, 44958, 44966, 44970]
-  drop_locations: [191, 43874]
+  drop_locations: [191, 505, 518, 298, 25, 380, 43894, 43930, 44906, 44907, 44911, 44914, 44922, 44923, 44927, 44938, 44946, 44947, 44949, 44950, 44956, 44958, 44966, 44970]
 workflow:
   project: 'proj_covid_prod'
   queue: 'all.q'
