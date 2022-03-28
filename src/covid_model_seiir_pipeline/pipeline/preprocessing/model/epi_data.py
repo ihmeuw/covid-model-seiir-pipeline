@@ -89,6 +89,7 @@ def evil_doings(data: pd.DataFrame, hierarchy: pd.DataFrame, input_measure: str)
     if input_measure in ['cases', 'hospitalizations', 'deaths']:
         drop_all = {
             # Non-public locs with bad performance
+            7: 'north_korea',
             23: 'kiribati',
             24: 'marshall_islands',
             25: 'micronesia',
@@ -96,12 +97,18 @@ def evil_doings(data: pd.DataFrame, hierarchy: pd.DataFrame, input_measure: str)
             28: 'solomon_islands',
             29: 'tonga',
             30: 'vanuatu',
+            40: 'turkmenistan',
             66: 'brunei_darussalam',
             176: 'comoros',
             298: 'american_samoa',
+            320: 'cook_islands',
             349: 'greenland',
+            369: 'nauru',
+            374: 'niue',
             376: 'northern_mariana_islands',
             380: 'palua',
+            413: 'tokelau',
+            416: 'tuvalu',
             43867: 'prince_edward_island',
             # Just terrible data
             39: 'tajikistan',
