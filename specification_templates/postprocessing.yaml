@@ -13,19 +13,6 @@ resampling:
   reference_date: '2022-07-01'
   lower_quantile: 0.025
   upper_quantile: 0.975
-splicing:
-  - locations: 
-      - 37    # Kyrgyzstan
-      # - 50    # Montenegro
-      - 121   # Bolivia
-      - 168   # Angola
-      # - 4647  # Coahuila
-      # - 175   # Burundi
-      # - 214   # Nigeria
-      # - 204   # Chad
-      # - 201   # Burkina Faso
-      # - 4868  # Rajasthan
-    output_version: '/ihme/covid-19/seir-outputs/2022_02_17.02'
 aggregation:
   - location_file: '/ihme/covid-19/model-inputs/2022_03_09.04/locations/modeling_hierarchy.csv'
   - location_file: '/ihme/covid-19/seir-outputs/agg-hierarchies/who_plus_palestine.csv'
