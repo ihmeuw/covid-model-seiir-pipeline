@@ -86,10 +86,12 @@ def sample_variant_severity(params: RatesParameters, draw_id: int) -> VariantRR:
             value = sample_parameter(f'omicron_{ratio}_scalar', draw_id, *omicron_spec)
         rrs[f'omicron_{ratio}'] = rrs[ratio] * value
 
-        if params['omega_like_omicron']:
-            rrs[f'omega_{ratio}'] = rrs[f'omicron_{ratio}']
-        else:
-            rrs[f'omega_{ratio}'] = rrs[ratio]
+        omega_severity = params['omega_severity_parameterization']
+        rrs[f'omega_{ratio}'] = {
+            'delta': rrs[ratio],
+            'omicron': rrs[f'omicron_{ratio}'],
+            'average': 1/2 * (rrs[ratio] + rrs[f'omicron_{ratio}']),
+        }[omega_severity]
 
     return VariantRR(**rrs)
 
