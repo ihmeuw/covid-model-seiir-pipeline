@@ -8,23 +8,12 @@ grid_plots:
     date_start: '2020-03-01'
     date_end: '2023-12-31'
     comparators:
-    - version: '2022_02_22.01'
+    - version: '2022_03_19.04'
       scenarios:
-        reference*: 'public reference'
-    - version: '2022_03_19.03'
+        reference*: 'pre-splice'
+    - version: '2022_03_21.01'
       scenarios:
-        reference*: 'reference'
-        best_masks: 'best_masks'
-        booster: 'booster'
-  - name: 'compare_shortrange'
-    date_start: '2020-03-01'
-    date_end: '2022-07-31'
-    comparators:
-    - version: '2022_02_22.01'
+        reference*: 'post-splice'
+    - version: '2022_03_28.02'
       scenarios:
-        reference*: 'public reference'
-    - version: '2022_03_19.03'
-      scenarios:
-        reference*: 'reference'
-        best_masks: 'best_masks'
-        booster: 'booster'
+        reference*: 'pre-splice revised'
