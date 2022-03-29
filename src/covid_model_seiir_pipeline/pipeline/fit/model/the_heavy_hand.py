@@ -32,7 +32,6 @@ def rescale_kappas(measure: str,
             'ancestral': [
                 (   37,  5.0),  # Kyrgyzstan
                 (  168,  1.5),  # Angola
-                (  175,  0.5),  # Burundi
                 (  214,  0.5),  # Nigeria
             ],
             'alpha': [
@@ -41,7 +40,6 @@ def rescale_kappas(measure: str,
                 (   61,  3.0),  # Moldova
                 (  121,  3.0),  # Bolivia
                 (  168, 50.0),  # Angola
-                (  175,  0.5),  # Burundi
             ],
             'gamma': [
                 (  121,  3.0),  # Bolivia
@@ -83,7 +81,6 @@ def rescale_kappas(measure: str,
                 (  168, 30.0),  # Angola
                 (  169,  2.0),  # Central African Republic
                 (  171,  2.0),  # DRC
-                (  175,  0.5),  # Burundi
                 (  181,  2.0),  # Madagascar
                 (  214,  0.2),  # Nigeria
             ],
@@ -164,7 +161,6 @@ def rescale_kappas(measure: str,
                 (  168, 30.0),  # Angola
                 (  169,  1.5),  # Central African Republic
                 (  171,  5.0),  # DRC
-                (  175,  0.5),  # Burundi
                 (  181,  2.0),  # Madagascar
                 (  187,  0.8),  # Somalia
                 (  198,  1.2),  # Zimbabwe
@@ -288,7 +284,6 @@ def rescale_kappas(measure: str,
             'ancestral': [
                 (   37,  1.5),  # Kyrgyzstan
                 (  121,  3.0),  # Bolivia
-                (  175,  0.5),  # Burundi
             ],
             'alpha': [
                 (   34,  5.0),  # Azerbaijan
@@ -300,7 +295,6 @@ def rescale_kappas(measure: str,
                 (  160,  3.0),  # Afghanistan
                 (  141,  2.0),  # Egypt
                 (  143,  2.0),  # Iraq
-                (  175,  0.5),  # Burundi
                 (  187,  5.0),  # Somalia
                 (  173,  5.0),  # Gabon
             ],
@@ -375,7 +369,6 @@ def rescale_kappas(measure: str,
                 (  169,  2.0),  # Central African Republic
                 (  170,  2.0),  # Congo
                 (  173,  3.0),  # Gabon
-                (  175,  0.5),  # Burundi
                 (  181,  2.0),  # Madagascar
                 (  182,  2.0),  # Malawi
                 (  184,  3.0),  # Mozambique
@@ -566,7 +559,6 @@ def rescale_kappas(measure: str,
                 (  171,  5.0),  # DRC
                 (  172,  3.0),  # Equatorial Guinea
                 (  173,  5.0),  # Gabon
-                (  175,  0.5),  # Burundi
                 (  178,  2.0),  # Eritrea
                 (  179,  2.0),  # Ethiopia
                 (  180,  5.0),  # Kenya
