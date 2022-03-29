@@ -156,8 +156,8 @@ def run_beta_fit(fit_version: str, measure: str, draw_id: int, progress_bar: boo
         'omicron': lambda m: sampled_ode_params[f'kappa_omicron_{m}'],
         'average': lambda m: 1 / 2 * (sampled_ode_params[f'kappa_delta_{m}'] + sampled_ode_params[f'kappa_omicron_{m}']),
     }[omega_severity]
-    for measure in ['case', 'admission', 'death']:
-        sampled_ode_params[f'kappa_omega_{measure}'] = severity_calc(measure)
+    for m in ['case', 'admission', 'death']:
+        sampled_ode_params[f'kappa_omega_{m}'] = severity_calc(m)
 
     pct_unvaccinated = (
         (agg_first_pass_posterior_epi_measures['cumulative_naive_unvaccinated_infections']
