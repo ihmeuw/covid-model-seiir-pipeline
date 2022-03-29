@@ -62,7 +62,7 @@ def run_grid_plots(diagnostics_version: str, name: str, progress_bar: bool) -> N
             deaths = pv.load_output_summaries('daily_deaths').reset_index()
             modeled_locs |= set(hierarchy.loc[hierarchy.location_id.isin(deaths.location_id.unique()),
                                               ['location_id', 'location_name']].itertuples())
-        locs_to_plot = [model.Location(loc_id, loc_name) for loc_id, loc_name in modeled_locs]
+        locs_to_plot = [model.Location(modeled_loc.location_id, modeled_loc.location_name) for modeled_loc in modeled_locs]
 
         logger.info('Starting plots', context='make_plots')
         _runner = functools.partial(
@@ -72,7 +72,6 @@ def run_grid_plots(diagnostics_version: str, name: str, progress_bar: bool) -> N
             date_end=pd.to_datetime(grid_plot_spec.date_end),
             output_dir=plot_cache,
         )
-        _runner(locs_to_plot[111])
         num_cores = diagnostics_spec.workflow.task_specifications['grid_plots'].num_cores
         with multiprocessing.Pool(num_cores) as pool:
             list(tqdm.tqdm(pool.imap(_runner, locs_to_plot), total=len(locs_to_plot), disable=not progress_bar))
