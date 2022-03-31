@@ -1,11 +1,11 @@
 data:
-  seir_preprocess_version: '2022_03_18.08'
+  seir_preprocess_version: '2022_03_29.02'
   output_format: 'parquet'
   output_root: ''
   compare_version: ''
 workflow:
   project: 'proj_covid_prod'
-  queue: 'long.q'
+  queue: 'all.q'
 rates_parameters:
   day_0: '2020-03-15'
   pred_start_date: '2019-11-01'
@@ -35,13 +35,13 @@ rates_parameters:
   # IDR is altered in second pass rates based on assumptions about the probability a disease is symptomatic.
   omicron_idr_scalar: 1.0
   # One of 'delta', 'omicron', 'average'
-  omega_severity_parameterization: 'average'
+  omega_severity_parameterization: 'delta'
   p_asymptomatic_pre_omicron: 0.5
   p_asymptomatic_post_omicron: [0.75, 0.85]
   minimum_asymptomatic_idr_fraction: 0.2
   maximum_asymptomatic_idr: 0.6
 fit_parameters:
-  omega_invasion_date: '2022-04-01'
+  omega_invasion_date: ''
   # Mixing parameter.  dS/dt = -beta * S * I ** alpha
   alpha_all: [0.9, 1.0]
   # Proportion of current E to send to variant E on invasion.

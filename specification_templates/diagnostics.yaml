@@ -2,18 +2,17 @@ data:
   output_root: ''
 workflow:
   project: 'proj_covid_prod'
-  queue: 'all.q'
+  queue: 'd.q'
 grid_plots:
   - name: 'compare_longrange'
     date_start: '2020-03-01'
     date_end: '2023-12-31'
     comparators:
-    - version: '2022_03_19.04'
-      scenarios:
-        reference*: 'pre-splice'
     - version: '2022_03_21.01'
       scenarios:
-        reference*: 'post-splice'
-    - version: '2022_03_28.02'
+        reference*: 'public reference'
+    - version: '2022_03_31.02'
       scenarios:
-        reference*: 'pre-splice revised'
+        reference*: 'fhs'
+
+

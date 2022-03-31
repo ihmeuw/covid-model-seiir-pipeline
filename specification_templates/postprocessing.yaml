@@ -1,9 +1,9 @@
 data:
-  seir_forecast_version: '2022_03_28.01'
+  seir_forecast_version: '2022_03_31.01'
   scenarios:
    - 'reference'
-   # - 'best_masks'
-   # - 'booster'
+#   - 'best_masks'
+#   - 'booster'
   output_root: ''
 workflow:
   project: 'proj_covid_prod'
@@ -12,7 +12,7 @@ resampling:
   reference_scenario: 'reference'
   reference_date: '2022-07-01'
   lower_quantile: 0.025
-  upper_quantile: 0.975
+  upper_quantile: 0.925
 aggregation:
   - location_file: '/ihme/covid-19/model-inputs/best/locations/modeling_hierarchy.csv'
   - location_file: '/ihme/covid-19/seir-outputs/agg-hierarchies/who_plus_palestine.csv'

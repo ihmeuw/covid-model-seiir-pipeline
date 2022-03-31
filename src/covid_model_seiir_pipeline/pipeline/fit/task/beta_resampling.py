@@ -149,7 +149,7 @@ def build_residuals(window_dates: pd.DataFrame, data_interface: FitDataInterface
     results = parallel.run_parallel(
         runner=_runner,
         arg_list=arg_list,
-        num_cores=num_cores,
+        num_cores=1, #num_cores,
         progress_bar=progress_bar,
     )
     np.seterr(**old_err_settings)
