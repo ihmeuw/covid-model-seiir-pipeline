@@ -81,7 +81,3 @@ def hospital_correction_factors(regression_version: str, progress_bar: bool,
 
     run = cli_tools.handle_exceptions(run_hospital_correction_factors, logger, with_debugger)
     run(regression_version=regression_version, with_progress_bar=progress_bar)
-
-
-if __name__ == '__main__':
-    hospital_correction_factors()

@@ -45,7 +45,3 @@ def resample_map(postprocessing_version: str,
     cli_tools.configure_logging_to_terminal(verbose)
     run = cli_tools.handle_exceptions(run_resample_map, logger, with_debugger)
     run(postprocessing_version=postprocessing_version)
-
-
-if __name__ == '__main__':
-    resample_map()
