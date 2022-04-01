@@ -29,6 +29,7 @@ if __name__ == "__main__":
         'pypdf2',
         'pyyaml',
         'parse',
+        'regmod @ git+https://github.com/ihmeuw-msca/regmod.git@develop',
         'scipy',
         'seaborn',
         'tqdm',

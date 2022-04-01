@@ -115,7 +115,6 @@ DERIVED_TYPES = {
     ]),
     'base_parameter': ('parameter_type', [
         'alpha',
-        'pi',
         'beta',
     ]),
     'epi_parameter': ('parameter_type', [
@@ -124,11 +123,12 @@ DERIVED_TYPES = {
         'rate',
     ]),
     'variant_parameter': ('parameter_type', [
-        'rho',
-    ]),
-    'epi_variant_parameter': ('parameter_type', [
         'sigma',
         'gamma',
+        'rho',
+        'pi',
+    ]),
+    'epi_variant_parameter': ('parameter_type', [
         'kappa',
     ]),
     'variant': ('variant_index_type', [
@@ -249,30 +249,34 @@ SPECS = {
             ['Infection', 'none', 'all', 'unvaccinated'],
             ['Infection', 'none', 'all', 'all'],
             ['Infection', 'all', 'all', 'all'],
+            ['Infection', 'all', 'all', 'vaccine_status'],
             ['Infection', 'all', 'variant', 'all'],
 
             ['Death', 'none', 'variant', 'unvaccinated'],
             ['Death', 'none', 'all', 'unvaccinated'],
             ['Death', 'none', 'all', 'all'],
             ['Death', 'all', 'all', 'all'],
+            ['Death', 'all', 'all', 'vaccine_status'],
             ['Death', 'all', 'variant', 'all'],
 
             ['Admission', 'none', 'variant', 'unvaccinated'],
             ['Admission', 'none', 'all', 'unvaccinated'],
             ['Admission', 'none', 'all', 'all'],
             ['Admission', 'all', 'all', 'all'],
+            ['Admission', 'all', 'all', 'vaccine_status'],
             ['Admission', 'all', 'variant', 'all'],
 
             ['Case', 'none', 'variant', 'unvaccinated'],
             ['Case', 'none', 'all', 'unvaccinated'],
             ['Case', 'none', 'all', 'all'],
             ['Case', 'all', 'all', 'all'],
+            ['Case', 'all', 'all', 'vaccine_status'],
             ['Case', 'all', 'variant', 'all'],
 
             ['Vaccination', 'all', 'all', 'unvaccinated'],
             ['Booster', 'all', 'all', 'vaccinated'],
 
-            ['EffectiveSusceptible', 'all', 'variant', 'all']
+            ['EffectiveSusceptible', 'all', 'variant', 'all'],
         ],
     ),
     'AGGREGATES': Spec(

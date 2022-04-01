@@ -1,35 +1,41 @@
-from typing import Dict, List
+from typing import Dict, List, Tuple
 
 import pandas as pd
 
-from covid_model_seiir_pipeline.pipeline.fit.model import age_standardization
-from covid_model_seiir_pipeline.pipeline.fit.model.ifr import (
+from covid_model_seiir_pipeline.pipeline.fit.model.rates import age_standardization
+from covid_model_seiir_pipeline.pipeline.fit.model.rates.ifr import (
     data,
     model,
 )
 
 
-def runner(cumulative_deaths: pd.Series,
-           daily_deaths: pd.Series,
+def runner(epi_data: pd.DataFrame,
            seroprevalence: pd.DataFrame,
            covariates: List[pd.Series],
-           covariate_list: List[str],
+           covariate_pool: Dict[str, List[str]],
            daily_infections: pd.Series,
            variant_prevalence: pd.Series,
            mr_hierarchy: pd.DataFrame,
            pred_hierarchy: pd.DataFrame,
-           ifr_age_pattern: pd.Series,
-           sero_age_pattern: pd.Series,
+           age_patterns: pd.DataFrame,
            population: pd.Series,
-           age_spec_population: pd.Series,
-           variant_risk_ratio: float,
+           age_specific_population: pd.Series,
+           variant_risk_ratio: Dict[str, float],
            durations: Dict,
            day_inflection: pd.Timestamp,
            day_0: pd.Timestamp,
            pred_start_date: pd.Timestamp,
            pred_end_date: pd.Timestamp,
            num_threads: int,
-           progress_bar: bool) -> pd.DataFrame:
+           progress_bar: bool,
+           **kwargs) -> Tuple[pd.DataFrame, pd.DataFrame]:
+    cumulative_deaths = epi_data['cumulative_deaths'].dropna()
+    daily_deaths = epi_data['daily_deaths'].dropna()
+    covariate_list = covariate_pool['ifr']
+    ifr_age_pattern = age_patterns['ifr']
+    sero_age_pattern = age_patterns['seroprevalence']
+    variant_risk_ratio = variant_risk_ratio['ifr']
+
     model_data = data.create_model_data(
         cumulative_deaths=cumulative_deaths,
         daily_deaths=daily_deaths,
@@ -59,7 +65,7 @@ def runner(cumulative_deaths: pd.Series,
         pred_data=pred_data.copy(),
         ifr_age_pattern=ifr_age_pattern.copy(),
         sero_age_pattern=sero_age_pattern.copy(),
-        age_spec_population=age_spec_population.copy(),
+        age_spec_population=age_specific_population.copy(),
         variant_risk_ratio=variant_risk_ratio,
         mr_hierarchy=mr_hierarchy.copy(),
         pred_hierarchy=pred_hierarchy.copy(),
@@ -73,11 +79,16 @@ def runner(cumulative_deaths: pd.Series,
     lr_rr, hr_rr = age_standardization.get_risk_group_rr(
         ifr_age_pattern.copy(),
         sero_age_pattern.copy() ** 0,  # just use flat
-        age_spec_population.copy(),
+        age_specific_population.copy(),
     )
     pred_lr = (pred * lr_rr).rename('pred_ifr_lr')
     pred_hr = (pred * hr_rr).rename('pred_ifr_hr')
     
     pred = pd.concat([pred, pred_lr, pred_hr], axis=1)
+
+    pred = pred.rename(columns={
+        'pred_ifr_lr': 'ifr_lr', 'pred_ifr_hr': 'ifr_hr', 'pred_ifr': 'ifr'
+    })
+    pred.loc[:, 'lag'] = durations["exposure_to_death"]
     
     return pred, model_data

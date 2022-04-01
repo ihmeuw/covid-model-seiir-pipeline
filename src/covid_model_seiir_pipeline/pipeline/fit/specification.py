@@ -20,6 +20,8 @@ RRSampleable = Union[Tuple[float, float, float], float, str]
 class __FitJobs(NamedTuple):
     covariate_pool: str
     beta_fit: str
+    beta_resampling: str
+    past_infections: str
     beta_fit_join_sentinel: str
     beta_fit_postprocess: str
     beta_fit_diagnostics: str
@@ -35,6 +37,18 @@ class CovariatePoolTaskSpecification(workflow.TaskSpecification):
 
 
 class BetaFitTaskSpecification(workflow.TaskSpecification):
+    default_max_runtime_seconds = 5000
+    default_m_mem_free = '50G'
+    default_num_cores = 11
+
+
+class BetaResamplingTaskSpecification(workflow.TaskSpecification):
+    default_max_runtime_seconds = 5000
+    default_m_mem_free = '100G'
+    default_num_cores = 26
+
+
+class PastInfectionsTaskSpecification(workflow.TaskSpecification):
     default_max_runtime_seconds = 5000
     default_m_mem_free = '50G'
     default_num_cores = 11
@@ -62,6 +76,8 @@ class FitWorkflowSpecification(workflow.WorkflowSpecification):
     tasks = {
         FIT_JOBS.covariate_pool: CovariatePoolTaskSpecification,
         FIT_JOBS.beta_fit: BetaFitTaskSpecification,
+        FIT_JOBS.beta_resampling: BetaResamplingTaskSpecification,
+        FIT_JOBS.past_infections: PastInfectionsTaskSpecification,
         FIT_JOBS.beta_fit_join_sentinel: JoinSentinelTaskSpecification,
         FIT_JOBS.beta_fit_postprocess: BetaFitPostprocessingTaskSpecification,
         FIT_JOBS.beta_fit_diagnostics: BetaFitDiagnosticsTaskSpecification,
@@ -73,7 +89,6 @@ class FitData:
     seir_preprocess_version: str = field(default='best')
     output_root: str = field(default='')
     output_format: str = field(default='csv')
-    n_draws: int = field(default=100)
     compare_version: str = field(default='')
 
     def to_dict(self) -> Dict:
@@ -96,6 +111,9 @@ class RatesParameters:
     exposure_to_seroconversion: DiscreteUniformSampleable = field(default=(14, 18))
     admission_to_death: DiscreteUniformSampleable = field(default=(12, 16))
 
+    test_scalar: float = field(default=1.0)
+    heavy_hand_fixes: bool = field(default=True)
+
     ifr_risk_ratio: RRSampleable = field(default='BMJ')
     ihr_risk_ratio: RRSampleable = field(default='BMJ')
     idr_risk_ratio: RRSampleable = field(default=1.0)
@@ -103,6 +121,13 @@ class RatesParameters:
     omicron_ifr_scalar: UniformSampleable = field(default=1.0)
     omicron_ihr_scalar: UniformSampleable = field(default=1.0)
     omicron_idr_scalar: UniformSampleable = field(default=1.0)
+
+    omega_severity_parameterization: bool = field(default='delta')
+
+    p_asymptomatic_pre_omicron: UniformSampleable = field(default=0.5)
+    p_asymptomatic_post_omicron: UniformSampleable = field(default=0.9)
+    minimum_asymptomatic_idr_fraction: UniformSampleable = field(default=0.1)
+    maximum_asymptomatic_idr: UniformSampleable = field(default=0.2)
 
     day_inflection_options: List[str] = field(default_factory=list)
 
@@ -141,58 +166,58 @@ class RatesParameters:
 
 @dataclass
 class FitParameters:
-    alpha: UniformSampleable = field(default=(0.9, 1.0))
-    pi: UniformSampleable = field(default=(0.01, 0.1))
+    omega_invasion_date: str = field(default='')
+    alpha_all: UniformSampleable = field(default=(0.9, 1.0))
 
-    sigma_none_infection: UniformSampleable = field(default=(0.2, 1 / 3))
-    sigma_ancestral_infection: UniformSampleable = field(default=(0.2, 1 / 3))
-    sigma_alpha_infection: UniformSampleable = field(default=(0.2, 1 / 3))
-    sigma_beta_infection: UniformSampleable = field(default=(0.2, 1 / 3))
-    sigma_gamma_infection: UniformSampleable = field(default=(0.2, 1 / 3))
-    sigma_delta_infection: UniformSampleable = field(default=(0.2, 1 / 3))
-    sigma_omicron_infection: UniformSampleable = field(default=(0.2, 1 / 3))
-    sigma_other_infection: UniformSampleable = field(default=(0.2, 1 / 3))
-    sigma_omega_infection: UniformSampleable = field(default=(0.2, 1 / 3))
+    pi_none: UniformSampleable = field(default=(0.01, 0.10))
+    pi_ancestral: UniformSampleable = field(default=(0.01, 0.10))
+    pi_alpha: UniformSampleable = field(default=(0.01, 0.10))
+    pi_beta: UniformSampleable = field(default=(0.01, 0.10))
+    pi_gamma: UniformSampleable = field(default=(0.01, 0.10))
+    pi_delta: UniformSampleable = field(default=(0.01, 0.10))
+    pi_omicron: UniformSampleable = field(default=(0.01, 0.10))
+    pi_other: UniformSampleable = field(default=(0.01, 0.10))
+    pi_omega: UniformSampleable = field(default=(0.01, 0.10))
 
-    gamma_none_infection: UniformSampleable = field(default=(0.2, 1 / 3))
-    gamma_ancestral_infection: UniformSampleable = field(default=(0.2, 1 / 3))
-    gamma_alpha_infection: UniformSampleable = field(default=(0.2, 1 / 3))
-    gamma_beta_infection: UniformSampleable = field(default=(0.2, 1 / 3))
-    gamma_gamma_infection: UniformSampleable = field(default=(0.2, 1 / 3))
-    gamma_delta_infection: UniformSampleable = field(default=(0.2, 1 / 3))
-    gamma_omicron_infection: UniformSampleable = field(default=(0.2, 1 / 3))
-    gamma_other_infection: UniformSampleable = field(default=(0.2, 1 / 3))
-    gamma_omega_infection: UniformSampleable = field(default=(0.2, 1 / 3))
+    sigma_none: UniformSampleable = field(default=(0.2, 1 / 3))
+    sigma_ancestral: UniformSampleable = field(default=(0.2, 1 / 3))
+    sigma_alpha: UniformSampleable = field(default=(0.2, 1 / 3))
+    sigma_beta: UniformSampleable = field(default=(0.2, 1 / 3))
+    sigma_gamma: UniformSampleable = field(default=(0.2, 1 / 3))
+    sigma_delta: UniformSampleable = field(default=(0.2, 1 / 3))
+    sigma_omicron: UniformSampleable = field(default=(0.2, 1 / 3))
+    sigma_other: UniformSampleable = field(default=(0.2, 1 / 3))
+    sigma_omega: UniformSampleable = field(default=(0.2, 1 / 3))
 
-    kappa_none_infection: UniformSampleable = field(default=0.0)
-    kappa_ancestral_infection: UniformSampleable = field(default=1.0)
-    kappa_alpha_infection: UniformSampleable = field(default=1.0)
-    kappa_beta_infection: UniformSampleable = field(default=1.0)
-    kappa_gamma_infection: UniformSampleable = field(default=1.0)
-    kappa_delta_infection: UniformSampleable = field(default=1.0)
-    kappa_omicron_infection: UniformSampleable = field(default=1.0)
-    kappa_other_infection: UniformSampleable = field(default=1.0)
-    kappa_omega_infection: UniformSampleable = field(default=1.0)
+    gamma_none: UniformSampleable = field(default=(0.2, 1 / 3))
+    gamma_ancestral: UniformSampleable = field(default=(0.2, 1 / 3))
+    gamma_alpha: UniformSampleable = field(default=(0.2, 1 / 3))
+    gamma_beta: UniformSampleable = field(default=(0.2, 1 / 3))
+    gamma_gamma: UniformSampleable = field(default=(0.2, 1 / 3))
+    gamma_delta: UniformSampleable = field(default=(0.2, 1 / 3))
+    gamma_omicron: UniformSampleable = field(default=(0.2, 1 / 3))
+    gamma_other: UniformSampleable = field(default=(0.2, 1 / 3))
+    gamma_omega: UniformSampleable = field(default=(0.2, 1 / 3))
 
-    phi_none_infection: UniformSampleable = field(default=0.0)
-    phi_ancestral_infection: UniformSampleable = field(default=1.0)
-    phi_alpha_infection: UniformSampleable = field(default=1.0)
-    phi_beta_infection: UniformSampleable = field(default=1.0)
-    phi_gamma_infection: UniformSampleable = field(default=1.0)
-    phi_delta_infection: UniformSampleable = field(default=1.0)
-    phi_omicron_infection: UniformSampleable = field(default=1.0)
-    phi_other_infection: UniformSampleable = field(default=1.0)
-    phi_omega_infection: UniformSampleable = field(default=1.0)
+    kappa_none: UniformSampleable = field(default=0.0)
+    kappa_ancestral: UniformSampleable = field(default=1.0)
+    kappa_alpha: UniformSampleable = field(default=1.0)
+    kappa_beta: UniformSampleable = field(default=1.0)
+    kappa_gamma: UniformSampleable = field(default=1.0)
+    kappa_delta: UniformSampleable = field(default=1.0)
+    kappa_omicron: UniformSampleable = field(default=1.0)
+    kappa_other: UniformSampleable = field(default=1.0)
+    kappa_omega: UniformSampleable = field(default=1.0)
 
-    def to_dict(self) -> Dict:
-        return utilities.asdict(self)
-
-
-@dataclass
-class MeasureDownweights:
-    death: List[Tuple[int, float]] = field(default_factory=list)
-    admission: List[Tuple[int, float]] = field(default_factory=list)
-    case: List[Tuple[int, float]] = field(default_factory=list)
+    phi_none: UniformSampleable = field(default=0.0)
+    phi_ancestral: UniformSampleable = field(default=1.0)
+    phi_alpha: UniformSampleable = field(default=1.0)
+    phi_beta: UniformSampleable = field(default=1.0)
+    phi_gamma: UniformSampleable = field(default=1.0)
+    phi_delta: UniformSampleable = field(default=1.0)
+    phi_omicron: UniformSampleable = field(default=1.0)
+    phi_other: UniformSampleable = field(default=1.0)
+    phi_omega: UniformSampleable = field(default=1.0)
 
     def to_dict(self) -> Dict:
         return utilities.asdict(self)
@@ -204,13 +229,11 @@ class FitSpecification(utilities.Specification):
                  data: FitData,
                  workflow: FitWorkflowSpecification,
                  rates_parameters: RatesParameters,
-                 fit_parameters: FitParameters,
-                 measure_downweights: MeasureDownweights):
+                 fit_parameters: FitParameters):
         self._data = data
         self._workflow = workflow
         self._rates_parameters = rates_parameters
         self._fit_parameters = fit_parameters
-        self._measure_downweights = measure_downweights
 
     @classmethod
     def parse_spec_dict(cls, spec_dict: Dict) -> Tuple:
@@ -219,7 +242,6 @@ class FitSpecification(utilities.Specification):
             'workflow': FitWorkflowSpecification,
             'rates_parameters': RatesParameters,
             'fit_parameters': FitParameters,
-            'measure_downweights': MeasureDownweights,
         }
         for key, spec_class in list(sub_specs.items()):  # We're dynamically altering. Copy with list
             key_spec_dict = utilities.filter_to_spec_fields(
@@ -246,16 +268,11 @@ class FitSpecification(utilities.Specification):
     def fit_parameters(self) -> FitParameters:
         return self._fit_parameters
 
-    @property
-    def measure_downweights(self) -> MeasureDownweights:
-        return self._measure_downweights
-
     def to_dict(self) -> Dict:
         spec = {
             'data': self.data.to_dict(),
             'workflow': self.workflow.to_dict(),
             'rates_parameters': self.rates_parameters.to_dict(),
             'fit_parameters': self.fit_parameters.to_dict(),
-            'measure_downweights': self.measure_downweights.to_dict(),
         }
         return spec

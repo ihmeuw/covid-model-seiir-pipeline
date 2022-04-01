@@ -121,8 +121,12 @@ def compute_initial_beta_scaling_parameters_by_draw(draw_id: int,
     # to some ancillary information that may be useful for plotting/debugging.
     rs = np.random.RandomState(draw_id)
 
+    avg_window = beta_scaling.get('min_avg_window', 21)
     a = rs.randint(1, beta_scaling['average_over_min'])
-    b = rs.randint(a + 21, beta_scaling['average_over_max'])
+    if beta_scaling['average_over_max'] <= a + avg_window:
+        b = beta_scaling['average_over_max']
+    else:
+        b = rs.randint(a + avg_window, beta_scaling['average_over_max'])
 
     draw_data.append(pd.Series(a, index=beta_transition.index, name='history_days_start'))
     draw_data.append(pd.Series(b, index=beta_transition.index, name='history_days_end'))

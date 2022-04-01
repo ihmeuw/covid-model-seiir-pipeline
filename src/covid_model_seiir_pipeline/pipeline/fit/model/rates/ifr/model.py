@@ -4,9 +4,9 @@ import pandas as pd
 import numpy as np
 
 from covid_model_seiir_pipeline.lib import math
-from covid_model_seiir_pipeline.pipeline.fit.model.mrbrt import cascade
-from covid_model_seiir_pipeline.pipeline.fit.model import age_standardization
-from covid_model_seiir_pipeline.pipeline.fit.model.covariate_priors import (
+from covid_model_seiir_pipeline.pipeline.fit.model.rates import age_standardization
+from covid_model_seiir_pipeline.pipeline.fit.model.rates.mrbrt import cascade
+from covid_model_seiir_pipeline.pipeline.fit.model.rates.covariate_priors import (
     get_covariate_priors,
     get_covariate_constraints,
 )
@@ -99,20 +99,19 @@ def prepare_model(model_data: pd.DataFrame,
     model_data['logit_ifr_se'] = 1
     model_data['intercept'] = 1
 
-    ## ## ## ## ## ## ## ##
-    ## MANUAL OUTLIERING ##
-    outlier_locs = [
-        35,    # Georgia
-        41,    # Uzbekistan
-        43,    # Albania
-        62,    # Russia
-        141,   # Egypt
-        151,   # Qatar
-        53619, # Khyber Pakhtunkhwa
-        214,   # Nigeria
-    ]
-    model_data = model_data.loc[~model_data['location_id'].isin(outlier_locs)].reset_index()
-    ## ## ## ## ## ## ## ##
+    # ## ## ## ## ## ## ## ##
+    # ## MANUAL OUTLIERING ##
+    # outlier_locs = [
+    #     35,    # Georgia
+    #     41,    # Uzbekistan
+    #     43,    # Albania
+    #     62,    # Russia
+    #     141,   # Egypt
+    #     151,   # Qatar
+    #     53619, # Khyber Pakhtunkhwa
+    # ]
+    # model_data = model_data.loc[~model_data['location_id'].isin(outlier_locs)].reset_index()
+    # ## ## ## ## ## ## ## ##
 
     # lose 0s and 1s
     model_data = model_data.loc[model_data['logit_ifr'].notnull()]
@@ -148,78 +147,79 @@ def prepare_model(model_data: pd.DataFrame,
         'group_var': 'location_id',
     }
     global_prior_dict = {
-        # 't': {
-        #     'prior_spline_maxder_gaussian': np.array([[-2e-3,     0.],
-        #                                               [ 1e-3, np.inf]])
-        # },
+        't': {
+            'prior_spline_maxder_gaussian': np.array([[-2e-3,     0.],
+                                                      [ 1e-3, np.inf]])
+        },
         **covariate_priors,
     }
-    location_prior_dict = {
-        location_id: {
-            't': {
-                'prior_spline_maxder_gaussian': np.array([[  0.,   0.],
-                                                          [1e-6, 1e-6]])
-            }
-        } for location_id in [
-                              4,  # Southeast Asia, East Asia, and Oceania
-                              31,  # Central Europe, Eastern Europe, and Central Asia
-                              103,  # Latin America and Caribbean
-                              137,  # North Africa and Middle East (super region)
-                              158,  # South Asia (super region)
-                              166,  # Sub-Saharan Africa
-                             ]
-    }
-    location_prior_dict.update({
-        location_id: {
-            't': {
-                'prior_spline_maxder_gaussian': np.array([[  0.,   0.],
-                                                          [1e-3, 1e-3]])
-            }
-        } for location_id in [
-                              5,  # East Asia
-                              9,  # Southeast Asia
-                              21,  # Oceania
+    location_prior_dict = {}
+    # location_prior_dict = {
+    #     location_id: {
+    #         't': {
+    #             'prior_spline_maxder_gaussian': np.array([[  0.,   0.],
+    #                                                       [1e-6, 1e-6]])
+    #         }
+    #     } for location_id in [
+    #                           4,  # Southeast Asia, East Asia, and Oceania
+    #                           31,  # Central Europe, Eastern Europe, and Central Asia
+    #                           103,  # Latin America and Caribbean
+    #                           137,  # North Africa and Middle East (super region)
+    #                           158,  # South Asia (super region)
+    #                           166,  # Sub-Saharan Africa
+    #                          ]
+    # }
+    # location_prior_dict.update({
+    #     location_id: {
+    #         't': {
+    #             'prior_spline_maxder_gaussian': np.array([[  0.,   0.],
+    #                                                       [1e-3, 1e-3]])
+    #         }
+    #     } for location_id in [
+    #                           5,  # East Asia
+    #                           9,  # Southeast Asia
+    #                           21,  # Oceania
 
-                              32,  # Central Asia
-                              42,  # Central Europe
-                              56,  # Eastern Europe
+    #                           32,  # Central Asia
+    #                           42,  # Central Europe
+    #                           56,  # Eastern Europe
 
-                              104,  # Caribbean
-                              120,  # Andean Latin America
-                              124,  # Central Latin America
-                              134,  # Tropical Latin America
+    #                           104,  # Caribbean
+    #                           120,  # Andean Latin America
+    #                           124,  # Central Latin America
+    #                           134,  # Tropical Latin America
 
-                              138,  # North Africa and Middle East (region)
+    #                           138,  # North Africa and Middle East (region)
 
-                              159,  # South Asia (region)
+    #                           159,  # South Asia (region)
 
-                              167,  # Central Sub-Saharan Africa
-                              174,  # Eastern Sub-Saharan Africa
-                              192,  # Southern Sub-Saharan Africa
-                              199,  # Western Sub-Saharan Africa
-                             ]
-    })
-    location_prior_dict.update({
-        location_id: {
-            't': {
-                'prior_spline_maxder_gaussian': np.array([[-2e-3,   0.],
-                                                          [ 1e-3, 1e-3]])
-            }
-        } for location_id in [
-                              64,  # High-income
-                              # 65,  # High-income Asia Pacific
-                              # 70,  # Australasia
-                              # 73,  # Western Europe
-                              # 96,  # Southern Latin America
-                              # 100,  # High-income North America
-                             ]
-    })
+    #                           167,  # Central Sub-Saharan Africa
+    #                           174,  # Eastern Sub-Saharan Africa
+    #                           192,  # Southern Sub-Saharan Africa
+    #                           199,  # Western Sub-Saharan Africa
+    #                          ]
+    # })
+    # location_prior_dict.update({
+    #     location_id: {
+    #         't': {
+    #             'prior_spline_maxder_gaussian': np.array([[-2e-3,   0.],
+    #                                                       [ 1e-3, 1e-3]])
+    #         }
+    #     } for location_id in [
+    #                           64,  # High-income
+    #                           # 65,  # High-income Asia Pacific
+    #                           # 70,  # Australasia
+    #                           # 73,  # Western Europe
+    #                           # 96,  # Southern Latin America
+    #                           # 100,  # High-income North America
+    #                          ]
+    # })
     pred_replace_dict = {}
     pred_exclude_vars = []
     level_lambdas = {
         # fit covariates at global level, tight lambdas after
-        0: {'intercept':   2., 't':  1., 'variant_prevalence': 1., **covariate_lambdas_tight},  # G->SR
-        1: {'intercept':   2., 't':  1., 'variant_prevalence': 1., **covariate_lambdas_tight},  # SR->R
+        0: {'intercept':   3., 't':  2., 'variant_prevalence': 1., **covariate_lambdas_tight},  # G->SR
+        1: {'intercept':   3., 't':  2., 'variant_prevalence': 1., **covariate_lambdas_tight},  # SR->R
         2: {'intercept': 100., 't': 10., 'variant_prevalence': 1., **covariate_lambdas_loose},  # R->A0
         3: {'intercept': 100., 't': 10., 'variant_prevalence': 1., **covariate_lambdas_loose},  # A0->A1
         4: {'intercept': 100., 't': 10., 'variant_prevalence': 1., **covariate_lambdas_loose},  # A1->A2

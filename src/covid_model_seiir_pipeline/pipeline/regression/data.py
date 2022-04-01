@@ -76,7 +76,7 @@ class RegressionDataInterface:
                         .groupby('location_id')
                         .max())
 
-        past_infections_locations = set(self.load_summary('beta').reset_index().location_id)
+        past_infections_locations = set(self.load_summary('beta').dropna().reset_index().location_id)
         above_threshold_locations = set(total_deaths[total_deaths > death_threshold].index)
         drop_locations = set(regression_spec.data.drop_locations)
 
@@ -108,7 +108,7 @@ class RegressionDataInterface:
             logger.warning("Some locations present in the location metadata are being dropped. "
                            f"Locations being dropped are {sorted(list(drop_locations))}.")
 
-        return list((desired_locations & above_threshold_locations) - drop_locations)
+        return list((past_infections_locations & desired_locations & above_threshold_locations) - drop_locations)
 
     ####################
     # Prior Stage Data #
@@ -202,25 +202,25 @@ class RegressionDataInterface:
         return self.fit_data_interface.load_phis(draw_id)
 
     def load_input_epi_measures(self, draw_id: int, columns: List[str] = None) -> pd.DataFrame:
-        return self.fit_data_interface.load_input_epi_measures(draw_id, columns)
+        return self.fit_data_interface.load_input_epi_measures(draw_id, columns=columns)
 
     def load_rates_data(self, draw_id: int, columns: List[str] = None) -> pd.DataFrame:
-        return self.fit_data_interface.load_rates_data(draw_id, columns)
+        return self.fit_data_interface.load_rates_data(draw_id, columns=columns)
 
     def load_rates(self, draw_id: int, columns: List[str] = None) -> pd.DataFrame:
-        return self.fit_data_interface.load_rates(draw_id, columns)
+        return self.fit_data_interface.load_rates(draw_id, columns=columns)
 
     def load_posterior_epi_measures(self, draw_id: int, columns: List[str] = None) -> pd.DataFrame:
-        return self.fit_data_interface.load_posterior_epi_measures(draw_id, columns)
+        return self.fit_data_interface.load_posterior_epi_measures(draw_id, columns=columns)
 
     def load_compartments(self, draw_id: int, columns: List[str] = None) -> pd.DataFrame:
-        return self.fit_data_interface.load_compartments(draw_id, columns)
+        return self.fit_data_interface.load_compartments(draw_id, columns=columns)
 
     def load_fit_beta(self, draw_id: int, columns: List[str] = None) -> pd.DataFrame:
-        return self.fit_data_interface.load_fit_beta(draw_id, columns)
+        return self.fit_data_interface.load_fit_beta(draw_id, columns=columns)
 
     def load_final_seroprevalence(self, draw_id: int, columns: List[str] = None) -> pd.DataFrame:
-        return self.fit_data_interface.load_final_seroprevalence(draw_id, columns)
+        return self.fit_data_interface.load_final_seroprevalence(draw_id, columns=columns)
 
     def load_summary(self, measure: str) -> pd.DataFrame:
         return self.fit_data_interface.load_summary(measure)

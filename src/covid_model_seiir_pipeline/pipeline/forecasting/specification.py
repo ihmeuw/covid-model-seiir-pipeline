@@ -64,6 +64,7 @@ class ScenarioSpecification:
     )
     BETA_SCALING_KEYS = (
         'window_size',
+        'min_avg_window',
         'average_over_min',
         'average_over_max',
         'residual_rescale_lower',

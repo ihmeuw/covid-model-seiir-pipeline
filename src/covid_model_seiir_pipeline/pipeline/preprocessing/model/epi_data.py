@@ -1,6 +1,7 @@
 from typing import Dict, Tuple
 
 import pandas as pd
+import numpy as np
 
 from covid_model_seiir_pipeline.lib import (
     cli_tools,
@@ -19,6 +20,7 @@ def preprocess_epi_data(data_interface: PreprocessingDataInterface) -> None:
     logger.info('Loading epi data.', context='read')
     mr_hierarchy = data_interface.load_hierarchy('mr').reset_index()
     pred_hierarchy = data_interface.load_hierarchy('pred').reset_index()
+    total_draws = data_interface.get_n_total_draws()
 
     age_pattern_data = data_interface.load_age_pattern_data()
     total_covid_scalars = data_interface.load_raw_total_covid_scalars()
@@ -26,7 +28,7 @@ def preprocess_epi_data(data_interface: PreprocessingDataInterface) -> None:
 
     logger.info('Processing epi data.', context='transform')
     age_pattern_data = _process_age_pattern_data(age_pattern_data, pred_hierarchy)
-    total_covid_scalars = _process_scalars(total_covid_scalars, pred_hierarchy)
+    total_covid_scalars = _process_scalars(total_covid_scalars, pred_hierarchy, total_draws)
     epi_data = pd.concat([_process_epi_data(data, measure, mr_hierarchy)
                           for measure, data in epi_data.items()], axis=1)
 
@@ -51,14 +53,20 @@ def _process_age_pattern_data(data: pd.DataFrame, hierarchy: pd.DataFrame):
     return data
 
 
-def _process_scalars(data: pd.DataFrame, hierarchy: pd.DataFrame):
+def _process_scalars(data: pd.DataFrame, hierarchy: pd.DataFrame, total_draws: int):
     missing_locations = list(set(hierarchy.location_id).difference(data.index))
     if missing_locations:
-        logger.warning(f"Missing scalars for the following locations: {missing_locations}.  Filling with nan.")
+        logger.warning(f"Missing scalars for the following locations: {missing_locations}. Filling with nan.")
     data = data.reindex(hierarchy.location_id)
     dates = pd.date_range(pd.Timestamp('2019-11-01'), pd.Timestamp('2024-01-01'))
     full_idx = pd.MultiIndex.from_product((hierarchy.location_id, dates), names=('location_id', 'date'))
     data = data.reindex(full_idx, level='location_id')
+
+    num_original_draws = len(data.columns)
+    for oversample_draw in range(num_original_draws, total_draws):
+        # Draw names are 0-indexed, so this just works out okay.
+        data[f'draw_{oversample_draw}'] = data[f'draw_{oversample_draw % num_original_draws}']
+
     return data
 
 
@@ -77,51 +85,78 @@ def _process_epi_data(data: pd.Series, measure: str,
 
 def evil_doings(data: pd.DataFrame, hierarchy: pd.DataFrame, input_measure: str) -> Tuple[pd.DataFrame, Dict]:
     manipulation_metadata = {}
+
+    if input_measure in ['cases', 'hospitalizations', 'deaths']:
+        drop_all = {
+            # Non-public locs with bad performance
+            7: 'north_korea',
+            23: 'kiribati',
+            24: 'marshall_islands',
+            25: 'micronesia',
+            27: 'samoa',
+            28: 'solomon_islands',
+            29: 'tonga',
+            30: 'vanuatu',
+            40: 'turkmenistan',
+            66: 'brunei_darussalam',
+            176: 'comoros',
+            298: 'american_samoa',
+            320: 'cook_islands',
+            349: 'greenland',
+            369: 'nauru',
+            374: 'niue',
+            376: 'northern_mariana_islands',
+            380: 'palua',
+            413: 'tokelau',
+            416: 'tuvalu',
+            43867: 'prince_edward_island',
+            # Just terrible data
+            39: 'tajikistan',
+            183: 'mauritias',
+            215: 'sao_tome_and_principe',
+            175: 'burundi'
+        }
+
+        is_in_droplist = data['location_id'].isin(drop_all)
+        data = data.loc[~is_in_droplist].reset_index(drop=True)
+        for location in drop_all.values():
+            manipulation_metadata[location] = 'dropped all data'
+
     if input_measure == 'cases':
         pass
 
     elif input_measure == 'hospitalizations':
-        ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
-        ## extra day(s) of admissions, drop to keep synced with cases
-        leading_hospital_trimming = [
-            ('france', 80, 2),
-            ('valencian_community', 60371, 2),
-        ]
-        for location, location_id, t in leading_hospital_trimming:
-            is_h_loc = data['location_id'] == location_id
-            is_h_loc_leading = data['date'] >= data.loc[is_h_loc, 'date'].max() - pd.Timedelta(days=t-1)
-            data = data.loc[~(is_h_loc & is_h_loc_leading)].reset_index(drop=True)
-            manipulation_metadata[location] = f'dropped leading hospital data - {t} day(s).'
-        ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
-        
-        ## hosp/IHR == admissions too low
-        is_argentina = data['location_id'] == 97
-        data = data.loc[~is_argentina].reset_index(drop=True)
-        manipulation_metadata['argentina'] = 'dropped all hospitalizations'
+        drop_list = {
+            89: 'netherlands',  # late, not cumulative on first day
+            20: 'vietnam',  # is just march-june 2020
+            60366: 'murcia',  # is just march-june 2020
+            114: 'haiti',  # too late, starts March 2021
+            74: 'andorra',  # too low then too high? odd series
+            209: 'guinea_bissau',  # late, starts in Feb 2021 (also probably too low)
+            198: 'zimbabwe',  # late, starts in June 2021 (also too low)
+            182: 'malawi',  # too low
+            # Incomplete
+            179: 'ethiopia',
+            184: 'mozambique',
+            191: 'zambia',
+            60360: 'castilla_la_mancha',
+            60361: 'community_of_madrid',
+            80: 'france',
+            4636: 'wales',
+            # Check with new data
+            144: 'jordan',  # late, starts Jan/Feb 2021
+            4850: 'goa',
+        }
 
-        ## late, not cumulative on first day
-        is_ndl = data['location_id'] == 89
-        data = data.loc[~is_ndl].reset_index(drop=True)
-        manipulation_metadata['netherlands'] = 'dropped all hospitalizations'
-
-        ## is just march-june 2020
-        is_vietnam = data['location_id'] == 20
-        data = data.loc[~is_vietnam].reset_index(drop=True)
-        manipulation_metadata['vietnam'] = 'dropped all hospitalizations'
-
-        ## is just march-june 2020
-        is_murcia = data['location_id'] == 60366
-        data = data.loc[~is_murcia].reset_index(drop=True)
-        manipulation_metadata['murcia'] = 'dropped all hospitalizations'
-        
-        ## is just july 2020-april 2021
-        is_la_rioja = data['location_id'] == 60376
-        data = data.loc[~is_la_rioja].reset_index(drop=True)
-        manipulation_metadata['la_rioja'] = 'dropped all hospitalizations'
+        for location_id, location_name in drop_list.items():
+            is_location = data['location_id'] == location_id
+            data = data.loc[~is_location].reset_index(drop=True)
+            manipulation_metadata[location_name] = 'dropped all hospitalizations'
 
         ## partial time series
-        pakistan_location_ids = hierarchy.loc[hierarchy['path_to_top_parent'].apply(lambda x: '165' in x.split(',')),
-                                              'location_id'].to_list()
+        pakistan_location_ids = hierarchy.loc[
+            hierarchy['path_to_top_parent'].apply(lambda x: '165' in x.split(',')),
+            'location_id'].to_list()
         is_pakistan = data['location_id'].isin(pakistan_location_ids)
         data = data.loc[~is_pakistan].reset_index(drop=True)
         manipulation_metadata['pakistan'] = 'dropped all hospitalizations'
@@ -132,45 +167,17 @@ def evil_doings(data: pd.DataFrame, hierarchy: pd.DataFrame, input_measure: str)
         data = data.loc[~is_ecdc].reset_index(drop=True)
         manipulation_metadata['ecdc_countries'] = 'dropped all hospitalizations'
 
-        ## CLOSE, but seems a little low... check w/ new data
-        is_goa = data['location_id'] == 4850
-        data = data.loc[~is_goa].reset_index(drop=True)
-        manipulation_metadata['goa'] = 'dropped all hospitalizations'
-
-        ## too late, starts March 2021
-        is_haiti = data['location_id'] == 114
-        data = data.loc[~is_haiti].reset_index(drop=True)
-        manipulation_metadata['haiti'] = 'dropped all hospitalizations'
-
-        ## late, starts Jan/Feb 2021 (and is a little low, should check w/ new data)
-        is_jordan = data['location_id'] == 144
-        data = data.loc[~is_jordan].reset_index(drop=True)
-        manipulation_metadata['jordan'] = 'dropped all hospitalizations'
-
-        ## too low then too high? odd series
-        is_andorra = data['location_id'] == 74
-        data = data.loc[~is_andorra].reset_index(drop=True)
-        manipulation_metadata['andorra'] = 'dropped all hospitalizations'
-        
-        ## late, starts in Feb 2021 (also probably too low)
-        is_guinea_bissau = data['location_id'] == 209
-        data = data.loc[~is_guinea_bissau].reset_index(drop=True)
-        manipulation_metadata['guinea_bissau'] = 'dropped all hospitalizations'
-        
-        ## late, starts in June 2021 (also too low)
-        is_zimbabwe = data['location_id'] == 198
-        data = data.loc[~is_zimbabwe].reset_index(drop=True)
-        manipulation_metadata['zimbabwe'] = 'dropped all hospitalizations'
-        
-        ## too low
-        is_malawi = data['location_id'] == 182
-        data = data.loc[~is_malawi].reset_index(drop=True)
-        manipulation_metadata['malawi'] = 'dropped all hospitalizations'
-
     elif input_measure == 'deaths':
-        pass
+        drop_list = {
+        }
+
+        for location_id, location_name in drop_list.items():
+            is_location = data['location_id'] == location_id
+            data = data.loc[~is_location].reset_index(drop=True)
+            manipulation_metadata[location_name] = 'dropped all deaths'
 
     else:
         raise ValueError(f'Input measure {input_measure} does not have a protocol for exclusions.')
 
     return data, manipulation_metadata
+

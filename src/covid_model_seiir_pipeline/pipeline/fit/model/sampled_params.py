@@ -51,6 +51,7 @@ def _to_range(val: DiscreteUniformSampleable):
     else:
         return list(range(val[0], val[1] + 1))
 
+
 class VariantRR(NamedTuple):
     ifr: float
     ihr: float
@@ -58,6 +59,9 @@ class VariantRR(NamedTuple):
     omicron_ifr: float
     omicron_ihr: float
     omicron_idr: float
+    omega_ifr: float
+    omega_ihr: float
+    omega_idr: float
 
 
 def sample_variant_severity(params: RatesParameters, draw_id: int) -> VariantRR:
@@ -82,6 +86,13 @@ def sample_variant_severity(params: RatesParameters, draw_id: int) -> VariantRR:
             value = sample_parameter(f'omicron_{ratio}_scalar', draw_id, *omicron_spec)
         rrs[f'omicron_{ratio}'] = rrs[ratio] * value
 
+        omega_severity = params['omega_severity_parameterization']
+        rrs[f'omega_{ratio}'] = {
+            'delta': rrs[ratio],
+            'omicron': rrs[f'omicron_{ratio}'],
+            'average': 1/2 * (rrs[ratio] + rrs[f'omicron_{ratio}']),
+        }[omega_severity]
+
     return VariantRR(**rrs)
 
 
@@ -97,7 +108,7 @@ def sample_ode_params(variant_rr: VariantRR,
     sampled_params = {}
     phis = {}
     for parameter, param_spec in beta_fit_params.items():
-        if 'phi' in parameter:
+        if 'phi' in parameter or parameter == 'omega_invasion_date':
             continue
 
         if isinstance(param_spec, (int, float)):
@@ -118,13 +129,8 @@ def sample_ode_params(variant_rr: VariantRR,
                 b = y1 - m * x1
                 phis[variant] = m * value + b
 
-        key = parameter if any([p in parameter for p in ['sigma', 'gamma', 'kappa']]) else f'{parameter}_all_infection'
+        key = f'{parameter}_infection'
         sampled_params[key] = value
-
-    for measure in ['death', 'admission', 'case']:
-        for variant in VARIANT_NAMES:
-            sampled_params[f'sigma_{variant}_{measure}'] = np.nan
-            sampled_params[f'gamma_{variant}_{measure}'] = np.nan
 
     s = -12345.0
     phi_matrix = pd.DataFrame(
@@ -137,9 +143,9 @@ def sample_ode_params(variant_rr: VariantRR,
             [1.0,       1.0,  1.0, 1.0,  1.0,  1.0,      s,  1.0,     s],  # beta
             [1.0,       1.0,  1.0, 1.0,  1.0,  1.0,      s,  1.0,     s],  # gamma
             [1.0,       1.0,  1.0, 1.0,  1.0,  1.0,      s,  1.0,     s],  # delta
-            [1.0,       1.0,  1.0, 1.0,  1.0,  1.0,    1.0,  1.0,     s],  # omicron
+            [1.0,       1.0,  1.0, 1.0,  1.0,  1.0,    1.0,  1.0,   0.9],  # omicron
             [1.0,       1.0,  1.0, 1.0,  1.0,  1.0,      s,  1.0,     s],  # other
-            [1.0,       1.0,  1.0, 1.0,  1.0,  1.0,    1.0,  1.0,     s],  # omega
+            [1.0,       1.0,  1.0, 1.0,  1.0,  1.0,    1.0,  1.0,   1.0],  # omega
         ]),
         columns=VARIANT_NAMES,
         index=pd.Index(VARIANT_NAMES, name='variant'),
@@ -152,11 +158,31 @@ def sample_ode_params(variant_rr: VariantRR,
         for variant in VARIANT_NAMES:
             if variant in [VARIANT_NAMES.none, VARIANT_NAMES.ancestral]:
                 sampled_params[f'kappa_{variant}_{measure}'] = 1.0
-            elif variant in VARIANT_NAMES.omicron:
-                sampled_params[f'kappa_{variant}_{measure}'] = variant_rr[f'omicron_{rate}']
+            elif variant in [VARIANT_NAMES.omicron, VARIANT_NAMES.omega]:
+                sampled_params[f'kappa_{variant}_{measure}'] = variant_rr[f'{variant}_{rate}']
             else:
                 sampled_params[f'kappa_{variant}_{measure}'] = variant_rr[rate]
     return sampled_params, phi_matrix
+
+
+def sample_idr_parameters(rates_parameters: RatesParameters, draw_id: int) -> Dict[str, float]:
+    rates_parameters = rates_parameters.to_dict()
+    params = {}
+    param_names = [
+        'p_asymptomatic_pre_omicron',
+        'p_asymptomatic_post_omicron',
+        'minimum_asymptomatic_idr_fraction',
+        'maximum_asymptomatic_idr',
+    ]
+    for parameter in param_names:
+        param_spec = rates_parameters[parameter]
+        if isinstance(param_spec, (int, float)):
+            value = param_spec
+        else:
+            value = sample_parameter(parameter, draw_id, *param_spec)
+        params[parameter] = value
+
+    return params
 
 
 def sample_parameter(parameter: str, draw_id: int, lower: float, upper: float) -> float:

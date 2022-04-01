@@ -10,7 +10,7 @@ from covid_model_seiir_pipeline.pipeline.fit.specification import RatesParameter
 from covid_model_seiir_pipeline.pipeline.fit.model.sampled_params import (
     Durations,
 )
-from covid_model_seiir_pipeline.pipeline.fit.model.mrbrt import (
+from covid_model_seiir_pipeline.pipeline.fit.model.rates.mrbrt import (
     mrbrt,
 )
 
@@ -173,7 +173,7 @@ def fit_hospital_weighted_sensitivity_decay(source_assay: Tuple[str, str],
 
 
 def fit_sensitivity_decay_curvefit(t: np.array, sensitivity: np.array, increasing: bool,
-                                   t_N: int = 720) -> pd.DataFrame:
+                                   t_N: int = 1080) -> pd.DataFrame:
     def sigmoid(x, x0, k):
         y = 1 / (1 + np.exp(-k * (x - x0)))
         return y
@@ -193,7 +193,8 @@ def fit_sensitivity_decay_curvefit(t: np.array, sensitivity: np.array, increasin
     return pd.DataFrame({'t': t_pred, 'sensitivity': sensitivity_pred})
 
 
-def fit_sensitivity_decay_mrbrt(sensitivity_data: pd.DataFrame, increasing: bool, t_N: int = 720) -> pd.DataFrame:
+def fit_sensitivity_decay_mrbrt(sensitivity_data: pd.DataFrame, increasing: bool,
+                                t_N: int = 1080) -> pd.DataFrame:
     sensitivity_data = sensitivity_data.loc[:, ['t', 'sensitivity', ]]
     sensitivity_data['sensitivity'] = math.logit(sensitivity_data['sensitivity'])
     sensitivity_data['intercept'] = 1

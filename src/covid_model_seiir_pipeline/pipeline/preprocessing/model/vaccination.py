@@ -53,7 +53,7 @@ def rescale_to_proportion(waning: pd.DataFrame) -> pd.DataFrame:
 
 
 def get_infection_endpoint_brand_specific_waning(waning: pd.DataFrame,
-                                                all_brands: List[str]) -> pd.DataFrame:
+                                                 all_brands: List[str]) -> pd.DataFrame:
     waning_map = {
         'BNT-162': waning.loc[('infection', 'pfi')],
         'Moderna': waning.loc[('infection', 'mod')],
@@ -141,10 +141,6 @@ def build_eta_calc_arguments(vaccine_uptake: pd.DataFrame,
     infection_efficacy = waning_efficacy.loc['infection']
     severe_disease_efficacy = waning_efficacy.loc['severe_disease']
     symptomatic_disease_efficacy = infection_efficacy.copy()
-    # ## MID-POINT
-    # symptomatic_disease_efficacy.loc[:, 'omicron', :] += severe_disease_efficacy.loc[:, 'omicron', :]
-    # symptomatic_disease_efficacy.loc[:, 'omicron', :] /= 2
-    ## SYMPTOMATIC == SEVERE
     symptomatic_disease_efficacy.loc[:, 'omicron', :] = severe_disease_efficacy.loc[:, 'omicron', :]
 
     for location_id, vaccine_course, risk_group in tqdm.tqdm(list(groups), disable=not progress_bar):
@@ -223,7 +219,8 @@ def _compute_variant_eta(u, e_t, e_b, j, eta):
 
 
 def compute_natural_waning(waning: pd.DataFrame) -> pd.DataFrame:
-    # Other is an average of all vaccine waning, which is also what we want for natural waning.
+    # Other is an average of all vaccine waning,
+    # which is also what we want for natural waning.
     natural_waning_infection = (
         1/4 + 3/4 * waning.loc[('infection', 'Moderna')].value
     ).reset_index()

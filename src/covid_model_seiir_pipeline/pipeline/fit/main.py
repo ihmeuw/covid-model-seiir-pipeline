@@ -1,14 +1,11 @@
-import functools
 from typing import Dict, Optional
 
 import click
 from covid_shared import ihme_deps, paths
 from loguru import logger
-import pandas as pd
 
 from covid_model_seiir_pipeline.lib import (
     cli_tools,
-    parallel,
 )
 
 from covid_model_seiir_pipeline.pipeline.fit.specification import FitSpecification
@@ -48,7 +45,6 @@ def fit_main(app_metadata: cli_tools.Metadata,
              specification: FitSpecification,
              preprocess_only: bool):
     logger.info(f'Starting fit for version {specification.data.output_root}.')
-
     # init high level objects
     data_interface = FitDataInterface.from_specification(specification)
 
@@ -65,6 +61,7 @@ def fit_main(app_metadata: cli_tools.Metadata,
         if specification.data.compare_version:
             plot_types.append(plotter.PLOT_TYPE.model_compare)
         workflow.attach_tasks(n_draws=data_interface.get_n_draws(),
+                              n_oversample_draws=data_interface.get_n_oversample_draws(),
                               measures=list(postprocess.MEASURES),
                               plot_types=plot_types)
         try:
@@ -72,82 +69,18 @@ def fit_main(app_metadata: cli_tools.Metadata,
         except ihme_deps.WorkflowAlreadyComplete:
             logger.info('Workflow already complete.')
 
-        # Check for bad locations
-        total_population = data_interface.load_population(measure='total').population
-
-        _runner = functools.partial(
-            get_broken_locations,
-            data_interface=data_interface,
-            total_population=total_population,
-        )
-        results = parallel.run_parallel(
-            _runner,
-            arg_list=list(range(data_interface.get_n_draws())),
-            num_cores=26,
-            progress_bar=True
-        )
-        report = make_broken_location_report(results)
-        if report:
-            logger.warning(report)
+        name_map = data_interface.load_hierarchy('pred').set_index('location_id').location_name
+        total_failures = data_interface.load_draw_resampling_map()['unrecoverable_pct']
+        total_failures_formatted = '\n'.join([
+            f'{name_map.loc[location_id]} ({location_id}): {failure_pct}' 
+            for location_id, failure_pct in total_failures.items()
+        ])
+        if total_failures:
+            logger.warning("The following locations failed in all measures in too "
+                           f"many draws to resample:\n {total_failures_formatted}.")
+            logger.warning(f"Flat list of failures: {list(total_failures)}")
 
     logger.info(f'Fit version {specification.data.output_root} complete.')
-
-
-def get_broken_locations(draw_id: int,
-                         data_interface: FitDataInterface,
-                         total_population: pd.Series):
-    infections = data_interface.load_posterior_epi_measures(
-        draw_id, columns=['daily_naive_unvaccinated_infections', 'round']
-    )
-    infections = infections.loc[infections['round'] == 2, 'daily_naive_unvaccinated_infections']
-
-    below_0 = (infections.groupby('location_id').min() < 0).rename(f'draw_{draw_id}')
-
-    over_total_pop = infections.groupby('location_id').sum()
-    over_total_pop = ((over_total_pop / total_population.reindex(over_total_pop.index)) > 1).rename(f'draw_{draw_id}')
-
-    return below_0, over_total_pop
-
-
-def make_broken_location_report(broken_locations):
-    below_0, over_total_pop = zip(*broken_locations)
-    below_0 = pd.concat(below_0, axis=1)
-    draws = below_0.columns
-    below_0 = below_0.reset_index()
-    over_total_pop = pd.concat(over_total_pop, axis=1).reset_index()
-    
-    report = ''
-    overall_missing = set()
-    overall_below_0 = set()
-    overall_over_total_pop = set()
-    for draw in draws:
-        draw_report = ''
-        
-        missing = below_0.loc[below_0[draw].isnull(), 'location_id'].tolist()
-        draw_below_0 = below_0.loc[below_0[draw].fillna(False), 'location_id'].tolist()
-        draw_over_total_pop = over_total_pop.loc[over_total_pop[draw].fillna(False), 'location_id'].tolist()
-        if missing:
-            draw_report += f'    missing: {missing}\n'
-            overall_missing |= set(missing)
-        if draw_below_0:
-            draw_report += f'    below_0: {draw_below_0}\n'
-            overall_below_0 |= set(draw_below_0)
-        if draw_over_total_pop:
-            draw_report += f'    over_total_pop: {draw_over_total_pop}\n'
-            overall_over_total_pop |= set(draw_over_total_pop)
-        if draw_report:
-            report += f'{draw}:\n' + draw_report
-    if report:
-        report = 'Failing locations found for some draws\n' + report
-        report += 'Overall:\n'
-        if overall_missing:
-            report += f'    missing: {list(overall_missing)}\n'
-        if overall_below_0:
-            report += f'    below_0: {list(overall_below_0)}\n'
-        if overall_over_total_pop:
-            report += f'    over_total_pop: {list(overall_over_total_pop)}\n'
-        report += f'    all_problem_locs: {list(overall_missing | overall_below_0 | overall_over_total_pop)}\n'
-    return report
 
 
 @click.command()

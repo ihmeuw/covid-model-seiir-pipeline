@@ -30,7 +30,6 @@ def maybe_invade(t: float,
                  y: np.ndarray,
                  params: np.ndarray) -> np.ndarray:
     alpha = params[PARAMETERS[BASE_PARAMETER.alpha, VARIANT_GROUP.all, EPI_MEASURE.infection]]
-    pi = params[PARAMETERS[BASE_PARAMETER.pi, VARIANT_GROUP.all, EPI_MEASURE.infection]]
 
     total_susceptible = 0.
     total_exposed = 0.
@@ -47,9 +46,11 @@ def maybe_invade(t: float,
     min_invasion = 1.0
     # At most .5% of the total susceptible population
     max_invasion = 0.005 * total_susceptible
-    delta = max(min(pi * total_exposed, max_invasion), min_invasion)
 
     for variant_to in VARIANT:
+        pi = params[PARAMETERS[VARIANT_PARAMETER.pi, variant_to, EPI_MEASURE.infection]]
+        delta = max(min(pi * total_exposed, max_invasion), min_invasion)
+
         no_variant_present = params[PARAMETERS[VARIANT_PARAMETER.rho, variant_to, EPI_MEASURE.infection]] < 0.01
         already_invaded = False
         for vaccine_status in VACCINE_STATUS:

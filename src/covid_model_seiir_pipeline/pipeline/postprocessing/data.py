@@ -79,7 +79,8 @@ class PostprocessingDataInterface:
 
     def load_covariate(self, draw_id: int, covariate: str, time_varying: bool,
                        scenario: str, with_observed: bool = False) -> pd.Series:
-        covariates = self.forecast_data_interface.load_raw_covariates(scenario, draw_id)
+        ref = self.forecast_data_interface.load_raw_covariates(scenario, 0)
+        covariates = self.forecast_data_interface.load_raw_covariates(scenario, draw_id).reindex(ref.index)
         if time_varying:
             covariate = covariates[covariate].rename(draw_id)
         else:
