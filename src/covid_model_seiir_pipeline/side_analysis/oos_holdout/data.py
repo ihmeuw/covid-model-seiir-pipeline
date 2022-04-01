@@ -128,7 +128,8 @@ class OOSHoldoutDataInterface:
             betas = (betas
                      .loc[betas.beta.notnull()]
                      .groupby('location_id')
-                     .apply(lambda x: x.iloc[:-holdout_days]))
+                     .apply(lambda x: x.iloc[:-holdout_days])
+                     .reset_index(level=0, drop=True))
         return betas
 
     def save_beta_scales(self, scales: pd.DataFrame, scenario: str, draw_id: int):
