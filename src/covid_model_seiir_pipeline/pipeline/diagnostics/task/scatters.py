@@ -183,6 +183,3 @@ def scatters(diagnostics_version: str, name: str,
         name=name,
         progress_bar=progress_bar)
 
-
-if __name__ == '__main__':
-    scatters()

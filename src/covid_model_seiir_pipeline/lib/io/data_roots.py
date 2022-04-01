@@ -258,7 +258,6 @@ class FitRoot(DataRoot):
 
 
 class RegressionRoot(DataRoot):
-    """Data root representing regression stage outputs."""
     metadata = MetadataType('metadata')
     specification = MetadataType('regression_specification')
     locations = MetadataType('locations')
@@ -271,7 +270,6 @@ class RegressionRoot(DataRoot):
 
 
 class ForecastRoot(DataRoot):
-    """Data root representing forecast stage outputs."""
     metadata = MetadataType('metadata')
     specification = MetadataType('forecast_specification')
 
@@ -285,7 +283,6 @@ class ForecastRoot(DataRoot):
 
 
 class PostprocessingRoot(DataRoot):
-    """Data root representing postprocessing stage outputs."""
     metadata = MetadataType('metadata')
     specification = MetadataType('postprocessing_specification')
     resampling_map = MetadataType('resampling_map')
@@ -302,7 +299,6 @@ class PostprocessingRoot(DataRoot):
 
 
 class DiagnosticsRoot(DataRoot):
-    """Data root representing postprocessing stage outputs."""
     metadata = MetadataType('metadata')
     specification = MetadataType('diagnostics_specification')
 

@@ -131,7 +131,3 @@ def cumulative_deaths_compare_csv(diagnostics_version: str,
     cli_tools.configure_logging_to_terminal(verbose)
     run = cli_tools.handle_exceptions(run_cumulative_deaths_compare_csv, logger, with_debugger)
     run(diagnostics_version=diagnostics_version)
-
-
-if __name__ == '__main__':
-    cumulative_deaths_compare_csv()

@@ -95,7 +95,3 @@ def grid_plots(diagnostics_version: str, name: str,
     run(diagnostics_version=diagnostics_version,
         name=name,
         progress_bar=progress_bar)
-
-
-if __name__ == '__main__':
-    grid_plots()

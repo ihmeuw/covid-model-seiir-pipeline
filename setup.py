@@ -16,7 +16,7 @@ if __name__ == "__main__":
 
     install_requirements = [
         'click',
-        'covid_shared>=1.15.4',
+        'covid_shared>=2',
         'fastparquet',
         'inflection',
         'loguru',
@@ -43,7 +43,7 @@ if __name__ == "__main__":
     doc_requirements = []
 
     internal_requirements = [
-        'covid-shared[internal]',
+        'covid-shared[internal]>=2.0.1',
     ]
 
     setup(
