@@ -22,8 +22,9 @@ def run_oos_holdout_regression(oos_holdout_version: str, draw_id: int) -> None:
 
     logger.info('Loading regression input data', context='read')
     hierarchy = data_interface.load_hierarchy('pred')
-    beta_fit = data_interface.load_fit_beta(draw_id, columns=['beta', 'round'])
-    beta_fit = beta_fit.loc[(beta_fit['round'] == 2) & (beta_fit['beta'] > 0), 'beta']
+    beta_fit = data_interface.load_fit_beta(draw_id, columns=['beta'])['beta']
+    # FIXME: Beta should be nan or positive here.
+    beta_fit = beta_fit.loc[beta_fit > 0]
     covariates = data_interface.load_covariates()
     gaussian_priors = data_interface.load_priors()
     prior_coefficients = data_interface.load_prior_run_coefficients(draw_id=draw_id)
