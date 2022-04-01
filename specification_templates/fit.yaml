@@ -1,5 +1,5 @@
 data:
-  seir_preprocess_version: '2022_03_18.08'
+  seir_preprocess_version: '2022_03_29.02'
   output_format: 'parquet'
   output_root: ''
   compare_version: ''
@@ -34,11 +34,14 @@ rates_parameters:
   omicron_ihr_scalar: [0.150, 0.250]  # 0.20 +/- 25%
   # IDR is altered in second pass rates based on assumptions about the probability a disease is symptomatic.
   omicron_idr_scalar: 1.0
+  # One of 'delta', 'omicron', 'average'
+  omega_severity_parameterization: 'delta'
   p_asymptomatic_pre_omicron: 0.5
   p_asymptomatic_post_omicron: [0.75, 0.85]
   minimum_asymptomatic_idr_fraction: 0.2
   maximum_asymptomatic_idr: 0.6
 fit_parameters:
+  omega_invasion_date: ''
   # Mixing parameter.  dS/dt = -beta * S * I ** alpha
   alpha_all: [0.9, 1.0]
   # Proportion of current E to send to variant E on invasion.
@@ -86,8 +89,4 @@ fit_parameters:
   phi_delta: [0.7, 0.9]
   phi_omicron: [0.4, 0.6]
   phi_other: [0.7, 0.9]
-  phi_omega: [0.0, 0.2]
-measure_downweights:
-  death: []
-  admission: []
-  case: []
+  phi_omega: [0.4, 0.6]

@@ -35,7 +35,7 @@ scenarios:
       lri_mortality: 'reference'
       proportion_under_100m: 'reference'
       proportion_over_2_5k: 'reference'
-  best_masks: 
+  best_masks:
     algorithm: 'normal'
     algorithm_params:
       death_threshold: 8
@@ -93,32 +93,4 @@ scenarios:
       lri_mortality: 'reference'
       proportion_under_100m: 'reference'
       proportion_over_2_5k: 'reference'
-  reduced_hesitancy:
-    algorithm: 'normal'
-    algorithm_params:
-      death_threshold: 8
-      max_threshold: 15
-      reimposition_duration: 6
-      minimum_delay: 14
-    beta_scaling:
-      window_size: 42
-      min_avg_window: 21
-      average_over_min: 2
-      average_over_max: 28
-      residual_rescale_lower: 1
-    vaccine_version: 'probably_no'
-    variant_version: 'reference'
-    log_beta_shift: 0.0
-    log_beta_shift_date: '2025-01-01'
-    beta_scale: 1.0
-    beta_scale_date: '2025-01-01'
-    covariates:
-      pneumonia: 'reference'
-      mobility: 'reference'
-      mask_use: 'reference'
-      testing: 'reference'
-      air_pollution_pm_2_5: 'reference'
-      smoking_prevalence: 'reference'
-      lri_mortality: 'reference'
-      proportion_under_100m: 'reference'
-      proportion_over_2_5k: 'reference'
+

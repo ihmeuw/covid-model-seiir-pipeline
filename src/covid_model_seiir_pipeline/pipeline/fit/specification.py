@@ -122,6 +122,8 @@ class RatesParameters:
     omicron_ihr_scalar: UniformSampleable = field(default=1.0)
     omicron_idr_scalar: UniformSampleable = field(default=1.0)
 
+    omega_severity_parameterization: bool = field(default='delta')
+
     p_asymptomatic_pre_omicron: UniformSampleable = field(default=0.5)
     p_asymptomatic_post_omicron: UniformSampleable = field(default=0.9)
     minimum_asymptomatic_idr_fraction: UniformSampleable = field(default=0.1)
@@ -164,6 +166,7 @@ class RatesParameters:
 
 @dataclass
 class FitParameters:
+    omega_invasion_date: str = field(default='')
     alpha_all: UniformSampleable = field(default=(0.9, 1.0))
 
     pi_none: UniformSampleable = field(default=(0.01, 0.10))
@@ -220,29 +223,17 @@ class FitParameters:
         return utilities.asdict(self)
 
 
-@dataclass
-class MeasureDownweights:
-    death: List[Tuple[int, float]] = field(default_factory=list)
-    admission: List[Tuple[int, float]] = field(default_factory=list)
-    case: List[Tuple[int, float]] = field(default_factory=list)
-
-    def to_dict(self) -> Dict:
-        return utilities.asdict(self)
-
-
 class FitSpecification(utilities.Specification):
 
     def __init__(self,
                  data: FitData,
                  workflow: FitWorkflowSpecification,
                  rates_parameters: RatesParameters,
-                 fit_parameters: FitParameters,
-                 measure_downweights: MeasureDownweights):
+                 fit_parameters: FitParameters):
         self._data = data
         self._workflow = workflow
         self._rates_parameters = rates_parameters
         self._fit_parameters = fit_parameters
-        self._measure_downweights = measure_downweights
 
     @classmethod
     def parse_spec_dict(cls, spec_dict: Dict) -> Tuple:
@@ -251,7 +242,6 @@ class FitSpecification(utilities.Specification):
             'workflow': FitWorkflowSpecification,
             'rates_parameters': RatesParameters,
             'fit_parameters': FitParameters,
-            'measure_downweights': MeasureDownweights,
         }
         for key, spec_class in list(sub_specs.items()):  # We're dynamically altering. Copy with list
             key_spec_dict = utilities.filter_to_spec_fields(
@@ -278,16 +268,11 @@ class FitSpecification(utilities.Specification):
     def fit_parameters(self) -> FitParameters:
         return self._fit_parameters
 
-    @property
-    def measure_downweights(self) -> MeasureDownweights:
-        return self._measure_downweights
-
     def to_dict(self) -> Dict:
         spec = {
             'data': self.data.to_dict(),
             'workflow': self.workflow.to_dict(),
             'rates_parameters': self.rates_parameters.to_dict(),
             'fit_parameters': self.fit_parameters.to_dict(),
-            'measure_downweights': self.measure_downweights.to_dict(),
         }
         return spec

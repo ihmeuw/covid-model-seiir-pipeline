@@ -116,6 +116,7 @@ def evil_doings(data: pd.DataFrame, hierarchy: pd.DataFrame, input_measure: str)
             215: 'sao_tome_and_principe',
             175: 'burundi'
         }
+
         is_in_droplist = data['location_id'].isin(drop_all)
         data = data.loc[~is_in_droplist].reset_index(drop=True)
         for location in drop_all.values():

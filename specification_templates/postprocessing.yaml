@@ -14,7 +14,7 @@ resampling:
   lower_quantile: 0.025
   upper_quantile: 0.975
 splicing:
-  - locations: 
+  - locations:
       - 37    # Kyrgyzstan
       - 50    # Montenegro
       - 121   # Bolivia
@@ -24,11 +24,10 @@ splicing:
       - 214   # Nigeria
       - 204   # Chad
       - 201   # Burkina Faso
-      - 4868  # Rajasthan 
+      - 4868  # Rajasthan
     output_version: '/ihme/covid-19/seir-outputs/2022_02_17.02'
 aggregation:
-  - location_file: '/ihme/covid-19/model-inputs/2022_03_09.04/locations/modeling_hierarchy.csv'
+  - location_file: '/ihme/covid-19/model-inputs/best/locations/modeling_hierarchy.csv'
   - location_file: '/ihme/covid-19/seir-outputs/agg-hierarchies/who_plus_palestine.csv'
   - location_file: '/ihme/covid-19/seir-outputs/agg-hierarchies/who_euro.csv'
   - location_file: '/ihme/covid-19/seir-outputs/agg-hierarchies/world_bank.csv'
-  - location_file: '/ihme/covid-19/seir-outputs/agg-hierarchies/eu_minus_uk.csv'
