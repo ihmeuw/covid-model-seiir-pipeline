@@ -40,7 +40,7 @@ def run_oos_forecast(oos_holdout_version: str, draw_id: int, progress_bar: bool)
     past_compartments = data_interface.load_past_compartments(draw_id).loc[location_ids]
     past_compartments = past_compartments.loc[past_compartments.notnull().any(axis=1)]
     # Contains both the fit and regression betas
-    betas = data_interface.load_regression_beta(draw_id).loc[location_ids]
+    betas = data_interface.load_regression_beta(draw_id, holdout=False).loc[location_ids]
     ode_params = data_interface.load_fit_ode_params(draw_id=draw_id)
     durations = ode_params.filter(like='exposure').iloc[0]
     epi_data = data_interface.load_input_epi_measures(draw_id=draw_id).loc[location_ids]
