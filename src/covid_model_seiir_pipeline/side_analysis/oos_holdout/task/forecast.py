@@ -39,22 +39,41 @@ def run_oos_forecast(oos_holdout_version: str, draw_id: int, progress_bar: bool)
     holdout_days = pd.Timedelta(days=specification.parameters.holdout_weeks * 7)
     past_compartments = data_interface.load_past_compartments(draw_id).loc[location_ids]
     past_compartments = past_compartments.loc[past_compartments.notnull().any(axis=1)]
+    # Contains both the fit and regression betas
+    betas = data_interface.load_regression_beta(draw_id).loc[location_ids]
+    ode_params = data_interface.load_fit_ode_params(draw_id=draw_id)
+    durations = ode_params.filter(like='exposure').iloc[0]
+    epi_data = data_interface.load_input_epi_measures(draw_id=draw_id).loc[location_ids]
+
     past_start_dates = past_compartments.reset_index(level='date').date.groupby('location_id').min()
-    beta_fit_end_dates = past_compartments.reset_index(level='date').date.groupby('location_id').max() - holdout_days
+    beta_fit_end_dates = betas['beta'].dropna().reset_index(level='date').date.groupby('location_id').max() - holdout_days
 
     # We want the forecast to start at the last date for which all reported measures
     # with at least one report in the location are present.
-    all_measures_present = past_compartments[
-        [c for c in past_compartments if c.split('_')[0] in ['Death', 'Admission', 'Case']]
-    ].notnull().all(axis=1)
-    forecast_start_dates = (past_compartments
-                            .loc[all_measures_present]
-                            .reset_index(level='date')
-                            .date.groupby('location_id')
-                            .max())
-    forecast_start_dates = np.minimum(forecast_start_dates, beta_fit_end_dates)
+    past_compartments = past_compartments.reset_index()
+    measure_dates = []
+    for measure in ['case', 'death', 'admission']:
+        duration = durations.at[f'exposure_to_{measure}']
+        epi_measure = {'case': 'cases', 'death': 'deaths', 'admission': 'hospitalizations'}[measure]
+        dates = (epi_data[f'smoothed_daily_{epi_measure}']
+                 .groupby('location_id')
+                 .shift(-duration)
+                 .dropna()
+                 .reset_index()
+                 .groupby('location_id')
+                 .date
+                 .max())
+        measure_dates.append(dates)
+        cols = [c for c in past_compartments.columns if measure.capitalize() in c]
+        for location_id, date in dates.iteritems():
+            past_compartments.loc[((past_compartments.location_id == location_id)
+                                  & (past_compartments.date > date)), cols] = np.nan
+
+    forecast_start_dates = pd.concat([beta_fit_end_dates, *measure_dates], axis=1).min(axis=1).rename('date')
+    past_compartments = past_compartments.set_index(['location_id', 'date'])
+
     # Forecast is run to the end of the covariates
-    covariates = data_interface.load_covariates()
+    covariates = data_interface.load_covariates(scenario_spec.covariates)
     forecast_end_dates = covariates.reset_index().groupby('location_id').date.max()
     population = data_interface.load_population('total').population
 
@@ -70,12 +89,8 @@ def run_oos_forecast(oos_holdout_version: str, draw_id: int, progress_bar: bool)
     # Build parameters for the SEIIR model #
     ########################################
     logger.info('Loading SEIIR parameter input data.', context='read')
-    # We'll use the same params in the ODE forecast as we did in the fit.
-    ode_params = data_interface.load_fit_ode_params(draw_id=draw_id)
     # Use to get ratios
     prior_ratios = data_interface.load_rates(draw_id).loc[location_ids]
-    # Contains both the fit and regression betas
-    betas = data_interface.load_regression_beta(draw_id)
     # Rescaling parameters for the beta forecast.
     beta_shift_parameters = data_interface.load_beta_scales(scenario=scenario, draw_id=draw_id)
     # Regression coefficients for forecasting beta.
@@ -110,6 +125,9 @@ def run_oos_forecast(oos_holdout_version: str, draw_id: int, progress_bar: bool)
         log_beta_shift,
         beta_scale,
     )
+    ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
+    logger.warning('Using Hong Kong IFR projection for mainland China IFR projection in `ode_forecast.build_ratio`.')
+    ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
     model_parameters = model.build_model_parameters(
         indices,
         beta,
@@ -131,6 +149,7 @@ def run_oos_forecast(oos_holdout_version: str, draw_id: int, progress_bar: bool)
     # Pull in compartments from the fit and subset out the initial condition.
     logger.info('Loading past compartment data.', context='read')
     initial_condition = past_compartments.loc[indices.past].reindex(indices.full, fill_value=0.)
+    initial_condition[initial_condition < 0.] = 0.
 
     logger.info('Running ODE forecast.', context='compute_ode')
     compartments, chis = model.run_ode_forecast(

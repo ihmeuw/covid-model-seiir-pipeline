@@ -120,8 +120,16 @@ class OOSHoldoutDataInterface:
     def save_regression_beta(self, betas: pd.DataFrame, draw_id: int) -> None:
         io.dump(betas, self.oos_root.beta(draw_id=draw_id))
 
-    def load_regression_beta(self, draw_id: int) -> pd.DataFrame:
-        return io.load(self.oos_root.beta(draw_id=draw_id))
+    def load_regression_beta(self, draw_id: int, holdout: bool = True) -> pd.DataFrame:
+        betas = io.load(self.oos_root.beta(draw_id=draw_id))
+        if holdout:
+            spec = self.load_specification()
+            holdout_days = spec.parameters.holdout_weeks * 7
+            betas = (betas
+                     .loc[betas.beta.notnull()]
+                     .groupby('location_id')
+                     .apply(lambda x: x.iloc[:-holdout_days]))
+        return betas
 
     def save_beta_scales(self, scales: pd.DataFrame, scenario: str, draw_id: int):
         io.dump(scales, self.oos_root.beta_scaling(draw_id=draw_id))
