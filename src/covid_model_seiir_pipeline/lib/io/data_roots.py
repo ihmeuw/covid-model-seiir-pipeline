@@ -258,7 +258,6 @@ class FitRoot(DataRoot):
 
 
 class RegressionRoot(DataRoot):
-    """Data root representing regression stage outputs."""
     metadata = MetadataType('metadata')
     specification = MetadataType('regression_specification')
     locations = MetadataType('locations')
@@ -271,7 +270,6 @@ class RegressionRoot(DataRoot):
 
 
 class ForecastRoot(DataRoot):
-    """Data root representing forecast stage outputs."""
     metadata = MetadataType('metadata')
     specification = MetadataType('forecast_specification')
 
