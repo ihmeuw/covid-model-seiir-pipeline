@@ -1,9 +1,9 @@
 data:
-  seir_forecast_version: '2022_03_31.01'
+  seir_forecast_version: '2022_03_19.04'
   scenarios:
    - 'reference'
-#   - 'best_masks'
-#   - 'booster'
+   - 'best_masks'
+   - 'booster'
   output_root: ''
 workflow:
   project: 'proj_covid_prod'
@@ -12,10 +12,22 @@ resampling:
   reference_scenario: 'reference'
   reference_date: '2022-07-01'
   lower_quantile: 0.025
-  upper_quantile: 0.925
+  upper_quantile: 0.975
+splicing:
+  - locations:
+      - 37    # Kyrgyzstan
+      - 50    # Montenegro
+      - 121   # Bolivia
+      - 168   # Angola
+      - 4647  # Coahuila
+      - 175   # Burundi
+      - 214   # Nigeria
+      - 204   # Chad
+      - 201   # Burkina Faso
+      - 4868  # Rajasthan
+    output_version: '/ihme/covid-19/seir-outputs/2022_02_17.02'
 aggregation:
   - location_file: '/ihme/covid-19/model-inputs/best/locations/modeling_hierarchy.csv'
   - location_file: '/ihme/covid-19/seir-outputs/agg-hierarchies/who_plus_palestine.csv'
   - location_file: '/ihme/covid-19/seir-outputs/agg-hierarchies/who_euro.csv'
   - location_file: '/ihme/covid-19/seir-outputs/agg-hierarchies/world_bank.csv'
-  - location_file: '/ihme/covid-19/seir-outputs/agg-hierarchies/eu_minus_uk.csv'

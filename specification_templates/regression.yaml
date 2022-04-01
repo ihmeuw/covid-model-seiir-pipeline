@@ -4,7 +4,7 @@ data:
   seir_covariate_priors_version: ''
   output_root: ''
   output_format: 'parquet'
-  drop_locations: [121, 168]
+  drop_locations: []
 workflow:
   project: 'proj_covid_prod'
   queue: 'all.q'
