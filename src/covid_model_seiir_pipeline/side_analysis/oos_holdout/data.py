@@ -67,6 +67,9 @@ class OOSHoldoutDataInterface:
     def load_prior_run_coefficients(self, draw_id: int):
         return self.forecast_data_interface.load_coefficients(draw_id=draw_id)
 
+    def load_input_epi_measures(self, draw_id: int, columns: List[str] = None) -> pd.DataFrame:
+        return self.forecast_data_interface.load_input_epi_measures(draw_id, columns)
+
     def load_past_compartments(self, draw_id: int, columns: List[str] = None) -> pd.DataFrame:
         return self.forecast_data_interface.load_past_compartments(draw_id, columns)
 
