@@ -41,46 +41,16 @@ def run_oos_forecast(oos_holdout_version: str, draw_id: int, progress_bar: bool)
     # Contains both the fit and regression betas
     betas = data_interface.load_regression_beta(draw_id).loc[location_ids]
     ode_params = data_interface.load_fit_ode_params(draw_id=draw_id)
-    durations = ode_params.filter(like='exposure').iloc[0]
     epi_data = data_interface.load_input_epi_measures(draw_id=draw_id).loc[location_ids]
-
-    past_start_dates = past_compartments.reset_index(level='date').date.groupby('location_id').min()
-    beta_fit_end_dates = betas['beta'].dropna().reset_index(level='date').date.groupby('location_id').max()
-    # We want the forecast to start at the last date for which all reported measures
-    # with at least one report in the location are present.
-    past_compartments = past_compartments.reset_index()
-    measure_dates = []
-    for measure in ['case', 'death', 'admission']:
-        duration = durations.at[f'exposure_to_{measure}']
-        epi_measure = {'case': 'cases', 'death': 'deaths', 'admission': 'hospitalizations'}[measure]
-        dates = (epi_data[f'smoothed_daily_{epi_measure}']
-                 .groupby('location_id')
-                 .shift(-duration)
-                 .dropna()
-                 .reset_index()
-                 .groupby('location_id')
-                 .date
-                 .max())
-        measure_dates.append(dates)
-        cols = [c for c in past_compartments.columns if measure.capitalize() in c]
-        for location_id, date in dates.iteritems():
-            past_compartments.loc[((past_compartments.location_id == location_id)
-                                  & (past_compartments.date > date)), cols] = np.nan
-
-    forecast_start_dates = pd.concat([beta_fit_end_dates, *measure_dates], axis=1).min(axis=1).rename('date')
-    past_compartments = past_compartments.set_index(['location_id', 'date'])
-
-    # Forecast is run to the end of the covariates
     covariates = data_interface.load_covariates()
-    forecast_end_dates = covariates.reset_index().groupby('location_id').date.max()
-    population = data_interface.load_population('total').population
 
     logger.info('Building indices', context='transform')
-    indices = model.Indices(
-        past_start_dates,
-        beta_fit_end_dates,
-        forecast_start_dates,
-        forecast_end_dates,
+    indices = model.build_indices(
+        betas=betas,
+        ode_params=ode_params,
+        past_compartments=past_compartments,
+        epi_data=epi_data,
+        covariates=covariates,
     )
 
     ########################################
