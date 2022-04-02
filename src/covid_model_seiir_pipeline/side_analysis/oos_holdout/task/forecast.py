@@ -36,18 +36,16 @@ def run_oos_forecast(oos_holdout_version: str, draw_id: int, progress_bar: bool)
     # to do computation.
     logger.info('Loading index building data', context='read')
     location_ids = data_interface.load_location_ids()
-    holdout_days = pd.Timedelta(days=specification.parameters.holdout_weeks * 7)
     past_compartments = data_interface.load_past_compartments(draw_id).loc[location_ids]
     past_compartments = past_compartments.loc[past_compartments.notnull().any(axis=1)]
     # Contains both the fit and regression betas
-    betas = data_interface.load_regression_beta(draw_id, holdout=False).loc[location_ids]
+    betas = data_interface.load_regression_beta(draw_id).loc[location_ids]
     ode_params = data_interface.load_fit_ode_params(draw_id=draw_id)
     durations = ode_params.filter(like='exposure').iloc[0]
     epi_data = data_interface.load_input_epi_measures(draw_id=draw_id).loc[location_ids]
 
     past_start_dates = past_compartments.reset_index(level='date').date.groupby('location_id').min()
-    beta_fit_end_dates = betas['beta'].dropna().reset_index(level='date').date.groupby('location_id').max() - holdout_days
-
+    beta_fit_end_dates = betas['beta'].dropna().reset_index(level='date').date.groupby('location_id').max()
     # We want the forecast to start at the last date for which all reported measures
     # with at least one report in the location are present.
     past_compartments = past_compartments.reset_index()
@@ -179,6 +177,7 @@ def run_oos_forecast(oos_holdout_version: str, draw_id: int, progress_bar: bool)
     logger.info('Writing outputs.', context='write')
     data_interface.save_raw_oos_outputs(system_metrics, draw_id)
     data_interface.save_deltas(delta, draw_id)
+
 
     logger.report()
 
