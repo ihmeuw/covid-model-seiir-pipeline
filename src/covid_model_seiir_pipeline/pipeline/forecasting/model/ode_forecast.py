@@ -34,10 +34,17 @@ def build_indices(betas: pd.DataFrame,
                   epi_data: pd.DataFrame,
                   covariates: pd.DataFrame):
     durations = ode_params.filter(like='exposure').iloc[0]
-    past_start_dates = past_compartments.reset_index(level='date').date.groupby(
-        'location_id').min()
-    beta_fit_end_dates = betas['beta'].dropna().reset_index(level='date').date.groupby(
-        'location_id').max()
+    past_start_dates = (past_compartments
+                        .reset_index(level='date')
+                        .date
+                        .groupby('location_id')
+                        .min())
+    beta_fit_end_dates = (betas['beta']
+                          .dropna()
+                          .reset_index(level='date')
+                          .date
+                          .groupby('location_id')
+                          .max())
 
     # We want the forecast to start at the last date for which all reported measures
     # with at least one report in the location are present.
@@ -45,8 +52,9 @@ def build_indices(betas: pd.DataFrame,
     measure_dates = []
     for measure in ['case', 'death', 'admission']:
         duration = durations.at[f'exposure_to_{measure}']
-        epi_measure = {'case': 'cases', 'death': 'deaths', 'admission': 'hospitalizations'}[
-            measure]
+        epi_measure = {
+            'case': 'cases', 'death': 'deaths', 'admission': 'hospitalizations'
+        }[measure]
         dates = (epi_data[f'smoothed_daily_{epi_measure}']
                  .groupby('location_id')
                  .shift(-duration)
@@ -61,8 +69,9 @@ def build_indices(betas: pd.DataFrame,
             past_compartments.loc[((past_compartments.location_id == location_id)
                                    & (past_compartments.date > date)), cols] = np.nan
 
-    forecast_start_dates = pd.concat([beta_fit_end_dates, *measure_dates], axis=1).min(
-        axis=1).rename('date')
+    forecast_start_dates = (pd.concat([beta_fit_end_dates, *measure_dates], axis=1)
+                            .min(axis=1)
+                            .rename('date'))
 
     # Forecast is run to the end of the covariates
     forecast_end_dates = covariates.reset_index().groupby('location_id').date.max()

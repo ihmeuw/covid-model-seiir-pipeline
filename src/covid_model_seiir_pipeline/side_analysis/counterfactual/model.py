@@ -1,68 +1,87 @@
-from typing import Tuple
-
 import numpy as np
 import pandas as pd
 
-from covid_model_seiir_pipeline.lib import (
-    math,
-    ode,
+from covid_model_seiir_pipeline.lib.ode_mk2.containers import (
+    Parameters,
+)
+from covid_model_seiir_pipeline.lib.ode_mk2.constants import (
+    RISK_GROUP_NAMES,
 )
 from covid_model_seiir_pipeline.pipeline.forecasting.model.containers import (
     Indices,
 )
+from covid_model_seiir_pipeline.side_analysis.counterfactual.specification import (
+    CounterfactualScenarioParameters
+)
+
+
+def build_indices(scenario_spec: CounterfactualScenarioParameters,
+                  beta: pd.Series,
+                  past_compartments: pd.DataFrame):
+    past_start_dates = (past_compartments
+                        .reset_index(level='date')
+                        .date
+                        .groupby('location_id')
+                        .min())
+
+    desired_start_date = pd.Timestamp(scenario_spec.start_date)
+    with_covid = past_compartments.filter(like='Infection_all_all_all').sum(axis=1) > 0.
+    min_start_date = (past_compartments[with_covid]
+                      .reset_index(level='date')
+                      .groupby('location_id')
+                      .date
+                      .min()) + pd.Timedelta(days=1)
+    forecast_start_dates = np.maximum(min_start_date, desired_start_date)
+    beta_fit_end_dates = forecast_start_dates.copy()
+    forecast_end_dates = beta.reset_index().groupby('location_id').date.max()
+
+    return Indices(
+        past_start_dates,
+        beta_fit_end_dates,
+        forecast_start_dates,
+        forecast_end_dates,
+    )
 
 
 def build_model_parameters(indices: Indices,
-                           ode_parameters: pd.DataFrame,
                            counterfactual_beta: pd.Series,
-                           rhos: pd.DataFrame,
-                           vaccine_data: pd.DataFrame) -> ode.ForecastParameters:
-    # These are all the same by draw.  Just broadcasting them over a new index.
-    ode_params = {
-        param: pd.Series(ode_parameters[param].mean(), index=indices.full, name=param)
-        for param in ['alpha', 'sigma', 'gamma1', 'gamma2', 'pi', 'chi']
+                           forecast_ode_parameters: pd.DataFrame,
+                           prior_ratios: pd.DataFrame,
+                           vaccinations: pd.DataFrame,
+                           etas: pd.DataFrame,
+                           phis: pd.DataFrame) -> Parameters:
+    ode_params = (forecast_ode_parameters
+                  .reindex(indices.full)
+                  .groupby('location_id')
+                  .ffill()
+                  .groupby('location_id')
+                  .bfill())
+    ode_params.loc[:, 'beta_all_infection'] = counterfactual_beta
+
+    scalars = []
+    ratio_map = {
+        'death': 'ifr',
+        'admission': 'ihr',
+        'case': 'idr',
     }
+    for epi_measure, ratio_name in ratio_map.items():
+        for risk_group in RISK_GROUP_NAMES:
+            scalars.append(
+                (prior_ratios[f'{ratio_name}_{risk_group}'] / prior_ratios[ratio_name])
+                .rename(f'{epi_measure}_{risk_group}')
+                .reindex(indices.full)
+                .groupby('location_id')
+                .ffill()
+                .groupby('location_id')
+                .bfill()
+            )
+    scalars = pd.concat(scalars, axis=1)
 
-    beta, beta_wild, beta_variant, beta_hat, rho, rho_variant, rho_b1617, rho_total = get_betas_and_prevalences(
-        indices,
-        counterfactual_beta,
-        rhos,
-        ode_parameters['kappa'].mean(),
-        ode_parameters['phi'].mean(),
-        ode_parameters['psi'].mean(),
+    return Parameters(
+        base_parameters=ode_params,
+        vaccinations=vaccinations.reindex(indices.full, fill_value=0.),
+        etas=etas.reindex(indices.full, fill_value=0.),
+        age_scalars=scalars,
+        phis=phis,
     )
 
-    vaccine_data = vaccine_data.reindex(indices.full, fill_value=0)
-    adjusted_vaccinations = math.adjust_vaccinations(vaccine_data)
-
-    return ode.ForecastParameters(
-        **ode_params,
-        beta=beta,
-        beta_wild=beta_wild,
-        beta_variant=beta_variant,
-        beta_hat=beta_hat,
-        rho=rho,
-        rho_variant=rho_variant,
-        rho_b1617=rho_b1617,
-        rho_total=rho_total,
-        **adjusted_vaccinations,
-    )
-
-
-def get_betas_and_prevalences(indices: Indices,
-                              counterfactual_beta: pd.Series,
-                              rhos: pd.DataFrame,
-                              kappa: float,
-                              phi: float,
-                              psi: float) -> Tuple[pd.Series, pd.Series, pd.Series, pd.Series,
-                                                   pd.Series, pd.Series, pd.Series, pd.Series]:
-    rhos = rhos.reindex(indices.full).fillna(method='ffill')
-
-    beta_hat = counterfactual_beta.copy()
-    beta_hat.loc[:] = np.nan
-    beta = counterfactual_beta.copy()
-    beta_wild = beta * (1 + kappa * rhos.rho)
-    beta_variant = beta * (1 + kappa * (phi * (1 - rhos.rho_b1617) + rhos.rho_b1617 * psi))
-
-    return (beta, beta_wild, beta_variant, beta_hat,
-            rhos.rho, rhos.rho_variant, rhos.rho_b1617, rhos.rho_total)

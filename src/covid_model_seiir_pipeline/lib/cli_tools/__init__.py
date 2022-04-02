@@ -29,6 +29,7 @@ from covid_model_seiir_pipeline.lib.cli_tools.decorators import (
     with_task_postprocessing_version,
     with_task_diagnostics_version,
 
+    with_task_counterfactual_version,
     with_task_oos_holdout_version,
 
     with_scenario,

@@ -5,6 +5,7 @@ import pandas as pd
 from covid_model_seiir_pipeline.lib import (
     cli_tools,
 )
+from covid_model_seiir_pipeline.pipeline.forecasting import model as forecast_model
 from covid_model_seiir_pipeline.side_analysis.counterfactual import model
 from covid_model_seiir_pipeline.side_analysis.counterfactual.specification import (
     CounterfactualSpecification,
@@ -35,96 +36,73 @@ def run_counterfactual_scenario(counterfactual_version: str, scenario: str, draw
     location_ids = data_interface.load_location_ids()
     past_compartments = data_interface.load_past_compartments(draw_id).loc[location_ids]
     past_compartments = past_compartments.loc[past_compartments.notnull().any(axis=1)]
-    min_start_date = past_compartments[past_compartments.filter(like='Infection_all_all_all').sum(axis=1) > 0.].reset_index(level='date').groupby('location_id').date.min() + pd.Timedelta(days=1)
-    desired_start_date = pd.Timestamp(scenario_spec.start_date)
-    start_date = np.maximum(min_start_date, desired_start_date)
-    betas = data_interface.load_counterfactual_beta(scenario_spec.beta, draw_id)
-
-    past_start_dates = past_infections.reset_index().groupby('location_id').date.min()
-    minimum_forecast_start_dates = betas.reset_index().groupby('location_id').date.min()
-    target_start_date = pd.Series(pd.Timestamp(scenario_spec.start_date), index=past_start_dates.index, name='date')
-    forecast_start_dates = np.maximum(target_start_date, minimum_forecast_start_dates)
-    forecast_end_dates = betas.reset_index().groupby('location_id').date.max()
-
-    logger.info('Building indices', context='transform')
-    indices = fmodel.Indices(
-        past_start_dates,
-        forecast_start_dates,
-        forecast_end_dates,
+    beta = data_interface.load_counterfactual_beta(scenario_spec.beta, draw_id)
+    indices = model.build_indices(
+        scenario_spec=scenario_spec,
+        past_compartments=past_compartments,
+        beta=beta,
     )
 
     ########################################
     # Build parameters for the SEIIR model #
     ########################################
     logger.info('Loading SEIIR parameter input data.', context='read')
-    # We'll use the same params in the ODE forecast as we did in the fit.
-    ode_params = data_interface.load_ode_parameters(draw_id=draw_id)
+    forecast_ode_params = data_interface.load_forecast_ode_params(draw_id=draw_id)
     # Vaccine data, of course.
-    vaccinations = data_interface.load_vaccinations(scenario_spec.vaccine_coverage)
-    # Variant prevalences.
-    rhos = data_interface.load_variant_prevalence(scenario_spec.variant_prevalence)
+    vaccinations = data_interface.load_counterfactual_vaccine_uptake(scenario_spec.vaccine_coverage)
+    etas = data_interface.load_counterfactual_vaccine_uptake(scenario_spec.vaccine_coverage)
+    prior_ratios = data_interface.load_rates(draw_id).loc[location_ids]
+    phis = data_interface.load_phis(draw_id=draw_id)
+    hospital_cf = data_interface.load_hospitalizations(measure='correction_factors')
+    hospital_parameters = data_interface.get_hospital_params()
 
     # Collate all the parameters, ensure consistent index, etc.
     logger.info('Processing inputs into model parameters.', context='transform')
     model_parameters = model.build_model_parameters(
-        indices,
-        ode_params,
-        betas,
-        rhos,
-        vaccinations,
+        indices=indices,
+        counterfactual_beta=beta,
+        forecast_ode_parameters=forecast_ode_params,
+        prior_ratios=prior_ratios,
+        vaccinations=vaccinations,
+        etas=etas,
+        phis=phis,
+    )
+    hospital_cf = forecast_model.forecast_correction_factors(
+        indices=indices,
+        correction_factors=hospital_cf,
+        hospital_parameters=hospital_parameters,
     )
 
-    # Pull in compartments from the fit and subset out the initial condition.
-    logger.info('Loading past compartment data.', context='read')
-    past_compartments = data_interface.load_compartments(draw_id=draw_id)
-    initial_condition = past_compartments.loc[indices.initial_condition].reset_index(level='date', drop=True)
-
-    ###################################################
-    # Construct parameters for postprocessing results #
-    ###################################################
-    logger.info('Loading results processing input data.', context='read')
-    past_deaths = data_interface.load_past_deaths(draw_id=draw_id)
-    ratio_data = data_interface.load_ratio_data(draw_id=draw_id)
-    hospital_parameters = data_interface.get_hospital_parameters()
-    correction_factors = data_interface.load_hospital_correction_factors()
-
-    logger.info('Prepping results processing parameters.', context='transform')
-    postprocessing_params = fmodel.build_postprocessing_parameters(
-        indices,
-        past_compartments,
-        past_infections,
-        past_deaths,
-        ratio_data,
-        model_parameters,
-        correction_factors,
-        hospital_parameters,
-        forecast_reference_scenario_spec,
-    )
+    initial_condition = past_compartments.loc[indices.past].reindex(indices.full, fill_value=0.)
+    initial_condition[initial_condition < 0.] = 0.
 
     logger.info('Running ODE forecast.', context='compute_ode')
-    future_components = fmodel.run_ode_model(
+    compartments, chis = forecast_model.run_ode_forecast(
         initial_condition,
-        model_parameters.reindex(indices.future),
-        progress_bar,
-    )
-    logger.info('Processing ODE results and computing deaths and infections.', context='compute_results')
-    components, system_metrics, output_metrics = fmodel.compute_output_metrics(
-        indices,
-        future_components,
-        postprocessing_params,
         model_parameters,
+        num_cores=num_cores,
+        progress_bar=progress_bar,
+    )
+
+    system_metrics = forecast_model.compute_output_metrics(
+        indices,
+        compartments,
+        model_parameters,
+        forecast_ode_params,
         hospital_parameters,
+        hospital_cf,
     )
 
     logger.info('Prepping outputs.', context='transform')
-    ode_params = model_parameters.to_df()
-    outputs = pd.concat([system_metrics.to_df(), output_metrics.to_df(),
-                         postprocessing_params.correction_factors_df], axis=1)
+    counterfactual_ode_params = pd.concat([model_parameters.base_parameters, beta], axis=1)
+    counterfactual_ode_params['beta_hat'] = np.nan
+    for measure in ['death', 'case', 'admission']:
+        counterfactual_ode_params[f'exposure_to_{measure}'] = forecast_ode_params[f'exposure_to_{measure}'].iloc[0]
 
     logger.info('Writing outputs.', context='write')
-    data_interface.save_ode_params(ode_params, scenario, draw_id)
-    data_interface.save_components(components, scenario, draw_id)
-    data_interface.save_raw_outputs(outputs, scenario, draw_id)
+    data_interface.save_ode_params(forecast_ode_params, scenario, draw_id)
+    data_interface.save_components(compartments, scenario, draw_id)
+    data_interface.save_raw_outputs(system_metrics, scenario, draw_id)
 
     logger.report()
 
@@ -135,8 +113,9 @@ def run_counterfactual_scenario(counterfactual_version: str, scenario: str, draw
 @cli_tools.with_draw_id
 @cli_tools.with_progress_bar
 @cli_tools.add_verbose_and_with_debugger
-def counterfactual_scenario(counterfactual_version: str, scenario: str, draw_id: int,
-                   progress_bar: bool, verbose: int, with_debugger: bool):
+def counterfactual_scenario(counterfactual_version: str,
+                            scenario: str, draw_id: int,
+                            progress_bar: bool, verbose: int, with_debugger: bool):
     cli_tools.configure_logging_to_terminal(verbose)
 
     run = cli_tools.handle_exceptions(run_counterfactual_scenario, logger, with_debugger)
