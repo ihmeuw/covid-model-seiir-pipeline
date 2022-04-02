@@ -7,19 +7,13 @@ workflow:
   project: 'proj_covid_prod'
   queue: 'd.q'
 scenarios:
-  reference:
-    beta: 'reference'
-    vaccine_coverage: 'reference'
-    variant_prevalence: 'reference'
-  no_mandates:
-    beta: 'no_mobility'
-    vaccine_coverage: 'reference'
-    variant_prevalence: 'reference'
-  no_mask_use:
-    beta: 'no_mask'
-    vaccine_coverage: 'reference'
-    variant_prevalence: 'reference'
+#  scenario_name:
+#    beta: 'beta_scenario_name'
+#    vaccine_coverage: 'vaccine_coverage_scenario_name'
+#    variant_prevalence: 'variant_prevalence_scenario_name'
+#    mask_use: 'mask_use_scenario_name'
+#    mobility: 'mobility_scenario_name'
+#    start_date: 'YYYY-MM-DD'
   no_vaccine:
-    beta: 'reference'
     vaccine_coverage: 'none'
-    variant_prevalence: 'reference'
+    start_date: '2020-10-01'

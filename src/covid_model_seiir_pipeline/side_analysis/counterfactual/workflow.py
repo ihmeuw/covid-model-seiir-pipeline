@@ -5,7 +5,7 @@ from typing import Iterable
 from covid_shared import workflow
 
 import covid_model_seiir_pipeline
-from covid_model_seiir_pipeline.pipeline.counterfactual.specification import COUNTERFACTUAL_JOBS
+from covid_model_seiir_pipeline.side_analysis.counterfactual.specification import COUNTERFACTUAL_JOBS
 
 
 class CounterfactualTaskTemplate(workflow.TaskTemplate):
