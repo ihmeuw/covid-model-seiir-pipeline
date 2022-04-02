@@ -182,4 +182,3 @@ def scatters(diagnostics_version: str, name: str,
     run(diagnostics_version=diagnostics_version,
         name=name,
         progress_bar=progress_bar)
-
