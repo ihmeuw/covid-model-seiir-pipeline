@@ -253,7 +253,6 @@ class FitRoot(DataRoot):
     ode_parameters = DatasetType('ode_parameters', LEAF_TEMPLATES.MEASURE_DRAW_TEMPLATE)
     phis = DatasetType('phis', LEAF_TEMPLATES.DRAW_TEMPLATE)
     seroprevalence = DatasetType('seroprevalence', LEAF_TEMPLATES.MEASURE_DRAW_TEMPLATE)
-    chis = DatasetType('chis', LEAF_TEMPLATES.DRAW_TEMPLATE)
     summary = DatasetType('summary', LEAF_TEMPLATES.MEASURE_TEMPLATE)
 
 
@@ -279,7 +278,6 @@ class ForecastRoot(DataRoot):
     component_draws = DatasetType('component_draws', LEAF_TEMPLATES.DRAW_TEMPLATE, PREFIX_TEMPLATES.SCENARIO_TEMPLATE)
     raw_covariates = DatasetType('raw_covariates', LEAF_TEMPLATES.DRAW_TEMPLATE, PREFIX_TEMPLATES.SCENARIO_TEMPLATE)
     raw_outputs = DatasetType('raw_outputs', LEAF_TEMPLATES.DRAW_TEMPLATE, PREFIX_TEMPLATES.SCENARIO_TEMPLATE)
-    chis = DatasetType('chis', LEAF_TEMPLATES.DRAW_TEMPLATE, PREFIX_TEMPLATES.SCENARIO_TEMPLATE)
 
 
 class PostprocessingRoot(DataRoot):
@@ -317,3 +315,26 @@ class OOSHoldoutRoot(DataRoot):
     beta_residual = DatasetType('beta_residual', LEAF_TEMPLATES.DRAW_TEMPLATE)
     raw_oos_outputs = DatasetType('raw_oos_outputs', LEAF_TEMPLATES.DRAW_TEMPLATE)
     deltas = DatasetType('deltas', LEAF_TEMPLATES.DRAW_TEMPLATE)
+
+
+class CounterfactualInputRoot(DataRoot):
+    metadata = MetadataType('metadata')
+
+    beta = DatasetType('beta', LEAF_TEMPLATES.DRAW_TEMPLATE, PREFIX_TEMPLATES.SCENARIO_TEMPLATE)
+    vaccine_coverage = DatasetType('vaccine_coverage', LEAF_TEMPLATES.COV_SCENARIO_TEMPLATE)
+    etas = DatasetType('etas', LEAF_TEMPLATES.COV_SCENARIO_TEMPLATE)
+    variant_prevalence = DatasetType('variant_prevalence', LEAF_TEMPLATES.COV_SCENARIO_TEMPLATE)
+    mask_use = DatasetType('mask_use', LEAF_TEMPLATES.COV_SCENARIO_TEMPLATE)
+    mobility = DatasetType('mobility', LEAF_TEMPLATES.COV_SCENARIO_TEMPLATE)
+
+
+class CounterfactualRoot(DataRoot):
+    metadata = MetadataType('metadata')
+    specification = MetadataType('counterfactual_specification')
+
+    beta_scaling = DatasetType('beta_scaling', LEAF_TEMPLATES.DRAW_TEMPLATE, PREFIX_TEMPLATES.SCENARIO_TEMPLATE)
+    beta_residual = DatasetType('beta_residual', LEAF_TEMPLATES.DRAW_TEMPLATE, PREFIX_TEMPLATES.SCENARIO_TEMPLATE)
+    ode_params = DatasetType('ode_params', LEAF_TEMPLATES.DRAW_TEMPLATE, PREFIX_TEMPLATES.SCENARIO_TEMPLATE)
+    component_draws = DatasetType('component_draws', LEAF_TEMPLATES.DRAW_TEMPLATE, PREFIX_TEMPLATES.SCENARIO_TEMPLATE)
+    raw_covariates = DatasetType('raw_covariates', LEAF_TEMPLATES.DRAW_TEMPLATE, PREFIX_TEMPLATES.SCENARIO_TEMPLATE)
+    raw_outputs = DatasetType('raw_outputs', LEAF_TEMPLATES.DRAW_TEMPLATE, PREFIX_TEMPLATES.SCENARIO_TEMPLATE)

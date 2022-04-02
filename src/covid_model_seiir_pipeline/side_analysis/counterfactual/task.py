@@ -1,37 +1,43 @@
-from pathlib import Path
-
 import click
 import numpy as np
 import pandas as pd
 
 from covid_model_seiir_pipeline.lib import (
     cli_tools,
-    static_vars,
 )
-from covid_model_seiir_pipeline.pipeline.counterfactual.specification import CounterfactualSpecification
-from covid_model_seiir_pipeline.pipeline.counterfactual.data import CounterfactualDataInterface
-from covid_model_seiir_pipeline.pipeline.forecasting import model as fmodel
+from covid_model_seiir_pipeline.side_analysis.counterfactual import model
+from covid_model_seiir_pipeline.side_analysis.counterfactual.specification import (
+    CounterfactualSpecification,
+    COUNTERFACTUAL_JOBS,
+)
+from covid_model_seiir_pipeline.side_analysis.counterfactual.data import (
+    CounterfactualDataInterface,
+)
 
-from covid_model_seiir_pipeline.pipeline.counterfactual import model
 
 logger = cli_tools.task_performance_logger
 
 
-def run_counterfactual(counterfactual_version: str, scenario: str, draw_id: int, progress_bar: bool):
+def run_counterfactual_scenario(counterfactual_version: str, scenario: str, draw_id: int, progress_bar: bool):
     logger.info(f"Initiating SEIIR counterfactual for scenario {scenario}, draw {draw_id}.", context='setup')
-    counterfactual_spec = CounterfactualSpecification.from_path(
-        Path(counterfactual_version) / static_vars.COUNTERFACTUAL_SPECIFICATION_FILE
-    )
-    scenario_spec = counterfactual_spec.scenarios[scenario]
-    data_interface = CounterfactualDataInterface.from_specification(counterfactual_spec)
-    forecast_spec = data_interface.load_forecast_specification()
-    forecast_reference_scenario_spec = forecast_spec.scenarios['reference']
+    specification = CounterfactualSpecification.from_version_root(counterfactual_version)
+    num_cores = specification.workflow.task_specifications[COUNTERFACTUAL_JOBS.counterfactual_scenario].num_cores
+    scenario_spec = specification.scenarios[scenario]
+    data_interface = CounterfactualDataInterface.from_specification(specification)
 
     #################
     # Build indices #
     #################
+    # The hardest thing to keep consistent is data alignment. We have about 100
+    # unique datasets in this model, and they need to be aligned consistently
+    # to do computation.
     logger.info('Loading index building data', context='read')
-    past_infections = data_interface.load_past_infections(draw_id)
+    location_ids = data_interface.load_location_ids()
+    past_compartments = data_interface.load_past_compartments(draw_id).loc[location_ids]
+    past_compartments = past_compartments.loc[past_compartments.notnull().any(axis=1)]
+    min_start_date = past_compartments[past_compartments.filter(like='Infection_all_all_all').sum(axis=1) > 0.].reset_index(level='date').groupby('location_id').date.min() + pd.Timedelta(days=1)
+    desired_start_date = pd.Timestamp(scenario_spec.start_date)
+    start_date = np.maximum(min_start_date, desired_start_date)
     betas = data_interface.load_counterfactual_beta(scenario_spec.beta, draw_id)
 
     past_start_dates = past_infections.reset_index().groupby('location_id').date.min()
@@ -129,16 +135,13 @@ def run_counterfactual(counterfactual_version: str, scenario: str, draw_id: int,
 @cli_tools.with_draw_id
 @cli_tools.with_progress_bar
 @cli_tools.add_verbose_and_with_debugger
-def counterfactual(counterfactual_version: str, scenario: str, draw_id: int,
+def counterfactual_scenario(counterfactual_version: str, scenario: str, draw_id: int,
                    progress_bar: bool, verbose: int, with_debugger: bool):
     cli_tools.configure_logging_to_terminal(verbose)
 
-    run = cli_tools.handle_exceptions(run_counterfactual, logger, with_debugger)
+    run = cli_tools.handle_exceptions(run_counterfactual_scenario, logger, with_debugger)
     run(counterfactual_version=counterfactual_version,
         scenario=scenario,
         draw_id=draw_id,
         progress_bar=progress_bar)
 
-
-if __name__ == '__main__':
-    counterfactual()
