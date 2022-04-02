@@ -16,16 +16,20 @@ if __name__ == "__main__":
 
     install_requirements = [
         'click',
-        'covid_shared>=1.11.0',
+        'covid_shared>=2.0.1',
         'fastparquet',
+        'inflection',
         'loguru',
         'matplotlib',
-        'numba',
+        'numba>=0.54',
         'numpy',
+        'openpyxl',
         'pandas',
+        'pathos',
         'pypdf2',
         'pyyaml',
         'parse',
+        'regmod @ git+https://github.com/ihmeuw-msca/regmod.git@develop',
         'scipy',
         'seaborn',
         'tqdm',
@@ -39,7 +43,7 @@ if __name__ == "__main__":
     doc_requirements = []
 
     internal_requirements = [
-        'covid-shared[internal]',
+        'covid-shared[internal]>=2.0.1',
     ]
 
     setup(
@@ -69,7 +73,7 @@ if __name__ == "__main__":
 
         entry_points={'console_scripts': [
             'seiir=covid_model_seiir_pipeline.cli:seiir',
-            'stask=covid_model_seiir_pipeline.pipeline.seiir_task:stask',
+            'stask=covid_model_seiir_pipeline.seiir_task:stask',
             'sparse=covid_model_seiir_pipeline.lib.cli_tools.performance_logger.log_parser:parse_logs'
         ]},
         zip_safe=False,

@@ -1,12 +1,11 @@
 from typing import List, Tuple, Union
-from pathlib import Path
 
 import click
 import pandas as pd
 
 from covid_model_seiir_pipeline.lib import (
     cli_tools,
-    static_vars,
+    aggregate,
 )
 from covid_model_seiir_pipeline.pipeline.postprocessing.specification import (
     SplicingSpecification,
@@ -64,8 +63,8 @@ def do_aggregation(measure_data: pd.DataFrame,
     if measure_config.aggregator is not None and aggregation_configs:
         for aggregation_config in aggregation_configs:
             logger.info(f'Aggregating to hierarchy {aggregation_config.to_dict()}', context='aggregate')
-            hierarchy = data_interface.load_aggregation_heirarchy(aggregation_config)
-            population = data_interface.load_populations()
+            hierarchy = data_interface.load_aggregation_hierarchy(aggregation_config)
+            population = data_interface.load_population('total').population
             measure_data = measure_config.aggregator(measure_data, hierarchy, population)
     return measure_data
 
@@ -75,7 +74,7 @@ def summarize_and_write(measure_data: pd.DataFrame,
                         data_interface: PostprocessingDataInterface,
                         measure: str, scenario_name: str):
     logger.info(f'Summarizing results for {measure}.', context='summarize')
-    summarized = model.summarize(measure_data)
+    summarized = aggregate.summarize(measure_data)
     if measure_config.write_draws:
         logger.info(f'Saving draws for {measure}.', context='write_draws')
         data_interface.save_output_draws(measure_data.reset_index(), scenario_name, measure)
@@ -94,8 +93,9 @@ def load_and_resample_measure(measure_config: model.MeasureConfig,
         logger.info(f'Concatenating {measure_config.label}.', context='concatenate')
         measure_data = pd.concat(measure_data, axis=1)
 
-    logger.info(f'Resampling {measure_config.label}.', context='resample')
-    measure_data = model.resample_draws(measure_data, data_interface.load_resampling_map())
+    if measure_config.resample:
+        logger.info(f'Resampling {measure_config.label}.', context='resample')
+        measure_data = model.resample_draws(measure_data, data_interface.load_resampling_map())
     return measure_data
 
 
@@ -211,13 +211,16 @@ def postprocess_covariate(postprocessing_version: str,
                           scenario_name: str, covariate: str) -> None:
     postprocessing_spec, data_interface = build_spec_and_data_interface(postprocessing_version)
     covariate_config = model.COVARIATES[covariate]
-
     covariate_version = data_interface.get_covariate_version(covariate, scenario_name)
     n_draws = data_interface.get_n_draws()
 
     input_covariate_data = data_interface.load_input_covariate(covariate, covariate_version)
-    covariate_observed = input_covariate_data.reset_index(level='observed')
-    covariate_observed['observed'] = covariate_observed['observed'].fillna(0)
+    if 'observed' in input_covariate_data.index.names:
+        covariate_observed = input_covariate_data.reset_index(level='observed')
+    else:
+        covariate_observed = input_covariate_data.copy()
+        covariate_observed['observed'] = 0.
+    covariate_observed['observed'] = covariate_observed['observed'].fillna(0.)
 
     covariate_data = load_and_resample_covariate(
         covariate_config,
@@ -234,6 +237,12 @@ def postprocess_covariate(postprocessing_version: str,
         scenario_name,
         load_and_resample_covariate
     )
+
+    observed_col = covariate_observed.reindex(covariate_data.index).observed
+    covariate_data = pd.concat([covariate_data, observed_col], axis=1)
+    covariate_data['observed'] = covariate_observed['observed'].fillna(0)
+    covariate_data = covariate_data.set_index('observed', append=True)
+
     covariate_data = do_aggregation(
         covariate_data,
         covariate_config,
@@ -242,21 +251,16 @@ def postprocess_covariate(postprocessing_version: str,
     )
 
     logger.info(f'Combining {covariate} forecasts with history.', context='merge_history')
-    covariate_data = covariate_data.merge(covariate_observed, left_index=True,
-                                          right_index=True, how='outer').reset_index()
     draw_cols = [f'draw_{i}' for i in range(n_draws)]
-    if 'date' in covariate_data.columns:
+    if 'date' in covariate_data.index.names:
         index_cols = ['location_id', 'date', 'observed']
     else:
         index_cols = ['location_id', 'observed']
-
-    covariate_data = covariate_data.set_index(index_cols)[draw_cols]
     covariate_data['modeled'] = covariate_data.notnull().all(axis=1).astype(int)
 
     input_covariate = pd.concat([covariate_observed.reset_index().set_index(index_cols)] * n_draws, axis=1)
     input_covariate.columns = draw_cols
     covariate_data = covariate_data.combine_first(input_covariate).set_index('modeled', append=True)
-
     summarize_and_write(
         covariate_data,
         covariate_config,
@@ -271,30 +275,34 @@ def postprocess_miscellaneous(postprocessing_version: str,
     postprocessing_spec, data_interface = build_spec_and_data_interface(postprocessing_version)
     miscellaneous_config = model.MISCELLANEOUS[measure]
     logger.info(f'Loading {measure}.', context='read')
-    miscellaneous_data = miscellaneous_config.loader(data_interface)
+    try:
+        miscellaneous_data = miscellaneous_config.loader(data_interface)
 
-    miscellaneous_data = do_aggregation(
-        miscellaneous_data,
-        miscellaneous_config,
-        postprocessing_spec.aggregation,
-        data_interface,
-    )
+        miscellaneous_data = do_aggregation(
+            miscellaneous_data,
+            miscellaneous_config,
+            postprocessing_spec.aggregation,
+            data_interface,
+        )
 
-    if miscellaneous_config.is_table:
-        miscellaneous_data = miscellaneous_data.reset_index()
+        if miscellaneous_config.is_table:
+            miscellaneous_data = miscellaneous_data.reset_index()
 
-    logger.info(f'Saving {measure} data.', context='write')
-    data_interface.save_output_miscellaneous(miscellaneous_data,
-                                             scenario_name,
-                                             miscellaneous_config.label,
-                                             miscellaneous_config.is_table)
+        logger.info(f'Saving {measure} data.', context='write')
+        data_interface.save_output_miscellaneous(miscellaneous_data,
+                                                 scenario_name,
+                                                 miscellaneous_config.label,
+                                                 miscellaneous_config.is_table)
+    except Exception:
+        if miscellaneous_config.soft_fail:
+            return
+        else:
+            raise
 
 
 def build_spec_and_data_interface(postprocessing_version: str) -> Tuple[PostprocessingSpecification,
                                                                         PostprocessingDataInterface]:
-    postprocessing_spec = PostprocessingSpecification.from_path(
-        Path(postprocessing_version) / static_vars.POSTPROCESSING_SPECIFICATION_FILE
-    )
+    postprocessing_spec = PostprocessingSpecification.from_version_root(postprocessing_version)
     data_interface = PostprocessingDataInterface.from_specification(postprocessing_spec)
     return postprocessing_spec, data_interface
 
@@ -328,7 +336,3 @@ def postprocess(postprocessing_version: str, scenario: str, measure: str,
     run(postprocessing_version=postprocessing_version,
         scenario=scenario,
         measure=measure)
-
-
-if __name__ == '__main__':
-    postprocess()

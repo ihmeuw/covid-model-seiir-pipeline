@@ -7,24 +7,17 @@ from covid_model_seiir_pipeline.lib import (
     utilities,
 )
 
-# This is just exposing these containers from this namespace so we're not
-# importing from the regression stage everywhere.
-from covid_model_seiir_pipeline.pipeline.regression.model.containers import (
-    RatioData,
-    HospitalCensusData,
-    HospitalMetrics,
-    HospitalCorrectionFactors,
-)
-
 
 class Indices:
     """Abstraction for building square datasets."""
 
     def __init__(self,
                  past_start_dates: pd.Series,
+                 beta_fit_end_dates: pd.Series,
                  forecast_start_dates: pd.Series,
                  forecast_end_dates: pd.Series):
         self._past_index = self._build_index(past_start_dates, forecast_start_dates, pd.Timedelta(days=1))
+        self._beta_fit_index = self._build_index(past_start_dates, beta_fit_end_dates)
         self._future_index = self._build_index(forecast_start_dates, forecast_end_dates)
         self._initial_condition_index = (
             forecast_start_dates
@@ -39,6 +32,11 @@ class Indices:
     def past(self) -> pd.MultiIndex:
         """Location-date index for the past."""
         return self._past_index.copy()
+
+    @property
+    def beta_fit(self) -> pd.MultiIndex:
+        """Location-date index for the past."""
+        return self._beta_fit_index.copy()
 
     @property
     def future(self) -> pd.MultiIndex:
@@ -76,14 +74,15 @@ class Indices:
 
 @dataclass
 class PostprocessingParameters:
-    past_compartments: pd.DataFrame
-
     past_infections: pd.Series
     past_deaths: pd.Series
 
     infection_to_death: int
     infection_to_admission: int
     infection_to_case: int
+
+    ifr_scalar: float
+    ihr_scalar: float
 
     ifr: pd.Series
     ifr_hr: pd.Series
@@ -103,86 +102,3 @@ class PostprocessingParameters:
             self.hospital_census.rename('hospital_census_correction_factor'),
             self.icu_census.rename('icu_census_correction_factor'),
         ], axis=1)
-
-
-@dataclass
-class SystemMetrics:
-    modeled_infections_wild: pd.Series
-    modeled_infections_variant: pd.Series
-    modeled_infections_lr: pd.Series
-    modeled_infections_hr: pd.Series
-    modeled_infections_total: pd.Series
-    modeled_infected_total: pd.Series
-
-    variant_prevalence: pd.Series
-    natural_immunity_breakthrough: pd.Series
-    vaccine_breakthrough: pd.Series
-    proportion_cross_immune: pd.Series
-
-    modeled_deaths_wild: pd.Series
-    modeled_deaths_variant: pd.Series
-    modeled_deaths_lr: pd.Series
-    modeled_deaths_hr: pd.Series
-    modeled_deaths_total: pd.Series
-
-    vaccinations_protected_wild: pd.Series
-    vaccinations_protected_all: pd.Series
-    vaccinations_immune_wild: pd.Series
-    vaccinations_immune_all: pd.Series
-    vaccinations_effective: pd.Series
-    vaccinations_ineffective: pd.Series
-
-    total_susceptible_wild: pd.Series
-    total_susceptible_variant: pd.Series
-    total_susceptible_variant_only: pd.Series
-    total_susceptible_variant_unprotected: pd.Series
-    total_infectious_wild: pd.Series
-    total_infectious_variant: pd.Series
-    total_immune_wild: pd.Series
-    total_immune_variant: pd.Series
-
-    force_of_infection: pd.Series
-    force_of_infection_unvaccinated: pd.Series
-
-    total_population: pd.Series
-
-    beta: pd.Series
-    beta_wild: pd.Series
-    beta_variant: pd.Series
-
-    def to_dict(self) -> Dict[str, pd.Series]:
-        return utilities.asdict(self)
-
-    def to_df(self) -> pd.DataFrame:
-        return pd.concat([v.rename(k) for k, v in self.to_dict().items()], axis=1)
-
-
-@dataclass
-class OutputMetrics:
-    # observed + modeled
-    infections: pd.Series
-    cases: pd.Series
-    hospital_admissions: pd.Series
-    hospital_census: pd.Series
-    icu_admissions: pd.Series
-    icu_census: pd.Series
-    deaths: pd.Series
-
-    # Other stuff
-    r_controlled_wild: pd.Series
-    r_effective_wild: pd.Series
-    r_controlled_variant: pd.Series
-    r_effective_variant: pd.Series
-    r_effective: pd.Series
-
-    def to_dict(self) -> Dict[str, pd.Series]:
-        return utilities.asdict(self)
-
-    def to_df(self) -> pd.DataFrame:
-        out_list = []
-        for k, v in self.to_dict().items():
-            v = v.rename(k)
-            if k == 'deaths':
-                v = v.reset_index(level='observed')
-            out_list.append(v)
-        return pd.concat(out_list, axis=1)

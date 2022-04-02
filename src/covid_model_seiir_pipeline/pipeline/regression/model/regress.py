@@ -36,7 +36,7 @@ def run_beta_regression(beta_fit: pd.Series,
     )
     mr_model = reslime.MRModel(mr_data, predictor_set)
     coefficients = mr_model.fit_model().reset_index(level=['super_region_id', 'region_id'], drop=True)
-    coefficients = pd.concat([coefficients] + fixed_coefficients, axis=1)
+    coefficients = pd.concat([coefficients, *fixed_coefficients], axis=1)
     return coefficients
 
 
@@ -71,7 +71,7 @@ def build_predictors(regression_inputs: pd.DataFrame,
                     index=location_ids,
                 )
             )
-        elif prior_coefficients is not None and not covariate.group_level:
+        elif prior_coefficients is not None and not covariate.group_level and covariate.name in prior_coefficients:
             coefficient_val = (
                 prior_coefficients
                 .reset_index()

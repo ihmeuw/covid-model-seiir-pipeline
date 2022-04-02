@@ -17,7 +17,7 @@ class __LeafTemplates(NamedTuple):
     """
     DRAW_TEMPLATE: str = 'draw_{draw_id}'
     MEASURE_TEMPLATE: str = '{measure}'
-    SCENARIO_TEMPLATE: str = '{scenario}'
+    MEASURE_DRAW_TEMPLATE: str = '{measure}_draw_{draw_id}'
     COV_SCENARIO_TEMPLATE: str = '{covariate_scenario}_scenario'
     COV_INFO_TEMPLATE: str = '{info_type}_info'
     VARIANT_SCENARIO: str = 'variant_{scenario}'
@@ -35,6 +35,7 @@ class __PrefixTemplates(NamedTuple):
 
     """
     SCENARIO_TEMPLATE: str = '{scenario}'
+    COVARIATES: str = 'covariates'
 
 
 PREFIX_TEMPLATES = __PrefixTemplates()
@@ -183,10 +184,11 @@ class DatasetType:
             raise TypeError('All dataset key arguments must be specified as keyword arguments. '
                             f'You specified args {args} and kwargs {key_kwargs} to {self.name}.')
 
+        name = self.name.format(**key_kwargs)
         leaf_name = self.leaf_template.format(**key_kwargs) if self.leaf_template else None
         path_name = self.prefix_template.format(**key_kwargs) if self.prefix_template else None
         columns = key_kwargs.get('columns', None)
-        return DatasetKey(self.root, self.disk_format, self.name, leaf_name, path_name, columns)
+        return DatasetKey(self.root, self.disk_format, name, leaf_name, path_name, columns)
 
     def __eq__(self, other):
         return self.__dict__ == other.__dict__

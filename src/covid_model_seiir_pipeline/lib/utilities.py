@@ -1,12 +1,17 @@
 from __future__ import annotations
 
 import abc
+from contextlib import contextmanager
 from dataclasses import asdict as asdict_, fields, is_dataclass
+import hashlib
+import os
 from pathlib import Path
+import sys
 from typing import Dict, Union, Tuple
 from pprint import pformat
 
-from covid_shared import ihme_deps
+from covid_shared import ihme_deps, workflow
+import inflection
 import numpy as np
 import pandas as pd
 import yaml
@@ -18,6 +23,7 @@ class YamlIOMixin:
     @staticmethod
     def _coerce_path(path: Union[str, Path]) -> Path:
         path = Path(path)
+        path = Path(str(path).replace('/ihme/covid-19-2', '/ihme/covid-19'))
         if path.suffix not in ['.yaml', '.yml']:
             raise ValueError('Path must point to a yaml file. '
                              f'You provided {str(path)}')
@@ -40,6 +46,15 @@ class YamlIOMixin:
 
 class Specification(YamlIOMixin):
     """Generic class for pipeline stage specifications."""
+
+    @classmethod
+    def spec_file_name(cls) -> str:
+        return f'{inflection.underscore(cls.__name__)}.yaml'
+
+    @classmethod
+    def from_version_root(cls, version_root: Union[str, Path]) -> Specification:
+        path = Path(version_root) / cls.spec_file_name()
+        return cls.from_path(path)
 
     @classmethod
     def from_path(cls, specification_path: Union[str, Path]) -> Specification:
@@ -108,3 +123,52 @@ def load_location_hierarchy(location_set_version_id: int = None,
         )
     else:
         return pd.read_csv(location_file)
+
+
+def get_random_seed(key: str):
+    # 4294967295 == 2**32 - 1 which is the maximum allowable seed for a `numpy.random.RandomState`.
+    seed = int(hashlib.sha1(key.encode('utf8')).hexdigest(), 16) % 4294967295
+    return seed
+
+
+def get_random_state(key: str):
+    seed = get_random_seed(key)
+    random_state = np.random.RandomState(seed=seed)
+    return random_state
+
+
+@contextmanager
+def suppress_output(filter_list):
+    old_stdout = sys.stdout
+    old_stderr = sys.stderr
+    sys.stdout = StreamFilter(filter_list, sys.stdout)
+    sys.stderr = StreamFilter(filter_list, sys.stderr)
+    try:
+        yield
+    finally:
+        sys.stdout = old_stdout
+        sys.stderr = old_stderr
+
+
+class StreamFilter(object):
+    def __init__(self, strings_to_filter, stream):
+        self.stream = stream
+        self.triggered = False
+        self.strings_to_filter = strings_to_filter
+
+    def __getattr__(self, attr_name):
+        return getattr(self.stream, attr_name)
+
+    def write(self, data):
+        if data == '\n' and self.triggered:
+            self.triggered = False
+        else:
+            if data not in self.strings_to_filter:
+                self.stream.write(data)
+                self.stream.flush()
+            else:
+                # caught bad pattern
+                self.triggered = True
+
+    def flush(self):
+        self.stream.flush()

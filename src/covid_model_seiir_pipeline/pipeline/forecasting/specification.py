@@ -27,8 +27,8 @@ class ScalingTaskSpecification(workflow.TaskSpecification):
 class ForecastTaskSpecification(workflow.TaskSpecification):
     """Specification of execution parameters for beta forecasting tasks."""
     default_max_runtime_seconds = 15000
-    default_m_mem_free = '15G'
-    default_num_cores = 1
+    default_m_mem_free = '50G'
+    default_num_cores = 11
 
 
 class ForecastWorkflowSpecification(workflow.WorkflowSpecification):
@@ -43,11 +43,9 @@ class ForecastWorkflowSpecification(workflow.WorkflowSpecification):
 @dataclass
 class ForecastData:
     """Specifies the inputs and outputs for a forecast."""
-    regression_version: str = field(default='best')
-    covariate_version: str = field(default='best')
+    seir_regression_version: str = field(default='best')
     output_root: str = field(default='')
     output_format: str = field(default='csv')
-    fh_subnationals: bool = field(default=False)
 
     def to_dict(self) -> Dict:
         """Converts to a dict, coercing list-like items to lists."""
@@ -66,6 +64,7 @@ class ScenarioSpecification:
     )
     BETA_SCALING_KEYS = (
         'window_size',
+        'min_avg_window',
         'average_over_min',
         'average_over_max',
         'residual_rescale_lower',
@@ -79,17 +78,16 @@ class ScenarioSpecification:
     vaccine_version: str = field(default='reference')
     variant_version: str = field(default='reference')
     variant_ifr_scale: float = field(default=1.29)
+    log_beta_shift: float = field(default=0.0)
+    log_beta_shift_date: str = field(default='2025-01-01')
+    beta_scale: float = field(default=1.0)
+    beta_scale_date: str = field(default='2025-01-01')
     covariates: Dict[str, str] = field(default_factory=dict)
 
     def __post_init__(self):
         if self.algorithm not in self.ALLOWED_ALGORITHMS:
             raise ValueError(f'Unknown algorithm {self.algorithm} in scenario {self.name}. '
                              f'Allowed algorithms are {self.ALLOWED_ALGORITHMS}.')
-
-#        bad_scaling_keys = set(self.beta_scaling).difference(self.BETA_SCALING_KEYS)
-#        if bad_scaling_keys:
-#            raise ValueError(f'Unknown beta scaling configuration option(s) {list(bad_scaling_keys)} '
-#                             f'in scenario {self.name}. Expected options: {self.BETA_SCALING_KEYS}.')
 
         window_size = self.beta_scaling.get('window_size', None)
         if window_size is None:
@@ -125,7 +123,9 @@ class ForecastSpecification(utilities.Specification):
     @classmethod
     def parse_spec_dict(cls, forecast_spec_dict: Dict) -> Tuple:
         """Construct forecast specification args from a dict."""
-        data = ForecastData(**forecast_spec_dict.get('data', {}))
+        data_dict = forecast_spec_dict.get('data', {})
+        data_dict = utilities.filter_to_spec_fields(data_dict, ForecastData())
+        data = ForecastData(**data_dict)
         workflow = ForecastWorkflowSpecification(**forecast_spec_dict.get('workflow', {}))
         scenario_dicts = forecast_spec_dict.get('scenarios', {})
         scenarios = []

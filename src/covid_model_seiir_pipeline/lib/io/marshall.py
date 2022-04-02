@@ -11,7 +11,10 @@ from covid_model_seiir_pipeline.lib.io.keys import (
     MetadataKey,
 )
 
-POTENTIAL_INDEX_COLUMNS = ['location_id', 'date', 'age_start']
+POTENTIAL_INDEX_COLUMNS = [
+    'location_id', 'date',
+    'age_start', 'age_group_years_start', 'age_group_years_end',
+]
 
 
 class CSVMarshall:
@@ -24,14 +27,17 @@ class CSVMarshall:
         if strict and path.exists():
             msg = f"Cannot dump data for key {key} - would overwrite"
             raise LookupError(msg)
-
-        write_index = bool(set(data.index.names).intersection(POTENTIAL_INDEX_COLUMNS))
+        
+        write_index = any([n is not None for n in data.index.names])
         data.to_csv(path, index=write_index)
 
     @classmethod
     def load(cls, key: DatasetKey) -> pd.DataFrame:
         path, columns = cls._resolve_key(key)
-        data = pd.read_csv(path, usecols=columns)
+        if columns is None:
+            data = pd.read_csv(path)
+        else:
+            data = pd.read_csv(path, usecols=lambda x: x in columns + POTENTIAL_INDEX_COLUMNS)
         # Use list comp to keep ordering consistent.
         index_cols = [c for c in POTENTIAL_INDEX_COLUMNS if c in data.columns]
         if 'date' in index_cols:
@@ -53,6 +59,7 @@ class CSVMarshall:
     @classmethod
     def _resolve_key(cls, key: DatasetKey) -> Tuple[Path, Union[List[str], None]]:
         path = key.root
+        path = Path(str(path).replace('/ihme/covid-19-2', '/ihme/covid-19'))
         if key.prefix:
             path /= key.prefix
         path /= key.data_type
@@ -96,6 +103,7 @@ class ParquetMarshall:
     @classmethod
     def _resolve_key(cls, key: DatasetKey) -> Tuple[Path, Union[List[str], None]]:
         path = key.root
+        path = Path(str(path).replace('/ihme/covid-19-2', '/ihme/covid-19'))
         if key.prefix:
             path /= key.prefix
         path /= key.data_type
@@ -115,7 +123,7 @@ class YamlMarshall:
             raise LookupError(msg)
 
         with path.open('w') as file:
-            yaml.dump(data, file)
+            yaml.dump(data, file, sort_keys=False)
 
     @classmethod
     def load(cls, key: MetadataKey) -> Any:
@@ -132,6 +140,7 @@ class YamlMarshall:
     @classmethod
     def _resolve_key(cls, key: MetadataKey) -> Path:
         path = (key.root / key.data_type).with_suffix(".yaml")
+        path = Path(str(path).replace('/ihme/covid-19-2', '/ihme/covid-19'))
         return path
 
 

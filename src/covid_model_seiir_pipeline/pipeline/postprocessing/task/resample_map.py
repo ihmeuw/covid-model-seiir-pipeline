@@ -1,11 +1,8 @@
-from pathlib import Path
-
 import click
 import pandas as pd
 
 from covid_model_seiir_pipeline.lib import (
     cli_tools,
-    static_vars,
 )
 from covid_model_seiir_pipeline.pipeline.postprocessing.data import PostprocessingDataInterface
 from covid_model_seiir_pipeline.pipeline.postprocessing.specification import (
@@ -20,9 +17,7 @@ logger = cli_tools.task_performance_logger
 
 def run_resample_map(postprocessing_version: str) -> None:
     logger.info('Building resampling map', context='setup')
-    postprocessing_spec = PostprocessingSpecification.from_path(
-        Path(postprocessing_version) / static_vars.POSTPROCESSING_SPECIFICATION_FILE
-    )
+    postprocessing_spec = PostprocessingSpecification.from_version_root(postprocessing_version)
     workflow_spec = postprocessing_spec.workflow.task_specifications[POSTPROCESSING_JOBS.resample]
     resampling_params = postprocessing_spec.resampling
     data_interface = PostprocessingDataInterface.from_specification(postprocessing_spec)
@@ -50,7 +45,3 @@ def resample_map(postprocessing_version: str,
     cli_tools.configure_logging_to_terminal(verbose)
     run = cli_tools.handle_exceptions(run_resample_map, logger, with_debugger)
     run(postprocessing_version=postprocessing_version)
-
-
-if __name__ == '__main__':
-    resample_map()
