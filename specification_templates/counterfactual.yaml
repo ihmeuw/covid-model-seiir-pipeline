@@ -1,6 +1,6 @@
 data:
-  counterfactual_input_version: '2021_07_26.01'
-  forecast_version: '2021_07_20.07'
+  seir_counterfactual_input_version: '2021_07_26.01'
+  seir_forecast_version: '2021_07_20.07'
   output_root: ''
   output_format: 'parquet'
 workflow:
