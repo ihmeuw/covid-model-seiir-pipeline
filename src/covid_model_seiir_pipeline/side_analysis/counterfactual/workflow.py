@@ -31,7 +31,7 @@ class CounterfactualWorkflow(workflow.WorkflowTemplate):
     }
 
     def attach_tasks(self, n_draws: int, scenarios: Iterable[str]):
-        counterfactual_template = self.task_templates[COUNTERFACTUAL_JOBS.counterfactual]
+        counterfactual_template = self.task_templates[COUNTERFACTUAL_JOBS.counterfactual_scenario]
 
         for scenario_name, draw in itertools.product(scenarios, range(n_draws)):
             counterfactual_task = counterfactual_template.get_task(
