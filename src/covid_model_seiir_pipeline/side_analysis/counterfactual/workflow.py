@@ -10,7 +10,7 @@ from covid_model_seiir_pipeline.side_analysis.counterfactual.specification impor
 
 class CounterfactualTaskTemplate(workflow.TaskTemplate):
     tool = workflow.get_jobmon_tool(covid_model_seiir_pipeline)
-    task_name_template = f'{COUNTERFACTUAL_JOBS.counterfactual}_{{scenario}}'
+    task_name_template = f'{COUNTERFACTUAL_JOBS.counterfactual_scenario}_{{scenario}}'
     command_template = (
         f"{shutil.which('stask')} "
         f"{COUNTERFACTUAL_JOBS.counterfactual} "
@@ -27,7 +27,7 @@ class CounterfactualWorkflow(workflow.WorkflowTemplate):
     tool = workflow.get_jobmon_tool(covid_model_seiir_pipeline)
     workflow_name_template = 'seiir-counterfactual-{version}'
     task_template_classes = {
-        COUNTERFACTUAL_JOBS.counterfactual: CounterfactualTaskTemplate,
+        COUNTERFACTUAL_JOBS.counterfactual_scenario: CounterfactualTaskTemplate,
     }
 
     def attach_tasks(self, n_draws: int, scenarios: Iterable[str]):
