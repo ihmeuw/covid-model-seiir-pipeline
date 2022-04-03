@@ -15,5 +15,8 @@ scenarios:
 #    mobility: 'mobility_scenario_name'
 #    start_date: 'YYYY-MM-DD'
   no_vaccine:
-    vaccine_coverage: 'none'
-    start_date: '2020-10-01'
+    vaccine_coverage: 'no_vaccine'
+    start_date: '2019-06-01'
+  no_az:
+    vaccine_coverage: 'no_az'
+    start_date: '2019-06-01'
