@@ -13,7 +13,7 @@ class CounterfactualTaskTemplate(workflow.TaskTemplate):
     task_name_template = f'{COUNTERFACTUAL_JOBS.counterfactual_scenario}_{{scenario}}'
     command_template = (
         f"{shutil.which('stask')} "
-        f"{COUNTERFACTUAL_JOBS.counterfactual} "
+        f"{COUNTERFACTUAL_JOBS.counterfactual_scenario} "
         "--counterfactual-version {counterfactual_version} "
         "--scenario {scenario} "
         "--draw-id {draw_id} "
