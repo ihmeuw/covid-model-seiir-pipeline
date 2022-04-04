@@ -288,7 +288,7 @@ def rescale_kappas(measure: str,
     if measure == 'death':
         ifr_scaling_factors = {
             'ancestral': [
-                (   37,  1.5),  # Kyrgyzstan
+                (   37,  2.0),  # Kyrgyzstan
                 (  121,  3.0),  # Bolivia
                 ( 4647,  2.0),  # Coahuila
             ],
@@ -401,7 +401,7 @@ def rescale_kappas(measure: str,
                 (   34, 20.0),  # Azerbaijan
                 (   35, 25.0),  # Georgia
                 (   36, 10.0),  # Kazakhstan
-                (   37,  9.0),  # Kyrgyzstan
+                (   37,  8.0),  # Kyrgyzstan
                 (   38,  2.0),  # Mongolia
                 (   41,  3.0),  # Uzbekistan
                 (   43, 10.0),  # Albania
