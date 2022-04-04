@@ -31,6 +31,7 @@ def rescale_kappas(measure: str,
         idr_scaling_factors = {
             'ancestral': [
                 (   37,  5.0),  # Kyrgyzstan
+                ( 4647,  2.0),  # Coahuila
                 (  168,  1.5),  # Angola
                 (  214,  0.5),  # Nigeria
             ],
@@ -58,6 +59,7 @@ def rescale_kappas(measure: str,
                 (   62,  2.0),  # Russia
                 (  121,  3.0),  # Bolivia
                 ( 4644,  2.0),  # Baja California
+                ( 4647,  2.0),  # Coahuila
                 ( 4653,  2.0),  # Guanajuato
                 ( 4665,  2.0),  # Quintana Roo
                 ( 4669,  2.0),  # Tabasco
@@ -123,7 +125,6 @@ def rescale_kappas(measure: str,
                 (  121,  3.0),  # Bolivia
                 (  122,  0.8),  # Ecuador
                 ( 4644,  2.0),  # Baja California
-                ( 4647,  1.5),  # Coahuila
                 ( 4653,  2.0),  # Guanajuato
                 ( 4665,  2.0),  # Quintana Roo
                 ( 4667,  2.0),  # Sinaloa
@@ -204,11 +205,15 @@ def rescale_kappas(measure: str,
 
     if measure == 'admission':
         ihr_scaling_factors = {
+            'ancestral': [
+                ( 4647,  2.0),  # Coahuila
+            ],
             'gamma': [
                 ( 4752,  1.5),  # Amazonas
                 ( 4759,  2.0),  # Maranhao
             ],
             'delta': [
+                ( 4647,  2.0),  # Coahuila
                 ( 4652,  2.0),  # Durango
                 ( 4653,  2.0),  # Guanajuato
                 ( 4673,  2.0),  # Yucatan
@@ -284,6 +289,7 @@ def rescale_kappas(measure: str,
             'ancestral': [
                 (   37,  1.5),  # Kyrgyzstan
                 (  121,  3.0),  # Bolivia
+                ( 4647,  2.0),  # Coahuila
             ],
             'alpha': [
                 (   34,  5.0),  # Azerbaijan
@@ -335,6 +341,7 @@ def rescale_kappas(measure: str,
                 (  119,  1.5),  # Trinidad and Tobago
                 (  121,  5.0),  # Bolivia
                 (  129,  2.0),  # Honduras
+                ( 4647,  2.0),  # Coahuila
                 ( 4651,  2.0),  # Mexico city
                 ( 4651,  2.0),  # Hidalgo
                 ( 4673,  2.0),  # Yucatan
