@@ -125,6 +125,7 @@ def rescale_kappas(measure: str,
                 (  121,  3.0),  # Bolivia
                 (  122,  0.8),  # Ecuador
                 ( 4644,  2.0),  # Baja California
+                ( 4647,  2.0),  # Coahuila
                 ( 4653,  2.0),  # Guanajuato
                 ( 4665,  2.0),  # Quintana Roo
                 ( 4667,  2.0),  # Sinaloa
@@ -251,7 +252,7 @@ def rescale_kappas(measure: str,
                 (60373,  2.0),  # Melilla
                 (  126,  2.0),  # Costa Rica
                 ( 4644,  2.0),  # Baja California
-                ( 4647,  3.0),  # Coahuila
+                ( 4647,  2.0),  # Coahuila
                 ( 4652,  2.0),  # Durango
                 ( 4653,  3.0),  # Guanajuato
                 ( 4655,  2.0),  # Hidalgo
@@ -477,7 +478,7 @@ def rescale_kappas(measure: str,
                 ( 4643,  2.0),  # Aguascalientes
                 ( 4644,  5.0),  # Baja California
                 ( 4645,  2.0),  # Baja California do Sur
-                ( 4647,  3.0),  # Coahuila
+                ( 4647,  4.0),  # Coahuila
                 ( 4653,  2.0),  # Guanajuato
                 ( 4656,  2.0),  # Jalisco
                 ( 4657,  2.0),  # Mexico state
