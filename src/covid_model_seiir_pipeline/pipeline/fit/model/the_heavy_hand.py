@@ -88,7 +88,7 @@ def rescale_kappas(measure: str,
                 (   33,  2.0),  # Armenia
                 (   34,  3.0),  # Azerbaijan
                 (   35,  2.5),  # Georgia
-                (   37,  5.0),  # Kyrgyzstan
+                (   37,  4.0),  # Kyrgyzstan
                 (   38,  3.0),  # Mongolia
                 (   43,  3.0),  # Albania
                 (   44,  0.8),  # Bosnia and Herzegovina
@@ -393,7 +393,7 @@ def rescale_kappas(measure: str,
                 (   34, 20.0),  # Azerbaijan
                 (   35, 25.0),  # Georgia
                 (   36, 10.0),  # Kazakhstan
-                (   37, 10.0),  # Kyrgyzstan
+                (   37,  9.0),  # Kyrgyzstan
                 (   38,  2.0),  # Mongolia
                 (   41,  3.0),  # Uzbekistan
                 (   43, 10.0),  # Albania
