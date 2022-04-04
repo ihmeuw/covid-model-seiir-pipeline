@@ -18,6 +18,8 @@ def do_postprocessing(run_metadata: cli_tools.RunMetadata,
                       with_debugger: bool,
                       input_versions: Dict[str, cli_tools.VersionInfo]) -> PostprocessingSpecification:
     specification, run_metadata = cli_tools.resolve_version_info(specification, run_metadata, input_versions)
+    if specification.data.seir_counterfactual_version:
+        specification.data.seir_forecast_version = ''
 
     output_root = cli_tools.get_output_root(output_root, specification.data.output_root)
     cli_tools.setup_directory_structure(output_root, with_production=True)
@@ -54,13 +56,6 @@ def postprocessing_main(app_metadata: cli_tools.Metadata,
         workflow = PostprocessingWorkflow(specification.data.output_root,
                                           specification.workflow)
         known_covariates = list(model.COVARIATES)
-#        modeled_covariates = set(data_interface.get_covariate_names(specification.data.scenarios))
-#        unknown_covariates = modeled_covariates.difference(known_covariates + ['intercept'])
-#        if unknown_covariates:
-#            logger.warning("Some covariates that were modeled have no postprocessing configuration. "
-#                           "Postprocessing will produce no outputs for these covariates. "
-#                           f"Unknown covariates: {list(unknown_covariates)}")
-
         measures = [*model.MEASURES, *model.COMPOSITE_MEASURES,
                     *model.MISCELLANEOUS, *known_covariates]
         workflow.attach_tasks(measures, specification.data.scenarios)
@@ -80,6 +75,7 @@ def postprocessing_main(app_metadata: cli_tools.Metadata,
 @cli_tools.add_preprocess_only
 @cli_tools.add_verbose_and_with_debugger
 @cli_tools.with_version(paths.SEIR_FORECAST_OUTPUTS)
+@cli_tools.with_version(paths.SEIR_COUNTERFACTUAL_ROOT)
 def postprocess(run_metadata,
                 specification,
                 output_root, mark_best, production_tag,
