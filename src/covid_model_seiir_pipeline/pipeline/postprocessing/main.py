@@ -17,9 +17,9 @@ def do_postprocessing(run_metadata: cli_tools.RunMetadata,
                       preprocess_only: bool,
                       with_debugger: bool,
                       input_versions: Dict[str, cli_tools.VersionInfo]) -> PostprocessingSpecification:
-    specification, run_metadata = cli_tools.resolve_version_info(specification, run_metadata, input_versions)
     if specification.data.seir_counterfactual_version:
-        specification.data.seir_forecast_version = ''
+        del input_versions['seir_forecast_version']
+    specification, run_metadata = cli_tools.resolve_version_info(specification, run_metadata, input_versions)
 
     output_root = cli_tools.get_output_root(output_root, specification.data.output_root)
     cli_tools.setup_directory_structure(output_root, with_production=True)

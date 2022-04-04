@@ -21,6 +21,10 @@ def run_resample_map(postprocessing_version: str) -> None:
     workflow_spec = postprocessing_spec.workflow.task_specifications[POSTPROCESSING_JOBS.resample]
     resampling_params = postprocessing_spec.resampling
     data_interface = PostprocessingDataInterface.from_specification(postprocessing_spec)
+    if postprocessing_spec.data.seir_counterfactual_version:
+        actual_forecast_spec = data_interface.forecast_data_interface.forecast_data_interface.load_specification()
+        postprocessing_spec.data.seir_forecast_version = actual_forecast_spec.data.output_root
+        data_interface = PostprocessingDataInterface.from_specification(postprocessing_spec)
 
     logger.info('Loading resampling data', context='read')
     deaths = loaders.load_deaths(resampling_params.reference_scenario,
