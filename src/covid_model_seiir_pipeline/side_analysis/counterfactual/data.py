@@ -1,5 +1,4 @@
-from pathlib import Path
-from typing import Dict, List, Tuple
+from typing import List
 
 import pandas as pd
 
@@ -24,6 +23,9 @@ class CounterfactualDataInterface:
         self.forecast_data_interface = forecast_data_interface
         self.input_root = input_root
         self.output_root = output_root
+
+    def __getattr__(self, item):
+        return getattr(self.forecast_data_interface, item)
 
     @classmethod
     def from_specification(cls, specification: CounterfactualSpecification) -> 'CounterfactualDataInterface':
@@ -119,3 +121,5 @@ class CounterfactualDataInterface:
 
     def load_raw_outputs(self, scenario: str, draw_id: int, columns: List[str] = None):
         return io.load(self.output_root.raw_outputs(scenario=scenario, draw_id=draw_id, columns=columns))
+
+
