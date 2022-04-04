@@ -32,7 +32,7 @@ class CounterfactualDataInterface:
         return cls(
             forecast_data_interface=forecast_data_interface,
             input_root=io.CounterfactualInputRoot(
-                specification.data.counterfactual_input_version, data_format='parquet'
+                specification.data.seir_counterfactual_input_version, data_format='parquet'
             ),
             output_root=io.CounterfactualRoot(
                 specification.data.output_root, data_format=specification.data.output_format
@@ -56,7 +56,7 @@ class CounterfactualDataInterface:
             beta = io.load(self.input_root.beta(scenario=scenario, draw_id=draw_id))
         else:
             beta = self.forecast_data_interface.load_raw_outputs(
-                scenario=scenario, draw_id=draw_id, columns=['beta']
+                scenario='reference', draw_id=draw_id, columns=['beta']
             )['beta']
         return beta
 
@@ -67,14 +67,14 @@ class CounterfactualDataInterface:
 
     def load_counterfactual_vaccine_uptake(self, scenario: str):
         if scenario:
-            uptake = io.load(self.input_root.vaccine_uptake(scenario=scenario))
+            uptake = io.load(self.input_root.vaccine_uptake(covariate_scenario=scenario))
         else:
             uptake = self.forecast_data_interface.load_vaccine_uptake('reference')
         return uptake
 
     def load_counterfactual_vaccine_risk_reduction(self, scenario: str):
         if scenario:
-            etas = io.load(self.input_root.etas(scenario=scenario))
+            etas = io.load(self.input_root.etas(covariate_scenario=scenario))
         else:
             etas = self.forecast_data_interface.load_vaccine_risk_reduction('reference')
         return etas

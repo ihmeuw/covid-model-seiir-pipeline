@@ -50,7 +50,7 @@ def run_counterfactual_scenario(counterfactual_version: str, scenario: str, draw
     forecast_ode_params = data_interface.load_forecast_ode_params(draw_id=draw_id)
     # Vaccine data, of course.
     vaccinations = data_interface.load_counterfactual_vaccine_uptake(scenario_spec.vaccine_coverage)
-    etas = data_interface.load_counterfactual_vaccine_uptake(scenario_spec.vaccine_coverage)
+    etas = data_interface.load_counterfactual_vaccine_risk_reduction(scenario_spec.vaccine_coverage)
     prior_ratios = data_interface.load_rates(draw_id).loc[location_ids]
     phis = data_interface.load_phis(draw_id=draw_id)
     hospital_cf = data_interface.load_hospitalizations(measure='correction_factors')

@@ -24,14 +24,14 @@ def build_indices(scenario_spec: CounterfactualScenarioParameters,
                         .groupby('location_id')
                         .min())
 
-    desired_start_date = pd.Timestamp(scenario_spec.start_date)
     with_covid = past_compartments.filter(like='Infection_all_all_all').sum(axis=1) > 0.
     min_start_date = (past_compartments[with_covid]
                       .reset_index(level='date')
                       .groupby('location_id')
                       .date
                       .min()) + pd.Timedelta(days=1)
-    forecast_start_dates = np.maximum(min_start_date, desired_start_date)
+    desired_start_date = pd.Series(pd.Timestamp(scenario_spec.start_date), index=min_start_date.index)
+    forecast_start_dates = np.maximum(min_start_date, desired_start_date).rename('date')
     beta_fit_end_dates = forecast_start_dates.copy()
     forecast_end_dates = beta.reset_index().groupby('location_id').date.max()
 
