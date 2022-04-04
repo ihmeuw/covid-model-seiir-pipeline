@@ -1,9 +1,9 @@
 import functools
-import multiprocessing
 from typing import List, TYPE_CHECKING
 
 import pandas as pd
 
+from covid_model_seiir_pipeline.lib import parallel
 from covid_model_seiir_pipeline.lib.aggregate import summarize
 
 if TYPE_CHECKING:
@@ -17,10 +17,8 @@ def load_deaths(scenario: str, data_interface: 'PostprocessingDataInterface', nu
         data_interface.load_raw_output_deaths,
         scenario=scenario,
     )
-    draws = range(data_interface.get_n_draws())
-    with multiprocessing.Pool(num_cores) as pool:
-        outputs = pool.map(_runner, draws)
-    return outputs
+    draws = list(range(data_interface.get_n_draws()))
+    return parallel.run_parallel(_runner, draws, num_cores, progress_bar=False)
 
 
 def load_unscaled_deaths(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
@@ -74,10 +72,8 @@ def load_beta_residuals(scenario: str, data_interface: 'PostprocessingDataInterf
         scenario=scenario,
     )
 
-    draws = range(data_interface.get_n_draws())
-    with multiprocessing.Pool(num_cores) as pool:
-        beta_residuals = pool.map(_runner, draws)
-    return beta_residuals
+    draws = list(range(data_interface.get_n_draws()))
+    return parallel.run_parallel(_runner, draws, num_cores, progress_bar=False)
 
 
 def load_scaled_beta_residuals(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int) -> List[pd.Series]:
@@ -86,10 +82,8 @@ def load_scaled_beta_residuals(scenario: str, data_interface: 'PostprocessingDat
         scenario=scenario,
     )
 
-    draws = range(data_interface.get_n_draws())
-    with multiprocessing.Pool(num_cores) as pool:
-        beta_residuals = pool.map(_runner, draws)
-    return beta_residuals
+    draws = list(range(data_interface.get_n_draws()))
+    return parallel.run_parallel(_runner, draws, num_cores, progress_bar=False)
 
 
 def load_covariate(covariate: str, time_varying: bool, scenario: str,
@@ -100,18 +94,13 @@ def load_covariate(covariate: str, time_varying: bool, scenario: str,
         time_varying=time_varying,
         scenario=scenario,
     )
-    draws = range(data_interface.get_n_draws())
-    with multiprocessing.Pool(num_cores) as pool:
-        outputs = pool.map(_runner, draws)
-
-    return outputs
+    draws = list(range(data_interface.get_n_draws()))
+    return parallel.run_parallel(_runner, draws, num_cores, progress_bar=False)
 
 
 def load_coefficients(scenario: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
-    draws = range(data_interface.get_n_draws())
-    with multiprocessing.Pool(num_cores) as pool:
-        outputs = pool.map(data_interface.load_coefficients, draws)
-    return outputs
+    draws = list(range(data_interface.get_n_draws()))
+    return parallel.run_parallel(data_interface.load_coefficients, draws, num_cores, progress_bar=False)
 
 
 def load_excess_mortality_scalars(data_interface: 'PostprocessingDataInterface'):
@@ -135,10 +124,8 @@ def load_scaling_parameters(scenario: str, data_interface: 'PostprocessingDataIn
         data_interface.load_beta_scales,
         scenario=scenario,
     )
-    draws = range(data_interface.get_n_draws())
-    with multiprocessing.Pool(num_cores) as pool:
-        outputs = pool.map(_runner, draws)
-    return outputs
+    draws = list(range(data_interface.get_n_draws()))
+    return parallel.run_parallel(_runner, draws, num_cores, progress_bar=False)
 
 
 def load_full_data_unscaled(data_interface: 'PostprocessingDataInterface') -> pd.DataFrame:
@@ -193,10 +180,8 @@ def _load_output_data(scenario: str, measure: str, data_interface: 'Postprocessi
         scenario=scenario,
         measure=measure,
     )
-    draws = range(data_interface.get_n_draws())
-    with multiprocessing.Pool(num_cores) as pool:
-        outputs = pool.map(_runner, draws)
-    return outputs
+    draws = list(range(data_interface.get_n_draws()))
+    return parallel.run_parallel(_runner, draws, num_cores, progress_bar=False)
 
 
 def _load_ode_params(scenario: str, measure: str, data_interface: 'PostprocessingDataInterface', num_cores: int):
@@ -205,7 +190,5 @@ def _load_ode_params(scenario: str, measure: str, data_interface: 'Postprocessin
         scenario=scenario,
         measure=measure,
     )
-    draws = range(data_interface.get_n_draws())
-    with multiprocessing.Pool(num_cores) as pool:
-        outputs = pool.map(_runner, draws)
-    return outputs
+    draws = list(range(data_interface.get_n_draws()))
+    return parallel.run_parallel(_runner, draws, num_cores, progress_bar=False)
