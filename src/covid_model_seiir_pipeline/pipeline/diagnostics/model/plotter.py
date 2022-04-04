@@ -502,9 +502,9 @@ def make_drivers_page(plot_versions: List[PlotVersion],
         linestyle='dashed',
     )
     ax_rhist = fig.add_subplot(gs_r[1])
-    plotter.make_log_beta_resid_hist(
-        ax_rhist,
-    )
+    # plotter.make_log_beta_resid_hist(
+    #     ax_rhist,
+    # )
 
     ax_reff = fig.add_subplot(gs_r[2])
     plotter.make_time_plot(
