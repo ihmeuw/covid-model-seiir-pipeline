@@ -18,6 +18,7 @@ scenarios:
       min_avg_window: 21
       average_over_min: 2
       average_over_max: 28
+      residual_rescale_upper: 1
       residual_rescale_lower: 1
     vaccine_version: 'reference'
     variant_version: 'reference'
@@ -93,4 +94,3 @@ scenarios:
 #       lri_mortality: 'reference'
 #       proportion_under_100m: 'reference'
 #       proportion_over_2_5k: 'reference'
-

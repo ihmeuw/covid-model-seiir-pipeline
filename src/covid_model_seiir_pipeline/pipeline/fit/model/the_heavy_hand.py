@@ -252,7 +252,7 @@ def rescale_kappas(measure: str,
                 (60373,  2.0),  # Melilla
                 (  126,  2.0),  # Costa Rica
                 ( 4644,  2.0),  # Baja California
-                ( 4647,  2.0),  # Coahuila
+                ( 4647,  1.5),  # Coahuila
                 ( 4652,  2.0),  # Durango
                 ( 4653,  3.0),  # Guanajuato
                 ( 4655,  2.0),  # Hidalgo
