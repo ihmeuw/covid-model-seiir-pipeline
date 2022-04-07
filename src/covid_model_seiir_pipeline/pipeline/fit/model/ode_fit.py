@@ -39,9 +39,10 @@ def prepare_ode_fit_parameters(measure: str,
                                natural_waning_matrix: pd.DataFrame,
                                sampled_ode_params: Dict[str, float],
                                hierarchy: pd.DataFrame,
+                               population: pd.Series,
                                draw_id: int) -> Tuple[Parameters, pd.DataFrame]:
     measures_and_rates, age_scalars = prepare_epi_measures_and_rates(
-        measure, rates, epi_measures, hierarchy,
+        measure, rates, epi_measures, hierarchy, population,
     )
     past_index = measures_and_rates.index
     scalar_params = {k: p for k, p in sampled_ode_params.items() if isinstance(p, (int, float))}
@@ -135,7 +136,8 @@ def prepare_past_infections_parameters(beta: pd.Series,
 def prepare_epi_measures_and_rates(measure: str,
                                    rates: pd.DataFrame,
                                    epi_measures: pd.DataFrame,
-                                   hierarchy: pd.DataFrame):
+                                   hierarchy: pd.DataFrame,
+                                   population: pd.Series):
     metrics = ['count', 'rate', 'weight']
     measures = {
         'death': ('deaths', 'ifr'),
@@ -148,9 +150,10 @@ def prepare_epi_measures_and_rates(measure: str,
     to_model = total_measure[total_measure > 0].index.intersection(most_detailed).tolist()
     model_idx = epi_measures.loc[to_model].index
 
+    offset = population.loc[epi_measures.reset_index()['location_id'].unique()] * 1e-7
     lag = rates['lag'].iloc[0]
     measure_data = reindex_to_infection_day(
-        epi_measures[f'smoothed_daily_{in_measure}'] + 3e-2,
+        (epi_measures[f'smoothed_daily_{in_measure}'] + offset).rename(f'smoothed_daily_{in_measure}'),
         lag,
         to_model
     ).reindex(model_idx)

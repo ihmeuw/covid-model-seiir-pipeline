@@ -11,17 +11,11 @@ grid_plots:
     - version: '2022_03_21.01'
       scenarios:
         reference*: 'public reference'
-    - version: '2022_04_05.01'
+    - version: '2022_04_07.02'
       scenarios:
-        reference*: 'offset: 0.03'
-    - version: '2022_04_06.01'
-      scenarios:
-        reference*: 'offset: 0.1'
-    - version: '2022_04_06.02'
-      scenarios:
-        reference*: 'offset: 0.3'
-        # best_masks: 'best_masks'
-        # booster: 'booster'
+        reference*: 'reference'
+        best_masks: 'best_masks'
+        booster: 'booster'
   - name: 'compare_shortrange'
     date_start: '2021-01-01'
     date_end: '2022-07-31'
@@ -29,14 +23,8 @@ grid_plots:
     - version: '2022_03_21.01'
       scenarios:
         reference*: 'public reference'
-    - version: '2022_04_05.01'
+    - version: '2022_04_07.02'
       scenarios:
-        reference*: 'offset: 0.03'
-    - version: '2022_04_06.01'
-      scenarios:
-        reference*: 'offset: 0.1'
-    - version: '2022_04_06.02'
-      scenarios:
-        reference*: 'offset: 0.3'
-        # best_masks: 'best_masks'
-        # booster: 'booster'
+        reference*: 'reference'
+        best_masks: 'best_masks'
+        booster: 'booster'

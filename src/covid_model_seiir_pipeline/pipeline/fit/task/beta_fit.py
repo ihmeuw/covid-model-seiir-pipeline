@@ -30,6 +30,8 @@ def run_beta_fit(fit_version: str, measure: str, draw_id: int, progress_bar: boo
     seroprevalence = data_interface.load_seroprevalence(draw_id=draw_id).reset_index()
     sensitivity_data = data_interface.load_sensitivity(draw_id=draw_id)
     testing_capacity = data_interface.load_testing_data()['testing_capacity']
+    testing_capacity_offset = total_population.loc[testing_capacity.reset_index()['location_id'].unique()] * 1e-7
+    testing_capacity += testing_capacity_offset
     covariate_pool = data_interface.load_covariate_options(draw_id=draw_id)
     rhos = data_interface.load_variant_prevalence(scenario='reference')
     variant_prevalence = rhos.drop(columns='ancestral').sum(axis=1)
@@ -108,6 +110,7 @@ def run_beta_fit(fit_version: str, measure: str, draw_id: int, progress_bar: boo
         natural_waning_matrix=natural_waning_matrix,
         sampled_ode_params=sampled_ode_params,
         hierarchy=pred_hierarchy,
+        population=total_population,
         draw_id=draw_id,
     )
 
@@ -225,6 +228,7 @@ def run_beta_fit(fit_version: str, measure: str, draw_id: int, progress_bar: boo
         natural_waning_matrix=natural_waning_matrix,
         sampled_ode_params=sampled_ode_params,
         hierarchy=pred_hierarchy,
+        population=total_population,
         draw_id=draw_id,
     )
 
