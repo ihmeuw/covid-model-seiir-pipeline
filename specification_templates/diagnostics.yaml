@@ -11,7 +11,7 @@ grid_plots:
     - version: '2022_03_21.01'
       scenarios:
         reference*: 'public reference'
-    - version: '2022_04_07.02'
+    - version: '2022_04_07.03'
       scenarios:
         reference*: 'reference'
         best_masks: 'best_masks'
@@ -23,7 +23,7 @@ grid_plots:
     - version: '2022_03_21.01'
       scenarios:
         reference*: 'public reference'
-    - version: '2022_04_07.02'
+    - version: '2022_04_07.03'
       scenarios:
         reference*: 'reference'
         best_masks: 'best_masks'
