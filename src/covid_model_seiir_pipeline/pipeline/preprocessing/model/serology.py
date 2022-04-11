@@ -237,6 +237,11 @@ def process_raw_serology_data(data: pd.DataFrame, hierarchy: pd.DataFrame) -> pd
     data.loc[(data['location_id'] == 205) &
              (data['survey_series'] == 'Milleliri_Oct2020'),
              'geo_accordance'] = 0
+    
+    ## first Nigeria point throws off IDR
+    data.loc[(data['location_id'] == 214) &
+             (data['survey_series'] == 'niger_state'),
+             'geo_accordance'] = 0
 
     ## Sierra Leone - must be using awful test
     data.loc[(data['location_id'] == 217) &
