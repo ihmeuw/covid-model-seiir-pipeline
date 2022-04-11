@@ -174,6 +174,7 @@ def rescale_kappas(measure: str,
                 (   15,  0.5),  # Myanmar
                 (  186,  3.0),  # Seychelles
                 (   19,  0.5),  # Timor-Leste
+                (   20,  3.0),  # Viet Nam
                 (  168, 25.0),  # Angola
                 (  169,  1.5),  # Central African Republic
                 (  170,  0.8),  # Congo
