@@ -39,11 +39,15 @@ def rescale_kappas(measure: str,
                 (   37,  5.0),  # Kyrgyzstan
                 (   61,  3.0),  # Moldova
                 (  121,  3.0),  # Bolivia
-                (  139, 0.75),  # Algeria
+                (  139,  0.5),  # Algeria
                 (  153,  0.5),  # Syrian Arab Republic
                 (   15, 0.75),  # Myanmar
-                (  168, 40.0),  # Angola
+                (  168, 20.0),  # Angola
+                (  201,  3.0),  # Burkina Faso
                 (  204, 0.75),  # Chad
+            ],
+            'beta': [
+                (  184,  0.5),  # Mozambique
             ],
             'gamma': [
                 (  121,  3.0),  # Bolivia
@@ -70,9 +74,9 @@ def rescale_kappas(measure: str,
                 ( 4757,  3.0),  # Espirito Santo
                 ( 4764,  3.0),  # Paraiba
                 ( 4771,  2.0),  # Roraima
-                (  139, 0.75),  # Algeria
+                (  139,  0.5),  # Algeria
                 (  147,  2.0),  # Libya
-                (  153,  0.5),  # Syrian Arab Republic
+                (  153, 0.25),  # Syrian Arab Republic
                 (  161,  2.0),  # Bangladesh
                 ( 4842,  2.0),  # Arunachal Pradesh
                 ( 4849,  2.0),  # Delhi
@@ -87,12 +91,13 @@ def rescale_kappas(measure: str,
                 (   15, 0.75),  # Myanmar
                 (  186,  3.0),  # Seychelles
                 (   19, 0.75),  # Timor-Leste
-                (  168, 25.0),  # Angola
+                (  168, 20.0),  # Angola
                 (  169,  2.0),  # Central African Republic
                 (  171,  2.0),  # DRC
-                (  173, 0.75),  # Gabon
+                (  173,  0.5),  # Gabon
                 (  181,  2.0),  # Madagascar
-                (  184, 0.75),  # Mozambique
+                (  184,  0.5),  # Mozambique
+                (  185,  0.5),  # Rwanda
                 (  204, 0.75),  # Chad
                 (  214, 0.75),  # Nigeria
             ],
@@ -149,11 +154,11 @@ def rescale_kappas(measure: str,
                 ( 4765,  0.8),  # Parana
                 ( 4770,  0.8),  # Rondonia
                 ( 4771,  2.0),  # Roraima
-                (  139,  0.5),  # Algeria
+                (  139, 0.25),  # Algeria
                 (  140,  3.0),  # Bahrain
                 (  144,  3.0),  # Jordan
                 (  147,  2.0),  # Libya
-                (  153,  0.5),  # Syrian Arab Republic
+                (  153, 0.25),  # Syrian Arab Republic
                 (  155,  2.0),  # Turkey
                 (  161,  2.0),  # Bangladesh
                 ( 4842,  2.0),  # Arunachal Pradesh
@@ -171,28 +176,27 @@ def rescale_kappas(measure: str,
                 (53619,  2.0),  # Khyber Pakhtunkhwa
                 (  351,  5.0),  # Guam
                 (   14,  1.5),  # Maldives
-                (   15,  0.5),  # Myanmar
+                (   15, 0.25),  # Myanmar
                 (  186,  3.0),  # Seychelles
-                (   19,  0.5),  # Timor-Leste
-                (   20,  3.0),  # Viet Nam
-                (  168, 25.0),  # Angola
+                (   19, 0.25),  # Timor-Leste
+                (   20,  5.0),  # Viet Nam
+                (  168, 20.0),  # Angola
                 (  169,  1.5),  # Central African Republic
-                (  170,  0.8),  # Congo
+                (  170,  0.5),  # Congo
                 (  171,  4.0),  # DRC
-                (  173,  0.5),  # Gabon
-                (  180, 0.75),  # Kenya
-                (  181,  1.5),  # Madagascar
-                (  184,  0.5),  # Mozambique
-                (  185, 0.75),  # Rwanda
-                (  187,  0.5),  # Somalia
+                (  173, 0.25),  # Gabon
+                (  180,  0.5),  # Kenya
+                (  184, 0.25),  # Mozambique
+                (  185, 0.25),  # Rwanda
+                (  187, 0.25),  # Somalia
                 (  190,  0.5),  # Uganda
-                (  194,  0.5),  # Lesotho
+                (  194, 0.25),  # Lesotho
                 (  195,  0.5),  # Namibia
                 (  198,  1.2),  # Zimbabwe
                 (  200,  0.5),  # Benin
                 (  203,  1.5),  # Cabo Verde
                 (  204,  0.5),  # Chad
-                (  202, 0.75),  # Cameroon
+                (  202,  0.5),  # Cameroon
                 (  205,  0.5),  # Cote d'Ivoire
                 (  206,  0.5),  # Gambia
                 (  207,  0.5),  # Ghana
@@ -204,7 +208,7 @@ def rescale_kappas(measure: str,
                 (  213,  0.5),  # Niger
                 (  214,  0.5),  # Nigeria
                 (  216,  0.5),  # Senegal
-                (  217,  0.5),  # Sierra Leone
+                (  217, 0.25),  # Sierra Leone
                 (  218,  0.5),  # Togo
             ]
         }
@@ -326,6 +330,7 @@ def rescale_kappas(measure: str,
                 (   37,  2.0),  # Kyrgyzstan
                 (  121,  3.0),  # Bolivia
                 ( 4647,  2.0),  # Coahuila
+                (  168,  1.5),  # Angola
             ],
             'alpha': [
                 (   34,  5.0),  # Azerbaijan
@@ -335,10 +340,11 @@ def rescale_kappas(measure: str,
                 (   49,  3.0),  # North Macedonia
                 (  121,  3.0),  # Bolivia
                 (  160,  3.0),  # Afghanistan
-                (  139, 0.75),  # Algeria
+                (  139,  0.5),  # Algeria
                 (  141,  2.0),  # Egypt
                 (  143,  2.0),  # Iraq
                 (   15, 0.75),  # Myanmar
+                (  168,  3.0),  # Angola
                 (  187,  5.0),  # Somalia
                 (  173,  5.0),  # Gabon
                 (  204, 0.75),  # Chad
@@ -346,7 +352,7 @@ def rescale_kappas(measure: str,
             'beta': [
                 (  151,  2.0),  # Qatar
                 (  177,  3.0),  # Djibouti
-                (  184,  3.0),  # Mozambique
+                (  184,  2.0),  # Mozambique
                 (  193,  2.0),  # Botswana
                 (  197,  3.0),  # Eswatini
                 (  194,  8.0),  # Lesotho
@@ -393,7 +399,7 @@ def rescale_kappas(measure: str,
                 ( 4771,  2.0),  # Roraima
                 (  136,  1.5),  # Paraguay
                 (  160,  3.0),  # Afghanistan
-                (  139, 0.75),  # Algeria
+                (  139,  0.5),  # Algeria
                 (  141,  2.0),  # Egypt
                 (  143,  2.0),  # Iraq
                 (  147,  2.0),  # Libya
@@ -420,7 +426,7 @@ def rescale_kappas(measure: str,
                 (  173,  3.0),  # Gabon
                 (  181,  2.0),  # Madagascar
                 (  182,  2.0),  # Malawi
-                (  184,  3.0),  # Mozambique
+                (  184,  2.0),  # Mozambique
                 (  187,  3.0),  # Somalia
                 (  190,  2.0),  # Uganda
                 (  191,  5.0),  # Zambia
@@ -561,7 +567,7 @@ def rescale_kappas(measure: str,
                 ( 4776,  1.5),  # Tocantins
                 (  136,  3.0),  # Paraguay
                 (  160,  5.0),  # Afghanistan
-                (  139,  0.5),  # Algeria
+                (  139, 0.25),  # Algeria
                 (  140,  2.0),  # Bahrain
                 (  141,  5.0),  # Egypt
                 (  143,  2.0),  # Iraq
@@ -571,7 +577,7 @@ def rescale_kappas(measure: str,
                 (  148,  3.0),  # Morocco
                 (  149,  3.0),  # Palestine
                 (  151,  3.0),  # Qatar
-                (  153, 0.75),  # Syrian Arab Republic
+                (  153,  0.5),  # Syrian Arab Republic
                 (  154,  5.0),  # Tunisia
                 (  155,  2.0),  # Turkey
                 (  157,  2.0),  # Yemen
@@ -605,30 +611,30 @@ def rescale_kappas(measure: str,
                 (  351,  3.0),  # Guam
                 (   11,  1.5),  # Indonesia
                 (   13,  1.5),  # Malaysia
-                (   15,  0.5),  # Myanmar
-                (   19,  0.5),  # Timor-Leste
+                (   15, 0.25),  # Myanmar
+                (   19, 0.25),  # Timor-Leste
                 (  168,  6.0),  # Angola
                 (  169,  3.0),  # Central African Republic
-                (  170,  3.0),  # Congo
+                (  170,  2.0),  # Congo
                 (  171,  4.0),  # DRC
                 (  172,  3.0),  # Equatorial Guinea
                 (  173,  6.0),  # Gabon
                 (  178,  2.0),  # Eritrea
                 (  179,  2.0),  # Ethiopia
-                (  180,  4.0),  # Kenya
-                (  181,  5.0),  # Madagascar
-                (  182,  3.0),  # Malawi
-                (  184,  3.0),  # Mozambique
+                (  180,  3.0),  # Kenya
+                (  181, 10.0),  # Madagascar
+                (  182,  5.0),  # Malawi
+                (  184,  2.0),  # Mozambique
                 (  185,  2.0),  # Rwanda
-                (  187,  3.0),  # Somalia
+                (  187,  2.0),  # Somalia
                 (  190,  2.0),  # Uganda
                 (  191,  8.0),  # Zambia
                 (  193,  5.0),  # Botswana
                 (  197,  3.0),  # Eswatini
-                (  194,  3.0),  # Lesotho
+                (  194,  2.0),  # Lesotho
                 (  195,  8.0),  # Namibia
                 (  196,  3.0),  # South Africa
-                (  198, 20.0),  # Zimbabwe
+                (  198, 10.0),  # Zimbabwe
                 (  200,  0.5),  # Benin
                 (  201,  8.0),  # Burkina Faso
                 (  203,  1.5),  # Cabo Verde
@@ -643,7 +649,7 @@ def rescale_kappas(measure: str,
                 (  212,  3.0),  # Mauritania
                 (  213,  2.0),  # Niger
                 (  214,  0.5),  # Nigeria
-                (  216,  3.0),  # Senegal
+                (  216,  2.0),  # Senegal
             ],
         }
 
