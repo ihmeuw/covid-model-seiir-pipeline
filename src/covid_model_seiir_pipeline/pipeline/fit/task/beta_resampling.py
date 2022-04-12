@@ -114,6 +114,7 @@ def build_residual(measure_draw: str, window_dates: pd.DataFrame,
     infections = data_interface.load_posterior_epi_measures(
         draw_id, measure, ['naive', 'daily_total_infections', 'round']
     )
+    infections = infections.loc[infections['round'] == 2].drop(columns='round')
     hard_failures = (infections
                      .loc[infections['naive'] < 0]
                      .groupby('location_id')['naive']
@@ -122,8 +123,7 @@ def build_residual(measure_draw: str, window_dates: pd.DataFrame,
                      .tolist())
 
     infections = (infections
-                  .loc[infections['round'] == 2]
-                  .drop(columns='round')['daily_total_infections']
+                  .loc[:, 'daily_total_infections']
                   .rename('infections'))
     window_dates = window_dates.reindex(beta.index, level='location_id')
 
