@@ -114,7 +114,7 @@ def rescale_kappas(measure: str,
                 (   33,  2.0),  # Armenia
                 (   34,  3.0),  # Azerbaijan
                 (   35,  2.5),  # Georgia
-                (   37,  6.0),  # Kyrgyzstan
+                (   37,  5.0),  # Kyrgyzstan
                 (   38,  3.0),  # Mongolia
                 (   41,  0.5),  # Uzbekistan
                 (   43,  3.0),  # Albania
@@ -361,7 +361,7 @@ def rescale_kappas(measure: str,
     if measure == 'death':
         ifr_scaling_factors = {
             'ancestral': [
-                (   37,  4.0),  # Kyrgyzstan
+                (   37,  3.0),  # Kyrgyzstan
                 (  121,  3.0),  # Bolivia
                 ( 4647,  2.0),  # Coahuila
                 (  168,  2.0),  # Angola
@@ -370,7 +370,7 @@ def rescale_kappas(measure: str,
             ],
             'alpha': [
                 (   34,  5.0),  # Azerbaijan
-                (   37,  4.0),  # Kyrgyzstan
+                (   37,  5.0),  # Kyrgyzstan
                 (   43,  5.0),  # Albania
                 (   45,  3.0),  # Bulgaria
                 (   49,  3.0),  # North Macedonia
@@ -408,7 +408,7 @@ def rescale_kappas(measure: str,
                 (   34,  5.0),  # Azerbaijan
                 (   35,  3.0),  # Georgia
                 (   36, 10.0),  # Kazakhstan
-                (   37,  4.0),  # Kyrgyzstan
+                (   37,  5.0),  # Kyrgyzstan
                 (   38,  2.0),  # Mongolia
                 (   41,  2.0),  # Uzbekistan
                 (   43,  5.0),  # Albania
@@ -487,7 +487,7 @@ def rescale_kappas(measure: str,
                 (   34, 20.0),  # Azerbaijan
                 (   35, 25.0),  # Georgia
                 (   36, 10.0),  # Kazakhstan
-                (   37,  2.0),  # Kyrgyzstan
+                (   37,  4.0),  # Kyrgyzstan
                 (   38,  2.0),  # Mongolia
                 (   41,  3.0),  # Uzbekistan
                 (   43, 10.0),  # Albania
