@@ -114,13 +114,22 @@ def build_residual(measure_draw: str, window_dates: pd.DataFrame,
     infections = data_interface.load_posterior_epi_measures(
         draw_id, measure, ['naive', 'daily_total_infections', 'round']
     )
-    infections = infections.loc[infections['round'] == 2].drop(columns='round')
     hard_failures = (infections
                      .loc[infections['naive'] < 0]
                      .groupby('location_id')['naive']
                      .first()
                      .index
                      .tolist())
+    infections = infections.loc[infections['round'] == 2].drop(columns='round')
+    hard_failures_round_2 = (infections
+                             .loc[infections['naive'] < 0]
+                             .groupby('location_id')['naive']
+                             .first()
+                             .index
+                             .tolist())
+    seroprevalence = data_interface.load_final_seroprevalence(draw_id, measure)
+    seroprevalence_locs = seroprevalence['location_id'].unique().tolist()
+    hard_failures = [loc for loc in hard_failures if loc in hard_failures_round_2 or loc in seroprevalence_locs]
 
     infections = (infections
                   .loc[:, 'daily_total_infections']
