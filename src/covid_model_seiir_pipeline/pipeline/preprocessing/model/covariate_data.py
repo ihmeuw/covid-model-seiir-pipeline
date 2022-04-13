@@ -137,10 +137,22 @@ def preprocess_testing_data(data_interface: PreprocessingDataInterface) -> None:
     logger.info('Loading raw testing data', context='read')
     data = data_interface.load_raw_testing_data()
     hierarchy = data_interface.load_hierarchy('pred')
-    hk = data[data.location_id == 354]
-    hk['location_id'] = 44533
-    hk['population'] = data.set_index('location_id').loc[44533, 'population'].max()
-    data = pd.concat([data[~(data.location_id == 44533)], hk]).sort_values(['location_id', 'date'])
+    mainland_chn_locations = (hierarchy
+                              .loc[hierarchy['path_to_top_parent'].apply(lambda x: '44533' in x.split(','))]
+                              .loc[:, ['location_id', 'location_name']]
+                              .values
+                              .tolist())
+    mainland_chn = []
+    for location_id, location_name in mainland_chn_locations:
+        hk = data[data.location_id == 354]
+        hk['location_id'] = location_id
+        hk['location_name'] = location_name
+        hk['population'] = data.set_index('location_id').loc[location_id, 'population'].max()
+        hk['pop'] = np.nan
+        mainland_chn.append(hk)
+        data = data[data['location_id'] != location_id]
+    mainland_chn = pd.concat(mainland_chn)
+    data = pd.concat([data, mainland_chn]).sort_values(['location_id', 'date'])
 
     logger.info('Processing testing for IDR calc and beta covariate', context='transform')
     testing_for_idr = _process_testing_for_idr(data.copy())

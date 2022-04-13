@@ -72,7 +72,8 @@ def create_model_data(cumulative_cases: pd.Series,
     )
     model_data = model_data.join(dates_data.set_index(['location_id', 'date']), how='left')
     if model_data['mean_infection_date'].isnull().any():
-        raise ValueError('Missing mean infection date.')
+        logger.warning('Missing mean infection date. Dropping data where date is missing')
+        model_data = model_data.loc[model_data['mean_infection_date'].notnull()]
     
     # add covariates
     model_data = model_data.join(pd.concat(covariates, axis=1).loc[:, covariate_list], how='outer')

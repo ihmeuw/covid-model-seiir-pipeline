@@ -123,6 +123,7 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
     ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
     logger.warning('Using Hong Kong IFR projection for mainland China IFR projection in `ode_forecast.build_ratio`.')
     ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
+    hierarchy = data_interface.load_hierarchy('pred')
     model_parameters = model.build_model_parameters(
         indices,
         beta,
@@ -134,6 +135,7 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
         etas,
         phis,
         risk_group_population,
+        hierarchy,
     )
     hospital_cf = model.forecast_correction_factors(
         indices,
