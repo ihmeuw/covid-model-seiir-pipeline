@@ -48,8 +48,43 @@ splicing:
       - 209    # Guinea Bissau
       - 212    # Mauritania
     output_version: '/ihme/covid-19/seir-outputs/2022_03_19.04'
+  - locations:
+      - 491  # Anhui
+      - 492  # Beijing
+      - 493  # Chongqing
+      - 494  # Fujian
+      - 495  # Gansu
+      - 496  # Guangdong
+      - 497  # Guangxi
+      - 498  # Guizhou
+      - 499  # Hainan
+      - 500  # Hebei
+      - 501  # Heilongjiang
+      - 502  # Henan
+      - 503  # Hubei
+      - 504  # Hunan
+      - 505  # Inner Mongolia
+      - 506  # Jiangsu
+      - 507  # Jiangxi
+      - 508  # Jilin
+      - 509  # Liaoning
+      - 510  # Ningxia
+      - 511  # Qinghai
+      - 512  # Shaanxi
+      - 513  # Shandong
+      - 514  # Shanghai
+      - 515  # Shanxi
+      - 516  # Sichuan
+      - 517  # Tianjin
+      - 518  # Tibet
+      - 519  # Xinjiang
+      - 520  # Yunnan
+      - 521  # Zhejiang
+    output_version: '/ihme/covid-19/seir-outputs/2022_04_13.01'
 aggregation:
-  - location_file: '/ihme/covid-19/model-inputs/best/locations/modeling_hierarchy.csv'
+  ## PINNING TO SPECIFIC MODELING HIERARCHY VERSION IN ORDER TO GET CHINA HIERARCHY CHANGES
+  # - location_file: '/ihme/covid-19/model-inputs/best/locations/modeling_hierarchy.csv'
+  - location_file: '/ihme/covid-19/seir-outputs/agg-hierarchies/modeling_2022_04_13.csv'
   - location_file: '/ihme/covid-19/seir-outputs/agg-hierarchies/who_plus_palestine.csv'
   - location_file: '/ihme/covid-19/seir-outputs/agg-hierarchies/who_euro.csv'
   - location_file: '/ihme/covid-19/seir-outputs/agg-hierarchies/world_bank.csv'
