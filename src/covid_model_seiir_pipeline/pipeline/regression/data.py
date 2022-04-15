@@ -70,7 +70,7 @@ class RegressionDataInterface:
         directory.
         """
         regression_spec = self.load_specification()
-        death_threshold = 10
+        death_threshold = 5
         total_deaths = (self.load_reported_epi_data()
                         .loc[:, 'cumulative_deaths']
                         .groupby('location_id')
