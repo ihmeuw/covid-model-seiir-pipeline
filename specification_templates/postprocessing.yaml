@@ -442,7 +442,7 @@ splicing:
       - 216    # Senegal
       - 217    # Sierra Leone
       - 218    # Togo
-    output_version: '/ihme/covid-19/seir-outputs/2022_04_07.01'
+    output_version: '/ihme/covid-19/seir-outputs/2022_04_07.02'
 aggregation:
   ## PINNING TO SPECIFIC MODELING HIERARCHY VERSION IN ORDER TO GET CHINA HIERARCHY CHANGES
   # - location_file: '/ihme/covid-19/model-inputs/best/locations/modeling_hierarchy.csv'
