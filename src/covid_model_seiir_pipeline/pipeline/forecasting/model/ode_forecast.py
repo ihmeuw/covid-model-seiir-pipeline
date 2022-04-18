@@ -58,7 +58,8 @@ def build_model_parameters(indices: Indices,
                            vaccinations: pd.DataFrame,
                            etas: pd.DataFrame,
                            phis: pd.DataFrame,
-                           risk_group_population: pd.DataFrame) -> Parameters:
+                           risk_group_population: pd.DataFrame,
+                           hierarchy: pd.DataFrame) -> Parameters:
     ode_params = ode_parameters.reindex(indices.full).groupby('location_id').ffill().groupby('location_id').bfill()
     ode_params.loc[:, 'beta_all_infection'] = beta
 
@@ -111,6 +112,7 @@ def build_model_parameters(indices: Indices,
             prior_ratio,
             empirical_rhos,
             kappas,
+            hierarchy,
         )
 
         for risk_group in RISK_GROUP_NAMES:
@@ -141,7 +143,8 @@ def build_ratio(infections: pd.Series,
                 shifted_numerator: pd.Series,
                 prior_ratio: pd.Series,
                 rhos: pd.DataFrame,
-                kappas: pd.DataFrame):
+                kappas: pd.DataFrame,
+                hierarchy: pd.DataFrame):
     posterior_ratio = (shifted_numerator / infections).rename('value')
     posterior_ratio.loc[(posterior_ratio == 0) | ~np.isfinite(posterior_ratio)] = np.nan
     locs = posterior_ratio.reset_index().location_id.unique()    
@@ -172,8 +175,16 @@ def build_ratio(infections: pd.Series,
                 .groupby('location_id')
                 .apply(lambda x: x.iloc[-past_window:].num.sum() / x.iloc[-past_window:].denom.sum()))
     if shifted_numerator.name == 'death':
-        if shifted_numerator.loc[44533].dropna()[-past_window:].max() < 50:
-            lr_ratio.loc[[44533]] = lr_ratio.loc[354]
+        mainland_chn_locations = (hierarchy
+                                  .loc[hierarchy['path_to_top_parent'].apply(lambda x: '44533' in x.split(','))]
+                                  .loc[:, 'location_id']
+                                  .to_list())
+        for location_id in mainland_chn_locations:
+            try:
+                if shifted_numerator.loc[location_id].dropna()[-past_window:].max() < 50:
+                    lr_ratio.loc[[location_id]] = lr_ratio.loc[354]
+            except KeyError:
+                pass
     elif shifted_numerator.name in ['case', 'admission']:
         pass
     else:

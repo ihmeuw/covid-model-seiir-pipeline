@@ -1,8 +1,9 @@
 import itertools
 from typing import Dict, List
 
-import pandas as pd
 from loguru import logger
+
+import pandas as pd
 
 from covid_model_seiir_pipeline.pipeline.fit.model.rates.date_of_infection import (
     determine_mean_date_of_infection,
