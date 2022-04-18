@@ -242,8 +242,8 @@ def rescale_kappas(measure: str,
                 (  145,  0.5),  # Kuwait
                 (  147,  1.5),  # Libya
                 (  148,  0.5),  # Morocco
-                (  152,  0.1),  # Saudi Arabia
-                (  522, 0.01),  # Sudan
+                (  152, 0.05),  # Saudi Arabia
+                (  522, 0.02),  # Sudan
                 (  153, 0.01),  # Syrian Arab Republic
                 (  155,  2.0),  # Turkey
                 (  156, 0.25),  # United Arab Emirates
