@@ -1,9 +1,9 @@
 data:
-  seir_forecast_version: '2022_04_11.01'
+  seir_forecast_version: '2022_04_17.05'
   scenarios:
    - 'reference'
-   # - 'best_masks'
-   # - 'booster'
+   - 'best_masks'
+   - 'booster'
   output_root: ''
 workflow:
   project: 'proj_covid_prod'
@@ -49,7 +49,7 @@ resampling:
 #       - 212    # Mauritania
 #     output_version: '/ihme/covid-19/seir-outputs/2022_03_19.04'
 aggregation:
-  - location_file: '/ihme/covid-19/model-inputs/best/locations/modeling_hierarchy.csv'
+  - location_file: '/ihme/covid-19/model-inputs/2022_04_06.01/locations/modeling_hierarchy.csv'
   - location_file: '/ihme/covid-19/seir-outputs/agg-hierarchies/who_plus_palestine.csv'
   - location_file: '/ihme/covid-19/seir-outputs/agg-hierarchies/who_euro.csv'
   - location_file: '/ihme/covid-19/seir-outputs/agg-hierarchies/world_bank.csv'
