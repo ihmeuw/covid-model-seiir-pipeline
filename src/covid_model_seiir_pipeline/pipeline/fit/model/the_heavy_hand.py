@@ -91,7 +91,7 @@ def rescale_kappas(measure: str,
                 ( 4761,  2.0),  # Mato Grosso do Sul
                 ( 4764,  3.0),  # Paraiba
                 ( 4771,  2.0),  # Roraima
-                (  139, 0.25),  # Algeria
+                (  139,  0.1),  # Algeria
                 (  147,  2.0),  # Libya
                 (  152, 0.25),  # Saudi Arabia
                 (  522, 0.25),  # Sudan
@@ -129,7 +129,7 @@ def rescale_kappas(measure: str,
                 (   36,  0.5),  # Kazakhstan
                 (   37,  5.0),  # Kyrgyzstan
                 (   38,  3.0),  # Mongolia
-                (   41,  0.5),  # Uzbekistan
+                (   41, 0.25),  # Uzbekistan
                 (   43,  3.0),  # Albania
                 (   46,  1.5),  # Croatia
                 (   50,  2.0),  # Montenegro
@@ -193,7 +193,7 @@ def rescale_kappas(measure: str,
                 (  110, 0.25),  # Dominica
                 (  111,  0.5),  # Dominican Republic
                 (  113, 0.25),  # Guyana
-                (  114, 0.05),  # Haiti
+                (  114, 0.01),  # Haiti
                 (  115,  0.1),  # Jamaica
                 (  385,  0.5),  # Puerto Rico
                 (  121,  4.0),  # Bolivia
@@ -202,6 +202,7 @@ def rescale_kappas(measure: str,
                 (  127, 0.25),  # El Salvador
                 (  129, 0.25),  # Honduras
                 ( 4644,  2.0),  # Baja California
+                ( 4650,  0.5),  # Chihuahua
                 ( 4647,  2.0),  # Coahuila
                 ( 4653,  2.0),  # Guanajuato
                 ( 4654,  0.5),  # Guerrero
@@ -242,12 +243,12 @@ def rescale_kappas(measure: str,
                 (  145,  0.5),  # Kuwait
                 (  147,  1.5),  # Libya
                 (  148,  0.5),  # Morocco
-                (  152, 0.05),  # Saudi Arabia
+                (  152, 0.02),  # Saudi Arabia
                 (  522, 0.02),  # Sudan
-                (  153, 0.01),  # Syrian Arab Republic
+                (  153,0.005),  # Syrian Arab Republic
                 (  155,  2.0),  # Turkey
-                (  156, 0.25),  # United Arab Emirates
-                (  157, 0.01),  # Yemen
+                (  156,  0.1),  # United Arab Emirates
+                (  157,0.005),  # Yemen
                 (  161,  1.5),  # Bangladesh
                 ( 4841,  0.5),  # Andhra Pradesh
                 ( 4842,  1.5),  # Arunachal Pradesh
@@ -317,7 +318,7 @@ def rescale_kappas(measure: str,
                 (  211,  2.0),  # Mali
                 (  212,  0.5),  # Mauritania
                 (  213, 0.25),  # Niger
-                (  213, 0.05),  # Nigeria
+                (  213, 0.01),  # Nigeria
                 (  216, 0.25),  # Senegal
                 (  217,  0.1),  # Sierra Leone
                 (  218,  0.5),  # Togo
@@ -434,6 +435,7 @@ def rescale_kappas(measure: str,
                 ( 4648,  0.5),  # Colima
                 ( 4652,  2.0),  # Durango
                 ( 4653,  3.0),  # Guanajuato
+                ( 4654,  0.5),  # Guerrero
                 ( 4655,  2.0),  # Hidalgo
                 ( 4657, 0.75),  # Mexico
                 ( 4658, 0.75),  # Michoacan de Ocampo
@@ -459,7 +461,7 @@ def rescale_kappas(measure: str,
                 ( 4763,  0.5),  # Para
                 ( 4764,  0.5),  # Paraiba
                 ( 4765,  0.8),  # Parana
-                ( 4766,  0.5),  # Pernambuco
+                ( 4766,  0.2),  # Pernambuco
                 ( 4767,  0.5),  # Piaui
                 ( 4769,  0.8),  # Rio Grande do Norte
                 ( 4768,  0.8),  # Rio de Janeiro
@@ -767,7 +769,7 @@ def rescale_kappas(measure: str,
                 (  148,  2.0),  # Morocco
                 (  149,  3.0),  # Palestine
                 (  151,  3.0),  # Qatar
-                (  152, 0.25),  # Saudi Arabia
+                (  152,  0.2),  # Saudi Arabia
                 (  522,  2.0),  # Sudan
                 (  153,  0.5),  # Syrian Arab Republic
                 (  154,  5.0),  # Tunisia

@@ -11,18 +11,18 @@ grid_plots:
     # - version: '2022_04_07.04'
     #   scenarios:
     #     reference*: 'public reference'
-    - version: '2022_04_18.01'
+    - version: '2022_04_19.01'
       scenarios:
         reference*: 'No new variant'
-    - version: '2022_04_18.02'
+    - version: '2022_04_19.02'
       scenarios:
         reference*: 'Omicron-like'
-    - version: '2022_04_18.03'
+    - version: '2022_04_19.03'
       scenarios:
         reference*: 'Delta-like'
-    - version: '2022_04_18.04'
+    - version: '2022_04_19.04'
       scenarios:
         reference*: 'Average'
-    - version: '2022_04_18.05'
+    - version: '2022_04_19.05'
       scenarios:
         reference*: 'Deltacron'
