@@ -287,7 +287,7 @@ def rescale_kappas(measure: str,
                 (   17,  0.1),  # Sri Lanka
                 (  186,  3.0),  # Seychelles
                 (   19, 0.25),  # Timor-Leste
-                (   20,  8.0),  # Viet Nam
+                (   20,  6.0),  # Viet Nam
                 (  168,  4.0),  # Angola
                 (  169,  1.5),  # Central African Republic
                 (  170, 0.25),  # Congo
@@ -304,7 +304,7 @@ def rescale_kappas(measure: str,
                 (  195,  0.5),  # Namibia
                 (  197, 0.75),  # Eswatini
                 (  198,  1.2),  # Zimbabwe
-                (  200,  0.1),  # Benin
+                (  200, 0.01),  # Benin
                 (  201, 0.75),  # Burkina Faso
                 (  203,  1.5),  # Cabo Verde
                 (  202, 0.25),  # Cameroon
@@ -362,6 +362,7 @@ def rescale_kappas(measure: str,
                 ( 4754,  0.5),  # Bahia
             ],
             'alpha': [
+                (   51,  0.5),  # Poland
                 (  544,  2.0),  # Massachusetts
             ],
             'gamma': [
@@ -370,6 +371,7 @@ def rescale_kappas(measure: str,
                 ( 4759,  2.0),  # Maranhao
             ],
             'delta': [
+                (   51,  0.5),  # Poland
                 (  544,  2.0),  # Massachusetts
                 ( 4647,  2.0),  # Coahuila
                 ( 4652,  2.0),  # Durango
@@ -382,6 +384,7 @@ def rescale_kappas(measure: str,
             'omicron': [
                 (   46,  1.5),  # Croatia
                 (   47,  3.0),  # Czechia
+                (   51,  0.5),  # Poland
                 (43858,  2.0),  # Alberta
                 (43860,  4.0),  # Manitoba
                 (  528,  1.2),  # Colorado
