@@ -65,9 +65,9 @@ def runner(epi_data,
         pred=pred.copy(),
         daily_cases=daily_cases.copy(),
         serosurveys=(seroprevalence
-                     .set_index(['location_id', 'date'])
+                     .set_index(['is_outlier','location_id', 'date'])
                      .sort_index()
-                     .loc[:, 'seroprevalence']).copy(),
+                     .loc[0, 'seroprevalence']).copy(),
         population=population.copy(),
         hierarchy=pred_hierarchy.copy(),
         test_range=[0.01, 0.1] + list(range(1, 11)),
