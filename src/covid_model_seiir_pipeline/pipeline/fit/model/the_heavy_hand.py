@@ -557,6 +557,7 @@ def rescale_kappas(measure: str,
                 (53619,  8.0),  # Khyber Pakhtunkhwa
                 (53620,  3.0),  # Punjab
                 (53621,  2.0),  # Sindh
+                (  354,  1.5),  # Hong Kong Special Administrative Region of China
                 (   22,  1.5),  # Fiji
                 (  351,  3.0),  # Guam
                 (   11,  1.5),  # Indonesia

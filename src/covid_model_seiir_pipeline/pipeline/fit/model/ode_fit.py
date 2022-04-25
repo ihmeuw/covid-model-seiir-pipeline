@@ -150,10 +150,11 @@ def prepare_epi_measures_and_rates(measure: str,
     to_model = total_measure[total_measure > 0].index.intersection(most_detailed).tolist()
     model_idx = epi_measures.loc[to_model].index
 
-    offset = population.loc[epi_measures.reset_index()['location_id'].unique()] * 1e-7
+    offset = epi_measures[f'smoothed_daily_{in_measure}'].groupby('location_id').max() * 0.01
+    offset = offset.clip(0, 1)
     lag = rates['lag'].iloc[0]
     measure_data = reindex_to_infection_day(
-        (epi_measures[f'smoothed_daily_{in_measure}'] + offset).rename(f'smoothed_daily_{in_measure}'),
+        epi_measures[f'smoothed_daily_{in_measure}'] + offset,
         lag,
         to_model
     ).reindex(model_idx)
