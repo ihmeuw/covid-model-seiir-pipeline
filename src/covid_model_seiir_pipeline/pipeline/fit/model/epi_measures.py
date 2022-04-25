@@ -8,6 +8,17 @@ from covid_model_seiir_pipeline.pipeline.fit.model.sampled_params import (
 )
 
 
+def enforce_epi_threshold(epi_measures: pd.DataFrame, measure: str) -> pd.DataFrame:
+    threshold = 10
+    max_reported = (epi_measures
+                    .loc[:, f'cumulative_{measure}s']
+                    .groupby('location_id')
+                    .max())
+    above_threshold_locations = max_reported.loc[max_reported >= threshold].index.to_list()
+
+    return epi_measures.loc[above_threshold_locations]
+
+
 def format_epi_measures(epi_measures: pd.DataFrame,
                         mr_hierarchy: pd.DataFrame,
                         pred_hierarchy: pd.DataFrame,

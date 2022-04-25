@@ -35,6 +35,7 @@ from covid_model_seiir_pipeline.pipeline.fit.model.ode_fit import (
     fill_from_hierarchy,
 )
 from covid_model_seiir_pipeline.pipeline.fit.model.epi_measures import (
+    enforce_epi_threshold,
     format_epi_measures,
 )
 from covid_model_seiir_pipeline.pipeline.fit.model.the_heavy_hand import (

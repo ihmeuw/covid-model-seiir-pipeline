@@ -70,18 +70,12 @@ class RegressionDataInterface:
         directory.
         """
         regression_spec = self.load_specification()
-        death_threshold = 10
-        total_deaths = (self.load_reported_epi_data()
-                        .loc[:, 'cumulative_deaths']
-                        .groupby('location_id')
-                        .max())
-
-        past_infections_locations = set(self.load_summary('beta').dropna().reset_index().location_id)
-        above_threshold_locations = set(total_deaths[total_deaths > death_threshold].index)
         drop_locations = set(regression_spec.data.drop_locations)
 
+        past_infections_locations = set(self.load_summary('beta').dropna().reset_index().location_id)
+
         if hierarchy is None:
-            desired_locations = above_threshold_locations
+            desired_locations = past_infections_locations
         else:
             most_detailed = hierarchy.most_detailed == 1
             desired_locations = set(hierarchy.loc[most_detailed, 'location_id'].tolist())
@@ -89,26 +83,16 @@ class RegressionDataInterface:
         # past infections locations may be larger than desired locations, but we
         # do not care about the extras, only what's missing.
         past_infections_missing_locations = list(desired_locations - past_infections_locations)
-        # Threshold locations is a subset of ies_locations
-        not_enough_deaths_locations = list((past_infections_locations - above_threshold_locations) & desired_locations)
-        if drop_locations > above_threshold_locations:
-            raise ValueError(f'Attempting to drop locations {list(drop_locations - above_threshold_locations)} '
-                             f'which are not present in modeled locations that meet the epidemiological '
-                             f'threshold of {death_threshold} deaths.')
 
         if past_infections_missing_locations:
             logger.warning("Some locations present in location metadata are missing from the "
                            f"infection models. Missing locations are "
                            f"{sorted(list(past_infections_missing_locations))}.")
-        if not_enough_deaths_locations:
-            logger.warning("Some locations present in location metadata do not meet the epidemiological "
-                           f"threshold of {death_threshold} total deaths required for modeling. "
-                           f"Locations below the threshold are {sorted(list(not_enough_deaths_locations))}.")
         if drop_locations:
             logger.warning("Some locations present in the location metadata are being dropped. "
                            f"Locations being dropped are {sorted(list(drop_locations))}.")
 
-        return list((past_infections_locations & desired_locations & above_threshold_locations) - drop_locations)
+        return list((past_infections_locations & desired_locations) - drop_locations)
 
     ####################
     # Prior Stage Data #

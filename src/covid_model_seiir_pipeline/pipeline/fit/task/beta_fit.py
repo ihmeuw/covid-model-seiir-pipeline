@@ -25,6 +25,7 @@ def run_beta_fit(fit_version: str, measure: str, draw_id: int, progress_bar: boo
     five_year_population = data_interface.load_population(measure='five_year').population
     risk_group_population = data_interface.load_population(measure='risk_group')
     epi_measures = data_interface.load_reported_epi_data()
+    epi_measures = model.enforce_epi_threshold(epi_measures, measure)
     mortality_scalar = data_interface.load_total_covid_scalars(draw_id)['scalar']
     age_patterns = data_interface.load_age_patterns()
     seroprevalence = data_interface.load_seroprevalence(draw_id=draw_id).reset_index()
