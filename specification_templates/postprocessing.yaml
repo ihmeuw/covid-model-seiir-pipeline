@@ -1,13 +1,13 @@
 data:
-  seir_forecast_version: '2022_04_15.01'
+  seir_forecast_version: '2022_04_25.01'
   scenarios:
    - 'reference'
-   - 'best_masks'
-   - 'booster'
+   # - 'best_masks'
+   # - 'booster'
   output_root: ''
 workflow:
   project: 'proj_covid_prod'
-  queue: 'all.q'
+  queue: 'long.q'
 resampling:
   reference_scenario: 'reference'
   reference_date: '2022-07-01'
@@ -48,400 +48,400 @@ splicing:
       - 209    # Guinea Bissau
       - 212    # Mauritania
     output_version: '/ihme/covid-19/seir-outputs/2022_03_19.04'
-  - locations:
-      - 33    # Armenia
-      - 34    # Azerbaijan
-      - 35    # Georgia
-      - 36    # Kazakhstan
-      - 38    # Mongolia
-      # - 39    # Tajikistan
-      # - 40    # Turkmenistan
-      - 41    # Uzbekistan
-      - 43    # Albania
-      - 44    # Bosnia and Herzegovina
-      - 45    # Bulgaria
-      - 46    # Croatia
-      - 47    # Czechia
-      - 48    # Hungary
-      - 50    # Montenegro
-      - 49    # North Macedonia
-      - 51    # Poland
-      - 52    # Romania
-      - 53    # Serbia
-      - 54    # Slovakia
-      - 55    # Slovenia
-      - 57    # Belarus
-      - 58    # Estonia
-      - 59    # Latvia
-      - 60    # Lithuania
-      - 61    # Republic of Moldova
-      - 62    # Russian Federation
-      - 63    # Ukraine
-      - 71    # Australia
-      - 72    # New Zealand
-      # - 66    # Brunei Darussalam
-      - 67    # Japan
-      - 68    # Republic of Korea
-      - 69    # Singapore
-      - 43858    # Alberta
-      - 43859    # British Columbia
-      - 43860    # Manitoba
-      - 43861    # New Brunswick
-      - 43862    # Newfoundland and Labrador
-      - 43863    # Northwest Territories
-      - 43864    # Nova Scotia
-      # - 43865    # Nunavut
-      - 43866    # Ontario
-      # - 43867    # Prince Edward Island
-      - 43869    # Saskatchewan
-      - 43870    # Yukon
-      # - 349    # Greenland
-      - 523    # Alabama
-      - 524    # Alaska
-      - 525    # Arizona
-      - 526    # Arkansas
-      - 527    # California
-      - 528    # Colorado
-      - 529    # Connecticut
-      - 530    # Delaware
-      - 532    # Florida
-      - 533    # Georgia
-      - 534    # Hawaii
-      - 535    # Idaho
-      - 536    # Illinois
-      - 537    # Indiana
-      - 538    # Iowa
-      - 539    # Kansas
-      - 540    # Kentucky
-      - 541    # Louisiana
-      - 542    # Maine
-      - 543    # Maryland
-      - 544    # Massachusetts
-      - 545    # Michigan
-      - 546    # Minnesota
-      - 547    # Mississippi
-      - 548    # Missouri
-      - 549    # Montana
-      - 550    # Nebraska
-      - 551    # Nevada
-      - 552    # New Hampshire
-      - 553    # New Jersey
-      - 554    # New Mexico
-      - 555    # New York
-      - 556    # North Carolina
-      - 557    # North Dakota
-      - 558    # Ohio
-      - 559    # Oklahoma
-      - 560    # Oregon
-      - 561    # Pennsylvania
-      - 562    # Rhode Island
-      - 563    # South Carolina
-      - 564    # South Dakota
-      - 565    # Tennessee
-      - 566    # Texas
-      - 567    # Utah
-      - 569    # Virginia
-      - 60886    # King and Snohomish Counties
-      - 3539    # Spokane County
-      - 60887    # Washington except for King, Snohomish, and Spokane Counties
-      - 571    # West Virginia
-      - 572    # Wisconsin
-      - 573    # Wyoming
-      - 97    # Argentina
-      - 98    # Chile
-      - 99    # Uruguay
-      - 74    # Andorra
-      - 75    # Austria
-      - 76    # Belgium
-      - 77    # Cyprus
-      - 78    # Denmark
-      - 79    # Finland
-      - 80    # France
-      - 60377    # Baden-Württemberg
-      - 60378    # Bavaria
-      - 60379    # Berlin
-      - 60380    # Brandenburg
-      - 60381    # Bremen
-      - 60382    # Hamburg
-      - 60383    # Hesse
-      - 60384    # Lower Saxony
-      - 60385    # Mecklenburg-Vorpommern
-      - 60386    # North Rhine-Westphalia
-      - 60387    # Rhineland-Palatinate
-      - 60388    # Saarland
-      - 60390    # Saxony
-      - 60389    # Saxony-Anhalt
-      - 60391    # Schleswig-Holstein
-      - 60392    # Thuringia
-      - 82    # Greece
-      - 83    # Iceland
-      - 84    # Ireland
-      - 85    # Israel
-      - 35507    # Abruzzo
-      - 35511    # Basilicata
-      - 35512    # Calabria
-      - 35509    # Campania
-      - 35502    # Emilia-Romagna
-      - 35501    # Friuli-Venezia Giulia
-      - 35506    # Lazio
-      - 35496    # Liguria
-      - 35497    # Lombardia
-      - 35505    # Marche
-      - 35508    # Molise
-      - 35494    # Piemonte
-      - 35498    # Provincia autonoma di Bolzano
-      - 35499    # Provincia autonoma di Trento
-      - 35510    # Puglia
-      - 35514    # Sardegna
-      - 35513    # Sicilia
-      - 35503    # Toscana
-      - 35504    # Umbria
-      - 35495    # Valle d'Aosta
-      - 35500    # Veneto
-      - 87    # Luxembourg
-      - 88    # Malta
-      - 367    # Monaco
-      - 89    # Netherlands
-      - 91    # Portugal
-      - 60357    # Andalucia
-      - 60358    # Aragon
-      - 60365    # Asturias
-      - 60363    # Balearic Islands
-      - 60374    # Basque Country
-      - 60364    # Canary Islands
-      - 60359    # Cantabria
-      - 60367    # Castile and León
-      - 60360    # Castilla-La Mancha
-      - 60368    # Catalonia
-      - 60369    # Ceuta
-      - 60361    # Community of Madrid
-      - 60362    # Extremadura
-      - 60372    # Galicia
-      - 60376    # La Rioja
-      - 60373    # Melilla
-      - 60366    # Murcia
-      - 60370    # Navarre
-      - 60371    # Valencian Community
-      - 93    # Sweden
-      - 94    # Switzerland
-      - 4749    # England
-      - 433    # Northern Ireland
-      - 434    # Scotland
-      - 4636    # Wales
-      - 121    # Bolivia (Plurinational State of)
-      - 122    # Ecuador
-      - 123    # Peru
-      - 105    # Antigua and Barbuda
-      - 106    # Bahamas
-      - 107    # Barbados
-      - 108    # Belize
-      - 305    # Bermuda
-      - 109    # Cuba
-      - 110    # Dominica
-      - 111    # Dominican Republic
-      - 112    # Grenada
-      - 113    # Guyana
-      - 114    # Haiti
-      - 385    # Puerto Rico
-      - 393    # Saint Kitts and Nevis
-      - 116    # Saint Lucia
-      - 117    # Saint Vincent and the Grenadines
-      - 118    # Suriname
-      - 119    # Trinidad and Tobago
-      - 422    # United States Virgin Islands
-      - 125    # Colombia
-      - 126    # Costa Rica
-      - 127    # El Salvador
-      - 128    # Guatemala
-      - 129    # Honduras
-      - 4643    # Aguascalientes
-      - 4644    # Baja California
-      - 4645    # Baja California Sur
-      - 4646    # Campeche
-      - 4649    # Chiapas
-      - 4650    # Chihuahua
-      - 4647    # Coahuila
-      - 4648    # Colima
-      - 4652    # Durango
-      - 4653    # Guanajuato
-      - 4654    # Guerrero
-      - 4655    # Hidalgo
-      - 4656    # Jalisco
-      - 4657    # México
-      - 4651    # Mexico City
-      - 4658    # Michoacán de Ocampo
-      - 4659    # Morelos
-      - 4660    # Nayarit
-      - 4661    # Nuevo León
-      - 4662    # Oaxaca
-      - 4663    # Puebla
-      - 4664    # Querétaro
-      - 4665    # Quintana Roo
-      - 4666    # San Luis Potosí
-      - 4667    # Sinaloa
-      - 4668    # Sonora
-      - 4669    # Tabasco
-      - 4670    # Tamaulipas
-      - 4671    # Tlaxcala
-      - 4672    # Veracruz de Ignacio de la Llave
-      - 4673    # Yucatán
-      - 4674    # Zacatecas
-      - 131    # Nicaragua
-      - 132    # Panama
-      - 133    # Venezuela (Bolivarian Republic of)
-      - 4750    # Acre
-      - 4751    # Alagoas
-      - 4753    # Amapá
-      - 4752    # Amazonas
-      - 4754    # Bahia
-      - 4755    # Ceará
-      - 4756    # Distrito Federal
-      - 4757    # Espírito Santo
-      - 4758    # Goiás
-      - 4759    # Maranhão
-      - 4762    # Mato Grosso
-      - 4761    # Mato Grosso do Sul
-      - 4760    # Minas Gerais
-      - 4763    # Pará
-      - 4764    # Paraíba
-      - 4765    # Paraná
-      - 4766    # Pernambuco
-      - 4767    # Piaui
-      - 4769    # Rio Grande do Norte
-      - 4772    # Rio Grande do Sul
-      - 4770    # Rondônia
-      - 4771    # Roraima
-      - 4773    # Santa Catarina
-      - 4776    # Tocantins
-      - 136    # Paraguay
-      - 160    # Afghanistan
-      - 141    # Egypt
-      - 143    # Iraq
-      - 144    # Jordan
-      - 145    # Kuwait
-      - 146    # Lebanon
-      - 147    # Libya
-      - 148    # Morocco
-      - 150    # Oman
-      - 149    # Palestine
-      - 522    # Sudan
-      - 153    # Syrian Arab Republic
-      - 154    # Tunisia
-      - 155    # Turkey
-      - 156    # United Arab Emirates
-      - 161    # Bangladesh
-      - 162    # Bhutan
-      - 4841    # Andhra Pradesh
-      - 4842    # Arunachal Pradesh
-      - 4843    # Assam
-      - 4844    # Bihar
-      - 4846    # Chhattisgarh
-      - 4849    # Delhi
-      - 4850    # Goa
-      - 4851    # Gujarat
-      - 4852    # Haryana
-      - 4853    # Himachal Pradesh
-      - 4854    # Jammu & Kashmir and Ladakh
-      - 4855    # Jharkhand
-      - 4857    # Kerala
-      - 4859    # Madhya Pradesh
-      - 4861    # Manipur
-      - 4862    # Meghalaya
-      - 4863    # Mizoram
-      - 4865    # Odisha
-      - 4867    # Punjab
-      - 4868    # Rajasthan
-      - 4869    # Sikkim
-      - 4871    # Telangana
-      - 4872    # Tripura
-      - 4840    # Andaman and Nicobar Islands
-      - 4845    # Chandigarh
-      # - 60896    # Dadra and Nagar Haveli and Daman and Diu
-      - 4866    # Puducherry
-      - 4873    # Uttar Pradesh
-      - 4874    # Uttarakhand
-      - 4875    # West Bengal
-      - 164    # Nepal
-      - 53615    # Azad Jammu & Kashmir
-      - 53616    # Balochistan
-      - 53617    # Gilgit-Baltistan
-      - 53618    # Islamabad Capital Territory
-      - 53619    # Khyber Pakhtunkhwa
-      - 53620    # Punjab
-      - 53621    # Sindh
-      - 354    # Hong Kong Special Administrative Region of China
-      # - 361    # Macao Special Administrative Region of China
-      - 8    # Taiwan (Province of China)
-      # - 7    # Democratic People's Republic of Korea
-      # - 298    # American Samoa
-      # - 320    # Cook Islands
-      - 22    # Fiji
-      - 351    # Guam
-      # - 23    # Kiribati
-      # - 24    # Marshall Islands
-      # - 25    # Micronesia (Federated States of)
-      # - 369    # Nauru
-      # - 374    # Niue
-      # - 376    # Northern Mariana Islands
-      # - 380    # Palau
-      - 26    # Papua New Guinea
-      # - 27    # Samoa
-      # - 28    # Solomon Islands
-      # - 413    # Tokelau
-      # - 29    # Tonga
-      # - 416    # Tuvalu
-      # - 30    # Vanuatu
-      - 10    # Cambodia
-      - 11    # Indonesia
-      - 12    # Lao People's Democratic Republic
-      - 13    # Malaysia
-      - 14    # Maldives
-      # - 183    # Mauritius
-      - 15    # Myanmar
-      - 16    # Philippines
-      - 186    # Seychelles
-      - 17    # Sri Lanka
-      - 18    # Thailand
-      - 19    # Timor-Leste
-      - 20    # Viet Nam
-      - 169    # Central African Republic
-      - 170    # Congo
-      - 171    # Democratic Republic of the Congo
-      - 172    # Equatorial Guinea
-      - 173    # Gabon
-      # - 176    # Comoros
-      - 177    # Djibouti
-      - 179    # Ethiopia
-      - 180    # Kenya
-      - 182    # Malawi
-      - 184    # Mozambique
-      - 185    # Rwanda
-      - 187    # Somalia
-      - 435    # South Sudan
-      - 190    # Uganda
-      - 189    # United Republic of Tanzania
-      - 191    # Zambia
-      - 193    # Botswana
-      - 197    # Eswatini
-      - 194    # Lesotho
-      - 195    # Namibia
-      - 196    # South Africa
-      - 198    # Zimbabwe
-      - 201    # Burkina Faso
-      - 203    # Cabo Verde
-      - 202    # Cameroon
-      - 205    # Côte d'Ivoire
-      - 206    # Gambia
-      - 207    # Ghana
-      - 208    # Guinea
-      - 210    # Liberia
-      - 211    # Mali
-      - 213    # Niger
-      # - 215    # Sao Tome and Principe
-      - 216    # Senegal
-      - 217    # Sierra Leone
-      - 218    # Togo
-    output_version: '/ihme/covid-19/seir-outputs/2022_04_07.02'
+#   - locations:
+#       - 33    # Armenia
+#       - 34    # Azerbaijan
+#       - 35    # Georgia
+#       - 36    # Kazakhstan
+#       - 38    # Mongolia
+#       # - 39    # Tajikistan
+#       # - 40    # Turkmenistan
+#       - 41    # Uzbekistan
+#       - 43    # Albania
+#       - 44    # Bosnia and Herzegovina
+#       - 45    # Bulgaria
+#       - 46    # Croatia
+#       - 47    # Czechia
+#       - 48    # Hungary
+#       - 50    # Montenegro
+#       - 49    # North Macedonia
+#       - 51    # Poland
+#       - 52    # Romania
+#       - 53    # Serbia
+#       - 54    # Slovakia
+#       - 55    # Slovenia
+#       - 57    # Belarus
+#       - 58    # Estonia
+#       - 59    # Latvia
+#       - 60    # Lithuania
+#       - 61    # Republic of Moldova
+#       - 62    # Russian Federation
+#       - 63    # Ukraine
+#       - 71    # Australia
+#       - 72    # New Zealand
+#       # - 66    # Brunei Darussalam
+#       - 67    # Japan
+#       - 68    # Republic of Korea
+#       - 69    # Singapore
+#       - 43858    # Alberta
+#       - 43859    # British Columbia
+#       - 43860    # Manitoba
+#       - 43861    # New Brunswick
+#       - 43862    # Newfoundland and Labrador
+#       - 43863    # Northwest Territories
+#       - 43864    # Nova Scotia
+#       # - 43865    # Nunavut
+#       - 43866    # Ontario
+#       # - 43867    # Prince Edward Island
+#       - 43869    # Saskatchewan
+#       - 43870    # Yukon
+#       # - 349    # Greenland
+#       - 523    # Alabama
+#       - 524    # Alaska
+#       - 525    # Arizona
+#       - 526    # Arkansas
+#       - 527    # California
+#       - 528    # Colorado
+#       - 529    # Connecticut
+#       - 530    # Delaware
+#       - 532    # Florida
+#       - 533    # Georgia
+#       - 534    # Hawaii
+#       - 535    # Idaho
+#       - 536    # Illinois
+#       - 537    # Indiana
+#       - 538    # Iowa
+#       - 539    # Kansas
+#       - 540    # Kentucky
+#       - 541    # Louisiana
+#       - 542    # Maine
+#       - 543    # Maryland
+#       - 544    # Massachusetts
+#       - 545    # Michigan
+#       - 546    # Minnesota
+#       - 547    # Mississippi
+#       - 548    # Missouri
+#       - 549    # Montana
+#       - 550    # Nebraska
+#       - 551    # Nevada
+#       - 552    # New Hampshire
+#       - 553    # New Jersey
+#       - 554    # New Mexico
+#       - 555    # New York
+#       - 556    # North Carolina
+#       - 557    # North Dakota
+#       - 558    # Ohio
+#       - 559    # Oklahoma
+#       - 560    # Oregon
+#       - 561    # Pennsylvania
+#       - 562    # Rhode Island
+#       - 563    # South Carolina
+#       - 564    # South Dakota
+#       - 565    # Tennessee
+#       - 566    # Texas
+#       - 567    # Utah
+#       - 569    # Virginia
+#       - 60886    # King and Snohomish Counties
+#       - 3539    # Spokane County
+#       - 60887    # Washington except for King, Snohomish, and Spokane Counties
+#       - 571    # West Virginia
+#       - 572    # Wisconsin
+#       - 573    # Wyoming
+#       - 97    # Argentina
+#       - 98    # Chile
+#       - 99    # Uruguay
+#       - 74    # Andorra
+#       - 75    # Austria
+#       - 76    # Belgium
+#       - 77    # Cyprus
+#       - 78    # Denmark
+#       - 79    # Finland
+#       - 80    # France
+#       - 60377    # Baden-Württemberg
+#       - 60378    # Bavaria
+#       - 60379    # Berlin
+#       - 60380    # Brandenburg
+#       - 60381    # Bremen
+#       - 60382    # Hamburg
+#       - 60383    # Hesse
+#       - 60384    # Lower Saxony
+#       - 60385    # Mecklenburg-Vorpommern
+#       - 60386    # North Rhine-Westphalia
+#       - 60387    # Rhineland-Palatinate
+#       - 60388    # Saarland
+#       - 60390    # Saxony
+#       - 60389    # Saxony-Anhalt
+#       - 60391    # Schleswig-Holstein
+#       - 60392    # Thuringia
+#       - 82    # Greece
+#       - 83    # Iceland
+#       - 84    # Ireland
+#       - 85    # Israel
+#       - 35507    # Abruzzo
+#       - 35511    # Basilicata
+#       - 35512    # Calabria
+#       - 35509    # Campania
+#       - 35502    # Emilia-Romagna
+#       - 35501    # Friuli-Venezia Giulia
+#       - 35506    # Lazio
+#       - 35496    # Liguria
+#       - 35497    # Lombardia
+#       - 35505    # Marche
+#       - 35508    # Molise
+#       - 35494    # Piemonte
+#       - 35498    # Provincia autonoma di Bolzano
+#       - 35499    # Provincia autonoma di Trento
+#       - 35510    # Puglia
+#       - 35514    # Sardegna
+#       - 35513    # Sicilia
+#       - 35503    # Toscana
+#       - 35504    # Umbria
+#       - 35495    # Valle d'Aosta
+#       - 35500    # Veneto
+#       - 87    # Luxembourg
+#       - 88    # Malta
+#       - 367    # Monaco
+#       - 89    # Netherlands
+#       - 91    # Portugal
+#       - 60357    # Andalucia
+#       - 60358    # Aragon
+#       - 60365    # Asturias
+#       - 60363    # Balearic Islands
+#       - 60374    # Basque Country
+#       - 60364    # Canary Islands
+#       - 60359    # Cantabria
+#       - 60367    # Castile and León
+#       - 60360    # Castilla-La Mancha
+#       - 60368    # Catalonia
+#       - 60369    # Ceuta
+#       - 60361    # Community of Madrid
+#       - 60362    # Extremadura
+#       - 60372    # Galicia
+#       - 60376    # La Rioja
+#       - 60373    # Melilla
+#       - 60366    # Murcia
+#       - 60370    # Navarre
+#       - 60371    # Valencian Community
+#       - 93    # Sweden
+#       - 94    # Switzerland
+#       - 4749    # England
+#       - 433    # Northern Ireland
+#       - 434    # Scotland
+#       - 4636    # Wales
+#       - 121    # Bolivia (Plurinational State of)
+#       - 122    # Ecuador
+#       - 123    # Peru
+#       - 105    # Antigua and Barbuda
+#       - 106    # Bahamas
+#       - 107    # Barbados
+#       - 108    # Belize
+#       - 305    # Bermuda
+#       - 109    # Cuba
+#       - 110    # Dominica
+#       - 111    # Dominican Republic
+#       - 112    # Grenada
+#       - 113    # Guyana
+#       - 114    # Haiti
+#       - 385    # Puerto Rico
+#       - 393    # Saint Kitts and Nevis
+#       - 116    # Saint Lucia
+#       - 117    # Saint Vincent and the Grenadines
+#       - 118    # Suriname
+#       - 119    # Trinidad and Tobago
+#       - 422    # United States Virgin Islands
+#       - 125    # Colombia
+#       - 126    # Costa Rica
+#       - 127    # El Salvador
+#       - 128    # Guatemala
+#       - 129    # Honduras
+#       - 4643    # Aguascalientes
+#       - 4644    # Baja California
+#       - 4645    # Baja California Sur
+#       - 4646    # Campeche
+#       - 4649    # Chiapas
+#       - 4650    # Chihuahua
+#       - 4647    # Coahuila
+#       - 4648    # Colima
+#       - 4652    # Durango
+#       - 4653    # Guanajuato
+#       - 4654    # Guerrero
+#       - 4655    # Hidalgo
+#       - 4656    # Jalisco
+#       - 4657    # México
+#       - 4651    # Mexico City
+#       - 4658    # Michoacán de Ocampo
+#       - 4659    # Morelos
+#       - 4660    # Nayarit
+#       - 4661    # Nuevo León
+#       - 4662    # Oaxaca
+#       - 4663    # Puebla
+#       - 4664    # Querétaro
+#       - 4665    # Quintana Roo
+#       - 4666    # San Luis Potosí
+#       - 4667    # Sinaloa
+#       - 4668    # Sonora
+#       - 4669    # Tabasco
+#       - 4670    # Tamaulipas
+#       - 4671    # Tlaxcala
+#       - 4672    # Veracruz de Ignacio de la Llave
+#       - 4673    # Yucatán
+#       - 4674    # Zacatecas
+#       - 131    # Nicaragua
+#       - 132    # Panama
+#       - 133    # Venezuela (Bolivarian Republic of)
+#       - 4750    # Acre
+#       - 4751    # Alagoas
+#       - 4753    # Amapá
+#       - 4752    # Amazonas
+#       - 4754    # Bahia
+#       - 4755    # Ceará
+#       - 4756    # Distrito Federal
+#       - 4757    # Espírito Santo
+#       - 4758    # Goiás
+#       - 4759    # Maranhão
+#       - 4762    # Mato Grosso
+#       - 4761    # Mato Grosso do Sul
+#       - 4760    # Minas Gerais
+#       - 4763    # Pará
+#       - 4764    # Paraíba
+#       - 4765    # Paraná
+#       - 4766    # Pernambuco
+#       - 4767    # Piaui
+#       - 4769    # Rio Grande do Norte
+#       - 4772    # Rio Grande do Sul
+#       - 4770    # Rondônia
+#       - 4771    # Roraima
+#       - 4773    # Santa Catarina
+#       - 4776    # Tocantins
+#       - 136    # Paraguay
+#       - 160    # Afghanistan
+#       - 141    # Egypt
+#       - 143    # Iraq
+#       - 144    # Jordan
+#       - 145    # Kuwait
+#       - 146    # Lebanon
+#       - 147    # Libya
+#       - 148    # Morocco
+#       - 150    # Oman
+#       - 149    # Palestine
+#       - 522    # Sudan
+#       - 153    # Syrian Arab Republic
+#       - 154    # Tunisia
+#       - 155    # Turkey
+#       - 156    # United Arab Emirates
+#       - 161    # Bangladesh
+#       - 162    # Bhutan
+#       - 4841    # Andhra Pradesh
+#       - 4842    # Arunachal Pradesh
+#       - 4843    # Assam
+#       - 4844    # Bihar
+#       - 4846    # Chhattisgarh
+#       - 4849    # Delhi
+#       - 4850    # Goa
+#       - 4851    # Gujarat
+#       - 4852    # Haryana
+#       - 4853    # Himachal Pradesh
+#       - 4854    # Jammu & Kashmir and Ladakh
+#       - 4855    # Jharkhand
+#       - 4857    # Kerala
+#       - 4859    # Madhya Pradesh
+#       - 4861    # Manipur
+#       - 4862    # Meghalaya
+#       - 4863    # Mizoram
+#       - 4865    # Odisha
+#       - 4867    # Punjab
+#       - 4868    # Rajasthan
+#       - 4869    # Sikkim
+#       - 4871    # Telangana
+#       - 4872    # Tripura
+#       - 4840    # Andaman and Nicobar Islands
+#       - 4845    # Chandigarh
+#       # - 60896    # Dadra and Nagar Haveli and Daman and Diu
+#       - 4866    # Puducherry
+#       - 4873    # Uttar Pradesh
+#       - 4874    # Uttarakhand
+#       - 4875    # West Bengal
+#       - 164    # Nepal
+#       - 53615    # Azad Jammu & Kashmir
+#       - 53616    # Balochistan
+#       - 53617    # Gilgit-Baltistan
+#       - 53618    # Islamabad Capital Territory
+#       - 53619    # Khyber Pakhtunkhwa
+#       - 53620    # Punjab
+#       - 53621    # Sindh
+#       - 354    # Hong Kong Special Administrative Region of China
+#       # - 361    # Macao Special Administrative Region of China
+#       - 8    # Taiwan (Province of China)
+#       # - 7    # Democratic People's Republic of Korea
+#       # - 298    # American Samoa
+#       # - 320    # Cook Islands
+#       - 22    # Fiji
+#       - 351    # Guam
+#       # - 23    # Kiribati
+#       # - 24    # Marshall Islands
+#       # - 25    # Micronesia (Federated States of)
+#       # - 369    # Nauru
+#       # - 374    # Niue
+#       # - 376    # Northern Mariana Islands
+#       # - 380    # Palau
+#       - 26    # Papua New Guinea
+#       # - 27    # Samoa
+#       # - 28    # Solomon Islands
+#       # - 413    # Tokelau
+#       # - 29    # Tonga
+#       # - 416    # Tuvalu
+#       # - 30    # Vanuatu
+#       - 10    # Cambodia
+#       - 11    # Indonesia
+#       - 12    # Lao People's Democratic Republic
+#       - 13    # Malaysia
+#       - 14    # Maldives
+#       # - 183    # Mauritius
+#       - 15    # Myanmar
+#       - 16    # Philippines
+#       - 186    # Seychelles
+#       - 17    # Sri Lanka
+#       - 18    # Thailand
+#       - 19    # Timor-Leste
+#       - 20    # Viet Nam
+#       - 169    # Central African Republic
+#       - 170    # Congo
+#       - 171    # Democratic Republic of the Congo
+#       - 172    # Equatorial Guinea
+#       - 173    # Gabon
+#       # - 176    # Comoros
+#       - 177    # Djibouti
+#       - 179    # Ethiopia
+#       - 180    # Kenya
+#       - 182    # Malawi
+#       - 184    # Mozambique
+#       - 185    # Rwanda
+#       - 187    # Somalia
+#       - 435    # South Sudan
+#       - 190    # Uganda
+#       - 189    # United Republic of Tanzania
+#       - 191    # Zambia
+#       - 193    # Botswana
+#       - 197    # Eswatini
+#       - 194    # Lesotho
+#       - 195    # Namibia
+#       - 196    # South Africa
+#       - 198    # Zimbabwe
+#       - 201    # Burkina Faso
+#       - 203    # Cabo Verde
+#       - 202    # Cameroon
+#       - 205    # Côte d'Ivoire
+#       - 206    # Gambia
+#       - 207    # Ghana
+#       - 208    # Guinea
+#       - 210    # Liberia
+#       - 211    # Mali
+#       - 213    # Niger
+#       # - 215    # Sao Tome and Principe
+#       - 216    # Senegal
+#       - 217    # Sierra Leone
+#       - 218    # Togo
+#     output_version: '/ihme/covid-19/seir-outputs/2022_04_07.02'
 aggregation:
   ## PINNING TO SPECIFIC MODELING HIERARCHY VERSION IN ORDER TO GET CHINA HIERARCHY CHANGES
   # - location_file: '/ihme/covid-19/model-inputs/best/locations/modeling_hierarchy.csv'
