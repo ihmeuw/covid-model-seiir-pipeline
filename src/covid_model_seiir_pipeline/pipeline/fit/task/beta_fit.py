@@ -30,7 +30,7 @@ def run_beta_fit(fit_version: str, measure: str, draw_id: int, progress_bar: boo
     seroprevalence = data_interface.load_seroprevalence(draw_id=draw_id).reset_index()
     sensitivity_data = data_interface.load_sensitivity(draw_id=draw_id)
     testing_capacity = data_interface.load_testing_data()['testing_capacity']
-    testing_capacity_offset = total_population.loc[testing_capacity.reset_index()['location_id'].unique()] * 1e-7
+    testing_capacity_offset = 1
     testing_capacity += testing_capacity_offset
     covariate_pool = data_interface.load_covariate_options(draw_id=draw_id)
     rhos = data_interface.load_variant_prevalence(scenario='reference')
@@ -56,6 +56,7 @@ def run_beta_fit(fit_version: str, measure: str, draw_id: int, progress_bar: boo
 
     logger.info('Rescaling deaths and formatting epi measures', context='transform')
     epi_measures = model.format_epi_measures(epi_measures, mr_hierarchy, pred_hierarchy, mortality_scalar, durations)
+    epi_measures = model.enforce_epi_threshold(epi_measures, measure, mortality_scalar)
 
     logger.info('Subsetting seroprevalence for first pass rates model', context='transform')
     first_pass_seroprevalence = model.subset_seroprevalence(
