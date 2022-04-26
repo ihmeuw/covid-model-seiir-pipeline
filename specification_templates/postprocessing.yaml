@@ -1,5 +1,5 @@
 data:
-  seir_forecast_version: '2022_04_25.01'
+  seir_forecast_version: '2022_04_26.01'
   scenarios:
    - 'reference'
    # - 'best_masks'
@@ -7,7 +7,7 @@ data:
   output_root: ''
 workflow:
   project: 'proj_covid_prod'
-  queue: 'long.q'
+  queue: 'all.q'
 resampling:
   reference_scenario: 'reference'
   reference_date: '2022-07-01'
