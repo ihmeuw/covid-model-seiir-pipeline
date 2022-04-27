@@ -1,0 +1,92 @@
+data:
+  seir_preprocess_version: '2022_04_26.04'
+  output_format: 'parquet'
+  output_root: ''
+  compare_version: ''
+workflow:
+  project: 'proj_covid_prod'
+  queue: 'all.q'
+rates_parameters:
+  day_0: '2020-03-15'
+  pred_start_date: '2019-11-01'
+  pred_end_date: '2022-09-15'
+  # Either 'unscaled' or 'total'
+  mortality_scalar: 'total'
+  # Criteria for first pass rates models.
+  death_rate_threshold: 10  # per million
+  variant_prevalence_threshold: 0.1  # proportion
+  inclusion_days: 360
+  naive_ifr: 0.005  # proportion
+  # Duration sampling parameters
+  exposure_to_admission: [10, 14]
+  exposure_to_seroconversion: [14, 18]
+  admission_to_death: [12, 16]
+  test_scalar: 5.0
+  heavy_hand_fixes: True
+  # One of  'BMJ', 'LSHTM', 'Imperial', 'Exeter', 'PHE', 'Combined',
+  # Or a 3-tuple of [mean, lower, upper]
+  ifr_risk_ratio: 'BMJ'
+  # One of  'BMJ', 'LSHTM', 'Imperial', 'Exeter', 'PHE', 'Combined',
+  # Or a 3-tuple of [mean, lower, upper]
+  ihr_risk_ratio: 'BMJ'
+  idr_risk_ratio: [1.0, 1.0, 1.0]
+  omicron_ifr_scalar: [0.075, 0.125]  # 0.10 +/- 25%
+  omicron_ihr_scalar: [0.150, 0.250]  # 0.20 +/- 25%
+  # IDR is altered in second pass rates based on assumptions about the probability a disease is symptomatic.
+  omicron_idr_scalar: 1.0
+  # One of 'delta', 'omicron', 'average'
+  omega_severity_parameterization: 'delta'
+  p_asymptomatic_pre_omicron: 0.5
+  p_asymptomatic_post_omicron: [0.75, 0.85]
+  minimum_asymptomatic_idr_fraction: 0.2
+  maximum_asymptomatic_idr: 0.6
+fit_parameters:
+  omega_invasion_date: ''
+  # Mixing parameter.  dS/dt = -beta * S * I ** alpha
+  alpha_all: [0.9, 1.0]
+  # Proportion of current E to send to variant E on invasion.
+  pi_none: [0.01, 0.1]
+  pi_ancestral: [0.01, 0.1]
+  pi_alpha: [0.01, 0.1]
+  pi_beta: [0.01, 0.1]
+  pi_gamma: [0.01, 0.1]
+  pi_delta: [0.01, 0.1]
+  pi_omicron: [0.01, 0.1]
+  pi_other: [0.01, 0.1]
+  pi_omega: [0.01, 0.1]
+  # 1 / incubation period.  dE/dt = -dS/dt - sigma * E
+  sigma_ancestral: [0.2, 0.3333]
+  sigma_alpha: [0.2, 0.3333]
+  sigma_beta: [0.2, 0.3333]
+  sigma_gamma: [0.2, 0.3333]
+  sigma_delta: [0.2, 0.3333]
+  sigma_omicron: [0.25, 1.0]
+  sigma_other: [0.2, 0.3333]
+  sigma_omega: [0.25, 1.0]
+  # 1 / duration infectious.  dI1/dt = sigma * E - gamma * I
+  gamma_ancestral: [0.2, 0.3333]
+  gamma_alpha: [0.2, 0.3333]
+  gamma_beta: [0.2, 0.3333]
+  gamma_gamma: [0.2, 0.3333]
+  gamma_delta: [0.2, 0.3333]
+  gamma_omicron: [0.2, 0.3333]
+  gamma_other: [0.2, 0.3333]
+  gamma_omega: [0.2, 0.3333]
+  # proportion increase in transmission intensity
+  kappa_ancestral: 1.0
+  kappa_alpha: [1.2, 1.6]
+  kappa_beta: [1.0, 1.4]
+  kappa_gamma: [1.0, 1.4]
+  kappa_delta: [1.6, 2.0]
+  kappa_omicron: [2.5, 3.5]
+  kappa_other: [1.0, 1.4]
+  kappa_omega: [2.5, 3.5]
+  # (1 - breakthrough probability) for a variant.
+  phi_ancestral: 1.0
+  phi_alpha: 1.0
+  phi_beta: [0.7, 0.9]
+  phi_gamma: [0.7, 0.9]
+  phi_delta: [0.7, 0.9]
+  phi_omicron: [0.4, 0.6]
+  phi_other: [0.7, 0.9]
+  phi_omega: [0.4, 0.6]

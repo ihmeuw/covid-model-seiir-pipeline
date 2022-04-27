@@ -55,6 +55,27 @@ def run_beta_fit(fit_version: str, measure: str, draw_id: int, progress_bar: boo
     )
 
     logger.info('Rescaling deaths and formatting epi measures', context='transform')
+    ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
+    ## MANUAL DROPS ##
+    ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
+    drop_location_ids = {
+        'death': [514],
+        'case': [],
+        'admission':[],
+    }
+    drop_location_ids = drop_location_ids[measure]
+    if drop_location_ids:
+        drop_location_names = (pred_hierarchy
+                               .set_index('location_id')
+                               .loc[drop_location_ids, 'location_name']
+                               .to_list())
+        drop_locations = [f'{drop_location_name} ({drop_location_id})'
+                          for drop_location_id, drop_location_name in zip(drop_location_ids, drop_location_names)]
+        logger.warning(f'Dropping data for the following locations:\n'
+                       f"{'; '.join(drop_locations)}")
+        epi_measures = epi_measures.drop(drop_location_ids)
+    ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
+    ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
     epi_measures = model.format_epi_measures(epi_measures, mr_hierarchy, pred_hierarchy, mortality_scalar, durations)
     epi_measures = model.enforce_epi_threshold(epi_measures, measure, mortality_scalar)
 
