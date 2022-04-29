@@ -56,7 +56,7 @@ def rescale_kappas(measure: str,
                 (  204, 0.75),  # Chad
             ],
             'beta': [
-                (  151,  0.5),  # Qatar
+                (  151, 0.25),  # Qatar
                 (  184, 0.25),  # Mozambique
             ],
             'gamma': [
@@ -95,7 +95,7 @@ def rescale_kappas(measure: str,
                 ( 4771,  2.0),  # Roraima
                 (  139,  0.1),  # Algeria
                 (  147,  2.0),  # Libya
-                (  151,  0.5),  # Qatar
+                (  151, 0.25),  # Qatar
                 (  152, 0.25),  # Saudi Arabia
                 (  522, 0.25),  # Sudan
                 (  153,  0.1),  # Syrian Arab Republic
@@ -245,13 +245,13 @@ def rescale_kappas(measure: str,
                 (  139,0.005),  # Algeria
                 (  140,  1.5),  # Bahrain
                 (  141,  0.5),  # Egypt
-                (  142,  0.5),  # Iran
+                (  142,  0.3),  # Iran
                 (  143,  0.5),  # Iraq
                 (  144,  2.0),  # Jordan
                 (  145,  0.5),  # Kuwait
                 (  147,  1.5),  # Libya
                 (  148,  0.5),  # Morocco
-                (  151,  0.5),  # Qatar
+                (  151, 0.25),  # Qatar
                 (  152, 0.02),  # Saudi Arabia
                 (  522, 0.02),  # Sudan
                 (  153,0.005),  # Syrian Arab Republic
@@ -270,7 +270,7 @@ def rescale_kappas(measure: str,
                 ( 4855,  0.5),  # Jharkhand
                 ( 4856, 0.25),  # Karnataka
                 ( 4857,  0.5),  # Kerala
-                ( 4860, 0.25),  # Maharashtra
+                ( 4860,  0.1),  # Maharashtra
                 ( 4861,  2.0),  # Manipur
                 ( 4862,  1.5),  # Meghalaya
                 ( 4863, 50.0),  # Mizoram
@@ -281,11 +281,11 @@ def rescale_kappas(measure: str,
                 ( 4867, 0.75),  # Punjab
                 ( 4868,  0.5),  # Rajasthan
                 ( 4869,  3.0),  # Sikkim
-                ( 4870, 0.25),  # Tamil Nadu
+                ( 4870,  0.1),  # Tamil Nadu
                 ( 4871,  0.5),  # Telengana
-                ( 4873, 0.25),  # Uttar Pradesh
+                ( 4873,  0.2),  # Uttar Pradesh
                 ( 4875,  0.5),  # West Bengal
-                (  164, 0.75),  # Nepal
+                (  164,  0.5),  # Nepal
                 (53617,  0.8),  # Gilgit-Baltistan
                 (53619,  2.0),  # Khyber Pakhtunkhwa
                 (53620,  0.5),  # Punjab
