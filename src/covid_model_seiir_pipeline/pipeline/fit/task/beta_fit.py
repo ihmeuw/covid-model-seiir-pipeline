@@ -1,5 +1,6 @@
 import click
 import pandas as pd
+import numpy as np
 
 from covid_model_seiir_pipeline.lib import (
     cli_tools,
@@ -59,12 +60,17 @@ def run_beta_fit(fit_version: str, measure: str, draw_id: int, progress_bar: boo
     ## MANUAL DROPS ##
     ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
     drop_location_ids = {
-        'death': [514],
+        # if it's a parent location, will apply to all children as well
+        'death': [44533],
         'case': [],
         'admission':[],
     }
     drop_location_ids = drop_location_ids[measure]
+    drop_location_ids = [(pred_hierarchy.loc[pred_hierarchy['path_to_top_parent']
+                                             .apply(lambda x: str(loc_id) in x.split(',')), 'location_id'].to_list())
+                         for loc_id in drop_location_ids]
     if drop_location_ids:
+        drop_location_ids = np.unique((np.hstack(drop_location_ids))).tolist()
         drop_location_names = (pred_hierarchy
                                .set_index('location_id')
                                .loc[drop_location_ids, 'location_name']
