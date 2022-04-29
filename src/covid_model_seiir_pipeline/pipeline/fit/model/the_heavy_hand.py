@@ -125,7 +125,7 @@ def rescale_kappas(measure: str,
                 (  181,  2.0),  # Madagascar
                 (  184, 0.25),  # Mozambique
                 (  185,  0.5),  # Rwanda
-                (  198,  2.0),  # Zimbabwe
+                (  198, 1.25),  # Zimbabwe
                 (  200,  0.5),  # Benin
                 (  204, 0.75),  # Chad
             ],
@@ -313,7 +313,7 @@ def rescale_kappas(measure: str,
                 (  194, 0.25),  # Lesotho
                 (  195,  0.5),  # Namibia
                 (  197, 0.75),  # Eswatini
-                (  198,  2.0),  # Zimbabwe
+                (  198,  1.5),  # Zimbabwe
                 (  200, 0.01),  # Benin
                 (  201, 0.75),  # Burkina Faso
                 (  203,  1.5),  # Cabo Verde
@@ -853,7 +853,7 @@ def rescale_kappas(measure: str,
                 (  193,  5.0),  # Botswana
                 (  195,  8.0),  # Namibia
                 (  196,  3.0),  # South Africa
-                (  198, 15.0),  # Zimbabwe
+                (  198, 20.0),  # Zimbabwe
                 (  200, 0.25),  # Benin
                 (  201,  8.0),  # Burkina Faso
                 (  202,  1.5),  # Cameroon
