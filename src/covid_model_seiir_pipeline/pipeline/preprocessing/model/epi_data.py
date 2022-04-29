@@ -113,7 +113,7 @@ def evil_doings(data: pd.DataFrame, hierarchy: pd.DataFrame, input_measure: str)
             # Just terrible data
             39: 'tajikistan',
             131: 'nicaragua',
-            133: 'venezuela',
+            # 133: 'venezuela',
             183: 'mauritius',
             215: 'sao_tome_and_principe',
             175: 'burundi',
