@@ -198,6 +198,16 @@ def process_raw_serology_data(data: pd.DataFrame, hierarchy: pd.DataFrame) -> pd
              (data['survey_series'] == 'Manirakiza_Aug2021'),
              'geo_accordance'] = 0
 
+   # Kenya super early point
+    data.loc[(data['location_id'] == 180) &
+             (data['survey_series'] == 'Crowell_2021'),
+             'geo_accordance'] = 0
+
+    # Kenya Lucinde
+    data.loc[(data['location_id'] == 180) &
+             (data['survey_series'] == 'Lucinde_2021'),
+             'geo_accordance'] = 0
+
     ## Madagascar blood donor IgG duplicate after they started pan-Ig
     data.loc[(data['location_id'] == 181) &
              (data['survey_series'] == 'madagascar_blood') &
@@ -236,6 +246,11 @@ def process_raw_serology_data(data: pd.DataFrame, hierarchy: pd.DataFrame) -> pd
     ## Cote d'Ivoire mining camp not rep
     data.loc[(data['location_id'] == 205) &
              (data['survey_series'] == 'Milleliri_Oct2020'),
+             'geo_accordance'] = 0
+    
+    ## first two Nigeria points throws off IDR
+    data.loc[(data['location_id'] == 214) &
+             (data['survey_series'].isin(['niger_state', 'Ifeorah_2021'])),
              'geo_accordance'] = 0
 
     ## Sierra Leone - must be using awful test

@@ -112,9 +112,12 @@ def evil_doings(data: pd.DataFrame, hierarchy: pd.DataFrame, input_measure: str)
             43867: 'prince_edward_island',
             # Just terrible data
             39: 'tajikistan',
-            183: 'mauritias',
+            131: 'nicaragua',
+            # 133: 'venezuela',
+            183: 'mauritius',
             215: 'sao_tome_and_principe',
-            175: 'burundi'
+            175: 'burundi',
+            189: 'tanzania',
         }
 
         is_in_droplist = data['location_id'].isin(drop_all)
