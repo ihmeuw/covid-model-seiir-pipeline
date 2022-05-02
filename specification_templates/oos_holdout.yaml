@@ -1,0 +1,8 @@
+data:
+  seir_forecast_version: '2022_03_30.01'
+  seir_forecast_scenario: 'reference'
+  output_root: ''
+  output_format: 'parquet'
+parameters:
+  run_regression: True
+  holdout_weeks: 8

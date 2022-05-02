@@ -65,15 +65,15 @@ def combination_spline(data: pd.DataFrame):
 
     # determine spline specs
     if n_days > 90:
-        # start anchor (using mean up to last 28 days)
+        # start anchor (using mean up to last 30 days)
         k_start = np.array([0])
 
-        # tighter over last 28 days
-        k_end = np.linspace(n_days - 28, n_days, 5)
+        # tighter over last 45 days
+        k_end = np.linspace(n_days - 45, n_days, 10)
 
-        # every 56 days during middle interval
+        # every 45 days during middle interval
         k_middle = np.linspace(k_start.max(), k_end.min(),
-                               int((k_end.min() - k_start.max()) / 56) + 1)[1:-1]
+                               int((k_end.min() - k_start.max()) / 45) + 1)[1:-1]
 
         # stitch together
         knots = np.hstack([k_start, k_middle, k_end]) / n_days
@@ -115,8 +115,8 @@ def combination_spline(data: pd.DataFrame):
 
     # splice predictions
     pred_data = pd.concat([
-        pred_data[:-28],
-        np.exp(np.log(pred_data.iloc[-28] + 1) + pred_delta_log_data.loc[data_idx][-28:].cumsum())
+        pred_data[:-30],
+        np.exp(np.log(pred_data.iloc[-31] + 1) + pred_delta_log_data.loc[data_idx][-30:].cumsum())
     ])
     pred_data = pred_data.rename('pred').clip(1e-4, np.inf)
 

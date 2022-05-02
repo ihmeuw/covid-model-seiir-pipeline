@@ -1,9 +1,9 @@
 data:
-  seir_forecast_version: '2022_03_19.04'
+  seir_forecast_version: '2022_04_29.01'
   scenarios:
    - 'reference'
-   - 'best_masks'
-   - 'booster'
+   # - 'best_masks'
+   # - 'booster'
   output_root: ''
 workflow:
   project: 'proj_covid_prod'
@@ -14,20 +14,30 @@ resampling:
   lower_quantile: 0.025
   upper_quantile: 0.975
 splicing:
-  - locations: 
-      - 37    # Kyrgyzstan
-      - 50    # Montenegro
-      - 121   # Bolivia
-      - 168   # Angola
-      - 4647  # Coahuila
-      - 175   # Burundi
-      - 214   # Nigeria
-      - 204   # Chad
-      - 201   # Burkina Faso
-      - 4868  # Rajasthan 
-    output_version: '/ihme/covid-19/seir-outputs/2022_02_17.02'
+  - locations:
+      - 43868  # Quebec
+      - 531    # District of Columbia
+      - 568    # Vermont
+      - 90     # Norway
+      - 4775   # Sao Paulo
+      - 142    # Iran (Islamic Republic of)
+      - 151    # Qatar
+      - 152    # Saudi Arabia
+      - 157    # Yemen
+      - 4860   # Maharashtra
+      - 4864   # Nagaland
+      - 4870   # Tamil Nadu
+      - 178    # Eritrea
+      - 181    # Madagascar
+      - 209    # Guinea Bissau
+    output_version: '/ihme/covid-19/seir-outputs/2022_03_19.04'
+  - locations:
+      - 4840   # Andaman and Nicobar Islands
+      - 4873   # Uttar Pradesh
+      - 44533  # China (without Hong Kong and Macao)
+    output_version: '/ihme/covid-19/seir-outputs/2022_04_07.02'
 aggregation:
-  - location_file: '/ihme/covid-19/model-inputs/2022_03_09.04/locations/modeling_hierarchy.csv'
+  - location_file: '/ihme/covid-19/model-inputs/best/locations/modeling_hierarchy.csv'
   - location_file: '/ihme/covid-19/seir-outputs/agg-hierarchies/who_plus_palestine.csv'
   - location_file: '/ihme/covid-19/seir-outputs/agg-hierarchies/who_euro.csv'
   - location_file: '/ihme/covid-19/seir-outputs/agg-hierarchies/world_bank.csv'

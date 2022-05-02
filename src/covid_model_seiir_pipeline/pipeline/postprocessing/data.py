@@ -1,4 +1,3 @@
-from pathlib import Path
 from typing import Dict, List, Iterable, Tuple
 
 import pandas as pd
@@ -209,75 +208,6 @@ class PostprocessingDataInterface:
         beta_residual = beta_residual.set_index(['location_id', 'date'])['scaled_log_beta_residual'].rename(draw_id)
         return beta_residual
 
-    #########################
-    # Forecast data loaders #
-    #########################
-    #
-    # def load_full_data_unscaled(self) -> pd.DataFrame:
-    #     return self._get_forecast_data_inteface().load_full_data_unscaled()
-
-    # def get_covariate_names(self, scenarios: List[str]) -> List[str]:
-    #     forecast_spec = ForecastSpecification.from_dict(io.load(self.forecast_root.specification()))
-    #     forecast_di = ForecastDataInterface.from_specification(forecast_spec)
-    #     scenarios = {scenario: spec for scenario, spec in forecast_spec.scenarios.items() if scenario in scenarios}
-    #     return forecast_di.check_covariates(scenarios)
-
-
-    # def load_vaccination_summaries(self, measure: str):
-    #     return self.forecast_data_interface.load_vaccination_summaries(
-    #         measure,
-    #     )
-
-    # def load_vaccine_efficacy(self):
-    #     return self._get_forecast_data_inteface().load_vaccine_efficacy()
-    #
-    # def load_raw_variant_prevalence(self) -> pd.DataFrame:
-    #     return self._get_forecast_data_inteface().load_variant_prevalence('reference')
-
-
-    ##############################
-    # Miscellaneous data loaders #
-    ##############################
-
-    # def build_version_map(self) -> pd.Series:
-    #     forecast_di = self.forecast_data_interface
-    #     version_map = {
-    #         'postprocessing_version': Path(self.postprocessing_root._root).name,
-    #         'forecast_version': Path(forecast_di.forecast_root._root).name,
-    #         'regression_version': Path(forecast_di.regression_root._root).name,
-    #         'covariate_version': Path(forecast_di.covariate_root._root).name
-    #     }
-    #
-    #     inf_metadata = forecast_di.get_infections_metadata()
-    #     version_map['infections_version'] = Path(inf_metadata['output_path']).name
-    #
-    #     model_inputs_metadata = inf_metadata['model_inputs_metadata']
-    #     version_map['model_inputs_version'] = Path(model_inputs_metadata['output_path']).name
-    #
-    #     snapshot_metadata = model_inputs_metadata['snapshot_metadata']
-    #     version_map['snapshot_version'] = Path(snapshot_metadata['output_path']).name
-    #     jhu_snapshot_metadata = model_inputs_metadata['jhu_snapshot_metadata']
-    #     version_map['jhu_snapshot_version'] = Path(jhu_snapshot_metadata['output_path']).name
-    #     try:
-    #         # There is a typo in the process that generates this key.
-    #         # Protect ourselves in case they fix it without warning.
-    #         webscrape_metadata = model_inputs_metadata['webcrape_metadata']
-    #     except KeyError:
-    #         webscrape_metadata = model_inputs_metadata['webscrape_metadata']
-    #     version_map['webscrape_version'] = Path(webscrape_metadata['output_path']).name
-    #
-    #     version_map['location_set_version_id'] = model_inputs_metadata['run_arguments']['lsvid']
-    #     try:
-    #         version_map['location_set_version_id'] = int(version_map['location_set_version_id'])
-    #     except:
-    #         pass
-    #     version_map['data_date'] = Path(snapshot_metadata['output_path']).name.split('.')[0].replace('_', '-')
-    #
-    #     version_map = pd.Series(version_map)
-    #     version_map = version_map.reset_index()
-    #     version_map.columns = ['name', 'version']
-    #     return version_map
-
     def load_aggregation_hierarchy(self, aggregation_spec: AggregationSpecification):
         if any(aggregation_spec.to_dict().values()):
             return utilities.load_location_hierarchy(**aggregation_spec.to_dict())
@@ -295,9 +225,6 @@ class PostprocessingDataInterface:
         missing_locations = list(set(most_detailed_locs).difference(included_locations))
         locations_modeled_and_missing = {'modeled': included_locations, 'missing': missing_locations}
         return locations_modeled_and_missing
-    #
-    # def load_hospital_correction_factors(self):
-    #     return self._get_forecast_data_inteface().load_hospital_correction_factors().to_df()
 
     ###########################
     # Postprocessing data I/O #

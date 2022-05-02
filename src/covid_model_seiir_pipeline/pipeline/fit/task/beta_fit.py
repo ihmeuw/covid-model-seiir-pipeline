@@ -1,5 +1,6 @@
 import click
 import pandas as pd
+import numpy as np
 
 from covid_model_seiir_pipeline.lib import (
     cli_tools,
@@ -30,6 +31,8 @@ def run_beta_fit(fit_version: str, measure: str, draw_id: int, progress_bar: boo
     seroprevalence = data_interface.load_seroprevalence(draw_id=draw_id).reset_index()
     sensitivity_data = data_interface.load_sensitivity(draw_id=draw_id)
     testing_capacity = data_interface.load_testing_data()['testing_capacity']
+    testing_capacity_offset = 1
+    testing_capacity += testing_capacity_offset
     covariate_pool = data_interface.load_covariate_options(draw_id=draw_id)
     rhos = data_interface.load_variant_prevalence(scenario='reference')
     variant_prevalence = rhos.drop(columns='ancestral').sum(axis=1)
@@ -53,7 +56,34 @@ def run_beta_fit(fit_version: str, measure: str, draw_id: int, progress_bar: boo
     )
 
     logger.info('Rescaling deaths and formatting epi measures', context='transform')
+    ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
+    ## MANUAL DROPS ##
+    ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
+    drop_location_ids = {
+        # if it's a parent location, will apply to all children as well
+        'death': [44533],
+        'case': [],
+        'admission':[],
+    }
+    drop_location_ids = drop_location_ids[measure]
+    drop_location_ids = [(pred_hierarchy.loc[pred_hierarchy['path_to_top_parent']
+                                             .apply(lambda x: str(loc_id) in x.split(',')), 'location_id'].to_list())
+                         for loc_id in drop_location_ids]
+    if drop_location_ids:
+        drop_location_ids = np.unique((np.hstack(drop_location_ids))).tolist()
+        drop_location_names = (pred_hierarchy
+                               .set_index('location_id')
+                               .loc[drop_location_ids, 'location_name']
+                               .to_list())
+        drop_locations = [f'{drop_location_name} ({drop_location_id})'
+                          for drop_location_id, drop_location_name in zip(drop_location_ids, drop_location_names)]
+        logger.warning(f'Dropping data for the following locations:\n'
+                       f"{'; '.join(drop_locations)}")
+        epi_measures = epi_measures.drop(drop_location_ids)
+    ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
+    ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
     epi_measures = model.format_epi_measures(epi_measures, mr_hierarchy, pred_hierarchy, mortality_scalar, durations)
+    epi_measures = model.enforce_epi_threshold(epi_measures, measure, mortality_scalar)
 
     logger.info('Subsetting seroprevalence for first pass rates model', context='transform')
     first_pass_seroprevalence = model.subset_seroprevalence(
@@ -108,6 +138,7 @@ def run_beta_fit(fit_version: str, measure: str, draw_id: int, progress_bar: boo
         natural_waning_matrix=natural_waning_matrix,
         sampled_ode_params=sampled_ode_params,
         hierarchy=pred_hierarchy,
+        population=total_population,
         draw_id=draw_id,
     )
 
@@ -149,6 +180,15 @@ def run_beta_fit(fit_version: str, measure: str, draw_id: int, progress_bar: boo
         pred_hierarchy,
         draw_id
     )
+
+    omega_severity = specification.rates_parameters.omega_severity_parameterization
+    severity_calc = {
+        'delta': lambda m: sampled_ode_params[f'kappa_delta_{m}'],
+        'omicron': lambda m: sampled_ode_params[f'kappa_omicron_{m}'],
+        'average': lambda m: 1 / 2 * (sampled_ode_params[f'kappa_delta_{m}'] + sampled_ode_params[f'kappa_omicron_{m}']),
+    }[omega_severity]
+    for m in ['case', 'admission', 'death']:
+        sampled_ode_params[f'kappa_omega_{m}'] = severity_calc(m)
 
     pct_unvaccinated = (
         (agg_first_pass_posterior_epi_measures['cumulative_naive_unvaccinated_infections']
@@ -216,6 +256,7 @@ def run_beta_fit(fit_version: str, measure: str, draw_id: int, progress_bar: boo
         natural_waning_matrix=natural_waning_matrix,
         sampled_ode_params=sampled_ode_params,
         hierarchy=pred_hierarchy,
+        population=total_population,
         draw_id=draw_id,
     )
 

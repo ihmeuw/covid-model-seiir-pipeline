@@ -258,7 +258,6 @@ class FitRoot(DataRoot):
 
 
 class RegressionRoot(DataRoot):
-    """Data root representing regression stage outputs."""
     metadata = MetadataType('metadata')
     specification = MetadataType('regression_specification')
     locations = MetadataType('locations')
@@ -271,7 +270,6 @@ class RegressionRoot(DataRoot):
 
 
 class ForecastRoot(DataRoot):
-    """Data root representing forecast stage outputs."""
     metadata = MetadataType('metadata')
     specification = MetadataType('forecast_specification')
 
@@ -285,7 +283,6 @@ class ForecastRoot(DataRoot):
 
 
 class PostprocessingRoot(DataRoot):
-    """Data root representing postprocessing stage outputs."""
     metadata = MetadataType('metadata')
     specification = MetadataType('postprocessing_specification')
     resampling_map = MetadataType('resampling_map')
@@ -302,8 +299,21 @@ class PostprocessingRoot(DataRoot):
 
 
 class DiagnosticsRoot(DataRoot):
-    """Data root representing postprocessing stage outputs."""
     metadata = MetadataType('metadata')
     specification = MetadataType('diagnostics_specification')
 
 
+#######################
+# Side analysis roots #
+#######################
+
+class OOSHoldoutRoot(DataRoot):
+    metadata = MetadataType('metadata')
+    specification = MetadataType('oos_holdout_specification')
+
+    beta = DatasetType('beta', LEAF_TEMPLATES.DRAW_TEMPLATE)
+    coefficients = DatasetType('coefficients', LEAF_TEMPLATES.DRAW_TEMPLATE)
+    beta_scaling = DatasetType('beta_scaling', LEAF_TEMPLATES.DRAW_TEMPLATE)
+    beta_residual = DatasetType('beta_residual', LEAF_TEMPLATES.DRAW_TEMPLATE)
+    raw_oos_outputs = DatasetType('raw_oos_outputs', LEAF_TEMPLATES.DRAW_TEMPLATE)
+    deltas = DatasetType('deltas', LEAF_TEMPLATES.DRAW_TEMPLATE)

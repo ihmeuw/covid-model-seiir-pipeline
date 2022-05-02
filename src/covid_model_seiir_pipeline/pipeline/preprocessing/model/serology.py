@@ -1,11 +1,9 @@
-import multiprocessing
-
 from loguru import logger
 import numpy as np
 import pandas as pd
 import tqdm
 
-from covid_model_seiir_pipeline.lib import math, utilities
+from covid_model_seiir_pipeline.lib import math, parallel, utilities
 from covid_model_seiir_pipeline.pipeline.preprocessing.model import helpers
 
 
@@ -41,7 +39,8 @@ def process_raw_serology_data(data: pd.DataFrame, hierarchy: pd.DataFrame) -> pd
 
     for value_var in ['value', 'lower', 'upper']:
         if data[value_var].dtype.name == 'object':
-            data[value_var] = helpers.str_fmt(data[value_var]).replace('not specified', np.nan).astype(float)
+            data[value_var] = helpers.str_fmt(data[value_var]).replace('not specified',
+                                                                       np.nan).astype(float)
         if data[value_var].dtype.name != 'float64':
             raise ValueError(f'Unexpected type for {value_var} column.')
 
@@ -97,8 +96,10 @@ def process_raw_serology_data(data: pd.DataFrame, hierarchy: pd.DataFrame) -> pd
     is_post_oct_2020 = pd.Timestamp('2020-10-31') < data['date']
     is_pre_sept_2021 = data['date'] < pd.Timestamp('2021-09-01')
     data.loc[is_ny & is_cdc & is_post_oct_2020 & is_pre_sept_2021, 'isotype'] = 'IgG'
-    data.loc[is_ny & is_cdc & is_post_oct_2020 & is_pre_sept_2021, 'test_target'] = 'nucleocapsid'
-    data.loc[is_ny & is_cdc & is_post_oct_2020 & is_pre_sept_2021, 'test_name'] = 'Abbott ARCHITECT SARS-CoV-2 IgG immunoassay'
+    data.loc[
+        is_ny & is_cdc & is_post_oct_2020 & is_pre_sept_2021, 'test_target'] = 'nucleocapsid'
+    data.loc[
+        is_ny & is_cdc & is_post_oct_2020 & is_pre_sept_2021, 'test_name'] = 'Abbott ARCHITECT SARS-CoV-2 IgG immunoassay'
 
     # BIG CDC CHANGE
     # many states are coded as Abbott, seem be Roche after the changes in Nov; recode
@@ -133,7 +134,7 @@ def process_raw_serology_data(data: pd.DataFrame, hierarchy: pd.DataFrame) -> pd
         data.loc[is_state & is_cdc & is_nov_or_later & is_N, 'test_target'] = 'nucleocapsid'
         data.loc[
             is_state & is_cdc & is_nov_or_later & is_N, 'test_name'] = 'Roche Elecsys N pan-Ig'
-        
+
     # some of the new extractions have the wrong isotype
     data.loc[data['test_name'] == 'Roche Elecsys N pan-Ig', 'isotype'] = 'pan-Ig'
 
@@ -168,34 +169,49 @@ def process_raw_serology_data(data: pd.DataFrame, hierarchy: pd.DataFrame) -> pd
     # 2)
     #    Question: Use of geo_accordance?
     #    Current approach: Drop non-represeentative (geo_accordance == 0).
-    data['geo_accordance'] = helpers.str_fmt(data['geo_accordance']).replace(('unchecked', np.nan), '0').astype(int)
+    data['geo_accordance'] = helpers.str_fmt(data['geo_accordance']).replace(
+        ('unchecked', np.nan), '0').astype(int)
     ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
     ## AD-HOC REPRESENTATIVENESS RECODES
-    ##
-    # Armenia
-    data.loc[(data['location_id'] == 33), 'geo_accordance'] = 1
+    ## include Armenia point (healthcare workers, but looks sensible and will rein in cases)
+    data.loc[(data['location_id'] == 33) &
+             (data['survey_series'] == 'Yerevan_Armenia_Yerevanspolyclinics_HCWs'),
+             'geo_accordance'] = 1
 
     ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
     ## SSA REPRESENTATIVENESS RECODE
     ## code all SSA data as rep and then undo exceptions that should still be outliered
     ssa_location_ids = (hierarchy
-                        .loc[hierarchy['path_to_top_parent'].apply(lambda x: '166' in x.split(',')), 'location_id']
+                        .loc[hierarchy['path_to_top_parent'].apply(
+        lambda x: '166' in x.split(',')), 'location_id']
                         .to_list())
     data.loc[data['location_id'].isin(ssa_location_ids), 'geo_accordance'] = 1
 
-    ## Angola odd point
+    ## Angola Sebastio 2020 points
     data.loc[(data['location_id'] == 168) &
-             (data['survey_series'] == 'Sebastiao_Sep2020'),
+             (data['survey_series'].isin(
+                 ['Sebastiao_Sep2020', 'Sebastiao_blooddonors_2020'])),
              'geo_accordance'] = 0
 
     ## Central African Republic
-    data.loc[(data['location_id'] == 169),
+    data.loc[(data['location_id'] == 169) &
+             (data['survey_series'] == 'Manirakiza_Aug2021'),
+             'geo_accordance'] = 0
+
+   # Kenya super early point
+    data.loc[(data['location_id'] == 180) &
+             (data['survey_series'] == 'Crowell_2021'),
+             'geo_accordance'] = 0
+
+    # Kenya Lucinde
+    data.loc[(data['location_id'] == 180) &
+             (data['survey_series'] == 'Lucinde_2021'),
              'geo_accordance'] = 0
 
     ## Madagascar blood donor IgG duplicate after they started pan-Ig
     data.loc[(data['location_id'] == 181) &
-             (data['survey_series'] == 'madagascar_blood') & 
-             (data['test_name'] == 'ID Vet ELISA IgG') & 
+             (data['survey_series'] == 'madagascar_blood') &
+             (data['test_name'] == 'ID Vet ELISA IgG') &
              (data['date'] >= pd.Timestamp('2021-01-01')),
              'geo_accordance'] = 0
 
@@ -211,27 +227,30 @@ def process_raw_serology_data(data: pd.DataFrame, hierarchy: pd.DataFrame) -> pd
 
     ## South Africa use most-detailed locs
     data.loc[(data['location_id'] == 196) &
-             (data['survey_series'] == 'sanbs_southafrica') & 
+             (data['survey_series'] == 'sanbs_southafrica') &
              (data['source_population'] == 'South Africa'),
              'geo_accordance'] = 0
 
     ## South Africa Angincourt must have missed first wave
     data.loc[(data['location_id'] == 196) &
-             (data['survey_series'] == 'PHIRST_C2021') & 
-             (data['source_population'] == 'Angincourt, Mpumalanga province')
-             # & (data['date'] <= pd.Timestamp('2020-10-10'))
-             ,
+             (data['survey_series'] == 'PHIRST_C2021') &
+             (data['source_population'] == 'Agincourt, Mpumalanga province'),
              'geo_accordance'] = 0
 
     ## Zimbabwe first point from household survey
     data.loc[(data['location_id'] == 198) &
-             (data['survey_series'] == 'Fryatt_Harare_2021') & 
+             (data['survey_series'] == 'Fryatt_Harare_2021') &
              (data['date'] < pd.Timestamp('2021-01-01')),
              'geo_accordance'] = 0
 
     ## Cote d'Ivoire mining camp not rep
     data.loc[(data['location_id'] == 205) &
              (data['survey_series'] == 'Milleliri_Oct2020'),
+             'geo_accordance'] = 0
+    
+    ## first two Nigeria points throws off IDR
+    data.loc[(data['location_id'] == 214) &
+             (data['survey_series'].isin(['niger_state', 'Ifeorah_2021'])),
              'geo_accordance'] = 0
 
     ## Sierra Leone - must be using awful test
@@ -265,7 +284,8 @@ def process_raw_serology_data(data: pd.DataFrame, hierarchy: pd.DataFrame) -> pd
 
     den_vax_outlier = is_den & is_spike & is_2021
     outliers.append(den_vax_outlier)
-    logger.debug(f'{den_vax_outlier.sum()} rows from sero data dropped due to Denmark vax issues.')
+    logger.debug(
+        f'{den_vax_outlier.sum()} rows from sero data dropped due to Denmark vax issues.')
 
     # vaccine debacle, lose all the Belgian data from Jan 2021 onward
     is_bel = data['location_id'].isin([76])
@@ -274,7 +294,8 @@ def process_raw_serology_data(data: pd.DataFrame, hierarchy: pd.DataFrame) -> pd
 
     bel_vax_outlier = is_bel & is_spike & is_post_april_2021
     outliers.append(bel_vax_outlier)
-    logger.debug(f'{bel_vax_outlier.sum()} rows from sero data dropped due to Belgium vax issues.')
+    logger.debug(
+        f'{bel_vax_outlier.sum()} rows from sero data dropped due to Belgium vax issues.')
 
     # vaccine debacle, lose all the Estonia, Belgium, and Netherlands data from June 2021 onward
     is_est_bgm_ndl = data['location_id'].isin([58, 76, 89])
@@ -283,7 +304,8 @@ def process_raw_serology_data(data: pd.DataFrame, hierarchy: pd.DataFrame) -> pd
 
     est_bgm_ndl_vax_outlier = is_est_bgm_ndl & is_spike & is_post_june_2021
     outliers.append(est_bgm_ndl_vax_outlier)
-    logger.debug(f'{est_bgm_ndl_vax_outlier.sum()} rows from sero data dropped due to vax issues in Estonia, Belgium, and Netherlands.')
+    logger.debug(
+        f'{est_bgm_ndl_vax_outlier.sum()} rows from sero data dropped due to vax issues in Estonia, Belgium, and Netherlands.')
 
     # vaccine debacle, lose all the Puerto Rico data from Feb 2021 onward
     is_pr = data['location_id'].isin([385])
@@ -292,7 +314,8 @@ def process_raw_serology_data(data: pd.DataFrame, hierarchy: pd.DataFrame) -> pd
 
     pr_vax_outlier = is_pr & is_spike & is_2021
     outliers.append(pr_vax_outlier)
-    logger.debug(f'{pr_vax_outlier.sum()} rows from sero data dropped due to Puerto Rico vax issues.')
+    logger.debug(
+        f'{pr_vax_outlier.sum()} rows from sero data dropped due to Puerto Rico vax issues.')
 
     ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
     ## OTHER FIT-RELATED
@@ -328,7 +351,8 @@ def process_raw_serology_data(data: pd.DataFrame, hierarchy: pd.DataFrame) -> pd
 
     k_s_outlier = is_k_s & is_pre_may_2020
     outliers.append(k_s_outlier)
-    logger.debug(f'{k_s_outlier.sum()} rows from sero data dropped due to noisy (early) King/Snohomish data.')
+    logger.debug(
+        f'{k_s_outlier.sum()} rows from sero data dropped due to noisy (early) King/Snohomish data.')
 
     # dialysis study
     is_bad_dial_locs = data['location_id'].isin([
@@ -345,7 +369,8 @@ def process_raw_serology_data(data: pd.DataFrame, hierarchy: pd.DataFrame) -> pd
 
     dialysis_outlier = is_bad_dial_locs & is_usa_dialysis
     outliers.append(dialysis_outlier)
-    logger.debug(f'{dialysis_outlier.sum()} rows from sero data dropped due to inconsistent results from dialysis study.')
+    logger.debug(
+        f'{dialysis_outlier.sum()} rows from sero data dropped due to inconsistent results from dialysis study.')
 
     # North Dakota first round
     is_nd = data['location_id'] == 557
@@ -438,8 +463,9 @@ def process_raw_serology_data(data: pd.DataFrame, hierarchy: pd.DataFrame) -> pd
 
     delhi_sharma_outlier = is_delhi & is_sharma & is_pre_sept_2020
     outliers.append(delhi_sharma_outlier)
-    logger.debug(f'{delhi_sharma_outlier.sum()} rows from sero data dropped due to implausibility '
-                 '(or at least incompatibility) of Delhi Sharma survey.')
+    logger.debug(
+        f'{delhi_sharma_outlier.sum()} rows from sero data dropped due to implausibility '
+        '(or at least incompatibility) of Delhi Sharma survey.')
 
     # Delhi first government survey
     is_delhi_government_sero = data['survey_series'] == 'delhi_government_sero'
@@ -447,8 +473,9 @@ def process_raw_serology_data(data: pd.DataFrame, hierarchy: pd.DataFrame) -> pd
 
     delhi_government_outlier = is_delhi_government_sero & is_jan_2021
     outliers.append(delhi_government_outlier)
-    logger.debug(f'{delhi_government_outlier.sum()} rows from sero data dropped due to implausibility '
-                 '(or at least incompatibility) of first Delhi government survey.')
+    logger.debug(
+        f'{delhi_government_outlier.sum()} rows from sero data dropped due to implausibility '
+        '(or at least incompatibility) of first Delhi government survey.')
 
     # Gujarat ICMR round 2
     is_guj = data['location_id'] == 4851
@@ -565,12 +592,14 @@ def process_raw_serology_data(data: pd.DataFrame, hierarchy: pd.DataFrame) -> pd
     is_sub1 = data['seroprevalence'] <= 0.01
     is_maxsub3_sub1 = (is_maxsub3 | is_sub1) & ~data['location_id'].isin(na_list)
     outliers.append(is_maxsub3_sub1)
-    logger.debug(f'{is_maxsub3_sub1.sum()} rows from sero data dropped due to having values of '
-                 '1% or below, or a location max of 3% or below.')
+    logger.debug(
+        f'{is_maxsub3_sub1.sum()} rows from sero data dropped due to having values of '
+        '1% or below, or a location max of 3% or below.')
     ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
 
     keep_columns = ['data_id', 'nid', 'survey_series', 'location_id', 'start_date', 'date',
-                    'seroprevalence', 'seroprevalence_lower', 'seroprevalence_upper', 'sample_size',
+                    'seroprevalence', 'seroprevalence_lower', 'seroprevalence_upper',
+                    'sample_size',
                     'study_start_age', 'study_end_age',
                     'test_name', 'test_target', 'isotype',
                     'bias', 'bias_type',
@@ -603,9 +632,11 @@ def assign_assay(seroprevalence: pd.DataFrame, assay_map: pd.DataFrame) -> pd.Da
         'N-Roche, N-Abbott, S-Roche, S-Ortho Ig, S-Ortho IgG, S-DiaSorin, S-EuroImmun, S-Oxford'
     )
 
-    inlier_no_assay = (seroprevalence['is_outlier'] == 0) & seroprevalence['assay_map'].isnull()
+    inlier_no_assay = (seroprevalence['is_outlier'] == 0) & seroprevalence[
+        'assay_map'].isnull()
     if inlier_no_assay.any():
-        raise ValueError(f"Unmapped seroprevalence data: {seroprevalence.loc[inlier_no_assay]}")
+        raise ValueError(
+            f"Unmapped seroprevalence data: {seroprevalence.loc[inlier_no_assay]}")
     return seroprevalence
 
 
@@ -618,9 +649,12 @@ def sample_seroprevalence(seroprevalence: pd.DataFrame,
                           logit_se_cap: float = 1.,
                           num_threads: int = 1,
                           progress_bar: bool = False):
-    logit_se_from_ci = lambda x: (math.logit(x['seroprevalence_upper']) - math.logit(x['seroprevalence_lower'])) / 3.92
-    logit_se_from_ss = lambda x: np.sqrt((x['seroprevalence'] * (1 - x['seroprevalence'])) / x['sample_size']) / \
-                                 (x['seroprevalence'] * (1.0 - x['seroprevalence']))
+    logit_se_from_ci = (
+        lambda x: (math.logit(x['seroprevalence_upper']) - math.logit(x['seroprevalence_lower'])) / 3.92
+    )
+    logit_se_from_ss = (
+        lambda x: np.sqrt((x['seroprevalence'] * (1 - x['seroprevalence'])) / x['sample_size']) / (x['seroprevalence'] * (1.0 - x['seroprevalence']))
+    )
 
     series_vars = ['location_id', 'is_outlier', 'survey_series', 'date']
     seroprevalence = seroprevalence.sort_values(series_vars).reset_index(drop=True)
@@ -647,7 +681,7 @@ def sample_seroprevalence(seroprevalence: pd.DataFrame,
         logit_samples = random_state.normal(loc=logit_mean.to_frame().values,
                                             scale=logit_se.to_frame().values,
                                             size=(len(seroprevalence), n_samples), )
-        #samples = math.expit(logit_samples)
+        # samples = math.expit(logit_samples)
         samples = [seroprevalence['seroprevalence'].copy()] * n_samples
 
         ## CANNOT DO THIS, MOVES SOME ABOVE 1
@@ -655,23 +689,25 @@ def sample_seroprevalence(seroprevalence: pd.DataFrame,
         # samples *= seroprevalence[['seroprevalence']].values / samples.mean(axis=1, keepdims=True)
         if correlate_samples:
             raise ValueError('Not using sero samples.')
-            logger.info('Correlating seroprevalence samples within location.')
-            series_data = (seroprevalence[[sv for sv in series_vars if sv not in ['survey_series', 'date']]]
-                           .drop_duplicates()
-                           .reset_index(drop=True))
-            series_data['series'] = series_data.index
-            series_data = seroprevalence.merge(series_data).reset_index(drop=True)
-            series_idx_list = [series_data.loc[series_data['series'] == series].index.to_list()
-                               for series in range(series_data['series'].max() + 1)]
-            sorted_samples = []
-            for series_idx in series_idx_list:
-                series_samples = samples[series_idx, :].copy()
-                series_draw_idx = series_samples[0].argsort().argsort()
-                series_samples = np.sort(series_samples, axis=1)[:, series_draw_idx]
-                sorted_samples.append(series_samples)
-            samples = np.vstack(sorted_samples)
-            ## THIS SORTS THE WHOLE SET
-            # samples = np.sort(samples, axis=1)
+            # logger.info('Correlating seroprevalence samples within location.')
+            # series_data = (seroprevalence[[sv for sv in series_vars if
+            #                                sv not in ['survey_series', 'date']]]
+            #                .drop_duplicates()
+            #                .reset_index(drop=True))
+            # series_data['series'] = series_data.index
+            # series_data = seroprevalence.merge(series_data).reset_index(drop=True)
+            # series_idx_list = [
+            #     series_data.loc[series_data['series'] == series].index.to_list()
+            #     for series in range(series_data['series'].max() + 1)]
+            # sorted_samples = []
+            # for series_idx in series_idx_list:
+            #     series_samples = samples[series_idx, :].copy()
+            #     series_draw_idx = series_samples[0].argsort().argsort()
+            #     series_samples = np.sort(series_samples, axis=1)[:, series_draw_idx]
+            #     sorted_samples.append(series_samples)
+            # samples = np.vstack(sorted_samples)
+            # ## THIS SORTS THE WHOLE SET
+            # # samples = np.sort(samples, axis=1)
 
         seroprevalence = seroprevalence.drop(
             ['seroprevalence', 'seroprevalence_lower', 'seroprevalence_upper', 'sample_size'],
@@ -680,9 +716,11 @@ def sample_seroprevalence(seroprevalence: pd.DataFrame,
         if isinstance(samples, list):
             # hack
             _n_sample = enumerate(samples)
-        elif isinstance(samples, np.array):
+        elif isinstance(samples, np.ndarray):
             # actual samples
             _n_sample = enumerate(samples.T)
+        else:
+            raise ValueError
         for n, sample in _n_sample:
             _sample = seroprevalence.copy()
             _sample['seroprevalence'] = sample
@@ -694,25 +732,31 @@ def sample_seroprevalence(seroprevalence: pd.DataFrame,
     else:
         logger.debug('Just using mean seroprevalence.')
 
-        seroprevalence['seroprevalence'] = seroprevalence['seroprevalence'].clip(floor, 1 - floor)
-        seroprevalence = seroprevalence.drop(['seroprevalence_lower', 'seroprevalence_upper', 'sample_size'],
-                                             axis=1)
+        seroprevalence['seroprevalence'] = seroprevalence['seroprevalence'].clip(floor,
+                                                                                 1 - floor)
+        seroprevalence = seroprevalence.drop(
+            ['seroprevalence_lower', 'seroprevalence_upper', 'sample_size'],
+            axis=1)
         seroprevalence['n'] = 0
         sample_list = [seroprevalence.reset_index(drop=True)]
 
     if bootstrap_samples:
         raise ValueError('Not using sero samples.')
-        if n_samples < min_samples:
-            raise ValueError('Not set up to bootstrap means only.')
-        with multiprocessing.Pool(num_threads) as p:
-            bootstrap_list = list(tqdm.tqdm(p.imap(bootstrap, sample_list), total=n_samples, disable=not progress_bar))
+        # if n_samples < min_samples:
+        #     raise ValueError('Not set up to bootstrap means only.')
+        # bootstrap_list = parallel.run_parallel(
+        #     bootstrap,
+        #     arg_list=samle_list,
+        #     num_cores=num_threads,
+        #     progress_bar=progress_bar
+        # )
     else:
         bootstrap_list = sample_list
 
     return bootstrap_list
 
 
-def bootstrap(sample: pd.DataFrame,):
+def bootstrap(sample: pd.DataFrame, ):
     # bootstrap sample number (for random state)
     n = sample['n'].unique().item()
     sample = sample.drop('n', axis=1)
@@ -785,15 +829,18 @@ def remove_vaccinated(seroprevalence: pd.DataFrame,
     seroprevalence = seroprevalence.rename(columns={'date': 'end_date'})
     seroprevalence['n_midpoint_days'] = (seroprevalence['end_date'] - seroprevalence['start_date']).dt.days / 2
     seroprevalence['n_midpoint_days'] = seroprevalence['n_midpoint_days'].astype(int)
-    seroprevalence['date'] = seroprevalence.apply(lambda x: x['end_date'] - pd.Timedelta(days=x['n_midpoint_days']),
-                                                  axis=1)
+    seroprevalence['date'] = seroprevalence.apply(
+        lambda x: x['end_date'] - pd.Timedelta(days=x['n_midpoint_days']),
+        axis=1,
+    )
     ##
     ## always
     start_len = len(seroprevalence)
     seroprevalence = seroprevalence.merge(vaccinated, how='left')
     if len(seroprevalence) != start_len:
         raise ValueError('Sero data expanded in vax merge.')
-    if seroprevalence.loc[seroprevalence['vaccinated'].isnull(), 'date'].max() >= pd.Timestamp('2020-12-01'):
+    if seroprevalence.loc[
+        seroprevalence['vaccinated'].isnull(), 'date'].max() >= pd.Timestamp('2020-12-01'):
         raise ValueError('Missing vax after model start (2020-12-01).')
     seroprevalence['vaccinated'] = seroprevalence['vaccinated'].fillna(0)
     ##
@@ -809,10 +856,12 @@ def remove_vaccinated(seroprevalence: pd.DataFrame,
 
     seroprevalence.loc[seroprevalence['test_target'] != 'spike', 'vaccinated'] = 0
 
-    seroprevalence = seroprevalence.rename(columns={'seroprevalence': 'reported_seroprevalence'})
+    seroprevalence = seroprevalence.rename(
+        columns={'seroprevalence': 'reported_seroprevalence'})
 
-    seroprevalence['seroprevalence'] = 1 - (1 - seroprevalence['reported_seroprevalence']) / (
-                1 - seroprevalence['vaccinated'])
+    seroprevalence['seroprevalence'] = (
+        1 - (1 - seroprevalence['reported_seroprevalence']) / (1 - seroprevalence['vaccinated'])
+    )
 
     del seroprevalence['vaccinated']
 

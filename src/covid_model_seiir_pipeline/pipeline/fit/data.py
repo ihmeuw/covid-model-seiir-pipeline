@@ -1,5 +1,6 @@
 from typing import Dict, List
 
+import numpy as np
 import pandas as pd
 
 from covid_model_seiir_pipeline.lib import (
@@ -93,7 +94,26 @@ class FitDataInterface:
         return self.preprocessing_data_interface.load_covariate_info(covariate, info_type)
 
     def load_variant_prevalence(self, scenario: str) -> pd.DataFrame:
-        return self.preprocessing_data_interface.load_variant_prevalence(scenario)
+        first_omega_date = self.load_specification().fit_parameters.omega_invasion_date
+        data = self.preprocessing_data_interface.load_variant_prevalence(scenario)
+        if not first_omega_date:
+            return data
+
+        first_omicron_date = data[data.omicron > 0.01].reset_index().date.min()
+        first_omega_date = pd.Timestamp(first_omega_date)
+        shift = (first_omega_date - first_omicron_date).days
+        final_outputs = []
+        for location_id in data.reset_index().location_id.unique():
+            omicron = data.loc[location_id, 'omicron']
+            omega = omicron.shift(shift).ffill().bfill()
+            new_data = data.loc[location_id].drop(columns=['omega', 'omicron'])
+            new_data['omicron'] = np.minimum(1 - omega, omicron)
+            new_data['omega'] = omega
+            new_data = new_data.div(new_data.sum(axis=1), axis=0)
+            new_data['location_id'] = location_id
+            final_outputs.append(new_data.reset_index().set_index(['location_id', 'date']))
+        final_data = pd.concat(final_outputs).sort_index()
+        return final_data
 
     def load_waning_parameters(self, measure: str) -> pd.DataFrame:
         return self.preprocessing_data_interface.load_waning_parameters(measure)
