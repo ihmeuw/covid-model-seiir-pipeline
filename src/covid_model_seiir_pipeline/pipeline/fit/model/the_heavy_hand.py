@@ -616,7 +616,7 @@ def rescale_kappas(measure: str,
                 ( 4771,  2.0),  # Roraima
                 (  136,  1.5),  # Paraguay
                 (  160,  3.0),  # Afghanistan
-                (  139, 0.25),  # Algeria
+                (  139,  0.5),  # Algeria
                 (  141,  2.0),  # Egypt
                 (  143,  2.0),  # Iraq
                 (  147,  2.0),  # Libya
@@ -818,7 +818,7 @@ def rescale_kappas(measure: str,
                 ( 4776,  1.5),  # Tocantins
                 (  136,  4.0),  # Paraguay
                 (  160,  5.0),  # Afghanistan
-                (  139, 0.05),  # Algeria
+                (  139,  0.1),  # Algeria
                 (  140,  1.5),  # Bahrain
                 (  141,  4.0),  # Egypt
                 (  143,  2.0),  # Iraq
