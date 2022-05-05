@@ -11,19 +11,7 @@ grid_plots:
     - version: '2022_04_07.04'
       scenarios:
         reference*: 'public reference'
-    - version: '2022_05_04.02'
-      scenarios:
-        reference*: 'reference'
-        best_masks: 'best_masks'
-        booster: 'booster'
-  - name: '2020_2022'
-    date_start: '2020-01-01'
-    date_end: '2022-12-31'
-    comparators:
-    - version: '2022_04_07.04'
-      scenarios:
-        reference*: 'public reference'
-    - version: '2022_05_04.02'
+    - version: '2022_05_05.01'
       scenarios:
         reference*: 'reference'
         best_masks: 'best_masks'
@@ -35,7 +23,7 @@ grid_plots:
     - version: '2022_04_07.04'
       scenarios:
         reference*: 'public reference'
-    - version: '2022_05_04.02'
+    - version: '2022_05_05.01'
       scenarios:
         reference*: 'reference'
         best_masks: 'best_masks'
