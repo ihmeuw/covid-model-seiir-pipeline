@@ -126,7 +126,10 @@ def evil_doings(data: pd.DataFrame, hierarchy: pd.DataFrame, input_measure: str)
             manipulation_metadata[location] = 'dropped all data'
 
     if input_measure == 'cases':
-        pass
+        is_xinjiang = data['location_id'] == 519
+        is_surge = data['date'] >= '2022-04-28'
+        data = data.loc[~(is_xinjiang & is_surge)].reset_index(drop=True)
+        manipulation_metadata['xinjiang'] = 'dropped cases starting 2022-04-28'
 
     elif input_measure == 'hospitalizations':
         drop_list = {
