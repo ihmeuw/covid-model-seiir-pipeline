@@ -185,7 +185,7 @@ def run_beta_fit(fit_version: str, measure: str, draw_id: int, progress_bar: boo
     severity_calc = {
         'delta': lambda m: sampled_ode_params[f'kappa_delta_{m}'],
         'omicron': lambda m: sampled_ode_params[f'kappa_omicron_{m}'],
-        'average': lambda m: 1 / 2 * (sampled_ode_params[f'kappa_delta_{m}'] + sampled_ode_params[f'kappa_omicron_{m}']),
+        'average': lambda m: (sampled_ode_params[f'kappa_delta_{m}'] * sampled_ode_params[f'kappa_omicron_{m}']) ** (1 / 2),
     }[omega_severity]
     for m in ['case', 'admission', 'death']:
         sampled_ode_params[f'kappa_omega_{m}'] = severity_calc(m)
