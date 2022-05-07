@@ -122,4 +122,8 @@ class CounterfactualDataInterface:
     def load_raw_outputs(self, scenario: str, draw_id: int, columns: List[str] = None):
         return io.load(self.output_root.raw_outputs(scenario=scenario, draw_id=draw_id, columns=columns))
 
+    def __getstate__(self):
+        return vars(self)
 
+    def __setstate__(self, state):
+        vars(self).update(state)
