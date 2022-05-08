@@ -54,8 +54,8 @@ Average variant
 - `rates_parameters.omicron_severity_parameterization`:  'average'
 - `fit_parameters.kappa_omega`: [2.0, 2.8]
 
-Average variant
-+++++++++++++++
+Deltacron variant
++++++++++++++++++
 - `fit_parameters.omega_invasion`: '2022-06-01' or any date we want goes here. The current
   implementation uses the omicron pattern of invasion shifted forward in time.
 - `rates_parameters.omicron_severity_parameterization`:  'delta'

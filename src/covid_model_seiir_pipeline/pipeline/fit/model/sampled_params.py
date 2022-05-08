@@ -90,7 +90,7 @@ def sample_variant_severity(params: RatesParameters, draw_id: int) -> VariantRR:
         rrs[f'omega_{ratio}'] = {
             'delta': rrs[ratio],
             'omicron': rrs[f'omicron_{ratio}'],
-            'average': 1/2 * (rrs[ratio] + rrs[f'omicron_{ratio}']),
+            'average': (rrs[ratio] * rrs[f'omicron_{ratio}']) ** (1/2),
         }[omega_severity]
 
     return VariantRR(**rrs)
