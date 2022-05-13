@@ -49,6 +49,39 @@ def build_beta_final(indices: Indices,
     return beta, beta_hat.set_index(['location_id', 'date']).reindex(beta.index)
 
 
+def build_antiviral_risk_reduction(index: pd.Index, hierarchy: pd.DataFrame, scenario_spec):
+    locs = set(index.to_frame().location_id)
+    high_income = hierarchy.loc[hierarchy.path_to_top_parent.str.contains(',64,'), 'location_id']
+    high_income = list(set(high_income).intersection(locs))
+    lmic = list(locs.difference(high_income))
+
+
+    date_start = pd.Timestamp('2022-05-15')
+    date_end = pd.Timestamp('2022-07-15')
+    dates = pd.date_range(date_start, date_end)
+    coverage = (dates - date_start).dt.days / (date_end - date_start).days
+
+    coverage = (pd.Series(coverage, index=dates)
+                .reindex(index, level='date')
+                .groupby('location_id')
+                .ffill()
+                .groupby('location_id')
+                .bfill())
+
+    effectiveness = scenario_spec['effectiveness']
+    max_access = scenario_spec['maximum_access']
+    risk_reduction = pd.Series(1., index=index)
+    risk_reduction.loc[high_income] = 1 - effectiveness * max_access * coverage.loc[high_income]
+
+    if scenario_spec['scenario'] == 'global_coverage':
+        shift = pd.Timestamp('2022-08-15') - date_start
+        coverage = (coverage
+                    .groupby('location_id')
+                    .shift(periods=shift.days, freq='D', fillna=0.))
+        risk_reduction.loc[lmic] = 1 - effectiveness * max_access * coverage.loc[lmic]
+    return risk_reduction
+
+
 def build_model_parameters(indices: Indices,
                            beta: pd.Series,
                            past_compartments: pd.DataFrame,
@@ -115,6 +148,7 @@ def build_model_parameters(indices: Indices,
             kappas,
             hierarchy,
         )
+        import pdb; pdb.set_trace()
 
         for risk_group in RISK_GROUP_NAMES:
             scalars.append(
@@ -140,37 +174,7 @@ def build_model_parameters(indices: Indices,
     )
 
 
-def build_antiviral_risk_reduction(index: pd.Index, hierarchy: pd.DataFrame, scenario_spec):
-    locs = set(index.to_frame().location_id)
-    high_income = hierarchy.loc[hierarchy.path_to_top_parent.str.contains(',64,'), 'location_id']
-    high_income = list(set(high_income).intersection(locs))
-    lmic = list(locs.difference(high_income))
 
-    effectiveness = scenario_spec['effectiveness']
-    max_access = scenario_spec['maximum_access']
-    date_start = pd.Timestamp('2022-05-15')
-    date_end = pd.Timestamp('2022-07-15')
-    dates = pd.date_range(date_start, date_end)
-    coverage = pd.Series(
-        (dates - date_start).dt.days / (date_end - date_start).days,
-        index=dates,
-    ).reindex(index, level='date)
-    coverage = (coverage
-                .reindex(index, level='date')
-                .groupby('location_id')
-                .ffill()
-                .groupby('location_id')
-                .bfill())
-    risk_reduction = pd.Series(1., index=index)
-    risk_reduction.loc[high_income] = 1 - effectiveness * max_access * coverage.loc[high_income]
-
-    if scenario_spec['scenario'] = 'global_coverage':
-        shift = pd.Timestamp('2022-08-15') - date_start
-        coverage = (coverage
-                    .groupby('location_id')
-                    .shift(periods=shift.days, freq='D', fillna=0.))
-        risk_reduction.loc[lmic] = 1 - effectiveness * max_access * coverage.loc[lmic]
-    return risk_reduction
 
 
 def build_ratio(infections: pd.Series,
