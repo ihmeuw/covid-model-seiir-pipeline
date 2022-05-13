@@ -1,5 +1,5 @@
 data:
-  seir_regression_version: '2022_05_05.01'
+  seir_regression_version: '2022_05_10.05'
   output_root: ''
   output_format: 'parquet'
 workflow:
@@ -16,8 +16,8 @@ scenarios:
     beta_scaling:
       window_size: 42
       min_avg_window: 21
-      average_over_min: 2
-      average_over_max: 28
+      average_over_min: 7
+      average_over_max: 42
       residual_rescale_upper: 1
       residual_rescale_lower: 1
     vaccine_version: 'reference'
@@ -29,7 +29,7 @@ scenarios:
     covariates:
       pneumonia: 'reference'
       mobility: 'reference'
-      mask_use: 'reference'
+      mask_use: 'relaxed'
       testing: 'reference'
       air_pollution_pm_2_5: 'reference'
       smoking_prevalence: 'reference'
@@ -46,8 +46,8 @@ scenarios:
     beta_scaling:
       window_size: 42
       min_avg_window: 21
-      average_over_min: 2
-      average_over_max: 28
+      average_over_min: 7
+      average_over_max: 42
       residual_rescale_upper: 1
       residual_rescale_lower: 1
     vaccine_version: 'reference'
@@ -76,8 +76,8 @@ scenarios:
     beta_scaling:
       window_size: 42
       min_avg_window: 21
-      average_over_min: 2
-      average_over_max: 28
+      average_over_min: 7
+      average_over_max: 42
       residual_rescale_upper: 1
       residual_rescale_lower: 1
     vaccine_version: 'booster'
@@ -89,7 +89,7 @@ scenarios:
     covariates:
       pneumonia: 'reference'
       mobility: 'reference'
-      mask_use: 'reference'
+      mask_use: 'relaxed'
       testing: 'reference'
       air_pollution_pm_2_5: 'reference'
       smoking_prevalence: 'reference'

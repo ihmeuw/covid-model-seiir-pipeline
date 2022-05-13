@@ -17,7 +17,6 @@ data:
   vaccine_scenarios:
     - 'reference'
     - 'booster'
-    # - 'probably_no'
   output_root: ''
   output_format: 'csv'
   n_draws: 100

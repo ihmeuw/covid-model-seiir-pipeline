@@ -58,6 +58,7 @@ def build_model_parameters(indices: Indices,
                            vaccinations: pd.DataFrame,
                            etas: pd.DataFrame,
                            phis: pd.DataFrame,
+                           antiviral_rr: pd.Series,
                            risk_group_population: pd.DataFrame,
                            hierarchy: pd.DataFrame) -> Parameters:
     ode_params = ode_parameters.reindex(indices.full).groupby('location_id').ffill().groupby('location_id').bfill()
@@ -67,14 +68,14 @@ def build_model_parameters(indices: Indices,
     rhos.columns = [f'rho_{c}_infection' for c in rhos.columns]
     rhos.loc[:, 'rho_none_infection'] = 0
     ode_params = pd.concat([ode_params, rhos.reindex(indices.full)], axis=1)
-    
+
     past_compartments_diff = past_compartments.groupby('location_id').diff().fillna(past_compartments)
     empirical_rhos = pd.concat([
         (past_compartments_diff.filter(like=f'Infection_none_{v}_unvaccinated').sum(axis=1, min_count=1)
          / past_compartments_diff.filter(like='Infection_none_all_unvaccinated').sum(axis=1, min_count=1)).rename(v)
         for v in VARIANT_NAMES[1:]
     ], axis=1)
-    
+
     ratio_map = {
         'death': 'ifr',
         'admission': 'ihr',
@@ -137,6 +138,39 @@ def build_model_parameters(indices: Indices,
         etas=etas,
         phis=phis,
     )
+
+
+def build_antiviral_risk_reduction(index: pd.Index, hierarchy: pd.DataFrame, scenario_spec):
+    locs = set(index.to_frame().location_id)
+    high_income = hierarchy.loc[hierarchy.path_to_top_parent.str.contains(',64,'), 'location_id']
+    high_income = list(set(high_income).intersection(locs))
+    lmic = list(locs.difference(high_income))
+
+    effectiveness = scenario_spec['effectiveness']
+    max_access = scenario_spec['maximum_access']
+    date_start = pd.Timestamp('2022-05-15')
+    date_end = pd.Timestamp('2022-07-15')
+    dates = pd.date_range(date_start, date_end)
+    coverage = pd.Series(
+        (dates - date_start).dt.days / (date_end - date_start).days,
+        index=dates,
+    ).reindex(index, level='date)
+    coverage = (coverage
+                .reindex(index, level='date')
+                .groupby('location_id')
+                .ffill()
+                .groupby('location_id')
+                .bfill())
+    risk_reduction = pd.Series(1., index=index)
+    risk_reduction.loc[high_income] = 1 - effectiveness * max_access * coverage.loc[high_income]
+
+    if scenario_spec['scenario'] = 'global_coverage':
+        shift = pd.Timestamp('2022-08-15') - date_start
+        coverage = (coverage
+                    .groupby('location_id')
+                    .shift(periods=shift.days, freq='D', fillna=0.))
+        risk_reduction.loc[lmic] = 1 - effectiveness * max_access * coverage.loc[lmic]
+    return risk_reduction
 
 
 def build_ratio(infections: pd.Series,

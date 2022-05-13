@@ -111,6 +111,8 @@ def compute_initial_beta_scaling_parameters_by_draw(draw_id: int,
 
     betas = data_interface.load_regression_beta(draw_id)
     betas = betas.loc[betas.beta.notnull()]
+    infections = data_interface.load_posterior_epi_measures(draw_id)['daily_total_infections']
+    infections = infections.loc[betas.index]
     # Select out the transition day to compute the initial scaling parameter.
     beta_transition = betas.groupby('location_id').last()
     draw_data.append(beta_transition['beta'].rename('fit_final'))
@@ -140,11 +142,15 @@ def compute_initial_beta_scaling_parameters_by_draw(draw_id: int,
                                          residual_rescale_upper,
                                          residual_rescale_lower).rename('scaled_log_beta_residual')
 
-    log_beta_residual_mean = (scaled_log_beta_residual
-                              .groupby(level='location_id')
-                              .apply(lambda x: x.iloc[-b: -a].mean())
-                              .rename('log_beta_residual_mean')
-                              .fillna(0))
+    weighted_log_beta_residual_mean = ((infections * log_beta_residual)
+                                       .groupby(level='location_id')
+                                       .apply(lambda x: x.iloc[-b: -a].mean()))
+    total_infections = (infections
+                        .groupby(level='location_id')
+                        .apply(lambda x: x.iloc[-b: -a].mean()))
+    log_beta_residual_mean = ((weighted_log_beta_residual_mean / total_infections)
+                              .fillna(0.)
+                              .rename('log_beta_residual_mean'))
     draw_data.append(log_beta_residual_mean)
     draw_data.append(np.exp(log_beta_residual_mean).rename('scale_final'))
     draw_data.append(pd.Series(draw_id, index=beta_transition.index, name='draw'))
