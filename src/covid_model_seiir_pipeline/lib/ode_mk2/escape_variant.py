@@ -69,7 +69,7 @@ def maybe_invade(t: float,
                 for variant_from in VARIANT:
                     from_compartment = COMPARTMENTS[COMPARTMENT.S, vaccine_status, variant_from]
                     compartment_delta = group_y[from_compartment] / total_susceptible * delta
-                    group_y[from_compartment] -= compartment_delta + (compartment_delta / 5) ** (1 / alpha)
+                    group_y[from_compartment] -= compartment_delta + (compartment_delta / 2) ** (1 / alpha)
                     group_y[e_idx] += compartment_delta
-                    group_y[i_idx] += (compartment_delta / 5) ** (1 / alpha)
+                    group_y[i_idx] += (compartment_delta / 2) ** (1 / alpha)
     return y

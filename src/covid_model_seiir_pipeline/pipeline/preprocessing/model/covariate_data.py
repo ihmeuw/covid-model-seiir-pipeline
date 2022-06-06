@@ -18,9 +18,15 @@ logger = cli_tools.task_performance_logger
 
 
 def preprocess_mask_use(data_interface: PreprocessingDataInterface) -> None:
+    hierarchy = data_interface.load_hierarchy('pred')
+    china_subnats = hierarchy.path_to_top_parent.str.contains(',6,')
+    china_subnats = hierarchy.loc[china_subnats, 'location_id'].tolist()
     for scenario in ['reference', 'best', 'worse', 'relaxed']:
         logger.info(f'Loading mask use data for scenario {scenario}.', context='read')
         mask_use = data_interface.load_raw_mask_use_data(scenario)
+        if scenario == 'relaxed':
+            mask_use_r = data_interface.load_raw_mask_use_data('reference')
+            mask_use.loc[china_subnats, 'mask_use_relaxed'] = mask_use_r.loc[china_subnats, 'mask_use_reference']
 
         logger.info(f'Writing mask use data for scenario {scenario}.', context='write')
         data_interface.save_covariate(mask_use, 'mask_use', scenario)

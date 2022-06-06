@@ -24,7 +24,3 @@ grid_plots:
       scenarios:
         reference*: 'public reference'
     - version: '2022_05_05.01'
-      scenarios:
-        reference*: 'reference'
-        best_masks: 'best_masks'
-        booster: 'booster'
