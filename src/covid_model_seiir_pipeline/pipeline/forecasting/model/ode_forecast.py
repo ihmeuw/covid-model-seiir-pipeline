@@ -59,7 +59,7 @@ def build_antiviral_risk_reduction(index: pd.Index, hierarchy: pd.DataFrame, sce
     date_start = pd.Timestamp('2022-05-15')
     date_end = pd.Timestamp('2022-07-15')
     dates = pd.date_range(date_start, date_end)
-    coverage = (dates - date_start).dt.days / (date_end - date_start).days
+    coverage = (dates - date_start).days / (date_end - date_start).days
 
     coverage = (pd.Series(coverage, index=dates)
                 .reindex(index, level='date')
@@ -73,11 +73,12 @@ def build_antiviral_risk_reduction(index: pd.Index, hierarchy: pd.DataFrame, sce
     risk_reduction = pd.Series(1., index=index)
     risk_reduction.loc[high_income] = 1 - effectiveness * max_access * coverage.loc[high_income]
 
-    if scenario_spec['scenario'] == 'global_coverage':
+    if scenario_spec['version'] == 'global_coverage':
         shift = pd.Timestamp('2022-08-15') - date_start
         coverage = (coverage
                     .groupby('location_id')
-                    .shift(periods=shift.days, freq='D', fillna=0.))
+                    .shift(periods=shift.days,)
+                    .fillna(0.))
         risk_reduction.loc[lmic] = 1 - effectiveness * max_access * coverage.loc[lmic]
     return risk_reduction
 
@@ -148,7 +149,8 @@ def build_model_parameters(indices: Indices,
             kappas,
             hierarchy,
         )
-        import pdb; pdb.set_trace()
+        if ratio_name in ['ifr', 'ihr']:
+            ode_params.loc[:, f'rate_all_{epi_measure}'] *= antiviral_rr
 
         for risk_group in RISK_GROUP_NAMES:
             scalars.append(

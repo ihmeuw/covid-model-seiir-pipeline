@@ -1,5 +1,5 @@
 data:
-  seir_preprocess_version: '2022_05_08.01'
+  seir_preprocess_version: '2022_05_16.02'
   output_format: 'parquet'
   output_root: ''
   compare_version: ''

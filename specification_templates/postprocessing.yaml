@@ -1,13 +1,14 @@
 data:
-  seir_forecast_version: '2022_05_10.05'
+  seir_forecast_version: '2022_05_17.05'
   scenarios:
    - 'reference'
    - 'best_masks'
    - 'booster'
+   - 'global_antivirals'
   output_root: ''
 workflow:
   project: 'proj_covid_prod'
-  queue: 'all.q'
+  queue: 'd.q'
 resampling:
   reference_scenario: 'reference'
   reference_date: '2022-07-01'

@@ -89,7 +89,7 @@ for measure in ['infections', 'deaths', 'cases', 'admissions']:
     for suffix in list(VARIANT_NAMES[1:]) + list(RISK_GROUP_NAMES) + list(VACCINE_STATUS_NAMES) + ['total', 'naive', 'naive_unvaccinated']:
         measure_suffix = f'_{suffix}'
         label_suffix = f'_{suffix}' if suffix != 'total' else ''
-        write_draws = suffix == 'total'
+        write_draws = suffix in ['total', 'delta', 'omicron']
         label = f'{measure}{label_suffix}'
         MEASURES[label] = MeasureConfig(
             loaders.load_output_data(f'modeled_{measure}{measure_suffix}'),
