@@ -4,72 +4,23 @@ workflow:
   project: 'proj_covid_prod'
   queue: 'all.q'
 grid_plots:
-  - name: 'compare_longrange'
-    date_start: '2020-01-01'
-    date_end: '2022-12-01'
+  - name: '2021_sept2022'
+    date_start: '2021-01-01'
+    date_end: '2022-09-30'
     comparators:
-    - version: '2022_05_17.01'
+    - version: '2022_04_07.04'
       scenarios:
-        reference*: 'no new variant'
-    - version: '2022_05_17.02'
-      scenarios:
-        reference*: 'omicron-like'
-    - version: '2022_05_17.03'
-      scenarios:
-        reference*: 'delta-like'
-    - version: '2022_05_17.04'
-      scenarios:
-        reference*: 'hybrid'
-    - version: '2022_05_17.05'
-      scenarios:
-        reference*: 'deltacron'
-  - name: 'compare_no_new_variant'
-    date_start: '2020-01-01'
-    date_end: '2022-12-01'
-    comparators:
-    - version: '2022_05_17.01'
+        reference*: 'public reference'
+    - version: '2022_05_05.01'
       scenarios:
         reference*: 'reference'
         best_masks: 'best_masks'
         booster: 'booster'
-        global_antivirals: 'global_antivirals'
-  - name: 'compare_omicron_like'
+  - name: '2020_2023'
     date_start: '2020-01-01'
-    date_end: '2022-12-01'
+    date_end: '2023-12-31'
     comparators:
-    - version: '2022_05_17.02'
+    - version: '2022_04_07.04'
       scenarios:
-        reference*: 'reference'
-        best_masks: 'best_masks'
-        booster: 'booster'
-        global_antivirals: 'global_antivirals'
-  - name: 'compare_delta_like'
-    date_start: '2020-01-01'
-    date_end: '2022-12-01'
-    comparators:
-    - version: '2022_05_17.03'
-      scenarios:
-        reference*: 'reference'
-        best_masks: 'best_masks'
-        booster: 'booster'
-        global_antivirals: 'global_antivirals'
-  - name: 'compare_hybrid'
-    date_start: '2020-01-01'
-    date_end: '2022-12-01'
-    comparators:
-    - version: '2022_05_17.04'
-      scenarios:
-        reference*: 'reference'
-        best_masks: 'best_masks'
-        booster: 'booster'
-        global_antivirals: 'global_antivirals'
-  - name: 'compare_deltacron'
-    date_start: '2020-01-01'
-    date_end: '2022-12-01'
-    comparators:
-    - version: '2022_05_17.05'
-      scenarios:
-        reference*: 'reference'
-        best_masks: 'best_masks'
-        booster: 'booster'
-        global_antivirals: 'global_antivirals'
+        reference*: 'public reference'
+    - version: '2022_05_05.01'

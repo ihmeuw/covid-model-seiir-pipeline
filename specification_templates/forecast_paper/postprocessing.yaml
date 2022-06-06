@@ -1,8 +1,9 @@
 data:
-  seir_forecast_version: '2022_05_05.01'
+  seir_forecast_version: '2022_05_17.05'
   scenarios:
    - 'reference'
    - 'best_masks'
+   - 'booster'
    - 'global_antivirals'
   output_root: ''
 workflow:
@@ -13,14 +14,14 @@ resampling:
   reference_date: '2022-07-01'
   lower_quantile: 0.025
   upper_quantile: 0.975
-splicing:
-  - locations:
-      - 4752   # Amazonas
-      - 4758   # Goias
-      - 4760   # Minas Gerais
-      - 136    # Paraguay
-      - 169    # Central African Republic
-    output_version: '/ihme/covid-19/seir-outputs/2022_04_07.02'
+#splicing:
+#  - locations:
+#      - 4752   # Amazonas
+#      - 4758   # Goias
+#      - 4760   # Minas Gerais
+#      - 136    # Paraguay
+#      - 169    # Central African Republic
+#    output_version: '/ihme/covid-19/seir-outputs/2022_04_07.02'      
 aggregation:
   - location_file: '/ihme/covid-19/model-inputs/best/locations/modeling_hierarchy.csv'
   - location_file: '/ihme/covid-19/seir-outputs/agg-hierarchies/who_plus_palestine.csv'

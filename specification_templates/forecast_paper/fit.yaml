@@ -1,5 +1,5 @@
 data:
-  seir_preprocess_version: '2022_05_04.04'
+  seir_preprocess_version: '2022_05_16.02'
   output_format: 'parquet'
   output_root: ''
   compare_version: ''
@@ -41,7 +41,7 @@ rates_parameters:
   minimum_asymptomatic_idr_fraction: 0.2
   maximum_asymptomatic_idr: 0.6
 fit_parameters:
-  omega_invasion_date: ''
+  omega_invasion_date: '2022-06-01'
   # Mixing parameter.  dS/dt = -beta * S * I ** alpha
   alpha_all: [0.9, 1.0]
   # Proportion of current E to send to variant E on invasion.
