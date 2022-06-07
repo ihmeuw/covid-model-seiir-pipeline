@@ -135,7 +135,7 @@ def evil_doings(data: pd.DataFrame, hierarchy: pd.DataFrame, input_measure: str)
             manipulation_metadata[location_name] = 'dropped all cases'
         
         dated_drop_list = [
-            # (519, 'xinjiang', '2022-04-28'),
+            (505, 'inner_mongolia', '2022-06-01'),
         ]
 
         for location_id, location_name, drop_start_date in dated_drop_list:
