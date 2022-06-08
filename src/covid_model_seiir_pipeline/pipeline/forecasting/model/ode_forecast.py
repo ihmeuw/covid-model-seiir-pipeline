@@ -149,11 +149,9 @@ def build_model_parameters(indices: Indices,
             kappas,
             hierarchy,
         )
-        if ratio_name in ['ifr', 'ihr']:
-            ode_params.loc[:, f'rate_all_{epi_measure}'] *= antiviral_rr
 
         for risk_group in RISK_GROUP_NAMES:
-            scalars.append(
+            scalar = (
                 (prior_ratios[f'{ratio_name}_{risk_group}'] / prior_ratios[ratio_name])
                 .rename(f'{epi_measure}_{risk_group}')
                 .reindex(indices.full)
@@ -162,6 +160,9 @@ def build_model_parameters(indices: Indices,
                 .groupby('location_id')
                 .bfill()
             )
+            if ratio_name in ['ifr', 'ihr'] and risk_group == 'hr':
+                scalar *= antiviral_rr
+            scalars.append(scalar)
     scalars = pd.concat(scalars, axis=1)
 
     vaccinations = vaccinations.reindex(indices.full, fill_value=0.)
