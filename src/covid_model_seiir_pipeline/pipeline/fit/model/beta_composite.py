@@ -113,11 +113,12 @@ def combination_spline(data: pd.DataFrame):
     pred_data = data.mean(axis=1) # fit_spline(data, pred_data_template.copy(), spline_specs,)
     pred_delta_log_data = fit_spline(delta_log_data, pred_data_template.copy(), spline_specs,)
 
-    # splice predictions
-    pred_data = pd.concat([
-        pred_data[:-30],
-        np.exp(np.log(pred_data.iloc[-31] + 1) + pred_delta_log_data.loc[data_idx][-30:].cumsum())
-    ])
+    # splice average and delta ln() if we are combining measures, otherwise just take the single measure as-is
+    if data.notnull().any(axis=0).sum() > 1:
+        pred_data = pd.concat([
+            pred_data[:-30],
+            np.exp(np.log(pred_data.iloc[-31] + 0.03) + pred_delta_log_data.loc[data_idx][-30:].cumsum())
+        ])
     pred_data = pred_data.rename('pred').clip(1e-4, np.inf)
 
     return pred_data
@@ -151,6 +152,3 @@ def fit_spline(data: pd.DataFrame,
                  .loc[:, 'pred_data'])
 
     return pred_data
-
-
-

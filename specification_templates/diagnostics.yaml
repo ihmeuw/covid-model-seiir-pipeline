@@ -2,7 +2,7 @@ data:
   output_root: ''
 workflow:
   project: 'proj_covid_prod'
-  queue: 'd.q'
+  queue: 'all.q'
 grid_plots:
   - name: '2021_sept2022'
     date_start: '2021-01-01'
@@ -11,7 +11,7 @@ grid_plots:
     - version: '2022_05_05.04'
       scenarios:
         reference*: 'public reference'
-    - version: '2022_06_07.01'
+    - version: '2022_06_08.02'
       scenarios:
         reference*: 'reference'
         best_masks: 'best_masks'
@@ -23,7 +23,7 @@ grid_plots:
     - version: '2022_05_05.04'
       scenarios:
         reference*: 'public reference'
-    - version: '2022_06_07.01'
+    - version: '2022_06_08.02'
       scenarios:
         reference*: 'reference'
         best_masks: 'best_masks'
