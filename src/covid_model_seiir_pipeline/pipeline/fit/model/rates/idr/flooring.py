@@ -131,10 +131,10 @@ def _manual_floor_setting(rmse: pd.DataFrame,
             rmse.loc[is_ssa_rmse, 'rmse'] = np.nan
             rmse.loc[is_ssa_rmse, 'floor'] = 0.001
 
-    # Amazonas - 1.0%
-    best_floor.loc[4752] = 0.01
+    # Amazonas - 0.2%
+    best_floor.loc[4752] = 0.002
     rmse.loc[4752, 'rmse'] = np.nan
-    rmse.loc[4752, 'floor'] = 0.01
+    rmse.loc[4752, 'floor'] = 0.002
 
     # Maranhao - 2.0%
     best_floor.loc[4759] = 0.02
