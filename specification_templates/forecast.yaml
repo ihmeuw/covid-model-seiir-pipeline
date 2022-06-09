@@ -1,10 +1,10 @@
 data:
-  seir_regression_version: '2022_06_08.02'
+  seir_regression_version: '2022_06_09.02'
   output_root: ''
   output_format: 'parquet'
 workflow:
   project: 'proj_covid_prod'
-  queue: 'all.q'
+  queue: 'long.q'
 scenarios:
   reference:
     algorithm: 'normal'

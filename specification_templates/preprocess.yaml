@@ -28,4 +28,4 @@ seroprevalence_parameters:
   vax_sero_prob: 0.9
 workflow:
   project: 'proj_covid_prod'
-  queue: 'all.q'
+  queue: 'd.q'
