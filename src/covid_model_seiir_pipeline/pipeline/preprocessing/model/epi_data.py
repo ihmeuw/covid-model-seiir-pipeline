@@ -195,6 +195,15 @@ def evil_doings(data: pd.DataFrame, hierarchy: pd.DataFrame, input_measure: str)
             data = data.loc[~is_location].reset_index(drop=True)
             manipulation_metadata[location_name] = 'dropped all deaths'
 
+        dated_drop_list = [
+        ]
+
+        for location_id, location_name, drop_start_date in dated_drop_list:
+            is_location = data['location_id'] == location_id
+            is_drop_start_date_on = data['date'] >= drop_start_date
+            data = data.loc[~(is_location & is_drop_start_date_on)].reset_index(drop=True)
+            manipulation_metadata[location_name] = f'dropped deaths beginning {drop_start_date}'
+
     else:
         raise ValueError(f'Input measure {input_measure} does not have a protocol for exclusions.')
 
