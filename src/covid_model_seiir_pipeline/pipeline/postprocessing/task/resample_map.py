@@ -25,7 +25,6 @@ def run_resample_map(postprocessing_version: str) -> None:
         actual_forecast_spec = data_interface.forecast_data_interface.forecast_data_interface.load_specification()
         postprocessing_spec.data.seir_forecast_version = actual_forecast_spec.data.output_root
         data_interface = PostprocessingDataInterface.from_specification(postprocessing_spec)
-
     logger.info('Loading resampling data', context='read')
     deaths = loaders.load_deaths(resampling_params.reference_scenario,
                                  data_interface,
