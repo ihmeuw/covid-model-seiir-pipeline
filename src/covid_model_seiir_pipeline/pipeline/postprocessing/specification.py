@@ -42,9 +42,17 @@ class PostprocessingWorkflowSpecification(workflow.WorkflowSpecification):
 @dataclass
 class PostprocessingData:
     """Specifies the inputs and outputs for postprocessing."""
-    seir_forecast_version: str = field(default='best')
+    seir_forecast_version: str = field(default='')
+    seir_counterfactual_version: str = field(default='')
     scenarios: list = field(default_factory=lambda: ['worse', 'reference', 'best_masks'])
     output_root: str = field(default='')
+
+    def __post_init__(self):
+        if self.seir_forecast_version and self.seir_counterfactual_version:
+            raise ValueError('Must specify exactly one of "seir_forecast_version" '
+                             'or "seir_counterfactual_version".')
+        if not self.seir_forecast_version and not self.seir_counterfactual_version:
+            self.seir_forecast_version = 'best'
 
     def to_dict(self) -> Dict:
         """Converts to a dict, coercing list-like items to lists."""

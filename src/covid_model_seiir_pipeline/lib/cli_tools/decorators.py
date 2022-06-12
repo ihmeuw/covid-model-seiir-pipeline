@@ -127,6 +127,13 @@ with_task_diagnostics_version = click.option(
     help='Full path to an existing directory containing a '
          '"diagnostics_specification.yaml".',
 )
+with_task_counterfactual_version = click.option(
+    '--counterfactual-version', '-i',
+    type=click.Path(exists=True, file_okay=False),
+    required=True,
+    help='Full path to an existing directory containing a '
+         '"counterfactual_specification.yaml".',
+)
 with_task_oos_holdout_version = click.option(
     '--oos-holdout-version', '-i',
     type=click.Path(exists=True, file_okay=False),

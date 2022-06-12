@@ -26,7 +26,7 @@ def do_oos_holdout(run_metadata: cli_tools.RunMetadata,
     specification.data.output_root = str(run_directory)
 
     run_metadata['output_path'] = str(run_directory)
-    run_metadata['regression_specification'] = specification.to_dict()
+    run_metadata['oos_holdout_specification'] = specification.to_dict()
 
     cli_tools.configure_logging_to_files(run_directory)
     # noinspection PyTypeChecker

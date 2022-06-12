@@ -1,0 +1,22 @@
+data:
+  seir_counterfactual_input_version: '2022_04_02.01'
+  seir_forecast_version: '2022_03_31.01'
+  output_root: ''
+  output_format: 'parquet'
+workflow:
+  project: 'proj_covid_prod'
+  queue: 'd.q'
+scenarios:
+#  scenario_name:
+#    beta: 'beta_scenario_name'
+#    vaccine_coverage: 'vaccine_coverage_scenario_name'
+#    variant_prevalence: 'variant_prevalence_scenario_name'
+#    mask_use: 'mask_use_scenario_name'
+#    mobility: 'mobility_scenario_name'
+#    start_date: 'YYYY-MM-DD'
+  no_vaccine:
+    vaccine_coverage: 'no_vaccine'
+    start_date: '2019-06-01'
+  no_az:
+    vaccine_coverage: 'no_az'
+    start_date: '2019-06-01'
