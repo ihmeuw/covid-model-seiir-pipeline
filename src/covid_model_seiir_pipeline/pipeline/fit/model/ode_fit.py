@@ -269,11 +269,12 @@ def make_initial_condition(measure: str,
                            parameters: Parameters,
                            rates: pd.DataFrame,
                            population: pd.DataFrame, 
-                           infections: pd.Series = None):
+                           infections: pd.Series = None,
+                           daily_infections_threshold: float = 50):
     base_params = parameters.base_parameters
     rates = rates.loc[base_params.index]
     
-    crude_infections = get_crude_infections(measure, base_params, rates, infections, threshold=50)
+    crude_infections = get_crude_infections(measure, base_params, rates, infections, threshold=daily_infections_threshold)
     new_e_start = crude_infections.reset_index(level='date').groupby('location_id').first()
     start_date, new_e_start = new_e_start['date'], new_e_start['infections']
     end_date = base_params.filter(like='count')
@@ -328,7 +329,7 @@ def make_initial_condition(measure: str,
     return initial_condition
 
 
-def get_crude_infections(measure: str, base_params, rates, infections, threshold=50):
+def get_crude_infections(measure: str, base_params, rates, infections, threshold):
     rate_map = {'death': 'ifr', 'admission': 'ihr', 'case': 'idr'}
     if measure in rate_map:
         crude_infections = base_params[f'count_all_{measure}'] / rates[rate_map[measure]]

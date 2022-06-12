@@ -42,6 +42,7 @@ rates_parameters:
   maximum_asymptomatic_idr: 0.6
 fit_parameters:
   omega_invasion_date: ''
+  daily_infections_threshold: 50.0
   # Mixing parameter.  dS/dt = -beta * S * I ** alpha
   alpha_all: [0.9, 1.0]
   # Proportion of current E to send to variant E on invasion.
