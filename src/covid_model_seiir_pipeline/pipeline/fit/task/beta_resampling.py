@@ -120,10 +120,19 @@ def build_residual(measure_draw: str, window_dates: pd.DataFrame,
                      .first()
                      .index
                      .tolist())
+    infections = infections.loc[infections['round'] == 2].drop(columns='round')
+    hard_failures_round_2 = (infections
+                             .loc[infections['naive'] < 0]
+                             .groupby('location_id')['naive']
+                             .first()
+                             .index
+                             .tolist())
+    seroprevalence = data_interface.load_final_seroprevalence(draw_id, measure)
+    seroprevalence_locs = seroprevalence['location_id'].unique().tolist()
+    hard_failures = [loc for loc in hard_failures if loc in hard_failures_round_2 or loc in seroprevalence_locs]
 
     infections = (infections
-                  .loc[infections['round'] == 2]
-                  .drop(columns='round')['daily_total_infections']
+                  .loc[:, 'daily_total_infections']
                   .rename('infections'))
     window_dates = window_dates.reindex(beta.index, level='location_id')
 

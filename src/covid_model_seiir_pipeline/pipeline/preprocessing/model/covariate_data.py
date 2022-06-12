@@ -2,6 +2,7 @@ from pathlib import Path
 from typing import Callable
 
 import pandas as pd
+import numpy as np
 
 from covid_model_seiir_pipeline.lib import (
     cli_tools,
@@ -17,9 +18,19 @@ logger = cli_tools.task_performance_logger
 
 
 def preprocess_mask_use(data_interface: PreprocessingDataInterface) -> None:
+    hierarchy = data_interface.load_hierarchy('pred')
+    # don't relax mask use for E Asia or HI Asia Pacific regions
+    is_east_asia = hierarchy['path_to_top_parent'].apply(lambda x: '5' in x.split(','))
+    is_asia_pacific = hierarchy['path_to_top_parent'].apply(lambda x: '65' in x.split(','))
+    is_zaf = hierarchy['path_to_top_parent'].apply(lambda x: '196' in x.split(','))
+    is_relax_exception = is_east_asia | is_asia_pacific | is_zaf
+    no_relax_locs = hierarchy.loc[is_relax_exception, 'location_id'].tolist()
     for scenario in ['reference', 'best', 'worse', 'relaxed']:
         logger.info(f'Loading mask use data for scenario {scenario}.', context='read')
         mask_use = data_interface.load_raw_mask_use_data(scenario)
+        if scenario == 'relaxed':
+            mask_use_r = data_interface.load_raw_mask_use_data('reference')
+            mask_use.loc[no_relax_locs, 'mask_use_relaxed'] = mask_use_r.loc[no_relax_locs, 'mask_use_reference']
 
         logger.info(f'Writing mask use data for scenario {scenario}.', context='write')
         data_interface.save_covariate(mask_use, 'mask_use', scenario)
@@ -137,10 +148,22 @@ def preprocess_testing_data(data_interface: PreprocessingDataInterface) -> None:
     logger.info('Loading raw testing data', context='read')
     data = data_interface.load_raw_testing_data()
     hierarchy = data_interface.load_hierarchy('pred')
-    hk = data[data.location_id == 354]
-    hk['location_id'] = 44533
-    hk['population'] = data.set_index('location_id').loc[44533, 'population'].max()
-    data = pd.concat([data[~(data.location_id == 44533)], hk]).sort_values(['location_id', 'date'])
+    mainland_chn_locations = (hierarchy
+                              .loc[hierarchy['path_to_top_parent'].apply(lambda x: '44533' in x.split(','))]
+                              .loc[:, ['location_id', 'location_name']]
+                              .values
+                              .tolist())
+    mainland_chn = []
+    for location_id, location_name in mainland_chn_locations:
+        hk = data[data.location_id == 354]
+        hk['location_id'] = location_id
+        hk['location_name'] = location_name
+        hk['population'] = data.set_index('location_id').loc[location_id, 'population'].max()
+        hk['pop'] = np.nan
+        mainland_chn.append(hk)
+        data = data[data['location_id'] != location_id]
+    mainland_chn = pd.concat(mainland_chn)
+    data = pd.concat([data, mainland_chn]).sort_values(['location_id', 'date'])
 
     logger.info('Processing testing for IDR calc and beta covariate', context='transform')
     testing_for_idr = _process_testing_for_idr(data.copy())

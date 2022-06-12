@@ -35,28 +35,28 @@ Same as production in the past
 
 Omicron like variant
 ++++++++++++++++++++
-- `fit_parameters.omega_invasion`: '2022-05-01' or any date we want goes here. The current
+- `fit_parameters.omega_invasion`: '2022-06-01' or any date we want goes here. The current
   implementation uses the omicron pattern of invasion shifted forward in time.
 - `rates_parameters.omicron_severity_parameterization`:  'omicron'
 - `fit_parameters.kappa_omega`: [2.5, 3.5]
 
 Delta like variant
 ++++++++++++++++++++
-- `fit_parameters.omega_invasion`: '2022-05-01' or any date we want goes here. The current
+- `fit_parameters.omega_invasion`: '2022-06-01' or any date we want goes here. The current
   implementation uses the omicron pattern of invasion shifted forward in time.
 - `rates_parameters.omicron_severity_parameterization`:  'delta'
 - `fit_parameters.kappa_omega`: [1.6, 2.0]
 
 Average variant
 +++++++++++++++
-- `fit_parameters.omega_invasion`: '2022-05-01' or any date we want goes here. The current
+- `fit_parameters.omega_invasion`: '2022-06-01' or any date we want goes here. The current
   implementation uses the omicron pattern of invasion shifted forward in time.
 - `rates_parameters.omicron_severity_parameterization`:  'average'
-- `fit_parameters.kappa_omega`: [2.0, 2.8]
+- `fit_parameters.kappa_omega`: [2.0, 2.65]
 
-Average variant
-+++++++++++++++
-- `fit_parameters.omega_invasion`: '2022-05-01' or any date we want goes here. The current
+Deltacron variant
++++++++++++++++++
+- `fit_parameters.omega_invasion`: '2022-06-01' or any date we want goes here. The current
   implementation uses the omicron pattern of invasion shifted forward in time.
 - `rates_parameters.omicron_severity_parameterization`:  'delta'
 - `fit_parameters.kappa_omega`: [2.5, 3.5]

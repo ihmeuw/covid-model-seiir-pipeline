@@ -153,11 +153,11 @@ def model_fit_plot(data: Tuple[Location, DataDict],
         group_axes.append(ax_measure)
 
     rates_measures = [
-        ('idr', (0, 100)),
-        ('ihr', (0, 10)),
-        ('ifr', (0, 5)),
+        ('idr', 'case', (0, 100)),
+        ('ihr', 'admission', (0, 10)),
+        ('ifr', 'death', (0, 5)),
     ]
-    for i, (measure, ylim) in enumerate(rates_measures):
+    for i, (measure, data_measure, ylim) in enumerate(rates_measures):
         ax_measure = fig.add_subplot(gs_rates[2 * i + 1])
 
         plotter.make_time_plot(
@@ -181,7 +181,7 @@ def model_fit_plot(data: Tuple[Location, DataDict],
         rates_data = data_dictionary[version]['rates_data']
         if rates_data is not None:
             try:             
-                rates_data = rates_data.loc[measure]
+                rates_data = rates_data.loc[data_measure]
                 ratio_plot_range = pd.concat([ratio_plot_range,
                                               rates_data.loc[:, 'value'].rename('mean') * 100])
                 ax_measure.scatter(

@@ -65,15 +65,15 @@ def combination_spline(data: pd.DataFrame):
 
     # determine spline specs
     if n_days > 90:
-        # start anchor (using mean up to last 28 days)
+        # start anchor (using mean up to last 30 days)
         k_start = np.array([0])
 
-        # tighter over last 28 days
-        k_end = np.linspace(n_days - 28, n_days, 5)
+        # tighter over last 45 days
+        k_end = np.linspace(n_days - 45, n_days, 10)
 
-        # every 56 days during middle interval
+        # every 45 days during middle interval
         k_middle = np.linspace(k_start.max(), k_end.min(),
-                               int((k_end.min() - k_start.max()) / 56) + 1)[1:-1]
+                               int((k_end.min() - k_start.max()) / 45) + 1)[1:-1]
 
         # stitch together
         knots = np.hstack([k_start, k_middle, k_end]) / n_days
@@ -113,11 +113,12 @@ def combination_spline(data: pd.DataFrame):
     pred_data = data.mean(axis=1) # fit_spline(data, pred_data_template.copy(), spline_specs,)
     pred_delta_log_data = fit_spline(delta_log_data, pred_data_template.copy(), spline_specs,)
 
-    # splice predictions
-    pred_data = pd.concat([
-        pred_data[:-28],
-        np.exp(np.log(pred_data.iloc[-28] + 1) + pred_delta_log_data.loc[data_idx][-28:].cumsum())
-    ])
+    # splice average and delta ln() if we are combining measures, otherwise just take the single measure as-is
+    if data.notnull().any(axis=0).sum() > 1:
+        pred_data = pd.concat([
+            pred_data[:-30],
+            np.exp(np.log(pred_data.iloc[-31] + 0.03) + pred_delta_log_data.loc[data_idx][-30:].cumsum())
+        ])
     pred_data = pred_data.rename('pred').clip(1e-4, np.inf)
 
     return pred_data
@@ -151,6 +152,3 @@ def fit_spline(data: pd.DataFrame,
                  .loc[:, 'pred_data'])
 
     return pred_data
-
-
-

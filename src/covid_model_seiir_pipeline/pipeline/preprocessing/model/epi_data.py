@@ -112,9 +112,12 @@ def evil_doings(data: pd.DataFrame, hierarchy: pd.DataFrame, input_measure: str)
             43867: 'prince_edward_island',
             # Just terrible data
             39: 'tajikistan',
-            183: 'mauritias',
+            131: 'nicaragua',
+            # 133: 'venezuela',
+            183: 'mauritius',
             215: 'sao_tome_and_principe',
-            175: 'burundi'
+            175: 'burundi',
+            189: 'tanzania',
         }
 
         is_in_droplist = data['location_id'].isin(drop_all)
@@ -123,7 +126,23 @@ def evil_doings(data: pd.DataFrame, hierarchy: pd.DataFrame, input_measure: str)
             manipulation_metadata[location] = 'dropped all data'
 
     if input_measure == 'cases':
-        pass
+        drop_list = {
+        }
+
+        for location_id, location_name in drop_list.items():
+            is_location = data['location_id'] == location_id
+            data = data.loc[~is_location].reset_index(drop=True)
+            manipulation_metadata[location_name] = 'dropped all cases'
+        
+        dated_drop_list = [
+            (505, 'inner_mongolia', '2022-06-01'),
+        ]
+
+        for location_id, location_name, drop_start_date in dated_drop_list:
+            is_location = data['location_id'] == location_id
+            is_drop_start_date_on = data['date'] >= drop_start_date
+            data = data.loc[~(is_location & is_drop_start_date_on)].reset_index(drop=True)
+            manipulation_metadata[location_name] = f'dropped cases beginning {drop_start_date}'
 
     elif input_measure == 'hospitalizations':
         drop_list = {
@@ -175,6 +194,15 @@ def evil_doings(data: pd.DataFrame, hierarchy: pd.DataFrame, input_measure: str)
             is_location = data['location_id'] == location_id
             data = data.loc[~is_location].reset_index(drop=True)
             manipulation_metadata[location_name] = 'dropped all deaths'
+
+        dated_drop_list = [
+        ]
+
+        for location_id, location_name, drop_start_date in dated_drop_list:
+            is_location = data['location_id'] == location_id
+            is_drop_start_date_on = data['date'] >= drop_start_date
+            data = data.loc[~(is_location & is_drop_start_date_on)].reset_index(drop=True)
+            manipulation_metadata[location_name] = f'dropped deaths beginning {drop_start_date}'
 
     else:
         raise ValueError(f'Input measure {input_measure} does not have a protocol for exclusions.')
