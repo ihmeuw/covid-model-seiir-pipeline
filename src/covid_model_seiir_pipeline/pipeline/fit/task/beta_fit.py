@@ -148,7 +148,7 @@ def run_beta_fit(fit_version: str, measure: str, draw_id: int, progress_bar: boo
         ode_parameters,
         first_pass_base_rates,
         risk_group_population,
-        daily_infections_threshold=specification.fit_parameters.daily_infections_threshold
+        daily_infections_threshold=specification.fit_parameters.daily_infections_threshold,
     )
 
     logger.info('Running ODE fit', context='compute_ode')
@@ -267,6 +267,7 @@ def run_beta_fit(fit_version: str, measure: str, draw_id: int, progress_bar: boo
         ode_parameters,
         second_pass_base_rates,
         risk_group_population,
+        daily_infections_threshold=specification.fit_parameters.daily_infections_threshold,
     )
 
     logger.info('Running second pass ODE fit', context='compute_ode')
