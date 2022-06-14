@@ -90,7 +90,7 @@ def rescale_kappas(measure: str,
                 (   61,  2.0),  # Moldova
                 (   62,  2.0),  # Russia
                 (  106,  0.5),  # Bahamas
-                (  112,  0.5),  # Grenada
+                (  112, 0.75),  # Grenada
                 (  114,  0.1),  # Haiti
                 (  115,  0.5),  # Jamaica
                 (  121,  3.0),  # Bolivia
@@ -233,7 +233,7 @@ def rescale_kappas(measure: str,
                 (  109,  0.1),  # Cuba
                 (  110, 0.25),  # Dominica
                 (  111,  0.4),  # Dominican Republic
-                (  112, 0.25),  # Grenada
+                (  112, 0.75),  # Grenada
                 (  113, 0.25),  # Guyana
                 (  114, 0.01),  # Haiti
                 (  115,  0.1),  # Jamaica
@@ -631,6 +631,7 @@ def rescale_kappas(measure: str,
                 (  433,  0.5),  # Northern Ireland
                 (  434,  0.5),  # Scotland
                 ( 4636,  0.5),  # Wales
+                (  112,  3.0),  # Grenada
                 (  113,  2.0),  # Guyana
                 (  118,  2.0),  # Suriname
                 (  119,  1.5),  # Trinidad and Tobago
@@ -803,7 +804,7 @@ def rescale_kappas(measure: str,
                 (  111,  0.3),  # Dominican Republic
                 (  122,  2.0),  # Ecuador
                 (  108,  1.5),  # Belize
-                (  112,  0.5),  # Grenada
+                (  112,  3.0),  # Grenada
                 (  113,  3.0),  # Guyana
                 (  114, 1.25),  # Haiti
                 (  385,  0.5),  # Puerto Rico
