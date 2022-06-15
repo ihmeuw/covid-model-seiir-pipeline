@@ -8,10 +8,10 @@ grid_plots:
     date_start: '2021-01-01'
     date_end: '2022-10-01'
     comparators:
-    - version: '2022_05_05.04'
+    - version: '2022_06_09.04'
       scenarios:
         reference*: 'public reference'
-    - version: '2022_06_09.04'
+    - version: '2022_06_14.08'
       scenarios:
         reference*: 'reference'
         best_masks: 'best_masks'
@@ -20,10 +20,10 @@ grid_plots:
     date_start: '2020-01-01'
     date_end: '2023-12-31'
     comparators:
-    - version: '2022_05_05.04'
+    - version: '2022_06_09.04'
       scenarios:
         reference*: 'public reference'
-    - version: '2022_06_09.04'
+    - version: '2022_06_14.08'
       scenarios:
         reference*: 'reference'
         best_masks: 'best_masks'
