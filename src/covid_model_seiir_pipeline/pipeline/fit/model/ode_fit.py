@@ -269,12 +269,11 @@ def make_initial_condition(measure: str,
                            parameters: Parameters,
                            rates: pd.DataFrame,
                            population: pd.DataFrame, 
-                           infections: pd.Series = None,
-                           daily_infections_threshold: float = 50):
+                           infections: pd.Series = None):
     base_params = parameters.base_parameters
     rates = rates.loc[base_params.index]
     
-    crude_infections = get_crude_infections(measure, base_params, rates, infections, threshold=daily_infections_threshold)
+    crude_infections = get_crude_infections(measure, base_params, rates, infections)
     new_e_start = crude_infections.reset_index(level='date').groupby('location_id').first()
     start_date, new_e_start = new_e_start['date'], new_e_start['infections']
     end_date = base_params.filter(like='count')
@@ -329,18 +328,18 @@ def make_initial_condition(measure: str,
     return initial_condition
 
 
-def get_crude_infections(measure: str, base_params, rates, infections, threshold):
+def get_crude_infections(measure: str, base_params, rates, infections):
     rate_map = {'death': 'ifr', 'admission': 'ihr', 'case': 'idr'}
     if measure in rate_map:
         crude_infections = base_params[f'count_all_{measure}'] / rates[rate_map[measure]]
-        crude_infections = crude_infections.loc[crude_infections > threshold].rename('infections')
+        crude_infections = crude_infections.loc[crude_infections > 0.].rename('infections')
     elif infections is not None:
         crude_infections = infections
     else:
         crude_infections = pd.DataFrame(index=rates.index)
         for measure, rate in rate_map.items():
             infections = base_params[f'count_all_{measure}'] / rates[rate]
-            infections[infections < threshold] = np.nan
+            infections[infections <= 0.] = np.nan
             crude_infections[measure] = infections
         mask = base_params['beta_all_infection'] > 0
         crude_infections = crude_infections.loc[mask].mean(axis=1).rename('infections').dropna()

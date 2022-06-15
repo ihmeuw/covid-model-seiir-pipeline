@@ -167,7 +167,6 @@ class RatesParameters:
 @dataclass
 class FitParameters:
     omega_invasion_date: str = field(default='')
-    daily_infections_threshold: float = field(default=50.0)
     alpha_all: UniformSampleable = field(default=(0.9, 1.0))
 
     pi_none: UniformSampleable = field(default=(0.01, 0.10))
