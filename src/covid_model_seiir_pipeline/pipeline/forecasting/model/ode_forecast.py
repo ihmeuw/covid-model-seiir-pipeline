@@ -55,6 +55,8 @@ def filter_past_compartments(past_compartments: pd.DataFrame,
         for location_id, date in dates.iteritems():
             past_compartments.loc[((past_compartments.location_id == location_id)
                                    & (past_compartments.date > date)), cols] = np.nan
+
+    past_compartments = past_compartments.set_index(['location_id', 'date'])
     measure_dates = pd.concat(measure_dates, axis=1)
     return past_compartments, measure_dates
 
