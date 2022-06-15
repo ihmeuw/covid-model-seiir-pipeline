@@ -28,26 +28,12 @@ from covid_model_seiir_pipeline.pipeline.forecasting.model.containers import (
 # ODE parameter construction #
 ##############################
 
-def build_indices(betas: pd.DataFrame,
-                  ode_params: pd.DataFrame,
-                  past_compartments: pd.DataFrame,
-                  epi_data: pd.DataFrame,
-                  covariates: pd.DataFrame):
-    durations = ode_params.filter(like='exposure').iloc[0]
-    past_start_dates = (past_compartments
-                        .reset_index(level='date')
-                        .date
-                        .groupby('location_id')
-                        .min())
-    beta_fit_end_dates = (betas['beta']
-                          .dropna()
-                          .reset_index(level='date')
-                          .date
-                          .groupby('location_id')
-                          .max())
+def filter_past_compartments(past_compartments: pd.DataFrame,
+                             ode_params: pd.DataFrame,
+                             epi_data: pd.DataFrame) -> Tuple[pd.DataFrame, pd.DataFrame]:
+    past_compartments = past_compartments.loc[past_compartments.notnull().any(axis=1)]
 
-    # We want the forecast to start at the last date for which all reported measures
-    # with at least one report in the location are present.
+    durations = ode_params.filter(like='exposure').iloc[0]
     past_compartments = past_compartments.reset_index()
     measure_dates = []
     for measure in ['case', 'death', 'admission']:
@@ -62,20 +48,37 @@ def build_indices(betas: pd.DataFrame,
                  .reset_index()
                  .groupby('location_id')
                  .date
-                 .max())
+                 .max()
+                 .rename(measure))
         measure_dates.append(dates)
         cols = [c for c in past_compartments.columns if measure.capitalize() in c]
         for location_id, date in dates.iteritems():
             past_compartments.loc[((past_compartments.location_id == location_id)
                                    & (past_compartments.date > date)), cols] = np.nan
+    measure_dates = pd.concat(measure_dates, axis=1)
+    return past_compartments, measure_dates
 
-    forecast_start_dates = (pd.concat([beta_fit_end_dates, *measure_dates], axis=1)
+
+def build_indices(betas: pd.DataFrame,
+                  past_compartments: pd.DataFrame,
+                  measure_dates: pd.DataFrame,
+                  covariates: pd.DataFrame):
+    past_start_dates = (past_compartments
+                        .reset_index(level='date')
+                        .date
+                        .groupby('location_id')
+                        .min())
+    beta_fit_end_dates = (betas['beta']
+                          .dropna()
+                          .reset_index(level='date')
+                          .date
+                          .groupby('location_id')
+                          .max())
+    forecast_start_dates = (pd.concat([beta_fit_end_dates, measure_dates], axis=1)
                             .min(axis=1)
                             .rename('date'))
-
     # Forecast is run to the end of the covariates
     forecast_end_dates = covariates.reset_index().groupby('location_id').date.max()
-
     return Indices(
         past_start_dates,
         beta_fit_end_dates,
@@ -231,9 +234,6 @@ def build_model_parameters(indices: Indices,
         etas=etas,
         phis=phis,
     )
-
-
-
 
 
 def build_ratio(infections: pd.Series,

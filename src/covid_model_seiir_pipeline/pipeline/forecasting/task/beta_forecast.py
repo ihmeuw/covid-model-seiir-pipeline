@@ -32,19 +32,25 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
     location_ids = data_interface.load_location_ids()
     hierarchy = data_interface.load_hierarchy('pred')
     past_compartments = data_interface.load_past_compartments(draw_id).loc[location_ids]
-    past_compartments = past_compartments.loc[past_compartments.notnull().any(axis=1)]
-    # Contains both the fit and regression betas
-    betas = data_interface.load_regression_beta(draw_id).loc[location_ids]
     ode_params = data_interface.load_fit_ode_params(draw_id=draw_id)
     epi_data = data_interface.load_input_epi_measures(draw_id=draw_id).loc[location_ids]
+
+    # We want the forecast to start at the last date for which all reported measures
+    # with at least one report in the location are present.
+    past_compartments, measure_dates = model.filter_past_compartments(
+        past_compartments=past_compartments,
+        ode_params=ode_params,
+        epi_data=epi_data,
+    )
+    # Contains both the fit and regression betas
+    betas = data_interface.load_regression_beta(draw_id).loc[location_ids]
     covariates = data_interface.load_covariates(scenario_spec.covariates)
 
     logger.info('Building indices', context='transform')
     indices = model.build_indices(
         betas=betas,
-        ode_params=ode_params,
         past_compartments=past_compartments,
-        epi_data=epi_data,
+        measure_dates=measure_dates,
         covariates=covariates,
     )
 
