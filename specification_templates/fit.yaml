@@ -1,11 +1,11 @@
 data:
-  seir_preprocess_version: '2022_06_08.03'
+  seir_preprocess_version: '2022_06_12.01'
   output_format: 'parquet'
   output_root: ''
   compare_version: ''
 workflow:
   project: 'proj_covid_prod'
-  queue: 'long.q'
+  queue: 'all.q'
 rates_parameters:
   day_0: '2020-03-15'
   pred_start_date: '2019-11-01'
@@ -41,7 +41,7 @@ rates_parameters:
   minimum_asymptomatic_idr_fraction: 0.2
   maximum_asymptomatic_idr: 0.6
 fit_parameters:
-  omega_invasion_date: ''
+  omega_invasion_date: '2022-06-15'
   daily_infections_threshold: 50.0
   # Mixing parameter.  dS/dt = -beta * S * I ** alpha
   alpha_all: [0.9, 1.0]
