@@ -90,7 +90,7 @@ def sample_variant_severity(params: RatesParameters, draw_id: int) -> VariantRR:
         rrs[f'omega_{ratio}'] = {
             'delta': rrs[ratio],
             'omicron': rrs[f'omicron_{ratio}'],
-            'average': 1/2 * (rrs[ratio] + rrs[f'omicron_{ratio}']),
+            'average': (rrs[ratio] * rrs[f'omicron_{ratio}']) ** (1/2),
         }[omega_severity]
 
     return VariantRR(**rrs)
@@ -143,7 +143,7 @@ def sample_ode_params(variant_rr: VariantRR,
             [1.0,       1.0,  1.0, 1.0,  1.0,  1.0,      s,  1.0,     s],  # beta
             [1.0,       1.0,  1.0, 1.0,  1.0,  1.0,      s,  1.0,     s],  # gamma
             [1.0,       1.0,  1.0, 1.0,  1.0,  1.0,      s,  1.0,     s],  # delta
-            [1.0,       1.0,  1.0, 1.0,  1.0,  1.0,    1.0,  1.0,   0.9],  # omicron
+            [1.0,       1.0,  1.0, 1.0,  1.0,  1.0,    1.0,  1.0,     s],  # omicron
             [1.0,       1.0,  1.0, 1.0,  1.0,  1.0,      s,  1.0,     s],  # other
             [1.0,       1.0,  1.0, 1.0,  1.0,  1.0,    1.0,  1.0,   1.0],  # omega
         ]),

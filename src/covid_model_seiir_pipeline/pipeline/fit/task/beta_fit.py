@@ -63,7 +63,7 @@ def run_beta_fit(fit_version: str, measure: str, draw_id: int, progress_bar: boo
         # if it's a parent location, will apply to all children as well
         'death': [44533],
         'case': [],
-        'admission':[],
+        'admission': [97],
     }
     drop_location_ids = drop_location_ids[measure]
     drop_location_ids = [(pred_hierarchy.loc[pred_hierarchy['path_to_top_parent']

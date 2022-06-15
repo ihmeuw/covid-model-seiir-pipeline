@@ -57,7 +57,6 @@ class ScenarioSpecification:
     """Forecasting specification for a scenario."""
     ALLOWED_ALGORITHMS = (
         'normal',
-        'draw_level_mandate_reimposition',
     )
     ALLOWED_SYSTEMS = (
         'vaccine',
@@ -70,6 +69,11 @@ class ScenarioSpecification:
         'residual_rescale_lower',
         'residual_rescale_upper',
     )
+    ANTIVIRAL_KEYS = (
+        'version',
+        'effectiveness',
+        'maximum_access',
+    )
 
     name: str = field(default='dummy_scenario')
     algorithm: str = field(default='normal')
@@ -77,7 +81,7 @@ class ScenarioSpecification:
     beta_scaling: Dict[str, int] = field(default_factory=dict)
     vaccine_version: str = field(default='reference')
     variant_version: str = field(default='reference')
-    variant_ifr_scale: float = field(default=1.29)
+    antiviral_specification: Dict = field(default_factory=dict)
     log_beta_shift: float = field(default=0.0)
     log_beta_shift_date: str = field(default='2025-01-01')
     beta_scale: float = field(default=1.0)

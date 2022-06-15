@@ -31,6 +31,7 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
     # to do computation.
     logger.info('Loading index building data', context='read')
     location_ids = data_interface.load_location_ids()
+    hierarchy = data_interface.load_hierarchy('pred')
     past_compartments = data_interface.load_past_compartments(draw_id).loc[location_ids]
     past_compartments = past_compartments.loc[past_compartments.notnull().any(axis=1)]
     # Contains both the fit and regression betas
@@ -69,7 +70,6 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
     # Forecast is run to the end of the covariates
     covariates = data_interface.load_covariates(scenario_spec.covariates)
     forecast_end_dates = covariates.reset_index().groupby('location_id').date.max()
-    population = data_interface.load_population('total').population
 
     logger.info('Building indices', context='transform')
     indices = model.Indices(
@@ -84,7 +84,6 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
     ########################################
     logger.info('Loading SEIIR parameter input data.', context='read')    
     # Use to get ratios
-    posterior_epi_measures = data_interface.load_posterior_epi_measures(draw_id=draw_id)
     prior_ratios = data_interface.load_rates(draw_id).loc[location_ids]    
     # Rescaling parameters for the beta forecast.
     beta_shift_parameters = data_interface.load_beta_scales(scenario=scenario, draw_id=draw_id)
@@ -120,6 +119,11 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
         log_beta_shift,
         beta_scale,
     )
+    antiviral_risk_reduction = model.build_antiviral_risk_reduction(
+        index=indices.full,
+        hierarchy=hierarchy,
+        scenario_spec=scenario_spec.antiviral_specification,
+    )
     ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
     logger.warning('Using Hong Kong IFR projection for mainland China IFR projection in `ode_forecast.build_ratio`.')
     ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
@@ -134,6 +138,7 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
         vaccinations,
         etas,
         phis,
+        antiviral_risk_reduction,
         risk_group_population,
         hierarchy,
     )
@@ -155,140 +160,6 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
         num_cores=num_cores,
         progress_bar=progress_bar,
     )
-    exposure_to_death = ode_params['exposure_to_death'].iloc[0]
-    past_deaths = (compartments
-                   .filter(like='Death_all_all_all')
-                   .sum(axis=1)
-                   .loc[indices.past]
-                   .groupby('location_id')
-                   .apply(lambda x: x.reset_index(level=0, drop=True)
-                                     .shift(exposure_to_death, freq='D'))
-                   .rename('value'))
-    total_deaths = (compartments
-                    .filter(like='Death_all_all_all')
-                    .sum(axis=1)
-                    .groupby('location_id')
-                    .apply(lambda x: x.reset_index(level=0, drop=True)
-                                      .shift(exposure_to_death, freq='D'))
-                    .rename('value')
-                    .to_frame())
-    total_deaths['observed'] = 0
-    total_deaths.loc[past_deaths.index, 'observed'] = 1
-    total_deaths = total_deaths.set_index('observed', append=True).value
-
-    if scenario_spec.algorithm == 'draw_level_mandate_reimposition':
-        logger.info('Entering mandate reimposition.', context='compute_mandates')
-        # Info data specific to mandate reimposition
-        percent_mandates, mandate_effects = data_interface.load_mandate_data(scenario_spec.covariates['mobility'])
-        mortality_scalars = data_interface.load_total_covid_scalars(draw_id).loc[location_ids, 'scalar']
-        mortality_scalars = (mortality_scalars
-                             .reindex(indices.full)
-                             .groupby('location_id')
-                             .ffill()
-                             .groupby('location_id')
-                             .bfill())
-        min_wait, days_on, reimposition_threshold, max_threshold = model.unpack_parameters(
-            scenario_spec.algorithm_params,
-            mortality_scalars,
-        )
-        reimposition_threshold = model.compute_reimposition_threshold(
-            past_deaths,
-            population,
-            reimposition_threshold,
-            max_threshold,
-        )
-        reimposition_count = 0
-        reimposition_dates = {}
-        last_reimposition_end_date = pd.Series(pd.NaT, index=population.index)
-        reimposition_date = model.compute_reimposition_date(
-            total_deaths,
-            population,
-            reimposition_threshold,
-            min_wait,
-            last_reimposition_end_date
-        )
-
-        while len(reimposition_date):  # any place reimposes mandates.
-            logger.info(f'On mandate reimposition {reimposition_count + 1}. {len(reimposition_date)} locations '
-                        f'are reimposing mandates.')
-            mobility = covariates['mobility']
-            mobility_lower_bound = model.compute_mobility_lower_bound(
-                mobility,
-                mandate_effects,
-            )
-
-            new_mobility = model.compute_new_mobility(
-                mobility,
-                reimposition_date,
-                mobility_lower_bound,
-                percent_mandates,
-                days_on,
-            )
-
-            covariates['mobility'] = new_mobility
-
-            beta, beta_hat = model.build_beta_final(
-                indices,
-                betas,
-                covariates,
-                coefficients,
-                beta_shift_parameters,
-                log_beta_shift,
-                beta_scale,
-            )
-            model_parameters = model.build_model_parameters(
-                indices,
-                beta,
-                past_compartments,
-                prior_ratios,
-                ode_params,
-                rhos,
-                vaccinations,
-                etas,
-                phis,
-            )
-
-            # The ode is done as a loop over the locations in the initial condition.
-            # As locations that don't reimpose mandates produce identical forecasts,
-            # subset here to only the locations that reimpose mandates for speed.
-            initial_condition_subset = initial_condition.loc[reimposition_date.index]
-            logger.info('Running ODE forecast.', context='compute_ode')
-            compartments_subset, chis = model.run_ode_forecast(
-                initial_condition_subset,
-                model_parameters,
-                num_cores=num_cores,
-                progress_bar=progress_bar,
-            )
-
-            logger.info('Processing ODE results and computing deaths and infections.', context='compute_results')
-            compartments = (compartments
-                            .sort_index()
-                            .drop(compartments_subset.index)
-                            .append(compartments_subset)
-                            .sort_index())
-            total_deaths = (compartments
-                            .filter(like='Death_all_all_all')
-                            .sum(axis=1)
-                            .groupby('location_id')
-                            .apply(lambda x: x.reset_index(level=0, drop=True)
-                                              .shift(exposure_to_death, freq='D'))
-                            .rename('value')
-                            .to_frame())
-            total_deaths['observed'] = 0
-            total_deaths.loc[past_deaths.index, 'observed'] = 1
-            total_deaths = total_deaths.set_index('observed', append=True).value
-
-            logger.info('Recomputing reimposition dates', context='compute_mandates')
-            reimposition_count += 1
-            reimposition_dates[reimposition_count] = reimposition_date
-            last_reimposition_end_date.loc[reimposition_date.index] = reimposition_date + days_on
-            reimposition_date = model.compute_reimposition_date(
-                total_deaths,
-                population,
-                reimposition_threshold,
-                min_wait,
-                last_reimposition_end_date,
-            )
 
     system_metrics = model.compute_output_metrics(
         indices,

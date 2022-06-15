@@ -36,6 +36,7 @@ def run_oos_forecast(oos_holdout_version: str, draw_id: int, progress_bar: bool)
     # to do computation.
     logger.info('Loading index building data', context='read')
     location_ids = data_interface.load_location_ids()
+    hierarchy = data_interface.load_hierarchy('pred')
     past_compartments = data_interface.load_past_compartments(draw_id).loc[location_ids]
     past_compartments = past_compartments.loc[past_compartments.notnull().any(axis=1)]
     # Contains both the fit and regression betas
@@ -73,7 +74,6 @@ def run_oos_forecast(oos_holdout_version: str, draw_id: int, progress_bar: bool)
     # Forecast is run to the end of the covariates
     covariates = data_interface.load_covariates()
     forecast_end_dates = covariates.reset_index().groupby('location_id').date.max()
-    population = data_interface.load_population('total').population
 
     logger.info('Building indices', context='transform')
     indices = model.Indices(
@@ -123,6 +123,11 @@ def run_oos_forecast(oos_holdout_version: str, draw_id: int, progress_bar: bool)
         log_beta_shift,
         beta_scale,
     )
+    antiviral_risk_reduction = model.build_antiviral_risk_reduction(
+        index=indices.full,
+        hierarchy=hierarchy,
+        scenario_spec=scenario_spec.antiviral_specification,
+    )
     ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
     logger.warning('Using Hong Kong IFR projection for mainland China IFR projection in `ode_forecast.build_ratio`.')
     ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
@@ -136,7 +141,9 @@ def run_oos_forecast(oos_holdout_version: str, draw_id: int, progress_bar: bool)
         vaccinations,
         etas,
         phis,
+        antiviral_risk_reduction,
         risk_group_population,
+        hierarchy,
     )
     hospital_cf = model.forecast_correction_factors(
         indices,
@@ -177,7 +184,6 @@ def run_oos_forecast(oos_holdout_version: str, draw_id: int, progress_bar: bool)
     logger.info('Writing outputs.', context='write')
     data_interface.save_raw_oos_outputs(system_metrics, draw_id)
     data_interface.save_deltas(delta, draw_id)
-
 
     logger.report()
 
