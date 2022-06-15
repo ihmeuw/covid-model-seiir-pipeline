@@ -153,6 +153,9 @@ class FitDataInterface:
         return covariate_options
 
     def load_covariate_pool(self, draw_id: int, measure: str) -> pd.DataFrame:
+        # Be careful about imports. `data` really shouldn't depend on `model` but
+        # it's also the right place for this constant to live for now.
+        from covid_model_seiir_pipeline.pipeline.fit.model.covariate_pool import COVARIATE_POOL
         rate = {
             'death': 'ifr',
             'admission': 'ihr',
@@ -160,13 +163,14 @@ class FitDataInterface:
         }[measure]
         covariate_options = self.load_covariate_options(draw_id)[rate]
         covariate_pool = []
-        for covariate in covariate_options:
+        for covariate in COVARIATE_POOL:
             cov = (self.load_covariate(covariate, 'reference')
                    .groupby('location_id')[f'{covariate}_reference']
                    .mean()
                    .rename(covariate))
             covariate_pool.append(cov)
-        return pd.concat(covariate_pool, axis=1)
+        covariate_pool = pd.concat(covariate_pool, axis=1).loc[:, covariate_options]
+        return covariate_pool
 
     def save_draw_resampling_map(self, draw_resampling: Dict) -> None:
         io.dump(draw_resampling, self.fit_root.draw_resampling())
