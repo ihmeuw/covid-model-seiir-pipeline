@@ -20,32 +20,27 @@ def run_beta_fit(fit_version: str, measure: str, draw_id: int, progress_bar: boo
     num_threads = specification.workflow.task_specifications[FIT_JOBS.beta_fit].num_cores
 
     logger.info('Loading beta fit data', context='read')
+    #########################
+    # Draw-independent data #
+    #########################
     mr_hierarchy = data_interface.load_hierarchy(name='mr')
     pred_hierarchy = data_interface.load_hierarchy(name='pred')
     total_population = data_interface.load_population(measure='total').population
     five_year_population = data_interface.load_population(measure='five_year').population
     risk_group_population = data_interface.load_population(measure='risk_group')
     epi_measures = data_interface.load_reported_epi_data()
-    mortality_scalar = data_interface.load_total_covid_scalars(draw_id)['scalar']
     age_patterns = data_interface.load_age_patterns()
-    seroprevalence = data_interface.load_seroprevalence(draw_id=draw_id).reset_index()
-    sensitivity_data = data_interface.load_sensitivity(draw_id=draw_id)
-    testing_capacity = data_interface.load_testing_data()['testing_capacity']
-    testing_capacity_offset = 1
-    testing_capacity += testing_capacity_offset
-    covariate_pool = data_interface.load_covariate_options(draw_id=draw_id)
+    testing_capacity = data_interface.load_testing_capacity()
     rhos = data_interface.load_variant_prevalence(scenario='reference')
     variant_prevalence = rhos.drop(columns='ancestral').sum(axis=1)
     vaccinations = data_interface.load_vaccine_uptake(scenario='reference')
     etas = data_interface.load_vaccine_risk_reduction(scenario='reference')
     natural_waning_dist = data_interface.load_waning_parameters(measure='natural_waning_distribution').set_index('days')
-    mr_covariates = []
-    for covariate in model.COVARIATE_POOL:
-        cov = (data_interface
-               .load_covariate(covariate, 'reference')
-               .groupby('location_id')[f'{covariate}_reference']
-               .mean().rename(covariate))
-        mr_covariates.append(cov)
+
+    mortality_scalar = data_interface.load_total_covid_scalars(draw_id)['scalar']
+    seroprevalence = data_interface.load_seroprevalence(draw_id=draw_id).reset_index()
+    sensitivity_data = data_interface.load_sensitivity(draw_id=draw_id)
+    covariate_pool = data_interface.load_covariate_pool(draw_id=draw_id, measure=measure)
 
     logger.info('Sampling rates parameters', context='transform')
     durations = model.sample_durations(specification.rates_parameters, draw_id)
@@ -97,11 +92,9 @@ def run_beta_fit(fit_version: str, measure: str, draw_id: int, progress_bar: boo
     logger.info('Generating naive infections for first pass rates model', context='transform')
     daily_deaths = epi_measures['smoothed_daily_deaths'].dropna()
     naive_ifr = specification.rates_parameters.naive_ifr
-    init_daily_infections = (daily_deaths / naive_ifr).rename(
-        'daily_infections').reset_index()
+    init_daily_infections = (daily_deaths / naive_ifr).rename('daily_infections').reset_index()
     init_daily_infections['date'] -= pd.Timedelta(days=durations.exposure_to_death)
-    init_daily_infections = init_daily_infections.set_index(['location_id', 'date']).loc[:,
-                            'daily_infections']
+    init_daily_infections = init_daily_infections.set_index(['location_id', 'date']).loc[:, 'daily_infections']
 
     logger.info('Running first-pass rates model', context='rates_model_1')
     first_pass_rates, first_pass_rates_data = model.run_rates_pipeline(
@@ -109,7 +102,6 @@ def run_beta_fit(fit_version: str, measure: str, draw_id: int, progress_bar: boo
         epi_data=epi_measures,
         age_patterns=age_patterns,
         seroprevalence=first_pass_seroprevalence,
-        covariates=mr_covariates,
         covariate_pool=covariate_pool,
         mr_hierarchy=mr_hierarchy,
         pred_hierarchy=pred_hierarchy,
@@ -225,7 +217,6 @@ def run_beta_fit(fit_version: str, measure: str, draw_id: int, progress_bar: boo
         epi_data=agg_first_pass_posterior_epi_measures,
         age_patterns=age_patterns,
         seroprevalence=adjusted_seroprevalence,
-        covariates=mr_covariates,
         covariate_pool=covariate_pool,
         mr_hierarchy=mr_hierarchy,
         pred_hierarchy=pred_hierarchy,

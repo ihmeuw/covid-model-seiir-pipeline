@@ -122,9 +122,6 @@ class RegressionDataInterface:
     def load_sensitivity(self, draw_id: int = None) -> pd.DataFrame:
         return self.fit_data_interface.load_sensitivity(draw_id)
 
-    def load_testing_data(self) -> pd.DataFrame:
-        return self.fit_data_interface.load_testing_data()
-
     def load_covariate(self,
                        covariate: str,
                        covariate_version: str = 'reference',

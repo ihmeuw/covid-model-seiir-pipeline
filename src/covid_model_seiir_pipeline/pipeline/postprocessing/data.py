@@ -77,9 +77,6 @@ class PostprocessingDataInterface:
     def load_sensitivity(self, draw_id: int = None) -> pd.DataFrame:
         return self.forecast_data_interface.load_sensitivity(draw_id)
 
-    def load_testing_data(self) -> pd.DataFrame:
-        return self.forecast_data_interface.load_testing_data()
-
     def get_covariate_version(self, covariate_name: str, scenario: str) -> str:
         forecast_spec = self.forecast_data_interface.load_specification()
         return forecast_spec.scenarios[scenario].covariates[covariate_name]

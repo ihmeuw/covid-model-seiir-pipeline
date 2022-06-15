@@ -11,8 +11,7 @@ from covid_model_seiir_pipeline.pipeline.fit.model.rates.ihr import (
 
 def runner(epi_data: pd.DataFrame,
            seroprevalence: pd.DataFrame,
-           covariates: List[pd.Series],
-           covariate_pool: Dict[str, List[str]],
+           covariate_pool: pd.DataFrame,
            daily_infections: pd.Series,
            variant_prevalence: pd.Series,
            mr_hierarchy: pd.DataFrame,
@@ -30,7 +29,6 @@ def runner(epi_data: pd.DataFrame,
            **kwargs) -> Tuple[pd.DataFrame, pd.DataFrame]:
     cumulative_hospitalizations = epi_data['cumulative_hospitalizations'].dropna()
     daily_hospitalizations = epi_data['daily_hospitalizations'].dropna()
-    covariate_list = covariate_pool['ihr']
     ihr_age_pattern = age_patterns['ihr']
     sero_age_pattern = age_patterns['seroprevalence']
     variant_risk_ratio = variant_risk_ratio['ihr']
@@ -41,8 +39,7 @@ def runner(epi_data: pd.DataFrame,
         seroprevalence=seroprevalence.copy(),
         daily_infections=daily_infections.copy(),
         variant_prevalence=variant_prevalence.copy(),
-        covariates=covariates.copy(),
-        covariate_list=covariate_list.copy(),
+        covariate_pool=covariate_pool.copy(),
         hierarchy=mr_hierarchy.copy(),
         population=population.copy(),
         day_0=day_0,
@@ -50,8 +47,7 @@ def runner(epi_data: pd.DataFrame,
     )
     pred_data = data.create_pred_data(
         hierarchy=pred_hierarchy.copy(),
-        covariates=covariates.copy(),
-        covariate_list=covariate_list.copy(),
+        covariate_pool=covariate_pool.copy(),
         pred_start_date=pred_start_date,
         pred_end_date=pred_end_date,
         day_0=day_0,
@@ -71,7 +67,7 @@ def runner(epi_data: pd.DataFrame,
         age_spec_population=age_specific_population.copy(),
         mr_hierarchy=mr_hierarchy.copy(),
         pred_hierarchy=pred_hierarchy.copy(),
-        covariate_list=covariate_list.copy(),
+        covariate_list=list(covariate_pool),
         variant_risk_ratio=variant_risk_ratio,
         num_threads=num_threads,
         progress_bar=progress_bar,

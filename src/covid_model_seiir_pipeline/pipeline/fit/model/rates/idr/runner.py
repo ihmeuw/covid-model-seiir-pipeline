@@ -12,8 +12,7 @@ from covid_model_seiir_pipeline.pipeline.fit.model.rates.idr import (
 
 def runner(epi_data,
            seroprevalence: pd.DataFrame,
-           covariates: List[pd.Series],
-           covariate_pool: Dict[str, List[str]],
+           covariate_pool: pd.DataFrame,
            mr_hierarchy: pd.DataFrame,
            pred_hierarchy: pd.DataFrame,
            population: pd.Series,
@@ -27,7 +26,6 @@ def runner(epi_data,
            **kwargs) -> Tuple[pd.DataFrame, pd.DataFrame]:
     cumulative_cases = epi_data['cumulative_cases'].dropna()
     daily_cases = epi_data['daily_cases'].dropna()
-    covariate_list = covariate_pool['idr']
 
     model_data = data.create_model_data(
         cumulative_cases=cumulative_cases.copy(),
@@ -35,8 +33,7 @@ def runner(epi_data,
         seroprevalence=seroprevalence.copy(),
         testing_capacity=testing_capacity.copy(),
         daily_infections=daily_infections.copy(),
-        covariates=covariates.copy(),
-        covariate_list=covariate_list.copy(),
+        covariate_pool=covariate_pool.copy(),
         durations=durations.copy(),
         population=population.copy(),
     )
@@ -44,8 +41,7 @@ def runner(epi_data,
         hierarchy=pred_hierarchy.copy(),
         population=population.copy(),
         testing_capacity=testing_capacity.copy(),
-        covariates=covariates.copy(),
-        covariate_list=covariate_list.copy(),
+        covariate_pool=covariate_pool.copy(),
         pred_start_date=pred_start_date,
         pred_end_date=pred_end_date,
     )
@@ -56,7 +52,7 @@ def runner(epi_data,
         pred_data=pred_data.copy(),
         mr_hierarchy=mr_hierarchy.copy(),
         pred_hierarchy=pred_hierarchy.copy(),
-        covariate_list=covariate_list.copy(),
+        covariate_list=list(covariate_pool),
         num_threads=num_threads,
         progress_bar=progress_bar,
     )
