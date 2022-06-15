@@ -7,13 +7,13 @@ from covid_model_seiir_pipeline.pipeline.fit.model.sampled_params import sample_
 from covid_model_seiir_pipeline.pipeline.fit.specification import RatesParameters
 
 
-def rescale_kappas(measure: str,
-                   sampled_ode_params: Dict,
-                   compartments: pd.DataFrame,
-                   rates_parameters: RatesParameters,
-                   hierarchy: pd.DataFrame,
-                   draw_id: int):
-    test_scalar = rates_parameters.test_scalar
+def rescale_kappas(
+    measure: str,
+    sampled_ode_params: Dict,
+    compartments: pd.DataFrame,
+    rates_parameters: RatesParameters,
+    draw_id: int,
+) -> Dict:
 
     if measure == 'case':
         delta_infections = compartments.filter(like='Infection_all_delta_all').sum(axis=1).groupby('location_id').max()
@@ -981,5 +981,26 @@ def rescale_kappas(measure: str,
                 for location_id, scaling_factor in scaling_factors:
                     kappa.loc[location_id] *= scaling_factor
                 sampled_ode_params[f'kappa_{variant}_death'] = kappa
+
+    sampled_ode_params = adjust_omega_severity(
+        sampled_ode_params, rates_parameters
+    )
+
+    return sampled_ode_params
+
+
+def adjust_omega_severity(
+    sampled_ode_params: Dict,
+    rates_parameters: RatesParameters,
+) -> Dict:
+    omega_severity = rates_parameters.omega_severity_parameterization
+    severity_calc = {
+        'delta': lambda m: sampled_ode_params[f'kappa_delta_{m}'],
+        'omicron': lambda m: sampled_ode_params[f'kappa_omicron_{m}'],
+        'average': lambda m: (sampled_ode_params[f'kappa_delta_{m}']
+                              * sampled_ode_params[f'kappa_omicron_{m}']) ** (1 / 2),
+    }[omega_severity]
+    for measure in ['case', 'admission', 'death']:
+        sampled_ode_params[f'kappa_omega_{measure}'] = severity_calc(measure)
 
     return sampled_ode_params
