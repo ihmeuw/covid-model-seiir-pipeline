@@ -51,34 +51,14 @@ def run_beta_fit(fit_version: str, measure: str, draw_id: int, progress_bar: boo
     )
 
     logger.info('Rescaling deaths and formatting epi measures', context='transform')
-    ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
-    ## MANUAL DROPS ##
-    ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
-    drop_location_ids = {
-        # if it's a parent location, will apply to all children as well
-        'death': [44533],
-        'case': [],
-        'admission': [97],
-    }
-    drop_location_ids = drop_location_ids[measure]
-    drop_location_ids = [(pred_hierarchy.loc[pred_hierarchy['path_to_top_parent']
-                                             .apply(lambda x: str(loc_id) in x.split(',')), 'location_id'].to_list())
-                         for loc_id in drop_location_ids]
-    if drop_location_ids:
-        drop_location_ids = np.unique((np.hstack(drop_location_ids))).tolist()
-        drop_location_names = (pred_hierarchy
-                               .set_index('location_id')
-                               .loc[drop_location_ids, 'location_name']
-                               .to_list())
-        drop_locations = [f'{drop_location_name} ({drop_location_id})'
-                          for drop_location_id, drop_location_name in zip(drop_location_ids, drop_location_names)]
-        logger.warning(f'Dropping data for the following locations:\n'
-                       f"{'; '.join(drop_locations)}")
-        epi_measures = epi_measures.drop(drop_location_ids)
-    ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
-    ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
-    epi_measures = model.format_epi_measures(epi_measures, mr_hierarchy, pred_hierarchy, mortality_scalar, durations)
-    epi_measures = model.enforce_epi_threshold(epi_measures, measure, mortality_scalar)
+    epi_measures = model.filter_and_format_epi_measures(
+        epi_measures=epi_measures,
+        mortality_scalar=mortality_scalar,
+        mr_hierarchy=mr_hierarchy,
+        pred_hierarchy=pred_hierarchy,
+        durations=durations,
+        measure=measure,
+    )
 
     logger.info('Subsetting seroprevalence for first pass rates model', context='transform')
     first_pass_seroprevalence = model.subset_seroprevalence(
@@ -136,10 +116,10 @@ def run_beta_fit(fit_version: str, measure: str, draw_id: int, progress_bar: boo
 
     logger.info('Building initial condition.', context='transform')
     initial_condition = model.make_initial_condition(
-        measure,
-        ode_parameters,
-        first_pass_base_rates,
-        risk_group_population,
+        measure=measure,
+        parameters=ode_parameters,
+        rates=first_pass_base_rates,
+        population=risk_group_population,
     )
 
     logger.info('Running ODE fit', context='compute_ode')
@@ -165,51 +145,22 @@ def run_beta_fit(fit_version: str, measure: str, draw_id: int, progress_bar: boo
 
     # Apply location specific adjustments for locations where the model breaks.
     sampled_ode_params = model.rescale_kappas(
-        measure,
-        sampled_ode_params,
-        first_pass_compartments,
-        specification.rates_parameters,
-        pred_hierarchy,
-        draw_id
+        measure=measure,
+        sampled_ode_params=sampled_ode_params,
+        compartments=first_pass_compartments,
+        rates_parameters=specification.rates_parameters,
+        draw_id=draw_id
     )
 
-    omega_severity = specification.rates_parameters.omega_severity_parameterization
-    severity_calc = {
-        'delta': lambda m: sampled_ode_params[f'kappa_delta_{m}'],
-        'omicron': lambda m: sampled_ode_params[f'kappa_omicron_{m}'],
-        'average': lambda m: (sampled_ode_params[f'kappa_delta_{m}'] * sampled_ode_params[f'kappa_omicron_{m}']) ** (1 / 2),
-    }[omega_severity]
-    for m in ['case', 'admission', 'death']:
-        sampled_ode_params[f'kappa_omega_{m}'] = severity_calc(m)
-
-    pct_unvaccinated = (
-        (agg_first_pass_posterior_epi_measures['cumulative_naive_unvaccinated_infections']
-         / agg_first_pass_posterior_epi_measures['cumulative_naive_infections'])
-            .clip(0, 1)
-            .fillna(1)
-            .rename('pct_unvaccinated')
-            .reset_index()
-    )
-    pct_unvaccinated['date'] += pd.Timedelta(days=durations.exposure_to_seroconversion)
-
-    hospitalized_weights = model.get_all_age_rate(
-        rate_age_pattern=age_patterns['ihr'],
-        weight_age_pattern=age_patterns['seroprevalence'],
-        age_spec_population=five_year_population,
-    )
     sensitivity, adjusted_seroprevalence = model.apply_sensitivity_adjustment(
         sensitivity_data=sensitivity_data,
-        hospitalized_weights=hospitalized_weights,
         seroprevalence=seroprevalence,
-        daily_infections=(agg_first_pass_posterior_epi_measures['daily_total_infections']
-                          .rename('daily_infections')),
-        population=total_population,
+        posterior_epi_measures=agg_first_pass_posterior_epi_measures,
+        age_patterns=age_patterns,
+        five_year_population=five_year_population,
+        total_population=total_population,
         durations=durations,
     )
-    adjusted_seroprevalence = adjusted_seroprevalence.merge(pct_unvaccinated, how='left')
-    if adjusted_seroprevalence['pct_unvaccinated'].isnull().any():
-        logger.warning('Unmatched sero-survey dates')
-    adjusted_seroprevalence['seroprevalence'] *= adjusted_seroprevalence['pct_unvaccinated']
 
     logger.info('Running second-pass rates model', context='rates_model_2')
     second_pass_rates, second_pass_rates_data = model.run_rates_pipeline(
@@ -253,10 +204,10 @@ def run_beta_fit(fit_version: str, measure: str, draw_id: int, progress_bar: boo
 
     logger.info('Rebuilding initial condition.', context='transform')
     initial_condition = model.make_initial_condition(
-        measure,
-        ode_parameters,
-        second_pass_base_rates,
-        risk_group_population,
+        measure=measure,
+        parameters=ode_parameters,
+        rates=second_pass_base_rates,
+        population=risk_group_population,
     )
 
     logger.info('Running second pass ODE fit', context='compute_ode')

@@ -58,7 +58,6 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
     # Build parameters for the SEIIR model #
     ########################################
     logger.info('Loading SEIIR parameter input data.', context='read')
-    population = data_interface.load_population('total').population
     # Use to get ratios
     prior_ratios = data_interface.load_rates(draw_id).loc[location_ids]    
     # Rescaling parameters for the beta forecast.
