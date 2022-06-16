@@ -84,8 +84,12 @@ class FitDataInterface:
     def load_sensitivity(self, draw_id: int = None) -> pd.DataFrame:
         return self.preprocessing_data_interface.load_sensitivity(draw_id)
 
-    def load_testing_data(self) -> pd.DataFrame:
-        return self.preprocessing_data_interface.load_testing_data()
+    def load_testing_capacity(self) -> pd.Series:
+        testing_data = self.preprocessing_data_interface.load_testing_data()
+        testing_capacity = testing_data['testing_capacity']
+        testing_capacity_offset = 1
+        testing_capacity += testing_capacity_offset
+        return testing_capacity
 
     def load_covariate(self, covariate: str, scenario: str) -> pd.DataFrame:
         return self.preprocessing_data_interface.load_covariate(covariate, scenario)
@@ -142,9 +146,30 @@ class FitDataInterface:
         io.dump(covariate_options, self.fit_root.covariate_options())
 
     def load_covariate_options(self, draw_id: int = None) -> Dict:
-        covariate_pool = io.load(self.fit_root.covariate_options())
+        covariate_options = io.load(self.fit_root.covariate_options())
         if draw_id is not None:
-            covariate_pool = {rate: draws[draw_id] for rate, draws in covariate_pool.items()}
+            covariate_options = {rate: draws[draw_id]
+                                 for rate, draws in covariate_options.items()}
+        return covariate_options
+
+    def load_covariate_pool(self, draw_id: int, measure: str) -> pd.DataFrame:
+        # Be careful about imports. `data` really shouldn't depend on `model` but
+        # it's also the right place for this constant to live for now.
+        from covid_model_seiir_pipeline.pipeline.fit.model.covariate_pool import COVARIATE_POOL
+        rate = {
+            'death': 'ifr',
+            'admission': 'ihr',
+            'case': 'idr'
+        }[measure]
+        covariate_options = self.load_covariate_options(draw_id)[rate]
+        covariate_pool = []
+        for covariate in COVARIATE_POOL:
+            cov = (self.load_covariate(covariate, 'reference')
+                   .groupby('location_id')[f'{covariate}_reference']
+                   .mean()
+                   .rename(covariate))
+            covariate_pool.append(cov)
+        covariate_pool = pd.concat(covariate_pool, axis=1).loc[:, covariate_options]
         return covariate_pool
 
     def save_draw_resampling_map(self, draw_resampling: Dict) -> None:

@@ -13,8 +13,7 @@ from covid_model_seiir_pipeline.pipeline.fit.model.rates.date_of_infection impor
 def create_model_data(cumulative_deaths: pd.Series,
                       daily_deaths: pd.Series,
                       seroprevalence: pd.DataFrame,
-                      covariates: List[pd.Series],
-                      covariate_list: List[str],
+                      covariate_pool: pd.DataFrame,
                       daily_infections: pd.Series,
                       variant_prevalence: pd.Series,
                       hierarchy: pd.DataFrame,
@@ -60,14 +59,13 @@ def create_model_data(cumulative_deaths: pd.Series,
     model_data['t'] = (model_data['mean_infection_date'] - day_0).dt.days
     
     # add covariates
-    model_data = model_data.join(pd.concat(covariates, axis=1).loc[:, covariate_list])
+    model_data = model_data.join(covariate_pool)
     
     return model_data.reset_index()
 
 
 def create_pred_data(hierarchy: pd.DataFrame,
-                     covariates: List[pd.Series],
-                     covariate_list: List[str],
+                     covariate_pool: pd.DataFrame,
                      pred_start_date: pd.Timestamp,
                      pred_end_date: pd.Timestamp,
                      day_0: pd.Timestamp,) -> pd.DataFrame:
@@ -79,6 +77,6 @@ def create_pred_data(hierarchy: pd.DataFrame,
     pred_data['variant_prevalence'] = 0
     pred_data = pred_data.set_index(['location_id', 'date'])
     
-    pred_data = pred_data.join(pd.concat(covariates, axis=1).loc[:, covariate_list], how='left')
+    pred_data = pred_data.join(covariate_pool, how='left')
     
     return pred_data.dropna().reset_index()

@@ -16,8 +16,7 @@ def create_model_data(cumulative_cases: pd.Series,
                       seroprevalence: pd.DataFrame,
                       testing_capacity: pd.Series,
                       daily_infections: pd.Series,
-                      covariates: List,
-                      covariate_list: List,
+                      covariate_pool: pd.DataFrame,
                       durations: Dict,
                       population: pd.Series):
     idr_data = seroprevalence.loc[seroprevalence['is_outlier'] == 0].copy()
@@ -76,7 +75,7 @@ def create_model_data(cumulative_cases: pd.Series,
         model_data = model_data.loc[model_data['mean_infection_date'].notnull()]
     
     # add covariates
-    model_data = model_data.join(pd.concat(covariates, axis=1).loc[:, covariate_list], how='outer')
+    model_data = model_data.join(covariate_pool, how='outer')
     
     return model_data.reset_index()
 
@@ -84,8 +83,7 @@ def create_model_data(cumulative_cases: pd.Series,
 def create_pred_data(hierarchy: pd.DataFrame,
                      population: pd.Series,
                      testing_capacity: pd.Series,
-                     covariates: List[pd.Series],
-                     covariate_list: List[str],
+                     covariate_pool: pd.DataFrame,
                      pred_start_date: pd.Timestamp,
                      pred_end_date: pd.Timestamp):
     pred_data = pd.DataFrame(list(itertools.product(hierarchy['location_id'].to_list(),
@@ -97,7 +95,7 @@ def create_pred_data(hierarchy: pd.DataFrame,
     pred_data = pred_data.join(log_testing_rate_capacity, how='left')
     pred_data['log_testing_rate_capacity'] = pred_data.groupby(level=0)['log_testing_rate_capacity'].fillna(method='bfill')
 
-    pred_data = pred_data.join(pd.concat(covariates, axis=1).loc[:, covariate_list], how='left')
+    pred_data = pred_data.join(covariate_pool, how='left')
 
     return pred_data.dropna().reset_index()
 
