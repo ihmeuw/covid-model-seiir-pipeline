@@ -47,11 +47,11 @@ def run_past_infections(fit_version: str, draw_id: int, progress_bar: bool) -> N
     )
     
     logger.info('Rescaling deaths and formatting epi measures', context='transform')
-    epi_measures = model.format_epi_measures(
+    epi_measures = model.filter_and_format_epi_measures(
         epi_measures=epi_measures,
         mr_hierarchy=mr_hierarchy,
         pred_hierarchy=pred_hierarchy,
-        mortality_scalars=mortality_scalar,
+        mortality_scalar=mortality_scalar,
         durations=durations,
     )
 
