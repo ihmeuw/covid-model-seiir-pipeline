@@ -37,13 +37,16 @@ def run_beta_fit(fit_version: str, measure: str, draw_id: int, progress_bar: boo
     etas = data_interface.load_vaccine_risk_reduction(scenario='reference')
     natural_waning_dist = data_interface.load_waning_parameters(measure='natural_waning_distribution').set_index('days')
 
+    #########################
+    # Draw-independent data #
+    #########################
     mortality_scalar = data_interface.load_total_covid_scalars(draw_id)['scalar']
     seroprevalence = data_interface.load_seroprevalence(draw_id=draw_id).reset_index()
     sensitivity_data = data_interface.load_sensitivity(draw_id=draw_id)
     covariate_pool = data_interface.load_covariate_pool(draw_id=draw_id, measure=measure)
 
     logger.info('Sampling rates parameters', context='transform')
-    durations = model.sample_durations(specification.rates_parameters, draw_id)
+    durations = model.sample_durations(specification.rates_parameters, draw_id, pred_hierarchy)
     variant_severity = model.sample_variant_severity(specification.rates_parameters, draw_id)
     day_inflection = model.sample_day_inflection(specification.rates_parameters, draw_id)
     sampled_ode_params, natural_waning_matrix = model.sample_ode_params(
@@ -56,7 +59,7 @@ def run_beta_fit(fit_version: str, measure: str, draw_id: int, progress_bar: boo
         mortality_scalar=mortality_scalar,
         mr_hierarchy=mr_hierarchy,
         pred_hierarchy=pred_hierarchy,
-        durations=durations,
+        max_lag=durations.max_lag,
         measure=measure,
     )
 
@@ -73,7 +76,7 @@ def run_beta_fit(fit_version: str, measure: str, draw_id: int, progress_bar: boo
     daily_deaths = epi_measures['smoothed_daily_deaths'].dropna()
     naive_ifr = specification.rates_parameters.naive_ifr
     init_daily_infections = (daily_deaths / naive_ifr).rename('daily_infections').reset_index()
-    init_daily_infections['date'] -= pd.Timedelta(days=durations.exposure_to_death)
+    init_daily_infections['date'] -= pd.Timedelta(days=durations.exposure_to_death.max())
     init_daily_infections = init_daily_infections.set_index(['location_id', 'date']).loc[:, 'daily_infections']
 
     logger.info('Running first-pass rates model', context='rates_model_1')
@@ -90,7 +93,7 @@ def run_beta_fit(fit_version: str, measure: str, draw_id: int, progress_bar: boo
         testing_capacity=testing_capacity,
         variant_prevalence=variant_prevalence,
         daily_infections=init_daily_infections,
-        durations=durations,
+        durations=durations.to_dict(),
         variant_rrs=variant_severity,
         params=specification.rates_parameters,
         day_inflection=day_inflection,
@@ -134,7 +137,7 @@ def run_beta_fit(fit_version: str, measure: str, draw_id: int, progress_bar: boo
                 context='transform')
     first_pass_posterior_epi_measures = model.compute_posterior_epi_measures(
         compartments=first_pass_compartments,
-        durations=durations
+        durations=durations.to_ints(),
     )
     agg_first_pass_posterior_epi_measures = model.aggregate_posterior_epi_measures(
         measure=measure,
@@ -221,7 +224,10 @@ def run_beta_fit(fit_version: str, measure: str, draw_id: int, progress_bar: boo
     logger.info('Prepping outputs.', context='transform')
     out_params = ode_parameters.to_dict()['base_parameters']
     for name, duration in durations._asdict().items():
-        out_params.loc[:, name] = duration
+        if isinstance(duration, pd.Series):
+            out_params.loc[:, name] = duration.reindex(out_params.index, level='location_id')
+        else:
+            out_params.loc[:, name] = duration
 
     rate = {'case': 'idr', 'death': 'ifr', 'admission': 'ihr'}[measure]
     rates_data = []
@@ -261,7 +267,7 @@ def run_beta_fit(fit_version: str, measure: str, draw_id: int, progress_bar: boo
                                .rename(columns={'seroprevalence': 'adjusted_seroprevalence'}))
     out_seroprevalence = out_seroprevalence.merge(adjusted_seroprevalence)
     out_seroprevalence['sero_date'] = out_seroprevalence['date']
-    out_seroprevalence['date'] -= pd.Timedelta(days=durations.exposure_to_seroconversion)
+    out_seroprevalence['date'] -= pd.Timedelta(days=durations.exposure_to_seroconversion.max())
 
     idr_parameters = model.sample_idr_parameters(specification.rates_parameters, draw_id)
     keep_compartments = [
