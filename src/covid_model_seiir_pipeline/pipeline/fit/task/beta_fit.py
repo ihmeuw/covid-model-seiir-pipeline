@@ -181,7 +181,7 @@ def run_beta_fit(fit_version: str, measure: str, draw_id: int, progress_bar: boo
         daily_infections=(
             agg_first_pass_posterior_epi_measures['daily_naive_unvaccinated_infections']
             .rename('daily_infections')),
-        durations=durations,
+        durations=durations.to_dict(),
         variant_rrs=variant_severity,
         params=specification.rates_parameters,
         day_inflection=day_inflection,
