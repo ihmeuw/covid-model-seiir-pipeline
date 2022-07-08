@@ -40,7 +40,7 @@ def run_past_infections(fit_version: str, draw_id: int, progress_bar: bool) -> N
         rates = model.fill_from_hierarchy(rates, pred_hierarchy, level)
 
     logger.info('Sampling ODE parameters', context='transform')
-    durations = model.sample_durations(specification.rates_parameters, draw_id)
+    durations = model.sample_durations(specification.rates_parameters, draw_id, pred_hierarchy)
     variant_severity = model.sample_variant_severity(specification.rates_parameters, draw_id)
     _, natural_waning_matrix = model.sample_ode_params(
         variant_severity, specification.fit_parameters, draw_id
@@ -49,10 +49,11 @@ def run_past_infections(fit_version: str, draw_id: int, progress_bar: bool) -> N
     logger.info('Rescaling deaths and formatting epi measures', context='transform')
     epi_measures = model.filter_and_format_epi_measures(
         epi_measures=epi_measures,
+        mortality_scalar=mortality_scalar,
         mr_hierarchy=mr_hierarchy,
         pred_hierarchy=pred_hierarchy,
-        mortality_scalar=mortality_scalar,
-        durations=durations,
+        max_lag=durations.max_lag,
+        measure=measure,
     )
 
     logger.info('Loading and resampling betas and infections.', context='transform')
