@@ -77,7 +77,7 @@ def run_past_infections(fit_version: str, draw_id: int, progress_bar: bool) -> N
     ode_parameters = model.prepare_past_infections_parameters(
         beta=beta_fit_final,
         rates=rates,
-        durations=durations,
+        durations=durations.to_ints(),
         epi_measures=epi_measures,
         rhos=rhos,
         vaccinations=vaccinations,
@@ -109,12 +109,12 @@ def run_past_infections(fit_version: str, draw_id: int, progress_bar: bool) -> N
     logger.info('Prepping outputs.', context='transform')
     posterior_epi_measures = model.compute_posterior_epi_measures(
         compartments=compartments,
-        durations=durations
+        durations=durations.to_ints()
     )
     
     betas = pd.concat([betas, beta_fit_final], axis=1)
     out_params = ode_parameters.to_dict()['base_parameters']
-    for name, duration in durations._asdict().items():
+    for name, duration in durations.to_dict().items():
         out_params.loc[:, name] = duration
 
     logger.info('Writing outputs', context='write')
