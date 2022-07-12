@@ -37,12 +37,16 @@ def prepare_ode_fit_parameters(measure: str,
                                etas: pd.DataFrame,
                                natural_waning_dist: pd.Series,
                                natural_waning_matrix: pd.DataFrame,
+                               antiviral_effectiveness: float,
+                               antiviral_maximum_access: float,
                                sampled_ode_params: Dict[str, float],
                                hierarchy: pd.DataFrame,
                                population: pd.Series,
                                draw_id: int) -> Tuple[Parameters, pd.DataFrame]:
     measures_and_rates, age_scalars = prepare_epi_measures_and_rates(
-        measure, rates, epi_measures, hierarchy, population,
+        measure, rates, epi_measures,
+        antiviral_effectiveness, antiviral_maximum_access,
+        hierarchy, population,
     )
     past_index = measures_and_rates.index
     scalar_params = {k: p for k, p in sampled_ode_params.items() if isinstance(p, (int, float))}
@@ -136,6 +140,8 @@ def prepare_past_infections_parameters(beta: pd.Series,
 def prepare_epi_measures_and_rates(measure: str,
                                    rates: pd.DataFrame,
                                    epi_measures: pd.DataFrame,
+                                   antiviral_effectiveness: float,
+                                   antiviral_maximum_access: float,
                                    hierarchy: pd.DataFrame,
                                    population: pd.Series):
     metrics = ['count', 'rate', 'weight']
@@ -173,12 +179,21 @@ def prepare_epi_measures_and_rates(measure: str,
         columns=[f'{m}_{rg}' for m, rg in itertools.product(measures, RISK_GROUP_NAMES)],
         index=model_idx,
     )
+    if measure == 'death':
+        antiviral_rr = build_antiviral_risk_reduction(
+            index=model_idx,
+            effectiveness=antiviral_effectiveness,
+            max_access=antiviral_maximum_access,
+            hierarchy=hierarchy,
+        )
 
     rates = reindex_to_infection_day(rates.drop(columns='lag'), lag, most_detailed)
     for risk_group in RISK_GROUP_NAMES:
         out_scalars.loc[:, f'{measure}_{risk_group}'] = (
             rates[f'{rate}_{risk_group}'] / rates[rate]
         )
+        if measure == 'death' and risk_group == 'hr':
+            out_scalars.loc[:, f'{measure}_{risk_group}'] *= antiviral_rr
     out_data.loc[:, f'rate_all_{measure}'] = rates[rate]
 
     return out_data, out_scalars
@@ -502,3 +517,28 @@ def fill_from_hierarchy(df: pd.DataFrame, hierarchy: pd.DataFrame, level: str) -
     df = df.drop(columns=level).fillna(fill)
     return df
 
+
+def build_antiviral_risk_reduction(index: pd.Index,
+                                   effectiveness: float,
+                                   max_access: float,
+                                   hierarchy: pd.DataFrame):
+    locs = set(index.to_frame().location_id)
+    high_income = hierarchy.loc[hierarchy.path_to_top_parent.str.contains(',64,'), 'location_id']
+    high_income = list(set(high_income).intersection(locs))
+
+    date_start = pd.Timestamp('2022-05-01')
+    date_end = pd.Timestamp('2022-06-15')
+    dates = pd.date_range(date_start, date_end)
+    coverage = (dates - date_start).days / (date_end - date_start).days
+
+    coverage = (pd.Series(coverage, index=dates)
+                .reindex(index, level='date')
+                .groupby('location_id')
+                .ffill()
+                .groupby('location_id')
+                .bfill())
+
+    risk_reduction = pd.Series(1., index=index)
+    risk_reduction.loc[high_income] = 1 - effectiveness * max_access * coverage.loc[high_income]
+
+    return risk_reduction

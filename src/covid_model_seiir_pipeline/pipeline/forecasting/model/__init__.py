@@ -7,7 +7,6 @@ from covid_model_seiir_pipeline.pipeline.forecasting.model.ode_forecast import (
     build_indices,
     build_beta_final,
     build_model_parameters,
-    build_antiviral_risk_reduction,
     run_ode_forecast,
     forecast_correction_factors,
 )

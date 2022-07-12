@@ -129,6 +129,9 @@ class RatesParameters:
     minimum_asymptomatic_idr_fraction: UniformSampleable = field(default=0.1)
     maximum_asymptomatic_idr: UniformSampleable = field(default=0.2)
 
+    antiviral_effectiveness: UniformSampleable = field(default=0.9)
+    antiviral_maximum_access: UniformSampleable = field(default=0.8)
+
     day_inflection_options: List[str] = field(default_factory=list)
 
     def __post_init__(self):

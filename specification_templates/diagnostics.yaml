@@ -16,7 +16,7 @@ grid_plots:
         reference*: 'reference'  # 'antivirals 7/18-8/31'
     # - version: '2022_07_12.XX'
     #   scenarios:
-    #     reference*: 'antivirals 6/15-7/31'
+    #     reference*: 'antivirals 5/01-6/15'
   - name: '2021_oct2022'
     date_start: '2021-01-01'
     date_end: '2022-10-31'
@@ -29,4 +29,4 @@ grid_plots:
         reference*: 'reference'  # 'antivirals 7/18-8/31'
     # - version: '2022_07_12.XX'
     #   scenarios:
-    #     reference*: 'antivirals 6/15-7/31'
+    #     reference*: 'antivirals 5/01-6/15'

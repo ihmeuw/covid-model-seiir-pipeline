@@ -11,7 +11,7 @@ workflow:
   queue: 'all.q'
 resampling:
   reference_scenario: 'reference'
-  reference_date: '2022-07-01'
+  reference_date: '2022-10-01'
   lower_quantile: 0.025
   upper_quantile: 0.975
 # splicing:
