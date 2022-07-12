@@ -103,7 +103,9 @@ def apply_sensitivity_adjustment(
 
     daily_infections = posterior_epi_measures['daily_total_infections'].rename('daily_infections')
     daily_infections = daily_infections.reset_index()
-    daily_infections['date'] += pd.Timedelta(days=durations.exposure_to_seroconversion)
+    # All durations invariant by location in rates model
+    exposure_to_sero = pd.Timedelta(days=durations.exposure_to_seroconversion.max())
+    daily_infections['date'] += exposure_to_sero
     daily_infections = daily_infections.set_index(['location_id', 'date']).loc[:, 'daily_infections']
     daily_infections /= total_population
 
@@ -143,7 +145,7 @@ def apply_sensitivity_adjustment(
         .rename('pct_unvaccinated')
         .reset_index()
     )
-    pct_unvaccinated['date'] += pd.Timedelta(days=durations.exposure_to_seroconversion)
+    pct_unvaccinated['date'] += exposure_to_sero
 
     seroprevalence = seroprevalence.merge(pct_unvaccinated, how='left')
     if seroprevalence['pct_unvaccinated'].isnull().any():
