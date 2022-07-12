@@ -110,6 +110,40 @@ def build_beta_final(indices: Indices,
     return beta, beta_hat.set_index(['location_id', 'date']).reindex(beta.index)
 
 
+def build_antiviral_risk_reduction(index: pd.Index, hierarchy: pd.DataFrame, scenario_spec):
+    locs = set(index.to_frame().location_id)
+    high_income = hierarchy.loc[hierarchy.path_to_top_parent.str.contains(',64,'), 'location_id']
+    high_income = list(set(high_income).intersection(locs))
+    lmic = list(locs.difference(high_income))
+
+
+    date_start = pd.Timestamp('2022-05-01')
+    date_end = pd.Timestamp('2022-06-15')
+    dates = pd.date_range(date_start, date_end)
+    coverage = (dates - date_start).days / (date_end - date_start).days
+
+    coverage = (pd.Series(coverage, index=dates)
+                .reindex(index, level='date')
+                .groupby('location_id')
+                .ffill()
+                .groupby('location_id')
+                .bfill())
+
+    effectiveness = scenario_spec['effectiveness']
+    max_access = scenario_spec['maximum_access']
+    risk_reduction = pd.Series(1., index=index)
+    risk_reduction.loc[high_income] = 1 - effectiveness * max_access * coverage.loc[high_income]
+
+    if scenario_spec['version'] == 'global_coverage':
+        shift = pd.Timestamp('2022-08-15') - date_start
+        coverage = (coverage
+                    .groupby('location_id')
+                    .shift(periods=shift.days,)
+                    .fillna(0.))
+        risk_reduction.loc[lmic] = 1 - effectiveness * max_access * coverage.loc[lmic]
+    return risk_reduction
+
+
 def build_model_parameters(indices: Indices,
                            beta: pd.Series,
                            past_compartments: pd.DataFrame,
@@ -119,6 +153,7 @@ def build_model_parameters(indices: Indices,
                            vaccinations: pd.DataFrame,
                            etas: pd.DataFrame,
                            phis: pd.DataFrame,
+                           antiviral_rr: pd.Series,
                            risk_group_population: pd.DataFrame,
                            hierarchy: pd.DataFrame) -> Parameters:
     ode_params = ode_parameters.reindex(indices.full).groupby('location_id').ffill().groupby('location_id').bfill()
@@ -186,6 +221,8 @@ def build_model_parameters(indices: Indices,
                 .groupby('location_id')
                 .bfill()
             )
+            if ratio_name in ['ifr', 'ihr'] and risk_group == 'hr':
+                scalar *= antiviral_rr
             scalars.append(scalar)
     scalars = pd.concat(scalars, axis=1)
 

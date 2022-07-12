@@ -94,6 +94,11 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
         log_beta_shift,
         beta_scale,
     )
+    antiviral_risk_reduction = model.build_antiviral_risk_reduction(
+        index=indices.full,
+        hierarchy=hierarchy,
+        scenario_spec=scenario_spec.antiviral_specification,
+    )
     ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
     logger.warning('Using Hong Kong IFR projection for mainland China IFR projection in `ode_forecast.build_ratio`.')
     ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
@@ -108,6 +113,7 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
         vaccinations,
         etas,
         phis,
+        antiviral_risk_reduction,
         risk_group_population,
         hierarchy,
     )
