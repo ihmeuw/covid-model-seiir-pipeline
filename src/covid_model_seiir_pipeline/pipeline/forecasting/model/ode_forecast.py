@@ -117,8 +117,8 @@ def build_antiviral_risk_reduction(index: pd.Index, hierarchy: pd.DataFrame, sce
     lmic = list(locs.difference(high_income))
 
 
-    date_start = pd.Timestamp('2022-06-15')
-    date_end = pd.Timestamp('2022-07-31')
+    date_start = pd.Timestamp('2022-07-18')
+    date_end = pd.Timestamp('2022-08-31')
     dates = pd.date_range(date_start, date_end)
     coverage = (dates - date_start).days / (date_end - date_start).days
 
@@ -135,7 +135,7 @@ def build_antiviral_risk_reduction(index: pd.Index, hierarchy: pd.DataFrame, sce
     risk_reduction.loc[high_income] = 1 - effectiveness * max_access * coverage.loc[high_income]
 
     if scenario_spec['version'] == 'global_coverage':
-        shift = pd.Timestamp('2022-08-15') - date_start
+        shift = pd.Timestamp('2022-09-15') - date_start
         coverage = (coverage
                     .groupby('location_id')
                     .shift(periods=shift.days,)

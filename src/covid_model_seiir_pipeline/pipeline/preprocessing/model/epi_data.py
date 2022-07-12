@@ -135,7 +135,8 @@ def evil_doings(data: pd.DataFrame, hierarchy: pd.DataFrame, input_measure: str)
             manipulation_metadata[location_name] = 'dropped all cases'
         
         dated_drop_list = [
-            (505, 'inner_mongolia', '2022-06-01'),
+            ## (location_id, location_label, drop_start_date) ##
+            # (505, 'inner_mongolia', '2022-06-01'),
         ]
 
         for location_id, location_name, drop_start_date in dated_drop_list:
@@ -171,6 +172,17 @@ def evil_doings(data: pd.DataFrame, hierarchy: pd.DataFrame, input_measure: str)
             is_location = data['location_id'] == location_id
             data = data.loc[~is_location].reset_index(drop=True)
             manipulation_metadata[location_name] = 'dropped all hospitalizations'
+            
+        dated_drop_list = [
+            ## (location_id, location_label, drop_start_date) ##
+        ]
+
+        for location_id, location_name, drop_start_date in dated_drop_list:
+            is_location = data['location_id'] == location_id
+            is_drop_start_date_on = data['date'] >= drop_start_date
+            data = data.loc[~(is_location & is_drop_start_date_on)].reset_index(drop=True)
+            manipulation_metadata[location_name] = f'dropped deaths beginning {drop_start_date}'
+
 
         ## partial time series
         pakistan_location_ids = hierarchy.loc[
@@ -196,6 +208,7 @@ def evil_doings(data: pd.DataFrame, hierarchy: pd.DataFrame, input_measure: str)
             manipulation_metadata[location_name] = 'dropped all deaths'
 
         dated_drop_list = [
+            ## (location_id, location_label, drop_start_date) ##
         ]
 
         for location_id, location_name, drop_start_date in dated_drop_list:
