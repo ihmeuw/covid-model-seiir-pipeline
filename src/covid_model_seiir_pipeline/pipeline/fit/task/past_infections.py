@@ -53,7 +53,6 @@ def run_past_infections(fit_version: str, draw_id: int, progress_bar: bool) -> N
         mr_hierarchy=mr_hierarchy,
         pred_hierarchy=pred_hierarchy,
         max_lag=durations.max_lag,
-        measure=measure,
     )
 
     logger.info('Loading and resampling betas and infections.', context='transform')

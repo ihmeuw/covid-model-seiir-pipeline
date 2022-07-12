@@ -252,7 +252,7 @@ def run_beta_fit(fit_version: str, measure: str, draw_id: int, progress_bar: boo
 
     second_pass_posterior_epi_measures = model.compute_posterior_epi_measures(
         compartments=second_pass_compartments,
-        durations=durations
+        durations=durations.to_ints(),
     )
     first_pass_posterior_epi_measures.loc[:, 'round'] = 1
     second_pass_posterior_epi_measures.loc[:, 'round'] = 2
