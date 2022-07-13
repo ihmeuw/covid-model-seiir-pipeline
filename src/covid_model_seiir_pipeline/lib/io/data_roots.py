@@ -212,6 +212,7 @@ class PreprocessingRoot(DataRoot):
     vaccine_summary = DatasetType('vaccine_summary')
     vaccine_uptake = DatasetType('vaccine_uptake', LEAF_TEMPLATES.COV_SCENARIO_TEMPLATE)
     vaccine_risk_reduction = DatasetType('vaccine_risk_reduction', LEAF_TEMPLATES.COV_SCENARIO_TEMPLATE)
+    antiviral_coverage = DatasetType('antiviral_coverage', LEAF_TEMPLATES.COV_SCENARIO_TEMPLATE)
 
     mask_use = DatasetType('mask_use', LEAF_TEMPLATES.COV_SCENARIO_TEMPLATE, PREFIX_TEMPLATES.COVARIATES)
     mobility = DatasetType('mobility', LEAF_TEMPLATES.COV_SCENARIO_TEMPLATE, PREFIX_TEMPLATES.COVARIATES)

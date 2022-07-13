@@ -516,29 +516,3 @@ def fill_from_hierarchy(df: pd.DataFrame, hierarchy: pd.DataFrame, level: str) -
     fill = df.groupby([level, 'date']).transform('mean')
     df = df.drop(columns=level).fillna(fill)
     return df
-
-
-def build_antiviral_risk_reduction(index: pd.Index,
-                                   effectiveness: float,
-                                   max_access: float,
-                                   hierarchy: pd.DataFrame):
-    locs = set(index.to_frame().location_id)
-    high_income = hierarchy.loc[hierarchy.path_to_top_parent.str.contains(',64,'), 'location_id']
-    high_income = list(set(high_income).intersection(locs))
-
-    date_start = pd.Timestamp('2022-05-01')
-    date_end = pd.Timestamp('2022-06-15')
-    dates = pd.date_range(date_start, date_end)
-    coverage = (dates - date_start).days / (date_end - date_start).days
-
-    coverage = (pd.Series(coverage, index=dates)
-                .reindex(index, level='date')
-                .groupby('location_id')
-                .ffill()
-                .groupby('location_id')
-                .bfill())
-
-    risk_reduction = pd.Series(1., index=index)
-    risk_reduction.loc[high_income] = 1 - effectiveness * max_access * coverage.loc[high_income]
-
-    return risk_reduction

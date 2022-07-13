@@ -11,6 +11,7 @@ from covid_model_seiir_pipeline.lib import (
 class __PreprocessingJobs(NamedTuple):
     preprocess_measure: str
     preprocess_vaccine: str
+    preprocess_antivirals: str
     preprocess_serology: str
 
 
@@ -29,6 +30,12 @@ class PreprocessVaccineSpecification(workflow.TaskSpecification):
     default_num_cores = 26
 
 
+class PreprocessAntiviralsSpecification(workflow.TaskSpecification):
+    default_max_runtime_seconds = 3000
+    default_m_mem_free = '10G'
+    default_num_cores = 16
+
+
 class PreprocessSerologySpecification(workflow.TaskSpecification):
     default_max_runtime_seconds = 3000
     default_m_mem_free = '50G'
@@ -39,6 +46,7 @@ class PreprocessingWorkflowSpecification(workflow.WorkflowSpecification):
     tasks = {
         PREPROCESSING_JOBS.preprocess_measure: PreprocessMeasureTaskSpecification,
         PREPROCESSING_JOBS.preprocess_vaccine: PreprocessVaccineSpecification,
+        PREPROCESSING_JOBS.preprocess_antivirals: PreprocessAntiviralsSpecification,
         PREPROCESSING_JOBS.preprocess_serology: PreprocessSerologySpecification,
     }
 
@@ -63,6 +71,7 @@ class PreprocessingData:
     serology_vaccine_coverage_version: str = field(default='best')
     vaccine_efficacy_version: str = field(default='best')
     vaccine_scenarios: list = field(default_factory=list)
+    antiviral_scenarios: list = field(default_factory=list)
 
     output_root: str = field(default='')
     output_format: str = field(default='parquet')

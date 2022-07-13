@@ -582,3 +582,9 @@ class PreprocessingDataInterface:
 
     def load_vaccine_risk_reduction(self, scenario: str) -> pd.DataFrame:
         return io.load(self.preprocessing_root.vaccine_risk_reduction(covariate_scenario=scenario))
+
+    def save_antiviral_coverage(self, data: pd.DataFrame, scenario: str) -> None:
+        io.dump(data, self.preprocessing_root.antiviral_coverage(covariate_scenario=scenario))
+
+    def load_antiviral_coverage(self, scenario: str) -> pd.DataFrame:
+        return io.load(self.preprocessing_root.antiviral_coverage(covariate_scenario=scenario))

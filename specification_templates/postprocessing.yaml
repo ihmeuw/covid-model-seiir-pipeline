@@ -1,5 +1,5 @@
 data:
-  seir_forecast_version: '2022_07_12.01'
+  seir_forecast_version: '2022_07_12.04'
   scenarios:
    - 'reference'
 #   - 'deltacron_optimistic'
