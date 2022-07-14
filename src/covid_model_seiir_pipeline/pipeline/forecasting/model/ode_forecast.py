@@ -160,8 +160,7 @@ def build_model_parameters(indices: Indices,
             _numerator = (past_compartments_diff
                           .loc[:, f'{epi_measure.capitalize()}_none_all_unvaccinated_{risk_group}']
                           .reindex(indices.full))
-            if risk_group == 'hr':
-                _numerator /= antiviral_rr.loc[_numerator.index, f'{epi_measure}_antiviral_rr']
+            _numerator /= antiviral_rr.loc[_numerator.index, f'{epi_measure}_antiviral_rr_{risk_group}']
             ratio.append((_numerator / _infections) * risk_group_population[risk_group])
         ratio = sum(ratio)
         numerator = (ratio * infections).rename(epi_measure)
@@ -187,8 +186,7 @@ def build_model_parameters(indices: Indices,
                 .groupby('location_id')
                 .bfill()
             )
-            if risk_group == 'hr':
-                scalar *= antiviral_rr.loc[scalar.index, f'{epi_measure}_antiviral_rr']
+            scalar *= antiviral_rr.loc[scalar.index, f'{epi_measure}_antiviral_rr_{risk_group}']
             scalars.append(scalar.rename(f'{epi_measure}_{risk_group}'))
     scalars = pd.concat(scalars, axis=1)
 
@@ -339,6 +337,20 @@ def forecast_correction_factors(indices: Indices,
         new_cfs[cf_name] = pd.concat(loc_cfs).sort_index()
     return HospitalCorrectionFactors(**new_cfs)
 
+
+def compute_antiviral_rr(antiviral_coverage: pd.DataFrame,
+                         antiviral_effectiveness: pd.DataFrame):
+    antiviral_rr = []
+    for measure in ['case', 'death', 'admission']:
+        _antiviral_rr = (1 - antiviral_coverage.multiply(antiviral_effectiveness.loc[:, f'{measure}_antiviral_effectiveness'],
+                                                        axis=0))
+        _antiviral_rr = _antiviral_rr.rename(columns={column: f"{measure}_{column.replace('coverage', 'rr')}"
+                                                      for column in _antiviral_rr.columns})
+        antiviral_rr.append(_antiviral_rr)
+
+    antiviral_rr = pd.concat(antiviral_rr, axis=1)
+
+    return antiviral_rr
 
 ###########
 # Run ODE #

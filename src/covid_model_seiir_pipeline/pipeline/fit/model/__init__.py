@@ -12,6 +12,7 @@ from covid_model_seiir_pipeline.pipeline.fit.model.sampled_params import (
     sample_variant_severity,
     sample_day_inflection,
     sample_idr_parameters,
+    sample_antiviral_effectiveness,
     sample_ode_params,
     sample_parameter,
 )
@@ -33,6 +34,7 @@ from covid_model_seiir_pipeline.pipeline.fit.model.ode_fit import (
     run_ode_fit,
     run_posterior_fit,
     fill_from_hierarchy,
+    compute_antiviral_rr,
 )
 from covid_model_seiir_pipeline.pipeline.fit.model.epi_measures import (
     filter_and_format_epi_measures,

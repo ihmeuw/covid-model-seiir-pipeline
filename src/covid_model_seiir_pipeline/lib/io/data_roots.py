@@ -250,7 +250,7 @@ class FitRoot(DataRoot):
     posterior_epi_measures = DatasetType('posterior_epi_measures', LEAF_TEMPLATES.MEASURE_DRAW_TEMPLATE)
     rates = DatasetType('rates', LEAF_TEMPLATES.MEASURE_DRAW_TEMPLATE)
     rates_data = DatasetType('rates_data', LEAF_TEMPLATES.MEASURE_DRAW_TEMPLATE)
-    antiviral_rr = DatasetType('antiviral_rr', LEAF_TEMPLATES.MEASURE_DRAW_TEMPLATE)
+    antiviral_effectiveness = DatasetType('antiviral_effectiveness', LEAF_TEMPLATES.MEASURE_DRAW_TEMPLATE)
     compartments = DatasetType('compartments', LEAF_TEMPLATES.MEASURE_DRAW_TEMPLATE)
     ode_parameters = DatasetType('ode_parameters', LEAF_TEMPLATES.MEASURE_DRAW_TEMPLATE)
     phis = DatasetType('phis', LEAF_TEMPLATES.DRAW_TEMPLATE)

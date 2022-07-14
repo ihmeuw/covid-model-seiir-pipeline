@@ -223,11 +223,11 @@ class FitDataInterface:
     def load_rates(self, draw_id: int, measure_version: str = 'final', columns: List[str] = None) -> pd.DataFrame:
         return io.load(self.fit_root.rates(measure=measure_version, draw_id=draw_id, columns=columns))
 
-    def save_antiviral_rr(self, data: pd.DataFrame, draw_id: int, measure_version: str) -> None:
-        io.dump(data, self.fit_root.antiviral_rr(measure=measure_version, draw_id=draw_id))
+    def save_antiviral_effectiveness(self, data: pd.DataFrame, draw_id: int, measure_version: str) -> None:
+        io.dump(data, self.fit_root.antiviral_effectiveness(measure=measure_version, draw_id=draw_id))
 
-    def load_antiviral_rr(self, draw_id: int, measure_version: str = 'final', columns: List[str] = None) -> pd.DataFrame:
-        return io.load(self.fit_root.antiviral_rr(measure=measure_version, draw_id=draw_id, columns=columns))
+    def load_antiviral_effectiveness(self, draw_id: int, measure_version: str = 'final', columns: List[str] = None) -> pd.DataFrame:
+        return io.load(self.fit_root.antiviral_effectiveness(measure=measure_version, draw_id=draw_id, columns=columns))
 
     def save_posterior_epi_measures(self, data: pd.DataFrame, draw_id: int, measure_version: str):
         io.dump(data, self.fit_root.posterior_epi_measures(measure=measure_version, draw_id=draw_id))

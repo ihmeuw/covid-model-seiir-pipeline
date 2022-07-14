@@ -28,6 +28,7 @@ def run_past_infections(fit_version: str, draw_id: int, progress_bar: bool) -> N
     vaccinations = data_interface.load_vaccine_uptake(scenario='reference')
     etas = data_interface.load_vaccine_risk_reduction(scenario='reference')
     natural_waning_dist = data_interface.load_waning_parameters(measure='natural_waning_distribution').set_index('days')
+    antiviral_coverage = data_interface.load_antiviral_coverage(scenario='reference')
 
     rates = []
     antiviral_rr = []
@@ -36,9 +37,10 @@ def run_past_infections(fit_version: str, draw_id: int, progress_bar: bool) -> N
             measure_version=measure,
             draw_id=draw_id,
         )))
-        antiviral_rr.append(data_interface.load_antiviral_rr(measure_version=measure, draw_id=draw_id)
-                            .loc[:, 'antiviral_rr']
-                            .rename(f'{measure}_antiviral_rr'))
+        antiviral_effectiveness = data_interface.load_antiviral_effectiveness(measure_version=measure, draw_id=draw_id)
+        antiviral_rr.append(model.compute_antiviral_rr(
+            measure, antiviral_coverage, antiviral_effectiveness.loc[:, f'{measure}_antiviral_effectiveness']
+        ))
     rates = pd.concat(rates, axis=1)
     antiviral_rr = pd.concat(antiviral_rr, axis=1)
     for level in ['parent_id', 'region_id', 'super_region_id', 'global']:

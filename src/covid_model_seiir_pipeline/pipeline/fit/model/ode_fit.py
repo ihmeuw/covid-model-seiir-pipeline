@@ -184,8 +184,7 @@ def prepare_epi_measures_and_rates(measure: str,
         out_scalars.loc[:, f'{measure}_{risk_group}'] = (
             rates[f'{rate}_{risk_group}'] / rates[rate]
         )
-        if risk_group == 'hr':
-            out_scalars.loc[:, f'{measure}_{risk_group}'] *= antiviral_rr
+        out_scalars.loc[:, f'{measure}_{risk_group}'] *= antiviral_rr.loc[:, f'{measure}_antiviral_rr_{risk_group}']
     out_data.loc[:, f'rate_all_{measure}'] = rates[rate]
 
     return out_data, out_scalars
@@ -216,8 +215,7 @@ def prepare_epi_measures_for_past_infections(epi_measures: pd.DataFrame,
         drop_cols = epi_scalars.columns
         for risk_group in RISK_GROUP_NAMES:
             epi_scalars.loc[:, f'{out_measure}_{risk_group}'] = epi_scalars[f'{rate}_{risk_group}'] / epi_scalars[rate]
-            if risk_group == 'hr':
-                epi_scalars.loc[:, f'{out_measure}_{risk_group}'] *= antiviral_rr.loc[:, f'{out_measure}_antiviral_rr']
+            epi_scalars.loc[:, f'{out_measure}_{risk_group}'] *= antiviral_rr.loc[:, f'{out_measure}_antiviral_rr_{risk_group}']
         epi_scalars = epi_scalars.drop(columns=drop_cols)
 
         out_measures.append(epi_data)
@@ -245,6 +243,16 @@ def reindex_to_infection_day(data: pd.DataFrame, lag: int, most_detailed: List[i
             .groupby('location_id')
             .shift(-lag))
     return data
+
+
+def compute_antiviral_rr(measure: str,
+                         antiviral_coverage: pd.DataFrame,
+                         antiviral_effectiveness: pd.Series) -> pd.DataFrame:
+    antiviral_rr = (1 - antiviral_coverage.multiply(antiviral_effectiveness, axis=0))
+    antiviral_rr = antiviral_rr.rename(columns={column: f"{measure}_{column.replace('coverage', 'rr')}"
+                                                for column in antiviral_rr.columns})
+
+    return antiviral_rr
 
 
 def compute_phis(natural_waning_dist: pd.Series,

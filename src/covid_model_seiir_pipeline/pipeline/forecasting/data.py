@@ -123,8 +123,11 @@ class ForecastDataInterface:
     def load_rates(self, draw_id: int, columns: List[str] = None) -> pd.DataFrame:
         return self.regression_data_interface.load_rates(draw_id, columns)
 
-    def load_antiviral_rr(self, draw_id: int, columns: List[str] = None) -> pd.DataFrame:
-        return self.regression_data_interface.load_antiviral_rr(draw_id, columns)
+    def load_antiviral_coverage(self, scenario: str) -> pd.DataFrame:
+        return self.regression_data_interface.load_antiviral_coverage(scenario)
+
+    def load_antiviral_effectiveness(self, draw_id: int) -> pd.DataFrame:
+        return self.regression_data_interface.antiviral_effectiveness(draw_id=draw_id)
 
     def load_posterior_epi_measures(self, draw_id: int, columns: List[str] = None) -> pd.DataFrame:
         return self.regression_data_interface.load_posterior_epi_measures(draw_id, columns)

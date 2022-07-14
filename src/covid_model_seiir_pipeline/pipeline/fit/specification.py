@@ -129,7 +129,9 @@ class RatesParameters:
     minimum_asymptomatic_idr_fraction: UniformSampleable = field(default=0.1)
     maximum_asymptomatic_idr: UniformSampleable = field(default=0.2)
 
-    antiviral_effectiveness: UniformSampleable = field(default=0.9)
+    antiviral_effectiveness_idr: UniformSampleable = field(default=0.)
+    antiviral_effectiveness_ihr: UniformSampleable = field(default=0.25)
+    antiviral_effectiveness_ifr: UniformSampleable = field(default=0.30)
 
     day_inflection_options: List[str] = field(default_factory=list)
 

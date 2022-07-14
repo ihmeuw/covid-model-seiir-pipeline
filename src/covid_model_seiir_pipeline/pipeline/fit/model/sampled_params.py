@@ -185,6 +185,24 @@ def sample_idr_parameters(rates_parameters: RatesParameters, draw_id: int) -> Di
     return params
 
 
+def sample_antiviral_effectiveness(rates_parameters: RatesParameters, measure: str, draw_id: int) -> float:
+    rates_parameters = rates_parameters.to_dict()
+    if measure == 'case':
+        parameter = 'antiviral_effectiveness_idr'
+    elif measure == 'admission':
+        parameter = 'antiviral_effectiveness_ihr'
+    elif measure == 'death':
+        parameter = 'antiviral_effectiveness_ifr'
+
+    param_spec = rates_parameters[parameter]
+    if isinstance(param_spec, (int, float)):
+        value = param_spec
+    else:
+        value = sample_parameter(parameter, draw_id, *param_spec)
+
+    return value
+
+
 def sample_parameter(parameter: str, draw_id: int, lower: float, upper: float) -> float:
     random_state = utilities.get_random_state(f'{parameter}_{draw_id}')
     return random_state.uniform(lower, upper)
