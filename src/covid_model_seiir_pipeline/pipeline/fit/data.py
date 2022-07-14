@@ -131,6 +131,9 @@ class FitDataInterface:
     def load_vaccine_risk_reduction(self, scenario: str) -> pd.DataFrame:
         return self.preprocessing_data_interface.load_vaccine_risk_reduction(scenario)
 
+    def load_antiviral_coverage(self, scenario: str) -> pd.DataFrame:
+        return self.preprocessing_data_interface.load_antiviral_coverage(scenario)
+
     ################
     # Fit data I/O #
     ################

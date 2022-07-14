@@ -53,6 +53,7 @@ def coverage_scaleup(index: pd.Index, date_start: str, date_end: str, max_covera
                 .groupby('location_id')
                 .ffill()
                 .groupby('location_id')
-                .bfill())
+                .bfill()
+                .rename('antiviral_coverage'))
 
     return coverage

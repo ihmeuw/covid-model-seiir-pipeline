@@ -36,6 +36,8 @@ def run_beta_fit(fit_version: str, measure: str, draw_id: int, progress_bar: boo
     vaccinations = data_interface.load_vaccine_uptake(scenario='reference')
     etas = data_interface.load_vaccine_risk_reduction(scenario='reference')
     natural_waning_dist = data_interface.load_waning_parameters(measure='natural_waning_distribution').set_index('days')
+    antiviral_coverage = data_interface.load_antiviral_coverage(scenario='reference')['antiviral_coverage']
+    antiviral_rr = 1 - (antiviral_coverage * specification.rates_parameters.antiviral_effectiveness).rename('antiviral_rr')
 
     mortality_scalar = data_interface.load_total_covid_scalars(draw_id)['scalar']
     seroprevalence = data_interface.load_seroprevalence(draw_id=draw_id).reset_index()
@@ -103,8 +105,7 @@ def run_beta_fit(fit_version: str, measure: str, draw_id: int, progress_bar: boo
         measure=measure,
         rates=first_pass_rates,
         epi_measures=epi_measures,
-        antiviral_effectiveness=specification.rates_parameters.antiviral_effectiveness,
-        antiviral_maximum_access=specification.rates_parameters.antiviral_maximum_access,
+        antiviral_rr=antiviral_rr,
         rhos=rhos,
         vaccinations=vaccinations,
         etas=etas,
@@ -193,8 +194,7 @@ def run_beta_fit(fit_version: str, measure: str, draw_id: int, progress_bar: boo
         measure=measure,
         rates=second_pass_rates,
         epi_measures=epi_measures,
-        antiviral_effectiveness=specification.rates_parameters.antiviral_effectiveness,
-        antiviral_maximum_access=specification.rates_parameters.antiviral_maximum_access,
+        antiviral_rr=antiviral_rr,
         rhos=rhos,
         vaccinations=vaccinations,
         etas=etas,

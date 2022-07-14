@@ -1,5 +1,5 @@
 data:
-  seir_preprocess_version: '2022_07_12.01'
+  seir_preprocess_version: '2022_07_13.07'
   output_format: 'parquet'
   output_root: ''
   compare_version: '2022_06_09.01'
@@ -41,7 +41,6 @@ rates_parameters:
   minimum_asymptomatic_idr_fraction: 0.2
   maximum_asymptomatic_idr: 0.6
   antiviral_effectiveness: 0.9
-  antiviral_maximum_access: 0.8
 fit_parameters:
   omega_invasion_date: ''
   # Mixing parameter.  dS/dt = -beta * S * I ** alpha
