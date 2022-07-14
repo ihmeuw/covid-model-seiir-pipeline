@@ -311,7 +311,7 @@ def make_initial_condition(measure: str,
             loc_initial_condition.loc[loc_start_date, f'Infection_all_all_course_0_{risk_group}'] = new_e
             loc_initial_condition.loc[loc_start_date, f'Infection_all_all_all_{risk_group}'] = new_e
             loc_initial_condition.loc[loc_start_date, f'Infection_all_ancestral_all_{risk_group}'] = new_e
-            loc_initial_condition.loc[loc_start_date, f'I_unvaccinated_ancestral_{risk_group}'] = infectious
+            loc_initial_condition.loc[loc_start_date, f'I_course_0_ancestral_{risk_group}'] = infectious
             beta_measure = 'all' if measure == 'final' else measure
             loc_initial_condition.loc[loc_start_date, f'Beta_none_none_{beta_measure}_{risk_group}'] = beta_init
             loc_initial_condition.loc[loc_start_date, f'Beta_none_none_all_{risk_group}'] = beta_init
