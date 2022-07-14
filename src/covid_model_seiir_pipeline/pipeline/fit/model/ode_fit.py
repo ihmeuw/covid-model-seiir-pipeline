@@ -17,9 +17,6 @@ from covid_model_seiir_pipeline.lib.ode_mk2.constants import (
 from covid_model_seiir_pipeline.lib.ode_mk2 import (
     solver,
 )
-from covid_model_seiir_pipeline.lib import (
-    parallel,
-)
 from covid_model_seiir_pipeline.pipeline.fit.model.sampled_params import (
     Durations,
     sample_parameter,
@@ -351,9 +348,9 @@ def compute_posterior_epi_measures(compartments: pd.DataFrame,
     compartments_diff = compartments.groupby('location_id').diff().fillna(compartments)
     
     naive = compartments.filter(like='S_').filter(like='none').sum(axis=1).rename('naive')
-    naive_unvaccinated = compartments.filter(like='S_unvaccinated_none').sum(axis=1).rename('naive_unvaccinated')
+    naive_unvaccinated = compartments.filter(like='S_course_0_none').sum(axis=1).rename('naive_unvaccinated')
     
-    inf_map = {'Infection_none_all_unvaccinated': 'daily_naive_unvaccinated_infections',
+    inf_map = {'Infection_none_all_course_0': 'daily_naive_unvaccinated_infections',
                'Infection_none_all_all': 'daily_naive_infections',
                'Infection_all_all_all': 'daily_total_infections'}
     infections = []
@@ -372,7 +369,7 @@ def compute_posterior_epi_measures(compartments: pd.DataFrame,
     for ode_measure, rates_measure in measure_map.items():
         lag = durations._asdict()[f'exposure_to_{ode_measure.lower()}']
         daily_measure = (compartments_diff
-                         .filter(like=f'{ode_measure}_none_all_unvaccinated')
+                         .filter(like=f'{ode_measure}_none_all_course_0')
                          .sum(axis=1, min_count=1)
                          .groupby('location_id')
                          .shift(lag)
