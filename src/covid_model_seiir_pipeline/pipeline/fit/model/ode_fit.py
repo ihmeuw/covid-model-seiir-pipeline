@@ -302,13 +302,13 @@ def make_initial_condition(measure: str,
             susceptible = pop - new_e - infectious
             
             # Backfill everyone susceptible
-            loc_initial_condition.loc[:loc_start_date, f'S_unvaccinated_none_{risk_group}'] = pop
-            loc_initial_condition.loc[loc_start_date, f'S_unvaccinated_none_{risk_group}'] = susceptible
-            loc_initial_condition.loc[loc_start_date, f'E_unvaccinated_ancestral_{risk_group}'] = new_e
-            loc_initial_condition.loc[loc_start_date, f'Infection_none_ancestral_unvaccinated_{risk_group}'] = new_e
-            loc_initial_condition.loc[loc_start_date, f'Infection_none_all_unvaccinated_{risk_group}'] = new_e
+            loc_initial_condition.loc[:loc_start_date, f'S_course_0_none_{risk_group}'] = pop
+            loc_initial_condition.loc[loc_start_date, f'S_course_0_none_{risk_group}'] = susceptible
+            loc_initial_condition.loc[loc_start_date, f'E_course_0_ancestral_{risk_group}'] = new_e
+            loc_initial_condition.loc[loc_start_date, f'Infection_none_ancestral_course_0_{risk_group}'] = new_e
+            loc_initial_condition.loc[loc_start_date, f'Infection_none_all_course_0_{risk_group}'] = new_e
             loc_initial_condition.loc[loc_start_date, f'Infection_none_all_all_{risk_group}'] = new_e
-            loc_initial_condition.loc[loc_start_date, f'Infection_all_all_unvaccinated_{risk_group}'] = new_e
+            loc_initial_condition.loc[loc_start_date, f'Infection_all_all_course_0_{risk_group}'] = new_e
             loc_initial_condition.loc[loc_start_date, f'Infection_all_all_all_{risk_group}'] = new_e
             loc_initial_condition.loc[loc_start_date, f'Infection_all_ancestral_all_{risk_group}'] = new_e
             loc_initial_condition.loc[loc_start_date, f'I_unvaccinated_ancestral_{risk_group}'] = infectious
