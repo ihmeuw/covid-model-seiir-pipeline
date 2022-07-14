@@ -84,6 +84,7 @@ def prepare_ode_fit_parameters(measure: str,
 
 def prepare_past_infections_parameters(beta: pd.Series,
                                        rates: pd.DataFrame,
+                                       antiviral_rr: pd.DataFrame,
                                        durations: Durations,
                                        epi_measures: pd.DataFrame,
                                        rhos: pd.DataFrame,
@@ -97,6 +98,7 @@ def prepare_past_infections_parameters(beta: pd.Series,
     measures_and_rates, age_scalars = prepare_epi_measures_for_past_infections(
         epi_measures=epi_measures,
         epi_rates=rates,
+        antiviral_rr=antiviral_rr,
         durations=durations,
         hierarchy=hierarchy,
     )
@@ -182,7 +184,7 @@ def prepare_epi_measures_and_rates(measure: str,
         out_scalars.loc[:, f'{measure}_{risk_group}'] = (
             rates[f'{rate}_{risk_group}'] / rates[rate]
         )
-        if measure in ['death', 'admission'] and risk_group == 'hr':
+        if risk_group == 'hr':
             out_scalars.loc[:, f'{measure}_{risk_group}'] *= antiviral_rr
     out_data.loc[:, f'rate_all_{measure}'] = rates[rate]
 
@@ -191,6 +193,7 @@ def prepare_epi_measures_and_rates(measure: str,
 
 def prepare_epi_measures_for_past_infections(epi_measures: pd.DataFrame,
                                              epi_rates: pd.DataFrame,
+                                             antiviral_rr: pd.DataFrame,
                                              durations: Durations,
                                              hierarchy: pd.DataFrame):
     most_detailed = hierarchy[hierarchy.most_detailed == 1].location_id.unique().tolist()
@@ -213,6 +216,8 @@ def prepare_epi_measures_for_past_infections(epi_measures: pd.DataFrame,
         drop_cols = epi_scalars.columns
         for risk_group in RISK_GROUP_NAMES:
             epi_scalars.loc[:, f'{out_measure}_{risk_group}'] = epi_scalars[f'{rate}_{risk_group}'] / epi_scalars[rate]
+            if risk_group == 'hr':
+                epi_scalars.loc[:, f'{out_measure}_{risk_group}'] *= antiviral_rr.loc[:, f'{out_measure}_antiviral_rr']
         epi_scalars = epi_scalars.drop(columns=drop_cols)
 
         out_measures.append(epi_data)
@@ -456,7 +461,7 @@ def run_ode_fit(initial_condition: pd.DataFrame,
     )
     # Set all the forecast stuff to nan
     full_compartments.loc[full_compartments.sum(axis=1) == 0., :] = np.nan
-    
+
     betas = (full_compartments
              .filter(like='Beta_none_none')
              .filter(like='lr'))
@@ -467,7 +472,7 @@ def run_ode_fit(initial_condition: pd.DataFrame,
              .fillna(betas)
              .rename(columns=lambda x: f'beta_{x.split("_")[3]}')
              .rename(columns={'beta_all': 'beta'}))
-        
+
     # Can have a composite beta if we don't have measure betas
     no_beta = betas[[f'beta_{measure}' for measure in ['death', 'admission', 'case']]].isnull().all(axis=1)
     betas.loc[no_beta, 'beta'] = np.nan
