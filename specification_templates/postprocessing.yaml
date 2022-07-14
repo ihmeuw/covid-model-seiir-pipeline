@@ -2,9 +2,8 @@ data:
   seir_forecast_version: '2022_07_14.03'
   scenarios:
    - 'reference'
-#   - 'deltacron_optimistic'
-#   - 'best_masks'
-#   - 'global_antivirals'
+   - 'best_masks'
+   - 'global_antivirals'
   output_root: ''
 workflow:
   project: 'proj_covid_prod'

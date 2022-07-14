@@ -6,7 +6,7 @@ data:
   age_specific_rates_version: '2022_02_11.03'
   mortality_scalars_version: '2022_03_16.01'
   mask_use_outputs_version: '2022_07_07.01'
-  mobility_covariate_version: '2022_06_06.03'
+  mobility_covariate_version: '2022_07_11.01'
   pneumonia_version: '2020_06_12.03'
   population_density_version: '2020_05_20.07'
   testing_outputs_version: '2022_07_07.05'

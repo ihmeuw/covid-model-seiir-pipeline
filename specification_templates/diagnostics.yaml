@@ -11,15 +11,12 @@ grid_plots:
     - version: '2022_06_09.04'
       scenarios:
         reference*: 'public reference'
-    - version: '2022_07_12.01'
+    - version: '2022_07_14.03'
       scenarios:
-        reference*: 'antivirals 7/18-8/31'
-    - version: '2022_07_14.01'
+        reference*: 'reference'
+    - version: '2022_07_14.03'
       scenarios:
-        reference*: 'antivirals 2/01-5/01 (50% coverage)'
-    - version: '2022_07_14.02'
-      scenarios:
-        reference*: 'antivirals 2/01-5/01 (80% coverage)'
+        reference*: 'global antivirals'
   - name: '2021_oct2022'
     date_start: '2021-01-01'
     date_end: '2022-10-31'
@@ -27,12 +24,9 @@ grid_plots:
     - version: '2022_06_09.04'
       scenarios:
         reference*: 'public reference'
-    - version: '2022_07_12.01'
+    - version: '2022_07_14.03'
       scenarios:
-        reference*: 'antivirals 7/18-8/31'
-    - version: '2022_07_14.01'
+        reference*: 'reference'
+    - version: '2022_07_14.03'
       scenarios:
-        reference*: 'antivirals 2/01-5/01 (50% coverage)'
-    - version: '2022_07_14.02'
-      scenarios:
-        reference*: 'antivirals 2/01-5/01 (80% coverage)'
+        reference*: 'global antivirals'
