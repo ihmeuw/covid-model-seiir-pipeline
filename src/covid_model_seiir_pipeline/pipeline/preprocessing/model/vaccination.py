@@ -217,9 +217,9 @@ def build_vaccine_risk_reduction(eta_args: List,
     courses = etas.reset_index().vaccine_course.unique().tolist()
     risk_groups = etas.reset_index().risk_group.unique().tolist()
     etas = etas.unstack().unstack()
-    etas.columns = [f'vaccine_course_{vaccine_course}_{variant}_{risk_group}'
+    etas.columns = [f'course_{vaccine_course}_{variant}_{risk_group}'
                     for variant, risk_group, vaccine_course in etas.columns]
-    extras_cols = [f'vaccine_course_{c}_none_{g}' for c, g in
+    extras_cols = [f'course_{c}_none_{g}' for c, g in
                    itertools.product(courses, risk_groups)]
     etas.loc[:, extras_cols] = 0.
 

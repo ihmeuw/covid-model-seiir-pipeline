@@ -66,7 +66,7 @@ def run_preprocess_vaccine(preprocessing_version: str, scenario: str, progress_b
                   .sum(axis=1)
                   .unstack()
                   .unstack())
-        uptake.columns = [f'vaccine_course_{course}_{risk_group}' for risk_group, course in uptake]
+        uptake.columns = [f'course_{course}_{risk_group}' for risk_group, course in uptake]
 
         logger.info(f'Writing uptake and risk reductions for scenario {scenario}.', context='write')
         data_interface.save_vaccine_uptake(uptake, scenario=scenario)
