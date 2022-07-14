@@ -52,7 +52,6 @@ def run_preprocess_vaccine(preprocessing_version: str, scenario: str, progress_b
     else:
         logger.info(f'Loading uptake data for scenario {scenario}.', context='read')
         uptake = data_interface.load_raw_vaccine_uptake(scenario)
-
         logger.info(f'Broadcasting uptake data over shared index.', context='transform')
         uptake = model.make_uptake_square(uptake)
 
@@ -67,7 +66,7 @@ def run_preprocess_vaccine(preprocessing_version: str, scenario: str, progress_b
                   .sum(axis=1)
                   .unstack()
                   .unstack())
-        uptake.columns = ['vaccinations_hr', 'boosters_hr', 'vaccinations_lr', 'boosters_lr']
+        uptake.columns = [f'vaccine_course_{course}_{risk_group}' for risk_group, course in uptake]
 
         logger.info(f'Writing uptake and risk reductions for scenario {scenario}.', context='write')
         data_interface.save_vaccine_uptake(uptake, scenario=scenario)
