@@ -118,7 +118,7 @@ def build_model_parameters(indices: Indices,
                            vaccinations: pd.DataFrame,
                            etas: pd.DataFrame,
                            phis: pd.DataFrame,
-                           antiviral_rr: pd.Series,
+                           antiviral_rr: pd.DataFrame,
                            risk_group_population: pd.DataFrame,
                            hierarchy: pd.DataFrame) -> Parameters:
     ode_params = ode_parameters.reindex(indices.full).groupby('location_id').ffill().groupby('location_id').bfill()
@@ -154,13 +154,15 @@ def build_model_parameters(indices: Indices,
         # Get ratio based on fixed risk-group composition
         ratio = []
         for risk_group in RISK_GROUP_NAMES:
-            infections = (past_compartments_diff
-                          .loc[:, f'Infection_none_all_unvaccinated_{risk_group}']
+            _infections = (past_compartments_diff
+                           .loc[:, f'Infection_none_all_unvaccinated_{risk_group}']
+                           .reindex(indices.full))
+            _numerator = (past_compartments_diff
+                          .loc[:, f'{epi_measure.capitalize()}_none_all_unvaccinated_{risk_group}']
                           .reindex(indices.full))
-            numerator = (past_compartments_diff
-                         .loc[:, f'{epi_measure.capitalize()}_none_all_unvaccinated_{risk_group}']
-                         .reindex(indices.full))
-            ratio.append((numerator / infections) * risk_group_population[risk_group])
+            if risk_group == 'hr':
+                _numerator /= antiviral_rr.loc[_numerator.index, f'{epi_measure}_antiviral_rr']
+            ratio.append((_numerator / _infections) * risk_group_population[risk_group])
         ratio = sum(ratio)
         numerator = (ratio * infections).rename(epi_measure)
         prior_ratio = prior_ratios.loc[:, ratio_name].groupby('location_id').last()
@@ -179,16 +181,15 @@ def build_model_parameters(indices: Indices,
         for risk_group in RISK_GROUP_NAMES:
             scalar = (
                 (prior_ratios[f'{ratio_name}_{risk_group}'] / prior_ratios[ratio_name])
-                .rename(f'{epi_measure}_{risk_group}')
                 .reindex(indices.full)
                 .groupby('location_id')
                 .ffill()
                 .groupby('location_id')
                 .bfill()
             )
-            if ratio_name in ['ifr', 'ihr'] and risk_group == 'hr':
-                scalar *= antiviral_rr
-            scalars.append(scalar)
+            if risk_group == 'hr':
+                scalar *= antiviral_rr.loc[scalar.index, f'{epi_measure}_antiviral_rr']
+            scalars.append(scalar.rename(f'{epi_measure}_{risk_group}'))
     scalars = pd.concat(scalars, axis=1)
 
     vaccinations = vaccinations.reindex(indices.full, fill_value=0.)
