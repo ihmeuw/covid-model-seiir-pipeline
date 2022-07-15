@@ -45,6 +45,7 @@ def rescale_kappas(
             'alpha': [
                 (   33,  3.0),  # Armenia
                 (   37,  6.0),  # Kyrgyzstan
+                (   55, 0.75),  # Slovenia
                 (   61,  4.0),  # Moldova
                 (  114, 0.25),  # Haiti
                 (  121,  3.0),  # Bolivia
@@ -81,12 +82,13 @@ def rescale_kappas(
                 (  136,  0.5),  # Paraguay
             ],
             'delta': [
-                (   33,  3.0),  # Armenia
+                (   33,  2.0),  # Armenia
                 (   34,  3.0),  # Azerbaijan
                 (   37,  6.0),  # Kyrgyzstan
                 (   38,  3.0),  # Mongolia
                 (   43,  3.0),  # Albania
                 (   50,  2.0),  # Montenegro
+                (   55, 0.75),  # Slovenia
                 (   61,  2.0),  # Moldova
                 (   62,  2.0),  # Russia
                 (  106,  0.5),  # Bahamas
@@ -155,25 +157,24 @@ def rescale_kappas(
                 (  210,  2.5),  # Liberia
             ],
             'omicron': [
-                (   33,  1.5),  # Armenia
+                (   33, 1.25),  # Armenia
                 (   34,  3.0),  # Azerbaijan
                 (   35,  2.5),  # Georgia
-                (   36,  0.5),  # Kazakhstan
-                (   37,  5.0),  # Kyrgyzstan
-                (   38,  4.0),  # Mongolia
-                (   41, 0.25),  # Uzbekistan
-                (   43,  3.0),  # Albania
+                (   36, 0.75),  # Kazakhstan
+                (   37,  6.0),  # Kyrgyzstan
+                (   38,  3.0),  # Mongolia
+                (   41,  0.4),  # Uzbekistan
+                (   43,  4.0),  # Albania
                 (   46,  1.5),  # Croatia
-                (   50,  2.0),  # Montenegro
-                (   49,  0.8),  # North Macedonia
+                (   50,  3.0),  # Montenegro
                 (   51,  2.0),  # Poland
                 (   53,  1.5),  # Serbia
-                (   54,  0.8),  # Slovakia
-                (   57,  0.5),  # Belarus
+                (   54,  0.5),  # Slovakia
+                (   55, 0.75),  # Slovenia
                 (   58,  2.0),  # Estonia
-                (   59,  2.0),  # Latvia
+                (   59,  3.0),  # Latvia
                 (   60,  3.0),  # Lithuania
-                (   61,  2.5),  # Moldova
+                (   61,  2.0),  # Moldova
                 (   62,  5.0),  # Russia
                 (   68,  3.0),  # Republic of Korea
                 (   69, 0.75),  # Singapore
@@ -446,8 +447,9 @@ def rescale_kappas(
             ],
             'omicron': [
                 (   46,  2.0),  # Croatia
-                (   47,  3.0),  # Czechia
+                (   47,  4.0),  # Czechia
                 (   51,  0.5),  # Poland
+                (   58,  1.5),  # Estonia
                 (43858,  2.0),  # Alberta
                 (43860,  4.0),  # Manitoba
                 (  528,  1.2),  # Colorado
@@ -561,7 +563,8 @@ def rescale_kappas(
     if measure == 'death':
         ifr_scaling_factors = {
             'ancestral': [
-                (   34,  2.0),  # Azerbaijan
+                (   34,  2.0),  # Azerbajian
+                (   35,  1.5),  # Georgia
                 (   37,  3.0),  # Kyrgyzstan
                 (  121,  3.0),  # Bolivia
                 ( 4647,  2.0),  # Coahuila
@@ -576,6 +579,7 @@ def rescale_kappas(
                 (   43,  5.0),  # Albania
                 (   45,  3.0),  # Bulgaria
                 (   49,  3.0),  # North Macedonia
+                (   55, 0.75),  # Slovenia
                 (  562,  0.5),  # Rhode Island
                 (   77, 0.75),  # Cyprus
                 (  121,  3.0),  # Bolivia
@@ -612,8 +616,8 @@ def rescale_kappas(
             ],
             'delta': [
                 (   33,  3.0),  # Armenia
-                (   34,  3.0),  # Azerbaijan
-                (   35,  3.0),  # Georgia
+                (   34,  4.0),  # Azerbaijan
+                (   35,  4.0),  # Georgia
                 (   36, 10.0),  # Kazakhstan
                 (   37,  2.0),  # Kyrgyzstan
                 (   38,  2.0),  # Mongolia
@@ -621,6 +625,7 @@ def rescale_kappas(
                 (   43,  5.0),  # Albania
                 (   45,  3.0),  # Bulgaria
                 (   49,  3.0),  # North Macedonia
+                (   55, 0.75),  # Slovenia
                 (   57,  5.0),  # Belarus
                 (   59,  2.0),  # Latvia
                 (   60,  2.0),  # Lithuania
@@ -708,28 +713,29 @@ def rescale_kappas(
             ],
             'omicron': [
                 (   33,  8.0),  # Armenia
-                (   34, 10.0),  # Azerbaijan
-                (   35, 20.0),  # Georgia
+                (   34, 12.0),  # Azerbaijan
+                (   35, 24.0),  # Georgia
                 (   36, 10.0),  # Kazakhstan
-                (   37,  2.0),  # Kyrgyzstan
-                (   38,  2.0),  # Mongolia
-                (   41,  3.0),  # Uzbekistan
-                (   43, 10.0),  # Albania
-                (   44, 10.0),  # Bosnia and Herzegovina
-                (   45, 10.0),  # Bulgaria
+                (   37,  3.0),  # Kyrgyzstan
+                (   38,  1.5),  # Mongolia
+                (   41,  2.5),  # Uzbekistan
+                (   43,  8.0),  # Albania
+                (   44,  8.0),  # Bosnia and Herzegovina
+                (   45,  8.0),  # Bulgaria
                 (   46,  4.0),  # Croatia
-                (   47,  4.0),  # Czechia
-                (   48,  3.0),  # Hungary
-                (   49, 15.0),  # North Macedonia
+                (   47,  3.0),  # Czechia
+                (   48,  4.0),  # Hungary
+                (   49, 18.0),  # North Macedonia
                 (   51,  3.0),  # Poland
-                (   52,  3.0),  # Romania
-                (   53,  4.0),  # Serbia
-                (   54,  3.0),  # Slovakia
-                (   57, 10.0),  # Belarus
-                (   58,  2.0),  # Estonia
-                (   59,  8.0),  # Latvia
-                (   60,  4.0),  # Lithuania
-                (   61,  2.0),  # Moldova
+                (   52,  4.0),  # Romania
+                (   53,  5.0),  # Serbia
+                (   54,  5.0),  # Slovakia
+                (   55, 0.75),  # Slovenia
+                (   57, 15.0),  # Belarus
+                (   58,  1.5),  # Estonia
+                (   59,  6.0),  # Latvia
+                (   60,  6.0),  # Lithuania
+                (   61,  3.0),  # Moldova
                 (   68,  3.0),  # Republic of Korea
                 (   69, 0.75),  # Singapore
                 (43860,  3.0),  # Manitoba
