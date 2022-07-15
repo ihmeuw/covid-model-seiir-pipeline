@@ -35,8 +35,17 @@ def rescale_kappas(
                 (   61,  2.0),  # Moldova
                 (  114, 0.25),  # Haiti
                 ( 4647,  2.0),  # Coahuila
-                ( 4753,  1.5),  # Amapa
+                ( 4658, 0.75),  # Michoacan de Ocampo
+                ( 4659, 0.75),  # Morelos
+                ( 4751, 10.0),  # Alagoas
+                ( 4753, 10.0),  # Amapa
+                ( 4756,  5.0),  # Distrito Federal
+                ( 4752,  0.5),  # Amazonas
                 ( 4759,  0.5),  # Maranhao
+                ( 4762, 10.0),  # Mato Grosso
+                ( 4761, 10.0),  # Mato Grosso do Sul
+                ( 4763, 10.0),  # Para
+                ( 4768,  2.5),  # Rio de Janeiro
                 (  153,  0.5),  # Syrian Arab Republic
                 (  168, 1.25),  # Angola
                 (  200,  0.5),  # Benin
@@ -245,49 +254,53 @@ def rescale_kappas(
                 (  433,  0.6),  # Northern Ireland
                 ( 4636,  0.5),  # Wales
                 (  105,  0.5),  # Antigua and Barbuda
-                (  106,  0.5),  # Bahamas
+                (  106,  0.4),  # Bahamas
                 (  107,  0.5),  # Barbados
-                (  108,  0.5),  # Belize
-                (  305,  0.5),  # Bermuda
+                (  108, 0.75),  # Belize
+                (  305,  0.4),  # Bermuda
                 (  109,  0.1),  # Cuba
                 (  110, 0.25),  # Dominica
                 (  111,  0.4),  # Dominican Republic
-                (  112, 0.75),  # Grenada
-                (  113, 0.25),  # Guyana
+                (  112,  0.5),  # Grenada
+                (  113,  0.4),  # Guyana
                 (  114, 0.01),  # Haiti
                 (  115,  0.1),  # Jamaica
-                (  385,  0.5),  # Puerto Rico
+                (  385, 0.75),  # Puerto Rico
+                (  119, 0.75),  # Trinidad and Tobago
                 (  121,  4.0),  # Bolivia
                 (  122,  1.5),  # Ecuador
                 (  125,  0.5),  # Colombia
-                (  127, 0.25),  # El Salvador
-                (  128, 0.75),  # Guatemala
+                (  127,  0.4),  # El Salvador
+                (  128,  0.8),  # Guatemala
                 (  129, 0.25),  # Honduras
                 ( 4644,  2.0),  # Baja California
+                ( 4645, 1.25),  # Baja California Sur
+                ( 4646, 0.75),  # Campeche
+                ( 4649, 0.75),  # Chiapas
                 ( 4650,  0.5),  # Chihuahua
                 ( 4647,  2.0),  # Coahuila
                 ( 4653,  2.0),  # Guanajuato
                 ( 4654,  0.4),  # Guerrero
                 ( 4656, 0.75),  # Jalisco
-                ( 4651, 1.25),  # Mexico city
+                ( 4651,  1.5),  # Mexico city
                 ( 4658,  0.2),  # Michoacan de Ocampo
                 ( 4659,  0.5),  # Morelos
                 ( 4662,  0.6),  # Oaxaca
                 ( 4664,  0.6),  # Queretaro
-                ( 4665,  3.0),  # Quintana Roo
+                ( 4665,  4.0),  # Quintana Roo
                 ( 4667,  1.5),  # Sinaloa
-                ( 4669, 2.75),  # Tabasco
-                ( 4673,  4.0),  # Yucatan
+                ( 4669,  3.0),  # Tabasco
+                ( 4671, 1.25),  # Tlaxcala
+                ( 4673,  5.0),  # Yucatan
                 ( 4674,  0.6),  # Zacatecas
                 ( 4750,  0.8),  # Acre
                 ( 4751,  0.6),  # Alagoas
                 ( 4753,  1.8),  # Amapa
-                ( 4752, 0.01),  # Amazonas
+                ( 4752,  0.1),  # Amazonas
                 ( 4754,  0.5),  # Bahia
                 ( 4755, 0.25),  # Ceara
                 ( 4756,  1.6),  # Distrito Federal
                 ( 4757, 10.0),  # Espirito Santo
-                ( 4758,  0.8),  # Goias
                 ( 4759, 0.05),  # Maranhao
                 ( 4762,  4.0),  # Mato Grosso
                 ( 4761,  4.0),  # Mato Grosso do Sul
@@ -299,11 +312,11 @@ def rescale_kappas(
                 ( 4767, 0.25),  # Piaui
                 ( 4768,  2.0),  # Rio de Janeiro
                 ( 4769,  0.6),  # Rio Grande do Norte
-                ( 4771, 1.25),  # Roraima
-                # ( 4775,  0.5),  # Sao Paolo
+                ( 4771,  1.5),  # Roraima
+                ( 4775, 0.75),  # Sao Paolo
                 ( 4774,  0.1),  # Sergipe
-                ( 4776,  0.6),  # Tocantins
-                (  136, 0.25),  # Paraguay
+                ( 4776, 0.75),  # Tocantins
+                (  136,  0.4),  # Paraguay
                 (  160, 0.25),  # Afghanistan
                 (  139,0.005),  # Algeria
                 (  140,  1.5),  # Bahrain
@@ -439,6 +452,7 @@ def rescale_kappas(
         ihr_scaling_factors = {
             'ancestral': [
                 ( 4647,  2.0),  # Coahuila
+                ( 4653,  1.5),  # Guanajuato
                 ( 4754,  0.5),  # Bahia
             ],
             'alpha': [
@@ -528,17 +542,17 @@ def rescale_kappas(
                 ( 4749, 1.25),  # England
                 (  433,  0.6),  # Northern Ireland
                 (  434,  1.2),  # Scotland
-                (  385,  0.5),  # Puerto Rico
+                (  385, 0.75),  # Puerto Rico
                 (  126,  3.0),  # Costa Rica
                 ( 4643, 0.75),  # Aguascalientes
-                ( 4644,  2.5),  # Baja California
-                ( 4645,  1.5),  # Baja California Sur
+                ( 4644,  2.0),  # Baja California
+                ( 4645, 1.75),  # Baja California Sur
                 ( 4646,  0.5),  # Campeche
                 ( 4755,  0.5),  # Ceara
-                ( 4649, 0.25),  # Chiapas
-                ( 4650,  0.5),  # Chihuahua
-                ( 4647, 1.75),  # Coahuila
-                ( 4648,  0.5),  # Colima
+                ( 4649,  0.4),  # Chiapas
+                ( 4650,  0.4),  # Chihuahua
+                ( 4647,  1.5),  # Coahuila
+                ( 4648,  0.4),  # Colima
                 ( 4652,  3.5),  # Durango
                 ( 4653,  3.5),  # Guanajuato
                 ( 4654,  0.5),  # Guerrero
@@ -555,7 +569,7 @@ def rescale_kappas(
                 ( 4666, 0.75),  # San Luis Potosi
                 ( 4669,  2.0),  # Tabasco
                 ( 4670,  2.0),  # Tamaulipas
-                ( 4673, 2.25),  # Yucatan
+                ( 4673,  2.5),  # Yucatan
                 ( 4674, 0.75),  # Zacatecas
                 ( 4750,  0.8),  # Acre
                 ( 4751,  0.4),  # Alagoas
@@ -577,7 +591,8 @@ def rescale_kappas(
                 ( 4770,  0.6),  # Rondonia
                 ( 4771,  0.4),  # Roraima
                 ( 4773,  0.8),  # Santa Catarina
-                ( 4774,  0.4),  # Sergipe
+                ( 4775,  0.8),  # Sao Paolo
+                ( 4774, 0.25),  # Sergipe
                 ( 4776,  0.4),  # Tocantins
                 (  151, 1.25),  # Qatar
                 (  196,  2.0),  # South Africa
@@ -602,11 +617,17 @@ def rescale_kappas(
                 (   35,  1.5),  # Georgia
                 (   37,  3.0),  # Kyrgyzstan
                 (  121,  3.0),  # Bolivia
+                (  125, 0.75),  # Colombia
+                (  126,  0.5),  # Costa Rica
                 ( 4647,  2.0),  # Coahuila
+                (  133, 0.25),  # Venezuela
                 (  168,  2.0),  # Angola
                 (  169,  2.0),  # Central African Republic
                 (  197,  1.5),  # Eswatini
                 (  206,  1.5),  # Gambia
+            ],
+            'other': [
+                (  125, 0.75),  # Colombia
             ],
             'alpha': [
                 (   34,  3.0),  # Azerbaijan
@@ -643,6 +664,7 @@ def rescale_kappas(
             'gamma': [
                 (   77, 0.75),  # Cyprus
                 (  121,  3.0),  # Bolivia
+                (  133, 0.25),  # Venezuela
                 ( 4753,  2.0),  # Amapa
                 ( 4752,  1.5),  # Amazonas
                 ( 4751,  0.8),  # Alagoas
@@ -683,12 +705,15 @@ def rescale_kappas(
                 (  118,  2.0),  # Suriname
                 (  119,  1.5),  # Trinidad and Tobago
                 (  121,  5.0),  # Bolivia
+                (  125, 0.75),  # Colombia
+                (  126,  0.5),  # Costa Rica
                 (  129,  2.0),  # Honduras
                 ( 4644,  2.0),  # Baja California
                 ( 4647,  2.0),  # Coahuila
                 ( 4655,  2.0),  # Hidalgo
                 ( 4651,  2.0),  # Mexico city
                 ( 4673,  2.0),  # Yucatan
+                (  133, 0.25),  # Venezuela
                 ( 4751,  0.8),  # Alagoas
                 ( 4753,  2.0),  # Amapa
                 ( 4752, 1.25),  # Amazonas
@@ -861,19 +886,28 @@ def rescale_kappas(
                 (  433,  0.4),  # Northern Ireland
                 (  434,  0.6),  # Scotland
                 ( 4636,  0.4),  # Wales
-                (  105,  0.5),  # Antigua and Barbuda
+                (  121, 0.75),  # Bolivia
+                (  122,  1.5),  # Ecuador
+                (  123, 1.25),  # Peru
+                (  105, 0.75),  # Antigua and Barbuda
+                (  106, 1.25),  # Bahamas
+                (  107,  2.0),  # Barbados
+                (  108, 1.75),  # Belize
+                (  305,  1.5),  # Bermuda
                 (  109, 0.25),  # Cuba
                 (  111,  0.3),  # Dominican Republic
-                (  122,  2.0),  # Ecuador
-                (  108,  1.5),  # Belize
-                (  112,  3.0),  # Grenada
+                (  112,  4.0),  # Grenada
                 (  113,  3.0),  # Guyana
                 (  114, 1.25),  # Haiti
-                (  385,  0.5),  # Puerto Rico
+                (  115, 1.25),  # Jamaica
+                (  385, 0.75),  # Puerto Rico
                 (  118,  2.0),  # Suriname
-                (  119,  2.0),  # Trinidad and Tobago
+                (  119,  2.5),  # Trinidad and Tobago
                 (  422,  2.0),  # US Virgin Islands
                 (  121,  7.0),  # Bolivia
+                (  125, 0.75),  # Colombia
+                (  126, 0.75),  # Costa Rica
+                (  127, 1.25),  # El Salvador
                 (  129,  3.0),  # Honduras
                 ( 4643,  1.5),  # Aguascalientes
                 ( 4644,  5.0),  # Baja California
@@ -900,32 +934,34 @@ def rescale_kappas(
                 ( 4672,  1.5),  # Veracruz de Ignacio de la Llave
                 ( 4673, 2.75),  # Yucatan
                 ( 4674, 1.25),  # Zacatecas
+                (  133, 0.25),  # Venezuela
                 ( 4750, 1.75),  # Acre
                 ( 4753,  1.5),  # Amapa
                 ( 4752,  0.8),  # Amazonas
                 ( 4754,  1.2),  # Bahia
                 ( 4755, 2.75),  # Ceara
                 ( 4756,  2.0),  # Distrito Federal
-                ( 4757, 2.75),  # Espirito Santo
+                ( 4757,  2.5),  # Espirito Santo
                 ( 4758,  2.5),  # Goias
                 ( 4759,  1.6),  # Maranhao
                 ( 4762,  1.8),  # Mato Grosso
                 ( 4761,  1.8),  # Mato Grosso do Sol
                 ( 4760,  1.5),  # Minas Gerais
                 ( 4763,  1.2),  # Para
-                ( 4764,  0.6),  # Paraiba
-                ( 4765,  1.2),  # Parana
-                ( 4766,  1.2),  # Pernambuco
+                ( 4764, 0.75),  # Paraiba
+                ( 4765,  1.5),  # Parana
+                ( 4766,  1.5),  # Pernambuco
                 ( 4767,  0.8),  # Piaui
                 ( 4769,  0.8),  # Rio Grande do Norte
                 ( 4772,  0.6),  # Rio Grande do Sul
                 ( 4768,  1.5),  # Rio de Janeiro
                 ( 4770,  4.0),  # Rondonia
                 ( 4771,  2.0),  # Roraima
-                # ( 4775,  2.2),  # Sao Paolo
+                ( 4773, 1.25),  # Santa Catarina
+                ( 4775,  2.0),  # Sao Paolo
                 ( 4774,  0.5),  # Sergipe
                 ( 4776,  1.5),  # Tocantins
-                (  136,  5.0),  # Paraguay
+                (  136,  4.0),  # Paraguay
                 (  160,  5.0),  # Afghanistan
                 (  139,  0.1),  # Algeria
                 (  140,  1.5),  # Bahrain
