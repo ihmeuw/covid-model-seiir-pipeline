@@ -11,6 +11,9 @@ grid_plots:
     - version: '2022_06_09.04'
       scenarios:
         reference*: 'public reference'
+    - version: '2022_07_12.01'
+      scenarios:
+        reference*: 'new data only'
     - version: '2022_07_14.03'
       scenarios:
         reference*: 'reference'
@@ -23,6 +26,9 @@ grid_plots:
     - version: '2022_06_09.04'
       scenarios:
         reference*: 'public reference'
+    - version: '2022_07_12.01'
+      scenarios:
+        reference*: 'new data only'
     - version: '2022_07_14.03'
       scenarios:
         reference*: 'reference'
