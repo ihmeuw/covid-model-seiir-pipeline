@@ -86,6 +86,10 @@ MEASURES = {}
 
 
 for measure in ['infections', 'deaths', 'cases', 'admissions']:
+    _vax_map = {VACCINE_STATUS_NAMES.course_0: 'unvaccinated',
+                VACCINE_STATUS_NAMES.course_1: 'vaccinated',
+                VACCINE_STATUS_NAMES.course_2: 'booster',
+                VACCINE_STATUS_NAMES.course_3: 'second_booster'}
     for suffix in list(VARIANT_NAMES[1:]) + list(RISK_GROUP_NAMES) + list(VACCINE_STATUS_NAMES) + ['total', 'naive', 'naive_unvaccinated']:
         measure_suffix = f'_{suffix}'
         label_suffix = f'_{suffix}' if suffix != 'total' else ''
