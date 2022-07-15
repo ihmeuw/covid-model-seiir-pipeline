@@ -62,9 +62,11 @@ def rescale_kappas(
                 (  114, 0.25),  # Haiti
                 (  121,  3.0),  # Bolivia
                 (  139, 0.25),  # Algeria
+                (  146, 0.75),  # Lebanon
+                (  150, 0.75),  # Oman
                 (  522,  0.1),  # Sudan
                 (  153,  0.1),  # Syrian Arab Republic
-                # (  156,  0.5),  # United Arab Emirates
+                (  156, 0.75),  # United Arab Emirates
                 (  157, 0.25),  # Yemen
                 (   15, 0.75),  # Myanmar
                 (  168, 1.25),  # Angola
@@ -129,13 +131,15 @@ def rescale_kappas(
                 ( 4764,  3.0),  # Paraiba
                 ( 4771,  2.0),  # Roraima
                 (  136,  0.5),  # Paraguay
-                (  139,  0.1),  # Algeria
+                (  139, 0.25),  # Algeria
+                (  146, 0.75),  # Lebanon
                 (  147,  2.0),  # Libya
+                (  150, 0.75),  # Oman
                 (  151,  0.1),  # Qatar
                 (  152, 0.25),  # Saudi Arabia
                 (  522,  0.1),  # Sudan
                 (  153,  0.1),  # Syrian Arab Republic
-                # (  156,  0.5),  # United Arab Emirates
+                (  156, 0.75),  # United Arab Emirates
                 (  157, 0.05),  # Yemen
                 (  161,  2.0),  # Bangladesh
                 ( 4842,  2.0),  # Arunachal Pradesh
@@ -322,18 +326,20 @@ def rescale_kappas(
                 (  140,  1.5),  # Bahrain
                 (  141,  0.5),  # Egypt
                 (  142,  0.3),  # Iran
-                (  143,  0.5),  # Iraq
+                (  143,  0.3),  # Iraq
                 (  144,  2.0),  # Jordan
                 (  145, 0.75),  # Kuwait
+                (  146, 0.75),  # Lebanon
                 (  147,  1.1),  # Libya
                 (  148,  0.5),  # Morocco
                 (  150,  0.5),  # Oman
                 (  151, 0.03),  # Qatar
-                (  152, 0.02),  # Saudi Arabia
+                (  152, 0.03),  # Saudi Arabia
                 (  522, 0.02),  # Sudan
                 (  153,0.005),  # Syrian Arab Republic
-                (  155,  2.0),  # Turkey
-                (  156,  0.1),  # United Arab Emirates (0.06)
+                (  154, 0.75),  # Tunisia
+                (  155,  1.5),  # Turkey
+                (  156, 0.15),  # United Arab Emirates
                 ( 157,0.0015),  # Yemen
                 (  161,  1.5),  # Bangladesh
                 ( 4841,  0.4),  # Andhra Pradesh
@@ -460,6 +466,7 @@ def rescale_kappas(
                 (43866, 0.75),  # Ontario
                 (  544,  2.0),  # Massachusetts
                 (   78, 0.75),  # Denmark
+                (  150, 0.75),  # Oman
             ],
             'gamma': [
                 ( 4752,  1.5),  # Amazonas
@@ -480,6 +487,7 @@ def rescale_kappas(
                 ( 4754,  0.6),  # Bahia
                 ( 4755,  0.6),  # Ceara
                 ( 4759,  2.0),  # Maranhao
+                (  150, 0.75),  # Oman
             ],
             'omicron': [
                 (   46,  2.0),  # Croatia
@@ -621,6 +629,7 @@ def rescale_kappas(
                 (  126,  0.5),  # Costa Rica
                 ( 4647,  2.0),  # Coahuila
                 (  133, 0.25),  # Venezuela
+                (  155,  0.3),  # Turkey
                 (  168,  2.0),  # Angola
                 (  169,  2.0),  # Central African Republic
                 (  197,  1.5),  # Eswatini
@@ -646,6 +655,7 @@ def rescale_kappas(
                 (  139,  0.5),  # Algeria
                 (  141,  2.0),  # Egypt
                 (  143,  2.0),  # Iraq
+                (  146, 0.75),  # Lebanon
                 (   15, 0.75),  # Myanmar
                 (  168,  2.0),  # Angola
                 (  187,  5.0),  # Somalia
@@ -728,6 +738,7 @@ def rescale_kappas(
                 (  139,  0.5),  # Algeria
                 (  141,  2.0),  # Egypt
                 (  143,  2.0),  # Iraq
+                (  146, 0.75),  # Lebanon
                 (  147,  2.0),  # Libya
                 (  148,  2.0),  # Morocco
                 (  151,  2.0),  # Qatar
@@ -969,17 +980,17 @@ def rescale_kappas(
                 (  143,  2.0),  # Iraq
                 (  144,  3.0),  # Jordan
                 (  145, 0.25),  # Kuwait
-                (  146,  3.0),  # Lebanon
+                (  146,  2.5),  # Lebanon
                 (  147,  2.5),  # Libya
-                (  148,  2.5),  # Morocco
+                (  148,  2.0),  # Morocco
                 (  149,  5.0),  # Palestine
-                (  151,  4.0),  # Qatar
+                (  151,  3.0),  # Qatar
                 (  152,  0.2),  # Saudi Arabia
                 (  522,  2.0),  # Sudan
                 (  153, 0.25),  # Syrian Arab Republic
                 (  154,  5.0),  # Tunisia
                 (  155,  2.0),  # Turkey
-                (  156,  0.5),  # United Arab Emirates (0.75)
+                (  156,  0.5),  # United Arab Emirates
                 (  157,  2.0),  # Yemen
                 (  162,  2.0),  # Bhutan
                 ( 4841,  0.4),  # Andhra Pradesh
