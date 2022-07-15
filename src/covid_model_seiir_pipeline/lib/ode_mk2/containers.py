@@ -12,6 +12,7 @@ from covid_model_seiir_pipeline.lib.ode_mk2.constants import (
     RISK_GROUP_NAMES,
     PARAMETERS_NAMES,
     AGE_SCALARS_NAMES,
+    VACCINE_STATUS_NAMES,
     ETA_NAMES,
     CHI_NAMES,
 )
@@ -27,7 +28,7 @@ class Parameters:
                  phis: pd.DataFrame):
         self.base_parameters = base_parameters.loc[:, PARAMETERS_NAMES]
 
-        field_names = self._make_risk_group_fields(['vaccinations', 'boosters'])
+        field_names = self._make_risk_group_fields(VACCINE_STATUS_NAMES[1:])
         self.vaccinations = vaccinations.loc[:, field_names]
 
         field_names = self._make_risk_group_fields(AGE_SCALARS_NAMES)

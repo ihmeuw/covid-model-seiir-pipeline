@@ -136,7 +136,9 @@ def build_eta_calc_arguments(vaccine_uptake: pd.DataFrame,
                              waning_efficacy: pd.DataFrame,
                              progress_bar: bool) -> List:
     location_ids = vaccine_uptake.reset_index().location_id.unique()
-    groups = itertools.product(location_ids, [1, 2], ['hr', 'lr'])
+    courses = vaccine_uptake.reset_index().vaccine_course.unique()
+    risk_groups = vaccine_uptake.reset_index().risk_group.unique()
+    groups = itertools.product(location_ids, courses, risk_groups)
     eta_args = []
 
     infection_efficacy = waning_efficacy.loc['infection']
@@ -211,14 +213,14 @@ def build_vaccine_risk_reduction(eta_args: List,
         ['vaccine_course', 'endpoint', 'risk_group', 'location_id', 'date']))
     etas = (pd.concat([etas, etas_unvax])
             .reorder_levels(
-        ['endpoint', 'location_id', 'date', 'vaccine_course', 'risk_group'])
-            .unstack()
-            .unstack())
-    vax_map = {0: 'unvaccinated', 1: 'vaccinated', 2: 'booster'}
-    etas.columns = [f'{vax_map[vaccine_course]}_{variant}_{risk_group}'
+        ['endpoint', 'location_id', 'date', 'vaccine_course', 'risk_group']))
+    courses = etas.reset_index().vaccine_course.unique().tolist()
+    risk_groups = etas.reset_index().risk_group.unique().tolist()
+    etas = etas.unstack().unstack()
+    etas.columns = [f'course_{vaccine_course}_{variant}_{risk_group}'
                     for variant, risk_group, vaccine_course in etas.columns]
-    extras_cols = [f'{c}_none_{g}' for c, g in
-                   itertools.product(vax_map.values(), ['lr', 'hr'])]
+    extras_cols = [f'course_{c}_none_{g}' for c, g in
+                   itertools.product(courses, risk_groups)]
     etas.loc[:, extras_cols] = 0.
 
     risk_reductions = []

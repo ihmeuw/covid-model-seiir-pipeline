@@ -30,9 +30,10 @@ BETA_MAP = ((AGG_INDEX_TYPE.all, EPI_MEASURE.infection),
             (AGG_INDEX_TYPE.death, EPI_MEASURE.death),
             (AGG_INDEX_TYPE.admission, EPI_MEASURE.admission),
             (AGG_INDEX_TYPE.case, EPI_MEASURE.case))
-VACCINE_STATUS_MAP = ((AGG_INDEX_TYPE.unvaccinated, VACCINE_STATUS.unvaccinated),
-                      (AGG_INDEX_TYPE.vaccinated, VACCINE_STATUS.vaccinated),
-                      (AGG_INDEX_TYPE.booster, VACCINE_STATUS.booster))
+VACCINE_STATUS_MAP = ((AGG_INDEX_TYPE.course_0, VACCINE_STATUS.course_0),
+                      (AGG_INDEX_TYPE.course_1, VACCINE_STATUS.course_1),
+                      (AGG_INDEX_TYPE.course_2, VACCINE_STATUS.course_2),
+                      (AGG_INDEX_TYPE.course_3, VACCINE_STATUS.course_3),)
 EPI_MEASURE_MAP = ((TRACKING_COMPARTMENT.Infection, EPI_MEASURE.infection),
                    (TRACKING_COMPARTMENT.Death, EPI_MEASURE.death),
                    (TRACKING_COMPARTMENT.Admission, EPI_MEASURE.admission),
@@ -62,7 +63,7 @@ def compute_tracking_compartments(t: float,
                 measure = infections * rate
                 if variant_from == VARIANT.none:
                     dy[TRACKING_COMPARTMENTS[tc, VARIANT.none, VARIANT_GROUP.all, AGG_INDEX_TYPE.all]] += measure
-                    if vaccine_status == VACCINE_STATUS.unvaccinated:
+                    if vaccine_status == VACCINE_STATUS.course_0:
                         dy[TRACKING_COMPARTMENTS[tc, variant_from, VARIANT_GROUP.all, agg_vaccine_status]] += measure
                         dy[TRACKING_COMPARTMENTS[tc, variant_from, variant_to, agg_vaccine_status]] += measure
                 dy[TRACKING_COMPARTMENTS[tc, VARIANT_GROUP.all, VARIANT_GROUP.all, AGG_INDEX_TYPE.all]] += measure
@@ -71,15 +72,20 @@ def compute_tracking_compartments(t: float,
 
     tc_vax = TRACKING_COMPARTMENT.Vaccination
     tc_boost = TRACKING_COMPARTMENT.Booster
+    tc_boost2 = TRACKING_COMPARTMENT.SecondBooster
     tc_effs = TRACKING_COMPARTMENT.EffectiveSusceptible
     for variant in VARIANT:
-        dy[TRACKING_COMPARTMENTS[tc_vax, VARIANT_GROUP.all, VARIANT_GROUP.all, AGG_INDEX_TYPE.unvaccinated]] += (
-            transition_map[COMPARTMENTS[COMPARTMENT.S, VACCINE_STATUS.unvaccinated, variant],
-                           COMPARTMENTS[COMPARTMENT.S, VACCINE_STATUS.vaccinated, variant]]
+        dy[TRACKING_COMPARTMENTS[tc_vax, VARIANT_GROUP.all, VARIANT_GROUP.all, AGG_INDEX_TYPE.course_0]] += (
+            transition_map[COMPARTMENTS[COMPARTMENT.S, VACCINE_STATUS.course_0, variant],
+                           COMPARTMENTS[COMPARTMENT.S, VACCINE_STATUS.course_1, variant]]
         )
-        dy[TRACKING_COMPARTMENTS[tc_boost, VARIANT_GROUP.all, VARIANT_GROUP.all, AGG_INDEX_TYPE.vaccinated]] += (
-            transition_map[COMPARTMENTS[COMPARTMENT.S, VACCINE_STATUS.vaccinated, variant],
-                           COMPARTMENTS[COMPARTMENT.S, VACCINE_STATUS.booster, variant]]
+        dy[TRACKING_COMPARTMENTS[tc_boost, VARIANT_GROUP.all, VARIANT_GROUP.all, AGG_INDEX_TYPE.course_1]] += (
+            transition_map[COMPARTMENTS[COMPARTMENT.S, VACCINE_STATUS.course_1, variant],
+                           COMPARTMENTS[COMPARTMENT.S, VACCINE_STATUS.course_2, variant]]
+        )
+        dy[TRACKING_COMPARTMENTS[tc_boost2, VARIANT_GROUP.all, VARIANT_GROUP.all, AGG_INDEX_TYPE.course_2]] += (
+            transition_map[COMPARTMENTS[COMPARTMENT.S, VACCINE_STATUS.course_2, variant],
+                           COMPARTMENTS[COMPARTMENT.S, VACCINE_STATUS.course_3, variant]]
         )
 
         for variant_from, vaccine_status in cartesian_product((np.array(VARIANT), np.array(VACCINE_STATUS))):
