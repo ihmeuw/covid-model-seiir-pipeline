@@ -424,6 +424,10 @@ class PreprocessingDataInterface:
                 .stack()
                 .reorder_levels(['endpoint', 'brand', 'vaccine_course'])
                 .sort_index())
+        data = data.reset_index()
+        course_3 = data[data.vaccine_course == 2].copy()
+        course_3['vaccine_course'] = 3
+        data = data.append(course_3).set_index(['endpoint', 'brand', 'vaccine_course']).sort_index()
         return data
 
     def load_waning_data(self) -> pd.DataFrame:

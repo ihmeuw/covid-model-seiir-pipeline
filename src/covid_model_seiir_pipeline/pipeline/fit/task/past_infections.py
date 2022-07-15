@@ -52,7 +52,7 @@ def run_past_infections(fit_version: str, draw_id: int, progress_bar: bool) -> N
         antiviral_rr = model.fill_from_hierarchy(antiviral_rr, pred_hierarchy, level)
 
     logger.info('Sampling ODE parameters', context='transform')
-    durations = model.sample_durations(specification.rates_parameters, draw_id)
+    durations = model.sample_durations(specification.rates_parameters, draw_id, pred_hierarchy)
     variant_severity = model.sample_variant_severity(specification.rates_parameters, draw_id)
     _, natural_waning_matrix = model.sample_ode_params(
         variant_severity, specification.fit_parameters, draw_id
@@ -61,10 +61,10 @@ def run_past_infections(fit_version: str, draw_id: int, progress_bar: bool) -> N
     logger.info('Rescaling deaths and formatting epi measures', context='transform')
     epi_measures = model.filter_and_format_epi_measures(
         epi_measures=epi_measures,
+        mortality_scalar=mortality_scalar,
         mr_hierarchy=mr_hierarchy,
         pred_hierarchy=pred_hierarchy,
-        mortality_scalar=mortality_scalar,
-        durations=durations,
+        max_lag=durations.max_lag,
     )
 
     logger.info('Loading and resampling betas and infections.', context='transform')
@@ -89,7 +89,7 @@ def run_past_infections(fit_version: str, draw_id: int, progress_bar: bool) -> N
         beta=beta_fit_final,
         rates=rates,
         antiviral_rr=antiviral_rr,
-        durations=durations,
+        durations=durations.to_ints(),
         epi_measures=epi_measures,
         rhos=rhos,
         vaccinations=vaccinations,
@@ -121,12 +121,12 @@ def run_past_infections(fit_version: str, draw_id: int, progress_bar: bool) -> N
     logger.info('Prepping outputs.', context='transform')
     posterior_epi_measures = model.compute_posterior_epi_measures(
         compartments=compartments,
-        durations=durations
+        durations=durations.to_ints()
     )
     
     betas = pd.concat([betas, beta_fit_final], axis=1)
     out_params = ode_parameters.to_dict()['base_parameters']
-    for name, duration in durations._asdict().items():
+    for name, duration in durations.to_dict().items():
         out_params.loc[:, name] = duration
 
     logger.info('Writing outputs', context='write')

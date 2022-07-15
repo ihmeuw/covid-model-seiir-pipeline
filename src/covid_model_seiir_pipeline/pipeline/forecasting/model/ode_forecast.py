@@ -131,8 +131,8 @@ def build_model_parameters(indices: Indices,
 
     past_compartments_diff = past_compartments.groupby('location_id').diff().fillna(past_compartments)
     empirical_rhos = pd.concat([
-        (past_compartments_diff.filter(like=f'Infection_none_{v}_unvaccinated').sum(axis=1, min_count=1)
-         / past_compartments_diff.filter(like='Infection_none_all_unvaccinated').sum(axis=1, min_count=1)).rename(v)
+        (past_compartments_diff.filter(like=f'Infection_none_{v}_course_0').sum(axis=1, min_count=1)
+         / past_compartments_diff.filter(like='Infection_none_all_course_0').sum(axis=1, min_count=1)).rename(v)
         for v in VARIANT_NAMES[1:]
     ], axis=1)
 
@@ -144,7 +144,7 @@ def build_model_parameters(indices: Indices,
 
     scalars = []
     infections = (past_compartments_diff
-                  .filter(like='Infection_none_all_unvaccinated')
+                  .filter(like='Infection_none_all_course_0')
                   .sum(axis=1, min_count=1)
                   .reindex(indices.full))
 
@@ -155,10 +155,10 @@ def build_model_parameters(indices: Indices,
         ratio = []
         for risk_group in RISK_GROUP_NAMES:
             _infections = (past_compartments_diff
-                           .loc[:, f'Infection_none_all_unvaccinated_{risk_group}']
+                           .loc[:, f'Infection_none_all_course_0_{risk_group}']
                            .reindex(indices.full))
             _numerator = (past_compartments_diff
-                          .loc[:, f'{epi_measure.capitalize()}_none_all_unvaccinated_{risk_group}']
+                          .loc[:, f'{epi_measure.capitalize()}_none_all_course_0_{risk_group}']
                           .reindex(indices.full))
             _numerator /= antiviral_rr.loc[_numerator.index, f'{epi_measure}_antiviral_rr_{risk_group}']
             ratio.append((_numerator / _infections) * risk_group_population[risk_group])
