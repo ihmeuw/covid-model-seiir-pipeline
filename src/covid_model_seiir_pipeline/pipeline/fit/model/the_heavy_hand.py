@@ -47,6 +47,9 @@ def rescale_kappas(
                 (   37,  6.0),  # Kyrgyzstan
                 (   55, 0.75),  # Slovenia
                 (   61,  4.0),  # Moldova
+                (43866, 0.75),  # Ontario
+                (43868, 0.75),  # Quebec
+                (   78, 0.75),  # Denmark
                 (  114, 0.25),  # Haiti
                 (  121,  3.0),  # Bolivia
                 (  139, 0.25),  # Algeria
@@ -91,6 +94,9 @@ def rescale_kappas(
                 (   55, 0.75),  # Slovenia
                 (   61,  2.0),  # Moldova
                 (   62,  2.0),  # Russia
+                (43866, 0.75),  # Ontario
+                (43868, 0.75),  # Quebec
+                (   78, 0.75),  # Denmark
                 (  106,  0.5),  # Bahamas
                 (  112, 0.75),  # Grenada
                 (  114,  0.1),  # Haiti
@@ -176,23 +182,34 @@ def rescale_kappas(
                 (   60,  3.0),  # Lithuania
                 (   61,  2.0),  # Moldova
                 (   62,  5.0),  # Russia
+                (   71,  2.0),  # Australia
+                (   72,  2.0),  # New Zealand
                 (   68,  3.0),  # Republic of Korea
-                (   69, 0.75),  # Singapore
-                (43860,  2.0),  # Manitoba
+                (43858,  0.5),  # Alberta
+                (43859, 0.75),  # British Columbia
+                (43860,  2.5),  # Manitoba
+                (43866, 0.75),  # Ontario
+                (43868, 0.75),  # Quebec
+                (43869, 0.75),  # Saskatchewan
+                (  530, 0.75),  # Delaware
                 (  531,  2.0),  # District of Columbia
                 (  536,  1.5),  # Illinois
                 (  537, 0.75),  # Indiana
+                (  540, 1.25),  # Kentucky
                 (  541, 0.75),  # Louisiana
                 (  542,  0.5),  # Maine
+                (  552, 0.75),  # New Hampshire
                 (  560,  0.5),  # Oregon
+                (  566,  1.5),  # Texas
                 (  568,  0.5),  # Vermont
                 (60886,  0.5),  # King and Snohomish Counties
+                (  571, 0.75),  # West Virginia
                 (   97,  0.6),  # Argentina
                 (   98,  0.8),  # Chile
                 (   99,  0.8),  # Uruguay
-                (   74,  1.5),  # Andorra
-                (   76,  1.2),  # Belgium
-                (   78,  1.8),  # Denmark
+                (   74,  2.0),  # Andorra
+                (   76,  1.5),  # Belgium
+                (   78,  2.0),  # Denmark
                 (60377,  2.0),  # Baden Wurttemberg
                 (60378,  3.0),  # Bavaria
                 (60379,  2.0),  # Berlin
@@ -210,11 +227,12 @@ def rescale_kappas(
                 (60391,  2.0),  # Schleswig-Holstein
                 (60392,  2.0),  # Thuringia
                 (   83,  2.0),  # Iceland
-                (  367,  1.5),  # Monaco
+                (  367,  2.0),  # Monaco
                 (   90,  1.5),  # Norway
-                (   93, 0.75),  # Sweden
+                (   91,  1.5),  # Portugal
+                (   93,  0.5),  # Sweden
                 (   94,  1.5),  # Switzerland
-                (  396,  3.0),  # San Marino
+                (  396,  5.0),  # San Marino
                 (60357,  0.5),  # Andalucia
                 (60358,  1.5),  # Aragon
                 (60365,  1.5),  # Asturias
@@ -425,7 +443,9 @@ def rescale_kappas(
             ],
             'alpha': [
                 (   51,  0.5),  # Poland
+                (43866, 0.75),  # Ontario
                 (  544,  2.0),  # Massachusetts
+                (   78, 0.75),  # Denmark
             ],
             'gamma': [
                 ( 4752,  1.5),  # Amazonas
@@ -435,7 +455,9 @@ def rescale_kappas(
             ],
             'delta': [
                 (   51,  0.5),  # Poland
+                (43866, 0.75),  # Ontario
                 (  544,  2.0),  # Massachusetts
+                (   78, 0.75),  # Denmark
                 ( 4647,  2.0),  # Coahuila
                 ( 4652,  2.0),  # Durango
                 ( 4653,  2.0),  # Guanajuato
@@ -451,33 +473,46 @@ def rescale_kappas(
                 (   51,  0.5),  # Poland
                 (   58,  1.5),  # Estonia
                 (43858,  2.0),  # Alberta
-                (43860,  4.0),  # Manitoba
-                (  528,  1.2),  # Colorado
-                (  530,  1.2),  # Delaware
-                (  532,  1.5),  # Florida
+                (43859,  3.0),  # British Columbia
+                (43860,  6.0),  # Manitoba
+                (43866, 0.75),  # Ontario
+                (  526,  1.5),  # Arkansas
+                (  528,  1.5),  # Colorado
+                (  529,  1.5),  # Connecticut
+                (  530,  1.5),  # Delaware
+                (  531,  1.5),  # District of Columbia
+                (  532,  2.0),  # Florida
+                (  533, 1.25),  # Georgia
                 (  534,  0.5),  # Hawaii
-                (  535,  1.2),  # Idaho
-                (  536,  1.5),  # Illinois
-                (  538,  1.5),  # Iowa
-                (  544,  3.0),  # Massachusetts
+                (  535,  1.5),  # Idaho
+                (  536,  2.0),  # Illinois
+                (  538,  2.0),  # Iowa
+                (  541, 1.25),  # Louisiana
+                (  544,  2.0),  # Massachusetts
+                (  545, 1.25),  # Michigan
+                (  546, 1.25),  # Minnesota
                 (  548,  1.5),  # Missouri
                 (  550,  1.5),  # Nebraska
                 (  551,  1.5),  # Nevada
+                (  552, 1.25),  # New Hampshire
                 (  553,  1.5),  # New Jersey
-                (  555,  1.2),  # New York
+                (  555, 1.25),  # New York
                 (  556,  1.5),  # North Carolina
-                (  558,  1.5),  # Ohio
+                (  558,  2.0),  # Ohio
+                (  560,  1.5),  # Oregon
                 (  559,  1.5),  # Oklahoma
                 (  563,  1.5),  # South Carolina
                 (  564,  1.5),  # South Dakota
                 (  565,  1.5),  # Tennessee
-                (  566,  1.5),  # Texas
+                (  566, 1.75),  # Texas
                 (  567,  2.0),  # Utah
-                (  568,  0.5),  # Vermont
+                (  568, 0.75),  # Vermont
                 (60886,  0.5),  # King and Snohomish Counties
+                (  571, 1.25),  # West Virginia
                 (   98,  0.5),  # Chile
                 (   78,  2.0),  # Denmark
-                (   84,  1.5),  # Ireland
+                (   84,  2.0),  # Ireland
+                (   87,  1.5),  # Luxembourg
                 (   90, 0.75),  # Norway
                 (60357,  0.5),  # Andalucia
                 (60367,  0.5),  # Castile and Leon
@@ -580,8 +615,11 @@ def rescale_kappas(
                 (   45,  3.0),  # Bulgaria
                 (   49,  3.0),  # North Macedonia
                 (   55, 0.75),  # Slovenia
+                (43866, 0.75),  # Ontario
+                (43868, 0.75),  # Quebec
                 (  562,  0.5),  # Rhode Island
                 (   77, 0.75),  # Cyprus
+                (   78, 0.75),  # Denmark
                 (  121,  3.0),  # Bolivia
                 (  160,  3.0),  # Afghanistan
                 (  139,  0.5),  # Algeria
@@ -630,8 +668,11 @@ def rescale_kappas(
                 (   59,  2.0),  # Latvia
                 (   60,  2.0),  # Lithuania
                 (   63,  2.0),  # Ukraine
+                (43866, 0.75),  # Ontario
+                (43868, 0.75),  # Quebec
                 (  562,  0.5),  # Rhode Island
                 (   77, 0.75),  # Cyprus
+                (   78, 0.75),  # Denmark
                 (   84,  0.6),  # Ireland
                 ( 4749,  0.5),  # England
                 (  433,  0.5),  # Northern Ireland
@@ -736,63 +777,77 @@ def rescale_kappas(
                 (   59,  6.0),  # Latvia
                 (   60,  6.0),  # Lithuania
                 (   61,  3.0),  # Moldova
-                (   68,  3.0),  # Republic of Korea
-                (   69, 0.75),  # Singapore
-                (43860,  3.0),  # Manitoba
+                (   68,  1.5),  # Republic of Korea
+                (   69,  0.5),  # Singapore
+                (43858,  1.5),  # Alberta
+                (43859,  2.0),  # British Columbia
+                (43860,  4.0),  # Manitoba
                 (43861,  2.0),  # New Brunswick
-                (43862,  2.0),  # Newfoundland and Labrador
-                (  523,  1.5),  # Alabama
-                (  524,  1.5),  # Alaska
-                (  525,  1.5),  # Arizona
+                (43862,  4.0),  # Newfoundland and Labrador
+                (43864,  2.0),  # Nova Scotia
+                (43866, 0.75),  # Ontario
+                (43868, 0.75),  # Quebec
+                (43869,  1.5),  # Saskatchewan
+                (  523,  2.0),  # Alabama
+                (  524,  2.0),  # Alaska
+                (  525,  2.0),  # Arizona
                 (  526,  2.0),  # Arkansas
-                (  528,  1.5),  # Colorado
+                (  528, 1.75),  # Colorado
+                (  530,  1.5),  # Delaware
+                (  531, 0.75),  # District of Columbia
                 (  532,  2.0),  # Florida
                 (  533,  2.0),  # Georgia
-                (  535,  2.0),  # Idaho
-                (  536,  2.0),  # Illinois
-                (  537,  1.2),  # Indiana
+                (  535,  2.5),  # Idaho
+                (  536,  2.5),  # Illinois
+                (  537,  1.5),  # Indiana
                 (  538,  2.0),  # Iowa
-                (  539,  1.5),  # Kansas
-                (  540,  1.5),  # Kentucky
-                (  541,  1.2),  # Louisiana
+                (  539,  2.0),  # Kansas
+                (  540,  2.5),  # Kentucky
+                (  541,  1.5),  # Louisiana
+                (  542,  1.5),  # Maine
                 (  543,  1.5),  # Maryland
                 (  545,  1.5),  # Michigan
                 (  546,  1.5),  # Minnesota
                 (  547,  1.5),  # Mississippi
                 (  548,  2.0),  # Missouri
-                (  550,  2.0),  # Nebraska
-                (  551,  2.0),  # Nevada
+                (  549,  1.5),  # Montana
+                (  550,  2.5),  # Nebraska
+                (  551,  2.5),  # Nevada
                 (  553,  1.5),  # New Jersey
-                (  554,  1.5),  # New Mexico
-                (  555,  1.2),  # New York
-                (  556,  1.5),  # North Carolina
-                (  557, 0.75),  # North Dakota
-                (  558,  2.0),  # Ohio
-                (  559,  2.0),  # Oklahoma
+                (  554,  2.0),  # New Mexico
+                (  555, 1.25),  # New York
+                (  556,  2.0),  # North Carolina
+                (  558,  1.5),  # Ohio
+                (  559,  2.5),  # Oklahoma
                 (  561,  1.5),  # Pennsylvania
-                (  562,  0.5),  # Rhode Island
-                (  563,  1.5),  # South Carolina
+                (  562, 0.75),  # Rhode Island
+                (  563, 1.75),  # South Carolina
                 (  564,  1.5),  # South Dakota
-                (  565,  2.0),  # Tennessee
-                (  566,  2.0),  # Texas
+                (  565,  2.5),  # Tennessee
+                (  566,  1.5),  # Texas
                 (  567,  2.0),  # Utah
                 (  568, 0.75),  # Vermont
-                (60886,  0.5),  # King and Snohomish Counties
-                (  571,  1.5),  # West Virginia
-                (  572,  2.0),  # Wisconsin
-                (  573,  2.0),  # Wyoming
+                (  569,  1.5),  # Virginia
+                (60886, 0.75),  # King and Snohomish Counties
+                (  571, 1.75),  # West Virginia
+                (  572,  2.5),  # Wisconsin
+                (  573,  2.5),  # Wyoming
                 (   97,  0.6),  # Argentina
                 (   98,  0.8),  # Chile
                 (   99,  0.8),  # Uruguay
                 (   77, 0.75),  # Cyprus
                 (   78,  2.0),  # Denmark
-                (   79,  2.0),  # Finland
+                (   79,  3.0),  # Finland
+                (   82, 1.25),  # Greece
                 (   84,  0.8),  # Ireland
                 (   85,  2.0),  # Israel
                 (35512,  2.0),  # Calabria
                 (35513,  2.0),  # Sicilia
                 (  367, 0.75),  # Monaco
-                (   90,  1.5),  # Norway
+                (   88, 1.25),  # Malta
+                (   89,  0.5),  # Netherlands
+                (   90,  2.0),  # Norway
+                (   91, 1.25),  # Portugal
                 (  396,  0.5),  # San Marino
                 (60357,  0.5),  # Andalucia
                 (60365,  0.5),  # Asturias
@@ -801,7 +856,7 @@ def rescale_kappas(
                 (60373,  2.0),  # Melilla
                 (60366, 0.75),  # Murcia
                 (60371, 0.75),  # Valencian Community
-                (   94,  0.5),  # Switzerland
+                (   94, 0.25),  # Switzerland
                 ( 4749,  0.5),  # England
                 (  433,  0.4),  # Northern Ireland
                 (  434,  0.6),  # Scotland
