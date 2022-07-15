@@ -69,9 +69,10 @@ def rescale_kappas(
                 (  156, 0.75),  # United Arab Emirates
                 (  157, 0.25),  # Yemen
                 (   15, 0.75),  # Myanmar
-                (  168, 1.25),  # Angola
+                (  178,  2.0),  # Eritrea
                 (  201,  3.0),  # Burkina Faso
                 (  204, 0.75),  # Chad
+                (  207, 0.75),  # Ghana
                 (  210,  2.5),  # Liberia
             ],
             'beta': [
@@ -170,11 +171,11 @@ def rescale_kappas(
                 (   15, 0.75),  # Myanmar
                 (  186,  3.0),  # Seychelles
                 (   19, 0.75),  # Timor-Leste
-                (  168, 1.25),  # Angola
                 (  169,  1.5),  # Central African Republic
                 (  171,  2.0),  # DRC
                 (  172,  0.5),  # Equatorial Guinea
                 (  173,  0.5),  # Gabon
+                (  178,  2.0),  # Eritrea
                 (  181,  2.0),  # Madagascar
                 (  184, 0.25),  # Mozambique
                 (  185,  0.5),  # Rwanda
@@ -182,6 +183,7 @@ def rescale_kappas(
                 (  198, 1.25),  # Zimbabwe
                 (  200,  0.5),  # Benin
                 (  204, 0.75),  # Chad
+                (  207, 0.75),  # Ghana
                 (  210,  2.5),  # Liberia
             ],
             'omicron': [
@@ -401,32 +403,31 @@ def rescale_kappas(
                 (  172, 0.15),  # Equatorial Guinea
                 (  173,  0.2),  # Gabon
                 (  177, 0.25),  # Djibouti
-                (  178, 0.25),  # Eritrea (0.4)
+                (  178,  0.2),  # Eritrea
                 (  180,  0.8),  # Kenya
                 (  184, 0.02),  # Mozambique
                 (  185, 0.15),  # Rwanda
                 (  187, 0.25),  # Somalia
                 (  435,  0.5),  # South Sudan
                 (  190, 0.25),  # Uganda
-                (  193, 0.75),  # Botswana (X)
                 (  197, 0.75),  # Eswatini
                 (  194, 0.25),  # Lesotho
                 (  195,  0.5),  # Namibia
                 (  198,  2.0),  # Zimbabwe
-                (  200, 0.02),  # Benin
-                (  201,  0.5),  # Burkina Faso
-                (  203, 1.25),  # Cabo Verde
+                (  200,  0.1),  # Benin
+                (  201,  0.3),  # Burkina Faso
+                (  203,  1.5),  # Cabo Verde
                 (  202, 0.25),  # Cameroon
                 (  204,  0.1),  # Chad
                 (  205,  0.5),  # Cote d'Ivoire
-                (  206,  0.5),  # Gambia
-                (  207,  0.5),  # Ghana
+                (  206,  0.4),  # Gambia
+                (  207, 0.75),  # Ghana
                 (  208,  0.5),  # Guinea
-                (  209, 0.25),  # Guinea-Bissau
-                (  210,  0.8),  # Liberia
+                (  209,  0.2),  # Guinea-Bissau
+                (  210,  1.2),  # Liberia
                 (  211,  2.0),  # Mali
                 (  212,  0.5),  # Mauritania
-                (  213,  0.3),  # Niger
+                (  213,  0.2),  # Niger
                 (  214,  0.3),  # Nigeria
                 (  216,  0.3),  # Senegal
                 (  217,  0.1),  # Sierra Leone
@@ -646,8 +647,12 @@ def rescale_kappas(
                 (   16, 0.75),  # Philippines
                 (  168,  2.0),  # Angola
                 (  169,  2.0),  # Central African Republic
+                (  187,  0.3),  # Somalia
                 (  197,  1.5),  # Eswatini
+                (  203, 0.75),  # Cabo Verde
                 (  206,  1.5),  # Gambia
+                (  208, 0.75),  # Guinea
+                (  209, 0.75),  # Guinea-Bissau
             ],
             'other': [
                 (  125, 0.75),  # Colombia
@@ -675,7 +680,10 @@ def rescale_kappas(
                 (  168,  2.0),  # Angola
                 (  187,  5.0),  # Somalia
                 (  173,  5.0),  # Gabon
+                (  203, 0.75),  # Cabo Verde
                 (  204, 0.75),  # Chad
+                (  207, 0.75),  # Ghana
+                (  208, 0.75),  # Guinea
             ],
             'beta': [
                 (  151,  2.0),  # Qatar
@@ -699,6 +707,7 @@ def rescale_kappas(
                 ( 4771,  2.0),  # Roraima
                 ( 4759,  1.5),  # Maranhao
                 ( 4762,  1.5),  # Mato Grosso
+                (  203, 0.75),  # Cabo Verde
             ],
             'delta': [
                 (   33,  3.0),  # Armenia
@@ -793,7 +802,7 @@ def rescale_kappas(
                 (  170,  2.0),  # Congo
                 (  173,  3.0),  # Gabon
                 (  180,  1.5),  # Kenya
-                (  181,  3.0),  # Madagascar
+                (  181,  2.0),  # Madagascar
                 (  184,  2.0),  # Mozambique
                 (  187,  3.0),  # Somalia
                 (  191,  5.0),  # Zambia
@@ -805,9 +814,11 @@ def rescale_kappas(
                 (  200,  0.5),  # Benin
                 (  201,  2.0),  # Burkina Faso
                 (  204, 0.75),  # Chad
+                (  203, 0.75),  # Cabo Verde
                 (  205,  2.0),  # Cote d'Ivoire
                 (  206, 10.0),  # Gambia
-                (  208,  3.0),  # Guinea
+                (  207, 0.75),  # Ghana
+                (  208,  2.0),  # Guinea
                 (  209,  3.0),  # Guinea-Bissau
                 (  210,  2.0),  # Liberia
                 (  212,  2.0),  # Mauritania
@@ -1055,7 +1066,7 @@ def rescale_kappas(
                 (53619,  6.0),  # Khyber Pakhtunkhwa
                 (53620, 1.25),  # Punjab
                 (53621,  3.0),  # Sindh
-                (  354,  2.0),  # Hong Kong Special Administrative Region of China
+                (  354,  2.0),  # Hong Kong
                 (   22,  1.5),  # Fiji
                 (  351,  3.0),  # Guam
                 (   10,  0.1),  # Cambodia
@@ -1066,43 +1077,43 @@ def rescale_kappas(
                 (  186,  0.8),  # Seychelles
                 (   17, 0.15),  # Sri Lanka
                 (   19, 0.25),  # Timor-Leste
-                (  168,  3.5),  # Angola
-                (  169,  5.0),  # Central African Republic (7.0)
+                (  168,  4.0),  # Angola
+                (  169,  5.0),  # Central African Republic
                 (  170,  2.5),  # Congo
                 (  171,  2.5),  # DRC
                 (  172,  3.0),  # Equatorial Guinea
                 (  173,  6.0),  # Gabon
                 (  178,  2.0),  # Eritrea
-                (  179,  2.0),  # Ethiopia
-                (  180,  2.5),  # Kenya
+                (  179, 2.25),  # Ethiopia
+                (  180, 2.75),  # Kenya
                 (  181, 10.0),  # Madagascar
-                (  182,  4.0),  # Malawi
+                (  182,  5.0),  # Malawi
                 (  184,  1.5),  # Mozambique
-                (  185,  1.5),  # Rwanda
+                (  185, 1.75),  # Rwanda
                 (  187,  2.0),  # Somalia
                 (  190,  2.0),  # Uganda
                 (  191,  5.0),  # Zambia
-                (  193,  5.0),  # Botswana (7.0)
-                (  197,  7.0),  # Eswatini
+                (  193,  7.0),  # Botswana
+                (  197, 10.0),  # Eswatini
                 (  194,  2.0),  # Lesotho
                 (  195,  7.0),  # Namibia
                 (  196,  3.0),  # South Africa
                 (  198,  7.0),  # Zimbabwe
                 (  200, 0.25),  # Benin
-                (  201,  8.0),  # Burkina Faso
+                (  201,  9.0),  # Burkina Faso
                 (  202,  1.5),  # Cameroon
                 (  203,  1.5),  # Cabo Verde
                 (  204, 0.75),  # Chad
                 (  205,  3.0),  # Cote d'Ivoire
-                (  206,  8.0),  # Gambia
-                (  207,  2.0),  # Ghana
-                (  208,  4.0),  # Guinea
+                (  206,  6.0),  # Gambia
+                (  207,  2.5),  # Ghana
+                (  208,  5.0),  # Guinea
                 (  209, 10.0),  # Guinea-Bissau
                 (  211,  2.0),  # Mali
                 (  212,  3.0),  # Mauritania
                 (  213,  1.5),  # Niger
                 (  214,  0.5),  # Nigeria
-                (  216,  2.5),  # Senegal
+                (  216,  2.0),  # Senegal
                 (  217,  0.5),  # Sierra Leone
                 (  218,  1.5),  # Togo
             ],
