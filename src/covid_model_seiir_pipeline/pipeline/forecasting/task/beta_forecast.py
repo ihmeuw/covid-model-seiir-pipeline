@@ -34,9 +34,7 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
     past_compartments = data_interface.load_past_compartments(draw_id).loc[location_ids]
     ode_params = data_interface.load_fit_ode_params(draw_id=draw_id)
     epi_data = data_interface.load_input_epi_measures(draw_id=draw_id).loc[location_ids]
-    antiviral_risk_reduction = data_interface.load_antiviral_rr(draw_id, scenario=scenario)
-    
-    antiviral_coverage = data_interface.load_antiviral_coverage(scenario=scenario)
+    antiviral_coverage = data_interface.load_antiviral_coverage(scenario=scenario_spec.antiviral_version)
     antiviral_effectiveness = data_interface.load_antiviral_effectiveness(draw_id=draw_id)
     antiviral_rr = model.compute_antiviral_rr(antiviral_coverage, antiviral_effectiveness)
 

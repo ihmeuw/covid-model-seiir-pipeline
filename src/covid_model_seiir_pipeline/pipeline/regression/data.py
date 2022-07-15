@@ -195,7 +195,7 @@ class RegressionDataInterface:
         return self.fit_data_interface.load_antiviral_coverage(scenario)
 
     def load_antiviral_effectiveness(self, draw_id: int) -> pd.DataFrame:
-        return self.fit_data_interface.antiviral_effectiveness(draw_id=draw_id)
+        return self.fit_data_interface.load_antiviral_effectiveness(draw_id=draw_id)
 
     def load_posterior_epi_measures(self, draw_id: int, columns: List[str] = None) -> pd.DataFrame:
         return self.fit_data_interface.load_posterior_epi_measures(draw_id, columns=columns)
