@@ -165,6 +165,8 @@ def rescale_kappas(
                 (53618,  0.6),  # Islamabad Capital Territory
                 (53619,  1.5),  # Khyber Pakhtunkhwa
                 (53620,  0.8),  # Punjab
+                (   10,  0.6),  # Cambodia
+                (   14,  1.5),  # Maldives
                 (   15, 0.75),  # Myanmar
                 (  186,  3.0),  # Seychelles
                 (   19, 0.75),  # Timor-Leste
@@ -383,8 +385,8 @@ def rescale_kappas(
                 (53619, 1.75),  # Khyber Pakhtunkhwa
                 (53620,  0.3),  # Punjab
                 (53621,  0.6),  # Sindh
-                (   22,  0.5),  # Fiji
-                (  351,  5.0),  # Guam
+                (   22,  0.3),  # Fiji
+                (  351,  3.0),  # Guam
                 (   26, 0.25),  # Papua New Guinea
                 (   10,  0.1),  # Cambodia
                 (   14,  1.5),  # Maldives
@@ -640,6 +642,8 @@ def rescale_kappas(
                 (  155,  0.3),  # Turkey
                 (  161,  0.5),  # Bangladesh
                 ( 4866,  1.5),  # Puducherry
+                (   14,  0.5),  # Maldives
+                (   16, 0.75),  # Philippines
                 (  168,  2.0),  # Angola
                 (  169,  2.0),  # Central African Republic
                 (  197,  1.5),  # Eswatini
@@ -667,6 +671,7 @@ def rescale_kappas(
                 (  143,  2.0),  # Iraq
                 (  146, 0.75),  # Lebanon
                 (   15, 0.75),  # Myanmar
+                (   18, 0.25),  # Thailand
                 (  168,  2.0),  # Angola
                 (  187,  5.0),  # Somalia
                 (  173,  5.0),  # Gabon
@@ -674,6 +679,7 @@ def rescale_kappas(
             ],
             'beta': [
                 (  151,  2.0),  # Qatar
+                (   16, 0.75),  # Philippines
                 (  177,  3.0),  # Djibouti
                 (  181,  2.0),  # Madagascar
                 (  184,  2.0),  # Mozambique
@@ -776,7 +782,11 @@ def rescale_kappas(
                 (53619,  6.0),  # Khyber Pakhtunkhwa
                 (53620,  1.5),  # Punjab
                 (53621,  2.0),  # Sindh
+                (   12, 0.75),  # Laos
+                (   14, 0.75),  # Maldives
                 (   15, 0.75),  # Myanmar
+                (   16, 0.75),  # Philippines
+                (   18, 0.25),  # Thailand
                 (   19, 0.75),  # Timor-Leste
                 (  168,  2.0),  # Angola
                 (  169,  2.0),  # Central African Republic
@@ -1050,7 +1060,8 @@ def rescale_kappas(
                 (  351,  3.0),  # Guam
                 (   10,  0.1),  # Cambodia
                 (   11,  1.5),  # Indonesia
-                (   13,  1.5),  # Malaysia
+                (   14, 0.75),  # Maldives
+                (   13, 1.25),  # Malaysia
                 (   15,  0.1),  # Myanmar
                 (  186,  0.8),  # Seychelles
                 (   17, 0.15),  # Sri Lanka
