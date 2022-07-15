@@ -143,21 +143,28 @@ def rescale_kappas(
                 (  157, 0.05),  # Yemen
                 (  161,  2.0),  # Bangladesh
                 ( 4842,  2.0),  # Arunachal Pradesh
-                ( 4849,  2.0),  # Delhi
+                ( 4844,  0.8),  # Bihar
+                ( 4846,  0.8),  # Chhattisgarh
+                ( 4849, 1.75),  # Delhi
+                ( 4852,  0.8),  # Haryana
+                ( 4855,  0.8),  # Jharkhand
                 ( 4856,  0.5),  # Karnataka
                 ( 4857,  0.8),  # Kerala
                 ( 4860,  0.5),  # Maharashtra
-                ( 4861,  3.0),  # Manipur
+                ( 4861,  2.0),  # Manipur
                 ( 4862,  2.0),  # Meghalaya
                 ( 4863,  8.0),  # Mizoram
+                ( 4864,  0.8),  # Nagaland
                 ( 4845,  3.0),  # Chandigarh
                 ( 4858,  5.0),  # Lakshadweep
                 ( 4866,  5.0),  # Puducherry
                 ( 4869,  2.0),  # Sikkim
-                ( 4870,  0.5),  # Tamil Nadu
+                ( 4870,  0.6),  # Tamil Nadu
                 ( 4873,  0.6),  # Uttar Pradesh
                 ( 4875,  0.8),  # West Bengal
-                (53619,  2.0),  # Khyber Pakhtunkhwa
+                (53618,  0.6),  # Islamabad Capital Territory
+                (53619,  1.5),  # Khyber Pakhtunkhwa
+                (53620,  0.8),  # Punjab
                 (   15, 0.75),  # Myanmar
                 (  186,  3.0),  # Seychelles
                 (   19, 0.75),  # Timor-Leste
@@ -341,40 +348,41 @@ def rescale_kappas(
                 (  155,  1.5),  # Turkey
                 (  156, 0.15),  # United Arab Emirates
                 ( 157,0.0015),  # Yemen
-                (  161,  1.5),  # Bangladesh
+                (  161, 1.25),  # Bangladesh
                 ( 4841,  0.4),  # Andhra Pradesh
                 ( 4842,  1.5),  # Arunachal Pradesh
                 ( 4843,  0.4),  # Assam
                 ( 4844,  0.5),  # Bihar
                 ( 4846,  0.5),  # Chhattisgarh
                 ( 4849,  3.0),  # Delhi
-                ( 4850,  0.3),  # Goa
+                ( 4850,  0.4),  # Goa
                 ( 4851,  1.5),  # Gujarat
                 ( 4855,  0.5),  # Jharkhand
-                ( 4856, 0.01),  # Karnataka (0.15)
+                ( 4856, 0.15),  # Karnataka
                 ( 4857,  0.2),  # Kerala
                 ( 4860,  0.1),  # Maharashtra
-                ( 4861,  2.0),  # Manipur
+                ( 4861,  1.6),  # Manipur
                 ( 4862,  0.8),  # Meghalaya
-                ( 4863, 60.0),  # Mizoram
-                ( 4864,  0.4),  # Nagaland
+                ( 4863, 70.0),  # Mizoram
+                ( 4864,  0.3),  # Nagaland
                 ( 4865, 0.75),  # Odisha
                 ( 4845,  5.0),  # Chandigarh
                 ( 4858,  5.0),  # Lakshadweep
-                ( 4866, 10.0),  # Puducherry
+                ( 4866, 12.0),  # Puducherry
                 ( 4867,  0.5),  # Punjab
                 ( 4869,  3.0),  # Sikkim
-                ( 4870,  0.1),  # Tamil Nadu (0.2)
+                ( 4870,  0.2),  # Tamil Nadu
                 ( 4871,  0.5),  # Telengana
                 ( 4873,  0.3),  # Uttar Pradesh
-                ( 4875,  0.4),  # West Bengal
+                ( 4875,  0.3),  # West Bengal
                 (  164,  0.5),  # Nepal
+                (53615,  0.8),  # Azad Jammu & Kashmir
                 (53616,  0.2),  # Balochistan
                 (53617,  0.4),  # Gilgit-Baltistan
-                (53618,  0.8),  # Islamabad Capital Territory
+                (53618,  0.6),  # Islamabad Capital Territory
                 (53619, 1.75),  # Khyber Pakhtunkhwa
-                (53620,  0.4),  # Punjab
-                (53621,  0.8),  # Sindh
+                (53620,  0.3),  # Punjab
+                (53621,  0.6),  # Sindh
                 (   22,  0.5),  # Fiji
                 (  351,  5.0),  # Guam
                 (   26, 0.25),  # Papua New Guinea
@@ -630,6 +638,8 @@ def rescale_kappas(
                 ( 4647,  2.0),  # Coahuila
                 (  133, 0.25),  # Venezuela
                 (  155,  0.3),  # Turkey
+                (  161,  0.5),  # Bangladesh
+                ( 4866,  1.5),  # Puducherry
                 (  168,  2.0),  # Angola
                 (  169,  2.0),  # Central African Republic
                 (  197,  1.5),  # Eswatini
@@ -744,21 +754,27 @@ def rescale_kappas(
                 (  151,  2.0),  # Qatar
                 (  153,  0.5),  # Syrian Arab Republic
                 ( 4843,  2.0),  # Assam
+                ( 4844,  0.8),  # Bihar
+                ( 4846,  0.8),  # Chhattisgarh
                 ( 4849,  1.5),  # Delhi
-                ( 4859,  0.5),  # Madhya Pradesh
+                ( 4851,  0.5),  # Gujarat
+                ( 4855,  0.8),  # Jharkhand
+                ( 4859,  0.4),  # Madhya Pradesh
                 ( 4860,  0.5),  # Maharashtra
                 ( 4861,  2.0),  # Manipur
                 ( 4862,  2.0),  # Meghalaya
                 ( 4863,  2.0),  # Mizoram
                 ( 4864,  2.0),  # Nagaland
                 ( 4845,  3.0),  # Chandigarh
-                ( 4866,  2.0),  # Puducherry
-                ( 4873,  0.5),  # Uttar Pradesh
-                ( 4874,  2.0),  # Uttarakhand
+                ( 4866,  3.0),  # Puducherry
+                ( 4869, 0.75),  # Sikkim
+                ( 4870,  0.8),  # Tamil Nadu
+                ( 4873,  0.4),  # Uttar Pradesh
+                ( 4874,  1.5),  # Uttarakhand
                 ( 4875,  0.8),  # West Bengal
                 (53617,  2.0),  # Gilgit-Baltistan
-                (53619,  5.0),  # Khyber Pakhtunkhwa
-                (53620,  2.0),  # Punjab
+                (53619,  6.0),  # Khyber Pakhtunkhwa
+                (53620,  1.5),  # Punjab
                 (53621,  2.0),  # Sindh
                 (   15, 0.75),  # Myanmar
                 (   19, 0.75),  # Timor-Leste
@@ -996,37 +1012,39 @@ def rescale_kappas(
                 ( 4841,  0.4),  # Andhra Pradesh
                 ( 4843,  2.0),  # Assam
                 ( 4844,  0.4),  # Bihar
-                ( 4846,  0.5),  # Chhattisgarh
+                ( 4846,  0.6),  # Chhattisgarh
                 ( 4849,  2.0),  # Delhi
                 ( 4850,  0.5),  # Goa
                 ( 4851,  1.5),  # Gujarat
-                ( 4852, 1.75),  # Haryana
+                ( 4852,  2.0),  # Haryana
                 ( 4853,  1.2),  # Himachal Pradesh
                 ( 4855,  0.5),  # Jharkhand
-                ( 4859,  0.4),  # Madhya Pradesh
+                ( 4857,  0.8),  # Kerala
+                ( 4859,  0.5),  # Madhya Pradesh
                 ( 4860, 0.25),  # Maharashtra
                 ( 4861,  3.0),  # Manipur
                 ( 4862,  1.5),  # Meghalaya
-                ( 4863,  5.0),  # Mizoram
+                ( 4863,  4.0),  # Mizoram
                 ( 4864,  2.5),  # Nagaland
-                ( 4865, 1.75),  # Odisha
+                ( 4865,  2.0),  # Odisha
                 ( 4845,  5.0),  # Chandigarh
                 ( 4866,  2.0),  # Puducherry
                 ( 4867,  1.2),  # Punjab
                 ( 4868,  1.5),  # Rajasthan
-                ( 4870,  0.5),  # Tamil Nadu (0.8)
+                ( 4869,  1.5),  # Sikkim
+                ( 4870,  0.8),  # Tamil Nadu
                 ( 4871,  0.4),  # Telengana
                 ( 4872,  2.5),  # Tripura
-                ( 4873,  0.6),  # Uttar Pradesh
-                ( 4874,  1.5),  # Uttarakhand
+                ( 4873,  0.5),  # Uttar Pradesh
+                ( 4874, 1.25),  # Uttarakhand
                 ( 4875,  1.5),  # West Bengal
                 (  164,  1.2),  # Nepal
-                (53615,  2.0),  # Azad Jammu & Kashmir
+                (53615,  3.0),  # Azad Jammu & Kashmir
                 (53617,  3.0),  # Gilgit-Baltistan
-                (53618,  2.0),  # Islamabad Capital Territory
+                (53618,  2.5),  # Islamabad Capital Territory
                 (53619,  6.0),  # Khyber Pakhtunkhwa
-                (53620,  1.5),  # Punjab
-                (53621,  2.5),  # Sindh
+                (53620, 1.25),  # Punjab
+                (53621,  3.0),  # Sindh
                 (  354,  2.0),  # Hong Kong Special Administrative Region of China
                 (   22,  1.5),  # Fiji
                 (  351,  3.0),  # Guam
