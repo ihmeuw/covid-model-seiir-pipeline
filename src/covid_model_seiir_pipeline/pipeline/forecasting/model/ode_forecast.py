@@ -1,4 +1,4 @@
-from typing import List, Tuple
+from typing import List, Tuple, Dict
 
 import numpy as np
 import pandas as pd
@@ -113,6 +113,7 @@ def build_model_parameters(indices: Indices,
                            beta: pd.Series,
                            past_compartments: pd.DataFrame,
                            prior_ratios: pd.DataFrame,
+                           rates_projection_spec: Dict[str, int],
                            ode_parameters: pd.DataFrame,
                            rhos: pd.DataFrame,
                            vaccinations: pd.DataFrame,
@@ -172,6 +173,7 @@ def build_model_parameters(indices: Indices,
             infections,
             numerator,
             prior_ratio,
+            rates_projection_spec,
             empirical_rhos,
             kappas,
             hierarchy,
@@ -205,6 +207,7 @@ def build_model_parameters(indices: Indices,
 def build_ratio(infections: pd.Series,
                 shifted_numerator: pd.Series,
                 prior_ratio: pd.Series,
+                rates_projection_spec: Dict[str, int],
                 rhos: pd.DataFrame,
                 kappas: pd.DataFrame,
                 hierarchy: pd.DataFrame):
@@ -226,7 +229,7 @@ def build_ratio(infections: pd.Series,
     date = pr_gb.date.last()
     final_ancestral_ratio = pr_gb.value.last()
 
-    past_window = 180
+    past_window = rates_projection_spec['past_window']
     ancestral_infections = ((infections * rhos['ancestral'])
                             .replace(0, np.nan)
                             .rename('denom'))
@@ -253,7 +256,7 @@ def build_ratio(infections: pd.Series,
     else:
         raise ValueError('Bad logic for China IFR forecast hack.')
 
-    trans_window = 30
+    trans_window = rates_projection_spec['transition_window']
     scale = (lr_ratio - final_ancestral_ratio) / trans_window
     t = pd.Series(np.tile(np.arange(trans_window + 1), len(scale)),
                   index=pd.MultiIndex.from_product((locs, np.arange(trans_window + 1)),

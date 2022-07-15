@@ -11,13 +11,13 @@ grid_plots:
     - version: '2022_06_09.04'
       scenarios:
         reference*: 'public reference'
-    - version: '2022_07_12.01'
-      scenarios:
-        reference*: 'new data only'
     - version: '2022_07_14.03'
       scenarios:
+        reference*: 'dev run'
+    - version: '2022_07_15.01'
+      scenarios:
         reference*: 'reference'
-        global_antivirals: 'global antivirals'
+        # global_antivirals: 'global antivirals'
         # best_masks: 'best masks'
   - name: '2021_oct2022'
     date_start: '2021-01-01'
@@ -26,11 +26,11 @@ grid_plots:
     - version: '2022_06_09.04'
       scenarios:
         reference*: 'public reference'
-    - version: '2022_07_12.01'
-      scenarios:
-        reference*: 'new data only'
     - version: '2022_07_14.03'
       scenarios:
+        reference*: 'dev run'
+    - version: '2022_07_15.01'
+      scenarios:
         reference*: 'reference'
-        global_antivirals: 'global antivirals'
+        # global_antivirals: 'global antivirals'
         # best_masks: 'best masks'

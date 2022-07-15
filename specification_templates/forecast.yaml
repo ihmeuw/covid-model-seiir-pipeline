@@ -23,6 +23,9 @@ scenarios:
     vaccine_version: 'reference'
     variant_version: 'reference'
     antiviral_version: 'reference'
+    rates_projection:
+      past_window: 180
+      transition_window: 30
     log_beta_shift: 0.0
     log_beta_shift_date: '2025-01-01'
     beta_scale: 1.0
@@ -54,6 +57,9 @@ scenarios:
     vaccine_version: 'reference'
     variant_version: 'reference'
     antiviral_version: 'reference'
+    rates_projection:
+      past_window: 180
+      transition_window: 30
     log_beta_shift: 0.0
     log_beta_shift_date: '2025-01-01'
     beta_scale: 1.0
@@ -85,6 +91,9 @@ scenarios:
     vaccine_version: 'reference'
     variant_version: 'reference'
     antiviral_version: 'global_antivirals'
+    rates_projection:
+      past_window: 180
+      transition_window: 30
     log_beta_shift: 0.0
     log_beta_shift_date: '2025-01-01'
     beta_scale: 1.0

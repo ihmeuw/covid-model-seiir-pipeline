@@ -106,6 +106,7 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
         beta,
         past_compartments,
         prior_ratios,
+        scenario_spec.rates_projection,
         ode_params,
         rhos,
         vaccinations,
