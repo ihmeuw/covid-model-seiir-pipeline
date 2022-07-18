@@ -11,9 +11,9 @@ grid_plots:
     - version: '2022_06_09.04'
       scenarios:
         reference*: 'public reference'
-    - version: '2022_07_15.06'
+    - version: '2022_07_18.05'
       scenarios:
-        reference*: 'reference'
+        reference*: 'reference post-review'
         global_antivirals: 'global antivirals'
         best_masks: 'best masks'
   - name: '2021_oct2022'
@@ -23,7 +23,7 @@ grid_plots:
     - version: '2022_06_09.04'
       scenarios:
         reference*: 'public reference'
-    - version: '2022_07_15.06'
+    - version: '2022_07_18.05'
       scenarios:
         reference*: 'reference'
         global_antivirals: 'global antivirals'
