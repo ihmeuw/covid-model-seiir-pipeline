@@ -34,12 +34,14 @@ def prepare_ode_fit_parameters(measure: str,
                                etas: pd.DataFrame,
                                natural_waning_dist: pd.Series,
                                natural_waning_matrix: pd.DataFrame,
+                               antiviral_rr: pd.Series,
                                sampled_ode_params: Dict[str, float],
                                hierarchy: pd.DataFrame,
                                population: pd.Series,
                                draw_id: int) -> Tuple[Parameters, pd.DataFrame]:
     measures_and_rates, age_scalars = prepare_epi_measures_and_rates(
-        measure, rates, epi_measures, hierarchy, population,
+        measure, rates, epi_measures, antiviral_rr,
+        hierarchy, population,
     )
     past_index = measures_and_rates.index
     scalar_params = {k: p for k, p in sampled_ode_params.items() if isinstance(p, (int, float))}
@@ -79,6 +81,7 @@ def prepare_ode_fit_parameters(measure: str,
 
 def prepare_past_infections_parameters(beta: pd.Series,
                                        rates: pd.DataFrame,
+                                       antiviral_rr: pd.DataFrame,
                                        durations: Durations,
                                        epi_measures: pd.DataFrame,
                                        rhos: pd.DataFrame,
@@ -92,6 +95,7 @@ def prepare_past_infections_parameters(beta: pd.Series,
     measures_and_rates, age_scalars = prepare_epi_measures_for_past_infections(
         epi_measures=epi_measures,
         epi_rates=rates,
+        antiviral_rr=antiviral_rr,
         durations=durations,
         hierarchy=hierarchy,
     )
@@ -133,6 +137,7 @@ def prepare_past_infections_parameters(beta: pd.Series,
 def prepare_epi_measures_and_rates(measure: str,
                                    rates: pd.DataFrame,
                                    epi_measures: pd.DataFrame,
+                                   antiviral_rr: pd.Series,
                                    hierarchy: pd.DataFrame,
                                    population: pd.Series):
     metrics = ['count', 'rate', 'weight']
@@ -176,6 +181,7 @@ def prepare_epi_measures_and_rates(measure: str,
         out_scalars.loc[:, f'{measure}_{risk_group}'] = (
             rates[f'{rate}_{risk_group}'] / rates[rate]
         )
+        out_scalars.loc[:, f'{measure}_{risk_group}'] *= antiviral_rr.loc[:, f'{measure}_antiviral_rr_{risk_group}']
     out_data.loc[:, f'rate_all_{measure}'] = rates[rate]
 
     return out_data, out_scalars
@@ -183,6 +189,7 @@ def prepare_epi_measures_and_rates(measure: str,
 
 def prepare_epi_measures_for_past_infections(epi_measures: pd.DataFrame,
                                              epi_rates: pd.DataFrame,
+                                             antiviral_rr: pd.DataFrame,
                                              durations: Durations,
                                              hierarchy: pd.DataFrame):
     most_detailed = hierarchy[hierarchy.most_detailed == 1].location_id.unique().tolist()
@@ -205,6 +212,7 @@ def prepare_epi_measures_for_past_infections(epi_measures: pd.DataFrame,
         drop_cols = epi_scalars.columns
         for risk_group in RISK_GROUP_NAMES:
             epi_scalars.loc[:, f'{out_measure}_{risk_group}'] = epi_scalars[f'{rate}_{risk_group}'] / epi_scalars[rate]
+            epi_scalars.loc[:, f'{out_measure}_{risk_group}'] *= antiviral_rr.loc[:, f'{out_measure}_antiviral_rr_{risk_group}']
         epi_scalars = epi_scalars.drop(columns=drop_cols)
 
         out_measures.append(epi_data)
@@ -232,6 +240,16 @@ def reindex_to_infection_day(data: pd.DataFrame, lag: int, most_detailed: List[i
             .groupby('location_id')
             .shift(-lag))
     return data
+
+
+def compute_antiviral_rr(measure: str,
+                         antiviral_coverage: pd.DataFrame,
+                         antiviral_effectiveness: pd.Series) -> pd.DataFrame:
+    antiviral_rr = (1 - antiviral_coverage.multiply(antiviral_effectiveness, axis=0))
+    antiviral_rr = antiviral_rr.rename(columns={column: f"{measure}_{column.replace('coverage', 'rr')}"
+                                                for column in antiviral_rr.columns})
+
+    return antiviral_rr
 
 
 def compute_phis(natural_waning_dist: pd.Series,
@@ -448,7 +466,7 @@ def run_ode_fit(initial_condition: pd.DataFrame,
     )
     # Set all the forecast stuff to nan
     full_compartments.loc[full_compartments.sum(axis=1) == 0., :] = np.nan
-    
+
     betas = (full_compartments
              .filter(like='Beta_none_none')
              .filter(like='lr'))
@@ -459,7 +477,7 @@ def run_ode_fit(initial_condition: pd.DataFrame,
              .fillna(betas)
              .rename(columns=lambda x: f'beta_{x.split("_")[3]}')
              .rename(columns={'beta_all': 'beta'}))
-        
+
     # Can have a composite beta if we don't have measure betas
     no_beta = betas[[f'beta_{measure}' for measure in ['death', 'admission', 'case']]].isnull().all(axis=1)
     betas.loc[no_beta, 'beta'] = np.nan
@@ -498,4 +516,3 @@ def fill_from_hierarchy(df: pd.DataFrame, hierarchy: pd.DataFrame, level: str) -
     fill = df.groupby([level, 'date']).transform('mean')
     df = df.drop(columns=level).fillna(fill)
     return df
-

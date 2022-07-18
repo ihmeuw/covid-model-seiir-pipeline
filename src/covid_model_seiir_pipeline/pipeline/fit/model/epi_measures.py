@@ -32,7 +32,7 @@ def drop_locations_for_measure_model(
     """Removes a set of locations from a specific measure model."""
     drop_location_ids = {
         # if it's a parent location, will apply to all children as well
-        'death': [44533],
+        'death': [44533, 151],
         'case': [],
         'admission': [97],
     }[measure]

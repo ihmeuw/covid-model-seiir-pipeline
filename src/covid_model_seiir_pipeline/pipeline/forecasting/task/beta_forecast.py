@@ -34,6 +34,9 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
     past_compartments = data_interface.load_past_compartments(draw_id).loc[location_ids]
     ode_params = data_interface.load_fit_ode_params(draw_id=draw_id)
     epi_data = data_interface.load_input_epi_measures(draw_id=draw_id).loc[location_ids]
+    antiviral_coverage = data_interface.load_antiviral_coverage(scenario=scenario_spec.antiviral_version)
+    antiviral_effectiveness = data_interface.load_antiviral_effectiveness(draw_id=draw_id)
+    antiviral_rr = model.compute_antiviral_rr(antiviral_coverage, antiviral_effectiveness)
 
     # We want the forecast to start at the last date for which all reported measures
     # with at least one report in the location are present.
@@ -94,11 +97,6 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
         log_beta_shift,
         beta_scale,
     )
-    antiviral_risk_reduction = model.build_antiviral_risk_reduction(
-        index=indices.full,
-        hierarchy=hierarchy,
-        scenario_spec=scenario_spec.antiviral_specification,
-    )
     ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
     logger.warning('Using Hong Kong IFR projection for mainland China IFR projection in `ode_forecast.build_ratio`.')
     ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
@@ -108,12 +106,13 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
         beta,
         past_compartments,
         prior_ratios,
+        scenario_spec.rates_projection,
         ode_params,
         rhos,
         vaccinations,
         etas,
         phis,
-        antiviral_risk_reduction,
+        antiviral_rr,
         risk_group_population,
         hierarchy,
     )

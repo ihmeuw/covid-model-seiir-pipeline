@@ -191,6 +191,12 @@ class RegressionDataInterface:
     def load_rates(self, draw_id: int, columns: List[str] = None) -> pd.DataFrame:
         return self.fit_data_interface.load_rates(draw_id, columns=columns)
 
+    def load_antiviral_coverage(self, scenario: str) -> pd.DataFrame:
+        return self.fit_data_interface.load_antiviral_coverage(scenario)
+
+    def load_antiviral_effectiveness(self, draw_id: int) -> pd.DataFrame:
+        return self.fit_data_interface.load_antiviral_effectiveness(draw_id=draw_id)
+
     def load_posterior_epi_measures(self, draw_id: int, columns: List[str] = None) -> pd.DataFrame:
         return self.fit_data_interface.load_posterior_epi_measures(draw_id, columns=columns)
 

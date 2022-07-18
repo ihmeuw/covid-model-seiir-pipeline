@@ -1,8 +1,8 @@
 data:
-  seir_preprocess_version: '2022_06_12.01'
+  seir_preprocess_version: '2022_07_18.02'
   output_format: 'parquet'
   output_root: ''
-  compare_version: '2022_06_14.08'
+  compare_version: '2022_06_09.01'
 workflow:
   project: 'proj_covid_prod'
   queue: 'all.q'
@@ -40,6 +40,8 @@ rates_parameters:
   p_asymptomatic_post_omicron: [0.75, 0.85]
   minimum_asymptomatic_idr_fraction: 0.2
   maximum_asymptomatic_idr: 0.6
+  antiviral_effectiveness_ihr: [0.20, 0.25]
+  antiviral_effectiveness_ifr: [0.25, 0.30]
 fit_parameters:
   omega_invasion_date: ''
   # Mixing parameter.  dS/dt = -beta * S * I ** alpha

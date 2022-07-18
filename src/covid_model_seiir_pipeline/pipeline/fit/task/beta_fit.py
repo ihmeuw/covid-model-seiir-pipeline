@@ -36,6 +36,14 @@ def run_beta_fit(fit_version: str, measure: str, draw_id: int, progress_bar: boo
     vaccinations = data_interface.load_vaccine_uptake(scenario='reference')
     etas = data_interface.load_vaccine_risk_reduction(scenario='reference')
     natural_waning_dist = data_interface.load_waning_parameters(measure='natural_waning_distribution').set_index('days')
+    antiviral_coverage = data_interface.load_antiviral_coverage(scenario='reference')
+    antiviral_effectiveness = model.sample_antiviral_effectiveness(
+        specification.rates_parameters, measure, draw_id
+    )
+    antiviral_effectiveness = pd.DataFrame({f'{measure}_antiviral_effectiveness': antiviral_effectiveness},
+                                           index=antiviral_coverage.index)
+    antiviral_rr = model.compute_antiviral_rr(measure, antiviral_coverage,
+                                              antiviral_effectiveness.loc[:, f'{measure}_antiviral_effectiveness'])
 
     #########################
     # Draw-independent data #
@@ -106,6 +114,7 @@ def run_beta_fit(fit_version: str, measure: str, draw_id: int, progress_bar: boo
         measure=measure,
         rates=first_pass_rates,
         epi_measures=epi_measures,
+        antiviral_rr=antiviral_rr,
         rhos=rhos,
         vaccinations=vaccinations,
         etas=etas,
@@ -194,6 +203,7 @@ def run_beta_fit(fit_version: str, measure: str, draw_id: int, progress_bar: boo
         measure=measure,
         rates=second_pass_rates,
         epi_measures=epi_measures,
+        antiviral_rr=antiviral_rr,
         rhos=rhos,
         vaccinations=vaccinations,
         etas=etas,
@@ -298,6 +308,7 @@ def run_beta_fit(fit_version: str, measure: str, draw_id: int, progress_bar: boo
     data_interface.save_input_epi_measures(epi_measures, measure_version=measure, draw_id=draw_id)
     data_interface.save_rates(prior_rates, measure_version=measure, draw_id=draw_id)
     data_interface.save_rates_data(rates_data, measure_version=measure, draw_id=draw_id)
+    data_interface.save_antiviral_effectiveness(antiviral_effectiveness, measure_version=measure, draw_id=draw_id)
     data_interface.save_posterior_epi_measures(posterior_epi_measures, measure_version=measure, draw_id=draw_id)
     data_interface.save_fit_beta(betas, measure_version=measure, draw_id=draw_id)
     data_interface.save_final_seroprevalence(out_seroprevalence, measure_version=measure, draw_id=draw_id)

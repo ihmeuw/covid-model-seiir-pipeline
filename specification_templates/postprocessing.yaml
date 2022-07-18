@@ -1,29 +1,23 @@
 data:
-  seir_forecast_version: '2022_06_15.05'
+  seir_forecast_version: '2022_07_18.04'
   scenarios:
    - 'reference'
-#   - 'deltacron_optimistic'
-#   - 'best_masks'
-#   - 'global_antivirals'
+   - 'best_masks'
+   - 'global_antivirals'
   output_root: ''
 workflow:
   project: 'proj_covid_prod'
   queue: 'all.q'
 resampling:
   reference_scenario: 'reference'
-  reference_date: '2022-07-01'
+  reference_date: '2022-10-01'
   lower_quantile: 0.025
   upper_quantile: 0.975
 # splicing:
 #   - locations:
-#       - 4775   # Sao Paolo
-#       - 156    # United Arab Emirates
-#       - 4856   # Karnataka
-#       - 4870   # Tamil Nadu
+#       - 151    # Qatar
 #       - 169    # Central African Republic
-#       - 178    # Eritrea
-#       - 193    # Botswana
-#     output_version: '/ihme/covid-19/seir-outputs/2022_06_08.02'
+#     output_version: '/ihme/covid-19/seir-outputs/2022_06_09.04'
 aggregation:
   - location_file: '/ihme/covid-19/model-inputs/best/locations/modeling_hierarchy.csv'
   - location_file: '/ihme/covid-19/seir-outputs/agg-hierarchies/who_plus_palestine.csv'
