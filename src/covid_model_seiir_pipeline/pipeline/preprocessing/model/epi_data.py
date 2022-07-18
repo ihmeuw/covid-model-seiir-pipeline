@@ -136,8 +136,11 @@ def evil_doings(data: pd.DataFrame, hierarchy: pd.DataFrame, input_measure: str)
         
         dated_drop_list = [
             ## (location_id, location_label, drop_start_date) ##
+            (491, 'anhui', '2022-06-27'),
             (495, 'gansu', '2022-07-08'),
             (499, 'hainan', '2022-07-06'),
+            (506, 'jiangsu', '2022-06-27'),
+            (169, 'c_a_r', '2022-03-15'),
         ]
 
         for location_id, location_name, drop_start_date in dated_drop_list:
