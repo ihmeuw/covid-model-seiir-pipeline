@@ -17,9 +17,6 @@ from covid_model_seiir_pipeline.lib.ode_mk2.constants import (
 from covid_model_seiir_pipeline.lib.ode_mk2 import (
     solver,
 )
-from covid_model_seiir_pipeline.lib import (
-    parallel,
-)
 from covid_model_seiir_pipeline.pipeline.fit.model.sampled_params import (
     Durations,
     sample_parameter,
@@ -37,12 +34,14 @@ def prepare_ode_fit_parameters(measure: str,
                                etas: pd.DataFrame,
                                natural_waning_dist: pd.Series,
                                natural_waning_matrix: pd.DataFrame,
+                               antiviral_rr: pd.Series,
                                sampled_ode_params: Dict[str, float],
                                hierarchy: pd.DataFrame,
                                population: pd.Series,
                                draw_id: int) -> Tuple[Parameters, pd.DataFrame]:
     measures_and_rates, age_scalars = prepare_epi_measures_and_rates(
-        measure, rates, epi_measures, hierarchy, population,
+        measure, rates, epi_measures, antiviral_rr,
+        hierarchy, population,
     )
     past_index = measures_and_rates.index
     scalar_params = {k: p for k, p in sampled_ode_params.items() if isinstance(p, (int, float))}
@@ -82,6 +81,7 @@ def prepare_ode_fit_parameters(measure: str,
 
 def prepare_past_infections_parameters(beta: pd.Series,
                                        rates: pd.DataFrame,
+                                       antiviral_rr: pd.DataFrame,
                                        durations: Durations,
                                        epi_measures: pd.DataFrame,
                                        rhos: pd.DataFrame,
@@ -95,6 +95,7 @@ def prepare_past_infections_parameters(beta: pd.Series,
     measures_and_rates, age_scalars = prepare_epi_measures_for_past_infections(
         epi_measures=epi_measures,
         epi_rates=rates,
+        antiviral_rr=antiviral_rr,
         durations=durations,
         hierarchy=hierarchy,
     )
@@ -136,6 +137,7 @@ def prepare_past_infections_parameters(beta: pd.Series,
 def prepare_epi_measures_and_rates(measure: str,
                                    rates: pd.DataFrame,
                                    epi_measures: pd.DataFrame,
+                                   antiviral_rr: pd.Series,
                                    hierarchy: pd.DataFrame,
                                    population: pd.Series):
     metrics = ['count', 'rate', 'weight']
@@ -179,6 +181,7 @@ def prepare_epi_measures_and_rates(measure: str,
         out_scalars.loc[:, f'{measure}_{risk_group}'] = (
             rates[f'{rate}_{risk_group}'] / rates[rate]
         )
+        out_scalars.loc[:, f'{measure}_{risk_group}'] *= antiviral_rr.loc[:, f'{measure}_antiviral_rr_{risk_group}']
     out_data.loc[:, f'rate_all_{measure}'] = rates[rate]
 
     return out_data, out_scalars
@@ -186,6 +189,7 @@ def prepare_epi_measures_and_rates(measure: str,
 
 def prepare_epi_measures_for_past_infections(epi_measures: pd.DataFrame,
                                              epi_rates: pd.DataFrame,
+                                             antiviral_rr: pd.DataFrame,
                                              durations: Durations,
                                              hierarchy: pd.DataFrame):
     most_detailed = hierarchy[hierarchy.most_detailed == 1].location_id.unique().tolist()
@@ -208,6 +212,7 @@ def prepare_epi_measures_for_past_infections(epi_measures: pd.DataFrame,
         drop_cols = epi_scalars.columns
         for risk_group in RISK_GROUP_NAMES:
             epi_scalars.loc[:, f'{out_measure}_{risk_group}'] = epi_scalars[f'{rate}_{risk_group}'] / epi_scalars[rate]
+            epi_scalars.loc[:, f'{out_measure}_{risk_group}'] *= antiviral_rr.loc[:, f'{out_measure}_antiviral_rr_{risk_group}']
         epi_scalars = epi_scalars.drop(columns=drop_cols)
 
         out_measures.append(epi_data)
@@ -235,6 +240,16 @@ def reindex_to_infection_day(data: pd.DataFrame, lag: int, most_detailed: List[i
             .groupby('location_id')
             .shift(-lag))
     return data
+
+
+def compute_antiviral_rr(measure: str,
+                         antiviral_coverage: pd.DataFrame,
+                         antiviral_effectiveness: pd.Series) -> pd.DataFrame:
+    antiviral_rr = (1 - antiviral_coverage.multiply(antiviral_effectiveness, axis=0))
+    antiviral_rr = antiviral_rr.rename(columns={column: f"{measure}_{column.replace('coverage', 'rr')}"
+                                                for column in antiviral_rr.columns})
+
+    return antiviral_rr
 
 
 def compute_phis(natural_waning_dist: pd.Series,
@@ -273,7 +288,7 @@ def make_initial_condition(measure: str,
     base_params = parameters.base_parameters
     rates = rates.loc[base_params.index]
     
-    crude_infections = get_crude_infections(measure, base_params, rates, infections, threshold=50)
+    crude_infections = get_crude_infections(measure, base_params, rates, infections)
     new_e_start = crude_infections.reset_index(level='date').groupby('location_id').first()
     start_date, new_e_start = new_e_start['date'], new_e_start['infections']
     end_date = base_params.filter(like='count')
@@ -302,16 +317,16 @@ def make_initial_condition(measure: str,
             susceptible = pop - new_e - infectious
             
             # Backfill everyone susceptible
-            loc_initial_condition.loc[:loc_start_date, f'S_unvaccinated_none_{risk_group}'] = pop
-            loc_initial_condition.loc[loc_start_date, f'S_unvaccinated_none_{risk_group}'] = susceptible
-            loc_initial_condition.loc[loc_start_date, f'E_unvaccinated_ancestral_{risk_group}'] = new_e
-            loc_initial_condition.loc[loc_start_date, f'Infection_none_ancestral_unvaccinated_{risk_group}'] = new_e
-            loc_initial_condition.loc[loc_start_date, f'Infection_none_all_unvaccinated_{risk_group}'] = new_e
+            loc_initial_condition.loc[:loc_start_date, f'S_course_0_none_{risk_group}'] = pop
+            loc_initial_condition.loc[loc_start_date, f'S_course_0_none_{risk_group}'] = susceptible
+            loc_initial_condition.loc[loc_start_date, f'E_course_0_ancestral_{risk_group}'] = new_e
+            loc_initial_condition.loc[loc_start_date, f'Infection_none_ancestral_course_0_{risk_group}'] = new_e
+            loc_initial_condition.loc[loc_start_date, f'Infection_none_all_course_0_{risk_group}'] = new_e
             loc_initial_condition.loc[loc_start_date, f'Infection_none_all_all_{risk_group}'] = new_e
-            loc_initial_condition.loc[loc_start_date, f'Infection_all_all_unvaccinated_{risk_group}'] = new_e
+            loc_initial_condition.loc[loc_start_date, f'Infection_all_all_course_0_{risk_group}'] = new_e
             loc_initial_condition.loc[loc_start_date, f'Infection_all_all_all_{risk_group}'] = new_e
             loc_initial_condition.loc[loc_start_date, f'Infection_all_ancestral_all_{risk_group}'] = new_e
-            loc_initial_condition.loc[loc_start_date, f'I_unvaccinated_ancestral_{risk_group}'] = infectious
+            loc_initial_condition.loc[loc_start_date, f'I_course_0_ancestral_{risk_group}'] = infectious
             beta_measure = 'all' if measure == 'final' else measure
             loc_initial_condition.loc[loc_start_date, f'Beta_none_none_{beta_measure}_{risk_group}'] = beta_init
             loc_initial_condition.loc[loc_start_date, f'Beta_none_none_all_{risk_group}'] = beta_init
@@ -328,18 +343,18 @@ def make_initial_condition(measure: str,
     return initial_condition
 
 
-def get_crude_infections(measure: str, base_params, rates, infections, threshold=50):
+def get_crude_infections(measure: str, base_params, rates, infections):
     rate_map = {'death': 'ifr', 'admission': 'ihr', 'case': 'idr'}
     if measure in rate_map:
         crude_infections = base_params[f'count_all_{measure}'] / rates[rate_map[measure]]
-        crude_infections = crude_infections.loc[crude_infections > threshold].rename('infections')
+        crude_infections = crude_infections.loc[crude_infections > 0.].rename('infections')
     elif infections is not None:
         crude_infections = infections
     else:
         crude_infections = pd.DataFrame(index=rates.index)
         for measure, rate in rate_map.items():
             infections = base_params[f'count_all_{measure}'] / rates[rate]
-            infections[infections < threshold] = np.nan
+            infections[infections <= 0.] = np.nan
             crude_infections[measure] = infections
         mask = base_params['beta_all_infection'] > 0
         crude_infections = crude_infections.loc[mask].mean(axis=1).rename('infections').dropna()
@@ -351,9 +366,9 @@ def compute_posterior_epi_measures(compartments: pd.DataFrame,
     compartments_diff = compartments.groupby('location_id').diff().fillna(compartments)
     
     naive = compartments.filter(like='S_').filter(like='none').sum(axis=1).rename('naive')
-    naive_unvaccinated = compartments.filter(like='S_unvaccinated_none').sum(axis=1).rename('naive_unvaccinated')
+    naive_unvaccinated = compartments.filter(like='S_course_0_none').sum(axis=1).rename('naive_unvaccinated')
     
-    inf_map = {'Infection_none_all_unvaccinated': 'daily_naive_unvaccinated_infections',
+    inf_map = {'Infection_none_all_course_0': 'daily_naive_unvaccinated_infections',
                'Infection_none_all_all': 'daily_naive_infections',
                'Infection_all_all_all': 'daily_total_infections'}
     infections = []
@@ -372,7 +387,7 @@ def compute_posterior_epi_measures(compartments: pd.DataFrame,
     for ode_measure, rates_measure in measure_map.items():
         lag = durations._asdict()[f'exposure_to_{ode_measure.lower()}']
         daily_measure = (compartments_diff
-                         .filter(like=f'{ode_measure}_none_all_unvaccinated')
+                         .filter(like=f'{ode_measure}_none_all_course_0')
                          .sum(axis=1, min_count=1)
                          .groupby('location_id')
                          .shift(lag)
@@ -451,7 +466,7 @@ def run_ode_fit(initial_condition: pd.DataFrame,
     )
     # Set all the forecast stuff to nan
     full_compartments.loc[full_compartments.sum(axis=1) == 0., :] = np.nan
-    
+
     betas = (full_compartments
              .filter(like='Beta_none_none')
              .filter(like='lr'))
@@ -462,7 +477,7 @@ def run_ode_fit(initial_condition: pd.DataFrame,
              .fillna(betas)
              .rename(columns=lambda x: f'beta_{x.split("_")[3]}')
              .rename(columns={'beta_all': 'beta'}))
-        
+
     # Can have a composite beta if we don't have measure betas
     no_beta = betas[[f'beta_{measure}' for measure in ['death', 'admission', 'case']]].isnull().all(axis=1)
     betas.loc[no_beta, 'beta'] = np.nan
@@ -501,4 +516,3 @@ def fill_from_hierarchy(df: pd.DataFrame, hierarchy: pd.DataFrame, level: str) -
     fill = df.groupby([level, 'date']).transform('mean')
     df = df.drop(columns=level).fillna(fill)
     return df
-

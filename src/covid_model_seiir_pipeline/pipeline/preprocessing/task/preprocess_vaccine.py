@@ -1,11 +1,8 @@
-import itertools
-
 import click
 import pandas as pd
 
 from covid_model_seiir_pipeline.lib import (
     cli_tools,
-    parallel,
 )
 from covid_model_seiir_pipeline.pipeline.preprocessing.specification import (
     PreprocessingSpecification,
@@ -55,7 +52,6 @@ def run_preprocess_vaccine(preprocessing_version: str, scenario: str, progress_b
     else:
         logger.info(f'Loading uptake data for scenario {scenario}.', context='read')
         uptake = data_interface.load_raw_vaccine_uptake(scenario)
-
         logger.info(f'Broadcasting uptake data over shared index.', context='transform')
         uptake = model.make_uptake_square(uptake)
 
@@ -63,54 +59,14 @@ def run_preprocess_vaccine(preprocessing_version: str, scenario: str, progress_b
         eta_args = model.build_eta_calc_arguments(uptake, waning_efficacy, progress_bar)
         logger.info('Computing vaccine risk reductions.', context='model')
         num_cores = specification.workflow.task_specifications[PREPROCESSING_JOBS.preprocess_vaccine].num_cores
-        etas = parallel.run_parallel(
-            model.compute_eta,
-            arg_list=eta_args,
-            num_cores=num_cores,
-            progress_bar=progress_bar,
-        )
-        etas = (pd.concat(etas)
-                .reorder_levels(['vaccine_course', 'endpoint', 'risk_group', 'location_id', 'date'])
-                .sort_index())
-        if etas.values.min() < 0.:
-            raise ValueError('etas less than 0.')
-        if etas.values.max() > 1.:
-            raise ValueError('etas over 1.')
-        etas_unvax = etas.loc[1].copy()
-        etas_unvax.loc[:, :] = 0.
-        etas_unvax['vaccine_course'] = 0
-        etas_unvax = (etas_unvax
-                      .set_index('vaccine_course', append=True)
-                      .reorder_levels(['vaccine_course', 'endpoint', 'risk_group', 'location_id', 'date']))
-        etas = (pd.concat([etas, etas_unvax])
-                .reorder_levels(['endpoint', 'location_id', 'date', 'vaccine_course', 'risk_group'])
-                .unstack()
-                .unstack())
-        vax_map = {0: 'unvaccinated', 1: 'vaccinated', 2: 'booster'}
-        etas.columns = [f'{vax_map[vaccine_course]}_{variant}_{risk_group}'
-                        for variant, risk_group, vaccine_course in etas.columns]
-        extras_cols = [f'{c}_none_{g}' for c, g in itertools.product(vax_map.values(), ['lr', 'hr'])]
-        etas.loc[:, extras_cols] = 0.
-
-        risk_reductions = []
-        for endpoint, target in [('infection', 'infection'),
-                                 ('symptomatic_disease', 'case'),
-                                 ('severe_disease', 'admission'),
-                                 ('severe_disease', 'death')]:
-            rr = etas.loc[endpoint].copy()
-            rr['endpoint'] = target
-            rr = rr.reset_index().set_index(['location_id', 'date', 'endpoint'])
-            risk_reductions.append(rr)
-        risk_reductions = pd.concat(risk_reductions).sort_index().unstack()
-        risk_reductions.columns = [f'{c[:-3]}_{e}_{c[-2:]}' for c, e in risk_reductions.columns]
-
+        risk_reductions = model.build_vaccine_risk_reduction(eta_args, num_cores, progress_bar)
         uptake = (uptake
                   .reorder_levels(['location_id', 'date', 'vaccine_course', 'risk_group'])
                   .sort_index()
                   .sum(axis=1)
                   .unstack()
                   .unstack())
-        uptake.columns = ['vaccinations_hr', 'boosters_hr', 'vaccinations_lr', 'boosters_lr']
+        uptake.columns = [f'course_{course}_{risk_group}' for risk_group, course in uptake]
 
         logger.info(f'Writing uptake and risk reductions for scenario {scenario}.', context='write')
         data_interface.save_vaccine_uptake(uptake, scenario=scenario)

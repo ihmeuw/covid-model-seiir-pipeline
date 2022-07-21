@@ -3,12 +3,57 @@ from typing import List
 import numpy as np
 import pandas as pd
 
-from covid_model_seiir_pipeline.pipeline.fit.model.sampled_params import (
-    Durations,
-)
+
+def filter_and_format_epi_measures(
+    epi_measures: pd.DataFrame,
+    mortality_scalar: pd.Series,
+    mr_hierarchy: pd.DataFrame,
+    pred_hierarchy: pd.DataFrame,
+    max_lag: int,
+    measure: str = None,
+) -> pd.DataFrame:
+    if measure is not None:
+        epi_measures = drop_locations_for_measure_model(epi_measures, measure, pred_hierarchy)
+
+    epi_measures = format_epi_measures(epi_measures, mr_hierarchy, pred_hierarchy,
+                                       mortality_scalar, max_lag)
+
+    if measure is not None:
+        epi_measures = enforce_epi_threshold(epi_measures, measure, mortality_scalar)
+
+    return epi_measures
 
 
-def enforce_epi_threshold(epi_measures: pd.DataFrame, measure: str, mortality_scalar: pd.Series) -> pd.DataFrame:
+def drop_locations_for_measure_model(
+    epi_measures: pd.DataFrame,
+    measure: str,
+    hierarchy: pd.DataFrame,
+) -> pd.DataFrame:
+    """Removes a set of locations from a specific measure model."""
+    drop_location_ids = {
+        # if it's a parent location, will apply to all children as well
+        'death': [44533, 151],
+        'case': [],
+        'admission': [97],
+    }[measure]
+
+    drop_location_ids = [
+        (hierarchy.loc[hierarchy['path_to_top_parent']
+                  .apply(lambda x: str(loc_id) in x.split(',')), 'location_id']
+                  .to_list())
+        for loc_id in drop_location_ids
+    ]
+    if drop_location_ids:
+        drop_location_ids = np.unique((np.hstack(drop_location_ids))).tolist()
+        epi_measures = epi_measures.drop(drop_location_ids)
+    return epi_measures
+
+
+def enforce_epi_threshold(
+    epi_measures: pd.DataFrame,
+    measure: str,
+    mortality_scalar: pd.Series
+) -> pd.DataFrame:
     thresholds = {
         'case': 100,
         'admission': 10,
@@ -34,21 +79,22 @@ def enforce_epi_threshold(epi_measures: pd.DataFrame, measure: str, mortality_sc
     return epi_measures.loc[above_threshold_locations]
 
 
-def format_epi_measures(epi_measures: pd.DataFrame,
-                        mr_hierarchy: pd.DataFrame,
-                        pred_hierarchy: pd.DataFrame,
-                        mortality_scalars: pd.Series,
-                        durations: Durations) -> pd.DataFrame:
+def format_epi_measures(
+    epi_measures: pd.DataFrame,
+    mr_hierarchy: pd.DataFrame,
+    pred_hierarchy: pd.DataFrame,
+    mortality_scalars: pd.Series,
+    max_lag: int,
+) -> pd.DataFrame:
     deaths = (epi_measures['cumulative_deaths'] * mortality_scalars).rename('cumulative_deaths').dropna()
     deaths = _format_measure(deaths, mr_hierarchy, pred_hierarchy)
     cases = _format_measure(epi_measures['cumulative_cases'], mr_hierarchy, pred_hierarchy)
     admissions = _format_measure(epi_measures['cumulative_hospitalizations'], mr_hierarchy, pred_hierarchy)
     epi_measures = pd.concat([deaths, cases, admissions], axis=1).reset_index()
-    max_duration = durations.exposure_to_death
 
     locations = epi_measures.location_id.unique()
     dates = epi_measures.date
-    global_date_range = pd.date_range(dates.min() - pd.Timedelta(days=max_duration), dates.max())
+    global_date_range = pd.date_range(dates.min() - pd.Timedelta(days=max_lag), dates.max())
     square_idx = pd.MultiIndex.from_product((locations, global_date_range),
                                             names=['location_id', 'date']).sort_values()
     epi_measures = epi_measures.set_index(['location_id', 'date']).reindex(square_idx).sort_index()

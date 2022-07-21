@@ -212,6 +212,7 @@ class PreprocessingRoot(DataRoot):
     vaccine_summary = DatasetType('vaccine_summary')
     vaccine_uptake = DatasetType('vaccine_uptake', LEAF_TEMPLATES.COV_SCENARIO_TEMPLATE)
     vaccine_risk_reduction = DatasetType('vaccine_risk_reduction', LEAF_TEMPLATES.COV_SCENARIO_TEMPLATE)
+    antiviral_coverage = DatasetType('antiviral_coverage', LEAF_TEMPLATES.COV_SCENARIO_TEMPLATE)
 
     mask_use = DatasetType('mask_use', LEAF_TEMPLATES.COV_SCENARIO_TEMPLATE, PREFIX_TEMPLATES.COVARIATES)
     mobility = DatasetType('mobility', LEAF_TEMPLATES.COV_SCENARIO_TEMPLATE, PREFIX_TEMPLATES.COVARIATES)
@@ -249,11 +250,11 @@ class FitRoot(DataRoot):
     posterior_epi_measures = DatasetType('posterior_epi_measures', LEAF_TEMPLATES.MEASURE_DRAW_TEMPLATE)
     rates = DatasetType('rates', LEAF_TEMPLATES.MEASURE_DRAW_TEMPLATE)
     rates_data = DatasetType('rates_data', LEAF_TEMPLATES.MEASURE_DRAW_TEMPLATE)
+    antiviral_effectiveness = DatasetType('antiviral_effectiveness', LEAF_TEMPLATES.MEASURE_DRAW_TEMPLATE)
     compartments = DatasetType('compartments', LEAF_TEMPLATES.MEASURE_DRAW_TEMPLATE)
     ode_parameters = DatasetType('ode_parameters', LEAF_TEMPLATES.MEASURE_DRAW_TEMPLATE)
     phis = DatasetType('phis', LEAF_TEMPLATES.DRAW_TEMPLATE)
     seroprevalence = DatasetType('seroprevalence', LEAF_TEMPLATES.MEASURE_DRAW_TEMPLATE)
-    chis = DatasetType('chis', LEAF_TEMPLATES.DRAW_TEMPLATE)
     summary = DatasetType('summary', LEAF_TEMPLATES.MEASURE_TEMPLATE)
 
 
@@ -279,7 +280,6 @@ class ForecastRoot(DataRoot):
     component_draws = DatasetType('component_draws', LEAF_TEMPLATES.DRAW_TEMPLATE, PREFIX_TEMPLATES.SCENARIO_TEMPLATE)
     raw_covariates = DatasetType('raw_covariates', LEAF_TEMPLATES.DRAW_TEMPLATE, PREFIX_TEMPLATES.SCENARIO_TEMPLATE)
     raw_outputs = DatasetType('raw_outputs', LEAF_TEMPLATES.DRAW_TEMPLATE, PREFIX_TEMPLATES.SCENARIO_TEMPLATE)
-    chis = DatasetType('chis', LEAF_TEMPLATES.DRAW_TEMPLATE, PREFIX_TEMPLATES.SCENARIO_TEMPLATE)
 
 
 class PostprocessingRoot(DataRoot):
@@ -317,3 +317,21 @@ class OOSHoldoutRoot(DataRoot):
     beta_residual = DatasetType('beta_residual', LEAF_TEMPLATES.DRAW_TEMPLATE)
     raw_oos_outputs = DatasetType('raw_oos_outputs', LEAF_TEMPLATES.DRAW_TEMPLATE)
     deltas = DatasetType('deltas', LEAF_TEMPLATES.DRAW_TEMPLATE)
+
+
+class CounterfactualInputRoot(DataRoot):
+    metadata = MetadataType('metadata')
+
+    beta = DatasetType('beta', LEAF_TEMPLATES.DRAW_TEMPLATE, PREFIX_TEMPLATES.SCENARIO_TEMPLATE)
+    vaccine_uptake = DatasetType('vaccine_uptake', LEAF_TEMPLATES.COV_SCENARIO_TEMPLATE)
+    etas = DatasetType('etas', LEAF_TEMPLATES.COV_SCENARIO_TEMPLATE)
+
+
+class CounterfactualRoot(DataRoot):
+    metadata = MetadataType('metadata')
+    specification = MetadataType('counterfactual_specification')
+    forecast_specification = MetadataType('forecast_specification')
+
+    ode_params = DatasetType('ode_params', LEAF_TEMPLATES.DRAW_TEMPLATE, PREFIX_TEMPLATES.SCENARIO_TEMPLATE)
+    component_draws = DatasetType('component_draws', LEAF_TEMPLATES.DRAW_TEMPLATE, PREFIX_TEMPLATES.SCENARIO_TEMPLATE)
+    raw_outputs = DatasetType('raw_outputs', LEAF_TEMPLATES.DRAW_TEMPLATE, PREFIX_TEMPLATES.SCENARIO_TEMPLATE)

@@ -28,31 +28,43 @@ def run_past_infections(fit_version: str, draw_id: int, progress_bar: bool) -> N
     vaccinations = data_interface.load_vaccine_uptake(scenario='reference')
     etas = data_interface.load_vaccine_risk_reduction(scenario='reference')
     natural_waning_dist = data_interface.load_waning_parameters(measure='natural_waning_distribution').set_index('days')
+    antiviral_coverage = data_interface.load_antiviral_coverage(scenario='reference')
 
     rates = []
+    antiviral_effectiveness = []
+    antiviral_rr = []
     for measure in ['case', 'death', 'admission']:
         rates.append(get_round_data(data_interface.load_rates(
             measure_version=measure,
             draw_id=draw_id,
         )))
+        _antiviral_effectiveness = data_interface.load_antiviral_effectiveness(measure_version=measure, draw_id=draw_id)
+        _antiviral_rr = model.compute_antiviral_rr(
+            measure, antiviral_coverage, _antiviral_effectiveness.loc[:, f'{measure}_antiviral_effectiveness']
+        )
+        antiviral_effectiveness.append(_antiviral_effectiveness)
+        antiviral_rr.append(_antiviral_rr)
     rates = pd.concat(rates, axis=1)
+    antiviral_effectiveness = pd.concat(antiviral_effectiveness, axis=1)
+    antiviral_rr = pd.concat(antiviral_rr, axis=1)
     for level in ['parent_id', 'region_id', 'super_region_id', 'global']:
         rates = model.fill_from_hierarchy(rates, pred_hierarchy, level)
+        antiviral_rr = model.fill_from_hierarchy(antiviral_rr, pred_hierarchy, level)
 
     logger.info('Sampling ODE parameters', context='transform')
-    durations = model.sample_durations(specification.rates_parameters, draw_id)
+    durations = model.sample_durations(specification.rates_parameters, draw_id, pred_hierarchy)
     variant_severity = model.sample_variant_severity(specification.rates_parameters, draw_id)
     _, natural_waning_matrix = model.sample_ode_params(
         variant_severity, specification.fit_parameters, draw_id
     )
     
     logger.info('Rescaling deaths and formatting epi measures', context='transform')
-    epi_measures = model.format_epi_measures(
+    epi_measures = model.filter_and_format_epi_measures(
         epi_measures=epi_measures,
+        mortality_scalar=mortality_scalar,
         mr_hierarchy=mr_hierarchy,
         pred_hierarchy=pred_hierarchy,
-        mortality_scalars=mortality_scalar,
-        durations=durations,
+        max_lag=durations.max_lag,
     )
 
     logger.info('Loading and resampling betas and infections.', context='transform')
@@ -76,7 +88,8 @@ def run_past_infections(fit_version: str, draw_id: int, progress_bar: bool) -> N
     ode_parameters = model.prepare_past_infections_parameters(
         beta=beta_fit_final,
         rates=rates,
-        durations=durations,
+        antiviral_rr=antiviral_rr,
+        durations=durations.to_ints(),
         epi_measures=epi_measures,
         rhos=rhos,
         vaccinations=vaccinations,
@@ -108,12 +121,12 @@ def run_past_infections(fit_version: str, draw_id: int, progress_bar: bool) -> N
     logger.info('Prepping outputs.', context='transform')
     posterior_epi_measures = model.compute_posterior_epi_measures(
         compartments=compartments,
-        durations=durations
+        durations=durations.to_ints()
     )
     
     betas = pd.concat([betas, beta_fit_final], axis=1)
     out_params = ode_parameters.to_dict()['base_parameters']
-    for name, duration in durations._asdict().items():
+    for name, duration in durations.to_dict().items():
         out_params.loc[:, name] = duration
 
     logger.info('Writing outputs', context='write')
@@ -122,6 +135,7 @@ def run_past_infections(fit_version: str, draw_id: int, progress_bar: bool) -> N
     data_interface.save_input_epi_measures(epi_measures, measure_version='final', draw_id=draw_id)
     data_interface.save_phis(ode_parameters.phis, draw_id=draw_id)
     data_interface.save_rates(rates, measure_version='final', draw_id=draw_id)
+    data_interface.save_antiviral_effectiveness(antiviral_effectiveness, measure_version='final', draw_id=draw_id)
     data_interface.save_compartments(compartments, measure_version='final', draw_id=draw_id)
     data_interface.save_posterior_epi_measures(infections, measure_version='resampled', draw_id=draw_id)
     data_interface.save_posterior_epi_measures(posterior_epi_measures, measure_version='final', draw_id=draw_id)

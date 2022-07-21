@@ -1,25 +1,26 @@
 data:
-  seir_forecast_version: '2022_07_18.04'
+  forecast_version: ''
+  counterfactual_version: '2021_07_29.01'
+  mortality_ratio_version: 'best'
   scenarios:
-   - 'reference'
-   - 'best_masks'
-   - 'global_antivirals'
+    - 'reference'
+    - 'no_mask_use'
+    - 'no_mandates'
+    - 'no_vaccine'
   output_root: ''
 workflow:
   project: 'proj_covid_prod'
   queue: 'all.q'
 resampling:
   reference_scenario: 'reference'
-  reference_date: '2022-10-01'
+  reference_date: '2021-12-31'
   lower_quantile: 0.025
   upper_quantile: 0.975
-# splicing:
-#   - locations:
-#       - 151    # Qatar
-#       - 169    # Central African Republic
-#     output_version: '/ihme/covid-19/seir-outputs/2022_06_09.04'
+#splicing:
+#  - locations: [33, 43, 123, 172, 175, 197, 194]
+#    output_version: '/ihme/covid-19/seir-outputs/2021_06_03.03'
 aggregation:
-  - location_file: '/ihme/covid-19/model-inputs/best/locations/modeling_hierarchy.csv'
+  - location_file: '/ihme/covid-19/seir-outputs/agg-hierarchies/modeling.csv'
   - location_file: '/ihme/covid-19/seir-outputs/agg-hierarchies/who_plus_palestine.csv'
   - location_file: '/ihme/covid-19/seir-outputs/agg-hierarchies/who_euro.csv'
   - location_file: '/ihme/covid-19/seir-outputs/agg-hierarchies/world_bank.csv'

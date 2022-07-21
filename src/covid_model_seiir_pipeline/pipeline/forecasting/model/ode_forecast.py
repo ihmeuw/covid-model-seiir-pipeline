@@ -1,8 +1,7 @@
-from typing import List, Tuple
+from typing import List, Tuple, Dict
 
 import numpy as np
 import pandas as pd
-
 
 from covid_model_seiir_pipeline.lib import math
 from covid_model_seiir_pipeline.lib.ode_mk2.containers import (
@@ -28,6 +27,67 @@ from covid_model_seiir_pipeline.pipeline.forecasting.model.containers import (
 # ODE parameter construction #
 ##############################
 
+def filter_past_compartments(past_compartments: pd.DataFrame,
+                             ode_params: pd.DataFrame,
+                             epi_data: pd.DataFrame) -> Tuple[pd.DataFrame, pd.DataFrame]:
+    past_compartments = past_compartments.loc[past_compartments.notnull().any(axis=1)]
+
+    durations = ode_params.filter(like='exposure').iloc[0]
+    past_compartments = past_compartments.reset_index()
+    measure_dates = []
+    for measure in ['case', 'death', 'admission']:
+        duration = durations.at[f'exposure_to_{measure}']
+        epi_measure = {
+            'case': 'cases', 'death': 'deaths', 'admission': 'hospitalizations'
+        }[measure]
+        dates = (epi_data[f'smoothed_daily_{epi_measure}']
+                 .groupby('location_id')
+                 .shift(-duration)
+                 .dropna()
+                 .reset_index()
+                 .groupby('location_id')
+                 .date
+                 .max()
+                 .rename(measure))
+        measure_dates.append(dates)
+        cols = [c for c in past_compartments.columns if measure.capitalize() in c]
+        for location_id, date in dates.iteritems():
+            past_compartments.loc[((past_compartments.location_id == location_id)
+                                   & (past_compartments.date > date)), cols] = np.nan
+
+    past_compartments = past_compartments.set_index(['location_id', 'date'])
+    measure_dates = pd.concat(measure_dates, axis=1)
+    return past_compartments, measure_dates
+
+
+def build_indices(betas: pd.DataFrame,
+                  past_compartments: pd.DataFrame,
+                  measure_dates: pd.DataFrame,
+                  covariates: pd.DataFrame):
+    past_start_dates = (past_compartments
+                        .reset_index(level='date')
+                        .date
+                        .groupby('location_id')
+                        .min())
+    beta_fit_end_dates = (betas['beta']
+                          .dropna()
+                          .reset_index(level='date')
+                          .date
+                          .groupby('location_id')
+                          .max())
+    forecast_start_dates = (pd.concat([beta_fit_end_dates, measure_dates], axis=1)
+                            .min(axis=1)
+                            .rename('date'))
+    # Forecast is run to the end of the covariates
+    forecast_end_dates = covariates.reset_index().groupby('location_id').date.max()
+    return Indices(
+        past_start_dates,
+        beta_fit_end_dates,
+        forecast_start_dates,
+        forecast_end_dates,
+    )
+
+
 def build_beta_final(indices: Indices,
                      beta_regression: pd.DataFrame,
                      covariates: pd.DataFrame,
@@ -49,50 +109,17 @@ def build_beta_final(indices: Indices,
     return beta, beta_hat.set_index(['location_id', 'date']).reindex(beta.index)
 
 
-def build_antiviral_risk_reduction(index: pd.Index, hierarchy: pd.DataFrame, scenario_spec):
-    locs = set(index.to_frame().location_id)
-    high_income = hierarchy.loc[hierarchy.path_to_top_parent.str.contains(',64,'), 'location_id']
-    high_income = list(set(high_income).intersection(locs))
-    lmic = list(locs.difference(high_income))
-
-
-    date_start = pd.Timestamp('2022-06-15')
-    date_end = pd.Timestamp('2022-07-31')
-    dates = pd.date_range(date_start, date_end)
-    coverage = (dates - date_start).days / (date_end - date_start).days
-
-    coverage = (pd.Series(coverage, index=dates)
-                .reindex(index, level='date')
-                .groupby('location_id')
-                .ffill()
-                .groupby('location_id')
-                .bfill())
-
-    effectiveness = scenario_spec['effectiveness']
-    max_access = scenario_spec['maximum_access']
-    risk_reduction = pd.Series(1., index=index)
-    risk_reduction.loc[high_income] = 1 - effectiveness * max_access * coverage.loc[high_income]
-
-    if scenario_spec['version'] == 'global_coverage':
-        shift = pd.Timestamp('2022-08-15') - date_start
-        coverage = (coverage
-                    .groupby('location_id')
-                    .shift(periods=shift.days,)
-                    .fillna(0.))
-        risk_reduction.loc[lmic] = 1 - effectiveness * max_access * coverage.loc[lmic]
-    return risk_reduction
-
-
 def build_model_parameters(indices: Indices,
                            beta: pd.Series,
                            past_compartments: pd.DataFrame,
                            prior_ratios: pd.DataFrame,
+                           rates_projection_spec: Dict[str, int],
                            ode_parameters: pd.DataFrame,
                            rhos: pd.DataFrame,
                            vaccinations: pd.DataFrame,
                            etas: pd.DataFrame,
                            phis: pd.DataFrame,
-                           antiviral_rr: pd.Series,
+                           antiviral_rr: pd.DataFrame,
                            risk_group_population: pd.DataFrame,
                            hierarchy: pd.DataFrame) -> Parameters:
     ode_params = ode_parameters.reindex(indices.full).groupby('location_id').ffill().groupby('location_id').bfill()
@@ -105,8 +132,8 @@ def build_model_parameters(indices: Indices,
 
     past_compartments_diff = past_compartments.groupby('location_id').diff().fillna(past_compartments)
     empirical_rhos = pd.concat([
-        (past_compartments_diff.filter(like=f'Infection_none_{v}_unvaccinated').sum(axis=1, min_count=1)
-         / past_compartments_diff.filter(like='Infection_none_all_unvaccinated').sum(axis=1, min_count=1)).rename(v)
+        (past_compartments_diff.filter(like=f'Infection_none_{v}_course_0').sum(axis=1, min_count=1)
+         / past_compartments_diff.filter(like='Infection_none_all_course_0').sum(axis=1, min_count=1)).rename(v)
         for v in VARIANT_NAMES[1:]
     ], axis=1)
 
@@ -118,7 +145,7 @@ def build_model_parameters(indices: Indices,
 
     scalars = []
     infections = (past_compartments_diff
-                  .filter(like='Infection_none_all_unvaccinated')
+                  .filter(like='Infection_none_all_course_0')
                   .sum(axis=1, min_count=1)
                   .reindex(indices.full))
 
@@ -128,13 +155,14 @@ def build_model_parameters(indices: Indices,
         # Get ratio based on fixed risk-group composition
         ratio = []
         for risk_group in RISK_GROUP_NAMES:
-            infections = (past_compartments_diff
-                          .loc[:, f'Infection_none_all_unvaccinated_{risk_group}']
+            _infections = (past_compartments_diff
+                           .loc[:, f'Infection_none_all_course_0_{risk_group}']
+                           .reindex(indices.full))
+            _numerator = (past_compartments_diff
+                          .loc[:, f'{epi_measure.capitalize()}_none_all_course_0_{risk_group}']
                           .reindex(indices.full))
-            numerator = (past_compartments_diff
-                         .loc[:, f'{epi_measure.capitalize()}_none_all_unvaccinated_{risk_group}']
-                         .reindex(indices.full))
-            ratio.append((numerator / infections) * risk_group_population[risk_group])
+            _numerator /= antiviral_rr.loc[_numerator.index, f'{epi_measure}_antiviral_rr_{risk_group}']
+            ratio.append((_numerator / _infections) * risk_group_population[risk_group])
         ratio = sum(ratio)
         numerator = (ratio * infections).rename(epi_measure)
         prior_ratio = prior_ratios.loc[:, ratio_name].groupby('location_id').last()
@@ -145,6 +173,7 @@ def build_model_parameters(indices: Indices,
             infections,
             numerator,
             prior_ratio,
+            rates_projection_spec,
             empirical_rhos,
             kappas,
             hierarchy,
@@ -153,16 +182,14 @@ def build_model_parameters(indices: Indices,
         for risk_group in RISK_GROUP_NAMES:
             scalar = (
                 (prior_ratios[f'{ratio_name}_{risk_group}'] / prior_ratios[ratio_name])
-                .rename(f'{epi_measure}_{risk_group}')
                 .reindex(indices.full)
                 .groupby('location_id')
                 .ffill()
                 .groupby('location_id')
                 .bfill()
             )
-            if ratio_name in ['ifr', 'ihr'] and risk_group == 'hr':
-                scalar *= antiviral_rr
-            scalars.append(scalar)
+            scalar *= antiviral_rr.loc[scalar.index, f'{epi_measure}_antiviral_rr_{risk_group}']
+            scalars.append(scalar.rename(f'{epi_measure}_{risk_group}'))
     scalars = pd.concat(scalars, axis=1)
 
     vaccinations = vaccinations.reindex(indices.full, fill_value=0.)
@@ -177,18 +204,16 @@ def build_model_parameters(indices: Indices,
     )
 
 
-
-
-
 def build_ratio(infections: pd.Series,
                 shifted_numerator: pd.Series,
                 prior_ratio: pd.Series,
+                rates_projection_spec: Dict[str, int],
                 rhos: pd.DataFrame,
                 kappas: pd.DataFrame,
                 hierarchy: pd.DataFrame):
     posterior_ratio = (shifted_numerator / infections).rename('value')
     posterior_ratio.loc[(posterior_ratio == 0) | ~np.isfinite(posterior_ratio)] = np.nan
-    locs = posterior_ratio.reset_index().location_id.unique()    
+    locs = posterior_ratio.reset_index().location_id.unique()
     for location_id in locs:
         count = posterior_ratio.loc[location_id].notnull().sum()
         if not count:
@@ -198,13 +223,13 @@ def build_ratio(infections: pd.Series,
                 pass
 
     correction = 1 / (rhos * kappas).sum(axis=1, min_count=1)
-    ancestral_ratio = (posterior_ratio * correction).rename('value')    
+    ancestral_ratio = (posterior_ratio * correction).rename('value')
 
     pr_gb = ancestral_ratio.dropna().reset_index().groupby('location_id')
     date = pr_gb.date.last()
     final_ancestral_ratio = pr_gb.value.last()
 
-    past_window = 180
+    past_window = rates_projection_spec['past_window']
     ancestral_infections = ((infections * rhos['ancestral'])
                             .replace(0, np.nan)
                             .rename('denom'))
@@ -231,7 +256,7 @@ def build_ratio(infections: pd.Series,
     else:
         raise ValueError('Bad logic for China IFR forecast hack.')
 
-    trans_window = 30
+    trans_window = rates_projection_spec['transition_window']
     scale = (lr_ratio - final_ancestral_ratio) / trans_window
     t = pd.Series(np.tile(np.arange(trans_window + 1), len(scale)),
                   index=pd.MultiIndex.from_product((locs, np.arange(trans_window + 1)),
@@ -315,6 +340,20 @@ def forecast_correction_factors(indices: Indices,
         new_cfs[cf_name] = pd.concat(loc_cfs).sort_index()
     return HospitalCorrectionFactors(**new_cfs)
 
+
+def compute_antiviral_rr(antiviral_coverage: pd.DataFrame,
+                         antiviral_effectiveness: pd.DataFrame):
+    antiviral_rr = []
+    for measure in ['case', 'death', 'admission']:
+        _antiviral_rr = (1 - antiviral_coverage.multiply(antiviral_effectiveness.loc[:, f'{measure}_antiviral_effectiveness'],
+                                                        axis=0))
+        _antiviral_rr = _antiviral_rr.rename(columns={column: f"{measure}_{column.replace('coverage', 'rr')}"
+                                                      for column in _antiviral_rr.columns})
+        antiviral_rr.append(_antiviral_rr)
+
+    antiviral_rr = pd.concat(antiviral_rr, axis=1)
+
+    return antiviral_rr
 
 ###########
 # Run ODE #

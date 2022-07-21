@@ -84,10 +84,11 @@ def _make_measure(compartments_diff: pd.DataFrame, measure: str, lag: int) -> pd
     compartments_diff = compartments_diff.groupby('location_id').shift(lag)
     data = defaultdict(lambda: pd.Series(0., index=compartments_diff.index))
 
-    data['naive_unvaccinated'] = compartments_diff.filter(like=f'{measure}_none_all_unvaccinated').sum(axis=1)
-    data['unvaccinated'] = compartments_diff.filter(like=f'{measure}_all_all_unvaccinated').sum(axis=1)
-    data['vaccinated'] = compartments_diff.filter(like=f'{measure}_all_all_vaccinated').sum(axis=1)
-    data['booster'] = compartments_diff.filter(like=f'{measure}_all_all_booster').sum(axis=1)
+    data['naive_unvaccinated'] = compartments_diff.filter(like=f'{measure}_none_all_course_0').sum(axis=1)
+    data['unvaccinated'] = compartments_diff.filter(like=f'{measure}_all_all_course_0').sum(axis=1)
+    data['vaccinated'] = compartments_diff.filter(like=f'{measure}_all_all_course_1').sum(axis=1)
+    data['booster'] = compartments_diff.filter(like=f'{measure}_all_all_course_2').sum(axis=1)
+    data['second_booster'] = compartments_diff.filter(like=f'{measure}_all_all_course_3').sum(axis=1)
     data['naive'] = compartments_diff.filter(like=f'{measure}_none_all_all').sum(axis=1)
     data['total'] = compartments_diff.filter(like=f'{measure}_all_all_all').sum(axis=1)
 
@@ -160,7 +161,9 @@ def _make_vaccinations(compartments: pd.DataFrame) -> pd.DataFrame:
     vaccinations = defaultdict(lambda: pd.Series(0., index=compartments.index))
 
     for risk_group in RISK_GROUP_NAMES:
-        for measure, group in [('Vaccination', 'unvaccinated'), ('Booster', 'vaccinated')]:
+        for measure, group in [('Vaccination', 'course_0'),
+                               ('Booster', 'course_1'),
+                               ('SecondBooster', 'course_2')]:
             key = f'{measure}_all_all_{group}_{risk_group}'
             vaccinations[f'{measure.lower()}s_{risk_group}'] += compartments[key]
             vaccinations[f'{measure.lower()}s'] += compartments[key]
@@ -192,12 +195,12 @@ def _make_covid_status(compartments: pd.DataFrame) -> pd.DataFrame:
     for compartment, vaccine_status, variant, risk_group in groups:
         compartment_key = f'{compartment}_{vaccine_status}_{variant}_{risk_group}'
         if compartment == COMPARTMENT_NAMES.S and variant == VARIANT_NAMES.none:
-            if vaccine_status == VACCINE_STATUS_NAMES.unvaccinated:
+            if vaccine_status == VACCINE_STATUS_NAMES.course_0:
                 covid_status['covid_status_naive_unvaccinated'] += compartments[compartment_key]
             else:
                 covid_status['covid_status_naive_vaccinated'] += compartments[compartment_key]
         else:
-            if vaccine_status == VACCINE_STATUS_NAMES.unvaccinated:
+            if vaccine_status == VACCINE_STATUS_NAMES.course_0:
                 covid_status['covid_status_exposed_unvaccinated'] += compartments[compartment_key]
             else:
                 covid_status['covid_status_exposed_vaccinated'] += compartments[compartment_key]

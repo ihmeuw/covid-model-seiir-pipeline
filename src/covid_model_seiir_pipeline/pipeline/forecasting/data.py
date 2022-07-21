@@ -73,9 +73,6 @@ class ForecastDataInterface:
     def load_sensitivity(self, draw_id: int = None) -> pd.DataFrame:
         return self.regression_data_interface.load_sensitivity(draw_id)
 
-    def load_testing_data(self) -> pd.DataFrame:
-        return self.regression_data_interface.load_testing_data()
-
     def load_covariate(self,
                        covariate: str,
                        covariate_version: str = 'reference',
@@ -125,6 +122,12 @@ class ForecastDataInterface:
 
     def load_rates(self, draw_id: int, columns: List[str] = None) -> pd.DataFrame:
         return self.regression_data_interface.load_rates(draw_id, columns)
+
+    def load_antiviral_coverage(self, scenario: str) -> pd.DataFrame:
+        return self.regression_data_interface.load_antiviral_coverage(scenario)
+
+    def load_antiviral_effectiveness(self, draw_id: int) -> pd.DataFrame:
+        return self.regression_data_interface.load_antiviral_effectiveness(draw_id=draw_id)
 
     def load_posterior_epi_measures(self, draw_id: int, columns: List[str] = None) -> pd.DataFrame:
         return self.regression_data_interface.load_posterior_epi_measures(draw_id, columns)
@@ -181,9 +184,6 @@ class ForecastDataInterface:
 
     def load_components(self, scenario: str, draw_id: int):
         return io.load(self.forecast_root.component_draws(scenario=scenario, draw_id=draw_id))
-
-    def save_chis(self, chis: pd.DataFrame, scenario: str, draw_id: int):
-        io.dump(chis, self.forecast_root.chis(scenario=scenario, draw_id=draw_id))
 
     def save_beta_scales(self, scales: pd.DataFrame, scenario: str, draw_id: int):
         io.dump(scales, self.forecast_root.beta_scaling(scenario=scenario, draw_id=draw_id))

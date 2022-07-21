@@ -35,6 +35,20 @@ class PreprocessVaccineTaskTemplate(workflow.TaskTemplate):
     task_args = ['preprocessing_version']
 
 
+class PreprocessAntiviralsTaskTemplate(workflow.TaskTemplate):
+    tool = workflow.get_jobmon_tool(covid_model_seiir_pipeline)
+    task_name_template = f"{PREPROCESSING_JOBS.preprocess_antivirals}_{{scenario}}"
+    command_template = (
+            f"{shutil.which('stask')} "
+            f"{PREPROCESSING_JOBS.preprocess_antivirals} "
+            "--preprocessing-version {preprocessing_version} "
+            "--scenario {scenario} "
+            "-vv"
+    )
+    node_args = ['scenario']
+    task_args = ['preprocessing_version']
+
+
 class PreprocessSerologyTaskTemplate(workflow.TaskTemplate):
     tool = workflow.get_jobmon_tool(covid_model_seiir_pipeline)
     task_name_template = f"{PREPROCESSING_JOBS.preprocess_serology}"
@@ -54,15 +68,19 @@ class PreprocessingWorkflow(workflow.WorkflowTemplate):
     task_template_classes = {
         PREPROCESSING_JOBS.preprocess_measure: PreprocessMeasureTaskTemplate,
         PREPROCESSING_JOBS.preprocess_vaccine: PreprocessVaccineTaskTemplate,
+        PREPROCESSING_JOBS.preprocess_antivirals: PreprocessAntiviralsTaskTemplate,
         PREPROCESSING_JOBS.preprocess_serology: PreprocessSerologyTaskTemplate,
     }
     # Jobs here are not homogeneous so it's useful to get all failures if
     # things do fail.
     fail_fast = False
 
-    def attach_tasks(self, measures: List[str], scenarios: List[str]) -> None:
+    def attach_tasks(self, measures: List[str],
+                     vaccine_scenarios: List[str],
+                     antiviral_scenarios: List[str],) -> None:
         measure_template = self.task_templates[PREPROCESSING_JOBS.preprocess_measure]
         vaccine_template = self.task_templates[PREPROCESSING_JOBS.preprocess_vaccine]
+        antivirals_template = self.task_templates[PREPROCESSING_JOBS.preprocess_antivirals]
         serology_template = self.task_templates[PREPROCESSING_JOBS.preprocess_serology]
 
         for measure in measures:
@@ -71,8 +89,14 @@ class PreprocessingWorkflow(workflow.WorkflowTemplate):
                 measure=measure,
             )
             self.workflow.add_task(task)
-        for scenario in scenarios:
+        for scenario in vaccine_scenarios:
             task = vaccine_template.get_task(
+                preprocessing_version=self.version,
+                scenario=scenario,
+            )
+            self.workflow.add_task(task)
+        for scenario in antiviral_scenarios:
+            task = antivirals_template.get_task(
                 preprocessing_version=self.version,
                 scenario=scenario,
             )

@@ -14,6 +14,10 @@ from covid_model_seiir_pipeline.pipeline.postprocessing.specification import (
     PostprocessingSpecification,
     AggregationSpecification,
 )
+from covid_model_seiir_pipeline.side_analysis.counterfactual import (
+    CounterfactualSpecification,
+    CounterfactualDataInterface,
+)
 
 
 class PostprocessingDataInterface:
@@ -26,12 +30,16 @@ class PostprocessingDataInterface:
 
     @classmethod
     def from_specification(cls, specification: PostprocessingSpecification):
-        forecast_spec = ForecastSpecification.from_version_root(specification.data.seir_forecast_version)
-        forecast_data_interface = ForecastDataInterface.from_specification(forecast_spec)
+        if specification.data.seir_forecast_version:
+            forecast_spec = ForecastSpecification.from_version_root(specification.data.seir_forecast_version)
+            data_interface = ForecastDataInterface.from_specification(forecast_spec)
+        else:
+            counterfactual_spec = CounterfactualSpecification.from_version_root(specification.data.seir_counterfactual_version)
+            data_interface = CounterfactualDataInterface.from_specification(counterfactual_spec)
         postprocessing_root = io.PostprocessingRoot(specification.data.output_root)
 
         return cls(
-            forecast_data_interface=forecast_data_interface,
+            forecast_data_interface=data_interface,
             postprocessing_root=postprocessing_root,
         )
 
@@ -68,9 +76,6 @@ class PostprocessingDataInterface:
 
     def load_sensitivity(self, draw_id: int = None) -> pd.DataFrame:
         return self.forecast_data_interface.load_sensitivity(draw_id)
-
-    def load_testing_data(self) -> pd.DataFrame:
-        return self.forecast_data_interface.load_testing_data()
 
     def get_covariate_version(self, covariate_name: str, scenario: str) -> str:
         forecast_spec = self.forecast_data_interface.load_specification()

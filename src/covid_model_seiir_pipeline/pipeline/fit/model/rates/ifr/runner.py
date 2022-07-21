@@ -11,8 +11,7 @@ from covid_model_seiir_pipeline.pipeline.fit.model.rates.ifr import (
 
 def runner(epi_data: pd.DataFrame,
            seroprevalence: pd.DataFrame,
-           covariates: List[pd.Series],
-           covariate_pool: Dict[str, List[str]],
+           covariate_pool: pd.DataFrame,
            daily_infections: pd.Series,
            variant_prevalence: pd.Series,
            mr_hierarchy: pd.DataFrame,
@@ -31,7 +30,6 @@ def runner(epi_data: pd.DataFrame,
            **kwargs) -> Tuple[pd.DataFrame, pd.DataFrame]:
     cumulative_deaths = epi_data['cumulative_deaths'].dropna()
     daily_deaths = epi_data['daily_deaths'].dropna()
-    covariate_list = covariate_pool['ifr']
     ifr_age_pattern = age_patterns['ifr']
     sero_age_pattern = age_patterns['seroprevalence']
     variant_risk_ratio = variant_risk_ratio['ifr']
@@ -40,8 +38,7 @@ def runner(epi_data: pd.DataFrame,
         cumulative_deaths=cumulative_deaths,
         daily_deaths=daily_deaths,
         seroprevalence=seroprevalence,
-        covariates=covariates,
-        covariate_list=covariate_list,
+        covariate_pool=covariate_pool,
         daily_infections=daily_infections,
         variant_prevalence=variant_prevalence,
         hierarchy=mr_hierarchy,
@@ -52,8 +49,7 @@ def runner(epi_data: pd.DataFrame,
     
     pred_data = data.create_pred_data(
         hierarchy=pred_hierarchy,
-        covariates=covariates,
-        covariate_list=covariate_list,
+        covariate_pool=covariate_pool,
         pred_start_date=pred_start_date,
         pred_end_date=pred_end_date,
         day_0=day_0,
@@ -71,7 +67,7 @@ def runner(epi_data: pd.DataFrame,
         pred_hierarchy=pred_hierarchy.copy(),
         day_0=day_0,
         day_inflection=day_inflection,
-        covariate_list=covariate_list.copy(),
+        covariate_list=list(covariate_pool),
         num_threads=num_threads,
         progress_bar=progress_bar,
     )

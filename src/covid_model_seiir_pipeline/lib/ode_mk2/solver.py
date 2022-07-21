@@ -102,7 +102,7 @@ def _run_loc_ode_model(ic_and_params,
 
     t0 = (ode_start_date - invasion_date).days
     if system_type == SYSTEM_TYPE.beta_and_rates:  # This is the forecast
-        assert t0 > 0
+        assert t0 >= 0
     else:
         assert t0 == 0
 

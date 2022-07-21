@@ -424,6 +424,10 @@ class PreprocessingDataInterface:
                 .stack()
                 .reorder_levels(['endpoint', 'brand', 'vaccine_course'])
                 .sort_index())
+        data = data.reset_index()
+        course_3 = data[data.vaccine_course == 2].copy()
+        course_3['vaccine_course'] = 3
+        data = data.append(course_3).set_index(['endpoint', 'brand', 'vaccine_course']).sort_index()
         return data
 
     def load_waning_data(self) -> pd.DataFrame:
@@ -582,3 +586,9 @@ class PreprocessingDataInterface:
 
     def load_vaccine_risk_reduction(self, scenario: str) -> pd.DataFrame:
         return io.load(self.preprocessing_root.vaccine_risk_reduction(covariate_scenario=scenario))
+
+    def save_antiviral_coverage(self, data: pd.DataFrame, scenario: str) -> None:
+        io.dump(data, self.preprocessing_root.antiviral_coverage(covariate_scenario=scenario))
+
+    def load_antiviral_coverage(self, scenario: str) -> pd.DataFrame:
+        return io.load(self.preprocessing_root.antiviral_coverage(covariate_scenario=scenario))

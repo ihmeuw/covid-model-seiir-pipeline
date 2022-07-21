@@ -10,9 +10,13 @@ from covid_model_seiir_pipeline.pipeline.fit.specification import RatesParameter
 from covid_model_seiir_pipeline.pipeline.fit.model.sampled_params import (
     Durations,
 )
+from covid_model_seiir_pipeline.pipeline.fit.model.rates.age_standardization import (
+    get_all_age_rate,
+)
 from covid_model_seiir_pipeline.pipeline.fit.model.rates.mrbrt import (
     mrbrt,
 )
+
 
 ASSAYS = [
     'N-Abbott',  # IgG
@@ -57,12 +61,22 @@ def subset_seroprevalence(seroprevalence: pd.DataFrame,
     return seroprevalence
 
 
-def apply_sensitivity_adjustment(sensitivity_data: pd.DataFrame,
-                                 hospitalized_weights: pd.Series,
-                                 seroprevalence: pd.DataFrame,
-                                 daily_infections: pd.Series,
-                                 population: pd.Series,
-                                 durations: Durations) -> Tuple[pd.DataFrame, pd.DataFrame]:
+def apply_sensitivity_adjustment(
+    sensitivity_data: pd.DataFrame,
+    seroprevalence: pd.DataFrame,
+    posterior_epi_measures: pd.DataFrame,
+    age_patterns: pd.DataFrame,
+    five_year_population: pd.Series,
+    total_population: pd.Series,
+    durations: Durations,
+) -> Tuple[pd.DataFrame, pd.DataFrame]:
+
+    hospitalized_weights = get_all_age_rate(
+        rate_age_pattern=age_patterns['ihr'],
+        weight_age_pattern=age_patterns['seroprevalence'],
+        age_spec_population=five_year_population,
+    )
+
     data_assays = sensitivity_data['assay'].unique().tolist()
     excluded_data_assays = [da for da in data_assays if da not in ASSAYS]
     if excluded_data_assays:
@@ -87,10 +101,13 @@ def apply_sensitivity_adjustment(sensitivity_data: pd.DataFrame,
     seroprevalence = seroprevalence.loc[seroprevalence['is_outlier'] == 0]
     assay_combinations = seroprevalence['assay_map'].unique().tolist()
 
+    daily_infections = posterior_epi_measures['daily_total_infections'].rename('daily_infections')
     daily_infections = daily_infections.reset_index()
-    daily_infections['date'] += pd.Timedelta(days=durations.exposure_to_seroconversion)
+    # All durations invariant by location in rates model
+    exposure_to_sero = pd.Timedelta(days=durations.exposure_to_seroconversion.max())
+    daily_infections['date'] += exposure_to_sero
     daily_infections = daily_infections.set_index(['location_id', 'date']).loc[:, 'daily_infections']
-    daily_infections /= population
+    daily_infections /= total_population
 
     sensitivity_list = []
     seroprevalence_list = []
@@ -119,6 +136,21 @@ def apply_sensitivity_adjustment(sensitivity_data: pd.DataFrame,
         seroprevalence_list.append(ac_seroprevalence)
     sensitivity = pd.concat(sensitivity_list)
     seroprevalence = pd.concat(seroprevalence_list)
+
+    pct_unvaccinated = (
+        (posterior_epi_measures['cumulative_naive_unvaccinated_infections']
+         / posterior_epi_measures['cumulative_naive_infections'])
+        .clip(0, 1)
+        .fillna(1)
+        .rename('pct_unvaccinated')
+        .reset_index()
+    )
+    pct_unvaccinated['date'] += exposure_to_sero
+
+    seroprevalence = seroprevalence.merge(pct_unvaccinated, how='left')
+    if seroprevalence['pct_unvaccinated'].isnull().any():
+        logger.warning('Unmatched sero-survey dates')
+    seroprevalence['seroprevalence'] *= seroprevalence['pct_unvaccinated']
 
     return sensitivity, seroprevalence
 

@@ -1,4 +1,4 @@
-from typing import Dict, List, Tuple
+from typing import Dict, Tuple
 
 import pandas as pd
 from loguru import logger
@@ -10,7 +10,6 @@ from covid_model_seiir_pipeline.pipeline.fit.model.rates import (
     ihr,
 )
 from covid_model_seiir_pipeline.pipeline.fit.model.sampled_params import (
-    Durations,
     VariantRR,
 )
 
@@ -19,8 +18,7 @@ def run_rates_pipeline(measure: str,
                        epi_data: pd.DataFrame,
                        age_patterns: pd.DataFrame,
                        seroprevalence: pd.DataFrame,
-                       covariates: List[pd.Series],
-                       covariate_pool: Dict[str, List[str]],
+                       covariate_pool: pd.DataFrame,
                        mr_hierarchy: pd.DataFrame,
                        pred_hierarchy: pd.DataFrame,
                        total_population: pd.Series,
@@ -28,7 +26,7 @@ def run_rates_pipeline(measure: str,
                        testing_capacity: pd.Series,
                        variant_prevalence: pd.Series,
                        daily_infections: pd.Series,
-                       durations: Durations,
+                       durations: Dict[str, int],
                        variant_rrs: VariantRR,
                        params: RatesParameters,
                        day_inflection: pd.Timestamp,
@@ -44,7 +42,6 @@ def run_rates_pipeline(measure: str,
     results, data = runner(
         epi_data=epi_data,
         seroprevalence=seroprevalence,
-        covariates=covariates,
         covariate_pool=covariate_pool,
         daily_infections=daily_infections,
         variant_prevalence=variant_prevalence,
@@ -55,7 +52,7 @@ def run_rates_pipeline(measure: str,
         age_specific_population=age_specific_population,
         variant_risk_ratio=variant_rrs._asdict(),
         testing_capacity=testing_capacity,
-        durations=durations._asdict(),
+        durations=durations,
         pred_start_date=params.pred_start_date,
         pred_end_date=params.pred_end_date,
         day_inflection=day_inflection,

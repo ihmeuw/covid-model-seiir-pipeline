@@ -62,7 +62,7 @@ def run_grid_plots(diagnostics_version: str, name: str, progress_bar: bool) -> N
             deaths = pv.load_output_summaries('daily_deaths').reset_index()
             modeled_locs |= set(hierarchy.loc[hierarchy.location_id.isin(deaths.location_id.unique()),
                                               ['location_id', 'location_name']].itertuples())
-        locs_to_plot = [model.Location(modeled_loc.location_id, modeled_loc.location_name) for modeled_loc in modeled_locs]
+        locs_to_plot = [model.Location(modeled_loc.location_id, modeled_loc.location_name) for modeled_loc in modeled_locs if modeled_loc.location_id]
 
         logger.info('Starting plots', context='make_plots')
         _runner = functools.partial(

@@ -1,4 +1,4 @@
-from typing import Dict, List, NamedTuple, Tuple
+from typing import Dict, NamedTuple, Tuple
 
 import numpy as np
 import pandas as pd
@@ -15,17 +15,23 @@ from covid_model_seiir_pipeline.pipeline.fit.specification import (
 
 
 class Durations(NamedTuple):
-    exposure_to_case: int
-    exposure_to_admission: int
-    exposure_to_seroconversion: int
-    exposure_to_death: int
-    pcr_to_seropositive: int
-    admission_to_seropositive: int
-    seropositive_to_death: int
+    exposure_to_case: pd.Series
+    exposure_to_admission: pd.Series
+    exposure_to_seroconversion: pd.Series
+    exposure_to_death: pd.Series
+    pcr_to_seropositive: pd.Series
+    admission_to_seropositive: pd.Series
+    seropositive_to_death: pd.Series
     max_lag: int
 
+    def to_ints(self):
+        return Durations(*[x.max() if isinstance(x, pd.Series) else x for x in self])
 
-def sample_durations(params: RatesParameters, draw_id: int) -> Durations:
+    def to_dict(self):
+        return self.to_ints()._asdict()
+
+
+def sample_durations(params: RatesParameters, draw_id: int, hierarchy: pd.DataFrame) -> Durations:
     random_state = utilities.get_random_state(f'epi_durations_draw_{draw_id}')
 
     exposure_to_admission = random_state.choice(_to_range(params.exposure_to_admission))
@@ -33,14 +39,16 @@ def sample_durations(params: RatesParameters, draw_id: int) -> Durations:
     admission_to_death = random_state.choice(_to_range(params.admission_to_death))
     max_lag = max(_to_range(params.exposure_to_admission)) + max(_to_range(params.admission_to_death))
 
+    locations = hierarchy.location_id.tolist()
+
     return Durations(
-        exposure_to_case=exposure_to_admission,
-        exposure_to_admission=exposure_to_admission,
-        exposure_to_seroconversion=exposure_to_seroconversion,
-        exposure_to_death=exposure_to_admission + admission_to_death,
-        pcr_to_seropositive=exposure_to_seroconversion - exposure_to_admission,
-        admission_to_seropositive=exposure_to_seroconversion - exposure_to_admission,
-        seropositive_to_death=(exposure_to_admission + admission_to_death) - exposure_to_seroconversion,
+        exposure_to_case=pd.Series(exposure_to_admission, index=locations),
+        exposure_to_admission=pd.Series(exposure_to_admission, index=locations),
+        exposure_to_seroconversion=pd.Series(exposure_to_seroconversion, index=locations),
+        exposure_to_death=pd.Series(exposure_to_admission + admission_to_death, index=locations),
+        pcr_to_seropositive=pd.Series(exposure_to_seroconversion - exposure_to_admission, index=locations),
+        admission_to_seropositive=pd.Series(exposure_to_seroconversion - exposure_to_admission, index=locations),
+        seropositive_to_death=pd.Series((exposure_to_admission + admission_to_death) - exposure_to_seroconversion, index=locations),
         max_lag=max_lag,
     )
 
@@ -183,6 +191,24 @@ def sample_idr_parameters(rates_parameters: RatesParameters, draw_id: int) -> Di
         params[parameter] = value
 
     return params
+
+
+def sample_antiviral_effectiveness(rates_parameters: RatesParameters, measure: str, draw_id: int) -> float:
+    rates_parameters = rates_parameters.to_dict()
+    if measure == 'case':
+        parameter = 'antiviral_effectiveness_idr'
+    elif measure == 'admission':
+        parameter = 'antiviral_effectiveness_ihr'
+    elif measure == 'death':
+        parameter = 'antiviral_effectiveness_ifr'
+
+    param_spec = rates_parameters[parameter]
+    if isinstance(param_spec, (int, float)):
+        value = param_spec
+    else:
+        value = sample_parameter(parameter, draw_id, *param_spec)
+
+    return value
 
 
 def sample_parameter(parameter: str, draw_id: int, lower: float, upper: float) -> float:

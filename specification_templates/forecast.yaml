@@ -1,10 +1,10 @@
 data:
-  seir_regression_version: '2022_06_09.02'
+  seir_regression_version: '2022_07_18.04'
   output_root: ''
   output_format: 'parquet'
 workflow:
   project: 'proj_covid_prod'
-  queue: 'long.q'
+  queue: 'all.q'
 scenarios:
   reference:
     algorithm: 'normal'
@@ -22,10 +22,10 @@ scenarios:
       residual_rescale_lower: 1
     vaccine_version: 'reference'
     variant_version: 'reference'
-    antiviral_specification:
-      version: 'reference'
-      effectiveness: 0.9
-      maximum_access: 0.8
+    antiviral_version: 'reference'
+    rates_projection:
+      past_window: 180
+      transition_window: 30
     log_beta_shift: 0.0
     log_beta_shift_date: '2025-01-01'
     beta_scale: 1.0
@@ -56,10 +56,10 @@ scenarios:
       residual_rescale_lower: 1
     vaccine_version: 'reference'
     variant_version: 'reference'
-    antiviral_specification:
-      version: 'reference'
-      effectiveness: 0.9
-      maximum_access: 0.8
+    antiviral_version: 'reference'
+    rates_projection:
+      past_window: 180
+      transition_window: 30
     log_beta_shift: 0.0
     log_beta_shift_date: '2025-01-01'
     beta_scale: 1.0
@@ -90,10 +90,10 @@ scenarios:
       residual_rescale_lower: 1
     vaccine_version: 'reference'
     variant_version: 'reference'
-    antiviral_specification:
-      version: 'global_coverage'
-      effectiveness: 0.9
-      maximum_access: 0.8
+    antiviral_version: 'global_antivirals'
+    rates_projection:
+      past_window: 180
+      transition_window: 30
     log_beta_shift: 0.0
     log_beta_shift_date: '2025-01-01'
     beta_scale: 1.0

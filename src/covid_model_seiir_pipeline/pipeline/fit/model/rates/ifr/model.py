@@ -153,22 +153,17 @@ def prepare_model(model_data: pd.DataFrame,
         },
         **covariate_priors,
     }
-    location_prior_dict = {}
-    # location_prior_dict = {
-    #     location_id: {
-    #         't': {
-    #             'prior_spline_maxder_gaussian': np.array([[  0.,   0.],
-    #                                                       [1e-6, 1e-6]])
-    #         }
-    #     } for location_id in [
-    #                           4,  # Southeast Asia, East Asia, and Oceania
-    #                           31,  # Central Europe, Eastern Europe, and Central Asia
-    #                           103,  # Latin America and Caribbean
-    #                           137,  # North Africa and Middle East (super region)
-    #                           158,  # South Asia (super region)
-    #                           166,  # Sub-Saharan Africa
-    #                          ]
-    # }
+    location_prior_dict = {
+        # No slope
+        location_id: {
+            't': {
+                'prior_spline_maxder_gaussian': np.array([[  0.,   0.],
+                                                          [1e-6, 1e-6]])
+            }
+        } for location_id in [
+                              130,  # Mexico
+                             ]
+    }
     # location_prior_dict.update({
     #     location_id: {
     #         't': {
