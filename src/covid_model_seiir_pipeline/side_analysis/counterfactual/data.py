@@ -47,6 +47,16 @@ class CounterfactualDataInterface:
     def get_n_draws(self) -> int:
         return self.forecast_data_interface.get_n_draws()
 
+    def get_covariate_version(self, covariate_name: str, scenario: str) -> str:
+        specification = self.load_specification()
+        counterfactual_version = specification.scenarios[scenario].to_dict().get(covariate_name)
+
+        forecast_spec = self.forecast_data_interface.load_specification()
+        forecast_version = forecast_spec.scenarios['reference'].covariates[covariate_name]
+
+        covariate_version = counterfactual_version if counterfactual_version else forecast_version
+        return covariate_version
+
     def load_location_ids(self):
         return self.forecast_data_interface.load_location_ids()
 
