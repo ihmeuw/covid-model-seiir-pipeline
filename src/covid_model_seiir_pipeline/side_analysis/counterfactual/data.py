@@ -101,11 +101,11 @@ class CounterfactualDataInterface:
         # TODO: replace reference covariates with counterfactual covariates.
         return self.forecast_data_interface.load_raw_covariates('reference', draw_id)
 
-    def load_beta_residual(self, draw_id: int, scenario: str):
+    def load_beta_residual(self, scenario: str, draw_id: int):
         # TODO: Think about this
         return self.forecast_data_interface.load_beta_residual(scenario='reference', draw_id=draw_id)
 
-    def load_beta_scales(self, draw_id: int, scenario: str):
+    def load_beta_scales(self, scenario: str, draw_id: int):
         # TODO: Think about this
         return self.forecast_data_interface.load_beta_scales(scenario='reference', draw_id=draw_id)
 
