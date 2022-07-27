@@ -98,6 +98,7 @@ class CounterfactualDataInterface:
         return self.forecast_data_interface.load_phis(draw_id)
 
     def load_raw_covariates(self, scenario: str, draw_id: int):
+        # TODO: replace reference covariates with counterfactual covariates.
         return self.forecast_data_interface.load_raw_covariates('reference', draw_id)
 
     def load_hospitalizations(self, measure: str) -> pd.DataFrame:
