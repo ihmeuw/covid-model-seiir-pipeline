@@ -1,3 +1,4 @@
+from typing import Dict, List
 import pandas as pd
 
 from covid_model_seiir_pipeline.pipeline.preprocessing.data import (
@@ -5,18 +6,9 @@ from covid_model_seiir_pipeline.pipeline.preprocessing.data import (
 )
 
 
-def preprocess_antivirals(data_interface: PreprocessingDataInterface, scenario: str) -> pd.DataFrame:
-    data = pd.concat([
-        build_antiviral_coverage(data_interface, scenario, 0.5).rename('antiviral_coverage_lr'),
-        build_antiviral_coverage(data_interface, scenario, 0.8).rename('antiviral_coverage_hr')
-    ], axis=1)
-
-    return data
-
-
-def build_antiviral_coverage(data_interface: PreprocessingDataInterface,
-                             scenario: str,
-                             max_coverage: float) -> pd.Series:
+def preprocess_antivirals(scenario_specifications: Dict,
+                          data_interface: PreprocessingDataInterface,
+                          parameters: Dict) -> pd.DataFrame:
     hierarchy = data_interface.load_hierarchy('pred')
     hierarchy = hierarchy.loc[hierarchy['most_detailed'] == 1]
     full_date_range = pd.date_range('2019-11-01', '2023-12-31')
@@ -24,30 +16,47 @@ def build_antiviral_coverage(data_interface: PreprocessingDataInterface,
                                         full_date_range],
                                names=['location_id', 'date'])
 
-    high_income = hierarchy.loc[hierarchy['path_to_top_parent'].str.contains(',64,'), 
-                                'location_id'].to_list()
-    low_middle_income = hierarchy.loc[~hierarchy['path_to_top_parent'].str.contains(',64,'), 
-                                'location_id'].to_list()
+    data = build_antiviral_coverage(index, hierarchy, scenario_specifications)
 
+    return data
+
+
+def build_antiviral_coverage(index: pd.Index,
+                             hierarchy: pd.DataFrame,
+                             scenario_specifications: Dict) -> pd.Series:
     coverage = []
-    for location_ids, date_start, date_end in [(high_income, '2022-03-01', '2022-06-01'),
-                                               (low_middle_income, '2022-08-15', '2022-09-15')]:
-        _coverage = coverage_scaleup(index, date_start, date_end, max_coverage)
-        coverage.append(_coverage.loc[location_ids])
+    for spec_name, parameters in scenario_specifications.items():
+        location_ids = hierarchy.loc[hierarchy['path_to_top_parent']
+                                     .apply(lambda x: match_to_parents(parameters['parent_location_ids'], x)),
+                                     'location_id'].to_list()
+        _coverage = pd.concat(
+            [coverage_scaleup(index, parameters['lr_coverage'], *parameters['scaleup_dates'])
+             .rename('antiviral_coverage_lr')
+             .loc[location_ids],
+             coverage_scaleup(index, parameters['hr_coverage'], *parameters['scaleup_dates'])
+             .rename('antiviral_coverage_hr')
+             .loc[location_ids],],
+            axis=1
+        )
+        coverage.append(_coverage)
     coverage = pd.concat(coverage).sort_index()
 
-    if scenario == 'reference':
-        coverage.loc[low_middle_income] = 0
-    elif scenario != 'global_antivirals':
-        raise ValueError(f'Invalid antiviral scenario: {scenario}')
+    coverage = coverage.reindex(index).fillna(0)
 
     return coverage
 
 
+def match_to_parents(parent_location_ids: List[int], path_to_top_parent: str):
+    path_to_top_parent = [int(location_id) for location_id in path_to_top_parent.split(',')]
+    overlap = set(parent_location_ids).intersection(path_to_top_parent)
+
+    return len(overlap) > 0
+
+
 def coverage_scaleup(index: pd.Index,
+                     max_coverage: float,
                      date_start: str,
-                     date_end: str,
-                     max_coverage: float) -> pd.Series:
+                     date_end: str,) -> pd.Series:
     date_start = pd.Timestamp(date_start)
     date_end = pd.Timestamp(date_end)
     dates = pd.date_range(date_start, date_end)
