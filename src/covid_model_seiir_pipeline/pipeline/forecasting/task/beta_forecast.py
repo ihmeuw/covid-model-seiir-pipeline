@@ -30,7 +30,6 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
     # to do computation.
     logger.info('Loading index building data', context='read')
     location_ids = data_interface.load_location_ids()
-    hierarchy = data_interface.load_hierarchy('pred')
     past_compartments = data_interface.load_past_compartments(draw_id).loc[location_ids]
     ode_params = data_interface.load_fit_ode_params(draw_id=draw_id)
     epi_data = data_interface.load_input_epi_measures(draw_id=draw_id).loc[location_ids]

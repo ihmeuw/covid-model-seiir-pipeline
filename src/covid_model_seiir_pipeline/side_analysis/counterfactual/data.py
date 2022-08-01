@@ -47,6 +47,16 @@ class CounterfactualDataInterface:
     def get_n_draws(self) -> int:
         return self.forecast_data_interface.get_n_draws()
 
+    def get_covariate_version(self, covariate_name: str, scenario: str) -> str:
+        specification = self.load_specification()
+        counterfactual_version = specification.scenarios[scenario].to_dict().get(covariate_name)
+
+        forecast_spec = self.forecast_data_interface.load_specification()
+        forecast_version = forecast_spec.scenarios['reference'].covariates[covariate_name]
+
+        covariate_version = counterfactual_version if counterfactual_version else forecast_version
+        return covariate_version
+
     def load_location_ids(self):
         return self.forecast_data_interface.load_location_ids()
 
@@ -86,6 +96,18 @@ class CounterfactualDataInterface:
 
     def load_phis(self, draw_id: int) -> pd.DataFrame:
         return self.forecast_data_interface.load_phis(draw_id)
+
+    def load_raw_covariates(self, scenario: str, draw_id: int):
+        # TODO: replace reference covariates with counterfactual covariates.
+        return self.forecast_data_interface.load_raw_covariates('reference', draw_id)
+
+    def load_beta_residual(self, scenario: str, draw_id: int):
+        # TODO: Think about this
+        return self.forecast_data_interface.load_beta_residual(scenario='reference', draw_id=draw_id)
+
+    def load_beta_scales(self, scenario: str, draw_id: int):
+        # TODO: Think about this
+        return self.forecast_data_interface.load_beta_scales(scenario='reference', draw_id=draw_id)
 
     def load_hospitalizations(self, measure: str) -> pd.DataFrame:
         return self.forecast_data_interface.load_hospitalizations(measure)

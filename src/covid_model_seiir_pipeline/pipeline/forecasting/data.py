@@ -45,6 +45,10 @@ class ForecastDataInterface:
     def get_hospital_params(self):
         return self.regression_data_interface.load_specification().hospital_parameters
 
+    def get_covariate_version(self, covariate_name: str, scenario: str) -> str:
+        forecast_spec = self.load_specification()
+        return forecast_spec.scenarios[scenario].covariates[covariate_name]
+
     ####################
     # Prior Stage Data #
     ####################
