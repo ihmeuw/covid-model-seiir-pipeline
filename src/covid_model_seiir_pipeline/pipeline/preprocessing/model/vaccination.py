@@ -27,66 +27,7 @@ def make_uptake_square(uptake: pd.DataFrame) -> pd.DataFrame:
         logger.warning('Duplicates found in uptake dataset')
         uptake = uptake.loc[~duplicates]
     uptake = uptake.reindex(idx).fillna(0.)
-    return uptake
 
-
-def map_variants(efficacy: pd.DataFrame) -> pd.DataFrame:
-    efficacy_map = {
-        'alpha': 'ancestral',
-        'beta': 'delta',
-        'gamma': 'delta',
-        'other': 'delta',
-        'omicron': 'omicron',
-        'omega': 'omicron',
-    }
-    for target_variant, similar_variant in efficacy_map.items():
-        efficacy[target_variant] = efficacy[similar_variant]
-    return efficacy
-
-
-def rescale_to_proportion(waning: pd.DataFrame) -> pd.DataFrame:
-    max_efficacy = (waning
-                    .groupby(['endpoint', 'brand'])
-                    .max()
-                    .reindex(waning.index))
-    waning = (waning / max_efficacy).fillna(0.)
-    return waning
-
-
-def get_infection_endpoint_brand_specific_waning(waning: pd.DataFrame,
-                                                 all_brands: List[str]) -> pd.DataFrame:
-    waning_map = {
-        'BNT-162': waning.loc[('infection', 'pfi')],
-        'Moderna': waning.loc[('infection', 'mod')],
-        'AZD1222': waning.loc[('infection', 'ast')],
-        'Janssen': waning.loc[('infection', 'jan')],
-    }
-    default_waning = pd.concat(waning_map.values(), axis=1).mean(axis=1).rename('value')
-    brand_specific_waning = _get_brand_specific_waning(waning_map, default_waning, all_brands)
-    brand_specific_waning['endpoint'] = 'infection'
-    brand_specific_waning = (brand_specific_waning
-                             .reset_index()
-                             .set_index(['endpoint', 'brand', 'days'])
-                             .sort_index())
-    return brand_specific_waning
-
-
-def get_severe_endpoint_brand_specific_waning(waning: pd.DataFrame,
-                                              all_brands: List[str]) -> pd.DataFrame:
-    waning_map = {
-        'BNT-162': waning.loc[('severe_disease', 'pfi')],
-        'Moderna': waning.loc[('severe_disease', 'mod')],
-        'AZD1222': waning.loc[('severe_disease', 'ast')],
-        'Janssen': waning.loc[('severe_disease', 'jan')],
-    }
-    default_waning = pd.concat(waning_map.values(), axis=1).mean(axis=1).rename('value')
-    brand_specific_waning = _get_brand_specific_waning(waning_map, default_waning, all_brands)
-    brand_specific_waning['endpoint'] = 'severe_disease'
-    brand_specific_waning = (brand_specific_waning
-                             .reset_index()
-                             .set_index(['endpoint', 'brand', 'days'])
-                             .sort_index())
-    return brand_specific_waning
 
 
 def _get_brand_specific_waning(waning_map: Dict[str, pd.Series],
@@ -112,24 +53,6 @@ def _coerce_week_index_to_day_index(data: pd.Series) -> pd.Series:
     )
     data = data.reindex(np.arange(0, 1500)).ffill()
     return data
-
-
-def build_waning_efficacy(efficacy: pd.DataFrame, waning: pd.DataFrame) -> pd.DataFrame:
-    waning_efficacy = efficacy.join(waning)
-    col_names = waning_efficacy.index.names
-    waning_efficacy = (waning_efficacy
-                       .loc[:, efficacy.columns]
-                       .mul(waning_efficacy.value, axis=0)
-                       .stack()
-                       .reset_index())
-    waning_efficacy.columns = col_names + ['variant', 'value']
-    waning_efficacy = (waning_efficacy
-                       .set_index(['endpoint', 'vaccine_course', 'variant', 'days', 'brand'])
-                       .value
-                       .sort_index()
-                       .unstack())
-    waning_efficacy.columns.name = None
-    return waning_efficacy
 
 
 def build_eta_calc_arguments(vaccine_uptake: pd.DataFrame,
@@ -269,30 +192,3 @@ def _compute_variant_eta(u, e_t, e_b, j, eta):
         else:
             eta[t - 1, j] = 0.
     return eta
-
-
-def compute_natural_waning(waning: pd.DataFrame) -> pd.DataFrame:
-    # Other is an average of all vaccine waning,
-    # which is also what we want for natural waning.
-    natural_waning_infection = (
-        1/4 + 3/4 * waning.loc[('infection', 'Moderna')].value
-    ).reset_index()
-    natural_waning_infection['endpoint'] = 'infection'
-    natural_waning_case = natural_waning_infection.copy()
-    natural_waning_case['endpoint'] = 'case'
-    natural_waning_severe_disease = (
-        1/4 + 3/4 * waning.loc[('severe_disease', 'Moderna')].value
-    ).reset_index()
-    natural_waning_death = natural_waning_severe_disease.copy()
-    natural_waning_death['endpoint'] = 'death'
-    natural_waning_admission = natural_waning_severe_disease.copy()
-    natural_waning_admission['endpoint'] = 'admission'
-    natural_waning = (pd.concat([natural_waning_infection, 
-                                 natural_waning_case, 
-                                 natural_waning_death, 
-                                 natural_waning_admission])
-                      .set_index(['days', 'endpoint'])
-                      .sort_index()
-                      .unstack())
-    natural_waning.columns = natural_waning.columns.droplevel().rename(None)
-    return natural_waning
