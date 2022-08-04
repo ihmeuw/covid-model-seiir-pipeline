@@ -26,7 +26,7 @@ def run_preprocess_vaccine(preprocessing_version: str, scenario: str, progress_b
 
     logger.info(f'Loading efficacy and waning data.', context='read')
     efficacy = data_interface.load_efficacy_table()
-    waning = data_interface.load_waning_data()
+    waning = data_interface.load_vaccine_waning_distribution()
     summary = data_interface.load_serology_vaccine_coverage()
 
     logger.info('Prepping data for waning efficacy calculations', context='transform')
