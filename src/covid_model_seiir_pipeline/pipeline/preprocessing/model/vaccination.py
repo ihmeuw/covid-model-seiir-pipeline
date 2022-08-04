@@ -66,9 +66,9 @@ def build_eta_calc_arguments(vaccine_uptake: pd.DataFrame,
     eta_args = []
 
     infection_efficacy = waning_efficacy.loc['infection']
-    severe_disease_efficacy = waning_efficacy.loc['severe_disease']
-    symptomatic_disease_efficacy = infection_efficacy.copy()
-    symptomatic_disease_efficacy.loc[:, 'omicron', :] = severe_disease_efficacy.loc[:, 'omicron', :]
+    case_efficacy = waning_efficacy.loc['case']
+    admission_efficacy = waning_efficacy.loc['admission']
+    death_efficacy = waning_efficacy.loc['death']
 
     for location_id, vaccine_course, risk_group in tqdm.tqdm(list(groups), disable=not progress_bar):
         try:
@@ -77,8 +77,9 @@ def build_eta_calc_arguments(vaccine_uptake: pd.DataFrame,
             logger.warning(f'Missing uptake for location: {location_id}, vaccine course: {vaccine_course}, risk group: {risk_group}')
             continue
         group_infection_efficacy = infection_efficacy.loc[vaccine_course]
-        group_symptomatic_disease_efficacy = symptomatic_disease_efficacy.loc[vaccine_course]
-        group_severe_disease_efficacy = severe_disease_efficacy.loc[vaccine_course]
+        group_case_efficacy = case_efficacy.loc[vaccine_course]
+        group_admission_efficacy = admission_efficacy.loc[vaccine_course]
+        group_death_efficacy = death_efficacy.loc[vaccine_course]
 
         eta_args.append([
             'infection',
@@ -90,21 +91,30 @@ def build_eta_calc_arguments(vaccine_uptake: pd.DataFrame,
             pd.DataFrame(0., columns=group_infection_efficacy.columns, index=group_infection_efficacy.index),
         ])
         eta_args.append([
-            'symptomatic_disease',
+            'case',
             location_id,
             vaccine_course,
             risk_group,
             group_uptake,
-            group_symptomatic_disease_efficacy,
+            group_case_efficacy,
             group_infection_efficacy,
         ])
         eta_args.append([
-            'severe_disease',
+            'admission',
             location_id,
             vaccine_course,
             risk_group,
             group_uptake,
-            group_severe_disease_efficacy,
+            group_admission_efficacy,
+            group_infection_efficacy,
+        ])
+        eta_args.append([
+            'death',
+            location_id,
+            vaccine_course,
+            risk_group,
+            group_uptake,
+            group_death_efficacy,
             group_infection_efficacy,
         ])
 
@@ -147,16 +157,7 @@ def build_vaccine_risk_reduction(eta_args: List,
                    itertools.product(courses, risk_groups)]
     etas.loc[:, extras_cols] = 0.
 
-    risk_reductions = []
-    for endpoint, target in [('infection', 'infection'),
-                             ('symptomatic_disease', 'case'),
-                             ('severe_disease', 'admission'),
-                             ('severe_disease', 'death')]:
-        rr = etas.loc[endpoint].copy()
-        rr['endpoint'] = target
-        rr = rr.reset_index().set_index(['location_id', 'date', 'endpoint'])
-        risk_reductions.append(rr)
-    risk_reductions = pd.concat(risk_reductions).sort_index().unstack()
+    risk_reductions = etas.sort_index().unstack()
     risk_reductions.columns = [f'{c[:-3]}_{e}_{c[-2:]}' for c, e in risk_reductions.columns]
     return risk_reductions
 
