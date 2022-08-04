@@ -43,7 +43,6 @@ def run_preprocess_vaccine(preprocessing_version: str, scenario: str, progress_b
         uptake = data_interface.load_raw_vaccine_uptake(scenario)
         logger.info(f'Broadcasting uptake data over shared index.', context='transform')
         uptake = model.make_uptake_square(uptake)
-
         logger.info('Building vaccine risk reduction argument list.', context='model')
         eta_args = model.build_eta_calc_arguments(uptake, waning_efficacy, progress_bar)
         logger.info('Computing vaccine risk reductions.', context='model')

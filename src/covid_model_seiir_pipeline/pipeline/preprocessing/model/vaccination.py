@@ -27,6 +27,7 @@ def make_uptake_square(uptake: pd.DataFrame) -> pd.DataFrame:
         logger.warning('Duplicates found in uptake dataset')
         uptake = uptake.loc[~duplicates]
     uptake = uptake.reindex(idx).fillna(0.)
+    return uptake
 
 
 

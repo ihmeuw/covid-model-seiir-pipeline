@@ -364,8 +364,7 @@ class PreprocessingDataInterface:
         except KeyError:
             raise ValueError(f'Unknown vaccine scenario {scenario}.')
         data = io.load(self.vaccine_coverage_root.brand_specific_coverage(measure=scenario_file))
-        data = data.drop(columns='Unnamed: 0').reset_index()
-        return data
+        return data.reset_index()
 
     def load_serology_vaccine_coverage(self) -> pd.DataFrame:
         summary_data = io.load(self.serology_vaccine_coverage_root.old_vaccine_coverage())
@@ -420,7 +419,6 @@ class PreprocessingDataInterface:
         data = io.load(self.vaccine_efficacy_root.waning_distribution(measure='natural_waning_distribution'))
         data = data.set_index(['endpoint', 'days']).sort_index()
         return data
-
 
 
     ##########################
