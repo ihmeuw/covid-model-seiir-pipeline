@@ -8,23 +8,21 @@ grid_plots:
     date_start: '2020-01-01'
     date_end: '2023-12-31'
     comparators:
-    - version: '2022_06_09.04'
-      scenarios:
-        reference*: 'public reference'
     - version: '2022_07_18.05'
       scenarios:
-        reference*: 'reference post-review'
-        global_antivirals: 'global antivirals'
-        best_masks: 'best masks'
+        reference*: 'reference'
+    - version: '2022_07_27.05'
+      scenarios:
+        no_az: 'no_az'
+        no_vaccine: 'no_vaccine'
   - name: '2021_oct2022'
     date_start: '2021-01-01'
     date_end: '2022-10-31'
     comparators:
-    - version: '2022_06_09.04'
-      scenarios:
-        reference*: 'public reference'
     - version: '2022_07_18.05'
       scenarios:
         reference*: 'reference'
-        global_antivirals: 'global antivirals'
-        best_masks: 'best masks'
+    - version: '2022_07_27.05'
+      scenarios:
+        no_az: 'no_az'
+        no_vaccine: 'no_vaccine'
