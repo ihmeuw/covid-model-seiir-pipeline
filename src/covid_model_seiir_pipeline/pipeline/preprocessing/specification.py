@@ -71,7 +71,8 @@ class PreprocessingData:
     serology_vaccine_coverage_version: str = field(default='best')
     vaccine_efficacy_version: str = field(default='best')
     vaccine_scenarios: list = field(default_factory=list)
-    antiviral_scenarios: list = field(default_factory=list)
+
+    antiviral_scenario_parameters: dict = field(default_factory=dict)
 
     output_root: str = field(default='')
     output_format: str = field(default='parquet')
@@ -83,6 +84,22 @@ class PreprocessingData:
 
     def __post_init__(self):
         self.run_counties = self.pred_location_set_version_id in [841, 920]
+
+        for scenario, scenario_parameters in self.antiviral_scenario_parameters.items():
+            for spec_name, parameters in scenario_parameters.items():
+                lr_coverage = parameters.get('lr_coverage', 0.5)
+                self.antiviral_scenario_parameters[scenario][spec_name]['lr_coverage'] = lr_coverage
+
+                hr_coverage = parameters.get('hr_coverage', 0.8)
+                self.antiviral_scenario_parameters[scenario][spec_name]['hr_coverage'] = hr_coverage
+
+                if not parameters.get('parent_location_ids', False):
+                    raise ValueError('Missing parent location_id(s) for antivirals -'
+                                     f'scenario: {scenario}, specification: {spec_name}.')
+
+                if not parameters.get('scaleup_dates', False):
+                    raise ValueError('Missing scale-up dates for antivirals - '
+                                     f'scenario: {scenario}, specification: {spec_name}.')
 
     def to_dict(self) -> Dict:
         """Converts to a dict, coercing list-like items to lists."""
