@@ -64,7 +64,10 @@ def build_eta_calc_arguments(vaccine_uptake: pd.DataFrame,
     risk_groups = vaccine_uptake.reset_index().risk_group.unique()
     groups = itertools.product(location_ids, courses, risk_groups)
     eta_args = []
-
+    waning_efficacy = waning_efficacy.stack().reset_index().rename(columns={'level_4': 'variant', 0: 'value'})
+    waning_efficacy = waning_efficacy.set_index(['endpoint', 'vaccine_course', 'variant', 'days', 'brand']).unstack()
+    waning_efficacy.columns.name = None
+    
     infection_efficacy = waning_efficacy.loc['infection']
     case_efficacy = waning_efficacy.loc['case']
     admission_efficacy = waning_efficacy.loc['admission']
@@ -157,7 +160,7 @@ def build_vaccine_risk_reduction(eta_args: List,
                    itertools.product(courses, risk_groups)]
     etas.loc[:, extras_cols] = 0.
 
-    risk_reductions = etas.sort_index().unstack()
+    risk_reductions = etas.reorder_levels(['location_id', 'date', 'endpoint']).sort_index().unstack()
     risk_reductions.columns = [f'{c[:-3]}_{e}_{c[-2:]}' for c, e in risk_reductions.columns]
     return risk_reductions
 
@@ -167,7 +170,6 @@ def compute_eta(args: List) -> pd.DataFrame:
     variants = efficacy_target.reset_index().variant.unique()
     dates = uptake.index
     u = uptake.values
-
     eta = np.zeros((len(dates), len(variants)))
     for j, variant in enumerate(variants):
         e_t = efficacy_target.loc[variant].values[:len(u)]

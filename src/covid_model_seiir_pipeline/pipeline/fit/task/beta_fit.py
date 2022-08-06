@@ -35,7 +35,7 @@ def run_beta_fit(fit_version: str, measure: str, draw_id: int, progress_bar: boo
     variant_prevalence = rhos.drop(columns='ancestral').sum(axis=1)
     vaccinations = data_interface.load_vaccine_uptake(scenario='reference')
     etas = data_interface.load_vaccine_risk_reduction(scenario='reference')
-    natural_waning_dist = data_interface.load_waning_parameters(measure='natural_waning_distribution').set_index('days')
+    natural_waning_dist = data_interface.load_waning_parameters(measure='natural_waning_distribution').set_index(['endpoint', 'days'])
     antiviral_coverage = data_interface.load_antiviral_coverage(scenario='reference')
     antiviral_effectiveness = model.sample_antiviral_effectiveness(
         specification.rates_parameters, measure, draw_id
@@ -125,7 +125,6 @@ def run_beta_fit(fit_version: str, measure: str, draw_id: int, progress_bar: boo
         population=total_population,
         draw_id=draw_id,
     )
-
     logger.info('Building initial condition.', context='transform')
     initial_condition = model.make_initial_condition(
         measure=measure,
