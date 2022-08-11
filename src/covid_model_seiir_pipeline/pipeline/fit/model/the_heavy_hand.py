@@ -3,8 +3,13 @@ from typing import Dict
 import numpy as np
 import pandas as pd
 
+from covid_model_seiir_pipeline.lib import (
+    cli_tools,
+)
 from covid_model_seiir_pipeline.pipeline.fit.model.sampled_params import sample_idr_parameters
 from covid_model_seiir_pipeline.pipeline.fit.specification import RatesParameters
+
+logger = cli_tools.task_performance_logger
 
 
 def rescale_kappas(
@@ -476,17 +481,21 @@ def rescale_kappas(
 
         if rates_parameters.heavy_hand_fixes:
             for variant, scaling_factors in idr_scaling_factors.items():
+                location_ids = compartments.reset_index().location_id.unique().tolist()
                 kappa = pd.Series(
                     sampled_ode_params[f'kappa_{variant}_case'],
-                    index=compartments.reset_index().location_id.unique(),
+                    index=location_ids,
                     name=f'kappa_{variant}_case'
                 )
                 for location_id, scaling_factor in scaling_factors:
-                    kappa.loc[location_id] *= scaling_factor
-                    if variant == 'delta':
-                        delta_idr.loc[location_id] *= scaling_factor
-                    if variant == 'omicron':
-                        omicron_idr.loc[location_id] *= scaling_factor
+                    if location_id in location_ids:
+                        kappa.loc[location_id] *= scaling_factor
+                        if variant == 'delta':
+                            delta_idr.loc[location_id] *= scaling_factor
+                        if variant == 'omicron':
+                            omicron_idr.loc[location_id] *= scaling_factor
+                    else:
+                        logger.warning(f'Kappa scalar provided for a location not in compartments: {location_id}')
                 if variant == 'omicron':
                     sampled_ode_params['kappa_omicron_case'] = ((omicron_idr / delta_idr)
                                                                 .rename('kappa_omicron_case'))
@@ -648,13 +657,17 @@ def rescale_kappas(
 
         if rates_parameters.heavy_hand_fixes:
             for variant, scaling_factors in ihr_scaling_factors.items():
+                location_ids = compartments.reset_index().location_id.unique().tolist()
                 kappa = pd.Series(
                     sampled_ode_params[f'kappa_{variant}_admission'],
-                    index=compartments.reset_index().location_id.unique(),
+                    index=location_ids,
                     name=f'kappa_{variant}_admission'
                 )
                 for location_id, scaling_factor in scaling_factors:
-                    kappa.loc[location_id] *= scaling_factor
+                    if location_id in location_ids:
+                        kappa.loc[location_id] *= scaling_factor
+                    else:
+                        logger.warning(f'Kappa scalar provided for a location not in compartments: {location_id}')
                 sampled_ode_params[f'kappa_{variant}_admission'] = kappa
 
     if measure == 'death':
@@ -1177,13 +1190,17 @@ def rescale_kappas(
 
         if rates_parameters.heavy_hand_fixes:
             for variant, scaling_factors in ifr_scaling_factors.items():
+                location_ids = compartments.reset_index().location_id.unique().tolist()
                 kappa = pd.Series(
                     sampled_ode_params[f'kappa_{variant}_death'],
-                    index=compartments.reset_index().location_id.unique(),
+                    index=location_ids,
                     name=f'kappa_{variant}_death'
                 )
                 for location_id, scaling_factor in scaling_factors:
-                    kappa.loc[location_id] *= scaling_factor
+                    if location_id in location_ids:
+                        kappa.loc[location_id] *= scaling_factor
+                    else:
+                        logger.warning(f'Kappa scalar provided for a location not in compartments: {location_id}')
                 sampled_ode_params[f'kappa_{variant}_death'] = kappa
 
     sampled_ode_params = adjust_omega_severity(
