@@ -364,7 +364,7 @@ class PreprocessingDataInterface:
         except KeyError:
             raise ValueError(f'Unknown vaccine scenario {scenario}.')
         data = io.load(self.vaccine_coverage_root.brand_specific_coverage(measure=scenario_file))
-        data = data.drop(columns='Unnamed: 0').reset_index()
+        data = data.reset_index()
         return data
 
     def load_serology_vaccine_coverage(self) -> pd.DataFrame:
