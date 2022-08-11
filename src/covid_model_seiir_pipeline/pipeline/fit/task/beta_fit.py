@@ -152,7 +152,7 @@ def run_beta_fit(fit_version: str, measure: str, draw_id: int, progress_bar: boo
         measure=measure,
         epi_measures=epi_measures,
         posterior_epi_measures=first_pass_posterior_epi_measures,
-        hierarchy=mr_hierarchy
+        hierarchy=pred_hierarchy
     )
 
     # Apply location specific adjustments for locations where the model breaks.

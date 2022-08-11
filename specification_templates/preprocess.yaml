@@ -1,7 +1,8 @@
 data:
   mr_location_set_version_id: 1050
   mr_location_set_file: ''
-  pred_location_set_version_id: 1050
+  # pred_location_set_version_id: 1050
+  pred_location_set_file: '/ihme/covid-19/seir-outputs/agg-hierarchies/lsvid_1050_plus_zaf_subnats.csv'
   model_inputs_version: '2022_08_03.05'
   age_specific_rates_version: '2022_02_11.03'
   mortality_scalars_version: '2022_03_16.01'

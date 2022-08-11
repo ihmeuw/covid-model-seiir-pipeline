@@ -19,7 +19,8 @@ resampling:
 #       - 169    # Central African Republic
 #     output_version: '/ihme/covid-19/seir-outputs/2022_06_09.04'
 aggregation:
-  - location_file: '/ihme/covid-19/model-inputs/best/locations/modeling_hierarchy.csv'
+  # - location_file: '/ihme/covid-19/model-inputs/best/locations/modeling_hierarchy.csv'
+  - location_file: '/ihme/covid-19/seir-outputs/agg-hierarchies/lsvid_1050_plus_zaf_subnats.csv'
   - location_file: '/ihme/covid-19/seir-outputs/agg-hierarchies/who_plus_palestine.csv'
   - location_file: '/ihme/covid-19/seir-outputs/agg-hierarchies/who_euro.csv'
   - location_file: '/ihme/covid-19/seir-outputs/agg-hierarchies/world_bank.csv'
