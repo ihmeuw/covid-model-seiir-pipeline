@@ -11,18 +11,16 @@ grid_plots:
     - version: '2022_07_18.05'
       scenarios:
         reference*: 'reference'
-    - version: '2022_07_27.05'
+    - version: '2022_08_10.01'
       scenarios:
-        no_az: 'no_az'
-        no_vaccine: 'no_vaccine'
-  - name: '2021_oct2022'
+        reference*: 'reference'
+  - name: '2021_dec2022'
     date_start: '2021-01-01'
-    date_end: '2022-10-31'
+    date_end: '2022-12-01'
     comparators:
     - version: '2022_07_18.05'
       scenarios:
-        reference*: 'reference'
-    - version: '2022_07_27.05'
+        reference*: 'public reference'
+    - version: '2022_08_10.01'
       scenarios:
-        no_az: 'no_az'
-        no_vaccine: 'no_vaccine'
+        reference*: 'reference'
