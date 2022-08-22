@@ -36,8 +36,8 @@ rates_parameters:
   omicron_idr_scalar: 1.0
   # One of 'delta', 'omicron', 'average'
   omega_severity_parameterization: 'delta'
-  p_asymptomatic_pre_omicron: 0.5
-  p_asymptomatic_post_omicron: [0.75, 0.85]
+  p_asymptomatic_pre_omicron: 0.45
+  p_asymptomatic_post_omicron: 0.45
   minimum_asymptomatic_idr_fraction: 0.2
   maximum_asymptomatic_idr: 0.6
   antiviral_effectiveness_ihr: [0.20, 0.25]

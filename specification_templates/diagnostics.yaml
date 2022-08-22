@@ -8,19 +8,10 @@ grid_plots:
     date_start: '2020-01-01'
     date_end: '2023-12-31'
     comparators:
-    - version: '2022_08_12.01'
+    - version: '2022_07_18.05'
       scenarios:
-        reference*: 'old waning'
-    - version: '2022_08_12.02'
+        reference*: 'old prod'
+    - version: '2022_08_16.01'
       scenarios:
-        reference*: 'new waning'
-  - name: '2021_nov2022'
-    date_start: '2021-01-01'
-    date_end: '2022-11-30'
-    comparators:
-    - version: '2022_08_12.01'
-      scenarios:
-        reference*: 'old waning'
-    - version: '2022_08_12.02'
-      scenarios:
-        reference*: 'new waning'
+        beta_hat: 'beta_hat'
+        beta_hat_adjusted: 'beta_hat_adjusted'

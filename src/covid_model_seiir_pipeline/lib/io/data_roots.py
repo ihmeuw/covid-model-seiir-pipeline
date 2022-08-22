@@ -322,7 +322,7 @@ class OOSHoldoutRoot(DataRoot):
 class CounterfactualInputRoot(DataRoot):
     metadata = MetadataType('metadata')
 
-    beta = DatasetType('beta', LEAF_TEMPLATES.DRAW_TEMPLATE, PREFIX_TEMPLATES.SCENARIO_TEMPLATE)
+    beta = DatasetType('beta', LEAF_TEMPLATES.SCENARIO_DRAW_TEMPLATE)
     vaccine_uptake = DatasetType('vaccine_uptake', LEAF_TEMPLATES.COV_SCENARIO_TEMPLATE)
     etas = DatasetType('etas', LEAF_TEMPLATES.COV_SCENARIO_TEMPLATE)
 
