@@ -1,6 +1,6 @@
 data:
 #  seir_forecast_version: '2022_08_12.02'
-  seir_counterfactual_version: '2022_08_16.06'
+  seir_counterfactual_version: '2022_08_22.02'
   scenarios:
    - 'beta_hat'
    - 'beta_hat_adjusted'

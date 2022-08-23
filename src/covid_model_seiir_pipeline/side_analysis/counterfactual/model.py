@@ -56,7 +56,13 @@ def build_model_parameters(indices: Indices,
                   .ffill()
                   .groupby('location_id')
                   .bfill())
-    ode_params.loc[:, 'beta_all_infection'] = counterfactual_beta
+    ode_params.loc[:, 'beta_all_infection'] = (counterfactual_beta
+                                               .rename('beta_all_infection')
+                                               .reindex(indices.full)
+                                               .groupby('location_id')
+                                               .ffill()
+                                               .groupby('location_id')
+                                               .bfill())
 
     scalars = []
     ratio_map = {
