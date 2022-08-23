@@ -151,16 +151,15 @@ def run_beta_fit(fit_version: str, measure: str, draw_id: int, progress_bar: boo
         measure=measure,
         epi_measures=epi_measures,
         posterior_epi_measures=first_pass_posterior_epi_measures,
-        hierarchy=mr_hierarchy
+        hierarchy=pred_hierarchy
     )
 
     # Apply location specific adjustments for locations where the model breaks.
     sampled_ode_params = model.rescale_kappas(
         measure=measure,
+        location_ids=first_pass_compartments.reset_index().location_id.unique.tolist(),
         sampled_ode_params=sampled_ode_params,
-        compartments=first_pass_compartments,
         rates_parameters=specification.rates_parameters,
-        draw_id=draw_id
     )
 
     sensitivity, adjusted_seroprevalence = model.apply_sensitivity_adjustment(
@@ -278,7 +277,6 @@ def run_beta_fit(fit_version: str, measure: str, draw_id: int, progress_bar: boo
     out_seroprevalence['sero_date'] = out_seroprevalence['date']
     out_seroprevalence['date'] -= pd.Timedelta(days=durations.exposure_to_seroconversion.max())
 
-    idr_parameters = model.sample_idr_parameters(specification.rates_parameters, draw_id)
     keep_compartments = [
         'EffectiveSusceptible_all_omicron_all_lr',
         'EffectiveSusceptible_all_omicron_all_hr',
@@ -299,8 +297,6 @@ def run_beta_fit(fit_version: str, measure: str, draw_id: int, progress_bar: boo
         first_pass_compartments,
         second_pass_compartments,
     ])
-    for k, v in idr_parameters.items():
-        compartments[k] = v
 
     logger.info('Writing outputs', context='write')
     data_interface.save_ode_params(out_params, measure_version=measure, draw_id=draw_id)
