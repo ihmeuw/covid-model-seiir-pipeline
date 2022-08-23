@@ -124,11 +124,6 @@ class RatesParameters:
 
     omega_severity_parameterization: bool = field(default='delta')
 
-    p_asymptomatic_pre_omicron: UniformSampleable = field(default=0.5)
-    p_asymptomatic_post_omicron: UniformSampleable = field(default=0.9)
-    minimum_asymptomatic_idr_fraction: UniformSampleable = field(default=0.1)
-    maximum_asymptomatic_idr: UniformSampleable = field(default=0.2)
-
     antiviral_effectiveness_idr: UniformSampleable = field(default=0.)
     antiviral_effectiveness_ihr: UniformSampleable = field(default=0.25)
     antiviral_effectiveness_ifr: UniformSampleable = field(default=0.30)

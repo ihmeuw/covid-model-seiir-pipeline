@@ -1,12 +1,10 @@
 from typing import Dict
 
-import numpy as np
 import pandas as pd
 
 from covid_model_seiir_pipeline.lib import (
     cli_tools,
 )
-from covid_model_seiir_pipeline.pipeline.fit.model.sampled_params import sample_idr_parameters
 from covid_model_seiir_pipeline.pipeline.fit.specification import RatesParameters
 
 logger = cli_tools.task_performance_logger
@@ -17,21 +15,8 @@ def rescale_kappas(
     sampled_ode_params: Dict,
     compartments: pd.DataFrame,
     rates_parameters: RatesParameters,
-    draw_id: int,
 ) -> Dict:
     if measure == 'case':
-        delta_infections = compartments.filter(like='Infection_all_delta_all').sum(axis=1).groupby('location_id').max()
-        delta_cases = compartments.filter(like='Case_all_delta_all').sum(axis=1).groupby('location_id').max()
-        all_infections = compartments.filter(like='Infection_all_all_all').sum(axis=1).groupby('location_id').max()
-        all_cases = compartments.filter(like='Case_all_all_all').sum(axis=1).groupby('location_id').max()
-        max_idr = 0.9
-
-        idr_parameters = sample_idr_parameters(rates_parameters, draw_id)
-        p_symptomatic_pre_omicron = 1 - idr_parameters['p_asymptomatic_pre_omicron']
-        p_symptomatic_post_omicron = 1 - idr_parameters['p_asymptomatic_post_omicron']
-        minimum_asymptomatic_idr_fraction = idr_parameters['minimum_asymptomatic_idr_fraction']
-        maximum_asymptomatic_idr = idr_parameters['maximum_asymptomatic_idr']
-
         idr_scaling_factors = {
             'ancestral': [
                 (   36,  0.6),  # Kazakhstan
@@ -467,17 +452,6 @@ def rescale_kappas(
                 (  218,  0.5),  # Togo
             ]
         }
-        # IDR = p_s * IDR_s + p_a * IDR_a
-        # IDR_a = (IDR - IDR_s * p_s) / p_a
-        # min_a_frac * IDR <= IDR_a <= max_a
-        delta_idr = delta_cases / delta_infections
-        delta_idr = delta_idr.fillna(all_cases / all_infections)
-        capped_delta_idr = np.minimum(delta_idr, max_idr)
-        idr_asymptomatic = (capped_delta_idr - max_idr * p_symptomatic_pre_omicron) / (1 - p_symptomatic_pre_omicron)
-        idr_asymptomatic = np.maximum(idr_asymptomatic, capped_delta_idr * minimum_asymptomatic_idr_fraction)
-        idr_symptomatic = (capped_delta_idr - idr_asymptomatic * (1 - p_symptomatic_pre_omicron)) / p_symptomatic_pre_omicron
-        idr_asymptomatic = np.minimum(idr_asymptomatic, maximum_asymptomatic_idr)
-        omicron_idr = p_symptomatic_post_omicron * idr_symptomatic + (1 - p_symptomatic_post_omicron) * idr_asymptomatic
 
         if rates_parameters.heavy_hand_fixes:
             for variant, scaling_factors in idr_scaling_factors.items():
@@ -490,17 +464,9 @@ def rescale_kappas(
                 for location_id, scaling_factor in scaling_factors:
                     if location_id in location_ids:
                         kappa.loc[location_id] *= scaling_factor
-                        if variant == 'delta':
-                            delta_idr.loc[location_id] *= scaling_factor
-                        if variant == 'omicron':
-                            omicron_idr.loc[location_id] *= scaling_factor
                     else:
                         logger.warning(f'Kappa scalar provided for a location not in compartments: {location_id}')
-                if variant == 'omicron':
-                    sampled_ode_params['kappa_omicron_case'] = ((omicron_idr / delta_idr)
-                                                                .rename('kappa_omicron_case'))
-                else:
-                    sampled_ode_params[f'kappa_{variant}_case'] = kappa
+                sampled_ode_params[f'kappa_{variant}_case'] = kappa
 
     if measure == 'admission':
         ihr_scaling_factors = {
