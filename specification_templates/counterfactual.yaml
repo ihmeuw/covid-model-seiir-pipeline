@@ -1,6 +1,6 @@
 data:
-  seir_counterfactual_input_version: '2022_08_16.12'
-  seir_forecast_version: '2022_07_18.04'
+  seir_counterfactual_input_version: '2022_08_24.08'
+  seir_forecast_version: '2022_08_06.01'
   output_root: ''
   output_format: 'parquet'
 workflow:
@@ -14,9 +14,15 @@ scenarios:
 #    mask_use: 'mask_use_scenario_name'
 #    mobility: 'mobility_scenario_name'
 #    start_date: 'YYYY-MM-DD'
-  beta_hat:
-    beta: 'beta_hat'
+  case:
+    beta: 'beta_case'
     start_date: '2019-06-01'
-  beta_hat_adjusted:
-    beta: 'beta_hat_adjusted'
+  admission:
+    beta: 'beta_admission'
     start_date: '2019-06-01'
+  death:
+    beta: 'beta_death'
+    start_date: '2019-06-01'
+  final:
+    beta: 'beta_final'
+    start_date: '2019-06-01' 

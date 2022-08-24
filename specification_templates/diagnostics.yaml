@@ -11,7 +11,9 @@ grid_plots:
     - version: '2022_07_18.05'
       scenarios:
         reference*: 'old prod'
-    - version: '2022_08_22.01'
+    - version: '2022_08_24.01'
       scenarios:
-        beta_hat: 'beta_hat'
-        beta_hat_adjusted: 'beta_hat_adjusted'
+        case: 'case'
+        admission: 'admission'
+        death: 'death'
+        final: 'final'

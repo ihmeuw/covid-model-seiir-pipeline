@@ -157,7 +157,7 @@ def run_beta_fit(fit_version: str, measure: str, draw_id: int, progress_bar: boo
     # Apply location specific adjustments for locations where the model breaks.
     sampled_ode_params = model.rescale_kappas(
         measure=measure,
-        location_ids=first_pass_compartments.reset_index().location_id.unique.tolist(),
+        location_ids=first_pass_compartments.reset_index().location_id.unique().tolist(),
         sampled_ode_params=sampled_ode_params,
         rates_parameters=specification.rates_parameters,
     )

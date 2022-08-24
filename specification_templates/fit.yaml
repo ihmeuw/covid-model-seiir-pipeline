@@ -1,5 +1,5 @@
 data:
-  seir_preprocess_version: '2022_08_11.05'
+  seir_preprocess_version: '2022_08_22.01'
   output_format: 'parquet'
   output_root: ''
   compare_version: '2022_06_09.01'
@@ -21,8 +21,8 @@ rates_parameters:
   exposure_to_admission: [10, 14]
   exposure_to_seroconversion: [14, 18]
   admission_to_death: [12, 16]
-  test_scalar: 5.0
-  heavy_hand_fixes: True
+  test_scalar: 1.0
+  heavy_hand_fixes: False
   # One of  'BMJ', 'LSHTM', 'Imperial', 'Exeter', 'PHE', 'Combined',
   # Or a 3-tuple of [mean, lower, upper]
   ifr_risk_ratio: 'BMJ'
@@ -30,16 +30,12 @@ rates_parameters:
   # Or a 3-tuple of [mean, lower, upper]
   ihr_risk_ratio: 'BMJ'
   idr_risk_ratio: [1.0, 1.0, 1.0]
-  omicron_ifr_scalar: [0.075, 0.125]  # 0.10 +/- 25%
-  omicron_ihr_scalar: [0.150, 0.250]  # 0.20 +/- 25%
+  omicron_ifr_scalar: 1.0 # [0.075, 0.125]  # 0.10 +/- 25%
+  omicron_ihr_scalar: 1.0 # [0.150, 0.250]  # 0.20 +/- 25%
   # IDR is altered in second pass rates based on assumptions about the probability a disease is symptomatic.
   omicron_idr_scalar: 1.0
   # One of 'delta', 'omicron', 'average'
   omega_severity_parameterization: 'delta'
-  p_asymptomatic_pre_omicron: 0.45
-  p_asymptomatic_post_omicron: 0.45
-  minimum_asymptomatic_idr_fraction: 0.2
-  maximum_asymptomatic_idr: 0.6
   antiviral_effectiveness_ihr: [0.20, 0.25]
   antiviral_effectiveness_ifr: [0.25, 0.30]
 fit_parameters:

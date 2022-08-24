@@ -1,9 +1,11 @@
 data:
 #  seir_forecast_version: '2022_08_12.02'
-  seir_counterfactual_version: '2022_08_22.02'
+  seir_counterfactual_version: '2022_08_24.04'
   scenarios:
-   - 'beta_hat'
-   - 'beta_hat_adjusted'
+   - 'case'
+   - 'admission'
+   - 'death'
+   - 'final'
   output_root: ''
 workflow:
   project: 'proj_covid_prod'

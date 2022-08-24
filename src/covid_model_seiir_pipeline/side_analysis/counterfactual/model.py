@@ -35,11 +35,12 @@ def build_indices(scenario_spec: CounterfactualScenarioParameters,
     beta_fit_end_dates = forecast_start_dates.copy()
     forecast_end_dates = beta.reset_index().groupby('location_id').date.max()
 
+    location_ids = past_start_dates.index.intersection(forecast_end_dates.index)
     return Indices(
-        past_start_dates,
-        beta_fit_end_dates,
-        forecast_start_dates,
-        forecast_end_dates,
+        past_start_dates.loc[location_ids],
+        beta_fit_end_dates.loc[location_ids],
+        forecast_start_dates.loc[location_ids],
+        forecast_end_dates.loc[location_ids],
     )
 
 
