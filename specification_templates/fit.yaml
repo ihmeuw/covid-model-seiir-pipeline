@@ -22,7 +22,7 @@ rates_parameters:
   exposure_to_seroconversion: [14, 18]
   admission_to_death: [12, 16]
   test_scalar: 1.0
-  heavy_hand_fixes: False
+  heavy_hand_fixes: True
   # One of  'BMJ', 'LSHTM', 'Imperial', 'Exeter', 'PHE', 'Combined',
   # Or a 3-tuple of [mean, lower, upper]
   ifr_risk_ratio: 'BMJ'
