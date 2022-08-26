@@ -42,6 +42,7 @@ class CounterfactualData:
 class CounterfactualScenarioParameters:
     name: str = field(default='')
     beta: str = field(default='')
+    initial_condition: str = field(default='')
     vaccine_coverage: str = field(default='')
     variant_prevalence: str = field(default='')
     mask_use: str = field(default='')

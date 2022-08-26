@@ -17,12 +17,15 @@ scenarios:
   case:
     beta: 'beta_case'
     start_date: '2019-06-01'
+    initial_condition: 'case'
   admission:
     beta: 'beta_admission'
     start_date: '2019-06-01'
+    initial_condition: 'admission'
   death:
     beta: 'beta_death'
     start_date: '2019-06-01'
+    initial_condition: 'death'
   final:
     beta: 'beta_final'
     start_date: '2019-06-01' 

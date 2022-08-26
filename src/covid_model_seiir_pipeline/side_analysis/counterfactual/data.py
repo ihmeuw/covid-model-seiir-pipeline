@@ -60,8 +60,13 @@ class CounterfactualDataInterface:
     def load_location_ids(self):
         return self.forecast_data_interface.load_location_ids()
 
-    def load_past_compartments(self, draw_id: int):
-        return self.forecast_data_interface.load_past_compartments(draw_id)
+    def load_past_compartments(self, draw_id: int, initial_condition_measure: str):
+        if initial_condition_measure:
+            fdi = self.forecast_data_interface.regression_data_interface.fit_data_interface
+            compartments = fdi.load_compartments(draw_id, measure_version=initial_condition_measure)
+        else:
+            compartments = self.forecast_data_interface.load_past_compartments(draw_id)
+        return compartments
 
     def load_counterfactual_beta(self, scenario: str, draw_id: int):
         if scenario:
