@@ -1,5 +1,5 @@
 data:
-  seir_preprocess_version: '2022_08_06.01'
+  seir_preprocess_version: '2022_08_22.01'
   output_format: 'parquet'
   output_root: ''
   compare_version: '2022_06_09.01'
@@ -21,8 +21,8 @@ rates_parameters:
   exposure_to_admission: [10, 14]
   exposure_to_seroconversion: [14, 18]
   admission_to_death: [12, 16]
-  test_scalar: 5.0
-  heavy_hand_fixes: False
+  test_scalar: 1.0
+  heavy_hand_fixes: True
   # One of  'BMJ', 'LSHTM', 'Imperial', 'Exeter', 'PHE', 'Combined',
   # Or a 3-tuple of [mean, lower, upper]
   ifr_risk_ratio: 'BMJ'
@@ -35,10 +35,6 @@ rates_parameters:
   omicron_ifr_scalar: [0.08, 0.16]
   # One of 'delta', 'omicron', 'average'
   omega_severity_parameterization: 'delta'
-  p_asymptomatic_pre_omicron: 0.5
-  p_asymptomatic_post_omicron: [0.75, 0.85]
-  minimum_asymptomatic_idr_fraction: 0.2
-  maximum_asymptomatic_idr: 0.6
   antiviral_effectiveness_ihr: [0.20, 0.25]
   antiviral_effectiveness_ifr: [0.25, 0.30]
 fit_parameters:
