@@ -60,7 +60,7 @@ def run_counterfactual_scenario(counterfactual_version: str, scenario: str, draw
     logger.info('Processing inputs into model parameters.', context='transform')
     model_parameters = model.build_model_parameters(
         indices=indices,
-        counterfactual_beta=beta,
+        counterfactual_beta=beta['beta'],
         forecast_ode_parameters=forecast_ode_params,
         prior_ratios=prior_ratios,
         vaccinations=vaccinations,

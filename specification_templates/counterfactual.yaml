@@ -1,11 +1,11 @@
 data:
-  seir_counterfactual_input_version: '2022_07_26.01'
-  seir_forecast_version: '2022_07_18.04'
+  seir_counterfactual_input_version: '2022_08_24.08'
+  seir_forecast_version: '2022_08_06.01'
   output_root: ''
   output_format: 'parquet'
 workflow:
   project: 'proj_covid_prod'
-  queue: 'long.q'
+  queue: 'all.q'
 scenarios:
 #  scenario_name:
 #    beta: 'beta_scenario_name'
@@ -14,9 +14,15 @@ scenarios:
 #    mask_use: 'mask_use_scenario_name'
 #    mobility: 'mobility_scenario_name'
 #    start_date: 'YYYY-MM-DD'
-  no_vaccine:
-    vaccine_coverage: 'no_vaccine'
+  case:
+    beta: 'beta_case'
     start_date: '2019-06-01'
-  no_az:
-    vaccine_coverage: 'no_az'
+  admission:
+    beta: 'beta_admission'
     start_date: '2019-06-01'
+  death:
+    beta: 'beta_death'
+    start_date: '2019-06-01'
+  final:
+    beta: 'beta_final'
+    start_date: '2019-06-01' 

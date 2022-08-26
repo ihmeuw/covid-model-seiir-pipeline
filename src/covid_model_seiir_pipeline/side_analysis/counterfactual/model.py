@@ -35,11 +35,12 @@ def build_indices(scenario_spec: CounterfactualScenarioParameters,
     beta_fit_end_dates = forecast_start_dates.copy()
     forecast_end_dates = beta.reset_index().groupby('location_id').date.max()
 
+    location_ids = past_start_dates.index.intersection(forecast_end_dates.index)
     return Indices(
-        past_start_dates,
-        beta_fit_end_dates,
-        forecast_start_dates,
-        forecast_end_dates,
+        past_start_dates.loc[location_ids],
+        beta_fit_end_dates.loc[location_ids],
+        forecast_start_dates.loc[location_ids],
+        forecast_end_dates.loc[location_ids],
     )
 
 
@@ -56,7 +57,13 @@ def build_model_parameters(indices: Indices,
                   .ffill()
                   .groupby('location_id')
                   .bfill())
-    ode_params.loc[:, 'beta_all_infection'] = counterfactual_beta
+    ode_params.loc[:, 'beta_all_infection'] = (counterfactual_beta
+                                               .rename('beta_all_infection')
+                                               .reindex(indices.full)
+                                               .groupby('location_id')
+                                               .ffill()
+                                               .groupby('location_id')
+                                               .bfill())
 
     scalars = []
     ratio_map = {
