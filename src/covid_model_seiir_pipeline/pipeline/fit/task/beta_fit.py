@@ -277,21 +277,7 @@ def run_beta_fit(fit_version: str, measure: str, draw_id: int, progress_bar: boo
     out_seroprevalence['sero_date'] = out_seroprevalence['date']
     out_seroprevalence['date'] -= pd.Timedelta(days=durations.exposure_to_seroconversion.max())
 
-    keep_compartments = [
-        'EffectiveSusceptible_all_omicron_all_lr',
-        'EffectiveSusceptible_all_omicron_all_hr',
-        'Infection_all_delta_all_lr',
-        'Infection_all_delta_all_hr',
-        'Case_all_delta_all_lr',
-        'Case_all_delta_all_hr',
-        'Infection_all_all_all_lr',
-        'Infection_all_all_all_hr',
-        'Case_all_all_all_lr',
-        'Case_all_all_all_hr',
-    ]
-    first_pass_compartments = first_pass_compartments.loc[:, keep_compartments]
     first_pass_compartments['round'] = 1
-    second_pass_compartments = second_pass_compartments.loc[:, keep_compartments]
     second_pass_compartments['round'] = 2
     compartments = pd.concat([
         first_pass_compartments,

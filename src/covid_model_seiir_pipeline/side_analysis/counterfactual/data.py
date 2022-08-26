@@ -64,6 +64,7 @@ class CounterfactualDataInterface:
         if initial_condition_measure:
             fdi = self.forecast_data_interface.regression_data_interface.fit_data_interface
             compartments = fdi.load_compartments(draw_id, measure_version=initial_condition_measure)
+            compartments = compartments[compartments['round'] == 2].drop(columns=['round'])
         else:
             compartments = self.forecast_data_interface.load_past_compartments(draw_id)
         return compartments
