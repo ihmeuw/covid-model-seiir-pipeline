@@ -30,6 +30,7 @@ class CounterfactualWorkflowSpecification(workflow.WorkflowSpecification):
 @dataclass
 class CounterfactualData:
     seir_counterfactual_input_version: str = field(default='best')
+    seir_fit_version: str = field(default='best')
     seir_forecast_version: str = field(default='best')
     output_root: str = field(default='')
     output_format: str = field(default='csv')
