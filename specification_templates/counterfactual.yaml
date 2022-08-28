@@ -1,5 +1,5 @@
 data:
-  seir_counterfactual_input_version: '2022_08_24.08'
+  seir_counterfactual_input_version: '2022_08_26.01'
   seir_forecast_version: '2022_08_06.01'
   output_root: ''
   output_format: 'parquet'

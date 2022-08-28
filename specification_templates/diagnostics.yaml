@@ -11,9 +11,9 @@ grid_plots:
     - version: '2022_07_18.05'
       scenarios:
         reference*: 'old prod'
-    - version: '2022_08_24.01'
+    - version: '2022_08_25.01'
       scenarios:
-        case: 'case'
-        admission: 'admission'
-        death: 'death'
+        # case: 'case'
+        # admission: 'admission'
+        # death: 'death'
         final: 'final'
