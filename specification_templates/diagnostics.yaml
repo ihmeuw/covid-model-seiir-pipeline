@@ -2,7 +2,7 @@ data:
   output_root: ''
 workflow:
   project: 'proj_covid_prod'
-  queue: 'all.q'
+  queue: 'long.q'
 grid_plots:
   - name: '2020_2023'
     date_start: '2020-01-01'
@@ -11,7 +11,7 @@ grid_plots:
     - version: '2022_07_18.05'
       scenarios:
         reference*: 'old prod'
-    - version: '2022_08_24.01'
+    - version: '2022_08_27.02'
       scenarios:
         case: 'case'
         admission: 'admission'
