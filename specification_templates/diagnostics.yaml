@@ -13,7 +13,10 @@ grid_plots:
         reference*: 'public reference'
     - version: '2022_08_06.01'
       scenarios:
-        reference*: 'original settings'
+        reference*: 'initial tuning'
     - version: '2022_08_28.02'
       scenarios:
-        reference*: 'new settings'
+        reference*: 'new tuning'
+    - version: '2022_08_29.01'
+      scenarios:
+        reference*: 'new tuning + new forecast'
