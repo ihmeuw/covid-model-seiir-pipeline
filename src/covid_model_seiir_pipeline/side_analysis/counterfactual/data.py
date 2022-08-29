@@ -5,6 +5,10 @@ import pandas as pd
 from covid_model_seiir_pipeline.lib import (
     io
 )
+from covid_model_seiir_pipeline.pipeline.fit import (
+    FitSpecification,
+    FitDataInterface,
+)
 from covid_model_seiir_pipeline.pipeline.forecasting import (
     ForecastDataInterface,
     ForecastSpecification,
@@ -17,9 +21,11 @@ from covid_model_seiir_pipeline.side_analysis.counterfactual.specification impor
 class CounterfactualDataInterface:
 
     def __init__(self,
+                 fit_data_interface: FitDataInterface,
                  forecast_data_interface: ForecastDataInterface,
                  input_root: io.CounterfactualInputRoot,
                  output_root: io.CounterfactualRoot):
+        self.fit_data_interface = fit_data_interface
         self.forecast_data_interface = forecast_data_interface
         self.input_root = input_root
         self.output_root = output_root
@@ -29,9 +35,13 @@ class CounterfactualDataInterface:
 
     @classmethod
     def from_specification(cls, specification: CounterfactualSpecification) -> 'CounterfactualDataInterface':
+        fit_spec = FitSpecification.from_version_root(specification.data.seir_fit_version)
+        fit_data_interface = FitDataInterface.from_specification(fit_spec)
         forecast_spec = ForecastSpecification.from_version_root(specification.data.seir_forecast_version)
         forecast_data_interface = ForecastDataInterface.from_specification(forecast_spec)
+
         return cls(
+            fit_data_interface=fit_data_interface,
             forecast_data_interface=forecast_data_interface,
             input_root=io.CounterfactualInputRoot(
                 specification.data.seir_counterfactual_input_version, data_format='parquet'
@@ -60,8 +70,13 @@ class CounterfactualDataInterface:
     def load_location_ids(self):
         return self.forecast_data_interface.load_location_ids()
 
-    def load_past_compartments(self, draw_id: int):
-        return self.forecast_data_interface.load_past_compartments(draw_id)
+    def load_past_compartments(self, draw_id: int, initial_condition_measure: str):
+        if initial_condition_measure:
+            compartments = self.fit_data_interface.load_compartments(draw_id, measure_version=initial_condition_measure)
+            compartments = compartments[compartments['round'] == 2].drop(columns=['round'])
+        else:
+            compartments = self.forecast_data_interface.load_past_compartments(draw_id)
+        return compartments
 
     def load_counterfactual_beta(self, scenario: str, draw_id: int):
         if scenario:

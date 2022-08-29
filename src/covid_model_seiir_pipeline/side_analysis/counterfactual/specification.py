@@ -30,6 +30,7 @@ class CounterfactualWorkflowSpecification(workflow.WorkflowSpecification):
 @dataclass
 class CounterfactualData:
     seir_counterfactual_input_version: str = field(default='best')
+    seir_fit_version: str = field(default='best')
     seir_forecast_version: str = field(default='best')
     output_root: str = field(default='')
     output_format: str = field(default='csv')
@@ -42,6 +43,7 @@ class CounterfactualData:
 class CounterfactualScenarioParameters:
     name: str = field(default='')
     beta: str = field(default='')
+    initial_condition: str = field(default='')
     vaccine_coverage: str = field(default='')
     variant_prevalence: str = field(default='')
     mask_use: str = field(default='')

@@ -1,11 +1,12 @@
 data:
-  seir_counterfactual_input_version: '2022_08_26.01'
-  seir_forecast_version: '2022_08_06.01'
+  seir_counterfactual_input_version: '2022_08_28.02'
+  seir_forecast_version: '2022_08_26.01'
+  seir_fit_version: '2022_08_28.02'
   output_root: ''
   output_format: 'parquet'
 workflow:
   project: 'proj_covid_prod'
-  queue: 'all.q'
+  queue: 'long.q'
 scenarios:
 #  scenario_name:
 #    beta: 'beta_scenario_name'
@@ -17,12 +18,15 @@ scenarios:
   case:
     beta: 'beta_case'
     start_date: '2019-06-01'
+    initial_condition: 'case'
   admission:
     beta: 'beta_admission'
     start_date: '2019-06-01'
+    initial_condition: 'admission'
   death:
     beta: 'beta_death'
     start_date: '2019-06-01'
+    initial_condition: 'death'
   final:
     beta: 'beta_final'
     start_date: '2019-06-01' 

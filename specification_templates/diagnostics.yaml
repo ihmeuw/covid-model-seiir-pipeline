@@ -10,10 +10,10 @@ grid_plots:
     comparators:
     - version: '2022_07_18.05'
       scenarios:
-        reference*: 'old prod'
-    - version: '2022_08_25.01'
+        reference*: 'public reference'
+    - version: '2022_08_06.01'
       scenarios:
-        # case: 'case'
-        # admission: 'admission'
-        # death: 'death'
-        final: 'final'
+        reference*: 'original settings'
+    - version: '2022_08_28.02'
+      scenarios:
+        reference*: 'new settings'

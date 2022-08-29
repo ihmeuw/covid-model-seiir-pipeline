@@ -4,6 +4,9 @@ from typing import Dict, List
 import pandas as pd
 import yaml
 
+from covid_model_seiir_pipeline.lib.ode_mk2.constants import (
+    VARIANT_NAMES,
+)
 from covid_model_seiir_pipeline.lib import (
     cli_tools,
 )
@@ -18,30 +21,31 @@ def rescale_kappas(
     sampled_ode_params: Dict,
     rates_parameters: RatesParameters,
 ) -> Dict:
-    heavy_hand_fixes_path = Path(__file__).parent / 'kappa_scaling_factors'
-    variants = [str(path).split('/')[-1].replace('.yaml', '')
-                for path in heavy_hand_fixes_path.iterdir()
-                if '.yaml' in str(path)]
+    kappa_scaling_factors_path = Path(__file__).parent / 'kappa_scaling_factors'
 
     if rates_parameters.heavy_hand_fixes:
-        for variant in variants:
-            scaling_factors = yaml.full_load((heavy_hand_fixes_path / f'{variant}.yaml').read_text())
-            scaling_factors = scaling_factors[measure]
-            
-            kappa = pd.Series(
-                sampled_ode_params[f'kappa_{variant}_{measure}'],
-                index=location_ids,
-                name=f'kappa_{variant}_{measure}'
-            )
-            for location_id, factor in scaling_factors.items():
-                if location_id in location_ids:
-                    kappa.loc[location_id] *= factor
-                else:
-                    logger.warning(
-                        f'Kappa scalar provided for a location not in '
-                        f'compartments: {location_id}'
-                    )
-            sampled_ode_params[f'kappa_{variant}_{measure}'] = kappa
+        for variant in VARIANT_NAMES:
+            try:
+                scaling_factors = yaml.full_load((kappa_scaling_factors_path / f'{variant}.yaml').read_text())
+                scaling_factors = scaling_factors[measure]
+                logger.info(f'Applying {variant} kappa scalars to {len(scaling_factors)} locations.')
+
+                kappa = pd.Series(
+                    sampled_ode_params[f'kappa_{variant}_{measure}'],
+                    index=location_ids,
+                    name=f'kappa_{variant}_{measure}'
+                )
+                for location_id, factor in scaling_factors.items():
+                    try:
+                        kappa.loc[location_id] *= factor
+                    except KeyError:
+                        logger.warning(
+                            'Kappa scalar provided for a location not in '
+                            f'compartments: {location_id}'
+                        )
+                sampled_ode_params[f'kappa_{variant}_{measure}'] = kappa
+            except FileNotFoundError:
+                logger.warning(f'No kappa scaling factors for {variant}')
 
     sampled_ode_params = adjust_omega_severity(
         sampled_ode_params, rates_parameters

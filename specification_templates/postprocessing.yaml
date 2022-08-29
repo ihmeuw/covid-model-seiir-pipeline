@@ -1,6 +1,6 @@
 data:
-  seir_forecast_version: '2022_08_26.01'
-  # seir_counterfactual_version: '2022_08_25.01'
+  seir_forecast_version: '2022_08_28.01'
+  # seir_counterfactual_version: '2022_08_28.02'
   scenarios:
    # - 'case'
    # - 'admission'
@@ -10,7 +10,7 @@ data:
   output_root: ''
 workflow:
   project: 'proj_covid_prod'
-  queue: 'all.q'
+  queue: 'long.q'
 resampling:
   reference_scenario: 'reference'
   reference_date: '2022-10-01'
