@@ -98,7 +98,6 @@ class CounterfactualDataInterface:
     def load_input_ode_params(self, draw_id: int, initial_condition_measure: str):
         if initial_condition_measure:
             params = self.fit_data_interface.load_ode_params(draw_id=draw_id, measure_version=initial_condition_measure)
-            params = params[params['round'] == 2].drop(columns=['round'])
         else:
             params = self.fit_data_interface.load_ode_params(draw_id=draw_id)
 
