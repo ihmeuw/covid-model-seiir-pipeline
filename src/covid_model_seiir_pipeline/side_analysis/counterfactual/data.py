@@ -95,8 +95,13 @@ class CounterfactualDataInterface:
             )['beta']
         return beta
 
-    def load_input_ode_params(self, draw_id: int):
-        return self.fit_data_interface.load_ode_params(draw_id)
+    def load_input_ode_params(self, draw_id: int, initial_condition_measure: str):
+        if initial_condition_measure:
+            params = self.fit_data_interface.load_ode_params(draw_id=draw_id, measure_version=initial_condition_measure)
+        else:
+            params = self.fit_data_interface.load_ode_params(draw_id=draw_id)
+
+        return params
 
     def get_covariate_version(self, covariate_name: str, scenario: str) -> str:
         specification = self.load_specification()
