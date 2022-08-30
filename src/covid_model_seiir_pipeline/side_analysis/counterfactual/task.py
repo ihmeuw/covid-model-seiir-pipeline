@@ -34,10 +34,9 @@ def run_counterfactual_scenario(counterfactual_version: str, scenario: str, draw
     # to do computation.
     logger.info('Loading index building data', context='read')
     past_compartments = data_interface.load_past_compartments(
-        draw_id,
+        draw_id=draw_id,
         initial_condition_measure=scenario_spec.initial_condition,
     )
-    location_ids = past_compartments.reset_index().location_id.unique().tolist()
     past_compartments = past_compartments.loc[past_compartments.notnull().any(axis=1)]
     beta = data_interface.load_counterfactual_beta(scenario_spec.beta, draw_id)
     indices = model.build_indices(
@@ -50,11 +49,14 @@ def run_counterfactual_scenario(counterfactual_version: str, scenario: str, draw
     # Build parameters for the SEIIR model #
     ########################################
     logger.info('Loading SEIIR parameter input data.', context='read')
-    forecast_ode_params = data_interface.load_forecast_ode_params(draw_id=draw_id)
+    ode_params = data_interface.load_input_ode_params(draw_id=draw_id)
     # Vaccine data, of course.
-    vaccinations = data_interface.load_counterfactual_vaccine_uptake(scenario_spec.vaccine_coverage)
-    etas = data_interface.load_counterfactual_vaccine_risk_reduction(scenario_spec.vaccine_coverage)
-    prior_ratios = data_interface.load_rates(draw_id).loc[location_ids]
+    vaccinations = data_interface.load_vaccine_uptake(scenario_spec.vaccine_coverage)
+    etas = data_interface.load_vaccine_risk_reduction(scenario_spec.vaccine_coverage)
+    prior_ratios = data_interface.load_rates(
+        draw_id=draw_id,
+        initial_condition_measure=scenario_spec.initial_condition,
+    )
     phis = data_interface.load_phis(draw_id=draw_id)
     hospital_cf = data_interface.load_hospitalizations(measure='correction_factors')
     hospital_parameters = data_interface.get_hospital_params()
@@ -64,7 +66,7 @@ def run_counterfactual_scenario(counterfactual_version: str, scenario: str, draw
     model_parameters = model.build_model_parameters(
         indices=indices,
         counterfactual_beta=beta['beta'],
-        forecast_ode_parameters=forecast_ode_params,
+        ode_parameters=ode_params,
         prior_ratios=prior_ratios,
         vaccinations=vaccinations,
         etas=etas,
@@ -91,7 +93,7 @@ def run_counterfactual_scenario(counterfactual_version: str, scenario: str, draw
         indices,
         compartments,
         model_parameters,
-        forecast_ode_params,
+        ode_params,
         hospital_parameters,
         hospital_cf,
     )
@@ -100,10 +102,10 @@ def run_counterfactual_scenario(counterfactual_version: str, scenario: str, draw
     counterfactual_ode_params = pd.concat([model_parameters.base_parameters, beta], axis=1)
     counterfactual_ode_params['beta_hat'] = np.nan
     for measure in ['death', 'case', 'admission']:
-        counterfactual_ode_params[f'exposure_to_{measure}'] = forecast_ode_params[f'exposure_to_{measure}'].iloc[0]
+        counterfactual_ode_params[f'exposure_to_{measure}'] = ode_params[f'exposure_to_{measure}'].iloc[0]
 
     logger.info('Writing outputs.', context='write')
-    data_interface.save_ode_params(forecast_ode_params, scenario, draw_id)
+    data_interface.save_ode_params(ode_params, scenario, draw_id)
     data_interface.save_components(compartments, scenario, draw_id)
     data_interface.save_raw_outputs(system_metrics, scenario, draw_id)
 

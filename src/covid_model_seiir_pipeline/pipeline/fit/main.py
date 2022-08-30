@@ -80,6 +80,10 @@ def fit_main(app_metadata: cli_tools.Metadata,
                            f"many draws to resample:\n {total_failures_formatted}.")
             logger.warning(f"Flat list of failures: {list(total_failures)}")
 
+    hierarchy = data_interface.load_hierarchy('pred')
+    location_ids = data_interface.filter_location_ids(hierarchy)
+    data_interface.save_location_ids(location_ids)
+
     logger.info(f'Fit version {specification.data.output_root} complete.')
 
 

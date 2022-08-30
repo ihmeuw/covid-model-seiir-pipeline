@@ -1,6 +1,6 @@
 data:
 #  seir_forecast_version: '2022_08_12.02'
-  seir_counterfactual_version: '2022_08_27.03'
+  seir_counterfactual_version: '2022_08_30.03'
   scenarios:
    - 'case'
    - 'admission'
