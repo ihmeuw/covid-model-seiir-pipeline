@@ -106,9 +106,8 @@ def run_counterfactual_scenario(counterfactual_version: str, scenario: str, draw
     counterfactual_ode_params['beta_hat'] = np.nan
     for measure in ['death', 'case', 'admission']:
         counterfactual_ode_params[f'exposure_to_{measure}'] = ode_params[f'exposure_to_{measure}'].iloc[0]
-
     logger.info('Writing outputs.', context='write')
-    data_interface.save_ode_params(ode_params, scenario, draw_id)
+    data_interface.save_ode_params(counterfactual_ode_params, scenario, draw_id)
     data_interface.save_components(compartments, scenario, draw_id)
     data_interface.save_raw_outputs(system_metrics, scenario, draw_id)
 
