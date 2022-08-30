@@ -122,11 +122,19 @@ class CounterfactualDataInterface:
             etas = self.forecast_data_interface.load_vaccine_risk_reduction('reference')
         return etas
 
-    def load_rates(self, draw_id: int) -> pd.DataFrame:
-        return self.forecast_data_interface.load_rates(draw_id)
+    def load_rates(self, draw_id: int, initial_condition_measure: str) -> pd.DataFrame:
+        if initial_condition_measure:
+            rates = self.fit_data_interface.load_rates(
+                draw_id=draw_id,
+                measure_version=initial_condition_measure,
+            )
+            rates = rates[rates['round'] == 2].drop(columns=['round'])
+        else:
+            rates = self.fit_data_interface.load_rates(draw_id=draw_id)
+        return rates
 
     def load_phis(self, draw_id: int) -> pd.DataFrame:
-        return self.forecast_data_interface.load_phis(draw_id)
+        return self.fit_data_interface.load_phis(draw_id)
 
     def load_raw_covariates(self, scenario: str, draw_id: int):
         # TODO: replace reference covariates with counterfactual covariates.

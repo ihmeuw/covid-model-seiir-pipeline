@@ -35,7 +35,7 @@ def run_counterfactual_scenario(counterfactual_version: str, scenario: str, draw
     logger.info('Loading index building data', context='read')
     location_ids = data_interface.load_location_ids()
     past_compartments = data_interface.load_past_compartments(
-        draw_id,
+        draw_id=draw_id,
         initial_condition_measure=scenario_spec.initial_condition,
     ).loc[location_ids]
     past_compartments = past_compartments.loc[past_compartments.notnull().any(axis=1)]
@@ -54,7 +54,10 @@ def run_counterfactual_scenario(counterfactual_version: str, scenario: str, draw
     # Vaccine data, of course.
     vaccinations = data_interface.load_vaccine_uptake(scenario_spec.vaccine_coverage)
     etas = data_interface.load_vaccine_risk_reduction(scenario_spec.vaccine_coverage)
-    prior_ratios = data_interface.load_rates(draw_id).loc[location_ids]
+    prior_ratios = data_interface.load_rates(
+        draw_id=draw_id,
+        initial_condition_measure=scenario_spec.initial_condition,
+    )
     phis = data_interface.load_phis(draw_id=draw_id)
     hospital_cf = data_interface.load_hospitalizations(measure='correction_factors')
     hospital_parameters = data_interface.get_hospital_params()
