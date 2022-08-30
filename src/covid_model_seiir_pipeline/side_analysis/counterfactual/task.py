@@ -49,7 +49,10 @@ def run_counterfactual_scenario(counterfactual_version: str, scenario: str, draw
     # Build parameters for the SEIIR model #
     ########################################
     logger.info('Loading SEIIR parameter input data.', context='read')
-    ode_params = data_interface.load_input_ode_params(draw_id=draw_id)
+    ode_params = data_interface.load_input_ode_params(
+        draw_id=draw_id,
+        initial_condition_measure=scenario_spec.initial_condition,
+    )
     # Vaccine data, of course.
     vaccinations = data_interface.load_vaccine_uptake(scenario_spec.vaccine_coverage)
     etas = data_interface.load_vaccine_risk_reduction(scenario_spec.vaccine_coverage)
