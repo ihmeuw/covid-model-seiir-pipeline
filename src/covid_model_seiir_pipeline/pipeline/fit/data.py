@@ -52,6 +52,17 @@ class FitDataInterface:
     def load_hierarchy(self, name: str) -> pd.DataFrame:
         return self.preprocessing_data_interface.load_hierarchy(name=name)
 
+    def filter_location_ids(self, hierarchy: pd.DataFrame = None) -> List[int]:
+        past_infections_locations = set(self.load_summary('beta').dropna().reset_index().location_id)
+
+        if hierarchy is None:
+            desired_locations = past_infections_locations
+        else:
+            most_detailed = hierarchy.most_detailed == 1
+            desired_locations = set(hierarchy.loc[most_detailed, 'location_id'].tolist())
+
+        return list(past_infections_locations & desired_locations)
+
     def load_population(self, measure: str) -> pd.DataFrame:
         return self.preprocessing_data_interface.load_population(measure=measure)
 
@@ -144,6 +155,12 @@ class FitDataInterface:
     def load_specification(self) -> FitSpecification:
         spec_dict = io.load(self.fit_root.specification())
         return FitSpecification.from_dict(spec_dict)
+
+    def save_location_ids(self, location_ids: List[int]) -> None:
+        io.dump(location_ids, self.fit_root.locations())
+
+    def load_location_ids(self) -> List[int]:
+        return io.load(self.fit_root.locations())
 
     def save_covariate_options(self, covariate_options: Dict) -> None:
         io.dump(covariate_options, self.fit_root.covariate_options())
