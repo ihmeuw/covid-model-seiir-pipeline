@@ -98,7 +98,6 @@ class CounterfactualDataInterface:
     def load_input_ode_params(self, draw_id: int):
         return self.fit_data_interface.load_ode_params(draw_id)
 
-
     def get_covariate_version(self, covariate_name: str, scenario: str) -> str:
         specification = self.load_specification()
         counterfactual_version = specification.scenarios[scenario].to_dict().get(covariate_name)
@@ -109,15 +108,14 @@ class CounterfactualDataInterface:
         covariate_version = counterfactual_version if counterfactual_version else forecast_version
         return covariate_version
 
-
-    def load_counterfactual_vaccine_uptake(self, scenario: str):
+    def load_vaccine_uptake(self, scenario: str):
         if scenario:
             uptake = io.load(self.input_root.vaccine_uptake(covariate_scenario=scenario))
         else:
             uptake = self.forecast_data_interface.load_vaccine_uptake('reference')
         return uptake
 
-    def load_counterfactual_vaccine_risk_reduction(self, scenario: str):
+    def load_vaccine_risk_reduction(self, scenario: str):
         if scenario:
             etas = io.load(self.input_root.etas(covariate_scenario=scenario))
         else:

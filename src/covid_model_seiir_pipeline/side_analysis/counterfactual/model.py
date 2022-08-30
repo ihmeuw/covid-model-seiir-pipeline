@@ -46,12 +46,12 @@ def build_indices(scenario_spec: CounterfactualScenarioParameters,
 
 def build_model_parameters(indices: Indices,
                            counterfactual_beta: pd.Series,
-                           forecast_ode_parameters: pd.DataFrame,
+                           ode_parameters: pd.DataFrame,
                            prior_ratios: pd.DataFrame,
                            vaccinations: pd.DataFrame,
                            etas: pd.DataFrame,
                            phis: pd.DataFrame) -> Parameters:
-    ode_params = (forecast_ode_parameters
+    ode_params = (ode_parameters
                   .reindex(indices.full)
                   .groupby('location_id')
                   .ffill()
