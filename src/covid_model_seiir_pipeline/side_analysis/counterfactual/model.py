@@ -73,15 +73,20 @@ def build_model_parameters(indices: Indices,
     }
     for epi_measure, ratio_name in ratio_map.items():
         for risk_group in RISK_GROUP_NAMES:
-            scalars.append(
-                (prior_ratios[f'{ratio_name}_{risk_group}'] / prior_ratios[ratio_name])
-                .rename(f'{epi_measure}_{risk_group}')
-                .reindex(indices.full)
-                .groupby('location_id')
-                .ffill()
-                .groupby('location_id')
-                .bfill()
-            )
+            if ratio_name in prior_ratios:
+                scalars.append(
+                    (prior_ratios[f'{ratio_name}_{risk_group}'] / prior_ratios[ratio_name])
+                    .rename(f'{epi_measure}_{risk_group}')
+                    .reindex(indices.full)
+                    .groupby('location_id')
+                    .ffill()
+                    .groupby('location_id')
+                    .bfill()
+                )
+            else:
+                scalars.append(
+                    pd.Series(1., name=f'{epi_measure}_{risk_group}', index=indices.full)
+                )
     scalars = pd.concat(scalars, axis=1)
 
     return Parameters(
