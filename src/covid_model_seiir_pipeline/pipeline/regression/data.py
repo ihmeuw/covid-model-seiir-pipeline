@@ -72,7 +72,7 @@ class RegressionDataInterface:
         regression_spec = self.load_specification()
         drop_locations = set(regression_spec.data.drop_locations)
 
-        past_infections_locations = set(self.load_summary('beta').dropna().reset_index().location_id)
+        past_infections_locations = set(self.load_fit_location_ids())
 
         if hierarchy is None:
             desired_locations = past_infections_locations
@@ -100,6 +100,9 @@ class RegressionDataInterface:
 
     def load_hierarchy(self, name: str) -> pd.DataFrame:
         return self.fit_data_interface.load_hierarchy(name=name)
+
+    def load_fit_location_ids(self) -> List[int]:
+        return self.fit_data_interface.load_location_ids()
 
     def load_population(self, measure: str) -> pd.DataFrame:
         return self.fit_data_interface.load_population(measure=measure)

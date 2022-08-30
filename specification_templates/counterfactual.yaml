@@ -6,7 +6,7 @@ data:
   output_format: 'parquet'
 workflow:
   project: 'proj_covid_prod'
-  queue: 'long.q'
+  queue: 'all.q'
 scenarios:
 #  scenario_name:
 #    beta: 'beta_scenario_name'

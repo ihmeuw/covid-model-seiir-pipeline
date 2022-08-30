@@ -241,6 +241,7 @@ class FitRoot(DataRoot):
     specification = MetadataType('fit_specification')
     covariate_options = MetadataType('covariate_options')
     draw_resampling = MetadataType('draw_resampling')
+    locations = MetadataType('locations')
 
     fit_failures = DatasetType('fit_failures')
     fit_residuals = DatasetType('fit_residuals')
