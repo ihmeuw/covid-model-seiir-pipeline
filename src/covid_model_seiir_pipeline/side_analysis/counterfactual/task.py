@@ -37,7 +37,6 @@ def run_counterfactual_scenario(counterfactual_version: str, scenario: str, draw
         draw_id=draw_id,
         initial_condition_measure=scenario_spec.initial_condition,
     )
-    location_ids = past_compartments.reset_index().location_id.unique().tolist()
     past_compartments = past_compartments.loc[past_compartments.notnull().any(axis=1)]
     beta = data_interface.load_counterfactual_beta(scenario_spec.beta, draw_id)
     indices = model.build_indices(
