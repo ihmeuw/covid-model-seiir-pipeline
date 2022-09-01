@@ -30,13 +30,17 @@ def rescale_kappas(
             try:
                 scaling_factors = yaml.full_load((kappa_scaling_factors_path / f'{variant}.yaml').read_text())
                 scaling_factors = scaling_factors[measure]
-                logger.info(f'Applying {variant} kappa scalars to {len(scaling_factors)} locations.')
+                logger.info(f'Applying {variant} kappa scalars to {len(scaling_factors)} locations')
             except FileNotFoundError:
                 logger.warning(f'No kappa scaling factors for {variant}')
                 scaling_factors = {}
 
+            flag_manual = False
             for location_id, factor in manual_scaling_factors.get(variant, {}).items():
                 scaling_factors[location_id] = scaling_factors.get(location_id, 1) * factor
+                flag_manual = True
+            if flag_manual:
+                logger.info(f'Adding manual kappa scalars for {variant}')
 
             kappa = pd.Series(
                 sampled_ode_params[f'kappa_{variant}_{measure}'],

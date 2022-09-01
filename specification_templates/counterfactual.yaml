@@ -1,7 +1,7 @@
 data:
-  seir_counterfactual_input_version: '2022_08_30.01'
+  seir_counterfactual_input_version: '2022_08_31.06'
   seir_forecast_version: '2022_08_26.01'
-  seir_fit_version: '2022_08_30.01'
+  seir_fit_version: '2022_08_31.04'
   output_root: ''
   output_format: 'parquet'
 workflow:
@@ -27,6 +27,3 @@ scenarios:
     beta: 'beta_death'
     start_date: '2019-06-01'
     initial_condition: 'death'
-  final:
-    beta: 'beta_final'
-    start_date: '2019-06-01' 
