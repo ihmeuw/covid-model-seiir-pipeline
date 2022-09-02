@@ -2,17 +2,17 @@ data:
   mr_location_set_version_id: 1050
   mr_location_set_file: ''
   pred_location_set_version_id: 1050
-  model_inputs_version: '2022_08_03.05'
+  model_inputs_version: '2022_08_31.01'
   age_specific_rates_version: '2022_02_11.03'
   mortality_scalars_version: '2022_03_16.01'
-  mask_use_outputs_version: '2022_07_27.01'
-  mobility_covariate_version: '2022_08_01.02'
+  mask_use_outputs_version: '2022_08_24.01'
+  mobility_covariate_version: '2022_08_29.02'
   pneumonia_version: '2020_06_12.03'
   population_density_version: '2020_05_20.07'
-  testing_outputs_version: '2022_08_01.01'
+  testing_outputs_version: '2022_08_29.01'
   variant_scaleup_version: '2022_01_03.01'
-  vaccine_coverage_version: '2022_08_01.02'
-  serology_vaccine_coverage_version: '2022_08_01.02'
+  vaccine_coverage_version: '2022_08_29.01'
+  serology_vaccine_coverage_version: '2022_08_29.01'
   vaccine_efficacy_version: '2022_08_05.01'
   vaccine_scenarios:
     - 'reference'
