@@ -35,8 +35,10 @@ def map_variants(efficacy: pd.DataFrame) -> pd.DataFrame:
         'alpha': 'ancestral',
         'beta': 'delta',
         'gamma': 'delta',
+        'delta': 'delta',
         'other': 'delta',
         'omicron': 'omicron',
+        'ba5': 'omicron',
         'omega': 'omicron',
     }
     for target_variant, similar_variant in efficacy_map.items():

@@ -241,8 +241,7 @@ def preprocess_variant_prevalence(data_interface: PreprocessingDataInterface) ->
         data_interface.save_variant_prevalence(data, scenario)
 
 
-def _shift_invasion_dates(variant: str, data: pd.DataFrame,
-                         method: str):
+def _shift_invasion_dates(variant: str, data: pd.DataFrame) -> pd.DataFrame:
     shifts = _get_hardcode_shifts(variant,
                                   invasion_dates=(data
                                                   .loc[data[variant] > 0.01]
