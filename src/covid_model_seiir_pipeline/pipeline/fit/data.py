@@ -114,15 +114,16 @@ class FitDataInterface:
         if not first_omega_date:
             return data
 
-        first_omicron_date = data[data.omicron > 0.01].reset_index().date.min()
+        # shift BA.5 ramp for omega
+        first_ba5_date = data[data.ba5 > 0.01].reset_index().date.min()
         first_omega_date = pd.Timestamp(first_omega_date)
-        shift = (first_omega_date - first_omicron_date).days
+        shift = (first_omega_date - first_ba5_date).days
         final_outputs = []
         for location_id in data.reset_index().location_id.unique():
-            omicron = data.loc[location_id, 'omicron']
-            omega = omicron.shift(shift).ffill().bfill()
-            new_data = data.loc[location_id].drop(columns=['omega', 'omicron'])
-            new_data['omicron'] = np.minimum(1 - omega, omicron)
+            ba5 = data.loc[location_id, 'ba5']
+            omega = ba5.shift(shift).ffill().bfill()
+            new_data = data.loc[location_id].drop(columns=['omega', 'ba5'])
+            new_data['ba5'] = np.minimum(1 - omega, ba5)
             new_data['omega'] = omega
             new_data = new_data.div(new_data.sum(axis=1), axis=0)
             new_data['location_id'] = location_id

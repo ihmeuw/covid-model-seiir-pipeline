@@ -58,6 +58,7 @@ PRIMITIVE_TYPES = {
         'gamma',
         'delta',
         'omicron',
+        'ba5',
         'other',
         'omega',
 
@@ -143,6 +144,7 @@ DERIVED_TYPES = {
         'gamma',
         'delta',
         'omicron',
+        'ba5',
         'other',
         'omega',
     ]),

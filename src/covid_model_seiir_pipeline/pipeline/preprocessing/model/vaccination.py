@@ -30,7 +30,6 @@ def make_uptake_square(uptake: pd.DataFrame) -> pd.DataFrame:
     return uptake
 
 
-
 def _get_brand_specific_waning(waning_map: Dict[str, pd.Series],
                                default_waning: pd.Series,
                                all_brands: List[str]):
