@@ -32,8 +32,10 @@ rates_parameters:
   idr_risk_ratio: [1.0, 1.0, 1.0]
   omicron_ifr_scalar: [0.075, 0.125]  # 0.10 +/- 25%
   omicron_ihr_scalar: [0.150, 0.250]  # 0.20 +/- 25%
-  # IDR is altered in second pass rates based on assumptions about the probability a disease is symptomatic.
   omicron_idr_scalar: 1.0
+  ba5_ifr_scalar: [0.075, 0.125]  # 0.10 +/- 25%
+  ba5_ihr_scalar: [0.150, 0.250]  # 0.20 +/- 25%
+  ba5_idr_scalar: 1.0
   # One of 'delta', 'omicron', 'average'
   omega_severity_parameterization: 'delta'
   p_asymptomatic_pre_omicron: 0.5
@@ -54,6 +56,7 @@ fit_parameters:
   pi_gamma: [0.01, 0.1]
   pi_delta: [0.01, 0.1]
   pi_omicron: [0.01, 0.1]
+  pi_ba5: [0.01, 0.1]
   pi_other: [0.01, 0.1]
   pi_omega: [0.01, 0.1]
   # 1 / incubation period.  dE/dt = -dS/dt - sigma * E
@@ -63,6 +66,7 @@ fit_parameters:
   sigma_gamma: [0.2, 0.3333]
   sigma_delta: [0.2, 0.3333]
   sigma_omicron: [0.25, 1.0]
+  sigma_ba5: [0.25, 1.0]
   sigma_other: [0.2, 0.3333]
   sigma_omega: [0.25, 1.0]
   # 1 / duration infectious.  dI1/dt = sigma * E - gamma * I
@@ -72,6 +76,7 @@ fit_parameters:
   gamma_gamma: [0.2, 0.3333]
   gamma_delta: [0.2, 0.3333]
   gamma_omicron: [0.2, 0.3333]
+  gamma_ba5: [0.2, 0.3333]
   gamma_other: [0.2, 0.3333]
   gamma_omega: [0.2, 0.3333]
   # proportion increase in transmission intensity
@@ -81,6 +86,7 @@ fit_parameters:
   kappa_gamma: [1.0, 1.4]
   kappa_delta: [1.6, 2.0]
   kappa_omicron: [2.5, 3.5]
+  kappa_ba5: [2.5, 3.5]
   kappa_other: [1.0, 1.4]
   kappa_omega: [2.5, 3.5]
   # (1 - breakthrough probability) for a variant.
@@ -90,5 +96,6 @@ fit_parameters:
   phi_gamma: [0.7, 0.9]
   phi_delta: [0.7, 0.9]
   phi_omicron: [0.4, 0.6]
+  phi_ba5: [0.4, 0.6]
   phi_other: [0.7, 0.9]
   phi_omega: [0.4, 0.6]
