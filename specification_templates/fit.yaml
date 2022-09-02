@@ -75,9 +75,9 @@ fit_parameters:
   kappa_beta: [1.0, 1.4]
   kappa_gamma: [1.0, 1.4]
   kappa_delta: [1.6, 2.0]
-  kappa_omicron: [2.5, 3.5]
+  kappa_omicron: [2.0, 2.8]
   kappa_other: [1.0, 1.4]
-  kappa_omega: [2.5, 3.5]
+  kappa_omega: [2.0, 2.8]
   # (1 - breakthrough probability) for a variant.
   phi_ancestral: 1.0
   phi_alpha: 1.0
