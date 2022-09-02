@@ -33,7 +33,7 @@ rates_parameters:
   omicron_idr_scalar: [0.26, 0.46]
   omicron_ihr_scalar: [0.16, 0.26]
   omicron_ifr_scalar: [0.08, 0.16]
-  ba5_idr_scalar: [0.26, 0.46]
+  ba5_idr_scalar: [0.21, 0.31]
   ba5_ihr_scalar: [0.16, 0.26]
   ba5_ifr_scalar: [0.08, 0.16]
   # One of 'delta', 'omicron', 'average'
