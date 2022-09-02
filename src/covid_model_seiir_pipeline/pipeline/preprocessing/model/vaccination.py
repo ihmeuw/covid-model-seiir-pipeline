@@ -30,31 +30,6 @@ def make_uptake_square(uptake: pd.DataFrame) -> pd.DataFrame:
     return uptake
 
 
-def _get_brand_specific_waning(waning_map: Dict[str, pd.Series],
-                               default_waning: pd.Series,
-                               all_brands: List[str]):
-    out = []
-    for brand in all_brands:
-        brand_waning = waning_map.get(brand, default_waning)
-        brand_waning = _coerce_week_index_to_day_index(brand_waning).to_frame()
-        brand_waning['brand'] = brand
-        out.append(brand_waning)
-    waning = pd.concat(out).reset_index().set_index(['brand', 'days']).sort_index()
-    return waning
-
-
-def _coerce_week_index_to_day_index(data: pd.Series) -> pd.Series:
-    t_wks = 7 * data.index
-    t_days = np.arange(0, t_wks.max())
-    data = pd.Series(
-        np.interp(t_days, t_wks, data),
-        index=pd.Index(t_days, name='days'),
-        name='value'
-    )
-    data = data.reindex(np.arange(0, 1500)).ffill()
-    return data
-
-
 def build_eta_calc_arguments(vaccine_uptake: pd.DataFrame,
                              waning_efficacy: pd.DataFrame,
                              progress_bar: bool) -> List:

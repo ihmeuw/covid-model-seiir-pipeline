@@ -13,7 +13,7 @@ data:
   variant_scaleup_version: '2022_01_03.01'
   vaccine_coverage_version: '2022_08_29.01'
   serology_vaccine_coverage_version: '2022_08_29.01'
-  vaccine_efficacy_version: '2022_08_05.01'
+  vaccine_efficacy_version: '2022_09_02.01'
   vaccine_scenarios:
     - 'reference'
     - 'booster'
