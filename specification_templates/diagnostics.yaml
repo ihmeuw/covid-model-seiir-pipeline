@@ -4,25 +4,21 @@ workflow:
   project: 'proj_covid_prod'
   queue: 'all.q'
 grid_plots:
-  - name: '2020_2023'
+  - name: 'alpha_beta_gamma'  # delta
     date_start: '2020-01-01'
-    date_end: '2023-12-31'
+    date_end: '2021-12-31'
     comparators:
-    - version: '2022_07_18.05'
+    # - version: '2022_07_18.05'
+    #   scenarios:
+    #     reference*: 'public reference'
+    - version: '2022_08_31.01'  # '2022_08_31.03'
       scenarios:
-        reference*: 'reference'
-    - version: '2022_07_27.05'
+        reference*: 'baseline run'
+    - version: '2022_08_30.05'  # '2022_08_31.04'
       scenarios:
-        no_az: 'no_az'
-        no_vaccine: 'no_vaccine'
-  - name: '2021_oct2022'
-    date_start: '2021-01-01'
-    date_end: '2022-10-31'
-    comparators:
-    - version: '2022_07_18.05'
+        case: 'counterfactual: case'
+        death: 'counterfactual: death'
+        admission: 'counterfactual: admission'
+    - version: '2022_08_31.03'  # '2022_08_31.XX'
       scenarios:
-        reference*: 'reference'
-    - version: '2022_07_27.05'
-      scenarios:
-        no_az: 'no_az'
-        no_vaccine: 'no_vaccine'
+        reference*: 'adjusted run (alpha, beta, gamma)'  # 'adjusted run (delta)'

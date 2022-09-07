@@ -35,28 +35,35 @@ def build_indices(scenario_spec: CounterfactualScenarioParameters,
     beta_fit_end_dates = forecast_start_dates.copy()
     forecast_end_dates = beta.reset_index().groupby('location_id').date.max()
 
+    location_ids = past_start_dates.index.intersection(forecast_end_dates.index)
     return Indices(
-        past_start_dates,
-        beta_fit_end_dates,
-        forecast_start_dates,
-        forecast_end_dates,
+        past_start_dates.loc[location_ids],
+        beta_fit_end_dates.loc[location_ids],
+        forecast_start_dates.loc[location_ids],
+        forecast_end_dates.loc[location_ids],
     )
 
 
 def build_model_parameters(indices: Indices,
                            counterfactual_beta: pd.Series,
-                           forecast_ode_parameters: pd.DataFrame,
+                           ode_parameters: pd.DataFrame,
                            prior_ratios: pd.DataFrame,
                            vaccinations: pd.DataFrame,
                            etas: pd.DataFrame,
                            phis: pd.DataFrame) -> Parameters:
-    ode_params = (forecast_ode_parameters
+    ode_params = (ode_parameters
                   .reindex(indices.full)
                   .groupby('location_id')
                   .ffill()
                   .groupby('location_id')
                   .bfill())
-    ode_params.loc[:, 'beta_all_infection'] = counterfactual_beta
+    ode_params.loc[:, 'beta_all_infection'] = (counterfactual_beta
+                                               .rename('beta_all_infection')
+                                               .reindex(indices.full)
+                                               .groupby('location_id')
+                                               .ffill()
+                                               .groupby('location_id')
+                                               .bfill())
 
     scalars = []
     ratio_map = {
@@ -66,15 +73,20 @@ def build_model_parameters(indices: Indices,
     }
     for epi_measure, ratio_name in ratio_map.items():
         for risk_group in RISK_GROUP_NAMES:
-            scalars.append(
-                (prior_ratios[f'{ratio_name}_{risk_group}'] / prior_ratios[ratio_name])
-                .rename(f'{epi_measure}_{risk_group}')
-                .reindex(indices.full)
-                .groupby('location_id')
-                .ffill()
-                .groupby('location_id')
-                .bfill()
-            )
+            if ratio_name in prior_ratios:
+                scalars.append(
+                    (prior_ratios[f'{ratio_name}_{risk_group}'] / prior_ratios[ratio_name])
+                    .rename(f'{epi_measure}_{risk_group}')
+                    .reindex(indices.full)
+                    .groupby('location_id')
+                    .ffill()
+                    .groupby('location_id')
+                    .bfill()
+                )
+            else:
+                scalars.append(
+                    pd.Series(1., name=f'{epi_measure}_{risk_group}', index=indices.full)
+                )
     scalars = pd.concat(scalars, axis=1)
 
     return Parameters(

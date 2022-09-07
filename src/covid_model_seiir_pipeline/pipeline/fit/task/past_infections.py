@@ -27,7 +27,7 @@ def run_past_infections(fit_version: str, draw_id: int, progress_bar: bool) -> N
     rhos = data_interface.load_variant_prevalence(scenario='reference')
     vaccinations = data_interface.load_vaccine_uptake(scenario='reference')
     etas = data_interface.load_vaccine_risk_reduction(scenario='reference')
-    natural_waning_dist = data_interface.load_waning_parameters(measure='natural_waning_distribution').set_index('days')
+    natural_waning_dist = data_interface.load_waning_parameters(measure='natural_waning_distribution').set_index(['endpoint', 'days'])
     antiviral_coverage = data_interface.load_antiviral_coverage(scenario='reference')
 
     rates = []

@@ -122,12 +122,11 @@ class RatesParameters:
     omicron_ihr_scalar: UniformSampleable = field(default=1.0)
     omicron_idr_scalar: UniformSampleable = field(default=1.0)
 
-    omega_severity_parameterization: bool = field(default='delta')
+    ba5_ifr_scalar: UniformSampleable = field(default=1.0)
+    ba5_ihr_scalar: UniformSampleable = field(default=1.0)
+    ba5_idr_scalar: UniformSampleable = field(default=1.0)
 
-    p_asymptomatic_pre_omicron: UniformSampleable = field(default=0.5)
-    p_asymptomatic_post_omicron: UniformSampleable = field(default=0.9)
-    minimum_asymptomatic_idr_fraction: UniformSampleable = field(default=0.1)
-    maximum_asymptomatic_idr: UniformSampleable = field(default=0.2)
+    omega_severity_parameterization: bool = field(default='delta')
 
     antiviral_effectiveness_idr: UniformSampleable = field(default=0.)
     antiviral_effectiveness_ihr: UniformSampleable = field(default=0.25)
@@ -180,6 +179,7 @@ class FitParameters:
     pi_gamma: UniformSampleable = field(default=(0.01, 0.10))
     pi_delta: UniformSampleable = field(default=(0.01, 0.10))
     pi_omicron: UniformSampleable = field(default=(0.01, 0.10))
+    pi_ba5: UniformSampleable = field(default=(0.01, 0.10))
     pi_other: UniformSampleable = field(default=(0.01, 0.10))
     pi_omega: UniformSampleable = field(default=(0.01, 0.10))
 
@@ -190,6 +190,7 @@ class FitParameters:
     sigma_gamma: UniformSampleable = field(default=(0.2, 1 / 3))
     sigma_delta: UniformSampleable = field(default=(0.2, 1 / 3))
     sigma_omicron: UniformSampleable = field(default=(0.2, 1 / 3))
+    sigma_ba5: UniformSampleable = field(default=(0.2, 1 / 3))
     sigma_other: UniformSampleable = field(default=(0.2, 1 / 3))
     sigma_omega: UniformSampleable = field(default=(0.2, 1 / 3))
 
@@ -200,6 +201,7 @@ class FitParameters:
     gamma_gamma: UniformSampleable = field(default=(0.2, 1 / 3))
     gamma_delta: UniformSampleable = field(default=(0.2, 1 / 3))
     gamma_omicron: UniformSampleable = field(default=(0.2, 1 / 3))
+    gamma_ba5: UniformSampleable = field(default=(0.2, 1 / 3))
     gamma_other: UniformSampleable = field(default=(0.2, 1 / 3))
     gamma_omega: UniformSampleable = field(default=(0.2, 1 / 3))
 
@@ -210,6 +212,7 @@ class FitParameters:
     kappa_gamma: UniformSampleable = field(default=1.0)
     kappa_delta: UniformSampleable = field(default=1.0)
     kappa_omicron: UniformSampleable = field(default=1.0)
+    kappa_ba5: UniformSampleable = field(default=1.0)
     kappa_other: UniformSampleable = field(default=1.0)
     kappa_omega: UniformSampleable = field(default=1.0)
 
@@ -220,6 +223,7 @@ class FitParameters:
     phi_gamma: UniformSampleable = field(default=1.0)
     phi_delta: UniformSampleable = field(default=1.0)
     phi_omicron: UniformSampleable = field(default=1.0)
+    phi_ba5: UniformSampleable = field(default=1.0)
     phi_other: UniformSampleable = field(default=1.0)
     phi_omega: UniformSampleable = field(default=1.0)
 

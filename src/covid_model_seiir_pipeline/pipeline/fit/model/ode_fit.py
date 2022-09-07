@@ -256,26 +256,24 @@ def compute_phis(natural_waning_dist: pd.Series,
                  natural_waning_matrix: pd.DataFrame,
                  draw_id: int):
     phis = []
-    phi_scalar = sample_parameter('phi_scalar', draw_id, 0.85, 0.95)
-    phi_scalars = {'death': phi_scalar, 'admission': phi_scalar}
+#    phi_scalar = sample_parameter('phi_scalar', draw_id, 0.85, 0.95)
+#    phi_scalars = {'death': phi_scalar, 'admission': phi_scalar}
     for endpoint in ['infection', 'death', 'admission', 'case']:
+        w_target = natural_waning_dist.loc[endpoint]
         if endpoint == 'infection':
-            w_base = pd.Series(0., index=natural_waning_dist.index)
+            w_base = pd.DataFrame(0., index=w_target.index, columns=w_target.columns)
         else:
-            w_base = natural_waning_dist['infection']
-        w_target = natural_waning_dist[endpoint]
+            w_base = natural_waning_dist.loc['infection']
 
         for from_variant, to_variant in itertools.product(VARIANT_NAMES, VARIANT_NAMES):
-            if endpoint == 'case' and to_variant == 'omicron':
-                # ## MID-POINT
-                # w_target = natural_waning_dist[['infection', 'admission']].mean(axis=1).rename('case')
-                ## SYMPTOMATIC == SEVERE
-                w_target = natural_waning_dist['admission'].rename('case')
+            w_variant = to_variant if to_variant is not 'none' else 'ancestral'
+            w_t = w_target[w_variant]
+            w_b = w_base[w_variant]
             cvi = natural_waning_matrix.loc[from_variant, to_variant]
-            numerator_scalar = phi_scalars.get(endpoint, cvi)
-            phi = 1 - (1 - numerator_scalar * w_target) / (1 - cvi * w_base)
+ #           numerator_scalar = phi_scalars.get(endpoint, cvi)
+            phi = 1 - (1 - cvi * w_t) / (1 - cvi * w_b)
             phi[phi.cummax() < phi.max()] = phi.max()
-            phis.append(phi.rename(f'{from_variant}_{to_variant}_{endpoint}'))
+            phis.append(phi.ffill().bfill().rename(f'{from_variant}_{to_variant}_{endpoint}'))
     phis = pd.concat(phis, axis=1)
     return phis
 

@@ -52,6 +52,17 @@ class FitDataInterface:
     def load_hierarchy(self, name: str) -> pd.DataFrame:
         return self.preprocessing_data_interface.load_hierarchy(name=name)
 
+    def filter_location_ids(self, hierarchy: pd.DataFrame = None) -> List[int]:
+        past_infections_locations = set(self.load_summary('beta').dropna().reset_index().location_id)
+
+        if hierarchy is None:
+            desired_locations = past_infections_locations
+        else:
+            most_detailed = hierarchy.most_detailed == 1
+            desired_locations = set(hierarchy.loc[most_detailed, 'location_id'].tolist())
+
+        return list(past_infections_locations & desired_locations)
+
     def load_population(self, measure: str) -> pd.DataFrame:
         return self.preprocessing_data_interface.load_population(measure=measure)
 
@@ -103,15 +114,16 @@ class FitDataInterface:
         if not first_omega_date:
             return data
 
-        first_omicron_date = data[data.omicron > 0.01].reset_index().date.min()
+        # shift BA.5 ramp for omega
+        first_ba5_date = data[data.ba5 > 0.01].reset_index().date.min()
         first_omega_date = pd.Timestamp(first_omega_date)
-        shift = (first_omega_date - first_omicron_date).days
+        shift = (first_omega_date - first_ba5_date).days
         final_outputs = []
         for location_id in data.reset_index().location_id.unique():
-            omicron = data.loc[location_id, 'omicron']
-            omega = omicron.shift(shift).ffill().bfill()
-            new_data = data.loc[location_id].drop(columns=['omega', 'omicron'])
-            new_data['omicron'] = np.minimum(1 - omega, omicron)
+            ba5 = data.loc[location_id, 'ba5']
+            omega = ba5.shift(shift).ffill().bfill()
+            new_data = data.loc[location_id].drop(columns=['omega', 'ba5'])
+            new_data['ba5'] = np.minimum(1 - omega, ba5)
             new_data['omega'] = omega
             new_data = new_data.div(new_data.sum(axis=1), axis=0)
             new_data['location_id'] = location_id
@@ -144,6 +156,12 @@ class FitDataInterface:
     def load_specification(self) -> FitSpecification:
         spec_dict = io.load(self.fit_root.specification())
         return FitSpecification.from_dict(spec_dict)
+
+    def save_location_ids(self, location_ids: List[int]) -> None:
+        io.dump(location_ids, self.fit_root.locations())
+
+    def load_location_ids(self) -> List[int]:
+        return io.load(self.fit_root.locations())
 
     def save_covariate_options(self, covariate_options: Dict) -> None:
         io.dump(covariate_options, self.fit_root.covariate_options())
