@@ -19,6 +19,7 @@ case:
     4768:    3.0  # Rio de Janeiro
     153:     0.5  # Syrian Arab Republic
     53618:   0.8  # Islamabad Capital Territory
+    186:     2.0  # Seychelles
     168:    1.25  # Angola
     200:     0.5  # Benin
     210:     2.5  # Liberia
@@ -29,9 +30,12 @@ admission:
     4754:    0.5  # Bahia
 death:
   ancestral:
+    33:      1.5  # Armenia
     34:      2.0  # Azerbaijan
     35:      1.5  # Georgia
     37:      3.0  # Kyrgyzstan
+    50:     1.25  # Montenegro
+    62:      2.0   # Russian Federation
     367:     0.5  # Monaco
     121:     3.0  # Bolivia (Plurinational State of)
     125:    0.75  # Colombia
@@ -48,7 +52,7 @@ death:
     16:     0.75  # Philippines
     168:     2.0  # Angola
     169:     2.0  # Central African Republic
-    187:     0.3  # Somalia
+    187:     0.4  # Somalia
     197:     1.5  # Eswatini
     203:    0.75  # Cabo Verde
     206:     1.5  # Gambia
