@@ -35,7 +35,7 @@ def run_beta_fit(fit_version: str, measure: str, draw_id: int, progress_bar: boo
     variant_prevalence = rhos.drop(columns='ancestral').sum(axis=1)
     vaccinations = data_interface.load_vaccine_uptake(scenario='reference')
     etas = data_interface.load_vaccine_risk_reduction(scenario='reference')
-    natural_waning_dist = data_interface.load_waning_parameters(measure='natural_waning_distribution').set_index('days')
+    natural_waning_dist = data_interface.load_waning_parameters(measure='natural_waning_distribution').set_index(['endpoint', 'days'])
     antiviral_coverage = data_interface.load_antiviral_coverage(scenario='reference')
     antiviral_effectiveness = model.sample_antiviral_effectiveness(
         specification.rates_parameters, measure, draw_id
@@ -125,7 +125,6 @@ def run_beta_fit(fit_version: str, measure: str, draw_id: int, progress_bar: boo
         population=total_population,
         draw_id=draw_id,
     )
-
     logger.info('Building initial condition.', context='transform')
     initial_condition = model.make_initial_condition(
         measure=measure,
@@ -158,7 +157,7 @@ def run_beta_fit(fit_version: str, measure: str, draw_id: int, progress_bar: boo
     # Apply location specific adjustments for locations where the model breaks.
     sampled_ode_params = model.rescale_kappas(
         measure=measure,
-        location_ids=first_pass_compartments.reset_index().location_id.unique.tolist(),
+        location_ids=first_pass_compartments.reset_index().location_id.unique().tolist(),
         sampled_ode_params=sampled_ode_params,
         rates_parameters=specification.rates_parameters,
     )
@@ -278,21 +277,7 @@ def run_beta_fit(fit_version: str, measure: str, draw_id: int, progress_bar: boo
     out_seroprevalence['sero_date'] = out_seroprevalence['date']
     out_seroprevalence['date'] -= pd.Timedelta(days=durations.exposure_to_seroconversion.max())
 
-    keep_compartments = [
-        'EffectiveSusceptible_all_omicron_all_lr',
-        'EffectiveSusceptible_all_omicron_all_hr',
-        'Infection_all_delta_all_lr',
-        'Infection_all_delta_all_hr',
-        'Case_all_delta_all_lr',
-        'Case_all_delta_all_hr',
-        'Infection_all_all_all_lr',
-        'Infection_all_all_all_hr',
-        'Case_all_all_all_lr',
-        'Case_all_all_all_hr',
-    ]
-    first_pass_compartments = first_pass_compartments.loc[:, keep_compartments]
     first_pass_compartments['round'] = 1
-    second_pass_compartments = second_pass_compartments.loc[:, keep_compartments]
     second_pass_compartments['round'] = 2
     compartments = pd.concat([
         first_pass_compartments,
