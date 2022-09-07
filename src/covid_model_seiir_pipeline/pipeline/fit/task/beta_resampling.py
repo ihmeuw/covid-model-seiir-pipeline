@@ -38,13 +38,10 @@ def run_beta_resampling(fit_version: str, progress_bar: bool):
 
     failures = []
     for measure in residuals:
-        measure_success = np.abs(residuals[measure]) < 1
-        std = residuals.loc[measure_success, measure].std()
-        failures.append(~(np.abs(residuals[measure]) < 3 * std))
+        failures.append(residuals[measure].isnull())
     failures = pd.concat(failures, axis=1)
     total_failures = failures[failures.all(axis=1)].reset_index(level='draw_id')['draw_id']
     failures = failures.reorder_levels(['draw_id', 'location_id']).sort_index()
-
     failure_count = total_failures.groupby('location_id').count()
     unrecoverable = failure_count[failure_count > n_oversample_draws].index.tolist()
 
