@@ -82,6 +82,7 @@ def build_window_dates(rhos: pd.DataFrame) -> pd.DataFrame:
     return pd.concat([
         _get_dates("delta", 0.01).rename('delta_start'),
         _get_dates("omicron", 0.01).rename('delta_end'),
+        # leave open-ended (i.e., include BA.2 in this assessment)
         _get_dates("omicron", 0.10).rename('omicron_start'),
     ], axis=1).dropna()
 
