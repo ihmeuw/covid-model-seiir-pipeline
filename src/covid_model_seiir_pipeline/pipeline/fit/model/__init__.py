@@ -11,7 +11,6 @@ from covid_model_seiir_pipeline.pipeline.fit.model.sampled_params import (
     sample_durations,
     sample_variant_severity,
     sample_day_inflection,
-    sample_idr_parameters,
     sample_antiviral_effectiveness,
     sample_ode_params,
     sample_parameter,

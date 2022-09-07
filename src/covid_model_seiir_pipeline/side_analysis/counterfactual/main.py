@@ -75,6 +75,7 @@ def counterfactual_main(app_metadata: cli_tools.Metadata,
 @cli_tools.add_verbose_and_with_debugger
 @cli_tools.with_version(paths.SEIR_FORECAST_OUTPUTS)
 @cli_tools.with_version(paths.SEIR_COUNTERFACTUAL_INPUT_ROOT)
+@cli_tools.with_version(paths.SEIR_FIT_ROOT)
 def counterfactual(run_metadata,
                    specification,
                    output_root, mark_best, production_tag,

@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Callable
+from typing import Callable, Dict
 
 import pandas as pd
 import numpy as np
@@ -211,30 +211,22 @@ def preprocess_variant_prevalence(data_interface: PreprocessingDataInterface) ->
 
         logger.info('Parsing into WHO variant of concern.', context='transform')
         data = _process_variants_of_concern(data)
-        invasion_dates = data[data.omicron > 0.01].groupby('location_id').date.min()
         data = data.set_index(['location_id', 'date'])
 
-        logger.info(f'Overwriting invasion dates based on case inflection point.', context='replace')
-        p = Path(__file__).parent / 'invasion_date_hardcodes.csv'
-        target_dates = pd.read_csv(p).set_index('location_id')
-        target_dates['target_date'] = (pd.to_datetime(target_dates['case_inflection_date'])
-                                       .fillna(pd.to_datetime(target_dates['data_date']) + pd.Timedelta(days=7)))
-        target_dates = target_dates.apply(lambda x: x['target_date'] - pd.Timedelta(days=x['lag']), axis=1)
-        target_dates = target_dates.loc[invasion_dates.reset_index()['location_id'].unique()]
-        shifts = (target_dates - invasion_dates.loc[target_dates.index])
-        shifts = shifts[shifts != pd.Timedelta(days=0)].dt.days.to_dict()
+        logger.info(f'Overwriting invasion dates for omicron + sublineages based on case inflection point.',
+                    context='replace')
+        # squeezing other variants around variant being shifted, so sequence matters here
+        data = _shift_invasion_dates('omicron', data)
+        if 'ba5' in data:
+            raise ValueError('Manual invasion logic is based on assumption that the last variant'
+                             ' present in VOC data is Omicron; if not, need to calculate prevalence'
+                             ' differently after shifting.')
+        else:
+            # just using omicron plus a standard shift to start with BA.5 since we change them anyway
+            data['ba5'] = data['omicron'].groupby('location_id').shift(180)
+            data['ba5'] = data['omicron'].groupby('location_id').bfill()
+        data = _shift_invasion_dates('ba5', data)
 
-        updates = []
-        for location_id, invasion_date in shifts.items():
-            old_omicron = data.loc[location_id, 'omicron']
-            new_omicron = old_omicron.shift(invasion_date).ffill().bfill()
-            new_data = data.loc[location_id].drop(columns='omicron')
-            new_data['omicron'] = new_omicron
-            new_data = new_data.div(new_data.sum(axis=1), axis=0)
-            new_data['location_id'] = location_id
-            updates.append(new_data.reset_index().set_index(['location_id', 'date']))
-        updates = pd.concat(updates)
-        data = data.drop(updates.index).append(updates).sort_index()
         data = helpers.parent_inheritance(data, hierarchy)
         delhi_variant_level = data.loc[4849]
         dfs = []
@@ -244,9 +236,43 @@ def preprocess_variant_prevalence(data_interface: PreprocessingDataInterface) ->
             df = df.reset_index().set_index(['location_id', 'date'])
             dfs.append(df)
         data = pd.concat([data] + dfs).sort_index()
+
         logger.info(f'Writing {scenario} scenario data.', context='write')
         data_interface.save_variant_prevalence(data, scenario)
 
+
+def _shift_invasion_dates(variant: str, data: pd.DataFrame) -> pd.DataFrame:
+    shifts = _get_hardcode_shifts(variant,
+                                  invasion_dates=(data
+                                                  .loc[data[variant] > 0.01]
+                                                  .reset_index('date')
+                                                  .groupby('location_id').date.min()))
+    updates = []
+    for location_id, invasion_date in shifts.items():
+        old_invasion = data.loc[location_id, variant]
+        new_invasion = old_invasion.shift(invasion_date).ffill().bfill()
+        new_data = data.loc[location_id].drop(columns=variant)
+        new_data = new_data.div(new_data.sum(axis=1), axis=0).fillna(0).multiply(1 - new_invasion, axis=0)
+        new_data[variant] = new_invasion
+        new_data['location_id'] = location_id
+        updates.append(new_data.reset_index().set_index(['location_id', 'date']))
+    updates = pd.concat(updates)
+    data = data.drop(updates.index).append(updates).sort_index()
+
+    return data
+
+
+def _get_hardcode_shifts(variant: str, invasion_dates: pd.Series) -> Dict[str, pd.Timestamp]:
+    p = Path(__file__).parent / f'{variant}_invasion_date_hardcodes.csv'
+    target_dates = pd.read_csv(p).set_index('location_id')
+    target_dates['target_date'] = (pd.to_datetime(target_dates['case_inflection_date'])
+                                   .fillna(pd.to_datetime(target_dates['data_date']) + pd.Timedelta(days=7)))
+    target_dates = target_dates.apply(lambda x: x['target_date'] - pd.Timedelta(days=x['lag']), axis=1)
+    target_dates = target_dates.loc[invasion_dates.reset_index()['location_id'].unique()]
+    shifts = (target_dates - invasion_dates.loc[target_dates.index])
+    shifts = shifts[shifts != pd.Timedelta(days=0)].dt.days.to_dict()
+
+    return shifts
 
 def _process_variants_of_concern(data: pd.DataFrame) -> pd.DataFrame:
     variant_map = {
