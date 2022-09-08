@@ -5,7 +5,7 @@ data:
   compare_version: '2022_07_18.06'
 workflow:
   project: 'proj_covid_prod'
-  queue: 'long.q'
+  queue: 'all.q'
 rates_parameters:
   day_0: '2020-03-15'
   pred_start_date: '2019-11-01'

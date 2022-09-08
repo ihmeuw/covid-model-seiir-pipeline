@@ -4,7 +4,7 @@ workflow:
   project: 'proj_covid_prod'
   queue: 'all.q'
 grid_plots:
-  - name: '2021_2023'
+  - name: '2021_2022'
     date_start: '2021-01-01'
     date_end: '2022-12-31'
     comparators:
