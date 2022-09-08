@@ -263,7 +263,7 @@ def _shift_invasion_dates(variant: str, data: pd.DataFrame) -> pd.DataFrame:
 
 
 def _get_hardcode_shifts(variant: str, invasion_dates: pd.Series) -> Dict[str, pd.Timestamp]:
-    p = Path(__file__).parent / f'{variant}_invasion_date_hardcodes.csv'
+    p = Path(__file__).parent / 'invasion_dates' / f'{variant}.csv'
     target_dates = pd.read_csv(p).set_index('location_id')
     target_dates['target_date'] = (pd.to_datetime(target_dates['case_inflection_date'])
                                    .fillna(pd.to_datetime(target_dates['data_date']) + pd.Timedelta(days=7)))
@@ -273,6 +273,7 @@ def _get_hardcode_shifts(variant: str, invasion_dates: pd.Series) -> Dict[str, p
     shifts = shifts[shifts != pd.Timedelta(days=0)].dt.days.to_dict()
 
     return shifts
+
 
 def _process_variants_of_concern(data: pd.DataFrame) -> pd.DataFrame:
     variant_map = {
