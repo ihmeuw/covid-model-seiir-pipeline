@@ -256,8 +256,8 @@ def compute_phis(natural_waning_dist: pd.Series,
                  natural_waning_matrix: pd.DataFrame,
                  draw_id: int):
     phis = []
-#    phi_scalar = sample_parameter('phi_scalar', draw_id, 0.85, 0.95)
-#    phi_scalars = {'death': phi_scalar, 'admission': phi_scalar}
+    phi_scalar = sample_parameter('phi_scalar', draw_id, 0.85, 0.95)
+    phi_scalars = {'death': phi_scalar, 'admission': phi_scalar}
     for endpoint in ['infection', 'death', 'admission', 'case']:
         w_target = natural_waning_dist.loc[endpoint]
         if endpoint == 'infection':
@@ -270,8 +270,11 @@ def compute_phis(natural_waning_dist: pd.Series,
             w_t = w_target[w_variant]
             w_b = w_base[w_variant]
             cvi = natural_waning_matrix.loc[from_variant, to_variant]
- #           numerator_scalar = phi_scalars.get(endpoint, cvi)
-            phi = 1 - (1 - cvi * w_t) / (1 - cvi * w_b)
+            if to_variant in [VARIANT_NAMES.omicron, VARIANT_NAMES.ba5]:
+                numerator_scalar = phi_scalars.get(endpoint, cvi)
+            else:
+                numerator_scalar = cvi
+            phi = 1 - (1 - numerator_scalar * w_t) / (1 - cvi * w_b)
             phi[phi.cummax() < phi.max()] = phi.max()
             phis.append(phi.ffill().bfill().rename(f'{from_variant}_{to_variant}_{endpoint}'))
     phis = pd.concat(phis, axis=1)
