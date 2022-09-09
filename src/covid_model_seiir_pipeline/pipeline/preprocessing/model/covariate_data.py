@@ -270,6 +270,9 @@ def _shift_invasion_dates(
     data: pd.DataFrame,
     default_invasion_date: str
 ) -> pd.DataFrame:
+    default_invasion_date = pd.Timestamp(default_invasion_date)
+    if pd.isnull(default_invasion_date):
+        raise ValueError('Invalid default invasion date')
     invasion_dates = (data
                       .loc[data[variant] > 0.01]
                       .reset_index('date')
@@ -297,8 +300,9 @@ def _shift_invasion_dates(
         new_data[variant] = new_invasion
         new_data['location_id'] = location_id
         updates.append(new_data.reset_index().set_index(['location_id', 'date']))
-    updates = pd.concat(updates)
-    data = data.drop(updates.index).append(updates).sort_index()
+    if updates:
+        updates = pd.concat(updates)
+        data = data.drop(updates.index).append(updates).sort_index()
 
     return data
 
@@ -324,7 +328,6 @@ def _get_hardcode_shifts(
     target_dates = target_dates.loc[invasion_dates.reset_index()['location_id'].unique()]
     shifts = (target_dates - invasion_dates.loc[target_dates.index])
     shifts = shifts[shifts != pd.Timedelta(days=0)].dt.days.to_dict()
-
     return shifts
 
 
@@ -332,8 +335,10 @@ def _get_manual_shifts(variant: str, invasion_dates: pd.DataFrame) -> Dict[str, 
     manual_adjustments = yaml.full_load(
         (Path(__file__).parent / 'invasion_dates' / '_manual.yaml').read_text()
     )
+    if variant not in manual_adjustments:
+        return {}
 
-    variant_adjustments = pd.Series(manual_adjustments[variant])
+    variant_adjustments = pd.to_datetime(pd.Series(manual_adjustments[variant]))
     variant_adjustments.index.name = 'location_id'
     shifts = variant_adjustments - invasion_dates.loc[variant_adjustments.index]
     shifts = shifts[shifts != pd.Timedelta(days=0)].dt.days.to_dict()
