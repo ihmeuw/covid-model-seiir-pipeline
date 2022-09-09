@@ -206,23 +206,32 @@ def _process_testing_for_idr(data: pd.DataFrame) -> pd.DataFrame:
 def preprocess_variant_prevalence(data_interface: PreprocessingDataInterface) -> None:
     hierarchy = data_interface.load_hierarchy('pred')
     for scenario in ['reference']:
-        logger.info(f'Loading raw variant prevalence data for scenario {scenario}.', context='read')
+        logger.info(
+            f'Loading raw variant prevalence data for scenario {scenario}.',
+            context='read'
+        )
         data = data_interface.load_raw_variant_prevalence(scenario)
 
         logger.info('Parsing into WHO variant of concern.', context='transform')
         data = _process_variants_of_concern(data)
         data = data.set_index(['location_id', 'date'])
 
-        logger.info(f'Overwriting invasion dates for omicron + sublineages based on case inflection point.',
-                    context='replace')
+        logger.info(
+            f'Overwriting invasion dates for omicron +'
+            f' sublineages based on case inflection point.',
+            context='replace'
+        )
         # squeezing other variants around variant being shifted, so sequence matters here
         data = _shift_invasion_dates('omicron', data)
         if 'ba5' in data:
-            raise ValueError('Manual invasion logic is based on assumption that the last variant'
-                             ' present in VOC data is Omicron; if not, need to calculate prevalence'
-                             ' differently after shifting.')
+            raise ValueError(
+                'Manual invasion logic is based on assumption that the last variant'
+                ' present in VOC data is Omicron; if not, need to calculate prevalence'
+                ' differently after shifting.'
+            )
         else:
-            # just using omicron plus a standard shift to start with BA.5 since we change them anyway
+            # just using omicron plus a standard shift to
+            # start with BA.5 since we change them anyway
             data['ba5'] = data['omicron'].groupby('location_id').shift(180)
             data['ba5'] = data['omicron'].groupby('location_id').bfill()
         data = _shift_invasion_dates('ba5', data)
