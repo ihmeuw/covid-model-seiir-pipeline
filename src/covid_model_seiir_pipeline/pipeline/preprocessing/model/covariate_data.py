@@ -251,6 +251,13 @@ def preprocess_variant_prevalence(data_interface: PreprocessingDataInterface) ->
 
 
 def _shift_invasion_dates(variant: str, data: pd.DataFrame) -> pd.DataFrame:
+    location_ids = data.reset_index().location_id.unique().tolist()
+    invasion_dates = (data
+                      .loc[data[variant] > 0.01]
+                      .reset_index('date')
+                      .groupby('location_id')
+                      .date
+                      .min())
     shifts = _get_hardcode_shifts(variant,
                                   invasion_dates=(data
                                                   .loc[data[variant] > 0.01]
@@ -272,6 +279,7 @@ def _shift_invasion_dates(variant: str, data: pd.DataFrame) -> pd.DataFrame:
 
 
 def _get_hardcode_shifts(variant: str, invasion_dates: pd.Series) -> Dict[str, pd.Timestamp]:
+    _load_hardcode_dates(variant)
     p = Path(__file__).parent / 'invasion_dates' / f'{variant}.csv'
     target_dates = pd.read_csv(p).set_index('location_id')
     target_dates['target_date'] = (pd.to_datetime(target_dates['case_inflection_date'])
@@ -282,6 +290,17 @@ def _get_hardcode_shifts(variant: str, invasion_dates: pd.Series) -> Dict[str, p
     shifts = shifts[shifts != pd.Timedelta(days=0)].dt.days.to_dict()
 
     return shifts
+
+def _load_hardcode_dates(variant: str) -> pd.DataFrame:
+    p = Path(__file__).parent / 'invasion_dates' / f'{variant}.csv'
+    hardcode_data = pd.read_csv(p).set_index('location_id')
+    case_inflection_dates = pd.to_datetime(hardcode_data['case_inflection_date'])
+    shifted_data_dates = pd.to_datetime(hardcode_data['data_date']) + pd.Timedelta(days=7)
+    import pdb; pdb.set_trace()
+
+    for column in ['case_inflection_date', 'data_date']:
+        target_dates[column] = pd.to_datetime(target_dates[column])
+    target_dates['target_date'] = target_dates
 
 
 def _process_variants_of_concern(data: pd.DataFrame) -> pd.DataFrame:
