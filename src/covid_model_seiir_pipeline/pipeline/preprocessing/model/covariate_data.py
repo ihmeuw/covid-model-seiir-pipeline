@@ -233,7 +233,8 @@ def preprocess_variant_prevalence(data_interface: PreprocessingDataInterface) ->
             context='replace'
         )
         # squeezing other variants around variant being shifted, so sequence matters here
-        for variant in VARIANT_NAMES[:-3]:  # leave off ba5, other, and omega
+        # leave off none, ancestral, ba5, other, and omega
+        for variant in VARIANT_NAMES[2:-3]:
             data = _shift_invasion_dates(
                 variant=variant,
                 data=data,
