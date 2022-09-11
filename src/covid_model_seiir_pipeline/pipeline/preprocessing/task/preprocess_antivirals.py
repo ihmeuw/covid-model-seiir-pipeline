@@ -23,7 +23,9 @@ def run_preprocess_antivirals(preprocessing_version: str, scenario: str, progres
     data_interface = PreprocessingDataInterface.from_specification(specification)
 
     logger.info('Generating coverage.', context='processing')
-    antiviral_coverage = model.preprocess_antivirals(data_interface, scenario)
+    antiviral_coverage = model.preprocess_antivirals(specification.data.antiviral_scenario_parameters[scenario],
+                                                     data_interface,
+                                                     scenario)
 
     logger.info('Storing coverage.', context='write')
     data_interface.save_antiviral_coverage(antiviral_coverage, scenario=scenario)

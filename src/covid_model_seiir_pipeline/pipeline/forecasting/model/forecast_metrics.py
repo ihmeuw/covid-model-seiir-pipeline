@@ -260,11 +260,14 @@ def compute_r(model_params: Parameters,
     base_params = model_params.base_parameters
     population = system_metrics.total_population
 
-    base_params['sigma_total_infection'] = 0
-    base_params['gamma_total_infection'] = 0
-    for v in VARIANT_NAMES[1:]:
-        base_params['sigma_total_infection'] += base_params[f'rho_{v}_infection'] * base_params[f'sigma_{v}_infection']
-        base_params['gamma_total_infection'] += base_params[f'rho_{v}_infection'] * base_params[f'gamma_{v}_infection']
+    for param in ['sigma', 'gamma']:
+        base_params[f'{param}_total_infection'] = 0
+        for v in VARIANT_NAMES[1:]:
+            base_params[f'{param}_total_infection'] += (
+                base_params[f'rho_{v}_infection'] * base_params[f'{param}_{v}_infection']
+            )
+        is_zero = base_params[f'{param}_total_infection'] == 0
+        base_params.loc[is_zero, f'{param}_total_infection'] = base_params.loc[is_zero, f'{param}_ancestral_infection']
 
     for label in list(VARIANT_NAMES[1:]) + ['total']:
         sigma = base_params.loc[:, f'sigma_{label}_infection'].groupby('location_id').ffill().bfill()

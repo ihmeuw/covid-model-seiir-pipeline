@@ -2,28 +2,43 @@ data:
   mr_location_set_version_id: 1050
   mr_location_set_file: ''
   pred_location_set_version_id: 1050
-  model_inputs_version: '2022_07_18.01'
+  model_inputs_version: '2022_08_31.01'
   age_specific_rates_version: '2022_02_11.03'
   mortality_scalars_version: '2022_03_16.01'
-  mask_use_outputs_version: '2022_07_07.01'
-  mobility_covariate_version: '2022_07_11.01'
+  mask_use_outputs_version: '2022_08_24.01'
+  mobility_covariate_version: '2022_08_29.02'
   pneumonia_version: '2020_06_12.03'
   population_density_version: '2020_05_20.07'
-  testing_outputs_version: '2022_07_07.05'
+  testing_outputs_version: '2022_08_29.01'
   variant_scaleup_version: '2022_01_03.01'
-  vaccine_coverage_version: '2022_07_14.02'
-  serology_vaccine_coverage_version: '2022_07_14.02'
-  vaccine_efficacy_version: '2021_12_19.01'
+  vaccine_coverage_version: '2022_08_29.01'
+  serology_vaccine_coverage_version: '2022_08_29.01'
+  vaccine_efficacy_version: '2022_09_02.01'
   vaccine_scenarios:
     - 'reference'
     - 'booster'
-  antiviral_scenarios:
-    - 'reference'
-    - 'global_antivirals'
+  antiviral_scenario_parameters:
+    reference:
+      high_income:
+        lr_coverage: 0.5
+        hr_coverage: 0.8
+        parent_location_ids: [64]
+        scaleup_dates: ['2022-03-01', '2022-06-01']
+    global_antivirals:
+      high_income:
+        lr_coverage: 0.5
+        hr_coverage: 0.8
+        parent_location_ids: [64]
+        scaleup_dates: ['2022-03-01', '2022-06-01']
+      lmic:
+        lr_coverage: 0.5
+        hr_coverage: 0.8
+        parent_location_ids: [4, 31, 103, 137, 158, 166]
+        scaleup_dates: ['2022-08-15', '2022-09-15']
   output_root: ''
   output_format: 'csv'
   n_draws: 100
-  n_oversample_draws: 50
+  n_oversample_draws: 0
   drop_locations: []
 seroprevalence_parameters:
   correlate_samples: False

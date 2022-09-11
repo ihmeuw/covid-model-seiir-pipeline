@@ -20,14 +20,14 @@ FORECAST_JOBS = __ForecastJobs()
 class ScalingTaskSpecification(workflow.TaskSpecification):
     """Specification of execution parameters for beta scaling tasks."""
     default_max_runtime_seconds = 5000
-    default_m_mem_free = '50G'
+    default_m_mem_free = '60G'
     default_num_cores = 26
 
 
 class ForecastTaskSpecification(workflow.TaskSpecification):
     """Specification of execution parameters for beta forecasting tasks."""
     default_max_runtime_seconds = 15000
-    default_m_mem_free = '50G'
+    default_m_mem_free = '60G'
     default_num_cores = 11
 
 

@@ -364,8 +364,7 @@ class PreprocessingDataInterface:
         except KeyError:
             raise ValueError(f'Unknown vaccine scenario {scenario}.')
         data = io.load(self.vaccine_coverage_root.brand_specific_coverage(measure=scenario_file))
-        data = data.drop(columns='Unnamed: 0').reset_index()
-        return data
+        return data.reset_index()
 
     def load_serology_vaccine_coverage(self) -> pd.DataFrame:
         summary_data = io.load(self.serology_vaccine_coverage_root.old_vaccine_coverage())
@@ -403,67 +402,24 @@ class PreprocessingDataInterface:
 
     def load_efficacy_table(self) -> pd.DataFrame:
         data = io.load(self.vaccine_efficacy_root.efficacy_table())
-        data = (data
-                .rename(columns={'merge_name': 'brand'})
-                .set_index(['brand', 'vaccine_course'])
-                .loc[:, ['efficacy', 'prop_protected_not_infectious',
-                         'variant_efficacy', 'variant_infection',
-                         'omicron_efficacy', 'omicron_infection']])
-        # Use more sensible column names that care about variants and efficacy endpoints.
-        data.columns = pd.MultiIndex.from_tuples(
-            [('ancestral', 'severe_disease'),
-             ('ancestral', 'infection'),
-             ('delta', 'severe_disease'),
-             ('delta', 'infection'),
-             ('omicron', 'severe_disease'),
-             ('omicron', 'infection')],
-            names=[None, 'endpoint']
-        )
-        # Pivot endpoint from the columns to the index.
-        data = (data
-                .stack()
-                .reorder_levels(['endpoint', 'brand', 'vaccine_course'])
-                .sort_index())
-        data = data.reset_index()
-        course_3 = data[data.vaccine_course == 2].copy()
-        course_3['vaccine_course'] = 3
-        data = data.append(course_3).set_index(['endpoint', 'brand', 'vaccine_course']).sort_index()
+        data = data.set_index(['endpoint', 'brand', 'vaccine_course']).sort_index()
         return data
 
-    def load_waning_data(self) -> pd.DataFrame:
-        data = io.load(self.vaccine_efficacy_root.waning_distribution(measure='vetsvacc'))
-        expected_cols = {
-            'mid_point',
-            'logit_pfi_inf', 'pfi_inf',
-            'logit_mod_inf', 'mod_inf',
-            'logit_ast_inf', 'ast_inf',
-            'logit_jan_inf', 'jan_inf',
-            'logit_pfi_sev', 'pfi_sev',
-            'logit_mod_sev', 'mod_sev',
-            'logit_ast_sev', 'ast_sev',
-            'jan_sev',
-        }
-        assert set(data.columns) == expected_cols
-        data = (data
-                .rename(columns={'mid_point': 'weeks_since_delivery'})
-                .set_index('weeks_since_delivery'))
-
-        endpoint_map = {'inf': 'infection', 'sev': 'severe_disease',}
-
-        out = []
-        for col in data.columns:
-            brand_endpoint = col.split('_')
-            if len(brand_endpoint) == 3:
-                continue
-            brand, endpoint = brand_endpoint
-            s = data[col].rename('value').to_frame()
-            s['brand'] = brand
-            s['endpoint'] = endpoint_map[endpoint]
-            out.append(s)
-
-        data = pd.concat(out).reset_index()
-        data = data.set_index(['endpoint', 'brand', 'weeks_since_delivery']).sort_index().value
+    def load_vaccine_waning_distribution(self) -> pd.DataFrame:
+        data = io.load(self.vaccine_efficacy_root.waning_distribution(measure='vaccine_waning_distribution'))
+        data = data.set_index(['endpoint', 'brand', 'vaccine_course', 'days']).sort_index()
         return data
+
+    def load_vaccine_waning_efficacy(self) -> pd.DataFrame:
+        data = io.load(self.vaccine_efficacy_root.waning_distribution(measure='vaccine_waning_efficacy'))
+        data = data.set_index(['endpoint', 'brand', 'vaccine_course', 'days']).sort_index()
+        return data
+
+    def load_natural_waning_distribution(self) -> pd.DataFrame:
+        data = io.load(self.vaccine_efficacy_root.waning_distribution(measure='natural_waning_distribution'))
+        data = data.set_index(['endpoint', 'days']).sort_index()
+        return data
+
 
     ##########################
     # Preprocessing data I/O #

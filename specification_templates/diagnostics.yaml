@@ -4,26 +4,26 @@ workflow:
   project: 'proj_covid_prod'
   queue: 'all.q'
 grid_plots:
+  - name: '2021_2022'
+    date_start: '2021-01-01'
+    date_end: '2022-12-31'
+    comparators:
+    - version: '2022_07_18.05'
+      scenarios:
+        reference*: 'public reference'
+    - version: '2022_09_09.01'
+      scenarios:
+        reference*: 'reference'
+        global_antivirals: 'global antivirals'
+        best_masks: 'best masks'
   - name: '2020_2023'
     date_start: '2020-01-01'
     date_end: '2023-12-31'
     comparators:
-    - version: '2022_06_09.04'
-      scenarios:
-        reference*: 'public reference'
     - version: '2022_07_18.05'
       scenarios:
-        reference*: 'reference post-review'
-        global_antivirals: 'global antivirals'
-        best_masks: 'best masks'
-  - name: '2021_oct2022'
-    date_start: '2021-01-01'
-    date_end: '2022-10-31'
-    comparators:
-    - version: '2022_06_09.04'
-      scenarios:
         reference*: 'public reference'
-    - version: '2022_07_18.05'
+    - version: '2022_09_09.01'
       scenarios:
         reference*: 'reference'
         global_antivirals: 'global antivirals'
