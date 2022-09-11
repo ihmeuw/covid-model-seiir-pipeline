@@ -11,7 +11,7 @@ grid_plots:
     - version: '2022_07_18.05'
       scenarios:
         reference*: 'public reference'
-    - version: '2022_09_08.01'
+    - version: '2022_09_09.01'
       scenarios:
         reference*: 'reference'
         global_antivirals: 'global antivirals'
@@ -23,7 +23,7 @@ grid_plots:
     - version: '2022_07_18.05'
       scenarios:
         reference*: 'public reference'
-    - version: '2022_09_08.01'
+    - version: '2022_09_09.01'
       scenarios:
         reference*: 'reference'
         global_antivirals: 'global antivirals'
