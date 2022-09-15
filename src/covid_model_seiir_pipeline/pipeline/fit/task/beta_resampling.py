@@ -38,13 +38,10 @@ def run_beta_resampling(fit_version: str, progress_bar: bool):
 
     failures = []
     for measure in residuals:
-        measure_success = np.abs(residuals[measure]) < 1
-        std = residuals.loc[measure_success, measure].std()
-        failures.append(~(np.abs(residuals[measure]) < 3 * std))
+        failures.append(residuals[measure].isnull())
     failures = pd.concat(failures, axis=1)
     total_failures = failures[failures.all(axis=1)].reset_index(level='draw_id')['draw_id']
     failures = failures.reorder_levels(['draw_id', 'location_id']).sort_index()
-
     failure_count = total_failures.groupby('location_id').count()
     unrecoverable = failure_count[failure_count > n_oversample_draws].index.tolist()
 
@@ -115,22 +112,29 @@ def build_residual(measure_draw: str, window_dates: pd.DataFrame,
     infections = data_interface.load_posterior_epi_measures(
         draw_id, measure, ['naive', 'daily_total_infections', 'round']
     )
-    hard_failures = (infections
-                     .loc[infections['naive'] < 0]
-                     .groupby('location_id')['naive']
-                     .first()
-                     .index
-                     .tolist())
+    hard_failures_round_1 = (infections
+                             .loc[(infections['round'] == 1)
+                                  & (infections['naive'] < 0)]
+                             .reset_index()
+                             .groupby('location_id')['date']
+                             .min())
+    seroprevalence = data_interface.load_final_seroprevalence(draw_id, measure)
+    seroprevalence = seroprevalence.groupby('location_id')['date'].max()
+    seroprevalence_failures = []
+    for location_id, sero_date in seroprevalence.iteritems():
+        if sero_date > hard_failures_round_1.get(location_id, sero_date):
+            seroprevalence_failures += [location_id]
+    
     infections = infections.loc[infections['round'] == 2].drop(columns='round')
+    
     hard_failures_round_2 = (infections
                              .loc[infections['naive'] < 0]
                              .groupby('location_id')['naive']
                              .first()
                              .index
                              .tolist())
-    seroprevalence = data_interface.load_final_seroprevalence(draw_id, measure)
-    seroprevalence_locs = seroprevalence['location_id'].unique().tolist()
-    hard_failures = [loc for loc in hard_failures if loc in hard_failures_round_2 or loc in seroprevalence_locs]
+
+    hard_failures = list(set(seroprevalence_failures + hard_failures_round_2))
 
     infections = (infections
                   .loc[:, 'daily_total_infections']

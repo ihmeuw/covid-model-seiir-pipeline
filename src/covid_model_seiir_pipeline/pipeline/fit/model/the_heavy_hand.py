@@ -40,7 +40,7 @@ def rescale_kappas(
                 scaling_factors[location_id] = scaling_factors.get(location_id, 1) * factor
                 flag_manual = True
             if flag_manual:
-                logger.info(f'Adding manual kappa scalars for {variant}')
+                logger.info(f'Including manual kappa scalars for {variant}')
 
             kappa = pd.Series(
                 sampled_ode_params[f'kappa_{variant}_{measure}'],
