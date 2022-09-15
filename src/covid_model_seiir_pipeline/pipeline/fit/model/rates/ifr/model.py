@@ -88,6 +88,7 @@ def prepare_model(model_data: pd.DataFrame,
     )
     model_data = model_data.set_index('location_id')
     model_data['ifr'] *= age_stand_scaling_factor[model_data.index]
+    model_data['ifr'] *= model_data['ratio_data_scalar']
     model_data = model_data.reset_index()
     
     model_data['logit_ifr'] = math.logit(model_data['ifr'])
@@ -120,7 +121,7 @@ def prepare_model(model_data: pd.DataFrame,
     
     covariate_priors = get_covariate_priors(1, 'ifr',)
     covariate_priors = {covariate: covariate_priors[covariate] for covariate in covariate_list}
-    covariate_constraints = get_covariate_constraints('ifr',)
+    covariate_constraints = get_covariate_constraints('ifr')
     covariate_constraints = {covariate: covariate_constraints[covariate] for covariate in covariate_list}
     covariate_lambdas_tight = {covariate: 1. for covariate in covariate_list}
     covariate_lambdas_loose = {covariate: 10. for covariate in covariate_list}

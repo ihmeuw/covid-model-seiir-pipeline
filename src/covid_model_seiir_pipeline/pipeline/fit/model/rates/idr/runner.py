@@ -3,6 +3,9 @@ from typing import Dict, List, Tuple
 import pandas as pd
 
 from covid_model_seiir_pipeline.lib import math
+from covid_model_seiir_pipeline.pipeline.fit.model.rates import (
+    variants,
+)
 from covid_model_seiir_pipeline.pipeline.fit.model.rates.idr import (
     data,
     model,
@@ -19,6 +22,8 @@ def runner(epi_data,
            testing_capacity: pd.Series,
            durations: Dict,
            daily_infections: pd.Series,
+           variant_prevalence: pd.DataFrame,
+           variant_risk_ratios: pd.DataFrame,
            pred_start_date: pd.Timestamp,
            pred_end_date: pd.Timestamp,
            num_threads: int,
@@ -26,6 +31,17 @@ def runner(epi_data,
            **kwargs) -> Tuple[pd.DataFrame, pd.DataFrame]:
     cumulative_cases = epi_data['cumulative_cases'].dropna()
     daily_cases = epi_data['daily_cases'].dropna()
+    ratio_data_scalar = variants.condition_out_variants(
+        sero_location_dates=(seroprevalence.loc[seroprevalence['is_outlier'] == 0,
+                                                ['location_id', 'date']]
+                             .values.tolist()),
+        hierarchy=mr_hierarchy,
+        daily_infections=daily_infections,
+        variant_prevalence=variant_prevalence,
+        variant_risk_ratios=variant_risk_ratios,
+        exposure_to_seroconversion=durations['exposure_to_seroconversion'],
+        seroconversion_to_measure=-durations['pcr_to_seropositive'],
+    )
 
     model_data = data.create_model_data(
         cumulative_cases=cumulative_cases.copy(),
@@ -33,6 +49,7 @@ def runner(epi_data,
         seroprevalence=seroprevalence.copy(),
         testing_capacity=testing_capacity.copy(),
         daily_infections=daily_infections.copy(),
+        ratio_data_scalar=ratio_data_scalar.copy(),
         covariate_pool=covariate_pool.copy(),
         durations=durations.copy(),
         population=population.copy(),

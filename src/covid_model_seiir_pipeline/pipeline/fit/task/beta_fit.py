@@ -86,6 +86,11 @@ def run_beta_fit(fit_version: str, measure: str, draw_id: int, progress_bar: boo
     init_daily_infections = (daily_deaths / naive_ifr).rename('daily_infections').reset_index()
     init_daily_infections['date'] -= pd.Timedelta(days=durations.exposure_to_death.max())
     init_daily_infections = init_daily_infections.set_index(['location_id', 'date']).loc[:, 'daily_infections']
+    variant_rrs = pd.DataFrame(
+        {k.replace('kappa_', '').replace(f'_{measure}', ''): v
+         for k, v in sampled_ode_params.items() if k.startswith('kappa') and k.endswith(measure)},
+        index=epi_measures.reset_index('date').index.drop_duplicates()
+    )
 
     logger.info('Running first-pass rates model', context='rates_model_1')
     first_pass_rates, first_pass_rates_data = model.run_rates_pipeline(
@@ -102,7 +107,7 @@ def run_beta_fit(fit_version: str, measure: str, draw_id: int, progress_bar: boo
         variant_prevalence=variant_prevalence,
         daily_infections=init_daily_infections,
         durations=durations.to_dict(),
-        variant_rrs=variant_severity,
+        variant_rrs=variant_rrs,
         params=specification.rates_parameters,
         day_inflection=day_inflection,
         num_threads=num_threads,
@@ -189,7 +194,7 @@ def run_beta_fit(fit_version: str, measure: str, draw_id: int, progress_bar: boo
             agg_first_pass_posterior_epi_measures['daily_naive_unvaccinated_infections']
             .rename('daily_infections')),
         durations=durations.to_dict(),
-        variant_rrs=variant_severity,
+        variant_rrs=variant_rrs,
         params=specification.rates_parameters,
         day_inflection=day_inflection,
         num_threads=num_threads,

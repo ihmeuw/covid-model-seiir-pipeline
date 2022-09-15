@@ -18,6 +18,8 @@ def run_model(model_data: pd.DataFrame,
               covariate_list: List[str],
               num_threads: int,
               progress_bar: bool) -> Tuple[Dict, Dict, pd.Series, pd.Series, pd.Series, Dict]:
+    model_data['idr'] *= model_data['ratio_data_scalar']
+
     model_data['logit_idr'] = math.logit(model_data['idr'])
     model_data['logit_idr'] = model_data['logit_idr'].replace((-np.inf, np.inf), np.nan)
     model_data['idr_se'] = 1
@@ -29,7 +31,7 @@ def run_model(model_data: pd.DataFrame,
     
     covariate_priors = get_covariate_priors(1, 'idr',)
     covariate_priors = {covariate: covariate_priors[covariate] for covariate in covariate_list}
-    covariate_constraints = get_covariate_constraints('idr', None)
+    covariate_constraints = get_covariate_constraints('idr')
     covariate_constraints = {covariate: covariate_constraints[covariate] for covariate in covariate_list}
     covariate_lambdas_tight = {covariate: 1. for covariate in covariate_list}
     covariate_lambdas_loose = {covariate: 10. for covariate in covariate_list}
