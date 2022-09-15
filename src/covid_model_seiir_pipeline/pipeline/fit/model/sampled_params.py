@@ -61,9 +61,18 @@ def _to_range(val: DiscreteUniformSampleable):
 
 
 class VariantRR(NamedTuple):
-    ifr: float
-    ihr: float
-    idr: float
+    alpha_ifr: float
+    alpha_ihr: float
+    alpha_idr: float
+    beta_ifr: float
+    beta_ihr: float
+    beta_idr: float
+    gamma_ifr: float
+    gamma_ihr: float
+    gamma_idr: float
+    delta_ifr: float
+    delta_ihr: float
+    delta_idr: float
     omicron_ifr: float
     omicron_ihr: float
     omicron_idr: float
@@ -81,29 +90,20 @@ def sample_variant_severity(params: RatesParameters, draw_id: int) -> VariantRR:
     params = params.to_dict()
     rrs = {}
     for ratio in ['ifr', 'ihr', 'idr']:
-        rr_spec = params[f'{ratio}_risk_ratio']
-        if isinstance(rr_spec, (int, float)):
-            rrs[ratio] = float(rr_spec)
-        else:
-            mean, lower, upper = rr_spec
-            mu = np.log(mean)
-            sigma = (np.log(upper) - np.log(lower)) / 3.92
-            rrs[ratio] = np.exp(random_state.normal(mu, sigma))
-
-        for variant in ['omicron', 'ba5']:
-            variant_spec = params[f'{variant}_{ratio}_scalar']
-            if isinstance(variant_spec, (int, float)):
-                value = variant_spec
-            else:
-                value = sample_parameter(f'{variant}_{ratio}_scalar', draw_id, *variant_spec)
-            rrs[f'{variant}_{ratio}'] = rrs[ratio] * value
+        for variant in VARIANT_NAMES:
+            if variant not in [VARIANT_NAMES.none, VARIANT_NAMES.ancestral]:
+                variant_spec = params[f'{ratio}_rr_{variant}']
+                if isinstance(variant_spec, (int, float)):
+                    value = variant_spec
+                else:
+                    value = sample_parameter(f'{ratio}_rr_{variant}', draw_id, *variant_spec)
+                rrs[f'{variant}_{ratio}'] = value
 
         omega_severity = params['omega_severity_parameterization']
         rrs[f'omega_{ratio}'] = {
-            'delta': rrs[ratio],
+            'delta': rrs[f'delta_{ratio}'],
             'omicron': rrs[f'omicron_{ratio}'],
-            'ba5': rrs[f'ba5_{ratio}'],
-            'average': (rrs[ratio] * rrs[f'omicron_{ratio}']) ** (1/2),
+            'average': (rrs[f'delta_{ratio}'], * rrs[f'omicron_{ratio}']) ** (1/2),
         }[omega_severity]
 
     return VariantRR(**rrs)
@@ -171,11 +171,10 @@ def sample_ode_params(variant_rr: VariantRR,
     for measure, rate in (('death', 'ifr'), ('admission', 'ihr'), ('case', 'idr')):
         for variant in VARIANT_NAMES:
             if variant in [VARIANT_NAMES.none, VARIANT_NAMES.ancestral]:
-                sampled_params[f'kappa_{variant}_{measure}'] = 1.0
-            elif variant in [VARIANT_NAMES.omicron, VARIANT_NAMES.ba5, VARIANT_NAMES.omega]:
-                sampled_params[f'kappa_{variant}_{measure}'] = variant_rr[f'{variant}_{rate}']
+                sampled_params[f'kappa_{variant}_{measure}'] = 1
             else:
-                sampled_params[f'kappa_{variant}_{measure}'] = variant_rr[rate]
+                sampled_params[f'kappa_{variant}_{measure}'] = variant_rr[f'{variant}_{rate}']
+
     return sampled_params, phi_matrix
 
 
