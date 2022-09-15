@@ -114,17 +114,30 @@ class RatesParameters:
     test_scalar: float = field(default=1.0)
     heavy_hand_fixes: bool = field(default=True)
 
-    ifr_risk_ratio: RRSampleable = field(default='BMJ')
-    ihr_risk_ratio: RRSampleable = field(default='BMJ')
-    idr_risk_ratio: RRSampleable = field(default=1.0)
+    # ifr_risk_ratio: RRSampleable = field(default='BMJ')
+    # ihr_risk_ratio: RRSampleable = field(default='BMJ')
+    # idr_risk_ratio: RRSampleable = field(default=1.0)
 
-    omicron_ifr_scalar: UniformSampleable = field(default=1.0)
-    omicron_ihr_scalar: UniformSampleable = field(default=1.0)
-    omicron_idr_scalar: UniformSampleable = field(default=1.0)
+    idr_rr_alpha: UniformSampleable = field(default=1.0)
+    idr_rr_beta: UniformSampleable = field(default=1.0)
+    idr_rr_gamma: UniformSampleable = field(default=1.0)
+    idr_rr_delta: UniformSampleable = field(default=1.0)
+    idr_rr_omicron: UniformSampleable = field(default=1.0)
+    idr_rr_ba5: UniformSampleable = field(default=1.0)
 
-    ba5_ifr_scalar: UniformSampleable = field(default=1.0)
-    ba5_ihr_scalar: UniformSampleable = field(default=1.0)
-    ba5_idr_scalar: UniformSampleable = field(default=1.0)
+    ihr_rr_alpha: UniformSampleable = field(default=1.0)
+    ihr_rr_beta: UniformSampleable = field(default=1.0)
+    ihr_rr_gamma: UniformSampleable = field(default=1.0)
+    ihr_rr_delta: UniformSampleable = field(default=1.0)
+    ihr_rr_omicron: UniformSampleable = field(default=1.0)
+    ihr_rr_ba5: UniformSampleable = field(default=1.0)
+
+    ifr_rr_alpha: UniformSampleable = field(default=1.0)
+    ifr_rr_beta: UniformSampleable = field(default=1.0)
+    ifr_rr_gamma: UniformSampleable = field(default=1.0)
+    ifr_rr_delta: UniformSampleable = field(default=1.0)
+    ifr_rr_omicron: UniformSampleable = field(default=1.0)
+    ifr_rr_ba5: UniformSampleable = field(default=1.0)
 
     omega_severity_parameterization: bool = field(default='delta')
 
@@ -135,19 +148,19 @@ class RatesParameters:
     day_inflection_options: List[str] = field(default_factory=list)
 
     def __post_init__(self):
-        RISK_RATIOS = {
-            'BMJ': {'mean': 1.64, 'lower': 1.32, 'upper': 2.04},  # https://www.bmj.com/content/372/bmj.n579
-            'LSHTM': {'mean': 1.35, 'lower': 1.08, 'upper': 1.65},
-            'Imperial': {'mean': 1.29, 'lower': 1.07, 'upper': 1.54},
-            'Exeter': {'mean': 1.91, 'lower': 1.35, 'upper': 2.71},
-            'PHE': {'mean': 1.65, 'lower': 1.21, 'upper': 2.25},
-        }
+        # RISK_RATIOS = {
+        #     'BMJ': {'mean': 1.64, 'lower': 1.32, 'upper': 2.04},  # https://www.bmj.com/content/372/bmj.n579
+        #     'LSHTM': {'mean': 1.35, 'lower': 1.08, 'upper': 1.65},
+        #     'Imperial': {'mean': 1.29, 'lower': 1.07, 'upper': 1.54},
+        #     'Exeter': {'mean': 1.91, 'lower': 1.35, 'upper': 2.71},
+        #     'PHE': {'mean': 1.65, 'lower': 1.21, 'upper': 2.25},
+        # }
 
-        for ratio in ['ifr', 'ihr']:
-            rr = getattr(self, f'{ratio}_risk_ratio')
-            if isinstance(rr, str):
-                rr = tuple(RISK_RATIOS[rr].values())
-            setattr(self, f'{ratio}_risk_ratio', rr)
+        # for ratio in ['ifr', 'ihr']:
+        #     rr = getattr(self, f'{ratio}_risk_ratio')
+        #     if isinstance(rr, str):
+        #         rr = tuple(RISK_RATIOS[rr].values())
+        #     setattr(self, f'{ratio}_risk_ratio', rr)
 
         if not self.day_inflection_options:
             self.day_inflection_options = [
