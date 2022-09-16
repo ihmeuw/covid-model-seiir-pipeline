@@ -140,9 +140,11 @@ def make_daily_and_smoothed_daily(data: pd.DataFrame, measure: str) -> pd.DataFr
     return data
 
 
-def aggregate_data_from_md(data: pd.DataFrame, hierarchy: pd.DataFrame, agg_var: str) -> pd.DataFrame:
-    if data[agg_var].max() <= 1:
-        raise ValueError(f'Data in {agg_var} looks like rates - need counts for aggregation.')
+def aggregate_data_from_md(data: pd.DataFrame, hierarchy: pd.DataFrame, agg_var: str,
+                           check_for_rates: bool = True, require_all_chilren: bool = True) -> pd.DataFrame:
+    if check_for_rates:
+        if data[agg_var].max() <= 1:
+            raise ValueError(f'Data in {agg_var} looks like rates - need counts for aggregation.')
 
     data = data.copy()
 
@@ -160,14 +162,15 @@ def aggregate_data_from_md(data: pd.DataFrame, hierarchy: pd.DataFrame, agg_var:
     parent_children_pairs = list(zip(parent_location_ids, md_child_ids_lists))
 
     parent_data = [aggregate(md_data.loc[md_data['location_id'].isin(md_child_ids)],
-                             parent_id, md_child_ids, agg_var)
+                             parent_id, md_child_ids, agg_var, require_all_chilren)
                    for parent_id, md_child_ids in parent_children_pairs]
     data = pd.concat([md_data] + parent_data)
 
     return data.reset_index(drop=True)
 
 
-def aggregate(data: pd.DataFrame, parent_id: int, md_child_ids: List[int], agg_var: str) -> pd.DataFrame:
+def aggregate(data: pd.DataFrame, parent_id: int, md_child_ids: List[int], agg_var: str,
+              require_all_chilren: bool = True) -> pd.DataFrame:
     # not most efficient to go from md each time, but safest since dataset is not square (and not a ton of data)
     draw_level = 'draw' in data.columns
     if data.empty:
@@ -182,8 +185,10 @@ def aggregate(data: pd.DataFrame, parent_id: int, md_child_ids: List[int], agg_v
             data['count'] = data.groupby('date')['count'].transform(min)
         else:
             data = data.groupby('date')[agg_var].agg(['sum', 'count'])
-        is_complete = data['count'] == len(md_child_ids)
-        data = data.loc[is_complete, 'sum'].rename(agg_var).reset_index()
+        if require_all_chilren:
+            is_complete = data['count'] == len(md_child_ids)
+            data = data.loc[is_complete]
+        data = data.loc[:, 'sum'].rename(agg_var).reset_index()
         data['location_id'] = parent_id
 
         if draw_level:

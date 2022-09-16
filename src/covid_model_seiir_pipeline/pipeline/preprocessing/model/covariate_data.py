@@ -340,12 +340,16 @@ def _get_manual_shifts(variant: str, invasion_dates: pd.DataFrame) -> Dict[str, 
 
     variant_adjustments = pd.to_datetime(pd.Series(manual_adjustments[variant]))
     variant_adjustments.index.name = 'location_id'
+
+    missing_locations_idx = variant_adjustments.index.difference(invasion_dates.index)
+    logger.warning(f'Dates specified for locations without {variant} invasions: '
+                   ', '.join(missing_locations_idx.astype(str).to_list()))
+    variant_adjustments = variant_adjustments.drop(new_locations_idx)
+
     shifts = variant_adjustments - invasion_dates.loc[variant_adjustments.index]
     shifts = shifts[shifts != pd.Timedelta(days=0)].dt.days.to_dict()
 
     return shifts
-
-
 
 
 def _process_variants_of_concern(data: pd.DataFrame) -> pd.DataFrame:
