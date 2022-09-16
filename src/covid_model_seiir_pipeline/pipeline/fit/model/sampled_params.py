@@ -91,7 +91,7 @@ def sample_variant_severity(params: RatesParameters, draw_id: int) -> VariantRR:
     rrs = {}
     for ratio in ['ifr', 'ihr', 'idr']:
         for variant in VARIANT_NAMES:
-            if variant not in [VARIANT_NAMES.none, VARIANT_NAMES.ancestral]:
+            if variant not in [VARIANT_NAMES.none, VARIANT_NAMES.other, VARIANT_NAMES.ancestral, VARIANT_NAMES.omega]:
                 variant_spec = params[f'{ratio}_rr_{variant}']
                 if isinstance(variant_spec, (int, float)):
                     value = variant_spec
@@ -103,8 +103,9 @@ def sample_variant_severity(params: RatesParameters, draw_id: int) -> VariantRR:
         rrs[f'omega_{ratio}'] = {
             'delta': rrs[f'delta_{ratio}'],
             'omicron': rrs[f'omicron_{ratio}'],
-            'average': (rrs[f'delta_{ratio}'], * rrs[f'omicron_{ratio}']) ** (1/2),
+            'average': (rrs[f'delta_{ratio}'] * rrs[f'omicron_{ratio}']) ** (1/2),
         }[omega_severity]
+        rrs[f'other_{ratio}'] = (rrs[f'alpha_{ratio}'] * rrs[f'delta_{ratio}']) ** (1/2),
 
     return VariantRR(**rrs)
 
@@ -171,7 +172,7 @@ def sample_ode_params(variant_rr: VariantRR,
     for measure, rate in (('death', 'ifr'), ('admission', 'ihr'), ('case', 'idr')):
         for variant in VARIANT_NAMES:
             if variant in [VARIANT_NAMES.none, VARIANT_NAMES.ancestral]:
-                sampled_params[f'kappa_{variant}_{measure}'] = 1
+                sampled_params[f'kappa_{variant}_{measure}'] = 1.
             else:
                 sampled_params[f'kappa_{variant}_{measure}'] = variant_rr[f'{variant}_{rate}']
 

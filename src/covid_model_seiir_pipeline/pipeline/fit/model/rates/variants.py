@@ -13,19 +13,19 @@ def condition_out_variants(sero_location_dates: List[Tuple[int, pd.Timestamp]],
                            variant_risk_ratios: pd.DataFrame,
                            exposure_to_seroconversion: int,
                            seroconversion_to_measure: int):
-    variant_infections = variant_prevalence.multiply(daily_infections, axis=0)
+    variant_infections = variant_prevalence.drop(['omega'], axis=1).multiply(daily_infections, axis=0)
 
     # agg infections and RR
     offset = 1e-4
-    variant_risk_ratios = (variant_infections + offset) * variant_risk_ratios.drop('none', axis=1)
+    variant_risk_ratios = (variant_infections + offset) * variant_risk_ratios.loc[:, variant_infections.columns]
     variant_risk_ratios = pd.concat([
         aggregate_data_from_md(variant_risk_ratios.loc[:, variant].reset_index(),
-                               hierarchy, variant, False, False).set_index(['location_id', 'date'])
+                               hierarchy, variant).set_index(['location_id', 'date'])
         for variant in variant_risk_ratios.columns
     ], axis=1).sort_index()
     variant_infections = pd.concat([
         aggregate_data_from_md(variant_infections.loc[:, variant].reset_index(),
-                               hierarchy, variant, False, False).set_index(['location_id', 'date'])
+                               hierarchy, variant).set_index(['location_id', 'date'])
         for variant in variant_infections.columns
     ], axis=1).sort_index()
     variant_risk_ratios /= (variant_infections + offset)

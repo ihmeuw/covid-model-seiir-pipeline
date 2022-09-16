@@ -32,7 +32,6 @@ def run_beta_fit(fit_version: str, measure: str, draw_id: int, progress_bar: boo
     age_patterns = data_interface.load_age_patterns()
     testing_capacity = data_interface.load_testing_capacity()
     rhos = data_interface.load_variant_prevalence(scenario='reference')
-    variant_prevalence = rhos.drop(columns='ancestral').sum(axis=1)
     vaccinations = data_interface.load_vaccine_uptake(scenario='reference')
     etas = data_interface.load_vaccine_risk_reduction(scenario='reference')
     natural_waning_dist = data_interface.load_waning_parameters(measure='natural_waning_distribution').set_index(['endpoint', 'days'])
@@ -75,7 +74,7 @@ def run_beta_fit(fit_version: str, measure: str, draw_id: int, progress_bar: boo
     first_pass_seroprevalence = model.subset_seroprevalence(
         seroprevalence=seroprevalence,
         epi_data=epi_measures,
-        variant_prevalence=variant_prevalence,
+        variant_prevalence=rhos.drop(columns='ancestral').sum(axis=1),
         population=total_population,
         params=specification.rates_parameters,
     )
@@ -104,7 +103,7 @@ def run_beta_fit(fit_version: str, measure: str, draw_id: int, progress_bar: boo
         total_population=total_population,
         age_specific_population=five_year_population,
         testing_capacity=testing_capacity,
-        variant_prevalence=variant_prevalence,
+        variant_prevalence=rhos,
         daily_infections=init_daily_infections,
         durations=durations.to_dict(),
         variant_rrs=variant_rrs,
@@ -189,7 +188,7 @@ def run_beta_fit(fit_version: str, measure: str, draw_id: int, progress_bar: boo
         total_population=total_population,
         age_specific_population=five_year_population,
         testing_capacity=testing_capacity,
-        variant_prevalence=variant_prevalence,
+        variant_prevalence=rhos,
         daily_infections=(
             agg_first_pass_posterior_epi_measures['daily_naive_unvaccinated_infections']
             .rename('daily_infections')),
