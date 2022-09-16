@@ -82,6 +82,9 @@ class VariantRR(NamedTuple):
     omega_ifr: float
     omega_ihr: float
     omega_idr: float
+    other_ifr: float
+    other_ihr: float
+    other_idr: float
 
 
 def sample_variant_severity(params: RatesParameters, draw_id: int) -> VariantRR:
@@ -105,7 +108,7 @@ def sample_variant_severity(params: RatesParameters, draw_id: int) -> VariantRR:
             'omicron': rrs[f'omicron_{ratio}'],
             'average': (rrs[f'delta_{ratio}'] * rrs[f'omicron_{ratio}']) ** (1/2),
         }[omega_severity]
-        rrs[f'other_{ratio}'] = (rrs[f'alpha_{ratio}'] * rrs[f'delta_{ratio}']) ** (1/2),
+        rrs[f'other_{ratio}'] = (rrs[f'alpha_{ratio}'] * rrs[f'delta_{ratio}']) ** (1/2)
 
     return VariantRR(**rrs)
 
