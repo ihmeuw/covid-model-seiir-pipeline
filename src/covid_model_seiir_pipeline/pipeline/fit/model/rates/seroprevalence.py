@@ -315,7 +315,10 @@ def sensitivity_adjustment(daily_infections: pd.Series,
             seroprevalence=seroprevalence,
         )
         out.append(loc_seroprevalence)
-    seroprevalence = pd.concat(out).reset_index(drop=True)
+    if out:
+        seroprevalence = pd.concat(out).reset_index(drop=True)
+    else:
+        seroprevalence = pd.DataFrame(columns=['data_id', 'date', 'seroprevalence', 'location_id'])
 
     return seroprevalence
 
