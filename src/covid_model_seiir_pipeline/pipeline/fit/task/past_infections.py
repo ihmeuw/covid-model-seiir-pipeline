@@ -68,7 +68,6 @@ def run_past_infections(fit_version: str, draw_id: int, progress_bar: bool) -> N
         max_lag=durations.max_lag,
         variant_prevalence=rhos,
         epi_exclude_variants=specification.rates_parameters.epi_exclude_variants,
-        measure=measure,
     )
 
     logger.info('Loading and resampling betas and infections.', context='transform')
@@ -87,7 +86,7 @@ def run_past_infections(fit_version: str, draw_id: int, progress_bar: bool) -> N
         num_cores=num_cores,
         progress_bar=progress_bar,    
     )
-    
+
     logger.info('Prepping ODE fit parameters for past infections model.', context='transform')
     ode_parameters = model.prepare_past_infections_parameters(
         beta=beta_fit_final,
