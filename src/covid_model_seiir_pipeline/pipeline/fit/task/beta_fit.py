@@ -66,15 +66,25 @@ def run_beta_fit(fit_version: str, measure: str, draw_id: int, progress_bar: boo
         mortality_scalar=mortality_scalar,
         mr_hierarchy=mr_hierarchy,
         pred_hierarchy=pred_hierarchy,
+        measure_lag=durations.to_dict()[f'exposure_to_{measure}'],
         max_lag=durations.max_lag,
+        variant_prevalence=rhos,
+        epi_exclude_variants=specification.rates_parameters.epi_exclude_variants,
         measure=measure,
     )
 
     logger.info('Subsetting seroprevalence for first pass rates model', context='transform')
-    first_pass_seroprevalence = model.subset_seroprevalence(
-        seroprevalence=seroprevalence,
+    seroprevalence = model.exclude_sero_data_by_variant(
+        seroprevalence=seroprevalence.copy(),
+        mr_hierarchy=mr_hierarchy,
+        lag=durations.to_dict()['exposure_to_seroconversion'],
+        variant_prevalence=rhos,
+        sero_exclude_variants=specification.rates_parameters.sero_exclude_variants,
+    )
+    first_pass_seroprevalence = model.subset_first_pass_seroprevalence(
+        seroprevalence=seroprevalence.copy(),
         epi_data=epi_measures,
-        variant_prevalence=rhos.drop(columns='ancestral').sum(axis=1),
+        total_escape_variant_prevalence=rhos.drop(columns='ancestral').sum(axis=1),
         population=total_population,
         params=specification.rates_parameters,
     )

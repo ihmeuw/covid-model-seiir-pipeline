@@ -22,6 +22,7 @@ class Durations(NamedTuple):
     pcr_to_seropositive: pd.Series
     admission_to_seropositive: pd.Series
     seropositive_to_death: pd.Series
+    min_lag: int
     max_lag: int
 
     def to_ints(self):
@@ -37,6 +38,7 @@ def sample_durations(params: RatesParameters, draw_id: int, hierarchy: pd.DataFr
     exposure_to_admission = random_state.choice(_to_range(params.exposure_to_admission))
     exposure_to_seroconversion = random_state.choice(_to_range(params.exposure_to_seroconversion))
     admission_to_death = random_state.choice(_to_range(params.admission_to_death))
+    min_lag = min(_to_range(params.exposure_to_admission))
     max_lag = max(_to_range(params.exposure_to_admission)) + max(_to_range(params.admission_to_death))
 
     locations = hierarchy.location_id.tolist()
@@ -49,6 +51,7 @@ def sample_durations(params: RatesParameters, draw_id: int, hierarchy: pd.DataFr
         pcr_to_seropositive=pd.Series(exposure_to_seroconversion - exposure_to_admission, index=locations),
         admission_to_seropositive=pd.Series(exposure_to_seroconversion - exposure_to_admission, index=locations),
         seropositive_to_death=pd.Series((exposure_to_admission + admission_to_death) - exposure_to_seroconversion, index=locations),
+        min_lag=min_lag,
         max_lag=max_lag,
     )
 

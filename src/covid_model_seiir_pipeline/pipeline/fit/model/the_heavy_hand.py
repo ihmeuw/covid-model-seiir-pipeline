@@ -23,7 +23,10 @@ def rescale_kappas(
 ) -> Dict:
     kappa_scaling_factors_path = Path(__file__).parent / 'kappa_scaling_factors'
     manual_scaling_factors = yaml.full_load((kappa_scaling_factors_path / '_manual.yaml').read_text())
-    manual_scaling_factors = manual_scaling_factors[measure]
+    if manual_scaling_factors is None:
+        manual_scaling_factors = {}
+    else:
+        manual_scaling_factors = manual_scaling_factors.get(measure, {})
 
     if rates_parameters.heavy_hand_fixes:
         for variant in VARIANT_NAMES:

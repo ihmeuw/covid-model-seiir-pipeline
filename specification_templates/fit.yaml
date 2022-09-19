@@ -1,5 +1,5 @@
 data:
-  seir_preprocess_version: '2022_09_09.02'
+  seir_preprocess_version: '2022_09_19.02'
   output_format: 'parquet'
   output_root: ''
   compare_version: '2022_07_18.06'
@@ -7,6 +7,8 @@ workflow:
   project: 'proj_covid_prod'
   queue: 'all.q'
 rates_parameters:
+  sero_exclude_variants: ['alpha', 'beta', 'gamma', 'delta', 'omicron', 'ba5']
+  epi_exclude_variants: ['alpha', 'beta', 'gamma', 'delta', 'omicron', 'ba5']
   day_0: '2020-03-15'
   pred_start_date: '2019-11-01'
   pred_end_date: '2022-09-15'

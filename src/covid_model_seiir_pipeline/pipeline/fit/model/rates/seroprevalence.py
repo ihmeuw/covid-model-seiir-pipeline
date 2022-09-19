@@ -1,4 +1,4 @@
-from typing import Tuple
+from typing import List, Tuple
 
 from loguru import logger
 import numpy as np
@@ -30,9 +30,33 @@ INCREASING = ['S-Ortho Ig', 'S-Roche']
 SEROPREV_LB = 0.
 
 
-def subset_seroprevalence(seroprevalence: pd.DataFrame,
+def exclude_sero_data_by_variant(
+    seroprevalence: pd.DataFrame,
+    mr_hierarchy: pd.DataFrame,
+    lag: int,
+    variant_prevalence: pd.DataFrame,
+    sero_exclude_variants: List[str],
+) -> pd.DataFrame:
+    if sero_exclude_variants:
+        variant_prevalence = variant_prevalence.loc[:, sero_exclude_variants].sum(axis=1).rename('variant_prevalence')
+        variant_prevalence = variant_prevalence.loc[variant_prevalence > 0.1].reset_index('date')
+        for location_id in seroprevalence['location_id'].unique():
+            _location_ids = (mr_hierarchy
+                             .loc[mr_hierarchy['path_to_top_parent'].apply(lambda x: str(location_id) in x.split(',')), 'location_id']
+                             .astype(str)
+                             .to_list())
+            drop_date = (variant_prevalence.query(f'location_id in [{", ".join(_location_ids)}]')
+                         .loc[:, 'date'].min())
+            drop_date += pd.Timedelta(days=lag)
+            seroprevalence.loc[(seroprevalence['location_id'] == location_id)
+                               & (seroprevalence['date'] >= drop_date), 'is_outlier'] = 1
+
+    return seroprevalence
+
+
+def subset_first_pass_seroprevalence(seroprevalence: pd.DataFrame,
                           epi_data: pd.DataFrame,
-                          variant_prevalence: pd.Series,
+                          total_escape_variant_prevalence: pd.Series,
                           population: pd.Series,
                           params: RatesParameters) -> pd.DataFrame:
     cumulative_deaths = epi_data['cumulative_deaths'].dropna()
@@ -41,7 +65,7 @@ def subset_seroprevalence(seroprevalence: pd.DataFrame,
                    .reset_index()
                    .groupby('location_id')['date'].max()
                    .rename('death_date'))
-    variant_dates = (variant_prevalence.loc[variant_prevalence < params.variant_prevalence_threshold]
+    variant_dates = (total_escape_variant_prevalence.loc[total_escape_variant_prevalence < params.variant_prevalence_threshold]
                      .reset_index()
                      .groupby('location_id')['date'].max()
                      .rename('variant_date'))

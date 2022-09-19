@@ -147,6 +147,9 @@ class RatesParameters:
 
     day_inflection_options: List[str] = field(default_factory=list)
 
+    sero_exclude_variants: List[str] = field(default_factory=list)
+    epi_exclude_variants: List[str] = field(default_factory=list)
+
     def __post_init__(self):
         # RISK_RATIOS = {
         #     'BMJ': {'mean': 1.64, 'lower': 1.32, 'upper': 2.04},  # https://www.bmj.com/content/372/bmj.n579

@@ -17,7 +17,8 @@ from covid_model_seiir_pipeline.pipeline.fit.model.sampled_params import (
 )
 from covid_model_seiir_pipeline.pipeline.fit.model.rates import (
     run_rates_pipeline,
-    subset_seroprevalence,
+    exclude_sero_data_by_variant,
+    subset_first_pass_seroprevalence,
     apply_sensitivity_adjustment,
 )
 from covid_model_seiir_pipeline.pipeline.fit.model.covariate_pool import (

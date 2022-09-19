@@ -9,16 +9,27 @@ def filter_and_format_epi_measures(
     mortality_scalar: pd.Series,
     mr_hierarchy: pd.DataFrame,
     pred_hierarchy: pd.DataFrame,
+    measure_lag: int,
     max_lag: int,
+    variant_prevalence: pd.DataFrame,
+    epi_exclude_variants: List[str],
     measure: str = None,
 ) -> pd.DataFrame:
-    if measure is not None:
+    if measure:
         epi_measures = drop_locations_for_measure_model(epi_measures, measure, pred_hierarchy)
+
+    if epi_exclude_variants:
+        epi_measures = exclude_epi_data_by_variant(
+            epi_measures=epi_measures,
+            pred_hierarchy=pred_hierarchy,
+            variant_prevalence=variant_prevalence.loc[:, epi_exclude_variants].sum(axis=1).rename('variant_prevalence'),
+            measure_lag=measure_lag,
+        )
 
     epi_measures = format_epi_measures(epi_measures, mr_hierarchy, pred_hierarchy,
                                        mortality_scalar, max_lag)
 
-    if measure is not None:
+    if measure:
         epi_measures = enforce_epi_threshold(epi_measures, measure, mortality_scalar)
 
     return epi_measures
@@ -52,6 +63,31 @@ def drop_locations_for_measure_model(
         drop_location_ids = np.unique((np.hstack(drop_location_ids))).tolist()
         epi_measures = epi_measures.drop(drop_location_ids)
     return epi_measures
+
+
+def exclude_epi_data_by_variant(
+    epi_measures: pd.DataFrame,
+    pred_hierarchy: pd.DataFrame,
+    variant_prevalence: pd.DataFrame,
+    measure_lag: int,
+) -> pd.DataFrame:
+    md_location_ids = pred_hierarchy.loc[pred_hierarchy['most_detailed'] == 1, 'location_id'].astype(str).to_list()
+    epi_measures = epi_measures.query(f'location_id in [{", ".join(md_location_ids)}]')
+
+    variant_prevalence = variant_prevalence.loc[variant_prevalence > 0.1]
+    drop_dates = variant_prevalence.reset_index('date').groupby('location_id')['date'].min()
+    drop_dates += pd.Timedelta(days=measure_lag)
+
+    epi_measures = epi_measures.groupby('location_id').apply(lambda x: _exclude_epi_data_by_variant(x, drop_dates))
+
+    return epi_measures
+
+
+def _exclude_epi_data_by_variant(location_data: pd.DataFrame, drop_dates: pd.Series):
+    location_id = location_data.index.get_level_values('location_id').unique().item()
+    return (location_data
+            .loc[:, :drop_dates.loc[location_id], :]
+            .reset_index('location_id', drop=True))
 
 
 def enforce_epi_threshold(

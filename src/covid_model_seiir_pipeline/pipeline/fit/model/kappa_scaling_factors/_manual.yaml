@@ -1,123 +1,123 @@
-case:
-  ancestral:
-    36:      0.6  # Kazakhstan
-    37:      8.0  # Kyrgyzstan
-    50:      2.0  # Montenegro
-    61:      2.0  # Republic of Moldova
-    114:    0.25  # Haiti
-    4647:    2.0  # Coahuila
-    4658:   0.75  # Michoacán de Ocampo
-    4659:   0.75  # Morelos
-    4751:    8.0  # Alagoas
-    4753:    8.0  # Amapá
-    4756:    5.0  # Distrito Federal
-    4752:    0.5  # Amazonas
-    4759:    0.5  # Maranhão
-    4762:    8.0  # Mato Grosso
-    4761:    8.0  # Mato Grosso do Sul
-    4763:    8.0  # Pará
-    4768:    3.0  # Rio de Janeiro
-    153:     0.5  # Syrian Arab Republic
-    53618:   0.8  # Islamabad Capital Territory
-    186:     2.0  # Seychelles
-    168:    1.25  # Angola
-    200:     0.5  # Benin
-    210:     2.5  # Liberia
-  omicron:
-    62:      2.0  # Russian Federation
-    67:      0.8  # Japan
-    68:      0.8  # Republic of Korea
-    77:      0.6  # Cyprus
-    151:     0.6  # Qatar
-    4849:    1.5  # Delhi
-    4845:    1.5  # Chandigarh
-    4866:    2.0  # Puducherry
-    4872:    1.5  # Tripura
-    53615:   1.5  # Azad Jammu & Kashmir
-    53619:   2.0  # Khyber Pakhtunkhwa
-    208:     1.5  # Guinea
-    209:     2.0  # Guinea-Bissau
-    211:     2.0  # Mali
-    212:     2.0  # Mauritania
-  ba5:
-    62:      1.5  # Russian Federation
-    67:      0.2  # Japan
-    68:      0.6  # Republic of Korea
-    97:      1.5  # Argentina
-    98:      1.5  # Chile
-    77:      0.4  # Cyprus
-    82:      1.5  # Greece
-    87:      1.5  # Luxembourg
-    88:      0.8  # Malta
-    153:     1.5  # Syrian Arab Republic
-    157:     0.8  # Yemen
-    4849:    1.5  # Delhi
-    16:      1.5  # Philippines
-    203:     1.5  # Cabo Verde
-admission:
-  ancestral:
-    4647:    2.0  # Coahuila
-    4653:    1.5  # Guanajuato
-    4754:    0.5  # Bahia
-  omicron:
-    151:     0.6  # Qatar
-death:
-  ancestral:
-    33:      1.5  # Armenia
-    34:      2.0  # Azerbaijan
-    35:      1.5  # Georgia
-    37:      3.0  # Kyrgyzstan
-    50:     1.25  # Montenegro
-    62:      2.0   # Russian Federation
-    367:     0.5  # Monaco
-    121:     3.0  # Bolivia (Plurinational State of)
-    125:    0.75  # Colombia
-    126:     0.3  # Costa Rica
-    4647:    2.0  # Coahuila
-    4652:    1.5  # Durango
-    4653:    1.5  # Guanajuato
-    4655:   1.25  # Hidalgo
-    133:     0.1  # Venezuela (Bolivarian Republic of)
-    155:     0.3  # Turkey
-    161:     0.5  # Bangladesh
-    4866:    1.5  # Puducherry
-    14:      0.5  # Maldives
-    16:     0.75  # Philippines
-    168:     2.0  # Angola
-    169:     2.0  # Central African Republic
-    187:     0.4  # Somalia
-    197:     1.5  # Eswatini
-    203:    0.75  # Cabo Verde
-    206:     1.5  # Gambia
-    208:    0.75  # Guinea
-    209:    0.75  # Guinea-Bissau
-  omicron:
-    62:      2.0  # Russian Federation
-    67:      0.8  # Japan
-    68:      0.8  # Republic of Korea
-    77:      0.6  # Cyprus
-    396:     0.8  # San Marino
-    4849:    1.5  # Delhi
-    4845:    2.0  # Chandigarh
-    4866:    2.0  # Puducherry
-    4872:    2.0  # Tripura
-    53615:   1.5  # Azad Jammu & Kashmir
-    53619:   2.0  # Khyber Pakhtunkhwa
-    208:     2.0  # Guinea
-    209:     2.0  # Guinea-Bissau
-    211:     2.0  # Mali
-    212:     2.0  # Mauritania
-  ba5:
-    62:      2.0  # Russian Federation
-    67:      0.2  # Japan
-    68:      0.6  # Republic of Korea
-    97:      1.5  # Argentina
-    98:      1.5  # Chile
-    77:      0.4  # Cyprus
-    82:      1.5  # Greece
-    88:      0.8  # Malta
-    91:      1.5  # Portugal
-    157:     1.5  # Yemen
-    4849:    1.5  # Delhi
-    16:      1.5  # Philippines
-    203:     1.5  # Cabo Verde
+# case:
+#   ancestral:
+#     36:      0.6  # Kazakhstan
+#     37:      8.0  # Kyrgyzstan
+#     50:      2.0  # Montenegro
+#     61:      2.0  # Republic of Moldova
+#     114:    0.25  # Haiti
+#     4647:    2.0  # Coahuila
+#     4658:   0.75  # Michoacán de Ocampo
+#     4659:   0.75  # Morelos
+#     4751:    8.0  # Alagoas
+#     4753:    8.0  # Amapá
+#     4756:    5.0  # Distrito Federal
+#     4752:    0.5  # Amazonas
+#     4759:    0.5  # Maranhão
+#     4762:    8.0  # Mato Grosso
+#     4761:    8.0  # Mato Grosso do Sul
+#     4763:    8.0  # Pará
+#     4768:    3.0  # Rio de Janeiro
+#     153:     0.5  # Syrian Arab Republic
+#     53618:   0.8  # Islamabad Capital Territory
+#     186:     2.0  # Seychelles
+#     168:    1.25  # Angola
+#     200:     0.5  # Benin
+#     210:     2.5  # Liberia
+#   omicron:
+#     62:      2.0  # Russian Federation
+#     67:      0.8  # Japan
+#     68:      0.8  # Republic of Korea
+#     77:      0.6  # Cyprus
+#     151:     0.6  # Qatar
+#     4849:    1.5  # Delhi
+#     4845:    1.5  # Chandigarh
+#     4866:    2.0  # Puducherry
+#     4872:    1.5  # Tripura
+#     53615:   1.5  # Azad Jammu & Kashmir
+#     53619:   2.0  # Khyber Pakhtunkhwa
+#     208:     1.5  # Guinea
+#     209:     2.0  # Guinea-Bissau
+#     211:     2.0  # Mali
+#     212:     2.0  # Mauritania
+#   ba5:
+#     62:      1.5  # Russian Federation
+#     67:      0.2  # Japan
+#     68:      0.6  # Republic of Korea
+#     97:      1.5  # Argentina
+#     98:      1.5  # Chile
+#     77:      0.4  # Cyprus
+#     82:      1.5  # Greece
+#     87:      1.5  # Luxembourg
+#     88:      0.8  # Malta
+#     153:     1.5  # Syrian Arab Republic
+#     157:     0.8  # Yemen
+#     4849:    1.5  # Delhi
+#     16:      1.5  # Philippines
+#     203:     1.5  # Cabo Verde
+# admission:
+#   ancestral:
+#     4647:    2.0  # Coahuila
+#     4653:    1.5  # Guanajuato
+#     4754:    0.5  # Bahia
+#   omicron:
+#     151:     0.6  # Qatar
+# death:
+#   ancestral:
+#     33:      1.5  # Armenia
+#     34:      2.0  # Azerbaijan
+#     35:      1.5  # Georgia
+#     37:      3.0  # Kyrgyzstan
+#     50:     1.25  # Montenegro
+#     62:      2.0   # Russian Federation
+#     367:     0.5  # Monaco
+#     121:     3.0  # Bolivia (Plurinational State of)
+#     125:    0.75  # Colombia
+#     126:     0.3  # Costa Rica
+#     4647:    2.0  # Coahuila
+#     4652:    1.5  # Durango
+#     4653:    1.5  # Guanajuato
+#     4655:   1.25  # Hidalgo
+#     133:     0.1  # Venezuela (Bolivarian Republic of)
+#     155:     0.3  # Turkey
+#     161:     0.5  # Bangladesh
+#     4866:    1.5  # Puducherry
+#     14:      0.5  # Maldives
+#     16:     0.75  # Philippines
+#     168:     2.0  # Angola
+#     169:     2.0  # Central African Republic
+#     187:     0.4  # Somalia
+#     197:     1.5  # Eswatini
+#     203:    0.75  # Cabo Verde
+#     206:     1.5  # Gambia
+#     208:    0.75  # Guinea
+#     209:    0.75  # Guinea-Bissau
+#   omicron:
+#     62:      2.0  # Russian Federation
+#     67:      0.8  # Japan
+#     68:      0.8  # Republic of Korea
+#     77:      0.6  # Cyprus
+#     396:     0.8  # San Marino
+#     4849:    1.5  # Delhi
+#     4845:    2.0  # Chandigarh
+#     4866:    2.0  # Puducherry
+#     4872:    2.0  # Tripura
+#     53615:   1.5  # Azad Jammu & Kashmir
+#     53619:   2.0  # Khyber Pakhtunkhwa
+#     208:     2.0  # Guinea
+#     209:     2.0  # Guinea-Bissau
+#     211:     2.0  # Mali
+#     212:     2.0  # Mauritania
+#   ba5:
+#     62:      2.0  # Russian Federation
+#     67:      0.2  # Japan
+#     68:      0.6  # Republic of Korea
+#     97:      1.5  # Argentina
+#     98:      1.5  # Chile
+#     77:      0.4  # Cyprus
+#     82:      1.5  # Greece
+#     88:      0.8  # Malta
+#     91:      1.5  # Portugal
+#     157:     1.5  # Yemen
+#     4849:    1.5  # Delhi
+#     16:      1.5  # Philippines
+#     203:     1.5  # Cabo Verde

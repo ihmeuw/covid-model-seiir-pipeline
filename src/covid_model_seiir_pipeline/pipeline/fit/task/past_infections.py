@@ -64,7 +64,11 @@ def run_past_infections(fit_version: str, draw_id: int, progress_bar: bool) -> N
         mortality_scalar=mortality_scalar,
         mr_hierarchy=mr_hierarchy,
         pred_hierarchy=pred_hierarchy,
+        measure_lag=durations.min_lag,
         max_lag=durations.max_lag,
+        variant_prevalence=rhos,
+        epi_exclude_variants=specification.rates_parameters.epi_exclude_variants,
+        measure=measure,
     )
 
     logger.info('Loading and resampling betas and infections.', context='transform')
