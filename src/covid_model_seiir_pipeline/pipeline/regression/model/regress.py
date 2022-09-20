@@ -48,7 +48,7 @@ def prep_regression_inputs(beta_fit: pd.Series,
                            covariates: pd.DataFrame,
                            hierarchy: pd.DataFrame):
     regression_inputs = pd.concat([beta_fit, regression_weights], axis=1)
-    regression_inputs = pd.merge(beta_fit.dropna(), covariates, on=beta_fit.index.names)
+    regression_inputs = pd.merge(regression_inputs.dropna(), covariates, on=beta_fit.index.names)
     group_cols = ['super_region_id', 'region_id', 'location_id']
     regression_inputs = (regression_inputs
                          .merge(hierarchy[group_cols], on='location_id')
