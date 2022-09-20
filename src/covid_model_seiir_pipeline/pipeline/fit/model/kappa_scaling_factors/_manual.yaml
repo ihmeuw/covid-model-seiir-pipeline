@@ -23,11 +23,44 @@ case:
     168:    1.25  # Angola
     200:     0.5  # Benin
     210:     2.5  # Liberia
+  omicron:
+    62:      2.0  # Russian Federation
+    67:      0.8  # Japan
+    68:      0.8  # Republic of Korea
+    77:      0.6  # Cyprus
+    151:     0.6  # Qatar
+    4849:    1.5  # Delhi
+    4845:    1.5  # Chandigarh
+    4866:    2.0  # Puducherry
+    4872:    1.5  # Tripura
+    53615:   1.5  # Azad Jammu & Kashmir
+    53619:   2.0  # Khyber Pakhtunkhwa
+    208:     1.5  # Guinea
+    209:     2.0  # Guinea-Bissau
+    211:     2.0  # Mali
+    212:     2.0  # Mauritania
+  ba5:
+    62:      1.5  # Russian Federation
+    67:      0.2  # Japan
+    68:      0.6  # Republic of Korea
+    97:      1.5  # Argentina
+    98:      1.5  # Chile
+    77:      0.4  # Cyprus
+    82:      1.5  # Greece
+    87:      1.5  # Luxembourg
+    88:      0.8  # Malta
+    153:     1.5  # Syrian Arab Republic
+    157:     0.8  # Yemen
+    4849:    1.5  # Delhi
+    16:      1.5  # Philippines
+    203:     1.5  # Cabo Verde
 admission:
   ancestral:
     4647:    2.0  # Coahuila
     4653:    1.5  # Guanajuato
     4754:    0.5  # Bahia
+  omicron:
+    151:     0.6  # Qatar
 death:
   ancestral:
     33:      1.5  # Armenia
@@ -58,3 +91,33 @@ death:
     206:     1.5  # Gambia
     208:    0.75  # Guinea
     209:    0.75  # Guinea-Bissau
+  omicron:
+    62:      2.0  # Russian Federation
+    67:      0.8  # Japan
+    68:      0.8  # Republic of Korea
+    77:      0.6  # Cyprus
+    396:     0.8  # San Marino
+    4849:    1.5  # Delhi
+    4845:    2.0  # Chandigarh
+    4866:    2.0  # Puducherry
+    4872:    2.0  # Tripura
+    53615:   1.5  # Azad Jammu & Kashmir
+    53619:   2.0  # Khyber Pakhtunkhwa
+    208:     2.0  # Guinea
+    209:     2.0  # Guinea-Bissau
+    211:     2.0  # Mali
+    212:     2.0  # Mauritania
+  ba5:
+    62:      2.0  # Russian Federation
+    67:      0.2  # Japan
+    68:      0.6  # Republic of Korea
+    97:      1.5  # Argentina
+    98:      1.5  # Chile
+    77:      0.4  # Cyprus
+    82:      1.5  # Greece
+    88:      0.8  # Malta
+    91:      1.5  # Portugal
+    157:     1.5  # Yemen
+    4849:    1.5  # Delhi
+    16:      1.5  # Philippines
+    203:     1.5  # Cabo Verde
