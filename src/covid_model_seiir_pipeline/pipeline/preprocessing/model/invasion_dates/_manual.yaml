@@ -1,7 +1,389 @@
-# Example format:
-#alpha:
-#  555: '2021-05-01'
-#omicron:
-#  555: '2022-05-01'
-#ba5:
-#  555: '2022-08-01'
+alpha:
+  33:    '2021-01-15'
+  34:    '2021-02-01'
+  35:    '2021-02-15'
+  36:    '2021-02-15'
+  37:    '2021-02-15'
+  38:    '2021-02-15'
+  41:    '2021-02-15'
+  43:    '2021-12-15'
+  44:    '2021-01-15'
+  45:    '2021-01-01'
+  46:    '2021-02-01'
+  47:    '2021-01-15'
+  48:    '2021-01-15'
+  50:    '2021-01-15'
+  49:    '2021-01-15'
+  51:    '2021-01-15'
+  52:    '2021-01-15'
+  53:    '2021-01-15'
+  54:    '2021-01-01'
+  55:    '2021-02-15'
+  57:    '2021-02-15'
+  58:    '2021-01-15'
+  59:    '2021-02-15'
+  60:    '2021-02-15'
+  61:    '2021-01-01'
+  62:    ''
+  63:    '2021-02-01'
+  71:    ''
+  72:    ''
+  67:    '2021-03-01'
+  68:    ''
+  69:    ''
+  43858: '2021-02-15'
+  43859: '2021-02-01'
+  43860: '2021-03-15'
+  43861: ''
+  43862: ''
+  43863: ''
+  43864: '2021-04-01'
+  43865: '2021-04-01'
+  43866: '2021-02-01'
+  43868: '2021-03-01'
+  43869: '2021-03-01'
+  43870: '2021-05-15'
+  523:   ''
+  524:   '2021-02-15'
+  525:   ''
+  526:   ''
+  527:   ''
+  528:   '2021-02-15'
+  529:   '2021-02-15'
+  530:   '2021-02-15'
+  531:   '2021-02-01'
+  532:   '2021-02-15'
+  533:   '2021-03-01'
+  534:   ''
+  535:   '2021-02-01'
+  536:   '2021-02-15'
+  537:   '2021-03-01'
+  538:   '2021-03-01'
+  539:   ''
+  540:   '2021-03-15'
+  541:   ''
+  542:   '2021-02-15'
+  543:   '2021-02-15'
+  544:   '2021-02-15'
+  545:   '2021-02-01'
+  546:   '2021-02-01'
+  547:   ''
+  548:   ''
+  549:   ''
+  550:   '2021-03-01'
+  551:   '2021-03-01'
+  552:   '2021-02-15'
+  553:   '2021-02-01'
+  554:   '2021-03-01'
+  555:   '2021-02-15'
+  556:   '2021-03-01'
+  557:   '2021-02-15'
+  558:   '2021-03-01'
+  559:   ''
+  560:   '2021-03-01'
+  561:   '2021-02-15'
+  562:   '2021-02-15'
+  563:   '2021-02-15'
+  564:   '2021-02-15'
+  565:   '2021-02-15'
+  566:   '2021-02-15'
+  567:   ''
+  568:   '2021-02-15'
+  569:   '2021-02-01'
+  60886: '2021-02-15'
+  3539:  '2021-02-15'
+  60887: '2021-02-15'
+  571:   '2021-02-15'
+  572:   '2021-02-15'
+  573:   ''
+  97:    ''
+  98:    ''
+  99:    ''
+  74:    '2021-02-01'
+  75:    '2021-01-15'
+  76:    '2021-02-15'
+  77:    '2021-02-01'
+  78:    '2021-02-01'
+  79:    '2021-01-15'
+  80:    '2020-12-01'
+  60377: '2021-02-01'
+  60378: '2021-02-01'
+  60379: '2021-02-01'
+  60380: '2021-02-01'
+  60381: '2021-02-01'
+  60382: '2021-02-01'
+  60383: '2021-02-01'
+  60384: '2021-02-01'
+  60385: '2021-02-01'
+  60386: '2021-02-01'
+  60387: '2021-02-01'
+  60388: '2021-02-01'
+  60389: '2021-02-01'
+  60390: '2021-02-01'
+  60391: '2021-02-01'
+  60392: '2021-02-01'
+  82:    '2021-01-01'
+  83:    ''
+  84:    '2020-12-01'
+  85:    '2021-11-15'
+  35507: '2021-12-01'
+  35511: '2021-01-15'
+  35512: '2021-02-01'
+  35509: '2021-02-01'
+  35502: '2021-02-01'
+  35501: '2021-02-01'
+  35506: '2021-02-01'
+  35496: '2021-02-15'
+  35497: '2021-02-01'
+  35505: '2021-01-15'
+  35508: '2020-12-15'
+  35494: '2021-02-01'
+  35498: '2020-12-01'
+  35499: '2021-01-15'
+  35510: '2021-02-15'
+
+beta:
+  50:    ''            # Montenegro
+  57:    ''            # Belarus
+  61:    ''            # Moldova
+  72:    ''            # New Zealand
+  69:    ''            # Singapore
+  43858: ''            # Alberta
+  43859: ''            # British Columbia
+  43863: ''            # Northwest Territories
+  43865: ''            # Nunavut
+  43868: ''            # Quebec
+  43870: ''            # Yukon
+  533:   ''            # Georgia
+  536:   ''            # Illinois
+  545:   ''            # Michigan
+  546:   ''            # Minnesota
+  555:   ''            # New York
+  556:   ''            # North Carolina
+  560:   ''            # Oregon
+  563:   ''            # South Carolina
+  569:   ''            # Virginia
+  60886: ''            # King and Snohomish Counties
+  3539:  ''            # Spokane County
+  60887: ''            # Washington except for King, Snohomish, and Spokane Counties
+  74:    ''            # Andorra
+  75:    ''            # Austria
+  76:    ''            # Belgium
+  77:    ''            # Cyprus
+  79:    ''            # Finland
+  80:    ""            # France
+  60377: ''            # Baden-Wurttemberg
+  60378: ''            # Bavaria
+  60379: ''            # Berlin
+  60386: ''            # North Rhine-Westphalia
+  60387: ''            # Rhineland-Palatinate
+  60388: ''            # Saarland
+  60389: ''            # Saxony-Anhalt
+gamma:
+  33:    ''            # Armenia
+  34:    ''            # Azerbaijan
+  41:    ''            # Uzbekistan
+  43:    ''            # Albania
+  48:    ''            # Hungary
+  50:    ''            # Montenegro
+  49:    ''            # North Macedonia
+  53:    ''            # Serbia
+  57:    ''            # Belarus
+  59:    ''            # Estonia
+  61:    ''            # Moldova
+  72:    ''            # New Zealand
+  43858: ''            # Alberta
+  43859: ''            # British Columbia
+  43860: ''            # Manitoba
+  43863: ''            # Northwest Territories
+  43865: ''            # Nunavut
+  43866: ''            # Ontario
+  43868: ''            # Quebec
+  43869: ''            # Saskatchewan
+  43870: ''            # Yukon
+  525:   ''            # Arizona
+  527:   ''            # California
+  528:   ''            # Colorado
+  529:   ''            # Connecticut
+  532:   ''            # Florida
+  533:   ''            # Georgia
+  534:   ''            # Hawaii
+  536:   ''            # Illinois
+  537:   ''            # Indiana
+  539:   ''            # Kansas
+  540:   ''            # Kentucky
+  542:   ''            # Maine
+  543:   ''            # Maryland
+  544:   ''            # Massachusetts
+  545:   ''            # Michigan
+  546:   ''            # Minnesota
+  548:   ''            # Missouri
+  551:   ''            # Nevada
+  552:   ''            # New Hampshire
+  553:   ''            # New Jersey
+  554:   ''            # New Mexico
+  555:   ''            # New York
+  556:   ''            # North Carolina
+  558:   ''            # Ohio
+  560:   ''            # Oregon
+  561:   ''            # Pennsylvania
+  562:   ''            # Rhode Island
+  563:   ''            # South Carolina
+  565:   ''            # Tennessee
+  566:   ''            # Texas
+  567:   ''            # Utah
+  569:   ''            # Virginia
+  60886: ''            # King and Snohomish Counties
+  3539:  ''            # Spokane County
+  60887: ''            # Washington except for King, Snohomish, and Spokane Counties
+  572:   ''            # Wisconsin
+  97:    '2021-02-15'  # Argentina
+  98:    '2021-02-01'  # Chile
+  99:    '2021-02-01'  # Uruguay
+  74:    ''            # Andorra
+  76:    ''            # Belgium
+  77:    ''            # Cyprus
+  60377: ''            # Baden-Wurttemberg
+  60378: ''            # Bavaria
+  60387: ''            # Rhineland-Palatinate
+other:
+  524:   ''            # Alaska
+  529:   ''            # Connecticut
+  532:   ''            # Florida
+  533:   ''            # Georgia
+  542:   ''            # Maine
+  544:   ''            # Massachusetts
+  551:   ''            # Nevada
+  553:   ''            # New Jersey
+  555:   ''            # New York
+  561:   ''            # Pennsylvania
+  566:   ''            # Texas
+  567:   ''            # Utah
+  60886: ''            # King and Snohomish Counties
+  3539:  ''            # Spokane County
+  97:    ''            # Argentina
+  98:    ''            # Chile
+  99:    ''            # Uruguay
+delta:
+  33:    '2021-06-15'  # Armenia
+  34:    '2021-06-15'  # Azerbaijan
+  35:    '2021-06-15'  # Georgia
+  36:    '2021-06-01'  # Kazakhstan
+  37:    '2021-05-15'  # Kyrgyzstan
+  41:    '2021-05-15'  # Uzbekistan
+  43:    '2021-08-01'  # Albania
+  44:    '2021-07-15'  # Bosnia and Herzegovina
+  45:    '2021-08-01'  # Bulgaria
+  46:    '2021-07-15'  # Croatia
+  47:    '2021-10-01'  # Czechia
+  48:    '2021-08-15'  # Hungary
+  50:    '2021-07-01'  # Montenegro
+  49:    '2021-07-15'  # North Macedonia
+  51:    '2021-09-01'  # Poland
+  52:    '2021-08-15'  # Romania
+  53:    '2021-07-15'  # Serbia
+  54:    '2021-08-01'  # Slovakia
+  55:    '2021-07-15'  # Slovenia
+  57:    '2021-06-15'  # Belarus
+  58:    '2021-07-01'  # Estonia
+  59:    '2021-08-15'  # Belarus
+  60:    '2021-07-01'  # Lithuania
+  61:    '2021-07-01'  # Moldova
+  62:    '2021-06-01'  # Russia
+  63:    '2021-07-01'  # Ukraine
+  71:    '2021-07-01'  # Australia
+  72:    ''            # New Zealand
+  67:    '2021-06-15'  # Japan
+  68:    '2021-08-15'  # Korea
+  69:    '2021-08-15'  # Singapore
+  43858: '2021-07-01'  # Alberta
+  43859: '2021-07-01'  # British Columbia
+  43860: ''            # Manitoba
+  43861: '2021-08-01'  # New Brunswick
+  43862: ''            # Newfoundland and Labrador
+  43863: '2021-07-15'  # Northwest Territories
+  43864: '2021-08-15'  # Nova Scotia
+  43865: ''            # Nunavut
+  43866: '2021-07-01'  # Ontario
+  43868: '2021-07-15'  # Quebec
+  43869: '2021-07-01'  # Saskatchewan
+  43870: '2021-09-15'  # Yukon
+  523:   '2021-06-15'  # Alabama
+  524:   '2021-06-15'  # Alaska
+  525:   '2021-06-15'  # Arizona
+  526:   '2021-06-01'  # Arkansas
+  527:   '2021-06-01'  # California
+  528:   '2021-07-01'  # Colorado
+  529:   '2021-06-15'  # Connecticut
+  530:   '2021-06-15'  # Delaware
+  531:   '2021-06-01'  # District of Columbia
+  532:   '2021-06-01'  # Florida
+  533:   '2021-06-01'  # Georgia
+  534:   '2021-07-01'  # Hawaii
+  535:   '2021-06-15'  # Idaho
+  536:   '2021-06-01'  # Illinois
+  537:   '2021-06-15'  # Indiana
+  538:   '2021-06-15'  # Iowa
+  539:   '2021-06-01'  # Kansas
+  540:   '2021-06-15'  # Kentucky
+  541:   '2021-06-01'  # Louisiana
+  542:   '2021-06-15'  # Maine
+  543:   '2021-06-15'  # Maryland
+  544:   '2021-06-01'  # Massachusetts
+  545:   '2021-06-15'  # Michigan
+  546:   '2021-06-01'  # Minnesota
+  547:   '2021-06-01'  # Mississippi
+  548:   '2021-05-15'  # Missouri
+  549:   '2021-06-15'  # Montana
+  550:   '2021-06-15'  # Nebraska
+  551:   '2021-05-15'  # Nevada
+  552:   '2021-06-15'  # New Hampshire
+  553:   '2021-06-15'  # New Jersey
+  554:   '2021-06-15'  # New Mexico
+  555:   '2021-06-15'  # New York
+  556:   '2021-06-15'  # North Carolina
+  557:   '2021-07-01'  # North Dakota
+  558:   '2021-06-15'  # Ohio
+  559:   '2021-05-15'  # Oklahoma
+  560:   '2021-06-15'  # Oregon
+  561:   '2021-07-01'  # Pennsylvania
+  562:   '2021-07-01'  # Rhode Island
+  563:   '2021-06-01'  # South Carolina
+  564:   '2021-07-01'  # South Dakota
+  565:   '2021-06-01'  # Tennessee
+  566:   '2021-06-15'  # Texas
+  567:   '2021-05-15'  # Utah
+  568:   '2021-06-15'  # Vermont
+  569:   '2021-06-15'  # Virginia
+  60886: '2021-06-15'  # King and Snohomish Counties
+  3539:  '2021-06-15'  # Spokane County
+  60887: '2021-06-15'  # Washington except for King, Snohomish, and Spokane Counties
+  571:   '2021-07-01'  # West Virginia
+  572:   '2021-07-01'  # Wisconsin
+  573:   '2021-06-01'  # Wyoming
+  97:    ''            # Argentina
+  98:    ''            # Chile
+  99:    ''            # Uruguay
+  74:    '2021-06-01'  # Andorra
+  75:    '2021-06-15'  # Austria
+  76:    '2021-06-01'  # Belgium
+  77:    '2021-06-01'  # Cyprus
+  78:    '2021-06-01'  # Denmark
+  79:    '2021-06-15'  # Finland
+  80:    '2021-06-15'  # France
+  60377: '2021-07-01'  # Baden-Wurttemberg
+  60378: '2021-07-01'  # Bavaria
+  60379: '2021-07-01'  # Berlin
+  60380: '2021-07-01'  # Brandenberg
+  60381: '2021-07-01'  # Bremen
+  60382: '2021-07-01'  # Hamburg
+  60383: '2021-07-01'  # Hesse
+  60384: '2021-07-01'  # Lower Saxony
+  60385: '2021-07-01'  # Mecklenburg-Vorpommern
+  60386: '2021-07-01'  # North Rhine-Westphalia
+  60387: '2021-07-01'  # Rhineland-Palatinate
+  60388: '2021-07-01'  # Saarland
+  60389: '2021-07-01'  # Saxony-Anhalt
+  60390: '2021-07-01'  # Saxony
+  60391: '2021-07-01'  # Schleswig-Holstein
+  60392: '2021-07-01'  # Thuringia
