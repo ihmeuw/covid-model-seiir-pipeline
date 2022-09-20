@@ -164,7 +164,7 @@ class MRModel:
     ) -> np.ndarray:
         """Gradient of the objective function."""
         prediction = self.predictors.predict(coefficents)
-        residual = self.data.response - prediction
+        residual = self.data.weight * (self.data.response - prediction)
         return self.predictors.gradient(coefficents, residual, self.data.response_se)
 
     def fit_model(
