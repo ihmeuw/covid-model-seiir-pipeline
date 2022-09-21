@@ -12,6 +12,7 @@ if TYPE_CHECKING:
 
 
 def run_beta_regression(beta_fit: pd.Series,
+                        regression_weights: pd.Series,
                         covariates: pd.DataFrame,
                         covariate_specs: Iterable['CovariateSpecification'],
                         gaussian_priors: Dict[str, pd.DataFrame],
@@ -19,6 +20,7 @@ def run_beta_regression(beta_fit: pd.Series,
                         hierarchy: pd.DataFrame) -> pd.DataFrame:
     regression_inputs = prep_regression_inputs(
         beta_fit,
+        regression_weights,
         covariates,
         hierarchy
     )
@@ -31,6 +33,7 @@ def run_beta_regression(beta_fit: pd.Series,
     mr_data = reslime.MRData(
         data=regression_inputs.reset_index(),
         response_column='ln_beta',
+        weight_column='weight',
         predictors=[p.name for p in predictor_set],
         group_columns=['super_region_id', 'region_id', 'location_id'],
     )
@@ -41,9 +44,11 @@ def run_beta_regression(beta_fit: pd.Series,
 
 
 def prep_regression_inputs(beta_fit: pd.Series,
+                           regression_weights: pd.Series,
                            covariates: pd.DataFrame,
                            hierarchy: pd.DataFrame):
-    regression_inputs = pd.merge(beta_fit.dropna(), covariates, on=beta_fit.index.names)
+    regression_inputs = pd.concat([beta_fit, regression_weights], axis=1)
+    regression_inputs = pd.merge(regression_inputs.dropna(), covariates, on=beta_fit.index.names)
     group_cols = ['super_region_id', 'region_id', 'location_id']
     regression_inputs = (regression_inputs
                          .merge(hierarchy[group_cols], on='location_id')

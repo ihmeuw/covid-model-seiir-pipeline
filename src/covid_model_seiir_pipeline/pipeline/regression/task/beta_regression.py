@@ -24,8 +24,22 @@ def run_beta_regression(regression_version: str, draw_id: int) -> None:
     hierarchy = data_interface.load_hierarchy('pred')
     beta_fit = data_interface.load_fit_beta(draw_id, columns=['beta_all_infection'])
     beta_fit = beta_fit.loc[:, 'beta_all_infection'].rename('beta')
+    infections = data_interface.load_posterior_epi_measures(draw_id, columns=['daily_total_infections'])
     # FIXME: Beta should be nan or positive here.
     beta_fit = beta_fit.loc[beta_fit > 0]
+    regression_weights = (infections
+                          .loc[beta_fit.index, 'daily_total_infections']
+                          .groupby('location_id')
+                          .apply(lambda x: x / x.max())
+                          .fillna(0.)
+                          .rename('weight'))
+
+    # don't allow China or Australasia to impact fitting
+    chn = hierarchy.loc[hierarchy['path_to_top_parent'].apply(lambda x: '6' in x.split(',')), 'location_id'].to_list()
+    lockdowns = chn + [71, 72]
+    lockdowns = [loc for loc in lockdowns if loc in regression_weights.index.get_level_values('location_id')]
+    regression_weights.loc[lockdowns] = regression_weights.min()
+
     covariates = data_interface.load_covariates(list(regression_specification.covariates))
     gaussian_priors = data_interface.load_priors(regression_specification.covariates.values())
     prior_coefficients = data_interface.load_prior_run_coefficients(draw_id=draw_id)
@@ -35,6 +49,7 @@ def run_beta_regression(regression_version: str, draw_id: int) -> None:
     logger.info('Fitting beta regression', context='compute_regression')
     coefficients = model.run_beta_regression(
         beta_fit,
+        regression_weights,
         covariates,
         regression_specification.covariates.values(),
         gaussian_priors,

@@ -15,6 +15,7 @@ class GroupInfo(NamedTuple):
 NO_GROUP = 'no_group'
 INTERCEPT = 'intercept'
 DEFAULT_RESPONSE_SE_COLUMN = 'response_se'
+DEFAULT_WEIGHT_COLUMN = 'weight'
 
 
 class MRData:
@@ -33,6 +34,7 @@ class MRData:
             data: pd.DataFrame,
             response_column: str,
             response_se_column: str = '',
+            weight_column: str = '',
             predictors: List[str] = None,
             group_columns: List[str] = None,
     ):
@@ -42,6 +44,7 @@ class MRData:
             data,
             response_column,
             response_se_column,
+            weight_column,
             predictors,
             group_columns,
         )
@@ -55,6 +58,11 @@ class MRData:
             data[response_se_column] = 1.0
         self.response_se_column = response_se_column
 
+        if not weight_column:
+            weight_column = DEFAULT_WEIGHT_COLUMN
+            data[weight_column] = 1.0
+        self.weight_column = weight_column
+
         # Add intercept as default predictor.
         if INTERCEPT not in predictors:
             predictors.append(INTERCEPT)
@@ -66,7 +74,7 @@ class MRData:
             for group_column in group_columns
         }
         self.data = data[
-            [self.response_column, self.response_se_column]
+            [self.response_column, self.response_se_column, self.weight_column]
             + self.predictors + list(self.group_info)
         ]
         self.all_groups = self.data[list(self.group_info)].drop_duplicates()
@@ -74,12 +82,14 @@ class MRData:
 
         self.response = self.data[self.response_column].values
         self.response_se = self.data[self.response_se_column].values
+        self.weight = self.data[self.weight_column].values
 
     @staticmethod
     def validate_inputs(
             data: pd.DataFrame,
             response_column: str,
             response_se_column: str,
+            weight_column: str,
             predictors: List[str],
             group_columns: List[str],
     ) -> None:
@@ -92,6 +102,10 @@ class MRData:
         if response_se_column and response_se_column not in data:
             raise ValueError(
                 f'Response SE variable {response_se_column} not in data columns {data.columns}.'
+            )
+        if weight_column and weight_column not in data:
+            raise ValueError(
+                f'Weight variable {weight_column} not in data columns {data.columns}.'
             )
         for predictor in predictors:
             if predictor not in data:
@@ -112,7 +126,7 @@ class MRData:
     def __repr__(self):
         return (f'MRData(\n'
                 f'    {self.response_column} ~ {" + ".join(self.predictors)},\n'
-                f'    observations={len(self.data)}, group_columns={list(self.group_info)}\n'
+                f'    observations={len(self.data)},\n group_columns={list(self.group_info)}\n'
                 f')')
 
 
@@ -135,8 +149,11 @@ class MRModel:
     ) -> float:
         """Objective function for minimization."""
         prediction = self.predictors.predict(coefficients)
+        weighted_square_err = (
+            (self.data.weight * (self.data.response - prediction) / self.data.response_se)**2
+        )
         val = (
-            0.5*np.sum(((self.data.response - prediction)/self.data.response_se)**2)
+            0.5 * np.sum(weighted_square_err)
             + self.predictors.prior_objective(coefficients)
         )
         return val
@@ -147,7 +164,7 @@ class MRModel:
     ) -> np.ndarray:
         """Gradient of the objective function."""
         prediction = self.predictors.predict(coefficents)
-        residual = self.data.response - prediction
+        residual = self.data.weight * (self.data.response - prediction)
         return self.predictors.gradient(coefficents, residual, self.data.response_se)
 
     def fit_model(

@@ -8,23 +8,31 @@ grid_plots:
     date_start: '2021-01-01'
     date_end: '2022-12-31'
     comparators:
-    - version: '2022_07_18.05'
-      scenarios:
-        reference*: 'public reference'
     - version: '2022_09_09.01'
       scenarios:
-        reference*: 'reference'
-        global_antivirals: 'global antivirals'
-        best_masks: 'best masks'
+        reference*: 'public reference'
+    - version: '2022_09_20.01'
+      scenarios:
+        reference*: 'weighted regression (unconstrained)'
+    - version: '2022_09_21.02'
+      scenarios:
+        reference*: 'weighted regression (constrained)'
+        # reference*: 'reference'
+        # global_antivirals: 'global antivirals'
+        # best_masks: 'best masks'
   - name: '2020_2023'
     date_start: '2020-01-01'
     date_end: '2023-12-31'
     comparators:
-    - version: '2022_07_18.05'
-      scenarios:
-        reference*: 'public reference'
     - version: '2022_09_09.01'
       scenarios:
-        reference*: 'reference'
-        global_antivirals: 'global antivirals'
-        best_masks: 'best masks'
+        reference*: 'public reference'
+    - version: '2022_09_20.01'
+      scenarios:
+        reference*: 'weighted regression (unconstrained)'
+    - version: '2022_09_21.02'
+      scenarios:
+        reference*: 'weighted regression (constrained, CHN)'
+        # reference*: 'reference'
+        # global_antivirals: 'global antivirals'
+        # best_masks: 'best masks'
