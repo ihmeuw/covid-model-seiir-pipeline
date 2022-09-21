@@ -13,7 +13,10 @@ grid_plots:
         reference*: 'public reference'
     - version: '2022_09_20.01'
       scenarios:
-        reference*: 'weighted regression'
+        reference*: 'weighted regression (unconstrained)'
+    - version: '2022_09_21.02'
+      scenarios:
+        reference*: 'weighted regression (constrained)'
         # reference*: 'reference'
         # global_antivirals: 'global antivirals'
         # best_masks: 'best masks'
@@ -26,7 +29,10 @@ grid_plots:
         reference*: 'public reference'
     - version: '2022_09_20.01'
       scenarios:
-        reference*: 'weighted regression'
+        reference*: 'weighted regression (unconstrained)'
+    - version: '2022_09_21.02'
+      scenarios:
+        reference*: 'weighted regression (constrained, CHN)'
         # reference*: 'reference'
         # global_antivirals: 'global antivirals'
         # best_masks: 'best masks'
