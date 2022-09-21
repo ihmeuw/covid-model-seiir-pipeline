@@ -232,10 +232,11 @@ def preprocess_variant_prevalence(data_interface: PreprocessingDataInterface) ->
             f' sublineages based on case inflection point.',
             context='replace'
         )
+
         # squeezing other variants around variant being shifted for omicron and BA.5 only,
         # doing those after (also those have default invasion dates)
         for variant in VARIANT_NAMES:
-            if variant not in ['none', 'ancestral', 'omicron', 'ba5', 'other', 'omega']:
+            if variant not in ['none', 'ancestral', 'omicron', 'ba5', 'omega']:
                 data = _shift_invasion_dates(
                     variant=variant,
                     data=data,

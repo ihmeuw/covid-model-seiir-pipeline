@@ -85,9 +85,6 @@ class VariantRR(NamedTuple):
     omega_ifr: float
     omega_ihr: float
     omega_idr: float
-    other_ifr: float
-    other_ihr: float
-    other_idr: float
 
 
 def sample_variant_severity(params: RatesParameters, draw_id: int) -> VariantRR:
@@ -97,7 +94,7 @@ def sample_variant_severity(params: RatesParameters, draw_id: int) -> VariantRR:
     rrs = {}
     for ratio in ['ifr', 'ihr', 'idr']:
         for variant in VARIANT_NAMES:
-            if variant not in [VARIANT_NAMES.none, VARIANT_NAMES.other, VARIANT_NAMES.ancestral, VARIANT_NAMES.omega]:
+            if variant not in [VARIANT_NAMES.none, VARIANT_NAMES.ancestral, VARIANT_NAMES.omega]:
                 variant_spec = params[f'{ratio}_rr_{variant}']
                 if isinstance(variant_spec, (int, float)):
                     value = variant_spec
@@ -111,7 +108,6 @@ def sample_variant_severity(params: RatesParameters, draw_id: int) -> VariantRR:
             'omicron': rrs[f'omicron_{ratio}'],
             'average': (rrs[f'delta_{ratio}'] * rrs[f'omicron_{ratio}']) ** (1/2),
         }[omega_severity]
-        rrs[f'other_{ratio}'] = (rrs[f'alpha_{ratio}'] * rrs[f'delta_{ratio}']) ** (1/2)
 
     return VariantRR(**rrs)
 
@@ -156,17 +152,16 @@ def sample_ode_params(variant_rr: VariantRR,
     phi_matrix = pd.DataFrame(
         data=np.array([
             # TO
-            # none ancestral alpha beta gamma delta omicron ba5 other omega    # FROM
-            [0.0,       0.0,  0.0, 0.0,  0.0,  0.0,    0.0, 0.0, 0.0,   0.0],  # none
-            [1.0,       1.0,    s,   s,    s,    s,      s,   s,   s,     s],  # ancestral
-            [1.0,         s,  1.0,   s,    s,    s,      s,   s,   s,     s],  # alpha
-            [1.0,       1.0,  1.0, 1.0,  1.0,  1.0,      s,   s, 1.0,     s],  # beta
-            [1.0,       1.0,  1.0, 1.0,  1.0,  1.0,      s,   s, 1.0,     s],  # gamma
-            [1.0,       1.0,  1.0, 1.0,  1.0,  1.0,      s,   s, 1.0,     s],  # delta
-            [1.0,       1.0,  1.0, 1.0,  1.0,  1.0,    1.0,   s, 1.0,     s],  # omicron
-            [1.0,       1.0,  1.0, 1.0,  1.0,  1.0,    1.0, 1.0, 1.0,     s],  # ba5
-            [1.0,       1.0,  1.0, 1.0,  1.0,  1.0,      s,   s, 1.0,     s],  # other
-            [1.0,       1.0,  1.0, 1.0,  1.0,  1.0,    1.0, 1.0, 1.0,   1.0],  # omega
+            # none ancestral alpha beta gamma delta omicron ba5 omega    # FROM
+            [0.0,       0.0,  0.0, 0.0,  0.0,  0.0,    0.0, 0.0,   0.0],  # none
+            [1.0,       1.0,    s,   s,    s,    s,      s,   s,     s],  # ancestral
+            [1.0,         s,  1.0,   s,    s,    s,      s,   s,     s],  # alpha
+            [1.0,       1.0,  1.0, 1.0,  1.0,  1.0,      s,   s,     s],  # beta
+            [1.0,       1.0,  1.0, 1.0,  1.0,  1.0,      s,   s,     s],  # gamma
+            [1.0,       1.0,  1.0, 1.0,  1.0,  1.0,      s,   s,     s],  # delta
+            [1.0,       1.0,  1.0, 1.0,  1.0,  1.0,    1.0,   s,     s],  # omicron
+            [1.0,       1.0,  1.0, 1.0,  1.0,  1.0,    1.0, 1.0,     s],  # ba5
+            [1.0,       1.0,  1.0, 1.0,  1.0,  1.0,    1.0, 1.0,   1.0],  # omega
         ]),
         columns=VARIANT_NAMES,
         index=pd.Index(VARIANT_NAMES, name='variant'),

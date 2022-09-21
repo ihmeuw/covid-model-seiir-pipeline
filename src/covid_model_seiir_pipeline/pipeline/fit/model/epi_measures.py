@@ -74,7 +74,7 @@ def exclude_epi_data_by_variant(
     md_location_ids = pred_hierarchy.loc[pred_hierarchy['most_detailed'] == 1, 'location_id'].astype(str).to_list()
     epi_measures = epi_measures.query(f'location_id in [{", ".join(md_location_ids)}]')
 
-    variant_prevalence = variant_prevalence.loc[variant_prevalence > 0.1]
+    variant_prevalence = variant_prevalence.loc[variant_prevalence > 0.01]
     drop_dates = variant_prevalence.reset_index('date').groupby('location_id')['date'].min()
     drop_dates += pd.Timedelta(days=measure_lag)
 
