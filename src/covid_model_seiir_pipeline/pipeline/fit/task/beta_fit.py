@@ -32,7 +32,6 @@ def run_beta_fit(fit_version: str, measure: str, draw_id: int, progress_bar: boo
     age_patterns = data_interface.load_age_patterns()
     testing_capacity = data_interface.load_testing_capacity()
     rhos = data_interface.load_variant_prevalence(scenario='reference')
-    variant_prevalence = rhos.drop(columns='ancestral').sum(axis=1)
     vaccinations = data_interface.load_vaccine_uptake(scenario='reference')
     etas = data_interface.load_vaccine_risk_reduction(scenario='reference')
     natural_waning_dist = data_interface.load_waning_parameters(measure='natural_waning_distribution').set_index(['endpoint', 'days'])
@@ -67,15 +66,25 @@ def run_beta_fit(fit_version: str, measure: str, draw_id: int, progress_bar: boo
         mortality_scalar=mortality_scalar,
         mr_hierarchy=mr_hierarchy,
         pred_hierarchy=pred_hierarchy,
+        measure_lag=durations.to_dict()[f'exposure_to_{measure}'],
         max_lag=durations.max_lag,
+        variant_prevalence=rhos,
+        epi_exclude_variants=specification.rates_parameters.epi_exclude_variants,
         measure=measure,
     )
 
     logger.info('Subsetting seroprevalence for first pass rates model', context='transform')
-    first_pass_seroprevalence = model.subset_seroprevalence(
-        seroprevalence=seroprevalence,
+    seroprevalence = model.exclude_sero_data_by_variant(
+        seroprevalence=seroprevalence.copy(),
+        mr_hierarchy=mr_hierarchy,
+        lag=durations.to_dict()['exposure_to_seroconversion'],
+        variant_prevalence=rhos,
+        sero_exclude_variants=specification.rates_parameters.sero_exclude_variants,
+    )
+    first_pass_seroprevalence = model.subset_first_pass_seroprevalence(
+        seroprevalence=seroprevalence.copy(),
         epi_data=epi_measures,
-        variant_prevalence=variant_prevalence,
+        total_escape_variant_prevalence=rhos.drop(columns='ancestral').sum(axis=1),
         population=total_population,
         params=specification.rates_parameters,
     )
@@ -86,6 +95,11 @@ def run_beta_fit(fit_version: str, measure: str, draw_id: int, progress_bar: boo
     init_daily_infections = (daily_deaths / naive_ifr).rename('daily_infections').reset_index()
     init_daily_infections['date'] -= pd.Timedelta(days=durations.exposure_to_death.max())
     init_daily_infections = init_daily_infections.set_index(['location_id', 'date']).loc[:, 'daily_infections']
+    variant_rrs = pd.DataFrame(
+        {k.replace('kappa_', '').replace(f'_{measure}', ''): v
+         for k, v in sampled_ode_params.items() if k.startswith('kappa') and k.endswith(measure)},
+        index=epi_measures.reset_index('date').index.drop_duplicates()
+    )
 
     logger.info('Running first-pass rates model', context='rates_model_1')
     first_pass_rates, first_pass_rates_data = model.run_rates_pipeline(
@@ -99,10 +113,10 @@ def run_beta_fit(fit_version: str, measure: str, draw_id: int, progress_bar: boo
         total_population=total_population,
         age_specific_population=five_year_population,
         testing_capacity=testing_capacity,
-        variant_prevalence=variant_prevalence,
+        variant_prevalence=rhos,
         daily_infections=init_daily_infections,
         durations=durations.to_dict(),
-        variant_rrs=variant_severity,
+        variant_rrs=variant_rrs,
         params=specification.rates_parameters,
         day_inflection=day_inflection,
         num_threads=num_threads,
@@ -184,12 +198,12 @@ def run_beta_fit(fit_version: str, measure: str, draw_id: int, progress_bar: boo
         total_population=total_population,
         age_specific_population=five_year_population,
         testing_capacity=testing_capacity,
-        variant_prevalence=variant_prevalence,
+        variant_prevalence=rhos,
         daily_infections=(
             agg_first_pass_posterior_epi_measures['daily_naive_unvaccinated_infections']
             .rename('daily_infections')),
         durations=durations.to_dict(),
-        variant_rrs=variant_severity,
+        variant_rrs=variant_rrs,
         params=specification.rates_parameters,
         day_inflection=day_inflection,
         num_threads=num_threads,

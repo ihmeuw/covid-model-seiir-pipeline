@@ -145,7 +145,8 @@ def build_residual(measure_draw: str, window_dates: pd.DataFrame,
                  .dropna()
                  .groupby('location_id')
                  .apply(compute_group_residual)
-                 .rename(measure_draw))
+                 .rename(measure_draw)
+                 .fillna(1))
     residuals.loc[residuals.index.intersection(hard_failures)] = np.nan
     return residuals
 

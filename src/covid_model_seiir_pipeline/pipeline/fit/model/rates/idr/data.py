@@ -16,6 +16,7 @@ def create_model_data(cumulative_cases: pd.Series,
                       seroprevalence: pd.DataFrame,
                       testing_capacity: pd.Series,
                       daily_infections: pd.Series,
+                      ratio_data_scalar: pd.Series,
                       covariate_pool: pd.DataFrame,
                       durations: Dict,
                       population: pd.Series):
@@ -77,6 +78,11 @@ def create_model_data(cumulative_cases: pd.Series,
     # add covariates
     model_data = model_data.join(covariate_pool, how='outer')
     
+    # add ratio data scalar
+    model_data = model_data.join(ratio_data_scalar, how='left')
+    if model_data['ratio_data_scalar'].isnull().any():
+        raise ValueError('Missing IDR data scalar.')
+
     return model_data.reset_index()
 
 

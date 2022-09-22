@@ -64,7 +64,10 @@ def run_past_infections(fit_version: str, draw_id: int, progress_bar: bool) -> N
         mortality_scalar=mortality_scalar,
         mr_hierarchy=mr_hierarchy,
         pred_hierarchy=pred_hierarchy,
+        measure_lag=durations.min_lag,
         max_lag=durations.max_lag,
+        variant_prevalence=rhos,
+        epi_exclude_variants=specification.rates_parameters.epi_exclude_variants,
     )
 
     logger.info('Loading and resampling betas and infections.', context='transform')
@@ -77,13 +80,13 @@ def run_past_infections(fit_version: str, draw_id: int, progress_bar: bool) -> N
 
     logger.info('Computing composite beta', context='composite_spline')
     beta_fit_final, spline_infections, spline_infectious = model.build_composite_betas(
-        betas=betas.drop(unrecoverable, axis=0),
+        betas=betas.drop(unrecoverable, axis=0, errors='ignore'),
         infections=infections.filter(like='total').rename(columns=lambda x: f'infection_{x.split("_")[-1]}'),
         alpha=resampled_params['alpha_all_infection'].groupby('location_id').mean(),
         num_cores=num_cores,
         progress_bar=progress_bar,    
     )
-    
+
     logger.info('Prepping ODE fit parameters for past infections model.', context='transform')
     ode_parameters = model.prepare_past_infections_parameters(
         beta=beta_fit_final,

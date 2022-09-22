@@ -1,5 +1,5 @@
 data:
-  seir_preprocess_version: '2022_09_09.02'
+  seir_preprocess_version: '2022_09_21.04'
   output_format: 'parquet'
   output_root: ''
   compare_version: '2022_07_18.06'
@@ -7,6 +7,8 @@ workflow:
   project: 'proj_covid_prod'
   queue: 'all.q'
 rates_parameters:
+  sero_exclude_variants: ['delta', 'omicron', 'ba5']
+  epi_exclude_variants: ['delta', 'omicron', 'ba5']
   day_0: '2020-03-15'
   pred_start_date: '2019-11-01'
   pred_end_date: '2022-09-15'
@@ -23,19 +25,25 @@ rates_parameters:
   admission_to_death: [12, 16]
   test_scalar: 1.0
   heavy_hand_fixes: True
-  # One of  'BMJ', 'LSHTM', 'Imperial', 'Exeter', 'PHE', 'Combined',
-  # Or a 3-tuple of [mean, lower, upper]
-  ifr_risk_ratio: 'BMJ'
-  # One of  'BMJ', 'LSHTM', 'Imperial', 'Exeter', 'PHE', 'Combined',
-  # Or a 3-tuple of [mean, lower, upper]
-  ihr_risk_ratio: 'BMJ'
-  idr_risk_ratio: [1.0, 1.0, 1.0]
-  omicron_idr_scalar: [0.26, 0.46]
-  omicron_ihr_scalar: [0.16, 0.26]
-  omicron_ifr_scalar: [0.08, 0.16]
-  ba5_idr_scalar: [0.21, 0.31]
-  ba5_ihr_scalar: [0.16, 0.26]
-  ba5_ifr_scalar: [0.08, 0.16]
+  # global risk ratios for non-ancestral
+  idr_rr_alpha: 1.0
+  idr_rr_beta: 1.0
+  idr_rr_gamma: 1.0
+  idr_rr_delta: 1.0
+  idr_rr_omicron: 1.0  # [0.26, 0.46]
+  idr_rr_ba5: 1.0  # [0.21, 0.31]
+  ihr_rr_alpha: 1.0
+  ihr_rr_beta: 1.0
+  ihr_rr_gamma: 1.0
+  ihr_rr_delta: 1.0
+  ihr_rr_omicron: 1.0  # [0.16, 0.26]
+  ihr_rr_ba5: 1.0  # [0.16, 0.26]
+  ifr_rr_alpha: 1.0
+  ifr_rr_beta: 1.0
+  ifr_rr_gamma: 1.0
+  ifr_rr_delta: 1.0
+  ifr_rr_omicron: 1.0  # [0.08, 0.16]
+  ifr_rr_ba5: 1.0  # [0.08, 0.16]
   # One of 'delta', 'omicron', 'average'
   omega_severity_parameterization: 'delta'
   antiviral_effectiveness_ihr: [0.20, 0.25]

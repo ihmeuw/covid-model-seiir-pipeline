@@ -232,21 +232,30 @@ def preprocess_variant_prevalence(data_interface: PreprocessingDataInterface) ->
             f' sublineages based on case inflection point.',
             context='replace'
         )
-        # squeezing other variants around variant being shifted, so sequence matters here
-        # leave off none, ancestral, ba5, and omega
-        for variant in VARIANT_NAMES[2:-2]:
-            data = _shift_invasion_dates(
-                variant=variant,
-                data=data,
-                default_invasion_date=spec.data.default_omicron_invasion_date,
-            )
+
+        # squeezing other variants around variant being shifted for omicron and BA.5 only,
+        # doing those after (also those have default invasion dates)
+        for variant in VARIANT_NAMES:
+            if variant not in [VARIANT_NAMES.none, VARIANT_NAMES.ancestral,
+                               VARIANT_NAMES.omicron, VARIANT_NAMES.ba5, VARIANT_NAMES.omega]:
+                data = _shift_invasion_dates(
+                    variant=variant,
+                    data=data,
+                    default_invasion_date=pd.NaT,
+                )
+
+        data = _shift_invasion_dates(
+            variant=VARIANT_NAMES.omicron,
+            data=data,
+            default_invasion_date=spec.data.default_omicron_invasion_date,
+        )
 
         # using omicron plus a standard shift to start with BA.5 since we change them anyway
         data['ba5'] = data['omicron'].groupby('location_id').shift(180)
         data['ba5'] = data['omicron'].groupby('location_id').bfill()
 
         data = _shift_invasion_dates(
-            variant='ba5',
+            variant=VARIANT_NAMES.ba5,
             data=data,
             default_invasion_date=spec.data.default_ba5_invasion_date,
         )
@@ -270,9 +279,6 @@ def _shift_invasion_dates(
     data: pd.DataFrame,
     default_invasion_date: str
 ) -> pd.DataFrame:
-    default_invasion_date = pd.Timestamp(default_invasion_date)
-    if pd.isnull(default_invasion_date):
-        raise ValueError('Invalid default invasion date')
     invasion_dates = (data
                       .loc[data[variant] > 0.01]
                       .reset_index('date')
@@ -294,10 +300,17 @@ def _shift_invasion_dates(
     updates = []
     for location_id, shift in shifts.items():
         old_invasion = data.loc[location_id, variant]
-        new_invasion = old_invasion.shift(shift).ffill().bfill()
+        if pd.isnull(shift):
+            new_invasion = old_invasion * 0
+        else:
+            new_invasion = old_invasion.shift(int(shift)).ffill().bfill()
         new_data = data.loc[location_id].drop(columns=variant)
-        new_data = new_data.div(new_data.sum(axis=1), axis=0).fillna(0).multiply(1 - new_invasion, axis=0)
-        new_data[variant] = new_invasion
+        if variant in ['omicron', 'ba5']:
+            new_data = new_data.div(new_data.sum(axis=1), axis=0).fillna(0).multiply(1 - new_invasion, axis=0)
+            new_data[variant] = new_invasion
+        else:
+            new_data[variant] = new_invasion
+            new_data = new_data.div(new_data.sum(axis=1), axis=0)
         new_data['location_id'] = location_id
         updates.append(new_data.reset_index().set_index(['location_id', 'date']))
     if updates:
@@ -317,6 +330,10 @@ def _get_hardcode_shifts(
         hardcode_data = pd.read_csv(p).set_index('location_id')
     except FileNotFoundError:
         return {}
+
+    default_invasion_date = pd.Timestamp(default_invasion_date)
+    if pd.isnull(default_invasion_date):
+        raise ValueError('Invalid default invasion date')
 
     hardcode_data['case_inflection_date'] = (
         pd.to_datetime(hardcode_data['case_inflection_date'])
@@ -340,22 +357,26 @@ def _get_manual_shifts(variant: str, invasion_dates: pd.DataFrame) -> Dict[str, 
 
     variant_adjustments = pd.to_datetime(pd.Series(manual_adjustments[variant]))
     variant_adjustments.index.name = 'location_id'
+
+    missing_locations_idx = variant_adjustments.index.difference(invasion_dates.index)
+    logger.warning(f'Dates specified for locations without {variant} invasions: ' +
+                   ', '.join(missing_locations_idx.astype(str).to_list()))
+    variant_adjustments = variant_adjustments.drop(missing_locations_idx)
+
     shifts = variant_adjustments - invasion_dates.loc[variant_adjustments.index]
     shifts = shifts[shifts != pd.Timedelta(days=0)].dt.days.to_dict()
 
     return shifts
 
 
-
-
 def _process_variants_of_concern(data: pd.DataFrame) -> pd.DataFrame:
     variant_map = {
         'alpha': ['B117'],
         'beta': ['B1351'],
-        'gamma': ['P1'],
+        'gamma': ['P1', 'B1621', 'C37'],  # ADDING MU (B1621) + LAMBDA (C37)
         'delta': ['B16172'],
         'omicron': ['Omicron'],
-        'other': ['B1621', 'C37'],
+        # 'other': ['B1621', 'C37'],
         'ancestral': ['wild_type'],
     }
     drop = []
