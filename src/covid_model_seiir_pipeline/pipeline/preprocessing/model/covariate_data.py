@@ -236,7 +236,8 @@ def preprocess_variant_prevalence(data_interface: PreprocessingDataInterface) ->
         # squeezing other variants around variant being shifted for omicron and BA.5 only,
         # doing those after (also those have default invasion dates)
         for variant in VARIANT_NAMES:
-            if variant not in ['none', 'ancestral', 'omicron', 'ba5', 'omega']:
+            if variant not in [VARIANT_NAMES.none, VARIANT_NAMES.ancestral,
+                               VARIANT_NAMES.omicron, VARIANT_NAMES.ba5, VARIANT_NAMES.omega]:
                 data = _shift_invasion_dates(
                     variant=variant,
                     data=data,
@@ -244,7 +245,7 @@ def preprocess_variant_prevalence(data_interface: PreprocessingDataInterface) ->
                 )
 
         data = _shift_invasion_dates(
-            variant='omicron',
+            variant=VARIANT_NAMES.omicron,
             data=data,
             default_invasion_date=spec.data.default_omicron_invasion_date,
         )
@@ -254,7 +255,7 @@ def preprocess_variant_prevalence(data_interface: PreprocessingDataInterface) ->
         data['ba5'] = data['omicron'].groupby('location_id').bfill()
 
         data = _shift_invasion_dates(
-            variant='ba5',
+            variant=VARIANT_NAMES.ba5,
             data=data,
             default_invasion_date=spec.data.default_ba5_invasion_date,
         )
@@ -372,10 +373,10 @@ def _process_variants_of_concern(data: pd.DataFrame) -> pd.DataFrame:
     variant_map = {
         'alpha': ['B117'],
         'beta': ['B1351'],
-        'gamma': ['P1'],
+        'gamma': ['P1', 'B1621', 'C37'],  # ADDING MU (B1621) + LAMBDA (C37)
         'delta': ['B16172'],
         'omicron': ['Omicron'],
-        'other': ['B1621', 'C37'],
+        # 'other': ['B1621', 'C37'],
         'ancestral': ['wild_type'],
     }
     drop = []
