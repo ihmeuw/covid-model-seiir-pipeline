@@ -59,7 +59,6 @@ PRIMITIVE_TYPES = {
         'delta',
         'omicron',
         'ba5',
-        'other',
         'omega',
 
         'all',
@@ -145,7 +144,6 @@ DERIVED_TYPES = {
         'delta',
         'omicron',
         'ba5',
-        'other',
         'omega',
     ]),
     'variant_group': ('variant_index_type', [

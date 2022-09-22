@@ -180,7 +180,6 @@ class FitParameters:
     pi_delta: UniformSampleable = field(default=(0.01, 0.10))
     pi_omicron: UniformSampleable = field(default=(0.01, 0.10))
     pi_ba5: UniformSampleable = field(default=(0.01, 0.10))
-    pi_other: UniformSampleable = field(default=(0.01, 0.10))
     pi_omega: UniformSampleable = field(default=(0.01, 0.10))
 
     sigma_none: UniformSampleable = field(default=(0.2, 1 / 3))
@@ -191,7 +190,6 @@ class FitParameters:
     sigma_delta: UniformSampleable = field(default=(0.2, 1 / 3))
     sigma_omicron: UniformSampleable = field(default=(0.2, 1 / 3))
     sigma_ba5: UniformSampleable = field(default=(0.2, 1 / 3))
-    sigma_other: UniformSampleable = field(default=(0.2, 1 / 3))
     sigma_omega: UniformSampleable = field(default=(0.2, 1 / 3))
 
     gamma_none: UniformSampleable = field(default=(0.2, 1 / 3))
@@ -202,7 +200,6 @@ class FitParameters:
     gamma_delta: UniformSampleable = field(default=(0.2, 1 / 3))
     gamma_omicron: UniformSampleable = field(default=(0.2, 1 / 3))
     gamma_ba5: UniformSampleable = field(default=(0.2, 1 / 3))
-    gamma_other: UniformSampleable = field(default=(0.2, 1 / 3))
     gamma_omega: UniformSampleable = field(default=(0.2, 1 / 3))
 
     kappa_none: UniformSampleable = field(default=0.0)
@@ -213,7 +210,6 @@ class FitParameters:
     kappa_delta: UniformSampleable = field(default=1.0)
     kappa_omicron: UniformSampleable = field(default=1.0)
     kappa_ba5: UniformSampleable = field(default=1.0)
-    kappa_other: UniformSampleable = field(default=1.0)
     kappa_omega: UniformSampleable = field(default=1.0)
 
     phi_none: UniformSampleable = field(default=0.0)
@@ -224,7 +220,6 @@ class FitParameters:
     phi_delta: UniformSampleable = field(default=1.0)
     phi_omicron: UniformSampleable = field(default=1.0)
     phi_ba5: UniformSampleable = field(default=1.0)
-    phi_other: UniformSampleable = field(default=1.0)
     phi_omega: UniformSampleable = field(default=1.0)
 
     def to_dict(self) -> Dict:
