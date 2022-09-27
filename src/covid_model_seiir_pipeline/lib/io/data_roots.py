@@ -189,6 +189,12 @@ class CovariatePriorsRoot(DataRoot):
     priors = DatasetType('priors')
 
 
+class NPIRegressionDataRoot(DataRoot):
+    metadata = MetadataType('metadata')
+
+    response_data = DatasetType('npi_response_data')
+
+
 ########################
 # Pipeline Stage Roots #
 ########################

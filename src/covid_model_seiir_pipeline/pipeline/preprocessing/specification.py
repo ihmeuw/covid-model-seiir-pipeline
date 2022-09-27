@@ -63,6 +63,7 @@ class PreprocessingData:
     mortality_scalars_version: str = field(default='best')
     mask_use_outputs_version: str = field(default='best')
     mobility_covariate_version: str = field(default='best')
+    npi_regression_data_version: str = field(default='best')
     pneumonia_version: str = field(default='best')
     population_density_version: str = field(default='best')
     testing_outputs_version: str = field(default='best')

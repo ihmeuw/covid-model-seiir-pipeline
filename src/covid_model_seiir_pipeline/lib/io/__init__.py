@@ -9,6 +9,7 @@ from covid_model_seiir_pipeline.lib.io.data_roots import (
 
     MaskUseRoot,
     MobilityRoot,
+    NPIRegressionDataRoot,
     PneumoniaRoot,
     PopulationDensityRoot,
     TestingRoot,
