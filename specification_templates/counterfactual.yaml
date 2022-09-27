@@ -1,12 +1,12 @@
 data:
-  seir_counterfactual_input_version: '2022_09_22.01'
+  seir_counterfactual_input_version: '2022_09_27.01'
   seir_forecast_version: '2022_09_09.05'
-  seir_fit_version: '2022_09_21.02'
+  seir_fit_version: '2022_09_26.06'
   output_root: ''
   output_format: 'parquet'
 workflow:
-  project: 'proj_covid_prod'
-  queue: 'all.q'
+  project: 'proj_covid'  # _prod
+  queue: 'long.q'
 scenarios:
 #  scenario_name:
 #    beta: 'beta_scenario_name'

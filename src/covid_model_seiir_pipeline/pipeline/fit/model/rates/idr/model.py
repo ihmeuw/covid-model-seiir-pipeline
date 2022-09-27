@@ -41,7 +41,9 @@ def run_model(model_data: pd.DataFrame,
         'dep_var_se': 'logit_idr_se',
         'fe_vars': ['intercept', 'log_infwavg_testing_rate_capacity'] + covariate_list,
         'prior_dict': {
-            'log_infwavg_testing_rate_capacity': {'prior_beta_uniform': np.array([1e-6, np.inf])},
+            'log_infwavg_testing_rate_capacity': {
+                'prior_beta_uniform': np.array([1e-6, np.inf]),
+            },
         },
         're_vars': [],
         'group_var': 'location_id',

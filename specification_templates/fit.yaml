@@ -4,11 +4,11 @@ data:
   output_root: ''
   compare_version: '2022_07_18.06'
 workflow:
-  project: 'proj_covid_prod'
+  project: 'proj_covid'  # _prod
   queue: 'all.q'
 rates_parameters:
-  sero_exclude_variants: ['delta', 'omicron', 'ba5']
-  epi_exclude_variants: ['delta', 'omicron', 'ba5']
+  sero_exclude_variants: ['ba5']
+  epi_exclude_variants: []
   day_0: '2020-03-15'
   pred_start_date: '2019-11-01'
   pred_end_date: '2022-09-15'
@@ -30,19 +30,19 @@ rates_parameters:
   idr_rr_beta: 1.0
   idr_rr_gamma: 1.0
   idr_rr_delta: 1.0
-  idr_rr_omicron: 1.0  # [0.26, 0.46]
+  idr_rr_omicron: [0.1, 0.3]  # [0.26, 0.46]
   idr_rr_ba5: 1.0  # [0.21, 0.31]
-  ihr_rr_alpha: 1.0
-  ihr_rr_beta: 1.0
-  ihr_rr_gamma: 1.0
-  ihr_rr_delta: 1.0
-  ihr_rr_omicron: 1.0  # [0.16, 0.26]
+  ihr_rr_alpha: [1.1, 1.3]
+  ihr_rr_beta: [1.5, 1.7]
+  ihr_rr_gamma: [1.3, 1.5]
+  ihr_rr_delta: [1.4, 1.6]
+  ihr_rr_omicron: [0.1, 0.3]  # [0.16, 0.26]
   ihr_rr_ba5: 1.0  # [0.16, 0.26]
-  ifr_rr_alpha: 1.0
-  ifr_rr_beta: 1.0
-  ifr_rr_gamma: 1.0
-  ifr_rr_delta: 1.0
-  ifr_rr_omicron: 1.0  # [0.08, 0.16]
+  ifr_rr_alpha: [1.1, 1.3]
+  ifr_rr_beta: [1.5, 1.7]
+  ifr_rr_gamma: [1.3, 1.5]
+  ifr_rr_delta: [1.4, 1.6]
+  ifr_rr_omicron: [0.1, 0.3]  # [0.08, 0.16]
   ifr_rr_ba5: 1.0  # [0.08, 0.16]
   # One of 'delta', 'omicron', 'average'
   omega_severity_parameterization: 'delta'
