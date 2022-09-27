@@ -278,7 +278,7 @@ class PreprocessingDataInterface:
 
     def load_raw_mobility(self, scenario: str) -> pd.DataFrame:
         if scenario == 'mandates':
-            data = io.load(self.npi_regression_data_root.response_data())
+            data = io.load(self.npi_regression_data_root.response_data()).reset_index()
             col_mandates = [
                 'bar_close',
                 'borders_close_all',
