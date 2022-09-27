@@ -57,10 +57,11 @@ def preprocess_prop_65plus(data_interface: PreprocessingDataInterface) -> None:
 
 def preprocess_mobility(data_interface: PreprocessingDataInterface) -> None:
     hierarchy = data_interface.load_hierarchy('pred')
-    for scenario in ['reference', 'vaccine_adjusted']:
+    for scenario in ['reference', 'vaccine_adjusted', 'mandates']:
+        percent_scenario = 'reference' if scenario == 'mandates' else scenario
         logger.info(f'Loading raw mobility data for scenario {scenario}.', context='read')
         mobility = data_interface.load_raw_mobility(scenario)
-        percent_mandates = data_interface.load_raw_percent_mandates(scenario)
+        percent_mandates = data_interface.load_raw_percent_mandates(percent_scenario)
 
         logger.info(f'Fixing southern hemisphere locations.', context='transform')
         percent_mandates = _adjust_southern_hemisphere(percent_mandates)
