@@ -47,6 +47,17 @@ class RegressionData:
     output_root: str = field(default='')
     output_format: str = field(default='csv')
     drop_locations: List[int] = field(default_factory=list)
+    weighting: str = field(default='')
+
+    def __post_init__(self):
+        assert self.weighting in [
+            '',
+            'infection',
+            'log_infection',
+            'threshold',
+            'infection_threshold_mean',
+            'infection_threshold_gmean',
+        ]
 
     def to_dict(self) -> Dict:
         """Converts to a dict, coercing list-like items to lists."""
@@ -82,6 +93,7 @@ class CovariateSpecification:
 
     # model params
     name: str = field(default='covariate')
+    scenario: str = field(default='reference')
     group_level: str = field(default='')
     gprior: Tuple[float, float] = field(default=(0., 1000.))
     bounds: Tuple[float, float] = field(default=(-1000., 1000.))
