@@ -30,9 +30,14 @@ def run_beta_regression(regression_version: str, draw_id: int) -> None:
     regression_weights = (infections
                           .loc[beta_fit.index, 'daily_total_infections']
                           .groupby('location_id')
+#                          .apply(lambda x: np.log(x) / np.log(x.max()))
                           .apply(lambda x: x / x.max())
                           .fillna(0.)
                           .rename('weight'))
+    threshold = 0.01
+    threshold_weights = regression_weights.copy()
+    threshold_weights = threshold_weights[threshold_weights < threshold] = 0.
+    threshold_weights[threshold_weights >= threshold] = 1.
 
     # don't allow China or Australasia to impact fitting
     chn = hierarchy.loc[hierarchy['path_to_top_parent'].apply(lambda x: '6' in x.split(',')), 'location_id'].to_list()
@@ -41,6 +46,8 @@ def run_beta_regression(regression_version: str, draw_id: int) -> None:
     regression_weights.loc[lockdowns] = regression_weights.min()
 
     covariates = data_interface.load_covariates(list(regression_specification.covariates))
+    regression_weights.loc[lockdowns] = 0. #regression_weights.min()
+
     gaussian_priors = data_interface.load_priors(regression_specification.covariates.values())
     prior_coefficients = data_interface.load_prior_run_coefficients(draw_id=draw_id)
     if gaussian_priors and prior_coefficients:
