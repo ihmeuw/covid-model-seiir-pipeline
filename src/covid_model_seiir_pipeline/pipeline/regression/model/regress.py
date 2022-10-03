@@ -27,10 +27,13 @@ def prep_regression_weights(
                              .fillna(0.)
                              .rename('weight'))
 
-    threshold = 0.01
-    threshold_weights = infection_weights.copy()
-    threshold_weights[threshold_weights < threshold] = 0.
-    threshold_weights[threshold_weights >= threshold] = 1.
+    threshold_01_weights = infection_weights.copy()
+    threshold_01_weights[threshold_01_weights < 0.01] = 0.
+    threshold_01_weights[threshold_01_weights >= 0.01] = 1.
+
+    threshold_05_weights = infection_weights.copy()
+    threshold_05_weights[threshold_05_weights < 0.05] = 0.
+    threshold_05_weights[threshold_05_weights >= 0.05] = 1.
 
     mean_infection_weights = (infection_weights + threshold_weights) / 2
     gmean_infection_weights = np.sqrt(infection_weights * threshold_weights)
@@ -39,7 +42,8 @@ def prep_regression_weights(
         '': pd.Series(1., index=infections.index, name='weight'),
         'infection': infection_weights,
         'log_infection': log_infection_weights,
-        'threshold': threshold_weights,
+        'threshold_01': threshold_01_weights,
+        'threshold_05': threshold_05_weights,
         'infection_threshold_mean': mean_infection_weights,
         'infection_threshold_gmean': gmean_infection_weights,
     }[weighting_scheme]

@@ -54,7 +54,8 @@ class RegressionData:
             '',
             'infection',
             'log_infection',
-            'threshold',
+            'threshold_01',
+            'threshold_05',
             'infection_threshold_mean',
             'infection_threshold_gmean',
         ]
