@@ -27,20 +27,17 @@ def run_beta_regression(regression_version: str, draw_id: int) -> None:
     infections = data_interface.load_posterior_epi_measures(draw_id, columns=['daily_total_infections'])
     # FIXME: Beta should be nan or positive here.
     beta_fit = beta_fit.loc[beta_fit > 0]
-    regression_weights = (infections
-                          .loc[beta_fit.index, 'daily_total_infections']
-                          .groupby('location_id')
-                          .apply(lambda x: x / x.max())
-                          .fillna(0.)
-                          .rename('weight'))
 
-    # don't allow China or Australasia to impact fitting
-    chn = hierarchy.loc[hierarchy['path_to_top_parent'].apply(lambda x: '6' in x.split(',')), 'location_id'].to_list()
-    lockdowns = chn + [71, 72]
-    lockdowns = [loc for loc in lockdowns if loc in regression_weights.index.get_level_values('location_id')]
-    regression_weights.loc[lockdowns] = regression_weights.min()
+    regression_weights = model.prep_regression_weights(
+        infections=infections.loc[beta_fit.index, 'daily_total_infections'],
+        hierarchy=hierarchy,
+        weighting_scheme=regression_specification.data.weighting,
+    )
 
-    covariates = data_interface.load_covariates(list(regression_specification.covariates))
+    covariates = data_interface.load_covariates({
+        name: spec.scenario for name, spec in regression_specification.covariates.items()
+    })
+
     gaussian_priors = data_interface.load_priors(regression_specification.covariates.values())
     prior_coefficients = data_interface.load_prior_run_coefficients(draw_id=draw_id)
     if gaussian_priors and prior_coefficients:

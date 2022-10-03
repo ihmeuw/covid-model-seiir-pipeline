@@ -11,6 +11,62 @@ if TYPE_CHECKING:
     from covid_model_seiir_pipeline.pipeline.regression.specification import CovariateSpecification
 
 
+def prep_regression_weights(
+    infections: pd.Series,
+    hierarchy: pd.DataFrame,
+    weighting_scheme: str
+) -> pd.Series:
+    infection_weights = (infections
+                         .groupby('location_id')
+                         .apply(lambda x: x / x.max())
+                         .fillna(0.)
+                         .rename('weight'))
+    log_infection_weights = (infections
+                             .groupby('location_id')
+                             .apply(lambda x: np.log(x) / np.log(x.max()))
+                             .fillna(0.)
+                             .rename('weight'))
+
+    threshold_01_weights = infection_weights.copy()
+    threshold_01_weights[threshold_01_weights < 0.01] = 0.
+    threshold_01_weights[threshold_01_weights >= 0.01] = 1.
+
+    threshold_05_weights = infection_weights.copy()
+    threshold_05_weights[threshold_05_weights < 0.05] = 0.
+    threshold_05_weights[threshold_05_weights >= 0.05] = 1.
+
+    mean_infection_weights = (infection_weights + threshold_weights) / 2
+    gmean_infection_weights = np.sqrt(infection_weights * threshold_weights)
+
+    weights = {
+        '': pd.Series(1., index=infections.index, name='weight'),
+        'infection': infection_weights,
+        'log_infection': log_infection_weights,
+        'threshold_01': threshold_01_weights,
+        'threshold_05': threshold_05_weights,
+        'infection_threshold_mean': mean_infection_weights,
+        'infection_threshold_gmean': gmean_infection_weights,
+    }[weighting_scheme]
+
+    # don't allow China or Australasia to impact fitting
+    def _child_locations(location_id):
+        most_detailed = hierarchy['most_detailed'] == 1
+        is_child = (hierarchy['path_to_top_parent']
+                    .apply(lambda x: str(location_id) in x.split(',')))
+        return hierarchy.loc[most_detailed & is_child, 'location_id'].to_list()
+    drop_from_regression = [
+        *_child_locations(6),  # China subnationals
+        71,  # Australia
+        72,  # New Zealand
+    ]
+    modeled_locations = infections.index.get_level_values('location_id')
+    drop_from_regression = [l for l in drop_from_regression if l in modeled_locations]
+
+    # Massively downweight, but still allow for a random intercept.
+    weights.loc[drop_from_regression] = 0.001
+    return weights
+
+
 def run_beta_regression(beta_fit: pd.Series,
                         regression_weights: pd.Series,
                         covariates: pd.DataFrame,
