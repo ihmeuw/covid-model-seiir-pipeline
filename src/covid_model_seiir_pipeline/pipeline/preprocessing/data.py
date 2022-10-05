@@ -286,8 +286,6 @@ class PreprocessingDataInterface:
                 'dining_close',
                 'gym_pool_leisure_close',
                 'higher_edu',
-                'mask_fine',
-                'mask_mandate',
                 'non_essential_retail_close',
                 'non_essential_workplace_close',
             ]

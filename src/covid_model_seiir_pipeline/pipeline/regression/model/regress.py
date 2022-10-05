@@ -11,6 +11,75 @@ if TYPE_CHECKING:
     from covid_model_seiir_pipeline.pipeline.regression.specification import CovariateSpecification
 
 
+def prep_regression_weights(
+    infections: pd.Series,
+    population: pd.Series,
+    hierarchy: pd.DataFrame,
+    weighting_scheme: str
+) -> pd.Series:
+    infection_weights = (infections
+                         .groupby('location_id')
+                         .apply(lambda x: x / x.max())
+                         .fillna(0.)
+                         .rename('weight'))
+    infection_rate = infections / population.reindex(infections.index, level='location_id')
+    infection_rate_weights = ((infection_rate / infection_rate.quantile(.75))
+                              .fillna(0.)
+                              .rename('weight')
+                              .clip(0.0, 1.0))
+    threshold = 0.01
+    threshold_weights = infection_weights.copy()
+    threshold_weights[threshold_weights < threshold] = 0.
+    threshold_weights[threshold_weights >= threshold] = 1.
+    threshold_weights_one = threshold_weights.copy()
+
+    rate_threshold_weights = infection_rate_weights.copy()
+    rate_threshold_weights[rate_threshold_weights < threshold] = 0.
+    rate_threshold_weights[rate_threshold_weights >= threshold] = 1.
+    rate_threshold_weights_one = rate_threshold_weights.copy()
+
+    threshold = 0.05
+    threshold_weights = infection_weights.copy()
+    threshold_weights[threshold_weights < threshold] = 0.
+    threshold_weights[threshold_weights >= threshold] = 1.
+    threshold_weights_five = threshold_weights.copy()
+
+    rate_threshold_weights = infection_rate_weights.copy()
+    rate_threshold_weights[rate_threshold_weights < threshold] = 0.
+    rate_threshold_weights[rate_threshold_weights >= threshold] = 1.
+    rate_threshold_weights_five = rate_threshold_weights.copy()
+
+    weights = {
+        '': pd.Series(1., index=infections.index, name='weight'),
+        'infection': infection_weights,
+        'infection_rate': infection_rate_weights,
+        'threshold_one': threshold_weights_one,
+        'infection_rate_threshold_one': rate_threshold_weights_one,
+        'threshold_five': threshold_weights_five,
+        'infection_rate_threshold_five': rate_threshold_weights_five,
+    }
+    import pdb; pdb.set_trace()
+    weights = weights[weighting_scheme]
+
+    # don't allow China or Australasia to impact fitting
+    def _child_locations(location_id):
+        most_detailed = hierarchy['most_detailed'] == 1
+        is_child = (hierarchy['path_to_top_parent']
+                    .apply(lambda x: str(location_id) in x.split(',')))
+        return hierarchy.loc[most_detailed & is_child, 'location_id'].to_list()
+    drop_from_regression = [
+        *_child_locations(6),  # China subnationals
+        71,  # Australia
+        72,  # New Zealand
+    ]
+    modeled_locations = infections.index.get_level_values('location_id')
+    drop_from_regression = [l for l in drop_from_regression if l in modeled_locations]
+
+    # Massively downweight, but still allow for a random intercept.
+    weights.loc[drop_from_regression] = 0.001
+    return weights
+
+
 def run_beta_regression(beta_fit: pd.Series,
                         regression_weights: pd.Series,
                         covariates: pd.DataFrame,
