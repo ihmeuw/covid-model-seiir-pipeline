@@ -35,8 +35,8 @@ def prep_regression_weights(
     threshold_05_weights[threshold_05_weights < 0.05] = 0.
     threshold_05_weights[threshold_05_weights >= 0.05] = 1.
 
-    mean_infection_weights = (infection_weights + threshold_weights) / 2
-    gmean_infection_weights = np.sqrt(infection_weights * threshold_weights)
+    mean_infection_weights = (infection_weights + threshold_01_weights) / 2
+    gmean_infection_weights = np.sqrt(infection_weights * threshold_01_weights)
 
     weights = {
         '': pd.Series(1., index=infections.index, name='weight'),

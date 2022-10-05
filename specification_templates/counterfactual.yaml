@@ -1,7 +1,7 @@
 data:
-  seir_counterfactual_input_version: '2022_09_30.01'
+  seir_counterfactual_input_version: '2022_10_04.02'
   seir_forecast_version: '2022_09_09.05'
-  seir_fit_version: '2022_09_30.02'
+  seir_fit_version: '2022_10_04.05'
   output_root: ''
   output_format: 'parquet'
 workflow:
