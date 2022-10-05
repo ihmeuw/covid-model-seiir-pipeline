@@ -53,10 +53,11 @@ class RegressionData:
         assert self.weighting in [
             '',
             'infection',
-            'log_infection',
-            'threshold',
-            'infection_threshold_mean',
-            'infection_threshold_gmean',
+            'infection_rate',
+            'threshold_one',
+            'infection_rate_threshold_one',
+            'threshold_five',
+            'infection_rate_threshold_five',
         ]
 
     def to_dict(self) -> Dict:
