@@ -1,4 +1,4 @@
-from typing import Dict, Iterable, Optional, TYPE_CHECKING
+from typing import Dict, List, Iterable, Optional, TYPE_CHECKING
 
 import pandas as pd
 import numpy as np
@@ -13,50 +13,36 @@ if TYPE_CHECKING:
 
 def prep_regression_weights(
     infections: pd.Series,
+    rhos: pd.DataFrame,
     population: pd.Series,
     hierarchy: pd.DataFrame,
     weighting_scheme: str
 ) -> pd.Series:
-    infection_weights = (infections
-                         .groupby('location_id')
-                         .apply(lambda x: x / x.max())
-                         .fillna(0.)
-                         .rename('weight'))
+    infection_weights = _location_specific_normalization(
+        infections=infections,
+        max_infections=infections.groupby('location_id').max(),
+    )
+    ancestral_infection_weights = _location_specific_normalization(
+        infections=infections,
+        max_infections=_max_infections_by_variant(infections, rhos, ['ancestral'])
+    )
+
     infection_rate = infections / population.reindex(infections.index, level='location_id')
     infection_rate_weights = ((infection_rate / infection_rate.quantile(.75))
                               .fillna(0.)
                               .rename('weight')
                               .clip(0.0, 1.0))
-    threshold = 0.01
-    threshold_weights = infection_weights.copy()
-    threshold_weights[threshold_weights < threshold] = 0.
-    threshold_weights[threshold_weights >= threshold] = 1.
-    threshold_weights_one = threshold_weights.copy()
-
-    rate_threshold_weights = infection_rate_weights.copy()
-    rate_threshold_weights[rate_threshold_weights < threshold] = 0.
-    rate_threshold_weights[rate_threshold_weights >= threshold] = 1.
-    rate_threshold_weights_one = rate_threshold_weights.copy()
-
-    threshold = 0.05
-    threshold_weights = infection_weights.copy()
-    threshold_weights[threshold_weights < threshold] = 0.
-    threshold_weights[threshold_weights >= threshold] = 1.
-    threshold_weights_five = threshold_weights.copy()
-
-    rate_threshold_weights = infection_rate_weights.copy()
-    rate_threshold_weights[rate_threshold_weights < threshold] = 0.
-    rate_threshold_weights[rate_threshold_weights >= threshold] = 1.
-    rate_threshold_weights_five = rate_threshold_weights.copy()
 
     weights = {
         '': pd.Series(1., index=infections.index, name='weight'),
         'infection': infection_weights,
         'infection_rate': infection_rate_weights,
-        'threshold_one': threshold_weights_one,
-        'infection_rate_threshold_one': rate_threshold_weights_one,
-        'threshold_five': threshold_weights_five,
-        'infection_rate_threshold_five': rate_threshold_weights_five,
+        'threshold_one': _apply_threshold(infection_weights, 0.01),
+        'infection_rate_threshold_one': _apply_threshold(infection_rate_weights, 0.01),
+        'threshold_five': _apply_threshold(infection_weights, 0.05),
+        'infection_rate_threshold_five': _apply_threshold(infection_rate_weights, 0.05),
+        'ancestral_threshold_one': _apply_threshold(ancestral_infection_weights, 0.01),
+        'ancestral_threshold_five': _apply_threshold(ancestral_infection_weights, 0.05),
     }
     weights = weights[weighting_scheme]
 
@@ -66,6 +52,7 @@ def prep_regression_weights(
         is_child = (hierarchy['path_to_top_parent']
                     .apply(lambda x: str(location_id) in x.split(',')))
         return hierarchy.loc[most_detailed & is_child, 'location_id'].to_list()
+
     drop_from_regression = [
         *_child_locations(6),  # China subnationals
         71,  # Australia
@@ -77,6 +64,44 @@ def prep_regression_weights(
     # Massively downweight, but still allow for a random intercept.
     weights.loc[drop_from_regression] = 0.001
     return weights
+
+
+def _max_infections_by_variant(infections: pd.Series, rhos: pd.DataFrame, keep_variants: List[str] = None) -> pd.Series:
+    keep_variants = keep_variants if keep_variants is not None else list(rhos)
+    last_date = (rhos[rhos[keep_variants].sum(axis=1) >=0.99]
+                 .reset_index()
+                 .groupby('location_id')
+                 .date
+                 .max()
+                 .rename('last_date')
+                 .reindex(infections.index, level='location_id'))
+    filtered_infections = pd.concat([infections, last_date], axis=1).reset_index()
+    max_infections = (filtered_infections.loc[filtered_infections.date <= filtered_infections.last_date]
+                      .groupby('location_id')
+                      .daily_total_infections
+                      .max()
+                      .rename('max_infections'))
+    return max_infections
+
+
+def _location_specific_normalization(infections: pd.Series, max_infections: pd.Series) -> pd.Series:
+    max_infections = max_infections.reindex(infections.index, level='location_id').rename('max_infections')
+    data = pd.concat([infections, max_infections], axis=1)
+    data = (data
+            .groupby('location_id')
+            .apply(lambda x: x.daily_total_infections / x.max_infections.max())
+            .reset_index(level=0, drop=True)
+            .fillna(0.)
+            .rename('weight')
+            .clip(0.0, 1.0))
+    return data
+
+
+def _apply_threshold(data: pd.Series, threshold: float):
+    data = data.copy()
+    data[data < threshold] = 0.
+    data[data >= threshold] = 1.
+    return data
 
 
 def run_beta_regression(beta_fit: pd.Series,

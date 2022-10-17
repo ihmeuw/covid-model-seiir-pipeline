@@ -58,6 +58,8 @@ class RegressionData:
             'infection_rate_threshold_one',
             'threshold_five',
             'infection_rate_threshold_five',
+            'ancestral_threshold_one',
+            'ancestral_threshold_five',
         ]
 
     def to_dict(self) -> Dict:
