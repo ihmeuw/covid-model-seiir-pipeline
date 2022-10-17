@@ -152,16 +152,16 @@ def sample_ode_params(variant_rr: VariantRR,
     phi_matrix = pd.DataFrame(
         data=np.array([
             # TO
-            # none ancestral alpha beta gamma delta omicron ba5 omega    # FROM
-            [0.0,       0.0,  0.0, 0.0,  0.0,  0.0,    0.0, 0.0,   0.0],  # none
-            [1.0,       1.0,    s,   s,    s,    s,      s,   s,     s],  # ancestral
-            [1.0,         s,  1.0,   s,    s,    s,      s,   s,     s],  # alpha
-            [1.0,       1.0,  1.0, 1.0,  1.0,  1.0,      s,   s,     s],  # beta
-            [1.0,       1.0,  1.0, 1.0,  1.0,  1.0,      s,   s,     s],  # gamma
-            [1.0,       1.0,  1.0, 1.0,  1.0,  1.0,      s,   s,     s],  # delta
-            [1.0,       1.0,  1.0, 1.0,  1.0,  1.0,    1.0,   s,     s],  # omicron
-            [1.0,       1.0,  1.0, 1.0,  1.0,  1.0,    1.0, 1.0,     s],  # ba5
-            [1.0,       1.0,  1.0, 1.0,  1.0,  1.0,    1.0, 1.0,   1.0],  # omega
+            # none ancestral alpha  beta gamma delta omicron   ba5  omega  # FROM
+            [0.0,       0.0,  0.0,  0.0,  0.0,  0.0,    0.0,  0.0,  0.0],  # none
+            [1.0,       1.0,    s,    s,    s,    s,      s,    s,    s],  # ancestral
+            [1.0,         s,  1.0,    s,    s,    s,      s,    s,    s],  # alpha
+            [1.0,       1.0,  1.0,  1.0,  1.0,  1.0,      s,    s,    s],  # beta
+            [1.0,       1.0,  1.0,  1.0,  1.0,  1.0,      s,    s,    s],  # gamma
+            [1.0,       1.0,  1.0,  1.0,  1.0,  1.0,      s,    s,    s],  # delta
+            [1.0,       1.0,  1.0,  1.0,  1.0,  1.0,    1.0,    s,    s],  # omicron
+            [1.0,       1.0,  1.0,  1.0,  1.0,  1.0,    1.0,  1.0,    s],  # ba5
+            [1.0,       1.0,  1.0,  1.0,  1.0,  1.0,    1.0,  1.0,  1.0],  # omega
         ]),
         columns=VARIANT_NAMES,
         index=pd.Index(VARIANT_NAMES, name='variant'),

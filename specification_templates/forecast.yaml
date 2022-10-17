@@ -1,5 +1,5 @@
 data:
-  seir_regression_version: '2022_09_27.07'
+  seir_regression_version: '2022_10_14.02'
   output_root: ''
   output_format: 'parquet'
 workflow:
@@ -32,7 +32,7 @@ scenarios:
     beta_scale_date: '2025-01-01'
     covariates:
       pneumonia: 'reference'
-      mobility: 'reference'
+      mobility: 'mandates'
       mask_use: 'relaxed'
       testing: 'reference'
       air_pollution_pm_2_5: 'reference'

@@ -22,6 +22,7 @@ def run_beta_regression(regression_version: str, draw_id: int) -> None:
 
     logger.info('Loading regression input data', context='read')
     hierarchy = data_interface.load_hierarchy('pred')
+    population = data_interface.load_population(measure='total').population
     beta_fit = data_interface.load_fit_beta(draw_id, columns=['beta_all_infection'])
     beta_fit = beta_fit.loc[:, 'beta_all_infection'].rename('beta')
     infections = data_interface.load_posterior_epi_measures(draw_id, columns=['daily_total_infections'])
@@ -30,6 +31,7 @@ def run_beta_regression(regression_version: str, draw_id: int) -> None:
 
     regression_weights = model.prep_regression_weights(
         infections=infections.loc[beta_fit.index, 'daily_total_infections'],
+        population=population,
         hierarchy=hierarchy,
         weighting_scheme=regression_specification.data.weighting,
     )

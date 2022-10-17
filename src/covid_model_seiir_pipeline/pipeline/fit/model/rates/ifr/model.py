@@ -159,7 +159,9 @@ def prepare_model(model_data: pd.DataFrame,
                                                           [1e-6, 1e-6]])
             }
         } for location_id in [
+                              62,   # Russian Federation
                               130,  # Mexico
+                              216,  # Senegal
                              ]
     }
     # location_prior_dict.update({

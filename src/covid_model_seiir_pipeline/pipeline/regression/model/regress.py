@@ -13,6 +13,7 @@ if TYPE_CHECKING:
 
 def prep_regression_weights(
     infections: pd.Series,
+    population: pd.Series,
     hierarchy: pd.DataFrame,
     weighting_scheme: str
 ) -> pd.Series:
@@ -21,32 +22,43 @@ def prep_regression_weights(
                          .apply(lambda x: x / x.max())
                          .fillna(0.)
                          .rename('weight'))
-    log_infection_weights = (infections
-                             .groupby('location_id')
-                             .apply(lambda x: np.log(x) / np.log(x.max()))
-                             .fillna(0.)
-                             .rename('weight'))
+    infection_rate = infections / population.reindex(infections.index, level='location_id')
+    infection_rate_weights = ((infection_rate / infection_rate.quantile(.75))
+                              .fillna(0.)
+                              .rename('weight')
+                              .clip(0.0, 1.0))
+    threshold = 0.01
+    threshold_weights = infection_weights.copy()
+    threshold_weights[threshold_weights < threshold] = 0.
+    threshold_weights[threshold_weights >= threshold] = 1.
+    threshold_weights_one = threshold_weights.copy()
 
-    threshold_01_weights = infection_weights.copy()
-    threshold_01_weights[threshold_01_weights < 0.01] = 0.
-    threshold_01_weights[threshold_01_weights >= 0.01] = 1.
+    rate_threshold_weights = infection_rate_weights.copy()
+    rate_threshold_weights[rate_threshold_weights < threshold] = 0.
+    rate_threshold_weights[rate_threshold_weights >= threshold] = 1.
+    rate_threshold_weights_one = rate_threshold_weights.copy()
 
-    threshold_05_weights = infection_weights.copy()
-    threshold_05_weights[threshold_05_weights < 0.05] = 0.
-    threshold_05_weights[threshold_05_weights >= 0.05] = 1.
+    threshold = 0.05
+    threshold_weights = infection_weights.copy()
+    threshold_weights[threshold_weights < threshold] = 0.
+    threshold_weights[threshold_weights >= threshold] = 1.
+    threshold_weights_five = threshold_weights.copy()
 
-    mean_infection_weights = (infection_weights + threshold_01_weights) / 2
-    gmean_infection_weights = np.sqrt(infection_weights * threshold_01_weights)
+    rate_threshold_weights = infection_rate_weights.copy()
+    rate_threshold_weights[rate_threshold_weights < threshold] = 0.
+    rate_threshold_weights[rate_threshold_weights >= threshold] = 1.
+    rate_threshold_weights_five = rate_threshold_weights.copy()
 
     weights = {
         '': pd.Series(1., index=infections.index, name='weight'),
         'infection': infection_weights,
-        'log_infection': log_infection_weights,
-        'threshold_01': threshold_01_weights,
-        'threshold_05': threshold_05_weights,
-        'infection_threshold_mean': mean_infection_weights,
-        'infection_threshold_gmean': gmean_infection_weights,
-    }[weighting_scheme]
+        'infection_rate': infection_rate_weights,
+        'threshold_one': threshold_weights_one,
+        'infection_rate_threshold_one': rate_threshold_weights_one,
+        'threshold_five': threshold_weights_five,
+        'infection_rate_threshold_five': rate_threshold_weights_five,
+    }
+    weights = weights[weighting_scheme]
 
     # don't allow China or Australasia to impact fitting
     def _child_locations(location_id):
