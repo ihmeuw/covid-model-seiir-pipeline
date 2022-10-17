@@ -211,68 +211,65 @@ def _process_testing_for_idr(data: pd.DataFrame) -> pd.DataFrame:
 def preprocess_variant_prevalence(data_interface: PreprocessingDataInterface) -> None:
     hierarchy = data_interface.load_hierarchy('pred')
     spec = data_interface.load_specification()
-    for scenario in ['reference']:
-        logger.info(
-            f'Loading raw variant prevalence data for scenario {scenario}.',
-            context='read'
+    logger.info(
+        f'Loading raw variant prevalence data.', context='read'
+    )
+    data = data_interface.load_raw_variant_prevalence('reference')
+    logger.info('Parsing into WHO variant of concern.', context='transform')
+    data = _process_variants_of_concern(data)
+    data = data.set_index(['location_id', 'date'])
+    if 'ba5' in data:
+        raise ValueError(
+            'Manual invasion logic is based on assumption that the last variant'
+            ' present in VOC data is Omicron; if not, need to calculate prevalence'
+            ' differently after shifting.'
         )
-        data = data_interface.load_raw_variant_prevalence(scenario)
 
-        logger.info('Parsing into WHO variant of concern.', context='transform')
-        data = _process_variants_of_concern(data)
-        data = data.set_index(['location_id', 'date'])
-        if 'ba5' in data:
-            raise ValueError(
-                'Manual invasion logic is based on assumption that the last variant'
-                ' present in VOC data is Omicron; if not, need to calculate prevalence'
-                ' differently after shifting.'
+    logger.info(
+        f'Overwriting invasion dates for omicron +'
+        f' sublineages based on case inflection point.',
+        context='replace'
+    )
+
+    # squeezing other variants around variant being shifted for omicron and BA.5 only,
+    # doing those after (also those have default invasion dates)
+    for variant in VARIANT_NAMES:
+        if variant not in [VARIANT_NAMES.none, VARIANT_NAMES.ancestral,
+                           VARIANT_NAMES.omicron, VARIANT_NAMES.ba5, VARIANT_NAMES.omega]:
+            data = _shift_invasion_dates(
+                variant=variant,
+                data=data,
+                default_invasion_date=pd.NaT,
             )
 
-        logger.info(
-            f'Overwriting invasion dates for omicron +'
-            f' sublineages based on case inflection point.',
-            context='replace'
-        )
+    data = _shift_invasion_dates(
+        variant=VARIANT_NAMES.omicron,
+        data=data,
+        default_invasion_date=spec.data.default_omicron_invasion_date,
+    )
 
-        # squeezing other variants around variant being shifted for omicron and BA.5 only,
-        # doing those after (also those have default invasion dates)
-        for variant in VARIANT_NAMES:
-            if variant not in [VARIANT_NAMES.none, VARIANT_NAMES.ancestral,
-                               VARIANT_NAMES.omicron, VARIANT_NAMES.ba5, VARIANT_NAMES.omega]:
-                data = _shift_invasion_dates(
-                    variant=variant,
-                    data=data,
-                    default_invasion_date=pd.NaT,
-                )
+    # using omicron plus a standard shift to start with BA.5 since we change them anyway
+    data['ba5'] = data['omicron'].groupby('location_id').shift(180)
+    data['ba5'] = data['omicron'].groupby('location_id').bfill()
 
-        data = _shift_invasion_dates(
-            variant=VARIANT_NAMES.omicron,
-            data=data,
-            default_invasion_date=spec.data.default_omicron_invasion_date,
-        )
+    data = _shift_invasion_dates(
+        variant=VARIANT_NAMES.ba5,
+        data=data,
+        default_invasion_date=spec.data.default_ba5_invasion_date,
+    )
 
-        # using omicron plus a standard shift to start with BA.5 since we change them anyway
-        data['ba5'] = data['omicron'].groupby('location_id').shift(180)
-        data['ba5'] = data['omicron'].groupby('location_id').bfill()
+    data = helpers.parent_inheritance(data, hierarchy)
+    delhi_variant_level = data.loc[4849]
+    dfs = []
+    for location_id in [4840, 4845, 60896, 4858, 4866]:
+        df = delhi_variant_level.copy()
+        df['location_id'] = location_id
+        df = df.reset_index().set_index(['location_id', 'date'])
+        dfs.append(df)
+    data = pd.concat([data] + dfs).sort_index()
 
-        data = _shift_invasion_dates(
-            variant=VARIANT_NAMES.ba5,
-            data=data,
-            default_invasion_date=spec.data.default_ba5_invasion_date,
-        )
-
-        data = helpers.parent_inheritance(data, hierarchy)
-        delhi_variant_level = data.loc[4849]
-        dfs = []
-        for location_id in [4840, 4845, 60896, 4858, 4866]:
-            df = delhi_variant_level.copy()
-            df['location_id'] = location_id
-            df = df.reset_index().set_index(['location_id', 'date'])
-            dfs.append(df)
-        data = pd.concat([data] + dfs).sort_index()
-
-        logger.info(f'Writing {scenario} scenario data.', context='write')
-        data_interface.save_variant_prevalence(data, scenario)
+    logger.info(f'Writing {scenario} scenario data.', context='write')
+    data_interface.save_variant_prevalence(data, scenario)
 
 
 def _shift_invasion_dates(
