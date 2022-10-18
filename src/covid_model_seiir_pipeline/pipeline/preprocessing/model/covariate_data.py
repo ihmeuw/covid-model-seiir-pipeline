@@ -238,8 +238,8 @@ def preprocess_variant_prevalence(data_interface: PreprocessingDataInterface) ->
     prevalence = parallel.run_parallel(
         runner=_runner,
         arg_list=list(invasion_dates.index),
-        num_cores=spec.workflow.task_specifications[PREPROCESSING_JOBS.preprocess_measure].num_cores,
-        progress_bar=False,
+        num_cores=1, #spec.workflow.task_specifications[PREPROCESSING_JOBS.preprocess_measure].num_cores,
+        progress_bar=True,
     )
 
     prevalence = pd.concat(prevalence).sort_index()
@@ -338,10 +338,9 @@ def make_prevalence(
         ramp = variant_ramps[variant].copy()
         ramp.index = date + ramp.index
         ramp = ramp.reindex(prevalence.index).ffill().fillna(0.)
-        prevalence[last_variant] -= ramp
+        prevalence[last_variant] = np.maximum(prevalence[last_variant] - ramp, 0.)
         prevalence[variant] = ramp
         last_variant = variant
-    assert prevalence.min().min() == 0.0
     prevalence = prevalence.divide(prevalence.sum(axis=1), axis=0).reset_index()
     prevalence['location_id'] = location_id
     prevalence = prevalence.set_index(['location_id', 'date'])[list(VARIANT_NAMES[1:-1])]
