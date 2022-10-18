@@ -5,7 +5,7 @@ data:
   output_root: ''
   output_format: 'parquet'
   drop_locations: []
-  weighting: 'threshold_five'
+  weighting: 'ancestral_threshold_five'
 workflow:
   project: 'proj_covid_prod'
   queue: 'all.q'
