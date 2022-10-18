@@ -112,7 +112,8 @@ class RatesParameters:
     admission_to_death: DiscreteUniformSampleable = field(default=(12, 16))
 
     test_scalar: float = field(default=1.0)
-    heavy_hand_fixes: bool = field(default=True)
+    calibration_fixes: bool = field(default=True)
+    manual_fixes: bool = field(default=True)
 
     # ifr_risk_ratio: RRSampleable = field(default='BMJ')
     # ihr_risk_ratio: RRSampleable = field(default='BMJ')

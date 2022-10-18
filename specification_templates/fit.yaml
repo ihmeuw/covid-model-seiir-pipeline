@@ -2,15 +2,15 @@ data:
   seir_preprocess_version: '2022_09_27.03'
   output_format: 'parquet'
   output_root: ''
-  compare_version: '2022_09_09.06'
+  compare_version: '2022_10_10.05'
 workflow:
   project: 'proj_covid_prod'
   queue: 'all.q'
 rates_parameters:
   # When to cut off sero and epi data
-  # e.g. ancestral only -> []
-  sero_exclude_variants: ['alpha', 'beta', 'gamma', 'delta', 'omicron', 'ba5']
-  epi_exclude_variants: ['alpha', 'beta', 'gamma', 'delta', 'omicron', 'ba5']
+  # e.g. ancestral only -> ['alpha', 'beta', 'gamma', 'delta', 'omicron', 'ba5']
+  sero_exclude_variants: ['delta', 'omicron', 'ba5']
+  epi_exclude_variants: ['delta', 'omicron', 'ba5']
   day_0: '2020-03-15'
   pred_start_date: '2019-11-01'
   pred_end_date: '2022-09-15'
@@ -26,7 +26,8 @@ rates_parameters:
   exposure_to_seroconversion: [14, 18]
   admission_to_death: [12, 16]
   test_scalar: 1.0
-  heavy_hand_fixes: True
+  calibration_fixes: True
+  manual_fixes: True
   # global risk ratios for non-ancestral
   idr_rr_alpha: 1.0
   ihr_rr_alpha: 1.0  # [1.0, 1.4]
