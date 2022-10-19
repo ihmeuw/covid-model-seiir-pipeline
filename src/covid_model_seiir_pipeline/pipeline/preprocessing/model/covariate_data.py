@@ -82,7 +82,7 @@ def preprocess_mobility(data_interface: PreprocessingDataInterface) -> None:
     data_interface.save_covariate_info(effect_sizes, 'mobility', 'effect')
 
 
-def preprocess_mandates(data_interface: PreprocessingDataInterface) -> None:
+def preprocess_mandates_index_1(data_interface: PreprocessingDataInterface) -> None:
     hierarchy = data_interface.load_hierarchy('pred')
     mandates = data_interface.load_mandates()
     mandate_groups = {
@@ -130,10 +130,27 @@ def preprocess_mandates(data_interface: PreprocessingDataInterface) -> None:
         mandates[detailed].sum(axis=1).rename(coarse)
         for coarse, detailed in mandate_groups.items()
     ], axis=1)
-    mandates_index_1 = group_mandates.mean(axis=1).rename('mandates_index_1_reference')
+    mandates_index = group_mandates.mean(axis=1).rename('mandates_index_1_reference')
+
+    locations = mandates.reset_index().location_id.unique().tolist()
+    dates = pd.date_range('2019-11-01', '2024-01-01')
+    idx = pd.MultiIndex.from_product([locations, dates], names=['location_id', 'date'])
+
+    mandates_index = (mandates_index
+                      .reindex(idx)
+                      .groupby('location_id')
+                      .ffill()
+                      .groupby('location_id')
+                      .fillna(0.))
+    mandates_index = helpers.parent_inheritance(mandates_index, hierarchy)
+    data_interface.save_covariate(mandates_index, f'mandates_index_1', 'reference')
+
+
+def preprocess_mandates_index_2(data_interface: PreprocessingDataInterface) -> None:
+    hierarchy = data_interface.load_hierarchy('pred')
+    mandates = data_interface.load_mandates()
 
     # Peng mandates variable
-    mandates_index_2 = mandates.copy()
     col_mandates = [
         'bar_close',
         'borders_close_all',
@@ -145,7 +162,7 @@ def preprocess_mandates(data_interface: PreprocessingDataInterface) -> None:
         'non_essential_workplace_close',
     ]
     col_gatherings = [
-        col for col in mandates_index_2.columns
+        col for col in mandates.columns
         if "gatherings" in col and "unVAC" not in col and "gatherings9998" not in col
     ]
     col_primary_secondary_edu = ["primary_edu", "secondary_edu"]
@@ -153,26 +170,26 @@ def preprocess_mandates(data_interface: PreprocessingDataInterface) -> None:
     col_modeled_mandates = col_mandates + ["gatherings", "primary_secondary_edu", "home"]
 
     # create intermediate mandates
-    mandates_index_2["gatherings"] = mandates_index_2[col_gatherings].mean(axis=1)
-    mandates_index_2["primary_secondary_edu"] = mandates_index_2[col_primary_secondary_edu].mean(axis=1)
-    mandates_index_2["home"] = mandates_index_2[col_home].mean(axis=1)
+    mandates["gatherings"] = mandates[col_gatherings].mean(axis=1)
+    mandates["primary_secondary_edu"] = mandates[col_primary_secondary_edu].mean(axis=1)
+    mandates["home"] = mandates[col_home].mean(axis=1)
 
     # create combined mandates
-    mandates_index_2 = mandates_index_2[col_modeled_mandates].mean(axis=1).rename('mandates_index_2_reference')
+    mandates = mandates[col_modeled_mandates].mean(axis=1).rename('mandates_index_2_reference')
 
     locations = mandates.reset_index().location_id.unique().tolist()
     dates = pd.date_range('2019-11-01', '2024-01-01')
     idx = pd.MultiIndex.from_product([locations, dates], names=['location_id', 'date'])
 
-    for i, mandates_index in enumerate([mandates_index_1, mandates_index_2]):
-        mandates_index = (mandates_index
-                          .reindex(idx)
-                          .groupby('location_id')
-                          .ffill()
-                          .groupby('location_id')
-                          .fillna(0.))
-        mandates_index = helpers.parent_inheritance(mandates_index, hierarchy)
-        data_interface.save_covariate(mandates_index, f'mandates_index_{i}', 'reference')
+
+    mandates_index = (mandates
+                      .reindex(idx)
+                      .groupby('location_id')
+                      .ffill()
+                      .groupby('location_id')
+                      .fillna(0.))
+    mandates_index = helpers.parent_inheritance(mandates_index, hierarchy)
+    data_interface.save_covariate(mandates_index, f'mandates_index_2', 'reference')
 
 
 def _adjust_southern_hemisphere(data: pd.DataFrame) -> pd.DataFrame:
