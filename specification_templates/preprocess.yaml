@@ -7,7 +7,6 @@ data:
   mortality_scalars_version: '2022_03_16.01'
   mask_use_outputs_version: '2022_08_24.01'
   mobility_covariate_version: '2022_08_29.02'
-  npi_regression_data_version: '2022_08_31.02'
   pneumonia_version: '2020_06_12.03'
   population_density_version: '2020_05_20.07'
   testing_outputs_version: '2022_08_29.01'

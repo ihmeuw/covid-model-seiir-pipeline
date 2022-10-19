@@ -325,6 +325,12 @@ COVARIATES = {
         time_varying=True,
         aggregator=aggregate.mean_aggregator,
     ),
+    'mandates': CovariateConfig(
+        loaders.load_covariate,
+        'mandates',
+        time_varying=True,
+        aggregator=aggregate.mean_aggregator,
+    ),
     'testing': CovariateConfig(
         loaders.load_covariate,
         'testing',
