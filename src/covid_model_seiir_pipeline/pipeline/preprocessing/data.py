@@ -21,7 +21,6 @@ class PreprocessingDataInterface:
                  mortality_scalars_root: io.MortalityScalarsRoot,
                  mask_use_root: io.MaskUseRoot,
                  mobility_root: io.MobilityRoot,
-                 npi_regreression_data_root: io.NPIRegressionDataRoot,
                  pneumonia_root: io.PneumoniaRoot,
                  population_density_root: io.PopulationDensityRoot,
                  testing_root: io.TestingRoot,
@@ -35,7 +34,6 @@ class PreprocessingDataInterface:
         self.mortality_scalars_root = mortality_scalars_root
         self.mask_use_root = mask_use_root
         self.mobility_root = mobility_root
-        self.npi_regression_data_root = npi_regreression_data_root
         self.pneumonia_root = pneumonia_root
         self.population_density_root = population_density_root
         self.testing_root = testing_root
@@ -53,7 +51,6 @@ class PreprocessingDataInterface:
             mortality_scalars_root=io.MortalityScalarsRoot(specification.data.mortality_scalars_version),
             mask_use_root=io.MaskUseRoot(specification.data.mask_use_outputs_version),
             mobility_root=io.MobilityRoot(specification.data.mobility_covariate_version),
-            npi_regreression_data_root=io.NPIRegressionDataRoot(specification.data.npi_regression_data_version),
             pneumonia_root=io.PneumoniaRoot(specification.data.pneumonia_version),
             population_density_root=io.PopulationDensityRoot(specification.data.population_density_version),
             testing_root=io.TestingRoot(specification.data.testing_outputs_version),
