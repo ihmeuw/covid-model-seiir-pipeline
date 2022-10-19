@@ -1,10 +1,10 @@
 data:
-  seir_fit_version: '2022_10_14.04'
+  seir_fit_version: '2022_10_19.XX'
   coefficient_version: ''
   seir_covariate_priors_version: ''
   output_root: ''
   output_format: 'parquet'
-  drop_locations: []
+  drop_locations: [518, 198]
   weighting: 'ancestral_threshold_five'
 workflow:
   project: 'proj_covid_prod'

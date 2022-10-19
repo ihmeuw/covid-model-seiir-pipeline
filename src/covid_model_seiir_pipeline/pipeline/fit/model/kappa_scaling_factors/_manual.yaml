@@ -17,7 +17,6 @@ case:
     4761:    8.0  # Mato Grosso do Sul
     4763:    8.0  # Pará
     4768:    3.0  # Rio de Janeiro
-    4849:   1.25  # Delhi
     4845:    1.5  # Chandigarh
     4858:    1.5  # Lakshadweep
     4866:    1.5  # Puducherry
@@ -109,7 +108,7 @@ death:
 #     435:    1.25  # South Sudan
 #   delta:
 #     35:      2.0  # Georgia
-#     38:      2.0  # Mongolia
+#     38:      2.0  # Mongolia 
 #     169:    1.25  # Central African Republic
 #     4863:    1.5  # Mizoram
 #     4845:    2.0  # Chandigarh

@@ -305,6 +305,21 @@ class PreprocessingDataInterface:
             # create combined mandates
             data["mobility_forecast"] = data[col_modeled_mandates].mean(axis=1)
             data['observed'] = 0
+            data = data.loc[:, ['location_id', 'date', 'observed', 'mobility_forecast']]
+
+            # hold last day constant through 2023
+            def project_mandates(loc_data: pd.DataFrame) -> pd.DataFrame:
+                loc_data = loc_data.reset_index('location_id', drop=True)
+                return loc_data.append(
+                    loc_data.iloc[[-1]].reindex(
+                        pd.Index(pd.date_range(loc_data.index[-1], '2023-12-31'), name='date')
+                    ).ffill()[1:]
+                )
+            data = (data
+                    .set_index(['location_id', 'date'])
+                    .sort_index()
+                    .groupby('location_id').apply(project_mandates)
+                    .reset_index())
 
         else:
             data = io.load(self.mobility_root.mobility_data(measure=f'mobility_{scenario}')).reset_index()
