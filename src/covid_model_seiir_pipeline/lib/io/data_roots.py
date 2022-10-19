@@ -115,6 +115,7 @@ class ModelInputsRoot(DataRoot):
     full_data = DatasetType('full_data_unscaled')
     full_data_extra_hospital = DatasetType('use_at_your_own_risk/full_data_extra_hospital')
     gbd_covariate = DatasetType('gbd_covariates', LEAF_TEMPLATES.MEASURE_TEMPLATE)
+    mandates = DatasetType('social_distancing/mandates_high_quality')
 
 
 class AgeSpecificRatesRoot(DataRoot):
