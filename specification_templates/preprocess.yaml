@@ -18,8 +18,8 @@ data:
   vaccine_scenarios:
     - 'reference'
     - 'booster'
-  default_omicron_invasion_date: '2022-06-13'
-  default_ba5_invasion_date: '2022-09-06'
+  new_variant: 'ba5'
+  default_new_variant_invasion_date: '2022-10-25'
   antiviral_scenario_parameters:
     reference:
       high_income:
