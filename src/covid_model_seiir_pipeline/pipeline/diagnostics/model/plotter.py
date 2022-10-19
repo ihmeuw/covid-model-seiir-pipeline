@@ -240,7 +240,7 @@ def make_drivers_page(plot_versions: List[PlotVersion],
     )
 
     ylim_map = {
-        'mandates': (0.0, 1.0)
+        'mandates': (0.0, 1.0),
         'mobility': (-100, 50),
         'testing': (0, 0.02),
         'pneumonia': (0.2, 1.5),
