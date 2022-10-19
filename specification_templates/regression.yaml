@@ -4,7 +4,7 @@ data:
   seir_covariate_priors_version: ''
   output_root: ''
   output_format: 'parquet'
-  drop_locations: [518, 198]
+  drop_locations: []
   weighting: 'ancestral_threshold_five'
 workflow:
   project: 'proj_covid_prod'
