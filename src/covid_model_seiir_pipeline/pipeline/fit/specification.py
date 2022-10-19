@@ -113,7 +113,6 @@ class RatesParameters:
 
     test_scalar: float = field(default=1.0)
     calibration_type: str = field(default='')
-    manual_fixes: bool = field(default=True)
 
     # ifr_risk_ratio: RRSampleable = field(default='BMJ')
     # ihr_risk_ratio: RRSampleable = field(default='BMJ')

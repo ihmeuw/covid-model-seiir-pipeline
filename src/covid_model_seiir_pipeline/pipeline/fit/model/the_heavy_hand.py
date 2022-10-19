@@ -23,8 +23,10 @@ def rescale_kappas(
 ) -> Dict:
     kappa_scaling_factors_path = Path(__file__).parent / 'kappa_scaling_factors'
 
-    if rates_parameters.manual_fixes:
-        manual_scaling_factors = yaml.full_load((kappa_scaling_factors_path / '_manual.yaml').read_text())
+    if rates_parameters.calibration_type:
+        manual_scaling_factors = yaml.full_load((kappa_scaling_factors_path /
+                                                 rates_parameters.calibration_type/
+                                                 '_manual.yaml').read_text())
         if manual_scaling_factors is None:
             manual_scaling_factors = {}
         else:
@@ -71,9 +73,7 @@ def rescale_kappas(
                 )
         sampled_ode_params[f'kappa_{variant}_{measure}'] = kappa
 
-    sampled_ode_params = adjust_omega_severity(
-        sampled_ode_params, rates_parameters
-    )
+    sampled_ode_params = adjust_omega_severity(sampled_ode_params, rates_parameters)
 
     return sampled_ode_params
 
