@@ -36,7 +36,7 @@ covariates:
 #  mobility:
 #    gprior: [0.0, 1000.0]
 #    bounds: [-1000.0, 0.0]
-  mandates_index_1:
+  mandates_index_2:
     gprior: [0.0, 1000.0]
     bounds: [-1000.0, 0.0]
   mask_use:
