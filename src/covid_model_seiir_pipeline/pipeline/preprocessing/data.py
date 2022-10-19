@@ -274,39 +274,9 @@ class PreprocessingDataInterface:
     #################
 
     def load_raw_mobility(self, scenario: str) -> pd.DataFrame:
-        if scenario == 'mandates':
-            data = io.load(self.npi_regression_data_root.response_data()).reset_index()
-            col_mandates = [
-                'bar_close',
-                'borders_close_all',
-                'curfew_business',
-                'dining_close',
-                'gym_pool_leisure_close',
-                'higher_edu',
-                'non_essential_retail_close',
-                'non_essential_workplace_close',
-            ]
-            col_gatherings = [
-                col for col in data.columns
-                if "gatherings" in col and "unVAC" not in col and "gatherings9998" not in col
-            ]
-            col_primary_secondary_edu = ["primary_edu", "secondary_edu"]
-            col_home = ["curfew_home", "stay_at_home"]
-            col_modeled_mandates = col_mandates + ["gatherings", "primary_secondary_edu",
-                                                   "home"]
-            # create intermediate mandates
-            data["gatherings"] = data[col_gatherings].mean(axis=1)
-            data["primary_secondary_edu"] = data[col_primary_secondary_edu].mean(axis=1)
-            data["home"] = data[col_home].mean(axis=1)
-
-            # create combined mandates
-            data["mobility_forecast"] = data[col_modeled_mandates].mean(axis=1)
-            data['observed'] = 0
-
-        else:
-            data = io.load(self.mobility_root.mobility_data(measure=f'mobility_{scenario}')).reset_index()
-            data['observed'] = (1 - data['type']).astype(int)
-            data['location_id'] = data['location_id'].astype(int)
+        data = io.load(self.mobility_root.mobility_data(measure=f'mobility_{scenario}')).reset_index()
+        data['observed'] = (1 - data['type']).astype(int)
+        data['location_id'] = data['location_id'].astype(int)
 
         output_columns = ['location_id', 'date', 'observed', f'mobility_{scenario}']
         data = (data.rename(columns={'mobility_forecast': f'mobility_{scenario}'})

@@ -325,9 +325,15 @@ COVARIATES = {
         time_varying=True,
         aggregator=aggregate.mean_aggregator,
     ),
-    'mandates': CovariateConfig(
+    'mandates_index_1': CovariateConfig(
         loaders.load_covariate,
-        'mandates',
+        'mandates_index_1',
+        time_varying=True,
+        aggregator=aggregate.mean_aggregator,
+    ),
+    'mandates_index_2': CovariateConfig(
+        loaders.load_covariate,
+        'mandates_index_2',
         time_varying=True,
         aggregator=aggregate.mean_aggregator,
     ),
