@@ -85,8 +85,59 @@ def preprocess_mobility(data_interface: PreprocessingDataInterface) -> None:
 def preprocess_mandates(data_interface: PreprocessingDataInterface) -> None:
     hierarchy = data_interface.load_hierarchy('pred')
     mandates = data_interface.load_mandates()
-    import pdb; pdb.set_trace()
-    pass
+    mandate_groups = {
+        'educational': [
+            'primary_edu',
+            'secondary_edu',
+            'higher_edu',
+        ],
+        'travel': [
+            'borders_close_any',
+            'borders_close_all',
+            'local_restrict',
+        ],
+        'gathering': [
+            'gatherings9998i9998o',
+            'gatherings100i250o',
+            'gatherings50i100o',
+            'gatherings25i50o',
+            'gatherings10i25o',
+            'gatherings6i10o',
+        ],
+        'stay': [
+            'stay_at_home',
+            'stay_at_home_fine',
+        ],
+        'business': [
+            'bar_close',
+            'dining_close',
+            'gym_pool_leisure_close',
+            'non_essential_retail_close',
+            'non_essential_workplace_close',
+        ],
+        # Don't compete with mask use variable
+        # 'mask': [
+        #     'mask_use',
+        #     'mask_fine',
+        # ],
+        'curfew': [
+            'curfew_business',
+            'curfew_home',
+        ],
+    }
+
+    group_mandates = pd.concat([
+        mandates[detailed].sum(axis=1).rename(coarse)
+        for coarse, detailed in mandate_groups.items()
+    ], axis=1)
+    mandates = group_mandates.mean(axis=1).rename('mandates_reference')
+
+    locations = mandates.reset_index().location_id.unique().tolist()
+    dates = pd.date_range('2019-11-01', '2024-01-01')
+    idx = pd.MultiIndex.from_product([locations, dates], names=['location_id', 'date'])
+    mandates = mandates.reindex(idx).groupby('location_id').ffill().groupby('location_id').fillna(0.)
+    mandates = helpers.parent_inheritance(mandates, hierarchy)
+    data_interface.save_covariate(mandates, 'mandates', 'reference')
 
 
 def _adjust_southern_hemisphere(data: pd.DataFrame) -> pd.DataFrame:
