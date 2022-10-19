@@ -21,7 +21,6 @@ class PreprocessingDataInterface:
                  mortality_scalars_root: io.MortalityScalarsRoot,
                  mask_use_root: io.MaskUseRoot,
                  mobility_root: io.MobilityRoot,
-                 npi_regreression_data_root: io.NPIRegressionDataRoot,
                  pneumonia_root: io.PneumoniaRoot,
                  population_density_root: io.PopulationDensityRoot,
                  testing_root: io.TestingRoot,
@@ -35,7 +34,6 @@ class PreprocessingDataInterface:
         self.mortality_scalars_root = mortality_scalars_root
         self.mask_use_root = mask_use_root
         self.mobility_root = mobility_root
-        self.npi_regression_data_root = npi_regreression_data_root
         self.pneumonia_root = pneumonia_root
         self.population_density_root = population_density_root
         self.testing_root = testing_root
@@ -53,7 +51,6 @@ class PreprocessingDataInterface:
             mortality_scalars_root=io.MortalityScalarsRoot(specification.data.mortality_scalars_version),
             mask_use_root=io.MaskUseRoot(specification.data.mask_use_outputs_version),
             mobility_root=io.MobilityRoot(specification.data.mobility_covariate_version),
-            npi_regreression_data_root=io.NPIRegressionDataRoot(specification.data.npi_regression_data_version),
             pneumonia_root=io.PneumoniaRoot(specification.data.pneumonia_version),
             population_density_root=io.PopulationDensityRoot(specification.data.population_density_version),
             testing_root=io.TestingRoot(specification.data.testing_outputs_version),
@@ -277,60 +274,19 @@ class PreprocessingDataInterface:
     #################
 
     def load_raw_mobility(self, scenario: str) -> pd.DataFrame:
-        if scenario == 'mandates':
-            data = io.load(self.npi_regression_data_root.response_data()).reset_index()
-            col_mandates = [
-                'bar_close',
-                'borders_close_all',
-                'curfew_business',
-                'dining_close',
-                'gym_pool_leisure_close',
-                'higher_edu',
-                'non_essential_retail_close',
-                'non_essential_workplace_close',
-            ]
-            col_gatherings = [
-                col for col in data.columns
-                if "gatherings" in col and "unVAC" not in col and "gatherings9998" not in col
-            ]
-            col_primary_secondary_edu = ["primary_edu", "secondary_edu"]
-            col_home = ["curfew_home", "stay_at_home"]
-            col_modeled_mandates = col_mandates + ["gatherings", "primary_secondary_edu",
-                                                   "home"]
-            # create intermediate mandates
-            data["gatherings"] = data[col_gatherings].mean(axis=1)
-            data["primary_secondary_edu"] = data[col_primary_secondary_edu].mean(axis=1)
-            data["home"] = data[col_home].mean(axis=1)
-
-            # create combined mandates
-            data["mobility_forecast"] = data[col_modeled_mandates].mean(axis=1)
-            data['observed'] = 0
-            data = data.loc[:, ['location_id', 'date', 'observed', 'mobility_forecast']]
-
-            # hold last day constant through 2023
-            def project_mandates(loc_data: pd.DataFrame) -> pd.DataFrame:
-                loc_data = loc_data.reset_index('location_id', drop=True)
-                return loc_data.append(
-                    loc_data.iloc[[-1]].reindex(
-                        pd.Index(pd.date_range(loc_data.index[-1], '2023-12-31'), name='date')
-                    ).ffill()[1:]
-                )
-            data = (data
-                    .set_index(['location_id', 'date'])
-                    .sort_index()
-                    .groupby('location_id').apply(project_mandates)
-                    .reset_index())
-
-        else:
-            data = io.load(self.mobility_root.mobility_data(measure=f'mobility_{scenario}')).reset_index()
-            data['observed'] = (1 - data['type']).astype(int)
-            data['location_id'] = data['location_id'].astype(int)
+        data = io.load(self.mobility_root.mobility_data(measure=f'mobility_{scenario}')).reset_index()
+        data['observed'] = (1 - data['type']).astype(int)
+        data['location_id'] = data['location_id'].astype(int)
 
         output_columns = ['location_id', 'date', 'observed', f'mobility_{scenario}']
         data = (data.rename(columns={'mobility_forecast': f'mobility_{scenario}'})
                 .loc[:, output_columns]
                 .sort_values(['location_id', 'date']))
         return data
+
+    def load_mandates(self) -> pd.DataFrame:
+        mandates = io.load(self.model_inputs_root.mandates())
+        return mandates
 
     def load_raw_percent_mandates(self, scenario: str) -> pd.DataFrame:
         metadata = io.load(self.mobility_root.metadata())

@@ -107,7 +107,6 @@ def preprocessing_main(app_metadata: cli_tools.Metadata,
 @cli_tools.with_version(paths.MORTALITY_SCALARS_ROOT)
 @cli_tools.with_version(paths.MASK_USE_OUTPUT_ROOT)
 @cli_tools.with_version(paths.MOBILITY_COVARIATES_OUTPUT_ROOT)
-@cli_tools.with_version(paths.NPI_REGRESSION_DATA_ROOT)
 @cli_tools.with_version(paths.PNEUMONIA_OUTPUT_ROOT)
 @cli_tools.with_version(paths.POPULATION_DENSITY_OUTPUT_ROOT)
 @cli_tools.with_version(paths.TESTING_OUTPUT_ROOT)

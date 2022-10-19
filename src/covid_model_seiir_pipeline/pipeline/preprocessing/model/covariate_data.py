@@ -61,11 +61,10 @@ def preprocess_prop_65plus(data_interface: PreprocessingDataInterface) -> None:
 
 def preprocess_mobility(data_interface: PreprocessingDataInterface) -> None:
     hierarchy = data_interface.load_hierarchy('pred')
-    for scenario in ['reference', 'vaccine_adjusted', 'mandates']:
-        percent_scenario = 'reference' if scenario == 'mandates' else scenario
+    for scenario in ['reference', 'vaccine_adjusted']:
         logger.info(f'Loading raw mobility data for scenario {scenario}.', context='read')
         mobility = data_interface.load_raw_mobility(scenario)
-        percent_mandates = data_interface.load_raw_percent_mandates(percent_scenario)
+        percent_mandates = data_interface.load_raw_percent_mandates(scenario)
 
         logger.info(f'Fixing southern hemisphere locations.', context='transform')
         percent_mandates = _adjust_southern_hemisphere(percent_mandates)
@@ -81,6 +80,116 @@ def preprocess_mobility(data_interface: PreprocessingDataInterface) -> None:
 
     logger.info('Saving mobility effect sizes.', context='write')
     data_interface.save_covariate_info(effect_sizes, 'mobility', 'effect')
+
+
+def preprocess_mandates_index_1(data_interface: PreprocessingDataInterface) -> None:
+    hierarchy = data_interface.load_hierarchy('pred')
+    mandates = data_interface.load_mandates()
+    mandate_groups = {
+        'educational': [
+            'primary_edu',
+            'secondary_edu',
+            'higher_edu',
+        ],
+        'travel': [
+            'borders_close_any',
+            'borders_close_all',
+            'local_restrict',
+        ],
+        'gathering': [
+            'gatherings9998i9998o',
+            'gatherings100i250o',
+            'gatherings50i100o',
+            'gatherings25i50o',
+            'gatherings10i25o',
+            'gatherings6i10o',
+        ],
+        'stay': [
+            'stay_at_home',
+            'stay_at_home_fine',
+        ],
+        'business': [
+            'bar_close',
+            'dining_close',
+            'gym_pool_leisure_close',
+            'non_essential_retail_close',
+            'non_essential_workplace_close',
+        ],
+        # Don't compete with mask use variable
+        # 'mask': [
+        #     'mask_use',
+        #     'mask_fine',
+        # ],
+        'curfew': [
+            'curfew_business',
+            'curfew_home',
+        ],
+    }
+
+    group_mandates = pd.concat([
+        mandates[detailed].sum(axis=1).rename(coarse)
+        for coarse, detailed in mandate_groups.items()
+    ], axis=1)
+    mandates_index = group_mandates.mean(axis=1).rename('mandates_index_1_reference')
+
+    locations = mandates.reset_index().location_id.unique().tolist()
+    dates = pd.date_range('2019-11-01', '2024-01-01')
+    idx = pd.MultiIndex.from_product([locations, dates], names=['location_id', 'date'])
+
+    mandates_index = (mandates_index
+                      .reindex(idx)
+                      .groupby('location_id')
+                      .ffill()
+                      .groupby('location_id')
+                      .fillna(0.))
+    mandates_index = helpers.parent_inheritance(mandates_index, hierarchy)
+    data_interface.save_covariate(mandates_index, f'mandates_index_1', 'reference')
+
+
+def preprocess_mandates_index_2(data_interface: PreprocessingDataInterface) -> None:
+    hierarchy = data_interface.load_hierarchy('pred')
+    mandates = data_interface.load_mandates()
+
+    # Peng mandates variable
+    col_mandates = [
+        'bar_close',
+        'borders_close_all',
+        'curfew_business',
+        'dining_close',
+        'gym_pool_leisure_close',
+        'higher_edu',
+        'non_essential_retail_close',
+        'non_essential_workplace_close',
+    ]
+    col_gatherings = [
+        col for col in mandates.columns
+        if "gatherings" in col and "unVAC" not in col and "gatherings9998" not in col
+    ]
+    col_primary_secondary_edu = ["primary_edu", "secondary_edu"]
+    col_home = ["curfew_home", "stay_at_home"]
+    col_modeled_mandates = col_mandates + ["gatherings", "primary_secondary_edu", "home"]
+
+    # create intermediate mandates
+    mandates["gatherings"] = mandates[col_gatherings].mean(axis=1)
+    mandates["primary_secondary_edu"] = mandates[col_primary_secondary_edu].mean(axis=1)
+    mandates["home"] = mandates[col_home].mean(axis=1)
+
+    # create combined mandates
+    mandates = mandates[col_modeled_mandates].mean(axis=1).rename('mandates_index_2_reference')
+
+    locations = mandates.reset_index().location_id.unique().tolist()
+    dates = pd.date_range('2019-11-01', '2024-01-01')
+    idx = pd.MultiIndex.from_product([locations, dates], names=['location_id', 'date'])
+
+
+    mandates_index = (mandates
+                      .reindex(idx)
+                      .groupby('location_id')
+                      .ffill()
+                      .groupby('location_id')
+                      .fillna(0.))
+    mandates_index = helpers.parent_inheritance(mandates_index, hierarchy)
+    data_interface.save_covariate(mandates_index, f'mandates_index_2', 'reference')
 
 
 def _adjust_southern_hemisphere(data: pd.DataFrame) -> pd.DataFrame:

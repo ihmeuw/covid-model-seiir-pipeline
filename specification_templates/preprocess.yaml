@@ -7,7 +7,6 @@ data:
   mortality_scalars_version: '2022_03_16.01'
   mask_use_outputs_version: '2022_10_17.01'
   mobility_covariate_version: '2022_10_18.01'
-  npi_regression_data_version: '2022_10_18.03'
   pneumonia_version: '2020_06_12.03'
   population_density_version: '2020_05_20.07'
   testing_outputs_version: '2022_10_17.05'
@@ -37,7 +36,7 @@ data:
         lr_coverage: 0.5
         hr_coverage: 0.8
         parent_location_ids: [4, 31, 103, 137, 158, 166]
-        scaleup_dates: ['2022-11-01', '2022-12-01']
+        scaleup_dates: ['2022-08-15', '2022-09-15']
   output_root: ''
   output_format: 'csv'
   n_draws: 100
