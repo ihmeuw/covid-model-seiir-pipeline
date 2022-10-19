@@ -5,9 +5,9 @@ case:
     50:      2.0  # Montenegro
     61:      2.0  # Republic of Moldova
     114:    0.25  # Haiti
-    4647:    2.0  # Coahuila
-    4658:   0.75  # Michoacán de Ocampo
-    4659:   0.75  # Morelos
+    # 4647:    2.0  # Coahuila
+    # 4658:   0.75  # Michoacán de Ocampo
+    # 4659:   0.75  # Morelos
     4751:    8.0  # Alagoas
     4753:    8.0  # Amapá
     4752:    0.5  # Amazonas
@@ -67,8 +67,8 @@ case:
 #     203:     1.5  # Cabo Verde
 admission:
   ancestral:
-    4647:    2.0  # Coahuila
-    4653:    1.5  # Guanajuato
+    # 4647:    2.0  # Coahuila
+    # 4653:    1.5  # Guanajuato
     4754:    0.5  # Bahia
 #   omicron:
 #     151:     0.6  # Qatar
@@ -82,10 +82,10 @@ death:
     367:     0.5  # Monaco
     121:     3.0  # Bolivia (Plurinational State of)
     126:     0.3  # Costa Rica
-    4647:    2.0  # Coahuila
-    4652:    1.5  # Durango
-    4653:    1.5  # Guanajuato
-    4655:   1.25  # Hidalgo
+    # 4647:    2.0  # Coahuila
+    # 4652:    1.5  # Durango
+    # 4653:    1.5  # Guanajuato
+    # 4655:   1.25  # Hidalgo
     133:     0.1  # Venezuela (Bolivarian Republic of)
     155:     0.3  # Turkey
     161:     0.5  # Bangladesh

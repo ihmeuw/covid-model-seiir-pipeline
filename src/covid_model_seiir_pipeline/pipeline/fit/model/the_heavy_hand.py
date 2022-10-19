@@ -33,13 +33,18 @@ def rescale_kappas(
         manual_scaling_factors = {}
 
     for variant in VARIANT_NAMES:
-        if rates_parameters.calibration_fixes:
+        if rates_parameters.calibration_type:
             try:
-                scaling_factors = yaml.full_load((kappa_scaling_factors_path / f'{variant}.yaml').read_text())
+                scaling_factors = yaml.full_load((kappa_scaling_factors_path /
+                                                  rates_parameters.calibration_type /
+                                                  f'{variant}.yaml').read_text())
                 scaling_factors = scaling_factors[measure]
-                logger.info(f'Applying {variant} kappa scalars to {len(scaling_factors)} locations')
+
+                logger.info(f'Applying {variant} kappa scalars to {len(scaling_factors)} locations'
+                            f' (calibration type {rates_parameters.calibration_type}')
             except FileNotFoundError:
-                logger.warning(f'No kappa scaling factors for {variant}')
+                logger.warning(f'No kappa scaling factors for {variant}'
+                               f' (calibration type {rates_parameters.calibration_type})')
                 scaling_factors = {}
         else:
             scaling_factors = {}

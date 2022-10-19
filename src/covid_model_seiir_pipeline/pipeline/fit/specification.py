@@ -112,7 +112,7 @@ class RatesParameters:
     admission_to_death: DiscreteUniformSampleable = field(default=(12, 16))
 
     test_scalar: float = field(default=1.0)
-    calibration_fixes: bool = field(default=True)
+    calibration_type: str = field(default='')
     manual_fixes: bool = field(default=True)
 
     # ifr_risk_ratio: RRSampleable = field(default='BMJ')
