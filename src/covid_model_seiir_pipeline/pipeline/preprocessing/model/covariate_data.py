@@ -127,7 +127,7 @@ def preprocess_mandates_index_1(data_interface: PreprocessingDataInterface) -> N
     }
 
     group_mandates = pd.concat([
-        mandates[detailed].sum(axis=1).rename(coarse)
+        mandates[detailed].mean(axis=1).rename(coarse)
         for coarse, detailed in mandate_groups.items()
     ], axis=1)
     mandates_index = group_mandates.mean(axis=1).rename('mandates_index_1_reference')
