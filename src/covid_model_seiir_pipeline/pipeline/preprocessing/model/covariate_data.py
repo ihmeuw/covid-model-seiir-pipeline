@@ -172,7 +172,7 @@ def preprocess_mandates(data_interface: PreprocessingDataInterface) -> None:
                           .groupby('location_id')
                           .fillna(0.))
         mandates_index = helpers.parent_inheritance(mandates_index, hierarchy)
-        data_interface.save_covariate(mandates_index, f'mandates_index_{i}', 'reference')
+        data_interface.save_covariate(mandates_index, f'mandates_index_{i+1}', 'reference')
 
 
 def _adjust_southern_hemisphere(data: pd.DataFrame) -> pd.DataFrame:
