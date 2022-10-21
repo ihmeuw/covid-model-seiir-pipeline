@@ -44,7 +44,6 @@ def prep_regression_weights(
         'ancestral_threshold_one': _apply_threshold(ancestral_infection_weights, 0.01),
         'ancestral_threshold_five': _apply_threshold(ancestral_infection_weights, 0.05),
     }
-
     weights = weights[weighting_scheme]
 
     # don't allow China or Australasia to impact fitting

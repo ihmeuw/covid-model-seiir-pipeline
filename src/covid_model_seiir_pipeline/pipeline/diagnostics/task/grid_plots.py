@@ -80,7 +80,7 @@ def run_grid_plots(diagnostics_version: str, name: str, progress_bar: bool) -> N
         output_path = Path(diagnostics_spec.data.output_root) / f'grid_plots_{grid_plot_spec.name}.pdf'
         model.merge_pdfs(plot_cache, output_path, hierarchy)
 
-        logger.report()
+    logger.report()
 
 
 @click.command()

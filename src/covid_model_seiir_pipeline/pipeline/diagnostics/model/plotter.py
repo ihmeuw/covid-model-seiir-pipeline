@@ -443,7 +443,7 @@ def make_variant_page(plot_versions: List[PlotVersion],
     ]
 
     grid_spec = fig.add_gridspec(
-        nrows=len(measures), ncols=len(VARIANT_NAMES) - 2,
+        nrows=len(measures), ncols=len(VARIANT_NAMES) - 1,
         wspace=0.2,
     )
     grid_spec.update(**GRID_SPEC_MARGINS)

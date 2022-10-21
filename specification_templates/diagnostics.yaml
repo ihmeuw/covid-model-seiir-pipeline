@@ -4,22 +4,20 @@ workflow:
   project: 'proj_covid_prod'
   queue: 'all.q'
 grid_plots:
-  - name: '2021_2022'
-    date_start: '2021-01-01'
-    date_end: '2022-12-31'
+  ## short range
+  - name: '2020_feb2023'
+    date_start: '2020-01-01'
+    date_end: '2023-02-28'
     comparators:
     - version: '2022_09_09.01'
       scenarios:
         reference*: 'public reference'
-    - version: '2022_09_20.01'
+    - version: '2022_10_21.03'
       scenarios:
-        reference*: 'weighted regression (unconstrained)'
-    - version: '2022_09_21.02'
-      scenarios:
-        reference*: 'weighted regression (constrained)'
-        # reference*: 'reference'
-        # global_antivirals: 'global antivirals'
-        # best_masks: 'best masks'
+        reference*: 'reference'
+        global_antivirals: 'global antivirals'
+        best_masks: 'best masks'
+  ## long range
   - name: '2020_2023'
     date_start: '2020-01-01'
     date_end: '2023-12-31'
@@ -27,12 +25,8 @@ grid_plots:
     - version: '2022_09_09.01'
       scenarios:
         reference*: 'public reference'
-    - version: '2022_09_20.01'
+    - version: '2022_10_21.03'
       scenarios:
-        reference*: 'weighted regression (unconstrained)'
-    - version: '2022_09_21.02'
-      scenarios:
-        reference*: 'weighted regression (constrained, CHN)'
-        # reference*: 'reference'
-        # global_antivirals: 'global antivirals'
-        # best_masks: 'best masks'
+        reference*: 'reference'
+        global_antivirals: 'global antivirals'
+        best_masks: 'best masks'
