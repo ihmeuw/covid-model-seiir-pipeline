@@ -12,13 +12,7 @@ grid_plots:
     - version: '2022_09_09.01'
       scenarios:
         reference*: 'public reference'
-    # - version: '2022_10_20.06'
-    #   scenarios:
-    #     reference*: 'full calibration'
-    # - version: '2022_10_20.05'
-    #   scenarios:
-    #     reference*: 'omicron/BA.5 calibration'
-    - version: '2022_10_21.01'
+    - version: '2022_10_21.03'
       scenarios:
         reference*: 'reference'
         global_antivirals: 'global antivirals'
@@ -31,13 +25,7 @@ grid_plots:
     - version: '2022_09_09.01'
       scenarios:
         reference*: 'public reference'
-    # - version: '2022_10_20.06'
-    #   scenarios:
-    #     reference*: 'full calibration'
-    # - version: '2022_10_20.05'
-    #   scenarios:
-    #     reference*: 'omicron/BA.5 calibration'
-    - version: '2022_10_21.01'
+    - version: '2022_10_21.03'
       scenarios:
         reference*: 'reference'
         global_antivirals: 'global antivirals'
