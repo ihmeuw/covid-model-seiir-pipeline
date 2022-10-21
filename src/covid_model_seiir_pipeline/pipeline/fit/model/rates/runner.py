@@ -1,4 +1,4 @@
-from typing import Dict, Tuple
+from typing import Dict, List, Tuple
 
 import pandas as pd
 from loguru import logger
@@ -8,9 +8,6 @@ from covid_model_seiir_pipeline.pipeline.fit.model.rates import (
     idr,
     ifr,
     ihr,
-)
-from covid_model_seiir_pipeline.pipeline.fit.model.sampled_params import (
-    VariantRR,
 )
 
 
@@ -27,7 +24,7 @@ def run_rates_pipeline(measure: str,
                        variant_prevalence: pd.Series,
                        daily_infections: pd.Series,
                        durations: Dict[str, int],
-                       variant_rrs: VariantRR,
+                       variant_rrs: pd.DataFrame,
                        params: RatesParameters,
                        day_inflection: pd.Timestamp,
                        num_threads: int,
@@ -50,7 +47,7 @@ def run_rates_pipeline(measure: str,
         age_patterns=age_patterns,
         population=total_population,
         age_specific_population=age_specific_population,
-        variant_risk_ratio=variant_rrs._asdict(),
+        variant_risk_ratios=variant_rrs,
         testing_capacity=testing_capacity,
         durations=durations,
         pred_start_date=params.pred_start_date,

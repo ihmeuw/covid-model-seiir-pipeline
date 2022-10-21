@@ -211,7 +211,11 @@ def postprocess_covariate(postprocessing_version: str,
                           scenario_name: str, covariate: str) -> None:
     postprocessing_spec, data_interface = build_spec_and_data_interface(postprocessing_version)
     covariate_config = model.COVARIATES[covariate]
-    covariate_version = data_interface.get_covariate_version(covariate, scenario_name)
+    try:
+        covariate_version = data_interface.get_covariate_version(covariate, scenario_name)
+    except KeyError:
+        logger.info(f'Covariate {covariate} not present in version')
+        return
     n_draws = data_interface.get_n_draws()
 
     input_covariate_data = data_interface.load_input_covariate(covariate, covariate_version)

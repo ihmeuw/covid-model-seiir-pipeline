@@ -22,6 +22,7 @@ class Durations(NamedTuple):
     pcr_to_seropositive: pd.Series
     admission_to_seropositive: pd.Series
     seropositive_to_death: pd.Series
+    min_lag: int
     max_lag: int
 
     def to_ints(self):
@@ -37,6 +38,7 @@ def sample_durations(params: RatesParameters, draw_id: int, hierarchy: pd.DataFr
     exposure_to_admission = random_state.choice(_to_range(params.exposure_to_admission))
     exposure_to_seroconversion = random_state.choice(_to_range(params.exposure_to_seroconversion))
     admission_to_death = random_state.choice(_to_range(params.admission_to_death))
+    min_lag = min(_to_range(params.exposure_to_admission))
     max_lag = max(_to_range(params.exposure_to_admission)) + max(_to_range(params.admission_to_death))
 
     locations = hierarchy.location_id.tolist()
@@ -49,6 +51,7 @@ def sample_durations(params: RatesParameters, draw_id: int, hierarchy: pd.DataFr
         pcr_to_seropositive=pd.Series(exposure_to_seroconversion - exposure_to_admission, index=locations),
         admission_to_seropositive=pd.Series(exposure_to_seroconversion - exposure_to_admission, index=locations),
         seropositive_to_death=pd.Series((exposure_to_admission + admission_to_death) - exposure_to_seroconversion, index=locations),
+        min_lag=min_lag,
         max_lag=max_lag,
     )
 
@@ -61,9 +64,18 @@ def _to_range(val: DiscreteUniformSampleable):
 
 
 class VariantRR(NamedTuple):
-    ifr: float
-    ihr: float
-    idr: float
+    alpha_ifr: float
+    alpha_ihr: float
+    alpha_idr: float
+    beta_ifr: float
+    beta_ihr: float
+    beta_idr: float
+    gamma_ifr: float
+    gamma_ihr: float
+    gamma_idr: float
+    delta_ifr: float
+    delta_ihr: float
+    delta_idr: float
     omicron_ifr: float
     omicron_ihr: float
     omicron_idr: float
@@ -81,29 +93,20 @@ def sample_variant_severity(params: RatesParameters, draw_id: int) -> VariantRR:
     params = params.to_dict()
     rrs = {}
     for ratio in ['ifr', 'ihr', 'idr']:
-        rr_spec = params[f'{ratio}_risk_ratio']
-        if isinstance(rr_spec, (int, float)):
-            rrs[ratio] = float(rr_spec)
-        else:
-            mean, lower, upper = rr_spec
-            mu = np.log(mean)
-            sigma = (np.log(upper) - np.log(lower)) / 3.92
-            rrs[ratio] = np.exp(random_state.normal(mu, sigma))
-
-        for variant in ['omicron', 'ba5']:
-            variant_spec = params[f'{variant}_{ratio}_scalar']
-            if isinstance(variant_spec, (int, float)):
-                value = variant_spec
-            else:
-                value = sample_parameter(f'{variant}_{ratio}_scalar', draw_id, *variant_spec)
-            rrs[f'{variant}_{ratio}'] = rrs[ratio] * value
+        for variant in VARIANT_NAMES:
+            if variant not in [VARIANT_NAMES.none, VARIANT_NAMES.ancestral, VARIANT_NAMES.omega]:
+                variant_spec = params[f'{ratio}_rr_{variant}']
+                if isinstance(variant_spec, (int, float)):
+                    value = variant_spec
+                else:
+                    value = sample_parameter(f'{ratio}_rr_{variant}', draw_id, *variant_spec)
+                rrs[f'{variant}_{ratio}'] = value
 
         omega_severity = params['omega_severity_parameterization']
         rrs[f'omega_{ratio}'] = {
-            'delta': rrs[ratio],
+            'delta': rrs[f'delta_{ratio}'],
             'omicron': rrs[f'omicron_{ratio}'],
-            'ba5': rrs[f'ba5_{ratio}'],
-            'average': (rrs[ratio] * rrs[f'omicron_{ratio}']) ** (1/2),
+            'average': (rrs[f'delta_{ratio}'] * rrs[f'omicron_{ratio}']) ** (1/2),
         }[omega_severity]
 
     return VariantRR(**rrs)
@@ -149,17 +152,16 @@ def sample_ode_params(variant_rr: VariantRR,
     phi_matrix = pd.DataFrame(
         data=np.array([
             # TO
-            # none ancestral alpha beta gamma delta omicron ba5 other omega    # FROM
-            [0.0,       0.0,  0.0, 0.0,  0.0,  0.0,    0.0, 0.0, 0.0,   0.0],  # none
-            [1.0,       1.0,    s,   s,    s,    s,      s,   s,   s,     s],  # ancestral
-            [1.0,         s,  1.0,   s,    s,    s,      s,   s,   s,     s],  # alpha
-            [1.0,       1.0,  1.0, 1.0,  1.0,  1.0,      s,   s, 1.0,     s],  # beta
-            [1.0,       1.0,  1.0, 1.0,  1.0,  1.0,      s,   s, 1.0,     s],  # gamma
-            [1.0,       1.0,  1.0, 1.0,  1.0,  1.0,      s,   s, 1.0,     s],  # delta
-            [1.0,       1.0,  1.0, 1.0,  1.0,  1.0,    1.0,   s, 1.0,     s],  # omicron
-            [1.0,       1.0,  1.0, 1.0,  1.0,  1.0,    1.0, 1.0, 1.0,     s],  # ba5
-            [1.0,       1.0,  1.0, 1.0,  1.0,  1.0,      s,   s, 1.0,     s],  # other
-            [1.0,       1.0,  1.0, 1.0,  1.0,  1.0,    1.0, 1.0, 1.0,   1.0],  # omega
+            # none ancestral alpha  beta gamma delta omicron   ba5  omega  # FROM
+            [0.0,       0.0,  0.0,  0.0,  0.0,  0.0,    0.0,  0.0,  0.0],  # none
+            [1.0,       1.0,    s,    s,    s,    s,      s,    s,    s],  # ancestral
+            [1.0,         s,  1.0,    s,    s,    s,      s,    s,    s],  # alpha
+            [1.0,       1.0,  1.0,  1.0,  1.0,  1.0,      s,    s,    s],  # beta
+            [1.0,       1.0,  1.0,  1.0,  1.0,  1.0,      s,    s,    s],  # gamma
+            [1.0,       1.0,  1.0,  1.0,  1.0,  1.0,      s,    s,    s],  # delta
+            [1.0,       1.0,  1.0,  1.0,  1.0,  1.0,    1.0, 0.75,    s],  # omicron
+            [1.0,       1.0,  1.0,  1.0,  1.0,  1.0,    1.0,  1.0,    s],  # ba5
+            [1.0,       1.0,  1.0,  1.0,  1.0,  1.0,    1.0,  1.0,  1.0],  # omega
         ]),
         columns=VARIANT_NAMES,
         index=pd.Index(VARIANT_NAMES, name='variant'),
@@ -171,11 +173,10 @@ def sample_ode_params(variant_rr: VariantRR,
     for measure, rate in (('death', 'ifr'), ('admission', 'ihr'), ('case', 'idr')):
         for variant in VARIANT_NAMES:
             if variant in [VARIANT_NAMES.none, VARIANT_NAMES.ancestral]:
-                sampled_params[f'kappa_{variant}_{measure}'] = 1.0
-            elif variant in [VARIANT_NAMES.omicron, VARIANT_NAMES.ba5, VARIANT_NAMES.omega]:
-                sampled_params[f'kappa_{variant}_{measure}'] = variant_rr[f'{variant}_{rate}']
+                sampled_params[f'kappa_{variant}_{measure}'] = 1.
             else:
-                sampled_params[f'kappa_{variant}_{measure}'] = variant_rr[rate]
+                sampled_params[f'kappa_{variant}_{measure}'] = variant_rr[f'{variant}_{rate}']
+
     return sampled_params, phi_matrix
 
 

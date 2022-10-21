@@ -1,10 +1,11 @@
 data:
-  seir_fit_version: '2022_09_09.04'
+  seir_fit_version: '2022_10_21.01'
   coefficient_version: ''
   seir_covariate_priors_version: ''
   output_root: ''
   output_format: 'parquet'
   drop_locations: []
+  weighting: 'ancestral_threshold_five'
 workflow:
   project: 'proj_covid_prod'
   queue: 'all.q'
@@ -30,21 +31,18 @@ covariates:
     bounds: [-1000.0, 1000.0]
   pneumonia:
     gprior: [0.0, 1000.0]
-    bounds: [0.8, 1.3]
-  mobility:
+    bounds: [0.0, 1000.0]
+  mandates_index_2:
     gprior: [0.0, 1000.0]
-    bounds: [0.0055, 1000.0]
+    bounds: [-1000.0, 0.0]
   mask_use:
     gprior: [0.0, 1000.0]
-    bounds: [-1000.0, -0.5]
-  testing:
-    gprior: [0.0, 1000.0]
-    bounds: [-80.0, 0.0]
+    bounds: [-1000.0, 0.0]  
   air_pollution_pm_2_5:
     gprior: [0.0, 1000.0]
     bounds: [0.0, 1000.0]
   smoking_prevalence:
-    gprior: [0.0, 1000]
+    gprior: [0.0, 1000.0]
     bounds: [0.0, 1000.0]
   lri_mortality:
     gprior: [0.0, 1000.0]

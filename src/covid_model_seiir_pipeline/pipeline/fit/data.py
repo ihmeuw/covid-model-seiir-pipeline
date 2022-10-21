@@ -112,6 +112,7 @@ class FitDataInterface:
         first_omega_date = self.load_specification().fit_parameters.omega_invasion_date
         data = self.preprocessing_data_interface.load_variant_prevalence(scenario)
         if not first_omega_date:
+            data['omega'] = 0.
             return data
 
         # shift BA.5 ramp for omega

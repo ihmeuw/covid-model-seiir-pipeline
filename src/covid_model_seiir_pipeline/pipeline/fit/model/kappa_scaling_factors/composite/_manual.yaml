@@ -1,0 +1,169 @@
+case:
+  ancestral:
+    36:      0.6  # Kazakhstan
+    37:      8.0  # Kyrgyzstan
+    50:      2.0  # Montenegro
+    61:      2.0  # Republic of Moldova
+    114:    0.25  # Haiti
+    4647:    1.5  # Coahuila
+    4751:    8.0  # Alagoas
+    4753:    8.0  # Amapá
+    4752:    0.5  # Amazonas
+    4756:    5.0  # Distrito Federal
+    4759:    0.5  # Maranhão
+    4762:    8.0  # Mato Grosso
+    4761:    8.0  # Mato Grosso do Sul
+    4763:    8.0  # Pará
+    4768:    3.0  # Rio de Janeiro
+    4845:    1.5  # Chandigarh
+    4858:    1.5  # Lakshadweep
+    4866:    1.5  # Puducherry
+    4869:    1.5  # Sikkim
+    53618:   0.8  # Islamabad Capital Territory
+    186:     2.0  # Seychelles
+    200:     0.5  # Benin
+    210:     2.5  # Liberia
+  alpha:
+    36:   0.43550501551689025 # Kazakhstan
+    37:   4.997237853750269   # Kyrgyzstan
+  gamma:
+    4751: 6.636688567946908   # Alagoas
+    4753: 12.603998890021273  # Amapá
+    4762: 35.40576233257795   # Mato Grosso
+    4761: 28.118255140168202  # Mato Grosso do Sul
+    4763: 6.646797605564934   # Pará
+  delta:
+    36:   0.717111900386507   # Kazakhstan
+    37:   3.2928275364712247  # Kyrgyzstan
+    4863: 14.17425383987252   # Mizoram
+    4869: 12.488946293479433  # Sikkim
+  omicron:
+    36:   0.6600688004628659  # Kazakhstan
+    37:   1.7859477642641657  # Kyrgyzstan
+    4751: 4.105137030339426   # Alagoas
+    4753: 4.587109844559148   # Amapá
+    4762: 5.931349714570321   # Mato Grosso
+    4761: 6.881684493041227   # Mato Grosso do Sul
+    4763: 2.9717463571087896  # Pará
+    4842: 0.6740394419534336  # Arunachal Pradesh
+    4849: 1.166455422205444   # Delhi
+    4863: 7.235413606788315   # Mizoram
+    4869: 0.9663263325014363  # Sikkim
+    197:  1.1413398024758976  # Eswatini
+    195:  0.5740923152948676  # Namibia
+  ba5:
+    36:   0.2568171001286454  # Kazakhstan
+    37:   0.30893308962724797 # Kyrgyzstan
+    4751: 1.310440169182201   # Alagoas
+    4753: 1.867760023482147   # Amapá
+    4762: 2.4408681676615918  # Mato Grosso
+    4761: 0.9162565622612469  # Mato Grosso do Sul
+    4763: 1.917330320768518   # Pará
+    4842: 0.24432169910886137 # Arunachal Pradesh
+    4849: 0.3805010191166702  # Delhi
+    4863: 1.369235938671124   # Mizoram
+    4869: 1.8801006495786752  # Sikkim
+    197:  0.15306310796298803 # Eswatini
+    195:  0.29469501322057534 # Namibia
+admission:
+  ancestral:
+    4647:    1.5  # Coahuila
+    4653:    1.5  # Guanajuato
+    4754:    0.5  # Bahia
+  gamma:
+    4751: 1.1909944929587015  # Alagoas
+    4753: 3.9648401030283984  # Amapá
+    4762: 4.656521709782338   # Mato Grosso
+    4761: 8.174015214829605   # Mato Grosso do Sul
+    4763: 1.564727475681964   # Pará
+  omicron:
+    4751: 0.5998894655846735  # Alagoas
+    4753: 0.5280961277658757  # Amapá
+    4762: 0.6456568553251786  # Mato Grosso
+    4761: 0.9733329833341042  # Mato Grosso do Sul
+    4763: 0.26008300676027624 # Pará
+  ba5:
+    4751: 0.37529622252992884 # Alagoas
+    4753: 0.23124874982819138 # Amapá
+    4762: 0.2679607090443343  # Mato Grosso
+    4761: 0.2879352495585249  # Mato Grosso do Sul
+    4763: 0.2061153203568214  # Pará
+death:
+  ancestral:
+    33:     1.75  # Armenia
+    34:      2.0  # Azerbaijan
+    37:      3.0  # Kyrgyzstan
+    50:     1.25  # Montenegro
+    62:      2.0  # Russian Federation
+    367:     0.5  # Monaco
+    121:     3.0  # Bolivia (Plurinational State of)
+    126:     0.3  # Costa Rica
+    4647:    1.5  # Coahuila
+    4652:    1.5  # Durango
+    4653:    1.5  # Guanajuato
+    133:     0.1  # Venezuela (Bolivarian Republic of)
+    155:     0.3  # Turkey
+    161:     0.5  # Bangladesh
+    4845:    2.0  # Chandigarh
+    4858:    2.0  # Lakshadweep
+    4866:    2.0  # Puducherry
+    53618:  1.25  # Islamabad Capital Territory
+    14:      0.5  # Maldives
+    169:     2.5  # Central African Republic
+    187:     0.5  # Somalia
+    203:     0.5  # Cabo Verde
+    206:     1.5  # Gambia
+    208:    0.75  # Guinea
+    209:    0.75  # Guinea-Bissau
+  alpha:
+    36:   0.8426316654007525  # Kazakhstan
+    37:   1.7146636219551967  # Kyrgyzstan
+  gamma:
+    4751: 0.9844426749317358  # Alagoas
+    4753: 4.64609204800433    # Amapá
+    4762: 8.707527835606973   # Mato Grosso
+    4761: 6.213896960018858   # Mato Grosso do Sul
+    4763: 1.5635396786119613  # Pará
+  delta:
+    36:   1.7938560784063866  # Kazakhstan
+    37:   1.2627260563197984  # Kyrgyzstan
+    4863: 5.841115384939276   # Mizoram
+    4869: 2.0329886383397855  # Sikkim
+  omicron:
+    37:   2.084252555069266   # Kyrgyzstan
+    4751: 0.8741316961872208  # Alagoas
+    4753: 1.9238473474491047  # Amapá
+    4762: 1.1800385149041426  # Mato Grosso
+    4761: 1.345386871017022   # Mato Grosso do Sul
+    4763: 0.7494865462374457  # Pará
+    4842: 0.4126183511377969  # Arunachal Pradesh
+    4849: 1.7361163781137399  # Delhi
+    4863: 1.3291324170563434  # Mizoram
+    4869: 0.872733287407307   # Sikkim
+  ba5:
+    4751: 0.5011245617714143  # Alagoas
+    4753: 0.5719003948330357  # Amapá
+    4762: 0.946752493677669   # Mato Grosso
+    4761: 0.6943133860923332  # Mato Grosso do Sul
+    4763: 1.413755418901887   # Pará
+    4842: 0.35425942316662495 # Arunachal Pradesh
+    4849: 0.5315626231249975  # Delhi
+    4863: 2.2876595231347543  # Mizoram
+    4869: 1.9055462721518264  # Sikkim
+
+## ALL VARIANT CALIBRATION
+# Kazakhstan (36)
+# Kyrgyzstan (37)
+# Alagoas (4751)
+# Amapá (4753)
+# Mato Grosso (4762)
+# Mato Grosso do Sul (4761)
+# Pará (4763)
+# Mizoram (4863)
+# Sikkim (4869)
+
+## MEAN RATIO 2022 VARIANT CALIBRATION
+# Arunachal Pradesh (4842)
+# Delhi (4849)
+# Eswatini (197)
+# Namibia (195)

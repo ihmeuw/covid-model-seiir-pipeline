@@ -9,16 +9,27 @@ def filter_and_format_epi_measures(
     mortality_scalar: pd.Series,
     mr_hierarchy: pd.DataFrame,
     pred_hierarchy: pd.DataFrame,
+    measure_lag: int,
     max_lag: int,
+    variant_prevalence: pd.DataFrame,
+    epi_exclude_variants: List[str],
     measure: str = None,
 ) -> pd.DataFrame:
-    if measure is not None:
+    if measure:
         epi_measures = drop_locations_for_measure_model(epi_measures, measure, pred_hierarchy)
+
+    if epi_exclude_variants:
+        epi_measures = exclude_epi_data_by_variant(
+            epi_measures=epi_measures,
+            pred_hierarchy=pred_hierarchy,
+            variant_prevalence=variant_prevalence.loc[:, epi_exclude_variants].sum(axis=1).rename('variant_prevalence'),
+            measure_lag=measure_lag,
+        )
 
     epi_measures = format_epi_measures(epi_measures, mr_hierarchy, pred_hierarchy,
                                        mortality_scalar, max_lag)
 
-    if measure is not None:
+    if measure:
         epi_measures = enforce_epi_threshold(epi_measures, measure, mortality_scalar)
 
     return epi_measures
@@ -32,9 +43,14 @@ def drop_locations_for_measure_model(
     """Removes a set of locations from a specific measure model."""
     drop_location_ids = {
         # if it's a parent location, will apply to all children as well
-        'death': [44533, 151],
+        'death': [
+            44533,  # Mainland China
+            # 151,  # Qatar
+        ],
         'case': [],
-        'admission': [97],
+        'admission': [
+            97,  # Argentina
+        ],
     }[measure]
 
     drop_location_ids = [
@@ -47,6 +63,31 @@ def drop_locations_for_measure_model(
         drop_location_ids = np.unique((np.hstack(drop_location_ids))).tolist()
         epi_measures = epi_measures.drop(drop_location_ids)
     return epi_measures
+
+
+def exclude_epi_data_by_variant(
+    epi_measures: pd.DataFrame,
+    pred_hierarchy: pd.DataFrame,
+    variant_prevalence: pd.DataFrame,
+    measure_lag: int,
+) -> pd.DataFrame:
+    md_location_ids = pred_hierarchy.loc[pred_hierarchy['most_detailed'] == 1, 'location_id'].astype(str).to_list()
+    epi_measures = epi_measures.query(f'location_id in [{", ".join(md_location_ids)}]')
+
+    variant_prevalence = variant_prevalence.loc[variant_prevalence > 0.01]
+    drop_dates = variant_prevalence.reset_index('date').groupby('location_id')['date'].min()
+    drop_dates += pd.Timedelta(days=measure_lag)
+
+    epi_measures = epi_measures.groupby('location_id').apply(lambda x: _exclude_epi_data_by_variant(x, drop_dates))
+
+    return epi_measures
+
+
+def _exclude_epi_data_by_variant(location_data: pd.DataFrame, drop_dates: pd.Series):
+    location_id = location_data.index.get_level_values('location_id').unique().item()
+    return (location_data
+            .loc[:, :drop_dates.loc[location_id], :]
+            .reset_index('location_id', drop=True))
 
 
 def enforce_epi_threshold(
@@ -135,9 +176,11 @@ def make_daily_and_smoothed_daily(data: pd.DataFrame, measure: str) -> pd.DataFr
     return data
 
 
-def aggregate_data_from_md(data: pd.DataFrame, hierarchy: pd.DataFrame, agg_var: str) -> pd.DataFrame:
-    if data[agg_var].max() <= 1:
-        raise ValueError(f'Data in {agg_var} looks like rates - need counts for aggregation.')
+def aggregate_data_from_md(data: pd.DataFrame, hierarchy: pd.DataFrame, agg_var: str,
+                           check_for_rates: bool = True, require_all_chilren: bool = True) -> pd.DataFrame:
+    if check_for_rates:
+        if data[agg_var].max() <= 1:
+            raise ValueError(f'Data in {agg_var} looks like rates - need counts for aggregation.')
 
     data = data.copy()
 
@@ -155,14 +198,15 @@ def aggregate_data_from_md(data: pd.DataFrame, hierarchy: pd.DataFrame, agg_var:
     parent_children_pairs = list(zip(parent_location_ids, md_child_ids_lists))
 
     parent_data = [aggregate(md_data.loc[md_data['location_id'].isin(md_child_ids)],
-                             parent_id, md_child_ids, agg_var)
+                             parent_id, md_child_ids, agg_var, require_all_chilren)
                    for parent_id, md_child_ids in parent_children_pairs]
     data = pd.concat([md_data] + parent_data)
 
     return data.reset_index(drop=True)
 
 
-def aggregate(data: pd.DataFrame, parent_id: int, md_child_ids: List[int], agg_var: str) -> pd.DataFrame:
+def aggregate(data: pd.DataFrame, parent_id: int, md_child_ids: List[int], agg_var: str,
+              require_all_chilren: bool = True) -> pd.DataFrame:
     # not most efficient to go from md each time, but safest since dataset is not square (and not a ton of data)
     draw_level = 'draw' in data.columns
     if data.empty:
@@ -177,8 +221,10 @@ def aggregate(data: pd.DataFrame, parent_id: int, md_child_ids: List[int], agg_v
             data['count'] = data.groupby('date')['count'].transform(min)
         else:
             data = data.groupby('date')[agg_var].agg(['sum', 'count'])
-        is_complete = data['count'] == len(md_child_ids)
-        data = data.loc[is_complete, 'sum'].rename(agg_var).reset_index()
+        if require_all_chilren:
+            is_complete = data['count'] == len(md_child_ids)
+            data = data.loc[is_complete]
+        data = data.loc[:, 'sum'].rename(agg_var).reset_index()
         data['location_id'] = parent_id
 
         if draw_level:

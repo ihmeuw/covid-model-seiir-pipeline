@@ -277,11 +277,16 @@ class PreprocessingDataInterface:
         data = io.load(self.mobility_root.mobility_data(measure=f'mobility_{scenario}')).reset_index()
         data['observed'] = (1 - data['type']).astype(int)
         data['location_id'] = data['location_id'].astype(int)
+
         output_columns = ['location_id', 'date', 'observed', f'mobility_{scenario}']
         data = (data.rename(columns={'mobility_forecast': f'mobility_{scenario}'})
                 .loc[:, output_columns]
                 .sort_values(['location_id', 'date']))
         return data
+
+    def load_mandates(self) -> pd.DataFrame:
+        mandates = io.load(self.model_inputs_root.mandates())
+        return mandates
 
     def load_raw_percent_mandates(self, scenario: str) -> pd.DataFrame:
         metadata = io.load(self.mobility_root.metadata())

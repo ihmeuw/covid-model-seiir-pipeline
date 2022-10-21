@@ -22,44 +22,58 @@ def rescale_kappas(
     rates_parameters: RatesParameters,
 ) -> Dict:
     kappa_scaling_factors_path = Path(__file__).parent / 'kappa_scaling_factors'
-    manual_scaling_factors = yaml.full_load((kappa_scaling_factors_path / '_manual.yaml').read_text())
-    manual_scaling_factors = manual_scaling_factors[measure]
 
-    if rates_parameters.heavy_hand_fixes:
-        for variant in VARIANT_NAMES:
+    if rates_parameters.calibration_type:
+        manual_scaling_factors = yaml.full_load((kappa_scaling_factors_path /
+                                                 rates_parameters.calibration_type/
+                                                 '_manual.yaml').read_text())
+        if manual_scaling_factors is None:
+            manual_scaling_factors = {}
+        else:
+            manual_scaling_factors = manual_scaling_factors.get(measure, {})
+    else:
+        manual_scaling_factors = {}
+
+    for variant in VARIANT_NAMES:
+        if rates_parameters.calibration_type:
             try:
-                scaling_factors = yaml.full_load((kappa_scaling_factors_path / f'{variant}.yaml').read_text())
+                scaling_factors = yaml.full_load((kappa_scaling_factors_path /
+                                                  rates_parameters.calibration_type /
+                                                  f'{variant}.yaml').read_text())
                 scaling_factors = scaling_factors[measure]
-                logger.info(f'Applying {variant} kappa scalars to {len(scaling_factors)} locations')
+
+                logger.info(f'Applying {variant} kappa scalars to {len(scaling_factors)} locations'
+                            f' (calibration type {rates_parameters.calibration_type}')
             except FileNotFoundError:
-                logger.warning(f'No kappa scaling factors for {variant}')
+                logger.warning(f'No kappa scaling factors for {variant}'
+                               f' (calibration type {rates_parameters.calibration_type})')
                 scaling_factors = {}
+        else:
+            scaling_factors = {}
 
-            flag_manual = False
-            for location_id, factor in manual_scaling_factors.get(variant, {}).items():
-                scaling_factors[location_id] = scaling_factors.get(location_id, 1) * factor
-                flag_manual = True
-            if flag_manual:
-                logger.info(f'Including manual kappa scalars for {variant}')
+        flag_manual = False
+        for location_id, factor in manual_scaling_factors.get(variant, {}).items():
+            scaling_factors[location_id] = scaling_factors.get(location_id, 1) * factor
+            flag_manual = True
+        if flag_manual:
+            logger.info(f'Including manual kappa scalars for {variant}')
 
-            kappa = pd.Series(
-                sampled_ode_params[f'kappa_{variant}_{measure}'],
-                index=location_ids,
-                name=f'kappa_{variant}_{measure}'
-            )
-            for location_id, factor in scaling_factors.items():
-                try:
-                    kappa.loc[location_id] *= factor
-                except KeyError:
-                    logger.warning(
-                        'Kappa scalar provided for a location not in '
-                        f'compartments: {location_id}'
-                    )
-            sampled_ode_params[f'kappa_{variant}_{measure}'] = kappa
+        kappa = pd.Series(
+            sampled_ode_params[f'kappa_{variant}_{measure}'],
+            index=location_ids,
+            name=f'kappa_{variant}_{measure}'
+        )
+        for location_id, factor in scaling_factors.items():
+            try:
+                kappa.loc[location_id] *= factor
+            except KeyError:
+                logger.warning(
+                    'Kappa scalar provided for a location not in '
+                    f'compartments: {location_id}'
+                )
+        sampled_ode_params[f'kappa_{variant}_{measure}'] = kappa
 
-    sampled_ode_params = adjust_omega_severity(
-        sampled_ode_params, rates_parameters
-    )
+    sampled_ode_params = adjust_omega_severity(sampled_ode_params, rates_parameters)
 
     return sampled_ode_params
 

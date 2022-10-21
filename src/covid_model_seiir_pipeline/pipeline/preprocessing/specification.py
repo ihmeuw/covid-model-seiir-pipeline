@@ -72,6 +72,8 @@ class PreprocessingData:
     vaccine_efficacy_version: str = field(default='best')
     vaccine_scenarios: list = field(default_factory=list)
 
+    new_variant: str = field(default='')
+    default_new_variant_invasion_date: str = field(default='')
     antiviral_scenario_parameters: dict = field(default_factory=dict)
 
     output_root: str = field(default='')

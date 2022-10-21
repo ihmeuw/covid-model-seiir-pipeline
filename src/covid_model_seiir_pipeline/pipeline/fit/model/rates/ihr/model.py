@@ -20,7 +20,6 @@ def run_model(model_data: pd.DataFrame,
               mr_hierarchy: pd.DataFrame,
               pred_hierarchy: pd.DataFrame,
               covariate_list: List[str],
-              variant_risk_ratio: float,
               num_threads: int,
               progress_bar: bool) -> Tuple[Dict, Dict, pd.Series, pd.Series, pd.Series, pd.Series, Dict]:
     age_stand_scaling_factor = age_standardization.get_scaling_factor(
@@ -31,6 +30,7 @@ def run_model(model_data: pd.DataFrame,
     )
     model_data = model_data.set_index('location_id')
     model_data['ihr'] *= age_stand_scaling_factor[model_data.index]
+    model_data['ihr'] *= model_data['ratio_data_scalar']
     model_data = model_data.reset_index()
     
     model_data['logit_ihr'] = math.logit(model_data['ihr'])
@@ -44,7 +44,7 @@ def run_model(model_data: pd.DataFrame,
     
     covariate_priors = get_covariate_priors(1, 'ihr',)
     covariate_priors = {covariate: covariate_priors[covariate] for covariate in covariate_list}
-    covariate_constraints = get_covariate_constraints('ihr', variant_risk_ratio,)
+    covariate_constraints = get_covariate_constraints('ihr')
     covariate_constraints = {covariate: covariate_constraints[covariate] for covariate in covariate_list}
     covariate_lambdas_tight = {covariate: 1. for covariate in covariate_list}
     covariate_lambdas_loose = {covariate: 10. for covariate in covariate_list}
@@ -52,7 +52,7 @@ def run_model(model_data: pd.DataFrame,
     var_args = {
         'dep_var': 'logit_ihr',
         'dep_var_se': 'logit_ihr_se',
-        'fe_vars': ['intercept', 'variant_prevalence'] + covariate_list,
+        'fe_vars': ['intercept'] + covariate_list,
         'prior_dict': {
             **covariate_constraints,
         },
@@ -64,12 +64,12 @@ def run_model(model_data: pd.DataFrame,
     pred_replace_dict = {}
     pred_exclude_vars = []
     level_lambdas = {
-        0: {'intercept':   3., 'variant_prevalence': 1., **covariate_lambdas_tight},  # G->SR
-        1: {'intercept':   3., 'variant_prevalence': 1., **covariate_lambdas_tight},  # SR->R
-        2: {'intercept': 100., 'variant_prevalence': 1., **covariate_lambdas_loose},  # R->A0
-        3: {'intercept': 100., 'variant_prevalence': 1., **covariate_lambdas_loose},  # A0->A1
-        4: {'intercept': 100., 'variant_prevalence': 1., **covariate_lambdas_loose},  # A1->A2
-        5: {'intercept': 100., 'variant_prevalence': 1., **covariate_lambdas_loose},  # A2->A3
+        0: {'intercept':   3., **covariate_lambdas_tight},  # G->SR
+        1: {'intercept':   3., **covariate_lambdas_tight},  # SR->R
+        2: {'intercept': 100., **covariate_lambdas_loose},  # R->A0
+        3: {'intercept': 100., **covariate_lambdas_loose},  # A0->A1
+        4: {'intercept': 100., **covariate_lambdas_loose},  # A1->A2
+        5: {'intercept': 100., **covariate_lambdas_loose},  # A2->A3
     }
     
     if var_args['group_var'] != 'location_id':

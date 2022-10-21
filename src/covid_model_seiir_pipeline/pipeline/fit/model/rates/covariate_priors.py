@@ -56,7 +56,7 @@ def get_covariate_priors(lambda_scalar: float, measure: str):
     return covariate_priors
 
 
-def get_covariate_constraints(measure: str, variant_risk_ratio: float):
+def get_covariate_constraints(measure: str):
     if measure == 'ifr':
         covariate_constraints = {
             'obesity':
@@ -77,9 +77,6 @@ def get_covariate_constraints(measure: str, variant_risk_ratio: float):
                 {'prior_beta_uniform': np.array([-np.inf, 0])},
             'haqi':
                 {'prior_beta_uniform': np.array([-np.inf, 0])},
-            'variant_prevalence':
-                {'prior_beta_uniform': np.array([np.log(variant_risk_ratio),
-                                                 np.log(variant_risk_ratio)])},
         }
     elif measure == 'ihr':
         covariate_constraints = {
@@ -101,9 +98,6 @@ def get_covariate_constraints(measure: str, variant_risk_ratio: float):
                 {'prior_beta_uniform': np.array([0, np.inf])},
             'haqi':
                 {'prior_beta_uniform': np.array([0, np.inf])},
-            'variant_prevalence':
-                {'prior_beta_uniform': np.array([np.log(variant_risk_ratio),
-                                                 np.log(variant_risk_ratio)])},
         }
 
     elif measure == 'idr':

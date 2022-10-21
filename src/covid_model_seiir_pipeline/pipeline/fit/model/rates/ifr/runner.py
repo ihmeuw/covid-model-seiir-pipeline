@@ -2,7 +2,10 @@ from typing import Dict, List, Tuple
 
 import pandas as pd
 
-from covid_model_seiir_pipeline.pipeline.fit.model.rates import age_standardization
+from covid_model_seiir_pipeline.pipeline.fit.model.rates import (
+    age_standardization,
+    variants,
+)
 from covid_model_seiir_pipeline.pipeline.fit.model.rates.ifr import (
     data,
     model,
@@ -13,13 +16,13 @@ def runner(epi_data: pd.DataFrame,
            seroprevalence: pd.DataFrame,
            covariate_pool: pd.DataFrame,
            daily_infections: pd.Series,
-           variant_prevalence: pd.Series,
+           variant_prevalence: pd.DataFrame,
+           variant_risk_ratios: pd.DataFrame,
            mr_hierarchy: pd.DataFrame,
            pred_hierarchy: pd.DataFrame,
            age_patterns: pd.DataFrame,
            population: pd.Series,
            age_specific_population: pd.Series,
-           variant_risk_ratio: Dict[str, float],
            durations: Dict,
            day_inflection: pd.Timestamp,
            day_0: pd.Timestamp,
@@ -32,7 +35,18 @@ def runner(epi_data: pd.DataFrame,
     daily_deaths = epi_data['daily_deaths'].dropna()
     ifr_age_pattern = age_patterns['ifr']
     sero_age_pattern = age_patterns['seroprevalence']
-    variant_risk_ratio = variant_risk_ratio['ifr']
+
+    ratio_data_scalar = variants.condition_out_variants(
+        sero_location_dates=(seroprevalence.loc[seroprevalence['is_outlier'] == 0,
+                                                ['location_id', 'date']]
+                             .values.tolist()),
+        hierarchy=mr_hierarchy,
+        daily_infections=daily_infections,
+        variant_prevalence=variant_prevalence,
+        variant_risk_ratios=variant_risk_ratios,
+        exposure_to_seroconversion=durations['exposure_to_seroconversion'],
+        seroconversion_to_measure=durations['seropositive_to_death'],
+    )
 
     model_data = data.create_model_data(
         cumulative_deaths=cumulative_deaths,
@@ -40,7 +54,7 @@ def runner(epi_data: pd.DataFrame,
         seroprevalence=seroprevalence,
         covariate_pool=covariate_pool,
         daily_infections=daily_infections,
-        variant_prevalence=variant_prevalence,
+        ratio_data_scalar=ratio_data_scalar,
         hierarchy=mr_hierarchy,
         population=population,
         day_0=day_0,
@@ -62,7 +76,6 @@ def runner(epi_data: pd.DataFrame,
         ifr_age_pattern=ifr_age_pattern.copy(),
         sero_age_pattern=sero_age_pattern.copy(),
         age_spec_population=age_specific_population.copy(),
-        variant_risk_ratio=variant_risk_ratio,
         mr_hierarchy=mr_hierarchy.copy(),
         pred_hierarchy=pred_hierarchy.copy(),
         day_0=day_0,

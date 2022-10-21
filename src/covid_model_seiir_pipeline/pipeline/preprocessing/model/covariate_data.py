@@ -1,11 +1,19 @@
+import functools
 from pathlib import Path
-from typing import Callable, Dict
+from typing import Callable
 
 import pandas as pd
 import numpy as np
 
 from covid_model_seiir_pipeline.lib import (
     cli_tools,
+    parallel,
+)
+from covid_model_seiir_pipeline.lib.ode_mk2.constants import (
+    VARIANT_NAMES,
+)
+from covid_model_seiir_pipeline.pipeline.preprocessing.specification import (
+    PREPROCESSING_JOBS,
 )
 from covid_model_seiir_pipeline.pipeline.preprocessing.data import (
     PreprocessingDataInterface,
@@ -72,6 +80,116 @@ def preprocess_mobility(data_interface: PreprocessingDataInterface) -> None:
 
     logger.info('Saving mobility effect sizes.', context='write')
     data_interface.save_covariate_info(effect_sizes, 'mobility', 'effect')
+
+
+def preprocess_mandates_index_1(data_interface: PreprocessingDataInterface) -> None:
+    hierarchy = data_interface.load_hierarchy('pred')
+    mandates = data_interface.load_mandates()
+    mandate_groups = {
+        'educational': [
+            'primary_edu',
+            'secondary_edu',
+            'higher_edu',
+        ],
+        'travel': [
+            'borders_close_any',
+            'borders_close_all',
+            'local_restrict',
+        ],
+        'gathering': [
+            'gatherings9998i9998o',
+            'gatherings100i250o',
+            'gatherings50i100o',
+            'gatherings25i50o',
+            'gatherings10i25o',
+            'gatherings6i10o',
+        ],
+        'stay': [
+            'stay_at_home',
+            'stay_at_home_fine',
+        ],
+        'business': [
+            'bar_close',
+            'dining_close',
+            'gym_pool_leisure_close',
+            'non_essential_retail_close',
+            'non_essential_workplace_close',
+        ],
+        # Don't compete with mask use variable
+        # 'mask': [
+        #     'mask_use',
+        #     'mask_fine',
+        # ],
+        'curfew': [
+            'curfew_business',
+            'curfew_home',
+        ],
+    }
+
+    group_mandates = pd.concat([
+        mandates[detailed].mean(axis=1).rename(coarse)
+        for coarse, detailed in mandate_groups.items()
+    ], axis=1)
+    mandates_index = group_mandates.mean(axis=1).rename('mandates_index_1_reference')
+
+    locations = mandates.reset_index().location_id.unique().tolist()
+    dates = pd.date_range('2019-11-01', '2024-01-01')
+    idx = pd.MultiIndex.from_product([locations, dates], names=['location_id', 'date'])
+
+    mandates_index = (mandates_index
+                      .reindex(idx)
+                      .groupby('location_id')
+                      .ffill()
+                      .groupby('location_id')
+                      .fillna(0.))
+    mandates_index = helpers.parent_inheritance(mandates_index, hierarchy)
+    data_interface.save_covariate(mandates_index, f'mandates_index_1', 'reference')
+
+
+def preprocess_mandates_index_2(data_interface: PreprocessingDataInterface) -> None:
+    hierarchy = data_interface.load_hierarchy('pred')
+    mandates = data_interface.load_mandates()
+
+    # Peng mandates variable
+    col_mandates = [
+        'bar_close',
+        'borders_close_all',
+        'curfew_business',
+        'dining_close',
+        'gym_pool_leisure_close',
+        'higher_edu',
+        'non_essential_retail_close',
+        'non_essential_workplace_close',
+    ]
+    col_gatherings = [
+        col for col in mandates.columns
+        if "gatherings" in col and "unVAC" not in col and "gatherings9998" not in col
+    ]
+    col_primary_secondary_edu = ["primary_edu", "secondary_edu"]
+    col_home = ["curfew_home", "stay_at_home"]
+    col_modeled_mandates = col_mandates + ["gatherings", "primary_secondary_edu", "home"]
+
+    # create intermediate mandates
+    mandates["gatherings"] = mandates[col_gatherings].mean(axis=1)
+    mandates["primary_secondary_edu"] = mandates[col_primary_secondary_edu].mean(axis=1)
+    mandates["home"] = mandates[col_home].mean(axis=1)
+
+    # create combined mandates
+    mandates = mandates[col_modeled_mandates].mean(axis=1).rename('mandates_index_2_reference')
+
+    locations = mandates.reset_index().location_id.unique().tolist()
+    dates = pd.date_range('2019-11-01', '2024-01-01')
+    idx = pd.MultiIndex.from_product([locations, dates], names=['location_id', 'date'])
+
+
+    mandates_index = (mandates
+                      .reindex(idx)
+                      .groupby('location_id')
+                      .ffill()
+                      .groupby('location_id')
+                      .fillna(0.))
+    mandates_index = helpers.parent_inheritance(mandates_index, hierarchy)
+    data_interface.save_covariate(mandates_index, f'mandates_index_2', 'reference')
 
 
 def _adjust_southern_hemisphere(data: pd.DataFrame) -> pd.DataFrame:
@@ -205,93 +323,62 @@ def _process_testing_for_idr(data: pd.DataFrame) -> pd.DataFrame:
 
 def preprocess_variant_prevalence(data_interface: PreprocessingDataInterface) -> None:
     hierarchy = data_interface.load_hierarchy('pred')
-    for scenario in ['reference']:
-        logger.info(f'Loading raw variant prevalence data for scenario {scenario}.', context='read')
-        data = data_interface.load_raw_variant_prevalence(scenario)
+    spec = data_interface.load_specification()
+    logger.info(
+        f'Loading raw variant prevalence data.', context='read'
+    )
+    raw_prevalence = data_interface.load_raw_variant_prevalence('reference')
+    logger.info('Extracting variant ramps.', context='transform')
+    variant_ramps = _build_variant_ramps(raw_prevalence)
 
-        logger.info('Parsing into WHO variant of concern.', context='transform')
-        data = _process_variants_of_concern(data)
-        data = data.set_index(['location_id', 'date'])
+    invasion_dates = _load_invasion_dates(
+        new_variant=spec.data.new_variant,
+        default_new_variant_invasion_date=spec.data.default_new_variant_invasion_date,
+    )
+    time_range = pd.Index(pd.date_range('2020-01-01', '2024-01-01'), name='date')
 
-        logger.info(f'Overwriting invasion dates for omicron + sublineages based on case inflection point.',
-                    context='replace')
-        # squeezing other variants around variant being shifted, so sequence matters here
-        data = _shift_invasion_dates('omicron', data)
-        if 'ba5' in data:
-            raise ValueError('Manual invasion logic is based on assumption that the last variant'
-                             ' present in VOC data is Omicron; if not, need to calculate prevalence'
-                             ' differently after shifting.')
-        else:
-            # just using omicron plus a standard shift to start with BA.5 since we change them anyway
-            data['ba5'] = data['omicron'].groupby('location_id').shift(180)
-            data['ba5'] = data['omicron'].groupby('location_id').bfill()
-        data = _shift_invasion_dates('ba5', data)
+    _runner = functools.partial(
+        make_prevalence,
+        invasion_dates=invasion_dates,
+        variant_ramps=variant_ramps,
+        time_range=time_range,
+    )
 
-        data = helpers.parent_inheritance(data, hierarchy)
-        delhi_variant_level = data.loc[4849]
-        dfs = []
-        for location_id in [4840, 4845, 60896, 4858, 4866]:
-            df = delhi_variant_level.copy()
-            df['location_id'] = location_id
-            df = df.reset_index().set_index(['location_id', 'date'])
-            dfs.append(df)
-        data = pd.concat([data] + dfs).sort_index()
+    prevalence = parallel.run_parallel(
+        runner=_runner,
+        arg_list=list(invasion_dates.index),
+        num_cores=1, #spec.workflow.task_specifications[PREPROCESSING_JOBS.preprocess_measure].num_cores,
+        progress_bar=True,
+    )
 
-        logger.info(f'Writing {scenario} scenario data.', context='write')
-        data_interface.save_variant_prevalence(data, scenario)
+    prevalence = pd.concat(prevalence).sort_index()
+
+    logger.info(f'Writing variant prevalence data.', context='write')
+    data_interface.save_variant_prevalence(prevalence, 'reference')
 
 
-def _shift_invasion_dates(variant: str, data: pd.DataFrame) -> pd.DataFrame:
-    shifts = _get_hardcode_shifts(variant,
-                                  invasion_dates=(data
-                                                  .loc[data[variant] > 0.01]
-                                                  .reset_index('date')
-                                                  .groupby('location_id').date.min()))
-    updates = []
-    for location_id, invasion_date in shifts.items():
-        old_invasion = data.loc[location_id, variant]
-        new_invasion = old_invasion.shift(invasion_date).ffill().bfill()
-        new_data = data.loc[location_id].drop(columns=variant)
-        new_data = new_data.div(new_data.sum(axis=1), axis=0).fillna(0).multiply(1 - new_invasion, axis=0)
-        new_data[variant] = new_invasion
-        new_data['location_id'] = location_id
-        updates.append(new_data.reset_index().set_index(['location_id', 'date']))
-    updates = pd.concat(updates)
-    data = data.drop(updates.index).append(updates).sort_index()
-
-    return data
-
-
-def _get_hardcode_shifts(variant: str, invasion_dates: pd.Series) -> Dict[str, pd.Timestamp]:
-    p = Path(__file__).parent / f'{variant}_invasion_date_hardcodes.csv'
-    target_dates = pd.read_csv(p).set_index('location_id')
-    target_dates['target_date'] = (pd.to_datetime(target_dates['case_inflection_date'])
-                                   .fillna(pd.to_datetime(target_dates['data_date']) + pd.Timedelta(days=7)))
-    target_dates = target_dates.apply(lambda x: x['target_date'] - pd.Timedelta(days=x['lag']), axis=1)
-    target_dates = target_dates.loc[invasion_dates.reset_index()['location_id'].unique()]
-    shifts = (target_dates - invasion_dates.loc[target_dates.index])
-    shifts = shifts[shifts != pd.Timedelta(days=0)].dt.days.to_dict()
-
-    return shifts
-
-def _process_variants_of_concern(data: pd.DataFrame) -> pd.DataFrame:
+def _build_variant_ramps(data: pd.DataFrame) -> pd.DataFrame:
     variant_map = {
         'alpha': ['B117'],
         'beta': ['B1351'],
-        'gamma': ['P1'],
+        'gamma': ['P1', 'B1621', 'C37'],  # ADDING MU (B1621) + LAMBDA (C37)
         'delta': ['B16172'],
         'omicron': ['Omicron'],
-        'other': ['B1621', 'C37'],
+        # 'other': ['B1621', 'C37'],
         'ancestral': ['wild_type'],
     }
     drop = []
-    all_variants = [lineage for lineages in variant_map.values() for lineage in lineages] + drop
+
+    all_variants = [lineage for lineages in variant_map.values() for lineage in
+                    lineages] + drop
     missing_variants = set(all_variants).difference(data.columns)
+    extra_variants = set(data.columns).difference(all_variants)
+
     if missing_variants:
         raise ValueError(f'Missing variants {missing_variants}')
-    extra_variants = set(data.columns).difference(all_variants)
     if extra_variants:
         raise ValueError(f'Unknown variants {extra_variants}')
+
     if drop:
         logger.warning(f'Dropping variants: {drop}')
 
@@ -300,12 +387,73 @@ def _process_variants_of_concern(data: pd.DataFrame) -> pd.DataFrame:
     data = data[list(variant_map)]
     data.loc[:, 'omega'] = 0.
     data.loc[data.sum(axis=1) == 0, 'ancestral'] = 1
+
     if (data.sum(axis=1) < 1 - 1e-5).any():
         raise ValueError("Variant prevalence sums to less than 1 for some location-dates.")
     if (data.sum(axis=1) > 1 + 1e-5).any():
         raise ValueError("Variant prevalence sums to more than 1 for some location-dates.")
 
-    return data.reset_index()
+    variant_locations = {
+        'alpha': 4749,  # England
+        'beta': 198,  # Zimbabwe
+        'gamma': 4752,  # Amazonas
+        'delta': 4870,  # Tamil Nadu
+        'omicron': 198,  # Zimbabwe
+    }
+
+    ramps = []
+    for variant, location in variant_locations.items():
+        variant_ramp = data.loc[location, variant]
+        min_date = variant_ramp[variant_ramp >= 0.01].reset_index().date.min()
+        max_date = variant_ramp[variant_ramp == variant_ramp.max()].reset_index().date.min()
+        variant_ramp = variant_ramp.loc[min_date:max_date]
+        variant_ramp.index = pd.to_timedelta(pd.RangeIndex(len(variant_ramp), name='days'),
+                                             unit='D')
+        variant_ramp = variant_ramp / variant_ramp.max()
+        ramps.append(variant_ramp)
+
+    ramps = pd.concat(ramps, axis=1).ffill()
+    ramps['ba5'] = ramps['omicron']
+
+    return ramps
+
+
+def _load_invasion_dates(new_variant: str, default_new_variant_invasion_date: str):
+    p = Path(__file__).parent / 'invasion_dates.csv'
+    invasion_dates = pd.read_csv(p).set_index('location_id')
+    for col in invasion_dates:
+        invasion_dates[col] = pd.to_datetime(invasion_dates[col])
+
+    fill_date = pd.Timestamp(default_new_variant_invasion_date)
+    invasion_dates[new_variant] = invasion_dates[new_variant].fillna(fill_date)
+    return invasion_dates
+
+
+def make_prevalence(
+    location_id: int,
+    invasion_dates: pd.DataFrame,
+    variant_ramps: pd.DataFrame,
+    time_range: pd.Index
+) -> pd.DataFrame:
+    prevalence = pd.DataFrame({'ancestral': 1.0}, index=time_range)
+    last_variant = 'ancestral'
+
+    for variant, date in invasion_dates.loc[location_id].sort_values().iteritems():
+        prevalence[variant] = 0.0
+
+        if pd.isnull(date):
+            continue
+
+        ramp = variant_ramps[variant].copy()
+        ramp.index = date + ramp.index
+        ramp = ramp.reindex(prevalence.index).ffill().fillna(0.)
+        prevalence[last_variant] = np.maximum(prevalence[last_variant] - ramp, 0.)
+        prevalence[variant] = ramp
+        last_variant = variant
+    prevalence = prevalence.divide(prevalence.sum(axis=1), axis=0).reset_index()
+    prevalence['location_id'] = location_id
+    prevalence = prevalence.set_index(['location_id', 'date'])[list(VARIANT_NAMES[1:-1])]
+    return prevalence
 
 
 def preprocess_gbd_covariate(covariate: str) -> Callable[[PreprocessingDataInterface], None]:
