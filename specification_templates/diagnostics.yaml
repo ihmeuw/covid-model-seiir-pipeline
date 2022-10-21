@@ -4,59 +4,26 @@ workflow:
   project: 'proj_covid_prod'
   queue: 'all.q'
 grid_plots:
-  ## 2020-2021
-  - name: '2020_2021'
+  ## short range
+  - name: '2020_feb2023'
     date_start: '2020-01-01'
-    date_end: '2021-12-31'
+    date_end: '2023-02-28'
     comparators:
     - version: '2022_09_09.01'
       scenarios:
         reference*: 'public reference'
-    # - version: '2022_10_10.01'
+    # - version: '2022_10_20.06'
     #   scenarios:
-    #     reference*: 'global calibration'
-    - version: '2022_10_11.01'
+    #     reference*: 'full calibration'
+    # - version: '2022_10_20.05'
+    #   scenarios:
+    #     reference*: 'omicron/BA.5 calibration'
+    - version: '2022_10_21.01'
       scenarios:
-        reference*: 'CVI: 50%'  # 'local calibration (omicron + ba5)'
-    - version: '2022_10_14.01'
-      scenarios:
-        reference*: 'CVI: 75%'
-    # - version: '2022_10_12.01'
-    #   scenarios:
-    #     reference*: 'local calibration (all, infection)'
-    # - version: '2022_10_13.01'
-    #   scenarios:
-    #     reference*: 'local calibration (all, threshold)'
-    #     # reference*: 'reference'
-    #     # global_antivirals: 'global antivirals'
-    #     # best_masks: 'best masks'
-  ## 2021-2022
-  - name: '2022_2023'
-    date_start: '2022-01-01'
-    date_end: '2023-12-31'
-    comparators:
-    - version: '2022_09_09.01'
-      scenarios:
-        reference*: 'public reference'
-    # - version: '2022_10_10.01'
-    #   scenarios:
-    #     reference*: 'global calibration'
-    - version: '2022_10_11.01'
-      scenarios:
-        reference*: 'CVI: 50%'  # 'local calibration (omicron + ba5)'
-    - version: '2022_10_14.01'
-      scenarios:
-        reference*: 'CVI: 75%'
-    # - version: '2022_10_12.01'
-    #   scenarios:
-    #     reference*: 'local calibration (all, infection)'
-    # - version: '2022_10_13.01'
-    #   scenarios:
-    #     reference*: 'local calibration (all, threshold)'
-    #     # reference*: 'reference'
-    #     # global_antivirals: 'global antivirals'
-    #     # best_masks: 'best masks'
-  ## 2020-2023
+        reference*: 'reference'
+        global_antivirals: 'global antivirals'
+        best_masks: 'best masks'
+  ## long range
   - name: '2020_2023'
     date_start: '2020-01-01'
     date_end: '2023-12-31'
@@ -64,21 +31,14 @@ grid_plots:
     - version: '2022_09_09.01'
       scenarios:
         reference*: 'public reference'
-    # - version: '2022_10_10.01'
+    # - version: '2022_10_20.06'
     #   scenarios:
-    #     reference*: 'global calibration'
-    - version: '2022_10_11.01'
+    #     reference*: 'full calibration'
+    # - version: '2022_10_20.05'
+    #   scenarios:
+    #     reference*: 'omicron/BA.5 calibration'
+    - version: '2022_10_21.01'
       scenarios:
-        reference*: 'CVI: 50%'  # 'local calibration (omicron + ba5)'
-    - version: '2022_10_14.01'
-      scenarios:
-        reference*: 'CVI: 75%'
-    # - version: '2022_10_12.01'
-    #   scenarios:
-    #     reference*: 'local calibration (all, infection)'
-    # - version: '2022_10_13.01'
-    #   scenarios:
-    #     reference*: 'local calibration (all, threshold)'
-    #     # reference*: 'reference'
-    #     # global_antivirals: 'global antivirals'
-    #     # best_masks: 'best masks'
+        reference*: 'reference'
+        global_antivirals: 'global antivirals'
+        best_masks: 'best masks'

@@ -1,14 +1,14 @@
 data:
-  seir_fit_version: '2022_09_30.04'
+  seir_fit_version: '2022_10_20.12'
   coefficient_version: ''
   seir_covariate_priors_version: ''
   output_root: ''
   output_format: 'parquet'
   drop_locations: []
-  weighting: 'threshold_five'
+  weighting: 'ancestral_threshold_five'
 workflow:
   project: 'proj_covid_prod'
-  queue: 'long.q'
+  queue: 'all.q'
 hospital_parameters:
   compute_correction_factors: True
   hospital_stay_death: 13
@@ -31,11 +31,7 @@ covariates:
     bounds: [-1000.0, 1000.0]
   pneumonia:
     gprior: [0.0, 1000.0]
-    bounds: [0.0, 1000.0]  
-    #bounds: [0.8, 1.3]
-#  mobility:
-#    gprior: [0.0, 1000.0]
-#    bounds: [-1000.0, 0.0]
+    bounds: [0.0, 1000.0]
   mandates_index_2:
     gprior: [0.0, 1000.0]
     bounds: [-1000.0, 0.0]
