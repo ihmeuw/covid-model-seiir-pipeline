@@ -139,10 +139,12 @@ def build_residual(measure_draw: str, window_dates: pd.DataFrame,
     infections = (infections
                   .loc[:, 'daily_total_infections']
                   .rename('infections'))
+    beta = beta.dropna()
+    infections = infections.reindex(beta.index)
     window_dates = window_dates.reindex(beta.index, level='location_id')
 
     residuals = (pd.concat([beta, infections, window_dates], axis=1)
-                 .dropna()
+                 # .dropna()
                  .groupby('location_id')
                  .apply(compute_group_residual)
                  .rename(measure_draw)
