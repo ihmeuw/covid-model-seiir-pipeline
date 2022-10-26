@@ -54,7 +54,8 @@ def drop_locations_for_measure_model(
         ],
         'case': [],
         'admission': [
-            97,  # Argentina
+            97,     # Argentina
+            151,    # Qatar
         ],
     }[measure]
 
