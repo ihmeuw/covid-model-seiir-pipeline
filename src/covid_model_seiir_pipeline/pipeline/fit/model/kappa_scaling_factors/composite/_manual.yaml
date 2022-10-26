@@ -60,6 +60,11 @@ case:
     4858: 2.0                 # Lakshadweep
     4866: 2.0                 # Puducherry
     4869: 0.9663263325014363  # Sikkim
+    498:  5.0                 # Guizhou
+    501:  5.0                 # Heilongjiang
+    505:  5.0                 # Inner Mongolia
+    510:  5.0                 # Ningxia
+    519:  5.0                 # Xinjiang
     186:  10.0                # Seychelles
     197:  1.1413398024758976  # Eswatini
     195:  0.5740923152948676  # Namibia
@@ -78,6 +83,11 @@ case:
     4863: 1.369235938671124   # Mizoram
     4866: 1.5                 # Puducherry
     4869: 1.8801006495786752  # Sikkim
+    498:  5.0                 # Guizhou
+    501:  5.0                 # Heilongjiang
+    505:  5.0                 # Inner Mongolia
+    510:  5.0                 # Ningxia
+    519:  5.0                 # Xinjiang
     169:  0.75                # Central African Republic
     186:  10.0                # Seychelles
     197:  0.15306310796298803 # Eswatini
