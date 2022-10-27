@@ -122,6 +122,7 @@ def build_model_parameters(indices: Indices,
     ode_params.loc[:, 'beta_all_infection'] = beta
 
     ode_params = ode_params.drop(columns=[c for c in ode_params if 'rho' in c])
+    rhos = rhos.copy()
     rhos.columns = [f'rho_{c}_infection' for c in rhos.columns]
     rhos.loc[:, 'rho_none_infection'] = 0
     ode_params = pd.concat([ode_params, rhos.reindex(indices.full)], axis=1)
