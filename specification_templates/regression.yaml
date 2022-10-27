@@ -1,5 +1,5 @@
 data:
-  seir_fit_version: '2022_10_21.01'
+  seir_fit_version: '2022_10_27.01'
   coefficient_version: ''
   seir_covariate_priors_version: ''
   output_root: ''
@@ -32,7 +32,7 @@ covariates:
   pneumonia:
     gprior: [0.0, 1000.0]
     bounds: [0.0, 1000.0]
-  mandates_index_2:
+  mandates_index_1:
     gprior: [0.0, 1000.0]
     bounds: [-1000.0, 0.0]
   mask_use:

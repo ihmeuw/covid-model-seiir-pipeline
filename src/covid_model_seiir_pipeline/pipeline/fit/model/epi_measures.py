@@ -45,11 +45,17 @@ def drop_locations_for_measure_model(
         # if it's a parent location, will apply to all children as well
         'death': [
             44533,  # Mainland China
-            # 151,  # Qatar
+            151,    # Qatar
+            4840,   # Andaman and Nicobar Islands
+            60896,  # Dadra and Nagar Haveli and Daman and Diu
+            4858,   # Lakshadweep
+            186,    # Seychelles
+            169,    # Central African Republic
         ],
         'case': [],
         'admission': [
-            97,  # Argentina
+            97,     # Argentina
+            151,    # Qatar
         ],
     }[measure]
 
