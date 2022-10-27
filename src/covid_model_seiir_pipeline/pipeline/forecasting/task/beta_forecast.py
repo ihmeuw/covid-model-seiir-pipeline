@@ -1,3 +1,5 @@
+import functools
+
 import click
 import pandas as pd
 
@@ -29,6 +31,7 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
     # unique datasets in this model, and they need to be aligned consistently
     # to do computation.
     logger.info('Loading index building data', context='read')
+    hierarchy = data_interface.load_hierarchy('pred')
     location_ids = data_interface.load_location_ids()
     past_compartments = data_interface.load_past_compartments(draw_id).loc[location_ids]
     ode_params = data_interface.load_fit_ode_params(draw_id=draw_id)
@@ -83,42 +86,50 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
     # Collate all the parameters, ensure consistent index, etc.
     logger.info('Processing inputs into model parameters.', context='transform')
     covariates = covariates.reindex(indices.full)
-    beta, beta_hat = model.build_beta_final(
-        indices,
-        betas,
-        covariates,
-        coefficients,
-        beta_shift_parameters,
-    )
-    ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
-    logger.warning('Using Hong Kong IFR projection for mainland China IFR projection in `ode_forecast.build_ratio`.')
-    ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
-    hierarchy = data_interface.load_hierarchy('pred')
-    model_parameters = model.build_model_parameters(
-        indices,
-        beta,
-        past_compartments,
-        prior_ratios,
-        scenario_spec.rates_projection,
-        ode_params,
-        rhos,
-        vaccinations,
-        etas,
-        phis,
-        antiviral_rr,
-        risk_group_population,
-        hierarchy,
-    )
+
     hospital_cf = model.forecast_correction_factors(
         indices,
         correction_factors=hospital_cf,
         hospital_parameters=hospital_parameters,
     )
 
-    # Pull in compartments from the fit and subset out the initial condition.
-    logger.info('Loading past compartment data.', context='read')
+    build_beta_final = functools.partial(
+        model.build_beta_final,
+        indices=indices,
+        beta_regression=betas,
+        coefficients=coefficients,
+        beta_shift_parameters=beta_shift_parameters,
+    )
+    build_model_parameters = functools.partial(
+        model.build_model_parameters,
+        indices=indices,
+        past_compartments=past_compartments,
+        prior_ratios=prior_ratios,
+        rates_projection_spec=scenario_spec.rates_projection,
+        ode_parameters=ode_params,
+        rhos=rhos,
+        vaccinations=vaccinations,
+        etas=etas,
+        phis=phis,
+        antiviral_rr=antiviral_rr,
+        risk_group_population=risk_group_population,
+        hierarchy=hierarchy,
+    )
+
+    compute_output_metrics = functools.partial(
+        model.compute_output_metrics,
+        indices=indices,
+        ode_params=ode_params,
+        hospital_parameters=hospital_parameters,
+        hospital_cf=hospital_cf,
+
+    )
+
     initial_condition = past_compartments.loc[indices.past].reindex(indices.full, fill_value=0.)
     initial_condition[initial_condition < 0.] = 0.
+
+    beta, beta_hat = build_beta_final(covariates=covariates)
+    model_parameters = build_model_parameters(beta=beta)
 
     logger.info('Running ODE forecast.', context='compute_ode')
     compartments, chis = model.run_ode_forecast(
@@ -127,14 +138,9 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
         num_cores=num_cores,
         progress_bar=progress_bar,
     )
-
-    system_metrics = model.compute_output_metrics(
-        indices,
-        compartments,
-        model_parameters,
-        ode_params,
-        hospital_parameters,
-        hospital_cf,
+    system_metrics = compute_output_metrics(
+        compartments=compartments,
+        model_parameters=model_parameters,
     )
 
     logger.info('Prepping outputs.', context='transform')
