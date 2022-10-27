@@ -33,9 +33,6 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
     past_compartments = data_interface.load_past_compartments(draw_id).loc[location_ids]
     ode_params = data_interface.load_fit_ode_params(draw_id=draw_id)
     epi_data = data_interface.load_input_epi_measures(draw_id=draw_id).loc[location_ids]
-    antiviral_coverage = data_interface.load_antiviral_coverage(scenario=scenario_spec.antiviral_version)
-    antiviral_effectiveness = data_interface.load_antiviral_effectiveness(draw_id=draw_id)
-    antiviral_rr = model.compute_antiviral_rr(antiviral_coverage, antiviral_effectiveness)
 
     # We want the forecast to start at the last date for which all reported measures
     # with at least one report in the location are present.
@@ -76,10 +73,9 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
     hospital_cf = data_interface.load_hospitalizations(measure='correction_factors')
     hospital_parameters = data_interface.get_hospital_params()
 
-    log_beta_shift = (scenario_spec.log_beta_shift,
-                      pd.Timestamp(scenario_spec.log_beta_shift_date))
-    beta_scale = (scenario_spec.beta_scale,
-                  pd.Timestamp(scenario_spec.beta_scale_date))
+    antiviral_coverage = data_interface.load_antiviral_coverage(scenario=scenario_spec.antiviral_version)
+    antiviral_effectiveness = data_interface.load_antiviral_effectiveness(draw_id=draw_id)
+    antiviral_rr = model.compute_antiviral_rr(antiviral_coverage, antiviral_effectiveness)
 
     risk_group_population = data_interface.load_population('risk_group')
     risk_group_population = risk_group_population.divide(risk_group_population.sum(axis=1), axis=0)
@@ -93,8 +89,6 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
         covariates,
         coefficients,
         beta_shift_parameters,
-        log_beta_shift,
-        beta_scale,
     )
     ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
     logger.warning('Using Hong Kong IFR projection for mainland China IFR projection in `ode_forecast.build_ratio`.')

@@ -78,10 +78,6 @@ class ScenarioSpecification:
     variant_version: str = field(default='reference')
     antiviral_version: str = field(default='reference')
     rates_projection: Dict = field(default_factory=dict)
-    log_beta_shift: float = field(default=0.0)
-    log_beta_shift_date: str = field(default='2025-01-01')
-    beta_scale: float = field(default=1.0)
-    beta_scale_date: str = field(default='2025-01-01')
     covariates: Dict[str, str] = field(default_factory=dict)
 
     def __post_init__(self):

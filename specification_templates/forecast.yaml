@@ -26,10 +26,6 @@ scenarios:
     rates_projection:
       past_window: 180
       transition_window: 30
-    log_beta_shift: 0.0
-    log_beta_shift_date: '2025-01-01'
-    beta_scale: 1.0
-    beta_scale_date: '2025-01-01'
     covariates:
       pneumonia: 'reference'
       mandates_index_2: 'reference'
@@ -59,10 +55,6 @@ scenarios:
     rates_projection:
       past_window: 180
       transition_window: 30
-    log_beta_shift: 0.0
-    log_beta_shift_date: '2025-01-01'
-    beta_scale: 1.0
-    beta_scale_date: '2025-01-01'
     covariates:
       pneumonia: 'reference'
       mandates_index_2: 'reference'
@@ -92,10 +84,6 @@ scenarios:
     rates_projection:
       past_window: 180
       transition_window: 30
-    log_beta_shift: 0.0
-    log_beta_shift_date: '2025-01-01'
-    beta_scale: 1.0
-    beta_scale_date: '2025-01-01'
     covariates:
       pneumonia: 'reference'
       mandates_index_2: 'reference'
