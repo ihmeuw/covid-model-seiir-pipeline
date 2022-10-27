@@ -32,11 +32,11 @@ covariates:
   pneumonia:
     gprior: [0.0, 1000.0]
     bounds: [0.0, 1000.0]
-  mandates_index_2:
+  mandates_index_1:
     gprior: [0.0, 1000.0]
     bounds: [-1000.0, 0.0]
   mask_use:
-    gprior: [0.0, 1000.0]
+    gprior: [-0.285, 0.005]
     bounds: [-1000.0, 0.0]  
   air_pollution_pm_2_5:
     gprior: [0.0, 1000.0]
