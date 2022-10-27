@@ -32,7 +32,7 @@ scenarios:
     beta_scale_date: '2025-01-01'
     covariates:
       pneumonia: 'reference'
-      mandates_index_2: 'reference'
+      mandates_index_1: 'reference'
       mask_use: 'relaxed'
       air_pollution_pm_2_5: 'reference'
       smoking_prevalence: 'reference'
@@ -65,7 +65,7 @@ scenarios:
   #   beta_scale_date: '2025-01-01'
   #   covariates:
   #     pneumonia: 'reference'
-  #     mandates_index_2: 'reference'
+  #     mandates_index_1: 'reference'
   #     mask_use: 'best'
   #     air_pollution_pm_2_5: 'reference'
   #     smoking_prevalence: 'reference'
@@ -98,7 +98,7 @@ scenarios:
   #   beta_scale_date: '2025-01-01'
   #   covariates:
   #     pneumonia: 'reference'
-  #     mandates_index_2: 'reference'
+  #     mandates_index_1: 'reference'
   #     mask_use: 'relaxed'
   #     air_pollution_pm_2_5: 'reference'
   #     smoking_prevalence: 'reference'
