@@ -11,12 +11,15 @@ grid_plots:
     comparators:
     - version: '2022_09_09.01'
       scenarios:
-        reference*: 'public reference'
+        reference*: 'old public reference'
     - version: '2022_10_21.03'
       scenarios:
+        reference*: 'public reference'
+    - version: '2022_10_27.01'
+      scenarios:
         reference*: 'reference'
-        global_antivirals: 'global antivirals'
-        best_masks: 'best masks'
+        # global_antivirals: 'global antivirals'
+        # best_masks: 'best masks'
   ## long range
   - name: '2020_2023'
     date_start: '2020-01-01'
@@ -24,9 +27,12 @@ grid_plots:
     comparators:
     - version: '2022_09_09.01'
       scenarios:
-        reference*: 'public reference'
+        reference*: 'old public reference'
     - version: '2022_10_21.03'
       scenarios:
+        reference*: 'public reference'
+    - version: '2022_10_27.01'
+      scenarios:
         reference*: 'reference'
-        global_antivirals: 'global antivirals'
-        best_masks: 'best masks'
+        # global_antivirals: 'global antivirals'
+        # best_masks: 'best masks'
