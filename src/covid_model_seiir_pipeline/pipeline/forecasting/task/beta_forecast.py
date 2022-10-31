@@ -132,7 +132,7 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
     model_parameters = build_model_parameters(beta=beta)
 
     logger.info('Running ODE forecast.', context='compute_ode')
-    compartments, chis = model.run_ode_forecast(
+    compartments, chis, missing = model.run_ode_forecast(
         initial_condition,
         model_parameters,
         num_cores=num_cores,

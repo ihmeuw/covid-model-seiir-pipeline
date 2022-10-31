@@ -457,7 +457,7 @@ def run_ode_fit(initial_condition: pd.DataFrame,
                 location_ids: List[int] = None):
     if location_ids is None:
         location_ids = initial_condition.reset_index().location_id.unique().tolist()
-    full_compartments, chis = solver.run_ode_model(
+    full_compartments, chis, missing = solver.run_ode_model(
         initial_condition,
         **ode_parameters.to_dict(),
         location_ids=location_ids,
@@ -495,7 +495,7 @@ def run_posterior_fit(initial_condition: pd.DataFrame,
     if location_ids is None:
         location_ids = initial_condition.reset_index().location_id.unique().tolist()
 
-    full_compartments, chis = solver.run_ode_model(
+    full_compartments, chis, missing = solver.run_ode_model(
         initial_condition,
         **ode_parameters.to_dict(),
         location_ids=location_ids,
