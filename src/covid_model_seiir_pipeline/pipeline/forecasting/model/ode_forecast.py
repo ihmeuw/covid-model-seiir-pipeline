@@ -364,7 +364,7 @@ def run_ode_forecast(initial_condition: pd.DataFrame,
                      location_ids: List[int] = None):
     if location_ids is None:
         location_ids = initial_condition.reset_index().location_id.unique().tolist()
-    full_compartments, chis = solver.run_ode_model(
+    full_compartments, chis, missing = solver.run_ode_model(
         initial_condition,
         **ode_parameters.to_dict(),
         location_ids=location_ids,
@@ -372,4 +372,5 @@ def run_ode_forecast(initial_condition: pd.DataFrame,
         num_cores=num_cores,
         progress_bar=progress_bar,
     )
-    return full_compartments, chis
+
+    return full_compartments, chis, missing
