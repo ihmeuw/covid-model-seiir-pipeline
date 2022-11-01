@@ -100,6 +100,7 @@ def evil_doings(data: pd.DataFrame, hierarchy: pd.DataFrame, input_measure: str)
             40: 'turkmenistan',
             66: 'brunei_darussalam',
             176: 'comoros',
+            186: 'seychelles',
             298: 'american_samoa',
             320: 'cook_islands',
             349: 'greenland',
