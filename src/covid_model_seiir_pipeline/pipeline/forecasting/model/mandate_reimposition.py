@@ -1,20 +1,23 @@
+from typing import Dict
+
 import pandas as pd
 
 from covid_model_seiir_pipeline.pipeline.forecasting.model.containers import Indices
 
 
 def get_reimposition_threshold(
-        indices: Indices,
-        population: pd.Series,
-        epi_data: pd.DataFrame,
-        rhos: pd.DataFrame,
-        mortality_scalars: pd.DataFrame,
-        hierarchy: pd.DataFrame,
-        scalar: float = 5.0,
-        threshold_measure: str = 'deaths',
-        min_threshold_rate: float = 10.0,
-        max_threshold_rate: float = 30.0,
+    indices: Indices,
+    population: pd.Series,
+    epi_data: pd.DataFrame,
+    rhos: pd.DataFrame,
+    mortality_scalars: pd.DataFrame,
+    hierarchy: pd.DataFrame,
+    reimposition_params: Dict,
 ):
+    threshold_measure = reimposition_params['threshold_measure']
+    threshold_scalar = reimposition_params['threshold_scalar']
+    min_threshold_rate = reimposition_params['min_threshold_rate']
+    max_threshold_rate = reimposition_params['max_threshold_rate']
     past_measure = epi_data.loc[indices.past, f'smoothed_daily_{threshold_measure}'].rename('threshold_measure')
 
     omicron_prevalence = rhos[['omicron', 'ba5']].sum(axis=1)
@@ -44,7 +47,7 @@ def get_reimposition_threshold(
 
     min_rate = min_threshold_rate * mortality_scalars
     max_rate = max_threshold_rate * mortality_scalars
-    raw_rate = scalar * max_omicron_measure / pop * 1_000_00
+    raw_rate = threshold_scalar * max_omicron_measure / pop * 1_000_00
     threshold_rate = raw_rate.clip(min_rate, max_rate).rename('threshold_rate')
 
     china = hierarchy.path_to_top_parent.str.contains(',6,')
@@ -82,6 +85,7 @@ def reimpose_mandates(
     reimposition_dates: pd.Series,
     covariates: pd.DataFrame,
     min_reimposition_dates: pd.Series
+
 ):
     covs = []
     for location_id, date in reimposition_dates.iteritems():

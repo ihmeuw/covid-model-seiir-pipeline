@@ -104,6 +104,7 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
         epi_data=epi_data,
         rhos=rhos,
         mortality_scalars=mortality_scalars,
+        reimposition_params=scenario_spec.mandate_reimposition,
     )
     min_reimposition_dates = (indices.future
                               .to_frame()
@@ -146,8 +147,9 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
     )
 
     reimposition_number = 0
+    max_num_reimpositions = scenario_spec.mandate_reimposition['max_num_reimpositions']
     locations_to_run = list(initial_condition.reset_index().location_id.unique())
-    while reimposition_number < 3 and locations_to_run:
+    while reimposition_number <= max_num_reimpositions and locations_to_run:
         logger.info(
             f'Running ODE system on reimposition {reimposition_number} for {len(locations_to_run)} locations.',
             context='ODE system')
