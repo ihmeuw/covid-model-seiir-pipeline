@@ -36,7 +36,7 @@ covariates:
     gprior: [0.0, 1000.0]
     bounds: [-1000.0, 0.0]
   mask_use:
-    gprior: [-0.285, 0.005]
+    gprior: [-0.4, 0.01]
     bounds: [-1000.0, 0.0]  
   air_pollution_pm_2_5:
     gprior: [0.0, 1000.0]
