@@ -69,7 +69,7 @@ PRIMITIVE_TYPES = {
         'course_1',
         'course_2',
         'course_3',
-        'course_4'
+        'course_4',
         'all',
     ],
     'agg_index_type': [

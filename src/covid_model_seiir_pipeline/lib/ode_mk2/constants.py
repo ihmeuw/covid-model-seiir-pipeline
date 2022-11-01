@@ -74,11 +74,12 @@ _VariantIndexType = namedtuple('VariantIndexType', [
 ])
 
 _VaccineIndexType = namedtuple('VaccineIndexType', [
-    'course_0',    
-    'course_1',    
-    'course_2',    
-    'course_3',    
-    'course_4all', 
+    'course_0', 
+    'course_1', 
+    'course_2', 
+    'course_3', 
+    'course_4', 
+    'all',      
 ])
 
 _AggIndexType = namedtuple('AggIndexType', [
