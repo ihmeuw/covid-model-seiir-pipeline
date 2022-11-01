@@ -82,5 +82,14 @@ def reimpose_mandates(
     reimposition_dates: pd.Series,
     covariates: pd.DataFrame,
 ):
-    import pdb; pdb.set_trace()
+    covs = []
+    for location_id, date in reimposition_dates.iteritems():
+        cov = covariates.loc[location_id].copy()
+        cov.loc[date:date + pd.Timedelta(days=42), 'mandates_index_1'] = 1.0
+        cov['location_id'] = location_id
+        cov = cov.reset_index().set_index(['location_id', 'date'])
+        covs.append(cov)
+
+    covs = pd.concat(covs).sort_index()
+    return covariates.drop(covs.index).append(covs).sort_index()
 

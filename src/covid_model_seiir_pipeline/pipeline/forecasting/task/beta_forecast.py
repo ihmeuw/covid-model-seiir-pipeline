@@ -170,6 +170,12 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
             covariates=covariates,
         )
 
+        beta = build_beta_final(covariates=covariates)
+        model_parameters.base_parameters.loc[:, 'beta_all_infection'] = beta
+
+        locations_to_run = reimposition_dates.index.tolist()
+        reimposition_number += 1
+
     system_metrics = model.compute_output_metrics(
         indices=indices,
         ode_params=ode_params,
