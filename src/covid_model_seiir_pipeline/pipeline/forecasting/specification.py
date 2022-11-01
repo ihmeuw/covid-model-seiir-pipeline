@@ -107,9 +107,11 @@ class ScenarioSpecification:
         if average_min is None and average_max is None:
             self.beta_scaling['average_over_min'] = 0
             self.beta_scaling['average_over_max'] = 0
-        # TODO: more input validation.
 
-        assert self.mandate_reimposition
+        default_mandate_vals = zip(self.MANDATE_REIMPOSITION_KEYS,
+                                   (0, 'deaths', 5.0, 10.0, 30.0))
+        for key, default in default_mandate_vals:
+            self.mandate_reimposition[key] = self.mandate_reimposition.get(key, default)
 
     def to_dict(self) -> Dict:
         """Converts to a dict, coercing list-like items to lists."""
