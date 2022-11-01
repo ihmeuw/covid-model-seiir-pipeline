@@ -18,7 +18,8 @@ logger = cli_tools.task_performance_logger
 
 
 def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progress_bar: bool):
-    logger.info(f"Initiating SEIIR beta forecasting for scenario {scenario}, draw {draw_id}.", context='setup')
+    logger.info(f"Initiating SEIIR beta forecasting for scenario {scenario}, draw {draw_id}.",
+                context='setup')
     specification = ForecastSpecification.from_version_root(forecast_version)
     num_cores = specification.workflow.task_specifications[FORECAST_JOBS.forecast].num_cores
     scenario_spec = specification.scenarios[scenario]
@@ -36,6 +37,8 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
     past_compartments = data_interface.load_past_compartments(draw_id).loc[location_ids]
     ode_params = data_interface.load_fit_ode_params(draw_id=draw_id)
     epi_data = data_interface.load_input_epi_measures(draw_id=draw_id).loc[location_ids]
+    mortality_scalars = data_interface.load_total_covid_scalars(draw_id).scalar.loc[
+        location_ids]
 
     # We want the forecast to start at the last date for which all reported measures
     # with at least one report in the location are present.
@@ -56,14 +59,17 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
         covariates=covariates,
     )
 
+    covariates = covariates.reindex(indices.full)
+
     ########################################
     # Build parameters for the SEIIR model #
     ########################################
     logger.info('Loading SEIIR parameter input data.', context='read')
     # Use to get ratios
-    prior_ratios = data_interface.load_rates(draw_id).loc[location_ids]    
+    prior_ratios = data_interface.load_rates(draw_id).loc[location_ids]
     # Rescaling parameters for the beta forecast.
-    beta_shift_parameters = data_interface.load_beta_scales(scenario=scenario, draw_id=draw_id)
+    beta_shift_parameters = data_interface.load_beta_scales(scenario=scenario,
+                                                            draw_id=draw_id)
     # Regression coefficients for forecasting beta.
     coefficients = data_interface.load_coefficients(draw_id)
     # Vaccine data, of course.
@@ -76,22 +82,43 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
     hospital_cf = data_interface.load_hospitalizations(measure='correction_factors')
     hospital_parameters = data_interface.get_hospital_params()
 
-    antiviral_coverage = data_interface.load_antiviral_coverage(scenario=scenario_spec.antiviral_version)
+    antiviral_coverage = data_interface.load_antiviral_coverage(
+        scenario=scenario_spec.antiviral_version)
     antiviral_effectiveness = data_interface.load_antiviral_effectiveness(draw_id=draw_id)
     antiviral_rr = model.compute_antiviral_rr(antiviral_coverage, antiviral_effectiveness)
 
+    total_population = data_interface.load_population('total').population
     risk_group_population = data_interface.load_population('risk_group')
     risk_group_population = risk_group_population.divide(risk_group_population.sum(axis=1), axis=0)
 
+    initial_condition = past_compartments.loc[indices.past].reindex(indices.full, fill_value=0.)
+    initial_condition[initial_condition < 0.] = 0.
+
     # Collate all the parameters, ensure consistent index, etc.
     logger.info('Processing inputs into model parameters.', context='transform')
-    covariates = covariates.reindex(indices.full)
 
+    reimposition_threshold = model.get_reimposition_threshold(
+        indices=indices,
+        population=total_population,
+        hierarchy=hierarchy,
+        epi_data=epi_data,
+        rhos=rhos,
+        mortality_scalars=mortality_scalars,
+    )
+    min_reimposition_dates = (indices.future
+                              .to_frame()
+                              .reset_index(drop=True)
+                              .groupby('location_id')
+                              .date.min() + pd.Timedelta(days=14))
     hospital_cf = model.forecast_correction_factors(
         indices,
         correction_factors=hospital_cf,
         hospital_parameters=hospital_parameters,
     )
+
+    initial_condition = past_compartments.loc[indices.past].reindex(indices.full,
+                                                                    fill_value=0.)
+    initial_condition[initial_condition < 0.] = 0.
 
     build_beta_final = functools.partial(
         model.build_beta_final,
@@ -100,9 +127,11 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
         coefficients=coefficients,
         beta_shift_parameters=beta_shift_parameters,
     )
-    build_model_parameters = functools.partial(
-        model.build_model_parameters,
+
+    beta, beta_hat = build_beta_final(covariates=covariates)
+    model_parameters = model.build_model_parameters(
         indices=indices,
+        beta=beta,
         past_compartments=past_compartments,
         prior_ratios=prior_ratios,
         rates_projection_spec=scenario_spec.rates_projection,
@@ -116,29 +145,36 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
         hierarchy=hierarchy,
     )
 
-    compute_output_metrics = functools.partial(
-        model.compute_output_metrics,
+    reimposition_number = 0
+    locations_to_run = list(initial_condition.reset_index().location_id.unique())
+    while reimposition_number < 3 and locations_to_run:
+        logger.info(f'Running ODE system on reimposition {reimposition_number}', context='ODE system')
+
+        compartments, chis, failed = model.run_ode_forecast(
+            initial_condition,
+            model_parameters,
+            num_cores=num_cores,
+            progress_bar=progress_bar,
+            location_ids=locations_to_run,
+        )
+
+        reimposition_dates = model.compute_reimposition_dates(
+            compartments=compartments,
+            total_population=total_population,
+            min_reimposition_dates=min_reimposition_dates,
+            reimposition_threshold=reimposition_threshold,
+        )
+
+        covariates = model.reimpose_mandates(
+            reimposition_dates=reimposition_dates,
+            covariates=covariates,
+        )
+
+    system_metrics = model.compute_output_metrics(
         indices=indices,
         ode_params=ode_params,
         hospital_parameters=hospital_parameters,
         hospital_cf=hospital_cf,
-
-    )
-
-    initial_condition = past_compartments.loc[indices.past].reindex(indices.full, fill_value=0.)
-    initial_condition[initial_condition < 0.] = 0.
-
-    beta, beta_hat = build_beta_final(covariates=covariates)
-    model_parameters = build_model_parameters(beta=beta)
-
-    logger.info('Running ODE forecast.', context='compute_ode')
-    compartments, chis, missing = model.run_ode_forecast(
-        initial_condition,
-        model_parameters,
-        num_cores=num_cores,
-        progress_bar=progress_bar,
-    )
-    system_metrics = compute_output_metrics(
         compartments=compartments,
         model_parameters=model_parameters,
     )
