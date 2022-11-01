@@ -87,6 +87,9 @@ def reimpose_mandates(
     min_reimposition_dates: pd.Series
 
 ):
+    if reimposition_dates.empty:
+        return covariates, min_reimposition_dates
+
     covs = []
     for location_id, date in reimposition_dates.iteritems():
         cov = covariates.loc[location_id].copy()
