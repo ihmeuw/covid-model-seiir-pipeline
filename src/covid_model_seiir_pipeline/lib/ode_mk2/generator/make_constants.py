@@ -69,6 +69,7 @@ PRIMITIVE_TYPES = {
         'course_1',
         'course_2',
         'course_3',
+        'course_4'
         'all',
     ],
     'agg_index_type': [
@@ -76,6 +77,7 @@ PRIMITIVE_TYPES = {
         'course_1',
         'course_2',
         'course_3',
+        'course_4',
         'all',
         'infection',
         'death',
@@ -148,13 +150,14 @@ DERIVED_TYPES = {
     ]),
     'variant_group': ('variant_index_type', [
         'all',
-        'total'
+        'total',
     ]),
     'vaccine_status': ('vaccine_index_type', [
         'course_0',
         'course_1',
         'course_2',
         'course_3',
+        'course_4',
     ]),
 }
 

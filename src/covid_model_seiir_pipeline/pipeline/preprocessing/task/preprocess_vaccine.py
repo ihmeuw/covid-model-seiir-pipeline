@@ -30,6 +30,7 @@ def run_preprocess_vaccine(preprocessing_version: str, scenario: str, progress_b
     waning_efficacy = data_interface.load_vaccine_waning_efficacy()
     natural_waning = data_interface.load_natural_waning_distribution()
     summary = data_interface.load_serology_vaccine_coverage()
+    import pdb; pdb.set_trace()
 
     if scenario == 'base_measures':
         logger.info('Writing base measure results.', context='write')
