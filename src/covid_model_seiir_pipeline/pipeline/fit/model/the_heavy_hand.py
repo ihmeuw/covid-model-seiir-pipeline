@@ -85,9 +85,9 @@ def adjust_omega_severity(
     omega_severity = rates_parameters.omega_severity_parameterization
     severity_calc = {
         'delta': lambda m: sampled_ode_params[f'kappa_delta_{m}'],
-        'omicron': lambda m: sampled_ode_params[f'kappa_omicron_{m}'],
+        'omicron': lambda m: sampled_ode_params[f'kappa_ba5_{m}'],
         'average': lambda m: (sampled_ode_params[f'kappa_delta_{m}']
-                              * sampled_ode_params[f'kappa_omicron_{m}']) ** (1 / 2),
+                              * sampled_ode_params[f'kappa_ba5_{m}']) ** (1 / 2),
     }[omega_severity]
     for measure in ['case', 'admission', 'death']:
         sampled_ode_params[f'kappa_omega_{measure}'] = severity_calc(measure)
