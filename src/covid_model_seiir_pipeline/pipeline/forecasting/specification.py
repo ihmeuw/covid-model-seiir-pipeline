@@ -69,6 +69,13 @@ class ScenarioSpecification:
         'residual_rescale_lower',
         'residual_rescale_upper',
     )
+    MANDATE_REIMPOSITION_KEYS = (
+        'max_num_reimpositions',
+        'threshold_measure',
+        'threshold_scalar',
+        'min_threshold_rate',
+        'max_threshold_rate',
+    )
 
     name: str = field(default='dummy_scenario')
     algorithm: str = field(default='normal')
@@ -77,12 +84,10 @@ class ScenarioSpecification:
     vaccine_version: str = field(default='reference')
     variant_version: str = field(default='reference')
     antiviral_version: str = field(default='reference')
+    mandate_reimposition: Dict = field(default_factory=dict)
     rates_projection: Dict = field(default_factory=dict)
-    log_beta_shift: float = field(default=0.0)
-    log_beta_shift_date: str = field(default='2025-01-01')
-    beta_scale: float = field(default=1.0)
-    beta_scale_date: str = field(default='2025-01-01')
     covariates: Dict[str, str] = field(default_factory=dict)
+
 
     def __post_init__(self):
         if self.algorithm not in self.ALLOWED_ALGORITHMS:
@@ -102,7 +107,11 @@ class ScenarioSpecification:
         if average_min is None and average_max is None:
             self.beta_scaling['average_over_min'] = 0
             self.beta_scaling['average_over_max'] = 0
-        # TODO: more input validation.
+
+        default_mandate_vals = zip(self.MANDATE_REIMPOSITION_KEYS,
+                                   (0, 'deaths', 5.0, 10.0, 30.0))
+        for key, default in default_mandate_vals:
+            self.mandate_reimposition[key] = self.mandate_reimposition.get(key, default)
 
     def to_dict(self) -> Dict:
         """Converts to a dict, coercing list-like items to lists."""

@@ -88,7 +88,7 @@ def run_ode_model(initial_condition: pd.DataFrame,
     if missing:
         logger.warning(f"Couldn't run locations {missing}")
 
-    return compartments, chis
+    return compartments, chis, missing
 
 
 def _run_loc_ode_model(ic_and_params,

@@ -26,19 +26,15 @@ scenarios:
     rates_projection:
       past_window: 180
       transition_window: 30
-    log_beta_shift: 0.0
-    log_beta_shift_date: '2025-01-01'
-    beta_scale: 1.0
-    beta_scale_date: '2025-01-01'
+    mandate_reimposition:
+      max_num_reimpositions: 0
+      threshold_measure: 'deaths'
+      threshold_scalar: 5.0
+      min_threshold_rate: 10.0
+      max_threshold_rate: 30.0
     covariates:
       pneumonia: 'reference'
       mandates_index_1: 'reference'
-      mask_use: 'relaxed'
-      air_pollution_pm_2_5: 'reference'
-      smoking_prevalence: 'reference'
-      lri_mortality: 'reference'
-      proportion_under_100m: 'reference'
-      proportion_over_2_5k: 'reference'
   # best_masks:
   #   algorithm: 'normal'
   #   algorithm_params:
