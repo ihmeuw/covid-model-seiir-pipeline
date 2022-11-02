@@ -14,11 +14,67 @@ data:
   vaccine_coverage_version: '2022_10_28.01'
   serology_vaccine_coverage_version: '2022_10_28.01'
   vaccine_efficacy_version: '2022_11_01.01'
-  vaccine_scenarios:
-    - 'reference'
-    - 'booster'
-    - 'target_country'
-    - 'target_region'
+  vaccine_scenario_parameters:
+    reference:
+      data_version: 'reference'
+      omega_efficacy:
+        old_vaccine: 1.0
+        new_vaccine: 1.0
+    reference_breakthrough:
+      data_version: 'reference'
+      omega_efficacy:
+        old_vaccine: 0.5
+        new_vaccine: 0.5
+    reference_targeted:
+      data_version: 'reference'
+      omega_efficacy:
+        old_vaccine: 0.5
+        new_vaccine: 1.0
+    booster:
+      data_version: 'booster'
+      omega_efficacy:
+        old_vaccine: 1.0
+        new_vaccine: 1.0
+    booster_breakthrough:
+      data_version: 'booster'
+      omega_efficacy:
+        old_vaccine: 0.5
+        new_vaccine: 0.5
+    booster_targeted:
+      data_version: 'booster'
+      omega_efficacy:
+        old_vaccine: 0.5
+        new_vaccine: 1.0
+    target_country:
+      data_version: 'target_country'
+      omega_efficacy:
+        old_vaccine: 1.0
+        new_vaccine: 1.0
+    target_country_breakthrough:
+      data_version: 'target_country'
+      omega_efficacy:
+        old_vaccine: 0.5
+        new_vaccine: 0.5
+    target_country_targeted:
+      data_version: 'target_country'
+      omega_efficacy:
+        old_vaccine: 0.5
+        new_vaccine: 1.0
+    target_region:
+      data_version: 'target_region'
+      omega_efficacy:
+        old_vaccine: 1.0
+        new_vaccine: 1.0
+    target_region_breakthrough:
+      data_version: 'target_region'
+      omega_efficacy:
+        old_vaccine: 0.5
+        new_vaccine: 0.5
+    target_region_targeted:
+      data_version: 'target_region'
+      omega_efficacy:
+        old_vaccine: 0.5
+        new_vaccine: 1.0
   new_variant: 'ba5'
   default_new_variant_invasion_date: '2022-10-25'
   antiviral_scenario_parameters:

@@ -39,8 +39,14 @@ def run_preprocess_vaccine(preprocessing_version: str, scenario: str, progress_b
         data_interface.save_waning_parameters(natural_waning, 'natural_waning_distribution')
         data_interface.save_vaccine_summary(summary)
     else:
-        logger.info(f'Loading uptake data for scenario {scenario}.', context='read')
-        uptake = data_interface.load_raw_vaccine_uptake(scenario)
+        efficacy_spec = specification.data.vaccine_scenarios[scenario]
+        uptake_version = efficacy_spec['data_version']
+        old_scalar = efficacy_spec['omega_efficacy']['old_vaccine']
+        new_scalar = efficacy_spec['omega_efficacy']['old_vaccine']
+        import pdb; pdb.set_trace()
+
+        logger.info(f'Loading uptake data for scenario {uptake_version}.', context='read')
+        uptake = data_interface.load_raw_vaccine_uptake(uptake_version)
         logger.info(f'Broadcasting uptake data over shared index.', context='transform')
         uptake = model.make_uptake_square(uptake)
         logger.info('Building vaccine risk reduction argument list.', context='model')
