@@ -37,14 +37,14 @@ def make_uptake_square(uptake: pd.DataFrame) -> pd.DataFrame:
         'Tianjin CanSino': 'Tianjin CanSino',
         'Covaxin': 'Covaxin',
         'mRNA.Vaccine': 'mRNA Vaccine',
-        'mRNA Vaccine': 'mRNA.Vaccine',
+        'mRNA Vaccine': 'mRNA Vaccine',
         'Other': 'Other',
     }
 
     idx_names = ['vaccine_course', 'location_id', 'risk_group', 'date']
     vax_names = sorted(list(set(name_map.values())))
     idx = pd.MultiIndex.from_product([courses, location_ids, risk_groups, date], names=idx_names)
-    uptake = uptake.set_index(idx_names).sort_index()[vax_names]
+    uptake = uptake.set_index(idx_names).sort_index().rename(columns=name_map)[vax_names]
     duplicates = uptake.index.duplicated()
     if np.any(duplicates):
         logger.warning('Duplicates found in uptake dataset')
