@@ -7,12 +7,6 @@ workflow:
   queue: 'all.q'
 scenarios:
   reference:
-    algorithm: 'normal'
-    algorithm_params:
-      death_threshold: 8
-      max_threshold: 15
-      reimposition_duration: 6
-      minimum_delay: 14
     beta_scaling:
       window_size: 42
       min_avg_window: 21
@@ -35,13 +29,13 @@ scenarios:
     covariates:
       pneumonia: 'reference'
       mandates_index_1: 'reference'
+      mask_use: 'reference'
+      air_pollution_pm_2_5: 'reference'
+      smoking_prevalence: 'reference'
+      lri_mortality: 'reference'
+      proportion_under_100m: 'reference'
+      proportion_over_2_5k: 'reference'
   # best_masks:
-  #   algorithm: 'normal'
-  #   algorithm_params:
-  #     death_threshold: 8
-  #     max_threshold: 15
-  #     reimposition_duration: 6
-  #     minimum_delay: 14
   #   beta_scaling:
   #     window_size: 42
   #     min_avg_window: 21
@@ -69,12 +63,6 @@ scenarios:
   #     proportion_under_100m: 'reference'
   #     proportion_over_2_5k: 'reference'
   # global_antivirals:
-  #   algorithm: 'normal'
-  #   algorithm_params:
-  #     death_threshold: 8
-  #     max_threshold: 15
-  #     reimposition_duration: 6
-  #     minimum_delay: 14
   #   beta_scaling:
   #     window_size: 42
   #     min_avg_window: 21
