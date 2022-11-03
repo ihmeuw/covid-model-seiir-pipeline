@@ -87,7 +87,7 @@ def preprocessing_main(app_metadata: cli_tools.Metadata,
         workflow = PreprocessingWorkflow(specification.data.output_root,
                                          specification.workflow)
         workflow.attach_tasks(measures=MEASURES.keys(),
-                              vaccine_scenarios=['base_measures'] + list(specification.data.vaccine_scenarios),
+                              vaccine_scenarios=['base_measures'] + list(specification.data.vaccine_scenario_parameters),
                               antiviral_scenarios=list(specification.data.antiviral_scenario_parameters.keys()))
         try:
             workflow.run()

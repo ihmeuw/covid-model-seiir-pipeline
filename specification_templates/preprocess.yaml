@@ -5,7 +5,7 @@ data:
   model_inputs_version: '2022_10_19.03'
   age_specific_rates_version: '2022_02_11.03'
   mortality_scalars_version: '2022_03_16.01'
-  mask_use_outputs_version: '2022_10_17.01'
+  mask_use_outputs_version: '2022_11_03.01'
   mobility_covariate_version: '2022_10_18.01'
   pneumonia_version: '2020_06_12.03'
   population_density_version: '2020_05_20.07'
@@ -29,7 +29,7 @@ data:
       data_version: 'reference'
       omega_efficacy:
         old_vaccine: 0.5
-        new_vaccine: 1.0
+        new_vaccine: 1.5
     booster:
       data_version: 'booster'
       omega_efficacy:
@@ -44,7 +44,7 @@ data:
       data_version: 'booster'
       omega_efficacy:
         old_vaccine: 0.5
-        new_vaccine: 1.0
+        new_vaccine: 1.5
     target_country:
       data_version: 'target_country'
       omega_efficacy:
@@ -59,7 +59,7 @@ data:
       data_version: 'target_country'
       omega_efficacy:
         old_vaccine: 0.5
-        new_vaccine: 1.0
+        new_vaccine: 1.5
     target_region:
       data_version: 'target_region'
       omega_efficacy:
@@ -74,7 +74,7 @@ data:
       data_version: 'target_region'
       omega_efficacy:
         old_vaccine: 0.5
-        new_vaccine: 1.0
+        new_vaccine: 1.5
   new_variant: 'ba5'
   default_new_variant_invasion_date: '2022-10-25'
   antiviral_scenario_parameters:

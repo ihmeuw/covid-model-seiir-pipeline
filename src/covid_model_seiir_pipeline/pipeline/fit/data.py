@@ -125,8 +125,8 @@ class FitDataInterface:
         for location_id in data.reset_index().location_id.unique():
             prev = data.loc[location_id, newest_variant]
             omega = prev.shift(shift).ffill().bfill()
-            new_data = data.loc[location_id].drop(columns=['omega', newest_variant])
-            new_data[newest_variant] = np.minimum(1 - omega, newest_variant)
+            new_data = data.loc[location_id].drop(columns=[newest_variant])
+            new_data[newest_variant] = np.minimum(1 - omega, prev)
             new_data['omega'] = omega
             new_data = new_data.div(new_data.sum(axis=1), axis=0)
             new_data['location_id'] = location_id

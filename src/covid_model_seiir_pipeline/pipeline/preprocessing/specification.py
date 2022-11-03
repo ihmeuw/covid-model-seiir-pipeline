@@ -70,7 +70,7 @@ class PreprocessingData:
     vaccine_coverage_version: str = field(default='best')
     serology_vaccine_coverage_version: str = field(default='best')
     vaccine_efficacy_version: str = field(default='best')
-    vaccine_scenarios: dict = field(default_factory=dict)
+    vaccine_scenario_parameters: dict = field(default_factory=dict)
 
     new_variant: str = field(default='')
     default_new_variant_invasion_date: str = field(default='')
@@ -94,10 +94,10 @@ class PreprocessingData:
                 'new_vaccine': 1.0,
             },
         }
-        for scenario, parameters in self.vaccine_scenarios.items():
+        for scenario, parameters in self.vaccine_scenario_parameters.items():
             for parameter, default in default_vaccine_params.items():
-                self.vaccine_scenarios[scenario][parameter] = (
-                    self.vaccine_scenarios[scenario].get(parameter, default)
+                self.vaccine_scenario_parameters[scenario][parameter] = (
+                    self.vaccine_scenario_parameters[scenario].get(parameter, default)
                 )
 
         for scenario, scenario_parameters in self.antiviral_scenario_parameters.items():

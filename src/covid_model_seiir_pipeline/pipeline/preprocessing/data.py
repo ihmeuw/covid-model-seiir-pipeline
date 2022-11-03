@@ -261,6 +261,7 @@ class PreprocessingDataInterface:
                 'best': 'mask_use_best',
                 'worse': 'mask_use_worse',
                 'relaxed': 'mask_use_relaxed',
+                'seasonal': 'hemispheric_linear_80max_ref',
             }[scenario]
         except KeyError:
             raise ValueError(f'Unknown mask use scenario {scenario}.')
