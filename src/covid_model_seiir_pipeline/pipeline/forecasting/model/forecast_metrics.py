@@ -165,8 +165,7 @@ def _make_vaccinations(compartments: pd.DataFrame) -> pd.DataFrame:
     for risk_group in RISK_GROUP_NAMES:
         for measure, group in [('Vaccination', 'course_0'),
                                ('Booster', 'course_1'),
-                               ('SecondBooster', 'course_2'),
-                               ('ThirdBooster', 'course_3')]:
+                               ('SecondBooster', 'course_2')]:
             key = f'{measure}_all_all_{group}_{risk_group}'
             vaccinations[f'{measure.lower()}s_{risk_group}'] += compartments[key]
             vaccinations[f'{measure.lower()}s'] += compartments[key]
