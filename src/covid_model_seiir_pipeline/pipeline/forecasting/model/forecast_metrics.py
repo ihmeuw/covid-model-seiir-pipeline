@@ -89,6 +89,8 @@ def _make_measure(compartments_diff: pd.DataFrame, measure: str, lag: int) -> pd
     data['vaccinated'] = compartments_diff.filter(like=f'{measure}_all_all_course_1').sum(axis=1)
     data['booster'] = compartments_diff.filter(like=f'{measure}_all_all_course_2').sum(axis=1)
     data['second_booster'] = compartments_diff.filter(like=f'{measure}_all_all_course_3').sum(axis=1)
+    data['third_booster'] = compartments_diff.filter(like=f'{measure}_all_all_course_4').sum(
+        axis=1)
     data['naive'] = compartments_diff.filter(like=f'{measure}_none_all_all').sum(axis=1)
     data['total'] = compartments_diff.filter(like=f'{measure}_all_all_all').sum(axis=1)
 
@@ -163,7 +165,8 @@ def _make_vaccinations(compartments: pd.DataFrame) -> pd.DataFrame:
     for risk_group in RISK_GROUP_NAMES:
         for measure, group in [('Vaccination', 'course_0'),
                                ('Booster', 'course_1'),
-                               ('SecondBooster', 'course_2')]:
+                               ('SecondBooster', 'course_2'),
+                               ('ThirdBooster', 'course_3')]:
             key = f'{measure}_all_all_{group}_{risk_group}'
             vaccinations[f'{measure.lower()}s_{risk_group}'] += compartments[key]
             vaccinations[f'{measure.lower()}s'] += compartments[key]
