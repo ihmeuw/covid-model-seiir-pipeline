@@ -1,10 +1,39 @@
 data:
   seir_forecast_version: '2022_10_27.01'
-  # seir_counterfactual_version: '2022_08_31.04'
   scenarios:
-   - 'reference'
-   # - 'best_masks'
-   # - 'global_antivirals'
+    - 'reference'
+    - 'seasonal_masks'
+    - 'mandate_reimposition'
+    - 'seasonal_masks_and_mandate_reimposition'
+#
+#    - 'reference_breakthrough'
+#    - 'seasonal_masks_breakthrough'
+#    - 'mandate_reimposition_breakthrough'
+#    - 'seasonal_masks_and_mandate_reimposition_breakthrough'
+#    - 'reference_target_country'
+#    - 'seasonal_masks_target_country'
+#    - 'mandate_reimposition_target_country'
+#    - 'seasonal_masks_and_mandate_reimposition_target_country'
+#    - 'reference_target_country_breakthrough'
+#    - 'seasonal_masks_target_country_breakthrough'
+#    - 'mandate_reimposition_target_country_breakthrough'
+#    - 'seasonal_masks_and_mandate_reimposition_target_country_breakthrough'
+#    - 'reference_target_country_targeted'
+#    - 'seasonal_masks_target_country_targeted'
+#    - 'mandate_reimposition_target_country_targeted'
+#    - 'seasonal_masks_and_mandate_reimposition_target_country_targeted'
+#    - 'reference_target_region'
+#    - 'seasonal_masks_target_region'
+#    - 'mandate_reimposition_target_region'
+#    - 'seasonal_masks_and_mandate_reimposition_target_region'
+#    - 'reference_target_region_breakthrough'
+#    - 'seasonal_masks_target_region_breakthrough'
+#    - 'mandate_reimposition_target_region_breakthrough'
+#    - 'seasonal_masks_and_mandate_reimposition_target_region_breakthrough'
+#    - 'reference_target_region_targeted'
+#    - 'seasonal_masks_target_region_targeted'
+#    - 'mandate_reimposition_target_region_targeted'
+#    - 'seasonal_masks_and_mandate_reimposition_target_region_targeted'
   output_root: ''
 workflow:
   project: 'proj_covid_prod'
@@ -14,14 +43,6 @@ resampling:
   reference_date: '2022-12-01'
   lower_quantile: 0.025
   upper_quantile: 0.975
-# splicing:
-#   - locations:
-#       - 151    # Qatar
-#       - 4858   # Lakshadweep
-#       - 186    # Seychelles
-#       - 169    # Central African Republic
-#       - 177    # Djibouti
-#     output_version: '/ihme/covid-19/seir-outputs/2022_09_09.01'
 aggregation:
   - location_file: '/ihme/covid-19/model-inputs/best/locations/modeling_hierarchy.csv'
   - location_file: '/ihme/covid-19/seir-outputs/agg-hierarchies/who_plus_palestine.csv'
