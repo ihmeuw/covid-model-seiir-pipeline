@@ -23,9 +23,10 @@ PRIMITIVE_TYPES = {
         'Death',
         'Admission',
         'Case',
-        'Vaccination',
-        'Booster',
-        'SecondBooster',
+        'VaccineCourse1',
+        'VaccineCourse2',
+        'VaccineCourse3',
+        'VaccineCourse4',
         'EffectiveSusceptible',
     ],
     'epi_measure_type': [
@@ -103,9 +104,10 @@ DERIVED_TYPES = {
         'Death',
         'Admission',
         'Case',
-        'Vaccination',
-        'Booster',
-        'SecondBooster',
+        'VaccineCourse1',
+        'VaccineCourse2',
+        'VaccineCourse3',
+        'VaccineCourse4',
         'EffectiveSusceptible',
     ]),
     'epi_measure': ('epi_measure_type', [
@@ -281,9 +283,10 @@ SPECS = {
             ['Case', 'all', 'all', 'vaccine_status'],
             ['Case', 'all', 'variant', 'all'],
 
-            ['Vaccination', 'all', 'all', 'course_0'],
-            ['Booster', 'all', 'all', 'course_1'],
-            ['SecondBooster', 'all', 'all', 'course_2'],
+            ['VaccineCourse1', 'all', 'all', 'course_0'],
+            ['VaccineCourse2', 'all', 'all', 'course_1'],
+            ['VaccineCourse3', 'all', 'all', 'course_2'],
+            ['VaccineCourse4', 'all', 'all', 'course_3'],
 
             ['EffectiveSusceptible', 'all', 'variant', 'all'],
         ],
@@ -297,6 +300,50 @@ SPECS = {
         ]
     )
 }
+
+ACCOUNTING_MAPS = {
+    'BETA_MAP': {
+        'indices': ('agg_index_type', 'epi_measure'),
+        'mappings': (
+            ('all', 'infection'),
+            ('death', 'death'),
+            ('admission', 'admission'),
+            ('case', 'case'),
+        ),
+    },
+    'VACCINE_STATUS_MAP': {
+        'indices': ('agg_index_type', 'vaccine_status'),
+        'mappings': (
+            ('course_0', 'course_0'),
+            ('course_1', 'course_1'),
+            ('course_2', 'course_2'),
+            ('course_3', 'course_3'),
+            ('course_4', 'course_4'),
+        ),
+    },
+    'EPI_MEASURE_MAP': {
+        'indices': ('tracking_compartment', 'epi_measure'),
+        'mappings': (
+            ('Infection', 'infection'),
+            ('Death', 'death'),
+            ('Admission', 'admission'),
+            ('Case', 'case'),
+        ),
+    },
+    'VACCINE_COUNT_MAP': {
+        'indices': ('tracking_compartment', 'agg_index_type', 'vaccine_status', 'vaccine_status'),
+        'mappings': (
+            ('VaccineCourse1', 'course_0', 'course_0', 'course_1'),
+            ('VaccineCourse2', 'course_1', 'course_1', 'course_2'),
+            ('VaccineCourse3', 'course_2', 'course_2', 'course_3'),
+            ('VaccineCourse4', 'course_3', 'course_3', 'course_4'),
+
+        )
+
+    }
+}
+
+
 
 
 def make_doctring() -> str:
@@ -396,6 +443,19 @@ def make_specs() -> str:
     return out
 
 
+def make_mappings() -> str:
+    out = ''
+    for mapping_name, mapping_spec in ACCOUNTING_MAPS.items():
+        out += f'{mapping_name} = (\n'
+        for group in mapping_spec['mappings']:
+            out += f'{TAB}('
+            for idx, item in zip(mapping_spec['indices'], group):
+                out += f'{idx.upper()}.{item}, '
+            out = out[:-2] + '),\n'
+        out += ')\n'
+    return out
+
+
 def make_constants() -> str:
     out = make_doctring()
     out += make_imports()
@@ -403,6 +463,7 @@ def make_constants() -> str:
     out += make_primitive_types()
     out += make_derived_types()
     out += make_specs()
+    out += make_mappings()
     return out
 
 
