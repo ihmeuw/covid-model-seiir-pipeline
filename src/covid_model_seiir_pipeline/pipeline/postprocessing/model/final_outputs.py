@@ -246,8 +246,8 @@ for course, measure in [('vaccine_course_0', 'vaccinations'),
                         ('vaccine_course_2', 'second_boosters'),
                         ('vaccine_course_3', 'third_boosters')]:
     MEASURES[measure] = MeasureConfig(
-        loaders.load_output_data(measure),
-        f'daily_{course}',
+        loaders.load_output_data(course),
+        f'daily_{measure}',
         calculate_cumulative=True,
         cumulative_label=f'cumulative_{measure}',
         aggregator=aggregate.sum_aggregator,
@@ -255,7 +255,7 @@ for course, measure in [('vaccine_course_0', 'vaccinations'),
     for risk_group in RISK_GROUP_NAMES:
         group_measure = f'{measure}_{risk_group}'
         MEASURES[group_measure] = MeasureConfig(
-            loaders.load_output_data(group_measure),
+            loaders.load_output_data(f'{course}_{risk_group}'),
             f'daily_{group_measure}',
             aggregator=aggregate.sum_aggregator,
         )
