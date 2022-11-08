@@ -11,8 +11,8 @@ data:
   population_density_version: '2020_05_20.07'
   testing_outputs_version: '2022_10_17.05'
   variant_scaleup_version: '2022_01_03.01'
-  vaccine_coverage_version: '2022_10_28.01'
-  serology_vaccine_coverage_version: '2022_10_28.01'
+  vaccine_coverage_version: '2022_11_07.01'
+  serology_vaccine_coverage_version: '2022_11_07.01'
   vaccine_efficacy_version: '2022_11_01.01'
   vaccine_scenario_parameters:
     reference:

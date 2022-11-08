@@ -1,5 +1,5 @@
 data:
-  seir_preprocess_version: '2022_11_03.01'
+  seir_preprocess_version: '2022_11_07.01'
   output_format: 'parquet'
   output_root: ''
   compare_version: ''
@@ -90,7 +90,7 @@ fit_parameters:
   kappa_delta: [1.6, 2.0]
   kappa_omicron: [2.0, 2.4]
   kappa_ba5: [2.0, 2.4]
-  # kappa_omega: [1.6, 2.0]
+  #kappa_omega: [1.6, 2.0]
   kappa_omega: [2.0, 2.4]
   # (1 - breakthrough probability) for a variant.
   phi_ancestral: 1.0

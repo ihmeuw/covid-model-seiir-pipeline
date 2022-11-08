@@ -45,7 +45,7 @@ def run_preprocess_vaccine(preprocessing_version: str, scenario: str, progress_b
         new_scalar = efficacy_spec['omega_efficacy']['old_vaccine']
         waning_efficacy = waning_efficacy.reorder_levels(['vaccine_course', 'endpoint', 'brand', 'days']).sort_index()
         waning_efficacy.loc[1:3, 'omega'] *= old_scalar
-        waning_efficacy.loc[4, 'omega'] *= new_scalar
+        waning_efficacy.loc[[4], 'omega'] *= new_scalar
         waning_efficacy.loc[:, 'omega'] = waning_efficacy.loc[:, 'omega'].clip(0., 1.)
         waning_efficacy = waning_efficacy.reorder_levels(['endpoint', 'brand', 'vaccine_course', 'days']).sort_index()
 
