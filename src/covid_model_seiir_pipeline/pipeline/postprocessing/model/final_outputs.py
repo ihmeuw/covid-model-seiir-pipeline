@@ -241,10 +241,13 @@ MEASURES.update(**{
     ),
 })
 
-for measure in ['boosters', 'vaccinations']:
+for course, measure in [('vaccine_course_0', 'vaccinations'),
+                        ('vaccine_course_1', 'first_boosters'),
+                        ('vaccine_course_2', 'second_boosters'),
+                        ('vaccine_course_3', 'third_boosters')]:
     MEASURES[measure] = MeasureConfig(
         loaders.load_output_data(measure),
-        f'daily_{measure}',
+        f'daily_{course}',
         calculate_cumulative=True,
         cumulative_label=f'cumulative_{measure}',
         aggregator=aggregate.sum_aggregator,
