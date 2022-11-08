@@ -92,9 +92,8 @@ for measure in ['infections', 'deaths', 'cases', 'admissions']:
                 VACCINE_STATUS_NAMES.course_3: 'second_booster',
                 VACCINE_STATUS_NAMES.course_4: 'third_booster'}
     for suffix in list(VARIANT_NAMES[1:]) + list(RISK_GROUP_NAMES) + list(VACCINE_STATUS_NAMES) + ['total', 'naive', 'naive_unvaccinated']:
-        suffix = _vax_map.get(suffix, suffix)
-        measure_suffix = f'_{suffix}'
         label_suffix = f'_{suffix}' if suffix != 'total' else ''
+        measure_suffix = f'_{_vax_map.get(suffix, suffix)}'
         write_draws = suffix in ['total']
         label = f'{measure}{label_suffix}'
         MEASURES[label] = MeasureConfig(
