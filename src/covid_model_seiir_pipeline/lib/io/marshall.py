@@ -32,7 +32,7 @@ class CSVMarshall:
         data.to_csv(path, index=write_index)
 
     @classmethod
-    def load(cls, key: DatasetKey) -> pd.DataFrame:
+    def load(cls, key: DatasetKey, *args, dayfirst=False, **kwargs) -> pd.DataFrame:
         path, columns = cls._resolve_key(key)
         if columns is None:
             data = pd.read_csv(path)
@@ -41,7 +41,7 @@ class CSVMarshall:
         # Use list comp to keep ordering consistent.
         index_cols = [c for c in POTENTIAL_INDEX_COLUMNS if c in data.columns]
         if 'date' in index_cols:
-            data['date'] = pd.to_datetime(data['date'])
+            data['date'] = pd.to_datetime(data['date'], dayfirst=day_first)
         if index_cols:
             data = data.set_index(index_cols).sort_index()
         return data
@@ -82,7 +82,7 @@ class ParquetMarshall:
         data.to_parquet(path, engine='fastparquet', compression='gzip')
 
     @classmethod
-    def load(cls, key: DatasetKey) -> pd.DataFrame:
+    def load(cls, key: DatasetKey, *args, **kwargs) -> pd.DataFrame:
         path, columns = cls._resolve_key(key)
         with warnings.catch_warnings():
             # Super noisy parquet warning that doesn't matter
@@ -126,7 +126,7 @@ class YamlMarshall:
             yaml.dump(data, file, sort_keys=False)
 
     @classmethod
-    def load(cls, key: MetadataKey) -> Any:
+    def load(cls, key: MetadataKey, *args, **kwargs) -> Any:
         path = cls._resolve_key(key)
         with path.open() as file:
             data = yaml.full_load(file)

@@ -286,7 +286,7 @@ class PreprocessingDataInterface:
         return data
 
     def load_mandates(self) -> pd.DataFrame:
-        mandates = io.load(self.model_inputs_root.mandates())
+        mandates = io.load(self.model_inputs_root.mandates(), dayfirst=True)
         return mandates
 
     def load_raw_percent_mandates(self, scenario: str) -> pd.DataFrame:
