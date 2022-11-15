@@ -1,8 +1,8 @@
 data:
-  seir_preprocess_version: '2022_11_03.01'
+  seir_preprocess_version: '2022_10_26.01'
   output_format: 'parquet'
   output_root: ''
-  compare_version: ''
+  compare_version: '2022_09_09.04'
 workflow:
   project: 'proj_covid_prod'
   queue: 'all.q'
@@ -51,7 +51,7 @@ rates_parameters:
   antiviral_effectiveness_ihr: [0.20, 0.25]
   antiviral_effectiveness_ifr: [0.25, 0.30]
 fit_parameters:
-  omega_invasion_date: '2022-11-15'
+  omega_invasion_date: ''
   # Mixing parameter.  dS/dt = -beta * S * I ** alpha
   alpha_all: [0.9, 1.0]
   # Proportion of current E to send to variant E on invasion.
@@ -90,7 +90,6 @@ fit_parameters:
   kappa_delta: [1.6, 2.0]
   kappa_omicron: [2.0, 2.4]
   kappa_ba5: [2.0, 2.4]
-  # kappa_omega: [1.6, 2.0]
   kappa_omega: [2.0, 2.4]
   # (1 - breakthrough probability) for a variant.
   phi_ancestral: 1.0

@@ -35,57 +35,69 @@ scenarios:
       lri_mortality: 'reference'
       proportion_under_100m: 'reference'
       proportion_over_2_5k: 'reference'
-  # best_masks:
-  #   beta_scaling:
-  #     window_size: 42
-  #     min_avg_window: 21
-  #     average_over_min: 7
-  #     average_over_max: 42
-  #     residual_rescale_upper: 1
-  #     residual_rescale_lower: 1
-  #   vaccine_version: 'reference'
-  #   variant_version: 'reference'
-  #   antiviral_version: 'reference'
-  #   rates_projection:
-  #     past_window: 180
-  #     transition_window: 30
-  #   log_beta_shift: 0.0
-  #   log_beta_shift_date: '2025-01-01'
-  #   beta_scale: 1.0
-  #   beta_scale_date: '2025-01-01'
-  #   covariates:
-  #     pneumonia: 'reference'
-  #     mandates_index_1: 'reference'
-  #     mask_use: 'best'
-  #     air_pollution_pm_2_5: 'reference'
-  #     smoking_prevalence: 'reference'
-  #     lri_mortality: 'reference'
-  #     proportion_under_100m: 'reference'
-  #     proportion_over_2_5k: 'reference'
-  # global_antivirals:
-  #   beta_scaling:
-  #     window_size: 42
-  #     min_avg_window: 21
-  #     average_over_min: 7
-  #     average_over_max: 42
-  #     residual_rescale_upper: 1
-  #     residual_rescale_lower: 1
-  #   vaccine_version: 'reference'
-  #   variant_version: 'reference'
-  #   antiviral_version: 'global_antivirals'
-  #   rates_projection:
-  #     past_window: 180
-  #     transition_window: 30
-  #   log_beta_shift: 0.0
-  #   log_beta_shift_date: '2025-01-01'
-  #   beta_scale: 1.0
-  #   beta_scale_date: '2025-01-01'
-  #   covariates:
-  #     pneumonia: 'reference'
-  #     mandates_index_1: 'reference'
-  #     mask_use: 'relaxed'
-  #     air_pollution_pm_2_5: 'reference'
-  #     smoking_prevalence: 'reference'
-  #     lri_mortality: 'reference'
-  #     proportion_under_100m: 'reference'
-  #     proportion_over_2_5k: 'reference'
+#  best_masks:
+#   beta_scaling:
+#     window_size: 42
+#     min_avg_window: 21
+#     average_over_min: 7
+#     average_over_max: 42
+#     residual_rescale_upper: 1
+#     residual_rescale_lower: 1
+#   vaccine_version: 'reference'
+#   variant_version: 'reference'
+#   antiviral_version: 'reference'
+#   rates_projection:
+#     past_window: 180
+#     transition_window: 30
+#   mandate_reimposition:
+#     max_num_reimpositions: 0
+#     threshold_measure: 'deaths'
+#     threshold_scalar: 5.0
+#     min_threshold_rate: 10.0
+#     max_threshold_rate: 30.0
+#   log_beta_shift: 0.0
+#   log_beta_shift_date: '2025-01-01'
+#   beta_scale: 1.0
+#   beta_scale_date: '2025-01-01'
+#   covariates:
+#     pneumonia: 'reference'
+#     mandates_index_1: 'reference'
+#     mask_use: 'best'
+#     air_pollution_pm_2_5: 'reference'
+#     smoking_prevalence: 'reference'
+#     lri_mortality: 'reference'
+#     proportion_under_100m: 'reference'
+#     proportion_over_2_5k: 'reference'
+#  global_antivirals:
+#   beta_scaling:
+#     window_size: 42
+#     min_avg_window: 21
+#     average_over_min: 7
+#     average_over_max: 42
+#     residual_rescale_upper: 1
+#     residual_rescale_lower: 1
+#   vaccine_version: 'reference'
+#   variant_version: 'reference'
+#   antiviral_version: 'global_antivirals'
+#   rates_projection:
+#     past_window: 180
+#     transition_window: 30
+#   mandate_reimposition:
+#     max_num_reimpositions: 0
+#     threshold_measure: 'deaths'
+#     threshold_scalar: 5.0
+#     min_threshold_rate: 10.0
+#     max_threshold_rate: 30.0
+#   log_beta_shift: 0.0
+#   log_beta_shift_date: '2025-01-01'
+#   beta_scale: 1.0
+#   beta_scale_date: '2025-01-01'
+#   covariates:
+#     pneumonia: 'reference'
+#     mandates_index_1: 'reference'
+#     mask_use: 'relaxed'
+#     air_pollution_pm_2_5: 'reference'
+#     smoking_prevalence: 'reference'
+#     lri_mortality: 'reference'
+#     proportion_under_100m: 'reference'
+#     proportion_over_2_5k: 'reference'
