@@ -41,7 +41,7 @@ class CSVMarshall:
         # Use list comp to keep ordering consistent.
         index_cols = [c for c in POTENTIAL_INDEX_COLUMNS if c in data.columns]
         if 'date' in index_cols:
-            data['date'] = pd.to_datetime(data['date'], dayfirst=day_first)
+            data['date'] = pd.to_datetime(data['date'], dayfirst=dayfirst)
         if index_cols:
             data = data.set_index(index_cols).sort_index()
         return data
