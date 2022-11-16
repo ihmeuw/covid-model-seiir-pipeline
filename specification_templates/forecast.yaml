@@ -35,6 +35,12 @@ scenarios:
     covariates:
       pneumonia: 'reference'
       mandates_index_1: 'reference'
+      mask_use: 'relaxed'
+      air_pollution_pm_2_5: 'reference'
+      smoking_prevalence: 'reference'
+      lri_mortality: 'reference'
+      proportion_under_100m: 'reference'
+      proportion_over_2_5k: 'reference'
   # best_masks:
   #   algorithm: 'normal'
   #   algorithm_params:

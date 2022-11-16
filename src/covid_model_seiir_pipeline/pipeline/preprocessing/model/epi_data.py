@@ -139,9 +139,9 @@ def evil_doings(data: pd.DataFrame, hierarchy: pd.DataFrame, input_measure: str)
         
         dated_drop_list = [
             ## (location_id, location_label, drop_start_date) ##
-            (151, 'qatar', '2022-10-08'),
-            (186, 'seychelles', '2022-09-07'),
-            (169, 'central_african_republic', '2022-10-01'),
+
+            # (151, 'qatar', '2022-10-08'),
+            # (169, 'central_african_republic', '2022-10-01'),
         ]
 
         for location_id, location_name, drop_start_date in dated_drop_list:
@@ -180,7 +180,8 @@ def evil_doings(data: pd.DataFrame, hierarchy: pd.DataFrame, input_measure: str)
 
         dated_drop_list = [
             ## (location_id, location_label, drop_start_date) ##
-            (151, 'qatar', '2022-10-08'),
+
+            # (151, 'qatar', '2022-10-08'),
         ]
 
         for location_id, location_name, drop_start_date in dated_drop_list:
@@ -214,9 +215,9 @@ def evil_doings(data: pd.DataFrame, hierarchy: pd.DataFrame, input_measure: str)
 
         dated_drop_list = [
             ## (location_id, location_label, drop_start_date) ##
-            (151, 'qatar', '2022-10-08'),
-            (186, 'seychelles', '2022-09-07'),
-            (169, 'central_african_republic', '2022-10-01'),
+
+            # (151, 'qatar', '2022-10-08'),
+            # (169, 'central_african_republic', '2022-10-01'),
         ]
 
         for location_id, location_name, drop_start_date in dated_drop_list:

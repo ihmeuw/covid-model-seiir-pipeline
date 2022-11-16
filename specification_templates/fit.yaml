@@ -2,7 +2,7 @@ data:
   seir_preprocess_version: '2022_10_26.01'
   output_format: 'parquet'
   output_root: ''
-  compare_version: '2022_09_09.04'
+  compare_version: '2022_10_20.12'
 workflow:
   project: 'proj_covid_prod'
   queue: 'all.q'
