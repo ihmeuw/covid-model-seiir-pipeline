@@ -1,5 +1,5 @@
 data:
-  seir_regression_version: '2022_10_27.01'
+  seir_regression_version: '2022_11_16.01'
   output_root: ''
   output_format: 'parquet'
 workflow:
@@ -21,7 +21,7 @@ scenarios:
       past_window: 180
       transition_window: 30
     mandate_reimposition:
-      max_num_reimpositions: 0
+      max_num_reimpositions: 5
       threshold_measure: 'deaths'
       threshold_scalar: 5.0
       min_threshold_rate: 10.0

@@ -187,8 +187,6 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
         reimposition_number += 1
 
     compartments = pd.concat(done_data)
-    import pdb; pdb.set_trace()
-
 
     system_metrics = model.compute_output_metrics(
         indices=indices,
