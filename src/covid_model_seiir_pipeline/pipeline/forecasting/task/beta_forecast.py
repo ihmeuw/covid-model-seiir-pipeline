@@ -186,7 +186,8 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
         model_parameters.base_parameters.loc[:, 'beta_all_infection'] = beta
         reimposition_number += 1
 
-    compartments = pd.concat(compartments)
+    compartments = pd.concat(done_data)
+    import pdb; pdb.set_trace()
 
 
     system_metrics = model.compute_output_metrics(
