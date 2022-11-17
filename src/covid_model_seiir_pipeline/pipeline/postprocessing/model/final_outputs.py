@@ -89,11 +89,11 @@ for measure in ['infections', 'deaths', 'cases', 'admissions']:
     _vax_map = {VACCINE_STATUS_NAMES.course_0: 'unvaccinated',
                 VACCINE_STATUS_NAMES.course_1: 'vaccinated',
                 VACCINE_STATUS_NAMES.course_2: 'booster',
-                VACCINE_STATUS_NAMES.course_3: 'second_booster'}
+                VACCINE_STATUS_NAMES.course_3: 'second_booster',
+                VACCINE_STATUS_NAMES.course_4: 'third_booster'}
     for suffix in list(VARIANT_NAMES[1:]) + list(RISK_GROUP_NAMES) + list(VACCINE_STATUS_NAMES) + ['total', 'naive', 'naive_unvaccinated']:
-        suffix = _vax_map.get(suffix, suffix)
         measure_suffix = f'_{suffix}'
-        label_suffix = f'_{suffix}' if suffix != 'total' else ''
+        label_suffix = f'_{_vax_map.get(suffix, suffix)}' if suffix != 'total' else ''
         write_draws = suffix in ['total']
         label = f'{measure}{label_suffix}'
         MEASURES[label] = MeasureConfig(
@@ -241,9 +241,12 @@ MEASURES.update(**{
     ),
 })
 
-for measure in ['boosters', 'vaccinations']:
+for course, measure in [('vaccine_course_0', 'vaccinations'),
+                        ('vaccine_course_1', 'first_boosters'),
+                        ('vaccine_course_2', 'second_boosters'),
+                        ('vaccine_course_3', 'third_boosters')]:
     MEASURES[measure] = MeasureConfig(
-        loaders.load_output_data(measure),
+        loaders.load_output_data(course),
         f'daily_{measure}',
         calculate_cumulative=True,
         cumulative_label=f'cumulative_{measure}',
@@ -252,7 +255,7 @@ for measure in ['boosters', 'vaccinations']:
     for risk_group in RISK_GROUP_NAMES:
         group_measure = f'{measure}_{risk_group}'
         MEASURES[group_measure] = MeasureConfig(
-            loaders.load_output_data(group_measure),
+            loaders.load_output_data(f'{course}_{risk_group}'),
             f'daily_{group_measure}',
             aggregator=aggregate.sum_aggregator,
         )

@@ -40,7 +40,7 @@ def compute_output_metrics(indices: Indices,
     susceptible = _make_susceptible(compartments_diff)
     immune = _make_immune(susceptible, total_pop)
     infectious = _make_infectious(compartments)
-    vaccinations = _make_vaccinations(compartments)
+    vaccinations = _make_vaccinations(compartments_diff)
     betas = compartments_diff.filter(like='Beta_none_none_all').mean(axis=1).rename('beta')
     force_of_infection = _make_force_of_infection(infections, susceptible)
     covid_status = _make_covid_status(compartments)
@@ -85,10 +85,9 @@ def _make_measure(compartments_diff: pd.DataFrame, measure: str, lag: int) -> pd
     data = defaultdict(lambda: pd.Series(0., index=compartments_diff.index))
 
     data['naive_unvaccinated'] = compartments_diff.filter(like=f'{measure}_none_all_course_0').sum(axis=1)
-    data['unvaccinated'] = compartments_diff.filter(like=f'{measure}_all_all_course_0').sum(axis=1)
-    data['vaccinated'] = compartments_diff.filter(like=f'{measure}_all_all_course_1').sum(axis=1)
-    data['booster'] = compartments_diff.filter(like=f'{measure}_all_all_course_2').sum(axis=1)
-    data['second_booster'] = compartments_diff.filter(like=f'{measure}_all_all_course_3').sum(axis=1)
+    for vaccine_course in VACCINE_STATUS_NAMES:
+        key = f'{measure}_all_all_{vaccine_course}'
+        data[vaccine_course] = compartments_diff.filter(like=key).sum(axis=1)
     data['naive'] = compartments_diff.filter(like=f'{measure}_none_all_all').sum(axis=1)
     data['total'] = compartments_diff.filter(like=f'{measure}_all_all_all').sum(axis=1)
 
@@ -157,16 +156,15 @@ def _make_immune(susceptible: pd.DataFrame, population: pd.Series) -> pd.DataFra
     return immune
 
 
-def _make_vaccinations(compartments: pd.DataFrame) -> pd.DataFrame:
-    vaccinations = defaultdict(lambda: pd.Series(0., index=compartments.index))
+def _make_vaccinations(compartments_diff: pd.DataFrame) -> pd.DataFrame:
+    vaccinations = defaultdict(lambda: pd.Series(0., index=compartments_diff.index))
 
     for risk_group in RISK_GROUP_NAMES:
-        for measure, group in [('Vaccination', 'course_0'),
-                               ('Booster', 'course_1'),
-                               ('SecondBooster', 'course_2')]:
-            key = f'{measure}_all_all_{group}_{risk_group}'
-            vaccinations[f'{measure.lower()}s_{risk_group}'] += compartments[key]
-            vaccinations[f'{measure.lower()}s'] += compartments[key]
+        for vaccine_course in VACCINE_STATUS_NAMES[:-1]:
+            compartment = f'VaccineCourse{int(vaccine_course[-1]) + 1}'
+            key = f'{compartment}_all_all_{vaccine_course}_{risk_group}'
+            vaccinations[f'vaccine_{vaccine_course}_{risk_group}'] += compartments_diff[key]
+            vaccinations[f'vaccine_{vaccine_course}'] += compartments_diff[key]
 
     vaccinations = pd.concat([
         v.rename(k) for k, v in vaccinations.items()

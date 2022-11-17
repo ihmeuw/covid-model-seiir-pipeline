@@ -85,7 +85,7 @@ def run_counterfactual_scenario(counterfactual_version: str, scenario: str, draw
     initial_condition[initial_condition < 0.] = 0.
 
     logger.info('Running ODE forecast.', context='compute_ode')
-    compartments, chis = forecast_model.run_ode_forecast(
+    compartments, chis, failed = forecast_model.run_ode_forecast(
         initial_condition,
         model_parameters,
         num_cores=num_cores,

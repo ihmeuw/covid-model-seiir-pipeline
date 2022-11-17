@@ -1,0 +1,48 @@
+data:
+  output_root: ''
+workflow:
+  project: 'proj_covid_prod'
+  queue: 'all.q'
+grid_plots:
+  - name: 'reference_check'
+    date_start: '2020-01-01'
+    date_end: '2023-12-31'
+    comparators:
+    - version: '2022_10_21.03'
+      scenarios:
+        reference*: 'public reference'
+    - version: '2022_11_08.03'
+      scenarios:
+        reference*: 'none'
+    - version: '2022_11_08.04'
+      scenarios:
+        reference*: 'delta'
+    - version: '2022_11_08.05'
+      scenarios:
+        reference*: 'omicron'
+    - version: '2022_11_08.06'
+      scenarios:
+        reference*: 'deltacron'
+  - name: 'vaccine_compare'
+    date_start: '2022-06-01'
+    date_end: '2023-12-31'
+    comparators:
+    - version: '2022_11_08.03'
+      scenarios:
+        reference: 'none'
+    - version: '2022_11_08.04'
+      scenarios:
+        reference*: 'delta'
+        reference_target_region_breakthrough: 'delta bt'
+        reference_target_region_targeted: 'delta targ'
+    - version: '2022_11_08.05'
+      scenarios:
+        reference*: 'omicron'
+        reference_target_region_breakthrough: 'omicron bt'
+        reference_target_region_targeted: 'omicron targ'
+    - version: '2022_11_08.06'
+      scenarios:
+        reference*: 'deltacron'
+        reference_target_region_breakthrough: 'deltacron bt'
+        reference_target_region_targeted: 'deltacron targ'
+
