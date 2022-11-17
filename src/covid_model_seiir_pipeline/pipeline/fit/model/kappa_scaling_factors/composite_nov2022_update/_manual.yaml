@@ -85,17 +85,13 @@ case:
     109:   0.75                # Cuba
     107:   0.75                # Barbados
     125:   0.75                # Colombia
-  #   151:   1.2                 # Qatar
     4856:  0.75                # Karnataka
     4870:  0.75                # Tamil Nadu
-  #   4866:  1.5                 # Puducherry
   #   498:   5.0                 # Guizhou
   #   501:   5.0                 # Heilongjiang
   #   505:   5.0                 # Inner Mongolia
   #   510:   5.0                 # Ningxia
   #   519:   5.0                 # Xinjiang
-  #   169:   0.75                # Central African Republic
-  #   186:   10.0                # Seychelles
     212:   0.75                # Mauritania
 admission:
   ancestral:
@@ -122,8 +118,6 @@ admission:
     151:   0.6                 # Qatar
     4845:  0.75                # Chandigarh
     4866:  1.5                 # Puducherry
-  # ba5:
-  #   151:   1.2                 # Qatar
 death:
   ancestral:
     33:     1.75  # Armenia
@@ -196,10 +190,8 @@ death:
     54:    1.5                 # Slovakia
     524:   2.0                 # Alaska
     107:   0.5                 # Barbados
-    # 4866:  2.0                 # Puducherry
     53617: 2.0                 # Gilgit-Baltistan
     13:    1.5                 # Malaysia
-    # 186:   2.0                 # Seychelles
     212:   1.5                 # Mauritania
 
 ## ALL VARIANT CALIBRATION
