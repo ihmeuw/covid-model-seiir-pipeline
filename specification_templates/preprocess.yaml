@@ -2,7 +2,7 @@ data:
   mr_location_set_version_id: 1050
   mr_location_set_file: ''
   pred_location_set_version_id: 1050
-  model_inputs_version: '2022_11_15.01'
+  model_inputs_version: '2022_11_16.01'
   age_specific_rates_version: '2022_02_11.03'
   mortality_scalars_version: '2022_03_16.01'
   mask_use_outputs_version: '2022_11_10.01'
@@ -44,7 +44,7 @@ data:
         lr_coverage: 0.5
         hr_coverage: 0.8
         parent_location_ids: [4, 31, 103, 137, 158, 166]
-        scaleup_dates: ['2022-11-01', '2022-12-01']
+        scaleup_dates: ['2022-11-15', '2022-12-15']
   output_root: ''
   output_format: 'csv'
   n_draws: 100

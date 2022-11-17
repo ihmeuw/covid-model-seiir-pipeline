@@ -1,5 +1,5 @@
 data:
-  seir_regression_version: '2022_10_27.01'
+  seir_regression_version: '2022_11_16.03'
   output_root: ''
   output_format: 'parquet'
 workflow:
@@ -29,7 +29,7 @@ scenarios:
     covariates:
       pneumonia: 'reference'
       mandates_index_1: 'reference'
-      mask_use: 'reference'
+      mask_use: 'relaxed'
       air_pollution_pm_2_5: 'reference'
       smoking_prevalence: 'reference'
       lri_mortality: 'reference'
