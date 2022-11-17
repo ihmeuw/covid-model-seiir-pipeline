@@ -28,9 +28,10 @@ _TrackingCompartmentType = namedtuple('TrackingCompartmentType', [
     'Death',                
     'Admission',            
     'Case',                 
-    'Vaccination',          
-    'Booster',              
-    'SecondBooster',        
+    'VaccineCourse1',       
+    'VaccineCourse2',       
+    'VaccineCourse3',       
+    'VaccineCourse4',       
     'EffectiveSusceptible', 
 ])
 
@@ -140,9 +141,10 @@ _TrackingCompartment = namedtuple('TrackingCompartment', [
     'Death',                
     'Admission',            
     'Case',                 
-    'Vaccination',          
-    'Booster',              
-    'SecondBooster',        
+    'VaccineCourse1',       
+    'VaccineCourse2',       
+    'VaccineCourse3',       
+    'VaccineCourse4',       
     'EffectiveSusceptible', 
 ])
 TRACKING_COMPARTMENT = _TrackingCompartment(
@@ -151,9 +153,10 @@ TRACKING_COMPARTMENT = _TrackingCompartment(
     Death=TRACKING_COMPARTMENT_TYPE.Death,
     Admission=TRACKING_COMPARTMENT_TYPE.Admission,
     Case=TRACKING_COMPARTMENT_TYPE.Case,
-    Vaccination=TRACKING_COMPARTMENT_TYPE.Vaccination,
-    Booster=TRACKING_COMPARTMENT_TYPE.Booster,
-    SecondBooster=TRACKING_COMPARTMENT_TYPE.SecondBooster,
+    VaccineCourse1=TRACKING_COMPARTMENT_TYPE.VaccineCourse1,
+    VaccineCourse2=TRACKING_COMPARTMENT_TYPE.VaccineCourse2,
+    VaccineCourse3=TRACKING_COMPARTMENT_TYPE.VaccineCourse3,
+    VaccineCourse4=TRACKING_COMPARTMENT_TYPE.VaccineCourse4,
     EffectiveSusceptible=TRACKING_COMPARTMENT_TYPE.EffectiveSusceptible,
 )
 TRACKING_COMPARTMENT_NAMES = _TrackingCompartment(*_TrackingCompartment._fields)
@@ -5944,18 +5947,19 @@ TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.Case, VARIANT_INDEX_TYPE.all, VA
 TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.Case, VARIANT_INDEX_TYPE.all, VARIANT.omicron, AGG_INDEX_TYPE.all] = 240
 TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.Case, VARIANT_INDEX_TYPE.all, VARIANT.ba5, AGG_INDEX_TYPE.all] = 241
 TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.Case, VARIANT_INDEX_TYPE.all, VARIANT.omega, AGG_INDEX_TYPE.all] = 242
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.Vaccination, VARIANT_INDEX_TYPE.all, VARIANT_INDEX_TYPE.all, AGG_INDEX_TYPE.course_0] = 243
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.Booster, VARIANT_INDEX_TYPE.all, VARIANT_INDEX_TYPE.all, AGG_INDEX_TYPE.course_1] = 244
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.SecondBooster, VARIANT_INDEX_TYPE.all, VARIANT_INDEX_TYPE.all, AGG_INDEX_TYPE.course_2] = 245
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.EffectiveSusceptible, VARIANT_INDEX_TYPE.all, VARIANT.none, AGG_INDEX_TYPE.all] = 246
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.EffectiveSusceptible, VARIANT_INDEX_TYPE.all, VARIANT.ancestral, AGG_INDEX_TYPE.all] = 247
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.EffectiveSusceptible, VARIANT_INDEX_TYPE.all, VARIANT.alpha, AGG_INDEX_TYPE.all] = 248
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.EffectiveSusceptible, VARIANT_INDEX_TYPE.all, VARIANT.beta, AGG_INDEX_TYPE.all] = 249
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.EffectiveSusceptible, VARIANT_INDEX_TYPE.all, VARIANT.gamma, AGG_INDEX_TYPE.all] = 250
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.EffectiveSusceptible, VARIANT_INDEX_TYPE.all, VARIANT.delta, AGG_INDEX_TYPE.all] = 251
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.EffectiveSusceptible, VARIANT_INDEX_TYPE.all, VARIANT.omicron, AGG_INDEX_TYPE.all] = 252
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.EffectiveSusceptible, VARIANT_INDEX_TYPE.all, VARIANT.ba5, AGG_INDEX_TYPE.all] = 253
-TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.EffectiveSusceptible, VARIANT_INDEX_TYPE.all, VARIANT.omega, AGG_INDEX_TYPE.all] = 254
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.VaccineCourse1, VARIANT_INDEX_TYPE.all, VARIANT_INDEX_TYPE.all, AGG_INDEX_TYPE.course_0] = 243
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.VaccineCourse2, VARIANT_INDEX_TYPE.all, VARIANT_INDEX_TYPE.all, AGG_INDEX_TYPE.course_1] = 244
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.VaccineCourse3, VARIANT_INDEX_TYPE.all, VARIANT_INDEX_TYPE.all, AGG_INDEX_TYPE.course_2] = 245
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.VaccineCourse4, VARIANT_INDEX_TYPE.all, VARIANT_INDEX_TYPE.all, AGG_INDEX_TYPE.course_3] = 246
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.EffectiveSusceptible, VARIANT_INDEX_TYPE.all, VARIANT.none, AGG_INDEX_TYPE.all] = 247
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.EffectiveSusceptible, VARIANT_INDEX_TYPE.all, VARIANT.ancestral, AGG_INDEX_TYPE.all] = 248
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.EffectiveSusceptible, VARIANT_INDEX_TYPE.all, VARIANT.alpha, AGG_INDEX_TYPE.all] = 249
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.EffectiveSusceptible, VARIANT_INDEX_TYPE.all, VARIANT.beta, AGG_INDEX_TYPE.all] = 250
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.EffectiveSusceptible, VARIANT_INDEX_TYPE.all, VARIANT.gamma, AGG_INDEX_TYPE.all] = 251
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.EffectiveSusceptible, VARIANT_INDEX_TYPE.all, VARIANT.delta, AGG_INDEX_TYPE.all] = 252
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.EffectiveSusceptible, VARIANT_INDEX_TYPE.all, VARIANT.omicron, AGG_INDEX_TYPE.all] = 253
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.EffectiveSusceptible, VARIANT_INDEX_TYPE.all, VARIANT.ba5, AGG_INDEX_TYPE.all] = 254
+TRACKING_COMPARTMENTS[TRACKING_COMPARTMENT_TYPE.EffectiveSusceptible, VARIANT_INDEX_TYPE.all, VARIANT.omega, AGG_INDEX_TYPE.all] = 255
 TRACKING_COMPARTMENTS_NAMES = [
     'Beta_none_none_all',
     'Beta_none_none_death',
@@ -6065,9 +6069,10 @@ TRACKING_COMPARTMENTS_NAMES = [
     'Case_all_omicron_all',
     'Case_all_ba5_all',
     'Case_all_omega_all',
-    'Vaccination_all_all_course_0',
-    'Booster_all_all_course_1',
-    'SecondBooster_all_all_course_2',
+    'VaccineCourse1_all_all_course_0',
+    'VaccineCourse2_all_all_course_1',
+    'VaccineCourse3_all_all_course_2',
+    'VaccineCourse4_all_all_course_3',
     'EffectiveSusceptible_all_none_all',
     'EffectiveSusceptible_all_ancestral_all',
     'EffectiveSusceptible_all_alpha_all',
@@ -6103,3 +6108,28 @@ AGGREGATES_NAMES = [
     'N_total',
 ]
 
+BETA_MAP = (
+    (AGG_INDEX_TYPE.all, EPI_MEASURE.infection),
+    (AGG_INDEX_TYPE.death, EPI_MEASURE.death),
+    (AGG_INDEX_TYPE.admission, EPI_MEASURE.admission),
+    (AGG_INDEX_TYPE.case, EPI_MEASURE.case),
+)
+VACCINE_STATUS_MAP = (
+    (AGG_INDEX_TYPE.course_0, VACCINE_STATUS.course_0),
+    (AGG_INDEX_TYPE.course_1, VACCINE_STATUS.course_1),
+    (AGG_INDEX_TYPE.course_2, VACCINE_STATUS.course_2),
+    (AGG_INDEX_TYPE.course_3, VACCINE_STATUS.course_3),
+    (AGG_INDEX_TYPE.course_4, VACCINE_STATUS.course_4),
+)
+EPI_MEASURE_MAP = (
+    (TRACKING_COMPARTMENT.Infection, EPI_MEASURE.infection),
+    (TRACKING_COMPARTMENT.Death, EPI_MEASURE.death),
+    (TRACKING_COMPARTMENT.Admission, EPI_MEASURE.admission),
+    (TRACKING_COMPARTMENT.Case, EPI_MEASURE.case),
+)
+VACCINE_COUNT_MAP = (
+    (TRACKING_COMPARTMENT.VaccineCourse1, AGG_INDEX_TYPE.course_0, VACCINE_STATUS.course_0, VACCINE_STATUS.course_1),
+    (TRACKING_COMPARTMENT.VaccineCourse2, AGG_INDEX_TYPE.course_1, VACCINE_STATUS.course_1, VACCINE_STATUS.course_2),
+    (TRACKING_COMPARTMENT.VaccineCourse3, AGG_INDEX_TYPE.course_2, VACCINE_STATUS.course_2, VACCINE_STATUS.course_3),
+    (TRACKING_COMPARTMENT.VaccineCourse4, AGG_INDEX_TYPE.course_3, VACCINE_STATUS.course_3, VACCINE_STATUS.course_4),
+)

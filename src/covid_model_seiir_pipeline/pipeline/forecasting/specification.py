@@ -55,9 +55,6 @@ class ForecastData:
 @dataclass
 class ScenarioSpecification:
     """Forecasting specification for a scenario."""
-    ALLOWED_ALGORITHMS = (
-        'normal',
-    )
     ALLOWED_SYSTEMS = (
         'vaccine',
     )
@@ -78,8 +75,6 @@ class ScenarioSpecification:
     )
 
     name: str = field(default='dummy_scenario')
-    algorithm: str = field(default='normal')
-    algorithm_params: Dict = field(default_factory=dict)
     beta_scaling: Dict[str, int] = field(default_factory=dict)
     vaccine_version: str = field(default='reference')
     variant_version: str = field(default='reference')
@@ -88,12 +83,7 @@ class ScenarioSpecification:
     rates_projection: Dict = field(default_factory=dict)
     covariates: Dict[str, str] = field(default_factory=dict)
 
-
     def __post_init__(self):
-        if self.algorithm not in self.ALLOWED_ALGORITHMS:
-            raise ValueError(f'Unknown algorithm {self.algorithm} in scenario {self.name}. '
-                             f'Allowed algorithms are {self.ALLOWED_ALGORITHMS}.')
-
         window_size = self.beta_scaling.get('window_size', None)
         if window_size is None:
             self.beta_scaling['window_size'] = -1

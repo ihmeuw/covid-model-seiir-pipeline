@@ -14,11 +14,11 @@ from covid_model_seiir_pipeline.lib.io.data_roots import DataRoot
 from covid_model_seiir_pipeline.lib.io.marshall import STRATEGIES
 
 
-def load(key: Union[MetadataKey, DatasetKey]) -> Any:
+def load(key: Union[MetadataKey, DatasetKey], *args, **kwargs) -> Any:
     """Loads the dataset associated with the provided key."""
     if key.disk_format not in STRATEGIES:
         raise
-    return STRATEGIES[key.disk_format].load(key)
+    return STRATEGIES[key.disk_format].load(key, *args, **kwargs)
 
 
 def dump(dataset: Any, key: Union[MetadataKey, DatasetKey]) -> None:

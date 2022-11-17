@@ -149,11 +149,12 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
     reimposition_number = 0
     max_num_reimpositions = scenario_spec.mandate_reimposition['max_num_reimpositions']
     locations_to_run = list(initial_condition.reset_index().location_id.unique())
+    done_data = []
     while reimposition_number <= max_num_reimpositions and locations_to_run:
         logger.info(
             f'Running ODE system on reimposition {reimposition_number} for {len(locations_to_run)} locations.',
-            context='ODE system')
-
+            context='ODE system'
+        )
         compartments, chis, failed = model.run_ode_forecast(
             initial_condition,
             model_parameters,
@@ -169,6 +170,12 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
             reimposition_threshold=reimposition_threshold,
         )
 
+        locations_to_run = reimposition_dates.index.tolist()
+        if not locations_to_run:
+            break
+
+        done_data.append(compartments.drop(locations_to_run, level='location_id'))
+
         covariates, min_reimposition_dates = model.reimpose_mandates(
             reimposition_dates=reimposition_dates,
             covariates=covariates,
@@ -177,10 +184,9 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
 
         beta, beta_hat = build_beta_final(covariates=covariates)
         model_parameters.base_parameters.loc[:, 'beta_all_infection'] = beta
-
-        locations_to_run = reimposition_dates.index.tolist()
-
         reimposition_number += 1
+
+    compartments = pd.concat(done_data)
 
     system_metrics = model.compute_output_metrics(
         indices=indices,

@@ -15,7 +15,7 @@ logger = cli_tools.task_performance_logger
 
 
 def make_uptake_square(uptake: pd.DataFrame) -> pd.DataFrame:
-    courses = uptake.vaccine_course.unique()
+    courses = [1, 2, 3,4 ] #uptake.vaccine_course.unique()
     location_ids = uptake.location_id.unique()
     risk_groups = uptake.risk_group.unique()
     date = pd.date_range(uptake.date.min(), uptake.date.max())
