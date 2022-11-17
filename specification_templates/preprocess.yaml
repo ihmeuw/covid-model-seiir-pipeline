@@ -14,13 +14,6 @@ data:
   vaccine_coverage_version: '2022_11_13.04'
   serology_vaccine_coverage_version: '2022_11_13.04'
   vaccine_efficacy_version: '2022_11_01.01'
-<<<<<<< HEAD
-  vaccine_scenarios:
-    - 'reference'
-    - 'booster'
-    # - 'target_country'
-    # - 'target_region'
-=======
   vaccine_scenario_parameters:
     reference:
       data_version: 'reference'
@@ -32,7 +25,6 @@ data:
       omega_efficacy:
         old_vaccine: 1.0
         new_vaccine: 1.0
->>>>>>> develop
   new_variant: 'ba5'
   default_new_variant_invasion_date: '2022-11-25'
   antiviral_scenario_parameters:
