@@ -39,8 +39,18 @@ def run_preprocess_vaccine(preprocessing_version: str, scenario: str, progress_b
         data_interface.save_waning_parameters(natural_waning, 'natural_waning_distribution')
         data_interface.save_vaccine_summary(summary)
     else:
-        logger.info(f'Loading uptake data for scenario {scenario}.', context='read')
-        uptake = data_interface.load_raw_vaccine_uptake(scenario)
+        efficacy_spec = specification.data.vaccine_scenario_parameters[scenario]
+        uptake_version = efficacy_spec['data_version']
+        old_scalar = efficacy_spec['omega_efficacy']['old_vaccine']
+        new_scalar = efficacy_spec['omega_efficacy']['old_vaccine']
+        waning_efficacy = waning_efficacy.reorder_levels(['vaccine_course', 'endpoint', 'brand', 'days']).sort_index()
+        waning_efficacy.loc[1:3, 'omega'] *= old_scalar
+        waning_efficacy.loc[[4], 'omega'] *= new_scalar
+        waning_efficacy.loc[:, 'omega'] = waning_efficacy.loc[:, 'omega'].clip(0., 1.)
+        waning_efficacy = waning_efficacy.reorder_levels(['endpoint', 'brand', 'vaccine_course', 'days']).sort_index()
+
+        logger.info(f'Loading uptake data for scenario {uptake_version}.', context='read')
+        uptake = data_interface.load_raw_vaccine_uptake(uptake_version)
         logger.info(f'Broadcasting uptake data over shared index.', context='transform')
         uptake = model.make_uptake_square(uptake)
         logger.info('Building vaccine risk reduction argument list.', context='model')
@@ -55,7 +65,6 @@ def run_preprocess_vaccine(preprocessing_version: str, scenario: str, progress_b
                   .unstack()
                   .unstack())
         uptake.columns = [f'course_{course}_{risk_group}' for risk_group, course in uptake]
-
         logger.info(f'Writing uptake and risk reductions for scenario {scenario}.', context='write')
         data_interface.save_vaccine_uptake(uptake, scenario=scenario)
         data_interface.save_vaccine_risk_reduction(risk_reductions, scenario=scenario)

@@ -100,6 +100,7 @@ def evil_doings(data: pd.DataFrame, hierarchy: pd.DataFrame, input_measure: str)
             40: 'turkmenistan',
             66: 'brunei_darussalam',
             176: 'comoros',
+            186: 'seychelles',
             298: 'american_samoa',
             320: 'cook_islands',
             349: 'greenland',
@@ -138,8 +139,10 @@ def evil_doings(data: pd.DataFrame, hierarchy: pd.DataFrame, input_measure: str)
         
         dated_drop_list = [
             ## (location_id, location_label, drop_start_date) ##
+            (35, 'georgia', '2022-09-22'),
+            (115, 'jamaica', '2022-11-08'),
+            (422, 'us_virgin_islands', '2022-11-08'),
             (151, 'qatar', '2022-10-08'),
-            (186, 'seychelles', '2022-09-07'),
             (169, 'central_african_republic', '2022-10-01'),
         ]
 
@@ -179,6 +182,9 @@ def evil_doings(data: pd.DataFrame, hierarchy: pd.DataFrame, input_measure: str)
 
         dated_drop_list = [
             ## (location_id, location_label, drop_start_date) ##
+            (422, 'us_virgin_islands', '2022-11-08'),
+            (126, 'costa_rica', '2022-04-01'),
+            (4759, 'maranhao', '2022-11-07'),
             (151, 'qatar', '2022-10-08'),
         ]
 
@@ -213,8 +219,12 @@ def evil_doings(data: pd.DataFrame, hierarchy: pd.DataFrame, input_measure: str)
 
         dated_drop_list = [
             ## (location_id, location_label, drop_start_date) ##
+            (115, 'jamaica', '2022-11-08'),
+            (422, 'us_virgin_islands', '2022-11-08'),
+            (4758, 'goias', '2022-11-07'),
+            (4759, 'maranhao', '2022-11-07'),
+            (4763, 'para', '2022-11-07'),
             (151, 'qatar', '2022-10-08'),
-            (186, 'seychelles', '2022-09-07'),
             (169, 'central_african_republic', '2022-10-01'),
         ]
 

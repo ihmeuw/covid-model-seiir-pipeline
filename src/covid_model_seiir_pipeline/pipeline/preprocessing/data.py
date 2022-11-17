@@ -261,6 +261,7 @@ class PreprocessingDataInterface:
                 'best': 'mask_use_best',
                 'worse': 'mask_use_worse',
                 'relaxed': 'mask_use_relaxed',
+                'seasonal': 'hemispheric_linear_80max_ref',
             }[scenario]
         except KeyError:
             raise ValueError(f'Unknown mask use scenario {scenario}.')
@@ -285,7 +286,7 @@ class PreprocessingDataInterface:
         return data
 
     def load_mandates(self) -> pd.DataFrame:
-        mandates = io.load(self.model_inputs_root.mandates())
+        mandates = io.load(self.model_inputs_root.mandates(), dayfirst=True)
         return mandates
 
     def load_raw_percent_mandates(self, scenario: str) -> pd.DataFrame:
@@ -364,7 +365,9 @@ class PreprocessingDataInterface:
             scenario_file = {
                 'reference': 'last_shots_in_arm_by_brand_w_booster_reference',
                 'booster': 'last_shots_in_arm_by_brand_w_booster_optimal',
-                'probably_no': 'last_shots_in_arm_by_brand_w_booster_no_prob',
+#                'probably_no': 'last_shots_in_arm_by_brand_w_booster_no_prob',
+                'target_country': 'last_shots_in_arm_by_brand_w_booster_targeted_by_country',
+                'target_region': 'last_shots_in_arm_by_brand_w_booster_targeted_by_region',
             }[scenario]
         except KeyError:
             raise ValueError(f'Unknown vaccine scenario {scenario}.')

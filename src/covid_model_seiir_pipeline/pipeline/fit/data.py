@@ -115,16 +115,18 @@ class FitDataInterface:
             data['omega'] = 0.
             return data
 
-        # shift BA.5 ramp for omega
-        first_ba5_date = data[data.ba5 > 0.01].reset_index().date.min()
+        pp_spec = self.preprocessing_data_interface.load_specification()
+        newest_variant = pp_spec.data.new_variant
+
+        first_new_variant_date = data[data[newest_variant] > 0.01].reset_index().date.min()
         first_omega_date = pd.Timestamp(first_omega_date)
-        shift = (first_omega_date - first_ba5_date).days
+        shift = (first_omega_date - first_new_variant_date).days
         final_outputs = []
         for location_id in data.reset_index().location_id.unique():
-            ba5 = data.loc[location_id, 'ba5']
-            omega = ba5.shift(shift).ffill().bfill()
-            new_data = data.loc[location_id].drop(columns=['omega', 'ba5'])
-            new_data['ba5'] = np.minimum(1 - omega, ba5)
+            prev = data.loc[location_id, newest_variant]
+            omega = prev.shift(shift).ffill().bfill()
+            new_data = data.loc[location_id].drop(columns=[newest_variant])
+            new_data[newest_variant] = np.minimum(1 - omega, prev)
             new_data['omega'] = omega
             new_data = new_data.div(new_data.sum(axis=1), axis=0)
             new_data['location_id'] = location_id

@@ -1,5 +1,5 @@
 data:
-  seir_fit_version: '2022_10_27.01'
+  seir_fit_version: '2022_11_16.05'
   coefficient_version: ''
   seir_covariate_priors_version: ''
   output_root: ''
@@ -36,7 +36,7 @@ covariates:
     gprior: [0.0, 1000.0]
     bounds: [-1000.0, 0.0]
   mask_use:
-    gprior: [0.0, 1000.0]
+    gprior: [-0.61, 0.01]
     bounds: [-1000.0, 0.0]  
   air_pollution_pm_2_5:
     gprior: [0.0, 1000.0]

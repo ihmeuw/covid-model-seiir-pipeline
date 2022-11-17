@@ -1,3 +1,5 @@
+import functools
+
 import click
 import pandas as pd
 
@@ -16,7 +18,8 @@ logger = cli_tools.task_performance_logger
 
 
 def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progress_bar: bool):
-    logger.info(f"Initiating SEIIR beta forecasting for scenario {scenario}, draw {draw_id}.", context='setup')
+    logger.info(f"Initiating SEIIR beta forecasting for scenario {scenario}, draw {draw_id}.",
+                context='setup')
     specification = ForecastSpecification.from_version_root(forecast_version)
     num_cores = specification.workflow.task_specifications[FORECAST_JOBS.forecast].num_cores
     scenario_spec = specification.scenarios[scenario]
@@ -29,13 +32,13 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
     # unique datasets in this model, and they need to be aligned consistently
     # to do computation.
     logger.info('Loading index building data', context='read')
+    hierarchy = data_interface.load_hierarchy('pred')
     location_ids = data_interface.load_location_ids()
     past_compartments = data_interface.load_past_compartments(draw_id).loc[location_ids]
     ode_params = data_interface.load_fit_ode_params(draw_id=draw_id)
     epi_data = data_interface.load_input_epi_measures(draw_id=draw_id).loc[location_ids]
-    antiviral_coverage = data_interface.load_antiviral_coverage(scenario=scenario_spec.antiviral_version)
-    antiviral_effectiveness = data_interface.load_antiviral_effectiveness(draw_id=draw_id)
-    antiviral_rr = model.compute_antiviral_rr(antiviral_coverage, antiviral_effectiveness)
+    mortality_scalars = data_interface.load_total_covid_scalars(draw_id).scalar.loc[
+        location_ids]
 
     # We want the forecast to start at the last date for which all reported measures
     # with at least one report in the location are present.
@@ -56,14 +59,17 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
         covariates=covariates,
     )
 
+    covariates = covariates.reindex(indices.full)
+
     ########################################
     # Build parameters for the SEIIR model #
     ########################################
     logger.info('Loading SEIIR parameter input data.', context='read')
     # Use to get ratios
-    prior_ratios = data_interface.load_rates(draw_id).loc[location_ids]    
+    prior_ratios = data_interface.load_rates(draw_id).loc[location_ids]
     # Rescaling parameters for the beta forecast.
-    beta_shift_parameters = data_interface.load_beta_scales(scenario=scenario, draw_id=draw_id)
+    beta_shift_parameters = data_interface.load_beta_scales(scenario=scenario,
+                                                            draw_id=draw_id)
     # Regression coefficients for forecasting beta.
     coefficients = data_interface.load_coefficients(draw_id)
     # Vaccine data, of course.
@@ -76,71 +82,119 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
     hospital_cf = data_interface.load_hospitalizations(measure='correction_factors')
     hospital_parameters = data_interface.get_hospital_params()
 
-    log_beta_shift = (scenario_spec.log_beta_shift,
-                      pd.Timestamp(scenario_spec.log_beta_shift_date))
-    beta_scale = (scenario_spec.beta_scale,
-                  pd.Timestamp(scenario_spec.beta_scale_date))
+    antiviral_coverage = data_interface.load_antiviral_coverage(
+        scenario=scenario_spec.antiviral_version)
+    antiviral_effectiveness = data_interface.load_antiviral_effectiveness(draw_id=draw_id)
+    antiviral_rr = model.compute_antiviral_rr(antiviral_coverage, antiviral_effectiveness)
 
+    total_population = data_interface.load_population('total').population
     risk_group_population = data_interface.load_population('risk_group')
     risk_group_population = risk_group_population.divide(risk_group_population.sum(axis=1), axis=0)
 
+    initial_condition = past_compartments.loc[indices.past].reindex(indices.full, fill_value=0.)
+    initial_condition[initial_condition < 0.] = 0.
+
     # Collate all the parameters, ensure consistent index, etc.
     logger.info('Processing inputs into model parameters.', context='transform')
-    covariates = covariates.reindex(indices.full)
-    beta, beta_hat = model.build_beta_final(
-        indices,
-        betas,
-        covariates,
-        coefficients,
-        beta_shift_parameters,
-        log_beta_shift,
-        beta_scale,
+
+    reimposition_threshold = model.get_reimposition_threshold(
+        indices=indices,
+        population=total_population,
+        hierarchy=hierarchy,
+        epi_data=epi_data,
+        rhos=rhos,
+        mortality_scalars=mortality_scalars,
+        reimposition_params=scenario_spec.mandate_reimposition,
     )
-    ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
-    logger.warning('Using Hong Kong IFR projection for mainland China IFR projection in `ode_forecast.build_ratio`.')
-    ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
-    hierarchy = data_interface.load_hierarchy('pred')
-    model_parameters = model.build_model_parameters(
-        indices,
-        beta,
-        past_compartments,
-        prior_ratios,
-        scenario_spec.rates_projection,
-        ode_params,
-        rhos,
-        vaccinations,
-        etas,
-        phis,
-        antiviral_rr,
-        risk_group_population,
-        hierarchy,
-    )
+    min_reimposition_dates = (indices.future
+                              .to_frame()
+                              .reset_index(drop=True)
+                              .groupby('location_id')
+                              .date.min() + pd.Timedelta(days=14))
     hospital_cf = model.forecast_correction_factors(
         indices,
         correction_factors=hospital_cf,
         hospital_parameters=hospital_parameters,
     )
 
-    # Pull in compartments from the fit and subset out the initial condition.
-    logger.info('Loading past compartment data.', context='read')
-    initial_condition = past_compartments.loc[indices.past].reindex(indices.full, fill_value=0.)
+    initial_condition = past_compartments.loc[indices.past].reindex(indices.full,
+                                                                    fill_value=0.)
     initial_condition[initial_condition < 0.] = 0.
 
-    logger.info('Running ODE forecast.', context='compute_ode')
-    compartments, chis = model.run_ode_forecast(
-        initial_condition,
-        model_parameters,
-        num_cores=num_cores,
-        progress_bar=progress_bar,
+    build_beta_final = functools.partial(
+        model.build_beta_final,
+        indices=indices,
+        beta_regression=betas,
+        coefficients=coefficients,
+        beta_shift_parameters=beta_shift_parameters,
     )
 
+    beta, beta_hat = build_beta_final(covariates=covariates)
+    model_parameters = model.build_model_parameters(
+        indices=indices,
+        beta=beta,
+        past_compartments=past_compartments,
+        prior_ratios=prior_ratios,
+        rates_projection_spec=scenario_spec.rates_projection,
+        ode_parameters=ode_params,
+        rhos=rhos,
+        vaccinations=vaccinations,
+        etas=etas,
+        phis=phis,
+        antiviral_rr=antiviral_rr,
+        risk_group_population=risk_group_population,
+        hierarchy=hierarchy,
+    )
+
+    reimposition_number = 0
+    max_num_reimpositions = scenario_spec.mandate_reimposition['max_num_reimpositions']
+    locations_to_run = list(initial_condition.reset_index().location_id.unique())
+    done_data = []
+    while reimposition_number <= max_num_reimpositions and locations_to_run:
+        logger.info(
+            f'Running ODE system on reimposition {reimposition_number} for {len(locations_to_run)} locations.',
+            context='ODE system'
+        )
+        compartments, chis, failed = model.run_ode_forecast(
+            initial_condition,
+            model_parameters,
+            num_cores=num_cores,
+            progress_bar=progress_bar,
+            location_ids=locations_to_run,
+        )
+
+        reimposition_dates = model.compute_reimposition_dates(
+            compartments=compartments,
+            total_population=total_population,
+            min_reimposition_dates=min_reimposition_dates,
+            reimposition_threshold=reimposition_threshold,
+        )
+
+        locations_to_run = reimposition_dates.index.tolist()
+        if not locations_to_run:
+            break
+
+        done_data.append(compartments.drop(locations_to_run, level='location_id'))
+
+        covariates, min_reimposition_dates = model.reimpose_mandates(
+            reimposition_dates=reimposition_dates,
+            covariates=covariates,
+            min_reimposition_dates=min_reimposition_dates,
+        )
+
+        beta, beta_hat = build_beta_final(covariates=covariates)
+        model_parameters.base_parameters.loc[:, 'beta_all_infection'] = beta
+        reimposition_number += 1
+
+    compartments = pd.concat(done_data)
+
     system_metrics = model.compute_output_metrics(
-        indices,
-        compartments,
-        model_parameters,
-        ode_params,
-        hospital_parameters,
-        hospital_cf,
+        indices=indices,
+        ode_params=ode_params,
+        hospital_parameters=hospital_parameters,
+        hospital_cf=hospital_cf,
+        compartments=compartments,
+        model_parameters=model_parameters,
     )
 
     logger.info('Prepping outputs.', context='transform')

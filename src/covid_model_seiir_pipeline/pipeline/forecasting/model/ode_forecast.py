@@ -92,11 +92,8 @@ def build_beta_final(indices: Indices,
                      beta_regression: pd.DataFrame,
                      covariates: pd.DataFrame,
                      coefficients: pd.DataFrame,
-                     beta_shift_parameters: pd.DataFrame,
-                     log_beta_shift: Tuple[float, pd.Timestamp],
-                     beta_scale: Tuple[float, pd.Timestamp]):
+                     beta_shift_parameters: pd.DataFrame):
     log_beta_hat = math.compute_beta_hat(covariates, coefficients)
-    log_beta_hat.loc[pd.IndexSlice[:, log_beta_shift[1]:]] += log_beta_shift[0]
     beta_future = indices.full.difference(indices.beta_fit)
     beta_hat = np.exp(log_beta_hat).loc[beta_future].rename('beta_hat').reset_index()
 
@@ -105,7 +102,6 @@ def build_beta_final(indices: Indices,
             .beta_hat
             .rename('beta'))
     beta = beta_regression.reindex(indices.beta_fit).loc[:, 'beta'].append(beta).sort_index()
-    beta.loc[pd.IndexSlice[:, beta_scale[1]:]] *= beta_scale[0]
     return beta, beta_hat.set_index(['location_id', 'date']).reindex(beta.index)
 
 
@@ -126,6 +122,7 @@ def build_model_parameters(indices: Indices,
     ode_params.loc[:, 'beta_all_infection'] = beta
 
     ode_params = ode_params.drop(columns=[c for c in ode_params if 'rho' in c])
+    rhos = rhos.copy()
     rhos.columns = [f'rho_{c}_infection' for c in rhos.columns]
     rhos.loc[:, 'rho_none_infection'] = 0
     ode_params = pd.concat([ode_params, rhos.reindex(indices.full)], axis=1)
@@ -345,6 +342,7 @@ def compute_antiviral_rr(antiviral_coverage: pd.DataFrame,
                          antiviral_effectiveness: pd.DataFrame):
     antiviral_rr = []
     for measure in ['case', 'death', 'admission']:
+
         _antiviral_rr = (1 - antiviral_coverage.multiply(antiviral_effectiveness.loc[:, f'{measure}_antiviral_effectiveness'],
                                                         axis=0))
         _antiviral_rr = _antiviral_rr.rename(columns={column: f"{measure}_{column.replace('coverage', 'rr')}"
@@ -366,7 +364,7 @@ def run_ode_forecast(initial_condition: pd.DataFrame,
                      location_ids: List[int] = None):
     if location_ids is None:
         location_ids = initial_condition.reset_index().location_id.unique().tolist()
-    full_compartments, chis = solver.run_ode_model(
+    full_compartments, chis, missing = solver.run_ode_model(
         initial_condition,
         **ode_parameters.to_dict(),
         location_ids=location_ids,
@@ -374,4 +372,5 @@ def run_ode_forecast(initial_condition: pd.DataFrame,
         num_cores=num_cores,
         progress_bar=progress_bar,
     )
-    return full_compartments, chis
+
+    return full_compartments, chis, missing

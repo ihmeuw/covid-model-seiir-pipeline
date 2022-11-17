@@ -17,6 +17,11 @@ from covid_model_seiir_pipeline.lib.ode_mk2.constants import (
     EFFECTIVE_SUSCEPTIBLE,
     COMPARTMENTS,
     TRACKING_COMPARTMENTS,
+    # Mappings
+    BETA_MAP,
+    VACCINE_STATUS_MAP,
+    EPI_MEASURE_MAP,
+    VACCINE_COUNT_MAP,
 )
 from covid_model_seiir_pipeline.lib.ode_mk2.debug import (
     DEBUG,
@@ -25,20 +30,6 @@ from covid_model_seiir_pipeline.lib.ode_mk2.debug import (
 from covid_model_seiir_pipeline.lib.ode_mk2.utils import (
     cartesian_product,
 )
-
-BETA_MAP = ((AGG_INDEX_TYPE.all, EPI_MEASURE.infection),
-            (AGG_INDEX_TYPE.death, EPI_MEASURE.death),
-            (AGG_INDEX_TYPE.admission, EPI_MEASURE.admission),
-            (AGG_INDEX_TYPE.case, EPI_MEASURE.case))
-VACCINE_STATUS_MAP = ((AGG_INDEX_TYPE.course_0, VACCINE_STATUS.course_0),
-                      (AGG_INDEX_TYPE.course_1, VACCINE_STATUS.course_1),
-                      (AGG_INDEX_TYPE.course_2, VACCINE_STATUS.course_2),
-                      (AGG_INDEX_TYPE.course_3, VACCINE_STATUS.course_3),)
-EPI_MEASURE_MAP = ((TRACKING_COMPARTMENT.Infection, EPI_MEASURE.infection),
-                   (TRACKING_COMPARTMENT.Death, EPI_MEASURE.death),
-                   (TRACKING_COMPARTMENT.Admission, EPI_MEASURE.admission),
-                   (TRACKING_COMPARTMENT.Case, EPI_MEASURE.case))
-
 
 @numba.njit
 def compute_tracking_compartments(t: float,
@@ -70,23 +61,13 @@ def compute_tracking_compartments(t: float,
                 dy[TRACKING_COMPARTMENTS[tc, VARIANT_GROUP.all, VARIANT_GROUP.all, agg_vaccine_status]] += measure
                 dy[TRACKING_COMPARTMENTS[tc, VARIANT_GROUP.all, variant_to, AGG_INDEX_TYPE.all]] += measure
 
-    tc_vax = TRACKING_COMPARTMENT.Vaccination
-    tc_boost = TRACKING_COMPARTMENT.Booster
-    tc_boost2 = TRACKING_COMPARTMENT.SecondBooster
     tc_effs = TRACKING_COMPARTMENT.EffectiveSusceptible
     for variant in VARIANT:
-        dy[TRACKING_COMPARTMENTS[tc_vax, VARIANT_GROUP.all, VARIANT_GROUP.all, AGG_INDEX_TYPE.course_0]] += (
-            transition_map[COMPARTMENTS[COMPARTMENT.S, VACCINE_STATUS.course_0, variant],
-                           COMPARTMENTS[COMPARTMENT.S, VACCINE_STATUS.course_1, variant]]
-        )
-        dy[TRACKING_COMPARTMENTS[tc_boost, VARIANT_GROUP.all, VARIANT_GROUP.all, AGG_INDEX_TYPE.course_1]] += (
-            transition_map[COMPARTMENTS[COMPARTMENT.S, VACCINE_STATUS.course_1, variant],
-                           COMPARTMENTS[COMPARTMENT.S, VACCINE_STATUS.course_2, variant]]
-        )
-        dy[TRACKING_COMPARTMENTS[tc_boost2, VARIANT_GROUP.all, VARIANT_GROUP.all, AGG_INDEX_TYPE.course_2]] += (
-            transition_map[COMPARTMENTS[COMPARTMENT.S, VACCINE_STATUS.course_2, variant],
-                           COMPARTMENTS[COMPARTMENT.S, VACCINE_STATUS.course_3, variant]]
-        )
+        for tc, agg_idx, from_vax, to_vax in VACCINE_COUNT_MAP:
+            dy[TRACKING_COMPARTMENTS[tc, VARIANT_GROUP.all, VARIANT_GROUP.all, agg_idx]] += (
+                transition_map[COMPARTMENTS[COMPARTMENT.S, from_vax, variant],
+                               COMPARTMENTS[COMPARTMENT.S, to_vax, variant]]
+            )
 
         for variant_from, vaccine_status in cartesian_product((np.array(VARIANT), np.array(VACCINE_STATUS))):
             dy[TRACKING_COMPARTMENTS[tc_effs, VARIANT_GROUP.all, variant, AGG_INDEX_TYPE.all]] += (

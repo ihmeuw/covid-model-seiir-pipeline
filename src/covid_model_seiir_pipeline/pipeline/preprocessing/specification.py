@@ -70,7 +70,7 @@ class PreprocessingData:
     vaccine_coverage_version: str = field(default='best')
     serology_vaccine_coverage_version: str = field(default='best')
     vaccine_efficacy_version: str = field(default='best')
-    vaccine_scenarios: list = field(default_factory=list)
+    vaccine_scenario_parameters: dict = field(default_factory=dict)
 
     new_variant: str = field(default='')
     default_new_variant_invasion_date: str = field(default='')
@@ -86,6 +86,19 @@ class PreprocessingData:
 
     def __post_init__(self):
         self.run_counties = self.pred_location_set_version_id in [841, 920]
+
+        default_vaccine_params = {
+            'data_version': 'reference',
+            'omega_efficacy': {
+                'old_vaccine': 1.0,
+                'new_vaccine': 1.0,
+            },
+        }
+        for scenario, parameters in self.vaccine_scenario_parameters.items():
+            for parameter, default in default_vaccine_params.items():
+                self.vaccine_scenario_parameters[scenario][parameter] = (
+                    self.vaccine_scenario_parameters[scenario].get(parameter, default)
+                )
 
         for scenario, scenario_parameters in self.antiviral_scenario_parameters.items():
             for spec_name, parameters in scenario_parameters.items():

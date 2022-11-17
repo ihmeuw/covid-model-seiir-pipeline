@@ -2,23 +2,31 @@ data:
   mr_location_set_version_id: 1050
   mr_location_set_file: ''
   pred_location_set_version_id: 1050
-  model_inputs_version: '2022_10_19.03'
+  model_inputs_version: '2022_11_16.01'
   age_specific_rates_version: '2022_02_11.03'
   mortality_scalars_version: '2022_03_16.01'
-  mask_use_outputs_version: '2022_10_17.01'
+  mask_use_outputs_version: '2022_11_10.01'
   mobility_covariate_version: '2022_10_18.01'
   pneumonia_version: '2020_06_12.03'
   population_density_version: '2020_05_20.07'
-  testing_outputs_version: '2022_10_17.05'
+  testing_outputs_version: '2022_11_14.04'
   variant_scaleup_version: '2022_01_03.01'
-  vaccine_coverage_version: '2022_10_18.01'
-  serology_vaccine_coverage_version: '2022_10_18.01'
-  vaccine_efficacy_version: '2022_09_02.01'
-  vaccine_scenarios:
-    - 'reference'
-    - 'booster'
+  vaccine_coverage_version: '2022_11_13.04'
+  serology_vaccine_coverage_version: '2022_11_13.04'
+  vaccine_efficacy_version: '2022_11_01.01'
+  vaccine_scenario_parameters:
+    reference:
+      data_version: 'reference'
+      omega_efficacy:
+        old_vaccine: 1.0
+        new_vaccine: 1.0
+    booster:
+      data_version: 'booster'
+      omega_efficacy:
+        old_vaccine: 1.0
+        new_vaccine: 1.0
   new_variant: 'ba5'
-  default_new_variant_invasion_date: '2022-10-25'
+  default_new_variant_invasion_date: '2022-11-25'
   antiviral_scenario_parameters:
     reference:
       high_income:
@@ -36,7 +44,7 @@ data:
         lr_coverage: 0.5
         hr_coverage: 0.8
         parent_location_ids: [4, 31, 103, 137, 158, 166]
-        scaleup_dates: ['2022-11-01', '2022-12-01']
+        scaleup_dates: ['2022-11-15', '2022-12-15']
   output_root: ''
   output_format: 'csv'
   n_draws: 100
