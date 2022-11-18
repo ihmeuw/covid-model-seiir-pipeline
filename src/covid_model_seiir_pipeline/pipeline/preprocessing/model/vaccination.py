@@ -15,10 +15,11 @@ logger = cli_tools.task_performance_logger
 
 
 def make_uptake_square(uptake: pd.DataFrame) -> pd.DataFrame:
-    courses = [1, 2, 3,4 ] #uptake.vaccine_course.unique()
+    courses = [1, 2, 3, 4 ] #uptake.vaccine_course.unique()
     location_ids = uptake.location_id.unique()
     risk_groups = uptake.risk_group.unique()
     date = pd.date_range(uptake.date.min(), uptake.date.max())
+    add_fourth_dose = 4 in uptake.vaccine_course.unique() and 'targeted' in uptake
 
     name_map = {
         'BNT.162': 'BNT-162',
@@ -46,7 +47,8 @@ def make_uptake_square(uptake: pd.DataFrame) -> pd.DataFrame:
     vax_names = sorted(list(set(name_map.values())))
     idx = pd.MultiIndex.from_product([courses, location_ids, risk_groups, date], names=idx_names)
     uptake = uptake.set_index(idx_names).sort_index().rename(columns=name_map)
-    uptake.loc[4, 'mRNA Vaccine'] = uptake.loc[4, 'targeted']
+    if add_fourth_dose:
+        uptake.loc[4, 'mRNA Vaccine'] = uptake.loc[4, 'targeted']
     uptake = uptake.loc[:, vax_names]
     duplicates = uptake.index.duplicated()
     if np.any(duplicates):
