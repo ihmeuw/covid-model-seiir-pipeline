@@ -97,6 +97,11 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
     # Collate all the parameters, ensure consistent index, etc.
     logger.info('Processing inputs into model parameters.', context='transform')
 
+    min_reimposition_dates = (indices.future
+                              .to_frame()
+                              .reset_index(drop=True)
+                              .groupby('location_id')
+                              .date.min() + pd.Timedelta(days=14))
     reimposition_threshold = model.get_reimposition_threshold(
         indices=indices,
         population=total_population,
@@ -106,11 +111,12 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
         mortality_scalars=mortality_scalars,
         reimposition_params=scenario_spec.mandate_reimposition,
     )
-    min_reimposition_dates = (indices.future
-                              .to_frame()
-                              .reset_index(drop=True)
-                              .groupby('location_id')
-                              .date.min() + pd.Timedelta(days=14))
+    reimposition_levels = model.get_reimposition_levels(
+        covariates=covariates,
+        rhos=rhos,
+        hierarchy=hierarchy,
+    )
+
     hospital_cf = model.forecast_correction_factors(
         indices,
         correction_factors=hospital_cf,
@@ -178,6 +184,7 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
 
         covariates, min_reimposition_dates = model.reimpose_mandates(
             reimposition_dates=reimposition_dates,
+            reimposition_levels=reimposition_levels,
             covariates=covariates,
             min_reimposition_dates=min_reimposition_dates,
         )
