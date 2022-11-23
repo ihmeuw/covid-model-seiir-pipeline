@@ -70,7 +70,6 @@ def country_map(country_location_id: int,
 
     # map
     map_data.plot(ax=ax[0], column='mapvar', cmap='coolwarm',
-                  # scheme='user_defined', classification_kwds={'bins':bins},
                   edgecolor='black', linewidth=0.2,
                   missing_kwds={'color':'lightgrey'},
                  )
