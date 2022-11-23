@@ -17,8 +17,11 @@ from covid_model_seiir_pipeline.side_analysis.npi_location_splitting.diagnostics
 )
 
 
-def generate_infections_inputs(data_loader: DataLoader) -> Tuple[pd.DataFrame, pd.Series]:
+def generate_infections_inputs(model_inputs_version: str,
+                               seir_outputs_version: str,
+                               write: bool,) -> Tuple[pd.DataFrame, pd.Series]:
     logger.info('SETTING UP DATA LOADER')
+    data_loader = DataLoader(model_inputs_version, seir_outputs_version, write)
     hierarchy = data_loader.load_hierarchy()
 
     logger.info('PROCESSING DATA AND SPLITTING MODEL LOCATION INFECTIONS BY MEASURE')
@@ -77,4 +80,4 @@ def generate_infections_inputs(data_loader: DataLoader) -> Tuple[pd.DataFrame, p
      for country_location_id, map_date in map_args
     ]
 
-    return hierarchy, raw_data, processed_data, weights, infections, missing_locations
+    return data_loader, hierarchy, raw_data, processed_data, weights, infections, missing_locations
