@@ -9,6 +9,7 @@ from covid_model_seiir_pipeline.side_analysis.npi_location_splitting.data import
 )
 
 SMOOTHING_DAYS = 11
+MEASURES = ['cases', 'deaths']
 
 
 def get_model_location_label(hierarchy: pd.DataFrame, model_infections: pd.Series) -> pd.DataFrame:
@@ -237,7 +238,7 @@ def extrapolate_infections(
 def generate_measure_specific_infections(
     data_loader: DataLoader,
     hierarchy: pd.DataFrame,
-    measures: List[str] = ['cases', 'deaths']
+    measures: List[str] = MEASURES,
 ) -> Tuple[pd.Series]:
     # pull in prod model estimates
     model_infections = data_loader.load_infections_estimates()
@@ -276,3 +277,41 @@ def generate_measure_specific_infections(
     npi_infections = pd.concat(npi_infections, axis=1)
     
     return raw_data, processed_data, npi_infections
+
+
+def generate_measure_weights(processed_data: pd.DataFrame) -> pd.DataFrame:
+    weights = (processed_data.dropna(how='all') > (1 / SMOOTHING_DAYS)).groupby('location_id').mean()
+    weights = weights.divide(weights.sum(axis=1), axis=0)
+    weights = weights.rename(columns={col: f'daily_infections_{col}' for col in weights})
+
+    return weights
+
+
+def combine_measure_specific_infections(npi_infections: pd.DataFrame,
+                                        processed_data: pd.DataFrame) -> Tuple[pd.DataFrame]:
+    # downweight based on sparseness
+    weights = generate_measure_weights(processed_data)
+    
+    # fill out tails
+    if any([measure not in ['cases', 'deaths'] for measure in MEASURES]):
+        raise ValueError('Unexpected measure, revise extrapolation logic.')
+    npi_infections_fill = npi_infections.copy()
+    npi_infections_fill = extrapolate_infections(
+        # fill in deaths first...
+        npi_infections_fill,
+        fill_to='deaths',
+        fill_from='cases',
+    )
+    npi_infections_fill = extrapolate_infections(
+        # ... then cases (if necessary, probably is not in most locations)
+        npi_infections_fill,
+        fill_to='cases',
+        fill_from='deaths',
+    )
+
+    # combine
+    npi_infections = (npi_infections
+                      .join(npi_infections_fill.mean(axis=1).rename('daily_infections_composite'))
+                      .join((npi_infections_fill * weights).sum(axis=1).rename('daily_infections_composite_weighted')))
+
+    return weights, npi_infections
