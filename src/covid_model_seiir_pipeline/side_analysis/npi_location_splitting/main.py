@@ -76,11 +76,16 @@ def generate_infections_inputs(model_inputs_version: str,
          data_loader=data_loader,
          map_data=infections.loc[:, 'daily_infections_composite_weighted'].rename('mapvar'),
          npi_hierarchy=npi_hierarchy,
-         prod_hierarchy=prod_hierarchy,
          map_label='Cumulative infections per capita',
          map_date=map_date
      )
      for country_location_id, map_date in map_args
     ]
 
-    return data_loader, npi_hierarchy, prod_hierarchy, raw_data, processed_data, weights, infections, missing_locations
+    return (
+        data_loader,
+        npi_hierarchy, prod_hierarchy, missing_locations,
+        raw_data, processed_data,
+        weights,
+        infections,
+    )
