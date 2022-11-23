@@ -22,8 +22,9 @@ class DataLoader:
                                  '/intermediate_data_fixes/{measure}_0_pre_data_fixes.csv')
 
         # metadata
-        self.hierarchy_path = Path('/mnt/share/covid-19/model-inputs/latest/locations/npi_hierarchy.csv')
-        self.ihme_population_path = Path('/mnt/share/covid-19/model-inputs/latest/output_measures'
+        self.npi_hierarchy_path = Path(f'/mnt/share/covid-19/model-inputs/{model_inputs_version}/locations/npi_hierarchy.csv')
+        self.prod_hierarchy_path = Path(f'/mnt/share/covid-19/model-inputs/{model_inputs_version}/locations/modeling_hierarchy.csv')
+        self.ihme_population_path = Path(f'/mnt/share/covid-19/model-inputs/{model_inputs_version}/output_measures'
                                          '/population/all_populations.csv')
         self.supp_population_path = Path('/mnt/share/covid-19/side-analyses/npi-analysis/covariates'
                                          '/populations/brazil_city_us_county_populations.csv')
@@ -48,7 +49,8 @@ class DataLoader:
 
     def metadata_dict(self):
         return dict(
-            hierarchy_path=self.hierarchy_path,
+            npi_hierarchy_path=self.npi_hierarchy_path,
+            prod_hierarchy_path=self.prod_hierarchy_path,
             covid_model_path=self.covid_model_path,
             nyt_data_path=self.nyt_data_path,
             full_data_path=self.full_data_path,
@@ -56,8 +58,11 @@ class DataLoader:
             pre_fix_path_str=self.pre_fix_path_str,
         )
 
-    def load_hierarchy(self) -> pd.DataFrame:
-        hierarchy = pd.read_csv(self.hierarchy_path)
+    def load_hierarchy(self, version: str = 'npi') -> pd.DataFrame:
+        if version == 'npi':
+            hierarchy = pd.read_csv(self.npi_hierarchy_path)
+        elif version == 'prod':
+            hierarchy = pd.read_csv(self.prod_hierarchy_path)
 
         return hierarchy
 
@@ -87,30 +92,31 @@ class DataLoader:
             data = data.drop(3539)
 
         drop_location_ids = [
-            7,    # Democratic People's Republic of Korea
-            23,   # Kiribati
-            24,   # Marshall Islands
-            25,   # Micronesia (Federated States of)
-            27,   # Samoa
-            28,   # Solomon Islands
-            29,   # Tonga
-            30,   # Vanuatu
-            39,   # Tajikistan
-            66,   # Brunei Darussalam
-            131,  # Nicaragua
-            175,  # Burundi
-            176,  # Comoros
-            177,  # Djibouti
-            183,  # Mauritius
-            186,  # Seychelles
-            189,  # United Republic of Tanzania
-            215,  # Sao Tome and Principe
-            298,  # American Samoa
-            349,  # Greenland
-            369,  # Nauru
-            376,  # Northern Mariana Islands
-            380,  # Palau
-            416,  # Tuvalu
+            7,     # Democratic People's Republic of Korea
+            23,    # Kiribati
+            24,    # Marshall Islands
+            25,    # Micronesia (Federated States of)
+            27,    # Samoa
+            28,    # Solomon Islands
+            29,    # Tonga
+            30,    # Vanuatu
+            39,    # Tajikistan
+            66,    # Brunei Darussalam
+            131,   # Nicaragua
+            175,   # Burundi
+            176,   # Comoros
+            177,   # Djibouti
+            183,   # Mauritius
+            186,   # Seychelles
+            189,   # United Republic of Tanzania
+            215,   # Sao Tome and Principe
+            298,   # American Samoa
+            349,   # Greenland
+            369,   # Nauru
+            376,   # Northern Mariana Islands
+            380,   # Palau
+            416,   # Tuvalu
+            43867, # Prince Edward Island
         ]
         data = data.drop(drop_location_ids, errors='ignore')
 

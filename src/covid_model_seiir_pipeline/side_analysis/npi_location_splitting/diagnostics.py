@@ -14,7 +14,7 @@ from covid_model_seiir_pipeline.side_analysis.npi_location_splitting.data import
 def country_map(country_location_id: int,
                 data_loader: DataLoader,
                 map_data: pd.Series,
-                hierarchy: pd.DataFrame,
+                npi_hierarchy: pd.DataFrame,
                 map_label: str,
                 map_date: str,):
     # make output path before messing with map_date
@@ -28,8 +28,8 @@ def country_map(country_location_id: int,
     map_data = map_data.sort_index().dropna().groupby('location_id').cumsum()
     if map_date == 'last':
         map_data = map_data.drop(
-            hierarchy.loc[
-                (hierarchy['path_to_top_parent'].apply(lambda x: str(country_location_id) not in x.split(','))),
+            npi_hierarchy.loc[
+                (npi_hierarchy['path_to_top_parent'].apply(lambda x: str(country_location_id) not in x.split(','))),
                 'location_id'
             ],
             errors='ignore'
@@ -41,10 +41,10 @@ def country_map(country_location_id: int,
     map_data /= populations
 
     # identify admin level
-    country_name = hierarchy.loc[hierarchy['location_id'] == country_location_id, 'location_name'].item()
-    map_hierarchy = hierarchy.loc[
-        (hierarchy['most_detailed'] == 1)
-        & (hierarchy['path_to_top_parent'].apply(lambda x: str(country_location_id) in x.split(',')))
+    country_name = npi_hierarchy.loc[npi_hierarchy['location_id'] == country_location_id, 'location_name'].item()
+    map_hierarchy = npi_hierarchy.loc[
+        (npi_hierarchy['most_detailed'] == 1)
+        & (npi_hierarchy['path_to_top_parent'].apply(lambda x: str(country_location_id) in x.split(',')))
     ]
     admin_level = map_hierarchy.level.min() - 3
     map_location_ids = map_hierarchy['location_id'].to_list()

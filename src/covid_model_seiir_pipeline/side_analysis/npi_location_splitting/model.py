@@ -12,20 +12,14 @@ SMOOTHING_DAYS = 11
 MEASURES = ['cases', 'deaths']
 
 
-def get_model_location_label(hierarchy: pd.DataFrame, model_infections: pd.Series) -> pd.DataFrame:
-    # hierarchy = hierarchy.loc[hierarchy['most_detailed'] == 1]
-    model_locations = (model_infections
-                       .index
-                       .get_level_values('model_location_id')
-                       .astype(str)
-                       .unique()
-                       .tolist())
-    hierarchy['model_location_id'] = hierarchy['path_to_top_parent'].apply(
+def get_model_location_label(npi_hierarchy: pd.DataFrame, prod_hierarchy: pd.DataFrame) -> pd.DataFrame:
+    model_locations = prod_hierarchy['location_id'].astype(str).to_list()
+    npi_hierarchy['model_location_id'] = npi_hierarchy['path_to_top_parent'].apply(
         lambda x: int([xi for xi in x.split(',') if xi in model_locations][-1])
     )
-    hierarchy.loc[hierarchy['level'] <= 3, 'model_location_id'] = hierarchy['location_id']
+    npi_hierarchy.loc[npi_hierarchy['level'] <= 3, 'model_location_id'] = npi_hierarchy['location_id']
 
-    return hierarchy.set_index('location_id').loc[:, ['model_location_id']]
+    return npi_hierarchy.set_index('location_id').loc[:, ['model_location_id']]
 
 
 def fill_time_series(loc_data: pd.DataFrame, dates: pd.DataFrame):
@@ -45,13 +39,14 @@ def fill_time_series(loc_data: pd.DataFrame, dates: pd.DataFrame):
 def process_measure_data(
     measure: str,
     data_loader: DataLoader,
-    hierarchy: pd.DataFrame,
+    npi_hierarchy: pd.DataFrame,
+    prod_hierarchy: pd.DataFrame,
     model_infections: pd.Series,
     smooth: bool = True,
     which_locs: str = 'all',
 ) -> pd.Series:
     # load data, convert to daily and drop missingness and days <= 0, revert to cumulative
-    raw_data = data_loader.load_raw_data(which_locs, measure, hierarchy)
+    raw_data = data_loader.load_raw_data(which_locs, measure, npi_hierarchy)
     duplicate_location_ids = (raw_data
                               .loc[raw_data.index.duplicated()]
                               .index
@@ -73,7 +68,7 @@ def process_measure_data(
     data = data.set_index('date', append=True).sort_index()
 
     # attach state label to counties
-    data = get_model_location_label(hierarchy, model_infections).join(data, how='right')
+    data = get_model_location_label(npi_hierarchy, prod_hierarchy).join(data, how='right')
 
     # get start and end dates by state
     start_dates = (model_infections
@@ -105,33 +100,29 @@ def process_measure_data(
 def add_brazil_residual(
     measure: str,
     data_loader: DataLoader,
-    hierarchy: pd.DataFrame,
+    npi_hierarchy: pd.DataFrame,
+    prod_hierarchy: pd.DataFrame,
     model_infections: pd.Series,
     processed_data: pd.Series,
 ) -> Tuple[pd.Series]:
-    is_bra = hierarchy['path_to_top_parent'].apply(lambda x: '135' in x.split(','))
-    is_admin1 = hierarchy['level'] == 4
-    is_most_detailed = hierarchy['most_detailed'] == 1
-    residual_hierarchy = hierarchy.loc[is_bra & is_admin1]
-    residual_hierarchy['is_estimate'] = 1
-    residual_hierarchy['most_detailed'] = 1
-
     # get state level data, convert to daily
     _, admin1_data = process_measure_data(measure,
                                           data_loader,
-                                          hierarchy,
+                                          npi_hierarchy,
+                                          prod_hierarchy,
                                           model_infections,
                                           which_locs='bra_admin1')
 
     # get city level data, convert to daily
     _, admin2_data = process_measure_data(measure,
                                           data_loader,
-                                          hierarchy,
+                                          npi_hierarchy,
+                                          prod_hierarchy,
                                           model_infections,
                                           which_locs='bra_admin2')
 
 
-    agg_admin1_data = (get_model_location_label(hierarchy, model_infections)
+    agg_admin1_data = (get_model_location_label(npi_hierarchy, prod_hierarchy)
                        .join(admin2_data, how='right')
                        .groupby(['model_location_id', 'date'])[measure].sum())
     agg_admin1_data.index.names = ['location_id', 'date']
@@ -146,19 +137,23 @@ def add_brazil_residual(
     residual_admin2_data = residual_admin2_data.set_index(['location_id', 'date']).loc[:, measure]
     processed_data = processed_data.append(residual_admin2_data)
 
+    is_bra = npi_hierarchy['path_to_top_parent'].apply(lambda x: '135' in x.split(','))
+    is_admin1 = npi_hierarchy['level'] == 4
+    residual_hierarchy = npi_hierarchy.loc[is_bra & is_admin1]
     residual_hierarchy['parent_id'] = residual_hierarchy['location_id']
     residual_hierarchy['location_id'] = -residual_hierarchy['location_id']
     residual_hierarchy['location_name'] += ' residual'
     residual_hierarchy['path_to_top_parent'] += ',' + residual_hierarchy['location_id'].astype(str)
     residual_hierarchy['level'] += 1
     residual_hierarchy['sort_order'] += 0.1
-    hierarchy = hierarchy.append(residual_hierarchy).sort_values('sort_order').reset_index(drop=True)
+    npi_hierarchy = npi_hierarchy.append(residual_hierarchy).sort_values('sort_order').reset_index(drop=True)
 
-    return hierarchy, processed_data
+    return npi_hierarchy, processed_data
 
 
 def split_model_infections(
-    hierarchy: pd.DataFrame,
+    npi_hierarchy: pd.DataFrame,
+    prod_hierarchy: pd.DataFrame,
     measure_data: pd.Series,
     model_infections: pd.Series,
 ) -> pd.Series:
@@ -169,7 +164,7 @@ def split_model_infections(
                     .groupby('location_id').bfill())
 
     # calculate proportions
-    split_proportions = get_model_location_label(hierarchy, model_infections).join(measure_data, how='right')
+    split_proportions = get_model_location_label(npi_hierarchy, prod_hierarchy).join(measure_data, how='right')
     if split_proportions['model_location_id'].isnull().any():
         raise ValueError('Some locations in data are not in hierarchy.')
     split_proportions = (split_proportions
@@ -237,7 +232,8 @@ def extrapolate_infections(
 
 def generate_measure_specific_infections(
     data_loader: DataLoader,
-    hierarchy: pd.DataFrame,
+    npi_hierarchy: pd.DataFrame,
+    prod_hierarchy: pd.DataFrame,
     measures: List[str] = MEASURES,
 ) -> Tuple[pd.Series]:
     # pull in prod model estimates
@@ -251,22 +247,25 @@ def generate_measure_specific_infections(
         _raw_data, _processed_data = process_measure_data(
             measure,
             data_loader,
-            hierarchy,
+            npi_hierarchy,
+            prod_hierarchy,
             model_infections
         )
-        _hierarchy, _processed_data = add_brazil_residual(
+        _npi_hierarchy, _processed_data = add_brazil_residual(
             measure,
             data_loader,
-            hierarchy,
+            npi_hierarchy,
+            prod_hierarchy,
             model_infections,
             _processed_data
         )
 
         # split up infections
         _infections = split_model_infections(
-            hierarchy=_hierarchy,
-            measure_data=_processed_data,
-            model_infections=model_infections,
+            _npi_hierarchy,
+            prod_hierarchy,
+            _processed_data,
+            model_infections,
         ).rename(f'daily_infections_{measure}')
 
         raw_data.append(_raw_data)
