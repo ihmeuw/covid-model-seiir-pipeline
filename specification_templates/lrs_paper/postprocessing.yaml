@@ -1,5 +1,5 @@
 data:
-  seir_forecast_version: '2022_11_08.04'
+  seir_forecast_version: '2022_11_27.04'
   scenarios:
     - 'reference'
     - 'seasonal_masks'
@@ -17,10 +17,6 @@ data:
     - 'seasonal_masks_target_country_breakthrough'
     - 'mandate_reimposition_target_country_breakthrough'
     - 'seasonal_masks_and_mandate_reimposition_target_country_breakthrough'
-    - 'reference_target_country_targeted'
-    - 'seasonal_masks_target_country_targeted'
-    - 'mandate_reimposition_target_country_targeted'
-    - 'seasonal_masks_and_mandate_reimposition_target_country_targeted'
     - 'reference_target_region'
     - 'seasonal_masks_target_region'
     - 'mandate_reimposition_target_region'
@@ -29,10 +25,6 @@ data:
     - 'seasonal_masks_target_region_breakthrough'
     - 'mandate_reimposition_target_region_breakthrough'
     - 'seasonal_masks_and_mandate_reimposition_target_region_breakthrough'
-    - 'reference_target_region_targeted'
-    - 'seasonal_masks_target_region_targeted'
-    - 'mandate_reimposition_target_region_targeted'
-    - 'seasonal_masks_and_mandate_reimposition_target_region_targeted'
   output_root: ''
 workflow:
   project: 'proj_covid_prod'

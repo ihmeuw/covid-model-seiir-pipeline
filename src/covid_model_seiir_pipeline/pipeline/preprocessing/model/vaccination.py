@@ -44,11 +44,11 @@ def make_uptake_square(uptake: pd.DataFrame) -> pd.DataFrame:
     }
 
     idx_names = ['vaccine_course', 'location_id', 'risk_group', 'date']
-    vax_names = sorted(list(set(name_map.values())))
+    vax_names = sorted(list(set(name_map.values()).difference(['targeted'])))
     idx = pd.MultiIndex.from_product([courses, location_ids, risk_groups, date], names=idx_names)
     uptake = uptake.set_index(idx_names).sort_index().rename(columns=name_map)
     if add_fourth_dose:
-        uptake.loc[4, 'mRNA Vaccine'] = uptake.loc[4, 'targeted']
+        uptake.loc[[4], 'mRNA Vaccine'] = uptake.loc[[4], 'targeted']
     uptake = uptake.loc[:, vax_names]
     duplicates = uptake.index.duplicated()
     if np.any(duplicates):

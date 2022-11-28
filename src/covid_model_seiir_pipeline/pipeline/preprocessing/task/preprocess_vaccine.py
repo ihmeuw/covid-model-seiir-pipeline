@@ -48,7 +48,7 @@ def run_preprocess_vaccine(preprocessing_version: str, scenario: str, progress_b
             if isinstance(efficacy_version, str):
                 waning_efficacy.loc[vaccine_courses, 'omega'] = waning_efficacy.loc[vaccine_courses, efficacy_version]
             else:
-                waning_efficacy.loc[efficacy_version, 'omega'] *= efficacy_version
+                waning_efficacy.loc[vaccine_courses, 'omega'] *= efficacy_version
         waning_efficacy.loc[:, 'omega'] = waning_efficacy.loc[:, 'omega'].clip(0., 1.)
         waning_efficacy = waning_efficacy.reorder_levels(['endpoint', 'brand', 'vaccine_course', 'days']).sort_index()
 
