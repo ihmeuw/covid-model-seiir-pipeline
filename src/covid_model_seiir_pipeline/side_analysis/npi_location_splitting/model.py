@@ -12,22 +12,22 @@ SMOOTHING_DAYS = 11
 MEASURES = ['cases', 'deaths']
 
 
-def get_model_location_label(npi_hierarchy: pd.DataFrame, prod_hierarchy: pd.DataFrame) -> pd.DataFrame:
-    model_locations = prod_hierarchy['location_id'].astype(str).to_list()
-    npi_hierarchy['model_location_id'] = npi_hierarchy['path_to_top_parent'].apply(
-        lambda x: int([xi for xi in x.split(',') if xi in model_locations][-1])
+def get_prod_location_label(npi_hierarchy: pd.DataFrame, prod_hierarchy: pd.DataFrame) -> pd.DataFrame:
+    prod_locations = prod_hierarchy['location_id'].astype(str).to_list()
+    npi_hierarchy['prod_location_id'] = npi_hierarchy['path_to_top_parent'].apply(
+        lambda x: int([xi for xi in x.split(',') if xi in prod_locations][-1])
     )
-    npi_hierarchy.loc[npi_hierarchy['level'] <= 3, 'model_location_id'] = npi_hierarchy['location_id']
+    npi_hierarchy.loc[npi_hierarchy['level'] <= 3, 'prod_location_id'] = npi_hierarchy['location_id']
 
-    return npi_hierarchy.set_index('location_id').loc[:, ['model_location_id']]
+    return npi_hierarchy.set_index('location_id').loc[:, ['prod_location_id']]
 
 
 def fill_time_series(loc_data: pd.DataFrame, dates: pd.DataFrame):
-    start_date, end_date = dates.loc[loc_data['model_location_id'].unique().item()]
+    start_date, end_date = dates.loc[loc_data['prod_location_id'].unique().item()]
     start_date -= pd.Timedelta(days=1)  # plop a 0 in front to start interpolation
     loc_data = (loc_data
                 .reset_index('location_id', drop=True)
-                .drop('model_location_id', axis=1))
+                .drop('prod_location_id', axis=1))
     loc_data = loc_data.reindex(pd.Index(pd.date_range(start_date, end_date), name='date'))
     loc_data.iloc[0] = 0
     loc_data = loc_data.interpolate().ffill()
@@ -41,18 +41,12 @@ def process_measure_data(
     data_loader: DataLoader,
     npi_hierarchy: pd.DataFrame,
     prod_hierarchy: pd.DataFrame,
-    model_infections: pd.Series,
+    prod_infections: pd.Series,
     smooth: bool = True,
     which_locs: str = 'all',
 ) -> pd.Series:
     # load data, convert to daily and drop missingness and days <= 0, revert to cumulative
     raw_data = data_loader.load_raw_data(which_locs, measure, npi_hierarchy)
-    duplicate_location_ids = (raw_data
-                              .loc[raw_data.index.duplicated()]
-                              .index
-                              .get_level_values('location_id')
-                              .unique())
-
     data = raw_data.dropna()
     data = data.groupby('location_id').diff().fillna(data)
     data = data.loc[data > 0]
@@ -68,16 +62,16 @@ def process_measure_data(
     data = data.set_index('date', append=True).sort_index()
 
     # attach state label to counties
-    data = get_model_location_label(npi_hierarchy, prod_hierarchy).join(data, how='right')
+    data = get_prod_location_label(npi_hierarchy, prod_hierarchy).join(data, how='right')
 
     # get start and end dates by state
-    start_dates = (model_infections
-                   .loc[model_infections.groupby('model_location_id').cumsum() > 0].reset_index('date')
-                   .groupby('model_location_id').first()['date']
+    start_dates = (prod_infections
+                   .loc[prod_infections.groupby('prod_location_id').cumsum() > 0].reset_index('date')
+                   .groupby('prod_location_id').first()['date']
                    .rename('start_date'))
     end_dates = (data
                  .reset_index('date')
-                 .groupby('model_location_id').last()['date']
+                 .groupby('prod_location_id').last()['date']
                  .rename('end_date'))
     dates = pd.concat([start_dates, end_dates], axis=1)
 
@@ -102,29 +96,26 @@ def add_brazil_residual(
     data_loader: DataLoader,
     npi_hierarchy: pd.DataFrame,
     prod_hierarchy: pd.DataFrame,
-    model_infections: pd.Series,
+    prod_infections: pd.Series,
     processed_data: pd.Series,
 ) -> Tuple[pd.Series]:
-    # get state level data, convert to daily
     _, admin1_data = process_measure_data(measure,
                                           data_loader,
                                           npi_hierarchy,
                                           prod_hierarchy,
-                                          model_infections,
+                                          prod_infections,
                                           which_locs='bra_admin1')
 
-    # get city level data, convert to daily
     _, admin2_data = process_measure_data(measure,
                                           data_loader,
                                           npi_hierarchy,
                                           prod_hierarchy,
-                                          model_infections,
+                                          prod_infections,
                                           which_locs='bra_admin2')
 
-
-    agg_admin1_data = (get_model_location_label(npi_hierarchy, prod_hierarchy)
+    agg_admin1_data = (get_prod_location_label(npi_hierarchy, prod_hierarchy)
                        .join(admin2_data, how='right')
-                       .groupby(['model_location_id', 'date'])[measure].sum())
+                       .groupby(['prod_location_id', 'date'])[measure].sum())
     agg_admin1_data.index.names = ['location_id', 'date']
 
     idx = agg_admin1_data.index.union(admin1_data.index)
@@ -151,11 +142,11 @@ def add_brazil_residual(
     return npi_hierarchy, processed_data
 
 
-def split_model_infections(
+def split_prod_infections(
     npi_hierarchy: pd.DataFrame,
     prod_hierarchy: pd.DataFrame,
     measure_data: pd.Series,
-    model_infections: pd.Series,
+    prod_infections: pd.Series,
 ) -> pd.Series:
     # extend head/tail in order to get proportions for full time series
     measure_data = (measure_data
@@ -164,20 +155,20 @@ def split_model_infections(
                     .groupby('location_id').bfill())
 
     # calculate proportions
-    split_proportions = get_model_location_label(npi_hierarchy, prod_hierarchy).join(measure_data, how='right')
-    if split_proportions['model_location_id'].isnull().any():
+    split_proportions = get_prod_location_label(npi_hierarchy, prod_hierarchy).join(measure_data, how='right')
+    if split_proportions['prod_location_id'].isnull().any():
         raise ValueError('Some locations in data are not in hierarchy.')
     split_proportions = (split_proportions
-                         .set_index('model_location_id', append=True)
-                         .reorder_levels(['model_location_id', 'location_id', 'date'])
+                         .set_index('prod_location_id', append=True)
+                         .reorder_levels(['prod_location_id', 'location_id', 'date'])
                          .loc[:, 'measure_data'])
-    split_proportions /= split_proportions.groupby(['model_location_id', 'date']).transform(sum)
+    split_proportions /= split_proportions.groupby(['prod_location_id', 'date']).transform(sum)
 
     data_idx = split_proportions.reset_index('location_id', drop=True).index.drop_duplicates()
 
-    npi_infections = split_proportions * model_infections.loc[data_idx]
+    npi_infections = split_proportions * prod_infections.loc[data_idx]
     npi_infections = (npi_infections
-                      .reset_index('model_location_id', drop=True)
+                      .reset_index('prod_location_id', drop=True)
                       .reorder_levels(['location_id', 'date'])
                       .sort_index()
                       .rename('daily_infections'))
@@ -192,40 +183,50 @@ def extrapolate_infections(
 ) -> pd.DataFrame:
     # how many transition days
     t_d = 30
-    
-    # get initial ratio
-    ratio = npi_infections[f'daily_infections_{fill_to}'] / (npi_infections[f'daily_infections_{fill_from}'] + 1)
 
-    # weight backcast ratio inverse chronologically (linear)
-    b_weights = (ratio / ratio).sort_index(ascending=False).groupby('location_id').cumsum()
-    b_weights /= b_weights.groupby('location_id').sum()
-    b_ratio = (ratio * b_weights).groupby('location_id').sum().replace(0, np.nan)
+    # get initial ratio
+    ratio = (
+        npi_infections[f'daily_infections_{fill_to}']
+        / npi_infections[f'daily_infections_{fill_from}']
+    ).rename('ratio')
+    ratio_notna = ratio.dropna()
+    counter = ratio_notna.notnull()
+    # first_ratio = ratio_notna.groupby('location_id').first()
+    last_ratio = ratio_notna.groupby('location_id').last()
+
+    # # weight backcast ratio inverse chronologically (linear)
+    # b_weights = counter.sort_index(ascending=False).groupby('location_id').cumsum()
+    # b_weights /= b_weights.groupby('location_id').transform(sum)
+    # b_ratio = (ratio_notna * b_weights.sort_index()).groupby('location_id').sum().replace(0, np.nan)
+
+    # # create backcast values
+    # b_idx = ~(ratio.sort_index().notnull().groupby('location_id').cummax())
+    # b_fill = b_idx.sort_index(ascending=False).groupby('location_id').cumsum().sort_index().clip(0, t_d) / t_d
+    # b_fill = b_fill.loc[b_fill > 0]
+    # b_fill = b_fill.loc[b_fill == b_fill.groupby('location_id').transform(max)]
+    # b_fill = first_ratio + (b_ratio - first_ratio) * b_fill
 
     # weight forecast ratio chronologically (linear)
-    f_weights = (ratio / ratio).sort_index().groupby('location_id').cumsum()
-    f_weights /= f_weights.groupby('location_id').sum()
-    f_ratio = (ratio * f_weights).groupby('location_id').sum().replace(0, np.nan)
-
-    # create backcast values
-    b_idx = ~ratio.sort_index().notnull().groupby('location_id').cummax()
-    b_fill = b_idx.sort_index(ascending=False).groupby('location_id').cumsum().sort_index().clip(0, t_d) / t_d
-    b_fill = b_fill.loc[b_fill > 0]
-    b_fill = b_fill.loc[b_fill == b_fill.groupby('location_id').transform(max)]
-    b_fill *= b_ratio
+    f_weights = counter.sort_index().groupby('location_id').cumsum()
+    f_weights /= f_weights.groupby('location_id').transform(sum)
+    f_ratio = (ratio_notna * f_weights.sort_index()).groupby('location_id').sum().replace(0, np.nan)
 
     # create forecast values
-    f_idx = ~ratio.sort_index(ascending=False).notnull().groupby('location_id').cummax().sort_index()
-    f_fill = f_idx.sort_index().groupby('location_id').cumsum().sort_index().clip(0, t_d) / t_d
+    f_idx = ~(ratio.sort_index(ascending=False).notnull().groupby('location_id').cummax().sort_index())
+    f_fill = f_idx.groupby('location_id').cumsum().clip(0, t_d) / t_d
     f_fill = f_fill.loc[f_fill > 0]
     f_fill = f_fill.loc[f_fill == f_fill.groupby('location_id').transform(max)]
-    f_fill *= f_ratio
+    f_fill = last_ratio + (f_ratio - last_ratio) * f_fill
 
     # combine, splice into original ratios, and interpolate
-    fill = pd.concat([b_fill, f_fill.drop(b_fill.index, errors='ignore')])
+    #fill = pd.concat([b_fill, f_fill.drop(b_fill.index, errors='ignore')])
+    fill = f_fill.copy()
     ratio = ratio.fillna(fill).groupby('location_id').apply(pd.Series.interpolate)
 
     # fill in original data
-    npi_infections[f'daily_infections_{fill_to}'] = (npi_infections[f'daily_infections_{fill_from}'] + 1) * ratio
+    npi_infections[f'daily_infections_{fill_to}'] = npi_infections[f'daily_infections_{fill_to}'].fillna(
+        npi_infections[f'daily_infections_{fill_from}'] * ratio
+    )
 
     return npi_infections
 
@@ -234,11 +235,9 @@ def generate_measure_specific_infections(
     data_loader: DataLoader,
     npi_hierarchy: pd.DataFrame,
     prod_hierarchy: pd.DataFrame,
+    prod_infections: pd.Series,
     measures: List[str] = MEASURES,
 ) -> Tuple[pd.Series]:
-    # pull in prod model estimates
-    model_infections = data_loader.load_infections_estimates()
-    
     # load NPI hierarchy level outputs by measure
     raw_data, processed_data, npi_infections = [], [], []
     for measure in measures:
@@ -249,23 +248,23 @@ def generate_measure_specific_infections(
             data_loader,
             npi_hierarchy,
             prod_hierarchy,
-            model_infections
+            prod_infections
         )
         _npi_hierarchy, _processed_data = add_brazil_residual(
             measure,
             data_loader,
             npi_hierarchy,
             prod_hierarchy,
-            model_infections,
+            prod_infections,
             _processed_data
         )
 
         # split up infections
-        _infections = split_model_infections(
+        _infections = split_prod_infections(
             _npi_hierarchy,
             prod_hierarchy,
             _processed_data,
-            model_infections,
+            prod_infections,
         ).rename(f'daily_infections_{measure}')
 
         raw_data.append(_raw_data)

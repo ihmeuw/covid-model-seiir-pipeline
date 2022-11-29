@@ -3,29 +3,37 @@ import pandas as pd
 import geopandas as gpd
 import matplotlib.pyplot as plt
 import matplotlib as mpl
+from matplotlib.backends.backend_pdf import PdfPages
 import seaborn as sns
 sns.set_style('whitegrid')
 
 from covid_model_seiir_pipeline.side_analysis.npi_location_splitting.data import (
     DataLoader,
 )
+from covid_model_seiir_pipeline.side_analysis.npi_location_splitting.model import (
+    get_prod_location_label,
+)
 
 
-def country_map(country_location_id: int,
-                data_loader: DataLoader,
-                map_data: pd.Series,
-                npi_hierarchy: pd.DataFrame,
-                map_label: str,
-                map_date: str,):
+def country_map(
+    country_location_id: int,
+    data_loader: DataLoader,
+    map_data: pd.Series,
+    npi_hierarchy: pd.DataFrame,
+    map_label: str,
+    map_date: str,
+    convert_to_rate: bool = True,
+):
+    # get country name first for file name
+    country_name = npi_hierarchy.loc[npi_hierarchy['location_id'] == country_location_id, 'location_name'].item()
+
     # make output path before messing with map_date
     if data_loader.run_directory:
         output_path = data_loader.run_directory / 'diagnostics' / f'{country_name} {map_date} map.pdf'
     else:
         output_path = None
 
-    # get populations
-    populations = data_loader.load_populations()
-    map_data = map_data.sort_index().dropna().groupby('location_id').cumsum()
+    # subset to specified date
     if map_date == 'last':
         map_data = map_data.drop(
             npi_hierarchy.loc[
@@ -38,10 +46,13 @@ def country_map(country_location_id: int,
     else:
         map_date = pd.to_datetime(map_date)
     map_data = map_data.loc[:, map_date, :]
-    map_data /= populations
+
+    # if specified, convert data to rate
+    if convert_to_rate:
+        populations = data_loader.load_populations()
+        map_data /= populations
 
     # identify admin level
-    country_name = npi_hierarchy.loc[npi_hierarchy['location_id'] == country_location_id, 'location_name'].item()
     map_hierarchy = npi_hierarchy.loc[
         (npi_hierarchy['most_detailed'] == 1)
         & (npi_hierarchy['path_to_top_parent'].apply(lambda x: str(country_location_id) in x.split(',')))
@@ -65,7 +76,7 @@ def country_map(country_location_id: int,
 
     ## GENERATE FIGURE
     fig, ax = plt.subplots(1, 3,
-                           gridspec_kw={'width_ratios': [12, 1, 2]}, figsize=(16, 8))
+                           gridspec_kw={'width_ratios': [12, 1, 2]}, figsize=(15, 8))
     fig.suptitle(f"{country_name},\n{map_label} {map_date.strftime('%Y-%m-%d')}")
 
     # map
@@ -92,5 +103,80 @@ def country_map(country_location_id: int,
     fig.tight_layout()
     if output_path:
         plt.savefig(output_path)
+        plt.close()
+    else:
+        fig.show()
+
+
+def aggregate_infections_time_series(
+    data_loader: DataLoader,
+    npi_hierarchy: pd.DataFrame,
+    prod_hierarchy: pd.DataFrame,
+    npi_infections: pd.DataFrame,
+    prod_infections: pd.Series,
+):
+    # make output path before messing with map_date
+    if data_loader.run_directory:
+        output_path = data_loader.run_directory / 'diagnostics' / 'aggregate infections time series.pdf'
+    else:
+        output_path = None
+
+    agg_npi_infections = (get_prod_location_label(npi_hierarchy, prod_hierarchy)
+                          .join(npi_infections, how='right')
+                          .reset_index())
+    agg_location_ids = (agg_npi_infections
+                        .loc[agg_npi_infections['location_id'] != agg_npi_infections['prod_location_id'],
+                             'prod_location_id']
+                        .drop_duplicates()
+                        .to_list())
+    agg_npi_infections = (agg_npi_infections
+                          .drop('location_id', axis=1)
+                          .groupby(['prod_location_id', 'date']).sum())
+
+    locations = npi_hierarchy.set_index('location_id').loc[agg_location_ids].sort_values('sort_order').loc[:, 'location_name']
+
+    if output_path:
+        with PdfPages(output_path) as pdf:
+            for location_id, location_name in locations.items():
+                _aggregate_infections_time_series(
+                    agg_npi_infections.loc[location_id],
+                    prod_infections.loc[location_id],
+                    location_name,
+                    pdf,
+                )
+    else:
+        for location_id, location_name in locations.items():
+            _aggregate_infections_time_series(
+                agg_npi_infections.loc[location_id],
+                prod_infections.loc[location_id],
+                location_name,
+            )
+
+
+def _aggregate_infections_time_series(
+    agg_npi_infections: pd.DataFrame,
+    prod_infections: pd.Series,
+    location_name: str,
+    pdf: PdfPages = None,
+):
+    fig, ax = plt.subplots(2, 1, figsize=(8, 9), sharex=True)
+    (agg_npi_infections / 1e3).plot(ax=ax[0])
+    (prod_infections.reindex(agg_npi_infections.index) / 1e3).plot(ax=ax[0],
+                                                                   linestyle='--',
+                                                                   color='darkgrey')
+
+    (agg_npi_infections.cumsum() / 1e6).plot(ax=ax[1])
+    (prod_infections.reindex(agg_npi_infections.index).cumsum() / 1e6).plot(ax=ax[1],
+                                                                             linestyle='--',
+                                                                             color='darkgrey')
+
+    ax[0].set(xlabel=None, ylabel='Daily infections (thousands)')
+    ax[1].set(xlabel=None, ylabel='Cumulative infections (millions)')
+    fig.suptitle(location_name)
+
+    fig.tight_layout()
+    if pdf:
+        pdf.savefig(fig)
+        plt.close()
     else:
         fig.show()

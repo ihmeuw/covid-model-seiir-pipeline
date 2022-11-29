@@ -164,8 +164,8 @@ class DataLoader:
         data = pd.read_csv(self.covid_model_path)
 
         data['date'] = pd.to_datetime(data['date'])
-        data = data.rename(columns={'location_id': 'model_location_id'})
+        data = data.rename(columns={'location_id': 'prod_location_id'})
 
-        data = data.set_index(['model_location_id', 'date']).loc[:, 'mean'].rename('daily_infections')
+        data = data.set_index(['prod_location_id', 'date']).loc[:, 'mean'].rename('daily_infections')
 
         return data
