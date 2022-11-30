@@ -1,4 +1,4 @@
-data:
+ data:
   seir_preprocess_version: '2022_11_25.02'
   output_format: 'parquet'
   output_root: ''

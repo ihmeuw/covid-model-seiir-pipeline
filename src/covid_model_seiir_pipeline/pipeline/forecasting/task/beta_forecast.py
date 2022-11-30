@@ -183,6 +183,13 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
             context='ODE system'
         )
 
+        covariates, min_reimposition_dates = model.reimpose_mandates(
+            reimposition_dates=reimposition_dates,
+            reimposition_levels=reimposition_levels,
+            covariates=covariates,
+            min_reimposition_dates=min_reimposition_dates,
+        )
+
         beta, beta_hat = build_beta_final(covariates=covariates)
         model_parameters.base_parameters.loc[:, 'beta_all_infection'] = beta
         compartments_update, _, failed = model.run_ode_forecast(
