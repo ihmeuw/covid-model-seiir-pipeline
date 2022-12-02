@@ -64,8 +64,11 @@ def make_uptake_square(uptake: pd.DataFrame, course_4_shift: pd.Timedelta) -> pd
                                .loc[4]
                                .groupby(['location_id', 'risk_group'])
                                .shift(-7)
+                               .groupby(['location_id', 'risk_group'])
+                               .cumsum()
                                .fillna(0.))
-        third_dose_frontier = np.maximum(uptake.loc[3], fourth_dose_shifted)
+        third_dose = uptake.loc[3].groupby(['location_id', 'risk_group']).cumsum().fillna(0.)
+        third_dose_frontier = np.maximum(third_dose, fourth_dose_shifted).groupby(['location_id', 'risk_group']).diff().fillna(0.)
         third_dose_frontier['vaccine_course'] = 3
         third_dose_frontier = third_dose_frontier.reset_index().set_index(idx_names).sort_index()
         uptake.loc[[3]] = third_dose_frontier
