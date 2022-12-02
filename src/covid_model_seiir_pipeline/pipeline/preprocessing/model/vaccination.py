@@ -60,6 +60,14 @@ def make_uptake_square(uptake: pd.DataFrame, course_4_shift: pd.Timedelta) -> pd
     uptake = uptake.reindex(idx).fillna(0.)
 
     if add_fourth_dose:
+        fourth_dose_shifted = (uptake
+                               .loc[4]
+                               .groupby(['location_id', 'risk_group'])
+                               .shift(-7)
+                               .fillna(0.))
+        third_dose_frontier = np.maximum(uptake.loc[3], fourth_dose_shifted)
+        third_dose_frontier['vaccine_course'] = 3
+        third_dose_frontier = third_dose_frontier.reset_index().set_index(idx_names).sort_index()
         import pdb; pdb.set_trace()
 
     return uptake
