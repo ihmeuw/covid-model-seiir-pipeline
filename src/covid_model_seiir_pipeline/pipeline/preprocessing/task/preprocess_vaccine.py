@@ -41,6 +41,7 @@ def run_preprocess_vaccine(preprocessing_version: str, scenario: str, progress_b
     else:
         efficacy_spec = specification.data.vaccine_scenario_parameters[scenario]
         uptake_version = efficacy_spec['data_version']
+        course_4_shift = pd.Timedelta(days=efficacy_spec['course_4_shift'])
         old_efficacy = efficacy_spec['omega_efficacy']['old_vaccine']
         new_efficacy = efficacy_spec['omega_efficacy']['old_vaccine']
         waning_efficacy = waning_efficacy.reorder_levels(['vaccine_course', 'endpoint', 'brand', 'days']).sort_index()
@@ -55,7 +56,7 @@ def run_preprocess_vaccine(preprocessing_version: str, scenario: str, progress_b
         logger.info(f'Loading uptake data for scenario {uptake_version}.', context='read')
         uptake = data_interface.load_raw_vaccine_uptake(uptake_version)
         logger.info(f'Broadcasting uptake data over shared index.', context='transform')
-        uptake = model.make_uptake_square(uptake)
+        uptake = model.make_uptake_square(uptake, course_4_shift)
         logger.info('Building vaccine risk reduction argument list.', context='model')
         eta_args = model.build_eta_calc_arguments(uptake, waning_efficacy, progress_bar)
         logger.info('Computing vaccine risk reductions.', context='model')

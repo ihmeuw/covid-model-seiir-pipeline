@@ -89,6 +89,7 @@ class PreprocessingData:
 
         default_vaccine_params = {
             'data_version': 'reference',
+            'course_4_shift': 0,
             'omega_efficacy': {
                 'old_vaccine': 1.0,
                 'new_vaccine': 1.0,

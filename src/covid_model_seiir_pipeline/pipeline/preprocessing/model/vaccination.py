@@ -14,8 +14,8 @@ from covid_model_seiir_pipeline.lib import (
 logger = cli_tools.task_performance_logger
 
 
-def make_uptake_square(uptake: pd.DataFrame) -> pd.DataFrame:
-    courses = [1, 2, 3, 4 ] #uptake.vaccine_course.unique()
+def make_uptake_square(uptake: pd.DataFrame, course_4_shift: pd.Timedelta) -> pd.DataFrame:
+    courses = [1, 2, 3, 4]  # uptake.vaccine_course.unique()
     location_ids = uptake.location_id.unique()
     risk_groups = uptake.risk_group.unique()
     date = pd.date_range(uptake.date.min(), uptake.date.max())
@@ -49,12 +49,19 @@ def make_uptake_square(uptake: pd.DataFrame) -> pd.DataFrame:
     uptake = uptake.set_index(idx_names).sort_index().rename(columns=name_map)
     if add_fourth_dose:
         uptake.loc[[4], 'mRNA Vaccine'] = uptake.loc[[4], 'targeted']
+        uptake = uptake.reset_index(level='date')
+        uptake.loc[[4], 'date'] += course_4_shift
+        uptake = uptake.set_index('date', append=True).sort_index()
     uptake = uptake.loc[:, vax_names]
     duplicates = uptake.index.duplicated()
     if np.any(duplicates):
         logger.warning('Duplicates found in uptake dataset')
         uptake = uptake.loc[~duplicates]
     uptake = uptake.reindex(idx).fillna(0.)
+
+    if add_fourth_dose:
+        import pdb; pdb.set_trace()
+
     return uptake
 
 

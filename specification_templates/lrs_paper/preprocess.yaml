@@ -17,31 +17,73 @@ data:
   vaccine_scenario_parameters:
     reference:
       data_version: 'reference'
+      course_4_shift: 30
       omega_efficacy:
         old_vaccine: 'omicron'
         new_vaccine: 'ancestral'
     reference_breakthrough:
       data_version: 'reference'
+      course_4_shift: 30
       omega_efficacy:
         old_vaccine: 0.0
         new_vaccine: 'ancestral'
     target_country:
       data_version: 'target_country'
+      course_4_shift: 30
       omega_efficacy:
         old_vaccine: 'omicron'
         new_vaccine: 'ancestral'
     target_country_breakthrough:
       data_version: 'target_country'
+      course_4_shift: 30
       omega_efficacy:
         old_vaccine: 0.0
         new_vaccine: 'ancestral'
     target_region:
       data_version: 'target_region'
+      course_4_shift: 30
       omega_efficacy:
         old_vaccine: 'omicron'
         new_vaccine: 'ancestral'
     target_region_breakthrough:
       data_version: 'target_region'
+      course_4_shift: 30
+      omega_efficacy:
+        old_vaccine: 0.0
+        new_vaccine: 'ancestral'
+    reference_early:
+      data_version: 'reference'
+      course_4_shift: 0
+      omega_efficacy:
+        old_vaccine: 'omicron'
+        new_vaccine: 'ancestral'
+    reference_breakthrough_early:
+      data_version: 'reference'
+      course_4_shift: 0
+      omega_efficacy:
+        old_vaccine: 0.0
+        new_vaccine: 'ancestral'
+    target_country_early:
+      data_version: 'target_country'
+      course_4_shift: 0
+      omega_efficacy:
+        old_vaccine: 'omicron'
+        new_vaccine: 'ancestral'
+    target_country_breakthrough_early:
+      data_version: 'target_country'
+      course_4_shift: 0
+      omega_efficacy:
+        old_vaccine: 0.0
+        new_vaccine: 'ancestral'
+    target_region_early:
+      data_version: 'target_region'
+      course_4_shift: 0
+      omega_efficacy:
+        old_vaccine: 'omicron'
+        new_vaccine: 'ancestral'
+    target_region_breakthrough_early:
+      data_version: 'target_region'
+      course_4_shift: 0
       omega_efficacy:
         old_vaccine: 0.0
         new_vaccine: 'ancestral'
