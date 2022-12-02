@@ -373,7 +373,8 @@ def make_drivers_page(plot_versions: List[PlotVersion],
         'third_boosters'
     ]
     for i, course in enumerate(vaccine_courses):
-        ax_vaccine = fig.add_subplot(gs_vax[course])
+        row, col = i // 2, i % 2
+        ax_vaccine = fig.add_subplot(gs_vax[row, col])
         plotter.make_time_plot(
             ax_vaccine,
             f'cumulative_{course}',

@@ -11,23 +11,23 @@ grid_plots:
     - version: '2022_10_21.03'
       scenarios:
         reference*: 'public reference'
-    - version: '2022_11_28.01'
+    - version: '2022_11_30.01'
       scenarios:
         reference*: 'none'
-    - version: '2022_11_28.02'
+    - version: '2022_11_30.02'
       scenarios:
         reference*: 'delta'
-    - version: '2022_11_28.03'
+    - version: '2022_11_30.03'
       scenarios:
         reference*: 'omicron'
-    - version: '2022_11_28.04'
+    - version: '2022_11_30.04'
       scenarios:
         reference*: 'deltacron'
   - name: 'intervention_compare_none'
     date_start: '2022-06-01'
     date_end: '2023-12-31'
     comparators:
-    - version: '2022_11_28.01'
+    - version: '2022_11_30.01'
       scenarios:
         reference: 'reference'
         seasonal_masks: 'seasonal_masks'
@@ -37,7 +37,7 @@ grid_plots:
     date_start: '2022-06-01'
     date_end: '2023-12-31'
     comparators:
-      - version: '2022_11_28.02'
+      - version: '2022_11_30.02'
         scenarios:
           reference: 'reference'
           seasonal_masks: 'seasonal_masks'
@@ -47,7 +47,7 @@ grid_plots:
     date_start: '2022-06-01'
     date_end: '2023-12-31'
     comparators:
-      - version: '2022_11_28.03'
+      - version: '2022_11_30.03'
         scenarios:
           reference: 'reference'
           seasonal_masks: 'seasonal_masks'
@@ -57,7 +57,7 @@ grid_plots:
     date_start: '2022-06-01'
     date_end: '2023-12-31'
     comparators:
-      - version: '2022_11_28.04'
+      - version: '2022_11_30.04'
         scenarios:
           reference: 'reference'
           seasonal_masks: 'seasonal_masks'
@@ -67,7 +67,7 @@ grid_plots:
     date_start: '2022-06-01'
     date_end: '2023-12-31'
     comparators:
-      - version: '2022_11_28.01'
+      - version: '2022_11_30.01'
         scenarios:
           reference: 'reference'
           reference_breakthrough: 'reference_breakthrough'
@@ -77,7 +77,7 @@ grid_plots:
     date_start: '2022-06-01'
     date_end: '2023-12-31'
     comparators:
-      - version: '2022_11_28.02'
+      - version: '2022_11_30.02'
         scenarios:
           reference: 'reference'
           reference_breakthrough: 'reference_breakthrough'
@@ -87,7 +87,7 @@ grid_plots:
     date_start: '2022-06-01'
     date_end: '2023-12-31'
     comparators:
-      - version: '2022_11_28.03'
+      - version: '2022_11_30.03'
         scenarios:
           reference: 'reference'
           reference_breakthrough: 'reference_breakthrough'
@@ -97,7 +97,7 @@ grid_plots:
     date_start: '2022-06-01'
     date_end: '2023-12-31'
     comparators:
-      - version: '2022_11_28.04'
+      - version: '2022_11_30.04'
         scenarios:
           reference: 'reference'
           reference_breakthrough: 'reference_breakthrough'
