@@ -1,5 +1,5 @@
 data:
-  seir_forecast_version: '2022_11_30.04'
+  seir_forecast_version: '2022_12_03.02'
   scenarios:
     - 'reference'
     - 'seasonal_masks'
@@ -25,6 +25,10 @@ data:
     - 'seasonal_masks_target_region_breakthrough'
     - 'mandate_reimposition_target_region_breakthrough'
     - 'seasonal_masks_and_mandate_reimposition_target_region_breakthrough'
+    - 'reference_target_country_early'
+    - 'reference_target_country_breakthrough_early'
+    - 'reference_target_region_early'
+    - 'reference_target_region_breakthrough_early'
   output_root: ''
 workflow:
   project: 'proj_covid_prod'
