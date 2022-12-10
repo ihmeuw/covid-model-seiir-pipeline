@@ -58,7 +58,7 @@ scenarios:
     covariates:
       pneumonia: 'reference'
       mandates_index_1: 'reference'
-      mask_use: 'seasonal'
+      mask_use: 'optimistic'
       air_pollution_pm_2_5: 'reference'
       smoking_prevalence: 'reference'
       lri_mortality: 'reference'
@@ -116,123 +116,7 @@ scenarios:
     covariates:
       pneumonia: 'reference'
       mandates_index_1: 'reference'
-      mask_use: 'seasonal'
-      air_pollution_pm_2_5: 'reference'
-      smoking_prevalence: 'reference'
-      lri_mortality: 'reference'
-      proportion_under_100m: 'reference'
-      proportion_over_2_5k: 'reference'
-  reference_breakthrough:
-    beta_scaling:
-      window_size: 42
-      min_avg_window: 21
-      average_over_min: 7
-      average_over_max: 42
-      residual_rescale_upper: 1
-      residual_rescale_lower: 1
-    vaccine_version: 'reference_breakthrough'
-    variant_version: 'reference'
-    antiviral_version: 'reference'
-    rates_projection:
-      past_window: 180
-      transition_window: 30
-    mandate_reimposition:
-      max_num_reimpositions: 0
-      threshold_measure: 'deaths'
-      threshold_scalar: 5.0
-      min_threshold_rate: 10.0
-      max_threshold_rate: 30.0
-    covariates:
-      pneumonia: 'reference'
-      mandates_index_1: 'reference'
-      mask_use: 'reference'
-      air_pollution_pm_2_5: 'reference'
-      smoking_prevalence: 'reference'
-      lri_mortality: 'reference'
-      proportion_under_100m: 'reference'
-      proportion_over_2_5k: 'reference'
-  seasonal_masks_breakthrough:
-    beta_scaling:
-      window_size: 42
-      min_avg_window: 21
-      average_over_min: 7
-      average_over_max: 42
-      residual_rescale_upper: 1
-      residual_rescale_lower: 1
-    vaccine_version: 'reference_breakthrough'
-    variant_version: 'reference'
-    antiviral_version: 'reference'
-    rates_projection:
-      past_window: 180
-      transition_window: 30
-    mandate_reimposition:
-      max_num_reimpositions: 0
-      threshold_measure: 'deaths'
-      threshold_scalar: 5.0
-      min_threshold_rate: 10.0
-      max_threshold_rate: 30.0
-    covariates:
-      pneumonia: 'reference'
-      mandates_index_1: 'reference'
-      mask_use: 'seasonal'
-      air_pollution_pm_2_5: 'reference'
-      smoking_prevalence: 'reference'
-      lri_mortality: 'reference'
-      proportion_under_100m: 'reference'
-      proportion_over_2_5k: 'reference'
-  mandate_reimposition_breakthrough:
-    beta_scaling:
-      window_size: 42
-      min_avg_window: 21
-      average_over_min: 7
-      average_over_max: 42
-      residual_rescale_upper: 1
-      residual_rescale_lower: 1
-    vaccine_version: 'reference_breakthrough'
-    variant_version: 'reference'
-    antiviral_version: 'reference'
-    rates_projection:
-      past_window: 180
-      transition_window: 30
-    mandate_reimposition:
-      max_num_reimpositions: 5
-      threshold_measure: 'deaths'
-      threshold_scalar: 5.0
-      min_threshold_rate: 10.0
-      max_threshold_rate: 30.0
-    covariates:
-      pneumonia: 'reference'
-      mandates_index_1: 'reference'
-      mask_use: 'reference'
-      air_pollution_pm_2_5: 'reference'
-      smoking_prevalence: 'reference'
-      lri_mortality: 'reference'
-      proportion_under_100m: 'reference'
-      proportion_over_2_5k: 'reference'
-  seasonal_masks_and_mandate_reimposition_breakthrough:
-    beta_scaling:
-      window_size: 42
-      min_avg_window: 21
-      average_over_min: 7
-      average_over_max: 42
-      residual_rescale_upper: 1
-      residual_rescale_lower: 1
-    vaccine_version: 'reference_breakthrough'
-    variant_version: 'reference'
-    antiviral_version: 'reference'
-    rates_projection:
-      past_window: 180
-      transition_window: 30
-    mandate_reimposition:
-      max_num_reimpositions: 5
-      threshold_measure: 'deaths'
-      threshold_scalar: 5.0
-      min_threshold_rate: 10.0
-      max_threshold_rate: 30.0
-    covariates:
-      pneumonia: 'reference'
-      mandates_index_1: 'reference'
-      mask_use: 'seasonal'
+      mask_use: 'optimistic'
       air_pollution_pm_2_5: 'reference'
       smoking_prevalence: 'reference'
       lri_mortality: 'reference'
@@ -290,7 +174,7 @@ scenarios:
     covariates:
       pneumonia: 'reference'
       mandates_index_1: 'reference'
-      mask_use: 'seasonal'
+      mask_use: 'optimistic'
       air_pollution_pm_2_5: 'reference'
       smoking_prevalence: 'reference'
       lri_mortality: 'reference'
@@ -348,123 +232,7 @@ scenarios:
     covariates:
       pneumonia: 'reference'
       mandates_index_1: 'reference'
-      mask_use: 'seasonal'
-      air_pollution_pm_2_5: 'reference'
-      smoking_prevalence: 'reference'
-      lri_mortality: 'reference'
-      proportion_under_100m: 'reference'
-      proportion_over_2_5k: 'reference'
-  reference_target_country_breakthrough:
-    beta_scaling:
-      window_size: 42
-      min_avg_window: 21
-      average_over_min: 7
-      average_over_max: 42
-      residual_rescale_upper: 1
-      residual_rescale_lower: 1
-    vaccine_version: 'target_country_breakthrough'
-    variant_version: 'reference'
-    antiviral_version: 'reference'
-    rates_projection:
-      past_window: 180
-      transition_window: 30
-    mandate_reimposition:
-      max_num_reimpositions: 0
-      threshold_measure: 'deaths'
-      threshold_scalar: 5.0
-      min_threshold_rate: 10.0
-      max_threshold_rate: 30.0
-    covariates:
-      pneumonia: 'reference'
-      mandates_index_1: 'reference'
-      mask_use: 'reference'
-      air_pollution_pm_2_5: 'reference'
-      smoking_prevalence: 'reference'
-      lri_mortality: 'reference'
-      proportion_under_100m: 'reference'
-      proportion_over_2_5k: 'reference'
-  seasonal_masks_target_country_breakthrough:
-    beta_scaling:
-      window_size: 42
-      min_avg_window: 21
-      average_over_min: 7
-      average_over_max: 42
-      residual_rescale_upper: 1
-      residual_rescale_lower: 1
-    vaccine_version: 'target_country_breakthrough'
-    variant_version: 'reference'
-    antiviral_version: 'reference'
-    rates_projection:
-      past_window: 180
-      transition_window: 30
-    mandate_reimposition:
-      max_num_reimpositions: 0
-      threshold_measure: 'deaths'
-      threshold_scalar: 5.0
-      min_threshold_rate: 10.0
-      max_threshold_rate: 30.0
-    covariates:
-      pneumonia: 'reference'
-      mandates_index_1: 'reference'
-      mask_use: 'seasonal'
-      air_pollution_pm_2_5: 'reference'
-      smoking_prevalence: 'reference'
-      lri_mortality: 'reference'
-      proportion_under_100m: 'reference'
-      proportion_over_2_5k: 'reference'
-  mandate_reimposition_target_country_breakthrough:
-    beta_scaling:
-      window_size: 42
-      min_avg_window: 21
-      average_over_min: 7
-      average_over_max: 42
-      residual_rescale_upper: 1
-      residual_rescale_lower: 1
-    vaccine_version: 'target_country_breakthrough'
-    variant_version: 'reference'
-    antiviral_version: 'reference'
-    rates_projection:
-      past_window: 180
-      transition_window: 30
-    mandate_reimposition:
-      max_num_reimpositions: 5
-      threshold_measure: 'deaths'
-      threshold_scalar: 5.0
-      min_threshold_rate: 10.0
-      max_threshold_rate: 30.0
-    covariates:
-      pneumonia: 'reference'
-      mandates_index_1: 'reference'
-      mask_use: 'reference'
-      air_pollution_pm_2_5: 'reference'
-      smoking_prevalence: 'reference'
-      lri_mortality: 'reference'
-      proportion_under_100m: 'reference'
-      proportion_over_2_5k: 'reference'
-  seasonal_masks_and_mandate_reimposition_target_country_breakthrough:
-    beta_scaling:
-      window_size: 42
-      min_avg_window: 21
-      average_over_min: 7
-      average_over_max: 42
-      residual_rescale_upper: 1
-      residual_rescale_lower: 1
-    vaccine_version: 'target_country_breakthrough'
-    variant_version: 'reference'
-    antiviral_version: 'reference'
-    rates_projection:
-      past_window: 180
-      transition_window: 30
-    mandate_reimposition:
-      max_num_reimpositions: 5
-      threshold_measure: 'deaths'
-      threshold_scalar: 5.0
-      min_threshold_rate: 10.0
-      max_threshold_rate: 30.0
-    covariates:
-      pneumonia: 'reference'
-      mandates_index_1: 'reference'
-      mask_use: 'seasonal'
+      mask_use: 'optimistic'
       air_pollution_pm_2_5: 'reference'
       smoking_prevalence: 'reference'
       lri_mortality: 'reference'
@@ -522,7 +290,7 @@ scenarios:
     covariates:
       pneumonia: 'reference'
       mandates_index_1: 'reference'
-      mask_use: 'seasonal'
+      mask_use: 'optimistic'
       air_pollution_pm_2_5: 'reference'
       smoking_prevalence: 'reference'
       lri_mortality: 'reference'
@@ -580,123 +348,7 @@ scenarios:
     covariates:
       pneumonia: 'reference'
       mandates_index_1: 'reference'
-      mask_use: 'seasonal'
-      air_pollution_pm_2_5: 'reference'
-      smoking_prevalence: 'reference'
-      lri_mortality: 'reference'
-      proportion_under_100m: 'reference'
-      proportion_over_2_5k: 'reference'
-  reference_target_region_breakthrough:
-    beta_scaling:
-      window_size: 42
-      min_avg_window: 21
-      average_over_min: 7
-      average_over_max: 42
-      residual_rescale_upper: 1
-      residual_rescale_lower: 1
-    vaccine_version: 'target_region_breakthrough'
-    variant_version: 'reference'
-    antiviral_version: 'reference'
-    rates_projection:
-      past_window: 180
-      transition_window: 30
-    mandate_reimposition:
-      max_num_reimpositions: 0
-      threshold_measure: 'deaths'
-      threshold_scalar: 5.0
-      min_threshold_rate: 10.0
-      max_threshold_rate: 30.0
-    covariates:
-      pneumonia: 'reference'
-      mandates_index_1: 'reference'
-      mask_use: 'reference'
-      air_pollution_pm_2_5: 'reference'
-      smoking_prevalence: 'reference'
-      lri_mortality: 'reference'
-      proportion_under_100m: 'reference'
-      proportion_over_2_5k: 'reference'
-  seasonal_masks_target_region_breakthrough:
-    beta_scaling:
-      window_size: 42
-      min_avg_window: 21
-      average_over_min: 7
-      average_over_max: 42
-      residual_rescale_upper: 1
-      residual_rescale_lower: 1
-    vaccine_version: 'target_region_breakthrough'
-    variant_version: 'reference'
-    antiviral_version: 'reference'
-    rates_projection:
-      past_window: 180
-      transition_window: 30
-    mandate_reimposition:
-      max_num_reimpositions: 0
-      threshold_measure: 'deaths'
-      threshold_scalar: 5.0
-      min_threshold_rate: 10.0
-      max_threshold_rate: 30.0
-    covariates:
-      pneumonia: 'reference'
-      mandates_index_1: 'reference'
-      mask_use: 'seasonal'
-      air_pollution_pm_2_5: 'reference'
-      smoking_prevalence: 'reference'
-      lri_mortality: 'reference'
-      proportion_under_100m: 'reference'
-      proportion_over_2_5k: 'reference'
-  mandate_reimposition_target_region_breakthrough:
-    beta_scaling:
-      window_size: 42
-      min_avg_window: 21
-      average_over_min: 7
-      average_over_max: 42
-      residual_rescale_upper: 1
-      residual_rescale_lower: 1
-    vaccine_version: 'target_region_breakthrough'
-    variant_version: 'reference'
-    antiviral_version: 'reference'
-    rates_projection:
-      past_window: 180
-      transition_window: 30
-    mandate_reimposition:
-      max_num_reimpositions: 5
-      threshold_measure: 'deaths'
-      threshold_scalar: 5.0
-      min_threshold_rate: 10.0
-      max_threshold_rate: 30.0
-    covariates:
-      pneumonia: 'reference'
-      mandates_index_1: 'reference'
-      mask_use: 'reference'
-      air_pollution_pm_2_5: 'reference'
-      smoking_prevalence: 'reference'
-      lri_mortality: 'reference'
-      proportion_under_100m: 'reference'
-      proportion_over_2_5k: 'reference'
-  seasonal_masks_and_mandate_reimposition_target_region_breakthrough:
-    beta_scaling:
-      window_size: 42
-      min_avg_window: 21
-      average_over_min: 7
-      average_over_max: 42
-      residual_rescale_upper: 1
-      residual_rescale_lower: 1
-    vaccine_version: 'target_region_breakthrough'
-    variant_version: 'reference'
-    antiviral_version: 'reference'
-    rates_projection:
-      past_window: 180
-      transition_window: 30
-    mandate_reimposition:
-      max_num_reimpositions: 5
-      threshold_measure: 'deaths'
-      threshold_scalar: 5.0
-      min_threshold_rate: 10.0
-      max_threshold_rate: 30.0
-    covariates:
-      pneumonia: 'reference'
-      mandates_index_1: 'reference'
-      mask_use: 'seasonal'
+      mask_use: 'optimistic'
       air_pollution_pm_2_5: 'reference'
       smoking_prevalence: 'reference'
       lri_mortality: 'reference'
@@ -731,35 +383,6 @@ scenarios:
       lri_mortality: 'reference'
       proportion_under_100m: 'reference'
       proportion_over_2_5k: 'reference'
-  reference_target_country_breakthrough_early:
-    beta_scaling:
-      window_size: 42
-      min_avg_window: 21
-      average_over_min: 7
-      average_over_max: 42
-      residual_rescale_upper: 1
-      residual_rescale_lower: 1
-    vaccine_version: 'target_country_breakthrough'
-    variant_version: 'reference'
-    antiviral_version: 'reference'
-    rates_projection:
-      past_window: 180
-      transition_window: 30
-    mandate_reimposition:
-      max_num_reimpositions: 0
-      threshold_measure: 'deaths'
-      threshold_scalar: 5.0
-      min_threshold_rate: 10.0
-      max_threshold_rate: 30.0
-    covariates:
-      pneumonia: 'reference'
-      mandates_index_1: 'reference'
-      mask_use: 'reference'
-      air_pollution_pm_2_5: 'reference'
-      smoking_prevalence: 'reference'
-      lri_mortality: 'reference'
-      proportion_under_100m: 'reference'
-      proportion_over_2_5k: 'reference'
   reference_target_region_early:
     beta_scaling:
       window_size: 42
@@ -769,35 +392,6 @@ scenarios:
       residual_rescale_upper: 1
       residual_rescale_lower: 1
     vaccine_version: 'target_region_early'
-    variant_version: 'reference'
-    antiviral_version: 'reference'
-    rates_projection:
-      past_window: 180
-      transition_window: 30
-    mandate_reimposition:
-      max_num_reimpositions: 0
-      threshold_measure: 'deaths'
-      threshold_scalar: 5.0
-      min_threshold_rate: 10.0
-      max_threshold_rate: 30.0
-    covariates:
-      pneumonia: 'reference'
-      mandates_index_1: 'reference'
-      mask_use: 'reference'
-      air_pollution_pm_2_5: 'reference'
-      smoking_prevalence: 'reference'
-      lri_mortality: 'reference'
-      proportion_under_100m: 'reference'
-      proportion_over_2_5k: 'reference'
-  reference_target_region_breakthrough_early:
-    beta_scaling:
-      window_size: 42
-      min_avg_window: 21
-      average_over_min: 7
-      average_over_max: 42
-      residual_rescale_upper: 1
-      residual_rescale_lower: 1
-    vaccine_version: 'target_region_breakthrough_early'
     variant_version: 'reference'
     antiviral_version: 'reference'
     rates_projection:
