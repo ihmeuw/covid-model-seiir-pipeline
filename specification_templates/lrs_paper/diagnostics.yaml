@@ -11,38 +11,91 @@ grid_plots:
     - version: '2022_10_21.03'
       scenarios:
         reference*: 'public reference'
-    - version: '2022_11_08.03'
+    - version: '2022_12_13.01'
       scenarios:
         reference*: 'none'
-    - version: '2022_11_08.04'
+    - version: '2022_12_13.02'
       scenarios:
         reference*: 'delta'
-    - version: '2022_11_08.05'
+    - version: '2022_12_13.03'
       scenarios:
         reference*: 'omicron'
-    - version: '2022_11_08.06'
+    - version: '2022_12_13.04'
       scenarios:
         reference*: 'deltacron'
-  - name: 'vaccine_compare'
+  - name: 'intervention_compare_none'
     date_start: '2022-06-01'
     date_end: '2023-12-31'
     comparators:
-    - version: '2022_11_08.03'
+    - version: '2022_12_13.01'
       scenarios:
-        reference: 'none'
-    - version: '2022_11_08.04'
-      scenarios:
-        reference*: 'delta'
-        reference_target_region_breakthrough: 'delta bt'
-        reference_target_region_targeted: 'delta targ'
-    - version: '2022_11_08.05'
-      scenarios:
-        reference*: 'omicron'
-        reference_target_region_breakthrough: 'omicron bt'
-        reference_target_region_targeted: 'omicron targ'
-    - version: '2022_11_08.06'
-      scenarios:
-        reference*: 'deltacron'
-        reference_target_region_breakthrough: 'deltacron bt'
-        reference_target_region_targeted: 'deltacron targ'
-
+        reference: 'reference'
+        seasonal_masks: 'seasonal_masks'
+        mandate_reimposition: 'mandate_reimposition'
+        seasonal_masks_and_mandate_reimposition: 'seasonal_masks_and_mandate_reimposition'
+  - name: 'intervention_compare_delta'
+    date_start: '2022-06-01'
+    date_end: '2023-12-31'
+    comparators:
+      - version: '2022_12_13.02'
+        scenarios:
+          reference: 'reference'
+          seasonal_masks: 'seasonal_masks'
+          mandate_reimposition: 'mandate_reimposition'
+          seasonal_masks_and_mandate_reimposition: 'seasonal_masks_and_mandate_reimposition'
+  - name: 'intervention_compare_omicron'
+    date_start: '2022-06-01'
+    date_end: '2023-12-31'
+    comparators:
+      - version: '2022_12_13.03'
+        scenarios:
+          reference: 'reference'
+          seasonal_masks: 'seasonal_masks'
+          mandate_reimposition: 'mandate_reimposition'
+          seasonal_masks_and_mandate_reimposition: 'seasonal_masks_and_mandate_reimposition'
+  - name: 'intervention_compare_deltacron'
+    date_start: '2022-06-01'
+    date_end: '2023-12-31'
+    comparators:
+      - version: '2022_12_13.04'
+        scenarios:
+          reference: 'reference'
+          seasonal_masks: 'seasonal_masks'
+          mandate_reimposition: 'mandate_reimposition'
+          seasonal_masks_and_mandate_reimposition: 'seasonal_masks_and_mandate_reimposition'
+  - name: 'vaccine_compare_none'
+    date_start: '2022-06-01'
+    date_end: '2023-12-31'
+    comparators:
+      - version: '2022_12_13.01'
+        scenarios:
+          reference: 'reference'
+          reference_target_country: 'reference_target_country'
+          reference_target_region: 'reference_target_region'
+  - name: 'vaccine_compare_delta'
+    date_start: '2022-06-01'
+    date_end: '2023-12-31'
+    comparators:
+      - version: '2022_12_13.02'
+        scenarios:
+          reference: 'reference'
+          reference_target_country: 'reference_target_country'
+          reference_target_region: 'reference_target_region'
+  - name: 'vaccine_compare_omicron'
+    date_start: '2022-06-01'
+    date_end: '2023-12-31'
+    comparators:
+      - version: '2022_12_13.03'
+        scenarios:
+          reference: 'reference'
+          reference_target_country: 'reference_target_country'
+          reference_target_region: 'reference_target_region'
+  - name: 'vaccine_compare_deltacron'
+    date_start: '2022-06-01'
+    date_end: '2023-12-31'
+    comparators:
+      - version: '2022_12_13.04'
+        scenarios:
+          reference: 'reference'
+          reference_target_country: 'reference_target_country'
+          reference_target_region: 'reference_target_region'

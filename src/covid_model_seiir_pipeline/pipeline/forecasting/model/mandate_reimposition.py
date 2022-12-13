@@ -54,7 +54,46 @@ def get_reimposition_threshold(
     china_subnats = hierarchy[china & (hierarchy.most_detailed == 1)].location_id.tolist()
     threshold_rate.loc[china_subnats] = 1
 
+    # # HACK FOR PROD: Don't reimpose anywhere but china
+    # non_china = threshold_rate.index.difference(china_subnats)
+    # threshold_rate.loc[non_china] = 1e6
+
     return threshold_rate
+
+
+def get_reimposition_levels(
+    covariates: pd.DataFrame,
+    rhos: pd.DataFrame,
+    hierarchy: pd.DataFrame
+):
+    variant_era = rhos.drop(columns='ancestral').sum(axis=1) > 0
+    first_variant_date = (rhos[variant_era]
+                          .reset_index()
+                          .groupby('location_id')
+                          .date
+                          .min())
+    mandates = covariates.loc[:, 'mandates_index_1']
+    china = hierarchy.path_to_top_parent.str.contains(',6,')
+    china_subnats = hierarchy[china & (hierarchy.most_detailed == 1)].location_id.tolist()
+
+    reimposition_levels = []
+    for location_id, date in first_variant_date.iteritems():
+        try:
+            if location_id in china_subnats:
+                reimposition_levels.append(
+                    (location_id, 1.0)
+                )
+            else:
+                reimposition_levels.append(
+                    (location_id, mandates.loc[location_id].loc[date:].max())
+                )
+        except KeyError:
+            continue
+    reimposition_levels = pd.DataFrame(
+        reimposition_levels, columns=['location_id', 'level']
+    ).set_index('location_id').level
+
+    return reimposition_levels
 
 
 def compute_reimposition_dates(
@@ -83,6 +122,7 @@ def compute_reimposition_dates(
 
 def reimpose_mandates(
     reimposition_dates: pd.Series,
+    reimposition_levels: pd.Series,
     covariates: pd.DataFrame,
     min_reimposition_dates: pd.Series
 
@@ -93,7 +133,7 @@ def reimpose_mandates(
     covs = []
     for location_id, date in reimposition_dates.iteritems():
         cov = covariates.loc[location_id].copy()
-        cov.loc[date:date + pd.Timedelta(days=42), 'mandates_index_1'] = 1.0
+        cov.loc[date:date + pd.Timedelta(days=42), 'mandates_index_1'] = reimposition_levels.loc[location_id]
         cov['location_id'] = location_id
         cov = cov.reset_index().set_index(['location_id', 'date'])
         covs.append(cov)
