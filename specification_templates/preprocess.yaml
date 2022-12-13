@@ -17,11 +17,13 @@ data:
   vaccine_scenario_parameters:
     reference:
       data_version: 'reference'
+      course_4_shift: 0
       omega_efficacy:
         old_vaccine: 1.0
         new_vaccine: 1.0
     booster:
       data_version: 'booster'
+      course_4_shift: 0
       omega_efficacy:
         old_vaccine: 1.0
         new_vaccine: 1.0

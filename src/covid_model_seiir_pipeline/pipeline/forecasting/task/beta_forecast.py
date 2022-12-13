@@ -97,6 +97,11 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
     # Collate all the parameters, ensure consistent index, etc.
     logger.info('Processing inputs into model parameters.', context='transform')
 
+    min_reimposition_dates = (indices.future
+                              .to_frame()
+                              .reset_index(drop=True)
+                              .groupby('location_id')
+                              .date.min() + pd.Timedelta(days=14))
     reimposition_threshold = model.get_reimposition_threshold(
         indices=indices,
         population=total_population,
@@ -106,11 +111,12 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
         mortality_scalars=mortality_scalars,
         reimposition_params=scenario_spec.mandate_reimposition,
     )
-    min_reimposition_dates = (indices.future
-                              .to_frame()
-                              .reset_index(drop=True)
-                              .groupby('location_id')
-                              .date.min() + pd.Timedelta(days=14))
+    reimposition_levels = model.get_reimposition_levels(
+        covariates=covariates,
+        rhos=rhos,
+        hierarchy=hierarchy,
+    )
+
     hospital_cf = model.forecast_correction_factors(
         indices,
         correction_factors=hospital_cf,
@@ -146,47 +152,54 @@ def run_beta_forecast(forecast_version: str, scenario: str, draw_id: int, progre
         hierarchy=hierarchy,
     )
 
-    reimposition_number = 0
-    max_num_reimpositions = scenario_spec.mandate_reimposition['max_num_reimpositions']
     locations_to_run = list(initial_condition.reset_index().location_id.unique())
-    done_data = []
-    while reimposition_number <= max_num_reimpositions and locations_to_run:
-        logger.info(
-            f'Running ODE system on reimposition {reimposition_number} for {len(locations_to_run)} locations.',
-            context='ODE system'
-        )
-        compartments, chis, failed = model.run_ode_forecast(
-            initial_condition,
-            model_parameters,
-            num_cores=num_cores,
-            progress_bar=progress_bar,
-            location_ids=locations_to_run,
-        )
+    logger.info(
+        f'Running initial ODE system for {len(locations_to_run)} locations.',
+        context='ODE system'
+    )
+    compartments, _, failed = model.run_ode_forecast(
+        initial_condition,
+        model_parameters,
+        num_cores=num_cores,
+        progress_bar=progress_bar,
+        location_ids=locations_to_run,
+    )
 
+    max_num_reimpositions = scenario_spec.mandate_reimposition['max_num_reimpositions']
+    for reimposition_number in range(max_num_reimpositions):
         reimposition_dates = model.compute_reimposition_dates(
             compartments=compartments,
             total_population=total_population,
             min_reimposition_dates=min_reimposition_dates,
             reimposition_threshold=reimposition_threshold,
         )
-
         locations_to_run = reimposition_dates.index.tolist()
         if not locations_to_run:
             break
 
-        done_data.append(compartments.drop(locations_to_run, level='location_id'))
+        logger.info(
+            f'Running ODE system on reimposition {reimposition_number} '
+            f'for {len(locations_to_run)} locations.',
+            context='ODE system'
+        )
 
         covariates, min_reimposition_dates = model.reimpose_mandates(
             reimposition_dates=reimposition_dates,
+            reimposition_levels=reimposition_levels,
             covariates=covariates,
             min_reimposition_dates=min_reimposition_dates,
         )
 
         beta, beta_hat = build_beta_final(covariates=covariates)
         model_parameters.base_parameters.loc[:, 'beta_all_infection'] = beta
-        reimposition_number += 1
-
-    compartments = pd.concat(done_data)
+        compartments_update, _, failed = model.run_ode_forecast(
+            initial_condition,
+            model_parameters,
+            num_cores=num_cores,
+            progress_bar=progress_bar,
+            location_ids=locations_to_run,
+        )
+        compartments = compartments.drop(locations_to_run, level='location_id').append(compartments_update)
 
     system_metrics = model.compute_output_metrics(
         indices=indices,
