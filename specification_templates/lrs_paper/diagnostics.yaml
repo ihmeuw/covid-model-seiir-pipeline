@@ -11,23 +11,23 @@ grid_plots:
     - version: '2022_10_21.03'
       scenarios:
         reference*: 'public reference'
-    - version: '2022_12_03.01'
+    - version: '2022_12_13.01'
       scenarios:
         reference*: 'none'
-    - version: '2022_12_03.02'
+    - version: '2022_12_13.02'
       scenarios:
         reference*: 'delta'
-    - version: '2022_12_04.01'
+    - version: '2022_12_13.03'
       scenarios:
         reference*: 'omicron'
-    - version: '2022_12_03.03'
+    - version: '2022_12_13.04'
       scenarios:
         reference*: 'deltacron'
   - name: 'intervention_compare_none'
     date_start: '2022-06-01'
     date_end: '2023-12-31'
     comparators:
-    - version: '2022_12_03.01'
+    - version: '2022_12_13.01'
       scenarios:
         reference: 'reference'
         seasonal_masks: 'seasonal_masks'
@@ -37,7 +37,7 @@ grid_plots:
     date_start: '2022-06-01'
     date_end: '2023-12-31'
     comparators:
-      - version: '2022_12_03.02'
+      - version: '2022_12_13.02'
         scenarios:
           reference: 'reference'
           seasonal_masks: 'seasonal_masks'
@@ -47,7 +47,7 @@ grid_plots:
     date_start: '2022-06-01'
     date_end: '2023-12-31'
     comparators:
-      - version: '2022_12_04.01'
+      - version: '2022_12_13.03'
         scenarios:
           reference: 'reference'
           seasonal_masks: 'seasonal_masks'
@@ -57,7 +57,7 @@ grid_plots:
     date_start: '2022-06-01'
     date_end: '2023-12-31'
     comparators:
-      - version: '2022_12_03.03'
+      - version: '2022_12_13.04'
         scenarios:
           reference: 'reference'
           seasonal_masks: 'seasonal_masks'
@@ -67,39 +67,35 @@ grid_plots:
     date_start: '2022-06-01'
     date_end: '2023-12-31'
     comparators:
-      - version: '2022_12_03.01'
+      - version: '2022_12_13.01'
         scenarios:
           reference: 'reference'
-          reference_breakthrough: 'reference_breakthrough'
           reference_target_country: 'reference_target_country'
           reference_target_region: 'reference_target_region'
   - name: 'vaccine_compare_delta'
     date_start: '2022-06-01'
     date_end: '2023-12-31'
     comparators:
-      - version: '2022_12_03.02'
+      - version: '2022_12_13.02'
         scenarios:
           reference: 'reference'
-          reference_breakthrough: 'reference_breakthrough'
           reference_target_country: 'reference_target_country'
           reference_target_region: 'reference_target_region'
   - name: 'vaccine_compare_omicron'
     date_start: '2022-06-01'
     date_end: '2023-12-31'
     comparators:
-      - version: '2022_12_04.01'
+      - version: '2022_12_13.03'
         scenarios:
           reference: 'reference'
-          reference_breakthrough: 'reference_breakthrough'
           reference_target_country: 'reference_target_country'
           reference_target_region: 'reference_target_region'
   - name: 'vaccine_compare_deltacron'
     date_start: '2022-06-01'
     date_end: '2023-12-31'
     comparators:
-      - version: '2022_12_03.03'
+      - version: '2022_12_13.04'
         scenarios:
           reference: 'reference'
-          reference_breakthrough: 'reference_breakthrough'
           reference_target_country: 'reference_target_country'
           reference_target_region: 'reference_target_region'

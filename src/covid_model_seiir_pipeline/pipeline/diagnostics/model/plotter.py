@@ -250,7 +250,7 @@ def make_drivers_page(plot_versions: List[PlotVersion],
     }
     coef_axes, cov_axes = [], []
     for i, covariate in enumerate(time_varying):
-        if covariate == 'mandates_index_2':
+        if covariate == 'mandates_index_1':
             label = 'Mandates'
         else:
             label = covariate.title()
