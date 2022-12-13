@@ -35,7 +35,7 @@ def preprocess_mask_use(data_interface: PreprocessingDataInterface) -> None:
     is_zaf = hierarchy['path_to_top_parent'].apply(lambda x: '196' in x.split(','))
     is_relax_exception = is_east_asia | is_asia_pacific | is_zaf
     no_relax_locs = hierarchy.loc[is_relax_exception, 'location_id'].tolist()
-    for scenario in ['reference', 'best', 'worse', 'relaxed', 'seasonal']:
+    for scenario in ['reference', 'best', 'worse', 'relaxed']:
         logger.info(f'Loading mask use data for scenario {scenario}.', context='read')
         mask_use = data_interface.load_raw_mask_use_data(scenario)
         if scenario == 'relaxed':
