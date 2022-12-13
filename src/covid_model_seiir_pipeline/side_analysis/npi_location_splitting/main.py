@@ -1,3 +1,4 @@
+import click
 from typing import Tuple
 from loguru import logger
 import yaml
@@ -113,3 +114,12 @@ def generate_infections_inputs(model_inputs_version: str,
         weights,
         npi_infections, prod_infections,
     )
+
+
+@click.command()
+def split_locations(model_inputs_version: str,
+                    seir_outputs_version: str,
+                    write: bool):
+    generate_infections_inputs(model_inputs_version,
+                               seir_outputs_version,
+                               write)
