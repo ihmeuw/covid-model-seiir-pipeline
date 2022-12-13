@@ -47,16 +47,12 @@ def get_reimposition_threshold(
 
     min_rate = min_threshold_rate * mortality_scalars
     max_rate = max_threshold_rate * mortality_scalars
-    raw_rate = threshold_scalar * max_omicron_measure / pop * 1_000_00
+    raw_rate = threshold_scalar * max_omicron_measure / pop * 1_000_000
     threshold_rate = raw_rate.clip(min_rate, max_rate).rename('threshold_rate')
 
     china = hierarchy.path_to_top_parent.str.contains(',6,')
     china_subnats = hierarchy[china & (hierarchy.most_detailed == 1)].location_id.tolist()
     threshold_rate.loc[china_subnats] = 1
-
-    # HACK FOR PROD: Don't reimpose anywhere but china
-    non_china = threshold_rate.index.difference(china_subnats)
-    threshold_rate.loc[non_china] = 1e6
 
     return threshold_rate
 
