@@ -1,5 +1,5 @@
 data:
-  seir_forecast_version: '2022_12_14.01'
+  seir_forecast_version: '2022_12_14.02'
   # seir_counterfactual_version: '2022_08_31.04'
   scenarios:
    - 'reference'
