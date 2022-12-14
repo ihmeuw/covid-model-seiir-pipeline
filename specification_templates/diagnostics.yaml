@@ -12,9 +12,10 @@ grid_plots:
     - version: '2022_11_17.03'
       scenarios:
         reference*: 'public reference'
-    - version: '2022_12_XX.XX'
+    - version: '2022_12_14.01'
       scenarios:
         reference*: 'reference'
+        no_mandate_reimposition: 'no mandate reimposition'
         global_antivirals: 'global antivirals'
         best_masks: 'best masks'
   ## long range
@@ -25,8 +26,9 @@ grid_plots:
     - version: '2022_11_17.03'
       scenarios:
         reference*: 'public reference'
-    - version: '2022_12_XX.XX'
+    - version: '2022_12_14.01'
       scenarios:
         reference*: 'reference'
+        no_mandate_reimposition: 'no mandate reimposition'
         global_antivirals: 'global antivirals'
         best_masks: 'best masks'

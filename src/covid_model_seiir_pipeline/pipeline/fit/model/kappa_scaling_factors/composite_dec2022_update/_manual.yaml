@@ -19,6 +19,7 @@ case:
     4763:    8.0  # Pará
     4764:    1.5  # Paraíba
     4768:    3.0  # Rio de Janeiro
+    157:    0.75  # Yemen
     4845:    1.5  # Chandigarh
     4858:    1.5  # Lakshadweep
     4866:    1.5  # Puducherry
@@ -34,10 +35,11 @@ case:
     37:    4.997237853750269   # Kyrgyzstan
     114:   0.5                 # Haiti
     151:   0.25                # Qatar
+    157:   0.25                # Yemen
   gamma:
     4751:  6.636688567946908   # Alagoas
     4753:  12.603998890021273  # Amapá
-    4756:  1.25                # Distrito Federal
+    4756:  1.5                 # Distrito Federal
     4757:  1.5                 # Espírito Santo
     4760:  1.25                # Minas Gerais
     4762:  35.40576233257795   # Mato Grosso
@@ -52,6 +54,8 @@ case:
     114:   0.5                 # Haiti
     127:   0.5                 # El Salvador
     4652:  1.25                # Durango
+    157:   0.25                # Yemen
+    4849:  1.5                 # Delhi
     4856:  0.5                 # Karnataka
     4861:  1.5                 # Manipur
     4863:  14.17425383987252   # Mizoram
@@ -65,18 +69,20 @@ case:
   omicron:
     36:    0.6600688004628659  # Kazakhstan
     37:    1.7859477642641657  # Kyrgyzstan
-    396:   1.5                 # San Marino
+    396:   2.0                 # San Marino
     114:   0.5                 # Haiti
     4644:  1.25                # Baja California
     4652:  1.25                # Durango
     4751:  4.105137030339426   # Alagoas
-    4753:  4.587109844559148   # Amapá
-    4756:  0.75                # Distrito Federal
+    4753:  7.5                 # Amapá
+    4756:  0.5                 # Distrito Federal
+    4757:  1.5                 # Espírito Santo
     4762:  5.931349714570321   # Mato Grosso
     4761:  6.881684493041227   # Mato Grosso do Sul
     4763:  2.9717463571087896  # Pará
     4768:  0.75                # Rio de Janeiro
     151:   0.8                 # Qatar
+    157:   0.25                # Yemen
     4842:  0.6740394419534336  # Arunachal Pradesh
     4849:  1.25                # Delhi
     4856:  1.25                # Karnataka
@@ -85,6 +91,7 @@ case:
     4858:  2.0                 # Lakshadweep
     4866:  2.0                 # Puducherry
     4869:  0.9663263325014363  # Sikkim
+    492:   5.0                 # Beijing
     498:   5.0                 # Guizhou
     501:   5.0                 # Heilongjiang
     505:   5.0                 # Inner Mongolia
@@ -94,7 +101,15 @@ case:
     197:   1.1413398024758976  # Eswatini
     195:   0.5740923152948676  # Namibia
     212:   0.75                # Mauritania
-  # ba5:
+  ba5:
+    396:   1.5                 # San Marino
+    4665:  1.5                 # Quintana Roo
+    4669:  1.5                 # Tabasco
+    4673:  1.5                 # Yucatán
+    4753:  2.0                 # Amapá
+    4756:  1.5                 # Distrito Federal
+    4757:  1.5                 # Espírito Santo
+    157:   0.25                # Yemen
   #   90:    0.5                 # Norway
   #   109:   0.75                # Cuba
   #   107:   0.75                # Barbados
@@ -130,12 +145,12 @@ admission:
     43860: 1.5                 # Manitoba
     126:   1.25                # Costa Rica
     4644:  1.25                # Baja California
-    4647:  1.5                 # Coahuila
-    4652:  1.5                 # Durango
+    4647:  1.75                # Coahuila
+    4652:  2.0                 # Durango
     4653:  1.25                # Guanajuato
     4655:  1.25                # Hidalgo
     4661:  1.25                # Nuevo León
-    4673:  1.5                 # Yucatán
+    4673:  2.0                 # Yucatán
     4751:  0.5998894655846735  # Alagoas
     4753:  0.5280961277658757  # Amapá
     4762:  0.6456568553251786  # Mato Grosso
@@ -144,6 +159,8 @@ admission:
     151:   0.6                 # Qatar
     4845:  0.75                # Chandigarh
     4866:  1.5                 # Puducherry
+  ba5:
+    4673:  1.5                 # Yucatán
 death:
   ancestral:
     33:     1.75  # Armenia
@@ -175,29 +192,29 @@ death:
     206:     1.5  # Gambia
     208:    0.75  # Guinea
   alpha:
-    33:    1.5                 # Armenia
-    34:    1.5                 # Azerbaijan
-    35:    1.5                 # Georgia
+    33:    2.5                 # Armenia
+    34:    2.0                 # Azerbaijan
+    35:    2.0                 # Georgia
     36:    0.8426316654007525  # Kazakhstan
     37:    1.7146636219551967  # Kyrgyzstan
     38:    1.25                # Mongolia
-    43:    1.5                 # Albania
-    45:    1.5                 # Bulgaria
+    43:    2.0                 # Albania
+    45:    2.0                 # Bulgaria
     47:    1.5                 # Czechia
-    49:    1.5                 # North Macedonia
+    49:    2.0                 # North Macedonia
     60:    1.25                # Lithuania
     141:   1.5                 # Egypt
     151:   2.0                 # Qatar
     53615: 1.5                 # Azad Jammu & Kashmir
-    53619: 1.5                 # Khyber Pakhtunkhwa
+    53619: 2.5                 # Khyber Pakhtunkhwa
     168:   1.5                 # Angola
     173:   2.0                 # Gabon
   beta:
     181:   1.5                 # Madagascar
     187:   2.0                 # Somalia
-    193:   2.0                 # Botswana
-    197:   2.0                 # Eswatini
-    194:   2.0                 # Lesotho
+    193:   3.0                 # Botswana
+    197:   3.0                 # Eswatini
+    194:   2.5                 # Lesotho
   gamma:
     4751:  0.9844426749317358  # Alagoas
     4753:  4.64609204800433    # Amapá
@@ -207,20 +224,20 @@ death:
     4770:  1.5                 # Rondônia
     4771:  1.25                # Roraima
   delta:
-    33:    2.0                 # Armenia
-    34:    1.5                 # Azerbaijan
-    35:    1.5                 # Georgia
+    33:    2.5                 # Armenia
+    34:    2.0                 # Azerbaijan
+    35:    2.0                 # Georgia
     36:    1.7938560784063866  # Kazakhstan
     37:    1.2627260563197984  # Kyrgyzstan
     38:    1.25                # Mongolia
-    43:    1.5                 # Albania
-    45:    1.5                 # Bulgaria
-    49:    1.5                 # North Macedonia
+    43:    2.0                 # Albania
+    45:    2.0                 # Bulgaria
+    49:    2.0                 # North Macedonia
     60:    1.25                # Lithuania
     160:   1.5                 # Afghanistan
     141:   1.5                 # Egypt
     4843:  1.5                 # Assam
-    4861:  1.5                 # Manipur
+    4861:  2.0                 # Manipur
     4862:  1.5                 # Meghalaya
     4863:  5.841115384939276   # Mizoram
     4864:  1.5                 # Nagaland
@@ -228,35 +245,36 @@ death:
     4858:  1.5                 # Lakshadweep
     4866:  3.0                 # Puducherry
     4869:  2.0329886383397855  # Sikkim
-    53619: 1.5                 # Khyber Pakhtunkhwa
+    53619: 2.5                 # Khyber Pakhtunkhwa
     168:   1.5                 # Angola
     173:   2.0                 # Gabon
     187:   2.0                 # Somalia
     191:   2.0                 # Zambia
-    193:   2.0                 # Botswana
-    197:   2.0                 # Eswatini
-    194:   2.0                 # Lesotho
-    195:   2.0                 # Namibia
-    198:   2.0                 # Zimbabwe
+    193:   3.0                 # Botswana
+    197:   3.0                 # Eswatini
+    194:   2.5                 # Lesotho
+    195:   3.0                 # Namibia
+    198:   3.0                 # Zimbabwe
+    206:   1.5                 # Gambia
     208:   1.5                 # Guinea
     209:   1.5                 # Guinea-Bissau
   omicron:
-    33:    2.0                 # Armenia
-    34:    1.5                 # Azerbaijan
-    35:    1.5                 # Georgia
+    33:    2.5                 # Armenia
+    34:    2.0                 # Azerbaijan
+    35:    2.0                 # Georgia
     37:    2.084252555069266   # Kyrgyzstan
-    43:    1.5                 # Albania
+    43:    2.0                 # Albania
     44:    1.5                 # Bosnia and Herzegovina
-    45:    1.5                 # Bulgaria
+    45:    2.0                 # Bulgaria
     47:    2.5                 # Czechia
-    50:    1.5                 # Montenegro
-    49:    2.5                 # North Macedonia
+    50:    2.0                 # Montenegro
+    49:    3.0                 # North Macedonia
     60:    1.25                # Lithuania
     43859: 1.25                # British Columbia
     125:   1.25                # Colombia
     4644:  1.25                # Baja California
     4647:  2.0                 # Coahuila
-    4652:  1.5                 # Durango
+    4652:  2.0                 # Durango
     4655:  1.5                 # Hidalgo
     4661:  1.25                # Nuevo León
     4673:  1.5                 # Yucatán
@@ -268,24 +286,50 @@ death:
     4771:  1.25                # Roraima
     160:   1.5                 # Afghanistan
     141:   1.5                 # Egypt
+    150:   1.5                 # Oman
     4842:  0.4126183511377969  # Arunachal Pradesh
     4843:  1.5                 # Assam
     4849:  1.7361163781137399  # Delhi
-    4863:  1.3291324170563434  # Mizoram
+    4861:  2.0                 # Manipur
+    4862:  0.5                 # Meghalaya
+    4863:  1.25                # Mizoram
     4845:  2.0                 # Chandigarh
     4866:  2.0                 # Puducherry
     4869:  0.872733287407307   # Sikkim
-    53619: 1.5                 # Khyber Pakhtunkhwa
+    53619: 2.5                 # Khyber Pakhtunkhwa
     186:   0.5                 # Seychelles
     168:   1.5                 # Angola
     173:   2.0                 # Gabon
     181:   1.5                 # Madagascar
     187:   1.5                 # Somalia
     191:   1.5                 # Zambia
+    193:   3.0                 # Botswana
+    197:   3.0                 # Eswatini
+    194:   2.0                 # Lesotho
+    195:   3.0                 # Namibia
+    198:   3.0                 # Zimbabwe
     201:   1.5                 # Burkina Faso
+    206:   1.5                 # Gambia
     209:   1.5                 # Guinea-Bissau
     212:   1.5                 # Mauritania
-  # ba5:
+  ba5:
+    33:    1.5                 # Armenia
+    34:    1.5                 # Azerbaijan
+    45:    2.0                 # Bulgaria
+    50:    1.5                 # Montenegro
+    49:    1.5                 # North Macedonia
+    536:   1.25                # Illinois
+    4861:  2.0                 # Manipur
+    4862:  2.0                 # Meghalaya
+    4863:  2.0                 # Mizoram
+    185:   2.0                 # Rwanda
+    193:   3.0                 # Botswana
+    197:   3.0                 # Eswatini
+    194:   2.0                 # Lesotho
+    195:   3.0                 # Namibia
+    198:   3.0                 # Zimbabwe
+    204:   2.0                 # Chad
+    206:   2.0                 # Gambia
   #   43:    1.5                 # Albania
   #   52:    1.5                 # Romania
   #   54:    1.5                 # Slovakia

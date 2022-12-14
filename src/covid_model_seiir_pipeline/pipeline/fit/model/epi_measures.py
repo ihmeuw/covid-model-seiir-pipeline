@@ -45,6 +45,7 @@ def drop_locations_for_measure_model(
         # if it's a parent location, will apply to all children as well
         'death': [
             62,     # Russian Federation
+            396,    # San Marino
             151,    # Qatar
             4840,   # Andaman and Nicobar Islands
             60896,  # Dadra and Nagar Haveli and Daman and Diu
