@@ -138,11 +138,10 @@ def evil_doings(data: pd.DataFrame, hierarchy: pd.DataFrame, input_measure: str)
             manipulation_metadata[location_name] = 'dropped all cases'
         
         dated_drop_list = [
-            # ## (location_id, location_label, drop_start_date) ##
+            ## (location_id, location_label, drop_start_date) ##
             # (35, 'georgia', '2022-09-22'),
-            # (115, 'jamaica', '2022-11-08'),
-            # (422, 'us_virgin_islands', '2022-11-08'),
-            # (151, 'qatar', '2022-10-08'),
+            (57, 'belarus', '2022-07-01'),
+            (115, 'jamaica', '2022-12-01'),
             # (169, 'central_african_republic', '2022-10-01'),
         ]
 
@@ -181,11 +180,9 @@ def evil_doings(data: pd.DataFrame, hierarchy: pd.DataFrame, input_measure: str)
             manipulation_metadata[location_name] = 'dropped all hospitalizations'
 
         dated_drop_list = [
-            # ## (location_id, location_label, drop_start_date) ##
-            # (422, 'us_virgin_islands', '2022-11-08'),
-            # (126, 'costa_rica', '2022-04-01'),
-            # (4759, 'maranhao', '2022-11-07'),
-            # (151, 'qatar', '2022-10-08'),
+            ## (location_id, location_label, drop_start_date) ##
+            (422, 'us_virgin_islands', '2022-11-22'),
+            (126, 'costa_rica', '2022-04-01'),
         ]
 
         for location_id, location_name, drop_start_date in dated_drop_list:
@@ -218,14 +215,11 @@ def evil_doings(data: pd.DataFrame, hierarchy: pd.DataFrame, input_measure: str)
             manipulation_metadata[location_name] = 'dropped all deaths'
 
         dated_drop_list = [
-            # ## (location_id, location_label, drop_start_date) ##
-            # (115, 'jamaica', '2022-11-08'),
-            # (422, 'us_virgin_islands', '2022-11-08'),
-            # (4758, 'goias', '2022-11-07'),
-            # (4759, 'maranhao', '2022-11-07'),
-            # (4763, 'para', '2022-11-07'),
-            # (151, 'qatar', '2022-10-08'),
-            # (169, 'central_african_republic', '2022-10-01'),
+            ## (location_id, location_label, drop_start_date) ##
+            (57, 'belarus', '2022-07-01'),
+            (115, 'jamaica', '2022-11-15'),
+            (422, 'us_virgin_islands', '2022-11-22'),
+            (201, 'burkina_faso', '2022-04-01'),
         ]
 
         for location_id, location_name, drop_start_date in dated_drop_list:
