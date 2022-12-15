@@ -6,13 +6,13 @@ workflow:
 grid_plots:
   ## short range
   - name: '2020_mar2023'
-    date_start: '2022-01-01'
-    date_end: '2023-03-31'
+    date_start: '2020-01-01'
+    date_end: '2023-04-01'
     comparators:
     - version: '2022_11_17.03'
       scenarios:
         reference*: 'public reference'
-    - version: '2022_12_14.02'
+    - version: '2022_12_15.05'
       scenarios:
         reference*: 'reference'
         no_mandate_reimposition: 'no mandate reimposition'
@@ -26,23 +26,9 @@ grid_plots:
     - version: '2022_11_17.03'
       scenarios:
         reference*: 'public reference'
-    - version: '2022_12_14.02'
+    - version: '2022_12_15.05'
       scenarios:
         reference*: 'reference'
         no_mandate_reimposition: 'no mandate reimposition'
         global_antivirals: 'global antivirals'
         best_masks: 'best masks'
-  ## revision compare
-  - name: 'intermediate_2020_2023'
-    date_start: '2020-01-01'
-    date_end: '2023-12-31'
-    comparators:
-    - version: '2022_11_17.03'
-      scenarios:
-        reference*: 'public reference'
-    - version: '2022_12_14.01'
-      scenarios:
-        reference*: 'reference v1'
-    - version: '2022_12_14.02'
-      scenarios:
-        reference*: 'reference v2'
