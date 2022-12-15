@@ -65,15 +65,13 @@ case:
     4858:  6.0                 # Lakshadweep
     4866:  3.0                 # Puducherry
     4869:  12.488946293479433  # Sikkim
-    184:   0.5                 # Mozambique
+    184:   0.25                # Mozambique
     186:   10.0                # Seychelles
     171:   1.25                # Democratic Republic of the Congo
     212:   0.75                # Mauritania
   omicron:
     36:    0.6600688004628659  # Kazakhstan
     37:    1.7859477642641657  # Kyrgyzstan
-    71:    0.6                 # Australia
-    72:    0.75                # New Zealand
     396:   2.0                 # San Marino
     114:   0.5                 # Haiti
     4644:  1.25                # Baja California
@@ -87,9 +85,10 @@ case:
     4763:  2.9717463571087896  # Pará
     4768:  0.75                # Rio de Janeiro
     151:   0.8                 # Qatar
-    157:   0.4                 # Yemen
+    157:   0.5                 # Yemen
     4842:  0.6740394419534336  # Arunachal Pradesh
     4849:  1.25                # Delhi
+    4856:  0.8                 # Karnataka
     4863:  7.235413606788315   # Mizoram
     4845:  0.5                 # Chandigarh
     4858:  2.0                 # Lakshadweep
@@ -122,15 +121,15 @@ case:
     4756:  1.5                 # Distrito Federal
     4757:  1.5                 # Espírito Santo
     157:   0.4                 # Yemen
-    4856:  0.75                # Karnataka
+    4856:  0.6                 # Karnataka
     4870:  0.75                # Tamil Nadu
     53619: 0.75                # Khyber Pakhtunkhwa
-    184:   0.75                # Mozambique
+    184:   0.5                 # Mozambique
     191:   0.75                # Zambia
     193:   0.75                # Botswana
     197:   0.75                # Eswatini
     198:   0.75                # Zimbabwe
-    212:   0.75                # Mauritania
+    212:   0.5                 # Mauritania
   #   498:   5.0                 # Guizhou
   #   501:   5.0                 # Heilongjiang
   #   505:   5.0                 # Inner Mongolia
@@ -227,8 +226,8 @@ death:
   beta:
     181:   1.5                 # Madagascar
     187:   2.0                 # Somalia
-    193:   3.0                 # Botswana
-    197:   3.0                 # Eswatini
+    193:   5.0                 # Botswana
+    197:   5.0                 # Eswatini
     194:   2.5                 # Lesotho
   gamma:
     4751:  0.9844426749317358  # Alagoas
@@ -266,8 +265,8 @@ death:
     182:   1.5                 # Malawi
     187:   2.0                 # Somalia
     191:   3.0                 # Zambia
-    193:   3.0                 # Botswana
-    197:   5.0                 # Eswatini
+    193:   5.0                 # Botswana
+    197:   7.5                 # Eswatini
     194:   2.5                 # Lesotho
     195:   5.0                 # Namibia
     198:   5.0                 # Zimbabwe
@@ -286,8 +285,6 @@ death:
     50:    2.0                 # Montenegro
     49:    3.0                 # North Macedonia
     60:    1.25                # Lithuania
-    71:    0.6                 # Australia
-    72:    0.75                # New Zealand
     43859: 1.25                # British Columbia
     125:   1.25                # Colombia
     4644:  1.25                # Baja California
@@ -321,8 +318,8 @@ death:
     181:   1.5                 # Madagascar
     187:   1.5                 # Somalia
     191:   1.5                 # Zambia
-    193:   5.0                 # Botswana
-    197:   5.0                 # Eswatini
+    193:   7.5                 # Botswana
+    197:   7.5                 # Eswatini
     194:   2.0                 # Lesotho
     195:   5.0                 # Namibia
     198:   5.0                 # Zimbabwe
@@ -350,7 +347,7 @@ death:
     168:   2.0                 # Angola
     182:   1.5                 # Malawi
     185:   2.0                 # Rwanda
-    193:   5.0                 # Botswana
+    193:   7.5                 # Botswana
     197:   5.0                 # Eswatini
     194:   2.0                 # Lesotho
     195:   3.0                 # Namibia

@@ -227,13 +227,14 @@ def evil_doings(data: pd.DataFrame, hierarchy: pd.DataFrame, input_measure: str)
             (150, 'oman', '2022-04-01'),
             (4841, 'andhra_pradesh', '2022-03-01'),
             (4842, 'arunachal_pradesh', '2022-03-01'),
+            (4856, 'karnataka', '2022-12-01'),
             (4871, 'telangana', '2022-03-01'),
             (53615, 'azad_jammu_&_kashmir', '2022-04-01'),
             (53616, 'balochistan', '2022-04-01'),
             (53617, 'gilgit_baltistan', '2022-04-01'),
             (10, 'cambodia', '2022-04-01'),
             (170, 'congo', '2022-04-01'),
-            (172, 'equatorial_guinea', '2022-03-01'),
+            (172, 'equatorial_guinea', '2022-02-14'),
             (173, 'gabon', '2022-04-01'),
             (178, 'eritrea', '2022-03-01'),
             (187, 'somalia', '2022-04-01'),
@@ -241,6 +242,7 @@ def evil_doings(data: pd.DataFrame, hierarchy: pd.DataFrame, input_measure: str)
             (200, 'benin', '2022-04-01'),
             (201, 'burkina_faso', '2022-04-01'),
             (210, 'liberia', '2022-04-01'),
+            (212, 'mauritania', '2022-10-15'),
         ]
 
         for location_id, location_name, drop_start_date in dated_drop_list:
