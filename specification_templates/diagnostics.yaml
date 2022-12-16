@@ -5,16 +5,17 @@ workflow:
   queue: 'all.q'
 grid_plots:
   ## short range
-  - name: '2020_feb2023'
+  - name: '2020_mar2023'
     date_start: '2020-01-01'
-    date_end: '2023-02-28'
+    date_end: '2023-04-01'
     comparators:
-    - version: '2022_10_21.03'
-      scenarios:
-        reference*: 'public reference'
     - version: '2022_11_17.03'
       scenarios:
+        reference*: 'public reference'
+    - version: '2022_12_15.05'
+      scenarios:
         reference*: 'reference'
+        no_mandate_reimposition: 'no mandate reimposition'
         global_antivirals: 'global antivirals'
         best_masks: 'best masks'
   ## long range
@@ -22,11 +23,12 @@ grid_plots:
     date_start: '2020-01-01'
     date_end: '2023-12-31'
     comparators:
-    - version: '2022_10_21.03'
-      scenarios:
-        reference*: 'public reference'
     - version: '2022_11_17.03'
       scenarios:
+        reference*: 'public reference'
+    - version: '2022_12_15.05'
+      scenarios:
         reference*: 'reference'
+        no_mandate_reimposition: 'no mandate reimposition'
         global_antivirals: 'global antivirals'
         best_masks: 'best masks'

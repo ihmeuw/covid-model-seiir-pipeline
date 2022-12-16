@@ -14,11 +14,12 @@ from covid_model_seiir_pipeline.lib import (
 logger = cli_tools.task_performance_logger
 
 
-def make_uptake_square(uptake: pd.DataFrame) -> pd.DataFrame:
-    courses = [1, 2, 3,4 ] #uptake.vaccine_course.unique()
+def make_uptake_square(uptake: pd.DataFrame, course_4_shift: pd.Timedelta) -> pd.DataFrame:
+    courses = [1, 2, 3, 4]  # uptake.vaccine_course.unique()
     location_ids = uptake.location_id.unique()
     risk_groups = uptake.risk_group.unique()
     date = pd.date_range(uptake.date.min(), uptake.date.max())
+    add_fourth_dose = 4 in uptake.vaccine_course.unique() and 'targeted' in uptake
 
     name_map = {
         'BNT.162': 'BNT-162',
@@ -39,17 +40,45 @@ def make_uptake_square(uptake: pd.DataFrame) -> pd.DataFrame:
         'mRNA.Vaccine': 'mRNA Vaccine',
         'mRNA Vaccine': 'mRNA Vaccine',
         'Other': 'Other',
+        'targeted': 'targeted',
     }
 
     idx_names = ['vaccine_course', 'location_id', 'risk_group', 'date']
-    vax_names = sorted(list(set(name_map.values())))
+    vax_names = sorted(list(set(name_map.values()).difference(['targeted'])))
     idx = pd.MultiIndex.from_product([courses, location_ids, risk_groups, date], names=idx_names)
-    uptake = uptake.set_index(idx_names).sort_index().rename(columns=name_map)[vax_names]
+    uptake = uptake.set_index(idx_names).sort_index().rename(columns=name_map)
+    if add_fourth_dose:
+        uptake.loc[[4], 'mRNA Vaccine'] = uptake.loc[[4], 'targeted']
+        uptake = uptake.reset_index(level='date')
+        uptake.loc[[4], 'date'] += course_4_shift
+        uptake = uptake.set_index('date', append=True).sort_index()
+    uptake = uptake.loc[:, vax_names]
     duplicates = uptake.index.duplicated()
     if np.any(duplicates):
         logger.warning('Duplicates found in uptake dataset')
         uptake = uptake.loc[~duplicates]
     uptake = uptake.reindex(idx).fillna(0.)
+
+    if add_fourth_dose:
+        fourth_dose_shifted = (uptake
+                               .loc[4]
+                               .groupby(['location_id', 'risk_group'])
+                               .shift(-7)
+                               .fillna(0.)
+                               .groupby(['location_id', 'risk_group'])
+                               .cumsum()
+                               .fillna(0.)
+                               .sum(axis=1))
+        third_dose = uptake.loc[3].groupby(['location_id', 'risk_group']).cumsum().fillna(0.)
+        third_dose_total = third_dose.sum(axis=1)
+        delta = fourth_dose_shifted - third_dose_total
+        third_dose.loc[delta > 0, 'mRNA Vaccine'] += delta.loc[delta > 0]
+
+        third_dose_frontier = third_dose.groupby(['location_id', 'risk_group']).diff().fillna(0.)
+        third_dose_frontier['vaccine_course'] = 3
+        third_dose_frontier = third_dose_frontier.reset_index().set_index(idx_names).sort_index()
+        uptake.loc[[3]] = third_dose_frontier
+
     return uptake
 
 

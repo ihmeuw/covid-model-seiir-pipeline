@@ -216,11 +216,12 @@ def make_drivers_page(plot_versions: List[PlotVersion],
     hospital_census = pv.load_output_miscellaneous('hospital_census_data', is_table=True,
                                                    location_id=location.id)
 
-    time_varying = [c for c, c_config in COVARIATES.items() if c_config.time_varying]
+    time_varying = [c for c, c_config in COVARIATES.items()
+                    if c_config.time_varying and c != 'mandates_index_2']
 
     # Configure the plot layout.
     fig = plt.figure(figsize=FIG_SIZE, tight_layout=True)
-    grid_spec = fig.add_gridspec(nrows=5,
+    grid_spec = fig.add_gridspec(nrows=6,
                                  ncols=3,
                                  width_ratios=[1, 4, 6],
                                  wspace=0.2)
@@ -229,9 +230,9 @@ def make_drivers_page(plot_versions: List[PlotVersion],
     gs_coef = grid_spec[:, 0].subgridspec(len(time_varying) + 2, 1)
     gs_cov = grid_spec[:, 1].subgridspec(len(time_varying) + 2, 1)
     gs_hospital = grid_spec[0:3, 2].subgridspec(3, 2)
-    gs_other = grid_spec[3:, 2].subgridspec(2, 1)
-    gs_vax = gs_other[0].subgridspec(1, 2)
-    gs_deaths = gs_other[1].subgridspec(1, 3, wspace=0.25)
+    gs_other = grid_spec[3:, 2].subgridspec(3, 1)
+    gs_vax = gs_other[:2].subgridspec(2, 2)
+    gs_deaths = gs_other[2].subgridspec(1, 3, wspace=0.25)
 
     plotter = Plotter(
         plot_versions=plot_versions,
@@ -249,17 +250,22 @@ def make_drivers_page(plot_versions: List[PlotVersion],
     }
     coef_axes, cov_axes = [], []
     for i, covariate in enumerate(time_varying):
+        if covariate == 'mandates_index_1':
+            label = 'Mandates'
+        else:
+            label = covariate.title()
+
         ax_coef = fig.add_subplot(gs_coef[i])
         plotter.make_coefficient_plot(
             ax_coef,
             covariate,
-            label=covariate.title(),
+            label=label,
         )
         ax_cov = fig.add_subplot(gs_cov[i])
         plotter.make_time_plot(
             ax_cov,
             covariate,
-            label=covariate.title(),
+            label=label,
         )
         ylims = ylim_map.get(covariate)
         if ylims is not None:
@@ -360,13 +366,19 @@ def make_drivers_page(plot_versions: List[PlotVersion],
     for ax_set in axes.values():
         fig.align_ylabels(ax_set)
 
-    for i, label in enumerate(['vaccinations', 'boosters']):
-        ax_vaccine = fig.add_subplot(gs_vax[i])
-
+    vaccine_courses = [
+        'vaccinations',
+        'first_boosters',
+        'second_boosters',
+        'third_boosters'
+    ]
+    for i, course in enumerate(vaccine_courses):
+        row, col = i // 2, i % 2
+        ax_vaccine = fig.add_subplot(gs_vax[row, col])
         plotter.make_time_plot(
             ax_vaccine,
-            f'daily_{label}',
-            label=f'Cumulative {label.capitalize()} (%)',
+            f'cumulative_{course}',
+            label=f'Cumulative Vac. Course {i + 1} (%)',
             transform=lambda x: x / pop * 100,
         )
         ax_vaccine.set_ylim(0, 100)

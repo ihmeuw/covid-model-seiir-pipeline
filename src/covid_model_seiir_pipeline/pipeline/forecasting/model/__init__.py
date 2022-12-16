@@ -17,6 +17,7 @@ from covid_model_seiir_pipeline.pipeline.forecasting.model.forecast_metrics impo
 )
 from covid_model_seiir_pipeline.pipeline.forecasting.model.mandate_reimposition import (
     get_reimposition_threshold,
+    get_reimposition_levels,
     compute_reimposition_dates,
     reimpose_mandates,
 )

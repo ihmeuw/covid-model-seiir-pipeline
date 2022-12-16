@@ -2,79 +2,91 @@ data:
   mr_location_set_version_id: 1050
   mr_location_set_file: ''
   pred_location_set_version_id: 1050
-  model_inputs_version: '2022_10_19.03'
+  model_inputs_version: '2022_11_16.01'
   age_specific_rates_version: '2022_02_11.03'
   mortality_scalars_version: '2022_03_16.01'
-  mask_use_outputs_version: '2022_11_03.01'
+  mask_use_outputs_version: '2022_11_10.01'
   mobility_covariate_version: '2022_10_18.01'
   pneumonia_version: '2020_06_12.03'
   population_density_version: '2020_05_20.07'
-  testing_outputs_version: '2022_10_17.05'
+  testing_outputs_version: '2022_11_14.04'
   variant_scaleup_version: '2022_01_03.01'
-  vaccine_coverage_version: '2022_11_07.01'
-  serology_vaccine_coverage_version: '2022_11_07.01'
+  vaccine_coverage_version: '2022_11_18.01'
+  serology_vaccine_coverage_version: '2022_11_18.01'
   vaccine_efficacy_version: '2022_11_01.01'
   vaccine_scenario_parameters:
     reference:
       data_version: 'reference'
+      course_4_shift: 30
       omega_efficacy:
-        old_vaccine: 1.0
-        new_vaccine: 1.0
+        old_vaccine: 'omicron'
+        new_vaccine: 'ancestral'
     reference_breakthrough:
       data_version: 'reference'
+      course_4_shift: 30
       omega_efficacy:
-        old_vaccine: 0.5
-        new_vaccine: 0.5
-    reference_targeted:
-      data_version: 'reference'
-      omega_efficacy:
-        old_vaccine: 0.5
-        new_vaccine: 1.5
-    booster:
-      data_version: 'booster'
-      omega_efficacy:
-        old_vaccine: 1.0
-        new_vaccine: 1.0
-    booster_breakthrough:
-      data_version: 'booster'
-      omega_efficacy:
-        old_vaccine: 0.5
-        new_vaccine: 0.5
-    booster_targeted:
-      data_version: 'booster'
-      omega_efficacy:
-        old_vaccine: 0.5
-        new_vaccine: 1.5
+        old_vaccine: 0.0
+        new_vaccine: 'ancestral'
     target_country:
       data_version: 'target_country'
+      course_4_shift: 30
       omega_efficacy:
-        old_vaccine: 1.0
-        new_vaccine: 1.0
+        old_vaccine: 'omicron'
+        new_vaccine: 'ancestral'
     target_country_breakthrough:
       data_version: 'target_country'
+      course_4_shift: 30
       omega_efficacy:
-        old_vaccine: 0.5
-        new_vaccine: 0.5
-    target_country_targeted:
-      data_version: 'target_country'
-      omega_efficacy:
-        old_vaccine: 0.5
-        new_vaccine: 1.5
+        old_vaccine: 0.0
+        new_vaccine: 'ancestral'
     target_region:
       data_version: 'target_region'
+      course_4_shift: 30
       omega_efficacy:
-        old_vaccine: 1.0
-        new_vaccine: 1.0
+        old_vaccine: 'omicron'
+        new_vaccine: 'ancestral'
     target_region_breakthrough:
       data_version: 'target_region'
+      course_4_shift: 30
       omega_efficacy:
-        old_vaccine: 0.5
-        new_vaccine: 0.5
-    target_region_targeted:
+        old_vaccine: 0.0
+        new_vaccine: 'ancestral'
+    reference_early:
+      data_version: 'reference'
+      course_4_shift: 0
+      omega_efficacy:
+        old_vaccine: 'omicron'
+        new_vaccine: 'ancestral'
+    reference_breakthrough_early:
+      data_version: 'reference'
+      course_4_shift: 0
+      omega_efficacy:
+        old_vaccine: 0.0
+        new_vaccine: 'ancestral'
+    target_country_early:
+      data_version: 'target_country'
+      course_4_shift: 0
+      omega_efficacy:
+        old_vaccine: 'omicron'
+        new_vaccine: 'ancestral'
+    target_country_breakthrough_early:
+      data_version: 'target_country'
+      course_4_shift: 0
+      omega_efficacy:
+        old_vaccine: 0.0
+        new_vaccine: 'ancestral'
+    target_region_early:
       data_version: 'target_region'
+      course_4_shift: 0
       omega_efficacy:
-        old_vaccine: 0.5
-        new_vaccine: 1.5
+        old_vaccine: 'omicron'
+        new_vaccine: 'ancestral'
+    target_region_breakthrough_early:
+      data_version: 'target_region'
+      course_4_shift: 0
+      omega_efficacy:
+        old_vaccine: 0.0
+        new_vaccine: 'ancestral'
   new_variant: 'ba5'
   default_new_variant_invasion_date: '2022-10-25'
   antiviral_scenario_parameters:

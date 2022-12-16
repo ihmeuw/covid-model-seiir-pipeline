@@ -139,11 +139,11 @@ def evil_doings(data: pd.DataFrame, hierarchy: pd.DataFrame, input_measure: str)
         
         dated_drop_list = [
             ## (location_id, location_label, drop_start_date) ##
-            (35, 'georgia', '2022-09-22'),
-            (115, 'jamaica', '2022-11-08'),
-            (422, 'us_virgin_islands', '2022-11-08'),
-            (151, 'qatar', '2022-10-08'),
-            (169, 'central_african_republic', '2022-10-01'),
+            (43, 'albania', '2022-12-01'),
+            (57, 'belarus', '2022-07-01'),
+            (115, 'jamaica', '2022-12-01'),
+            (4856, 'karnataka', '2022-11-15'),
+            (4870, 'tamil_nadu', '2022-10-15'),
         ]
 
         for location_id, location_name, drop_start_date in dated_drop_list:
@@ -182,10 +182,8 @@ def evil_doings(data: pd.DataFrame, hierarchy: pd.DataFrame, input_measure: str)
 
         dated_drop_list = [
             ## (location_id, location_label, drop_start_date) ##
-            (422, 'us_virgin_islands', '2022-11-08'),
+            (422, 'us_virgin_islands', '2022-11-22'),
             (126, 'costa_rica', '2022-04-01'),
-            (4759, 'maranhao', '2022-11-07'),
-            (151, 'qatar', '2022-10-08'),
         ]
 
         for location_id, location_name, drop_start_date in dated_drop_list:
@@ -219,13 +217,31 @@ def evil_doings(data: pd.DataFrame, hierarchy: pd.DataFrame, input_measure: str)
 
         dated_drop_list = [
             ## (location_id, location_label, drop_start_date) ##
-            (115, 'jamaica', '2022-11-08'),
-            (422, 'us_virgin_islands', '2022-11-08'),
-            (4758, 'goias', '2022-11-07'),
-            (4759, 'maranhao', '2022-11-07'),
-            (4763, 'para', '2022-11-07'),
-            (151, 'qatar', '2022-10-08'),
-            (169, 'central_african_republic', '2022-10-01'),
+            (37, 'kyrgyzstan', '2022-03-15'),
+            (41, 'uzbekistan', '2022-03-01'),
+            (57, 'belarus', '2022-07-01'),
+            (109, 'cuba', '2022-04-01'),
+            (115, 'jamaica', '2022-11-15'),
+            (422, 'us_virgin_islands', '2022-11-22'),
+            (150, 'oman', '2022-04-01'),
+            (4841, 'andhra_pradesh', '2022-03-01'),
+            (4842, 'arunachal_pradesh', '2022-03-01'),
+            (4856, 'karnataka', '2022-12-01'),
+            (4871, 'telangana', '2022-03-01'),
+            (53615, 'azad_jammu_&_kashmir', '2022-04-01'),
+            (53616, 'balochistan', '2022-04-01'),
+            (53617, 'gilgit_baltistan', '2022-04-01'),
+            (10, 'cambodia', '2022-04-01'),
+            (170, 'congo', '2022-04-01'),
+            (172, 'equatorial_guinea', '2022-02-14'),
+            (173, 'gabon', '2022-04-01'),
+            (178, 'eritrea', '2022-03-01'),
+            (187, 'somalia', '2022-04-01'),
+            (435, 'south_sudan', '2022-04-01'),
+            (200, 'benin', '2022-04-01'),
+            (201, 'burkina_faso', '2022-04-01'),
+            (210, 'liberia', '2022-04-01'),
+            (212, 'mauritania', '2022-10-15'),
         ]
 
         for location_id, location_name, drop_start_date in dated_drop_list:

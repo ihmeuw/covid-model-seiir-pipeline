@@ -1,0 +1,357 @@
+case:
+  ancestral:
+    36:      0.6  # Kazakhstan
+    37:      8.0  # Kyrgyzstan
+    50:      2.0  # Montenegro
+    61:      2.0  # Republic of Moldova
+    396:     3.0  # San Marino
+    114:    0.25  # Haiti
+    4647:    1.5  # Coahuila
+    4652:   1.25  # Durango
+    4751:    8.0  # Alagoas
+    4753:    8.0  # Amapá
+    4752:    0.5  # Amazonas
+    4756:    5.0  # Distrito Federal
+    4759:    0.5  # Maranhão
+    4762:    8.0  # Mato Grosso
+    4761:    8.0  # Mato Grosso do Sul
+    4760:    1.5  # Minas Gerais
+    4763:    8.0  # Pará
+    4764:    1.5  # Paraíba
+    4768:    3.0  # Rio de Janeiro
+    157:    0.75  # Yemen
+    4845:    1.5  # Chandigarh
+    4858:    1.5  # Lakshadweep
+    4866:    1.5  # Puducherry
+    4869:    1.5  # Sikkim
+    53618:   0.8  # Islamabad Capital Territory
+    186:     4.0  # Seychelles
+    200:     0.5  # Benin
+    209:    1.25  # Guinea-Bissau
+    210:     2.5  # Liberia
+    212:    0.75  # Mauritania
+  alpha:
+    36:    0.43550501551689025 # Kazakhstan
+    37:    4.997237853750269   # Kyrgyzstan
+    114:   0.5                 # Haiti
+    151:   0.25                # Qatar
+    157:   0.25                # Yemen
+  beta:
+    184:   0.5                 # Mozambique
+  gamma:
+    4751:  6.636688567946908   # Alagoas
+    4753:  12.603998890021273  # Amapá
+    4756:  1.5                 # Distrito Federal
+    4757:  1.5                 # Espírito Santo
+    4760:  1.25                # Minas Gerais
+    4762:  35.40576233257795   # Mato Grosso
+    4761:  28.118255140168202  # Mato Grosso do Sul
+    4763:  6.646797605564934   # Pará
+    4764:  1.25                # Paraíba
+    4768:  1.75                # Rio de Janeiro
+  delta:
+    36:    0.717111900386507   # Kazakhstan
+    37:    3.2928275364712247  # Kyrgyzstan
+    109:   0.75                # Cuba
+    114:   0.5                 # Haiti
+    127:   0.5                 # El Salvador
+    4652:  1.25                # Durango
+    157:   0.2                 # Yemen
+    4849:  1.5                 # Delhi
+    4856:  0.5                 # Karnataka
+    4861:  1.5                 # Manipur
+    4863:  14.17425383987252   # Mizoram
+    4845:  1.5                 # Chandigarh
+    4858:  6.0                 # Lakshadweep
+    4866:  3.0                 # Puducherry
+    4869:  12.488946293479433  # Sikkim
+    184:   0.25                # Mozambique
+    186:   10.0                # Seychelles
+    171:   1.25                # Democratic Republic of the Congo
+    212:   0.75                # Mauritania
+  omicron:
+    36:    0.6600688004628659  # Kazakhstan
+    37:    1.7859477642641657  # Kyrgyzstan
+    396:   2.0                 # San Marino
+    114:   0.5                 # Haiti
+    4644:  1.25                # Baja California
+    4652:  1.25                # Durango
+    4751:  4.105137030339426   # Alagoas
+    4753:  7.5                 # Amapá
+    4756:  0.5                 # Distrito Federal
+    4757:  1.5                 # Espírito Santo
+    4762:  5.931349714570321   # Mato Grosso
+    4761:  6.881684493041227   # Mato Grosso do Sul
+    4763:  2.9717463571087896  # Pará
+    4768:  0.75                # Rio de Janeiro
+    151:   0.8                 # Qatar
+    157:   0.5                 # Yemen
+    4842:  0.6740394419534336  # Arunachal Pradesh
+    4849:  1.25                # Delhi
+    4856:  0.8                 # Karnataka
+    4863:  7.235413606788315   # Mizoram
+    4845:  0.5                 # Chandigarh
+    4858:  2.0                 # Lakshadweep
+    4866:  2.0                 # Puducherry
+    4869:  0.9663263325014363  # Sikkim
+    53619: 0.75                # Khyber Pakhtunkhwa
+    492:   5.0                 # Beijing
+    498:   5.0                 # Guizhou
+    501:   5.0                 # Heilongjiang
+    505:   5.0                 # Inner Mongolia
+    510:   5.0                 # Ningxia
+    519:   5.0                 # Xinjiang
+    186:   10.0                # Seychelles
+    184:   0.75                # Mozambique
+    191:   0.75                # Zambia
+    193:   0.75                # Botswana
+    198:   0.75                # Zimbabwe
+    195:   0.5740923152948676  # Namibia
+    212:   0.75                # Mauritania
+  ba5:
+    90:    0.75                # Norway
+    396:   1.5                 # San Marino
+    107:   0.75                # Barbados
+    109:   0.75                # Cuba
+    125:   0.75                # Colombia
+    4665:  1.5                 # Quintana Roo
+    4669:  1.5                 # Tabasco
+    4673:  1.5                 # Yucatán
+    4753:  2.0                 # Amapá
+    4756:  1.5                 # Distrito Federal
+    4757:  1.5                 # Espírito Santo
+    157:   0.4                 # Yemen
+    4856:  0.6                 # Karnataka
+    4870:  0.75                # Tamil Nadu
+    53619: 0.75                # Khyber Pakhtunkhwa
+    184:   0.5                 # Mozambique
+    191:   0.75                # Zambia
+    193:   0.75                # Botswana
+    197:   0.75                # Eswatini
+    198:   0.75                # Zimbabwe
+    212:   0.5                 # Mauritania
+  #   498:   5.0                 # Guizhou
+  #   501:   5.0                 # Heilongjiang
+  #   505:   5.0                 # Inner Mongolia
+  #   510:   5.0                 # Ningxia
+  #   519:   5.0                 # Xinjiang
+
+admission:
+  ancestral:
+    4647:    1.5  # Coahuila
+    4652:   1.25  # Durango
+    4653:    1.5  # Guanajuato
+    4754:    0.5  # Bahia
+  alpha:
+    47:    1.75                # Czechia
+    151:   2.5                 # Qatar
+  gamma:
+    4751:  1.1909944929587015  # Alagoas
+    4753:  3.9648401030283984  # Amapá
+    4759:  1.5                 # Maranhão
+    4762:  4.656521709782338   # Mato Grosso
+    4761:  8.174015214829605   # Mato Grosso do Sul
+    4763:  1.564727475681964   # Pará
+  delta:
+    126:   1.25                # Costa Rica
+    4652:  1.25                # Durango
+  omicron:
+    43860: 1.5                 # Manitoba
+    126:   1.25                # Costa Rica
+    4644:  1.25                # Baja California
+    4647:  1.75                # Coahuila
+    4652:  2.0                 # Durango
+    4653:  1.25                # Guanajuato
+    4655:  1.25                # Hidalgo
+    4661:  1.25                # Nuevo León
+    4673:  2.0                 # Yucatán
+    4751:  0.5998894655846735  # Alagoas
+    4753:  0.5280961277658757  # Amapá
+    4762:  0.6456568553251786  # Mato Grosso
+    4761:  0.9733329833341042  # Mato Grosso do Sul
+    4763:  0.26008300676027624 # Pará
+    151:   0.6                 # Qatar
+    4845:  0.75                # Chandigarh
+    4866:  1.5                 # Puducherry
+  ba5:
+    4673:  1.5                 # Yucatán
+death:
+  ancestral:
+    33:     1.75  # Armenia
+    34:      2.0  # Azerbaijan
+    37:      3.0  # Kyrgyzstan
+    38:      1.5  # Mongolia
+    43:      1.5  # Albania
+    50:     1.25  # Montenegro
+    49:     1.25  # North Macedonia
+    60:     1.25  # Lithuania
+    367:     0.5  # Monaco
+    121:     3.0  # Bolivia (Plurinational State of)
+    126:     0.3  # Costa Rica
+    4647:    1.5  # Coahuila
+    4652:    1.5  # Durango
+    4653:    1.5  # Guanajuato
+    133:     0.1  # Venezuela (Bolivarian Republic of)
+    141:     1.5  # Egypt
+    155:     0.3  # Turkey
+    161:     0.5  # Bangladesh
+    4845:    2.0  # Chandigarh
+    4858:    2.0  # Lakshadweep
+    4866:    2.0  # Puducherry
+    53618:  1.25  # Islamabad Capital Territory
+    14:      0.5  # Maldives
+    168:    1.25  # Angola
+    187:     0.5  # Somalia
+    203:     0.5  # Cabo Verde
+    206:     1.5  # Gambia
+    208:    0.75  # Guinea
+  alpha:
+    33:    2.5                 # Armenia
+    34:    2.0                 # Azerbaijan
+    35:    2.0                 # Georgia
+    36:    0.8426316654007525  # Kazakhstan
+    37:    1.7146636219551967  # Kyrgyzstan
+    38:    1.25                # Mongolia
+    43:    2.0                 # Albania
+    45:    2.0                 # Bulgaria
+    47:    1.5                 # Czechia
+    49:    2.0                 # North Macedonia
+    60:    1.25                # Lithuania
+    141:   1.5                 # Egypt
+    151:   2.0                 # Qatar
+    53615: 1.5                 # Azad Jammu & Kashmir
+    53619: 3.0                 # Khyber Pakhtunkhwa
+    168:   1.5                 # Angola
+    173:   2.0                 # Gabon
+  beta:
+    181:   1.5                 # Madagascar
+    187:   2.0                 # Somalia
+    193:   5.0                 # Botswana
+    197:   5.0                 # Eswatini
+    194:   2.5                 # Lesotho
+  gamma:
+    4751:  0.9844426749317358  # Alagoas
+    4753:  4.64609204800433    # Amapá
+    4762:  8.707527835606973   # Mato Grosso
+    4761:  6.213896960018858   # Mato Grosso do Sul
+    4763:  1.5635396786119613  # Pará
+    4770:  1.5                 # Rondônia
+    4771:  1.25                # Roraima
+  delta:
+    33:    2.5                 # Armenia
+    34:    2.0                 # Azerbaijan
+    35:    2.0                 # Georgia
+    36:    1.7938560784063866  # Kazakhstan
+    37:    1.2627260563197984  # Kyrgyzstan
+    38:    1.25                # Mongolia
+    43:    2.0                 # Albania
+    45:    2.0                 # Bulgaria
+    49:    2.0                 # North Macedonia
+    60:    1.25                # Lithuania
+    160:   1.5                 # Afghanistan
+    141:   1.5                 # Egypt
+    4843:  1.5                 # Assam
+    4861:  2.0                 # Manipur
+    4862:  1.5                 # Meghalaya
+    4863:  5.841115384939276   # Mizoram
+    4864:  1.5                 # Nagaland
+    4845:  1.5                 # Chandigarh
+    4858:  1.5                 # Lakshadweep
+    4866:  3.0                 # Puducherry
+    4869:  2.0329886383397855  # Sikkim
+    53619: 3.0                 # Khyber Pakhtunkhwa
+    168:   1.5                 # Angola
+    173:   2.0                 # Gabon
+    182:   1.5                 # Malawi
+    187:   2.0                 # Somalia
+    191:   3.0                 # Zambia
+    193:   5.0                 # Botswana
+    197:   7.5                 # Eswatini
+    194:   2.5                 # Lesotho
+    195:   5.0                 # Namibia
+    198:   5.0                 # Zimbabwe
+    206:   1.5                 # Gambia
+    208:   1.5                 # Guinea
+    209:   1.5                 # Guinea-Bissau
+  omicron:
+    33:    2.5                 # Armenia
+    34:    2.0                 # Azerbaijan
+    35:    2.0                 # Georgia
+    37:    2.084252555069266   # Kyrgyzstan
+    43:    2.0                 # Albania
+    44:    1.5                 # Bosnia and Herzegovina
+    45:    2.0                 # Bulgaria
+    47:    2.5                 # Czechia
+    50:    2.0                 # Montenegro
+    49:    3.0                 # North Macedonia
+    60:    1.25                # Lithuania
+    43859: 1.25                # British Columbia
+    125:   1.25                # Colombia
+    4644:  1.25                # Baja California
+    4647:  2.0                 # Coahuila
+    4652:  2.0                 # Durango
+    4655:  1.5                 # Hidalgo
+    4661:  1.25                # Nuevo León
+    4673:  1.5                 # Yucatán
+    4751:  0.8741316961872208  # Alagoas
+    4753:  1.9238473474491047  # Amapá
+    4762:  1.1800385149041426  # Mato Grosso
+    4761:  1.345386871017022   # Mato Grosso do Sul
+    4763:  0.7494865462374457  # Pará
+    4771:  1.25                # Roraima
+    160:   1.5                 # Afghanistan
+    141:   1.5                 # Egypt
+    150:   1.5                 # Oman
+    4842:  0.4126183511377969  # Arunachal Pradesh
+    4843:  1.5                 # Assam
+    4849:  1.7361163781137399  # Delhi
+    4861:  2.0                 # Manipur
+    4862:  0.5                 # Meghalaya
+    4863:  1.25                # Mizoram
+    4845:  2.0                 # Chandigarh
+    4866:  2.0                 # Puducherry
+    4869:  0.872733287407307   # Sikkim
+    53619: 3.0                 # Khyber Pakhtunkhwa
+    186:   0.5                 # Seychelles
+    168:   1.5                 # Angola
+    173:   2.0                 # Gabon
+    181:   1.5                 # Madagascar
+    187:   1.5                 # Somalia
+    191:   1.5                 # Zambia
+    193:   7.5                 # Botswana
+    197:   7.5                 # Eswatini
+    194:   2.0                 # Lesotho
+    195:   5.0                 # Namibia
+    198:   5.0                 # Zimbabwe
+    201:   1.5                 # Burkina Faso
+    206:   1.5                 # Gambia
+    209:   1.5                 # Guinea-Bissau
+    212:   1.5                 # Mauritania
+  ba5:
+    33:    1.5                 # Armenia
+    34:    1.5                 # Azerbaijan
+    43:    1.5                 # Albania
+    45:    2.0                 # Bulgaria
+    50:    1.5                 # Montenegro
+    49:    1.5                 # North Macedonia
+    52:    1.5                 # Romania
+    54:    1.5                 # Slovakia
+    524:   2.0                 # Alaska
+    536:   1.25                # Illinois
+    107:   1.5                 # Barbados
+    157:   1.5                 # Yemen
+    4861:  2.0                 # Manipur
+    4862:  2.0                 # Meghalaya
+    4863:  2.0                 # Mizoram
+    53619: 1.5                 # Khyber Pakhtunkhwa
+    168:   2.0                 # Angola
+    182:   1.5                 # Malawi
+    185:   2.0                 # Rwanda
+    193:   7.5                 # Botswana
+    197:   5.0                 # Eswatini
+    194:   2.0                 # Lesotho
+    195:   3.0                 # Namibia
+    198:   5.0                 # Zimbabwe
+    204:   2.0                 # Chad
+    206:   2.0                 # Gambia
+    212:   2.0                 # Mauritania
