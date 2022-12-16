@@ -4,23 +4,22 @@ workflow:
   project: 'proj_covid_prod'
   queue: 'all.q'
 grid_plots:
-  - name: 'intervention_compare'
+  - name: 'longrange'
     date_start: '2020-01-01'
     date_end: '2023-12-31'
     comparators:
-    - version: '2022_11_30.01'
+    - version: '2022_12_13.01'
       scenarios:
-        reference: 'reference'
-        seasonal_masks: 'seasonal_masks'
-        mandate_reimposition: 'mandate_reimposition'
-        seasonal_masks_and_mandate_reimposition: 'seasonal_masks_and_mandate_reimposition'
-  - name: 'vaccine_compare'
-    date_start: '2020-01-01'
-    date_end: '2023-12-31'
-    comparators:
-      - version: '2022_11_30.01'
-        scenarios:
-          reference: 'reference'
-          reference_breakthrough: 'reference_breakthrough'
-          reference_target_country: 'reference_target_country'
-          reference_target_region: 'reference_target_region'
+        reference*: 'none'
+    - version: '2022_12_13.02'
+      scenarios:
+        reference*: 'delta'
+    - version: '2022_12_13.03'
+      scenarios:
+        reference*: 'omicron'
+    - version: '2022_12_13.04'
+      scenarios:
+        reference*: 'deltacron'
+    - version: '2022_12_15.06'
+      scenarios:
+        reference*: 'real delta'

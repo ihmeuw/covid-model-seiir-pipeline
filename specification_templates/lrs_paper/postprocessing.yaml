@@ -1,5 +1,5 @@
 data:
-  seir_forecast_version: '2022_12_13.04'
+  seir_forecast_version: '2022_12_15.06'
   scenarios:
     - 'reference'
     - 'seasonal_masks'
