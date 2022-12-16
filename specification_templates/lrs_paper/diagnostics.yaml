@@ -23,6 +23,9 @@ grid_plots:
     - version: '2022_12_13.04'
       scenarios:
         reference*: 'deltacron'
+    - version: '2022_12_15.06'
+      scenarios:
+        reference*: 'true delta'
   - name: 'intervention_compare_none'
     date_start: '2022-06-01'
     date_end: '2023-12-31'
@@ -63,6 +66,16 @@ grid_plots:
           seasonal_masks: 'seasonal_masks'
           mandate_reimposition: 'mandate_reimposition'
           seasonal_masks_and_mandate_reimposition: 'seasonal_masks_and_mandate_reimposition'
+  - name: 'intervention_compare_true_delta'
+    date_start: '2022-06-01'
+    date_end: '2023-12-31'
+    comparators:
+      - version: '2022_12_15.06'
+        scenarios:
+          reference: 'reference'
+          seasonal_masks: 'seasonal_masks'
+          mandate_reimposition: 'mandate_reimposition'
+          seasonal_masks_and_mandate_reimposition: 'seasonal_masks_and_mandate_reimposition'
   - name: 'vaccine_compare_none'
     date_start: '2022-06-01'
     date_end: '2023-12-31'
@@ -95,6 +108,15 @@ grid_plots:
     date_end: '2023-12-31'
     comparators:
       - version: '2022_12_13.04'
+        scenarios:
+          reference: 'reference'
+          reference_target_country: 'reference_target_country'
+          reference_target_region: 'reference_target_region'
+  - name: 'vaccine_compare_true_delta'
+    date_start: '2022-06-01'
+    date_end: '2023-12-31'
+    comparators:
+      - version: '2022_12_15.06'
         scenarios:
           reference: 'reference'
           reference_target_country: 'reference_target_country'
