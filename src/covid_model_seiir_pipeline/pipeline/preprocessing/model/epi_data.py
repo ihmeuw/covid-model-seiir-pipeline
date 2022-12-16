@@ -144,7 +144,6 @@ def evil_doings(data: pd.DataFrame, hierarchy: pd.DataFrame, input_measure: str)
             (115, 'jamaica', '2022-12-01'),
             (4856, 'karnataka', '2022-11-15'),
             (4870, 'tamil_nadu', '2022-10-15'),
-            # (169, 'central_african_republic', '2022-10-01'),
         ]
 
         for location_id, location_name, drop_start_date in dated_drop_list:
