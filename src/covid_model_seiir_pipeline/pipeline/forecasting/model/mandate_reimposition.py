@@ -54,9 +54,9 @@ def get_reimposition_threshold(
     china_subnats = hierarchy[china & (hierarchy.most_detailed == 1)].location_id.tolist()
     threshold_rate.loc[china_subnats] = 1
 
-    # HACK FOR PROD: Don't reimpose anywhere but china
-#    non_china = threshold_rate.index.difference(china_subnats)
-#    threshold_rate.loc[non_china] = 1e6
+    # # HACK FOR PROD: Don't reimpose anywhere but china
+    # non_china = threshold_rate.index.difference(china_subnats)
+    # threshold_rate.loc[non_china] = 1e6
 
     return threshold_rate
 
