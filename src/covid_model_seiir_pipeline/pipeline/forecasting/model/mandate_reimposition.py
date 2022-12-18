@@ -52,6 +52,7 @@ def get_reimposition_threshold(
 
     china = hierarchy.path_to_top_parent.str.contains(',6,')
     china_subnats = hierarchy[china & (hierarchy.most_detailed == 1)].location_id.tolist()
+    china_subnats = threshold_rate.index.intersection(china_subnats)
     threshold_rate.loc[china_subnats] = 1
 
     # # HACK FOR PROD: Don't reimpose anywhere but china
