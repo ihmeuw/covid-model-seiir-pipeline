@@ -1,8 +1,8 @@
 data:
-  seir_preprocess_version: '2022_12_02.04'
+  seir_preprocess_version: '2022_12_18.01'
   output_format: 'parquet'
   output_root: ''
-  compare_version: ''
+  compare_version: '2022_12_14.03'
 workflow:
   project: 'proj_covid_prod'
   queue: 'all.q'
@@ -26,7 +26,7 @@ rates_parameters:
   exposure_to_seroconversion: [14, 18]
   admission_to_death: [12, 16]
   test_scalar: 1.0
-  calibration_type: 'composite'
+  calibration_type: 'composite_dec2022_update'
   # global risk ratios for non-ancestral
   idr_rr_alpha: 1.0
   ihr_rr_alpha: [1.0, 1.4]
@@ -51,7 +51,7 @@ rates_parameters:
   antiviral_effectiveness_ihr: [0.20, 0.25]
   antiviral_effectiveness_ifr: [0.25, 0.30]
 fit_parameters:
-  omega_invasion_date: '2022-12-15'
+  omega_invasion_date: ''
   # Mixing parameter.  dS/dt = -beta * S * I ** alpha
   alpha_all: [0.9, 1.0]
   # Proportion of current E to send to variant E on invasion.
@@ -90,8 +90,7 @@ fit_parameters:
   kappa_delta: [1.6, 2.0]
   kappa_omicron: [2.0, 2.4]
   kappa_ba5: [2.0, 2.4]
-  kappa_omega: [1.6, 2.0]
-  #kappa_omega: [2.0, 2.4]
+  kappa_omega: [2.0, 2.4]
   # (1 - breakthrough probability) for a variant.
   phi_ancestral: 1.0
   phi_alpha: 1.0
@@ -100,5 +99,4 @@ fit_parameters:
   phi_delta: [0.7, 0.9]
   phi_omicron: [0.4, 0.6]
   phi_ba5: [0.4, 0.6]
-  #phi_omega: [0.4, 0.6]
-  phi_omega: [0.7, 0.9]
+  phi_omega: [0.4, 0.6]
