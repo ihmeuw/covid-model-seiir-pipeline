@@ -1,13 +1,13 @@
 data:
-  seir_forecast_version: '2022_12_17.03'
+  seir_forecast_version: '2022_12_18.01'
   # seir_counterfactual_version: '2022_08_31.04'
   scenarios:
    - 'reference'
-   - 'reference_560'
+   - 'reference_360'
   output_root: ''
 workflow:
   project: 'proj_covid_prod'
-  queue: 'all.q'
+  queue: 'long.q'
 resampling:
   reference_scenario: 'reference'
   reference_date: '2022-12-01'

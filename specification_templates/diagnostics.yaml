@@ -2,7 +2,7 @@ data:
   output_root: ''
 workflow:
   project: 'proj_covid_prod'
-  queue: 'all.q'
+  queue: 'long.q'
 grid_plots:
   ## short range
   - name: '2020_mar2023'
@@ -12,13 +12,13 @@ grid_plots:
     - version: '2022_12_15.05'
       scenarios:
         reference*: 'public reference'
-    - version: '2022_12_16.01'
+    - version: '2022_12_17.04'
       scenarios:
         reference: '360 day ifr'
-    - version: '2022_12_17.03'
+    - version: '2022_12_18.04'
       scenarios:
         reference: 'scalar 180'
-        reference_560: 'scalar 360'
+        reference_360: 'scalar 360'
   ## long range
   - name: '2020_2023'
     date_start: '2020-01-01'
@@ -27,10 +27,10 @@ grid_plots:
     - version: '2022_12_15.05'
       scenarios:
         reference*: 'public reference'
-    - version: '2022_12_16.01'
+    - version: '2022_12_17.04'
       scenarios:
         reference: '360 day ifr'
-    - version: '2022_12_17.03'
+    - version: '2022_12_18.04'
       scenarios:
         reference: 'scalar 180'
-        reference_560: 'scalar 360'
+        reference_360: 'scalar 360'

@@ -26,7 +26,7 @@ rates_parameters:
   exposure_to_seroconversion: [14, 18]
   admission_to_death: [12, 16]
   test_scalar: 1.0
-  calibration_type: 'composite'
+  calibration_type: 'composite_dec2022_update'
   # global risk ratios for non-ancestral
   idr_rr_alpha: 1.0
   ihr_rr_alpha: [1.0, 1.4]
