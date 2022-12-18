@@ -60,24 +60,25 @@ def make_uptake_square(uptake: pd.DataFrame, course_4_shift: pd.Timedelta) -> pd
     uptake = uptake.reindex(idx).fillna(0.)
 
     if add_fourth_dose:
-        fourth_dose_shifted = (uptake
-                               .loc[4]
-                               .groupby(['location_id', 'risk_group'])
-                               .shift(-7)
-                               .fillna(0.)
-                               .groupby(['location_id', 'risk_group'])
-                               .cumsum()
-                               .fillna(0.)
-                               .sum(axis=1))
-        third_dose = uptake.loc[3].groupby(['location_id', 'risk_group']).cumsum().fillna(0.)
-        third_dose_total = third_dose.sum(axis=1)
-        delta = fourth_dose_shifted - third_dose_total
-        third_dose.loc[delta > 0, 'mRNA Vaccine'] += delta.loc[delta > 0]
+        for course in [3, 2]:
+            current_dose = (uptake
+                            .loc[course + 1]
+                            .groupby(['location_id', 'risk_group'])
+                            .shift(-7)
+                            .fillna(0.)
+                            .groupby(['location_id', 'risk_group'])
+                            .cumsum()
+                            .fillna(0.)
+                            .sum(axis=1))
+            prior_dose = uptake.loc[course].groupby(['location_id', 'risk_group']).cumsum().fillna(0.)
+            prior_dose_total = prior_dose.sum(axis=1)
+            delta = current_dose - prior_dose_total
+            prior_dose.loc[delta > 0, 'mRNA Vaccine'] += delta.loc[delta > 0]
 
-        third_dose_frontier = third_dose.groupby(['location_id', 'risk_group']).diff().fillna(0.)
-        third_dose_frontier['vaccine_course'] = 3
-        third_dose_frontier = third_dose_frontier.reset_index().set_index(idx_names).sort_index()
-        uptake.loc[[3]] = third_dose_frontier
+            prior_dose_frontier = prior_dose.groupby(['location_id', 'risk_group']).diff().fillna(0.)
+            prior_dose_frontier['vaccine_course'] = course
+            prior_dose_frontier = prior_dose_frontier.reset_index().set_index(idx_names).sort_index()
+            uptake.loc[[course]] = prior_dose_frontier
 
     return uptake
 
