@@ -244,7 +244,7 @@ def build_ratio(infections: pd.Series,
                                   .to_list())
         for location_id in mainland_chn_locations:
             try:
-                lr_ratio.loc[[location_id]] = lr_ratio.loc[354]  # * 4.480477118294738
+                lr_ratio.loc[[location_id]] = lr_ratio.loc[354] * 4.480477118294738
             except KeyError:
                 pass
     elif shifted_numerator.name in ['case', 'admission']:

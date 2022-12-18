@@ -1,11 +1,9 @@
 data:
-  seir_forecast_version: '2022_12_14.03'
+  seir_forecast_version: '2022_12_18.03'
   # seir_counterfactual_version: '2022_08_31.04'
   scenarios:
    - 'reference'
-   - 'no_mandate_reimposition'
-   - 'best_masks'
-   - 'global_antivirals'
+   - 'reference_360'
   output_root: ''
 workflow:
   project: 'proj_covid_prod'
@@ -15,46 +13,12 @@ resampling:
   reference_date: '2022-12-01'
   lower_quantile: 0.025
   upper_quantile: 0.975
-splicing:
-  - locations:
-      - 127    # El Salvador
-      - 172    # Equatorial Guinea
-      - 184    # Mozambique
-      - 197    # Eswatini
-    output_version: '/ihme/covid-19/seir-outputs/2022_11_17.03'
-  - locations:
-      - 491    # Anhui
-      - 492    # Beijing
-      - 493    # Chongqing
-      - 494    # Fujian
-      - 495    # Gansu
-      - 496    # Guangdong
-      - 497    # Guangxi
-      - 498    # Guizhou
-      - 499    # Hainan
-      - 500    # Hebei
-      - 501    # Heilongjiang
-      - 502    # Henan
-      - 503    # Hubei
-      - 504    # Hunan
-      - 505    # Inner Mongolia
-      - 506    # Jiangsu
-      - 507    # Jiangxi
-      - 508    # Jilin
-      - 509    # Liaoning
-      - 510    # Ningxia
-      - 511    # Qinghai
-      - 512    # Shaanxi
-      - 513    # Shandong
-      - 514    # Shanghai
-      - 515    # Shanxi
-      - 516    # Sichuan
-      - 517    # Tianjin
-      - 518    # Tibet
-      - 519    # Xinjiang
-      - 520    # Yunnan
-      - 521    # Zhejiang
-    output_version: '/ihme/covid-19/seir-outputs/2022_12_15.04'
+#splicing:
+#  - locations:
+#      - 127    # El Salvador
+#      - 172    # Equatorial Guinea
+#      - 184    # Mozambique
+#      - 197    # Eswatini
 aggregation:
   - location_file: '/ihme/covid-19/model-inputs/best/locations/modeling_hierarchy.csv'
   - location_file: '/ihme/covid-19/seir-outputs/agg-hierarchies/who_plus_palestine.csv'
