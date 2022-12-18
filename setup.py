@@ -18,6 +18,7 @@ if __name__ == "__main__":
         'click',
         'covid_shared>=2.1.1',
         'fastparquet',
+        'geopandas',
         'inflection',
         'loguru',
         'matplotlib',
